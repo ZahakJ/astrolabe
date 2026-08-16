@@ -8,13 +8,16 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import type { Context } from "hono";
 import { api, contentTypeFor } from "./api.ts";
-import { canRead, initAuth } from "./auth.ts";
+import { ConfigError, canRead, initAuth } from "./auth.ts";
 import { injectHead, renderFeed, requestOrigin } from "./blog.ts";
-import { faviconPath } from "./settings.ts";
+import { startGitSyncTimer } from "./gitSync.ts";
+import { languageScope } from "./language.ts";
+import { faviconPath, migrateSettings } from "./settings.ts";
 import { initSite } from "./site.ts";
 import { initComments } from "./comments.ts";
 import { initIndexer } from "./indexer.ts";
 import { initVault, isIgnoredSegment, resolveVaultRoot, startWatcher, statAttachment } from "./vault.ts";
+import { isNotePath } from "../shared/noteFormat.ts";
 
 const projectRoot = fileURLToPath(new URL("..", import.meta.url));
 const port = Number(process.env.PORT) || 6801;
@@ -37,7 +40,7 @@ function hasMarkdown(dir: string): boolean {
     }
     for (const entry of entries) {
       if (isIgnoredSegment(entry.name)) continue;
-      if (entry.isFile() && entry.name.toLowerCase().endsWith(".md")) return true;
+      if (entry.isFile() && isNotePath(entry.name)) return true;
       if (entry.isDirectory()) stack.push(path.join(current, entry.name));
     }
   }
@@ -54,14 +57,82 @@ function hasMarkdown(dir: string): boolean {
   }
 }
 
-initAuth();
+// A configuration that cannot mean what it says stops the process here, with
+// the sentence that fixes it and no stack trace — a startup banner nobody
+// reads is how PUBLIC=false stayed silently inert (see auth.ts::initAuth).
+try {
+  initAuth();
+} catch (err) {
+  if (!(err instanceof ConfigError)) throw err;
+  console.error(`\nvellum: refusing to start.\n\n  ${err.message}\n`);
+  process.exit(1);
+}
 initSite();
+// One-time settings migrations, after initSite (they may need siteLanguage())
+// and before anything reads the merged view. Silent unless something moved.
+migrateSettings();
 initComments();
 initVault(vaultDir);
 startWatcher();
 await initIndexer();
+// Backup & sync scheduler. Inert unless settings.gitSync is enabled with a
+// remote and a non-zero interval — a fresh instance never touches a network.
+startGitSyncTimer();
 
 const app = new Hono();
+
+// ── Origin hardening ────────────────────────────────────────────────────────
+// This origin runs the admin app: an editor with permanent delete, publish,
+// settings PATCH and git sync behind ordinary clicks. It carried no CSP, no
+// X-Frame-Options, no nosniff and no Referrer-Policy — so any page anywhere
+// could frame it and drive those controls by pointer, and the hand-rolled HTML
+// sanitizer in the reading view (client/reading/rawHtml.ts) had no backstop
+// behind it whatsoever. One middleware, applied to every response this process
+// writes, and every value is a DEFAULT: a route that already stated its own
+// (e.g. /api/file's `Content-Security-Policy: sandbox` for SVG and PDF bytes)
+// keeps it.
+//
+// The policy is as tight as the app actually allows: no inline script exists
+// anywhere (the built shell loads one module by src), so `script-src 'self'`
+// costs nothing; inline STYLE does exist by design (React style props, KaTeX,
+// the generated banner gradients), so style-src keeps 'unsafe-inline' — which
+// buys back nothing an attacker wants without script. Remote images are
+// allowed because `banner: https://…` and raw <img> in notes are documented
+// features; everything else is same-origin.
+const SHELL_CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https: http:",
+  "media-src 'self' data: https: http:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "frame-src 'none'",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+app.use("*", async (c, next) => {
+  await next();
+  const headers = c.res.headers;
+  if (!headers.has("X-Content-Type-Options")) headers.set("X-Content-Type-Options", "nosniff");
+  if (!headers.has("Referrer-Policy")) headers.set("Referrer-Policy", "same-origin");
+  if (!(headers.get("Content-Type") ?? "").startsWith("text/html")) return;
+  // Documents only: the anti-framing and anti-injection half.
+  if (!headers.has("Content-Security-Policy")) headers.set("Content-Security-Policy", SHELL_CSP);
+  if (!headers.has("X-Frame-Options")) headers.set("X-Frame-Options", "DENY");
+  // The shell's <head> is injected per request and differs by session (a
+  // PUBLIC=false vault without a cookie gets generic meta; an admin gets the
+  // note's own), so it is exactly as session-varying as the API is.
+  if (!headers.has("Cache-Control")) headers.set("Cache-Control", "private, no-cache");
+  // Same three dimensions the API varies on (api.ts::VARY_ON): the injected
+  // <head> is built from the visitor-visible post set, so under
+  // `languageFilter: "follow"` it differs by reader language too.
+  if (!headers.has("Vary")) headers.set("Vary", "Cookie, X-Vellum-Preview, X-Vellum-Lang");
+});
+
 app.route("/api", api);
 app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 
@@ -69,9 +140,18 @@ app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 // but gated exactly like API reads: PUBLIC=false keeps it behind login.
 app.get("/feed.xml", (c) => {
   if (!canRead(c)) return c.json({ error: "Sign in required" }, 401);
-  return c.body(renderFeed(requestOrigin(c)), 200, {
+  // The feed is a VISITOR surface even when an admin fetches it — it is the
+  // document strangers subscribe to, so it is always language-scoped (unlike
+  // /api/posts, which answers the admin with their whole vault). A feed reader
+  // has no headers to offer, so the scope comes from ?lang= — /feed.xml?lang=ar
+  // is the Arabic side of a bilingual site as its own subscribable URL.
+  return c.body(renderFeed(requestOrigin(c), languageScope(c, true)), 200, {
     "Content-Type": "application/rss+xml; charset=utf-8",
     "Cache-Control": "no-cache",
+    // Same reason as every /api body: with PUBLIC=false this is a 401 without
+    // a session and a full feed with one, off one URL — and now one feed per
+    // ?lang= as well, which is a query dimension caches already key on.
+    "Vary": "Cookie, X-Vellum-Preview, X-Vellum-Lang",
   });
 });
 

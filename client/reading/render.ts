@@ -14,6 +14,7 @@ import type { TreeNode } from "../../shared/types.ts";
 import { getNote } from "../api.ts";
 import { getKatex, loadKatex } from "../katex.ts";
 import { t, tf } from "../i18n.ts";
+import { label as tagLabel } from "../tagLabels.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { parseWikilink, resolveLink } from "../editor/links.ts";
@@ -37,6 +38,9 @@ import { bannerFromYaml } from "../banner.ts";
 import { buildBannerEl, buildPropsCard, TAG_RE } from "../editor/noteMeta.ts";
 import { htmlBlockStart, sanitizeHtml, sanitizeInlineTag } from "./rawHtml.ts";
 import { Slugger, stripInline } from "./toc.ts";
+import { isNotePath, isTexPath, noteTitleOf } from "../../shared/noteFormat.ts";
+import { findAnchor, noteAnchors } from "../../shared/anchors.ts";
+import { renderNoteContent, renderNoteSlice } from "./renderNote.ts";
 
 export interface RenderOptions {
   notePath: string;
@@ -263,12 +267,28 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
 
   // #tags → search pills. Tags hidden from the surface (EXCLUDE_TAGS on
   // blog renders) stay plain text — no pill styling, no dead-end topic link.
+  //
+  // THE PILL SAYS THE LABEL AND MEANS THE TAG, exactly as the DOM builder
+  // below (`s-rv-tag`, ~line 650) and the editor's properties card already do.
+  // This one was the copy that did not: `renderInline` is what paragraphs,
+  // headings, table cells, list items, callouts and footnotes all go through,
+  // so an Arabic instance labelled its sidebar cloud, its properties cards and
+  // its blog nav «التعمية» while every tag in the PROSE — and every tag in a
+  // hover card, which renders through here — still read `#cryptography`. One
+  // pill, two builders, one of them localised: the drift this codebase keeps
+  // writing down, in the surface a reader looks at most.
+  //
+  // `data-tag` stays canonical (it is what the delegated click searches on),
+  // the title names the canonical value so a reader can always learn what to
+  // type, and `dir="auto"` is not optional — `#` is bidi-neutral, so under an
+  // RTL base direction a chip without it reads «التعمية#».
   s = s.replace(TAG_RE, (_m, pre: string, name: string) => {
     if (ctx.visibleTags && !ctx.visibleTags.has(name.toLowerCase())) return `${pre}#${name}`;
     return (
       pre +
       keep(
-        `<button type="button" class="s-rv-tag" data-tag="${esc(name)}">#${esc(name)}</button>`,
+        `<button type="button" class="s-rv-tag" data-tag="${esc(name)}" dir="auto"` +
+          ` title="${esc(tf("searchTag", { tag: name }))}">#${esc(tagLabel(name))}</button>`,
       )
     );
   });
@@ -459,15 +479,19 @@ export function markTransclusionOverflow(
   });
 }
 
-function transclusion(target: string, ctx: Ctx): HTMLElement {
+function transclusion(target: string, ctx: Ctx, anchor: string | null = null): HTMLElement {
   const path = resolveLink(target, ctx.tree);
   const card = document.createElement("div");
   card.className = "s-rv-transclude";
   const header = document.createElement("div");
   header.className = "s-rv-transclude__title";
-  header.textContent = path
-    ? path.split("/").pop()!.replace(/\.md$/i, "")
-    : target;
+  header.textContent = path ? noteTitleOf(path) : target;
+  if (anchor) {
+    const suffix = document.createElement("span");
+    suffix.className = "s-rv-transclude__anchor";
+    suffix.textContent = ` › ${anchor}`;
+    header.appendChild(suffix);
+  }
   card.appendChild(header);
   const body = document.createElement("div");
   body.className = "s-rv-transclude__body";
@@ -506,7 +530,28 @@ function transclusion(target: string, ctx: Ctx): HTMLElement {
         assignIds: false,
       };
       body.replaceChildren();
-      renderNote(note.content, inner, body);
+      // The target may be a `.tex` note — a vault is not obliged to be all one
+      // format — and it may name an ANCHOR, in which case only that block is
+      // pulled in: `![[Paper#eq:fourier]]` is one equation, rendered by KaTeX,
+      // inside a markdown note. Both are one dispatch through renderNote.ts.
+      const part = anchor === null ? null : anchorSlice(note.content, path, anchor, inner);
+      if (part) {
+        body.appendChild(part);
+      } else if (isTexPath(path)) {
+        body.appendChild(
+          renderNoteContent(note.content, {
+            notePath: path,
+            tree: ctx.tree,
+            embedded: true,
+            ancestors: new Set([...ctx.ancestors, path]),
+            brokenLinks: ctx.brokenLinks,
+            missingImages: ctx.missingImages,
+            visibleTags: ctx.visibleTags,
+          }),
+        );
+      } else {
+        renderNote(note.content, inner, body);
+      }
       markTransclusionOverflow(
         card,
         body,
@@ -541,7 +586,63 @@ function renderEmbedBlock(inner: string, ctx: Ctx): HTMLElement {
     chip.innerHTML = renderInline(`[[${inner}]]`, ctx);
     return chip;
   }
-  return transclusion(embed.target, ctx);
+  return transclusion(embed.target, ctx, embed.anchor);
+}
+
+/** Just the block an `#anchor` names, when the target carries one. Markdown
+ *  headings and LaTeX labels resolve through the same table (shared/anchors.ts),
+ *  so this is one lookup for both formats; a miss returns null and the caller
+ *  transcludes the whole note, which is what `![[Note#missing]]` did before
+ *  anchors existed. */
+function anchorSlice(
+  content: string,
+  path: string,
+  anchor: string,
+  inner: Ctx,
+): HTMLElement | null {
+  // A hit is required HERE rather than delegated blind, because a miss has to
+  // fall through to this function's own caller (which then transcludes the
+  // whole note through the ctx it is already holding).
+  if (!findAnchor(noteAnchors(path, content), anchor)) return null;
+  return renderNoteSlice(
+    content,
+    {
+      notePath: path,
+      tree: inner.tree,
+      embedded: true,
+      ancestors: inner.ancestors,
+      brokenLinks: inner.brokenLinks,
+      missingImages: inner.missingImages,
+      visibleTags: inner.visibleTags,
+    },
+    anchor,
+  );
+}
+
+/** The lines a markdown heading owns: the heading itself plus everything under
+ *  it until the next heading at the same or a shallower level.
+ *
+ *  Exported for renderNote.ts's `renderNoteSlice`, which is the ONE answer to
+ *  "render the block this `#anchor` names" — the reading view, the blog and
+ *  the editor's transclusion widget all go through it, so a partial
+ *  transclusion cannot mean one thing on one surface and another somewhere
+ *  else (it did: the editor pulled in the whole note and dropped the anchor
+ *  from the card's title while the reading view sliced it correctly). */
+export function markdownSection(md: string, line: number): string | null {
+  const lines = md.replace(/\r\n/g, "\n").split("\n");
+  const start = line - 1;
+  const head = HEADING_RE.exec(lines[start] ?? "");
+  if (!head) return null;
+  const level = head[1].length;
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    const m = HEADING_RE.exec(lines[i]);
+    if (m && m[1].length <= level) {
+      end = i;
+      break;
+    }
+  }
+  return lines.slice(start, end).join("\n");
 }
 
 // ── Frontmatter properties card ─────────────────────────────────────────────
@@ -555,7 +656,14 @@ function propsCard(yaml: string): HTMLElement | null {
       pill.type = "button";
       pill.className = "s-rv-tag";
       pill.dataset.tag = value;
-      pill.textContent = `#${value}`;
+      // dir="auto", not "ltr": the chip is its own content and the tag can be
+      // Arabic. Without the isolate the neutral `#` is swept to the display
+      // end by an RTL base direction and the chip reads `matrix#`.
+      pill.dir = "auto";
+      // Display only: `data-tag` above keeps the canonical tag, which is what
+      // the reading view's delegated handler searches on.
+      pill.textContent = `#${tagLabel(value)}`;
+      pill.title = tf("searchTag", { tag: value });
       return pill;
     },
   });
@@ -663,10 +771,12 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       continue;
     }
 
-    // horizontal rule
+    // horizontal rule. `***` draws the ORNAMENTAL divider, `---` and `___` the
+    // plain one — markdown's three spellings of a thematic break are one thing
+    // to a parser and have always been two things to a typesetter.
     if (HR_RE.test(t)) {
       const hr = document.createElement("hr");
-      hr.className = "s-rv-hr";
+      hr.className = t.trim().startsWith("*") ? "s-rv-hr s-rv-hr--orn" : "s-rv-hr";
       root.appendChild(hr);
       i++;
       continue;
@@ -777,6 +887,15 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       wrap.className = "s-rv-tablewrap";
       const table = document.createElement("table");
       table.className = "s-rv-table";
+      // COLUMN ORDER IS CONTENT, so the table takes its direction from its own
+      // text, exactly as every other rendered block does. The cells already
+      // carried `dir="auto"` and the table did not, so it inherited the SHELL:
+      // an English table on an Arabic instance came out with its columns
+      // reversed — "Column | Another" read "Another | Column" — while each
+      // cell's own text sat the right way round inside it. An Arabic table
+      // still reads right to left, because its own first strong character
+      // says so.
+      table.dir = "auto";
       const alignCls = (j: number): string =>
         aligns[j] ? ` class="s-rv-al-${aligns[j] === "center" ? "c" : "r"}"` : "";
       table.innerHTML =
@@ -853,7 +972,18 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
         // Banner hero above the properties card (the blog shell hides this
         // and renders its own full-width hero instead).
         const banner = bannerFromYaml(yaml);
-        if (banner) root.appendChild(buildBannerEl(banner, "s-rv-banner"));
+        if (banner) {
+          // The note's own path is the relative base ("cover.png" beside it),
+          // and `admin` decides whether an unresolvable value shows the
+          // missing-image card or nothing at all. `admin` is already false
+          // while previewing as a visitor, which is the answer this wants.
+          root.appendChild(
+            buildBannerEl(banner, "s-rv-banner", {
+              notePath: ctx.notePath,
+              admin: useStore.getState().admin,
+            }),
+          );
+        }
         const card = propsCard(yaml);
         if (card) root.appendChild(card);
       }
@@ -893,7 +1023,10 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
 
 // ── Root click delegation ───────────────────────────────────────────────────
 
-function onRootClick(ev: MouseEvent): void {
+/** Exported so the LaTeX renderer (reading/texRender.ts) can attach the SAME
+ *  delegated handler: a `\note{…}` link, a `#tag` pill and a footnote hop must
+ *  behave identically no matter which format the note was written in. */
+export function onRootClick(ev: MouseEvent): void {
   if (ev.button !== 0) return;
   const target = ev.target as HTMLElement;
   const scope = (target.closest(".s-rv") as HTMLElement | null) ?? document.body;
@@ -923,11 +1056,11 @@ function onRootClick(ev: MouseEvent): void {
       const display =
         rendered && !rendered.includes("/")
           ? rendered
-          : name.split("/").pop()?.replace(/\.md$/i, "") ?? name;
+          : noteTitleOf(name);
       toast(tf("linkNotPublished", { name: display }));
     } else {
       // Unresolved link: clicking it creates the note (Obsidian behavior).
-      const notePath = /\.md$/i.test(name) ? name : `${name}.md`;
+      const notePath = isNotePath(name) ? name : `${name}.md`;
       toast(tf("creatingNote", { name }));
       void store.createNote(notePath);
     }

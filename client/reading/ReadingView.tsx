@@ -4,12 +4,14 @@
 // answers "vellum:goto-heading" requests from the outline panel.
 
 import { useEffect, useRef } from "react";
-import { getNote } from "../api.ts";
+import { getNote, isNotPublishedError } from "../api.ts";
 import Marginalia from "../components/Marginalia.tsx";
 import { t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
-import { renderMarkdown } from "./render.ts";
+import { numberRendered, useHeadingNumberTick } from "./headingNumbers.ts";
+import { renderNoteContent } from "./renderNote.ts";
+import { applyNoteLayoutTo } from "../textLayout.ts";
 import "./reading.css";
 
 /** Scroll positions survive tab switches; module-level so remounts keep them. */
@@ -39,6 +41,12 @@ export default function ReadingView({ path }: { path: string }) {
   // the empty-note hint), and it is imperative DOM — so this component's own
   // subscription to `language` is what re-renders it on a live settings flip.
   const language = useStore((s) => s.language);
+  const siteTextDirection = useStore((s) => s.textDirection);
+  const siteTextAlign = useStore((s) => s.textAlign);
+  // Auto-numbered headings: a reading affordance, off by default, overridden
+  // per note by frontmatter `numbered:`. The tick repaints when the outline
+  // panel's "1." toggle flips the device preference (reading/headingNumbers.ts).
+  const numberTick = useHeadingNumberTick();
 
   // Load + render (re-runs when the tree resolves or a pending save lands).
   useEffect(() => {
@@ -48,11 +56,16 @@ export default function ReadingView({ path }: { path: string }) {
     getNote(path)
       .then((note) => {
         if (disposed || !hostRef.current) return;
-        const el = renderMarkdown(note.content, {
+        const el = renderNoteContent(note.content, {
           notePath: path,
           tree: useStore.getState().tree,
         });
         el.classList.add("s-reading__content");
+        // The site's direction/alignment, or whatever this note's own
+        // frontmatter `dir:`/`align:` asks for instead. The SAME call the blog
+        // article makes on the SAME element, which is what makes "identical in
+        // the editor, the reading view and the blog" true by construction.
+        applyNoteLayoutTo(el, note.content);
         if (note.content.trim() === "") {
           const hint = document.createElement("p");
           hint.className = "s-reading__empty";
@@ -61,15 +74,25 @@ export default function ReadingView({ path }: { path: string }) {
           );
           el.appendChild(hint);
         }
+        numberRendered(el, note.content);
         bodyRef.current?.replaceChildren(el);
         // [[Note#Heading]] navigation: land on the requested heading.
         const pending = useStore.getState().pendingHeading;
         if (pending !== null) {
           useStore.getState().setPendingHeading(null);
           const want = pending.trim().toLowerCase();
-          const target = [
-            ...hostRef.current.querySelectorAll<HTMLElement>(".s-rv-h"),
-          ].find((h) => (h.textContent ?? "").trim().toLowerCase() === want);
+          // A LaTeX anchor is a \label, not a heading's text, so the id is
+          // tried first — `[[Paper#eq:fourier]]` lands on the equation, not on
+          // nothing. Heading-text matching stays as the markdown fallback.
+          const byId =
+            hostRef.current.querySelector<HTMLElement>(
+              `#${CSS.escape(`tex-${pending.trim()}`)}`,
+            ) ?? hostRef.current.querySelector<HTMLElement>(`#${CSS.escape(pending.trim())}`);
+          const target =
+            byId ??
+            [...hostRef.current.querySelectorAll<HTMLElement>(".s-rv-h")].find(
+              (h) => (h.textContent ?? "").trim().toLowerCase() === want,
+            );
           if (target) {
             const hostTop = hostRef.current.getBoundingClientRect().top;
             hostRef.current.scrollTop =
@@ -86,14 +109,27 @@ export default function ReadingView({ path }: { path: string }) {
         publishActive(hostRef.current);
       })
       .catch((err: unknown) => {
+        // Previewing as a visitor, the server 404s an unpublished note
+        // because that is the RIGHT answer for a visitor. Reporting it as
+        // "Failed to open <path>" made the eye button — the feature whose
+        // whole job is letting the owner inspect his own site — open with a
+        // fault report about a site that is fine.
+        if (isNotPublishedError(err)) {
+          toast(t("previewNotPublished"));
+          return;
+        }
         console.error(`vellum: failed to open ${path} for reading`, err);
-        toast(tf("openFailed", { path }));
+        toast(tf("openFailed", { path }), "error");
       });
     return () => {
       disposed = true;
       scrollPositions.set(path, host.scrollTop);
     };
-  }, [path, tree, isDirty, language]);
+    // The site's note-layout defaults are dependencies for the same reason
+    // `language` is: they are half of what `applyNoteLayoutTo` resolves, and a
+    // settings save has to repaint the open note rather than waiting for it to
+    // be reopened.
+  }, [path, tree, isDirty, language, numberTick, siteTextDirection, siteTextAlign]);
 
   // Active-heading tracking while scrolling.
   useEffect(() => {

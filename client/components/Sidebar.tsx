@@ -3,21 +3,78 @@
 // double-click; context menu for new note / new folder / rename / delete.
 
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { MouseEvent as ReactMouseEvent } from "react";
-import type { SearchHit, TagCount, TreeNode } from "../../shared/types.ts";
-import { createFolder, getGraph, getTags, search } from "../api.ts";
-import { bannerSrc } from "../banner.ts";
+import type { DragEvent as ReactDragEvent, MouseEvent as ReactMouseEvent } from "react";
+import type { AttachmentKind, SearchHit, TagCount, TreeNode } from "../../shared/types.ts";
+import { getGraph, getTags, search } from "../api.ts";
+import { useBannerSrc } from "./BannerImg.tsx";
 import { collectNotes, resolveLink, type NoteRef } from "../editor/links.ts";
 import { countPhrase, localeNum, t, tf, type Lang } from "../i18n.ts";
+// Tag chips print the vault's own display label when one exists (a tag page's
+// `labels:` map, or settings.tagLabels); `data`/keys/searches stay canonical.
+import { label as tagLabel, useTagLabels } from "../tagLabels.ts";
+import {
+  autoScroll,
+  beginDrag,
+  canDrop,
+  dragHasFiles,
+  draggedItem,
+  droppedImages,
+  endDrag,
+  itemLabel,
+  itemOf,
+  makeDragGhost,
+  moveTo,
+  stopAutoScroll,
+  uploadInto,
+} from "../move.ts";
+import { promptNewFolder, promptNewNote } from "../prompts.ts";
+import { newNoteFromTemplateCommand } from "../templateActions.ts";
 import { useStore } from "../state.ts";
-import { toast } from "../toast.ts";
+import AttachmentViewer, { fileUrl, isViewable } from "./AttachmentViewer.tsx";
 import { confirmModal, confirmModalEx } from "./Confirm.tsx";
+import { moveViaPicker } from "./MovePicker.tsx";
+import {
+  confirmDeleteAttachment,
+  confirmDeleteFolder,
+  confirmDeleteNote,
+} from "./deleteFlow.ts";
 import { renderSnippet, snippetIsEmpty } from "./snippet.tsx";
+import "../styles/move.css";
+import { isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
 
 const SEARCH_DEBOUNCE_MS = 200;
 
+// How many rows of one folder are rendered before a "show more" row takes
+// over. A real vault keeps its images in ONE folder — the fixture this was
+// measured against holds 1,158 of them, and a vault's biggest note folder here
+// holds 715 — and mounting that many rows in a single commit is a visible
+// stall on every expand. Chunking costs one extra click on the rare huge
+// folder and nothing at all everywhere else.
+const CHUNK = 300;
+
+// The tree's attachment rows are a FILTER, not a fact of the vault: this
+// remembers whether the reader wants them. Default on — the whole point is
+// that files nobody could see were assumed lost.
+const SHOW_ATTACHMENTS_KEY = "vellum.show-attachments";
+
+function loadShowAttachments(): boolean {
+  try {
+    return localStorage.getItem(SHOW_ATTACHMENTS_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
 /** Margin the context menu keeps from every viewport edge. */
 const MENU_EDGE = 8;
+
+// How long a collapsed folder has to be hovered, mid-drag, before it opens —
+// "spring-loaded folders", the thing that makes a deep destination reachable
+// without dropping, expanding, and picking the item up again. 600ms is the
+// Finder/Obsidian figure: long enough that passing OVER a folder on the way
+// somewhere else never opens it, short enough that deliberately resting on one
+// does not feel broken.
+const SPRING_MS = 600;
 
 // Tags section collapse (tag-heavy vaults: the pill cloud can eat the tree's
 // room) — persisted like the tree's folder expansion.
@@ -41,7 +98,7 @@ function joinPath(dir: string, name: string): string {
 }
 
 function ensureMd(name: string): string {
-  return name.endsWith(".md") ? name : `${name}.md`;
+  return isNotePath(name) ? name : `${name}.md`;
 }
 
 interface MenuState {
@@ -140,17 +197,107 @@ function buildTopics(
   }
   const sections: TopicSectionData[] = [...byTag.entries()]
     .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
-    .map(([tag, list]) => ({ key: `#${tag}`, label: tag, notes: list }));
+    // The KEY stays canonical (it is a localStorage persistence key and must
+    // survive a label being renamed); only the LABEL is localised.
+    .map(([tag, list]) => ({ key: `#${tag}`, label: tagLabel(tag), notes: list }));
   if (untagged.length > 0) {
     sections.push({ key: "untagged", label: t("notes"), notes: untagged });
   }
   return sections;
 }
 
+/** Notes only — `.md` files, exactly what the server counts when it moves a
+ *  folder to .trash. The tree now also carries attachments, so a plain
+ *  "count every file node" would have made the delete dialog promise to move
+ *  1,214 notes when it meant 800 notes and 414 images. */
 function countNotes(node: TreeNode | null): number {
   if (!node) return 0;
-  if (node.type === "file") return 1;
+  if (node.type === "file") return node.attachment ? 0 : 1;
   return (node.children ?? []).reduce((sum, child) => sum + countNotes(child), 0);
+}
+
+/** Attachments only — the other half of the sidebar footer's count. */
+function countAttachments(node: TreeNode | null): number {
+  if (!node) return 0;
+  if (node.type === "file") return node.attachment ? 1 : 0;
+  return (node.children ?? []).reduce((sum, child) => sum + countAttachments(child), 0);
+}
+
+// ── Attachment type glyphs ──────────────────────────────────────────────────
+// One 14px mark per kind, so a row says what it holds before it is opened.
+
+function IconImage() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="8.5" cy="9.5" r="1.6" />
+      <path d="M21 16l-5-5-6 6-2-2-5 5" />
+    </svg>
+  );
+}
+
+function IconPdf() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6M9 16.5h4" />
+    </svg>
+  );
+}
+
+function IconAudio() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 17V6l9-2v11" />
+      <circle cx="7" cy="17.5" r="3" />
+      <circle cx="16" cy="15.5" r="3" />
+    </svg>
+  );
+}
+
+function IconVideo() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="14" height="14" rx="2" />
+      <path d="M17 10l4-2.5v9L17 14z" />
+    </svg>
+  );
+}
+
+function IconFile() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+    </svg>
+  );
+}
+
+function IconClip() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 11.5l-8.8 8.8a5 5 0 0 1-7.1-7.1l9.2-9.2a3.3 3.3 0 0 1 4.7 4.7l-9.2 9.2a1.7 1.7 0 0 1-2.4-2.4l8.3-8.3" />
+    </svg>
+  );
+}
+
+function AttachmentGlyph({ kind }: { kind: AttachmentKind }) {
+  return (
+    <span className="s-tree__glyph">
+      {kind === "image" ? (
+        <IconImage />
+      ) : kind === "pdf" ? (
+        <IconPdf />
+      ) : kind === "audio" ? (
+        <IconAudio />
+      ) : kind === "video" ? (
+        <IconVideo />
+      ) : (
+        <IconFile />
+      )}
+    </span>
+  );
 }
 
 function IconNewNote() {
@@ -175,11 +322,7 @@ function IconNewFolder() {
 export default function Sidebar() {
   const tree = useStore((s) => s.tree);
   const openNote = useStore((s) => s.openNote);
-  const createNote = useStore((s) => s.createNote);
   const renameNote = useStore((s) => s.renameNote);
-  const deleteNote = useStore((s) => s.deleteNote);
-  const deleteFolder = useStore((s) => s.deleteFolder);
-  const loadTree = useStore((s) => s.loadTree);
   const admin = useStore((s) => s.admin);
   const homeNote = useStore((s) => s.homeNote);
   const siteName = useStore((s) => s.siteName);
@@ -187,6 +330,11 @@ export default function Sidebar() {
   // into the memoized rows below so their tooltips follow.
   const lang = useStore((s) => s.language);
   const logo = useStore((s) => s.logo);
+  // The logo is an admin-typed image reference, so it climbs the same
+  // resolution ladder a note's `banner:` does (client/banner.ts): a bare
+  // "mark.svg" finds brand/mark.svg. Unresolvable falls back to the wordmark
+  // — the identity the sidebar has always had — never to a broken <img>.
+  const logoSrc = useBannerSrc(logo).src;
   const publishedFilter = useStore((s) => s.publishedFilter);
   const publishedPaths = useStore((s) => s.publishedPaths);
 
@@ -196,7 +344,50 @@ export default function Sidebar() {
   const [tagsCollapsed, setTagsCollapsed] = useState(loadTagsCollapsed);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [menu, setMenu] = useState<MenuState | null>(null);
+  const [showAttachments, setShowAttachments] = useState(loadShowAttachments);
+  // The open lightbox: the viewable attachments of ONE folder plus the
+  // position inside it, so ← / → walk that folder and nothing else.
+  const [viewer, setViewer] = useState<{ items: TreeNode[]; index: number } | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  // The tree's own scroller — the auto-scroll target during a drag, and the
+  // element that wears the vault-root drop ring.
+  const treeRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+
+  // The vault ROOT is the one folder with no row of its own, and "put this back
+  // at the top level" has to be a gesture. Two surfaces stand in for it, both
+  // wired here so they cannot drift apart:
+  //   - the tree's own empty space under the last row, which is the obvious
+  //     place to reach for — and is exactly what a 1,375-note vault does not
+  //     have, since the rows fill the pane;
+  //   - the sidebar HEADER, which carries the vault's name, is on screen at
+  //     every scroll position, and never moves. That one is the answer for a
+  //     full tree.
+  // A sticky "vault root" row inside the tree was the other candidate and was
+  // rejected: appearing at dragstart it pushes every row down 26px under a
+  // pointer that has already picked something up.
+  const rootDropProps = useCallback((ref: { current: HTMLElement | null }, cls: string) => ({
+    onDragOver: (e: ReactDragEvent) => {
+      const item = draggedItem();
+      if (!item) return;
+      const ok = canDrop(item, "");
+      // preventDefault is what allows the drop; withholding it is the refusal.
+      if (ok) e.preventDefault();
+      e.dataTransfer.dropEffect = ok ? "move" : "none";
+      ref.current?.classList.toggle(cls, ok);
+    },
+    onDragLeave: (e: ReactDragEvent) => {
+      if (ref.current?.contains(e.relatedTarget as Node | null)) return;
+      ref.current?.classList.remove(cls);
+    },
+    onDrop: (e: ReactDragEvent) => {
+      e.preventDefault();
+      ref.current?.classList.remove(cls);
+      const item = draggedItem();
+      endDrag();
+      if (item && canDrop(item, "")) void moveTo(item, "");
+    },
+  }), []);
   // Set when a reveal had to happen first; the effect below focuses once the
   // pane is actually on screen (see revealSidebar).
   const focusWhenShown = useRef(false);
@@ -322,62 +513,14 @@ export default function Sidebar() {
 
   const cancelRename = useCallback(() => setRenaming(null), []);
 
-  const promptNewNote = (dir: string) => {
-    const name = window.prompt(t("newNotePrompt"), "Untitled.md");
-    if (!name || !name.trim()) return;
-    void createNote(joinPath(dir, ensureMd(name.trim())));
-  };
-
-  const promptNewFolder = (dir: string) => {
-    const name = window.prompt(t("newFolderPrompt"));
-    if (!name || !name.trim()) return;
-    createFolder(joinPath(dir, name.trim()))
-      .then(() => loadTree())
-      .catch((err: unknown) => {
-        console.error("vellum: creating folder failed", err);
-        toast(err instanceof Error ? err.message : t("creatingFolderFailed"));
-      });
-  };
-
-  const confirmDelete = (node: TreeNode) => {
-    void confirmModal({
-      title: t("deleteNoteTitle"),
-      body: tf("deleteNoteBody", { path: node.path }),
-    }).then((ok) => {
-      if (ok) void deleteNote(node.path);
-    });
-  };
-
-  // Folders delete in two speeds. The default is Obsidian's: move the whole
-  // subtree to the vault's .trash/, which the copy promises and the toast
-  // repeats. Erasing it outright is the quiet third route in the dialog, and
-  // it asks a second time — by then the reader has read the word "permanently"
-  // twice and clicked it twice.
-  const confirmDeleteFolder = (node: TreeNode) => {
-    const count = countPhrase(countNotes(node), "notes");
-    void confirmModalEx({
-      title: tf("deleteFolderTitle", { name: node.name }),
-      body: tf("deleteFolderBody", { count }),
-      confirmLabel: t("moveToTrash"),
-      extraLabel: t("deletePermanently"),
-    }).then((result) => {
-      if (result === "confirm") {
-        void deleteFolder(node.path);
-        return;
-      }
-      if (result !== "extra") return;
-      void confirmModal({
-        title: tf("deleteFolderPermTitle", { name: node.name }),
-        body: tf("deleteFolderPermBody", { count }),
-        confirmLabel: t("deletePermanently"),
-        // Nothing here is recoverable, so nothing here looks like the dialog
-        // that was: red at rest, and Enter is not armed (Confirm.tsx).
-        grave: true,
-      }).then((ok) => {
-        if (ok) void deleteFolder(node.path, { permanent: true });
-      });
-    });
-  };
+  // Every delete dialog in the product now lives in ONE module
+  // (components/deleteFlow.ts) and every surface calls it. Two surfaces
+  // building the same dialog is how the palette ended up saying
+  // "irreversible" over an action this menu promised was recoverable — and
+  // how the folder dialog could count markdown while the folder held four
+  // images. The flow asks /api/delete-preview first: the counts and the
+  // "…still embedded by ‘essay’" line come from the server's own walk of the
+  // files the delete will actually move, not from this component's tree.
 
   // The context menu opens at the pointer, but the pointer can be anywhere —
   // and with the sidebar on the trailing edge (RTL by default, or a reader who
@@ -418,6 +561,60 @@ export default function Sidebar() {
   }, []);
 
   const noteCount = useMemo(() => countNotes(tree), [tree]);
+  const attachmentCount = useMemo(() => countAttachments(tree), [tree]);
+
+  const setAttachmentsShown = useCallback((next: boolean) => {
+    setShowAttachments(next);
+    try {
+      localStorage.setItem(SHOW_ATTACHMENTS_KEY, String(next));
+    } catch {
+      // storage unavailable — the filter still works for this session
+    }
+  }, []);
+
+  // Identity changes with the flag — which costs nothing: every row re-renders
+  // on a toggle anyway, since the filter itself is one of their props.
+  const toggleAttachments = useCallback(
+    () => setAttachmentsShown(!showAttachments),
+    [setAttachmentsShown, showAttachments],
+  );
+
+  const showAllAttachments = useCallback(
+    () => setAttachmentsShown(true),
+    [setAttachmentsShown],
+  );
+
+  /** A click on an attachment row. PDFs go to a browser tab, which renders
+   *  them properly; everything else opens in the viewer, carrying its folder
+   *  with it so the arrow keys have somewhere to go. */
+  const openAttachment = useCallback((node: TreeNode, siblings: TreeNode[]) => {
+    if (node.attachment?.kind === "pdf") {
+      window.open(fileUrl(node.path), "_blank", "noopener,noreferrer");
+      return;
+    }
+    const items = siblings.filter(isViewable);
+    const index = Math.max(0, items.findIndex((n) => n.path === node.path));
+    if (items.length > 0) setViewer({ items, index });
+  }, []);
+
+  // The tree is replaced wholesale on every vault event; a viewer left open on
+  // a file that has since been deleted would keep showing a stale frame.
+  useEffect(() => {
+    setViewer((cur) => {
+      if (!cur) return cur;
+      const live = new Set<string>();
+      const walk = (node: TreeNode): void => {
+        if (node.type === "file") live.add(node.path);
+        for (const child of node.children ?? []) walk(child);
+      };
+      if (tree) walk(tree);
+      const items = cur.items.filter((n) => live.has(n.path));
+      if (items.length === 0) return null;
+      const at = cur.items[cur.index];
+      const index = Math.max(0, items.findIndex((n) => n.path === at?.path));
+      return { items, index };
+    });
+  }, [tree]);
 
   // Visitor collection: flat, alphabetical (collectNotes sorts by title),
   // with the home note pinned first. Also reused for the admin's
@@ -437,14 +634,43 @@ export default function Sidebar() {
   // Visitor sidebar: blog-style topic sections derived from published notes'
   // tags. Falls back to the flat list until the tag map has loaded. The admin
   // sidebar (tree + "published only" filter) is untouched.
+  // "The labels moved" — a settings save, a tag page edited, a session change.
+  // A version number rather than the map: see client/tagLabels.ts.
+  const tagLabelsVersion = useTagLabels();
   const topics = useMemo(() => {
     if (admin || !flatNotes || noteTags === null) return null;
     return buildTopics(flatNotes.notes, flatNotes.home, noteTags);
-  }, [admin, flatNotes, noteTags]);
+    // `lang` and the label version are dependencies because buildTopics bakes
+    // the DISPLAY label into each section — a topic renamed in Settings must
+    // repaint without a reload.
+  }, [admin, flatNotes, noteTags, lang, tagLabelsVersion]);
 
   return (
-    <aside className="s-sidebar">
-      <header className="s-sidebar-header">
+    // Named by what it holds ("Notes sidebar"), never by the edge it is on:
+    // that edge is right in Arabic and left in English.
+    <aside
+      className="s-sidebar"
+      aria-label={t("paneNotes")}
+      // A file dragged in from the desktop and dropped ANYWHERE in this pane
+      // that is not a folder row must do nothing — the browser's default is to
+      // navigate away to the image, which throws the reader's whole session
+      // out for missing a 26px row by a few pixels. Folder rows stop `dragover`
+      // from reaching here and set their own "copy"; everything else answers
+      // "none", which both paints the refusal and suppresses the navigation.
+      onDragOver={(e) => {
+        if (draggedItem() || !dragHasFiles(e.dataTransfer)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "none";
+      }}
+    >
+      {/* The header doubles as the vault-root drop target — see rootDropProps.
+          It is the only part of the sidebar that names the vault and is on
+          screen at every scroll position. */}
+      <header
+        className="s-sidebar-header"
+        ref={headerRef}
+        {...(admin ? rootDropProps(headerRef, "s-sidebar-header--dropok") : {})}
+      >
         {admin ? (
           // The wordmark doubles as the preview toggle: one click shows the
           // site exactly as a visitor gets it (same path as the status-bar eye).
@@ -454,8 +680,8 @@ export default function Sidebar() {
             title={t("viewPublicSite")}
             onClick={() => void useStore.getState().setPreviewVisitor(true)}
           >
-            {logo ? (
-              <img className="s-title__logo" src={bannerSrc(logo)} alt={siteName} />
+            {logoSrc ? (
+              <img className="s-title__logo" src={logoSrc} alt={siteName} />
             ) : (
               <>
                 <span className="s-title__star" aria-hidden="true">✦</span>
@@ -465,8 +691,8 @@ export default function Sidebar() {
           </button>
         ) : (
           <h1 className="s-title">
-            {logo ? (
-              <img className="s-title__logo" src={bannerSrc(logo)} alt={siteName} />
+            {logoSrc ? (
+              <img className="s-title__logo" src={logoSrc} alt={siteName} />
             ) : (
               <>
                 <span className="s-title__star" aria-hidden="true">✦</span>
@@ -482,7 +708,7 @@ export default function Sidebar() {
               className="s-iconbtn"
               title={t("newNote")}
               aria-label={t("newNote")}
-              onClick={() => promptNewNote("")}
+              onClick={() => void promptNewNote("")}
             >
               <IconNewNote />
             </button>
@@ -491,7 +717,7 @@ export default function Sidebar() {
               className="s-iconbtn"
               title={t("newFolder")}
               aria-label={t("newFolder")}
-              onClick={() => promptNewFolder("")}
+              onClick={() => void promptNewFolder("")}
             >
               <IconNewFolder />
             </button>
@@ -611,24 +837,44 @@ export default function Sidebar() {
       ) : (
         <nav
           className="s-tree"
+          ref={treeRef}
           onContextMenu={(e) => {
             if (tree && e.target === e.currentTarget) openMenu(e, tree);
           }}
+          // CAPTURE phase, deliberately: the rows stop dragover from bubbling
+          // (so a row inside a folder never lights the root up), and auto-scroll
+          // has to run while the pointer is over ROWS — which is all of the
+          // time. This is the only handler that sees every dragover.
+          onDragOverCapture={(e) => {
+            if (draggedItem() && treeRef.current) autoScroll(treeRef.current, e.clientY);
+          }}
+          // The other vault-root surface: the tree's own empty space below the
+          // last row (rows stop dragover from bubbling, so anything arriving
+          // here came from the container itself).
+          {...rootDropProps(treeRef, "s-tree--droproot")}
+          // …plus the one thing the shared handler cannot know: a pointer that
+          // has left the tree entirely must stop the auto-scroll it started.
+          onDragLeave={(e) => {
+            if (treeRef.current?.contains(e.relatedTarget as Node | null)) return;
+            treeRef.current?.classList.remove("s-tree--droproot");
+            stopAutoScroll();
+          }}
         >
-          {tree?.children?.map((child) => (
-            <TreeRow
-              key={child.path}
-              node={child}
-              depth={0}
-              renaming={renaming}
-              lang={lang}
-              onOpen={openNote}
-              onStartRename={startRename}
-              onCommitRename={commitRename}
-              onCancelRename={cancelRename}
-              onMenu={openMenu}
-            />
-          ))}
+          <TreeChildren
+            nodes={tree?.children ?? []}
+            depth={0}
+            renaming={renaming}
+            lang={lang}
+            admin={admin}
+            showAttachments={showAttachments}
+            onOpen={openNote}
+            onStartRename={startRename}
+            onCommitRename={commitRename}
+            onCancelRename={cancelRename}
+            onMenu={openMenu}
+            onAttachment={openAttachment}
+            onShowAttachments={showAllAttachments}
+          />
         </nav>
       )}
 
@@ -678,7 +924,7 @@ export default function Sidebar() {
                     blog's .s-blog-chip. */}
                 <bdi className="s-tag__name">
                   <span className="s-tag__hash" aria-hidden="true">#</span>
-                  {tag}
+                  {tagLabel(tag)}
                 </bdi>
                 <span className="s-tag__count">{localeNum(count)}</span>
               </button>
@@ -689,7 +935,34 @@ export default function Sidebar() {
         </div>
       )}
 
-      <footer className="s-sidebar-foot">{countPhrase(noteCount, "notes")}</footer>
+      {/* The footer counts what is actually in the vault — notes AND the files
+          beside them — and carries the filter that decides whether the second
+          number is on screen. A hidden filter that removes a thousand rows is
+          the bug this round is about, so the OFF state is drawn, not implied:
+          the clip goes grey and the count is struck through. */}
+      <footer
+        className={`s-sidebar-foot${admin && attachmentCount > 0 ? " s-sidebar-foot--split" : ""}`}
+      >
+        <span>{countPhrase(noteCount, "notes")}</span>
+        {admin && attachmentCount > 0 && (
+          <button
+            type="button"
+            className={`s-attfilter s-attfilter--${showAttachments ? "on" : "off"}`}
+            onClick={toggleAttachments}
+            aria-pressed={showAttachments}
+            title={showAttachments ? t("hideAttachments") : t("showAttachments")}
+          >
+            <span className="s-attfilter__clip">
+              <IconClip />
+            </span>
+            <span className="s-attfilter__count">
+              {showAttachments
+                ? countPhrase(attachmentCount, "files")
+                : tf("attachmentsHidden", { count: countPhrase(attachmentCount, "files") })}
+            </span>
+          </button>
+        )}
+      </footer>
 
       {menu && (
         <div
@@ -705,27 +978,44 @@ export default function Sidebar() {
                 className="s-menu__item"
                 onClick={() => {
                   setMenu(null);
-                  promptNewNote(menu.node.path);
+                  void promptNewNote(menu.node.path);
                 }}
               >
                 {t("newNoteHere")}
+              </button>
+              {/* The third door into templates, and the one that carries a
+                  DESTINATION: the palette and the keystroke create wherever
+                  the reader last was, while this one creates in the folder
+                  under the pointer — which is the whole reason someone
+                  right-clicked a folder. */}
+              <button
+                type="button"
+                className="s-menu__item"
+                onClick={() => {
+                  const dir = menu.node.path;
+                  setMenu(null);
+                  void newNoteFromTemplateCommand(dir);
+                }}
+              >
+                {t("cmdNewFromTemplate")}
               </button>
               <button
                 type="button"
                 className="s-menu__item"
                 onClick={() => {
                   setMenu(null);
-                  promptNewFolder(menu.node.path);
+                  void promptNewFolder(menu.node.path);
                 }}
               >
                 {t("newFolder")}
               </button>
             </>
           )}
-          {/* Files only: /api/rename is a note route ("Not a markdown path"
-              on a folder), so offering it on a folder row was a menu item
-              whose only outcome was a toast. */}
-          {menu.node.type === "file" && (
+          {/* NOTES only: /api/rename and DELETE /api/note are markdown
+              routes ("Not a markdown path" on anything else), so offering
+              either on a folder row — or now on an attachment row — is a menu
+              item whose only outcome is a toast. */}
+          {menu.node.type === "file" && !menu.node.attachment && (
             <button
               type="button"
               className="s-menu__item"
@@ -737,16 +1027,69 @@ export default function Sidebar() {
               {t("rename")}
             </button>
           )}
-          {menu.node.type === "file" && (
+          {/* The keyboard and touch route to the same operation the drag
+              performs. It is not a convenience: HTML5 drag does not exist on a
+              touch screen and cannot be reached from the keyboard at all, so
+              without this row the tree's ONLY way to move a note is mouse-only.
+              Offered on notes and folders alike — never on an attachment (the
+              move endpoints are note routes) and never on the vault root. */}
+          {menu.node.path !== "" && !menu.node.attachment && (
+            <button
+              type="button"
+              className="s-menu__item"
+              onClick={() => {
+                const node = menu.node;
+                setMenu(null);
+                void moveViaPicker(itemOf(node));
+              }}
+            >
+              {t("moveTo")}
+            </button>
+          )}
+          {menu.node.type === "file" && !menu.node.attachment && (
             <button
               type="button"
               className="s-menu__item s-menu__item--danger"
               onClick={() => {
                 setMenu(null);
-                confirmDelete(menu.node);
+                void confirmDeleteNote(menu.node.path);
               }}
             >
               {t("delete")}
+            </button>
+          )}
+          {/* ATTACHMENTS only. The tree has listed a vault's images, PDFs and
+              recordings since attachments landed and offered no verb on a
+              single one of them — so the only way to remove a stale upload was
+              to delete the folder around it, which is exactly the gesture that
+              took a published essay's four images with it. Its own route
+              (DELETE /api/attachment), its own dialog, and a warning naming
+              the notes that embed it. */}
+          {menu.node.type === "file" && menu.node.attachment && (
+            <button
+              type="button"
+              className="s-menu__item s-menu__item--danger"
+              onClick={() => {
+                setMenu(null);
+                void confirmDeleteAttachment(menu.node.path);
+              }}
+            >
+              {t("deleteAttachment")}
+            </button>
+          )}
+          {/* A view filter among the mutations, and deliberately so: the
+              reader who lost their files looks for them by right-clicking the
+              folder that should hold them. */}
+          {attachmentCount > 0 && (
+            <button
+              type="button"
+              className="s-menu__item"
+              onClick={() => {
+                setMenu(null);
+                toggleAttachments();
+              }}
+            >
+              {showAttachments ? t("hideAttachments") : t("showAttachments")}
             </button>
           )}
           {/* Never on the root row: the vault itself is not deletable (the
@@ -757,13 +1100,22 @@ export default function Sidebar() {
               className="s-menu__item s-menu__item--danger"
               onClick={() => {
                 setMenu(null);
-                confirmDeleteFolder(menu.node);
+                void confirmDeleteFolder(menu.node.path);
               }}
             >
               {t("deleteFolder")}
             </button>
           )}
         </div>
+      )}
+
+      {viewer && (
+        <AttachmentViewer
+          items={viewer.items}
+          index={viewer.index}
+          onIndex={(index) => setViewer((cur) => (cur ? { ...cur, index } : cur))}
+          onClose={() => setViewer(null)}
+        />
       )}
     </aside>
   );
@@ -866,11 +1218,76 @@ interface TreeRowProps {
    *  live language change busts memo() on every row and re-renders the
    *  t() tooltips, without paying for a store subscription per row. */
   lang: Lang;
+  /** Whether this session may mutate the vault — what makes a row draggable.
+   *  A visitor's tree is a reading surface. */
+  admin: boolean;
+  /** False hides every attachment row (the sidebar footer's filter). */
+  showAttachments: boolean;
+  /** The rows rendered beside this one, filter applied — what the viewer
+   *  walks with ← / →. Stable per parent render (useMemo in TreeChildren), so
+   *  it does not bust memo() on rows that did not change. */
+  siblings: TreeNode[];
   onOpen(path: string): void;
   onStartRename(path: string): void;
   onCommitRename(node: TreeNode, name: string): void;
   onCancelRename(): void;
   onMenu(e: ReactMouseEvent, node: TreeNode): void;
+  onAttachment(node: TreeNode, siblings: TreeNode[]): void;
+  /** Turns the filter back on, from the row that says what it is hiding. */
+  onShowAttachments(): void;
+}
+
+type TreeChildrenProps = Omit<TreeRowProps, "node" | "siblings"> & { nodes: TreeNode[] };
+
+/** One level of the tree: the attachment filter, then the chunk cap, then the
+ *  rows. Both live here rather than in TreeRow so a folder's children are
+ *  filtered ONCE per render and every row of that folder shares one `siblings`
+ *  array identity. */
+function TreeChildren({ nodes, ...rest }: TreeChildrenProps) {
+  const visible = useMemo(
+    () => (rest.showAttachments ? nodes : nodes.filter((n) => !n.attachment)),
+    [nodes, rest.showAttachments],
+  );
+  const [limit, setLimit] = useState(CHUNK);
+  // A folder that shrank (delete, filter flip) must not keep a raised cap.
+  const shown = visible.length <= limit ? visible : visible.slice(0, limit);
+  const remaining = visible.length - shown.length;
+  const hidden = nodes.length - visible.length;
+
+  return (
+    <>
+      {shown.map((child) => (
+        <TreeRow key={child.path} {...rest} node={child} siblings={visible} />
+      ))}
+      {/* The bug this round answers was a folder that opened onto NOTHING.
+          With attachments hidden, an all-attachment folder would do exactly
+          that again — so it says what it is holding back, indented where
+          those rows would be, and the row itself is the way to see them. */}
+      {visible.length === 0 && hidden > 0 && (
+        <button
+          type="button"
+          className="s-tree__hidden"
+          style={{ paddingInlineStart: `${rest.depth * 12 + 8}px` }}
+          onClick={rest.onShowAttachments}
+          title={t("showAttachments")}
+        >
+          <span className="s-tree__glyph">
+            <IconClip />
+          </span>
+          {tf("attachmentsHidden", { count: countPhrase(hidden, "files") })}
+        </button>
+      )}
+      {remaining > 0 && (
+        <button
+          type="button"
+          className="s-tree__more"
+          onClick={() => setLimit((n) => n + CHUNK)}
+        >
+          {tf("showMoreRows", { count: localeNum(remaining) })}
+        </button>
+      )}
+    </>
+  );
 }
 
 // Memoized: with stable callbacks from Sidebar, a folder toggle re-renders
@@ -878,15 +1295,27 @@ interface TreeRowProps {
 // active flag flipped — not all 1.4k rows.
 const TreeRow = memo(function TreeRow(props: TreeRowProps) {
   const { node, depth, renaming } = props;
+  // Everything a child level needs: this row's own identity drops out, the
+  // rest (callbacks, language, the attachment filter) travels down unchanged.
+  const { node: _node, siblings: _siblings, ...childProps } = props;
   const isActive = useStore((s) => s.openPath === node.path);
   const isPublished = useStore(
     (s) => node.type === "file" && (s.publishedPaths?.has(node.path) ?? false),
   );
   const isFolder = node.type === "folder";
+  const attachment = node.attachment;
   const [isOpen, setIsOpen] = useState(
     () => isFolder && (expandedMap.get(node.path) ?? defaultOpen(depth)),
   );
-  const label = isFolder ? node.name : node.name.replace(/\.md$/, "");
+  // Attachments keep their extension — it is half of what the name says —
+  // while a note sheds the ".md" it always has.
+  const label = isFolder || attachment ? node.name : noteLabelOf(node.name);
+
+  const open = (): void => {
+    setIsOpen(true);
+    expandedMap.set(node.path, true);
+    persistExpanded();
+  };
 
   const toggle = () => {
     const next = !isOpen;
@@ -895,9 +1324,109 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
     persistExpanded();
   };
 
+  // ── Drag and drop ─────────────────────────────────────────────────────────
+  // The drop state lives on the DOM node, not in React state. A drag crosses
+  // hundreds of rows; a `dropTarget` prop would bust memo() on all 1.4k of them
+  // every time the pointer moved one row, twelve times a second, to repaint
+  // one background.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const springRef = useRef(0);
+
+  const clearDropState = useCallback(() => {
+    rowRef.current?.classList.remove("s-tree__item--dropok", "s-tree__item--dropbad");
+    if (springRef.current !== 0) {
+      window.clearTimeout(springRef.current);
+      springRef.current = 0;
+    }
+  }, []);
+
+  useEffect(() => clearDropState, [clearDropState]);
+
+  const onDragStart = (e: ReactDragEvent<HTMLDivElement>): void => {
+    const item = itemOf(node);
+    beginDrag(item);
+    e.dataTransfer.effectAllowed = "move";
+    // Firefox refuses to start a drag with an empty payload.
+    e.dataTransfer.setData("text/plain", node.path);
+    e.dataTransfer.setDragImage(makeDragGhost(item), 14, 14);
+    rowRef.current?.classList.add("s-tree__item--dragging");
+  };
+
+  const onDragEnd = (): void => {
+    rowRef.current?.classList.remove("s-tree__item--dragging");
+    endDrag();
+  };
+
+  const onDragOver = (e: ReactDragEvent<HTMLDivElement>): void => {
+    const item = draggedItem();
+    if (!item) {
+      // Files dragged in from the DESKTOP. Without this branch the browser's
+      // default takes over on drop and navigates the whole app away to the
+      // image — the reader loses their vault to a gesture the tree invites.
+      if (!isFolder || !props.admin || !dragHasFiles(e.dataTransfer)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = "copy";
+      rowRef.current?.classList.add("s-tree__item--dropok");
+      return;
+    }
+    // Answered here, so it never reaches the tree's own root handler: a pointer
+    // resting on a row inside a folder must not light the VAULT ROOT up.
+    e.stopPropagation();
+    if (!isFolder) {
+      // A note is not a container. No colour (every file row flashing red on
+      // the way past its folder would be noise), just the browser's own refusal.
+      e.dataTransfer.dropEffect = "none";
+      return;
+    }
+    // Spring-loading arms for ANY folder, including one this item cannot land
+    // in: resting on the folder you are dragging out of is exactly how you
+    // reach the sub-folder you are dragging into.
+    if (!isOpen && springRef.current === 0) {
+      springRef.current = window.setTimeout(() => {
+        springRef.current = 0;
+        open();
+      }, SPRING_MS);
+    }
+    const ok = canDrop(item, node.path);
+    // preventDefault is what ALLOWS the drop. Withholding it on a refused
+    // target is what makes the cursor say no, and it is why an invalid drop
+    // cannot fire at all rather than being caught later.
+    if (ok) e.preventDefault();
+    e.dataTransfer.dropEffect = ok ? "move" : "none";
+    rowRef.current?.classList.toggle("s-tree__item--dropok", ok);
+    rowRef.current?.classList.toggle("s-tree__item--dropbad", !ok);
+  };
+
+  const onDragLeave = (e: ReactDragEvent<HTMLDivElement>): void => {
+    // dragleave also fires when the pointer crosses onto a CHILD of the row
+    // (the label span, the chevron). Cancelling the spring timer there would
+    // make the folder never open.
+    if (rowRef.current?.contains(e.relatedTarget as Node | null)) return;
+    clearDropState();
+  };
+
+  const onDrop = (e: ReactDragEvent<HTMLDivElement>): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    clearDropState();
+    const item = draggedItem();
+    endDrag();
+    if (!item) {
+      // Desktop files land in this folder, through the same magic-byte-checked
+      // upload the editor's paste uses.
+      if (isFolder && props.admin) void uploadInto(droppedImages(e.dataTransfer), node.path);
+      return;
+    }
+    // Dropping onto a COLLAPSED folder works, and does not expand it: the
+    // spring is an aid for reaching deeper, never a precondition.
+    if (isFolder && canDrop(item, node.path)) void moveTo(item, node.path);
+  };
+
   const classes = [
     "s-tree__item",
     isFolder ? "s-tree__item--folder" : "s-tree__item--file",
+    attachment ? "s-tree__item--att" : "",
     isActive ? "s-tree__item--active" : "",
   ]
     .filter(Boolean)
@@ -906,22 +1435,45 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
   return (
     <div className="s-tree__node">
       <div
+        ref={rowRef}
         className={classes}
         style={{ paddingInlineStart: `${depth * 12 + 8}px` }}
-        onClick={() => (isFolder ? toggle() : props.onOpen(node.path))}
+        // Notes and folders move; an attachment does not (the move endpoints
+        // are note routes — an image travels only inside a folder that moves).
+        // A row being renamed is not draggable either: the field inside it
+        // needs its text selectable.
+        draggable={props.admin && !attachment && renaming !== node.path}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        onClick={() =>
+          isFolder
+            ? toggle()
+            : attachment
+              ? props.onAttachment(node, props.siblings)
+              : props.onOpen(node.path)
+        }
         onDoubleClick={(e) => {
           e.stopPropagation();
-          props.onStartRename(node.path);
+          // Same rule as the menu: /api/rename is a note route.
+          if (!attachment) props.onStartRename(node.path);
         }}
         onContextMenu={(e) => props.onMenu(e, node)}
         role="treeitem"
         aria-expanded={isFolder ? isOpen : undefined}
+        // Attachment names are long and the pane is narrow ("Pasted image
+        // 20230906180811-10.png" is 38 characters); the tooltip is the only
+        // place the whole one fits. Note rows keep their bare label.
+        title={attachment ? node.name : undefined}
       >
         {isFolder && (
           <span className={`s-tree__chevron${isOpen ? " s-tree__chevron--open" : ""}`}>
             ›
           </span>
         )}
+        {attachment && <AttachmentGlyph kind={attachment.kind} />}
         {renaming === node.path ? (
           <RenameInput
             initial={node.name}
@@ -938,12 +1490,15 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
             )}
           </span>
         )}
+        {/* The glyph covers the five kinds; the badge names the exact type for
+            the one that has no glyph of its own. */}
+        {attachment?.kind === "other" && attachment.ext && (
+          <span className="s-tree__ext">{attachment.ext}</span>
+        )}
       </div>
       {isFolder && isOpen && (
         <div className="s-tree__children" role="group">
-          {node.children?.map((child) => (
-            <TreeRow key={child.path} {...props} node={child} depth={depth + 1} />
-          ))}
+          <TreeChildren {...childProps} nodes={node.children ?? []} depth={depth + 1} />
         </div>
       )}
     </div>

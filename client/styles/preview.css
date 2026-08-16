@@ -126,6 +126,15 @@
   background: var(--accent-soft);
 }
 
+/* The anchor a partial transclusion names, beside the note's title in the card
+   header — the editor's half of the rule reading/tex.css states for
+   `.s-rv-transclude__anchor`: `![[Paper#eq:fourier]]` says WHICH part it
+   pulled in, on both surfaces and in the same words. */
+.s-editor .cm-s-transclude__anchor {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
 .s-editor .cm-s-transclude__body {
   display: block;
   padding: 0.55em 1em 0.7em;
@@ -217,18 +226,29 @@
 .s-editor .cm-line.cm-s-callout--example { --co: var(--callout-example); }
 .s-editor .cm-line.cm-s-callout--quote { --co: var(--callout-quote); }
 
+/* The 0.3em of air above/below a callout is a TRANSPARENT BORDER, not a
+   margin. CodeMirror's height map measures each .cm-line by its border box:
+   padding and borders are counted, margins are not. A margin here therefore
+   made every line below the callout resolve ~5px too low, and posAtCoords —
+   which is what CodeMirror's own mouse selection uses — landed the caret, the
+   double-click word and the triple-click line on the wrong row.
+   `background-clip: padding-box` keeps the tint out of that transparent
+   border so it still reads as a gap, and the radii are grown by the border
+   width so the tinted box keeps exactly its old corner curve. */
 .s-editor .cm-line.cm-s-callout--first {
-  border-top-left-radius: var(--radius);
-  border-top-right-radius: var(--radius);
+  border-top: 0.3em solid transparent;
+  border-top-left-radius: calc(var(--radius) + 0.3em);
+  border-top-right-radius: calc(var(--radius) + 0.3em);
   padding-top: 0.45em;
-  margin-top: 0.3em;
+  background-clip: padding-box;
 }
 
 .s-editor .cm-line.cm-s-callout--last {
-  border-bottom-left-radius: var(--radius);
-  border-bottom-right-radius: var(--radius);
+  border-bottom: 0.3em solid transparent;
+  border-bottom-left-radius: calc(var(--radius) + 0.3em);
+  border-bottom-right-radius: calc(var(--radius) + 0.3em);
   padding-bottom: 0.45em;
-  margin-bottom: 0.3em;
+  background-clip: padding-box;
 }
 
 /* title bar widget (replaces "> [!type] Title") */
@@ -388,8 +408,11 @@
 
 /* ── Raw HTML blocks (rendered, sanitized, cursor-outside) ─────────────── */
 
+/* Padding, not margin: this is a block widget and CodeMirror sizes it by its
+   border box (see .cm-s-fmblock in app.css). It carries no background, so the
+   swap is invisible. */
 .s-editor .cm-s-htmlblock {
-  margin: 0.4em 0;
+  padding: 0.4em 0;
   max-width: 100%;
   overflow-x: auto;
 }
@@ -516,28 +539,161 @@
   padding: 0;
   border: none;
   background: none;
+  /* VISIBLE AT REST. This was `opacity: 0`, raised to 0.6 on .cm-line:hover —
+     a pure hover-reveal, which is the exact rule DESIGN.md writes down for
+     the pane reopen handles ("always visible … never a hover-reveal") and
+     CONTRACTS' "discoverability is chrome, not folklore". The owner's report
+     was "could not find the fold controls", and the previous answer was to
+     NAME them in the Ctrl+/ sheet — documentation for an invisible control.
+     Two other things the hidden state broke: only the hovered heading's
+     chevron ever appeared, so nothing on screen said the document folds at
+     all; and on a touch device there is no hover, so folding was unreachable
+     entirely. At rest it is --text-faint at full strength (a UI glyph, held
+     to the 3:1 non-text bar, not the 4.5:1 body-text one), muted on the
+     line, accent on itself. */
   color: var(--text-faint);
   cursor: pointer;
   vertical-align: baseline;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 150ms ease, color 150ms ease, transform 150ms ease;
   transform: rotate(90deg); /* open section: chevron points down */
 }
 
 .s-editor .cm-line:hover .cm-s-foldbtn,
 .s-editor .cm-s-foldbtn:focus-visible {
-  opacity: 0.6;
+  color: var(--text-muted);
 }
 
 .s-editor .cm-s-foldbtn:hover {
-  opacity: 1;
   color: var(--accent);
 }
 
 .s-editor .cm-s-foldbtn--folded {
   transform: rotate(0deg); /* folded: chevron points at the hidden text */
-  opacity: 0.85;
+  opacity: 1;
   color: var(--accent);
+}
+
+/* ── The section affordance (⋯), beside the fold chevron ───────────────────
+   The chevron pulls itself into the prose gutter with a negative margin,
+   which is a trick only ONE element on a line can play: a second one shifts
+   the first, and the heading's own text goes with it. So this button is
+   absolutely positioned out of a zero-width host and costs the line nothing.
+   It sits further out than the chevron (-48px against -26px), in the gutter
+   the editor already reserves, so the pair reads as one cluster of controls
+   for the heading rather than as two unrelated glyphs.
+
+   IT IS A HOVER AFFORDANCE, AND THAT IS NOT A CONTRADICTION OF THE CHEVRON'S
+   RULE. The chevron is visible at rest because folding had NO other door —
+   the owner could not find it, and the fix for an invisible control is not a
+   help-sheet row. This menu has four: a right-click on any heading line, the
+   same right-click on any outline row, Shift+F10 / the Menu key, and the
+   keystrokes for the commands it holds. A ⋯ printed at full strength on every
+   heading of a forty-heading note is noise in the one column the product
+   exists to keep quiet. On a COARSE pointer there is no hover to reveal it,
+   so there it is always on — the same exception the touch shell makes
+   everywhere else. */
+
+.s-editor .cm-s-secthost {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: 0;
+  vertical-align: baseline;
+}
+
+.s-editor .cm-s-sectbtn {
+  position: absolute;
+  inset-inline-start: -48px;
+  /* THE PAIR IS ONE CLUSTER, SO IT LINES UP. At `-0.28em` the ⋯ centre sat a
+     measured 2px under the fold chevron's at every heading level — two glyphs
+     in the same gutter, both `--text-faint`, neither on the other's line. The
+     2px is a constant (the widget host does not inherit the heading's size),
+     so the correction is one. */
+  bottom: calc(-0.28em + 2px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease, color 150ms ease, background 150ms ease;
+}
+
+.s-editor .cm-line:hover .cm-s-sectbtn,
+.s-editor .cm-s-sectbtn:focus-visible {
+  opacity: 1;
+}
+
+.s-editor .cm-s-sectbtn:hover {
+  opacity: 1;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ── The ⋯ on a coarse pointer: it leaves the gutter ───────────────────────
+   THE GUTTER CANNOT HOLD IT, AT ANY WIDTH. `--prose-gutter` is
+   `min(56px, 7.37%)`, so a phone reserves 28.7px at 390 and 26.5px at 360 —
+   and this button used to hang at `inset-inline-start: -52px` off a
+   zero-width host with nothing clamping it, which put a 30px button at
+   left=-17.3 / right=12.7 on a 390px screen: 58% of the only door this menu
+   has on a device with no hover, no right-click, no Shift+F10 and no keymap,
+   bled off the leading edge of the viewport. DESIGN.md: "Never let any
+   panel's content overflow the viewport horizontally."
+
+   Widening it in place is not available either. The fold chevron already owns
+   the gutter (-26px, 18px wide), and the touch shell's own rule is a 44px
+   target: 44 + 18 is 62px of controls for 56px of gutter even on a tablet,
+   which is why the 30px compromise shipped under a comment claiming 44. The
+   two controls do not fit side by side, so the ⋯ moves INSIDE the column, to
+   the heading's inline end, and the gutter is left to the chevron alone.
+
+   The heading line becomes the containing block (it is the only element that
+   knows where the heading's own line box ends) and reserves the room, so the
+   button never lands on the title's letters. Everything is logical, so an
+   Arabic note puts it on the left. */
+@media (pointer: coarse) {
+  .s-editor .cm-line:has(.cm-s-sectbtn) {
+    position: relative;
+    padding-inline-end: 44px;
+  }
+
+  .s-editor .cm-s-secthost {
+    position: static; /* the LINE positions the button, not the zero-width host */
+  }
+
+  .s-editor .cm-s-sectbtn {
+    opacity: 1;
+    width: 44px;
+    height: 44px;
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+    /* Centred on the heading's own line box. */
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+}
+
+/* Focus mode: everything but one section is folded away. The mode is
+   announced in a toast (a mode the reader cannot see is the bug this product
+   keeps writing down), and the column carries a quiet accent edge for as long
+   as it lasts — enough to answer "why is the rest of my note gone", not
+   enough to compete with the section it exists to isolate. */
+.s-editor .cm-s-focussection .cm-content {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* box-shadow has no logical inset — paint the edge on the LEADING side in
+   both directions, the rule the active outline row already follows. */
+[dir="rtl"] .s-editor .cm-s-focussection .cm-content {
+  box-shadow: inset -2px 0 0 var(--accent);
 }
 
 .s-editor .cm-s-foldmore {
@@ -583,3 +739,38 @@
 .s-editor .cm-s-complete-callout[data-group="bug"] { color: var(--callout-bug); }
 .s-editor .cm-s-complete-callout[data-group="example"] { color: var(--callout-example); }
 .s-editor .cm-s-complete-callout[data-group="quote"] { color: var(--callout-quote); }
+
+/* ── The thematic break, rendered ──────────────────────────────────────────
+   The editor's divider IS the reading view's divider: same gold rule fading
+   at both ends, same ✦ for the `***` spelling, same air. Before this the
+   three surfaces disagreed — live preview showed `- - -` as letter-spaced
+   source while reading view and the blog both drew a rule — which made the
+   divider the one block element live preview did not preview. */
+
+.s-editor .cm-s-hr-rule {
+  position: relative;
+  height: 2px;
+  border-radius: 2px;
+  margin: 1.4em 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--accent) 88%, transparent) 15%,
+    color-mix(in srgb, var(--accent) 88%, transparent) 85%,
+    transparent
+  );
+}
+
+.s-editor .cm-s-hr-rule--orn::after {
+  content: "✦";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0 0.7em;
+  background: var(--bg);
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  line-height: 1;
+}

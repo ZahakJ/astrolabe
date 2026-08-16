@@ -6,13 +6,31 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getNote, listAttachments, uploadAttachment } from "../api.ts";
 import { bannerFromContent, bannerSrc } from "../banner.ts";
+import { useBannerSrc } from "./BannerImg.tsx";
 import { localeNum, t, tf } from "../i18n.ts";
 import { UPLOAD_MAX_MB } from "../../shared/limits.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
+import { noteTitleOf } from "../../shared/noteFormat.ts";
 
 function titleOf(path: string): string {
-  return (path.split("/").pop() ?? path).replace(/\.md$/i, "");
+  return noteTitleOf(path);
+}
+
+/** The note's banner as it stands. The value is whatever the author TYPED, so
+ *  it goes down the resolution ladder — and when it names nothing, this modal
+ *  is the one surface that must say so out loud: the reader opened it to fix
+ *  exactly this. */
+function CurrentBanner({ value, notePath }: { value: string; notePath: string }) {
+  const { src, missing } = useBannerSrc(value, notePath);
+  return (
+    <div className={`s-bmodal__current${missing ? " s-bmodal__current--missing" : ""}`}>
+      {src ? <img src={src} alt="" /> : <span className="s-bmodal__missing">{t("bannerMissing")}</span>}
+      <span className="s-bmodal__currentpath" dir="auto">
+        {value}
+      </span>
+    </div>
+  );
 }
 
 export default function BannerModal() {
@@ -127,14 +145,7 @@ export default function BannerModal() {
           </button>
         </div>
 
-        {current && (
-          <div className="s-bmodal__current">
-            <img src={bannerSrc(current)} alt="" />
-            <span className="s-bmodal__currentpath" dir="ltr">
-              {current}
-            </span>
-          </div>
-        )}
+        {current && <CurrentBanner value={current} notePath={openPath} />}
 
         <div className="s-bmodal__row">
           <input

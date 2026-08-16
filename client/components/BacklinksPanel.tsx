@@ -57,21 +57,30 @@ function groupBacklinks(backlinks: Backlink[]): BacklinkGroup[] {
 
 // Below this viewport width the panel would squeeze the prose column to a
 // few words per line — start collapsed there and track resizes.
-const NARROW_QUERY = "(max-width: 1000px)";
+//
+// 1000 → 1360, and the number is arithmetic rather than taste: the pane costs
+// 301px, the sidebar 293, and the prose column's box is 760, so 1354 is the
+// first width at which the pane is FREE. Below 1000 it was already collapsing;
+// between 1000 and 1354 it was taking the difference straight out of the
+// measure, which is how 1024 ended up with a 319px reading ribbon — narrower
+// than the same vault gets on a 390px phone. The pane is one click (or
+// Ctrl/Cmd+Alt+Shift+B) away at any width, and a click IS a preference: it
+// persists, and the auto-collapse never overrides it.
+const NARROW_QUERY = "(max-width: 1360px)";
 
 export default function BacklinksPanel() {
   const backlinks = useStore((s) => s.backlinks);
   const openPath = useStore((s) => s.openPath);
   const openNote = useStore((s) => s.openNote);
   useStore((s) => s.language); // re-render the chrome strings on language change
-  // Collapse lives in the store now: Ctrl/Cmd+Shift+B and the palette toggle
+  // Collapse lives in the store now: Ctrl/Cmd+Alt+Shift+B and the palette toggle
   // the same flag this header button does, and it persists across reloads.
   const collapsed = useStore((s) => s.panelCollapsed);
   const setCollapsed = useStore((s) => s.setPanelCollapsed);
   const zen = useStore((s) => s.zen);
   // A deliberate open/close wins over the responsive auto-collapse. "Deliberate"
   // is exactly "persisted": every real toggle (this header button, the reopen
-  // handle, Ctrl/Cmd+Shift+B, the palette) writes the flag, and the auto-
+  // handle, Ctrl/Cmd+Alt+Shift+B, the palette) writes the flag, and the auto-
   // collapse never does — so the stored key IS the "the reader has decided"
   // bit, and it carries across sessions for free.
   useEffect(() => {
@@ -90,6 +99,9 @@ export default function BacklinksPanel() {
     <>
       <aside
         className={`s-panel${collapsed ? " s-panel--collapsed" : ""}`}
+        // Named by what it holds, not by the edge it happens to sit on — the
+        // same rule the toggles and the palette follow.
+        aria-label={t("paneOutline")}
         aria-hidden={collapsed || zen}
       >
         <TocPanel />
@@ -102,7 +114,7 @@ export default function BacklinksPanel() {
             className="s-panel-toggle s-iconbtn"
             onClick={() => setCollapsed(true)}
             aria-expanded={!collapsed}
-            title={t("hideBacklinks")}
+            title={t("hidePaneOutline")}
             tabIndex={collapsed || zen ? -1 : 0}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -154,8 +166,8 @@ export default function BacklinksPanel() {
           type="button"
           className="s-reopen s-reopen--panel"
           onClick={() => setCollapsed(false)}
-          title={t("showBacklinks")}
-          aria-label={t("showBacklinks")}
+          title={t("showPaneOutline")}
+          aria-label={t("showPaneOutline")}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 6l-6 6 6 6" />

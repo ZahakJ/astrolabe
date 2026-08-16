@@ -2,11 +2,14 @@
 // global keyboard shortcuts, and the single SSE subscription that keeps the
 // tree, backlinks, and externally-changed open notes fresh.
 
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { VaultEvent } from "../shared/types.ts";
 import { subscribeEvents } from "./api.ts";
 import { clearBrokenEmbeds } from "./editor/embeds.ts";
+import { collectNotes } from "./editor/links.ts";
 import BlogShell from "./blog/BlogShell.tsx";
+import DesignStatus from "./design/DesignStatus.tsx";
+import DesignedSite from "./design/DesignedSite.tsx";
 import BacklinksPanel from "./components/BacklinksPanel.tsx";
 import BannerModal from "./components/BannerModal.tsx";
 import CommandPalette from "./components/CommandPalette.tsx";
@@ -14,16 +17,21 @@ import ConfirmHost from "./components/Confirm.tsx";
 import GraphView from "./components/GraphView.tsx";
 import LoginModal from "./components/LoginModal.tsx";
 import ModerationPanel from "./components/ModerationPanel.tsx";
+import TrashModal from "./components/TrashModal.tsx";
 import PreviewBanner from "./components/PreviewBanner.tsx";
 import ReadingView from "./reading/ReadingView.tsx";
 import SettingsModal from "./components/SettingsModal.tsx";
+import ShortcutsHelp from "./components/ShortcutsHelp.tsx";
 import Sidebar from "./components/Sidebar.tsx";
-import StatusBar from "./components/StatusBar.tsx";
+import StatusBar, { vimSubCopy } from "./components/StatusBar.tsx";
 import Tabs from "./components/Tabs.tsx";
+import TemplatePicker from "./components/TemplatePicker.tsx";
 import { openDailyNote } from "./daily.ts";
 import { t, tf } from "./i18n.ts";
+import { promptNewNote } from "./prompts.ts";
+import { insertTemplateCommand, newNoteFromTemplateCommand } from "./templateActions.ts";
 import { applyUrl, installRouter, syncUrl } from "./router.ts";
-import { recentPublishWrite, useStore } from "./state.ts";
+import { recentSelfWrite, sidebarIsDrawer, useStore } from "./state.ts";
 import { dismissToasts, toast } from "./toast.ts";
 
 /** Writes made by our own autosave echo back through the watcher; ignore
@@ -33,35 +41,104 @@ const SELF_SAVE_WINDOW_MS = 1500;
 /** How long zen's ✕ lingers before fading out (any mouse move brings it back). */
 const ZEN_HINT_MS = 2000;
 
-/** macOS binds Ctrl+B to emacs-style "char left" inside CodeMirror and reads
- *  Cmd as the app modifier — so plain Ctrl+B there belongs to the editor. */
-const IS_MAC = /Mac|iP(hone|ad|od)/.test(navigator.platform);
+// macOS binds Ctrl+B to emacs-style "char left" inside CodeMirror, and this
+// file used to carry an IS_MAC test so the editor could keep it. The test is
+// gone with the shortcut: Ctrl/Cmd+B is now the EDITOR's (bold), so the
+// question "may the editor have this key" no longer has a platform answer —
+// CodeMirror's own precedence decides, and plain Ctrl+B on macOS still reaches
+// the emacs binding underneath `formatKeymap`'s Mod-b.
 
 // The CodeMirror editor is the heaviest part of the client and anonymous
 // visitors (reading view only) never need it — load it on demand so the
 // first-paint bundle stays lean.
 const Editor = lazy(() => import("./components/Editor.tsx"));
 
+// ── Recently opened notes ──────────────────────────────────────────────────
+// The empty state on a phone cannot be a keymap, and "here are four buttons"
+// is only half an answer: the thing a reader wants at the top of a session is
+// the note they were in. Nothing else in the client remembers that — the
+// store persists OPEN TABS, and by definition there are none when this pane
+// is on screen — so App keeps a short list of its own beside them. Paths only;
+// they are re-checked against the live tree before anything is drawn, so a
+// deleted note, a signed-out session and an admin previewing as a visitor all
+// narrow the list by themselves rather than leaking a title.
+const RECENT_KEY = "vellum.recent";
+const RECENT_MAX = 12;
+/** How many of them the empty state offers — a list, not an index. */
+const RECENT_SHOWN = 5;
+
+function readRecent(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((p): p is string => typeof p === "string").slice(0, RECENT_MAX);
+  } catch {
+    return []; // private mode, quota, a hand-edited value: not worth a toast
+  }
+}
+
+/** Where Ctrl/Cmd+K goes, reached by tapping instead. The sidebar owns the
+ *  search box and reveals itself when it is COLLAPSED — but on a phone that
+ *  pane is a fixed drawer whose visibility is `sidebarOpen`, not
+ *  `sidebarCollapsed`, so a bare dispatch would focus a field parked off the
+ *  screen edge and swallow every keystroke after it. Open the drawer first and
+ *  dispatch on the next frame, once React has committed the class that slides
+ *  it in. */
+function openQuickSearch(): void {
+  const store = useStore.getState();
+  // Same breakpoint as the drawer's own (state.ts owns the number): the
+  // sidebar stops being a grid pane at 999px, not at 700, so quick search has
+  // to open the drawer at every width where the search box lives inside it.
+  if (sidebarIsDrawer()) store.setSidebarOpen(true);
+  requestAnimationFrame(() => window.dispatchEvent(new Event("vellum:quicksearch")));
+}
+
+function pushRecent(path: string): string[] {
+  const next = [path, ...readRecent().filter((p) => p !== path)].slice(0, RECENT_MAX);
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore — the in-memory list still works for this session */
+  }
+  return next;
+}
+
+
 export default function App() {
   const view = useStore((s) => s.view);
   const openPath = useStore((s) => s.openPath);
   const readingMode = useStore((s) => s.readingMode);
+  const vimMode = useStore((s) => s.vimMode);
+  const vimSubMode = useStore((s) => s.vimSubMode);
   const paletteOpen = useStore((s) => s.paletteOpen);
   const loginOpen = useStore((s) => s.loginOpen);
   const bannerModalOpen = useStore((s) => s.bannerModalOpen);
   const moderationOpen = useStore((s) => s.moderationOpen);
+  const trashOpen = useStore((s) => s.trashOpen);
   const settingsOpen = useStore((s) => s.settingsOpen);
+  const previewVisitor = useStore((s) => s.previewVisitor);
   const reloadTick = useStore((s) => s.reloadTick);
   const admin = useStore((s) => s.admin);
+  // Only the SSE effect below reads this, and only to reconnect the stream
+  // when the reader's language changes (see the comment there).
+  const language = useStore((s) => s.language);
   const authReady = useStore((s) => s.authReady);
   const publicLayout = useStore((s) => s.publicLayout);
   const sidebarOpen = useStore((s) => s.sidebarOpen);
   const sidebarSide = useStore((s) => s.sidebarSide);
   const sidebarCollapsed = useStore((s) => s.sidebarCollapsed);
+  const panelCollapsed = useStore((s) => s.panelCollapsed);
   const zen = useStore((s) => s.zen);
   const locked = useStore((s) => !s.admin && !s.publicReads);
   const lang = useStore((s) => s.language); // re-render the chrome strings on language change
+  const tree = useStore((s) => s.tree);
+  /** Recently opened notes, for the phone's empty state (see readRecent). */
+  const [recent, setRecent] = useState<string[]>(readRecent);
   const lastSaveRef = useRef(0);
+  /** Where the caret was when Ctrl/Cmd+K threw focus into the search box —
+   *  Esc puts it back there (see returnToNote in the keyboard effect). */
+  const quickReturnRef = useRef<HTMLElement | null>(null);
   /** Zen's ✕ has been sitting still long enough to fade out. */
   const [zenIdle, setZenIdle] = useState(false);
 
@@ -71,10 +148,13 @@ export default function App() {
   // has to be expressed physically, because the preference is physical.
   const flipped = (lang === "ar") === (sidebarSide === "left");
 
-  // Blog mode (PUBLIC_LAYOUT=blog): visitors get the classic blog shell,
-  // which owns its own routes (/, /topic/…, article pages) — the app router
-  // below must then stay uninstalled. Admin sessions keep the full app.
-  const blogVisitor = authReady && !admin && publicLayout === "blog";
+  // Public-shell modes (PUBLIC_LAYOUT=blog / designed): visitors get a public
+  // shell that owns its own routes (/, /topic/…, article pages) — the app
+  // router below must then stay uninstalled. Admin sessions keep the full app.
+  // Both modes behave identically here on purpose: which of the two shells
+  // renders is one line in the branch below, and everything else (no app
+  // router, no app keybindings, the blog shortcut sheet) is the same answer.
+  const blogVisitor = authReady && !admin && publicLayout !== "app";
 
   // Boot: /api/me, then tree + session restore / home note.
   useEffect(() => {
@@ -115,6 +195,32 @@ export default function App() {
     [],
   );
 
+  // Remember which notes this reader was in. Subscribed rather than driven off
+  // the `openPath` render value, so the list is written once per real change
+  // (a re-render for any other reason must not reorder it).
+  useEffect(
+    () =>
+      useStore.subscribe((state, prev) => {
+        if (state.openPath && state.openPath !== prev.openPath) {
+          setRecent(pushRecent(state.openPath));
+        }
+      }),
+    [],
+  );
+
+  // …and shown only if they still exist for THIS session. The tree is already
+  // scoped — a visitor's is the flat published collection, an admin in preview
+  // gets the same one — so filtering through it is what keeps a remembered
+  // path from naming an unpublished note to somebody who may not see it.
+  const recentNotes = useMemo(() => {
+    if (!tree) return [];
+    const live = new Map(collectNotes(tree).map((n) => [n.path, n.title]));
+    return recent
+      .filter((p) => live.has(p))
+      .slice(0, RECENT_SHOWN)
+      .map((p) => ({ path: p, title: live.get(p)! }));
+  }, [recent, tree]);
+
   // Navigating to another note dismisses lingering toasts — a message about
   // the previous interaction must not overlay unrelated content.
   useEffect(() => {
@@ -127,6 +233,14 @@ export default function App() {
   // visitor filtering (publish toggles would arrive as bogus "deleted" events)
   // and a stream opened as admin would keep leaking unpublished paths after
   // logout. A fresh EventSource carries the current cookie.
+  //
+  // `language` is in the dependency list for exactly the same reason, one
+  // dimension over: under `settings.languageFilter: "follow"` the stream is
+  // scoped to the reader's language at connection time (EventSource cannot
+  // send a header, so it went out as ?lang=), and a reader who flips the EN/ع
+  // switch would otherwise keep a stream describing the collection they left —
+  // announcing edits to notes their new language hides, and silent about the
+  // ones it reveals. Cheap: one reconnect per deliberate language change.
   useEffect(() => {
     const onEvent = (ev: VaultEvent) => {
       const store = useStore.getState();
@@ -142,9 +256,15 @@ export default function App() {
       } else if (ev.kind === "changed" && ev.path === store.openPath) {
         // A publish toggle rewrites the file too; its echo is handled by
         // togglePublish's own bumpReload, not the external-change path.
+        // Two ways to recognise our own write, and the FIRST is the one
+        // that catches an autosave: every writer claims the path before it
+        // sends the request, because the echo overtakes the response by a
+        // couple of milliseconds (state.ts::markSelfWrite). The dirty→clean
+        // stamp stays as the belt to that braces — it still answers for a
+        // write some future path forgets to claim.
         const selfSave =
-          Date.now() - lastSaveRef.current < SELF_SAVE_WINDOW_MS ||
-          recentPublishWrite(SELF_SAVE_WINDOW_MS);
+          recentSelfWrite(ev.path, SELF_SAVE_WINDOW_MS) ||
+          Date.now() - lastSaveRef.current < SELF_SAVE_WINDOW_MS;
         if (!selfSave) {
           if (store.dirty[ev.path]) {
             toast(tf("changedOnDisk", { path: ev.path }));
@@ -160,7 +280,7 @@ export default function App() {
       if (store.admin) void store.loadPublished();
     };
     return subscribeEvents(onEvent);
-  }, [admin]);
+  }, [admin, language]);
 
   // Zen's only visible chrome is a faint ✕. It shows on entry (so the way out
   // is never a secret), fades after a beat, and any mouse movement brings it
@@ -200,48 +320,127 @@ export default function App() {
     const inEditor = (target: EventTarget | null): boolean =>
       target instanceof Element && target.closest(".cm-editor") !== null;
 
+    /** Something modal is on screen and owns the keyboard. The DOM half covers
+     *  the layers that are not store flags — the confirm dialog, the theme
+     *  picker and the attachment viewer — all of which close on Esc
+     *  themselves, and none of which may have Esc taken out from under them by
+     *  zen or by leaving preview. */
+    const modalUp = (store: ReturnType<typeof useStore.getState>): boolean =>
+      store.loginOpen ||
+      store.bannerModalOpen ||
+      store.moderationOpen ||
+      store.trashOpen ||
+      store.settingsOpen ||
+      document.querySelector(".s-confirm-overlay, .s-tpick-overlay, .s-att-view") !== null;
+
+    /** Put the caret back where the reader left it — the note they came from.
+     *  Ctrl/Cmd+K throws focus into a search box on the other side of the
+     *  screen; Esc has to be a way BACK, not just a way out, or the next
+     *  keystroke lands in a field nobody is looking at. */
+    const returnToNote = (preferred: HTMLElement | null): void => {
+      if (preferred?.isConnected) {
+        preferred.focus();
+        return;
+      }
+      const editor = document.querySelector<HTMLElement>(".s-view .cm-content");
+      if (editor) {
+        editor.focus();
+        return;
+      }
+      // Reading view has nothing focusable — at least take the keyboard out
+      // of the search field so typing does not disappear into it.
+      const active = document.activeElement;
+      if (active instanceof HTMLElement) active.blur();
+    };
+
     const onKeyDown = (e: KeyboardEvent) => {
       const store = useStore.getState();
-      // Esc leaves zen. It never fires out from under something that owns Esc
-      // itself: a modal or the palette (which close on it), a text field
-      // (the sidebar search clears on it), or vim (mode key — sacred).
-      if (e.key === "Escape" && store.zen) {
-        if (
-          store.paletteOpen ||
-          store.loginOpen ||
-          store.bannerModalOpen ||
-          store.moderationOpen ||
-          store.settingsOpen ||
-          document.querySelector(".s-confirm-overlay") !== null
-        ) {
+      if (e.key === "Escape") {
+        // 1. The shortcuts overlay closes first (it is the topmost layer).
+        if (store.shortcutsOpen) {
+          e.preventDefault();
+          store.setShortcutsOpen(false);
           return;
         }
-        if (store.vimMode && inEditor(e.target)) return;
+        // 2. Ctrl/Cmd+K parked the caret in the sidebar search: Esc returns it
+        //    to the note. (The Sidebar's own Esc still clears the query — this
+        //    runs in the capture phase and moves focus, nothing else.)
+        const inSearch =
+          e.target instanceof Element && e.target.closest(".s-search") !== null;
+        if (inSearch) {
+          const back = quickReturnRef.current;
+          quickReturnRef.current = null;
+          window.setTimeout(() => returnToNote(back), 0);
+          return;
+        }
+        if (store.paletteOpen || modalUp(store)) return;
         if (e.target instanceof Element && e.target.closest("input, textarea")) return;
-        e.preventDefault();
-        store.setZen(false);
+        // 3. Preview is a mode that took the editor away — Esc gives it back.
+        if (store.previewVisitor) {
+          e.preventDefault();
+          void store.setPreviewVisitor(false);
+          return;
+        }
+        // 4. Esc leaves zen — never out from under vim, where Esc is sacred.
+        if (store.zen) {
+          if (store.vimMode && inEditor(e.target)) return;
+          e.preventDefault();
+          store.setZen(false);
+        }
         return;
       }
       if (!(e.metaKey || e.ctrlKey)) return;
       const key = e.key.toLowerCase();
-      // Ctrl/Cmd+P, +K and +B are ALWAYS ours — swallow them before any early
-      // return so the browser's print dialog / address-bar search / bookmarks
-      // bar can never fire, modal open or not, and regardless of what CM does
-      // downstream. (Ctrl+Shift+B is Chrome's bookmark bar, plain Ctrl+B is
-      // Firefox's bookmarks sidebar: both have to die here.)
-      if (key === "p" || key === "k" || key === "b") e.preventDefault();
+      // The pane toggles carry Alt now, and Alt rewrites `key` on several
+      // platforms (macOS Option+B is "∫"), so they are matched on the
+      // PHYSICAL key as well. `key` alone still answers everything else.
+      const bKey = key === "b" || (e.altKey && e.code === "KeyB");
+      // Same physical-key trick, same reason: macOS Option+T is "†".
+      const tKey = key === "t" || (e.altKey && e.code === "KeyT");
+      // Ctrl/Cmd+/ — the list of every binding, including this one. Handled
+      // ahead of the modal guard so it opens (and closes) from anywhere.
+      if (key === "/" || key === "?") {
+        e.preventDefault();
+        if (!modalUp(store)) {
+          store.setPaletteOpen(false);
+          store.setShortcutsOpen(!store.shortcutsOpen);
+        }
+        return;
+      }
+      // Which shell this keystroke is landing in. The blog mounts no palette,
+      // no graph, no panes and no zen — so every binding below except
+      // Ctrl/Cmd+K (its search overlay answers that one) belongs to the
+      // BROWSER there, and taking it would be theft: an anonymous reader lost
+      // the print dialog and Firefox's bookmarks sidebar to two commands that
+      // do not exist on the page. Same predicate as the blogVisitor render
+      // branch below, read from the store because this listener never re-binds.
+      const blogShell =
+        store.authReady && !store.admin && store.publicLayout !== "app";
+      // Ctrl/Cmd+P and +K are ALWAYS ours IN THE APP SHELL — swallowed before
+      // any early return so the browser's print dialog / address-bar search
+      // can never fire, modal open or not, and regardless of what CM does
+      // downstream.
+      //
+      // +B IS THE EXCEPTION, AND preventDefault IS WHY. CodeMirror's whole
+      // keydown pipeline begins `if (event.defaultPrevented) break` — so a
+      // capture-phase preventDefault here does not merely stop the browser,
+      // it stops the EDITOR, and Ctrl/Cmd+B is now the editor's (bold). It
+      // was swallowed unconditionally while it folded a pane, and left that
+      // way it made the new binding silently dead: measured, Ctrl+I bolded
+      // nothing and Ctrl+B did nothing at all. So outside the editor it still
+      // dies here — Firefox's bookmarks sidebar (Ctrl+B) and Chrome's bookmark
+      // bar (Ctrl+Shift+B) must never open over the app — and inside it, the
+      // formatting keymap's own `preventDefault: true` does the same job one
+      // layer down, where it can also let vim's Ctrl+B through.
+      if (key === "k" || (!blogShell && key === "p")) e.preventDefault();
+      if (bKey && !blogShell && !inEditor(e.target)) e.preventDefault();
       // A modal dialog owns the keyboard: app-level shortcuts firing behind
       // the login/banner/moderation/confirm overlays would steal focus (e.g.
       // Ctrl+K focusing the sidebar search under the modal) or stack modals.
-      if (
-        store.loginOpen ||
-        store.bannerModalOpen ||
-        store.moderationOpen ||
-        store.settingsOpen ||
-        document.querySelector(".s-confirm-overlay") !== null
-      ) {
-        return;
-      }
+      if (modalUp(store) || store.shortcutsOpen) return;
+      // Ctrl/Cmd+K is the blog reader's one command; the rest act on chrome
+      // that is not on their page.
+      if (blogShell && key !== "k") return;
       if (key === "p" && e.shiftKey) {
         // Ctrl/Cmd+Shift+P: publish toggle (admin, note open) — never the palette.
         if (store.admin && store.openPath) void store.togglePublish(store.openPath);
@@ -254,6 +453,13 @@ export default function App() {
         // instead of fighting it for focus.
         e.preventDefault();
         if (store.paletteOpen) store.setPaletteOpen(false);
+        // Remember the note we are leaving so Esc can hand it back. A second
+        // press while the search box already has focus must not overwrite it
+        // with the search box itself.
+        const from = document.activeElement;
+        if (from instanceof HTMLElement && from.closest(".s-search") === null) {
+          quickReturnRef.current = from;
+        }
         window.dispatchEvent(new Event("vellum:quicksearch"));
       } else if (key === "g") {
         e.preventDefault();
@@ -263,20 +469,28 @@ export default function App() {
         e.preventDefault();
         store.toggleReading();
         if (store.view === "graph") store.setView("editor");
-      } else if (key === "b" && e.shiftKey) {
-        // Ctrl/Cmd+Shift+B — the right panel. Nothing in CM or vim wants it,
-        // so it is unconditionally ours (and already preventDefault-ed above,
-        // which is what keeps Chrome's bookmark bar out of the layout).
+      } else if (bKey && e.altKey && !e.getModifierState("AltGraph")) {
+        // THE PANE TOGGLES WEAR ONE MORE MODIFIER THAN THEY USED TO.
+        // Ctrl/Cmd+B was the notes sidebar and Ctrl/Cmd+Shift+B the outline
+        // pane; Ctrl/Cmd+B is now BOLD, because that is the binding every
+        // reader arrives with and formatting wins inside the editor
+        // (client/editor/commands.ts). The pair kept its shape — one key,
+        // Shift picks the second pane — and moved out to Alt, so the only
+        // thing to re-learn is "add Alt". The status-bar tooltips, the two
+        // palette rows and the Ctrl/Cmd+/ sheet all print the new numbers.
+        // AltGraph is excluded: on several European layouts Right-Alt reports
+        // ctrl+alt, and a reader typing a bracket must not fold a pane.
+        e.preventDefault();
         e.stopPropagation();
-        store.setPanelCollapsed(!store.panelCollapsed);
-      } else if (key === "b") {
-        // Ctrl/Cmd+B — the sidebar. Same shape as the Ctrl+D rule below: the
-        // editor keeps plain Ctrl+B where the platform gave it a meaning
-        // (vim's page-up; macOS's emacs-style char-left), and Cmd+B toggles
-        // the sidebar from inside the editor on those setups.
-        if (!e.metaKey && inEditor(e.target) && (store.vimMode || IS_MAC)) return;
-        e.stopPropagation();
-        store.setSidebarCollapsed(!store.sidebarCollapsed);
+        if (e.shiftKey) store.setPanelCollapsed(!store.panelCollapsed);
+        else store.toggleSidebar();
+      } else if (bKey) {
+        // Plain Ctrl/Cmd+B (and +Shift+B) are swallowed above — Firefox's
+        // bookmarks sidebar and Chrome's bookmark bar must never open over the
+        // app — and then handed on: inside the editor CodeMirror's formatting
+        // keymap answers them, and outside it nothing does. Deliberately
+        // nothing: a key that folds a pane in one half of the window and bolds
+        // a word in the other is a key nobody can describe.
       } else if (key === "z" && e.shiftKey) {
         // Ctrl/Cmd+Shift+Z — zen. On macOS this is ALSO CodeMirror's only
         // redo binding (redo is Mod-y elsewhere), so the editor keeps Cmd+
@@ -296,11 +510,24 @@ export default function App() {
       } else if (key === "n") {
         if (!store.admin) return;
         e.preventDefault();
-        const path = window.prompt(t("newNotePathPrompt"), "Untitled.md");
-        if (!path) return;
-        const trimmed = path.trim().replace(/^\/+|\/+$/g, "");
-        if (!trimmed) return;
-        void store.createNote(trimmed.endsWith(".md") ? trimmed : `${trimmed}.md`);
+        // Our dialog, not the OS box: prompts.ts owns the naming rule and
+        // shows what the typed name becomes (see client/prompts.ts).
+        void promptNewNote("");
+      } else if (tKey && e.altKey && !e.getModifierState("AltGraph")) {
+        // TEMPLATES WEAR ALT, and it is not a stylistic choice. Ctrl/Cmd+T is
+        // the browser's new tab and Ctrl/Cmd+Shift+T reopens a closed one —
+        // neither is takeable, and a keystroke that fights the browser is a
+        // keystroke that loses. Alt is the same escape hatch the pane toggles
+        // took when Ctrl/Cmd+B became bold, and the pair keeps that shape:
+        // one key, Shift picks the second command. AltGraph is excluded for
+        // the same reason it is there (European layouts report Right-Alt as
+        // ctrl+alt). A desktop that eats Ctrl+Alt+T at the WM layer still
+        // leaves the palette and the tree's folder menu.
+        if (!store.admin) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.shiftKey) void newNoteFromTemplateCommand();
+        else if (store.openPath) void insertTemplateCommand();
       }
     };
     // Capture phase: run ahead of CodeMirror/vim handlers so a stopPropagation
@@ -318,12 +545,36 @@ export default function App() {
   if (blogVisitor) {
     return (
       <>
-        <BlogShell />
+        {/* First in the flow: the strip pushes the whole site down rather than
+            covering its masthead — preview exists to JUDGE that masthead. */}
         <PreviewBanner />
+        {/* THE one line where the design engine meets the stock blog. The
+            server only sends "designed" when a design is actually renderable,
+            and DesignedSite falls back to this very component — unmodified,
+            no props — for every failure it can see that the server cannot. */}
+        {publicLayout === "designed" ? <DesignedSite /> : <BlogShell />}
+        {/* The sheet knows which shell it is in and drops the rows this one
+            does not have — six of them named controls the blog never mounts. */}
+        <ShortcutsHelp shell="blog" />
         <ConfirmHost />
       </>
     );
   }
+
+  // A mode that removes the ability to type has to be visible in the
+  // WORKSPACE, not only in the status bar: the reader's eyes are on the note.
+  const readingLocked = admin && !previewVisitor && readingMode && view === "editor" && !!openPath;
+
+  // Zen takes the status bar (and with it the whole mode cluster) to zero
+  // height, so in zen the strip is the ONLY place a mode can live. Reading
+  // already survived into zen; vim did not, and ZEN + VIM was a modal editor
+  // with nothing on screen saying whether the next keystroke would type or
+  // delete a line. Outside zen the pill carries this, so the strip stays out
+  // of the way — and the two are mutually exclusive by construction
+  // (reading unmounts the editor, so there is no vim to report).
+  const vimLocked =
+    admin && !previewVisitor && !readingMode && vimMode && zen && view === "editor" && !!openPath;
+  const vimStrip = vimLocked ? vimSubCopy(vimSubMode) : null;
 
   const shellClass = [
     "s-app",
@@ -331,13 +582,25 @@ export default function App() {
     sidebarOpen ? "s-app--drawer" : "",
     flipped ? "s-app--flip" : "",
     sidebarCollapsed ? "s-app--nosidebar" : "",
+    // The panel's own collapse lives on .s-panel--collapsed and always has —
+    // but the CENTRE column has to know about it too (app.css balances its
+    // gutters against what each end of the shell is actually holding), and a
+    // sibling's class is not something CSS can ask about.
+    panelCollapsed ? "s-app--nopanel" : "",
     zen ? "s-app--zen" : "",
+    previewVisitor ? "s-app--preview" : "",
+    readingLocked ? "s-app--reading" : "",
+    // Zen's ✕ steps below whichever strip is up; one class covers both so the
+    // offset rule does not have to enumerate the modes.
+    readingLocked || vimLocked ? "s-app--modebar" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
     <div className={shellClass}>
+      {/* Grid row above every pane (grid-area: notice) — never an overlay. */}
+      <PreviewBanner />
       <Sidebar />
       {/* Mobile drawer chrome: backdrop dismisses; the toggle floats over the
           main column. Both are display:none above the narrow breakpoint. */}
@@ -354,8 +617,8 @@ export default function App() {
           type="button"
           className="s-reopen s-reopen--sidebar"
           onClick={() => useStore.getState().setSidebarCollapsed(false)}
-          title={t("showSidebar")}
-          aria-label={t("showSidebar")}
+          title={t("showPaneNotes")}
+          aria-label={t("showPaneNotes")}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M9 6l6 6-6 6" />
@@ -375,6 +638,36 @@ export default function App() {
           </svg>
         </button>
         <Tabs />
+        {/* One line, part of the layout (it pushes the note down, it does not
+            float over it), saying what the mode is and how to leave it. The
+            accent rule down the column's inline-start edge is its companion:
+            app.css draws it from .s-app--reading. */}
+        {readingLocked && (
+          <div className="s-modebar" role="status">
+            <span className="s-modebar__dot" aria-hidden="true" />
+            <span className="s-modebar__text">{t("readingStrip")}</span>
+            <button
+              type="button"
+              className="s-modebar__action"
+              onClick={() => useStore.getState().setReadingMode(false)}
+            >
+              {t("readingStripAction")}
+            </button>
+          </div>
+        )}
+        {vimStrip && (
+          <div className="s-modebar s-modebar--vim" role="status">
+            <span className="s-modebar__dot" aria-hidden="true" />
+            <span className="s-modebar__text">{t(vimStrip.strip)}</span>
+            <button
+              type="button"
+              className="s-modebar__action"
+              onClick={() => useStore.getState().toggleVim()}
+            >
+              {t("vimStripAction")}
+            </button>
+          </div>
+        )}
         <section className="s-view">
           {view === "graph" ? (
             <GraphView />
@@ -403,6 +696,18 @@ export default function App() {
             <div className="s-empty">
               <div className="s-empty__glyph" aria-hidden="true">✦</div>
               <p className="s-empty__title">{t("vaultOpen")}</p>
+              {/* TWO empty states, and CSS picks. The keymap is the right
+                  answer on a machine with a keyboard and is nothing but a
+                  taunt without one: at 390px the first screen after signing in
+                  was seven chips naming Ctrl-combinations, one of them
+                  wrapping and shoving the grid a row out of true, the first
+                  chip flush against x=0 because the grid was exactly as wide
+                  as the viewport. Below ~700px — and on ANY coarse pointer,
+                  because a tablet in landscape is 1024px wide and still has no
+                  Ctrl key — the pane offers the same four destinations as
+                  things to tap, with the notes this reader was last in above
+                  them. app.css owns the swap; both halves are always in the
+                  DOM so there is no resize listener and no first-paint flash. */}
               <div className="s-empty__keys">
                 <span className="s-empty__key">
                   <kbd>Ctrl P</kbd> {t("keyPalette")}
@@ -412,6 +717,9 @@ export default function App() {
                 </span>
                 <span className="s-empty__key">
                   <kbd>Ctrl K</kbd> {t("keySearch")}
+                </span>
+                <span className="s-empty__key">
+                  <kbd>Ctrl /</kbd> {t("keyShortcuts")}
                 </span>
                 {admin && (
                   <>
@@ -426,6 +734,51 @@ export default function App() {
                     </span>
                   </>
                 )}
+              </div>
+              <div className="s-empty__touch">
+                {recentNotes.length > 0 && (
+                  <nav className="s-empty__recents" aria-label={t("emptyRecent")}>
+                    <h2 className="s-empty__recentshead">{t("emptyRecent")}</h2>
+                    {recentNotes.map((note) => (
+                      <button
+                        type="button"
+                        className="s-empty__recent"
+                        key={note.path}
+                        onClick={() => useStore.getState().openNote(note.path)}
+                      >
+                        {/* A note title is user content in a chrome row: it
+                            picks its own direction, like every other title in
+                            the product. */}
+                        <bdi>{note.title}</bdi>
+                      </button>
+                    ))}
+                  </nav>
+                )}
+                <div className="s-empty__actions">
+                  {admin && (
+                    <button
+                      type="button"
+                      className="s-empty__action s-empty__action--go"
+                      onClick={() => void promptNewNote("")}
+                    >
+                      {t("newNote")}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="s-empty__action"
+                    onClick={openQuickSearch}
+                  >
+                    {t("scSearch")}
+                  </button>
+                  <button
+                    type="button"
+                    className="s-empty__action"
+                    onClick={() => useStore.getState().setView("graph")}
+                  >
+                    {t("scGraph")}
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -453,12 +806,21 @@ export default function App() {
           </button>
         </div>
       )}
-      <PreviewBanner />
+      {/* Renders nothing unless /api/me told a REAL admin session that the
+          designed site fell back to stock. One line, the reason, one click
+          back — the app-side twin of the notice on the designed page itself. */}
+      <DesignStatus />
+      <ShortcutsHelp />
       {paletteOpen && <CommandPalette />}
       {loginOpen && <LoginModal />}
       {bannerModalOpen && admin && <BannerModal />}
       {moderationOpen && admin && <ModerationPanel />}
+      {trashOpen && admin && <TrashModal />}
       {settingsOpen && admin && <SettingsModal />}
+      {/* Always mounted (like ConfirmHost): the two template commands await a
+          promise from it, and a host that only exists once something has
+          already opened it cannot be the thing that opens. */}
+      {admin && <TemplatePicker />}
       <ConfirmHost />
     </div>
   );

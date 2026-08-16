@@ -8,13 +8,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import type { PostMeta } from "../../shared/types.ts";
 import { getNote, getPosts } from "../api.ts";
-import { bannerSrc } from "../banner.ts";
+import { useBannerSrc } from "../components/BannerImg.tsx";
 import { installHoverCards } from "../hovercard.ts";
 import { t, tf } from "../i18n.ts";
 import LoginModal from "../components/LoginModal.tsx";
-import { renderMarkdown } from "../reading/render.ts";
+import { renderNoteContent } from "../reading/renderNote.ts";
+import { texPreviewSource } from "../reading/texRender.ts";
+import { isTexPath, noteTitleOf } from "../../shared/noteFormat.ts";
 import { notePathToUrl, urlToNoteGuess, urlToNotePath } from "../router.ts";
-import { nextTheme, useStore } from "../state.ts";
+import { useStore } from "../state.ts";
+import { choiceGroup, counterpartChoice } from "../themes.ts";
 import BackToTop from "./BackToTop.tsx";
 import BlogArticle from "./BlogArticle.tsx";
 import BlogDashboard from "./BlogDashboard.tsx";
@@ -32,7 +35,7 @@ import "../styles/blog.css";
 /** Basename of a note path, bidi controls stripped — the card header and the
  *  duplicate-H1 trim both key off it. */
 function noteTitle(path: string): string {
-  return stripBidiControls((path.split("/").pop() ?? path).replace(/\.md$/i, ""));
+  return stripBidiControls(noteTitleOf(path));
 }
 
 type Route =
@@ -82,9 +85,14 @@ function ThemeButton() {
       className="s-blog-iconbtn"
       title={tf("cmdTheme", { t: theme })}
       aria-label={t("blogSwitchTheme")}
-      onClick={() => useStore.getState().setTheme(nextTheme(theme))}
+      // A ☾/☀ button on a public page means "the same site, lit
+      // differently" — with fifteen themes, stepping to the next one in the
+      // list means walking a visitor through ten dark rooms to reach daylight.
+      // counterpartChoice() names the pair for each theme instead — and it
+      // answers for a custom theme too, by way of the built-in it was built on.
+      onClick={() => useStore.getState().setTheme(counterpartChoice(theme))}
     >
-      {theme === "parchment" ? (
+      {choiceGroup(theme) === "light" ? (
         <svg
           viewBox="0 0 24 24"
           width="16"
@@ -126,9 +134,16 @@ export default function BlogShell() {
   const authProtected = useStore((s) => s.authProtected);
   const loginOpen = useStore((s) => s.loginOpen);
   const locked = useStore((s) => !s.admin && !s.publicReads);
+  // Set when the server served every language because the one this reader is
+  // reading in has nothing published in it (shared/types.ts::MeData).
+  const languageFallback = useStore((s) => s.languageFallback);
   const tree = useStore((s) => s.tree);
   const homeMode = useStore((s) => s.home?.mode ?? "note");
   const logo = useStore((s) => s.logo);
+  // Same ladder as every other typed image reference (client/banner.ts): an
+  // unresolvable value leaves the masthead on its wordmark rather than on a
+  // broken image icon.
+  const logoSrc = useBannerSrc(logo).src;
   // Chrome strings come from t(); subscribing to the language re-renders the
   // shell when the admin switches it in settings (loadMe → store), or when a
   // visitor flips the EN/ع switch — no reload either way.
@@ -257,7 +272,7 @@ export default function BlogShell() {
   // Per-page document title.
   useEffect(() => {
     if (route.kind === "article") {
-      const title = stripBidiControls(route.path.split("/").pop()!.replace(/\.md$/i, ""));
+      const title = stripBidiControls(noteTitleOf(route.path));
       document.title = `${title} · ${siteName}`;
     } else if (route.kind === "topic") {
       document.title = `${route.tag} · ${siteName}`;
@@ -314,10 +329,12 @@ export default function BlogShell() {
         } catch {
           return null;
         }
-        const md = previewExcerpt(content, noteTitle(path));
+        const md = isTexPath(path)
+          ? texPreviewSource(content, null)
+          : previewExcerpt(content, noteTitle(path));
         if (!md) return null;
         const tags = postTags.current.get(path);
-        return renderMarkdown(md, {
+        return renderNoteContent(md, {
           notePath: path,
           tree: useStore.getState().tree,
           embedded: true,
@@ -341,14 +358,14 @@ export default function BlogShell() {
     <div className="s-blog" ref={attachScroll}>
       {!dashboardHome && (
         <header className="s-blog-mast">
-          {!logo && (
+          {!logoSrc && (
             <div className="s-blog-mast__star" aria-hidden="true">
               ✦
             </div>
           )}
           <NavLink url="/" className="s-blog-mast__name" dir="auto">
-            {logo ? (
-              <img className="s-blog-mast__logo" src={bannerSrc(logo)} alt={siteName} />
+            {logoSrc ? (
+              <img className="s-blog-mast__logo" src={logoSrc} alt={siteName} />
             ) : (
               siteName
             )}
@@ -400,6 +417,17 @@ export default function BlogShell() {
       </nav>
 
       <main className="s-blog-main">
+        {/* The quiet note. Under `languageFilter: "follow"` (or a pinned mode)
+            the server stands the filter down when the language in force
+            matches no published note, and serves the whole collection rather
+            than an empty site — this is the one line that says why the reader
+            is seeing both languages. Quiet on purpose: it explains a mercy,
+            not an error, and the LOUD version of the same fact belongs to the
+            admin (status bar + settings panel), who is the only person who can
+            do anything about it. */}
+        {!locked && languageFallback && (
+          <p className="s-blog-langnote">{t("langFallbackNote")}</p>
+        )}
         {locked ? (
           <div className="s-blog-page s-blog-locked">
             <div className="s-blog-locked__glyph" aria-hidden="true">

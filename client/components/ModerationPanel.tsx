@@ -5,12 +5,14 @@
 
 import { useEffect, useState } from "react";
 import type { CommentData } from "../../shared/types.ts";
-import { countPhrase, localeDigits, t, tf } from "../i18n.ts";
+import { getDateCalendar, siteDate } from "../dates.ts";
+import { countPhrase, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { confirmModal } from "./Confirm.tsx";
 import { authorName, deleteComment, IconEyeSlash, setCommentHidden } from "./Marginalia.tsx";
 import "../styles/comments.css";
+import { stripNoteExt } from "../../shared/noteFormat.ts";
 
 const FEED_LIMIT = 100;
 
@@ -29,7 +31,7 @@ async function fetchFeed(): Promise<Feed> {
 
 function titleOf(path: string): string {
   const base = path.split("/").pop() ?? path;
-  return base.replace(/\.md$/i, "");
+  return stripNoteExt(base);
 }
 
 function snippetOf(body: string): string {
@@ -44,12 +46,16 @@ function snippetOf(body: string): string {
 function shortDate(ms: number): string {
   const locale = useStore.getState().blogLocale;
   const d = new Date(ms);
-  const sameYear = d.getFullYear() === new Date().getFullYear();
-  return d.toLocaleDateString(locale, {
+  // "Same year, so drop the year" is a GREGORIAN test, and it stops being
+  // true the moment the instance prints another calendar: a comment from
+  // eight months ago sits in a different Hijri year and would lose the one
+  // digit that says so. Outside gregorian mode the year always shows.
+  const sameYear =
+    getDateCalendar() === "gregorian" && d.getFullYear() === new Date().getFullYear();
+  return siteDate(d, locale, {
     month: "short",
     day: "numeric",
     ...(sameYear ? {} : { year: "numeric" }),
-    ...localeDigits(locale),
   });
 }
 

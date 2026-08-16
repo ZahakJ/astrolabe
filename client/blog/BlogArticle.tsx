@@ -9,14 +9,18 @@ import type { GraphData, PostMeta } from "../../shared/types.ts";
 import { getGraph, getNote } from "../api.ts";
 import { bannerSrc, generatedBannerCss } from "../banner.ts";
 import { countPhrase, t, tf } from "../i18n.ts";
+import { MetaSep } from "../metaSep.tsx";
 import Marginalia from "../components/Marginalia.tsx";
-import { renderMarkdown } from "../reading/render.ts";
+import { renderNoteContent } from "../reading/renderNote.ts";
+import { applyNoteLayoutTo } from "../textLayout.ts";
 import { notePathToUrl } from "../router.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { TagChips } from "./PostList.tsx";
 import { formatDate, isRtlText, NavLink } from "./util.tsx";
+import { numberRendered } from "../reading/headingNumbers.ts";
 import "../reading/reading.css";
+import { noteTitleOf } from "../../shared/noteFormat.ts";
 
 /** Notes often open with "# <their own title>" — the page already shows it
  *  as the article title, so drop the duplicate from the rendered body. */
@@ -78,7 +82,7 @@ export default function BlogArticle({
   // Bidi controls out: the H1 is the note's own filename, and an RLO in it
   // reorders the headline. Same normalization the server applies to the title
   // it puts in /api/posts, RSS and the og: tags.
-  const title = stripBidiControls(path.split("/").pop()!.replace(/\.md$/i, ""));
+  const title = stripBidiControls(noteTitleOf(path));
   const meta = posts?.find((p) => p.path === path) ?? null;
 
   // The post's server-filtered tag list (EXCLUDE_TAGS already applied) is
@@ -103,7 +107,7 @@ export default function BlogArticle({
     getNote(path)
       .then((note) => {
         if (disposed || !bodyRef.current) return;
-        const el = renderMarkdown(note.content, {
+        const el = renderNoteContent(note.content, {
           notePath: path,
           tree: useStore.getState().tree,
           // Blog readers get no broken-link furniture: unresolvable
@@ -114,7 +118,14 @@ export default function BlogArticle({
           ...(visibleTags ? { visibleTags } : {}),
         });
         el.classList.add("s-reading__content");
+        // Same call, same element, same module as the reading view — see
+        // client/textLayout.ts for why this is not three implementations.
+        applyNoteLayoutTo(el, note.content);
         dropDuplicateTitle(el, title);
+        // Auto-numbered headings, frontmatter ONLY on the public page: a
+        // visitor has no preference of ours to read, so a numbered post is
+        // numbered because its author said `numbered: true` in the file.
+        numberRendered(el, note.content, { frontmatterOnly: true });
         bodyRef.current.replaceChildren(el);
         // [[Note#Heading]] deep links land on the requested heading.
         const pending = useStore.getState().pendingHeading;
@@ -201,13 +212,9 @@ export default function BlogArticle({
             <time className="s-blog-meta__date" dateTime={meta.date}>
               {formatDate(meta.date, locale)}
             </time>
-            <span className="s-blog-meta__dot" aria-hidden="true">
-              ·
-            </span>
+            <MetaSep className="s-blog-meta__dot" />
             <span>{countPhrase(meta.words, "words")}</span>
-            <span className="s-blog-meta__dot" aria-hidden="true">
-              ·
-            </span>
+            <MetaSep className="s-blog-meta__dot" />
             <span>{countPhrase(meta.readingMinutes, "readMinutes")}</span>
           </div>
         )}

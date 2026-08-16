@@ -33,13 +33,23 @@ import {
   completionKeymap,
 } from "@codemirror/autocomplete";
 import { autoLineDirection } from "./bidi.ts";
+import { noteLayoutExtension } from "./noteLayout.ts";
 import { editorTheme, vellumHighlighting } from "./theme.ts";
 import { livePreview } from "./livePreview.ts";
+import { pointerSelection } from "./pointer.ts";
+import { formatKeymap } from "./commands.ts";
+import { selectionMenu } from "../components/SelectionMenu.tsx";
 import { wikilinkAutocomplete } from "./autocomplete.ts";
 import { imageUploads } from "./uploads.ts";
 import { hoverPreviews } from "./hoverPreview.ts";
 import { headingFolds } from "./folding.ts";
+import { sectioning } from "./sectioning.ts";
+import { attachVimStatus, detachVimStatus } from "./vimStatus.ts";
 import { t } from "../i18n.ts";
+import { isTexPath } from "../../shared/noteFormat.ts";
+import { texFolds, texHighlighting, texLanguage } from "./tex/lang.ts";
+import { texPreview } from "./tex/preview.ts";
+import { texAutocomplete } from "./tex/complete.ts";
 
 export interface EditorSetupOptions {
   doc: string;
@@ -62,7 +72,15 @@ let vimExt: VimExtension | null = null;
 async function loadVim(): Promise<VimExtension> {
   if (!vimExt) {
     const { vim } = await import("@replit/codemirror-vim");
-    vimExt = vim();
+    // `status: true` is not decoration. It mounts vim's own panel at the foot
+    // of the editor, and that panel is what draws `-- INSERT --` / `-- VISUAL --`
+    // AND hosts the `:` / `/` command line. Without it the extension shipped
+    // with no on-screen state at all: the VIM pill told the reader the
+    // extension was loaded, never that the keys under their fingers were
+    // currently COMMANDS — which is the actual trap, and the one the owner
+    // named ("same with vim mode"). vimStatus.ts forwards the same signal to
+    // the status-bar pill.
+    vimExt = vim({ status: true });
   }
   return vimExt;
 }
@@ -104,18 +122,68 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
       // honor that per-line direction for cursor movement.
       EditorView.perLineTextDirection.of(true),
       autoLineDirection,
-      markdown({ base: markdownLanguage, codeLanguages: languages }),
-      editorTheme(),
-      vellumHighlighting(),
-      livePreview(options.path),
-      wikilinkAutocomplete(),
+      // …and the SITE (or the note's own frontmatter) may pin both the
+      // direction and the ALIGNMENT of that prose. bidi.ts above already
+      // resolves the direction into the per-line attribute; this paints the
+      // alignment onto `.cm-content` and marks the lines that must never take
+      // it — a centred code fence stops lining up with itself. Format-blind
+      // like everything else at this level: a `.tex` note takes the direction
+      // and refuses the measure, one branch inside the plugin.
+      noteLayoutExtension(options.path),
+      // THE ONE BRANCH IN THE EXTENSION LIST. Everything above and below it is
+      // format-blind — the theme, the vim compartment, the save keymap, the
+      // caret handling, the uploads. What differs between a `.md` and a `.tex`
+      // note is the language, the folding and what live preview MEANS, and
+      // those three are exactly what the tex extensions swap.
+      //
+      // The FORMATTING is the exception, and it is not a fourth entry here: it
+      // branches one layer down, on `notePathFacet`, because the extension is
+      // the same in both notes and only its VOCABULARY changes (commands.ts's
+      // `syntaxOf`). `**bold**` typed into a `.tex` file is two pairs of
+      // asterisks nothing renders, so bold is `\textbf{…}` there, a heading is
+      // `\section{…}`, and strikethrough — which LaTeX cannot spell without a
+      // package a note may not load — is not offered at all.
+      ...(isTexPath(options.path)
+        ? [texLanguage, texFolds, texHighlighting(), texPreview(options.path), editorTheme(), vellumHighlighting()]
+        : [
+            markdown({ base: markdownLanguage, codeLanguages: languages }),
+            editorTheme(),
+            vellumHighlighting(),
+            livePreview(options.path),
+          ]),
+      // Caret placement resolved through the DOM rather than CodeMirror's
+      // `posAtCoords`, which mis-maps every row carrying a replaced inline
+      // widget (rendered math, an image, a hidden wikilink bracket) — see
+      // pointer.ts, and scripts/check-caret.mjs, which is the gate.
+      pointerSelection,
+      // Bold/italic/underline/strikethrough/highlight. Above defaultKeymap,
+      // below the vim compartment — see commands.ts for every number. Bound in
+      // BOTH formats: each key resolves its own spelling from the note, and
+      // the two LaTeX cannot spell decline rather than writing markdown.
+      formatKeymap,
+      // Right-click (and Shift+F10) over a selection opens the formatting
+      // menu; a floating toolbar follows every selection unless the reader
+      // has turned it off. Both run the same commands as the keystrokes, and
+      // both list only the rows the open note's language can carry.
+      selectionMenu(),
+      // `[[` is markdown's link syntax; a `.tex` note completes `\note{…}`,
+      // `\ref{…}`, `\cite{…}` and `\begin{…}` instead.
+      isTexPath(options.path) ? texAutocomplete() : wikilinkAutocomplete(),
       // Editing delight: paste/drop image uploads, pasting a URL over a
       // selection makes a markdown link, wikilink/footnote hover previews,
       // heading-section folding.
       imageUploads(),
       pasteURLAsLink,
       hoverPreviews(),
-      headingFolds(),
+      // Markdown's heading folds are markdown's; a `.tex` note folds
+      // environments and sections through texFolds above.
+      ...(isTexPath(options.path) ? [] : [headingFolds()]),
+      // The section affordances: the ⋯ beside each heading's chevron, the
+      // heading context menu, jump-to-heading / focus-section / select-section,
+      // fold state that survives a reload, and the bridge the outline panel
+      // writes its drags through. Markdown only, for the same reason folding
+      // is: a `.tex` note's structure is `\section{…}` and texFolds owns it.
+      ...(isTexPath(options.path) ? [] : [sectioning()]),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) options.onDocChanged(update.view);
       }),
@@ -138,10 +206,14 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
 export function setVim(view: EditorView, on: boolean): void {
   if (!on) {
     view.dispatch({ effects: vimCompartment.reconfigure([]) });
+    detachVimStatus(view);
     return;
   }
   void loadVim().then((ext) => {
     if (!view.dom.isConnected) return; // editor unmounted while loading
     view.dispatch({ effects: vimCompartment.reconfigure(ext) });
+    // The plugin builds its CodeMirror adapter during that dispatch, so the
+    // listener can go on immediately after it.
+    attachVimStatus(view);
   });
 }

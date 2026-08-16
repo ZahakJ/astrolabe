@@ -65,6 +65,7 @@ export function editorTheme(): Extension {
     },
     "&.cm-focused": { outline: "none" },
     ".cm-scroller": {
+      paddingInline: "var(--prose-gutter)",
       fontFamily: "var(--font-serif)",
       fontSize: "calc(var(--font-prose, 1.161rem) * var(--prose-scale, 1))",
       lineHeight: "1.7",
@@ -72,10 +73,13 @@ export function editorTheme(): Extension {
       scrollbarWidth: "thin",
       scrollbarColor: "var(--border) transparent",
     },
+    // The horizontal gutter lives on the SCROLLER (see app.css): CodeMirror's
+    // own selection rects are drawn against the content box, so a padded
+    // content box paints the selection into the prose margin.
     ".cm-content": {
-      maxWidth: "760px",
+      maxWidth: "648px",
       margin: "0 auto",
-      padding: "48px 56px 120px",
+      padding: "48px 0 120px",
       caretColor: "var(--accent)",
     },
     ".cm-cursor, .cm-dropCursor": { borderLeftColor: "var(--accent)" },
@@ -94,6 +98,40 @@ export function editorTheme(): Extension {
     ".cm-panels.cm-panels-top": { borderBottom: "1px solid var(--border)" },
     ".cm-panels.cm-panels-bottom": { borderTop: "1px solid var(--border)" },
     ".cm-panel.cm-search label": { color: "var(--text-muted)" },
+
+    // Vim's status line (vim({ status: true })). It is the modal editor's own
+    // `-- INSERT --` readout AND the host for the `:` / `/` command line, so
+    // it is the one piece of chrome that must stay legible even in zen, where
+    // the status bar and its pills are at zero height. The library ships a
+    // bare unstyled div; this gives it the accent, the mono face and enough
+    // weight to read as a mode line rather than as a stray caption.
+    ".cm-vim-panel": {
+      padding: "3px 12px",
+      background: "color-mix(in srgb, var(--accent) 10%, var(--bg-raised))",
+      color: "var(--accent)",
+      fontFamily: "var(--font-mono)",
+      fontSize: "0.786rem",
+      fontWeight: "600",
+      letterSpacing: "0.04em",
+      minHeight: "1.6rem",
+      // Vim's own words are ASCII and its command line is a terminal line, so
+      // the RUN is ltr on an Arabic instance too — the same treatment
+      // CONTRACTS gives git's verbatim error text ("its OWN dir=ltr block").
+      // `start` rather than `left`: no physical value in the stylesheet; under
+      // this block's own ltr direction it resolves to the left, where a vim
+      // mode line belongs.
+      direction: "ltr",
+      textAlign: "start",
+    },
+    ".cm-vim-panel input": {
+      background: "transparent",
+      border: "none",
+      outline: "none",
+      color: "var(--text)",
+      fontFamily: "var(--font-mono)",
+      fontSize: "0.786rem",
+      width: "100%",
+    },
     ".cm-textfield": {
       background: "var(--bg)",
       border: "1px solid var(--border)",
@@ -214,6 +252,9 @@ export function editorTheme(): Extension {
       color: "var(--text-muted)",
       fontStyle: "italic",
     },
+    // The SOURCE line, shown only while the cursor is on it. The rendered
+    // divider is a block widget (livePreview.ts) styled in preview.css — this
+    // is what `---` looks like when you are editing it, nothing more.
     ".cm-s-hr": {
       color: "var(--text-faint)",
       letterSpacing: "0.2em",
@@ -241,12 +282,14 @@ export function editorTheme(): Extension {
       textDecorationColor: "color-mix(in srgb, var(--danger) 55%, transparent)",
       textUnderlineOffset: "3px",
     },
+    // Smaller than the sidebar pill (DESIGN.md: "same pill style as sidebar,
+    // smaller"), and the same size as the reading view's own chip.
     ".cm-s-tag": {
       color: "var(--accent)",
       background: "var(--accent-soft)",
       borderRadius: "999px",
       padding: "0.05em 0.5em",
-      fontSize: "0.85em",
+      fontSize: "0.72em",
     },
     ".cm-s-link, .cm-s-url": {
       color: "var(--accent)",

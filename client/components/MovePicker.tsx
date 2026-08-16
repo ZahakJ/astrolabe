@@ -1,0 +1,229 @@
+// "Move to…" — the keyboard and touch half of drag-and-drop.
+//
+// Dragging is a mouse gesture. It does not exist on a phone, it is hostile to a
+// trackpad, and it is unreachable from the keyboard entirely — so a tree whose
+// ONLY way to move a note is a drag has quietly made a core operation
+// mouse-only. This dialog is the same operation with the same rules
+// (`canDrop`), reached from the tree's row menu and from the command palette,
+// and it is the surface the reader gets on a touch device where the drag
+// affordances never appear.
+//
+// It mounts its own React root on demand rather than living in App.tsx: the
+// store is a module-level zustand and i18n is module-level too, so nothing here
+// needs the app's tree — and the shell agent's App.tsx stays untouched.
+//
+// Shape follows the command palette (CONTRACTS "Command palette"): filter field
+// on top, 34px rows, selected row on --accent-soft with a gold leading bar,
+// arrow keys + Enter + Esc. A reader who can drive the palette can drive this
+// without being taught twice.
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { t, tf } from "../i18n.ts";
+import { allFolders, canDrop, folderLabel, itemLabel, moveTo, parentDir, type MoveItem } from "../move.ts";
+import { attachScrollFade } from "../scrollFade.ts";
+import { useStore } from "../state.ts";
+
+interface Row {
+  /** Vault path of the destination folder ("" = the vault root). */
+  path: string;
+  /** The folder's own name, or the root's label. */
+  name: string;
+  /** Everything above it, printed faint on the trailing side. */
+  parent: string;
+}
+
+function buildRows(item: MoveItem): Row[] {
+  const tree = useStore.getState().tree;
+  const rows: Row[] = [];
+  // The vault root is a destination like any other and is easy to forget: it is
+  // the one folder with no row of its own in the tree.
+  if (canDrop(item, "")) rows.push({ path: "", name: t("moveVaultRoot"), parent: "" });
+  for (const path of allFolders(tree)) {
+    if (!canDrop(item, path)) continue; // self, own descendants, current parent
+    rows.push({ path, name: path.slice(path.lastIndexOf("/") + 1), parent: parentDir(path) });
+  }
+  return rows;
+}
+
+function MovePickerPanel({
+  item,
+  onDone,
+}: {
+  item: MoveItem;
+  onDone(dir: string | null): void;
+}) {
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const rows = useMemo(() => buildRows(item), [item]);
+  // THE ROW'S OWN NAME, not the disk's. The dialog is opened from a tree row
+  // reading "Welcome" (and from the palette, on the note whose tab reads
+  // "Welcome"), so a heading that says "Move “Welcome.md” to…" has renamed the
+  // thing between the click and the dialog. `item.name` stays the byte the API
+  // is called with — see move.ts.
+  const shownName = itemLabel(item);
+
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((row) => row.path.toLowerCase().includes(q) || row.name.toLowerCase().includes(q));
+  }, [rows, query]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    // A boundary that FADES rather than guillotines (CONTRACTS, Conventions):
+    // this list is long in any real vault and its last visible row would
+    // otherwise be sliced mid-glyph against the footer rule.
+    if (listRef.current) return attachScrollFade(listRef.current);
+  }, []);
+
+  // Filtering must never leave the highlight past the end of the list.
+  useEffect(() => {
+    setSelected((at) => (at < shown.length ? at : 0));
+  }, [shown.length]);
+
+  useEffect(() => {
+    listRef.current
+      ?.querySelector(".s-movepick__row--active")
+      ?.scrollIntoView({ block: "nearest" });
+  }, [selected, shown]);
+
+  const commit = useCallback(
+    (row: Row | undefined) => {
+      if (!row) return;
+      onDone(row.path);
+    },
+    [onDone],
+  );
+
+  // Capture phase, like the confirm dialog and the attachment viewer: while this
+  // is open it outranks zen's Esc and every editor binding.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onDone(null);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelected((at) => (shown.length === 0 ? 0 : (at + 1) % shown.length));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelected((at) => (shown.length === 0 ? 0 : (at - 1 + shown.length) % shown.length));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        commit(shown[selected]);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [shown, selected, commit, onDone]);
+
+  return (
+    <div className="s-confirm-overlay" onMouseDown={() => onDone(null)}>
+      <div
+        className="s-movepick"
+        role="dialog"
+        aria-modal="true"
+        aria-label={tf("moveToTitle", { name: shownName })}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <h2 className="s-movepick__title" dir="auto">
+          {tf("moveToTitle", { name: shownName })}
+        </h2>
+        <input
+          ref={inputRef}
+          className="s-movepick__input"
+          type="text"
+          dir="auto"
+          value={query}
+          placeholder={t("moveFilter")}
+          aria-label={t("moveFilter")}
+          spellCheck={false}
+          autoComplete="off"
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <div className="s-movepick__list s-scrollfade" ref={listRef} role="listbox" aria-label={t("moveFilter")}>
+          {shown.map((row, i) => (
+            <button
+              // The vault root has no path of its own, so its row needs a key no real
+              // path can collide with. Spelled as an ESCAPE: written as a literal NUL
+              // byte (which is what this was) the file stops being text — git reports
+              // "Binary files differ" and shows no diff for it, GitHub renders nothing,
+              // and a source file nobody can review is a source file nobody reviews.
+              // Identical string at runtime.
+              key={row.path || "\u0000root"}
+              type="button"
+              role="option"
+              aria-selected={i === selected}
+              className={`s-movepick__row${i === selected ? " s-movepick__row--active" : ""}`}
+              // mousemove, not mouseenter: a list that scrolls under a still
+              // pointer must not steal the keyboard's highlight (the palette's
+              // own bug, CONTRACTS "Command palette").
+              onMouseMove={() => setSelected(i)}
+              onClick={() => commit(row)}
+            >
+              <span className="s-movepick__name" dir="auto">{row.name}</span>
+              {row.parent && (
+                <span className="s-movepick__parent" dir="auto">{row.parent}</span>
+              )}
+            </button>
+          ))}
+          {shown.length === 0 && (
+            <p className="s-movepick__none">
+              {rows.length === 0 ? t("moveNowhere") : t("moveNoFolders")}
+            </p>
+          )}
+        </div>
+        <p className="s-movepick__from" dir="auto">
+          {tf("moveCurrently", { folder: folderLabel(parentDir(item.path)) })}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Imperative bridge ───────────────────────────────────────────────────────
+// One root at a time; a second call while one is open resolves the first as a
+// cancel rather than stacking two dialogs over each other.
+
+let closeOpen: (() => void) | null = null;
+
+/** Ask which folder `item` should move into. Resolves with the destination
+ *  folder path ("" = vault root), or null when the reader backed out. */
+export function pickMoveTarget(item: MoveItem): Promise<string | null> {
+  closeOpen?.(); // a second request cancels the first rather than stacking
+  return new Promise<string | null>((resolve) => {
+    const host = document.createElement("div");
+    host.className = "s-movepick-host";
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    let settled = false;
+    const done = (dir: string | null): void => {
+      if (settled) return;
+      settled = true;
+      if (closeOpen === cancel) closeOpen = null;
+      // Unmounting from inside a React event handler is a no-no; defer a tick.
+      setTimeout(() => {
+        root.unmount();
+        host.remove();
+      }, 0);
+      resolve(dir);
+    };
+    const cancel = (): void => done(null);
+    closeOpen = cancel;
+    root.render(<MovePickerPanel item={item} onDone={done} />);
+  });
+}
+
+/** Pick a destination, then move — what the row menu and the palette both run. */
+export async function moveViaPicker(item: MoveItem): Promise<void> {
+  const dir = await pickMoveTarget(item);
+  if (dir === null) return;
+  await moveTo(item, dir);
+}

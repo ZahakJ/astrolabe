@@ -5,16 +5,32 @@ import {
   useRef,
   useState,
 } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
-import { THEMES, useStore } from "../state.ts";
+import type {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+} from "react";
+import { useStore } from "../state.ts";
+import {
+  selectionToolbarEnabled,
+  setSelectionToolbarEnabled,
+} from "./SelectionMenu.tsx";
+import { choiceBase } from "../themes.ts";
 import type { Theme } from "../state.ts";
 import { search } from "../api.ts";
 import { dailyNotePath, openDailyNote } from "../daily.ts";
+import { insertTemplateCommand, newNoteFromTemplateCommand } from "../templateActions.ts";
 import { t, tf, type I18nKey } from "../i18n.ts";
-import { confirmModal } from "./Confirm.tsx";
+import { isNotePath, noteLabelOf, stripNoteExt } from "../../shared/noteFormat.ts";
+import { confirmModal, confirmModalEx } from "./Confirm.tsx";
+import { moveViaPicker } from "./MovePicker.tsx";
+import { confirmDeleteNote } from "./deleteFlow.ts";
+import { runSyncNow, syncSnapshot } from "../sync.ts";
 import { toast } from "../toast.ts";
 import type { SearchHit } from "../../shared/types.ts";
 import { renderSnippet, snippetIsEmpty } from "./snippet.tsx";
+import { openThemePicker } from "./ThemePicker.tsx";
+import { openDesigner } from "./design/DesignerPanel.tsx";
 
 // ---------------------------------------------------------------------------
 // Fuzzy matching (subsequence with consecutive/word-start bonuses)
@@ -66,7 +82,7 @@ function highlight(text: string, indices: number[]): ReactNode {
 
 function titleOf(path: string): string {
   const base = path.split("/").pop() ?? path;
-  return base.replace(/\.md$/i, "");
+  return stripNoteExt(base);
 }
 
 /** Folder part of a vault path ("" for notes at the vault root). */
@@ -75,8 +91,16 @@ function folderOf(path: string): string {
   return cut === -1 ? "" : path.slice(0, cut);
 }
 
+/** A typed name → a note path. An extension the reader supplied is KEPT —
+ *  typing "Paper.tex" must create a LaTeX note, not "Paper.tex.md" — and
+ *  anything else gets `.md`, which is what "new note" has always meant. */
 function ensureMd(path: string): string {
-  return /\.md$/i.test(path) ? path : `${path}.md`;
+  return isNotePath(path) ? path : `${path}.md`;
+}
+
+/** The same, defaulting to LaTeX: the "New LaTeX note" command's ending. */
+function ensureTex(path: string): string {
+  return isNotePath(path) ? path : `${path}.tex`;
 }
 
 // ---------------------------------------------------------------------------
@@ -104,8 +128,10 @@ interface Command {
   hint?: () => string;
   /** Commands that need a text argument switch the palette into prompt mode. */
   prompt?: { placeholder: string; initial: () => string };
-  /** Theme-switch commands show a color-dot glyph instead of the ⌘ icon. */
-  themeDot?: Theme;
+  /** Shows a color-dot glyph instead of the ⌘ icon. A thunk, not a value:
+   *  the one row that carries it previews the theme that is ON right now,
+   *  and the table is built once at import. */
+  themeDot?: () => Theme;
   available: (ctx: CommandCtx) => boolean;
 }
 
@@ -118,9 +144,44 @@ const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
+    // LaTeX is a first-class note format, not an import path, so creating one
+    // belongs beside "New note" rather than behind a rename.
+    id: "new-tex-note",
+    label: () => t("newTexNote"),
+    hint: () => t("cmdCreateHint"),
+    prompt: { placeholder: "path/to/paper.tex", initial: () => "" },
+    available: ({ admin }) => admin,
+  },
+  {
+    // The macro package a `.tex` note needs to compile OUTSIDE Vellum. It is
+    // the promise the whole `\note{…}` syntax rests on, and a promise nobody
+    // can find is not one — so it sits in the palette, one search away.
+    id: "vellum-sty",
+    label: () => t("cmdCopyVellumSty"),
+    hint: () => t("cmdCopyVellumStyHint"),
+    available: () => true,
+  },
+  {
     id: "daily-note",
     label: () => t("cmdDailyNote"),
     hint: () => dailyNotePath(),
+    available: ({ admin }) => admin,
+  },
+  // Templates. Two rows, because they are two different actions on two
+  // different objects — one edits the note you are in, the other makes a new
+  // one — and collapsing them into "Templates…" would put a mode question in
+  // front of both. The hints print the keystrokes, which is the only place
+  // outside the Ctrl/Cmd+/ sheet that they appear.
+  {
+    id: "insert-template",
+    label: () => t("cmdInsertTemplate"),
+    hint: () => "Ctrl/Cmd Alt T",
+    available: ({ admin, openPath }) => admin && openPath !== null,
+  },
+  {
+    id: "new-from-template",
+    label: () => t("cmdNewFromTemplate"),
+    hint: () => "Ctrl/Cmd Alt Shift T",
     available: ({ admin }) => admin,
   },
   {
@@ -135,13 +196,26 @@ const COMMANDS: Command[] = [
     hint: () => "Ctrl/Cmd E",
     available: ({ openPath, admin }) => admin && openPath !== null,
   },
-  ...THEMES.map<Command>((theme) => ({
-    id: `theme-${theme}`,
-    label: () => tf("cmdTheme", { t: theme }),
+  {
+    // ONE row for fifteen rooms. There used to be sixteen: this one plus a
+    // `Theme: <id>` command per theme, which is 15 of the palette's 41
+    // entries — 37% of the command list spent on one preference, and every
+    // one of them a blind jump. The picker it opens is strictly the better
+    // surface: grouped dark/light, arrow keys preview live against the real
+    // app, Enter keeps, Esc puts back what you started with. A family that is
+    // one parameter with N values belongs behind the surface that shows the
+    // values, not spread across N rows of a list you are trying to search.
+    // The dot previews the theme in force, so the row still answers "which
+    // one am I in" at a glance.
+    id: "theme-picker",
+    label: () => t("browseThemes"),
     hint: () => t("cmdAppearanceHint"),
-    themeDot: theme,
+    // choiceBase, not the raw choice: the dot is painted from the CONSTANT
+    // --swatch-<id>-* tokens, which are keyed on the fifteen built-in ids, so
+    // a custom theme previews as the room it was built on.
+    themeDot: () => choiceBase(useStore.getState().theme),
     available: () => true,
-  })),
+  },
   // Shell layout. Available to visitors too: where the panes sit and how much
   // chrome is on screen is the reader's business, not the admin's.
   {
@@ -150,23 +224,58 @@ const COMMANDS: Command[] = [
     hint: () => t("cmdZenHint"),
     available: () => true,
   },
+  // Panes are named by WHAT THEY ARE, never by the edge they happen to be on:
+  // in Arabic the notes sidebar sits right and the outline panel left, so
+  // "toggle left panel" would name the wrong pane half the time.
   {
     id: "toggle-sidebar",
-    label: () => t("cmdToggleSidebar"),
-    hint: () => "Ctrl/Cmd B",
+    label: () => t("cmdTogglePaneNotes"),
+    hint: () => "Ctrl/Cmd Alt B",
     available: () => true,
   },
   {
     id: "toggle-panel",
-    label: () => t("cmdTogglePanel"),
-    hint: () => "Ctrl/Cmd Shift B",
+    label: () => t("cmdTogglePaneOutline"),
+    hint: () => "Ctrl/Cmd Alt Shift B",
     available: () => true,
   },
+  // The floating formatting toolbar's only way BACK. It defaults on and the
+  // selection menu's last row turns it off, so without this row the switch
+  // would be one-way — the classic trap of a hidden default-on affordance.
+  // Admin only: it acts on the editor, which a read-only session never mounts.
   {
-    // One command, two labels: it always names the edge you are NOT on.
-    id: "sidebar-side",
-    label: () => t(useStore.getState().sidebarSide === "left" ? "cmdSidebarRight" : "cmdSidebarLeft"),
-    hint: () => t("cmdLayoutHint"),
+    id: "toggle-selection-toolbar",
+    label: () => t("cmdSelectionToolbar"),
+    hint: () => t("cmdSelectionToolbarHint"),
+    available: () => useStore.getState().admin,
+  },
+  // Three commands, not one toggle. The old single command named the edge you
+  // were NOT on, which made the third state — "follow the language" — both
+  // unreachable and invisible: the first use of it pinned the side forever.
+  // The hint says which one is in force, because a list of three options with
+  // no marked answer is a list of three questions.
+  //
+  // AUDITED against the theme family and KEPT. The fifteen `Theme:` rows went
+  // because a theme is a ROOM — it has to be looked at, the picker previews it
+  // live, and one row per value was 37% of the list. These three are the
+  // complete enumeration of a three-state preference, each row a finished end
+  // state that runs in one keystroke, with the one in force marked — the same
+  // shape as publish/unpublish, which are two rows for two genuine states.
+  // Collapsing them would trade three direct actions for a modal, a tab and a
+  // scroll (Settings → Appearance & language carries the identical segmented
+  // control), which is the opposite of what the theme change bought.
+  ...(["auto", "left", "right"] as const).map<Command>((pref) => ({
+    id: `sidebar-side-${pref}`,
+    label: () =>
+      t(pref === "auto" ? "cmdPaneSideAuto" : pref === "left" ? "cmdPaneSideLeft" : "cmdPaneSideRight"),
+    hint: () =>
+      useStore.getState().sidebarSidePref === pref ? t("cmdLayoutCurrentHint") : t("cmdLayoutHint"),
+    available: () => true,
+  })),
+  {
+    id: "shortcuts",
+    label: () => t("shortcutsTitle"),
+    hint: () => "Ctrl/Cmd /",
     available: () => true,
   },
   {
@@ -212,10 +321,30 @@ const COMMANDS: Command[] = [
     available: ({ openPath, admin }) => admin && openPath !== null,
   },
   {
+    // The palette's half of drag-and-drop. `rename-current` above can also
+    // move a note — it takes a whole path — but typing "Zombies/Cache
+    // Locality.md" from memory is not the same affordance as picking a folder
+    // from a filtered list, and a reader who cannot drag (touch, keyboard) needs
+    // the second one. It opens exactly the picker the tree's row menu opens.
+    id: "move-current",
+    label: () => t("cmdMoveCurrent"),
+    hint: () => t("cmdMoveFolderHint"),
+    available: ({ openPath, admin }) => admin && openPath !== null,
+  },
+  {
     id: "delete-current",
     label: () => t("cmdDeleteCurrent"),
-    hint: () => t("cmdIrreversibleHint"),
+    hint: () => t("cmdTrashHint"),
     available: ({ openPath, admin }) => admin && openPath !== null,
+  },
+  {
+    // The door to the bin every delete dialog promises. It sits next to the
+    // delete command on purpose: the reader who has just read "recoverable
+    // from disk" and wants the file back looks here, not in a terminal.
+    id: "open-trash",
+    label: () => t("cmdOpenTrash"),
+    hint: () => t("cmdOpenTrashHint"),
+    available: ({ admin, preview }) => admin && !preview,
   },
   {
     id: "moderate-comments",
@@ -228,6 +357,25 @@ const COMMANDS: Command[] = [
     label: () => t("siteSettings"),
     hint: () => t("cmdSiteSettingsHint"),
     available: ({ admin, preview }) => admin && !preview,
+  },
+  {
+    // The design engine's one door. Like the theme picker, what it opens is a
+    // browsing-and-building surface rather than a list, so it is one row.
+    id: "design-site",
+    label: () => t("designTitle"),
+    hint: () => t("designPaletteHint"),
+    available: ({ admin, preview }) => admin && !preview,
+  },
+  {
+    // Offered only once backup & sync is switched on with a remote — the
+    // status the badge reads is the same one this consults.
+    id: "sync-now",
+    label: () => t("syncNow"),
+    hint: () => t("cmdSyncHint"),
+    available: ({ admin, preview }) => {
+      const s = syncSnapshot();
+      return admin && !preview && s !== null && s.enabled && s.configured;
+    },
   },
   {
     id: "preview-visitor",
@@ -323,6 +471,23 @@ export default function CommandPalette() {
   /** Enter was pressed while results were in flight: run the selection as soon
    *  as the current query's results land. */
   const pendingEnterRef = useRef(false);
+  // ---- Pointer arming -----------------------------------------------------
+  // Enter must run the KEYBOARD's selection. The palette opens under wherever
+  // the cursor happens to be resting, and `mouseenter` fires on whatever row
+  // materializes there — so the row the reader never chose silently became the
+  // one Enter ran. Hover is therefore ignored until the mouse actually MOVES:
+  // we arm on a mousemove whose coordinates differ from the previous one
+  // (browsers emit a synthetic move after layout/scroll changes, and one of
+  // those must not count), and disarm on every keystroke, so arrowing away
+  // from a stationary cursor is never undone by the cursor sitting there.
+  const armedRef = useRef(false);
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+
+  const onListMouseMove = useCallback((e: ReactMouseEvent) => {
+    const last = lastPointRef.current;
+    if (last && (last.x !== e.clientX || last.y !== e.clientY)) armedRef.current = true;
+    lastPointRef.current = { x: e.clientX, y: e.clientY };
+  }, []);
 
   // Reset on open.
   useEffect(() => {
@@ -334,6 +499,8 @@ export default function CommandPalette() {
       setInFlight(false);
       seqRef.current++; // invalidate any response still in flight
       pendingEnterRef.current = false;
+      armedRef.current = false;
+      lastPointRef.current = null;
       // Focus after the modal renders.
       requestAnimationFrame(() => inputRef.current?.focus());
     }
@@ -430,14 +597,15 @@ export default function CommandPalette() {
         requestAnimationFrame(() => inputRef.current?.select());
         return;
       }
-      if (command.themeDot) {
-        store.setTheme(command.themeDot);
-        close();
-        return;
-      }
       switch (command.id) {
         case "daily-note":
           void openDailyNote();
+          break;
+        case "insert-template":
+          void insertTemplateCommand();
+          break;
+        case "new-from-template":
+          void newNoteFromTemplateCommand();
           break;
         case "toggle-graph":
           store.setView(store.view === "graph" ? "editor" : "graph");
@@ -452,32 +620,48 @@ export default function CommandPalette() {
         case "zen-mode":
           store.setZen(!store.zen);
           break;
+        case "shortcuts":
+          store.setShortcutsOpen(true);
+          break;
+        case "theme-picker":
+          openThemePicker();
+          break;
         case "toggle-sidebar":
-          store.setSidebarCollapsed(!store.sidebarCollapsed);
+          store.toggleSidebar();
           break;
         case "toggle-panel":
           store.setPanelCollapsed(!store.panelCollapsed);
           break;
-        case "sidebar-side":
-          store.setSidebarSide(store.sidebarSide === "left" ? "right" : "left");
+        case "toggle-selection-toolbar":
+          setSelectionToolbarEnabled(!selectionToolbarEnabled());
           break;
-        case "delete-current":
+        case "sidebar-side-auto":
+          store.setSidebarSidePref("auto");
+          break;
+        case "sidebar-side-left":
+          store.setSidebarSidePref("left");
+          break;
+        case "sidebar-side-right":
+          store.setSidebarSidePref("right");
+          break;
+        case "move-current":
           if (store.openPath) {
             const path = store.openPath;
-            void confirmModal({
-              title: t("deleteNoteTitle"),
-              body: tf("deleteNoteBody", { path }),
-            }).then((ok) => {
-              if (!ok) return;
-              useStore
-                .getState()
-                .deleteNote(path)
-                .catch((err: unknown) => {
-                  console.error("CommandPalette: delete failed", err);
-                  toast(t("couldNotDeleteNote"));
-                });
+            void moveViaPicker({
+              path,
+              name: path.slice(path.lastIndexOf("/") + 1),
+              isFolder: false,
             });
           }
+          break;
+        case "delete-current":
+          // Literally the same call the tree row makes (components/
+          // deleteFlow.ts). A command must not be the harsher gesture merely
+          // because it was reached from the palette, and the only way to
+          // guarantee that forever is for there to be one implementation of
+          // it — two copies of the same dialog is what let the palette hint
+          // say "irreversible" over a move to .trash.
+          if (store.openPath) void confirmDeleteNote(store.openPath);
           break;
         case "publish-note":
           if (store.openPath) void store.togglePublish(store.openPath, true);
@@ -491,11 +675,20 @@ export default function CommandPalette() {
         case "remove-banner":
           if (store.openPath) void store.setBanner(store.openPath, null);
           break;
+        case "open-trash":
+          store.setTrashOpen(true);
+          break;
         case "moderate-comments":
           store.setModerationOpen(true);
           break;
         case "site-settings":
           store.setSettingsOpen(true);
+          break;
+        case "design-site":
+          openDesigner();
+          break;
+        case "sync-now":
+          void runSyncNow();
           break;
         case "preview-visitor":
           void store.setPreviewVisitor(true);
@@ -505,6 +698,9 @@ export default function CommandPalette() {
           break;
         case "sign-in":
           store.setLoginOpen(true);
+          break;
+        case "vellum-sty":
+          window.open("/api/vellum.sty", "_blank", "noopener");
           break;
         case "sign-out":
           void store.logout();
@@ -520,8 +716,8 @@ export default function CommandPalette() {
     const value = query.trim();
     if (!command || !value) return;
     const store = useStore.getState();
-    if (command.id === "new-note") {
-      const path = ensureMd(value);
+    if (command.id === "new-note" || command.id === "new-tex-note") {
+      const path = command.id === "new-tex-note" ? ensureTex(value) : ensureMd(value);
       store
         .createNote(path)
         .then(() => store.openNote(path))
@@ -553,6 +749,10 @@ export default function CommandPalette() {
 
   const onKeyDown = useCallback(
     (e: ReactKeyboardEvent<HTMLInputElement>) => {
+      // Any keystroke hands the selection back to the keyboard: a cursor
+      // parked over row 5 must not re-steal it after ↓ moved to row 2.
+      armedRef.current = false;
+      lastPointRef.current = null;
       if (e.key === "Escape") {
         e.preventDefault();
         close();
@@ -618,6 +818,19 @@ export default function CommandPalette() {
           ref={inputRef}
           className="s-palette-input"
           type="text"
+          // The field holds note-derived text — a title being searched for, a
+          // vault path being edited — so its DIRECTION is the value's, not the
+          // chrome's. In an Arabic shell the rename prompt opened pre-filled
+          // with "1 - Source Material/Research Page.md" and DREW it as
+          // "Source Material/Research Page.md - 1": the leading digits are
+          // bidi-weak, so the RTL paragraph swept them to the far end. That is
+          // the string the reader is about to rename a file to.
+          // While the field is EMPTY it carries no direction of its own and
+          // inherits the shell's, so the Arabic placeholder still sets
+          // right-aligned: `dir="auto"` reads the VALUE, and an empty one
+          // resolves to ltr, which left-aligned «اكتب أمرًا أو ابحث في
+          // الملاحظات…» inside an RTL panel.
+          dir={query === "" ? undefined : "auto"}
           value={query}
           placeholder={
             isPrompt
@@ -626,15 +839,17 @@ export default function CommandPalette() {
           }
           onChange={(e) => {
             setQuery(e.target.value);
-            setSelected(0);
+            setSelected(0); // a new query is a new list — selection starts at the top
             pendingEnterRef.current = false; // typing again cancels a queued Enter
+            armedRef.current = false;
+            lastPointRef.current = null;
           }}
           onKeyDown={onKeyDown}
           spellCheck={false}
           autoComplete="off"
         />
         {!isPrompt && (
-          <div className="s-palette-list" ref={listRef}>
+          <div className="s-palette-list" ref={listRef} onMouseMove={onListMouseMove}>
             {items.map((item, i) => {
               const active = i === selected;
               const cls = `s-palette-item${active ? " s-palette-item--active" : ""}`;
@@ -653,7 +868,9 @@ export default function CommandPalette() {
                   {heading}
                   <div
                     className={cls}
-                    onMouseEnter={() => setSelected(i)}
+                    onMouseMove={() => {
+                      if (armedRef.current) setSelected(i);
+                    }}
                     onClick={() => execute(item)}
                   >
                     <span className="s-palette-item-icon" aria-hidden="true">
@@ -661,7 +878,7 @@ export default function CommandPalette() {
                         item.command.themeDot ? (
                           <span
                             className="s-palette-dot"
-                            data-theme-dot={item.command.themeDot}
+                            data-theme-dot={item.command.themeDot()}
                           />
                         ) : (
                           <IconCommand />
@@ -677,7 +894,14 @@ export default function CommandPalette() {
                         </span>
                         {item.command.hint && (
                           <span className="s-palette-item-hint">
-                            {item.command.hint()}
+                            {/* Hints are a mixed bag — localized words
+                                ("appearance" / «المظهر»), keystrokes
+                                ("Ctrl/Cmd Alt Shift B") and a real vault path
+                                (the daily note's). The last two are Latin
+                                runs with weak leading characters, so each
+                                hint isolates itself rather than reordering
+                                against the Arabic row around it. */}
+                            <bdi>{item.command.hint()}</bdi>
                           </span>
                         )}
                       </>

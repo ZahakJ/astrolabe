@@ -10,7 +10,10 @@
 
 import { existsSync } from "node:fs";
 import path from "node:path";
+import type { LanguageFilterMode } from "../shared/types.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
+import { isTheme, THEMES as THEME_IDS } from "../shared/themes.ts";
+import { isCustomThemeId } from "../shared/customTheme.ts";
 import { getSettings } from "./settings.ts";
 
 interface SiteConfig {
@@ -18,12 +21,12 @@ interface SiteConfig {
   defaultTheme: string | null;
   dataDir: string;
   excludeTags: Set<string>;
-  publicLayout: "app" | "blog";
+  publicLayout: "app" | "blog" | "designed";
   tagline: string | null;
   footer: string | null; // raw SITE_FOOTER (may contain {year}/{siteName}); null → default
   blogLocale: string | null; // BLOG_LOCALE as given; null → derive (language-aware) in the getter
   language: "en" | "ar"; // SITE_LANG — chrome language + RTL mirroring when "ar"
-  languageFilter: boolean; // LANGUAGE_FILTER — public blog lists show only site-language notes
+  languageFilter: EnvLanguageFilter; // LANGUAGE_FILTER — see readEnvLanguageFilter
   siteUrl: string | null; // canonical origin for absolute links (RSS, canonical); null → derive from request
   attachmentsDir: string; // vault-relative dir uploads land in (ATTACHMENTS_DIR)
   bannerFallback: "generated" | "none"; // BANNER_FALLBACK — hero for banner-less blog posts
@@ -39,19 +42,82 @@ let config: SiteConfig = {
   footer: null,
   blogLocale: null,
   language: "en",
-  languageFilter: false,
+  languageFilter: "off",
   siteUrl: null,
   attachmentsDir: "attachments",
   bannerFallback: "generated",
 };
 
+/** DEFAULT_THEME, checked against the shared theme list. An unknown name is
+ *  ignored (the instance keeps the built-in default) and SAID SO once, at
+ *  startup — the same list backs `settings.defaultTheme`, whose PATCH answers
+ *  400 rather than dropping the value quietly. */
+function readEnvTheme(raw: string | undefined): string | null {
+  const value = raw?.trim().toLowerCase() || null;
+  // A custom theme id passes the SHAPE check here and nothing more: this runs
+  // inside initSite(), before dataDir() has a value, so designs.json cannot be
+  // consulted yet without a startup-order cycle. Existence is checked where it
+  // is cheap and where the answer matters — /api/me only names a default theme
+  // the instance actually has.
+  if (value === null || isTheme(value) || isCustomThemeId(value)) return value;
+  console.error(
+    `vellum: DEFAULT_THEME="${value}" is not a built-in theme (or a custom:<name> one) — ignoring. ` +
+      `Built-ins: ${THEME_IDS.join(", ")}`,
+  );
+  return null;
+}
+
+/** PUBLIC_LAYOUT, validated. An unrecognized value is the default layout and
+ *  SAYS SO, for readEnvTheme's reason: a typo'd `PUBLIC_LAYOUT=deisgned` that
+ *  silently serves the app shell is an operator staring at an unchanged site
+ *  with nothing anywhere explaining why. */
+function readEnvLayout(raw: string | undefined): "app" | "blog" | "designed" {
+  const value = raw?.trim().toLowerCase() || "";
+  if (value === "blog" || value === "designed" || value === "app") return value;
+  if (value !== "") {
+    console.error(`vellum: PUBLIC_LAYOUT="${value}" is not app, blog or designed — ignoring.`);
+  }
+  return "app";
+}
+
+/** Every value the shared LanguageFilterMode enum admits — the one list both
+ *  the env reader and the PATCH validator check against. */
+export const LANGUAGE_FILTER_MODES: readonly LanguageFilterMode[] = ["off", "follow", "ar", "en"];
+const MODE_SET = new Set<string>(LANGUAGE_FILTER_MODES);
+
+/** The env form of the filter. `"site"` is the LEGACY BOOLEAN: `true` never
+ *  named a language, it meant "the site's own language, whatever that is", so
+ *  it stays a sentinel resolved at read time (languageFilterMode) rather than
+ *  being frozen into "ar" or "en" here. Everything else is the enum. */
+type EnvLanguageFilter = LanguageFilterMode | "site";
+
+/** LANGUAGE_FILTER, validated. The enum values win; the boolean spellings this
+ *  variable used to take (`true/1/on/yes`, `false/0/no`) still work and mean
+ *  what they always meant; anything else is IGNORED AND SAID SO, once, at
+ *  startup — the same treatment DEFAULT_THEME gets, and for a sharper reason:
+ *  a typo here silently decides how much of the site is public. */
+function readEnvLanguageFilter(raw: string | undefined): EnvLanguageFilter {
+  const value = raw?.trim().toLowerCase() ?? "";
+  if (value === "") return "off";
+  if (MODE_SET.has(value)) return value as LanguageFilterMode;
+  if (/^(true|1|on|yes)$/.test(value)) return "site"; // legacy: pin to the site language
+  if (/^(false|0|no)$/.test(value)) return "off";
+  console.error(
+    `vellum: LANGUAGE_FILTER="${value}" is not a language-filter mode — ignoring (filter off). ` +
+      `One of: ${LANGUAGE_FILTER_MODES.join(", ")}`,
+  );
+  return "off";
+}
+
 /** Read site settings from the environment. Call once at startup. */
 export function initSite(env: NodeJS.ProcessEnv = process.env): void {
   config = {
     siteName: env.SITE_NAME?.trim() || "Vellum",
-    // Passed through as-is; the client validates against its theme list and
-    // ignores unknown names, so the server never chases theme additions.
-    defaultTheme: env.DEFAULT_THEME?.trim().toLowerCase() || null,
+    // Validated against the shared theme list, not passed through: a typo'd
+    // DEFAULT_THEME used to travel all the way to /api/me and get silently
+    // dropped by the client, so the operator saw the default theme and no
+    // explanation anywhere. One line on stderr at startup is the whole fix.
+    defaultTheme: readEnvTheme(env.DEFAULT_THEME),
     dataDir: path.resolve(env.VELLUM_DATA?.trim() || "data"),
     // Workflow/status tags (e.g. zettel maturity markers) that shouldn't
     // surface as topic headings or tag pills on the published site. A leading
@@ -63,16 +129,17 @@ export function initSite(env: NodeJS.ProcessEnv = process.env): void {
         .filter(Boolean),
     ),
     // Blog mode: visitors get a classic blog shell instead of the app chrome.
-    // Anything but exactly "blog" (case-insensitive) is the default app layout.
-    publicLayout: env.PUBLIC_LAYOUT?.trim().toLowerCase() === "blog" ? "blog" : "app",
+    // "designed" composes the visitor shell from the active design instead
+    // (server/designs.ts); anything else is the default app layout.
+    publicLayout: readEnvLayout(env.PUBLIC_LAYOUT),
     tagline: env.SITE_TAGLINE?.trim() || null,
     footer: env.SITE_FOOTER?.trim() || null,
     blogLocale: env.BLOG_LOCALE?.trim() || null,
     // Chrome language: "ar" localizes every chrome string and mirrors the UI
     // right-to-left. Anything but exactly "ar" (case-insensitive) is English.
     language: env.SITE_LANG?.trim().toLowerCase() === "ar" ? "ar" : "en",
-    // Public-surface language filter (works with `language`; see indexer).
-    languageFilter: /^(true|1|on|yes)$/i.test(env.LANGUAGE_FILTER?.trim() ?? ""),
+    // Public-surface language filter (see indexer + LanguageFilterMode).
+    languageFilter: readEnvLanguageFilter(env.LANGUAGE_FILTER),
     siteUrl: env.SITE_URL?.trim().replace(/\/+$/, "") || null,
     // Vault-relative directory uploaded images land in (created on demand).
     // Slashes trimmed; the API layer path-safety-checks the joined result.
@@ -104,9 +171,15 @@ export function excludedTags(): Set<string> {
   return config.excludeTags;
 }
 
-/** "blog" → visitors see the classic blog shell (settings.publicLayout, else
- *  PUBLIC_LAYOUT); admin sessions always keep the full app regardless. */
-export function publicLayout(): "app" | "blog" {
+/** "blog" → visitors see the classic blog shell; "designed" → the active
+ *  design composes it (settings.publicLayout, else PUBLIC_LAYOUT). Admin
+ *  sessions always keep the full app regardless.
+ *
+ *  This is the CONFIGURED value. What a visitor actually gets is
+ *  `servedLayout()` in server/auth.ts, which downgrades "designed" to "blog"
+ *  whenever there is no renderable design — the fallback happens on the
+ *  server so a visitor's first byte is already the pristine base. */
+export function publicLayout(): "app" | "blog" | "designed" {
   return getSettings().publicLayout ?? config.publicLayout;
 }
 
@@ -149,11 +222,41 @@ export function siteLanguage(): "en" | "ar" {
   return getSettings().language ?? config.language;
 }
 
-/** True when public blog surfaces should list only notes written
- *  predominantly in the site language's script (settings.languageFilter,
- *  else LANGUAGE_FILTER; default false). */
-export function languageFilterEnabled(): boolean {
-  return getSettings().languageFilter ?? config.languageFilter;
+/** SITE_LANG alone — the env default, with settings.json deliberately NOT
+ *  consulted. It exists for exactly one caller: settings.ts, resolving what a
+ *  legacy `languageFilter: true` means. That resolution happens INSIDE
+ *  getSettings(), so reaching back through siteLanguage() (which calls
+ *  getSettings()) was infinite recursion — the server died at boot with
+ *  "Maximum call stack size exceeded" the first time it met a real pre-enum
+ *  settings file. settings.ts pairs this with the raw file's own `language`
+ *  key, which is the same merge siteLanguage() does, one layer down. */
+export function envSiteLanguage(): "en" | "ar" {
+  return config.language;
+}
+
+/** How public discovery surfaces curate by note language: settings.languageFilter
+ *  when stored, else LANGUAGE_FILTER, else "off".
+ *
+ *  The env "site" sentinel (a legacy boolean `LANGUAGE_FILTER=true`) resolves
+ *  HERE rather than at startup, because that is what it has always meant —
+ *  "whichever language the site is in right now" — and resolving it in
+ *  initSite() would freeze it against a `settings.language` that had not been
+ *  read yet. The STORED boolean is a different case and is migrated on disk
+ *  (settings.ts): a live site's behaviour must not follow its chrome language
+ *  around after an upgrade. */
+export function languageFilterMode(): LanguageFilterMode {
+  const stored = getSettings().languageFilter;
+  if (stored !== undefined) return stored;
+  return config.languageFilter === "site" ? siteLanguage() : config.languageFilter;
+}
+
+/** settings.languageToggle — the public shell offers visitors an EN/ع switch.
+ *  No env counterpart (a visitor-facing switch is a runtime editorial choice),
+ *  and it is the GATE on the reader-language header: a site that does not
+ *  offer readers a language cannot be told by one which language it is
+ *  reading in. */
+export function languageToggleEnabled(): boolean {
+  return getSettings().languageToggle ?? false;
 }
 
 /** Configured canonical origin (SITE_URL, no trailing slash) or null —

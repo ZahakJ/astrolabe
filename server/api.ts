@@ -9,17 +9,28 @@ import { bodyLimit } from "hono/body-limit";
 import { streamSSE } from "hono/streaming";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { stripBidiControls } from "../shared/bidi.ts";
+import { isNotePath, isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
 import { UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import type {
+  AnchorsResponse,
+  BannerResolution,
   CommentData,
+  DeletePreview,
   FrontmatterResult,
+  LanguageFilterMode,
   NoteData,
+  PublishedPaths,
   PublishResult,
+  TagLabelsResponse,
+  TrashEntry,
   TreeNode,
   UploadResult,
   VaultEvent,
+  XrefResponse,
 } from "../shared/types.ts";
-import { authGuard, authRoutes, clientIp, isPublishLimited } from "./auth.ts";
+import { authGuard, authRoutes, clientIp, isProtected, isPublishLimited } from "./auth.ts";
+import { languageScope } from "./language.ts";
+import { visibilityFor, type VisibilityQuery } from "./visibility.ts";
 import {
   AUTHOR_MAX,
   BODY_MAX,
@@ -34,41 +45,92 @@ import {
   removeComment,
   setCommentHidden,
 } from "./comments.ts";
+import type { FilterLang } from "./indexer.ts";
 import {
   backlinks,
   graph,
   indexFile,
+  indexUnder,
   isAllowedAttachment,
   isNotePublished,
   isNoteVisibleToVisitor,
   listImageAttachments,
+  noteAnchors,
+  notesAffectedByFolderMove,
+  notesLinkingTo,
+  notesReferencing,
   posts,
   publishedNotes,
+  publishedPaths,
   registerAttachment,
+  resolveBannerRef,
+  resolveCitekey,
   resolveEmbed,
+  resolveLabel,
   search,
   tags,
   visibleNotesUnder,
   whenIndexed,
   wikilinkRegex,
 } from "./indexer.ts";
-import { setFrontmatterLine, setPublishFlag, yamlQuote } from "./publish.ts";
-import { patchSettings, settingsAssetPaths, settingsResponse } from "./settings.ts";
-import { attachmentsDir, customCssPath, fontsDir } from "./site.ts";
+import { designRoutes } from "./designRoutes.ts";
+import { staticPagesActive } from "./pages.ts";
+import { gitStatus, initRepo, syncNow } from "./gitSync.ts";
+import { dirOf, rewriteDestinations, rewriteForMove } from "./moveLinks.ts";
+import { yamlQuote } from "./publish.ts";
+import { setNoteFrontmatterLine, setNotePublishFlag } from "./noteFrontmatter.ts";
+import {
+  buildFaceListCss,
+  buildFontCss,
+  catalogEntry,
+  catalogSlotIds,
+  cleanFontSlots,
+  customSlotIds,
+  ensureFontsCached,
+  fontDir,
+  FONT_SLOTS,
+  isCacheFileName,
+  pickableIds,
+  slotsAreSystem,
+} from "./fonts.ts";
+import {
+  CUSTOM_FONT_MAX_BYTES,
+  customDir,
+  customFileOf,
+  customFontExists,
+  customMime,
+  deleteCustomFont,
+  hasPlausibleTableDirectory,
+  isCustomFileName,
+  listCustomFonts,
+  saveCustomFont,
+  sniffFontFormat,
+} from "./customFonts.ts";
+import { fontSlots, patchSettings, settingsAssetPaths, settingsResponse } from "./settings.ts";
+// Localised tag labels: display names for canonical tags, plus the query
+// rewrite that makes search answer to both spellings.
+import { expandTagQuery, visibleTagLabels } from "./tagLabels.ts";
+import { attachmentsDir, customCssPath, fontsDir, LANGUAGE_FILTER_MODES } from "./site.ts";
 import {
   VaultError,
   buildTree,
   createFolder,
   createNote,
+  deleteAttachment,
   deleteFolder,
   deleteNote,
   emitEvent,
   getVaultRoot,
+  moveFolder,
+  listTrash,
+  listVaultFiles,
   noteExists,
   normalizeRel,
   onEvent,
+  purgeFromTrash,
   readNote,
   renameNote,
+  restoreFromTrash,
   safeAbs,
   statAttachment,
   suppressWatcherEcho,
@@ -96,6 +158,10 @@ const COMMENT_BODY_MAX = 64 * 1024; //    64 KB: comment posts + login
 // The multipart envelope (boundary lines, field headers) rides on top of the
 // image bytes, so the wire cap leaves a little headroom above the image cap.
 const UPLOAD_BODY_MAX = UPLOAD_MAX_BYTES + 64 * 1024;
+// A font upload is its own, tighter cap (CUSTOM_FONT_MAX_BYTES ≈ 5 MB): the
+// route sniffs magic bytes, so the only thing this stops is a body that never
+// had to be read at all. The multipart envelope rides on top of the file.
+const FONT_BODY_MAX = CUSTOM_FONT_MAX_BYTES + 64 * 1024;
 
 function tooLarge(maxBytes: number) {
   return (c: Context) => c.json({ error: `Request body too large (${maxBytes} bytes max)` }, 413);
@@ -108,8 +174,45 @@ api.use("*", async (c, next) => {
     ? COMMENT_BODY_MAX
     : post && c.req.path === "/api/upload"
       ? UPLOAD_BODY_MAX
-      : API_BODY_MAX;
+      : post && c.req.path === "/api/fonts/upload"
+        ? FONT_BODY_MAX
+        : API_BODY_MAX;
   return bodyLimit({ maxSize: max, onError: tooLarge(max) })(c, next);
+});
+
+// ── Caching discipline: one middleware, above everything ────────────────────
+// EVERY body this API answers varies by session cookie and by the visitor-
+// preview header, and none of them said so. /api/tree, /note, /posts, /search,
+// /graph, /tags, /backlinks and /me carried NO Cache-Control at all, and
+// nothing anywhere carried `Vary`. The README recommends running nginx in
+// front, where a shared cache is entitled to reuse a cacheable-looking 200 for
+// the next caller — and the object at risk is an admin's entire vault tree
+// being handed to an anonymous visitor, or a visitor's published-only tree
+// being served back to the admin.
+//
+// `private, no-store` is the right default for an API whose every answer is
+// scoped to who asked; `Vary` states the two dimensions for any cache that
+// ignores the first. Both are DEFAULTS: a route that set its own
+// Cache-Control keeps it, and the content-addressed font routes (immutable,
+// deliberately shared, containing no session-varying byte) are skipped
+// entirely so a CDN can still hold them.
+// X-Vellum-Lang joined the list the moment `languageFilter: "follow"` existed:
+// under that mode two readers of the SAME url, with the same (absent) cookie
+// and no preview header, get different post lists, different topics, different
+// search results and a different graph. A cache that did not know that would
+// serve an Arabic reader's collection to an English one — the same class of
+// bug the Cookie dimension was added to prevent, one axis over.
+const VARY_ON = "Cookie, X-Vellum-Preview, X-Vellum-Lang";
+
+api.use("*", async (c, next) => {
+  await next();
+  const headers = c.res.headers;
+  const cache = headers.get("Cache-Control");
+  if (cache?.includes("immutable")) return; // content-addressed, session-free
+  const vary = headers.get("Vary");
+  if (!vary) headers.set("Vary", VARY_ON);
+  else if (!/\bcookie\b/i.test(vary)) headers.set("Vary", `${vary}, ${VARY_ON}`);
+  if (!cache) headers.set("Cache-Control", "private, no-store");
 });
 
 // Auth first: /login, /logout, /me are always reachable; the guard runs before
@@ -144,6 +247,116 @@ const FONT_MIME: Record<string, string> = {
   otf: "font/otf",
 };
 
+// Typography: the catalog cache under VELLUM_DATA/fonts/catalog/<id>/<file>,
+// referenced by every src in the generated /api/site-fonts.css. Same openness
+// as /api/fonts/<file> above (it is prefix-exempted in the auth guard) and the
+// same path discipline, tightened: the directory must be a KNOWN catalog id —
+// an allowlist, not a sanitizer — and the filename must match the shape this
+// server generates (lowercase slug + .woff2). Nothing else is reachable.
+api.get("/fonts/catalog/:id/:file", async (c) => {
+  const id = c.req.param("id");
+  const file = c.req.param("file");
+  if (!catalogEntry(id) || !isCacheFileName(file)) {
+    return c.json({ error: "Font not found" }, 404);
+  }
+  const abs = path.join(fontDir(id), file);
+  let bytes: Uint8Array<ArrayBuffer>;
+  try {
+    const read = await fsp.readFile(abs);
+    bytes = new Uint8Array(read.buffer.slice(read.byteOffset, read.byteOffset + read.byteLength));
+  } catch {
+    return c.json({ error: "Font not found" }, 404);
+  }
+  const etag = `"${bytes.byteLength.toString(16)}-${id}-${file}"`;
+  const ifNoneMatch = c.req.header("if-none-match");
+  if (ifNoneMatch && ifNoneMatch.split(",").some((tag) => tag.trim() === etag || tag.trim() === `W/${etag}`)) {
+    return c.body(null, 304, { "ETag": etag });
+  }
+  return c.body(bytes, 200, {
+    "Content-Type": "font/woff2",
+    "ETag": etag,
+    // Content-stable: the cache path changes when the family changes.
+    "Cache-Control": "public, max-age=31536000, immutable",
+    "X-Content-Type-Options": "nosniff",
+  });
+});
+
+// The generated typography stylesheet: self-hosted @font-face blocks for the
+// chosen catalog faces, three composite families (the Arabic slot's faces
+// first, narrowed to the Arabic unicode ranges, so a mixed paragraph picks the
+// right face per CHARACTER), then the :root remap of --font-serif/--font-ui/
+// --font-mono. Open like custom.css — it IS the public site's typography —
+// and it contains no external URL by construction: every src points back at
+// /api/fonts/catalog/… on this server.
+api.get("/site-fonts.css", async (c) => {
+  const slots = fontSlots();
+  const css = slotsAreSystem(slots) ? "/* No webfonts configured. */\n" : await buildFontCss(slots, {
+    prefix: "Vellum",
+    root: true,
+  });
+  return c.body(css, 200, {
+    "Content-Type": "text/css; charset=utf-8",
+    // The link carries a ?v= signature of the picks, so a save shows up at
+    // once; the bytes themselves may be revalidated cheaply.
+    "Cache-Control": "no-cache",
+  });
+});
+
+// The uploaded faces, as the Typography tab lists them. It sits HERE, above
+// GET /fonts/:file, because that route's `:file` would otherwise swallow the
+// word "custom" — and it gates itself rather than leaning on the auth guard,
+// because the /api/fonts/ prefix is exempt from the guard for READS (the
+// bytes are public; the inventory is not). Same shape as GET /api/settings:
+// a visitor, or an admin previewing as one, gets a 404.
+api.get("/fonts/custom", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  return c.json(await listCustomFonts());
+});
+
+// Uploaded faces (VELLUM_DATA/fonts/custom/<file>). Served on exactly the
+// terms the catalog cache is — open like custom.css, because a face IS the
+// public site's typography and the login page of a PUBLIC=false vault should
+// render in it — and with exactly the same path discipline: the name must
+// match the shape the uploader GENERATES (lowercase slug + a known font
+// extension), so nothing else under the directory is reachable and no caller
+// string is ever joined into a path.
+api.get("/fonts/custom/:file", async (c) => {
+  const file = c.req.param("file");
+  if (!isCustomFileName(file)) return c.json({ error: "Font not found" }, 404);
+  const abs = path.join(customDir(), file);
+  let stat;
+  try {
+    // lstat, NOT stat: `stat` follows symlinks, so a link planted in the fonts
+    // directory served whatever it pointed at. Verified: `symlink.woff2` →
+    // /etc/passwd came back 200 with `Content-Type: font/woff2`, to an
+    // anonymous request, on a route deliberately exempted from the auth guard
+    // so the login page of a private vault can render in the instance's face.
+    // Nothing the API does can create such a link (names are generated), but
+    // this route reads a directory a human also writes into, and refusing a
+    // link outright costs one letter.
+    stat = await fsp.lstat(abs);
+    if (!stat.isFile()) throw new Error("not a regular file");
+  } catch {
+    return c.json({ error: `Font not found: ${file}` }, 404);
+  }
+  const etag = `"${stat.size.toString(16)}-${Math.round(stat.mtimeMs).toString(16)}"`;
+  const ifNoneMatch = c.req.header("if-none-match");
+  if (ifNoneMatch && ifNoneMatch.split(",").some((tag) => tag.trim() === etag || tag.trim() === `W/${etag}`)) {
+    return c.body(null, 304, { "ETag": etag });
+  }
+  const nodeStream = createReadStream(abs);
+  nodeStream.on("error", (err: unknown) => console.error(`font stream error for ${file}:`, err));
+  return c.body(Readable.toWeb(nodeStream) as unknown as ReadableStream, 200, {
+    "Content-Type": customMime(file),
+    "ETag": etag,
+    // A replaced face is a new filename (the uploader never overwrites), so
+    // these bytes are content-stable like the catalog cache.
+    "Cache-Control": "public, max-age=31536000, immutable",
+    "X-Content-Type-Options": "nosniff",
+    "Content-Length": String(stat.size),
+  });
+});
+
 api.get("/fonts/:file", async (c) => {
   const file = c.req.param("file");
   // Basename only: reject anything with path separators (a literal "/" can
@@ -167,8 +380,10 @@ api.get("/fonts/:file", async (c) => {
   const abs = path.join(fontsDir(), file);
   let stat;
   try {
-    stat = await fsp.stat(abs);
-    if (!stat.isFile()) throw new Error("not a file");
+    // lstat for the reason the custom-font route above states: this one is the
+    // custom.css escape hatch, so the directory it reads is written by hand.
+    stat = await fsp.lstat(abs);
+    if (!stat.isFile()) throw new Error("not a regular file");
   } catch {
     return c.json({ error: `Font not found: ${file}` }, 404);
   }
@@ -197,7 +412,12 @@ api.use("*", authGuard);
 
 api.onError((err, c) => {
   if (err instanceof VaultError) {
-    return c.json({ error: err.message }, err.status as ContentfulStatusCode);
+    // `code` rides beside `error` when the thrower named one: the prose is for
+    // logs and curl, the code is what a localized UI can translate.
+    return c.json(
+      err.code ? { error: err.message, code: err.code } : { error: err.message },
+      err.status as ContentfulStatusCode,
+    );
   }
   console.error("api error:", err);
   return c.json({ error: "Internal server error" }, 500);
@@ -228,15 +448,24 @@ function requiredString(body: Record<string, unknown>, key: string): string {
 
 // Visitors (hash configured, no admin session) see the vault as a flat curated
 // collection: only published notes, no folder structure, names are titles.
-function publishedTree(): TreeNode {
-  const children: TreeNode[] = publishedNotes()
+function publishedTree(lang: FilterLang): TreeNode {
+  const children: TreeNode[] = publishedNotes(lang)
     .map(({ path: notePath, title }) => ({ name: title, path: notePath, type: "file" as const }))
     .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
   return { name: path.basename(getVaultRoot()), path: "", type: "folder", children };
 }
 
+// The admin tree carries the vault's ATTACHMENTS as well as its notes (each
+// non-markdown file gets a TreeNode.attachment marker) — a Media/ folder that
+// expanded to nothing was read by a real owner as "my files are missing".
+// The visitor tree does not, and cannot: publishedTree() is built from
+// publishedNotes() alone, so no filename outside the published set is ever
+// named to a visitor (or to an admin previewing as one), whatever the sidebar
+// is showing at the time. Attachment BYTES stay gated by /api/file's
+// allowlist check either way.
 api.get("/tree", async (c) => {
-  if (isPublishLimited(c)) return c.json(publishedTree());
+  const limited = isPublishLimited(c);
+  if (limited) return c.json(publishedTree(languageScope(c, limited).lang));
   return c.json(await buildTree());
 });
 
@@ -290,16 +519,41 @@ api.post("/rename", async (c) => {
   return c.json({ ok: true });
 });
 
+// Delete ONE note. Same two-speed contract as DELETE /api/folder, and for the
+// same reason: the default MOVES the file to `.trash/` (recoverable from disk,
+// invisible to tree/index/watcher), `?permanent=true` removes it for good.
+// The parameter is spelled and parsed exactly like the folder route's —
+// `1`/`true`/`yes`/`on` — so one rule covers both delete verbs.
 api.delete("/note", async (c) => {
-  const path = requiredQuery(c.req.query("path"), "path");
-  await deleteNote(path);
-  return c.json({ ok: true });
+  const notePath = requiredQuery(c.req.query("path"), "path");
+  const permanent = TRUTHY_QUERY.has((c.req.query("permanent") ?? "").toLowerCase());
+  const result = await deleteNote(notePath, { permanent });
+  // Await the index the way DELETE /api/folder does: the client refetches
+  // /api/tree, /api/graph and the published count on this 200, and a note that
+  // is still in the index when they answer is a note the reader sees a second
+  // time in their own search results.
+  await whenIndexed();
+  return c.json({ ok: true, ...result });
 });
 
 api.post("/folder", async (c) => {
   const body = await jsonBody(c);
   await createFolder(requiredString(body, "path"));
   return c.json({ ok: true });
+});
+
+// Move a folder and everything under it to a new vault-relative path — the
+// server half of dragging a folder onto another folder in the tree. Same
+// `{ path, toPath }` body as /api/rename, because to the reader dragging a note
+// and dragging a folder are one gesture. Admin-only (the auth guard 401s every
+// non-GET, preview sessions included), and every refusal — into its own
+// descendant, onto an existing name, a symlinked folder — happens before a byte
+// moves. See moveFolderWithLinkRewrite for the ordering.
+api.post("/folder/move", async (c) => {
+  const body = await jsonBody(c);
+  const from = requiredString(body, "path");
+  const to = requiredString(body, "toPath");
+  return c.json(await moveFolderWithLinkRewrite(from, to));
 });
 
 // Delete a folder and everything under it. Default is Obsidian's safe move to
@@ -318,6 +572,164 @@ api.delete("/folder", async (c) => {
   return c.json(result);
 });
 
+// Delete ONE attachment, at the same two speeds as a note and a folder. The
+// tree has listed a vault's images, PDFs and recordings since attachments
+// landed, and offered no verb on a single one of them: the only way to remove
+// a stale upload was to delete the folder around it, which is precisely the
+// gesture that lost the owner a published essay's images. Admin-only via the
+// auth guard (DELETE). vault.deleteAttachment emits its own synthetic event,
+// so the index is settled before the answer.
+api.delete("/attachment", async (c) => {
+  const filePath = requiredQuery(c.req.query("path"), "path");
+  const permanent = TRUTHY_QUERY.has((c.req.query("permanent") ?? "").toLowerCase());
+  const result = await deleteAttachment(filePath, { permanent });
+  await whenIndexed();
+  return c.json({ ok: true, ...result });
+});
+
+// ------------------------------------------------------- delete preview
+//
+// What a delete is ACTUALLY about to take. The folder dialog used to count
+// markdown and nothing else, so a folder holding four images and no notes
+// said "0 notes will move" — and the essay one folder over, which still
+// embedded all four, went to the public site with four broken images and no
+// warning anywhere. The indexer has always known which notes point at which
+// attachment (it is the same walk that decides what /api/file will serve a
+// visitor); it just was not being asked before the destructive verb ran.
+//
+// The number that matters is not how many files go, it is how many of them
+// something that SURVIVES still points at — so notes inside the target are
+// not survivors, and a folder whose images only its own notes use reports 0.
+//
+// Admin-eyes-only: the referrer list names vault paths, which is exactly what
+// /attachments and /published withhold from a visitor, so it takes the same
+// 404-not-a-route gate rather than a 403.
+
+/** How many referring notes the answer NAMES. The dialog wants to say "…by
+ *  ‘essay.md’" when it can and "…by 12 notes" when it cannot; past a handful
+ *  the names stop being information and start being a wall. */
+const REFERRER_SAMPLE = 5;
+
+api.get("/delete-preview", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  const target = normalizeRel(requiredQuery(c.req.query("path"), "path"));
+  if (!target) throw new VaultError(400, 'Query parameter "path" is required');
+  const abs = safeAbs(target);
+  let stat;
+  try {
+    stat = await fsp.lstat(abs);
+  } catch {
+    throw new VaultError(404, `Not found: ${target}`);
+  }
+
+  let preview: DeletePreview;
+  if (stat.isDirectory() && !stat.isSymbolicLink()) {
+    const { notes: inside, attachments } = await listVaultFiles(target);
+    // Notes under the folder go WITH it, so a link from one of them is not a
+    // link that will break. deleteFolder() applies the same ignore rules to
+    // the same walk, so these are the same files it will move.
+    const doomed = new Set(inside);
+    const referrers = new Set<string>();
+    let referenced = 0;
+    for (const att of attachments) {
+      const refs = notesReferencing(att).filter((p) => !doomed.has(p));
+      if (refs.length === 0) continue;
+      referenced++;
+      for (const ref of refs) referrers.add(ref);
+    }
+    preview = {
+      kind: "folder",
+      notes: inside.length,
+      attachments: attachments.length,
+      referenced,
+      referrers: [...referrers].sort().slice(0, REFERRER_SAMPLE),
+      referrerCount: referrers.size,
+    };
+  } else if (stat.isSymbolicLink()) {
+    // A symlink is a link: the delete unlinks it without touching whatever it
+    // points at, and deleteFolder() already refuses to describe a tree it will
+    // not move. Report the one file the call will actually remove.
+    preview = { kind: "attachment", notes: 0, attachments: 1, referenced: 0, referrers: [], referrerCount: 0 };
+  } else if (target.toLowerCase().endsWith(".md")) {
+    // A note breaks things too — its incoming [[wikilinks]] go dangling — so
+    // the same question is asked one object over and answered in the same
+    // shape. `referenced` stays 0: it counts ATTACHMENTS, and a note is not one.
+    const refs = notesLinkingTo(target);
+    preview = {
+      kind: "note",
+      notes: 1,
+      attachments: 0,
+      referenced: 0,
+      referrers: refs.slice(0, REFERRER_SAMPLE),
+      referrerCount: refs.length,
+    };
+  } else {
+    const refs = notesReferencing(target);
+    preview = {
+      kind: "attachment",
+      notes: 0,
+      attachments: 1,
+      referenced: refs.length > 0 ? 1 : 0,
+      referrers: refs.slice(0, REFERRER_SAMPLE),
+      referrerCount: refs.length,
+    };
+  }
+  return c.json(preview);
+});
+
+// ------------------------------------------------------------------- trash
+//
+// The bin every delete dialog in this product promises ("recoverable from
+// disk") and that nothing in the product could reach. `.trash/` is a dot-dir,
+// deliberately invisible to the tree, the indexer and the watcher, so honouring
+// the promise meant handing the owner a terminal. These three routes close
+// that loop: list it, restore out of it, empty it. Admin-only — the listing
+// names deleted vault paths, so it takes the same 404-not-a-route gate
+// /attachments and /published take, and the two mutations ride the auth guard.
+
+api.get("/trash", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  const entries: TrashEntry[] = await listTrash();
+  return c.json(entries);
+});
+
+// Restore one entry to its recorded origin (or beside it under a counter, or
+// at the vault root when nothing recorded where it came from). The answer says
+// which of those happened; the client's toast repeats it, because a silent
+// "restored" that landed somewhere else is the same class of lie this whole
+// round is about.
+api.post("/trash/restore", async (c) => {
+  const body = await jsonBody(c);
+  const name = requiredString(body, "name");
+  const result = await restoreFromTrash(name);
+  if (result.dir) {
+    // A restored folder arrives whole; the watcher would find it eventually,
+    // but this route answers now and the client refetches immediately.
+    await indexUnder(result.path);
+    emitEvent({ kind: "created", path: result.path, dir: true });
+  } else if (isNotePath(result.path)) {
+    // isNotePath, not `.md`: a restored `.tex` note has to be INDEXED like the
+    // note it is, not registered as an attachment (which is what an
+    // extension-literal test did to it).
+    await indexFile(result.path);
+    emitEvent({ kind: "created", path: result.path });
+  } else {
+    registerAttachment(result.path);
+    emitEvent({ kind: "created", path: result.path });
+  }
+  await whenIndexed();
+  return c.json({ ok: true, path: result.path, renamed: result.renamed });
+});
+
+// The bin's own permanent delete — the one delete in the product with nothing
+// behind it, which is why the client puts it behind a `grave` dialog like
+// every other irreversible verb.
+api.delete("/trash", async (c) => {
+  const name = requiredQuery(c.req.query("name"), "name");
+  await purgeFromTrash(name);
+  return c.json({ ok: true });
+});
+
 // Toggle a note's publish flag with a surgical frontmatter line edit — every
 // other byte of the file is preserved. Admin-only via the auth guard (POST).
 api.post("/publish", async (c) => {
@@ -327,7 +739,9 @@ api.post("/publish", async (c) => {
     throw new VaultError(400, 'Body field "publish" must be a boolean');
   }
   const note = await readNote(notePath);
-  const updated = setPublishFlag(note.content, body.publish);
+  // Format-aware: markdown gets its `---` YAML line, LaTeX its `%---%` comment
+  // block. Same surgical contract either way — every other byte is preserved.
+  const updated = setNotePublishFlag(note.path, note.content, body.publish);
   if (updated !== note.content) {
     // The synthetic event below is the whole story — swallow the watcher's
     // redundant echo of this write so listeners don't see the toggle twice.
@@ -370,7 +784,7 @@ api.post("/frontmatter", async (c) => {
   }
   const note = await readNote(notePath);
   const line = value === null ? null : `${key}: ${yamlQuote(value)}`;
-  const updated = setFrontmatterLine(note.content, key, line);
+  const updated = setNoteFrontmatterLine(note.path, note.content, key, line);
   if (updated !== note.content) {
     suppressWatcherEcho(note.path);
     await writeNote(note.path, updated);
@@ -386,7 +800,115 @@ api.get("/resolve", (c) => {
   // A miss is an EXPECTED outcome (broken embeds are normal in a real vault):
   // answer 200 { path: null } instead of 404 so every visit to a note with
   // broken embeds doesn't spray red network errors across the console.
-  return c.json({ path: resolveEmbed(name, isPublishLimited(c)) });
+  const limited = isPublishLimited(c);
+  return c.json({ path: resolveEmbed(name, limited, languageScope(c, limited).lang) });
+});
+
+// A `banner:` value (or any settings image reference) → the file it names.
+//
+// The client cannot answer this itself: the ladder ends in the vault-wide
+// basename index, and a visitor's tree does not carry attachments at all. A
+// miss is 200 `{ path: null }`, like /api/resolve — a typo'd banner is an
+// ordinary state of a vault, not a server error — and null is exactly what the
+// admin surfaces turn into the "missing image" placeholder and the visitor
+// surfaces turn into nothing at all.
+//
+// `note` is the note the value was read from, and it is what makes
+// `banner: cover.png` beside the note work. Visitors are scoped to files
+// /api/file would actually serve them, so this can never become a probe for
+// which unpublished attachments exist.
+api.get("/banner", (c) => {
+  const value = requiredQuery(c.req.query("value"), "value");
+  const note = c.req.query("note");
+  let notePath: string | null = null;
+  if (note !== undefined && note !== "") {
+    try {
+      notePath = normalizeRel(note);
+    } catch {
+      notePath = null; // an unusable note path just drops the relative rung
+    }
+  }
+  const limited = isPublishLimited(c);
+  // A visitor may not use a private note's folder as the search base, and may
+  // not learn where anything they cannot fetch lives.
+  if (limited && notePath !== null && !isNoteVisibleToVisitor(notePath, languageScope(c, limited).lang)) {
+    notePath = null;
+  }
+  const hit = resolveBannerRef(
+    value,
+    notePath,
+    limited,
+    // The two visitor-fetchable sets /api/file itself honours: attachments a
+    // published note uses, plus the assets settings names (logo, home banner,
+    // favicon). Resolving to a path the very next request would 404 on is the
+    // failure this endpoint exists to remove.
+    (rel) => isAllowedAttachment(rel) || settingsAssetPaths().has(rel),
+  );
+  const result: BannerResolution = { value, path: hit };
+  return c.json(result);
+});
+
+// ------------------------------------------------ anchors & cross-references
+//
+// One anchor space: a markdown heading and a LaTeX \label are the same kind of
+// thing, so these two routes serve `[[Note#anchor]]`, `\ref{Note#anchor}`,
+// `![[Paper#eq:fourier]]` and the `#` half of wikilink autocomplete without
+// any of them knowing the target's format.
+
+api.get("/anchors", (c) => {
+  const notePath = normalizeRel(requiredQuery(c.req.query("path"), "path"));
+  // Same gate /api/note applies: a visitor may read a published note, so a
+  // visitor may read where its anchors are. Nothing else.
+  if (isPublishLimited(c) && !isNotePublished(notePath)) {
+    throw new VaultError(404, `Note not found: ${notePath}`);
+  }
+  const result: AnchorsResponse = { path: notePath, anchors: noteAnchors(notePath) };
+  return c.json(result);
+});
+
+// A `\ref{sec:method}` or `\cite{knuth1997}` that found nothing LOCAL — the
+// caller has already checked its own document, because local-first is what
+// keeps an imported project compiling the way it always did. A miss is 200
+// with nulls, like /api/resolve: unresolved cross-references are the normal
+// state of a bibliography, not an error worth painting red in a console.
+api.get("/xref", (c) => {
+  const limited = isPublishLimited(c);
+  const label = c.req.query("label");
+  const cite = c.req.query("cite");
+  if (label === undefined && cite === undefined) {
+    throw new VaultError(400, "Missing query param: label or cite");
+  }
+  const result: XrefResponse = { path: null, anchor: null };
+  if (label !== undefined && label !== "") {
+    const hit = resolveLabel(label, limited, languageScope(c, limited).lang);
+    if (hit) {
+      result.path = hit.path;
+      result.anchor = hit.anchor;
+    }
+  } else if (cite !== undefined && cite !== "") {
+    result.path = resolveCitekey(cite, limited, languageScope(c, limited).lang);
+  }
+  return c.json(result);
+});
+
+// The `vellum.sty` a `.tex` note needs to compile OUTSIDE Vellum. It is a
+// dozen lines and it is the whole reason `\note{…}` is an honest syntax rather
+// than a lock-in: drop this beside the document, `\usepackage{vellum}`, and
+// pdflatex renders the link as a hyperref (or as emphasis when hyperref is not
+// loaded). Served to anyone who can reach the instance — it is a constant,
+// carries nothing about the vault, and a reader who cannot download it cannot
+// compile the paper they were just shown.
+const VELLUM_STY_PATH = new URL("../assets/vellum.sty", import.meta.url).pathname;
+let vellumStyCache: string | null = null;
+
+api.get("/vellum.sty", (c) => {
+  vellumStyCache ??= readFileSync(VELLUM_STY_PATH, "utf8");
+  return c.body(vellumStyCache, 200, {
+    "Content-Type": "text/x-tex; charset=utf-8",
+    "Content-Disposition": 'inline; filename="vellum.sty"',
+    "Cache-Control": "public, max-age=3600",
+    "X-Content-Type-Options": "nosniff",
+  });
 });
 
 // ------------------------------------------------------- attachment serving
@@ -581,10 +1103,28 @@ api.post("/upload", async (c) => {
   let buf = Buffer.from(await file.arrayBuffer());
   const ext = sniffImageType(buf);
   if (!ext) {
-    throw new VaultError(400, "Not a recognized image (png, jpeg, webp, gif, svg)");
+    // Named, so the client can say it in the reader's language (see the API
+    // section of CONTRACTS: the prose here is for a log and for curl).
+    throw new VaultError(400, "Not a recognized image (png, jpeg, webp, gif, svg)", "upload_not_image");
   }
   if (ext === "svg") buf = Buffer.from(sanitizeSvg(buf.toString("utf8")), "utf8");
-  const dir = attachmentsDir();
+  // Optional destination FOLDER — the sidebar's "drop a file from the desktop
+  // onto a folder row" route. Every pre-existing caller (paste in the editor,
+  // the banner picker) omits it and keeps the configured attachments dir, byte
+  // for byte. The name still goes through sanitizeBaseName + safeAbs below;
+  // this only decides which folder the loop looks for a free name in, and a
+  // path that is not an existing directory is refused here rather than turning
+  // into a stray mkdir -p somewhere the caller named.
+  const asked = typeof form.dir === "string" ? normalizeRel(form.dir) : "";
+  let dir = attachmentsDir();
+  if (asked) {
+    const dirAbs = safeAbs(asked); // 400/404: traversal, dotfiles, escaping links
+    const dirStat = await fsp.lstat(dirAbs).catch(() => null);
+    if (!dirStat?.isDirectory()) {
+      throw new VaultError(400, `Not a folder: ${asked}`, "upload_bad_dir");
+    }
+    dir = asked;
+  }
   const base = sanitizeBaseName(file.name ?? "");
   // First free filename: name.ext, name-2.ext, name-3.ext, …
   let rel = "";
@@ -618,6 +1158,21 @@ api.get("/attachments", (c) => {
   return c.json(listImageAttachments());
 });
 
+// The admin UI's publish state, from an ADMIN source. The client used to read
+// it off /api/tree with `credentials: "omit"` — its own session hidden so the
+// server would answer as if to a stranger — which meant the owner's publish
+// stars and published filter were built out of the VISITOR tree, and so wore
+// the visitor's languageFilter (CONTRACTS.md: "Admin surfaces are never
+// filtered"). It also made the whole feature conditional on a password hash
+// plus open public reads, so an open local vault silently had no publish
+// marks at all. Same 404-not-a-route gate as /attachments: a language-hidden
+// published note's path is exactly what the public surfaces withhold.
+api.get("/published", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  const body: PublishedPaths = { paths: publishedPaths() };
+  return c.json(body);
+});
+
 // ------------------------------------------------------ comments (marginalia)
 // Live only with COMMENTS=on; otherwise every route 404s like it doesn't exist.
 // Comments hang off published notes: for visitors (and posting, for everyone)
@@ -629,8 +1184,8 @@ function assertCommentsEnabled(): void {
 
 function commentNotePath(rel: string): string {
   const notePath = normalizeRel(rel);
-  if (!notePath.toLowerCase().endsWith(".md")) {
-    throw new VaultError(400, `Not a markdown path: ${rel}`);
+  if (!isNotePath(notePath)) {
+    throw new VaultError(400, `Not a note path: ${rel}`);
   }
   return notePath;
 }
@@ -733,30 +1288,123 @@ api.delete("/comments/:id", (c) => {
   return c.json({ ok: true });
 });
 
-api.get("/search", (c) => c.json(search(c.req.query("q") ?? "", isPublishLimited(c))));
+// Every discovery surface below resolves ONE scope and hands `scope.lang` down
+// (server/language.ts). An admin session gets `null` — no filter, ever.
+//
+// SEARCH MATCHES BOTH SPELLINGS OF A TAG. `expandTagQuery` appends the
+// canonical tag whenever the query holds one of its localised labels, so an
+// Arabic reader typing «برمجيات» finds the notes tagged `#software` — without
+// the index ever learning about a display setting (see server/tagLabels.ts for
+// why the rewrite lives on the query and not in minisearch's `tags` field).
+api.get("/search", (c) => {
+  const limited = isPublishLimited(c);
+  return c.json(
+    search(expandTagQuery(c.req.query("q") ?? ""), limited, languageScope(c, limited).lang),
+  );
+});
 
-api.get("/graph", (c) => c.json(graph(isPublishLimited(c))));
+api.get("/search", (c) => {
+  const limited = isPublishLimited(c);
+  return c.json(search(c.req.query("q") ?? "", limited, languageScope(c, limited).lang));
+});
+
+api.get("/graph", (c) => {
+  const limited = isPublishLimited(c);
+  return c.json(graph(limited, languageScope(c, limited).lang));
+});
 
 api.get("/backlinks", (c) => {
   const notePath = requiredQuery(c.req.query("path"), "path");
-  return c.json(backlinks(normalizeRel(notePath), isPublishLimited(c)));
+  const limited = isPublishLimited(c);
+  return c.json(backlinks(normalizeRel(notePath), limited, languageScope(c, limited).lang));
 });
 
-api.get("/tags", (c) => c.json(tags(isPublishLimited(c))));
+// Topics. A tag carried only by notes the reader's language hides must not
+// appear as a pill: its page would come back empty, and the count on it is an
+// existence leak.
+api.get("/tags", (c) => {
+  const limited = isPublishLimited(c);
+  return c.json(tags(limited, languageScope(c, limited).lang));
+});
+
+// The DISPLAY names of those tags: canonical tag → language → label, merged
+// from the tag pages' own frontmatter and settings.tagLabels. Open to every
+// session, because a chip's word is what the public site paints — and scoped
+// exactly like /api/tags above, so it can never become an oracle for a tag
+// EXCLUDE_TAGS or the language filter is hiding. The canonical tag stays the
+// key everywhere: this route changes what a reader SEES and nothing else.
+api.get("/tag-labels", (c) => {
+  const limited = isPublishLimited(c);
+  const response: TagLabelsResponse = {
+    labels: visibleTagLabels(limited, languageScope(c, limited).lang),
+  };
+  return c.json(response);
+});
 
 // Blog: published notes as posts, newest first. Visitor-safe by construction
 // (published notes only, EXCLUDE_TAGS filtered). With COMMENTS=on each post
 // carries its comment count — the one per-session branch: visitors count
 // visible comments only, admin sessions include hidden ones.
 api.get("/posts", (c) => {
-  // Visitor sessions (and admin-as-visitor preview) get the languageFilter
-  // applied; admin lists are never filtered.
-  const list = posts(isPublishLimited(c));
+  // Visitor sessions (and admin-as-visitor preview) get the language filter
+  // applied at the scope this request resolved to; admin lists are never
+  // filtered. The blog client derives prev/next adjacency from this list, so
+  // an Arabic reader's "next post" is the next post THEY can read.
+  // Static pages leave the feed ONLY in designed mode (server/pages.ts): with
+  // the stock blog on, staticPagesActive() is false and this is the call it
+  // always was.
+  const limited = isPublishLimited(c);
+  const list = posts(limited, languageScope(c, limited).lang, staticPagesActive());
   if (commentsEnabled()) {
-    const counts = commentCounts(!isPublishLimited(c));
+    const counts = commentCounts(!limited);
     for (const post of list) post.commentCount = counts.get(post.path) ?? 0;
   }
   return c.json(list);
+});
+
+// -------------------------------------------------------------------- design
+// The site design engine (VELLUM_DATA/designs.json): named, versioned designs
+// and custom themes. Mounted here, BELOW the auth guard, so every mutation
+// under the prefix is already 401 to a visitor and to an admin wearing the
+// preview header; the routes add the read-side gate themselves. Two routes
+// under it are deliberately public — /api/design/public (the active design,
+// scrubbed per session) and /api/design/themes.css (styling, like
+// custom.css). See server/designRoutes.ts.
+api.route("/design", designRoutes);
+// ---------------------------------------------------------------- visibility
+// "What will this setting cost me?", answered in notes, from this vault,
+// BEFORE the save. Admin-only (the counts describe exactly what the public
+// surfaces withhold), and every query param is a HYPOTHETICAL: absent ones
+// describe what is in force right now, so the settings panel can ask the same
+// route for "as it stands" and "as it would be" and print the difference.
+//
+// It exists because the owner enabled a boolean and his public site dropped
+// from 20 posts to 2 with no warning anywhere. A control that can hide a site
+// must state its consequence in real numbers, and only the server holds those
+// numbers.
+api.get("/visibility", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  const query: VisibilityQuery = {};
+  const mode = c.req.query("languageFilter")?.trim().toLowerCase();
+  if (mode !== undefined && mode !== "") {
+    if (!(LANGUAGE_FILTER_MODES as readonly string[]).includes(mode)) {
+      throw new VaultError(400, `languageFilter must be one of: ${LANGUAGE_FILTER_MODES.join(", ")}`);
+    }
+    query.languageFilter = mode as LanguageFilterMode;
+  }
+  const tags = c.req.query("excludeTags");
+  if (tags !== undefined) {
+    query.excludeTags = tags.split(",").map((t) => t.trim()).filter(Boolean);
+  }
+  const layout = c.req.query("publicLayout")?.trim().toLowerCase();
+  if (layout === "app" || layout === "blog") query.publicLayout = layout;
+  const homeMode = c.req.query("home")?.trim().toLowerCase();
+  if (homeMode === "note" || homeMode === "dashboard") query.homeMode = homeMode;
+  const homeNote = c.req.query("homeNote");
+  // "" is meaningful here and distinct from absent: it asks "what if I cleared
+  // the home note", which is a real thing the panel's field can be in.
+  if (homeNote !== undefined) query.homeNote = homeNote.trim() === "" ? null : homeNote.trim();
+  return c.json(visibilityFor(query));
 });
 
 // ------------------------------------------------------------------ settings
@@ -776,7 +1424,207 @@ api.get("/settings", (c) => {
 
 api.patch("/settings", async (c) => {
   const body = await jsonBody(c);
+  // The sync keys are the ones that can send the vault off this machine, so
+  // they need a real credential in every mode — see assertCredentialed().
+  // Everything else in this payload is instance styling, which open local
+  // mode may legitimately let a trusted LAN change.
+  if (["gitSync", "gitToken", "gitUser"].some((k) => Object.prototype.hasOwnProperty.call(body, k))) {
+    assertCredentialed();
+  }
+  // Typography is the one setting with a prerequisite on disk: the chosen
+  // families must be cached under VELLUM_DATA/fonts/catalog before
+  // settings.json names them, or the site would link a stylesheet with no
+  // faces behind it. Validate the ids (400), fetch what is missing (502),
+  // and only then write — a download failure leaves settings untouched.
+  if (Object.prototype.hasOwnProperty.call(body, "fonts") && body.fonts !== null) {
+    const slots = cleanFontSlots(body.fonts, fontSlots());
+    await ensureFontsCached(catalogSlotIds(slots));
+    // An UPLOADED id is validated for SHAPE by cleanFontSlots and for
+    // EXISTENCE here — the same "the faces are on disk before settings.json
+    // names them" rule the catalog download enforces, one line down from it.
+    for (const id of customSlotIds(slots)) {
+      if (!(await customFontExists(id))) {
+        throw new VaultError(400, `Uploaded font not found: ${customFileOf(id) ?? id}`);
+      }
+    }
+  }
   return c.json(patchSettings(body));
+});
+
+// The settings panel's live preview: the same generated CSS as
+// /api/site-fonts.css but under a "VellumPreview…" family prefix and with no
+// :root remap, so the panel can show faces the reader has PICKED but not yet
+// saved. Admin-eyes-only (it can trigger a download, and it describes an
+// unsaved state) — 404 to visitors exactly like GET /api/settings. Failures
+// degrade to whatever is already cached instead of erroring: a preview that
+// falls back to the system stack is a fine preview, a toast per keystroke is
+// not.
+api.get("/font-preview.css", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  const q = c.req.query();
+  // The size-adjust dial travels too: it changes what the specimen LOOKS
+  // like without changing a single id, and the whole point of the dial is
+  // being judged against the Latin line beside it.
+  const adjust = Number(q.sizeAdjust);
+  const slots = cleanFontSlots({
+    ...(q.prose ? { prose: q.prose } : {}),
+    ...(q.ui ? { ui: q.ui } : {}),
+    ...(q.mono ? { mono: q.mono } : {}),
+    ...(q.arabic ? { arabic: q.arabic } : {}),
+    ...(q.sizeAdjust && Number.isFinite(adjust) ? { arabicSizeAdjust: adjust } : {}),
+  });
+  for (const id of catalogSlotIds(slots)) {
+    try {
+      await ensureFontsCached([id]);
+    } catch (err) {
+      console.warn(`vellum: font preview could not cache ${id}:`, err);
+    }
+  }
+  const css = slotsAreSystem(slots) ? "" : await buildFontCss(slots, { prefix: "VellumPreview", root: false });
+  return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8", "Cache-Control": "no-cache" });
+});
+
+// ── The operator's own faces ────────────────────────────────────────────────
+// Uploading a font is the one thing this product could not do that every real
+// instance eventually needs: the catalog is twenty-seven Google families, and
+// a serious Arabic vault runs on a licensed face that is on nobody's CDN.
+//
+// Everything here is admin-only. The GETs gate themselves (the /api/fonts/
+// prefix is exempt from the auth guard so a VISITOR can fetch the face BYTES,
+// which means a route that lists or manages them has to say so itself); the
+// POST and the DELETE are mutations, which the guard now 401s under that
+// prefix like anywhere else — including an admin previewing as a visitor.
+
+// Multipart field "file". The FORMAT is decided by the magic bytes and by
+// nothing else: not the extension (caller text), not the multipart
+// content-type (caller text). A PNG renamed .woff2 is a 400 here, which is
+// the whole point — the file is about to be served back with a font MIME.
+api.post("/fonts/upload", async (c) => {
+  let form: Record<string, unknown>;
+  try {
+    form = await c.req.parseBody();
+  } catch {
+    throw new VaultError(400, "Invalid multipart body", "font_bad_body");
+  }
+  const file = form.file;
+  if (!(file instanceof File)) {
+    throw new VaultError(400, 'Multipart field "file" (the font) is required', "font_no_file");
+  }
+  if (file.size > CUSTOM_FONT_MAX_BYTES) {
+    throw new VaultError(413, `Font too large (${CUSTOM_FONT_MAX_BYTES} bytes max)`, "font_too_large");
+  }
+  const buf = Buffer.from(await file.arrayBuffer());
+  const format = sniffFontFormat(buf);
+  if (!format) {
+    throw new VaultError(400, "Not a recognized font file (woff2, woff, ttf, otf)", "font_unrecognized");
+  }
+  // Magic bytes say "this claims to be a font"; they do not say "a browser can
+  // use this". A 4.9 MB file of literal `wOF2` plus five million zeros passed
+  // the sniff, was stored, was served, and rendered nothing — a permanently
+  // dead face the operator would have to work out for themselves. One cheap
+  // structural read (a plausible table count, a directory that fits inside the
+  // file) turns that into a 400 at upload time.
+  if (!hasPlausibleTableDirectory(buf, format)) {
+    throw new VaultError(400, "That font file is damaged (its table directory is unreadable)", "font_damaged");
+  }
+  return c.json(await saveCustomFont(file.name ?? "", format, buf));
+});
+
+// Deleting a face that a slot still names would leave settings.json pointing
+// at nothing and the site silently back on its system stack — so a font in
+// use is a 409 that NAMES the slots, and the panel offers to clear them.
+api.delete("/fonts/custom/:file", async (c) => {
+  const file = c.req.param("file");
+  if (!isCustomFileName(file)) throw new VaultError(400, "Invalid font file name", "font_bad_name");
+  const id = `custom:${file}`;
+  const slots = fontSlots();
+  const inUse = FONT_SLOTS.filter((slot) => slots[slot] === id);
+  if (inUse.length > 0) {
+    throw new VaultError(
+      409,
+      `That font is in use (${inUse.join(", ")}) — choose another face first`,
+      "font_in_use",
+    );
+  }
+  await deleteCustomFont(file);
+  return c.json({ ok: true });
+});
+
+// The font PICKER's own faces: one @font-face per pickable id, under a
+// "VellumOpt-…" family, so every option row renders IN THE FACE IT NAMES —
+// and the Arabic options render their Arabic sample in it too. Asked for one
+// GROUP at a time as that group opens, which is why the ids are a parameter
+// rather than "all of them": twenty-seven families at once is a megabyte of
+// downloads to draw a menu.
+//
+// Admin-eyes-only for /api/font-preview.css's reason (it can trigger a
+// download), and just as forgiving: a family that will not cache is skipped,
+// and the option row falls back to the panel's own type rather than erroring.
+api.get("/font-faces.css", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  const wanted = (c.req.query("ids") ?? "").split(",").map((id) => id.trim()).filter(Boolean).slice(0, 40);
+  const allowed = new Set(await pickableIds());
+  const ids = [...new Set(wanted.filter((id) => allowed.has(id)))];
+  for (const id of ids) {
+    try {
+      await ensureFontsCached([id]);
+    } catch (err) {
+      console.warn(`vellum: font picker could not cache ${id}:`, err);
+    }
+  }
+  return c.body(await buildFaceListCss(ids), 200, {
+    "Content-Type": "text/css; charset=utf-8",
+    "Cache-Control": "no-cache",
+  });
+});
+
+// -------------------------------------------------------------- backup & sync
+// Git backup (server/gitSync.ts). Admin-eyes-only, all three: the POSTs are
+// mutations, so the auth guard 401s visitors and preview sessions already; the
+// GET is gated here the same way /api/settings is — a visitor learning the
+// branch, the dirty count and the remote host of the operator's backup is a
+// leak, and an admin PREVIEWING as a visitor must see exactly what a stranger
+// would. Sync errors reaching the client are the real git line, token-scrubbed
+// by gitSync.scrub() before it ever leaves the module.
+
+// A REAL CREDENTIAL, IN EVERY MODE. In open local mode (no
+// ADMIN_PASSWORD_HASH) the auth guard treats every caller as admin, so these
+// three routes were reachable by anyone who could reach the port — and they
+// are not ordinary admin routes: PATCH the remote, POST /sync/now, and the
+// whole vault is committed and pushed to an address the caller chose. That is
+// exfiltration with the operator's own git. "Everyone is admin" is a
+// defensible answer for editing notes on a trusted LAN; it is not a
+// defensible answer for "send my vault somewhere".
+function assertCredentialed(): void {
+  if (!isProtected()) {
+    throw new VaultError(
+      403,
+      "Backup & sync needs an admin password: set ADMIN_PASSWORD_HASH (npm run hash-password) and restart. " +
+        "Without one, every visitor to this port is an admin and could push your vault to a remote of their choosing.",
+      "sync_needs_password",
+    );
+  }
+}
+
+// The STATUS read stays available in open local mode. It is the one route of
+// the three that cannot move data anywhere, the client polls it on every page
+// load to decide whether to draw the badge at all, and answering 403 there put
+// a red line in the console of the default first-run experience for no gain:
+// on an instance where every caller is already a full admin, the branch name
+// leaks nothing the vault itself does not.
+api.get("/sync/status", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(await gitStatus());
+});
+
+api.post("/sync/init", async (c) => {
+  assertCredentialed();
+  return c.json(await initRepo());
+});
+
+api.post("/sync/now", async (c) => {
+  assertCredentialed();
+  return c.json(await syncNow("manual"));
 });
 
 // ---------------------------------------------------------------- SSE events
@@ -793,7 +1641,7 @@ api.patch("/settings", async (c) => {
  *  this the one surface that leaked what CONTRACTS says the filter must never
  *  leak — an anonymous stream received the full vault path of a hidden note
  *  the moment it was created, edited or deleted, unprompted. */
-async function visitorEvents(event: VaultEvent): Promise<VaultEvent[]> {
+async function visitorEvents(event: VaultEvent, lang: FilterLang): Promise<VaultEvent[]> {
   if (event.dir) {
     // Visitors have no folder structure, so the dir event itself is nothing
     // to them — but the notes a folder DELETE takes away are: with the event
@@ -803,18 +1651,50 @@ async function visitorEvents(event: VaultEvent): Promise<VaultEvent[]> {
     // vault.deleteFolder emits this before the chained reindex removes the
     // records, the same before/after discipline the note branch relies on.
     // Hidden and unpublished notes are never named, so nothing leaks.
+    // A folder MOVE is the same problem wearing the other verb: the notes did
+    // not go away, they changed address, and a visitor holding the old one gets
+    // a 404 from a link the site drew itself. Fan it out the same way, into a
+    // per-note `renamed` — a published note that is hidden at its new address
+    // (the languageFilter is path-blind, but publication can be re-read) leaves
+    // as a `deleted`, so the curated collection stays honest either way.
+    if (event.kind === "renamed" && event.toPath) {
+      const dirTo = event.toPath;
+      const before = visibleNotesUnder(event.path, lang);
+      await whenIndexed();
+      return before.map((notePath) => {
+        const next = `${dirTo}${notePath.slice(event.path.length)}`;
+        return isNoteVisibleToVisitor(next, lang)
+          ? { kind: "renamed", path: notePath, toPath: next }
+          : { kind: "deleted", path: notePath };
+      });
+    }
+    //
+    // A folder RESTORED out of `.trash/` is the same fan-out run backwards,
+    // and it has to exist for the same reason: dropping the created event
+    // left a visitor's sidebar missing published notes that the site was
+    // already serving, until something else happened to make it reload. The
+    // sample is taken AFTER the index catches up here — the notes do not
+    // exist to the indexer before the restore, which is the mirror image of
+    // the delete's sample-first discipline.
+    if (event.kind === "created") {
+      await whenIndexed();
+      return visibleNotesUnder(event.path, lang).map((notePath) => ({
+        kind: "created" as const,
+        path: notePath,
+      }));
+    }
     if (event.kind !== "deleted") return [];
-    const gone = visibleNotesUnder(event.path);
+    const gone = visibleNotesUnder(event.path, lang);
     await whenIndexed();
     return gone.map((notePath) => ({ kind: "deleted", path: notePath }));
   }
-  if (!event.path.toLowerCase().endsWith(".md")) return []; // attachments: never
-  const wasVisible = isNoteVisibleToVisitor(event.path);
+  if (!isNotePath(event.path)) return []; // attachments: never
+  const wasVisible = isNoteVisibleToVisitor(event.path, lang);
   await whenIndexed();
   switch (event.kind) {
     case "created":
     case "changed": {
-      const nowVisible = isNoteVisibleToVisitor(event.path);
+      const nowVisible = isNoteVisibleToVisitor(event.path, lang);
       if (wasVisible && !nowVisible) return [{ kind: "deleted", path: event.path }];
       if (!wasVisible && nowVisible) return [{ kind: "created", path: event.path }];
       return nowVisible ? [{ kind: event.kind, path: event.path }] : [];
@@ -822,7 +1702,7 @@ async function visitorEvents(event: VaultEvent): Promise<VaultEvent[]> {
     case "deleted":
       return wasVisible ? [{ kind: "deleted", path: event.path }] : [];
     case "renamed": {
-      const nowVisible = event.toPath ? isNoteVisibleToVisitor(event.toPath) : false;
+      const nowVisible = event.toPath ? isNoteVisibleToVisitor(event.toPath, lang) : false;
       if (wasVisible && nowVisible) return [event];
       if (wasVisible) return [{ kind: "deleted", path: event.path }];
       if (nowVisible && event.toPath) return [{ kind: "created", path: event.toPath }];
@@ -833,12 +1713,20 @@ async function visitorEvents(event: VaultEvent): Promise<VaultEvent[]> {
 
 api.get("/events", (c) => {
   const limited = isPublishLimited(c);
+  // Resolved ONCE, at subscribe time, and held for the life of the stream:
+  // EventSource cannot set headers, so this connection's reader language came
+  // in as `?lang=` (the same carve-out `?preview=visitor` gets) and cannot
+  // change without a reconnect — which is exactly what the client does when a
+  // visitor flips the EN/ع switch. A stream that kept re-reading the mode
+  // would start announcing notes outside the collection this subscriber was
+  // given, which is the leak the filter exists to prevent.
+  const lang = languageScope(c, limited).lang;
   return streamSSE(c, async (stream) => {
     let live = true;
     const unsubscribe = onEvent((event) => {
       if (!live) return;
       const deliver = async (): Promise<void> => {
-        const visible = limited ? await visitorEvents(event) : [event];
+        const visible = limited ? await visitorEvents(event, lang) : [event];
         for (const out of visible) {
           if (!live) return;
           await stream.writeSSE({ event: "message", data: JSON.stringify(out) });
@@ -865,42 +1753,188 @@ api.get("/events", (c) => {
 // ----------------------------------------------------- rename + link rewrite
 
 function basenameNoExt(relPath: string): string {
-  const base = relPath.slice(relPath.lastIndexOf("/") + 1);
-  return base.replace(/\.md$/i, "");
+  return stripNoteExt(relPath.slice(relPath.lastIndexOf("/") + 1));
 }
 
-/** Rename a note; if its title changed, rewrite [[wikilinks]] in notes that pointed at it. */
+/** Rename a note; if its title changed, rewrite [[wikilinks]] in notes that pointed at it.
+ *
+ *  This is also the MOVE endpoint — a drag in the tree and the "Move to…"
+ *  command both land here — and a move is not a rename with a different string.
+ *  Two things happen only when the FOLDER changes, and neither used to:
+ *
+ *   - **The moved note's own relative embeds.** `![alt](Media/x.png)` and
+ *     `[see](../Ideas/Note.md)` resolve against the note's OWN directory. Drag a
+ *     note one folder up and every one of them points somewhere else: the admin
+ *     sees broken images, and a published note serves 404s to visitors, because
+ *     the publish allowlist is built from the same resolution (`parseAssets()`).
+ *     Nothing in the product said so — the images simply stopped loading.
+ *   - **Other notes' markdown links TO it.** The old rewrite only knew
+ *     `[[wikilinks]]`, so `[see](Ideas/Note.md)` in another note dangled.
+ *
+ *  Basename-form `[[Note]]` links are deliberately untouched by the move half:
+ *  they resolve by name, so a move cannot break them. */
 async function renameWithLinkRewrite(from: string, to: string): Promise<void> {
-  const oldTitle = basenameNoExt(from);
-  const newTitle = basenameNoExt(to);
+  const fromPath = normalizeRel(from);
+  const toPath = normalizeRel(to);
+  const oldTitle = basenameNoExt(fromPath);
+  const newTitle = basenameNoExt(toPath);
   const titleChanged = oldTitle.toLowerCase() !== newTitle.toLowerCase();
-  const oldPathNoExt = from.replace(/\.md$/i, "").toLowerCase();
-  const newPathNoExt = to.replace(/\.md$/i, "");
+  const oldPathNoExt = stripNoteExt(fromPath).toLowerCase();
+  const newPathNoExt = stripNoteExt(toPath);
+  const moved: ReadonlyMap<string, string> = new Map([[fromPath, toPath]]);
   // Capture linkers before the rename, while links still resolve to the old
   // path. Path-form links ([[Folder/Note]]) break on ANY move, so linkers are
   // captured even when the basename is unchanged.
-  const linkers = [...new Set(backlinks(from).map((b) => b.path))];
+  const linkers = [...new Set(backlinks(fromPath, false, null).map((b) => b.path))];
 
-  await renameNote(from, to);
+  await renameNote(fromPath, toPath);
+
+  // The note's OWN body, at its new address: markdown destinations resolved
+  // against the folder it left, re-expressed from the folder it arrived in.
+  if (dirOf(fromPath) !== dirOf(toPath)) {
+    try {
+      const note: NoteData = await readNote(toPath);
+      const rewritten = rewriteDestinations(
+        note.content,
+        dirOf(fromPath),
+        dirOf(toPath),
+        new Map(),
+      );
+      if (rewritten !== note.content) {
+        // The `renamed` event already told everyone this file moved; a second
+        // `changed` for the same gesture is noise.
+        suppressWatcherEcho(toPath);
+        await writeNote(toPath, rewritten);
+      }
+    } catch (err) {
+      console.error(`move: failed to rewrite embeds in ${toPath}:`, err);
+    }
+  }
 
   for (const linker of linkers) {
+    // A note never links to itself, but if it somehow did it now lives at `to`.
+    const at = linker === fromPath ? toPath : linker;
     try {
-      const note: NoteData = await readNote(linker);
-      const rewritten = note.content.replace(wikilinkRegex(), (whole, target: string, heading?: string, alias?: string) => {
+      const note: NoteData = await readNote(at);
+      let rewritten = note.content.replace(wikilinkRegex(), (whole, target: string, heading?: string, alias?: string) => {
         const t = target.trim();
         if (titleChanged && t.toLowerCase() === oldTitle.toLowerCase()) {
           return `[[${newTitle}${heading ?? ""}${alias ?? ""}]]`;
         }
         // Path-form target pointing at the old path → rewrite to the new path.
+        // PATH-form only: a bare `[[Solo]]` resolves by basename and survives a
+        // move untouched, and for a note at the vault ROOT its path spelling IS
+        // its basename — so without this guard, moving one root note into a
+        // folder rewrote every plain `[[Solo]]` in the vault into
+        // `[[folder/Solo]]`, converting portable links into brittle ones and
+        // dirtying files that had nothing wrong with them.
         const norm = t.toLowerCase().replace(/\\/g, "/").replace(/^\.?\/+/, "");
-        if (norm === oldPathNoExt || norm === `${oldPathNoExt}.md`) {
+        if (norm.includes("/") && (norm === oldPathNoExt || norm === `${oldPathNoExt}.md`)) {
           return `[[${newPathNoExt}${heading ?? ""}${alias ?? ""}]]`;
         }
         return whole;
       });
-      if (rewritten !== note.content) await writeNote(linker, rewritten);
+      // …and the other syntax: `[see](Ideas/Note.md)` pointing at the file that
+      // just moved. Same resolution the renderers use, so the allowlist and the
+      // page agree afterwards.
+      rewritten = rewriteDestinations(rewritten, dirOf(at), dirOf(at), moved);
+      // …and, in a `.tex` linker, `\note{Old Title}` — Vellum's OWN macro, so
+      // it is ours to keep true. `\input`, `\cite` and `\ref` are deliberately
+      // NOT rewritten: they belong to the document's own semantics, and
+      // silently editing them could change what `pdflatex` produces. The
+      // `%% [[…]] %%` form needs nothing here — it is a wikilink, and the pass
+      // above already caught it.
+      if (isTexPath(at)) rewritten = rewriteTexNoteMacros(rewritten, oldTitle, newTitle, titleChanged);
+      if (rewritten !== note.content) {
+        await writeNote(at, rewritten);
+        await indexFile(at);
+      }
     } catch (err) {
-      console.error(`rename: failed to rewrite links in ${linker}:`, err);
+      console.error(`rename: failed to rewrite links in ${at}:`, err);
     }
   }
+  // The client refetches tree/graph/search on the 200; index before answering
+  // rather than a watcher debounce later, so what it gets back is already true.
+  await indexFile(toPath);
+  await whenIndexed();
+}
+
+/** Rewrite `\note{Old}` / `\note[alias]{Old}` to the new title. Only the
+ *  TARGET moves; the optional display text is the author's prose and is left
+ *  exactly as written. Matching is case-insensitive on the title, the same
+ *  rule wikilink resolution uses, and `\#anchor` suffixes ride along
+ *  untouched — a rename changes which note is meant, never which place in it. */
+function rewriteTexNoteMacros(
+  src: string,
+  oldTitle: string,
+  newTitle: string,
+  titleChanged: boolean,
+): string {
+  if (!titleChanged) return src;
+  const want = oldTitle.toLowerCase();
+  return src.replace(
+    /\\note(\[[^\]]*\])?\{([^{}]*)\}/g,
+    (whole, alias: string | undefined, target: string) => {
+      const raw = target.trim();
+      const hash = raw.search(/\\?#/);
+      const head = (hash >= 0 ? raw.slice(0, hash) : raw).trim();
+      const tail = hash >= 0 ? raw.slice(hash) : "";
+      if (head.toLowerCase() !== want) return whole;
+      return `\\note${alias ?? ""}{${newTitle}${tail}}`;
+    },
+  );
+}
+
+export interface MoveFolderResponse {
+  ok: true;
+  /** `.md` files that travelled with the folder — the toast's number. */
+  notes: number;
+  /** How many notes had links or embeds rewritten. */
+  rewritten: number;
+}
+
+/** Move a folder, then repair every link the move would otherwise have broken.
+ *
+ *  The order is the whole correctness argument, and it is the folder-DELETE
+ *  order with one extra step:
+ *   1. sample the affected notes while their links still resolve to the OLD
+ *      paths (`notesAffectedByFolderMove`, one pass over the index);
+ *   2. move — one `fs.rename`, one synthetic `{kind:"renamed", dir:true}` event,
+ *      the watcher's per-file storm suppressed;
+ *   3. `whenIndexed()` — the event drives `reindexFolderMove`, so from here on
+ *      the index describes the new vault;
+ *   4. rewrite: path-form wikilinks and markdown destinations, in the notes
+ *      that moved AND in the notes that pointed into the folder;
+ *   5. reindex what was rewritten, then answer. A `/api/tree` + `/api/graph`
+ *      refetch on the 200 is already correct — no debounce race.
+ *
+ *  A rewrite that throws is logged and skipped, never retried into a half-state:
+ *  the FILES are already where the caller asked, and one unreadable note must
+ *  not strand the other 714. */
+async function moveFolderWithLinkRewrite(from: string, to: string): Promise<MoveFolderResponse> {
+  const fromPath = normalizeRel(from);
+  const affected = notesAffectedByFolderMove(fromPath);
+  const { notes, moved } = await moveFolder(fromPath, to);
+  await whenIndexed();
+
+  const map = new Map(moved.map((m) => [m.from, m.to]));
+  const rewritten: string[] = [];
+  for (const before of affected) {
+    const after = map.get(before) ?? before;
+    try {
+      const note: NoteData = await readNote(after);
+      const next = rewriteForMove(note.content, before, after, map);
+      if (next === note.content) continue;
+      // Notes INSIDE the folder are already covered by the one dir event;
+      // notes outside it get their own `changed`, which is what tells an open
+      // editor to reload a body that changed underneath it.
+      if (map.has(before)) suppressWatcherEcho(after);
+      await writeNote(after, next);
+      rewritten.push(after);
+    } catch (err) {
+      console.error(`move: failed to rewrite links in ${after}:`, err);
+    }
+  }
+  for (const notePath of rewritten) await indexFile(notePath);
+  return { ok: true, notes, rewritten: rewritten.length };
 }

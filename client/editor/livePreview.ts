@@ -31,8 +31,10 @@ import type { SyntaxNode } from "@lezer/common";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { parseWikilink, resolveLink, WIKILINK_RE } from "./links.ts";
+import { posFromEvent } from "./pointer.ts";
 import { bannerFromYaml } from "../banner.ts";
 import { getLang, t, tf } from "../i18n.ts";
+import { label as tagLabel } from "../tagLabels.ts";
 import { buildBannerEl, buildPropsCard, parseProps, TAG_RE } from "./noteMeta.ts";
 import {
   FileCardWidget,
@@ -48,7 +50,8 @@ import {
   findCallouts,
 } from "./callouts.ts";
 import { blockMathDecos, inlineMathDecos } from "./math.ts";
-import { sanitizeHtml } from "../reading/rawHtml.ts";
+import { sanitizeHtml, sanitizeStyle } from "../reading/rawHtml.ts";
+import { isNotePath } from "../../shared/noteFormat.ts";
 
 /** Vault path of the note this editor shows (embeds resolve against it). */
 export const notePathFacet = Facet.define<string, string>({
@@ -107,6 +110,29 @@ class LinkSepWidget extends WidgetType {
 
 const linkSepWidget = new LinkSepWidget();
 
+/** THE THEMATIC BREAK, RENDERED. Live preview drew every block element in
+ *  markdown except this one: `---`, `***` and `___` stayed as literal
+ *  letter-spaced source (`- - -`, `* * *`), so the one block the editor did
+ *  not preview was the divider — and reading view and the blog both drew a
+ *  real rule, leaving three surfaces disagreeing about what a divider looks
+ *  like. The widget draws exactly what `.s-rv-hr` draws, ornamental variant
+ *  included; put the cursor on the line and the source comes back, like every
+ *  other live-preview element. */
+class RuleWidget extends WidgetType {
+  constructor(readonly ornamental: boolean) {
+    super();
+  }
+  override eq(other: RuleWidget): boolean {
+    return other.ornamental === this.ornamental;
+  }
+  toDOM(): HTMLElement {
+    const el = document.createElement("div");
+    el.className = this.ornamental ? "cm-s-hr-rule cm-s-hr-rule--orn" : "cm-s-hr-rule";
+    el.setAttribute("aria-hidden", "true");
+    return el;
+  }
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 const HEADING_CLASS: Record<string, string> = {
@@ -127,6 +153,9 @@ const EMBED_RE = /!\[\[([^[\]]+?)\]\]/g;
 const COMMENT_RE = /%%([^%\n]*?)%%/g;
 const HIGHLIGHT_RE = /==([^=\n]+?)==/g;
 const FOOTNOTE_RE = /\[\^([^\]\s]+)\]/g;
+/** One colored run, on one line. The opening tag is matched exactly as the
+ *  color commands emit it, and the value is re-sanitized before it is used. */
+const COLOR_RE = /<span style="color:([^"<>]*)">(.*?)<\/span>/g;
 
 /** Line numbers currently touched by any selection range. */
 function activeLines(state: EditorState): Set<number> {
@@ -435,6 +464,45 @@ function buildDecorations(view: EditorView, revealActive: boolean): DecorationSe
         claimed.push({ from: start, to: end });
       }
 
+      // <span style="color:…"> — THE editor half of colored text. The reading
+      // view and the blog get this from the raw-HTML pass in render.ts; the
+      // editor had no inline-HTML pass at all, so a colored run showed as tag
+      // soup in the one surface where it is written. It renders as a MARK with
+      // a style attribute rather than a widget, so the letters stay real text:
+      // the caret still walks them, search still finds them, and the pointer
+      // mapping still has glyphs to land on (pointer.ts).
+      //
+      // The value goes through the SAME sanitizer the other two surfaces use.
+      // Anything it rejects is left as source, which is the honest rendering
+      // of a declaration that will not survive being read back.
+      COLOR_RE.lastIndex = 0;
+      for (let m = COLOR_RE.exec(text); m; m = COLOR_RE.exec(text)) {
+        const start = line.from + m.index;
+        const end = start + m[0].length;
+        if (blocked(start, end)) continue;
+        const style = sanitizeStyle(`color:${m[1]}`, "span");
+        if (!style) continue;
+        const openTo = start + m[0].indexOf(">") + 1;
+        const closeFrom = end - "</span>".length;
+        // Only the TAGS are claimed: everything between them is still markdown,
+        // and **bold** inside a colored run has to keep rendering.
+        claimed.push({ from: start, to: openTo });
+        claimed.push({ from: closeFrom, to: end });
+        if (lineIsActive) {
+          mark(start, openTo, "cm-s-syntax");
+          mark(closeFrom, end, "cm-s-syntax");
+        } else {
+          hide(start, openTo);
+          hide(closeFrom, end);
+        }
+        decos.push(
+          Decoration.mark({
+            class: "cm-s-colored",
+            attributes: { style },
+          }).range(openTo, closeFrom),
+        );
+      }
+
       // ![[embeds]] — images, attachment cards, note transclusions.
       EMBED_RE.lastIndex = 0;
       for (let m = EMBED_RE.exec(text); m; m = EMBED_RE.exec(text)) {
@@ -457,6 +525,10 @@ function buildDecorations(view: EditorView, revealActive: boolean): DecorationSe
             embed.target,
             resolveLink(embed.target, tree),
             notePath,
+            // `![[Note#Section]]` names a BLOCK, not a note. Dropping the
+            // anchor here pulled the whole note into the card and left the
+            // reading view three centimetres away showing just the section.
+            embed.anchor,
           );
         }
         decos.push(Decoration.replace({ widget }).range(start, end));
@@ -600,7 +672,7 @@ function openWikilink(inner: string): void {
     toast(tf("linkMissing", { name: target }));
     return;
   }
-  const path = /\.md$/i.test(target) ? target : `${target}.md`;
+  const path = isNotePath(target) ? target : `${target}.md`;
   toast(tf("creatingNote", { name: target }));
   void store.createNote(path);
 }
@@ -644,48 +716,13 @@ function jumpToFootnoteDef(view: EditorView, label: string): boolean {
   return false;
 }
 
-/** Document position under the pointer. `posAtCoords` maps through the
- *  vertical line layout, which can drift by whole lines in scrolled notes
- *  containing block widgets (math, frontmatter card, images) — so a click on
- *  a wikilink would resolve to a neighboring line and the link would never
- *  open. Deriving the position from the DOM node actually under the pointer
- *  (caretPositionFromPoint → posAtDOM) is exact; posAtCoords stays only as
- *  the last-resort fallback. */
-function posFromEvent(event: MouseEvent, view: EditorView): number | null {
-  const doc = view.contentDOM.ownerDocument;
-  const within = (node: Node | null | undefined): node is Node =>
-    node != null && view.contentDOM.contains(node);
-
-  if (typeof doc.caretPositionFromPoint === "function") {
-    const caret = doc.caretPositionFromPoint(event.clientX, event.clientY);
-    if (caret && within(caret.offsetNode)) {
-      try {
-        return view.posAtDOM(caret.offsetNode, caret.offset);
-      } catch {
-        /* fall through */
-      }
-    }
-  }
-  // WebKit spells it caretRangeFromPoint.
-  if (typeof doc.caretRangeFromPoint === "function") {
-    const range = doc.caretRangeFromPoint(event.clientX, event.clientY);
-    if (range && within(range.startContainer)) {
-      try {
-        return view.posAtDOM(range.startContainer, range.startOffset);
-      } catch {
-        /* fall through */
-      }
-    }
-  }
-  if (event.target instanceof Node && within(event.target)) {
-    try {
-      return view.posAtDOM(event.target);
-    } catch {
-      /* fall through */
-    }
-  }
-  return view.posAtCoords({ x: event.clientX, y: event.clientY });
-}
+// The pointer → document mapping moved to pointer.ts, which now also owns
+// CARET placement (`pointerSelection`). It was exported from here while its
+// only readers were this file's click handler and the hover previews; the
+// caret was still being placed by CodeMirror's own `posAtCoords`, which is the
+// half of the bug that survived — see pointer.ts's header for the measurement.
+// Re-exported so nothing that imported it from here has to move.
+export { posFromEvent, posFromPoint } from "./pointer.ts";
 
 function handleMousedown(event: MouseEvent, view: EditorView): boolean {
   const target = event.target as HTMLElement;
@@ -701,8 +738,22 @@ function handleMousedown(event: MouseEvent, view: EditorView): boolean {
 
   if (event.button !== 0) return false;
 
+  // ACTIONS FIRE ONCE PER GESTURE. `detail` counts the clicks of the sequence
+  // the pointer is in, and every branch guarded by `firstClick` NAVIGATES or
+  // SEARCHES: without the guard, double-clicking a #tag ran the search twice
+  // and double-clicking an external link opened two tabs, and neither second
+  // click could reach the selection layer that is supposed to hand the reader
+  // the tag or the link text. Clicks 2 and 3 fall through to selection.ts,
+  // which selects the whole rendered unit instead.
+  //
+  // The INERT branches (properties header, banner hero) are deliberately NOT
+  // guarded: they must swallow every click of the sequence, or the second one
+  // drops the cursor into raw YAML — the exact thing their branch exists to
+  // prevent. The task checkbox above is likewise per-click, like any checkbox.
+  const firstClick = event.detail <= 1;
+
   // #tag pills (inline or in the properties card) push a sidebar search.
-  const tagEl = target.closest(".cm-s-tag, .cm-s-props__tag");
+  const tagEl = firstClick ? target.closest(".cm-s-tag, .cm-s-props__tag") : null;
   if (tagEl?.textContent?.startsWith("#")) {
     event.preventDefault();
     window.dispatchEvent(
@@ -712,7 +763,9 @@ function handleMousedown(event: MouseEvent, view: EditorView): boolean {
   }
 
   // The "Set banner…" header action opens the banner modal (App listens).
-  if (target.closest(".cm-s-props__action")) {
+  // First click only; a second one still lands on the header branch below and
+  // is swallowed there, so the card never leaks a cursor into its YAML.
+  if (firstClick && target.closest(".cm-s-props__action")) {
     event.preventDefault();
     window.dispatchEvent(new CustomEvent("vellum:set-banner"));
     return true;
@@ -727,6 +780,28 @@ function handleMousedown(event: MouseEvent, view: EditorView): boolean {
     event.preventDefault();
     return true;
   }
+
+  // The frontmatter block's own spacer — the air between the card and the
+  // first line of prose. It used to be a margin, i.e. pixels belonging to no
+  // element, and a click there landed on the line below the card; it is
+  // padding on the widget root now, because a margin is height CodeMirror
+  // cannot measure (see .cm-s-fmblock in styles/app.css, and selection.ts).
+  // Made measurable, it also became a hit target, and a click in it resolved
+  // into the frontmatter range and swapped the card for raw YAML. Spacing
+  // must not acquire behavior on its way to being measurable: send the click
+  // where the gap always sent it, to the line under the card.
+  if (target.classList.contains("cm-s-fmblock")) {
+    event.preventDefault();
+    const fmEnd = frontmatterEnd(view.state.doc);
+    if (fmEnd > 0 && fmEnd < view.state.doc.length) {
+      view.dispatch({ selection: { anchor: fmEnd + 1 } });
+    }
+    return true;
+  }
+
+  // Wikilink / footnote / external-link navigation below: one jump per
+  // gesture, so the rest of a double- or triple-click belongs to selection.
+  if (!firstClick) return false;
 
   const pos = posFromEvent(event, view);
   if (pos == null) return false;
@@ -788,13 +863,18 @@ class FrontmatterWidget extends WidgetType {
   // language in the identity a live settings flip left an Arabic card sitting
   // above English editor chrome (and vice versa) until a full reload.
   readonly lang = getLang();
-  constructor(readonly yaml: string) {
+  constructor(
+    readonly yaml: string,
+    /** The note this frontmatter belongs to — a `banner: cover.png` resolves
+     *  against its folder first (client/banner.ts). */
+    readonly notePath: string,
+  ) {
     super();
   }
   override eq(other: FrontmatterWidget): boolean {
-    return other.yaml === this.yaml && other.lang === this.lang;
+    return other.yaml === this.yaml && other.lang === this.lang && other.notePath === this.notePath;
   }
-  toDOM(): HTMLElement {
+  toDOM(view: EditorView): HTMLElement {
     // Header action: opens the banner modal (handled in the shell via a
     // window event — the editor chunk stays UI-framework-free here).
     const action = document.createElement("button");
@@ -819,7 +899,19 @@ class FrontmatterWidget extends WidgetType {
         pill.type = "button";
         pill.className = "cm-s-props__tag";
         pill.dataset.tag = value;
-        pill.textContent = `#${value}`;
+        // The chip IS its content (`#` + the tag, no chrome ornament beside
+        // it), so the isolate belongs on the chip itself — and it must be
+        // "auto", never "ltr": tags are note-derived and can be Arabic. Bare
+        // `#${value}` textContent shipped as `matrix#` on every Arabic page,
+        // because `#` is bidi-neutral and an RTL base direction sweeps it to
+        // the display end. See the sidebar's <bdi> tag pill, which was right.
+        pill.dir = "auto";
+        // WHAT THE CHIP SAYS vs WHAT THE CHIP IS. The label is display only —
+        // `data-tag` above still carries the canonical tag, and so does the
+        // search this pill dispatches, so nothing downstream learns a new
+        // vocabulary. The `title` keeps naming the canonical value, which is
+        // how a reader of an Arabic instance finds out what to type.
+        pill.textContent = `#${tagLabel(value)}`;
         pill.title = tf("searchTag", { tag: value });
         pill.addEventListener("click", (ev) => {
           ev.preventDefault();
@@ -833,16 +925,47 @@ class FrontmatterWidget extends WidgetType {
     });
     // buildBlockDecorations only mounts the widget when parseProps found rows.
     if (!card) return document.createElement("div");
+    // ALWAYS wrapped, banner or not. CodeMirror sizes a block widget from its
+    // root's border box (getBoundingClientRect), which excludes margins — so a
+    // margin on the card itself is air the height map cannot see, and every
+    // position below it resolves one line too low (posAtCoords, and with it
+    // every mouse selection: click, double-click, triple-click, drag). The
+    // spacing lives on this wrapper as PADDING, which is inside the border box
+    // and therefore measured. See styles/app.css .cm-s-fmblock.
+    const wrap = document.createElement("div");
+    wrap.className = "cm-s-fmblock";
     // Banner hero above the card (subtle, rounded, capped height).
     const banner = bannerFromYaml(this.yaml);
     if (banner) {
-      const wrap = document.createElement("div");
-      wrap.className = "cm-s-fmblock";
-      wrap.appendChild(buildBannerEl(banner, "cm-s-banner"));
-      wrap.appendChild(card);
-      return wrap;
+      // The editor is an admin-only surface by construction (a read-only
+      // session never mounts CodeMirror), so a banner that resolves to
+      // nothing shows the card that says so.
+      const hero = buildBannerEl(banner, "cm-s-banner", {
+        notePath: this.notePath,
+        admin: true,
+      });
+      // THE HERO IS NOT ITS FINAL HEIGHT WHEN CODEMIRROR MEASURES IT. It
+      // grows by up to 240px when the bitmap lands, and it DELETES ITSELF
+      // (buildBannerEl's error handler) when the file is gone. Ask for a
+      // re-measure the moment the size settles — the same lie an unmeasurable
+      // CSS margin tells, from a different cause.
+      //
+      // MEASURED, NOT ASSUMED: on @codemirror/view 6.43 this call does not
+      // reach a BLOCK widget's height map entry. A banner note still reports
+      // `contentHeight` 456 against a real 829, and `posAtCoords` answers
+      // with the last line of the note for every point in it. Selection is
+      // unaffected — selection.ts resolves the pointer from the DOM and never
+      // asks the height map — but `coordsAtPos` consumers (scrollIntoView,
+      // tooltip placement) are still wrong on banner notes, and that is a
+      // live bug this round did not fix. The call stays because it is the
+      // right request to make and costs nothing when it lands.
+      const img = hero.querySelector("img");
+      img?.addEventListener("load", () => view.requestMeasure(), { once: true });
+      img?.addEventListener("error", () => view.requestMeasure(), { once: true });
+      wrap.appendChild(hero);
     }
-    return card;
+    wrap.appendChild(card);
+    return wrap;
   }
 }
 
@@ -867,6 +990,9 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
   const doc = state.doc;
   const active = activeLines(state);
   const decos: Range<Decoration>[] = [];
+  // The note's own path: a `banner:` resolves against its folder before it
+  // resolves against the vault (client/banner.ts).
+  const notePath = state.facet(notePathFacet);
 
   const anyActiveBetween = (firstLine: number, lastLine: number): boolean => {
     for (let n = firstLine; n <= lastLine; n++) {
@@ -886,7 +1012,7 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
           : "";
       const spec =
         parseProps(yaml).length > 0
-          ? { widget: new FrontmatterWidget(yaml), block: true }
+          ? { widget: new FrontmatterWidget(yaml, notePath), block: true }
           : { block: true };
       decos.push(Decoration.replace(spec).range(doc.line(1).from, fmEnd));
     }
@@ -909,6 +1035,28 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
               ),
               block: true,
             }).range(doc.line(firstLine).from, doc.line(lastLine).to),
+          );
+        }
+        return false;
+      }
+      // Thematic break → the drawn divider, while the cursor is elsewhere.
+      if (node.name === "HorizontalRule") {
+        const line = doc.lineAt(node.from);
+        // NOT THE FRONTMATTER FENCES. `---` opening and closing a properties
+        // block is a delimiter, not content — the block above is already
+        // replaced by the properties card — and the markdown parser has no
+        // frontmatter mode, so it hands both fences over as thematic breaks.
+        // The result was a gold content rule floating above the properties
+        // card of every note that has frontmatter, which is exactly the
+        // "three chrome hairlines and one content hairline" confusion
+        // DESIGN.md says the divider must never join.
+        const inFrontmatter = fmEnd > 0 && node.from < fmEnd;
+        if (!inFrontmatter && !active.has(line.number) && line.text.trim() !== "") {
+          decos.push(
+            Decoration.replace({
+              widget: new RuleWidget(line.text.trim().startsWith("*")),
+              block: true,
+            }).range(line.from, line.to),
           );
         }
         return false;

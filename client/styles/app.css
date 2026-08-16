@@ -100,6 +100,46 @@ kbd {
   background: var(--text-faint);
 }
 
+/* A SCROLL BOUNDARY FADES; IT DOES NOT GUILLOTINE.
+   A flat cut through the middle of a bordered control — a segmented pill
+   sliced across its accent border at the top of the settings body — reads as a
+   rendering fault, not as "there is more above"; in Arabic a flat cut leaves a
+   band of loose tashkeel belonging to no letter. So every scroller that can
+   cut something meaningful wears this: an 18px alpha ramp at whichever end
+   actually has content beyond it. `client/scrollFade.ts` maintains the two
+   attributes (it is a scroll listener and not a static gradient precisely so
+   that a list short enough to fit keeps full contrast at both ends), and with
+   neither of them set the mask is a fully opaque gradient — no paint change,
+   no cost. */
+.s-scrollfade {
+  --fade-top: 0px;
+  --fade-bottom: 0px;
+  /* Prefixed twin for the one engine that still wants it; the shorthand is
+     identical, so there is nothing to keep in sync but the two ramps. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--fade-top),
+    #000 calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 var(--fade-top),
+    #000 calc(100% - var(--fade-bottom)),
+    transparent 100%
+  );
+}
+
+.s-scrollfade[data-more-above="true"] {
+  --fade-top: 18px;
+}
+
+.s-scrollfade[data-more-below="true"] {
+  --fade-bottom: 18px;
+}
+
 /* ------------------------------------------------------ buttons, inputs -- */
 
 button,
@@ -184,6 +224,29 @@ select:focus,
   grid-template-areas:
     "sidebar main panel"
     "status  status status";
+
+  /* ---- the centre column's air (see .s-main below) --------------------- */
+  /* What a COLLAPSED pane leaves behind: its 14px reopen handle, standing at
+     the window edge where the pane was. `.s-main` starts at the collapsed
+     pane's 1px border, so clearing exactly the handle's width puts the
+     column's two gaps on the same footing — each measured from the inner
+     edge of whatever furniture bounds it, door or pane. */
+  --fold-gutter: 14px;
+  /* Air a collapsed pane's own reopen handle must keep, per pane. */
+  --fold-sidebar: 0px;
+  --fold-panel: 0px;
+  /* The same two facts in LOGICAL order — which pane is at the inline start
+     depends on the flip, and nothing below has to know which is which. */
+  --fold-lead: var(--fold-sidebar);
+  --fold-trail: var(--fold-panel);
+}
+
+.s-app--nosidebar {
+  --fold-sidebar: var(--fold-gutter);
+}
+
+.s-app--nopanel {
+  --fold-panel: var(--fold-gutter);
 }
 
 /* Sidebar on the far side (vellum.sidebarSide). The grid areas above already
@@ -194,6 +257,9 @@ select:focus,
   grid-template-areas:
     "panel main sidebar"
     "status status status";
+  /* The panes swapped ends, so the logical aliases swap with them. */
+  --fold-lead: var(--fold-panel);
+  --fold-trail: var(--fold-sidebar);
 }
 
 .s-app--flip .s-sidebar {
@@ -208,6 +274,30 @@ select:focus,
 
 .s-app--flip .s-panel--collapsed {
   border-inline-end-color: transparent;
+}
+
+/* Visitor preview adds a ROW above every pane (never an overlay — see the
+   preview strip near the bottom of this file). The flipped variant carries
+   two classes, so it outranks .s-app--flip above by specificity. */
+.s-app--preview {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "notice  notice notice"
+    "sidebar main   panel"
+    "status  status status";
+}
+
+.s-app--preview.s-app--flip {
+  grid-template-areas:
+    "notice notice notice"
+    "panel  main   sidebar"
+    "status status status";
+}
+
+/* The reopen handles are absolute inside the shell: start them below the
+   strip so a collapsed pane's door never covers it. */
+.s-app--preview .s-reopen {
+  top: var(--preview-h);
 }
 
 /* -------------------------------------------------------------- sidebar -- */
@@ -486,7 +576,7 @@ select:focus,
 .s-tags__total {
   margin-inline-start: auto;
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-tags__list {
@@ -530,21 +620,57 @@ select:focus,
   color: var(--accent);
 }
 
+/* The count is TEXT — how many notes wear this tag — and it sits on the
+   pill's --bg-hover ground, where --text-faint measures 2.73:1 at the worst
+   theme. --text-muted holds 4.53:1 there; the weight and size keep it
+   subordinate to the tag name beside it. */
 .s-tag__count {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-weight: 400;
   font-size: 0.786rem;
 }
 
 /* --------------------------------------------------------- sidebar foot -- */
 
+/* "1,391 notes · 60 files" — a count of the reader's own vault, at 12px.
+   It was --text-faint, i.e. 3.2:1 at best and 2.5:1 on parchment, under a
+   gate that scored that pair against a minimum of zero. --text-faint carries
+   glyphs and machine bookkeeping; a number the reader is meant to read is
+   --text-muted (DESIGN.md, "Contrast"). */
 .s-sidebar-foot {
   flex: none;
   padding: 7px 16px 8px;
   border-top: 1px solid var(--border);
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   user-select: none;
+}
+
+/* ------------------------------------------------- the meta separator ---- */
+/* The mark between two counts on one line (client/metaSep.tsx). Where the
+   instance prints Eastern Arabic digits a `·` is not a separator, it is a
+   `٠` glued to the number beside it — "٧٨٦ حرفًا" painted as ٧٨٦٠ — so the
+   tick becomes the HAIRLINE the status bar already marks its groups with:
+   1px of `--border`, the same rule at the same weight, which no reader can
+   mistake for a digit because it is not a character. */
+.s-metasep {
+  user-select: none;
+}
+
+.s-metasep--rule {
+  display: inline-block;
+  width: 1px;
+  height: 0.85em;
+  background: var(--border);
+  vertical-align: -0.06em;
+}
+
+/* The status bar's pair and the graph HUD are inline TEXT, not flex rows, so
+   the mark carries its own side bearings there — the blog's meta line gets
+   them from the row's `gap`. */
+.s-statusbar__counts .s-metasep,
+.s-graph__hudsep {
+  margin-inline: 0.42em;
 }
 
 /* --------------------------------------------------------- context menu -- */
@@ -602,6 +728,18 @@ select:focus,
   color: var(--danger);
 }
 
+/* A context menu is a TOUCH surface too — it is the whole door the section
+   affordance opens on a phone (preview.css moves the ⋯ inside the column for
+   exactly that reason), and 33.6px rows are the same half-promise the ⋯ used
+   to make. The shell's rule applies here as everywhere else. */
+@media (pointer: coarse) {
+  .s-menu__item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
 @keyframes s-pop-in {
   from {
     opacity: 0;
@@ -615,6 +753,34 @@ select:focus,
 
 /* ----------------------------------------------------------------- tabs -- */
 
+/* THE NOTE SITS EVENLY BETWEEN WHATEVER BOUNDS IT — in every fold state.
+   The owner's words: "make sure that the margin between open note and
+   left/right bar is correct and nice looking even when bar is closed/folded."
+   That is a statement about the TWO MARGINS BEING THE SAME, and it is the one
+   thing an earlier build did not do.
+
+   That build pinned the column to the WINDOW's centre line instead, padding
+   .s-main to compensate for whichever pane was heavier. It read well in the
+   two SYMMETRIC states and failed in the two that matter. Measured at 1440
+   with the notes sidebar folded: the prose sat 47px from the panel it was
+   pressed against and 327px from the far side of the window — a third of the
+   screen empty on one side, the text jammed against a wall of chrome on the
+   other. Both-folded looked balanced only because the two voids happened to
+   be equal. Single-fold is the common case: a reader folds ONE bar.
+
+   A window centre line is not what the eye measures against; the eye measures
+   against the nearest edge of the furniture beside the text. So `.s-main`
+   claims the whole gap the grid gave it and lets the column centre inside it
+   — the shell is `auto minmax(0,1fr) auto`, so that box already ends exactly
+   at each pane's inner edge — and the ONLY padding left is the width of a
+   collapsed pane's reopen handle, which stands where the pane was and is the
+   furniture on that side. Door and pane are then measured the same way, and
+   the two margins agree in all sixteen combinations of side × sidebar ×
+   panel × dir (worst skew 1px, from the collapsed pane's own 1px border).
+
+   Yes, the column moves when a pane folds — it must: the room it is centred
+   in just changed size. It moves ON THE PANES' OWN 180ms CURVE, so a fold
+   stays one movement, and it lands centred rather than landing shoved. */
 .s-main {
   grid-area: main;
   position: relative;
@@ -622,6 +788,16 @@ select:focus,
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  padding-inline-start: var(--fold-lead);
+  padding-inline-end: var(--fold-trail);
+  transition: padding 0.18s ease;
+}
+
+/* The graph is a canvas, not a column: it wants every pixel the panes are not
+   using, and a 300px inset of empty ground beside it is a smaller graph for
+   no reason. */
+.s-main:has(.s-graph) {
+  padding-inline: 0;
 }
 
 .s-tabs {
@@ -780,10 +956,29 @@ select:focus,
   line-height: 1.7;
 }
 
+/* THE GUTTER IS THE SCROLLER'S, NOT THE CONTENT'S.
+   CodeMirror draws a multi-line selection as absolutely positioned rects whose
+   left/right edges are `contentDOM.getBoundingClientRect()` plus the FIRST
+   `.cm-line`'s own padding (drawSelection's `leftSide`/`rightSide`) — the
+   content box's PADDING is invisible to it. With the 56px gutter on
+   `.cm-content`, every wrapped and continuation row of a selection started
+   ~56px left of the text and ran ~56px past its right edge: a ragged gold L
+   hanging in the margin under the most-used gesture in the editor, and in
+   Arabic it overshot both ends at once.
+   Moving the gutter onto the scroller changes no geometry — the measure is
+   648px at every width the column is at its cap, exactly as before, and the
+   percentage in --prose-gutter resolves against the same box — but the
+   content box now ENDS where the text ends, so the rects do too. The
+   alternative (padding on `.cm-line`) collides with callouts and quotes,
+   which own that padding to place their own bars. */
+.s-editor .cm-scroller {
+  padding-inline: var(--prose-gutter);
+}
+
 .s-editor .cm-content {
-  max-width: 760px;
+  max-width: 648px; /* 760 − 2 × 56: the same box, measured to the text */
   margin: 0 auto;
-  padding: 48px 56px 120px;
+  padding: 48px 0 120px;
   caret-color: var(--accent);
 }
 
@@ -840,8 +1035,18 @@ select:focus,
 /* Frontmatter rendered as a properties card when the cursor is elsewhere.
    Collapsed (the default) it is a slim single row — chevron, "Properties · N",
    tags inline; the header click expands it. Body clicks still enter the YAML. */
+/* The block widget's outer box. All of the frontmatter block's vertical air
+   lives here as padding, never as a margin on the card or the banner:
+   CodeMirror measures a block widget by its root's BORDER box, so margins are
+   height the editor cannot see, and every position below one resolves a line
+   too low — which is what broke double-click word selection (see
+   editor/livePreview.ts FrontmatterWidget.toDOM). */
+.s-editor .cm-s-fmblock {
+  padding-bottom: 20px;
+}
+
 .s-editor .cm-s-props {
-  margin: 0 0 20px;
+  margin: 0;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -963,8 +1168,12 @@ select:focus,
 }
 
 /* Note banner hero above the properties card (frontmatter `banner:`). */
+/* Padding, not margin — same height-map rule as .cm-s-fmblock above. The
+   banner wrapper carries no background of its own, so padding reads exactly
+   as the old margin did. */
 .s-editor .cm-s-banner {
-  margin: 2px 0 12px;
+  margin: 0;
+  padding: 2px 0 12px;
 }
 
 .s-editor .cm-s-banner__img {
@@ -976,24 +1185,104 @@ select:focus,
   border: 1px solid var(--border);
 }
 
-/* Empty state shown when no note is open. */
+/* A `banner:` that names nothing — ADMIN SURFACES ONLY (the reading view's
+   copy of this lives in reading/reading.css; a visitor gets no furniture at
+   all). The hero used to delete itself on a load error, which made a typo and
+   "no banner" render identically; this is the dashed language the broken-embed
+   placeholder already speaks, plus the value that failed and the button that
+   fixes it. Everything here is --text-muted or better at full opacity: the
+   name of a file is text a reader has to READ. */
+.s-editor .cm-s-banner__missing,
+.s-rv-banner__missing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px dashed color-mix(in srgb, var(--danger) 45%, var(--border));
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--bg-raised);
+  font-family: var(--font-ui);
+  font-size: 0.813rem;
+  color: var(--text-muted);
+}
+
+.s-editor .cm-s-banner__missingicon,
+.s-rv-banner__missingicon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--danger) 65%, var(--text-muted));
+}
+
+/* A FILENAME IS TEXT A READER MUST READ — so it gets a line, not a column.
+   `min-width: 0` plus `overflow-wrap: anywhere` let this value take the whole
+   shortfall of a 390px row: the label, the value and the Set banner… button
+   all compete on one flex line, and the only one allowed to shrink went to
+   24px wide and broke ONE GLYPH PER LINE — "kyo / to- / cov / er. / png",
+   stretching the card to 130px (260 at 2×). The row already wraps; it just had
+   no reason to. A floor in characters gives it one, so the button drops to the
+   next line and the name keeps a readable measure. `anywhere` stays, for the
+   pathological 80-character filename that still has to fit somewhere. */
+.s-editor .cm-s-banner__missingname,
+.s-rv-banner__missingname {
+  flex: 1 1 auto;
+  min-width: 14ch;
+  font-family: var(--font-mono);
+  font-size: 0.786rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.s-editor .cm-s-banner__missingaction,
+.s-rv-banner__missingaction {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.s-editor .cm-s-banner__missingaction:hover,
+.s-rv-banner__missingaction:hover {
+  color: var(--accent);
+  border-color: var(--accent-soft);
+  background: var(--accent-soft);
+}
+
+/* Empty state shown when no note is open.
+   The inline padding is load-bearing, not decoration: this pane centres its
+   children, and a centred child WIDER than its box overflows equally at both
+   ends — so the keymap grid, which wanted exactly 390px on a 390px screen,
+   put its first chip at x=0 with no gutter at all and hung the same amount
+   off the trailing edge. A gutter here is what makes "it does not fit" show
+   up as a wrap instead of as a silent clip. */
 .s-empty {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  padding-inline: 24px;
   padding-bottom: 6vh;
   color: var(--text-faint);
   user-select: none;
 }
 
+/* No opacity over --text-faint. The token already sits at its 3:1 floor, and
+   DESIGN.md is explicit that a fade over a token at its floor is a way of
+   failing the floor without failing the gate (0.7 of parchment's faint is
+   1.75:1). It is a UI glyph, so the token is the whole budget. */
 .s-empty__glyph {
   font-size: 3.143rem;
   line-height: 1;
   color: var(--text-faint);
-  opacity: 0.7;
   margin-bottom: 10px;
 }
 
@@ -1004,23 +1293,157 @@ select:focus,
   color: var(--text-muted);
 }
 
+/* Two columns of kbd chips, and neither column may wrap. `auto auto` let a
+   long label ("keyboard shortcuts", «اختصارات لوحة المفاتيح») break inside its
+   own cell, which makes that grid ROW taller than its neighbours and throws
+   the whole legend out of alignment — the chips stop reading as a table. The
+   tracks are max-content and the labels are nowrap, so the grid is either
+   right or visibly too wide; the rule below is what stops it ever being too
+   wide. --text-muted, not --text-faint: these are labels naming a thing, and
+   DESIGN.md holds those to 4.5:1. */
 .s-empty__keys {
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: repeat(2, max-content);
+  justify-content: center;
   gap: 10px 28px;
+  max-width: 100%;
   font-size: 0.893rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
+}
+
+/* The centre column is the window minus a 280px sidebar and a 300px panel and
+   this pane's own 24px gutters, so at 1024px it offers 396px to a legend that
+   measures 400 in English and 423 in Arabic — measured, not guessed, and the
+   Arabic one is what sets the threshold. One column below 1100: taller, but
+   never overhanging its gutter and never crooked. */
+@media (max-width: 1100px) {
+  .s-empty__keys {
+    grid-template-columns: max-content;
+  }
 }
 
 .s-empty__key {
   display: flex;
   align-items: center;
   gap: 10px;
+  white-space: nowrap;
 }
 
 .s-empty__key kbd {
   min-width: 52px;
   text-align: center;
+}
+
+/* ── The same pane, for a finger ──────────────────────────────────────────
+   Hidden by default and swapped in below the keymap's breakpoint (and on any
+   coarse pointer, at any width — a tablet is 1024px wide and has no Ctrl
+   key). Both halves ship in the DOM; CSS decides, so there is no resize
+   listener, no first-paint flash and nothing for JS to get wrong. */
+.s-empty__touch {
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+  width: min(100%, 340px);
+}
+
+.s-empty__recents {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.s-empty__recentshead {
+  margin: 0 0 6px;
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* 44px of height, because that is the target a thumb actually hits. Serif
+   like every other note title in the product, and the row is full-width so
+   the whole line is the button rather than the text inside it. */
+.s-empty__recent {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 0.929rem;
+  text-align: start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.s-empty__recent:hover,
+.s-empty__recent:active {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+
+.s-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.s-empty__action {
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.s-empty__action:hover,
+.s-empty__action:active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* The one thing this reader is most likely to want on a fresh phone session. */
+.s-empty__action--go {
+  flex-basis: 100%;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .s-empty__keys {
+    display: none;
+  }
+
+  .s-empty__touch {
+    display: flex;
+  }
+
+  /* The glyph and the sentence are the same size on a 390px screen as on a
+     1440px one, and they were eating the space the controls need. */
+  .s-empty__glyph {
+    font-size: 2.286rem;
+    margin-bottom: 4px;
+  }
+
+  .s-empty__title {
+    margin-bottom: 16px;
+  }
 }
 
 /* ---------------------------------------------------------------- graph -- */
@@ -1210,9 +1633,35 @@ select:focus,
   padding: 0;
   border: none;
   border-radius: 0;
-  background: var(--bg-hover);
-  color: var(--text-muted);
+  /* A faint accent wash over the hover ground: at plain --bg-hover the strip
+     was still a ~1.3:1 step in iron-gall and a gate called it near-invisible.
+     The tint is what the eye catches from across the pane; the chevron below
+     is what it reads once it looks. */
+  background: color-mix(in srgb, var(--accent) 20%, var(--bg-hover));
+  color: var(--text);
   transition: color 0.15s ease, background 0.15s ease;
+}
+
+/* The door also gets a lit edge facing the content, so the collapsed pane
+   reads as a closed drawer rather than a seam in the background. */
+.s-reopen::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: 2px;
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.s-app--flip .s-reopen--sidebar::after,
+.s-reopen--panel::after {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+}
+
+.s-app--flip .s-reopen--panel::after {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
 }
 
 .s-reopen:hover {
@@ -1334,6 +1783,276 @@ select:focus,
   font-style: italic;
 }
 
+/* ---------------------------------------------------- mode indicators -- */
+/* The round's headline. A mode that removes the ability to TYPE (reading,
+   preview) — or silently rebinds every key (vim) — used to render as grey
+   lowercase text no heavier than the word count, and readers sat in it
+   wondering why the keyboard was dead. Three things fix that, and all three
+   are here: a LIT pill in the status bar, a one-line strip inside the
+   workspace, and an accent rule down the editor column's inline-start edge.
+   Nothing floats: the strip is a layout row, so it can never hide the note. */
+
+:root {
+  /* Height of the visitor-preview row (app grid + blog column). */
+  --preview-h: 2.25rem;
+}
+
+/* Scoped to the bar on purpose: `.s-statusbar button` (0,1,1) outranks a bare
+   .s-mode (0,1,0) and would repaint every pill with the muted button color —
+   the same trap the sync badge documents further down. */
+.s-statusbar .s-modes {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  /* Only the trailing side: the leading margin comes from the group rule
+     below, which the pill cluster now shares with every other right-cluster
+     segment. */
+  margin-inline-end: 4px;
+}
+
+.s-statusbar .s-mode {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+/* Inert: a calm outline. It teaches that the switch exists without shouting;
+   only the ON state is allowed to shout. */
+.s-statusbar .s-mode:hover {
+  color: var(--text);
+  border-color: var(--text-faint);
+  background: var(--bg-hover);
+}
+
+.s-mode__dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  transition: background 150ms ease, box-shadow 150ms ease;
+}
+
+/* Vim's sub-mode rides INSIDE the lit pill, separated by a hairline rather
+   than a dot: "VIM" alone means the extension is loaded, which never trapped
+   anyone — "VIM │ NORMAL" is the fact that the next keystroke is a command.
+   The divider is a logical border so it lands on the correct side in Arabic,
+   and it inherits `currentColor` so it reads on both the outline and the
+   accent fill. */
+.s-statusbar .s-mode__sub {
+  margin-inline-start: 7px;
+  padding-inline-start: 7px;
+  border-inline-start: 1px solid currentColor;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+/* ON: filled with the accent and glowing — the "light on the dashboard" the
+   reader asked for. Text is --bg on --accent, which clears 4.5:1 in every
+   built-in theme (the dark themes carry a light accent, parchment a dark one). */
+.s-statusbar .s-mode--on,
+.s-statusbar .s-mode--on:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 0 12px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.s-statusbar .s-mode--on .s-mode__dot {
+  background: var(--bg);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--bg) 60%, transparent);
+}
+
+/* A lit mode pill is a state, and a state that pulses is a state nobody can
+   ignore — but only once, on arrival, and never for readers who asked for
+   less motion. */
+@keyframes s-mode-lit {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+
+.s-statusbar .s-mode--on::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  pointer-events: none;
+  animation: s-mode-lit 0.9s ease-out 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-statusbar .s-mode--on::after {
+    animation: none;
+  }
+}
+
+/* Pane toggles + the ? — icon buttons, so the sidebar, the right panel, zen
+   and the shortcut list are not keyboard-only secrets. */
+/* Groups, marked once each by a hairline on their leading edge. Dots between
+   SOME neighbours and not others made eleven controls read as one strip; a
+   rule per group says where each one starts, and matches the "hairline, never
+   a ·" separator the sync lines already use. Scoped to the bar for the usual
+   specificity reason.
+
+   EVERY right-cluster segment is in this list now. Four of them were groups
+   and the rest were still separated by `·` — the counts from the publish
+   toggle, the publish toggle from the published-note count, that count from
+   the mode pills — so the bar shipped both separator systems at once, which
+   is exactly what DESIGN.md forbids. The mode cluster and the sync badge are
+   marked here rather than in their own components' rules because the mark
+   belongs to the BAR's grammar, not to what a segment happens to contain. */
+.s-statusbar .s-statusbar__panes,
+.s-statusbar .s-statusbar__group,
+.s-statusbar .s-modes,
+.s-statusbar .s-syncwrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: 6px;
+  padding-inline-start: 7px;
+  border-inline-start: 1px solid var(--border);
+}
+
+/* Two gaps this rule must not flatten: the mode pills are 5px apart (they are
+   pills, not icon buttons) and the two counts are text that would run
+   together at 2px. `.s-syncwrap` is the badge's own root — the component
+   returns null when sync is off, so marking THAT is what keeps an inactive
+   instance from carrying a hairline in front of nothing. */
+.s-statusbar .s-modes {
+  gap: 5px;
+}
+
+.s-statusbar .s-statusbar__ambient {
+  gap: 10px;
+}
+
+/* THE FIRST SEGMENT OF THE CLUSTER CARRIES NO RULE. A hairline is a
+   SEPARATOR: on the leading edge of whatever opens the right cluster it has
+   nothing on its far side but the flexible gap, and it reads as a stray
+   tick floating mid-bar. Which segment opens the cluster depends on the
+   session (visitor: no publish, no modes, no admin tools; no note open: no
+   counts), so it is matched positionally — the sibling immediately after the
+   spacer — rather than named. Same specificity as the rule above (0,2,0) and
+   later in the file, which is what makes it win. */
+.s-statusbar .s-statusbar__spacer + * {
+  margin-inline-start: 0;
+  padding-inline-start: 0;
+  border-inline-start: none;
+}
+
+.s-statusbar .s-statusbar__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 5px;
+}
+
+/* ── The workspace's own signal ─────────────────────────────────────────── */
+/* One line, in the layout (it pushes the note down; it never covers it). */
+
+.s-modebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  padding: 5px 14px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-raised));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  font-size: 0.857rem;
+  color: var(--text);
+  user-select: none;
+}
+
+.s-modebar__dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+
+.s-modebar__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+/* The vim strip says the same thing in the same shape as the reading strip;
+   the mono face is the one difference, because the words it carries name
+   modal-editor states rather than product ones. */
+.s-modebar--vim .s-modebar__text {
+  font-family: var(--font-mono);
+  font-size: 0.821rem;
+  letter-spacing: 0;
+}
+
+.s-modebar__action {
+  flex: none;
+  padding: 2px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, var(--border));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.s-modebar__action:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* The rule down the reading column's inline-start edge: present for as long
+   as the mode is, drawn as a pseudo-element (logical inset, so it lands on
+   the correct edge in Arabic) rather than a border that would shift the
+   prose by 2px every time the mode flips. */
+.s-view {
+  position: relative;
+}
+
+.s-app--reading .s-view::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 2px;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--accent),
+    color-mix(in srgb, var(--accent) 35%, transparent)
+  );
+}
+
 /* ------------------------------------------------------------ statusbar -- */
 
 .s-statusbar {
@@ -1343,7 +2062,11 @@ select:focus,
   gap: 4px;
   flex: none;
   height: 2.1rem;
-  padding: 0 10px 0 14px;
+  /* Logical, not `0 10px 0 14px`: that shorthand put the wider pad on the
+     screen's left in both directions, so an Arabic bar was tight against the
+     leading edge and loose at the trailing one. */
+  padding-block: 0;
+  padding-inline: 14px 10px;
   background: var(--bg-raised);
   border-top: 1px solid var(--border);
   font-size: 0.857rem;
@@ -1352,14 +2075,55 @@ select:focus,
   overflow: hidden;
 }
 
+/* IDENTITY OUTRANKS TRIVIA AT EVERY WIDTH. `min-width: 0` let the crumb trail
+   shrink to "1 - … › Re…" at 1024px while "140 words · 2,012 chars" and
+   "18 published notes" both survived at full width — the bar was WORSE at
+   1024 than at 900, where the counts finally dropped and the trail came back
+   whole. The floor stops the one thing that says WHICH note you are in from
+   being spent on a character count; `min()` keeps it a fraction of the bar on
+   a genuinely narrow window, and below 640px the trail is dropped outright
+   (it has other company by then, and the bar starts scrolling). */
+/* …and a CEILING is the other half of that floor. The trail is the only item
+   in the bar whose natural width is unbounded — it is a vault path — and it
+   was therefore the item flexbox took the shortfall out of. Measured on the
+   fixture at 1440 with both mode pills, publish and the published filter up:
+   a two-segment crumb (223px) first gives ground at 1160px, safely under the
+   1200px threshold where the counts drop, which is why the ladder below read
+   as correct. A THREE-segment one (`1 - Source Material › Wiki › Nobel Prize
+   in Physiology or Medicine`, 408px) first gives ground at 1340 — so between
+   1200 and 1340 the trail was crushed to make room for "140 words · 2,012
+   chars", and then sprang back to full at 1200 when the counts left. The bar
+   was better at 1200 than at 1280: the same non-monotonicity the floor was
+   added to fix, moved to a different width by a deeper path.
+   Capping the trail is what makes the ladder path-INDEPENDENT: it can no
+   longer want more than a third of the bar, so it is never the fat item, and
+   the counts' departure never hands it anything back. The full path is still
+   one hover away in the row's title. */
 .s-statusbar__crumbs {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-width: 0;
+  min-width: min(20ch, 32%);
+  max-width: min(44ch, 36%);
   overflow: hidden;
   white-space: nowrap;
   color: var(--text-muted);
+}
+
+/* WHEN THE TRAIL MUST GIVE, THE FOLDERS GIVE — NEVER THE NOTE.
+   Every segment shrank equally, so `1 - Source Material › Wiki › Nobel Prize
+   in Physiology or Medicine` truncated to `1 - Source Material › Wiki › Nobel
+   Pri…`: two folder names in full and the one word that answers "which note
+   am I in" cut off. The ancestors are one ellipsizing run (StatusBar groups
+   them, separators included — see the comment there) with a shrink factor
+   twelve times the leaf's, so the path dissolves to `1 - Sourc…`, then to
+   `…`, then to nothing, before the note's own name gives up a character. */
+.s-statusbar__crumbpath {
+  flex: 0 12 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .s-statusbar__crumb {
@@ -1368,7 +2132,15 @@ select:focus,
 }
 
 .s-statusbar__crumb--leaf {
+  flex: 0 1 auto;
+  min-width: 0;
   color: var(--text);
+}
+
+/* Inside the ancestor run the separators are inline text, so they carry their
+   own spacing rather than the parent's flex `gap`. */
+.s-statusbar__crumbpath .s-statusbar__crumb-sep {
+  margin-inline: 6px;
 }
 
 .s-statusbar__crumb-sep {
@@ -1383,11 +2155,6 @@ select:focus,
 .s-statusbar__counts {
   white-space: nowrap;
   color: var(--text-muted);
-}
-
-.s-statusbar__dot {
-  color: var(--text-faint);
-  padding: 0 4px;
 }
 
 .s-statusbar__btn,
@@ -1406,11 +2173,12 @@ select:focus,
   background: var(--bg-hover);
 }
 
-.s-statusbar__btn--on {
-  color: var(--accent);
-}
-
-.s-statusbar__btn--on:hover {
+/* Scoped to the bar: `.s-statusbar button` in the base rule above is (0,1,1)
+   and would otherwise keep every "on" segment muted — the state would exist
+   in the DOM and nowhere on screen, which is the exact failure this round is
+   about. Same reason the mode pills and the sync badge are scoped. */
+.s-statusbar .s-statusbar__btn--on,
+.s-statusbar .s-statusbar__btn--on:hover {
   color: var(--accent);
 }
 
@@ -1497,7 +2265,13 @@ select:focus,
   width: 100%;
   height: 2.5rem;
   text-align: start;
-  padding: 0 12px 0 14px;
+  /* Logical, not `0 12px 0 14px`: the wider pad belongs beside the icon and
+     the selected row's accent bar, which are at the inline START — the
+     physical shorthand put it on the screen's left in both directions, so in
+     Arabic the row was padded 12px where its bar sits and 14px where nothing
+     does. */
+  padding-block: 0;
+  padding-inline: 14px 12px;
   border-radius: var(--radius);
   font-size: 0.929rem;
   color: var(--text);
@@ -1529,9 +2303,13 @@ select:focus,
   color: var(--accent);
 }
 
-/* Theme commands carry a tiny swatch: the theme's ground with a gold rim.
-   Colors come from the constant --swatch-* identity tokens, not the live
-   theme, so every dot previews its own theme. */
+/* The Themes row carries a tiny swatch: the ground of the theme in force,
+   with its own accent as the rim. Colors come from the constant --swatch-*
+   identity tokens (themes.css maps every theme in one generic rule), never
+   from the live cascade — the four per-theme rules that used to sit here
+   named iron-gall, void, lapis and parchment one at a time and were already
+   dead: themes.css's `[data-theme-dot]` matches the same shape, covers all
+   fifteen and wins on order. */
 .s-palette-dot {
   display: inline-block;
   width: 12px;
@@ -1539,26 +2317,6 @@ select:focus,
   border-radius: 50%;
   border: 2px solid transparent;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
-}
-
-.s-palette-dot[data-theme-dot="iron-gall"] {
-  background: var(--swatch-iron-gall-bg);
-  border-color: var(--swatch-iron-gall-accent);
-}
-
-.s-palette-dot[data-theme-dot="void"] {
-  background: var(--swatch-void-bg);
-  border-color: var(--swatch-void-accent);
-}
-
-.s-palette-dot[data-theme-dot="lapis"] {
-  background: var(--swatch-lapis-bg);
-  border-color: var(--swatch-lapis-accent);
-}
-
-.s-palette-dot[data-theme-dot="parchment"] {
-  background: var(--swatch-parchment-bg);
-  border-color: var(--swatch-parchment-accent);
 }
 
 .s-palette-item-title {
@@ -1730,11 +2488,240 @@ select:focus,
   border: 1px solid var(--border);
 }
 
+/* The value that is set, spelled out. --text-muted, not --text-faint: this is
+   a FILENAME — something the reader is here to read and compare against what
+   they meant to type — and --text-faint is the non-text token (DESIGN.md). */
 .s-bmodal__currentpath {
   font-family: var(--font-mono);
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   word-break: break-all;
+}
+
+/* The same row when the value resolves to no file. The picker is where this
+   gets fixed, so it is the one surface that must NAME the failure. */
+.s-bmodal__current--missing .s-bmodal__currentpath {
+  color: var(--text);
+}
+
+.s-bmodal__missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 148px;
+  height: 56px;
+  padding: 0 8px;
+  border: 1px dashed color-mix(in srgb, var(--danger) 45%, var(--border));
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* Resolution in flight: a quiet frame, never the ⌀ — "we have not asked yet"
+   must not read as "this names nothing". */
+.s-smodal__imgthumb--pending {
+  border-style: dashed;
+  opacity: 0.5;
+}
+
+/* ── Template picker ──────────────────────────────────────────────────────
+   A list and a preview, side by side. The preview is the point: a template's
+   NAME says almost nothing about what it will put in the note, so the panel
+   shows the body with its placeholders already filled — what is about to
+   land, not what the file says. Below 640px the two stack, and the preview
+   keeps a floor so it is still a preview rather than a hint of one. */
+
+.s-tmpl {
+  width: min(760px, calc(100vw - 32px));
+}
+
+.s-tmpl__body {
+  display: grid;
+  grid-template-columns: minmax(180px, 34%) 1fr;
+  gap: 12px;
+  min-height: 0;
+  flex: 1;
+}
+
+.s-tmpl__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 180px;
+  max-height: 44vh;
+  overflow-y: auto;
+}
+
+.s-tmpl__item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.s-tmpl__item:hover {
+  background: var(--bg-hover);
+}
+
+/* ONE SELECTED-ROW TREATMENT IN THE APP. The command palette's selected row is
+   `--accent-soft` PLUS a 2px gold bar on its leading edge (DESIGN.md), and
+   this list shipped the ground without the bar — two different answers to
+   "which row am I on" in one product. Logical inset, so RTL puts the bar on
+   the right like every other active row. */
+.s-tmpl__item--active {
+  background: var(--accent-soft);
+  position: relative;
+}
+
+.s-tmpl__item--active::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 2px;
+  border-start-start-radius: var(--radius);
+  border-end-start-radius: var(--radius);
+  background: var(--accent);
+}
+
+.s-tmpl__name {
+  font-family: var(--font-serif);
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+.s-tmpl__path {
+  font-family: var(--font-mono);
+  font-size: 0.714rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.s-tmpl__preview {
+  min-width: 0;
+  min-height: 180px;
+  max-height: 44vh;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.s-tmpl__pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ── The template's PROPERTIES, above its body ────────────────────────────
+   The half the preview used to leave out. Two templates whose bodies are both
+   `# {{title}}` are told apart here and nowhere else, and one of the rows may
+   be `publish: true`. Key/value rows rather than the `---` block itself: the
+   picker is outside the editor, where raw markup may not be shown. */
+.s-tmpl__propshead {
+  font-size: 0.688rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.s-tmpl__propshead--body {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.s-tmpl__props {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: 2px 10px;
+  font-size: 0.75rem;
+}
+
+.s-tmpl__prop {
+  display: contents;
+}
+
+.s-tmpl__propkey {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.s-tmpl__propval {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* THE ONE ROW THAT PUTS A NOTE ON A PUBLIC WEBSITE reads as the toggle that
+   does the same thing elsewhere: the accent, not a danger colour — publishing
+   is a thing the reader may well want, it just may not be a thing they meant
+   to pick blind. */
+.s-tmpl__prop--publish .s-tmpl__propkey,
+.s-tmpl__prop--publish .s-tmpl__propval {
+  color: var(--accent);
+}
+
+.s-tmpl__publishwarn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 8px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.s-tmpl__publishmark {
+  color: var(--accent);
+}
+
+.s-tmpl__noprops {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.s-tmpl__previewempty {
+  color: var(--text-muted);
+  font-size: 0.813rem;
+}
+
+/* Which folder the list came from. A picker whose contents depend on a
+   setting has to name the setting — especially when the folder was
+   auto-detected and the reader never chose it. */
+.s-tmpl__foot {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .s-tmpl__body {
+    grid-template-columns: 1fr;
+  }
+
+  .s-tmpl__list,
+  .s-tmpl__preview {
+    max-height: 30vh;
+  }
 }
 
 .s-bmodal__row {
@@ -1996,8 +2983,8 @@ select:focus,
   transform: translateY(-0.5px);
 }
 
-.s-statusbar__pub--on,
-.s-statusbar__pub--on:hover {
+.s-statusbar .s-statusbar__pub--on,
+.s-statusbar .s-statusbar__pub--on:hover {
   color: var(--accent);
 }
 
@@ -2276,45 +3263,71 @@ select:focus,
   align-items: center;
 }
 
-/* ── Visitor preview banner ──────────────────────────────────────────────
-   Slim fixed pill, bottom-center: overlaps neither the blog masthead / sticky
-   nav nor the app's top chrome, and floats above the status bar. Gold-leaf
-   accent per DESIGN.md; tokens only. */
-.s-preview-banner {
-  position: fixed;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
+/* ── Visitor preview strip ───────────────────────────────────────────────
+   A sticky strip at the TOP that OFFSETS the page — never an overlay, top or
+   bottom. Preview exists so the owner can judge his own layout, and a bar
+   floating over that layout hides the masthead, the footer or the comment box
+   he is judging. In the app shell it is a grid row above every pane; in the
+   blog shell it is the first element in the flow, sticky at the top, with the
+   blog's own sticky nav parked underneath it (see .s-blog-nav offset below). */
+
+.s-preview-strip {
+  position: sticky;
+  top: 0;
   z-index: 300;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 6px 7px 6px 13px;
-  background: var(--bg-raised);
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
-  border-radius: 999px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  gap: 10px;
+  min-height: var(--preview-h);
+  padding: 5px 14px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-raised));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: inset 0 2px 0 var(--accent);
   font-family: var(--font-ui);
   font-size: 0.857rem;
-  color: var(--text-muted);
+  color: var(--text);
+}
+
+/* In the app shell the strip is a grid row, so it needs no stickiness at all:
+   the shell itself never scrolls. */
+.s-app > .s-preview-strip {
+  position: static;
+  grid-area: notice;
+}
+
+.s-preview-strip__icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--accent);
+}
+
+.s-preview-strip__text {
+  font-weight: 600;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
-.s-preview-banner__icon {
+/* The second line of the sentence: quiet, and first to go when the bar is
+   narrow — the mode name and the way out are what must always be readable. */
+.s-preview-strip__hint {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.s-preview-strip__exit {
   display: inline-flex;
-  color: var(--accent);
-}
-
-.s-preview-banner__text {
-  letter-spacing: 0.02em;
-}
-
-.s-preview-banner__exit {
+  align-items: center;
+  gap: 7px;
+  flex: none;
   padding: 3px 11px;
   border: none;
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--accent);
+  color: var(--bg);
   font-family: var(--font-ui);
   font-size: 0.857rem;
   font-weight: 600;
@@ -2322,19 +3335,168 @@ select:focus,
   transition: background 150ms ease, color 150ms ease;
 }
 
-.s-preview-banner__exit:hover {
-  background: var(--accent);
+.s-preview-strip__exit:hover {
+  background: color-mix(in srgb, var(--accent) 80%, var(--text));
   color: var(--bg);
+}
+
+.s-preview-strip__kbd {
+  border-color: color-mix(in srgb, var(--bg) 45%, transparent);
+  background: color-mix(in srgb, var(--bg) 18%, transparent);
+  color: var(--bg);
+}
+
+/* Blog shell: the strip is the first child of #root, and .s-blog is its own
+   scroll container at height:100%. Left alone that adds up to 100% + the
+   strip and the last band of the site would be clipped away — so #root
+   becomes a column and the scroller takes what is left. The blog's sticky nav
+   then sticks to the TOP OF THE SCROLLER, which now starts under the strip:
+   the two can never occupy the same band, and no offset rule is needed. */
+#root:has(> .s-preview-strip) {
+  display: flex;
+  flex-direction: column;
+}
+
+#root > .s-preview-strip {
+  flex: none;
+}
+
+#root:has(> .s-preview-strip) > .s-blog {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+/* ------------------------------------------------- shortcuts overlay ---- */
+/* Ctrl/Cmd+/ — every binding, grouped and searchable. It rides the palette's
+   overlay and panel (same backdrop, same entrance, same input) because it IS
+   the palette's sibling: one is "run something", this one is "how do I". */
+
+.s-shortcuts {
+  width: min(680px, calc(100vw - 32px));
+  max-height: 72vh;
+}
+
+.s-shortcuts__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.s-shortcuts__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.071rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.s-shortcuts__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 10px 12px;
+}
+
+.s-shortcuts__group {
+  margin-top: 6px;
+}
+
+.s-shortcuts__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 2.15rem;
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+
+/* Only the rows that DO something light up. A hover highlight on an inert
+   row is an affordance lie — it read as a selection, and a screenshot of the
+   sheet showed "Graph view" apparently chosen when the pointer was merely
+   resting there. Rows with no command (editor keystrokes, Esc, "click a
+   link") are plain text now. */
+.s-shortcuts__row--action {
+  width: 100%;
+  text-align: start;
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.s-shortcuts__row--action:hover,
+.s-shortcuts__row--action:focus-visible {
+  background: var(--bg-hover);
+}
+
+.s-shortcuts__row--action:hover .s-shortcuts__label {
+  color: var(--accent);
+}
+
+.s-shortcuts__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.929rem;
+  color: var(--text);
+}
+
+.s-shortcuts__keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+.s-shortcuts__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.s-shortcuts__plus {
+  color: var(--text-faint);
+  font-size: 0.786rem;
+}
+
+/* A row with no keystroke still belongs in the list — it names the surface
+   that carries the action instead ("Command palette", "Status bar"). */
+.s-shortcuts__via {
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.s-kbd {
+  min-width: 1.6rem;
+  text-align: center;
 }
 
 /* -------------------------------------------------------- confirm modal -- */
 /* Styled stand-in for window.confirm on destructive actions (Confirm.tsx):
    raised panel, serif title, danger button gold-outline → red fill. */
 
+/* THE CONFIRM IS THE TOP OF THE STACK, and that is structural rather than
+   cosmetic: every other layer in the product can spawn one, so anything that
+   can paint over it is a dialog the reader cannot answer.
+
+   It sat at 130 — under the mobile sidebar DRAWER (400) and its backdrop
+   (390). Below 1000px the sidebar is a fixed overlay, and the delete dialogs
+   are opened FROM it, from the tree's context menu: on a phone, "Move
+   “Essay Assets” to .trash?" rendered underneath the drawer that launched it,
+   with Cancel and the danger button both unreachable and a dimmed sliver of
+   the panel showing past the drawer's edge. Every prompt shares the host, so
+   New note / New folder / Rename were in the same hole. The one escape was
+   Esc — on a device with no Esc key.
+
+   Anything new that paints over the whole viewport goes BELOW this number. */
 .s-confirm-overlay {
   position: fixed;
   inset: 0;
-  z-index: 130;
+  z-index: 500;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -2369,6 +3531,32 @@ select:focus,
   line-height: 1.5;
   color: var(--text-muted);
   overflow-wrap: break-word;
+}
+
+/* The collateral line (Confirm.tsx `warn`): what ELSE this delete takes.
+   It is the sentence the folder dialog never said — "4 attachments in here
+   are embedded by “essay.md”" — so it must not read as more of the calm
+   paragraph above it. A danger-tinted left bar and a tinted ground make it a
+   separate object at a glance; the TEXT stays --text (4.5:1 in all fifteen)
+   rather than being painted --danger, because a whole paragraph in the danger
+   hue is a color the reader stops seeing, and several of the fifteen themes
+   solve their danger against the ground for a BUTTON fill, not for prose. */
+.s-confirm__warn {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  font-size: 0.857rem;
+  line-height: 1.45;
+  color: var(--text);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  border-inline-start: 2px solid var(--danger);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  overflow-wrap: break-word;
+}
+
+/* Mirrored corners when the panel itself is RTL — the bar swaps sides with
+   the logical border, and the rounding has to follow it. */
+[dir="rtl"] .s-confirm__warn {
+  border-radius: var(--radius) 0 0 var(--radius);
 }
 
 .s-confirm__actions {
@@ -2446,6 +3634,33 @@ select:focus,
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 0 0 1px color-mix(in srgb, var(--danger) 22%, transparent);
 }
 
+/* The prompt shape of the same dialog (Confirm.tsx promptModal) — one field
+   and one line under it. The row is a flex box because .s-bmodal__input, the
+   product's one text input, is flex:1 wherever it lives. */
+.s-confirm__field {
+  display: flex;
+  margin-top: 12px;
+}
+
+/* What the name will actually become ("Creates ideas/Untitled.md"), or why it
+   cannot. It is always present — a line that appears on the first keystroke
+   would resize the dialog under the pointer. `--text-muted`, not
+   `--text-faint`: faint is this product's NON-TEXT bar (3:1, for UI glyphs
+   like the fold chevron), and this line is the sentence the reader is being
+   asked to check before a file is written. */
+.s-confirm__note {
+  margin: 6px 0 0;
+  min-height: 1.35em;
+  font-size: 0.857rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.s-confirm__note--bad {
+  color: var(--danger);
+}
+
 /* ------------------------------------------------- wordmark as a button -- */
 /* Admin: clicking ✦ Vellum toggles "preview as visitor". Same .s-title
    look; only the affordance changes. */
@@ -2493,6 +3708,16 @@ button.s-title:hover {
    is one continuous movement rather than a page that flickers apart. What is
    left is the prose, centered on a wider gutter, and a single faint ✕. */
 
+/* Zen closes both panes on its own terms (the store's collapse flags are
+   untouched, so leaving zen restores what the reader had) — and it leaves no
+   reopen handles either. Both facts have to reach the centre column's
+   balance, or it would still be padding itself away from panes that are not
+   there. Declared here rather than beside the other blocks so it wins the
+   equal-specificity race against .s-app--nosidebar / .s-app--nopanel. */
+.s-app--zen {
+  --fold-gutter: 0px;
+}
+
 .s-app--zen .s-tabs,
 .s-app--zen .s-statusbar {
   height: 0;
@@ -2525,10 +3750,22 @@ button.s-title:hover {
 /* A generous measure and a lot of air above it: nothing else is on screen to
    set the margin, so the column has to set its own. The extra class beats
    reading.css's own .s-app--visitor rule at equal specificity-by-order. */
-.s-app--zen .s-view .s-editor .cm-content,
 .s-app--zen .s-view .s-reading__content {
   max-width: 800px;
-  padding: 96px 64px 180px;
+  /* 8% × 800 = 64: the shipped gutter wherever the 800px box fits, and a
+     proportional one on a phone, by the same rule as --prose-gutter. */
+  padding: 96px min(64px, 8%) 180px;
+}
+
+/* Same box, split the same way the normal editor splits it: the gutter on the
+   scroller so the selection rects stop at the text. 800 − 2 × 64 = 672. */
+.s-app--zen .s-view .s-editor .cm-scroller {
+  padding-inline: min(64px, 8%);
+}
+
+.s-app--zen .s-view .s-editor .cm-content {
+  max-width: 672px;
+  padding-block: 96px 180px;
 }
 
 /* Zen's one control: a ✕ with the keystroke spelled out beside it. Both fade
@@ -2548,6 +3785,16 @@ button.s-title:hover {
   display: flex;
   align-items: center;
   gap: 7px;
+}
+
+/* Zen keeps the mode strip — a mode with no chrome at all is exactly where
+   "why can't I type" happens — so the ✕ steps below it rather than landing on
+   the strip's action button. `.s-app--modebar` rather than `.s-app--reading`:
+   vim gets a strip in zen too now (the status bar, and with it the pills, is
+   at zero height there), and the two are mutually exclusive so the offset is
+   one row's worth either way. */
+.s-app--zen.s-app--modebar .s-zen-exit-wrap {
+  top: calc(14px + 2.05rem);
 }
 
 .s-zen-exit__hint {
@@ -2610,23 +3857,77 @@ button.s-title:hover {
   display: none;
 }
 
-/* ------------------------------------------------------ mobile (≤700px) -- */
-/* The app shell collapses to one column: the sidebar becomes an overlay
-   drawer behind a floating ☰ toggle (App renders both; they are inert and
-   hidden on wide viewports), the backlinks panel steps aside, and the
-   desktop 56px prose gutters relax so a 390px phone gets a real measure. */
+/* -------------------------------------------- narrow shell (≤999px) -- */
+/* THE COLUMN IS THE PRODUCT; THE PANES SPEND WHAT IS LEFT.
+   Measured before this rule: `.cm-line` was 648px at 1440, 319px at 1024,
+   480px at 900, 348px at 768, 604px at 640 and 354px at 390 — the reading
+   column was WORSE at an iPad in landscape than on a phone, and worse at a
+   small laptop than at either. Two thresholds did that, and both were placed
+   where the chrome wanted them rather than where the column could afford
+   them: the sidebar held 292px down to 700px, and the outline pane held
+   300px down to 1000px.
+
+   The rule now is arithmetic rather than taste. A pane may occupy the grid
+   only at widths where the prose has ALREADY reached its 760px cap, so the
+   pane's arrival costs the reader nothing and there is no step to be on the
+   wrong side of:
+     • outline pane needs 292 + 1 + 301 + 760 = 1354 → it auto-collapses to
+       its 14px door below 1360 (BacklinksPanel's own media query),
+     • sidebar needs 760 + 14 (that door) + 1 = 775 of headroom → it takes
+       `100vw - 775px` (tokens.css) and, below 1000px, stops taking grid space
+       at all and becomes the overlay drawer the phone already used.
+   The drawer is what makes the bottom of the ladder monotone too: an overlay
+   pane cannot shrink the column, so opening the tree at 900px costs nothing,
+   where the 292px pane used to cost 40% of the measure.
+
+   The ≤700 block below is what is genuinely PHONE-specific: no outline pane
+   and no door for it, and one grid column. App renders the drawer chrome at
+   every width; it is display:none above this breakpoint. */
 
 .s-drawer-btn,
 .s-drawer-backdrop {
   display: none;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 999px) {
+  /* No sidebar column in the grid — the drawer floats over the content. The
+     outline pane keeps its column (and, below 1360, its 14px door) until the
+     phone breakpoint takes it. Last word by source order, which is how it
+     beats .s-app--nosidebar at equal specificity. */
   .s-app {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "main"
-      "status";
+      "main   panel"
+      "status status";
+    --fold-sidebar: 0px;
+  }
+
+  .s-app--flip {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "panel  main"
+      "status status";
+  }
+
+  .s-app--preview {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "notice notice"
+      "main   panel"
+      "status status";
+  }
+
+  .s-app--preview.s-app--flip {
+    grid-template-areas:
+      "notice notice"
+      "panel  main"
+      "status status";
+  }
+
+  /* An overlay drawer has a ☰ button, not an edge door: two ways back into
+     the same pane, one of them 14px wide, is one too many. */
+  .s-reopen--sidebar {
+    display: none;
   }
 
   /* Sidebar → overlay drawer (slides in from the left). The desktop collapse
@@ -2642,10 +3943,18 @@ button.s-title:hover {
     z-index: 400;
     width: min(84vw, 320px);
     border-color: var(--border);
-    visibility: visible;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
     transform: translateX(-103%);
-    transition: transform 0.2s ease;
+    /* A CLOSED drawer is off-screen, not merely out of sight: `visibility:
+       hidden` is what takes its ~130 focusables (the whole tree, every tag
+       pill, the search field) out of the tab order and out of the
+       accessibility tree. Without it the first Tab on a phone lands on a
+       wordmark at x=-314 and a screen-reader user swipes the entire vault
+       before reaching the page. This is the same rule the desktop-collapsed
+       sidebar and the backlinks pane already use; the delay keeps the panel
+       paintable for the length of its own slide-out. */
+    visibility: hidden;
+    transition: transform 0.2s ease, visibility 0s linear 0.2s;
   }
 
   .s-sidebar > *:not(.s-menu) {
@@ -2654,6 +3963,8 @@ button.s-title:hover {
 
   .s-app--drawer .s-sidebar {
     transform: none;
+    visibility: visible;
+    transition: transform 0.2s ease, visibility 0s;
   }
 
   .s-app--drawer .s-drawer-backdrop {
@@ -2691,6 +4002,26 @@ button.s-title:hover {
   .s-tabs {
     padding-inline-start: 44px;
   }
+}
+
+@media (max-width: 700px) {
+  /* …and with no outline pane there is no outline switch. The pane cluster
+     itself only leaves at 640, so between 641 and 700 this button was a
+     control that did nothing — the same defect the sidebar switch had at 900
+     until it learned about the drawer. */
+  .s-statusbar .s-statusbar__pane-outline {
+    display: none;
+  }
+
+  /* Phone: one column, no outline pane at all. */
+  .s-app,
+  .s-app--flip {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "main"
+      "status";
+    --fold-gutter: 0px;
+  }
 
   /* Backlinks/outline panel would eat the whole viewport on a phone — and a
      13px edge handle is not a phone affordance either. */
@@ -2699,29 +4030,196 @@ button.s-title:hover {
     display: none;
   }
 
-  /* Prose gutters: 56px each side crushes a 390px column. */
+  /* Vertical air only. The side gutters are --prose-gutter at every width now
+     (tokens.css): a fixed 18px here made the phone's measure LARGER than the
+     tablet's, which is the same non-monotonicity read from the other end. */
   .s-editor .cm-content,
   .s-reading__content {
-    padding: 44px 18px 110px;
+    padding-block: 44px 110px;
+  }
+}
+
+/* ── The whole shell, for a finger ───────────────────────────────────────────
+   The empty state got 44px targets and the rest of the shell did not, so the
+   pane a reader sees when nothing is open was thumb-sized while the pane they
+   use to open something was not: measured at 390 with a coarse pointer the
+   tree rows were 28px, the tag pills 26px, the sidebar's own icon buttons
+   24px and the status-bar buttons 17–24px. Navigating 1,388 notes on a phone
+   is a TREE-ROW operation, and signing out is a status-bar one. Same trigger
+   as the empty state's keymap swap — `max-width: 700px` OR any coarse
+   pointer, because a tablet is 1024px wide and still has no mouse — so the
+   two halves of the mobile story can never disagree about what counts as a
+   phone. Nothing here changes a colour, a font or a border: only the box a
+   finger has to land in. */
+@media (max-width: 700px), (pointer: coarse) {
+  /* Rows keep their 13px type and their density comes from the label, not
+     from the box: the height goes to 44 and the text sits centred in it. */
+  .s-tree__item {
+    height: auto;
+    min-height: 44px;
+  }
+
+  .s-tag {
+    min-height: 44px;
+    padding-block: 0;
+    padding-inline: 12px;
+  }
+
+  .s-tags__list {
+    gap: 6px;
+  }
+
+  /* New note / new folder in the sidebar header, the graph's zoom controls,
+     every pane chevron: one rule, because they are one component. */
+  .s-iconbtn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .s-sidebar-header {
+    height: 3.5rem;
+    padding-inline: 16px 6px;
+  }
+
+  /* The bar stops being 28px tall on a phone. Its buttons are the session
+     control and the view controls; a 17px sign-out at the far end of a
+     horizontal scroll was the least reachable control in the product. */
+  .s-statusbar {
+    height: auto;
+    min-height: 44px;
+  }
+
+  .s-statusbar__btn,
+  .s-statusbar button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 0;
+    padding-inline: 9px;
+  }
+
+  .s-statusbar .s-mode {
+    min-height: 44px;
+  }
+}
+
+/* The drawer toggle is the touch shell's main navigation control — wherever
+   the drawer exists (≤999) and the pointer is a finger, plus every phone
+   width regardless of pointer. */
+@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse)) {
+  /* It was 30px. The tab bar grows to match so the button sits inside it
+     rather than hanging over the first tab. */
+  .s-drawer-btn {
+    top: 0;
+    inset-inline-start: 4px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .s-tabs {
+    height: 44px;
+    padding-inline-start: 52px;
   }
 }
 
 /* ── Site settings panel (SettingsModal) ─────────────────────────────────── */
 
+/* Five sections and ~2,700px of content: a 680px box that stopped 160px short
+   of the viewport and then asked for four screens of one flat scroll was the
+   wrong shape for it. The panel is wider (the type specimen is the widest
+   thing in the product's chrome), taller (it uses the height it was leaving
+   empty), and it has a section rail. */
+/* Centered, not dropped at 18vh like the command palette: this panel takes
+   the height it is given rather than hanging from the top of it. */
+.s-smodal-overlay {
+  align-items: center;
+  padding-top: 0;
+}
+
 .s-smodal {
-  width: min(680px, calc(100vw - 32px));
-  max-height: 82vh;
+  width: min(920px, calc(100vw - 32px));
+  height: min(860px, calc(100vh - 40px));
+  max-height: none;
   position: relative;
+  overflow: hidden;
+}
+
+/* rail | scrolling content */
+.s-smodal__cols {
+  display: flex;
+  gap: 18px;
+  min-height: 0;
+  flex: 1;
+}
+
+.s-smodal__rail {
+  flex: none;
+  width: 164px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-inline-end: 1px solid var(--border);
+  padding-inline-end: 12px;
+  overflow-y: auto;
+}
+
+.s-smodal__railbtn {
+  text-align: start;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  font-size: 0.821rem;
+  color: var(--text-muted);
+  border-inline-start: 2px solid transparent;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.s-smodal__railbtn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+/* The rail is a position indicator as much as a menu: the section you are
+   reading is the one wearing the gold bar. */
+.s-smodal__railbtn--on {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-inline-start-color: var(--accent);
+}
+
+/* Positioning context for the two scroll-edge fades. */
+.s-smodal__scroll {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
 }
 
 .s-smodal__body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 18px;
   overflow-y: auto;
   min-height: 0;
-  padding-inline-end: 2px;
+  flex: 1;
+  /* Closing air: the last card used to butt straight into the footer hairline. */
+  padding: 2px 4px 20px 0;
+  scroll-behavior: smooth;
 }
+
+.s-smodal__body > section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-margin-top: 4px;
+}
+
+/* The scroll edges are `.s-scrollfade` on the body itself (see the mask near
+   the top of this file). Two absolutely-positioned gradient overlays used to
+   live here; a gradient laid OVER content only hides what it exactly matches,
+   and it did not — a segmented pill still came through the top edge cut across
+   its middle with its accent border flat-cut. A mask removes the alpha, so the
+   row dissolves and nothing has to be colour-matched. */
 
 .s-smodal__note {
   margin: 0;
@@ -2739,11 +4237,46 @@ button.s-title:hover {
   padding-bottom: 5px;
 }
 
+/* A steady vertical beat: hints wrap to two and three lines, so rows ranged
+   from 46 to 70px and the panel had no rhythm down its length. min-height
+   gives every ordinary row the same measure; a row that genuinely needs more
+   (an error, the specimen) still takes it. */
 .s-smodal__row {
   display: grid;
-  grid-template-columns: 168px 1fr;
+  grid-template-columns: 196px 1fr;
   align-items: start;
   gap: 12px;
+  min-height: 48px;
+}
+
+/* The widest, most typographic control in the panel spans the panel: label
+   above, control full-bleed under it. */
+.s-smodal__row--wide {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+/* Inert because a master switch above it is off. Legible, not invisible: a
+   reader must still be able to READ what is configured. */
+.s-smodal__row--off .s-smodal__label,
+.s-smodal__row--off .s-smodal__control {
+  opacity: 0.5;
+}
+
+/* ONE disabled treatment for both control shapes. With Backup=off the three
+   <select>s took the browser's own greying ON TOP of the row's 0.5, while the
+   Remote URL and Branch <input>s took only the row's — so the same disabled
+   state wore two different faces in one panel, and Branch's "main" read as a
+   live value. Neutralising the UA's opacity puts the whole dimming decision
+   in the row rule, where it can be consistent. */
+.s-smodal__control .s-bmodal__input:disabled,
+.s-smodal__control .s-smodal__select:disabled {
+  opacity: 1;
+  color: var(--text-muted);
+  -webkit-text-fill-color: var(--text-muted); /* WebKit ignores color here */
+  background: var(--bg-raised);
+  border-color: var(--border);
+  cursor: not-allowed;
 }
 
 .s-smodal__label {
@@ -2755,9 +4288,69 @@ button.s-title:hover {
   color: var(--text);
 }
 
+.s-smodal__row--wide .s-smodal__label {
+  padding-top: 0;
+}
+
+.s-smodal__labeltext {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* "This field is EMPTY and inheriting", said by the row rather than by a note
+   at the top of the panel explaining a convention. */
+.s-smodal__badge {
+  font-size: 0.714rem;
+  font-style: italic;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
 .s-smodal__hint {
   font-size: 0.75rem;
   color: var(--text-faint);
+}
+
+/* "12/22 public" — the standing answer to "how much of what I published can
+   anyone actually find". It lives beside the published count on purpose: the
+   two numbers DISAGREEING is the state this whole feature exists to make
+   visible, and side by side the disagreement reads itself. Ordinary weight
+   while the gap is small; amber once half the site is withheld, the filter has
+   stood down, or reads are closed entirely. */
+.s-statusbar__reach {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scoped to the bar for the reason the file already documents beside
+   `.s-statusbar__btn--on`: `.s-statusbar button` is (0,1,1) and outranks a
+   bare class, so the amber existed in the DOM and nowhere on screen — which
+   is precisely the invisible-state failure this whole round is about,
+   reproduced in my own indicator for it. */
+.s-statusbar .s-statusbar__reach--warn,
+.s-statusbar .s-statusbar__reach--warn:hover {
+  color: var(--callout-warning);
+}
+
+/* A sub-heading INSIDE a group: quieter than the gold group rule, louder than
+   a row label — for a control that is a different kind from the rows above it
+   (the Arabic slot, which acts across all three of them). */
+.s-smodal__sub {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+/* The master switch is off — said once, plainly, above the inert controls. */
+.s-smodal__offnote {
+  margin: 0;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  border-inline-start: 2px solid var(--border);
+  padding-inline-start: 10px;
 }
 
 .s-smodal__control {
@@ -2779,6 +4372,19 @@ button.s-title:hover {
 .s-smodal__error {
   font-size: 0.75rem;
   color: var(--danger);
+}
+
+/* Where an inheriting row's value actually comes from. The env NAME is a
+   literal to be typed into a shell or a .env file, so it keeps the mono face
+   and its own LTR run inside an Arabic panel. */
+.s-smodal__from {
+  font-size: 0.714rem;
+  color: var(--text-faint);
+}
+
+.s-smodal__envname {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
 }
 
 .s-smodal__row--invalid .s-bmodal__input {
@@ -2842,10 +4448,117 @@ button.s-title:hover {
   z-index: 60;
 }
 
+/* ── Typography specimens (settings → Typography) ────────────────────────────
+   Each row renders in the PREVIEW composite of its slot — the families
+   /api/font-preview.css defines from the picks currently in the form, before
+   anything is saved — and falls back to the matching system stack, so an
+   unpicked slot shows exactly what the site shows today. The two lines are a
+   Latin sentence and a mixed Arabic one: same family, and the Arabic slot
+   still answers for the Arabic letters, which is the whole feature. */
+.s-smodal__specimens {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  /* The panel is --bg-raised and the box was --bg with a --border hairline;
+     in parchment those three sit so close together that the container
+     disappeared and the three rows lost their box. An inset ring in the text
+     color holds the edge in every theme without shouting in any of them. */
+  border: 1px solid transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-faint) 45%, transparent);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.s-smodal__specimen {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.s-smodal__specimen + .s-smodal__specimen {
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+
+.s-smodal__speclabel {
+  font-family: var(--font-ui);
+  font-size: 0.643rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-faint);
+}
+
+/* A BLOCK in the panel's own direction, holding one inline isolate. Both
+   samples therefore begin at the same edge — an rtl line and an ltr line each
+   aligned to its own edge put the two faces being compared at opposite ends of
+   the box, which is the worst possible geometry for judging them together. */
+.s-smodal__specline {
+  display: block;
+  color: var(--text);
+  /* Roomy on purpose: a compensated naskh face has tall ascenders and deep
+     descenders, and at a tighter measure its tashkeel collided with the Latin
+     line above it. */
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.s-smodal__specimen--prose {
+  font-family: "VellumPreviewProse", var(--font-serif-system);
+  font-size: calc(var(--font-prose) * var(--prose-scale) * 0.92);
+}
+
+.s-smodal__specimen--ui {
+  font-family: "VellumPreviewUI", var(--font-ui-system);
+  font-size: 0.928rem;
+}
+
+.s-smodal__specimen--mono {
+  font-family: "VellumPreviewMono", var(--font-mono-system);
+  font-size: 0.821rem;
+}
+
+.s-smodal__fontfoot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 720px) {
+  .s-smodal {
+    height: min(860px, calc(100vh - 24px));
+  }
+  /* The rail becomes a scrolling strip across the top: still the whole table
+     of contents, without eating a third of a 390px column. */
+  .s-smodal__cols {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .s-smodal__rail {
+    width: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    border-inline-end: none;
+    border-bottom: 1px solid var(--border);
+    padding-inline-end: 0;
+    padding-bottom: 8px;
+  }
+  .s-smodal__railbtn {
+    white-space: nowrap;
+    border-inline-start: none;
+    border-bottom: 2px solid transparent;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .s-smodal__railbtn--on {
+    border-bottom-color: var(--accent);
+  }
+}
+
 @media (max-width: 560px) {
   .s-smodal__row {
     grid-template-columns: 1fr;
     gap: 4px;
+    min-height: 0;
   }
   .s-smodal__label {
     padding-top: 0;
@@ -2859,6 +4572,281 @@ button.s-title:hover {
   max-height: 24px;
   max-width: 168px;
   object-fit: contain;
+}
+
+/* ── Backup & sync (status-bar badge + settings section) ─────────────────── */
+
+/* The status-bar indicator: a branch glyph that stays quiet. It says nothing
+   at all when the vault is clean — the count appears only when something is
+   uncommitted, and the color only when a sync is running or has failed. */
+.s-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.s-sync__glyph {
+  flex: none;
+}
+
+.s-sync__label {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scoped to the bar deliberately: `.s-statusbar button` (0,1,1) sets the
+   muted default, so a lone `.s-sync--error` (0,1,0) would lose to it and the
+   failure state would render in the same grey as everything else. */
+.s-statusbar .s-sync--dirty {
+  color: var(--text);
+}
+
+.s-statusbar .s-sync--busy,
+.s-statusbar .s-sync--busy:hover {
+  color: var(--accent);
+}
+
+/* A failing backup is the one state worth the danger color: the vault is not
+   where the reader thinks it is. */
+.s-statusbar .s-sync--error,
+.s-statusbar .s-sync--error:hover {
+  color: var(--danger);
+}
+
+.s-sync--busy .s-sync__glyph {
+  animation: s-sync-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes s-sync-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-sync--busy .s-sync__glyph {
+    animation: none;
+  }
+}
+
+/* The settings panel's live mirror of the same status. */
+.s-smodal__sync {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-hover);
+}
+
+.s-smodal__syncline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.821rem;
+  color: var(--text);
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.s-smodal__syncline--muted {
+  color: var(--text-muted);
+  font-size: 0.786rem;
+}
+
+/* Items in these lines are separated by a HAIRLINE, never by a "·". The
+   Eastern Arabic zero (٠) is itself a raised dot, so a middle-dot separator
+   sitting next to a count of zero produced an unreadable "٠٠" run — a rule
+   cannot be mistaken for a numeral in any script. */
+.s-smodal__counts {
+  gap: 0;
+  row-gap: 4px;
+}
+
+.s-smodal__counts > * + * {
+  border-inline-start: 1px solid var(--border);
+  margin-inline-start: 9px;
+  padding-inline-start: 9px;
+}
+
+.s-smodal__syncline--bad {
+  color: var(--danger);
+}
+
+/* The cause we can state in human words — louder than the muted lines, and
+   the thing a failure line leads with. git's own sentence is the evidence
+   underneath it, not the headline. */
+.s-smodal__syncwarn {
+  color: var(--text);
+  font-size: 0.786rem;
+}
+
+.s-smodal__syncfail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* git's verbatim line: quotable evidence, in its own LTR block so bidi from
+   the localized line above cannot reach into it. */
+.s-smodal__syncgit {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-inline-start: 2px solid var(--border);
+  padding-inline-start: 10px;
+}
+
+.s-smodal__syncgitlabel {
+  font-size: 0.714rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+
+.s-smodal__syncgittext {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  user-select: text;
+  overflow-wrap: anywhere;
+}
+
+/* Section-level actions, on their own full-width row — no label cell, because
+   they are verbs rather than the value of a field. */
+.s-smodal__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.s-smodal__actions--off {
+  opacity: 0.5;
+}
+
+.s-smodal__actions .s-btn {
+  border: 1px solid var(--border);
+}
+
+.s-smodal__actions .s-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  background: transparent;
+}
+
+.s-syncdot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+.s-syncdot--ok { background: var(--accent); }
+.s-syncdot--busy { background: var(--accent); animation: s-sync-pulse 1.2s ease-in-out infinite; }
+.s-syncdot--error { background: var(--danger); }
+
+/* The badge's detail panel. It replaces a native `title` tooltip: that text is
+   the diagnosis, and a tooltip cannot be selected, copied, or reached at all
+   on touch. Anchored above the badge — the status bar is the last 28px of the
+   viewport. */
+.s-syncwrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* FIXED, not absolute: the status bar clips its own overflow, so a panel
+   anchored inside it was invisible. SyncBadge pins it to the button. */
+.s-syncpop {
+  position: fixed;
+  z-index: 120;
+  width: min(360px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 14px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+  text-align: start;
+  cursor: default;
+  animation: s-palette-in 0.12s ease;
+}
+
+.s-syncpop__line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.821rem;
+  color: var(--text);
+}
+
+.s-syncpop__line--muted {
+  color: var(--text-muted);
+  font-size: 0.786rem;
+}
+
+.s-syncpop__warn {
+  color: var(--text);
+}
+
+.s-syncpop__err {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-inline-start: 2px solid var(--danger);
+  padding-inline-start: 10px;
+}
+
+.s-syncpop__errlabel {
+  font-size: 0.714rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+
+.s-syncpop__errtext {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text);
+  user-select: text;
+  overflow-wrap: anywhere;
+  max-height: 8.5em;
+  overflow-y: auto;
+}
+
+.s-syncpop__copy {
+  align-self: flex-start;
+  font-size: 0.75rem;
+}
+
+.s-syncpop__btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.s-syncpop__btns .s-btn {
+  border: 1px solid var(--border);
+}
+
+.s-syncpop__btns .s-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.s-smodal__tokenfield {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.s-smodal__tokenfield .s-bmodal__input {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -2934,8 +4922,9 @@ button.s-title:hover {
   transform: none;
 }
 
-/* Mobile drawer slides in from the right in RTL (the sidebar lives there). */
-@media (max-width: 700px) {
+/* The drawer slides in from the right in RTL (the sidebar lives there).
+   Same breakpoint as the drawer itself — 999, not 700. */
+@media (max-width: 999px) {
   [dir="rtl"] .s-sidebar,
   [dir="rtl"] .s-app--nosidebar .s-sidebar,
   [dir="rtl"] .s-app--zen .s-sidebar {
@@ -2944,5 +4933,135 @@ button.s-title:hover {
 
   [dir="rtl"] .s-app--drawer .s-sidebar {
     transform: none;
+  }
+}
+
+/* ------------------------------------------------- narrow-screen modes -- */
+
+/* The bar has a fixed budget and `overflow: hidden`, so something has to go
+   before the sign-out button falls off the trailing edge. Order of sacrifice:
+   the two COUNTS first (they are ambient), then the pane cluster on phones.
+   The mode pills never go: a mode you cannot see is the bug this round exists
+   to fix.
+
+   The threshold moved from 1000px to 1200px, and the reason is measured: at
+   1024 the counts and the published-note count both rendered at full width
+   while the breadcrumb was crushed to "1 - … › Re…", so the bar degraded
+   NON-MONOTONICALLY — it was more useful at 900px than at 1024. A word count
+   is ambient; the crumb is the only thing on screen naming the open note.
+   The min-width floor on .s-statusbar__crumbs is the other half of this, and
+   it is why the threshold had to clear 1100 rather than sit on it: with the
+   crumb no longer absorbing every overflow, an admin bar carrying the counts
+   at ~1120px pushed sign-out onto the hidden overflow instead — swapping one
+   silent loss for a worse one. Measured on the 1,389-note fixture with
+   publish, the published-note filter and both mode pills up. */
+/* 1200 → 1280, and the reason is the crumb's new CEILING rather than a change
+   of heart about word counts. The ceiling is what makes the ladder
+   path-independent, and a ceiling generous enough to be worth having (44ch,
+   about 340px — most of `1 - Source Material › Wiki › Nobel Prize in
+   Physiology or Medicine`) pushes the width at which the trail would start
+   giving ground up to ~1277 in English and ~1224 in Arabic. The ambient pair
+   has to be gone by then, or the trail is crushed at 1280 and springs back at
+   1200 — better at the narrower width, which is the exact failure this whole
+   ladder exists to prevent. Trading a character count at 1280 for a hundred
+   more pixels of the note's own name at every width is the trade this bar is
+   supposed to make. */
+/* One group, one decision. Both counts leave together now that they sit in
+   `.s-statusbar__ambient` — hiding them individually would have left the
+   group's own hairline and padding behind with nothing inside it. And with
+   the group gone, whatever follows it becomes the segment that OPENS the
+   right cluster, so it must drop its rule the way the spacer's neighbour
+   does: the `+` combinator still matches a `display: none` sibling, so this
+   second selector is what keeps a stray tick from appearing at 1280 exactly
+   where one disappeared. */
+@media (max-width: 1280px) {
+  .s-statusbar .s-statusbar__ambient {
+    display: none;
+  }
+
+  .s-statusbar .s-statusbar__ambient + * {
+    margin-inline-start: 0;
+    padding-inline-start: 0;
+    border-inline-start: none;
+  }
+}
+
+/* Now — and only now — the crumb may start giving ground. Order matters more
+   than any single rule here: with the counts gone there is nothing ambient
+   left to spend, so a shrinking crumb is a real cost rather than a trade for
+   a character count. Keeping the floor past this width pushed the trailing
+   controls onto the bar's hidden overflow instead, which is the failure mode
+   the whole "order of sacrifice" paragraph exists to prevent. */
+@media (max-width: 900px) {
+  .s-statusbar__crumbs {
+    min-width: 0;
+  }
+}
+
+/* The second half of that sacrifice, which the paragraph above promised and
+   nobody wrote: below ~640px the bar still wanted 627px of controls, so it
+   quietly CLIPPED its trailing edge — the theme button, the graph button and
+   the whole sign-out control were off-screen with no scrollbar and no hint,
+   and the pane cluster was cut through the middle of its four icons. The
+   pane toggles are the right thing to drop: at this width the sidebar is a
+   drawer with its own ☰ button, the backlinks panel has auto-collapsed, zen
+   is meaningless on a phone, and every one of the four is in the palette. */
+@media (max-width: 640px) {
+  /* Scoped to the bar, like every other rule that touches these controls:
+     `.s-statusbar .s-statusbar__panes` sets `display: inline-flex` at (0,2,0),
+     so a bare `.s-statusbar__panes { display: none }` here would lose to it
+     however late it sat in the file — the same specificity trap the pill and
+     sync-badge rules above are scoped against. */
+  .s-statusbar .s-statusbar__panes {
+    display: none;
+  }
+
+  /* The crumb trail has already shrunk to an ellipsis by here. */
+  .s-statusbar .s-statusbar__crumbs {
+    display: none;
+  }
+
+  /* With the pane cluster gone the remaining groups are neighbours anyway,
+     and a phone bar has no room to spend on rules. Every segment the group
+     rule marks has to be listed, or the mode pills and the sync badge keep
+     a hairline the rest of the bar has dropped. */
+  .s-statusbar .s-statusbar__group,
+  .s-statusbar .s-modes,
+  .s-statusbar .s-syncwrap {
+    margin-inline-start: 2px;
+    padding-inline-start: 0;
+    border-inline-start: none;
+  }
+
+  /* The safety net, because a phone can always be narrower than the controls
+     that must stay: what does not fit SCROLLS rather than vanishing off a
+     hidden overflow. Sign-out was the casualty — there is no other way out of
+     a session on a phone. */
+  .s-statusbar {
+    gap: 5px;
+    padding-inline: 8px 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .s-statusbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .s-app--preview,
+  .s-app--preview.s-app--flip {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "notice"
+      "main"
+      "status";
+  }
+
+  /* The hint is the first thing to go: the mode name and the way out are
+     what the strip exists for. */
+  .s-preview-strip__hint {
+    display: none;
   }
 }
