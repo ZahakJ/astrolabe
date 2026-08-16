@@ -22,7 +22,8 @@
     "check-excerpt": "node scripts/check-excerpt.mjs",
     "check-design": "node scripts/shoot-design.mjs",
     "check-board": "node scripts/check-board.mjs",
-    "check-preview": "node scripts/check-preview.mjs"
+    "check-preview": "node scripts/check-preview.mjs",
+    "check-designer-nav": "node scripts/check-designer-nav.mjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.0",
