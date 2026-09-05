@@ -1,0 +1,249 @@
+/* Vellum — the graph view's settings panel (client/components/GraphView.tsx).
+   Its own file, loaded with the graph's lazy chunk: the panel is chrome only
+   the graph view has, and app.css is in every first paint. */
+/* ── The graph's settings panel ─────────────────────────────────────────────
+   A column over the canvas, on the inline-end edge above the zoom buttons:
+   colouring, legend, filters, forces, display. It is read against the
+   picture it changes, so it floats over the constellation rather than
+   pushing it aside, and it scrolls on its own when a vault has forty
+   folders. Every colour is a token; the legend swatches are the groups'. */
+
+.s-graph__panel {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-end: 12px;
+  inset-block-end: 56px;
+  z-index: 2;
+  inline-size: min(300px, calc(100% - 24px));
+  overflow-y: auto;
+  padding: 12px 14px 16px;
+  background: color-mix(in srgb, var(--bg-raised) 92%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+  font-size: 0.857rem;
+  scrollbar-width: thin;
+}
+
+.s-graph__panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-end: 10px;
+}
+
+.s-graph__panel-head h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.s-graph__panel-reset {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.786rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.s-graph__panel-reset:hover {
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.s-graph__search {
+  inline-size: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.s-graph__search:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.s-graph__section {
+  margin-block-start: 14px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--border);
+}
+
+.s-graph__section h3 {
+  margin: 0 0 8px;
+  font-size: 0.714rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.s-graph__segs {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.s-graph__segs--sub {
+  margin-block-start: 6px;
+}
+
+.s-graph__seg {
+  flex: 1;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.s-graph__seg--on {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.s-graph__legend {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-block-size: 240px;
+  overflow-y: auto;
+}
+
+.s-graph__group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.s-graph__group--off {
+  opacity: 0.45;
+}
+
+/* The swatch is the colour input itself, dressed as a disc: the native
+   picker opens on click, and the disc is what the node on the canvas is. */
+.s-graph__swatch {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--text) 25%, transparent);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.s-graph__swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.s-graph__swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.s-graph__swatch::-moz-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+.s-graph__group-name {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-graph__group-name:hover {
+  background: var(--bg-hover);
+}
+
+.s-graph__group-name bdi {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-graph__group-count {
+  flex: none;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-graph__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-block: 4px;
+  color: var(--text);
+}
+
+.s-graph__slider {
+  display: block;
+  padding-block: 4px;
+}
+
+.s-graph__slider-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-end: 2px;
+  color: var(--text);
+}
+
+.s-graph__slider-value {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-graph__slider .s-dsgr-range {
+  inline-size: 100%;
+}
+
+.s-graph__controls .s-iconbtn--on {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+@media (max-width: 700px) {
+  .s-graph__panel {
+    inset-block-start: auto;
+    inset-inline: 12px;
+    inset-block-end: 52px;
+    inline-size: auto;
+    max-block-size: 60%;
+  }
+}

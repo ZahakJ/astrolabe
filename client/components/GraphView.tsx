@@ -9,27 +9,51 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import type { GraphData, GraphNode } from "../../shared/types.ts";
 import { mixColors, readThemeColors } from "./graphColors.ts";
+import "../styles/graph.css";
+import { Toggle } from "./controls/Fields.tsx";
+import {
+  DEFAULT_DISPLAY,
+  DEFAULT_FORCES,
+  ROOT_GROUP,
+  UNTAGGED_GROUP,
+  defaultGraphPrefs,
+  groupColor,
+  groupNodes,
+  loadGraphPrefs,
+  saveGraphPrefs,
+  type ColorBy,
+  type GraphPrefs,
+} from "../graphPrefs.ts";
 
 // ---------------------------------------------------------------------------
 // Simulation tuning. Forces are scaled by a cooling factor ("alpha") so the
 // layout settles instead of jittering forever; interaction reheats it.
 // ---------------------------------------------------------------------------
+// THE MOTION IS CALM ON PURPOSE. The owner's word for the first cut was "too
+// quick": nodes shot to their places and the web twitched under the hand.
+// Three numbers below carry that: a lower speed cap, more damping, and a
+// gentler reheat, so a drag pulls the neighbourhood along like weight on a
+// string and the entrance is an unfolding rather than a snap. The reader's
+// own sliders (graphPrefs.ts) scale the three forces from these bases.
 const REPULSION = 20000; // pairwise inverse-square push
 const REPULSE_RADIUS = 560; // cutoff beyond which a pair stops pushing
-const SPRING_K = 0.05; // pull along edges
-const SPRING_REST = 235; // preferred edge length
+const SPRING_K = 0.045; // pull along edges
+const SPRING_REST = 235; // preferred edge length (the base the slider scales)
 const GRAVITY = 0.003; // gentle pull toward the origin
-const FRICTION = 0.82; // velocity damping per step
+const FRICTION = 0.86; // velocity damping per step
 /** Per-step speed cap (world px). In a 1.4k-node vault the dense start piles
  *  hundreds of repulsion contributions onto one node in a single step; without
  *  this clamp velocities compound to ~1e8, the pre-settle bounding box
  *  explodes, and fitView frames a cloud that later contracts back near the
  *  origin — leaving the whole graph offscreen (blank canvas). */
-const MAX_SPEED = 40;
+const MAX_SPEED = 16;
 const ALPHA_START = 1;
 const ALPHA_DECAY = 0.995;
 const ALPHA_MIN = 0.015;
-const ALPHA_REHEAT = 0.45;
+const ALPHA_REHEAT = 0.3;
+/** How long a button zoom or a fit takes to arrive (ms). The wheel stays
+ *  immediate: a wheel is the reader's own hand, a button is a request. */
+const ZOOM_ANIM_MS = 220;
 /** Simulation steps run per frame when the reader prefers reduced motion —
  *  enough to reach rest in well under a second without blocking the tab. */
 const SETTLE_STEPS_PER_FRAME = 25;
@@ -66,6 +90,44 @@ interface SimNode {
   vx: number;
   vy: number;
   r: number;
+  /** The disc's colour: the group's under a colouring, a degree shade of
+   *  the theme's node ink under none. A hex or rgb() string the canvas takes. */
+  fill: string;
+  /** Filtered out by the legend, the orphan switch or the degree floor. A
+   *  hidden node keeps its place so unhiding it does not reseed the layout. */
+  hidden: boolean;
+  /** Names the search field's text. */
+  match: boolean;
+}
+
+/** What the view tells the simulation about how to draw and pull. */
+export interface SimOptions {
+  /** Disc colour by note id; ids absent here take the degree shade. */
+  fills: Map<string, string>;
+  hidden: Set<string>;
+  query: string;
+  repulsion: number;
+  linkDistance: number;
+  gravity: number;
+  nodeScale: number;
+  edgeAlpha: number;
+  labelZoom: number;
+  glow: boolean;
+}
+
+function defaultSimOptions(): SimOptions {
+  return {
+    fills: new Map(),
+    hidden: new Set(),
+    query: "",
+    repulsion: DEFAULT_FORCES.repulsion,
+    linkDistance: DEFAULT_FORCES.linkDistance,
+    gravity: DEFAULT_FORCES.gravity,
+    nodeScale: DEFAULT_DISPLAY.nodeScale,
+    edgeAlpha: DEFAULT_DISPLAY.edgeAlpha,
+    labelZoom: DEFAULT_DISPLAY.labelZoom,
+    glow: DEFAULT_DISPLAY.glow,
+  };
 }
 
 interface SimEdge {
@@ -115,6 +177,11 @@ function seedPosition(id: string, count: number): { x: number; y: number } {
 
 interface Sim {
   setData(data: GraphData): void;
+  /** Colours, filters, forces and display, all at once; cheap enough to call
+   *  on every slider tick. Positions survive it. */
+  setOptions(opts: SimOptions): void;
+  /** How many nodes the filters left on the canvas. */
+  visibleCount(): number;
   zoomBy(factor: number): void;
   resetView(): void;
   /** Light a node from outside the pointer — the keyboard list behind the
@@ -126,12 +193,27 @@ interface Sim {
 function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
-    return { setData() {}, zoomBy() {}, resetView() {}, setFocus() {}, destroy() {} };
+    return {
+      setData() {},
+      setOptions() {},
+      visibleCount: () => 0,
+      zoomBy() {},
+      resetView() {},
+      setFocus() {},
+      destroy() {},
+    };
   }
 
+  /** Every node and edge the data holds; `nodes`/`edges` are the visible
+   *  subset the forces and the canvas work on. */
+  let all: SimNode[] = [];
+  let allEdges: SimEdge[] = [];
   let nodes: SimNode[] = [];
   let edges: SimEdge[] = [];
   let byId = new Map<string, SimNode>();
+  let opts: SimOptions = defaultSimOptions();
+  /** Nodes whose titles name the search text; null while the field is empty. */
+  let matchSet: Set<SimNode> | null = null;
   const neighbors = new Map<SimNode, Set<SimNode>>();
   /** The brightest node in the graph, sampled once per dataset instead of
    *  reduced over every node on every frame. */
@@ -154,9 +236,43 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
       mixColors(colors.accent, colors.bg, 0.45 - 0.35 * (i / (SHADES - 1))),
     );
     orphanFill = mixColors(colors.accent, colors.bg, 0.62);
-    rimStroke = mixColors(colors.accent, colors.bg, 0.25);
+    rimStroke = mixColors(colors.text, colors.bg, 0.55);
   }
   buildPalette();
+
+  /** The degree shade a node wears when no colouring names it. */
+  function degreeFill(n: SimNode): string {
+    if (n.links === 0) return orphanFill;
+    return shades[Math.min(SHADES - 1, ((n.links / maxLinks) * (SHADES - 1)) | 0)];
+  }
+
+  /** Recolour, refilter and retune from `opts`. Positions are untouched, so a
+   *  slider tick or a legend click changes the picture and not the place. */
+  function applyOptions(): void {
+    const q = opts.query.trim().toLowerCase();
+    matchSet = q === "" ? null : new Set<SimNode>();
+    for (const n of all) {
+      n.fill = opts.fills.get(n.id) ?? degreeFill(n);
+      n.hidden = opts.hidden.has(n.id);
+      n.r = nodeRadius(n.links) * opts.nodeScale;
+      n.match = q !== "" && n.title.toLowerCase().includes(q);
+      if (n.match && matchSet) matchSet.add(n);
+    }
+    nodes = all.filter((n) => !n.hidden);
+    edges = allEdges.filter((e) => !e.a.hidden && !e.b.hidden);
+    neighbors.clear();
+    for (const { a, b } of edges) {
+      if (!neighbors.has(a)) neighbors.set(a, new Set());
+      if (!neighbors.has(b)) neighbors.set(b, new Set());
+      neighbors.get(a)!.add(b);
+      neighbors.get(b)!.add(a);
+    }
+    litFor = undefined;
+    if (hovered?.hidden) hovered = null;
+    if (focused?.hidden) focused = null;
+    themeRev++; // the edge layer's alpha is part of its key
+    needsDraw = true;
+  }
   let width = 0; // CSS px
   let height = 0;
   let dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -242,9 +358,13 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
   }
 
   function setData(data: GraphData) {
+    const previous = byId;
     byId = new Map<string, SimNode>();
-    nodes = data.nodes.map((n: GraphNode) => {
-      const { x, y } = seedPosition(n.id, data.nodes.length);
+    all = data.nodes.map((n: GraphNode) => {
+      // A node the sim already holds keeps its place: a refilter or a refetch
+      // must not fling the constellation back to its seed under the reader.
+      const was = previous.get(n.id);
+      const { x, y } = was ?? seedPosition(n.id, data.nodes.length);
       const sim: SimNode = {
         id: n.id,
         title: n.title,
@@ -254,26 +374,24 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
         vx: 0,
         vy: 0,
         r: nodeRadius(n.links),
+        fill: "",
+        hidden: false,
+        match: false,
       };
       byId.set(n.id, sim);
       return sim;
     });
-    maxLinks = nodes.reduce((m, n) => Math.max(m, n.links), 1);
-    edges = [];
-    neighbors.clear();
-    litFor = undefined;
+    maxLinks = all.reduce((m, n) => Math.max(m, n.links), 1);
+    allEdges = [];
     hovered = null;
     focused = null;
     for (const e of data.edges) {
       const a = byId.get(e.source);
       const b = byId.get(e.target);
       if (!a || !b || a === b) continue;
-      edges.push({ a, b });
-      if (!neighbors.has(a)) neighbors.set(a, new Set());
-      if (!neighbors.has(b)) neighbors.set(b, new Set());
-      neighbors.get(a)!.add(b);
-      neighbors.get(b)!.add(a);
+      allEdges.push({ a, b });
     }
+    applyOptions();
     // Pre-settle off-screen so the first frame is already a readable layout,
     // then frame it optically centered.
     alpha = ALPHA_START;
@@ -288,6 +406,19 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
     alpha = Math.max(alpha, ALPHA_REHEAT);
     fitView();
     needsDraw = true;
+  }
+
+  function setOptions(next: SimOptions): void {
+    const forcesMoved =
+      next.repulsion !== opts.repulsion ||
+      next.linkDistance !== opts.linkDistance ||
+      next.gravity !== opts.gravity;
+    const shownBefore = nodes.length;
+    opts = next;
+    applyOptions();
+    // A change in what is on the canvas, or in how it pulls, is a reason to
+    // move again; a recolour is not.
+    if (forcesMoved || nodes.length !== shownBefore) reheat();
   }
 
   // --- physics --------------------------------------------------------------
@@ -522,6 +653,9 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
   function step() {
     buildTree();
     const R2 = REPULSE_RADIUS * REPULSE_RADIUS;
+    const repulsion = REPULSION * opts.repulsion;
+    const gravity = GRAVITY * opts.gravity;
+    const rest = opts.linkDistance;
 
     for (const n of nodes) {
       let fx = 0;
@@ -557,7 +691,7 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
                 d2 = 0.5;
               }
               const d = Math.sqrt(d2);
-              const f = Math.min(REPULSION / d2, 12);
+              const f = Math.min(repulsion / d2, 12);
               fx += (dx / d) * f;
               fy += (dy / d) * f;
             }
@@ -569,7 +703,7 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
           const d2 = dx * dx + dy * dy;
           if (d2 > 1 && tHalf[c] * 2 < THETA * Math.sqrt(d2)) {
             const d = Math.sqrt(d2);
-            const f = Math.min(REPULSION / d2, 12) * mass;
+            const f = Math.min(repulsion / d2, 12) * mass;
             fx += (dx / d) * f;
             fy += (dy / d) * f;
             continue;
@@ -582,8 +716,8 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
       }
 
       // Centering gravity.
-      fx -= n.x * GRAVITY;
-      fy -= n.y * GRAVITY;
+      fx -= n.x * gravity;
+      fy -= n.y * gravity;
 
       n.vx += fx * alpha;
       n.vy += fy * alpha;
@@ -594,7 +728,7 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
       const dx = b.x - a.x;
       const dy = b.y - a.y;
       const d = Math.max(1, Math.hypot(dx, dy));
-      const f = SPRING_K * (d - SPRING_REST) * alpha;
+      const f = SPRING_K * (d - rest) * alpha;
       const ux = dx / d;
       const uy = dy / d;
       a.vx += ux * f;
@@ -669,7 +803,7 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
     edgeCtx.clearRect(0, 0, width, height);
     edgeCtx.lineWidth = 1;
     edgeCtx.strokeStyle = colors.idleEdge;
-    edgeCtx.globalAlpha = colors.idleEdgeAlpha;
+    edgeCtx.globalAlpha = opts.edgeAlpha;
     // ONE path for the whole web: 2,922 beginPath/stroke pairs on the fixture
     // became one of each. The bbox reject below is conservative — a segment
     // whose ends straddle the viewport is kept — which is exactly right for a
@@ -685,9 +819,10 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
     return edgeCanvas;
   }
 
-  /** Reused across frames: allocating three dozen arrays sixty times a second
-   *  is garbage for nothing. Index SHADES is the orphan bucket. */
-  const nodeBuckets: SimNode[][] = Array.from({ length: SHADES + 1 }, () => []);
+  /** Reused across frames, keyed by fill colour: one path and one fillStyle
+   *  per colour on the canvas, whether the colours are a degree ramp or a
+   *  dozen folders. Arrays are kept and emptied rather than reallocated. */
+  const nodeBuckets = new Map<string, SimNode[]>();
   const labelPicks: SimNode[] = [];
 
   /** One disc, as a subpath of whatever path is open. The `moveTo` is load-
@@ -708,10 +843,16 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
     // Hover and keyboard focus ask the same question — "which node am I on?" —
     // so they get the same answer. The pointer wins while it is on a node.
     const lit = hovered ?? focused;
-    const hoverSet = litSetFor(lit);
+    // A search narrows the picture the way a hover does: the named nodes
+    // stand at full strength and everything else steps back. The pointer
+    // still wins while it is on a node, so a reader can walk a match's
+    // neighbourhood without clearing the field.
+    const hoverSet = litSetFor(lit) ?? matchSet;
     const dimAlpha = 0.15;
-    // Labels appear from zoom 0.7 upward; hover always reveals them.
-    const zoomLabelAlpha = k < 0.7 ? 0 : Math.min(1, (k - 0.7) / 0.35);
+    // Labels appear from the reader's zoom threshold upward; hover and
+    // search always reveal them.
+    const at = opts.labelZoom;
+    const zoomLabelAlpha = k < at ? 0 : Math.min(1, (k - at) / 0.35);
     const activePath = useStore.getState().openPath;
     const { x0, x1, y0, y1 } = viewBox();
     const onScreen = (n: SimNode): boolean =>
@@ -726,9 +867,10 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
       ctx!.drawImage(layer, 0, 0, width, height);
     }
     if (lit !== null) {
+      // The lit node's own web, in its own colour, a little heavier.
       ctx!.globalAlpha = 0.9;
-      ctx!.strokeStyle = colors.accent;
-      ctx!.lineWidth = 1;
+      ctx!.strokeStyle = lit.fill;
+      ctx!.lineWidth = 1.4;
       ctx!.beginPath();
       for (const { a, b } of edges) {
         if (a !== lit && b !== lit) continue;
@@ -736,6 +878,7 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
         ctx!.lineTo(b.x * k + tx, b.y * k + ty);
       }
       ctx!.stroke();
+      ctx!.lineWidth = 1;
     }
 
     // Nodes: gold-leaf discs, brighter with degree, with a thin rim.
@@ -745,38 +888,68 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
     // calls where a 3,000-node vault used to issue six thousand. The rims all
     // land on top of all the fills rather than under the next node's; in a
     // dense cluster that reads as a crisper web, and it is one stroke.
-    for (const bucket of nodeBuckets) bucket.length = 0;
+    for (const bucket of nodeBuckets.values()) bucket.length = 0;
+    let shown = 0;
     for (const n of nodes) {
       if (!onScreen(n)) continue;
-      nodeBuckets[
-        n.links === 0
-          ? SHADES
-          : Math.min(SHADES - 1, ((n.links / maxLinks) * (SHADES - 1)) | 0)
-      ].push(n);
+      shown++;
+      let bucket = nodeBuckets.get(n.fill);
+      if (!bucket) nodeBuckets.set(n.fill, (bucket = []));
+      bucket.push(n);
+    }
+
+    // The halo: a soft disc of the node's own colour under it. One
+    // translucent fill per colour, three times the radius, so a cluster of
+    // one folder reads as a glow of one hue. Skipped above a few hundred
+    // discs on screen, where it would be a wash rather than a light.
+    const glowAll = opts.glow && shown <= 700;
+    if (glowAll) {
+      ctx!.globalAlpha = hoverSet ? 0.05 : 0.16;
+      for (const [fill, bucket] of nodeBuckets) {
+        if (bucket.length === 0) continue;
+        ctx!.fillStyle = fill;
+        ctx!.beginPath();
+        for (const n of bucket) arc(ctx!, n, Math.max(4, n.r * k * 1.4));
+        ctx!.fill();
+      }
     }
 
     ctx!.globalAlpha = hoverSet ? dimAlpha : 1;
-    for (let i = 0; i < nodeBuckets.length; i++) {
-      const bucket = nodeBuckets[i];
+    for (const [fill, bucket] of nodeBuckets) {
       if (bucket.length === 0) continue;
-      ctx!.fillStyle = i === SHADES ? orphanFill : shades[i];
+      ctx!.fillStyle = fill;
       ctx!.beginPath();
       for (const n of bucket) arc(ctx!, n, 0);
       ctx!.fill();
     }
-    ctx!.strokeStyle = rimStroke;
+    // A hairline of the ground between touching discs, so a dense cluster
+    // is a cluster of discs and not a blot.
+    ctx!.strokeStyle = colors.bg;
+    ctx!.globalAlpha = hoverSet ? dimAlpha * 0.6 : 0.6;
     ctx!.lineWidth = 1;
     ctx!.beginPath();
-    for (const bucket of nodeBuckets) for (const n of bucket) arc(ctx!, n, 0);
+    for (const bucket of nodeBuckets.values()) for (const n of bucket) arc(ctx!, n, 0);
     ctx!.stroke();
 
-    // The lit node and its neighbours, repainted at full strength on top.
+    // The lit node and its neighbours (or the search's matches), repainted
+    // at full strength on top, each in its own colour, with a glow of it.
     if (hoverSet) {
+      ctx!.globalAlpha = 0.28;
+      for (const n of hoverSet) {
+        if (!onScreen(n)) continue;
+        ctx!.fillStyle = n.fill;
+        ctx!.beginPath();
+        arc(ctx!, n, Math.max(6, n.r * k * 1.6));
+        ctx!.fill();
+      }
       ctx!.globalAlpha = 1;
-      ctx!.fillStyle = colors.accent;
-      ctx!.beginPath();
-      for (const n of hoverSet) if (onScreen(n)) arc(ctx!, n, 0);
-      ctx!.fill();
+      for (const n of hoverSet) {
+        if (!onScreen(n)) continue;
+        ctx!.fillStyle = n.fill;
+        ctx!.beginPath();
+        arc(ctx!, n, 0);
+        ctx!.fill();
+      }
       ctx!.strokeStyle = rimStroke;
       ctx!.beginPath();
       for (const n of hoverSet) if (onScreen(n)) arc(ctx!, n, 0);
@@ -785,7 +958,7 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
 
     // Ring around the currently-open note, and around the lit one.
     ctx!.globalAlpha = 1;
-    ctx!.strokeStyle = colors.accent;
+    ctx!.strokeStyle = colors.text;
     ctx!.lineWidth = 1.5;
     const active = activePath === null ? undefined : byId.get(activePath);
     if (active && onScreen(active)) {
@@ -794,6 +967,7 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
       ctx!.stroke();
     }
     if (lit && onScreen(lit)) {
+      ctx!.strokeStyle = lit.fill;
       ctx!.beginPath();
       arc(ctx!, lit, 3);
       ctx!.stroke();
@@ -817,9 +991,14 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
       labelPicks.sort((a, b) => b.links - a.links);
       labelPicks.length = LABEL_BUDGET;
     }
-    ctx!.font = `11px ${colors.fontUI}`;
+    ctx!.font = `${k >= 1.6 ? 12 : 11}px ${colors.fontUI}`;
     ctx!.textAlign = "center";
     ctx!.textBaseline = "top";
+    // A halo of the ground under every label, so a title over an edge or a
+    // neighbouring disc stays a title.
+    ctx!.strokeStyle = colors.bg;
+    ctx!.lineWidth = 3;
+    ctx!.lineJoin = "round";
     let dir = "";
     let ink = "";
     for (const n of labelPicks) {
@@ -830,18 +1009,38 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
       // English title in an RTL shell comes out as "?What is the Republic about".
       const d = autoDir(n.title);
       if (d !== dir) ctx!.direction = dir = d;
-      ctx!.fillText(n.title, n.x * k + tx, n.y * k + ty + Math.max(2, n.r * k) + 5);
+      const lx = n.x * k + tx;
+      const ly = n.y * k + ty + Math.max(2, n.r * k) + 5;
+      ctx!.strokeText(n.title, lx, ly);
+      ctx!.fillText(n.title, lx, ly);
     }
+    ctx!.lineWidth = 1;
 
     ctx!.globalAlpha = 1;
   }
 
   // --- lifecycle: rAF loop --------------------------------------------------
 
+  /** A zoom in flight: the view eases from `from` to `to` about (cx, cy). */
+  let zoomAnim: { from: number; to: number; cx: number; cy: number; start: number } | null = null;
+  function zoomAbout(next: number, cx: number, cy: number): void {
+    tx = cx - ((cx - tx) / k) * next;
+    ty = cy - ((cy - ty) / k) * next;
+    k = next;
+    needsDraw = true;
+  }
+
   let raf = 0;
   let lastFrameAt = 0;
   function frame(now: number) {
     raf = requestAnimationFrame(frame);
+    if (zoomAnim) {
+      const t = Math.min(1, (now - zoomAnim.start) / ZOOM_ANIM_MS);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const target = zoomAnim.from * Math.pow(zoomAnim.to / zoomAnim.from, eased);
+      zoomAbout(target, zoomAnim.cx, zoomAnim.cy);
+      if (t >= 1) zoomAnim = null;
+    }
     // A force layout's whole entrance IS motion — eight hundred frames of
     // drift is exactly what "prefers-reduced-motion" is asking us not to do.
     // So when the reader has asked for less, those frames are spent settling
@@ -1076,15 +1275,15 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
   canvas.style.cursor = "grab";
   canvas.style.touchAction = "none";
 
-  /** Zoom about the viewport center. */
+  /** Zoom about the viewport center, eased over a few frames. */
   function zoomBy(factor: number) {
-    const next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, k * factor));
-    const cx = width / 2;
-    const cy = height / 2;
-    tx = cx - ((cx - tx) / k) * next;
-    ty = cy - ((cy - ty) / k) * next;
-    k = next;
-    needsDraw = true;
+    const from = zoomAnim ? zoomAnim.to : k;
+    const to = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, from * factor));
+    if (prefersReducedMotion()) {
+      zoomAbout(to, width / 2, height / 2);
+      return;
+    }
+    zoomAnim = { from: k, to, cx: width / 2, cy: height / 2, start: performance.now() };
   }
 
   function resetView() {
@@ -1116,6 +1315,8 @@ function createSim(canvas: HTMLCanvasElement, wrap: HTMLElement): Sim {
 
   return {
     setData,
+    setOptions,
+    visibleCount: () => nodes.length,
     zoomBy,
     resetView,
     setFocus,
@@ -1151,6 +1352,40 @@ export default function GraphView() {
   // Shared with the local graph and the visitor sidebar — one /api/graph for
   // the whole app (client/graphCache.ts), not one per consumer.
   const data = useVaultGraph();
+
+  // ── The reader's own graph (graphPrefs.ts) ────────────────────────────────
+  const [prefs, setPrefsState] = useState<GraphPrefs>(() => loadGraphPrefs());
+  const setPrefs = useCallback((patch: Partial<GraphPrefs> | ((p: GraphPrefs) => GraphPrefs)) => {
+    setPrefsState((p) => {
+      const next = typeof patch === "function" ? patch(p) : { ...p, ...patch };
+      saveGraphPrefs(next);
+      return next;
+    });
+  }, []);
+  const [query, setQuery] = useState("");
+  // Whether the theme is a dark room decides which palette the groups take;
+  // read from the theme's own color-scheme, re-read when data-theme changes.
+  const [dark, setDark] = useState(() => isDarkTheme());
+  useEffect(() => {
+    const mo = new MutationObserver(() => setDark(isDarkTheme()));
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => mo.disconnect();
+  }, []);
+
+  const grouped = useMemo(
+    () => groupNodes(data?.nodes ?? [], prefs.colorBy, prefs.folderDepth),
+    [data, prefs.colorBy, prefs.folderDepth],
+  );
+  const neutral = useMemo(() => readThemeColors().accent, [dark]);
+  /** Group name → colour, in legend order. */
+  const groupColors = useMemo(() => {
+    const overrides = prefs.groupColors[prefs.colorBy];
+    const map = new Map<string, string>();
+    grouped.groups.forEach((g, i) => map.set(g.name, groupColor(g.name, i, overrides, dark, neutral)));
+    return map;
+  }, [grouped, prefs.groupColors, prefs.colorBy, dark, neutral]);
+  const [shownCount, setShownCount] = useState<number | null>(null);
+
   /** The layout is seeded from scratch by `setData`, so a refresh would fling
    *  every node back to its seed position and restart the simulation under
    *  the reader's pointer. The graph view is a snapshot for as long as it is
@@ -1182,6 +1417,61 @@ export default function GraphView() {
     setStats({ notes: data.nodes.length, links: data.edges.length });
     sim.setData(data);
   }, [data]);
+
+  // Colours, filters, forces and display travel to the canvas as one object,
+  // on every change; the sim keeps the positions and redraws.
+  useEffect(() => {
+    const sim = simRef.current;
+    if (!sim || !data) return;
+    const hiddenGroups = new Set(prefs.hiddenGroups[prefs.colorBy]);
+    const fills = new Map<string, string>();
+    const hidden = new Set<string>();
+    for (const n of data.nodes) {
+      const group = grouped.of.get(n.id);
+      if (group !== undefined) {
+        const color = groupColors.get(group);
+        if (color) fills.set(n.id, color);
+        if (hiddenGroups.has(group)) hidden.add(n.id);
+      }
+      if (prefs.hideOrphans && n.links === 0) hidden.add(n.id);
+      if (n.links < prefs.minLinks) hidden.add(n.id);
+    }
+    sim.setOptions({
+      fills,
+      hidden,
+      query,
+      repulsion: prefs.forces.repulsion,
+      linkDistance: prefs.forces.linkDistance,
+      gravity: prefs.forces.gravity,
+      nodeScale: prefs.display.nodeScale,
+      edgeAlpha: prefs.display.edgeAlpha,
+      labelZoom: prefs.display.labelZoom,
+      glow: prefs.display.glow,
+    });
+    setShownCount(sim.visibleCount());
+  }, [data, grouped, groupColors, prefs, query]);
+
+  const toggleGroup = useCallback(
+    (name: string) => {
+      setPrefs((p) => {
+        const list = p.hiddenGroups[p.colorBy];
+        const next = list.includes(name) ? list.filter((g) => g !== name) : [...list, name];
+        return { ...p, hiddenGroups: { ...p.hiddenGroups, [p.colorBy]: next } };
+      });
+    },
+    [setPrefs],
+  );
+  const setGroupColor = useCallback(
+    (name: string, hex: string) => {
+      setPrefs((p) => ({
+        ...p,
+        groupColors: { ...p.groupColors, [p.colorBy]: { ...p.groupColors[p.colorBy], [name]: hex } },
+      }));
+    },
+    [setPrefs],
+  );
+  const groupLabel = (name: string): string =>
+    name === ROOT_GROUP ? t("graphGroupRoot") : name === UNTAGGED_GROUP ? t("graphGroupUntagged") : name;
 
   // The graph view is the one surface where a failed /api/graph leaves an
   // empty screen rather than a missing garnish, so it is the one that says so.
@@ -1260,10 +1550,17 @@ export default function GraphView() {
   }, [centre, neighborIds, nodesById]);
 
   // The canvas mirrors the list's cursor: a keyboard reader and a pointer
-  // reader are looking at the same highlight.
+  // reader are looking at the same highlight — but only while the list HOLDS
+  // the keyboard. The cursor rests on the open note from the moment the view
+  // opens, and lighting it then dimmed the other thousand nodes to 15% for a
+  // reader who had not pressed a key: the whole constellation opened grey,
+  // which the owner met as "the colour of nodes is lame if you are not
+  // highlighting them". A highlight is an answer to a question; nobody had
+  // asked one yet.
+  const [listFocused, setListFocused] = useState(false);
   useEffect(() => {
-    simRef.current?.setFocus(cursor);
-  }, [cursor, data]);
+    simRef.current?.setFocus(listFocused ? cursor : null);
+  }, [cursor, data, listFocused]);
 
   const focusRow = useCallback((id: string) => {
     setCursor(id);
@@ -1354,6 +1651,10 @@ export default function GraphView() {
             role="listbox"
             aria-label={t("graphNodesAria")}
             onKeyDown={onListKeyDown}
+            onFocus={() => setListFocused(true)}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setListFocused(false);
+            }}
           >
             {rows.map((n, i) => (
               <button
@@ -1407,12 +1708,44 @@ export default function GraphView() {
         ))}
       {stats !== null && stats.notes > 0 && (
         <div className="s-graph__hud">
-          {countPhrase(stats.notes, admin ? "notes" : "publishedNotes")}
+          {shownCount !== null && shownCount < stats.notes
+            ? tf("graphShown", { shown: localeNum(shownCount), total: localeNum(stats.notes) })
+            : countPhrase(stats.notes, admin ? "notes" : "publishedNotes")}
           <MetaSep className="s-graph__hudsep" />
           {countPhrase(stats.links, "links")}
         </div>
       )}
+      {stats !== null && stats.notes > 0 && (
+        <GraphPanel
+          open={prefs.panelOpen}
+          prefs={prefs}
+          setPrefs={setPrefs}
+          query={query}
+          setQuery={setQuery}
+          groups={grouped.groups}
+          groupColors={groupColors}
+          groupLabel={groupLabel}
+          onToggleGroup={toggleGroup}
+          onGroupColor={setGroupColor}
+        />
+      )}
       <div className="s-graph__controls">
+        {stats !== null && stats.notes > 0 && (
+          <button
+            type="button"
+            className={`s-iconbtn${prefs.panelOpen ? " s-iconbtn--on" : ""}`}
+            title={t("graphSettings")}
+            aria-label={t("graphSettings")}
+            aria-pressed={prefs.panelOpen}
+            onClick={() => setPrefs({ panelOpen: !prefs.panelOpen })}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 7h10M18 7h2M4 17h4M12 17h8M4 12h14" />
+              <circle cx="16" cy="7" r="2" />
+              <circle cx="10" cy="17" r="2" />
+            </svg>
+          </button>
+        )}
         <button
           type="button"
           className="s-iconbtn"
@@ -1449,5 +1782,209 @@ export default function GraphView() {
         </button>
       </div>
     </div>
+  );
+}
+
+
+/** Whether the theme in force is a dark room, by its own declaration. */
+function isDarkTheme(): boolean {
+  return getComputedStyle(document.documentElement).getPropertyValue("color-scheme").trim() !== "light";
+}
+
+interface GraphPanelProps {
+  open: boolean;
+  prefs: GraphPrefs;
+  setPrefs(patch: Partial<GraphPrefs> | ((p: GraphPrefs) => GraphPrefs)): void;
+  query: string;
+  setQuery(q: string): void;
+  groups: { name: string; count: number }[];
+  groupColors: Map<string, string>;
+  groupLabel(name: string): string;
+  onToggleGroup(name: string): void;
+  onGroupColor(name: string, hex: string): void;
+}
+
+/**
+ * The graph's settings: colouring, legend, filters, forces, display. A panel
+ * over the canvas rather than a page of settings, because every control here
+ * is read against the picture it changes, and the picture is what a reader
+ * is adjusting. Everything in it is a per-browser preference (graphPrefs.ts)
+ * except the search field, which is the session's.
+ */
+function GraphPanel({
+  open,
+  prefs,
+  setPrefs,
+  query,
+  setQuery,
+  groups,
+  groupColors,
+  groupLabel,
+  onToggleGroup,
+  onGroupColor,
+}: GraphPanelProps) {
+  if (!open) return null;
+  const hidden = new Set(prefs.hiddenGroups[prefs.colorBy]);
+  const colorChoice = (value: ColorBy, label: string) => (
+    <button
+      type="button"
+      className={`s-graph__seg${prefs.colorBy === value ? " s-graph__seg--on" : ""}`}
+      aria-pressed={prefs.colorBy === value}
+      onClick={() => setPrefs({ colorBy: value })}
+    >
+      {label}
+    </button>
+  );
+  const slider = (
+    label: string,
+    value: number,
+    min: number,
+    max: number,
+    step: number,
+    onChange: (v: number) => void,
+    format: (v: number) => string = (v) => localeNum(Math.round(v)),
+  ) => (
+    <label className="s-graph__slider">
+      <span className="s-graph__slider-head">
+        <span>{label}</span>
+        <span className="s-graph__slider-value">{format(value)}</span>
+      </span>
+      <input
+        className="s-dsgr-range"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        aria-label={label}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </label>
+  );
+  const pct = (v: number) => `${localeNum(Math.round(v * 100))}%`;
+  return (
+    <aside className="s-graph__panel" aria-label={t("graphSettings")}>
+      <div className="s-graph__panel-head">
+        <h2>{t("graphSettings")}</h2>
+        <button
+          type="button"
+          className="s-graph__panel-reset"
+          onClick={() => {
+            const d = defaultGraphPrefs();
+            setPrefs({ ...d, panelOpen: true });
+            setQuery("");
+          }}
+        >
+          {t("graphReset")}
+        </button>
+      </div>
+
+      <input
+        className="s-graph__search"
+        type="search"
+        value={query}
+        dir="auto"
+        placeholder={t("graphSearch")}
+        aria-label={t("graphSearch")}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+
+      <section className="s-graph__section">
+        <h3>{t("graphColorBy")}</h3>
+        <div className="s-graph__segs" role="group" aria-label={t("graphColorBy")}>
+          {colorChoice("folder", t("graphColorFolder"))}
+          {colorChoice("tag", t("graphColorTag"))}
+          {colorChoice("none", t("graphColorNone"))}
+        </div>
+        {prefs.colorBy === "folder" && (
+          <div className="s-graph__segs s-graph__segs--sub" role="group" aria-label={t("graphFolderDepth")}>
+            <button
+              type="button"
+              className={`s-graph__seg${prefs.folderDepth === 1 ? " s-graph__seg--on" : ""}`}
+              aria-pressed={prefs.folderDepth === 1}
+              onClick={() => setPrefs({ folderDepth: 1 })}
+            >
+              {t("graphDepthTop")}
+            </button>
+            <button
+              type="button"
+              className={`s-graph__seg${prefs.folderDepth === 2 ? " s-graph__seg--on" : ""}`}
+              aria-pressed={prefs.folderDepth === 2}
+              onClick={() => setPrefs({ folderDepth: 2 })}
+            >
+              {t("graphDepthSecond")}
+            </button>
+          </div>
+        )}
+        {groups.length > 0 && (
+          <ul className="s-graph__legend">
+            {groups.map((g) => {
+              const off = hidden.has(g.name);
+              const color = groupColors.get(g.name) ?? "#888888";
+              return (
+                <li key={g.name} className={`s-graph__group${off ? " s-graph__group--off" : ""}`}>
+                  <input
+                    type="color"
+                    className="s-graph__swatch"
+                    value={/^#[0-9a-f]{6}$/i.test(color) ? color : "#888888"}
+                    aria-label={tf("graphPickColor", { name: groupLabel(g.name) })}
+                    onChange={(e) => onGroupColor(g.name, e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="s-graph__group-name"
+                    aria-pressed={!off}
+                    title={off ? t("graphShowGroup") : t("graphHideGroup")}
+                    onClick={() => onToggleGroup(g.name)}
+                  >
+                    <bdi>{groupLabel(g.name)}</bdi>
+                    <span className="s-graph__group-count">{localeNum(g.count)}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      <section className="s-graph__section">
+        <h3>{t("graphFilters")}</h3>
+        <div className="s-graph__row">
+          <span>{t("graphHideOrphans")}</span>
+          <Toggle
+            value={prefs.hideOrphans}
+            onChange={(v) => setPrefs({ hideOrphans: v })}
+            label={t("graphHideOrphans")}
+            onLabel={t("on")}
+            offLabel={t("off")}
+          />
+        </div>
+        {slider(t("graphMinLinks"), prefs.minLinks, 0, 12, 1, (v) => setPrefs({ minLinks: v }))}
+      </section>
+
+      <section className="s-graph__section">
+        <h3>{t("graphForces")}</h3>
+        {slider(t("graphRepulsion"), prefs.forces.repulsion, 0.4, 2.5, 0.05, (v) => setPrefs({ forces: { ...prefs.forces, repulsion: v } }), pct)}
+        {slider(t("graphLinkDistance"), prefs.forces.linkDistance, 80, 480, 5, (v) => setPrefs({ forces: { ...prefs.forces, linkDistance: v } }))}
+        {slider(t("graphGravity"), prefs.forces.gravity, 0, 3, 0.05, (v) => setPrefs({ forces: { ...prefs.forces, gravity: v } }), pct)}
+      </section>
+
+      <section className="s-graph__section">
+        <h3>{t("graphDisplay")}</h3>
+        {slider(t("graphNodeSize"), prefs.display.nodeScale, 0.6, 2, 0.05, (v) => setPrefs({ display: { ...prefs.display, nodeScale: v } }), pct)}
+        {slider(t("graphEdgeAlpha"), prefs.display.edgeAlpha, 0.1, 1, 0.05, (v) => setPrefs({ display: { ...prefs.display, edgeAlpha: v } }), pct)}
+        {slider(t("graphLabelZoom"), prefs.display.labelZoom, 0.3, 1.6, 0.05, (v) => setPrefs({ display: { ...prefs.display, labelZoom: v } }), pct)}
+        <div className="s-graph__row">
+          <span>{t("graphGlow")}</span>
+          <Toggle
+            value={prefs.display.glow}
+            onChange={(v) => setPrefs({ display: { ...prefs.display, glow: v } })}
+            label={t("graphGlow")}
+            onLabel={t("on")}
+            offLabel={t("off")}
+          />
+        </div>
+      </section>
+    </aside>
   );
 }

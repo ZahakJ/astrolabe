@@ -102,7 +102,11 @@
 - **Backlinks panel** — every note shows who links to it, with the sentence that did
 - **Outline (TOC) panel** — the open note's headings, tracking your scroll position; click to jump
 - **Graph view** — hand-rolled canvas force simulation; drag nodes, hover to highlight neighbors,
-  click to open
+  click to open. The sliders button opens its settings: colour the notes by **folder** (one or two
+  levels deep) or by **tag**, with a legend where each group can be recoloured or hidden; a search
+  that lights the matching notes; filters for orphans and a minimum number of links; the three
+  forces (spread, link length, pull to centre); node size, link opacity, the zoom at which labels
+  appear, and a glow. All of it is remembered per browser and never touches the vault
 - **Full-text search** — prefix + fuzzy (MiniSearch), highlighted snippets with markdown syntax
   stripped, instant. It answers to [localised tag labels](arabic-and-rtl.md#localised-tag-labels)
   as well as canonical ones, and it **folds diacritics and letter shapes**, so «المقدمة» finds a

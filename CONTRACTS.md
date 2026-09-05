@@ -857,6 +857,45 @@ an external write to a DIRTY note still toasts, and to a clean one still reloads
   `git clone / npm install / npm start`, point-at-your-vault instructions, features, keymap table,
   screenshots placeholder, port table, license MIT). Also `LICENSE` (MIT, holder "avicenna").
 
+## The graph view's own settings (client/graphPrefs.ts, GraphView.tsx)
+
+**THE GRAPH OPENED GREY, AND THAT WAS A BUG, NOT A LOOK.** The keyboard route lights the node its
+cursor rests on and dims the rest to 15%, and the cursor rested on the open note from the moment
+the view opened, so a reader who had not pressed a key saw a thousand grey discs and one gold one.
+The owner met it as "the colour of nodes is lame if you are not highlighting them". The canvas now
+takes the cursor only while the node list HOLDS focus (`listFocused`); a highlight is an answer to a
+question, and nobody had asked one.
+
+**A NOTE IS COLOURED BY WHERE IT LIVES.** `colorBy` is `folder` (the default; one or two path
+segments deep), `tag` (a note with several tags belongs to its most common one across the vault,
+ties to the tag the author wrote first) or `none` (the old degree ramp on the theme's node ink).
+`groupNodes()` is the pure half and is tested; the view turns its answer into a `fills` map and
+hands it to the simulation, whose buckets are keyed by fill colour rather than by degree shade, so
+a dozen folders cost the canvas a dozen paths, as thirty-three shades did. The palette is twelve
+hues tuned for a dark ground and twelve deepened for a light one (`graphPalette(dark)`, read from
+the theme's own `color-scheme`), assigned largest group first so the biggest groups are the most
+distinguishable; a thirteenth group takes a hue hashed from its name so it keeps it across
+reloads; the vault root and the untagged bucket take the theme's node ink, because they are
+"everything else" and should read as such. The legend's swatch is the `<input type="color">`
+itself, and an override is kept per colouring so switching folder ↔ tag loses neither set.
+
+**FILTERS REMOVE A NODE FROM THE FORCES, NOT ONLY FROM THE PAINT.** A hidden node (a legend group
+switched off, an orphan under `hideOrphans`, a degree under `minLinks`) leaves `nodes` and `edges`
+but keeps its place in `all`, so unhiding it puts it back where it was rather than at its seed;
+`setData` likewise carries positions over for ids it already holds. A change in what is on the
+canvas or in the forces reheats; a recolour does not. The search field is the one thing here that
+is session state: it lights the matching titles the way a hover lights a neighbourhood
+(`matchSet` stands in for the hover set), and the pointer still wins while it is on a node.
+
+**THE MOTION IS CALM ON PURPOSE.** "Too quick" was the owner's word: the speed cap went from 40
+to 16 world px a step, damping from 0.82 to 0.86, the reheat from 0.45 to 0.3, and a button zoom
+eases over 220 ms about the viewport centre (the wheel stays immediate: a wheel is the reader's
+own hand). The three force sliders scale the shipped constants (`repulsion`, `linkDistance`,
+`gravity`); display has node size, idle-edge opacity, the label zoom threshold and a glow (a
+translucent disc of the node's own colour, skipped above 700 discs on screen where it would be a
+wash). Labels wear a halo of the ground. Everything is one object under `vellum.graph`,
+normalised field by field on load (`normalizeGraphPrefs`), per browser, never sent anywhere.
+
 ## Shell layout (sidebar side, collapse, zen)
 
 Four persisted preferences live on the app root as classes: `s-app--flip`, `s-app--nosidebar`,
