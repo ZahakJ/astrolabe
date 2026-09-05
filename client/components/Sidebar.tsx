@@ -262,7 +262,11 @@ function visibleRows(container: HTMLElement): HTMLElement[] {
 // each TreeRow owns only its own open flag: toggling a folder re-renders that
 // subtree, not the whole tree — O(subtree) on a 1.4k-note vault — and the
 // state survives tree reloads, search round-trips, and full page reloads.
-// Default: top-level folders open, everything deeper collapsed.
+// Default: every folder folded. The tree used to open the top level on a
+// first visit, and the owner asked for the opposite: a vault of twelve
+// folders is a wall of files until each one is opened on purpose, and a
+// folder the reader opened stays open (the map remembers) so the cost is
+// one click per folder, once.
 // ---------------------------------------------------------------------------
 const EXPANDED_KEY = "vellum.tree-expanded";
 
@@ -286,8 +290,8 @@ function persistExpanded(): void {
   }
 }
 
-function defaultOpen(depth: number): boolean {
-  return depth === 0;
+function defaultOpen(_depth: number): boolean {
+  return false;
 }
 
 /** Fold or unfold EVERY folder. A 1,400-note vault's tree is a place a reader

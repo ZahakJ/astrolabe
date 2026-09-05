@@ -49,6 +49,8 @@ export default function Pane({
   const focusPane = useStore((s) => s.focusPane);
   const openBook = useStore((s) => s.openBook);
   const closeLibrary = useStore((s) => s.closeLibrary);
+  const zen = useStore((s) => s.zen);
+  const setZen = useStore((s) => s.setZen);
   const clearBookTarget = useStore((s) => s.clearBookTarget);
   const closeTab = useStore((s) => s.closeTab);
   const setPaneMode = useStore((s) => s.setPaneMode);
@@ -98,6 +100,8 @@ export default function Pane({
             else if (tab !== null) closeTab(tab.path);
           }}
           onLanded={() => clearBookTarget(id)}
+          zen={zen}
+          onZen={() => setZen(!zen)}
         />
       </Suspense>
     ) : tab !== null && !reading && surface === "edit" ? (

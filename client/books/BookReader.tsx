@@ -65,7 +65,7 @@ import {
 } from "./api.ts";
 import { inkStyle } from "./annotations.ts";
 import { assembleSelection, joinFragments } from "./columns.ts";
-import { parseCommand, type BookCommand } from "./commands.ts";
+import { parseCommand, parseFraction, parseNumber, type BookCommand } from "./commands.ts";
 import { citationMarkdown, citeIntoNote, citeTargets, currentCiteTarget, type CiteTarget } from "./cite.ts";
 import { detectRtl } from "./direction.ts";
 import { clearSelection, hasSelection, selectionByPage, unionOf } from "./selection.ts";
@@ -103,7 +103,7 @@ const SAVE_MS = 900;
  *  900-page book for "the" does not want 40,000 of anything. */
 const SEARCH_MAX = 500;
 
-type Overlay = "none" | "command" | "search" | "outline" | "help" | "cite" | "annotations" | "note";
+type Overlay = "none" | "command" | "search" | "outline" | "goto" | "help" | "cite" | "annotations" | "note";
 
 /** How long a citation's arrival pulses the passage it names. Long enough to
  *  find with the eye on a dense page, short enough that it is gone before the
@@ -145,6 +145,14 @@ interface Props {
   onClose(): void;
   /** Leave the reader for the shelf. */
   onLibrary(): void;
+  /** Whether the app is in zen — the book alone on the screen. Owned by the
+   *  shell (client/state.ts), because zen is a fact about the WINDOW: it
+   *  hides the sidebar, the tabs and the status bar, none of which are this
+   *  component's to hide. The reader only asks for it (`z`, `:zen`, the
+   *  button) and shows which way the switch is. Absent where no shell is
+   *  around to answer. */
+  zen?: boolean;
+  onZen?(): void;
 }
 
 /** A citation the reader has assembled and not yet written. Held rather than
@@ -162,7 +170,7 @@ interface PendingCite {
   picking: boolean;
 }
 
-export default function BookReader({ path, citation = null, active = true, onLanded, onClose, onLibrary }: Props) {
+export default function BookReader({ path, citation = null, active = true, onLanded, onClose, onLibrary, zen = false, onZen }: Props) {
   const [entry, setEntry] = useState<BookOpenResponse | null>(null);
   const [doc, setDoc] = useState<PdfDocument | null>(null);
   const [failed, setFailed] = useState(false);
@@ -939,6 +947,16 @@ export default function BookReader({ path, citation = null, active = true, onLan
         case "goto":
           goToPage(command.relative ? stateRef.current.page + command.page : command.page, scrollBehavior());
           break;
+        case "fraction":
+          goToPage(pageAtFraction(command.percent, stateRef.current.pages), scrollBehavior());
+          break;
+        case "page":
+          void loadOutline();
+          setOverlay("goto");
+          break;
+        case "zen":
+          onZen?.();
+          break;
         case "quit":
           onClose();
           break;
@@ -1028,6 +1046,7 @@ export default function BookReader({ path, citation = null, active = true, onLan
       cycleInk,
       beginCite,
       noteHere,
+      onZen,
     ],
   );
 
@@ -1172,6 +1191,20 @@ export default function BookReader({ path, citation = null, active = true, onLan
           void loadOutline();
           setOverlay(overlay === "outline" ? "none" : "outline");
           break;
+        case "p":
+          // The go-to panel. `12G` and `:12` were always here, but a reader
+          // who has not read the key sheet needs a door with a name on it,
+          // and the panel's field takes the whole grammar plus a chapter.
+          e.preventDefault();
+          void loadOutline();
+          setOverlay(overlay === "goto" ? "none" : "goto");
+          break;
+        case "z":
+          // Zen from inside the book, so nobody has to leave the page to
+          // find the app's own switch. The shell answers; see `onZen`.
+          e.preventDefault();
+          onZen?.();
+          break;
         case "=":
         case "+":
           e.preventDefault();
@@ -1279,6 +1312,7 @@ export default function BookReader({ path, citation = null, active = true, onLan
     removeHighlightHere,
     onClose,
     onLibrary,
+    onZen,
     wake,
   ]);
 
@@ -1304,7 +1338,14 @@ export default function BookReader({ path, citation = null, active = true, onLan
   const title = state.title || entry?.name.replace(/\.pdf$/i, "") || "";
 
   return (
-    <div className="s-book" onMouseMove={wake} data-chrome={chromeShown ? "on" : "off"}>
+    <div
+      className="s-book"
+      onMouseMove={wake}
+      data-chrome={chromeShown ? "on" : "off"}
+      // The shell's Esc reads this: while a panel is open, Esc closes the
+      // panel and must not also drop the window out of zen (client/App.tsx).
+      data-overlay={overlay}
+    >
       <div
         className="s-book__scroll"
         ref={scrollRef}
@@ -1362,6 +1403,18 @@ export default function BookReader({ path, citation = null, active = true, onLan
         <span className="s-book__title" dir="auto">
           {title}
         </span>
+        {onZen && (
+          <button
+            type="button"
+            className="s-book__act"
+            onClick={onZen}
+            aria-pressed={zen}
+            aria-label={zen ? t("exitZen") : t("bookZen")}
+            title={zen ? t("exitZen") : t("bookZen")}
+          >
+            <span aria-hidden="true">{zen ? "⤡" : "⤢"}</span>
+          </button>
+        )}
         <button type="button" className="s-book__act" onClick={onLibrary} aria-label={t("bookLibrary")}>
           <span aria-hidden="true">☰</span>
         </button>
@@ -1371,7 +1424,19 @@ export default function BookReader({ path, citation = null, active = true, onLan
       </header>
 
       <footer className="s-book__status">
-        <span>{tf("bookPageOf", { page: localeNum(state.page), total: localeNum(state.pages) })}</span>
+        {/* The counter is the door to the go-to panel: the one thing on this
+            line a reader wants to CHANGE, so it is a button and says so. */}
+        <button
+          type="button"
+          className="s-book__status-page"
+          onClick={() => {
+            void loadOutline();
+            setOverlay(overlay === "goto" ? "none" : "goto");
+          }}
+          title={t("bookGotoTitle")}
+        >
+          {tf("bookPageOf", { page: localeNum(state.page), total: localeNum(state.pages) })}
+        </button>
         <span>{tf("bookZoomPct", { percent: localeNum(Math.round(scale * 100)) })}</span>
         {hits.length > 0 && (
           <span>{tf("bookMatchOf", { index: localeNum(hitAt + 1), total: localeNum(hits.length) })}</span>
@@ -1413,6 +1478,19 @@ export default function BookReader({ path, citation = null, active = true, onLan
 
       {overlay === "outline" && (
         <OutlinePanel rows={outline} onPick={(page) => { setOverlay("none"); goToPage(page, scrollBehavior()); }} onClose={() => setOverlay("none")} />
+      )}
+
+      {overlay === "goto" && (
+        <GotoPanel
+          page={state.page}
+          pages={state.pages}
+          rows={outline}
+          onPick={(page) => {
+            setOverlay("none");
+            goToPage(page, scrollBehavior());
+          }}
+          onClose={() => setOverlay("none")}
+        />
       )}
 
       {overlay === "help" && <HelpSheet onClose={() => setOverlay("none")} />}
@@ -1658,6 +1736,136 @@ function OutlinePanel({
   );
 }
 
+/**
+ * The go-to panel: one field that takes everything the reader might mean by
+ * "take me to…", and the contents listed under it so a chapter is a click or
+ * an arrow key away.
+ *
+ * The field's grammar IS the command line's page grammar — `212`, `+3`, `-3`,
+ * `40%`, in Latin or Eastern Arabic digits — plus a chapter name, which
+ * filters the list as it is typed. Enter takes the number when the field is
+ * one, and the lit chapter otherwise; the arrow keys move the light. The
+ * panel says what Enter will do before it is pressed, because a reader who
+ * typed `40` and meant `40%` deserves to see "page 40" first.
+ */
+function GotoPanel({
+  page,
+  pages,
+  rows,
+  onPick,
+  onClose,
+}: {
+  page: number;
+  pages: number;
+  rows: OutlineRow[] | null;
+  onPick(page: number): void;
+  onClose(): void;
+}) {
+  const [text, setText] = useState("");
+  const [lit, setLit] = useState(0);
+  const target = targetOf(text, page, pages);
+  const needle = text.trim().toLowerCase();
+  // A numeric field leaves the whole contents on show — the list is then a
+  // second door, not a filter — and a word narrows it.
+  const shown = (rows ?? []).filter((row) => target !== null || needle === "" || row.title.toLowerCase().includes(needle));
+  const litIndex = Math.min(lit, Math.max(0, shown.length - 1));
+  const submit = () => {
+    if (target !== null) onPick(target);
+    else if (shown[litIndex]) onPick(shown[litIndex].page || 1);
+  };
+  return (
+    <aside className="s-book__outline s-book__goto" aria-label={t("bookGotoTitle")}>
+      <header className="s-book__outline-head">
+        <h2>{t("bookGotoTitle")}</h2>
+        <button type="button" className="s-book__act" onClick={onClose} aria-label={t("closeViewer")}>
+          <span aria-hidden="true">✕</span>
+        </button>
+      </header>
+      <form
+        className="s-book__goto-field"
+        onSubmit={(e) => {
+          e.preventDefault();
+          submit();
+        }}
+      >
+        <input
+          className="s-book__input"
+          autoFocus
+          value={text}
+          dir="auto"
+          onChange={(e) => {
+            setText(e.target.value);
+            setLit(0);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              onClose();
+            } else if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setLit(Math.min(shown.length - 1, litIndex + 1));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setLit(Math.max(0, litIndex - 1));
+            }
+          }}
+          aria-label={t("bookGotoLabel")}
+          placeholder={t("bookGotoPlaceholder")}
+        />
+        <p className="s-book__goto-hint" aria-live="polite">
+          {target !== null
+            ? tf("bookGotoTarget", { page: localeNum(target) })
+            : shown[litIndex]
+              ? tf("bookGotoChapter", { title: shown[litIndex].title })
+              : tf("bookPageOf", { page: localeNum(page), total: localeNum(pages) })}
+        </p>
+      </form>
+      {rows === null && <p className="s-book__message">{t("bookLoading")}</p>}
+      {rows !== null && rows.length === 0 && <p className="s-book__message">{t("bookNoOutline")}</p>}
+      {rows !== null && rows.length > 0 && shown.length === 0 && (
+        <p className="s-book__message">{t("bookGotoNoChapter")}</p>
+      )}
+      <ol className="s-book__outline-list">
+        {shown.map((row, i) => (
+          <li key={`${row.title}-${i}`} style={{ paddingInlineStart: `${row.depth * 14}px` }}>
+            <button
+              type="button"
+              className={`s-book__outline-row${target === null && i === litIndex ? " s-book__outline-row--lit" : ""}`}
+              onClick={() => onPick(row.page || 1)}
+              onMouseEnter={() => setLit(i)}
+              dir="auto"
+            >
+              <span className="s-book__outline-title">{row.title}</span>
+              {row.page > 0 && <span className="s-book__outline-page">{localeNum(row.page)}</span>}
+            </button>
+          </li>
+        ))}
+      </ol>
+    </aside>
+  );
+}
+
+/** Where the go-to field points, or null when it names no page: a bare number
+ *  is a page, `+3`/`-3` step from here, `40%` is a proportion of the book. */
+function targetOf(text: string, page: number, pages: number): number | null {
+  const trimmed = text.trim();
+  if (trimmed === "") return null;
+  const fraction = parseFraction(trimmed);
+  if (fraction !== null) return pageAtFraction(fraction, pages);
+  const n = parseNumber(trimmed);
+  if (n === null) return null;
+  const relative = trimmed.startsWith("+") || trimmed.startsWith("-");
+  const wanted = Math.round(relative ? page + n : n);
+  return Math.min(Math.max(1, wanted), Math.max(1, pages));
+}
+
+/** The page a proportion lands on. 0% is the first page and 100% the last,
+ *  so a reader "halfway" through a 300-page book is on page 150, not 151. */
+function pageAtFraction(percent: number, pages: number): number {
+  if (pages <= 1) return 1;
+  return Math.min(pages, Math.max(1, 1 + Math.round(((pages - 1) * percent) / 100)));
+}
+
 // ── Annotating and citing ───────────────────────────────────────────────────
 
 /**
@@ -1881,6 +2089,7 @@ const HELP_ROWS: { keys: string; label: I18nKey }[] = [
   { keys: "Space", label: "bookKeyPage" },
   { keys: "gg G", label: "bookKeyFirstLast" },
   { keys: "12G", label: "bookKeyGoto" },
+  { keys: "p", label: "bookKeyGoPage" },
   { keys: "/", label: "bookKeySearch" },
   { keys: "n N", label: "bookKeyNextMatch" },
   { keys: "o", label: "bookKeyOutline" },
@@ -1896,6 +2105,7 @@ const HELP_ROWS: { keys: string; label: I18nKey }[] = [
   { keys: "x", label: "bookKeyUnhighlight" },
   { keys: "A", label: "bookKeyAnnotations" },
   { keys: ":", label: "bookKeyCommand" },
+  { keys: "z", label: "bookKeyZen" },
   { keys: "l", label: "bookKeyLibrary" },
   { keys: "q", label: "bookKeyClose" },
   { keys: "?", label: "bookKeyHelp" },
