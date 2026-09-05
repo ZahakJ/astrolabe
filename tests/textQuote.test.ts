@@ -38,3 +38,23 @@ describe("text quote anchors", () => {
     assert.deepEqual(raw, [2, 3, 6, 6, 7]);
   });
 });
+
+describe("prose of source, with a map back", () => {
+  it("strips markers and maps every prose character to its source index", async () => {
+    const { proseMapOfSource } = await import("../client/annotations/fromSource.ts");
+    const src = "## The **vortex** lines\n- see [[Notes|the notes]] and `code`";
+    const { text, map } = proseMapOfSource(src);
+    assert.equal(text, "The vortex lines\nsee the notes and code");
+    for (let i = 0; i < text.length; i++) assert.equal(src[map[i]], text[i], `char ${i}`);
+    assert.equal(map[text.indexOf("vortex")], src.indexOf("vortex"));
+    assert.equal(map[text.indexOf("the notes")], src.indexOf("the notes"));
+  });
+  it("places an anchor made in the reading view back onto the source", async () => {
+    const { placeInSource } = await import("../client/annotations/placeInSource.ts");
+    const src = "Some *emphasis* here.\n\nA line with **vortex lines** and more.";
+    const [hit] = placeInSource(src, [
+      { id: "a", quote: "vortex lines", prefix: "A line with", suffix: "and more.", ink: 1, note: "", public: false, createdAt: 0, updatedAt: 0 },
+    ]);
+    assert.equal(src.slice(hit.from, hit.to), "vortex lines");
+  });
+});

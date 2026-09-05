@@ -47,6 +47,7 @@ import { selectionMenu } from "../components/SelectionMenu.tsx";
 import { wikilinkAutocomplete } from "./autocomplete.ts";
 import { imageUploads } from "./uploads.ts";
 import { hoverPreviews } from "./hoverPreview.ts";
+import { annotationMarks } from "./annotationMarks.ts";
 import { headingFolds } from "./folding.ts";
 import { sectioning } from "./sectioning.ts";
 import { attachVimStatus, detachVimStatus } from "./vimStatus.ts";
@@ -243,6 +244,9 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
       imageUploads(),
       pasteURLAsLink,
       hoverPreviews(),
+      // The note's annotations, painted on their source words; a hover names
+      // them and a click opens them (client/annotations/EditorAnnotator.tsx).
+      annotationMarks(),
       // Markdown's heading folds are markdown's; a `.tex` note folds
       // environments and sections through texFolds above.
       ...(isTexPath(options.path) ? [] : [headingFolds()]),

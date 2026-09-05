@@ -42,6 +42,24 @@ export function invalidateAnnotations(path?: string): void {
   else cache.delete(path);
 }
 
+/** The list as cached right now (null before the first load), without
+ *  subscribing — for code outside React, such as the editor's mark painter. */
+export function peekAnnotations(path: string): NoteAnnotation[] | null {
+  return cache.get(path) ?? null;
+}
+
+/** Be told whenever a note's list changes, and start the load if it has not
+ *  happened. Returns the unsubscribe. */
+export function subscribeAnnotations(path: string, cb: Listener): () => void {
+  let set = listeners.get(path);
+  if (!set) listeners.set(path, (set = new Set()));
+  set.add(cb);
+  void load(path);
+  return () => {
+    set?.delete(cb);
+  };
+}
+
 export function useAnnotations(path: string | null): NoteAnnotation[] | null {
   const [, setTick] = useState(0);
   useEffect(() => {

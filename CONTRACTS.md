@@ -908,6 +908,22 @@ normalised field by field on load (`normalizeGraphPrefs`), per browser, never se
 
 ## Note annotations (shared/textQuote.ts, server/annotations.ts, client/annotations/)
 
+**MARKED IN THE EDITOR TOO, AND NAMED ON HOVER.** `client/editor/annotationMarks.ts` is a
+StateField of mark decorations plus a ViewPlugin that recomputes them 120ms after the document or
+the list changes (`subscribeAnnotations`/`peekAnnotations` in useAnnotations.ts); between runs the
+ranges ride the change set. `placeInSource()` (client/annotations/placeInSource.ts, pure, tested)
+reduces the source to prose WITH A MAP BACK (`proseMapOfSource`, a scanner that replaced the regex
+chain and is what `proseOfSource` now calls) and finds the quote there exactly as the reading view
+finds it in rendered words, so an anchor made in either view lands in both. The decoration is a
+real span (`.s-ann-mark--ink-N`, `--public`, `data-ann-id`; styles in annotation-marks.css, the
+editor chunk's), so hover and click are DOM events, announced on the window as
+`vellum:annotate-hover` and `vellum:annotate-open`; `EditorAnnotator` (lazy, admin-only, mounted by
+App.tsx) owns the tooltip and the popover for the editor. The reading layer finds the mark under
+the pointer with `rangeAtPoint` once per animation frame and shows the same `AnnotationTip` (the
+note, or the words when there is no note, and "Click to edit or remove" / "Click to read"); the tip
+takes no pointer events. The reading marks now also draw a 2px underline in the ink's hue via
+`::highlight` (`color-mix` of the ink with the text colour).
+
 **A MARK IS ANCHORED BY ITS WORDS.** An annotation stores the passage as rendered (whitespace
 folded, bidi controls dropped) with up to 48 characters of context either side, never an offset:
 `findQuote()` finds every occurrence in the rendered text and, when there is more than one, scores
@@ -942,6 +958,14 @@ number off the folder's name (`L3`, `B2| Chapter 40`, `Week 2`; a sorting prefix
 every published note inside is a lesson in natural title order with a note named like its unit
 first, and notes at the path's own root are the introduction. No note is asked for any frontmatter
 beyond `publish: true`.
+
+**THE DOOR NEEDS A LESSON.** `/api/me.library` is sent only when some path has a lesson this
+session may read; a path whose notes are all drafts hides the door for visitors (and the owner,
+logged out, asked where the library went). The settings card prints "N of M notes published" per
+path, red when M > 0 and N = 0, computed from the tree and `publishedPaths` (`loadPublished()` is
+called if the set is not loaded yet). The cover field is `PathInput` (`controls/PathInput.tsx`):
+the vault's images offered as you type, thumbnails in the rows, a preview beside the field once the
+value names an image the vault has (never for a half-typed name — that was a 404 per keystroke).
 
 **A PATH IS ADDED WHERE THE FOLDER IS.** The tree's folder menu has **Library…**
 (`client/components/LibraryFolderPopover.tsx`, lazy, anchored like the icon picker): it fetches

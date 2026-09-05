@@ -33,7 +33,7 @@ import { vimSubCopy } from "./vimCopy.ts";
 // them a boundary and a round trip. Only a surface that is CONDITIONALLY
 // mounted is worth splitting.
 import DesignStatus from "./design/DesignStatus.tsx";
-import EditorAnnotator from "./annotations/EditorAnnotator.tsx";
+
 import TemplatePicker from "./components/TemplatePicker.tsx";
 import { openDailyNote } from "./daily.ts";
 import { t, tf } from "./i18n.ts";
@@ -111,6 +111,7 @@ const BlogShell = lazySurface(() => import("./blog/BlogShell.tsx"));
 const DesignedSite = lazySurface(() => import("./design/DesignedSite.tsx"));
 const GraphView = lazySurface(() => import("./components/GraphView.tsx"));
 const Sidebar = lazySurface(() => import("./components/Sidebar.tsx"));
+const EditorAnnotator = lazySurface(() => import("./annotations/EditorAnnotator.tsx"));
 const Tabs = lazySurface(() => import("./components/Tabs.tsx"));
 const StatusBar = lazySurface(() => import("./components/StatusBar.tsx"));
 const BacklinksPanel = lazySurface(() => import("./components/BacklinksPanel.tsx"));
@@ -1257,7 +1258,13 @@ export default function App() {
       {loginOpen && <LoginModal />}
       {/* The editor's "Annotate" opens its popover here, at the root, where
           no pane's own re-render can take it down. */}
-      <EditorAnnotator />
+      {/* Admin-only and lazy: the popover, the tooltip and their sheet are the
+          reading layer's chunk, not the entry's. */}
+      {admin && (
+        <Suspense fallback={null}>
+          <EditorAnnotator />
+        </Suspense>
+      )}
       <ConfirmHost />
     </div>
   );
