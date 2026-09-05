@@ -879,6 +879,16 @@ reloads; the vault root and the untagged bucket take the theme's node ink, becau
 "everything else" and should read as such. The legend's swatch is the `<input type="color">`
 itself, and an override is kept per colouring so switching folder ↔ tag loses neither set.
 
+**TAGS CAN BE GATHERED, AND THE FIRST TAG CAN WIN.** `prefs.tagPick` is `common` (the default
+above) or `first` (the tag the author wrote first names the group — "this note is mostly about").
+`prefs.tagGroups` is a list of `{ name, tags }` gatherings; `tags` is the reader's own text, split
+on commas and spaces by `tagGatherings()` only when the graph is coloured, so typing never fights a
+parser. `groupNodes()` takes `{ pick, gatherings }` as its fourth argument: every gathered tag is
+replaced by its gathering's name before counting, so "raft, paxos" under "systems" is one tag. A
+tag in two gatherings belongs to the first; a gathering with no name gathers nothing. The panel
+has its own close (`.s-graph__panel-close`) and closes on Escape — capture phase, one press per
+layer, and a field with text keeps Escape for itself.
+
 **FILTERS REMOVE A NODE FROM THE FORCES, NOT ONLY FROM THE PAINT.** A hidden node (a legend group
 switched off, an orphan under `hideOrphans`, a degree under `minLinks`) leaves `nodes` and `edges`
 but keeps its place in `all`, so unhiding it puts it back where it was rather than at its seed;
@@ -932,6 +942,21 @@ number off the folder's name (`L3`, `B2| Chapter 40`, `Week 2`; a sorting prefix
 every published note inside is a lesson in natural title order with a note named like its unit
 first, and notes at the path's own root are the introduction. No note is asked for any frontmatter
 beyond `publish: true`.
+
+**A PATH IS ADDED WHERE THE FOLDER IS.** The tree's folder menu has **Library…**
+(`client/components/LibraryFolderPopover.tsx`, lazy, anchored like the icon picker): it fetches
+settings, and either says the folder is on the shelf (open it, take it off) or offers a kind, a
+title and **Put on the shelf**. `libraryRowForFolder(folder, unitNames, taken)` builds the row:
+`libraryTitleOf()` strips the sorting prefix, `guessLibraryKind()` reads the subfolders through
+`unitOfName()` (lectures → course, chapters → book, weeks → course) and then the address (`Lectures`
+→ course, `Talks`/`Series` → series, else book), `libraryFreshSlug()` is the title's slug with `-2`,
+`-3`… past the ones taken. The first path switches the library ON — a shelf nobody can reach is a
+mistake, not a setting — and the toast says so. The settings editor (`LibraryPathEditor`) never
+asks for a typed path: **Add a path** opens `pickFolder()` (`FolderPicker.tsx`, the move picker's
+dialog and styles with the moving taken out) and builds the row the same way; each card is kind +
+tools on one line, the folder as a button that reopens the chooser, title and address, a folded
+"Blurb, cover and source", and the URL beside the hide switch. The first cut put seven fields and
+three buttons in one auto-flow grid and the arrows landed on the hide switch.
 
 **SCOPED LIKE THE FEED.** `libraryLessons()` in the indexer walks `publishedSet` for a visitor and
 the whole index for an admin, applies the language filter and the template matcher exactly as
@@ -6796,16 +6821,38 @@ English one a settings row gives the same tag.
 
 ### Folder glyphs (`shared/folderIcons.ts`, `settings.folderIcons`)
 
-A folder in the vault tree may wear ONE mark from a closed set of twenty. The same set serves the
-public site's custom folders, which is why it lives in `shared/` as path DATA rather than as JSX.
+A folder in the vault tree may wear ONE mark from a closed set of about three hundred. The same
+set serves the public site's custom folders, which is why it lives in `shared/` as path DATA rather
+than as JSX.
 
 - **`FolderIcon` is a closed union, never a free-text name.** The rule `shared/designChrome.ts`
   set for the site designer: a typed icon name that nothing draws gives the author a blank space
-  and no feedback. `FOLDER_ICONS` (the picker's order), `FOLDER_ICON_PATHS` (`d` strings on a
-  0 0 24 24 grid for stroke 1.7 / fill none / currentColor), `isFolderIcon()`, `folderIconKey()`
-  (a stored key normalized to the path `TreeNode.path` uses), `cleanFolderIcons()` (the read-side
-  cleaner), `FOLDER_ICONS_MAX` = 200. `client/components/FolderGlyph.tsx` is the only renderer and
-  imports NOTHING else — it ships in the blog chunk as well as the admin one.
+  and no feedback. Three hundred is still closed: the union is `(typeof FOLDER_ICON_NAMES)[number]`.
+- **Three files, one generator.** `shared/folderIconCatalog.ts` is the SOURCE: every glyph's name,
+  English and Arabic labels, extra search words, shelf (`make / study / tech / play / go / nature /
+  life / work / marks`) and, for all but the twenty originals, the Lucide icon it is drawn from.
+  `scripts/gen-folder-icons.mjs` (`npm run gen-icons`; `check-icons` fails when stale) writes
+  `folderIconNames.ts` (the enum, ~4 kB, in every bundle that validates) and `folderIconPaths.ts`
+  (the drawings plus `FOLDER_ICON_KEYS`, ~80 kB, LAZY). Lucide's circles, rects, lines and
+  polylines are rewritten as `d` strings; a leading `m` becomes `M` with its implicit pairs spelled
+  `l`, and the packed arc flags are split, so tests/folderIcons.test.ts's grid walk reads every
+  drawing. The twenty originals live in `shared/folderIconsHand.ts` verbatim and keep their names,
+  so a 2.6 settings.json still draws; the tracker (client/reading/tracker.ts) draws from that
+  small table synchronously because the reading pipeline must not await a chunk.
+- **`FolderGlyph.tsx` loads the drawings lazily** (`useFolderIconPaths()`, one dynamic import per
+  session, `useSyncExternalStore`) and draws NOTHING until they land — the mark is decoration
+  beside a name that is always present. It still imports nothing else and ships in the blog chunk.
+- **The picker searches.** `FolderIconPicker.tsx`: a search field with focus on open, nine shelves
+  in a scrolling box, the current mark ringed and scrolled into view, a footer naming the glyph
+  under the pointer or the arrows, and "No icon" as a footer button. Search scores name-starts,
+  then name-contains, then keyword, over BOTH languages whatever the chrome language. Typing on
+  the grid types into the field; Enter on the field takes the first match. The settings panel's
+  public-folder rows open the same picker from a glyph button (`.s-pfolders__iconbtn`), anchored
+  by `anchorPopover()` — the one placement rule the tree menu, the picker and the Library popover
+  share. Labels come from the catalog through `client/folderIconLabels.ts` (`getLang()`), not the
+  dictionary: three hundred names in two languages are data, not chrome copy.
+- **`isFolderIcon()`, `folderIconKey()`** (a stored key normalized to the path `TreeNode.path`
+  uses), **`cleanFolderIcons()`** (the read-side cleaner), **`FOLDER_ICONS_MAX`** = 200, as before.
 - **`settings.folderIcons` is `folder path → icon`, replaced WHOLE.** The `tagLabels` contract, for
   a sharper reason: the picker's "no icon" cell CLEARS a row, and a merging PATCH can add a key
   but never remove one. Each key goes through `folderIconKey()` and then `vaultRel()` — an
@@ -6818,6 +6865,8 @@ public site's custom folders, which is why it lives in `shared/` as path DATA ra
   — a folder rename must not bump `settings.json`'s mtime and invalidate the read cache for every
   other reader on the instance. Doing this in the client instead would have meant a second tab
   PATCHing yesterday's map back over a rename it never saw.
+- **Class names:** the picker's `.s-tree-iconpick`, `__title`, `__search`, `__list`, `__shelf`,
+  `__shelf-name`, `__grid`, `__cell`, `__cell--on`, `__none`, `__foot`, `__named`, `__clear`.
 - **`MeData.folderIcons` is ADMIN-ONLY, and outside the public-layout block.** Outside because an
   admin has the sidebar in blog and designed mode too; admin-only because the keys are vault
   folder paths and a visitor's tree has NO folders in it — `publishedTree()` gives them a flat
@@ -8327,10 +8376,14 @@ blurred veil (`.s-hovercard-veil`, its own element because the card is `overflow
 backdrop filter has to cover the page), wears the post's banner when it has one, and prints the
 date, the reading time and up to four tag labels under the title, every one formatted by the same
 helpers the list beside it uses (`formatDate`, `countPhrase`, `tagLabel`, `bannerSrc`) and handed
-in as strings through `meta()`, so the engine still knows nothing about notes. A spotlight never
-scrolls: the pointer is on the link and cannot reach the card, so the opening dissolves into the
-ground and the post is one click away. It waits 480ms rather than 350 before opening, because a
-veil over the page must not be raised by a pointer crossing a list. The card carries the shell's
+in as strings through `meta()`, so the engine still knows nothing about notes. A spotlight can be
+REACHED: the leave grace is 750ms rather than 180 because the pointer travels to the centre of the
+window and crosses other links on the way (a crossed link's pending open is cancelled by its own
+leave), the card takes the pointer, its body scrolls under the wheel with the scrollbar hidden and
+the fade still saying "more", and a click on the card (not a drag that selected its words) opens
+the post the link would have. It waits 480ms rather than 350 before opening, because a veil over
+the page must not be raised by a pointer crossing a list. The owner's first cut had the card
+`pointer-events: none`, which is why "the moment I move to it it disappears". The card carries the shell's
 `--dsg-head-font` across so a designed site titles it in its own face. Same LRU, same timers, same
 dismissals (leave, scroll, click, Esc, resize), same keyboard route; `check-hovercache` and the
 hover assertions in `check-signatures` stand over both.

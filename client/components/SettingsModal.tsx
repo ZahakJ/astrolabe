@@ -18,14 +18,7 @@
 // force. Saving PATCHes only the keys that changed, then refreshes /api/me so
 // the wordmark, layout, theme default, fonts and favicon apply live — no
 // reload.
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 // Aliased: the panel also installs a window keydown listener, and React's
 // KeyboardEvent would shadow the DOM one that listener is typed with.
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
@@ -38,9 +31,13 @@ import {
 } from "../../shared/attachments.ts";
 import type { AboutInfo, CustomFontInfo, FontCatalogEntry, VisibilityImpact } from "../../shared/types.ts";
 import type { PublicFolderRef, SettingsPatch, SettingsResponse } from "../../shared/types.ts";
-import { FOLDER_ICONS, type FolderIcon } from "../../shared/folderIcons.ts";
+import type { FolderIcon } from "../../shared/folderIcons.ts";
 import { folderIconLabel } from "../folderIconLabels.ts";
 import FolderGlyph from "./FolderGlyph.tsx";
+import type { IconPickState } from "./FolderIconPicker.tsx";
+import { pickFolder } from "./FolderPicker.tsx";
+import { lazySurface } from "../lazySurface.tsx";
+import { unitNamesOf } from "../libraryFolders.ts";
 import {
   folderId,
   folderSlug,
@@ -52,8 +49,10 @@ import {
 } from "../../shared/publicFolders.ts";
 import {
   libraryList,
-  libraryPathId,
   libraryRowError,
+  libraryRowForFolder,
+  libraryTitleOf,
+  libraryUrl,
   LIBRARY_BLURB_MAX,
   LIBRARY_FOLDER_MAX,
   LIBRARY_KINDS,
@@ -80,6 +79,9 @@ import { bannerSrc } from "../banner.ts";
 import { siteDateIn } from "../dates.ts";
 import "../styles/localization.css";
 import "../styles/publicfolders.css";
+import "../styles/librarypaths.css";
+
+const FolderIconPicker = lazySurface(() => import("./FolderIconPicker.tsx"));
 import { useBannerSrc } from "./BannerImg.tsx";
 import { refreshTemplateSettings } from "../templates.ts";
 import { clearFontFaces, faceStack, loadFontFaces } from "../fontFaces.ts";
@@ -598,11 +600,16 @@ function validate(f: Form): Partial<Record<keyof Form, string>> {
   return errors;
 }
 
-/** THE LIBRARY'S PATHS. The public-folder editor's twin, row for row: a kind,
- *  a title, the address, the vault folder, a blurb, a cover, a source link, a
- *  hide switch and the two buttons that move a row. The FOLDER is the field
- *  that matters and the one the folders editor does not have: it is where the
- *  lessons come from, and it is `dir="ltr"` because a path is machine text. */
+/** THE LIBRARY'S PATHS. One card per path. THE FOLDER IS CHOSEN, NOT TYPED:
+ *  a path is a vault folder, so the row's first control is a button that
+ *  opens the vault's folders laid out to click (FolderPicker.tsx), and Add
+ *  opens the same picker before there is a row at all — the title, address
+ *  and kind are then guessed from the folder (`libraryRowForFolder`) and the
+ *  reader corrects rather than composes. What IS typed is the shelf's own
+ *  prose: title, address, and under "Blurb, cover and source" the three that
+ *  most paths never need. The row's three tools (up, down, remove) sit in one
+ *  cluster at the card's trailing corner, on their own row at narrow widths,
+ *  so no two of them ever overlap a field. */
 function LibraryPathEditor({
   rows,
   disabled,
@@ -623,85 +630,172 @@ function LibraryPathEditor({
     next.splice(to, 0, row);
     onChange(next);
   };
-  const kindOptions = LIBRARY_KINDS.map((kind) => ({
-    value: kind,
-    label: kind === "book" ? t("libraryKindBook") : kind === "course" ? t("libraryKindCourse") : t("libraryKindSeries"),
-  }));
+  const kindLabel = (kind: LibraryKind): string =>
+    kind === "book" ? t("libraryKindBook") : kind === "course" ? t("libraryKindCourse") : t("libraryKindSeries");
+  const kindSegments: Segment[] = LIBRARY_KINDS.map((kind) => ({ value: kind, label: kindLabel(kind) }));
+  /** Choose a folder for row `i`, or for a NEW row when `i` is null. */
+  const choose = async (i: number | null): Promise<void> => {
+    const folder = await pickFolder({ title: t("libraryPathChooseTitle"), current: i === null ? null : rows[i].folder });
+    if (folder === null) return;
+    if (i === null) {
+      onChange([...rows, libraryRowForFolder(folder, unitNamesOf(folder), rows)]);
+      return;
+    }
+    const row = rows[i];
+    set(i, { folder, ...(row.title.trim() === "" ? { title: libraryTitleOf(folder) } : {}) });
+  };
+  const arrow = (up: boolean) => (
+    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+      <path
+        d={up ? "M8 12V4M4 8l4-4 4 4" : "M8 4v8M4 8l4 4 4-4"}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
   return (
-    <div className="s-pfolders s-pfolders--library">
+    <div className="s-libpaths">
       {rows.length === 0 ? (
         <p className="s-pfolders__empty">{t("libraryPathsEmpty")}</p>
       ) : (
         rows.map((row, i) => (
-          <div className="s-pfolders__card" key={row.id}>
-            <div className="s-pfolders__main">
-              <Select
+          <div className={`s-libpaths__card${row.hidden ? " s-libpaths__card--hidden" : ""}`} key={row.id}>
+            <div className="s-libpaths__head">
+              <SegmentedControl
                 label={t("libraryPathKind")}
                 value={row.kind}
                 disabled={disabled}
-                options={kindOptions}
+                segments={kindSegments}
                 onChange={(v) => set(i, { kind: v as LibraryKind })}
               />
-              <TextInput
-                value={row.title}
-                onChange={(v) =>
-                  set(i, {
-                    title: v,
-                    ...(row.slug.trim() === "" ? { slug: suggestSlug(v) } : {}),
-                  })
-                }
-                placeholder={t("libraryPathTitlePlaceholder")}
-                label={t("libraryPathTitle")}
-                disabled={disabled}
-                dir="auto"
-                maxLength={LIBRARY_TITLE_MAX}
-              />
-              <TextInput
-                value={row.slug}
-                onChange={(v) => set(i, { slug: v })}
-                placeholder={t("libraryPathSlugPlaceholder")}
-                label={t("libraryPathSlug")}
-                disabled={disabled}
-                dir="ltr"
-                maxLength={FOLDER_SLUG_MAX}
-              />
+              <div className="s-libpaths__tools">
+                <button
+                  type="button"
+                  className="s-pfolders__move"
+                  title={t("libraryPathUp")}
+                  aria-label={t("libraryPathUp")}
+                  disabled={disabled || i === 0}
+                  onClick={() => move(i, -1)}
+                >
+                  {arrow(true)}
+                </button>
+                <button
+                  type="button"
+                  className="s-pfolders__move"
+                  title={t("libraryPathDown")}
+                  aria-label={t("libraryPathDown")}
+                  disabled={disabled || i === rows.length - 1}
+                  onClick={() => move(i, 1)}
+                >
+                  {arrow(false)}
+                </button>
+                <button
+                  type="button"
+                  className="s-pfolders__del"
+                  title={t("libraryPathRemove")}
+                  aria-label={t("libraryPathRemove")}
+                  disabled={disabled}
+                  onClick={() => onChange(rows.filter((_, n) => n !== i))}
+                >
+                  <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+                    <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
             </div>
-            <div className="s-pfolders__extra s-pfolders__extra--wrap">
-              <TextInput
-                value={row.folder}
-                onChange={(v) => set(i, { folder: v })}
-                placeholder={t("libraryPathFolderPlaceholder")}
-                label={t("libraryPathFolder")}
-                disabled={disabled}
-                dir="ltr"
-                maxLength={LIBRARY_FOLDER_MAX}
-              />
-              <TextInput
-                value={row.blurb ?? ""}
-                onChange={(v) => set(i, { blurb: v })}
-                placeholder={t("libraryPathBlurbPlaceholder")}
-                label={t("libraryPathBlurb")}
-                disabled={disabled}
-                dir="auto"
-                maxLength={LIBRARY_BLURB_MAX}
-              />
-              <TextInput
-                value={row.cover ?? ""}
-                onChange={(v) => set(i, { cover: v })}
-                placeholder={t("libraryPathCoverPlaceholder")}
-                label={t("libraryPathCover")}
-                disabled={disabled}
-                dir="ltr"
-              />
-              <TextInput
-                value={row.source ?? ""}
-                onChange={(v) => set(i, { source: v })}
-                placeholder={t("libraryPathSourcePlaceholder")}
-                label={t("libraryPathSource")}
-                disabled={disabled}
-                dir="ltr"
-                maxLength={LIBRARY_SOURCE_MAX}
-              />
+            <button
+              type="button"
+              className={`s-libpaths__folder${row.folder ? "" : " s-libpaths__folder--empty"}`}
+              disabled={disabled}
+              title={t("libraryPathFolder")}
+              onClick={() => void choose(i)}
+            >
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+                <path d="M1.5 12.5v-9h4l1.5 2h7.5v7z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+              </svg>
+              <span className="s-libpaths__folder-path" dir="ltr">
+                {row.folder || t("libraryPathNoFolder")}
+              </span>
+              <span className="s-libpaths__folder-cta">{t("libraryPathChoose")}</span>
+            </button>
+            <div className="s-libpaths__grid">
+              <label className="s-libpaths__field">
+                <span className="s-libpaths__caption">{t("libraryPathTitle")}</span>
+                <TextInput
+                  value={row.title}
+                  onChange={(v) =>
+                    set(i, {
+                      title: v,
+                      ...(row.slug.trim() === "" ? { slug: suggestSlug(v) } : {}),
+                    })
+                  }
+                  placeholder={t("libraryPathTitlePlaceholder")}
+                  label={t("libraryPathTitle")}
+                  disabled={disabled}
+                  dir="auto"
+                  maxLength={LIBRARY_TITLE_MAX}
+                />
+              </label>
+              <label className="s-libpaths__field">
+                <span className="s-libpaths__caption">{t("libraryPathSlug")}</span>
+                <TextInput
+                  value={row.slug}
+                  onChange={(v) => set(i, { slug: v })}
+                  placeholder={t("libraryPathSlugPlaceholder")}
+                  label={t("libraryPathSlug")}
+                  disabled={disabled}
+                  dir="ltr"
+                  maxLength={FOLDER_SLUG_MAX}
+                />
+              </label>
+            </div>
+            <details className="s-libpaths__more" open={!!(row.blurb || row.cover || row.source)}>
+              <summary>{t("libraryPathDetails")}</summary>
+              <div className="s-libpaths__grid s-libpaths__grid--more">
+                <label className="s-libpaths__field s-libpaths__field--wide">
+                  <span className="s-libpaths__caption">{t("libraryPathBlurb")}</span>
+                  <TextInput
+                    value={row.blurb ?? ""}
+                    onChange={(v) => set(i, { blurb: v })}
+                    placeholder={t("libraryPathBlurbPlaceholder")}
+                    label={t("libraryPathBlurb")}
+                    disabled={disabled}
+                    dir="auto"
+                    maxLength={LIBRARY_BLURB_MAX}
+                  />
+                </label>
+                <label className="s-libpaths__field">
+                  <span className="s-libpaths__caption">{t("libraryPathCover")}</span>
+                  <TextInput
+                    value={row.cover ?? ""}
+                    onChange={(v) => set(i, { cover: v })}
+                    placeholder={t("libraryPathCoverPlaceholder")}
+                    label={t("libraryPathCover")}
+                    disabled={disabled}
+                    dir="ltr"
+                  />
+                </label>
+                <label className="s-libpaths__field">
+                  <span className="s-libpaths__caption">{t("libraryPathSource")}</span>
+                  <TextInput
+                    value={row.source ?? ""}
+                    onChange={(v) => set(i, { source: v })}
+                    placeholder={t("libraryPathSourcePlaceholder")}
+                    label={t("libraryPathSource")}
+                    disabled={disabled}
+                    dir="ltr"
+                    maxLength={LIBRARY_SOURCE_MAX}
+                  />
+                </label>
+              </div>
+            </details>
+            <div className="s-libpaths__foot">
+              <span className="s-libpaths__url" dir="ltr">
+                {libraryUrl(row.slug || "…")}
+              </span>
               <Toggle
                 label={t("libraryPathHidden")}
                 onLabel={t("libraryPathHidden")}
@@ -710,54 +804,21 @@ function LibraryPathEditor({
                 disabled={disabled}
                 onChange={(on) => set(i, { hidden: on ? true : undefined })}
               />
-              <button
-                type="button"
-                className="s-pfolders__move"
-                title={t("libraryPathUp")}
-                aria-label={t("libraryPathUp")}
-                disabled={disabled || i === 0}
-                onClick={() => move(i, -1)}
-              >
-                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
-                  <path d="M8 12V4M4 8l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="s-pfolders__move"
-                title={t("libraryPathDown")}
-                aria-label={t("libraryPathDown")}
-                disabled={disabled || i === rows.length - 1}
-                onClick={() => move(i, 1)}
-              >
-                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
-                  <path d="M8 4v8M4 8l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="s-pfolders__del"
-                title={t("libraryPathRemove")}
-                aria-label={t("libraryPathRemove")}
-                disabled={disabled}
-                onClick={() => onChange(rows.filter((_, n) => n !== i))}
-              >
-                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
-                  <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                </svg>
-              </button>
             </div>
           </div>
         ))
       )}
-      <button
-        type="button"
-        className="s-pfolders__add"
-        disabled={disabled || rows.length >= LIBRARY_PATHS_MAX}
-        onClick={() => onChange([...rows, { id: libraryPathId(), slug: "", folder: "", kind: "book", title: "" }])}
-      >
-        {t("libraryPathAdd")}
-      </button>
+      <div className="s-libpaths__actions">
+        <button
+          type="button"
+          className="s-pfolders__add"
+          disabled={disabled || rows.length >= LIBRARY_PATHS_MAX}
+          onClick={() => void choose(null)}
+        >
+          {t("libraryPathAdd")}
+        </button>
+        <span className="s-libpaths__hint">{t("libraryPathsTreeHint")}</span>
+      </div>
     </div>
   );
 }
@@ -902,6 +963,10 @@ function PublicFolderEditor({
   const set = (i: number, patch: Partial<PublicFolderRef>): void => {
     onChange(rows.map((row, n) => (n === i ? { ...row, ...patch } : row)));
   };
+  // The glyph button opens the tree's own picker (search, shelves, the lot)
+  // anchored under the button; `path` carries the row id so the pick lands
+  // on the right row when the list has reordered underneath.
+  const [iconPick, setIconPick] = useState<IconPickState | null>(null);
   const move = (i: number, delta: number): void => {
     const to = i + delta;
     if (to < 0 || to >= rows.length) return;
@@ -910,10 +975,6 @@ function PublicFolderEditor({
     next.splice(to, 0, row);
     onChange(next);
   };
-  const iconOptions = FOLDER_ICONS.map((icon) => ({
-    value: icon,
-    label: folderIconLabel(icon),
-  }));
   return (
     <div className="s-pfolders">
       {rows.length === 0 ? (
@@ -925,16 +986,29 @@ function PublicFolderEditor({
               {/* The chosen glyph, drawn beside the list that names it: the
                   Select renders text rows, and a folder mark that can only be
                   read as the word "gamepad" is not a mark. */}
-              <span className="s-pfolders__glyph" aria-hidden="true">
-                <FolderGlyph icon={row.icon} size={18} />
-              </span>
-              <Select
-                label={t("publicFolderIcon")}
-                value={row.icon}
+              <button
+                type="button"
+                className="s-pfolders__iconbtn"
                 disabled={disabled}
-                options={iconOptions}
-                onChange={(v) => set(i, { icon: v as FolderIcon })}
-              />
+                aria-label={t("publicFolderIcon")}
+                title={t("publicFolderIcon")}
+                onClick={(e) => {
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setIconPick({
+                    path: row.id,
+                    name: row.title || t("publicFolderIcon"),
+                    current: row.icon,
+                    x: r.left,
+                    y: r.bottom + 4,
+                    fromKeyboard: e.detail === 0,
+                  });
+                }}
+              >
+                <span className="s-pfolders__glyph" aria-hidden="true">
+                  <FolderGlyph icon={row.icon} size={18} />
+                </span>
+                <span className="s-pfolders__iconname">{folderIconLabel(row.icon)}</span>
+              </button>
               <TextInput
                 value={row.title}
                 onChange={(v) =>
@@ -1018,6 +1092,22 @@ function PublicFolderEditor({
             </div>
           </div>
         ))
+      )}
+      {iconPick && (
+        <Suspense fallback={null}>
+          <FolderIconPicker
+            state={iconPick}
+            onPick={(icon: FolderIcon | null) => {
+              // A public folder always wears a mark, so "No icon" only closes.
+              if (icon !== null) {
+                const i = rows.findIndex((r) => r.id === iconPick.path);
+                if (i >= 0) set(i, { icon });
+              }
+              setIconPick(null);
+            }}
+            onClose={() => setIconPick(null)}
+          />
+        </Suspense>
       )}
       <button
         type="button"

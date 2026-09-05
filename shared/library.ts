@@ -151,6 +151,60 @@ export function unitOfName(dirName: string): Pick<LibraryUnit, "name" | "kind" |
   return { name, kind: "unit", number: null };
 }
 
+/** A folder's name as a shelf TITLE: the sorting prefix (`B2| `) gone, the
+ *  rest as written. What the tree's "Library…" popover and the settings
+ *  panel's folder chooser fill the title field with. */
+export function libraryTitleOf(folder: string): string {
+  const base = folder.slice(folder.lastIndexOf("/") + 1);
+  return base.replace(/^[^|]{1,8}\|\s*/, "").trim();
+}
+
+/** The kind a folder most likely is, read off its subfolders' names and, when
+ *  those say nothing, off the folder's own address: `L1..L14` is a course,
+ *  `Chapter 39..41` is a book, a folder under "Lectures" is a course and one
+ *  under "Talks" or "Series" a series. A guess the reader can overturn in one
+ *  click, so it errs toward the common case: a book. */
+export function guessLibraryKind(folder: string, unitNames: readonly string[]): LibraryKind {
+  const kinds = new Map<string, number>();
+  for (const name of unitNames) {
+    const k = unitOfName(name).kind;
+    kinds.set(k, (kinds.get(k) ?? 0) + 1);
+  }
+  const n = (k: string): number => kinds.get(k) ?? 0;
+  if (n("lecture") > 0 && n("lecture") >= n("chapter")) return "course";
+  if (n("chapter") > 0) return "book";
+  if (n("week") > 0) return "course";
+  const address = folder.toLowerCase();
+  if (/\b(lecture|lectures|course|courses|class|classes|ocw|mooc|semester|محاضرات|دورة|دورات)\b/.test(address)) return "course";
+  if (/\b(series|talks|podcast|podcasts|season|episodes|سلسلة|سلاسل|حلقات)\b/.test(address)) return "series";
+  return "book";
+}
+
+/** A slug for a new row that no existing row already holds: the title's
+ *  slug, then `-2`, `-3`… The editor shows it and the reader can retype it. */
+export function libraryFreshSlug(title: string, taken: readonly LibraryPathRef[]): string {
+  const base = librarySlug(title.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "")) ?? "shelf";
+  const used = new Set(taken.map((row) => row.slug));
+  if (!used.has(base)) return base;
+  for (let n = 2; ; n++) {
+    const slug = `${base}-${n}`;
+    if (!used.has(slug)) return slug;
+  }
+}
+
+/** A row for a folder the reader just chose: title from the folder's name,
+ *  a fresh address, the kind guessed from what is inside. */
+export function libraryRowForFolder(folder: string, unitNames: readonly string[], taken: readonly LibraryPathRef[]): LibraryPathRef {
+  const title = libraryTitleOf(folder) || folder;
+  return {
+    id: libraryPathId(),
+    slug: libraryFreshSlug(title, taken),
+    folder,
+    kind: guessLibraryKind(folder, unitNames),
+    title,
+  };
+}
+
 /** Natural order: `L2` before `L10`, `Chapter 9` before `Chapter 40`, and a
  *  plain name after every numbered one. */
 export function compareUnits(

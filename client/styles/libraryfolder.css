@@ -1,0 +1,128 @@
+/* The folder's "Library…" popover (LibraryFolderPopover.tsx): opened from the
+ * tree's context menu, placed and painted like the folder-icon picker, and in
+ * its own sheet for the same bundle reason — an admin's right-click, not the
+ * entry closure. */
+
+.s-libpop {
+  position: fixed;
+  z-index: 300;
+  inline-size: 288px;
+  padding: 10px 12px 12px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+  animation: s-pop-in 0.12s ease;
+}
+
+.s-libpop__title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-block-end: 8px;
+  font-size: 0.786rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.s-libpop__folder {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+
+.s-libpop__kinds {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  margin-block-end: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.s-libpop__kindbtn {
+  flex: 1;
+  padding: 5px 6px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.857rem;
+}
+
+.s-libpop__kindbtn:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.s-libpop__kindbtn--on,
+.s-libpop__kindbtn--on:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.s-libpop__name {
+  inline-size: 100%;
+}
+
+.s-libpop__hint,
+.s-libpop__on {
+  margin: 8px 0 0;
+  font-size: 0.786rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.s-libpop__on {
+  margin-block-start: 0;
+  font-size: 0.857rem;
+  color: var(--text);
+}
+
+.s-libpop__kind {
+  margin-inline-start: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.s-libpop__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-start: 10px;
+}
+
+.s-libpop__actions .s-btn {
+  flex: none;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.s-libpop__url {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.714rem;
+  color: var(--text-faint);
+}
+
+@media (pointer: coarse) {
+  .s-libpop__kindbtn,
+  .s-libpop__actions .s-btn {
+    min-block-size: 44px;
+  }
+}

@@ -9,14 +9,13 @@
 // the words change — which is also what reattaches a mark after an edit.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { INK_COUNT, newHighlightId } from "../../shared/bookAnchor.ts";
-import { NOTE_MAX, type TextQuote } from "../../shared/textQuote.ts";
+import { newHighlightId } from "../../shared/bookAnchor.ts";
+import type { TextQuote } from "../../shared/textQuote.ts";
 import type { NoteAnnotation } from "../../shared/types.ts";
-import { confirmModal } from "../components/Confirm.tsx";
 import { t } from "../i18n.ts";
-import { toast } from "../toast.ts";
 import { anchorFromSelection, clearMarks, marksSupported, paintMarks, rangeAtPoint, rangeFor } from "./anchor.ts";
-import { removeAnnotation, saveAnnotation, useAnnotations } from "./useAnnotations.ts";
+import { useAnnotations } from "./useAnnotations.ts";
+import AnnotationPopover from "./AnnotationPopover.tsx";
 import "../styles/annotations.css";
 
 interface Placed {
@@ -144,29 +143,6 @@ export default function AnnotationLayer({
     window.getSelection()?.removeAllRanges();
   }, [fab]);
 
-  const save = useCallback(async () => {
-    if (!open) return;
-    try {
-      await saveAnnotation(path, { ...open.draft, note: open.draft.note.slice(0, NOTE_MAX) });
-      setOpen(null);
-      toast(t("annotationSaved"));
-    } catch {
-      toast(t("annotationFailed"), "error");
-    }
-  }, [open, path]);
-
-  const del = useCallback(async () => {
-    if (!open) return;
-    const yes = await confirmModal({ title: t("annotationDeleteTitle"), confirmLabel: t("annotationDelete") });
-    if (!yes) return;
-    try {
-      await removeAnnotation(path, open.draft.id);
-      setOpen(null);
-    } catch {
-      toast(t("annotationFailed"), "error");
-    }
-  }, [open, path]);
-
   const openFromList = (p: Placed): void => {
     const rect = p.range?.getBoundingClientRect();
     if (p.range && rect) {
@@ -192,76 +168,15 @@ export default function AnnotationLayer({
         </button>
       )}
       {open && (
-        <div className="s-ann-pop" role="dialog" aria-label={canEdit ? t("annotationTitle") : t("annotationPublicTitle")} style={open.at}>
-          <div className="s-ann-pop__head">
-            <span>{canEdit ? t("annotationTitle") : t("annotationPublicTitle")}</span>
-            <button type="button" className="s-ann-pop__close" aria-label={t("annotationClose")} onClick={() => setOpen(null)}>
-              ✕
-            </button>
-          </div>
-          <p className="s-ann-pop__quote" dir="auto">
-            {open.draft.quote}
-          </p>
-          {canEdit ? (
-            <>
-              <textarea
-                className="s-ann-pop__field"
-                autoFocus
-                dir="auto"
-                value={open.draft.note}
-                placeholder={t("annotationPlaceholder")}
-                maxLength={NOTE_MAX}
-                onChange={(e) => setOpen({ ...open, draft: { ...open.draft, note: e.target.value } })}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") setOpen(null);
-                  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") void save();
-                }}
-              />
-              <div className="s-ann-pop__row">
-                <div className="s-ann-inks" role="radiogroup" aria-label={t("annotationInk")}>
-                  {Array.from({ length: INK_COUNT }, (_, i) => i + 1).map((ink) => (
-                    <button
-                      key={ink}
-                      type="button"
-                      role="radio"
-                      aria-checked={open.draft.ink === ink}
-                      aria-label={`${t("annotationInk")} ${ink}`}
-                      className={`s-ann-ink${open.draft.ink === ink ? " s-ann-ink--on" : ""}`}
-                      data-ink={ink}
-                      onClick={() => setOpen({ ...open, draft: { ...open.draft, ink } })}
-                    />
-                  ))}
-                </div>
-                <label className="s-ann-pop__public">
-                  <input
-                    type="checkbox"
-                    checked={open.draft.public}
-                    onChange={(e) => setOpen({ ...open, draft: { ...open.draft, public: e.target.checked } })}
-                  />
-                  {open.draft.public ? t("annotationPublic") : t("annotationPrivate")}
-                </label>
-              </div>
-              {open.draft.public && <p className="s-ann-pop__hint">{t("annotationPublicHint")}</p>}
-              <div className="s-ann-pop__actions">
-                {!open.fresh && (
-                  <button type="button" className="s-ann-pop__danger" onClick={() => void del()}>
-                    {t("annotationDelete")}
-                  </button>
-                )}
-                <button type="button" className="s-btn" onClick={() => setOpen(null)}>
-                  {t("annotationClose")}
-                </button>
-                <button type="button" className="s-btn s-btn--accent" onClick={() => void save()}>
-                  {t("annotationSave")}
-                </button>
-              </div>
-            </>
-          ) : (
-            <p className="s-ann-pop__note" dir="auto">
-              {open.draft.note}
-            </p>
-          )}
-        </div>
+        <AnnotationPopover
+          key={open.draft.id}
+          path={path}
+          initial={open.draft}
+          fresh={open.fresh}
+          canEdit={canEdit}
+          at={open.at}
+          onClose={() => setOpen(null)}
+        />
       )}
       {listed.length > 0 && (
         <section className="s-ann-list" aria-label={canEdit ? t("annotationsHeading") : t("annotationsPublicHeading")}>

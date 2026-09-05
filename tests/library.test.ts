@@ -4,9 +4,13 @@ import {
   cleanLibraryPath,
   compareLessons,
   compareUnits,
+  guessLibraryKind,
   libraryFolder,
+  libraryFreshSlug,
   libraryList,
   libraryRowError,
+  libraryRowForFolder,
+  libraryTitleOf,
   libraryUrl,
   unitOfName,
 } from "../shared/library.ts";
@@ -69,5 +73,32 @@ describe("library rules", () => {
     assert.equal(libraryUrl(), "/library");
     assert.equal(libraryUrl("feynman"), "/library/feynman");
     assert.equal(libraryUrl("feynman", 7), "/library/feynman/7");
+  });
+});
+
+describe("a folder becoming a path", () => {
+  it("guesses the kind from what is inside, then from the address", () => {
+    assert.equal(guessLibraryKind("1 - Source Material/Lectures/6.824", ["L1", "L2", "L10"]), "course");
+    assert.equal(guessLibraryKind("Books/Feynman", ["B2| Chapter 39", "B2| Chapter 40"]), "book");
+    assert.equal(guessLibraryKind("Study/Algorithms", ["Week 1", "Week 2"]), "course");
+    assert.equal(guessLibraryKind("Talks/Rich Hickey", []), "series");
+    assert.equal(guessLibraryKind("Lectures/Physics", ["notes"]), "course");
+    assert.equal(guessLibraryKind("Anything/Else", []), "book");
+  });
+
+  it("titles from the leaf folder with the sorting prefix gone", () => {
+    assert.equal(libraryTitleOf("1 - Source Material/Books/B2| Feynman Lectures"), "Feynman Lectures");
+    assert.equal(libraryTitleOf("Lectures/6.824"), "6.824");
+  });
+
+  it("gives a new row a fresh address that no row already holds", () => {
+    const taken = [{ id: "a", slug: "feynman", folder: "x", kind: "book" as const, title: "Feynman" }];
+    const row = libraryRowForFolder("Books/Feynman", ["Chapter 1"], taken);
+    assert.equal(row.slug, "feynman-2");
+    assert.equal(row.title, "Feynman");
+    assert.equal(row.kind, "book");
+    assert.equal(row.folder, "Books/Feynman");
+    assert.equal(libraryFreshSlug("The Feynman Lectures", []), "the-feynman-lectures");
+    assert.equal(libraryFreshSlug("محاضرات", []), "shelf");
   });
 });

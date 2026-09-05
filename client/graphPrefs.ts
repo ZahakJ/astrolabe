@@ -51,6 +51,23 @@ export interface GraphPrefs {
   display: GraphDisplay;
   /** Whether the settings panel was open last time. */
   panelOpen: boolean;
+  /** Under the tag colouring, which of a note's tags names its group: the
+   *  one most notes share (a tag that spans the vault makes a big group) or
+   *  the one written FIRST in the note (the author's own "this is mostly
+   *  about"). */
+  tagPick: TagPick;
+  /** Tags gathered under one name, so "distributed", "raft" and "paxos" can
+   *  be one colour called "systems". `tags` is the reader's own text, split
+   *  on commas and spaces when the graph is coloured, so typing into the
+   *  field never fights a parser. */
+  tagGroups: TagGathering[];
+}
+
+export type TagPick = "common" | "first";
+
+export interface TagGathering {
+  name: string;
+  tags: string;
 }
 
 export const GRAPH_PREFS_KEY = "vellum.graph";
@@ -69,6 +86,8 @@ export function defaultGraphPrefs(): GraphPrefs {
     forces: { ...DEFAULT_FORCES },
     display: { ...DEFAULT_DISPLAY },
     panelOpen: false,
+    tagPick: "common",
+    tagGroups: [],
   };
 }
 
@@ -121,6 +140,16 @@ export function normalizeGraphPrefs(raw: unknown): GraphPrefs {
       glow: display.glow !== false,
     },
     panelOpen: r.panelOpen === true,
+    tagPick: r.tagPick === "first" ? "first" : "common",
+    tagGroups: Array.isArray(r.tagGroups)
+      ? r.tagGroups
+          .filter((g): g is Record<string, unknown> => !!g && typeof g === "object")
+          .map((g) => ({
+            name: typeof g.name === "string" ? g.name.slice(0, 80) : "",
+            tags: typeof g.tags === "string" ? g.tags.slice(0, 2000) : "",
+          }))
+          .slice(0, 60)
+      : [],
   };
 }
 
@@ -170,22 +199,59 @@ export interface GraphGroup {
  *  show the vault's big themes, and a note tagged `#physics #draft` is a
  *  physics note before it is a draft. A tie goes to the tag the author wrote
  *  first, which is the one they thought of first. */
+/** A tag as the gathering fields compare it: no `#`, no case, no edges. */
+const tagKey = (tag: string): string => tag.trim().replace(/^#/, "").toLowerCase();
+
+/** Tag → the gathering's name, for every tag the reader wrote into one. A
+ *  gathering with no name gathers nothing; a tag written into two gatherings
+ *  belongs to the first. */
+export function tagGatherings(groups: readonly TagGathering[]): Map<string, string> {
+  const of = new Map<string, string>();
+  for (const g of groups) {
+    const name = g.name.trim();
+    if (!name) continue;
+    for (const raw of g.tags.split(/[,\s]+/)) {
+      const key = tagKey(raw);
+      if (key && !of.has(key)) of.set(key, name);
+    }
+  }
+  return of;
+}
+
+export interface TagGrouping {
+  pick: TagPick;
+  gatherings: readonly TagGathering[];
+}
+
 export function groupNodes(
   nodes: readonly GraphNode[],
   colorBy: ColorBy,
   folderDepth: 1 | 2,
+  tagging: TagGrouping = { pick: "common", gatherings: [] },
 ): { groups: GraphGroup[]; of: Map<string, string> } {
   const of = new Map<string, string>();
   const counts = new Map<string, number>();
   if (colorBy === "none") return { groups: [], of };
   if (colorBy === "tag") {
+    const gathered = tagGatherings(tagging.gatherings);
+    // A note's tags with every gathered one replaced by its gathering, in
+    // the note's own order, no repeats — so a note tagged "raft, paxos" under
+    // a "systems" gathering has ONE tag, "systems".
+    const tagsOf = (n: GraphNode): string[] => {
+      const out: string[] = [];
+      for (const tag of n.tags) {
+        const name = gathered.get(tagKey(tag)) ?? tag;
+        if (!out.includes(name)) out.push(name);
+      }
+      return out;
+    };
     const tagCounts = new Map<string, number>();
-    for (const n of nodes) for (const tag of n.tags) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+    for (const n of nodes) for (const tag of tagsOf(n)) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
     for (const n of nodes) {
       let best: string | null = null;
-      for (const tag of n.tags) {
+      for (const tag of tagsOf(n)) {
         if (best === null) best = tag;
-        else if ((tagCounts.get(tag) ?? 0) > (tagCounts.get(best) ?? 0)) best = tag;
+        else if (tagging.pick === "common" && (tagCounts.get(tag) ?? 0) > (tagCounts.get(best) ?? 0)) best = tag;
       }
       const group = best ?? UNTAGGED_GROUP;
       of.set(n.id, group);

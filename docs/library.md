@@ -30,15 +30,23 @@ lesson; a path with no lesson a visitor may read is not sent to that visitor at 
 
 ## Declaring a path
 
-**Settings → Publishing → The library.** Turn the library on, then add a row per path:
+**From the tree.** Right-click the folder in the sidebar and choose **Library…**. The popover guesses
+the kind from what is inside (`L1..L14` is a course, `Chapter 39..41` a book, a folder under
+*Talks* a series), takes the folder's name as the title, and **Put on the shelf** saves it. The first
+path switches the library on. Right-click the same folder again and the popover says it is on the
+shelf, opens it, or takes it off.
+
+**Settings → Publishing → The library.** The same rows, with the fields the tree does not ask for.
+**Add a path** opens the vault's folders to click (type to filter), and each row's folder line
+reopens that chooser; nothing here is typed as a path.
 
 | Field | What it is |
 | --- | --- |
 | Kind | Book, course or series. It decides the cover's shape and the shelf's grouping. |
 | Title | What the shelf and the door call it. |
 | Address | The URL segment: `/library/<address>`. Lowercase letters, digits, hyphens. |
-| Vault folder | The folder the path reads, vault-relative: `1 - Source Material/Books/Feynman Lectures`. |
-| Blurb | One or two sentences under the title. |
+| Folder | The vault folder the path reads, chosen from the tree. |
+| Blurb, cover, source | Folded under one line until a row has them. Blurb: one or two sentences under the title. |
 | Cover | An image, as a banner value (`attachments/cover.jpg` or an https URL). Without one the site draws a cover from the title. |
 | Source link | Where the material came from: the course page, the publisher. Shown on the path. |
 | Hidden | A lossless take-down: the row keeps every field and reaches nobody. |

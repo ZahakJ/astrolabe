@@ -25,7 +25,8 @@
 // the blog there is no write path and the card is a picture.
 
 import "./tracker.css";
-import { FOLDER_ICON_PATHS, type FolderIcon } from "../../shared/folderIcons.ts";
+import type { FolderIcon } from "../../shared/folderIcons.ts";
+import { FOLDER_ICON_HAND_PATHS } from "../../shared/folderIconsHand.ts";
 import {
   foldKind,
   type BoardFilter,
@@ -133,7 +134,11 @@ function glyph(icon: FolderIcon, size: number): SVGSVGElement {
   svg.setAttribute("stroke-linejoin", "round");
   svg.setAttribute("aria-hidden", "true");
   svg.setAttribute("focusable", "false");
-  for (const d of FOLDER_ICON_PATHS[icon]) {
+  // The tracker kinds map onto the twenty ORIGINAL glyphs, which are the
+  // hand-drawn table — four kilobytes, synchronous, no lazy chunk between a
+  // reading pass and its card. The generator keeps these paths identical to
+  // the ones FolderGlyph draws (tests/folderIcons.test.ts checks it).
+  for (const d of FOLDER_ICON_HAND_PATHS[icon] ?? []) {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", d);
     svg.appendChild(path);
