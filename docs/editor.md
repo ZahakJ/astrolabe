@@ -193,10 +193,19 @@
 
 ![Command palette](screenshots/palette.png)
 
+## Folder marks
+
+Right-click a folder and choose **Folder icon**: a search field (it has focus, so type "tele" and
+press Enter for the telescope) over three hundred glyphs on nine shelves, from writing and science
+to places, nature, food and money. Both languages are searched whatever the chrome speaks, and so
+are each glyph's keywords ("gym" finds the dumbbell). The public site's custom folders pick from
+the same set through their glyph button in Settings.
+
 ## Notes to self
 
-Select a passage in the reading view and press **Annotate**: the passage takes an ink and you
-write what you want to say about it. The note itself is never touched. Annotations live beside the
+Select a passage in the reading view and press **Annotate**, or select words in the editor and
+press the pen on the floating toolbar (or **Annotate** in the right-click menu): the passage takes
+an ink and you write what you want to say about it. The note itself is never touched. Annotations live beside the
 vault in `VELLUM_DATA/annotations.json`, anchored by the passage's own words (with a little context
 either side), so they survive the note being edited above them, moved, renamed, or rendered in a
 different face. A passage that is gone is listed under the prose as no longer in the note.

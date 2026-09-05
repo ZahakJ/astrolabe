@@ -1,0 +1,229 @@
+/* The library's paths editor (SettingsModal.tsx, LibraryPathEditor) — one
+ * card per path, in the settings panel's Library section.
+ *
+ * Its own sheet on the public-folders terms: one feature, one file. It
+ * borrows `.s-pfolders__move / __del / __add / __empty` from
+ * publicfolders.css for the buttons the two editors share, so the arrows and
+ * the cross look the same on both, and lays out everything else itself:
+ * the first cut put a kind, seven fields and three buttons in one auto-flow
+ * grid, and at panel width the arrows landed on top of the hide switch.
+ */
+
+.s-libpaths {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.s-libpaths__card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--bg-raised);
+}
+
+/* A hidden path is kept but reaches nobody; the card says so at a glance. */
+.s-libpaths__card--hidden {
+  border-style: dashed;
+}
+
+.s-libpaths__card--hidden .s-libpaths__folder,
+.s-libpaths__card--hidden .s-libpaths__grid {
+  opacity: 0.72;
+}
+
+/* Kind on the leading side, the three tools in one cluster on the trailing
+   side. They never share a column with a field. */
+.s-libpaths__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.s-libpaths__head .s-ctl-seg {
+  flex: 0 1 auto;
+}
+
+.s-libpaths__tools {
+  display: inline-flex;
+  gap: 4px;
+  flex: none;
+}
+
+/* The folder: a button that reads as a path and opens the picker. */
+.s-libpaths__folder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  inline-size: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.857rem;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.s-libpaths__folder:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.s-libpaths__folder:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.s-libpaths__folder svg {
+  flex: none;
+  color: var(--accent);
+}
+
+.s-libpaths__folder-path {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.786rem;
+  /* A path reads left to right whatever the panel does, and ellipsises at
+     its END, which is the leaf folder — the part that matters. */
+  direction: ltr;
+  text-align: left;
+}
+
+.s-libpaths__folder--empty .s-libpaths__folder-path {
+  font-family: inherit;
+  font-size: 0.857rem;
+  color: var(--text-faint);
+}
+
+.s-libpaths__folder-cta {
+  flex: none;
+  font-size: 0.786rem;
+  color: var(--accent);
+}
+
+.s-libpaths__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 10px;
+}
+
+.s-libpaths__field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-inline-size: 0;
+}
+
+.s-libpaths__field--wide {
+  grid-column: 1 / -1;
+}
+
+.s-libpaths__field .s-ctl-input {
+  inline-size: 100%;
+}
+
+.s-libpaths__caption {
+  font-size: 0.714rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.s-libpaths__more {
+  border-block-start: 1px solid var(--border);
+  padding-block-start: 6px;
+}
+
+.s-libpaths__more summary {
+  cursor: pointer;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.s-libpaths__more summary:hover {
+  color: var(--accent);
+}
+
+.s-libpaths__grid--more {
+  margin-block-start: 8px;
+}
+
+.s-libpaths__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.s-libpaths__url {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.714rem;
+  color: var(--text-faint);
+}
+
+.s-libpaths__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.s-libpaths__hint {
+  font-size: 0.786rem;
+  color: var(--text-faint);
+}
+
+/* The public-folder row's glyph button: the mark and its name, opening the
+   picker. Lives here beside its sibling so the two editors share one look. */
+.s-pfolders__iconbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 10px 2px 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.857rem;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.s-pfolders__iconbtn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.s-pfolders__iconname {
+  white-space: nowrap;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .s-libpaths__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .s-libpaths__folder,
+  .s-pfolders__iconbtn {
+    min-block-size: 44px;
+  }
+}

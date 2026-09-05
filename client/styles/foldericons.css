@@ -1,26 +1,30 @@
-/* The folder-icon picker (feature A) — the popover the tree's context menu
- * opens on "Folder icon".
+/* The folder-icon picker — the popover the tree's context menu opens on
+ * "Folder icon", and the settings panel's public-folder rows open from their
+ * glyph button.
  *
  * ITS OWN SHEET, and that is a bundle decision. app.css is in the entry
  * closure every session downloads, blog readers included; these rules style a
- * control that only an admin can open, and only by right-clicking a folder.
- * FolderIconPicker.tsx imports this file and Sidebar.tsx reaches that
- * component through lazy(), so the CSS travels with the chunk — the same
- * arrangement attachments.css and move.css already have.
+ * control that only an admin can open. FolderIconPicker.tsx imports this file
+ * and both callers reach that component through lazy(), so the CSS travels
+ * with the chunk — the same arrangement attachments.css and move.css have.
  *
  * The MARK a folder wears is not styled here: it reuses `.s-tree__glyph`
  * (attachments.css) and its hover lives in app.css beside the rest of the
  * tree, because that one paints on the first frame.
  */
 
-/* The picker: a small anchored popover, opened from the folder's context menu
-   and painted on the same terms (bg-raised over a hairline, the menu's own
+/* The picker: an anchored popover, opened from the folder's context menu and
+   painted on the same terms (bg-raised over a hairline, the menu's own
    elevation shadow and pop-in). Not a modal — the row it is about has to stay
    readable behind it. */
 .s-tree-iconpick {
+  --cell: 32px;
   position: fixed;
   z-index: 300;
-  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  inline-size: calc(7 * var(--cell) + 6 * 3px + 20px);
+  padding: 8px 10px 6px;
   background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 2px);
@@ -32,11 +36,10 @@
 }
 
 /* The folder being marked, said out loud: the popover can sit far from its
-   row, and twenty glyphs with no subject is a quiz. */
+   row, and three hundred glyphs with no subject is a quiz. */
 .s-tree-iconpick__title {
-  max-inline-size: 180px;
-  padding-inline: 3px;
-  padding-block-end: 7px;
+  padding-inline: 1px;
+  padding-block-end: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -46,15 +49,64 @@
   color: var(--text-faint);
 }
 
+/* The search: the palette's field, one size down. It has focus on open. */
+.s-tree-iconpick__search {
+  inline-size: 100%;
+  margin-block-end: 6px;
+  padding: 5px 9px;
+  font: inherit;
+  font-size: 0.857rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.s-tree-iconpick__search:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.s-tree-iconpick__search::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+/* The shelves scroll inside a fixed box, so a search that shortens the list
+   never moves the popover under the reader's hand. */
+.s-tree-iconpick__list {
+  max-block-size: min(304px, 50vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  margin-inline: -4px;
+  padding-inline: 4px;
+}
+
+.s-tree-iconpick__shelf + .s-tree-iconpick__shelf {
+  margin-block-start: 6px;
+}
+
+.s-tree-iconpick__shelf-name {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 4px 2px 3px;
+  background: var(--bg-raised);
+  font-size: 0.714rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
 .s-tree-iconpick__grid {
   display: grid;
-  grid-template-columns: repeat(5, 32px);
   gap: 3px;
 }
 
 .s-tree-iconpick__cell {
-  inline-size: 32px;
-  block-size: 32px;
+  inline-size: var(--cell);
+  block-size: var(--cell);
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -68,6 +120,11 @@
   color: var(--text);
 }
 
+.s-tree-iconpick__cell:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 /* The current choice: soft ground plus a ring, so it survives beside a hover
    on a neighbour instead of the two reading as the same state. */
 .s-tree-iconpick__cell--on,
@@ -77,48 +134,74 @@
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 
-/* "No icon" is a full-width row under a hairline, not a twenty-first glyph:
-   clearing a mark is a different KIND of act from choosing one, and an empty
-   cell in a grid of drawings is a riddle. */
-.s-tree-iconpick__cell--none {
-  grid-column: 1 / -1;
-  inline-size: auto;
-  block-size: auto;
-  min-block-size: 28px;
-  margin-block-start: 5px;
-  padding-block-start: 7px;
-  border-block-start: 1px solid var(--border);
-  border-radius: 0;
+.s-tree-iconpick__none {
+  margin: 0;
+  padding: 14px 4px;
   font-size: 0.857rem;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+/* The footer: the name of the glyph under the pointer, and "No icon", which
+   clears a mark — a different KIND of act from choosing one, so it is a row
+   under a hairline and not a three-hundred-and-first cell. */
+.s-tree-iconpick__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-start: 6px;
+  padding-block-start: 6px;
+  border-block-start: 1px solid var(--border);
+  font-size: 0.857rem;
+}
+
+.s-tree-iconpick__named {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--text-muted);
 }
 
-.s-tree-iconpick__cell--none.s-tree-iconpick__cell--on,
-.s-tree-iconpick__cell--none.s-tree-iconpick__cell--on:hover {
-  /* The ring belongs to a square cell; on the wide row it would draw a box
-     around the hairline as well. The soft ground alone says "current". */
-  box-shadow: none;
+.s-tree-iconpick__named svg {
+  flex: none;
   color: var(--accent);
 }
 
-/* The shell's promise: every target is ≥44px on a coarse pointer. A grid of
-   32px squares is exactly the half-promise the context menu's 33.6px rows
-   were before their own rule went in above. */
+.s-tree-iconpick__clear {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.857rem;
+}
+
+.s-tree-iconpick__clear:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.s-tree-iconpick__clear--on {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* The shell's promise: every target is ≥44px on a coarse pointer. */
 @media (pointer: coarse) {
+  .s-tree-iconpick {
+    --cell: 44px;
+    inline-size: calc(6 * var(--cell) + 5 * 4px + 20px);
+  }
+
   .s-tree-iconpick__grid {
-    grid-template-columns: repeat(5, 44px);
     gap: 4px;
   }
 
-  .s-tree-iconpick__cell {
-    inline-size: 44px;
-    block-size: 44px;
-  }
-
-  .s-tree-iconpick__cell--none {
-    inline-size: auto;
-    block-size: auto;
+  .s-tree-iconpick__clear {
     min-block-size: 44px;
   }
 }
-

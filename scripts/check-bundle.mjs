@@ -558,7 +558,12 @@ const AUDIENCES = [
 // entries. The layer, its painter and its stylesheet are in
 // AnnotationLayer-*.js, mounted lazily and only when there is a mark to paint
 // or an owner who can write one.
-  { name: "entry (everyone)", keys: entry, budget: 576 * 1024 },
+  // …and again for THE FOLDER GLYPH CATALOG (588.0 kB actual → 592): the
+  // closed enum grew from twenty names to three hundred (the drawings and the
+  // search keys are a lazy chunk, but the names must validate synchronously),
+  // the dictionary took the picker's shelves, the graph's gatherings and the
+  // library popover, and shared/library.ts learned to guess a folder's kind.
+  { name: "entry (everyone)", keys: entry, budget: 592 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -726,7 +731,9 @@ const AUDIENCES = [
   // …and again for NOTE ANNOTATIONS (807.4 kB actual → 808): the words, and
   // the small mount that asks /api/annotations and opens the lazy layer only
   // when the answer is not empty.
-  { name: "anonymous blog reader", keys: blog, budget: 808 * 1024 },
+  // …and again for THE FOLDER GLYPH CATALOG (820.9 kB actual → 824): the
+  // enum and the dictionary, as above.
+  { name: "anonymous blog reader", keys: blog, budget: 824 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -806,7 +813,9 @@ const AUDIENCES = [
   // and the door, carried; the settings editor's rows are in the modal's
   // chunk, and the pages in their own.
   // …and again for NOTE ANNOTATIONS (1197.7 kB actual → 1199): the words.
-  { name: "admin first paint", keys: app, budget: 1199 * 1024 },
+  // …and again for THE FOLDER GLYPH CATALOG (1211.3 kB actual → 1216): the
+  // enum, the dictionary, the tree's Library row.
+  { name: "admin first paint", keys: app, budget: 1216 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

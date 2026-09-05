@@ -81,3 +81,36 @@ describe("graph preferences", () => {
     assert.equal(p.display.glow, false);
   });
 });
+
+describe("tag gatherings", () => {
+  const nodes = [
+    { id: "a.md", title: "a", links: 1, tags: ["raft", "systems"] },
+    { id: "b.md", title: "b", links: 1, tags: ["paxos"] },
+    { id: "c.md", title: "c", links: 1, tags: ["poetry", "raft"] },
+  ];
+  it("colours every gathered tag as one group, whatever the case or the #", () => {
+    const { of, groups } = groupNodes(nodes, "tag", 1, {
+      pick: "common",
+      gatherings: [{ name: "distributed", tags: "#Raft, paxos" }],
+    });
+    assert.equal(of.get("a.md"), "distributed");
+    assert.equal(of.get("b.md"), "distributed");
+    assert.equal(of.get("c.md"), "distributed");
+    assert.equal(groups[0].name, "distributed");
+    assert.equal(groups[0].count, 3);
+  });
+  it("can take the FIRST tag in the note instead of the most shared", () => {
+    const { of } = groupNodes(nodes, "tag", 1, { pick: "first", gatherings: [] });
+    assert.equal(of.get("c.md"), "poetry");
+    const common = groupNodes(nodes, "tag", 1, { pick: "common", gatherings: [] });
+    assert.equal(common.of.get("c.md"), "raft");
+  });
+  it("survives a stored preferences object with junk gatherings", () => {
+    const prefs = normalizeGraphPrefs({ tagPick: "first", tagGroups: [{ name: "x", tags: "a b" }, null, 3, { name: 5 }] });
+    assert.equal(prefs.tagPick, "first");
+    assert.deepEqual(prefs.tagGroups, [
+      { name: "x", tags: "a b" },
+      { name: "", tags: "" },
+    ]);
+  });
+});

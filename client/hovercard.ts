@@ -32,11 +32,13 @@
 // blurred veil, wears the post's banner when it has one, and prints the
 // date, the reading time and the tags under the title, because a visitor
 // resting on an essay's title is being offered the essay, and the offer
-// should look like one. A spotlight never scrolls (the pointer cannot reach
-// it without leaving the link, and a scrollbar on a card nobody can scroll is
-// furniture): the opening dissolves into the card's ground, and the post is
-// one click away. The engine is the same in both: same LRU, same timers, same
-// dismissals, same keyboard route.
+// should look like one. A spotlight can be REACHED: the pointer leaves the
+// link and travels to the centre of the window, so the leave grace is long
+// enough for that journey, the card takes the pointer, its body scrolls
+// under the wheel (the scrollbar hidden, the fade still saying "more"), and a
+// click anywhere on it opens the post — the offer, accepted. The engine is
+// the same in both: same LRU, same timers, same dismissals, same keyboard
+// route.
 
 import { Lru } from "./lru.ts";
 import "./styles/hovercard.css";
@@ -47,6 +49,9 @@ const OPEN_MS = 350;
 const SPOTLIGHT_OPEN_MS = 480;
 /** Grace after pointer-leave so the pointer can travel into the card. */
 const CLOSE_MS = 180;
+/** A spotlight stands in the middle of the window: the journey from the
+ *  link is longer, and it crosses other links on the way. */
+const SPOTLIGHT_CLOSE_MS = 750;
 const EDGE = 12; // viewport margin the card keeps
 /** Gap between the card and the link it belongs to. */
 const GAP = 8;
@@ -141,6 +146,7 @@ export function installHoverCards(config: HoverCardConfig): () => void {
   liveCache = cache;
   const spotlight = config.presentation === "spotlight";
   const openMs = spotlight ? SPOTLIGHT_OPEN_MS : OPEN_MS;
+  const closeMs = spotlight ? SPOTLIGHT_CLOSE_MS : CLOSE_MS;
   let card: HTMLElement | null = null;
   /** The dimmed ground under a spotlight. Its own element rather than a
    *  pseudo on the card, because the card is `overflow: hidden` and a
@@ -347,8 +353,22 @@ export function installHoverCards(config: HoverCardConfig): () => void {
     });
     el.addEventListener("pointerleave", () => {
       window.clearTimeout(closeTimer);
-      closeTimer = window.setTimeout(close, CLOSE_MS);
+      closeTimer = window.setTimeout(close, closeMs);
     });
+    if (spotlight) {
+      // The card IS the offer: a click on it (not a drag that selected some
+      // of its words) opens the post the link would have.
+      el.addEventListener("click", (ev) => {
+        const sel = window.getSelection();
+        if (sel && !sel.isCollapsed && el.contains(sel.anchorNode)) return;
+        const link = target instanceof HTMLAnchorElement ? target : target.closest?.("a[href]");
+        if (link instanceof HTMLAnchorElement) {
+          ev.preventDefault();
+          close();
+          link.click();
+        }
+      });
+    }
     body.addEventListener("scroll", () => syncFade(body), { passive: true });
     if (spotlight) {
       veil = document.createElement("div");
@@ -389,7 +409,7 @@ export function installHoverCards(config: HoverCardConfig): () => void {
     if (path === null) {
       if (card) {
         window.clearTimeout(closeTimer);
-        closeTimer = window.setTimeout(close, CLOSE_MS);
+        closeTimer = window.setTimeout(close, closeMs);
       }
       cancelPending();
       return;
@@ -417,7 +437,7 @@ export function installHoverCards(config: HoverCardConfig): () => void {
     cancelPending();
     if (!card) return;
     window.clearTimeout(closeTimer);
-    closeTimer = window.setTimeout(close, CLOSE_MS);
+    closeTimer = window.setTimeout(close, closeMs);
   };
 
   // Keyboard route in and out. `:focus-visible` is what keeps a mouse click

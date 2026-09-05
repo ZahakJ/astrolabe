@@ -33,6 +33,7 @@ import { vimSubCopy } from "./vimCopy.ts";
 // them a boundary and a round trip. Only a surface that is CONDITIONALLY
 // mounted is worth splitting.
 import DesignStatus from "./design/DesignStatus.tsx";
+import EditorAnnotator from "./annotations/EditorAnnotator.tsx";
 import TemplatePicker from "./components/TemplatePicker.tsx";
 import { openDailyNote } from "./daily.ts";
 import { t, tf } from "./i18n.ts";
@@ -1254,6 +1255,9 @@ export default function App() {
           already opened it cannot be the thing that opens. */}
       {admin && <TemplatePicker />}
       {loginOpen && <LoginModal />}
+      {/* The editor's "Annotate" opens its popover here, at the root, where
+          no pane's own re-render can take it down. */}
+      <EditorAnnotator />
       <ConfirmHost />
     </div>
   );

@@ -64,6 +64,8 @@ import {
 import { CALLOUT_TYPES } from "../editor/calloutDefs.ts";
 import { notePathFacet } from "../editor/livePreview.ts";
 import { extractSelection } from "../composerActions.ts";
+import { ANNOTATE_EVENT, proseOfSource, type AnnotateRequest } from "../annotations/fromSource.ts";
+import { foldSpace, CONTEXT_MAX } from "../../shared/textQuote.ts";
 import { LITERAL_COLORS, SEMANTIC_COLORS } from "../../shared/textColors.ts";
 import { t, type I18nKey } from "../i18n.ts";
 import { useStore } from "../state.ts";
@@ -149,6 +151,32 @@ const act = (
   run: (v: EditorView) => void,
   keys?: string,
 ): Row => ({ kind: "action", label, run, keys });
+
+/** ASK FOR A NOTE ON THE SELECTED WORDS. The editor cannot paint a mark (it
+ *  is source, not prose), so the ask goes out as a window event and
+ *  EditorAnnotator opens the popover; the quote is the selection with its
+ *  inline markdown stripped, so it reattaches to the rendered words when the
+ *  note is next read. A little of the source either side rides along as
+ *  context, folded the way the anchor rule folds. */
+function annotateSelection(v: EditorView): void {
+  const { from, to } = v.state.selection.main;
+  if (from === to) return;
+  const doc = v.state.doc;
+  const quote = foldSpace(proseOfSource(doc.sliceString(from, to)));
+  if (quote.length < 2) return;
+  const prefix = foldSpace(proseOfSource(doc.sliceString(Math.max(0, from - CONTEXT_MAX * 2), from))).slice(-CONTEXT_MAX);
+  const suffix = foldSpace(proseOfSource(doc.sliceString(to, Math.min(doc.length, to + CONTEXT_MAX * 2)))).slice(0, CONTEXT_MAX);
+  const at = v.coordsAtPos(to) ?? v.coordsAtPos(from);
+  const detail: AnnotateRequest = {
+    path: v.state.facet(notePathFacet),
+    quote,
+    prefix,
+    suffix,
+    x: at ? (at.left + at.right) / 2 : window.innerWidth / 2,
+    y: at ? at.bottom : window.innerHeight / 2,
+  };
+  window.dispatchEvent(new CustomEvent(ANNOTATE_EVENT, { detail }));
+}
 
 /** The style row's label and keystroke, per kind — one table so the menu, the
  *  toolbar and the shortcut sheet cannot disagree about what a key does. */
@@ -299,6 +327,11 @@ function pagesFor(
       }),
     ],
   };
+  // A note to self on the selected words (client/annotations/). In both
+  // syntaxes: the anchor is the prose, and a `.tex` note has prose too.
+  const annotate: Group = {
+    rows: [act("annotateSelection", annotateSelection)],
+  };
   // The floating toolbar's switch. An ACTION, not a checkbox: it names the
   // thing it will do next ("Hide the floating toolbar"), which is the one
   // phrasing that needs no mark to be read correctly.
@@ -312,8 +345,8 @@ function pagesFor(
   const back = (title: I18nKey, rows: Row[]): Group[] => [{ title, rows }];
   return {
     root: tex
-      ? [style, doors, toolbar]
-      : [style, colour, doors, extract, toolbar],
+      ? [style, doors, annotate, toolbar]
+      : [style, colour, doors, extract, annotate, toolbar],
     structure: [...back("selGroupStructure", structure.rows), caseRows],
     insert: back("selGroupInsert", insert.rows),
     callout: back("tbGroupCallout", callout.rows),
@@ -352,9 +385,13 @@ function toolbarFor(
   // "highlighter" the way the struck S says "strikethrough".
   const order: FormatKind[] = ["bold", "italic", "strikethrough", "highlight", "code"];
   const live = new Set(formatsFor(syntax));
-  return order
-    .filter((k) => live.has(k))
-    .map((k) => ({ label: STYLE_ROW[k].label, glyph: STYLE_ROW[k].glyph, run: format(k) }));
+  return [
+    ...order
+      .filter((k) => live.has(k))
+      .map((k) => ({ label: STYLE_ROW[k].label as I18nKey, glyph: STYLE_ROW[k].glyph, run: format(k) })),
+    // The pen: a note to self on these words, without touching them.
+    { label: "annotateSelection" as I18nKey, glyph: "✎", run: annotateSelection },
+  ];
 }
 
 // ── The menu ───────────────────────────────────────────────────────────────

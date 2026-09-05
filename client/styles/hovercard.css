@@ -148,9 +148,9 @@
    A public shell's presentation of the same card: centred in the window over
    a dimmed, blurred veil, the post's banner across the top when it has one,
    the title in the shell's own heading face, one line of meta, and the
-   opening dissolving into the ground. Nothing here scrolls: the pointer is
-   on the link, the post is a click away, and a fade says "there is more"
-   better than a scrollbar nobody can reach. Every colour is a token, every
+   opening dissolving into the ground. The card can be reached: the wheel
+   scrolls it (the scrollbar hidden, the fade still saying "more") and a
+   click on it opens the post. Every colour is a token, every
    edge is logical, and `--dsg-head-font` lets a designed site's heading face
    reach the title. */
 
@@ -185,7 +185,9 @@
     0 60px 140px -40px color-mix(in srgb, var(--accent) 35%, transparent);
   transform: translateY(10px) scale(0.975);
   transition: opacity 220ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  pointer-events: none;
+  /* Reachable: the pointer may travel into it, scroll it and click it. */
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .s-hovercard--spotlight.s-hovercard--in {
@@ -284,7 +286,8 @@
 }
 
 .s-hovercard--spotlight .s-hovercard__body {
-  overflow: hidden;
+  overflow-y: auto;
+  cursor: auto;
   padding: 18px 28px 30px;
   font-size: 1.02rem;
   line-height: 1.6;
@@ -298,11 +301,16 @@
   display: none;
 }
 
-/* The body's fade is the only exit: a spotlight always dissolves at the
-   bottom (there is always more post than card), never at the top. */
+/* A short opening needs no fade at all. */
 .s-hovercard--spotlight .s-hovercard__body[data-fade="none"] {
   -webkit-mask-image: none;
   mask-image: none;
+}
+
+/* The pointer inside the card keeps every link inert (the card is the link),
+   but the words stay selectable. */
+.s-hovercard--spotlight .s-hovercard__body a {
+  pointer-events: none;
 }
 
 /* A phone gets the same card, closer to its edges and shorter. */

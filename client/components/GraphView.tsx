@@ -22,8 +22,7 @@ import {
   loadGraphPrefs,
   saveGraphPrefs,
   type ColorBy,
-  type GraphPrefs,
-} from "../graphPrefs.ts";
+  type GraphPrefs, type TagGathering } from "../graphPrefs.ts";
 
 // ---------------------------------------------------------------------------
 // Simulation tuning. Forces are scaled by a cooling factor ("alpha") so the
@@ -1373,8 +1372,8 @@ export default function GraphView() {
   }, []);
 
   const grouped = useMemo(
-    () => groupNodes(data?.nodes ?? [], prefs.colorBy, prefs.folderDepth),
-    [data, prefs.colorBy, prefs.folderDepth],
+    () => groupNodes(data?.nodes ?? [], prefs.colorBy, prefs.folderDepth, { pick: prefs.tagPick, gatherings: prefs.tagGroups }),
+    [data, prefs.colorBy, prefs.folderDepth, prefs.tagPick, prefs.tagGroups],
   );
   const neutral = useMemo(() => readThemeColors().accent, [dark]);
   /** Group name → colour, in legend order. */
@@ -1823,8 +1822,27 @@ function GraphPanel({
   onToggleGroup,
   onGroupColor,
 }: GraphPanelProps) {
+  // Escape closes the panel — and only the panel. Capture phase, so the
+  // graph's own Escape (which drops the keyboard cursor) and the view's
+  // (which leaves the graph) wait their turn: one press per layer.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const target = e.target as HTMLElement | null;
+      // A field being typed into keeps Escape for itself (clearing a search).
+      if (target && target.tagName === "INPUT" && (target as HTMLInputElement).value) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setPrefs({ panelOpen: false });
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [open, setPrefs]);
   if (!open) return null;
   const hidden = new Set(prefs.hiddenGroups[prefs.colorBy]);
+  const setGathering = (i: number, patch: Partial<TagGathering>) =>
+    setPrefs((p) => ({ ...p, tagGroups: p.tagGroups.map((g, n) => (n === i ? { ...g, ...patch } : g)) }));
   const colorChoice = (value: ColorBy, label: string) => (
     <button
       type="button"
@@ -1877,6 +1895,20 @@ function GraphPanel({
         >
           {t("graphReset")}
         </button>
+        {/* The way out, on the panel itself. The toolbar button that opened
+            it is a toggle too, but a panel with no close of its own reads as
+            a page, and the owner's first question was how to leave it. */}
+        <button
+          type="button"
+          className="s-graph__panel-close"
+          title={t("graphClose")}
+          aria-label={t("graphClose")}
+          onClick={() => setPrefs({ panelOpen: false })}
+        >
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+            <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+        </button>
       </div>
 
       <input
@@ -1915,6 +1947,79 @@ function GraphPanel({
               {t("graphDepthSecond")}
             </button>
           </div>
+        )}
+        {prefs.colorBy === "tag" && (
+          <>
+            <div className="s-graph__segs s-graph__segs--sub" role="group" aria-label={t("graphTagPick")}>
+              <button
+                type="button"
+                className={`s-graph__seg${prefs.tagPick === "common" ? " s-graph__seg--on" : ""}`}
+                aria-pressed={prefs.tagPick === "common"}
+                title={t("graphTagPick")}
+                onClick={() => setPrefs({ tagPick: "common" })}
+              >
+                {t("graphTagCommon")}
+              </button>
+              <button
+                type="button"
+                className={`s-graph__seg${prefs.tagPick === "first" ? " s-graph__seg--on" : ""}`}
+                aria-pressed={prefs.tagPick === "first"}
+                title={t("graphTagPick")}
+                onClick={() => setPrefs({ tagPick: "first" })}
+              >
+                {t("graphTagFirst")}
+              </button>
+            </div>
+            {/* Gatherings: several tags under one name and one colour. The
+                tags field is free text (commas or spaces) parsed when the
+                graph is coloured, never while it is typed. */}
+            <div className="s-graph__gather">
+              <div className="s-graph__gather-head">
+                <span>{t("graphGather")}</span>
+                <button
+                  type="button"
+                  className="s-graph__gather-add"
+                  onClick={() => setPrefs((p) => ({ ...p, tagGroups: [...p.tagGroups, { name: "", tags: "" }] }))}
+                >
+                  {t("graphGatherAdd")}
+                </button>
+              </div>
+              {prefs.tagGroups.length === 0 && <p className="s-graph__hint">{t("graphGatherHint")}</p>}
+              {prefs.tagGroups.map((g, i) => (
+                <div className="s-graph__gather-row" key={i}>
+                  <input
+                    className="s-graph__gather-name"
+                    value={g.name}
+                    dir="auto"
+                    placeholder={t("graphGatherName")}
+                    aria-label={t("graphGatherName")}
+                    spellCheck={false}
+                    onChange={(e) => setGathering(i, { name: e.target.value })}
+                  />
+                  <input
+                    className="s-graph__gather-tags"
+                    value={g.tags}
+                    dir="auto"
+                    placeholder={t("graphGatherTags")}
+                    aria-label={t("graphGatherTags")}
+                    spellCheck={false}
+                    onChange={(e) => setGathering(i, { tags: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    className="s-graph__gather-del"
+                    title={t("graphGatherRemove")}
+                    aria-label={t("graphGatherRemove")}
+                    onClick={() => setPrefs((p) => ({ ...p, tagGroups: p.tagGroups.filter((_, n) => n !== i) }))}
+                  >
+                    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+                      <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
         )}
         {groups.length > 0 && (
           <ul className="s-graph__legend">

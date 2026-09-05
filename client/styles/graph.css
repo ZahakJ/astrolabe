@@ -59,6 +59,122 @@
   background: var(--bg-hover);
 }
 
+.s-graph__panel-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 26px;
+  block-size: 26px;
+  margin-inline-start: 2px;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  align-self: center;
+}
+
+/* Sized in CSS, not only by the svg's attributes: the button is a flex
+   container and the icon a flex item, which shrank the cross to a dot. */
+.s-graph__panel-close svg,
+.s-graph__gather-del svg {
+  display: block;
+  flex: none;
+  inline-size: 14px;
+  block-size: 14px;
+}
+
+.s-graph__gather-del svg {
+  inline-size: 12px;
+  block-size: 12px;
+}
+
+.s-graph__panel-close:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+/* Tag gatherings: a name and the tags it gathers, one row each. */
+.s-graph__gather {
+  margin-block-start: 8px;
+  padding-block-start: 6px;
+  border-block-start: 1px solid var(--border);
+}
+
+.s-graph__gather-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+.s-graph__gather-add {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.786rem;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.s-graph__gather-add:hover {
+  background: var(--bg-hover);
+}
+
+.s-graph__hint {
+  margin: 4px 0 0;
+  font-size: 0.786rem;
+  color: var(--text-faint);
+}
+
+.s-graph__gather-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto;
+  gap: 4px;
+  margin-block-start: 6px;
+  align-items: center;
+}
+
+.s-graph__gather-name,
+.s-graph__gather-tags {
+  min-inline-size: 0;
+  padding: 4px 7px;
+  font: inherit;
+  font-size: 0.786rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.s-graph__gather-name:focus,
+.s-graph__gather-tags:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.s-graph__gather-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+
+.s-graph__gather-del:hover {
+  color: var(--danger);
+  background: var(--bg-hover);
+}
+
 .s-graph__search {
   inline-size: 100%;
   box-sizing: border-box;

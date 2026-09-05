@@ -14,10 +14,12 @@ import {
   cleanFolderIcons,
   FOLDER_ICONS,
   FOLDER_ICONS_MAX,
-  FOLDER_ICON_PATHS,
   folderIconKey,
   isFolderIcon,
 } from "../shared/folderIcons.ts";
+import { FOLDER_ICON_ENTRIES, FOLDER_ICON_GROUPS } from "../shared/folderIconCatalog.ts";
+import { FOLDER_ICON_HAND_PATHS } from "../shared/folderIconsHand.ts";
+import { FOLDER_ICON_KEYS, FOLDER_ICON_PATHS } from "../shared/folderIconPaths.ts";
 
 /** Every point a `d` string actually lands on, absolute. Enough SVG path
  *  grammar to walk these twenty glyphs and no more: the commands they use,
@@ -81,9 +83,29 @@ function vertices(d: string): [number, number][] {
 }
 
 describe("the folder glyph set", () => {
-  it("lists exactly twenty glyphs, with no duplicates", () => {
-    assert.equal(FOLDER_ICONS.length, 20);
-    assert.equal(new Set(FOLDER_ICONS).size, 20);
+  it("lists a few hundred glyphs, the twenty originals first, with no duplicates", () => {
+    assert.ok(FOLDER_ICONS.length >= 250, `only ${FOLDER_ICONS.length} glyphs`);
+    assert.equal(new Set(FOLDER_ICONS).size, FOLDER_ICONS.length);
+    // The originals keep their names: a 2.6 settings.json must still draw.
+    for (const original of Object.keys(FOLDER_ICON_HAND_PATHS)) {
+      assert.ok(isFolderIcon(original), `${original} left the set`);
+      assert.deepEqual(FOLDER_ICON_PATHS[original], FOLDER_ICON_HAND_PATHS[original]);
+    }
+    assert.equal(Object.keys(FOLDER_ICON_HAND_PATHS).length, 20);
+  });
+
+  it("is generated from the catalog, and the catalog names every glyph in both languages", () => {
+    assert.deepEqual(
+      [...FOLDER_ICONS],
+      FOLDER_ICON_ENTRIES.map((e) => e.name),
+    );
+    for (const entry of FOLDER_ICON_ENTRIES) {
+      assert.match(entry.name, /^[a-z][a-z0-9-]*$/, `${entry.name} is not a kebab name`);
+      assert.ok(entry.en.trim().length > 0, `${entry.name} has no English name`);
+      assert.match(entry.ar, /[\u0600-\u06FF]/, `${entry.name} has no Arabic name`);
+      assert.equal(typeof FOLDER_ICON_KEYS[entry.name], "string");
+    }
+    assert.equal(FOLDER_ICON_GROUPS.length, 9);
   });
 
   it("keeps the enum and the path table in step, both directions", () => {
