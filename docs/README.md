@@ -35,6 +35,7 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 | --- | --- |
 | [Blog mode](blog-mode.md) | The stock blog: masthead, topic nav, dashboard home, RSS, sitemap, SEO |
 | [Designed mode](designer.md) | Composing your own homepage from sections; presets, nav, static pages |
+| [The library](library.md) | Books, courses and lecture series as paths a reader walks in order |
 
 ## Look & language
 

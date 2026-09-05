@@ -1,0 +1,156 @@
+/* Vellum — the library's covers and its home band (client/library/LibraryBand.tsx,
+   LibraryCover.tsx). Its own small sheet because the band and the door sit
+   in every blog first paint; the pages' sheet (library.css) arrives with the
+   pages. Prefix: s-lib. */
+
+/* ── Covers ─────────────────────────────────────────────────────────────── */
+
+.s-lib-cover {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--bg-raised);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--text) 10%, transparent) inset,
+    0 14px 30px -18px rgba(0, 0, 0, 0.55);
+}
+
+.s-lib-cover--book {
+  aspect-ratio: 3 / 4;
+}
+
+.s-lib-cover--course,
+.s-lib-cover--series {
+  aspect-ratio: 16 / 10;
+}
+
+.s-lib-cover__img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* The drawn cover: the blog's own hashed ground, the title set in the
+   reading face, and a spine on a book. */
+.s-lib-cover--drawn {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 14px 16px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.s-lib-cover--drawn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.05) 60%);
+  pointer-events: none;
+}
+
+.s-lib-cover--book.s-lib-cover--drawn::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 7%;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.35), rgba(255, 255, 255, 0.08) 60%, rgba(0, 0, 0, 0.18));
+  pointer-events: none;
+}
+
+.s-lib-cover__kind,
+.s-lib-cover__title {
+  position: relative;
+  z-index: 1;
+}
+
+.s-lib-cover__kind {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.s-lib-cover__title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(0.95rem, 1.6cqw + 0.6rem, 1.35rem);
+  line-height: 1.15;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.s-lib-cover--band .s-lib-cover__title {
+  font-size: 0.9rem;
+  -webkit-line-clamp: 3;
+}
+
+.s-lib-cover--hero {
+  inline-size: min(100%, 260px);
+}
+
+/* ── The home band ──────────────────────────────────────────────────────── */
+
+.s-lib-band {
+  margin-block-end: 44px;
+}
+
+.s-lib-band__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.s-lib-band__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-inline-size: 0;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.s-lib-band__item:hover .s-lib-cover {
+  transform: translateY(-2px);
+}
+
+.s-lib-band__item .s-lib-cover {
+  transition: transform 160ms ease;
+}
+
+.s-lib-band__title {
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-lib-band__item--more {
+  justify-content: center;
+  align-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--text-muted);
+}
+
+.s-lib-band__more {
+  font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-lib-card,
+  .s-lib-turn__card,
+  .s-lib-band__item .s-lib-cover,
+  .s-lib-progress__bar {
+    transition: none;
+  }
+}

@@ -14,6 +14,7 @@ import PostList from "./PostList.tsx";
 import AuthorSites from "./AuthorSites.tsx";
 import { BlogSkeleton } from "./util.tsx";
 import PublicFolders from "./PublicFolders.tsx";
+import LibraryBand from "../library/LibraryBand.tsx";
 import "../reading/reading.css";
 
 export default function BlogHome({
@@ -89,6 +90,7 @@ export default function BlogHome({
           AuthorSites stays where it is: another author's site is a way OFF
           this page, and a door out belongs at the end. */}
       <PublicFolders />
+      <LibraryBand />
       {/* h2, and the masthead's site name is now the h1 (BlogShell): with the
           Collections band above this list, the page's first heading is no
           longer "Writings", and an outline that opens at level 2 and then

@@ -38,6 +38,8 @@ import type {
   PublicFoldersSettings,
   SettingsData,
   SettingsResponse,
+  LibraryPathRef,
+  LibrarySettings,
 } from "../shared/types.ts";
 // Public folders: the shapes are in types.ts, the RULES are here — one copy,
 // shared with the settings editor's inline validation so a green field and a
@@ -55,6 +57,14 @@ import {
   // unions in one file is exactly the confusion an alias costs nothing to end.
   type FolderProblem as PublicFolderProblem,
 } from "../shared/publicFolders.ts";
+import {
+  cleanLibraryPath,
+  libraryPathId,
+  libraryRowError,
+  LIBRARY_PATHS_MAX,
+  LIBRARY_SITE_TITLE_MAX,
+  type LibraryRowError,
+} from "../shared/library.ts";
 import { FOLLOW_THEME, THEMES as THEME_IDS } from "../shared/themes.ts";
 // Localization: the calendar, the note-layout pair and the tag-label map.
 // Shapes and validators live in shared/, so the client's editor and this
@@ -155,6 +165,17 @@ const AUTHOR_SITE_TITLE_MAX = 80; // same budget as siteName
 /** Why a public-folder row was refused, as the tail of the 400. Named per
  *  FIELD rather than as one "malformed row" sentence: the editor has four
  *  inputs per row and the owner has to be told which one to fix. */
+const LIBRARY_PROBLEMS: Record<LibraryRowError, string> = {
+  notObject: "is not an object",
+  title: "has no title",
+  titleLength: "has a title that is too long",
+  slug: "has an address that is not a slug (lowercase letters, digits and hyphens)",
+  folder: "names no vault folder",
+  kind: "has a kind that is not book, course or series",
+  blurbLength: "has a blurb that is too long",
+  sourceLength: "has a source that is too long",
+};
+
 const FOLDER_PROBLEMS: Record<PublicFolderProblem, string> = {
   slug: `needs a slug of lowercase letters, digits and hyphens (≤ ${FOLDER_SLUG_MAX} characters) — it is the /folder/<slug> URL`,
   title: `needs a title (≤ ${FOLDER_TITLE_MAX} characters)`,
@@ -499,6 +520,32 @@ export function getSettings(): SettingsData {
     }
     if (Object.keys(pf).length > 0) out.publicFolders = pf;
   }
+  // The library, on the publicFolders terms: a bad row drops rather than
+  // taking the shelf down with it.
+  const library = raw.library;
+  if (typeof library === "object" && library !== null && !Array.isArray(library)) {
+    const l = library as Record<string, unknown>;
+    const lib: LibrarySettings = {};
+    if (typeof l.enabled === "boolean") lib.enabled = l.enabled;
+    if (typeof l.nav === "boolean") lib.nav = l.nav;
+    if (typeof l.home === "boolean") lib.home = l.home;
+    if (typeof l.title === "string" && l.title.trim() !== "" && l.title.trim().length <= LIBRARY_SITE_TITLE_MAX) {
+      lib.title = l.title.trim();
+    }
+    if (Array.isArray(l.paths)) {
+      const list: LibraryPathRef[] = [];
+      const seen = new Set<string>();
+      for (const entry of l.paths) {
+        if (list.length >= LIBRARY_PATHS_MAX) break;
+        const path = cleanLibraryPath(entry, libraryPathId);
+        if (path === null || seen.has(path.slug)) continue;
+        seen.add(path.slug);
+        list.push(path);
+      }
+      if (list.length > 0) lib.paths = list;
+    }
+    if (Object.keys(lib).length > 0) out.library = lib;
+  }
   // Backup & sync (gitSync.ts validates; malformed values drop on read).
   const gitSync = readGitSyncSettings(raw.gitSync);
   if (gitSync) out.gitSync = gitSync;
@@ -610,6 +657,15 @@ export function effectiveSettings(): EffectiveSettings {
       nav: s.publicFolders?.nav ?? false,
       home: s.publicFolders?.home ?? true,
       folders: (s.publicFolders?.folders ?? []).map((folder) => ({ ...folder })),
+    },
+    // The library: the door is on by default once the feature is, the home
+    // band is off by default — the blog stays the blog.
+    library: {
+      enabled: s.library?.enabled ?? false,
+      nav: s.library?.nav ?? true,
+      home: s.library?.home ?? false,
+      title: s.library?.title ?? "",
+      paths: (s.library?.paths ?? []).map((path) => ({ ...path })),
     },
     // The stored token is never part of this: gitSyncEffective() answers
     // `tokenSet` (and the non-secret username) and nothing more.
@@ -1217,6 +1273,84 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     }
     if (Object.keys(current).length === 0) delete raw.publicFolders;
     else raw.publicFolders = current;
+  },
+  // The library, replaced whole on the publicFolders terms (the editor holds
+  // every row on screen; a bad row is a 400, never a silent drop).
+  library: (raw, value) => {
+    if (value === null) {
+      delete raw.library;
+      return;
+    }
+    if (typeof value !== "object" || Array.isArray(value)) {
+      throw new VaultError(400, 'Settings key "library" must be an object or null');
+    }
+    const p = value as Record<string, unknown>;
+    const current =
+      typeof raw.library === "object" && raw.library !== null && !Array.isArray(raw.library)
+        ? { ...(raw.library as Record<string, unknown>) }
+        : {};
+    for (const key of Object.keys(p)) {
+      if (key !== "enabled" && key !== "nav" && key !== "home" && key !== "title" && key !== "paths") {
+        throw new VaultError(400, `Unknown settings key: library.${key}`);
+      }
+    }
+    const flag = (key: "enabled" | "nav" | "home", fallback: boolean): void => {
+      if (!(key in p)) return;
+      const v = p[key];
+      if (v === null) {
+        delete current[key];
+        return;
+      }
+      if (typeof v !== "boolean") {
+        throw new VaultError(400, `Settings key "library.${key}" must be a boolean or null`);
+      }
+      if (v === fallback) delete current[key];
+      else current[key] = v;
+    };
+    flag("enabled", false);
+    flag("nav", true);
+    flag("home", false);
+    if ("title" in p) {
+      const title = p.title;
+      if (title === null || (typeof title === "string" && title.trim() === "")) delete current.title;
+      else if (typeof title !== "string") {
+        throw new VaultError(400, 'Settings key "library.title" must be a string or null');
+      } else if (title.trim().length > LIBRARY_SITE_TITLE_MAX) {
+        throw new VaultError(400, `Settings key "library.title" is too long (${LIBRARY_SITE_TITLE_MAX} max)`);
+      } else current.title = title.trim();
+    }
+    if ("paths" in p) {
+      const list = p.paths;
+      if (list === null) delete current.paths;
+      else if (!Array.isArray(list)) {
+        throw new VaultError(400, 'Settings key "library.paths" must be an array or null');
+      } else {
+        if (list.length > LIBRARY_PATHS_MAX) {
+          throw new VaultError(400, `Settings key "library.paths" holds too many paths (${LIBRARY_PATHS_MAX} max)`);
+        }
+        const paths: LibraryPathRef[] = [];
+        const seen = new Set<string>();
+        for (const entry of list) {
+          const problem = libraryRowError(entry);
+          if (problem !== null) {
+            throw new VaultError(400, `Settings library entry ${LIBRARY_PROBLEMS[problem]}`);
+          }
+          const path = cleanLibraryPath(entry, libraryPathId) as LibraryPathRef;
+          if (seen.has(path.slug)) {
+            throw new VaultError(
+              400,
+              `Settings library has two paths with the slug "${path.slug}" — a slug is a URL and only one page can answer it`,
+            );
+          }
+          seen.add(path.slug);
+          paths.push(path);
+        }
+        if (paths.length === 0) delete current.paths;
+        else current.paths = paths;
+      }
+    }
+    if (Object.keys(current).length === 0) delete raw.library;
+    else raw.library = current;
   },
   // ── Backup & sync ────────────────────────────────────────────────────────
   gitSync: (raw, value) => {

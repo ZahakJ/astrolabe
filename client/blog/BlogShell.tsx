@@ -4,7 +4,7 @@
 // article), and a quiet footer. Owns the address bar in blog mode: pushState
 // navigation, popstate, per-page document.title.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import type { PostMeta, PublicFolderCard } from "../../shared/types.ts";
 import { getNote, getPosts } from "../api.ts";
@@ -26,6 +26,10 @@ import BlogSearchOverlay from "./BlogSearchOverlay.tsx";
 import BlogTopic from "./BlogTopic.tsx";
 import LangSwitch from "./LangSwitch.tsx";
 import NavTopics from "./NavTopics.tsx";
+import LibraryBand from "../library/LibraryBand.tsx";
+import { lazySurface } from "../lazySurface.tsx";
+import { parseLibraryRoute, libraryDocumentTitle, type LibraryRoute } from "../library/libraryRoute.ts";
+import { useLibrary } from "../library/libraryData.ts";
 import { go, setNavHandler, topicUrl } from "./nav.ts";
 import { NavLink } from "./util.tsx";
 import "../styles/blog.css";
@@ -37,11 +41,17 @@ import Ambient from "../ambient.tsx";
  *  the nav on every keystroke in the search box. */
 const NO_FOLDERS: PublicFolderCard[] = Object.freeze([]) as unknown as PublicFolderCard[];
 
+// The library's pages arrive with the reader who opens them, not with every
+// visitor reading a post (check-bundle stands over the blog closure).
+const LibraryRouter = lazySurface(() => import("../library/LibraryPages.tsx"));
+
 type Route =
   | { kind: "home" }
   | { kind: "topic"; tag: string }
   // A PUBLIC FOLDER page — the owner's own collection (settings.publicFolders).
   | { kind: "folder"; slug: string }
+  // The library (settings.library): the shelf, a path, a lesson.
+  | LibraryRoute
   | { kind: "article"; path: string }
   // A path the tree cannot answer, waiting on /api/note (see parseRoute).
   | { kind: "probe"; path: string }
@@ -66,6 +76,10 @@ function parseRoute(pathname: string): Route {
       // malformed percent-encoding — nothing to show
     }
   }
+  // The library, on the folders' terms: a note at `library/x.md` keeps its
+  // deep link, and only then does /library mean the shelf.
+  const lib = parseLibraryRoute(pathname);
+  if (lib !== null) return lib;
   // Public folders sit AFTER the note check with the topics, under the same
   // rule: a published note at `folder/games.md` keeps its own deep link, and
   // only when nothing in the vault answers does /folder/ mean the collection.
@@ -167,6 +181,11 @@ export default function BlogShell() {
   const language = useStore((s) => s.language);
 
   const [route, setRoute] = useState<Route>(() => parseRoute(location.pathname));
+  // The library's door and, for the page titles, the shelf (fetched once,
+  // shared with the pages; null until it lands or when there is no library).
+  const libraryDoor = useStore((s) => s.library);
+  const shelf = useLibrary();
+  const onLibrary = route.kind === "library" || route.kind === "libraryPath" || route.kind === "libraryLesson";
   const [posts, setPosts] = useState<PostMeta[] | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -300,10 +319,12 @@ export default function BlogShell() {
       // to print, so the address is the honest fallback.
       const folder = folders.find((f) => f.slug === route.slug);
       document.title = `${folder ? folder.title : route.slug} · ${siteName}`;
+    } else if (route.kind === "library" || route.kind === "libraryPath" || route.kind === "libraryLesson") {
+      document.title = libraryDocumentTitle(route, shelf, siteName);
     } else {
       document.title = tagline ? `${siteName} — ${tagline}` : siteName;
     }
-  }, [route, siteName, tagline, folders]);
+  }, [route, siteName, tagline, folders, shelf]);
 
   // Route change closes the burger row (NavTopics closes its own menu off the
   // routeKey below).
@@ -439,6 +460,7 @@ export default function BlogShell() {
           <NavTopics
             topics={topics}
             folders={navFolders}
+            library={libraryDoor?.nav ? { title: libraryDoor.title || t("libraryTitle"), active: onLibrary } : null}
             activeFolder={route.kind === "folder" ? route.slug : null}
             activeTag={activeTag}
             isHome={route.kind === "home"}
@@ -490,6 +512,10 @@ export default function BlogShell() {
           <BlogTopic tag={route.tag} posts={posts} locale={locale} />
         ) : route.kind === "folder" ? (
           <BlogFolder slug={route.slug} posts={posts} locale={locale} />
+        ) : route.kind === "library" || route.kind === "libraryPath" || route.kind === "libraryLesson" ? (
+          <Suspense fallback={<div className="s-blog-page" />}>
+            <LibraryRouter route={route} />
+          </Suspense>
         ) : route.kind === "article" ? (
           <BlogArticle key={route.path} path={route.path} posts={posts} locale={locale} />
         ) : route.kind === "probe" ? null : (

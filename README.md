@@ -97,6 +97,7 @@ internet behind any HTTPS reverse proxy pointed at `localhost:6801` — see
 - **[Publishing](docs/publishing.md)** — one frontmatter flag, a real server-side visitor preview, rate-limited reader comments with built-in moderation
 - **[Blog mode](docs/blog-mode.md)** — masthead, topic nav, dashboard home, hover previews, RSS, sitemap/robots and server-injected SEO meta
 - **[Designed mode](docs/designer.md)** — compose your own homepage from sections, fifty-nine shipped presets, with the stock blog kept as an always-working fallback
+- **[The library](docs/library.md)** — books, courses and lecture series as paths a reader walks in order: a folder becomes a shelf entry, its subfolders the chapters, its published notes the lessons
 - **[Twenty-one themes](docs/theming.md)** — fourteen dark, seven light, every one gated at WCAG AA, plus a custom-theme builder and `custom.css`
 - **[Real typography](docs/typography.md)** — a self-hosted font catalog and your own uploads, with per-character Arabic that sets correctly inside an English sentence
 - **[Arabic & RTL](docs/arabic-and-rtl.md)** — the whole interface mirrored and translated, an optional visitor `EN`/`ع` switch, a language filter, Hijri dates

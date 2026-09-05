@@ -1,0 +1,72 @@
+# The library
+
+*Books, courses and lecture series on the public site, as paths a reader walks in order.*
+
+← [Back to the README](../README.md) · [All docs](README.md)
+
+---
+
+A blog is for written things: an essay is read once, whole, and the next one is whichever came
+next in time. Notes on a book or a lecture series are not that. They are read in order, over
+weeks, a piece at a time, and a reader wants to know where they are in the whole. The library is
+the shell for them. It sits beside the blog and the designed home, behind one door in the
+navigation, and nothing about it reaches the blog unless you ask for it.
+
+## A path is a folder
+
+The vault already has the shape. A book is a folder of chapter folders of concept notes; a course
+is a folder of lecture folders of notes. So a path in the library is a **folder you declare**, and
+the folder's own structure is the path's:
+
+- every immediate subfolder is a **unit** (a chapter, a lecture, a week), named from the folder:
+  `L3` prints as *Lecture 3*, `B2| Chapter 40` as *Chapter 40*, `Week 2` as *Week 2*; a folder with
+  no number keeps its name and sorts after the numbered ones;
+- every **published** note inside is a **lesson**, in natural order by title, with a note named like
+  its unit (the chapter hub the reading companion writes) first;
+- notes sitting directly in the path's folder are its **introduction**.
+
+No frontmatter is asked of any note beyond `publish: true`. A note that is not published is not a
+lesson; a path with no lesson a visitor may read is not sent to that visitor at all.
+
+## Declaring a path
+
+**Settings → Publishing → The library.** Turn the library on, then add a row per path:
+
+| Field | What it is |
+| --- | --- |
+| Kind | Book, course or series. It decides the cover's shape and the shelf's grouping. |
+| Title | What the shelf and the door call it. |
+| Address | The URL segment: `/library/<address>`. Lowercase letters, digits, hyphens. |
+| Vault folder | The folder the path reads, vault-relative: `1 - Source Material/Books/Feynman Lectures`. |
+| Blurb | One or two sentences under the title. |
+| Cover | An image, as a banner value (`attachments/cover.jpg` or an https URL). Without one the site draws a cover from the title. |
+| Source link | Where the material came from: the course page, the publisher. Shown on the path. |
+| Hidden | A lossless take-down: the row keeps every field and reaches nobody. |
+
+Two placements and a name sit above the rows: **Door in the navigation** (on by default once the
+library is on; a *Library* link beside the topics on both public shells) and **Shelf on the home
+page** (off by default; a band of covers on the blog home, above the writings). **Name** renames the
+door and the page; empty means "Library".
+
+Up to 24 paths. The rows' order is the shelf's order.
+
+## What a reader gets
+
+- **The shelf** (`/library`): courses, books and series in groups, each as a cover, a title, a blurb,
+  the count of lessons and the reading time, and this browser's progress.
+- **A path** (`/library/<address>`): the cover, the blurb, the source, a *Start reading* or
+  *Continue with lesson n* button, and the contents by unit with every lesson numbered.
+- **A lesson** (`/library/<address>/<n>`): the note rendered by the reading renderer, with its place
+  said at the top (*Lesson 7 of 24 · Lecture 3*), the path's outline down the side with this lesson
+  lit, and the previous and next lesson at the foot. `←` and `→` walk the path.
+
+Progress is the reader's own, per browser, never sent anywhere: opening a lesson marks it read,
+the path page counts, the shelf card says *Continue with lesson n*, and *Forget my place* clears it.
+
+## Where it lives
+
+`shared/library.ts` holds the rules (what a legal row is, how a unit's name is read, how things
+sort), shared by the settings editor and the server so a green field and a 400 cannot disagree.
+`server/library.ts` resolves a path against the index for one session's scope. `GET /api/library`
+is the shelf; `/api/me.library` is the door. `client/library/` is the pages, the band, the covers
+and the progress. `npm test` covers the rules (`tests/library.test.ts`).

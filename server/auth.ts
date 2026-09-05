@@ -20,6 +20,7 @@ import type { MeData, PublicFolderCard } from "../shared/types.ts";
 import type { FilterLang } from "./indexer.ts";
 import { isNoteVisibleToVisitor, publicFolderCounts, publishedCounts, resolveLink } from "./indexer.ts";
 import { languageScope } from "./language.ts";
+import { libraryFor } from "./library.ts";
 import { currentVisibility, isReducingReach } from "./visibility.ts";
 import { commentsEnabled } from "./comments.ts";
 import { siteFontsSignature } from "./fonts.ts";
@@ -919,6 +920,21 @@ authRoutes.get("/me", (c) => {
       // to know which way each one falls (home on, nav off).
       me.publicFoldersHome = pf?.home !== false;
       me.publicFoldersNav = pf?.nav === true;
+    }
+    // The library's door. The shelf itself is /api/library and is fetched
+    // when a reader opens it; what every page needs at first paint is only
+    // whether the door exists and where it stands — and it exists only when
+    // this session can read at least one lesson, for the reason a hidden
+    // folder is never named.
+    const shelf = libraryFor(c);
+    if (shelf.length > 0) {
+      const lib = settings.library;
+      me.library = {
+        nav: lib?.nav !== false,
+        home: lib?.home === true,
+        count: shelf.length,
+        ...(lib?.title ? { title: lib.title } : {}),
+      };
     }
   }
   return c.json(me);

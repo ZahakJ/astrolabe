@@ -896,6 +896,43 @@ translucent disc of the node's own colour, skipped above 700 discs on screen whe
 wash). Labels wear a halo of the ground. Everything is one object under `vellum.graph`,
 normalised field by field on load (`normalizeGraphPrefs`), per browser, never sent anywhere.
 
+## The library (shared/library.ts, server/library.ts, client/library/)
+
+**A PATH IS A FOLDER, NOT A HUB.** The first design had a hub note with an ordered list of
+wikilinks as the table of contents. The vault said otherwise: a book is `Books/<Book>/<Chapter
+dir>/<concept notes>` and a course is `Lectures/6.824/L1..L14/<notes>`, and a hub exists only where
+the reading companion has been. So `settings.library.paths[]` names a FOLDER (plus a kind, a title,
+an address, a blurb, a cover, a source, a hidden flag), and `resolveLibraryPath()` reads the folder's
+own structure off the index: each immediate subfolder is a unit, `unitOfName()` reads the kind and
+number off the folder's name (`L3`, `B2| Chapter 40`, `Week 2`; a sorting prefix `X| ` is stripped),
+every published note inside is a lesson in natural title order with a note named like its unit
+first, and notes at the path's own root are the introduction. No note is asked for any frontmatter
+beyond `publish: true`.
+
+**SCOPED LIKE THE FEED.** `libraryLessons()` in the indexer walks `publishedSet` for a visitor and
+the whole index for an admin, applies the language filter and the template matcher exactly as
+`posts()` does, and a path with no lesson this session may read is not sent — the hidden-folder
+rule. `/api/me.library` is only the door (nav, home, title, count); the shelf is `/api/library`,
+fetched once per session and shared by every page (`libraryData.ts`, the graphCache idiom).
+
+**THE ROWS ARE JUDGED ONCE.** `libraryRowError()` / `cleanLibraryPath()` are the rule, imported by
+the PATCH handler, the settings editor's validation and the read-side cleaner, on the
+publicFolders terms; the list is replaced whole on PATCH because the editor holds every row.
+
+**THE DOOR IS NOT THE BAND.** `nav` defaults on once the feature is on, `home` defaults off: the
+blog stays the blog, and the library is one link away. The stock nav row places the door as a fixed
+item after the collections (and counts it in `lead`, the row's arithmetic); the designed shell's
+`publicNavigation()` appends a `url` item to `/library` unless the author already linked it.
+
+**A LESSON IS NOT A POST.** No date, no tags, no comments, no related: a place ("Lesson 7 of 24 ·
+Lecture 3"), the outline beside it, the previous and the next at the foot, `←`/`→` to walk it
+(mirrored in RTL), and the same reading renderer the article page uses. The rail stands beside the
+column only where the container has 980px (a wrapper is the container: a container query never
+styles the container itself), and a closed `<details>` renders nothing whatever the stylesheet
+says, so the fold's open state is measured, not styled. Progress (`vellum.library`) is per browser
+and never sent: read paths, not numbers, so a unit added in the middle shifts nothing. The pages
+are one lazy chunk; only the door, the band and the covers ride with the blog first paint.
+
 ## Shell layout (sidebar side, collapse, zen)
 
 Four persisted preferences live on the app root as classes: `s-app--flip`, `s-app--nosidebar`,

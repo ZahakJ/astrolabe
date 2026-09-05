@@ -20,6 +20,7 @@ import type {
   NoteState,
   NoteStatesResponse,
   NoteWriteResult,
+  LibraryPath,
   PostMeta,
   PublicThemeInfo,
   PublishedPaths,
@@ -577,6 +578,13 @@ export function getMe(): Promise<MeData> {
 /** Published notes as blog posts, newest first (blog mode's list). */
 export function getPosts(): Promise<PostMeta[]> {
   return request<PostMeta[]>("/api/posts");
+}
+
+/** The library shelf: every path this session may read a lesson of, with
+ *  its units and lessons resolved server-side (server/library.ts). Scoped
+ *  like /api/posts, so a visitor is never handed a note they cannot open. */
+export function getLibrary(): Promise<LibraryPath[]> {
+  return request<LibraryPath[]>("/api/library");
 }
 
 /** Every ```tracker fence this session may see, newest-touched first — the

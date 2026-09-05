@@ -9,6 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import AuthorSites from "./AuthorSites.tsx";
 import PublicFolders from "./PublicFolders.tsx";
+import LibraryBand from "../library/LibraryBand.tsx";
 import type { PostMeta } from "../../shared/types.ts";
 import { bannerSrc, generatedBannerCss } from "../banner.ts";
 import { useBannerSrc } from "../components/BannerImg.tsx";
@@ -233,6 +234,7 @@ export default function BlogDashboard({
             outside and below — a link off the site is a way out, not a way
             in. */}
         <PublicFolders />
+        <LibraryBand />
 
         <section aria-label={t("blogLatestWritings")}>
           <h2 className="s-blog-heading">

@@ -1,6 +1,7 @@
 import type { NavDesign, NavItem } from "../../shared/designChrome.ts";
 import type { PublicFolderCard } from "../../shared/types.ts";
 import { folderUrl } from "../blog/nav.ts";
+import { libraryUrl } from "../../shared/library.ts";
 
 /** Preserve authored navigation and its topic fallback while carrying the
  * instance's opted-in collection links into every designed shell. */
@@ -9,9 +10,11 @@ export function publicNavigation(
   topics: string[],
   folders: PublicFolderCard[],
   enabled: boolean,
+  /** The library's door, when settings.library.nav says so. */
+  library: { title: string } | null = null,
 ): NavItem[] {
   const filled = enabled ? folders.filter((folder) => folder.count > 0) : [];
-  if (filled.length === 0) return nav.items;
+  if (filled.length === 0 && library === null) return nav.items;
   const items: NavItem[] = nav.items.length > 0 ? [...nav.items] : nav.fallback === "topics"
     // The label stays blank: DesignNav prints the tag's localised label, and
     // a word baked in here would be the canonical tag in the wrong language.
@@ -28,6 +31,9 @@ export function publicNavigation(
   for (const folder of filled) {
     const target = folderUrl(folder.slug);
     if (!targets.has(target)) items.push({ id: `public-folder-${folder.id}`, kind: "url", target, label: folder.title });
+  }
+  if (library !== null && !targets.has(libraryUrl())) {
+    items.push({ id: "public-library", kind: "url", target: libraryUrl(), label: library.title });
   }
   return items;
 }
