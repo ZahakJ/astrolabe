@@ -381,6 +381,11 @@
   color: var(--text-muted);
   font-size: 0.82rem;
   transition: opacity 160ms ease;
+  /* Above the text layer (z-index 1 inside every page), or a page scrolled
+     under the bar swallows the clicks meant for its buttons: the ☰, the ✕
+     and now the page counter were unreachable whenever text lay beneath
+     them, which on a full page is always. */
+  z-index: 2;
 }
 
 .s-book__top {
@@ -563,6 +568,71 @@
   flex: none;
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
+}
+
+/* The go-to panel: the contents list with a field over it. The lit row is
+   the one Enter will take, and it is painted the way a hovered row is, so
+   the keyboard and the pointer agree about what "chosen" looks like. */
+.s-book__goto-field {
+  position: sticky;
+  inset-block-start: 49px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-block: 10px 8px;
+  background: var(--bg-raised);
+  border-block-end: 1px solid var(--border);
+}
+
+.s-book__goto-field .s-book__input {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+}
+
+.s-book__goto-field .s-book__input:focus {
+  border-color: var(--accent);
+  box-shadow: none;
+}
+
+.s-book__goto-hint {
+  margin: 0;
+  min-block-size: 1.2em;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.s-book__outline-row--lit {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+/* The page counter is a button because it opens the go-to panel. It keeps
+   the status line's own face and only shows its hand on hover. */
+.s-book__status-page {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 3px;
+  text-decoration: underline dotted transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 120ms ease;
+}
+
+.s-book__status-page:hover {
+  color: var(--text);
+  text-decoration-color: currentColor;
+}
+
+.s-book__status-page:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .s-book__help-list {

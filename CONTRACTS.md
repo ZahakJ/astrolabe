@@ -1035,6 +1035,13 @@ stays on `.s-panel--collapsed`, as it always did.
   `Ctrl/Cmd+Shift+Z` (zen) `stopPropagation`s so CodeMirror cannot redo on the same keystroke —
   except on macOS inside the editor, where `Mod-Shift-z` is the *only* redo binding and keeps it.
 
+**EVERY FOLDER STARTS FOLDED.** The tree opened its top level on a first visit and left the rest
+shut; the owner asked for all of them shut. `defaultOpen()` in `Sidebar.tsx` answers false for
+every depth, and the per-browser map (`vellum.tree-expanded`) still remembers each folder the
+reader opens, so the price is one click per folder, once, and a reveal (`TREE_REVEAL_EVENT`) still
+opens every ancestor of the note it is showing. Nothing else moved: the fold-all and unfold-all
+commands write the same map.
+
 ## CSS tokens (tokens.css defines the FULL set on `:root` and on every `[data-theme="…"]`)
 
 `--bg`, `--bg-raised`, `--bg-hover`, `--text`, `--text-muted`, `--text-faint`, `--accent`,
@@ -8016,6 +8023,27 @@ instantly is a promise this surface already made, and a decade of marginalia
 arriving before the first cover would break it for a search most visits never
 run. The store caps what it will carry at once and says when the answer was cut
 short.
+
+### Two doors with names on them: go-to and zen
+
+Zathura's grammar was all here (`12G`, `:12`, `:+3`, `gg`, `G`) and the owner, a month in, asked
+how one goes to a page. A key sheet is not a door. `p`, `:page` and the page counter in the status
+line (a button now, and the one thing on that line a reader wants to CHANGE) open the go-to panel:
+one field that takes the whole page grammar (`212`, `+3`, `-3`, `40%`, Latin or Eastern Arabic
+digits) or a chapter name, with the contents listed under it, filtered as a word is typed, the
+arrow keys moving the light and Enter taking the number when the field is one and the lit chapter
+otherwise. The panel says what Enter will do before it is pressed, because `40` and `40%` are
+twenty pages apart. `:40%` works from the command line too (`parseFraction`), and `pageAtFraction`
+puts 0% on the first page and 100% on the last, so half of 300 is 150 and not 151.
+
+**Zen is the shell's, and the reader only asks for it.** `z`, `:zen` and the ⤢ in the title bar
+call `onZen`, which the pane wires to `store.setZen` (`Pane.tsx` → `BooksSurface` → `BookReader`),
+because zen hides the sidebar, the tabs and the status bar and none of those are the reader's to
+hide; `BooksSurface` still owns no global state. The bare `:z` stays zoom, the older word. **Esc
+has an order.** The shell's Esc runs in the capture phase and leaves zen; a reader panel closes on
+Esc in the bubble; so with a panel open in zen the shell looks first (`.s-book[data-overlay]`) and
+stands down, and the second Esc leaves zen. And the title and status bars sit at `z-index: 2`, above
+the text layer's 1: a page scrolled under them used to swallow every click on ☰, ✕ and the counter.
 
 ### The routes
 

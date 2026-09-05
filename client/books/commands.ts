@@ -19,6 +19,16 @@ export type BookCommand =
   /** `:212` — the bare number, which is most of what anyone types. `:+3` and
    *  `:-3` set `relative`, and step from where the reader is. */
   | { kind: "goto"; page: number; relative: boolean }
+  /** `:40%` — a place in the book by proportion, for the reader who knows
+   *  they were "about a third of the way in" and nothing more precise. */
+  | { kind: "fraction"; percent: number }
+  /** `:page` — the go-to panel: a number, a relative step, a percentage or a
+   *  chapter name, with the contents listed under the field. `:page 12` is
+   *  `:12`. */
+  | { kind: "page" }
+  /** `:zen` — the book alone on the screen: every piece of the app's chrome
+   *  steps aside, exactly as Ctrl/Cmd+Shift+Z does from a note. */
+  | { kind: "zen" }
   | { kind: "quit" }
   | { kind: "library" }
   | { kind: "zoom"; percent: number }
@@ -58,6 +68,9 @@ const NAMES: { full: string; short: string }[] = [
   { full: "quit", short: "q" },
   { full: "library", short: "lib" },
   { full: "zoom", short: "z" },
+  // `zen` sits AFTER `zoom` so a bare `:z` keeps meaning zoom, the older word.
+  { full: "zen", short: "ze" },
+  { full: "page", short: "p" },
   { full: "fit", short: "f" },
   { full: "rotate", short: "rot" },
   { full: "dual", short: "du" },
@@ -128,6 +141,9 @@ export function parseCommand(line: string): BookCommand | null {
     const relative = text.startsWith("+") || text.startsWith("-");
     return { kind: "goto", page: Math.round(bare), relative };
   }
+  // `:40%` (or `٤٠٪`): a proportion of the book rather than a page of it.
+  const fraction = parseFraction(text);
+  if (fraction !== null) return { kind: "fraction", percent: fraction };
 
   const [word, ...rest] = text.split(/\s+/);
   const arg = rest.join(" ");
@@ -137,6 +153,15 @@ export function parseCommand(line: string): BookCommand | null {
   switch (name) {
     case "quit":
       return { kind: "quit" };
+    case "zen":
+      return { kind: "zen" };
+    case "page": {
+      if (arg === "") return { kind: "page" };
+      const parsed = parseCommand(arg);
+      return parsed !== null && (parsed.kind === "goto" || parsed.kind === "fraction")
+        ? parsed
+        : { kind: "unknown", word: text };
+    }
     case "library":
       return { kind: "library" };
     case "outline":
@@ -210,6 +235,16 @@ export function parseCommand(line: string): BookCommand | null {
     default:
       return { kind: "unknown", word };
   }
+}
+
+/** `40%` / `٤٠٪` → 40, clamped to the book; anything else → null. The
+ *  percent sign is what makes it a fraction, so `40` alone stays a page. */
+export function parseFraction(text: string): number | null {
+  const trimmed = text.trim();
+  if (!/[%٪]$/.test(trimmed)) return null;
+  const n = parseNumber(trimmed.slice(0, -1));
+  if (n === null || n < 0) return null;
+  return Math.min(100, n);
 }
 
 /** `on`/`off`/`toggle` — null means toggle, which is also what a bare name

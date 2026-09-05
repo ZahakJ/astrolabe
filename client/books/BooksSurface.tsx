@@ -38,6 +38,11 @@ export interface BooksSurfaceProps {
   /** The route's citation anchor has been landed on — the pane may clear its
    *  one-shot target. */
   onLanded?(): void;
+  /** The shell's zen switch, handed through to the reader so `z` and the
+   *  title-bar button can ask for the book alone on the screen. Still no
+   *  global state in here: the pane reads the store and passes the answer. */
+  zen?: boolean;
+  onZen?(): void;
 }
 
 // The reader is split from the shelf on purpose: a reader who only ever
@@ -48,7 +53,7 @@ export interface BooksSurfaceProps {
 const BookLibrary = lazySurface(() => import("./BookLibrary.tsx"));
 const BookReader = lazySurface(() => import("./BookReader.tsx"));
 
-export default function BooksSurface({ route, onRoute, onExit, active = true, onLanded }: BooksSurfaceProps) {
+export default function BooksSurface({ route, onRoute, onExit, active = true, onLanded, zen, onZen }: BooksSurfaceProps) {
   return (
     <div className="s-books" role="region" aria-label={t("bookLibrary")}>
       <Suspense fallback={<p className="s-books__loading">{t("bookLoading")}</p>}>
@@ -67,6 +72,8 @@ export default function BooksSurface({ route, onRoute, onExit, active = true, on
             onLanded={onLanded}
             onClose={onExit}
             onLibrary={() => onRoute({ kind: "library" })}
+            zen={zen}
+            onZen={onZen}
           />
         )}
       </Suspense>

@@ -639,9 +639,14 @@ export default function App() {
           void store.setPreviewVisitor(false);
           return;
         }
-        // 4. Esc leaves zen — never out from under vim, where Esc is sacred.
+        // 4. Esc leaves zen — never out from under vim, where Esc is sacred,
+        //    and never out from under a reader panel: a book's contents list
+        //    or go-to field closes on Esc, and this listener runs first
+        //    (capture), so it has to look before it drops the window out of
+        //    zen on the same keystroke.
         if (store.zen) {
           if (store.vimMode && inEditor(e.target)) return;
+          if (document.querySelector('.s-book[data-overlay]:not([data-overlay="none"])')) return;
           e.preventDefault();
           store.setZen(false);
         }

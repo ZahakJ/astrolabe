@@ -36,7 +36,7 @@ import {
 import { assembleSelection, columnCuts, joinFragments, orderLine } from "../client/books/columns.ts";
 import { rotateRect, unrotateRect } from "../client/books/annotations.ts";
 import { findMatches, foldQuery } from "../client/books/search.ts";
-import { parseCommand, parseNumber } from "../client/books/commands.ts";
+import { parseCommand, parseFraction, parseNumber } from "../client/books/commands.ts";
 import {
   clampCanvasScale,
   fitPageScale,
@@ -250,6 +250,24 @@ describe("reader commands", () => {
     assert.deepEqual(parseCommand("rtl"), { kind: "direction", rtl: true });
     assert.deepEqual(parseCommand("ltr"), { kind: "direction", rtl: false });
     assert.deepEqual(parseCommand("search ibn"), { kind: "search", query: "ibn" });
+  });
+
+  it("reads a proportion, opens the go-to panel and asks for zen", () => {
+    assert.deepEqual(parseCommand("40%"), { kind: "fraction", percent: 40 });
+    assert.deepEqual(parseCommand("٤٠٪"), { kind: "fraction", percent: 40 });
+    assert.equal(parseFraction("140%"), 100);
+    assert.equal(parseFraction("40"), null);
+    assert.deepEqual(parseCommand("page"), { kind: "page" });
+    assert.deepEqual(parseCommand("p"), { kind: "page" });
+    assert.deepEqual(parseCommand("page 12"), { kind: "goto", page: 12, relative: false });
+    assert.deepEqual(parseCommand("page +2"), { kind: "goto", page: 2, relative: true });
+    assert.deepEqual(parseCommand("page 50%"), { kind: "fraction", percent: 50 });
+    assert.deepEqual(parseCommand("page twelve"), { kind: "unknown", word: "page twelve" });
+    assert.deepEqual(parseCommand("zen"), { kind: "zen" });
+    assert.deepEqual(parseCommand("ze"), { kind: "zen" });
+    // `:z` stays zoom, the older word: a reader with it in their fingers must
+    // not find the chrome vanishing instead of the page growing.
+    assert.deepEqual(parseCommand("z"), { kind: "zoom", percent: 100 });
   });
 
   it("takes a mark of exactly one character, in any script", () => {
