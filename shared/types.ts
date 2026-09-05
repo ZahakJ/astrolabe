@@ -264,6 +264,88 @@ export interface PublicFoldersSettings {
   folders?: PublicFolderRef[];
 }
 
+/** settings.library — THE LIBRARY: the owner's books, courses and series on
+ *  the public site, as PATHS a reader walks in order. The `publicFolders`
+ *  shape again (master switch, two placements, a curated list), because it is
+ *  the same kind of thing: something the OWNER declares about the vault. What
+ *  differs is what a row names — a public folder names a slug notes claim in
+ *  frontmatter; a library path names a FOLDER of the vault, and the folder's
+ *  own structure (its subfolders, its notes) is the path's structure. */
+export type LibraryKind = "book" | "course" | "series";
+
+export interface LibraryPathRef {
+  id: string;
+  /** The URL segment: `/library/<slug>`. */
+  slug: string;
+  /** Vault-relative folder, e.g. `1 - Source Material/Books/Feynman Lectures`. */
+  folder: string;
+  kind: LibraryKind;
+  title: string;
+  /** One or two sentences under the title. */
+  blurb?: string;
+  /** Cover image, a banner-style value (https URL or vault-relative path). */
+  cover?: string;
+  /** Where the material came from — the course page, the book's publisher. */
+  source?: string;
+  /** Lossless take-down: a hidden path keeps every field and reaches nobody. */
+  hidden?: boolean;
+}
+
+export interface LibrarySettings {
+  /** The master switch. Absent = off. */
+  enabled?: boolean;
+  /** The Library door in the public navigation. Default TRUE when enabled:
+   *  a library nobody can find is not a library. */
+  nav?: boolean;
+  /** A shelf band on the blog home. Default FALSE — the blog stays quiet and
+   *  the door in the navigation is the way in. */
+  home?: boolean;
+  /** What the door and the page are called; absent = the instance's word for
+   *  "Library". */
+  title?: string;
+  /** The paths, in shelf order. ≤ 24. */
+  paths?: LibraryPathRef[];
+}
+
+/** One lesson: a published note inside a path, as the shelf lists it. */
+export interface LibraryLesson {
+  path: string;
+  title: string;
+  words: number;
+  readingMinutes: number;
+  excerpt: string;
+}
+
+/** One unit of a path — a chapter, a lecture, a week — which is a subfolder
+ *  of the path's folder. `number` and `kind` are read off the folder's name
+ *  (`L3`, `Chapter 40`, `Week 2`) so the shell can print "Lecture 3" in its
+ *  own language; `name` is the folder's name with any `B2| ` sorting prefix
+ *  removed, for units that are not numbered. */
+export interface LibraryUnit {
+  key: string;
+  name: string;
+  kind: "lecture" | "chapter" | "week" | "part" | "unit" | "intro";
+  number: number | null;
+  lessons: LibraryLesson[];
+}
+
+/** What a VISITOR receives for one path: the reference minus the bookkeeping,
+ *  with the folder's structure resolved for THIS session — only lessons the
+ *  session may read, so a path with none is not sent at all. */
+export interface LibraryPath {
+  id: string;
+  slug: string;
+  kind: LibraryKind;
+  title: string;
+  blurb?: string;
+  cover?: string;
+  source?: string;
+  units: LibraryUnit[];
+  /** Totals over every unit, for the shelf card. */
+  lessons: number;
+  minutes: number;
+}
+
 /** What a VISITOR receives for one public folder: the reference minus the
  *  bookkeeping, plus the one fact only the server can supply — how many posts
  *  this session can actually see in it. A hidden folder never becomes one. */
@@ -377,6 +459,11 @@ export interface MeData {
    *  unpublish the room behind it. */
   publicFoldersHome?: boolean;
   publicFoldersNav?: boolean;
+  /** settings.library, resolved for this session: present only in a public
+   *  layout, only when the feature is on, and only when at least one path
+   *  has a lesson this session may read. The shelf itself is `/api/library`;
+   *  this is the door's existence and where it stands. */
+  library?: { nav: boolean; home: boolean; title?: string; count: number };
   logo?: string;       // settings.logo — site logo image (banner-style value)
   favicon?: boolean;   // settings.favicon set — /favicon.ico serves it (client repoints its icon link)
   /** settings.fonts names at least one catalog face → the client links the
@@ -637,6 +724,9 @@ export interface SettingsData {
    *  Designed mode carries the same home and navigation placements alongside
    *  its authored sections and NavItems (see docs/blog-mode.md). */
   publicFolders?: PublicFoldersSettings;
+  /** settings.library — the owner's books, courses and series as walkable
+   *  paths on the public site (shared/library.ts). */
+  library?: LibrarySettings;
   /** Site logo image (https URL or vault path) shown in place of the
    *  site-name text where a logo fits (masthead, sidebar, dashboard hero). */
   logo?: string;
@@ -807,6 +897,7 @@ export interface EffectiveSettings {
    *  prefills from, so an unset key and an explicitly-default one look the
    *  same to the panel (there is no env counterpart to inherit from). */
   publicFolders: Required<Omit<PublicFoldersSettings, "folders">> & { folders: PublicFolderRef[] };
+  library: { enabled: boolean; nav: boolean; home: boolean; title: string; paths: LibraryPathRef[] };
   /** Always resolved: the attachment mode in force and the folder it uses. */
   attachments: Required<AttachmentSettings>;
   gitSync: GitSyncEffective;
@@ -863,6 +954,15 @@ export interface SettingsPatch {
     nav?: boolean | null;
     home?: boolean | null;
     folders?: PublicFolderRef[] | null;
+  } | null;
+  /** The library, replaced WHOLE like publicFolders: the editor holds every
+   *  row on screen, so a merging patch could never delete one. */
+  library?: {
+    enabled?: boolean | null;
+    nav?: boolean | null;
+    home?: boolean | null;
+    title?: string | null;
+    paths?: LibraryPathRef[] | null;
   } | null;
   /** Where new attachments go. Either half may be set alone; null clears the
    *  whole key back to the pre-setting behaviour. */

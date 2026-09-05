@@ -1,0 +1,591 @@
+/* Vellum — the library (client/library/). The shelf, a path, a lesson, the
+   home band and the covers. Every colour is a token; every edge is logical.
+   The pages sit inside either public shell's column (`.s-blog-page` /
+   `.s-dsn-page`), and the lesson page grows a rail beside the reading column
+   only where the container has room for one. Prefix: s-lib. */
+
+/* ── The shelf ──────────────────────────────────────────────────────────── */
+
+.s-lib__head {
+  margin-block-end: 28px;
+}
+
+.s-lib__title {
+  margin: 0 0 6px;
+  font-family: var(--font-serif);
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.s-lib__lede,
+.s-lib__empty {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--text-muted);
+}
+
+.s-lib__group + .s-lib__group {
+  margin-block-start: 36px;
+}
+
+.s-lib__grouphead {
+  margin: 0 0 14px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.s-lib__grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.s-lib__grid--book {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.s-lib-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-inline-size: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-raised);
+  text-decoration: none;
+  color: var(--text);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.s-lib-card:hover,
+.s-lib-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.5);
+}
+
+.s-lib-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.s-lib-card--book {
+  container-type: inline-size;
+}
+
+.s-lib-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-inline-size: 0;
+}
+
+.s-lib-card__kind,
+.s-lib-hero__kind {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-lib-card__title {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.s-lib-card__blurb {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.s-lib-card__meta,
+.s-lib-hero__meta,
+.s-lib-lesson__kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-lib-card__dot {
+  color: var(--text-faint);
+}
+
+.s-lib-card__state {
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.s-lib-progress {
+  display: block;
+  inline-size: 100%;
+  block-size: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+}
+
+.s-lib-progress__bar {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: inline-size 300ms ease;
+}
+
+/* ── A path ─────────────────────────────────────────────────────────────── */
+
+.s-lib-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block-end: 18px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.s-lib-crumbs a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.s-lib-crumbs a:hover {
+  color: var(--accent);
+}
+
+.s-lib-crumbs__sep {
+  color: var(--text-faint);
+}
+
+.s-lib-hero {
+  display: grid;
+  grid-template-columns: minmax(160px, 260px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  margin-block-end: 40px;
+}
+
+.s-lib-hero__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.s-lib-hero__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 600;
+  line-height: 1.12;
+  text-wrap: balance;
+  color: var(--text);
+}
+
+.s-lib-hero__blurb {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  max-inline-size: 60ch;
+}
+
+.s-lib-hero__source {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.s-lib-hero__source:hover {
+  text-decoration: underline;
+}
+
+.s-lib-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+  margin-block-start: 8px;
+}
+
+.s-lib-hero__go {
+  text-decoration: none;
+}
+
+.s-lib-hero__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 180px;
+  max-inline-size: 320px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.s-lib-hero__forget {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  color: var(--text-faint);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.s-lib-hero__forget:hover {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.s-lib-unit + .s-lib-unit {
+  margin-block-start: 26px;
+}
+
+.s-lib-unit__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  padding-block-end: 8px;
+  border-block-end: 1px solid var(--border);
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.s-lib-unit__label {
+  color: var(--accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: var(--font-ui);
+}
+
+.s-lib-unit__list,
+.s-lib-rail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.s-lib-lesson-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 8px;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 120ms ease;
+}
+
+.s-lib-lesson-row:hover,
+.s-lib-lesson-row:focus-visible {
+  background: var(--bg-hover);
+}
+
+.s-lib-lesson-row__n {
+  inline-size: 26px;
+  block-size: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-lib-lesson-row--read .s-lib-lesson-row__n {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent);
+}
+
+.s-lib-lesson-row--last .s-lib-lesson-row__title {
+  color: var(--accent);
+}
+
+.s-lib-lesson-row__title {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-lib-lesson-row__min {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* ── A lesson ───────────────────────────────────────────────────────────── */
+
+/* The wrapper is the container the grid is queried against: a container
+   query styles descendants, never the container itself. In the stock shell
+   the wrap is also the page's width; in a designed page the column already
+   is. */
+.s-lib-lesson-wrap {
+  container-type: inline-size;
+  inline-size: 100%;
+  max-inline-size: 1120px;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 3vw, 32px);
+  box-sizing: border-box;
+}
+
+.s-dsn-page .s-lib-lesson-wrap {
+  padding-inline: 0;
+}
+
+.s-lib-lesson {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  inline-size: 100%;
+}
+
+.s-lib-lesson__main {
+  min-inline-size: 0;
+}
+
+.s-lib-lesson__title {
+  margin: 6px 0 22px;
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  text-wrap: balance;
+  color: var(--text);
+}
+
+.s-lib-lesson__keys {
+  margin: 26px 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+@media (pointer: coarse) {
+  .s-lib-lesson__keys {
+    display: none;
+  }
+}
+
+/* The rail: the path's outline, folded on narrow containers, standing beside
+   the column where there is room for both. */
+.s-lib-rail__fold {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-raised);
+}
+
+.s-lib-rail__summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.s-lib-rail__summary::-webkit-details-marker {
+  display: none;
+}
+
+.s-lib-rail__path {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.s-lib-rail__count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.s-lib-rail__body {
+  padding: 0 8px 12px;
+  max-block-size: 60vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.s-lib-rail__unithead {
+  margin: 12px 8px 4px;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.s-lib-rail__item {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.86rem;
+}
+
+.s-lib-rail__item:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.s-lib-rail__item--read {
+  color: var(--text-muted);
+}
+
+.s-lib-rail__item--here {
+  background: var(--accent-soft);
+  color: var(--text);
+  box-shadow: inset 2px 0 0 0 var(--accent);
+}
+
+[dir="rtl"] .s-lib-rail__item--here {
+  box-shadow: inset -2px 0 0 0 var(--accent);
+}
+
+.s-lib-rail__n {
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.s-lib-rail__item--here .s-lib-rail__n,
+.s-lib-rail__item--read .s-lib-rail__n {
+  color: var(--accent);
+}
+
+.s-lib-rail__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@container (min-width: 980px) {
+  .s-lib-lesson {
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  .s-lib-rail {
+    position: sticky;
+    inset-block-start: 16px;
+    align-self: start;
+  }
+
+  .s-lib-rail__fold {
+    border: 0;
+    background: none;
+  }
+
+  .s-lib-rail__summary {
+    padding: 0 8px 10px;
+    cursor: default;
+  }
+
+  .s-lib-rail__body {
+    padding: 0;
+    max-block-size: calc(100vh - 120px);
+  }
+}
+
+.s-lib-turn {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-block-start: 40px;
+  padding-block-start: 24px;
+  border-block-start: 1px solid var(--border);
+}
+
+.s-lib-turn__card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-inline-size: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-raised);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.s-lib-turn__card:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  transform: translateY(-1px);
+}
+
+.s-lib-turn__card--next {
+  text-align: end;
+}
+
+.s-lib-turn__card--empty {
+  border: 0;
+  background: none;
+}
+
+.s-lib-turn__label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-lib-turn__title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .s-lib-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .s-lib-cover--hero {
+    inline-size: min(100%, 200px);
+  }
+
+  .s-lib-turn {
+    grid-template-columns: 1fr;
+  }
+
+  .s-lib-turn__card--empty {
+    display: none;
+  }
+}

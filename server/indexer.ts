@@ -2312,6 +2312,41 @@ export function publicFolderCounts(
   return counts;
 }
 
+/** Every lesson a library path holds: the published notes under `folder`,
+ *  each with the words and minutes the post list prints, scoped exactly as
+ *  posts() scopes the feed (the language filter for a visitor, templates out).
+ *  The ORDER is the caller's (shared/library.ts); this answers what is there.
+ *  An admin sees unpublished notes too, marked, so the shelf they are
+ *  arranging shows them what a visitor will and will not get. */
+export function libraryLessons(
+  folder: string,
+  visitor: boolean,
+  lang: FilterLang,
+): { path: string; title: string; words: number; readingMinutes: number; excerpt: string; published: boolean }[] {
+  const prefix = folder.endsWith("/") ? folder : `${folder}/`;
+  const out: { path: string; title: string; words: number; readingMinutes: number; excerpt: string; published: boolean }[] = [];
+  const isTemplate = templateMatcher();
+  const hidden = excludedTags();
+  const source = visitor ? publishedSet : notes.keys();
+  for (const notePath of source) {
+    if (!notePath.startsWith(prefix)) continue;
+    const record = notes.get(notePath);
+    if (!record) continue;
+    if (visitor && languageHidden(record, lang)) continue;
+    if (isTemplate(notePath)) continue;
+    const meta = postMeta(record, hidden);
+    out.push({
+      path: meta.path,
+      title: meta.title,
+      words: meta.words,
+      readingMinutes: meta.readingMinutes,
+      excerpt: meta.excerpt,
+      published: publishedSet.has(notePath),
+    });
+  }
+  return out;
+}
+
 /** Published notes as blog posts, newest first (visitor-safe: published only,
  *  EXCLUDE_TAGS filtered). Per-note fields are cached on the index record and
  *  refresh incrementally as notes reindex. `visitor` additionally applies the

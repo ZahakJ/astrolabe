@@ -30,6 +30,7 @@ import FolderGlyph from "../components/FolderGlyph.tsx";
 import { t } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { folderUrl, topicUrl } from "./nav.ts";
+import { libraryUrl } from "../../shared/library.ts";
 import { isLabelled as tagIsLabelled, label as tagLabel, useTagLabels } from "../tagLabels.ts";
 import { NavLink } from "./util.tsx";
 
@@ -39,6 +40,7 @@ const GAP = 4;
 export default function NavTopics({
   topics,
   folders,
+  library,
   activeFolder,
   activeTag,
   isHome,
@@ -53,6 +55,10 @@ export default function NavTopics({
    *  site's own structure, and a structure that disappears at 900px — or on a
    *  phone — is not one. Topics still fold, at both breakpoints. */
   folders: PublicFolderCard[];
+  /** The library's door (settings.library.nav): a fixed item after the
+   *  collections, on the collections' terms — never folded away. Null when
+   *  there is no library to open. */
+  library: { title: string; active: boolean } | null;
   activeFolder: string | null;
   activeTag: string | null;
   isHome: boolean;
@@ -110,7 +116,7 @@ export default function NavTopics({
       // in step. Adding a row item without adding it here (and to the twin
       // below) is the one way this file breaks: the widths then belong to the
       // wrong elements and the fit is silently wrong.
-      const lead = 1 + folders.length + (showSep ? 1 : 0);
+      const lead = 1 + folders.length + (library ? 1 : 0) + (showSep ? 1 : 0);
       if (kids.length < lead + 1) return;
       const leadW =
         kids
@@ -230,6 +236,19 @@ export default function NavTopics({
         {t("home")}
       </NavLink>
       {folders.map(folderItem)}
+      {library && (
+        <NavLink
+          url={libraryUrl()}
+          className={`s-blog-nav__link s-blog-nav__link--folder s-blog-nav__link--library${library.active ? " s-blog-nav__link--active" : ""}`}
+        >
+          <span className="s-blog-nav__glyph" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h5v16H4zM9 4h5v16H9zM15.5 5l4.5 1.2-4 15-4.5-1.2z" />
+            </svg>
+          </span>
+          <bdi>{library.title}</bdi>
+        </NavLink>
+      )}
       {showSep && <span className="s-blog-nav__sep" aria-hidden="true" />}
       {shown.map(navItem)}
       {overflow.length > 0 && (
@@ -262,6 +281,14 @@ export default function NavTopics({
             <bdi>{folder.title}</bdi>
           </span>
         ))}
+        {library && (
+          <span className="s-blog-nav__link s-blog-nav__link--folder">
+            <span className="s-blog-nav__glyph">
+              <svg width="14" height="14" viewBox="0 0 24 24" />
+            </span>
+            <bdi>{library.title}</bdi>
+          </span>
+        )}
         {/* The hairline's own width, counted in `lead` above. */}
         {showSep && <span className="s-blog-nav__sep" />}
         {/* The twin measures what is DRAWN, so it measures the label: an

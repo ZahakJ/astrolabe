@@ -44,6 +44,7 @@ import type {
 } from "../shared/types.ts";
 import { authGuard, authRoutes, clientIp, isProtected, isPublishLimited } from "./auth.ts";
 import { languageScope } from "./language.ts";
+import { libraryFor } from "./library.ts";
 import { visibilityFor, type VisibilityQuery } from "./visibility.ts";
 import {
   AUTHOR_MAX,
@@ -2178,6 +2179,10 @@ api.get("/posts", (c) => {
 // scope, templates out of both lists — because publishing a reading or gaming
 // shelf is the point of the feature and the endpoint is what makes leaving one
 // on a public note safe.
+// The library shelf: every path this session may read a lesson of, with the
+// folder's structure resolved (server/library.ts). Public on the posts terms.
+api.get("/library", (c) => c.json(libraryFor(c)));
+
 api.get("/trackers", (c) => {
   const limited = isPublishLimited(c);
   return c.json(trackers(limited, languageScope(c, limited).lang));

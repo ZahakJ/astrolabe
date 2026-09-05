@@ -51,6 +51,19 @@ import {
   PUBLIC_FOLDERS_MAX,
 } from "../../shared/publicFolders.ts";
 import {
+  libraryList,
+  libraryPathId,
+  libraryRowError,
+  LIBRARY_BLURB_MAX,
+  LIBRARY_FOLDER_MAX,
+  LIBRARY_KINDS,
+  LIBRARY_PATHS_MAX,
+  LIBRARY_SITE_TITLE_MAX,
+  LIBRARY_SOURCE_MAX,
+  LIBRARY_TITLE_MAX,
+} from "../../shared/library.ts";
+import type { LibraryKind, LibraryPathRef } from "../../shared/types.ts";
+import {
   ApiError,
   deleteCustomFont,
   getSettings,
@@ -189,6 +202,13 @@ interface Form {
   publicFoldersHome: string; // "on" | "off"
   publicFoldersNav: string;  // "on" | "off"
   publicFolderRows: PublicFolderRef[];
+  // The library, on the same terms: a switch, two placements, a name and
+  // the rows the editor holds.
+  libraryOn: string;   // "on" | "off"
+  libraryNav: string;  // "on" | "off"
+  libraryHome: string; // "on" | "off"
+  libraryTitle: string;
+  libraryRows: LibraryPathRef[];
 }
 
 /** One row of the tag-label editor. `tag` is the CANONICAL tag; the other two
@@ -283,6 +303,11 @@ function formFrom(s: SettingsResponse): Form {
     // Copied, never shared: the editor mutates rows and `initial` is the
     // snapshot the Save diff is measured against.
     publicFolderRows: s.effective.publicFolders.folders.map((folder) => ({ ...folder })),
+    libraryOn: s.effective.library.enabled ? "on" : "off",
+    libraryNav: s.effective.library.nav ? "on" : "off",
+    libraryHome: s.effective.library.home ? "on" : "off",
+    libraryTitle: s.effective.library.title,
+    libraryRows: s.effective.library.paths.map((path) => ({ ...path })),
   };
 }
 
@@ -529,7 +554,212 @@ function validate(f: Form): Partial<Record<keyof Form, string>> {
       }
     }
   }
+  // The library's rows, judged by shared/library.ts so the field and the 400
+  // agree; one message per table, naming the row that broke.
+  const paths = libraryList(f.libraryRows);
+  if (paths.length > LIBRARY_PATHS_MAX) {
+    errors.libraryRows = tf("errLibraryMax", { max: localeNum(LIBRARY_PATHS_MAX) });
+  } else {
+    const seen = new Set<string>();
+    for (const row of paths) {
+      const problem = libraryRowError(row);
+      if (problem === "title") {
+        errors.libraryRows = t("errLibraryTitle");
+        break;
+      }
+      if (problem === "titleLength") {
+        errors.libraryRows = maxChars(LIBRARY_TITLE_MAX);
+        break;
+      }
+      if (problem === "slug") {
+        errors.libraryRows = tf("errLibrarySlug", { slug: row.slug || row.title });
+        break;
+      }
+      if (problem === "folder") {
+        errors.libraryRows = tf("errLibraryFolder", { title: row.title });
+        break;
+      }
+      if (problem === "blurbLength") {
+        errors.libraryRows = maxChars(LIBRARY_BLURB_MAX);
+        break;
+      }
+      if (problem === "sourceLength") {
+        errors.libraryRows = maxChars(LIBRARY_SOURCE_MAX);
+        break;
+      }
+      if (seen.has(row.slug)) {
+        errors.libraryRows = tf("errLibraryDupSlug", { slug: row.slug });
+        break;
+      }
+      seen.add(row.slug);
+    }
+  }
+  if (f.libraryTitle.trim().length > LIBRARY_SITE_TITLE_MAX) errors.libraryTitle = maxChars(LIBRARY_SITE_TITLE_MAX);
   return errors;
+}
+
+/** THE LIBRARY'S PATHS. The public-folder editor's twin, row for row: a kind,
+ *  a title, the address, the vault folder, a blurb, a cover, a source link, a
+ *  hide switch and the two buttons that move a row. The FOLDER is the field
+ *  that matters and the one the folders editor does not have: it is where the
+ *  lessons come from, and it is `dir="ltr"` because a path is machine text. */
+function LibraryPathEditor({
+  rows,
+  disabled,
+  onChange,
+}: {
+  rows: LibraryPathRef[];
+  disabled: boolean;
+  onChange: (rows: LibraryPathRef[]) => void;
+}) {
+  const set = (i: number, patch: Partial<LibraryPathRef>): void => {
+    onChange(rows.map((row, n) => (n === i ? { ...row, ...patch } : row)));
+  };
+  const move = (i: number, delta: number): void => {
+    const to = i + delta;
+    if (to < 0 || to >= rows.length) return;
+    const next = [...rows];
+    const [row] = next.splice(i, 1);
+    next.splice(to, 0, row);
+    onChange(next);
+  };
+  const kindOptions = LIBRARY_KINDS.map((kind) => ({
+    value: kind,
+    label: kind === "book" ? t("libraryKindBook") : kind === "course" ? t("libraryKindCourse") : t("libraryKindSeries"),
+  }));
+  return (
+    <div className="s-pfolders s-pfolders--library">
+      {rows.length === 0 ? (
+        <p className="s-pfolders__empty">{t("libraryPathsEmpty")}</p>
+      ) : (
+        rows.map((row, i) => (
+          <div className="s-pfolders__card" key={row.id}>
+            <div className="s-pfolders__main">
+              <Select
+                label={t("libraryPathKind")}
+                value={row.kind}
+                disabled={disabled}
+                options={kindOptions}
+                onChange={(v) => set(i, { kind: v as LibraryKind })}
+              />
+              <TextInput
+                value={row.title}
+                onChange={(v) =>
+                  set(i, {
+                    title: v,
+                    ...(row.slug.trim() === "" ? { slug: suggestSlug(v) } : {}),
+                  })
+                }
+                placeholder={t("libraryPathTitlePlaceholder")}
+                label={t("libraryPathTitle")}
+                disabled={disabled}
+                dir="auto"
+                maxLength={LIBRARY_TITLE_MAX}
+              />
+              <TextInput
+                value={row.slug}
+                onChange={(v) => set(i, { slug: v })}
+                placeholder={t("libraryPathSlugPlaceholder")}
+                label={t("libraryPathSlug")}
+                disabled={disabled}
+                dir="ltr"
+                maxLength={FOLDER_SLUG_MAX}
+              />
+            </div>
+            <div className="s-pfolders__extra s-pfolders__extra--wrap">
+              <TextInput
+                value={row.folder}
+                onChange={(v) => set(i, { folder: v })}
+                placeholder={t("libraryPathFolderPlaceholder")}
+                label={t("libraryPathFolder")}
+                disabled={disabled}
+                dir="ltr"
+                maxLength={LIBRARY_FOLDER_MAX}
+              />
+              <TextInput
+                value={row.blurb ?? ""}
+                onChange={(v) => set(i, { blurb: v })}
+                placeholder={t("libraryPathBlurbPlaceholder")}
+                label={t("libraryPathBlurb")}
+                disabled={disabled}
+                dir="auto"
+                maxLength={LIBRARY_BLURB_MAX}
+              />
+              <TextInput
+                value={row.cover ?? ""}
+                onChange={(v) => set(i, { cover: v })}
+                placeholder={t("libraryPathCoverPlaceholder")}
+                label={t("libraryPathCover")}
+                disabled={disabled}
+                dir="ltr"
+              />
+              <TextInput
+                value={row.source ?? ""}
+                onChange={(v) => set(i, { source: v })}
+                placeholder={t("libraryPathSourcePlaceholder")}
+                label={t("libraryPathSource")}
+                disabled={disabled}
+                dir="ltr"
+                maxLength={LIBRARY_SOURCE_MAX}
+              />
+              <Toggle
+                label={t("libraryPathHidden")}
+                onLabel={t("libraryPathHidden")}
+                offLabel={t("libraryPathVisible")}
+                value={row.hidden === true}
+                disabled={disabled}
+                onChange={(on) => set(i, { hidden: on ? true : undefined })}
+              />
+              <button
+                type="button"
+                className="s-pfolders__move"
+                title={t("libraryPathUp")}
+                aria-label={t("libraryPathUp")}
+                disabled={disabled || i === 0}
+                onClick={() => move(i, -1)}
+              >
+                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+                  <path d="M8 12V4M4 8l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="s-pfolders__move"
+                title={t("libraryPathDown")}
+                aria-label={t("libraryPathDown")}
+                disabled={disabled || i === rows.length - 1}
+                onClick={() => move(i, 1)}
+              >
+                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+                  <path d="M8 4v8M4 8l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="s-pfolders__del"
+                title={t("libraryPathRemove")}
+                aria-label={t("libraryPathRemove")}
+                disabled={disabled}
+                onClick={() => onChange(rows.filter((_, n) => n !== i))}
+              >
+                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+                  <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+      <button
+        type="button"
+        className="s-pfolders__add"
+        disabled={disabled || rows.length >= LIBRARY_PATHS_MAX}
+        onClick={() => onChange([...rows, { id: libraryPathId(), slug: "", folder: "", kind: "book", title: "" }])}
+      >
+        {t("libraryPathAdd")}
+      </button>
+    </div>
+  );
 }
 
 /** THE TAG-LABEL TABLE.
@@ -968,6 +1198,22 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       home: f.publicFoldersHome === "on",
       nav: f.publicFoldersNav === "on",
       folders: nextFolders.length > 0 ? nextFolders : null,
+    };
+  }
+  const nextPaths = libraryList(f.libraryRows);
+  if (
+    f.libraryOn !== initial.libraryOn ||
+    f.libraryNav !== initial.libraryNav ||
+    f.libraryHome !== initial.libraryHome ||
+    f.libraryTitle.trim() !== initial.libraryTitle.trim() ||
+    JSON.stringify(nextPaths) !== JSON.stringify(libraryList(initial.libraryRows))
+  ) {
+    patch.library = {
+      enabled: f.libraryOn === "on",
+      nav: f.libraryNav === "on",
+      home: f.libraryHome === "on",
+      title: f.libraryTitle.trim() === "" ? null : f.libraryTitle.trim(),
+      paths: nextPaths.length > 0 ? nextPaths : null,
     };
   }
   return patch;
@@ -2408,6 +2654,7 @@ export default function SettingsModal() {
    *  toggles are inert, and say so. Read from the FORM like `syncOff`, so
    *  flipping the master lights the section up before the save. */
   const foldersOff = form?.publicFoldersOn !== "on";
+  const libraryOff = form?.libraryOn !== "on";
   /** settings.home.mode and the home banner are read by the BLOG shell only —
    *  server/auth.ts sends `me.home` inside `if (publicLayout() === "blog")`,
    *  and BlogDashboard mounts from BlogShell. PUBLIC_LAYOUT defaults to "app",
@@ -3086,6 +3333,60 @@ export default function SettingsModal() {
                       onChange={(on) =>
                         setForm((f) => (f ? { ...f, publicFoldersNav: on ? "on" : "off" } : f))
                       }
+                    />
+                  </Row>
+                  {/* ── THE LIBRARY ─────────────────────────────────────
+                      The collections' idiom again: a master switch, then
+                      what it governs beneath it. Spelled literally for the
+                      settings index, as above. */}
+                  <div className="s-smodal__sub">{t("groupLibrary")}</div>
+                  <p className="s-smodal__note">{t("libraryNote")}</p>
+                  <Row label={t("rowLibrary")} hint={t("hintLibrary")}>
+                    <Toggle
+                      label={t("rowLibrary")}
+                      onLabel={t("on")}
+                      offLabel={t("off")}
+                      value={form.libraryOn === "on"}
+                      onChange={(on) => setForm((f) => (f ? { ...f, libraryOn: on ? "on" : "off" } : f))}
+                    />
+                  </Row>
+                  {libraryOff && <p className="s-smodal__offnote">{t("libraryOffNotice")}</p>}
+                  <Row label={t("rowLibraryTitle")} hint={t("hintLibraryTitle")} error={errors.libraryTitle} off={libraryOff}>
+                    <TextInput
+                      value={form.libraryTitle}
+                      onChange={(v) => setForm((f) => (f ? { ...f, libraryTitle: v } : f))}
+                      placeholder={t("libraryTitle")}
+                      label={t("rowLibraryTitle")}
+                      disabled={libraryOff}
+                      dir="auto"
+                      maxLength={LIBRARY_SITE_TITLE_MAX}
+                    />
+                  </Row>
+                  <Row label={t("rowLibraryPaths")} hint={t("hintLibraryPaths")} error={errors.libraryRows} off={libraryOff} wide>
+                    <LibraryPathEditor
+                      rows={form.libraryRows}
+                      disabled={libraryOff}
+                      onChange={(rows) => setForm((f) => (f ? { ...f, libraryRows: rows } : f))}
+                    />
+                  </Row>
+                  <Row label={t("rowLibraryNav")} hint={t("hintLibraryNav")} off={libraryOff}>
+                    <Toggle
+                      label={t("rowLibraryNav")}
+                      onLabel={t("on")}
+                      offLabel={t("off")}
+                      disabled={libraryOff}
+                      value={form.libraryNav === "on"}
+                      onChange={(on) => setForm((f) => (f ? { ...f, libraryNav: on ? "on" : "off" } : f))}
+                    />
+                  </Row>
+                  <Row label={t("rowLibraryHome")} hint={t("hintLibraryHome")} off={libraryOff}>
+                    <Toggle
+                      label={t("rowLibraryHome")}
+                      onLabel={t("on")}
+                      offLabel={t("off")}
+                      disabled={libraryOff}
+                      value={form.libraryHome === "on"}
+                      onChange={(on) => setForm((f) => (f ? { ...f, libraryHome: on ? "on" : "off" } : f))}
                     />
                   </Row>
                   <div className="s-smodal__sub">{t("groupHome")}</div>

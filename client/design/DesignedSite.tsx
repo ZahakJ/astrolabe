@@ -14,7 +14,7 @@
 //     the designed page stays up with the failing section replaced by a named
 //     card, under a strip offering one click back to stock.
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import {
   DesignError,
@@ -29,6 +29,10 @@ import BlogSearchOverlay from "../blog/BlogSearchOverlay.tsx";
 import AuthorSites from "../blog/AuthorSites.tsx";
 import PublicFolders from "../blog/PublicFolders.tsx";
 import BlogFolder from "../blog/BlogFolder.tsx";
+import LibraryBand from "../library/LibraryBand.tsx";
+import { useLibrary } from "../library/libraryData.ts";
+import { libraryDocumentTitle, parseLibraryRoute, type LibraryRoute } from "../library/libraryRoute.ts";
+import { lazySurface } from "../lazySurface.tsx";
 import BackToTop from "../blog/BackToTop.tsx";
 import { usePostPreviews } from "../blog/usePostPreviews.ts";
 import BlogShell from "../blog/BlogShell.tsx";
@@ -61,8 +65,13 @@ type Route =
   | { kind: "home" }
   | { kind: "topic"; tag: string }
   | { kind: "folder"; slug: string }
+  | LibraryRoute
   | { kind: "article"; path: string }
   | { kind: "missing" };
+
+/** The library's pages, in their own chunk: a designed home page does not
+ *  pay for a shelf its reader may never open. */
+const LibraryRouter = lazySurface(() => import("../library/LibraryPages.tsx"));
 
 function parseRoute(pathname: string): Route {
   if (pathname === "/") return { kind: "home" };
@@ -85,6 +94,10 @@ function parseRoute(pathname: string): Route {
     } catch { /* Malformed collection URLs are missing pages. */ }
     return { kind: "missing" };
   }
+  // The library, on the same terms as the collections.
+  const lib = parseLibraryRoute(pathname);
+  if (lib !== null) return lib;
+  if (pathname === "/library" || pathname.startsWith("/library/")) return { kind: "missing" };
   // The tree is a DISCOVERY surface and is filtered; "not in the tree" is not
   // "not there". Hand the URL to /api/note rather than 404ing on a list that
   // was never meant to answer this (CONTRACTS: permalinks must keep working).
@@ -120,6 +133,8 @@ export default function DesignedSite() {
   const logo = useStore((s) => s.logo);
   const folders = useStore((s) => s.publicFolders);
   const foldersInNav = useStore((s) => s.publicFoldersNav);
+  const libraryDoor = useStore((s) => s.library);
+  const shelf = useLibrary();
 
   // THE FIRST FRAME HAS THE DESIGN IN HAND when the shell carried it
   // (client/boot.ts). Validated with the same shared validator the fetch
@@ -284,12 +299,14 @@ export default function DesignedSite() {
     } else if (route.kind === "folder") {
       const folder = folders.find((f) => f.slug === route.slug);
       document.title = `${folder?.title ?? t("blogNoPage")} · ${siteName}`;
+    } else if (route.kind === "library" || route.kind === "libraryPath" || route.kind === "libraryLesson") {
+      document.title = libraryDocumentTitle(route, shelf, siteName);
     } else if (route.kind === "topic") {
       document.title = `${tagLabel(canonicalTag(route.tag) ?? route.tag)} · ${siteName}`;
     } else {
       document.title = tagline ? `${siteName} — ${tagline}` : siteName;
     }
-  }, [route, siteName, tagline, folders]);
+  }, [route, siteName, tagline, folders, shelf]);
 
   const topics = useMemo(() => {
     const counts = new Map<string, number>();
@@ -416,7 +433,13 @@ export default function DesignedSite() {
         >
           <DesignHeader
             header={chrome.header}
-            items={publicNavigation(chrome.nav, navTopics, folders, foldersInNav)}
+            items={publicNavigation(
+              chrome.nav,
+              navTopics,
+              folders,
+              foldersInNav,
+              libraryDoor?.nav ? { title: libraryDoor.title || t("libraryTitle") } : null,
+            )}
             navStyle={chrome.nav.style}
             namedElsewhere={namedElsewhere}
             topics={navTopics}
@@ -480,10 +503,17 @@ export default function DesignedSite() {
               </Fragment>
             ))}
             {sections.length === 1 && sections[0].kind === "hero" && <PublicFolders />}
+            <LibraryBand />
             <AuthorSites />
           </div>
         ) : route.kind === "folder" ? (
           <div className="s-dsn-page"><BlogFolder slug={route.slug} posts={posts} locale={locale} /></div>
+        ) : route.kind === "library" || route.kind === "libraryPath" || route.kind === "libraryLesson" ? (
+          <div className="s-dsn-page s-dsn-page--library">
+            <Suspense fallback={<div />}>
+              <LibraryRouter route={route} />
+            </Suspense>
+          </div>
         ) : route.kind === "topic" ? (
           <div className="s-dsn-page">
             <TopicPage tag={route.tag} posts={posts} locale={locale} />
