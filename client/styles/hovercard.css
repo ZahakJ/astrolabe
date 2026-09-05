@@ -143,3 +143,190 @@
     transform: none;
   }
 }
+
+/* ── The spotlight ──────────────────────────────────────────────────────────
+   A public shell's presentation of the same card: centred in the window over
+   a dimmed, blurred veil, the post's banner across the top when it has one,
+   the title in the shell's own heading face, one line of meta, and the
+   opening dissolving into the ground. Nothing here scrolls: the pointer is
+   on the link, the post is a click away, and a fade says "there is more"
+   better than a scrollbar nobody can reach. Every colour is a token, every
+   edge is logical, and `--dsg-head-font` lets a designed site's heading face
+   reach the title. */
+
+.s-hovercard-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 499;
+  background: color-mix(in srgb, var(--bg) 46%, transparent);
+  -webkit-backdrop-filter: blur(6px) saturate(0.9);
+  backdrop-filter: blur(6px) saturate(0.9);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.s-hovercard-veil--in {
+  opacity: 1;
+}
+
+.s-hovercard--spotlight {
+  inset: 0;
+  margin: auto;
+  block-size: fit-content;
+  inline-size: min(42rem, calc(100vw - 48px));
+  max-block-size: min(76vh, 720px);
+  border-radius: 18px;
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: var(--bg-raised);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--text) 8%, transparent) inset,
+    0 24px 80px -24px rgba(0, 0, 0, 0.55),
+    0 60px 140px -40px color-mix(in srgb, var(--accent) 35%, transparent);
+  transform: translateY(10px) scale(0.975);
+  transition: opacity 220ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.s-hovercard--spotlight.s-hovercard--in {
+  transform: none;
+}
+
+/* The crown: banner (when there is one) and the title plate. */
+.s-hovercard__crown {
+  position: relative;
+  flex: none;
+  isolation: isolate;
+}
+
+.s-hovercard__banner {
+  block-size: clamp(120px, 22vh, 200px);
+  background-position: center;
+  background-size: cover;
+  /* The image is ground, not content: a little desaturated and dark
+     enough that the plate below can be read against its lower edge. */
+  filter: saturate(0.85);
+}
+
+.s-hovercard__crown--art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom, transparent 30%, color-mix(in srgb, var(--bg-raised) 92%, transparent) 88%, var(--bg-raised));
+  pointer-events: none;
+}
+
+.s-hovercard__crown--art .s-hovercard__plate {
+  margin-block-start: -56px;
+}
+
+.s-hovercard__plate {
+  position: relative;
+  z-index: 2;
+  padding: 22px 28px 0;
+}
+
+/* A thin accent leaf across the top when there is no banner to open on. */
+.s-hovercard__crown:not(.s-hovercard__crown--art)::before {
+  content: "";
+  display: block;
+  block-size: 3px;
+  background: linear-gradient(to right, var(--accent), color-mix(in srgb, var(--accent) 35%, transparent) 60%, transparent);
+}
+
+.s-hovercard--spotlight .s-hovercard__title {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  font-family: var(--dsg-head-font, var(--font-serif));
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  white-space: normal;
+  text-wrap: balance;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.s-hovercard__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin-block-start: 10px;
+  padding-block-end: 14px;
+  border-block-end: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-hovercard__bit + .s-hovercard__bit::before {
+  content: "·";
+  margin-inline-end: 14px;
+  color: var(--text-faint);
+}
+
+.s-hovercard__tag {
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: var(--accent-soft);
+  color: var(--accent);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.78rem;
+}
+
+.s-hovercard--spotlight .s-hovercard__body {
+  overflow: hidden;
+  padding: 18px 28px 30px;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  /* A deeper dissolve than the leaf's: this card does not scroll, so the
+     fade is the whole of its "there is more". */
+  --fade: 72px;
+  scrollbar-width: none;
+}
+
+.s-hovercard--spotlight .s-hovercard__body::-webkit-scrollbar {
+  display: none;
+}
+
+/* The body's fade is the only exit: a spotlight always dissolves at the
+   bottom (there is always more post than card), never at the top. */
+.s-hovercard--spotlight .s-hovercard__body[data-fade="none"] {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* A phone gets the same card, closer to its edges and shorter. */
+@media (max-width: 640px) {
+  .s-hovercard--spotlight {
+    inline-size: calc(100vw - 24px);
+    max-block-size: 70vh;
+    border-radius: 14px;
+  }
+
+  .s-hovercard__plate,
+  .s-hovercard--spotlight .s-hovercard__body {
+    padding-inline: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-hovercard--spotlight,
+  .s-hovercard-veil {
+    transition: none;
+    transform: none;
+  }
+
+  .s-hovercard-veil {
+    opacity: 1;
+  }
+}

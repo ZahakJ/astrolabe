@@ -338,7 +338,7 @@ export default function BlogShell() {
     return filled.length === folders.length ? folders : filled;
   }, [folders, foldersInNav]);
 
-  usePostPreviews(scrollEl, posts, locked, language);
+  usePostPreviews(scrollEl, posts, locked, language, locale);
 
   // Dashboard home carries the site identity inside its own hero — rendering
   // the masthead above it would say the site name twice. Every other page

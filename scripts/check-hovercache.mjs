@@ -136,8 +136,9 @@ if (links.length < 4) {
 
 const heapBefore = await page.evaluate(() => (performance.memory ? performance.memory.usedJSHeapSize : 0));
 
-// Hover each link long enough to open a card (OPEN_MS is 350ms), several
-// times around, so the cache is asked to hold far more than its bound.
+// Hover each link long enough to open a card (OPEN_MS is 350ms for the leaf
+// and 480ms for a public shell's spotlight), several times around, so the
+// cache is asked to hold far more than its bound.
 const ROUNDS = Math.max(3, Math.ceil((CACHE_MAX * 3) / links.length));
 let opened = 0;
 const openedPaths = new Set();
@@ -155,7 +156,7 @@ for (let round = 0; round < ROUNDS; round++) {
     } catch {
       continue; // covered or detached; the next one will do
     }
-    await page.waitForTimeout(430);
+    await page.waitForTimeout(640);
     if (await page.$(".s-hovercard")) {
       opened++;
       openedPaths.add(href);
