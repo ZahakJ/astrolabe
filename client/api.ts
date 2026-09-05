@@ -21,6 +21,8 @@ import type {
   NoteStatesResponse,
   NoteWriteResult,
   LibraryPath,
+  NoteAnnotation,
+  NoteAnnotationsResponse,
   PostMeta,
   PublicThemeInfo,
   PublishedPaths,
@@ -578,6 +580,29 @@ export function getMe(): Promise<MeData> {
 /** Published notes as blog posts, newest first (blog mode's list). */
 export function getPosts(): Promise<PostMeta[]> {
   return request<PostMeta[]>("/api/posts");
+}
+
+/** A note's annotations: every one for the owner, the public ones for a
+ *  visitor (server/annotations.ts). A 404 means the note is not published to
+ *  this session and the caller shows nothing. */
+export function getAnnotations(path: string): Promise<NoteAnnotationsResponse> {
+  return request<NoteAnnotationsResponse>(`/api/annotations?path=${encodeURIComponent(path)}`);
+}
+
+/** Upsert one annotation by id. Admin only. */
+export function putAnnotation(path: string, annotation: NoteAnnotation): Promise<NoteAnnotation> {
+  return request<NoteAnnotation>("/api/annotations", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path, annotation }),
+  });
+}
+
+export function deleteAnnotation(path: string, id: string): Promise<{ ok: true }> {
+  return request<{ ok: true }>(
+    `/api/annotations?path=${encodeURIComponent(path)}&id=${encodeURIComponent(id)}`,
+    { method: "DELETE" },
+  );
 }
 
 /** The library shelf: every path this session may read a lesson of, with

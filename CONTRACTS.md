@@ -896,6 +896,30 @@ translucent disc of the node's own colour, skipped above 700 discs on screen whe
 wash). Labels wear a halo of the ground. Everything is one object under `vellum.graph`,
 normalised field by field on load (`normalizeGraphPrefs`), per browser, never sent anywhere.
 
+## Note annotations (shared/textQuote.ts, server/annotations.ts, client/annotations/)
+
+**A MARK IS ANCHORED BY ITS WORDS.** An annotation stores the passage as rendered (whitespace
+folded, bidi controls dropped) with up to 48 characters of context either side, never an offset:
+`findQuote()` finds every occurrence in the rendered text and, when there is more than one, scores
+each by how much of its surroundings agree with the stored context, folded on both sides because
+the stored context was trimmed when it was taken. `foldMap()` turns a folded hit back into a raw
+offset, and the DOM half (`anchor.ts`) turns that into a Range over the text nodes of the prose,
+skipping the renderer's furniture (properties card, transclusion cards, the empty hint). A passage
+that is gone stays in the list, said to be gone; nothing is silently dropped.
+
+**PAINTED, NEVER INSERTED.** Marks are drawn with the CSS Custom Highlight API under names of the
+form `vellum-note-<scope>-<ink>` (and `-public`), so no node enters the rendered note and a
+paragraph's own markup is never split; a click on a mark is found by asking where the caret
+would land (`rangeAtPoint`). Each surface paints under its own scope letter (`r` reading view,
+`p` blog article, `d` designed article, `l` lesson) so two hosts on one page never clear each
+other. The six inks are the book reader's tokens.
+
+**KEPT BESIDE THE VAULT, NOT IN IT.** `VELLUM_DATA/annotations.json`, a map from note path to
+its annotations, on the books.json idiom (cleaned on read, written by rename, 0600). The rename
+and folder-move routes carry entries to the new path. The owner reads and writes every annotation
+of any note; a visitor reads the PUBLIC ones of a PUBLISHED note and never learns the private ones
+exist — the comments gate, line for line. `public` is off by default: a note to self is to self.
+
 ## The library (shared/library.ts, server/library.ts, client/library/)
 
 **A PATH IS A FOLDER, NOT A HUB.** The first design had a hub note with an ordered list of

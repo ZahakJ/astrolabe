@@ -3,7 +3,7 @@
 // prev/next links by date, related posts (wikilinked from/to this one), and
 // Marginalia (reader comments) at the end.
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import type { PostMeta } from "../../shared/types.ts";
 import { getNote } from "../api.ts";
@@ -12,6 +12,7 @@ import { useNoteNeighborhood } from "../graphCache.ts";
 import { countPhrase, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import Marginalia from "../components/Marginalia.tsx";
+import AnnotationsMount from "../annotations/AnnotationsMount.tsx";
 import { renderNoteContent } from "../reading/renderNote.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 import { notePathToUrl } from "../router.ts";
@@ -70,6 +71,8 @@ export default function BlogArticle({
   locale: string;
 }) {
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const [annHost, setAnnHost] = useState<HTMLElement | null>(null);
+  const admin = useStore((s) => s.admin);
   const tree = useStore((s) => s.tree);
   const pendingHeading = useStore((s) => s.pendingHeading);
   const bannerFallback = useStore((s) => s.bannerFallback);
@@ -241,7 +244,16 @@ export default function BlogArticle({
         />
       ) : null}
 
-      <div className="s-blog-article__body" ref={bodyRef} />
+      <div
+        className="s-blog-article__body"
+        ref={(el) => {
+          bodyRef.current = el;
+          setAnnHost(el);
+        }}
+      />
+      {/* The author's notes on a passage, when they chose to show them; the
+          owner reading their own site may write here too. */}
+      <AnnotationsMount path={path} host={annHost} canEdit={admin} scope="p" />
 
       <footer className="s-blog-article__foot">
         {/* The piece's PLACE, then its subjects. A folder is the owner's own

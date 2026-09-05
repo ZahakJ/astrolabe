@@ -45,6 +45,7 @@ import type {
 import { authGuard, authRoutes, clientIp, isProtected, isPublishLimited } from "./auth.ts";
 import { languageScope } from "./language.ts";
 import { libraryFor } from "./library.ts";
+import { deleteAnnotation, listAnnotations, moveAnnotations, moveAnnotationsFolder, publicAnnotations, putAnnotation } from "./annotations.ts";
 import { visibilityFor, type VisibilityQuery } from "./visibility.ts";
 import {
   AUTHOR_MAX,
@@ -807,6 +808,9 @@ api.post("/rename", async (c) => {
   const from = requiredString(body, "path");
   const to = requiredString(body, "toPath");
   await renameWithLinkRewrite(from, to);
+  // The note's annotations move with it (server/annotations.ts): keyed by
+  // path, so the rename is the one moment they would otherwise be lost.
+  moveAnnotations(from, to);
   return c.json({ ok: true });
 });
 
@@ -845,6 +849,7 @@ api.post("/folder/move", async (c) => {
   const from = requiredString(body, "path");
   const to = requiredString(body, "toPath");
   const result = await moveFolderWithLinkRewrite(from, to);
+  moveAnnotationsFolder(from, to);
   // A FOLDER'S GLYPH IS PART OF THE FOLDER. settings.folderIcons is keyed by
   // path, and this route is where a folder's path changes — rename and move
   // are the same operation here (Sidebar's renameTo dispatches both to it).
@@ -2179,6 +2184,34 @@ api.get("/posts", (c) => {
 // scope, templates out of both lists — because publishing a reading or gaming
 // shelf is the point of the feature and the endpoint is what makes leaving one
 // on a public note safe.
+// Note annotations (server/annotations.ts). The owner reads and writes every
+// annotation of any note; a visitor reads the PUBLIC ones of a published note
+// and nothing else — the comments gate, line for line.
+api.get("/annotations", (c) => {
+  const notePath = requiredQuery(c.req.query("path"), "path");
+  const limited = isPublishLimited(c);
+  if (limited) {
+    if (!isNotePublished(notePath)) throw new VaultError(404, `Note not found: ${notePath}`);
+    return c.json({ path: notePath, annotations: publicAnnotations(notePath) });
+  }
+  return c.json({ path: notePath, annotations: listAnnotations(notePath) });
+});
+
+api.put("/annotations", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const body = await jsonBody(c);
+  const notePath = requiredString(body, "path");
+  return c.json(putAnnotation(notePath, body.annotation));
+});
+
+api.delete("/annotations", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const notePath = requiredQuery(c.req.query("path"), "path");
+  const id = requiredQuery(c.req.query("id"), "id");
+  deleteAnnotation(notePath, id);
+  return c.json({ ok: true });
+});
+
 // The library shelf: every path this session may read a lesson of, with the
 // folder's structure resolved (server/library.ts). Public on the posts terms.
 api.get("/library", (c) => c.json(libraryFor(c)));

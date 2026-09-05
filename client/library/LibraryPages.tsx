@@ -24,6 +24,7 @@ import { useStore } from "../state.ts";
 import { go } from "../blog/nav.ts";
 import { BlogSkeleton, NavLink } from "../blog/util.tsx";
 import LibraryCover, { kindLabel } from "./LibraryCover.tsx";
+import AnnotationsMount from "../annotations/AnnotationsMount.tsx";
 import { clearProgress, markRead, stepsOf, useLibrary, useProgress, type LessonStep } from "./libraryData.ts";
 import "../reading/reading.css";
 import "../styles/library-band.css";
@@ -289,6 +290,8 @@ function LessonPage({ path, n }: { path: LibraryPath; n: number }) {
   const steps = useMemo(() => stepsOf(path), [path]);
   const step: LessonStep | undefined = steps[n - 1];
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const [annHost, setAnnHost] = useState<HTMLElement | null>(null);
+  const admin = useStore((s) => s.admin);
   // Whether the rail stands beside the column (wide) or folds above it. A
   // container query styles the grid, but a closed <details> renders nothing
   // whatever the stylesheet says, so the fold's open state has to know the
@@ -445,10 +448,17 @@ function LessonPage({ path, n }: { path: LibraryPath; n: number }) {
         {failed ? (
           <p className="s-lib__empty">{t("blogNoPage")}</p>
         ) : (
-          <div className="s-lib-lesson__body s-reading" ref={bodyRef}>
+          <div
+            className="s-lib-lesson__body s-reading"
+            ref={(el) => {
+              bodyRef.current = el;
+              setAnnHost(el);
+            }}
+          >
             <BlogSkeleton rows={4} />
           </div>
         )}
+        {lessonPath && <AnnotationsMount path={lessonPath} host={annHost} canEdit={admin} scope="l" />}
         <nav className="s-lib-turn" aria-label={t("libraryContents")}>
           {prev ? (
             <NavLink url={libraryUrl(path.slug, prev.n)} className="s-lib-turn__card s-lib-turn__card--prev">

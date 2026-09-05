@@ -554,7 +554,11 @@ const AUDIENCES = [
 // that declare them, plus the store's one field for the door. The pages,
 // their sheet and the progress module are in LibraryPages-*.js behind the
 // door; the entry pays the words, which is the dictionary debt again.
-  { name: "entry (everyone)", keys: entry, budget: 574 * 1024 },
+// …and again for NOTE ANNOTATIONS (575.2 kB actual → 576). Twenty dictionary
+// entries. The layer, its painter and its stylesheet are in
+// AnnotationLayer-*.js, mounted lazily and only when there is a mark to paint
+// or an owner who can write one.
+  { name: "entry (everyone)", keys: entry, budget: 576 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -719,7 +723,10 @@ const AUDIENCES = [
   // and the route parser both shells read — the parts every blog page needs
   // to SHOW the library exists. The shelf, the path and the lesson pages
   // are lazy (LibraryPages-*.js) and cost a visitor reading a post nothing.
-  { name: "anonymous blog reader", keys: blog, budget: 805 * 1024 },
+  // …and again for NOTE ANNOTATIONS (807.4 kB actual → 808): the words, and
+  // the small mount that asks /api/annotations and opens the lazy layer only
+  // when the answer is not empty.
+  { name: "anonymous blog reader", keys: blog, budget: 808 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -798,7 +805,8 @@ const AUDIENCES = [
   // …and again for THE LIBRARY (1195.8 kB actual → 1197): the entry's words
   // and the door, carried; the settings editor's rows are in the modal's
   // chunk, and the pages in their own.
-  { name: "admin first paint", keys: app, budget: 1197 * 1024 },
+  // …and again for NOTE ANNOTATIONS (1197.7 kB actual → 1199): the words.
+  { name: "admin first paint", keys: app, budget: 1199 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

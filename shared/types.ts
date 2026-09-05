@@ -346,6 +346,36 @@ export interface LibraryPath {
   minutes: number;
 }
 
+/** A NOTE ANNOTATION — a passage of a note the owner marked, and what they
+ *  wrote about it. Anchored by the passage's own words (a quote with a little
+ *  context either side), never by an offset: the note may be edited, re-rendered
+ *  in three shells and reflowed in a different reading face, and the sentence
+ *  is still the sentence. Kept in VELLUM_DATA, never in the note — the whole
+ *  point is to say something about a note without changing it. */
+export interface NoteAnnotation {
+  id: string;
+  /** The exact passage, as rendered, whitespace folded. */
+  quote: string;
+  /** Up to 48 characters of rendered text before and after it, so a quote
+   *  that appears twice still lands on the right one. */
+  prefix: string;
+  suffix: string;
+  /** 1..INK_COUNT, the book reader's inks. */
+  ink: number;
+  /** The message. "" is a highlight with nothing said yet. */
+  note: string;
+  /** Shown to visitors on the public pages (blog article, lesson) when the
+   *  note itself is published. Off by default: a note to self is to self. */
+  public: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface NoteAnnotationsResponse {
+  path: string;
+  annotations: NoteAnnotation[];
+}
+
 /** What a VISITOR receives for one public folder: the reference minus the
  *  bookkeeping, plus the one fact only the server can supply — how many posts
  *  this session can actually see in it. A hidden folder never becomes one. */
