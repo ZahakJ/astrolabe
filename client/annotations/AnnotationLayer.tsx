@@ -16,6 +16,7 @@ import { t } from "../i18n.ts";
 import { anchorFromSelection, clearMarks, marksSupported, paintMarks, rangeAtPoint, rangeFor } from "./anchor.ts";
 import { useAnnotations } from "./useAnnotations.ts";
 import AnnotationPopover from "./AnnotationPopover.tsx";
+import AnnotationTip, { type TipRect } from "./AnnotationTip.tsx";
 import "../styles/annotations.css";
 
 interface Placed {
@@ -50,6 +51,7 @@ export default function AnnotationLayer({
   const [fab, setFab] = useState<{ x: number; y: number; anchor: TextQuote } | null>(null);
   const [open, setOpen] = useState<{ draft: NoteAnnotation; at: { left: number; top: number }; fresh: boolean } | null>(null);
   const [tick, setTick] = useState(0);
+  const [hover, setHover] = useState<{ id: string; rect: TipRect } | null>(null);
   const supported = useMemo(() => marksSupported(), []);
 
   // Repaint whenever the prose or the list changes.
@@ -104,6 +106,46 @@ export default function AnnotationLayer({
     };
   }, [host, canEdit]);
 
+  // The pointer resting on a mark names it. Custom highlights take no
+  // events, so the mark under the pointer is found the way the click finds
+  // it, once per animation frame while the pointer moves.
+  useEffect(() => {
+    if (!host) return;
+    let raf = 0;
+    let last: string | null = null;
+    const onMove = (e: MouseEvent): void => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const ranged = placed.filter((p) => p.range !== null).map((p) => ({ id: p.annotation.id, range: p.range as Range }));
+        const id = ranged.length ? rangeAtPoint(ranged, e.clientX, e.clientY) : null;
+        if (id === last) return;
+        last = id;
+        const hit = id ? ranged.find((r) => r.id === id) : undefined;
+        if (!hit) {
+          setHover(null);
+          return;
+        }
+        // The line the pointer is on, not the whole mark: a mark that wraps
+        // three lines would otherwise put the card a paragraph away.
+        const rects = [...hit.range.getClientRects()];
+        const row = rects.find((r) => e.clientY >= r.top - 2 && e.clientY <= r.bottom + 2) ?? hit.range.getBoundingClientRect();
+        setHover({ id: hit.id, rect: { left: row.left, top: row.top, width: row.width, height: row.height } });
+      });
+    };
+    const onLeave = (): void => {
+      cancelAnimationFrame(raf);
+      last = null;
+      setHover(null);
+    };
+    host.addEventListener("mousemove", onMove);
+    host.addEventListener("mouseleave", onLeave);
+    return () => {
+      host.removeEventListener("mousemove", onMove);
+      host.removeEventListener("mouseleave", onLeave);
+      cancelAnimationFrame(raf);
+    };
+  }, [host, placed]);
+
   // A click on a mark opens it.
   useEffect(() => {
     if (!host) return;
@@ -121,6 +163,7 @@ export default function AnnotationLayer({
       const hit = placed.find((p) => p.annotation.id === id);
       if (!hit || !hit.range) return;
       setFab(null);
+      setHover(null);
       setOpen({ draft: { ...hit.annotation }, at: placeNear(hit.range.getBoundingClientRect()), fresh: false });
     };
     host.addEventListener("click", onClick);
@@ -167,6 +210,10 @@ export default function AnnotationLayer({
           <span aria-hidden="true">✎</span> {t("annotateSelection")}
         </button>
       )}
+      {hover && !open && (() => {
+        const hit = placed.find((p) => p.annotation.id === hover.id);
+        return hit ? <AnnotationTip annotation={hit.annotation} rect={hover.rect} canEdit={canEdit} /> : null;
+      })()}
       {open && (
         <AnnotationPopover
           key={open.draft.id}

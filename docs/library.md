@@ -47,6 +47,7 @@ reopens that chooser; nothing here is typed as a path.
 | Address | The URL segment: `/library/<address>`. Lowercase letters, digits, hyphens. |
 | Folder | The vault folder the path reads, chosen from the tree. |
 | Blurb, cover, source | Folded under one line until a row has them. Blurb: one or two sentences under the title. |
+| Cover | Start typing and the vault's images are offered, with thumbnails; pick one, or paste an https URL. |
 | Cover | An image, as a banner value (`attachments/cover.jpg` or an https URL). Without one the site draws a cover from the title. |
 | Source link | Where the material came from: the course page, the publisher. Shown on the path. |
 | Hidden | A lossless take-down: the row keeps every field and reaches nobody. |
@@ -55,6 +56,10 @@ Two placements and a name sit above the rows: **Door in the navigation** (on by 
 library is on; a *Library* link beside the topics on both public shells) and **Shelf on the home
 page** (off by default; a band of covers on the blog home, above the writings). **Name** renames the
 door and the page; empty means "Library".
+
+Each card counts the notes inside and how many are published. **The library lists published notes
+only**: a path whose notes are all drafts is a shelf with nothing on it, and the door in the
+navigation stays hidden until some path has a note a reader may open.
 
 Up to 24 paths. The rows' order is the shelf's order.
 

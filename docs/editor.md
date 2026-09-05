@@ -205,7 +205,9 @@ the same set through their glyph button in Settings.
 
 Select a passage in the reading view and press **Annotate**, or select words in the editor and
 press the pen on the floating toolbar (or **Annotate** in the right-click menu): the passage takes
-an ink and you write what you want to say about it. The note itself is never touched. Annotations live beside the
+an ink and you write what you want to say about it. The words stay marked in both views, editor
+and reading, in their ink with a line under them. Rest the pointer on a mark and the note appears;
+click it to edit the note, change its ink, show or hide it from readers, or delete it. The note itself is never touched. Annotations live beside the
 vault in `VELLUM_DATA/annotations.json`, anchored by the passage's own words (with a little context
 either side), so they survive the note being edited above them, moved, renamed, or rendered in a
 different face. A passage that is gone is listed under the prose as no longer in the note.

@@ -180,6 +180,17 @@
   color: var(--text-faint);
 }
 
+.s-libpaths__count {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+.s-libpaths__count--none {
+  color: var(--danger);
+}
+
 .s-libpaths__actions {
   display: flex;
   align-items: center;

@@ -1,0 +1,40 @@
+/* Vellum — the annotation marks painted IN THE EDITOR
+   (client/editor/annotationMarks.ts). Its own sheet, imported by that
+   plugin, so it travels with the editor chunk and not with the entry: the
+   popover and the tooltip live in annotations.css beside the lazy layer that
+   draws them. Prefix: s-ann-mark. */
+
+/* THE MARKS IN THE EDITOR (client/editor/annotationMarks.ts). Real spans, so
+   they can do what a custom highlight cannot: rounded ink that clones across
+   a line break, a firmer line under the words, a lift on hover, a pointer
+   that promises a click. */
+.s-ann-mark {
+  --ink: var(--book-ink-1);
+  background: linear-gradient(to top, var(--ink) 0, var(--ink) 100%);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--ink) 60%, var(--text));
+  border-radius: 3px;
+  padding-block: 1px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  cursor: pointer;
+  transition: box-shadow 120ms ease, filter 120ms ease;
+}
+
+.s-ann-mark--ink-2 { --ink: var(--book-ink-2); }
+.s-ann-mark--ink-3 { --ink: var(--book-ink-3); }
+.s-ann-mark--ink-4 { --ink: var(--book-ink-4); }
+.s-ann-mark--ink-5 { --ink: var(--book-ink-5); }
+.s-ann-mark--ink-6 { --ink: var(--book-ink-6); }
+
+.s-ann-mark:hover {
+  filter: saturate(1.25) brightness(1.08);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--ink) 40%, var(--text)), 0 0 0 2px color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+/* A public mark also wears the accent underline the reading view gives it. */
+.s-ann-mark--public {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}

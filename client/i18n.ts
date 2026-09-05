@@ -104,6 +104,9 @@ const DICT = {
   libraryPathNoFolder: { en: "No folder chosen", ar: "لم يُختر مجلد" },
   libraryPathsTreeHint: { en: "Or right-click a folder in the tree and choose Library.", ar: "أو انقر بالزر الأيمن على مجلد في الشجرة واختر المكتبة." },
   libraryPathDetails: { en: "Blurb, cover and source", ar: "النبذة والغلاف والمصدر" },
+  libraryPathLessons: { en: "{published} of {notes} notes published", ar: "نُشر {published} من {notes} ملاحظة" },
+  libraryPathNonePublished: { en: "Readers see nothing here until a note inside is published.", ar: "لن يرى القرّاء شيئًا هنا حتى تُنشر ملاحظة بداخله." },
+  pathSuggestions: { en: "Suggestions from the vault", ar: "اقتراحات من الخزانة" },
   graphClose: { en: "Close settings", ar: "إغلاق الإعدادات" },
   graphTagPick: { en: "Which tag colours a note", ar: "أي وسم يلوّن الملاحظة" },
   graphTagCommon: { en: "Most shared", ar: "الأكثر شيوعًا" },
@@ -882,6 +885,8 @@ const DICT = {
   annotationsPublicHeading: { en: "The author's notes", ar: "ملاحظات الكاتب" },
   annotationUnsupported: { en: "This browser cannot paint annotations.", ar: "لا يستطيع هذا المتصفح رسم التعليقات." },
   annotationClose: { en: "Close", ar: "إغلاق" },
+  annotationTipEdit: { en: "Click to edit or remove", ar: "انقر للتعديل أو الحذف" },
+  annotationTipRead: { en: "Click to read", ar: "انقر للقراءة" },
   // ── The library (shared/library.ts, client/library/) ────────────────────
   libraryTitle: { en: "Library", ar: "المكتبة" },
   libraryBooks: { en: "Books", ar: "الكتب" },

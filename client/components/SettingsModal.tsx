@@ -37,7 +37,7 @@ import FolderGlyph from "./FolderGlyph.tsx";
 import type { IconPickState } from "./FolderIconPicker.tsx";
 import { pickFolder } from "./FolderPicker.tsx";
 import { lazySurface } from "../lazySurface.tsx";
-import { unitNamesOf } from "../libraryFolders.ts";
+import { findFolderNode, unitNamesOf } from "../libraryFolders.ts";
 import {
   folderId,
   folderSlug,
@@ -61,7 +61,7 @@ import {
   LIBRARY_SOURCE_MAX,
   LIBRARY_TITLE_MAX,
 } from "../../shared/library.ts";
-import type { LibraryKind, LibraryPathRef } from "../../shared/types.ts";
+import type { LibraryKind, LibraryPathRef, TreeNode } from "../../shared/types.ts";
 import {
   ApiError,
   deleteCustomFont,
@@ -94,6 +94,7 @@ import { FontPicker, SYSTEM_FONT } from "./FontPicker.tsx";
 import SettingsSearch from "./settings/SettingsSearch.tsx";
 import { SETTINGS_INDEX } from "./settings/settingsIndex.ts";
 import { NumberInput, SegmentedControl, TextInput, Toggle, type Segment } from "./controls/Fields.tsx";
+import { PathInput } from "./controls/PathInput.tsx";
 import { isSelectOpen, Select, type SelectGroup } from "./controls/Select.tsx";
 import DeviceTab from "./settings/DeviceTab.tsx";
 import { Row } from "./settings/Row.tsx";
@@ -644,6 +645,31 @@ function LibraryPathEditor({
     const row = rows[i];
     set(i, { folder, ...(row.title.trim() === "" ? { title: libraryTitleOf(folder) } : {}) });
   };
+  // What a reader would get: the notes inside, and how many are published.
+  // The library only lists published notes, so a path whose notes are all
+  // drafts is a shelf with nothing on it — and the reason the owner asked
+  // "how do I see the library on the public site?".
+  const tree = useStore((s) => s.tree);
+  const publishedPaths = useStore((s) => s.publishedPaths);
+  useEffect(() => {
+    if (publishedPaths === null) void useStore.getState().loadPublished();
+  }, [publishedPaths]);
+  const countsOf = (folder: string): { notes: number; published: number } => {
+    const node = findFolderNode(tree, folder);
+    let notes = 0;
+    let published = 0;
+    const walk = (n: TreeNode): void => {
+      for (const c of n.children ?? []) {
+        if (c.type === "folder") walk(c);
+        else if (!c.attachment) {
+          notes++;
+          if (publishedPaths?.has(c.path)) published++;
+        }
+      }
+    };
+    if (node) walk(node);
+    return { notes, published };
+  };
   const arrow = (up: boolean) => (
     <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
       <path
@@ -769,13 +795,13 @@ function LibraryPathEditor({
                 </label>
                 <label className="s-libpaths__field">
                   <span className="s-libpaths__caption">{t("libraryPathCover")}</span>
-                  <TextInput
+                  <PathInput
                     value={row.cover ?? ""}
                     onChange={(v) => set(i, { cover: v })}
+                    kind="image"
                     placeholder={t("libraryPathCoverPlaceholder")}
                     label={t("libraryPathCover")}
                     disabled={disabled}
-                    dir="ltr"
                   />
                 </label>
                 <label className="s-libpaths__field">
@@ -796,6 +822,15 @@ function LibraryPathEditor({
               <span className="s-libpaths__url" dir="ltr">
                 {libraryUrl(row.slug || "…")}
               </span>
+              {row.folder && (() => {
+                const c = countsOf(row.folder);
+                return (
+                  <span className={`s-libpaths__count${c.notes > 0 && c.published === 0 ? " s-libpaths__count--none" : ""}`}>
+                    {tf("libraryPathLessons", { published: localeNum(c.published), notes: localeNum(c.notes) })}
+                    {c.notes > 0 && c.published === 0 && <> · {t("libraryPathNonePublished")}</>}
+                  </span>
+                );
+              })()}
               <Toggle
                 label={t("libraryPathHidden")}
                 onLabel={t("libraryPathHidden")}
