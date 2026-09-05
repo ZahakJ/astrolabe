@@ -541,7 +541,15 @@ const AUDIENCES = [
 // furniture. The ~11 kB that DRAWS the five rooms is in `design.css`, the ~4 kB
 // that draws them at 200px is in `presets.css`, the two controls are in the
 // designer's chunk and Studio E's four houses are in `presetCatalog-*.js`.
-  { name: "entry (everyone)", keys: entry, budget: 565 * 1024 },
+// …and again for THE GRAPH'S OWN SETTINGS and THE SPOTLIGHT (567.2 kB actual →
+// 569, actual + ~0.32%). Thirty dictionary entries for a settings panel that
+// lives in the graph's lazy chunk (its ~5 kB of CSS moved out of app.css into
+// graph.css for exactly this reason, and graphPrefs.ts is imported only from
+// GraphView), plus the hover card's spotlight, whose ~4 kB of CSS ride with
+// hovercard.css in the blog chunk and whose engine grew by the crown and the
+// veil. The strings are the whole of what the entry pays; the debt they belong
+// to is the dictionary paragraph below, unchanged.
+  { name: "entry (everyone)", keys: entry, budget: 569 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -695,7 +703,12 @@ const AUDIENCES = [
   // dictionary keys, carried. A visitor never opens the designer.
   // …and again for THE ROOMS (778.1 kB actual → 780): the entry's sixteen keys,
   // carried. The designed shell is not in this closure and never was.
-  { name: "anonymous blog reader", keys: blog, budget: 780 * 1024 },
+  // …and again for THE SPOTLIGHT and THE GRAPH'S SETTINGS (787.4 kB actual →
+  // 790): the entry's thirty keys carried, plus the spotlight itself, which a
+  // visitor DOES see — the crown, the veil and the meta line are ~2 kB of
+  // engine in hovercard-*.js and ~4 kB in hovercard.css, both in this closure
+  // because a post's preview is a blog feature. The graph panel is not here.
+  { name: "anonymous blog reader", keys: blog, budget: 790 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -767,7 +780,11 @@ const AUDIENCES = [
   // …and again for THE WAY BACK (1183.0 kB actual → 1185): the same six keys.
   // The bar is in DesignerPanel-*.js, behind the door it is a control on.
   // …and again for THE ROOMS (1184.6 kB actual → 1187): the same sixteen keys.
-  { name: "admin first paint", keys: app, budget: 1187 * 1024 },
+  // …and again for THE SPOTLIGHT and THE GRAPH'S SETTINGS (1189.6 kB actual →
+  // 1192): the entry's thirty keys and the hover engine's growth, carried; the
+  // panel, its stylesheet and graphPrefs.ts are in GraphView-*.js, behind the
+  // graph's own door.
+  { name: "admin first paint", keys: app, budget: 1192 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
