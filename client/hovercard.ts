@@ -24,11 +24,27 @@
 // Keyboard readers get the same card: a link focused by Tab (`:focus-visible`,
 // so a mouse click never doubles as a hover) opens one and carries an
 // `aria-describedby` to it, which is what makes the `role="tooltip"` true.
+//
+// TWO PRESENTATIONS OF ONE CARD. `beside` is the small leaf hung off the link,
+// which is right for a working surface (the app's backlinks and search hits,
+// where the card is a tool beside the list). `spotlight` is what a public
+// shell uses: the card stands in the CENTRE of the window over a dimmed,
+// blurred veil, wears the post's banner when it has one, and prints the
+// date, the reading time and the tags under the title, because a visitor
+// resting on an essay's title is being offered the essay, and the offer
+// should look like one. A spotlight never scrolls (the pointer cannot reach
+// it without leaving the link, and a scrollbar on a card nobody can scroll is
+// furniture): the opening dissolves into the card's ground, and the post is
+// one click away. The engine is the same in both: same LRU, same timers, same
+// dismissals, same keyboard route.
 
 import { Lru } from "./lru.ts";
 import "./styles/hovercard.css";
 
 const OPEN_MS = 350;
+/** A spotlight covers the page, so it waits a little longer for the rest: a
+ *  pointer crossing a list of titles must not raise a veil on every one. */
+const SPOTLIGHT_OPEN_MS = 480;
 /** Grace after pointer-leave so the pointer can travel into the card. */
 const CLOSE_MS = 180;
 const EDGE = 12; // viewport margin the card keeps
@@ -70,9 +86,28 @@ if (typeof window !== "undefined") {
   window.__vellumHoverCardCacheSize = hoverCardCacheSize;
 }
 
+/** What a spotlight prints under the title. Every string arrives formatted:
+ *  the engine knows nothing about dates, locales or tag labels. */
+export interface HoverCardMeta {
+  /** The post's date, already in the shell's own words and numerals. */
+  when?: string;
+  /** "4 min read", already localised. */
+  readTime?: string;
+  /** Tag labels, already localised (the canonical tag is not shown here). */
+  tags?: string[];
+  /** A resolved image URL for the banner strip, or nothing. */
+  banner?: string | null;
+}
+
 export interface HoverCardConfig {
   /** Delegation root — only links inside it get previews. */
   root: HTMLElement;
+  /** `beside` (default): the small leaf hung off the link. `spotlight`: the
+   *  centred card over a veil, for a public shell. */
+  presentation?: "beside" | "spotlight";
+  /** A spotlight's title furniture for a path, or null for none. Ignored by
+   *  `beside`, which is a glance and prints only the title. */
+  meta?: (path: string) => HoverCardMeta | null;
   /** The hovered element (or an ancestor) → vault note path, or null. */
   resolve: (el: Element) => string | null;
   /** Build the card's body for a path. Null (or a throw) = no card at all —
@@ -104,7 +139,13 @@ export function installHoverCards(config: HoverCardConfig): () => void {
   // caches too, and lets the harness read `size` back out.
   const cache = new Lru<HTMLElement>({ max: CACHE_MAX });
   liveCache = cache;
+  const spotlight = config.presentation === "spotlight";
+  const openMs = spotlight ? SPOTLIGHT_OPEN_MS : OPEN_MS;
   let card: HTMLElement | null = null;
+  /** The dimmed ground under a spotlight. Its own element rather than a
+   *  pseudo on the card, because the card is `overflow: hidden` and a
+   *  backdrop filter has to cover the page, not the card. */
+  let veil: HTMLElement | null = null;
   let anchor: Element | null = null;
   let openPath: string | null = null;
   let openTimer = 0;
@@ -139,6 +180,10 @@ export function installHoverCards(config: HoverCardConfig): () => void {
       card.remove();
       card = null;
     }
+    if (veil) {
+      veil.remove();
+      veil = null;
+    }
     anchor?.removeAttribute("aria-describedby");
     anchor = null;
     openPath = null;
@@ -166,6 +211,9 @@ export function installHoverCards(config: HoverCardConfig): () => void {
    *  anchor's INLINE-START edge, so the card hangs off the right of a link in
    *  an RTL page and the left in an LTR one. */
   const place = (el: HTMLElement, rect: DOMRect): void => {
+    // A spotlight is placed by the stylesheet: fixed, inset 0, margin auto.
+    // It has no side to open on and nothing to flip.
+    if (spotlight) return;
     const rtl = getComputedStyle(document.documentElement).direction === "rtl";
     const vw = document.documentElement.clientWidth;
     const vh = document.documentElement.clientHeight;
@@ -205,7 +253,7 @@ export function installHoverCards(config: HoverCardConfig): () => void {
   const open = async (target: Element, path: string): Promise<void> => {
     const gen = ++generation;
     const el = document.createElement("div");
-    el.className = "s-hovercard";
+    el.className = spotlight ? "s-hovercard s-hovercard--spotlight" : "s-hovercard";
     el.setAttribute("role", "tooltip");
 
     const head = document.createElement("div");
@@ -215,6 +263,46 @@ export function installHoverCards(config: HoverCardConfig): () => void {
 
     const body = document.createElement("div");
     body.className = "s-hovercard__body";
+
+    // The spotlight's furniture: a banner strip when the post has one, the
+    // title over it (or over the card's own ground), and one line of meta.
+    // Built before the render awaits, so a cached body still gets it.
+    let crown: HTMLElement | null = null;
+    if (spotlight) {
+      const meta = config.meta?.(path) ?? null;
+      crown = document.createElement("div");
+      crown.className = "s-hovercard__crown";
+      if (meta?.banner) {
+        const art = document.createElement("div");
+        art.className = "s-hovercard__banner";
+        art.style.backgroundImage = `url("${meta.banner.replace(/"/g, "%22")}")`;
+        crown.appendChild(art);
+        crown.classList.add("s-hovercard__crown--art");
+      }
+      const plate = document.createElement("div");
+      plate.className = "s-hovercard__plate";
+      plate.appendChild(head);
+      const line = document.createElement("div");
+      line.className = "s-hovercard__meta";
+      const bits: string[] = [];
+      if (meta?.when) bits.push(meta.when);
+      if (meta?.readTime) bits.push(meta.readTime);
+      for (const bit of bits) {
+        const span = document.createElement("span");
+        span.className = "s-hovercard__bit";
+        span.textContent = bit;
+        line.appendChild(span);
+      }
+      for (const tag of meta?.tags ?? []) {
+        const chip = document.createElement("span");
+        chip.className = "s-hovercard__tag";
+        chip.dir = "auto";
+        chip.textContent = `#${tag}`;
+        line.appendChild(chip);
+      }
+      if (line.childElementCount > 0) plate.appendChild(line);
+      crown.appendChild(plate);
+    }
 
     // `Lru.get` freshens on a hit and `Lru.set` evicts the least recently used
     // entry before storing, so the cache holds the last CACHE_MAX notes read.
@@ -241,7 +329,14 @@ export function installHoverCards(config: HoverCardConfig): () => void {
     for (const stop of body.querySelectorAll<HTMLElement>("a, button, [tabindex], input, select, textarea")) {
       stop.tabIndex = -1;
     }
-    el.append(head, body);
+    if (crown) {
+      el.append(crown, body);
+      // The card stands at the document root, outside the shell that sets
+      // the design's heading face; carry that one custom property over so a
+      // designed site's spotlight titles in the site's own face.
+      const face = getComputedStyle(config.root).getPropertyValue("--dsg-head-font").trim();
+      if (face) el.style.setProperty("--dsg-head-font", face);
+    } else el.append(head, body);
     // The card lives at the document root, not inside the delegation root:
     // it must escape the shell's scroll container and its stacking contexts.
     // That also puts it outside `root`'s listeners, so it carries its own —
@@ -255,6 +350,12 @@ export function installHoverCards(config: HoverCardConfig): () => void {
       closeTimer = window.setTimeout(close, CLOSE_MS);
     });
     body.addEventListener("scroll", () => syncFade(body), { passive: true });
+    if (spotlight) {
+      veil = document.createElement("div");
+      veil.className = "s-hovercard-veil";
+      veil.setAttribute("aria-hidden", "true");
+      document.body.appendChild(veil);
+    }
     document.body.appendChild(el);
     card = el;
     anchor = target;
@@ -272,7 +373,10 @@ export function installHoverCards(config: HoverCardConfig): () => void {
       // the link in the frame between append and paint cancels the pending
       // work (bumping the generation) while this card legitimately stands —
       // and a card left at opacity 0 is a card that never fades out either.
-      if (card === el) el.classList.add("s-hovercard--in");
+      if (card === el) {
+        el.classList.add("s-hovercard--in");
+        veil?.classList.add("s-hovercard-veil--in");
+      }
     });
   };
 
@@ -303,7 +407,7 @@ export function installHoverCards(config: HoverCardConfig): () => void {
     openTimer = window.setTimeout(() => {
       close();
       void open(hit, path);
-    }, OPEN_MS);
+    }, openMs);
   };
 
   const onOut = (ev: PointerEvent): void => {
@@ -327,7 +431,7 @@ export function installHoverCards(config: HoverCardConfig): () => void {
     if (path === null) return;
     if (path === openPath && anchor === target) return;
     close(); // clears the timers too, so the wait below is the only one
-    openTimer = window.setTimeout(() => void open(target, path), OPEN_MS);
+    openTimer = window.setTimeout(() => void open(target, path), openMs);
   };
 
   const onFocusOut = (ev: FocusEvent): void => {

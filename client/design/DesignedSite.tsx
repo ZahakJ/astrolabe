@@ -158,7 +158,7 @@ export default function DesignedSite() {
     scrollRef.current = el;
     setScrollEl(el);
   }, []);
-  usePostPreviews(scrollEl, posts, locked, language);
+  usePostPreviews(scrollEl, posts, locked, language, locale);
 
   const onFail = useCallback((failure: SectionFailure) => {
     setFailures((list) => (list.some((f) => f.id === failure.id) ? list : [...list, failure]));

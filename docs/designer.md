@@ -141,9 +141,10 @@ collection URLs keep the active design around their contents. These additions us
 the same settings and visitor-filtered data as the stock blog and appear in the
 live designer preview too.
 
-Post links offer the stock blog's rendered summary on mouse hover or keyboard
-focus, including links in cards, lists, search and related posts. Touch navigation
-stays direct. Long pages also have the shared back-to-top control. Article and
+Post links offer a **spotlight** on mouse hover or keyboard focus: the post's
+opening, centred over a dimmed page, under its banner (when it has one), its date,
+reading time and tags. It works on links in cards, lists, search and related posts,
+in both public shells. Touch navigation stays direct. Long pages also have the shared back-to-top control. Article and
 static-page bodies use the shared note-format renderer and honor note alignment.
 
 ## Designs are named, versioned, and portable

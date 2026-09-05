@@ -8219,6 +8219,22 @@ same snippet renderer as the hit itself); empty and failed fetches both render t
 "no matches" row because the whole-note click above still works. Expansions and fetched lines
 are query-scoped state and a late response for an abandoned query is dropped.
 
+**The public shells show a SPOTLIGHT, the app a leaf.** `installHoverCards` has two
+presentations of one card (`presentation: "beside" | "spotlight"`, `client/hovercard.ts`). The
+leaf hangs off the link and scrolls, which is right for a working surface. The spotlight, which
+both public shells ask for through `usePostPreviews`, stands centred in the window over a dimmed,
+blurred veil (`.s-hovercard-veil`, its own element because the card is `overflow: hidden` and a
+backdrop filter has to cover the page), wears the post's banner when it has one, and prints the
+date, the reading time and up to four tag labels under the title, every one formatted by the same
+helpers the list beside it uses (`formatDate`, `countPhrase`, `tagLabel`, `bannerSrc`) and handed
+in as strings through `meta()`, so the engine still knows nothing about notes. A spotlight never
+scrolls: the pointer is on the link and cannot reach the card, so the opening dissolves into the
+ground and the post is one click away. It waits 480ms rather than 350 before opening, because a
+veil over the page must not be raised by a pointer crossing a list. The card carries the shell's
+`--dsg-head-font` across so a designed site titles it in its own face. Same LRU, same timers, same
+dismissals (leave, scroll, click, Esc, resize), same keyboard route; `check-hovercache` and the
+hover assertions in `check-signatures` stand over both.
+
 **Hover previews in the admin app.** `installNotePreviews` (client/landing.ts) is the blog
 shell's `installHoverCards` engine — same LRU, same card, check-hovercache still stands over the
 bound — with admin wiring: `resolve` reads `data-preview-path` off backlink cards and search hit

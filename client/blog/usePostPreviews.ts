@@ -4,27 +4,54 @@ import type { PostMeta } from "../../shared/types.ts";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import { isTexPath, noteTitleOf } from "../../shared/noteFormat.ts";
 import { getNote } from "../api.ts";
+import { bannerSrc } from "../banner.ts";
 import { installHoverCards } from "../hovercard.ts";
+import { countPhrase } from "../i18n.ts";
+import { label as tagLabel } from "../tagLabels.ts";
 import { renderNoteContent } from "../reading/renderNote.ts";
 import { texPreviewSource } from "../reading/texRender.ts";
 import { useStore } from "../state.ts";
 import { previewExcerpt, previewPath } from "./postPreview.ts";
+import { formatDate } from "./util.tsx";
 
 function noteTitle(path: string): string {
   return stripBidiControls(noteTitleOf(path));
 }
 
-export function usePostPreviews(root: HTMLElement | null, posts: PostMeta[] | null, locked: boolean, language: string): void {
+export function usePostPreviews(
+  root: HTMLElement | null,
+  posts: PostMeta[] | null,
+  locked: boolean,
+  language: string,
+  locale = "en",
+): void {
   const postTags = useRef(new Map<string, string[]>());
   postTags.current = useMemo(
     () => new Map((posts ?? []).map((p) => [p.path, p.tags])),
     [posts],
   );
+  const byPath = useRef(new Map<string, PostMeta>());
+  byPath.current = useMemo(() => new Map((posts ?? []).map((p) => [p.path, p])), [posts]);
   useEffect(() => {
     if (!root || locked) return;
     return installHoverCards({
       root,
       scroller: root,
+      // A public shell shows the SPOTLIGHT: centred, veiled, wearing the
+      // post's own banner and meta. The words under the title are the ones
+      // the card beside it already prints, formatted by the same helpers, so
+      // the card and the list never disagree about a date or a label.
+      presentation: "spotlight",
+      meta: (path) => {
+        const post = byPath.current.get(path);
+        if (!post) return null;
+        return {
+          when: formatDate(post.date, locale),
+          readTime: countPhrase(post.readingMinutes, "readMinutes"),
+          tags: post.tags.slice(0, 4).map((tag) => tagLabel(tag)),
+          banner: post.banner ? bannerSrc(post.banner) : null,
+        };
+      },
       resolve: previewPath,
       title: noteTitle,
       render: async (path) => {
@@ -54,6 +81,6 @@ export function usePostPreviews(root: HTMLElement | null, posts: PostMeta[] | nu
         });
       },
     });
-  }, [root, locked, language]);
+  }, [root, locked, language, locale]);
 
 }
