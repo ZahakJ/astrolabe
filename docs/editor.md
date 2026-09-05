@@ -193,6 +193,19 @@
 
 ![Command palette](screenshots/palette.png)
 
+## Notes to self
+
+Select a passage in the reading view and press **Annotate**: the passage takes an ink and you
+write what you want to say about it. The note itself is never touched. Annotations live beside the
+vault in `VELLUM_DATA/annotations.json`, anchored by the passage's own words (with a little context
+either side), so they survive the note being edited above them, moved, renamed, or rendered in a
+different face. A passage that is gone is listed under the prose as no longer in the note.
+
+Click a mark to read, edit, recolour or delete it, or open it from the list under the prose. Each
+annotation has a **Show to readers** switch: on, it appears on the blog article and on the lesson
+page in the library as *The author's note*, with an accent underline, when the note is published.
+Off (the default) it is yours alone, and a visitor never learns it exists. Six inks, the reader's.
+
 ## Modes you cannot sit in by accident
 
 Reading, vim and visitor preview each light a pill in the status bar (accent-filled, clickable to

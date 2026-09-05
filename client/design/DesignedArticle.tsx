@@ -23,6 +23,7 @@ import { topicUrl } from "../blog/nav.ts";
 import { isLabelled as tagIsLabelled, label as tagLabel, useTagLabels } from "../tagLabels.ts";
 import { countPhrase, t } from "../i18n.ts";
 import { renderNoteContent } from "../reading/renderNote.ts";
+import AnnotationsMount from "../annotations/AnnotationsMount.tsx";
 import { renderMarkdown } from "../reading/render.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
@@ -74,6 +75,8 @@ export default function DesignedArticle({
   options: DesignArticle;
 }) {
   const host = useRef<HTMLDivElement | null>(null);
+  const [annHost, setAnnHost] = useState<HTMLElement | null>(null);
+  const admin = useStore((s) => s.admin);
   const preview = usePreviewContent();
   const tree = useStore((s) => s.tree);
   // Repaint the chips when the label map lands after the first paint.
@@ -213,7 +216,14 @@ export default function DesignedArticle({
           </p>
         )}
       </div>
-      <div className="s-dsn-rich s-dsn-article__body" ref={host} />
+      <div
+        className="s-dsn-rich s-dsn-article__body"
+        ref={(el) => {
+          host.current = el;
+          setAnnHost(el);
+        }}
+      />
+      {!preview && <AnnotationsMount path={path} host={annHost} canEdit={admin} scope="d" />}
       {options.showTags && meta && meta.tags.length > 0 && (
         <nav className="s-dsn-topics s-dsn-article__tags" aria-label={t("tags")}>
           {meta.tags.map((tag) => (
