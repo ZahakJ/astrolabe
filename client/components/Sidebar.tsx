@@ -580,6 +580,9 @@ export default function Sidebar() {
   const [iconPick, setIconPick] = useState<IconPickState | null>(null);
   const [libPop, setLibPop] = useState<LibraryPopState | null>(null);
   const [colPop, setColPop] = useState<CollectionsPopState | null>(null);
+  // Under settings.topics "folders" the folders are the categories and there
+  // is nothing to curate by hand: the two collection verbs leave the menu.
+  const collectionsByHand = useStore((s) => s.topicsMode !== "folders");
   const [showAttachments, setShowAttachments] = useState(loadShowAttachments);
   // The open lightbox: the viewable attachments of ONE folder plus the
   // position inside it, so ← / → walk that folder and nothing else.
@@ -1993,7 +1996,7 @@ export default function Sidebar() {
           )}
           {/* A collection from the folder, on the library's terms. Notes get
               the membership popover below, beside Delete. */}
-          {menu.node.type === "folder" && menu.node.path !== "" && (
+          {collectionsByHand && menu.node.type === "folder" && menu.node.path !== "" && (
             <button
               type="button"
               className="s-menu__item"
@@ -2027,7 +2030,7 @@ export default function Sidebar() {
               {t("moveTo")}
             </button>
           )}
-          {menu.node.type === "file" && !menu.node.attachment && (
+          {collectionsByHand && menu.node.type === "file" && !menu.node.attachment && (
             <button
               type="button"
               className="s-menu__item"

@@ -72,8 +72,10 @@ prefix such as `2| ` is stripped), the mark you gave the folder in the tree is i
 navigation, the home band and each category's page come from that alone. Notes at the vault root
 have no category. Tag topics leave the navigation; tags still show on posts. A **folder note** (a
 note named like the folder, or `index.md` inside it) gives the category its `description:`, a
-`title:`, an `icon:` and `hidden: true`, from the vault itself. A collection row below
-that names a folder overrides that category's title, mark and blurb, or hides it.
+`title:`, an `icon:` and `hidden: true`, from the vault itself. Under **Tags**, collections are
+hand-made topics: a collection is a tag you curate yourself, and it sits in the navigation beside
+the tag topics. Collections do not exist in
+this mode; the folders are the categories.
 
 Topics are what your notes say about *themselves*. **Public folders** (collections) are what *you*
 say about a group of them: your own collections — Games, Reading, Field notes — declared once in
