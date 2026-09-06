@@ -132,7 +132,7 @@ interface Group {
   rows: Row[];
 }
 
-type PageId = "root" | "structure" | "insert" | "callout";
+type PageId = "root" | "structure" | "insert" | "align" | "callout";
 
 /** The i18n key for each swatch, written out. The gate counts a key as USED
  *  only when it appears as a quoted token in client/, so `t(`color_${id}`)`
@@ -319,6 +319,8 @@ function pagesFor(
     rows: [
       { kind: "page", label: "selGroupStructure", page: "structure" },
       { kind: "page", label: "selGroupInsert", page: "insert" },
+      // Its own door: inside Structure the owner could not find it.
+      { kind: "page", label: "selGroupAlign", page: "align" },
       ...(tex ? [] : [{ kind: "page", label: "calloutPage", page: "callout" } as Row]),
     ],
   };
@@ -365,7 +367,8 @@ function pagesFor(
     root: tex
       ? [style, doors, annotate, toolbar]
       : [style, colour, doors, extract, annotate, toolbar],
-    structure: [...back("selGroupStructure", structure.rows), alignRows, caseRows],
+    structure: [...back("selGroupStructure", structure.rows), caseRows],
+    align: [alignRows],
     insert: back("selGroupInsert", insert.rows),
     callout: back("tbGroupCallout", callout.rows),
   };
