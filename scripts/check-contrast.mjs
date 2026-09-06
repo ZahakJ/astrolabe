@@ -93,6 +93,30 @@ for (const m of css.matchAll(/(:root|\[data-theme="([\w-]+)"\])\s*\{([^}]*)\}/g)
   themes[name] = parseBlock(m[3]);
 }
 
+// THE SURFACE LAYER (tokens.css, `:root, [data-theme] { … }`) is derivations,
+// `--sidebar-bg: var(--bg-raised)`, not hexes, so the block regex above skips
+// it by construction. Resolve each derivation against every theme here, so the
+// surface pairs shared/contrast.ts measures (SURFACE_PAIRS) have operands on a
+// built-in theme too: a derivation that pointed a text token at a ground would
+// fail every theme at once, which is the point of measuring it. Only plain
+// `var(--x)` chains resolve; a color-mix() surface stays unmeasured, as the
+// module says washes are.
+const surfaceBlock = /:root,\s*\[data-theme\]\s*\{([^}]*)\}/.exec(css);
+const derivations = {};
+if (surfaceBlock) {
+  for (const m of surfaceBlock[1].matchAll(/(--[\w-]+)\s*:\s*var\((--[\w-]+)\)\s*;/g)) {
+    derivations[m[1]] = m[2];
+  }
+}
+for (const t of Object.values(themes)) {
+  for (const [name, from] of Object.entries(derivations)) {
+    let source = from;
+    for (let hop = 0; hop < 4 && derivations[source]; hop++) source = derivations[source];
+    if (t[source]) t[name] = t[source];
+  }
+}
+console.log(`surface layer: ${Object.keys(derivations).length} derivations resolved per theme`);
+
 // THE FORMULAS AND THE FLOORS LIVE IN shared/contrast.ts, and this gate is one
 // of its two callers. The other is the custom theme builder, which prints the
 // same warnings live while an author drags a color — and a builder carrying a
@@ -109,6 +133,7 @@ const ratio = contrastRatio;
 /** Gate label for a check id, so the output reads as it always has. */
 function label(check) {
   if (check.id === "accent-text") return "accent / text";
+  if (check.id.startsWith("surface:")) return `${check.token.slice(2)} / ${check.against.slice(2)}`;
   const ground = { "--bg": "bg", "--bg-raised": "raised", "--bg-hover": "hover" }[check.against];
   const token = check.token.replace("--text-", "").replace("--text", "text").replace("--accent", "accent");
   return `${token} / ${ground}`;
@@ -134,7 +159,7 @@ for (const [name, t] of Object.entries(themes)) {
       : check.kind === "deltaE"
         ? `FAIL (needs ${ACCENT_TEXT_MIN_DE} \u0394E)`
         : `FAIL (needs ${check.min}:1)`;
-    console.log(`  ${label(check).padEnd(15)} ${shown} ${verdict}`);
+    console.log(`  ${label(check).padEnd(34)} ${shown} ${verdict}`);
   }
 }
 

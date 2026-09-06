@@ -79,7 +79,7 @@ kbd {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -92,12 +92,12 @@ kbd {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: var(--text-faint);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* A SCROLL BOUNDARY FADES; IT DOES NOT GUILLOTINE.
@@ -146,7 +146,7 @@ button,
 .s-btn {
   font: inherit;
   font-size: 0.929rem;
-  color: var(--text);
+  color: var(--button-text);
   background: transparent;
   border: none;
   border-radius: var(--radius);
@@ -158,7 +158,7 @@ button,
 
 button:hover,
 .s-btn:hover {
-  background: var(--bg-hover);
+  background: var(--button-hover-bg);
 }
 
 /* Small square icon button (sidebar header, graph controls, panel toggle). */
@@ -189,9 +189,9 @@ select,
 .s-input {
   font: inherit;
   font-size: 0.929rem;
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border);
+  color: var(--input-text);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius);
   padding: 6px 10px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -199,7 +199,7 @@ select,
 
 input::placeholder,
 textarea::placeholder {
-  color: var(--text-faint);
+  color: var(--input-placeholder);
 }
 
 input:focus,
@@ -207,7 +207,7 @@ textarea:focus,
 select:focus,
 .s-input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--input-focus);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
@@ -312,8 +312,9 @@ select:focus,
      so the rows below still get exactly --sidebar-w. */
   width: calc(var(--sidebar-w) + 1px);
   overflow: hidden;
-  background: var(--bg-raised);
-  border-inline-end: 1px solid var(--border);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  border-inline-end: 1px solid var(--sidebar-border);
   transition: width 0.18s ease, border-color 0.18s ease;
 }
 
@@ -383,7 +384,7 @@ select:focus,
 
 .s-search__input {
   width: 100%;
-  background: var(--bg);
+  background: var(--sidebar-search-bg);
 }
 
 .s-search__input::-webkit-search-cancel-button {
@@ -439,19 +440,19 @@ select:focus,
 }
 
 .s-tree__item:hover {
-  background: var(--bg-hover);
-  color: var(--text);
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-text);
 }
 
 .s-tree__item--folder {
-  color: var(--text);
+  color: var(--sidebar-text);
   font-weight: 500;
 }
 
 .s-tree__item--active {
-  background: var(--accent-soft);
-  color: var(--text);
-  box-shadow: inset 2px 0 0 var(--accent);
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-text);
+  box-shadow: inset 2px 0 0 var(--sidebar-active-bar);
 }
 
 .s-tree__chevron {
@@ -651,8 +652,8 @@ select:focus,
   gap: 4px;
   font-size: 0.857rem;
   font-weight: 500;
-  color: var(--text-muted);
-  background: var(--bg-hover);
+  color: var(--tagpill-text);
+  background: var(--tagpill-bg);
   border: none;
   border-radius: 999px;
   padding: 3px 8px;
@@ -700,9 +701,9 @@ select:focus,
 .s-sidebar-foot {
   flex: none;
   padding: 7px 16px 8px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--sidebar-border);
   font-size: 0.786rem;
-  color: var(--text-muted);
+  color: var(--sidebar-muted);
   user-select: none;
 }
 
@@ -740,8 +741,8 @@ select:focus,
   z-index: 300;
   min-width: 168px;
   padding: 5px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
+  background: var(--menu-bg);
+  border: 1px solid var(--modal-border);
   border-radius: calc(var(--radius) + 2px);
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
   animation: s-pop-in 0.12s ease;
@@ -754,12 +755,12 @@ select:focus,
   padding: 6px 12px;
   border-radius: 4px;
   font-size: 0.929rem;
-  color: var(--text);
+  color: var(--menu-text);
 }
 
 .s-menu__item:hover {
-  background: var(--accent-soft);
-  color: var(--text);
+  background: var(--menu-hover-bg);
+  color: var(--menu-text);
 }
 
 .s-menu__item--danger {
@@ -943,8 +944,8 @@ select:focus,
   overflow: hidden;
   flex: none;
   height: 2.5rem;
-  background: var(--bg-raised);
-  border-bottom: 1px solid var(--border);
+  background: var(--tabs-bg);
+  border-bottom: 1px solid var(--tabs-border);
 }
 
 .s-tabs__scroll {
@@ -979,10 +980,10 @@ select:focus,
   max-width: 180px;
   padding: 0 12px;
   border: none;
-  border-inline-end: 1px solid var(--border);
+  border-inline-end: 1px solid var(--tabs-border);
   border-radius: 0;
   font-size: 0.929rem;
-  color: var(--text-muted);
+  color: var(--tab-text);
   background: transparent;
   white-space: nowrap;
   cursor: pointer;
@@ -992,15 +993,15 @@ select:focus,
 }
 
 .s-tab:hover {
-  background: var(--bg-hover);
-  color: var(--text);
+  background: var(--tab-hover-bg);
+  color: var(--tab-active-text);
 }
 
 /* Active tab merges into the content below. */
 .s-tab--active,
 .s-tab--active:hover {
-  color: var(--text);
-  background: var(--bg);
+  color: var(--tab-active-text);
+  background: var(--tab-active-bg);
 }
 
 .s-tab--active::before {
@@ -1010,7 +1011,7 @@ select:focus,
   right: 0;
   top: 0;
   height: 2px;
-  background: var(--accent);
+  background: var(--tab-active-bar);
 }
 
 .s-tab--active::after {
@@ -1020,7 +1021,7 @@ select:focus,
   right: 0;
   bottom: -1px;
   height: 1px;
-  background: var(--bg);
+  background: var(--tab-active-bg);
 }
 
 .s-tab-title {
@@ -1094,7 +1095,7 @@ select:focus,
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--editor-bg);
 }
 
 .s-editor .cm-editor {
@@ -1838,7 +1839,7 @@ select:focus,
   min-height: 0;
   position: relative;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--graph-bg);
 }
 
 /* A faint candlelight vignette over the constellation. */
@@ -2044,8 +2045,9 @@ select:focus,
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--bg-raised);
-  border-inline-start: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--panel-text);
+  border-inline-start: 1px solid var(--panel-border);
   overflow: hidden;
   transition: width 0.18s ease, border-color 0.18s ease;
 }
@@ -2073,12 +2075,12 @@ select:focus,
   flex: none;
   height: 2.5rem;
   padding: 0 8px 0 14px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--panel-border);
   font-size: 0.786rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--panel-heading);
   white-space: nowrap;
   user-select: none;
 }
@@ -2572,10 +2574,10 @@ select:focus,
      leading edge and loose at the trailing one. */
   padding-block: 0;
   padding-inline: 14px 10px;
-  background: var(--bg-raised);
-  border-top: 1px solid var(--border);
+  background: var(--statusbar-bg);
+  border-top: 1px solid var(--statusbar-border);
   font-size: 0.857rem;
-  color: var(--text-muted);
+  color: var(--statusbar-text);
   user-select: none;
   overflow: hidden;
 }
@@ -2697,7 +2699,7 @@ select:focus,
   justify-content: center;
   align-items: flex-start;
   padding-top: 18vh;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--backdrop);
   backdrop-filter: blur(3px);
   animation: s-fade-in 0.12s ease;
 }
@@ -2716,8 +2718,9 @@ select:focus,
   max-height: 55vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
+  background: var(--modal-bg);
+  color: var(--modal-text);
+  border: 1px solid var(--modal-border);
   border-radius: 10px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
   overflow: hidden;
@@ -2951,10 +2954,10 @@ select:focus,
   pointer-events: auto;
   max-width: 100%;
   padding: 9px 16px;
-  background: var(--bg-raised);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-inline-start: 3px solid var(--accent);
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  border: 1px solid var(--modal-border);
+  border-inline-start: 3px solid var(--toast-bar);
   border-radius: var(--radius);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
   font-size: 0.929rem;
@@ -3102,8 +3105,9 @@ select:focus,
   flex-direction: column;
   gap: 14px;
   padding: 16px 18px 18px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
+  background: var(--modal-bg);
+  color: var(--modal-text);
+  border: 1px solid var(--modal-border);
   border-radius: 10px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
   overflow: auto;
@@ -3615,12 +3619,12 @@ select:focus,
 }
 
 .s-btn--accent {
-  color: var(--accent);
-  background: var(--accent-soft);
+  color: var(--button-accent-text);
+  background: var(--button-accent-bg);
 }
 
 .s-btn--accent:hover {
-  background: var(--accent-soft);
+  background: var(--button-accent-bg);
   filter: brightness(1.12);
 }
 

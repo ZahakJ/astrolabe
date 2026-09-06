@@ -193,8 +193,49 @@ export function checkTheme(tokens: Record<string, string | undefined>): Contrast
     ratioCheck(`faint-${ground}`, "--text-faint", ground, 3);
   }
   ratioCheck("accent---bg", "--accent", "--bg", 4.5);
+  // THE SURFACES. Each pair is text painted on a ground an author can now
+  // recolour on its own (tokens.css, "the surface layer"), held to the floor
+  // its base pair is held to: body-sized text at 4.5:1, secondary text at 3:1.
+  // On a built-in theme every surface is a derivation of a base pair already
+  // measured above, so these add no new verdict there; they exist for the
+  // custom theme that paints, say, the sidebar's ground without its text.
+  // Washes (translucent grounds) are not measured — a ratio against a colour
+  // that composites over another is not a number this module can promise.
+  for (const [token, against, min] of SURFACE_PAIRS) {
+    ratioCheck(`surface:${token}/${against}`, token, against, min);
+  }
   return out;
 }
+
+/** Text on a ground, per surface: the token, what it sits on, the floor. */
+export const SURFACE_PAIRS: readonly [string, string, number][] = [
+  ["--sidebar-text", "--sidebar-bg", 4.5],
+  ["--sidebar-muted", "--sidebar-bg", 3],
+  ["--tagpill-text", "--tagpill-bg", 3],
+  ["--tab-text", "--tabs-bg", 3],
+  ["--tab-active-text", "--tab-active-bg", 4.5],
+  ["--panel-text", "--panel-bg", 4.5],
+  ["--panel-heading", "--panel-bg", 3],
+  ["--statusbar-text", "--statusbar-bg", 3],
+  ["--editor-text", "--editor-bg", 4.5],
+  ["--codeblock-text", "--codeblock-bg", 4.5],
+  ["--inline-code-text", "--inline-code-bg", 4.5],
+  ["--reading-text", "--reading-bg", 4.5],
+  ["--quote-text", "--reading-bg", 3],
+  ["--table-head-text", "--table-head-bg", 3],
+  ["--link", "--reading-bg", 4.5],
+  ["--wikilink", "--reading-bg", 4.5],
+  ["--input-text", "--input-bg", 4.5],
+  ["--input-placeholder", "--input-bg", 3],
+  ["--menu-text", "--menu-bg", 4.5],
+  ["--modal-text", "--modal-bg", 4.5],
+  ["--toast-text", "--toast-bg", 4.5],
+  ["--blog-text", "--blog-bg", 4.5],
+  ["--blog-mast-text", "--blog-bg", 4.5],
+  ["--blog-mast-tagline", "--blog-bg", 3],
+  ["--blog-nav-text", "--blog-bg", 3],
+  ["--card-text", "--card-bg", 4.5],
+];
 
 /** The failures only — what a builder shows as warnings, and what a gate
  *  counts. */

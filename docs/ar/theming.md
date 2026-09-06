@@ -72,7 +72,7 @@
 
 ## اصنع سمتك
 
-المدمجة نقطة بداية لا سقف. **السمات ← سمة مخصصة جديدة** يفتح منشئًا: اختر إحداها أساسًا، ثم تجاوز أي رمز تشاء، الأرضيات والنص و**العناوين** والتمييز والحدود ودرجات التنبيهات الثلاث عشرة وألوان الكود الثمانية والمخطط، وراقب التطبيق كله يتغير خلف اللوحة وأنت تفعل، لأن المعاينة الصادقة الوحيدة للسمة هي السمة. الرموز التي لا تمسّها تظل تأتي من الأساس، فإعادة ضبط لاحقة لذلك الأساس تصل إلى سمتك مجانًا، و*إعادة الضبط* في كل صف تحذف التجاوز بدل تجميد قيمة اليوم فيه.
+المدمجة نقطة بداية لا سقف. **السمات ← سمة مخصصة جديدة** يفتح منشئًا: اختر إحداها أساسًا، ثم تجاوز أي رمز تشاء، الأرضيات والنص و**العناوين** والتمييز والحدود وكل سطح على حدة (شريط الملاحظات وشريط التبويبات وشريط الحالة وصفحة المحرر وصفحة القراءة والحقول والأزرار والحوارات والموقع والبطاقات؛ اعثر على أي منها بالاسم في المرشح) ودرجات التنبيهات الثلاث عشرة وألوان الكود الثمانية والمخطط، وراقب التطبيق كله يتغير خلف اللوحة وأنت تفعل، لأن المعاينة الصادقة الوحيدة للسمة هي السمة. الرموز التي لا تمسّها تظل تأتي من الأساس، فإعادة ضبط لاحقة لذلك الأساس تصل إلى سمتك مجانًا، و*إعادة الضبط* في كل صف تحذف التجاوز بدل تجميد قيمة اليوم فيه.
 
 يشغّل المنشئ **بوابة التباين الخاصة بالمشروع حيّة**: الكود نفسه الذي يشغّله `scripts/check-contrast.mjs`: نص الجسد ≥ 4.5:1 والثانوي ≥ 3:1 ضد الأرضيات الثلاث كلها، والتمييز ≥ 4.5:1 على أرضيته، والتمييز على بعد 18 ΔE على الأقل من نص جسدك (ليست نسبة تباين: السمة التي تمييزها درجة من حرفها لا قناة تمييز لها البتة). تظهر التحذيرات كلمات، فوق عنصر التحكم الذي سببها، مع علامة على أي مجموعة تحمل واحدًا.
 
@@ -111,6 +111,22 @@ html[data-theme="lapis"] {
 | `--sidebar-w` | عرض الشريط الجانبي (الافتراضي 292px) |
 | `--callout-note`، `--callout-tip`، … | درجات التنبيهات لكل نوع (انظر `client/styles/tokens.css`) |
 | `--syn-keyword`، `--syn-string`، … | لوحة تلوين الكود |
+
+**طبقة الأسطح.** كل ما سبق رموز أساس، وكانت معظم الواجهة تقرؤها مباشرة، فلم تستطع الغرفة إعادة تلوين شريطها الجانبي بلا إعادة تلوين كل سطح مرفوع. لكل شيء مرسوم الآن رمزه الخاص، معرَّفًا على `:root, [data-theme]` اشتقاقًا من رمز أساس (`--sidebar-bg: var(--bg-raised)`)، وهذا يعني شيئين معًا: رمز الأساس الذي تغيّره ما زال يسري في كل سطح لم تمسّه، والسطح الذي تضبطه يتحرك وحده. يسردها المنشئ كلها بأسماء بشرية باللغتين، مع مرشح فوق الصفوف وإعادة ضبط لكل مجموعة؛ ويستطيع `custom.css` ضبط أي منها بالاسم. النص على أرضية يُقاس كأزواج الأساس: `--sidebar-text` على `--sidebar-bg` بنسبة 4.5:1، والنص الثانوي بنسبة 3:1، ويقول المنشئ ذلك بالكلمات حين يفشل زوج. أحبار الصفحة الستة ليست هنا عمدًا: تظليل يتغير لونه مع السمة فقدان بيانات لا سمة.
+
+| السطح | الرموز (يتبع كل منها الأساس بين قوسين حتى تضبطه) |
+| --- | --- |
+| شريط الملاحظات | `--sidebar-bg` (var(--bg-raised)), `--sidebar-text` (var(--text)), `--sidebar-muted` (var(--text-muted)), `--sidebar-border` (var(--border)), `--sidebar-hover-bg` (var(--bg-hover)), `--sidebar-active-bg` (var(--accent-soft)), `--sidebar-active-bar` (var(--accent)), `--sidebar-search-bg` (var(--bg)), `--tagpill-bg` (var(--bg-hover)), `--tagpill-text` (var(--text-muted)) |
+| التبويبات واللوحات | `--tabs-bg` (var(--bg-raised)), `--tabs-border` (var(--border)), `--tab-text` (var(--text-muted)), `--tab-hover-bg` (var(--bg-hover)), `--tab-active-bg` (var(--bg)), `--tab-active-text` (var(--text)), `--tab-active-bar` (var(--accent)), `--panel-bg` (var(--bg-raised)), `--panel-text` (var(--text)), `--panel-heading` (var(--text-faint)), `--panel-border` (var(--border)) |
+| شريط الحالة | `--statusbar-bg` (var(--bg-raised)), `--statusbar-text` (var(--text-muted)), `--statusbar-border` (var(--border)) |
+| المحرر والشيفرة | `--editor-bg` (var(--bg)), `--editor-text` (var(--text)), `--editor-caret` (var(--accent)), `--editor-panel-bg` (var(--bg-raised)), `--codeblock-bg` (var(--bg-raised)), `--codeblock-text` (var(--text)), `--inline-code-bg` (var(--bg-raised)), `--inline-code-text` (var(--text)), `--code-border` (var(--border)) |
+| القراءة | `--reading-bg` (var(--bg)), `--reading-text` (var(--text)), `--quote-bar` (var(--accent)), `--quote-text` (var(--text-muted)), `--highlight-bg`, `--hr` (var(--accent)), `--list-bullet` (var(--accent)), `--table-border` (var(--border)), `--table-head-bg` (var(--bg-raised)), `--table-head-text` (var(--text-muted)), `--props-bg` (var(--bg-raised)), `--footnote-marker` (var(--accent)) |
+| الروابط والوسوم | `--link` (var(--accent)), `--wikilink` (var(--accent)), `--wikilink-broken`, `--tag-bg` (var(--accent-soft)), `--tag-text` (var(--accent)) |
+| عناصر التحكم | `--button-text` (var(--text)), `--button-hover-bg` (var(--bg-hover)), `--button-accent-bg` (var(--accent-soft)), `--button-accent-text` (var(--accent)), `--input-bg` (var(--bg)), `--input-text` (var(--text)), `--input-border` (var(--border)), `--input-placeholder` (var(--text-faint)), `--input-focus` (var(--accent)), `--menu-bg` (var(--bg-raised)), `--menu-text` (var(--text)), `--menu-hover-bg` (var(--accent-soft)) |
+| الحوارات والتنبيهات | `--modal-bg` (var(--bg-raised)), `--modal-text` (var(--text)), `--modal-border` (var(--border)), `--backdrop`, `--toast-bg` (var(--bg-raised)), `--toast-text` (var(--text)), `--toast-bar` (var(--accent)), `--scrollbar-thumb` (var(--border)), `--scrollbar-thumb-hover` (var(--text-faint)) |
+| المخطط | `--graph-bg` (var(--bg)) |
+| الموقع | `--blog-bg` (var(--bg)), `--blog-text` (var(--text)), `--blog-mast-text` (var(--text)), `--blog-mast-tagline` (var(--text-muted)), `--blog-mast-star` (var(--accent)), `--blog-nav-text` (var(--text-muted)), `--blog-nav-hover-bg` (var(--bg-hover)), `--blog-nav-active-bg` (var(--accent-soft)), `--blog-nav-active-text` (var(--accent)) |
+| البطاقات والأشرطة | `--card-bg` (var(--bg-raised)), `--card-text` (var(--text)), `--card-border` (var(--border)), `--card-hover-border` (var(--accent)), `--progress-track` (var(--bg-hover)), `--progress-fill` (var(--accent)) |
 
 ## أحضر خطوطك (طريق CSS)
 

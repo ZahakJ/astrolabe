@@ -18,7 +18,8 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--bg);
+  background: var(--reading-bg);
+  color: var(--reading-text);
 }
 
 .s-reading__content {
@@ -111,8 +112,8 @@
   background: linear-gradient(
     to right,
     transparent,
-    color-mix(in srgb, var(--accent) 88%, transparent) 15%,
-    color-mix(in srgb, var(--accent) 88%, transparent) 85%,
+    color-mix(in srgb, var(--hr) 88%, transparent) 15%,
+    color-mix(in srgb, var(--hr) 88%, transparent) 85%,
     transparent
   );
 }
@@ -147,7 +148,7 @@
 /* ── Links, tags, marks ────────────────────────────────────────────────── */
 
 .s-rv-wikilink {
-  color: var(--accent);
+  color: var(--wikilink);
   text-decoration: none;
   cursor: pointer;
 }
@@ -157,7 +158,7 @@
 }
 
 .s-rv-wikilink--broken {
-  color: color-mix(in srgb, var(--danger) 70%, var(--text));
+  color: var(--wikilink-broken);
   text-decoration: underline dashed;
   text-decoration-color: color-mix(in srgb, var(--danger) 55%, transparent);
   text-underline-offset: 3px;
@@ -173,9 +174,9 @@
 }
 
 .s-rv-ext {
-  color: var(--accent);
+  color: var(--link);
   text-decoration: underline;
-  text-decoration-color: var(--accent-soft);
+  text-decoration-color: color-mix(in srgb, var(--link) 30%, transparent);
 }
 
 .s-rv-tag {
@@ -187,8 +188,8 @@
      1.161rem prose column is 13px against the sidebar's 12, so the chip
      dropped INTO the prose was the larger of the two. */
   font-size: 0.72em;
-  color: var(--accent);
-  background: var(--accent-soft);
+  color: var(--tag-text);
+  background: var(--tag-bg);
   border: none;
   border-radius: 999px;
   padding: 0.05em 0.55em;
@@ -197,13 +198,13 @@
 }
 
 .s-rv-tag:hover {
-  background: color-mix(in srgb, var(--accent) 24%, transparent);
-  color: var(--accent);
+  background: color-mix(in srgb, var(--tag-text) 24%, transparent);
+  color: var(--tag-text);
 }
 
 .s-rv-mark {
-  background: color-mix(in srgb, var(--accent) 26%, transparent);
-  color: var(--text);
+  background: var(--highlight-bg);
+  color: var(--reading-text);
   border-radius: 3px;
   padding: 0.05em 0.1em;
   box-decoration-break: clone;
@@ -218,8 +219,9 @@
 .s-rv-code {
   font-family: var(--font-mono);
   font-size: 0.875em;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
+  color: var(--inline-code-text);
+  background: var(--inline-code-bg);
+  border: 1px solid var(--code-border);
   border-radius: 4px;
   padding: 0.05em 0.3em;
 }
@@ -227,8 +229,9 @@
 .s-rv-pre {
   margin: 0.9em 0;
   padding: 0.8em 1em;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
+  color: var(--codeblock-text);
+  background: var(--codeblock-bg);
+  border: 1px solid var(--code-border);
   border-radius: var(--radius);
   overflow-x: auto;
   font-family: var(--font-mono);
@@ -270,8 +273,8 @@
   margin: 0.9em 0;
   padding-block: 0.1em;
   padding-inline: 0.9em 0;
-  border-inline-start: 3px solid var(--accent);
-  color: var(--text-muted);
+  border-inline-start: 3px solid var(--quote-bar);
+  color: var(--quote-text);
   font-style: italic;
 }
 
@@ -367,7 +370,7 @@
 }
 
 .s-rv-list li::marker {
-  color: var(--accent);
+  color: var(--list-bullet);
 }
 
 li.s-rv-task {
@@ -426,7 +429,7 @@ li.s-rv-task--done > span {
 
 .s-rv-table th,
 .s-rv-table td {
-  border: 1px solid var(--border);
+  border: 1px solid var(--table-border);
   padding: 0.4em 0.8em;
   text-align: start;
 }
@@ -436,8 +439,8 @@ li.s-rv-task--done > span {
   font-size: 0.85em;
   font-weight: 600;
   letter-spacing: 0.03em;
-  color: var(--text-muted);
-  background: var(--bg-raised);
+  color: var(--table-head-text);
+  background: var(--table-head-bg);
 }
 
 .s-rv-table .s-rv-al-c { text-align: center; }
@@ -751,11 +754,11 @@ span.s-rv-math-live {
 }
 
 .s-rv-footnotes li::marker {
-  color: var(--accent);
+  color: var(--footnote-marker);
 }
 
 .s-rv-fnback {
-  color: var(--accent);
+  color: var(--footnote-marker);
   cursor: pointer;
   text-decoration: none;
 }
@@ -784,7 +787,7 @@ span.s-rv-math-live {
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--bg-raised);
+  background: var(--props-bg);
   font-family: var(--font-ui);
   font-size: 0.893rem;
   line-height: 1.6;

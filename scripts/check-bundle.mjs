@@ -585,7 +585,13 @@ const AUDIENCES = [
   // canvas itself, the exporter and the plugin's compressor are
   // DrawingSurface-*.js and a vendor chunk behind it — asserted split and
   // FORBIDDEN from every first paint below.
-{ name: "entry (everyone)", keys: entry, budget: 614 * 1024 },
+  // …and again for THE SURFACE LAYER (633.0 kB actual → 636, actual + ~0.5%):
+  // eighty-four surface tokens and their derivations in tokens.css, a label
+  // key and a `derivedFrom` on every one of the 124 entries in THEME_TOKENS
+  // (the runtime reads that list to validate and to paint a custom theme, so
+  // it is in the entry by design), and the 124 dictionary rows that name them
+  // in both languages. The builder's own code is where it was.
+{ name: "entry (everyone)", keys: entry, budget: 636 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -765,7 +771,9 @@ const AUDIENCES = [
   // …and once more with the entry, for DRAWINGS (844.0 kB actual → 846):
   // the blog reader's own share is the drawing embed kind and the svg's
   // class in the renderer, under a kilobyte; the rest is the entry's.
-  { name: "anonymous blog reader", keys: blog, budget: 852 * 1024 },
+  // …and again for THE SURFACE LAYER (871.7 kB actual → 874): the entry's
+  // share, as above; blog.css read six surface tokens where it read base ones.
+  { name: "anonymous blog reader", keys: blog, budget: 874 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -860,7 +868,9 @@ const AUDIENCES = [
   // …and the two rounds together (A WORK'S NOTES and DRAWINGS landed as one
   // merge): entry 614, blog 852, admin 1260 — each the two additions above
   // stacked, with the same slack, measured after the merge.
-  { name: "admin first paint", keys: app, budget: 1260 * 1024 },
+  // …and again for THE SURFACE LAYER (1280.2 kB actual → 1284): the entry's
+  // share plus the builder's filter, group reset and labelled rows.
+  { name: "admin first paint", keys: app, budget: 1284 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

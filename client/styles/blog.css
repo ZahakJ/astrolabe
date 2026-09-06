@@ -9,8 +9,8 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--blog-bg);
+  color: var(--blog-text);
   font-family: var(--font-ui);
   scrollbar-gutter: stable;
 }
@@ -23,7 +23,7 @@
 }
 
 .s-blog-mast__star {
-  color: var(--accent);
+  color: var(--blog-mast-star);
   font-size: 1.071rem;
   letter-spacing: 0.6em;
   margin-bottom: 10px;
@@ -46,13 +46,13 @@
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0.01em;
-  color: var(--text);
+  color: var(--blog-mast-text);
   text-decoration: none;
   transition: color 150ms ease;
 }
 
 .s-blog-mast__name:hover {
-  color: color-mix(in srgb, var(--accent) 35%, var(--text));
+  color: color-mix(in srgb, var(--blog-mast-star) 35%, var(--blog-mast-text));
 }
 
 .s-blog-mast__tagline {
@@ -62,7 +62,7 @@
   font-style: italic;
   font-size: 1.107rem;
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--blog-mast-tagline);
 }
 
 /* ── Nav ───────────────────────────────────────────────────────────────── */
@@ -136,7 +136,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  color: var(--text-muted);
+  color: var(--blog-nav-text);
   text-decoration: none;
   white-space: nowrap;
   /* Alignment is the CHROME's, not the tag's: stacked in the "More ▾" menu,
@@ -147,13 +147,13 @@
 }
 
 .s-blog-nav__link:hover {
-  color: var(--text);
-  background: var(--bg-hover);
+  color: var(--blog-text);
+  background: var(--blog-nav-hover-bg);
 }
 
 .s-blog-nav__link--active {
-  color: var(--accent);
-  background: var(--accent-soft);
+  color: var(--blog-nav-active-text);
+  background: var(--blog-nav-active-bg);
 }
 
 /* THE ROW HOLDS TWO KINDS OF CHIP, AND SAYS SO (v1.8 UX audit F28). A

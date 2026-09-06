@@ -1451,3 +1451,125 @@
   --font-serif-system: "Noto Naskh Arabic", Amiri, "Scheherazade New", "Traditional Arabic", Georgia,
     "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
 }
+
+/* ── THE SURFACE LAYER ──────────────────────────────────────────────────────
+   One token per painted thing a reader might want to change ON ITS OWN: the
+   sidebar's ground, the tab strip, the status bar, the editor page, the
+   reading page, the controls, the dialogs, the site, the cards. Each is a
+   DERIVATION of a base token, so every built-in theme keeps looking exactly as
+   it did and a custom theme that moves `--bg-raised` still moves the sidebar,
+   the panel and the status bar with it — until the author paints one of
+   those on its own, at which point only that one moves.
+
+   `:root, [data-theme]` rather than `:root` alone, on purpose: the custom
+   theme builder reads a base theme's values off a probe element carrying
+   `data-theme`, and a derivation declared on `:root` alone would resolve on
+   the probe against the DOCUMENT's base, not the probe's. Declared on the
+   element the theme block is on, `var(--bg-raised)` resolves against that
+   element's own theme. `:root[data-custom-theme]` is (0,2,0) against this
+   (0,1,0), so an author's override still wins (shared/customTheme.ts).
+
+   The list is shared/customTheme.ts's THEME_TOKENS with `derivedFrom`;
+   tests/themeTokens.test.ts holds the two to each other, and the contrast
+   gate resolves these derivations per theme before it measures. */
+:root,
+[data-theme] {
+  /* sidebar */
+  --sidebar-bg: var(--bg-raised);
+  --sidebar-text: var(--text);
+  --sidebar-muted: var(--text-muted);
+  --sidebar-border: var(--border);
+  --sidebar-hover-bg: var(--bg-hover);
+  --sidebar-active-bg: var(--accent-soft);
+  --sidebar-active-bar: var(--accent);
+  --sidebar-search-bg: var(--bg);
+  --tagpill-bg: var(--bg-hover);
+  --tagpill-text: var(--text-muted);
+  /* tabs */
+  --tabs-bg: var(--bg-raised);
+  --tabs-border: var(--border);
+  --tab-text: var(--text-muted);
+  --tab-hover-bg: var(--bg-hover);
+  --tab-active-bg: var(--bg);
+  --tab-active-text: var(--text);
+  --tab-active-bar: var(--accent);
+  --panel-bg: var(--bg-raised);
+  --panel-text: var(--text);
+  --panel-heading: var(--text-faint);
+  --panel-border: var(--border);
+  /* statusbar */
+  --statusbar-bg: var(--bg-raised);
+  --statusbar-text: var(--text-muted);
+  --statusbar-border: var(--border);
+  /* editor */
+  --editor-bg: var(--bg);
+  --editor-text: var(--text);
+  --editor-caret: var(--accent);
+  --editor-panel-bg: var(--bg-raised);
+  --codeblock-bg: var(--bg-raised);
+  --codeblock-text: var(--text);
+  --inline-code-bg: var(--bg-raised);
+  --inline-code-text: var(--text);
+  --code-border: var(--border);
+  /* reading */
+  --reading-bg: var(--bg);
+  --reading-text: var(--text);
+  --quote-bar: var(--accent);
+  --quote-text: var(--text-muted);
+  --highlight-bg: color-mix(in srgb, var(--accent) 26%, transparent);
+  --hr: var(--accent);
+  --list-bullet: var(--accent);
+  --table-border: var(--border);
+  --table-head-bg: var(--bg-raised);
+  --table-head-text: var(--text-muted);
+  --props-bg: var(--bg-raised);
+  --footnote-marker: var(--accent);
+  /* links */
+  --link: var(--accent);
+  --wikilink: var(--accent);
+  --wikilink-broken: color-mix(in srgb, var(--danger) 70%, var(--text));
+  --tag-bg: var(--accent-soft);
+  --tag-text: var(--accent);
+  /* controls */
+  --button-text: var(--text);
+  --button-hover-bg: var(--bg-hover);
+  --button-accent-bg: var(--accent-soft);
+  --button-accent-text: var(--accent);
+  --input-bg: var(--bg);
+  --input-text: var(--text);
+  --input-border: var(--border);
+  --input-placeholder: var(--text-faint);
+  --input-focus: var(--accent);
+  --menu-bg: var(--bg-raised);
+  --menu-text: var(--text);
+  --menu-hover-bg: var(--accent-soft);
+  /* overlays */
+  --modal-bg: var(--bg-raised);
+  --modal-text: var(--text);
+  --modal-border: var(--border);
+  --backdrop: #00000066;
+  --toast-bg: var(--bg-raised);
+  --toast-text: var(--text);
+  --toast-bar: var(--accent);
+  --scrollbar-thumb: var(--border);
+  --scrollbar-thumb-hover: var(--text-faint);
+  /* graph */
+  --graph-bg: var(--bg);
+  /* blog */
+  --blog-bg: var(--bg);
+  --blog-text: var(--text);
+  --blog-mast-text: var(--text);
+  --blog-mast-tagline: var(--text-muted);
+  --blog-mast-star: var(--accent);
+  --blog-nav-text: var(--text-muted);
+  --blog-nav-hover-bg: var(--bg-hover);
+  --blog-nav-active-bg: var(--accent-soft);
+  --blog-nav-active-text: var(--accent);
+  /* cards */
+  --card-bg: var(--bg-raised);
+  --card-text: var(--text);
+  --card-border: var(--border);
+  --card-hover-border: var(--accent);
+  --progress-track: var(--bg-hover);
+  --progress-fill: var(--accent);
+}

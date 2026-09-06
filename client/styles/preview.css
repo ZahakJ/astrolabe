@@ -296,8 +296,8 @@
 /* ── Highlights, comments, footnotes ──────────────────────────────────── */
 
 .s-editor .cm-s-highlight {
-  background: color-mix(in srgb, var(--accent) 26%, transparent);
-  color: var(--text);
+  background: var(--highlight-bg);
+  color: var(--editor-text);
   border-radius: 3px;
   padding: 0.05em 0.1em;
   box-decoration-break: clone;
@@ -857,8 +857,8 @@
   background: linear-gradient(
     to right,
     transparent,
-    color-mix(in srgb, var(--accent) 88%, transparent) 15%,
-    color-mix(in srgb, var(--accent) 88%, transparent) 85%,
+    color-mix(in srgb, var(--hr) 88%, transparent) 15%,
+    color-mix(in srgb, var(--hr) 88%, transparent) 85%,
     transparent
   );
 }
