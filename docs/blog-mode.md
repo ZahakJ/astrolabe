@@ -28,9 +28,14 @@ article deep links keep their normal note URLs.
 
 Every note with `publish: true`, newest first. A post's date comes from
 frontmatter — `date:`, `created:`, or `published:`, the first that parses wins (bare YAML dates
-like `2024-05-01` and quoted/ISO strings both work); otherwise the file's creation/
-modification time — so if you migrated a vault by copying files (which resets file times), add
-`date:` frontmatter to your posts or they will all sort as "created the day of the copy". The
+like `2024-05-01` and quoted/ISO strings both work); otherwise the moment the note was **first
+seen** by this instance. That is not the file's birthtime as the disk reports it today: every save
+writes a temp file and renames it over the note, which mints a new inode with a new birthtime, so
+the raw birthtime is really the last edit. The instance remembers the first birthtime it met for
+each path in `VELLUM_DATA/created.json`, and when the vault is a git repository it seeds that
+memory from the commit that added the file, so an old vault with backup on gets its true dates
+back. A vault migrated by copying files, with no history, still needs `date:` frontmatter or
+its posts sort as "created the day of the copy". The
 excerpt is the first real paragraph of prose (markdown stripped, template furniture like bare
 timestamps and `Tags: #a #b` lines skipped), cut at ~220 characters on a word boundary.
 `GET /api/posts` serves the list.

@@ -12,6 +12,7 @@ import path from "node:path";
 import MiniSearch from "minisearch";
 import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent, LibraryKind, LibraryPathRef } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
+import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { findAnyMatches, foldQuery, foldTerm } from "../shared/fold.ts";
 import { parseSearchQuery, type QueryFilter } from "../shared/searchQuery.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
@@ -598,6 +599,10 @@ export function publishedTopics(
 // ------------------------------------------------------------------ building
 
 export async function initIndexer(): Promise<void> {
+  // Before the first walk: the commit that added each note, when the vault
+  // is a repository, so an old vault seeds true dates rather than the
+  // birthtimes its edits left behind. Nothing when the ledger already exists.
+  await seedFromGit();
   const t0 = performance.now();
   const { notes: noteFiles, attachments } = await listVaultFiles();
   for (const file of attachments) addAttachment(file);
@@ -836,7 +841,10 @@ async function applyIndexFile(relPath: string): Promise<void> {
       parseFmDate(fm.date) ??
       parseFmDate(fm.created) ??
       parseFmDate(fm.published) ??
-      (stat.birthtimeMs > 0 ? stat.birthtimeMs : stat.mtimeMs),
+      // Not the birthtime itself: a save is a rename over the note and gives
+      // it a new inode, so the birthtime is the last edit. The ledger keeps
+      // the first one this instance saw (server/created.ts).
+      createdMs(relPath, stat.birthtimeMs, stat.mtimeMs),
     arabic: detectArabic(parts.prose ?? parts.body),
     prose: parts.prose,
     anchors: parts.anchors,
@@ -1149,7 +1157,10 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
       parseFmDate(fm.date) ??
       parseFmDate(fm.created) ??
       parseFmDate(fm.published) ??
-      (stat.birthtimeMs > 0 ? stat.birthtimeMs : stat.mtimeMs),
+      // Not the birthtime itself: a save is a rename over the note and gives
+      // it a new inode, so the birthtime is the last edit. The ledger keeps
+      // the first one this instance saw (server/created.ts).
+      createdMs(relPath, stat.birthtimeMs, stat.mtimeMs),
     // No body was read, so there is no prose to judge: "no language", which
     // languageHidden() leaves alone on both an ar and an en site.
     arabic: null,
@@ -1184,6 +1195,7 @@ function removeFile(relPath: string, reindexing = false): void {
   const record = notes.get(relPath);
   if (!record) return;
   if (!reindexing) graphRev++;
+  if (!reindexing) forgetCreated(relPath);
   notes.delete(relPath);
   oversized.delete(relPath);
   removeKeys(record);
