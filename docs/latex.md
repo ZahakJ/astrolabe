@@ -66,8 +66,6 @@ end to end.
 
 ## `astrolabe.sty`
 
-(`vellum.sty`, the package's name before the rename, is still served at `/api/vellum.sty` and provides the same macros; `\vellum{…}` is read as `\astrolabe{…}`. A paper written under the old name compiles unchanged.)
-
 The dozen lines that make `\note{…}` compile outside Astrolabe. Download it from your own instance at
 `/api/astrolabe.sty` (or "LaTeX: download astrolabe.sty" in the command palette), drop it beside your
 document, and `\usepackage{astrolabe}`. Without it the file still opens in Astrolabe; with it,

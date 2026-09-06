@@ -25,6 +25,14 @@
   display: inline-block;
 }
 
+/* `![[picture.png|300]]`: a picture given a width sits in the middle of the
+   column, whichever way the note runs. Still an inline widget (the caret and
+   the height map are CodeMirror's), just one that spans its line. */
+.s-editor .cm-s-embed-image--sized {
+  width: 100%;
+  text-align: center;
+}
+
 .s-editor .cm-s-embed-src {
   color: var(--text-muted);
   font-family: var(--font-mono);

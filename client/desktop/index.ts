@@ -27,6 +27,7 @@ import { openDailyNote } from "../daily.ts";
 import { promptNewNote } from "../prompts.ts";
 import { applyUrl } from "../router.ts";
 import { useStore } from "../state.ts";
+import { GRAPH_TAB } from "../workspace.ts";
 import { choiceGroup, counterpartChoice } from "../themes.ts";
 import { t, tf } from "../i18n.ts";
 import { toast } from "../toast.ts";
@@ -80,10 +81,10 @@ function runCommand(command: string): void {
     case "reading-view":
       if (!store.admin) return;
       store.toggleReading();
-      if (store.view === "graph") store.setView("editor");
+      if (store.graphOpen()) store.closeTab(GRAPH_TAB);
       return;
     case "graph":
-      store.setView(store.view === "graph" ? "editor" : "graph");
+      store.toggleGraph();
       return;
     case "zen":
       store.setZen(!store.zen);

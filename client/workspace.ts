@@ -120,8 +120,18 @@ export function isBookPath(path: string): boolean {
  *  graph, the tab it sits in) and a picture by this one. */
 export { isDrawingPath };
 
+/** THE GRAPH IS A TAB. It used to replace the whole working area the way a
+ *  modal does; the owner and a friend wanted it "its own position in the top
+ *  tab strip", flipped to and from a note like any other tab, so it travels as
+ *  a tab whose path is this sentinel. No file has this path: no extension, so
+ *  it is never a note, and the tilde keeps it out of every folder. */
+export const GRAPH_TAB = "~graph";
+export function isGraphTab(path: string): boolean {
+  return path === GRAPH_TAB;
+}
+
 export function isTabbablePath(path: string): boolean {
-  return isNotePath(path) || isBookPath(path);
+  return isNotePath(path) || isBookPath(path) || isGraphTab(path);
 }
 
 // ── ids ─────────────────────────────────────────────────────────────────────
@@ -173,6 +183,7 @@ export function surfaceOf(p: Pane): PaneSurface {
   if (p.mode === "library") return "library";
   const tab = activeTabOf(p);
   if (p.follow === null && tab === null) return "empty";
+  if (tab !== null && isGraphTab(tab.path)) return "graph";
   if (tab !== null && isBookPath(tab.path)) return "book";
   // A drawing has one surface: the canvas is the editor AND the reading view,
   // and a pane mode of "reading" over it would be a grey box.
@@ -742,7 +753,10 @@ export function remapWorkspace(ws: Workspace, from: string, to: string): Workspa
 export function pruneWorkspace(ws: Workspace, visible: Set<string>): Workspace {
   let out = ws;
   for (const pane of panesInOrder(ws)) {
-    out = dropTabsUnconditional(out, pane.id, (t) => !visible.has(t.path));
+    // The graph tab names no file, so no tree can vouch for it; it is kept
+    // on its own account (a restored session used to lose it whenever it
+    // was not the active tab, because only the /graph URL reopened it).
+    out = dropTabsUnconditional(out, pane.id, (t) => !visible.has(t.path) && !isGraphTab(t.path));
   }
   return out;
 }

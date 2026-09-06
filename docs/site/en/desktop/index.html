@@ -64,11 +64,11 @@ Edit menu.</p>
 ready a toast offers <strong>Restart now</strong>, never a dialog. <strong>Help → Check for updates…</strong> asks at once,
 and says so when you are on the latest.</p>
 <h2 id="deep-links-and-file-association"><a class="anchor" href="#deep-links-and-file-association">Deep links and file association</a></h2>
-<p><code>astrolabe://note?path=Folder/Note.md</code> opens a note from outside the app (<code>vellum://</code> links keep opening too), and the app registers for
+<p><code>astrolabe://note?path=Folder/Note.md</code> opens a note from outside the app, and the app registers for
 <code>.md</code> files so a note double-clicked in the file manager opens here. The path is checked, not
 cleaned: <code>..</code>, a leading <code>/</code>, a drive letter or a control character is refused.</p>
 <h2 id="where-things-live"><a class="anchor" href="#where-things-live">Where things live</a></h2>
-<p>The app&#39;s own configuration is in <code>~/.config/astrolabe</code> (carried over from <code>~/.config/vellum</code> on the first launch under the new name; the old directory is left as it was) (<code>desktop.json</code>: the vaults, their ports
+<p>The app&#39;s own configuration is in <code>~/.config/astrolabe</code> (<code>desktop.json</code>: the vaults, their ports
 and, for each, the data directory it uses), and each vault&#39;s instance data in the
 <a href="../configuration/#environment-variables"><code>ASTROLABE_DATA</code></a> that entry names. The Linux build is
 packaged with <code>asar: false</code> deliberately, because the server child reads real files from the

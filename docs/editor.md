@@ -79,7 +79,8 @@
 ## Rendering
 
 - **Image embeds** — `![[image.png]]`, `![[image.png|300]]`, and standard `![alt](path)` render
-  inline from your vault's attachments; broken embeds get a dashed placeholder
+  inline from your vault's attachments; a picture given a width sits centred in the column, in
+  an Arabic note as in an English one; broken embeds get a dashed placeholder
 - **Note transclusions** — `![[Note]]` renders the target note as a full-fidelity card (callouts,
   math, code highlighting included), with an "Open note" affordance when the excerpt overflows
 - **PDF & attachment cards** — `![[file.pdf]]` (mp4, mp3, zip, …) becomes a card that opens the
@@ -103,7 +104,8 @@
 - **Backlinks panel** — every note shows who links to it, with the sentence that did
 - **Outline (TOC) panel** — the open note's headings, tracking your scroll position; click to jump
 - **Graph view** — hand-rolled canvas force simulation; drag nodes, hover to highlight neighbors,
-  click to open. The sliders button opens its settings: colour the notes by **folder** (one or two
+  click to open. It opens as a [tab](workspace.md#panes) in the focused pane (`Ctrl/Cmd G`), so
+  the map and a note sit side by side or flip back and forth. The sliders button opens its settings: colour the notes by **folder** (one or two
   levels deep) or by **tag**, with a legend where each group can be recoloured or hidden; a search
   that lights the matching notes; filters for orphans and a minimum number of links; the three
   forces (spread, link length, pull to centre); node size, link opacity, the zoom at which labels
@@ -231,7 +233,8 @@ vault on disk is never reordered.
 Drag the inner edge of the notes sidebar or the side panel to resize it; the width is remembered
 per browser. Drag it off the window edge and it closes, and the slim handle it leaves behind
 reopens it with a click or a drag inward. Double-click the edge to go back to the default width.
-Ctrl/Cmd+B and the collapse buttons still do what they did.
+Ctrl/Cmd+B and the collapse buttons still do what they did. The seams between split panes are
+grips too; see [panes](workspace.md#panes).
 
 ## Folder marks
 

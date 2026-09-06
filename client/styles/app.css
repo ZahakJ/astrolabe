@@ -6145,6 +6145,81 @@ button.s-title:hover {
   background: var(--border);
   min-width: 0;
   min-height: 0;
+  position: relative; /* the split grips sit on its edges */
+}
+
+/* ── The split grips (client/components/Workspace.tsx) ────────────────────
+   An 8px strip over the 1px gap: on a column's inline-end edge, between it
+   and the next column, and across a column at the seam of its two panes. The
+   accent line shows under the pointer and while dragging, exactly as the side
+   panes' grips do; the rest of the time the seam is the hairline it was. */
+.s-split-grip {
+  position: absolute;
+  z-index: 6;
+  touch-action: none;
+}
+
+.s-split-grip--col {
+  top: 0;
+  bottom: 0;
+  inset-inline-end: -4px;
+  width: 8px;
+  cursor: col-resize;
+}
+
+.s-split-grip--row {
+  inset-inline: 0;
+  height: 8px;
+  cursor: row-resize;
+}
+
+.s-split-grip::after {
+  content: "";
+  position: absolute;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.s-split-grip--col::after {
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 2px;
+}
+
+.s-split-grip--row::after {
+  left: 0;
+  right: 0;
+  top: 3px;
+  height: 2px;
+}
+
+.s-split-grip:hover::after,
+.s-app--split-drag .s-split-grip::after {
+  opacity: 0.9;
+}
+
+.s-app--split-drag,
+.s-app--split-drag * {
+  user-select: none;
+}
+
+.s-app--split-drag-x,
+.s-app--split-drag-x * {
+  cursor: col-resize !important;
+}
+
+.s-app--split-drag-y,
+.s-app--split-drag-y * {
+  cursor: row-resize !important;
+}
+
+/* A drag over an iframe or a canvas (the graph, a PDF) would lose the
+   pointer to it; pointer capture on the grip keeps the events, and this keeps
+   the cursor honest over surfaces that set their own. */
+.s-app--split-drag .s-pane {
+  pointer-events: none;
 }
 
 .s-pane {
@@ -6661,9 +6736,32 @@ html[dir="rtl"] .s-statusbar__spacer {
   box-shadow: none;
 }
 
-.s-main > .s-tabs,
-.s-main .s-view:last-of-type .s-tabs {
+.s-main > .s-tabs {
   padding-inline-end: var(--topactions-w, 0px);
+}
+
+/* SPLIT, THE CLUSTER GETS A ROW OF ITS OWN. Over one pane it floats at the
+   trailing end of the shell's tab strip and the strip keeps clear of it. Over
+   a grid of panes there is no one strip to keep clear: the rule that reserved
+   the room matched EVERY pane's strip, and a 390px cluster over a 400px pane
+   left ten pixels for the tabs, which is how the owner's friend lost the tab
+   names of every split pane. So the cluster stands in a row above the grid,
+   the panes' strips are entirely theirs, and a narrow third column still
+   names what it holds. */
+.s-main:has(> .s-panes) .s-topactions,
+.s-main--cluster-row .s-topactions {
+  position: static;
+  flex: none;
+  justify-content: flex-end;
+  background: var(--tabs-bg);
+  border-bottom: 1px solid var(--tabs-border);
+}
+
+/* …and the same when a solo strip would be starved (StatusBar.tsx toggles the
+   class when the column leaves the cluster less than 320px of room), so on a
+   laptop with both side panes open the tab names stay readable. */
+.s-main--cluster-row > .s-tabs {
+  padding-inline-end: 0;
 }
 
 /* Zen hides the cluster with the rest of the chrome; the ✕ is the way out. */

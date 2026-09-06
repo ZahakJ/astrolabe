@@ -27,7 +27,7 @@ is what refuses two rows claiming one keystroke; see [Development](development.m
 | `Ctrl/Cmd P` | Command palette (open note, run command) |
 | `Ctrl/Cmd K` | Search — focuses the sidebar search in the app; opens a centered search overlay on the public blog |
 | `Ctrl/Cmd E` | Toggle reading view ⇄ editor |
-| `Ctrl/Cmd G` | Toggle graph view |
+| `Ctrl/Cmd G` | Open the graph tab, or close it |
 | `Ctrl/Cmd N` | New note |
 | `Ctrl/Cmd Alt D` | Open today's daily note (`daily/YYYY-MM-DD.md`) |
 | `Ctrl/Cmd Shift P` | Publish / unpublish the open note |

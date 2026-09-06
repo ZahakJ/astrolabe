@@ -357,8 +357,8 @@ serve({ fetch: app.fetch, port, hostname: host }, (info) => {
   const shownHost = host === "0.0.0.0" || host === "::" ? "localhost" : host;
   console.log(`
   ${gold}    .   ✦   .${reset}
-  ${gold}  v e l l u m${reset}
-  ${dim}  ─────────────${reset}
+  ${gold}  a s t r o l a b e${reset}
+  ${dim}  ─────────────────${reset}
     vault   ${vaultDir}
     serving ${gold}http://${shownHost}:${info.port}${reset}${host !== "0.0.0.0" ? `${dim}  (bound to ${host})${reset}` : ""}
 `);

@@ -455,6 +455,12 @@ li.s-rv-task--done > span {
   border: 1px solid var(--border);
 }
 
+/* A sized embed (`|300`) is centred here as it is in the editor. */
+.s-rv-img[style*="width"] {
+  display: block;
+  margin-inline: auto;
+}
+
 .s-rv-figure {
   margin: 0.9em 0;
 }

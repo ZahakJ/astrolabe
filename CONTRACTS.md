@@ -36,19 +36,21 @@ under them. Screenshots in `docs/screenshots/` are shot in sidereal (`scratchpad
 ## The name (Astrolabe was Vellum, from 2.21)
 
 The product was renamed without breaking a single thing an install, a vault, a document or a
-bookmark relied on. What the old name still answers to, and how:
+bookmark relied on. Nothing user-facing says the old name any more (3.1.0: the README, the docs
+and the manual's home strap dropped their "was Vellum" notes); what follows is code-internal.
+What the old name still answers to, and how:
 
 | Was | Is | How the old one keeps working |
 | --- | --- | --- |
 | `VELLUM_*` environment keys | `ASTROLABE_*` | every key is read through `envRead()` in `shared/envName.ts`: new spelling wins, old answers, one stderr line at startup names any old key leaned on (`reportEnvFallbacks()`) |
-| `vellum_session` cookie | `astrolabe_session` | `server/auth.ts` reads both (`sessionCookie()`), writes only the new, deletes both on logout; the sliding refresh reissues under the new name |
+| `vellum_session` cookie | `astrolabe_session` | `server/auth.ts` reads both (`sessionCookie()`), writes only the new, deletes both on logout; a request carrying only the old cookie is reissued under the new name at once and the old cookie expired (`refreshSessionIfStale()`) |
 | `X-Vellum-Lang`, `X-Vellum-Preview` | `X-Astrolabe-Lang`, `X-Astrolabe-Preview` | both spellings read (`server/language.ts`, `previewRequested()`); `Vary` lists all four; the client sends the new |
-| `vellum.*` localStorage keys | `astrolabe.*` | `client/storageMigration.ts` copies each old key to its twin once at boot when the twin is absent; the old keys are left for older builds |
+| `vellum.*` localStorage keys | `astrolabe.*` | `client/storageMigration.ts` MOVES each old key to its twin once at boot (value carried when the twin is absent; the old key removed either way), so no `vellum.*` key survives a launch of 3.1.0 |
 | `vellum://` deep links | `astrolabe://` | both schemes registered and parsed (`electron/deeplink.ts` `LEGACY_PROTOCOL`) |
-| `~/.config/vellum` | `~/.config/astrolabe` | copied on the first launch when the new directory does not exist; the old one is never touched (`electron/main.ts`) |
+| `~/.config/vellum` | `~/.config/astrolabe` | renamed on the first launch when the new directory does not exist (`renameSync`, a copy when the rename fails across devices); nothing is left under the old name (`electron/main.ts`) |
 | `vellum.sty`, `\vellum{…}` | `astrolabe.sty`, `\astrolabe{…}` | `/api/vellum.sty` still served as its own package; both files provide both macros; the parser reads both spellings (`shared/tex.ts`) |
 | `ZahakJ/vellum` releases | `ZahakJ/astrolabe` | the updater asks the new repository first and the old when that fails (`electron/update.ts`) |
-| `.vellum-trash.json` | unchanged | the trash manifest keeps its file name: it is internal, and a second name would be two trashes with one door |
+| `.vellum-trash.json` | `.astrolabe-trash.json` | renamed the first time the trash manifest is read (`carryTrashManifest()` in server/vault.ts), so an old trash still restores to where it came from and nothing under the old name stays in the vault |
 | `VELLUM_DATA/*.json` | unchanged | file names and contents are not part of the rename |
 
 The mark is an astrolabe (`shared/brandMark.ts`, one geometry for the wordmark, the sign-in modal,
@@ -897,6 +899,21 @@ an external write to a DIRTY note still toasts, and to a clean one still reloads
   `git clone / npm install / npm start`, point-at-your-vault instructions, features, keymap table,
   screenshots placeholder, port table, license MIT). Also `LICENSE` (MIT, holder "avicenna").
 
+## The graph is a tab (client/workspace.ts `GRAPH_TAB`, 3.1.0)
+
+The vault graph used to replace the whole working area under `view === "graph"`. It is now a TAB
+whose path is the sentinel `"~graph"` (no extension, so never a note; the tilde keeps it out of
+every folder): `isTabbablePath()` admits it, `surfaceOf()` answers `"graph"` when it is the active
+tab, and `Pane.tsx` mounts `GraphView` (lazy) in that pane. `View` lost its `"graph"` member;
+`setView("graph")` opens the tab in the focused pane (`openInPane`), `toggleGraph()` opens it or
+closes it when it is already active (`Ctrl/Cmd G`, the status-bar button, the palette, the desktop
+menu), `graphOpen()` says whether the focused pane shows it. The mirror looks past it like a
+drawing (`openPath` is never `"~graph"`); the router answers `/graph` for it and opens it from
+`/graph`; `Tabs.tsx` titles it `docTitleGraph`. Clicking a node opens the note as the tab beside
+it, which is the flip-flop the owner asked for; the tab drags, splits, pins and closes like any
+other, and a restored session brings it back. `PaneMode` still lists `"graph"` for old stored
+workspaces, unused by anything that opens the graph now.
+
 ## The graph view's own settings (client/graphPrefs.ts, GraphView.tsx)
 
 **THE GRAPH OPENED GREY, AND THAT WAS A BUG, NOT A LOOK.** The keyboard route lights the node its
@@ -1028,7 +1045,12 @@ session control — which it PORTALS into `#s-topactions`, the host App.tsx plac
 `.s-main` (`.s-topactions`, absolute, trailing end, 2.5rem, `pointer-events: none` with its child
 `auto`). The portal's wrapper is `.s-statusbar.s-statusbar--top` so every bar rule applies, with
 the chrome (height, background, border, grid-area) overridden. A ResizeObserver publishes the
-cluster's width as `--topactions-w` on `.s-main`, which the last tab strip pads by. **The strip is
+cluster's width as `--topactions-w` on `.s-main`, which the shell's own strip (`.s-main > .s-tabs`,
+solo only) pads by. **Split, the cluster takes a row of its own** (`.s-main:has(> .s-panes)
+.s-topactions` is static, a `2.5rem` bar above the grid): the earlier rule padded EVERY split
+pane's strip by the cluster's width (`.s-view:last-of-type` matched the only pane of each column),
+and a 390px cluster over a 400px pane left ten pixels for the tabs — the owner's friend lost every
+tab name in split view. **The strip is
 a box and the tabs scroll in a box inside it** (`.s-tabs__scroll`, Tabs.tsx `scrollRef`): a scroll
 container's end padding exists only at the END of its scroll, so while the strip itself scrolled,
 twenty-five tabs ran under the cluster on the row's first screen. The reservation lives on the
@@ -1066,6 +1088,18 @@ stored width. The root wears `.s-app--pane-drag` mid-drag (transitions off, colu
 selection). The reopen handles take `reopenDragProps(pane)`: a drag inward of `PANE_REOPEN_AT`
 (40px) reopens; a click still does. No grip on a collapsed pane, in zen, under the phone's
 breakpoint or a coarse pointer.
+
+**The split grips (Workspace.tsx `ColGrip`/`RowGrip`, 3.1.0).** Every `.s-panecol` is `position:
+relative` and carries an 8px `role="separator"` on its inline-end edge when a column follows it
+(`.s-split-grip--col`, over the grid's 1px gap) and one across the seam of its two panes when it
+holds two (`.s-split-grip--row`, `top: calc(share·100% − 4px)`). A drag with pointer capture reads
+the two live rects once, turns the pointer into the first pane's share of the pair (`shareAt()`,
+flipped when the first pane starts later on screen, so an Arabic grid needs nothing stored about
+sides), clamps to 10–90 %, writes the grid template straight onto the element while the pointer
+moves and commits ONCE on release through `resizeCols(gap, share)` / `resizeRows(col, share)` —
+store actions over the pure reducers of the same name in workspace.ts. Double-click commits 0.5.
+The root wears `.s-app--split-drag` (+ `-x`/`-y`) mid-drag: no selection, one cursor, and the panes
+under it lose pointer events so a canvas or an iframe cannot steal the drag.
 
 ## Collections and categories (shared/publicFolders.ts, server/indexer.ts collectionRows, client/components/CollectionsPopover.tsx)
 

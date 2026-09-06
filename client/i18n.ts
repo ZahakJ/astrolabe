@@ -440,7 +440,7 @@ const DICT = {
   },
   themePinFailed: { en: "Could not change the visitors' theme", ar: "تعذّر تغيير سمة الزوار" },
   themeFollowOption: { en: "Follow my editor theme", ar: "اتبع سمة محرِّري" },
-  graph: { en: "graph", ar: "مخطط" },
+  graph: { en: "graph", ar: "المخطط" },
   graphTitle: { en: "Toggle graph view (Ctrl/Cmd+G)", ar: "تبديل عرض المخطط (Ctrl/Cmd+G)" },
   signIn: { en: "Sign in", ar: "تسجيل الدخول" },
   signInTitle: { en: "Sign in to edit this vault", ar: "تسجيل الدخول لتحرير هذه الخزانة" },
@@ -481,6 +481,8 @@ const DICT = {
   treeFocusAll: { en: "Show all", ar: "إظهار الكل" },
   treeFocusedOn: { en: "Focused on “{name}”", ar: "التركيز على “{name}”" },
   paneGripNotes: { en: "Drag to resize the notes sidebar; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض لوحة الملاحظات؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
+  splitGripCols: { en: "Drag to resize the panes; double-click to even them out", ar: "اسحب لتغيير عرض اللوحات؛ انقر مرتين لتساويها" },
+  splitGripRows: { en: "Drag to resize the panes; double-click to even them out", ar: "اسحب لتغيير ارتفاع اللوحات؛ انقر مرتين لتساويها" },
   paneGripPanel: { en: "Drag to resize the side panel; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض اللوحة الجانبية؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
   showPaneNotes: {
     en: "Show Notes sidebar (Ctrl/Cmd+Alt+B)",
@@ -1231,7 +1233,7 @@ const DICT = {
   // The hard warnings. Same numbers, louder frame.
   langFilterEmptyWarn: {
     en: "Nothing qualifies. No published note is written in {lang}, so the site would have nothing on it — Astrolabe will keep showing all {total} instead, and go on saying so here until you change this.",
-    ar: "لا شيء مؤهل. لا توجد ملاحظة منشورة مكتوبة بـ{lang}، فيغدو الموقع خاليًا — سيواصل ڤيلَّم عرض الـ{total} كلها بدلًا من ذلك، وسيظل يقول ذلك هنا حتى تغيّر هذا.",
+    ar: "لا شيء مؤهل. لا توجد ملاحظة منشورة مكتوبة بـ{lang}، فيغدو الموقع خاليًا — سيواصل أسطرلاب عرض الـ{total} كلها بدلًا من ذلك، وسيظل يقول ذلك هنا حتى تغيّر هذا.",
   },
   langFilterMostHiddenWarn: {
     en: "This hides {hidden} of your {total} published notes — most of your site.",
@@ -1529,6 +1531,14 @@ const DICT = {
   previewNotPublishedNamed: {
     en: "“{path}” is not published — visitors cannot see it, so it left the tab bar",
     ar: "«{path}» غير منشورة — لا يراها الزوار، لذلك غادرت شريط التبويبات",
+  },
+  previewAsArabicReader: {
+    en: "Previewing as an Arabic reader: the language filter shows this note to them, not to English readers",
+    ar: "المعاينة بوصفك قارئًا عربيًا: مرشح اللغة يعرض هذه الملاحظة لهم لا لقرّاء الإنجليزية",
+  },
+  previewAsEnglishReader: {
+    en: "Previewing as an English reader: the language filter shows this note to them, not to Arabic readers",
+    ar: "المعاينة بوصفك قارئًا إنجليزيًا: مرشح اللغة يعرض هذه الملاحظة لهم لا لقرّاء العربية",
   },
   previewHiddenNamed: {
     en: "“{path}” is published, but the language filter or an excluded tag hides it from visitors reading in this language, so it left the tab bar",

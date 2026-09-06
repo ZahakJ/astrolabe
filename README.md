@@ -11,8 +11,6 @@
 
 > An *astrolabe* was the instrument that told a traveller where they stood by the stars. This one runs on `localhost`.
 >
-> **Astrolabe was Vellum.** Everything written for the old name keeps working: `VELLUM_*` environment keys, `vellum://` links, `~/.config/vellum`, `vellum_session` cookies, `\usepackage{vellum}` and `/api/vellum.sty`, and your browser's stored preferences. The new names are `ASTROLABE_*`, `astrolabe://`, `~/.config/astrolabe`, `astrolabe.sty`.
-
 ![The live-preview editor: callouts, tasks, wikilinks, KaTeX math, outline, local graph, and backlinks](docs/screenshots/hero-editor.png)
 
 **The manual** lives at [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/), with a full Arabic edition at [/site/ar](https://zahakj.github.io/astrolabe/site/ar/). The same pages are the markdown under [`docs/`](docs/README.md).

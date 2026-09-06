@@ -20,6 +20,7 @@ import {
   closeAfterIn,
   closeAllPanes,
   closeOthersIn,
+  isGraphTab,
   paneAt,
   type Workspace,
 } from "../workspace.ts";
@@ -30,6 +31,7 @@ import { noteLabelOf } from "../../shared/noteFormat.ts";
  *  RLO reorders its own label ("Bidi<U+202E>Attack Note" → "BidietoN kcattA"),
  *  and these labels travel into aria-labels and the document title. */
 function titleOf(path: string): string {
+  if (isGraphTab(path)) return t("docTitleGraph");
   const base = path.slice(path.lastIndexOf("/") + 1);
   return stripBidiControls(noteLabelOf(base));
 }
@@ -283,7 +285,7 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
           <div
             key={path}
             role="presentation"
-            title={path}
+            title={isGraphTab(path) ? titleOf(path) : path}
             className={`s-tab${isActive ? " s-tab--active" : ""}${isDirty ? " s-tab--dirty" : ""}${
               pinned ? " s-tab--pinned" : ""
             }${ephemeral ? " s-tab--ephemeral" : ""}${

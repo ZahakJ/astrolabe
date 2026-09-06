@@ -78,6 +78,10 @@ let readerLang: string | null = null;
 /** Set the language every subsequent API call declares (state.ts drives this,
  *  from the same value it hands the i18n dictionary — chrome and content are
  *  told the same thing or the switch is a lie). */
+export function getReaderLang(): string | null {
+  return readerLang;
+}
+
 export function setReaderLang(lang: string | null): void {
   readerLang = lang;
 }

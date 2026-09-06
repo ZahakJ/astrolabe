@@ -95,6 +95,11 @@ request is re-scoped server-side through the exact code path a stranger&#39;s re
 (published-only tree, search, graph, feed of events), so what you see is byte-for-byte what the
 public site serves. A slim gold banner marks the mode; &quot;Exit preview&quot; returns you to the full app
 on the same note. It never survives a reload.</p>
+<p>The note you are on stays on screen. A note the public site hides behind the <a href="../arabic-and-rtl/#language-filter">language filter</a>,
+an Arabic note previewed from an English instance say, is shown as a reader of that language
+would see it: the preview borrows the reader language for as long as it lasts, says so in a toast,
+and hands it back on exit. A note that is simply not published shows the empty state, as it does
+for a visitor.</p>
 <h2 id="putting-it-on-the-internet"><a class="anchor" href="#putting-it-on-the-internet">Putting it on the internet</a></h2>
 <p>Run Astrolabe behind any HTTPS reverse proxy (Caddy, nginx, a Cloudflare tunnel, …) forwarding to
 <code>localhost:6801</code> — the app is a single origin (API + static client on one port), so no special

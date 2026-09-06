@@ -31,7 +31,7 @@ import {
 import { existsSync, readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
-import { cpSync, existsSync } from "node:fs";
+import { cpSync, existsSync, renameSync, rmSync } from "node:fs";
 import { TO_MAIN, TO_RENDERER, type Command, type Hello } from "./ipc.ts";
 import { keepSignedIn, mintCredential, signIn } from "./auth.ts";
 import type { Credential } from "./server.ts";
@@ -106,10 +106,9 @@ for (const scheme of [PROTOCOL, LEGACY_PROTOCOL]) {
 // THE CONFIG DIRECTORY MOVES WITH THE NAME, AND CARRIES ITS CONTENTS. Electron
 // derives userData from the product name, so a renamed app would boot with no
 // recent vaults, no ports and no data-directory overrides — every window the
-// owner ever opened, forgotten. The first launch under the new name copies
-// `~/.config/vellum` (or `Vellum`) into `~/.config/astrolabe` when the new
-// directory does not exist yet. The old one is never touched: an older build
-// on the same machine keeps its own memory.
+// owner ever opened, forgotten. The first launch under the new name moves
+// `~/.config/vellum` (or `Vellum`) to `~/.config/astrolabe` when the new
+// directory does not exist yet, so the machine is left with the new name only.
 {
   const appData = app.getPath("appData");
   const fresh = path.join(appData, "astrolabe");
@@ -117,7 +116,24 @@ for (const scheme of [PROTOCOL, LEGACY_PROTOCOL]) {
     const old = ["vellum", "Vellum"].map((n) => path.join(appData, n)).find((p) => existsSync(p));
     if (old) {
       try {
-        cpSync(old, fresh, { recursive: true });
+        // A move: the directory travels to its new name and nothing is left
+        // behind under the old one (the owner asked for a machine with no
+        // trace of it). A rename across devices is the one case that fails,
+        // and then a copy stands in.
+        try {
+          renameSync(old, fresh);
+        } catch {
+          // The copy is all-or-nothing too: a half-copied directory would
+          // satisfy the `existsSync(fresh)` above on every later launch and
+          // strand the rest of the memory under the old name.
+          try {
+            cpSync(old, fresh, { recursive: true });
+            rmSync(old, { recursive: true, force: true });
+          } catch (err) {
+            rmSync(fresh, { recursive: true, force: true });
+            throw err;
+          }
+        }
       } catch (err) {
         console.error("astrolabe: could not carry the old config directory over", err);
       }

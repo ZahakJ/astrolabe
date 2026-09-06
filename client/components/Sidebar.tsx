@@ -1485,6 +1485,18 @@ export default function Sidebar() {
             >
               <IconNewNote />
             </button>
+            {/* A drawing at the root, one click from the top (the owner: "add
+                a new drawing logo on top to start a drawing in the root
+                directory"). The folder menu still starts one inside a folder. */}
+            <button
+              type="button"
+              className="s-iconbtn"
+              title={t("newDrawing")}
+              aria-label={t("newDrawing")}
+              onClick={() => void promptNewDrawing("")}
+            >
+              <IconDrawing />
+            </button>
             <button
               type="button"
               className="s-iconbtn"

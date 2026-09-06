@@ -595,7 +595,11 @@ const AUDIENCES = [
   // that carries `vellum.*` preferences over to `astrolabe.*` runs before
   // anything else, so it is in the entry by design; and the mark's geometry
   // (shared/brandMark.ts), which the sign-in modal and the wordmark draw from.
-{ name: "entry (everyone)", keys: entry, budget: 640 * 1024 },
+  // …and for THE SPLIT GRIPS AND THE GRAPH TAB (640.0 kB actual → 644): the
+  // graph's tab sentinel and the two resize reducers sit in the workspace
+  // model, which the entry has always carried, and the grips' labels are
+  // dictionary rows.
+{ name: "entry (everyone)", keys: entry, budget: 644 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this

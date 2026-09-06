@@ -14,6 +14,17 @@ tabs are **adopted by a neighbour, never dropped**. `Ctrl/Cmd Alt Shift` with an
 focus between panes, physically, in both languages, and *Focus next pane* in the palette walks
 them in order.
 
+**Drag the seam between two panes to resize them.** The hairline between two columns, and the
+one between the two panes of a column, is a grip: drag it and the weights follow the hand, from
+one tenth to nine tenths; double-click it and the pair is evened out. The arrangement is
+remembered with the layout.
+
+**The graph is a tab.** `Ctrl/Cmd G`, the *graph* button in the status bar or *Graph view* in
+the palette opens the vault graph as a tab in the focused pane, beside the notes, and the same
+gesture closes it again. Click a node and the note opens as the tab next to it, so the map and
+the note flip back and forth the way two notes do; the graph tab can be dragged into a split
+like any other, and a pane can hold the graph while the one beside it holds the note.
+
 **Drag a tab to split.** While a tab is being dragged every pane raises five targets: its four
 edges, which split it and land the tab on that side, and its centre, which joins its strip. A
 target the layout would refuse is not drawn at all. The drag works between windows too.

@@ -18,6 +18,7 @@ import { Suspense, type ReactNode } from "react";
 import { lazySurface } from "../lazySurface.tsx";
 import { useStore } from "../state.ts";
 import { activeTabOf, paneAt, surfaceOf } from "../workspace.ts";
+const GraphView = lazySurface(() => import("./GraphView.tsx"));
 import Tabs from "./Tabs.tsx";
 import { useTabDrag } from "../dragTab.ts";
 
@@ -106,6 +107,15 @@ export default function Pane({
           zen={zen}
           onZen={() => setZen(!zen)}
         />
+      </Suspense>
+    ) : surface === "graph" ? (
+      // THE GRAPH IS A TAB (the owner: "graph view should have its own
+      // position in the top tab strip"): it draws in the pane that holds its
+      // tab, beside whatever else is open, and clicking a node opens that
+      // note as the tab next to it, so a reader flips between the map and
+      // the note the way they flip between two notes.
+      <Suspense fallback={<div className="s-graph" />}>
+        <GraphView />
       </Suspense>
     ) : surface === "drawing" && tab !== null ? (
       // A DRAWING IS A TAB, like a book: the canvas fills the pane beside

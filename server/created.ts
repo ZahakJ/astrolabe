@@ -61,7 +61,7 @@ function load(): Ledger {
     }
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
-      console.warn("vellum: created.json unreadable — creation dates reseed from the files:", err);
+      console.warn("astrolabe: created.json unreadable — creation dates reseed from the files:", err);
     }
     out = { version: 1, created: {} };
   }
@@ -89,7 +89,7 @@ function schedule(): void {
     try {
       persist();
     } catch (err) {
-      console.warn("vellum: could not write created.json:", err);
+      console.warn("astrolabe: could not write created.json:", err);
     }
   }, 800);
 }
