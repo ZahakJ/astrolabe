@@ -216,6 +216,7 @@ export function editorTheme(): Extension {
       fontFamily: "var(--font-serif)",
       fontWeight: "700",
       lineHeight: "1.3",
+      color: "var(--heading)",
     },
     ".cm-s-h1": {
       fontSize: "1.9em",

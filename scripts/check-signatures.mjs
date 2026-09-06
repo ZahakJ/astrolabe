@@ -2,6 +2,7 @@
 // No live vault, settings, saved design or account is modified.
 // SIGNATURES=a,b limits the houses; --houses-only skips the shared checks;
 // SHOTS=1 (viewport) or SHOTS=full writes screenshots to shots/signatures/.
+// THEME=<id> renders every requested house in that theme instead of its own.
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -57,9 +58,9 @@ const server = await createServer({configFile:false,root:path.join(root,'client'
     if(url.pathname.startsWith('/api/'))return json([]);
     if(url.pathname==='/' || url.pathname.startsWith('/folder/') || url.pathname.startsWith('/story-')) {
       const preset=PRESETS.find(p=>p.id===url.searchParams.get('id'))??signatures[0];
-      const lang=url.searchParams.has('ar')?'ar':'en'; const design=presetDesignDoc(preset,lang);
+      const lang=url.searchParams.has('ar')?'ar':'en'; const design=presetDesignDoc(preset,lang); const theme=process.env.THEME||design.theme; // THEME=tallow shoots every house in one room, for pictures that must not change theme between them
       res.setHeader('Content-Type','text/html');
-      const html='<!doctype html><html lang="'+lang+'" dir="'+(lang==='ar'?'rtl':'ltr')+'" data-theme="'+design.theme+'"><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles/tokens.css"><link rel="stylesheet" href="/styles/app.css"></head><body><script type="application/json" id="vellum-boot">'+JSON.stringify({layout:'designed',lang,theme:design.theme,design})+'</script><div id="root"></div><script type="module" src="/@fs/'+source+'"></script></body></html>';
+      const html='<!doctype html><html lang="'+lang+'" dir="'+(lang==='ar'?'rtl':'ltr')+'" data-theme="'+theme+'"><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles/tokens.css"><link rel="stylesheet" href="/styles/app.css"></head><body><script type="application/json" id="vellum-boot">'+JSON.stringify({layout:'designed',lang,theme:theme,design})+'</script><div id="root"></div><script type="module" src="/@fs/'+source+'"></script></body></html>';
       server.transformIndexHtml(url.pathname,html).then(out=>res.end(out)); return;
     }
     next();

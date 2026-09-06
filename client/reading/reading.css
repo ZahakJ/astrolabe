@@ -51,6 +51,7 @@
   font-family: var(--font-serif);
   font-weight: 700;
   line-height: 1.3;
+  color: var(--heading);
   margin: 1.1em 0 0.45em;
   scroll-margin-top: 24px;
 }
@@ -60,7 +61,6 @@
   margin-top: 0.4em;
   padding-bottom: 0.2em;
   border-bottom: 1px solid var(--border);
-  color: color-mix(in srgb, var(--accent) 15%, var(--text));
 }
 
 .s-rv .s-rv-h2 { font-size: 1.5em; }

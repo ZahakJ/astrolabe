@@ -68,6 +68,7 @@
   overflows the viewport, and mirrors in Arabic. A Notion-style strip with the six most-used
   actions floats over every selection unless you turn it off from the menu's last row (the palette
   turns it back on)
+- **Headings in a colour of your own** — every heading, in the editor and the reading view alike, takes the theme's `--heading` token; the custom theme builder (Themes → New custom theme → Text) sets it outright, and the blog's article titles and the library's page titles follow. See [Theming](theming.md#make-your-own).
 - **Coloured text in two tiers** — a theme-aware palette that clears AA on every built-in theme, and
   a fixed-ink one for when you mean *that* colour; see
   [Theming](theming.md#colored-text-in-two-tiers)

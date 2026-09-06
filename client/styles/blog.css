@@ -857,7 +857,7 @@
   font-size: 2.2em;
   font-weight: 700;
   line-height: 1.22;
-  color: color-mix(in srgb, var(--accent) 12%, var(--text));
+  color: var(--heading);
 }
 
 .s-blog-article__meta {

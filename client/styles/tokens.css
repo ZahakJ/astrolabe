@@ -112,6 +112,7 @@
   --text: #eae2d0;
   --text-muted: #a99f89;
   --text-faint: #6e6656;
+  --heading: #e5d8b7;
   --accent: #c9a227;
   --accent-soft: rgba(201, 162, 39, 0.14);
   --border: #2f2920;
@@ -303,6 +304,7 @@
   --text: #e4e4e9;
   --text-muted: #a2a2ad;
   --text-faint: #6b6b76;
+  --heading: #d0e0e7;
   --accent: #5fc9dd;
   --accent-soft: rgba(95, 201, 221, 0.14);
   --banner-hue: 190;
@@ -351,6 +353,7 @@
   --text: #e7eaf4;
   --text-muted: #a5b0cb;
   --text-faint: #6b7794;
+  --heading: #e5e2d8;
   --accent: #d9b23a;
   --accent-soft: rgba(217, 178, 58, 0.15);
   --banner-hue: 45;
@@ -404,6 +407,7 @@
      shade. 3.30:1 on --bg, 3.60:1 on --bg-raised — in line with the other
      three light themes, and still two full steps lighter than --text-muted. */
   --text-faint: #8d7f66;
+  --heading: #3e3119;
   --accent: #7a5f14;
   --accent-soft: rgba(122, 95, 20, 0.13);
   --border: #d8cbae;
@@ -457,6 +461,7 @@
   --text: #e8e6e3;
   --text-muted: #a8a5a2;
   --text-faint: #6f6d6b;
+  --heading: #e7d0ca;
   --accent: #e2543c;
   --accent-soft: rgba(226, 84, 60, 0.14);
   --border: #33333a;
@@ -507,6 +512,7 @@
   --text: #dde3ea;
   --text-muted: #9aa6b4;
   --text-faint: #66707d;
+  --heading: #cfdce7;
   --accent: #7fb6d9;
   --accent-soft: rgba(127, 182, 217, 0.14);
   --border: #2b323c;
@@ -556,6 +562,7 @@
   --text: #dfe9e5;
   --text-muted: #93a8a2;
   --text-faint: #61736e;
+  --heading: #cce3db;
   --accent: #5fbfa4;
   --accent-soft: rgba(95, 191, 164, 0.14);
   --border: #22332f;
@@ -605,6 +612,7 @@
   --text: #ece2e8;
   --text-muted: #ab9aa6;
   --text-faint: #75676f;
+  --heading: #e9d5de;
   --accent: #d98aa6;
   --accent-soft: rgba(217, 138, 166, 0.14);
   --border: #362836;
@@ -654,6 +662,7 @@
   --text: #e2e2f0;
   --text-muted: #a0a2ba;
   --text-faint: #6b6d82;
+  --heading: #d9d7f0;
   --accent: #a99bf0;
   --accent-soft: rgba(169, 155, 240, 0.14);
   --border: #2a2d3d;
@@ -710,6 +719,7 @@
   --text: #ece0d4;
   --text-muted: #b5a595;
   --text-faint: #807365;
+  --heading: #edd9c3;
   --accent: #f2b062;
   --accent-soft: rgba(242, 176, 98, 0.14);
   --border: #40332a;
@@ -769,6 +779,7 @@
   --text: #e4e4e6;
   --text-muted: #a2a2a6;
   --text-faint: #6c6c70;
+  --heading: #d2d5e6;
   --accent: #6b7fe8;
   --accent-soft: rgba(107, 127, 232, 0.18);
   --border: #2f2f33;
@@ -817,6 +828,7 @@
   --text: #e0e6da;
   --text-muted: #9aa895;
   --text-faint: #677263;
+  --heading: #d6e1c9;
   --accent: #9dc46a;
   --accent-soft: rgba(157, 196, 106, 0.14);
   --border: #28311f;
@@ -866,6 +878,7 @@
   --text: #2e2823;
   --text-muted: #5f564c;
   --text-faint: #8b8177;
+  --heading: #3e2d24;
   --accent: #9c4b27;
   --accent-soft: rgba(156, 75, 39, 0.13);
   --border: #ded3c0;
@@ -915,6 +928,7 @@
   --text: #232830;
   --text-muted: #535c68;
   --text-faint: #828b96;
+  --heading: #263242;
   --accent: #3a6ea5;
   --accent-soft: rgba(58, 110, 165, 0.13);
   --border: #d5dae1;
@@ -969,6 +983,7 @@
   --text: #2b2620;
   --text-muted: #5c5347;
   --text-faint: #8a8073;
+  --heading: #3d2e1b;
   --accent: #a35c00;
   --accent-soft: rgba(163, 92, 0, 0.13);
   --border: #e3d9c8;
@@ -1030,6 +1045,7 @@
   --text: #ccd8cb;
   --text-muted: #8ba088;
   --text-faint: #5d6f5b;
+  --heading: #b5d9c1;
   --accent: #35e08a;
   --accent-soft: rgba(53, 224, 138, 0.14);
   --border: #17251a;
@@ -1087,6 +1103,7 @@
   --text: #e3e0e6;
   --text-muted: #9fa0b8;
   --text-faint: #6a6c85;
+  --heading: #dedcea;
   --accent: #c0c4ff;
   --accent-soft: rgba(192, 196, 255, 0.14);
   --border: #1e2340;
@@ -1140,6 +1157,7 @@
   --text: #ece1f0;
   --text-muted: #ab9bb4;
   --text-faint: #776a80;
+  --heading: #e8d3ef;
   --accent: #d182e8;
   --accent-soft: rgba(209, 130, 232, 0.14);
   --border: #322044;
@@ -1196,6 +1214,7 @@
   --text: #2f2b22;
   --text-muted: #635c4b;
   --text-faint: #837c6a;
+  --heading: #3d2c26;
   --accent: #8f2f3f;
   --accent-soft: rgba(143, 47, 63, 0.13);
   --border: #d2cab4;
@@ -1248,6 +1267,7 @@
   --text: #1f2724;
   --text-muted: #4f5a56;
   --text-faint: #7c8884;
+  --heading: #1e312c;
   --accent: #16695c;
   --accent-soft: rgba(22, 105, 92, 0.13);
   --border: #d5ded9;
@@ -1299,6 +1319,7 @@
   --text: #26212e;
   --text-muted: #575069;
   --text-faint: #827b93;
+  --heading: #30253f;
   --accent: #6a3ba0;
   --accent-soft: rgba(106, 59, 160, 0.13);
   --border: #dcd6e6;

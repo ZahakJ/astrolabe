@@ -131,7 +131,7 @@ switched off — and the entry bundle every audience downloads — pays nothing 
 ## Make your own
 
 The built-ins are a starting point, not a ceiling. **Themes → New custom theme** opens a builder:
-pick one of them as a base, then override any token you like — grounds, text, accent,
+pick one of them as a base, then override any token you like — grounds, text, **headings**, accent,
 borders, the thirteen callout hues, the eight syntax colors, the graph — and watch the whole app
 change behind the panel while you do it, because the only honest preview of a theme is the theme.
 Tokens you do not touch keep coming from the base, so a later retune of that base reaches your
@@ -174,6 +174,7 @@ for one):
 | ----- | ------ |
 | `--bg` / `--bg-raised` / `--bg-hover` | Page background / sidebar & panels / hover rows |
 | `--text` / `--text-muted` / `--text-faint` | Body text / secondary text / hints & counts |
+| `--heading` | Every heading — the editor's, the reading view's, the article title on the blog and the library's page titles. Each built-in sets it a shade toward its accent; a custom theme sets it outright |
 | `--accent` / `--accent-soft` | Brand color (links, wikilinks, active marks) / its translucent wash |
 | `--selection-bg` / `--focus-ring` | Text-selection wash / the 2px `:focus-visible` ring |
 | `--graph-node` / `--graph-edge` / `--graph-vignette` | Graph disc color / idle edge stroke / the canvas's edge wash |
