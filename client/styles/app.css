@@ -1081,7 +1081,7 @@ select:focus,
 }
 
 .s-editor .cm-content {
-  max-width: 648px; /* 760 − 2 × 56: the same box, measured to the text */
+  max-width: var(--editor-measure, 648px); /* 760 − 2 × 56: the same box, measured to the text */
   margin: 0 auto;
   padding: 48px 0 120px;
   caret-color: var(--accent);
@@ -1863,7 +1863,7 @@ select:focus,
 
 .s-graph__controls {
   position: absolute;
-  inset-inline-end: 12px;
+  right: 12px;
   bottom: 12px;
   display: flex;
   flex-direction: column;
@@ -4514,7 +4514,7 @@ button.s-title:hover {
    set the margin, so the column has to set its own. The extra class beats
    reading.css's own .s-app--visitor rule at equal specificity-by-order. */
 .s-app--zen .s-view .s-reading__content {
-  max-width: 800px;
+  max-width: var(--editor-measure, 800px);
   /* 8% × 800 = 64: the shipped gutter wherever the 800px box fits, and a
      proportional one on a phone, by the same rule as --prose-gutter. */
   padding: 96px min(64px, 8%) 180px;
@@ -4527,7 +4527,7 @@ button.s-title:hover {
 }
 
 .s-app--zen .s-view .s-editor .cm-content {
-  max-width: 672px;
+  max-width: var(--editor-measure, 672px);
   padding-block: 96px 180px;
 }
 
@@ -6299,4 +6299,124 @@ button.s-title:hover {
   .s-pane-grip {
     display: none;
   }
+}
+
+
+/* ── The tree's arrangement (client/treeOrder.ts) ─────────────────────── */
+
+/* A row in the Ctrl/Cmd-click selection. */
+.s-tree__item--selected {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* A sibling about to land before or after this row: a 2px accent rule on
+   the edge it will cross, with a dot at the start. */
+.s-tree__item--insert-before::before,
+.s-tree__item--insert-after::before {
+  content: "";
+  position: absolute;
+  inset-inline: 6px 4px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.s-tree__item--insert-before::before {
+  top: -1px;
+}
+
+.s-tree__item--insert-after::before {
+  bottom: -1px;
+}
+
+/* The scratch area above the vault. */
+.s-tree__pinned {
+  margin-block-end: 6px;
+  padding-block-end: 6px;
+  border-block-end: 1px dashed var(--border);
+}
+
+.s-tree__pinned-head,
+.s-tree__focus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px 4px 10px;
+  font-size: 0.714rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.s-tree__focus {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  margin: 2px 6px 6px;
+}
+
+.s-tree__pinned-clear,
+.s-tree__focus-clear {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.s-tree__pinned-clear:hover,
+.s-tree__focus-clear:hover {
+  background: var(--bg-hover);
+}
+
+/* The sort menu in the footer. */
+.s-treesort {
+  position: relative;
+  display: inline-flex;
+}
+
+.s-treesort__menu {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  inset-inline-start: 0;
+  min-width: 160px;
+}
+
+.s-menu__item--on {
+  color: var(--accent);
+}
+
+
+/* ── The editor's measure (client/editorWidth.ts) ─────────────────────────
+   `data-editor-width` on <html>: absent = the reading measure above, "wide"
+   = 960px, "full" = the pane less a gutter. The reading view's column takes
+   the same value where it sets one. */
+html[data-editor-width="wide"] {
+  --editor-measure: 960px;
+}
+
+html[data-editor-width="full"] {
+  --editor-measure: none;
+}
+
+html[data-editor-width="full"] .s-editor .cm-scroller {
+  padding-inline: clamp(20px, 3vw, 40px);
+}
+
+/* THE STATUS BAR IN ARABIC packs at its start — the right edge, beside the
+   notes sidebar — instead of throwing the tools to the far left of a wide
+   window with a gap the width of the page between them and the breadcrumb.
+   The spacer is what did the throwing; in RTL it is a breath, not a spring. */
+html[dir="rtl"] .s-statusbar__spacer {
+  flex: 0 0 18px;
 }

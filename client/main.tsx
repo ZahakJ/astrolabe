@@ -1,8 +1,12 @@
 import React from "react";
+import { applyEditorWidth } from "./editorWidth.ts";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import ErrorBoundary from "./ErrorBoundary.tsx";
 import { installSafetyNet } from "./safety.ts";
+
+// The writing column's width, before the first paint (client/editorWidth.ts).
+applyEditorWidth();
 
 // FIRST, before a single component mounts. Half of what this catches happens
 // during bootstrap — a settings fetch that never answers, a rejected promise

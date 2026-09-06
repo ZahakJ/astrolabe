@@ -10,9 +10,13 @@
 
 .s-graph__panel {
   position: absolute;
-  inset-block-start: 12px;
-  inset-inline-end: 12px;
-  inset-block-end: 56px;
+  /* PHYSICAL right, in both directions: the owner reads the graph's chrome
+     as a fixed instrument cluster, and in Arabic it looked "on the wrong
+     side" mirrored to the left. A dragged panel carries its own left/top
+     inline and `inset-block-end: auto` (see .s-graph__panel--moved). */
+  top: 12px;
+  right: 12px;
+  bottom: 56px;
   z-index: 2;
   inline-size: min(300px, calc(100% - 24px));
   overflow-y: auto;
@@ -33,6 +37,23 @@
   justify-content: space-between;
   gap: 8px;
   margin-block-end: 10px;
+  /* The handle: drag the panel anywhere over the graph. */
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.s-graph__panel--dragging .s-graph__panel-head {
+  cursor: grabbing;
+}
+
+/* Once dragged, the panel stands where it was put and stops pinning its
+   bottom edge above the tools; its height is then the viewport's less a
+   margin, and it scrolls inside. */
+.s-graph__panel--moved {
+  right: auto;
+  bottom: auto;
+  max-block-size: calc(100% - 24px);
 }
 
 .s-graph__panel-head h2 {

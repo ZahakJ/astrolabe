@@ -45,6 +45,8 @@ import {
   makeDragGhost,
   moveTo,
   stopAutoScroll,
+  parentDir,
+  type MoveItem,
 } from "../move.ts";
 import { promptNewFolder, promptNewNote } from "../prompts.ts";
 import { newNoteFromTemplateCommand } from "../templateActions.ts";
@@ -54,7 +56,7 @@ import AttachmentViewer, { fileUrl, isViewable } from "./AttachmentViewer.tsx";
 // renderer, pdf.js) is behind a dynamic import. See client/books/door.ts.
 import { openBookPath } from "../books/door.ts";
 import { confirmModal, confirmModalEx } from "./Confirm.tsx";
-import { moveViaPicker } from "./MovePicker.tsx";
+import { moveViaPicker, pickMoveTarget } from "./MovePicker.tsx";
 import {
   confirmDeleteAttachment,
   confirmDeleteFolder,
@@ -71,6 +73,19 @@ import type { IconPickState } from "./FolderIconPicker.tsx";
 import type { LibraryPopState } from "./LibraryFolderPopover.tsx";
 import type { CollectionsPopState } from "./CollectionsPopover.tsx";
 import PaneGrip from "./PaneGrip.tsx";
+import {
+  PINNED_PARENT,
+  findNode as findTreeNode,
+  inFocus,
+  orderChildren,
+  readTreeOrder,
+  reorder,
+  togglePinned,
+  topLevelOf,
+  writeTreeOrder,
+  type TreeOrderPrefs,
+  type TreeSort,
+} from "../treeOrder.ts";
 import type { FolderIcon } from "../../shared/folderIcons.ts";
 import { toast } from "../toast.ts";
 import "../styles/move.css";
@@ -187,6 +202,10 @@ interface MenuState {
    *  menu leaves focus where the reader put it. */
   fromKeyboard?: boolean;
 }
+
+/** The items a drag carries: the dragged row alone, or the whole selection
+ *  when the row is part of one (a child of a selected folder rides with it). */
+let dragGroup: MoveItem[] = [];
 
 /** The tag shelf's own context menu. A separate state from the tree's because
  *  a tag is not a tree node — it has no path, no parent and exactly one verb —
@@ -316,6 +335,27 @@ function setAllFolders(tree: TreeNode | null, open: boolean): void {
     }
   };
   if (tree) walk(tree);
+  persistExpanded();
+}
+
+/** Open or close every folder UNDER `path` (and `path` itself when closing):
+ *  the header's fold-all, scoped to one branch. Followed by a remount, like
+ *  every bulk write of the map. */
+function setFoldersUnder(tree: TreeNode | null, path: string, open: boolean): void {
+  const walk = (node: TreeNode): void => {
+    for (const child of node.children ?? []) {
+      if (child.type === "folder") {
+        expandedMap.set(child.path, open);
+        walk(child);
+      }
+    }
+  };
+  const start = findTreeNode(tree, path);
+  if (start) {
+    walk(start);
+    if (!open) expandedMap.set(path, false);
+    else expandedMap.set(path, true);
+  }
   persistExpanded();
 }
 
@@ -581,6 +621,42 @@ export default function Sidebar() {
   const [iconPick, setIconPick] = useState<IconPickState | null>(null);
   const [libPop, setLibPop] = useState<LibraryPopState | null>(null);
   const [colPop, setColPop] = useState<CollectionsPopState | null>(null);
+  // THE READER'S ARRANGEMENT of the tree (client/treeOrder.ts): sort, manual
+  // order, pinned scratch area — per browser. Focus and the selection are
+  // session state: a focus survives no reload on purpose.
+  const [treePrefs, setTreePrefsState] = useState<TreeOrderPrefs>(readTreeOrder);
+  const setTreePrefs = useCallback((next: TreeOrderPrefs | ((p: TreeOrderPrefs) => TreeOrderPrefs)) => {
+    setTreePrefsState((p) => {
+      const n = typeof next === "function" ? next(p) : next;
+      writeTreeOrder(n);
+      return n;
+    });
+  }, []);
+  const [focus, setFocus] = useState<string | null>(null);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
+  const [sortOpen, setSortOpen] = useState(false);
+  const onSelectToggle = useCallback((path: string | null) => {
+    setSelected((prev) => {
+      if (path === null) return prev.size === 0 ? prev : new Set();
+      const next = new Set(prev);
+      if (next.has(path)) next.delete(path);
+      else next.add(path);
+      return next;
+    });
+  }, []);
+  const onReorder = useCallback(
+    (parent: string, visible: string[], moved: string[], target: string, before: boolean) => {
+      setTreePrefs((p) => reorder(p, parent, visible, moved, target, before));
+    },
+    [setTreePrefs],
+  );
+  const selectedItems = useCallback((): MoveItem[] => {
+    const tree = useStore.getState().tree;
+    return topLevelOf([...selected])
+      .map((path) => findTreeNode(tree, path))
+      .filter((n): n is TreeNode => n !== null)
+      .map(itemOf);
+  }, [selected]);
   // Under settings.topics "folders" the folders are the categories and there
   // is nothing to curate by hand: the two collection verbs leave the menu.
   const collectionsByHand = useStore((s) => s.topicsMode !== "folders");
@@ -933,6 +1009,11 @@ export default function Sidebar() {
       window.removeEventListener("keydown", onKey, true);
     };
   }, [tagMenu]);
+
+  const pinnedNodes = useMemo(
+    () => treePrefs.pinned.map((p) => findTreeNode(tree, p)).filter((n): n is TreeNode => n !== null),
+    [tree, treePrefs.pinned],
+  );
 
   const openMenu = useCallback((e: ReactMouseEvent, node: TreeNode) => {
     if (!useStore.getState().admin) return; // menu holds only mutating actions
@@ -1690,9 +1771,58 @@ export default function Sidebar() {
                 attachments, the "show more" row that keeps a 1,158-file folder
                 from janking, and the folders-first ordering. It threads
                 index/setSize down to each row for aria-posinset/setsize. */}
+            {/* THE SCRATCH AREA: pinned notes and folders, above the vault in
+                the reader's own order, each row the row it is elsewhere. */}
+            {pinnedNodes.length > 0 && (
+              <div className="s-tree__pinned" role="group" aria-label={t("treePinned")}>
+                <div className="s-tree__pinned-head">
+                  <span>{t("treePinned")}</span>
+                  <button type="button" className="s-tree__pinned-clear" onClick={() => setTreePrefs((p) => ({ ...p, pinned: [] }))}>
+                    {t("treeUnpinAll")}
+                  </button>
+                </div>
+                <TreeChildren
+                  key={`pinned-${treeEpoch}`}
+                  nodes={pinnedNodes}
+                  parent={PINNED_PARENT}
+                  depth={0}
+                  renaming={renaming}
+                  lang={lang}
+                  admin={admin}
+                  showAttachments={showAttachments}
+                  order={treePrefs}
+                  focus={null}
+                  selected={selected}
+                  onSelectToggle={onSelectToggle}
+                  onReorder={onReorder}
+                  onOpen={openNote}
+                  onStartRename={startRename}
+                  onCommitRename={commitRename}
+                  onCancelRename={cancelRename}
+                  onMenu={openMenu}
+                  onAttachment={openAttachment}
+                  onShowAttachments={showAllAttachments}
+                  onDropFiles={onDropFiles}
+                />
+              </div>
+            )}
+            {focus !== null && (
+              <div className="s-tree__focus" role="status">
+                <span dir="auto">{tf("treeFocusedOn", { name: focus.slice(focus.lastIndexOf("/") + 1).replace(/\.md$/i, "") })}</span>
+                <button type="button" className="s-tree__focus-clear" onClick={() => setFocus(null)}>
+                  {t("treeFocusAll")}
+                </button>
+              </div>
+            )}
             <TreeChildren
               key={treeEpoch}
               nodes={tree?.children ?? []}
+              parent=""
+              order={treePrefs}
+              focus={focus}
+              selected={selected}
+              onSelectToggle={onSelectToggle}
+              onReorder={onReorder}
               depth={0}
               renaming={renaming}
               lang={lang}
@@ -1833,6 +1963,52 @@ export default function Sidebar() {
         className={`s-sidebar-foot${admin && attachmentCount > 0 ? " s-sidebar-foot--split" : ""}`}
       >
         <span>{countPhrase(noteCount, "notes")}</span>
+        {/* The sort menu: the server's order, reversed, or the reader's own. */}
+        <span className="s-treesort">
+          <button
+            type="button"
+            className={`s-attfilter s-attfilter--${treePrefs.sort === "name" ? "off" : "on"}`}
+            aria-haspopup="menu"
+            aria-expanded={sortOpen}
+            title={t("treeSort")}
+            onClick={() => setSortOpen((o) => !o)}
+          >
+            <span className="s-attfilter__clip" aria-hidden="true">⇅</span>
+            <span className="s-attfilter__count">
+              {treePrefs.sort === "name" ? t("treeSortName") : treePrefs.sort === "name-desc" ? t("treeSortNameDesc") : t("treeSortManual")}
+            </span>
+          </button>
+          {sortOpen && (
+            <div className="s-menu s-treesort__menu" role="menu" onMouseLeave={() => setSortOpen(false)}>
+              {(["name", "name-desc", "manual"] as TreeSort[]).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={treePrefs.sort === mode}
+                  className={`s-menu__item${treePrefs.sort === mode ? " s-menu__item--on" : ""}`}
+                  onClick={() => {
+                    setTreePrefs((p) => ({ ...p, sort: mode }));
+                    setSortOpen(false);
+                  }}
+                >
+                  {mode === "name" ? t("treeSortName") : mode === "name-desc" ? t("treeSortNameDesc") : t("treeSortManual")}
+                </button>
+              ))}
+              <button
+                type="button"
+                role="menuitem"
+                className="s-menu__item"
+                onClick={() => {
+                  setTreePrefs((p) => ({ ...p, sort: "name", order: {} }));
+                  setSortOpen(false);
+                }}
+              >
+                {t("treeSortReset")}
+              </button>
+            </div>
+          )}
+        </span>
         {admin && attachmentCount > 0 && (
           <button
             type="button"
@@ -2025,10 +2201,92 @@ export default function Sidebar() {
               onClick={() => {
                 const node = menu.node;
                 setMenu(null);
-                void moveViaPicker(itemOf(node));
+                // A row inside the selection moves the whole selection: one
+                // picker, then one move per item.
+                const items = selected.has(node.path) && selected.size > 1 ? selectedItems() : [itemOf(node)];
+                if (items.length === 1) {
+                  void moveViaPicker(items[0]);
+                  return;
+                }
+                void (async () => {
+                  const choice = await pickMoveTarget(items[0]);
+                  if (choice === null || !("dir" in choice)) return;
+                  for (const it of items) if (canDrop(it, choice.dir)) await moveTo(it, choice.dir);
+                  onSelectToggle(null);
+                })();
               }}
             >
-              {t("moveTo")}
+              {selected.has(menu.node.path) && selected.size > 1 ? tf("treeMoveMany", { n: localeNum(selected.size) }) : t("moveTo")}
+            </button>
+          )}
+          {/* Fold-all, scoped: every folder under this one closes (or opens),
+              the way the header's button does for the whole vault. */}
+          {menu.node.type === "folder" && menu.node.path !== "" && (
+            <>
+              <button
+                type="button"
+                className="s-menu__item"
+                role="menuitem"
+                onClick={() => {
+                  const node = menu.node;
+                  setMenu(null);
+                  setFoldersUnder(useStore.getState().tree, node.path, false);
+                  setTreeEpoch((n) => n + 1);
+                }}
+              >
+                {t("treeFoldInside")}
+              </button>
+              <button
+                type="button"
+                className="s-menu__item"
+                role="menuitem"
+                onClick={() => {
+                  const node = menu.node;
+                  setMenu(null);
+                  setFoldersUnder(useStore.getState().tree, node.path, true);
+                  setTreeEpoch((n) => n + 1);
+                }}
+              >
+                {t("treeUnfoldInside")}
+              </button>
+            </>
+          )}
+          {/* The scratch area and the focus: a row's own arrangement verbs,
+              per browser, nothing on disk. */}
+          {menu.node.path !== "" && !menu.node.attachment && (
+            <button
+              type="button"
+              className="s-menu__item"
+              role="menuitem"
+              onClick={() => {
+                const node = menu.node;
+                const many = selected.has(node.path) && selected.size > 1;
+                const paths = many ? [...selected] : [node.path];
+                const on = !treePrefs.pinned.includes(node.path);
+                setMenu(null);
+                setTreePrefs((p) => togglePinned(p, paths, on));
+                if (many) onSelectToggle(null);
+              }}
+            >
+              {treePrefs.pinned.includes(menu.node.path)
+                ? t("treeUnpin")
+                : selected.has(menu.node.path) && selected.size > 1
+                  ? tf("treePinMany", { n: localeNum(selected.size) })
+                  : t("treePin")}
+            </button>
+          )}
+          {menu.node.path !== "" && !menu.node.attachment && (
+            <button
+              type="button"
+              className="s-menu__item"
+              role="menuitem"
+              onClick={() => {
+                const node = menu.node;
+                setMenu(null);
+                setFocus(focus === node.path ? null : node.path);
+              }}
+            >
+              {focus === menu.node.path ? t("treeFocusAll") : t("treeFocus")}
             </button>
           )}
           {collectionsByHand && menu.node.type === "file" && !menu.node.attachment && (
@@ -2391,6 +2649,16 @@ interface TreeRowProps {
   onShowAttachments(): void;
   /** Files dropped on this row from the desktop: attach them to `dir`. */
   onDropFiles(dir: string, files: File[]): void;
+  /** The folder these rows are the children of ("" for the root, or the
+   *  pinned list's own sentinel) — what the manual order is keyed by. */
+  parent: string;
+  order: TreeOrderPrefs;
+  /** The focused note or folder, or null: rows outside its branch are gone. */
+  focus: string | null;
+  selected: ReadonlySet<string>;
+  /** Ctrl/Cmd-click: toggle a row in the selection; null clears it. */
+  onSelectToggle(path: string | null): void;
+  onReorder(parent: string, visible: string[], moved: string[], target: string, before: boolean): void;
 }
 
 type TreeChildrenProps = Omit<TreeRowProps, "node" | "siblings" | "index" | "setSize"> & {
@@ -2402,10 +2670,10 @@ type TreeChildrenProps = Omit<TreeRowProps, "node" | "siblings" | "index" | "set
  *  filtered ONCE per render and every row of that folder shares one `siblings`
  *  array identity. */
 function TreeChildren({ nodes, ...rest }: TreeChildrenProps) {
-  const visible = useMemo(
-    () => (rest.showAttachments ? nodes : nodes.filter((n) => !n.attachment)),
-    [nodes, rest.showAttachments],
-  );
+  const visible = useMemo(() => {
+    const kept = nodes.filter((n) => (rest.showAttachments || !n.attachment) && inFocus(n.path, rest.focus));
+    return orderChildren(kept, rest.parent, rest.order);
+  }, [nodes, rest.showAttachments, rest.focus, rest.parent, rest.order]);
   const [limit, setLimit] = useState(CHUNK);
   // A folder that shrank (delete, filter flip) must not keep a raised cap.
   const shown = visible.length <= limit ? visible : visible.slice(0, limit);
@@ -2559,6 +2827,14 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
     // anything a pane can host, books included, admin or reader: dropping a
     // note beside another to read them side by side mutates nothing.
     if (props.admin && !node.attachment) beginDrag(item);
+    // A row in the selection drags the whole selection with it.
+    dragGroup =
+      props.selected.has(node.path) && props.selected.size > 1
+        ? topLevelOf([...props.selected])
+            .map((p) => findTreeNode(useStore.getState().tree, p))
+            .filter((n): n is TreeNode => n !== null && !n.attachment)
+            .map(itemOf)
+        : [item];
     e.dataTransfer.effectAllowed = "move";
     // Firefox refuses to start a drag with an empty payload.
     e.dataTransfer.setData("text/plain", node.path);
@@ -2598,6 +2874,30 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
     // Answered here, so it never reaches the tree's own root handler: a pointer
     // resting on a row inside a folder must not light the VAULT ROOT up.
     e.stopPropagation();
+    // REORDERING: a sibling dragged over the top or bottom edge of this row
+    // is asking to sit before or after it, not inside it. The edge zone is
+    // a quarter of the row on a folder (the middle still means "into"), the
+    // whole row on a note (a note is not a container).
+    const sibling = item.path !== node.path && parentDir(item.path) === props.parent && !(props.parent === PINNED_PARENT && false);
+    const pinnedList = props.parent === PINNED_PARENT && props.order.pinned.includes(item.path);
+    if ((sibling || pinnedList) && props.admin) {
+      const box = rowRef.current?.getBoundingClientRect();
+      if (box) {
+        const frac = (e.clientY - box.top) / box.height;
+        const zone = isFolder ? 0.25 : 0.5;
+        const before = frac < zone;
+        const after = frac > 1 - zone;
+        if (before || after) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          rowRef.current?.classList.toggle("s-tree__item--insert-before", before);
+          rowRef.current?.classList.toggle("s-tree__item--insert-after", after);
+          rowRef.current?.classList.remove("s-tree__item--dropok", "s-tree__item--dropbad");
+          return;
+        }
+      }
+    }
+    rowRef.current?.classList.remove("s-tree__item--insert-before", "s-tree__item--insert-after");
     if (!isFolder) {
       // A note is not a container. No colour (every file row flashing red on
       // the way past its folder would be noise), just the browser's own refusal.
@@ -2636,6 +2936,7 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
     // (the label span, the chevron). Cancelling the spring timer there would
     // make the folder never open.
     if (rowRef.current?.contains(e.relatedTarget as Node | null)) return;
+    rowRef.current?.classList.remove("s-tree__item--insert-before", "s-tree__item--insert-after");
     clearDropState();
   };
 
@@ -2654,9 +2955,27 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
       }
       return;
     }
+    const row = rowRef.current;
+    const before = row?.classList.contains("s-tree__item--insert-before") ?? false;
+    const after = row?.classList.contains("s-tree__item--insert-after") ?? false;
+    row?.classList.remove("s-tree__item--insert-before", "s-tree__item--insert-after");
+    const group = dragGroup.length ? dragGroup : [item];
+    dragGroup = [];
+    if (before || after) {
+      // The rows of this parent that rode along, in the order they show.
+      const key = (i: MoveItem) => (props.parent === PINNED_PARENT ? i.path : i.name);
+      const moved = group.filter((i) => (props.parent === PINNED_PARENT ? props.order.pinned.includes(i.path) : parentDir(i.path) === props.parent)).map(key);
+      const visible = props.siblings.map((n) => (props.parent === PINNED_PARENT ? n.path : n.name));
+      if (moved.length > 0) props.onReorder(props.parent, visible, moved, props.parent === PINNED_PARENT ? node.path : node.name, before);
+      return;
+    }
     // Dropping onto a COLLAPSED folder works, and does not expand it: the
     // spring is an aid for reaching deeper, never a precondition.
-    if (isFolder && canDrop(item, node.path)) void moveTo(item, node.path);
+    if (isFolder) {
+      void (async () => {
+        for (const i of group) if (canDrop(i, node.path)) await moveTo(i, node.path);
+      })();
+    }
   };
 
   const classes = [
@@ -2664,6 +2983,7 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
     isFolder ? "s-tree__item--folder" : "s-tree__item--file",
     attachment ? "s-tree__item--att" : "",
     isActive ? "s-tree__item--active" : "",
+    props.selected.has(node.path) ? "s-tree__item--selected" : "",
     dropCount > 0 ? "s-tree__item--dropping" : "",
   ]
     .filter(Boolean)
@@ -2695,13 +3015,19 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        onClick={() =>
-          isFolder
-            ? toggle()
-            : attachment
-              ? props.onAttachment(node, props.siblings)
-              : props.onOpen(node.path)
-        }
+        onClick={(e) => {
+          // Ctrl/Cmd-click gathers rows into a selection (Shift has the
+          // range meaning elsewhere; here it is left to the browser); a plain
+          // click on anything lets the selection go.
+          if (props.admin && (e.ctrlKey || e.metaKey) && !attachment) {
+            props.onSelectToggle(node.path);
+            return;
+          }
+          if (props.selected.size > 0) props.onSelectToggle(null);
+          if (isFolder) toggle();
+          else if (attachment) props.onAttachment(node, props.siblings);
+          else props.onOpen(node.path);
+        }}
         onDoubleClick={(e) => {
           e.stopPropagation();
           // Same rule as the menu: /api/rename is a note route.
@@ -2784,7 +3110,7 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
         // group here would describe an ownership this markup does not have —
         // the children div is a SIBLING of the row that opens it.
         <div className="s-tree__children" role="none">
-          <TreeChildren {...childProps} nodes={node.children ?? []} depth={depth + 1} />
+          <TreeChildren {...childProps} parent={node.path} nodes={node.children ?? []} depth={depth + 1} />
         </div>
       )}
     </div>

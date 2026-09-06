@@ -1839,6 +1839,66 @@ function GraphPanel({
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   }, [open, setPrefs]);
+  // A DRAGGABLE panel: grab the head, put it anywhere over the graph, and it
+  // stays there for this browser (`vellum.graphPanelPos`, clamped into the
+  // graph's box on every mount so a smaller window never hides it).
+  const panelRef = useRef<HTMLElement | null>(null);
+  const [panelPos, setPanelPos] = useState<{ left: number; top: number } | null>(() => {
+    try {
+      const raw = localStorage.getItem("vellum.graphPanelPos");
+      const v = raw ? (JSON.parse(raw) as { left?: unknown; top?: unknown }) : null;
+      return v && typeof v.left === "number" && typeof v.top === "number" ? { left: v.left, top: v.top } : null;
+    } catch {
+      return null;
+    }
+  });
+  const [panelDrag, setPanelDrag] = useState(false);
+  useEffect(() => {
+    if (!open || !panelPos) return;
+    const el = panelRef.current;
+    const box = el?.parentElement?.getBoundingClientRect();
+    if (!el || !box) return;
+    const left = Math.max(0, Math.min(panelPos.left, box.width - el.offsetWidth));
+    const top = Math.max(0, Math.min(panelPos.top, box.height - 48));
+    if (left !== panelPos.left || top !== panelPos.top) setPanelPos({ left, top });
+  }, [open, panelPos]);
+  const onPanelGrab = (e: React.PointerEvent<HTMLDivElement>): void => {
+    if (e.button !== 0) return;
+    if ((e.target as HTMLElement).closest("button")) return; // Reset and ✕ are buttons, not handles
+    const el = panelRef.current;
+    const host = el?.parentElement;
+    if (!el || !host) return;
+    e.preventDefault();
+    const head = e.currentTarget;
+    head.setPointerCapture(e.pointerId);
+    const hostBox = host.getBoundingClientRect();
+    const elBox = el.getBoundingClientRect();
+    const dx = e.clientX - elBox.left;
+    const dy = e.clientY - elBox.top;
+    setPanelDrag(true);
+    let last = { left: elBox.left - hostBox.left, top: elBox.top - hostBox.top };
+    const move = (ev: PointerEvent): void => {
+      last = {
+        left: Math.max(0, Math.min(ev.clientX - hostBox.left - dx, hostBox.width - elBox.width)),
+        top: Math.max(0, Math.min(ev.clientY - hostBox.top - dy, hostBox.height - 48)),
+      };
+      setPanelPos(last);
+    };
+    const up = (): void => {
+      head.removeEventListener("pointermove", move);
+      head.removeEventListener("pointerup", up);
+      head.removeEventListener("pointercancel", up);
+      setPanelDrag(false);
+      try {
+        localStorage.setItem("vellum.graphPanelPos", JSON.stringify(last));
+      } catch {
+        // the position lasts the session
+      }
+    };
+    head.addEventListener("pointermove", move);
+    head.addEventListener("pointerup", up);
+    head.addEventListener("pointercancel", up);
+  };
   if (!open) return null;
   const hidden = new Set(prefs.hiddenGroups[prefs.colorBy]);
   const setGathering = (i: number, patch: Partial<TagGathering>) =>
@@ -1881,8 +1941,13 @@ function GraphPanel({
   );
   const pct = (v: number) => `${localeNum(Math.round(v * 100))}%`;
   return (
-    <aside className="s-graph__panel" aria-label={t("graphSettings")}>
-      <div className="s-graph__panel-head">
+    <aside
+      ref={panelRef}
+      className={`s-graph__panel${panelPos ? " s-graph__panel--moved" : ""}${panelDrag ? " s-graph__panel--dragging" : ""}`}
+      style={panelPos ? { left: panelPos.left, top: panelPos.top } : undefined}
+      aria-label={t("graphSettings")}
+    >
+      <div className="s-graph__panel-head" onPointerDown={onPanelGrab}>
         <h2>{t("graphSettings")}</h2>
         <button
           type="button"
