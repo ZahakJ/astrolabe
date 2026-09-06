@@ -25,7 +25,7 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 | [The editor & reading view](editor.md) | Live preview, wikilinks, selection, rendering, navigation |
 | [Templates, banners & notes](templates-and-notes.md) | `banner:`, Obsidian-compatible templates, sections, attachments, trash |
 | [LaTeX notes](latex.md) | `.tex` as a first-class note, `vellum.sty`, and exactly what renders |
-| [Trackers](trackers.md) | The `tracker` fence, the board, and what a visitor sees of your shelf |
+| [Trackers](trackers.md) | The `tracker` fence, the board, the Media page that shelves them all, and what a visitor sees of your shelf |
 | [Printing & PDF](printing.md) | A note on paper: the print palette, page breaks, PDF bookmarks and working internal links |
 | [Keymap](keymap.md) | Every binding, and why the awkward ones are where they are |
 

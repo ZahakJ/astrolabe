@@ -90,7 +90,7 @@ const KIND_LABEL: Record<TrackerKind, I18nKey> = {
  *  bare English noun on an Arabic card is exactly the half-translation
  *  check-i18n exists to catch. An author's own `unit:` is CONTENT and prints
  *  as they wrote it. */
-const KIND_UNIT: Record<TrackerKind, CountUnit> = {
+export const KIND_UNIT: Record<TrackerKind, CountUnit> = {
   book: "pages",
   game: "hours",
   film: "minutes",

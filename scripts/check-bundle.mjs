@@ -565,7 +565,13 @@ const AUDIENCES = [
   // library popover, and shared/library.ts learned to guess a folder's kind.
     // …and again for IMAGE MARKS (592.4 kB actual → 600): the mark validator and
   // the picker's image row.
-{ name: "entry (everyone)", keys: entry, budget: 600 * 1024 },
+  // …and again for THE MEDIA PAGE (599.0 kB actual → 602, actual + ~0.5%):
+  // fifty dictionary rows for the shelves and their form, one `View` word in
+  // the store, the vault event the page listens on, and the palette's door.
+  // The page, its form, its model and its stylesheet are MediaView-*.js
+  // behind the button — asserted split below — so what the entry pays is,
+  // once more, the words.
+{ name: "entry (everyone)", keys: entry, budget: 602 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -738,7 +744,9 @@ const AUDIENCES = [
   // …and again for THE TREE'S ARRANGEMENT (825.9 kB actual → 832): the
   // dictionary rows for sorting, pinning, focus, the writing column and the
   // folder verbs.
-  { name: "anonymous blog reader", keys: blog, budget: 832 * 1024 },
+  // …and again for THE MEDIA PAGE (835.8 kB actual → 840): the dictionary,
+  // as above — nothing of the page itself reaches a blog reader.
+  { name: "anonymous blog reader", keys: blog, budget: 840 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -823,7 +831,9 @@ const AUDIENCES = [
   // …and again for THE TREE'S ARRANGEMENT (1223.5 kB actual → 1232): the
   // sidebar's sort menu, pinned area, selection, group drags and focus, plus
   // the pane grips and the draggable graph panel.
-  { name: "admin first paint", keys: app, budget: 1232 * 1024 },
+  // …and again for THE MEDIA PAGE (1234.8 kB actual → 1240): the dictionary,
+  // the status bar's one more door and the palette's row.
+  { name: "admin first paint", keys: app, budget: 1240 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -885,6 +895,9 @@ const MUST_SPLIT = [
   // import in client/tour.ts. That is exactly the kind of boundary a later
   // refactor removes by accident, so it is asserted here rather than trusted.
   "components/Tour.tsx",
+  // The Media page: the shelves, the form and their stylesheet, behind the
+  // status bar's button. A workspace view like the graph, and split like it.
+  "media/MediaView.tsx",
 ];
 
 let failed = false;

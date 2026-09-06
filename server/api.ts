@@ -16,6 +16,7 @@ import {
 import { stripBidiControls } from "../shared/bidi.ts";
 import { isNotePath, isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
 import { UPLOAD_MAX_BYTES } from "../shared/limits.ts";
+import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import type {
   AliasesResponse,
   AnchorsResponse,
@@ -2214,6 +2215,43 @@ api.delete("/annotations", (c) => {
 // The library shelf: every path this session may read a lesson of, with the
 // folder's structure resolved (server/library.ts). Public on the posts terms.
 api.get("/library", (c) => c.json(libraryFor(c)));
+
+// EDIT ONE TRACKER FENCE, from outside the editor (the Media page). The
+// note is read, the `index`-th tracker fence is rewritten by the same pure
+// transforms the stepper uses (shared/tracker.ts: setTrackerFields for the
+// form's fields, setTrackerProgress for a nudge), and the whole note is
+// written back under the mtime precondition every line edit carries. One
+// request, one write, one file event.
+api.post("/tracker", async (c) => {
+  const body = await jsonBody(c);
+  const notePath = requiredString(body, "path");
+  const index = typeof body.index === "number" && Number.isInteger(body.index) && body.index >= 0 ? body.index : 0;
+  const set = body.set && typeof body.set === "object" ? (body.set as Record<string, unknown>) : null;
+  const delta = typeof body.delta === "number" && Number.isFinite(body.delta) ? body.delta : 0;
+  const fields: TrackerFields = {};
+  if (set) {
+    for (const key of ["kind", "season", "cover", "progress", "unit", "status", "rating", "started", "finished", "notes"] as const) {
+      const v = set[key];
+      if (v === null) fields[key] = null;
+      else if (typeof v === "string") fields[key] = v.slice(0, key === "notes" ? 4000 : 400);
+    }
+    if (typeof set.title === "string" && set.title.trim() !== "") fields.title = set.title.slice(0, 400);
+  }
+  const note = await readNote(notePath);
+  if (trackerFenceSpans(note.content).length === 0) throw new VaultError(400, "That note carries no tracker fence");
+  const updated = editTrackerFence(note.content, index, (fence) => {
+    let next = setTrackerFields(fence, fields);
+    if (delta !== 0) next = setTrackerProgress(next, delta);
+    return next;
+  });
+  if (updated !== note.content) {
+    suppressWatcherEcho(note.path);
+    await writeNote(note.path, updated, note.mtimeMs);
+    emitEvent({ kind: "changed", path: note.path });
+  }
+  await indexFile(note.path);
+  return c.json({ ok: true, path: note.path, index });
+});
 
 api.get("/trackers", (c) => {
   const limited = isPublishLimited(c);

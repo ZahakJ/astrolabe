@@ -111,6 +111,7 @@ const Workspace = lazySurface(() => import("./components/Workspace.tsx"));
 const BlogShell = lazySurface(() => import("./blog/BlogShell.tsx"));
 const DesignedSite = lazySurface(() => import("./design/DesignedSite.tsx"));
 const GraphView = lazySurface(() => import("./components/GraphView.tsx"));
+const MediaView = lazySurface(() => import("./media/MediaView.tsx"));
 const Sidebar = lazySurface(() => import("./components/Sidebar.tsx"));
 const EditorAnnotator = lazySurface(() => import("./annotations/EditorAnnotator.tsx"));
 const Tabs = lazySurface(() => import("./components/Tabs.tsx"));
@@ -425,6 +426,10 @@ export default function App() {
     const onEvent = (ev: VaultEvent) => {
       const store = useStore.getState();
       refreshVault();
+      // Surfaces that draw a QUERY over the vault rather than one note (the
+      // Media page's shelves) listen for this and re-ask; they are lazy
+      // chunks, so they cannot be called from here by name.
+      window.dispatchEvent(new Event("vellum:vault"));
       // TOO MUCH CHANGED TO NARRATE. The server stops sending one frame per
       // file above ~25 in 200ms (a `git pull`, a folder restore, an Obsidian
       // sync) and sends this instead; the honest answer is the one a dropped
@@ -785,7 +790,7 @@ export default function App() {
         if (!store.admin) return; // visitors live in reading view
         e.preventDefault();
         store.toggleReading();
-        if (store.view === "graph") store.setView("editor");
+        if (store.view !== "editor") store.setView("editor");
       } else if (bKey && e.altKey) {
         // THE PANE TOGGLES WEAR ONE MORE MODIFIER THAN THEY USED TO.
         // Ctrl/Cmd+B was the notes sidebar and Ctrl/Cmd+Shift+B the outline
@@ -1070,6 +1075,14 @@ export default function App() {
           <section className="s-view">
             <Surface fallback={<div className="s-graph" />}>
               <GraphView />
+            </Surface>
+          </section>
+        ) : view === "media" ? (
+          // The Media page is the graph's shape exactly: the whole working
+          // area, one lazy chunk, out of the pane model.
+          <section className="s-view">
+            <Surface fallback={<div className="s-media" />}>
+              <MediaView />
             </Surface>
           </section>
         ) : (

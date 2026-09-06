@@ -668,6 +668,15 @@ export interface PageMeta {
 // the endpoint has to be trustworthy about which half of it is public.
 export interface TrackerMeta {
   path: string;      // the note the fence lives in
+  /** Which tracker fence of the note this is, counting tracker fences only
+   *  — the number the Media page sends back to edit one. */
+  index: number;
+  started: string | null;
+  finished: string | null;
+  /** `season:` verbatim, for a show; null otherwise. */
+  season: string | null;
+  /** `notes:`, as authored (markdown), for the Media page's card. */
+  notes: string | null;
   title: string;     // the tracker's own title ("Elden Ring")
   noteTitle: string; // the note's title — the card's tooltip, since one note may hold many
   kind: string | null;   // as authored ("game", "مسلسل"); null when the fence names none
