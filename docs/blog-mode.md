@@ -70,7 +70,9 @@ tag, the default) or **Folders** (the vault's own order). Under *Folders*, every
 takes its parent folder as its category: the folder's name is the category's title (a sorting
 prefix such as `2| ` is stripped), the mark you gave the folder in the tree is its mark, and the
 navigation, the home band and each category's page come from that alone. Notes at the vault root
-have no category. Tag topics leave the navigation; tags still show on posts. A collection row below
+have no category. Tag topics leave the navigation; tags still show on posts. A **folder note** (a
+note named like the folder, or `index.md` inside it) gives the category its `description:`, a
+`title:`, an `icon:` and `hidden: true`, from the vault itself. A collection row below
 that names a folder overrides that category's title, mark and blurb, or hides it.
 
 Topics are what your notes say about *themselves*. **Public folders** (collections) are what *you*

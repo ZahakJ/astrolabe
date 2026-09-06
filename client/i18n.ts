@@ -890,6 +890,10 @@ const DICT = {
   collectionMade: { en: "Now a collection. Mark and blurb are under Settings → Publishing.", ar: "صار مجموعة. العلامة والنبذة في الإعدادات ← النشر." },
   collectionMadeOn: { en: "Now a collection, and collections are on for readers.", ar: "صار مجموعة، والمجموعات الآن ظاهرة للقرّاء." },
   collectionUnlinked: { en: "Folder unlinked; frontmatter members stay.", ar: "فُكّ ربط المجلد؛ أعضاء الترويسة باقون." },
+  folderNoteHint: { en: "A note named like the folder, or index.md inside it, can carry description:, icon:, cover: and library: for the folder.", ar: "ملاحظة باسم المجلد، أو index.md بداخله، يمكن أن تحمل description: وicon: وcover: وlibrary: للمجلد." },
+  libraryFromFolderNote: { en: "Declared by its folder note", ar: "معلن من ملاحظة المجلد" },
+  libraryCustomise: { en: "Customise here", ar: "خصّص هنا" },
+  libraryVaultPaths: { en: "Also on the shelf, from folder notes", ar: "على الرف أيضًا، من ملاحظات المجلدات" },
   // ── Note annotations (client/annotations/) ─────────────────────────────
   annotateSelection: { en: "Annotate", ar: "علّق" },
   annotationTitle: { en: "Note to self", ar: "ملاحظة لنفسي" },

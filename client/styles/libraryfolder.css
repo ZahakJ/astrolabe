@@ -70,6 +70,10 @@
   inline-size: 100%;
 }
 
+.s-libpop__name + .s-libpop__name {
+  margin-block-start: 6px;
+}
+
 .s-libpop__hint,
 .s-libpop__on {
   margin: 8px 0 0;

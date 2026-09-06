@@ -9,7 +9,7 @@
 // elsewhere. Anchored like the Library popover, placed by the same rule.
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { FOLDER_TITLE_MAX, PUBLIC_FOLDERS_MAX, collectionsForPath, folderId, suggestSlug } from "../../shared/publicFolders.ts";
+import { FOLDER_DESC_MAX, FOLDER_TITLE_MAX, PUBLIC_FOLDERS_MAX, collectionsForPath, folderId, suggestSlug } from "../../shared/publicFolders.ts";
 import { libraryTitleOf } from "../../shared/library.ts";
 import type { FolderIcon } from "../../shared/folderIcons.ts";
 import type { PublicFolderRef } from "../../shared/types.ts";
@@ -44,6 +44,7 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
   const [rows, setRows] = useState<Rows | null>(null);
   const [declared, setDeclared] = useState<string[] | null>(null);
   const [title, setTitle] = useState(() => libraryTitleOf(state.path) || state.name);
+  const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const treeIcon = useStore((s) => (state.kind === "folder" ? s.folderIcons[state.path] : undefined));
 
@@ -195,7 +196,18 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
               }
             }}
           />
+          <input
+            className="s-input s-libpop__name"
+            value={description}
+            dir="auto"
+            maxLength={FOLDER_DESC_MAX}
+            aria-label={t("publicFolderDesc")}
+            placeholder={t("publicFolderDescPlaceholder")}
+            spellCheck={false}
+            onChange={(e) => setDescription(e.target.value)}
+          />
           <p className="s-libpop__hint">{t("collectionPopHint")}</p>
+          <p className="s-libpop__hint">{t("folderNoteHint")}</p>
           <div className="s-libpop__actions">
             <span className="s-libpop__url" dir="ltr">
               /folder/{freshSlug(title, rows.folders)}
@@ -219,6 +231,7 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
     if (!rows) return;
     const icon: FolderIcon = treeIcon ?? "archive";
     const row: PublicFolderRef = { id: folderId(), slug: freshSlug(title, rows.folders), title: title.trim(), icon, folder: state.path };
+    if (description.trim()) row.description = description.trim();
     // The first collection switches the feature on, as the first library
     // path switches the library on: a collection nobody can reach is a
     // mistake, not a setting.

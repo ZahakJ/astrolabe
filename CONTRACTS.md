@@ -948,6 +948,20 @@ exist — the comments gate, line for line. `public` is off by default: a note t
 
 ## Collections and categories (shared/publicFolders.ts, server/indexer.ts collectionRows, client/components/CollectionsPopover.tsx)
 
+**FOLDER NOTES ARE WHERE A FOLDER'S FACTS LIVE (2.10).** `shared/folderNote.ts`: `folderOfNote(path)`
+(a note named like its folder, or `index`/`_index`/`README` inside it; never the root),
+`folderMetaOf(fm)` (title ≤80, description|blurb|summary ≤300, icon from the glyph set,
+cover|banner, source, `library: book|course|series` or `true` → book, hidden). The indexer keeps
+`record.folderMeta` for those notes and answers `folderMeta(folder)` by probing the candidates.
+Derived categories take title/description/icon/hidden from it before the tree's mark and the
+folder's name; declared collections naming a folder take its description when they have none
+(`withFolderNotes`). `libraryRefs()` is THE shelf: settings rows plus every folder whose note says
+`library:`, a row naming the same folder winning field by field and filling its blanks from the
+note; `lessonFoldersNow()` and the cover allowlist read the merged list, and `LibraryPath.folder`
+is on the wire so the settings editor can list the vault-declared paths under its rows with
+"Customise here" (copies slug/title/kind/folder into a row). Settings stays the place to override
+and to order; the vault is the place to declare.
+
 **CATEGORIES COME FROM TAGS OR FROM FOLDERS (2.9).** `settings.topics` is `"tags"` (default) or
 `"folders"`; `me.topics` is sent only as `"folders"`; the store's `topicsMode` empties the tag
 topics in both shells (BlogShell, DesignedSite) under folders. `collectionRows()` in
