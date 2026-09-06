@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { lazySurface } from "./lazySurface.tsx";
+import { reopenDragProps } from "./components/PaneGrip.tsx";
 import type { PropertyValue, VaultEvent } from "../shared/types.ts";
 import { subscribeEvents } from "./api.ts";
 import { coalesce } from "./coalesce.ts";
@@ -991,6 +992,7 @@ export default function App() {
         <button
           type="button"
           className="s-reopen s-reopen--sidebar"
+          {...reopenDragProps("sidebar")}
           onClick={() => useStore.getState().setSidebarCollapsed(false)}
           title={t("showPaneNotes")}
           aria-label={t("showPaneNotes")}

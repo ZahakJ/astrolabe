@@ -193,6 +193,13 @@
 
 ![Command palette](screenshots/palette.png)
 
+## The two side panes
+
+Drag the inner edge of the notes sidebar or the side panel to resize it; the width is remembered
+per browser. Drag it off the window edge and it closes, and the slim handle it leaves behind
+reopens it with a click or a drag inward. Double-click the edge to go back to the default width.
+Ctrl/Cmd+B and the collapse buttons still do what they did.
+
 ## Folder marks
 
 Right-click a folder and choose **Folder icon**: a search field (it has focus, so type "tele" and

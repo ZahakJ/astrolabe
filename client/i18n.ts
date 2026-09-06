@@ -448,6 +448,8 @@ const DICT = {
   // The keystrokes moved: Ctrl/Cmd+B is BOLD in the editor now (every reader
   // arrives with that binding), so the two pane toggles took one more
   // modifier and kept their shape — same key, Shift picks the second pane.
+  paneGripNotes: { en: "Drag to resize the notes sidebar; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض لوحة الملاحظات؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
+  paneGripPanel: { en: "Drag to resize the side panel; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض اللوحة الجانبية؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
   showPaneNotes: {
     en: "Show Notes sidebar (Ctrl/Cmd+Alt+B)",
     ar: "إظهار لوحة الملاحظات (Ctrl/Cmd+Alt+B)",

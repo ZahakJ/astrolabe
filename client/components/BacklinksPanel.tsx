@@ -3,6 +3,7 @@
 // edge reopens it. Clicking an entry opens that note AND lands on the mention
 // (client/landing.ts); resting the pointer on a card previews the note.
 
+import PaneGrip, { reopenDragProps } from "./PaneGrip.tsx";
 import { Suspense, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type { Backlink } from "../../shared/types.ts";
@@ -226,11 +227,13 @@ export default function BacklinksPanel() {
             ))
           )}
         </div>
+        <PaneGrip pane="panel" />
       </aside>
       {collapsed && !zen && (
         <button
           type="button"
           className="s-reopen s-reopen--panel"
+          {...reopenDragProps("panel")}
           onClick={() => setCollapsed(false)}
           title={t("showPaneOutline")}
           aria-label={t("showPaneOutline")}

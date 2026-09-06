@@ -235,6 +235,9 @@
      exactly its 760px cap — measured, not assumed.
      Below 1000 the sidebar is an overlay drawer and takes nothing at all. */
   --sidebar-w: clamp(224px, calc(100vw - 776px), 292px);
+  /* The side panel (outline, local graph, backlinks). Both pane widths are
+     overridden on <html> by the grip (client/paneWidths.ts). */
+  --panel-w: 300px;
 
   /* Prose gutter, as one number the editor, the reading view and zen all read.
      56px was held from 1440 all the way down to 768, where it was 24% of the

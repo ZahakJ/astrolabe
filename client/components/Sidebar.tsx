@@ -70,6 +70,7 @@ import FolderGlyph from "./FolderGlyph.tsx";
 import type { IconPickState } from "./FolderIconPicker.tsx";
 import type { LibraryPopState } from "./LibraryFolderPopover.tsx";
 import type { CollectionsPopState } from "./CollectionsPopover.tsx";
+import PaneGrip from "./PaneGrip.tsx";
 import type { FolderIcon } from "../../shared/folderIcons.ts";
 import { toast } from "../toast.ts";
 import "../styles/move.css";
@@ -2190,6 +2191,7 @@ export default function Sidebar() {
           onClose={() => setViewer(null)}
         />
       )}
+      <PaneGrip pane="sidebar" />
     </aside>
   );
 }
