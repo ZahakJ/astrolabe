@@ -153,7 +153,9 @@
 
   A file that changed on disk between the preview and the press is **skipped and named**, never
   overwritten.
-- **Tags** — `#inline` and frontmatter `tags:`, counted and clickable in the sidebar. Right-click
+- **Tags** — `#inline` and frontmatter `tags:`, counted and clickable in the sidebar. A click
+  filters the tree to that tag; `Esc` anywhere in the sidebar (or with nothing focused) clears
+  the filter again, and the click on the lit pill does too. Right-click
   a pill to **rename** the tag across the whole vault — inline `#tags` and frontmatter `tags:`
   alike, with everything nested under it coming along (`#zettel` → `#slip` takes `#zettel/seed`
   with it). Renaming onto a tag that already exists **merges** the two, and the dialog says so

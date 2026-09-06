@@ -597,6 +597,26 @@ export default function Sidebar() {
   const publishedPaths = useStore((s) => s.publishedPaths);
 
   const [query, setQuery] = useState("");
+  // ESCAPE CLEARS THE FILTER FROM ANYWHERE IN THE SIDEBAR. A tag pill fills
+  // the search with `#tag`, and the way out used to be clicking into the
+  // field, selecting the text and deleting it (the owner: "shouldn't need to
+  // manually highlight the search and delete it"). Bubble phase, after the
+  // shell's own Escape (capture) has had its say: anything that claimed the
+  // key prevented its default, and the editor keeps Escape for itself.
+  useEffect(() => {
+    if (!query) return;
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key !== "Escape" || e.defaultPrevented) return;
+      const target = e.target instanceof Element ? e.target : null;
+      const inSidebar = target !== null && target.closest(".s-sidebar") !== null;
+      const onBody = target === null || target === document.body || target === document.documentElement;
+      if (!inSidebar && !onBody) return;
+      if (target?.closest("input, textarea, [contenteditable]")) return; // the field's own handler
+      setQuery("");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [query]);
   /** Replace mode (admin only). It takes over the results region rather than
    *  stacking under it — a dry run squeezed between a tree and a tag cloud is
    *  a dry run nobody reads, and reading it is the whole feature. */
