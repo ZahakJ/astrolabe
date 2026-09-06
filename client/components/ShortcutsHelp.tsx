@@ -185,6 +185,7 @@ const GROUPS: Group[] = [
       { label: "scUndo", keys: ["Ctrl/Cmd", "Z"], admin: true },
       { label: "scRedo", keys: ["Ctrl/Cmd", "Shift", "Z"], admin: true },
       { label: "scFind", keys: ["Ctrl/Cmd", "F"], admin: true },
+      { label: "scReplaceVault", keys: ["Ctrl/Cmd", "Shift", "F"], admin: true },
       { label: "scMoveLine", keys: ["Ctrl/Cmd", "↑ / ↓"], admin: true },
       { label: "scSlash", via: "scSlashKey", admin: true },
       // The chevron is visible chrome again (preview.css), so this row can name

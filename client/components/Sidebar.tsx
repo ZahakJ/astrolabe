@@ -50,7 +50,7 @@ import {
 } from "../move.ts";
 import { promptNewFolder, promptNewNote } from "../prompts.ts";
 import { newNoteFromTemplateCommand } from "../templateActions.ts";
-import { useStore } from "../state.ts";
+import { useStore, sidebarIsDrawer } from "../state.ts";
 import AttachmentViewer, { fileUrl, isViewable } from "./AttachmentViewer.tsx";
 // The reader's door only — a tiny module whose heavy half (the shelf, the page
 // renderer, pdf.js) is behind a dynamic import. See client/books/door.ts.
@@ -589,6 +589,20 @@ export default function Sidebar() {
    *  stacking under it — a dry run squeezed between a tree and a tag cloud is
    *  a dry run nobody reads, and reading it is the whole feature. */
   const [replacing, setReplacing] = useState(false);
+  // Ctrl/Cmd+Shift+F (App.tsx): open the vault's search & replace here, with
+  // the pane shown and the Find field ready.
+  useEffect(() => {
+    const onOpen = (): void => {
+      const st = useStore.getState();
+      if (st.sidebarCollapsed) st.setSidebarCollapsed(false);
+      if (sidebarIsDrawer()) st.setSidebarOpen(true);
+      setReplacing(true);
+      setHelpOpen(false);
+      requestAnimationFrame(() => document.querySelector<HTMLInputElement>(".s-replace__input")?.focus());
+    };
+    window.addEventListener("vellum:replace-open", onOpen);
+    return () => window.removeEventListener("vellum:replace-open", onOpen);
+  }, []);
   /** The operator card. Open one at a time with replace mode: both hang off
    *  the same field, and two popovers over one input is a shell arguing with
    *  itself. */

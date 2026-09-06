@@ -616,6 +616,14 @@ export default function App() {
 
     const onKeyDown = (e: KeyboardEvent) => {
       const store = useStore.getState();
+      // Ctrl/Cmd+Shift+F: search and replace across the vault (the sidebar's
+      // own panel). Before Escape, before everything: it is a chord nothing
+      // else in the shell claims, and it must beat the browser's.
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.key.toLowerCase() === "f" && store.admin) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent("vellum:replace-open"));
+        return;
+      }
       if (e.key === "Escape") {
         // 1. The shortcuts overlay closes first (it is the topmost layer).
         if (store.shortcutsOpen) {
