@@ -2,7 +2,7 @@
 // that survives quitting, and a lifetime that belongs to one vault.
 //
 // ── ONE WINDOW PER VAULT, AND WHY IT IS NOT ONE WINDOW PER NOTE ─────────────
-// Vellum already has a window model — `client/workspace.ts` — with panes, tab
+// Astrolabe already has a window model — `client/workspace.ts` — with panes, tab
 // groups and splits, and it is the model the reader learns. A desktop app that
 // opened a new OS window per note would be a second, competing arrangement of
 // the same idea, and the reader would have to keep both in their head. So the
@@ -25,7 +25,7 @@ import { onSomeDisplay, type Bounds } from "./prefs.ts";
 const PRELOAD = path.join(APP_ROOT, "desktop", "build", "preload.js");
 
 const DEFAULT_BOUNDS = { width: 1280, height: 860 };
-/** Vellum's own ground colour (`--bg` on the default theme), so the window is
+/** Astrolabe's own ground colour (`--bg` on the default theme), so the window is
  *  the app's colour for the ~200ms before the first paint rather than white —
  *  which on a dark theme is a flash straight into the reader's eyes. */
 const IRON_GALL = "#16130e";
@@ -87,7 +87,7 @@ function fence(win: BrowserWindow, origin: string): void {
 }
 
 /** `shell.openExternal` will hand ANY scheme to the OS, `file:` and
- *  `vellum:` included — so a note containing a crafted link would be a
+ *  `astrolabe:` included — so a note containing a crafted link would be a
  *  one-click "run this". Two schemes, and nothing else. */
 async function openExternally(url: string): Promise<void> {
   if (/^https?:\/\//i.test(url)) await shell.openExternal(url);
@@ -183,10 +183,10 @@ function reportFailures(win: BrowserWindow, origin: string): void {
     // including the ordinary one where a second load starts before the first
     // finishes. It is not a failure.
     if (code === -3) return;
-    console.error(`vellum: could not load ${url || origin} — ${description} (${code})`);
+    console.error(`astrolabe: could not load ${url || origin} — ${description} (${code})`);
   });
   win.webContents.on("render-process-gone", (_event, details) => {
-    console.error(`vellum: the window's renderer stopped — ${details.reason}`);
+    console.error(`astrolabe: the window's renderer stopped — ${details.reason}`);
   });
 }
 

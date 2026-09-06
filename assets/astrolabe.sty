@@ -1,0 +1,75 @@
+%% astrolabe.sty — the dozen lines that make a Astrolabe link compile anywhere.
+%%
+%% Astrolabe reads `\note{Target}` and `\note[shown text]{Target}` as a wikilink:
+%% the same edge `[[Target]]` draws from a markdown note. This package is what
+%% keeps that honest. With it beside your document, `pdflatex` typesets the very
+%% same file — coloured and hyperlinked when `hyperref` is loaded, plain
+%% emphasis when it is not — so a `.tex` note in a vault is still just a `.tex`
+%% file, and nothing you write here is stranded inside one application.
+%%
+%%   \usepackage{astrolabe}
+%%   See \note{Fourier Transform} and \note[the derivation]{Notes on Diffusion}.
+%%
+%% Fetch it from your own instance at  /api/astrolabe.sty
+%%
+%% ANCHORS.  `#` is TeX's macro-parameter character, so escape it:
+%%   \note{Heat Equation\#eq:fourier}
+%% Astrolabe resolves that against the target's headings AND its \label's — one
+%% anchor space, so it works whether the target is markdown or LaTeX.
+%%
+%% LINKS THE PDF MUST NOT SHOW ride in a comment instead:
+%%   %% [[Private Scratch]] %%
+%%
+%% FRONTMATTER rides in a comment block at the very top of the file:
+%%   %---
+%%   % publish: true
+%%   % tags: [physics, fourier]
+%%   % banner: "Media/heat.png"
+%%   %---%
+%% …or, if you would rather write a macro than a comment, \astrolabe{publish=true}.
+%%
+%% NOTHING ELSE IS NEEDED. `\input`, `\include`, `\cite`, `\ref` and `\eqref`
+%% already say what they mean; Astrolabe simply extends their search path to the
+%% vault, local definitions first, so an existing project dropped into a vault
+%% lights up unmodified and keeps compiling exactly as it did.
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{astrolabe}[2026/09/06 v2.0 Astrolabe vault links]
+
+\RequirePackage{xcolor}
+
+%% The colour a vault link prints in — Astrolabe's gold leaf, at the contrast the
+%% light theme uses. Redefine with \definecolor{astrolabelink}{HTML}{...} after
+%% loading if your document has its own palette.
+\providecolor{astrolabelink}{HTML}{7A5F14}
+
+%% One renderer for both forms. `hyperref` turns the shown text into a PDF
+%% anchor so a compiled paper still carries the reference; without it the text
+%% is emphasised, which is what a reader of a printed page would expect anyway.
+\newcommand\astrolabe@link[2]{%
+  \@ifundefined{hyperlink}%
+    {\emph{#1}}%
+    {\textcolor{astrolabelink}{\emph{#1}}}%
+}
+
+%% \note{Target}  and  \note[shown text]{Target}
+\providecommand\note{}
+\renewcommand\note[2][]{%
+  \begingroup
+  \edef\astrolabe@shown{#1}%
+  \ifx\astrolabe@shown\@empty
+    \astrolabe@link{#2}{#2}%
+  \else
+    \astrolabe@link{#1}{#2}%
+  \fi
+  \endgroup
+}
+
+%% \astrolabe{key=value, ...} — frontmatter as a macro. Typesets nothing, in this
+%% toolchain and in Astrolabe's. `\vellum{...}` is the same macro under the
+%% product's old name, kept so a paper written then still compiles now.
+\newcommand\astrolabe[1]{}
+\providecommand\vellum[1]{}
+\providecolor{vellumlink}{HTML}{7A5F14}
+
+\endinput

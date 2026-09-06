@@ -64,7 +64,7 @@ if (await embedsRow.count()) {
   await page.waitForTimeout(1400);
   await shot("7-embeds");
 }
-await page.evaluate(() => { localStorage.setItem("vellum.theme", "parchment"); location.reload(); });
+await page.evaluate(() => { localStorage.setItem("astrolabe.theme", "parchment"); location.reload(); });
 await page.waitForLoadState("load");
 await page.waitForTimeout(1000);
 await openNote("Welcome");
@@ -72,6 +72,6 @@ await shot("5-editor-light");
 await page.keyboard.press("Control+g");
 await page.waitForTimeout(1500);
 await shot("6-graph-light");
-await page.evaluate(() => localStorage.setItem("vellum.theme", "iron-gall"));
+await page.evaluate(() => localStorage.setItem("astrolabe.theme", "iron-gall"));
 await browser.close();
 console.log("[shoot] done →", out);

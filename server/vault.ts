@@ -3,6 +3,7 @@
 
 import { promises as fs, lstatSync, realpathSync } from "node:fs";
 import path from "node:path";
+import { envRead } from "../shared/envName.ts";
 import { watch, type FSWatcher } from "chokidar";
 import type {
   AttachmentInfo,
@@ -89,7 +90,7 @@ export function writeFailure(err: unknown, relPath: string): unknown {
 
 let vaultRoot = "";
 /** vaultRoot with its own symlinks resolved — the yardstick every containment
- *  check measures against. Pointing VELLUM_VAULT at a symlink (`~/notes` →
+ *  check measures against. Pointing ASTROLABE_VAULT at a symlink (`~/notes` →
  *  `/mnt/vault`) is normal, so the ROOT may legitimately be a link; what may
  *  not happen is a path inside it resolving somewhere else entirely. */
 let vaultRootReal = "";
@@ -114,7 +115,8 @@ export function resolveVaultRoot(argv: string[], env: NodeJS.ProcessEnv): string
     if (arg === "--vault" && argv[i + 1]) return path.resolve(argv[i + 1]);
     if (arg.startsWith("--vault=")) return path.resolve(arg.slice("--vault=".length));
   }
-  if (env.VELLUM_VAULT) return path.resolve(env.VELLUM_VAULT);
+  const fromEnv = envRead(env, "ASTROLABE_VAULT");
+  if (fromEnv) return path.resolve(fromEnv);
   return path.resolve("vault");
 }
 
@@ -662,7 +664,7 @@ export async function deleteNote(
     try {
       await fs.rename(abs, destAbs);
     } catch (err) {
-      // Same EXDEV fallback deleteFolder() carries: VELLUM_VAULT and its own
+      // Same EXDEV fallback deleteFolder() carries: ASTROLABE_VAULT and its own
       // `.trash` are normally one filesystem, but a bind-mounted sub-tree is not.
       if ((err as NodeJS.ErrnoException).code !== "EXDEV") throw err;
       await fs.cp(abs, destAbs);
@@ -1046,6 +1048,10 @@ export async function moveFolder(rel: string, toRel: string): Promise<MoveFolder
  *  covers (gitSync.ts) — it is local bookkeeping and must never reach a
  *  remote. Dot-prefixed, so `trashEntryAbs()` refuses to treat it as an entry
  *  and `listTrash()` never lists it. */
+// The bookkeeping file keeps its OLD name on purpose: a trash written before
+// the rename must still restore to where it came from, and a second file
+// name would be two trashes with one door. Reading both and writing the new
+// one is a migration with nothing to gain; the file is internal.
 const TRASH_MANIFEST = ".vellum-trash.json";
 
 interface TrashRecord {
@@ -1101,7 +1107,7 @@ function recordTrashed(
     entries[name] = { origin, deletedMs: Date.now(), kind };
     await writeManifest(entries);
   }).catch((err: unknown) => {
-    console.warn("vellum: could not record trash origin —", err);
+    console.warn("astrolabe: could not record trash origin —", err);
   });
   return manifestChain;
 }
@@ -1113,7 +1119,7 @@ function forgetTrashed(name: string): Promise<void> {
     delete entries[name];
     await writeManifest(entries);
   }).catch((err: unknown) => {
-    console.warn("vellum: could not update trash manifest —", err);
+    console.warn("astrolabe: could not update trash manifest —", err);
   });
   return manifestChain;
 }

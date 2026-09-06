@@ -1,4 +1,4 @@
-package dev.vellum.mobile;
+package dev.astrolabe.mobile;
 
 import android.os.Bundle;
 import android.webkit.CookieManager;
@@ -30,7 +30,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        registerPlugin(VellumPlugin.class);
+        registerPlugin(AstrolabePlugin.class);
         super.onCreate(savedInstanceState);
 
         // The status bar and the gesture bar are drawn over this window from
@@ -39,7 +39,7 @@ public class MainActivity extends BridgeActivity {
         // SystemBarInsets for why the shell pads rather than delegating.
         SystemBarInsets.apply(this, bridge);
 
-        // Persisted, not session, cookies: the instance sets `vellum_session`
+        // Persisted, not session, cookies: the instance sets `astrolabe_session`
         // with a seven-day Max-Age precisely so a phone does not ask for the
         // password every morning.
         CookieManager.getInstance().setAcceptCookie(true);

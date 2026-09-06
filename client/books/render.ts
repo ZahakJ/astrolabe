@@ -102,7 +102,7 @@ export async function renderPage(opts: RenderOptions): Promise<PageRender> {
   canvas.style.height = `${Math.round(cssViewport.height)}px`;
 
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("vellum: no 2d context for a book page");
+  if (!ctx) throw new Error("astrolabe: no 2d context for a book page");
 
   const plain = opts.invert === "off" || !canFilter(ctx);
   // Straight to the visible canvas when nothing has to be composited: one
@@ -114,7 +114,7 @@ export async function renderPage(opts: RenderOptions): Promise<PageRender> {
     target.height = height;
   }
   const targetCtx = plain ? ctx : target.getContext("2d");
-  if (!targetCtx) throw new Error("vellum: no 2d context for a book page");
+  if (!targetCtx) throw new Error("astrolabe: no 2d context for a book page");
 
   const task = page.render({ canvasContext: targetCtx, viewport, canvas: target });
   if (signal) signal.addEventListener("abort", () => task.cancel(), { once: true });

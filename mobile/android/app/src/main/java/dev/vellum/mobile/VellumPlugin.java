@@ -1,4 +1,4 @@
-package dev.vellum.mobile;
+package dev.astrolabe.mobile;
 
 import android.content.Context;
 import android.content.Intent;
@@ -24,8 +24,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  * displaying the owner's server, where no Capacitor bridge exists. The served
  * app is not our code and we do not inject anything into it.
  */
-@CapacitorPlugin(name = "Vellum")
-public class VellumPlugin extends Plugin {
+@CapacitorPlugin(name = "Astrolabe")
+public class AstrolabePlugin extends Plugin {
 
     /**
      * The store @capacitor/preferences writes to, with its own key names and no

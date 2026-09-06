@@ -13,14 +13,14 @@
 // picker is opened.
 //
 // `GET /api/font-faces.css?ids=…` answers with one `@font-face` per id under
-// its `VellumOpt-…` family (shared/fonts.ts names it for both sides). Each
+// its `AstrolabeOpt-…` family (shared/fonts.ts names it for both sides). Each
 // batch gets its own <link>, all of them tagged, so the panel can take them
 // all away again when it closes: these families exist to draw a menu, and the
 // app renders in the saved stylesheet.
 
 import { optionFamily } from "../shared/fonts.ts";
 
-const LINK_ATTR = "data-vellum-fontfaces";
+const LINK_ATTR = "data-astrolabe-fontfaces";
 
 /** Ids whose faces have been asked for in this session of the panel. */
 const requested = new Set<string>();

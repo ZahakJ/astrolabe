@@ -65,7 +65,7 @@ import type { TreeNode } from "../../shared/types.ts";
 import "../styles/tour.css";
 
 /** Where the deck left off, by card id. */
-const AT_KEY = "vellum.tour-at";
+const AT_KEY = "astrolabe.tour-at";
 
 /** How far a finger travels before a pan on the folio is a page turn. Twice
  *  the shell's own slop (client/swipe.ts): this surface is a modal with two
@@ -145,7 +145,7 @@ async function makeTrackerDemo(title: string): Promise<void> {
     store.openNote(path);
     if (useStore.getState().readingMode) useStore.getState().setReadingMode(false);
   } catch (err) {
-    console.error("vellum: creating the tracker demo failed", err);
+    console.error("astrolabe: creating the tracker demo failed", err);
     toast(err instanceof Error ? err.message : t("actionFailed"), "error");
   }
 }
@@ -178,15 +178,15 @@ function runAction(action: TourAction, demoTitle: string): void {
       // declared beside its listener (`HISTORY_REVEAL_EVENT`, HistoryPanel.tsx)
       // and importing it would make the deck's chunk depend on the history
       // panel's — the whole revision reader, fetched to press a button. Same
-      // trade the shortcut sheet makes with "vellum:quicksearch".
+      // trade the shortcut sheet makes with "astrolabe:quicksearch".
       store.setPanelCollapsed(false);
-      window.dispatchEvent(new Event("vellum:history-reveal"));
+      window.dispatchEvent(new Event("astrolabe:history-reveal"));
       break;
     case "search":
       // The sidebar's own bus: it reveals the pane and fills the field. An
       // operator, not a word — the card's claim is that the field takes
       // orders, and the proof has to be an order.
-      window.dispatchEvent(new CustomEvent("vellum:search", { detail: "is:published" }));
+      window.dispatchEvent(new CustomEvent("astrolabe:search", { detail: "is:published" }));
       break;
     case "templates":
       void newNoteFromTemplateCommand();

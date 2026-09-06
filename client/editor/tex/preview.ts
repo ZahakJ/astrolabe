@@ -65,7 +65,7 @@ const QUIET_COMMANDS = new Set([
   "usepackage", "documentclass", "newcommand", "renewcommand",
   "providecommand", "def", "newtheorem", "newenvironment", "setlength",
   "geometry", "pagestyle", "thispagestyle", "hypersetup", "graphicspath",
-  "bibliographystyle", "vellum", "maketitle", "tableofcontents", "appendix",
+  "bibliographystyle", "astrolabe", "vellum", "maketitle", "tableofcontents", "appendix",
   "centering", "noindent", "clearpage", "newpage", "pagebreak", "bigskip",
   "medskip", "smallskip", "vspace", "hspace", "hfill", "vfill", "input",
   "include", "bibliography", "printbibliography", "date", "author", "title",
@@ -305,7 +305,7 @@ class FrontmatterWidget extends WidgetType {
         pill.addEventListener("click", (ev) => {
           ev.preventDefault();
           ev.stopPropagation();
-          window.dispatchEvent(new CustomEvent("vellum:search", { detail: `#${value}` }));
+          window.dispatchEvent(new CustomEvent("astrolabe:search", { detail: `#${value}` }));
         });
         return pill;
       },
@@ -657,7 +657,7 @@ function scanInline(text: string, from: number, to: number, lineFrom: number, ct
       continue;
     }
 
-    // \note[alias]{Target} — Vellum's own link macro.
+    // \note[alias]{Target} — Astrolabe's own link macro.
     if (name === "note") {
       const optStart = k;
       const o = optEnd(text, optStart);

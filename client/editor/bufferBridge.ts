@@ -21,7 +21,7 @@
  *  payload live HERE rather than beside the code that fills them in, for this
  *  module's whole reason — the status bar is inside the admin's first-paint
  *  closure, and importing `buffers.ts` there would pull CodeMirror in with it. */
-export const DOC_STATS_EVENT = "vellum:doc";
+export const DOC_STATS_EVENT = "astrolabe:doc";
 
 /** "Find in note" — the shell asking the editor to open CodeMirror's own
  *  search panel (v1.8 audit, F19). `Ctrl/Cmd F` has always run it; nothing
@@ -32,7 +32,7 @@ export const DOC_STATS_EVENT = "vellum:doc";
  *  palette must be able to ask without importing `@codemirror/search`, and the
  *  editor must be able to answer without knowing the palette exists. Only the
  *  pane the command was aimed at answers — see Editor.tsx. */
-export const FIND_IN_NOTE_EVENT = "vellum:find-in-note";
+export const FIND_IN_NOTE_EVENT = "astrolabe:find-in-note";
 
 export interface DocStats {
   path: string;

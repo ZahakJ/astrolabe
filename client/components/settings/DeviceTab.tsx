@@ -74,8 +74,8 @@ export default function DeviceTab() {
   const siteLanguage = useStore((s) => s.siteLanguage);
   const vimMode = useStore((s) => s.vimMode);
   const toggleVim = useStore((s) => s.toggleVim);
-  const numbered = useEventPref("vellum:heading-numbers", headingNumbersPref);
-  const toolbar = useEventPref("vellum:seltoolbar", selectionToolbarEnabled);
+  const numbered = useEventPref("astrolabe:heading-numbers", headingNumbersPref);
+  const toolbar = useEventPref("astrolabe:seltoolbar", selectionToolbarEnabled);
 
   return (
     <section data-section="device">

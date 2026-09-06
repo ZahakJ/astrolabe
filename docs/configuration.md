@@ -6,13 +6,15 @@
 
 ---
 
-Vellum is configured in two places, and they are the same place twice: an `.env` file read at
-startup, and a **Settings** panel that writes `VELLUM_DATA/settings.json` while the server runs.
+Astrolabe is configured in two places, and they are the same place twice: an `.env` file read at
+startup, and a **Settings** panel that writes `ASTROLABE_DATA/settings.json` while the server runs.
 Most site-identity keys exist in both. A value saved in the panel **overrides** its env
 counterpart; clearing that field in the panel falls back to the env default. A handful of keys —
 the security-sensitive ones — are env-only forever.
 
 ## Environment variables
+
+**Every key below was `VELLUM_*` before 2.21.** The old spellings are still read, and the new one wins when both are set; the server prints one line at startup naming any old key it leaned on. Rename them when convenient, not before.
 
 npm scripts load `.env` automatically (`node --env-file-if-exists=.env`), so no `export` and no
 `source` is needed. `.env.example` in the repo root is the annotated full list; this is the
@@ -22,8 +24,8 @@ summary.
 | --- | ---- |
 | `PORT` | Server port (default 6801) |
 | `HOST` | Bind address (default `0.0.0.0`). A non-loopback bind with no password prints a loud warning: everyone who can reach the port is an admin |
-| `VELLUM_VAULT` | Vault directory (default `./vault`). The `--vault <path>` CLI argument outranks it |
-| `VELLUM_DATA` | Server data directory — `settings.json`, the comments SQLite db, your `custom.css`, `designs.json`, the git credentials file, and `fonts/` (your own files, plus the self-hosted catalog cache in `fonts/catalog/` and uploads in `fonts/custom/`; default `./data`) |
+| `ASTROLABE_VAULT` | Vault directory (default `./vault`). The `--vault <path>` CLI argument outranks it |
+| `ASTROLABE_DATA` | Server data directory — `settings.json`, the comments SQLite db, your `custom.css`, `designs.json`, the git credentials file, and `fonts/` (your own files, plus the self-hosted catalog cache in `fonts/catalog/` and uploads in `fonts/custom/`; default `./data`) |
 | `ADMIN_PASSWORD_HASH` | argon2id hash from `npm run hash-password`; unset → open local mode |
 | `SESSION_SECRET` | Signs session cookies; unset → an ephemeral secret is generated and sessions die on restart |
 | `PUBLIC` | `false` requires login even to read (default: reading is public). **Refuses to start without `ADMIN_PASSWORD_HASH`** |
@@ -31,7 +33,7 @@ summary.
 | `TRUSTED_PROXIES` | Comma-separated IPs/CIDRs allowed to set `X-Forwarded-For` / `X-Forwarded-Proto` (e.g. `127.0.0.1,::1`); unset → both headers ignored, rate limit uses the socket address |
 | `HOME_NOTE` | Vault-relative note fresh visitors land on, e.g. `index.md` |
 | `COMMENTS` | `on` (also `true`/`1`/`yes`) enables reader comments under published notes (default off) |
-| `SITE_NAME` | Site name shown in the sidebar wordmark, page titles, and the login modal (default `Vellum`) |
+| `SITE_NAME` | Site name shown in the sidebar wordmark, page titles, and the login modal (default `Astrolabe`) |
 | `SITE_TAGLINE` | Masthead subtitle under the site name (blog mode) |
 | `SITE_FOOTER` | Blog footer line; `{year}`/`{siteName}` substituted (default `© {year} {siteName}`) |
 | `SITE_URL` | Canonical origin for RSS/canonical links, e.g. `https://notes.example.com`; unset → derived from request headers. **Env-only — it has no Settings-panel counterpart** |
@@ -43,7 +45,7 @@ summary.
 | `LANGUAGE_FILTER` | Which published notes the public site shows, by the language they are written in: `off` (default) · `follow` (each reader gets their own) · `ar` · `en`. Legacy `true`/`false` still parse — see [Language filter](arabic-and-rtl.md#language-filter) |
 | `ATTACHMENTS_DIR` | Vault-relative directory in-app uploads write into (default `attachments`), created on demand. The **Attachments** setting can override where uploads go entirely — see [Attachments](#attachments) |
 | `BANNER_FALLBACK` | Blog hero for posts without a `banner:` — `generated` (default; a deterministic abstract gradient from the note title) or `none` |
-| `VELLUM_GIT_SSH_COMMAND` | The one `GIT_*` variable Vellum passes through to the git child process, verbatim, as `GIT_SSH_COMMAND` — see [Backup & sync](backup-and-sync.md#things-worth-knowing) |
+| `ASTROLABE_GIT_SSH_COMMAND` | The one `GIT_*` variable Astrolabe passes through to the git child process, verbatim, as `GIT_SSH_COMMAND` — see [Backup & sync](backup-and-sync.md#things-worth-knowing) |
 
 Request bodies are capped server-side before any parsing buffers them, with no env key: 10 MB on
 any `/api` request, and a much tighter 64 KB on the anonymous surfaces (comment posts and login),
@@ -116,7 +118,7 @@ is written, and embeds resolve by basename regardless of which folder they live 
 
 Every upload path obeys it: paste or drop in the editor, the file drop on the sidebar tree, and
 the banner/logo/favicon pickers' upload — those last three keep writing images, but into the
-same resolved folder. Fonts (`VELLUM_DATA/fonts`) and `custom.css` keep their own homes.
+same resolved folder. Fonts (`ASTROLABE_DATA/fonts`) and `custom.css` keep their own homes.
 
 **Anything the vault can hold, not just images.** `POST /api/upload` accepts images (png, jpeg,
 webp, gif, svg, avif, heic, bmp), **PDF**, audio (mp3, m4a, wav, ogg, opus, flac) and video
@@ -146,7 +148,7 @@ Both wikilink embeds (`![[fig.png]]`) and markdown links (`![](assets/fig.png)`)
 note's `banner:`. The permanent-delete escalation repeats the same inventory, and deleting a
 single attachment (the × on a row of the banner picker's list) asks the same question.
 
-**Every control in the panel is drawn by Vellum**, not by your operating system. Lists are a
+**Every control in the panel is drawn by Astrolabe**, not by your operating system. Lists are a
 themed popover anchored to their trigger and kept inside the panel — height capped to the room
 available, flipping above the trigger when there is none, arrow keys and type-ahead, `Enter` to
 commit, `Esc` to put the value back; switches are switches; three-way rows (*inherit* / on / off)
@@ -156,12 +158,12 @@ a twenty-seven-face font list must never do.
 
 ## Settings keys
 
-These are the keys `VELLUM_DATA/settings.json` can hold, as the panel and `PATCH /api/settings`
+These are the keys `ASTROLABE_DATA/settings.json` can hold, as the panel and `PATCH /api/settings`
 write them. Anything absent falls back to the env default in the table above.
 
 | Key | Values | Default |
 | --- | --- | --- |
-| `siteName` | string, ≤ 80 chars | `SITE_NAME`, else `Vellum` |
+| `siteName` | string, ≤ 80 chars | `SITE_NAME`, else `Astrolabe` |
 | `tagline` | string, ≤ 160 | `SITE_TAGLINE`, else none |
 | `footer` | string, ≤ 200 | `SITE_FOOTER`, else `© {year} {siteName}` |
 | `defaultTheme` | one of the twenty-two ids, `custom:<name>` for a theme that exists, or `follow` (visitors track your editor theme) | `DEFAULT_THEME`, else `follow` |
@@ -174,7 +176,7 @@ write them. Anything absent falls back to the env default in the table above.
 | `excludeTags` | array of strings, ≤ 200 entries, ≤ 50 chars each | `EXCLUDE_TAGS`, else empty |
 | `commentsEnabled` | boolean | `COMMENTS`, else `false` |
 | `shareButtons` | boolean — the share row under blog articles | `true` |
-| `authorSites` | array of `{ url }` (https), each enriched once from its own OpenGraph and cached in `VELLUM_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
+| `authorSites` | array of `{ url }` (https), each enriched once from its own OpenGraph and cached in `ASTROLABE_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
 | `ambient` | boolean — a slow decorative atmosphere behind the public masthead, drawn per theme (see [Theming](theming.md#the-ambient-masthead)) | `false` |
 | `favicon` | vault-relative image (`.ico .png .svg .jpg .jpeg .gif .webp .avif`) | none |
 | `logo` | https URL or vault-relative image | none |
@@ -200,7 +202,7 @@ write them. Anything absent falls back to the env default in the table above.
 | `gitSync.authMode` | `ssh` · `token` | `ssh` |
 
 Two more keys are **write-only**: `gitToken` and `gitUser` are accepted by `PATCH /api/settings`
-and stored in `VELLUM_DATA/git-credentials.json` at mode `0600` — never in `settings.json`, and
+and stored in `ASTROLABE_DATA/git-credentials.json` at mode `0600` — never in `settings.json`, and
 never readable back. A read answers `gitSync.tokenSet: true` and the username, nothing more.
 
 `settings.json` is written atomically — a crash can't tear it. Changes apply live: the wordmark,
@@ -209,7 +211,7 @@ If the file is ever corrupted, the server logs one warning and runs on env defau
 
 Security-sensitive keys are deliberately **env-only forever** and never readable or writable
 through the panel or `/api/settings`: `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `TRUSTED_PROXIES`,
-`PORT`, `HOST`, `VELLUM_VAULT`, `VELLUM_DATA`, `PUBLIC`. `SITE_URL` is env-only too, for the
+`PORT`, `HOST`, `ASTROLABE_VAULT`, `ASTROLABE_DATA`, `PUBLIC`. `SITE_URL` is env-only too, for the
 duller reason that nothing has ever needed to change it at runtime.
 
 ## The settings API

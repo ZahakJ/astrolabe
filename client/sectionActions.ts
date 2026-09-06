@@ -43,7 +43,7 @@ import { noteTitleOf } from "../shared/noteFormat.ts";
 /** Ask the live editor for a path's current text; null when none holds it. */
 export function liveContent(path: string): string | null {
   const detail: { path: string; content: string | null } = { path, content: null };
-  window.dispatchEvent(new CustomEvent("vellum:section-read", { detail }));
+  window.dispatchEvent(new CustomEvent("astrolabe:section-read", { detail }));
   return detail.content;
 }
 
@@ -63,7 +63,7 @@ export async function applyNoteContent(path: string, content: string): Promise<v
     content,
     handled: false,
   };
-  window.dispatchEvent(new CustomEvent("vellum:section-apply", { detail }));
+  window.dispatchEvent(new CustomEvent("astrolabe:section-apply", { detail }));
   if (detail.handled) return;
   // No editor holds this path (the outline over a reading pane, the blog):
   // we are the writer, so we claim the echo — the same rule the editor's own
@@ -84,7 +84,7 @@ async function copy(
     await navigator.clipboard.writeText(text);
     toast(t(okKey));
   } catch (err) {
-    console.error("vellum: copying a section failed", err);
+    console.error("astrolabe: copying a section failed", err);
     toast(t("sectionCopyFailed"), "error");
   }
 }
@@ -231,13 +231,13 @@ export async function extractSection(path: string, content: string, section: Sec
           await useStore.getState().loadTree();
           toast(t("sectionExtractUndone"));
         } catch (err) {
-          console.error("vellum: undoing a section extraction failed", err);
+          console.error("astrolabe: undoing a section extraction failed", err);
           toast(t("sectionExtractFailed"), "error");
         }
       })();
     });
   } catch (err) {
-    console.error("vellum: extracting a section failed", err);
+    console.error("astrolabe: extracting a section failed", err);
     // A NAME THAT IS ALREADY TAKEN IS NOT "extracting failed". `createNote`
     // 409s before a single byte of the source note is rewritten (verified: the
     // source is untouched), so the reader's next move is to type another name
@@ -271,13 +271,13 @@ export async function applySectionMove(
       void applyNoteContent(path, content)
         .then(() => toast(t("sectionMoveUndone")))
         .catch((err: unknown) => {
-          console.error("vellum: undoing a section move failed", err);
+          console.error("astrolabe: undoing a section move failed", err);
           toast(t("sectionMoveFailed"), "error");
         });
     });
     return next;
   } catch (err) {
-    console.error("vellum: moving a section failed", err);
+    console.error("astrolabe: moving a section failed", err);
     toast(t("sectionMoveFailed"), "error");
     return null;
   }

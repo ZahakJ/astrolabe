@@ -45,7 +45,7 @@ config dir (must be ignored everywhere: tree, index, graph, watcher).
   as a client-side renderer sharing the resolve logic. Reading view is the default for
   non-admin visitors (see C1).
 
-- **Trackers are a Vellum extension, and they degrade honestly.** A ` ```tracker ` fence renders
+- **Trackers are an Astrolabe extension, and they degrade honestly.** A ` ```tracker ` fence renders
   as a progress card here (see [docs/trackers.md](docs/trackers.md)); opened in Obsidian, the same
   note shows a labelled code block whose every line is readable — `title: Elden Ring`,
   `progress: 62/130`. Nothing is converted and nothing is hidden, which is the same bargain
@@ -92,7 +92,7 @@ config dir (must be ignored everywhere: tree, index, graph, watcher).
 ## Config file
 
 - Support `.env` (loaded via `node --env-file=.env` in npm scripts, document in README) with:
-  `PORT`, `VELLUM_VAULT`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `PUBLIC`, `HOME_NOTE`
+  `PORT`, `ASTROLABE_VAULT`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `PUBLIC`, `HOME_NOTE`
   (note opened for visitors on first load — the vault's homepage).
 - `npm run hash-password` script → prompts, prints argon2 hash (scripts/hash-password.ts).
 

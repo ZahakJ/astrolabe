@@ -1,6 +1,6 @@
 # Development
 
-*Running Vellum from source, the gate scripts, the screenshot harnesses, and how to contribute a change.*
+*Running Astrolabe from source, the gate scripts, the screenshot harnesses, and how to contribute a change.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
@@ -36,7 +36,7 @@ Runs the API server and Vite with hot reload side by side.
 
 Each one exits non-zero on failure. The pure-logic gates need nothing; the browser gates need a
 running instance plus `npm i -D playwright` and either `npx playwright install chromium` or a
-system browser via `CHROMIUM=/usr/bin/chromium`. Those that sign in take `VELLUM_PASSWORD`
+system browser via `CHROMIUM=/usr/bin/chromium`. Those that sign in take `ASTROLABE_PASSWORD`
 (open local mode needs no password).
 
 ### `npm run check-i18n` — the dictionary
@@ -182,7 +182,7 @@ measures what a VISITOR gets (the built-in blog, a page with real text on it, no
 boundary) against what the OWNER gets (the designed page, the failing section named, the revert
 control present). It also round-trips stock ⇄ designed and asserts the design comes back
 byte-identical. Everything it touched is restored on the way out, including on failure:
-`PORT=6801 VELLUM_PASSWORD=… npm run check-design`.
+`PORT=6801 ASTROLABE_PASSWORD=… npm run check-design`.
 
 ### `npm run check-board` — the designer's section board
 

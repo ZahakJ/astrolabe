@@ -138,7 +138,7 @@ export default function BlogArticle({
         }
       })
       .catch((err: unknown) => {
-        console.error(`vellum: failed to open ${path}`, err);
+        console.error(`astrolabe: failed to open ${path}`, err);
         toast(tf("openFailed", { path: title }));
       });
     return () => {
@@ -162,8 +162,8 @@ export default function BlogArticle({
       const detail = (ev as CustomEvent<{ text?: string }>).detail ?? {};
       if (detail.text) scrollToHeading(host, detail.text);
     };
-    window.addEventListener("vellum:goto-heading", onGoto);
-    return () => window.removeEventListener("vellum:goto-heading", onGoto);
+    window.addEventListener("astrolabe:goto-heading", onGoto);
+    return () => window.removeEventListener("astrolabe:goto-heading", onGoto);
   }, []);
 
   // Related: published notes wikilinked from/to this one (the blog's stand-in

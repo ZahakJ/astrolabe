@@ -1840,12 +1840,12 @@ function GraphPanel({
     return () => window.removeEventListener("keydown", onKey, true);
   }, [open, setPrefs]);
   // A DRAGGABLE panel: grab the head, put it anywhere over the graph, and it
-  // stays there for this browser (`vellum.graphPanelPos`, clamped into the
+  // stays there for this browser (`astrolabe.graphPanelPos`, clamped into the
   // graph's box on every mount so a smaller window never hides it).
   const panelRef = useRef<HTMLElement | null>(null);
   const [panelPos, setPanelPos] = useState<{ left: number; top: number } | null>(() => {
     try {
-      const raw = localStorage.getItem("vellum.graphPanelPos");
+      const raw = localStorage.getItem("astrolabe.graphPanelPos");
       const v = raw ? (JSON.parse(raw) as { left?: unknown; top?: unknown }) : null;
       return v && typeof v.left === "number" && typeof v.top === "number" ? { left: v.left, top: v.top } : null;
     } catch {
@@ -1857,7 +1857,7 @@ function GraphPanel({
   // browser's `resize: both` wrote, read back on pointerup and kept per browser.
   const [panelSize, setPanelSize] = useState<{ width: number; height: number } | null>(() => {
     try {
-      const raw = localStorage.getItem("vellum.graphPanelSize");
+      const raw = localStorage.getItem("astrolabe.graphPanelSize");
       const v = raw ? (JSON.parse(raw) as { width?: unknown; height?: unknown }) : null;
       return v && typeof v.width === "number" && typeof v.height === "number" ? { width: v.width, height: v.height } : null;
     } catch {
@@ -1874,7 +1874,7 @@ function GraphPanel({
     const next = { width, height };
     setPanelSize(next);
     try {
-      localStorage.setItem("vellum.graphPanelSize", JSON.stringify(next));
+      localStorage.setItem("astrolabe.graphPanelSize", JSON.stringify(next));
     } catch {
       // the size lasts the session
     }
@@ -1916,7 +1916,7 @@ function GraphPanel({
       head.removeEventListener("pointercancel", up);
       setPanelDrag(false);
       try {
-        localStorage.setItem("vellum.graphPanelPos", JSON.stringify(last));
+        localStorage.setItem("astrolabe.graphPanelPos", JSON.stringify(last));
       } catch {
         // the position lasts the session
       }
@@ -1991,7 +1991,7 @@ function GraphPanel({
               el.style.removeProperty("height");
             }
             try {
-              localStorage.removeItem("vellum.graphPanelSize");
+              localStorage.removeItem("astrolabe.graphPanelSize");
             } catch {
               // nothing to forget
             }

@@ -70,7 +70,7 @@ function fakeCache(id: string, family: string, ranges: Record<string, string>): 
 }
 
 before(() => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(root);
   fakeCache("eb-garamond", "EB Garamond", { latin: "U+0000-00FF, U+0131" });
   fakeCache("jetbrains-mono", "JetBrains Mono", { latin: "U+0000-00FF" });
@@ -270,14 +270,14 @@ describe("design fonts: the served stylesheet", () => {
     const slots: FontSlots = { ...SYSTEM_SLOTS, prose: "lora" };
     const refs = designFontRefs(typo({ headingFont: "eb-garamond" }));
     const css =
-      (await buildFontCss(slots, { prefix: "Vellum", root: true })) +
+      (await buildFontCss(slots, { prefix: "Astrolabe", root: true })) +
       (await buildDesignFontCss(refs, slots));
-    assert.match(css, /font-family: "VellumProse"/);
-    assert.match(css, /--font-serif: "VellumProse"/);
+    assert.match(css, /font-family: "AstrolabeProse"/);
+    assert.match(css, /--font-serif: "AstrolabeProse"/);
     assert.match(css, new RegExp(`font-family: "${designFontFamily("eb-garamond", "prose")}"`));
     // The design's family is NEVER remapped onto an instance token: a design's
     // type reaches its page through --dsg-*, never by moving :root.
-    assert.ok(!/--font-serif: "VellumDsg/.test(css));
+    assert.ok(!/--font-serif: "AstrolabeDsg/.test(css));
   });
 });
 

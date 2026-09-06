@@ -4,7 +4,7 @@ Links are what turn a folder of files into a vault. #guide #linking
 
 ## Making a link
 
-Type `[[` and Vellum offers every note title in the vault — pick one and
+Type `[[` and Astrolabe offers every note title in the vault — pick one and
 you get a link like [[Graph View]]. Links match by **file name**, not path, so
 [[Hosting Your Own Vault]] resolves even though it lives in the `guides/`
 folder. Case doesn't matter either: [[welcome]] finds `Welcome.md`.
@@ -27,7 +27,7 @@ That two-way structure is also what [[Graph View]] draws.
 
 ## Renaming without fear
 
-Rename a note (via the [[Command Palette]]) and Vellum rewrites every
+Rename a note (via the [[Command Palette]]) and Astrolabe rewrites every
 `[[wikilink]]` that pointed at the old name. Your web of notes doesn't tear
 when a title improves.
 

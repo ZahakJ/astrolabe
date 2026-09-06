@@ -561,7 +561,7 @@ export default function BookReader({ path, citation = null, active = true, onLan
   // ── Annotations ───────────────────────────────────────────────────────────
   //
   // A highlight is a rectangle on a page and the words under it, stored in
-  // VELLUM_DATA against the content key. THE PDF IS NEVER WRITTEN TO — that is
+  // ASTROLABE_DATA against the content key. THE PDF IS NEVER WRITTEN TO — that is
   // the promise the whole vault rests on, it is why this is a rectangle in a
   // JSON file rather than a /Annots entry, and tests/books.test.ts checks the
   // file's bytes and mtime after a passage has been marked.
@@ -2188,7 +2188,7 @@ async function sampleDirection(doc: PdfDocument): Promise<boolean> {
   return detectRtl(sample);
 }
 
-const HIGHLIGHT_NAME = "vellum-book-search";
+const HIGHLIGHT_NAME = "astrolabe-book-search";
 
 interface HighlightRegistry {
   set(name: string, highlight: object): void;

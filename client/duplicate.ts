@@ -73,7 +73,7 @@ export async function duplicateNote(path: string): Promise<void> {
       requestAnimationFrame(() => toast(tf("noteDuplicated", { path: toPath }))),
     );
   } catch (err) {
-    console.error("vellum: duplicating a note failed", err);
+    console.error("astrolabe: duplicating a note failed", err);
     toast(t("couldNotDuplicateNote"), "error");
   }
 }

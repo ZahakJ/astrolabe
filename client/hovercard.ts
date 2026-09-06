@@ -83,12 +83,12 @@ declare global {
     /** Read-only size probe for the hover-card cache, so the perf gate can
      *  observe the LRU from outside the bundle. It exposes a single number
      *  and no vault content, and nothing in the app reads it. */
-    __vellumHoverCardCacheSize?: () => number;
+    __astrolabeHoverCardCacheSize?: () => number;
   }
 }
 
 if (typeof window !== "undefined") {
-  window.__vellumHoverCardCacheSize = hoverCardCacheSize;
+  window.__astrolabeHoverCardCacheSize = hoverCardCacheSize;
 }
 
 /** What a spotlight prints under the title. Every string arrives formatted:

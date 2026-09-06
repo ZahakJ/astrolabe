@@ -1,7 +1,7 @@
 // The author's other sites, enriched for the blog: settings.authorSites holds
 // bare URLs; visitors deserve cards. Each site is asked ONCE for its own
 // OpenGraph story (og:title / og:description / og:image, <title> as the
-// fallback), the answer lands in VELLUM_DATA/author-sites.json, and /api/me
+// fallback), the answer lands in ASTROLABE_DATA/author-sites.json, and /api/me
 // serves cards straight from that cache — never from the network. The cache
 // warms in the background at boot and whenever the admin saves the setting,
 // and every /api/me revalidates any entry older than the staleness floor the
@@ -66,7 +66,7 @@ function saveCache(): void {
     writeFileSync(tmp, `${JSON.stringify(cache, null, 2)}\n`, "utf8");
     renameSync(tmp, cachePath());
   } catch (err) {
-    console.error("vellum: could not persist the author-sites cache:", err);
+    console.error("astrolabe: could not persist the author-sites cache:", err);
   }
 }
 
@@ -156,7 +156,7 @@ async function fetchMeta(url: string): Promise<CacheEntry> {
     const res = await fetch(url, {
       signal: controller.signal,
       redirect: "follow",
-      headers: { "user-agent": "vellum-link-preview/1.0 (+https://github.com/ZahakJ/vellum)" },
+      headers: { "user-agent": "astrolabe-link-preview/1.0 (+https://github.com/ZahakJ/astrolabe)" },
     });
     if (!res.ok || !res.body) return { fetchedAt: Date.now(), ok: false };
     const type = res.headers.get("content-type") ?? "";

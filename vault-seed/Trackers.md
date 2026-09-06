@@ -1,6 +1,6 @@
 ---
 title: Trackers
-tags: [vellum, trackers]
+tags: [astrolabe, trackers]
 ---
 
 # Trackers

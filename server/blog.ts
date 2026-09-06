@@ -263,7 +263,7 @@ export function renderRobots(origin: string, discoverable: boolean): string {
 // ------------------------------------------------------------ head injection
 
 /** Placeholder comment in client/index.html the meta block replaces. */
-export const HEAD_PLACEHOLDER = "<!--vellum:head-->";
+export const HEAD_PLACEHOLDER = "<!--astrolabe:head-->";
 
 /** Serve-time SEO: swap the shell's <title> and expand the placeholder into
  *  description/og/canonical (+ RSS alternate) tags. `pathname` deep-linking a

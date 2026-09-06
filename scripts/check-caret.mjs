@@ -1,7 +1,7 @@
 // GATE: pointer → document accuracy in the live-preview editor.
 //   node scripts/check-caret.mjs [http://localhost:6801] [outdir]
 //   env: CHROMIUM=/usr/bin/chromium
-//        VELLUM_PASSWORD=<pw>  — only when the instance sets ADMIN_PASSWORD_HASH;
+//        ASTROLABE_PASSWORD=<pw>  — only when the instance sets ADMIN_PASSWORD_HASH;
 //                                without an admin session no editor mounts and
 //                                the run refuses loudly instead of "passing".
 // Exits 1 on any miss. Run it like check-i18n / check-contrast.
@@ -224,11 +224,11 @@ try {
   // — it must say so rather than pass.
   let me = (await api("/api/me")).body;
   if (!me.admin) {
-    const password = process.env.VELLUM_PASSWORD ?? "";
+    const password = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) ?? "";
     if (!password) {
       console.error(
         "check-caret: not an admin session. This gate drives the EDITOR; run it\n" +
-          "against an instance in open local mode, or set VELLUM_PASSWORD.",
+          "against an instance in open local mode, or set ASTROLABE_PASSWORD.",
       );
       await restore();
       process.exit(2);

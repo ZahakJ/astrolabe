@@ -3,8 +3,8 @@
 // WHY THIS EXISTS. Backup & sync guarded every mutating pass with a
 // module-level `busy` boolean. That flag is per-PROCESS, and the shape it does
 // not cover is a real deployment, not a hypothetical: the owner runs the
-// desktop app AND a systemd `vellum` service over the SAME vault directory.
-// Two Vellums, one `.git`. `busy` is true in each of them independently, so
+// desktop app AND a systemd `astrolabe` service over the SAME vault directory.
+// Two Astrolabes, one `.git`. `busy` is true in each of them independently, so
 // both walk into `git add -A` / `git commit` / `git merge` at once and fight
 // over `.git/index.lock` — git's own lock, which is not a queue: the loser
 // dies with "Another git process seems to be running in this repository", and
@@ -283,7 +283,7 @@ function handleFor(file: string, holder: LockHolder, opts: LockOptions): LockHan
       const current = readHolder(file);
       if (current !== null && current.token !== holder.token) {
         (opts.onWarn ?? console.warn)(
-          `vellum: this process's sync lock at ${file} was taken over by pid ${current.pid} (${current.host}) while it ran — leaving it alone`,
+          `astrolabe: this process's sync lock at ${file} was taken over by pid ${current.pid} (${current.host}) while it ran — leaving it alone`,
         );
         return;
       }
@@ -322,7 +322,7 @@ export function acquireLock(file: string, opts: LockOptions = {}): LockResult {
       ? "an unreadable lock file"
       : `pid ${state.holder.pid} on ${state.holder.host}, taken ${state.holder.at}`;
   (opts.onWarn ?? console.warn)(
-    `vellum: breaking a stale sync lock at ${file} — ${who}, ${state.reason} (idle ${Math.round(state.ageMs / 1000)}s). ` +
+    `astrolabe: breaking a stale sync lock at ${file} — ${who}, ${state.reason} (idle ${Math.round(state.ageMs / 1000)}s). ` +
       "A previous sync process almost certainly died without releasing it.",
   );
   try {

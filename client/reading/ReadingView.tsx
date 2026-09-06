@@ -1,7 +1,7 @@
 // Reading view: the open note rendered to HTML (Ctrl/Cmd+E toggles it against
 // the editor). Same typography column as the editor — the live preview minus
 // the cursor affordances. Publishes the active heading while scrolling and
-// answers "vellum:goto-heading" requests from the outline panel.
+// answers "astrolabe:goto-heading" requests from the outline panel.
 
 import { useEffect, useRef, useState } from "react";
 import { scrollBehavior } from "../a11y.ts";
@@ -72,7 +72,7 @@ function publishActive(host: HTMLElement): void {
   }
   // At the very top nothing has crossed the line yet — light the first section.
   if (active === null && heads.length > 0) active = heads[0].id;
-  window.dispatchEvent(new CustomEvent("vellum:active-heading", { detail: active }));
+  window.dispatchEvent(new CustomEvent("astrolabe:active-heading", { detail: active }));
 }
 
 export default function ReadingView({ path }: { path: string }) {
@@ -199,7 +199,7 @@ export default function ReadingView({ path }: { path: string }) {
           toast(t("previewNotPublished"));
           return;
         }
-        console.error(`vellum: failed to open ${path} for reading`, err);
+        console.error(`astrolabe: failed to open ${path} for reading`, err);
         toast(tf("openFailed", { path }), "error");
       });
     return () => {
@@ -226,7 +226,7 @@ export default function ReadingView({ path }: { path: string }) {
       host.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(raf);
       window.dispatchEvent(
-        new CustomEvent("vellum:active-heading", { detail: null }),
+        new CustomEvent("astrolabe:active-heading", { detail: null }),
       );
     };
   }, []);
@@ -271,8 +271,8 @@ export default function ReadingView({ path }: { path: string }) {
         28;
       host.scrollTo({ top: Math.max(0, top), behavior: scrollBehavior() });
     };
-    window.addEventListener("vellum:goto-heading", onGoto);
-    return () => window.removeEventListener("vellum:goto-heading", onGoto);
+    window.addEventListener("astrolabe:goto-heading", onGoto);
+    return () => window.removeEventListener("astrolabe:goto-heading", onGoto);
   }, []);
 
   return (

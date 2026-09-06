@@ -190,10 +190,10 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
   // what /api/design/themes.css will serve after Save — a preview produced by
   // a different code path is a preview of a different thing.
   useEffect(() => {
-    let style = document.head.querySelector<HTMLStyleElement>("style[data-vellum-tb]");
+    let style = document.head.querySelector<HTMLStyleElement>("style[data-astrolabe-tb]");
     if (!style) {
       style = document.createElement("style");
-      style.setAttribute("data-vellum-tb", "");
+      style.setAttribute("data-astrolabe-tb", "");
       document.head.appendChild(style);
     }
     style.textContent = customThemesCss([
@@ -217,7 +217,7 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
   const committed = useRef(false);
   useEffect(
     () => () => {
-      document.head.querySelector("style[data-vellum-tb]")?.remove();
+      document.head.querySelector("style[data-astrolabe-tb]")?.remove();
       if (!committed.current) applyThemeChoice(themeInForce.current);
     },
     [],
@@ -341,14 +341,14 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
    *  a repository. */
   const exportTheme = (): void => {
     const payload = JSON.stringify(
-      { kind: "vellum.theme", name: draft.name, base: draft.base, group: draft.group, tokens: draft.tokens },
+      { kind: "astrolabe.theme", name: draft.name, base: draft.base, group: draft.group, tokens: draft.tokens },
       null,
       2,
     );
     const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${draft.name.trim() || "theme"}.vellum-theme.json`;
+    a.download = `${draft.name.trim() || "theme"}.astrolabe-theme.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -363,7 +363,7 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
       const parsed: unknown = JSON.parse(await file.text());
       if (typeof parsed !== "object" || parsed === null) throw new Error("not an object");
       const raw = parsed as Record<string, unknown>;
-      if (raw.kind !== undefined && raw.kind !== "vellum.theme") {
+      if (raw.kind !== undefined && raw.kind !== "astrolabe.theme") {
         setError(t("tbNotATheme"));
         return;
       }

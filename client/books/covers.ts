@@ -133,7 +133,7 @@ async function draw(doc: PdfDocument): Promise<Cover> {
   canvas.width = Math.max(1, Math.floor(viewport.width));
   canvas.height = Math.max(1, Math.floor(viewport.height));
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("vellum: no 2d context for a cover");
+  if (!ctx) throw new Error("astrolabe: no 2d context for a cover");
   // A PDF page is transparent where it has no content; a cover drawn straight
   // onto a JPEG's default black is a black plate with a title on it. White is
   // correct here and is not a theme decision: it is the colour of the PAPER

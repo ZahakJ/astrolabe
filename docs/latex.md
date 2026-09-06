@@ -10,7 +10,7 @@ A `.tex` file is a **note**, not an import. It is in the tree, in search, in
 the graph, in the backlinks panel, in the tag counts, in the post list and in
 the RSS feed, and it publishes to the blog exactly as a `.md` note does — same
 typography, same themes, same visitor scoping, both languages. And it still
-compiles: everything Vellum adds is a LaTeX comment or a macro you can ship
+compiles: everything Astrolabe adds is a LaTeX comment or a macro you can ship
 beside the file.
 
 - **Live-preview editor** — the CodeMirror `stex` mode themed to whichever of
@@ -32,7 +32,7 @@ beside the file.
   the task list and the colour swatches are **absent** from the menu in a
   `.tex` note rather than approximated: LaTeX cannot spell them without a
   package your document may not load, and a key that quietly writes something
-  neither Vellum nor `pdflatex` can render is worse than a key that does
+  neither Astrolabe nor `pdflatex` can render is worse than a key that does
   nothing
 - **Reading & publishing** — rendered in the same visual language as markdown:
   numbered sections, numbered equations, "Figure 1" captions, theorem boxes,
@@ -46,13 +46,13 @@ beside the file.
   % banner: "Media/heat.png"
   %---%
   ```
-  or, if you would rather write a macro, `\vellum{publish=true, citekey=fourier1822}`
+  or, if you would rather write a macro, `\astrolabe{publish=true, citekey=fourier1822}`
 - **Links, three ways** — `\note{Fourier Transform}` and
-  `\note[the transform]{Fourier Transform}` are Vellum's own macro (ship
-  [`vellum.sty`](#vellumsty) beside the file and it compiles anywhere);
+  `\note[the transform]{Fourier Transform}` are Astrolabe's own macro (ship
+  [`astrolabe.sty`](#astrolabesty) beside the file and it compiles anywhere);
   `%% [[Private Scratch]] %%` is a link the PDF never shows; and an existing
   project lights up **unmodified**, because `\input`, `\include`, `\cite`,
-  `\ref` and `\eqref` already say what they mean — Vellum simply extends their
+  `\ref` and `\eqref` already say what they mean — Astrolabe simply extends their
   search path to the vault, local definitions first, so importing a project can
   never change how it compiles
 - **One anchor space** — a markdown heading and a LaTeX `\label` are the same
@@ -64,11 +64,13 @@ A `.tex` note takes the site's [text direction](arabic-and-rtl.md#note-direction
 Arabic paper is written right to left — and refuses the alignment measure: its source is markup
 end to end.
 
-## `vellum.sty`
+## `astrolabe.sty`
 
-The dozen lines that make `\note{…}` compile outside Vellum. Download it from your own instance at
-`/api/vellum.sty` (or "LaTeX: download vellum.sty" in the command palette), drop it beside your
-document, and `\usepackage{vellum}`. Without it the file still opens in Vellum; with it,
+(`vellum.sty`, the package's name before the rename, is still served at `/api/vellum.sty` and provides the same macros; `\vellum{…}` is read as `\astrolabe{…}`. A paper written under the old name compiles unchanged.)
+
+The dozen lines that make `\note{…}` compile outside Astrolabe. Download it from your own instance at
+`/api/astrolabe.sty` (or "LaTeX: download astrolabe.sty" in the command palette), drop it beside your
+document, and `\usepackage{astrolabe}`. Without it the file still opens in Astrolabe; with it,
 `pdflatex` renders the very same file.
 
 ## What renders, and what does not
@@ -83,7 +85,7 @@ and searches by its title.
 | **Structure** | `\part` `\chapter` `\section` `\subsection` `\subsubsection` `\paragraph` `\subparagraph` (starred forms unnumbered), `\appendix`, `\maketitle` with `\title`/`\author`/`\date`, `abstract`, `\tableofcontents`, `\label` anywhere |
 | **Text** | `\emph` `\textit` `\textbf` `\texttt` `\textsc` `\textsf` `\underline`, `\footnote`, `\\` breaks, `~`, `--`/`---`, ` ``…'' ` quotes, accents (`\'e` `\"o` `\c{c}` …), `\LaTeX` and the common symbol macros, `\url` and `\href` |
 | **Lists** | `itemize`, `enumerate` (numbered), `description` |
-| **Maths** | `$…$`, `\(…\)`, `\[…\]`, `$$…$$`, `equation` `align` `gather` `multline` `alignat` `flalign` `eqnarray` `displaymath` and their starred forms, `aligned` `gathered` `split` `cases` `array` and the matrix family — all through KaTeX, with **Vellum's own equation numbering** (KaTeX restarts its counter per block, which would print "(1)" for every equation in a paper) and `\nonumber`/`\notag` honoured |
+| **Maths** | `$…$`, `\(…\)`, `\[…\]`, `$$…$$`, `equation` `align` `gather` `multline` `alignat` `flalign` `eqnarray` `displaymath` and their starred forms, `aligned` `gathered` `split` `cases` `array` and the matrix family — all through KaTeX, with **Astrolabe's own equation numbering** (KaTeX restarts its counter per block, which would print "(1)" for every equation in a paper) and `\nonumber`/`\notag` honoured |
 | **Floats** | `figure` with `\includegraphics` (extension optional, resolved against your vault) and `\caption`; `table` with `tabular`/`tabularx`/`longtable`, `\multicolumn`, alignment from the column spec |
 | **Blocks** | `quote` `quotation` `verse`, `center`, `verbatim` `lstlisting` `minted` (highlighted), `thebibliography` with `\bibitem` |
 | **Theorems** | `theorem` `lemma` `proposition` `corollary` `definition` `remark` `example` `proof` and friends, numbered, with the optional `[title]` |

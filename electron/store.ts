@@ -58,18 +58,18 @@ export function flushPrefs(): void {
     writeFileSync(tmp, `${JSON.stringify(cache, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
     renameSync(tmp, target);
   } catch (err) {
-    console.error("vellum: could not write desktop preferences:", err);
+    console.error("astrolabe: could not write desktop preferences:", err);
   }
 }
 
 /**
- * `VELLUM_DATA` for a vault — the session epoch, the marginalia database, the
+ * `ASTROLABE_DATA` for a vault — the session epoch, the marginalia database, the
  * design store, the font cache.
  *
- * NOT inside the vault. The server's default is `./data`, and a `.vellum/`
+ * NOT inside the vault. The server's default is `./data`, and a `.astrolabe/`
  * beside the notes would be the obvious desktop answer — except that
  * `isIgnoredSegment` (server/vault.ts) hides exactly three names, `.obsidian`,
- * `.git` and `.trash`, and `.vellum` is not one of them. It would appear in the
+ * `.git` and `.trash`, and `.astrolabe` is not one of them. It would appear in the
  * reader's own tree, in their own vault, in every sidebar, and it would travel
  * into their Dropbox and their git history. So it lives under the app's data
  * directory, keyed by the vault path.

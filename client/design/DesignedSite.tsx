@@ -226,7 +226,7 @@ export default function DesignedSite() {
       .catch((err: unknown) => {
         if (disposed) return;
         setLoaded(true);
-        console.error("vellum: loading the design failed", err);
+        console.error("astrolabe: loading the design failed", err);
         setDesign(null);
         setConfigError(err instanceof Error ? err.message : String(err));
       });
@@ -250,7 +250,7 @@ export default function DesignedSite() {
       .then((list) => {
         if (!disposed) setPosts(list);
       })
-      .catch((err: unknown) => console.error("vellum: loading posts failed", err));
+      .catch((err: unknown) => console.error("astrolabe: loading posts failed", err));
     return () => {
       disposed = true;
     };
@@ -273,7 +273,7 @@ export default function DesignedSite() {
       const tag = ((ev as CustomEvent<string>).detail ?? "").replace(/^#/, "").trim();
       if (tag) go(topicUrl(tag));
     };
-    window.addEventListener("vellum:search", onSearch);
+    window.addEventListener("astrolabe:search", onSearch);
     const unsubscribe = useStore.subscribe((s, prev) => {
       if (s.openPath && s.openPath !== prev.openPath) {
         const url = notePathToUrl(s.openPath);
@@ -283,7 +283,7 @@ export default function DesignedSite() {
     return () => {
       setNavHandler(null);
       window.removeEventListener("popstate", onPop);
-      window.removeEventListener("vellum:search", onSearch);
+      window.removeEventListener("astrolabe:search", onSearch);
       unsubscribe();
     };
   }, []);
@@ -334,7 +334,7 @@ export default function DesignedSite() {
     // A VISITOR never learns any of this happened. The stock blog renders
     // from here exactly as it renders from App.tsx — same component, same
     // props (none), same CSS.
-    if (configError) console.error("vellum: design config rejected —", configError);
+    if (configError) console.error("astrolabe: design config rejected —", configError);
     return <BlogShell />;
   }
   // The owner, with nothing renderable at all: the notice is all there is.
@@ -460,7 +460,7 @@ export default function DesignedSite() {
                   <button
                     type="button"
                     className="s-dsn-nav__tool"
-                    onClick={() => window.dispatchEvent(new Event("vellum:quicksearch"))}
+                    onClick={() => window.dispatchEvent(new Event("astrolabe:quicksearch"))}
                   >
                     {t("scSearch")}
                   </button>
@@ -573,7 +573,7 @@ export default function DesignedSite() {
       </DesignBoundary>
       {/* THE SEARCH OVERLAY IS SHARED, and deliberately so. It is a modal, not
           a piece of page composition: it is opened by Ctrl/Cmd+K (App
-          dispatches `vellum:quicksearch` for every non-app shell) and by the
+          dispatches `astrolabe:quicksearch` for every non-app shell) and by the
           nav's own button, it draws over the site rather than in it, and its
           results are the visitor's published hits either way. Mounting it here
           is COMPOSING a self-contained overlay, not extending the stock page —
@@ -761,7 +761,7 @@ function OwnerNotice({
       if (!res.ok) throw new Error(String(res.status));
       location.reload();
     } catch (err) {
-      console.error("vellum: reverting to the stock blog failed", err);
+      console.error("astrolabe: reverting to the stock blog failed", err);
       setBusy(false);
     }
   };

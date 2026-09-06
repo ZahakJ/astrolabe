@@ -12,7 +12,7 @@
 //   same-folder  → beside the note being edited
 //   subfolder    → a named subfolder OF the note's folder ("assets")
 //   specified    → one fixed vault-relative folder ("attachments") — the
-//                  behaviour every Vellum instance had before this setting,
+//                  behaviour every Astrolabe instance had before this setting,
 //                  and therefore the default.
 //
 // Nothing already on disk moves when this changes: it decides where the NEXT

@@ -81,7 +81,7 @@ async function preview(path: string): Promise<DeletePreview | null> {
   try {
     return await deletePreview(path);
   } catch (err) {
-    console.error("vellum: delete preview failed", err);
+    console.error("astrolabe: delete preview failed", err);
     return null;
   }
 }

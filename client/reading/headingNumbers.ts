@@ -29,7 +29,7 @@ import { getNumerals } from "../i18n.ts";
 import { toNumerals } from "../../shared/numerals.ts";
 import { extractHeadings } from "./toc.ts";
 
-const PREF_KEY = "vellum.headingNumbers";
+const PREF_KEY = "astrolabe.headingNumbers";
 
 /** The device preference (off unless the reader turned it on). */
 export function headingNumbersPref(): boolean {
@@ -46,7 +46,7 @@ export function setHeadingNumbersPref(on: boolean): void {
   } catch {
     // A blocked localStorage costs the preference, never the render.
   }
-  window.dispatchEvent(new CustomEvent("vellum:heading-numbers", { detail: on }));
+  window.dispatchEvent(new CustomEvent("astrolabe:heading-numbers", { detail: on }));
 }
 
 /** Frontmatter's answer for this note: true, false, or "did not say". */
@@ -175,8 +175,8 @@ export function useHeadingNumberTick(): number {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const bump = (): void => setTick((n) => n + 1);
-    window.addEventListener("vellum:heading-numbers", bump);
-    return () => window.removeEventListener("vellum:heading-numbers", bump);
+    window.addEventListener("astrolabe:heading-numbers", bump);
+    return () => window.removeEventListener("astrolabe:heading-numbers", bump);
   }, []);
   return tick;
 }

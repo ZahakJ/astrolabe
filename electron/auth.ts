@@ -6,7 +6,7 @@
 //     icon, the vault is on their disk. A login screen here is theatre —
 //     they would be typing a password to prove they are the person holding the
 //     computer the file is on.
-//   · The binary must not BE the bypass. Vellum's server speaks HTTP. On a
+//   · The binary must not BE the bypass. Astrolabe's server speaks HTTP. On a
 //     shared machine every other logged-in account can reach 127.0.0.1, and a
 //     desktop app that runs the server in open local mode ("no password hash
 //     configured → everyone is admin", server/auth.ts::initAuth) is a one-click
@@ -84,12 +84,12 @@ export async function signIn(ses: Session, origin: string, credential: Credentia
     body: JSON.stringify({ password: credential.password }),
   });
   if (!res.ok) {
-    throw new Error(`vellum: the desktop app could not sign in to its own server (HTTP ${res.status})`);
+    throw new Error(`astrolabe: the desktop app could not sign in to its own server (HTTP ${res.status})`);
   }
   const headers = res.headers.getSetCookie?.() ?? [];
   const cookie = headers.map(parseSessionCookie).find((c): c is SessionCookie => c !== null);
   if (!cookie) {
-    throw new Error("vellum: the login succeeded but carried no session cookie");
+    throw new Error("astrolabe: the login succeeded but carried no session cookie");
   }
   const lifetimeMs = cookie.maxAge * 1000;
   await ses.cookies.set({

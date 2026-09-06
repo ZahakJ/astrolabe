@@ -1,9 +1,9 @@
 // The editor's side of annotations. The editor is CodeMirror, not rendered
 // prose; its marks are painted by client/editor/annotationMarks.ts, and this
 // listens for what that painter and the selection menu announce on the
-// window: a fresh "Annotate" on a selection (`vellum:annotate`), a click on a
-// painted mark (`vellum:annotate-open`) and the pointer resting on one
-// (`vellum:annotate-hover`). It opens the same popover the reading view uses
+// window: a fresh "Annotate" on a selection (`astrolabe:annotate`), a click on a
+// painted mark (`astrolabe:annotate-open`) and the pointer resting on one
+// (`astrolabe:annotate-hover`). It opens the same popover the reading view uses
 // and the same tooltip.
 import { useEffect, useState } from "react";
 import { newHighlightId } from "../../shared/bookAnchor.ts";

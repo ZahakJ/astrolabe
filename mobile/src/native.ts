@@ -8,7 +8,7 @@ export interface PendingShare {
   subject?: string;
 }
 
-export interface VellumNativePlugin {
+export interface AstrolabeNativePlugin {
   /** The share this ACTIVITY was started with, if it was started by one. Read
    *  off the activity's own Intent rather than a static, so the connection
    *  screen and the capture sheet cannot ever see each other's launch. */
@@ -29,4 +29,4 @@ export interface VellumNativePlugin {
   closeShare(): Promise<void>;
 }
 
-export const VellumNative = registerPlugin<VellumNativePlugin>("Vellum");
+export const AstrolabeNative = registerPlugin<AstrolabeNativePlugin>("Astrolabe");

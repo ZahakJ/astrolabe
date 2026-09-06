@@ -1,4 +1,4 @@
-/* Vellum — the Media page (client/media/MediaView.tsx, MediaForm.tsx).
+/* Astrolabe — the Media page (client/media/MediaView.tsx, MediaForm.tsx).
    Its own file, loaded with the page's lazy chunk: app.css is in every first
    paint and nothing here is needed before the button is pressed.
 

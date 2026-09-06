@@ -482,7 +482,7 @@ export interface ParsedDoc {
  *  the surfaces that carry no keystroke (a click, the slash menu, a drag in
  *  the outline), the designer's own keys, and — in the prose about non-Latin
  *  layouts — chords belonging to the BROWSER (`Ctrl Shift W` closes your
- *  window). A gate that swept the whole file would demand Vellum bind them.
+ *  window). A gate that swept the whole file would demand Astrolabe bind them.
  *
  *  Inside the region a table row's first cell is a chord or the region is
  *  wrong. `` `Ctrl/Cmd ↑` / `↓` `` is how the page has always written a pair,

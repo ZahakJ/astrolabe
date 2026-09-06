@@ -1,4 +1,4 @@
-/* Vellum — blog shell (PUBLIC_LAYOUT=blog, visitors only).
+/* Astrolabe — blog shell (PUBLIC_LAYOUT=blog, visitors only).
    A classic, academic blog cut from the same manuscript cloth as the app:
    serif display, calm measure, hairline rules, gold-leaf accents. Every color
    is a token from tokens.css so all four themes carry it. Prefix: s-blog. */
@@ -1202,7 +1202,7 @@
   color: var(--accent);
 }
 
-/* Removable via VELLUM_DATA/custom.css: .s-blog-powered { display: none } */
+/* Removable via ASTROLABE_DATA/custom.css: .s-blog-powered { display: none } */
 .s-blog-powered {
   font-size: 0.786rem;
   color: var(--text-faint);

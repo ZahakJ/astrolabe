@@ -8,7 +8,7 @@
 // CREDENTIALS. Two modes, chosen per instance:
 //   ssh   — the app stores no secret at all. Pushes ride the machine's own SSH
 //           agent/keys, exactly as a shell `git push` would.
-//   token — the token lives in VELLUM_DATA/git-credentials.json (0600), NEVER
+//   token — the token lives in ASTROLABE_DATA/git-credentials.json (0600), NEVER
 //           in settings.json, never in the vault, never in the repo. It is
 //           handed to git at push time through GIT_ASKPASS + an env var, so it
 //           never appears in the remote URL, in .git/config, in process argv
@@ -35,6 +35,7 @@ import {
 } from "node:fs";
 import { hostname } from "node:os";
 import path from "node:path";
+import { envRead } from "../shared/envName.ts";
 import { promisify } from "node:util";
 import type {
   GitSyncEffective,
@@ -91,7 +92,7 @@ function isTokenShaped(userinfo: string): boolean {
   }
 }
 
-/** A remote URL Vellum will hand to git: https://… or ssh://… / git@host:path,
+/** A remote URL Astrolabe will hand to git: https://… or ssh://… / git@host:path,
  *  with no shell metacharacters, no embedded credentials, length-capped. */
 export function cleanRemote(value: string): string {
   const remote = value.trim();
@@ -322,7 +323,7 @@ function readCredentials(): Credentials {
   }
 }
 
-/** Write (or clear) the credential file: 0600, atomic, VELLUM_DATA only. */
+/** Write (or clear) the credential file: 0600, atomic, ASTROLABE_DATA only. */
 function writeCredentials(next: Credentials): void {
   const file = credentialsPath();
   if (next.token === null && next.user === null) {
@@ -448,15 +449,15 @@ function gitMessage(err: unknown): string {
 
 /** The askpass helper git calls when a password is needed. It holds NO secret:
  *  it echoes an environment variable this process sets on the git child only.
- *  Written into VELLUM_DATA at 0700 so the executable bit is guaranteed. */
+ *  Written into ASTROLABE_DATA at 0700 so the executable bit is guaranteed. */
 function ensureAskpass(): string {
   const file = path.join(dataDir(), ASKPASS_FILE);
   const body = `#!/bin/sh
-# Written by Vellum. Holds no secret: it echoes the variables Vellum sets on
+# Written by Astrolabe. Holds no secret: it echoes the variables Astrolabe sets on
 # the git process it spawns. Safe to delete — it is recreated on demand.
 case "$1" in
-  Username*) printf '%s' "$VELLUM_GIT_USER" ;;
-  *) printf '%s' "$VELLUM_GIT_TOKEN" ;;
+  Username*) printf '%s' "$ASTROLABE_GIT_USER" ;;
+  *) printf '%s' "$ASTROLABE_GIT_TOKEN" ;;
 esac
 `;
   mkdirSync(path.dirname(file), { recursive: true });
@@ -471,8 +472,8 @@ function gitEnv(network: boolean): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env };
   env.GIT_TERMINAL_PROMPT = "0"; // never block waiting on a tty that isn't there
   delete env.GIT_ASKPASS;
-  delete env.VELLUM_GIT_TOKEN;
-  delete env.VELLUM_GIT_USER;
+  delete env.ASTROLABE_GIT_TOKEN;
+  delete env.ASTROLABE_GIT_USER;
   // `cwd` is the vault, but these would override it and point git at another
   // repository entirely if they happened to be set in the server's own
   // environment. The vault is the only thing this module may act on.
@@ -504,9 +505,9 @@ function gitEnv(network: boolean): NodeJS.ProcessEnv {
   }
   // The one legitimate use of GIT_SSH_COMMAND — "push with THIS deploy key" —
   // gets its own explicit door instead of ambient inheritance: an operator who
-  // means it sets VELLUM_GIT_SSH_COMMAND, and nothing else in the environment
+  // means it sets ASTROLABE_GIT_SSH_COMMAND, and nothing else in the environment
   // can steer git's transport by accident.
-  const ssh = process.env.VELLUM_GIT_SSH_COMMAND?.trim();
+  const ssh = envRead(process.env, "ASTROLABE_GIT_SSH_COMMAND")?.trim();
   if (ssh) env.GIT_SSH_COMMAND = ssh;
   if (!network) return env;
   const eff = gitSyncEffective();
@@ -514,10 +515,10 @@ function gitEnv(network: boolean): NodeJS.ProcessEnv {
   const cred = readCredentials();
   if (cred.token === null) return env;
   env.GIT_ASKPASS = ensureAskpass();
-  env.VELLUM_GIT_TOKEN = cred.token;
+  env.ASTROLABE_GIT_TOKEN = cred.token;
   // Hosts that ignore the username (GitHub fine-grained tokens, GitLab PATs
   // as "oauth2") still need *something* non-empty here.
-  env.VELLUM_GIT_USER = cred.user ?? "vellum";
+  env.ASTROLABE_GIT_USER = cred.user ?? "astrolabe";
   return env;
 }
 
@@ -619,7 +620,7 @@ export async function gitStatus(): Promise<GitSyncStatus> {
     // "A sync is running right now" — ANYWHERE over this vault, not just in
     // this process. The panel's glyph and the disabled "Sync now" button are
     // the honest answer for the desktop-plus-service install: a button whose
-    // only possible outcome is "another Vellum is syncing" is better shown as
+    // only possible outcome is "another Astrolabe is syncing" is better shown as
     // busy. A stale lock (dead holder) reads false, so a crash never leaves
     // the button wedged.
     busy: busy || syncingElsewhere(),
@@ -791,7 +792,7 @@ export async function noteRevisionBlob(relPath: string, sha: string): Promise<No
 
 // ---------------------------------------------------------------------- init
 
-/** VELLUM_DATA's path RELATIVE to the vault, or null when it sits outside it
+/** ASTROLABE_DATA's path RELATIVE to the vault, or null when it sits outside it
  *  (the default, and the only arrangement with nothing to defend). This is the
  *  one directory that must never reach the remote: it holds
  *  git-credentials.json. */
@@ -801,11 +802,11 @@ function dataDirInsideVault(): string | null {
   return rel.replace(/\\/g, "/");
 }
 
-const IGNORE_HEADER = "# Vellum instance data (credentials, settings) — never commit this.";
-const TRASH_HEADER = "# Vellum: local trash and editor scratch — never commit these.";
+const IGNORE_HEADER = "# Astrolabe instance data (credentials, settings) — never commit this.";
+const TRASH_HEADER = "# Astrolabe: local trash and editor scratch — never commit these.";
 
 /** Rules that must hold on EVERY synced vault, regardless of where
- *  VELLUM_DATA lives.
+ *  ASTROLABE_DATA lives.
  *
  *  `.trash/` is the load-bearing one. The whole justification for the
  *  folder-delete trash model (CONTRACTS, "recoverable from disk", "invisible
@@ -835,7 +836,7 @@ function hasRule(body: string, rule: string): boolean {
  *  Both halves matter, and the second is the one that was missing. This used
  *  to run only inside `if (not a repo yet)` and to return early on an existing
  *  file — so the two commonest real vaults, "already a git repository" and
- *  "already has a .gitignore", got no rule at all, and a VELLUM_DATA pointed
+ *  "already has a .gitignore", got no rule at all, and a ASTROLABE_DATA pointed
  *  inside the vault was then committed and PUSHED by `git add -A`, token file
  *  and all. It is idempotent: nothing is written when the rule is already
  *  there (by exact line, or as a broader pattern check-ignore honours). */
@@ -845,7 +846,7 @@ function seedGitignore(): void {
   const rel = dataDirInsideVault();
   const dataRule = rel === null ? null : `${rel}/`;
   if (!existsSync(file)) {
-    const lines = ["# Written by Vellum on first sync. Edit freely.", ...BASE_RULES, ".DS_Store"];
+    const lines = ["# Written by Astrolabe on first sync. Edit freely.", ...BASE_RULES, ".DS_Store"];
     if (dataRule !== null) lines.push("", IGNORE_HEADER, dataRule);
     writeFileSync(file, `${lines.join("\n")}\n`, "utf8");
     return;
@@ -856,7 +857,7 @@ function seedGitignore(): void {
   } catch {
     return; // unreadable .gitignore: syncNow()'s check-ignore gate still refuses
   }
-  // THE APPEND PATH RUNS FOR EVERY VAULT, not only for one whose VELLUM_DATA
+  // THE APPEND PATH RUNS FOR EVERY VAULT, not only for one whose ASTROLABE_DATA
   // sits inside it. It used to bail here — `if (rel === null) return;` — and
   // rel is null in the DEFAULT arrangement (data/ next to the app), so on the
   // two commonest real vaults, "already a git repository" and "already has a
@@ -874,7 +875,7 @@ function seedGitignore(): void {
 /** The ONE call that stages the work tree. Nothing else in this module may run
  *  `git add`.
  *
- *  `.trash/` and — when it sits inside the vault — VELLUM_DATA are evicted
+ *  `.trash/` and — when it sits inside the vault — ASTROLABE_DATA are evicted
  *  from the INDEX after the add, not merely ignored before it, and that
  *  distinction is the whole fix. An ignore rule is the vault's opinion; this
  *  has to be a guarantee. seedGitignore() below still appends `.trash/` to the
@@ -901,7 +902,7 @@ async function stageAll(): Promise<void> {
   await gitTry(["rm", "-r", "--cached", "--ignore-unmatch", "-q", "--", ...paths]);
 }
 
-/** Refuse to stage anything while VELLUM_DATA is inside the vault and not
+/** Refuse to stage anything while ASTROLABE_DATA is inside the vault and not
  *  ignored — and un-track it if a previous run already committed it.
  *
  *  This is the module's central promise ("the token never reaches the repo")
@@ -911,7 +912,7 @@ async function stageAll(): Promise<void> {
 async function protectDataDir(): Promise<void> {
   // UNCONDITIONAL, and first: the .gitignore rules below apply to every vault,
   // and this function is the only thing standing between the working tree and
-  // `git add -A`. Gating the seed on "is VELLUM_DATA inside the vault?" is
+  // `git add -A`. Gating the seed on "is ASTROLABE_DATA inside the vault?" is
   // what left `.trash/` unignored on the default arrangement.
   seedGitignore();
   // Un-track a trash that an earlier build already committed — the same
@@ -919,7 +920,7 @@ async function protectDataDir(): Promise<void> {
   // it a .gitignore rule changes nothing: git keeps tracking what it tracks.
   await gitTry(["rm", "-r", "--cached", "--ignore-unmatch", "-q", "--", TRASH_DIR]);
   const rel = dataDirInsideVault();
-  if (rel === null) return; // VELLUM_DATA lives outside the vault: nothing more to do
+  if (rel === null) return; // ASTROLABE_DATA lives outside the vault: nothing more to do
   // EVICT FIRST. A file git already tracks stays tracked through every
   // .gitignore in the world, and this is the state a vault reaches when an
   // older build committed the data directory before it was ignored.
@@ -932,7 +933,7 @@ async function protectDataDir(): Promise<void> {
     throw new VaultError(
       400,
       `Refusing to sync: the instance data directory "${rel}" is inside the vault and is not ignored by git. ` +
-        "It holds this instance's credentials. Add it to .gitignore, or point VELLUM_DATA outside the vault.",
+        "It holds this instance's credentials. Add it to .gitignore, or point ASTROLABE_DATA outside the vault.",
     );
   }
 }
@@ -940,9 +941,9 @@ async function protectDataDir(): Promise<void> {
 // ------------------------------------------------- the cross-process lock
 //
 // TODAY'S INCIDENT SHAPE, written down so nobody removes this later thinking
-// `busy` covers it: the owner runs the DESKTOP APP and a systemd `vellum`
+// `busy` covers it: the owner runs the DESKTOP APP and a systemd `astrolabe`
 // service against ONE vault directory. That is a supported arrangement — the
-// docs tell you to do it, with separate VELLUM_DATA — and it means two
+// docs tell you to do it, with separate ASTROLABE_DATA — and it means two
 // processes, two `busy` flags, one `.git`. Both can therefore be inside
 // `git add -A` / `commit` / `merge --ff-only` at the same moment and collide
 // on `.git/index.lock`, which is git's lock and not a queue: the loser aborts
@@ -955,7 +956,7 @@ async function protectDataDir(): Promise<void> {
 //
 // The lock lives INSIDE `.git`, beside git's own locks, because that is what
 // it is keyed to: the vault's repository, not this instance. It must not live
-// in VELLUM_DATA — the whole point of the two-server arrangement is that the
+// in ASTROLABE_DATA — the whole point of the two-server arrangement is that the
 // data directories are DIFFERENT, so a lock there would be two locks and no
 // exclusion at all. `.git/` is never committed, never staged by `add -A`, and
 // `git init` is perfectly happy to initialize into a directory that already
@@ -968,7 +969,7 @@ async function protectDataDir(): Promise<void> {
 // See server/processLock.ts for the mechanism and the failure modes (O_EXCL
 // atomicity, dead-pid and age staleness, the NFS caveat).
 
-const SYNC_LOCK = "vellum-sync.lock";
+const SYNC_LOCK = "astrolabe-sync.lock";
 
 function syncLockPath(): string {
   return path.join(getVaultRoot(), ".git", SYNC_LOCK);
@@ -978,9 +979,9 @@ function syncLockPath(): string {
  *  running both a desktop app and a service "something else is syncing" is a
  *  sentence the operator can act on only if it says which something. */
 function contestedMessage(holder: LockHolder | null): string {
-  if (holder === null) return "Another Vellum is syncing this vault — this pass did nothing";
+  if (holder === null) return "Another Astrolabe is syncing this vault — this pass did nothing";
   const where = holder.host === hostname() ? `pid ${holder.pid}` : `pid ${holder.pid} on ${holder.host}`;
-  return `Another Vellum is syncing this vault (${where}, since ${holder.at}) — this pass did nothing`;
+  return `Another Astrolabe is syncing this vault (${where}, since ${holder.at}) — this pass did nothing`;
 }
 
 /** True when SOME OTHER process holds a live lock on this vault. A probe, not
@@ -1047,13 +1048,13 @@ export async function initRepo(): Promise<GitSyncStatus> {
     // UNCONDITIONAL, outside the "was not a repo" branch: a vault that is
     // already a git repository is the commonest thing an operator points this
     // at, and it used to get no .gitignore at all — so the very next `add -A`
-    // committed VELLUM_DATA/git-credentials.json when VELLUM_DATA sits inside
+    // committed ASTROLABE_DATA/git-credentials.json when ASTROLABE_DATA sits inside
     // the vault. seedGitignore() appends to an existing file and is a no-op
     // once the rule is there.
     //
     // protectDataDir() rather than seedGitignore() alone: "make this a repo"
     // is exactly when a vault damaged by an older build should be repaired,
-    // and the eviction of an already-tracked `.trash/` (or VELLUM_DATA) only
+    // and the eviction of an already-tracked `.trash/` (or ASTROLABE_DATA) only
     // happens here and in syncNow(). It is idempotent and runs again below
     // before the initial commit.
     await protectDataDir();
@@ -1131,16 +1132,16 @@ export async function snapshotNow(): Promise<{ committed: boolean; sha: string |
  *  has none configured — otherwise the operator's own git identity is used.
  *
  *  The `kind` reaches the subject line, and therefore the history timeline the
- *  reader reads: "vellum snapshot: …" for a point somebody deliberately made
- *  before an edit they were unsure of, "vellum sync: …" for the unattended
+ *  reader reads: "astrolabe snapshot: …" for a point somebody deliberately made
+ *  before an edit they were unsure of, "astrolabe sync: …" for the unattended
  *  backup. One row of that list has to be findable a week later. */
 async function commit(kind: "sync" | "snapshot" = "sync"): Promise<void> {
-  const message = `vellum ${kind}: ${new Date().toISOString()}`;
+  const message = `astrolabe ${kind}: ${new Date().toISOString()}`;
   const email = await gitTry(["config", "--get", "user.email"]);
   const identity =
     email !== null && email.trim() !== ""
       ? []
-      : ["-c", "user.name=Vellum", "-c", "user.email=vellum@localhost"];
+      : ["-c", "user.name=Astrolabe", "-c", "user.email=astrolabe@localhost"];
   await git([...identity, "commit", "-m", message]);
 }
 
@@ -1168,7 +1169,7 @@ export async function syncNow(trigger: SyncTrigger = "manual"): Promise<GitSyncS
   let pushed = false;
 
   // ...and the same claim across PROCESSES. Contention here is not an error
-  // condition: another Vellum backing up this vault means the backup is
+  // condition: another Astrolabe backing up this vault means the backup is
   // happening, so this reports through the panel's last-result line — the
   // surface whose entire job is "what did the most recent attempt do" — and
   // answers a normal status. Throwing would make an ordinary, expected outcome
@@ -1180,7 +1181,7 @@ export async function syncNow(trigger: SyncTrigger = "manual"): Promise<GitSyncS
     lastResult = { at: startedAt, ok: false, message: claim.message, committed: false, pushed: false };
     // Not `loggedFailure`: that channel exists to keep a BROKEN remote from
     // filling the log, and this is the healthy case.
-    console.warn(`vellum: ${claim.message}`);
+    console.warn(`astrolabe: ${claim.message}`);
     return gitStatus();
   }
 
@@ -1231,7 +1232,7 @@ export async function syncNow(trigger: SyncTrigger = "manual"): Promise<GitSyncS
     // Before ANYTHING is staged: the instance data directory must be ignored
     // (and un-tracked if an older build already committed it), or this pass
     // refuses outright. stageAll() is one line below, and it excludes both
-    // `.trash/` and VELLUM_DATA by pathspec regardless of what this vault's
+    // `.trash/` and ASTROLABE_DATA by pathspec regardless of what this vault's
     // own .gitignore says — the refusal here is the second lock, not the only
     // one.
     await protectDataDir();
@@ -1289,11 +1290,11 @@ export async function syncNow(trigger: SyncTrigger = "manual"): Promise<GitSyncS
       // Log a repeated failure ONCE — a broken remote must not fill the log
       // with one identical line per tick, forever.
       if (loggedFailure !== message) {
-        console.error(`vellum: scheduled git sync failed — ${message} (further identical failures stay quiet)`);
+        console.error(`astrolabe: scheduled git sync failed — ${message} (further identical failures stay quiet)`);
         loggedFailure = message;
       }
     } else {
-      console.error(`vellum: git sync failed — ${message}`);
+      console.error(`astrolabe: git sync failed — ${message}`);
     }
     if (err instanceof VaultError) throw err;
     throw new VaultError(500, message);
@@ -1325,8 +1326,8 @@ export function startGitSyncTimer(): void {
     const eff = gitSyncEffective();
     if (!eff.enabled || eff.remote === null || eff.intervalMinutes <= 0) return;
     if (busy) return;
-    // Another Vellum over this vault is mid-pass: skip the tick entirely
-    // rather than start one that would only record "another Vellum is
+    // Another Astrolabe over this vault is mid-pass: skip the tick entirely
+    // rather than start one that would only record "another Astrolabe is
     // syncing". An unattended timer must leave no trace when it does nothing,
     // and the next tick is sixty seconds away.
     if (syncingElsewhere()) return;

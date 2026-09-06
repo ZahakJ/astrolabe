@@ -32,7 +32,7 @@ like `2024-05-01` and quoted/ISO strings both work); otherwise the moment the no
 seen** by this instance. That is not the file's birthtime as the disk reports it today: every save
 writes a temp file and renames it over the note, which mints a new inode with a new birthtime, so
 the raw birthtime is really the last edit. The instance remembers the first birthtime it met for
-each path in `VELLUM_DATA/created.json`, and when the vault is a git repository it seeds that
+each path in `ASTROLABE_DATA/created.json`, and when the vault is a git repository it seeds that
 memory from the commit that added the file, so an old vault with backup on gets its true dates
 back. A vault migrated by copying files, with no history, still needs `date:` frontmatter or
 its posts sort as "created the day of the copy". The
@@ -174,7 +174,7 @@ footer and the comment box rather than sitting on them, and jumps instantly with
 
 Prefer a magazine front page over the note-style home? Set **Settings → Publishing & comments →
 Home page → Dashboard** (settings key `home.mode: "dashboard"`, also reachable as
-`{ "home": { "mode": "dashboard" } }` in `VELLUM_DATA/settings.json` or through
+`{ "home": { "mode": "dashboard" } }` in `ASTROLABE_DATA/settings.json` or through
 `PATCH /api/settings`, and picked up live) and `/` becomes:
 
 - a full-width hero carrying the site name (or logo) and tagline over a banner image
@@ -200,7 +200,7 @@ app-layout instance simply opens the home note at `/`.
 Each article ends with share links (Settings → Publishing & comments can turn the row off), prev/
 next posts, a "Related" list (published notes wikilinked from/to it), and
 [comments](publishing.md#comments). The footer carries a quiet RSS link, a sign-in link, and a
-tiny "powered by Vellum" credit — hide it with `.s-blog-powered { display: none }` in your
+tiny "powered by Astrolabe" credit — hide it with `.s-blog-powered { display: none }` in your
 [`custom.css`](theming.md#restyle-it) if you prefer.
 
 ## RSS, sitemap and SEO

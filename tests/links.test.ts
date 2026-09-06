@@ -54,7 +54,7 @@ const root = makeVault({
 let tree: TreeNode;
 
 before(async () => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(root);
   await initIndexer();
   tree = await buildTree();

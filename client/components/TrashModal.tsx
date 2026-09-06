@@ -93,7 +93,7 @@ export default function TrashModal() {
     listTrash()
       .then((entries) => setFeed({ state: "ready", entries }))
       .catch((err: unknown) => {
-        console.error("vellum: reading .trash failed", err);
+        console.error("astrolabe: reading .trash failed", err);
         setFeed({ state: "error" });
       });
   }, []);
@@ -136,7 +136,7 @@ export default function TrashModal() {
         reload();
       })
       .catch((err: unknown) => {
-        console.error("vellum: restore failed", err);
+        console.error("astrolabe: restore failed", err);
         toast(t("restoreFailed"));
       })
       .finally(() => mark(entry.name, false));
@@ -159,7 +159,7 @@ export default function TrashModal() {
           reload();
         })
         .catch((err: unknown) => {
-          console.error("vellum: purge failed", err);
+          console.error("astrolabe: purge failed", err);
           toast(t("purgeFailed"));
         })
         .finally(() => mark(entry.name, false));
@@ -185,7 +185,7 @@ export default function TrashModal() {
       // the same small dishonesty as "0 notes" over four images.
       void Promise.allSettled(entries.map((e) => purgeTrash(e.name))).then((results) => {
         const failed = results.filter((r) => r.status === "rejected");
-        if (failed.length > 0) console.error("vellum: emptying .trash failed", failed);
+        if (failed.length > 0) console.error("astrolabe: emptying .trash failed", failed);
         toast(t(failed.length > 0 ? "purgeFailed" : "emptiedTrashToast"));
         reload();
       });

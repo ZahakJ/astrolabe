@@ -513,7 +513,7 @@ export const CHROME_SCENERIES: readonly ChromeScenery[] = [
 /**
  * THE MARK A DESIGN SIGNS ITS BREAKS WITH.
  *
- * The ornament divider and the dotted one both drew `✦` — Vellum's own
+ * The ornament divider and the dotted one both drew `✦` — Astrolabe's own
  * wordmark, hard-coded in `design.css`, on every design on the shelf. That is
  * the right default and it was the wrong CONSTANT: a page standing in a
  * starfield that breaks its sections with the product's logo is wearing

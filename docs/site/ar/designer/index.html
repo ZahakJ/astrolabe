@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>وضع التصميم · فيلم الدليل</title>
+<title>وضع التصميم · دليل أسطرلاب</title>
 <meta name="description" content="القشرة العامة الثالثة: صفحة رئيسية تركّبها من أقسام، إضافة إلى التنقل والترويسة والتذييل والخطوط والصفحات الثابتة.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,11 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
-  <a class="top__brand" href="../../ar/"><span class="top__star">✦</span> فيلم <span class="top__docs">الدليل</span></a>
+  <a class="top__brand" href="../../ar/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> <span class="top__docs">دليل</span> أسطرلاب</a>
   <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../en/designer/" hreflang="en">English</a>
   <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a><a class="nav__link" href="../../ar/desktop/">تطبيق سطح المكتب</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/drawing/">الرسومات</a><a class="nav__link" href="../../ar/books/">قارئ PDF</a><a class="nav__link" href="../../ar/workspace/">اللوحات والتبويبات والنوافذ</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link is-current" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
@@ -30,7 +30,7 @@
 <p>افتحه من لوحة الأوامر: <strong>صمّم الموقع</strong>.</p>
 <h2 id="المدونة-المدمجة-لا-تتحرك"><a class="anchor" href="#المدونة-المدمجة-لا-تتحرك">المدونة المدمجة لا تتحرك</a></h2>
 <p>هي مسار كود منفصل، نقي، يعمل دائمًا، لا يمسّه المصمم أبدًا: الوضع المصمَّم مُعرِّض <em>ثانٍ</em> يركّب صفحته الخاصة، لا إعادة تنسيق للأول. وهذا ما يجعل المفتاح يستحق الوجود:</p>
-<p><strong>التقليب بين الجاهز والمصمَّم فوري وبلا خسارة في الاتجاهين.</strong> تعيش تصاميمك في <code>VELLUM_DATA/designs.json</code> ولا تُستشار ما دام التخطيط شيئًا آخر، فالعودة إلى <code>blog</code> لا تحذف شيئًا، والتقدم مجددًا يعيد موقعك كما كان بالضبط. العودة إلى الجاهز إنقاذ لا قرار.</p>
+<p><strong>التقليب بين الجاهز والمصمَّم فوري وبلا خسارة في الاتجاهين.</strong> تعيش تصاميمك في <code>ASTROLABE_DATA/designs.json</code> ولا تُستشار ما دام التخطيط شيئًا آخر، فالعودة إلى <code>blog</code> لا تحذف شيئًا، والتقدم مجددًا يعيد موقعك كما كان بالضبط. العودة إلى الجاهز إنقاذ لا قرار.</p>
 <h2 id="التصميم-المكسور-حدث-لا-يقع-لزوارك"><a class="anchor" href="#التصميم-المكسور-حدث-لا-يقع-لزوارك">التصميم المكسور حدث لا يقع لزوارك</a></h2>
 <p>إن كان الإعداد غير صالح، أو أشار قسم إلى ملاحظة حذفتها، أو رمى أي شيء استثناءً أثناء العرض، <strong>يُنزَل الزوار إلى المدونة المدمجة تلقائيًا</strong>: لا صفحة فارغة أبدًا، ولا تتبع مكدس أبدًا. وتُخبَر أنت بدلًا من ذلك: إشعار في التطبيق يسمّي القسم الفاشل، ونقرة واحدة تعيد إلى المدونة الجاهزة. <code>npm run check-design</code> هو البوابة التي تبقي ذلك الوعد صادقًا: يكسر الموقع بالطرق الثلاث عمدًا ويقيس ما يأخذه الزائر والمالك كل على حدة. انظر <a href="../development/">التطوير</a>.</p>
 <h2 id="الأقسام"><a class="anchor" href="#الأقسام">الأقسام</a></h2>
@@ -66,7 +66,7 @@
 <p>تظهر <strong>بطاقات معرض موقع الكاتب</strong> المضبوطة الآن في آخر الصفحات الرئيسية المصمَّمة، وتظهر <strong>المجموعات المنشورة</strong> قرب الافتتاحية حين يكون موضعها في الرئيسية مشغَّلًا. يضيف موضع التنقل المجموعات الممتلئة بجانب قائمتك المؤلَّفة؛ وتبقي روابط المجموعات التصميم النشط حول محتوياتها. تستخدم هذه الإضافات الإعدادات نفسها والبيانات المرشَّحة للزوار نفسها كالمدونة الجاهزة وتظهر في معاينة المصمم الحية أيضًا.</p>
 <p>تعرض روابط التدوينات <strong>إضاءة</strong> عند تحويم الفأرة أو تركيز لوحة المفاتيح: مطلع التدوينة، متوسطًا فوق صفحة معتّمة، تحت لافتتها (حين تملك واحدة) وتاريخها ووقت قراءتها ووسومها. تعمل على الروابط في البطاقات والقوائم والبحث والتدوينات ذات الصلة، في القشرتين العامتين. تنقل اللمس يبقى مباشرًا. وللصفحات الطويلة أيضًا عنصر العودة إلى الأعلى المشترك. أجساد المقالات والصفحات الثابتة تستخدم مُعرِّض تنسيق الملاحظات المشترك وتحترم محاذاة الملاحظة.</p>
 <h2 id="التصاميم-مسم-اة-ومرق-مة-الإصدارات-ومحمولة"><a class="anchor" href="#التصاميم-مسم-اة-ومرق-مة-الإصدارات-ومحمولة">التصاميم مسمّاة ومرقّمة الإصدارات ومحمولة</a></h2>
-<p>احتفظ بعدة تصاميم، وكرر واحدًا لتجرب شيئًا، وصدّر أيًّا منها بصيغة JSON (السمات المخصصة التي يستخدمها تسافر معه) واستورده في نسخة أخرى. الاستيراد <em>إضافي</em> دائمًا: الاسم المتصادم يأخذ معرّفًا جديدًا، ولا يُكتب فوق شيء تملكه أصلًا بصمت أبدًا. &quot;أعد إلى الافتراضيات الجاهزة&quot; على بعد نقرة دائمًا. والتصميم الذي كتبه فيلم <strong>أحدث</strong> من الذي تشغّله يُحفظ على القرص ويُدرج مع السبب، ولا يُعرض نصف مفهوم أبدًا.</p>
+<p>احتفظ بعدة تصاميم، وكرر واحدًا لتجرب شيئًا، وصدّر أيًّا منها بصيغة JSON (السمات المخصصة التي يستخدمها تسافر معه) واستورده في نسخة أخرى. الاستيراد <em>إضافي</em> دائمًا: الاسم المتصادم يأخذ معرّفًا جديدًا، ولا يُكتب فوق شيء تملكه أصلًا بصمت أبدًا. &quot;أعد إلى الافتراضيات الجاهزة&quot; على بعد نقرة دائمًا. والتصميم الذي كتبه أسطرلاب <strong>أحدث</strong> من الذي تشغّله يُحفظ على القرص ويُدرج مع السبب، ولا يُعرض نصف مفهوم أبدًا.</p>
 <h2 id="المعاينة-الحية"><a class="anchor" href="#المعاينة-الحية">المعاينة الحية</a></h2>
 <p>لوحة معاينة المصمم إطار iframe حقيقي يشغّل القشرة المصمَّمة الحقيقية، لا نموذجًا. تأخذ أوراق أنماط النسخة وسمتها (بما فيه تبديل سمة حي)، وتُخطَّط بعرض الهاتف واللوحي وسطح المكتب لتفحص الطية التي تشحنها فعلًا. المفاتيح المضغوطة داخلها لا تفعل شيئًا: معاينة تتصرف على <code>Enter</code> كانت ستكون محررًا ثانيًا صامتًا. <code>npm run check-preview</code> يضبطها.</p>
 <h2 id="الصفحات-الثابتة"><a class="anchor" href="#الصفحات-الثابتة">الصفحات الثابتة</a></h2>
@@ -85,9 +85,9 @@ page: true
 </ul>
 <p>مع <code>publicLayout</code> على <code>app</code> أو <code>blog</code> يكون العلم خاملًا، وخزانة مليئة بملاحظات <code>page: true</code> تسلك كما كانت بالضبط قبل وجود الميزة. التحول إلى الوضع المصمَّم هو ما يعطي العلم معنى؛ والعودة تتخلى عنه مجددًا بلا خسارة شيء.</p>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/ar/designer.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/ar/designer.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/blog-mode/"><span class="pager__kicker">السابق</span><span class="pager__title">وضع المدونة</span></a><a class="pager__link pager__link--next" href="../../ar/library/"><span class="pager__kicker">التالي</span><span class="pager__title">المكتبة</span></a></nav>
-    <footer class="foot">فيلم برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+    <footer class="foot">أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
   </main>
   <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#المدونة-المدمجة-لا-تتحرك">المدونة المدمجة لا تتحرك</a><a class="toc__link toc__link--2" href="#التصميم-المكسور-حدث-لا-يقع-لزوارك">التصميم المكسور حدث لا يقع لزوارك</a><a class="toc__link toc__link--2" href="#الأقسام">الأقسام</a><a class="toc__link toc__link--2" href="#قشرة-الموقع">قشرة الموقع</a><a class="toc__link toc__link--2" href="#الإعدادات-المسبقة">الإعدادات المسبقة</a><a class="toc__link toc__link--3" href="#للبيوت-الموق-عة-افتتاحية-وتسافر-مع-التصميم">للبيوت الموقَّعة افتتاحية، وتسافر مع التصميم</a><a class="toc__link toc__link--3" href="#ميزات-المدونة-في-كل-قالب">ميزات المدونة في كل قالب</a><a class="toc__link toc__link--2" href="#التصاميم-مسم-اة-ومرق-مة-الإصدارات-ومحمولة">التصاميم مسمّاة ومرقّمة الإصدارات ومحمولة</a><a class="toc__link toc__link--2" href="#المعاينة-الحية">المعاينة الحية</a><a class="toc__link toc__link--2" href="#الصفحات-الثابتة">الصفحات الثابتة</a></aside>
 </div>

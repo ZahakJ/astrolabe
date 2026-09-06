@@ -87,7 +87,9 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
   white-space: nowrap;
 }
 
-.top__star { color: var(--accent); }
+.top__star { color: var(--accent); display: inline-flex; line-height: 0; }
+.was { padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-raised); color: var(--text-muted); font-size: 0.95em; }
+.top__star svg { width: 22px; height: 22px; }
 .top__docs { color: var(--text-faint); font-weight: 400; }
 
 .top__search {
@@ -242,6 +244,8 @@ html[dir="rtl"] .doc blockquote { border-radius: 8px 0 0 8px; }
 
 /* ── Home ────────────────────────────────────────────────────────────────── */
 .doc .lede { font-size: 1.15rem; color: var(--text-muted); max-width: var(--measure); }
+/* The tagline, one line under the manual's title — the same words the landing page and the README open with. */
+.doc .strap { font-style: italic; font-size: 1.3rem; color: var(--accent, var(--text)); margin: -0.5rem 0 0.75rem; }
 .home__section h2 { font-family: var(--serif); font-size: 1.4rem; margin: 2em 0 0.7em; border: 0; padding: 0; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; max-width: 60rem; }
 .card { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-raised); color: var(--text); transition: border-color 150ms ease, transform 150ms ease; }

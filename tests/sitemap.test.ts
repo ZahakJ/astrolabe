@@ -15,7 +15,7 @@ import { patchSettings } from "../server/settings.ts";
 import { initVault } from "../server/vault.ts";
 import { makeDir, makeVault, note, removeVault } from "./helpers/vault.ts";
 
-const ORIGIN = "https://vellum.example";
+const ORIGIN = "https://astrolabe.example";
 
 const data = makeDir();
 const root = makeVault({
@@ -43,7 +43,7 @@ function lastmod(xml: string, loc: string): string | null {
 const OFF = { mode: "off", lang: null, fallbackFrom: null } as const;
 
 before(async () => {
-  initSite({ VELLUM_DATA: data, SITE_URL: ORIGIN });
+  initSite({ ASTROLABE_DATA: data, SITE_URL: ORIGIN });
   initVault(root);
   await initIndexer();
 });

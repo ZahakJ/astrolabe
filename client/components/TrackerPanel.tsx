@@ -20,7 +20,7 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import FolderGlyph from "./FolderGlyph.tsx";
 
-const COLLAPSED_KEY = "vellum.trackerpanel-collapsed";
+const COLLAPSED_KEY = "astrolabe.trackerpanel-collapsed";
 
 function readCollapsed(): boolean {
   try {

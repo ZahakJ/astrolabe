@@ -27,7 +27,7 @@ export type Inline =
    *  the two reading views share one visual language. */
   | { t: "style"; s: "em" | "strong" | "tt" | "sc" | "u" | "sf"; c: Inline[] }
   | { t: "math"; tex: string; display?: boolean }
-  /** `\note{Target}` / `\note[alias]{Target}` and `%% [[Target]] %%` — Vellum's
+  /** `\note{Target}` / `\note[alias]{Target}` and `%% [[Target]] %%` — Astrolabe's
    *  own link syntax in TeX. `anchor` is the part after `#`. */
   | { t: "link"; target: string; anchor: string | null; label: string | null; via: "note" | "comment" }
   /** `\ref` / `\eqref` / `\autoref` / `\cref` / `\pageref`. Resolved
@@ -134,9 +134,9 @@ export interface TexLink {
 export interface TexDocument {
   /** YAML text from a leading `%--- … ---%` block (empty when absent). */
   frontmatter: string;
-  /** `\vellum{key=value, …}` pairs, merged UNDER the YAML block (the block
+  /** `\astrolabe{key=value, …}` pairs, merged UNDER the YAML block (the block
    *  wins — one frontmatter, two spellings, one precedence rule). */
-  vellum: Record<string, string>;
+  astrolabe: Record<string, string>;
   blocks: Block[];
   anchors: NoteAnchor[];
   links: TexLink[];
@@ -193,7 +193,7 @@ export interface MaskResult {
 
 const HIDDEN_LINK_RE = /%%\s*\[\[([^[\]]+?)\]\]\s*%%/g;
 
-/** Blank out LaTeX comments, harvesting the two comment forms Vellum reads:
+/** Blank out LaTeX comments, harvesting the two comment forms Astrolabe reads:
  *  the `%--- … ---%` frontmatter block and `%% [[Note]] %%` hidden links. */
 export function maskComments(src: string): MaskResult {
   const chars = src.split("");
@@ -635,9 +635,9 @@ export function parseTex(src: string): TexDocument {
     unknowns: { n: 0 },
   };
 
-  // `\vellum{key=value, …}`: frontmatter for people who would rather write a
+  // `\astrolabe{key=value, …}`: frontmatter for people who would rather write a
   // macro than a comment block. The YAML block wins on any shared key.
-  collectVellum(masked.code, doc);
+  collectAstrolabe(masked.code, doc);
 
   // Preamble is not content. When the document declares one, only what is
   // between \begin{document} and \end{document} is read as prose — everything
@@ -758,8 +758,9 @@ function documentBody(code: string): { from: number; to: number } {
   return { from, to: end === -1 ? code.length : end };
 }
 
-function collectVellum(code: string, doc: TexDocument): void {
-  const re = /\\vellum\s*\{/g;
+function collectAstrolabe(code: string, doc: TexDocument): void {
+  // Both spellings: `\vellum{…}` is in documents written before the rename.
+  const re = /\\(?:astrolabe|vellum)\s*\{/g;
   for (let m = re.exec(code); m !== null; m = re.exec(code)) {
     const g = readGroup(code, m.index + m[0].length - 1);
     for (const pair of splitTopLevel(g.body, ",")) {
@@ -767,7 +768,7 @@ function collectVellum(code: string, doc: TexDocument): void {
       if (eq < 0) continue;
       const key = pair.slice(0, eq).trim();
       const value = pair.slice(eq + 1).trim().replace(/^\{|\}$/g, "").trim();
-      if (key) doc.vellum[key] = value;
+      if (key) doc.astrolabe[key] = value;
     }
     re.lastIndex = g.end;
   }
@@ -1018,7 +1019,7 @@ function parseBlocks(
       cs.name === "newcommand" || cs.name === "renewcommand" || cs.name === "providecommand" ||
       cs.name === "newcommand*" || cs.name === "renewcommand*" ||
       cs.name === "def" || cs.name === "newtheorem" || cs.name === "newenvironment" ||
-      cs.name === "usepackage" || cs.name === "documentclass" || cs.name === "vellum" ||
+      cs.name === "usepackage" || cs.name === "documentclass" || cs.name === "astrolabe" || cs.name === "vellum" ||
       cs.name === "title" || cs.name === "author" || cs.name === "date" ||
       cs.name === "setlength" || cs.name === "geometry" || cs.name === "pagestyle" ||
       cs.name === "bibliographystyle" || cs.name === "hypersetup" || cs.name === "graphicspath"
@@ -1115,7 +1116,7 @@ function envSpan(code: string, from: number, env: string, to: number): { inner: 
 
 /** Turn a display-math environment into ONE renderable block.
  *
- *  Numbering is Vellum's, not KaTeX's, and that is not a preference: KaTeX
+ *  Numbering is Astrolabe's, not KaTeX's, and that is not a preference: KaTeX
  *  restarts its counter at 1 for every `renderToString` call, so a paper with
  *  four numbered equations rendered block-by-block would print "(1)" four
  *  times and every `\eqref` would point at the wrong one. So the counter lives
@@ -1727,7 +1728,7 @@ function parseInline(src: string, ctx: Ctx, depth = 0): Inline[] {
       continue;
     }
 
-    // Vellum's own link macro.
+    // Astrolabe's own link macro.
     if (name === "note") {
       const args = readArgs(src, cs.end, 1);
       // `#` is a macro-parameter character in TeX, so the anchor separator has
@@ -1981,7 +1982,7 @@ export function parseTexInline(src: string, macros: Record<string, string> = {})
 function emptyDocument(): TexDocument {
   return {
     frontmatter: "",
-    vellum: {},
+    astrolabe: {},
     blocks: [],
     anchors: [],
     links: [],

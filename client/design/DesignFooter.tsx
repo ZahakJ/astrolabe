@@ -194,8 +194,8 @@ export default function DesignFooter({
         {footer.showPoweredBy && (
           <span className="s-dsg-foot__powered">
             {t("blogPoweredBy")}{" "}
-            <a href="https://github.com/ZahakJ/vellum" target="_blank" rel="noopener noreferrer">
-              Vellum
+            <a href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noopener noreferrer">
+              Astrolabe
             </a>
           </span>
         )}

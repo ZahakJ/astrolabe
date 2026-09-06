@@ -750,7 +750,7 @@ function keepStale(relPath: string, err: unknown, what: string): void {
     (err as NodeJS.ErrnoException | null)?.code ??
     (err instanceof Error ? err.message : String(err));
   console.warn(
-    `vellum: could not ${what} "${relPath}" (${reason}) — keeping the previous index entry; ` +
+    `astrolabe: could not ${what} "${relPath}" (${reason}) — keeping the previous index entry; ` +
       "it will refresh on the next change to that file",
   );
 }
@@ -1179,7 +1179,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
   oversized.add(relPath);
   if (!known) {
     console.warn(
-      `vellum: "${relPath}" is ${Math.round(stat.size / 1024 / 1024)} MB (cap ${MAX_INDEXED_MD_BYTES / 1024 / 1024} MB) — ` +
+      `astrolabe: "${relPath}" is ${Math.round(stat.size / 1024 / 1024)} MB (cap ${MAX_INDEXED_MD_BYTES / 1024 / 1024} MB) — ` +
         "indexed by metadata only: it stays readable, publishable and listed, but its text is not searchable and its links are not in the graph",
     );
   }
@@ -1604,7 +1604,7 @@ function resolveXref(
  *  LOCAL-FIRST is the caller's job and is not optional: a `\ref` that matches
  *  a label in its own document must never look here, or importing a project
  *  into a vault could change what its own cross-references point at — which is
- *  precisely the promise that makes dropping a LaTeX project into Vellum safe.
+ *  precisely the promise that makes dropping a LaTeX project into Astrolabe safe.
  *
  *  `publishedOnly` scopes to what a visitor may discover, exactly as
  *  resolveLink does: an anonymous caller must not learn that a private note

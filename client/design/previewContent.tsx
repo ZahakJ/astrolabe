@@ -46,7 +46,7 @@ import { t } from "../i18n.ts";
  *  leading `__` folder is legal on disk but the indexer never surfaces one,
  *  and nothing in the preview navigates anyway) so a sample row can never be
  *  confused for a real note by anything reading `post.path`. */
-export const SAMPLE_PREFIX = "__vellum-sample__/";
+export const SAMPLE_PREFIX = "__astrolabe-sample__/";
 
 export function isSamplePost(post: PostMeta): boolean {
   return post.path.startsWith(SAMPLE_PREFIX);

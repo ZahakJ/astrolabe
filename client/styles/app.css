@@ -1,4 +1,4 @@
-/* Vellum — application chrome.
+/* Astrolabe — application chrome.
    A candlelit manuscript room: calm density, 1px borders, gold-leaf accents.
    All colors come from tokens.css. Class prefix: s- (BEM-ish plain CSS). */
 
@@ -249,7 +249,7 @@ select:focus,
   --fold-panel: var(--fold-gutter);
 }
 
-/* Sidebar on the far side (vellum.sidebarSide). The grid areas above already
+/* Sidebar on the far side (astrolabe.sidebarSide). The grid areas above already
    follow the inline direction — sidebar leading, panel trailing — so this is
    only for readers who asked for the other arrangement: swap the two areas
    and hand each pane the other one's separator. */
@@ -348,7 +348,7 @@ select:focus,
   padding: 0 10px 0 16px;
 }
 
-/* Wordmark: ✦ Vellum — a small illuminated colophon. */
+/* Wordmark: ✦ Astrolabe — a small illuminated colophon. */
 .s-title {
   margin: 0;
   display: inline-flex;
@@ -367,6 +367,23 @@ select:focus,
   color: var(--accent);
   font-size: 0.929rem;
   letter-spacing: 0;
+}
+
+/* The mark: an inline SVG the size of a capital, in the accent, sitting on
+   the text's baseline band. One rule for every surface that wears it. */
+.s-brandmark {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -0.15em;
+  color: var(--accent);
+  line-height: 0;
+}
+.s-title .s-brandmark {
+  margin-inline-end: 7px;
+}
+.s-blog-powered .s-brandmark {
+  vertical-align: -0.1em;
+  margin-inline-end: 2px;
 }
 
 .s-sidebar-actions {
@@ -4605,7 +4622,7 @@ select:focus,
 }
 
 /* ------------------------------------------------- wordmark as a button -- */
-/* Admin: clicking ✦ Vellum toggles "preview as visitor". Same .s-title
+/* Admin: clicking ✦ Astrolabe toggles "preview as visitor". Same .s-title
    look; only the affordance changes. */
 
 button.s-title {
@@ -5462,17 +5479,17 @@ button.s-title:hover {
 }
 
 .s-smodal__specimen--prose {
-  font-family: "VellumPreviewProse", var(--font-serif-system);
+  font-family: "AstrolabePreviewProse", var(--font-serif-system);
   font-size: calc(var(--font-prose) * var(--prose-scale) * 0.92);
 }
 
 .s-smodal__specimen--ui {
-  font-family: "VellumPreviewUI", var(--font-ui-system);
+  font-family: "AstrolabePreviewUI", var(--font-ui-system);
   font-size: 0.928rem;
 }
 
 .s-smodal__specimen--mono {
-  font-family: "VellumPreviewMono", var(--font-mono-system);
+  font-family: "AstrolabePreviewMono", var(--font-mono-system);
   font-size: 0.821rem;
 }
 

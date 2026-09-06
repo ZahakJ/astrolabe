@@ -146,7 +146,7 @@ whatever note you chose to publish it.
 
 ## In Obsidian
 
-`tracker` is a Vellum extension, not an Obsidian feature. Open the same vault
+`tracker` is an Astrolabe extension, not an Obsidian feature. Open the same vault
 in Obsidian and the fence degrades to what it is — a labelled code block whose
 lines are all readable. Nothing is converted, nothing is lost, and the note
 still says everything it said here. See

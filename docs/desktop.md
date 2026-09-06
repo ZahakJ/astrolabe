@@ -1,10 +1,10 @@
 # The desktop app
 
-*Vellum as a native application: the menu bar, vaults, windows, the reference window, find in page, updates and deep links.*
+*Astrolabe as a native application: the menu bar, vaults, windows, the reference window, find in page, updates and deep links.*
 
 ---
 
-The [releases page](https://github.com/ZahakJ/vellum/releases/latest) carries an AppImage, a
+The [releases page](https://github.com/ZahakJ/astrolabe/releases/latest) carries an AppImage, a
 `.deb`, a `.pacman` and an unsigned Windows `.exe`. Each one is the same product as the server
 you can host yourself, wrapped as an Electron app that starts a server of its own for every vault
 you open, on a port it remembers per vault. Nothing about the vault changes: the folder on disk
@@ -18,7 +18,7 @@ is the folder on disk, and a browser on the network can still reach the same vau
 opened, and *Clear the list* forgets them. **New window** (`Ctrl/Cmd Shift N`) opens another
 window on the current vault, which is how a [second window over one vault](workspace.md#several-windows-one-vault)
 starts; **Close window** is `Ctrl/Cmd W`. *Show the vault in the file manager* opens the folder
-itself. The app keeps a tray icon with *Show Vellum* and *Quit*.
+itself. The app keeps a tray icon with *Show Astrolabe* and *Quit*.
 
 Every command the app has is in the menu bar with its chord, in both languages: new note, the
 daily note, save, print, reading view, the graph, zen, the two side panes, the palette, search,
@@ -46,7 +46,7 @@ any window. It is the clearest thing a desktop app can do that a browser tab can
 `Ctrl/Cmd F` finds and replaces *in the note's text*. `Ctrl/Cmd Shift F` on the desktop app
 opens **Find in page**, Chromium's own search over *what is on screen*: the reading view, the
 outline, the backlinks, a transclusion, the tab strip, a settings panel; exactly the half the
-editor's search structurally cannot reach. The bar is drawn in Vellum's own tokens, with *Find
+editor's search structurally cannot reach. The bar is drawn in Astrolabe's own tokens, with *Find
 next* and *Find previous* in the Edit menu. (In the browser that chord opens
 [search and replace across the vault](editor.md#find-and-replace) instead.)
 
@@ -65,14 +65,14 @@ and says so when you are on the latest.
 
 ## Deep links and file association
 
-`vellum://note?path=Folder/Note.md` opens a note from outside the app, and the app registers for
+`astrolabe://note?path=Folder/Note.md` opens a note from outside the app (`vellum://` links keep opening too), and the app registers for
 `.md` files so a note double-clicked in the file manager opens here. The path is checked, not
 cleaned: `..`, a leading `/`, a drive letter or a control character is refused.
 
 ## Where things live
 
-The app's own configuration is in `~/.config/vellum` (`desktop.json`: the vaults, their ports
+The app's own configuration is in `~/.config/astrolabe` (carried over from `~/.config/vellum` on the first launch under the new name; the old directory is left as it was) (`desktop.json`: the vaults, their ports
 and, for each, the data directory it uses), and each vault's instance data in the
-[`VELLUM_DATA`](configuration.md#environment-variables) that entry names. The Linux build is
+[`ASTROLABE_DATA`](configuration.md#environment-variables) that entry names. The Linux build is
 packaged with `asar: false` deliberately, because the server child reads real files from the
 package.

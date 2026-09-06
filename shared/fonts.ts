@@ -9,7 +9,7 @@
 /** The `@font-face` family name that `GET /api/font-faces.css` gives one font
  *  id, and that the picker's option rows set as their `font-family`. */
 export function optionFamily(id: string): string {
-  return `VellumOpt-${id.replace(/[^A-Za-z0-9-]+/g, "-")}`;
+  return `AstrolabeOpt-${id.replace(/[^A-Za-z0-9-]+/g, "-")}`;
 }
 
 /** Uploaded faces are named `custom:<file>` wherever a catalog id can appear

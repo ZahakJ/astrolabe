@@ -45,7 +45,7 @@ const tags = (publishedOnly = false) => tagsRaw(publishedOnly, null);
 const count = new Map<string, number>();
 
 before(async () => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(root);
   await initIndexer();
   for (const entry of tags()) count.set(entry.tag, entry.count);
@@ -137,13 +137,13 @@ describe("visitor scoping", () => {
   });
 
   it("EXCLUDE_TAGS removes a topic from the visitor list only", () => {
-    initSite({ VELLUM_DATA: data, EXCLUDE_TAGS: "#Draft, zettel/seed" });
+    initSite({ ASTROLABE_DATA: data, EXCLUDE_TAGS: "#Draft, zettel/seed" });
     const visitor = new Set(tags(true).map((entry) => entry.tag));
     assert.ok(!visitor.has("draft"), "EXCLUDE_TAGS is case-insensitive and #-tolerant");
     assert.ok(!visitor.has("zettel/seed"));
     assert.ok(visitor.has("alpha"), "unrelated topics stay");
     assert.ok(new Set(tags().map((e) => e.tag)).has("draft"), "the admin view is never filtered");
-    initSite({ VELLUM_DATA: data });
+    initSite({ ASTROLABE_DATA: data });
   });
 });
 

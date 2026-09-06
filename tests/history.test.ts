@@ -56,7 +56,7 @@ function git(args: string[], cwd: string): string {
 }
 
 before(() => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   git(["init", "-q", "-b", "main", "."], repo);
   git(["add", "-A"], repo);
   git(["commit", "-qm", "first draft"], repo);
@@ -216,7 +216,7 @@ describe("snapshot now", () => {
     assert.ok(made.sha && made.sha.length >= 4);
     const { revisions } = await noteHistory("New Name.md");
     assert.equal(revisions.length, 5);
-    assert.match(revisions[0].subject, /^vellum snapshot: /);
+    assert.match(revisions[0].subject, /^astrolabe snapshot: /);
   });
 
   it("is a no-op on a clean tree", async () => {

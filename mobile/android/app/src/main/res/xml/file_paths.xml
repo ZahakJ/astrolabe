@@ -4,7 +4,7 @@
 
   Capacitor's BridgeWebChromeClient hands a camera capture back to the page
   through `${applicationId}.fileprovider` — the path taken when a page runs
-  `<input type="file" capture>`. The served Vellum app has attachment upload, so
+  `<input type="file" capture>`. The served Astrolabe app has attachment upload, so
   a reader tapping "attach" and choosing the camera lands exactly here. Delete
   this and that flow dies with a FileUriExposedException, in the release build,
   on someone else's phone.

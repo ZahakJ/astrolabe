@@ -55,7 +55,7 @@ export function installSafetyNet(): void {
   window.addEventListener("unhandledrejection", (ev) => {
     // NOT preventDefault(): the console line is the developer's half of this,
     // and swallowing it would trade a visible failure for an invisible one.
-    console.error("vellum: unhandled rejection", ev.reason);
+    console.error("astrolabe: unhandled rejection", ev.reason);
     if (isQuiet(ev.reason)) return;
     toast(errorSentence(ev.reason), "error");
   });
@@ -69,7 +69,7 @@ export function installSafetyNet(): void {
     // with no `error` property — a broken attachment thumbnail is the note's
     // business and the embed card already draws it. Only real exceptions here.
     if (!(ev instanceof ErrorEvent) || ev.error === undefined) return;
-    console.error("vellum: uncaught error", ev.error);
+    console.error("astrolabe: uncaught error", ev.error);
     if (isQuiet(ev.error)) return;
     toast(errorSentence(ev.error), "error");
   });

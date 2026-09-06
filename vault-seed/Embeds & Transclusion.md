@@ -1,11 +1,11 @@
 ---
 title: Embeds & Transclusion
-tags: [vellum, embeds]
+tags: [astrolabe, embeds]
 ---
 
 # Embeds & Transclusion
 
-Vellum understands Obsidian's `![[...]]` embed syntax. An embed pulls another
+Astrolabe understands Obsidian's `![[...]]` embed syntax. An embed pulls another
 file *into* the note you are reading — a note, an image, or an attachment.
 #embeds
 
@@ -21,7 +21,7 @@ one level deep, and cycle-safe. Click its title to jump to the real thing:
 Non-image files render as a card that opens the file in a new tab. This one is
 a real PDF that ships with the seed vault:
 
-![[vellum-sample.pdf]]
+![[astrolabe-sample.pdf]]
 
 ## When an embed breaks
 

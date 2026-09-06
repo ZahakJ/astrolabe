@@ -22,7 +22,7 @@
 //
 // So the twenty-seven families move here and `server/fonts.ts` re-exports them.
 // Everything that TOUCHES A DISK OR A NETWORK — the Google fetch, the cache
-// under VELLUM_DATA/fonts/catalog, the generated @font-face blocks — stays on
+// under ASTROLABE_DATA/fonts/catalog, the generated @font-face blocks — stays on
 // the server, where it always was. This file is a list.
 
 import type { FontCategory, FontScript } from "./types.ts";
@@ -156,7 +156,7 @@ export type DesignFontSlot = "prose" | "ui" | "mono";
  * broken design.
  */
 export function designFontFamily(id: string, slot: DesignFontSlot): string {
-  return `VellumDsg-${slot}-${id.replace(/[^A-Za-z0-9-]+/g, "-")}`;
+  return `AstrolabeDsg-${slot}-${id.replace(/[^A-Za-z0-9-]+/g, "-")}`;
 }
 
 /** One face a design asks for: the catalog id, the stack it stands in for, and

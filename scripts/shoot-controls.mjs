@@ -39,7 +39,7 @@ await page.reload({ waitUntil: "load" });
 await page.waitForTimeout(1000);
 if (process.env.THEME) {
   await page.evaluate((theme) => {
-    localStorage.setItem("vellum.theme", theme);
+    localStorage.setItem("astrolabe.theme", theme);
     document.documentElement.setAttribute("data-theme", theme);
   }, process.env.THEME);
   await page.waitForTimeout(200);

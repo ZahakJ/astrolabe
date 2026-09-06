@@ -1,12 +1,12 @@
-# Vellum for Android
+# Astrolabe for Android
 
-A native APK that connects to **your** Vellum server. It is not a second Vellum;
+A native APK that connects to **your** Astrolabe server. It is not a second Astrolabe;
 it is a door onto the one you already run.
 
 The app has exactly two screens of its own — a connection screen and a capture
 sheet — and after the first of those it hands the whole display to your
 instance, signed in, full screen, with its own session cookie. Everything you
-know about Vellum on a laptop is the same here, because it *is* the same: the
+know about Astrolabe on a laptop is the same here, because it *is* the same: the
 responsive web client already handles coarse pointers, 44px targets, drawers and
 RTL, and this ships none of it twice.
 
@@ -25,7 +25,7 @@ mobile/
 
 **The phone is a client of the server. Git sync is the server's job.**
 
-Vellum's server owns the vault and already does git backup and sync server-side
+Astrolabe's server owns the vault and already does git backup and sync server-side
 (`server/gitSync.ts`). So the phone holds no vault, no repository and no working
 copy. It reads and writes through the same HTTP API the web client uses, over
 the same session cookie, and every conflict question has the same answer it has
@@ -38,13 +38,13 @@ offline, pushing later. Rejected because of what it does *next to a live
 server*: the same vault would then have two writers with independent histories,
 one of which spends most of its life asleep in a pocket. A week-old phone clone
 that wakes up and pushes is a merge conflict inside somebody's prose, resolved
-by a phone, at the worst possible moment. Vellum's own write path already refuses
+by a phone, at the worst possible moment. Astrolabe's own write path already refuses
 stale saves with a precondition (`baseMtimeMs`) precisely because silent
 divergence is the failure it will not accept; shipping a second full history
 would have been that failure with a bow on it.
 
 **`nodejs-mobile` — run the actual server on the phone.** Rejected on a fact,
-not a preference: Vellum's `package.json` sets `engines.node >= 24`, and it means
+not a preference: Astrolabe's `package.json` sets `engines.node >= 24`, and it means
 it — unflagged TypeScript execution, `node:sqlite`, `--env-file-if-exists`. The
 `nodejs-mobile` runtimes are years behind that, and the app would have needed a
 fork of the server that is allowed to be older than the server. One vault, one
@@ -56,7 +56,7 @@ What that leaves is a shell, and a shell has one interesting decision in it:
 too.** Capacitor's `server.allowNavigation` is a build-time list; for an app
 whose server is whatever its owner typed, the only value that would work there is
 `"*"`, which is the same as no gate. Instead the shell leaves that setting off
-entirely and implements `VellumPlugin.shouldOverrideLoad` — the hook Capacitor
+entirely and implements `AstrolabePlugin.shouldOverrideLoad` — the hook Capacitor
 consults before every navigation. It says yes to exactly one scheme + host +
 port, the one that was verified and saved, and lets Capacitor's default (open it
 in the browser) have every other link in your notes.
@@ -66,18 +66,18 @@ in the browser) have every other link in your notes.
 | Piece | Where | What it does |
 | --- | --- | --- |
 | Connection screen | `src/connect.ts` | Takes an address, verifies it with `GET /api/me`, remembers it, hands over the WebView |
-| Capture sheet | `src/capture.ts` | "Share to Vellum" from any app → a bullet in `Inbox/YYYY-MM-DD.md` |
-| `VellumPlugin` | `android/…/VellumPlugin.java` | The navigation gate, the share Intent, the trusted-host store |
+| Capture sheet | `src/capture.ts` | "Share to Astrolabe" from any app → a bullet in `Inbox/YYYY-MM-DD.md` |
+| `AstrolabePlugin` | `android/…/AstrolabePlugin.java` | The navigation gate, the share Intent, the trusted-host store |
 | `MainActivity` | `android/…/MainActivity.java` | Back = history back; leaves only from the connection screen |
 | `ShareActivity` | `android/…/ShareActivity.java` | The share target, in its own task so a capture never costs you your place |
 | `SystemBarInsets` | `android/…/SystemBarInsets.java` | Keeps the status bar and the gesture bar off the page, on both activities |
 
 **Why every network call goes through `CapacitorHttp` and not `fetch`.** The
 connection screen is served from `https://localhost`; your vault is on your own
-host. That is cross-origin, and Vellum's server ships no CORS headers — correctly,
+host. That is cross-origin, and Astrolabe's server ships no CORS headers — correctly,
 since its API is not for other people's pages. `CapacitorHttp` performs the
 request natively, so there is no preflight to fail, and Capacitor installs its
-cookie manager over the WebView's own store, so the `vellum_session` cookie your
+cookie manager over the WebView's own store, so the `astrolabe_session` cookie your
 instance set when you signed in rides along on the capture sheet's write.
 
 **Why the shell pads for the system bars instead of letting the page do it.**
@@ -125,15 +125,15 @@ cd mobile
 npm install
 
 npm run typecheck      # the shell's TypeScript
-npm run apk:debug      # → out/vellum-1.8.0-debug.apk
-npm run apk:release    # → out/vellum-1.8.0-release.apk   (signed, if you have a key)
+npm run apk:debug      # → out/astrolabe-1.8.0-debug.apk
+npm run apk:release    # → out/astrolabe-1.8.0-release.apk   (signed, if you have a key)
 ```
 
 `apk:*` runs `vite build` → `cap sync android` → `gradlew assemble…` and copies
 the result into `out/` with a name a human can read. It sets `JAVA_HOME` and
 `ANDROID_HOME` itself, because on most machines the default `java` is newer than
 the Android Gradle Plugin accepts and the failure says nothing about Java
-versions. Override with `VELLUM_JAVA_HOME` / `ANDROID_HOME` if yours live
+versions. Override with `ASTROLABE_JAVA_HOME` / `ANDROID_HOME` if yours live
 elsewhere.
 
 Toolchain this was built against:
@@ -182,19 +182,19 @@ The release build is signed with a key that lives **only on the release machine*
 
 ```sh
 keytool -genkeypair -v \
-  -keystore vellum-release.keystore \
-  -alias vellum \
+  -keystore astrolabe-release.keystore \
+  -alias astrolabe \
   -keyalg RSA -keysize 4096 -validity 10950 \
   -storetype PKCS12 \
-  -dname "CN=Vellum, OU=Vellum Mobile, O=Vellum"
+  -dname "CN=Astrolabe, OU=Astrolabe Mobile, O=Astrolabe"
 ```
 
 Then `mobile/keystore.properties`, beside it:
 
 ```properties
-storeFile=vellum-release.keystore
+storeFile=astrolabe-release.keystore
 storePassword=…
-keyAlias=vellum
+keyAlias=astrolabe
 keyPassword=…
 ```
 
@@ -209,7 +209,7 @@ it, `apk:release` produces an unsigned APK and says so. Signing is v2 + v3, no v
 key-rotation lineage that makes replacing this key possible later without every
 installed copy refusing the update.
 
-> **Back up `vellum-release.keystore` and `keystore.properties` somewhere that is
+> **Back up `astrolabe-release.keystore` and `keystore.properties` somewhere that is
 > not this machine.** Android identifies an app by its signature. Lose this pair
 > and no future build can ever update an installed copy — for a sideloaded APK
 > there is no recovery path, only uninstall and start again.
@@ -223,7 +223,7 @@ The APK is not on any store. Install it yourself:
 **Over USB.** Enable Developer options → USB debugging on the phone, then:
 
 ```sh
-~/Android/Sdk/platform-tools/adb install -r mobile/out/vellum-1.8.0-release.apk
+~/Android/Sdk/platform-tools/adb install -r mobile/out/astrolabe-1.8.0-release.apk
 ```
 
 `-r` reinstalls over an existing copy and keeps its data — as long as it was
@@ -239,7 +239,7 @@ other. To go from one to the other, uninstall first.
 
 ## First run
 
-1. Open Vellum. Type your server's address — `vellum.example.com`, or
+1. Open Astrolabe. Type your server's address — `astrolabe.example.com`, or
    `192.168.1.24:5173`.
    A bare name is assumed to be `https`; an address on your own network
    (`10.x`, `192.168.x`, `172.16–31.x`, `100.64+`, `*.local`, `*.lan`,
@@ -252,7 +252,7 @@ other. To go from one to the other, uninstall first.
 4. Sign in on your instance's own login screen. The session cookie persists —
    your server gives it a seven-day sliding life, so an active writer never meets
    the login screen again.
-5. Share a link or a selection from any app → **Capture to Vellum** → it lands as
+5. Share a link or a selection from any app → **Capture to Astrolabe** → it lands as
    a timestamped bullet in `Inbox/YYYY-MM-DD.md`, creating the note and the
    folder if this is the day's first.
 

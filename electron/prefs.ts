@@ -3,9 +3,9 @@
 //
 // ── WHY THE PORT IS PERSISTED, AND NEVER EPHEMERAL ──────────────────────────
 //
-// Every device preference in Vellum is `localStorage`: `vellum.theme`,
-// `vellum.workspace`, `vellum.tabs`, `vellum.vim`, `vellum.reading`,
-// `vellum.sidebarSide`, the fold state, the pane sizes. `localStorage` is keyed
+// Every device preference in Astrolabe is `localStorage`: `astrolabe.theme`,
+// `astrolabe.workspace`, `astrolabe.tabs`, `astrolabe.vim`, `astrolabe.reading`,
+// `astrolabe.sidebarSide`, the fold state, the pane sizes. `localStorage` is keyed
 // by ORIGIN, and this app's origin is `http://127.0.0.1:<port>` — the port IS
 // the identity of the reader's settings.
 //
@@ -55,7 +55,7 @@ export interface VaultPref {
   bounds: Bounds | null;
   /** Epoch ms of the last open, for the recent list's order. */
   lastOpened: number;
-  /** An EXISTING Vellum home to use for this vault, instead of the app's own
+  /** An EXISTING Astrolabe home to use for this vault, instead of the app's own
    *  per-vault one — the door that lets the desktop and a long-running server
    *  deployment share one `settings.json`, one comments database and one
    *  books.json for the same vault. Unset for a vault the desktop discovered

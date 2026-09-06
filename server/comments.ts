@@ -5,6 +5,7 @@
 
 import { mkdirSync } from "node:fs";
 import path from "node:path";
+import { envRead } from "../shared/envName.ts";
 import { DatabaseSync } from "node:sqlite";
 import type { CommentData } from "../shared/types.ts";
 import { getSettings } from "./settings.ts";
@@ -20,10 +21,10 @@ let envOn = false;
 let commentsDataDir = path.resolve("data");
 let lastOpenErrorAt = 0;
 
-/** Read COMMENTS / VELLUM_DATA from the environment. Call once at startup. */
+/** Read COMMENTS / ASTROLABE_DATA from the environment. Call once at startup. */
 export function initComments(env: NodeJS.ProcessEnv = process.env): void {
   envOn = /^(on|true|1|yes)$/i.test(env.COMMENTS?.trim() ?? "");
-  commentsDataDir = path.resolve(env.VELLUM_DATA?.trim() || "data");
+  commentsDataDir = path.resolve(envRead(env, "ASTROLABE_DATA")?.trim() || "data");
   if (envOn) openDb();
 }
 
@@ -53,16 +54,16 @@ function openDb(): void {
     const cols = opened.prepare("PRAGMA table_info(comments)").all() as unknown as { name: string }[];
     if (!cols.some((col) => col.name === "hidden")) {
       opened.exec("ALTER TABLE comments ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0");
-      console.log("vellum: comments db migrated — added hidden column");
+      console.log("astrolabe: comments db migrated — added hidden column");
     }
     db = opened;
-    console.log(`vellum: comments enabled — ${file}`);
+    console.log(`astrolabe: comments enabled — ${file}`);
   } catch (err) {
     // Warn at most once a minute — this runs on every comments check while
     // the toggle wants comments on but the db cannot open.
     if (Date.now() - lastOpenErrorAt > 60_000) {
       lastOpenErrorAt = Date.now();
-      console.error("vellum: could not open the comments db:", err);
+      console.error("astrolabe: could not open the comments db:", err);
     }
   }
 }

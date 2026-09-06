@@ -6,14 +6,14 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * NOTE what is NOT here: `server.allowNavigation`. The one host this app is
  * allowed to leave its own origin for is the host the OWNER TYPED, and that is
  * not knowable at build time. It is enforced at runtime instead, in
- * `VellumPlugin.shouldOverrideLoad` — Capacitor asks every plugin before it
+ * `AstrolabePlugin.shouldOverrideLoad` — Capacitor asks every plugin before it
  * decides whether a navigation stays in the WebView or is handed to the
  * browser, and the plugin says yes to exactly one host. A `allowNavigation:
  * ["*"]` here would have been the same feature with the gate taken off.
  */
 const config: CapacitorConfig = {
-  appId: "dev.vellum.mobile",
-  appName: "Vellum",
+  appId: "dev.astrolabe.mobile",
+  appName: "Astrolabe",
   webDir: "www",
 
   server: {

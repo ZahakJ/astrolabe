@@ -1,7 +1,7 @@
 import { SplashScreen } from "@capacitor/splash-screen";
 import "./styles.css";
 import { dir, lang } from "./i18n.ts";
-import { VellumNative, type PendingShare } from "./native.ts";
+import { AstrolabeNative, type PendingShare } from "./native.ts";
 import { mountCapture } from "./capture.ts";
 import { mountConnect } from "./connect.ts";
 
@@ -23,7 +23,7 @@ async function boot(): Promise<void> {
 
   let share: PendingShare = {};
   try {
-    share = await VellumNative.pendingShare();
+    share = await AstrolabeNative.pendingShare();
   } catch {
     // Running outside the app (a browser, a preview): there is no Intent to
     // read and the connection screen is the right answer.
@@ -34,7 +34,7 @@ async function boot(): Promise<void> {
     // A second share landing on a sheet that is already up. Only the capture
     // screen listens: the connection screen lives in the other task and a share
     // handed to the sheet is none of its business.
-    await VellumNative.addListener("share", (next) => {
+    await AstrolabeNative.addListener("share", (next) => {
       void mountCapture(root, next);
     }).catch(() => {
       // Older shell, or no bridge at all. The first share is still on screen;
@@ -43,7 +43,7 @@ async function boot(): Promise<void> {
     });
   } else {
     // `?pick=1` is set by MainActivity when the back gesture brought the owner
-    // OUT of a connected instance — see VellumPlugin / MainActivity.
+    // OUT of a connected instance — see AstrolabePlugin / MainActivity.
     const pick = new URLSearchParams(location.search).has("pick");
     await mountConnect(root, { pick });
   }
