@@ -193,6 +193,15 @@
 
 ![Command palette](screenshots/palette.png)
 
+## Find and replace
+
+`Ctrl/Cmd F` opens find and replace inside the note: type, and the count says where you are;
+Enter goes to the next match, Shift+Enter to the previous, Enter in the replace field replaces
+one and Ctrl/Cmd+Enter replaces all; the three pills are match case, regular expression and
+whole word. `Ctrl/Cmd Shift F` opens **Search & replace across the vault** in the sidebar: every
+note that matches, line by line, ticked or unticked, replaced in one go with an undo and an
+optional snapshot first.
+
 ## The bar and the top cluster
 
 The bar under the note says where you are, how long the note is, whether it is published and

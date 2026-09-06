@@ -28,7 +28,8 @@ import {
   pasteURLAsLink,
 } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
-import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
+import { highlightSelectionMatches, search, searchKeymap } from "@codemirror/search";
+import { createSearchPanel } from "./searchPanel.ts";
 import {
   closeBrackets,
   closeBracketsKeymap,
@@ -259,6 +260,8 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
       EditorView.updateListener.of((update) => {
         if (update.docChanged) options.onDocChanged(update.view);
       }),
+      // The find panel, ours: two rows, pills, a live count (searchPanel.ts).
+      search({ createPanel: createSearchPanel, top: true }),
       keymap.of([
         { key: "Mod-ArrowUp", run: moveLineUp },
         { key: "Mod-ArrowDown", run: moveLineDown },

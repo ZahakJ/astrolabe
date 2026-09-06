@@ -6473,3 +6473,107 @@ html[dir="rtl"] .s-statusbar__spacer {
 .s-app--zen .s-topactions {
   display: none;
 }
+
+
+/* ── The in-note find panel (client/editor/searchPanel.ts) ─────────────── */
+.s-cmsearch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px 10px;
+  font-size: 0.857rem;
+}
+
+.s-cmsearch__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.s-cmsearch__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 10px;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  unicode-bidi: plaintext;
+}
+
+.s-cmsearch__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.s-cmsearch__input--bad {
+  border-color: var(--danger);
+}
+
+.s-cmsearch__input--replace {
+  max-width: 60%;
+}
+
+.s-cmsearch__count {
+  min-width: 3.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.786rem;
+  color: var(--text-faint);
+}
+
+.s-cmsearch__count--none {
+  color: var(--danger);
+}
+
+.s-cmsearch__btn,
+.s-cmsearch__opt {
+  flex: none;
+  inline-size: 28px;
+  block-size: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.786rem;
+  cursor: pointer;
+}
+
+.s-cmsearch__word {
+  inline-size: auto;
+  padding-inline: 10px;
+}
+
+.s-cmsearch__btn:hover,
+.s-cmsearch__opt:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.s-cmsearch__opts {
+  display: inline-flex;
+  gap: 2px;
+  margin-inline-start: 4px;
+}
+
+.s-cmsearch__opt {
+  font-family: var(--font-mono);
+}
+
+.s-cmsearch__opt--on {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.s-cmsearch__close {
+  margin-inline-start: 4px;
+  border-color: transparent;
+}

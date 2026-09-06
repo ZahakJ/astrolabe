@@ -968,6 +968,17 @@ everything inside" writes the expanded map under one folder (`setFoldersUnder`) 
 `.cm-content`, zen's editor and zen's reading column take (648 / 672 / 800px defaults; wide 960, wider 1200). Full width
 gives the scroller a gutter instead. Settings → This device row.
 
+## Find in the note, replace across the vault
+
+`Ctrl/Cmd+F` opens CodeMirror's search with OUR panel (`client/editor/searchPanel.ts`, wired through
+`search({ createPanel, top: true })` in setup.ts): find and replace rows, Aa / .* / ab pills, a live
+"3 / 12" count (capped at 999), Enter next, Shift+Enter previous, Enter in the replace field
+replaces one and with a modifier replaces all, Escape closes and returns focus. The commands are
+@codemirror/search's own; the words are the stock panel's phrases (searchPhrases.ts), spelled
+through a `P` table so the i18n gate sees no bare copy in a DOM sink. `Ctrl/Cmd+Shift+F` (App.tsx,
+admin, before Escape) dispatches `vellum:replace-open`; the sidebar shows itself, opens the vault
+Search & replace panel (ReplacePanel.tsx) and focuses its Find field. Both rows are in the ledger.
+
 ## The status bar keeps the note; the shell's tools moved up
 
 `StatusBar.tsx` renders two things: the bar (crumbs, counts, the published count and reach, the
