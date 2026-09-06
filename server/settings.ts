@@ -458,6 +458,7 @@ export function getSettings(): SettingsData {
     if (mode !== null) out.languageFilter = mode;
   }
   if (typeof raw.languageToggle === "boolean") out.languageToggle = raw.languageToggle;
+  if (raw.topics === "tags" || raw.topics === "folders") out.topics = raw.topics;
   if (typeof raw.commentsEnabled === "boolean") out.commentsEnabled = raw.commentsEnabled;
   if (typeof raw.shareButtons === "boolean") out.shareButtons = raw.shareButtons;
   if (typeof raw.ambient === "boolean") out.ambient = raw.ambient;
@@ -630,6 +631,9 @@ export function effectiveSettings(): EffectiveSettings {
     // No env counterpart: a visitor-facing switch is a runtime editorial
     // choice, and its default (off) is the "nothing changes" one.
     languageToggle: s.languageToggle ?? false,
+    // Where the categories come from: tags unless the owner chose the
+    // vault's folders (shared/types.ts TopicsMode).
+    topics: s.topics === "folders" ? "folders" : "tags",
     excludeTags: [...excludedTags()],
     authorSites: (s.authorSites ?? []).map((site) => ({ ...site })),
     commentsEnabled: commentsEnabled(),
@@ -1023,6 +1027,11 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     if (value === null) delete raw.languageToggle;
     else if (typeof value === "boolean") raw.languageToggle = value;
     else throw new VaultError(400, 'Settings key "languageToggle" must be a boolean or null');
+  },
+  topics: (raw, value) => {
+    if (value === null) delete raw.topics;
+    else if (value === "tags" || value === "folders") raw.topics = value;
+    else throw new VaultError(400, 'Settings key "topics" must be "tags", "folders" or null');
   },
   commentsEnabled: (raw, value) => {
     if (value === null) delete raw.commentsEnabled;

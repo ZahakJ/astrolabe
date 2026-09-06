@@ -238,3 +238,20 @@
     min-block-size: 44px;
   }
 }
+
+/* The public-folder card's "unlink the folder" text button. */
+.s-pfolders__unlink {
+  align-self: start;
+  margin-block-start: -4px;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.s-pfolders__unlink:hover:not(:disabled) {
+  color: var(--danger);
+}

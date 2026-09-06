@@ -79,6 +79,10 @@ URL still works. Turning the library off, or hiding the path, gives those notes 
 The two placements are independent: a shelf on the home page with no door in the navigation is a
 fine way to keep a library quiet.
 
+**Links stay on the path.** A wikilink inside a lesson that points at another lesson of the
+library opens that lesson, in the library, with its contents and its place; a link to a note that is
+not on any shelf opens the note's own page as it always did.
+
 Progress is the reader's own, per browser, never sent anywhere: opening a lesson marks it read,
 the path page counts, the shelf card says *Continue with lesson n*, and *Forget my place* clears it.
 

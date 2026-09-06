@@ -292,6 +292,8 @@ export interface State {
   publicFolders: PublicFolderCard[];
   publicFoldersHome: boolean;
   publicFoldersNav: boolean;
+  /** settings.topics — where the public categories come from. */
+  topicsMode: "tags" | "folders";
   /** settings.library's door, as /api/me resolved it for this session: null
    *  when the feature is off or this session may read no lesson. The shelf
    *  itself is fetched by the library pages (client/library/libraryData.ts). */
@@ -1206,6 +1208,7 @@ export const useStore = create<State>()((set, get) => {
     publicFolders: NO_PUBLIC_FOLDERS,
     publicFoldersHome: false,
     publicFoldersNav: false,
+    topicsMode: "tags",
     library: null,
     siteName: "Vellum",
     language: "en",
@@ -1437,6 +1440,7 @@ export const useStore = create<State>()((set, get) => {
           publicFolders: me.publicFolders?.length ? me.publicFolders : NO_PUBLIC_FOLDERS,
           publicFoldersHome: me.publicFoldersHome === true,
           publicFoldersNav: me.publicFoldersNav === true,
+          topicsMode: me.topics === "folders" ? "folders" : "tags",
           library: me.library ?? null,
           publishedCounts: me.published ?? null,
           siteName: me.siteName?.trim() || "Vellum",

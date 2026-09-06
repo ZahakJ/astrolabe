@@ -16,10 +16,13 @@ import { initSite } from "../server/site.ts";
 import { initVault } from "../server/vault.ts";
 import type { PostMeta } from "../shared/types.ts";
 import {
+  PUBLIC_FOLDERS_MAX,
   cleanPublicFolder,
+  collectionsForPath,
+  effectiveFolders,
   folderSlug,
   suggestSlug,
-  PUBLIC_FOLDERS_MAX,
+  vaultFolderPath,
 } from "../shared/publicFolders.ts";
 import { makeDir, makeVault, note, removeVault } from "./helpers/vault.ts";
 
@@ -153,5 +156,32 @@ describe("one stored row", () => {
 
   it("caps the list at a number the nav row can actually carry", () => {
     assert.equal(PUBLIC_FOLDERS_MAX, 12);
+  });
+});
+
+describe("folder-backed collections", () => {
+  it("normalises a vault folder and refuses what cannot be one", () => {
+    assert.equal(vaultFolderPath(" Books/Feynman/ "), "Books/Feynman");
+    assert.equal(vaultFolderPath("Books\\Feynman"), "Books/Feynman");
+    assert.equal(vaultFolderPath("/"), null);
+    assert.equal(vaultFolderPath("a/../b"), null);
+    assert.equal(vaultFolderPath(""), null);
+    assert.equal(vaultFolderPath(42), null);
+  });
+  it("keeps a row's folder, dropping one that cannot name a folder", () => {
+    const row = cleanPublicFolder({ slug: "games", title: "Games", icon: "gamepad", folder: "Play/Games/" }, () => "x");
+    assert.equal(row?.folder, "Play/Games");
+    const bare = cleanPublicFolder({ slug: "games", title: "Games", icon: "gamepad", folder: "../x" }, () => "x");
+    assert.equal(bare?.folder, undefined);
+  });
+  it("puts a note in every collection whose folder holds it, boundary at the slash", () => {
+    const rows = [
+      { id: "a", slug: "games", title: "G", icon: "gamepad" as const, folder: "Play/Games" },
+      { id: "b", slug: "play", title: "P", icon: "dice" as const, folder: "Play" },
+      { id: "c", slug: "books", title: "B", icon: "book" as const },
+    ];
+    assert.deepEqual(collectionsForPath("Play/Games/elden.md", rows), ["games", "play"]);
+    assert.deepEqual(collectionsForPath("Playground/x.md", rows), []);
+    assert.deepEqual(effectiveFolders(["books", "games"], "Play/Games/elden.md", rows), ["books", "games", "play"]);
   });
 });

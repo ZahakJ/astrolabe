@@ -1,12 +1,14 @@
 // Indexer: in-memory search + link-graph index, built once at startup and kept
 // fresh incrementally from vault watcher events.
 
-import { isLibraryLesson, libraryCoverPaths, libraryLessonFolders } from "../shared/library.ts";
+import { isLibraryLesson, libraryCoverPaths, libraryLessonFolders, libraryTitleOf } from "../shared/library.ts";
+import { effectiveFolders, suggestSlug } from "../shared/publicFolders.ts";
+import { createHash } from "node:crypto";
 import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import MiniSearch from "minisearch";
-import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent } from "../shared/types.ts";
+import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { findAnyMatches, foldQuery, foldTerm } from "../shared/fold.ts";
 import { parseSearchQuery, type QueryFilter } from "../shared/searchQuery.ts";
@@ -2248,7 +2250,7 @@ function fenceSummary(record: NoteRecord): string {
  *  function is called once per published post — the same "resolve a
  *  configuration value inside the loop that iterates the vault" shape as the
  *  templates walk two screens up, one loop over. */
-function postMeta(record: NoteRecord, hidden: ReadonlySet<string>): PostMeta {
+function postMeta(record: NoteRecord, hidden: ReadonlySet<string>, collectionRows: readonly PublicFolderRef[] = collectionRowsNow()): PostMeta {
   if (record.post === null) {
     const flat = flatBody(record);
     record.post = {
@@ -2282,10 +2284,58 @@ function postMeta(record: NoteRecord, hidden: ReadonlySet<string>): PostMeta {
   // Assigned only when non-empty, like every other optional field on this
   // shape: almost no note names a folder, and an empty array on every post
   // would be bytes on the wire saying nothing.
-  if (record.folders.length > 0) meta.folders = [...record.folders];
+  // …and the FOLDER-BACKED collections (a row whose `folder` holds this
+  // note) join the declared ones here, at read time, because the mapping
+  // lives in settings and moves without the note changing.
+  const folders = effectiveFolders(record.folders, record.path, collectionRows);
+  if (folders.length > 0) meta.folders = folders;
   const banner = resolveBanner(record);
   if (banner) meta.banner = banner;
   return meta;
+}
+
+/** The collection rows as settings hold them right now — the folder-backed
+ *  membership is read live, like the library's lesson folders — PLUS, under
+ *  `settings.topics: "folders"`, one row per parent folder of a published
+ *  post: title from the folder's name (sorting prefix stripped), mark from
+ *  the tree's own folder icon, slug from the title and unique in path order,
+ *  so the address a folder gets is the same on every request. A declared row
+ *  naming the same folder REPLACES the derived one (a nicer title, a blurb, a
+ *  hide), which is how the owner customises a category without leaving the
+ *  vault's order. Templates and library lessons are not posts and make no
+ *  category; a note at the vault root has no parent and none either. */
+export function collectionRows(): PublicFolderRef[] {
+  const settings = getSettings();
+  const declared = settings.publicFolders?.folders ?? [];
+  if (settings.topics !== "folders") return declared;
+  const covered = new Set(declared.map((r) => r.folder).filter((f): f is string => typeof f === "string"));
+  const taken = new Set(declared.map((r) => r.slug));
+  const isTemplate = templateMatcher();
+  const lessonFolders = libraryLessonFolders(settings.library);
+  const parents = new Set<string>();
+  for (const notePath of publishedSet) {
+    const slash = notePath.lastIndexOf("/");
+    if (slash <= 0) continue;
+    if (isTemplate(notePath)) continue;
+    if (lessonFolders.length > 0 && isLibraryLesson(notePath, lessonFolders)) continue;
+    const parent = notePath.slice(0, slash);
+    if (!covered.has(parent)) parents.add(parent);
+  }
+  const icons = settings.folderIcons ?? {};
+  const derived: PublicFolderRef[] = [];
+  for (const folder of [...parents].sort()) {
+    const title = libraryTitleOf(folder) || folder;
+    const base = suggestSlug(title) || "folder";
+    let slug = base;
+    for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
+    taken.add(slug);
+    derived.push({ id: `a${createHash("sha1").update(folder).digest("hex").slice(0, 12)}`, slug, title, icon: icons[folder] ?? "archive", folder });
+  }
+  return [...declared, ...derived];
+}
+
+function collectionRowsNow(): PublicFolderRef[] {
+  return collectionRows();
 }
 
 /** How many posts THIS session can see in each public folder — slug → count.
@@ -2305,12 +2355,15 @@ export function publicFolderCounts(
   for (const slug of slugs) counts.set(slug, 0);
   if (counts.size === 0) return counts;
   const isTemplate = templateMatcher(); // once for the loop — see templateMatcher()
+  const rows = collectionRowsNow();
   for (const notePath of publishedSet) {
     const record = notes.get(notePath);
-    if (!record || record.folders.length === 0) continue;
+    if (!record) continue;
+    const folders = effectiveFolders(record.folders, record.path, rows);
+    if (folders.length === 0) continue;
     if (visitor && languageHidden(record, lang)) continue;
     if (isTemplate(notePath)) continue;
-    for (const slug of record.folders) {
+    for (const slug of folders) {
       const current = counts.get(slug);
       if (current !== undefined) counts.set(slug, current + 1);
     }
@@ -2369,6 +2422,7 @@ export function posts(visitor: boolean, lang: FilterLang, excludePages = false):
   // on my blog", and the shelf is not the blog. The note's own URL still
   // works; only the listings change.
   const lessonFolders = libraryLessonFolders(getSettings().library);
+  const rows = collectionRowsNow();
   for (const notePath of publishedSet) {
     const record = notes.get(notePath);
     if (!record) continue;
@@ -2383,7 +2437,7 @@ export function posts(visitor: boolean, lang: FilterLang, excludePages = false):
     // stock blog calls this, so its lists are exactly what they always were;
     // designed mode passes staticPagesActive() (server/pages.ts).
     if (excludePages && record.page) continue;
-    out.push({ dateMs: record.dateMs, meta: postMeta(record, hidden) });
+    out.push({ dateMs: record.dateMs, meta: postMeta(record, hidden, rows) });
   }
   return out
     .sort((a, b) => b.dateMs - a.dateMs || a.meta.path.localeCompare(b.meta.path))

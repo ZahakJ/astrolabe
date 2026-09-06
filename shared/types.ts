@@ -242,6 +242,11 @@ export interface PublicFolderRef {
   icon: FolderIcon;
   /** One line under the title on the card and the folder page. ≤ 200. */
   description?: string;
+  /** A VAULT FOLDER whose published notes all belong to this collection, on
+   *  the library's terms (vault-relative, boundary at the slash). Optional:
+   *  a collection with none is joined by frontmatter alone, and one with a
+   *  folder still takes frontmatter members from elsewhere. */
+  folder?: string;
   /** Taken down without being deleted (the NavItem precedent): the folder
    *  keeps its title, glyph and members and reaches no visitor at all. */
   hidden?: boolean;
@@ -379,6 +384,14 @@ export interface NoteAnnotationsResponse {
 /** What a VISITOR receives for one public folder: the reference minus the
  *  bookkeeping, plus the one fact only the server can supply — how many posts
  *  this session can actually see in it. A hidden folder never becomes one. */
+/** Where a site's public categories come from. `tags`: a topic per tag, as
+ *  always. `folders`: the vault's own order — every published note takes its
+ *  parent folder as its category, the folder's name is the category's title
+ *  (sorting prefix stripped), the folder's tree mark is its mark, and the
+ *  declared collections below become OVERRIDES (a nicer title, a blurb, a
+ *  hide) plus whatever manual collections the owner still wants. */
+export type TopicsMode = "tags" | "folders";
+
 export interface PublicFolderCard {
   id: string;
   slug: string;
@@ -417,6 +430,10 @@ export interface MeData {
   publicTheme?: PublicThemeInfo;
   language?: "en" | "ar"; // site chrome language (settings.language / SITE_LANG; default "en"); "ar" flips the whole chrome RTL. Sent to every session.
   languageToggle?: boolean; // settings.languageToggle — the public shell offers visitors an EN/ع chrome switch (default off; absent = off)
+  /** settings.topics — where the public categories come from: `tags` (a topic per
+   *  tag, the default; absent = tags) or `folders` (every published note takes its
+   *  parent folder as its category, and the tree's folder marks come along). */
+  topics?: TopicsMode;
   /** settings.languageFilter — how this site curates by note language.
    *  Visitor-safe like `languageToggle` (it describes the public shell), and
    *  the client NEEDS it: under "follow" a visitor flipping the EN/ع switch
@@ -728,6 +745,8 @@ export interface SettingsData {
    *  not on a second numbering system. Default false: off means the public
    *  site looks exactly as it does today. */
   languageToggle?: boolean;
+  /** Where the public categories come from (default "tags"). */
+  topics?: TopicsMode;
   /** BCP47 date-formatting locale (overrides BLOG_LOCALE). */
   blogLocale?: string;
   /** Tags hidden from visitor surfaces (overrides EXCLUDE_TAGS). Simple
@@ -906,6 +925,8 @@ export interface EffectiveSettings {
   language: "en" | "ar";
   languageFilter: LanguageFilterMode;
   languageToggle: boolean;
+  /** Where the public categories come from. */
+  topics: TopicsMode;
   excludeTags: string[];
   authorSites: AuthorSiteRef[];
   commentsEnabled: boolean;
@@ -952,6 +973,8 @@ export interface EffectiveSettings {
 /** PATCH /api/settings body: only the named keys change; null (or "") clears
  *  one back to its env default. Strict allowlist — unknown keys are a 400. */
 export interface SettingsPatch {
+  /** Where the public categories come from; null restores the default (tags). */
+  topics?: TopicsMode | null;
   siteName?: string | null;
   tagline?: string | null;
   footer?: string | null;

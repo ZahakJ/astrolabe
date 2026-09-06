@@ -69,6 +69,7 @@ import { renderSnippet, snippetIsEmpty } from "./snippet.tsx";
 import FolderGlyph from "./FolderGlyph.tsx";
 import type { IconPickState } from "./FolderIconPicker.tsx";
 import type { LibraryPopState } from "./LibraryFolderPopover.tsx";
+import type { CollectionsPopState } from "./CollectionsPopover.tsx";
 import type { FolderIcon } from "../../shared/folderIcons.ts";
 import { toast } from "../toast.ts";
 import "../styles/move.css";
@@ -134,6 +135,7 @@ function placeMenu(el: HTMLElement | null, x: number, y: number, fromKeyboard: b
 // popover, so the tree behind it never blinks while the chunk lands.
 const FolderIconPicker = lazySurface(() => import("./FolderIconPicker.tsx"));
 const LibraryFolderPopover = lazySurface(() => import("./LibraryFolderPopover.tsx"));
+const CollectionsPopover = lazySurface(() => import("./CollectionsPopover.tsx"));
 
 // The two v1.8 search surfaces, mount-gated for the same reason and split for
 // one more: the replace panel carries the dry-run list, its own stylesheet and
@@ -577,6 +579,7 @@ export default function Sidebar() {
   /** The open folder-icon popover (feature A). Null = closed. */
   const [iconPick, setIconPick] = useState<IconPickState | null>(null);
   const [libPop, setLibPop] = useState<LibraryPopState | null>(null);
+  const [colPop, setColPop] = useState<CollectionsPopState | null>(null);
   const [showAttachments, setShowAttachments] = useState(loadShowAttachments);
   // The open lightbox: the viewable attachments of ONE folder plus the
   // position inside it, so ← / → walk that folder and nothing else.
@@ -1988,6 +1991,23 @@ export default function Sidebar() {
               {t("libraryMenu")}
             </button>
           )}
+          {/* A collection from the folder, on the library's terms. Notes get
+              the membership popover below, beside Delete. */}
+          {menu.node.type === "folder" && menu.node.path !== "" && (
+            <button
+              type="button"
+              className="s-menu__item"
+              role="menuitem"
+              onClick={() => {
+                const node = menu.node;
+                const fromKeyboard = menu.fromKeyboard === true;
+                setMenu(null);
+                setColPop({ kind: "folder", path: node.path, name: node.name, x: menu.x, y: menu.y, fromKeyboard });
+              }}
+            >
+              {t("collectionsFolderMenu")}
+            </button>
+          )}
           {/* The keyboard and touch route to the same operation the drag
               performs. It is not a convenience: HTML5 drag does not exist on a
               touch screen and cannot be reached from the keyboard at all, so
@@ -2005,6 +2025,21 @@ export default function Sidebar() {
               }}
             >
               {t("moveTo")}
+            </button>
+          )}
+          {menu.node.type === "file" && !menu.node.attachment && (
+            <button
+              type="button"
+              className="s-menu__item"
+              role="menuitem"
+              onClick={() => {
+                const node = menu.node;
+                const fromKeyboard = menu.fromKeyboard === true;
+                setMenu(null);
+                setColPop({ kind: "note", path: node.path, name: node.name.replace(/\.md$/i, ""), x: menu.x, y: menu.y, fromKeyboard });
+              }}
+            >
+              {t("collectionsMenu")}
             </button>
           )}
           {menu.node.type === "file" && !menu.node.attachment && (
@@ -2127,6 +2162,18 @@ export default function Sidebar() {
             onClose={() => {
               if (libPop.fromKeyboard) treeRef.current?.focus();
               setLibPop(null);
+            }}
+          />
+        </Suspense>
+      )}
+
+      {colPop && (
+        <Suspense fallback={null}>
+          <CollectionsPopover
+            state={colPop}
+            onClose={() => {
+              if (colPop.fromKeyboard) treeRef.current?.focus();
+              setColPop(null);
             }}
           />
         </Suspense>

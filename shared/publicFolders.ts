@@ -97,6 +97,10 @@ export function cleanPublicFolder(entry: unknown, fallbackId: () => string): Pub
   };
   const desc = typeof row.description === "string" ? row.description.trim() : "";
   if (desc !== "") out.description = desc;
+  // A vault folder, normalised; a value that cannot name one is dropped in
+  // silence and the row stays a frontmatter-only collection.
+  const folder = vaultFolderPath(row.folder);
+  if (folder !== null) out.folder = folder;
   // LOSSLESS TAKE-DOWN, the NavItem rule (shared/designChrome.ts): hiding a
   // folder must not cost the owner its title, its glyph or the notes that name
   // its slug — they publish it again by unticking one box.
@@ -119,4 +123,41 @@ export function folderId(): string {
     for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
   }
   return [...bytes].map((b) => b.toString(36).padStart(2, "0")).join("").slice(0, 10);
+}
+
+/** A vault-relative folder, normalised: forward slashes, no leading or
+ *  trailing slash, no `.`/`..`/empty segment, never the root. The library's
+ *  own rule (shared/library.ts), spelled here too because this module is
+ *  loaded by the blog chunk and must not drag the library behind it. */
+export function vaultFolderPath(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const text = raw.trim().replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+  if (text === "" || text.length > 300) return null;
+  const parts = text.split("/");
+  for (const part of parts) {
+    if (part === "" || part === "." || part === ".." || part !== part.trim()) return null;
+  }
+  return parts.join("/");
+}
+
+/** The collections a note belongs to BY WHERE IT LIVES: every row whose
+ *  `folder` contains the note's path, boundary at the slash. Hidden rows
+ *  count — a hidden collection keeps its members; it is the card and the chip
+ *  that vanish. */
+export function collectionsForPath(notePath: string, rows: readonly PublicFolderRef[]): string[] {
+  const out: string[] = [];
+  for (const row of rows) {
+    if (!row.folder) continue;
+    if (notePath.startsWith(row.folder + "/") && !out.includes(row.slug)) out.push(row.slug);
+  }
+  return out;
+}
+
+/** What a note's `folders` mean once the folder-backed collections have had
+ *  their say: the frontmatter slugs first, in their own order, then the rows
+ *  whose folder holds the note. No repeats. */
+export function effectiveFolders(declared: readonly string[], notePath: string, rows: readonly PublicFolderRef[]): string[] {
+  const out = [...declared];
+  for (const slug of collectionsForPath(notePath, rows)) if (!out.includes(slug)) out.push(slug);
+  return out;
 }

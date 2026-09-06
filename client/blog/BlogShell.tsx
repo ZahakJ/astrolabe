@@ -332,16 +332,20 @@ export default function BlogShell() {
     setMenuOpen(false);
   }, [route]);
 
-  // Topic categories: published tags by frequency.
+  // Topic categories: published tags by frequency — unless the categories
+  // come from the vault's folders (settings.topics), when the row holds the
+  // collections alone and every one of them is a folder.
+  const tagTopics = useStore((s) => s.topicsMode === "tags");
   const topics = useMemo(() => {
     const counts = new Map<string, number>();
+    if (!tagTopics) return [];
     for (const p of posts ?? []) {
       for (const t of p.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
     }
     return [...counts.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([tag]) => tag);
-  }, [posts]);
+  }, [posts, tagTopics]);
   const activeTag = route.kind === "topic" ? route.tag : null;
 
   // NAV CHIPS ARE NAVIGATION; THE HOME BAND IS AN INVITATION (v1.8 UX audit

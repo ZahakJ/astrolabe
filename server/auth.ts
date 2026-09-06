@@ -18,7 +18,7 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import type { MeData, PublicFolderCard } from "../shared/types.ts";
 import type { FilterLang } from "./indexer.ts";
-import { isNoteVisibleToVisitor, publicFolderCounts, publishedCounts, resolveLink } from "./indexer.ts";
+import { isNoteVisibleToVisitor, publicFolderCounts, publishedCounts, resolveLink, collectionRows } from "./indexer.ts";
 import { languageScope } from "./language.ts";
 import { libraryFor } from "./library.ts";
 import { currentVisibility, isReducingReach } from "./visibility.ts";
@@ -898,7 +898,11 @@ authRoutes.get("/me", (c) => {
     // for the reason publicFolderCounts states: a card's number is a promise
     // about the page behind it.
     const pf = settings.publicFolders;
-    const visible = pf?.enabled === true ? (pf.folders ?? []).filter((f) => !f.hidden) : [];
+    // In folders mode the rows are the vault's own folders (server/indexer.ts
+    // collectionRows), declared rows overriding, and the feature is on by
+    // the mode's definition.
+    const rows = collectionRows();
+    const visible = pf?.enabled === true || settings.topics === "folders" ? rows.filter((f) => !f.hidden) : [];
     if (visible.length > 0) {
       const counts = publicFolderCounts(
         visible.map((f) => f.slug),
@@ -921,6 +925,9 @@ authRoutes.get("/me", (c) => {
       me.publicFoldersHome = pf?.home !== false;
       me.publicFoldersNav = pf?.nav === true;
     }
+    // The categories' source, only when it is not the default: absent means
+    // tags, so an old client reads what it always had.
+    if (settings.topics === "folders") me.topics = "folders";
     // The library's door. The shelf itself is /api/library and is fetched
     // when a reader opens it; what every page needs at first paint is only
     // whether the door exists and where it stands — and it exists only when
