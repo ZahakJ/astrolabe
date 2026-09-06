@@ -946,6 +946,21 @@ and folder-move routes carry entries to the new path. The owner reads and writes
 of any note; a visitor reads the PUBLIC ones of a PUBLISHED note and never learns the private ones
 exist — the comments gate, line for line. `public` is off by default: a note to self is to self.
 
+## The pane grips (client/components/PaneGrip.tsx, client/paneWidths.ts)
+
+Each side pane carries an 8px `role="separator"` strip on its INNER edge (last child of
+`.s-sidebar` / `.s-panel`, both `position: relative`; `.s-app--flip` swaps the edges). A drag with
+pointer capture writes the pane's custom property on `<html>` — `--sidebar-w` (the token in
+tokens.css) or `--panel-w` (new; `.s-panel`, `.s-panel-header`, `.s-panel-body` all read it) —
+clamped to `PANE_MIN..PANE_MAX` (168..560) and remembered in `localStorage["vellum.paneWidths"]`
+(`applyPaneWidths()` at the first grip's mount). Dragged under `PANE_COLLAPSE_AT` (112px) the pane
+wears `.s-pane--leaving` and on release COLLAPSES through the store's own setter, its property
+restored to the pre-drag width so it reopens whole. Double-click clears the property and the
+stored width. The root wears `.s-app--pane-drag` mid-drag (transitions off, column cursor, no
+selection). The reopen handles take `reopenDragProps(pane)`: a drag inward of `PANE_REOPEN_AT`
+(40px) reopens; a click still does. No grip on a collapsed pane, in zen, under the phone's
+breakpoint or a coarse pointer.
+
 ## Collections and categories (shared/publicFolders.ts, server/indexer.ts collectionRows, client/components/CollectionsPopover.tsx)
 
 **FOLDER NOTES ARE WHERE A FOLDER'S FACTS LIVE (2.10).** `shared/folderNote.ts`: `folderOfNote(path)`
