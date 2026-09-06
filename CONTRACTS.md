@@ -4632,16 +4632,15 @@ overflow, the galleries, the hover summary and the collection route, with `SIGNA
 `--houses-only` and `SHOTS=full` for the designer's loop. `tests/designChromeShapes.test.ts` states
 the portability.
 
-**A BOOK DROPPED ON A FOLDER IS FILED THERE.** `/api/upload` lets the attachment-location setting
-have the last word over the folder a drop happened in — right for an image, which belongs to a
-note and is embedded from wherever it lives, and wrong for a PDF, which the tree treats as a
-DOCUMENT (a click opens it as a book). The owner dragged a book onto `Library/` and found it in
-`attachments/`: the default mode is "specified", so the folder they aimed at was ignored by design.
-`uploadDestination(loc, context, ext, filed)` (`shared/attachments.ts`) is the distinction: a tree
-drop sends `place=here`, and a file the SERVER sniffed as a PDF is filed in the drop folder; every
-other type, and a book pasted into a note rather than dropped on the tree, keeps the setting. The
-type is the server's, so a renamed image cannot ride into a folder the setting would have kept it
-out of. `tests/uploadDestination.test.ts` states it.
+**A FILE DROPPED ON A FOLDER IS FILED THERE.** The attachment-location setting answers for an
+upload that named no place — a paste into a note, a drop into the editor. A drop on the TREE names
+one. It used to be honoured for PDFs only (the owner dragged a book onto `Library/` and found it in
+`attachments/`); then a friend dropped a folder of icons on a folder and every one was carried off
+to `attachments/` (3.1.2). The owner's rule: "only auto attachments when the user pastes or drops
+directly on the note; if I drag and drop an image to a folder then my choice shall be honoured."
+`uploadDestination(loc, context, ext, filed)` (`shared/attachments.ts`): a tree drop sends
+`place=here`, and the drop folder is the destination for every type; the setting decides the rest.
+`tests/uploadDestination.test.ts` states it.
 
 **A SECOND GROUND, AND IT IS MADE OF LIGHT RATHER THAN INK.** `chrome.surface` answers "what is
 this printed ON" and answers it hue-free by construction — five textures, every one a `color-mix`

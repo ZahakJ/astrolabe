@@ -1908,9 +1908,9 @@ api.post("/upload", async (c) => {
   // vault. There is deliberately no "must already exist" check — "subfolder"
   // mode creates its folder on first upload, which is the whole point of it.
   const context = typeof form.dir === "string" ? normalizeFolder(form.dir) : "";
-  // A BOOK DROPPED ON A FOLDER IS FILED THERE (shared/attachments.ts,
+  // A FILE DROPPED ON A FOLDER IS FILED THERE (shared/attachments.ts,
   // uploadDestination). `place=here` is the client saying the drop was a
-  // filing; the sniffed `ext` is what keeps that promise to books only.
+  // filing, and the folder aimed at is then the answer for every type.
   const dir = uploadDestination(attachmentLocation(), context, ext, form.place === "here");
   const base = sanitizeBaseName(file.name ?? "");
   // First free filename: name.ext, name-2.ext, name-3.ext, …

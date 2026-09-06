@@ -81,30 +81,31 @@ export function folderError(value: string): FolderProblem | null {
  *  was dropped on). `contextDir` is "" for the vault root, and an unknown
  *  context degrades gracefully to the root rather than guessing. */
 /**
- * WHERE AN UPLOAD LANDS, given what it is and where it was dropped.
+ * WHERE AN UPLOAD LANDS, given where it was dropped and whether that was a
+ * choice.
  *
- * `resolveAttachmentDir` below answers for an ATTACHMENT: the location setting
- * has the last word and the drop target is only context — right for an image
- * that belongs to a note and is embedded from wherever it lives. A BOOK is not
- * that. A PDF in the tree IS a document (client/books/door.ts opens one as a
- * book), and a reader who drags one onto `Library/` is FILING it there, not
- * attaching it to anything. The owner did exactly that and watched it land in
- * `attachments/` — the default mode is "specified", so the folder they aimed
- * at was ignored by design, and the design was wrong for this file.
+ * `resolveAttachmentDir` below answers for an ATTACHMENT — a paste or a drop
+ * INTO A NOTE, where the reader named no place and the location setting
+ * decides. A drop on the TREE is different: the reader aimed at a folder, and
+ * the folder is the answer, whatever the file is. It used to be so only for
+ * PDFs (the owner dragged a book onto `Library/` and found it in
+ * `attachments/`); then a friend dropped a folder of icons on a folder and
+ * every one of them was carried off to `attachments/` too. The owner's rule
+ * now: "only auto attachments when the user pastes or drops directly on the
+ * note; if I drag and drop an image to a folder then my choice shall be
+ * honoured."
  *
- * So a book dropped on a folder is filed in that folder, and everything else
- * keeps the setting. `filed` is the CLIENT's statement that the drop was a
- * filing (a tree drop, as opposed to a paste into a note); `ext` is the
- * SERVER's sniffed type, so a renamed image cannot ride into a folder the
- * setting would have kept it out of.
+ * `filed` is the CLIENT's statement that the drop was a filing (a tree drop,
+ * as opposed to a paste into a note). `ext` is the SERVER's sniffed type and
+ * is kept in the signature for the callers and tests that already pass it.
  */
 export function uploadDestination(
   loc: AttachmentLocation,
   contextDir: string,
-  ext: string,
+  _ext: string,
   filed: boolean,
 ): string {
-  if (filed && ext === "pdf") return normalizeFolder(contextDir);
+  if (filed) return normalizeFolder(contextDir);
   return resolveAttachmentDir(loc, contextDir);
 }
 

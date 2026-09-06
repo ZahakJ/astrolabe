@@ -109,6 +109,9 @@ in **Publishing & comments**, beside the templates folder.
 | Subfolder of the note's folder | `<note's folder>/<name>` — e.g. an `assets` next to each note |
 | Specified folder *(default)* | one fixed vault-relative folder — `ATTACHMENTS_DIR`, default `attachments` |
 
+The setting answers for uploads that named no place: a paste into a note, or a drop into the
+editor. A drop onto the sidebar tree names one, and lands in the folder it was dropped on.
+
 The folder field is validated the way every vault path is: it stays inside the vault, is never
 a dot-folder (those are invisible to the tree, the indexer and the watcher), and is created on
 demand. **Existing attachments are never moved** — the setting decides where the *next* upload

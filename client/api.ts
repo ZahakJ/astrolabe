@@ -727,9 +727,9 @@ export function uploadAttachment(
   asAdmin = false,
   dir?: string,
   /** The drop was a FILING — a tree drop onto a folder — rather than a paste
-   *  into a note. The server files a book where it was dropped on the
-   *  strength of this and keeps the attachment setting for everything else
-   *  (shared/attachments.ts, uploadDestination). */
+   *  into a note. The server files the upload in that folder on the strength
+   *  of this; the attachment setting answers only for pastes and drops into
+   *  a note (shared/attachments.ts, uploadDestination). */
   filed = false,
 ): Promise<UploadResult> {
   const form = new FormData();

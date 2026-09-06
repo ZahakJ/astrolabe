@@ -87,7 +87,9 @@ points).</p>
 <p><strong>Where new attachments go</strong> is a setting, named the way Obsidian names it (<em>Default location
 for new attachments</em>), so a migrating vault behaves the way its owner already expects. It sits
 in <strong>Publishing &amp; comments</strong>, beside the templates folder.</p>
-<div class="table"><table><thead><tr><th>Mode</th><th>An upload lands in</th></tr></thead><tbody><tr><td>Vault root</td><td>the top of the vault</td></tr><tr><td>Same folder as the note</td><td>beside the note being edited</td></tr><tr><td>Subfolder of the note&#39;s folder</td><td><code>&lt;note&#39;s folder&gt;/&lt;name&gt;</code> — e.g. an <code>assets</code> next to each note</td></tr><tr><td>Specified folder <em>(default)</em></td><td>one fixed vault-relative folder — <code>ATTACHMENTS_DIR</code>, default <code>attachments</code></td></tr></tbody></table></div><p>The folder field is validated the way every vault path is: it stays inside the vault, is never
+<div class="table"><table><thead><tr><th>Mode</th><th>An upload lands in</th></tr></thead><tbody><tr><td>Vault root</td><td>the top of the vault</td></tr><tr><td>Same folder as the note</td><td>beside the note being edited</td></tr><tr><td>Subfolder of the note&#39;s folder</td><td><code>&lt;note&#39;s folder&gt;/&lt;name&gt;</code> — e.g. an <code>assets</code> next to each note</td></tr><tr><td>Specified folder <em>(default)</em></td><td>one fixed vault-relative folder — <code>ATTACHMENTS_DIR</code>, default <code>attachments</code></td></tr></tbody></table></div><p>The setting answers for uploads that named no place: a paste into a note, or a drop into the
+editor. A drop onto the sidebar tree names one, and lands in the folder it was dropped on.</p>
+<p>The folder field is validated the way every vault path is: it stays inside the vault, is never
 a dot-folder (those are invisible to the tree, the indexer and the watcher), and is created on
 demand. <strong>Existing attachments are never moved</strong> — the setting decides where the <em>next</em> upload
 is written, and embeds resolve by basename regardless of which folder they live in.</p>

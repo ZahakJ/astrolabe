@@ -136,9 +136,9 @@ again, and remembers.
 
 Paste or drop an image into the editor (or drag one from a file manager) and it uploads and lands
 as `![[name.png]]` at the cursor, with an "Uploading…" placeholder holding the spot while it is
-in flight. PDFs, audio and video are accepted too, and files can be dropped onto the sidebar tree
-as well as into the document. Where an upload lands is a
-[setting](configuration.md#attachments) with four modes.
+in flight. PDFs, audio and video are accepted too. Where a paste or a drop into the document lands
+is a [setting](configuration.md#attachments) with four modes; a drop onto the sidebar tree is a
+filing, and lands in the folder it was dropped on.
 
 ## Deleting, and the trash
 
