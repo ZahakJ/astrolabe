@@ -61,65 +61,188 @@ export const THEME_NAME_MAX = 48;
 export type TokenKind = "color" | "wash";
 
 /** The groups the builder lays out, in the order it lays them out. */
-export type TokenGroup = "ground" | "text" | "accent" | "line" | "callout" | "code" | "graph";
+/** The groups the builder lays out. The first four and the last three are the
+ *  base tokens tokens.css defines per theme; the rest are SURFACES — the
+ *  sidebar, the tab strip, the status bar, the editor, the reading page, the
+ *  controls, the dialogs, the site, the cards — each derived from a base
+ *  token on `:root` (tokens.css, "the surface layer") until an author paints
+ *  it on its own. */
+export type TokenGroup = "ground" | "text" | "accent" | "line" | "sidebar" | "tabs" | "statusbar" | "editor" | "reading" | "links" | "controls" | "overlays" | "callout" | "code" | "graph" | "blog" | "cards";
 
 export interface TokenSpec {
   name: string;
   group: TokenGroup;
   kind: TokenKind;
+  /** The builder's label for the row, as a dictionary key — a human name in
+   *  both languages ("Sidebar background", «خلفية شريط الملاحظات»); the raw
+   *  token name stays beside it for people who write custom.css. Every token
+   *  has one; tests/themeTokens.test.ts holds the dictionary to it. */
+  label: string;
+  /** A surface token's default, as tokens.css spells it: a `var(--base)`
+   *  (or a color-mix of one), so a base override still flows into every
+   *  surface an author did not paint. Absent on the base tokens themselves. */
+  derivedFrom?: string;
 }
 
-/** Every token a custom theme may set. This is the set a `[data-theme]` block
- *  in tokens.css defines, minus `color-scheme` (which is not a color and rides
- *  on the theme's `group` instead) and minus `--banner-tint` (a percentage,
- *  not a color — the one token in a theme block that is neither). */
+/** Every token a custom theme may set: the set a `[data-theme]` block in
+ *  tokens.css defines (minus `color-scheme`, which is not a color and rides on
+ *  the theme's `group`, and `--banner-tint`, a percentage), and then the
+ *  SURFACE tokens — one per painted thing a reader might want to change on
+ *  its own — which tokens.css derives from those on `:root, [data-theme]`.
+ *  The six page inks (`--book-ink-*`) are deliberately not here: a highlight
+ *  that changes colour with the theme is data loss, as tokens.css argues. */
 export const THEME_TOKENS: TokenSpec[] = [
-  { name: "--bg", group: "ground", kind: "color" },
-  { name: "--bg-raised", group: "ground", kind: "color" },
-  { name: "--bg-hover", group: "ground", kind: "color" },
 
-  { name: "--text", group: "text", kind: "color" },
-  { name: "--text-muted", group: "text", kind: "color" },
-  { name: "--text-faint", group: "text", kind: "color" },
-  { name: "--heading", group: "text", kind: "color" },
+  { name: "--bg", group: "ground", kind: "color", label: "tkBg" },
+  { name: "--bg-raised", group: "ground", kind: "color", label: "tkBgRaised" },
+  { name: "--bg-hover", group: "ground", kind: "color", label: "tkBgHover" },
 
-  { name: "--accent", group: "accent", kind: "color" },
-  { name: "--accent-soft", group: "accent", kind: "wash" },
-  { name: "--selection-bg", group: "accent", kind: "wash" },
-  { name: "--focus-ring", group: "accent", kind: "color" },
+  { name: "--text", group: "text", kind: "color", label: "tkText" },
+  { name: "--text-muted", group: "text", kind: "color", label: "tkTextMuted" },
+  { name: "--text-faint", group: "text", kind: "color", label: "tkTextFaint" },
+  { name: "--heading", group: "text", kind: "color", label: "tkHeading" },
 
-  { name: "--border", group: "line", kind: "color" },
-  { name: "--danger", group: "line", kind: "color" },
+  { name: "--accent", group: "accent", kind: "color", label: "tkAccent" },
+  { name: "--accent-soft", group: "accent", kind: "wash", label: "tkAccentSoft" },
+  { name: "--selection-bg", group: "accent", kind: "wash", label: "tkSelectionBg" },
+  { name: "--focus-ring", group: "accent", kind: "color", label: "tkFocusRing" },
 
-  { name: "--callout-note", group: "callout", kind: "color" },
-  { name: "--callout-info", group: "callout", kind: "color" },
-  { name: "--callout-todo", group: "callout", kind: "color" },
-  { name: "--callout-abstract", group: "callout", kind: "color" },
-  { name: "--callout-tip", group: "callout", kind: "color" },
-  { name: "--callout-success", group: "callout", kind: "color" },
-  { name: "--callout-question", group: "callout", kind: "color" },
-  { name: "--callout-warning", group: "callout", kind: "color" },
-  { name: "--callout-failure", group: "callout", kind: "color" },
-  { name: "--callout-danger", group: "callout", kind: "color" },
-  { name: "--callout-bug", group: "callout", kind: "color" },
-  { name: "--callout-example", group: "callout", kind: "color" },
-  { name: "--callout-quote", group: "callout", kind: "color" },
+  { name: "--border", group: "line", kind: "color", label: "tkBorder" },
+  { name: "--danger", group: "line", kind: "color", label: "tkDanger" },
 
-  { name: "--syn-keyword", group: "code", kind: "color" },
-  { name: "--syn-string", group: "code", kind: "color" },
-  { name: "--syn-number", group: "code", kind: "color" },
-  { name: "--syn-comment", group: "code", kind: "color" },
-  { name: "--syn-func", group: "code", kind: "color" },
-  { name: "--syn-type", group: "code", kind: "color" },
-  { name: "--syn-prop", group: "code", kind: "color" },
-  { name: "--syn-operator", group: "code", kind: "color" },
+  { name: "--callout-note", group: "callout", kind: "color", label: "tkCalloutNote" },
+  { name: "--callout-info", group: "callout", kind: "color", label: "tkCalloutInfo" },
+  { name: "--callout-todo", group: "callout", kind: "color", label: "tkCalloutTodo" },
+  { name: "--callout-abstract", group: "callout", kind: "color", label: "tkCalloutAbstract" },
+  { name: "--callout-tip", group: "callout", kind: "color", label: "tkCalloutTip" },
+  { name: "--callout-success", group: "callout", kind: "color", label: "tkCalloutSuccess" },
+  { name: "--callout-question", group: "callout", kind: "color", label: "tkCalloutQuestion" },
+  { name: "--callout-warning", group: "callout", kind: "color", label: "tkCalloutWarning" },
+  { name: "--callout-failure", group: "callout", kind: "color", label: "tkCalloutFailure" },
+  { name: "--callout-danger", group: "callout", kind: "color", label: "tkCalloutDanger" },
+  { name: "--callout-bug", group: "callout", kind: "color", label: "tkCalloutBug" },
+  { name: "--callout-example", group: "callout", kind: "color", label: "tkCalloutExample" },
+  { name: "--callout-quote", group: "callout", kind: "color", label: "tkCalloutQuote" },
 
-  { name: "--graph-node", group: "graph", kind: "color" },
-  { name: "--graph-edge", group: "graph", kind: "color" },
-  { name: "--graph-vignette", group: "graph", kind: "wash" },
+  { name: "--syn-keyword", group: "code", kind: "color", label: "tkSynKeyword" },
+  { name: "--syn-string", group: "code", kind: "color", label: "tkSynString" },
+  { name: "--syn-number", group: "code", kind: "color", label: "tkSynNumber" },
+  { name: "--syn-comment", group: "code", kind: "color", label: "tkSynComment" },
+  { name: "--syn-func", group: "code", kind: "color", label: "tkSynFunc" },
+  { name: "--syn-type", group: "code", kind: "color", label: "tkSynType" },
+  { name: "--syn-prop", group: "code", kind: "color", label: "tkSynProp" },
+  { name: "--syn-operator", group: "code", kind: "color", label: "tkSynOperator" },
+
+  { name: "--graph-node", group: "graph", kind: "color", label: "tkGraphNode" },
+  { name: "--graph-edge", group: "graph", kind: "color", label: "tkGraphEdge" },
+  { name: "--graph-vignette", group: "graph", kind: "wash", label: "tkGraphVignette" },
+
+  { name: "--sidebar-bg", group: "sidebar", kind: "color", label: "tkSidebarBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--sidebar-text", group: "sidebar", kind: "color", label: "tkSidebarText", derivedFrom: "var(--text)" },
+  { name: "--sidebar-muted", group: "sidebar", kind: "color", label: "tkSidebarMuted", derivedFrom: "var(--text-muted)" },
+  { name: "--sidebar-border", group: "sidebar", kind: "color", label: "tkSidebarBorder", derivedFrom: "var(--border)" },
+  { name: "--sidebar-hover-bg", group: "sidebar", kind: "color", label: "tkSidebarHoverBg", derivedFrom: "var(--bg-hover)" },
+  { name: "--sidebar-active-bg", group: "sidebar", kind: "wash", label: "tkSidebarActiveBg", derivedFrom: "var(--accent-soft)" },
+  { name: "--sidebar-active-bar", group: "sidebar", kind: "color", label: "tkSidebarActiveBar", derivedFrom: "var(--accent)" },
+  { name: "--sidebar-search-bg", group: "sidebar", kind: "color", label: "tkSidebarSearchBg", derivedFrom: "var(--bg)" },
+  { name: "--tagpill-bg", group: "sidebar", kind: "color", label: "tkTagpillBg", derivedFrom: "var(--bg-hover)" },
+  { name: "--tagpill-text", group: "sidebar", kind: "color", label: "tkTagpillText", derivedFrom: "var(--text-muted)" },
+
+  { name: "--tabs-bg", group: "tabs", kind: "color", label: "tkTabsBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--tabs-border", group: "tabs", kind: "color", label: "tkTabsBorder", derivedFrom: "var(--border)" },
+  { name: "--tab-text", group: "tabs", kind: "color", label: "tkTabText", derivedFrom: "var(--text-muted)" },
+  { name: "--tab-hover-bg", group: "tabs", kind: "color", label: "tkTabHoverBg", derivedFrom: "var(--bg-hover)" },
+  { name: "--tab-active-bg", group: "tabs", kind: "color", label: "tkTabActiveBg", derivedFrom: "var(--bg)" },
+  { name: "--tab-active-text", group: "tabs", kind: "color", label: "tkTabActiveText", derivedFrom: "var(--text)" },
+  { name: "--tab-active-bar", group: "tabs", kind: "color", label: "tkTabActiveBar", derivedFrom: "var(--accent)" },
+  { name: "--panel-bg", group: "tabs", kind: "color", label: "tkPanelBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--panel-text", group: "tabs", kind: "color", label: "tkPanelText", derivedFrom: "var(--text)" },
+  { name: "--panel-heading", group: "tabs", kind: "color", label: "tkPanelHeading", derivedFrom: "var(--text-faint)" },
+  { name: "--panel-border", group: "tabs", kind: "color", label: "tkPanelBorder", derivedFrom: "var(--border)" },
+
+  { name: "--statusbar-bg", group: "statusbar", kind: "color", label: "tkStatusbarBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--statusbar-text", group: "statusbar", kind: "color", label: "tkStatusbarText", derivedFrom: "var(--text-muted)" },
+  { name: "--statusbar-border", group: "statusbar", kind: "color", label: "tkStatusbarBorder", derivedFrom: "var(--border)" },
+
+  { name: "--editor-bg", group: "editor", kind: "color", label: "tkEditorBg", derivedFrom: "var(--bg)" },
+  { name: "--editor-text", group: "editor", kind: "color", label: "tkEditorText", derivedFrom: "var(--text)" },
+  { name: "--editor-caret", group: "editor", kind: "color", label: "tkEditorCaret", derivedFrom: "var(--accent)" },
+  { name: "--editor-panel-bg", group: "editor", kind: "color", label: "tkEditorPanelBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--codeblock-bg", group: "editor", kind: "color", label: "tkCodeblockBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--codeblock-text", group: "editor", kind: "color", label: "tkCodeblockText", derivedFrom: "var(--text)" },
+  { name: "--inline-code-bg", group: "editor", kind: "color", label: "tkInlineCodeBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--inline-code-text", group: "editor", kind: "color", label: "tkInlineCodeText", derivedFrom: "var(--text)" },
+  { name: "--code-border", group: "editor", kind: "color", label: "tkCodeBorder", derivedFrom: "var(--border)" },
+
+  { name: "--reading-bg", group: "reading", kind: "color", label: "tkReadingBg", derivedFrom: "var(--bg)" },
+  { name: "--reading-text", group: "reading", kind: "color", label: "tkReadingText", derivedFrom: "var(--text)" },
+  { name: "--quote-bar", group: "reading", kind: "color", label: "tkQuoteBar", derivedFrom: "var(--accent)" },
+  { name: "--quote-text", group: "reading", kind: "color", label: "tkQuoteText", derivedFrom: "var(--text-muted)" },
+  { name: "--highlight-bg", group: "reading", kind: "wash", label: "tkHighlightBg", derivedFrom: "color-mix(in srgb, var(--accent) 26%, transparent)" },
+  { name: "--hr", group: "reading", kind: "color", label: "tkHr", derivedFrom: "var(--accent)" },
+  { name: "--list-bullet", group: "reading", kind: "color", label: "tkListBullet", derivedFrom: "var(--accent)" },
+  { name: "--table-border", group: "reading", kind: "color", label: "tkTableBorder", derivedFrom: "var(--border)" },
+  { name: "--table-head-bg", group: "reading", kind: "color", label: "tkTableHeadBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--table-head-text", group: "reading", kind: "color", label: "tkTableHeadText", derivedFrom: "var(--text-muted)" },
+  { name: "--props-bg", group: "reading", kind: "color", label: "tkPropsBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--footnote-marker", group: "reading", kind: "color", label: "tkFootnoteMarker", derivedFrom: "var(--accent)" },
+
+  { name: "--link", group: "links", kind: "color", label: "tkLink", derivedFrom: "var(--accent)" },
+  { name: "--wikilink", group: "links", kind: "color", label: "tkWikilink", derivedFrom: "var(--accent)" },
+  { name: "--wikilink-broken", group: "links", kind: "color", label: "tkWikilinkBroken", derivedFrom: "color-mix(in srgb, var(--danger) 70%, var(--text))" },
+  { name: "--tag-bg", group: "links", kind: "wash", label: "tkTagBg", derivedFrom: "var(--accent-soft)" },
+  { name: "--tag-text", group: "links", kind: "color", label: "tkTagText", derivedFrom: "var(--accent)" },
+
+  { name: "--button-text", group: "controls", kind: "color", label: "tkButtonText", derivedFrom: "var(--text)" },
+  { name: "--button-hover-bg", group: "controls", kind: "color", label: "tkButtonHoverBg", derivedFrom: "var(--bg-hover)" },
+  { name: "--button-accent-bg", group: "controls", kind: "wash", label: "tkButtonAccentBg", derivedFrom: "var(--accent-soft)" },
+  { name: "--button-accent-text", group: "controls", kind: "color", label: "tkButtonAccentText", derivedFrom: "var(--accent)" },
+  { name: "--input-bg", group: "controls", kind: "color", label: "tkInputBg", derivedFrom: "var(--bg)" },
+  { name: "--input-text", group: "controls", kind: "color", label: "tkInputText", derivedFrom: "var(--text)" },
+  { name: "--input-border", group: "controls", kind: "color", label: "tkInputBorder", derivedFrom: "var(--border)" },
+  { name: "--input-placeholder", group: "controls", kind: "color", label: "tkInputPlaceholder", derivedFrom: "var(--text-faint)" },
+  { name: "--input-focus", group: "controls", kind: "color", label: "tkInputFocus", derivedFrom: "var(--accent)" },
+  { name: "--menu-bg", group: "controls", kind: "color", label: "tkMenuBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--menu-text", group: "controls", kind: "color", label: "tkMenuText", derivedFrom: "var(--text)" },
+  { name: "--menu-hover-bg", group: "controls", kind: "wash", label: "tkMenuHoverBg", derivedFrom: "var(--accent-soft)" },
+
+  { name: "--modal-bg", group: "overlays", kind: "color", label: "tkModalBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--modal-text", group: "overlays", kind: "color", label: "tkModalText", derivedFrom: "var(--text)" },
+  { name: "--modal-border", group: "overlays", kind: "color", label: "tkModalBorder", derivedFrom: "var(--border)" },
+  { name: "--backdrop", group: "overlays", kind: "wash", label: "tkBackdrop", derivedFrom: "#00000066" },
+  { name: "--toast-bg", group: "overlays", kind: "color", label: "tkToastBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--toast-text", group: "overlays", kind: "color", label: "tkToastText", derivedFrom: "var(--text)" },
+  { name: "--toast-bar", group: "overlays", kind: "color", label: "tkToastBar", derivedFrom: "var(--accent)" },
+  { name: "--scrollbar-thumb", group: "overlays", kind: "color", label: "tkScrollbarThumb", derivedFrom: "var(--border)" },
+  { name: "--scrollbar-thumb-hover", group: "overlays", kind: "color", label: "tkScrollbarThumbHover", derivedFrom: "var(--text-faint)" },
+
+  { name: "--graph-bg", group: "graph", kind: "color", label: "tkGraphBg", derivedFrom: "var(--bg)" },
+
+  { name: "--blog-bg", group: "blog", kind: "color", label: "tkBlogBg", derivedFrom: "var(--bg)" },
+  { name: "--blog-text", group: "blog", kind: "color", label: "tkBlogText", derivedFrom: "var(--text)" },
+  { name: "--blog-mast-text", group: "blog", kind: "color", label: "tkBlogMastText", derivedFrom: "var(--text)" },
+  { name: "--blog-mast-tagline", group: "blog", kind: "color", label: "tkBlogMastTagline", derivedFrom: "var(--text-muted)" },
+  { name: "--blog-mast-star", group: "blog", kind: "color", label: "tkBlogMastStar", derivedFrom: "var(--accent)" },
+  { name: "--blog-nav-text", group: "blog", kind: "color", label: "tkBlogNavText", derivedFrom: "var(--text-muted)" },
+  { name: "--blog-nav-hover-bg", group: "blog", kind: "color", label: "tkBlogNavHoverBg", derivedFrom: "var(--bg-hover)" },
+  { name: "--blog-nav-active-bg", group: "blog", kind: "wash", label: "tkBlogNavActiveBg", derivedFrom: "var(--accent-soft)" },
+  { name: "--blog-nav-active-text", group: "blog", kind: "color", label: "tkBlogNavActiveText", derivedFrom: "var(--accent)" },
+
+  { name: "--card-bg", group: "cards", kind: "color", label: "tkCardBg", derivedFrom: "var(--bg-raised)" },
+  { name: "--card-text", group: "cards", kind: "color", label: "tkCardText", derivedFrom: "var(--text)" },
+  { name: "--card-border", group: "cards", kind: "color", label: "tkCardBorder", derivedFrom: "var(--border)" },
+  { name: "--card-hover-border", group: "cards", kind: "color", label: "tkCardHoverBorder", derivedFrom: "var(--accent)" },
+  { name: "--progress-track", group: "cards", kind: "color", label: "tkProgressTrack", derivedFrom: "var(--bg-hover)" },
+  { name: "--progress-fill", group: "cards", kind: "color", label: "tkProgressFill", derivedFrom: "var(--accent)" },
 ];
 
 const TOKEN_BY_NAME = new Map(THEME_TOKENS.map((spec) => [spec.name, spec]));
+
+/** The groups in the builder's order. */
+export const TOKEN_GROUPS: TokenGroup[] = ["ground", "text", "accent", "line", "sidebar", "tabs", "statusbar", "editor", "reading", "links", "controls", "overlays", "callout", "code", "graph", "blog", "cards"];
+
+/** The surface tokens only — those with a derivation in tokens.css. */
+export const SURFACE_TOKENS: TokenSpec[] = THEME_TOKENS.filter((spec) => spec.derivedFrom !== undefined);
 
 /** Own-property lookup, never `TOKENS[name]` on a bare object: an allowlist
  *  read through the prototype chain answers for `constructor` and `toString`,

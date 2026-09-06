@@ -59,8 +59,8 @@ export function editorTheme(): Extension {
   return EditorView.theme({
     "&": {
       height: "100%",
-      backgroundColor: "var(--bg)",
-      color: "var(--text)",
+      backgroundColor: "var(--editor-bg)",
+      color: "var(--editor-text)",
       fontSize: "1rem",
     },
     "&.cm-focused": { outline: "none" },
@@ -80,9 +80,9 @@ export function editorTheme(): Extension {
       maxWidth: "648px",
       margin: "0 auto",
       padding: "48px 0 120px",
-      caretColor: "var(--accent)",
+      caretColor: "var(--editor-caret)",
     },
-    ".cm-cursor, .cm-dropCursor": { borderLeftColor: "var(--accent)" },
+    ".cm-cursor, .cm-dropCursor": { borderLeftColor: "var(--editor-caret)" },
     ".cm-selectionBackground, &.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
       { background: "var(--accent-soft)" },
     ".cm-selectionMatch": {
@@ -92,7 +92,7 @@ export function editorTheme(): Extension {
 
     // Search panel.
     ".cm-panels": {
-      backgroundColor: "var(--bg-raised)",
+      backgroundColor: "var(--editor-panel-bg)",
       color: "var(--text)",
     },
     ".cm-panels.cm-panels-top": { borderBottom: "1px solid var(--border)" },
@@ -246,20 +246,22 @@ export function editorTheme(): Extension {
     ".cm-s-inline-code": {
       fontFamily: "var(--font-mono)",
       fontSize: "0.875em",
-      background: "var(--bg-raised)",
-      border: "1px solid var(--border)",
+      color: "var(--inline-code-text)",
+      background: "var(--inline-code-bg)",
+      border: "1px solid var(--code-border)",
       borderRadius: "4px",
       padding: "0.05em 0.3em",
     },
     ".cm-s-codeblock": {
       fontFamily: "var(--font-mono)",
       fontSize: "0.875em",
-      background: "var(--bg-raised)",
+      color: "var(--codeblock-text)",
+      background: "var(--codeblock-bg)",
     },
     ".cm-s-quote": {
-      borderLeft: "3px solid var(--accent)",
+      borderLeft: "3px solid var(--quote-bar)",
       paddingLeft: "0.9em",
-      color: "var(--text-muted)",
+      color: "var(--quote-text)",
       fontStyle: "italic",
     },
     // The SOURCE line, shown only while the cursor is on it. The rendered
@@ -269,25 +271,25 @@ export function editorTheme(): Extension {
       color: "var(--text-faint)",
       letterSpacing: "0.2em",
     },
-    ".cm-s-bullet": { color: "var(--accent)" },
+    ".cm-s-bullet": { color: "var(--list-bullet)" },
     ".cm-s-task-done": {
       color: "var(--text-faint)",
       textDecoration: "line-through",
     },
     ".cm-s-wikilink": {
-      color: "var(--accent)",
+      color: "var(--wikilink)",
       cursor: "pointer",
     },
     ".cm-s-wikilink:hover": { textDecoration: "underline" },
     // "›" between note and heading in a rendered [[Note#Heading]].
     ".cm-s-wikilink-sep": {
-      color: "var(--accent)",
+      color: "var(--wikilink)",
       opacity: "0.65",
       padding: "0 0.22em",
       cursor: "pointer",
     },
     ".cm-s-wikilink--broken": {
-      color: "color-mix(in srgb, var(--danger) 70%, var(--text))",
+      color: "var(--wikilink-broken)",
       textDecoration: "underline dashed",
       textDecorationColor: "color-mix(in srgb, var(--danger) 55%, transparent)",
       textUnderlineOffset: "3px",
@@ -295,16 +297,16 @@ export function editorTheme(): Extension {
     // Smaller than the sidebar pill (DESIGN.md: "same pill style as sidebar,
     // smaller"), and the same size as the reading view's own chip.
     ".cm-s-tag": {
-      color: "var(--accent)",
-      background: "var(--accent-soft)",
+      color: "var(--tag-text)",
+      background: "var(--tag-bg)",
       borderRadius: "999px",
       padding: "0.05em 0.5em",
       fontSize: "0.72em",
     },
     ".cm-s-link, .cm-s-url": {
-      color: "var(--accent)",
+      color: "var(--link)",
       textDecoration: "underline",
-      textDecorationColor: "var(--accent-soft)",
+      textDecorationColor: "color-mix(in srgb, var(--link) 30%, transparent)",
       cursor: "pointer",
     },
   });
