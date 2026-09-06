@@ -963,9 +963,9 @@ everything inside" writes the expanded map under one folder (`setFoldersUnder`) 
 
 ## The writing column (client/editorWidth.ts)
 
-`localStorage["vellum.editorWidth"]` measure|wide|full → `data-editor-width` on `<html>` at boot
+`localStorage["vellum.editorWidth"]` measure|wide|wider|full → `data-editor-width` on `<html>` at boot
 (main.tsx) and on change; app.css reads it into `--editor-measure`, which the editor's
-`.cm-content`, zen's editor and zen's reading column take (648 / 672 / 800px defaults). Full width
+`.cm-content`, zen's editor and zen's reading column take (648 / 672 / 800px defaults; wide 960, wider 1200). Full width
 gives the scroller a gutter instead. Settings → This device row.
 
 ## The status bar keeps the note; the shell's tools moved up

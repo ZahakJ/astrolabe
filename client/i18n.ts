@@ -460,6 +460,7 @@ const DICT = {
   hintEditorWidth: { en: "How wide the editor and the reading view set their text. Per device.", ar: "عرض النص في المحرر وعرض القراءة. لكل جهاز." },
   editorWidthMeasure: { en: "Reading measure", ar: "قياس القراءة" },
   editorWidthWide: { en: "Wide", ar: "عريض" },
+  editorWidthWider: { en: "Wider", ar: "أعرض" },
   editorWidthFull: { en: "Full width", ar: "العرض الكامل" },
   treeFoldInside: { en: "Collapse everything inside", ar: "طيّ كل ما بداخله" },
   treeUnfoldInside: { en: "Expand everything inside", ar: "بسط كل ما بداخله" },

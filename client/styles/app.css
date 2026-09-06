@@ -6405,6 +6405,10 @@ html[data-editor-width="wide"] {
   --editor-measure: 960px;
 }
 
+html[data-editor-width="wider"] {
+  --editor-measure: 1200px;
+}
+
 html[data-editor-width="full"] {
   --editor-measure: none;
 }
