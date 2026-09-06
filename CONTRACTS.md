@@ -1400,6 +1400,21 @@ palette, scrollbars (thin, themed), `::selection` gold. Class names are BEM-ish 
 prefix `s-` (e.g. `.s-sidebar`, `.s-tab`, `.s-palette`). Components must use these exact class
 names where they exist in app.css; anything extra styled inline is a bug — put it in app.css.
 
+**The surface layer** (tokens.css, `:root, [data-theme] { … }`, 2.20): one token per painted thing —
+`--sidebar-*`, `--tabs-*`/`--tab-*`, `--panel-*`, `--statusbar-*`, `--editor-*`, `--codeblock-*`/`--inline-code-*`,
+`--reading-*`, `--quote-*`, `--highlight-bg`, `--hr`, `--table-*`, `--props-bg`, `--footnote-marker`,
+`--list-bullet`, `--link`, `--wikilink(-broken)`, `--tag-*`, `--button-*`, `--input-*`, `--menu-*`, `--modal-*`,
+`--backdrop`, `--toast-*`, `--scrollbar-thumb(-hover)`, `--graph-bg`, `--blog-*`, `--card-*`, `--progress-*` —
+each a `var(--base)` derivation (a few color-mix), declared on `:root, [data-theme]` and never inside a
+theme block, so every built-in keeps its look and a base override still reaches every surface an author
+has not painted. Consumers read the SURFACE token (app.css, reading.css, preview.css, blog.css,
+media.css, tracker.css, editor/theme.ts), never the base one for those surfaces. The list is
+`THEME_TOKENS` with `derivedFrom` in shared/customTheme.ts; every token carries an i18n `label`;
+`tests/themeTokens.test.ts` holds the three (spec, layer, dictionary) to each other. `SURFACE_PAIRS`
+(shared/contrast.ts) measures text-on-ground surfaces at the base floors; check-contrast resolves the
+derivations per theme first. The page inks stay out (tokens.css says why). The builder lists tokens by
+human name with the raw name in mono, filters across groups, and resets a group or all.
+
 Two stylesheets are linked AFTER app.css (`client/index.html`), and the order is load-bearing:
 `styles/themes.css` (the theme library — the per-theme retunes of `::selection`, `:focus-visible`
 and the graph vignette, the `--sw-*` swatch machinery, the picker panel) and `styles/settings.css`

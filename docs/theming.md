@@ -133,7 +133,8 @@ switched off — and the entry bundle every audience downloads — pays nothing 
 
 The built-ins are a starting point, not a ceiling. **Themes → New custom theme** opens a builder:
 pick one of them as a base, then override any token you like — grounds, text, **headings**, accent,
-borders, the thirteen callout hues, the eight syntax colors, the graph — and watch the whole app
+borders, and every surface on its own (the sidebar, the tab strip, the status bar, the editor page, the
+reading page, the fields and buttons, the dialogs, the site, the cards; find one by name in the filter), the thirteen callout hues, the eight syntax colors, the graph — and watch the whole app
 change behind the panel while you do it, because the only honest preview of a theme is the theme.
 Tokens you do not touch keep coming from the base, so a later retune of that base reaches your
 theme for free, and every row's *reset* deletes the override rather than freezing today's value
@@ -188,6 +189,31 @@ for one):
 | `--sidebar-w` | Sidebar width (default 292px) |
 | `--callout-note`, `--callout-tip`, … | Per-type callout hues (see `client/styles/tokens.css`) |
 | `--syn-keyword`, `--syn-string`, … | Code-highlighting palette |
+
+**The surface layer.** Everything above is a base token, and most of the interface used to read them
+directly, so a room could not recolour its sidebar without recolouring every raised surface. Every
+painted thing now has a token of its own, defined on `:root, [data-theme]` as a derivation of a base
+token (`--sidebar-bg: var(--bg-raised)`), which means two things at once: a base token you change
+still flows into every surface you have not touched, and a surface you set moves alone. The builder
+lists all of them under human names, in both languages, with a filter over the rows and a reset per
+group; `custom.css` can set any of them by name. Text on a ground is measured like the base pairs:
+`--sidebar-text` on `--sidebar-bg` at 4.5:1, secondary text at 3:1, and the builder says so in words
+when a pair fails. The six page inks are deliberately not here: a highlight that changed colour with
+the theme would be data loss, not a theme.
+
+| Surface | Tokens (each follows the base in brackets until you set it) |
+| --- | --- |
+| Sidebar | `--sidebar-bg` (var(--bg-raised)), `--sidebar-text` (var(--text)), `--sidebar-muted` (var(--text-muted)), `--sidebar-border` (var(--border)), `--sidebar-hover-bg` (var(--bg-hover)), `--sidebar-active-bg` (var(--accent-soft)), `--sidebar-active-bar` (var(--accent)), `--sidebar-search-bg` (var(--bg)), `--tagpill-bg` (var(--bg-hover)), `--tagpill-text` (var(--text-muted)) |
+| Tabs & panels | `--tabs-bg` (var(--bg-raised)), `--tabs-border` (var(--border)), `--tab-text` (var(--text-muted)), `--tab-hover-bg` (var(--bg-hover)), `--tab-active-bg` (var(--bg)), `--tab-active-text` (var(--text)), `--tab-active-bar` (var(--accent)), `--panel-bg` (var(--bg-raised)), `--panel-text` (var(--text)), `--panel-heading` (var(--text-faint)), `--panel-border` (var(--border)) |
+| Status bar | `--statusbar-bg` (var(--bg-raised)), `--statusbar-text` (var(--text-muted)), `--statusbar-border` (var(--border)) |
+| Editor & code | `--editor-bg` (var(--bg)), `--editor-text` (var(--text)), `--editor-caret` (var(--accent)), `--editor-panel-bg` (var(--bg-raised)), `--codeblock-bg` (var(--bg-raised)), `--codeblock-text` (var(--text)), `--inline-code-bg` (var(--bg-raised)), `--inline-code-text` (var(--text)), `--code-border` (var(--border)) |
+| Reading | `--reading-bg` (var(--bg)), `--reading-text` (var(--text)), `--quote-bar` (var(--accent)), `--quote-text` (var(--text-muted)), `--highlight-bg`, `--hr` (var(--accent)), `--list-bullet` (var(--accent)), `--table-border` (var(--border)), `--table-head-bg` (var(--bg-raised)), `--table-head-text` (var(--text-muted)), `--props-bg` (var(--bg-raised)), `--footnote-marker` (var(--accent)) |
+| Links & tags | `--link` (var(--accent)), `--wikilink` (var(--accent)), `--wikilink-broken`, `--tag-bg` (var(--accent-soft)), `--tag-text` (var(--accent)) |
+| Controls | `--button-text` (var(--text)), `--button-hover-bg` (var(--bg-hover)), `--button-accent-bg` (var(--accent-soft)), `--button-accent-text` (var(--accent)), `--input-bg` (var(--bg)), `--input-text` (var(--text)), `--input-border` (var(--border)), `--input-placeholder` (var(--text-faint)), `--input-focus` (var(--accent)), `--menu-bg` (var(--bg-raised)), `--menu-text` (var(--text)), `--menu-hover-bg` (var(--accent-soft)) |
+| Dialogs & toasts | `--modal-bg` (var(--bg-raised)), `--modal-text` (var(--text)), `--modal-border` (var(--border)), `--backdrop`, `--toast-bg` (var(--bg-raised)), `--toast-text` (var(--text)), `--toast-bar` (var(--accent)), `--scrollbar-thumb` (var(--border)), `--scrollbar-thumb-hover` (var(--text-faint)) |
+| Graph | `--graph-bg` (var(--bg)) |
+| Site | `--blog-bg` (var(--bg)), `--blog-text` (var(--text)), `--blog-mast-text` (var(--text)), `--blog-mast-tagline` (var(--text-muted)), `--blog-mast-star` (var(--accent)), `--blog-nav-text` (var(--text-muted)), `--blog-nav-hover-bg` (var(--bg-hover)), `--blog-nav-active-bg` (var(--accent-soft)), `--blog-nav-active-text` (var(--accent)) |
+| Cards & bars | `--card-bg` (var(--bg-raised)), `--card-text` (var(--text)), `--card-border` (var(--border)), `--card-hover-border` (var(--accent)), `--progress-track` (var(--bg-hover)), `--progress-fill` (var(--accent)) |
 
 ## Bring your own fonts (the CSS route)
 
