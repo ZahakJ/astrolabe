@@ -1,7 +1,7 @@
 // Indexer: in-memory search + link-graph index, built once at startup and kept
 // fresh incrementally from vault watcher events.
 
-import { isLibraryLesson, libraryLessonFolders } from "../shared/library.ts";
+import { isLibraryLesson, libraryCoverPaths, libraryLessonFolders } from "../shared/library.ts";
 import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -2034,7 +2034,12 @@ export function isNotePublished(relPath: string): boolean {
 }
 
 export function isAllowedAttachment(relPath: string): boolean {
-  return allowedAttachments().has(relPath);
+  if (allowedAttachments().has(relPath)) return true;
+  // A library path's cover is visitor-visible on the shelf's terms. Read LIVE
+  // from settings rather than baked into the allowlist above: that cache is
+  // dropped only by index mutations, and a cover set in the panel has moved
+  // no file — it would have stayed a 404 until the next vault event.
+  return attachmentPaths.has(relPath) && libraryCoverPaths(getSettings().library).includes(relPath);
 }
 
 /** Published notes as { path, title }, unsorted. */

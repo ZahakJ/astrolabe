@@ -967,6 +967,17 @@ the owner met as "my chapter notes went to be actual blog posts" the moment they
 (the door had nothing to do with it; the feed had never excluded them). The note's own URL still
 renders; hidden paths and a disabled library give the notes back to the blog.
 
+**A COVER IS SERVED ON THE SHELF'S TERMS.** `/api/file` answers a visitor for a published note's
+attachments (the allowlist walk in server/indexer.ts) AND for `libraryCoverPaths(settings.library)`
+— the vault-relative covers of the enabled library's visible paths — checked LIVE in
+`isAllowedAttachment()`, because the allowlist cache is dropped only by index mutations and a cover
+set in the panel moves no file. Https covers are not files and are not listed.
+
+**THE SHELF IS LANGUAGE-SCOPED LIKE THE FEED.** On a site whose language is Arabic with the
+filter on `follow`, a visitor sees the English books only after the ع/EN toggle; the owner, logged
+in, sees them always. That is the feed's own rule, not a bug, and the reason "how do I see the
+library on public?" has two answers (publish the notes; and the visitor's language).
+
 **THE DOOR NEEDS A LESSON.** `/api/me.library` is sent only when some path has a lesson this
 session may read; a path whose notes are all drafts hides the door for visitors (and the owner,
 logged out, asked where the library went). The settings card prints "N of M notes published" per

@@ -175,6 +175,25 @@ export function isLibraryLesson(notePath: string, folders: readonly string[]): b
   return false;
 }
 
+/** The vault-relative COVER images of an enabled library's visible paths —
+ *  what /api/file may serve a visitor beside the published notes' own
+ *  attachments, because a shelf with holes where the art should be is the
+ *  tracker-cover bug again. An https cover is not a vault file and is not
+ *  listed. Read live from settings, never cached with the index: a cover set
+ *  in the panel must show on the next request, and the index has not moved. */
+export function libraryCoverPaths(lib: LibrarySettings | undefined): string[] {
+  if (!lib || lib.enabled !== true) return [];
+  const out: string[] = [];
+  for (const ref of lib.paths ?? []) {
+    if (ref.hidden || !ref.cover) continue;
+    const cover = ref.cover.trim();
+    if (/^https?:\/\//i.test(cover)) continue;
+    const norm = libraryFolder(cover);
+    if (norm !== null && !out.includes(norm)) out.push(norm);
+  }
+  return out;
+}
+
 /** A folder's name as a shelf TITLE: the sorting prefix (`B2| `) gone, the
  *  rest as written. What the tree's "Library…" popover and the settings
  *  panel's folder chooser fill the title field with. */

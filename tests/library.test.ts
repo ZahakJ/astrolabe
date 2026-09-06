@@ -6,6 +6,7 @@ import {
   compareUnits,
   guessLibraryKind,
   isLibraryLesson,
+  libraryCoverPaths,
   libraryFolder,
   libraryFreshSlug,
   libraryLessonFolders,
@@ -125,5 +126,21 @@ describe("a lesson is not a post", () => {
     assert.equal(isLibraryLesson("Books/Feynman Lectures/x.md", folders), false);
     assert.equal(isLibraryLesson("Books/Feynman.md", folders), false);
     assert.equal(isLibraryLesson("essays/x.md", []), false);
+  });
+});
+
+describe("library covers a visitor may fetch", () => {
+  it("lists vault covers of visible paths, never web ones or hidden paths", () => {
+    const lib = {
+      enabled: true,
+      paths: [
+        { id: "a", slug: "a", folder: "Books/A", kind: "book" as const, title: "A", cover: "attachments/a.jpg" },
+        { id: "b", slug: "b", folder: "Books/B", kind: "book" as const, title: "B", cover: "https://x/y.jpg" },
+        { id: "c", slug: "c", folder: "Books/C", kind: "book" as const, title: "C", cover: "attachments/c.jpg", hidden: true },
+        { id: "d", slug: "d", folder: "Books/D", kind: "book" as const, title: "D" },
+      ],
+    };
+    assert.deepEqual(libraryCoverPaths(lib), ["attachments/a.jpg"]);
+    assert.deepEqual(libraryCoverPaths({ ...lib, enabled: false }), []);
   });
 });
