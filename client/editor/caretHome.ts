@@ -51,9 +51,14 @@ export function caretHome(path: string, content: string): number {
       if (/^\s{0,3}#{1,6}\s/.test(line)) return end;
       // A fence opens a note that IS a card (a Media item is frontmatter and
       // one ```tracker block): a caret on the fence line unfolds the card into
-      // its source, in the middle of the thing the reader clicked. Park on
-      // the line after the closing fence instead, which is where prose goes.
+      // its source, and a caret on the empty line after the closing fence is
+      // drawn by CodeMirror at the block widget's edge — "through the card",
+      // the owner said, twice. So park on the blank line ABOVE the fence when
+      // the note has one (the Media page always writes one), and only when
+      // the fence sits hard against the frontmatter fall through to the line
+      // after the closing fence.
       const fence = /^\s{0,3}(`{3,}|~{3,})/.exec(line);
+      if (fence && at > fm) return fm;
       if (fence) {
         const close = new RegExp(`^\\s{0,3}${fence[1]}\\s*$`);
         let p = nl === -1 ? content.length : nl + 1;

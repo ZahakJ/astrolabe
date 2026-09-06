@@ -51,6 +51,7 @@ import {
 import { promptNewDrawing, promptNewFolder, promptNewNote } from "../prompts.ts";
 import { newNoteFromTemplateCommand } from "../templateActions.ts";
 import { useStore, sidebarIsDrawer } from "../state.ts";
+import { trackerOfFolder, useTrackerShelf } from "../trackerShelf.ts";
 import AttachmentViewer, { fileUrl, isViewable } from "./AttachmentViewer.tsx";
 // The reader's door only — a tiny module whose heavy half (the shelf, the page
 // renderer, pdf.js) is behind a dynamic import. See client/books/door.ts.
@@ -2780,6 +2781,10 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
   // re-render on every store change of any kind. Read here rather than
   // threaded from Sidebar so an icon change repaints one row.
   const folderIcon = useStore((s) => (node.type === "folder" ? s.folderIcons[node.path] : undefined));
+  // A folder that a Media tracker names is a book, a show, a course on the
+  // shelf: the row says so, and the mark is the door to the tracker.
+  const shelf = useTrackerShelf();
+  const tracked = node.type === "folder" ? trackerOfFolder(shelf, node.path) : null;
   const attachment = node.attachment;
   const [isOpen, setIsOpen] = useState(
     () => isFolder && (expandedMap.get(node.path) ?? defaultOpen(depth)),
@@ -3139,6 +3144,23 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
             the one that has no glyph of its own. */}
         {attachment?.kind === "other" && attachment.ext && (
           <span className="s-tree__ext">{attachment.ext}</span>
+        )}
+        {tracked && (
+          <button
+            type="button"
+            className="s-tree__tracked"
+            title={tf("treeTrackedAs", { title: tracked.title })}
+            aria-label={tf("treeTrackedAs", { title: tracked.title })}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              const store = useStore.getState();
+              store.openNote(tracked.path);
+              store.setView("editor");
+            }}
+          >
+            <FolderGlyph icon={tracked.icon} size={12} />
+          </button>
         )}
         {/* How many files are about to land here — chrome, so it sits
             OUTSIDE the label's isolate and keeps the row's own direction. */}

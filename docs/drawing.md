@@ -27,12 +27,16 @@ format:
 | has an `.obsidian/` folder | `Drawing.excalidraw.md` | the Obsidian Excalidraw plugin opens it there, as a note with the scene inside |
 | does not | `Drawing.excalidraw` | Excalidraw's own file, readable by excalidraw.com and every tool that speaks it |
 
+**From inside a note, type `/draw`.** The slash menu makes the drawing beside the note, named after it (`Essay sketch.excalidraw`, then `sketch 2`…), writes the `![[embed]]` where the caret was, and opens the canvas in a pane next to the note, so you draw with the prose in view and the embed fills in as you save. No separate note, nothing to paste.
+
 Type either extension yourself to choose. A drawing made in Obsidian, compressed or not, opens
 without conversion; when Vellum saves a plugin file it keeps the frontmatter, keeps the compression
 if the file had it, and lists the text elements under `## Text Elements` where the plugin does, so
 Obsidian's own search and links keep working on what Vellum drew.
 
 ## Drawing
+
+The menu in the corner (≡) carries the verbs a drawing in a vault has a use for: export an image, find on the canvas, the command palette, help, clear the canvas, and the canvas background. Excalidraw's own links and its theme switch are not there; the canvas follows Vellum's theme. Dialogs open centred on the canvas, not the window, and the sidebar stays clear.
 
 The canvas is Excalidraw, whole: shapes, arrows, freehand, text, images, the library, every one of
 its keys (`r` rectangle, `t` text, `v` select, `?` for the rest). It wears Vellum's room — dark or

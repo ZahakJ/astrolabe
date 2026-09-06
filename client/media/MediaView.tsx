@@ -21,7 +21,7 @@ import { foldKind, type TrackerKind, type TrackerStatus } from "../../shared/tra
 import type { TrackerMeta } from "../../shared/types.ts";
 import { getTrackers, updateTracker } from "../api.ts";
 import FolderGlyph from "../components/FolderGlyph.tsx";
-import { siteDate } from "../dates.ts";
+import { relativeDate, siteDate } from "../dates.ts";
 import { autoDir, countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
 import { TREE_REVEAL_EVENT } from "../components/Sidebar.tsx";
@@ -101,6 +101,7 @@ function MediaCard({
   onEdit,
   onStep,
   onFolder,
+  onOpenPath,
 }: {
   meta: TrackerMeta;
   locale: string;
@@ -108,6 +109,7 @@ function MediaCard({
   onEdit: () => void;
   onStep: (delta: number) => void;
   onFolder: () => void;
+  onOpenPath: (path: string) => void;
 }) {
   const [coverBroken, setCoverBroken] = useState(false);
   useEffect(() => setCoverBroken(false), [meta.cover]);
@@ -176,6 +178,23 @@ function MediaCard({
           </svg>
           <span dir="auto">{tf("mediaFolderNotes", { count: countPhrase(meta.folderNotes, "notes"), folder: meta.folder.split("/").pop() ?? meta.folder })}</span>
         </button>
+      )}
+      {meta.folder && meta.folderRecent.length > 0 && (
+        /* The last notes touched under the folder: the work's own history,
+           newest first, each a door. Three is a strip, not a list. */
+        <div className="s-media__recent">
+          <span className="s-media__recenthead">{t("mediaRecentNotes")}</span>
+          <ul className="s-media__recentlist">
+            {meta.folderRecent.map((n) => (
+              <li key={n.path}>
+                <button type="button" className="s-media__recentnote" onClick={() => onOpenPath(n.path)} title={n.path}>
+                  <bdi className="s-media__recenttitle">{n.title}</bdi>
+                  <span className="s-media__recentwhen">{relativeDate(n.mtimeMs, locale, { dateStyle: "medium" })}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       {meta.notes && <p className="s-media__notes" dir="auto">{meta.notes}</p>}
       <div className="s-media__actions">
@@ -333,6 +352,10 @@ export default function MediaView() {
                   locale={locale}
                   onOpen={() => open(meta)}
                   onFolder={() => openFolder(meta)}
+                  onOpenPath={(path) => {
+                    openNote(path);
+                    setView("editor");
+                  }}
                   onEdit={() => setForm({ open: true, editing: meta })}
                   onStep={(delta) => void step(meta, delta * meta.step)}
                 />

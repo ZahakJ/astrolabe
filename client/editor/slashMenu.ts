@@ -20,6 +20,8 @@ import {
 import type { EditorView } from "@codemirror/view";
 import { languages } from "@codemirror/language-data";
 import { dailyNotePath } from "../daily.ts";
+import { createDrawingBeside } from "../drawing/createBeside.ts";
+import { useStore } from "../state.ts";
 import { t, type I18nKey } from "../i18n.ts";
 import { CALLOUT_TYPES, calloutGroup, calloutIconSvg } from "./calloutDefs.ts";
 
@@ -125,6 +127,25 @@ function slashItems(): SlashItem[] {
       detailKey: "slashMathDetail",
       boost: 5,
       apply: snippet("$$\n${}\n$$"),
+    },
+    {
+      label: "Drawing",
+      displayLabel: "slashDrawing",
+      detailKey: "slashDrawingDetail",
+      boost: 60,
+      apply: (view, _c, from, to) => {
+        // The file is made first and the embed written when it exists, so a
+        // failed write leaves no `![[…]]` pointing at nothing. The "/draw"
+        // the writer typed is cleared at once, which is the acknowledgement.
+        view.dispatch({ changes: { from, to, insert: "" } });
+        const notePath = useStore.getState().openPath;
+        if (!notePath) return;
+        void createDrawingBeside(notePath).then((name) => {
+          if (!name) return;
+          const at = Math.min(from, view.state.doc.length);
+          view.dispatch({ changes: { from: at, to: at, insert: `![[${name}]]\n` } });
+        });
+      },
     },
     {
       label: "Divider",

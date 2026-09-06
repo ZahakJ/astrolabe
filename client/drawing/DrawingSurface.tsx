@@ -11,7 +11,7 @@
 import "./assetPath.ts";
 import "@excalidraw/excalidraw/index.css";
 import "../styles/drawing.css";
-import { Excalidraw, exportToSvg, getNonDeletedElements, getSceneVersion, serializeAsJSON } from "@excalidraw/excalidraw";
+import { Excalidraw, MainMenu, exportToSvg, getNonDeletedElements, getSceneVersion, serializeAsJSON } from "@excalidraw/excalidraw";
 import { useCallback, useEffect, useRef, useState, type ComponentProps } from "react";
 import { flushNoteBeacon, getNote, isStaleWriteError, putDrawingSvg, putNote } from "../api.ts";
 import { resolveBaseTheme } from "../design/customThemes.ts";
@@ -56,6 +56,37 @@ export default function DrawingSurface({ path, active }: { path: string; active:
   const language = useStore((s) => s.language);
   const dark = themeGroup(resolveBaseTheme(theme)) === "dark";
   const [initial, setInitial] = useState<ExcalidrawProps["initialData"] | null>(null);
+  // WHERE THE CANVAS IS, for the dialogs. Excalidraw portals its modals (the
+  // export dialog, help) into a container it appends to <body>, sized to the
+  // whole window, so the dialog centred on the WINDOW while the canvas sat
+  // between the sidebar and the panel — "very off centre", the owner said.
+  // The canvas publishes its own box as CSS variables on the root, and
+  // drawing.css pins that container to it, so a dialog opens over the
+  // canvas and the sidebar stays uncovered. The last canvas touched wins,
+  // which is the one whose dialog is about to open.
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const publishBox = useCallback((): void => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const root = document.documentElement.style;
+    root.setProperty("--s-drawing-x", `${Math.round(r.left)}px`);
+    root.setProperty("--s-drawing-y", `${Math.round(r.top)}px`);
+    root.setProperty("--s-drawing-w", `${Math.round(r.width)}px`);
+    root.setProperty("--s-drawing-h", `${Math.round(r.height)}px`);
+  }, []);
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    publishBox();
+    const ro = new ResizeObserver(publishBox);
+    ro.observe(el);
+    window.addEventListener("resize", publishBox);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", publishBox);
+    };
+  }, [publishBox]);
   const [failed, setFailed] = useState(false);
   const [status, setStatus] = useState<Status>("clean");
   const apiRef = useRef<Api | null>(null);
@@ -245,7 +276,7 @@ export default function DrawingSurface({ path, active }: { path: string; active:
           </button>
         </div>
       )}
-      <div className="s-drawing__canvas">
+      <div className="s-drawing__canvas" ref={canvasRef} onPointerDownCapture={publishBox} onFocusCapture={publishBox}>
         {initial !== null && (
           <Excalidraw
             initialData={initial}
@@ -260,7 +291,23 @@ export default function DrawingSurface({ path, active }: { path: string; active:
               // to disk" would be a second, silent save path.
               canvasActions: { loadScene: false, saveToActiveFile: false, export: false },
             }}
-          />
+          >
+            {/* Our own menu: the package's default carries its socials (GitHub,
+                X, Discord) and a theme toggle; the theme is Vellum's and the
+                links are Excalidraw's, so the menu keeps only the verbs a
+                drawing in a vault has a use for. */}
+            <MainMenu>
+              <MainMenu.DefaultItems.SaveAsImage />
+              <MainMenu.DefaultItems.SearchMenu />
+              <MainMenu.DefaultItems.CommandPalette />
+              <MainMenu.DefaultItems.Help />
+              <MainMenu.Separator />
+              <MainMenu.DefaultItems.ClearCanvas />
+              <MainMenu.Separator />
+              <MainMenu.DefaultItems.ChangeCanvasBackground />
+            </MainMenu>
+          </Excalidraw>
+          
         )}
       </div>
       <div className={`s-drawing__status s-drawing__status--${status}`} aria-live="polite">

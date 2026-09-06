@@ -38,11 +38,13 @@ it is a tab beside the notes you are writing, the words on its canvas are in sea
 <p>Right-click a folder → <strong>New drawing here</strong>, or <strong>New drawing</strong> in the command palette (it lands in
 the open note&#39;s folder). The name prompt offers <code>Drawing.excalidraw</code>, and the extension is the
 format:</p>
-<div class="table"><table><thead><tr><th>The vault</th><th>A new drawing is</th><th>Why</th></tr></thead><tbody><tr><td>has an <code>.obsidian/</code> folder</td><td><code>Drawing.excalidraw.md</code></td><td>the Obsidian Excalidraw plugin opens it there, as a note with the scene inside</td></tr><tr><td>does not</td><td><code>Drawing.excalidraw</code></td><td>Excalidraw&#39;s own file, readable by excalidraw.com and every tool that speaks it</td></tr></tbody></table></div><p>Type either extension yourself to choose. A drawing made in Obsidian, compressed or not, opens
+<div class="table"><table><thead><tr><th>The vault</th><th>A new drawing is</th><th>Why</th></tr></thead><tbody><tr><td>has an <code>.obsidian/</code> folder</td><td><code>Drawing.excalidraw.md</code></td><td>the Obsidian Excalidraw plugin opens it there, as a note with the scene inside</td></tr><tr><td>does not</td><td><code>Drawing.excalidraw</code></td><td>Excalidraw&#39;s own file, readable by excalidraw.com and every tool that speaks it</td></tr></tbody></table></div><p><strong>From inside a note, type <code>/draw</code>.</strong> The slash menu makes the drawing beside the note, named after it (<code>Essay sketch.excalidraw</code>, then <code>sketch 2</code>…), writes the <code>![[embed]]</code> where the caret was, and opens the canvas in a pane next to the note, so you draw with the prose in view and the embed fills in as you save. No separate note, nothing to paste.</p>
+<p>Type either extension yourself to choose. A drawing made in Obsidian, compressed or not, opens
 without conversion; when Vellum saves a plugin file it keeps the frontmatter, keeps the compression
 if the file had it, and lists the text elements under <code>## Text Elements</code> where the plugin does, so
 Obsidian&#39;s own search and links keep working on what Vellum drew.</p>
 <h2 id="drawing"><a class="anchor" href="#drawing">Drawing</a></h2>
+<p>The menu in the corner (≡) carries the verbs a drawing in a vault has a use for: export an image, find on the canvas, the command palette, help, clear the canvas, and the canvas background. Excalidraw&#39;s own links and its theme switch are not there; the canvas follows Vellum&#39;s theme. Dialogs open centred on the canvas, not the window, and the sidebar stays clear.</p>
 <p>The canvas is Excalidraw, whole: shapes, arrows, freehand, text, images, the library, every one of
 its keys (<code>r</code> rectangle, <code>t</code> text, <code>v</code> select, <code>?</code> for the rest). It wears Vellum&#39;s room — dark or
 light follows <a href="../theming/">the theme</a> you are in — and speaks the

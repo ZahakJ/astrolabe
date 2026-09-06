@@ -843,6 +843,31 @@ select:focus,
    folder row is not one. Full-token `--text-faint` at rest, no opacity fade —
    the composited value is invisible to a token-reading contrast gate and
    lands under the 3:1 non-text floor. */
+/* The shelf mark: a folder that a Media tracker names. A small button that
+   opens the tracker, drawn quiet until the row is hovered so a vault of
+   tracked folders does not read as a row of buttons. */
+.s-tree__tracked {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 6px;
+  padding: 1px 4px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+  opacity: 0.7;
+  cursor: pointer;
+  flex: none;
+}
+.s-tree__item:hover .s-tree__tracked,
+.s-tree__tracked:focus-visible {
+  opacity: 1;
+  border-color: var(--border);
+}
+.s-tree__tracked:hover {
+  background: var(--accent-soft);
+}
+
 .s-tree__item--folder:hover .s-tree__glyph {
   color: var(--accent);
 }

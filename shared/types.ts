@@ -689,6 +689,9 @@ export interface TrackerMeta {
    *  named like it, or index.md) when there is one — the card's door. */
   folderNotes: number;
   folderNote: string | null;
+  /** The notes under `folder` touched most recently, newest first, at most
+   *  three: the card's "what I wrote last" strip. */
+  folderRecent: { path: string; title: string; mtimeMs: number }[];
   title: string;     // the tracker's own title ("Elden Ring")
   noteTitle: string; // the note's title — the card's tooltip, since one note may hold many
   kind: string | null;   // as authored ("game", "مسلسل"); null when the fence names none
