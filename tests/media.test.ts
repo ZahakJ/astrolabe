@@ -19,6 +19,7 @@ function meta(over: Partial<TrackerMeta>): TrackerMeta {
     step: 1,
     folderNotes: 0,
     folderNote: null,
+    folderRecent: [],
     title: "X",
     noteTitle: "X",
     kind: "game",

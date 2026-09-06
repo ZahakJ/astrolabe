@@ -82,3 +82,24 @@
   background: #fff;
   border-radius: var(--radius);
 }
+
+/* The dialogs, over the CANVAS. Excalidraw appends its modal container to
+   <body> at the window's size; DrawingSurface publishes the canvas's box as
+   --s-drawing-* and the container is pinned to it, so "Export image" opens
+   centred on the drawing and the sidebar is never dimmed. */
+.excalidraw.excalidraw-modal-container {
+  position: fixed;
+  inset: auto;
+  left: var(--s-drawing-x, 0);
+  top: var(--s-drawing-y, 0);
+  width: var(--s-drawing-w, 100%);
+  height: var(--s-drawing-h, 100%);
+}
+
+/* The main menu drops down over the same corner the tool's properties panel
+   stands in. Both were z-index auto, so which one showed came down to DOM
+   order — the owner saw each cover the other. While it is open the menu is
+   the thing the reader asked for: it wins, and closes on any click outside. */
+.s-drawing .excalidraw .dropdown-menu {
+  z-index: 6;
+}

@@ -2673,18 +2673,21 @@ export function pages(visitor: boolean, lang: FilterLang): PageMeta[] {
 /** What a work's `folder:` amounts to: how many notes are under it, and the
  *  note that stands for the folder itself. Counted over the live index, so a
  *  note added to the folder in Obsidian is on the card at the next read. */
-function folderFacts(folder: string | null): Pick<TrackerMeta, "folder" | "folderNotes" | "folderNote"> {
-  if (folder === null) return { folder: null, folderNotes: 0, folderNote: null };
+function folderFacts(folder: string | null): Pick<TrackerMeta, "folder" | "folderNotes" | "folderNote" | "folderRecent"> {
+  if (folder === null) return { folder: null, folderNotes: 0, folderNote: null, folderRecent: [] };
   const prefix = `${folder}/`;
   const base = folder.split("/").pop() ?? folder;
   let count = 0;
   let own: string | null = null;
-  for (const p of notes.keys()) {
+  const recent: { path: string; title: string; mtimeMs: number }[] = [];
+  for (const [p, record] of notes) {
     if (!p.startsWith(prefix)) continue;
     count++;
     if (p === `${prefix}${base}.md` || (own === null && p === `${prefix}index.md`)) own = p;
+    recent.push({ path: p, title: record.title, mtimeMs: record.mtimeMs });
   }
-  return { folder, folderNotes: count, folderNote: own };
+  recent.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  return { folder, folderNotes: count, folderNote: own, folderRecent: recent.slice(0, 3) };
 }
 
 export function trackers(visitor: boolean, lang: FilterLang): TrackerMeta[] {

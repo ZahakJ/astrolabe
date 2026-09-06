@@ -37,11 +37,12 @@ describe("caret home", () => {
     assert.equal(caretHome("Note.md", tagged), tagged.indexOf("#daily"));
   });
 
-  it("a note that opens with a fence (a Media card) parks AFTER the fence, not on it", () => {
+  it("a note that opens with a fence (a Media card) parks on the blank line ABOVE it, never on or after the card", () => {
     const doc = fm("\n```tracker\ntitle: X\nprogress: 1/14\n```\n");
-    assert.equal(caretHome("Media/Books/X.md", doc), doc.length);
-    const more = fm("\n```tracker\ntitle: X\n```\n\nProse after.\n");
-    assert.equal(more.slice(caretHome("Note.md", more)), "\nProse after.\n");
+    assert.equal(caretHome("Media/Books/X.md", doc), afterFrontmatter("Media/Books/X.md", doc));
+    // No blank line to park on: after the closing fence, where prose goes.
+    const tight = fm("```tracker\ntitle: X\n```\n\nProse after.\n");
+    assert.equal(tight.slice(caretHome("Note.md", tight)), "\nProse after.\n");
   });
 
   it("a headingless note opens at the START of its prose, never at the end", () => {

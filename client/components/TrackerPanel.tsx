@@ -9,9 +9,10 @@
 // and nothing has to be typed into any note.
 //
 // Admin only, like the Media page: the trackers route is the owner's shelf.
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { TrackerMeta, TreeNode } from "../../shared/types.ts";
-import { getTrackers, updateTracker } from "../api.ts";
+import { updateTracker } from "../api.ts";
+import { loadShelf, useTrackerShelf } from "../trackerShelf.ts";
 import { autoDir, countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
 import { foldKind } from "../../shared/tracker.ts";
@@ -20,30 +21,6 @@ import { toast } from "../toast.ts";
 import FolderGlyph from "./FolderGlyph.tsx";
 
 const COLLAPSED_KEY = "vellum.trackerpanel-collapsed";
-/** App.tsx fires this on every vault event. Spelled here rather than imported
- *  from the Media page, which is a lazy chunk this panel must not pull into
- *  the entry bundle. */
-const VAULT_EVENT = "vellum:vault";
-
-/** One list for every mounted panel: the shelf changes rarely and is cheap to
- *  re-read, and each note switch must not cost a request. */
-let shelf: TrackerMeta[] | null = null;
-let inflight: Promise<TrackerMeta[]> | null = null;
-const listeners = new Set<() => void>();
-function loadShelf(force: boolean): Promise<TrackerMeta[]> {
-  if (!force && shelf !== null) return Promise.resolve(shelf);
-  if (inflight) return inflight;
-  inflight = getTrackers()
-    .then((list) => {
-      shelf = list;
-      for (const fn of listeners) fn();
-      return list;
-    })
-    .finally(() => {
-      inflight = null;
-    });
-  return inflight;
-}
 
 function readCollapsed(): boolean {
   try {
@@ -85,26 +62,8 @@ export default function TrackerPanel() {
   const openNote = useStore((s) => s.openNote);
   const setView = useStore((s) => s.setView);
   useStore((s) => s.language);
-  const [list, setList] = useState<TrackerMeta[] | null>(shelf);
+  const list = useTrackerShelf();
   const [collapsed, setCollapsed] = useState(readCollapsed);
-
-  useEffect(() => {
-    if (!admin || preview) return;
-    const sync = (): void => setList(shelf);
-    listeners.add(sync);
-    void loadShelf(false).then(sync);
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const onVault = (): void => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => void loadShelf(true), 300);
-    };
-    window.addEventListener(VAULT_EVENT, onVault);
-    return () => {
-      listeners.delete(sync);
-      window.removeEventListener(VAULT_EVENT, onVault);
-      if (timer) clearTimeout(timer);
-    };
-  }, [admin, preview]);
 
   // The longest folder that holds the open note wins, so a work whose folder
   // is inside another work's folder claims its own notes.
