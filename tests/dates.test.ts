@@ -34,6 +34,22 @@ describe("dateNamesLocale", () => {
   });
 });
 
+describe("a `both` date's order and separator", () => {
+  const d = new Date(ISO);
+  it("follows the language by default, with a bar between the halves", () => {
+    const ar = formatCalendarDate(d, "ar", "both", "ar", LONG_UTC);
+    const en = formatCalendarDate(d, "en", "both", "en", LONG_UTC);
+    assert.match(ar, /هـ.*\|.*يناير.*م/, "Arabic leads with the Hijri date, a bar, then the Gregorian one with its era mark");
+    assert.match(en, /January.*\|.*AH/, "English leads with the Gregorian date");
+  });
+  it("takes an explicit order and separator", () => {
+    const hijriFirst = formatCalendarDate(d, "en", "both", "en", LONG_UTC, { order: "hijri-first", separator: "dot" });
+    assert.match(hijriFirst, /AH.*·.*January/);
+    const parens = formatCalendarDate(d, "en", "both", "en", LONG_UTC, { order: "gregorian-first", separator: "parens" });
+    assert.match(parens, /January.*\(.*AH.*\)/);
+  });
+});
+
 describe("English chrome does not print Arabic month names", () => {
   it("formatCalendarDate in en says January, not يناير", () => {
     const en = formatCalendarDate(new Date(ISO), "en", "gregorian", "en", LONG_UTC);

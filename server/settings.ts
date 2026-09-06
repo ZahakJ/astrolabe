@@ -69,7 +69,7 @@ import { FOLLOW_THEME, THEMES as THEME_IDS } from "../shared/themes.ts";
 // Localization: the calendar, the note-layout pair and the tag-label map.
 // Shapes and validators live in shared/, so the client's editor and this
 // file's PATCH handlers cannot drift on what a valid value is.
-import { DEFAULT_DATE_CALENDAR, isDateCalendar, type DateCalendar } from "../shared/dates.ts";
+import { DEFAULT_DATE_CALENDAR, isDateCalendar, type DateCalendar, DEFAULT_DATE_ORDER, DEFAULT_DATE_SEPARATOR, isDateOrder, isDateSeparator, type DateOrder, type DateSeparator } from "../shared/dates.ts";
 import {
   DEFAULT_TEXT_ALIGN,
   DEFAULT_TEXT_DIRECTION,
@@ -564,8 +564,11 @@ export function getSettings(): SettingsData {
   // implemented falls back to the default rather than taking the instance
   // down, exactly like an unknown theme id above.
   if (isDateCalendar(raw.dateCalendar)) out.dateCalendar = raw.dateCalendar;
+  if (isDateOrder(raw.dateOrder)) out.dateOrder = raw.dateOrder;
+  if (isDateSeparator(raw.dateSeparator)) out.dateSeparator = raw.dateSeparator;
   if (isTextDirection(raw.textDirection)) out.textDirection = raw.textDirection;
   if (isTextAlign(raw.textAlign)) out.textAlign = raw.textAlign;
+  if (typeof raw.emptyPropsCard === "boolean") out.emptyPropsCard = raw.emptyPropsCard;
   if (typeof raw.tagsFolder === "string" && raw.tagsFolder.trim() !== "") {
     out.tagsFolder = raw.tagsFolder.trim();
   }
@@ -592,6 +595,14 @@ export function dateCalendar(): DateCalendar {
   return getSettings().dateCalendar ?? DEFAULT_DATE_CALENDAR;
 }
 
+export function dateOrder(): DateOrder {
+  return getSettings().dateOrder ?? DEFAULT_DATE_ORDER;
+}
+
+export function dateSeparator(): DateSeparator {
+  return getSettings().dateSeparator ?? DEFAULT_DATE_SEPARATOR;
+}
+
 /** The SITE default direction/alignment for note prose. A note's own
  *  frontmatter `dir:`/`align:` beats both, and the client resolves that pair —
  *  the server only says what the site asked for. */
@@ -601,6 +612,11 @@ export function textDirection(): TextDirection {
 
 export function textAlign(): TextAlign {
   return getSettings().textAlign ?? DEFAULT_TEXT_ALIGN;
+}
+
+/** The properties card on a note with no frontmatter: on unless turned off. */
+export function emptyPropsCard(): boolean {
+  return getSettings().emptyPropsCard ?? true;
 }
 
 /** The typography slots in effect (every slot present, "system" when unset).
@@ -685,8 +701,11 @@ export function effectiveSettings(): EffectiveSettings {
     // a prefill carrying a label the vault owns would copy that label into
     // settings.json the first time the panel is saved.
     dateCalendar: dateCalendar(),
+    dateOrder: dateOrder(),
+    dateSeparator: dateSeparator(),
     textDirection: textDirection(),
     textAlign: textAlign(),
+    emptyPropsCard: emptyPropsCard(),
     tagsFolder: tagsFolder(),
     tagsFolderDetected: s.tagsFolder === undefined && detectTagsFolder() !== null,
     tagLabels: s.tagLabels ?? {},
@@ -1433,6 +1452,26 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     if (value === DEFAULT_DATE_CALENDAR) delete raw.dateCalendar; // the default stores nothing
     else raw.dateCalendar = value;
   },
+  dateOrder: (raw, value) => {
+    if (value === null || value === "" || value === DEFAULT_DATE_ORDER) {
+      delete raw.dateOrder;
+      return;
+    }
+    if (!isDateOrder(value)) {
+      throw new VaultError(400, 'Settings key "dateOrder" must be "auto", "hijri-first" or "gregorian-first"');
+    }
+    raw.dateOrder = value;
+  },
+  dateSeparator: (raw, value) => {
+    if (value === null || value === "" || value === DEFAULT_DATE_SEPARATOR) {
+      delete raw.dateSeparator;
+      return;
+    }
+    if (!isDateSeparator(value)) {
+      throw new VaultError(400, 'Settings key "dateSeparator" must be "bar", "dot" or "parens"');
+    }
+    raw.dateSeparator = value;
+  },
   textDirection: (raw, value) => {
     if (value === null || value === "") {
       delete raw.textDirection;
@@ -1454,6 +1493,11 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     }
     if (value === DEFAULT_TEXT_ALIGN) delete raw.textAlign;
     else raw.textAlign = value;
+  },
+  emptyPropsCard: (raw, value) => {
+    if (value === null || value === true) delete raw.emptyPropsCard;
+    else if (value === false) raw.emptyPropsCard = false;
+    else throw new VaultError(400, 'Settings key "emptyPropsCard" must be a boolean or null');
   },
   tagsFolder: stringKey("tagsFolder", (v) => {
     const clean = cleanValue(v, "tagsFolder", VALUE_MAX);

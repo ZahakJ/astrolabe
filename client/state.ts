@@ -17,7 +17,7 @@ import { setLang, setNumeralLocale, t, tf } from "./i18n.ts";
 // (client/textLayout.ts) and the tag-label map (client/tagLabels.ts). Same
 // shape as setLang above — imperative DOM (the properties card, the editor's
 // decorations, the blog nav's measuring pass) has no store to subscribe to.
-import { setDateCalendar } from "./dates.ts";
+import { setDateBothStyle, setDateCalendar } from "./dates.ts";
 import { setSiteTextLayout } from "./textLayout.ts";
 import { loadTagLabels } from "./tagLabels.ts";
 import { DEFAULT_DATE_CALENDAR, isDateCalendar, type DateCalendar } from "../shared/dates.ts";
@@ -427,6 +427,8 @@ export interface State {
    *  the settings panel re-render when it moves. */
   textDirection: TextDirection;
   textAlign: TextAlign;
+  /** The properties card on notes without frontmatter (settings.emptyPropsCard). */
+  emptyPropsCard: boolean;
   /** settings.folderIcons — vault-relative FOLDER path → one glyph from the
    *  closed set. Read per row by the sidebar tree, which is why the identity
    *  of this object matters: TreeRow is memoized over 1.4k rows and reads
@@ -1360,6 +1362,7 @@ export const useStore = create<State>()((set, get) => {
     dateCalendar: DEFAULT_DATE_CALENDAR,
     textDirection: DEFAULT_TEXT_DIRECTION,
     textAlign: DEFAULT_TEXT_ALIGN,
+    emptyPropsCard: true,
     folderIcons: NO_FOLDER_ICONS,
     attachmentFolder: null,
     drawingsFolder: "",
@@ -1460,6 +1463,7 @@ export const useStore = create<State>()((set, get) => {
             ? me.folderIcons
             : NO_FOLDER_ICONS;
         setDateCalendar(calendar);
+        setDateBothStyle(me.dateOrder, me.dateSeparator);
         setSiteTextLayout(noteDir, noteAlign);
         applyLanguage(language, locale); // before set(): re-renders already see t() in the new language
         // "auto" is re-evaluated on EVERY language change, not only on a
@@ -1506,6 +1510,7 @@ export const useStore = create<State>()((set, get) => {
           dateCalendar: calendar,
           textDirection: noteDir,
           textAlign: noteAlign,
+          emptyPropsCard: me.emptyPropsCard !== false,
           folderIcons: icons,
           attachmentFolder: me.attachmentFolder ?? null,
           drawingsFolder: me.drawingsFolder ?? "",

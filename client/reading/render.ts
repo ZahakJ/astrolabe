@@ -20,6 +20,7 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { parseWikilink, resolveLink } from "../editor/links.ts";
 import { parseBookAnchor } from "../../shared/bookAnchor.ts";
+import { blockAlignOf, parseAlignMarker, stripAlignMarker } from "../../shared/blockAlign.ts";
 import {
   brokenEmbed,
   embedKnownBroken,
@@ -957,8 +958,13 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       const el = document.createElement(`h${level}`);
       el.className = `s-rv-h s-rv-h${level}`;
       el.dir = "auto"; // RTL headings (Arabic/Hebrew) align to their script
-      el.innerHTML = renderInline(hm[2].replace(/\s+#+\s*$/, ""), ctx);
-      if (ctx.assignIds) el.id = ctx.slugger.slug(stripInline(hm[2]));
+      // `# Title {.center}` (shared/blockAlign.ts): the marker classes the
+      // heading and leaves its words.
+      const headAlign = parseAlignMarker(hm[2]);
+      const headText = headAlign ? stripAlignMarker(hm[2]) : hm[2];
+      if (headAlign) el.classList.add(`s-rv-align-${headAlign.align}`);
+      el.innerHTML = renderInline(headText.replace(/\s+#+\s*$/, ""), ctx);
+      if (ctx.assignIds) el.id = ctx.slugger.slug(stripInline(headText));
       root.appendChild(el);
       i++;
       continue;
@@ -1164,6 +1170,13 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
     const p = document.createElement("p");
     p.className = "s-rv-p";
     p.dir = "auto"; // Arabic/Hebrew paragraphs read right-to-left
+    // A paragraph (or a lone image line) ending in `{.center}` sits there.
+    const align = blockAlignOf(para);
+    if (align !== null) {
+      p.classList.add(`s-rv-align-${align}`);
+      para[para.length - 1] = stripAlignMarker(para[para.length - 1]);
+      para[0] = stripAlignMarker(para[0]);
+    }
     p.innerHTML = renderInline(para.join("\n"), ctx, true);
     root.appendChild(p);
   }

@@ -188,8 +188,11 @@ interface Form {
   // an env counterpart, so "inherit" would name a fallback that does not
   // exist. Their defaults ARE the values that change nothing.
   dateCalendar: string;  // "gregorian" | "hijri" | "both"
+  dateOrder: string;     // "auto" | "hijri-first" | "gregorian-first"
+  dateSeparator: string; // "bar" | "dot" | "parens"
   textDirection: string; // "auto" | "ltr" | "rtl"
   textAlign: string;     // "start" | "left" | "right" | "center" | "justify"
+  emptyPropsCard: string; // "on" | "off"
   tagsFolder: string;
   /** The tag-label table, as ROWS rather than as the wire map — the editor is
    *  a list the reader adds to and deletes from, and a map cannot hold a row
@@ -294,8 +297,11 @@ function formFrom(s: SettingsResponse): Form {
     fontSizeAdjust:
       s.effective.fonts?.arabicSizeAdjust == null ? "" : String(s.effective.fonts.arabicSizeAdjust),
     dateCalendar: s.effective.dateCalendar ?? "gregorian",
+    dateOrder: s.effective.dateOrder ?? "auto",
+    dateSeparator: s.effective.dateSeparator ?? "bar",
     textDirection: s.effective.textDirection ?? "auto",
     textAlign: s.effective.textAlign ?? "start",
+    emptyPropsCard: s.effective.emptyPropsCard === false ? "off" : "on",
     tagsFolder: s.tagsFolder ?? "",
     // The STORED map only. The tag pages' own labels are merged in by the
     // server at read time and deliberately never prefill this editor: a
@@ -1388,8 +1394,17 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   if (f.dateCalendar !== initial.dateCalendar) {
     patch.dateCalendar = f.dateCalendar === "hijri" || f.dateCalendar === "both" ? f.dateCalendar : null;
   }
+  if (f.dateOrder !== initial.dateOrder) {
+    patch.dateOrder = f.dateOrder === "hijri-first" || f.dateOrder === "gregorian-first" ? f.dateOrder : null;
+  }
+  if (f.dateSeparator !== initial.dateSeparator) {
+    patch.dateSeparator = f.dateSeparator === "dot" || f.dateSeparator === "parens" ? f.dateSeparator : null;
+  }
   if (f.textDirection !== initial.textDirection) {
     patch.textDirection = f.textDirection === "ltr" || f.textDirection === "rtl" ? f.textDirection : null;
+  }
+  if (f.emptyPropsCard !== initial.emptyPropsCard) {
+    patch.emptyPropsCard = f.emptyPropsCard === "off" ? false : null;
   }
   if (f.textAlign !== initial.textAlign) {
     patch.textAlign =
@@ -3227,6 +3242,36 @@ export default function SettingsModal() {
                       {...field("dateCalendar")}
                     />
                   </Row>
+                  {/* How the two calendars sit together (the owner's own
+                      example: "السبت 16 ربيع الأول 1448هـ | 29 أغسطس 2026 م",
+                      Hijri first, a bar between). Only shown while "Both"
+                      is the choice; the specimen below moves with them. */}
+                  {form.dateCalendar === "both" && (
+                    <>
+                      <Row label={t("rowDateOrder")} hint={t("hintDateOrder")}>
+                        <SegmentedControl
+                          label={t("rowDateOrder")}
+                          segments={[
+                            { value: "auto", label: t("dateOrderAuto") },
+                            { value: "hijri-first", label: t("dateOrderHijriFirst") },
+                            { value: "gregorian-first", label: t("dateOrderGregorianFirst") },
+                          ]}
+                          {...field("dateOrder")}
+                        />
+                      </Row>
+                      <Row label={t("rowDateSeparator")} hint={t("hintDateSeparator")}>
+                        <SegmentedControl
+                          label={t("rowDateSeparator")}
+                          segments={[
+                            { value: "bar", label: "|" },
+                            { value: "dot", label: "·" },
+                            { value: "parens", label: "( )" },
+                          ]}
+                          {...field("dateSeparator")}
+                        />
+                      </Row>
+                    </>
+                  )}
                   {/* A SPECIMEN, not a promise. The three words above name
                       three calendars; this line is the only thing that shows
                       what one of them actually prints, in this instance's own
@@ -3243,6 +3288,10 @@ export default function SettingsModal() {
                           ? form.dateCalendar
                           : "gregorian",
                         { dateStyle: "long" },
+                        {
+                          order: form.dateOrder === "hijri-first" || form.dateOrder === "gregorian-first" ? form.dateOrder : "auto",
+                          separator: form.dateSeparator === "dot" || form.dateSeparator === "parens" ? form.dateSeparator : "bar",
+                        },
                       )}
                     </bdi>
                   </p>
@@ -3292,6 +3341,20 @@ export default function SettingsModal() {
                     />
                   </Row>
                   <p className="s-smodal__note">{t("noteLayoutOverride")}</p>
+                  {/* The card on a note with nothing in its frontmatter yet:
+                      shown by default (the owner: "should prob show by
+                      default on all created notes"), with the switch here
+                      for the reader who wants a bare page. */}
+                  <Row label={t("rowEmptyPropsCard")} hint={t("hintEmptyPropsCard")}>
+                    <SegmentedControl
+                      label={t("rowEmptyPropsCard")}
+                      segments={[
+                        { value: "on", label: t("on") },
+                        { value: "off", label: t("off") },
+                      ]}
+                      {...field("emptyPropsCard")}
+                    />
+                  </Row>
 
                   {/* ── Tag labels ──────────────────────────────────────────
                       DISPLAY ONLY, and the copy says so before the table does

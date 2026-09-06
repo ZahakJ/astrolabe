@@ -464,6 +464,9 @@ const DICT = {
   editorWidthWide: { en: "Wide", ar: "عريض" },
   editorWidthWider: { en: "Wider", ar: "أعرض" },
   editorWidthFull: { en: "Full width", ar: "العرض الكامل" },
+  editorWidthCustom: { en: "Custom", ar: "مخصص" },
+  editorWidthCustomPlaceholder: { en: "900px or 70%", ar: "900px أو 70%" },
+  editorWidthCustomHint: { en: "Pixels (320–2400) or a share of the pane (30–100%). It applies as you type.", ar: "بكسل (320–2400) أو نسبة من اللوحة (30–100%). يُطبَّق أثناء الكتابة." },
   treeFoldInside: { en: "Collapse everything inside", ar: "طيّ كل ما بداخله" },
   treeUnfoldInside: { en: "Expand everything inside", ar: "بسط كل ما بداخله" },
   treeSort: { en: "Sort the tree", ar: "ترتيب الشجرة" },
@@ -1599,6 +1602,20 @@ const DICT = {
   // are the note's own bytes and are never translated.
   propAdd: { en: "Add property", ar: "إضافة خاصية" },
   propKey: { en: "Name", ar: "الاسم" },
+  propValueList: { en: "Values, comma-separated", ar: "قيم مفصولة بفواصل" },
+  propHintTitle: { en: "The note's title, over its file name", ar: "عنوان الملاحظة، فوق اسم ملفها" },
+  propHintTags: { en: "Tags, beside any #inline ones", ar: "الوسوم، بجانب أي وسوم # داخل النص" },
+  propHintAliases: { en: "Other names [[links]] may use", ar: "أسماء أخرى تقبلها روابط [[ ]]" },
+  propHintBanner: { en: "A hero image: a vault path or an https link", ar: "صورة لافتة: مسار في الخزانة أو رابط https" },
+  propHintDate: { en: "The date the blog shows for this note", ar: "التاريخ الذي تعرضه المدونة لهذه الملاحظة" },
+  propHintPublish: { en: "true puts the note on the public site", ar: "true تضع الملاحظة على الموقع العام" },
+  propHintDescription: { en: "A line under the title on the blog", ar: "سطر تحت العنوان في المدونة" },
+  propHintDir: { en: "rtl or ltr: the note's own direction", ar: "rtl أو ltr: اتجاه الملاحظة نفسها" },
+  propHintAlign: { en: "left, right, center or justify for this note", ar: "left أو right أو center أو justify لهذه الملاحظة" },
+  propHintNumbered: { en: "true numbers the headings", ar: "true ترقّم العناوين" },
+  propHintIcon: { en: "A folder note's glyph or picture", ar: "رمز ملاحظة المجلد أو صورتها" },
+  propHintLanguage: { en: "ar or en, for the language filter", ar: "ar أو en، لمرشح اللغة" },
+  propHintCssclasses: { en: "Classes for the note's own styling", ar: "أصناف لتنسيق الملاحظة الخاص" },
   propValue: { en: "Value", ar: "القيمة" },
   propEmpty: { en: "Empty", ar: "فارغة" },
   propAddValue: { en: "Add value", ar: "إضافة قيمة" },
@@ -1881,6 +1898,14 @@ const DICT = {
 
   slashDivider: { en: "Divider", ar: "فاصل" },
   slashDate: { en: "Date", ar: "تاريخ" },
+  alignLeft: { en: "Align left", ar: "محاذاة إلى اليسار" },
+  alignCenter: { en: "Center", ar: "توسيط" },
+  alignRight: { en: "Align right", ar: "محاذاة إلى اليمين" },
+  alignJustify: { en: "Justify", ar: "ضبط" },
+  imageResize: { en: "Drag to resize; double-click for the picture's own size", ar: "اسحب لتغيير الحجم؛ انقر مرتين للحجم الأصلي" },
+  slashCenter: { en: "Center this line", ar: "توسيط هذا السطر" },
+  slashRight: { en: "Align this line right", ar: "محاذاة هذا السطر إلى اليمين" },
+  slashLeft: { en: "Align this line left", ar: "محاذاة هذا السطر إلى اليسار" },
   slashDailyLink: { en: "Daily note link", ar: "رابط ملاحظة اليوم" },
 
   // ── Blog shell: masthead, nav, footer ───────────────────────────────────
@@ -2731,6 +2756,13 @@ const DICT = {
   calGregorian: { en: "Gregorian", ar: "ميلادي" },
   calHijri: { en: "Hijri", ar: "هجري" },
   calBoth: { en: "Both", ar: "كلاهما" },
+  rowDateOrder: { en: "Which calendar leads", ar: "أي تقويم يتقدّم" },
+  hintDateOrder: { en: "Automatic follows the site language: Hijri first on an Arabic site.", ar: "تلقائي يتبع لغة الموقع: الهجري أولًا في الموقع العربي." },
+  dateOrderAuto: { en: "Automatic", ar: "تلقائي" },
+  dateOrderHijriFirst: { en: "Hijri first", ar: "الهجري أولًا" },
+  dateOrderGregorianFirst: { en: "Gregorian first", ar: "الميلادي أولًا" },
+  rowDateSeparator: { en: "Between the two", ar: "بين التاريخين" },
+  hintDateSeparator: { en: "A bar, a dot, or the second date in brackets.", ar: "شرطة عمودية، أو نقطة، أو التاريخ الثاني بين قوسين." },
   calSpecimen: { en: "Today reads", ar: "تاريخ اليوم" },
   calFeedNote: {
     en: "RSS keeps Gregorian RFC-822 dates, which is what aggregators parse.",
@@ -2749,6 +2781,11 @@ const DICT = {
     ar: "الاتجاه الأساسي لنص الملاحظات؛ و«تلقائي» يترك القرار لكل فقرة.",
   },
   rowTextAlign: { en: "Text alignment", ar: "محاذاة النص" },
+  rowEmptyPropsCard: { en: "Properties card on empty notes", ar: "بطاقة الخصائص في الملاحظات الفارغة" },
+  hintEmptyPropsCard: {
+    en: "A one-line card with Add property and Set banner on notes that have no properties yet.",
+    ar: "بطاقة من سطر واحد فيها إضافة خاصية وتعيين لافتة في الملاحظات التي لا خصائص لها بعد.",
+  },
   hintTextAlign: {
     en: "Where lines sit in the column; code and tables never move.",
     ar: "موضع الأسطر في العمود؛ ولا تتحرك الشيفرة والجداول.",
@@ -4264,9 +4301,9 @@ const DICT = {
   // and every string in it is downloaded by a visitor reading one article.
   // What IS here is exactly what gets painted before the deck exists — the
   // palette row, the empty state's line, the shortcut sheet's footer.
-  tourTake: { en: "Take the tour", ar: "خُذ جولة في القبو" },
-  tourHint: { en: "A deck of what this vault can do", ar: "بطاقاتٌ بما يستطيعه هذا القبو" },
-  tourDoor: { en: "See what the vault can do", ar: "انظر ما يستطيعه القبو" },
+  tourTake: { en: "Take the tour", ar: "خُذ جولة في الخزانة" },
+  tourHint: { en: "A deck of what this vault can do", ar: "بطاقاتٌ بما تستطيعه هذه الخزانة" },
+  tourDoor: { en: "See what the vault can do", ar: "انظر ما تستطيعه الخزانة" },
   tourFooterLead: { en: "Not sure what to look for?", ar: "ألا تدري ما الذي تبحث عنه؟" },
   // ── The Media page (client/media/MediaView.tsx) ───────────────────────────
   // The shelves' chrome. The kinds and statuses reuse the tracker's own words
@@ -4306,7 +4343,7 @@ const DICT = {
   mediaFormTitle: { en: "Title", ar: "العنوان" },
   mediaFormTitlePlaceholder: { en: "The name as you know it", ar: "الاسم كما تعرفه" },
   mediaFormCover: { en: "Cover", ar: "الغلاف" },
-  mediaFormCoverPlaceholder: { en: "A picture in the vault, or an https:// link", ar: "صورة في القبو، أو رابط https://" },
+  mediaFormCoverPlaceholder: { en: "A picture in the vault, or an https:// link", ar: "صورة في الخزانة، أو رابط https://" },
   mediaFormUpload: { en: "Upload a picture", ar: "رفع صورة" },
   mediaFormUploading: { en: "Uploading…", ar: "جارٍ الرفع…" },
   mediaCoverTooBig: { en: "That picture is over {mb} MB", ar: "حجم الصورة يتجاوز {mb} ميغابايت" },

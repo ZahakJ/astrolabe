@@ -186,12 +186,13 @@ print Gregorian. **Settings → Appearance & language → Date calendar** (setti
 | --- | --- |
 | `gregorian` *(default)* | `15 August 2026` / `١٥ أغسطس ٢٠٢٦` |
 | `hijri` | `٢ صفر ١٤٤٨ هـ` |
-| `both` | one with the other parenthesised beside it |
+| `both` | the two side by side: `السبت ١٦ ربيع الأول ١٤٤٨ هـ | ٢٩ أغسطس ٢٠٢٦ م` |
 
-`both` is ordered by the **site language**: an Arabic instance leads with the Hijri date and
-puts the Gregorian one in brackets, an English instance does the reverse. The panel prints a
-live specimen of today under whichever segment is highlighted, so you can see the answer before
-you save it.
+`both` is ordered by the **site language** by default: an Arabic instance leads with the Hijri
+date, an English instance with the Gregorian one. Two rows appear under the choice: **which
+calendar leads** (automatic, Hijri first, Gregorian first) and **what stands between the two**
+(a bar, a dot, or the second date in brackets). The panel prints a live specimen of today under
+whichever segments are highlighted, so you can see the answer before you save it.
 
 The Hijri calendar is **Umm al-Qura** (`islamic-umalqura`). Intl offers four Islamic calendars:
 `islamic` is observational and its answer drifts by a day between platforms; the two tabular
@@ -232,6 +233,11 @@ align: justify
 
 (`direction:` and `text-align:` are accepted as spellings of the same two keys, as are
 `centre`/`centered` and `justified`.)
+
+**One block can disagree with its note**: end a paragraph, a heading or an image line with
+`{.center}`, `{.right}`, `{.left}` or `{.justify}` and that block alone sits there. The marker
+hides in the editor like other syntax and never reaches the rendered page; `/center`, `/right`
+and `/left` in the slash menu write it, and a picture's own hover buttons write it for an image.
 
 A note that disagrees with the site default **says so**: a chip in its properties card, beside
 the tag pills where the frontmatter is, and a quiet segment in the status bar. Both carry the

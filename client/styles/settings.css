@@ -97,6 +97,15 @@
 /* The one sentence under it. Measured (62ch) so it never runs the full width
    of a 940px panel, and muted rather than faint — it is copy to be read, not
    a footnote. */
+/* A field under a segmented control, in the same row (the custom width). */
+.s-smodal__inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
 .s-smodal__note {
   max-width: 62ch;
   margin-bottom: 14px;

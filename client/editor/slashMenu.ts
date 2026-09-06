@@ -18,6 +18,7 @@ import {
   type CompletionResult,
 } from "@codemirror/autocomplete";
 import type { EditorView } from "@codemirror/view";
+import { withAlignMarker, type BlockAlign } from "../../shared/blockAlign.ts";
 import { languages } from "@codemirror/language-data";
 import { dailyNotePath } from "../daily.ts";
 import { createDrawingBeside } from "../drawing/createBeside.ts";
@@ -43,6 +44,23 @@ function insertText(text: string, back = 0) {
 }
 
 /** snippet(), then pop the follow-up completion (fence language search). */
+/** `/center` and friends: the marker lands at the end of the caret's line
+ *  (shared/blockAlign.ts), the typed token goes, and the caret sits where the
+ *  words will be written — before the marker. */
+function alignLine(align: BlockAlign) {
+  return (view: EditorView, _c: Completion, from: number, to: number): void => {
+    const line = view.state.doc.lineAt(from);
+    const rest = line.text.slice(0, from - line.from) + line.text.slice(to - line.from);
+    const next = withAlignMarker(rest, align);
+    const caret = line.from + Math.max(0, next.length - `{.${align}}`.length - (rest.trim() === "" ? 0 : 1));
+    view.dispatch({
+      changes: { from: line.from, to: line.to, insert: next },
+      selection: { anchor: rest.trim() === "" ? line.from : caret },
+      userEvent: "input.complete",
+    });
+  };
+}
+
 function snippetThenComplete(template: string) {
   const apply = snippet(template);
   return (view: EditorView, c: Completion, from: number, to: number): void => {
@@ -153,6 +171,27 @@ function slashItems(): SlashItem[] {
       detail: "---",
       boost: 4,
       apply: insertText("---\n"),
+    },
+    {
+      label: "Center",
+      displayLabel: "slashCenter",
+      detail: "{.center}",
+      boost: 2,
+      apply: alignLine("center"),
+    },
+    {
+      label: "Right",
+      displayLabel: "slashRight",
+      detail: "{.right}",
+      boost: 2,
+      apply: alignLine("right"),
+    },
+    {
+      label: "Left",
+      displayLabel: "slashLeft",
+      detail: "{.left}",
+      boost: 2,
+      apply: alignLine("left"),
     },
     {
       label: "Date",

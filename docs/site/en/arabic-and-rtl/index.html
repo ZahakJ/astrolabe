@@ -175,10 +175,11 @@ teeth.</p>
 <p>An Arabic site often dates its writing by the Hijri calendar, and until now Astrolabe could only
 print Gregorian. <strong>Settings → Appearance &amp; language → Date calendar</strong> (settings key
 <code>dateCalendar</code>) takes three values:</p>
-<div class="table"><table><thead><tr><th></th><th>prints</th></tr></thead><tbody><tr><td><code>gregorian</code> <em>(default)</em></td><td><code>15 August 2026</code> / <code>١٥ أغسطس ٢٠٢٦</code></td></tr><tr><td><code>hijri</code></td><td><code>٢ صفر ١٤٤٨ هـ</code></td></tr><tr><td><code>both</code></td><td>one with the other parenthesised beside it</td></tr></tbody></table></div><p><code>both</code> is ordered by the <strong>site language</strong>: an Arabic instance leads with the Hijri date and
-puts the Gregorian one in brackets, an English instance does the reverse. The panel prints a
-live specimen of today under whichever segment is highlighted, so you can see the answer before
-you save it.</p>
+<div class="table"><table><thead><tr><th></th><th>prints</th></tr></thead><tbody><tr><td><code>gregorian</code> <em>(default)</em></td><td><code>15 August 2026</code> / <code>١٥ أغسطس ٢٠٢٦</code></td></tr><tr><td><code>hijri</code></td><td><code>٢ صفر ١٤٤٨ هـ</code></td></tr><tr><td><code>both</code></td><td>the two side by side: `السبت ١٦ ربيع الأول ١٤٤٨ هـ</td></tr></tbody></table></div><p><code>both</code> is ordered by the <strong>site language</strong> by default: an Arabic instance leads with the Hijri
+date, an English instance with the Gregorian one. Two rows appear under the choice: <strong>which
+calendar leads</strong> (automatic, Hijri first, Gregorian first) and <strong>what stands between the two</strong>
+(a bar, a dot, or the second date in brackets). The panel prints a live specimen of today under
+whichever segments are highlighted, so you can see the answer before you save it.</p>
 <p>The Hijri calendar is <strong>Umm al-Qura</strong> (<code>islamic-umalqura</code>). Intl offers four Islamic calendars:
 <code>islamic</code> is observational and its answer drifts by a day between platforms; the two tabular
 variants never drift but are not what anyone&#39;s wall calendar says. Umm al-Qura is both stable
@@ -213,6 +214,10 @@ align: justify
 </code></pre>
 <p>(<code>direction:</code> and <code>text-align:</code> are accepted as spellings of the same two keys, as are
 <code>centre</code>/<code>centered</code> and <code>justified</code>.)</p>
+<p><strong>One block can disagree with its note</strong>: end a paragraph, a heading or an image line with
+<code>{.center}</code>, <code>{.right}</code>, <code>{.left}</code> or <code>{.justify}</code> and that block alone sits there. The marker
+hides in the editor like other syntax and never reaches the rendered page; <code>/center</code>, <code>/right</code>
+and <code>/left</code> in the slash menu write it, and a picture&#39;s own hover buttons write it for an image.</p>
 <p>A note that disagrees with the site default <strong>says so</strong>: a chip in its properties card, beside
 the tag pills where the frontmatter is, and a quiet segment in the status bar. Both carry the
 same tooltip, which names each half and where it came from — <em>Direction: RTL — set by this

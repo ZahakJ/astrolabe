@@ -12,6 +12,8 @@
 // code highlighting look identical in live preview and reading view.
 
 import { WidgetType, type EditorView } from "@codemirror/view";
+import { parseAlignMarker, withAlignMarker, type BlockAlign } from "../../shared/blockAlign.ts";
+import { drawingSvgName } from "./embeds.ts";
 import { getNote } from "../api.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
 import { getLang, t, tf } from "../i18n.ts";
@@ -96,6 +98,14 @@ export class ImageWidget extends WidgetType {
       };
       img.src = url;
       wrap.replaceChildren(img);
+      // THE PICTURE TAKES THE HAND (the owner: "resize them with an actual
+      // draggable thingy"). A handle on the picture's trailing corner drags
+      // the width, and three buttons over it set the block's alignment
+      // (`{.left}` / `{.center}` / `{.right}`, shared/blockAlign.ts). Both
+      // write the SOURCE: the width into the embed's `|300`, the marker at
+      // the end of the line — so what is on screen is what is in the file,
+      // and Obsidian reads both.
+      wrap.appendChild(imageTools(view, wrap, img, this.name));
     };
     if (this.src !== null) {
       mount(this.src);
@@ -112,9 +122,142 @@ export class ImageWidget extends WidgetType {
     }
     return wrap;
   }
-  override ignoreEvent(): boolean {
-    return false; // clicks land in the editor → cursor moves next to the embed
+  override ignoreEvent(e: Event): boolean {
+    // The tools are the widget's own; a click on the picture itself still
+    // lands in the editor and moves the caret next to the embed.
+    const target = e.target;
+    return target instanceof Element && target.closest(".cm-s-embed-tools, .cm-s-embed-handle") !== null;
   }
+}
+
+const ALIGN_TITLE: Record<BlockAlign, "alignLeft" | "alignCenter" | "alignRight" | "alignJustify"> = {
+  left: "alignLeft",
+  center: "alignCenter",
+  right: "alignRight",
+  justify: "alignJustify",
+};
+
+const ALIGN_ICONS: Record<BlockAlign, string> = {
+  left: '<path d="M4 6h16M4 12h10M4 18h14"/>',
+  center: '<path d="M4 6h16M7 12h10M5 18h14"/>',
+  right: '<path d="M4 6h16M10 12h10M6 18h14"/>',
+  justify: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+};
+
+/** Where this widget's embed sits in the document: the line, and the span of
+ *  the `![[…]]` that names this picture. Looked up at interaction time, never
+ *  stored: the document moves under a widget between its build and a drag. */
+function embedSpanOf(view: EditorView, wrap: HTMLElement, name: string): { from: number; to: number; inner: string; line: { from: number; to: number; text: string } } | null {
+  let pos: number;
+  try {
+    pos = view.posAtDOM(wrap);
+  } catch {
+    return null;
+  }
+  const line = view.state.doc.lineAt(pos);
+  const re = /!\[\[([^[\]]+?)\]\]/g;
+  let best: { from: number; to: number; inner: string } | null = null;
+  for (let m = re.exec(line.text); m; m = re.exec(line.text)) {
+    const from = line.from + m.index;
+    const to = from + m[0].length;
+    const inner = m[1];
+    const target = parseEmbed(inner).target;
+    const named = target === name || drawingSvgName(target) === name || target.endsWith(`/${name}`);
+    if (!named) continue;
+    if (best === null || Math.abs(from - pos) < Math.abs(best.from - pos)) best = { from, to, inner };
+  }
+  return best === null ? null : { ...best, line: { from: line.from, to: line.to, text: line.text } };
+}
+
+function imageTools(view: EditorView, wrap: HTMLElement, img: HTMLImageElement, name: string): HTMLElement {
+  const box = document.createElement("span");
+  box.className = "cm-s-embed-tools";
+  const rtl = getComputedStyle(view.contentDOM).direction === "rtl";
+
+  // Alignment: the marker at the end of the line, the same one `/center`
+  // writes. The lit button is the block's current alignment.
+  const bar = document.createElement("span");
+  bar.className = "cm-s-embed-tools__bar";
+  const current = (): BlockAlign | null => {
+    const span = embedSpanOf(view, wrap, name);
+    return span === null ? null : parseAlignMarker(span.line.text)?.align ?? null;
+  };
+  for (const align of (Object.keys(ALIGN_ICONS) as BlockAlign[]).filter((a) => a !== "justify")) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "cm-s-embed-tools__btn";
+    b.title = t(ALIGN_TITLE[align]);
+    b.setAttribute("aria-label", b.title);
+    b.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">${ALIGN_ICONS[align]}</svg>`;
+    if (current() === align) b.classList.add("cm-s-embed-tools__btn--on");
+    b.addEventListener("mousedown", (ev) => ev.preventDefault());
+    b.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const span = embedSpanOf(view, wrap, name);
+      if (span === null) return;
+      const next = withAlignMarker(span.line.text, current() === align ? null : align);
+      view.dispatch({ changes: { from: span.line.from, to: span.line.to, insert: next } });
+    });
+    bar.appendChild(b);
+  }
+  box.appendChild(bar);
+
+  // The handle: drag to size, double-click to let the picture be its own size.
+  const handle = document.createElement("span");
+  handle.className = "cm-s-embed-handle";
+  handle.title = t("imageResize");
+  handle.setAttribute("role", "slider");
+  handle.setAttribute("aria-label", t("imageResize"));
+  const readout = document.createElement("span");
+  readout.className = "cm-s-embed-tools__readout";
+  const writeWidth = (width: number | null): void => {
+    const span = embedSpanOf(view, wrap, name);
+    if (span === null) return;
+    const parts = parseEmbed(span.inner);
+    const target = span.inner.split("|")[0].trim();
+    const anchor = parts.anchor !== null && !target.includes("#") ? `#${parts.anchor}` : "";
+    const insert = width === null ? `![[${target}${anchor}]]` : `![[${target}${anchor}|${width}]]`;
+    if (view.state.doc.sliceString(span.from, span.to) === insert) return;
+    view.dispatch({ changes: { from: span.from, to: span.to, insert } });
+  };
+  handle.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    handle.setPointerCapture(e.pointerId);
+    const startX = e.clientX;
+    const startW = img.getBoundingClientRect().width;
+    const maxW = Math.max(80, (wrap.closest(".cm-line")?.getBoundingClientRect().width ?? 800) - 8);
+    let last = Math.round(startW);
+    wrap.classList.add("cm-s-embed-image--dragging");
+    box.appendChild(readout);
+    const move = (ev: PointerEvent): void => {
+      const dx = (ev.clientX - startX) * (rtl ? -1 : 1);
+      last = Math.round(Math.max(40, Math.min(maxW, startW + dx)));
+      img.style.width = `${last}px`;
+      readout.textContent = `${last}px`;
+      view.requestMeasure();
+    };
+    const up = (): void => {
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", up);
+      handle.removeEventListener("pointercancel", up);
+      wrap.classList.remove("cm-s-embed-image--dragging");
+      readout.remove();
+      writeWidth(last);
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", up);
+    handle.addEventListener("pointercancel", up);
+  });
+  handle.addEventListener("dblclick", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    writeWidth(null);
+  });
+  box.appendChild(handle);
+  return box;
 }
 
 // ── Attachment card (pdf & friends): opens /api/file in a new tab ───────────

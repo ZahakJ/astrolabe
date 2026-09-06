@@ -28,9 +28,50 @@
 // and the reading-view renderer passes neither, so rollup never pulls an input
 // element into the first-paint chunk a blog visitor downloads.
 
-import { t, tf } from "../i18n.ts";
+import { t, tf, type I18nKey } from "../i18n.ts";
 import type { PropertyValue } from "../../shared/types.ts";
 import type { PropRow, PropsCardOpts } from "./noteMeta.ts";
+
+/** THE KEYS THE APP UNDERSTANDS, offered when a property is added: type to
+ *  filter, or type nothing and read the whole list (the owner: "if you don't
+ *  type anything you see a scroll of all the options"). Any other key can
+ *  still be typed; these are the ones something in Astrolabe reads. */
+interface KnownKey {
+  key: string;
+  hint: I18nKey;
+  /** Written as a YAML list (comma-separated values become items). */
+  list?: boolean;
+  /** Written as a boolean when the value reads as one. */
+  bool?: boolean;
+}
+export const KNOWN_KEYS: readonly KnownKey[] = [
+  { key: "title", hint: "propHintTitle" },
+  { key: "tags", hint: "propHintTags", list: true },
+  { key: "aliases", hint: "propHintAliases", list: true },
+  { key: "banner", hint: "propHintBanner" },
+  { key: "date", hint: "propHintDate" },
+  { key: "publish", hint: "propHintPublish", bool: true },
+  { key: "description", hint: "propHintDescription" },
+  { key: "dir", hint: "propHintDir" },
+  { key: "align", hint: "propHintAlign" },
+  { key: "numbered", hint: "propHintNumbered", bool: true },
+  { key: "icon", hint: "propHintIcon" },
+  { key: "language", hint: "propHintLanguage" },
+  { key: "cssclasses", hint: "propHintCssclasses", list: true },
+];
+
+/** The value a typed string becomes for `key`: a list for the list keys, a
+ *  boolean for `true`/`false` on the boolean keys, text otherwise. */
+export function valueFor(key: string, typed: string): PropertyValue {
+  const known = KNOWN_KEYS.find((k) => k.key === key.toLowerCase());
+  if (known?.list) {
+    return { kind: "list", items: typed.split(/[,،]/).map((s) => s.trim()).filter((s) => s !== "") };
+  }
+  if (known?.bool && /^(true|false)$/i.test(typed.trim())) {
+    return { kind: "bool", bool: typed.trim().toLowerCase() === "true" };
+  }
+  return { kind: "text", text: typed.trim() };
+}
 
 /** Keys that are a LIST even when the file currently spells one value.
  *  `tags: draft` is a list of one to every tool that reads it, and a card that
@@ -221,9 +262,80 @@ function openAddForm(
   const commit = (): void => {
     const key = keyBox.value.trim();
     close();
-    if (key !== "") set(key, { kind: "text", text: valueBox.value.trim() });
+    if (key !== "") set(key, valueFor(key, valueBox.value));
   };
-  ownKeys(keyBox, () => valueBox.focus(), close);
+
+  // The list of keys under the name box: every known key when the box is
+  // empty, the matching ones as the reader types; ↑/↓ walk it, Enter takes
+  // the lit row (or the typed name), a click takes a row.
+  const list = document.createElement("div");
+  list.className = "cm-s-props__keylist";
+  list.setAttribute("role", "listbox");
+  let lit = -1;
+  const rows = (): HTMLElement[] => Array.from(list.children) as HTMLElement[];
+  const pick = (key: string): void => {
+    keyBox.value = key;
+    list.hidden = true;
+    valueBox.placeholder = KNOWN_KEYS.find((k) => k.key === key)?.list ? t("propValueList") : t("propValue");
+    valueBox.focus();
+  };
+  const light = (i: number): void => {
+    const all = rows();
+    lit = all.length === 0 ? -1 : Math.max(0, Math.min(all.length - 1, i));
+    all.forEach((r, j) => r.classList.toggle("cm-s-props__keyrow--lit", j === lit));
+    all[lit]?.scrollIntoView({ block: "nearest" });
+  };
+  const fill = (): void => {
+    const typed = keyBox.value.trim().toLowerCase();
+    const matches = KNOWN_KEYS.filter((k) => typed === "" || k.key.includes(typed) || t(k.hint).toLowerCase().includes(typed));
+    list.replaceChildren(
+      ...matches.map((k) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "cm-s-props__keyrow";
+        row.setAttribute("role", "option");
+        const name = document.createElement("code");
+        name.textContent = k.key;
+        const hint = document.createElement("span");
+        hint.className = "cm-s-props__keyhint";
+        hint.textContent = t(k.hint);
+        row.append(name, hint);
+        ownPointer(row);
+        row.addEventListener("mousedown", (ev) => ev.preventDefault()); // keep the box's focus
+        row.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          pick(k.key);
+        });
+        return row;
+      }),
+    );
+    list.hidden = matches.length === 0;
+    light(typed === "" ? -1 : 0);
+  };
+  keyBox.addEventListener("input", fill);
+  keyBox.addEventListener("keydown", (ev) => {
+    if (list.hidden) return;
+    if (ev.key === "ArrowDown") {
+      ev.preventDefault();
+      light(lit + 1);
+    } else if (ev.key === "ArrowUp") {
+      ev.preventDefault();
+      light(lit - 1);
+    }
+  });
+  ownKeys(
+    keyBox,
+    () => {
+      const chosen = lit >= 0 ? rows()[lit]?.querySelector("code")?.textContent : null;
+      if (chosen) pick(chosen);
+      else {
+        list.hidden = true;
+        valueBox.focus();
+      }
+    },
+    close,
+  );
   ownKeys(valueBox, commit, close);
   // Leaving the pair entirely closes it; moving BETWEEN the two boxes does not.
   const leave = (): void => {
@@ -234,8 +346,12 @@ function openAddForm(
   keyBox.addEventListener("blur", leave);
   valueBox.addEventListener("blur", leave);
 
-  form.append(keyBox, valueBox);
+  const pair = document.createElement("div");
+  pair.className = "cm-s-props__pair";
+  pair.append(keyBox, valueBox);
+  form.append(pair, list);
   foot.replaceChildren(form);
+  fill();
   keyBox.focus();
 }
 

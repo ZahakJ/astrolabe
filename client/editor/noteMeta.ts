@@ -271,7 +271,9 @@ export function buildPropsCard(yaml: string, opts: PropsCardOpts): HTMLElement |
     '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
   const label = document.createElement("span");
   label.className = `${p}__label`;
-  label.textContent = `${t("properties")} · ${localeNum(rows.length)}`;
+  // The word alone: "Properties · 4" read as a score (the owner: "cringe"),
+  // and the rows say how many there are when the card opens.
+  label.textContent = t("properties");
   const trigger = document.createElement("span");
   trigger.className = `${p}__trigger`;
   trigger.setAttribute("role", "button");

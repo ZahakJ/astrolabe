@@ -39,6 +39,7 @@ import { getLang, t, tf } from "../i18n.ts";
 import { label as tagLabel } from "../tagLabels.ts";
 import { buildBannerEl, buildPropsCard, parseProps, TAG_RE } from "./noteMeta.ts";
 import { propsEditor } from "./propsEdit.ts";
+import { parseAlignMarker } from "../../shared/blockAlign.ts";
 import {
   FileCardWidget,
   ImageWidget,
@@ -326,6 +327,24 @@ function buildDecorations(view: EditorView): DecorationSet {
           return false;
         }
 
+        // `{.center}` at the end of a paragraph's or a heading's last (or
+        // first) line (shared/blockAlign.ts): every line of the block takes
+        // the alignment class, and the marker hides like any other syntax.
+        if (name === "Paragraph" || HEADING_CLASS[name]) {
+          const firstLine = doc.lineAt(node.from);
+          const lastLine = doc.lineAt(node.to);
+          const on = parseAlignMarker(lastLine.text) ? lastLine : parseAlignMarker(firstLine.text) ? firstLine : null;
+          if (on !== null) {
+            const marker = parseAlignMarker(on.text)!;
+            const ms = on.from + marker.start;
+            const me = on.to;
+            lineClass(node.from, node.to, `cm-s-align-${marker.align}`);
+            if (active.has(on.number)) mark(ms, me, "cm-s-syntax");
+            else hide(ms, me);
+            claimed.push({ from: ms, to: me });
+          }
+        }
+
         const headingClass = HEADING_CLASS[name];
         if (headingClass) {
           decos.push(
@@ -570,6 +589,18 @@ function buildDecorations(view: EditorView): DecorationSet {
         const embed = parseEmbed(m[1]);
         if (lineIsActive) {
           mark(start, end, "cm-s-embed-src");
+          // THE PICTURE STAYS WHILE ITS LINE IS EDITED. Replacing it with
+          // the source text shrank the line by the picture's height and the
+          // view jumped (the owner: "click on an image without it changing
+          // the location of your view"). So on the active line the picture
+          // is drawn as a widget BEFORE its source, the source stays
+          // editable beside it, and the line keeps its height.
+          if (embed.kind === "image" || embed.kind === "drawing") {
+            const name = embed.kind === "drawing" ? drawingSvgName(embed.target) : embed.target;
+            decos.push(
+              Decoration.widget({ widget: new ImageWidget(name, null, embed.width), side: -1 }).range(start),
+            );
+          }
           continue;
         }
         let widget: WidgetType;
@@ -1059,6 +1090,44 @@ class FrontmatterWidget extends WidgetType {
 
 /** Rendered raw-HTML block (sanitized) shown while the cursor is outside it —
  *  Obsidian renders author HTML (<figure>, <svg>…) instead of tag soup. */
+/** The properties card for a note that has none yet: the same head, no
+ *  rows, the add form and the banner button. */
+class EmptyPropsWidget extends WidgetType {
+  readonly lang = getLang();
+  constructor(readonly notePath: string) {
+    super();
+  }
+  override eq(other: EmptyPropsWidget): boolean {
+    return other.notePath === this.notePath && other.lang === this.lang;
+  }
+  toDOM(): HTMLElement {
+    const box = document.createElement("div");
+    box.className = "cm-s-props cm-s-props--empty";
+    const head = document.createElement("div");
+    head.className = "cm-s-props__head";
+    const label = document.createElement("span");
+    label.className = "cm-s-props__label";
+    label.textContent = t("properties");
+    const action = document.createElement("button");
+    action.type = "button";
+    action.className = "cm-s-props__action";
+    action.dataset.action = "set-banner";
+    action.textContent = t("setBannerAction");
+    action.title = t("setBannerTitle");
+    action.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      window.dispatchEvent(new CustomEvent("astrolabe:set-banner"));
+    });
+    head.append(label, action);
+    box.appendChild(head);
+    const foot = propsEditor(this.notePath).footer?.();
+    if (foot) box.appendChild(foot);
+    box.addEventListener("mousedown", (ev) => ev.stopPropagation());
+    return box;
+  }
+}
+
 class HtmlBlockWidget extends WidgetType {
   constructor(readonly html: string) {
     super();
@@ -1089,8 +1158,16 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
     return false;
   };
 
-  // Frontmatter → properties card while the cursor is outside it.
+  // A NOTE WITH NO FRONTMATTER STILL WEARS THE CARD (the owner: "it should
+  // prob show by default on all created notes"): one line, "Properties",
+  // with Add property and Set banner… on it. Both write through the same
+  // route as the full card, which creates the block. Off by the
+  // `emptyPropsCard` setting.
   const fmEnd = frontmatterEnd(doc);
+  if (fmEnd <= 0 && useStore.getState().emptyPropsCard && useStore.getState().admin) {
+    decos.push(Decoration.widget({ widget: new EmptyPropsWidget(notePath), block: true, side: -1 }).range(0));
+  }
+  // Frontmatter → properties card while the cursor is outside it.
   if (fmEnd > 0) {
     const lastLine = doc.lineAt(fmEnd).number;
     if (!anyActiveBetween(1, lastLine)) {

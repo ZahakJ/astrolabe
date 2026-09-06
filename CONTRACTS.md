@@ -1023,10 +1023,14 @@ everything inside" writes the expanded map under one folder (`setFoldersUnder`) 
 
 ## The writing column (client/editorWidth.ts)
 
-`localStorage["astrolabe.editorWidth"]` measure|wide|wider|full → `data-editor-width` on `<html>` at boot
+`localStorage["astrolabe.editorWidth"]` measure|wide|wider|full|custom → `data-editor-width` on `<html>` at boot
 (main.tsx) and on change; app.css reads it into `--editor-measure`, which the editor's
-`.cm-content`, zen's editor and zen's reading column take (648 / 672 / 800px defaults; wide 960, wider 1200). Full width
-gives the scroller a gutter instead. Settings → This device row.
+`.cm-content`, the reading view's `.s-reading__content` (3.3.0; it used to keep 760px whatever the
+choice), zen's editor and zen's reading column take (648 / 760 / 672 / 800px defaults; wide 960,
+wider 1200). Full width gives the scroller a gutter instead. **Custom** (3.3.0) stores a CSS length
+in `astrolabe.editorWidthCustom` (`normalizeCustomWidth`: 320–2400px or 30–100%) and sets
+`--editor-measure` inline on `<html>`, applied on every keystroke of the field. Settings → This
+device row.
 
 ## Find in the note, replace across the vault
 
@@ -2536,6 +2540,35 @@ mutating owner surface uses: the auth guard 401s the POST, and the GET dry run a
   `snapshot: true`, ticked by default; the route runs `snapshotNow()` BEFORE the rewrite and answers
   with the short sha. A commit taken after the rewrite records the damage. A repository that is not
   there, or a clean tree, is not an error — the box was an offer, not a precondition.
+
+## Block alignment and the picture's tools (shared/blockAlign.ts, widgets.ts imageTools, 3.3.0)
+
+A block says where it sits with a trailing `{.left}` / `{.center}` / `{.right}` / `{.justify}`
+(pandoc's attribute braces; `centre`, `centered`, `justified` accepted) on its first or last line.
+`parseAlignMarker` / `stripAlignMarker` / `withAlignMarker` / `blockAlignOf` are pure and tested
+(`tests/blockAlign.test.ts`). The live preview (syntax-tree pass, `Paragraph` and `ATXHeading*`)
+classes every line of the block `cm-s-align-<a>` and hides the marker off the active line; the
+reading view classes the `<p>`/`<h*>` `s-rv-align-<a>` and strips it. Both rules outrank the
+note-level `[data-note-align]`. `/center`, `/right`, `/left` in the slash menu write the marker
+for the caret's line (`alignLine`).
+
+**The picture stays while its line is edited.** An image embed on the ACTIVE line used to be
+replaced by its source, which shrank the line by the picture's height and jumped the view; now
+the picture is an inline widget BEFORE the source (`Decoration.widget`, side −1) and the source
+stays editable beside it. **The picture's tools** (`imageTools`): a handle on the trailing corner
+drags the width and writes it into the embed's `|N` on release (double-click clears it), three
+buttons write the alignment marker at the end of the line. Both find the embed at interaction
+time (`embedSpanOf`: `posAtDOM` + the line's `![[…]]` naming this picture), never from stored
+positions. `ignoreEvent` yields the tools to the widget and everything else to the editor.
+
+**The properties card on a note with no frontmatter** (`EmptyPropsWidget`, block, side −1 at
+0): the head and the add line, "Set banner…" beside it; both write through `POST /api/frontmatter`,
+which creates the block. Off by `settings.emptyPropsCard` (default on; `MeData.emptyPropsCard`
+travels only as `false`). **The add form lists the keys the app understands** (`KNOWN_KEYS` in
+propsEdit.ts, with a hint each): all of them when the name box is empty, filtered as typed, ↑/↓
+and Enter; `tags`, `aliases`, `cssclasses` are written as lists (`valueFor`), `publish` and
+`numbered` as booleans when the value reads as one. The card's head prints the word alone, no
+count.
 
 ## The properties card, editable in place (`POST /api/frontmatter`)
 

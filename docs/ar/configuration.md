@@ -114,7 +114,10 @@
 | `drawingsFolder` | مجلد نسبي إلى الخزانة يبدأ فيه قلم الشريط الجانبي رسمة جديدة | لا شيء: جذر الخزانة |
 | `defaultTemplate` | ملاحظة نسبية إلى الخزانة تُطبَّق على كل ملاحظة جديدة | لا شيء |
 | `dateCalendar` | `gregorian` · `hijri` · `both` | `gregorian` |
+| `dateOrder` | `auto` · `hijri-first` · `gregorian-first`: أي تقويم يتقدّم في `both` | `auto` (بحسب لغة الموقع) |
+| `dateSeparator` | `bar` · `dot` · `parens`: ما يقف بين التاريخين في `both` | `bar` |
 | `textDirection` | `auto` · `ltr` · `rtl` | `auto` |
+| `emptyPropsCard` | `true` · `false`: بطاقة الخصائص ذات السطر الواحد في الملاحظات التي لا مقدمة لها | `true` |
 | `textAlign` | `start` · `left` · `right` · `center` · `justify` | `start` |
 | `tagsFolder` | مجلد نسبي إلى الخزانة يحمل صفحات الوسوم | يُكتشف تلقائيًا، وإلا `tags` |
 | `tagLabels` | `{ tag: { en, ar } }`، ≤ 200 وسم، **يُستبدل كله لا يُدمج** | فارغ |

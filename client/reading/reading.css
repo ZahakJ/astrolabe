@@ -23,7 +23,11 @@
 }
 
 .s-reading__content {
-  max-width: 760px;
+  /* The writing column's width (client/editorWidth.ts) reaches the reading
+     view too — wide, wider, full and a custom width — where it used to be
+     the editor's alone (the owner: "in reading mode it kinda skips over the
+     width options"). Absent, the reading measure. */
+  max-width: var(--editor-measure, 760px);
   margin: 0 auto;
   padding: 48px var(--prose-gutter) 120px;
   font-family: var(--font-serif);
@@ -460,6 +464,16 @@ li.s-rv-task--done > span {
   display: block;
   margin-inline: auto;
 }
+
+/* `{.left}` / `{.center}` / `{.right}` / `{.justify}` at the end of a block
+   (shared/blockAlign.ts): the block, and a sized picture inside it, sit
+   where the marker says, over the note's own `align:`. */
+.s-rv-align-left { text-align: left; }
+.s-rv-align-center { text-align: center; }
+.s-rv-align-right { text-align: right; }
+.s-rv-align-justify { text-align: justify; }
+.s-rv-align-left .s-rv-img[style*="width"] { margin-inline: 0 auto; }
+.s-rv-align-right .s-rv-img[style*="width"] { margin-inline: auto 0; }
 
 .s-rv-figure {
   margin: 0.9em 0;
