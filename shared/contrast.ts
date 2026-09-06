@@ -133,6 +133,7 @@ export const REQUIRED_TOKENS = [
   "--text",
   "--text-muted",
   "--text-faint",
+  "--heading",
   "--accent",
 ] as const;
 
@@ -142,6 +143,7 @@ export const REQUIRED_TOKENS = [
  * The rules, and why each floor is the number it is, are argued at length in
  * scripts/check-contrast.mjs and DESIGN.md — in one sentence each:
  *   --text        4.5:1  body text (WCAG 1.4.3)
+ *   --heading     4.5:1  headings are body text set larger, on every ground
  *   --text-muted  3:1    secondary text
  *   --accent      4.5:1  on --bg it IS text (wikilinks, tag pills) and it is
  *                        also the lit mode pill's fill under --bg letters
@@ -184,6 +186,7 @@ export function checkTheme(tokens: Record<string, string | undefined>): Contrast
   // --accent on --bg; the lit mode pill is the same two colors swapped).
   for (const ground of GROUNDS) {
     ratioCheck(`text-${ground}`, "--text", ground, 4.5);
+    ratioCheck(`heading-${ground}`, "--heading", ground, 4.5);
     ratioCheck(`muted-${ground}`, "--text-muted", ground, 3);
   }
   for (const ground of FAINT_GROUNDS) {

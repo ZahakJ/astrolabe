@@ -32,6 +32,18 @@
   @media (prefers-reduced-motion: reduce) { .sky i { animation: none; } }
 
   header { position: relative; padding: 110px 0 40px; text-align: center; isolation: isolate; }
+  /* The top bar: where a reader looks for the manual first. */
+  .topbar { position: absolute; top: 0; left: 0; right: 0; z-index: 2; }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 18px; padding-bottom: 18px; }
+  .topbar__brand { font-weight: 600; letter-spacing: .06em; color: var(--text); font-size: 1.05rem; white-space: nowrap; }
+  .topbar__brand b { color: var(--accent-hi); margin-inline-end: 8px; font-weight: 400; }
+  .topbar__brand:hover { text-decoration: none; color: var(--accent-hi); }
+  .topbar__nav { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .topbar__nav a { padding: 8px 14px; border-radius: 999px; color: var(--text); font-size: .95rem; }
+  .topbar__nav a:hover { background: rgba(255,255,255,.06); text-decoration: none; }
+  .topbar__nav .is-docs { border: 1px solid var(--accent); color: var(--accent-hi); font-weight: 600; }
+  .topbar__nav .is-docs:hover { background: var(--accent); color: var(--ink); }
+  @media (max-width: 640px) { .topbar .wrap { flex-direction: column; gap: 8px; } header { padding-top: 150px; } }
   header .wrap { position: relative; z-index: 1; }
   .star { color: var(--accent-hi); font-size: 26px; text-shadow: 0 0 18px rgba(232,201,106,.6); }
   h1 { font-size: clamp(3.2rem, 9vw, 6rem); font-weight: 600; letter-spacing: .04em; margin: 8px 0 4px; line-height: 1; }
@@ -96,6 +108,17 @@
 <body>
 
 <header>
+  <nav class="topbar ui" aria-label="Site">
+    <div class="wrap">
+      <a class="topbar__brand" href="./"><b>✦</b>Vellum</a>
+      <div class="topbar__nav">
+        <a class="is-docs" href="site/en/">Docs</a>
+        <a href="site/ar/" lang="ar" dir="rtl" title="The manual, in Arabic">الدليل بالعربية</a>
+        <a href="https://github.com/ZahakJ/vellum">GitHub</a>
+        <a href="https://github.com/ZahakJ/vellum/releases/latest">Download</a>
+      </div>
+    </div>
+  </nav>
   <div class="sky" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="wrap">
     <div class="star">✦</div>
@@ -103,7 +126,8 @@
     <p class="tagline">Your notes, published beautifully.</p>
     <div class="cta">
       <a class="btn btn-gold" href="https://github.com/ZahakJ/vellum/releases/latest">Download</a>
-      <a class="nav__docs" href="site/en/">Docs</a> <a class="btn btn-ghost" href="https://github.com/ZahakJ/vellum">GitHub</a>
+      <a class="btn btn-ghost" href="site/en/">Read the docs</a>
+      <a class="btn btn-ghost" href="https://github.com/ZahakJ/vellum">GitHub</a>
       <a class="btn btn-ghost" href="#quickstart">Run it yourself</a>
     </div>
     <div class="rooms ui">
@@ -113,7 +137,7 @@
       <div class="room"><em>The library</em><b>Teach</b><span>Books and lecture series as paths a reader walks in order, with their place kept.</span></div>
     </div>
   </div>
-  <div class="hero-shot"><img class="shot" src="screenshots/house-mission-control.png" alt="A designed site in the Mission Control house: a radar opening in phosphor green, a ruled log of entries beneath it"></div>
+  <div class="hero-shot"><img class="shot" src="screenshots/hero-house.png" alt="A designed site in the Mission Control house, in the tallow theme: a radar opening in candle amber, a ruled log of entries beneath it"></div>
 </header>
 
 <section>

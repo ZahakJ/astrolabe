@@ -81,6 +81,7 @@ export const THEME_TOKENS: TokenSpec[] = [
   { name: "--text", group: "text", kind: "color" },
   { name: "--text-muted", group: "text", kind: "color" },
   { name: "--text-faint", group: "text", kind: "color" },
+  { name: "--heading", group: "text", kind: "color" },
 
   { name: "--accent", group: "accent", kind: "color" },
   { name: "--accent-soft", group: "accent", kind: "wash" },
