@@ -2559,6 +2559,23 @@ const DICT = {
     ar: "حزمة الماكرو التي تجعل ملاحظة ‎.tex‎ تُترجم خارج ڤيلوم",
   },
   newTexNote: { en: "New LaTeX note", ar: "ملاحظة لاتخ جديدة" },
+  // ── Drawings (client/drawing/) ─────────────────────────────────────────
+  newDrawing: { en: "New drawing", ar: "رسمة جديدة" },
+  newDrawingHere: { en: "New drawing here", ar: "رسمة جديدة هنا" },
+  cmdNewDrawingHint: { en: "an Excalidraw canvas in the vault", ar: "لوحة Excalidraw في الخزانة" },
+  drawingAria: { en: "Drawing: {title}", ar: "رسمة: {title}" },
+  drawingSaving: { en: "Saving…", ar: "جارٍ الحفظ…" },
+  drawingSaved: { en: "Saved", ar: "حُفظت" },
+  drawingUnsaved: { en: "Unsaved strokes", ar: "خطوط غير محفوظة" },
+  drawingSaveFailed: { en: "The drawing could not be saved. Your strokes are still on the canvas.", ar: "تعذّر حفظ الرسمة. خطوطك ما زالت على اللوحة." },
+  drawingLoadFailed: {
+    en: "This file is not a drawing Vellum can read. Open it in Obsidian, or fix the scene by hand.",
+    ar: "هذا الملف ليس رسمة يستطيع ڤيلوم قراءتها. افتحه في أوبسيديان، أو أصلح المشهد يدويًا.",
+  },
+  drawingConflict: { en: "This drawing changed on disk while you were drawing.", ar: "تغيّرت هذه الرسمة على القرص أثناء رسمك." },
+  drawingKeepMine: { en: "Keep mine", ar: "أبقِ نسختي" },
+  drawingTakeTheirs: { en: "Use the disk version", ar: "استخدم نسخة القرص" },
+  drawingEmbedMissing: { en: "{name}: open the drawing once to draw its picture", ar: "{name}: افتح الرسمة مرة لتُرسم صورتها" },
 
   // ── Sectioning (heading menu, outline drag, focus, numbering) ─────────────
   // A heading is a HANDLE on a subtree, and every string here names an action

@@ -14,7 +14,7 @@ import {
   normalizeFolder,
  uploadDestination } from "../shared/attachments.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
-import { isNotePath, isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
+import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
 import { UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import type {
@@ -1924,6 +1924,37 @@ api.post("/upload", async (c) => {
   registerAttachment(rel);
   const result: UploadResult = { path: rel };
   return c.json(result);
+});
+
+// THE PICTURE BESIDE THE DRAWING. The drawing surface exports an SVG of the
+// scene on every save and puts it here, and that file is what the reading
+// view, the blog, a library lesson and a visitor's page show for
+// `![[sketch.excalidraw]]` — so nobody but the owner ever downloads the
+// editor to look at a sketch. Admin only; the path names the DRAWING and the
+// picture lands as `<drawing>.svg` beside it, never anywhere the client
+// chooses. The bytes are checked to be an <svg> document and served back by
+// /api/file under the same sandboxing CSP as every other attachment.
+api.put("/drawing-svg", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  const rel = normalizeRel(requiredQuery(c.req.query("path"), "path"));
+  if (!isDrawingPath(rel)) throw new VaultError(400, `Not a drawing: ${rel}`);
+  if (!(await noteExists(rel))) throw new VaultError(404, `Drawing not found: ${rel}`);
+  const svg = await c.req.text();
+  if (svg.length > UPLOAD_MAX_BYTES) throw new VaultError(413, `File too large (${UPLOAD_MAX_BYTES} bytes max)`);
+  if (!/^\s*(<\?xml[^>]*>\s*)?<svg[\s>]/i.test(svg)) throw new VaultError(400, "Body must be an <svg> document");
+  const target = drawingSvgPath(rel);
+  const abs = safeAbs(target);
+  let existed = true;
+  try {
+    await fsp.access(abs);
+  } catch {
+    existed = false;
+  }
+  suppressWatcherEcho(target);
+  await fsp.writeFile(abs, svg, "utf8");
+  registerAttachment(target);
+  emitEvent({ kind: existed ? "changed" : "created", path: target });
+  return c.json({ path: target });
 });
 
 // The banner picker's list: every indexed image attachment. Admin-eyes-only —

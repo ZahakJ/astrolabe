@@ -11,12 +11,12 @@
 // joined the folder in silence; a reader who typed "Ideas" learned what they
 // had actually made by finding it in the tree.
 
-import { createFolder } from "./api.ts";
+import { createFolder, putNote } from "./api.ts";
 import { promptModal, type PromptCheck } from "./components/Confirm.tsx";
 import { t, tf } from "./i18n.ts";
 import { useStore } from "./state.ts";
 import { toast } from "./toast.ts";
-import { isNotePath } from "../shared/noteFormat.ts";
+import { isDrawingPath, isNotePath } from "../shared/noteFormat.ts";
 
 /** Everything a typed path arrives decorated with: whitespace, backslashes
  *  (a Windows paste), leading/trailing and doubled slashes. */
@@ -69,6 +69,41 @@ export function promptNotePath(dir: string, title: string): Promise<string | nul
     placeholder: "Untitled.md",
     check: (raw) => check(dir, true, raw),
   });
+}
+
+/** New drawing in `dir` ("" = vault root): an empty Excalidraw scene in the
+ *  spelling the vault wants — the Obsidian plugin's `.excalidraw.md` when the
+ *  vault has an `.obsidian/` folder (so the plugin opens it there), plain
+ *  `.excalidraw` otherwise — created, indexed and opened in the canvas. A
+ *  name typed with either spelling keeps it. */
+export async function promptNewDrawing(dir: string): Promise<void> {
+  const store = useStore.getState();
+  // The format module carries the plugin's compressor; it is loaded when a
+  // drawing is made, never with the sidebar.
+  const { drawingExtension, newDrawingContent } = await import("../shared/drawing.ts");
+  const ext = drawingExtension(store.obsidianVault ? "plugin" : "json");
+  const name = `Drawing${ext}`;
+  const raw = await promptModal({
+    title: t("newDrawing"),
+    body: destination(dir),
+    value: name,
+    placeholder: name,
+    check: (typed) => {
+      const base = check(dir, false, typed);
+      if (!base.value) return base;
+      const value = isDrawingPath(base.value) ? base.value : `${base.value}${ext}`;
+      return { value, note: value === clean(typed) ? undefined : tf("promptCreates", { path: value }) };
+    },
+  });
+  if (!raw) return;
+  try {
+    await putNote(raw, newDrawingContent(raw.toLowerCase().endsWith(".md") ? "plugin" : "json"));
+    await store.loadTree();
+    store.openNote(raw);
+  } catch (err) {
+    console.error("promptNewDrawing: create failed", err);
+    toast(t("couldNotCreateNote"));
+  }
 }
 
 /** New note in `dir` ("" = vault root). Creates it, opens it, and leaves the

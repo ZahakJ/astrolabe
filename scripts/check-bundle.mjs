@@ -577,7 +577,15 @@ const AUDIENCES = [
   // agrees "chapters" and «فصول» (its own module, `client/trackerUnits.ts`,
   // so the panel did not drag the reading renderer into the entry), and the
   // folder chip's strings. The Media page itself stays behind its button.
-{ name: "entry (everyone)", keys: entry, budget: 608 * 1024 },
+  // …and again for DRAWINGS (605.9 kB actual → 608, actual + ~0.35%): fifteen
+  // dictionary rows for the canvas and its prompt, the drawing spellings in
+  // shared/noteFormat.ts, the embed kind, the tree's pencil, the pane's
+  // surface, the palette row and the one-line asset-path global that has to
+  // run before Excalidraw's chunk does (client/drawing/assetPath.ts). The
+  // canvas itself, the exporter and the plugin's compressor are
+  // DrawingSurface-*.js and a vendor chunk behind it — asserted split and
+  // FORBIDDEN from every first paint below.
+{ name: "entry (everyone)", keys: entry, budget: 614 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -754,7 +762,10 @@ const AUDIENCES = [
   // as above — nothing of the page itself reaches a blog reader.
   // …and again for A WORK'S NOTES (840.5 kB actual → 846): the dictionary and
   // the rendered card's one folder line.
-  { name: "anonymous blog reader", keys: blog, budget: 846 * 1024 },
+  // …and once more with the entry, for DRAWINGS (844.0 kB actual → 846):
+  // the blog reader's own share is the drawing embed kind and the svg's
+  // class in the renderer, under a kilobyte; the rest is the entry's.
+  { name: "anonymous blog reader", keys: blog, budget: 852 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -843,7 +854,13 @@ const AUDIENCES = [
   // the status bar's one more door and the palette's row.
   // …and again for A WORK'S NOTES (1245.0 kB actual → 1252): the panel
   // section and its styles, as above.
-  { name: "admin first paint", keys: app, budget: 1252 * 1024 },
+  // …and once more with the entry, for DRAWINGS (1244.2 kB actual → 1247):
+  // the sidebar's pencil glyph and its menu row, the prompt (which loads the
+  // format module on use, not on paint), and the entry's share.
+  // …and the two rounds together (A WORK'S NOTES and DRAWINGS landed as one
+  // merge): entry 614, blog 852, admin 1260 — each the two additions above
+  // stacked, with the same slack, measured after the merge.
+  { name: "admin first paint", keys: app, budget: 1260 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -885,6 +902,13 @@ const FORBIDDEN = [
     label: "the book reader",
     test: (k) => /books\/(BooksSurface|BookReader|BookLibrary|render|covers|pdfjs)\.tsx?$/.test(k),
   },
+  // Excalidraw is the other whole editor in the tree, and it exists for one
+  // surface too. It is reached only through two `import()`s — the pane's lazy
+  // DrawingSurface and the reading view's owner-only fallback in
+  // client/drawing/renderEmbed.ts — and the shared parser the indexer and the
+  // embeds use (shared/drawing.ts) deliberately imports none of it.
+  { label: "Excalidraw", test: (k) => /node_modules\/@excalidraw\//.test(k) },
+  { label: "the drawing surface", test: (k) => /drawing\/(DrawingSurface|renderEmbed)\.tsx?$/.test(k) },
 ];
 
 // ── surfaces that must remain separately loadable ───────────────────────────
@@ -908,6 +932,12 @@ const MUST_SPLIT = [
   // The Media page: the shelves, the form and their stylesheet, behind the
   // status bar's button. A workspace view like the graph, and split like it.
   "media/MediaView.tsx",
+  // The drawing surface: Excalidraw whole, the largest chunk in the product,
+  // behind a tab that opens only when a drawing does. The renderer's owner
+  // fallback (renderEmbed.ts) is a second door into the same vendor chunk,
+  // and both are asserted absent from every first paint by the FORBIDDEN
+  // rule below.
+  "drawing/DrawingSurface.tsx",
 ];
 
 let failed = false;

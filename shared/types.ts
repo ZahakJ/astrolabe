@@ -440,6 +440,9 @@ export interface MeData {
    *  site. Never sent to visitors: it describes the owner, not the site. */
   publicTheme?: PublicThemeInfo;
   language?: "en" | "ar"; // site chrome language (settings.language / SITE_LANG; default "en"); "ar" flips the whole chrome RTL. Sent to every session.
+  /** Admin only: the vault is also an Obsidian vault (it has `.obsidian/`), so
+   *  a new drawing takes the Excalidraw plugin's `.excalidraw.md` spelling. */
+  obsidianVault?: boolean;
   languageToggle?: boolean; // settings.languageToggle — the public shell offers visitors an EN/ع chrome switch (default off; absent = off)
   /** settings.topics — where the public categories come from: `tags` (a topic per
    *  tag, the default; absent = tags) or `folders` (every published note takes its

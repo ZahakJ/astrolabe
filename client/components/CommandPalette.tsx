@@ -42,7 +42,7 @@ import { noteAnchors, type NoteAnchor } from "../../shared/anchors.ts";
 import { commandCut, fuzzyMatch, rankCommands } from "../paletteRank.ts";
 import { TREE_REVEAL_EVENT } from "./Sidebar.tsx";
 import { FIND_IN_NOTE_EVENT } from "../editor/bufferBridge.ts";
-import { promptNewFolder } from "../prompts.ts";
+import { promptNewDrawing, promptNewFolder } from "../prompts.ts";
 import { duplicateNote } from "../duplicate.ts";
 import { copyNoteLink } from "../sectionActions.ts";
 import { panesInOrder } from "../workspace.ts";
@@ -149,6 +149,15 @@ const COMMANDS: Command[] = [
     label: () => t("newTexNote"),
     hint: () => t("cmdCreateHint"),
     prompt: { placeholder: "path/to/paper.tex", initial: () => "" },
+    available: ({ admin }) => admin,
+  },
+  {
+    // A drawing is a note that opens in a canvas. The name prompt is the
+    // tree's own (it knows the vault's spelling), so this row opens it in
+    // the open note's folder rather than asking for a path of its own.
+    id: "new-drawing",
+    label: () => t("newDrawing"),
+    hint: () => t("cmdNewDrawingHint"),
     available: ({ admin }) => admin,
   },
   {
@@ -907,6 +916,11 @@ export default function CommandPalette() {
           // field takes a path, so `ideas/2026` is still one keystroke away.
           void promptNewFolder("");
           break;
+        case "new-drawing": {
+          const open = store.openPath;
+          void promptNewDrawing(open === null || !open.includes("/") ? "" : open.slice(0, open.lastIndexOf("/")));
+          break;
+        }
         case "reveal-in-tree": {
           const open = store.openPath;
           if (open === null) break;

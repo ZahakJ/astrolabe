@@ -24,7 +24,7 @@
 // see its comment.
 
 import type { BookAnchor } from "../shared/bookAnchor.ts";
-import { isNotePath } from "../shared/noteFormat.ts";
+import { isDrawingPath, isNotePath } from "../shared/noteFormat.ts";
 
 export type PaneId = string;
 
@@ -37,7 +37,7 @@ export type PaneMode = "edit" | "reading" | "graph" | "library";
  *  invariant has to be policed at the component boundary: a `.pdf` tab renders
  *  the reader whatever the mode says, which is exactly what makes Ctrl/Cmd+E a
  *  harmless no-op on a book instead of a mode the pane cannot honour. */
-export type PaneSurface = "edit" | "reading" | "book" | "graph" | "library" | "empty";
+export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "library" | "empty";
 
 /** Where in a book an open should land. There is ONE spelling of "where in a
  *  book" in this product — shared/bookAnchor.ts owns it, the citation wikilink
@@ -115,6 +115,11 @@ export function isBookPath(path: string): boolean {
 /** A path that may occupy a tab at all. Anything else — an image, an audio
  *  file — belongs to the attachment viewer, which is a lightbox and not a
  *  workspace surface. */
+/** A drawing (`.excalidraw`, `.excalidraw.md`) opens in the canvas surface,
+ *  never in CodeMirror: it is a note by every other measure (tree, search,
+ *  graph, the tab it sits in) and a picture by this one. */
+export { isDrawingPath };
+
 export function isTabbablePath(path: string): boolean {
   return isNotePath(path) || isBookPath(path);
 }
@@ -169,6 +174,9 @@ export function surfaceOf(p: Pane): PaneSurface {
   const tab = activeTabOf(p);
   if (p.follow === null && tab === null) return "empty";
   if (tab !== null && isBookPath(tab.path)) return "book";
+  // A drawing has one surface: the canvas is the editor AND the reading view,
+  // and a pane mode of "reading" over it would be a grey box.
+  if (tab !== null && isDrawingPath(tab.path)) return "drawing";
   return p.mode === "reading" ? "reading" : "edit";
 }
 
