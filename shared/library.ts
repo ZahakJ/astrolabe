@@ -23,7 +23,7 @@
 // beside a 400.
 
 import { folderId, folderSlug } from "./publicFolders.ts";
-import type { LibraryKind, LibraryPathRef, LibraryUnit } from "./types.ts";
+import type { LibraryKind, LibraryPathRef, LibraryUnit, LibrarySettings } from "./types.ts";
 
 export const LIBRARY_PATHS_MAX = 24;
 export const LIBRARY_TITLE_MAX = 80;
@@ -149,6 +149,30 @@ export function unitOfName(dirName: string): Pick<LibraryUnit, "name" | "kind" |
     return { name, kind: "part", number: Number(m[1]) };
   }
   return { name, kind: "unit", number: null };
+}
+
+/** The folders whose published notes are LESSONS rather than posts: every
+ *  visible path of an enabled library, normalised. Empty when the library is
+ *  off or every path is hidden — a shelf that reaches nobody gives the blog
+ *  its notes back. */
+export function libraryLessonFolders(lib: LibrarySettings | undefined): string[] {
+  if (!lib || lib.enabled !== true) return [];
+  const out: string[] = [];
+  for (const ref of lib.paths ?? []) {
+    if (ref.hidden) continue;
+    const folder = libraryFolder(ref.folder);
+    if (folder !== null && !out.includes(folder)) out.push(folder);
+  }
+  return out;
+}
+
+/** Is this note inside one of the lesson folders? The boundary is the slash:
+ *  `Books/Feynman` never claims `Books/Feynman Lectures`. */
+export function isLibraryLesson(notePath: string, folders: readonly string[]): boolean {
+  for (const folder of folders) {
+    if (notePath.startsWith(folder + "/")) return true;
+  }
+  return false;
 }
 
 /** A folder's name as a shelf TITLE: the sorting prefix (`B2| `) gone, the
