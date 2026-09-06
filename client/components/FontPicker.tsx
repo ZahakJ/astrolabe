@@ -37,7 +37,7 @@ const ROW_LATIN = "The vault is open — 0123";
 const ROW_ARABIC = "خَطُّ النَّسْخِ ١٢٣";
 /** An uploaded face could be either script (or both), so its row shows both
  *  and lets the face answer for whichever it has. */
-const ROW_MIXED = "Vellum — نموذج ١٢٣";
+const ROW_MIXED = "Astrolabe — نموذج ١٢٣";
 
 /** Which faces the picker offers.
  *  - `text` / `mono` / `arabic` are the INSTANCE's three slot rules

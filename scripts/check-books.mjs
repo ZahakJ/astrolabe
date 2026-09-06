@@ -240,7 +240,7 @@ if (/lazy(?:Surface)?\(\(\) => import\("\.\.\/books\/BooksSurface\.tsx"\)\)/.tes
 
 // ── 3. Nothing writes to the vault ─────────────────────────────────────────
 
-console.log("\ncheck-books: the store writes to VELLUM_DATA and nowhere else");
+console.log("\ncheck-books: the store writes to ASTROLABE_DATA and nowhere else");
 
 const storeSrc = code(read("server/books.ts"));
 const WRITE_CALLS =
@@ -256,14 +256,14 @@ if (stray.length > 0) {
       "mkdirSync, writeFileSync, renameSync, chmodSync. A fifth needs a reason written down here.",
   );
 } else {
-  ok("exactly the four write calls of persist(), all inside VELLUM_DATA");
+  ok("exactly the four write calls of persist(), all inside ASTROLABE_DATA");
 }
 
 if (/\bopen\(abs,\s*"r"\)/.test(storeSrc)) ok("the book itself is opened read-only");
 else fail("server/books.ts must open a vault PDF with mode \"r\" — a book is never written to");
 
 if (/dataDir\(\)/.test(storeSrc)) ok("the store path is derived from dataDir()");
-else fail("server/books.ts must put its file under dataDir() (VELLUM_DATA), never in the vault");
+else fail("server/books.ts must put its file under dataDir() (ASTROLABE_DATA), never in the vault");
 
 if (/getVaultRoot|vaultRoot/.test(storeSrc)) {
   fail("server/books.ts reaches for the vault root — the reading store must never be able to land in the vault");

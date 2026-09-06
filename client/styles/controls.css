@@ -1,4 +1,4 @@
-/* Vellum — the control set.
+/* Astrolabe — the control set.
    Linked after app.css and themes.css, before settings.css (client/index.html):
    these are the primitives the settings surface is drawn with, so the settings
    sheet must be able to adjust them and never the other way round.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>وضع المدونة · فيلم الدليل</title>
+<title>وضع المدونة · دليل أسطرلاب</title>
 <meta name="description" content="المدونة الجاهزة: الترويسة وشريط المواضيع، وصفحات المقالات، والصفحة الرئيسية بلوحة المعلومات، وRSS وتحسين محركات البحث.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,11 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
-  <a class="top__brand" href="../../ar/"><span class="top__star">✦</span> فيلم <span class="top__docs">الدليل</span></a>
+  <a class="top__brand" href="../../ar/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> <span class="top__docs">دليل</span> أسطرلاب</a>
   <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../en/blog-mode/" hreflang="en">English</a>
   <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a><a class="nav__link" href="../../ar/desktop/">تطبيق سطح المكتب</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/drawing/">الرسومات</a><a class="nav__link" href="../../ar/books/">قارئ PDF</a><a class="nav__link" href="../../ar/workspace/">اللوحات والتبويبات والنوافذ</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link is-current" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
@@ -77,7 +77,7 @@ folders:                # قائمة كتلية
 <h2 id="العودة-إلى-الأعلى"><a class="anchor" href="#العودة-إلى-الأعلى">العودة إلى الأعلى</a></h2>
 <p>بعد نافذة عرض من التمرير تظهر ✦ صغيرة في الزاوية الخلفية (الأمامية في العربية) وتحمل القارئ إلى الأعلى ببريق ذهبي؛ ترفع نفسها عن طريق التذييل وصندوق التعليقات بدل الجلوس عليهما، وتقفز فورًا بلا بريق حين يُضبط <code>prefers-reduced-motion</code>.</p>
 <h2 id="الصفحة-الرئيسية-بلوحة-المعلومات"><a class="anchor" href="#الصفحة-الرئيسية-بلوحة-المعلومات">الصفحة الرئيسية بلوحة المعلومات</a></h2>
-<p>تفضّل واجهة مجلة على الرئيسية بأسلوب الملاحظة؟ اضبط <strong>الإعدادات ← النشر والتعليقات ← الصفحة الرئيسية ← لوحة المعلومات</strong> (مفتاح الإعدادات <code>home.mode: &quot;dashboard&quot;</code>، يُبلَغ أيضًا بـ<code>{ &quot;home&quot;: { &quot;mode&quot;: &quot;dashboard&quot; } }</code> في <code>VELLUM_DATA/settings.json</code> أو عبر <code>PATCH /api/settings</code>، ويُلتقط حيًّا) فتصير <code>/</code>:</p>
+<p>تفضّل واجهة مجلة على الرئيسية بأسلوب الملاحظة؟ اضبط <strong>الإعدادات ← النشر والتعليقات ← الصفحة الرئيسية ← لوحة المعلومات</strong> (مفتاح الإعدادات <code>home.mode: &quot;dashboard&quot;</code>، يُبلَغ أيضًا بـ<code>{ &quot;home&quot;: { &quot;mode&quot;: &quot;dashboard&quot; } }</code> في <code>ASTROLABE_DATA/settings.json</code> أو عبر <code>PATCH /api/settings</code>، ويُلتقط حيًّا) فتصير <code>/</code>:</p>
 <ul>
 <li>بطلًا بكامل العرض يحمل اسم الموقع (أو الشعار) والعنوان الفرعي فوق صورة لافتة (<code>home.banner</code>: رابط https أو مرفق من الخزانة؛ وبدونها تدرج مولَّد ببذرة من اسم الموقع)؛</li>
 <li>شبكة بطاقات متجاوبة لأحدث التدوينات (1/2/3 أعمدة بحسب نافذة العرض؛ صور لافتات مصغرة بالبديل المولَّد نفسه، ومقتطفات، وشرائح وسوم)؛</li>
@@ -87,7 +87,7 @@ folders:                # قائمة كتلية
 <p>صفوف الرئيسية يقرؤها التخطيطان <code>blog</code> و<code>designed</code> ولا شيء غيرهما، فهي خاملة في التخطيط الافتراضي <code>app</code>، وهو ما تقوله لوحة الإعدادات على الصف نفسه وتعتّمه. نسخة بتخطيط التطبيق تفتح الملاحظة الرئيسية في <code>/</code> ببساطة.</p>
 <h2 id="أثاث-المقالة"><a class="anchor" href="#أثاث-المقالة">أثاث المقالة</a></h2>
 <p><figure><img src="../../../screenshots/blog-article.png" alt="مقالة مدونة بتعليقات" loading="lazy"></figure></p>
-<p>تنتهي كل مقالة بروابط مشاركة (الإعدادات ← النشر والتعليقات يستطيع إيقاف الصف)، والتدوينتين السابقة والتالية، وقائمة &quot;ذات صلة&quot; (ملاحظات منشورة مرتبطة بها من أو إلى)، و<a href="../publishing/#comments">التعليقات</a>. يحمل التذييل رابط RSS هادئًا ورابط تسجيل دخول وإشارة صغيرة &quot;يعمل بفيلم&quot;؛ أخفها بـ<code>.s-blog-powered { display: none }</code> في <a href="../theming/#restyle-it"><code>custom.css</code></a> إن فضّلت.</p>
+<p>تنتهي كل مقالة بروابط مشاركة (الإعدادات ← النشر والتعليقات يستطيع إيقاف الصف)، والتدوينتين السابقة والتالية، وقائمة &quot;ذات صلة&quot; (ملاحظات منشورة مرتبطة بها من أو إلى)، و<a href="../publishing/#comments">التعليقات</a>. يحمل التذييل رابط RSS هادئًا ورابط تسجيل دخول وإشارة صغيرة &quot;يعمل بأسطرلاب&quot;؛ أخفها بـ<code>.s-blog-powered { display: none }</code> في <a href="../theming/#restyle-it"><code>custom.css</code></a> إن فضّلت.</p>
 <h2 id="rss-وخريطة-الموقع-وتحسين-محركات-البحث"><a class="anchor" href="#rss-وخريطة-الموقع-وتحسين-محركات-البحث">RSS وخريطة الموقع وتحسين محركات البحث</a></h2>
 <p>أربعة أسطح موجَّهة للزواحف تأتي أيًّا كان التخطيط (كلها تحترم <code>PUBLIC=false</code> ولا تتحدث إلا بالملاحظات المنشورة؛ المسارات غير المنشورة لا تُميَّز عن المجهولة):</p>
 <ul>
@@ -100,9 +100,9 @@ folders:                # قائمة كتلية
 <p>تأخذ الخلاصة وخريطة الموقع <code>?lang=ar</code> / <code>?lang=en</code> حين يكون <a href="../arabic-and-rtl/">مرشح اللغة</a> مشغَّلًا؛ لا يستطيع الزاحف وقارئ الخلاصات إرسال الترويسة التي تستخدمها صفحات التطبيق، فجانبا الموقع ثنائي اللغة رابطان.</p>
 <p><strong>على نسخة <code>PUBLIC=false</code></strong> تكون خريطة الموقع خلف تسجيل الدخول كالخلاصة تمامًا (401 بلا جلسة)، ويجيب <code>robots.txt</code> بـ<code>Disallow: /</code> لكل من لم يسجّل دخوله. هذا الأخير عمدًا <em>ليس</em> 401: يقرأ <a href="https://www.rfc-editor.org/rfc/rfc9309.html" target="_blank" rel="noreferrer">RFC 9309 §2.3.1.3</a> كل 4xx على <code>robots.txt</code> بوصفه &quot;لا قواعد، ازحف بحرية&quot;، وهو عكس ما تعنيه الخزانة الخاصة. جسد <code>Disallow: /</code> لا يكشف شيئًا، فكل مسار حقيقي ما زال يجيب 401 وحده؛ هو فقط يوقف الزحف قبل أن يبدأ.</p>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/ar/blog-mode.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/ar/blog-mode.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/keymap/"><span class="pager__kicker">السابق</span><span class="pager__title">اختصارات لوحة المفاتيح</span></a><a class="pager__link pager__link--next" href="../../ar/designer/"><span class="pager__kicker">التالي</span><span class="pager__title">وضع التصميم</span></a></nav>
-    <footer class="foot">فيلم برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+    <footer class="foot">أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
   </main>
   <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#ما-الذي-ي-عد-تدوينة">ما الذي يُعدّ تدوينة</a><a class="toc__link toc__link--2" href="#الشريط-سطر-واحد-دائم-ا">الشريط سطر واحد دائمًا</a><a class="toc__link toc__link--2" href="#المجلدات-العامة-المخصصة">المجلدات العامة المخصصة</a><a class="toc__link toc__link--2" href="#معاينات-التحويم">معاينات التحويم</a><a class="toc__link toc__link--2" href="#العودة-إلى-الأعلى">العودة إلى الأعلى</a><a class="toc__link toc__link--2" href="#الصفحة-الرئيسية-بلوحة-المعلومات">الصفحة الرئيسية بلوحة المعلومات</a><a class="toc__link toc__link--2" href="#أثاث-المقالة">أثاث المقالة</a><a class="toc__link toc__link--2" href="#rss-وخريطة-الموقع-وتحسين-محركات-البحث">RSS وخريطة الموقع وتحسين محركات البحث</a></aside>
 </div>

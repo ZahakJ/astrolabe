@@ -1,4 +1,4 @@
-/* Vellum — the library's covers and its home band (client/library/LibraryBand.tsx,
+/* Astrolabe — the library's covers and its home band (client/library/LibraryBand.tsx,
    LibraryCover.tsx). Its own small sheet because the band and the door sit
    in every blog first paint; the pages' sheet (library.css) arrives with the
    pages. Prefix: s-lib. */

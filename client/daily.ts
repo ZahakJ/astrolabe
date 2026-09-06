@@ -58,7 +58,7 @@ export async function openDailyNote(): Promise<void> {
       await createNote(path);
       // THE DEFAULT TEMPLATE, and its absence here was a real hole: the
       // setting is documented as applying to every note created from inside
-      // Vellum, `store.createNote` has applied it since it shipped
+      // Astrolabe, `store.createNote` has applied it since it shipped
       // (client/state.ts), and this — the one creation path with a keystroke
       // of its own — reached past the store to the raw API and skipped it. So
       // a vault with a configured template got it on every new note except the
@@ -76,7 +76,7 @@ export async function openDailyNote(): Promise<void> {
       // 409 = it exists after all (stale tree) — fall through and open it.
       const message = err instanceof Error ? err.message : "";
       if (!/exists/i.test(message)) {
-        console.error(`vellum: creating daily note ${path} failed`, err);
+        console.error(`astrolabe: creating daily note ${path} failed`, err);
         toast(t("dailyNoteFailed"));
         return;
       }

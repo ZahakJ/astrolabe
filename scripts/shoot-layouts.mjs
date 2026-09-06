@@ -1,7 +1,7 @@
 // Dev harness (not shipped): the Ctrl/Cmd+/ sheet as a reader on a non-Latin
 // keyboard sees it — the keycap letter plus what that key actually types.
 //
-//   node scripts/shoot-layouts.mjs http://localhost:7141 vellum7141 /outdir
+//   node scripts/shoot-layouts.mjs http://localhost:7141 astrolabe7141 /outdir
 //   env: LANGSET=ar  THEME=parchment  CHROMIUM=/usr/bin/chromium
 //
 // A headless browser has no system keyboard layout, so
@@ -15,7 +15,7 @@
 import { mkdirSync } from "node:fs";
 import { chromium } from "playwright";
 
-const [url = "http://localhost:7141", password = "vellum7141", out = "shots"] = process.argv.slice(2);
+const [url = "http://localhost:7141", password = "astrolabe7141", out = "shots"] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
 
 const ARABIC = {

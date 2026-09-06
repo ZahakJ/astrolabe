@@ -15,7 +15,7 @@
 // The bytes are hashed as `sha256(size || head || tail)` — see server/books.ts
 // for why a sample rather than the whole file — and the hex digest is the key
 // this module validates. Both sides depend on it: the server writes
-// VELLUM_DATA/books.json under these keys, and the client asks for state by
+// ASTROLABE_DATA/books.json under these keys, and the client asks for state by
 // the key the server computed for the path it opened.
 //
 // `bookRef()` was here before anything cited with it, for that reason. A
@@ -270,10 +270,10 @@ export function parseBookRef(value: string): BookRef | null {
 // ── Annotations ─────────────────────────────────────────────────────────────
 //
 // A highlight is a rectangle on a page and the words under it, and it is
-// stored HERE — VELLUM_DATA, against the content key — because the alternative
+// stored HERE — ASTROLABE_DATA, against the content key — because the alternative
 // is writing into the PDF, and the PDF belongs to the reader. A vault is
 // ordinary files someone syncs, greps and backs up; a reader who marks a
-// passage must not discover afterwards that Vellum rewrote a 400 MB scan and
+// passage must not discover afterwards that Astrolabe rewrote a 400 MB scan and
 // that every one of their machines now has to pull it down again. The rule is
 // absolute and it is asserted: `scripts/check-books.mjs` enumerates every
 // write call in server/books.ts, and tests/books.test.ts checks the PDF's
@@ -493,7 +493,7 @@ export function newHighlightId(): string {
 // It rides `client/editor/links.ts::parseWikilink()` exactly as it stands —
 // target, `#heading`, `|alias` — so the live preview, the reading view, the
 // backlink index, the hover card and the autocomplete all keep working without
-// being taught anything. A `book:` scheme or a `%%vellum-cite%%` fence would
+// being taught anything. A `book:` scheme or a `%%astrolabe-cite%%` fence would
 // each have needed every one of those to learn a second language, and a note
 // full of a syntax only this program understands has stopped being ordinary
 // markdown — which is the promise the whole vault rests on.

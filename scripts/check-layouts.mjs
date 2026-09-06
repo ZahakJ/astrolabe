@@ -3,7 +3,7 @@
 // exactly what Chromium delivers when the system keyboard is Arabic, Russian,
 // Greek or Hebrew — and asserts that every documented shortcut still fires.
 //
-//   node scripts/check-layouts.mjs http://localhost:7141 vellum7141
+//   node scripts/check-layouts.mjs http://localhost:7141 astrolabe7141
 //   env: CHROMIUM=/usr/bin/chromium
 //
 // WHY THIS EXISTS. `e.key` is what the LAYOUT produced. On an Arabic keyboard
@@ -28,7 +28,7 @@
 
 import { chromium } from "playwright";
 
-const [url = "http://localhost:7141", password = "vellum7141"] = process.argv.slice(2);
+const [url = "http://localhost:7141", password = "astrolabe7141"] = process.argv.slice(2);
 const executablePath = process.env.CHROMIUM;
 
 /** A layout is described by what each physical key PRODUCES. Only the keys

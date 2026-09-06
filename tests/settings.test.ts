@@ -33,7 +33,7 @@ const root = makeVault({
 });
 
 before(() => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(root);
 });
 
@@ -660,14 +660,14 @@ describe("inheritedSettings", () => {
   it("resolves the legacy LANGUAGE_FILTER=true against the site language in force", () => {
     // Clearing the FILTER key leaves the LANGUAGE key where it is, so the
     // legacy "site" sentinel follows the stored language, not SITE_LANG.
-    initSite({ VELLUM_DATA: data, LANGUAGE_FILTER: "true" });
+    initSite({ ASTROLABE_DATA: data, LANGUAGE_FILTER: "true" });
     try {
       patchSettings({ language: "ar" });
       assert.equal(inheritedSettings().languageFilter, "ar");
       patchSettings({ language: null });
       assert.equal(inheritedSettings().languageFilter, "en");
     } finally {
-      initSite({ VELLUM_DATA: data });
+      initSite({ ASTROLABE_DATA: data });
     }
   });
 });

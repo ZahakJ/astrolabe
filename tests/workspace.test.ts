@@ -378,7 +378,7 @@ describe("workspace: persistence", () => {
     assertInvariants(back, "round-trip");
   });
 
-  it("migrates vellum.tabs without losing an open note", () => {
+  it("migrates astrolabe.tabs without losing an open note", () => {
     const ws = fromStoredTabs({ tabs: ["a.md", "b/c.md"], open: "b/c.md" });
     assert.deepEqual(allPaths(ws), ["a.md", "b/c.md"]);
     assert.equal(activeTabOf(paneAt(ws, ws.focus)!)!.path, "b/c.md");

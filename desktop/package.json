@@ -1,8 +1,8 @@
 {
-  "name": "vellum-desktop",
+  "name": "astrolabe-desktop",
   "version": "2.20.0",
   "private": true,
-  "description": "The Vellum desktop app: an Electron shell that supervises a real server/index.ts per vault.",
+  "description": "The Astrolabe desktop app: an Electron shell that supervises a real server/index.ts per vault.",
   "scripts": {
     "start": "npm run build:preload && electron ../electron/main.ts",
     "build:preload": "tsc -p tsconfig.preload.json",

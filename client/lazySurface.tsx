@@ -60,7 +60,7 @@ export function lazySurface<P extends object>(
       try {
         return await load();
       } catch (err) {
-        console.error("vellum: a surface chunk could not be loaded", first, err);
+        console.error("astrolabe: a surface chunk could not be loaded", first, err);
         return { default: ChunkGone as unknown as ComponentType<P> };
       }
     }

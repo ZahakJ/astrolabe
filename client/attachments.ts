@@ -196,7 +196,7 @@ export async function uploadFiles(
       const landed = result.path.split("/").pop() ?? result.path;
       if (landed !== file.name) outcome.renamed.push({ from: file.name, to: landed });
     } catch (err) {
-      console.error("vellum: upload failed", err);
+      console.error("astrolabe: upload failed", err);
       outcome.failed++;
       toast(err instanceof Error ? err.message : t("uploadFailed"));
     }
@@ -239,7 +239,7 @@ async function undoUploads(paths: string[]): Promise<void> {
       await deleteAttachment(path);
       removed++;
     } catch (err) {
-      console.error("vellum: undoing an upload failed", err);
+      console.error("astrolabe: undoing an upload failed", err);
     }
   }
   toast(

@@ -1,5 +1,5 @@
 // Instance customization: env defaults (SITE_NAME, DEFAULT_THEME, …) merged
-// with the runtime-editable VELLUM_DATA/settings.json (settings.ts) — a stored
+// with the runtime-editable ASTROLABE_DATA/settings.json (settings.ts) — a stored
 // settings value wins over its env default; absent keys fall back to env.
 // Kept apart from auth so site identity and security config don't tangle.
 // All merged values reach the client via /api/me.
@@ -10,6 +10,7 @@
 
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { envRead } from "../shared/envName.ts";
 import { resolveAttachmentDir, type AttachmentLocation } from "../shared/attachments.ts";
 import type { LanguageFilterMode } from "../shared/types.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
@@ -34,7 +35,7 @@ interface SiteConfig {
 }
 
 let config: SiteConfig = {
-  siteName: "Vellum",
+  siteName: "Astrolabe",
   defaultTheme: null,
   dataDir: path.resolve("data"),
   excludeTags: new Set(),
@@ -63,7 +64,7 @@ function readEnvTheme(raw: string | undefined): string | null {
   // the instance actually has.
   if (value === null || value === FOLLOW_THEME || isTheme(value) || isCustomThemeId(value)) return value;
   console.error(
-    `vellum: DEFAULT_THEME="${value}" is not a built-in theme (or a custom:<name> one, or "${FOLLOW_THEME}") — ignoring. ` +
+    `astrolabe: DEFAULT_THEME="${value}" is not a built-in theme (or a custom:<name> one, or "${FOLLOW_THEME}") — ignoring. ` +
       `Built-ins: ${THEME_IDS.join(", ")}`,
   );
   return null;
@@ -77,7 +78,7 @@ function readEnvLayout(raw: string | undefined): "app" | "blog" | "designed" {
   const value = raw?.trim().toLowerCase() || "";
   if (value === "blog" || value === "designed" || value === "app") return value;
   if (value !== "") {
-    console.error(`vellum: PUBLIC_LAYOUT="${value}" is not app, blog or designed — ignoring.`);
+    console.error(`astrolabe: PUBLIC_LAYOUT="${value}" is not app, blog or designed — ignoring.`);
   }
   return "app";
 }
@@ -105,7 +106,7 @@ function readEnvLanguageFilter(raw: string | undefined): EnvLanguageFilter {
   if (/^(true|1|on|yes)$/.test(value)) return "site"; // legacy: pin to the site language
   if (/^(false|0|no)$/.test(value)) return "off";
   console.error(
-    `vellum: LANGUAGE_FILTER="${value}" is not a language-filter mode — ignoring (filter off). ` +
+    `astrolabe: LANGUAGE_FILTER="${value}" is not a language-filter mode — ignoring (filter off). ` +
       `One of: ${LANGUAGE_FILTER_MODES.join(", ")}`,
   );
   return "off";
@@ -114,13 +115,13 @@ function readEnvLanguageFilter(raw: string | undefined): EnvLanguageFilter {
 /** Read site settings from the environment. Call once at startup. */
 export function initSite(env: NodeJS.ProcessEnv = process.env): void {
   config = {
-    siteName: env.SITE_NAME?.trim() || "Vellum",
+    siteName: env.SITE_NAME?.trim() || "Astrolabe",
     // Validated against the shared theme list, not passed through: a typo'd
     // DEFAULT_THEME used to travel all the way to /api/me and get silently
     // dropped by the client, so the operator saw the default theme and no
     // explanation anywhere. One line on stderr at startup is the whole fix.
     defaultTheme: readEnvTheme(env.DEFAULT_THEME),
-    dataDir: path.resolve(env.VELLUM_DATA?.trim() || "data"),
+    dataDir: path.resolve(envRead(env, "ASTROLABE_DATA")?.trim() || "data"),
     // Workflow/status tags (e.g. zettel maturity markers) that shouldn't
     // surface as topic headings or tag pills on the published site. A leading
     // "#" is tolerated; matching is case-insensitive. Admin views unaffected.
@@ -330,7 +331,7 @@ export function siteUrl(): string | null {
   return config.siteUrl;
 }
 
-/** Absolute path of VELLUM_DATA/custom.css when it exists right now, else
+/** Absolute path of ASTROLABE_DATA/custom.css when it exists right now, else
  *  null — checked per call so the file can appear, change, or disappear
  *  without a server restart. */
 export function customCssPath(): string | null {
@@ -363,7 +364,7 @@ export function uploadDirFor(contextDir: string): string {
   return resolveAttachmentDir(attachmentLocation(), contextDir);
 }
 
-/** Absolute path of the instance data directory (VELLUM_DATA, default ./data). */
+/** Absolute path of the instance data directory (ASTROLABE_DATA, default ./data). */
 export function dataDir(): string {
   return config.dataDir;
 }
@@ -373,7 +374,7 @@ export function bannerFallback(): "generated" | "none" {
   return config.bannerFallback;
 }
 
-/** VELLUM_DATA/fonts — the directory GET /api/fonts/:file serves from. */
+/** ASTROLABE_DATA/fonts — the directory GET /api/fonts/:file serves from. */
 export function fontsDir(): string {
   return path.join(config.dataDir, "fonts");
 }

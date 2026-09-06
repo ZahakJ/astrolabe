@@ -136,7 +136,7 @@ const CASES: Case[] = [
   // ── Visitor preview: the server says admin:false, and that is the point ──
   {
     name: "previewing as a visitor shows the VISITOR's language, not the editor's",
-    admin: false, // an admin under X-Vellum-Preview
+    admin: false, // an admin under X-Astrolabe-Preview
     languageToggle: true,
     siteLang: "en",
     editor: "en",

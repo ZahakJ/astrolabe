@@ -1,4 +1,4 @@
-// Templates — Obsidian's core Templates plugin, in Vellum.
+// Templates — Obsidian's core Templates plugin, in Astrolabe.
 //
 // THE COMPATIBILITY PROMISE. A vault dragged over from Obsidian arrives with a
 // Templates folder full of files written against that plugin's syntax, and

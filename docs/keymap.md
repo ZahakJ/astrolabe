@@ -109,7 +109,7 @@ correction until the two rows are given their real Mac spellings.
 CodeMirror's `searchKeymap` binds `Mod-g` to "find again", and the shell claims the key first in the
 capture phase — so that binding has never fired here. It stays that way: find-again already has two
 other ways to run (`F3`, and `Enter` in the find field), while the graph toggle is a documented
-Vellum binding a reader would be surprised to lose halfway through a note. This is the opposite call
+Astrolabe binding a reader would be surprised to lose halfway through a note. This is the opposite call
 to the one made for `Ctrl/Cmd D` and `Ctrl/Cmd B`, where the editor's meaning is the per-minute one
 and the shell's was the once-a-day one — the rule is which verb the key is worth more to, not who
 asked first. Written down because a keymap gate that compares this page to the shortcut sheet cannot
@@ -119,7 +119,7 @@ see CodeMirror's own keymaps, so the next reader to notice `Mod-g` would otherwi
 
 ## Menus, gestures and the pointer
 
-Below the line the ledger stops. These are SURFACES rather than bindings — Vellum claims no
+Below the line the ledger stops. These are SURFACES rather than bindings — Astrolabe claims no
 keystroke of its own for them, so the shortcut sheet names the surface where its other rows name a
 key, and the keymap gate leaves them alone.
 
@@ -178,7 +178,7 @@ are the palette (*Take the tour*), the quiet line on an empty vault, the foot of
 ## Why these keys
 
 The five formatting keys are Obsidian's, checked against its shortcut tables rather than guessed —
-except underline, which Obsidian has no command for at all (markdown has no underline; Vellum's
+except underline, which Obsidian has no command for at all (markdown has no underline; Astrolabe's
 emits `<u>`, which the sanitizer already admitted and the reading view already rendered). All five
 **toggle**: press twice and the markers come off. With nothing selected they insert the pair and
 park the caret between them, so bold-then-type works. Across a multi-line selection they apply
@@ -218,7 +218,7 @@ inside the editor stays redo; `Ctrl Shift Z` enters zen there.
 **Every binding on this page works with an Arabic, Persian, Russian, Greek or Hebrew system
 keyboard.** That deserves saying out loud, because for a while it did not: the shortcuts were
 matched against the letter the keyboard *typed*, and on an Arabic layout the key marked `P` types
-`ح`, so `Ctrl P` opened nothing at all. If you run Vellum in Arabic — and the interface is fully
+`ح`, so `Ctrl P` opened nothing at all. If you run Astrolabe in Arabic — and the interface is fully
 [translated and mirrored](arabic-and-rtl.md) for exactly that — your shortcuts are the keys marked
 with the Latin letters on your keycaps.
 

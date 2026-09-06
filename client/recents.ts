@@ -57,7 +57,7 @@ export const RECENTS_MAX = 50;
  *  yields to this week's, long enough that a weekend away changes nothing. */
 export const HALF_LIFE_MS = 7 * 24 * 60 * 60 * 1000;
 
-const STORE_KEY = "vellum.recents";
+const STORE_KEY = "astrolabe.recents";
 
 /** `entry`'s score at `now`. Clock skew (an entry from the future, after a
  *  clock reset) must not explode into a huge score, so the exponent is

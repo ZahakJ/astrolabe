@@ -1,4 +1,4 @@
-package dev.vellum.mobile;
+package dev.astrolabe.mobile;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,7 +6,7 @@ import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.PluginHandle;
 
 /**
- * "Share to Vellum", from any app on the phone.
+ * "Share to Astrolabe", from any app on the phone.
  *
  * ITS OWN ACTIVITY, ITS OWN TASK. The alternative — putting the intent filter on
  * MainActivity — means every capture tears down whatever the owner had open in
@@ -15,7 +15,7 @@ import com.getcapacitor.PluginHandle;
  * anyone their session.
  *
  * It loads the same index.html as MainActivity, and the shell asks
- * {@code Vellum.pendingShare()} which of its two screens to be. That question is
+ * {@code Astrolabe.pendingShare()} which of its two screens to be. That question is
  * answered from THIS activity's Intent, which is why there is no second HTML
  * file and no flash of the connection screen on the way to the capture sheet.
  */
@@ -34,7 +34,7 @@ public class ShareActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        registerPlugin(VellumPlugin.class);
+        registerPlugin(AstrolabePlugin.class);
         super.onCreate(savedInstanceState);
 
         // The sheet is a full-height window like any other and gets the bars
@@ -67,8 +67,8 @@ public class ShareActivity extends BridgeActivity {
         setIntent(intent);
         super.onNewIntent(intent);
         if (!started || bridge == null) return;
-        PluginHandle handle = bridge.getPlugin("Vellum");
+        PluginHandle handle = bridge.getPlugin("Astrolabe");
         if (handle == null) return;
-        ((VellumPlugin) handle.getInstance()).announceShare(intent);
+        ((AstrolabePlugin) handle.getInstance()).announceShare(intent);
     }
 }

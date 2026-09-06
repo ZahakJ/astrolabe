@@ -101,7 +101,7 @@ function missingBannerCard(value: string, className: string): HTMLElement {
   action.addEventListener("click", (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
-    window.dispatchEvent(new CustomEvent("vellum:set-banner"));
+    window.dispatchEvent(new CustomEvent("astrolabe:set-banner"));
   });
   box.append(icon, label, which, action);
   return box;
@@ -176,7 +176,7 @@ export function parseProps(yaml: string): PropRow[] {
 
 // ── Properties card (shared DOM builder: live preview + reading view) ───────
 
-const PROPS_KEY = "vellum.properties";
+const PROPS_KEY = "astrolabe.properties";
 
 /** Card expand/collapse preference (collapsed unless the user expanded). */
 export function propsExpanded(): boolean {
@@ -239,7 +239,7 @@ export interface PropsCardOpts {
 /** Frontmatter → collapsible properties card. Collapsed (the default) it is a
  *  slim single row: chevron + "Properties · N" + the tags inline; expanded it
  *  lists every key, machine keys last and faint. The preference persists in
- *  localStorage ("vellum.properties"). Returns null for empty frontmatter. */
+ *  localStorage ("astrolabe.properties"). Returns null for empty frontmatter. */
 export function buildPropsCard(yaml: string, opts: PropsCardOpts): HTMLElement | null {
   const rows = parseProps(yaml);
   if (rows.length === 0) return null;

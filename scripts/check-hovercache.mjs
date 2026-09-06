@@ -13,7 +13,7 @@
 //
 // The test drives real pointer hovers over as many distinct post links as the
 // site offers, then reads the cache size back through the read-only probe
-// `window.__vellumHoverCardCacheSize`. It also watches the JS heap, since the
+// `window.__astrolabeHoverCardCacheSize`. It also watches the JS heap, since the
 // failure mode it guards against is retention, not correctness.
 //
 // It needs a running instance with at least a handful of published posts —
@@ -113,9 +113,9 @@ const fail = (msg) => {
 await page.goto(base, { waitUntil: "load" });
 await page.waitForTimeout(1500);
 
-const hasProbe = await page.evaluate(() => typeof window.__vellumHoverCardCacheSize === "function");
+const hasProbe = await page.evaluate(() => typeof window.__astrolabeHoverCardCacheSize === "function");
 if (!hasProbe) {
-  fail("no window.__vellumHoverCardCacheSize — hover cards are not installed on this page");
+  fail("no window.__astrolabeHoverCardCacheSize — hover cards are not installed on this page");
   console.error("        (run against a PUBLIC_LAYOUT=blog instance; the blog shell installs them)");
   await browser.close();
   process.exit(1);
@@ -166,7 +166,7 @@ for (let round = 0; round < ROUNDS; round++) {
   }
 }
 
-const size = await page.evaluate(() => window.__vellumHoverCardCacheSize());
+const size = await page.evaluate(() => window.__astrolabeHoverCardCacheSize());
 const heapAfter = await page.evaluate(() => (performance.memory ? performance.memory.usedJSHeapSize : 0));
 
 const expected = Math.min(CACHE_MAX, openedPaths.size);

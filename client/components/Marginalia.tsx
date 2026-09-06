@@ -15,7 +15,7 @@ import { toast } from "../toast.ts";
 import { confirmModal } from "./Confirm.tsx";
 import "../styles/comments.css";
 
-const AUTHOR_KEY = "vellum.comment.author";
+const AUTHOR_KEY = "astrolabe.comment.author";
 
 async function fetchComments(path: string): Promise<CommentData[]> {
   const res = await fetch(`/api/comments?path=${encodeURIComponent(path)}`, withPreview());

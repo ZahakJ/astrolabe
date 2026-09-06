@@ -35,36 +35,36 @@ function on<T>(channel: string, cb: (payload: T) => void): void {
   ipcRenderer.on(channel, (_event, payload: T) => cb(payload));
 }
 
-contextBridge.exposeInMainWorld("vellumDesktop", {
+contextBridge.exposeInMainWorld("astrolabeDesktop", {
   /** One round trip on mount: platform, vault, a deep link that arrived before
    *  React did, and whether a spellchecker exists at all. */
-  hello: () => ipcRenderer.invoke("vellum:hello"),
+  hello: () => ipcRenderer.invoke("astrolabe:hello"),
 
   // ── main → renderer ──────────────────────────────────────────────────────
-  onCommand: (cb: (command: string) => void) => on("vellum:command", cb),
-  onSpellMenu: (cb: (payload: unknown) => void) => on("vellum:spell-menu", cb),
-  onFindResult: (cb: (payload: unknown) => void) => on("vellum:find-result", cb),
-  onNavigate: (cb: (route: string) => void) => on("vellum:navigate", cb),
-  onOsTheme: (cb: (dark: boolean) => void) => on("vellum:os-theme", cb),
-  onUpdateState: (cb: (payload: unknown) => void) => on("vellum:update-state", cb),
+  onCommand: (cb: (command: string) => void) => on("astrolabe:command", cb),
+  onSpellMenu: (cb: (payload: unknown) => void) => on("astrolabe:spell-menu", cb),
+  onFindResult: (cb: (payload: unknown) => void) => on("astrolabe:find-result", cb),
+  onNavigate: (cb: (route: string) => void) => on("astrolabe:navigate", cb),
+  onOsTheme: (cb: (dark: boolean) => void) => on("astrolabe:os-theme", cb),
+  onUpdateState: (cb: (payload: unknown) => void) => on("astrolabe:update-state", cb),
 
   // ── renderer → main ──────────────────────────────────────────────────────
   /** The reader picked a spelling. */
-  spellReplace: (text: string) => ipcRenderer.invoke("vellum:spell-replace", text),
+  spellReplace: (text: string) => ipcRenderer.invoke("astrolabe:spell-replace", text),
   /** The reader taught the system dictionary a word. */
-  spellAdd: (word: string) => ipcRenderer.invoke("vellum:spell-add", word),
+  spellAdd: (word: string) => ipcRenderer.invoke("astrolabe:spell-add", word),
   /** Native find-in-page. `forward` and `again` map onto Electron's own two
    *  flags; the renderer owns the find BAR, main owns the search. */
   findInPage: (query: string, forward: boolean, again: boolean) =>
-    ipcRenderer.invoke("vellum:find-in-page", { query, forward, again }),
-  findStop: () => ipcRenderer.invoke("vellum:find-stop"),
+    ipcRenderer.invoke("astrolabe:find-in-page", { query, forward, again }),
+  findStop: () => ipcRenderer.invoke("astrolabe:find-stop"),
   /** Drag a note out of the window as its real file on disk. */
-  dragNote: (rel: string) => ipcRenderer.invoke("vellum:drag-note", rel),
+  dragNote: (rel: string) => ipcRenderer.invoke("astrolabe:drag-note", rel),
   /** Open this route in an always-on-top reference window. */
-  openReference: (route: string) => ipcRenderer.invoke("vellum:open-reference", route),
+  openReference: (route: string) => ipcRenderer.invoke("astrolabe:open-reference", route),
   /** Apply a staged update and relaunch — or open the release page on a build
    *  that cannot swap itself in place. */
-  updateApply: () => ipcRenderer.invoke("vellum:update-apply"),
+  updateApply: () => ipcRenderer.invoke("astrolabe:update-apply"),
   /** The chrome language, so the native menu follows the reader. */
-  chromeLang: (lang: string) => ipcRenderer.invoke("vellum:chrome-lang", lang),
+  chromeLang: (lang: string) => ipcRenderer.invoke("astrolabe:chrome-lang", lang),
 });

@@ -1,6 +1,6 @@
 # The editor & reading view
 
-*What the live-preview editor does, what markdown Vellum renders, and how you get around the vault.*
+*What the live-preview editor does, what markdown Astrolabe renders, and how you get around the vault.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
@@ -163,7 +163,7 @@
   moves with it
 - **Rename a heading and the links follow** — `[[Note#Heading]]` links break silently when the
   heading is renamed: the link still opens the note and quietly lands at the top. When a save
-  renames a heading other notes point into, Vellum says so — *"3 links point at “Introduction”.
+  renames a heading other notes point into, Astrolabe says so — *"3 links point at “Introduction”.
   Update them to “Preface”?"* — and one button repairs them all. It is always an offer, never
   automatic, and it too carries an Undo
 - **Attachments are in the tree**, with a lightbox, players and downloads — see
@@ -251,7 +251,7 @@ press the pen on the floating toolbar (or **Annotate** in the right-click menu):
 an ink and you write what you want to say about it. The words stay marked in both views, editor
 and reading, in their ink with a line under them. Rest the pointer on a mark and the note appears;
 click it to edit the note, change its ink, show or hide it from readers, or delete it. The note itself is never touched. Annotations live beside the
-vault in `VELLUM_DATA/annotations.json`, anchored by the passage's own words (with a little context
+vault in `ASTROLABE_DATA/annotations.json`, anchored by the passage's own words (with a little context
 either side), so they survive the note being edited above them, moved, renamed, or rendered in a
 different face. A passage that is gone is listed under the prose as no longer in the note.
 

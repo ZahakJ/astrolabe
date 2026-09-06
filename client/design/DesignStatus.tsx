@@ -47,7 +47,7 @@ export default function DesignStatus() {
       useStore.setState({ designNotice: null, publicLayout: "blog" });
       toast(t("dsnRevertedToast"));
     } catch (err) {
-      console.error("vellum: reverting to the stock blog failed", err);
+      console.error("astrolabe: reverting to the stock blog failed", err);
       toast(err instanceof Error ? err.message : t("dsnRevertFailed"), "error");
       setBusy(false);
     }

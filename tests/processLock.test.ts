@@ -45,7 +45,7 @@ const quiet: { heartbeatMs: number; onWarn: (m: string) => void } = {
 let n = 0;
 function lockPath(): string {
   n += 1;
-  return path.join(dir, `case-${n}`, "vellum-sync.lock");
+  return path.join(dir, `case-${n}`, "astrolabe-sync.lock");
 }
 
 /** Options that also collect the warnings, so "it was broken" can be asserted
@@ -93,7 +93,7 @@ describe("the sync lock — taking and releasing", () => {
   });
 
   it("makes the directory it needs — a vault that is not a repository yet has no .git", () => {
-    const file = path.join(dir, "no-git-here", ".git", "vellum-sync.lock");
+    const file = path.join(dir, "no-git-here", ".git", "astrolabe-sync.lock");
     const result = acquireLock(file, quiet);
     assert.equal(result.held, true);
     if (result.held) result.lock.release();
@@ -304,7 +304,7 @@ describe("the sync lock — a pass that fails still releases", () => {
 
 const data = makeDir();
 const vault = makeVault({ "Home.md": "# Home\n" });
-const lockFile = path.join(vault, ".git", "vellum-sync.lock");
+const lockFile = path.join(vault, ".git", "astrolabe-sync.lock");
 
 function git(args: string[]): string {
   return execFileSync("git", args, {
@@ -323,7 +323,7 @@ function git(args: string[]): string {
 }
 
 before(() => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(vault);
   git(["init", "-q", "-b", "main", "."]);
   git(["add", "-A"]);
@@ -342,18 +342,18 @@ describe("gitSync takes the vault lock", () => {
       stdio: "ignore",
     });
     other.unref();
-    plant(lockFile, { pid: other.pid, host: hostname(), at: new Date().toISOString(), token: "other-vellum" });
+    plant(lockFile, { pid: other.pid, host: hostname(), at: new Date().toISOString(), token: "other-astrolabe" });
     try {
       await assert.rejects(
         snapshotNow(),
         (err: unknown) =>
           err instanceof VaultError &&
           err.status === 409 &&
-          /Another Vellum is syncing this vault/.test(err.message) &&
+          /Another Astrolabe is syncing this vault/.test(err.message) &&
           err.message.includes(String(other.pid)),
       );
       // Refused, and it left the other process's lock exactly as it found it.
-      assert.equal(readHolder(lockFile)?.token, "other-vellum");
+      assert.equal(readHolder(lockFile)?.token, "other-astrolabe");
     } finally {
       try {
         process.kill(other.pid as number);
@@ -370,7 +370,7 @@ describe("gitSync takes the vault lock", () => {
     assert.equal(made.committed, true);
     assert.ok(made.sha);
     assert.equal(existsSync(lockFile), false, "the pass must release what it took");
-    assert.match(git(["log", "-1", "--pretty=%s"]), /^vellum snapshot: /);
+    assert.match(git(["log", "-1", "--pretty=%s"]), /^astrolabe snapshot: /);
   });
 
   it("releases the lock even when the pass fails", async () => {
@@ -378,7 +378,7 @@ describe("gitSync takes the vault lock", () => {
     initVault(plain);
     try {
       await assert.rejects(snapshotNow(), /not a git repository/);
-      assert.equal(existsSync(path.join(plain, ".git", "vellum-sync.lock")), false);
+      assert.equal(existsSync(path.join(plain, ".git", "astrolabe-sync.lock")), false);
     } finally {
       initVault(vault);
       removeVault(plain);

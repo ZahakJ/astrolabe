@@ -114,7 +114,7 @@ export class DesignBoundary extends Component<Props, State> {
     // The console line is for whoever is debugging, in English, with the
     // component stack. The reader gets a localized sentence or the stock site.
     console.error(
-      `vellum: design section "${failure.id}" (${failure.kind}) failed to render`,
+      `astrolabe: design section "${failure.id}" (${failure.kind}) failed to render`,
       error,
       info.componentStack,
     );

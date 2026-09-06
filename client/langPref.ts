@@ -11,10 +11,10 @@
 // anywhere) there was no way back short of clearing localStorage by hand.
 // That is the bug these two keys exist to end:
 //
-//   vellum.editorLang  an ADMIN's own chrome, this browser. Never leaves it,
+//   astrolabe.editorLang  an ADMIN's own chrome, this browser. Never leaves it,
 //                      never reaches a visitor, never changes what is
 //                      published. Null means "follow the site language".
-//   vellum.lang        a VISITOR's own chrome, this browser. Honoured only
+//   astrolabe.lang        a VISITOR's own chrome, this browser. Honoured only
 //                      while the instance offers the switch
 //                      (settings.languageToggle), so turning the setting off
 //                      restores the site language for everyone regardless of
@@ -29,8 +29,8 @@
 
 import type { Lang } from "./i18n.ts";
 
-const LANG_KEY = "vellum.lang";
-const EDITOR_LANG_KEY = "vellum.editorLang";
+const LANG_KEY = "astrolabe.lang";
+const EDITOR_LANG_KEY = "astrolabe.editorLang";
 
 function read(key: string): Lang | null {
   try {

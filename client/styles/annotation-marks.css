@@ -1,4 +1,4 @@
-/* Vellum — the annotation marks painted IN THE EDITOR
+/* Astrolabe — the annotation marks painted IN THE EDITOR
    (client/editor/annotationMarks.ts). Its own sheet, imported by that
    plugin, so it travels with the editor chunk and not with the entry: the
    popover and the tooltip live in annotations.css beside the lazy layer that

@@ -1,4 +1,4 @@
-// The design store: VELLUM_DATA/designs.json.
+// The design store: ASTROLABE_DATA/designs.json.
 //
 // WHY A SECOND FILE, AND NOT MORE KEYS IN settings.json. The question was
 // asked and the answer is not "tidiness":
@@ -206,7 +206,7 @@ function read(): StoreState {
   } catch (err) {
     corrupt = true;
     console.warn(
-      "vellum: designs.json unreadable — ignoring it (the stock blog is in effect):",
+      "astrolabe: designs.json unreadable — ignoring it (the stock blog is in effect):",
       err,
     );
   }
@@ -216,7 +216,7 @@ function read(): StoreState {
       : {};
   if (parsed !== null && raw !== parsed) {
     corrupt = true;
-    console.warn("vellum: designs.json is not a JSON object — ignoring it (stock blog in effect)");
+    console.warn("astrolabe: designs.json is not a JSON object — ignoring it (stock blog in effect)");
   }
 
   // Themes first: a design may name one, and the guard needs the list.
@@ -233,7 +233,7 @@ function read(): StoreState {
         // A malformed theme drops on READ (never throws) exactly as a
         // malformed settings value does: the rest of the file still works,
         // and the write path is where a bad theme is refused with a message.
-        console.warn(`vellum: dropping a malformed custom theme from designs.json: ${
+        console.warn(`astrolabe: dropping a malformed custom theme from designs.json: ${
           err instanceof Error ? err.message : String(err)
         }`);
       }
@@ -603,7 +603,7 @@ export function putCustomTheme(id: string | null, body: unknown): CustomTheme {
     state.themes.push(theme);
   } else {
     // The id in the path wins: renaming a theme must not silently strand every
-    // settings.defaultTheme and stored "vellum.theme" that names it.
+    // settings.defaultTheme and stored "astrolabe.theme" that names it.
     theme = {
       ...theme,
       id: id!,

@@ -3,18 +3,18 @@
 % tags: [guide, latex]
 %---%
 %
-% This block is Vellum's frontmatter. Both fences are LaTeX COMMENTS, so
+% This block is Astrolabe's frontmatter. Both fences are LaTeX COMMENTS, so
 % pdflatex never sees it — which is the deal this whole file is built on:
-% everything Vellum adds must be invisible to the other toolchain.
+% everything Astrolabe adds must be invisible to the other toolchain.
 
 \documentclass{article}
-\usepackage{vellum}   % get it from your own instance: /api/vellum.sty
+\usepackage{astrolabe}   % get it from your own instance: /api/astrolabe.sty
 \usepackage{amsmath}
 \usepackage{graphicx}
 
 \newcommand{\R}{\mathbb{R}}
 
-\title{LaTeX in Vellum}
+\title{LaTeX in Astrolabe}
 \author{The vault}
 
 \begin{document}
@@ -35,7 +35,7 @@ PDF must not show rides in a comment instead:
 %% [[Embeds & Transclusion]] %%
 
 Nothing else had to be invented. \texttt{\textbackslash input}, \texttt{\textbackslash cite},
-\texttt{\textbackslash ref} and \texttt{\textbackslash eqref} already say what they mean, so Vellum
+\texttt{\textbackslash ref} and \texttt{\textbackslash eqref} already say what they mean, so Astrolabe
 just extends their search path to the vault --- local definitions first, always,
 so an existing project cannot change how it compiles by being moved here.
 

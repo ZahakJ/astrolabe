@@ -1,4 +1,4 @@
-/* Vellum — the graph view's settings panel (client/components/GraphView.tsx).
+/* Astrolabe — the graph view's settings panel (client/components/GraphView.tsx).
    Its own file, loaded with the graph's lazy chunk: the panel is chrome only
    the graph view has, and app.css is in every first paint. */
 /* ── The graph's settings panel ─────────────────────────────────────────────

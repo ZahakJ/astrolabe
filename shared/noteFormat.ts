@@ -1,6 +1,6 @@
 // What counts as a NOTE, and which language it is written in.
 //
-// Vellum used to answer both questions with one expression, `.endsWith(".md")`,
+// Astrolabe used to answer both questions with one expression, `.endsWith(".md")`,
 // spelled out about forty times across the server and the client. LaTeX support
 // makes that expression wrong in two different ways at once — `.tex` is a note,
 // and a note is no longer necessarily markdown — so both answers move here and

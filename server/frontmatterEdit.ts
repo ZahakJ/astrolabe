@@ -5,7 +5,7 @@
 // for `publish:` and `banner:` — two keys this product owns, whose values it
 // writes and nobody else edits. It is precisely WRONG for a properties card,
 // where the reader edits keys somebody else's tool wrote, a value can be a LIST
-// spread over five lines, and the release's whole claim is that Vellum's
+// spread over five lines, and the release's whole claim is that Astrolabe's
 // frontmatter writer does not corrupt YAML round-trips the way Obsidian's does.
 // Merging a block list onto its key line would orphan the `- item` lines under
 // a key that now holds a value — not a note with an odd list, a note whose YAML

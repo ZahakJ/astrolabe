@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vellum — your notes, published beautifully</title>
+<title>Astrolabe — your notes, charted</title>
 <meta name="description" content="A self-hosted vault and publishing engine for a folder of plain Markdown: an Obsidian-style editor, a blog, a designed site with 81 designs, a library for books and courses, a graph, and reader comments. One Node process, no database.">
-<meta property="og:title" content="Vellum">
-<meta property="og:description" content="Your notes, published beautifully. A vault, a blog, a designed site and a library, from one folder of Markdown.">
-<meta property="og:image" content="https://zahakj.github.io/vellum/gh-hero.png">
+<meta property="og:title" content="Astrolabe">
+<meta property="og:description" content="Your notes, charted. A vault, a blog, a designed site and a library, from one folder of Markdown.">
+<meta property="og:image" content="https://zahakj.github.io/astrolabe/gh-hero.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
 <style>
   :root {
@@ -37,7 +37,7 @@
   .topbar { position: absolute; top: 0; left: 0; right: 0; z-index: 2; }
   .topbar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 18px; padding-bottom: 18px; }
   .topbar__brand { font-weight: 600; letter-spacing: .06em; color: var(--text); font-size: 1.05rem; white-space: nowrap; }
-  .topbar__brand b { color: var(--accent-hi); margin-inline-end: 8px; font-weight: 400; }
+  .topbar__brand svg { color: var(--accent); margin-inline-end: 8px; vertical-align: -0.2em; }
   .topbar__brand:hover { text-decoration: none; color: var(--accent-hi); }
   .topbar__nav { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
   .topbar__nav a { padding: 8px 14px; border-radius: 999px; color: var(--text); font-size: .95rem; }
@@ -46,7 +46,14 @@
   .topbar__nav .is-docs:hover { background: var(--accent); color: var(--ink); }
   @media (max-width: 640px) { .topbar .wrap { flex-direction: column; gap: 8px; } header { padding-top: 150px; } }
   header .wrap { position: relative; z-index: 1; }
-  .star { color: var(--accent-hi); font-size: 26px; text-shadow: 0 0 18px rgba(240,205,106,.6); }
+  /* The mark, and the instrument's rings behind the wordmark: two hairlines,
+     gold at a whisper, so the name sits inside the face it is named for. */
+  .mark { position: relative; display: inline-flex; align-items: center; justify-content: center; color: var(--accent); filter: drop-shadow(0 0 14px rgba(227,179,65,.45)); }
+  .mark svg { position: relative; z-index: 1; }
+  .ring { position: absolute; left: 50%; top: 58%; border: 1px solid rgba(227,179,65,.16); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+  .ring--1 { width: 360px; height: 360px; }
+  .ring--2 { width: 560px; height: 560px; border-color: rgba(227,179,65,.09); }
+  @media (max-width: 640px) { .ring--1 { width: 240px; height: 240px; } .ring--2 { width: 340px; height: 340px; } }
   h1 { font-size: clamp(3.2rem, 9vw, 6rem); font-weight: 600; letter-spacing: .04em; margin: 8px 0 4px; line-height: 1; }
   h1 .br { color: var(--accent); font-size: .78em; }
   .tagline { font-style: italic; font-size: 1.3rem; color: var(--muted); }
@@ -111,24 +118,24 @@
 <header>
   <nav class="topbar ui" aria-label="Site">
     <div class="wrap">
-      <a class="topbar__brand" href="./"><b>✦</b>Vellum</a>
+      <a class="topbar__brand" href="./"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg>Astrolabe</a>
       <div class="topbar__nav">
         <a class="is-docs" href="site/en/">Docs</a>
         <a href="site/ar/" lang="ar" dir="rtl" title="The manual, in Arabic">الدليل بالعربية</a>
-        <a href="https://github.com/ZahakJ/vellum">GitHub</a>
-        <a href="https://github.com/ZahakJ/vellum/releases/latest">Download</a>
+        <a href="https://github.com/ZahakJ/astrolabe">GitHub</a>
+        <a href="https://github.com/ZahakJ/astrolabe/releases/latest">Download</a>
       </div>
     </div>
   </nav>
   <div class="sky" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="wrap">
-    <div class="star">✦</div>
-    <h1><span class="br">[[</span> Vellum <span class="br">]]</span></h1>
-    <p class="tagline">Your notes, published beautifully.</p>
+    <div class="mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="84" height="84" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><circle cx="50" cy="55" r="16" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/><path d="M68.74 29.99 Q68.74 34.19 69.57 33.36 L72.94 34.19 Q68.74 34.19 69.57 35.02 L68.74 38.39 Q68.74 34.19 67.90 35.02 L64.54 34.19 Q68.74 34.19 67.90 33.36 Z" fill="currentColor" stroke="none"/></svg><i class="ring ring--1"></i><i class="ring ring--2"></i></div>
+    <h1><span class="br">[[</span> Astrolabe <span class="br">]]</span></h1>
+    <p class="tagline">Your notes, charted.</p>
     <div class="cta">
-      <a class="btn btn-gold" href="https://github.com/ZahakJ/vellum/releases/latest">Download</a>
+      <a class="btn btn-gold" href="https://github.com/ZahakJ/astrolabe/releases/latest">Download</a>
       <a class="btn btn-ghost" href="site/en/">Read the docs</a>
-      <a class="btn btn-ghost" href="https://github.com/ZahakJ/vellum">GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/ZahakJ/astrolabe">GitHub</a>
       <a class="btn btn-ghost" href="#quickstart">Run it yourself</a>
     </div>
     <div class="rooms ui">
@@ -138,7 +145,7 @@
       <div class="room"><em>The library</em><b>Teach</b><span>Books and lecture series as paths a reader walks in order, with their place kept.</span></div>
     </div>
   </div>
-  <div class="hero-shot"><img class="shot" src="screenshots/hero-house.png" alt="A designed site in the Mission Control house, in the sidereal theme: a radar opening in starlight, a ruled log of entries beneath it"></div>
+  <div class="hero-shot"><img class="shot" src="screenshots/hero-house.png" alt="A designed site in the Mission Control house, in the graphite theme: a radar opening in gold, a ruled log of entries beneath it"></div>
 </header>
 
 <section>
@@ -147,11 +154,11 @@
     <div class="rule"></div>
     <p class="sub">A design is not a palette. Each signature house opens with something drawn in your theme's own colours, and every one of them is yours to fork, recolour and rearrange.</p>
     <div class="houses">
-      <a class="house" href="https://github.com/ZahakJ/vellum/blob/main/docs/designer.md"><img src="screenshots/house-deep-field.png" alt="Deep Field: an eclipse above the site's name over a nebula"><p><b>Deep Field</b>An eclipse above the fold, a floating dock, stories suspended in a deep stellar field.</p></a>
-      <a class="house" href="https://github.com/ZahakJ/vellum/blob/main/docs/designer.md"><img src="screenshots/house-late-edition.png" alt="Late Edition: a broadsheet nameplate with ears and a dateline strip"><p><b>Late Edition</b>A broadsheet nameplate, a dateline strip, one lead across two columns.</p></a>
-      <a class="house" href="https://github.com/ZahakJ/vellum/blob/main/docs/designer.md"><img src="screenshots/house-vernissage.png" alt="Vernissage: a museum wall with a picture hung on wires"><p><b>Vernissage</b>A museum wall, the newest piece hung on wires beside its label.</p></a>
-      <a class="house" href="https://github.com/ZahakJ/vellum/blob/main/docs/designer.md"><img src="screenshots/house-ephemeris.png" alt="Ephemeris: an astronomical register with moon phases and a star chart"><p><b>Ephemeris</b>A register of the night: moon phases across the top, a star chart at the end.</p></a>
-      <a class="house" href="https://github.com/ZahakJ/vellum/blob/main/docs/designer.md"><img src="screenshots/house-flypost.png" alt="Flypost: layered posters with torn corners"><p><b>Flypost</b>Bills pasted over bills, torn corners, the name across the top one.</p></a>
+      <a class="house" href="https://github.com/ZahakJ/astrolabe/blob/main/docs/designer.md"><img src="screenshots/house-deep-field.png" alt="Deep Field: an eclipse above the site's name over a nebula"><p><b>Deep Field</b>An eclipse above the fold, a floating dock, stories suspended in a deep stellar field.</p></a>
+      <a class="house" href="https://github.com/ZahakJ/astrolabe/blob/main/docs/designer.md"><img src="screenshots/house-late-edition.png" alt="Late Edition: a broadsheet nameplate with ears and a dateline strip"><p><b>Late Edition</b>A broadsheet nameplate, a dateline strip, one lead across two columns.</p></a>
+      <a class="house" href="https://github.com/ZahakJ/astrolabe/blob/main/docs/designer.md"><img src="screenshots/house-vernissage.png" alt="Vernissage: a museum wall with a picture hung on wires"><p><b>Vernissage</b>A museum wall, the newest piece hung on wires beside its label.</p></a>
+      <a class="house" href="https://github.com/ZahakJ/astrolabe/blob/main/docs/designer.md"><img src="screenshots/house-ephemeris.png" alt="Ephemeris: an astronomical register with moon phases and a star chart"><p><b>Ephemeris</b>A register of the night: moon phases across the top, a star chart at the end.</p></a>
+      <a class="house" href="https://github.com/ZahakJ/astrolabe/blob/main/docs/designer.md"><img src="screenshots/house-flypost.png" alt="Flypost: layered posters with torn corners"><p><b>Flypost</b>Bills pasted over bills, torn corners, the name across the top one.</p></a>
     </div>
   </div>
 </section>
@@ -197,18 +204,18 @@
   <div class="wrap">
     <h2>Run it yourself</h2>
     <div class="rule"></div>
-    <p class="sub">Node ≥ 24. Your notes stay ordinary files; delete Vellum tomorrow and they never notice.</p>
+    <p class="sub">Node ≥ 24. Your notes stay ordinary files; delete Astrolabe tomorrow and they never notice.</p>
 <pre><span class="c"># run it</span>
-git clone https://github.com/ZahakJ/vellum.git &amp;&amp; cd vellum
+git clone https://github.com/ZahakJ/astrolabe.git &amp;&amp; cd astrolabe
 npm install &amp;&amp; npm start
 <span class="c"># point it at your existing vault</span>
-<span class="g">VELLUM_VAULT=~/notes</span> npm start
+<span class="g">ASTROLABE_VAULT=~/notes</span> npm start
 <span class="c"># lock it down and publish</span>
 npm run hash-password   <span class="c"># → ADMIN_PASSWORD_HASH in .env</span></pre>
     <div class="downloads ui">
-      <a class="btn btn-ghost" href="https://github.com/ZahakJ/vellum/releases/latest/download/Vellum.AppImage">Linux AppImage</a>
-      <a class="btn btn-ghost" href="https://github.com/ZahakJ/vellum/releases/latest">Debian, Arch, Windows</a>
-      <a class="btn btn-ghost" href="https://github.com/ZahakJ/vellum/blob/main/docs/README.md">The docs</a>
+      <a class="btn btn-ghost" href="https://github.com/ZahakJ/astrolabe/releases/latest/download/Astrolabe.AppImage">Linux AppImage</a>
+      <a class="btn btn-ghost" href="https://github.com/ZahakJ/astrolabe/releases/latest">Debian, Arch, Windows</a>
+      <a class="btn btn-ghost" href="https://github.com/ZahakJ/astrolabe/blob/main/docs/README.md">The docs</a>
     </div>
   </div>
 </section>
@@ -235,7 +242,7 @@ npm run hash-password   <span class="c"># → ADMIN_PASSWORD_HASH in .env</span>
 </section>
 
 <footer>
-  <div class="wrap">✦ &nbsp;Vellum is MIT-licensed. Built for people who want to own their words.&nbsp; ✦</div>
+  <div class="wrap">✦ &nbsp;Astrolabe is MIT-licensed. Built for people who want to own their words.&nbsp; ✦</div>
 </footer>
 
 </body>

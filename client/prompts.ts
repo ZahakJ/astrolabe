@@ -134,7 +134,7 @@ export async function promptNewFolder(dir: string, value = ""): Promise<string |
     await useStore.getState().loadTree();
     return path;
   } catch (err) {
-    console.error("vellum: creating folder failed", err);
+    console.error("astrolabe: creating folder failed", err);
     toast(err instanceof Error ? err.message : t("creatingFolderFailed"));
     return null;
   }

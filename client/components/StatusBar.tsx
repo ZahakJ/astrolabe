@@ -246,7 +246,7 @@ export default function StatusBar() {
         }
       })
       .catch((err: unknown) => {
-        console.error("vellum: loading note for word count failed", err);
+        console.error("astrolabe: loading note for word count failed", err);
       });
     return () => {
       cancelled = true;

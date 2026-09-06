@@ -147,7 +147,7 @@ function Surface({ fallback = null, children }: { fallback?: ReactNode; children
 // they are re-checked against the live tree before anything is drawn, so a
 // deleted note, a signed-out session and an admin previewing as a visitor all
 // narrow the list by themselves rather than leaking a title.
-const RECENT_KEY = "vellum.recent";
+const RECENT_KEY = "astrolabe.recent";
 const RECENT_MAX = 12;
 /** How many of them the empty state offers — a list, not an index. */
 const RECENT_SHOWN = 5;
@@ -176,7 +176,7 @@ function openQuickSearch(): void {
   // sidebar stops being a grid pane at 999px, not at 700, so quick search has
   // to open the drawer at every width where the search box lives inside it.
   if (sidebarIsDrawer()) store.setSidebarOpen(true);
-  requestAnimationFrame(() => window.dispatchEvent(new Event("vellum:quicksearch")));
+  requestAnimationFrame(() => window.dispatchEvent(new Event("astrolabe:quicksearch")));
 }
 
 function pushRecent(path: string): string[] {
@@ -429,7 +429,7 @@ export default function App() {
       // Surfaces that draw a QUERY over the vault rather than one note (the
       // Media page's shelves) listen for this and re-ask; they are lazy
       // chunks, so they cannot be called from here by name.
-      window.dispatchEvent(new Event("vellum:vault"));
+      window.dispatchEvent(new Event("astrolabe:vault"));
       // TOO MUCH CHANGED TO NARRATE. The server stops sending one frame per
       // file above ~25 in 200ms (a `git pull`, a folder restore, an Obsidian
       // sync) and sends this instead; the honest answer is the one a dropped
@@ -554,8 +554,8 @@ export default function App() {
       const store = useStore.getState();
       if (store.admin && store.openPath) store.setBannerModalOpen(true);
     };
-    window.addEventListener("vellum:set-banner", onSetBanner);
-    return () => window.removeEventListener("vellum:set-banner", onSetBanner);
+    window.addEventListener("astrolabe:set-banner", onSetBanner);
+    return () => window.removeEventListener("astrolabe:set-banner", onSetBanner);
   }, []);
 
   // The properties card writes one property (v1.8, Obsidian parity #1). The
@@ -576,8 +576,8 @@ export default function App() {
       if (path === null || key === "") return;
       void store.setProperty(path, key, (detail?.value ?? null) as PropertyValue | null);
     };
-    window.addEventListener("vellum:property", onProperty);
-    return () => window.removeEventListener("vellum:property", onProperty);
+    window.addEventListener("astrolabe:property", onProperty);
+    return () => window.removeEventListener("astrolabe:property", onProperty);
   }, []);
 
   // Global keyboard shortcuts.
@@ -626,7 +626,7 @@ export default function App() {
       // else in the shell claims, and it must beat the browser's.
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.key.toLowerCase() === "f" && store.admin) {
         e.preventDefault();
-        window.dispatchEvent(new CustomEvent("vellum:replace-open"));
+        window.dispatchEvent(new CustomEvent("astrolabe:replace-open"));
         return;
       }
       if (e.key === "Escape") {
@@ -782,7 +782,7 @@ export default function App() {
         if (from instanceof HTMLElement && from.closest(".s-search") === null) {
           quickReturnRef.current = from;
         }
-        window.dispatchEvent(new Event("vellum:quicksearch"));
+        window.dispatchEvent(new Event("astrolabe:quicksearch"));
       } else if (key === "g") {
         e.preventDefault();
         store.setView(store.view === "graph" ? "editor" : "graph");

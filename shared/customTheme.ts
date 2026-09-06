@@ -23,7 +23,7 @@
 //     missing.
 //
 // Ids are `custom:<slug>` EVERYWHERE a theme id is spoken — `settings.
-// defaultTheme`, `DEFAULT_THEME`, localStorage "vellum.theme", the picker.
+// defaultTheme`, `DEFAULT_THEME`, localStorage "astrolabe.theme", the picker.
 // The prefix is what lets every existing `isTheme()` guard keep meaning
 // exactly what it meant (a BUILT-IN theme) while the new callers ask
 // `isThemeChoice()` instead.
@@ -441,7 +441,7 @@ export function customThemeCss(theme: CustomTheme): string {
 /** The whole instance's custom themes as one stylesheet. */
 export function customThemesCss(themes: readonly CustomTheme[]): string {
   const head =
-    "/* Vellum — custom themes. Generated from VELLUM_DATA/designs.json;\n" +
+    "/* Astrolabe — custom themes. Generated from ASTROLABE_DATA/designs.json;\n" +
     "   every declaration below came out of a closed token allowlist and a hex\n" +
     "   grammar (shared/customTheme.ts). Do not edit: it is rewritten on save. */\n";
   return head + themes.map(customThemeCss).join("\n");

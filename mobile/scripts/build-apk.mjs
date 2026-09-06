@@ -26,11 +26,11 @@ const ROOT = join(HERE, "..");
 
 const variant = process.argv[2] === "release" ? "release" : "debug";
 
-const JAVA_HOME = process.env.VELLUM_JAVA_HOME ?? join(homedir(), "Android", "jdk-21.0.11+10");
+const JAVA_HOME = process.env.ASTROLABE_JAVA_HOME ?? join(homedir(), "Android", "jdk-21.0.11+10");
 const ANDROID_HOME = process.env.ANDROID_HOME ?? process.env.ANDROID_SDK_ROOT ?? join(homedir(), "Android", "Sdk");
 
 if (!existsSync(JAVA_HOME)) {
-  console.error(`No JDK at ${JAVA_HOME}. Set VELLUM_JAVA_HOME to a JDK 21.`);
+  console.error(`No JDK at ${JAVA_HOME}. Set ASTROLABE_JAVA_HOME to a JDK 21.`);
   process.exit(1);
 }
 if (!existsSync(ANDROID_HOME)) {
@@ -65,7 +65,7 @@ const suffix = variant === "release" && !signed ? "release-unsigned" : variant;
 // The release owns the version string: read it from package.json rather than
 // pinning it here, which is how a 1.8.0 build once shipped named 1.7.1.
 const version = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;
-const destination = join(out, `vellum-${version}-${suffix}.apk`);
+const destination = join(out, `astrolabe-${version}-${suffix}.apk`);
 copyFileSync(built, destination);
 
 const mb = (statSync(destination).size / 1024 / 1024).toFixed(2);

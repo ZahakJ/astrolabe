@@ -214,7 +214,7 @@ for (const preset of PRESETS) {
   try {
     validateDesign(structuredClone(presetDesignDoc(preset, "en")));
     const env = presetExport(preset, "en");
-    if (env.kind !== "vellum.design") rejected.push(`${preset.id}: envelope kind ${env.kind}`);
+    if (env.kind !== "astrolabe.design") rejected.push(`${preset.id}: envelope kind ${env.kind}`);
   } catch (err) {
     rejected.push(`${preset.id}: ${err.message}`);
   }

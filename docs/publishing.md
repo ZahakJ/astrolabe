@@ -8,7 +8,7 @@
 
 ## Public reading, admin editing
 
-Out of the box Vellum runs in **open local mode** — no password, every visitor is an admin (a
+Out of the box Astrolabe runs in **open local mode** — no password, every visitor is an admin (a
 warning is printed at startup). To put a vault on a network you don't fully trust, set an admin
 password:
 
@@ -33,7 +33,7 @@ editing on the spot, no reload. Set `PUBLIC=false` to require login even for rea
 **`PUBLIC=false` requires a password, and says so by refusing to start.** Without
 `ADMIN_PASSWORD_HASH` there is no session for the flag to require, so "private" would have meant
 the opposite of itself: every anonymous request treated as a full admin. Rather than boot into
-that, Vellum prints the `npm run hash-password` line and exits. (Running deliberately open on a
+that, Astrolabe prints the `npm run hash-password` line and exits. (Running deliberately open on a
 trusted network is still fine — just don't also claim to be private.) For the same reason,
 **[backup & sync](backup-and-sync.md) needs a password in every mode**: without one, anyone who
 can reach the port could point the remote at their own server and push your whole vault to it.
@@ -42,10 +42,10 @@ can reach the port could point the remote at their own server and push your whol
 HTTPS (directly, or via `X-Forwarded-Proto` from an address listed in `TRUSTED_PROXIES` — set
 `SECURE_COOKIES=true`/`false` to decide it yourself, e.g. `false` for LAN-over-http), and lives
 **7 days**, renewed automatically while you are using the app. **Signing out signs you out
-everywhere**, on every device, immediately: sessions carry an epoch stored in `VELLUM_DATA`, and
+everywhere**, on every device, immediately: sessions carry an epoch stored in `ASTROLABE_DATA`, and
 logging out bumps it. **Changing `ADMIN_PASSWORD_HASH` does the same** — every cookie issued under
 the old password stops working the moment the new one is in place, which is the whole point of
-changing it after a laptop goes missing. (Upgrading Vellum also invalidates existing sessions
+changing it after a laptop goes missing. (Upgrading Astrolabe also invalidates existing sessions
 once; you sign in again.)
 
 **Login rate limit.** 10 failed attempts per minute per IP, plus a global ceiling, and the slot is
@@ -98,7 +98,7 @@ on the same note. It never survives a reload.
 
 ## Putting it on the internet
 
-Run Vellum behind any HTTPS reverse proxy (Caddy, nginx, a Cloudflare tunnel, …) forwarding to
+Run Astrolabe behind any HTTPS reverse proxy (Caddy, nginx, a Cloudflare tunnel, …) forwarding to
 `localhost:6801` — the app is a single origin (API + static client on one port), so no special
 proxy rules are needed; just make sure it is only reachable over TLS so the login password and
 session cookie stay private.
@@ -128,7 +128,7 @@ for the admin, and can be unhidden at any time. The command palette's **"Moderat
 opens a panel of the newest comments across every note — each row shows author, snippet and
 the note it belongs to (click to jump there), with the same hide/delete controls.
 
-Comments are stored in an SQLite file at `VELLUM_DATA/comments.db` (default `./data/`, created
+Comments are stored in an SQLite file at `ASTROLABE_DATA/comments.db` (default `./data/`, created
 on demand, gitignored) using Node's built-in `node:sqlite` — no extra dependencies. Abuse
 controls are built in: post requests over 64 KB are rejected before any parsing touches
 them, posting is rate-limited to 5 comments/min/IP (honoring `TRUSTED_PROXIES` for the real

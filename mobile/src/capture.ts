@@ -1,11 +1,11 @@
 import { el, wordmark } from "./dom.ts";
 import { t } from "./i18n.ts";
-import { VellumNative, type PendingShare } from "./native.ts";
+import { AstrolabeNative, type PendingShare } from "./native.ts";
 import { HttpError, normalizeServerUrl, readNote, writeNote } from "./server.ts";
 import { lastServer } from "./store.ts";
 
 /**
- * The capture sheet: what "Share to Vellum" opens.
+ * The capture sheet: what "Share to Astrolabe" opens.
  *
  * WHERE IT LANDS. One note per day, `Inbox/YYYY-MM-DD.md`, appended as a
  * timestamped bullet. A note per capture would turn a week of link-saving into
@@ -13,7 +13,7 @@ import { lastServer } from "./store.ts";
  * file nobody can scroll. The dated note is the shape the vault already has a
  * word for, and it is the one an owner triages and empties.
  *
- * WHY THERE IS NO H1. Vellum titles a note from its filename. A `# 2026-08-25`
+ * WHY THERE IS NO H1. Astrolabe titles a note from its filename. A `# 2026-08-25`
  * at the top would print the date twice on every page it appears on.
  *
  * WHY IT WRITES WITH A PRECONDITION. `PUT /api/note` accepts `baseMtimeMs`, and
@@ -95,7 +95,7 @@ export async function mountCapture(root: HTMLElement, share: PendingShare): Prom
     message.hidden = false;
   };
 
-  const close = (): void => void VellumNative.closeShare();
+  const close = (): void => void AstrolabeNative.closeShare();
 
   // No server yet, or a saved value this build can no longer parse: say so and
   // get out of the way. Silently discarding somebody's share is the one failure

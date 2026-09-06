@@ -1,6 +1,6 @@
 // A drawing on disk, in the two spellings the vault may hold.
 //
-// Vellum did not invent a drawing format, because a vault's drawings already
+// Astrolabe did not invent a drawing format, because a vault's drawings already
 // have one: Excalidraw's own `.excalidraw` JSON scene, and the shape the
 // Obsidian Excalidraw plugin writes into a markdown note (`.excalidraw.md`) so
 // that Obsidian's tree, links and search see it as a note. Both open here and
@@ -52,7 +52,7 @@ function sceneJson(scene: DrawingScene): string {
     {
       type: "excalidraw",
       version: 2,
-      source: "https://github.com/ZahakJ/vellum",
+      source: "https://github.com/ZahakJ/astrolabe",
       elements: scene.elements,
       appState: scene.appState,
       files: scene.files,
@@ -166,7 +166,7 @@ export function drawingIndexText(rel: string, content: string): string {
 /** Write the scene back in the file's own format. A plugin file keeps its
  *  frontmatter, keeps compression if it had it, and lists the text elements
  *  where the plugin does, so Obsidian's own search and links keep working on
- *  a drawing Vellum saved. */
+ *  a drawing Astrolabe saved. */
 export function serializeDrawing(drawing: Drawing): string {
   if (drawing.format === "json") return sceneJson(drawing.scene) + "\n";
   const fm = drawing.frontmatter ?? `${PLUGIN_HEADER}\ntags: [excalidraw]`;

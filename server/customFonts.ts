@@ -19,8 +19,8 @@
 //     pass), and falls back to the filename stem — a face called
 //     "upload-3.woff2" in a picker is not a picker.
 //
-// The files live in VELLUM_DATA/fonts/custom/ — outside the vault, gitignored
-// with the rest of VELLUM_DATA — and are served by GET /api/fonts/custom/:file
+// The files live in ASTROLABE_DATA/fonts/custom/ — outside the vault, gitignored
+// with the rest of ASTROLABE_DATA — and are served by GET /api/fonts/custom/:file
 // exactly like the catalog cache: self-hosted, no external host, ever.
 
 import { randomBytes } from "node:crypto";
@@ -32,7 +32,7 @@ import type { CustomFontInfo, FontFormat } from "../shared/types.ts";
 import { fontsDir } from "./site.ts";
 import { VaultError } from "./vault.ts";
 
-/** VELLUM_DATA/fonts/custom — every uploaded face lives here and nowhere else. */
+/** ASTROLABE_DATA/fonts/custom — every uploaded face lives here and nowhere else. */
 export function customDir(): string {
   return path.join(fontsDir(), "custom");
 }

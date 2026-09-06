@@ -1295,7 +1295,7 @@ export function onRootClick(ev: MouseEvent): void {
     if (!name && heading) {
       // [[#Heading]] within the same note.
       window.dispatchEvent(
-        new CustomEvent("vellum:goto-heading", { detail: { text: heading } }),
+        new CustomEvent("astrolabe:goto-heading", { detail: { text: heading } }),
       );
       return;
     }
@@ -1327,7 +1327,7 @@ export function onRootClick(ev: MouseEvent): void {
   if (tag?.dataset.tag) {
     ev.preventDefault();
     window.dispatchEvent(
-      new CustomEvent("vellum:search", { detail: `#${tag.dataset.tag}` }),
+      new CustomEvent("astrolabe:search", { detail: `#${tag.dataset.tag}` }),
     );
     return;
   }

@@ -1,4 +1,4 @@
-# Vellum — module contracts
+# Astrolabe — module contracts
 
 Read this whole file before writing code. `shared/types.ts` is the wire contract; import from it with
 `import type { ... } from "../shared/types.ts"` (server) / `"../../shared/types.ts"` (client). All
@@ -13,7 +13,7 @@ used to print died at `npm start` on an unknown flag.
 
 ## Identity & design language
 
-Vellum, in the app: a candlelit manuscript room. Dark theme "iron-gall" (near-black warm ink
+Astrolabe, in the app: a candlelit manuscript room. Dark theme "iron-gall" (near-black warm ink
 background, warm off-white text), light theme "parchment" (warm paper background). Accent: gold-leaf
 `#c9a227` (dark) / `#7a5f14` (light — darkened from `#8a6d1a`, which sat at 4.13:1 and
 therefore failed AA as link text and as the lit mode pill; see the contrast gate below). Serif display font for headings in rendered markdown
@@ -33,10 +33,34 @@ default theme stays iron-gall; a reader picks a room in the picker, and the prod
 under them. Screenshots in `docs/screenshots/` are shot in sidereal (`scratchpad/sky/shoot-docs-sidereal.mjs`,
 `check-signatures.mjs` with `THEME=sidereal`) so the pages stay in one room.
 
+## The name (Astrolabe was Vellum, from 2.21)
+
+The product was renamed without breaking a single thing an install, a vault, a document or a
+bookmark relied on. What the old name still answers to, and how:
+
+| Was | Is | How the old one keeps working |
+| --- | --- | --- |
+| `VELLUM_*` environment keys | `ASTROLABE_*` | every key is read through `envRead()` in `shared/envName.ts`: new spelling wins, old answers, one stderr line at startup names any old key leaned on (`reportEnvFallbacks()`) |
+| `vellum_session` cookie | `astrolabe_session` | `server/auth.ts` reads both (`sessionCookie()`), writes only the new, deletes both on logout; the sliding refresh reissues under the new name |
+| `X-Vellum-Lang`, `X-Vellum-Preview` | `X-Astrolabe-Lang`, `X-Astrolabe-Preview` | both spellings read (`server/language.ts`, `previewRequested()`); `Vary` lists all four; the client sends the new |
+| `vellum.*` localStorage keys | `astrolabe.*` | `client/storageMigration.ts` copies each old key to its twin once at boot when the twin is absent; the old keys are left for older builds |
+| `vellum://` deep links | `astrolabe://` | both schemes registered and parsed (`electron/deeplink.ts` `LEGACY_PROTOCOL`) |
+| `~/.config/vellum` | `~/.config/astrolabe` | copied on the first launch when the new directory does not exist; the old one is never touched (`electron/main.ts`) |
+| `vellum.sty`, `\vellum{…}` | `astrolabe.sty`, `\astrolabe{…}` | `/api/vellum.sty` still served as its own package; both files provide both macros; the parser reads both spellings (`shared/tex.ts`) |
+| `ZahakJ/vellum` releases | `ZahakJ/astrolabe` | the updater asks the new repository first and the old when that fails (`electron/update.ts`) |
+| `.vellum-trash.json` | unchanged | the trash manifest keeps its file name: it is internal, and a second name would be two trashes with one door |
+| `VELLUM_DATA/*.json` | unchanged | file names and contents are not part of the rename |
+
+The mark is an astrolabe (`shared/brandMark.ts`, one geometry for the wordmark, the sign-in modal,
+the favicon, the landing page, the README banner, the manual's top bar and — ported to a
+rasteriser in `desktop/icons/make-icon.mjs` — the app icon). The ✦ stays where it is an ornament:
+the published star in the tree and status bar, the tracker's flourish at 100%, the blog's
+back-to-top, the empty states. The tagline is "Your notes, charted." («ملاحظاتك، على الخريطة.»).
+
 ## Runtime layout
 
 - Server: Hono on port **6801** (`PORT` env overrides). Vault directory resolved in this order:
-  `--vault <dir>` CLI arg, `VELLUM_VAULT` env, `./vault`. Created + seeded from `vault-seed/`
+  `--vault <dir>` CLI arg, `ASTROLABE_VAULT` env, `./vault`. Created + seeded from `vault-seed/`
   if missing.
 - Dev: vite on **5801** proxies `/api` → 6801. Prod: server statically serves `dist/`.
 - SPA fallback: non-`/api` GETs serve `dist/index.html` when dist exists.
@@ -114,7 +138,7 @@ that is the pre-existing pattern, and the door is now open.
   scope only — a visitor's shelf never names a vault folder. A library ref whose folder equals a
   tracker's `folder` takes that tracker's resolved cover over its own (`libraryRefs()`), and the cover
   joins the visitor allowlist through `libraryCoverPaths` like any ref cover.
-- `/draw` in the slash menu (client/drawing/createBeside.ts): creates `<note> sketch<ext>` in the note's folder (numbered when taken; plugin format in an Obsidian vault), writes `![[name]]` at the caret only AFTER the file exists, and opens the canvas in a pane split beside the note (in the same pane when the window has no room). Excalidraw's dialogs are pinned to the canvas box (`--s-drawing-*` on :root, set by DrawingSurface) and its main menu is Vellum's own list (no socials, no theme toggle).
+- `/draw` in the slash menu (client/drawing/createBeside.ts): creates `<note> sketch<ext>` in the note's folder (numbered when taken; plugin format in an Obsidian vault), writes `![[name]]` at the caret only AFTER the file exists, and opens the canvas in a pane split beside the note (in the same pane when the window has no room). Excalidraw's dialogs are pinned to the canvas box (`--s-drawing-*` on :root, set by DrawingSurface) and its main menu is Astrolabe's own list (no socials, no theme toggle).
 - `POST /api/tracker` (admin) `{ path, index?, set?, delta? }` → `{ ok, path, index }` — edit ONE ```` ```tracker ```` fence from outside the editor (the Media page). `set` is a `TrackerFields` (a string sets a key, `null` removes it, absent leaves it), `delta` nudges the progress by that many units; the `index`-th tracker fence of the note (counting tracker fences only, the `TrackerMeta.index` the shelf hands out) is rewritten in place by `setTrackerFields` + `setTrackerProgress` and the note is written under its mtime precondition. 400 when the note carries no tracker fence. One request, one write, one `changed` event. See "Trackers".
 - `GET  /api/aliases` → `AliasesResponse` (`{ alias, path, title }[]`, sorted by alias) — the name table the client cannot derive, since a tree carries filenames and an alias is frontmatter. Visitor-scoped exactly as resolution is.
 - `GET  /api/events` → SSE stream of `VaultEvent` (chokidar watcher; debounced 100ms per path; events named `message`, JSON data). **Above 25 events in 200ms the stream stops narrating and sends one `{ kind: "bulk", path: "" }`** once the burst settles (and at least every 2s while it does not) — a `git pull` is one frame, not a thousand, and a client answers it by re-reading the tree and revalidating its buffers. The INDEX still receives every named event; only the refetching subscribers are coalesced (server/vault.ts `onEventCoalesced`). A delivery failure ENDS the stream so EventSource reconnects, rather than leaving a live-looking socket that receives nothing.
@@ -134,7 +158,7 @@ to stand alone answered a different question — "does this STRING stay inside t
 every `fs` call under it followed links, so one `ln -s /etc evil` in the vault turned
 `/api/file?path=evil/passwd` into an anonymous filesystem reader (the publish allowlist admits any
 path a published note embeds), and `note-link.md → /etc/passwd` into a readable *and writable* note.
-Pointing such a link at `VELLUM_DATA` exfiltrated `git-credentials.json`, whose `0600` mode is
+Pointing such a link at `ASTROLABE_DATA` exfiltrated `git-credentials.json`, whose `0600` mode is
 irrelevant when the server reads it for you. Three layers now hold, and each is independently
 sufficient: `safeAbs()` realpath containment; `statAttachment()` uses **`lstat` + `isFile()`** (the
 same rule the two font routes already followed); and the tree walk, the index walk and the chokidar
@@ -143,7 +167,7 @@ therefore never enters the publish allowlist. Consequence, by design: a symlink 
 vault is invisible to the whole app and cannot be read, written or deleted through any API — remove
 it with the filesystem. A symlink pointing back INSIDE the vault still resolves and still works.
 
-**Every response below `/api` is `Vary: Cookie, X-Vellum-Preview, X-Vellum-Lang` and, unless the route said
+**Every response below `/api` is `Vary: Cookie, X-Astrolabe-Preview, X-Astrolabe-Lang` and, unless the route said
 otherwise, `Cache-Control: private, no-store`** (one middleware in `api.ts`, above the auth routes
 so `/api/me` is covered). Every one of these bodies differs by session cookie AND by the preview
 header, and none of them said so; the README recommends nginx in front, where a shared cache may
@@ -220,7 +244,7 @@ more than one name".
   admin" is defensible for editing notes on a trusted LAN; it is not defensible for "send my vault
   to an address the caller chose".
 - **The session token is `v2.<epoch>.<expiry>.<hmac>`**, still stateless, with two revocation
-  inputs baked into the signature: a `sessionEpoch` integer in `VELLUM_DATA/session-epoch`, and a
+  inputs baked into the signature: a `sessionEpoch` integer in `ASTROLABE_DATA/session-epoch`, and a
   fingerprint of the password hash (derived through `SESSION_SECRET`). `POST /api/logout` bumps the
   epoch, so signing out ends every session on every device — it used to only `deleteCookie()`,
   leaving a captured cookie valid for 30 days after logout *and* after a password change, with the
@@ -263,15 +287,15 @@ interface State {
   openTabs: string[];           // ordered open note paths
   dirty: Record<string, boolean>;
   view: "editor" | "graph";
-  theme: Theme;                 // one of shared/themes.ts THEMES (15); persisted localStorage "vellum.theme"; sets data-theme attr on <html>
-  vimMode: boolean;                    // persisted "vellum.vim"
+  theme: Theme;                 // one of shared/themes.ts THEMES (15); persisted localStorage "astrolabe.theme"; sets data-theme attr on <html>
+  vimMode: boolean;                    // persisted "astrolabe.vim"
   paletteOpen: boolean;
   // Shell layout, all persisted (see "Shell layout" below):
-  sidebarSidePref: "auto" | "left" | "right"; // "vellum.sidebarSide" (default "auto")
+  sidebarSidePref: "auto" | "left" | "right"; // "astrolabe.sidebarSide" (default "auto")
   sidebarSide: "left" | "right";       // DERIVED: the pref with "auto" resolved
-  sidebarCollapsed: boolean;           // "vellum.sidebarCollapsed"
-  panelCollapsed: boolean;             // "vellum.panelCollapsed"
-  zen: boolean;                        // "vellum.zen"
+  sidebarCollapsed: boolean;           // "astrolabe.sidebarCollapsed"
+  panelCollapsed: boolean;             // "astrolabe.panelCollapsed"
+  zen: boolean;                        // "astrolabe.zen"
   backlinks: Backlink[];        // for openPath
   // actions:
   loadTree(): Promise<void>;
@@ -353,7 +377,7 @@ out would hold a tree it may no longer read and offer writes the server will ref
 
 **Preview is not a sign-out, and the bus must never mistake one for the other.** `admin` also
 flips false while a window previews as a visitor — `loadMe()` reports the server's word, which is
-"visitor" under `X-Vellum-Preview` — and broadcasting that flip as an auth event made every peer
+"visitor" under `X-Astrolabe-Preview` — and broadcasting that flip as an auth event made every peer
 window call `logout()`, which POSTs `/api/logout`, which bumps the session epoch, which revokes
 EVERY session on EVERY device. One "Preview as visitor" with a second tab open signed the owner out
 of the web admin, the desktop app and the phone at once, and each fell back to the site language as
@@ -663,9 +687,9 @@ version of this that stays correct.
 It reads rather than validates: it takes what it understands and discards the rest. A pane the
 layout forgot to place has its tabs adopted by the first pane instead of vanishing with it; a
 structurally broken layout collapses to a solo workspace holding every path that was still readable.
-Storage is `vellum.workspace`, and **`vellum.tabs` is still written beside it** — a few bytes that
+Storage is `astrolabe.workspace`, and **`astrolabe.tabs` is still written beside it** — a few bytes that
 buy a downgrade nobody loses a session to, since a build without panes still finds a shape it
-understands. On the way up, an instance with no workspace key has its `vellum.tabs` migrated by
+understands. On the way up, an instance with no workspace key has its `astrolabe.tabs` migrated by
 `fromStoredTabs()`, so the upgrade is invisible.
 
 ### Panes (client/components/Workspace.tsx, Pane.tsx)
@@ -783,7 +807,7 @@ The drag itself is module state (client/dragTab.ts), not store state: it
 exists between dragstart and dragend, must never persist or mirror to other
 windows, and `dataTransfer.getData()` is empty during dragover by spec — so
 the zones could not know what hovers them from the event alone. The payload
-still rides the DataTransfer under `application/x-vellum-tab`; a drag arriving
+still rides the DataTransfer under `application/x-astrolabe-tab`; a drag arriving
 from ANOTHER window has the MIME and no module state, and the zones simply do
 not raise — the honest no-op until cross-window adoption exists. The zones'
 chunk loads at the first LIFT (`React.lazy` in Pane.tsx): code that exists
@@ -918,7 +942,7 @@ eases over 220 ms about the viewport centre (the wheel stays immediate: a wheel 
 own hand). The three force sliders scale the shipped constants (`repulsion`, `linkDistance`,
 `gravity`); display has node size, idle-edge opacity, the label zoom threshold and a glow (a
 translucent disc of the node's own colour, skipped above 700 discs on screen where it would be a
-wash). Labels wear a halo of the ground. Everything is one object under `vellum.graph`,
+wash). Labels wear a halo of the ground. Everything is one object under `astrolabe.graph`,
 normalised field by field on load (`normalizeGraphPrefs`), per browser, never sent anywhere.
 
 ## Note annotations (shared/textQuote.ts, server/annotations.ts, client/annotations/)
@@ -932,7 +956,7 @@ chain and is what `proseOfSource` now calls) and finds the quote there exactly a
 finds it in rendered words, so an anchor made in either view lands in both. The decoration is a
 real span (`.s-ann-mark--ink-N`, `--public`, `data-ann-id`; styles in annotation-marks.css, the
 editor chunk's), so hover and click are DOM events, announced on the window as
-`vellum:annotate-hover` and `vellum:annotate-open`; `EditorAnnotator` (lazy, admin-only, mounted by
+`astrolabe:annotate-hover` and `astrolabe:annotate-open`; `EditorAnnotator` (lazy, admin-only, mounted by
 App.tsx) owns the tooltip and the popover for the editor. The reading layer finds the mark under
 the pointer with `rangeAtPoint` once per animation frame and shows the same `AnnotationTip` (the
 note, or the words when there is no note, and "Click to edit or remove" / "Click to read"); the tip
@@ -949,13 +973,13 @@ skipping the renderer's furniture (properties card, transclusion cards, the empt
 that is gone stays in the list, said to be gone; nothing is silently dropped.
 
 **PAINTED, NEVER INSERTED.** Marks are drawn with the CSS Custom Highlight API under names of the
-form `vellum-note-<scope>-<ink>` (and `-public`), so no node enters the rendered note and a
+form `astrolabe-note-<scope>-<ink>` (and `-public`), so no node enters the rendered note and a
 paragraph's own markup is never split; a click on a mark is found by asking where the caret
 would land (`rangeAtPoint`). Each surface paints under its own scope letter (`r` reading view,
 `p` blog article, `d` designed article, `l` lesson) so two hosts on one page never clear each
 other. The six inks are the book reader's tokens.
 
-**KEPT BESIDE THE VAULT, NOT IN IT.** `VELLUM_DATA/annotations.json`, a map from note path to
+**KEPT BESIDE THE VAULT, NOT IN IT.** `ASTROLABE_DATA/annotations.json`, a map from note path to
 its annotations, on the books.json idiom (cleaned on read, written by rename, 0600). The rename
 and folder-move routes carry entries to the new path. The owner reads and writes every annotation
 of any note; a visitor reads the PUBLIC ones of a PUBLISHED note and never learns the private ones
@@ -963,7 +987,7 @@ exist — the comments gate, line for line. `public` is off by default: a note t
 
 ## The tree's arrangement (client/treeOrder.ts, Sidebar.tsx)
 
-Per browser (`localStorage["vellum.treeOrder"]`: `sort` name|name-desc|manual, `order` parent →
+Per browser (`localStorage["astrolabe.treeOrder"]`: `sort` name|name-desc|manual, `order` parent →
 child names, `pinned` paths ≤ 40): `orderChildren()` runs in `TreeChildren` after the attachment
 and focus filters, keyed by the `parent` prop each row passes down (`""` at the root, `PINNED_PARENT`
 — a NUL-prefixed sentinel — for the scratch area). A sibling dragged over the top or bottom edge of a
@@ -978,7 +1002,7 @@ everything inside" writes the expanded map under one folder (`setFoldersUnder`) 
 
 ## The writing column (client/editorWidth.ts)
 
-`localStorage["vellum.editorWidth"]` measure|wide|wider|full → `data-editor-width` on `<html>` at boot
+`localStorage["astrolabe.editorWidth"]` measure|wide|wider|full → `data-editor-width` on `<html>` at boot
 (main.tsx) and on change; app.css reads it into `--editor-measure`, which the editor's
 `.cm-content`, zen's editor and zen's reading column take (648 / 672 / 800px defaults; wide 960, wider 1200). Full width
 gives the scroller a gutter instead. Settings → This device row.
@@ -991,7 +1015,7 @@ gives the scroller a gutter instead. Settings → This device row.
 replaces one and with a modifier replaces all, Escape closes and returns focus. The commands are
 @codemirror/search's own; the words are the stock panel's phrases (searchPhrases.ts), spelled
 through a `P` table so the i18n gate sees no bare copy in a DOM sink. `Ctrl/Cmd+Shift+F` (App.tsx,
-admin, before Escape) dispatches `vellum:replace-open`; the sidebar shows itself, opens the vault
+admin, before Escape) dispatches `astrolabe:replace-open`; the sidebar shows itself, opens the vault
 Search & replace panel (ReplacePanel.tsx) and focuses its Find field. Both rows are in the ledger.
 
 ## The status bar keeps the note; the shell's tools moved up
@@ -1025,7 +1049,7 @@ right edge, beside the notes sidebar) instead of throwing the tools across the w
 `.s-graph__controls`: the owner reads the graph's chrome as one instrument cluster. Its head is a
 drag handle (pointer capture, clamped to the graph's box); once moved it wears `--moved` (left/top
 inline, bottom unpinned, max-height in the box) and the position is remembered in
-`localStorage["vellum.graphPanelPos"]`, re-clamped on mount. Reset and ✕ are buttons, not handle.
+`localStorage["astrolabe.graphPanelPos"]`, re-clamped on mount. Reset and ✕ are buttons, not handle.
 
 ## The pane grips (client/components/PaneGrip.tsx, client/paneWidths.ts)
 
@@ -1033,7 +1057,7 @@ Each side pane carries an 8px `role="separator"` strip on its INNER edge (last c
 `.s-sidebar` / `.s-panel`, both `position: relative`; `.s-app--flip` swaps the edges). A drag with
 pointer capture writes the pane's custom property on `<html>` — `--sidebar-w` (the token in
 tokens.css) or `--panel-w` (new; `.s-panel`, `.s-panel-header`, `.s-panel-body` all read it) —
-clamped to `PANE_MIN..PANE_MAX` (168..560) and remembered in `localStorage["vellum.paneWidths"]`
+clamped to `PANE_MIN..PANE_MAX` (168..560) and remembered in `localStorage["astrolabe.paneWidths"]`
 (`applyPaneWidths()` at the first grip's mount). Dragged under `PANE_COLLAPSE_AT` (112px) the pane
 wears `.s-pane--leaving` and on release COLLAPSES through the store's own setter, its property
 restored to the pre-drag width so it reopens whole. Double-click clears the property and the
@@ -1191,7 +1215,7 @@ Lecture 3"), the outline beside it, the previous and the next at the foot, `←`
 (mirrored in RTL), and the same reading renderer the article page uses. The rail stands beside the
 column only where the container has 980px (a wrapper is the container: a container query never
 styles the container itself), and a closed `<details>` renders nothing whatever the stylesheet
-says, so the fold's open state is measured, not styled. Progress (`vellum.library`) is per browser
+says, so the fold's open state is measured, not styled. Progress (`astrolabe.library`) is per browser
 and never sent: read paths, not numbers, so a unit added in the middle shifts nothing. The pages
 are one lazy chunk; only the door, the band and the covers ride with the blog first paint.
 
@@ -1375,7 +1399,7 @@ stays on `.s-panel--collapsed`, as it always did.
 
 **EVERY FOLDER STARTS FOLDED.** The tree opened its top level on a first visit and left the rest
 shut; the owner asked for all of them shut. `defaultOpen()` in `Sidebar.tsx` answers false for
-every depth, and the per-browser map (`vellum.tree-expanded`) still remembers each folder the
+every depth, and the per-browser map (`astrolabe.tree-expanded`) still remembers each folder the
 reader opens, so the price is one click per folder, once, and a reveal (`TREE_REVEAL_EVENT`) still
 opens every ancestor of the note it is showing. Nothing else moved: the fold-all and unfold-all
 commands write the same map.
@@ -1546,7 +1570,7 @@ choice of their own:
 4. **the built-in default** (`THEMES[0]`, iron-gall).
 
 And above all four: **a visitor who has explicitly chosen a theme keeps it.** `client/state.ts`
-applies `me.defaultTheme` only when `localStorage["vellum.theme"]` is empty, and never persists
+applies `me.defaultTheme` only when `localStorage["astrolabe.theme"]` is empty, and never persists
 it — so a changed site default keeps reaching undecided readers, and a decided one is never
 overruled.
 
@@ -1560,18 +1584,18 @@ overruled.
   (a visitor's EN/ع switch under `"follow"`) re-applied the store's theme over the design's, and
   the ☾/☀ button read the store and flipped from the wrong room.
 - **The editor's theme and a reader's choice are two keys.** `setTheme` stored the admin's editor
-  pick in `vellum.theme`, the same key a visitor's public-site choice uses, and that key survives
+  pick in `astrolabe.theme`, the same key a visitor's public-site choice uses, and that key survives
   signing out — so in any browser the owner had ever signed in from, their editor theme outranked
   every design they made, for them and only for them ("none of my themes really show on Mission
   Control, it's just the default dark theme"). A reader's choice made on the public site now lives
-  in `vellum.site-theme`; which key a session reads is decided by the surface it is on
+  in `astrolabe.site-theme`; which key a session reads is decided by the surface it is on
   (`themeKey()` in `client/state.ts`: the site's for a visitor shell — the served page says so via
   `client/boot.ts`, which only a session shown the public site is told — and for the owner
   previewing as one; the editor's otherwise). `loadMe` runs into and out of preview, so one block
   serves both: entering, the site key is empty and the design's theme applies; leaving, the editor
   key holds the owner's own room and it comes back. A ☾/☀ press on the public site or in preview
   writes the site key and never the editor's. One migration cost, accepted: a visitor who chose a
-  theme on the public site before this build chose it into `vellum.theme`, and lands on the site's
+  theme on the public site before this build chose it into `astrolabe.theme`, and lands on the site's
   default once until they choose again.
 - **The ☾/☀ button on a designed site always lands in the design's pair.** `COUNTERPART` is not
   involutive (several dark rooms share one lit partner), so a toggle that only asked for the
@@ -1586,7 +1610,7 @@ overruled.
   "app", the theme at the client's fallback — and became a designed site only after `/api/me`, then
   got its document a fetch later. Measured on the owner's site: the stock masthead and menu at
   ~204ms, replaced by the designed console at ~259ms, on every refresh. `server/boot.ts` inlines
-  `window.__vellum` into the served shell for sessions shown the public site — the served layout,
+  `window.__astrolabe` into the served shell for sessions shown the public site — the served layout,
   the theme (design's, else the instance's, same precedence as `/api/me`), and on a designed site
   the document scrubbed by the same `visitorSafe` the API uses — and paints `data-theme` on `<html>`.
   `client/boot.ts` reads it once; the store boots into that layout and `readTheme()` falls to that
@@ -1605,7 +1629,7 @@ overruled.
   `solar`, keep editing in `void`, unpin, and visitors get `void` again — not the built-in default.
 - **The mirror is `POST /api/theme`** (`{ theme }` → `PublicThemeInfo`), admin-gated like any
   mutation, one key, no-op when unchanged. It exists because the admin's theme has only ever lived
-  in `localStorage["vellum.theme"]`, which no server can read. It is NOT `PATCH /api/settings`:
+  in `localStorage["astrolabe.theme"]`, which no server can read. It is NOT `PATCH /api/settings`:
   that answers with published counts, every image attachment and the font catalog, and this fires
   on a theme click. **The client DEBOUNCES it** (`MIRROR_DELAY = 1000ms` in `client/state.ts`) and
   always sends the CURRENT theme, so walking the picker costs one request naming the
@@ -1964,7 +1988,7 @@ failures happen, and a crash card that must fetch a chunk after the crash is not
   abort per keystroke, and clobbering `init.signal` would have made those a request per character
   that nothing could cancel. A deadline that fires becomes `ApiError(code: "timeout")`; the caller's
   own abort stays exactly what it was.
-- **A 2xx that is not JSON throws.** An auth proxy in front of Vellum answers the expired XHR with
+- **A 2xx that is not JSON throws.** An auth proxy in front of Astrolabe answers the expired XHR with
   its own 200 HTML login page; `return body as T` handed every caller a `null` typed as a tree, a
   note or a settings object, which the reader saw as an empty vault or as a crash three frames
   later. It is `ApiError(code: "notJson")` now — the one place in the client that can tell.
@@ -2228,7 +2252,7 @@ against.
 `DELETE /api/folder?path=<rel>&permanent=<bool>` → `{ notes: number, trashPath?: string }`
 
 - **Admin only.** Guarded by the standard `authGuard` rule (every non-GET 401s without an admin
-  session) — visitors and admin sessions sending `X-Vellum-Preview: visitor` both get
+  session) — visitors and admin sessions sending `X-Astrolabe-Preview: visitor` both get
   `401 {"error":"Admin session required"}`.
 - **Default (Obsidian-safe):** the folder is *moved* to `.trash/` at the vault root (created on
   demand). Name collisions get a counter: `guides`, then `guides-2`, `guides-3`… `.trash` is a
@@ -2347,7 +2371,7 @@ index and the reader that opens from it is worse than no fold at all.
 
 **Bulk-edit tools are what note-takers most want and least trust**, and the reason is always the
 same: a rewrite spread over four hundred files is not something a reader can inspect afterwards,
-so a wrong one is unrecoverable. Every vault-wide edit in Vellum therefore runs through ONE
+so a wrong one is unrecoverable. Every vault-wide edit in Astrolabe therefore runs through ONE
 engine, and it makes three promises once instead of once per feature:
 
 1. **Nothing is written that was not previewed.** `previewBulk` and `applyBulk` run the SAME
@@ -2410,7 +2434,7 @@ because nothing says it broke. `moveLinks.ts` carries `#tails` through a MOVE ve
 is right for a move; this is the other half.
 
 **Detection is on the WRITE PATH**, server-side, and the alternatives were both wrong. The
-editor sees only edits made in Vellum's own CodeMirror (not the reading view's source, not a
+editor sees only edits made in Astrolabe's own CodeMirror (not the reading view's source, not a
 template, not another window) and fires mid-word. The indexer sees everything including a `git
 pull` — which would open forty offers to rewrite links the puller never touched, and an offer
 nobody asked for over files nobody looked at is how a bulk tool loses trust. `PUT /api/note`
@@ -2479,7 +2503,7 @@ mutating owner surface uses: the auth guard 401s the POST, and the GET dry run a
 
 Obsidian's all-time #1 request, and the one this release's story is told against: their editor
 round-trips YAML through a serializer, so it reformats quote styles, drops comments and reorders
-keys nobody touched. Vellum's writer is textual. `server/frontmatterEdit.ts` owns the surgery,
+keys nobody touched. Astrolabe's writer is textual. `server/frontmatterEdit.ts` owns the surgery,
 `client/editor/propsEdit.ts` owns the controls, `tests/frontmatter.test.ts` owns the promise.
 
 - **THE CARD IS EDITABLE IN THE EDITOR AND NOWHERE ELSE.** `buildPropsCard()` (noteMeta.ts) takes
@@ -2491,7 +2515,7 @@ keys nobody touched. Vellum's writer is textual. `server/frontmatterEdit.ts` own
   document would inherit the autosave debounce, the 409 dance and the undo history (Ctrl Z after
   ticking a checkbox would eat your last paragraph), and it would put a SECOND frontmatter writer
   in the product — which is how the claim above stops being true. The card dispatches
-  `vellum:property {path, key, value}`; App.tsx re-checks `admin` and calls `setProperty`, which is
+  `astrolabe:property {path, key, value}`; App.tsx re-checks `admin` and calls `setProperty`, which is
   `setBanner`'s choreography to the letter: let a pending autosave land, `markSelfWrite`, POST,
   `bumpReload`. Silent on success (the row IS the feedback), one toast on removal.
 - **THE VALUE IS TYPED ON THE WIRE.** `PropertyValue` is `{kind:"text"|"bool"|"date"|"list"}`,
@@ -2501,7 +2525,7 @@ keys nobody touched. Vellum's writer is textual. `server/frontmatterEdit.ts` own
   that way since v1.2.
 - **The key policy is a SHAPE, not a list.** Arbitrary keys are allowed (`\p{L}\p{N}_.-`, ≤64
   chars, single line, no control characters, values ≤500 chars, lists ≤64 items) — the whole point
-  is the keys Vellum does not know about. Refused: `publish` (its own route broadcasts, re-filters
+  is the keys Astrolabe does not know about. Refused: `publish` (its own route broadcasts, re-filters
   the SSE visitor stream and re-counts the site; reaching it here would set the flag and tell
   nobody) and `id`/`uuid`/`guid`/`dg-*` (another tool's primary key). The card renders exactly that
   set faint and control-less via `isMachineKey()`; the route refuses it again, because a rule
@@ -2576,7 +2600,7 @@ dropped out of it by the printer's own background suppression.
   room stays the screen's. `!important` on those tokens and on every structural rule that a screen
   rule also declares, for two reasons: `@import` is legal only at the top of a file, so reading.css
   wins on order at equal specificity; and the LAST stylesheet on any instance belongs to its owner
-  (`VELLUM_DATA/custom.css` and a custom theme's injected block are both served at runtime). Rules
+  (`ASTROLABE_DATA/custom.css` and a custom theme's injected block are both served at runtime). Rules
   that only ADD — the page box, every `break-*` — carry none.
 - **THE PAGE BOX IS THE MEASURE.** `@page { margin: 20mm 25mm 22mm }` and nothing inside sets a
   width: a centred max-width column inside a page box is a second measure inside the first. The
@@ -2727,7 +2751,7 @@ reach is a safety net in the sense that a locked fire exit is a fire exit.
   costs nothing — and it is what stops the manifest itself being restorable or purgeable.
   `safeAbs()` cannot be used here: it 404s everything under `.trash` by design, which is the rule
   that makes the bin invisible everywhere else and must stay.
-- **Origins are recorded, so Restore is a restore.** `.trash/.vellum-trash.json`
+- **Origins are recorded, so Restore is a restore.** `.trash/.astrolabe-trash.json`
   (`{version, entries: {name: {origin, deletedMs, kind}}}`) is written by every trashing delete.
   Writes are serialized on one chain — two deletes in the same tick would read the same file and
   the second write would drop the first entry, losing the origin of the folder somebody is about
@@ -2821,7 +2845,7 @@ Client side (`Sidebar.tsx`, `AttachmentViewer.tsx`, `styles/attachments.css`):
   the same 3:1 bar the fold chevron is held to. Same for the extension badge (10px uppercase,
   `--text-muted`) and the footer counts.
 - **The filter is visible in both states.** "Show attachments" lives in the sidebar footer as a
-  paperclip beside the counts (`localStorage["vellum.show-attachments"]`, default ON, admin only)
+  paperclip beside the counts (`localStorage["astrolabe.show-attachments"]`, default ON, admin only)
   and in the tree's context menu. ON: gold clip, "1,176 files". OFF: grey clip, "**1,176 files
   hidden**" — in words. A filter that removes a thousand rows and says nothing is the bug this
   round is about, so a folder the filter has emptied also grows one italic row, *"18 files
@@ -2914,7 +2938,7 @@ carry that, and none of them may be quiet:
   `.s-blog`'s own scroller takes what is left — the blog's sticky nav then sticks to the top of
   THAT scroller and the two can never share a band. Nothing may overlay the site at either edge:
   preview exists so the owner can judge his own layout. `Esc` exits, the store no longer writes
-  `vellum.preview`, and boot clears any value an older build left behind — a reload always returns
+  `astrolabe.preview`, and boot clears any value an older build left behind — a reload always returns
   the admin to the app.
 - **Discoverability is chrome, not folklore.** The status bar carries icon toggles for the
   sidebar, the right panel, zen and `Ctrl/Cmd+/`; a collapsed pane's reopen handle sits at a
@@ -3131,11 +3155,11 @@ The empty-state rules carried no media query and no pointer query at all.
   has no `Ctrl` key. No resize listener, no first-paint flash, nothing for JS to get wrong.
 - `.s-empty__touch` offers what the legend was only NAMING: the recent notes, then New note
   (admin), Search notes and Graph view. Every target is ≥44px tall. *Search notes* goes through
-  `openQuickSearch()`, which opens the mobile DRAWER before dispatching `vellum:quicksearch` —
+  `openQuickSearch()`, which opens the mobile DRAWER before dispatching `astrolabe:quicksearch` —
   `Sidebar.revealSidebar()` un-collapses and un-zens, but the phone's pane is a fixed drawer
   governed by `sidebarOpen`, so a bare dispatch focuses a field parked off the screen edge and
   eats every keystroke after it. The dispatch waits one frame for the class to commit.
-- **Recent notes live in App, not in the store** — `localStorage["vellum.recent"]`, ≤12 paths,
+- **Recent notes live in App, not in the store** — `localStorage["astrolabe.recent"]`, ≤12 paths,
   written by a `useStore.subscribe` on real `openPath` changes (not by a render value, which
   would reorder the list on any unrelated re-render), five shown. Nothing else remembers this:
   the store persists open TABS, and by definition there are none when this pane is on screen.
@@ -3202,7 +3226,7 @@ placeholder and the no-matches block name both characters — the mode was reach
 character you had to already know, which is a mode nobody has.
 
 **`Ctrl/Cmd+K` remembers where it came from.** App records the focused element before dispatching
-`vellum:quicksearch`; `Esc` inside `.s-search` returns focus to it (falling back to `.cm-content`,
+`astrolabe:quicksearch`; `Esc` inside `.s-search` returns focus to it (falling back to `.cm-content`,
 and to a plain blur when the reading view has nothing focusable), because a search box on the far
 side of the screen that only closes leaves the next keystroke nowhere. The blog overlay does the
 same with its own ref.
@@ -3236,7 +3260,7 @@ so an upgrade changes nothing until an admin says otherwise — which is why `PA
   unsafe reached the disk either way — the bug was an API storing a folder the author never
   typed. A trailing newline is still tolerated (`folderError` trims first).
 - **Existing attachments are never moved.** The setting decides where the NEXT upload goes;
-  embeds resolve by basename, so nothing breaks either way. Fonts (`VELLUM_DATA/fonts`) and
+  embeds resolve by basename, so nothing breaks either way. Fonts (`ASTROLABE_DATA/fonts`) and
   `custom.css` keep their dedicated locations.
 
 **Every type the vault can hold, sniffed by bytes.** `sniffAttachmentType(buf, hint)` in
@@ -3390,12 +3414,12 @@ started WITH `ADMIN_PASSWORD_HASH` it browsed as a visitor, no CodeMirror mounte
 `.cm-scroller` evaluate timed out, and the run reported `SKIP … browser died (TimeoutError…)`,
 `the browser crashed (memory?)` and `FAIL enough links … 0 hovered` — a gate blaming the machine
 for a session it had chosen itself, and a cycle spent learning the feature was fine. It now reads
-`/api/me` first: with `VELLUM_PASSWORD` set it signs in through `POST /api/login` and continues;
+`/api/me` first: with `ASTROLABE_PASSWORD` set it signs in through `POST /api/login` and continues;
 without it, it prints *"this session is NOT an admin — no editor mounts, so there is nothing to
 hover"*, the instance's `protected`/`public` flags and both fixes, and **exits 1**. The whole run
 also shares ONE browser context (`browser.newPage()` makes a fresh one per call, which would have
 dropped the session cookie on the first subject). Verified both ways against a
-password-protected instance: refusal exit 1, `VELLUM_PASSWORD=… ` exit 0 with 10/10 links.
+password-protected instance: refusal exit 1, `ASTROLABE_PASSWORD=… ` exit 0 with 10/10 links.
 
 Server side: `siteLanguage()` in `server/site.ts` merges `settings.language` over `SITE_LANG`
 (default `en`); `/api/me` sends `language` to **every** session (visitors included), and
@@ -3418,18 +3442,18 @@ takes it as a **required** parameter with no default: a default would be a filte
 by whichever module forgot to pass one, and getting it wrong means either a withheld note leaking
 or a reader's language ignored.
 
-**`"follow"` needs the reader's language, so the client declares it.** `X-Vellum-Lang: ar|en` on
+**`"follow"` needs the reader's language, so the client declares it.** `X-Astrolabe-Lang: ar|en` on
 every API call (`client/api.ts::withPreview` sets it beside the preview header), and `?lang=` on
 the three surfaces that cannot send a header — `/api/events`, because EventSource has no header
 API, and `/feed.xml` and `/sitemap.xml`, because neither a feed reader nor a crawler is our
 client and `?lang=ar` is how the Arabic side of a bilingual site becomes its own subscribable and
 its own submittable URL. **Validated and gated exactly
-as `X-Vellum-Preview` is**: the value must be exactly `"ar"` or `"en"` (anything else is dropped,
+as `X-Astrolabe-Preview` is**: the value must be exactly `"ar"` or `"en"` (anything else is dropped,
 not coerced — a mistyped scope falls back to the site language rather than to a guess), the query
 form is honored only on those three paths, and the whole claim is honored **only while
 `settings.languageToggle` is on**. An instance that offers readers no language switch has no
 reader language to speak of, and letting a header say otherwise would be a second, undocumented
-way to re-scope the public site. `X-Vellum-Lang` is therefore a `Vary` dimension on every `/api`
+way to re-scope the public site. `X-Astrolabe-Lang` is therefore a `Vary` dimension on every `/api`
 response, the SPA shell and the feed: under `"follow"` two readers of the same URL with the same
 (absent) cookie get different post lists, topics, search results and graphs, and a shared cache
 that did not know would hand one reader's collection to the other.
@@ -3557,7 +3581,7 @@ star optimistically and had it removed again by the next refresh, with no messag
 the whole feature conditional on `authProtected && publicReads`, so an open local vault and
 every `PUBLIC=false` instance had no publish marks and no published filter at all — while the
 publish TOGGLE beside them stayed, still toasting "live for visitors". A session must never
-impersonate another session to read its own state: `X-Vellum-Preview` exists so that the one
+impersonate another session to read its own state: `X-Astrolabe-Preview` exists so that the one
 place which *does* want the visitor's view says so out loud and keeps its cookie.
 
 **Routes that write a note must emit their own event BEFORE reindexing.** `visitorEvent()` in
@@ -3595,11 +3619,11 @@ each scoped to one kind of session, and neither may reach the other's:
 
 | key | whose | honoured while | null means |
 | --- | --- | --- | --- |
-| `localStorage["vellum.editorLang"]` | a real admin session | always (admin only) | follow the site language |
-| `localStorage["vellum.lang"]` | a visitor | `me.languageToggle` is true | follow the site language |
+| `localStorage["astrolabe.editorLang"]` | a real admin session | always (admin only) | follow the site language |
+| `localStorage["astrolabe.lang"]` | a visitor | `me.languageToggle` is true | follow the site language |
 
 The split is on `me.admin`, which the **server** answers and which is `false` for an admin
-under `X-Vellum-Preview` — so visitor preview shows the visitor's language, not the owner's, in
+under `X-Astrolabe-Preview` — so visitor preview shows the visitor's language, not the owner's, in
 the same way `mirrorTheme()` declines to mirror from a previewing session. The store keeps both
 `language` (this session's chrome) and `siteLanguage` (what the site publishes in); reading
 `language` to answer "what language is this site?" is the mistake that welded them together, and
@@ -3617,7 +3641,7 @@ English one. `tests/langPref.test.ts` holds the whole rule as a table plus the t
 stated over every combination of the inputs.
 
 **`settings.languageToggle` (default false) is a VISITOR override.** `client/langPref.ts` owns the stored value
-(`localStorage["vellum.lang"]`), and `chromeLang()` applies it over `me.language` for visitor
+(`localStorage["astrolabe.lang"]`), and `chromeLang()` applies it over `me.language` for visitor
 sessions — and only while `me.languageToggle` is true, so turning the setting off restores the
 site language for everyone regardless of what their browser remembers. It moves the chrome
 dictionary, `<html dir>`, and **month names** (`shared/dates.ts::dateNamesLocale`: English chrome
@@ -3888,8 +3912,8 @@ off, contained none of those three things.
   `:root[lang="ar"]` can never do: they scale both scripts equally, so the ratio between them
   never moves, and on an English instance they never run at all. Those multipliers are untouched;
   this is the other axis.
-- **Three COMPOSITE families, and the Arabic slot goes first.** `VellumProse`/`VellumUI`/
-  `VellumMono` each list the Arabic face's `@font-face` blocks narrowed to the Arabic unicode
+- **Three COMPOSITE families, and the Arabic slot goes first.** `AstrolabeProse`/`AstrolabeUI`/
+  `AstrolabeMono` each list the Arabic face's `@font-face` blocks narrowed to the Arabic unicode
   blocks, then the Latin face's with those same ranges carved out. The two sets are **disjoint**,
   which is the point: per-character font matching then needs no tie-break and no source-order
   luck, and a mixed Arabic/Latin paragraph sets correctly **on an English instance too**. Google's
@@ -3908,13 +3932,13 @@ off, contained none of those three things.
   makes the client link the stylesheet, and its value is the `?v=` on that link, so a changed pick
   gives the browser a new URL instead of a cached sheet naming the old families.
 - **`GET /api/font-preview.css`** is the settings panel's live specimen: the same generator under
-  a `VellumPreview…` prefix and with no `:root` block, so a reader sees faces they have picked but
+  a `AstrolabePreview…` prefix and with no `:root` block, so a reader sees faces they have picked but
   not saved. Admin-eyes-only (it can trigger a download) — 404 to visitors like `/api/settings` —
   debounced client-side, and its failures are silent: a specimen falling back to the system stack
   is a fine specimen; a toast per keystroke is not. It takes `sizeAdjust` too: the dial changes
   what the specimen LOOKS like without changing a single id.
 - **`GET /api/font-faces.css?ids=…` is the PICKER's own faces** — one `@font-face` per pickable
-  id under a `VellumOpt-…` family (`shared/fonts.ts::optionFamily`, imported by both sides so the
+  id under a `AstrolabeOpt-…` family (`shared/fonts.ts::optionFamily`, imported by both sides so the
   generated sheet and the element naming it cannot drift). A list of family NAMES set in the
   interface font is a list of trademarks; every option row is drawn in the face it names, and the
   Arabic ones carry an Arabic sample. Regular upright only, no range narrowing (one row must set
@@ -3977,7 +4001,7 @@ instance is the only possible answer. Ids are `custom:<file>` (`shared/fonts.ts`
   the index row) runs behind one promise chain that never rejects. `deleteCustomFont` shares it.
   Re-measured: 4/4 `200`, four files, four correct family names, zero server errors.
 - **The two font READ routes `lstat`, not `stat`.** `stat` follows symlinks: a link named
-  `symlink.woff2` planted in `VELLUM_DATA/fonts/custom` served `/etc/passwd` to an anonymous
+  `symlink.woff2` planted in `ASTROLABE_DATA/fonts/custom` served `/etc/passwd` to an anonymous
   request, `200`, `Content-Type: font/woff2`, on a route deliberately exempt from the auth guard.
   Nothing in the API can create such a link — names are generated — but both directories are also
   written by hand (the `custom.css` escape hatch is the whole point of one of them), and
@@ -4021,7 +4045,7 @@ instance is the only possible answer. Ids are `custom:<file>` (`shared/fonts.ts`
 ## The site design engine (`publicLayout: "designed"`)
 
 `settings.publicLayout` has a THIRD value. `"blog"` (the default) is the stock blog;
-`"designed"` composes the visitor shell from a design document in `VELLUM_DATA/designs.json`.
+`"designed"` composes the visitor shell from a design document in `ASTROLABE_DATA/designs.json`.
 Which one a session is SERVED is `servedLayout()` in `server/auth.ts`, not the setting: it
 downgrades `"designed"` to `"blog"` whenever there is no renderable design, so the fallback
 happens before the first byte and the browser never has to recover from a missing one.
@@ -4085,7 +4109,7 @@ outcomes and never a fourth:
   validation supplies — so it migrates rather than quarantining;
 - anything else (older with no step, or NEWER than this build) → **QUARANTINED**: kept on disk
   byte-for-byte, never rendered, listed in the panel with the reason. A design authored by a
-  newer Vellum must not be rendered "as best we can": this build would silently drop the keys it
+  newer Astrolabe must not be rendered "as best we can": this build would silently drop the keys it
   does not know, and a public homepage losing a section without anybody being told is precisely
   the invisible failure the whole feature is written against. `persist()` writes a quarantined
   row back exactly as it was read.
@@ -4210,7 +4234,7 @@ each is why this shape beat "generate a whole theme block":
 picker's live preview, the store's `setTheme` and the builder's preview all go through it.
 
 **The id is `custom:<slug>` everywhere a theme id is spoken**: `settings.defaultTheme`,
-`DEFAULT_THEME`, `localStorage["vellum.theme"]`, the picker, the palette dot. The prefix is what
+`DEFAULT_THEME`, `localStorage["astrolabe.theme"]`, the picker, the palette dot. The prefix is what
 lets every existing `isTheme()` guard keep meaning exactly what it meant (a BUILT-IN theme) while
 new callers ask `isThemeChoice()`. `client/themes.ts` grew `choiceGroup` / `counterpartChoice` /
 `choiceBase` / `choiceLabel` for the surfaces that must cope with both; `Theme` is unchanged.
@@ -4269,7 +4293,7 @@ opened from the picker's header ("New custom theme") and from a pencil on each c
   `custom.css` that legitimately changed a base.
 - **The warnings are the gate**, in words, above the controls that cause them, with a dot on any
   token group holding a failure. A rule the author cannot see is a rule they will break.
-- Export writes a `vellum.theme` JSON file; import reads one into the DRAFT (never straight into
+- Export writes a `astrolabe.theme` JSON file; import reads one into the DRAFT (never straight into
   the store), so the author sees what arrived, live, before anything is saved.
 
 ### The arrangement fields: a section decides its SHAPE, never its colour
@@ -4478,7 +4502,7 @@ without it: a bar pinned over scrolling content.
 **ONE SECTION LEAVES THE COLUMN, AND IT SAYS SO IN ITS NAME.** `hero.treatment:
 "cover"` runs a photograph the full width of the CONTENT AREA with the site's name over it — the
 opening the stock blog's dashboard has had since before this engine existed, and until it landed the
-one front page a Vellum author is most likely to already have was the one a design could not
+one front page an Astrolabe author is most likely to already have was the one a design could not
 reproduce. It arrived from a question rather than a feature request ("is the original design a
 template, or is there a way to move back to it?"): the way back always existed, but there was no way
 to start from what you had.
@@ -4697,7 +4721,7 @@ renders wrong, debuggable with the tools that already exist, and a section kind 
 `shared/design.ts` reaches every preset without a second vocabulary to teach it.
 
 **APPLYING A PRESET IS AN IMPORT, and there is no preset route.** `presetExport(preset, lang)`
-produces exactly the `vellum.design` envelope `POST /api/design/docs/import` already takes, so
+produces exactly the `astrolabe.design` envelope `POST /api/design/docs/import` already takes, so
 the whole apply flow is two lines in the panel:
 
 ```ts
@@ -5039,7 +5063,7 @@ Where the content comes from, and this is the half that makes a fresh install co
   column of empty rectangles.
 - **Sample rows only to make up the numbers**, to `PREVIEW_MIN_POSTS` (8) — enough for a
   three-across grid with a river under it. Their copy is dictionary copy (`pv*`, en + ar like all
-  chrome) and their paths carry `SAMPLE_PREFIX` (`__vellum-sample__/`), a path no vault surfaces.
+  chrome) and their paths carry `SAMPLE_PREFIX` (`__astrolabe-sample__/`), a path no vault surfaces.
   **The padding rule is "top up", never "replace"**: real posts keep their real order and their
   real position and samples are APPENDED. A preview that put invented rows first would show an
   author a front page whose lead story is a fiction, which is the one thing a design preview may
@@ -5085,7 +5109,7 @@ head changed with the designer open. Nodes still present are left alone (never r
 either — re-inserting a link re-runs its fetch); only arrivals are cloned and only departures
 removed. For the same reason **the page inside starts hidden** and is revealed when the first
 sheets answer, or after one second so a sheet that 404s never leaves an empty pane
-(`data-vellum-ready`, asserted by the gate — invisible is worse than unstyled).
+(`data-astrolabe-ready`, asserted by the gate — invisible is worse than unstyled).
 One place knows what CSS this build has and it is the head: cloning it brings
 `tokens.css`, the generated custom-theme sheet, an operator's `custom.css`, uploaded `@font-face`
 blocks and Vite's dev-injected styles, forever, with no manifest to keep in sync. `data-theme`,
@@ -5139,7 +5163,7 @@ with the same iframe element and the same in-frame node count (211 → 211) — 
 once and reconciled after that, which is also why the author's scroll position survives every
 edit. A route change is a NAVIGATION and resets it.
 
-**Gated by `scripts/check-preview.mjs`** (`npm run check-preview`, `PORT` + `VELLUM_PASSWORD`),
+**Gated by `scripts/check-preview.mjs`** (`npm run check-preview`, `PORT` + `ASTROLABE_PASSWORD`),
 which drives the real panel in a real browser and measures the frame from the inside: the frame
 exists at all under the shipped CSP, the sheets and the theme arrive, the phone gets the phone
 rules, the pictures resolve, a chip highlights under a pointer mapped through the scale, an edit
@@ -5269,7 +5293,7 @@ stage's iframe, `designer.css`) has always been arranged this way and carries th
 the pattern, not the exception.
 
 **Gated by `scripts/check-designer-nav.mjs`** (`npm run check-designer-nav`, `PORT` +
-`VELLUM_PASSWORD`; `LANGS` and `WIDTHS` override the `en,ar × 1440,1280` default). It measures the
+`ASTROLABE_PASSWORD`; `LANGS` and `WIDTHS` override the `en,ar × 1440,1280` default). It measures the
 drawn page's rect against its container's on the card and on the detail sheet, in both directions
 at both widths (2px of sub-pixel slop and not one more), and drives the whole navigation model:
 the crumb, the one-tab-stop rail with arrow/Home/End, the drill-in, focus landing in the room,
@@ -5343,7 +5367,7 @@ as a visitor is refused too; the POSTs are mutations the auth guard already 401s
   on results recorded before the field existed. It exists because "Vault committed and pushed" is
   true of every successful pass this product has ever run and therefore reads the same after a
   chapter and after a stray space (v1.8 F40); the client's toast prints it via `syncPushedSha` and
-  carries a **Backup** button that dispatches `vellum:sync-panel`, which `SyncBadge` answers by
+  carries a **Backup** button that dispatches `astrolabe:sync-panel`, which `SyncBadge` answers by
   opening its panel and taking focus. The sha stays in its own isolate and its own numerals —
   never `localeNum()`, which would spell an Eastern Arabic digit into a string an operator is
   about to paste into `git show`.
@@ -5368,9 +5392,9 @@ as a visitor is refused too; the POSTs are mutations the auth guard already 401s
   family), `GIT_SSH`, `GIT_SSH_COMMAND`, `GIT_PROXY_COMMAND` and `GIT_EXTERNAL_DIFF`: redirecting
   config redirects `core.hooksPath` and `url.*.insteadOf`, and redirecting the transport replaces
   the program git executes. The one legitimate use of the last group gets an explicit door instead
-  of ambient inheritance: `VELLUM_GIT_SSH_COMMAND` is copied to `GIT_SSH_COMMAND` for the child,
+  of ambient inheritance: `ASTROLABE_GIT_SSH_COMMAND` is copied to `GIT_SSH_COMMAND` for the child,
   and nothing else is.
-- **The token is a file, not a setting.** `VELLUM_DATA/git-credentials.json`, `0600`, asserted with
+- **The token is a file, not a setting.** `ASTROLABE_DATA/git-credentials.json`, `0600`, asserted with
   `chmodSync` after the atomic rename (the create mode is masked by umask). `settings.ts::persist()`
   gets the same treatment for `settings.json` next door — mode on open plus an explicit `chmodSync`
   after the rename — because it holds operator-private configuration (the backup remote, the
@@ -5393,7 +5417,7 @@ as a visitor is refused too; the POSTs are mutations the auth guard already 401s
   the operator's remote, and the entire justification for the trash model ("recoverable from disk",
   "invisible to tree/indexer/watcher", *local*) quietly stopped holding. The base rules
   (`.trash/`, `.obsidian/workspace*.json`) are now appended unconditionally to an existing file,
-  `seedGitignore()` runs on every pass rather than only when VELLUM_DATA is inside the vault, and
+  `seedGitignore()` runs on every pass rather than only when ASTROLABE_DATA is inside the vault, and
   a trash that an older build already committed is un-tracked (`git rm -r --cached
   --ignore-unmatch -- .trash`) before anything is staged — a rule alone changes nothing about what
   git already tracks. The eviction stages a deletion, so the next commit removes the trash from the
@@ -5408,12 +5432,12 @@ as a visitor is refused too; the POSTs are mutations the auth guard already 401s
   operator's global `core.excludesFile`, a negation in a nested `.gitignore`). So staging is now
   a single function, `stageAll()` in `server/gitSync.ts`, and **nothing else in the module may run
   `git add`**: it runs `git add -A` and then `git rm -r --cached --ignore-unmatch -- .trash
-  [<VELLUM_DATA rel>]`, evicting both paths from the INDEX. That command consults no ignore file
+  [<ASTROLABE_DATA rel>]`, evicting both paths from the INDEX. That command consults no ignore file
   at all, so no rule anywhere can put either path into the tree that gets committed, and the same
   call is what un-tracks a trash an older build already committed. `seedGitignore()` still appends
   `.trash/` to the vault's own file so a terminal `git status` is quiet — a courtesy, not the
   mechanism.
-- **VELLUM_DATA never reaches the repo, and that is enforced against git's answer.** The token
+- **ASTROLABE_DATA never reaches the repo, and that is enforced against git's answer.** The token
   file lives in the instance data directory, which is outside the vault by default — but when it
   is INSIDE one, `seedGitignore()` runs unconditionally in `initRepo()` (not only when the vault
   was not already a repository) and APPENDS the data-directory rule to an existing `.gitignore`
@@ -5510,9 +5534,9 @@ because a bad vault-wide edit is unrecoverable.
   two paths is what gets committed. It claims the same `busy` lock — two writers in `.git/index` is
   the fight that lock exists to prevent — and it does NOT record `lastResult`: the badge's sentence
   answers "is my writing somewhere else yet", and a local commit is not an answer to that. Its
-  subject is `vellum snapshot:` rather than `vellum sync:`, so one row of the timeline is findable
+  subject is `astrolabe snapshot:` rather than `astrolabe sync:`, so one row of the timeline is findable
   a week later.
-- **Our own commit subjects are told in the reader's language.** `vellum snapshot: <iso>` is the
+- **Our own commit subjects are told in the reader's language.** `astrolabe snapshot: <iso>` is the
   right subject for a terminal `git log` and the wrong one in a timeline whose first column is
   already the moment — the row would print when twice. Anyone else's subject is shown exactly as
   they wrote it, `dir="auto"`, scrubbed and capped server-side.
@@ -5524,7 +5548,7 @@ because a bad vault-wide edit is unrecoverable.
 
 ## The desktop app (`electron/`, `desktop/`, `client/desktop/`)
 
-Vellum runs in a browser, and for a writer that is the wrong window: no
+Astrolabe runs in a browser, and for a writer that is the wrong window: no
 application menu, no window that stays where it was left, no system dictionary,
 no file the reader can drag out, nothing over other applications, and a tab that
 closes with twenty others. The desktop app is Electron — chosen over Tauri (whose
@@ -5558,7 +5582,7 @@ Those two lines, and nothing else:
 - `if (process.send) process.on("disconnect", () => process.exit(0))` — quitting
   the app must not leave a server holding a vault's port and watching its
   directory for a window that no longer exists.
-- `process.send?.({ type: "vellum:listening", port: info.port })` in `serve()`'s
+- `process.send?.({ type: "astrolabe:listening", port: info.port })` in `serve()`'s
   callback — the **bound** port, not the requested one.
 
 Both are inert without a parent: `process.send` exists only when the process was
@@ -5566,9 +5590,9 @@ given an `"ipc"` stdio.
 
 ### THE PORT IS PERSISTED PER VAULT. This is not an optimisation.
 
-Every device preference in this product is `localStorage` — `vellum.theme`,
-`vellum.workspace`, `vellum.tabs`, `vellum.vim`, `vellum.reading`,
-`vellum.sidebarSide`, the folds, the pane sizes — and **`localStorage` is keyed
+Every device preference in this product is `localStorage` — `astrolabe.theme`,
+`astrolabe.workspace`, `astrolabe.tabs`, `astrolabe.vim`, `astrolabe.reading`,
+`astrolabe.sidebarSide`, the folds, the pane sizes — and **`localStorage` is keyed
 by origin**. The desktop's origin is `http://127.0.0.1:<port>`, so the port *is*
 the identity of the reader's settings.
 
@@ -5604,9 +5628,9 @@ feature, it is silent, and it is one line of convenience away at all times.
   cookie in the partition still stands) and the keep-alive re-armed. A SECOND
   death gets no second attempt: a server that cannot stay up is a bug to show,
   not a flicker to hide.
-- `VELLUM_DATA` goes to `<userData>/vaults/<name>-<hash>/data`, **not** into the
+- `ASTROLABE_DATA` goes to `<userData>/vaults/<name>-<hash>/data`, **not** into the
   vault. `isIgnoredSegment` hides exactly three names — `.obsidian`, `.git`,
-  `.trash` — and `.vellum` is not one of them, so a data directory beside the
+  `.trash` — and `.astrolabe` is not one of them, so a data directory beside the
   notes would appear in the reader's own tree and travel into their Dropbox.
 
 ### The owner never meets a login screen, and the binary is not a bypass
@@ -5643,7 +5667,7 @@ Two consequences worth stating:
   is private to `server/auth.ts`; the login response's `Set-Cookie` carries
   `Max-Age` written from it, so `electron/cookie.ts` parses that and
   `keepSignedIn` schedules from what the server said. The cookie's *name* is read
-  the same way for the same reason: a desktop that typed `"vellum_session"` into
+  the same way for the same reason: a desktop that typed `"astrolabe_session"` into
   its own source would work until someone renamed it and then fail by silently
   never being admin.
 
@@ -5693,7 +5717,7 @@ re-hosts the web app is a bigger download of the same thing.
 3. **Native find-in-page** (`Ctrl/Cmd+Shift+F`) — the *rendered document*:
    reading view, outline, backlinks, transclusions. `Ctrl/Cmd+F` remains
    CodeMirror's find over the open note's text. Two verbs, two keys.
-4. **Native spellcheck with the system dictionary**, drawn in Vellum's own
+4. **Native spellcheck with the system dictionary**, drawn in Astrolabe's own
    `.s-menu`. `client/editor/bidi.ts` already stamps a `lang` on every line whose
    script disagrees with the document, and `setSpellCheckerLanguages` is a
    whitelist — so every language `shared/script.ts::spellcheckLang` can return
@@ -5708,12 +5732,12 @@ re-hosts the web app is a bigger download of the same thing.
    stored. On the desktop the machine is the reader's, and the flip moves to
    `counterpartChoice()` — the same function the ☾/☀ button uses, so a custom
    theme lands on its base's curated opposite.
-6. **File associations and `vellum://` deep links.** Both are hostile input: a
-   `vellum://` URL can be opened by any page in any browser with no prompt. Two
+6. **File associations and `astrolabe://` deep links.** Both are hostile input: a
+   `astrolabe://` URL can be opened by any page in any browser with no prompt. Two
    refusals in `electron/deeplink.ts` are the whole trust model — a note
    reference must survive normalization and stay inside the vault, and **a vault
    reference is honored only if the reader has already opened that vault**.
-   Without the second, `vellum://open?vault=/` is a link that makes the app index
+   Without the second, `astrolabe://open?vault=/` is a link that makes the app index
    and serve the reader's entire disk.
 7. **Drag a note out as a real `.md`**, a tray/menubar presence, and an
    **always-on-top reference window** — the source you quote from while you write
@@ -6227,7 +6251,7 @@ seam between them was the defect; this is the rule that closes it.
   unharmed**. Lists and quotes become `itemize` / `enumerate` / `quote` environments
   (`toggleTexEnv`), whose "second press removes" test reads the lines JUST OUTSIDE the selection,
   because that is where `\begin`/`\end` ended up after the first press.
-- **A wikilink becomes `\note{…}`** — Vellum's own macro, the one `vellum.sty` makes compile
+- **A wikilink becomes `\note{…}`** — Astrolabe's own macro, the one `astrolabe.sty` makes compile
   elsewhere — and a link becomes `\href{url}{…}`. **Inline math is the one row that is
   byte-identical in both languages**, which is the whole reason `$…$` was chosen for it.
 
@@ -6311,8 +6335,8 @@ into the prose margin — a ragged gold L hanging in the gutter under the most-u
 editor, overshooting BOTH edges in Arabic. Measured after: content 399.5–1047.5, selection rects
 405.5–1045.5. Padding on `.cm-line` would fix the arithmetic too and is refused: callouts and
 quotes own that padding to place their own bars.
-- **Its switch is a DEVICE preference** (`vellum.selToolbar`, default ON), beside `vellum.vim` and
-  `vellum.theme` — it says how THIS person edits, must not travel to a co-author through the
+- **Its switch is a DEVICE preference** (`astrolabe.selToolbar`, default ON), beside `astrolabe.vim` and
+  `astrolabe.theme` — it says how THIS person edits, must not travel to a co-author through the
   settings panel, and must not need a server round-trip to answer a selection. The menu's last row
   turns it off; the palette's *Floating formatting toolbar* row turns it back on, so the switch is
   never one-way.
@@ -6437,7 +6461,7 @@ renderer and the editor all import it. Three properties the rest of the feature 
 Unparseable input is never an error: a malformed document yields whatever was readable, and every
 unimplemented control sequence becomes a quiet inline marker — never raw source, never a crash.
 
-### Numbering belongs to Vellum, not to KaTeX
+### Numbering belongs to Astrolabe, not to KaTeX
 
 KaTeX restarts its equation counter on every `renderToString` call, so a paper with four numbered
 equations rendered block-by-block would print "(1)" four times and every `\eqref` would point at
@@ -6485,7 +6509,7 @@ table first). `\input` resolves against the note's own folder before the vault-w
 fallback. This is the rule that makes dropping an existing LaTeX project into a vault safe:
 importing it can only ADD edges the compiler would have followed anyway, never change what its own
 cross-references mean. For the same reason, **renaming a note rewrites `\note{…}` and
-`%% [[…]] %%` — Vellum's own syntax — and leaves `\input`, `\cite` and `\ref` alone**: those belong
+`%% [[…]] %%` — Astrolabe's own syntax — and leaves `\input`, `\cite` and `\ref` alone**: those belong
 to the document's own semantics, and silently editing them could change what `pdflatex` produces.
 
 ### What the indexer stores
@@ -6514,7 +6538,7 @@ a prose string has none.
 
 `%---` … `%---%` — **both fences are LaTeX comments**, so the block is invisible to `pdflatex`,
 which is the same bargain `%% [[Note]] %%` strikes for links. Inner lines may or may not carry
-their own leading `%`. `\vellum{key=value, …}` is the macro spelling and loses to the block on any
+their own leading `%`. `\astrolabe{key=value, …}` is the macro spelling and loses to the block on any
 shared key. `findTexFrontmatter()` refuses a block whose lines do not look like YAML, so a
 decorative `%------` rule is not mistaken for a fence (which would blank the top of the document).
 `server/noteFrontmatter.ts` dispatches every publish toggle and `banner:` write, with the same
@@ -6529,7 +6553,7 @@ surgical single-line contract `server/publish.ts` states for markdown.
   like `/api/resolve` — unresolved keys are the normal state of a bibliography, not an error.
   Visitor-scoped, because an anonymous caller must not learn that a private note defines
   `sec:acquisition`.
-- `GET /api/vellum.sty` → the macro package, `text/x-tex`. A constant; it carries nothing about the
+- `GET /api/astrolabe.sty` → the macro package, `text/x-tex`. A constant; it carries nothing about the
   vault, and a reader who cannot download it cannot compile the paper they were just shown.
 
 ### Editor
@@ -6577,7 +6601,7 @@ Autosave is 600ms behind the keyboard and the outline stops recounting while a n
 `getNote()` can be a version of the note one paragraph old — extracting a section from THAT
 silently reverts whatever was typed in the last half second. `sectionActions.ts` therefore offers
 every read and every write to the live editor first, through two synchronous CustomEvents its
-extension answers (`vellum:section-read` / `vellum:section-apply`), and falls through to the API
+extension answers (`astrolabe:section-read` / `astrolabe:section-apply`), and falls through to the API
 only when no editor holds the path, which is exactly the reading-view case. **A write through the
 editor is ONE transaction over the whole document**, so Ctrl+Z takes a drag back in a single press
 and the existing autosave carries it to disk — the outline never writes a file itself. The toast's
@@ -6655,7 +6679,7 @@ of it.
   property of a fold that a keystroke three paragraphs above it changes, and a fold that silently
   walks to another section on the next reload is worse than no persistence at all. Slugs are the
   reading view's ids, generated by the rule the outline and the anchor table already share.
-  `localStorage` under `vellum.folds`, LRU-capped at 80 notes, debounced 250ms (one "fold all
+  `localStorage` under `astrolabe.folds`, LRU-capped at 80 notes, debounced 250ms (one "fold all
   below" is one gesture and a dozen effects).
 - **Focus section (`Ctrl/Cmd+Alt+F`) collapses everything but the section at the caret**, ancestors
   and descendants excepted, and Esc restores the fold set EXACTLY as it was — a reader who had
@@ -6673,7 +6697,7 @@ of it.
 - **Auto-numbered headings are a READING affordance and never touch the source.** Nothing is
   written into the markdown, so a note can be numbered today and plain tomorrow and reach git
   unchanged. Two switches, and the note's own one wins in BOTH directions: a device preference
-  (`vellum.headingNumbers`, off by default, toggled by the outline header's `1.` — it lives over
+  (`astrolabe.headingNumbers`, off by default, toggled by the outline header's `1.` — it lives over
   the list it numbers), and frontmatter `numbered: true` / `false`. **The blog reads frontmatter
   ONLY**: a visitor has no preference of ours, so a published post is numbered because its author
   said so in the file, and an admin whose device preference is on must not see a preview no visitor
@@ -6744,7 +6768,7 @@ broken-embed chip from the blog's quiet missing-image card:
 - **Admin** (`buildBannerEl(value, class, {admin: true})`) — the dashed `…__missing` card: the
   same dashed-danger language as `cm-s-embed-broken`, the failing value spelled out at `--text`
   (a filename is text a reader must READ, so never `--text-faint`), and a **Set banner…** button
-  dispatching the same `vellum:set-banner` event the properties card's action does. The fix is one
+  dispatching the same `astrolabe:set-banner` event the properties card's action does. The fix is one
   click from the symptom. The editor is admin-only by construction; the reading view passes
   `useStore.getState().admin`, which is already false inside visitor preview.
 - **Visitor** — nothing at all. A stranger cannot act on it, and a dashed box on a published
@@ -6813,7 +6837,7 @@ the two modules are a cycle (settings → site → indexer), so only a runtime c
 `posts()` skips notes under it, in the ADMIN list as well as the visitor one: a template carrying
 the `publish: true` it exists to hand DOWN would otherwise appear on the site as an article of
 literal `{{date}}` placeholders, and the admin's post list is the one that answers "what is on my
-blog". `settings.defaultTemplate` applies one template to every note created from inside Vellum;
+blog". `settings.defaultTemplate` applies one template to every note created from inside Astrolabe;
 off by default, because a product that silently writes into every new note is a product that has
 to be fought. A failure there is logged and toasted and the note stays empty — creation never
 depends on it.
@@ -7424,7 +7448,7 @@ page it wraps, and the composer that edits both.
 > **How the engine is laid out.** The design engine was built in three parts, and they were
 > reconciled into one before landing. There is exactly ONE design document
 > (`shared/design.ts`, `DesignDoc`), ONE store (`server/designs.ts` →
-> `VELLUM_DATA/designs.json`), ONE HTTP surface (`server/designRoutes.ts`, mounted at
+> `ASTROLABE_DATA/designs.json`), ONE HTTP surface (`server/designRoutes.ts`, mounted at
 > `/api/design`), ONE public renderer (`client/design/`) and ONE composer
 > (`client/components/design/`). The chrome half of the document — nav, typography, header,
 > footer — has its own module, `shared/designChrome.ts`, and hangs off the document as
@@ -7499,7 +7523,7 @@ a designed page cannot drift from the design language without someone editing th
   root on `<body>` (the `toast.ts` / `openThemePicker()` pattern), so the whole integration is one
   `import "./designer/entry.ts"` in `App.tsx` — no store field, no prop chain, no line in App's
   render. Three admin-only doors: `openDesigner()` / `openDesignedPreview(path)` for a palette row
-  or a Settings button to call, a `vellum:designer` window event, and `?designer=1` /
+  or a Settings button to call, a `astrolabe:designer` window event, and `?designer=1` /
   `?designer=preview[&path=…]` in the URL. The panels are DYNAMIC imports — a visitor never
   downloads the composer.
 
@@ -7553,7 +7577,7 @@ underneath it.
   class leaves the stock rules and nothing else. A reviewer can confirm the whole guarantee by
   grepping the diff for `client/blog/`: the only edits there are none.
 - **SWITCHING IS INSTANT AND LOSSLESS BOTH WAYS.** The design lives in
-  `VELLUM_DATA/design.json`; the switch lives in `settings.json`. Nothing in `designStore.ts`
+  `ASTROLABE_DATA/design.json`; the switch lives in `settings.json`. Nothing in `designStore.ts`
   reads `publicLayout`, so going back to stock is a setting change and NOTHING else — the design
   file is not touched, not cleared, not migrated — and going forward again returns it byte for
   byte. A rescue you cannot undo is not a rescue. `POST /api/design/reset` is the separate,
@@ -7612,13 +7636,13 @@ underneath it.
   the same split every other design field has; `check-presets` asserts the catalog membership of
   every id in the shelf, because a dropped face is a preset that sells a typeface it never sets.
 - **THE FACE IS ALWAYS IN FRONT OF ITS STACK, NEVER INSTEAD OF IT.** `typographyVars()` emits
-  `--dsg-head-font: "VellumDsg-prose-eb-garamond", var(--font-serif)`. A face that is still
+  `--dsg-head-font: "AstrolabeDsg-prose-eb-garamond", var(--font-serif)`. A face that is still
   downloading, whose cache was hand-deleted, or that this instance has never fetched simply has
   no family behind the name, the token answers, and the page is the page it would have been. A
   broken face is a visitor's non-event, like a broken design. Measured: with the cache removed,
   the masthead rendered at exactly the width the system stack gives it, with no notice and no 404.
 - **THE FAMILY NAME IS THE CONTRACT BETWEEN THE TWO HALVES.** `designFontFamily(id, slot)` =
-  `VellumDsg-<slot>-<id>`, computed from the DESIGN ALONE — `typographyVars()` runs on a
+  `AstrolabeDsg-<slot>-<id>`, computed from the DESIGN ALONE — `typographyVars()` runs on a
   visitor's page and knows nothing of `settings.json`, so the name it writes must be derivable
   without it, while the server, which does know the slots, emits a family under exactly that
   name. The slot is part of the name because it changes what the family CONTAINS (see the
@@ -7954,12 +7978,12 @@ form. The form a NOTE carries is the wikilink at the end of that module —
 the id resolves to the key and the key is the bytes; `bookRef()`/`parseBookRef()` remain the
 internal spelling.
 
-### The store is in VELLUM_DATA. The vault keeps nothing.
+### The store is in ASTROLABE_DATA. The vault keeps nothing.
 
-`VELLUM_DATA/books.json`, written with the same write-then-rename shape
+`ASTROLABE_DATA/books.json`, written with the same write-then-rename shape
 `server/settings.ts::persist()` uses, mode `0600`, mtime-checked read cache.
 Positions are OUR bookkeeping, not the reader's content: a sidecar
-`.vellum-reading.json` beside every PDF would be litter in a folder people
+`.astrolabe-reading.json` beside every PDF would be litter in a folder people
 sync, grep and back up. **The PDF itself is never written to** — nothing in
 `server/books.ts` opens a vault file except with mode `"r"`, and
 `npm run check-books` enumerates every write call in that file (the four in
@@ -8182,7 +8206,7 @@ name in the `:` line — `:highlight`, `:ink 3`, `:note`, `:annotations` — and
 abbreviation the typed word satisfies and a reader with `:h` in their fingers
 must not have it start inking their selection.
 
-A highlight is stored in `VELLUM_DATA/books.json` under the book's CONTENT KEY,
+A highlight is stored in `ASTROLABE_DATA/books.json` under the book's CONTENT KEY,
 beside the reading position and validated by the same total, never-throwing
 shape (`shared/bookAnchor.ts::cleanHighlight`). It is a page number, one
 rectangle PER LINE, an ink 1–6, the passage, and a margin note. Rectangles are
@@ -8329,7 +8353,7 @@ toast carries Undo, which restores the note to exactly what it was.
 `client/editor/links.ts::parseWikilink()` **unchanged** — target, `#anchor`,
 `|alias`. That is why it was given this shape: the live preview, the reading
 view, the backlink index, the hover card and the autocomplete all keep working
-without being taught anything. A `book:` scheme or a `%%vellum-cite%%` fence
+without being taught anything. A `book:` scheme or a `%%astrolabe-cite%%` fence
 would have needed every one of them to learn a second language, and a note full
 of a syntax only this program understands has stopped being ordinary markdown,
 which is the promise the whole vault rests on.
@@ -8508,7 +8532,7 @@ subsection beside the palette/editor-extensions entries.
   at module load — state.ts keeps no dependency on the feature). One entry per
   path: `{ path, weight, at }`, where `weight` is the visit count decayed with
   a 7-day half-life (decay-then-increment on each visit, so the stored number
-  IS the decayed count). Persisted in `localStorage["vellum.recents"]`, capped
+  IS the decayed count). Persisted in `localStorage["astrolabe.recents"]`, capped
   at 50 by score (not age). PATHS ONLY, PRUNED AT READ TIME: every read
   filters against the live tree, so a deleted note leaves the list when the
   tree does, and a visitor session — whose tree is the published subset —
@@ -8530,7 +8554,7 @@ subsection beside the palette/editor-extensions entries.
 - Palette "@" prefix = HEADING JUMP within the open note: fuzzy over the
   note's ANCHOR table (shared/anchors.ts — headings and LaTeX \labels alike;
   ids are a match haystack too, since "eq:fourier" is how a \label is
-  remembered). Enter dispatches the same `vellum:goto-heading` event with the
+  remembered). Enter dispatches the same `astrolabe:goto-heading` event with the
   same `{slug, line, text}` payload TocPanel's rows send, so the editor and
   the reading view each consume the half they already handle. Content comes
   from GET /api/note rather than the live buffer: the palette chunk must not
@@ -8583,7 +8607,7 @@ place body-relative indexes become file lines; `.tex` bodies are the full file (
 `SearchMatch` is the same coordinate.
 
 **The machinery (client/landing.ts).** The line-based variant of `pendingHeading`, NOT a second
-system: for a surface already on screen it dispatches the existing `vellum:goto-heading` event —
+system: for a surface already on screen it dispatches the existing `astrolabe:goto-heading` event —
 the editor's handler has read `detail.line` since the outline panel — and for a cross-note
 landing it holds a one-shot pending slot and retries per frame until an editor view for the note
 is attached (`bufferOf`, via DYNAMIC import so CodeMirror stays out of first paint;
@@ -8639,7 +8663,7 @@ body and by the Sidebar over the search results region; re-installed on language
 as the blog install's contract states. Recent-notes rows: none exist in the sidebar today
 (recents live in the CommandPalette, another owner) — nothing was installed there.
 
-**Multi-pane caveat (pre-existing, now load-bearing).** `vellum:goto-heading` is a broadcast and
+**Multi-pane caveat (pre-existing, now load-bearing).** `astrolabe:goto-heading` is a broadcast and
 the EDITOR's handler ignores `detail.path`; with two editor panes on different notes a line-goto
 scrolls both. The reading view scopes itself; scoping the editor's handler is Editor.tsx-owner
 territory and the `path` in the detail is already there waiting for it.
@@ -8798,7 +8822,7 @@ A drawing is a NOTE (`.excalidraw` is a note extension in `shared/noteFormat.ts`
   or ```` ```compressed-json ```` fence, LZ-base64 for the latter). `serializeDrawing()` writes the
   file's OWN spelling back: a plugin file keeps its frontmatter verbatim, keeps compression if it
   had it, and lists the live text elements under `## Text Elements` with `^id` marks, so
-  Obsidian's search and links keep working on what Vellum saved. A scene that cannot be read is
+  Obsidian's search and links keep working on what Astrolabe saved. A scene that cannot be read is
   `null` and the surface says so rather than saving an empty canvas over it.
 - **A drawing is indexed by its words.** The indexer replaces a drawing's content with
   `drawingIndexText()` — the frontmatter (plugin files) plus every live text element and every
@@ -8931,7 +8955,7 @@ draws no bar; a bare number stays a percentage), `season:` is kept verbatim on `
 form can open pre-filled. `trackers()` resolves covers by the same path-then-basename ladder
 `trackerCovers()` climbs (`coverPath()`), so a full attachment path — what the picker and the
 upload write — draws on the shelf as it does in the editor; an `https://` cover passes through.
-The page re-reads the shelf on the window's `vellum:vault` event, which App.tsx raises for every
+The page re-reads the shelf on the window's `astrolabe:vault` event, which App.tsx raises for every
 vault event, because a fence edited by hand in another window is still this page's business.
 
 ## Tests (`npm test`) — the release gate

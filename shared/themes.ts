@@ -1,7 +1,7 @@
 // The built-in theme ids — the one list both sides agree on.
 //
 // It lives in shared/ because two validators consume it: the client (the theme
-// picker, the palette's per-theme commands, the stored "vellum.theme" guard)
+// picker, the palette's per-theme commands, the stored "astrolabe.theme" guard)
 // and the server (`defaultTheme` in settings.json, DEFAULT_THEME in the
 // environment). They used to be two hand-kept copies of four strings, which
 // was survivable at four and is not at twenty-one: a theme missing from the

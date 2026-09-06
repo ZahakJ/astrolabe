@@ -277,7 +277,7 @@ async function run(item: MoveItem, toPath: string, undoTo: string | null): Promi
   try {
     await apply(item, toPath);
   } catch (err) {
-    console.error(`vellum: moving ${item.path} to ${toPath} failed`, err);
+    console.error(`astrolabe: moving ${item.path} to ${toPath} failed`, err);
     toast(moveErrorMessage(err, itemLabel(item)), "error");
     return;
   }

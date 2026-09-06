@@ -1,4 +1,4 @@
-/* Vellum — live-preview widget styles (round B2: embeds, callouts, math,
+/* Astrolabe — live-preview widget styles (round B2: embeds, callouts, math,
    highlights, comments, footnotes). Imported by client/editor/livePreview.ts.
    Everything reads tokens from tokens.css — no hard-coded colors beyond the
    --callout-* / --syn-* tokens defined there.

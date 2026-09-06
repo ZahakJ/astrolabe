@@ -1,3 +1,7 @@
+// FIRST: the browser's `vellum.*` preferences become `astrolabe.*` before
+// any module reads one (see storageMigration.ts). Imports hoist, so this one
+// has to be the first line.
+import "./storageMigration.ts";
 import React from "react";
 // Excalidraw reads its font base URL when its chunk EVALUATES, and rollup
 // hoists a chunk's vendor imports above its own body — so the global has to be
@@ -19,7 +23,7 @@ applyEditorWidth();
 installSafetyNet();
 
 const root = document.getElementById("root");
-if (!root) throw new Error("vellum: #root element missing");
+if (!root) throw new Error("astrolabe: #root element missing");
 
 createRoot(root).render(
   <React.StrictMode>

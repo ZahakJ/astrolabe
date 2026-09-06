@@ -1,4 +1,4 @@
-// THE SYSTEM DICTIONARY, IN VELLUM'S OWN MENU.
+// THE SYSTEM DICTIONARY, IN ASTROLABE'S OWN MENU.
 //
 // Electron's documented answer to `context-menu` with a `misspelledWord` is to
 // build a native `Menu` and pop it up. That is the wrong menu HERE. This

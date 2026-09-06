@@ -81,7 +81,7 @@ export function isPortFree(port: number): Promise<boolean> {
  *  own deployment: a `.env` in the clone, or a `PUBLIC=false` left over in the
  *  reader's shell, must not be able to change what the desktop's server is —
  *  and the ones that decide who is admin are exactly the ones that would be
- *  most confusing to have arrive from somewhere else. Everything Vellum reads
+ *  most confusing to have arrive from somewhere else. Everything Astrolabe reads
  *  is stated here; everything else (PATH, HOME, LANG, the proxy variables) is
  *  inherited, because a child process still has to be able to reach a network
  *  and find a temp directory. */
@@ -104,7 +104,7 @@ export interface Credential {
   secret: string;
 }
 
-const DESKTOP_OWNED = new Set(["PORT", "HOST", "VELLUM_VAULT", "VELLUM_DATA", "ELECTRON_RUN_AS_NODE"]);
+const DESKTOP_OWNED = new Set(["PORT", "HOST", "ASTROLABE_VAULT", "ASTROLABE_DATA", "ELECTRON_RUN_AS_NODE"]);
 
 /** Parse a deployment's `.env`, the same dialect `node --env-file` reads:
  *  KEY=value lines, `#` comments, optional single/double quotes. Total — a
@@ -141,8 +141,8 @@ export function childEnv(
   const env: NodeJS.ProcessEnv = { ...process.env };
   // Pure-Node mode: no Chromium, no app lifecycle, just the bundled Node.
   env.ELECTRON_RUN_AS_NODE = "1";
-  env.VELLUM_VAULT = vault;
-  env.VELLUM_DATA = dataDir;
+  env.ASTROLABE_VAULT = vault;
+  env.ASTROLABE_DATA = dataDir;
   env.HOST = "127.0.0.1";
   env.PORT = String(port);
   env.SECURE_COOKIES = "0";
@@ -172,7 +172,7 @@ export function childEnv(
 
 /** The message `server/index.ts` sends once it is actually listening. */
 interface ListeningMessage {
-  type: "vellum:listening";
+  type: "astrolabe:listening";
   port: number;
 }
 
@@ -180,7 +180,7 @@ function isListening(msg: unknown): msg is ListeningMessage {
   return (
     typeof msg === "object" &&
     msg !== null &&
-    (msg as { type?: unknown }).type === "vellum:listening" &&
+    (msg as { type?: unknown }).type === "astrolabe:listening" &&
     typeof (msg as { port?: unknown }).port === "number"
   );
 }
@@ -226,7 +226,7 @@ export async function startVaultServer(opts: StartOptions): Promise<VaultServer>
     }
   }
   throw new Error(
-    `vellum: no free port for this vault between ${candidates[0] ?? "—"} and the end of the desktop range` +
+    `astrolabe: no free port for this vault between ${candidates[0] ?? "—"} and the end of the desktop range` +
       (lastError ? ` (last: ${String(lastError)})` : ""),
   );
 }
@@ -263,7 +263,7 @@ function spawnOn(port: number, opts: StartOptions): Promise<Omit<VaultServer, "m
       if (settled) return;
       settled = true;
       child.kill();
-      reject(new Error(`vellum: the server did not start within ${BOOT_TIMEOUT_MS / 1000}s`));
+      reject(new Error(`astrolabe: the server did not start within ${BOOT_TIMEOUT_MS / 1000}s`));
     }, BOOT_TIMEOUT_MS);
 
     child.on("message", (msg: unknown) => {
@@ -290,7 +290,7 @@ function spawnOn(port: number, opts: StartOptions): Promise<Omit<VaultServer, "m
       // `server/index.ts` exits 1 on a ConfigError having printed the sentence
       // that fixes it. Carrying stderr into the rejection is what puts that
       // sentence in the dialog instead of "the app could not start".
-      reject(new Error(stderrTail.join("").trim() || `vellum: the server exited with code ${code ?? signal}`));
+      reject(new Error(stderrTail.join("").trim() || `astrolabe: the server exited with code ${code ?? signal}`));
     });
 
     child.on("error", (err) => {

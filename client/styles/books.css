@@ -1,4 +1,4 @@
-/* Vellum — the book reader and the shelf.
+/* Astrolabe — the book reader and the shelf.
 
    Class prefixes: s-books (the surface), s-shelf (the library), s-book (the
    reader). Every colour is a token from tokens.css; every edge is a logical
@@ -361,7 +361,7 @@
    inserted into the text layer, so the positions pdf.js computed stay exact
    and the text stays selectable. Browsers without the API simply scroll the
    match into view instead. */
-::highlight(vellum-book-search) {
+::highlight(astrolabe-book-search) {
   background-color: var(--accent-soft);
   color: var(--accent);
 }

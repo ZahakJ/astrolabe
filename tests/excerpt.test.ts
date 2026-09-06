@@ -106,7 +106,7 @@ const root = makeVault(files);
 let byPath: Map<string, PostMeta>;
 
 before(async () => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(root);
   await initIndexer();
   byPath = new Map(posts().map((p) => [p.path, p]));

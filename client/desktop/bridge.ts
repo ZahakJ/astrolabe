@@ -1,4 +1,4 @@
-// The renderer's half of the desktop bridge: the shape of `window.vellumDesktop`
+// The renderer's half of the desktop bridge: the shape of `window.astrolabeDesktop`
 // and the one question worth asking before touching it.
 //
 // This file has NO import from "electron" and never will — `npm run
@@ -48,7 +48,7 @@ export interface DesktopBridge {
 
 declare global {
   interface Window {
-    vellumDesktop?: DesktopBridge;
+    astrolabeDesktop?: DesktopBridge;
   }
 }
 
@@ -69,5 +69,5 @@ export const IS_DESKTOP =
  *  preload that failed to compile. Every caller here handles it by doing
  *  nothing at all, which leaves the browser's own behaviour in place. */
 export function desktop(): DesktopBridge | null {
-  return (typeof window !== "undefined" && window.vellumDesktop) || null;
+  return (typeof window !== "undefined" && window.astrolabeDesktop) || null;
 }

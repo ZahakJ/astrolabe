@@ -1,6 +1,6 @@
 // Anchors: the "#" half of a wikilink.
 //
-// Vellum has ONE anchor space with TWO resolvers, and a [[Note#Anchor]] has to
+// Astrolabe has ONE anchor space with TWO resolvers, and a [[Note#Anchor]] has to
 // land in both:
 //   • the editor jumps by heading TEXT       (client/editor/links.ts findHeadingLine)
 //   • the reading view jumps by heading SLUG (client/reading/toc.ts Slugger,

@@ -5,12 +5,12 @@ import { Preferences } from "@capacitor/preferences";
  *
  * Capacitor Preferences (SharedPreferences underneath) rather than
  * localStorage, for one reason that matters: the NATIVE side reads the same
- * store. `VellumPlugin` needs the trusted host on pages where no bridge exists,
+ * store. `AstrolabePlugin` needs the trusted host on pages where no bridge exists,
  * and the capture sheet needs the base URL before any WebView has loaded the
  * server. A value only the WebView can see would not have been enough.
  */
 export interface SavedServer {
-  /** Normalized origin, no trailing slash: "https://vellum.example.com". */
+  /** Normalized origin, no trailing slash: "https://astrolabe.example.com". */
   url: string;
   /** The instance's own `siteName` from /api/me, or its host if it has none. */
   name: string;
@@ -20,8 +20,8 @@ export interface SavedServer {
 
 const SERVERS = "servers";
 
-/** ALSO WRITTEN BY JAVA (VellumPlugin.connect). Keep the key and the shape —
- *  a bare origin string — in step with `VellumPlugin.KEY_LAST_SERVER`. */
+/** ALSO WRITTEN BY JAVA (AstrolabePlugin.connect). Keep the key and the shape —
+ *  a bare origin string — in step with `AstrolabePlugin.KEY_LAST_SERVER`. */
 const LAST_SERVER = "lastServer";
 
 export async function loadServers(): Promise<SavedServer[]> {

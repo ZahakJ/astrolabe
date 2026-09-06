@@ -28,7 +28,7 @@
 //
 // Everything is restored on the way out, including on failure.
 //
-//   PORT=6801 VELLUM_PASSWORD=… node scripts/shoot-design.mjs
+//   PORT=6801 ASTROLABE_PASSWORD=… node scripts/shoot-design.mjs
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
@@ -41,9 +41,9 @@ const PORT = process.env.PORT || "6801";
 // 127.0.0.1 rather than "localhost": Node's fetch resolves localhost to ::1
 // first, and the server binds 0.0.0.0 by default — so a gate written with the
 // friendlier hostname fails with ECONNREFUSED against a perfectly healthy
-// instance. VELLUM_URL overrides for an instance behind a proxy.
-const BASE = process.env.VELLUM_URL || `http://127.0.0.1:${PORT}`;
-const PASSWORD = process.env.VELLUM_PASSWORD || "";
+// instance. ASTROLABE_URL overrides for an instance behind a proxy.
+const BASE = (process.env.ASTROLABE_URL ?? process.env.VELLUM_URL) || `http://127.0.0.1:${PORT}`;
+const PASSWORD = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) || "";
 const SHOTS = process.env.SHOT_DIR || null;
 
 /** The section renderer scenario C patches, and the exact anchor it patches. */
@@ -81,11 +81,11 @@ let cookie = "";
 if (!me.body.admin) {
   if (!PASSWORD) {
     console.error(
-      "shoot-design: this session is NOT an admin, and no VELLUM_PASSWORD was given.\n" +
+      "shoot-design: this session is NOT an admin, and no ASTROLABE_PASSWORD was given.\n" +
         "  The gate has to read and rewrite the design store, and it has to compare what\n" +
         "  a VISITOR sees with what the OWNER sees — neither is possible from one\n" +
         "  anonymous session.\n" +
-        `  Fix: VELLUM_PASSWORD=<the admin password> PORT=${PORT} node scripts/shoot-design.mjs`,
+        `  Fix: ASTROLABE_PASSWORD=<the admin password> PORT=${PORT} node scripts/shoot-design.mjs`,
     );
     process.exit(1);
   }
@@ -95,7 +95,7 @@ if (!me.body.admin) {
     body: JSON.stringify({ password: PASSWORD }),
   });
   if (!login.ok) {
-    console.error(`shoot-design: login failed (${login.status}). Wrong VELLUM_PASSWORD?`);
+    console.error(`shoot-design: login failed (${login.status}). Wrong ASTROLABE_PASSWORD?`);
     process.exit(1);
   }
   cookie = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
@@ -113,7 +113,7 @@ if (me.body.admin && !cookie) {
       "  so there is no visitor to compare the owner with and every visitor check\n" +
       "  below would fail for that reason alone.\n" +
       "  Fix: run this against an instance with ADMIN_PASSWORD_HASH set (npm run\n" +
-      `  hash-password), then VELLUM_PASSWORD=<that password> PORT=${PORT} node scripts/shoot-design.mjs`,
+      `  hash-password), then ASTROLABE_PASSWORD=<that password> PORT=${PORT} node scripts/shoot-design.mjs`,
   );
   process.exit(1);
 }
@@ -276,7 +276,7 @@ async function inspect({ asAdmin, preview, label }) {
  * error: one that got past the boundary and left the page broken. So the
  * boundary's own reports are recognised and everything else is a failure.
  */
-const BOUNDARY_REPORT = /SectionError|vellum: design section|deliberate render-time throw/;
+const BOUNDARY_REPORT = /SectionError|astrolabe: design section|deliberate render-time throw/;
 function assertVisitorRescued(seen, scenario) {
   const stray = seen.errors.filter((text) => !BOUNDARY_REPORT.test(text));
   ok(`${scenario}: visitor gets the STOCK blog`, seen.stock && !seen.designed);

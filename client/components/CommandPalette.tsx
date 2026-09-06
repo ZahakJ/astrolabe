@@ -161,12 +161,12 @@ const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
-    // The macro package a `.tex` note needs to compile OUTSIDE Vellum. It is
+    // The macro package a `.tex` note needs to compile OUTSIDE Astrolabe. It is
     // the promise the whole `\note{…}` syntax rests on, and a promise nobody
     // can find is not one — so it sits in the palette, one search away.
-    id: "vellum-sty",
-    label: () => t("cmdCopyVellumSty"),
-    hint: () => t("cmdCopyVellumStyHint"),
+    id: "astrolabe-sty",
+    label: () => t("cmdCopyAstrolabeSty"),
+    hint: () => t("cmdCopyAstrolabeStyHint"),
     available: () => true,
   },
   {
@@ -987,10 +987,10 @@ export default function CommandPalette() {
           store.toggleTheme();
           break;
         case "collapse-folders":
-          window.dispatchEvent(new CustomEvent("vellum:tree-all", { detail: { open: false } }));
+          window.dispatchEvent(new CustomEvent("astrolabe:tree-all", { detail: { open: false } }));
           break;
         case "expand-folders":
-          window.dispatchEvent(new CustomEvent("vellum:tree-all", { detail: { open: true } }));
+          window.dispatchEvent(new CustomEvent("astrolabe:tree-all", { detail: { open: true } }));
           break;
         case "pop-out": {
           const open = useStore.getState().openPath;
@@ -1113,8 +1113,8 @@ export default function CommandPalette() {
         case "sign-in":
           store.setLoginOpen(true);
           break;
-        case "vellum-sty":
-          window.open("/api/vellum.sty", "_blank", "noopener");
+        case "astrolabe-sty":
+          window.open("/api/astrolabe.sty", "_blank", "noopener");
           break;
         case "sign-out":
           void store.logout();
@@ -1161,7 +1161,7 @@ export default function CommandPalette() {
         // pendingHeading — that is for a note that is about to MOUNT, and
         // this note is on screen behind the palette right now.
         window.dispatchEvent(
-          new CustomEvent("vellum:goto-heading", {
+          new CustomEvent("astrolabe:goto-heading", {
             detail: { slug: item.anchor.id, line: item.anchor.line, text: item.anchor.title },
           }),
         );

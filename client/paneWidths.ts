@@ -15,7 +15,7 @@ export const PANE_COLLAPSE_AT = 112;
 /** How far a collapsed pane's reopen handle must be dragged inward to reopen. */
 export const PANE_REOPEN_AT = 40;
 
-export const PANE_WIDTHS_KEY = "vellum.paneWidths";
+export const PANE_WIDTHS_KEY = "astrolabe.paneWidths";
 
 export interface PaneWidths {
   sidebar?: number;

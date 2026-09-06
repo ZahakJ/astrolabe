@@ -9,7 +9,7 @@
 // `setSessionCookie`. So the desktop reads it off the wire.
 //
 // The cookie's NAME is read the same way and for the same reason. `COOKIE_NAME`
-// is private to server/auth.ts, and a desktop app that typed "vellum_session"
+// is private to server/auth.ts, and a desktop app that typed "astrolabe_session"
 // into its own source would keep working for exactly as long as nobody renamed
 // it — and then fail by silently never being admin, which surfaces as a login
 // modal for a password that does not exist.
@@ -25,7 +25,7 @@ export interface SessionCookie {
 
 /** Parse the one `Set-Cookie` the login response carries. Nothing here assumes
  *  the cookie's NAME either: `COOKIE_NAME` is private to server/auth.ts, and a
- *  desktop app that hard-coded "vellum_session" would keep working for exactly
+ *  desktop app that hard-coded "astrolabe_session" would keep working for exactly
  *  as long as nobody renamed it, then fail by silently never being admin. */
 export function parseSessionCookie(header: string): SessionCookie | null {
   const [pair, ...attrs] = header.split(";");

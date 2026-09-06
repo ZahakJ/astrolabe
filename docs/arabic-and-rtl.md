@@ -1,12 +1,12 @@
 # Arabic & RTL
 
-*Vellum in Arabic: a mirrored interface, the visitor language switch, the four-value language filter, Hijri dates, note direction and localised tag labels.*
+*Astrolabe in Arabic: a mirrored interface, the visitor language switch, the four-value language filter, Hijri dates, note direction and localised tag labels.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
 ---
 
-Vellum speaks Arabic. `SITE_LANG=ar` (or **Settings → Appearance & language → Site language →
+Astrolabe speaks Arabic. `SITE_LANG=ar` (or **Settings → Appearance & language → Site language →
 العربية**, applied live without a restart) does two things at once.
 
 **It translates the chrome.** Every label, button, placeholder, menu item, toast and confirm
@@ -87,7 +87,7 @@ own script on purpose. **That is the way back if you ever cannot read the interf
 > in that browser, the owner's editor included — and on an instance whose public site is the app
 > layout, the EN/ع control is never drawn, so there was nothing to click to undo it. Upgrading
 > fixes it on the next reload, with no action from you. On an older build, clear the stored
-> visitor choice by hand: `localStorage.removeItem("vellum.lang")` in the browser console.
+> visitor choice by hand: `localStorage.removeItem("astrolabe.lang")` in the browser console.
 
 ## Visitor language switch
 
@@ -178,7 +178,7 @@ belongs to no language and is shown under either setting rather than guessed at.
 
 ## Hijri dates
 
-An Arabic site often dates its writing by the Hijri calendar, and until now Vellum could only
+An Arabic site often dates its writing by the Hijri calendar, and until now Astrolabe could only
 print Gregorian. **Settings → Appearance & language → Date calendar** (settings key
 `dateCalendar`) takes three values:
 
@@ -196,7 +196,7 @@ you save it.
 The Hijri calendar is **Umm al-Qura** (`islamic-umalqura`). Intl offers four Islamic calendars:
 `islamic` is observational and its answer drifts by a day between platforms; the two tabular
 variants never drift but are not what anyone's wall calendar says. Umm al-Qura is both stable
-and recognisable, so it is the one Vellum uses — this is a display convention, not a preference
+and recognisable, so it is the one Astrolabe uses — this is a display convention, not a preference
 with a long tail. Month names come from `Intl` in the chrome language (English chrome says
 "August", Arabic chrome says "أغسطس") and digits from the same numeral rule everything else
 uses, so nothing is hand-spelled and one instance never mixes two numbering systems on a line.
@@ -251,7 +251,7 @@ its source is markup end to end.
 
 Arabic text that has been **pointed** — a Qur'anic quotation, a classical text, anything a careful
 typist vowelled — is spelled differently from the way anyone types it into a search box. «المقدمة»
-and «الْمُقَدِّمَة» are the same word. So Vellum folds, on both sides of the index: what it files
+and «الْمُقَدِّمَة» are the same word. So Astrolabe folds, on both sides of the index: what it files
 and what you ask for go through the same table, which means the plain spelling finds the pointed
 note *and* the pointed spelling finds the plain one.
 

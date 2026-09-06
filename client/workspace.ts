@@ -948,7 +948,7 @@ export function parseWorkspace(raw: unknown): Workspace | null {
   });
 }
 
-/** Migration from `vellum.tabs` — `{ tabs: string[]; open: string | null }`,
+/** Migration from `astrolabe.tabs` — `{ tabs: string[]; open: string | null }`,
  *  the shape every existing instance has in localStorage. Nobody's open notes
  *  are lost to the upgrade, which is the only thing this has to get right. */
 export function fromStoredTabs(v: { tabs: string[]; open: string | null }): Workspace {

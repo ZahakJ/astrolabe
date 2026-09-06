@@ -34,7 +34,7 @@
 
 import { designFontRefSpec, type DesignFontRef } from "../../shared/fontCatalog.ts";
 
-const ATTR = "data-vellum-design-fonts";
+const ATTR = "data-astrolabe-design-fonts";
 
 /** What each surface is asking for, by key. Two live at once — the draft and
  *  the gallery — and they come and go independently (opening the gallery
@@ -79,7 +79,7 @@ function syncLink(): void {
   // later definition is the one the draft asked for. Before custom.css for the
   // same reason the site sheet is: an operator's hand-written override
   // outranks everything generated.
-  const custom = document.head.querySelector("link[data-vellum-custom]");
+  const custom = document.head.querySelector("link[data-astrolabe-custom]");
   if (custom) document.head.insertBefore(link, custom);
   else document.head.appendChild(link);
 }

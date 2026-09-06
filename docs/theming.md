@@ -6,7 +6,7 @@
 
 ---
 
-If Vellum is replacing a blog, you probably want it to stop saying "Vellum" and start looking
+If Astrolabe is replacing a blog, you probably want it to stop saying "Astrolabe" and start looking
 like *your* site. Three env-driven hooks cover that, no fork required.
 
 ## Name it
@@ -16,7 +16,7 @@ sidebar, the browser tab titles (`Note · Night Garden`), and the sign-in modal.
 
 ## Pick the default look
 
-Vellum ships **twenty-two** themes — fifteen dark rooms and seven lit ones. Every one of them
+Astrolabe ships **twenty-two** themes — fifteen dark rooms and seven lit ones. Every one of them
 defines the whole palette for itself (ground, type, accent, selection, focus ring, graph, all
 thirteen callout hues, all eight syntax colors), so none of them is another theme wearing a
 different background.
@@ -29,7 +29,7 @@ different background.
 | `cinnabar` | neutral graphite, vermilion type | `sandstone` | dry desert paper, burnt orange |
 | `sumi` | ink-stick grey, aizome indigo | `solar` | brightest white paper, burnt gold |
 | `void` | true black, cold signal cyan | `linen` | cool daylight, ink blue |
-| `basalt` | cool blue-grey stone, pale sky | `palimpsest` | scraped grey vellum, rubric red |
+| `basalt` | cool blue-grey stone, pale sky | `palimpsest` | scraped grey astrolabe, rubric red |
 | `nocturne` | blue-black night, periwinkle | `porcelain` | glazed white, deep celadon |
 | `lapis` | deep lapis blue-black, brightened gold | `mauveine` | pale lilac, aniline violet |
 | `verdigris` | green-black, oxidized copper | | |
@@ -79,7 +79,7 @@ reader's choice sticks in their own browser.
 
 **By default, the public site wears the theme you write in.** You pick a room in the picker, and
 first-time visitors land in the same room — a one-author blog looking like its author, with
-nothing to configure. Your theme lives in your browser, so Vellum mirrors it to the server when
+nothing to configure. Your theme lives in your browser, so Astrolabe mirrors it to the server when
 your choice settles (once, a second after you stop browsing themes — not once per row). Both
 places that choose a theme say so out loud, in the theme's own name: the picker's footer and
 Settings → Appearance & language → *Default theme* read *"Visitors see Cinnabar — following your
@@ -153,8 +153,8 @@ in your `.env`. Export it as JSON, mail it, import it on another instance.
 
 ## Restyle it
 
-Drop a `custom.css` into your data directory (`VELLUM_DATA`, default `./data/`)
-and Vellum serves it at `/api/custom.css` and loads it after its own stylesheets — for every
+Drop a `custom.css` into your data directory (`ASTROLABE_DATA`, default `./data/`)
+and Astrolabe serves it at `/api/custom.css` and loads it after its own stylesheets — for every
 visitor and for you, in dev and prod, no rebuild, no restart. Because it loads last, your rules
 win. The whole UI is driven by CSS custom properties on `:root` (and per-theme overrides via
 `html[data-theme="…"]`), so most re-skins are a handful of token lines:
@@ -217,8 +217,8 @@ the theme would be data loss, not a theme.
 
 ## Bring your own fonts (the CSS route)
 
-Vellum ships zero webfonts by design, but your instance doesn't have to. Drop font files into
-`VELLUM_DATA/fonts/` (default `./data/fonts/`) and they are served at
+Astrolabe ships zero webfonts by design, but your instance doesn't have to. Drop font files into
+`ASTROLABE_DATA/fonts/` (default `./data/fonts/`) and they are served at
 `/api/fonts/<file>` — `woff2`, `woff`, `ttf`, and `otf` only, strictly by basename, with ETags
 and immutable year-long cache headers. Wire them up with an `@font-face` in `custom.css`:
 

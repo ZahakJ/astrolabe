@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Development · Vellum Documentation</title>
-<meta name="description" content="Running Vellum from source, the gate scripts, the screenshot harnesses, and how to contribute a change.">
+<title>Development · Astrolabe Documentation</title>
+<meta name="description" content="Running Astrolabe from source, the gate scripts, the screenshot harnesses, and how to contribute a change.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
@@ -13,18 +13,18 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
-  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
   <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../ar/development/" hreflang="ar">العربية</a>
   <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link is-current" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="development">Development</h1>
-<p><em>Running Vellum from source, the gate scripts, the screenshot harnesses, and how to contribute a change.</em></p>
+<p><em>Running Astrolabe from source, the gate scripts, the screenshot harnesses, and how to contribute a change.</em></p>
 <hr>
 <h2 id="dev-mode"><a class="anchor" href="#dev-mode">Dev mode</a></h2>
 <pre><code class="language-sh">npm run dev
@@ -35,7 +35,7 @@
 <div class="table"><table><thead><tr><th>Script</th><th>What it does</th></tr></thead><tbody><tr><td><code>npm run dev</code></td><td>API server (Node&#39;s own <code>--watch</code>) and Vite side by side</td></tr><tr><td><code>npm run build</code></td><td>Build the client into <code>dist/</code>. The server needs no build — Node runs the TypeScript directly</td></tr><tr><td><code>npm start</code></td><td>Build, then serve</td></tr><tr><td><code>npm run serve</code></td><td>Serve without rebuilding</td></tr><tr><td><code>npm run hash-password</code></td><td>Prompt (no echo, or piped stdin) and print an argon2id hash for <code>ADMIN_PASSWORD_HASH</code></td></tr><tr><td><code>npm run typecheck</code></td><td><code>tsc --noEmit</code> — the strict TypeScript gate</td></tr></tbody></table></div><h2 id="the-gates"><a class="anchor" href="#the-gates">The gates</a></h2>
 <p>Each one exits non-zero on failure. The pure-logic gates need nothing; the browser gates need a
 running instance plus <code>npm i -D playwright</code> and either <code>npx playwright install chromium</code> or a
-system browser via <code>CHROMIUM=/usr/bin/chromium</code>. Those that sign in take <code>VELLUM_PASSWORD</code>
+system browser via <code>CHROMIUM=/usr/bin/chromium</code>. Those that sign in take <code>ASTROLABE_PASSWORD</code>
 (open local mode needs no password).</p>
 <h3 id="npm-run-check-i18n-the-dictionary"><a class="anchor" href="#npm-run-check-i18n-the-dictionary"><code>npm run check-i18n</code> — the dictionary</a></h3>
 <p>Fails if any <code>t()</code> key is missing, untranslated, dead, or if the English and Arabic sides of an
@@ -154,7 +154,7 @@ measures what a VISITOR gets (the built-in blog, a page with real text on it, no
 boundary) against what the OWNER gets (the designed page, the failing section named, the revert
 control present). It also round-trips stock ⇄ designed and asserts the design comes back
 byte-identical. Everything it touched is restored on the way out, including on failure:
-<code>PORT=6801 VELLUM_PASSWORD=… npm run check-design</code>.</p>
+<code>PORT=6801 ASTROLABE_PASSWORD=… npm run check-design</code>.</p>
 <h3 id="npm-run-check-board-the-designer-39-s-section-board"><a class="anchor" href="#npm-run-check-board-the-designer-39-s-section-board"><code>npm run check-board</code> — the designer&#39;s section board</a></h3>
 <p>Three ways to move a row (the ↑/↓ buttons, a pointer drag, and a <code>Space</code>/arrows/<code>Space</code> keyboard
 lift), the drop preview before commit, <code>Esc</code> belonging to the innermost layer, the save-bar count,
@@ -198,9 +198,9 @@ finished — <code>LANGSET=ar</code> on any shoot harness is the cheapest way to
 patch that changes a rule should move the paragraph that stated it.</li>
 </ol>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/development.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/development.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/arabic-and-rtl/"><span class="pager__kicker">Previous</span><span class="pager__title">Arabic &amp; RTL</span></a><span></span></nav>
-    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
   <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#dev-mode">Dev mode</a><a class="toc__link toc__link--2" href="#the-scripts">The scripts</a><a class="toc__link toc__link--2" href="#the-gates">The gates</a><a class="toc__link toc__link--3" href="#npm-run-check-i18n-the-dictionary">npm run check-i18n — the dictionary</a><a class="toc__link toc__link--3" href="#npm-run-check-contrast-the-accessibility-gate">npm run check-contrast — the accessibility gate</a><a class="toc__link toc__link--3" href="#npm-run-check-sections-the-section-surgery-gate">npm run check-sections — the section-surgery gate</a><a class="toc__link toc__link--3" href="#npm-run-check-caret-the-click-to-caret-gate">npm run check-caret — the click-to-caret gate</a><a class="toc__link toc__link--3" href="#npm-run-check-layouts-the-keyboard-layout-gate">npm run check-layouts — the keyboard-layout gate</a><a class="toc__link toc__link--3" href="#npm-run-check-keymap-the-binding-ledger">npm run check-keymap — the binding ledger</a><a class="toc__link toc__link--3" href="#npm-run-check-excerpt-the-tag-in-prose-gate">npm run check-excerpt — the tag-in-prose gate</a><a class="toc__link toc__link--3" href="#npm-run-check-design-the-error-boundary">npm run check-design — the error boundary</a><a class="toc__link toc__link--3" href="#npm-run-check-board-the-designer-39-s-section-board">npm run check-board — the designer&amp;#39;s section board</a><a class="toc__link toc__link--3" href="#npm-run-check-preview-the-designer-39-s-live-preview">npm run check-preview — the designer&amp;#39;s live preview</a><a class="toc__link toc__link--3" href="#npm-run-check-print-the-printed-page">npm run check-print — the printed page</a><a class="toc__link toc__link--3" href="#npm-run-check-presets-the-preset-catalog">npm run check-presets — the preset catalog</a><a class="toc__link toc__link--2" href="#screenshot-harnesses">Screenshot harnesses</a><a class="toc__link toc__link--2" href="#contributing-a-change">Contributing a change</a></aside>
 </div>

@@ -1,6 +1,6 @@
 // Assembles the CodeMirror EditorState for a note: markdown language, history,
 // search, conditional vim (in a Compartment so it can be toggled live), the
-// Vellum theme, live preview, and wikilink autocomplete.
+// Astrolabe theme, live preview, and wikilink autocomplete.
 
 import { Compartment, EditorState, Prec } from "@codemirror/state";
 import {
@@ -38,7 +38,7 @@ import {
 import { autoLineDirection } from "./bidi.ts";
 import { layoutFallback } from "./layoutKeys.ts";
 import { noteLayoutExtension } from "./noteLayout.ts";
-import { editorTheme, vellumHighlighting } from "./theme.ts";
+import { editorTheme, astrolabeHighlighting } from "./theme.ts";
 import { livePreview } from "./livePreview.ts";
 import { markdownTables } from "./tables.ts";
 import { pointerSelection } from "./pointer.ts";
@@ -201,11 +201,11 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
       // `\section{…}`, and strikethrough — which LaTeX cannot spell without a
       // package a note may not load — is not offered at all.
       ...(isTexPath(options.path)
-        ? [texLanguage, texFolds, texHighlighting(), texPreview(options.path), editorTheme(), vellumHighlighting()]
+        ? [texLanguage, texFolds, texHighlighting(), texPreview(options.path), editorTheme(), astrolabeHighlighting()]
         : [
             markdown({ base: markdownLanguage, codeLanguages: languages }),
             editorTheme(),
-            vellumHighlighting(),
+            astrolabeHighlighting(),
             livePreview(options.path),
             // GFM tables: widget when the caret is out, source when it is
             // in, cell keys, prettify-on-exit — tables.ts owns all of it.

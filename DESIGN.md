@@ -1,4 +1,4 @@
-# Vellum design spec — the bar is "people ditch Obsidian for this"
+# Astrolabe design spec — the bar is "people ditch Obsidian for this"
 
 Reference quality: Obsidian's default theme + Linear's polish. Identity: illuminated manuscript —
 iron-gall dark default, parchment light, gold-leaf accent. Everything below is normative.
@@ -69,7 +69,7 @@ iron-gall dark default, parchment light, gold-leaf accent. Everything below is n
 
 ## Sidebar
 
-- Header: wordmark `✦ Vellum` — serif (--font-serif), small-caps feel, gold accent star, 15px,
+- Header: wordmark `✦ Astrolabe` — serif (--font-serif), small-caps feel, gold accent star, 15px,
   letter-spacing 0.08em; right side: "new note" (+) and "new folder" icon buttons (inline SVG,
   16px, --text-muted, hover --accent).
 - Search input: subtle raised field, 13px, rounded --radius, focus ring in --accent-soft; search
@@ -323,7 +323,7 @@ A third visitor shell, composed from a design config, beside the two that exist.
   renderer in `client/design/` with its own `s-dsn-*` classes and its own stylesheet, and the two
   meet at one `if`. A reviewer confirms it from the list of files a diff names.
 - **The switch is lossless in both directions.** The design lives in its own file
-  (`VELLUM_DATA/designs.json`) and is never read while the layout is anything else, so going back
+  (`ASTROLABE_DATA/designs.json`) and is never read while the layout is anything else, so going back
   to stock is a rescue and going forward again restores the site exactly.
 - **A broken design is a VISITOR'S non-event.** An invalid config, a section pointing at a note
   that is gone, or a section that throws → the visitor gets the stock blog, automatically, with

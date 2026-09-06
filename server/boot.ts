@@ -76,7 +76,7 @@ export function bootPayload(c: Context): BootPayload | null {
  *  `<script type="application/json">`, NOT an executing script. The public
  *  site is served under `script-src 'self'` (server/api.ts), which is right
  *  and is not being weakened for a boot hint: the first cut of this file
- *  wrote `<script>window.__vellum=…</script>` and every browser refused it —
+ *  wrote `<script>window.__astrolabe=…</script>` and every browser refused it —
  *  shoot-design's console assertion caught it, the payload never existed,
  *  and the store fell back to iron-gall for a frame before /api/me while the
  *  <html> tag beside it said phosphor. A JSON block is data the page reads,
@@ -92,5 +92,5 @@ export function injectBoot(html: string, boot: BootPayload | null): string {
   const json = JSON.stringify(boot).replace(/</g, "\\u003c");
   const at = out.indexOf("</head>");
   if (at < 0) return out;
-  return `${out.slice(0, at)}    <script type="application/json" id="vellum-boot">${json}</script>\n  ${out.slice(at)}`;
+  return `${out.slice(0, at)}    <script type="application/json" id="astrolabe-boot">${json}</script>\n  ${out.slice(at)}`;
 }

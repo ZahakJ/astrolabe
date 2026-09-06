@@ -1,4 +1,4 @@
-/* Vellum — design tokens. TWENTY-TWO themes: the default (no data-theme attr)
+/* Astrolabe — design tokens. TWENTY-TWO themes: the default (no data-theme attr)
    is "iron-gall", and every other one is a [data-theme="…"] block below.
 
      dark   iron-gall  warm near-black ink, ivory text, gold leaf (the default)
@@ -20,7 +20,7 @@
             sandstone  dry desert paper, burnt-orange accent
             linen      cool neutral daylight, ink-blue accent
             solar      brightest white paper, burnt-gold accent
-            palimpsest scraped grey vellum, rubric-red accent
+            palimpsest scraped grey astrolabe, rubric-red accent
             porcelain  glazed white, deep celadon accent
             mauveine   pale lilac paper, aniline-violet accent
 
@@ -256,7 +256,7 @@
   /* Type scale. --font-base drives 1rem for the whole UI (chrome, sidebar,
      tabs, palette, blog — everything sized in rem scales off it);
      --font-prose is the editor/reading prose size (≈18px by default).
-     Both overridable from VELLUM_DATA/custom.css. */
+     Both overridable from ASTROLABE_DATA/custom.css. */
   --font-base: 15.5px;
   --font-prose: 1.161rem;
   /* Per-language type-scale multipliers (1 = Latin; Arabic bumps them at the
@@ -1424,7 +1424,7 @@
    than Georgia or system-ui, so at an identical px size Arabic text reads
    ~10–15% smaller and tighter than the Latin it replaces. The compensation is
    a MULTIPLIER rather than a new size, so an admin who overrides --font-base
-   or --font-prose in VELLUM_DATA/custom.css keeps their value and still gets
+   or --font-prose in ASTROLABE_DATA/custom.css keeps their value and still gets
    the Arabic bump on top of it. Two multipliers because they compose:
    --font-scale scales 1rem — i.e. every chrome size in the product — and
    --prose-scale adds a little more for the reading column, where the serif

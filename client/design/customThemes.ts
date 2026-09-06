@@ -118,7 +118,7 @@ export function themeChoiceAttrs(choice: string): { theme: Theme; custom: string
  *  from /api/me, so a changed theme is a changed URL rather than a cached
  *  sheet painting yesterday's accent. */
 export function ensureCustomThemeCss(sig: string | null): void {
-  const existing = document.head.querySelector<HTMLLinkElement>("link[data-vellum-themes]");
+  const existing = document.head.querySelector<HTMLLinkElement>("link[data-astrolabe-themes]");
   if (sig === null || sig === "") {
     existing?.remove();
     return;
@@ -131,8 +131,8 @@ export function ensureCustomThemeCss(sig: string | null): void {
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = href;
-  link.setAttribute("data-vellum-themes", "");
-  const custom = document.head.querySelector("link[data-vellum-custom]");
+  link.setAttribute("data-astrolabe-themes", "");
+  const custom = document.head.querySelector("link[data-astrolabe-custom]");
   if (custom) document.head.insertBefore(link, custom);
   else document.head.appendChild(link);
 }
@@ -166,7 +166,7 @@ export async function syncCustomThemes(sig: string | null): Promise<boolean> {
     setCustomThemes(payload.themes);
     return true;
   } catch (err) {
-    console.warn("vellum: could not load custom themes", err);
+    console.warn("astrolabe: could not load custom themes", err);
     return false;
   }
 }

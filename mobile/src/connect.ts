@@ -1,6 +1,6 @@
 import { el, icon, wordmark } from "./dom.ts";
 import { t } from "./i18n.ts";
-import { VellumNative } from "./native.ts";
+import { AstrolabeNative } from "./native.ts";
 import { normalizeServerUrl, probe, type MeData } from "./server.ts";
 import { forgetServer, lastServer, loadServers, rememberServer, type SavedServer } from "./store.ts";
 
@@ -192,7 +192,7 @@ async function enter(
     if (status) status.textContent = t.signInNote;
     else note?.(t.signInNote);
   }
-  await VellumNative.connect({ url });
+  await AstrolabeNative.connect({ url });
 }
 
 function hostOf(url: string): string {

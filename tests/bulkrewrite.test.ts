@@ -312,7 +312,7 @@ const root = makeVault({
 });
 
 before(async () => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(root);
   await initIndexer();
 });

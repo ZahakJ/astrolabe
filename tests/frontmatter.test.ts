@@ -344,7 +344,7 @@ describe("publish flag", () => {
 //
 // setNoteProperty() is the write behind the editable properties card, and the
 // release's story rests on it: "Obsidian's properties editor corrupts YAML
-// round-trips; Vellum's frontmatter writer is byte-surgical and
+// round-trips; Astrolabe's frontmatter writer is byte-surgical and
 // property-tested." These are the tests that make that a claim rather than a
 // boast. The five rails are named in server/frontmatterEdit.ts's header; each
 // one has cases here, and the property test at the bottom asserts the first

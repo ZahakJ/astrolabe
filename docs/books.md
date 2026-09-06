@@ -88,7 +88,7 @@ Numbers read in Latin, Arabic-Indic and Persian digits alike: `:٢١٢` is page 
 ## Your place is kept
 
 The reader remembers the page and the position *within* the page, the fit, the zoom, two-page
-mode, rotation, night mode, the direction and your marks, per book, in `VELLUM_DATA/books.json`.
+mode, rotation, night mode, the direction and your marks, per book, in `ASTROLABE_DATA/books.json`.
 The key is a **hash of the file's bytes**, never its path, so renaming or re-filing a book in
 Obsidian, Syncthing or a terminal loses nothing: page 612 is still page 612, and so are the
 highlights and the citations that point at them. Scrolling is saved a moment after you stop; a

@@ -1,4 +1,4 @@
-// CodeMirror theme for Vellum. Every color reads a CSS custom property
+// CodeMirror theme for Astrolabe. Every color reads a CSS custom property
 // from tokens.css, so the editor follows the iron-gall / parchment themes for
 // free — no colors are hard-coded here.
 
@@ -10,7 +10,7 @@ import { tags as t } from "@lezer/highlight";
 /** Code-fence syntax colors — every color is a --syn-* token from tokens.css,
  *  so highlighting follows the iron-gall / parchment themes. Markdown's own
  *  inline styling stays with livePreview.ts; only code-ish tags are defined. */
-export function vellumHighlighting(): Extension {
+export function astrolabeHighlighting(): Extension {
   return syntaxHighlighting(
     HighlightStyle.define([
       {

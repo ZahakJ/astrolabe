@@ -1,5 +1,5 @@
 // Centered search overlay for the blog shell, opened with Ctrl/Cmd+K (App
-// dispatches "vellum:quicksearch"; whichever shell is mounted owns it).
+// dispatches "astrolabe:quicksearch"; whichever shell is mounted owns it).
 // Styled like the app's command palette — same s-palette classes — but it is
 // pure search: results are the visitor's published hits (the server scopes
 // /api/search by session), Enter navigates, Esc or a backdrop click closes.
@@ -52,8 +52,8 @@ export default function BlogSearchOverlay() {
       // Already open: a repeat press just refocuses the input.
       inputRef.current?.focus();
     };
-    window.addEventListener("vellum:quicksearch", onQuick);
-    return () => window.removeEventListener("vellum:quicksearch", onQuick);
+    window.addEventListener("astrolabe:quicksearch", onQuick);
+    return () => window.removeEventListener("astrolabe:quicksearch", onQuick);
   }, []);
 
   // Focus lands after the overlay has actually rendered.

@@ -8,8 +8,8 @@
 // refreshed would look like a stranger to its own peers and its write lease
 // would be held by a ghost until the heartbeat timed out.
 
-const ID_KEY = "vellum.windowId";
-const BORN_KEY = "vellum.windowBorn";
+const ID_KEY = "astrolabe.windowId";
+const BORN_KEY = "astrolabe.windowBorn";
 
 function readOrMint(key: string, mint: () => string): string {
   try {
