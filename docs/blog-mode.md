@@ -65,16 +65,30 @@ the URL stays the canonical slug.
 
 Collections and author-site gallery cards are also available in [designed mode](designer.md), with the same visibility and placement settings.
 
-Topics are what your notes say about *themselves*. **Public folders** are what *you* say about a
-group of them: your own collections — Games, Reading, Field notes — declared once in Settings and
-joined by the notes that belong in them.
+**Where categories come from** is one choice, at the top of the section: **Tags** (a topic per
+tag, the default) or **Folders** (the vault's own order). Under *Folders*, every published note
+takes its parent folder as its category: the folder's name is the category's title (a sorting
+prefix such as `2| ` is stripped), the mark you gave the folder in the tree is its mark, and the
+navigation, the home band and each category's page come from that alone. Notes at the vault root
+have no category. Tag topics leave the navigation; tags still show on posts. A collection row below
+that names a folder overrides that category's title, mark and blurb, or hides it.
+
+Topics are what your notes say about *themselves*. **Public folders** (collections) are what *you*
+say about a group of them: your own collections — Games, Reading, Field notes — declared once in
+Settings and joined by the notes that belong in them.
 
 Turn them on in **Settings → Publishing & comments → Custom public folders**. Each folder gets a
 title, an address (the `/folder/<slug>` URL), one mark from the same closed glyph set the vault
 tree uses, and an optional line of description. Up to twelve, in whatever order you arrange them —
 that order is the order readers meet them.
 
-A note joins a folder from its own frontmatter, and every spelling YAML gives you works:
+**From the tree, no typing.** Right-click a note → **Collections…** and tick the ones it belongs
+to; the frontmatter is written for you. Right-click a folder → **Publish as a collection…** and
+every published note under it belongs, with frontmatter still able to add notes from elsewhere.
+The same folder can be chosen for a collection in Settings, from the vault's folders laid out to
+click. The first collection switches the feature on.
+
+A note also joins a folder from its own frontmatter, and every spelling YAML gives you works:
 
 ```yaml
 ---

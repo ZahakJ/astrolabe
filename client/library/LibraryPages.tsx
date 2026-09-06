@@ -22,6 +22,7 @@ import { numberRendered } from "../reading/headingNumbers.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 import { useStore } from "../state.ts";
 import { go } from "../blog/nav.ts";
+import { resolveLink } from "../editor/links.ts";
 import { BlogSkeleton, NavLink } from "../blog/util.tsx";
 import LibraryCover, { kindLabel } from "./LibraryCover.tsx";
 import AnnotationsMount from "../annotations/AnnotationsMount.tsx";
@@ -286,10 +287,41 @@ function dropDuplicateTitle(root: HTMLElement, title: string): void {
   if (h1 && (h1.textContent ?? "").trim().toLowerCase() === title.trim().toLowerCase()) h1.remove();
 }
 
+/** The lesson a rendered wikilink points at, if the note is on any shelf. */
+function lessonUrlFor(target: string, shelf: LibraryPath[] | null): string | null {
+  if (!shelf) return null;
+  const notePath = resolveLink(target, useStore.getState().tree);
+  if (!notePath) return null;
+  for (const p of shelf) {
+    for (const step of stepsOf(p)) if (step.lesson.path === notePath) return libraryUrl(p.slug, step.n);
+  }
+  return null;
+}
+
 function LessonPage({ path, n }: { path: LibraryPath; n: number }) {
   const steps = useMemo(() => stepsOf(path), [path]);
   const step: LessonStep | undefined = steps[n - 1];
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const shelf = useLibrary();
+
+  // A link to another lesson stays in the library. Capture phase, so this
+  // answers before the renderer's own onRootClick opens the note's page.
+  useEffect(() => {
+    const host = bodyRef.current;
+    if (!host) return;
+    const onClick = (ev: MouseEvent): void => {
+      if (ev.button !== 0 || ev.metaKey || ev.ctrlKey) return;
+      const wl = (ev.target as HTMLElement).closest<HTMLElement>(".s-rv-wikilink");
+      if (!wl || wl.dataset.book !== undefined || !wl.dataset.target) return;
+      const url = lessonUrlFor(wl.dataset.target, shelf);
+      if (!url) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      go(url);
+    };
+    host.addEventListener("click", onClick, true);
+    return () => host.removeEventListener("click", onClick, true);
+  }, [shelf]);
   const [annHost, setAnnHost] = useState<HTMLElement | null>(null);
   const admin = useStore((s) => s.admin);
   // Whether the rail stands beside the column (wide) or folds above it. A

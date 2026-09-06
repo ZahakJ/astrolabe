@@ -126,3 +126,48 @@
     min-block-size: 44px;
   }
 }
+
+/* The collections popover (CollectionsPopover.tsx) shares this sheet: the
+   same box, plus a list of tickable rows. */
+.s-libpop__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-block-size: 280px;
+  overflow-y: auto;
+}
+
+.s-libpop__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: var(--radius);
+  font-size: 0.857rem;
+  cursor: pointer;
+}
+
+.s-libpop__row:hover {
+  background: var(--bg-hover);
+}
+
+.s-libpop__row input {
+  accent-color: var(--accent);
+}
+
+.s-libpop__row--hidden .s-libpop__rowtitle {
+  color: var(--text-muted);
+}
+
+.s-libpop__glyph {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.s-libpop__rowtitle {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

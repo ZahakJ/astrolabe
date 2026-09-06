@@ -946,6 +946,30 @@ and folder-move routes carry entries to the new path. The owner reads and writes
 of any note; a visitor reads the PUBLIC ones of a PUBLISHED note and never learns the private ones
 exist — the comments gate, line for line. `public` is off by default: a note to self is to self.
 
+## Collections and categories (shared/publicFolders.ts, server/indexer.ts collectionRows, client/components/CollectionsPopover.tsx)
+
+**CATEGORIES COME FROM TAGS OR FROM FOLDERS (2.9).** `settings.topics` is `"tags"` (default) or
+`"folders"`; `me.topics` is sent only as `"folders"`; the store's `topicsMode` empties the tag
+topics in both shells (BlogShell, DesignedSite) under folders. `collectionRows()` in
+server/indexer.ts is THE list of collections: the declared rows, plus — under folders — one derived
+row per parent folder of a published post (templates and library lessons make none; a root note has
+no parent), title `libraryTitleOf(folder)`, mark `settings.folderIcons[folder] ?? "archive"`, slug
+from the title made unique in path order (stable across requests), id `a` + sha1(folder)[:12]. A
+declared row with the same `folder` REPLACES the derived one — that is how a category is renamed,
+re-marked, blurbed or hidden. `auth.ts` builds `me.publicFolders` from `collectionRows()` and treats
+the feature as ON under folders whatever the master switch says.
+
+**A COLLECTION CAN NAME A FOLDER.** `PublicFolderRef.folder` (vault-relative, `vaultFolderPath()`,
+boundary at the slash): `effectiveFolders(declared, path, rows)` (shared/publicFolders.ts) is what
+`postMeta()` and `publicFolderCounts()` read, so a note under the folder belongs without
+frontmatter and frontmatter still adds strays. The tree's folder menu has **Publish as a
+collection…** and the note menu **Collections…** (client/components/CollectionsPopover.tsx, lazy):
+the note popover reads the note's `folders:` with the client parser (client/collections/foldersOf.ts,
+same spellings as the server's) and writes through `/api/frontmatter` as a `list` value (or removes
+the key when empty); folder-backed memberships show ticked and disabled ("Whole folder"). Making
+a collection from a folder takes the folder's tree mark, a fresh slug, and switches the feature on
+when it is the first. The settings row has a folder chooser (`pickFolder`) and an unlink button.
+
 ## The library (shared/library.ts, server/library.ts, client/library/)
 
 **A PATH IS A FOLDER, NOT A HUB.** The first design had a hub note with an ordered list of
@@ -958,6 +982,12 @@ number off the folder's name (`L3`, `B2| Chapter 40`, `Week 2`; a sorting prefix
 every published note inside is a lesson in natural title order with a note named like its unit
 first, and notes at the path's own root are the introduction. No note is asked for any frontmatter
 beyond `publish: true`.
+
+**A LESSON'S LINKS STAY ON THE PATH.** The lesson page (client/library/LibraryPages.tsx)
+listens for clicks in the CAPTURE phase before `onRootClick`: a `.s-rv-wikilink[data-target]`
+that resolves (`resolveLink`) to a note that is a lesson of any path on the shelf goes to
+`libraryUrl(slug, n)` through `go()`; anything else falls through to the renderer's own handling
+(the note's page, or the "not published" toast).
 
 **A LESSON IS NOT A POST.** `posts()` (server/indexer.ts) skips every published note under a
 folder `libraryLessonFolders(settings.library)` names — the enabled library's visible paths,
@@ -1023,6 +1053,12 @@ publicFolders terms; the list is replaced whole on PATCH because the editor hold
 blog stays the blog, and the library is one link away. The stock nav row places the door as a fixed
 item after the collections (and counts it in `lead`, the row's arithmetic); the designed shell's
 `publicNavigation()` appends a `url` item to `/library` unless the author already linked it.
+
+**A LESSON'S LINKS STAY ON THE PATH.** The lesson page (client/library/LibraryPages.tsx)
+listens for clicks in the CAPTURE phase before `onRootClick`: a `.s-rv-wikilink[data-target]`
+that resolves (`resolveLink`) to a note that is a lesson of any path on the shelf goes to
+`libraryUrl(slug, n)` through `go()`; anything else falls through to the renderer's own handling
+(the note's page, or the "not published" toast).
 
 **A LESSON IS NOT A POST.** No date, no tags, no comments, no related: a place ("Lesson 7 of 24 ·
 Lecture 3"), the outline beside it, the previous and the next at the foot, `←`/`→` to walk it

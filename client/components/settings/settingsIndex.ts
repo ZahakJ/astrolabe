@@ -54,6 +54,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "publishing", label: "rowShareButtons", hint: "hintShareButtons" },
   { tab: "publishing", label: "rowAmbient", hint: "hintAmbient" },
   { tab: "publishing", label: "rowAuthorSites", hint: "hintAuthorSites" },
+  { tab: "publishing", label: "rowTopicsMode", hint: "hintTopicsMode" },
   { tab: "publishing", label: "rowPublicFolders", hint: "hintPublicFolders" },
   { tab: "publishing", label: "rowPublicFoldersList", hint: "hintPublicFoldersList" },
   { tab: "publishing", label: "rowPublicFoldersHome", hint: "hintPublicFoldersHome" },

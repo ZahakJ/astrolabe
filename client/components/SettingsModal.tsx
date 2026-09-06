@@ -204,6 +204,7 @@ interface Form {
   publicFoldersOn: string;   // "on" | "off"
   publicFoldersHome: string; // "on" | "off"
   publicFoldersNav: string;  // "on" | "off"
+  topicsMode: string;        // "tags" | "folders" — where the public categories come from
   publicFolderRows: PublicFolderRef[];
   // The library, on the same terms: a switch, two placements, a name and
   // the rows the editor holds.
@@ -303,6 +304,7 @@ function formFrom(s: SettingsResponse): Form {
     publicFoldersOn: s.effective.publicFolders.enabled ? "on" : "off",
     publicFoldersHome: s.effective.publicFolders.home ? "on" : "off",
     publicFoldersNav: s.effective.publicFolders.nav ? "on" : "off",
+    topicsMode: s.effective.topics,
     // Copied, never shared: the editor mutates rows and `initial` is the
     // snapshot the Save diff is measured against.
     publicFolderRows: s.effective.publicFolders.folders.map((folder) => ({ ...folder })),
@@ -1068,6 +1070,30 @@ function PublicFolderEditor({
                 maxLength={FOLDER_SLUG_MAX}
               />
             </div>
+            <button
+              type="button"
+              className={`s-libpaths__folder${row.folder ? "" : " s-libpaths__folder--empty"}`}
+              disabled={disabled}
+              title={t("publicFolderFolder")}
+              onClick={() =>
+                void pickFolder({ title: t("publicFolderFolder"), current: row.folder ?? null }).then((folder) => {
+                  if (folder !== null) set(i, { folder });
+                })
+              }
+            >
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+                <path d="M1.5 12.5v-9h4l1.5 2h7.5v7z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+              </svg>
+              <span className="s-libpaths__folder-path" dir="ltr">
+                {row.folder || t("publicFolderFolderNone")}
+              </span>
+              <span className="s-libpaths__folder-cta">{t("libraryPathChoose")}</span>
+            </button>
+            {row.folder && (
+              <button type="button" className="s-pfolders__unlink" disabled={disabled} onClick={() => set(i, { folder: undefined })}>
+                {t("publicFolderFolderClear")}
+              </button>
+            )}
             <div className="s-pfolders__extra">
               <TextInput
                 value={row.description ?? ""}
@@ -1325,6 +1351,7 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       folders: nextFolders.length > 0 ? nextFolders : null,
     };
   }
+  if (f.topicsMode !== initial.topicsMode) patch.topics = f.topicsMode === "folders" ? "folders" : "tags";
   const nextPaths = libraryList(f.libraryRows);
   if (
     f.libraryOn !== initial.libraryOn ||
@@ -2778,7 +2805,7 @@ export default function SettingsModal() {
   /** The public-folders master switch is off: the table and the two placement
    *  toggles are inert, and say so. Read from the FORM like `syncOff`, so
    *  flipping the master lights the section up before the save. */
-  const foldersOff = form?.publicFoldersOn !== "on";
+  const foldersOff = form?.publicFoldersOn !== "on" && form?.topicsMode !== "folders";
   const libraryOff = form?.libraryOn !== "on";
   /** settings.home.mode and the home banner are read by the BLOG shell only —
    *  server/auth.ts sends `me.home` inside `if (publicLayout() === "blog")`,
@@ -3404,12 +3431,25 @@ export default function SettingsModal() {
                       from a variable is a row the settings search cannot find. */}
                   <div className="s-smodal__sub">{t("groupPublicFolders")}</div>
                   <p className="s-smodal__note">{t("publicFoldersNote")}</p>
-                  <Row label={t("rowPublicFolders")} hint={t("hintPublicFolders")}>
+                  <Row label={t("rowTopicsMode")} hint={t("hintTopicsMode")} wide>
+                    <SegmentedControl
+                      label={t("rowTopicsMode")}
+                      value={form.topicsMode}
+                      segments={[
+                        { value: "tags", label: t("topicsModeTags"), note: t("topicsModeTagsNote") },
+                        { value: "folders", label: t("topicsModeFolders"), note: t("topicsModeFoldersNote") },
+                      ]}
+                      onChange={(v) => setForm((f) => (f ? { ...f, topicsMode: v } : f))}
+                    />
+                  </Row>
+                  {form.topicsMode === "folders" && <p className="s-smodal__offnote">{t("topicsModeFoldersNotice")}</p>}
+                  <Row label={t("rowPublicFolders")} hint={t("hintPublicFolders")} off={form.topicsMode === "folders"}>
                     <Toggle
                       label={t("rowPublicFolders")}
                       onLabel={t("on")}
                       offLabel={t("off")}
-                      value={form.publicFoldersOn === "on"}
+                      disabled={form.topicsMode === "folders"}
+                      value={form.publicFoldersOn === "on" || form.topicsMode === "folders"}
                       onChange={(on) =>
                         setForm((f) => (f ? { ...f, publicFoldersOn: on ? "on" : "off" } : f))
                       }
@@ -3460,6 +3500,7 @@ export default function SettingsModal() {
                       }
                     />
                   </Row>
+
                   {/* ── THE LIBRARY ─────────────────────────────────────
                       The collections' idiom again: a master switch, then
                       what it governs beneath it. Spelled literally for the

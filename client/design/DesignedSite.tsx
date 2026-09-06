@@ -308,8 +308,10 @@ export default function DesignedSite() {
     }
   }, [route, siteName, tagline, folders, shelf]);
 
+  const tagTopics = useStore((s) => s.topicsMode === "tags");
   const topics = useMemo(() => {
     const counts = new Map<string, number>();
+    if (!tagTopics) return [];
     for (const post of posts ?? []) {
       for (const tag of post.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
     }
@@ -317,7 +319,7 @@ export default function DesignedSite() {
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .slice(0, 10)
       .map(([tag]) => tag);
-  }, [posts]);
+  }, [posts, tagTopics]);
 
   // ── The fallback decision ────────────────────────────────────────────────
   // One expression, evaluated the same way for every kind of failure.
