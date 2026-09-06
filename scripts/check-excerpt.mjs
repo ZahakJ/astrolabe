@@ -1,6 +1,6 @@
 // GATE: no note ever hands a de-hashed TAG to a reader as prose.
 //   node scripts/check-excerpt.mjs [http://localhost:6801]
-//   env: VELLUM_PASSWORD=<pw>  — only if the instance sets ADMIN_PASSWORD_HASH
+//   env: ASTROLABE_PASSWORD=<pw>  — only if the instance sets ADMIN_PASSWORD_HASH
 // Exits 1 on any miss. Run it like check-i18n / check-contrast / check-caret.
 //
 // WHAT IT PROVES. DESIGN.md's hard rule: no component may render raw markdown
@@ -92,7 +92,7 @@ const json = (method, body) => ({
 // notes instead would pass by not testing anything.
 let me = await api("/me");
 if (!me.admin) {
-  const password = process.env.VELLUM_PASSWORD ?? "";
+  const password = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) ?? "";
   const res = password
     ? await fetch(`${url}/api/login`, json("POST", { password })).catch(() => null)
     : null;
@@ -110,7 +110,7 @@ if (!me.admin) {
   console.error(
     "check-excerpt: not an admin session. This gate WRITES two notes into the\n" +
       "vault; run it against an instance in open local mode, or set\n" +
-      "VELLUM_PASSWORD for one that has ADMIN_PASSWORD_HASH.",
+      "ASTROLABE_PASSWORD for one that has ADMIN_PASSWORD_HASH.",
   );
   process.exit(1);
 }

@@ -14,7 +14,7 @@ right-aligned thumbnail in the post list. A published note's banner attachment i
 visitor-fetchable; unpublished notes' attachments stay invisible as always.
 
 **Four forms are accepted, tried in this order** — the same ladder every image reference in
-Vellum climbs, including the site logo and the dashboard hero:
+Astrolabe climbs, including the site logo and the dashboard hero:
 
 | What you write | What it finds |
 | --- | --- |
@@ -42,11 +42,11 @@ the blog list and article hero (`BANNER_FALLBACK=none` turns that off).
 
 ## Templates
 
-Point Vellum at a folder of template notes and it fills them in for you — the same syntax
+Point Astrolabe at a folder of template notes and it fills them in for you — the same syntax
 Obsidian's core Templates plugin uses, so **the templates in a vault you brought over work
 unmodified**.
 
-The folder is `Settings → Publishing → Templates folder`. Leave it empty and Vellum finds one
+The folder is `Settings → Publishing → Templates folder`. Leave it empty and Astrolabe finds one
 itself, as long as the answer is unambiguous: a folder called `Templates`, `_templates` or
 `قوالب`, with a leading ordering prefix allowed (`4 - Templates`, `04. Templates`). Two
 plausible candidates and no root-level tie-break means it stays unset rather than guessing —
@@ -78,7 +78,7 @@ takeable.)
 | `{{hdate}}` / `{{date:hijri}}` | the Umm al-Qura Hijri date |
 
 Anything else is **left exactly as written** — `{{cursor}}`, a Templater expression, a stray
-`{{`. Blanking a token Vellum does not implement would destroy text you typed and hide the
+`{{`. Blanking a token Astrolabe does not implement would destroy text you typed and hide the
 fact that the template expects something we do not do.
 
 Dates follow the site's settings where a reader can see them and stay machine-shaped where
@@ -97,7 +97,7 @@ uuid, a 16-digit timestamp stays 16 digits. A template carrying `id:` used to ha
 to every note ever made from it.
 
 **Template for new notes** (also in Settings) applies one template to every note created from
-inside Vellum — `Ctrl/Cmd N`, the sidebar's `+`, the tree menu. Off by default: new notes are
+inside Astrolabe — `Ctrl/Cmd N`, the sidebar's `+`, the tree menu. Off by default: new notes are
 born empty, as they always were.
 
 ## Sections: fold, extract, move
@@ -154,7 +154,7 @@ deleting the folder around it.
 
 **Trash browser** — `Ctrl/Cmd P` → **Open trash**: everything in `.trash/`, what is inside it,
 how big it is and when it went, with **Restore** and a permanent erase per row plus "Empty trash".
-Restore puts each entry back **where it came from** — Vellum records the origin at delete time —
+Restore puts each entry back **where it came from** — Astrolabe records the origin at delete time —
 and tells you up front when that spot is taken (it lands beside it) or unknown (it lands at the
 vault root). Admin-only, and `.trash/` is
 [never committed to your git remote](backup-and-sync.md#what-sync-never-stages).

@@ -102,7 +102,7 @@ const texCall = (name: string): RegExp =>
  *  read back — a command that wrote something the reader cannot parse would
  *  render as raw source in the very next paint. Strikethrough and highlight
  *  are `undefined` on purpose: `\sout` needs `ulem` and `\hl` needs `soul`,
- *  neither of which a Vellum note can assume, and emitting them would put a
+ *  neither of which an Astrolabe note can assume, and emitting them would put a
  *  document on disk that neither this editor nor pdflatex can render. */
 const WRAPS: Record<NoteSyntax, Partial<Record<FormatKind, Wrap>>> = {
   markdown: {

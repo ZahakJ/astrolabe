@@ -1,4 +1,4 @@
-/* The drawing surface: a pane-filling canvas, Vellum's chrome kept to a
+/* The drawing surface: a pane-filling canvas, Astrolabe's chrome kept to a
    status word in a corner and a strip when the file moved under it. */
 
 .s-drawing {
@@ -22,7 +22,7 @@
 }
 
 /* The package paints its own light and dark rooms; the palette below is the
-   one Vellum's rooms lend it so the canvas chrome reads as ours. */
+   one Astrolabe's rooms lend it so the canvas chrome reads as ours. */
 .s-drawing .excalidraw {
   --color-primary: var(--accent);
   --color-primary-darker: var(--accent);

@@ -5,7 +5,7 @@ tags: [guide, editor]
 
 # Editing
 
-Vellum's editor is a **live preview**: markdown syntax stays out of sight
+Astrolabe's editor is a **live preview**: markdown syntax stays out of sight
 until your cursor lands on a line, then the raw text reappears for editing.
 Move the cursor here and the `#` and `**` marks on this very note will show
 themselves. #guide #editor

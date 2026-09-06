@@ -35,7 +35,7 @@ export function menuLang(): Lang {
 
 /** True when the chrome is mirrored. The menu uses it for one thing only:
  *  ordering a submenu's separators is not direction-dependent, but the WINDOW
- *  title is ("خزانة — ڤيلوم"). */
+ *  title is ("خزانة — أسطرلاب"). */
 export function menuRtl(): boolean {
   return getLang() === "ar";
 }

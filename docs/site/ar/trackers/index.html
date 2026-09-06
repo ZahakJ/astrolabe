@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>المتتبِّعات · فيلم الدليل</title>
+<title>المتتبِّعات · دليل أسطرلاب</title>
 <meta name="description" content="كتلة مسيَّجة تحوّل الملاحظة إلى بطاقة تقدّم حية، ولوحة ترفّ كل تلك البطاقات.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,11 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
-  <a class="top__brand" href="../../ar/"><span class="top__star">✦</span> فيلم <span class="top__docs">الدليل</span></a>
+  <a class="top__brand" href="../../ar/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> <span class="top__docs">دليل</span> أسطرلاب</a>
   <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../en/trackers/" hreflang="en">English</a>
   <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a><a class="nav__link" href="../../ar/desktop/">تطبيق سطح المكتب</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link is-current" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/drawing/">الرسومات</a><a class="nav__link" href="../../ar/books/">قارئ PDF</a><a class="nav__link" href="../../ar/workspace/">اللوحات والتبويبات والنوافذ</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
@@ -73,11 +73,11 @@ limit: 12
 <p>التحرير من الصفحة يعيد كتابة <strong>السياج وحده</strong> في الملاحظة. النثر تحته والمقدمة وأي متتبع ثانٍ تبقى بايتًا بايت كما كانت.</p>
 <p>الصفحة للمشرف فقط لأنها تكتب؛ ورف الزائر هو اللوحة، على أي ملاحظة اخترت نشرها.</p>
 <h2 id="في-أوبسيديان"><a class="anchor" href="#في-أوبسيديان">في أوبسيديان</a></h2>
-<p><code>tracker</code> امتداد لفيلم لا ميزة في أوبسيديان. افتح الخزانة نفسها في أوبسيديان فينحدر السياج إلى ما هو عليه: كتلة كود مسمّاة كل أسطرها مقروءة. لا يُحوَّل شيء ولا يضيع شيء، وما زالت الملاحظة تقول كل ما قالته هنا. انظر <a href="https://github.com/ZahakJ/vellum/blob/main/OBSIDIAN-COMPAT.md" target="_blank" rel="noreferrer">OBSIDIAN-COMPAT.md</a>.</p>
+<p><code>tracker</code> امتداد لأسطرلاب لا ميزة في أوبسيديان. افتح الخزانة نفسها في أوبسيديان فينحدر السياج إلى ما هو عليه: كتلة كود مسمّاة كل أسطرها مقروءة. لا يُحوَّل شيء ولا يضيع شيء، وما زالت الملاحظة تقول كل ما قالته هنا. انظر <a href="https://github.com/ZahakJ/astrolabe/blob/main/OBSIDIAN-COMPAT.md" target="_blank" rel="noreferrer">OBSIDIAN-COMPAT.md</a>.</p>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/ar/trackers.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/ar/trackers.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/latex/"><span class="pager__kicker">السابق</span><span class="pager__title">ملاحظات LaTeX</span></a><a class="pager__link pager__link--next" href="../../ar/drawing/"><span class="pager__kicker">التالي</span><span class="pager__title">الرسومات</span></a></nav>
-    <footer class="foot">فيلم برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+    <footer class="foot">أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
   </main>
   <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#الحقول">الحقول</a><a class="toc__link toc__link--2" href="#دفع-الشريط">دفع الشريط</a><a class="toc__link toc__link--2" href="#اللوحة">اللوحة</a><a class="toc__link toc__link--2" href="#نشر-رف">نشر رفّ</a><a class="toc__link toc__link--2" href="#صفحة-الوسائط">صفحة الوسائط</a><a class="toc__link toc__link--2" href="#في-أوبسيديان">في أوبسيديان</a></aside>
 </div>

@@ -56,7 +56,7 @@ function star(): SVGSVGElement {
   return svg;
 }
 
-/** `✦ Vellum`, the one mark this app has. */
+/** `✦ Astrolabe`, the one mark this app has. */
 export function wordmark(name: string, extraClass = ""): HTMLElement {
   return el("h1", { class: `wordmark ${extraClass}`.trim() }, star(), el("span", { textContent: name }));
 }

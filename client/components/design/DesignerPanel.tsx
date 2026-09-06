@@ -285,7 +285,7 @@ function DesignsTab({
         toast(t(ok));
       })
       .catch((err: unknown) => {
-        console.error("vellum: the design store refused that", err);
+        console.error("astrolabe: the design store refused that", err);
         toast(designErrorText(err, t("designSaveFailed")), "error");
       })
       .finally(() => setBusy(false));
@@ -307,7 +307,7 @@ function DesignsTab({
           toast(t("designCreated"));
         })
         .catch((err: unknown) => {
-          console.error("vellum: creating the design failed", err);
+          console.error("astrolabe: creating the design failed", err);
           toast(designErrorText(err, t("designSaveFailed")), "error");
         })
         .finally(() => setBusy(false));
@@ -614,7 +614,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
         setSaved(JSON.stringify(doc));
       })
       .catch((err: unknown) => {
-        console.error("vellum: loading the design failed", err);
+        console.error("astrolabe: loading the design failed", err);
         toast(t("designLoadFailed"), "error");
       });
     getTags()
@@ -630,7 +630,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
       .then((list) => {
         if (!disposed) setPresets(list);
       })
-      .catch((err: unknown) => console.error("vellum: loading the presets failed", err));
+      .catch((err: unknown) => console.error("astrolabe: loading the presets failed", err));
     return () => {
       disposed = true;
     };
@@ -804,7 +804,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
         toast(t("designSaved"));
       })
       .catch((err: unknown) => {
-        console.error("vellum: saving the design failed", err);
+        console.error("astrolabe: saving the design failed", err);
         toast(designErrorText(err, t("designSaveFailed")), "error");
       })
       .finally(() => setBusy(false));
@@ -851,7 +851,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
         else actionToast(message, t("designLayoutBack"), () => setLayout(from, true));
       })
       .catch((err: unknown) => {
-        console.error("vellum: switching the public layout failed", err);
+        console.error("astrolabe: switching the public layout failed", err);
         toast(designErrorText(err, t("designSaveFailed")), "error");
       })
       .finally(() => setBusy(false));
@@ -864,7 +864,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${(name || "vellum-design").replace(/[^\w-]+/g, "-").toLowerCase()}.json`;
+    a.download = `${(name || "astrolabe-design").replace(/[^\w-]+/g, "-").toLowerCase()}.json`;
     a.click();
     URL.revokeObjectURL(url);
     });
@@ -891,7 +891,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
         toast(t("designImported"));
       })
       .catch((err: unknown) => {
-        console.error("vellum: importing the design failed", err);
+        console.error("astrolabe: importing the design failed", err);
         toast(designErrorText(err, t("designImportFailed")), "error");
       })
       .finally(() => setBusy(false));
@@ -914,7 +914,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
           toast(t("designReset"));
         })
         .catch((err: unknown) => {
-          console.error("vellum: resetting the design failed", err);
+          console.error("astrolabe: resetting the design failed", err);
           toast(designErrorText(err, t("designSaveFailed")), "error");
         })
         .finally(() => setBusy(false));
@@ -924,7 +924,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
   /**
    * APPLYING A PRESET IS AN IMPORT, and that is the whole implementation.
    *
-   * `presetExport()` produces the exact `vellum.design` envelope
+   * `presetExport()` produces the exact `astrolabe.design` envelope
    * `POST /api/design/docs/import` already takes, and that route gives us
    * every property the word "fork" is supposed to buy: a fresh id, fresh
    * timestamps, strict validation, custom themes under fresh slugs, and
@@ -945,7 +945,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
       setTab("sections");
       toast(t("presetApplied"));
     } catch (err) {
-      console.error("vellum: applying the preset failed", err);
+      console.error("astrolabe: applying the preset failed", err);
       toast(designErrorText(err, t("designSaveFailed")), "error");
     } finally {
       setBusy(false);
@@ -970,7 +970,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
       setTab("sections");
       toast(t("designCreated"));
     } catch (err) {
-      console.error("vellum: creating the design failed", err);
+      console.error("astrolabe: creating the design failed", err);
       toast(designErrorText(err, t("designSaveFailed")), "error");
     } finally {
       setBusy(false);

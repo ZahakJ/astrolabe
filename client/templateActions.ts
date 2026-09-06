@@ -25,7 +25,7 @@ export interface InsertTemplateDetail {
   handled: { value: boolean };
 }
 
-export const INSERT_TEMPLATE_EVENT = "vellum:insert-template";
+export const INSERT_TEMPLATE_EVENT = "astrolabe:insert-template";
 
 /** Everything the placeholders need, for a note called `title`. */
 async function varsFor(title: string): Promise<TemplateVars> {
@@ -63,7 +63,7 @@ export async function insertTemplateCommand(): Promise<void> {
     useStore.getState().bumpReload();
     toast(tf("templateInserted", { name: noteTitleOf(chosen) }));
   } catch (err) {
-    console.error("vellum: inserting template failed", err);
+    console.error("astrolabe: inserting template failed", err);
     toast(t("templateFailed"));
   }
 }
@@ -116,7 +116,7 @@ export async function newNoteFromTemplateCommand(dir = ""): Promise<void> {
     useStore.getState().openNote(path);
     if (useStore.getState().readingMode) useStore.getState().setReadingMode(false);
   } catch (err) {
-    console.error("vellum: creating note from template failed", err);
+    console.error("astrolabe: creating note from template failed", err);
     toast(err instanceof Error && /exists/i.test(err.message) ? t("couldNotCreateNote") : t("templateFailed"));
   }
 }
@@ -145,7 +145,7 @@ export async function applyDefaultTemplate(path: string): Promise<void> {
   } catch (err) {
     // A missing/renamed default template must not break note creation — the
     // note is already there and empty, which is the pre-feature behaviour.
-    console.error("vellum: applying the default template failed", err);
+    console.error("astrolabe: applying the default template failed", err);
     toast(t("defaultTemplateFailed"));
   }
 }

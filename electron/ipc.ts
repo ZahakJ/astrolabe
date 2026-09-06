@@ -23,34 +23,34 @@ export const TO_MAIN = {
    *  know about itself (platform, which vault this window is, whether a deep
    *  link arrived before React did) in ONE round trip. A window that has not
    *  said hello has no queued route delivered to it — see main.ts. */
-  hello: "vellum:hello",
-  /** Commit a spelling suggestion the reader picked out of Vellum's own menu.
+  hello: "astrolabe:hello",
+  /** Commit a spelling suggestion the reader picked out of Astrolabe's own menu.
    *  Main calls `webContents.replaceMisspelling`, which lands as a native
    *  `insertReplacementText` — the editor's own DOM observer handles it, so
    *  the desktop's spellchecker needs no hook into `client/editor/`. */
-  spellReplace: "vellum:spell-replace",
+  spellReplace: "astrolabe:spell-replace",
   /** Teach the system dictionary a word ("Add to dictionary"). */
-  spellAdd: "vellum:spell-add",
+  spellAdd: "astrolabe:spell-add",
   /** The reader answered an update toast: apply the staged AppImage and
    *  relaunch, or open the release page on a build that cannot swap itself. */
-  updateApply: "vellum:update-apply",
+  updateApply: "astrolabe:update-apply",
   /** The renderer's CHROME language — the reader's own preference, which the
    *  native menu follows. The menu used to follow the SITE's language from
    *  /api/me, which put an Arabic menu bar over an English interface the
    *  moment a reader kept English chrome on an Arabic site: the same
    *  mixed-language chrome the numerals fix closed one layer down. */
-  chromeLang: "vellum:chrome-lang",
+  chromeLang: "astrolabe:chrome-lang",
   /** Native find-in-page: the whole rendered document, including the reading
    *  view, the outline and the backlinks panel — which is the half `Ctrl/Cmd F`
    *  (CodeMirror's find, scoped to the open note) cannot reach. */
-  findInPage: "vellum:find-in-page",
+  findInPage: "astrolabe:find-in-page",
   /** Drop the find highlight and give the selection back. */
-  findStop: "vellum:find-stop",
+  findStop: "astrolabe:find-stop",
   /** Begin an OS drag whose payload is the note's real file on disk, so a note
    *  dragged to the Finder/Explorer lands as a `.md`, not as a URL. */
-  dragNote: "vellum:drag-note",
+  dragNote: "astrolabe:drag-note",
   /** Open a second, always-on-top window on one note — the reference window. */
-  openReference: "vellum:open-reference",
+  openReference: "astrolabe:open-reference",
 } as const;
 
 /** Main tells, renderer listens (`webContents.send` ⇄ `ipcRenderer.on`). */
@@ -58,21 +58,21 @@ export const TO_RENDERER = {
   /** A native menu item, a tray item or an accelerator fired. The payload is a
    *  command NAME, never a keystroke: the menu and the in-app keymap must not
    *  drift into two spellings of the same verb. */
-  command: "vellum:command",
+  command: "astrolabe:command",
   /** A misspelling was right-clicked: the word, the system dictionary's
-   *  suggestions, and where the pointer was. Vellum draws the menu. */
-  spellMenu: "vellum:spell-menu",
+   *  suggestions, and where the pointer was. Astrolabe draws the menu. */
+  spellMenu: "astrolabe:spell-menu",
   /** Match count and active index for the find bar. */
-  findResult: "vellum:find-result",
+  findResult: "astrolabe:find-result",
   /** The updater's phase moved: available / downloading / ready / current /
    *  failed, with the version it is about. The renderer says it in the app's
    *  own voice — a toast, never a dialog. */
-  updateState: "vellum:update-state",
-  /** Go somewhere: a `vellum://` deep link, or a file association opening a
+  updateState: "astrolabe:update-state",
+  /** Go somewhere: a `astrolabe://` deep link, or a file association opening a
    *  note that is already inside this window's vault. */
-  navigate: "vellum:navigate",
+  navigate: "astrolabe:navigate",
   /** The OS switched between light and dark. */
-  osTheme: "vellum:os-theme",
+  osTheme: "astrolabe:os-theme",
 } as const;
 
 export type ToMainChannel = (typeof TO_MAIN)[keyof typeof TO_MAIN];

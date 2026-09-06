@@ -259,7 +259,7 @@ export function generatedBannerCss(title: string, variant: "hero" | "thumb" = "h
   // as a gray smudge at 130px on the dark themes, and a hero whose base was
   // untinted is exactly what made the two sizes look like two systems.
   const baseLayer = `linear-gradient(${angle}deg, ${c(off1, thumb ? 9 : 6)}, ${c(off3, thumb ? 7 : 5)})`;
-  // RULED VELLUM, over the mesh. Three soft radial blobs and nothing else read
+  // RULED ASTROLABE, over the mesh. Three soft radial blobs and nothing else read
   // as an image that failed to load — a 783×166 field with no edge anywhere in
   // it. A deterministic hairline rule pattern (the note's own hash picks its
   // angle, its spacing and whether it is hatched once or crossed) gives the

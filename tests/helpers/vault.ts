@@ -12,7 +12,7 @@ import path from "node:path";
 /** Create a temp directory tree from `{ "rel/path.md": "contents" }`.
  *  Returns its absolute root. Directories are created as needed. */
 export function makeVault(files: Record<string, string>): string {
-  const root = mkdtempSync(path.join(os.tmpdir(), "vellum-test-"));
+  const root = mkdtempSync(path.join(os.tmpdir(), "astrolabe-test-"));
   for (const [rel, content] of Object.entries(files)) {
     const abs = path.join(root, rel);
     mkdirSync(path.dirname(abs), { recursive: true });
@@ -26,9 +26,9 @@ export function removeVault(root: string): void {
   rmSync(root, { recursive: true, force: true });
 }
 
-/** An empty temp directory (VELLUM_DATA, symlink targets, …). */
+/** An empty temp directory (ASTROLABE_DATA, symlink targets, …). */
 export function makeDir(): string {
-  return mkdtempSync(path.join(os.tmpdir(), "vellum-test-"));
+  return mkdtempSync(path.join(os.tmpdir(), "astrolabe-test-"));
 }
 
 /** A note with frontmatter, written the way Obsidian writes it. */

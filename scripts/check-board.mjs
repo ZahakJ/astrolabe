@@ -22,12 +22,12 @@
 // way out (including on failure), and leaves nothing behind.
 //
 //   node scripts/check-board.mjs [http://127.0.0.1:6801]
-//   VELLUM_PASSWORD=… for an instance with a password; CHROMIUM= for a browser.
+//   ASTROLABE_PASSWORD=… for an instance with a password; CHROMIUM= for a browser.
 
 import { chromium } from "playwright";
 
-const BASE = process.argv[2] || process.env.VELLUM_URL || "http://127.0.0.1:6801";
-const PASSWORD = process.env.VELLUM_PASSWORD || "";
+const BASE = process.argv[2] || (process.env.ASTROLABE_URL ?? process.env.VELLUM_URL) || "http://127.0.0.1:6801";
+const PASSWORD = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) || "";
 
 let failures = 0;
 const ok = (label, condition, detail = "") => {
@@ -57,7 +57,7 @@ let cookie = "";
 if (!me.body.admin) {
   if (!PASSWORD) {
     console.error(
-      "check-board: this session is NOT an admin, and no VELLUM_PASSWORD was given.\n" +
+      "check-board: this session is NOT an admin, and no ASTROLABE_PASSWORD was given.\n" +
         "  The board is an admin surface; the gate cannot open it anonymously.",
     );
     process.exit(1);
@@ -68,7 +68,7 @@ if (!me.body.admin) {
     body: JSON.stringify({ password: PASSWORD }),
   });
   if (!login.ok) {
-    console.error(`check-board: login failed (${login.status}). Wrong VELLUM_PASSWORD?`);
+    console.error(`check-board: login failed (${login.status}). Wrong ASTROLABE_PASSWORD?`);
     process.exit(1);
   }
   cookie = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");

@@ -72,7 +72,7 @@ export async function promptTagRename(from: string, known: readonly string[]): P
   try {
     preview = await previewTagRename(tag, to);
   } catch (err) {
-    console.error("vellum: previewing a tag rename failed", err);
+    console.error("astrolabe: previewing a tag rename failed", err);
     toast(t("tagRenameFailed"), "error");
     return;
   }
@@ -119,7 +119,7 @@ export async function promptTagRename(from: string, known: readonly string[]): P
       result,
     );
   } catch (err) {
-    console.error("vellum: renaming a tag failed", err);
+    console.error("astrolabe: renaming a tag failed", err);
     toast(t("tagRenameFailed"), "error");
   }
 }

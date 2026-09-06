@@ -3,7 +3,7 @@
 // LINE rather than a heading (a backlink's mention, a search match).
 //
 // It deliberately owns no scrolling of its own. The editor already answers
-// `vellum:goto-heading` with a `detail.line` (client/components/Editor.tsx —
+// `astrolabe:goto-heading` with a `detail.line` (client/components/Editor.tsx —
 // the outline panel's wire), and the reading view answers the same event; this
 // module's job is only the part neither surface can do for itself:
 //
@@ -71,7 +71,7 @@ function dispatchGoto(path: string, line: number): void {
   // reading view's reads `line` + `path`. `path` rides along so a handler CAN
   // ignore a goto meant for a sibling pane's note — the pre-existing handlers
   // that ignore it behave exactly as they always did.
-  window.dispatchEvent(new CustomEvent("vellum:goto-heading", { detail: { line, path } }));
+  window.dispatchEvent(new CustomEvent("astrolabe:goto-heading", { detail: { line, path } }));
 }
 
 /** True when the focused pane would mount an EDITOR for its active tab —

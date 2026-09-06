@@ -28,7 +28,7 @@
 //     step (out of the preset) rather than closing the whole panel over an
 //     unsaved design, which is a precedence question no static check can see.
 //
-//   PORT=6801 VELLUM_PASSWORD=… node scripts/check-designer-nav.mjs
+//   PORT=6801 ASTROLABE_PASSWORD=… node scripts/check-designer-nav.mjs
 //   env: CHROMIUM=/usr/bin/chromium  SHOT_DIR=/tmp/shots  LANGS=en,ar
 //
 // It switches the instance LANGUAGE (it must — that is the whole point) and
@@ -39,8 +39,8 @@ import { chromium } from "playwright";
 const PORT = process.env.PORT || "6801";
 // 127.0.0.1, not localhost: Node resolves localhost to ::1 first and the
 // server binds 0.0.0.0. Same note check-preview and check-design carry.
-const BASE = process.env.VELLUM_URL || `http://127.0.0.1:${PORT}`;
-const PASSWORD = process.env.VELLUM_PASSWORD || "";
+const BASE = (process.env.ASTROLABE_URL ?? process.env.VELLUM_URL) || `http://127.0.0.1:${PORT}`;
+const PASSWORD = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) || "";
 const SHOTS = process.env.SHOT_DIR || null;
 const LANGS = (process.env.LANGS || "en,ar").split(",").map((s) => s.trim()).filter(Boolean);
 const WIDTHS = (process.env.WIDTHS || "1440,1280").split(",").map((s) => Number(s.trim()));
@@ -67,7 +67,7 @@ if (!me.admin) {
   if (!PASSWORD) {
     console.error(
       "check-designer-nav: this session is NOT an admin, and the designer is an admin panel.\n" +
-        `  Fix: VELLUM_PASSWORD=<the admin password> PORT=${PORT} node scripts/check-designer-nav.mjs`,
+        `  Fix: ASTROLABE_PASSWORD=<the admin password> PORT=${PORT} node scripts/check-designer-nav.mjs`,
     );
     process.exit(1);
   }
@@ -77,7 +77,7 @@ if (!me.admin) {
     body: JSON.stringify({ password: PASSWORD }),
   });
   if (!login.ok) {
-    console.error(`check-designer-nav: login failed (${login.status}). Wrong VELLUM_PASSWORD?`);
+    console.error(`check-designer-nav: login failed (${login.status}). Wrong ASTROLABE_PASSWORD?`);
     process.exit(1);
   }
   cookie = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");

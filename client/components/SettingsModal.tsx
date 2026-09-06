@@ -1,4 +1,4 @@
-// The settings panel (admin): eight tabs over VELLUM_DATA/settings.json,
+// The settings panel (admin): eight tabs over ASTROLABE_DATA/settings.json,
 // read and written through GET/PATCH /api/settings.
 //
 // ONE TAB IS NOT ABOUT THE SITE AT ALL, and saying so out loud is what this
@@ -349,7 +349,7 @@ const SIZE_ADJUST_MAX = 300;
 // in an Arabic UI and an Arabic sample Arabic in an English one, or the block
 // stops previewing the thing it is there to preview. The second line is mixed
 // on purpose — it is the whole feature in one line: the Arabic slot answers
-// for the Arabic letters and the Latin slot for "Vellum" and the digits,
+// for the Arabic letters and the Latin slot for "Astrolabe" and the digits,
 // chosen per CHARACTER, with no markup and no language attribute.
 const SPECIMEN_LATIN = "The vault is open — a candlelit room 0123";
 const SPECIMEN_ARABIC = "خَطُّ النَّسْخِ في عمودِ القراءةِ ١٢٣٤";
@@ -1690,7 +1690,7 @@ function ImagePicker({
         })
         .catch((err: unknown) => {
           setBusy(false);
-          console.error("vellum: upload failed", err);
+          console.error("astrolabe: upload failed", err);
           toast(err instanceof Error ? err.message : t("uploadFailed"));
         });
     },
@@ -2320,7 +2320,7 @@ function CustomFonts({
 }
 
 /** The specimen block. Each row renders in its slot's PREVIEW composite
- *  ("VellumPreviewProse" …), which /api/font-preview.css defines from the
+ *  ("AstrolabePreviewProse" …), which /api/font-preview.css defines from the
  *  picks currently in the form — so the reader sees the faces before saving
  *  anything, including the size-adjust dial. Every family name falls back to
  *  the matching --font-*-system stack, so an unpicked (or not-yet-fetched)
@@ -2383,7 +2383,7 @@ function useFontPreview(
       // like without changing a single id, and it is judged against the Latin
       // line beside it or not at all.
       if (sizeAdjust.trim() !== "" && arabic !== SYSTEM_FONT) q.set("sizeAdjust", sizeAdjust.trim());
-      let link = document.head.querySelector<HTMLLinkElement>("link[data-vellum-fontpreview]");
+      let link = document.head.querySelector<HTMLLinkElement>("link[data-astrolabe-fontpreview]");
       if ([...q.keys()].length === 0) {
         link?.remove();
         return;
@@ -2391,7 +2391,7 @@ function useFontPreview(
       if (!link) {
         link = document.createElement("link");
         link.rel = "stylesheet";
-        link.setAttribute("data-vellum-fontpreview", "");
+        link.setAttribute("data-astrolabe-fontpreview", "");
         document.head.appendChild(link);
       }
       const href = `/api/font-preview.css?${q.toString()}`;
@@ -2401,7 +2401,7 @@ function useFontPreview(
   }, [prose, ui, mono, arabic, sizeAdjust]);
   // The preview families must not outlive the panel: the saved stylesheet is
   // what the app renders in.
-  useEffect(() => () => document.head.querySelector("link[data-vellum-fontpreview]")?.remove(), []);
+  useEffect(() => () => document.head.querySelector("link[data-astrolabe-fontpreview]")?.remove(), []);
 }
 
 // ---------------------------------------------------------------------------
@@ -2427,7 +2427,7 @@ const DOC_TOPICS: { key: I18nKey; anchor: string }[] = [
 function AboutTab({ about }: { about: AboutInfo | null }) {
   if (about === null) return <div className="s-bmodal__empty">{t("loading")}</div>;
   const facts: { label: string; value: string; path?: boolean }[] = [
-    { label: t("aboutVersion"), value: `Vellum ${about.version}` },
+    { label: t("aboutVersion"), value: `Astrolabe ${about.version}` },
     { label: t("aboutRuntime"), value: `Node ${about.node}` },
     { label: t("aboutVault"), value: about.vaultPath, path: true },
     { label: t("aboutData"), value: about.dataPath, path: true },
@@ -2652,7 +2652,7 @@ export default function SettingsModal() {
         setForm(f);
       })
       .catch((err: unknown) => {
-        console.error("vellum: loading settings failed", err);
+        console.error("astrolabe: loading settings failed", err);
         if (!disposed) setLoadError(err instanceof Error ? err.message : t("settingsLoadFailed"));
       });
     return () => {
@@ -2718,7 +2718,7 @@ export default function SettingsModal() {
       // A vault with no uploads answers [], so a failure here is a real one —
       // and still not worth a toast on open: the section renders empty and
       // the upload path reports its own errors.
-      .catch((err: unknown) => console.error("vellum: listing uploaded fonts failed", err));
+      .catch((err: unknown) => console.error("astrolabe: listing uploaded fonts failed", err));
   }, []);
 
   useEffect(() => reloadCustomFonts(), [reloadCustomFonts]);
@@ -2737,7 +2737,7 @@ export default function SettingsModal() {
           toast(tf("fontAdded", { name: font.family }));
         })
         .catch((err: unknown) => {
-          console.error("vellum: font upload failed", err);
+          console.error("astrolabe: font upload failed", err);
           toast(fontErrorText(err, "fontUploadFailed"), "error");
         })
         .finally(() => setFontBusy(false));
@@ -2760,7 +2760,7 @@ export default function SettingsModal() {
           reloadCustomFonts();
           toast(t("fontRemoved"));
         } catch (err) {
-          console.error("vellum: font delete failed", err);
+          console.error("astrolabe: font delete failed", err);
           toast(fontErrorText(err, "fontRemoveFailed"), "error");
         } finally {
           setFontBusy(false);
@@ -2827,7 +2827,7 @@ export default function SettingsModal() {
         toast(t("settingsSaved"));
       })
       .catch((err: unknown) => {
-        console.error("vellum: saving settings failed", err);
+        console.error("astrolabe: saving settings failed", err);
         // A typography save is the one that can fail on the NETWORK (the
         // faces are fetched before the file is written), so its fallback
         // message says so — and settings.json is untouched either way.
@@ -2853,7 +2853,7 @@ export default function SettingsModal() {
         toast(t("tokenCleared"));
       })
       .catch((err: unknown) => {
-        console.error("vellum: clearing the git token failed", err);
+        console.error("astrolabe: clearing the git token failed", err);
         toast(err instanceof Error ? err.message : t("settingsSaveFailed"));
       })
       .finally(() => setSaving(false));

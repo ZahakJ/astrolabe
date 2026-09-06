@@ -1,7 +1,7 @@
 // THE PRINT GATE — the one surface no screenshot ever shows.
 //
 //   PORT=6801 node scripts/check-print.mjs
-//   VELLUM_PASSWORD=… PORT=6801 node scripts/check-print.mjs   (protected vault)
+//   ASTROLABE_PASSWORD=… PORT=6801 node scripts/check-print.mjs   (protected vault)
 //
 // WHY IT EXISTS. Print is the only surface in this product that nobody looks
 // at while they work. The app is screenshotted at 1440×900 in every theme,
@@ -39,8 +39,8 @@ import { chromium } from "playwright";
 const PORT = process.env.PORT || "6801";
 // 127.0.0.1, not localhost — Node resolves localhost to ::1 first and the
 // server binds 0.0.0.0. Same note check-preview and check-design carry.
-const BASE = process.env.VELLUM_URL || `http://127.0.0.1:${PORT}`;
-const PASSWORD = process.env.VELLUM_PASSWORD || "";
+const BASE = (process.env.ASTROLABE_URL ?? process.env.VELLUM_URL) || `http://127.0.0.1:${PORT}`;
+const PASSWORD = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) || "";
 
 let failures = 0;
 const ok = (label, cond, detail = "") => {
@@ -60,7 +60,7 @@ if (!(await probe.clone().json()).admin) {
   if (!PASSWORD) {
     console.error(
       "check-print: this session is NOT an admin, and the gate writes two fixture notes.\n" +
-        `  Fix: VELLUM_PASSWORD=<the admin password> PORT=${PORT} node scripts/check-print.mjs`,
+        `  Fix: ASTROLABE_PASSWORD=<the admin password> PORT=${PORT} node scripts/check-print.mjs`,
     );
     process.exit(1);
   }
@@ -70,7 +70,7 @@ if (!(await probe.clone().json()).admin) {
     body: JSON.stringify({ password: PASSWORD }),
   });
   if (!login.ok) {
-    console.error(`check-print: login failed (${login.status}). Wrong VELLUM_PASSWORD?`);
+    console.error(`check-print: login failed (${login.status}). Wrong ASTROLABE_PASSWORD?`);
     process.exit(1);
   }
   cookie = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");

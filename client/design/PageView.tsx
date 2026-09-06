@@ -75,7 +75,7 @@ export default function PageView({ path }: { path: string }) {
         // A 404 while previewing as a visitor is the CORRECT answer (the page
         // is not published) and must not be dressed as a fault — the same
         // rule the reading view follows.
-        if (!isNotPublishedError(err)) console.error("vellum: page load failed", err);
+        if (!isNotPublishedError(err)) console.error("astrolabe: page load failed", err);
         setFailed(true);
       });
     return () => {

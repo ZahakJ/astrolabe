@@ -2,7 +2,7 @@
 //
 //   node scripts/shoot-tex.mjs http://localhost:7065 /outdir
 //   env: CHROMIUM=/usr/bin/chromium
-//        VELLUM_PASSWORD=<pw>  — only if the instance sets ADMIN_PASSWORD_HASH
+//        ASTROLABE_PASSWORD=<pw>  — only if the instance sets ADMIN_PASSWORD_HASH
 //
 // The vault it points at must contain the two notes this script names (the
 // shipped `vault-seed` has them): a `.tex` note and a markdown note that
@@ -45,11 +45,11 @@ const check = (ok, label, detail = "") => {
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
 
-if (process.env.VELLUM_PASSWORD) {
+if ((process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD)) {
   const page = await context.newPage();
   await page.goto(base, { waitUntil: "domcontentloaded" });
   const res = await page.request.post(`${base}/api/login`, {
-    data: { password: process.env.VELLUM_PASSWORD },
+    data: { password: (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) },
   });
   if (!res.ok()) {
     console.log("  FAIL  sign in");
@@ -66,8 +66,8 @@ const open = async (path, { reading }) => {
   });
   page.on("pageerror", (e) => errors.push(`${path}: ${e.message}`));
   await page.addInitScript((r) => {
-    localStorage.setItem("vellum.reading", r ? "true" : "false");
-    localStorage.setItem("vellum.theme", "iron-gall");
+    localStorage.setItem("astrolabe.reading", r ? "true" : "false");
+    localStorage.setItem("astrolabe.theme", "iron-gall");
   }, reading);
   await page.goto(`${base}/${path.split("/").map(encodeURIComponent).join("/")}`, {
     waitUntil: "networkidle",

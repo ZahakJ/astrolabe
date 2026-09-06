@@ -63,7 +63,7 @@ export function bulkDoneToast(message: string, result: BulkResult): void {
         toast(tf("bulkUndoneToast", { count: countPhrase(back.notes, "notes") }));
       })
       .catch((err: unknown) => {
-        console.error("vellum: undoing a bulk rewrite failed", err);
+        console.error("astrolabe: undoing a bulk rewrite failed", err);
         toast(t("bulkUndoFailed"), "error");
       });
   });
@@ -101,7 +101,7 @@ export function offerHeadingRepair(offer: HeadingRepairOffer): void {
           );
         })
         .catch((err: unknown) => {
-          console.error("vellum: repairing heading links failed", err);
+          console.error("astrolabe: repairing heading links failed", err);
           toast(t("headingRepairFailed"), "error");
         });
     },

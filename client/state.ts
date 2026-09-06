@@ -99,7 +99,7 @@ function noteTitle(path: string): string {
   return noteTitleOf(path);
 }
 
-const THEME_KEY = "vellum.theme";
+const THEME_KEY = "astrolabe.theme";
 /** A READER'S choice, made on the public site. A second key, and the whole
  *  reason it exists is the owner: `setTheme` stores the editor's pick in
  *  THEME_KEY, that key survives signing out, and a stored choice outranks the
@@ -110,7 +110,7 @@ const THEME_KEY = "vellum.theme";
  *  a preference about the editor; a choice a reader makes on the public site
  *  is a preference about the public site; one key cannot hold both. Which key
  *  a session reads is decided by the surface it is on (`themeKey`). */
-const SITE_THEME_KEY = "vellum.site-theme";
+const SITE_THEME_KEY = "astrolabe.site-theme";
 
 /** The key in force for this session: the public site's for a visitor shell
  *  (the served page said so — client/boot.ts — which only a session shown the
@@ -127,17 +127,17 @@ function themeKey(): string {
   }
   return THEME_KEY;
 }
-const VIM_KEY = "vellum.vim";
-const READING_KEY = "vellum.reading";
-const TABS_KEY = "vellum.tabs";
-/** The workspace supersedes `vellum.tabs`, and BOTH are written. The old key
+const VIM_KEY = "astrolabe.vim";
+const READING_KEY = "astrolabe.reading";
+const TABS_KEY = "astrolabe.tabs";
+/** The workspace supersedes `astrolabe.tabs`, and BOTH are written. The old key
  *  costs a few bytes and buys a downgrade that does not lose anyone's session:
  *  an instance rolled back to a build without panes still finds the tabs it
  *  understands. It is read only when the new key is absent or unreadable. */
-const WORKSPACE_KEY = "vellum.workspace";
-const PREVIEW_KEY = "vellum.preview";
-const SIDE_KEY = "vellum.sidebarSide";
-const SIDEBAR_COLLAPSED_KEY = "vellum.sidebarCollapsed";
+const WORKSPACE_KEY = "astrolabe.workspace";
+const PREVIEW_KEY = "astrolabe.preview";
+const SIDE_KEY = "astrolabe.sidebarSide";
+const SIDEBAR_COLLAPSED_KEY = "astrolabe.sidebarCollapsed";
 
 /** The drawer breakpoint, mirrored from app.css's `@media (max-width: 999px)`.
  *  At and below it the sidebar leaves the grid and becomes an overlay drawer
@@ -149,8 +149,8 @@ export const DRAWER_QUERY = "(max-width: 999px)";
 export function sidebarIsDrawer(): boolean {
   return typeof window !== "undefined" && window.matchMedia(DRAWER_QUERY).matches;
 }
-const PANEL_COLLAPSED_KEY = "vellum.panelCollapsed";
-const ZEN_KEY = "vellum.zen";
+const PANEL_COLLAPSED_KEY = "astrolabe.panelCollapsed";
+const ZEN_KEY = "astrolabe.zen";
 
 /** The empty folder→glyph map, shared. One frozen object rather than a fresh
  *  `{}` per loadMe: TreeRow is memoized over 1.4k rows, and the overwhelming
@@ -240,7 +240,7 @@ export interface State {
 
   // ------------------------------------------------------------- shell layout
   /** The reader's stored choice: "auto" (the default — follow the language),
-   *  or an explicit "left"/"right" pin. Persisted as "vellum.sidebarSide". */
+   *  or an explicit "left"/"right" pin. Persisted as "astrolabe.sidebarSide". */
   sidebarSidePref: SidebarSidePref;
   /** The edge the sidebar is on RIGHT NOW: the pref with "auto" resolved
    *  against the active language. Derived — never persisted, never set
@@ -304,9 +304,9 @@ export interface State {
   /** THIS SESSION'S chrome language — not necessarily the site's. "ar"
    *  mirrors the whole chrome RTL; every component rendering t() strings
    *  subscribes to this so a live settings change re-renders the chrome in
-   *  place. An admin reads their own `vellum.editorLang` (Settings →
+   *  place. An admin reads their own `astrolabe.editorLang` (Settings →
    *  Appearance & language → Editor language), a visitor their own
-   *  `vellum.lang` when the instance offers the switch, and everyone else
+   *  `astrolabe.lang` when the instance offers the switch, and everyone else
    *  settings.language / SITE_LANG; `langPref.ts::chromeLang` is the one
    *  place that rule lives. What the SITE publishes in is a settings value
    *  (`/api/settings` → `effective.language`), never this field — reading
@@ -349,7 +349,7 @@ export interface State {
    *  direction only). Ignored unless `languageToggle` is on. */
   setVisitorLang(lang: Lang): void;
   /** The admin's stored editor-language PREFERENCE: null (the default —
-   *  follow the site) or an explicit pin. Persisted as "vellum.editorLang".
+   *  follow the site) or an explicit pin. Persisted as "astrolabe.editorLang".
    *  Held here as well as in localStorage for the same reason
    *  `sidebarSidePref` is: the segmented control has to show which of the
    *  three states is in force, and "which one did I pick?" is not answerable
@@ -658,7 +658,7 @@ function flushMirror(): void {
       // Never a toast: the owner did not ask for this write, they asked for a
       // theme — and they got it. A failed mirror only means visitors keep the
       // previous default until the next pick.
-      console.warn("vellum: mirroring the editor theme failed", err);
+      console.warn("astrolabe: mirroring the editor theme failed", err);
     });
 }
 
@@ -683,16 +683,16 @@ function mirrorTheme(theme: ThemeChoice): void {
   window.addEventListener("pagehide", flushMirror, { once: true });
 }
 
-/** Add (or drop) the instance stylesheet link for VELLUM_DATA/custom.css.
+/** Add (or drop) the instance stylesheet link for ASTROLABE_DATA/custom.css.
  *  Appended to <head> so it lands after every built-in stylesheet and its
  *  rules win ties — that is the whole point of a custom.css. */
 function ensureCustomCss(enabled: boolean): void {
-  const existing = document.head.querySelector("link[data-vellum-custom]");
+  const existing = document.head.querySelector("link[data-astrolabe-custom]");
   if (enabled && !existing) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "/api/custom.css";
-    link.setAttribute("data-vellum-custom", "");
+    link.setAttribute("data-astrolabe-custom", "");
     document.head.appendChild(link);
   } else if (!enabled && existing) {
     existing.remove();
@@ -707,7 +707,7 @@ function ensureCustomCss(enabled: boolean): void {
  *  hand-written --font-serif override still wins — the escape hatch outranks
  *  the catalog, never the other way round. */
 function ensureSiteFonts(sig: string | null): void {
-  const existing = document.head.querySelector<HTMLLinkElement>("link[data-vellum-fonts]");
+  const existing = document.head.querySelector<HTMLLinkElement>("link[data-astrolabe-fonts]");
   if (sig === null) {
     existing?.remove();
     return;
@@ -720,8 +720,8 @@ function ensureSiteFonts(sig: string | null): void {
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = href;
-  link.setAttribute("data-vellum-fonts", "");
-  const custom = document.head.querySelector("link[data-vellum-custom]");
+  link.setAttribute("data-astrolabe-fonts", "");
+  const custom = document.head.querySelector("link[data-astrolabe-custom]");
   if (custom) document.head.insertBefore(link, custom);
   else document.head.appendChild(link);
 }
@@ -888,7 +888,7 @@ function persistWorkspace(ws: Workspace): void {
 /** The stored workspace, or null. `parseWorkspace` is TOTAL — it never throws
  *  and recovers the reader's open notes out of a layout it cannot otherwise
  *  understand — so the only null here means "nothing stored", and the caller
- *  falls back to `vellum.tabs`. */
+ *  falls back to `astrolabe.tabs`. */
 function readStoredWorkspace(): Workspace | null {
   try {
     const raw = localStorage.getItem(WORKSPACE_KEY);
@@ -1077,7 +1077,7 @@ function deletedToast(
         );
       })
       .catch((err: unknown) => {
-        console.error("vellum: undoing a delete failed", err);
+        console.error("astrolabe: undoing a delete failed", err);
         toast(t("restoreFailed"), "error");
       });
   });
@@ -1107,7 +1107,7 @@ async function guarded(
   try {
     await fn();
   } catch (err) {
-    console.error(`vellum: ${label} failed`, err);
+    console.error(`astrolabe: ${label} failed`, err);
     toast(failMessage ?? t("actionFailed"), "error");
   }
 }
@@ -1125,7 +1125,7 @@ export const useStore = create<State>()((set, get) => {
     await get().loadTree();
     const tree = get().tree;
     const existing = new Set(collectNotes(tree).map((n) => n.path));
-    // The workspace first, `vellum.tabs` as the fallback — which is what makes
+    // The workspace first, `astrolabe.tabs` as the fallback — which is what makes
     // the upgrade invisible: an instance that has never seen this build has no
     // workspace key, and its tab list becomes a one-pane workspace holding
     // exactly the notes it had open. Nobody's session is spent on the upgrade.
@@ -1160,7 +1160,7 @@ export const useStore = create<State>()((set, get) => {
         get().openNote(path);
         return;
       }
-      console.warn(`vellum: home note "${home}" not found in the vault`);
+      console.warn(`astrolabe: home note "${home}" not found in the vault`);
     }
     // FIRST RUN (v1.8 audit, F1). No session to restore and no home note set,
     // and the app opened onto "The vault is open." with the seed's guide
@@ -1218,7 +1218,7 @@ export const useStore = create<State>()((set, get) => {
     publicFoldersNav: false,
     topicsMode: "tags",
     library: null,
-    siteName: "Vellum",
+    siteName: "Astrolabe",
     language: "en",
     siteLanguage: "en",
     editorLangPref: readEditorLang(),
@@ -1454,7 +1454,7 @@ export const useStore = create<State>()((set, get) => {
           topicsMode: me.topics === "folders" ? "folders" : "tags",
           library: me.library ?? null,
           publishedCounts: me.published ?? null,
-          siteName: me.siteName?.trim() || "Vellum",
+          siteName: me.siteName?.trim() || "Astrolabe",
           language,
           siteLanguage: siteLang,
           publicLayout:
@@ -1552,7 +1552,7 @@ export const useStore = create<State>()((set, get) => {
         ensureFavicon(me.favicon === true);
       } catch (err) {
         // Server unreachable/old — behave like open local mode.
-        console.error("vellum: fetching /api/me failed", err);
+        console.error("astrolabe: fetching /api/me failed", err);
         set({ admin: true, publicReads: true, authProtected: false });
       }
     },
@@ -1703,7 +1703,7 @@ export const useStore = create<State>()((set, get) => {
         const publishedPaths = await api.getPublishedPaths();
         set({ publishedPaths });
       } catch (err) {
-        console.error("vellum: loading published set failed", err);
+        console.error("astrolabe: loading published set failed", err);
       }
     },
 
@@ -1816,7 +1816,7 @@ export const useStore = create<State>()((set, get) => {
         const [tree, aliases] = await Promise.all([
           api.getTree(),
           api.getAliases().catch((err: unknown) => {
-            console.error("vellum: loading the alias table failed", err);
+            console.error("astrolabe: loading the alias table failed", err);
             return null;
           }),
         ]);
@@ -2105,7 +2105,7 @@ export const useStore = create<State>()((set, get) => {
         // Ignore stale responses if the open note changed mid-flight.
         if (get().openPath === openPath) set({ backlinks });
       } catch (err) {
-        console.error("vellum: loading backlinks failed", err);
+        console.error("astrolabe: loading backlinks failed", err);
       }
     },
 
@@ -2154,7 +2154,7 @@ export const useStore = create<State>()((set, get) => {
               .addAlias(toPath, oldTitle)
               .then(() => toast(tf("renameAliasKeptToast", { title: oldTitle })))
               .catch((err: unknown) => {
-                console.error("vellum: keeping the old title as an alias failed", err);
+                console.error("astrolabe: keeping the old title as an alias failed", err);
                 toast(tf("renameAliasFailed", { title: oldTitle }), "error");
               });
           });
@@ -2257,7 +2257,7 @@ useStore.subscribe((s, prev) => {
   if (!s.authReady) return;
   if (s.workspace !== prev.workspace) persistWorkspace(s.workspace);
   if (s.openTabs !== prev.openTabs || s.openPath !== prev.openPath) {
-    // `vellum.tabs` is still written, and deliberately: it costs a few bytes
+    // `astrolabe.tabs` is still written, and deliberately: it costs a few bytes
     // and buys a downgrade that does not strand anyone. A build without panes
     // still finds a session it understands.
     persistTabs(s.openTabs, s.openPath);

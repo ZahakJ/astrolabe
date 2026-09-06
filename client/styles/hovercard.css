@@ -1,4 +1,4 @@
-/* Vellum — shared hover-preview popover (client/hovercard.ts).
+/* Astrolabe — shared hover-preview popover (client/hovercard.ts).
    A small leaf of the note floating beside its link: hairline border, raised
    ground, gold-leaf title rule. Every color is a token, so all four themes
    carry it; every directional edge is logical, so it mirrors under dir="rtl".

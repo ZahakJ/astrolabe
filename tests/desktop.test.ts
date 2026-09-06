@@ -6,7 +6,7 @@
 // parts with a decision in them are written as pure modules and proved here,
 // and what is left in the Electron-facing files is wiring:
 //
-//   electron/deeplink.ts  what a `vellum://` link and a double-clicked file are
+//   electron/deeplink.ts  what a `astrolabe://` link and a double-clicked file are
 //                         ALLOWED to name. Hostile input; the refusals are the
 //                         product.
 //   electron/prefs.ts     the port a vault gets, which decides whether the
@@ -63,7 +63,7 @@ describe("noteRef", () => {
   });
 
   it("refuses every shape of escape", () => {
-    // A `vellum://` URL can be opened by any page in any browser with no
+    // A `astrolabe://` URL can be opened by any page in any browser with no
     // prompt. Each of these is a file outside the vault.
     for (const evil of [
       "../secrets.md",
@@ -99,39 +99,39 @@ describe("noteRef", () => {
 
 describe("parseDeepLink", () => {
   it("reads the two spellings a link in the wild actually has", () => {
-    assert.deepEqual(parseDeepLink("vellum://note?path=Ideas/A.md"), {
+    assert.deepEqual(parseDeepLink("astrolabe://note?path=Ideas/A.md"), {
       vault: null,
       note: "Ideas/A.md",
     });
-    assert.deepEqual(parseDeepLink("vellum:///note?path=Ideas/A.md"), {
+    assert.deepEqual(parseDeepLink("astrolabe:///note?path=Ideas/A.md"), {
       vault: null,
       note: "Ideas/A.md",
     });
   });
 
   it("carries a vault and a note together", () => {
-    const link = parseDeepLink("vellum://open?vault=/home/me/vault&note=A.md");
+    const link = parseDeepLink("astrolabe://open?vault=/home/me/vault&note=A.md");
     assert.equal(link?.note, "A.md");
     assert.equal(link?.vault, path.normalize("/home/me/vault"));
   });
 
-  it("refuses anything that is not a vellum link", () => {
+  it("refuses anything that is not an astrolabe link", () => {
     assert.equal(parseDeepLink("https://example.com/"), null);
     assert.equal(parseDeepLink("file:///etc/passwd"), null);
     assert.equal(parseDeepLink("not a url"), null);
-    assert.equal(parseDeepLink("vellum://delete?path=A.md"), null);
-    assert.equal(parseDeepLink("vellum://open"), null); // names nothing
+    assert.equal(parseDeepLink("astrolabe://delete?path=A.md"), null);
+    assert.equal(parseDeepLink("astrolabe://open"), null); // names nothing
   });
 
   it("drops a bad note but keeps a good vault", () => {
-    const link = parseDeepLink("vellum://open?vault=/home/me/vault&note=../../x.md");
+    const link = parseDeepLink("astrolabe://open?vault=/home/me/vault&note=../../x.md");
     assert.equal(link?.note, null);
     assert.equal(link?.vault, path.normalize("/home/me/vault"));
   });
 
   it("refuses a relative vault", () => {
     // An absolute path is the only kind that means one directory.
-    assert.equal(parseDeepLink("vellum://open?vault=../../..")?.vault ?? null, null);
+    assert.equal(parseDeepLink("astrolabe://open?vault=../../..")?.vault ?? null, null);
   });
 });
 
@@ -144,7 +144,7 @@ describe("knownVault", () => {
   });
 
   it("refuses a directory nothing has opened", () => {
-    // THE rule. Without it, `vellum://open?vault=/` is a link that makes the
+    // THE rule. Without it, `astrolabe://open?vault=/` is a link that makes the
     // app index and serve the reader's entire disk.
     assert.equal(knownVault("/", known), null);
     assert.equal(knownVault(path.resolve("/home/me"), known), null);
@@ -356,9 +356,9 @@ describe("onSomeDisplay", () => {
 describe("parseSessionCookie", () => {
   it("reads the name, the value and the lifetime the SERVER chose", () => {
     const cookie = parseSessionCookie(
-      "vellum_session=v2.1.1770000000000.abc; Max-Age=604800; Path=/; HttpOnly; SameSite=Lax",
+      "astrolabe_session=v2.1.1770000000000.abc; Max-Age=604800; Path=/; HttpOnly; SameSite=Lax",
     );
-    assert.equal(cookie?.name, "vellum_session");
+    assert.equal(cookie?.name, "astrolabe_session");
     assert.equal(cookie?.value, "v2.1.1770000000000.abc");
     // 7 days, and nothing in electron/ says "7" anywhere.
     assert.equal(cookie?.maxAge, 604800);
@@ -387,7 +387,7 @@ describe("the IPC register", () => {
   it("names every channel exactly once, in one namespace", () => {
     const all = [...Object.values(TO_MAIN), ...Object.values(TO_RENDERER)];
     assert.equal(new Set(all).size, all.length, "a channel name is used twice");
-    for (const channel of all) assert.match(channel, /^vellum:[a-z-]+$/);
+    for (const channel of all) assert.match(channel, /^astrolabe:[a-z-]+$/);
   });
 
   it("has no command the menu could send that is not spelled here", () => {
@@ -400,11 +400,11 @@ describe("the data-dir override", () => {
   it("parses only an absolute path, and survives a round trip", () => {
     const prefs = parsePrefs({
       vaults: [
-        { path: "/v/a", port: 6821, lastOpened: 5, data: "/srv/vellum-data" },
+        { path: "/v/a", port: 6821, lastOpened: 5, data: "/srv/astrolabe-data" },
         { path: "/v/b", port: 6822, lastOpened: 4, data: "relative/nope" },
       ],
     });
-    assert.equal(prefs.vaults[0].data, "/srv/vellum-data");
+    assert.equal(prefs.vaults[0].data, "/srv/astrolabe-data");
     assert.equal(prefs.vaults[1].data, undefined);
   });
 
@@ -413,10 +413,10 @@ describe("the data-dir override", () => {
     // rewrite dropped it, the vault silently reverted to an empty per-app
     // home, and the desktop "lost" the reader's settings.
     let prefs = parsePrefs({
-      vaults: [{ path: "/v/a", port: 6821, lastOpened: 5, data: "/srv/vellum-data" }],
+      vaults: [{ path: "/v/a", port: 6821, lastOpened: 5, data: "/srv/astrolabe-data" }],
     });
     prefs = rememberVault(prefs, "/v/a", 6823, 99);
-    assert.equal(prefs.vaults[0].data, "/srv/vellum-data");
+    assert.equal(prefs.vaults[0].data, "/srv/astrolabe-data");
     assert.equal(prefs.vaults[0].port, 6823);
   });
 });

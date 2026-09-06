@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The editor &amp; reading view · Vellum Documentation</title>
-<meta name="description" content="What the live-preview editor does, what markdown Vellum renders, and how you get around the vault.">
+<title>The editor &amp; reading view · Astrolabe Documentation</title>
+<meta name="description" content="What the live-preview editor does, what markdown Astrolabe renders, and how you get around the vault.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
@@ -13,18 +13,18 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
-  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
   <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../ar/editor/" hreflang="ar">العربية</a>
   <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link is-current" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="the-editor-reading-view">The editor &amp; reading view</h1>
-<p><em>What the live-preview editor does, what markdown Vellum renders, and how you get around the vault.</em></p>
+<p><em>What the live-preview editor does, what markdown Astrolabe renders, and how you get around the vault.</em></p>
 <hr>
 <p><figure><img src="../../../screenshots/hero-editor.png" alt="The live-preview editor" loading="lazy"></figure></p>
 <h2 id="writing"><a class="anchor" href="#writing">Writing</a></h2>
@@ -175,7 +175,7 @@ moves with it</p>
 </li>
 <li><p><strong>Rename a heading and the links follow</strong> — <code>[[Note#Heading]]</code> links break silently when the
 heading is renamed: the link still opens the note and quietly lands at the top. When a save
-renames a heading other notes point into, Vellum says so — <em>&quot;3 links point at “Introduction”.
+renames a heading other notes point into, Astrolabe says so — <em>&quot;3 links point at “Introduction”.
 Update them to “Preface”?&quot;</em> — and one button repairs them all. It is always an offer, never
 automatic, and it too carries an Undo</p>
 </li>
@@ -259,7 +259,7 @@ press the pen on the floating toolbar (or <strong>Annotate</strong> in the right
 an ink and you write what you want to say about it. The words stay marked in both views, editor
 and reading, in their ink with a line under them. Rest the pointer on a mark and the note appears;
 click it to edit the note, change its ink, show or hide it from readers, or delete it. The note itself is never touched. Annotations live beside the
-vault in <code>VELLUM_DATA/annotations.json</code>, anchored by the passage&#39;s own words (with a little context
+vault in <code>ASTROLABE_DATA/annotations.json</code>, anchored by the passage&#39;s own words (with a little context
 either side), so they survive the note being edited above them, moved, renamed, or rendered in a
 different face. A passage that is gone is listed under the prose as no longer in the note.</p>
 <p>Click a mark to read, edit, recolour or delete it, or open it from the list under the prose. Each
@@ -279,9 +279,9 @@ says it instead. <a href="../publishing/#preview-as-visitor">Visitor preview</a>
 pushes the page down — it never covers the layout you opened it to judge — and it never survives a
 reload.</p>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/editor.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/editor.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/desktop/"><span class="pager__kicker">Previous</span><span class="pager__title">The desktop app</span></a><a class="pager__link pager__link--next" href="../../en/templates-and-notes/"><span class="pager__kicker">Next</span><span class="pager__title">Templates, banners &amp; notes</span></a></nav>
-    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
   <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#rendering">Rendering</a><a class="toc__link toc__link--2" href="#navigating">Navigating</a><a class="toc__link toc__link--2" href="#find-and-replace">Find and replace</a><a class="toc__link toc__link--2" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a><a class="toc__link toc__link--2" href="#arranging-the-tree">Arranging the tree</a><a class="toc__link toc__link--2" href="#the-two-side-panes">The two side panes</a><a class="toc__link toc__link--2" href="#folder-marks">Folder marks</a><a class="toc__link toc__link--2" href="#notes-to-self">Notes to self</a><a class="toc__link toc__link--2" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></aside>
 </div>

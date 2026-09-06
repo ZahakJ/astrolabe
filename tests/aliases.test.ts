@@ -1,6 +1,6 @@
 // Frontmatter `aliases:` — the OTHER names a note answers to.
 //
-// The README invites the reader to point Vellum at an existing Obsidian vault.
+// The README invites the reader to point Astrolabe at an existing Obsidian vault.
 // In one of those, notes carry `aliases: [ML, machine-learning]` and are linked
 // as `[[ML]]`: before this table existed, every one of those links rendered
 // dashed and offered to create a duplicate note — in the first hour, to exactly
@@ -68,7 +68,7 @@ const root = makeVault({
 });
 
 before(async () => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(root);
   await initIndexer();
 });

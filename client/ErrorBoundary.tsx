@@ -35,15 +35,15 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, St
   override componentDidCatch(err: Error, info: ErrorInfo): void {
     // The component stack is the only thing that makes a minified production
     // stack legible, and it exists nowhere else.
-    console.error("vellum: render crashed", err, info.componentStack);
+    console.error("astrolabe: render crashed", err, info.componentStack);
     try {
       // How many went is written to the console rather than to the card: a
       // number on a crash screen invites arithmetic at the worst possible
       // moment, and the sentence a writer needs is "nothing of yours is
       // waiting", not "3 of 4".
-      console.info("vellum: buffers flushed by beacon", flushAllBuffers());
+      console.info("astrolabe: buffers flushed by beacon", flushAllBuffers());
     } catch (flushErr) {
-      console.error("vellum: could not flush buffers after a crash", flushErr);
+      console.error("astrolabe: could not flush buffers after a crash", flushErr);
     }
   }
 
@@ -53,7 +53,7 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, St
       <div className="s-crash" role="alert">
         <div className="s-crash__card">
           {/* The wordmark's star, as on every other empty surface: this is
-              still Vellum, and the page should look like it knows that. */}
+              still Astrolabe, and the page should look like it knows that. */}
           <div className="s-crash__glyph" aria-hidden="true">
             ✦
           </div>

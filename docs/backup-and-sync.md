@@ -7,7 +7,7 @@
 ---
 
 Your vault is a folder of markdown files, so the oldest, most portable backup there is also the
-best one: **git**. Vellum can commit the vault and push it to a remote you own — by hand, or
+best one: **git**. Astrolabe can commit the vault and push it to a remote you own — by hand, or
 every few minutes — and it stays completely off until you switch it on.
 
 > **Backup & sync needs an admin password in every mode.** Without one, anyone who can reach the
@@ -17,7 +17,7 @@ every few minutes — and it stays completely off until you switch it on.
 ## 1. Have a remote to push to
 
 Create an **empty, private** repository on whatever host you
-use (a self-hosted Forgejo/Gitea/GitLab, or one of the big ones). Empty matters: Vellum only
+use (a self-hosted Forgejo/Gitea/GitLab, or one of the big ones). Empty matters: Astrolabe only
 ever fast-forwards, so a remote that already has commits of its own will refuse to sync until
 you reconcile the two histories yourself. Copy its clone URL — either form works:
 
@@ -28,7 +28,7 @@ git@git.example.com:you/vault.git          # SSH: needs a key on this machine
 
 ## 2. Choose how this server signs in
 
-- **SSH keys (recommended).** Vellum stores **no secret at all**; it runs `git` as the user your
+- **SSH keys (recommended).** Astrolabe stores **no secret at all**; it runs `git` as the user your
   server runs as, and that user's own SSH key or agent does the authentication. Generate a key
   for the server (`ssh-keygen -t ed25519`), add the **public** half to your remote as a deploy
   key with write access, and confirm it works from a shell first — `ssh -T git@git.example.com`
@@ -39,7 +39,7 @@ git@git.example.com:you/vault.git          # SSH: needs a key on this machine
   full-account classic token. Paste it into Settings → Backup & sync → Access token, with
   the username it pairs with (many hosts ignore the username; put anything non-empty).
 
-**Where the token lives.** In `VELLUM_DATA/git-credentials.json`, mode `0600`, owned by the
+**Where the token lives.** In `ASTROLABE_DATA/git-credentials.json`, mode `0600`, owned by the
 server user. It is **never** written into `settings.json`, never into the vault, never into
 `.git/config`, and never into the remote URL — which is why the remote field refuses a URL with
 credentials baked in (`https://user:token@host/…`). At push time it reaches git through
@@ -70,9 +70,9 @@ one-click jump to the settings section. **Sync now** is in that panel and in the
 One pass is:
 
 1. optionally `fetch` + `merge --ff-only` — see below;
-2. `git add -A`, then `.trash/` (and `VELLUM_DATA`, if you put it inside the vault) are dropped
+2. `git add -A`, then `.trash/` (and `ASTROLABE_DATA`, if you put it inside the vault) are dropped
    back out of the index — see **What sync never stages** below;
-3. commit `vellum sync: <ISO timestamp>`, **skipped entirely when nothing changed**;
+3. commit `astrolabe sync: <ISO timestamp>`, **skipped entirely when nothing changed**;
 4. `git push`.
 
 ## Why pulls are fast-forward-only
@@ -80,11 +80,11 @@ One pass is:
 Because the alternative can corrupt your notes. A real
 merge of two diverged histories writes `<<<<<<<` conflict markers *into the markdown files*, and
 an unattended background job that does that to a thousand notes is a worse outcome than any
-missed backup. So Vellum never merges and never rebases (a `pull.rebase = true` in your own
+missed backup. So Astrolabe never merges and never rebases (a `pull.rebase = true` in your own
 gitconfig cannot change that — no `git pull` runs at all): if the remote has commits you do not
 have, the sync stops **before touching the working tree** and tells you the histories diverged.
 Nothing is committed, nothing is pushed, no note is modified. You then reconcile in a terminal,
-which is where a human belongs for that decision. Vellum never force-pushes.
+which is where a human belongs for that decision. Astrolabe never force-pushes.
 
 ## What sync never stages
 
@@ -93,8 +93,8 @@ anything is committed, **whatever your vault's own `.gitignore` says about them*
 
 | Path | Why |
 | --- | --- |
-| `.trash/` | Deleting a note, an attachment or a folder *moves* it here, and the whole promise of that is that it is a **local** bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: `Ctrl/Cmd P` → Open trash). Committing it makes every deletion permanent remote history, which is the opposite guarantee. The small `.vellum-trash.json` inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule. |
-| `VELLUM_DATA`, when it is inside the vault | It holds `settings.json`, the comments database and your git **access token**. |
+| `.trash/` | Deleting a note, an attachment or a folder *moves* it here, and the whole promise of that is that it is a **local** bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: `Ctrl/Cmd P` → Open trash). Committing it makes every deletion permanent remote history, which is the opposite guarantee. The small `.astrolabe-trash.json` inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule. |
+| `ASTROLABE_DATA`, when it is inside the vault | It holds `settings.json`, the comments database and your git **access token**. |
 
 This is enforced with `git rm --cached` against the index, not with an ignore rule, and the
 difference matters. An ignore rule is your file and your opinion: git's *last matching rule*
@@ -105,7 +105,7 @@ older build already pushed: the first sync after upgrading stages the removal, s
 leaves the tip of your branch on its own (it stays in the *history* — see the note about
 rewriting below).
 
-Vellum still *appends* `.trash/` and `.obsidian/workspace*.json` to your `.gitignore` if they
+Astrolabe still *appends* `.trash/` and `.obsidian/workspace*.json` to your `.gitignore` if they
 are missing, so a `git status` in a terminal is quiet too — but that is a courtesy, not the
 mechanism.
 
@@ -121,11 +121,11 @@ does *not* belong in a backup before the first push:
 ```
 
 Keep `.obsidian/` itself if you want your Obsidian settings backed up; drop the whole directory
-if you do not. **Never commit your instance data directory.** `VELLUM_DATA` (default `./data`)
+if you do not. **Never commit your instance data directory.** `ASTROLABE_DATA` (default `./data`)
 holds `settings.json`, comment data and the git token, so keep it *outside* the vault — that is
 the default, and this repository's own `.gitignore` already excludes `data/`.
 
-If you have pointed `VELLUM_DATA` inside the vault anyway, Vellum defends it four ways, and all
+If you have pointed `ASTROLABE_DATA` inside the vault anyway, Astrolabe defends it four ways, and all
 four run on an existing repository with an existing `.gitignore` (which is the normal case, not
 a special one): **Initialize repository** creates `.gitignore` or *appends* the data-directory
 rule to the one you already have; every sync re-checks the rule with `git check-ignore` and
@@ -169,7 +169,7 @@ drafts, and cannot read any of them.
 
 ## Two servers, one vault
 
-It is a perfectly ordinary thing to end up with **two Vellum servers over the same folder** — the
+It is a perfectly ordinary thing to end up with **two Astrolabe servers over the same folder** — the
 desktop app runs a server of its own, and plenty of people also keep one running as a systemd
 service so they can reach the vault from a browser. A `git pull`, Obsidian, Syncthing or a text
 editor writing into the same folder is the same situation with a different second writer.
@@ -189,7 +189,7 @@ reached the sleeping desktop app — and a browser's event stream replays nothin
 the laptop was shut. The refusal above is what kept the note safe. What was missing was any way to
 find out *before* trying to save.
 
-So Vellum now **re-checks when it wakes up**: when its connection to the server comes back, or when
+So Astrolabe now **re-checks when it wakes up**: when its connection to the server comes back, or when
 you return to a window that had been hidden, it asks the server for the current state of the notes
 you have open. Ones you have not touched reload silently; one with unsaved edits gets the same
 resolution strip immediately, while you are looking at it, instead of interrupting you later.
@@ -205,31 +205,31 @@ Two things worth knowing about the arrangement:
   The check is opt-in, and only clients that can handle a refusal ask for one.
 
 If you run two servers, point both at the same vault directory and give them **different data
-directories** (`VELLUM_DATA`) unless you also want them to share sessions and settings.
+directories** (`ASTROLABE_DATA`) unless you also want them to share sessions and settings.
 
 ### One sync at a time — across every server
 
 Notes are written one at a time; a **commit is written for the whole vault at once**, through a
-single `.git/index` that git guards with a lock of its own. Two Vellums committing the same folder
+single `.git/index` that git guards with a lock of its own. Two Astrolabes committing the same folder
 in the same second do not produce two backups — one of them dies with *"Another git process seems
 to be running in this repository"*, possibly having already staged half the vault. That is not
 hypothetical: it is why sync used to be worth running only by hand on a machine that also ran the
 desktop app.
 
 So a mutating pass — **Sync now**, **Snapshot now**, **Make it a repo**, and every scheduled tick —
-takes a lock file at `.git/vellum-sync.lock` first, and holds it until the pass is over. Only one
+takes a lock file at `.git/astrolabe-sync.lock` first, and holds it until the pass is over. Only one
 of them exists, so only one pass runs at a time **across every process sharing that vault**: the
 desktop app, a systemd service, a second terminal, a scheduled interval. This is what makes an
 automatic interval safe to leave switched on next to a desktop app.
 
-- **What contention looks like.** A **Sync now** that arrives while another Vellum is mid-pass is
-  not an error and does not retry: the backup panel's last line says *"Another Vellum is syncing
+- **What contention looks like.** A **Sync now** that arrives while another Astrolabe is mid-pass is
+  not an error and does not retry: the backup panel's last line says *"Another Astrolabe is syncing
   this vault (pid …) — this pass did nothing"*, naming the process that has it, and the status
   glyph reads as busy for as long as the other one is working. **Snapshot now** and **Make it a
   repo** answer `409` with the same sentence. A scheduled tick that finds the vault locked simply
   skips and tries again on the next one; it records nothing.
 - **How a crash recovers.** A lock file is not a file descriptor — nothing in the kernel removes it
-  when its owner dies — so a Vellum killed mid-sync would otherwise wedge backup forever. Any other
+  when its owner dies — so an Astrolabe killed mid-sync would otherwise wedge backup forever. Any other
   process may break the lock when **the process that took it is gone** (it records its pid and
   hostname, checked against the machine's own process table) or when **nothing has touched it for
   fifteen minutes**. Either way the break is logged as a warning naming the dead holder. A pass
@@ -252,9 +252,9 @@ automatic interval safe to leave switched on next to a desktop app.
   `GIT_CONFIG_COUNT`/`GIT_CONFIG_KEY_n`), `GIT_SSH`, `GIT_SSH_COMMAND`, `GIT_PROXY_COMMAND` and
   `GIT_EXTERNAL_DIFF` are all removed, so nothing in the server's own environment can point git
   at another repository, another config, or another transport. If you *need* a custom SSH
-  invocation — a specific deploy key, say — set **`VELLUM_GIT_SSH_COMMAND`** (e.g.
-  `VELLUM_GIT_SSH_COMMAND="ssh -i /path/to/vault_ed25519 -o IdentitiesOnly=yes"`) and
-  Vellum passes exactly that to git as `GIT_SSH_COMMAND`.
+  invocation — a specific deploy key, say — set **`ASTROLABE_GIT_SSH_COMMAND`** (e.g.
+  `ASTROLABE_GIT_SSH_COMMAND="ssh -i /path/to/vault_ed25519 -o IdentitiesOnly=yes"`) and
+  Astrolabe passes exactly that to git as `GIT_SSH_COMMAND`.
 - "Ahead / behind" has a third state. Until a fetch or a push has succeeded once there is no
   remote-tracking ref to compare against, and the panel says **"Nothing has reached the remote
   yet"** rather than "0 ahead · 0 behind" — which is what a fully backed-up vault reads.
@@ -262,10 +262,10 @@ automatic interval safe to leave switched on next to a desktop app.
   read the status — the branch, the dirty count and the remote host say too much about you.
 - Only one sync runs at a time, and that means *at a time on this vault*, not merely in this
   server: a second request inside the same process answers `409` immediately, and a pass started by
-  another Vellum over the same folder is held off by the lock file described above.
+  another Astrolabe over the same folder is held off by the lock file described above.
 - A failing scheduled sync is logged **once**, not once per tick.
-- If the machine has no git identity configured, commits are made as `Vellum
-  <vellum@localhost>`; set `user.name`/`user.email` in the vault (or globally) to use your own.
+- If the machine has no git identity configured, commits are made as `Astrolabe
+  <astrolabe@localhost>`; set `user.name`/`user.email` in the vault (or globally) to use your own.
 - The API, for anyone scripting it (admin-only): `GET /api/sync/status`, `POST /api/sync/init`,
   `POST /api/sync/now`, `POST /api/sync/snapshot` (a local commit, no network), plus the two
   read-only history routes — `GET /api/history?path=` and `GET /api/history/blob?path=&sha=`. The

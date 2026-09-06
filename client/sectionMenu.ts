@@ -1,6 +1,6 @@
 // The heading menu — one box, opened from three surfaces.
 //
-// Every heading in Vellum answers a right-click, and in the editor it also
+// Every heading in Astrolabe answers a right-click, and in the editor it also
 // carries a ⋯ affordance beside its fold chevron. Both open THIS menu, and so
 // does a right-click on an outline row, because an outline row IS a heading
 // and a reader who has just dragged one has their pointer on it already.

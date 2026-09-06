@@ -18,6 +18,7 @@ import { bootPayload, injectBoot } from "./boot.ts";
 import { injectPreloads, preloadTags } from "./preload.ts";
 import { faviconPath, migrateSettings } from "./settings.ts";
 import { initSite, publicLayout } from "./site.ts";
+import { reportEnvFallbacks } from "../shared/envName.ts";
 import { warmAuthorSites } from "./authorSites.ts";
 import { getSettings } from "./settings.ts";
 import { initComments } from "./comments.ts";
@@ -42,7 +43,7 @@ try {
   initAuth();
 } catch (err) {
   if (!(err instanceof ConfigError)) throw err;
-  console.error(`\nvellum: refusing to start.\n\n  ${err.message}\n`);
+  console.error(`\nastrolabe: refusing to start.\n\n  ${err.message}\n`);
   process.exit(1);
 }
 initSite();
@@ -54,6 +55,9 @@ initComments();
 // asks. Fire and forget: a dead site costs boot nothing.
 warmAuthorSites(getSettings().authorSites ?? []);
 initVault(vaultDir);
+// Astrolabe was Vellum: an .env that still spells its keys VELLUM_* keeps
+// working, and this is the one line that says so.
+reportEnvFallbacks();
 startWatcher();
 await initIndexer();
 // Backup & sync scheduler. Inert unless settings.gitSync is enabled with a
@@ -130,7 +134,7 @@ app.use("*", async (c, next) => {
   // Same three dimensions the API varies on (api.ts::VARY_ON): the injected
   // <head> is built from the visitor-visible post set, so under
   // `languageFilter: "follow"` it differs by reader language too.
-  if (!headers.has("Vary")) headers.set("Vary", "Cookie, X-Vellum-Preview, X-Vellum-Lang");
+  if (!headers.has("Vary")) headers.set("Vary", "Cookie, X-Astrolabe-Preview, X-Astrolabe-Lang, X-Vellum-Preview, X-Vellum-Lang");
 });
 
 // Dynamic responses (the JSON API, the feed) get compressed per request; the
@@ -157,7 +161,7 @@ app.get("/feed.xml", (c) => {
     // Same reason as every /api body: with PUBLIC=false this is a 401 without
     // a session and a full feed with one, off one URL — and now one feed per
     // ?lang= as well, which is a query dimension caches already key on.
-    "Vary": "Cookie, X-Vellum-Preview, X-Vellum-Lang",
+    "Vary": "Cookie, X-Astrolabe-Preview, X-Astrolabe-Lang, X-Vellum-Preview, X-Vellum-Lang",
   });
 });
 
@@ -171,7 +175,7 @@ app.get("/sitemap.xml", (c) => {
   return c.body(renderSitemap(requestOrigin(c), languageScope(c, true)), 200, {
     "Content-Type": "application/xml; charset=utf-8",
     "Cache-Control": "no-cache",
-    "Vary": "Cookie, X-Vellum-Preview, X-Vellum-Lang",
+    "Vary": "Cookie, X-Astrolabe-Preview, X-Astrolabe-Lang, X-Vellum-Preview, X-Vellum-Lang",
   });
 });
 
@@ -183,7 +187,7 @@ app.get("/robots.txt", (c) => {
   return c.body(renderRobots(requestOrigin(c), canRead(c)), 200, {
     "Content-Type": "text/plain; charset=utf-8",
     "Cache-Control": "no-cache",
-    "Vary": "Cookie, X-Vellum-Preview",
+    "Vary": "Cookie, X-Astrolabe-Preview, X-Vellum-Preview",
   });
 });
 
@@ -328,13 +332,13 @@ const FAULT_WINDOW_MS = 10_000;
 const faults: number[] = [];
 
 function survive(kind: string, err: unknown): void {
-  console.error(`vellum: ${kind} — the server is staying up:`, err);
+  console.error(`astrolabe: ${kind} — the server is staying up:`, err);
   const now = Date.now();
   faults.push(now);
   while (faults.length > 0 && now - faults[0] > FAULT_WINDOW_MS) faults.shift();
   if (faults.length < FAULT_BURST) return;
   console.error(
-    `vellum: ${faults.length} unhandled faults in ${FAULT_WINDOW_MS / 1000}s — exiting so this vault gets a clean process`,
+    `astrolabe: ${faults.length} unhandled faults in ${FAULT_WINDOW_MS / 1000}s — exiting so this vault gets a clean process`,
   );
   process.exit(1);
 }
@@ -346,7 +350,7 @@ serve({ fetch: app.fetch, port, hostname: host }, (info) => {
   // The port the OS actually gave us, not the one we asked for. They differ
   // when PORT=0, and a parent that is about to load `http://127.0.0.1:<port>`
   // needs the true one.
-  process.send?.({ type: "vellum:listening", port: info.port });
+  process.send?.({ type: "astrolabe:listening", port: info.port });
   const gold = "\x1b[33m";
   const dim = "\x1b[2m";
   const reset = "\x1b[0m";

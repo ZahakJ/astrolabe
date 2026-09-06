@@ -1,4 +1,4 @@
-/* Vellum — THE PRINTED PAGE. (v1.8, parity #3.)
+/* Astrolabe — THE PRINTED PAGE. (v1.8, parity #3.)
  *
  * Before this file there were zero `@media print` rules in twenty-seven
  * stylesheets, which means printing a note printed the ROOM: a viewport-locked
@@ -40,7 +40,7 @@
  * First, cascade ORDER is against it: `@import` is legal only at the top of a
  * file, so every rule in reading.css that names the same selector lands AFTER
  * these and wins at equal specificity. Second, and decisively, the last
- * stylesheet on any Vellum instance belongs to its owner — `VELLUM_DATA/
+ * stylesheet on any Astrolabe instance belongs to its owner — `ASTROLABE_DATA/
  * custom.css` and a custom theme's injected token block are both served at
  * runtime, after everything the build emits. A print sheet that can be turned
  * off by a `custom.css` rule about screen colour is not a print sheet, and

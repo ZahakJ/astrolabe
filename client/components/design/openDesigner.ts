@@ -27,6 +27,6 @@ export function openDesigner(): void {
   void import("./DesignerPanel.tsx")
     .then((mod) => mod.openDesigner())
     .catch((err: unknown) => {
-      console.error("vellum: loading the designer failed", err);
+      console.error("astrolabe: loading the designer failed", err);
     });
 }

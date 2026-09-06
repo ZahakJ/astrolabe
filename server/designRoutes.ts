@@ -189,7 +189,7 @@ designRoutes.get("/themes.css", (c) =>
  * is currently drawing and this answers it.
  *
  * THE FAMILY NAMES ARE THE LIVE SITE'S, not a "preview" prefix. The settings
- * panel's own preview sheet uses `VellumPreview…` because it has to sit BESIDE
+ * panel's own preview sheet uses `AstrolabePreview…` because it has to sit BESIDE
  * the saved families and show something different from them; here the whole
  * point is that the pane shows exactly what will ship, and the design's
  * `--dsg-head-font` names one family whether it is drawn in the preview frame,
@@ -209,7 +209,7 @@ designRoutes.get("/fonts.css", async (c) => {
     try {
       await ensureFontsCached([id]);
     } catch (err) {
-      console.warn(`vellum: the designer could not cache ${id}:`, err);
+      console.warn(`astrolabe: the designer could not cache ${id}:`, err);
     }
   }
   return c.body(await buildDesignFontCss(refs, slots), 200, {
@@ -237,7 +237,7 @@ function warmDesignFaces(doc: DesignDoc | null): void {
   const refs = doc ? designFontRefs(doc.chrome.typography) : activeDesignFontRefs();
   if (refs.length === 0) return;
   void ensureFontsCached(designCatalogIds(refs, fontSlots())).catch((err: unknown) => {
-    console.warn("vellum: could not cache a design's faces:", err);
+    console.warn("astrolabe: could not cache a design's faces:", err);
   });
 }
 

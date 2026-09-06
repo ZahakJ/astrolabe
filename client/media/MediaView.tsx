@@ -36,7 +36,7 @@ import "../styles/media.css";
 /** The event App.tsx raises for every vault change; the page re-reads the
  *  shelf on it, because a fence edited by hand in another window is still
  *  this page's business. */
-export const VAULT_EVENT = "vellum:vault";
+export const VAULT_EVENT = "astrolabe:vault";
 
 const SHELF_LABEL: Record<Shelf, I18nKey> = {
   show: "mediaSectionShow",

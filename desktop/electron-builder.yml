@@ -11,9 +11,9 @@
 # `extraMetadata.main` is how the entry point gets named without touching the
 # root package.json, which belongs to the web deployment and to npm.
 
-appId: dev.vellum.desktop
-productName: Vellum
-copyright: Vellum
+appId: dev.astrolabe.desktop
+productName: Astrolabe
+copyright: Astrolabe
 
 directories:
   app: ..
@@ -38,11 +38,11 @@ extraMetadata:
   # The deb target requires a homepage and a maintainer, and neither belongs in
   # the root package.json (see the header). Both are true values, not filler:
   # the project site the README links, and the identity every commit carries.
-  homepage: https://zahakj.github.io/vellum/
+  homepage: https://zahakj.github.io/astrolabe/
   author:
     name: ZahakJ
     email: 77855241+ZahakJ@users.noreply.github.com
-  desktopName: vellum.desktop
+  desktopName: astrolabe.desktop
 
 # Everything the spawned server can reach, and nothing else. The client's
 # SOURCE is not here — `dist/` is the built client, which is what the server
@@ -67,13 +67,15 @@ files:
   - "!**/*.map"
   - "!**/node_modules/**/{test,__tests__,tests,example,examples,doc,docs}/**"
 
-# `vellum://open?vault=…&note=…`. Registered here for the installer and again at
+# `astrolabe://open?vault=…&note=…`. Registered here for the installer and again at
 # runtime (electron/main.ts) so it also works from a dev checkout. What a link
 # is ALLOWED to do is decided in electron/deeplink.ts, not here: a vault
 # reference is honored only if the reader has already opened that vault.
+# `vellum://` is the scheme the app registered under its old name (Astrolabe
+# was Vellum — CONTRACTS.md, "The name"); a link written then still opens.
 protocols:
-  - name: Vellum
-    schemes: [vellum]
+  - name: Astrolabe
+    schemes: [astrolabe, vellum]
 
 # Double-clicking a note opens it in the vault that contains it — and asks,
 # rather than guessing, when no known vault does (electron/main.ts::openFile).

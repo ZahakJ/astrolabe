@@ -139,7 +139,7 @@ describe("parseRecents — the ledger as found on disk", () => {
     assert.deepEqual(parseRecents(null), []);
     assert.deepEqual(parseRecents("{not json"), []);
     assert.deepEqual(parseRecents('{"a":1}'), []);
-    assert.deepEqual(parseRecents('"vellum"'), []);
+    assert.deepEqual(parseRecents('"astrolabe"'), []);
   });
 
   it("drops malformed entries and keeps the healthy ones", () => {

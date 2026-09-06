@@ -96,7 +96,7 @@ setDirtyListener(markDirty);
  *  server (server/vault.ts::writeFailure) or by the registry itself, so this
  *  can say them in the reader's language. The first two used to arrive as a
  *  bare 500 and print "Failed to save X", which sends someone hunting for a
- *  bug in Vellum when the answer is a full disk or a vault that got remounted
+ *  bug in Astrolabe when the answer is a full disk or a vault that got remounted
  *  read-only. Everything else keeps the general sentence: a code we have not
  *  understood must not be dressed up as one we have. */
 const SAVE_ERROR_KEYS: Record<string, "saveDiskFull" | "saveReadOnly" | "saveStuck"> = {
@@ -128,7 +128,7 @@ setHeadingRepairListener((offer) => {
  *  holding that note can show the resolution strip. A window event rather
  *  than component state because the registry announces divergence from
  *  outside React, and the note may be open in more than one pane. */
-const DIVERGED_EVENT = "vellum:diverged";
+const DIVERGED_EVENT = "astrolabe:diverged";
 setDivergeListener((path) => {
   // A save was refused because the file changed underneath. Nothing was lost
   // and nothing was written; the reader's text is still in the buffer, which
@@ -431,8 +431,8 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
       });
       view.focus();
     };
-    window.addEventListener("vellum:goto-heading", onGoto);
-    return () => window.removeEventListener("vellum:goto-heading", onGoto);
+    window.addEventListener("astrolabe:goto-heading", onGoto);
+    return () => window.removeEventListener("astrolabe:goto-heading", onGoto);
   }, []);
 
   // "Find in note" from the palette (v1.8 audit, F19). CodeMirror's own search

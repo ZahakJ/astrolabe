@@ -7,7 +7,7 @@
 // answers each scope with a different shelf. Vault events mark it stale.
 //
 // PROGRESS IS THE READER'S, per browser. A lesson a reader opened is marked
-// read under `vellum.library` — never sent to the server, never shown to
+// read under `astrolabe.library` — never sent to the server, never shown to
 // anybody else. It is what lets a path page say "continue" and a shelf card
 // say "3 of 24", and it is exactly as private as a bookmark.
 
@@ -101,7 +101,7 @@ export function stepsOf(path: LibraryPath): LessonStep[] {
 
 // ── Progress ────────────────────────────────────────────────────────────────
 
-const PROGRESS_KEY = "vellum.library";
+const PROGRESS_KEY = "astrolabe.library";
 
 interface Progress {
   /** slug → note paths read. Paths rather than numbers, so a unit added in

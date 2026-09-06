@@ -2,7 +2,7 @@
 //
 // A `.md` note keeps its YAML `---` block (server/publish.ts, untouched). A
 // `.tex` note keeps a `%--- … %---%` COMMENT block, so the same file still
-// compiles: `pdflatex` sees two comment lines, Vellum sees `publish: true`.
+// compiles: `pdflatex` sees two comment lines, Astrolabe sees `publish: true`.
 // Every route that toggles publish or writes a `banner:` goes through here, so
 // neither of them has to know which kind of note it is holding.
 
@@ -82,7 +82,7 @@ function setTexFrontmatterLine(src: string, key: string, line: string | null): s
 
 /** The other names a note answers to — frontmatter `aliases:`.
  *
- *  The README invites the reader to point Vellum at an existing Obsidian
+ *  The README invites the reader to point Astrolabe at an existing Obsidian
  *  vault, and in one of those a note is routinely linked by a name that is not
  *  its filename. Three spellings reach this function from real vaults, because
  *  YAML gives three different values for what an author reads as one list:

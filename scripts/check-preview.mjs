@@ -29,7 +29,7 @@
 //      the same node count: the frame is built once and reconciled, which is
 //      also what keeps the author's scroll position.
 //
-//   PORT=6801 VELLUM_PASSWORD=… node scripts/check-preview.mjs
+//   PORT=6801 ASTROLABE_PASSWORD=… node scripts/check-preview.mjs
 //
 // It creates ONE design, uses it, and deletes it, putting the previously
 // active design back — on failure too.
@@ -40,8 +40,8 @@ const PORT = process.env.PORT || "6801";
 // 127.0.0.1, not localhost: Node resolves localhost to ::1 first and the
 // server binds 0.0.0.0 — the friendlier hostname fails against a healthy
 // instance. Same note check-design carries.
-const BASE = process.env.VELLUM_URL || `http://127.0.0.1:${PORT}`;
-const PASSWORD = process.env.VELLUM_PASSWORD || "";
+const BASE = (process.env.ASTROLABE_URL ?? process.env.VELLUM_URL) || `http://127.0.0.1:${PORT}`;
+const PASSWORD = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) || "";
 const SHOTS = process.env.SHOT_DIR || null;
 
 let failures = 0;
@@ -62,7 +62,7 @@ if (!(await probe.clone().json()).admin) {
   if (!PASSWORD) {
     console.error(
       "check-preview: this session is NOT an admin, and the designer is an admin panel.\n" +
-        `  Fix: VELLUM_PASSWORD=<the admin password> PORT=${PORT} node scripts/check-preview.mjs`,
+        `  Fix: ASTROLABE_PASSWORD=<the admin password> PORT=${PORT} node scripts/check-preview.mjs`,
     );
     process.exit(1);
   }
@@ -72,7 +72,7 @@ if (!(await probe.clone().json()).admin) {
     body: JSON.stringify({ password: PASSWORD }),
   });
   if (!login.ok) {
-    console.error(`check-preview: login failed (${login.status}). Wrong VELLUM_PASSWORD?`);
+    console.error(`check-preview: login failed (${login.status}). Wrong ASTROLABE_PASSWORD?`);
     process.exit(1);
   }
   cookie = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
@@ -197,7 +197,7 @@ if (home) {
       (el) => getComputedStyle(el).backgroundImage,
     );
     return {
-      sheets: document.head.querySelectorAll("[data-vellum-clone]").length,
+      sheets: document.head.querySelectorAll("[data-astrolabe-clone]").length,
       theme: document.documentElement.getAttribute("data-theme"),
       sections: document.querySelectorAll(".s-dsn-page > *").length,
       pictures: banners.filter((b) => b !== "none").length,
@@ -213,7 +213,7 @@ if (home) {
       // blinks raw HTML. If this attribute is missing the page is INVISIBLE,
       // which is worse than unstyled and must fail loudly.
       revealed:
-        document.documentElement.hasAttribute("data-vellum-ready") &&
+        document.documentElement.hasAttribute("data-astrolabe-ready") &&
         getComputedStyle(document.body).visibility === "visible",
     };
   });

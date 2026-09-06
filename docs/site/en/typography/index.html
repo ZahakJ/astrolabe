@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Typography · Vellum Documentation</title>
+<title>Typography · Astrolabe Documentation</title>
 <meta name="description" content="The self-hosted font catalog, the four slots, your own uploaded faces, and how Arabic and Latin share one paragraph.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,11 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
-  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
   <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../ar/typography/" hreflang="ar">العربية</a>
   <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link is-current" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
@@ -44,7 +44,7 @@ a compare-and-adjust loop; a preview the picker covers up previews nothing.</p>
 <h2 id="self-hosting-is-the-whole-design"><a class="anchor" href="#self-hosting-is-the-whole-design">Self-hosting is the whole design</a></h2>
 <p>When you save, the <em>server</em> fetches the chosen families once from Google Fonts (a <code>woff2</code> request,
 so you get <code>woff2</code> back), parses the <code>@font-face</code> blocks, downloads each face into
-<code>VELLUM_DATA/fonts/catalog/&lt;id&gt;/</code>, and records the parsed <code>unicode-range</code>s in a <code>meta.json</code> beside
+<code>ASTROLABE_DATA/fonts/catalog/&lt;id&gt;/</code>, and records the parsed <code>unicode-range</code>s in a <code>meta.json</code> beside
 them. From then on the browser only ever sees your server: <code>GET /api/site-fonts.css</code> is generated
 from the cache and every <code>src:</code> in it points at <code>/api/fonts/catalog/…</code> on this instance.
 <strong>No visitor&#39;s browser contacts an external host, ever</strong> — not for the fonts, not for the
@@ -55,7 +55,7 @@ and <code>settings.json</code> is left exactly as it was — so an offline box k
 already cached, and a save that only re-picks cached families still works with no network at all.</p>
 <h2 id="the-arabic-slot-is-per-character-not-per-language"><a class="anchor" href="#the-arabic-slot-is-per-character-not-per-language">The Arabic slot is per character, not per language</a></h2>
 <p>The generated stylesheet does not define three families and hope; it defines three <em>composites</em> —
-<code>VellumProse</code>, <code>VellumUI</code>, <code>VellumMono</code> — and lists the Arabic face&#39;s <code>@font-face</code> blocks <strong>first</strong>,
+<code>AstrolabeProse</code>, <code>AstrolabeUI</code>, <code>AstrolabeMono</code> — and lists the Arabic face&#39;s <code>@font-face</code> blocks <strong>first</strong>,
 narrowed to the Arabic unicode blocks, with the Latin face&#39;s blocks after and those same ranges
 carved out of them. The two sets are disjoint, so the browser&#39;s per-character font matching does
 the rest: in</p>
@@ -82,7 +82,7 @@ the Arabic type-metric compensation that <code>:root[lang=&quot;ar&quot;]</code>
 <p>A catalog of twenty-seven Google families cannot be the whole answer for typography, and for
 Arabic it is not even close: the face a serious instance wants is usually one its owner licensed,
 and it is on nobody&#39;s CDN. So <strong>Settings → Typography → Your own fonts</strong> takes an upload.</p>
-<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>Formats</strong></td><td><code>.woff2</code>, <code>.woff</code>, <code>.ttf</code>, <code>.otf</code></td></tr><tr><td><strong>Size</strong></td><td>5 MB per file</td></tr><tr><td><strong>Stored in</strong></td><td><code>VELLUM_DATA/fonts/custom/</code> — outside the vault, and <code>VELLUM_DATA</code> is gitignored, so an uploaded face never lands in your notes repo or in a backup push</td></tr><tr><td><strong>Served from</strong></td><td><code>GET /api/fonts/custom/&lt;file&gt;</code> on this instance — same terms as the catalog cache: self-hosted, no external host, immutable caching</td></tr><tr><td><strong>Offered in</strong></td><td>all four slots, under <strong>Your fonts</strong></td></tr></tbody></table></div><p>The <strong>format is decided by the file&#39;s magic bytes</strong> (<code>wOF2</code>, <code>wOFF</code>, <code>0x00010000</code>, <code>true</code>,
+<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>Formats</strong></td><td><code>.woff2</code>, <code>.woff</code>, <code>.ttf</code>, <code>.otf</code></td></tr><tr><td><strong>Size</strong></td><td>5 MB per file</td></tr><tr><td><strong>Stored in</strong></td><td><code>ASTROLABE_DATA/fonts/custom/</code> — outside the vault, and <code>ASTROLABE_DATA</code> is gitignored, so an uploaded face never lands in your notes repo or in a backup push</td></tr><tr><td><strong>Served from</strong></td><td><code>GET /api/fonts/custom/&lt;file&gt;</code> on this instance — same terms as the catalog cache: self-hosted, no external host, immutable caching</td></tr><tr><td><strong>Offered in</strong></td><td>all four slots, under <strong>Your fonts</strong></td></tr></tbody></table></div><p>The <strong>format is decided by the file&#39;s magic bytes</strong> (<code>wOF2</code>, <code>wOFF</code>, <code>0x00010000</code>, <code>true</code>,
 <code>OTTO</code>) — never by the extension and never by the upload&#39;s content type, both of which are
 attacker-controlled text. A PNG renamed <code>.woff2</code> is a <code>400</code>, which matters because the file is
 about to be served back with a font MIME type. The header is then read for <strong>structure</strong>: a
@@ -124,14 +124,14 @@ none).</p>
 <h2 id="escape-hatch-unchanged"><a class="anchor" href="#escape-hatch-unchanged">Escape hatch, unchanged</a></h2>
 <p>For anything neither the catalog nor the uploader covers — a variable font you want to drive with
 a custom axis, a script-specific stack, a face you would rather wire by hand — drop the file in
-<code>VELLUM_DATA/fonts/</code> and name it from <code>custom.css</code> exactly as shown in
+<code>ASTROLABE_DATA/fonts/</code> and name it from <code>custom.css</code> exactly as shown in
 <a href="../theming/#bring-your-own-fonts-the-css-route">Theming</a>. That link is injected <em>after</em> the
 generated stylesheet, so a <code>custom.css</code> rule on <code>:root</code> wins over the catalog, the uploads and the
 defaults alike.</p>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/typography.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/typography.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/theming/"><span class="pager__kicker">Previous</span><span class="pager__title">Theming</span></a><a class="pager__link pager__link--next" href="../../en/arabic-and-rtl/"><span class="pager__kicker">Next</span><span class="pager__title">Arabic &amp; RTL</span></a></nav>
-    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
   <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#self-hosting-is-the-whole-design">Self-hosting is the whole design</a><a class="toc__link toc__link--2" href="#the-arabic-slot-is-per-character-not-per-language">The Arabic slot is per character, not per language</a><a class="toc__link toc__link--2" href="#and-at-the-right-size">And at the right size</a><a class="toc__link toc__link--2" href="#your-own-fonts">Your own fonts</a><a class="toc__link toc__link--2" href="#arabic-size-match">Arabic size match</a><a class="toc__link toc__link--2" href="#escape-hatch-unchanged">Escape hatch, unchanged</a></aside>
 </div>

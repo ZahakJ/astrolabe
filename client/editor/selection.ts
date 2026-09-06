@@ -129,7 +129,7 @@ export function inCode(state: EditorState, pos: number): boolean {
   return false;
 }
 
-/** CodeMirror's `groupAt` with Vellum's extras. Grapheme-cluster stepping is
+/** CodeMirror's `groupAt` with Astrolabe's extras. Grapheme-cluster stepping is
  *  what makes this correct for Arabic (a letter plus its harakat is one
  *  cluster), Persian (ZWNJ is Extend, so it stays inside the word), Devanagari
  *  matras and emoji — the same reason CodeMirror does it that way. */

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Templates, banners &amp; notes · Vellum Documentation</title>
+<title>Templates, banners &amp; notes · Astrolabe Documentation</title>
 <meta name="description" content="Note banners, Obsidian-compatible templates, heading sections, attachments and the trash.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,11 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
-  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
   <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../ar/templates-and-notes/" hreflang="ar">العربية</a>
   <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link is-current" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
@@ -32,7 +32,7 @@ the note in the editor and reading view, and in blog mode as the article hero an
 right-aligned thumbnail in the post list. A published note&#39;s banner attachment is automatically
 visitor-fetchable; unpublished notes&#39; attachments stay invisible as always.</p>
 <p><strong>Four forms are accepted, tried in this order</strong> — the same ladder every image reference in
-Vellum climbs, including the site logo and the dashboard hero:</p>
+Astrolabe climbs, including the site logo and the dashboard hero:</p>
 <div class="table"><table><thead><tr><th>What you write</th><th>What it finds</th></tr></thead><tbody><tr><td><code>banner: https://example.com/cover.jpg</code></td><td>the URL itself (https only — an <code>http://</code> banner would be mixed content, so it is refused rather than rendered)</td></tr><tr><td><code>banner: Media/cover.png</code></td><td>that exact path from the vault root</td></tr><tr><td><code>banner: cover.png</code> <em>(note in <code>Trips/</code>)</em></td><td><code>Trips/cover.png</code> — beside the note, where Obsidian keeps a note&#39;s own images. <code>img/cover.png</code> and <code>../shared/cover.png</code> work the same way</td></tr><tr><td><code>banner: cover.png</code> <em>(no such neighbour)</em></td><td>any <code>cover.png</code> in the vault, resolved exactly as <code>![[cover.png]]</code> resolves it: case-insensitive, shortest path wins</td></tr></tbody></table></div><p>A <strong>bare filename is the form most people write</strong>, and it used to be the one form that did not
 work — it was sent to the vault root and 404&#39;d — while wikilinks and embeds had always found a
 file by name from anywhere. It works now, and so does the note&#39;s own folder.</p>
@@ -48,10 +48,10 @@ write is a surgical one-line frontmatter edit —
 the rest of the file is untouched. Posts without a banner get a subtle generated gradient in
 the blog list and article hero (<code>BANNER_FALLBACK=none</code> turns that off).</p>
 <h2 id="templates"><a class="anchor" href="#templates">Templates</a></h2>
-<p>Point Vellum at a folder of template notes and it fills them in for you — the same syntax
+<p>Point Astrolabe at a folder of template notes and it fills them in for you — the same syntax
 Obsidian&#39;s core Templates plugin uses, so <strong>the templates in a vault you brought over work
 unmodified</strong>.</p>
-<p>The folder is <code>Settings → Publishing → Templates folder</code>. Leave it empty and Vellum finds one
+<p>The folder is <code>Settings → Publishing → Templates folder</code>. Leave it empty and Astrolabe finds one
 itself, as long as the answer is unambiguous: a folder called <code>Templates</code>, <code>_templates</code> or
 <code>قوالب</code>, with a leading ordering prefix allowed (<code>4 - Templates</code>, <code>04. Templates</code>). Two
 plausible candidates and no root-level tie-break means it stays unset rather than guessing —
@@ -66,7 +66,7 @@ that one is the browser&#39;s new tab, and <code>Ctrl/Cmd Shift T</code> reopens
 takeable.)</p>
 <p><strong>Placeholders</strong> — Obsidian&#39;s, plus two:</p>
 <div class="table"><table><thead><tr><th>Placeholder</th><th>Becomes</th></tr></thead><tbody><tr><td><code>{{date}}</code></td><td><code>2026-08-16</code></td></tr><tr><td><code>{{time}}</code></td><td><code>05:23</code></td></tr><tr><td><code>{{date:FORMAT}}</code> / <code>{{time:FORMAT}}</code></td><td>moment-style tokens: <code>YYYY MM DD HH mm ss</code>, <code>MMMM</code>/<code>MMM</code> month names, <code>dddd</code>/<code>ddd</code> weekdays, <code>A</code>/<code>a</code>, and <code>[literal text]</code> in brackets. Named formats too: <code>{{date:long}}</code>, <code>full</code>, <code>medium</code>, <code>short</code></td></tr><tr><td><code>{{title}}</code> / <code>{{Title}}</code></td><td>the new note&#39;s filename, as typed and in Title Case</td></tr><tr><td><code>{{hdate}}</code> / <code>{{date:hijri}}</code></td><td>the Umm al-Qura Hijri date</td></tr></tbody></table></div><p>Anything else is <strong>left exactly as written</strong> — <code>{{cursor}}</code>, a Templater expression, a stray
-<code>{{</code>. Blanking a token Vellum does not implement would destroy text you typed and hide the
+<code>{{</code>. Blanking a token Astrolabe does not implement would destroy text you typed and hide the
 fact that the template expects something we do not do.</p>
 <p>Dates follow the site&#39;s settings where a reader can see them and stay machine-shaped where
 something has to parse them: the named formats (<code>{{date:long}}</code>) and <code>{{hdate}}</code> use
@@ -82,7 +82,7 @@ that note; the template&#39;s are defaults). Identity keys (<code>id</code>, <co
 uuid, a 16-digit timestamp stays 16 digits. A template carrying <code>id:</code> used to hand the same id
 to every note ever made from it.</p>
 <p><strong>Template for new notes</strong> (also in Settings) applies one template to every note created from
-inside Vellum — <code>Ctrl/Cmd N</code>, the sidebar&#39;s <code>+</code>, the tree menu. Off by default: new notes are
+inside Astrolabe — <code>Ctrl/Cmd N</code>, the sidebar&#39;s <code>+</code>, the tree menu. Off by default: new notes are
 born empty, as they always were.</p>
 <h2 id="sections-fold-extract-move"><a class="anchor" href="#sections-fold-extract-move">Sections: fold, extract, move</a></h2>
 <ul>
@@ -133,7 +133,7 @@ own &quot;Delete file&quot; on their tree row, which they never had: removing on
 deleting the folder around it.</p>
 <p><strong>Trash browser</strong> — <code>Ctrl/Cmd P</code> → <strong>Open trash</strong>: everything in <code>.trash/</code>, what is inside it,
 how big it is and when it went, with <strong>Restore</strong> and a permanent erase per row plus &quot;Empty trash&quot;.
-Restore puts each entry back <strong>where it came from</strong> — Vellum records the origin at delete time —
+Restore puts each entry back <strong>where it came from</strong> — Astrolabe records the origin at delete time —
 and tells you up front when that spot is taken (it lands beside it) or unknown (it lands at the
 vault root). Admin-only, and <code>.trash/</code> is
 <a href="../backup-and-sync/#what-sync-never-stages">never committed to your git remote</a>.</p>
@@ -155,9 +155,9 @@ in a pinned <strong>New folder…</strong> row, named after whatever you typed i
 nowhere to put this&quot; is a folder away rather than a dead end; it does not offer your attachments
 folder as a home for a note.</p>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/templates-and-notes.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/templates-and-notes.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/editor/"><span class="pager__kicker">Previous</span><span class="pager__title">The editor &amp; reading view</span></a><a class="pager__link pager__link--next" href="../../en/latex/"><span class="pager__kicker">Next</span><span class="pager__title">LaTeX notes</span></a></nav>
-    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
   <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#note-banners">Note banners</a><a class="toc__link toc__link--2" href="#templates">Templates</a><a class="toc__link toc__link--2" href="#sections-fold-extract-move">Sections: fold, extract, move</a><a class="toc__link toc__link--2" href="#attachments">Attachments</a><a class="toc__link toc__link--2" href="#deleting-and-the-trash">Deleting, and the trash</a><a class="toc__link toc__link--2" href="#reorganizing-by-dragging">Reorganizing by dragging</a></aside>
 </div>

@@ -19,7 +19,9 @@
     radial-gradient(1px 1px at 70% 40%, #fff 60%, transparent 61%); opacity: .55; }
   svg.lines { position: absolute; inset: 0; opacity: .5; }
   .wrap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
-  .star { color: var(--hi); font-size: 44px; line-height: 1; text-shadow: 0 0 26px rgba(240,205,106,.8), 0 0 60px rgba(227,179,65,.45); margin-bottom: 10px; }
+  .mark { color: var(--accent); line-height: 0; margin-bottom: 14px; filter: drop-shadow(0 0 22px rgba(240,205,106,.55)); }
+  .rings { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border: 1px solid rgba(227,179,65,.14); border-radius: 50%; width: 520px; height: 520px; }
+  .rings.r2 { width: 700px; height: 700px; border-color: rgba(227,179,65,.08); }
   h1 { font-size: 132px; font-weight: 600; letter-spacing: .04em; line-height: 1; }
   h1 .br { color: var(--accent); font-size: .78em; vertical-align: 3px; }
   .rule { width: 560px; height: 1.5px; margin: 26px 0 22px; background: linear-gradient(90deg, transparent, var(--hi), transparent); }
@@ -32,11 +34,12 @@
     <path d="M120 520 L245 555 M1050 540 L1175 500 L1140 580" />
     <g fill="#9aa4b2" stroke="none"><circle cx="150" cy="120" r="2"/><circle cx="290" cy="90" r="2.5"/><circle cx="360" cy="50" r="2"/><circle cx="420" cy="140" r="2"/><circle cx="980" cy="95" r="2"/><circle cx="1060" cy="48" r="2.5"/><circle cx="1185" cy="80" r="2"/><circle cx="1110" cy="130" r="2"/><circle cx="120" cy="520" r="2"/><circle cx="245" cy="555" r="2"/><circle cx="1050" cy="540" r="2"/><circle cx="1175" cy="500" r="2.5"/><circle cx="1140" cy="580" r="2"/></g>
   </svg>
+  <div class="rings"></div><div class="rings r2"></div>
   <div class="wrap">
-    <div class="star">✦</div>
-    <h1><span class="br">[[</span> Vellum <span class="br">]]</span></h1>
+    <div class="mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="110" height="110" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><circle cx="50" cy="55" r="16" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/><path d="M68.74 29.99 Q68.74 34.19 69.57 33.36 L72.94 34.19 Q68.74 34.19 69.57 35.02 L68.74 38.39 Q68.74 34.19 67.90 35.02 L64.54 34.19 Q68.74 34.19 67.90 33.36 Z" fill="currentColor" stroke="none"/></svg></div>
+    <h1><span class="br">[[</span> Astrolabe <span class="br">]]</span></h1>
     <div class="rule"></div>
-    <div class="tag">Your notes, published beautifully.</div>
+    <div class="tag">Your notes, charted.</div>
     <div class="list">editor · wikilinks · graph · publish · themes</div>
   </div>
 </body></html>

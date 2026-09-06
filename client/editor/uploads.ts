@@ -235,7 +235,7 @@ function undoEditorUploads(
         await deleteAttachment(item.file);
         removed++;
       } catch (err) {
-        console.error("vellum: undoing a pasted upload failed", err);
+        console.error("astrolabe: undoing a pasted upload failed", err);
       }
     }
     toast(
@@ -328,7 +328,7 @@ function startUploads(
       })
       .catch((err: unknown) => {
         labelById.delete(id);
-        console.error("vellum: image upload failed", err);
+        console.error("astrolabe: image upload failed", err);
         toast(err instanceof Error ? err.message : t("uploadFailed"));
         // The pill comes off whatever happens — THIS is the branch that used
         // to bail on `!view.dom.isConnected` and leave it there for the life

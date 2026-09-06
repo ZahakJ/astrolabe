@@ -31,10 +31,11 @@ import {
 import { existsSync, readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
+import { cpSync, existsSync } from "node:fs";
 import { TO_MAIN, TO_RENDERER, type Command, type Hello } from "./ipc.ts";
 import { keepSignedIn, mintCredential, signIn } from "./auth.ts";
 import type { Credential } from "./server.ts";
-import { PROTOCOL, knownVault, parseDeepLink, relativeNote, routeForNote, vaultForFile } from "./deeplink.ts";
+import { LEGACY_PROTOCOL, PROTOCOL, knownVault, parseDeepLink, relativeNote, routeForNote, vaultForFile } from "./deeplink.ts";
 import { applyMenu, trayMenu, type RecentEntry } from "./menu.ts";
 import { m, menuLang, mf, setMenuLang } from "./menuStrings.ts";
 import {
@@ -93,15 +94,40 @@ let quitting = false;
 // where it writes a registry key / a .desktop entry naming this executable. In
 // dev the executable is `electron`, so the argv it must be re-launched with is
 // spelled out — otherwise the OS registers "electron" itself as the handler for
-// every vellum:// link on the machine.
-if (process.defaultApp && process.argv.length >= 2) {
-  app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])]);
-} else {
-  app.setAsDefaultProtocolClient(PROTOCOL);
+// every astrolabe:// link on the machine.
+for (const scheme of [PROTOCOL, LEGACY_PROTOCOL]) {
+  if (process.defaultApp && process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient(scheme, process.execPath, [path.resolve(process.argv[1])]);
+  } else {
+    app.setAsDefaultProtocolClient(scheme);
+  }
+}
+
+// THE CONFIG DIRECTORY MOVES WITH THE NAME, AND CARRIES ITS CONTENTS. Electron
+// derives userData from the product name, so a renamed app would boot with no
+// recent vaults, no ports and no data-directory overrides — every window the
+// owner ever opened, forgotten. The first launch under the new name copies
+// `~/.config/vellum` (or `Vellum`) into `~/.config/astrolabe` when the new
+// directory does not exist yet. The old one is never touched: an older build
+// on the same machine keeps its own memory.
+{
+  const appData = app.getPath("appData");
+  const fresh = path.join(appData, "astrolabe");
+  if (!existsSync(fresh)) {
+    const old = ["vellum", "Vellum"].map((n) => path.join(appData, n)).find((p) => existsSync(p));
+    if (old) {
+      try {
+        cpSync(old, fresh, { recursive: true });
+      } catch (err) {
+        console.error("astrolabe: could not carry the old config directory over", err);
+      }
+    }
+  }
+  app.setPath("userData", fresh);
 }
 
 // SECOND LAUNCH IS NOT A SECOND APP. Double-clicking a `.md`, following a
-// `vellum://` link, or launching the app again while it is running all arrive
+// `astrolabe://` link, or launching the app again while it is running all arrive
 // as a second process; without the lock each of them would start its own server
 // on its own port, and the reader would have two windows on one vault with two
 // origins and therefore two sets of remembered tabs.
@@ -254,7 +280,7 @@ async function openVaultUnguarded(vault: string, route: string): Promise<void> {
   // vault's row with the port it actually got, and the dialog at the end of
   // this function has to name the one it LOST.
   const wantedPort = rememberedPort(vault, prefs);
-  if (!credential) throw new Error("vellum: no credential minted");
+  if (!credential) throw new Error("astrolabe: no credential minted");
   let server: VaultServer;
   // Declared OUTSIDE the try, deliberately: the sign-in and keep-alive
   // decisions after the catch read it. It lived inside once, and every open
@@ -268,12 +294,12 @@ async function openVaultUnguarded(vault: string, route: string): Promise<void> {
   // from prefs alone once the row has been rewritten.
   let dataDir = "";
   try {
-    // The prefs row may name an EXISTING Vellum home — the door that lets the
+    // The prefs row may name an EXISTING Astrolabe home — the door that lets the
     // desktop share settings, comments and reading state with a long-running
     // server deployment on the same vault. Its own per-vault home is the
     // default, and the fallback when an override has gone away. An env-linked
-    // home carries its deployment's `.env` beside it (vellum-prod/.env next to
-    // vellum-prod/data), and THAT is what makes the window the same site:
+    // home carries its deployment's `.env` beside it (astrolabe-prod/.env next to
+    // astrolabe-prod/data), and THAT is what makes the window the same site:
     // without it the child got a minted password and PUBLIC=false over the
     // shared data — the owner's password refused, the public layout "private".
     const override = prefs.vaults.find((v) => v.path === vault)?.data;
@@ -339,7 +365,7 @@ async function openVaultUnguarded(vault: string, route: string): Promise<void> {
       deployEnv !== null
         ? () => {}
         : keepSignedIn(ses, server.origin, credential, lifetime, (err) =>
-            console.error("vellum: could not refresh the desktop session:", err),
+            console.error("astrolabe: could not refresh the desktop session:", err),
           ),
     windows: new Set(),
     pendingRoute: null,
@@ -445,7 +471,7 @@ function onServerExit(vault: string, code: number | null, signal: NodeJS.Signals
   if (!instance.respawned && instance.windows.size > 0) {
     instance.respawned = true;
     console.error(
-      `vellum: the server for ${vault} exited (${code === null ? String(signal) : `code ${code}`}) — restarting it once`,
+      `astrolabe: the server for ${vault} exited (${code === null ? String(signal) : `code ${code}`}) — restarting it once`,
     );
     setTimeout(() => {
       void respawnServer(instance, code, signal);
@@ -502,7 +528,7 @@ async function respawnServer(
       instance.restart.deployEnv !== null
         ? () => {}
         : keepSignedIn(instance.session, server.origin, instance.credential, lifetime, (err) =>
-            console.error("vellum: could not refresh the desktop session:", err),
+            console.error("astrolabe: could not refresh the desktop session:", err),
           );
     savePrefs(rememberVault(loadPrefs(), instance.vault, server.port, Date.now()));
     for (const win of instance.windows) {
@@ -514,9 +540,9 @@ async function respawnServer(
         server.origin === was || !url.startsWith(was) ? url : server.origin + url.slice(was.length),
       );
     }
-    console.log(`vellum: ${instance.vault} is serving again on ${server.origin}`);
+    console.log(`astrolabe: ${instance.vault} is serving again on ${server.origin}`);
   } catch (err) {
-    console.error(`vellum: could not restart the server for ${instance.vault}:`, err);
+    console.error(`astrolabe: could not restart the server for ${instance.vault}:`, err);
     giveUpOnVault(instance, code, signal);
   }
 }
@@ -590,12 +616,12 @@ function deliver(instance: Instance, route: string): void {
 
 // ───────────────────────────────────────────────── deep links & associations
 
-/** Everything that can arrive on a command line: a `vellum://` URL, a note
+/** Everything that can arrive on a command line: a `astrolabe://` URL, a note
  *  path, or nothing. Windows and Linux deliver both this way, on first launch
  *  and on `second-instance` alike. */
 async function handleArgv(argv: string[]): Promise<void> {
   for (const arg of argv.slice(1)) {
-    if (arg.startsWith(`${PROTOCOL}://`)) {
+    if (arg.startsWith(`${PROTOCOL}://`) || arg.startsWith(`${LEGACY_PROTOCOL}://`)) {
       await openDeepLink(arg);
       return;
     }
@@ -610,14 +636,14 @@ async function handleArgv(argv: string[]): Promise<void> {
 }
 
 /**
- * A `vellum://` link. Hostile input by construction — any page in any browser
+ * A `astrolabe://` link. Hostile input by construction — any page in any browser
  * can navigate to one with no prompt — so the two refusals in
  * electron/deeplink.ts are the whole of the trust model:
  *
  *   · the note reference must stay inside the vault, and
  *   · the vault must be one this reader has ALREADY opened.
  *
- * The second is the one that matters. Without it, `vellum://open?vault=/` is a
+ * The second is the one that matters. Without it, `astrolabe://open?vault=/` is a
  * link that makes the app index and serve the reader's entire disk.
  */
 async function openDeepLink(url: string): Promise<void> {
@@ -843,7 +869,7 @@ function showAbout(): void {
   void dialog.showMessageBox({
     type: "info",
     title: m("menuAbout"),
-    message: `Vellum ${app.getVersion()}`,
+    message: `Astrolabe ${app.getVersion()}`,
     detail: `Electron ${process.versions.electron} · Chromium ${process.versions.chrome} · Node ${process.versions.node}`,
   });
 }
@@ -855,7 +881,7 @@ function installTray(): void {
   const image = nativeImage.createFromPath(ICON);
   if (image.isEmpty()) return; // no icon on disk (dev, before the build) — no tray
   tray = new Tray(image.resize({ width: 22, height: 22 }));
-  tray.setToolTip("Vellum");
+  tray.setToolTip("Astrolabe");
   tray.setContextMenu(
     trayMenu({
       show: () => {

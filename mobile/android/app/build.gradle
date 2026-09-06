@@ -14,11 +14,11 @@ if (hasKeystore) {
 }
 
 android {
-    namespace = "dev.vellum.mobile"
+    namespace = "dev.astrolabe.mobile"
     compileSdk = rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "dev.vellum.mobile"
+        applicationId "dev.astrolabe.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Kept in step with mobile/package.json, which is kept in step with the

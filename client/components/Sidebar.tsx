@@ -69,6 +69,7 @@ import { renderSnippet, snippetIsEmpty } from "./snippet.tsx";
 // menu, which is interaction time, and a lazy() boundary is what keeps its
 // twenty labels and its popover out of the admin first paint that
 // check-bundle measures (the same argument client/landing.ts makes above).
+import BrandMark from "./BrandMark.tsx";
 import FolderGlyph from "./FolderGlyph.tsx";
 import type { IconPickState } from "./FolderIconPicker.tsx";
 import type { LibraryPopState } from "./LibraryFolderPopover.tsx";
@@ -105,7 +106,7 @@ const CHUNK = 300;
 // The tree's attachment rows are a FILTER, not a fact of the vault: this
 // remembers whether the reader wants them. Default on — the whole point is
 // that files nobody could see were assumed lost.
-const SHOW_ATTACHMENTS_KEY = "vellum.show-attachments";
+const SHOW_ATTACHMENTS_KEY = "astrolabe.show-attachments";
 
 function loadShowAttachments(): boolean {
   try {
@@ -171,7 +172,7 @@ const SPRING_MS = 600;
 
 // Tags section collapse (tag-heavy vaults: the pill cloud can eat the tree's
 // room) — persisted like the tree's folder expansion.
-const TAGS_COLLAPSED_KEY = "vellum.tags-collapsed";
+const TAGS_COLLAPSED_KEY = "astrolabe.tags-collapsed";
 /** How many tag pills the shelf shows before it offers the rest (F17) — a
  *  dozen is about four rows in a 292px sidebar, which leaves the tree the pane.
  *  The pills arrive sorted by count, so the twelve shown are the twelve used. */
@@ -293,7 +294,7 @@ function visibleRows(container: HTMLElement): HTMLElement[] {
 // folder the reader opened stays open (the map remembers) so the cost is
 // one click per folder, once.
 // ---------------------------------------------------------------------------
-const EXPANDED_KEY = "vellum.tree-expanded";
+const EXPANDED_KEY = "astrolabe.tree-expanded";
 
 function loadExpanded(): Map<string, boolean> {
   try {
@@ -376,14 +377,14 @@ function expandAncestors(path: string): void {
  *  than store actions because the tree's expansion has never lived in the
  *  store — it is this module's own map — and the palette and the tab menu
  *  should not need a second copy of that fact. */
-export const TREE_ALL_EVENT = "vellum:tree-all";
-export const TREE_REVEAL_EVENT = "vellum:tree-reveal";
+export const TREE_ALL_EVENT = "astrolabe:tree-all";
+export const TREE_REVEAL_EVENT = "astrolabe:tree-reveal";
 
 // ---------------------------------------------------------------------------
 // Visitor topic sections: per-section collapse persists like the tree's
 // folder expansion (module map + localStorage; true = collapsed, default open).
 // ---------------------------------------------------------------------------
-const TOPICS_KEY = "vellum.topics-collapsed";
+const TOPICS_KEY = "astrolabe.topics-collapsed";
 
 function loadTopicsCollapsed(): Map<string, boolean> {
   try {
@@ -611,8 +612,8 @@ export default function Sidebar() {
       setHelpOpen(false);
       requestAnimationFrame(() => document.querySelector<HTMLInputElement>(".s-replace__input")?.focus());
     };
-    window.addEventListener("vellum:replace-open", onOpen);
-    return () => window.removeEventListener("vellum:replace-open", onOpen);
+    window.addEventListener("astrolabe:replace-open", onOpen);
+    return () => window.removeEventListener("astrolabe:replace-open", onOpen);
   }, []);
   /** The operator card. Open one at a time with replace mode: both hang off
    *  the same field, and two popovers over one input is a shell arguing with
@@ -801,7 +802,7 @@ export default function Sidebar() {
     focusSearch();
   }, [zen, sidebarCollapsed]);
 
-  // Ctrl/Cmd+K (App dispatches "vellum:quicksearch"): focus the search box.
+  // Ctrl/Cmd+K (App dispatches "astrolabe:quicksearch"): focus the search box.
   // If the chrome is out of the way, bring it back first — focusing a search
   // field the reader cannot see would swallow every keystroke that follows.
   useEffect(() => {
@@ -809,8 +810,8 @@ export default function Sidebar() {
       if (revealSidebar()) focusWhenShown.current = true;
       else focusSearch();
     };
-    window.addEventListener("vellum:quicksearch", onQuickSearch);
-    return () => window.removeEventListener("vellum:quicksearch", onQuickSearch);
+    window.addEventListener("astrolabe:quicksearch", onQuickSearch);
+    return () => window.removeEventListener("astrolabe:quicksearch", onQuickSearch);
   }, []);
 
   /** Chevron: fold or unfold one hit's match lines, fetching them once per
@@ -834,7 +835,7 @@ export default function Sidebar() {
           setHitMatches((cur) => new Map(cur).set(path, list));
         })
         .catch((err: unknown) => {
-          console.error("vellum: loading search matches failed", err);
+          console.error("astrolabe: loading search matches failed", err);
           if (matchQueryRef.current !== q) return;
           setHitMatches((cur) => new Map(cur).set(path, "error"));
         });
@@ -875,7 +876,7 @@ export default function Sidebar() {
     }
     const timer = window.setTimeout(() => {
       search(q).then(setHits).catch((err: unknown) => {
-        console.error("vellum: search failed", err);
+        console.error("astrolabe: search failed", err);
       });
     }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
@@ -892,14 +893,14 @@ export default function Sidebar() {
       revealSidebar();
       setQuery(detail);
     };
-    window.addEventListener("vellum:search", onSearch);
-    return () => window.removeEventListener("vellum:search", onSearch);
+    window.addEventListener("astrolabe:search", onSearch);
+    return () => window.removeEventListener("astrolabe:search", onSearch);
   }, []);
 
   // Tags track the tree: refetch whenever the vault changes shape/content.
   useEffect(() => {
     getTags().then(setTags).catch((err: unknown) => {
-      console.error("vellum: loading tags failed", err);
+      console.error("astrolabe: loading tags failed", err);
     });
   }, [tree]);
 
@@ -1456,7 +1457,7 @@ export default function Sidebar() {
               <img className="s-title__logo" src={logoSrc} alt={siteName} />
             ) : (
               <>
-                <span className="s-title__star" aria-hidden="true">✦</span>
+                <BrandMark size={16} className="s-title__mark" />
                 {siteName}
               </>
             )}
@@ -1467,7 +1468,7 @@ export default function Sidebar() {
               <img className="s-title__logo" src={logoSrc} alt={siteName} />
             ) : (
               <>
-                <span className="s-title__star" aria-hidden="true">✦</span>
+                <BrandMark size={16} className="s-title__mark" />
                 {siteName}
               </>
             )}
@@ -2534,7 +2535,7 @@ function TreeEmpty() {
         useStore.getState().openNote(guide);
       })
       .catch((err: unknown) => {
-        console.error("vellum: seeding the vault failed", err);
+        console.error("astrolabe: seeding the vault failed", err);
         toast(t("seedFailed"), "error");
       })
       .finally(() => setBusy(false));

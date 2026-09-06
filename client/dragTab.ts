@@ -24,7 +24,7 @@ export interface TabDrag {
   path: string;
 }
 
-export const TAB_MIME = "application/x-vellum-tab";
+export const TAB_MIME = "application/x-astrolabe-tab";
 
 let current: TabDrag | null = null;
 const subs = new Set<() => void>();

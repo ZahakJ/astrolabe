@@ -8,7 +8,7 @@
 
 A drawing is a file in the vault, in a format Excalidraw already speaks: the editor's own
 `.excalidraw` JSON, or the shape the Obsidian Excalidraw plugin writes into a markdown note,
-`.excalidraw.md`. Vellum did not invent a third one. Both open here as a full Excalidraw canvas in
+`.excalidraw.md`. Astrolabe did not invent a third one. Both open here as a full Excalidraw canvas in
 a pane, both save back into the same file, and both keep opening in Obsidian afterwards.
 
 A drawing is a **note** by every other measure: it sits in the tree with a pencil beside its name,
@@ -30,16 +30,16 @@ format:
 **From inside a note, type `/draw`.** The slash menu makes the drawing beside the note, named after it (`Essay sketch.excalidraw`, then `sketch 2`…), writes the `![[embed]]` where the caret was, and opens the canvas in a pane next to the note, so you draw with the prose in view and the embed fills in as you save. No separate note, nothing to paste.
 
 Type either extension yourself to choose. A drawing made in Obsidian, compressed or not, opens
-without conversion; when Vellum saves a plugin file it keeps the frontmatter, keeps the compression
+without conversion; when Astrolabe saves a plugin file it keeps the frontmatter, keeps the compression
 if the file had it, and lists the text elements under `## Text Elements` where the plugin does, so
-Obsidian's own search and links keep working on what Vellum drew.
+Obsidian's own search and links keep working on what Astrolabe drew.
 
 ## Drawing
 
-The menu in the corner (≡) carries the verbs a drawing in a vault has a use for: export an image, find on the canvas, the command palette, help, clear the canvas, and the canvas background. Excalidraw's own links and its theme switch are not there; the canvas follows Vellum's theme. Dialogs open centred on the canvas, not the window, and the sidebar stays clear.
+The menu in the corner (≡) carries the verbs a drawing in a vault has a use for: export an image, find on the canvas, the command palette, help, clear the canvas, and the canvas background. Excalidraw's own links and its theme switch are not there; the canvas follows Astrolabe's theme. Dialogs open centred on the canvas, not the window, and the sidebar stays clear.
 
 The canvas is Excalidraw, whole: shapes, arrows, freehand, text, images, the library, every one of
-its keys (`r` rectangle, `t` text, `v` select, `?` for the rest). It wears Vellum's room — dark or
+its keys (`r` rectangle, `t` text, `v` select, `?` for the rest). It wears Astrolabe's room — dark or
 light follows [the theme](theming.md) you are in — and speaks the
 [editor's language](arabic-and-rtl.md#your-editors-language-is-yours): an Arabic interface gets
 Excalidraw in Arabic, mirrored. Its fonts are served from this instance; no request leaves the
@@ -78,7 +78,7 @@ in the graph by what it links to, and in a note's backlinks when the drawing nam
 
 ## In Obsidian
 
-Everything here is the plugin's own format, so the plugin sees a drawing Vellum made as its own.
+Everything here is the plugin's own format, so the plugin sees a drawing Astrolabe made as its own.
 Obsidian's core app (without the plugin) shows a `.excalidraw.md` as a markdown note whose scene
 is folded in a `%%` comment, which is what the plugin's files have always looked like there. A
 plain `.excalidraw` is an attachment to Obsidian, as it always was. See

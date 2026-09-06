@@ -4,6 +4,7 @@
 // article), and a quiet footer. Owns the address bar in blog mode: pushState
 // navigation, popstate, per-page document.title.
 
+import BrandMark from "../components/BrandMark.tsx";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import type { PostMeta, PublicFolderCard } from "../../shared/types.ts";
@@ -228,14 +229,14 @@ export default function BlogShell() {
     };
     window.addEventListener("popstate", onPopState);
 
-    // Tag pills inside rendered notes dispatch "vellum:search" with "#tag" —
+    // Tag pills inside rendered notes dispatch "astrolabe:search" with "#tag" —
     // in blog mode that means the topic page.
     const onSearch = (ev: Event): void => {
       const detail = (ev as CustomEvent<string>).detail ?? "";
       const tag = detail.replace(/^#/, "").trim();
       if (tag) go(topicUrl(tag));
     };
-    window.addEventListener("vellum:search", onSearch);
+    window.addEventListener("astrolabe:search", onSearch);
 
     const unsubscribe = useStore.subscribe((s, prev) => {
       if (s.openPath && s.openPath !== prev.openPath) {
@@ -247,7 +248,7 @@ export default function BlogShell() {
     return () => {
       setNavHandler(null);
       window.removeEventListener("popstate", onPopState);
-      window.removeEventListener("vellum:search", onSearch);
+      window.removeEventListener("astrolabe:search", onSearch);
       unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -262,7 +263,7 @@ export default function BlogShell() {
       .then((list) => {
         if (!disposed) setPosts(list);
       })
-      .catch((err: unknown) => console.error("vellum: loading posts failed", err));
+      .catch((err: unknown) => console.error("astrolabe: loading posts failed", err));
     return () => {
       disposed = true;
     };
@@ -566,8 +567,8 @@ export default function BlogShell() {
           )}
           <span className="s-blog-powered">
             {t("blogPoweredBy")}{" "}
-            <a href="https://github.com/ZahakJ/vellum" target="_blank" rel="noopener noreferrer">
-              Vellum
+            <a href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noopener noreferrer">
+              <BrandMark size={12} /> Astrolabe
             </a>
           </span>
         </p>

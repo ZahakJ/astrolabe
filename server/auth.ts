@@ -1,6 +1,6 @@
 // Auth: public view / admin edit. Sessions are stateless HMAC-signed cookies
 // (no per-session server store) bound to two revocation inputs — a session
-// EPOCH kept in VELLUM_DATA and a fingerprint of the password hash — so
+// EPOCH kept in ASTROLABE_DATA and a fingerprint of the password hash — so
 // "sign out" and "change the password" both actually end every live session.
 // The password is verified against an argon2id hash from the environment.
 // No hash configured → open local mode, which is refused outright when the
@@ -31,7 +31,14 @@ import { activeDesign, activeDesignFontRefs, customThemesSig, hasThemeChoice } f
 import { authorSiteCards } from "./authorSites.ts";
 import { getVaultRoot, normalizeRel } from "./vault.ts";
 
-const COOKIE_NAME = "vellum_session";
+export const COOKIE_NAME = "astrolabe_session";
+/** The cookie's name before the rename. Read, never written: a session
+ *  issued as Vellum stays signed in until it expires, and the sliding refresh
+ *  reissues it under the new name. Deleted on logout alongside the new one. */
+export const LEGACY_COOKIE_NAME = "vellum_session";
+export function sessionCookie(c: Context): string | undefined {
+  return getCookie(c, COOKIE_NAME) ?? getCookie(c, LEGACY_COOKIE_NAME);
+}
 /** 7 days, not 30, and it slides: every authenticated API request inside the
  *  last half of a token's life reissues the cookie, so an ACTIVE admin is
  *  never logged out and a STOLEN cookie stops working a week after the theft
@@ -120,21 +127,21 @@ export function initAuth(env: NodeJS.ProcessEnv = process.env): void {
     // the accident, so it gets more than one grey line.
     if (host !== "" && !isLoopbackHost(host)) {
       console.warn(
-        `vellum: HOST=${host} is not loopback and ADMIN_PASSWORD_HASH is not set —\n` +
+        `astrolabe: HOST=${host} is not loopback and ADMIN_PASSWORD_HASH is not set —\n` +
           "        every machine that can reach this port is an ADMIN of this vault (read, write, delete).\n" +
           "        npm run hash-password to lock it down.",
       );
     }
-    console.warn("vellum: ADMIN_PASSWORD_HASH not set — open local mode, every visitor is admin (npm run hash-password to lock it down)");
+    console.warn("astrolabe: ADMIN_PASSWORD_HASH not set — open local mode, every visitor is admin (npm run hash-password to lock it down)");
   } else if (!sessionSecret) {
     sessionSecret = randomBytes(32).toString("hex");
-    console.warn("vellum: SESSION_SECRET not set — using an ephemeral secret; sessions will not survive restarts");
+    console.warn("astrolabe: SESSION_SECRET not set — using an ephemeral secret; sessions will not survive restarts");
   }
   const trustedProxies: IpRange[] = [];
   for (const entry of (env.TRUSTED_PROXIES ?? "").split(",").map((s) => s.trim()).filter(Boolean)) {
     const range = parseIpRange(entry);
     if (range) trustedProxies.push(range);
-    else console.warn(`vellum: TRUSTED_PROXIES entry ${JSON.stringify(entry)} is not a valid IP or CIDR — ignored`);
+    else console.warn(`astrolabe: TRUSTED_PROXIES entry ${JSON.stringify(entry)} is not a valid IP or CIDR — ignored`);
   }
   // SECURE_COOKIES: an explicit yes/no for the `Secure` attribute. Unset →
   // derived per request (X-Forwarded-Proto from a trusted proxy, or the
@@ -150,7 +157,7 @@ export function initAuth(env: NodeJS.ProcessEnv = process.env): void {
     trustedProxies,
     secureCookies,
   };
-  sessionEpoch = null; // re-read from VELLUM_DATA on first use
+  sessionEpoch = null; // re-read from ASTROLABE_DATA on first use
 }
 
 /** True when this instance has a real credential — i.e. when an "admin
@@ -228,7 +235,7 @@ function isTrustedProxy(ip: string): boolean {
 
 // ------------------------------------------------------------------ sessions
 
-/** The session epoch: one integer in VELLUM_DATA that every live token
+/** The session epoch: one integer in ASTROLABE_DATA that every live token
  *  carries. Bumping it invalidates all of them at once, which is the whole
  *  revocation story — and the reason it is on DISK rather than in memory is
  *  that SESSION_SECRET is meant to survive restarts, so a cookie captured
@@ -265,7 +272,7 @@ function bumpEpoch(): number {
     mkdirSync(dataDir(), { recursive: true });
     writeFileSync(epochFile(), `${next}\n`, { encoding: "utf8", mode: 0o600 });
   } catch (err) {
-    console.error("vellum: could not persist the session epoch — sessions are revoked until the next restart:", err);
+    console.error("astrolabe: could not persist the session epoch — sessions are revoked until the next restart:", err);
   }
   return next;
 }
@@ -362,22 +369,25 @@ function setSessionCookie(c: Context): void {
  *  meets the login modal — without making the token a month-long bearer. */
 function refreshSessionIfStale(c: Context): void {
   if (!config.passwordHash) return;
-  const remaining = sessionRemainingMs(getCookie(c, COOKIE_NAME));
+  const remaining = sessionRemainingMs(sessionCookie(c));
   if (remaining === null || remaining > SESSION_TTL_MS / 2) return;
   setSessionCookie(c);
 }
 
 function isAdmin(c: Context): boolean {
   if (!config.passwordHash) return true; // local mode
-  return isValidSessionToken(getCookie(c, COOKIE_NAME));
+  return isValidSessionToken(sessionCookie(c));
 }
 
-/** The request ASKS for visitor preview: the X-Vellum-Preview header, or —
+/** The request ASKS for visitor preview: the X-Astrolabe-Preview header, or —
  *  for /api/events only, since EventSource cannot set headers — the
  *  ?preview=visitor query param. Asking is not getting: the flag is honored
  *  only for a valid admin session (see isPreviewingVisitor). */
 function previewRequested(c: Context): boolean {
-  if (c.req.header("x-vellum-preview")?.trim().toLowerCase() === "visitor") return true;
+  // The old header spelling is honoured too: a desktop build or a script
+  // from before the rename still previews as it did.
+  const asked = c.req.header("x-astrolabe-preview") ?? c.req.header("x-vellum-preview");
+  if (asked?.trim().toLowerCase() === "visitor") return true;
   return c.req.path === "/api/events" && c.req.query("preview") === "visitor";
 }
 
@@ -512,7 +522,7 @@ function warnIfUnconfiguredProxy(c: Context): void {
   if (!c.req.header("x-forwarded-for")) return;
   warnedAboutForwardedFor = true;
   console.warn(
-    "vellum: a login arrived carrying X-Forwarded-For but TRUSTED_PROXIES is unset — the header is IGNORED\n" +
+    "astrolabe: a login arrived carrying X-Forwarded-For but TRUSTED_PROXIES is unset — the header is IGNORED\n" +
       "        (clients can forge it), so the login rate limit is keying off the proxy's own address and\n" +
       "        every visitor shares one bucket. Set TRUSTED_PROXIES to your proxy's address, e.g.\n" +
       "        TRUSTED_PROXIES=127.0.0.1,::1",
@@ -563,10 +573,11 @@ authRoutes.post("/login", async (c) => {
  *  before, logout only asked the browser to drop its cookie, so a token
  *  captured anywhere stayed a valid admin credential for its full life and the
  *  only real revocation was editing SESSION_SECRET in .env and restarting.
- *  Vellum has exactly one admin; "sign out here" and "sign out everywhere"
+ *  Astrolabe has exactly one admin; "sign out here" and "sign out everywhere"
  *  cannot mean different things when there is one credential behind both. */
 authRoutes.post("/logout", (c) => {
   deleteCookie(c, COOKIE_NAME, { path: "/" });
+  deleteCookie(c, LEGACY_COOKIE_NAME, { path: "/" });
   if (config.passwordHash) bumpEpoch();
   return c.json({ ok: true, everywhere: true });
 });
@@ -666,7 +677,7 @@ authRoutes.get("/me", (c) => {
     me.homeNote = homeRef;
   }
   // Instance customization (settings.json over SITE_NAME / DEFAULT_THEME env,
-  // plus VELLUM_DATA/custom.css). The site.ts getters do the merging.
+  // plus ASTROLABE_DATA/custom.css). The site.ts getters do the merging.
   me.siteName = siteName();
   // Chrome language, for every session: "ar" localizes the shell and mirrors
   // it RTL for admin and visitor alike.
@@ -676,7 +687,7 @@ authRoutes.get("/me", (c) => {
   // previewing as a visitor sees exactly what a visitor sees.
   if (settings.languageToggle === true) me.languageToggle = true;
   // An Obsidian vault gets its drawings in the Excalidraw plugin's spelling
-  // (`.excalidraw.md`), so the plugin opens what Vellum draws; any other vault
+  // (`.excalidraw.md`), so the plugin opens what Astrolabe draws; any other vault
   // gets Excalidraw's own `.excalidraw`. The client asks, once, here.
   if (admin && existsSync(path.join(getVaultRoot(), ".obsidian"))) me.obsidianVault = true;
   // How this site curates by note language, for every session. The client

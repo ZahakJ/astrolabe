@@ -25,7 +25,7 @@ if (typeof window !== "undefined") {
   // before the browser sees it; the fonts it removes are exactly the ones
   // `font-src 'self' data:` refuses, so nothing loads differently.
   const Native = window.FontFace;
-  if (typeof Native === "function" && !(Native as { __vellum?: boolean }).__vellum) {
+  if (typeof Native === "function" && !(Native as { __astrolabe?: boolean }).__astrolabe) {
     const Shimmed = function (this: FontFace, family: string, source: ConstructorParameters<typeof FontFace>[1], descriptors?: FontFaceDescriptors): FontFace {
       const src =
         typeof source === "string"
@@ -37,7 +37,7 @@ if (typeof window !== "undefined") {
       return new Native(family, src, descriptors);
     } as unknown as typeof FontFace;
     Shimmed.prototype = Native.prototype;
-    (Shimmed as { __vellum?: boolean }).__vellum = true;
+    (Shimmed as { __astrolabe?: boolean }).__astrolabe = true;
     window.FontFace = Shimmed;
   }
 }

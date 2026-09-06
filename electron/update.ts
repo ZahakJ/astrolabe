@@ -31,9 +31,15 @@ import { get } from "node:https";
 import type { IncomingMessage } from "node:http";
 import path from "node:path";
 
-const REPO = "ZahakJ/vellum";
+const REPO = "ZahakJ/astrolabe";
+/** The repository's name before the rename. GitHub redirects the old name,
+ *  but `node:https` follows no redirects, so the check asks the new name
+ *  first and the old one when that fails — which is also the order that
+ *  keeps a build shipped before the repo was renamed updating. */
+const LEGACY_REPO = "ZahakJ/vellum";
 const RELEASES_PAGE = `https://github.com/${REPO}/releases/latest`;
 const API_LATEST = `https://api.github.com/repos/${REPO}/releases/latest`;
+const LEGACY_API_LATEST = `https://api.github.com/repos/${LEGACY_REPO}/releases/latest`;
 /** Six hours: fast enough that "still on yesterday's build" is a short-lived
  *  state, slow enough that GitHub never sees this app as traffic. */
 const CHECK_EVERY_MS = 6 * 60 * 60 * 1000;
@@ -71,7 +77,7 @@ function fetchJson(url: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const req = get(
       url,
-      { headers: { "user-agent": `vellum-desktop/${app.getVersion()}`, accept: "application/vnd.github+json" } },
+      { headers: { "user-agent": `astrolabe-desktop/${app.getVersion()}`, accept: "application/vnd.github+json" } },
       (res) => {
         if (res.statusCode !== 200) {
           res.resume();
@@ -102,7 +108,7 @@ function download(url: string, to: string, depth = 0): Promise<number> {
       reject(new Error("too many redirects"));
       return;
     }
-    const req = get(url, { headers: { "user-agent": `vellum-desktop/${app.getVersion()}` } }, (res: IncomingMessage) => {
+    const req = get(url, { headers: { "user-agent": `astrolabe-desktop/${app.getVersion()}` } }, (res: IncomingMessage) => {
       const where = res.headers.location;
       if (res.statusCode !== undefined && res.statusCode >= 300 && res.statusCode < 400 && where) {
         res.resume();
@@ -148,7 +154,7 @@ export async function checkForUpdates(manual = false): Promise<void> {
       notify({ phase: "ready", version: staged.version });
       return;
     }
-    const release = (await fetchJson(API_LATEST)) as { tag_name?: string; assets?: Asset[] };
+    const release = (await fetchJson(API_LATEST).catch(() => fetchJson(LEGACY_API_LATEST))) as { tag_name?: string; assets?: Asset[] };
     const tag = typeof release.tag_name === "string" ? release.tag_name : "";
     if (!tag || !newer(tag, app.getVersion())) {
       // The timer stays silent about good news; the MENU says it out loud,
@@ -188,7 +194,7 @@ export async function checkForUpdates(manual = false): Promise<void> {
       throw err;
     }
   } catch (err) {
-    console.error("vellum: update check failed", err);
+    console.error("astrolabe: update check failed", err);
     if (manual) notify({ phase: "failed", version: app.getVersion() });
   } finally {
     busy = false;

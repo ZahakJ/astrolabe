@@ -36,7 +36,7 @@ a compare-and-adjust loop; a preview the picker covers up previews nothing.
 
 When you save, the *server* fetches the chosen families once from Google Fonts (a `woff2` request,
 so you get `woff2` back), parses the `@font-face` blocks, downloads each face into
-`VELLUM_DATA/fonts/catalog/<id>/`, and records the parsed `unicode-range`s in a `meta.json` beside
+`ASTROLABE_DATA/fonts/catalog/<id>/`, and records the parsed `unicode-range`s in a `meta.json` beside
 them. From then on the browser only ever sees your server: `GET /api/site-fonts.css` is generated
 from the cache and every `src:` in it points at `/api/fonts/catalog/…` on this instance.
 **No visitor's browser contacts an external host, ever** — not for the fonts, not for the
@@ -49,7 +49,7 @@ already cached, and a save that only re-picks cached families still works with n
 ## The Arabic slot is per character, not per language
 
 The generated stylesheet does not define three families and hope; it defines three *composites* —
-`VellumProse`, `VellumUI`, `VellumMono` — and lists the Arabic face's `@font-face` blocks **first**,
+`AstrolabeProse`, `AstrolabeUI`, `AstrolabeMono` — and lists the Arabic face's `@font-face` blocks **first**,
 narrowed to the Arabic unicode blocks, with the Latin face's blocks after and those same ranges
 carved out of them. The two sets are disjoint, so the browser's per-character font matching does
 the rest: in
@@ -85,7 +85,7 @@ and it is on nobody's CDN. So **Settings → Typography → Your own fonts** tak
 | --- | --- |
 | **Formats** | `.woff2`, `.woff`, `.ttf`, `.otf` |
 | **Size** | 5 MB per file |
-| **Stored in** | `VELLUM_DATA/fonts/custom/` — outside the vault, and `VELLUM_DATA` is gitignored, so an uploaded face never lands in your notes repo or in a backup push |
+| **Stored in** | `ASTROLABE_DATA/fonts/custom/` — outside the vault, and `ASTROLABE_DATA` is gitignored, so an uploaded face never lands in your notes repo or in a backup push |
 | **Served from** | `GET /api/fonts/custom/<file>` on this instance — same terms as the catalog cache: self-hosted, no external host, immutable caching |
 | **Offered in** | all four slots, under **Your fonts** |
 
@@ -140,7 +140,7 @@ none).
 
 For anything neither the catalog nor the uploader covers — a variable font you want to drive with
 a custom axis, a script-specific stack, a face you would rather wire by hand — drop the file in
-`VELLUM_DATA/fonts/` and name it from `custom.css` exactly as shown in
+`ASTROLABE_DATA/fonts/` and name it from `custom.css` exactly as shown in
 [Theming](theming.md#bring-your-own-fonts-the-css-route). That link is injected *after* the
 generated stylesheet, so a `custom.css` rule on `:root` wins over the catalog, the uploads and the
 defaults alike.
