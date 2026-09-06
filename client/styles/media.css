@@ -489,9 +489,17 @@
 
 /* ── The form ──────────────────────────────────────────────────────────── */
 
+/* The palette's overlay parks its panel at 18vh from the top, which suits a
+   short list; a form that can run to 84vh then ends at 102vh and hugs, or
+   loses, the bottom edge. The form is centred instead, with air both ends. */
+.s-palette-overlay:has(> .s-mediaform) {
+  align-items: center;
+  padding-block: 24px;
+}
+
 .s-mediaform {
   inline-size: min(640px, calc(100vw - 32px));
-  max-block-size: min(84vh, 900px);
+  max-block-size: min(calc(100vh - 48px), 900px);
   display: flex;
   flex-direction: column;
   padding: 0;

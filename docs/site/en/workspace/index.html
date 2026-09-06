@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panes, tabs &amp; windows · Vellum Documentation</title>
+<meta name="description" content="Splitting the note column, what a tab is, several windows over one vault, and the smaller doors: the local graph, the trash, the tour, aliases.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/workspace/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link is-current" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="panes-tabs-and-windows">Panes, tabs and windows</h1>
+<p><em>Splitting the note column, what a tab is, several windows over one vault, and the smaller doors: the local graph, the trash, the tour, aliases.</em></p>
+<hr>
+<h2 id="panes"><a class="anchor" href="#panes">Panes</a></h2>
+<p>The note column can be split. <code>Ctrl/Cmd \</code> opens a second pane beside the current one on the
+same note; <code>Ctrl/Cmd Shift \</code> opens one <em>below</em> instead. Panes stand in columns along the reading
+direction, at most two stacked in a column, three columns, six panes in all; the seventh is
+refused with a sentence rather than a shuffle. <code>Ctrl/Cmd Alt \</code> closes the focused pane and its
+tabs are **adopted by a neighbour, never dropped**. <code>Ctrl/Cmd Alt Shift</code> with an arrow moves the
+focus between panes, physically, in both languages, and <em>Focus next pane</em> in the palette walks
+them in order.</p>
+<p><strong>Drag a tab to split.</strong> While a tab is being dragged every pane raises five targets: its four
+edges, which split it and land the tab on that side, and its centre, which joins its strip. A
+target the layout would refuse is not drawn at all. The drag works between windows too.</p>
+<p>The two side panes, the notes sidebar and the outline, are documented with the
+<a href="../editor/#the-two-side-panes">editor</a>.</p>
+<h2 id="tabs"><a class="anchor" href="#tabs">Tabs</a></h2>
+<p>Each pane has its own strip. A single click in the tree opens a note in a <strong>preview tab</strong>, which
+the next preview open replaces, so following forty links does not leave forty tabs; editing the
+note, or double-clicking, keeps it. <code>Ctrl/Cmd Alt PageDown</code> / <code>PageUp</code> walk the strip and
+<code>Ctrl/Cmd Alt W</code> closes a tab; middle-click closes one too, and a dirty tab wears a dot. The strip
+is one tab stop for the keyboard: arrows walk it, <code>Home</code> and <code>End</code> jump, <code>Delete</code> closes the
+focused tab. Right-click a tab for <strong>pin</strong> (a ◆ in the row, protected from <em>close others</em>), close
+others, close to the right, reveal in the sidebar, and copy the path. When more tabs are open
+than the strip is wide it scrolls inside its own box and the active tab is kept in view; the
+tool cluster at the top right never goes under it.</p>
+<h2 id="several-windows-one-vault"><a class="anchor" href="#several-windows-one-vault">Several windows, one vault</a></h2>
+<p>Open a second window on the vault (<em>Open this note in a new window</em> in the palette; on the
+desktop app also <code>Ctrl/Cmd Shift N</code>). Two windows on the same note are not two editors: one
+holds the <strong>edit lease</strong> and saves, the other becomes a live reader with a strip that says
+<em>Another window is editing this note</em> and an <strong>Edit here</strong> button that takes the lease over. No
+coordinator and no lock file: the oldest window wins a tie, claims age out with a heartbeat, and
+a window that closes releases its lease. Theme and editor language follow between windows, and
+signing out in one signs out all. The desktop app adds a <a href="../desktop/#the-reference-window">reference window</a>
+that stays on top.</p>
+<h2 id="when-the-file-changed-under-you"><a class="anchor" href="#when-the-file-changed-under-you">When the file changed under you</a></h2>
+<p>A save that would overwrite a version of the note you never saw is <strong>refused</strong>, not merged: the
+server compares the file&#39;s modification time with the one your editor loaded. Your text stays in
+the editor, autosave pauses, and a strip above the note offers <strong>Keep mine</strong> or <strong>Take theirs</strong>
+(undoably). The full story, including the two-server case, is in
+<a href="../backup-and-sync/#two-servers-one-vault">Backup &amp; sync</a>.</p>
+<h2 id="the-local-graph"><a class="anchor" href="#the-local-graph">The local graph</a></h2>
+<p>The right panel carries a <strong>local graph</strong>: the open note in the centre with its direct wikilink
+neighbours, drawn with springy physics you can grab, drag with momentum, click to open and
+double-click to open in place. It stays live as you write and link, collapses with the panel&#39;s
+other sections, and remembers whether it was open. The whole-vault graph is
+<a href="../editor/#navigating">the graph view</a>.</p>
+<h2 id="the-command-palette-beyond-notes"><a class="anchor" href="#the-command-palette-beyond-notes">The command palette, beyond notes</a></h2>
+<p><code>Ctrl/Cmd P</code> searches notes and commands together, and with an empty query it lists the notes you
+open most, ranked by a decaying visit count kept in this browser (paths only, pruned against the
+tree, never shown to a visitor). The same ledger breaks ties in wikilink autocomplete. Rows worth
+knowing: <em>Reveal note in sidebar</em>, <em>Copy link to note</em>, <em>Duplicate note</em> (a copy beside it),
+<em>Open this note in a new window</em>, <em>Focus next pane</em>, <em>Switch to</em> the light or dark twin of your
+theme, <em>Snapshot now</em>, <em>Open trash</em>, <em>Take the tour</em>.</p>
+<h2 id="aliases"><a class="anchor" href="#aliases">Aliases</a></h2>
+<p><code>aliases:</code> in a note&#39;s frontmatter makes it answer to more than one name: each alias appears in
+wikilink autocomplete as <em>alias of Title</em> and in search as <em>matched alias</em>. When you <strong>rename</strong>
+a note, the toast offers <strong>Keep as alias</strong>, so every <code>[[old name]]</code> in the vault and every URL
+you have shared keeps working without a rewrite. (<code>[[Name|label]]</code> is a display label on one
+link and is a different thing.)</p>
+<h2 id="the-trash"><a class="anchor" href="#the-trash">The trash</a></h2>
+<p>Deleting a note, an attachment or a folder moves it to <code>.trash/</code> in the vault. <strong>Open trash</strong> in
+the palette lists what is there, what is inside each entry, how big it is and when it went, with
+<strong>Restore</strong> per row, a permanent erase per row, and <em>Empty trash</em>. Restore puts an entry back
+<strong>where it came from</strong>, which the trash remembers, and says beforehand when that spot is taken
+(it lands beside it) or gone (it lands at the root). Before a delete, every dialog says what is
+really inside: a folder of &quot;0 notes&quot; that holds forty images says so, and names the notes that
+embed them. <code>.trash/</code> is never pushed by <a href="../backup-and-sync/#what-sync-never-stages">Backup &amp; sync</a>.</p>
+<h2 id="the-tour"><a class="anchor" href="#the-tour">The tour</a></h2>
+<p><em>Take the tour</em> in the palette deals a deck of illustrated cards, one feature each, and every
+card has a <strong>Show me</strong> that opens the real thing rather than a picture of it: the designer, the
+themes, publishing, collections, trackers, history, search, templates, LaTeX, the PDF reader,
+panes, the graph, backup, the phone layout and the keys. It also waits on an empty vault, at
+the foot of the <code>Ctrl/Cmd /</code> sheet, and in <code>Welcome.md</code>. It never opens by itself.</p>
+<h2 id="on-a-phone"><a class="anchor" href="#on-a-phone">On a phone</a></h2>
+<p>The sidebar is a drawer that follows your finger: a horizontal swipe anywhere drags it in,
+interruptible and reversible, committed by distance or a flick; the outline pane answers the
+mirrored swipe. Edges are logical, so in Arabic the drawer comes from the right with no second
+rule.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/workspace.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/books/"><span class="pager__kicker">Previous</span><span class="pager__title">The PDF reader</span></a><a class="pager__link pager__link--next" href="../../en/printing/"><span class="pager__kicker">Next</span><span class="pager__title">Printing &amp; PDF</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#panes">Panes</a><a class="toc__link toc__link--2" href="#tabs">Tabs</a><a class="toc__link toc__link--2" href="#several-windows-one-vault">Several windows, one vault</a><a class="toc__link toc__link--2" href="#when-the-file-changed-under-you">When the file changed under you</a><a class="toc__link toc__link--2" href="#the-local-graph">The local graph</a><a class="toc__link toc__link--2" href="#the-command-palette-beyond-notes">The command palette, beyond notes</a><a class="toc__link toc__link--2" href="#aliases">Aliases</a><a class="toc__link toc__link--2" href="#the-trash">The trash</a><a class="toc__link toc__link--2" href="#the-tour">The tour</a><a class="toc__link toc__link--2" href="#on-a-phone">On a phone</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

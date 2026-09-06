@@ -99,6 +99,7 @@
 | `excludeTags` | مصفوفة نصوص، ≤ 200 مدخل، ≤ 50 حرفًا لكل منها | `EXCLUDE_TAGS`، وإلا فارغة |
 | `commentsEnabled` | منطقي | `COMMENTS`، وإلا `false` |
 | `shareButtons` | منطقي: صف المشاركة تحت مقالات المدونة | `true` |
+| `authorSites` | مصفوفة `{ url }` (https)، يُثرى كل منها مرة من OpenGraph الخاص به ويُخزَّن في `VELLUM_DATA/author-sites.json`؛ تُعرض على المدونة بطاقات *المزيد من الكاتب*. **لا نظير له في البيئة** | فارغة |
 | `ambient` | منطقي: جو زخرفي بطيء خلف ترويسة الموقع العام، يُرسم لكل سمة (انظر [السمات](theming.md#the-ambient-masthead)) | `false` |
 | `favicon` | صورة نسبية إلى الخزانة (`.ico .png .svg .jpg .jpeg .gif .webp .avif`) | لا شيء |
 | `logo` | رابط https أو صورة نسبية إلى الخزانة | لا شيء |
