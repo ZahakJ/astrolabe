@@ -110,7 +110,6 @@ const SSE_COALESCE_MS = 250;
 const Workspace = lazySurface(() => import("./components/Workspace.tsx"));
 const BlogShell = lazySurface(() => import("./blog/BlogShell.tsx"));
 const DesignedSite = lazySurface(() => import("./design/DesignedSite.tsx"));
-const GraphView = lazySurface(() => import("./components/GraphView.tsx"));
 const MediaView = lazySurface(() => import("./media/MediaView.tsx"));
 const Sidebar = lazySurface(() => import("./components/Sidebar.tsx"));
 const EditorAnnotator = lazySurface(() => import("./annotations/EditorAnnotator.tsx"));
@@ -785,7 +784,7 @@ export default function App() {
         window.dispatchEvent(new Event("astrolabe:quicksearch"));
       } else if (key === "g") {
         e.preventDefault();
-        store.setView(store.view === "graph" ? "editor" : "graph");
+        store.toggleGraph();
       } else if (key === "e") {
         if (!store.admin) return; // visitors live in reading view
         e.preventDefault();
@@ -1069,15 +1068,10 @@ export default function App() {
             </button>
           </div>
         )}
-        {/* The graph is about the WINDOW, not about a pane: it replaces the
-            whole working area, exactly as it did before panes existed. */}
-        {view === "graph" ? (
-          <section className="s-view">
-            <Surface fallback={<div className="s-graph" />}>
-              <GraphView />
-            </Surface>
-          </section>
-        ) : view === "media" ? (
+        {/* The graph is a TAB now (client/workspace.ts GRAPH_TAB) and draws
+            inside the pane that holds it; only the Media page is still about
+            the whole window. */}
+        {view === "media" ? (
           // The Media page is the graph's shape exactly: the whole working
           // area, one lazy chunk, out of the pane model.
           <section className="s-view">

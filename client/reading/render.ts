@@ -1037,6 +1037,10 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       } else {
         const bq = document.createElement("blockquote");
         bq.className = "s-rv-quote";
+        // Same as the callout box above: the paragraphs inside carry their
+        // own dir, which the algorithm skips when resolving the parent, so
+        // an Arabic quote in an English instance had its bar on the left.
+        bq.dir = firstStrongDirection(qlines.map(stripQuote).join(" ")) ?? "auto";
         renderBlocks(qlines.map(stripQuote), nested, bq);
         root.appendChild(bq);
       }

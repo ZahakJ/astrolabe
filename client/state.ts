@@ -69,7 +69,11 @@ import {
   fromStoredTabs,
   isBookPath,
   isDrawingPath,
+  isGraphTab,
+  GRAPH_TAB,
   openInPane,
+  resizeCols as resizeColsIn,
+  resizeRows as resizeRowsIn,
   paneAt,
   parseWorkspace,
   pruneWorkspace,
@@ -193,7 +197,10 @@ export type { Theme } from "./themes.ts";
  *  surfaces that must cope with both ask client/themes.ts's choiceGroup /
  *  counterpartChoice / choiceBase instead of the built-in-only functions. */
 export type { ThemeChoice } from "./themes.ts";
-export type View = "editor" | "graph" | "media";
+/** "graph" left this union when the graph became a tab (`GRAPH_TAB` in
+ *  client/workspace.ts): asking for it through `setView("graph")` still works
+ *  and opens that tab in the focused pane. */
+export type View = "editor" | "media";
 
 /** Where a dropped tab lands on its target pane. */
 export type TabDropDest = { kind: "tabs"; index: number } | { kind: "edge"; edge: DropEdge };
@@ -545,7 +552,19 @@ export interface State {
    *  the new pane. `from` is null for a drag lifted off the TREE (no tab to
    *  remove anywhere). The gesture reducers refuse whole at the caps. */
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
-  setView(v: View): void;
+  /** "editor", "media", or "graph" — the last opens the graph TAB in the
+   *  focused pane rather than switching a window-level view. */
+  setView(v: View | "graph"): void;
+  /** True when the focused pane is showing the graph tab. */
+  graphOpen(): boolean;
+  /** Toggle the graph tab in the focused pane: open (or focus) it, or, when it
+   *  is already the active tab, close it and land on the tab beside it. */
+  toggleGraph(): void;
+  /** The split grips (client/components/Workspace.tsx): the share of the pair
+   *  of columns either side of `gap` that the first one takes, and the share
+   *  of a column's height its upper pane takes. Both clamp to 10–90 %. */
+  resizeCols(gap: number, ratio: number): void;
+  resizeRows(col: number, ratio: number): void;
   setTheme(t: ThemeChoice): void;
   /** The ☾/☀ move, as one action: this room's curated counterpart on the other
    *  side of the day (themes.ts::counterpartChoice), never the next id in a
@@ -921,7 +940,7 @@ function mirrorOf(
   // A drawing is a picture in a tab, like a book: it is never "the open note"
   // (the outline, the word count and the publish pill have nothing to say
   // about a canvas), so the mirror looks past it to the nearest note.
-  if (here !== null && !isBookPath(here.path) && !isDrawingPath(here.path)) {
+  if (here !== null && !isBookPath(here.path) && !isDrawingPath(here.path) && !isGraphTab(here.path)) {
     return { workspace: ws, openTabs, openPath: here.path, readingMode };
   }
   const noteHome = paneAt(ws, ws.noteFocus);
@@ -933,7 +952,10 @@ function mirrorOf(
   return {
     workspace: ws,
     openTabs,
-    openPath: note === null || isBookPath(note.path) || isDrawingPath(note.path) ? null : note.path,
+    openPath:
+      note === null || isBookPath(note.path) || isDrawingPath(note.path) || isGraphTab(note.path)
+        ? null
+        : note.path,
     readingMode,
   };
 }
@@ -974,6 +996,10 @@ function clearStoredPreview(): void {
  *  Preview is a round trip through a smaller vault, and what has to come back
  *  afterwards is the layout as well as the notes — a reader who split a pane
  *  and then looked at their site as a visitor should not find the split gone. */
+/** The reader language the preview borrowed (see setPreviewVisitor), and
+ *  the one to put back on exit. */
+let previewLangBefore: string | null = null;
+let previewLangFlipped: string | null = null;
 let previewSnapshot: Workspace | null = null;
 
 // ── Our own writes ──────────────────────────────────────────────────────────
@@ -1635,7 +1661,32 @@ export const useStore = create<State>()((set, get) => {
           await get().loadMe(); // now visitor-shaped (admin: false, preview)
           // Visitor scoping of the session: tabs pointing at unpublished
           // notes disappear, exactly as they do on logout.
-          const visible = new Set(collectNotes(get().tree).map((n) => n.path));
+          let visible = new Set(collectNotes(get().tree).map((n) => n.path));
+          // THE NOTE YOU ARE ON IS THE ONE YOU MEANT TO PREVIEW. Under the
+          // language filter's "follow", the preview is scoped to the reader
+          // language this browser declares — the owner's English editor — so
+          // an Arabic note he had just published vanished from the tab bar
+          // and the home note took its place ("it keeps opening to that").
+          // When the note is published and the other language can see it,
+          // the preview switches to that reader for its duration and says so;
+          // what he sees is then exactly what an Arabic reader sees.
+          previewLangBefore = api.getReaderLang();
+          previewLangFlipped = null;
+          if (before !== null && !visible.has(before) && (get().publishedPaths?.has(before) ?? false)) {
+            const current = previewLangBefore ?? get().language;
+            const other = current === "ar" ? "en" : "ar";
+            api.setReaderLang(other);
+            await get().loadTree();
+            const again = new Set(collectNotes(get().tree).map((n) => n.path));
+            if (again.has(before)) {
+              visible = again;
+              previewLangFlipped = other;
+              await get().loadMe();
+            } else {
+              api.setReaderLang(previewLangBefore);
+              await get().loadTree();
+            }
+          }
           set((s) => ({
             ...mirrorOf(
               before !== null && visible.has(before)
@@ -1647,6 +1698,9 @@ export const useStore = create<State>()((set, get) => {
           // And SAY why the note went away. Silence here is the same bug in
           // the other direction: the tab vanishes, the pane reads "The vault
           // is open", and nothing connects either to the eye button.
+          if (previewLangFlipped !== null) {
+            toast(t(previewLangFlipped === "ar" ? "previewAsArabicReader" : "previewAsEnglishReader"), "info", { keep: true });
+          }
           if (before && !visible.has(before)) {
             // Two reasons a note is not in the visitor tree, and they call for
             // different fixes: publish it, or look at the language filter /
@@ -1663,6 +1717,11 @@ export const useStore = create<State>()((set, get) => {
         } else {
           const current = get().openPath; // exit lands on the same note
           set({ previewVisitor: false, paletteOpen: false });
+          // The reader language the preview borrowed goes back.
+          if (previewLangFlipped !== null) {
+            api.setReaderLang(previewLangBefore);
+            previewLangFlipped = null;
+          }
           // Same ordering on the way out: full tree first, then the admin
           // shell mounts against it.
           await get().loadTree();
@@ -1971,7 +2030,39 @@ export const useStore = create<State>()((set, get) => {
         return { ...s, ...mirrorOf(ws) };
       }),
 
-    setView: (view) => set({ view }),
+    setView: (view) => {
+      if (view === "graph") {
+        set((s) => ({
+          ...s,
+          ...mirrorOf(openInPane(s.workspace, s.workspace.focus, GRAPH_TAB)),
+          view: "editor",
+          sidebarOpen: false,
+        }));
+        return;
+      }
+      set({ view });
+    },
+    graphOpen: () => {
+      const ws = get().workspace;
+      const pane = paneAt(ws, ws.focus);
+      const tab = pane === null ? null : activeTabOf(pane);
+      return tab !== null && isGraphTab(tab.path) && get().view === "editor";
+    },
+    toggleGraph: () => {
+      const s = get();
+      if (s.graphOpen()) s.closeTab(GRAPH_TAB);
+      else s.setView("graph");
+    },
+    resizeCols: (gap, ratio) =>
+      set((s) => {
+        const ws = resizeColsIn(s.workspace, gap, ratio);
+        return ws === s.workspace ? s : { ...s, ...mirrorOf(ws) };
+      }),
+    resizeRows: (col, ratio) =>
+      set((s) => {
+        const ws = resizeRowsIn(s.workspace, col, ratio);
+        return ws === s.workspace ? s : { ...s, ...mirrorOf(ws) };
+      }),
 
     setTheme: (theme) => {
       // The surface's own key: a ☾/☀ press on the public site, or in preview,

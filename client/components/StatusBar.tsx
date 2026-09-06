@@ -18,6 +18,7 @@ import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
 import { DRAWER_QUERY, useStore } from "../state.ts";
+import { activeTabOf, isGraphTab, paneAt } from "../workspace.ts";
 import { choiceGroup, choiceLabel } from "../themes.ts";
 import SyncBadge from "./SyncBadge.tsx";
 import { openThemePicker } from "./ThemePicker.tsx";
@@ -149,9 +150,19 @@ export default function StatusBar() {
     if (!host) return;
     const main = host.parentElement;
     const ro = new ResizeObserver(() => {
-      main?.style.setProperty("--topactions-w", `${Math.ceil(host.getBoundingClientRect().width)}px`);
+      // The tools' own width (the portal's wrapper), not the host's: once the
+      // host is a row of its own it is as wide as the column, and measuring
+      // that would keep it a row for good.
+      const w = Math.ceil((host.firstElementChild ?? host).getBoundingClientRect().width);
+      main?.style.setProperty("--topactions-w", `${w}px`);
+      // When the cluster would leave the shell's strip less than a few tab
+      // names' worth of room (a laptop with both side panes open), it takes
+      // a row of its own instead, the way it always does over a split.
+      const room = (main?.getBoundingClientRect().width ?? Infinity) - w;
+      main?.classList.toggle("s-main--cluster-row", room < 320);
     });
     ro.observe(host);
+    if (main) ro.observe(main);
     return () => ro.disconnect();
   }, []);
   const openPath = useStore((s) => s.openPath);
@@ -163,6 +174,12 @@ export default function StatusBar() {
   const vimSubMode = useStore((s) => s.vimSubMode);
   const readingMode = useStore((s) => s.readingMode);
   const setView = useStore((s) => s.setView);
+  const toggleGraph = useStore((s) => s.toggleGraph);
+  const graphOn = useStore((s) => {
+    const pane = paneAt(s.workspace, s.workspace.focus);
+    const tab = pane === null ? null : activeTabOf(pane);
+    return s.view === "editor" && tab !== null && isGraphTab(tab.path);
+  });
   const toggleVim = useStore((s) => s.toggleVim);
   const toggleReading = useStore((s) => s.toggleReading);
   const previewVisitor = useStore((s) => s.previewVisitor);
@@ -450,12 +467,12 @@ export default function StatusBar() {
         </button>
         <button
           type="button"
-          className={`s-statusbar__btn${view === "graph" ? " s-statusbar__btn--on" : ""}`}
-          // A toggle, not a link: it swaps the workspace between the note and
-          // the graph, and the class that says so visually needs a twin a
+          className={`s-statusbar__btn${graphOn ? " s-statusbar__btn--on" : ""}`}
+          // A toggle, not a link: it opens the graph tab in the focused pane
+          // or closes it, and the class that says so visually needs a twin a
           // screen reader can hear.
-          aria-pressed={view === "graph"}
-          onClick={() => setView(view === "graph" ? "editor" : "graph")}
+          aria-pressed={graphOn}
+          onClick={toggleGraph}
           title={t("graphTitle")}
         >
           {t("graph")}

@@ -2,8 +2,6 @@
 
 *The long-form manual. The [project README](../README.md) is the one-minute version.*
 
-> **Astrolabe was Vellum.** Everything written for the old name keeps working: `VELLUM_*` environment keys (the new spelling is `ASTROLABE_*`), `vellum://` links beside `astrolabe://`, `~/.config/vellum` (copied to `~/.config/astrolabe` on first launch), the `vellum_session` cookie until it expires, `\usepackage{vellum}` and `/api/vellum.sty` beside `astrolabe.sty`, and the browser's stored preferences. See [Configuration](configuration.md#environment-variables).
-
 Read it as a site, with search, an outline and both languages: [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/) · [العربية](https://zahakj.github.io/astrolabe/site/ar/). The Arabic sources are under [`ar/`](ar/); `npm run build-docs` renders both into `site/`.
 
 **Before reading any of it**, the running app will show you most of what is below: press

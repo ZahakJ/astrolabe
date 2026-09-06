@@ -1048,11 +1048,27 @@ export async function moveFolder(rel: string, toRel: string): Promise<MoveFolder
  *  covers (gitSync.ts) — it is local bookkeeping and must never reach a
  *  remote. Dot-prefixed, so `trashEntryAbs()` refuses to treat it as an entry
  *  and `listTrash()` never lists it. */
-// The bookkeeping file keeps its OLD name on purpose: a trash written before
-// the rename must still restore to where it came from, and a second file
-// name would be two trashes with one door. Reading both and writing the new
-// one is a migration with nothing to gain; the file is internal.
-const TRASH_MANIFEST = ".vellum-trash.json";
+// The bookkeeping file moved with the name: a manifest written under the old
+// one is renamed the first time the trash is read, so a trash filled before
+// the rename still restores to where it came from and nothing under the old
+// name is left in the vault.
+const TRASH_MANIFEST = ".astrolabe-trash.json";
+const LEGACY_TRASH_MANIFEST = ".vellum-trash.json";
+async function carryTrashManifest(vaultRoot: string): Promise<void> {
+  const fresh = path.join(vaultRoot, TRASH_DIR, TRASH_MANIFEST);
+  const old = path.join(vaultRoot, TRASH_DIR, LEGACY_TRASH_MANIFEST);
+  try {
+    await fs.access(fresh);
+    return; // the new file exists; the old one, if any, is stale
+  } catch {
+    // no manifest under the new name yet
+  }
+  try {
+    await fs.rename(old, fresh);
+  } catch {
+    // no old manifest either: nothing to carry
+  }
+}
 
 interface TrashRecord {
   origin: string;
@@ -1067,6 +1083,7 @@ interface TrashRecord {
 let manifestChain: Promise<void> = Promise.resolve();
 
 async function readManifest(): Promise<Record<string, TrashRecord>> {
+  await carryTrashManifest(vaultRoot);
   try {
     const raw = await fs.readFile(path.join(vaultRoot, TRASH_DIR, TRASH_MANIFEST), "utf8");
     const parsed: unknown = JSON.parse(raw);

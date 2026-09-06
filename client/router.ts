@@ -22,7 +22,14 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, paneAt, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isGraphTab, paneAt, surfaceOf, type Workspace } from "./workspace.ts";
+
+/** The focused pane is showing the graph tab. */
+function graphTabActive(ws: Workspace): boolean {
+  const pane = paneAt(ws, ws.focus);
+  const tab = pane === null ? null : activeTabOf(pane);
+  return tab !== null && isGraphTab(tab.path);
+}
 import { toast } from "./toast.ts";
 
 /** True while we are applying a URL to the store (popstate / initial load):
@@ -103,7 +110,7 @@ function bookSurfaceOf(ws: Workspace): { kind: "library" } | { kind: "book"; pat
  *  bookmarkable place, "which page" is remembered server-side — and focusing
  *  the note beside it hands the bar back to the note. */
 function urlForState(view: string, openPath: string | null, ws: Workspace): string {
-  if (view === "graph") return "/graph";
+  if (view === "editor" && graphTabActive(ws)) return "/graph";
   const book = bookSurfaceOf(ws);
   if (book !== null) return urlForBooksRoute(book);
   return openPath ? notePathToUrl(openPath) : "/";
@@ -116,7 +123,7 @@ function currentUrl(): string {
 function setTitle(openPath: string | null, view: string): void {
   const base = useStore.getState().siteName; // SITE_NAME branding
   const book = bookSurfaceOf(useStore.getState().workspace);
-  if (view === "graph") {
+  if (view === "editor" && graphTabActive(useStore.getState().workspace)) {
     document.title = `${t("docTitleGraph")} · ${base}`;
   } else if (book !== null) {
     document.title =
@@ -203,8 +210,7 @@ export function applyUrl(initial = false): boolean {
       // The cost is the tab arrangement, and it is bounded: this entry only
       // EXISTS if the session began with nothing open, and Forward reopens the
       // note the reader stepped back from.
-      if (store.view === "graph") store.setView("editor");
-      if (store.openPath !== null) store.closeAllTabs();
+      if (store.openPath !== null || graphTabActive(store.workspace)) store.closeAllTabs();
       return true;
     }
     return false;

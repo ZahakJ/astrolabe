@@ -65,13 +65,13 @@ and says so when you are on the latest.
 
 ## Deep links and file association
 
-`astrolabe://note?path=Folder/Note.md` opens a note from outside the app (`vellum://` links keep opening too), and the app registers for
+`astrolabe://note?path=Folder/Note.md` opens a note from outside the app, and the app registers for
 `.md` files so a note double-clicked in the file manager opens here. The path is checked, not
 cleaned: `..`, a leading `/`, a drive letter or a control character is refused.
 
 ## Where things live
 
-The app's own configuration is in `~/.config/astrolabe` (carried over from `~/.config/vellum` on the first launch under the new name; the old directory is left as it was) (`desktop.json`: the vaults, their ports
+The app's own configuration is in `~/.config/astrolabe` (`desktop.json`: the vaults, their ports
 and, for each, the data directory it uses), and each vault's instance data in the
 [`ASTROLABE_DATA`](configuration.md#environment-variables) that entry names. The Linux build is
 packaged with `asar: false` deliberately, because the server child reads real files from the

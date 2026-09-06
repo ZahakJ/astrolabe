@@ -1004,7 +1004,7 @@ export default function CommandPalette() {
           void newNoteFromTemplateCommand();
           break;
         case "toggle-graph":
-          store.setView(store.view === "graph" ? "editor" : "graph");
+          store.toggleGraph();
           break;
         case "open-media":
           store.setView(store.view === "media" ? "editor" : "media");

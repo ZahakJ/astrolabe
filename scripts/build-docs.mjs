@@ -256,8 +256,8 @@ function homeBody(lang, summaries) {
   ).join("");
   const intro =
     lang === "ar"
-      ? `<h1>دليل أسطرلاب</h1><p class="strap">ملاحظاتك، على الخريطة.</p><p class="lede">${ui.tagline}</p><p class="was"><b>كان اسمه ڤيلوم.</b> كل ما كُتب للاسم القديم ما زال يعمل: مفاتيح البيئة <code>VELLUM_*</code>، وروابط <code>vellum://</code>، ومجلد <code>~/.config/vellum</code>، وملف تعريف الجلسة، و<code>\\usepackage{vellum}</code>، وتفضيلات المتصفح المحفوظة. الأسماء الجديدة هي <code>ASTROLABE_*</code> و<code>astrolabe://</code> و<code>astrolabe.sty</code>.</p>`
-      : `<h1>The Astrolabe manual</h1><p class="strap">Your notes, charted.</p><p class="lede">${ui.tagline}</p><p class="was"><b>Astrolabe was Vellum.</b> Everything written for the old name keeps working: <code>VELLUM_*</code> environment keys, <code>vellum://</code> links, <code>~/.config/vellum</code>, the session cookie, <code>\\usepackage{vellum}</code>, and your browser's stored preferences. The new names are <code>ASTROLABE_*</code>, <code>astrolabe://</code> and <code>astrolabe.sty</code>.</p>`;
+      ? `<h1>دليل أسطرلاب</h1><p class="strap">ملاحظاتك، على الخريطة.</p><p class="lede">${ui.tagline}</p>`
+      : `<h1>The Astrolabe manual</h1><p class="strap">Your notes, charted.</p><p class="lede">${ui.tagline}</p>`;
   return intro + cards;
 }
 

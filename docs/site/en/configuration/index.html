@@ -32,7 +32,6 @@ Most site-identity keys exist in both. A value saved in the panel <strong>overri
 counterpart; clearing that field in the panel falls back to the env default. A handful of keys —
 the security-sensitive ones — are env-only forever.</p>
 <h2 id="environment-variables"><a class="anchor" href="#environment-variables">Environment variables</a></h2>
-<p><strong>Every key below was <code>VELLUM_*</code> before 2.21.</strong> The old spellings are still read, and the new one wins when both are set; the server prints one line at startup naming any old key it leaned on. Rename them when convenient, not before.</p>
 <p>npm scripts load <code>.env</code> automatically (<code>node --env-file-if-exists=.env</code>), so no <code>export</code> and no
 <code>source</code> is needed. <code>.env.example</code> in the repo root is the annotated full list; this is the
 summary.</p>

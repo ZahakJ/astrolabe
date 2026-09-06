@@ -33,8 +33,8 @@ import { getVaultRoot, normalizeRel } from "./vault.ts";
 
 export const COOKIE_NAME = "astrolabe_session";
 /** The cookie's name before the rename. Read, never written: a session
- *  issued as Vellum stays signed in until it expires, and the sliding refresh
- *  reissues it under the new name. Deleted on logout alongside the new one. */
+ *  issued under the old name is honoured once, reissued under the new name on
+ *  that request, and the old cookie expired. Deleted on logout too. */
 export const LEGACY_COOKIE_NAME = "vellum_session";
 export function sessionCookie(c: Context): string | undefined {
   return getCookie(c, COOKIE_NAME) ?? getCookie(c, LEGACY_COOKIE_NAME);
@@ -370,8 +370,14 @@ function setSessionCookie(c: Context): void {
 function refreshSessionIfStale(c: Context): void {
   if (!config.passwordHash) return;
   const remaining = sessionRemainingMs(sessionCookie(c));
-  if (remaining === null || remaining > SESSION_TTL_MS / 2) return;
+  if (remaining === null) return;
+  // A session still riding the old cookie name is moved to the new one at
+  // once, and the old cookie is expired, so a browser that signed in before
+  // the rename carries the new name only from its next request on.
+  const onOldName = !getCookie(c, COOKIE_NAME) && !!getCookie(c, LEGACY_COOKIE_NAME);
+  if (!onOldName && remaining > SESSION_TTL_MS / 2) return;
   setSessionCookie(c);
+  if (onOldName) deleteCookie(c, LEGACY_COOKIE_NAME, { path: "/" });
 }
 
 function isAdmin(c: Context): boolean {
@@ -648,6 +654,10 @@ export function servedLayout(): "app" | "blog" | "designed" {
 }
 
 authRoutes.get("/me", (c) => {
+  // The auth routes mount ahead of the guard, so the cookie's move to its new
+  // name (and the sliding refresh) happens here for the first request the
+  // client makes, not only for the guarded ones after it.
+  refreshSessionIfStale(c);
   // Preview: an admin session that asked to be treated as a visitor gets the
   // exact visitor-shaped payload (admin: false, no counts, published-only
   // home note) plus `preview: true` so the client can show the exit banner.
@@ -999,7 +1009,13 @@ export const authGuard: MiddlewareHandler = async (c, next) => {
   // methods it was ever meant for, and every mutation under the prefix falls
   // through to the admin check below like any other.
   const reading = c.req.method === "GET" || c.req.method === "HEAD";
-  if (reading && isOpenPath(c.req.path)) return next();
+  // An open path skips the admin check, not the cookie's move to its new
+  // name: /api/me is the first thing the client asks, and a session still
+  // riding the old cookie should leave it under the new one.
+  if (reading && isOpenPath(c.req.path)) {
+    refreshSessionIfStale(c);
+    return next();
+  }
   // Sliding session refresh happens here, on the one middleware every real API
   // request passes through, so an admin who is using the app never meets the
   // login modal even though the token itself is short-lived.

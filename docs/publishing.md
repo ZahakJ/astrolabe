@@ -96,6 +96,12 @@ request is re-scoped server-side through the exact code path a stranger's reques
 public site serves. A slim gold banner marks the mode; "Exit preview" returns you to the full app
 on the same note. It never survives a reload.
 
+The note you are on stays on screen. A note the public site hides behind the [language filter](arabic-and-rtl.md#language-filter),
+an Arabic note previewed from an English instance say, is shown as a reader of that language
+would see it: the preview borrows the reader language for as long as it lasts, says so in a toast,
+and hands it back on exit. A note that is simply not published shows the empty state, as it does
+for a visitor.
+
 ## Putting it on the internet
 
 Run Astrolabe behind any HTTPS reverse proxy (Caddy, nginx, a Cloudflare tunnel, …) forwarding to

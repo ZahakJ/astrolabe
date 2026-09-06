@@ -18,8 +18,9 @@ it is a tab beside the notes you are writing, the words on its canvas are in sea
 
 ## Making one
 
-Right-click a folder → **New drawing here**, or **New drawing** in the command palette (it lands in
-the open note's folder). The name prompt offers `Drawing.excalidraw`, and the extension is the
+The pencil at the top of the notes sidebar starts a drawing in the vault's root. Right-click a
+folder → **New drawing here** puts one inside that folder, and **New drawing** in the command
+palette lands in the open note's folder. The name prompt offers `Drawing.excalidraw`, and the extension is the
 format:
 
 | The vault | A new drawing is | Why |

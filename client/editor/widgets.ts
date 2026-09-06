@@ -79,7 +79,15 @@ export class ImageWidget extends WidgetType {
       const img = document.createElement("img");
       img.alt = this.name;
       img.draggable = false;
-      if (this.width) img.style.width = `${this.width}px`;
+      if (this.width) {
+        img.style.width = `${this.width}px`;
+        // A SIZED IMAGE IS CENTRED. Unsized it fills the column and reads as
+        // a block; sized to 300px it used to sit at the line's start, which
+        // in an Arabic note is the LEFT (the embed's own characters are Latin,
+        // so its line is LTR while the prose around it is RTL). The class is
+        // what preview.css centres, in both directions.
+        wrap.classList.add("cm-s-embed-image--sized");
+      }
       img.onload = remeasure;
       img.onerror = () => {
         markEmbedBroken(url);

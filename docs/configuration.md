@@ -14,8 +14,6 @@ the security-sensitive ones — are env-only forever.
 
 ## Environment variables
 
-**Every key below was `VELLUM_*` before 2.21.** The old spellings are still read, and the new one wins when both are set; the server prints one line at startup naming any old key it leaned on. Rename them when convenient, not before.
-
 npm scripts load `.env` automatically (`node --env-file-if-exists=.env`), so no `export` and no
 `source` is needed. `.env.example` in the repo root is the annotated full list; this is the
 summary.

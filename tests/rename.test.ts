@@ -49,12 +49,13 @@ describe("the browser's memory under both names", () => {
       clear: () => map.clear(),
     } as Storage;
   }
-  it("copies vellum.* to astrolabe.* once, never overwriting, never deleting", () => {
+  it("moves vellum.* to astrolabe.* once, never overwriting", () => {
     const s = fakeStorage({ "vellum.theme": "graphite", "vellum.zen": "1", "astrolabe.zen": "0", other: "x" });
     assert.equal(migrateStorage(s), 1);
     assert.equal(s.getItem("astrolabe.theme"), "graphite");
     assert.equal(s.getItem("astrolabe.zen"), "0", "an existing new key is kept");
-    assert.equal(s.getItem("vellum.theme"), "graphite", "the old key stays for older builds");
+    assert.equal(s.getItem("vellum.theme"), null, "the old key goes with the move");
+    assert.equal(s.getItem("other"), "x");
     assert.equal(migrateStorage(s), 0, "a second pass has nothing to carry");
   });
 });

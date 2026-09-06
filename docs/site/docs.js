@@ -6,7 +6,13 @@
   // ── Theme ────────────────────────────────────────────────────────────────
   const root = document.documentElement;
   try {
-    const saved = localStorage.getItem("vellum-docs-theme");
+    // The manual's theme choice moved with the name; an old key is carried once.
+    var saved = localStorage.getItem("astrolabe-docs-theme");
+    if (saved === null && localStorage.getItem("vellum-docs-theme") !== null) {
+      saved = localStorage.getItem("vellum-docs-theme");
+      localStorage.setItem("astrolabe-docs-theme", saved);
+      localStorage.removeItem("vellum-docs-theme");
+    }
     if (saved === "light" || saved === "dark") root.dataset.theme = saved;
     else if (matchMedia("(prefers-color-scheme: light)").matches) root.dataset.theme = "light";
   } catch (e) {}
@@ -14,7 +20,7 @@
   if (themeBtn) themeBtn.addEventListener("click", function () {
     const next = root.dataset.theme === "light" ? "dark" : "light";
     root.dataset.theme = next;
-    try { localStorage.setItem("vellum-docs-theme", next); } catch (e) {}
+    try { localStorage.setItem("astrolabe-docs-theme", next); } catch (e) {}
   });
 
   // ── Phone menu ───────────────────────────────────────────────────────────
