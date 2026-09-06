@@ -116,7 +116,9 @@ sideways. A row of filters at the top narrows every shelf to one status.
 Each card is the fence's card in miniature: cover, title, bar, count, status,
 rating, dates and the first lines of your notes. Its **− / +** nudge the
 progress exactly as the editor's stepper does, **Edit** reopens the form
-filled in, and the cover or title opens the note.
+filled in, **Delete** sends the work's note to the trash through the same dialog the tree uses
+(Undo on the toast, and the trash browser can bring it back), and the cover or title opens the
+note.
 
 **Add media** is a form: kind, title, cover (pick a picture the vault already
 has, upload one, or paste an `https://` link), progress, unit, a season for a

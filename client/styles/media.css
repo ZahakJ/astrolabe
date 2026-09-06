@@ -515,6 +515,14 @@
   cursor: pointer;
 }
 
+.s-media__delbtn {
+  margin-inline-start: 0;
+}
+
+.s-media__delbtn:hover {
+  color: var(--danger, #e5484d);
+}
+
 .s-media__editbtn:hover {
   color: var(--accent);
   background: var(--bg-hover);
