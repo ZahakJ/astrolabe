@@ -48,7 +48,25 @@ export function caretHome(path: string, content: string): number {
     const line = content.slice(at, end);
     if (line.trim() !== "") {
       // An ATX heading opens most notes: park at the end of its text.
-      return /^\s{0,3}#{1,6}\s/.test(line) ? end : at;
+      if (/^\s{0,3}#{1,6}\s/.test(line)) return end;
+      // A fence opens a note that IS a card (a Media item is frontmatter and
+      // one ```tracker block): a caret on the fence line unfolds the card into
+      // its source, in the middle of the thing the reader clicked. Park on
+      // the line after the closing fence instead, which is where prose goes.
+      const fence = /^\s{0,3}(`{3,}|~{3,})/.exec(line);
+      if (fence) {
+        const close = new RegExp(`^\\s{0,3}${fence[1]}\\s*$`);
+        let p = nl === -1 ? content.length : nl + 1;
+        while (p < content.length) {
+          const e = content.indexOf("\n", p);
+          const stop = e === -1 ? content.length : e;
+          if (close.test(content.slice(p, stop))) return e === -1 ? content.length : e + 1;
+          if (e === -1) break;
+          p = e + 1;
+        }
+        return content.length;
+      }
+      return at;
     }
     if (nl === -1) break;
     at = nl + 1;

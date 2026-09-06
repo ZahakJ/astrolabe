@@ -23,7 +23,9 @@ import { getTrackers, updateTracker } from "../api.ts";
 import FolderGlyph from "../components/FolderGlyph.tsx";
 import { siteDate } from "../dates.ts";
 import { autoDir, countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
-import { KIND_UNIT } from "../reading/tracker.ts";
+import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
+import { TREE_REVEAL_EVENT } from "../components/Sidebar.tsx";
+import { sidebarIsDrawer } from "../state.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { fileUrl } from "../editor/embeds.ts";
@@ -77,8 +79,15 @@ function dateText(raw: string, locale: string): string {
 function countText(meta: TrackerMeta): string | null {
   if (meta.done === null) return null;
   const kind: TrackerKind | null = foldKind(meta.kind);
+  const known = unitKey(meta.unit);
   const phrase = (n: number): string =>
-    meta.unit !== null ? `${localeNum(n)} ${meta.unit}` : kind ? countPhrase(n, KIND_UNIT[kind]) : localeNum(n);
+    known !== null
+      ? countPhrase(n, known)
+      : meta.unit !== null
+        ? `${localeNum(n)} ${meta.unit}`
+        : kind
+          ? countPhrase(n, KIND_UNIT[kind])
+          : localeNum(n);
   if (meta.total === null) return tf("mediaSoFar", { count: phrase(meta.done) });
   return `${localeNum(meta.done)} / ${phrase(meta.total)}`;
 }
@@ -91,12 +100,14 @@ function MediaCard({
   onOpen,
   onEdit,
   onStep,
+  onFolder,
 }: {
   meta: TrackerMeta;
   locale: string;
   onOpen: () => void;
   onEdit: () => void;
   onStep: (delta: number) => void;
+  onFolder: () => void;
 }) {
   const [coverBroken, setCoverBroken] = useState(false);
   useEffect(() => setCoverBroken(false), [meta.cover]);
@@ -155,6 +166,17 @@ function MediaCard({
         )}
       </div>
       {dates.length > 0 && <div className="s-media__dates">{dates.join(" · ")}</div>}
+      {meta.folder && (
+        /* The work's own notes: a folder of the vault behind the card. The
+           chip counts them and is the door — the folder's own note when it
+           has one, else the folder revealed in the tree. */
+        <button type="button" className="s-media__folder" onClick={onFolder} title={meta.folder} aria-label={tf("mediaFolderOpen", { title: meta.title })}>
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          </svg>
+          <span dir="auto">{tf("mediaFolderNotes", { count: countPhrase(meta.folderNotes, "notes"), folder: meta.folder.split("/").pop() ?? meta.folder })}</span>
+        </button>
+      )}
       {meta.notes && <p className="s-media__notes" dir="auto">{meta.notes}</p>}
       <div className="s-media__actions">
         <button type="button" className="s-media__stepbtn" onClick={() => onStep(-1)} aria-label={t("trackerStepDown")} title={t("trackerStepDown")} disabled={meta.done === null}>
@@ -219,6 +241,22 @@ export default function MediaView() {
   const open = (meta: TrackerMeta): void => {
     openNote(meta.path);
     setView("editor");
+  };
+
+  const openFolder = (meta: TrackerMeta): void => {
+    if (meta.folder === null) return;
+    if (meta.folderNote !== null) {
+      openNote(meta.folderNote);
+      setView("editor");
+      return;
+    }
+    // No note stands for the folder: show it in the tree instead, with the
+    // pane open first — the same order the palette's own reveal keeps.
+    const store = useStore.getState();
+    if (sidebarIsDrawer()) store.setSidebarOpen(true);
+    else store.setSidebarCollapsed(false);
+    const path = meta.folder;
+    requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(TREE_REVEAL_EVENT, { detail: { path } })));
   };
 
   const step = async (meta: TrackerMeta, delta: number): Promise<void> => {
@@ -294,8 +332,9 @@ export default function MediaView() {
                   meta={meta}
                   locale={locale}
                   onOpen={() => open(meta)}
+                  onFolder={() => openFolder(meta)}
                   onEdit={() => setForm({ open: true, editing: meta })}
-                  onStep={(delta) => void step(meta, delta)}
+                  onStep={(delta) => void step(meta, delta * meta.step)}
                 />
               ))}
             </div>

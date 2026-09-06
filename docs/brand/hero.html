@@ -4,12 +4,12 @@
      scripts/shoot-brand.mjs. Edit here, never in an image editor. -->
 <html lang="en"><head><meta charset="utf-8">
 <style>
-  :root { --bg: #070a17; --raised: #0d1122; --text: #e6e6f0; --muted: #9fa0b8; --accent: #9aa3ff; --hi: #c8ccff; --border: #1e2340; }
+  :root { --bg: #0d1117; --raised: #161b22; --text: #e6edf3; --muted: #9aa4b2; --accent: #e3b341; --hi: #f0cd6a; --border: #30363d; }
   * { margin: 0; box-sizing: border-box; }
   body { width: 1280px; height: 640px; background: var(--bg); color: var(--text); font-family: Georgia, "Iowan Old Style", "Times New Roman", serif; overflow: hidden; position: relative; }
   .glow { position: absolute; inset: 0; background:
-    radial-gradient(52% 46% at 50% 44%, rgba(154,163,255,.22), transparent 70%),
-    radial-gradient(30% 22% at 50% 30%, rgba(200,204,255,.14), transparent 70%); }
+    radial-gradient(52% 46% at 50% 44%, rgba(227,179,65,.12), transparent 70%),
+    radial-gradient(30% 22% at 50% 30%, rgba(240,205,106,.08), transparent 70%); }
   .stars { position: absolute; inset: 0; background-image:
     radial-gradient(1px 1px at 12% 22%, #fff 60%, transparent 61%), radial-gradient(1.5px 1.5px at 88% 18%, var(--hi) 60%, transparent 61%),
     radial-gradient(1px 1px at 76% 78%, #fff 60%, transparent 61%), radial-gradient(1px 1px at 22% 82%, #fff 60%, transparent 61%),
@@ -19,7 +19,7 @@
     radial-gradient(1px 1px at 70% 40%, #fff 60%, transparent 61%); opacity: .55; }
   svg.lines { position: absolute; inset: 0; opacity: .5; }
   .wrap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
-  .star { color: var(--hi); font-size: 44px; line-height: 1; text-shadow: 0 0 26px rgba(200,204,255,.85), 0 0 60px rgba(154,163,255,.5); margin-bottom: 10px; }
+  .star { color: var(--hi); font-size: 44px; line-height: 1; text-shadow: 0 0 26px rgba(240,205,106,.8), 0 0 60px rgba(227,179,65,.45); margin-bottom: 10px; }
   h1 { font-size: 132px; font-weight: 600; letter-spacing: .04em; line-height: 1; }
   h1 .br { color: var(--accent); font-size: .78em; vertical-align: 3px; }
   .rule { width: 560px; height: 1.5px; margin: 26px 0 22px; background: linear-gradient(90deg, transparent, var(--hi), transparent); }
@@ -27,10 +27,10 @@
   .list { margin-top: 44px; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 20px; letter-spacing: .28em; color: var(--accent); text-transform: lowercase; }
 </style></head><body>
   <div class="glow"></div><div class="stars"></div>
-  <svg class="lines" viewBox="0 0 1280 640" fill="none" stroke="#9aa3ff" stroke-width="1">
+  <svg class="lines" viewBox="0 0 1280 640" fill="none" stroke="#6e7681" stroke-width="1">
     <path d="M150 120 L290 90 L360 50 M290 90 L420 140" /><path d="M980 95 L1060 48 L1185 80 M1060 48 L1110 130" />
     <path d="M120 520 L245 555 M1050 540 L1175 500 L1140 580" />
-    <g fill="#c8ccff" stroke="none"><circle cx="150" cy="120" r="2"/><circle cx="290" cy="90" r="2.5"/><circle cx="360" cy="50" r="2"/><circle cx="420" cy="140" r="2"/><circle cx="980" cy="95" r="2"/><circle cx="1060" cy="48" r="2.5"/><circle cx="1185" cy="80" r="2"/><circle cx="1110" cy="130" r="2"/><circle cx="120" cy="520" r="2"/><circle cx="245" cy="555" r="2"/><circle cx="1050" cy="540" r="2"/><circle cx="1175" cy="500" r="2.5"/><circle cx="1140" cy="580" r="2"/></g>
+    <g fill="#9aa4b2" stroke="none"><circle cx="150" cy="120" r="2"/><circle cx="290" cy="90" r="2.5"/><circle cx="360" cy="50" r="2"/><circle cx="420" cy="140" r="2"/><circle cx="980" cy="95" r="2"/><circle cx="1060" cy="48" r="2.5"/><circle cx="1185" cy="80" r="2"/><circle cx="1110" cy="130" r="2"/><circle cx="120" cy="520" r="2"/><circle cx="245" cy="555" r="2"/><circle cx="1050" cy="540" r="2"/><circle cx="1175" cy="500" r="2.5"/><circle cx="1140" cy="580" r="2"/></g>
   </svg>
   <div class="wrap">
     <div class="star">✦</div>

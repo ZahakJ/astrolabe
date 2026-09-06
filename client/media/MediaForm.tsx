@@ -20,13 +20,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "../a11y.ts";
 import { putNote, updateTracker, uploadAttachment } from "../api.ts";
 import { PathInput } from "../components/controls/PathInput.tsx";
+import { pickFolder } from "../components/FolderPicker.tsx";
 import { NumberInput, SegmentedControl, TextInput, Toggle } from "../components/controls/Fields.tsx";
 import { UPLOAD_MAX_MB } from "../../shared/limits.ts";
 import { mediaNoteContent, mediaNotePath, mediaProgress } from "../../shared/media.ts";
-import { foldKind, type TrackerFields, type TrackerKind, type TrackerStatus } from "../../shared/tracker.ts";
+import { defaultTrackerStep, foldKind, type TrackerFields, type TrackerKind, type TrackerStatus } from "../../shared/tracker.ts";
 import type { TrackerMeta } from "../../shared/types.ts";
 import { countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
-import { KIND_UNIT } from "../reading/tracker.ts";
+import { KIND_UNIT } from "../trackerUnits.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { draftOf, emptyDraft, numberOf, treeHasPath, type MediaDraft } from "./mediaModel.ts";
@@ -66,8 +67,13 @@ function fieldsOf(draft: MediaDraft): TrackerFields & { title: string } {
     kind: kind === "" ? null : kind,
     season: foldKind(kind) === "show" && draft.season.trim() !== "" ? draft.season.trim() : null,
     cover: draft.cover.trim() === "" ? null : draft.cover.trim(),
+    folder: draft.folder.trim() === "" ? null : draft.folder.trim(),
     progress: done === null ? null : mediaProgress(done, total),
     unit: draft.unit.trim() === "" ? null : draft.unit.trim(),
+    step: (() => {
+      const n = numberOf(draft.step);
+      return n === null || n <= 0 ? null : String(n);
+    })(),
     status: draft.status,
     rating: rating === null ? null : `${Math.min(10, rating)}/10`,
     started: draft.started.trim() === "" ? null : draft.started.trim(),
@@ -231,12 +237,42 @@ export function MediaForm({
               <span className="s-mediaform__label">{t("mediaFormUnit")}</span>
               <TextInput value={draft.unit} onChange={(v) => set("unit", v)} placeholder={kindNoun} label={t("mediaFormUnit")} maxLength={40} dir="auto" />
             </label>
+            <label className="s-mediaform__row">
+              <span className="s-mediaform__label">{t("mediaFormStep")}</span>
+              <NumberInput value={draft.step} onChange={(v) => set("step", v)} unit={unitWord} min={1} label={t("mediaFormStep")} placeholder={String(defaultTrackerStep(draft.unit.trim() === "" ? null : draft.unit.trim(), foldKind(draft.kind)))} />
+            </label>
             {kindKey === "show" && (
               <label className="s-mediaform__row">
                 <span className="s-mediaform__label">{t("mediaFormSeason")}</span>
                 <TextInput value={draft.season} onChange={(v) => set("season", v)} label={t("mediaFormSeason")} maxLength={20} dir="ltr" />
               </label>
             )}
+          </div>
+
+          <div className="s-mediaform__row">
+            <span className="s-mediaform__label">{t("mediaFormFolder")}</span>
+            <div className="s-mediaform__folderrow">
+              <span className={`s-mediaform__folder${draft.folder ? "" : " s-mediaform__folder--none"}`} dir="auto" title={draft.folder || undefined}>
+                {draft.folder || t("mediaFormFolderNone")}
+              </span>
+              <button
+                type="button"
+                className="s-btn s-mediaform__pick"
+                onClick={() => {
+                  void pickFolder({ title: t("mediaFormFolder"), current: draft.folder || null }).then((folder) => {
+                    if (folder !== null) set("folder", folder);
+                  });
+                }}
+              >
+                {t("mediaFormFolderChoose")}
+              </button>
+              {draft.folder && (
+                <button type="button" className="s-btn s-mediaform__unlink" onClick={() => set("folder", "")} aria-label={t("mediaFormFolderClear")} title={t("mediaFormFolderClear")}>
+                  ×
+                </button>
+              )}
+            </div>
+            <p className="s-mediaform__hint">{t("mediaFormFolderHint")}</p>
           </div>
 
           <label className="s-mediaform__row">

@@ -33,7 +33,9 @@ notes: |
 | `cover` | an attachment name, or `![[name.jpg]]` | Resolved exactly like an embed. Missing or broken → the kind's glyph, never a broken picture. |
 | `progress` | `62/130`, `45%`, `45`, `62 of 130`, `62/?` | A fraction derives the percentage; a bare number *is* the percentage. `62/?` is a count with no ceiling (hours in a game nobody has timed): the card prints the count and draws no bar. Eastern Arabic digits are read too. |
 | `season` | any text | A show's season, printed on the card's cover. Kept verbatim; the Media page's form writes it for shows. |
-| `unit` | any word | Yours, printed as you wrote it. Leave it out and the kind's own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised. |
+| `step` | a number | How far one press of − / + moves the count. Left out: ten for pages and minutes, one for everything else. |
+| `folder` | a vault folder | Where your own notes on this work live (`1 - Source Material/Books/The Linux Memory Manager`). The rendered card names it; the Media page counts the notes in it and opens it. A [library path](library.md) on the same folder wears this tracker's cover. |
+| `unit` | any word | Yours, printed as you wrote it, except that a unit the chrome already knows, in either language (`chapters`, `صفحات`, `hours`, `episodes`…), is agreed and translated like a default one. Leave it out and the kind's own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised. |
 | `status` | `planned` `active` `done` `paused` `dropped` | Plus the words people actually type: `reading`, `playing`, `watching`, `in-progress`, `started`, `finished`, `on hold`, `dnf`, `backlog`… Left out, it is derived from the progress. |
 | `rating` | `8/10`, `4/5`, `★★★★`, `4` | A bare number is out of five up to five, out of ten above it. |
 | `started`, `finished` | a date | An ISO date (`2026-07-01`) is formatted in the site's own calendar and numerals; anything else prints as written. |
@@ -133,6 +135,8 @@ rather than overwritten.
 For a game whose length nobody has timed, switch the total off: the fence
 says `progress: 62/?`, the card counts hours and draws no bar. Turn it back on
 later and the bar returns.
+
+**A folder of your own notes.** *Notes in the vault* on the form (or `folder:` in the fence) points a work at a folder, the one you already keep your chapter notes or episode notes in. The card grows a chip that counts the notes there and opens them: the folder's own note when it has one (a note named like the folder, or `index.md`), otherwise the folder revealed in the sidebar. Nothing is moved and nothing is written into those notes. When the same folder is a [library path](library.md), the path's shelf card and page wear this tracker's cover, over any cover the row or the folder note names, so the book you are tracking and the book your readers open are one picture.
 
 Editing from the page rewrites **only the fence** in the note. The prose under
 it, the frontmatter and any second tracker stay byte for byte as they were.

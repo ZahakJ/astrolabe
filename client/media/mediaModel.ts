@@ -6,7 +6,7 @@
 // (tests/media.test.ts) can hold the page to its promises — the same split
 // shared/tracker.ts already made for the card.
 
-import { foldKind, type TrackerKind, type TrackerStatus } from "../../shared/tracker.ts";
+import { defaultTrackerStep, foldKind, type TrackerKind, type TrackerStatus } from "../../shared/tracker.ts";
 import type { TrackerMeta, TreeNode } from "../../shared/types.ts";
 
 /** Does the vault already hold a file at `path`? Asked of the tree the store
@@ -69,7 +69,9 @@ export interface MediaDraft {
   total: string;
   openEnded: boolean;
   unit: string;
+  step: string;
   season: string;
+  folder: string;
   status: TrackerStatus;
   rating: string;
   started: string;
@@ -86,7 +88,9 @@ export function emptyDraft(kind: TrackerKind = "show"): MediaDraft {
     total: "",
     openEnded: false,
     unit: "",
+    step: "",
     season: "",
+    folder: "",
     status: "planned",
     rating: "",
     started: "",
@@ -106,7 +110,9 @@ export function draftOf(meta: TrackerMeta): MediaDraft {
     total: meta.total === null ? "" : String(meta.total),
     openEnded: meta.done !== null && meta.total === null,
     unit: meta.unit ?? "",
+    step: meta.step === defaultTrackerStep(meta.unit, foldKind(meta.kind)) ? "" : String(meta.step),
     season: meta.season ?? "",
+    folder: meta.folder ?? "",
     status: meta.status,
     rating: meta.rating === null ? "" : String(Math.round((meta.rating.value / meta.rating.max) * 100) / 10),
     started: meta.started ?? "",

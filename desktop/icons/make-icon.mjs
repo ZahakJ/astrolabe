@@ -3,10 +3,10 @@
 //   node desktop/icons/make-icon.mjs
 //
 // Vellum's identity moved rooms in 2.18: from the candlelit manuscript room
-// (gold leaf on iron-gall) to deep space — starlight `#9aa3ff` on sidereal
-// `#070a17`, the `sidereal` theme in client/styles/tokens.css, because the
-// owner and his readers found the gold heavy and wanted something darker and
-// easier on the eye. An icon is the one surface a reader sees before any of
+// (gold leaf on warm iron-gall) to graphite — gold leaf `#e3b341` on GitHub's
+// own neutral dark `#0d1117`, the `graphite` theme in client/styles/tokens.css,
+// because the owner and his readers found the warm ground heavy, then the
+// blue one cold, and asked for "solid colors like GitHub" with the star still gold. An icon is the one surface a reader sees before any of
 // that loads, so it is those two colours and nothing else.
 //
 // The mark is the four-pointed star the startup banner already prints
@@ -28,8 +28,8 @@ import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const SIZE = 512;
-const BG = [0x07, 0x0a, 0x17]; // sidereal
-const GOLD = [0x9a, 0xa3, 0xff]; // starlight (the name stays: it is the accent channel)
+const BG = [0x0d, 0x11, 0x17]; // graphite
+const GOLD = [0xe3, 0xb3, 0x41]; // gold leaf, at GitHub's attention-yellow pitch
 const RADIUS = SIZE * 0.22; // the corner radius of the app's own `--radius`, scaled
 
 /** Coverage of a rounded square at (x, y), antialiased by 3× supersampling. */

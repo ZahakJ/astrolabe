@@ -6,7 +6,7 @@
 
 <p align="center"><a href="https://zahakj.github.io/vellum/"><strong>✦ Visit the project site ✦</strong></a></p>
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-6c78ff.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-e3b341.svg)](LICENSE)
 [![Node ≥ 24](https://img.shields.io/badge/node-%E2%89%A5%2024-339933?logo=node.js&logoColor=white)](package.json)
 
 > A *vellum* was the candlelit room where manuscripts were copied and illuminated. This one runs on `localhost`.
@@ -22,7 +22,7 @@ Obsidian is excellent — and if it fits, use it. Vellum exists for the gap it l
 | | |
 | --- | --- |
 | ![Blog dashboard home](docs/screenshots/blog-dashboard.png)<br>*Blog mode's dashboard home — posts as cards, each with a generated gradient until you set a banner.* | ![Blog article with comments](docs/screenshots/blog-article.png)<br>*An article page: related posts, then "Marginalia" — built-in, rate-limited reader comments.* |
-| ![Graph view](docs/screenshots/graph.png)<br>*Graph view — a hand-rolled canvas force simulation; drag nodes, click to open.* | ![The twenty-one themes](docs/screenshots/themes.png)<br>*Twenty-one hand-tuned themes — fourteen dark, seven light — each defining its whole palette.* |
+| ![Graph view](docs/screenshots/graph.png)<br>*Graph view — a hand-rolled canvas force simulation; drag nodes, click to open.* | ![The twenty-two themes](docs/screenshots/themes.png)<br>*Twenty-two hand-tuned themes — fifteen dark, seven light — each defining its whole palette.* |
 
 ## Quickstart
 
@@ -102,7 +102,7 @@ internet behind any HTTPS reverse proxy pointed at `localhost:6801` — see
 - **[Blog mode](docs/blog-mode.md)** — masthead, topic nav, dashboard home, hover previews, RSS, sitemap/robots and server-injected SEO meta
 - **[Designed mode](docs/designer.md)** — compose your own homepage from sections, fifty-nine shipped presets, with the stock blog kept as an always-working fallback
 - **[The library](docs/library.md)** — books, courses and lecture series as paths a reader walks in order: a folder becomes a shelf entry, its subfolders the chapters, its published notes the lessons
-- **[Twenty-one themes](docs/theming.md)** — fourteen dark, seven light, every one gated at WCAG AA, plus a custom-theme builder and `custom.css`
+- **[Twenty-two themes](docs/theming.md)** — fifteen dark, seven light, every one gated at WCAG AA, plus a custom-theme builder and `custom.css`
 - **[Real typography](docs/typography.md)** — a self-hosted font catalog and your own uploads, with per-character Arabic that sets correctly inside an English sentence
 - **[Arabic & RTL](docs/arabic-and-rtl.md)** — the whole interface mirrored and translated, an optional visitor `EN`/`ع` switch, a language filter, Hijri dates
 - **[A desktop app](docs/desktop.md)** — AppImage, deb, pacman and a Windows build: a native menu bar in both languages, recent vaults, an always-on-top reference window, find in page, and background updates

@@ -1,4 +1,4 @@
-/* Vellum — design tokens. TWENTY-ONE themes: the default (no data-theme attr)
+/* Vellum — design tokens. TWENTY-TWO themes: the default (no data-theme attr)
    is "iron-gall", and every other one is a [data-theme="…"] block below.
 
      dark   iron-gall  warm near-black ink, ivory text, gold leaf (the default)
@@ -15,6 +15,7 @@
             phosphor   CRT green-black, P1 phosphor accent, one-gun syntax
             sidereal   blue-violet deep space, starlight accent
             murex      violet-black, Tyrian purple accent
+            graphite   neutral graphite (GitHub dark), gold-leaf accent — the brand room
      light  parchment  warm paper, gold-leaf accent
             sandstone  dry desert paper, burnt-orange accent
             linen      cool neutral daylight, ink-blue accent
@@ -96,6 +97,9 @@
   --swatch-murex-bg: #150b1e;
   --swatch-murex-text: #ece1f0;
   --swatch-murex-accent: #d182e8;
+  --swatch-graphite-bg: #0d1117;
+  --swatch-graphite-text: #e6edf3;
+  --swatch-graphite-accent: #e3b341;
   --swatch-palimpsest-bg: #e9e4d5;
   --swatch-palimpsest-text: #2f2b22;
   --swatch-palimpsest-accent: #8f2f3f;
@@ -1194,6 +1198,62 @@
   --syn-type: #d8749a;
   --syn-prop: #ae7fe4;
   --syn-operator: #ab9bb4;
+}
+
+/* "graphite" — the brand's room since 2.18, and the one the owner asked for in
+   as many words: "solid colors like GitHub", nothing warm, nothing blue, and
+   the ✦ still gold. So the ground is GitHub's own dark neutrals (#0d1117 /
+   #161b22 / #30363d), the type its off-white, and the ONE colour is gold leaf
+   at GitHub's attention-yellow pitch, #e3b341 — 10.5:1 on the ground, 62 ΔE
+   from the type. Callouts and syntax take GitHub's dark palette so a code
+   block reads the way the owner's other windows do. Neutral by construction:
+   every grey here has R≈G≈B within a few points, which is what "solid" meant. */
+[data-theme="graphite"] {
+  color-scheme: dark;
+
+  --bg: #0d1117;
+  --bg-raised: #161b22;
+  --bg-hover: #1f2630;
+  --text: #e6edf3;
+  --text-muted: #9aa4b2;
+  --text-faint: #6e7681;
+  --heading: #e6e4d8;
+  --accent: #e3b341;
+  --accent-soft: rgba(227, 179, 65, 0.14);
+  --border: #30363d;
+  --danger: #f85149;
+
+  --selection-bg: rgba(227, 179, 65, 0.24);
+  --focus-ring: #e3b341;
+  --banner-tint: 66%;
+  --banner-hue: 42;
+
+  --graph-node: #e3b341;
+  --graph-edge: #484f58;
+  --graph-vignette: rgba(0, 0, 0, 0.45);
+
+  --callout-note: #58a6ff;
+  --callout-info: #58a6ff;
+  --callout-todo: #58a6ff;
+  --callout-abstract: #39c5bb;
+  --callout-tip: #39c5bb;
+  --callout-success: #3fb950;
+  --callout-question: #d29922;
+  --callout-warning: #d29922;
+  --callout-failure: #f85149;
+  --callout-danger: #f85149;
+  --callout-bug: #f85149;
+  --callout-example: #a371f7;
+  --callout-quote: #9aa4b2;
+
+  --syn-keyword: #ff7b72;
+  --syn-string: #a5d6ff;
+  --syn-number: #79c0ff;
+  --syn-comment: #8b949e;
+  --syn-func: #d2a8ff;
+  --syn-type: #ffa657;
+  --syn-prop: #7ee787;
+  --syn-operator: #c9d1d9;
 }
 
 /* "palimpsest" — older than parchment, which is the point. A sheet scraped

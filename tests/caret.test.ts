@@ -37,6 +37,13 @@ describe("caret home", () => {
     assert.equal(caretHome("Note.md", tagged), tagged.indexOf("#daily"));
   });
 
+  it("a note that opens with a fence (a Media card) parks AFTER the fence, not on it", () => {
+    const doc = fm("\n```tracker\ntitle: X\nprogress: 1/14\n```\n");
+    assert.equal(caretHome("Media/Books/X.md", doc), doc.length);
+    const more = fm("\n```tracker\ntitle: X\n```\n\nProse after.\n");
+    assert.equal(more.slice(caretHome("Note.md", more)), "\nProse after.\n");
+  });
+
   it("a headingless note opens at the START of its prose, never at the end", () => {
     const doc = fm("\nFirst line.\n\nSecond paragraph.\n");
     assert.equal(caretHome("Note.md", doc), doc.indexOf("First line."));

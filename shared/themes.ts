@@ -28,6 +28,7 @@ export const DARK_THEMES = [
   "phosphor",
   "sidereal",
   "murex",
+  "graphite",
 ] as const;
 
 /** Light themes, same order rule. */

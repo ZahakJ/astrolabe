@@ -368,6 +368,33 @@
   white-space: nowrap;
 }
 
+/* The folder chip: a small door under the dates. */
+.s-media__folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-inline-size: 100%;
+  margin-block-start: 6px;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  cursor: pointer;
+}
+.s-media__folder span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.s-media__folder:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .s-media__dates {
   font-size: 0.714rem;
   color: var(--text-faint);
@@ -588,6 +615,29 @@
 .s-mediaform__coverrow > .s-ctl-path {
   flex: 1 1 260px;
   min-inline-size: 0;
+}
+
+.s-mediaform__folderrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.s-mediaform__folder {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.857rem;
+}
+.s-mediaform__folder--none {
+  font-family: var(--font-ui);
+  color: var(--text-faint);
+  font-style: italic;
+}
+.s-mediaform__unlink {
+  padding-inline: 10px;
 }
 
 .s-mediaform__upload {
