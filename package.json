@@ -1,6 +1,6 @@
 {
   "name": "astrolabe",
-  "version": "3.3.4",
+  "version": "3.3.5",
   "description": "A self-hosted, clone-and-run Obsidian-style markdown vault: live-preview editor, wikilinks, backlinks, graph view, full-text search.",
   "private": true,
   "type": "module",
@@ -32,7 +32,7 @@
     "check-designer-nav": "node scripts/check-designer-nav.mjs",
     "check-layouts": "node scripts/check-layouts.mjs",
     "check-keymap": "node scripts/check-keymap.mjs",
-    "check-desktop": "node scripts/check-desktop.mjs",
+    "check-desktop": "node scripts/check-desktop.mjs && npm --prefix desktop run -s typecheck",
     "check-settings": "node scripts/check-settings.mjs",
     "check-icons": "node scripts/gen-folder-icons.mjs --check",
     "gen-icons": "node scripts/gen-folder-icons.mjs",

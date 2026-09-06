@@ -28,10 +28,9 @@ import {
   session,
   shell,
 } from "electron";
-import { existsSync, readFileSync } from "node:fs";
+import { cpSync, existsSync, readFileSync, renameSync, rmSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
-import { cpSync, existsSync, renameSync, rmSync } from "node:fs";
 import { TO_MAIN, TO_RENDERER, type Command, type Hello } from "./ipc.ts";
 import { keepSignedIn, mintCredential, signIn } from "./auth.ts";
 import type { Credential } from "./server.ts";
