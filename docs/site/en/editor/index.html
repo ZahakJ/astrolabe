@@ -47,6 +47,13 @@ were. Gated in both language shells by <code>npm run check-caret</code></li>
 key/value card with clickable tag pills while your cursor is outside it, and you edit it there:
 click a value to type over it, tick a checkbox for <code>true</code>/<code>false</code>, pick a date from a calendar,
 add and remove list values as chips, add a property, remove one with the × at the end of its row.
+<strong>Add property</strong> lists every key the app understands — <code>title</code>, <code>tags</code>, <code>aliases</code>, <code>banner</code>,
+<code>date</code>, <code>publish</code>, <code>description</code>, <code>dir</code>, <code>align</code>, <code>numbered</code>, <code>icon</code>, <code>language</code>,
+<code>cssclasses</code> — with a line on what each does; type to filter, ↑/↓ and Enter to take one, or type
+any key of your own. <code>tags</code> and <code>aliases</code> are written as lists (comma-separated values become
+items). A note with no properties yet still wears the card, one line with <em>Add property</em> and
+<em>Set banner…</em>, so every note starts from the same place (Settings → Appearance &amp; language →
+<em>Properties card on empty notes</em> turns that off).
 Every one of those writes is <strong>byte-surgical</strong> — your quote style, your comments, your key order
 and every line you did not touch survive exactly as they were, and deleting the last property
 takes the <code>---</code> fences with it instead of leaving a stray rule behind. Machine keys (<code>id</code>,
@@ -100,7 +107,16 @@ a fixed-ink one for when you mean <em>that</em> colour; see
 <ul>
 <li><strong>Image embeds</strong> — <code>![[image.png]]</code>, <code>![[image.png|300]]</code>, and standard <code>![alt](path)</code> render
 inline from your vault&#39;s attachments; a picture given a width sits centred in the column, in
-an Arabic note as in an English one; broken embeds get a dashed placeholder</li>
+an Arabic note as in an English one; broken embeds get a dashed placeholder. <strong>Hover a picture</strong>
+for its tools: drag the handle on its corner to resize (the <code>|300</code> is written for you;
+double-click the handle for the picture&#39;s own size), and three buttons align it left, centre or
+right by writing <code>{.left}</code>, <code>{.center}</code> or <code>{.right}</code> at the end of its line. Clicking a picture
+no longer swaps it for its source and jumps the view: the picture stays, with the source
+editable beside it</li>
+<li><strong>Align a line</strong> — end any paragraph, heading or image line with <code>{.center}</code>, <code>{.right}</code>,
+<code>{.left}</code> or <code>{.justify}</code> and that block sits there, over the note&#39;s own <code>align:</code>. The marker
+hides like other syntax; <code>/center</code>, <code>/right</code> and <code>/left</code> in the slash menu write it for you.
+Pandoc reads the same braces; Obsidian shows them as text</li>
 <li><strong>Note transclusions</strong> — <code>![[Note]]</code> renders the target note as a full-fidelity card (callouts,
 math, code highlighting included), with an &quot;Open note&quot; affordance when the excerpt overflows</li>
 <li><strong>PDF &amp; attachment cards</strong> — <code>![[file.pdf]]</code> (mp4, mp3, zip, …) becomes a card that opens the
@@ -243,7 +259,9 @@ note or folder and the way to it; <em>Show all</em> brings the rest back. Every 
 <strong>Collapse everything inside</strong> and <em>Expand everything inside</em>. All of this is per browser; the
 vault on disk is never reordered.</p>
 <p><strong>The writing column</strong> (Settings → This device) is the reading measure by default; <em>Wide</em>, <em>Wider</em> and
-<em>Full width</em> let a table or a code-heavy note use the screen.</p>
+<em>Full width</em> let a table or a code-heavy note use the screen, and <em>Custom</em> takes a width of your own,
+in pixels (<code>900px</code>) or as a share of the pane (<code>70%</code>), applied as you type. The reading view follows
+the same choice.</p>
 <h2 id="the-two-side-panes"><a class="anchor" href="#the-two-side-panes">The two side panes</a></h2>
 <p>Drag the inner edge of the notes sidebar or the side panel to resize it; the width is remembered
 per browser. Drag it off the window edge and it closes, and the slim handle it leaves behind

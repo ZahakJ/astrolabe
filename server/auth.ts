@@ -24,7 +24,7 @@ import { libraryFor } from "./library.ts";
 import { currentVisibility, isReducingReach } from "./visibility.ts";
 import { commentsEnabled } from "./comments.ts";
 import { siteFontsSignature } from "./fonts.ts";
-import { dateCalendar, drawingsFolder, fontSlots, getSettings, textAlign, textDirection } from "./settings.ts";
+import { dateCalendar, dateOrder, dateSeparator, drawingsFolder, emptyPropsCard, fontSlots, getSettings, textAlign, textDirection } from "./settings.ts";
 import { FOLLOW_THEME } from "../shared/themes.ts";
 import { attachmentLocation, bannerFallback, blogLocale, customCssPath, dataDir, footerLine, publicLayout, siteLanguage, siteName, tagline, themePinnedByEnv, themePref, visitorTheme } from "./site.ts";
 import { activeDesign, activeDesignFontRefs, customThemesSig, hasThemeChoice } from "./designs.ts";
@@ -741,10 +741,13 @@ authRoutes.get("/me", (c) => {
   // instance is byte-for-byte what it was.
   const calendar = dateCalendar();
   if (calendar !== "gregorian") me.dateCalendar = calendar;
+  if (dateOrder() !== "auto") me.dateOrder = dateOrder();
+  if (dateSeparator() !== "bar") me.dateSeparator = dateSeparator();
   const noteDir = textDirection();
   if (noteDir !== "auto") me.textDirection = noteDir;
   const noteAlign = textAlign();
   if (noteAlign !== "start") me.textAlign = noteAlign;
+  if (!emptyPropsCard()) me.emptyPropsCard = false;
   // The vault tree's per-folder glyphs. OUTSIDE the public-layout gate below:
   // this describes the SIDEBAR, which an admin has in blog and designed mode
   // too, so it must not travel only with the blog copy.

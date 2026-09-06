@@ -28,6 +28,13 @@
   key/value card with clickable tag pills while your cursor is outside it, and you edit it there:
   click a value to type over it, tick a checkbox for `true`/`false`, pick a date from a calendar,
   add and remove list values as chips, add a property, remove one with the × at the end of its row.
+  **Add property** lists every key the app understands — `title`, `tags`, `aliases`, `banner`,
+  `date`, `publish`, `description`, `dir`, `align`, `numbered`, `icon`, `language`,
+  `cssclasses` — with a line on what each does; type to filter, ↑/↓ and Enter to take one, or type
+  any key of your own. `tags` and `aliases` are written as lists (comma-separated values become
+  items). A note with no properties yet still wears the card, one line with *Add property* and
+  *Set banner…*, so every note starts from the same place (Settings → Appearance & language →
+  *Properties card on empty notes* turns that off).
   Every one of those writes is **byte-surgical** — your quote style, your comments, your key order
   and every line you did not touch survive exactly as they were, and deleting the last property
   takes the `---` fences with it instead of leaving a stray rule behind. Machine keys (`id`,
@@ -81,7 +88,16 @@
 
 - **Image embeds** — `![[image.png]]`, `![[image.png|300]]`, and standard `![alt](path)` render
   inline from your vault's attachments; a picture given a width sits centred in the column, in
-  an Arabic note as in an English one; broken embeds get a dashed placeholder
+  an Arabic note as in an English one; broken embeds get a dashed placeholder. **Hover a picture**
+  for its tools: drag the handle on its corner to resize (the `|300` is written for you;
+  double-click the handle for the picture's own size), and three buttons align it left, centre or
+  right by writing `{.left}`, `{.center}` or `{.right}` at the end of its line. Clicking a picture
+  no longer swaps it for its source and jumps the view: the picture stays, with the source
+  editable beside it
+- **Align a line** — end any paragraph, heading or image line with `{.center}`, `{.right}`,
+  `{.left}` or `{.justify}` and that block sits there, over the note's own `align:`. The marker
+  hides like other syntax; `/center`, `/right` and `/left` in the slash menu write it for you.
+  Pandoc reads the same braces; Obsidian shows them as text
 - **Note transclusions** — `![[Note]]` renders the target note as a full-fidelity card (callouts,
   math, code highlighting included), with an "Open note" affordance when the excerpt overflows
 - **PDF & attachment cards** — `![[file.pdf]]` (mp4, mp3, zip, …) becomes a card that opens the
@@ -229,7 +245,9 @@ note or folder and the way to it; *Show all* brings the rest back. Every folder'
 vault on disk is never reordered.
 
 **The writing column** (Settings → This device) is the reading measure by default; *Wide*, *Wider* and
-*Full width* let a table or a code-heavy note use the screen.
+*Full width* let a table or a code-heavy note use the screen, and *Custom* takes a width of your own,
+in pixels (`900px`) or as a share of the pane (`70%`), applied as you type. The reading view follows
+the same choice.
 
 ## The two side panes
 

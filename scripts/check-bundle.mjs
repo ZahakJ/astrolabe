@@ -599,7 +599,9 @@ const AUDIENCES = [
   // graph's tab sentinel and the two resize reducers sit in the workspace
   // model, which the entry has always carried, and the grips' labels are
   // dictionary rows.
-{ name: "entry (everyone)", keys: entry, budget: 644 * 1024 },
+  // …and for 3.3.0 (646.7 kB actual → 648): the block-alignment reader and
+  // the custom-width normaliser sit in code the entry already carries.
+{ name: "entry (everyone)", keys: entry, budget: 648 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -788,7 +790,9 @@ const AUDIENCES = [
   // …and for THE MEDIA TAB AND THE FOLDER NAMES (880.4 kB actual → 884): the
   // workspace model's two virtual-tab sentinels and the Arabic media folder
   // table sit in shared code the reading view already carries.
-  { name: "anonymous blog reader", keys: blog, budget: 884 * 1024 },
+  // …and for BLOCK ALIGNMENT (886.0 kB actual → 888): the marker reader
+  // (shared/blockAlign.ts) that the reading view strips markers with.
+  { name: "anonymous blog reader", keys: blog, budget: 888 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -890,7 +894,10 @@ const AUDIENCES = [
   // header spellings.
   // …and for 3.2.0 (1292.2 kB actual → 1296): the tags shelf grip, the media
   // tab's status-bar and router wiring, the drawings-folder setting row.
-  { name: "admin first paint", keys: app, budget: 1296 * 1024 },
+  // …and for 3.3.0 (1306.6 kB actual → 1310): the empty properties card, the
+  // known-keys list in the add form, the custom width field and the picture
+  // tools' strings.
+  { name: "admin first paint", keys: app, budget: 1310 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

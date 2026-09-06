@@ -424,6 +424,9 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
   const [active, setActive] = useState(0);
   const [swatch, setSwatch] = useState(0);
   const [page, setPage] = useState<PageId>("root");
+  /** The pending hover-open of a page row (cleared on leave, click, unmount). */
+  const hoverTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
   const [literal, setLiteral] = useState(literalInk);
   // Read once per opening: the row that flips it closes the menu behind it.
   const toolbar = selectionToolbarEnabled();
@@ -650,6 +653,10 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
                 );
               }
               if (row.kind === "page") {
+                // A door opens under the pointer (the owner: "those options
+                // should just appear on hover, shouldn't need to click"):
+                // resting on the row for a beat turns the page; a click
+                // still does at once, and the keyboard's → is unchanged.
                 return (
                   <button
                     type="button"
@@ -657,8 +664,16 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
                     aria-haspopup="menu"
                     key={row.label}
                     className={cls}
-                    {...hover}
-                    onClick={() => open(row.page)}
+                    onMouseMove={() => setActive(i)}
+                    onMouseEnter={() => {
+                      window.clearTimeout(hoverTimer.current);
+                      hoverTimer.current = window.setTimeout(() => open(row.page), 220);
+                    }}
+                    onMouseLeave={() => window.clearTimeout(hoverTimer.current)}
+                    onClick={() => {
+                      window.clearTimeout(hoverTimer.current);
+                      open(row.page);
+                    }}
                   >
                     <span className="s-selmenu__label">{t(row.label)}</span>
                     <span className="s-selmenu__chev" aria-hidden="true">

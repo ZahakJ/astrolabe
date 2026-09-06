@@ -190,7 +190,10 @@ write them. Anything absent falls back to the env default in the table above.
 | `drawingsFolder` | vault-relative folder the sidebar's pencil starts a drawing in | none — the vault root |
 | `defaultTemplate` | vault-relative note applied to every new note | none |
 | `dateCalendar` | `gregorian` · `hijri` · `both` | `gregorian` |
+| `dateOrder` | `auto` · `hijri-first` · `gregorian-first` — which calendar leads in `both` | `auto` (by the site language) |
+| `dateSeparator` | `bar` · `dot` · `parens` — what stands between the two in `both` | `bar` |
 | `textDirection` | `auto` · `ltr` · `rtl` | `auto` |
+| `emptyPropsCard` | `true` · `false` — the one-line properties card on notes that have no frontmatter | `true` |
 | `textAlign` | `start` · `left` · `right` · `center` · `justify` | `start` |
 | `tagsFolder` | vault-relative folder holding tag pages | auto-detected, else `tags` |
 | `tagLabels` | `{ tag: { en, ar } }`, ≤ 200 tags — **replaced whole, not merged** | empty |

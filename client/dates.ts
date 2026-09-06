@@ -20,15 +20,32 @@
 // changing their site's calendar must not change what an aggregator parses.
 
 import {
+  DEFAULT_DATE_BOTH_STYLE,
   DEFAULT_DATE_CALENDAR,
   dateNamesLocale,
   formatCalendarDate,
   isDateCalendar,
+  isDateOrder,
+  isDateSeparator,
+  type DateBothStyle,
   type DateCalendar,
 } from "../shared/dates.ts";
 import { getLang } from "./i18n.ts";
 
 let calendar: DateCalendar = DEFAULT_DATE_CALENDAR;
+let bothStyle: DateBothStyle = DEFAULT_DATE_BOTH_STYLE;
+
+/** state.ts owns this call too: how a `both` date is put together. */
+export function setDateBothStyle(order: unknown, separator: unknown): void {
+  bothStyle = {
+    order: isDateOrder(order) ? order : DEFAULT_DATE_BOTH_STYLE.order,
+    separator: isDateSeparator(separator) ? separator : DEFAULT_DATE_BOTH_STYLE.separator,
+  };
+}
+
+export function getDateBothStyle(): DateBothStyle {
+  return bothStyle;
+}
 
 /** state.ts owns this call, from loadMe(), beside setLang/setNumeralLocale. */
 export function setDateCalendar(value: unknown): void {
@@ -50,7 +67,7 @@ export function siteDate(
 ): string {
   const date = value instanceof Date ? value : new Date(value);
   const lang = getLang();
-  return formatCalendarDate(date, dateNamesLocale(locale, lang), calendar, lang, options);
+  return formatCalendarDate(date, dateNamesLocale(locale, lang), calendar, lang, options, bothStyle);
 }
 
 /** How recent a moment has to be to be told as a DISTANCE rather than a date.
@@ -97,7 +114,8 @@ export function siteDateIn(
   locale: string,
   which: DateCalendar,
   options: Intl.DateTimeFormatOptions,
+  style: DateBothStyle = bothStyle,
 ): string {
   const date = value instanceof Date ? value : new Date(value);
-  return formatCalendarDate(date, locale, which, getLang(), options);
+  return formatCalendarDate(date, locale, which, getLang(), options, style);
 }

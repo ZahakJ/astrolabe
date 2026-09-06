@@ -27,9 +27,9 @@ import { defaultSide, useStore, type SidebarSidePref } from "../../state.ts";
 import { choiceBase, choiceLabel } from "../../themes.ts";
 import { headingNumbersPref, setHeadingNumbersPref } from "../../reading/headingNumbers.ts";
 import { selectionToolbarEnabled, setSelectionToolbarEnabled } from "../SelectionMenu.tsx";
-import { SegmentedControl, Toggle } from "../controls/Fields.tsx";
+import { SegmentedControl, TextInput, Toggle } from "../controls/Fields.tsx";
 import { openThemePicker } from "../ThemePicker.tsx";
-import { readEditorWidth, setEditorWidth, type EditorWidth } from "../../editorWidth.ts";
+import { readCustomWidth, readEditorWidth, setCustomWidth, setEditorWidth, type EditorWidth } from "../../editorWidth.ts";
 import { Row } from "./Row.tsx";
 
 /** A localStorage preference that is NOT in the store, kept live the way its
@@ -49,6 +49,8 @@ function useEventPref(event: string, read: () => boolean): boolean {
 
 export default function DeviceTab() {
   const [editorWidth, setEditorWidthState] = useState<EditorWidth>(readEditorWidth);
+  const [customWidth, setCustomWidthState] = useState<string>(readCustomWidth);
+  const [customBad, setCustomBad] = useState(false);
   /** The reader's OWN theme — a live subscription, so a pick made in the
    *  picker on top of this panel updates the row underneath it. */
   const theme = useStore((s) => s.theme);
@@ -188,8 +190,27 @@ export default function DeviceTab() {
             { value: "wide", label: t("editorWidthWide") },
             { value: "wider", label: t("editorWidthWider") },
             { value: "full", label: t("editorWidthFull") },
+            { value: "custom", label: t("editorWidthCustom") },
           ]}
         />
+        {/* A width of the reader's own, applied as it is typed (the owner:
+            "you see it change real time"): pixels, or a share of the pane. */}
+        {editorWidth === "custom" && (
+          <div className="s-smodal__inline">
+            <TextInput
+              label={t("editorWidthCustom")}
+              value={customWidth}
+              placeholder={t("editorWidthCustomPlaceholder")}
+              dir="ltr"
+              invalid={customBad}
+              onChange={(v) => {
+                setCustomWidthState(v);
+                setCustomBad(!setCustomWidth(v));
+              }}
+            />
+            <span className="s-smodal__note">{t("editorWidthCustomHint")}</span>
+          </div>
+        )}
       </Row>
 
       <Row label={t("rowVimKeys")} hint={t("hintVimKeys")}>

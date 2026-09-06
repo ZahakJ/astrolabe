@@ -1298,6 +1298,16 @@ select:focus,
   color: var(--text-muted);
 }
 
+/* The card on a note with no frontmatter: the head is not a toggle (there
+   is nothing to open), the add line sits right under it. */
+.s-editor .cm-s-props--empty .cm-s-props__head {
+  cursor: default;
+}
+
+.s-editor .cm-s-props--empty .cm-s-props__foot {
+  padding-top: 0;
+}
+
 .s-editor .cm-s-props__chevron {
   display: inline-flex;
   transform: rotate(90deg);
@@ -1548,9 +1558,65 @@ select:focus,
 
 .s-editor .cm-s-props__form {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.s-editor .cm-s-props__pair {
+  display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* A placeholder in the chrome's language sits at the chrome's start, not
+   at the left of an LTR box (the owner: the Arabic example text was on the
+   wrong side); a typed value takes its own direction. */
+.s-editor .cm-s-props__input:placeholder-shown {
+  direction: inherit;
+  text-align: start;
+}
+
+/* The keys the app knows, under the name box (propsEdit.ts openAddForm). */
+.s-editor .cm-s-props__keylist {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-raised);
+  padding: 4px;
+}
+
+.s-editor .cm-s-props__keyrow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-editor .cm-s-props__keyrow code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  direction: ltr;
+}
+
+.s-editor .cm-s-props__keyrow:hover,
+.s-editor .cm-s-props__keyrow--lit {
+  background: var(--bg-hover, var(--bg));
+}
+
+.s-editor .cm-s-props__keyhint {
+  color: var(--text-muted);
+  font-size: 0.85em;
 }
 
 /* Note banner hero above the properties card (frontmatter `banner:`). */
@@ -1665,11 +1731,20 @@ select:focus,
    DESIGN.md is explicit that a fade over a token at its floor is a way of
    failing the floor without failing the gate (0.7 of parchment's faint is
    1.75:1). It is a UI glyph, so the token is the whole budget. */
+.s-empty__logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  display: block;
+}
+
 .s-empty__glyph {
   font-size: 3.143rem;
   line-height: 1;
   color: var(--text-faint);
   margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
 }
 
 .s-empty__title {
@@ -6723,6 +6798,9 @@ html[data-editor-width="full"] {
 html[data-editor-width="full"] .s-editor .cm-scroller {
   padding-inline: clamp(20px, 3vw, 40px);
 }
+
+/* A custom width sets `--editor-measure` inline on <html> (editorWidth.ts);
+   the data attribute only marks the mode. */
 
 /* THE STATUS BAR IN ARABIC packs at its start — the right edge, beside the
    notes sidebar — instead of throwing the tools to the far left of a wide

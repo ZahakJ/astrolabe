@@ -540,6 +540,9 @@ export interface MeData {
    *  see the visitor's calendar. Absent = "gregorian". RSS is deliberately
    *  untouched — the XML keeps RFC-822 Gregorian, which is a wire format. */
   dateCalendar?: DateCalendarSetting;
+  /** settings.dateOrder / dateSeparator, sent only off their defaults. */
+  dateOrder?: DateOrderSetting;
+  dateSeparator?: DateSeparatorSetting;
   /** settings.textDirection / settings.textAlign — the SITE default for note
    *  prose in the editor, the reading view and blog articles. A per-note
    *  `dir:`/`align:` in frontmatter beats both. Absent = "auto" / "start",
@@ -560,6 +563,8 @@ export interface MeData {
    *  only the two folder-bearing modes send anything, because the other two
    *  name no folder to keep a note out of. ADMIN SESSIONS ONLY, on the same
    *  grounds as folderIcons above: it is a vault path, and moving is admin. */
+  /** settings.emptyPropsCard, sent only when the owner turned it OFF. */
+  emptyPropsCard?: false;
   attachmentFolder?: { mode: "specified" | "subfolder"; folder: string };
   /** Where a new drawing goes by default (settings.drawingsFolder); absent
    *  means the vault root. Admin only, like the two above. */
@@ -847,6 +852,10 @@ export interface SettingsData {
    *  "hijri" is Umm al-Qura; "both" prints one with the other parenthesised,
    *  ordered by the site language. */
   dateCalendar?: DateCalendarSetting;
+  /** How a `both` date reads: which calendar leads (`auto` = by the site
+   *  language), and what stands between the two. */
+  dateOrder?: DateOrderSetting;
+  dateSeparator?: DateSeparatorSetting;
   /** Base direction for note PROSE (editor, reading view, blog article).
    *  Default "auto" — every block takes its own direction from its first
    *  strong character, which is the behaviour that shipped. */
@@ -854,6 +863,9 @@ export interface SettingsData {
   /** Alignment for note prose. Default "start" — the reading direction's
    *  leading edge. A per-note `align:` in frontmatter beats this. */
   textAlign?: TextAlignSetting;
+  /** Show the properties card on notes that have no frontmatter yet — a
+   *  one-line card with "Add property" and "Set banner…" (default on). */
+  emptyPropsCard?: boolean;
   /** Where a tag's own page lives ("tags" by default). A note at
    *  `<tagsFolder>/<tag>.md` may carry `labels: { ar: … }`, which outranks
    *  the `tagLabels` map below. */
@@ -883,6 +895,8 @@ export interface AttachmentSettings {
 /** Mirrors `DateCalendar` in shared/dates.ts (types.ts stays import-free, the
  *  same bargain `NoteAnchorInfo` strikes with shared/tex.ts). */
 export type DateCalendarSetting = "gregorian" | "hijri" | "both";
+export type DateOrderSetting = "auto" | "hijri-first" | "gregorian-first";
+export type DateSeparatorSetting = "bar" | "dot" | "parens";
 /** Mirrors `TextDirection` / `TextAlign` in shared/textLayout.ts. */
 export type TextDirectionSetting = "auto" | "ltr" | "rtl";
 export type TextAlignSetting = "start" | "left" | "right" | "center" | "justify";
@@ -1000,8 +1014,11 @@ export interface EffectiveSettings {
   /** Localization: the three display settings in force (defaults filled in)
    *  plus the tag-label map the settings editor prefills from. */
   dateCalendar: DateCalendarSetting;
+  dateOrder: DateOrderSetting;
+  dateSeparator: DateSeparatorSetting;
   textDirection: TextDirectionSetting;
   textAlign: TextAlignSetting;
+  emptyPropsCard: boolean;
   tagsFolder: string;
   /** True when `tagsFolder` was auto-detected rather than configured — the
    *  same fact `templatesFolderDetected` carries for the field above it, so
@@ -1095,8 +1112,12 @@ export interface SettingsPatch {
    *  replaced WHOLE, not merged: the settings editor holds the entire map on
    *  screen, so a partial merge would make deleting a row impossible. */
   dateCalendar?: DateCalendarSetting | null;
+  dateOrder?: DateOrderSetting | null;
+  dateSeparator?: DateSeparatorSetting | null;
   textDirection?: TextDirectionSetting | null;
   textAlign?: TextAlignSetting | null;
+  /** null clears back to the default (on). */
+  emptyPropsCard?: boolean | null;
   tagsFolder?: string | null;
   tagLabels?: Record<string, Record<string, string>> | null;
   /** Folder glyphs, replaced WHOLE like `tagLabels` above and for the same

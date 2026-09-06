@@ -38,6 +38,25 @@ export function isDateCalendar(value: unknown): value is DateCalendar {
   return value === "gregorian" || value === "hijri" || value === "both";
 }
 
+/** How a `both` date is put together (the owner wanted "hijri first and a
+ *  bar separating them"): which half leads — `auto` follows the site
+ *  language — and what stands between them. */
+export type DateOrder = "auto" | "hijri-first" | "gregorian-first";
+export type DateSeparator = "bar" | "dot" | "parens";
+export interface DateBothStyle {
+  order: DateOrder;
+  separator: DateSeparator;
+}
+export const DEFAULT_DATE_ORDER: DateOrder = "auto";
+export const DEFAULT_DATE_SEPARATOR: DateSeparator = "bar";
+export const DEFAULT_DATE_BOTH_STYLE: DateBothStyle = { order: DEFAULT_DATE_ORDER, separator: DEFAULT_DATE_SEPARATOR };
+export function isDateOrder(value: unknown): value is DateOrder {
+  return value === "auto" || value === "hijri-first" || value === "gregorian-first";
+}
+export function isDateSeparator(value: unknown): value is DateSeparator {
+  return value === "bar" || value === "dot" || value === "parens";
+}
+
 // The secondary half of a "both" rendering is a foreign run inside a sentence
 // whose direction it does not share — a Latin "(14 August 2026)" spliced into
 // an Arabic line reorders its own parentheses against the base direction. FSI…
@@ -95,13 +114,28 @@ export function formatCalendarDate(
   calendar: DateCalendar,
   lang: "en" | "ar",
   options: Intl.DateTimeFormatOptions,
+  style: DateBothStyle = DEFAULT_DATE_BOTH_STYLE,
 ): string {
   if (Number.isNaN(date.getTime())) return "";
   if (calendar === "gregorian") return formatOne(date, locale, options, false);
   if (calendar === "hijri") return formatOne(date, locale, options, true);
-  const hijriFirst = lang === "ar";
-  const primary = formatOne(date, locale, options, hijriFirst);
-  const secondary = formatOne(date, locale, options, !hijriFirst);
+  const hijriFirst = style.order === "auto" ? lang === "ar" : style.order === "hijri-first";
+  // Beside a Hijri date that ends in "هـ", an Arabic Gregorian date wears its
+  // own era mark, "م" — the convention on every Arabic masthead that prints
+  // both, and the owner's own example ("29 أغسطس 2026 م"). Intl gives the
+  // Hijri half its mark and the Gregorian half none, so the one letter is
+  // added here, only in Arabic and only when the two stand together.
+  const gregorianEra = lang === "ar" ? " م" : "";
+  const one = (hijri: boolean): string => {
+    const text = formatOne(date, locale, options, hijri);
+    return text === "" || hijri ? text : `${text}${gregorianEra}`;
+  };
+  const primary = one(hijriFirst);
+  const secondary = one(!hijriFirst);
   if (secondary === "" || secondary === primary) return primary;
-  return `${primary} ${FSI}(${secondary})${PDI}`;
+  // Each half is its own isolate: a Latin run beside an Arabic one must not
+  // reorder the bar (or the brackets) against the line's base direction.
+  if (style.separator === "parens") return `${primary} ${FSI}(${secondary})${PDI}`;
+  const sep = style.separator === "dot" ? " · " : " | ";
+  return `${FSI}${primary}${PDI}${sep}${FSI}${secondary}${PDI}`;
 }

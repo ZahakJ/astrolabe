@@ -13,6 +13,8 @@ import {
 } from "react";
 import { lazySurface } from "./lazySurface.tsx";
 import { reopenDragProps } from "./components/PaneGrip.tsx";
+import BrandMark from "./components/BrandMark.tsx";
+import { useBannerSrc } from "./components/BannerImg.tsx";
 import type { PropertyValue, VaultEvent } from "../shared/types.ts";
 import { subscribeEvents } from "./api.ts";
 import { coalesce } from "./coalesce.ts";
@@ -132,6 +134,19 @@ const ShortcutsHelp = lazySurface(() => import("./components/ShortcutsHelp.tsx")
  *  modals — a dialog that arrives a frame late is invisible, whereas a
  *  SKELETON that flashes where a dialog is about to be is not. The panes pass
  *  a real placeholder so the grid keeps its shape while the chunk lands. */
+/** The empty state's mark: the instance's OWN logo when the owner set one
+ *  (the crown, the seal — whatever the sidebar wears), else the brand mark.
+ *  A friend saw the app's star over their vault and asked why. */
+function EmptyGlyph() {
+  const logo = useStore((s) => s.logo);
+  const src = useBannerSrc(logo).src;
+  return (
+    <div className="s-empty__glyph" aria-hidden="true">
+      {src ? <img className="s-empty__logo" src={src} alt="" /> : <BrandMark size={44} />}
+    </div>
+  );
+}
+
 function Surface({ fallback = null, children }: { fallback?: ReactNode; children: ReactNode }) {
   return <Suspense fallback={fallback}>{children}</Suspense>;
 }
@@ -1080,7 +1095,7 @@ export default function App() {
             <Workspace>
               {locked ? (
             <div className="s-empty">
-              <div className="s-empty__glyph" aria-hidden="true">✦</div>
+              <EmptyGlyph />
               <p className="s-empty__title">{t("vaultPrivate")}</p>
               <button
                 type="button"
@@ -1092,7 +1107,7 @@ export default function App() {
             </div>
           ) : (
             <div className="s-empty">
-              <div className="s-empty__glyph" aria-hidden="true">✦</div>
+              <EmptyGlyph />
               <p className="s-empty__title">{t("vaultOpen")}</p>
               {/* TWO empty states, and CSS picks. The keymap is the right
                   answer on a machine with a keyboard and is nothing but a
