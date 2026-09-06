@@ -7,7 +7,7 @@
 // operator has asked for a private instance (PUBLIC=false).
 
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { isIP } from "node:net";
 import { isNotePath } from "../shared/noteFormat.ts";
 import path from "node:path";
@@ -29,7 +29,7 @@ import { FOLLOW_THEME } from "../shared/themes.ts";
 import { attachmentLocation, bannerFallback, blogLocale, customCssPath, dataDir, footerLine, publicLayout, siteLanguage, siteName, tagline, themePinnedByEnv, themePref, visitorTheme } from "./site.ts";
 import { activeDesign, activeDesignFontRefs, customThemesSig, hasThemeChoice } from "./designs.ts";
 import { authorSiteCards } from "./authorSites.ts";
-import { normalizeRel } from "./vault.ts";
+import { getVaultRoot, normalizeRel } from "./vault.ts";
 
 const COOKIE_NAME = "vellum_session";
 /** 7 days, not 30, and it slides: every authenticated API request inside the
@@ -675,6 +675,10 @@ authRoutes.get("/me", (c) => {
   // describes the public shell) and sent to every session so an admin
   // previewing as a visitor sees exactly what a visitor sees.
   if (settings.languageToggle === true) me.languageToggle = true;
+  // An Obsidian vault gets its drawings in the Excalidraw plugin's spelling
+  // (`.excalidraw.md`), so the plugin opens what Vellum draws; any other vault
+  // gets Excalidraw's own `.excalidraw`. The client asks, once, here.
+  if (admin && existsSync(path.join(getVaultRoot(), ".obsidian"))) me.obsidianVault = true;
   // How this site curates by note language, for every session. The client
   // needs it, not just to render copy: under "follow" a visitor flipping the
   // EN/ع switch changes WHICH NOTES EXIST for them, so the shell must refetch

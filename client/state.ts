@@ -68,6 +68,7 @@ import {
   focusPane as focusPaneIn,
   fromStoredTabs,
   isBookPath,
+  isDrawingPath,
   openInPane,
   paneAt,
   parseWorkspace,
@@ -321,6 +322,10 @@ export interface State {
   /** settings.languageToggle — the instance offers visitors an EN/ع switch.
    *  Off (the default) means no public language chrome exists at all. */
   languageToggle: boolean;
+  /** The vault is also an Obsidian vault (`.obsidian/` exists), so a new
+   *  drawing takes the Excalidraw plugin's `.excalidraw.md` spelling and the
+   *  plugin opens it there. Admin only; false for everyone else. */
+  obsidianVault: boolean;
   /** settings.languageFilter — how the site curates by NOTE language.
    *  "follow" is the one that changes the client's behaviour rather than just
    *  its copy: under it, flipping the EN/ع switch changes which notes exist
@@ -913,7 +918,10 @@ function mirrorOf(
   // note being read or written" and have no business knowing about panes.
   const readingMode = pane !== null && pane.mode === "reading";
   const here = pane === null ? null : activeTabOf(pane);
-  if (here !== null && !isBookPath(here.path)) {
+  // A drawing is a picture in a tab, like a book: it is never "the open note"
+  // (the outline, the word count and the publish pill have nothing to say
+  // about a canvas), so the mirror looks past it to the nearest note.
+  if (here !== null && !isBookPath(here.path) && !isDrawingPath(here.path)) {
     return { workspace: ws, openTabs, openPath: here.path, readingMode };
   }
   const noteHome = paneAt(ws, ws.noteFocus);
@@ -925,7 +933,7 @@ function mirrorOf(
   return {
     workspace: ws,
     openTabs,
-    openPath: note === null || isBookPath(note.path) ? null : note.path,
+    openPath: note === null || isBookPath(note.path) || isDrawingPath(note.path) ? null : note.path,
     readingMode,
   };
 }
@@ -1215,6 +1223,7 @@ export const useStore = create<State>()((set, get) => {
     siteLanguage: "en",
     editorLangPref: readEditorLang(),
     languageToggle: false,
+    obsidianVault: false,
     languageFilter: "off",
     languageFallback: null,
     visibility: null,
@@ -1382,6 +1391,7 @@ export const useStore = create<State>()((set, get) => {
         // is false while previewing as a visitor, which is exactly what makes
         // the preview honest.
         const languageToggle = me.languageToggle === true;
+        const obsidianVault = me.obsidianVault === true;
         const language: Lang = chromeLang({
           admin: me.admin,
           languageToggle,
@@ -1424,6 +1434,7 @@ export const useStore = create<State>()((set, get) => {
         set({ sidebarSide: effectiveSide(get().sidebarSidePref, language) });
         set({
           languageToggle,
+          obsidianVault,
           languageFilter: me.languageFilter ?? "off",
           languageFallback: me.languageFallback === "ar" || me.languageFallback === "en" ? me.languageFallback : null,
           visibility: me.visibility ?? null,

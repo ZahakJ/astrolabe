@@ -33,6 +33,9 @@ const ReadingView = lazySurface(() => import("../reading/ReadingView.tsx"));
 // pins it): a pane that never shows a book never downloads the shelf, the
 // reader or — two boundaries further in — pdf.js.
 const BooksSurface = lazySurface(() => import("../books/BooksSurface.tsx"));
+// The canvas and the whole of Excalidraw behind it: the largest chunk in the
+// product, loaded the first time a drawing is opened and never before.
+const DrawingSurface = lazySurface(() => import("../drawing/DrawingSurface.tsx"));
 
 export default function Pane({
   id,
@@ -103,6 +106,14 @@ export default function Pane({
           zen={zen}
           onZen={() => setZen(!zen)}
         />
+      </Suspense>
+    ) : surface === "drawing" && tab !== null ? (
+      // A DRAWING IS A TAB, like a book: the canvas fills the pane beside
+      // whatever else is open, and `active` scopes Excalidraw's own keys to
+      // the focused pane. A visitor never reaches here — a drawing is a note
+      // and an unpublished one 404s like any other.
+      <Suspense fallback={<div className="s-drawing" />}>
+        <DrawingSurface key={tab.path} path={tab.path} active={focused} />
       </Suspense>
     ) : tab !== null && !reading && surface === "edit" ? (
       <Suspense fallback={<div className="s-editor" />}>

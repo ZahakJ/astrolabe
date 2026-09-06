@@ -15,7 +15,26 @@ export type NoteFormat = "markdown" | "latex";
  *  ORDER IS LOAD-BEARING: `[[Fourier]]` with both `Fourier.md` and
  *  `Fourier.tex` in the vault resolves to the markdown one, because that is
  *  what every vault written before this feature meant by the name. */
-export const NOTE_EXTENSIONS = [".md", ".tex", ".latex"] as const;
+export const NOTE_EXTENSIONS = [".md", ".tex", ".latex", ".excalidraw"] as const;
+
+/** A DRAWING is a note too — an Excalidraw scene, either the editor's own
+ *  `.excalidraw` JSON or the Obsidian plugin's `.excalidraw.md` (markdown with
+ *  the scene in a fence). It sits in the tree, the search and the graph like a
+ *  note, opens in the drawing surface rather than the editor, and its picture
+ *  reaches the published site as the `.svg` exported beside it. */
+export function isDrawingPath(rel: string): boolean {
+  const lower = rel.toLowerCase();
+  const base = lower.slice(lower.lastIndexOf("/") + 1);
+  if (base === ".excalidraw" || base === ".excalidraw.md") return false;
+  return lower.endsWith(".excalidraw") || lower.endsWith(".excalidraw.md");
+}
+
+/** The static picture a drawing keeps beside itself, exported on every save:
+ *  `a/b.excalidraw` and `a/b.excalidraw.md` both map to `a/b.excalidraw.svg`,
+ *  which is what the Obsidian plugin's auto-export names too. */
+export function drawingSvgPath(rel: string): string {
+  return `${rel.replace(/\.md$/i, "")}.svg`;
+}
 
 /** The LaTeX half of the list — the same two names TeXShop, Overleaf and
  *  `latexmk` accept for a source file. */
@@ -59,7 +78,14 @@ export function noteFormat(rel: string): NoteFormat {
  *  Non-notes come back unchanged, so this is safe to call on anything. */
 export function stripNoteExt(rel: string): string {
   const ext = noteExtOf(rel);
-  return ext === "" ? rel : rel.slice(0, rel.length - ext.length);
+  const bare = ext === "" ? rel : rel.slice(0, rel.length - ext.length);
+  // `Sketch.excalidraw.md` is the drawing called "Sketch": the plugin's two
+  // suffixes come off together, so `[[Sketch]]`, `[[Sketch.excalidraw]]` and
+  // the file all name one thing, exactly as Obsidian resolves them.
+  if (ext === ".md" && bare.toLowerCase().endsWith(".excalidraw")) {
+    return bare.slice(0, bare.length - ".excalidraw".length);
+  }
+  return bare;
 }
 
 /** The reader's name for a note: its basename with the extension gone. Used

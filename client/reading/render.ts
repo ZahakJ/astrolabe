@@ -27,6 +27,7 @@ import {
   isNoiseImageName,
   markEmbedBroken,
   missingImageCard,
+  drawingSvgName,
   parseEmbed,
   resolveAttachment,
   resolveRelative,
@@ -203,10 +204,14 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
   // (block-level embeds are handled before paragraphs form).
   s = s.replace(/!\[\[([^[\]]+?)\]\]/g, (_m, inner: string) => {
     const embed = parseEmbed(unesc(inner));
-    if (embed.kind === "image") {
+    if (embed.kind === "image" || embed.kind === "drawing") {
       const w = embed.width ? ` style="width:${embed.width}px"` : "";
+      // A drawing inline is its exported picture, an image like any other;
+      // the name the resolver looks up is the svg beside the drawing.
+      const name = embed.kind === "drawing" ? drawingSvgName(embed.target) : embed.target;
+      const cls = embed.kind === "drawing" ? "s-rv-img s-rv-drawing" : "s-rv-img";
       return keep(
-        `<img class="s-rv-img" data-embed-name="${esc(embed.target)}" alt="${esc(embed.target)}"${w}>`,
+        `<img class="${cls}" data-embed-name="${esc(name)}" data-drawing="${embed.kind === "drawing" ? esc(embed.target) : ""}" alt="${esc(embed.target)}"${w}>`,
       );
     }
     return keep(`<span class="s-rv-embed-chip">${esc(embed.target)}</span>`);
@@ -436,6 +441,53 @@ async function highlightCode(
 
 // ── Embed blocks (image figures, file cards, transclusions) ─────────────────
 
+/** A drawing embed's source: the exported svg by name, and for the owner
+ *  alone a live render when no export exists yet. The fallback imports the
+ *  canvas chunk, which is exactly what a visitor must never pay for — and a
+ *  visitor cannot fetch an unexported drawing anyway, so for them the miss is
+ *  the ordinary placeholder. */
+export function attachDrawingSrc(img: HTMLImageElement, target: string, width: number | null): void {
+  const name = drawingSvgName(target);
+  const fallback = (): void => {
+    if (!useStore.getState().admin) {
+      img.replaceWith(brokenEmbed(target));
+      return;
+    }
+    const dark = getComputedStyle(document.documentElement).colorScheme === "dark";
+    // `![[Sketch.excalidraw]]` may name a `Sketch.excalidraw.md`: the same
+    // resolver every wikilink goes through decides which file that is.
+    const path = resolveLink(target, useStore.getState().tree) ?? target;
+    void import("../drawing/renderEmbed.ts")
+      .then((m) => m.renderDrawingSvg(path, dark))
+      .then((svg) => {
+        if (svg === null) {
+          img.replaceWith(brokenEmbed(tf("drawingEmbedMissing", { name: target })));
+          return;
+        }
+        svg.classList.add("s-rv-img", "s-rv-drawing");
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", target);
+        if (width) {
+          svg.style.width = `${width}px`;
+          svg.style.height = "auto";
+        } else {
+          svg.style.maxWidth = "100%";
+          svg.style.height = "auto";
+        }
+        img.replaceWith(svg);
+      })
+      .catch(() => img.replaceWith(brokenEmbed(target)));
+  };
+  img.onerror = fallback;
+  const r = resolveAttachment(name);
+  const apply = (path: string | null): void => {
+    if (path === null) fallback();
+    else img.src = fileUrl(path);
+  };
+  if (r instanceof Promise) void r.then(apply);
+  else apply(r);
+}
+
 function attachEmbedSrc(
   img: HTMLImageElement,
   name: string,
@@ -628,6 +680,21 @@ function renderEmbedBlock(inner: string, ctx: Ctx): HTMLElement {
     if (embed.width) img.style.width = `${embed.width}px`;
     fig.appendChild(img); // append first: a miss may replace/remove the figure
     attachEmbedSrc(img, embed.target, ctx.missingImages ?? "placeholder");
+    return fig;
+  }
+  if (embed.kind === "drawing") {
+    // `![[sketch.excalidraw]]`: the picture exported beside the drawing, in a
+    // figure like an image. A visitor's page shows that svg or nothing; the
+    // owner, when the export is not on disk yet (a drawing made in Obsidian),
+    // gets it drawn by the canvas chunk, loaded for this once.
+    const fig = document.createElement("figure");
+    fig.className = "s-rv-figure s-rv-figure--drawing";
+    const img = document.createElement("img");
+    img.className = "s-rv-img s-rv-drawing";
+    img.alt = embed.target;
+    if (embed.width) img.style.width = `${embed.width}px`;
+    fig.appendChild(img);
+    attachDrawingSrc(img, embed.target, embed.width);
     return fig;
   }
   if (embed.kind === "file") return fileCard(embed.target);
@@ -1180,7 +1247,10 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
     const name = img.dataset.embedName;
     if (name) {
       delete img.dataset.embedName;
-      attachEmbedSrc(img, name, ctx.missingImages ?? "placeholder");
+      const drawing = img.dataset.drawing;
+      delete img.dataset.drawing;
+      if (drawing) attachDrawingSrc(img, drawing, null);
+      else attachEmbedSrc(img, name, ctx.missingImages ?? "placeholder");
     }
   }
 
