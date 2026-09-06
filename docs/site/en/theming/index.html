@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theming · Vellum Documentation</title>
+<meta name="description" content="The twenty-one built-in themes, the ambient masthead, the custom-theme builder, the CSS token API, and custom.css.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/theming/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link is-current" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="theming">Theming</h1>
+<p><em>The twenty-one built-in themes, the ambient masthead, the custom-theme builder, the CSS token API, and <code>custom.css</code>.</em></p>
+<hr>
+<p>If Vellum is replacing a blog, you probably want it to stop saying &quot;Vellum&quot; and start looking
+like <em>your</em> site. Three env-driven hooks cover that, no fork required.</p>
+<h2 id="name-it"><a class="anchor" href="#name-it">Name it</a></h2>
+<p><code>SITE_NAME=Night Garden</code> rebrands every visible surface — the <code>✦</code> wordmark in the
+sidebar, the browser tab titles (<code>Note · Night Garden</code>), and the sign-in modal.</p>
+<h2 id="pick-the-default-look"><a class="anchor" href="#pick-the-default-look">Pick the default look</a></h2>
+<p>Vellum ships <strong>twenty-one</strong> themes — fourteen dark rooms and seven lit ones. Every one of them
+defines the whole palette for itself (ground, type, accent, selection, focus ring, graph, all
+thirteen callout hues, all eight syntax colors), so none of them is another theme wearing a
+different background.</p>
+<p><figure><img src="../../../screenshots/themes.png" alt="The built-in themes" loading="lazy"></figure></p>
+<div class="table"><table><thead><tr><th>Dark</th><th></th><th>Light</th><th></th></tr></thead><tbody><tr><td><code>iron-gall</code></td><td>warm near-black, gold leaf — <strong>the default</strong></td><td><code>parchment</code></td><td>warm paper, gold leaf</td></tr><tr><td><code>cinnabar</code></td><td>neutral graphite, vermilion type</td><td><code>sandstone</code></td><td>dry desert paper, burnt orange</td></tr><tr><td><code>sumi</code></td><td>ink-stick grey, aizome indigo</td><td><code>solar</code></td><td>brightest white paper, burnt gold</td></tr><tr><td><code>void</code></td><td>true black, cold signal cyan</td><td><code>linen</code></td><td>cool daylight, ink blue</td></tr><tr><td><code>basalt</code></td><td>cool blue-grey stone, pale sky</td><td><code>palimpsest</code></td><td>scraped grey vellum, rubric red</td></tr><tr><td><code>nocturne</code></td><td>blue-black night, periwinkle</td><td><code>porcelain</code></td><td>glazed white, deep celadon</td></tr><tr><td><code>lapis</code></td><td>deep lapis blue-black, brightened gold</td><td><code>mauveine</code></td><td>pale lilac, aniline violet</td></tr><tr><td><code>verdigris</code></td><td>green-black, oxidized copper</td><td></td><td></td></tr><tr><td><code>moss</code></td><td>olive-black forest floor, lichen</td><td></td><td></td></tr><tr><td><code>porphyry</code></td><td>purple-black stone, dusty rose</td><td></td><td></td></tr><tr><td><code>tallow</code></td><td>warm brown paper, candle-flame amber</td><td></td><td></td></tr><tr><td><code>phosphor</code></td><td>CRT green-black, P1 phosphor green</td><td></td><td></td></tr><tr><td><code>sidereal</code></td><td>blue-violet deep space, starlight</td><td></td><td></td></tr><tr><td><code>murex</code></td><td>violet-black, Tyrian purple</td><td></td><td></td></tr></tbody></table></div><p>Six of them arrived together, and each was drawn for a room the set did not have:</p>
+<ul>
+<li><strong><code>phosphor</code></strong> is a terminal rather than a theme that gestures at one. Its syntax palette is
+its identity: a cathode tube has ONE gun, so keyword, function and property are three strengths
+of the same green, type is that green pushed to its cyan edge, and the only colours that are
+not green are the amber of a P3 tube (strings and numbers) and the alarm red.</li>
+<li><strong><code>sidereal</code></strong> is deep space at a real distance — a blue-violet ground far darker than
+<code>nocturne</code>&#39;s, under starlight. Its body text is a <em>neutral</em> silver on purpose: starlight and
+body text are both pale blue-whites, and an accent that is a shade of its own type is not an
+accent (the 18 ΔE rule below). The two sit 29.6 ΔE apart.</li>
+<li><strong><code>murex</code></strong> is the sea snail Tyre boiled by the ton for the only colour an emperor was allowed
+to wear. <code>porphyry</code> is the <em>other</em> imperial purple; these two are kept apart by 39.6 ΔE of
+accent — a warm dusty rose there, the dye at full strength here.</li>
+<li><strong><code>palimpsest</code></strong> is older than <code>parchment</code>, which is the point: a sheet scraped clean and
+written over, greyed where parchment is golden, under the rubricator&#39;s red. It is also the lit
+set&#39;s first red room.</li>
+<li><strong><code>porcelain</code></strong> is Song celadon — a glaze-white ground with a breath of green in it, under the
+deep sea-green the Longquan kilns were built for. The refined room, and the lit set&#39;s first
+green-family accent.</li>
+<li><strong><code>mauveine</code></strong> is the accident that started the dye industry: Perkin, eighteen, failed to
+synthesise quinine in 1856 and washed the flask out with alcohol. The lit set had no violet.</li>
+</ul>
+<p>Every reader picks their own from the <strong>theme picker</strong> — the theme control in the status bar
+opens it, and so does <em>Themes</em> in Settings → Appearance &amp; language. Each row is a
+miniature of the room — its ground carrying a heading rule, a line of type and an accent chip —
+next to a human name and a one-line description, both localized; the raw id (what <code>DEFAULT_THEME</code>
+and the palette take) is in the row&#39;s tooltip. It is a grouped, keyboard-driven
+list: <code>↑↓←→</code> moves the highlight and applies that theme live to the whole app behind the panel,
+<code>Enter</code> keeps it, <code>Esc</code> puts back the theme you started with. (The mouse never moves the keyboard
+highlight — only a click picks.) The palette carries ONE route to all of them: <em>Themes</em>
+opens the same panel, with a dot showing the theme you are in. (It used to carry a <code>Theme: &lt;id&gt;</code>
+command per theme beside that row, 15 of 41 entries spent on one preference, every one of them a
+blind jump into a room you had not seen. A parameter with this many values belongs behind the
+surface that shows the values — and the argument only got stronger as the set grew.) A
+reader&#39;s choice sticks in their own browser.</p>
+<p><strong>By default, the public site wears the theme you write in.</strong> You pick a room in the picker, and
+first-time visitors land in the same room — a one-author blog looking like its author, with
+nothing to configure. Your theme lives in your browser, so Vellum mirrors it to the server when
+your choice settles (once, a second after you stop browsing themes — not once per row). Both
+places that choose a theme say so out loud, in the theme&#39;s own name: the picker&#39;s footer and
+Settings → Appearance &amp; language → <em>Default theme</em> read <em>&quot;Visitors see Cinnabar — following your
+editor theme&quot;</em>, each with a one-click <strong>Pin this instead</strong>. Pin one and the public site stops
+moving with you (<em>&quot;Visitors see Parchment — pinned&quot;</em>, with <strong>Follow my theme</strong> to undo it);
+<code>DEFAULT_THEME=cinnabar</code> pins the same way from the environment, and <code>DEFAULT_THEME=follow</code> (or
+the setting) puts it back. Your pin and your editor theme are stored separately, so unpinning
+puts visitors back on whatever you are actually using. A reader who has chosen a theme is never
+moved by any of this, and an unknown <code>DEFAULT_THEME</code> is ignored with a line on stderr at startup
+rather than silently.</p>
+<h2 id="the-ambient-masthead"><a class="anchor" href="#the-ambient-masthead">The ambient masthead</a></h2>
+<p>A theme is a set of <em>static</em> tokens by architecture — every gate in this repo measures those
+hexes against one another, and a value that moves is a value nobody screenshotted at the frame
+where it failed AA. So the rooms stay still, and the motion is a separate, optional layer of
+<strong>decoration behind the words</strong>.</p>
+<p>Turn it on in Settings → Publishing → <strong>Ambient masthead</strong> (or <code>&quot;ambient&quot;: true</code> in
+<code>settings.json</code>; it is <strong>off</strong> by default). The public site&#39;s masthead — the stock blog&#39;s and the
+designed shell&#39;s alike — then carries a slow atmosphere drawn from the theme in force:</p>
+<div class="table"><table><thead><tr><th>Air</th><th>Rooms</th><th>What it is</th></tr></thead><tbody><tr><td>stars</td><td><code>sidereal</code>, <code>nocturne</code>, <code>lapis</code>, <code>murex</code></td><td>two star fields at different scales and speeds, the far one breathing</td></tr><tr><td>scanlines</td><td><code>phosphor</code>, <code>void</code></td><td>a 3px grating creeping exactly one pitch every twelve seconds, under the gun&#39;s own glow</td></tr><tr><td>dust</td><td><code>iron-gall</code>, <code>tallow</code>, <code>parchment</code>, <code>palimpsest</code>, <code>solar</code></td><td>gold motes rising, slowly enough that looking straight at them shows a still page</td></tr></tbody></table></div><p>Every other room is deliberately still — a theme gets an air only when it has something to say
+with one. Every mark in every air is that room&#39;s <strong>own <code>--accent</code></strong>, so <code>murex</code>&#39;s stars are
+Tyrian and <code>palimpsest</code>&#39;s dust is rubric red without a rule of their own.</p>
+<p>Four properties hold whatever else changes:</p>
+<ul>
+<li><strong>It is decoration and it is not content.</strong> An empty <code>aria-hidden</code> div, <code>pointer-events: none</code>,
+at <code>z-index: -1</code> inside a masthead that carries <code>isolation: isolate</code> — unreachable by a pointer,
+a caret, a screen reader or the tab order.</li>
+<li><strong>It is pure CSS.</strong> No canvas, no <code>requestAnimationFrame</code>, no JavaScript beyond the one <code>if</code>
+that decides whether the div is in the DOM. Both animated properties are compositor properties.</li>
+<li><strong>It is a whisper, and that is a measurement.</strong> Not an opacity but the worst <em>composited</em> ground
+under the masthead title, read off real pixels with the animation running: <code>phosphor</code> 11.41:1,
+<code>murex</code> 10.74:1, <code>sidereal</code> 9.63:1, <code>iron-gall</code> 9.08:1, <code>parchment</code> 8.31:1. The floor is 4.5.</li>
+<li><strong><code>prefers-reduced-motion</code> deletes it.</strong> Not paused, not slowed: <code>display: none</code> on the
+container, so neither layer gets a box and nothing is composited — two screenshots 2.6s apart
+come back byte-identical.</li>
+</ul>
+<p>It rides in the public shells&#39; own chunks (<code>client/styles/ambient.css</code>), so an instance with it
+switched off — and the entry bundle every audience downloads — pays nothing for it.</p>
+<h2 id="make-your-own"><a class="anchor" href="#make-your-own">Make your own</a></h2>
+<p>The built-ins are a starting point, not a ceiling. <strong>Themes → New custom theme</strong> opens a builder:
+pick one of them as a base, then override any token you like — grounds, text, accent,
+borders, the thirteen callout hues, the eight syntax colors, the graph — and watch the whole app
+change behind the panel while you do it, because the only honest preview of a theme is the theme.
+Tokens you do not touch keep coming from the base, so a later retune of that base reaches your
+theme for free, and every row&#39;s <em>reset</em> deletes the override rather than freezing today&#39;s value
+into it.</p>
+<p>The builder runs <strong>the project&#39;s own contrast gate live</strong>: the same code
+<code>scripts/check-contrast.mjs</code> runs — body text ≥ 4.5:1 and secondary ≥ 3:1 against all three
+grounds, the accent ≥ 4.5:1 on its own ground, and the accent at least 18 ΔE from your body text
+(not a contrast ratio: a theme whose accent is a shade of its own type has no accent channel at
+all). Warnings appear in words, above the control that caused them, with a mark on any group that
+holds one.</p>
+<p>Save it under a name and it is selectable <strong>everywhere a built-in theme is</strong>: the picker (its own
+&quot;Your themes&quot; group), the ☾/☀ button, Settings → <em>Default theme</em>, and <code>DEFAULT_THEME=custom:&lt;name&gt;</code>
+in your <code>.env</code>. Export it as JSON, mail it, import it on another instance.</p>
+<h2 id="restyle-it"><a class="anchor" href="#restyle-it">Restyle it</a></h2>
+<p>Drop a <code>custom.css</code> into your data directory (<code>VELLUM_DATA</code>, default <code>./data/</code>)
+and Vellum serves it at <code>/api/custom.css</code> and loads it after its own stylesheets — for every
+visitor and for you, in dev and prod, no rebuild, no restart. Because it loads last, your rules
+win. The whole UI is driven by CSS custom properties on <code>:root</code> (and per-theme overrides via
+<code>html[data-theme=&quot;…&quot;]</code>), so most re-skins are a handful of token lines:</p>
+<pre><code class="language-css">/* data/custom.css — a green-accented reading room */
+:root,
+html[data-theme=&quot;lapis&quot;] {
+  --accent: #5da06b;
+  --accent-soft: rgba(93, 160, 107, 0.14);
+  --font-serif: &quot;Iowan Old Style&quot;, Georgia, serif;
+}
+</code></pre>
+<p>The token API (define them on <code>:root</code> for all themes, or under <code>html[data-theme=&quot;void&quot;]</code> etc.
+for one):</p>
+<div class="table"><table><thead><tr><th>Token</th><th>Drives</th></tr></thead><tbody><tr><td><code>--bg</code> / <code>--bg-raised</code> / <code>--bg-hover</code></td><td>Page background / sidebar &amp; panels / hover rows</td></tr><tr><td><code>--text</code> / <code>--text-muted</code> / <code>--text-faint</code></td><td>Body text / secondary text / hints &amp; counts</td></tr><tr><td><code>--accent</code> / <code>--accent-soft</code></td><td>Brand color (links, wikilinks, active marks) / its translucent wash</td></tr><tr><td><code>--selection-bg</code> / <code>--focus-ring</code></td><td>Text-selection wash / the 2px <code>:focus-visible</code> ring</td></tr><tr><td><code>--graph-node</code> / <code>--graph-edge</code> / <code>--graph-vignette</code></td><td>Graph disc color / idle edge stroke / the canvas&#39;s edge wash</td></tr><tr><td><code>--border</code></td><td>The 1px hairlines everywhere</td></tr><tr><td><code>--danger</code></td><td>Destructive actions, broken-link tint</td></tr><tr><td><code>--font-ui</code> / <code>--font-serif</code> / <code>--font-mono</code></td><td>UI chrome / prose &amp; headings / code</td></tr><tr><td><code>--font-base</code></td><td>Root type size — the entire UI is sized in <code>rem</code>, so this one token scales all chrome (default 15.5px)</td></tr><tr><td><code>--font-prose</code></td><td>Editor / reading prose size (default ≈18px; the blog article body sits a step above it)</td></tr><tr><td><code>--radius</code></td><td>Corner rounding (default 6px)</td></tr><tr><td><code>--sidebar-w</code></td><td>Sidebar width (default 292px)</td></tr><tr><td><code>--callout-note</code>, <code>--callout-tip</code>, …</td><td>Per-type callout hues (see <code>client/styles/tokens.css</code>)</td></tr><tr><td><code>--syn-keyword</code>, <code>--syn-string</code>, …</td><td>Code-highlighting palette</td></tr></tbody></table></div><h2 id="bring-your-own-fonts-the-css-route"><a class="anchor" href="#bring-your-own-fonts-the-css-route">Bring your own fonts (the CSS route)</a></h2>
+<p>Vellum ships zero webfonts by design, but your instance doesn&#39;t have to. Drop font files into
+<code>VELLUM_DATA/fonts/</code> (default <code>./data/fonts/</code>) and they are served at
+<code>/api/fonts/&lt;file&gt;</code> — <code>woff2</code>, <code>woff</code>, <code>ttf</code>, and <code>otf</code> only, strictly by basename, with ETags
+and immutable year-long cache headers. Wire them up with an <code>@font-face</code> in <code>custom.css</code>:</p>
+<pre><code class="language-css">/* data/custom.css — serve data/fonts/MyFont.woff2 as the prose face */
+@font-face {
+  font-family: &quot;MyFont&quot;;
+  src: url(&quot;/api/fonts/MyFont.woff2&quot;) format(&quot;woff2&quot;);
+  font-display: swap;
+}
+:root {
+  --font-serif: &quot;MyFont&quot;, Georgia, serif;
+}
+</code></pre>
+<p>For the no-CSS route — a curated, self-hosted catalog and an uploader, both with real Arabic —
+see <a href="../typography/">Typography</a>.</p>
+<p>Anything beyond tokens is fair game too — every element carries a stable <code>s-</code> prefixed class
+(<code>.s-sidebar</code>, <code>.s-rv-p</code>, <code>.s-statusbar</code>, …), so <code>custom.css</code> can restyle specific components.
+If you keep body text ≥ 4.5:1 contrast against <code>--bg</code>, the whole app stays readable.</p>
+<h2 id="colored-text-in-two-tiers"><a class="anchor" href="#colored-text-in-two-tiers">Colored text in two tiers</a></h2>
+<p>The default writes <code>var(--vc-blue)</code>, a <em>meaning</em> that every one of the built-in themes resolves to
+something clearing AA on its own ground, light or dark; a fixed-ink palette writes a literal hex
+when you mean <em>that</em> color. Both render identically in the editor, the reading view and the blog,
+and the sanitizer admits <code>style</code> on a <code>&lt;span&gt;</code> for <code>color</code>/<code>background-color</code> only — no <code>url()</code>,
+no other properties.</p>
+<p>The two tiers exist for an arithmetic reason: against <code>void</code>&#39;s <code>#050508</code> a color needs relative
+luminance ≥ 0.186 and against <code>solar</code>&#39;s <code>#ffffff</code> it needs ≤ 0.183, so <strong>no single color clears AA
+on every theme</strong>. The theme-aware tier (<code>var(--vc-*)</code>, the default) carries one value per
+theme <em>group</em> and is held to 4.5:1 against every ground in its group — its worst measurement is
+4.98:1, on <code>palimpsest</code>&#39;s ground, which took that title from <code>solar</code>&#39;s white the day it shipped.
+The fixed-ink tier carries one hex for all of them and is held to 3:1, WCAG 1.4.11&#39;s non-text
+floor, which is the most a fixed color can promise. <code>node scripts/check-contrast.mjs</code> gates both — see
+<a href="../development/">Development</a>.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/theming.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/library/"><span class="pager__kicker">Previous</span><span class="pager__title">The library</span></a><a class="pager__link pager__link--next" href="../../en/typography/"><span class="pager__kicker">Next</span><span class="pager__title">Typography</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#name-it">Name it</a><a class="toc__link toc__link--2" href="#pick-the-default-look">Pick the default look</a><a class="toc__link toc__link--2" href="#the-ambient-masthead">The ambient masthead</a><a class="toc__link toc__link--2" href="#make-your-own">Make your own</a><a class="toc__link toc__link--2" href="#restyle-it">Restyle it</a><a class="toc__link toc__link--2" href="#bring-your-own-fonts-the-css-route">Bring your own fonts (the CSS route)</a><a class="toc__link toc__link--2" href="#colored-text-in-two-tiers">Colored text in two tiers</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

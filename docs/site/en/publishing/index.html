@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Publishing &amp; access · Vellum Documentation</title>
+<meta name="description" content="Public reading vs admin editing, the publish: flag, previewing as a visitor, putting it on the internet, and reader comments.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/publishing/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link is-current" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="publishing-access">Publishing &amp; access</h1>
+<p><em>Public reading vs admin editing, the <code>publish:</code> flag, previewing as a visitor, putting it on the internet, and reader comments.</em></p>
+<hr>
+<h2 id="public-reading-admin-editing"><a class="anchor" href="#public-reading-admin-editing">Public reading, admin editing</a></h2>
+<p>Out of the box Vellum runs in <strong>open local mode</strong> — no password, every visitor is an admin (a
+warning is printed at startup). To put a vault on a network you don&#39;t fully trust, set an admin
+password:</p>
+<pre><code class="language-sh">cp .env.example .env
+npm run hash-password        # prompts for a password, prints an argon2id hash
+</code></pre>
+<p>Put the printed hash in <code>.env</code> (single-quoted — it contains <code>$</code>), plus a cookie-signing secret:</p>
+<pre><code class="language-sh">ADMIN_PASSWORD_HASH=&#39;$argon2id$v=19$m=65536,...&#39;
+SESSION_SECRET=some-long-random-string   # e.g. openssl rand -hex 32
+</code></pre>
+<p>With a hash set, visitors get the <strong>reading view</strong>: fully rendered notes, search, graph, backlinks
+— but no editor and no create/rename/delete anywhere. A quiet &quot;Sign in&quot; link in the status bar
+opens the login modal; a correct password sets a signed, httpOnly session cookie and unlocks
+editing on the spot, no reload. Set <code>PUBLIC=false</code> to require login even for reading, and
+<code>HOME_NOTE</code> to pick the note fresh visitors land on.</p>
+<p><strong><code>PUBLIC=false</code> requires a password, and says so by refusing to start.</strong> Without
+<code>ADMIN_PASSWORD_HASH</code> there is no session for the flag to require, so &quot;private&quot; would have meant
+the opposite of itself: every anonymous request treated as a full admin. Rather than boot into
+that, Vellum prints the <code>npm run hash-password</code> line and exits. (Running deliberately open on a
+trusted network is still fine — just don&#39;t also claim to be private.) For the same reason,
+<strong><a href="../backup-and-sync/">backup &amp; sync</a> needs a password in every mode</strong>: without one, anyone who
+can reach the port could point the remote at their own server and push your whole vault to it.</p>
+<p><strong>Sessions.</strong> The cookie is httpOnly, <code>SameSite=Lax</code>, <code>Secure</code> whenever the request arrives over
+HTTPS (directly, or via <code>X-Forwarded-Proto</code> from an address listed in <code>TRUSTED_PROXIES</code> — set
+<code>SECURE_COOKIES=true</code>/<code>false</code> to decide it yourself, e.g. <code>false</code> for LAN-over-http), and lives
+<strong>7 days</strong>, renewed automatically while you are using the app. <strong>Signing out signs you out
+everywhere</strong>, on every device, immediately: sessions carry an epoch stored in <code>VELLUM_DATA</code>, and
+logging out bumps it. <strong>Changing <code>ADMIN_PASSWORD_HASH</code> does the same</strong> — every cookie issued under
+the old password stops working the moment the new one is in place, which is the whole point of
+changing it after a laptop goes missing. (Upgrading Vellum also invalidates existing sessions
+once; you sign in again.)</p>
+<p><strong>Login rate limit.</strong> 10 failed attempts per minute per IP, plus a global ceiling, and the slot is
+taken <em>before</em> the password is checked — so a thousand simultaneous guesses are still ten guesses.
+At most two password verifications run at once (each argon2id hash costs 64 MB by design), so login
+traffic can&#39;t starve the process that is also serving your notes.</p>
+<h2 id="what-counts-as-published"><a class="anchor" href="#what-counts-as-published">What counts as published</a></h2>
+<p>Exactly one thing: <code>publish: true</code> in a note&#39;s frontmatter.</p>
+<pre><code class="language-yaml">---
+title: On Marginalia
+publish: true
+tags: [writing]
+date: 2026-08-16
+---
+</code></pre>
+<p><code>Ctrl/Cmd Shift P</code> toggles it on the open note, and so do &quot;Publish note&quot; / &quot;Unpublish note&quot; in the
+command palette; the write is a surgical one-line frontmatter edit that leaves the rest of the
+file alone. A <code>.tex</code> note carries the same flag in
+<a href="../latex/">its own comment block</a> and publishes identically.</p>
+<p>Everything a visitor can see follows from that flag. The tree, search, the graph, backlinks,
+the post list, the RSS feed and the SSE event stream are all re-derived per request against the
+published set, so an unpublished path is not merely hidden — it is indistinguishable from a path
+that does not exist. Attachments follow their note: a published note&#39;s banner and embeds are
+fetchable, an unpublished note&#39;s are not.</p>
+<p>Two settings can <em>narrow</em> what visitors see further, without unpublishing anything:
+<a href="../configuration/#environment-variables"><code>EXCLUDE_TAGS</code></a> hides tags from the public topic
+surfaces, and the <a href="../arabic-and-rtl/#language-filter">language filter</a> hides notes not written in
+a chosen language. Both are curation. <code>publish: false</code> is the switch with teeth.</p>
+<p>One frontmatter key <em>widens</em> rather than narrows: <code>folders:</code> names the
+<a href="../blog-mode/#custom-public-folders">public folders</a> a published note belongs to — your own
+collections on the blog, beside the topics its tags create. It changes nothing about whether the
+note is published, and it is inert until you declare a folder with that address in Settings.</p>
+<h2 id="preview-as-visitor"><a class="anchor" href="#preview-as-visitor">Preview as visitor</a></h2>
+<p>As the signed-in admin you can <strong>preview as visitor</strong> at any time — the eye icon in the status
+bar, or &quot;Preview as visitor&quot; in the command palette. It is not a client-side imitation: every
+request is re-scoped server-side through the exact code path a stranger&#39;s request takes
+(published-only tree, search, graph, feed of events), so what you see is byte-for-byte what the
+public site serves. A slim gold banner marks the mode; &quot;Exit preview&quot; returns you to the full app
+on the same note. It never survives a reload.</p>
+<h2 id="putting-it-on-the-internet"><a class="anchor" href="#putting-it-on-the-internet">Putting it on the internet</a></h2>
+<p>Run Vellum behind any HTTPS reverse proxy (Caddy, nginx, a Cloudflare tunnel, …) forwarding to
+<code>localhost:6801</code> — the app is a single origin (API + static client on one port), so no special
+proxy rules are needed; just make sure it is only reachable over TLS so the login password and
+session cookie stay private.</p>
+<p>When you do sit it behind a proxy, also set <code>TRUSTED_PROXIES</code> to the proxy&#39;s address (e.g.
+<code>TRUSTED_PROXIES=127.0.0.1,::1</code>) so the login rate limit keys off the real client IP from
+<code>X-Forwarded-For</code> instead of lumping everyone together as the proxy&#39;s IP. The header is only ever
+trusted when the connection comes from a listed address — otherwise it is ignored, since clients
+can forge it.</p>
+<p>Request bodies are capped server-side before any parsing buffers them: 10 MB on any <code>/api</code>
+request, and a much tighter 64 KB on the anonymous surfaces (comment posts and login), so
+oversized uploads are rejected (HTTP 413) instead of occupying memory. A matching cap at the proxy
+is still a sensible extra layer — e.g. nginx <code>client_max_body_size 10m;</code>.</p>
+<h2 id="comments"><a class="anchor" href="#comments">Comments</a></h2>
+<p>Set <code>COMMENTS=on</code> (or the toggle in Settings → Publishing &amp; comments) and every <strong>published</strong> note
+grows a quiet &quot;Marginalia&quot; section under its reading view: visitors can leave a plain-text note
+(name optional — &quot;Anonymous&quot; otherwise). Off (the default), the feature is completely dark — no
+UI, and the API routes answer 404.</p>
+<p>Moderation is built in for admins. On each comment: a quiet delete <code>×</code> (confirmed before it
+does anything irreversible) and an eye toggle that <strong>hides</strong> the comment instead — hidden
+comments vanish for visitors but stay in the database, rendered ghosted with a &quot;hidden&quot; chip
+for the admin, and can be unhidden at any time. The command palette&#39;s <strong>&quot;Moderate comments&quot;</strong>
+opens a panel of the newest comments across every note — each row shows author, snippet and
+the note it belongs to (click to jump there), with the same hide/delete controls.</p>
+<p>Comments are stored in an SQLite file at <code>VELLUM_DATA/comments.db</code> (default <code>./data/</code>, created
+on demand, gitignored) using Node&#39;s built-in <code>node:sqlite</code> — no extra dependencies. Abuse
+controls are built in: post requests over 64 KB are rejected before any parsing touches
+them, posting is rate-limited to 5 comments/min/IP (honoring <code>TRUSTED_PROXIES</code> for the real
+client address, same as login), bodies are capped at 2000 characters of plain text (always
+rendered escaped, never as HTML/markdown), names at 40, and the form carries a hidden honeypot
+field that silently swallows bot submissions. Comments can only ever be read or written on notes
+with <code>publish: true</code> — for anything else the API answers the same 404 a missing note would, so
+unpublished paths stay unguessable. With <code>PUBLIC=false</code> (fully private vault), visitors can
+neither read nor post comments at all.</p>
+<h2 id="the-three-public-shells"><a class="anchor" href="#the-three-public-shells">The three public shells</a></h2>
+<div class="table"><table><thead><tr><th><code>PUBLIC_LAYOUT</code></th><th>What a visitor gets</th></tr></thead><tbody><tr><td><code>app</code> <em>(default)</em></td><td>The application itself, read-only: sidebar, tabs, graph, search — no editor</td></tr><tr><td><code>blog</code></td><td>A classic blog: masthead, topic nav, article pages, RSS, comments — see <a href="../blog-mode/">Blog mode</a></td></tr><tr><td><code>designed</code></td><td>A homepage you compose yourself out of sections — see <a href="../designer/">Designer</a></td></tr></tbody></table></div><p>Signed-in admins are unaffected by any of them — the full app, sidebar and all, stays exactly as
+it is. The visitor shell exists only for visitors.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/publishing.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/configuration/"><span class="pager__kicker">Previous</span><span class="pager__title">Configuration</span></a><a class="pager__link pager__link--next" href="../../en/backup-and-sync/"><span class="pager__kicker">Next</span><span class="pager__title">Backup &amp; sync</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#public-reading-admin-editing">Public reading, admin editing</a><a class="toc__link toc__link--2" href="#what-counts-as-published">What counts as published</a><a class="toc__link toc__link--2" href="#preview-as-visitor">Preview as visitor</a><a class="toc__link toc__link--2" href="#putting-it-on-the-internet">Putting it on the internet</a><a class="toc__link toc__link--2" href="#comments">Comments</a><a class="toc__link toc__link--2" href="#the-three-public-shells">The three public shells</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

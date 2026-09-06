@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Development · Vellum Documentation</title>
+<meta name="description" content="Running Vellum from source, the gate scripts, the screenshot harnesses, and how to contribute a change.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/development/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link is-current" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="development">Development</h1>
+<p><em>Running Vellum from source, the gate scripts, the screenshot harnesses, and how to contribute a change.</em></p>
+<hr>
+<h2 id="dev-mode"><a class="anchor" href="#dev-mode">Dev mode</a></h2>
+<pre><code class="language-sh">npm run dev
+</code></pre>
+<p>Runs the API server and Vite with hot reload side by side.</p>
+<div class="table"><table><thead><tr><th>Port</th><th>What</th><th>When</th></tr></thead><tbody><tr><td>6801</td><td>Hono server (API + built client)</td><td><code>npm start</code> / always</td></tr><tr><td>5801</td><td>Vite dev server (proxies <code>/api</code> → 6801)</td><td><code>npm run dev</code> only</td></tr></tbody></table></div><p><code>PORT</code> overrides the server port.</p>
+<h2 id="the-scripts"><a class="anchor" href="#the-scripts">The scripts</a></h2>
+<div class="table"><table><thead><tr><th>Script</th><th>What it does</th></tr></thead><tbody><tr><td><code>npm run dev</code></td><td>API server (Node&#39;s own <code>--watch</code>) and Vite side by side</td></tr><tr><td><code>npm run build</code></td><td>Build the client into <code>dist/</code>. The server needs no build — Node runs the TypeScript directly</td></tr><tr><td><code>npm start</code></td><td>Build, then serve</td></tr><tr><td><code>npm run serve</code></td><td>Serve without rebuilding</td></tr><tr><td><code>npm run hash-password</code></td><td>Prompt (no echo, or piped stdin) and print an argon2id hash for <code>ADMIN_PASSWORD_HASH</code></td></tr><tr><td><code>npm run typecheck</code></td><td><code>tsc --noEmit</code> — the strict TypeScript gate</td></tr></tbody></table></div><h2 id="the-gates"><a class="anchor" href="#the-gates">The gates</a></h2>
+<p>Each one exits non-zero on failure. The pure-logic gates need nothing; the browser gates need a
+running instance plus <code>npm i -D playwright</code> and either <code>npx playwright install chromium</code> or a
+system browser via <code>CHROMIUM=/usr/bin/chromium</code>. Those that sign in take <code>VELLUM_PASSWORD</code>
+(open local mode needs no password).</p>
+<h3 id="npm-run-check-i18n-the-dictionary"><a class="anchor" href="#npm-run-check-i18n-the-dictionary"><code>npm run check-i18n</code> — the dictionary</a></h3>
+<p>Fails if any <code>t()</code> key is missing, untranslated, dead, or if the English and Arabic sides of an
+entry disagree about their <code>{placeholders}</code> — and it also fails on hardcoded English copy in JSX
+<em>and</em> in imperative DOM builders. &quot;Dead&quot; is counted from the call sites only: the dictionary file
+is excluded from the usage scan, because a key whose English value happens to be its own name
+(<code>read: { en: &quot;read&quot; }</code>) otherwise matches inside its own definition and reports itself used.</p>
+<h3 id="npm-run-check-contrast-the-accessibility-gate"><a class="anchor" href="#npm-run-check-contrast-the-accessibility-gate"><code>npm run check-contrast</code> — the accessibility gate</a></h3>
+<p>Holds every one of the twenty-one themes in <code>client/styles/tokens.css</code> to WCAG on the four text
+tokens: body text and secondary text against all three grounds (<code>--bg</code>, the raised surfaces and
+the hover ground the tag pills sit on), the accent against the page, and <code>--text-faint</code> at the 3:1
+non-text bar on the two grounds it is licensed to paint on. The accent pair is read as text twice
+over (wikilinks and tag pills in the prose, and the lit mode pill, which is the same two colors
+swapped). Run it after touching theme tokens.</p>
+<p>The formulas and floors live in <code>shared/contrast.ts</code>, which the
+<a href="../theming/#make-your-own">custom theme builder</a> imports as well — one implementation, or a
+builder would eventually bless a theme the gate rejects.</p>
+<p>It also holds the <strong>text-colour palettes</strong> (<code>shared/textColors.ts</code>,
+<code>client/styles/textcolor.css</code>), which exist in two tiers for an arithmetic reason: against
+<code>void</code>&#39;s <code>#050508</code> a colour needs relative luminance ≥ 0.186 and against <code>solar</code>&#39;s <code>#ffffff</code> it
+needs ≤ 0.183, so <strong>no single colour clears AA on every theme</strong>. The theme-aware tier
+(<code>var(--vc-*)</code>, the default) therefore carries one value per theme <em>group</em> and is held to 4.5:1
+against every ground in its group; the fixed-ink tier carries one hex for all of them and is held
+to 3:1, WCAG 1.4.11&#39;s non-text floor, which is the most a fixed colour can promise. The gate
+prints both, and checks the stylesheet&#39;s values against the module&#39;s.</p>
+<h3 id="npm-run-check-sections-the-section-surgery-gate"><a class="anchor" href="#npm-run-check-sections-the-section-surgery-gate"><code>npm run check-sections</code> — the section-surgery gate</a></h3>
+<p>No browser, no server. Dragging a heading in the outline rewrites the note — a block of lines
+leaves one place and arrives in another, with the moved subtree re-levelled — which is the most
+destructive operation in the product that is not called &quot;delete&quot;: it runs on a keyless gesture, it
+is one 4px slip away by accident, and the reader is looking at a forty-row outline rather than at
+the 1,200 lines it is rearranging, so a single dropped paragraph would be invisible until the day
+it was needed.</p>
+<p>The gate generates thousands of documents out of the shapes that break naive implementations —
+YAML frontmatter, code fences whose bodies contain <code>### </code> lines, headings that skip levels, empty
+sections, a section at end of file, CRLF, no trailing newline — and asserts the reorder is a
+<strong>permutation</strong>: it may change the order of a note&#39;s lines and the depth of the moved subtree&#39;s
+own headings, and it may add a blank line at a seam; it may never lose a line and never duplicate
+one. It also asserts that a section cannot be dropped inside itself, that a zero-distance move is
+a no-op, and that extraction&#39;s two halves cover the original exactly. <code>SEED=…</code> replays a failure,
+<code>ROUNDS=…</code> sets the sample size.</p>
+<h3 id="npm-run-check-caret-the-click-to-caret-gate"><a class="anchor" href="#npm-run-check-caret-the-click-to-caret-gate"><code>npm run check-caret</code> — the click-to-caret gate</a></h3>
+<p>Live preview replaces markdown source with rendered boxes of a different width <em>and</em> a different
+length — eighteen characters of <code>$7.7\ \text{km/s}$</code> standing under seven glyphs of KaTeX — so any
+pointer→document mapping that reasons about geometry instead of about the DOM drifts by exactly
+that difference.</p>
+<p>It writes its own note (inline math, inline code, wikilinks, tags, highlights and an image, in
+English and Arabic, on lines long enough to wrap several times), drives a real mouse over it —
+single, double and triple click, drag, shift-click, select-all — runs the whole matrix once in each
+shell direction, and reads back what the reader would actually copy (<code>window.getSelection()</code>),
+requiring every clicked glyph to take the caret <strong>within one character</strong>. Before the fix it
+reported misses up to <strong>82 characters</strong>; after it, zero.</p>
+<p>It exists because that one question has broken four separate ways here (click position, hover
+previews, mod-click navigation, text selection) and the common cause is always a pixel the
+editor&#39;s height map cannot see: <strong>nothing inside <code>.cm-content</code> may carry a vertical CSS margin.</strong>
+CodeMirror measures every line and block widget by its border box, so padding and borders are
+counted and margins are not — put the air on a wrapper&#39;s padding, or in a transparent border with
+<code>background-clip: padding-box</code>, never in a margin. It restores the instance language and deletes
+its fixture however the run ends.</p>
+<h3 id="npm-run-check-layouts-the-keyboard-layout-gate"><a class="anchor" href="#npm-run-check-layouts-the-keyboard-layout-gate"><code>npm run check-layouts</code> — the keyboard-layout gate</a></h3>
+<p><code>KeyboardEvent.key</code> is what the <em>layout</em> produced. The shell compared it to Latin letters, so on
+an Arabic keyboard — where the key marked <code>P</code> reports <code>ح</code> — every global shortcut in the product
+was dead, in an app that ships a complete Arabic translation and mirrors its whole interface for
+it. It was invisible to every test we had, because every test typed Latin letters.</p>
+<p>So this one does not. It drives the real app through the DevTools Protocol
+(<code>Input.dispatchKeyEvent</code>, the only way to set <code>key</code>, <code>code</code> and <code>keyCode</code> independently —
+Playwright&#39;s own keyboard always sends the US <code>key</code> for a <code>code</code>) with the keydowns Arabic 101,
+ЙЦУКЕН, Greek, Hebrew, AZERTY, Dvorak and US QWERTY actually send, and asserts that the palette,
+the graph, the shortcut sheet, zen, reading view, search, the pane toggles, bold and strikethrough
+all still fire — including <code>Ctrl/Cmd K</code> in the signed-out blog shell, which is an anonymous
+reader&#39;s only binding. <strong>72 checks; 46 of them passed before the fix.</strong></p>
+<p>Its second half is the one that keeps the fix from over-correcting: on Dvorak the key that types
+<code>b</code> is physical <code>KeyN</code>, so <code>Ctrl Alt</code> on physical <code>KeyB</code> — which types <code>x</code> there — must do
+<strong>nothing</strong>. Layout first, position only as the fallback. <code>tests/shortcuts.test.ts</code> runs the same
+matrix over the resolver with no browser at all, and holds the cases a browser cannot deliver
+(Chromium flattens Arabic&#39;s two-code-point lam-alef to an empty <code>key</code>). A binding added to the
+shortcut sheet and not to that file is a binding untested on every non-Latin keyboard on earth.</p>
+<p><code>node scripts/shoot-layouts.mjs</code> is the companion picture: the <code>Ctrl/Cmd /</code> sheet with the layout
+map stubbed to Arabic and to Russian, which is how the annotated keycaps are reviewed.</p>
+<h3 id="npm-run-check-keymap-the-binding-ledger"><a class="anchor" href="#npm-run-check-keymap-the-binding-ledger"><code>npm run check-keymap</code> — the binding ledger</a></h3>
+<p>A colliding shortcut is the quietest bug this product can have. One handler answers the key, the
+other never sees the event, and neither of them knows the other exists — so it surfaces weeks
+later as &quot;Ctrl+B does nothing&quot;, on one platform, from one reader, with nothing to grep for, because
+nothing is wrong with either binding. What is wrong is that there are two.</p>
+<p>So a binding exists in ONE place: the <code>GROUPS</code> table in <code>client/components/ShortcutsHelp.tsx</code>, the
+same table <code>Ctrl/Cmd /</code> prints. This gate parses it out of the source text (never imports it — the
+rows carry React and store closures, and a gate that needs a browser is a gate nobody runs), turns
+every row&#39;s <code>keys</code> into a normalized chord, and fails when two rows resolve to the same key,
+modifiers and scope. Scope is the shell (<code>app</code> / <code>blog</code>) and the runtime (browser / desktop), and
+deliberately <strong>not</strong> <code>admin</code>: an admin session sees the visitor&#39;s rows plus its own, so <code>admin</code>
+never keeps two bindings apart — it names the reader a collision reaches first.</p>
+<p>One overlap is real, argued and declared: <code>Ctrl/Cmd Shift Z</code> is zen AND CodeMirror&#39;s only macOS
+redo binding, and <code>client/App.tsx</code> breaks the tie by caret. Declaring one costs a paragraph in
+<code>RESOLVED</code> (<code>client/keymap.ts</code>) saying where the tie is broken, and a declaration that stops
+colliding fails the build too — a dead exception is a claim the next reader believes.</p>
+<p>The second half is <code>docs/keymap.md</code>, which is a RENDERING of the ledger rather than a second copy
+of it: the gate diffs the chords in the tables between <code>&lt;!-- keymap:begin --&gt;</code> and
+<code>&lt;!-- keymap:end --&gt;</code> against <code>GROUPS</code>, in both directions. Surfaces that carry no keystroke — a
+click, the slash menu, an outline drag — live below the end marker, where the gate leaves them
+alone. <code>tests/keymap.test.ts</code> runs the same code with no files to write.</p>
+<h3 id="npm-run-check-excerpt-the-tag-in-prose-gate"><a class="anchor" href="#npm-run-check-excerpt-the-tag-in-prose-gate"><code>npm run check-excerpt</code> — the tag-in-prose gate</a></h3>
+<p><code>DESIGN.md</code>&#39;s hard rule is that a snippet outside the editor either STRIPS markdown or RENDERS it;
+removing a <code>#</code> and leaving the word standing in the sentence is neither, and it shipped — a post
+ending &quot;…it buys the reader a breath. #design #typography&quot; printed on the front page as &quot;…it buys
+the reader a breath. design typography&quot;. The three surfaces that flow through one stripper
+(<code>stripInlineMd</code>) are all walked from one fixture whose body <strong>ends</strong> in a tag line: the post
+excerpt (<code>/api/posts</code> — blog cards, RSS, <code>og:description</code>), the search snippet (<code>/api/search</code>), and
+the backlink context line (<code>/api/backlinks</code>). It also checks the other direction — that the
+stripped sentence survives and that the tags still appear where tags belong (<code>post.tags</code>, and the
+search index still matches them) — so a stripper that passes by deleting everything fails too. No
+browser needed; it deletes its fixtures however the run ends.</p>
+<h3 id="npm-run-check-design-the-error-boundary"><a class="anchor" href="#npm-run-check-design-the-error-boundary"><code>npm run check-design</code> — the error boundary</a></h3>
+<p>The gate for the <a href="../designer/">design engine</a>&#39;s one promise that cannot be reviewed by reading it.
+It breaks a designed site three ways on purpose (a corrupt <code>designs.json</code>, a section pointing at a
+note that is not there, and a section renderer patched to throw and rebuilt) and, for each,
+measures what a VISITOR gets (the built-in blog, a page with real text on it, nothing escaping the
+boundary) against what the OWNER gets (the designed page, the failing section named, the revert
+control present). It also round-trips stock ⇄ designed and asserts the design comes back
+byte-identical. Everything it touched is restored on the way out, including on failure:
+<code>PORT=6801 VELLUM_PASSWORD=… npm run check-design</code>.</p>
+<h3 id="npm-run-check-board-the-designer-39-s-section-board"><a class="anchor" href="#npm-run-check-board-the-designer-39-s-section-board"><code>npm run check-board</code> — the designer&#39;s section board</a></h3>
+<p>Three ways to move a row (the ↑/↓ buttons, a pointer drag, and a <code>Space</code>/arrows/<code>Space</code> keyboard
+lift), the drop preview before commit, <code>Esc</code> belonging to the innermost layer, the save-bar count,
+and a <code>Ctrl/Cmd S</code> round trip through the store.</p>
+<h3 id="npm-run-check-preview-the-designer-39-s-live-preview"><a class="anchor" href="#npm-run-check-preview-the-designer-39-s-live-preview"><code>npm run check-preview</code> — the designer&#39;s live preview</a></h3>
+<p>That it is a real iframe under <code>frame-src &#39;none&#39;</code>, that styles and theme reach it (including a
+live theme switch), and that it lays out at 390 / tablet / 1440 device widths.</p>
+<h3 id="npm-run-check-print-the-printed-page"><a class="anchor" href="#npm-run-check-print-the-printed-page"><code>npm run check-print</code> — the printed page</a></h3>
+<p><code>PORT=6801 npm run check-print</code>. The only surface nobody looks at while they work: <code>@media print</code>
+rules are invisible to every screenshot harness above, because a browser applies them only when a
+human opens a dialog. So this drives the app under <code>emulateMedia(&quot;print&quot;)</code> and asserts that the
+print host is the only thing on the paper (and is <code>display: none</code> on screen, so it can never
+flash), that the paper palette wins from a dark theme, that a folded callout prints its body, that
+headings stay real <code>h1</code>–<code>h6</code> with ids and internal anchors keep fragment <code>href</code>s — the two things
+Chrome builds a PDF&#39;s bookmark outline and its link annotations from — and that an Arabic note
+prints as a right-to-left page from an English instance. It writes two fixture notes through the
+API and deletes them on the way out. See <a href="../printing/">Printing &amp; PDF</a>.</p>
+<h3 id="npm-run-check-presets-the-preset-catalog"><a class="anchor" href="#npm-run-check-presets-the-preset-catalog"><code>npm run check-presets</code> — the preset catalog</a></h3>
+<p>Unique slug ids, a bilingual name and blurb with real Arabic, a known family, at least one preset
+per family, and no preset naming a note in somebody&#39;s vault. It runs the shared <code>assertCatalog</code>
+rather than reimplementing it.</p>
+<h2 id="screenshot-harnesses"><a class="anchor" href="#screenshot-harnesses">Screenshot harnesses</a></h2>
+<p>Not wired into <code>package.json</code> — run by hand, for visual review. All take <code>CHROMIUM</code>, and most take
+<code>THEME=parchment</code> and <code>LANGSET=ar</code> to check a theme or the right-to-left mirror.</p>
+<div class="table"><table><thead><tr><th>Harness</th><th>Captures</th></tr></thead><tbody><tr><td><code>node scripts/shoot.mjs &lt;url&gt; &lt;outdir&gt;</code></td><td>The editor, graph and palette in both themes</td></tr><tr><td><code>node scripts/shoot-settings.mjs &lt;url&gt; &lt;password&gt; &lt;outdir&gt;</code></td><td>Every settings section through the rail, printing the panel&#39;s scroll geometry and the specimen font sizes</td></tr><tr><td><code>node scripts/shoot-sync.mjs &lt;url&gt; &lt;password&gt; &lt;outdir&gt;</code></td><td>The Backup &amp; sync section plus the status badge&#39;s detail panel</td></tr><tr><td><code>node scripts/shoot-themes.mjs</code></td><td>Every theme (<code>ONLY=</code> narrows it)</td></tr><tr><td><code>node scripts/shoot-rtl.mjs</code></td><td>The Arabic mirror — and asserts glyph order in tag chips</td></tr><tr><td><code>node scripts/shoot-tex.mjs</code></td><td><code>.tex</code> notes, with six assertions</td></tr><tr><td><code>node scripts/shoot-templates.mjs</code></td><td>The template picker, with assertions</td></tr><tr><td><code>node scripts/shoot-hover.mjs</code></td><td>Hover previews, with assertions</td></tr><tr><td><code>node scripts/shoot-controls.mjs</code></td><td>The hand-drawn control set (<code>W</code>/<code>H</code> set the viewport)</td></tr><tr><td><code>node scripts/shoot-fontupload.mjs</code></td><td>The font uploader</td></tr></tbody></table></div><h2 id="contributing-a-change"><a class="anchor" href="#contributing-a-change">Contributing a change</a></h2>
+<ol>
+<li><strong>Read <code>DESIGN.md</code> and <code>CONTRACTS.md</code> first.</strong> <code>DESIGN.md</code> carries the rules a change is judged
+against; <code>CONTRACTS.md</code> carries the invariants the code has already committed to. Most review
+comments here are one of those two documents quoted back.</li>
+<li><strong>Run <code>npm run typecheck</code>.</strong> The build is strict and the server has no compile step to catch
+things later.</li>
+<li><strong>Run the gates your change touches</strong> — theme tokens mean <code>check-contrast</code>, any user-visible
+string means <code>check-i18n</code>, the outline or note-rewriting code means <code>check-sections</code>, the editor
+means <code>check-caret</code>, the designer means <code>check-board</code> / <code>check-preview</code> / <code>check-design</code>, and
+<strong>anything that reads a keystroke means <code>check-keymap</code> and <code>check-layouts</code>, plus
+<code>tests/shortcuts.test.ts</code></strong> — is the binding unique, and can a non-Latin keyboard reach it.</li>
+<li><strong>Both languages, both directions.</strong> Every string comes from <code>client/i18n.ts</code>, and every layout
+is built on CSS logical properties. A change that only reads correctly left-to-right is not
+finished — <code>LANGSET=ar</code> on any shoot harness is the cheapest way to see it.</li>
+<li><strong>Say why in the code.</strong> This codebase&#39;s comments explain the decision, not the mechanism. A
+patch that changes a rule should move the paragraph that stated it.</li>
+</ol>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/development.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/arabic-and-rtl/"><span class="pager__kicker">Previous</span><span class="pager__title">Arabic &amp; RTL</span></a><span></span></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#dev-mode">Dev mode</a><a class="toc__link toc__link--2" href="#the-scripts">The scripts</a><a class="toc__link toc__link--2" href="#the-gates">The gates</a><a class="toc__link toc__link--3" href="#npm-run-check-i18n-the-dictionary">npm run check-i18n — the dictionary</a><a class="toc__link toc__link--3" href="#npm-run-check-contrast-the-accessibility-gate">npm run check-contrast — the accessibility gate</a><a class="toc__link toc__link--3" href="#npm-run-check-sections-the-section-surgery-gate">npm run check-sections — the section-surgery gate</a><a class="toc__link toc__link--3" href="#npm-run-check-caret-the-click-to-caret-gate">npm run check-caret — the click-to-caret gate</a><a class="toc__link toc__link--3" href="#npm-run-check-layouts-the-keyboard-layout-gate">npm run check-layouts — the keyboard-layout gate</a><a class="toc__link toc__link--3" href="#npm-run-check-keymap-the-binding-ledger">npm run check-keymap — the binding ledger</a><a class="toc__link toc__link--3" href="#npm-run-check-excerpt-the-tag-in-prose-gate">npm run check-excerpt — the tag-in-prose gate</a><a class="toc__link toc__link--3" href="#npm-run-check-design-the-error-boundary">npm run check-design — the error boundary</a><a class="toc__link toc__link--3" href="#npm-run-check-board-the-designer-39-s-section-board">npm run check-board — the designer&amp;#39;s section board</a><a class="toc__link toc__link--3" href="#npm-run-check-preview-the-designer-39-s-live-preview">npm run check-preview — the designer&amp;#39;s live preview</a><a class="toc__link toc__link--3" href="#npm-run-check-print-the-printed-page">npm run check-print — the printed page</a><a class="toc__link toc__link--3" href="#npm-run-check-presets-the-preset-catalog">npm run check-presets — the preset catalog</a><a class="toc__link toc__link--2" href="#screenshot-harnesses">Screenshot harnesses</a><a class="toc__link toc__link--2" href="#contributing-a-change">Contributing a change</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

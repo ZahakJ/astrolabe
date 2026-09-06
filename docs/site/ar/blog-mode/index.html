@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>وضع المدونة · فيلم الدليل</title>
+<meta name="description" content="المدونة الجاهزة: الترويسة وشريط المواضيع، وصفحات المقالات، والصفحة الرئيسية بلوحة المعلومات، وRSS وتحسين محركات البحث.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
+  <a class="top__brand" href="../../ar/"><span class="top__star">✦</span> فيلم <span class="top__docs">الدليل</span></a>
+  <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../en/blog-mode/" hreflang="en">English</a>
+  <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link is-current" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="وضع-المدونة">وضع المدونة</h1>
+<p><em>المدونة الجاهزة: الترويسة وشريط المواضيع، وصفحات المقالات، والصفحة الرئيسية بلوحة المعلومات، وRSS وتحسين محركات البحث.</em></p>
+<hr>
+<p><code>PUBLIC_LAYOUT=blog</code> (أو <strong>الإعدادات ← النشر والتعليقات ← التخطيط العام ← مدونة</strong>) يُلبس الموقع الموجَّه للزوار ثوب مدونة تقليدية: ترويسة باسم الموقع و<code>SITE_TAGLINE</code>، وشريط أفقي من فئات المواضيع، وصفحات مقالات بالعنوان والتاريخ وعدد الكلمات ووقت القراءة والوسوم، وتعليقات تحتها (مع <code>COMMENTS=on</code>)، وتذييل (<code>SITE_FOOTER</code>، الافتراضي <code>© &lt;year&gt; &lt;SITE_NAME&gt;</code>؛ يُستبدل العنصران النائبان <code>{year}</code> و<code>{siteName}</code>). المحتوى العربي وغيره من المحتوى من اليمين إلى اليسار يُعرض لكل مقالة باتجاهه الطبيعي، و<code>SITE_LANG=ar</code> يعكس قشرة المدونة كلها لتوافقه (انظر <a href="../arabic-and-rtl/">العربية والكتابة من اليمين</a>). المشرفون المسجَّلون لا يتأثرون: التطبيق الكامل بشريطه الجانبي وكل شيء يبقى كما هو بالضبط؛ قشرة المدونة للزوار وحدهم. تأخذ تواريخ التدوينات أسماء الشهور من لغة الواجهة (الواجهة الإنجليزية تقول August والعربية تقول أغسطس) والأرقام من سياسة أرقام النسخة؛ <code>BLOG_LOCALE</code> هو ذلك الوسم، ولغة قناة RSS (أي وسم BCP47، الافتراضي <code>en</code>).</p>
+<p><figure><img src="../../../screenshots/blog-dashboard.png" alt="الصفحة الرئيسية بلوحة المعلومات" loading="lazy"></figure></p>
+<p>تفتتح الصفحة الرئيسية بـ<code>HOME_NOTE</code> معروضة قسمًا تمهيديًا (حين تكون تلك الملاحظة منشورة) فوق قائمة التدوينات بترتيب زمني عكسي. صفحات المواضيع تعيش على <code>/topic/&lt;tag&gt;</code>؛ وروابط المقالات العميقة تحتفظ بعناوين ملاحظاتها العادية.</p>
+<h2 id="ما-الذي-ي-عد-تدوينة"><a class="anchor" href="#ما-الذي-ي-عد-تدوينة">ما الذي يُعدّ تدوينة</a></h2>
+<p>كل ملاحظة بـ<code>publish: true</code>، الأحدث أولًا. يأتي تاريخ التدوينة من المقدمة، <code>date:</code> أو <code>created:</code> أو <code>published:</code>، وأول ما يُحلَّل يفوز (تواريخ YAML المجردة مثل <code>2024-05-01</code> والنصوص المقتبسة/ISO كلاهما يعمل)؛ وإلا وقت إنشاء الملف أو تعديله، فإن نقلت خزانة بنسخ الملفات (وهو ما يعيد ضبط أوقات الملفات) فأضف <code>date:</code> إلى مقدمة تدويناتك وإلا رُتّبت كلها بوصفها &quot;أُنشئت يوم النسخ&quot;. المقتطف هو أول فقرة نثر حقيقية (ماركداون منزوع، وأثاث القوالب مثل الطوابع الزمنية المجردة وأسطر <code>Tags: #a #b</code> متخطى)، مقطوعًا عند نحو 220 حرفًا على حدّ كلمة. <code>GET /api/posts</code> يقدّم القائمة.</p>
+<p>ملاحظات <a href="../templates-and-notes/#templates">مجلد القوالب</a> لا تظهر أبدًا في قائمة التدوينات ولا RSS ولا لوحة المعلومات، حتى حين تحمل <code>publish: true</code> لترثه الملاحظات المصنوعة منها.</p>
+<blockquote>
+<p><strong>اضبط <code>EXCLUDE_TAGS</code> قبل أن تنطلق.</strong> يُبنى شريط المواضيع من وسوم الملاحظات المنشورة، بما فيها وسوم سير العمل (علامات الحالة مثل <code>#draft</code>/<code>#seedling</code>، ونضج البطاقات، وحالات المهام)، التي ستظهر فئات عامة لولا ذلك. أدرجها في <code>EXCLUDE_TAGS</code> فتختفي من الشريط وصفحات المواضيع وشرائح وسوم المقالات؛ وخزانتك وعرض المشرف لا يتأثران.</p>
+</blockquote>
+<h2 id="الشريط-سطر-واحد-دائم-ا"><a class="anchor" href="#الشريط-سطر-واحد-دائم-ا">الشريط سطر واحد دائمًا</a></h2>
+<p>مهما بلغ مجموع مواضيع وسومك المنشورة يقيس الصف نفسه ويطوي ما لا يتسع في قائمة &quot;المزيد ▾&quot; سطرية بجانب المواضيع التي تتسع، ويُعاد القياس مع كل تغيير حجم، في الاتجاهين، فلا يلتف أبدًا إلى سطر ثانٍ مهلهل. تحت نحو 840px تنطوي <em>المواضيع</em> في لوحة البرغر المعتادة التي تعرضها كلها معًا.</p>
+<p><strong>مجموعاتك لا تنطوي معها.</strong> حيث يحمل الصف شرائح مجموعات تبقى الرئيسية وتلك الشرائح في الشريط بكل عرض، منزلقة جانبًا إن كانت أكثر من عرض الهاتف، وتنطوي المواضيع وحدها. المجموعة المعلنة بنية الموقع نفسه، والبنية التي لا تُبلغ إلا عبر قائمة عنوانها <em>المواضيع</em> قد أُنزلت إلى واحد منها. خط رفيع يجلس بين المجموعتين، لأن <code>GAMES</code> المجموعة و<code>games</code> الموضوع هما الحبّة نفسها مرتين لولاه.</p>
+<p>أسماء المواضيع هي <a href="../arabic-and-rtl/#localised-tag-labels">التسمية المحلية</a> حيث توجد؛ ويبقى الرابط بالاسم القياسي.</p>
+<h2 id="المجلدات-العامة-المخصصة"><a class="anchor" href="#المجلدات-العامة-المخصصة">المجلدات العامة المخصصة</a></h2>
+<p>المجموعات وبطاقات معرض موقع الكاتب متاحة أيضًا في <a href="../designer/">الوضع المصمَّم</a> بإعدادات الظهور والموضع نفسها.</p>
+<p><strong>من أين تأتي الفئات</strong> اختيار واحد في أعلى القسم: <strong>الوسوم</strong> (موضوع لكل وسم، الافتراضي) أو <strong>المجلدات</strong> (ترتيب الخزانة نفسه). تحت <em>المجلدات</em> تأخذ كل ملاحظة منشورة مجلدها الأب فئةً: اسم المجلد عنوان الفئة (تُنزع بادئة ترتيب مثل <code>2| </code>)، والعلامة التي أعطيتها للمجلد في الشجرة علامتها، ويأتي التنقل وشريط الرئيسية وصفحة كل فئة من ذلك وحده. ملاحظات جذر الخزانة بلا فئة. تغادر مواضيع الوسوم التنقل؛ وتبقى الوسوم ظاهرة على التدوينات. <strong>ملاحظة المجلد</strong> (ملاحظة باسم المجلد، أو <code>index.md</code> داخله) تعطي الفئة <code>description:</code> و<code>title:</code> و<code>icon:</code> و<code>hidden: true</code> من الخزانة نفسها. تحت <strong>الوسوم</strong> المجموعات مواضيع مصنوعة باليد: المجموعة وسم تنتقيه بنفسك، ويجلس في التنقل بجانب مواضيع الوسوم. لا توجد المجموعات في وضع المجلدات؛ المجلدات هي الفئات.</p>
+<p>المواضيع ما تقوله ملاحظاتك عن <em>نفسها</em>. <strong>المجلدات العامة</strong> (المجموعات) ما تقوله <em>أنت</em> عن مجموعة منها: مجموعاتك الخاصة، الألعاب والقراءة والملاحظات الميدانية، تُعلن مرة في الإعدادات وتنضم إليها الملاحظات التي تنتمي إليها.</p>
+<p>شغّلها في <strong>الإعدادات ← النشر والتعليقات ← المجلدات العامة المخصصة</strong>. يأخذ كل مجلد عنوانًا وعنوان URL (رابط <code>/folder/&lt;slug&gt;</code>) وعلامة واحدة من مجموعة الرموز المغلقة نفسها التي تستخدمها شجرة الخزانة وسطر وصف اختياريًا. حتى اثني عشر، بأي ترتيب ترتبها، وذلك الترتيب هو الذي يلقاها به القرّاء.</p>
+<p><strong>المجموعة صفحة وسم.</strong> أعلنها في الخزانة لا في الإعدادات: صفحة في مجلد وسومك (<code>2 - Tags/games.md</code>) بـ<code>collection: true</code>، وكما تشاء <code>icon:</code> و<code>description:</code> و<code>title:</code> و<code>hidden: true</code> و<code>folder:</code> (مجلد في الخزانة تنتمي كل ملاحظاته المنشورة). الوسم هو المجموعة: كل ملاحظة تحمل <code>#games</code> فيها، وشريحتها في التنقل تحل محل شريحة الوسم. لا يُعدَّد شيء في الإعدادات؛ اللوحة تسرد ما أعلنته الخزانة.</p>
+<p><strong>من الشجرة، بلا كتابة.</strong> انقر بالزر الأيمن على مجلد ← <strong>انشر المجلد موضوعًا…</strong> فتُكتب صفحة الوسم لك، بعلامة المجلد في الشجرة و<code>folder:</code> مضبوطًا عليه. انقر بالزر الأيمن على ملاحظة ← <strong>المجموعات…</strong> وعلّم ما تنتمي إليه؛ يُكتب <code>tags:</code> (أو <code>folders:</code> لصف أقدم) لك. العضوية الآتية من مجلد تظهر معلَّمة وتبقى.</p>
+<p>نشر الملاحظات بلا جعل مجلدها موضوعًا هو مجرد نشرها: وسوم الملاحظة تصنّفها، والمجلد الذي نشرته موضوعًا هو وحده الذي يصير واحدًا.</p>
+<p>تنضم الملاحظة إلى مجلد من مقدمتها أيضًا، وكل تهجئة يعطيك إياها YAML تعمل:</p>
+<pre><code class="language-yaml">---
+title: Elden Ring, finished
+publish: true
+folders: [games, long-reads]
+---
+</code></pre>
+<pre><code class="language-yaml">folders: games          # مجلد واحد
+folder: games           # المفتاح المفرد يُقرأ أيضًا
+folders: games, books   # قائمة بفواصل
+folders:                # قائمة كتلية
+  - games
+  - books
+</code></pre>
+<p>ملاحظة <code>.tex</code> تعلنها في <a href="../latex/">كتلة تعليقها الخاصة</a> ككل مفتاح مقدمة آخر. العناوين حروف لاتينية صغيرة وأرقام وشرطات؛ وحالة الأحرف والحشو و<code>/folder/games/</code> ملصوق كلها مغفورة. والاسم الذي لا يعلنه مجلد يطابق لا شيء ببساطة، وهو ما يتيح لك كتابة المقدمة أولًا وصنع المجلد لاحقًا.</p>
+<p>خياران فرعيان يقرران أين <em>تظهر</em> المجلدات:</p>
+<ul>
+<li><strong>إظهار في الصفحة الرئيسية</strong> (مشغَّل افتراضيًا): شريط من بطاقات المجلدات <strong>فوق</strong> كتاباتك، على أي من الرئيسيتين: القائمة تصفح، والمجموعة تنقل، والتنقل يعلو ما ينقّل فيه. المجلد الفارغ يظهر هناك أيضًا: المجموعة التي صنعتها ولم تملأها بعد دعوة لا علّة، وبطاقتها تقول &quot;0 ملاحظات منشورة&quot; على وجهها.</li>
+<li><strong>إظهار في التنقل</strong> (معطّل افتراضيًا): شرائح المجلدات تتصدر صف المواضيع، كل منها بعلامته بدل <code>#</code>، ولا تنطوي أبدًا في &quot;المزيد ▾&quot; ولا في برغر الهاتف: المجموعة المعلنة بنية الموقع نفسه. والمجموعة <em>الخالية</em> لا تأخذ شريحة؛ الشريط دعوة والشريحة في التنقل وعد بمكان يُذهب إليه، وعلى الهاتف تكلف تلك الشريحة خانة تحتاجها المجموعات التي فيها تدوينات.</li>
+</ul>
+<p>كل صفحة مجلد تعمل في الحالين؛ المفتاحان يخفيان الأبواب لا الغرف خلفها. تسرد كل واحدة تدويناتها كما تفعل صفحة الموضوع تمامًا، تحت ترويسة تحمل علامة المجلد وعنوانه ووصفه وعدده. ويمكن <strong>إخفاء</strong> مجلدات بعينها بلا حذف: يحتفظ المجلد بعنوانه وعلامته وأعضائه ولا يصل إلى أي زائر، وإظهاره يعيده كاملًا.</p>
+<p>تبقى صفحات المجلدات خارج خريطة الموقع للسبب نفسه الذي تبقى له صفحات المواضيع: كل منها فهرس على روابط يسمّيها الملف أصلًا.</p>
+<blockquote>
+<p>المجلدات العامة ميزة <strong>المدونة الجاهزة</strong>. يركّب <a href="../designer/">الموقع المصمَّم</a> تنقله من عناصر التنقل ويتجاهل هذا الإعداد؛ ونقل المجلدات إلى تلك القشرة مؤجَّل.</p>
+</blockquote>
+<h2 id="معاينات-التحويم"><a class="anchor" href="#معاينات-التحويم">معاينات التحويم</a></h2>
+<p>استراحة المؤشر على أي رابط تدوينة، مدخل قائمة أو بطاقة لوحة معلومات أو رابط ذي صلة أو سابق/تالٍ أو نتيجة بحث، تعوّم مطلع تلك الملاحظة معروضًا بمُعرِّض القراءة نفسه الذي تستخدمه صفحة المقالة. البطاقة <em>تمرّر</em>، فيستطيع القارئ أن يتصفح بعيدًا بعد المقتطف بلا مغادرة الصفحة التي هو فيها؛ تنقلب فوق الرابط قرب أسفل نافذة العرض وتبقى مكانها بينما يسافر المؤشر إليها. تفتح في أي مساحة تملكها نافذة العرض، وتتلاشى عند الحافة التي بعدها نثر أكثر، وتجيب على لوحة المفاتيح أيضًا؛ الرابط المركَّز عليه بـTab يأخذ البطاقة نفسها. أجهزة اللمس والقرّاء الذين يطلبون حركة مخففة لا يأخذون بطاقة البتة، والجلب هو جلب الزائر المحدود العادي؛ الملاحظة غير المنشورة لا شيء فيها ليُعاين.</p>
+<h2 id="العودة-إلى-الأعلى"><a class="anchor" href="#العودة-إلى-الأعلى">العودة إلى الأعلى</a></h2>
+<p>بعد نافذة عرض من التمرير تظهر ✦ صغيرة في الزاوية الخلفية (الأمامية في العربية) وتحمل القارئ إلى الأعلى ببريق ذهبي؛ ترفع نفسها عن طريق التذييل وصندوق التعليقات بدل الجلوس عليهما، وتقفز فورًا بلا بريق حين يُضبط <code>prefers-reduced-motion</code>.</p>
+<h2 id="الصفحة-الرئيسية-بلوحة-المعلومات"><a class="anchor" href="#الصفحة-الرئيسية-بلوحة-المعلومات">الصفحة الرئيسية بلوحة المعلومات</a></h2>
+<p>تفضّل واجهة مجلة على الرئيسية بأسلوب الملاحظة؟ اضبط <strong>الإعدادات ← النشر والتعليقات ← الصفحة الرئيسية ← لوحة المعلومات</strong> (مفتاح الإعدادات <code>home.mode: &quot;dashboard&quot;</code>، يُبلَغ أيضًا بـ<code>{ &quot;home&quot;: { &quot;mode&quot;: &quot;dashboard&quot; } }</code> في <code>VELLUM_DATA/settings.json</code> أو عبر <code>PATCH /api/settings</code>، ويُلتقط حيًّا) فتصير <code>/</code>:</p>
+<ul>
+<li>بطلًا بكامل العرض يحمل اسم الموقع (أو الشعار) والعنوان الفرعي فوق صورة لافتة (<code>home.banner</code>: رابط https أو مرفق من الخزانة؛ وبدونها تدرج مولَّد ببذرة من اسم الموقع)؛</li>
+<li>شبكة بطاقات متجاوبة لأحدث التدوينات (1/2/3 أعمدة بحسب نافذة العرض؛ صور لافتات مصغرة بالبديل المولَّد نفسه، ومقتطفات، وشرائح وسوم)؛</li>
+<li>وحين يكون القرّاء قد تحدثوا، صفًا نحيلًا &quot;الأكثر نقاشًا&quot; مرتبًا بعدد التعليقات.</li>
+</ul>
+<p>بوصفك مشرفًا ادخل <strong>معاينة كزائر</strong> وحوّم على البطل لزر &quot;غيّر اللافتة…&quot; يفتح المنتقي المعتاد (الصق رابطًا أو اختر مرفقًا من الخزانة أو ارفع). <code>home.mode: &quot;note&quot;</code> (أو تركه غير مضبوط) يبقي الرئيسية التقليدية. مع <code>COMMENTS=on</code> يحمل <code>GET /api/posts</code> عدد <code>commentCount</code> لكل تدوينة؛ الزوار يعدّون التعليقات الظاهرة فقط.</p>
+<p>صفوف الرئيسية يقرؤها التخطيطان <code>blog</code> و<code>designed</code> ولا شيء غيرهما، فهي خاملة في التخطيط الافتراضي <code>app</code>، وهو ما تقوله لوحة الإعدادات على الصف نفسه وتعتّمه. نسخة بتخطيط التطبيق تفتح الملاحظة الرئيسية في <code>/</code> ببساطة.</p>
+<h2 id="أثاث-المقالة"><a class="anchor" href="#أثاث-المقالة">أثاث المقالة</a></h2>
+<p><figure><img src="../../../screenshots/blog-article.png" alt="مقالة مدونة بتعليقات" loading="lazy"></figure></p>
+<p>تنتهي كل مقالة بروابط مشاركة (الإعدادات ← النشر والتعليقات يستطيع إيقاف الصف)، والتدوينتين السابقة والتالية، وقائمة &quot;ذات صلة&quot; (ملاحظات منشورة مرتبطة بها من أو إلى)، و<a href="../publishing/#comments">التعليقات</a>. يحمل التذييل رابط RSS هادئًا ورابط تسجيل دخول وإشارة صغيرة &quot;يعمل بفيلم&quot;؛ أخفها بـ<code>.s-blog-powered { display: none }</code> في <a href="../theming/#restyle-it"><code>custom.css</code></a> إن فضّلت.</p>
+<h2 id="rss-وخريطة-الموقع-وتحسين-محركات-البحث"><a class="anchor" href="#rss-وخريطة-الموقع-وتحسين-محركات-البحث">RSS وخريطة الموقع وتحسين محركات البحث</a></h2>
+<p>أربعة أسطح موجَّهة للزواحف تأتي أيًّا كان التخطيط (كلها تحترم <code>PUBLIC=false</code> ولا تتحدث إلا بالملاحظات المنشورة؛ المسارات غير المنشورة لا تُميَّز عن المجهولة):</p>
+<ul>
+<li><strong>RSS</strong> على <code>/feed.xml</code>: RSS 2.0، معلَن على كل صفحة عبر <code>&lt;link rel=&quot;alternate&quot; type=&quot;application/rss+xml&quot;&gt;</code>، بعناصر تربط إلى رابط كل ملاحظة العميق والمقتطف وصفًا. <code>&lt;pubDate&gt;</code> دائمًا ميلادية بصيغة RFC-822 أيًّا كان <a href="../arabic-and-rtl/#hijri-dates">إعداد تقويم التاريخ</a>؛ ذلك تنسيق سلكي يحلله مجمّع، لا تاريخ يقرؤه إنسان.</li>
+<li><strong>خريطة الموقع</strong> على <code>/sitemap.xml</code>: <code>urlset</code> بمعيار sitemaps.org 0.9: الباب الأمامي، ثم كل ملاحظة منشورة مرئية للزوار، الأحدث أولًا، كل منها بـ<code>&lt;lastmod&gt;</code> مأخوذة من تاريخ الملاحظة نفسها (<code>date</code>/<code>created</code>/<code>published</code> من المقدمة، وإلا وقت ولادة الملف). الصفحات الثابتة (<code>page: true</code>) مدرجة هنا رغم أن الخلاصة تسقطها؛ صفحة &quot;حول&quot; ليست مقالة لكنها رابط يقدّمه هذا الموقع. صفحات المواضيع والمجلدات العامة ليست كذلك: كل منها فهرس على روابط في الملف أصلًا. محدودة بحد البروتوكول 50,000 رابط، يُحتفظ بالأحدث، مع تعليق XML يقول ذلك إن وصلت خزانتك إلى هناك يومًا.</li>
+<li><strong>Robots</strong> على <code>/robots.txt</code>: <code>Allow: /</code> و<code>Disallow: /api/</code> وسطر <code>Sitemap:</code> يشير إلى الخريطة أعلاه.</li>
+<li><strong>وسوم SEO</strong>: تحمل قشرة HTML المقدَّمة <code>&lt;title&gt;</code> و<code>meta description</code> وOpen Graph (<code>og:type=article</code> على صفحات الملاحظات) ووسوم canonical محقونة من الخادم؛ تأخذ روابط الملاحظات العميقة عنوان الملاحظة ومقتطفها، وكل شيء آخر وسوم الموقع العامة.</li>
+</ul>
+<p>الروابط المطلقة في كلها تُبنى من <code>SITE_URL</code> حين يُضبط، وإلا تُستنتج من ترويسات <code>Host</code>/<code>X-Forwarded-*</code> في الطلب.</p>
+<p>تأخذ الخلاصة وخريطة الموقع <code>?lang=ar</code> / <code>?lang=en</code> حين يكون <a href="../arabic-and-rtl/">مرشح اللغة</a> مشغَّلًا؛ لا يستطيع الزاحف وقارئ الخلاصات إرسال الترويسة التي تستخدمها صفحات التطبيق، فجانبا الموقع ثنائي اللغة رابطان.</p>
+<p><strong>على نسخة <code>PUBLIC=false</code></strong> تكون خريطة الموقع خلف تسجيل الدخول كالخلاصة تمامًا (401 بلا جلسة)، ويجيب <code>robots.txt</code> بـ<code>Disallow: /</code> لكل من لم يسجّل دخوله. هذا الأخير عمدًا <em>ليس</em> 401: يقرأ <a href="https://www.rfc-editor.org/rfc/rfc9309.html" target="_blank" rel="noreferrer">RFC 9309 §2.3.1.3</a> كل 4xx على <code>robots.txt</code> بوصفه &quot;لا قواعد، ازحف بحرية&quot;، وهو عكس ما تعنيه الخزانة الخاصة. جسد <code>Disallow: /</code> لا يكشف شيئًا، فكل مسار حقيقي ما زال يجيب 401 وحده؛ هو فقط يوقف الزحف قبل أن يبدأ.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/ar/blog-mode.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/keymap/"><span class="pager__kicker">السابق</span><span class="pager__title">اختصارات لوحة المفاتيح</span></a><a class="pager__link pager__link--next" href="../../ar/designer/"><span class="pager__kicker">التالي</span><span class="pager__title">وضع التصميم</span></a></nav>
+    <footer class="foot">فيلم برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#ما-الذي-ي-عد-تدوينة">ما الذي يُعدّ تدوينة</a><a class="toc__link toc__link--2" href="#الشريط-سطر-واحد-دائم-ا">الشريط سطر واحد دائمًا</a><a class="toc__link toc__link--2" href="#المجلدات-العامة-المخصصة">المجلدات العامة المخصصة</a><a class="toc__link toc__link--2" href="#معاينات-التحويم">معاينات التحويم</a><a class="toc__link toc__link--2" href="#العودة-إلى-الأعلى">العودة إلى الأعلى</a><a class="toc__link toc__link--2" href="#الصفحة-الرئيسية-بلوحة-المعلومات">الصفحة الرئيسية بلوحة المعلومات</a><a class="toc__link toc__link--2" href="#أثاث-المقالة">أثاث المقالة</a><a class="toc__link toc__link--2" href="#rss-وخريطة-الموقع-وتحسين-محركات-البحث">RSS وخريطة الموقع وتحسين محركات البحث</a></aside>
+</div>
+<script>window.__docs = { lang: "ar", base: "../../", noResults: "لا نتائج" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backup &amp; sync · Vellum Documentation</title>
+<meta name="description" content="Committing your vault and pushing it to a private git remote you own — by hand or on a timer.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/backup-and-sync/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link is-current" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="backup-sync">Backup &amp; sync</h1>
+<p><em>Committing your vault and pushing it to a private git remote you own — by hand or on a timer.</em></p>
+<hr>
+<p>Your vault is a folder of markdown files, so the oldest, most portable backup there is also the
+best one: <strong>git</strong>. Vellum can commit the vault and push it to a remote you own — by hand, or
+every few minutes — and it stays completely off until you switch it on.</p>
+<blockquote>
+<p><strong>Backup &amp; sync needs an admin password in every mode.</strong> Without one, anyone who can reach the
+port could point the remote at their own server and push your whole vault to it. See
+<a href="../publishing/#public-reading-admin-editing">Publishing</a>.</p>
+</blockquote>
+<h2 id="1-have-a-remote-to-push-to"><a class="anchor" href="#1-have-a-remote-to-push-to">1. Have a remote to push to</a></h2>
+<p>Create an <strong>empty, private</strong> repository on whatever host you
+use (a self-hosted Forgejo/Gitea/GitLab, or one of the big ones). Empty matters: Vellum only
+ever fast-forwards, so a remote that already has commits of its own will refuse to sync until
+you reconcile the two histories yourself. Copy its clone URL — either form works:</p>
+<pre><code>https://git.example.com/you/vault.git      # HTTPS: needs a token (below)
+git@git.example.com:you/vault.git          # SSH: needs a key on this machine
+</code></pre>
+<h2 id="2-choose-how-this-server-signs-in"><a class="anchor" href="#2-choose-how-this-server-signs-in">2. Choose how this server signs in</a></h2>
+<ul>
+<li><strong>SSH keys (recommended).</strong> Vellum stores <strong>no secret at all</strong>; it runs <code>git</code> as the user your
+server runs as, and that user&#39;s own SSH key or agent does the authentication. Generate a key
+for the server (<code>ssh-keygen -t ed25519</code>), add the <strong>public</strong> half to your remote as a deploy
+key with write access, and confirm it works from a shell first — <code>ssh -T git@git.example.com</code>
+and one manual <code>git push</code> — because a key with a passphrase and no agent will simply fail
+under the server too.</li>
+<li><strong>Access token.</strong> For HTTPS remotes. Create a <strong>fine-grained</strong> token scoped to that one
+repository with contents read/write and the shortest expiry you can live with — never a
+full-account classic token. Paste it into Settings → Backup &amp; sync → Access token, with
+the username it pairs with (many hosts ignore the username; put anything non-empty).</li>
+</ul>
+<p><strong>Where the token lives.</strong> In <code>VELLUM_DATA/git-credentials.json</code>, mode <code>0600</code>, owned by the
+server user. It is <strong>never</strong> written into <code>settings.json</code>, never into the vault, never into
+<code>.git/config</code>, and never into the remote URL — which is why the remote field refuses a URL with
+credentials baked in (<code>https://user:token@host/…</code>). At push time it reaches git through
+<code>GIT_ASKPASS</code> and an environment variable on that one child process, so it never appears in a
+command line (<code>ps</code> is readable by every user on the box) and never lands in your machine&#39;s own
+credential store (each network call runs with <code>-c credential.helper=</code> to empty the helper list).
+The API never gives it back: <code>GET /api/settings</code> answers <code>tokenSet: true</code> and nothing else, and
+any git error shown to you or written to the log is scrubbed of the stored token and of any URL
+userinfo first. <strong>Clear token</strong> deletes the file.</p>
+<h2 id="3-turn-it-on"><a class="anchor" href="#3-turn-it-on">3. Turn it on</a></h2>
+<p>Settings → <strong>Backup &amp; sync</strong>: switch Backup on (everything below that
+switch stays disabled until you do), paste the remote URL, pick the branch (default <code>main</code>), and
+pick an <strong>Automatic sync</strong> period — <em>Manual only</em> through <em>Once a day</em> (the timer skips a tick
+while a sync is still running). If the vault is not a git repository yet, press <strong>Initialize
+repository</strong>: that runs <code>git init</code>, makes the first commit, writes or extends <code>.gitignore</code> so
+your instance data directory can never be committed, and points <code>origin</code> at your remote. The
+button disappears once the vault is a repository.</p>
+<h2 id="4-sync"><a class="anchor" href="#4-sync">4. Sync</a></h2>
+<p>The status bar shows a quiet branch glyph while backup is on: plain when everything
+is committed, with a count when it is not, gold while a sync runs, red when the last one failed.
+Click it for a small panel carrying the branch, the ahead/behind counts, the last result and —
+on a failure — git&#39;s own error line as selectable text with a <strong>Copy the error</strong> button and a
+one-click jump to the settings section. <strong>Sync now</strong> is in that panel and in the command palette.
+One pass is:</p>
+<ol>
+<li>optionally <code>fetch</code> + <code>merge --ff-only</code> — see below;</li>
+<li><code>git add -A</code>, then <code>.trash/</code> (and <code>VELLUM_DATA</code>, if you put it inside the vault) are dropped
+back out of the index — see <strong>What sync never stages</strong> below;</li>
+<li>commit <code>vellum sync: &lt;ISO timestamp&gt;</code>, <strong>skipped entirely when nothing changed</strong>;</li>
+<li><code>git push</code>.</li>
+</ol>
+<h2 id="why-pulls-are-fast-forward-only"><a class="anchor" href="#why-pulls-are-fast-forward-only">Why pulls are fast-forward-only</a></h2>
+<p>Because the alternative can corrupt your notes. A real
+merge of two diverged histories writes <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> conflict markers <em>into the markdown files</em>, and
+an unattended background job that does that to a thousand notes is a worse outcome than any
+missed backup. So Vellum never merges and never rebases (a <code>pull.rebase = true</code> in your own
+gitconfig cannot change that — no <code>git pull</code> runs at all): if the remote has commits you do not
+have, the sync stops <strong>before touching the working tree</strong> and tells you the histories diverged.
+Nothing is committed, nothing is pushed, no note is modified. You then reconcile in a terminal,
+which is where a human belongs for that decision. Vellum never force-pushes.</p>
+<h2 id="what-sync-never-stages"><a class="anchor" href="#what-sync-never-stages">What sync never stages</a></h2>
+<p>Two paths are removed from the index on every single pass, before
+anything is committed, <strong>whatever your vault&#39;s own <code>.gitignore</code> says about them</strong>:</p>
+<div class="table"><table><thead><tr><th>Path</th><th>Why</th></tr></thead><tbody><tr><td><code>.trash/</code></td><td>Deleting a note, an attachment or a folder <em>moves</em> it here, and the whole promise of that is that it is a <strong>local</strong> bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: <code>Ctrl/Cmd P</code> → Open trash). Committing it makes every deletion permanent remote history, which is the opposite guarantee. The small <code>.vellum-trash.json</code> inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule.</td></tr><tr><td><code>VELLUM_DATA</code>, when it is inside the vault</td><td>It holds <code>settings.json</code>, the comments database and your git <strong>access token</strong>.</td></tr></tbody></table></div><p>This is enforced with <code>git rm --cached</code> against the index, not with an ignore rule, and the
+difference matters. An ignore rule is your file and your opinion: git&#39;s <em>last matching rule</em>
+wins, so a vault whose <code>.gitignore</code> carries <code>.trash/</code> and then <code>!.trash/</code> un-ignores it again,
+and a build that only checked &quot;is there a <code>.trash/</code> line?&quot; saw nothing to do and pushed the
+trash. The index eviction asks no ignore file anything. It also <strong>repairs</strong> a vault that an
+older build already pushed: the first sync after upgrading stages the removal, so the trash
+leaves the tip of your branch on its own (it stays in the <em>history</em> — see the note about
+rewriting below).</p>
+<p>Vellum still <em>appends</em> <code>.trash/</code> and <code>.obsidian/workspace*.json</code> to your <code>.gitignore</code> if they
+are missing, so a <code>git status</code> in a terminal is quiet too — but that is a courtesy, not the
+mechanism.</p>
+<h2 id="gitignore-advice"><a class="anchor" href="#gitignore-advice">.gitignore advice</a></h2>
+<p>Beyond those two, the vault is committed as it stands, so decide what
+does <em>not</em> belong in a backup before the first push:</p>
+<pre><code class="language-gitignore">.obsidian/workspace*    # Obsidian&#39;s per-machine window state, if you also use Obsidian
+.DS_Store
+*.pdf                   # large attachments, if your remote has a size limit
+</code></pre>
+<p>Keep <code>.obsidian/</code> itself if you want your Obsidian settings backed up; drop the whole directory
+if you do not. <strong>Never commit your instance data directory.</strong> <code>VELLUM_DATA</code> (default <code>./data</code>)
+holds <code>settings.json</code>, comment data and the git token, so keep it <em>outside</em> the vault — that is
+the default, and this repository&#39;s own <code>.gitignore</code> already excludes <code>data/</code>.</p>
+<p>If you have pointed <code>VELLUM_DATA</code> inside the vault anyway, Vellum defends it four ways, and all
+four run on an existing repository with an existing <code>.gitignore</code> (which is the normal case, not
+a special one): <strong>Initialize repository</strong> creates <code>.gitignore</code> or <em>appends</em> the data-directory
+rule to the one you already have; every sync re-checks the rule with <code>git check-ignore</code> and
+<strong>refuses to run</strong> if the directory is still not ignored; anything an older build already
+committed is dropped from the index (<code>git rm --cached</code>); and the same eviction runs again after
+<code>git add -A</code> on every pass, so the directory is out of the index no matter which ignore rule
+matched last. A sync never stages your credentials. Note that files already pushed stay in the
+remote&#39;s <em>history</em> — if that happened, rotate the token and rewrite the history in a terminal.</p>
+<h2 id="note-history-reading-what-the-backup-kept"><a class="anchor" href="#note-history-reading-what-the-backup-kept">Note history: reading what the backup kept</a></h2>
+<p>Every sync makes a commit, and every commit is a version of every note in it. <strong>History</strong> is the
+read half of that: open a note, open the <em>History</em> section in the right-hand panel, and you get
+the commits that touched this note — newest first, with the date, the message and how many lines
+each one added and removed.</p>
+<ul>
+<li>Tap a row to <strong>read that revision</strong>, rendered exactly as the note renders anywhere else.</li>
+<li><strong>Restore this revision</strong> writes it back through the ordinary save path, so it is undoable with
+<code>Ctrl/Cmd+Z</code> in the editor, and the toast that follows carries an <strong>Undo</strong> of its own. A restore
+is itself an edit, so the version you restored <em>from</em> is one snapshot away from being history
+too — nothing is lost either way.</li>
+<li>History <strong>follows renames</strong>. A note that used to be called something else keeps everything it
+was before the rename.</li>
+</ul>
+<p>The section starts closed and asks git nothing until you open it: reading a note&#39;s log is a real
+piece of work, and most of the time you are writing rather than looking backwards. Open it once and
+it stays open.</p>
+<h3 id="snapshot-now"><a class="anchor" href="#snapshot-now">Snapshot now</a></h3>
+<p>The palette has <strong>Snapshot now</strong> — one commit of the whole vault, on this machine, with nothing
+sent anywhere. It is the thing to press before an edit you are not sure about, and it does not
+need a remote, a token or a network: any vault that is a git repository can take one. It appears
+in your history as <em>Snapshot</em>.</p>
+<p>If the vault is not a git repository yet, the History section says so and offers the switch —
+turning on Backup &amp; sync (step 3 above) is what starts keeping history in the first place.</p>
+<p>History is admin-only in both directions: a visitor cannot see that a published note had eleven
+drafts, and cannot read any of them.</p>
+<h2 id="two-servers-one-vault"><a class="anchor" href="#two-servers-one-vault">Two servers, one vault</a></h2>
+<p>It is a perfectly ordinary thing to end up with <strong>two Vellum servers over the same folder</strong> — the
+desktop app runs a server of its own, and plenty of people also keep one running as a systemd
+service so they can reach the vault from a browser. A <code>git pull</code>, Obsidian, Syncthing or a text
+editor writing into the same folder is the same situation with a different second writer.</p>
+<p><strong>The guarantee: a note you did not save cannot be overwritten by a copy somebody was still
+holding.</strong> Every save the editor makes carries the modification time of the file it was loaded
+from, and the server refuses the write — <code>409</code>, nothing touched — if the file on disk is no longer
+that one. Nothing is lost when this happens: your text stays in the editor, autosave stops so the
+next keystroke cannot clobber the newer version, and a strip above the note offers the two ways
+out — <strong>Keep my version</strong> (write yours over the newer file) or <strong>Use the disk version</strong> (take
+theirs, undoably).</p>
+<p>The reason this needed saying out loud is a real incident. A note was published from the browser;
+the desktop app had been open for days with that note loaded from <em>before</em> the publish. Each
+server watches the vault for its own connected clients, so the &quot;this file changed&quot; message never
+reached the sleeping desktop app — and a browser&#39;s event stream replays nothing it missed while
+the laptop was shut. The refusal above is what kept the note safe. What was missing was any way to
+find out <em>before</em> trying to save.</p>
+<p>So Vellum now <strong>re-checks when it wakes up</strong>: when its connection to the server comes back, or when
+you return to a window that had been hidden, it asks the server for the current state of the notes
+you have open. Ones you have not touched reload silently; one with unsaved edits gets the same
+resolution strip immediately, while you are looking at it, instead of interrupting you later.</p>
+<p>Two things worth knowing about the arrangement:</p>
+<ul>
+<li><strong>No note is locked.</strong> Neither server owns the vault, and either can be stopped at any time —
+the refusal above is a check made at the moment of writing, not a claim staked in advance.
+Backup &amp; sync is the one deliberate exception, for the reason in the next section: a commit is
+a whole-vault operation with a single git index, so it cannot be two things at once.</li>
+<li><strong>Scripts and older clients still work.</strong> A write with no modification time attached — <code>curl</code>, a
+script of your own, an older desktop build — behaves exactly as it always did: last writer wins.
+The check is opt-in, and only clients that can handle a refusal ask for one.</li>
+</ul>
+<p>If you run two servers, point both at the same vault directory and give them <strong>different data
+directories</strong> (<code>VELLUM_DATA</code>) unless you also want them to share sessions and settings.</p>
+<h3 id="one-sync-at-a-time-across-every-server"><a class="anchor" href="#one-sync-at-a-time-across-every-server">One sync at a time — across every server</a></h3>
+<p>Notes are written one at a time; a <strong>commit is written for the whole vault at once</strong>, through a
+single <code>.git/index</code> that git guards with a lock of its own. Two Vellums committing the same folder
+in the same second do not produce two backups — one of them dies with <em>&quot;Another git process seems
+to be running in this repository&quot;</em>, possibly having already staged half the vault. That is not
+hypothetical: it is why sync used to be worth running only by hand on a machine that also ran the
+desktop app.</p>
+<p>So a mutating pass — <strong>Sync now</strong>, <strong>Snapshot now</strong>, <strong>Make it a repo</strong>, and every scheduled tick —
+takes a lock file at <code>.git/vellum-sync.lock</code> first, and holds it until the pass is over. Only one
+of them exists, so only one pass runs at a time <strong>across every process sharing that vault</strong>: the
+desktop app, a systemd service, a second terminal, a scheduled interval. This is what makes an
+automatic interval safe to leave switched on next to a desktop app.</p>
+<ul>
+<li><strong>What contention looks like.</strong> A <strong>Sync now</strong> that arrives while another Vellum is mid-pass is
+not an error and does not retry: the backup panel&#39;s last line says <em>&quot;Another Vellum is syncing
+this vault (pid …) — this pass did nothing&quot;</em>, naming the process that has it, and the status
+glyph reads as busy for as long as the other one is working. <strong>Snapshot now</strong> and <strong>Make it a
+repo</strong> answer <code>409</code> with the same sentence. A scheduled tick that finds the vault locked simply
+skips and tries again on the next one; it records nothing.</li>
+<li><strong>How a crash recovers.</strong> A lock file is not a file descriptor — nothing in the kernel removes it
+when its owner dies — so a Vellum killed mid-sync would otherwise wedge backup forever. Any other
+process may break the lock when <strong>the process that took it is gone</strong> (it records its pid and
+hostname, checked against the machine&#39;s own process table) or when <strong>nothing has touched it for
+fifteen minutes</strong>. Either way the break is logged as a warning naming the dead holder. A pass
+that is merely slow is never mistaken for a dead one: a live holder refreshes the lock every
+minute while it works.</li>
+<li><strong>What it does not cover.</strong> The lock is advisory, so your own <code>git commit</code> in a terminal is
+unaffected — that has always been git&#39;s <code>index.lock</code> to arbitrate. And two <em>machines</em> sharing one
+vault over a network filesystem is outside what this buys: exclusive creation is only as atomic
+as the filesystem makes it, and the fifteen-minute age check is the only recovery there.</li>
+</ul>
+<h2 id="things-worth-knowing"><a class="anchor" href="#things-worth-knowing">Things worth knowing</a></h2>
+<ul>
+<li>Every git invocation is an <code>execFile</code> with a fixed argument array. No shell is involved
+anywhere, and the remote URL and branch name are validated (scheme, no shell characters, no
+embedded credentials, safe ref name) before they are ever handed over. A <code>user@</code> that is
+<em>token-shaped</em> (<code>ghp_…</code>, <code>github_pat_…</code>, <code>glpat-…</code>) is refused on every scheme, including the
+scp-style <code>git@host:path</code> and <code>ssh://</code> forms where a plain username is fine.</li>
+<li>The git child process gets a <strong>scrubbed environment</strong>: <code>GIT_DIR</code>, <code>GIT_WORK_TREE</code>,
+<code>GIT_INDEX_FILE</code>, the object-directory variables, <code>GIT_CONFIG*</code> (including
+<code>GIT_CONFIG_COUNT</code>/<code>GIT_CONFIG_KEY_n</code>), <code>GIT_SSH</code>, <code>GIT_SSH_COMMAND</code>, <code>GIT_PROXY_COMMAND</code> and
+<code>GIT_EXTERNAL_DIFF</code> are all removed, so nothing in the server&#39;s own environment can point git
+at another repository, another config, or another transport. If you <em>need</em> a custom SSH
+invocation — a specific deploy key, say — set <strong><code>VELLUM_GIT_SSH_COMMAND</code></strong> (e.g.
+<code>VELLUM_GIT_SSH_COMMAND=&quot;ssh -i /path/to/vault_ed25519 -o IdentitiesOnly=yes&quot;</code>) and
+Vellum passes exactly that to git as <code>GIT_SSH_COMMAND</code>.</li>
+<li>&quot;Ahead / behind&quot; has a third state. Until a fetch or a push has succeeded once there is no
+remote-tracking ref to compare against, and the panel says <strong>&quot;Nothing has reached the remote
+yet&quot;</strong> rather than &quot;0 ahead · 0 behind&quot; — which is what a fully backed-up vault reads.</li>
+<li>Sync is admin-only, including for an admin previewing the public site. Visitors cannot even
+read the status — the branch, the dirty count and the remote host say too much about you.</li>
+<li>Only one sync runs at a time, and that means <em>at a time on this vault</em>, not merely in this
+server: a second request inside the same process answers <code>409</code> immediately, and a pass started by
+another Vellum over the same folder is held off by the lock file described above.</li>
+<li>A failing scheduled sync is logged <strong>once</strong>, not once per tick.</li>
+<li>If the machine has no git identity configured, commits are made as <code>Vellum &lt;vellum@localhost&gt;</code>; set <code>user.name</code>/<code>user.email</code> in the vault (or globally) to use your own.</li>
+<li>The API, for anyone scripting it (admin-only): <code>GET /api/sync/status</code>, <code>POST /api/sync/init</code>,
+<code>POST /api/sync/now</code>, <code>POST /api/sync/snapshot</code> (a local commit, no network), plus the two
+read-only history routes — <code>GET /api/history?path=</code> and <code>GET /api/history/blob?path=&amp;sha=</code>. The
+blob route wants the path <strong>that revision</strong> lives under, which the listing gives you per row: a
+note that has been renamed lives under its old name in its older commits.</li>
+</ul>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/backup-and-sync.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/publishing/"><span class="pager__kicker">Previous</span><span class="pager__title">Publishing &amp; access</span></a><a class="pager__link pager__link--next" href="../../en/editor/"><span class="pager__kicker">Next</span><span class="pager__title">The editor &amp; reading view</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#1-have-a-remote-to-push-to">1. Have a remote to push to</a><a class="toc__link toc__link--2" href="#2-choose-how-this-server-signs-in">2. Choose how this server signs in</a><a class="toc__link toc__link--2" href="#3-turn-it-on">3. Turn it on</a><a class="toc__link toc__link--2" href="#4-sync">4. Sync</a><a class="toc__link toc__link--2" href="#why-pulls-are-fast-forward-only">Why pulls are fast-forward-only</a><a class="toc__link toc__link--2" href="#what-sync-never-stages">What sync never stages</a><a class="toc__link toc__link--2" href="#gitignore-advice">.gitignore advice</a><a class="toc__link toc__link--2" href="#note-history-reading-what-the-backup-kept">Note history: reading what the backup kept</a><a class="toc__link toc__link--3" href="#snapshot-now">Snapshot now</a><a class="toc__link toc__link--2" href="#two-servers-one-vault">Two servers, one vault</a><a class="toc__link toc__link--3" href="#one-sync-at-a-time-across-every-server">One sync at a time — across every server</a><a class="toc__link toc__link--2" href="#things-worth-knowing">Things worth knowing</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

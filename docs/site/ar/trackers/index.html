@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المتتبِّعات · فيلم الدليل</title>
+<meta name="description" content="كتلة مسيَّجة تحوّل الملاحظة إلى بطاقة تقدّم حية، ولوحة ترفّ كل تلك البطاقات.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
+  <a class="top__brand" href="../../ar/"><span class="top__star">✦</span> فيلم <span class="top__docs">الدليل</span></a>
+  <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../en/trackers/" hreflang="en">English</a>
+  <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link is-current" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="المتتبعات">المتتبعات</h1>
+<p><em>كتلة مسيَّجة تحوّل الملاحظة إلى بطاقة تقدّم حية، ولوحة ترفّ كل تلك البطاقات.</em></p>
+<hr>
+<p>المتتبع سياج <code>```tracker</code>. يُعرض بطاقة بغلاف وشريط تقدّم وشريحة حالة وتقييم وملاحظاتك: في المحرر، وفي عرض القراءة، وعلى المدونة المنشورة، وداخل التضمين، لأن الأربعة ترسمها بالمُعرِّض نفسه.</p>
+<pre><code class="language-tracker">title: Elden Ring
+kind: game
+cover: elden-ring.jpg
+progress: 62/130
+unit: hours
+status: playing
+rating: 9/10
+started: 2026-07-01
+notes: |
+  Margit took 14 tries.
+</code></pre>
+<h2 id="الحقول"><a class="anchor" href="#الحقول">الحقول</a></h2>
+<div class="table"><table><thead><tr><th>المفتاح</th><th>ما يأخذه</th><th>ملاحظات</th></tr></thead><tbody><tr><td><code>title</code></td><td>أي نص</td><td>أو اكتب العنوان فحسب في سطر وحده.</td></tr><tr><td><code>kind</code></td><td><code>book</code> <code>game</code> <code>film</code> <code>show</code> <code>course</code> <code>project</code> <code>habit</code>، أو كلمتك الخاصة</td><td>يختار الرمز والوحدة الافتراضية. <code>movie</code> و<code>series</code> و<code>tv</code> و<code>novel</code> و<code>anime</code> و<code>class</code> و<code>routine</code> تنطوي في السبعة؛ وكل ما عداها يحتفظ بكلمتك ويأخذ الرمز ✦.</td></tr><tr><td><code>cover</code></td><td>اسم مرفق، أو <code>![[name.jpg]]</code></td><td>يُحلّ كالتضمين تمامًا. مفقود أو مكسور ← رمز النوع، لا صورة مكسورة أبدًا.</td></tr><tr><td><code>progress</code></td><td><code>62/130</code>، <code>45%</code>، <code>45</code>، <code>62 of 130</code></td><td>الكسر يشتق النسبة؛ والرقم المجرد <em>هو</em> النسبة. تُقرأ الأرقام العربية المشرقية أيضًا.</td></tr><tr><td><code>unit</code></td><td>أي كلمة</td><td>كلمتك، تُطبع كما كتبتها. اتركها فتُستخدم وحدة النوع نفسه (صفحات، ساعات، دقائق، حلقات، دروس، مهام، أيام)، مترجمة ومجموعة بصحة.</td></tr><tr><td><code>status</code></td><td><code>planned</code> <code>active</code> <code>done</code> <code>paused</code> <code>dropped</code></td><td>إضافة إلى الكلمات التي يكتبها الناس فعلًا: <code>reading</code> و<code>playing</code> و<code>watching</code> و<code>in-progress</code> و<code>started</code> و<code>finished</code> و<code>on hold</code> و<code>dnf</code> و<code>backlog</code>… تُركت فتُشتق من التقدّم.</td></tr><tr><td><code>rating</code></td><td><code>8/10</code>، <code>4/5</code>، <code>★★★★</code>، <code>4</code></td><td>الرقم المجرد من خمسة حتى خمسة، ومن عشرة فوق ذلك.</td></tr><tr><td><code>started</code>، <code>finished</code></td><td>تاريخ</td><td>تاريخ ISO (<code>2026-07-01</code>) يُنسَّق بتقويم الموقع وأرقامه؛ وكل ما عداه يُطبع كما كُتب.</td></tr><tr><td><code>notes</code></td><td>مقياس كتلي (المفتاح، ثم نقطتان، ثم <code>|</code>)</td><td>ماركداون، يُعرض عبر الخط العادي.</td></tr></tbody></table></div><p>المفاتيح المجهولة تُتجاهل، والسياج <strong>بلا عنوان ولا تقدّم</strong> يبقى كتلة كود عادية. هذا مقصود: المحتوى الذي لا يمكن تحليله يجب أن يُقرأ مصدرًا بدل أن يتلاشى في بطاقة فارغة، وهي القاعدة التي يتبعها <code>$$ math $$</code> أصلًا.</p>
+<p>للملاحظة أن تحمل من المتتبعات ما تشاء.</p>
+<h2 id="دفع-الشريط"><a class="anchor" href="#دفع-الشريط">دفع الشريط</a></h2>
+<p>في المحرر تأخذ جلسة المشرف <strong>−</strong> و**+** هادئين عند الحافة السطرية للبطاقة. الضغطة الواحدة وحدة واحدة: تعيد كتابة سطر <code>progress:</code> في ملفك ولا شيء غيره، خطوة تراجع واحدة. لا مخزن منفصل: الملاحظة <em>هي</em> الحالة، فتحرير الرقم باليد يفعل بالضبط ما يفعله الزر.</p>
+<p>اعبر 100% فيأخذ الملء توهجًا خفيفًا وتظهر ✦ العلامة بجانب العدّ.</p>
+<p>عرض القراءة والموقع العام خاملان بالتصميم: لا مسار كتابة للزائر، والأزرار التي لا تستطيع العمل أثاث يكذب.</p>
+<h2 id="اللوحة"><a class="anchor" href="#اللوحة">اللوحة</a></h2>
+<p>سياج <code>```tracker-board</code> يرسم كل متتبع في الخزانة شبكة بطاقات مصغرة مجمّعة بالحالة (النشط أولًا، ثم المخطط، فالمنجز، فالمتوقف، فالمتروك). كل بطاقة تربط إلى الملاحظة التي يعيش فيها متتبعها.</p>
+<pre><code class="language-tracker-board">kind: game
+status: active
+limit: 12
+</code></pre>
+<div class="table"><table><thead><tr><th>المرشح</th><th>الأثر</th></tr></thead><tbody><tr><td><code>kind</code></td><td>ذلك النوع فقط. يُطوى كما <code>kind:</code> البطاقة نفسها، فـ<code>kind: movie</code> يجد أفلامك.</td></tr><tr><td><code>status</code></td><td>تلك الحالة فقط، بمرادفاتها.</td></tr><tr><td><code>limit</code></td><td>ذلك العدد من البطاقات كحد أقصى.</td></tr></tbody></table></div><p>الجسد الفارغ لوحة بكل شيء. والخزانة بلا متتبعات تأخذ حالة فارغة مرحِّبة بدل فراغ.</p>
+<h2 id="نشر-رف"><a class="anchor" href="#نشر-رف">نشر رفّ</a></h2>
+<p>اللوحة تعرف جمهورها. تقرأ <code>GET /api/trackers</code>، المحدود النطاق كقائمة تدوينات المدونة نفسها تمامًا:</p>
+<ul>
+<li><strong>الزائر</strong> يرى متتبعات <strong>الملاحظات المنشورة فقط</strong>، مع مرشح اللغة مطبَّقًا على نطاقه؛</li>
+<li><strong>المشرف</strong> يرى الخزانة كلها؛</li>
+<li><strong>القوالب مستثناة من الاثنين</strong>: الاستنسل الذي يحمل هيكل متتبع كان سيرفّ نفسه كتابًا لم يبدأه أحد.</li>
+</ul>
+<p>فاللوحة المتروكة على ملاحظة منشورة آمنة: ضع سنة قراءتك على الموقع العام بلا فتح بقية الخزانة. وغلاف المتتبع المنشور يُقدَّم للزوار أيضًا؛ يجمع المفهرس أغلفة المتتبعات في قائمة السماح نفسها التي تحكم اللافتات والتضمينات.</p>
+<h2 id="في-أوبسيديان"><a class="anchor" href="#في-أوبسيديان">في أوبسيديان</a></h2>
+<p><code>tracker</code> امتداد لفيلم لا ميزة في أوبسيديان. افتح الخزانة نفسها في أوبسيديان فينحدر السياج إلى ما هو عليه: كتلة كود مسمّاة كل أسطرها مقروءة. لا يُحوَّل شيء ولا يضيع شيء، وما زالت الملاحظة تقول كل ما قالته هنا. انظر <a href="https://github.com/ZahakJ/vellum/blob/main/OBSIDIAN-COMPAT.md" target="_blank" rel="noreferrer">OBSIDIAN-COMPAT.md</a>.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/ar/trackers.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/latex/"><span class="pager__kicker">السابق</span><span class="pager__title">ملاحظات LaTeX</span></a><a class="pager__link pager__link--next" href="../../ar/printing/"><span class="pager__kicker">التالي</span><span class="pager__title">الطباعة وPDF</span></a></nav>
+    <footer class="foot">فيلم برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#الحقول">الحقول</a><a class="toc__link toc__link--2" href="#دفع-الشريط">دفع الشريط</a><a class="toc__link toc__link--2" href="#اللوحة">اللوحة</a><a class="toc__link toc__link--2" href="#نشر-رف">نشر رفّ</a><a class="toc__link toc__link--2" href="#في-أوبسيديان">في أوبسيديان</a></aside>
+</div>
+<script>window.__docs = { lang: "ar", base: "../../", noResults: "لا نتائج" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

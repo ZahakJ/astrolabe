@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المكتبة · فيلم الدليل</title>
+<meta name="description" content="الكتب والدورات وسلاسل المحاضرات على الموقع العام، مسارات يمشيها القارئ بالترتيب.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
+  <a class="top__brand" href="../../ar/"><span class="top__star">✦</span> فيلم <span class="top__docs">الدليل</span></a>
+  <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../en/library/" hreflang="en">English</a>
+  <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link is-current" href="../../ar/library/">المكتبة</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="المكتبة">المكتبة</h1>
+<p><em>الكتب والدورات وسلاسل المحاضرات على الموقع العام، مسارات يمشيها القارئ بالترتيب.</em></p>
+<hr>
+<p>المدونة للأشياء المكتوبة: تُقرأ المقالة مرة، كاملة، والتالية هي أيًّا كانت التي جاءت بعدها في الزمن. ملاحظات كتاب أو سلسلة محاضرات ليست كذلك. تُقرأ بالترتيب، على مدى أسابيع، قطعة قطعة، ويريد القارئ أن يعرف أين هو من الكل. المكتبة هي القشرة لها. تجلس بجانب المدونة والرئيسية المصمَّمة، خلف باب واحد في التنقل، ولا شيء منها يصل إلى المدونة ما لم تطلب.</p>
+<h2 id="المسار-مجلد"><a class="anchor" href="#المسار-مجلد">المسار مجلد</a></h2>
+<p>للخزانة الشكل أصلًا. الكتاب مجلد من مجلدات فصول من ملاحظات مفاهيم؛ والدورة مجلد من مجلدات محاضرات من ملاحظات. فالمسار في المكتبة <strong>مجلد تعلنه</strong>، وبنية المجلد نفسه بنية المسار:</p>
+<ul>
+<li>كل مجلد فرعي مباشر <strong>وحدة</strong> (فصل أو محاضرة أو أسبوع)، تُسمّى من المجلد: <code>L3</code> يُطبع <em>المحاضرة 3</em>، و<code>B2| Chapter 40</code> يُطبع <em>الفصل 40</em>، و<code>Week 2</code> يُطبع <em>الأسبوع 2</em>؛ والمجلد بلا رقم يحتفظ باسمه ويُرتَّب بعد المرقّمة؛</li>
+<li>كل ملاحظة <strong>منشورة</strong> بالداخل <strong>درس</strong>، بالترتيب الطبيعي للعناوين، مع ملاحظة باسم وحدتها (محور الفصل الذي يكتبه رفيق القراءة) أولًا؛</li>
+<li>الملاحظات الجالسة مباشرة في مجلد المسار <strong>مقدمته</strong>.</li>
+</ul>
+<p>لا تُطلب مقدمة من أي ملاحظة غير <code>publish: true</code>. الملاحظة غير المنشورة ليست درسًا؛ والمسار الذي لا درس فيه يستطيع الزائر قراءته لا يُرسل إلى ذلك الزائر البتة.</p>
+<h2 id="إعلان-مسار"><a class="anchor" href="#إعلان-مسار">إعلان مسار</a></h2>
+<p><strong>من الخزانة.</strong> ضع ملاحظة باسم المجلد (أو <code>index.md</code>) داخله واكتب في مقدمتها <code>library: book</code> (أو <code>course</code> أو <code>series</code>). المجلد على الرف، مع <code>title:</code> و<code>description:</code> و<code>cover:</code> و<code>source:</code> من الملاحظة نفسها حين توجد. لا يُكتب شيء في الإعدادات؛ تعرض قائمة الإعدادات هذه المسارات تحت صفوفها، و<em>خصّص هنا</em> يحوّل واحدًا إلى صف حين تريد تجاوز شيء. الصف الذي يسمّي المجلد نفسه يغلب حقلًا حقلًا ويأخذ الباقي من الملاحظة.</p>
+<p><strong>من الشجرة.</strong> انقر بالزر الأيمن على المجلد في الشريط الجانبي واختر <strong>المكتبة…</strong>. تخمّن النافذة النوع مما بالداخل (<code>L1..L14</code> دورة، و<code>Chapter 39..41</code> كتاب، ومجلد تحت <em>Talks</em> سلسلة)، وتأخذ اسم المجلد عنوانًا، و<strong>ضع على الرف</strong> يحفظه. المسار الأول يشغّل المكتبة. انقر بالزر الأيمن على المجلد نفسه مجددًا فتقول النافذة إنه على الرف، أو تفتحه، أو تنزله.</p>
+<p><strong>الإعدادات ← النشر ← المكتبة.</strong> الصفوف نفسها، بالحقول التي لا تسألها الشجرة. <strong>أضف مسارًا</strong> يفتح مجلدات الخزانة للنقر (اكتب للترشيح)، وسطر المجلد في كل صف يعيد فتح ذلك المنتقي؛ لا شيء هنا يُكتب مسارًا.</p>
+<div class="table"><table><thead><tr><th>الحقل</th><th>ما هو</th></tr></thead><tbody><tr><td>النوع</td><td>كتاب أو دورة أو سلسلة. يقرر شكل الغلاف وتجميع الرف.</td></tr><tr><td>العنوان</td><td>ما يسمّيه به الرف والباب.</td></tr><tr><td>العنوان الإلكتروني</td><td>مقطع الرابط: <code>/library/&lt;address&gt;</code>. حروف لاتينية صغيرة وأرقام وشرطات.</td></tr><tr><td>المجلد</td><td>مجلد الخزانة الذي يقرؤه المسار، مختارًا من الشجرة.</td></tr><tr><td>التعريف والغلاف والمصدر</td><td>مطوية تحت سطر واحد حتى يملكها الصف. التعريف: جملة أو جملتان تحت العنوان.</td></tr><tr><td>الغلاف</td><td>ابدأ الكتابة وتُعرض صور الخزانة بصور مصغرة؛ اختر واحدة أو الصق رابط https.</td></tr><tr><td>الغلاف</td><td>صورة بوصفها قيمة لافتة (<code>attachments/cover.jpg</code> أو رابط https). بدونها يرسم الموقع غلافًا من العنوان.</td></tr><tr><td>رابط المصدر</td><td>من أين جاءت المادة: صفحة الدورة أو الناشر. يُعرض على المسار.</td></tr><tr><td>مخفي</td><td>إنزال بلا خسارة: يحتفظ الصف بكل حقل ولا يصل إلى أحد.</td></tr></tbody></table></div><p>موضعان واسم يجلسان فوق الصفوف: <strong>باب في التنقل</strong> (مشغَّل افتراضيًا ما إن تُشغَّل المكتبة؛ رابط <em>المكتبة</em> بجانب المواضيع على القشرتين العامتين) و<strong>رف على الصفحة الرئيسية</strong> (معطّل افتراضيًا؛ شريط أغلفة على رئيسية المدونة فوق الكتابات). <strong>الاسم</strong> يعيد تسمية الباب والصفحة؛ الفارغ يعني &quot;المكتبة&quot;.</p>
+<p>تعدّ كل بطاقة الملاحظات بالداخل وكم منها منشور. <strong>تسرد المكتبة الملاحظات المنشورة فقط</strong>: المسار الذي كل ملاحظاته مسودات رف لا شيء عليه، ويبقى الباب في التنقل مخفيًا حتى يملك مسار ما ملاحظة يستطيع القارئ فتحها.</p>
+<p>حتى 24 مسارًا. ترتيب الصفوف ترتيب الرف.</p>
+<h2 id="ما-يأخذه-القارئ"><a class="anchor" href="#ما-يأخذه-القارئ">ما يأخذه القارئ</a></h2>
+<ul>
+<li><strong>الرف</strong> (<code>/library</code>): الدورات والكتب والسلاسل في مجموعات، كل منها غلافًا وعنوانًا وتعريفًا وعدد الدروس ووقت القراءة وتقدّم هذا المتصفح.</li>
+<li><strong>المسار</strong> (<code>/library/&lt;address&gt;</code>): الغلاف والتعريف والمصدر وزر <em>ابدأ القراءة</em> أو <em>تابع من الدرس n</em> والمحتويات بحسب الوحدة مع كل درس مرقّمًا.</li>
+<li><strong>الدرس</strong> (<code>/library/&lt;address&gt;/&lt;n&gt;</code>): الملاحظة معروضة بمُعرِّض القراءة، مع موضعها مذكورًا في الأعلى (<em>الدرس 7 من 24 · المحاضرة 3</em>)، ومخطط المسار على الجانب وهذا الدرس مضاء، والدرسان السابق والتالي في الأسفل. <code>←</code> و<code>→</code> يمشيان على المسار.</li>
+</ul>
+<p><strong>الدرس ليس تدوينة.</strong> الملاحظة المنشورة داخل مسار مكتبة تعيش على الرف وتغادر المدونة: ليست في قوائم الرئيسية ولا المواضيع ولا خلاصة RSS ولا مدخلات التدوينات في خريطة الموقع. رابطها الخاص ما زال يعمل. إيقاف المكتبة أو إخفاء المسار يعيد تلك الملاحظات إلى المدونة. الموضعان مستقلان: رف على الصفحة الرئيسية بلا باب في التنقل طريقة جيدة لإبقاء المكتبة هادئة.</p>
+<p><strong>الروابط تبقى على المسار.</strong> رابط ويكي داخل درس يشير إلى درس آخر في المكتبة يفتح ذلك الدرس، في المكتبة، بمحتوياته وموضعه؛ والرابط إلى ملاحظة ليست على أي رف يفتح صفحة الملاحظة نفسها كما كان دائمًا.</p>
+<p>التقدّم ملك القارئ، لكل متصفح، لا يُرسل إلى أي مكان أبدًا: فتح درس يعلّمه مقروءًا، وصفحة المسار تعدّ، وبطاقة الرف تقول <em>تابع من الدرس n</em>، و<em>انسَ مكاني</em> يمسحه.</p>
+<h2 id="أين-يعيش"><a class="anchor" href="#أين-يعيش">أين يعيش</a></h2>
+<p>يحمل <code>shared/library.ts</code> القواعد (ما الصف الصالح، وكيف يُقرأ اسم الوحدة، وكيف تُرتَّب الأشياء)، مشتركة بين محرر الإعدادات والخادم حتى لا يختلف حقل أخضر و400. يحلّ <code>server/library.ts</code> المسار ضد الفهرس لنطاق جلسة واحدة. <code>GET /api/library</code> هو الرف؛ و<code>/api/me.library</code> هو الباب. و<code>client/library/</code> هو الصفحات والشريط والأغلفة والتقدّم. <code>npm test</code> يغطي القواعد (<code>tests/library.test.ts</code>).</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/ar/library.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/designer/"><span class="pager__kicker">السابق</span><span class="pager__title">وضع التصميم</span></a><a class="pager__link pager__link--next" href="../../ar/theming/"><span class="pager__kicker">التالي</span><span class="pager__title">السمات</span></a></nav>
+    <footer class="foot">فيلم برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#المسار-مجلد">المسار مجلد</a><a class="toc__link toc__link--2" href="#إعلان-مسار">إعلان مسار</a><a class="toc__link toc__link--2" href="#ما-يأخذه-القارئ">ما يأخذه القارئ</a><a class="toc__link toc__link--2" href="#أين-يعيش">أين يعيش</a></aside>
+</div>
+<script>window.__docs = { lang: "ar", base: "../../", noResults: "لا نتائج" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

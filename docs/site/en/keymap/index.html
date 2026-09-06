@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keymap · Vellum Documentation</title>
+<meta name="description" content="Every keyboard binding, and why the awkward ones are where they are.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/keymap/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link is-current" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="keymap">Keymap</h1>
+<p><em>Every keyboard binding, and why the awkward ones are where they are.</em></p>
+<hr>
+<p><code>Ctrl/Cmd /</code> opens the in-app shortcut sheet — every binding, grouped and searchable, in whichever
+language the instance is in. Inside it, <code>↑</code> <code>↓</code> walk the rows that can run (<code>Home</code> / <code>End</code> jump),
+<code>Enter</code> runs the lit one and <code>Esc</code> closes; typing keeps filtering, and the cursor starts on the best
+match, so &quot;graph&quot; then <code>Enter</code> is the whole gesture. This page is the same list on paper.</p>
+<p>Literally the same list: the tables between here and <em>Menus, gestures and the pointer</em> are a
+RENDERING of the <code>GROUPS</code> table in <code>client/components/ShortcutsHelp.tsx</code>, and <code>npm run check-keymap</code>
+fails the build when they stop agreeing — in either direction. A binding exists in one place, and a
+key documented here that nothing binds is as much a bug as a key nobody documented. The same gate
+is what refuses two rows claiming one keystroke; see <a href="../development/">Development</a>.</p>
+<!-- keymap:begin --><h2 id="shell"><a class="anchor" href="#shell">Shell</a></h2>
+<div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd /</code></td><td>Keyboard shortcuts — every binding, grouped and searchable</td></tr><tr><td><code>Ctrl/Cmd P</code></td><td>Command palette (open note, run command)</td></tr><tr><td><code>Ctrl/Cmd K</code></td><td>Search — focuses the sidebar search in the app; opens a centered search overlay on the public blog</td></tr><tr><td><code>Ctrl/Cmd E</code></td><td>Toggle reading view ⇄ editor</td></tr><tr><td><code>Ctrl/Cmd G</code></td><td>Toggle graph view</td></tr><tr><td><code>Ctrl/Cmd N</code></td><td>New note</td></tr><tr><td><code>Ctrl/Cmd Alt D</code></td><td>Open today&#39;s daily note (<code>daily/YYYY-MM-DD.md</code>)</td></tr><tr><td><code>Ctrl/Cmd Shift P</code></td><td>Publish / unpublish the open note</td></tr><tr><td><code>Ctrl/Cmd Alt P</code></td><td><a href="../printing/">Print the open note, or export it to PDF</a> — Alt because <code>Ctrl/Cmd P</code> is the palette</td></tr><tr><td><code>Ctrl/Cmd Alt B</code></td><td>Collapse / reopen the <strong>Notes sidebar</strong></td></tr><tr><td><code>Ctrl/Cmd Alt Shift B</code></td><td>Collapse / reopen <strong>Outline &amp; backlinks</strong></td></tr><tr><td><code>Ctrl/Cmd Shift Z</code></td><td>Zen mode — all chrome steps aside (<code>Esc</code> returns)</td></tr><tr><td><code>Ctrl/Cmd \</code></td><td>Split the pane — the new one opens on the same note</td></tr><tr><td><code>Ctrl/Cmd Shift \</code></td><td>Split downwards instead of beside</td></tr><tr><td><code>Ctrl/Cmd Alt \</code></td><td>Close the pane — its tabs are adopted by a neighbour, never dropped</td></tr><tr><td><code>Ctrl/Cmd Alt PageDown</code> / <code>PageUp</code></td><td>Next / previous tab in the focused pane</td></tr><tr><td><code>Ctrl/Cmd Alt W</code></td><td>Close this tab</td></tr><tr><td><code>Ctrl/Cmd Alt Shift ↑</code> / <code>↓</code></td><td>Move to the pane above / below</td></tr><tr><td><code>Ctrl/Cmd Alt Shift ←</code> / <code>→</code></td><td>Move to the pane on your left / right — physically, in both languages</td></tr><tr><td><code>←</code> / <code>→</code></td><td>Previous / next file in the attachment viewer</td></tr><tr><td><code>Esc</code></td><td>Out of the shortcut sheet, out of visitor preview, out of zen, out of the attachment viewer, and back to the note from <code>Ctrl/Cmd K</code></td></tr></tbody></table></div><p>On the public blog shell only <code>Ctrl/Cmd K</code> and <code>Ctrl/Cmd /</code> are claimed; every other combination
+is handed straight back to the browser.</p>
+<h2 id="writing"><a class="anchor" href="#writing">Writing</a></h2>
+<div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd B</code></td><td><strong>Bold</strong></td></tr><tr><td><code>Ctrl/Cmd I</code></td><td><em>Italic</em></td></tr><tr><td><code>Ctrl/Cmd U</code></td><td>Underline (<code>&lt;u&gt;</code>)</td></tr><tr><td><code>Ctrl/Cmd Shift X</code></td><td>Strikethrough</td></tr><tr><td><code>Ctrl/Cmd Shift H</code></td><td>Highlight</td></tr><tr><td><code>Ctrl/Cmd Alt /</code></td><td>Comment out the selection — <code>%%…%%</code> in a note, <code>%</code> in a <code>.tex</code> file</td></tr><tr><td><code>Ctrl/Cmd D</code></td><td>Select the next occurrence of the word under the cursor</td></tr><tr><td><code>Ctrl/Cmd S</code></td><td>Save now (autosave runs regardless, 600 ms after you stop)</td></tr><tr><td><code>Ctrl/Cmd ↑</code> / <code>↓</code></td><td>Move the current line up / down</td></tr><tr><td><code>Ctrl/Cmd Z</code> / <code>Ctrl/Cmd Shift Z</code></td><td>Undo / redo (inside the editor; see the note on zen below)</td></tr><tr><td><code>Ctrl/Cmd F</code></td><td>Find and replace within the note</td></tr><tr><td><code>Ctrl/Cmd Shift F</code></td><td>Search and replace across the vault</td></tr></tbody></table></div><h2 id="tables"><a class="anchor" href="#tables">Tables</a></h2>
+<p>All five live ONLY while the caret sits inside a table block — outside one, <code>Tab</code> still indents,
+<code>Enter</code> still breaks the line, and <code>Alt</code> with an arrow still belongs to the browser.</p>
+<div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>Tab</code></td><td>Next table cell (in the last cell: adds a row)</td></tr><tr><td><code>Shift Tab</code></td><td>Previous table cell</td></tr><tr><td><code>Enter</code></td><td>Down a row in the table (out of the table from the last row)</td></tr><tr><td><code>Alt ↑</code> / <code>↓</code></td><td>Move table row</td></tr><tr><td><code>Alt ←</code> / <code>→</code></td><td>Move table column, alignment row included (visual arrows — flipped in an RTL table)</td></tr></tbody></table></div><h2 id="templates"><a class="anchor" href="#templates">Templates</a></h2>
+<div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd Alt T</code></td><td>Insert template… at the cursor</td></tr><tr><td><code>Ctrl/Cmd Alt Shift T</code></td><td>New note from template…</td></tr></tbody></table></div><p><code>Ctrl/Cmd Alt</code> rather than the obvious <code>Ctrl/Cmd T</code>: that one is the browser&#39;s new tab, and
+<code>Ctrl/Cmd Shift T</code> reopens a closed one. Neither is takeable.</p>
+<h2 id="sections-folding"><a class="anchor" href="#sections-folding">Sections &amp; folding</a></h2>
+<div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd Shift [</code> / <code>]</code></td><td>Fold / unfold the section at the cursor — or the chevron beside the heading</td></tr><tr><td><code>Ctrl/Cmd Alt [</code> / <code>]</code></td><td>Fold / unfold everything</td></tr><tr><td><code>Ctrl/Cmd Alt F</code></td><td>Focus one section — everything else collapses; <code>Esc</code> restores it exactly</td></tr><tr><td><code>Ctrl/Cmd Alt ↑</code> / <code>↓</code></td><td>Jump to the previous / next heading (scrolls, in reading view)</td></tr></tbody></table></div><p><strong>On macOS both fold rows are spelled differently, and the table above does not say so yet.</strong> Both
+bindings come from CodeMirror&#39;s own <code>foldKeymap</code>, which overrides the section fold for Mac
+(<code>Ctrl-Shift-[</code> becomes <code>Cmd-Alt-[</code>) and leaves fold-all on <code>Ctrl-Alt-[</code> for every platform. So on a
+Mac the section fold is <code>Cmd Alt [</code> / <code>]</code> — not <code>Cmd Shift [</code>, which binds nothing — and fold-all
+keeps its <code>Ctrl</code>. The shortcut sheet prints <code>Ctrl/Cmd</code> for both; the keymap gate compares the sheet
+against this page and cannot see past either of them into CodeMirror, so this paragraph is the
+correction until the two rows are given their real Mac spellings.</p>
+<p><strong><code>Ctrl/Cmd G</code> is the graph everywhere, including inside the editor, and that is a decision.</strong>
+CodeMirror&#39;s <code>searchKeymap</code> binds <code>Mod-g</code> to &quot;find again&quot;, and the shell claims the key first in the
+capture phase — so that binding has never fired here. It stays that way: find-again already has two
+other ways to run (<code>F3</code>, and <code>Enter</code> in the find field), while the graph toggle is a documented
+Vellum binding a reader would be surprised to lose halfway through a note. This is the opposite call
+to the one made for <code>Ctrl/Cmd D</code> and <code>Ctrl/Cmd B</code>, where the editor&#39;s meaning is the per-minute one
+and the shell&#39;s was the once-a-day one — the rule is which verb the key is worth more to, not who
+asked first. Written down because a keymap gate that compares this page to the shortcut sheet cannot
+see CodeMirror&#39;s own keymaps, so the next reader to notice <code>Mod-g</code> would otherwise &quot;fix&quot; it.</p>
+<!-- keymap:end --><h2 id="menus-gestures-and-the-pointer"><a class="anchor" href="#menus-gestures-and-the-pointer">Menus, gestures and the pointer</a></h2>
+<p>Below the line the ledger stops. These are SURFACES rather than bindings — Vellum claims no
+keystroke of its own for them, so the shortcut sheet names the surface where its other rows name a
+key, and the keymap gate leaves them alone.</p>
+<div class="table"><table><thead><tr><th>How</th><th>Action</th></tr></thead><tbody><tr><td>Click</td><td>Follow a rendered wikilink (create it if unresolved)</td></tr><tr><td><code>Ctrl/Cmd</code>-click</td><td>Follow a wikilink on the line you&#39;re editing</td></tr><tr><td>Click</td><td>Open an image or PDF from the tree, in the attachment viewer</td></tr><tr><td>Right-click, <code>Shift F10</code>, or the menu key</td><td>Formatting menu for the selection — text style, structure, insert, colour</td></tr><tr><td>Right-click a misspelled word (nothing selected)</td><td>Spelling suggestions and &quot;Add to dictionary&quot; — with a selection, right-click means formatting instead</td></tr><tr><td>Right-click a heading, or the ⋯ beside it</td><td>Section menu — the whole subtree, not the line</td></tr><tr><td>Drag a row in <strong>Outline</strong></td><td>Reorder a section, and everything under it</td></tr><tr><td><code>/</code> at line start</td><td>Slash menu (callout, code fence, table, …)</td></tr><tr><td><code>Tab</code></td><td>Indent (CodeMirror&#39;s <code>indentWithTab</code>)</td></tr><tr><td><code>↑</code> <code>↓</code> <code>Enter</code> <code>Esc</code></td><td>Navigate / confirm / dismiss the palette (<code>Enter</code> always runs the keyboard&#39;s row, never whatever the mouse happens to rest on)</td></tr><tr><td>Selection menu</td><td>Extract the selection into a new linked note — <code>[[link]]</code> left standing, and the toast&#39;s Undo restores <strong>both</strong> files</td></tr><tr><td>Selection menu → Insert</td><td>Footnote — <code>[^n]</code> numbered so existing footnotes stay ordered, definition stub at the note&#39;s end; <code>\footnote{…}</code> in a <code>.tex</code> note</td></tr><tr><td>Selection menu → Structure</td><td>Title Case / UPPERCASE / lowercase over the selection, per cursor — wikilink targets and code spans untouched</td></tr><tr><td>Selection menu → Callout</td><td>Wrap the selection in a <code>&gt; [!type]</code> callout — every line prefixed, blank lines kept inside the callout</td></tr></tbody></table></div><p>Every modal, popover and picker in the product answers the same four keys — <code>Esc</code> to leave, arrows
+to move, <code>Enter</code> to commit, type-ahead where there is a list — and <code>Esc</code> always belongs to the
+innermost layer that is open.</p>
+<h2 id="the-tour"><a class="anchor" href="#the-tour">The tour</a></h2>
+<p>A deck of illustrated cards, one feature each, with a <strong>Show me</strong> that really opens the thing it
+describes. It claims no keystroke of its own — it is only ever entered, never shown — so its doors
+are the palette (<em>Take the tour</em>), the quiet line on an empty vault, the foot of this sheet&#39;s own
+<code>Ctrl/Cmd /</code> panel, and a line in <code>Welcome.md</code>.</p>
+<div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>←</code> / <code>→</code>, or <code>h</code> / <code>l</code></td><td>Flip a card. <strong>Logical</strong>: in Arabic, <code>←</code> goes forward</td></tr><tr><td>Swipe</td><td>The same flip, on a touch screen — mirrored the same way</td></tr><tr><td><code>Esc</code></td><td>Leave. The card you were on is where you come back</td></tr></tbody></table></div><h2 id="the-designer"><a class="anchor" href="#the-designer">The designer</a></h2>
+<div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd S</code></td><td>Save the design draft</td></tr><tr><td><code>Space</code></td><td>Lift / drop a section row</td></tr><tr><td><code>↑</code> / <code>↓</code></td><td>Move a lifted row (<code>Alt ↑</code> / <code>↓</code> moves any row)</td></tr><tr><td><code>Esc</code></td><td>Cancel a lift, close the section picker, close the designer</td></tr></tbody></table></div><h2 id="why-these-keys"><a class="anchor" href="#why-these-keys">Why these keys</a></h2>
+<p>The five formatting keys are Obsidian&#39;s, checked against its shortcut tables rather than guessed —
+except underline, which Obsidian has no command for at all (markdown has no underline; Vellum&#39;s
+emits <code>&lt;u&gt;</code>, which the sanitizer already admitted and the reading view already rendered). All five
+<strong>toggle</strong>: press twice and the markers come off. With nothing selected they insert the pair and
+park the caret between them, so bold-then-type works. Across a multi-line selection they apply
+<strong>per line</strong> — markdown emphasis cannot cross a blank line, and one <code>**</code> at the top of three
+paragraphs is two stray asterisks, not bold text. In a <a href="../latex/"><code>.tex</code> note</a> the same five keys
+write LaTeX instead, and the two markdown has no spelling for are absent from the menu rather than
+approximated.</p>
+<p><strong><code>Ctrl/Cmd B</code> used to fold the notes sidebar.</strong> Formatting won it: it is the binding every reader
+arrives with, and a key that bolds a word in one half of the window and folds a pane in the other
+is a key nobody can describe. The two pane toggles kept their shape — one key, <code>Shift</code> picks the
+second pane — and moved one modifier out, so the only thing to re-learn is &quot;add <code>Alt</code>&quot;. Outside the
+editor <code>Ctrl/Cmd B</code> and <code>Ctrl/Cmd Shift B</code> are still swallowed, because Firefox&#39;s bookmarks sidebar
+and Chrome&#39;s bookmark bar must never open over the app. macOS Option+B (<code>∫</code>) and Option+T (<code>†</code>)
+work, and every binding declines when <code>AltGr</code> is held so a European layout&#39;s Right-Alt never folds
+a pane by accident — see <a href="#non-latin-keyboards">Non-Latin keyboards</a> for how that is decided.</p>
+<p><strong>The tab keys wear <code>Alt</code> for the same reason the templates do.</strong> The world has three chords for
+tabs — <code>Ctrl Tab</code>, <code>Ctrl PageUp</code>/<code>PageDown</code> and <code>Ctrl W</code> — and the browser owns all three. Two of
+them can be worn one modifier over, which is the escape hatch this page keeps taking; the third
+cannot, because <code>Alt Tab</code> belongs to the window manager. So <code>Ctrl/Cmd Alt PageDown</code>/<code>PageUp</code> walks
+the strip and <code>Ctrl/Cmd Alt W</code> closes the tab, and the muscle memory transfers with one extra
+finger. Not arrows: <code>Ctrl Alt ←</code>/<code>→</code> is GNOME&#39;s workspace switcher and macOS Chrome&#39;s own tab
+switcher, and neither hands it back. Next is <strong>next along the strip</strong> in both languages — the bar
+mirrors with the reading direction, and a tab bar is a list, not a map.</p>
+<p>Nothing in the interface calls either pane &quot;the left one&quot;: the toggles, the palette and the
+shortcut sheet say <strong>Notes sidebar</strong> and <strong>Outline &amp; backlinks</strong>, in both languages, because
+<a href="../arabic-and-rtl/">in Arabic they swap ends</a>.</p>
+<p>In vim mode, <code>Ctrl D</code> and <code>Ctrl B</code> inside the editor keep their half-page scroll and page-up, and
+<code>Esc</code> stays vim&#39;s mode key — use <code>Cmd</code>, the palette, or zen&#39;s ✕ instead. On macOS, <code>Cmd Shift Z</code>
+inside the editor stays redo; <code>Ctrl Shift Z</code> enters zen there.</p>
+<h2 id="non-latin-keyboards"><a class="anchor" href="#non-latin-keyboards">Non-Latin keyboards</a></h2>
+<p><strong>Every binding on this page works with an Arabic, Persian, Russian, Greek or Hebrew system
+keyboard.</strong> That deserves saying out loud, because for a while it did not: the shortcuts were
+matched against the letter the keyboard <em>typed</em>, and on an Arabic layout the key marked <code>P</code> types
+<code>ح</code>, so <code>Ctrl P</code> opened nothing at all. If you run Vellum in Arabic — and the interface is fully
+<a href="../arabic-and-rtl/">translated and mirrored</a> for exactly that — your shortcuts are the keys marked
+with the Latin letters on your keycaps.</p>
+<p>The rule, in one line: <strong>a shortcut follows the letter your layout types when that letter is
+Latin, and the key&#39;s position when it is not.</strong></p>
+<ul>
+<li>On a US, UK or German keyboard nothing changes.</li>
+<li>On <strong>AZERTY</strong> and <strong>Dvorak</strong> the letters have moved, and the shortcut moved with them —
+<code>Ctrl Shift Z</code> for zen is the key that types <code>z</code> (physical <code>W</code> on AZERTY), not the key sitting
+where a US keyboard has Z. That key types <code>w</code>, and <code>Ctrl Shift W</code> closes your window.</li>
+<li>On <strong>Arabic, Persian, Russian, Greek or Hebrew</strong> there is no Latin letter to follow, so the
+position answers: the key marked <code>P</code> opens the palette whatever it types.</li>
+<li><strong><code>AltGr</code> is always typing, never a command.</strong> On layouts where Right-Alt reports as Ctrl+Alt,
+<code>AltGr E</code> stays <code>ę</code> and does not toggle the reading view.</li>
+<li>The <code>Ctrl/Cmd /</code> sheet knows this. On a keyboard that types none of these letters it prints the
+character each key produces beside the letter — <code>P</code> <code>ح</code> — with a line saying why. On Chromium;
+elsewhere it prints the letters alone rather than guessing.</li>
+</ul>
+<p>Vim mode is the exception, and it is not one this can fix: in normal mode <code>hjkl</code> are keys your
+Arabic or Russian layout does not have, so vim is a Latin-layout feature.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/keymap.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/printing/"><span class="pager__kicker">Previous</span><span class="pager__title">Printing &amp; PDF</span></a><a class="pager__link pager__link--next" href="../../en/blog-mode/"><span class="pager__kicker">Next</span><span class="pager__title">Blog mode</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#shell">Shell</a><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#tables">Tables</a><a class="toc__link toc__link--2" href="#templates">Templates</a><a class="toc__link toc__link--2" href="#sections-folding">Sections &amp;amp; folding</a><a class="toc__link toc__link--2" href="#menus-gestures-and-the-pointer">Menus, gestures and the pointer</a><a class="toc__link toc__link--2" href="#the-tour">The tour</a><a class="toc__link toc__link--2" href="#the-designer">The designer</a><a class="toc__link toc__link--2" href="#why-these-keys">Why these keys</a><a class="toc__link toc__link--2" href="#non-latin-keyboards">Non-Latin keyboards</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

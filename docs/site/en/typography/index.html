@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typography · Vellum Documentation</title>
+<meta name="description" content="The self-hosted font catalog, the four slots, your own uploaded faces, and how Arabic and Latin share one paragraph.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/typography/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link is-current" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="typography">Typography</h1>
+<p><em>The self-hosted font catalog, the four slots, your own uploaded faces, and how Arabic and Latin share one paragraph.</em></p>
+<hr>
+<p>The catalog is the no-CSS version of the <a href="../theming/#bring-your-own-fonts-the-css-route"><code>custom.css</code> escape hatch</a> — and its point is <strong>Arabic</strong>.
+Open <strong>Settings → Typography</strong> and you get four pickers:</p>
+<div class="table"><table><thead><tr><th>Slot</th><th>Drives</th><th>Offers</th></tr></thead><tbody><tr><td><strong>Reading text</strong></td><td><code>--font-serif</code> — reading column, editor prose, headings</td><td>Lora, EB Garamond, Crimson Pro, Literata, Source Serif 4, Merriweather, Inter, Source Sans 3, IBM Plex Sans, Work Sans</td></tr><tr><td><strong>Interface</strong></td><td><code>--font-ui</code> — sidebar, tabs, panels, status bar</td><td>the same Latin list</td></tr><tr><td><strong>Code</strong></td><td><code>--font-mono</code> — code blocks, raw markdown, inline code</td><td>JetBrains Mono, IBM Plex Mono, Fira Code, Source Code Pro</td></tr><tr><td><strong>Arabic face</strong></td><td>the Arabic letters in <strong>all three</strong> of the above</td><td>Amiri, Scheherazade New, Noto Naskh Arabic, Markazi Text, Lateef, Aref Ruqaa · Noto Kufi Arabic, Noto Sans Arabic, IBM Plex Sans Arabic, Cairo, Tajawal, Reem Kufi, Almarai</td></tr></tbody></table></div><p>Every slot also takes <strong>system</strong>, the default: the built-in stacks, nothing downloaded, nothing
+served — and every slot also offers <strong>your own uploads</strong> (below). <strong>Reset fonts</strong> puts all four
+back to <code>system</code>.</p>
+<p><strong>The picker draws every option in the face it names.</strong> A list of family names set in the
+interface font is a list of trademarks: nobody chooses between Literata and Source Serif by
+reading the words. So each row renders in its own typeface, Arabic faces carry an Arabic sample,
+and the rows are grouped (serif / sans / monospace / naskh / modern &amp; kufi / <em>your fonts</em>) with a
+filter field over them. The faces are fetched a <strong>group at a time</strong>, as that group first appears,
+so opening the Code picker never downloads the Arabic ones.</p>
+<p><strong>The specimen stays on screen while you choose.</strong> A live sample block — one mixed line per slot,
+Latin and Arabic in the same run, so per-character selection is visible at a glance — is pinned to
+the top of the tab and updates <em>before</em> you save, including the size dial below. Choosing type is
+a compare-and-adjust loop; a preview the picker covers up previews nothing.</p>
+<h2 id="self-hosting-is-the-whole-design"><a class="anchor" href="#self-hosting-is-the-whole-design">Self-hosting is the whole design</a></h2>
+<p>When you save, the <em>server</em> fetches the chosen families once from Google Fonts (a <code>woff2</code> request,
+so you get <code>woff2</code> back), parses the <code>@font-face</code> blocks, downloads each face into
+<code>VELLUM_DATA/fonts/catalog/&lt;id&gt;/</code>, and records the parsed <code>unicode-range</code>s in a <code>meta.json</code> beside
+them. From then on the browser only ever sees your server: <code>GET /api/site-fonts.css</code> is generated
+from the cache and every <code>src:</code> in it points at <code>/api/fonts/catalog/…</code> on this instance.
+<strong>No visitor&#39;s browser contacts an external host, ever</strong> — not for the fonts, not for the
+stylesheet. Only two hosts are ever reachable from the fetch side (<code>fonts.googleapis.com</code>,
+<code>fonts.gstatic.com</code>), enforced as a hard allowlist on the parsed URL with redirects refused,
+timeouts and per-file/per-family size caps. A download that fails is a clean <strong>502 with a message</strong>
+and <code>settings.json</code> is left exactly as it was — so an offline box keeps serving whatever it has
+already cached, and a save that only re-picks cached families still works with no network at all.</p>
+<h2 id="the-arabic-slot-is-per-character-not-per-language"><a class="anchor" href="#the-arabic-slot-is-per-character-not-per-language">The Arabic slot is per character, not per language</a></h2>
+<p>The generated stylesheet does not define three families and hope; it defines three <em>composites</em> —
+<code>VellumProse</code>, <code>VellumUI</code>, <code>VellumMono</code> — and lists the Arabic face&#39;s <code>@font-face</code> blocks <strong>first</strong>,
+narrowed to the Arabic unicode blocks, with the Latin face&#39;s blocks after and those same ranges
+carved out of them. The two sets are disjoint, so the browser&#39;s per-character font matching does
+the rest: in</p>
+<blockquote>
+<p>A mixed line is where the trick shows: the word خط sits inside an English sentence.</p>
+</blockquote>
+<p>the Latin runs render in Lora and the Arabic word in Amiri — in one paragraph, with no markup,
+no <code>lang</code> attribute and no direction involved. That works on an <strong>English</strong> instance too, which
+is the point: a vault with Arabic quotations in English notes has never had a good answer before.</p>
+<h2 id="and-at-the-right-size"><a class="anchor" href="#and-at-the-right-size">And at the right size</a></h2>
+<p>Picking the right face is only half of &quot;sets correctly&quot;; the other half is <em>how big it comes out</em>.
+Two faces at one <code>font-size</code> are not two faces at one apparent size: Amiri&#39;s base letters stand at
+about 0.35 em where Lora&#39;s x-height is 0.51 em, so an unadjusted Arabic run beside Lora reads
+roughly a third smaller — a footnote dropped into a paragraph. Each Arabic catalog entry therefore
+carries a measured <strong><code>size-adjust</code></strong> (Amiri 138%, Scheherazade New 136%, Lateef 150%, Noto Kufi
+Arabic 90%, Cairo and Almarai none), emitted on that family&#39;s <code>@font-face</code> blocks in the composite.
+Because it rides on the <em>face</em>, it applies per character, in every slot, on an English instance as
+much as an Arabic one — which the whole-UI <code>--font-scale</code> multiplier under <code>:root[lang=&quot;ar&quot;]</code> can
+never do, since it scales both scripts equally and so never moves the ratio between them.
+The composites finally fall back to <code>var(--font-*-system)</code>, so any codepoint neither face covers
+still lands on the stack the instance would have used — including the Arabic-first reorder and
+the Arabic type-metric compensation that <code>:root[lang=&quot;ar&quot;]</code> applies.</p>
+<h2 id="your-own-fonts"><a class="anchor" href="#your-own-fonts">Your own fonts</a></h2>
+<p>A catalog of twenty-seven Google families cannot be the whole answer for typography, and for
+Arabic it is not even close: the face a serious instance wants is usually one its owner licensed,
+and it is on nobody&#39;s CDN. So <strong>Settings → Typography → Your own fonts</strong> takes an upload.</p>
+<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>Formats</strong></td><td><code>.woff2</code>, <code>.woff</code>, <code>.ttf</code>, <code>.otf</code></td></tr><tr><td><strong>Size</strong></td><td>5 MB per file</td></tr><tr><td><strong>Stored in</strong></td><td><code>VELLUM_DATA/fonts/custom/</code> — outside the vault, and <code>VELLUM_DATA</code> is gitignored, so an uploaded face never lands in your notes repo or in a backup push</td></tr><tr><td><strong>Served from</strong></td><td><code>GET /api/fonts/custom/&lt;file&gt;</code> on this instance — same terms as the catalog cache: self-hosted, no external host, immutable caching</td></tr><tr><td><strong>Offered in</strong></td><td>all four slots, under <strong>Your fonts</strong></td></tr></tbody></table></div><p>The <strong>format is decided by the file&#39;s magic bytes</strong> (<code>wOF2</code>, <code>wOFF</code>, <code>0x00010000</code>, <code>true</code>,
+<code>OTTO</code>) — never by the extension and never by the upload&#39;s content type, both of which are
+attacker-controlled text. A PNG renamed <code>.woff2</code> is a <code>400</code>, which matters because the file is
+about to be served back with a font MIME type. The header is then read for <strong>structure</strong>: a
+plausible table count and a table directory that fits inside the file it came in. That check
+costs nothing and turns a file that could never render — magic bytes followed by five million
+zeroes — into a <code>400</code> at upload time instead of a face that silently never draws.</p>
+<p>Anything the server <em>decompresses</em> out of an uploaded file is <strong>bounded before it is read</strong>. A
+<code>name</code> table sits behind one brotli pass in WOFF2 and behind per-table zlib in WOFF1, and both
+of those are decompression bombs unless the output is capped: an 800-byte file whose stream holds
+900 MB of zeroes will otherwise allocate all 900 MB, synchronously, from a request. Each call is
+now held to the length the file&#39;s own directory claims, itself clamped to a hard 32 MB ceiling.
+A file that breaks the bound is not an error — it simply falls back to the filename-derived
+family, which is what an unreadable font has always done.</p>
+<p>The stored filename is a slug this server builds (lowercase ASCII, collision-suffixed), so nothing
+you type reaches a path, a route parameter or a <code>url()</code>. When your filename leaves nothing — which
+is what <code>خط-عربي.otf</code> does to an ASCII slug — the <strong>font&#39;s own family name is used instead</strong>, so
+that file is stored as <code>amiri.otf</code> rather than as <code>font.otf</code>, <code>font-2.otf</code>, <code>font-3.otf</code>. The
+<strong>family name</strong> itself comes from the font&#39;s <code>name</code> table where the file allows it, falling back
+to the filename, so your picker says <em>Kitab</em> rather than <em>upload-3</em>.</p>
+<p>Concurrent uploads are safe: filename allocation and the sidecar index are serialized, and the
+index is written through a per-writer temporary file. (Four parallel uploads of four different
+faces used to leave two files on disk, one of them labelled with another font&#39;s family, and three
+<code>500</code>s — while the bytes were on disk all along.)</p>
+<p>Uploaded faces are emitted into <code>/api/site-fonts.css</code> as ordinary self-hosted <code>@font-face</code>
+blocks, and they take the <strong>same per-slot <code>unicode-range</code> discipline</strong> as the catalog: in the
+Arabic slot a custom face is narrowed to the Arabic blocks, and a custom face in a Latin slot
+standing beside an Arabic one has those blocks carved out of it. The two sets stay disjoint, so
+per-character matching works with your own type exactly as it does with ours.</p>
+<p>Uploads are admin-only (<code>POST /api/fonts/upload</code>; an admin previewing the public site is refused
+like any other visitor), and <strong>removing</strong> a face is guarded twice: a font a slot still names shows
+which slot instead of a delete button, and the server refuses the delete with a <code>409</code> regardless.</p>
+<h2 id="arabic-size-match"><a class="anchor" href="#arabic-size-match">Arabic size match</a></h2>
+<p>The catalog&#39;s Arabic entries carry a <em>measured</em> <code>size-adjust</code>; an uploaded face cannot. So when an
+Arabic face is chosen the tab grows one more control — a percentage with its unit in the field —
+which overrides the compensation for whatever is in the Arabic slot, catalog or upload. It is set
+by eye against the specimen two rows above it, which is the only way this number is ever really
+set. Stored as <code>settings.fonts.arabicSizeAdjust</code> (50–300, absent = the catalog&#39;s own value, or
+none).</p>
+<h2 id="escape-hatch-unchanged"><a class="anchor" href="#escape-hatch-unchanged">Escape hatch, unchanged</a></h2>
+<p>For anything neither the catalog nor the uploader covers — a variable font you want to drive with
+a custom axis, a script-specific stack, a face you would rather wire by hand — drop the file in
+<code>VELLUM_DATA/fonts/</code> and name it from <code>custom.css</code> exactly as shown in
+<a href="../theming/#bring-your-own-fonts-the-css-route">Theming</a>. That link is injected <em>after</em> the
+generated stylesheet, so a <code>custom.css</code> rule on <code>:root</code> wins over the catalog, the uploads and the
+defaults alike.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/typography.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/theming/"><span class="pager__kicker">Previous</span><span class="pager__title">Theming</span></a><a class="pager__link pager__link--next" href="../../en/arabic-and-rtl/"><span class="pager__kicker">Next</span><span class="pager__title">Arabic &amp; RTL</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#self-hosting-is-the-whole-design">Self-hosting is the whole design</a><a class="toc__link toc__link--2" href="#the-arabic-slot-is-per-character-not-per-language">The Arabic slot is per character, not per language</a><a class="toc__link toc__link--2" href="#and-at-the-right-size">And at the right size</a><a class="toc__link toc__link--2" href="#your-own-fonts">Your own fonts</a><a class="toc__link toc__link--2" href="#arabic-size-match">Arabic size match</a><a class="toc__link toc__link--2" href="#escape-hatch-unchanged">Escape hatch, unchanged</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

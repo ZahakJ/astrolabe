@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trackers · Vellum Documentation</title>
+<meta name="description" content="A fenced block that turns a note into a living progress card — and a board that shelves all of them.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/trackers/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link is-current" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="trackers">Trackers</h1>
+<p><em>A fenced block that turns a note into a living progress card — and a board that shelves all of them.</em></p>
+<hr>
+<p>A tracker is a <code>```tracker</code> fence. It renders as a card with cover art, a
+progress bar, a status chip, a rating and your own notes — in the editor, in
+reading view, on the published blog, and inside a transclusion, because all
+four draw it with the same renderer.</p>
+<pre><code class="language-tracker">title: Elden Ring
+kind: game
+cover: elden-ring.jpg
+progress: 62/130
+unit: hours
+status: playing
+rating: 9/10
+started: 2026-07-01
+notes: |
+  Margit took 14 tries.
+</code></pre>
+<h2 id="the-fields"><a class="anchor" href="#the-fields">The fields</a></h2>
+<div class="table"><table><thead><tr><th>Key</th><th>What it takes</th><th>Notes</th></tr></thead><tbody><tr><td><code>title</code></td><td>any text</td><td>Or just write the title on a line of its own.</td></tr><tr><td><code>kind</code></td><td><code>book</code> <code>game</code> <code>film</code> <code>show</code> <code>course</code> <code>project</code> <code>habit</code>, or your own word</td><td>Picks the glyph and the default unit. <code>movie</code>, <code>series</code>, <code>tv</code>, <code>novel</code>, <code>anime</code>, <code>class</code>, <code>routine</code> fold into the seven; anything else keeps your word and gets the ✦ glyph.</td></tr><tr><td><code>cover</code></td><td>an attachment name, or <code>![[name.jpg]]</code></td><td>Resolved exactly like an embed. Missing or broken → the kind&#39;s glyph, never a broken picture.</td></tr><tr><td><code>progress</code></td><td><code>62/130</code>, <code>45%</code>, <code>45</code>, <code>62 of 130</code></td><td>A fraction derives the percentage; a bare number <em>is</em> the percentage. Eastern Arabic digits are read too.</td></tr><tr><td><code>unit</code></td><td>any word</td><td>Yours, printed as you wrote it. Leave it out and the kind&#39;s own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised.</td></tr><tr><td><code>status</code></td><td><code>planned</code> <code>active</code> <code>done</code> <code>paused</code> <code>dropped</code></td><td>Plus the words people actually type: <code>reading</code>, <code>playing</code>, <code>watching</code>, <code>in-progress</code>, <code>started</code>, <code>finished</code>, <code>on hold</code>, <code>dnf</code>, <code>backlog</code>… Left out, it is derived from the progress.</td></tr><tr><td><code>rating</code></td><td><code>8/10</code>, <code>4/5</code>, <code>★★★★</code>, <code>4</code></td><td>A bare number is out of five up to five, out of ten above it.</td></tr><tr><td><code>started</code>, <code>finished</code></td><td>a date</td><td>An ISO date (<code>2026-07-01</code>) is formatted in the site&#39;s own calendar and numerals; anything else prints as written.</td></tr><tr><td><code>notes</code></td><td>a block scalar (the key, a colon, then a <code>|</code>)</td><td>Markdown, rendered through the normal pipeline.</td></tr></tbody></table></div><p>Unknown keys are ignored, and a fence with <strong>neither a title nor a progress</strong>
+stays a plain code block. That is deliberate: unparseable content must read as
+its own source rather than vanish into an empty card, which is the rule
+<code>$$ math $$</code> already follows.</p>
+<p>A note may hold as many trackers as you like.</p>
+<h2 id="nudging-the-bar"><a class="anchor" href="#nudging-the-bar">Nudging the bar</a></h2>
+<p>In the editor, an admin session gets a quiet <strong>−</strong> and <strong>+</strong> at the card&#39;s
+inline edge. One press is one unit — it rewrites the <code>progress:</code> line in your
+file and nothing else, as a single undo step. There is no separate store: the
+note <em>is</em> the state, so editing the number by hand does exactly what the button
+does.</p>
+<p>Cross into 100% and the fill takes on a soft glow and the wordmark&#39;s ✦ appears
+beside the count.</p>
+<p>Reading view and the public site are inert by design — there is no write path
+for a visitor, and buttons that cannot work are furniture that lies.</p>
+<h2 id="the-board"><a class="anchor" href="#the-board">The board</a></h2>
+<p>A <code>```tracker-board</code> fence draws every tracker in the vault as a grid of
+mini-cards, grouped by status (active first, then planned, done, paused,
+dropped). Each card links to the note its tracker lives in.</p>
+<pre><code class="language-tracker-board">kind: game
+status: active
+limit: 12
+</code></pre>
+<div class="table"><table><thead><tr><th>Filter</th><th>Effect</th></tr></thead><tbody><tr><td><code>kind</code></td><td>Only that kind. Folded like the card&#39;s own <code>kind:</code>, so <code>kind: movie</code> finds your films.</td></tr><tr><td><code>status</code></td><td>Only that status, synonyms included.</td></tr><tr><td><code>limit</code></td><td>At most that many cards.</td></tr></tbody></table></div><p>An empty body is a board of everything. A vault with no trackers gets an
+inviting empty state rather than a blank.</p>
+<h2 id="publishing-a-shelf"><a class="anchor" href="#publishing-a-shelf">Publishing a shelf</a></h2>
+<p>The board is audience-aware. It reads <code>GET /api/trackers</code>, which is scoped
+exactly like the blog&#39;s own post list:</p>
+<ul>
+<li>a <strong>visitor</strong> sees trackers from <strong>published notes only</strong>, with the language
+filter applied at their scope;</li>
+<li>an <strong>admin</strong> sees the whole vault;</li>
+<li><strong>templates are excluded from both</strong> — a stencil carrying a tracker skeleton
+would otherwise shelve itself as a book nobody has started.</li>
+</ul>
+<p>So a board left on a published note is safe: put your reading year on the
+public site without opening the rest of the vault. Cover art on a published
+tracker is served to visitors too — the indexer collects tracker covers into
+the same allowlist that governs banners and embeds.</p>
+<h2 id="in-obsidian"><a class="anchor" href="#in-obsidian">In Obsidian</a></h2>
+<p><code>tracker</code> is a Vellum extension, not an Obsidian feature. Open the same vault
+in Obsidian and the fence degrades to what it is — a labelled code block whose
+lines are all readable. Nothing is converted, nothing is lost, and the note
+still says everything it said here. See
+<a href="https://github.com/ZahakJ/vellum/blob/main/OBSIDIAN-COMPAT.md" target="_blank" rel="noreferrer">OBSIDIAN-COMPAT.md</a>.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/trackers.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/latex/"><span class="pager__kicker">Previous</span><span class="pager__title">LaTeX notes</span></a><a class="pager__link pager__link--next" href="../../en/printing/"><span class="pager__kicker">Next</span><span class="pager__title">Printing &amp; PDF</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-fields">The fields</a><a class="toc__link toc__link--2" href="#nudging-the-bar">Nudging the bar</a><a class="toc__link toc__link--2" href="#the-board">The board</a><a class="toc__link toc__link--2" href="#publishing-a-shelf">Publishing a shelf</a><a class="toc__link toc__link--2" href="#in-obsidian">In Obsidian</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>
