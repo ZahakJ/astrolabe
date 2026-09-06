@@ -13,6 +13,18 @@ import type { TrackerMeta, TreeNode } from "../../shared/types.ts";
  *  already has rather than of the server, because the form asks it before
  *  every create and a 404 for "not yet" is a red line in the console for a
  *  question whose usual answer is no. */
+/** True when a FOLDER of this path stands in the tree (treeHasPath answers
+ *  for files only). Used to find which media root a vault already has. */
+export function treeHasFolder(tree: TreeNode | null, path: string): boolean {
+  const want = path.toLowerCase();
+  const walk = (node: TreeNode): boolean => {
+    if (node.type !== "folder") return false;
+    if (node.path.toLowerCase() === want) return true;
+    return (node.children ?? []).some(walk);
+  };
+  return tree !== null && walk(tree);
+}
+
 export function treeHasPath(tree: TreeNode | null, path: string): boolean {
   const want = path.toLowerCase();
   const walk = (node: TreeNode): boolean => {

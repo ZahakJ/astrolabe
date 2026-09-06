@@ -22,13 +22,20 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, isGraphTab, paneAt, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isGraphTab, isMediaTab, paneAt, surfaceOf, type Workspace } from "./workspace.ts";
 
 /** The focused pane is showing the graph tab. */
 function graphTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isGraphTab(tab.path);
+}
+
+/** …or the Media page's. */
+function mediaTabActive(ws: Workspace): boolean {
+  const pane = paneAt(ws, ws.focus);
+  const tab = pane === null ? null : activeTabOf(pane);
+  return tab !== null && isMediaTab(tab.path);
 }
 import { toast } from "./toast.ts";
 
@@ -111,6 +118,7 @@ function bookSurfaceOf(ws: Workspace): { kind: "library" } | { kind: "book"; pat
  *  the note beside it hands the bar back to the note. */
 function urlForState(view: string, openPath: string | null, ws: Workspace): string {
   if (view === "editor" && graphTabActive(ws)) return "/graph";
+  if (view === "editor" && mediaTabActive(ws)) return "/media";
   const book = bookSurfaceOf(ws);
   if (book !== null) return urlForBooksRoute(book);
   return openPath ? notePathToUrl(openPath) : "/";
@@ -125,6 +133,8 @@ function setTitle(openPath: string | null, view: string): void {
   const book = bookSurfaceOf(useStore.getState().workspace);
   if (view === "editor" && graphTabActive(useStore.getState().workspace)) {
     document.title = `${t("docTitleGraph")} · ${base}`;
+  } else if (view === "editor" && mediaTabActive(useStore.getState().workspace)) {
+    document.title = `${t("media")} · ${base}`;
   } else if (book !== null) {
     document.title =
       book.kind === "library"
@@ -165,6 +175,10 @@ export function applyUrl(initial = false): boolean {
     }
     if (location.pathname === "/graph") {
       store.setView("graph");
+      return true;
+    }
+    if (location.pathname === "/media") {
+      store.setView("media");
       return true;
     }
     const path = urlToNotePath(location.pathname, store.tree);
@@ -210,7 +224,9 @@ export function applyUrl(initial = false): boolean {
       // The cost is the tab arrangement, and it is bounded: this entry only
       // EXISTS if the session began with nothing open, and Forward reopens the
       // note the reader stepped back from.
-      if (store.openPath !== null || graphTabActive(store.workspace)) store.closeAllTabs();
+      if (store.openPath !== null || graphTabActive(store.workspace) || mediaTabActive(store.workspace)) {
+        store.closeAllTabs();
+      }
       return true;
     }
     return false;

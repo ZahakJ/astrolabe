@@ -917,8 +917,9 @@ export default function CommandPalette() {
           void promptNewFolder("");
           break;
         case "new-drawing": {
+          // Beside the open note; with none open, the drawings folder (or root).
           const open = store.openPath;
-          void promptNewDrawing(open === null || !open.includes("/") ? "" : open.slice(0, open.lastIndexOf("/")));
+          void promptNewDrawing(open === null ? store.drawingsFolder : !open.includes("/") ? "" : open.slice(0, open.lastIndexOf("/")));
           break;
         }
         case "reveal-in-tree": {
@@ -1007,7 +1008,7 @@ export default function CommandPalette() {
           store.toggleGraph();
           break;
         case "open-media":
-          store.setView(store.view === "media" ? "editor" : "media");
+          store.toggleMedia();
           break;
         case "toggle-reading":
           store.toggleReading();

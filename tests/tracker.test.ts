@@ -390,6 +390,12 @@ describe("the Media page's edits", () => {
     const { mediaNotePath, mediaNoteContent, mediaProgress } = await import("../shared/media.ts");
     assert.equal(mediaNotePath("show", "Severance: Season 2?"), "Media/Shows/Severance Season 2.md");
     assert.equal(mediaNotePath("podcast", "X"), "Media/Podcast/X.md");
+    // An Arabic instance files in Arabic; an existing root of either language wins.
+    assert.equal(mediaNotePath("book", "الأسود يليق بك", { lang: "ar" }), "وسائط/كتب/الأسود يليق بك.md");
+    assert.equal(mediaNotePath("podcast", "X", { lang: "ar" }), "وسائط/podcast/X.md");
+    assert.equal(mediaNotePath("book", "X", { lang: "ar", existing: ["Media"] }), "Media/Books/X.md");
+    assert.equal(mediaNotePath("film", "X", { lang: "en", existing: ["وسائط"] }), "وسائط/أفلام/X.md");
+    assert.equal(mediaNotePath("film", "X", { lang: "en", existing: ["وسائط", "Media"] }), "Media/Films/X.md");
     assert.equal(mediaProgress(62.5, 130), "62.5/130");
     assert.equal(mediaProgress(12, null), "12/?");
     const note = mediaNoteContent({ title: "Elden Ring", kind: "game", progress: "62/130", unit: "hours", status: "active", notes: "Margit." });

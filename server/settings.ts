@@ -7,7 +7,7 @@
 // Keys: siteName, tagline, footer, defaultTheme, adminTheme, publicLayout, blogLocale,
 // language, languageFilter, languageToggle, excludeTags, commentsEnabled, shareButtons,
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
-// templatesFolder, defaultTemplate, dateCalendar, textDirection, textAlign,
+// templatesFolder, drawingsFolder, defaultTemplate, dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
 // Unknown keys in the file are preserved verbatim on every write so external
@@ -480,6 +480,9 @@ export function getSettings(): SettingsData {
   if (typeof raw.templatesFolder === "string" && raw.templatesFolder.trim() !== "") {
     out.templatesFolder = raw.templatesFolder.trim();
   }
+  if (typeof raw.drawingsFolder === "string" && raw.drawingsFolder.trim() !== "") {
+    out.drawingsFolder = raw.drawingsFolder.trim();
+  }
   if (typeof raw.defaultTemplate === "string" && raw.defaultTemplate.trim() !== "") {
     out.defaultTemplate = raw.defaultTemplate.trim();
   }
@@ -647,6 +650,7 @@ export function effectiveSettings(): EffectiveSettings {
     attachments: attachmentLocation(),
     templatesFolder: templatesFolder(),
     templatesFolderDetected: s.templatesFolder === undefined && templatesFolder() !== null,
+    drawingsFolder: drawingsFolder(),
     defaultTemplate: defaultTemplate(),
     home: {
       mode: s.home?.mode ?? "note",
@@ -803,6 +807,21 @@ export function templatesFolder(): string | null {
     }
   }
   return detectTemplatesFolder();
+}
+
+/** Where the sidebar's pencil starts a drawing: the stored folder, or null
+ *  for the vault root. No auto-detection — a drawing is filed where the owner
+ *  said, and "nowhere in particular" is the root. */
+export function drawingsFolder(): string | null {
+  const stored = getSettings().drawingsFolder;
+  if (!stored) return null;
+  try {
+    const rel = normalizeRel(stored);
+    safeAbs(rel);
+    return rel === "" ? null : rel;
+  } catch {
+    return null;
+  }
 }
 
 /** Where this instance's tag pages live: the stored setting, else the
@@ -1061,6 +1080,16 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     if (rel === "") return null;
     if (isNotePath(rel)) {
       throw new VaultError(400, 'Settings key "templatesFolder" must be a folder, not a note');
+    }
+    return rel;
+  }),
+  drawingsFolder: stringKey("drawingsFolder", (v) => {
+    const clean = cleanValue(v, "drawingsFolder");
+    if (clean === null) return null;
+    const rel = vaultRel(clean, "drawingsFolder");
+    if (rel === "") return null;
+    if (isNotePath(rel)) {
+      throw new VaultError(400, 'Settings key "drawingsFolder" must be a folder, not a note');
     }
     return rel;
   }),

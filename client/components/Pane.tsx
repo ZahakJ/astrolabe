@@ -19,6 +19,7 @@ import { lazySurface } from "../lazySurface.tsx";
 import { useStore } from "../state.ts";
 import { activeTabOf, paneAt, surfaceOf } from "../workspace.ts";
 const GraphView = lazySurface(() => import("./GraphView.tsx"));
+const MediaView = lazySurface(() => import("../media/MediaView.tsx"));
 import Tabs from "./Tabs.tsx";
 import { useTabDrag } from "../dragTab.ts";
 
@@ -116,6 +117,12 @@ export default function Pane({
       // the note the way they flip between two notes.
       <Suspense fallback={<div className="s-graph" />}>
         <GraphView />
+      </Suspense>
+    ) : surface === "media" ? (
+      // The Media page is a tab like the graph: every tracker in the vault,
+      // shelved, in the pane that holds it.
+      <Suspense fallback={<div className="s-media" />}>
+        <MediaView />
       </Suspense>
     ) : surface === "drawing" && tab !== null ? (
       // A DRAWING IS A TAB, like a book: the canvas fills the pane beside

@@ -18,7 +18,7 @@ import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
 import { DRAWER_QUERY, useStore } from "../state.ts";
-import { activeTabOf, isGraphTab, paneAt } from "../workspace.ts";
+import { activeTabOf, isGraphTab, isMediaTab, paneAt } from "../workspace.ts";
 import { choiceGroup, choiceLabel } from "../themes.ts";
 import SyncBadge from "./SyncBadge.tsx";
 import { openThemePicker } from "./ThemePicker.tsx";
@@ -175,6 +175,12 @@ export default function StatusBar() {
   const readingMode = useStore((s) => s.readingMode);
   const setView = useStore((s) => s.setView);
   const toggleGraph = useStore((s) => s.toggleGraph);
+  const toggleMedia = useStore((s) => s.toggleMedia);
+  const mediaOn = useStore((s) => {
+    const pane = paneAt(s.workspace, s.workspace.focus);
+    const tab = pane === null ? null : activeTabOf(pane);
+    return tab !== null && isMediaTab(tab.path);
+  });
   const graphOn = useStore((s) => {
     const pane = paneAt(s.workspace, s.workspace.focus);
     const tab = pane === null ? null : activeTabOf(pane);
@@ -308,9 +314,9 @@ export default function StatusBar() {
               shelf: three spines and one leaning. */}
           <button
             type="button"
-            className={`s-statusbar__btn s-statusbar__icon${view === "media" ? " s-statusbar__btn--on" : ""}`}
-            aria-pressed={view === "media"}
-            onClick={() => setView(view === "media" ? "editor" : "media")}
+            className={`s-statusbar__btn s-statusbar__icon${mediaOn ? " s-statusbar__btn--on" : ""}`}
+            aria-pressed={mediaOn}
+            onClick={toggleMedia}
             title={t("mediaTitle")}
             aria-label={t("media")}
             data-testid="media-door"

@@ -1,6 +1,6 @@
 // THE MEDIA PAGE. Every ```tracker in the vault, shelved by kind.
 //
-// A workspace VIEW, like the graph (`view === "media"` in the store): it
+// A workspace TAB, like the graph (`MEDIA_TAB` in client/workspace.ts): it
 // replaces the note column rather than opening in a pane, and it is a lazy
 // chunk with its own stylesheet, because a reader who never presses the
 // button owes none of it. It reads the same `GET /api/trackers` the board

@@ -561,6 +561,9 @@ export interface MeData {
    *  name no folder to keep a note out of. ADMIN SESSIONS ONLY, on the same
    *  grounds as folderIcons above: it is a vault path, and moving is admin. */
   attachmentFolder?: { mode: "specified" | "subfolder"; folder: string };
+  /** Where a new drawing goes by default (settings.drawingsFolder); absent
+   *  means the vault root. Admin only, like the two above. */
+  drawingsFolder?: string;
 }
 
 // ── Visibility impact (ADMIN ONLY) ──────────────────────────────────────────
@@ -824,6 +827,9 @@ export interface SettingsData {
    *  ("Templates", "_templates", "قوالب"); ambiguity means unset, never a
    *  guess. Notes inside it are stencils: they never appear in the post list. */
   templatesFolder?: string;
+  /** Where the sidebar's pencil (and the palette, with no note open) starts a
+   *  new drawing, vault-relative. Absent → the vault root. */
+  drawingsFolder?: string;
   /** Template applied to every NEW note (vault-relative note path). Absent —
    *  the default — means new notes are born empty, as they always have been. */
   defaultTemplate?: string;
@@ -977,6 +983,8 @@ export interface EffectiveSettings {
    *  the settings panel can say so instead of showing an empty field beside a
    *  feature that is quietly working. */
   templatesFolderDetected: boolean;
+  /** The drawings folder in force, or null for the vault root. */
+  drawingsFolder: string | null;
   defaultTemplate: string | null;
   home: Required<Pick<HomeSettings, "mode">> & Omit<HomeSettings, "mode">;
   /** Public folders with every default filled in — what the settings editor
@@ -1060,6 +1068,8 @@ export interface SettingsPatch {
   } | null;
   /** Templates folder; null (or "") clears it back to auto-detection. */
   templatesFolder?: string | null;
+  /** Drawings folder; null (or "") clears it back to the vault root. */
+  drawingsFolder?: string | null;
   /** Template for new notes; null (or "") turns the default back off. */
   defaultTemplate?: string | null;
   /** Git sync configuration; null clears the whole key. */

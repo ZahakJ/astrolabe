@@ -173,6 +173,18 @@ const SPRING_MS = 600;
 // Tags section collapse (tag-heavy vaults: the pill cloud can eat the tree's
 // room) — persisted like the tree's folder expansion.
 const TAGS_COLLAPSED_KEY = "astrolabe.tags-collapsed";
+/** The shelf's height when the reader has dragged its top edge (px), or null
+ *  for the stylesheet's own cap. Per browser, like the pane widths. */
+const TAGS_HEIGHT_KEY = "astrolabe.tags-height";
+const TAGS_MIN_H = 48;
+function loadTagsHeight(): number | null {
+  try {
+    const n = Number(localStorage.getItem(TAGS_HEIGHT_KEY));
+    return Number.isFinite(n) && n >= TAGS_MIN_H ? n : null;
+  } catch {
+    return null;
+  }
+}
 /** How many tag pills the shelf shows before it offers the rest (F17) — a
  *  dozen is about four rows in a 292px sidebar, which leaves the tree the pane.
  *  The pills arrive sorted by count, so the twelve shown are the twelve used. */
@@ -655,6 +667,53 @@ export default function Sidebar() {
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [tags, setTags] = useState<TagCount[]>([]);
   const [tagsCollapsed, setTagsCollapsed] = useState(loadTagsCollapsed);
+  const [tagsHeight, setTagsHeight] = useState<number | null>(loadTagsHeight);
+  // THE SHELF'S TOP EDGE IS A GRIP (the owner: "should def be able to expand
+  // and contract that"). Drag it up for more pills, down for more tree;
+  // double-click for the stylesheet's own height. Pointer capture, like the
+  // pane grips, and the height lands on the element itself.
+  const onTagsGrip = (e: React.PointerEvent<HTMLDivElement>): void => {
+    if (e.button !== 0) return;
+    const grip = e.currentTarget;
+    const shelf = grip.parentElement;
+    if (shelf === null) return;
+    e.preventDefault();
+    grip.setPointerCapture(e.pointerId);
+    const startY = e.clientY;
+    const startH = shelf.getBoundingClientRect().height;
+    const sidebarH = shelf.closest(".s-sidebar")?.getBoundingClientRect().height ?? window.innerHeight;
+    let last = startH;
+    document.documentElement.classList.add("s-app--split-drag", "s-app--split-drag-y");
+    const move = (ev: PointerEvent): void => {
+      last = Math.max(TAGS_MIN_H, Math.min(sidebarH * 0.8, startH + (startY - ev.clientY)));
+      shelf.style.height = `${last}px`;
+      shelf.style.maxHeight = `${last}px`;
+    };
+    const up = (): void => {
+      grip.removeEventListener("pointermove", move);
+      grip.removeEventListener("pointerup", up);
+      grip.removeEventListener("pointercancel", up);
+      document.documentElement.classList.remove("s-app--split-drag", "s-app--split-drag-y");
+      const h = Math.round(last);
+      setTagsHeight(h);
+      try {
+        localStorage.setItem(TAGS_HEIGHT_KEY, String(h));
+      } catch {
+        // storage unavailable — the height still holds for this session
+      }
+    };
+    grip.addEventListener("pointermove", move);
+    grip.addEventListener("pointerup", up);
+    grip.addEventListener("pointercancel", up);
+  };
+  const resetTagsHeight = (): void => {
+    setTagsHeight(null);
+    try {
+      localStorage.removeItem(TAGS_HEIGHT_KEY);
+    } catch {
+      // storage unavailable
+    }
+  };
   /** Which tag pill currently carries the shelf's single tab stop. Null until
    *  the reader moves it; the derivation below is what decides where Tab
    *  lands before that, and it re-decides whenever the tag list changes under
@@ -1505,15 +1564,16 @@ export default function Sidebar() {
             >
               <IconNewNote />
             </button>
-            {/* A drawing at the root, one click from the top (the owner: "add
-                a new drawing logo on top to start a drawing in the root
-                directory"). The folder menu still starts one inside a folder. */}
+            {/* A drawing one click from the top (the owner: "add a new drawing
+                logo on top to start a drawing in the root directory"), in the
+                drawings folder from settings or the root. The folder menu
+                still starts one inside a folder. */}
             <button
               type="button"
               className="s-iconbtn"
               title={t("newDrawing")}
               aria-label={t("newDrawing")}
-              onClick={() => void promptNewDrawing("")}
+              onClick={() => void promptNewDrawing(useStore.getState().drawingsFolder)}
             >
               <IconDrawing />
             </button>
@@ -1906,7 +1966,21 @@ export default function Sidebar() {
       )}
 
       {tags.length > 0 && (
-        <div className={`s-tags${tagsCollapsed ? " s-tags--collapsed" : ""}`}>
+        <div
+          className={`s-tags${tagsCollapsed ? " s-tags--collapsed" : ""}`}
+          style={tagsHeight !== null && !tagsCollapsed ? { height: tagsHeight, maxHeight: tagsHeight } : undefined}
+        >
+          {!tagsCollapsed && (
+            <div
+              className="s-tags__grip"
+              role="separator"
+              aria-orientation="horizontal"
+              aria-label={t("tagsGrip")}
+              title={t("tagsGrip")}
+              onPointerDown={onTagsGrip}
+              onDoubleClick={resetTagsHeight}
+            />
+          )}
           <button
             type="button"
             className="s-tags__toggle"

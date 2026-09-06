@@ -661,8 +661,9 @@ model, before any of it is wired to a component. The property test earned itself
 at seed 0 it found that `settle()` repaired columns, weights and focus but never `active`, so a
 rename that collapses two tabs onto one path left a pane pointing past the end of its own tab list.
 
-**Two levels, never a tree.** Columns along the inline axis, at most two panes stacked in each
-(`MAX_COLUMNS` 3, `MAX_ROWS` 2, `MAX_PANES` 6). A recursive split tree buys infinite layouts and no
+**Two levels, never a tree.** Columns along the inline axis, at most three panes stacked in each
+(`MAX_COLUMNS` 4, `MAX_ROWS` 3, `MAX_PANES` 8; raised from 3 × 2 × 6 in 3.2.0 when a full grid
+looked like a broken drag — a zone the layout would refuse is not drawn). A recursive split tree buys infinite layouts and no
 way back to one: its drop targets cannot be enumerated by a gate, its serialization needs a version
 and a migration table the first time the shape moves, and a layout space too large to name kills
 presets — which are the reason to have splits at all.
@@ -912,7 +913,9 @@ drawing (`openPath` is never `"~graph"`); the router answers `/graph` for it and
 `/graph`; `Tabs.tsx` titles it `docTitleGraph`. Clicking a node opens the note as the tab beside
 it, which is the flip-flop the owner asked for; the tab drags, splits, pins and closes like any
 other, and a restored session brings it back. `PaneMode` still lists `"graph"` for old stored
-workspaces, unused by anything that opens the graph now.
+workspaces, unused by anything that opens the graph now. **The Media page is a tab on the same
+terms** (`MEDIA_TAB = "~media"`, `isMediaTab`, `isVirtualTab` for the pair; `setView("media")`,
+`toggleMedia()`, `mediaOpen()`; the router answers `/media`).
 
 ## The graph view's own settings (client/graphPrefs.ts, GraphView.tsx)
 

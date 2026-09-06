@@ -8,7 +8,7 @@
 
 The note column can be split. `Ctrl/Cmd \` opens a second pane beside the current one on the
 same note; `Ctrl/Cmd Shift \` opens one *below* instead. Panes stand in columns along the reading
-direction, at most two stacked in a column, three columns, six panes in all; the seventh is
+direction, at most three stacked in a column, four columns, eight panes in all; the ninth is
 refused with a sentence rather than a shuffle. `Ctrl/Cmd Alt \` closes the focused pane and its
 tabs are **adopted by a neighbour, never dropped**. `Ctrl/Cmd Alt Shift` with an arrow moves the
 focus between panes, physically, in both languages, and *Focus next pane* in the palette walks
