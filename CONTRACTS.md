@@ -5630,6 +5630,22 @@ because a bad vault-wide edit is unrecoverable.
   hunting "the version before I broke it" thinks); beyond it, `siteDate()`, so a Hijri instance
   dates its own history in Hijri.
 
+## Desktop updates, without a framework (electron/update.ts)
+
+The app asks GitHub's releases API at launch and every six hours (`installUpdater`), the new repo
+first and the old one when that fails. `installKind()` decides what a newer release can become:
+**appimage** (`$APPIMAGE` set) downloads the `.AppImage` beside the running file, checks the byte
+count and the release's `SHA256SUMS-*.txt` line for it, `chmod`s it to the running file's mode and
+on "Restart now" renames it over the running file and relaunches; **windows** (`win32` and
+`app.isPackaged`, 3.4.0) downloads the NSIS `.exe` under `<userData>/updates/`, checks size and
+checksum the same way, and on "Restart now" spawns it detached with `/S --force-run --updated`
+(the flags electron-builder's installer honours: silent, relaunch when done) and quits; **null**
+(deb, pacman, a dev checkout) only says a release exists and opens the release page. The renderer
+hears `phase` changes (`current` | `available` | `downloading` | `ready` | `failed`) through the
+IPC bridge and shows the toast; the menu's "Check for updates…" runs the same path with
+`manual = true`, which is the only difference between silence and "you are current". There is no
+phone app: on a phone the product is the deployed site.
+
 ## The desktop main process boots, and a gate says so (3.3.5)
 
 Releases 3.1.0–3.3.4 shipped an Electron main that died on its first line: `electron/main.ts`

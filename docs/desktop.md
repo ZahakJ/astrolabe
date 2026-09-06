@@ -59,9 +59,16 @@ Edit menu.
 
 ## Updates
 
-The app checks the releases page and downloads a new release **in the background**; when it is
-ready a toast offers **Restart now**, never a dialog. **Help → Check for updates…** asks at once,
-and says so when you are on the latest.
+The app checks the releases page at launch and every six hours, and downloads a new release **in
+the background**; when it is ready a toast offers **Restart now**, never a dialog. **Help → Check
+for updates…** asks at once, and says so when you are on the latest.
+
+What "restart" does depends on how the app was installed. The **AppImage** is swapped in place
+and relaunched. The **Windows** install runs the new installer silently and the installer
+relaunches the app. Both downloads are checked against the release's own checksum file before
+anything runs. The **deb** and **pacman** packages belong to a package manager, so there the toast
+opens the release page instead. There is no phone app to update: on a phone Astrolabe is the
+site itself, which is always the deployed version.
 
 ## Deep links and file association
 

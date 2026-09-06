@@ -18,15 +18,21 @@
 //     anything; a truncated download can never become the installed app.
 //   · The swap is atomic and the old file's mode survives — the same four
 //     rules server/vault.ts documents, one directory over.
-//   · A build that is NOT an AppImage (the deb, the pacman package, a dev
-//     checkout) cannot replace itself in place, so "update" there opens the
-//     release page instead of pretending.
+//   · THE WINDOWS BUILD UPDATES ITSELF TOO (3.4.0): the release's NSIS
+//     installer is downloaded, verified against the release's SHA256SUMS file,
+//     and on "Restart now" run silently (`/S --force-run`, the flags the
+//     installer honours) while the app quits; the installer relaunches it.
+//   · A build that is neither (the deb, the pacman package, a dev checkout)
+//     cannot replace itself in place, so "update" there opens the release
+//     page instead of pretending.
 //   · Nothing phones home beyond the releases endpoint of this repo, and the
 //     manual "Check for updates…" menu item hits exactly the same code path —
 //     it just reports "you are current" out loud where the timer stays silent.
 
 import { app, shell } from "electron";
-import { createWriteStream, promises as fs } from "node:fs";
+import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { createReadStream, createWriteStream, promises as fs } from "node:fs";
 import { get } from "node:https";
 import type { IncomingMessage } from "node:http";
 import path from "node:path";
@@ -139,6 +145,68 @@ function selfPath(): string | null {
   return typeof p === "string" && p !== "" ? p : null;
 }
 
+/** How this build can take a release: as an AppImage swapped in place, as a
+ *  Windows install re-run silently, or not at all. */
+type InstallKind = "appimage" | "windows" | null;
+function installKind(): InstallKind {
+  if (selfPath() !== null) return "appimage";
+  if (process.platform === "win32" && app.isPackaged) return "windows";
+  return null;
+}
+
+/** Fetch a small text asset (the SHA256SUMS file), or null. */
+function fetchText(url: string, depth = 0): Promise<string | null> {
+  return new Promise((resolve) => {
+    if (depth > 4) {
+      resolve(null);
+      return;
+    }
+    const req = get(url, { headers: { "user-agent": `astrolabe-desktop/${app.getVersion()}` } }, (res: IncomingMessage) => {
+      const where = res.headers.location;
+      if (res.statusCode !== undefined && res.statusCode >= 300 && res.statusCode < 400 && where) {
+        res.resume();
+        resolve(fetchText(where, depth + 1));
+        return;
+      }
+      if (res.statusCode !== 200) {
+        res.resume();
+        resolve(null);
+        return;
+      }
+      let text = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk: string) => (text += chunk));
+      res.on("end", () => resolve(text));
+      res.on("error", () => resolve(null));
+    });
+    req.on("error", () => resolve(null));
+  });
+}
+
+function sha256Of(file: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = createHash("sha256");
+    createReadStream(file)
+      .on("data", (chunk) => hash.update(chunk))
+      .on("end", () => resolve(hash.digest("hex")))
+      .on("error", reject);
+  });
+}
+
+/** The digest the release's SHA256SUMS file states for `name`, or null when
+ *  the release carries no such file or no line for the name. */
+async function expectedDigest(assets: Asset[], name: string): Promise<string | null> {
+  const sums = assets.find((a) => typeof a.name === "string" && /^SHA256SUMS.*\.txt$/.test(a.name));
+  if (!sums?.browser_download_url) return null;
+  const text = await fetchText(sums.browser_download_url);
+  if (text === null) return null;
+  for (const line of text.split("\n")) {
+    const m = /^([0-9a-f]{64})\s+\*?(.+)$/.exec(line.trim());
+    if (m && m[2] === name) return m[1];
+  }
+  return null;
+}
+
 interface Asset {
   name?: string;
   size?: number;
@@ -162,31 +230,51 @@ export async function checkForUpdates(manual = false): Promise<void> {
       if (manual) notify({ phase: "current", version: app.getVersion() });
       return;
     }
-    const self = selfPath();
-    if (self === null) {
+    const kind = installKind();
+    if (kind === null) {
       // Not self-replaceable: say a release exists and open the page on
       // request. Pretending otherwise is how updaters break packages that a
       // package manager owns.
       notify({ phase: "available", version: tag });
       return;
     }
-    const asset = (release.assets ?? []).find((a) => typeof a.name === "string" && a.name.endsWith(".AppImage"));
-    if (!asset?.browser_download_url) {
+    const assets = release.assets ?? [];
+    const asset = assets.find(
+      (a) => typeof a.name === "string" && (kind === "appimage" ? a.name.endsWith(".AppImage") : /\.exe$/i.test(a.name)),
+    );
+    if (!asset?.browser_download_url || typeof asset.name !== "string") {
       notify({ phase: "available", version: tag });
       return;
     }
     notify({ phase: "downloading", version: tag });
-    // Beside the target, dot-prefixed — the same siblings-only rule the vault's
-    // atomic write follows, because /tmp may be another filesystem and a
-    // cross-device rename is not a rename.
-    const tmp = path.join(path.dirname(self), `.${path.basename(self)}.${tag}.part`);
+    const self = selfPath();
+    // An AppImage stages beside the target, dot-prefixed — the same
+    // siblings-only rule the vault's atomic write follows, because /tmp may be
+    // another filesystem and a cross-device rename is not a rename. The
+    // Windows installer is its own file and runs from wherever it lands, so it
+    // stages under the app's own data directory.
+    const tmp =
+      kind === "appimage" && self !== null
+        ? path.join(path.dirname(self), `.${path.basename(self)}.${tag}.part`)
+        : path.join(app.getPath("userData"), "updates", asset.name);
     try {
+      await fs.mkdir(path.dirname(tmp), { recursive: true });
       const bytes = await download(asset.browser_download_url, tmp);
       if (typeof asset.size === "number" && asset.size > 0 && bytes !== asset.size) {
         throw new Error(`short download: ${bytes} of ${asset.size} bytes`);
       }
-      const mode = (await fs.stat(self)).mode & 0o777;
-      await fs.chmod(tmp, mode || 0o755);
+      // The release's own checksum file, when it carries one, is the second
+      // lock: a download that is the right size and the wrong bytes never
+      // becomes the installed app either.
+      const want = await expectedDigest(assets, asset.name);
+      if (want !== null) {
+        const got = await sha256Of(tmp);
+        if (got !== want) throw new Error(`checksum mismatch for ${asset.name}`);
+      }
+      if (kind === "appimage" && self !== null) {
+        const mode = (await fs.stat(self)).mode & 0o777;
+        await fs.chmod(tmp, mode || 0o755);
+      }
       staged = { file: tmp, version: tag };
       notify({ phase: "ready", version: tag });
     } catch (err) {
@@ -205,8 +293,22 @@ export async function checkForUpdates(manual = false): Promise<void> {
  *  process keeps executing from its open file handle — Linux is fine with the
  *  name moving underneath it — so the rename is safe at any moment. */
 export async function applyStagedUpdate(): Promise<void> {
+  const kind = installKind();
+  if (staged === null || kind === null) {
+    void shell.openExternal(RELEASES_PAGE);
+    return;
+  }
+  if (kind === "windows") {
+    // The installer runs on its own, silently, and relaunches the app when it
+    // is done (`--force-run`); this process only has to get out of its way.
+    const child = spawn(staged.file, ["/S", "--force-run", "--updated"], { detached: true, stdio: "ignore" });
+    child.unref();
+    staged = null;
+    app.quit();
+    return;
+  }
   const self = selfPath();
-  if (staged === null || self === null) {
+  if (self === null) {
     void shell.openExternal(RELEASES_PAGE);
     return;
   }

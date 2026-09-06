@@ -60,9 +60,15 @@ selected) for suggestions and <strong>Add to dictionary</strong>, drawn in the a
 native popup, so it takes the theme and the direction. <em>Check spelling while typing</em> is in the
 Edit menu.</p>
 <h2 id="updates"><a class="anchor" href="#updates">Updates</a></h2>
-<p>The app checks the releases page and downloads a new release <strong>in the background</strong>; when it is
-ready a toast offers <strong>Restart now</strong>, never a dialog. <strong>Help → Check for updates…</strong> asks at once,
-and says so when you are on the latest.</p>
+<p>The app checks the releases page at launch and every six hours, and downloads a new release <strong>in
+the background</strong>; when it is ready a toast offers <strong>Restart now</strong>, never a dialog. <strong>Help → Check
+for updates…</strong> asks at once, and says so when you are on the latest.</p>
+<p>What &quot;restart&quot; does depends on how the app was installed. The <strong>AppImage</strong> is swapped in place
+and relaunched. The <strong>Windows</strong> install runs the new installer silently and the installer
+relaunches the app. Both downloads are checked against the release&#39;s own checksum file before
+anything runs. The <strong>deb</strong> and <strong>pacman</strong> packages belong to a package manager, so there the toast
+opens the release page instead. There is no phone app to update: on a phone Astrolabe is the
+site itself, which is always the deployed version.</p>
 <h2 id="deep-links-and-file-association"><a class="anchor" href="#deep-links-and-file-association">Deep links and file association</a></h2>
 <p><code>astrolabe://note?path=Folder/Note.md</code> opens a note from outside the app, and the app registers for
 <code>.md</code> files so a note double-clicked in the file manager opens here. The path is checked, not
