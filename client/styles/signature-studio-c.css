@@ -305,7 +305,6 @@
 .s-dsg[data-signature="illumination"] .s-dsg-head--banner:has(.s-dsg-head__name)::after {
   block-size: 18px;
   font-size: 0;
-  outline: 0;
   margin-block-start: 16px;
 }
 .s-dsg[data-signature="illumination"] .s-dsn-hero--band {

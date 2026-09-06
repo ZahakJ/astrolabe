@@ -16,6 +16,13 @@
   z-index: 70;
 }
 
+/* A page opens as a FLYOUT beside its row, toward the trailing edge, and
+   flips when that edge is out of room (SelectionMenu.tsx). Same box, one
+   level up in the stack so it never slides under the root. */
+.s-selmenu--fly {
+  z-index: 1;
+}
+
 .s-selmenu {
   position: fixed;
   min-width: 15rem;

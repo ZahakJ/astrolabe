@@ -27,9 +27,13 @@
 //
 //   · the six STYLE rows and ONE colour row stay at the top level, because
 //     they are what a right-click on a word is for;
-//   · STRUCTURE and INSERT became submenu pages (`›`, and ← / Esc to come
-//     back). Nothing was dropped: the palette owns the same commands, and a
-//     page a reader opens on purpose costs no height to a reader who does not;
+//   · STRUCTURE and INSERT became pages (`›`) that open as FLYOUTS beside
+//     their row — toward the trailing edge, flipping when it is out of room —
+//     under the pointer or on →, and fold away on ← / Esc (3.3.1; they used
+//     to replace the box, and the owner wanted them "to open further to the
+//     left or right"). Nothing was dropped: the palette owns the same
+//     commands, and a page a reader opens on purpose costs no height to a
+//     reader who does not;
 //   · the two swatch rows became one, with a FIXED INK checkbox beside it. The
 //     two-tier model is right and the reader should not have to adjudicate a
 //     WCAG argument at the moment they want a word red: the default row is
@@ -42,7 +46,7 @@
 //     twenty-first row of its own.
 
 import "../styles/selection.css";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { Prec, type Extension } from "@codemirror/state";
@@ -447,8 +451,19 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
       }),
     [view, literal, toolbar],
   );
-  const groups = pages[page];
-  const flat = useMemo(() => flatten(groups), [groups]);
+  // THE PAGES OPEN BESIDE THE MENU, not in its place (the owner: "they
+  // should just open further to the left or right, depending on lang").
+  // The root box stays where it is; `page` names the flyout open beside its
+  // row, `flyActive` the highlighted row inside it, and `where` says which
+  // of the two boxes the keyboard is in.
+  const rootGroups = pages.root;
+  const rootFlat = useMemo(() => flatten(rootGroups), [rootGroups]);
+  const flyGroups = page === "root" ? [] : pages[page];
+  const flyFlat = useMemo(() => flatten(flyGroups), [flyGroups]);
+  const [flyActive, setFlyActive] = useState(0);
+  const [where, setWhere] = useState<"root" | "fly">("root");
+  const flyRef = useRef<HTMLDivElement>(null);
+  const [flyPos, setFlyPos] = useState<{ left: number; top: number } | null>(null);
   const chips = useMemo(() => swatchesFor(literal), [literal]);
   const light = /^(parchment|sandstone|linen|solar)$/.test(theme);
   const rtl = document.documentElement.getAttribute("dir") === "rtl";
@@ -458,7 +473,7 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
   // same reason: in Arabic (and whenever a reader pins the sidebar right) the
   // pointer is regularly at the trailing edge, and a menu that only ever grew
   // that way lost its last group off-screen. Measured after the render, from
-  // the real box, and re-measured when a submenu changes the height under it.
+  // the real box.
   useLayoutEffect(() => {
     const el = boxRef.current;
     if (!el) return;
@@ -478,16 +493,42 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
     // has not been placed does not exist yet). Without it Esc lands on the
     // page and the menu cannot be closed from the keyboard at all.
     el.focus();
-  }, [x, y, rtl, page]);
+  }, [x, y, rtl]);
+
+  // The flyout sits beside its row, toward the trailing edge, and flips to
+  // the other side when that edge is out of room; its top is the row's top,
+  // clamped into the viewport.
+  useLayoutEffect(() => {
+    const fly = flyRef.current;
+    const box = boxRef.current;
+    if (!fly || !box || page === "root") {
+      setFlyPos(null);
+      return;
+    }
+    const M = 8;
+    const G = 2;
+    const row = box.querySelector<HTMLElement>(`[data-page="${page}"]`);
+    const b = box.getBoundingClientRect();
+    const r = row ? row.getBoundingClientRect() : b;
+    const w = fly.offsetWidth;
+    const h = fly.offsetHeight;
+    let left = rtl ? b.left - G - w : b.right + G;
+    if (left < M || left + w > window.innerWidth - M) left = rtl ? b.right + G : b.left - G - w;
+    left = Math.max(M, Math.min(left, window.innerWidth - w - M));
+    let top = r.top - 6;
+    top = Math.max(M, Math.min(top, window.innerHeight - h - M));
+    setFlyPos({ left, top });
+  }, [page, pos, rtl]);
 
   // Keep the highlighted row on screen as ↑↓ walk past the fold.
   useEffect(() => {
-    boxRef.current
+    (where === "fly" ? flyRef.current : boxRef.current)
       ?.querySelector<HTMLElement>(".s-selmenu__row--active")
       ?.scrollIntoView({ block: "nearest" });
-  }, [active]);
+  }, [active, flyActive, where]);
 
-  const rowAt = (i: number): Row => groups[flat[i].group].rows[flat[i].row];
+  const rowIn = (groups: Group[], flat: { group: number; row: number }[], i: number): Row =>
+    groups[flat[i].group].rows[flat[i].row];
 
   const run = (fn: (v: EditorView) => void): void => {
     onClose();
@@ -496,9 +537,21 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
   };
 
   const open = (id: PageId): void => {
+    window.clearTimeout(hoverTimer.current);
+    if (id === "root") {
+      setPage("root");
+      setWhere("root");
+      return;
+    }
     setPage(id);
-    setActive(0);
-    setSwatch(0);
+    setFlyActive(0);
+    setWhere("fly");
+    // The page row it hangs from stays lit in the root box.
+    const at = rootFlat.findIndex((f) => {
+      const row = rootGroups[f.group].rows[f.row];
+      return row.kind === "page" && row.page === id;
+    });
+    if (at >= 0) setActive(at);
   };
 
   const enter = (row: Row): void => {
@@ -518,14 +571,18 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
   };
 
   const onKeyDown = (e: React.KeyboardEvent): void => {
+    const inFly = where === "fly" && page !== "root";
+    const list = inFly ? flyFlat : rootFlat;
+    const setIdx = inFly ? setFlyActive : setActive;
+    const idx = inFly ? flyActive : active;
     const step = (d: number): void => {
-      setActive((i) => (i + d + flat.length) % flat.length);
+      setIdx((i) => (i + d + list.length) % list.length);
       setSwatch(0);
     };
     if (e.key === "Escape") {
       e.preventDefault();
       e.stopPropagation();
-      // Esc leaves the submenu first. A key that closed the whole menu from
+      // Esc closes the flyout first. A key that closed the whole menu from
       // inside a page would punish the reader for opening one.
       if (page !== "root") open("root");
       else {
@@ -546,17 +603,17 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
     }
     if (e.key === "Home") {
       e.preventDefault();
-      setActive(0);
+      setIdx(0);
       return;
     }
     if (e.key === "End") {
       e.preventDefault();
-      setActive(flat.length - 1);
+      setIdx(list.length - 1);
       return;
     }
-    const row = rowAt(active);
+    const row = inFly ? rowIn(flyGroups, flyFlat, idx) : rowIn(rootGroups, rootFlat, idx);
     // The arrows answer the INLINE direction: in an Arabic menu the swatches
-    // are laid out right-to-left and a submenu opens toward the trailing edge,
+    // are laid out right-to-left and a flyout opens toward the trailing edge,
     // so the finger and the highlight have to move the same way. Same rule the
     // settings SegmentedControl follows.
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
@@ -571,7 +628,12 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
         open(row.page);
         return;
       }
-      if (!forward && page !== "root") {
+      if (forward && !inFly && page !== "root") {
+        e.preventDefault();
+        setWhere("fly");
+        return;
+      }
+      if (!forward && inFly) {
         e.preventDefault();
         open("root");
         return;
@@ -584,7 +646,178 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
     }
   };
 
-  let index = -1;
+  /** One box's rows. `groups` is the root's or the open page's; `act` and
+   *  `setAct` are that box's highlight; the swatch row exists in the root only. */
+  const renderGroups = (
+    groups: Group[],
+    act: number,
+    setAct: (i: number) => void,
+    inFly: boolean,
+  ): ReactNode => {
+    let index = -1;
+    return groups.map((group, gi) => (
+      <section className="s-selmenu__group" key={group.title ?? `g${gi}`}>
+        {group.title && <h3 className="s-selmenu__title">{t(group.title)}</h3>}
+        {group.rows.map((row) => {
+          index += 1;
+          const i = index;
+          const on = i === act && (inFly ? where === "fly" : where === "root" || (row.kind === "page" && row.page === page));
+          const cls = `s-selmenu__row${on ? " s-selmenu__row--active" : ""}`;
+          // Hover never moves the keyboard highlight without the pointer
+          // actually moving — the palette's bug, and the theme picker
+          // refused to reproduce it either. It is also the ONLY thing that
+          // lights a row: the generic `button:hover` used to paint
+          // --bg-hover, which was the active row's own ground, so the row
+          // under the finger and the row Enter would run looked equally
+          // chosen and were regularly not the same row.
+          const hover = {
+            onMouseMove: () => {
+              setAct(i);
+              setWhere(inFly ? "fly" : "root");
+              // Resting on another root row folds the open flyout away;
+              // its own row keeps it.
+              if (!inFly && page !== "root" && !(row.kind === "page" && row.page === page)) {
+                window.clearTimeout(hoverTimer.current);
+                hoverTimer.current = window.setTimeout(() => open("root"), 260);
+              }
+            },
+          };
+          if (row.kind === "action") {
+            return (
+              <button
+                type="button"
+                role="menuitem"
+                key={row.label}
+                className={cls}
+                {...hover}
+                onClick={() => run(row.run)}
+              >
+                <span className="s-selmenu__label">{t(row.label)}</span>
+                {row.keys && <span className="s-selmenu__keys">{row.keys}</span>}
+              </button>
+            );
+          }
+          if (row.kind === "page") {
+            // A door opens under the pointer (the owner: "those options
+            // should just appear on hover, shouldn't need to click"):
+            // resting on the row for a beat opens the flyout beside it; a
+            // click still does at once, and the keyboard's → is unchanged.
+            return (
+              <button
+                type="button"
+                role="menuitem"
+                aria-haspopup="menu"
+                aria-expanded={page === row.page}
+                data-page={row.page}
+                key={row.label}
+                className={cls}
+                onMouseMove={() => {
+                  setAct(i);
+                  setWhere("root");
+                }}
+                onMouseEnter={() => {
+                  window.clearTimeout(hoverTimer.current);
+                  if (page !== row.page) hoverTimer.current = window.setTimeout(() => open(row.page), 180);
+                }}
+                onMouseLeave={() => window.clearTimeout(hoverTimer.current)}
+                onClick={() => open(page === row.page ? "root" : row.page)}
+              >
+                <span className="s-selmenu__label">{t(row.label)}</span>
+                <span className="s-selmenu__chev" aria-hidden="true">
+                  ›
+                </span>
+              </button>
+            );
+          }
+          if (row.kind === "callout") {
+            // The label is the type TOKEN the row writes (`[!note]`),
+            // printed as the "> [!" autocomplete prints it — syntax, not
+            // copy, so it is never translated.
+            return (
+              <button
+                type="button"
+                role="menuitem"
+                key={row.type}
+                className={cls}
+                {...hover}
+                onClick={() =>
+                  run((v) => {
+                    wrapInCallout(v, row.type);
+                  })
+                }
+              >
+                <span className="s-selmenu__label">{row.type}</span>
+              </button>
+            );
+          }
+          if (row.kind === "toggle") {
+            return (
+              <button
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked={row.on}
+                key={row.label}
+                className={cls}
+                title={row.note ? t(row.note) : undefined}
+                {...hover}
+                onClick={row.toggle}
+              >
+                <span
+                  className={`s-selmenu__check${
+                    row.on ? " s-selmenu__check--on" : ""
+                  }`}
+                  aria-hidden="true"
+                >
+                  ✓
+                </span>
+                <span className="s-selmenu__label">{t(row.label)}</span>
+              </button>
+            );
+          }
+          return (
+            <div
+              key="swatches"
+              className={`s-selmenu__swatches${
+                on ? " s-selmenu__swatches--active" : ""
+              }`}
+              role="group"
+              aria-label={t(literal ? "colorFixed" : "colorThemeAware")}
+              title={t(literal ? "colorFixedNote" : "colorThemeAwareNote")}
+              {...hover}
+            >
+              {chips.map((s, si) => (
+                <button
+                  type="button"
+                  role="menuitem"
+                  key={s.id}
+                  className={`s-selmenu__chip${
+                    s.value === null ? " s-selmenu__chip--none" : ""
+                  }${on && si === swatch ? " s-selmenu__chip--active" : ""}`}
+                  style={
+                    s.value === null
+                      ? undefined
+                      : { background: light ? s.light : s.dark }
+                  }
+                  title={t(COLOR_LABEL[s.id])}
+                  aria-label={t(COLOR_LABEL[s.id])}
+                  onMouseMove={() => {
+                    setAct(i);
+                    setSwatch(si);
+                  }}
+                  onClick={() =>
+                    run((v) => {
+                      applyColor(v, s.value);
+                    })
+                  }
+                />
+              ))}
+            </div>
+          );
+        })}
+      </section>
+    ));
+  };
+
   return (
     <div
       className="s-selmenu-overlay"
@@ -609,167 +842,25 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
             : { left: "-9999px", top: "0px" }
         }
       >
-        {page !== "root" && (
-          <button
-            type="button"
-            className="s-selmenu__back"
-            onClick={() => open("root")}
-          >
-            <span className="s-selmenu__chev" aria-hidden="true">
-              ‹
-            </span>
-            <span className="s-selmenu__label">{t("selMenuBack")}</span>
-          </button>
-        )}
-        {groups.map((group, gi) => (
-          <section className="s-selmenu__group" key={group.title ?? `g${gi}`}>
-            {group.title && <h3 className="s-selmenu__title">{t(group.title)}</h3>}
-            {group.rows.map((row) => {
-              index += 1;
-              const i = index;
-              const on = i === active;
-              const cls = `s-selmenu__row${on ? " s-selmenu__row--active" : ""}`;
-              // Hover never moves the keyboard highlight without the pointer
-              // actually moving — the palette's bug, and the theme picker
-              // refused to reproduce it either. It is also the ONLY thing that
-              // lights a row: the generic `button:hover` used to paint
-              // --bg-hover, which was the active row's own ground, so the row
-              // under the finger and the row Enter would run looked equally
-              // chosen and were regularly not the same row.
-              const hover = { onMouseMove: () => setActive(i) };
-              if (row.kind === "action") {
-                return (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    key={row.label}
-                    className={cls}
-                    {...hover}
-                    onClick={() => run(row.run)}
-                  >
-                    <span className="s-selmenu__label">{t(row.label)}</span>
-                    {row.keys && <span className="s-selmenu__keys">{row.keys}</span>}
-                  </button>
-                );
-              }
-              if (row.kind === "page") {
-                // A door opens under the pointer (the owner: "those options
-                // should just appear on hover, shouldn't need to click"):
-                // resting on the row for a beat turns the page; a click
-                // still does at once, and the keyboard's → is unchanged.
-                return (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    aria-haspopup="menu"
-                    key={row.label}
-                    className={cls}
-                    onMouseMove={() => setActive(i)}
-                    onMouseEnter={() => {
-                      window.clearTimeout(hoverTimer.current);
-                      hoverTimer.current = window.setTimeout(() => open(row.page), 220);
-                    }}
-                    onMouseLeave={() => window.clearTimeout(hoverTimer.current)}
-                    onClick={() => {
-                      window.clearTimeout(hoverTimer.current);
-                      open(row.page);
-                    }}
-                  >
-                    <span className="s-selmenu__label">{t(row.label)}</span>
-                    <span className="s-selmenu__chev" aria-hidden="true">
-                      ›
-                    </span>
-                  </button>
-                );
-              }
-              if (row.kind === "callout") {
-                // The label is the type TOKEN the row writes (`[!note]`),
-                // printed as the "> [!" autocomplete prints it — syntax, not
-                // chrome copy, which is why it does not go through t().
-                return (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    key={row.type}
-                    className={cls}
-                    {...hover}
-                    onClick={() =>
-                      run((v) => {
-                        wrapInCallout(v, row.type);
-                      })
-                    }
-                  >
-                    <span className="s-selmenu__label">{row.type}</span>
-                  </button>
-                );
-              }
-              if (row.kind === "toggle") {
-                return (
-                  <button
-                    type="button"
-                    role="menuitemcheckbox"
-                    aria-checked={row.on}
-                    key={row.label}
-                    className={cls}
-                    title={row.note ? t(row.note) : undefined}
-                    {...hover}
-                    onClick={row.toggle}
-                  >
-                    <span
-                      className={`s-selmenu__check${
-                        row.on ? " s-selmenu__check--on" : ""
-                      }`}
-                      aria-hidden="true"
-                    >
-                      ✓
-                    </span>
-                    <span className="s-selmenu__label">{t(row.label)}</span>
-                  </button>
-                );
-              }
-              return (
-                <div
-                  key="swatches"
-                  className={`s-selmenu__swatches${
-                    on ? " s-selmenu__swatches--active" : ""
-                  }`}
-                  role="group"
-                  aria-label={t(literal ? "colorFixed" : "colorThemeAware")}
-                  title={t(literal ? "colorFixedNote" : "colorThemeAwareNote")}
-                  {...hover}
-                >
-                  {chips.map((s, si) => (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      key={s.id}
-                      className={`s-selmenu__chip${
-                        s.value === null ? " s-selmenu__chip--none" : ""
-                      }${on && si === swatch ? " s-selmenu__chip--active" : ""}`}
-                      style={
-                        s.value === null
-                          ? undefined
-                          : { background: light ? s.light : s.dark }
-                      }
-                      title={t(COLOR_LABEL[s.id])}
-                      aria-label={t(COLOR_LABEL[s.id])}
-                      onMouseMove={() => {
-                        setActive(i);
-                        setSwatch(si);
-                      }}
-                      onClick={() =>
-                        run((v) => {
-                          applyColor(v, s.value);
-                        })
-                      }
-                    />
-                  ))}
-                </div>
-              );
-            })}
-          </section>
-        ))}
+        {renderGroups(rootGroups, active, setActive, false)}
       </div>
+      {page !== "root" && (
+        <div
+          ref={flyRef}
+          className="s-selmenu s-selmenu--fly"
+          role="menu"
+          aria-label={t("selMenuTitle")}
+          onKeyDown={onKeyDown}
+          onMouseEnter={() => window.clearTimeout(hoverTimer.current)}
+          style={
+            flyPos
+              ? { left: `${flyPos.left}px`, top: `${flyPos.top}px` }
+              : { left: "-9999px", top: "0px" }
+          }
+        >
+          {renderGroups(flyGroups, flyActive, setFlyActive, true)}
+        </div>
+      )}
     </div>
   );
 }

@@ -6332,8 +6332,12 @@ seam between them was the defect; this is the rule that closes it.
   `Shift+F10` and the Menu key open the same menu at the selection — a menu reachable only by
   right-click is a menu half the readers of this app cannot open.
 - **A MENU IS NOT A PANEL.** The top level is *text style* (six rows), *colour* (ONE swatch row
-  plus a "fixed ink" checkbox) and two doors — *Structure ›* and *Insert ›* — which open as PAGES
-  of the same box, with a *Back* row, ← and Esc to leave. Flat, the vocabulary measured 341×884 in
+  plus a "fixed ink" checkbox) and two doors — *Structure ›* and *Insert ›* — which open as
+  FLYOUTS beside their row (3.3.1; they were pages that replaced the box, with a Back row): the
+  root stays put, the flyout sits toward the trailing edge and flips when that edge is out of
+  room, opens under the pointer after 180 ms or on a click, and folds on ← / Esc, on a click of
+  its own row, or when the pointer rests on another root row. Two highlights, one keyboard:
+  `where` says which box ↑↓ and Enter address. Flat, the vocabulary measured 341×884 in
   a 1440×900 viewport and 341×828 with 1,217px of scroll at 390×844: twenty-one rows, seventeen
   swatches and four lines of body copy, i.e. ~390px of scrolling INSIDE a context menu to reach
   "Remove colour". Nothing was dropped — the palette owns the same commands, and a page a reader
