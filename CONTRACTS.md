@@ -946,6 +946,41 @@ and folder-move routes carry entries to the new path. The owner reads and writes
 of any note; a visitor reads the PUBLIC ones of a PUBLISHED note and never learns the private ones
 exist — the comments gate, line for line. `public` is off by default: a note to self is to self.
 
+## The tree's arrangement (client/treeOrder.ts, Sidebar.tsx)
+
+Per browser (`localStorage["vellum.treeOrder"]`: `sort` name|name-desc|manual, `order` parent →
+child names, `pinned` paths ≤ 40): `orderChildren()` runs in `TreeChildren` after the attachment
+and focus filters, keyed by the `parent` prop each row passes down (`""` at the root, `PINNED_PARENT`
+— a NUL-prefixed sentinel — for the scratch area). A sibling dragged over the top or bottom edge of a
+row (a quarter of a folder row, half of a note row) wears `.s-tree__item--insert-before/after` and on
+drop calls `reorder()`, which switches the sort to manual; the moved names are the drag GROUP
+(`dragGroup`: the selection's top-level items when the dragged row is selected, else the row) that
+share the target's parent. Group drops into a folder move every item that `canDrop`. The selection
+(`selected`, Ctrl/Cmd-click) is session state; the menu's Move/Pin verbs apply to the whole
+selection when the clicked row is in it. Pinned rows render as a second `TreeChildren` above the
+vault with `focus={null}`; focus (`inFocus`) is session state with a banner. "Collapse/Expand
+everything inside" writes the expanded map under one folder (`setFoldersUnder`) and remounts.
+
+## The writing column (client/editorWidth.ts)
+
+`localStorage["vellum.editorWidth"]` measure|wide|full → `data-editor-width` on `<html>` at boot
+(main.tsx) and on change; app.css reads it into `--editor-measure`, which the editor's
+`.cm-content`, zen's editor and zen's reading column take (648 / 672 / 800px defaults). Full width
+gives the scroller a gutter instead. Settings → This device row.
+
+## The status bar in Arabic
+
+`html[dir="rtl"] .s-statusbar__spacer` is 18px, not `flex: 1`: the bar packs at its start (the
+right edge, beside the notes sidebar) instead of throwing the tools across the window.
+
+## The graph panel is a box you can drag
+
+`.s-graph__panel` sits at the PHYSICAL right in both directions (`top/right/bottom`), as does
+`.s-graph__controls`: the owner reads the graph's chrome as one instrument cluster. Its head is a
+drag handle (pointer capture, clamped to the graph's box); once moved it wears `--moved` (left/top
+inline, bottom unpinned, max-height in the box) and the position is remembered in
+`localStorage["vellum.graphPanelPos"]`, re-clamped on mount. Reset and ✕ are buttons, not handle.
+
 ## The pane grips (client/components/PaneGrip.tsx, client/paneWidths.ts)
 
 Each side pane carries an 8px `role="separator"` strip on its INNER edge (last child of

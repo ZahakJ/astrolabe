@@ -29,6 +29,7 @@ import { headingNumbersPref, setHeadingNumbersPref } from "../../reading/heading
 import { selectionToolbarEnabled, setSelectionToolbarEnabled } from "../SelectionMenu.tsx";
 import { SegmentedControl, Toggle } from "../controls/Fields.tsx";
 import { openThemePicker } from "../ThemePicker.tsx";
+import { readEditorWidth, setEditorWidth, type EditorWidth } from "../../editorWidth.ts";
 import { Row } from "./Row.tsx";
 
 /** A localStorage preference that is NOT in the store, kept live the way its
@@ -47,6 +48,7 @@ function useEventPref(event: string, read: () => boolean): boolean {
 }
 
 export default function DeviceTab() {
+  const [editorWidth, setEditorWidthState] = useState<EditorWidth>(readEditorWidth);
   /** The reader's OWN theme — a live subscription, so a pick made in the
    *  picker on top of this panel updates the row underneath it. */
   const theme = useStore((s) => s.theme);
@@ -173,6 +175,22 @@ export default function DeviceTab() {
           pill and the palette row still flip the same store value; this is
           simply the place a reader who has not met either can find it. */}
       <div className="s-smodal__sub">{t("groupEditing")}</div>
+      <Row label={t("rowEditorWidth")} hint={t("hintEditorWidth")}>
+        <SegmentedControl
+          label={t("rowEditorWidth")}
+          value={editorWidth}
+          onChange={(v) => {
+            setEditorWidth(v as EditorWidth);
+            setEditorWidthState(v as EditorWidth);
+          }}
+          segments={[
+            { value: "measure", label: t("editorWidthMeasure") },
+            { value: "wide", label: t("editorWidthWide") },
+            { value: "full", label: t("editorWidthFull") },
+          ]}
+        />
+      </Row>
+
       <Row label={t("rowVimKeys")} hint={t("hintVimKeys")}>
         <Toggle
           label={t("rowVimKeys")}

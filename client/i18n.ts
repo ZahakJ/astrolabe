@@ -448,6 +448,27 @@ const DICT = {
   // The keystrokes moved: Ctrl/Cmd+B is BOLD in the editor now (every reader
   // arrives with that binding), so the two pane toggles took one more
   // modifier and kept their shape — same key, Shift picks the second pane.
+  rowEditorWidth: { en: "Writing column", ar: "عرض عمود الكتابة" },
+  hintEditorWidth: { en: "How wide the editor and the reading view set their text. Per device.", ar: "عرض النص في المحرر وعرض القراءة. لكل جهاز." },
+  editorWidthMeasure: { en: "Reading measure", ar: "قياس القراءة" },
+  editorWidthWide: { en: "Wide", ar: "عريض" },
+  editorWidthFull: { en: "Full width", ar: "العرض الكامل" },
+  treeFoldInside: { en: "Collapse everything inside", ar: "طيّ كل ما بداخله" },
+  treeUnfoldInside: { en: "Expand everything inside", ar: "بسط كل ما بداخله" },
+  treeSort: { en: "Sort the tree", ar: "ترتيب الشجرة" },
+  treeSortName: { en: "By name", ar: "بالاسم" },
+  treeSortNameDesc: { en: "By name, reversed", ar: "بالاسم، معكوسًا" },
+  treeSortManual: { en: "My own order", ar: "ترتيبي الخاص" },
+  treeSortReset: { en: "Forget my order", ar: "انسَ ترتيبي" },
+  treePinned: { en: "Pinned", ar: "المثبَّتة" },
+  treeUnpinAll: { en: "Unpin all", ar: "إلغاء تثبيت الكل" },
+  treePin: { en: "Pin to top", ar: "تثبيت في الأعلى" },
+  treeUnpin: { en: "Unpin", ar: "إلغاء التثبيت" },
+  treePinMany: { en: "Pin {n} items to top", ar: "تثبيت {n} عناصر في الأعلى" },
+  treeMoveMany: { en: "Move {n} items to…", ar: "نقل {n} عناصر إلى…" },
+  treeFocus: { en: "Focus here", ar: "ركّز هنا" },
+  treeFocusAll: { en: "Show all", ar: "إظهار الكل" },
+  treeFocusedOn: { en: "Focused on “{name}”", ar: "التركيز على “{name}”" },
   paneGripNotes: { en: "Drag to resize the notes sidebar; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض لوحة الملاحظات؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
   paneGripPanel: { en: "Drag to resize the side panel; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض اللوحة الجانبية؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
   showPaneNotes: {

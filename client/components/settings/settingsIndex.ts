@@ -30,6 +30,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "device", label: "rowYourTheme", hint: "hintYourTheme" },
   { tab: "device", label: "rowEditorLanguage", hint: "hintEditorLanguage" },
   { tab: "device", label: "rowSidebarSide", hint: "hintSidebarSide" },
+  { tab: "device", label: "rowEditorWidth", hint: "hintEditorWidth" },
   { tab: "device", label: "rowVimKeys", hint: "hintVimKeys" },
   { tab: "device", label: "selToolbarLabel", hint: "hintSelToolbar" },
   { tab: "device", label: "rowHeadingNumbers", hint: "hintHeadingNumbers" },

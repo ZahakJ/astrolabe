@@ -733,7 +733,10 @@ const AUDIENCES = [
   // when the answer is not empty.
   // …and again for THE FOLDER GLYPH CATALOG (820.9 kB actual → 824): the
   // enum and the dictionary, as above.
-  { name: "anonymous blog reader", keys: blog, budget: 824 * 1024 },
+  // …and again for THE TREE'S ARRANGEMENT (825.9 kB actual → 832): the
+  // dictionary rows for sorting, pinning, focus, the writing column and the
+  // folder verbs.
+  { name: "anonymous blog reader", keys: blog, budget: 832 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -815,7 +818,10 @@ const AUDIENCES = [
   // …and again for NOTE ANNOTATIONS (1197.7 kB actual → 1199): the words.
   // …and again for THE FOLDER GLYPH CATALOG (1211.3 kB actual → 1216): the
   // enum, the dictionary, the tree's Library row.
-  { name: "admin first paint", keys: app, budget: 1216 * 1024 },
+  // …and again for THE TREE'S ARRANGEMENT (1223.5 kB actual → 1232): the
+  // sidebar's sort menu, pinned area, selection, group drags and focus, plus
+  // the pane grips and the draggable graph panel.
+  { name: "admin first paint", keys: app, budget: 1232 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

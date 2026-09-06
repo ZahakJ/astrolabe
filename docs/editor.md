@@ -193,6 +193,21 @@
 
 ![Command palette](screenshots/palette.png)
 
+## Arranging the tree
+
+The vault's order is the default, not the law. In the sidebar's footer, **Sort the tree** offers
+by name, by name reversed, or **my own order**; dragging a row above or below a sibling switches
+to your own order by itself, and *Forget my order* puts everything back. **Ctrl/Cmd-click** gathers
+rows into a selection: drag them together, or right-click one to move or pin them all. **Pin to
+top** puts a note or a folder in a scratch area above the vault, in any order you drag it into,
+for as long as you are working on it; *Unpin all* clears the area. **Focus here** shows only one
+note or folder and the way to it; *Show all* brings the rest back. Every folder's menu also has
+**Collapse everything inside** and *Expand everything inside*. All of this is per browser; the
+vault on disk is never reordered.
+
+**The writing column** (Settings → This device) is the reading measure by default; *Wide* and
+*Full width* let a table or a code-heavy note use the screen.
+
 ## The two side panes
 
 Drag the inner edge of the notes sidebar or the side panel to resize it; the width is remembered
