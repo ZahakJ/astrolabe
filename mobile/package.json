@@ -1,6 +1,6 @@
 {
   "name": "astrolabe-mobile",
-  "version": "2.0.1",
+  "version": "3.4.0",
   "private": true,
   "description": "The Astrolabe Android app: a Capacitor shell whose only job is to find your server and then get out of the way.",
   "type": "module",

@@ -12,7 +12,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * ["*"]` here would have been the same feature with the gate taken off.
  */
 const config: CapacitorConfig = {
-  appId: "dev.astrolabe.mobile",
+  // The install id stays the pre-rename one on purpose: see build.gradle.
+  appId: "dev.vellum.mobile",
   appName: "Astrolabe",
   webDir: "www",
 

@@ -18,13 +18,19 @@ android {
     compileSdk = rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "dev.astrolabe.mobile"
+        // THE INSTALL IDENTITY STAYS "dev.vellum.mobile". Android knows an app
+        // by this id and its signature, and the copies on the owner's and a
+        // friend's phones were installed under the old one: change it and the
+        // new build lands as a SECOND app beside "Vellum" instead of updating
+        // it. Nobody sees the id; the label, the icon and the Java package
+        // (`namespace` above) all say Astrolabe.
+        applicationId "dev.vellum.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Kept in step with mobile/package.json, which is kept in step with the
         // repo root. The shell and the server it fronts ship as one product.
-        versionCode 20001
-        versionName "2.0.1"
+        versionCode 30400
+        versionName "3.4.0"
         aaptOptions {
             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
