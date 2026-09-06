@@ -5630,6 +5630,16 @@ because a bad vault-wide edit is unrecoverable.
   hunting "the version before I broke it" thinks); beyond it, `siteDate()`, so a Hijri instance
   dates its own history in Hijri.
 
+## The desktop main process boots, and a gate says so (3.3.5)
+
+Releases 3.1.0–3.3.4 shipped an Electron main that died on its first line: `electron/main.ts`
+imported `existsSync` from `node:fs` twice, Node refuses the duplicate at load, and the root
+`tsc -p .` never covered `electron/`. Two gates now: `npm run check-desktop` also runs the
+desktop package's own typecheck (which reports the duplicate as TS2300), and
+`scripts/check-desktop-boot.sh <AppImage>` launches the packed app under `xvfb-run` for 25 s
+with a throwaway vault and fails on any "Uncaught Exception" / "SyntaxError" in its log. Run the
+second on every AppImage before it is uploaded or swapped into `~/Applications`.
+
 ## The desktop app (`electron/`, `desktop/`, `client/desktop/`)
 
 Astrolabe runs in a browser, and for a writer that is the wrong window: no
