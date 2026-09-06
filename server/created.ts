@@ -95,11 +95,16 @@ function schedule(): void {
 }
 
 /**
- * Read the commit that added each path, once. Only worth doing when the
- * ledger is empty (a fresh instance over an old vault); afterwards the ledger
- * is the record. `--diff-filter=A` with `--name-only` prints, per commit, the
- * timestamp line and the paths added in it; walked oldest-last so the FIRST
- * add of a path (a file deleted and re-added keeps its earliest) wins.
+ * Read, once, when each path first appeared in the vault's history. Only worth
+ * doing when the ledger is empty (a fresh instance over an old vault);
+ * afterwards the ledger is the record.
+ *
+ * `--diff-filter=A` alone answers by the path a file was ADDED under, and a
+ * vault that has been reorganised (this one has, many times) holds most notes
+ * under paths they were renamed to later — the first attempt found none of
+ * the owner's notes. So the whole history is walked oldest-first with renames
+ * detected: an A seeds the path, an R carries the origin from the old path to
+ * the new one, a D forgets it. One `git log`, whatever the vault's size.
  */
 export async function seedFromGit(): Promise<void> {
   const root = getVaultRoot();
@@ -108,21 +113,29 @@ export async function seedFromGit(): Promise<void> {
   try {
     const { stdout } = await run(
       "git",
-      ["-C", root, "log", "--diff-filter=A", "--name-only", "--format=%x01%at", "--", "."],
-      { maxBuffer: 64 * 1024 * 1024, env: { ...process.env, GIT_TERMINAL_PROMPT: "0" } },
+      ["-C", root, "log", "--reverse", "--name-status", "-M", "--format=%x01%at", "--", "."],
+      { maxBuffer: 256 * 1024 * 1024, env: { ...process.env, GIT_TERMINAL_PROMPT: "0" } },
     );
     const map = new Map<string, number>();
     let at = 0;
     for (const raw of stdout.split("\n")) {
-      const line = raw.trim();
-      if (line === "") continue;
-      if (line.startsWith("")) {
-        at = Number(line.slice(1)) * 1000;
+      if (raw === "") continue;
+      if (raw.startsWith("\x01")) {
+        at = Number(raw.slice(1)) * 1000;
         continue;
       }
       if (!Number.isFinite(at) || at <= 0) continue;
-      const prev = map.get(line);
-      if (prev === undefined || at < prev) map.set(line, at);
+      const cols = raw.split("\t");
+      const status = cols[0] ?? "";
+      if (status.startsWith("A") && cols[1]) {
+        if (!map.has(cols[1])) map.set(cols[1], at);
+      } else if (status.startsWith("R") && cols[1] && cols[2]) {
+        const origin = map.get(cols[1]) ?? at;
+        map.delete(cols[1]);
+        map.set(cols[2], origin);
+      } else if (status.startsWith("D") && cols[1]) {
+        map.delete(cols[1]);
+      }
     }
     gitAdded = map;
   } catch {
