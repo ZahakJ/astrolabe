@@ -1,4 +1,4 @@
-package dev.vellum.mobile;
+package dev.astrolabe.mobile;
 
 import android.app.Activity;
 import android.os.Build;
@@ -31,7 +31,7 @@ import com.getcapacitor.Bridge;
  * means "do not pad anything; hand the real insets to the page as
  * {@code env(safe-area-inset-*)} and trust its CSS". Our CSS, on the two
  * bundled screens, does handle them. But this shell spends almost its whole
- * life on a page it did not write and cannot change: the owner's own Vellum
+ * life on a page it did not write and cannot change: the owner's own Astrolabe
  * instance, on the owner's own origin.
  *
  * And that second flag is not even re-read there. Capacitor learns whether a

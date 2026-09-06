@@ -70,7 +70,7 @@ export interface TagGathering {
   tags: string;
 }
 
-export const GRAPH_PREFS_KEY = "vellum.graph";
+export const GRAPH_PREFS_KEY = "astrolabe.graph";
 
 export const DEFAULT_FORCES: GraphForces = { repulsion: 1, linkDistance: 235, gravity: 1 };
 export const DEFAULT_DISPLAY: GraphDisplay = { nodeScale: 1, edgeAlpha: 0.6, labelZoom: 0.7, glow: true };

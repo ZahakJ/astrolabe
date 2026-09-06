@@ -72,7 +72,7 @@ function runCommand(command: string): void {
     case "search":
       // The same event App.tsx's Ctrl/Cmd+K raises — the sidebar's search box
       // owns the focus dance, and there is no second copy of it here.
-      window.dispatchEvent(new Event("vellum:quicksearch"));
+      window.dispatchEvent(new Event("astrolabe:quicksearch"));
       return;
     case "shortcuts":
       store.setShortcutsOpen(true);

@@ -1,18 +1,18 @@
-// `vellum://` links and the `.md` file association — the two ways something
+// `astrolabe://` links and the `.md` file association — the two ways something
 // OUTSIDE the app asks it to open something inside a vault.
 //
-// Both are hostile input, and the distinction is easy to lose: a `vellum://`
+// Both are hostile input, and the distinction is easy to lose: a `astrolabe://`
 // URL can be triggered by ANY web page the reader visits, with no prompt and no
 // origin the app can inspect. So this file parses, and refuses; it decides
 // nothing. The two rules it enforces are the two that matter:
 //
 //   1. A note reference is vault-RELATIVE and stays inside the vault. `..`,
 //      a leading `/`, a drive letter and a NUL are all refused rather than
-//      cleaned, because "cleaned" is how `vellum://note?path=../../.ssh/id_rsa`
+//      cleaned, because "cleaned" is how `astrolabe://note?path=../../.ssh/id_rsa`
 //      becomes a note the app opens and the indexer reads.
 //   2. A vault reference is a NAME OF A VAULT THE READER HAS ALREADY OPENED,
 //      resolved against the recent list by the caller (`knownVault` below) —
-//      never a directory taken on the URL's word. Vellum serves its vault over
+//      never a directory taken on the URL's word. Astrolabe serves its vault over
 //      loopback and indexes every file in it; a link that could choose that
 //      directory would be a one-click "index and serve my home folder".
 //
@@ -22,8 +22,8 @@
 import path from "node:path";
 import { isNotePath, stripNoteExt } from "../shared/noteFormat.ts";
 
-/** What a link asks for. Both halves are optional: `vellum://open?vault=…`
- *  names a window, `vellum://note?path=…` names a place in whichever window is
+/** What a link asks for. Both halves are optional: `astrolabe://open?vault=…`
+ *  names a window, `astrolabe://note?path=…` names a place in whichever window is
  *  focused, and a link with both names a place in a named window. */
 export interface DeepLink {
   /** Absolute path as WRITTEN in the link — not yet trusted. Callers must run
@@ -33,7 +33,10 @@ export interface DeepLink {
   note: string | null;
 }
 
-export const PROTOCOL = "vellum";
+export const PROTOCOL = "astrolabe";
+/** The scheme before the rename: links written into notes, bookmarks and
+ *  other apps as `vellum://…` keep opening. Registered and parsed alongside. */
+export const LEGACY_PROTOCOL = "vellum";
 
 /** A vault-relative note path, or null when the string is not one.
  *
@@ -69,7 +72,7 @@ export function routeForNote(rel: string): string {
   return "/" + stripNoteExt(rel).split("/").map(encodeURIComponent).join("/");
 }
 
-/** Parse a `vellum://…` URL. Returns null for anything that is not one, and
+/** Parse a `astrolabe://…` URL. Returns null for anything that is not one, and
  *  for a well-formed one whose payload does not survive `noteRef`. */
 export function parseDeepLink(raw: string): DeepLink | null {
   let url: URL;
@@ -78,8 +81,8 @@ export function parseDeepLink(raw: string): DeepLink | null {
   } catch {
     return null;
   }
-  if (url.protocol !== `${PROTOCOL}:`) return null;
-  // `vellum://open?…` parses with host "open" and an empty path; `vellum:///…`
+  if (url.protocol !== `${PROTOCOL}:` && url.protocol !== `${LEGACY_PROTOCOL}:`) return null;
+  // `astrolabe://open?…` parses with host "open" and an empty path; `astrolabe:///…`
   // parses with an empty host. Accept the two spellings a link in the wild
   // actually has, and treat the verb as the first non-empty segment of either.
   const verb = (url.hostname || url.pathname.replace(/^\/+/, "").split("/")[0] || "").toLowerCase();

@@ -71,14 +71,14 @@ import { t, type I18nKey } from "../i18n.ts";
 import { useStore } from "../state.ts";
 
 // ── The floating toolbar's on/off switch ───────────────────────────────────
-// A DEVICE preference, in localStorage beside `vellum.vim` and `vellum.theme`,
+// A DEVICE preference, in localStorage beside `astrolabe.vim` and `astrolabe.theme`,
 // not an instance setting: it says how THIS person likes to edit, it must not
 // travel to a co-author through the settings panel, and it must not need a
 // server round-trip to answer a selection. Default ON — the affordance only
 // works if it is there before you know to look for it. The menu's last row
 // turns it off; the palette's "Selection toolbar" row turns it back on, so the
 // switch is never one-way (which is the trap a hidden default-on feature sets).
-const TOOLBAR_KEY = "vellum.selToolbar";
+const TOOLBAR_KEY = "astrolabe.selToolbar";
 
 export function selectionToolbarEnabled(): boolean {
   try {
@@ -94,7 +94,7 @@ export function setSelectionToolbarEnabled(on: boolean): void {
   } catch {
     /* private mode: the choice just will not survive a reload */
   }
-  window.dispatchEvent(new CustomEvent("vellum:seltoolbar"));
+  window.dispatchEvent(new CustomEvent("astrolabe:seltoolbar"));
 }
 
 // ── Rows ───────────────────────────────────────────────────────────────────
@@ -201,7 +201,7 @@ const STYLE_ROW: Record<FormatKind, { label: I18nKey; keys?: string; glyph: stri
  *     `itemize`/`enumerate` and a quote becomes the `quote` environment —
  *     while a TASK LIST has no LaTeX spelling at all and is simply absent,
  *     which is the honest answer and the one the rest of this feature gives;
- *   - a wikilink becomes `\note{…}`, Vellum's own macro (the one `vellum.sty`
+ *   - a wikilink becomes `\note{…}`, Astrolabe's own macro (the one `astrolabe.sty`
  *     makes compile elsewhere), and a link becomes `\href{url}{…}`;
  *   - INLINE MATH IS THE ONE ROW THAT IS BYTE-IDENTICAL in both languages;
  *   - and the colour group is gone, because a coloured run is a `<span style>`
@@ -806,7 +806,7 @@ class SelectionToolbar {
   private frame = 0;
 
   constructor(private view: EditorView) {
-    window.addEventListener("vellum:seltoolbar", this.schedule);
+    window.addEventListener("astrolabe:seltoolbar", this.schedule);
     // The strip is placed from the selection's CLIENT rect, so it has to
     // follow the scroller as well as the selection — otherwise it hangs in
     // the air over the paragraph the reader has just scrolled away from.
@@ -1000,7 +1000,7 @@ class SelectionToolbar {
   }
 
   destroy(): void {
-    window.removeEventListener("vellum:seltoolbar", this.schedule);
+    window.removeEventListener("astrolabe:seltoolbar", this.schedule);
     window.removeEventListener("resize", this.schedule);
     this.view.scrollDOM.removeEventListener("scroll", this.schedule);
     cancelAnimationFrame(this.frame);

@@ -315,7 +315,7 @@ const data = makeDir();
 const root = makeVault(files);
 
 before(async () => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(root);
   await initIndexer();
 });

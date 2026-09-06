@@ -5,11 +5,11 @@
 //   1. IDENTIFY a book by its bytes (`bookKey`), so that a position — and
 //      every highlight, margin note and citation into it — survives the vault
 //      being reorganised by something that is not us.
-//   2. REMEMBER, in VELLUM_DATA/books.json, what each key's reader had done.
+//   2. REMEMBER, in ASTROLABE_DATA/books.json, what each key's reader had done.
 //
-// WHY VELLUM_DATA AND NOT THE VAULT. The vault is the owner's own directory of
+// WHY ASTROLABE_DATA AND NOT THE VAULT. The vault is the owner's own directory of
 // ordinary files — that is the product's central promise, and it is why there
-// is no database anywhere in this application. A sidecar `.vellum-reading.json`
+// is no database anywhere in this application. A sidecar `.astrolabe-reading.json`
 // next to every PDF would be litter in a folder someone syncs, greps and backs
 // up, and a dotfile at the vault root would be litter with better manners.
 // Reading positions are OUR bookkeeping, not the reader's content, so they
@@ -74,7 +74,7 @@ const BOOKS_FILE = "books.json";
 const SAMPLE_BYTES = 64 * 1024;
 
 /** How many PDFs one shelf lists. A vault is a directory, and a directory can
- *  be a 30,000-file scan dump someone pointed VELLUM_VAULT at by mistake;
+ *  be a 30,000-file scan dump someone pointed ASTROLABE_VAULT at by mistake;
  *  hashing that would hang the route. The response says it was truncated
  *  rather than silently showing a prefix. */
 export const BOOKS_MAX = 2000;
@@ -210,7 +210,7 @@ function readStore(): StoreFile {
       }
     }
   } catch (err) {
-    console.warn("vellum: books.json unreadable — reading positions and annotations start fresh:", err);
+    console.warn("astrolabe: books.json unreadable — reading positions and annotations start fresh:", err);
   }
   cache = { store, mtimeMs };
   return store;

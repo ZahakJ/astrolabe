@@ -1,5 +1,5 @@
 // NOTE ANNOTATIONS — what the owner said about a passage, kept beside the
-// vault and never in it (VELLUM_DATA/annotations.json, the books.json idiom).
+// vault and never in it (ASTROLABE_DATA/annotations.json, the books.json idiom).
 //
 // The store is a map from note path to its annotations. A path is the key
 // because it is what every shell asks by; the rename and folder-move routes
@@ -86,7 +86,7 @@ function readStore(): StoreFile {
       }
     }
   } catch (err) {
-    console.warn("vellum: annotations.json unreadable — annotations start fresh:", err);
+    console.warn("astrolabe: annotations.json unreadable — annotations start fresh:", err);
   }
   cache = { store, mtimeMs };
   return store;

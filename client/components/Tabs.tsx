@@ -229,7 +229,7 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
         // into the middle of the pane.
         label: t("tmReveal"),
         onSelect: () =>
-          window.dispatchEvent(new CustomEvent("vellum:tree-reveal", { detail: { path } })),
+          window.dispatchEvent(new CustomEvent("astrolabe:tree-reveal", { detail: { path } })),
       },
       {
         label: t("tmCopyPath"),

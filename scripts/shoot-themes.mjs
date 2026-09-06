@@ -53,7 +53,7 @@ if (await row.count()) {
 
 const setTheme = async (id) => {
   await page.evaluate((t) => {
-    localStorage.setItem("vellum.theme", t);
+    localStorage.setItem("astrolabe.theme", t);
     document.documentElement.setAttribute("data-theme", t);
   }, id);
   await page.waitForTimeout(280);
@@ -126,7 +126,7 @@ if (post) {
   const anon = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const p2 = await anon.newPage();
   await p2.goto(url, { waitUntil: "load" });
-  await p2.evaluate(() => localStorage.setItem("vellum.theme", "cinnabar"));
+  await p2.evaluate(() => localStorage.setItem("astrolabe.theme", "cinnabar"));
   const slug = post.path.replace(/\.md$/, "").split("/").map(encodeURIComponent).join("/");
   await p2.goto(`${url}/${slug}`, { waitUntil: "load" });
   await p2.waitForTimeout(1800);

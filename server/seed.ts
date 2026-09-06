@@ -3,7 +3,7 @@
 //
 // THE RULE: a directory that did not exist gets seeded at boot, silently,
 // because there was nothing there to intrude on. A directory that DOES exist
-// is the reader's, whatever is or is not inside it, and Vellum asks before
+// is the reader's, whatever is or is not inside it, and Astrolabe asks before
 // putting five files in it. Booting used to seed any vault dir holding no
 // markdown, which caught exactly the cases the reader would have minded most:
 // an empty `~/Notes` they had just made, a private vault cloned but not yet

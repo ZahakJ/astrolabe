@@ -262,13 +262,13 @@ api.use("*", async (c, next) => {
 // Cache-Control keeps it, and the content-addressed font routes (immutable,
 // deliberately shared, containing no session-varying byte) are skipped
 // entirely so a CDN can still hold them.
-// X-Vellum-Lang joined the list the moment `languageFilter: "follow"` existed:
+// X-Astrolabe-Lang joined the list the moment `languageFilter: "follow"` existed:
 // under that mode two readers of the SAME url, with the same (absent) cookie
 // and no preview header, get different post lists, different topics, different
 // search results and a different graph. A cache that did not know that would
 // serve an Arabic reader's collection to an English one — the same class of
 // bug the Cookie dimension was added to prevent, one axis over.
-const VARY_ON = "Cookie, X-Vellum-Preview, X-Vellum-Lang";
+const VARY_ON = "Cookie, X-Astrolabe-Preview, X-Astrolabe-Lang, X-Vellum-Preview, X-Vellum-Lang";
 
 api.use("*", async (c, next) => {
   await next();
@@ -286,7 +286,7 @@ api.use("*", async (c, next) => {
 // and gates reads too when PUBLIC=false).
 api.route("/", authRoutes);
 
-// Instance styling hook: VELLUM_DATA/custom.css, when present, is served to
+// Instance styling hook: ASTROLABE_DATA/custom.css, when present, is served to
 // admin and visitor alike (registered before the guard + listed in its
 // OPEN_PATHS — pure styling leaks nothing, and the login page of a PUBLIC=false
 // vault should still carry the instance's look). Existence is checked per
@@ -300,7 +300,7 @@ api.get("/custom.css", (c) => {
   });
 });
 
-// Custom fonts: GET /api/fonts/<file> serves VELLUM_DATA/fonts/<file> for
+// Custom fonts: GET /api/fonts/<file> serves ASTROLABE_DATA/fonts/<file> for
 // @font-face rules in custom.css. Same openness rationale as custom.css
 // (registered before the guard + prefix-exempted in it): fonts are pure
 // styling, and the login page of a PUBLIC=false vault should still render in
@@ -313,7 +313,7 @@ const FONT_MIME: Record<string, string> = {
   otf: "font/otf",
 };
 
-// Typography: the catalog cache under VELLUM_DATA/fonts/catalog/<id>/<file>,
+// Typography: the catalog cache under ASTROLABE_DATA/fonts/catalog/<id>/<file>,
 // referenced by every src in the generated /api/site-fonts.css. Same openness
 // as /api/fonts/<file> above (it is prefix-exempted in the auth guard) and the
 // same path discipline, tightened: the directory must be a KNOWN catalog id —
@@ -355,7 +355,7 @@ api.get("/fonts/catalog/:id/:file", async (c) => {
 // and it contains no external URL by construction: every src points back at
 // /api/fonts/catalog/… on this server.
 // It also carries THE ACTIVE DESIGN'S OWN FACES, under their own
-// `VellumDsg-<slot>-<id>` families. A visitor must receive the type a
+// `AstrolabeDsg-<slot>-<id>` families. A visitor must receive the type a
 // PUBLISHED design references, and there is one stylesheet on a visitor's page
 // where that can happen — this one. Nothing here downloads: the route is open,
 // so a stranger must never be able to make this server fetch from Google. A
@@ -368,7 +368,7 @@ api.get("/site-fonts.css", async (c) => {
   const css =
     slotsAreSystem(slots) && refs.length === 0
       ? "/* No webfonts configured. */\n"
-      : (await buildFontCss(slots, { prefix: "Vellum", root: true })) +
+      : (await buildFontCss(slots, { prefix: "Astrolabe", root: true })) +
         (await buildDesignFontCss(refs, slots));
   return c.body(css, 200, {
     "Content-Type": "text/css; charset=utf-8",
@@ -389,7 +389,7 @@ api.get("/fonts/custom", async (c) => {
   return c.json(await listCustomFonts());
 });
 
-// Uploaded faces (VELLUM_DATA/fonts/custom/<file>). Served on exactly the
+// Uploaded faces (ASTROLABE_DATA/fonts/custom/<file>). Served on exactly the
 // terms the catalog cache is — open like custom.css, because a face IS the
 // public site's typography and the login page of a PUBLIC=false vault should
 // render in it — and with exactly the same path discipline: the name must
@@ -1083,7 +1083,7 @@ api.post("/publish", async (c) => {
 //
 // THE ALLOWLIST BECAME A POLICY (v1.8 spec K). Two keys — `banner`, `folders` —
 // was the right shape while this product owned both of them; it is the wrong
-// shape for a properties card, whose whole job is the keys VELLUM DOES NOT KNOW
+// shape for a properties card, whose whole job is the keys ASTROLABE DOES NOT KNOW
 // ABOUT. A vault imported from Obsidian carries `cssclasses`, `rating`,
 // `status`, `source`, whatever the author invented, and a card that can show
 // them but not edit them is the Obsidian complaint verbatim.
@@ -1403,7 +1403,7 @@ api.post("/tags/rename", async (c) => {
     try {
       await renameWithLinkRewrite(moved[0], moved[1]);
     } catch (err) {
-      console.error(`vellum: moving the tag page ${moved[0]} failed`, err);
+      console.error(`astrolabe: moving the tag page ${moved[0]} failed`, err);
       moved = null;
     }
   }
@@ -1494,7 +1494,7 @@ api.post("/replace", async (c) => {
     try {
       snapshot = (await snapshotNow()).sha;
     } catch (err) {
-      console.error("vellum: the snapshot before a vault-wide replace failed", err);
+      console.error("astrolabe: the snapshot before a vault-wide replace failed", err);
     }
   }
 
@@ -1621,24 +1621,35 @@ api.get("/xref", (c) => {
   return c.json(result);
 });
 
-// The `vellum.sty` a `.tex` note needs to compile OUTSIDE Vellum. It is a
+// The `astrolabe.sty` a `.tex` note needs to compile OUTSIDE Astrolabe. It is a
 // dozen lines and it is the whole reason `\note{…}` is an honest syntax rather
-// than a lock-in: drop this beside the document, `\usepackage{vellum}`, and
+// than a lock-in: drop this beside the document, `\usepackage{astrolabe}`, and
 // pdflatex renders the link as a hyperref (or as emphasis when hyperref is not
 // loaded). Served to anyone who can reach the instance — it is a constant,
 // carries nothing about the vault, and a reader who cannot download it cannot
 // compile the paper they were just shown.
-const VELLUM_STY_PATH = new URL("../assets/vellum.sty", import.meta.url).pathname;
-let vellumStyCache: string | null = null;
+const ASTROLABE_STY_PATH = new URL("../assets/astrolabe.sty", import.meta.url).pathname;
+let astrolabeStyCache: string | null = null;
 
+const styHeaders = (name: string) => ({
+  "Content-Type": "text/x-tex; charset=utf-8",
+  "Content-Disposition": `inline; filename="${name}"`,
+  "Cache-Control": "public, max-age=3600",
+  "X-Content-Type-Options": "nosniff",
+});
+api.get("/astrolabe.sty", (c) => {
+  astrolabeStyCache ??= readFileSync(ASTROLABE_STY_PATH, "utf8");
+  return c.body(astrolabeStyCache, 200, styHeaders("astrolabe.sty"));
+});
+// `vellum.sty` keeps being served, as a package of its own: a paper written
+// under the old name carries `\usepackage{vellum}` and `\vellum{…}`, and a
+// URL a reader bookmarked must not start answering 404 because the product
+// changed its name. The file provides both macro spellings.
+const LEGACY_STY_PATH = new URL("../assets/vellum.sty", import.meta.url).pathname;
+let legacyStyCache: string | null = null;
 api.get("/vellum.sty", (c) => {
-  vellumStyCache ??= readFileSync(VELLUM_STY_PATH, "utf8");
-  return c.body(vellumStyCache, 200, {
-    "Content-Type": "text/x-tex; charset=utf-8",
-    "Content-Disposition": 'inline; filename="vellum.sty"',
-    "Cache-Control": "public, max-age=3600",
-    "X-Content-Type-Options": "nosniff",
-  });
+  legacyStyCache ??= readFileSync(LEGACY_STY_PATH, "utf8");
+  return c.body(legacyStyCache, 200, styHeaders("vellum.sty"));
 });
 
 // ------------------------------------------------------- attachment serving
@@ -2290,7 +2301,7 @@ api.get("/trackers", (c) => {
 });
 
 // -------------------------------------------------------------------- design
-// The site design engine (VELLUM_DATA/designs.json): named, versioned designs
+// The site design engine (ASTROLABE_DATA/designs.json): named, versioned designs
 // and custom themes. Mounted here, BELOW the auth guard, so every mutation
 // under the prefix is already 401 to a visitor and to an admin wearing the
 // preview header; the routes add the read-side gate themselves. Two routes
@@ -2299,7 +2310,7 @@ api.get("/trackers", (c) => {
 // custom.css). See server/designRoutes.ts.
 api.route("/design", designRoutes);
 // --------------------------------------------------------------------- books
-// The reader (VELLUM_DATA/books.json): the vault's PDFs as a shelf, and where
+// The reader (ASTROLABE_DATA/books.json): the vault's PDFs as a shelf, and where
 // each one was left off. Mounted here, below the auth guard, so the writes are
 // already admin-only; both reads add `assertAdminRead` themselves because a
 // shelf is an enumeration of the owner's own directory. The PDF BYTES are not
@@ -2343,7 +2354,7 @@ api.get("/visibility", (c) => {
 });
 
 // ------------------------------------------------------------------ settings
-// Instance settings (VELLUM_DATA/settings.json): siteName / tagline / footer /
+// Instance settings (ASTROLABE_DATA/settings.json): siteName / tagline / footer /
 // defaultTheme / publicLayout / blogLocale / excludeTags / commentsEnabled /
 // favicon / logo / home { mode, note, banner }. A stored value overrides its
 // env default, live. Admin-eyes-only both ways — the visitor-relevant subset
@@ -2377,7 +2388,7 @@ api.patch("/settings", async (c) => {
     assertCredentialed();
   }
   // Typography is the one setting with a prerequisite on disk: the chosen
-  // families must be cached under VELLUM_DATA/fonts/catalog before
+  // families must be cached under ASTROLABE_DATA/fonts/catalog before
   // settings.json names them, or the site would link a stylesheet with no
   // faces behind it. Validate the ids (400), fetch what is missing (502),
   // and only then write — a download failure leaves settings untouched.
@@ -2401,7 +2412,7 @@ api.patch("/settings", async (c) => {
 //
 // WHY A ROUTE AT ALL. The public site's default theme follows the admin's
 // editor theme, and that theme has only ever lived in ONE place the server
-// cannot see: `localStorage["vellum.theme"]` in whichever browser the owner
+// cannot see: `localStorage["astrolabe.theme"]` in whichever browser the owner
 // happens to be writing in. So the browser tells it — once, after the pick has
 // settled (the client debounces; see client/state.ts).
 //
@@ -2426,7 +2437,7 @@ api.post("/theme", async (c) => {
 });
 
 // The settings panel's live preview: the same generated CSS as
-// /api/site-fonts.css but under a "VellumPreview…" family prefix and with no
+// /api/site-fonts.css but under a "AstrolabePreview…" family prefix and with no
 // :root remap, so the panel can show faces the reader has PICKED but not yet
 // saved. Admin-eyes-only (it can trigger a download, and it describes an
 // unsaved state) — 404 to visitors exactly like GET /api/settings. Failures
@@ -2451,10 +2462,10 @@ api.get("/font-preview.css", async (c) => {
     try {
       await ensureFontsCached([id]);
     } catch (err) {
-      console.warn(`vellum: font preview could not cache ${id}:`, err);
+      console.warn(`astrolabe: font preview could not cache ${id}:`, err);
     }
   }
-  const css = slotsAreSystem(slots) ? "" : await buildFontCss(slots, { prefix: "VellumPreview", root: false });
+  const css = slotsAreSystem(slots) ? "" : await buildFontCss(slots, { prefix: "AstrolabePreview", root: false });
   return c.body(css, 200, { "Content-Type": "text/css; charset=utf-8", "Cache-Control": "no-cache" });
 });
 
@@ -2525,7 +2536,7 @@ api.delete("/fonts/custom/:file", async (c) => {
 });
 
 // The font PICKER's own faces: one @font-face per pickable id, under a
-// "VellumOpt-…" family, so every option row renders IN THE FACE IT NAMES —
+// "AstrolabeOpt-…" family, so every option row renders IN THE FACE IT NAMES —
 // and the Arabic options render their Arabic sample in it too. Asked for one
 // GROUP at a time as that group opens, which is why the ids are a parameter
 // rather than "all of them": twenty-seven families at once is a megabyte of
@@ -2543,7 +2554,7 @@ api.get("/font-faces.css", async (c) => {
     try {
       await ensureFontsCached([id]);
     } catch (err) {
-      console.warn(`vellum: font picker could not cache ${id}:`, err);
+      console.warn(`astrolabe: font picker could not cache ${id}:`, err);
     }
   }
   return c.body(await buildFaceListCss(ids), 200, {
@@ -2904,7 +2915,7 @@ async function renameWithLinkRewrite(from: string, to: string): Promise<void> {
       // just moved. Same resolution the renderers use, so the allowlist and the
       // page agree afterwards.
       rewritten = rewriteDestinations(rewritten, dirOf(at), dirOf(at), moved);
-      // …and, in a `.tex` linker, `\note{Old Title}` — Vellum's OWN macro, so
+      // …and, in a `.tex` linker, `\note{Old Title}` — Astrolabe's OWN macro, so
       // it is ours to keep true. `\input`, `\cite` and `\ref` are deliberately
       // NOT rewritten: they belong to the document's own semantics, and
       // silently editing them could change what `pdflatex` produces. The

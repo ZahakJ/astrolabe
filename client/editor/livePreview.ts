@@ -737,7 +737,7 @@ function openWikilink(inner: string, notePath: string): void {
   // [[#Heading]] — scroll within the note that's already open.
   if (!target && heading) {
     window.dispatchEvent(
-      new CustomEvent("vellum:goto-heading", { detail: { text: heading } }),
+      new CustomEvent("astrolabe:goto-heading", { detail: { text: heading } }),
     );
     return;
   }
@@ -840,7 +840,7 @@ function handleMousedown(event: MouseEvent, view: EditorView): boolean {
   if (tagEl?.textContent?.startsWith("#")) {
     event.preventDefault();
     window.dispatchEvent(
-      new CustomEvent("vellum:search", { detail: tagEl.textContent }),
+      new CustomEvent("astrolabe:search", { detail: tagEl.textContent }),
     );
     return true;
   }
@@ -850,7 +850,7 @@ function handleMousedown(event: MouseEvent, view: EditorView): boolean {
   // is swallowed there, so the card never leaks a cursor into its YAML.
   if (firstClick && target.closest(".cm-s-props__action")) {
     event.preventDefault();
-    window.dispatchEvent(new CustomEvent("vellum:set-banner"));
+    window.dispatchEvent(new CustomEvent("astrolabe:set-banner"));
     return true;
   }
 
@@ -972,7 +972,7 @@ class FrontmatterWidget extends WidgetType {
     action.addEventListener("click", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
-      window.dispatchEvent(new CustomEvent("vellum:set-banner"));
+      window.dispatchEvent(new CustomEvent("astrolabe:set-banner"));
     });
     const card = buildPropsCard(this.yaml, {
       prefix: "cm-s-props",
@@ -1005,7 +1005,7 @@ class FrontmatterWidget extends WidgetType {
           ev.preventDefault();
           ev.stopPropagation();
           window.dispatchEvent(
-            new CustomEvent("vellum:search", { detail: `#${value}` }),
+            new CustomEvent("astrolabe:search", { detail: `#${value}` }),
           );
         });
         return pill;

@@ -20,7 +20,7 @@
 
 import { windowId } from "./identity.ts";
 
-const CHANNEL = "vellum";
+const CHANNEL = "astrolabe";
 const VERSION = 1;
 
 export type BusMessage =

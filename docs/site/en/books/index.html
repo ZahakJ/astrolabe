@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The PDF reader · Vellum Documentation</title>
+<title>The PDF reader · Astrolabe Documentation</title>
 <meta name="description" content="Every PDF in the vault, read in a viewer that answers to the keyboard, remembers your page, and turns a highlight into a note.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,11 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
-  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
   <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../ar/books/" hreflang="ar">العربية</a>
   <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link is-current" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
@@ -64,7 +64,7 @@ zoom and <code>:h</code> is help, never highlight:</p>
 <p>Numbers read in Latin, Arabic-Indic and Persian digits alike: <code>:٢١٢</code> is page 212.</p>
 <h2 id="your-place-is-kept"><a class="anchor" href="#your-place-is-kept">Your place is kept</a></h2>
 <p>The reader remembers the page and the position <em>within</em> the page, the fit, the zoom, two-page
-mode, rotation, night mode, the direction and your marks, per book, in <code>VELLUM_DATA/books.json</code>.
+mode, rotation, night mode, the direction and your marks, per book, in <code>ASTROLABE_DATA/books.json</code>.
 The key is a <strong>hash of the file&#39;s bytes</strong>, never its path, so renaming or re-filing a book in
 Obsidian, Syncthing or a terminal loses nothing: page 612 is still page 612, and so are the
 highlights and the citations that point at them. Scrolling is saved a moment after you stop; a
@@ -101,9 +101,9 @@ reaches a visitor only as an attachment of a published note, through the same do
 uses. It reads metadata as untrusted text (capped, control characters stripped) and it caps marks
 at 64 per book. Visitors get no shelf.</p>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/books.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/books.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/drawing/"><span class="pager__kicker">Previous</span><span class="pager__title">Drawings</span></a><a class="pager__link pager__link--next" href="../../en/workspace/"><span class="pager__kicker">Next</span><span class="pager__title">Panes, tabs &amp; windows</span></a></nav>
-    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
   <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-shelf">The shelf</a><a class="toc__link toc__link--2" href="#reading">Reading</a><a class="toc__link toc__link--2" href="#the-command-line">The command line</a><a class="toc__link toc__link--2" href="#your-place-is-kept">Your place is kept</a><a class="toc__link toc__link--2" href="#highlights-citations-and-margin-notes">Highlights, citations and margin notes</a><a class="toc__link toc__link--2" href="#search-inside-a-book">Search inside a book</a><a class="toc__link toc__link--2" href="#what-it-does-not-do">What it does not do</a></aside>
 </div>

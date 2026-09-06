@@ -170,12 +170,12 @@ describe("dates and the counts beside them agree", () => {
 
   it("the footer year follows the same policy", () => {
     const year = String(new Date().getFullYear());
-    initSite({ VELLUM_DATA: data, SITE_LANG: "ar" });
-    assert.equal(footerLine(), `© ${year} Vellum`);
-    initSite({ VELLUM_DATA: data, SITE_LANG: "ar", SITE_FOOTER: "{siteName} — {year}", SITE_NAME: "دفتر" });
+    initSite({ ASTROLABE_DATA: data, SITE_LANG: "ar" });
+    assert.equal(footerLine(), `© ${year} Astrolabe`);
+    initSite({ ASTROLABE_DATA: data, SITE_LANG: "ar", SITE_FOOTER: "{siteName} — {year}", SITE_NAME: "دفتر" });
     assert.equal(footerLine(), `دفتر — ${year}`);
-    initSite({ VELLUM_DATA: data });
-    assert.equal(footerLine(), `© ${year} Vellum`);
+    initSite({ ASTROLABE_DATA: data });
+    assert.equal(footerLine(), `© ${year} Astrolabe`);
   });
 
   it("the CALENDAR stays Gregorian for every Arabic locale the validator takes", () => {

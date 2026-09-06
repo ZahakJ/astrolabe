@@ -1,4 +1,4 @@
-/* Vellum — the designed public shell.
+/* Astrolabe — the designed public shell.
  *
  * A SEPARATE stylesheet, and that is the architecture rather than a filing
  * decision: `client/styles/blog.css` is the stock blog's, it is not imported
@@ -369,7 +369,7 @@
    The stock blog's dashboard has opened on a full-bleed photograph with the
    site's name over it since before this engine existed, and until this
    treatment a design could not reproduce it: every other opening lives inside
-   `--dsn-width`. So the one front page a Vellum author is most likely to
+   `--dsn-width`. So the one front page an Astrolabe author is most likely to
    already HAVE was the one they could not start a design from — which is the
    report this treatment came out of ("is the original design a template, or is
    there a way to move back to it?").
@@ -1319,7 +1319,7 @@
 }
 
 .s-dsn-div--dots::before {
-  /* THE MARK IS THE DESIGN'S, NOT THE PRODUCT'S. `✦` is Vellum's own wordmark
+  /* THE MARK IS THE DESIGN'S, NOT THE PRODUCT'S. `✦` is Astrolabe's own wordmark
      and it was hard-coded into both dividers, so every design on the shelf
      signed its breaks with our monogram — including, once the scenery landed, a
      page standing in a starfield. `--dsg-orn` is set per design by
@@ -4301,7 +4301,7 @@
 
 /* AND AN ESSAY BREAKS ITSELF WITH THE DESIGN'S MARK, not with the product's.
    `***` in a note draws the reading view's ornament rule, which hard-codes `✦`
-   — Vellum's own wordmark — in `reading/reading.css`. Inside a composed site
+   — Astrolabe's own wordmark — in `reading/reading.css`. Inside a composed site
    that is the one place left where a page standing in a starfield still signs
    itself with somebody else's monogram, and it is the place a reader spends
    the most time. Same variable the two composed dividers read, same fallback,

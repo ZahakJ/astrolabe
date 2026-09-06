@@ -64,7 +64,7 @@
             android:label="@string/title_activity_share"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTop"
-            android:taskAffinity="dev.vellum.mobile.share"
+            android:taskAffinity="dev.astrolabe.mobile.share"
             android:excludeFromRecents="true"
             android:exported="true">
 

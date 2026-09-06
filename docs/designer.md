@@ -22,7 +22,7 @@ mode is a *second* renderer that composes its own page, not a re-styling of the 
 what makes the switch worth having —
 
 **Flipping between stock and designed is instant and lossless, both ways.** Your designs live in
-`VELLUM_DATA/designs.json` and are not consulted while the layout is anything else, so switching
+`ASTROLABE_DATA/designs.json` and are not consulted while the layout is anything else, so switching
 back to `blog` deletes nothing and switching forward again returns your site exactly as it was.
 Going back to stock is a rescue, not a decision.
 
@@ -152,7 +152,7 @@ static-page bodies use the shared note-format renderer and honor note alignment.
 Keep several, duplicate one to try something, export any of them as JSON (custom themes it uses
 travel with it) and import it into another instance. Import is always *additive* — a colliding name
 gets a fresh id, and nothing you already have is ever silently overwritten. "Reset to stock
-defaults" is always one click away. A design written by a **newer** Vellum than the one you are
+defaults" is always one click away. A design written by a **newer** Astrolabe than the one you are
 running is kept on disk and listed with the reason, never rendered half-understood.
 
 ## The live preview

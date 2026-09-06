@@ -80,7 +80,7 @@ export function proseOfSource(text: string): string {
   return proseMapOfSource(text).text;
 }
 
-/** What the editor dispatches on "Annotate" (window event `vellum:annotate`). */
+/** What the editor dispatches on "Annotate" (window event `astrolabe:annotate`). */
 export interface AnnotateRequest {
   path: string;
   quote: string;
@@ -90,7 +90,7 @@ export interface AnnotateRequest {
   y: number;
 }
 
-export const ANNOTATE_EVENT = "vellum:annotate";
+export const ANNOTATE_EVENT = "astrolabe:annotate";
 
 /** A click on a painted mark in the editor: open that annotation. */
 export interface AnnotateOpenRequest {
@@ -99,7 +99,7 @@ export interface AnnotateOpenRequest {
   x: number;
   y: number;
 }
-export const ANNOTATE_OPEN_EVENT = "vellum:annotate-open";
+export const ANNOTATE_OPEN_EVENT = "astrolabe:annotate-open";
 
 /** The pointer resting on a painted mark in the editor (or leaving one:
  *  `id` null). */
@@ -108,4 +108,4 @@ export interface AnnotateHover {
   id: string | null;
   rect: { left: number; top: number; width: number; height: number } | null;
 }
-export const ANNOTATE_HOVER_EVENT = "vellum:annotate-hover";
+export const ANNOTATE_HOVER_EVENT = "astrolabe:annotate-hover";

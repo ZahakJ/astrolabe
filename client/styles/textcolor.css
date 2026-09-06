@@ -1,4 +1,4 @@
-/* Vellum — the theme-aware text-colour tokens (`--vc-*`).
+/* Astrolabe — the theme-aware text-colour tokens (`--vc-*`).
    Linked from client/index.html, AFTER tokens.css: a note's colour has to
    resolve in the editor, in the reading view and in the blog, and only two of
    those three ever load the editor bundle.

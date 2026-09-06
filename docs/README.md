@@ -1,8 +1,10 @@
-# Vellum documentation
+# Astrolabe documentation
 
 *The long-form manual. The [project README](../README.md) is the one-minute version.*
 
-Read it as a site, with search, an outline and both languages: [zahakj.github.io/vellum/site/en](https://zahakj.github.io/vellum/site/en/) · [العربية](https://zahakj.github.io/vellum/site/ar/). The Arabic sources are under [`ar/`](ar/); `npm run build-docs` renders both into `site/`.
+> **Astrolabe was Vellum.** Everything written for the old name keeps working: `VELLUM_*` environment keys (the new spelling is `ASTROLABE_*`), `vellum://` links beside `astrolabe://`, `~/.config/vellum` (copied to `~/.config/astrolabe` on first launch), the `vellum_session` cookie until it expires, `\usepackage{vellum}` and `/api/vellum.sty` beside `astrolabe.sty`, and the browser's stored preferences. See [Configuration](configuration.md#environment-variables).
+
+Read it as a site, with search, an outline and both languages: [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/) · [العربية](https://zahakj.github.io/astrolabe/site/ar/). The Arabic sources are under [`ar/`](ar/); `npm run build-docs` renders both into `site/`.
 
 **Before reading any of it**, the running app will show you most of what is below: press
 `Ctrl/Cmd P` and run **Take the tour** — fifteen illustrated cards, one feature each, and every one
@@ -27,7 +29,7 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 | --- | --- |
 | [The editor & reading view](editor.md) | Live preview, wikilinks, selection, rendering, navigation |
 | [Templates, banners & notes](templates-and-notes.md) | `banner:`, Obsidian-compatible templates, sections, attachments, trash |
-| [LaTeX notes](latex.md) | `.tex` as a first-class note, `vellum.sty`, and exactly what renders |
+| [LaTeX notes](latex.md) | `.tex` as a first-class note, `astrolabe.sty`, and exactly what renders |
 | [Trackers](trackers.md) | The `tracker` fence, the board, the Media page that shelves them all, and what a visitor sees of your shelf |
 | [Drawings](drawing.md) | An Excalidraw canvas in the vault: `.excalidraw` and the Obsidian plugin's `.excalidraw.md`, the svg exported beside it, `![[sketch.excalidraw]]` everywhere |
 | [The PDF reader](books.md) | Every PDF in the vault as a book: vim keys, a `:` command line, a remembered page, highlights that become cited notes |

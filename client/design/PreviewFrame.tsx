@@ -81,7 +81,7 @@ const FRAME_RESET = `
      never leaves an empty pane), which is the difference between a preview
      that opens and one that blinks. */
   body { visibility: hidden; }
-  html[data-vellum-ready] body { visibility: visible; }
+  html[data-astrolabe-ready] body { visibility: visible; }
   .s-dsgf-mount { height: 100%; }
   /* The canvas fills the frame instead of being a card in a grid: no rounded
      corner, no clip, no fade at a cut that does not exist. */
@@ -173,8 +173,8 @@ export default function PreviewFrame({
     const prepare = (): void => {
       const doc = frame.contentDocument;
       if (disposed || !doc || !doc.body) return;
-      if (doc.documentElement.hasAttribute("data-vellum-frame")) return;
-      doc.documentElement.setAttribute("data-vellum-frame", "");
+      if (doc.documentElement.hasAttribute("data-astrolabe-frame")) return;
+      doc.documentElement.setAttribute("data-astrolabe-frame", "");
       cleanup?.();
       cleanup = dress(doc, themeRef, () => {
         if (!disposed) setMount(null);
@@ -276,7 +276,7 @@ function dress(
       keys.add(key);
       if (clones.has(key)) continue;
       const copy = node.cloneNode(true) as HTMLElement;
-      copy.setAttribute("data-vellum-clone", "");
+      copy.setAttribute("data-astrolabe-clone", "");
       doc.head.insertBefore(copy, reset);
       clones.set(key, copy);
     }
@@ -317,7 +317,7 @@ function dress(
   const links = [...clones.values()].filter(
     (node): node is HTMLLinkElement => node instanceof HTMLLinkElement,
   );
-  const reveal = (): void => doc.documentElement.setAttribute("data-vellum-ready", "");
+  const reveal = (): void => doc.documentElement.setAttribute("data-astrolabe-ready", "");
   if (links.length === 0) reveal();
   else {
     let left = links.length;

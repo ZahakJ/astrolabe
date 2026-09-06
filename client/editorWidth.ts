@@ -9,7 +9,7 @@
 
 export type EditorWidth = "measure" | "wide" | "wider" | "full";
 
-export const EDITOR_WIDTH_KEY = "vellum.editorWidth";
+export const EDITOR_WIDTH_KEY = "astrolabe.editorWidth";
 
 export function readEditorWidth(): EditorWidth {
   try {
@@ -34,5 +34,5 @@ export function setEditorWidth(width: EditorWidth): void {
     // storage unavailable — the width lasts the session
   }
   applyEditorWidth(width);
-  window.dispatchEvent(new CustomEvent("vellum:editor-width", { detail: width }));
+  window.dispatchEvent(new CustomEvent("astrolabe:editor-width", { detail: width }));
 }

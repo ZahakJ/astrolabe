@@ -402,7 +402,7 @@ const DICT = {
   thSolar: { en: "Solar", ar: "شمسيّة" },
   thSolarDesc: { en: "Burnt gold on the brightest paper", ar: "ذهب محروق على أنصع ورق" },
   thPalimpsest: { en: "Palimpsest", ar: "طِرْس" },
-  thPalimpsestDesc: { en: "Rubric red on scraped vellum", ar: "أحمر التّرقين على رقّ مكشوط" },
+  thPalimpsestDesc: { en: "Rubric red on scraped astrolabe", ar: "أحمر التّرقين على رقّ مكشوط" },
   thPorcelain: { en: "Porcelain", ar: "خَزَف" },
   thPorcelainDesc: { en: "Deep celadon on glazed white", ar: "أخضر خزفي على بياض مطليّ" },
   thMauveine: { en: "Mauveine", ar: "موفين" },
@@ -554,7 +554,7 @@ const DICT = {
   },
   revisionAria: { en: "Open this revision", ar: "افتح هذه المراجعة" },
   // OUR OWN commit subjects, said in the reader's language. `commit()` writes
-  // "vellum snapshot: <ISO>" and "vellum sync: <ISO>", which is right for a
+  // "astrolabe snapshot: <ISO>" and "astrolabe sync: <ISO>", which is right for a
   // terminal `git log` and wrong in a timeline whose first column is already
   // the date: the row would print the moment twice, once as "3 days ago" and
   // once as a machine timestamp. Somebody else's commit subject is left
@@ -1230,7 +1230,7 @@ const DICT = {
   },
   // The hard warnings. Same numbers, louder frame.
   langFilterEmptyWarn: {
-    en: "Nothing qualifies. No published note is written in {lang}, so the site would have nothing on it — Vellum will keep showing all {total} instead, and go on saying so here until you change this.",
+    en: "Nothing qualifies. No published note is written in {lang}, so the site would have nothing on it — Astrolabe will keep showing all {total} instead, and go on saying so here until you change this.",
     ar: "لا شيء مؤهل. لا توجد ملاحظة منشورة مكتوبة بـ{lang}، فيغدو الموقع خاليًا — سيواصل ڤيلَّم عرض الـ{total} كلها بدلًا من ذلك، وسيظل يقول ذلك هنا حتى تغيّر هذا.",
   },
   langFilterMostHiddenWarn: {
@@ -1497,7 +1497,7 @@ const DICT = {
   },
   dailyNoteFailed: { en: "Could not create today's daily note", ar: "تعذر إنشاء ملاحظة اليوم" },
   saveFailed: { en: "Failed to save {path}", ar: "فشل حفظ {path}" },
-  // The two write failures that are the DISK's news, not Vellum's. Both used
+  // The two write failures that are the DISK's news, not Astrolabe's. Both used
   // to reach the reader as the generic sentence above, which sends them
   // looking for a bug in the app. The server names them (vault.ts::
   // writeFailure) and Editor.tsx picks the key.
@@ -2029,7 +2029,7 @@ const DICT = {
   fontFilter: { en: "Filter fonts…", ar: "تصفية الخطوط…" },
   fontGroupCustom: { en: "Your fonts", ar: "خطوطك" },
 
-  // ── Uploaded faces (VELLUM_DATA/fonts/custom) ───────────────────────────
+  // ── Uploaded faces (ASTROLABE_DATA/fonts/custom) ───────────────────────────
   // The catalog answers "one of ours"; this answers "the one I own", which is
   // the only possible answer for a licensed Arabic face.
   fontCustomHead: { en: "Your own fonts", ar: "خطوطك الخاصة" },
@@ -2550,13 +2550,13 @@ const DICT = {
   },
   texRefIn: { en: "{title} — in {note}", ar: "{title} — في {note}" },
   texCiteOpens: { en: "Opens {note}", ar: "يفتح {note}" },
-  cmdCopyVellumSty: {
-    en: "LaTeX: download vellum.sty",
-    ar: "لاتخ: تنزيل ملف vellum.sty",
+  cmdCopyAstrolabeSty: {
+    en: "LaTeX: download astrolabe.sty",
+    ar: "لاتخ: تنزيل ملف astrolabe.sty",
   },
-  cmdCopyVellumStyHint: {
-    en: "The macro package that makes a .tex note compile outside Vellum",
-    ar: "حزمة الماكرو التي تجعل ملاحظة ‎.tex‎ تُترجم خارج ڤيلوم",
+  cmdCopyAstrolabeStyHint: {
+    en: "The macro package that makes a .tex note compile outside Astrolabe",
+    ar: "حزمة الماكرو التي تجعل ملاحظة ‎.tex‎ تُترجم خارج أسطرلاب",
   },
   newTexNote: { en: "New LaTeX note", ar: "ملاحظة لاتخ جديدة" },
   // ── Drawings (client/drawing/) ─────────────────────────────────────────
@@ -2569,8 +2569,8 @@ const DICT = {
   drawingUnsaved: { en: "Unsaved strokes", ar: "خطوط غير محفوظة" },
   drawingSaveFailed: { en: "The drawing could not be saved. Your strokes are still on the canvas.", ar: "تعذّر حفظ الرسمة. خطوطك ما زالت على اللوحة." },
   drawingLoadFailed: {
-    en: "This file is not a drawing Vellum can read. Open it in Obsidian, or fix the scene by hand.",
-    ar: "هذا الملف ليس رسمة يستطيع ڤيلوم قراءتها. افتحه في أوبسيديان، أو أصلح المشهد يدويًا.",
+    en: "This file is not a drawing Astrolabe can read. Open it in Obsidian, or fix the scene by hand.",
+    ar: "هذا الملف ليس رسمة يستطيع أسطرلاب قراءتها. افتحه في أوبسيديان، أو أصلح المشهد يدويًا.",
   },
   drawingConflict: { en: "This drawing changed on disk while you were drawing.", ar: "تغيّرت هذه الرسمة على القرص أثناء رسمك." },
   drawingKeepMine: { en: "Keep mine", ar: "أبقِ نسختي" },
@@ -3010,7 +3010,7 @@ const DICT = {
     ar: "اللون المميز يبعد {value} ΔE فقط عن نص المتن — يلزم {min} ليُقرأ كلون مميز أصلًا.",
   },
   tbNeedName: { en: "Give the theme a name.", ar: "أعطِ السمة اسمًا." },
-  tbNotATheme: { en: "That file is not a Vellum theme.", ar: "هذا الملف ليس سمة ڤيلوم." },
+  tbNotATheme: { en: "That file is not an Astrolabe theme.", ar: "هذا الملف ليس سمة أسطرلاب." },
   tbFull: {
     en: "This instance already holds {max} custom themes.",
     ar: "تحتوي هذه النسخة بالفعل على {max} سمة مخصصة.",
@@ -3790,7 +3790,7 @@ const DICT = {
   // what was turned away and what would have been welcome.
   attachKinds: { en: "images, audio, video and PDF", ar: "الصور والصوت والفيديو وملفات PDF" },
   refuseType: {
-    en: "{files} can’t be attached ({exts}) — Vellum takes {kinds}.",
+    en: "{files} can’t be attached ({exts}) — Astrolabe takes {kinds}.",
     ar: "تعذّر إرفاق {files} ({exts}) — المقبول هو {kinds}.",
   },
   refuseSize: {
@@ -3938,7 +3938,7 @@ const DICT = {
   menuNoRecent: { en: "No vaults yet", ar: "لا خزائن بعد" },
   menuRevealVault: { en: "Show the vault in the file manager", ar: "إظهار الخزانة في مدير الملفات" },
   menuCloseWindow: { en: "Close window", ar: "إغلاق النافذة" },
-  menuQuit: { en: "Quit Vellum", ar: "إنهاء ڤيلوم" },
+  menuQuit: { en: "Quit Astrolabe", ar: "إنهاء أسطرلاب" },
   menuRedo: { en: "Redo", ar: "إعادة" },
   menuCut: { en: "Cut", ar: "قص" },
   menuCopy: { en: "Copy", ar: "نسخ" },
@@ -3951,7 +3951,7 @@ const DICT = {
   menuSpelling: { en: "Spelling", ar: "التدقيق الإملائي" },
   menuSpellcheckWhileTyping: { en: "Check spelling while typing", ar: "التدقيق الإملائي أثناء الكتابة" },
 
-  // ── The spelling menu Vellum draws itself ────────────────────────────────
+  // ── The spelling menu Astrolabe draws itself ────────────────────────────────
   menuAddToDictionary: { en: "Add to dictionary", ar: "إضافة إلى القاموس" },
   menuNoSuggestions: { en: "No suggestions", ar: "لا اقتراحات" },
   menuActualSize: { en: "Actual size", ar: "الحجم الفعلي" },
@@ -3973,10 +3973,10 @@ const DICT = {
 
   // ── Help ─────────────────────────────────────────────────────────────────
   menuShortcuts: { en: "Keyboard shortcuts", ar: "اختصارات لوحة المفاتيح" },
-  menuAbout: { en: "About Vellum", ar: "عن ڤيلوم" },
+  menuAbout: { en: "About Astrolabe", ar: "عن أسطرلاب" },
 
   // ── Tray ─────────────────────────────────────────────────────────────────
-  menuShowVellum: { en: "Show Vellum", ar: "إظهار ڤيلوم" },
+  menuShowAstrolabe: { en: "Show Astrolabe", ar: "إظهار أسطرلاب" },
 
   // ── Dialogs the main process owns ────────────────────────────────────────
   // The vault picker. It is the first thing a first launch shows, so it says
@@ -3989,11 +3989,11 @@ const DICT = {
   // layout silently reverting to defaults with nothing on screen to explain it.
   dlgPortMovedTitle: { en: "This vault opened on a different port", ar: "فُتحت هذه الخزانة على منفذ مختلف" },
   dlgPortMovedBody: {
-    en: "Vellum keeps one port per vault ({old}) because your theme, open tabs, folds and pane sizes are stored against it. That port was taken, so this window is on {port} and starts from the defaults. Close whatever is using {old} and reopen the vault to get your layout back.",
-    ar: "يحتفظ ڤيلوم بمنفذ واحد لكل خزانة ({old}) لأن السمة والتبويبات المفتوحة والطيّات وأحجام اللوحات محفوظة بحسبه. كان ذلك المنفذ مشغولًا، لذا فُتحت هذه النافذة على {port} وبدأت من الإعدادات الافتراضية. أغلق ما يشغل {old} ثم أعد فتح الخزانة لاستعادة تخطيطك.",
+    en: "Astrolabe keeps one port per vault ({old}) because your theme, open tabs, folds and pane sizes are stored against it. That port was taken, so this window is on {port} and starts from the defaults. Close whatever is using {old} and reopen the vault to get your layout back.",
+    ar: "يحتفظ أسطرلاب بمنفذ واحد لكل خزانة ({old}) لأن السمة والتبويبات المفتوحة والطيّات وأحجام اللوحات محفوظة بحسبه. كان ذلك المنفذ مشغولًا، لذا فُتحت هذه النافذة على {port} وبدأت من الإعدادات الافتراضية. أغلق ما يشغل {old} ثم أعد فتح الخزانة لاستعادة تخطيطك.",
   },
-  dlgServerFailedTitle: { en: "Vellum could not start this vault", ar: "تعذّر على ڤيلوم فتح هذه الخزانة" },
-  dlgProbeFailedTitle: { en: "This build of Vellum cannot run its own server", ar: "لا تستطيع هذه النسخة من ڤيلوم تشغيل خادمها" },
+  dlgServerFailedTitle: { en: "Astrolabe could not start this vault", ar: "تعذّر على أسطرلاب فتح هذه الخزانة" },
+  dlgProbeFailedTitle: { en: "This build of Astrolabe cannot run its own server", ar: "لا تستطيع هذه النسخة من أسطرلاب تشغيل خادمها" },
   dlgQuit: { en: "Quit", ar: "إنهاء" },
   dlgChooseAnother: { en: "Choose another vault…", ar: "اختر خزانة أخرى…" },
 
@@ -4053,18 +4053,18 @@ const DICT = {
   // and good news does not get to interrupt a sentence.
   menuCheckUpdates: { en: "Check for updates…", ar: "التحقق من التحديثات…" },
   updateReady: {
-    en: "Vellum {version} is ready",
-    ar: "‏ڤيلوم {version} جاهز",
+    en: "Astrolabe {version} is ready",
+    ar: "‏أسطرلاب {version} جاهز",
   },
   updateRestart: { en: "Restart now", ar: "إعادة التشغيل الآن" },
   updateAvailable: {
-    en: "Vellum {version} is out",
-    ar: "صدر ڤيلوم {version}",
+    en: "Astrolabe {version} is out",
+    ar: "صدر أسطرلاب {version}",
   },
   updateView: { en: "See the release", ar: "عرض الإصدار" },
   updateDownloading: {
-    en: "Downloading Vellum {version} in the background…",
-    ar: "يجري تنزيل ڤيلوم {version} في الخلفية…",
+    en: "Downloading Astrolabe {version} in the background…",
+    ar: "يجري تنزيل أسطرلاب {version} في الخلفية…",
   },
   updateCurrent: { en: "You are on the latest release.", ar: "أنت على أحدث إصدار." },
   updateFailed: {
@@ -4128,15 +4128,15 @@ const DICT = {
   // that hung forever because fetch has no deadline of its own. Every one of
   // them says the same first thing, because it is the only thing a writer
   // cares about at that moment: the words are not gone.
-  crashTitle: { en: "Vellum stopped drawing", ar: "توقّف ڤيلوم عن العرض" },
+  crashTitle: { en: "Astrolabe stopped drawing", ar: "توقّف أسطرلاب عن العرض" },
   crashBody: {
     en: "Your unsaved notes were sent to the vault. Reload to carry on.",
     ar: "أُرسلت ملاحظاتك غير المحفوظة إلى الخزانة. أعد التحميل للمتابعة.",
   },
   crashReload: { en: "Reload", ar: "إعادة التحميل" },
   chunkGone: {
-    en: "This part of Vellum could not be loaded — it may have been updated while you were here.",
-    ar: "تعذّر تحميل هذا الجزء من ڤيلوم — ربما جرى تحديثه أثناء وجودك هنا.",
+    en: "This part of Astrolabe could not be loaded — it may have been updated while you were here.",
+    ar: "تعذّر تحميل هذا الجزء من أسطرلاب — ربما جرى تحديثه أثناء وجودك هنا.",
   },
   netTimeout: { en: "The server did not answer in time", ar: "لم يستجب الخادم في الوقت المتاح" },
   sessionStale: {

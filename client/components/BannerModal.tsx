@@ -112,7 +112,7 @@ export default function BannerModal() {
         })
         .catch((err: unknown) => {
           setBusy(false);
-          console.error("vellum: upload failed", err);
+          console.error("astrolabe: upload failed", err);
           toast(err instanceof Error ? err.message : t("uploadFailed"));
         });
     },

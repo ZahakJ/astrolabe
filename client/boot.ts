@@ -1,6 +1,6 @@
 // What the served shell told us before a byte of JavaScript ran.
 //
-// `server/boot.ts` inlines `window.__vellum` for sessions that are shown the
+// `server/boot.ts` inlines `window.__astrolabe` for sessions that are shown the
 // public site: the layout, the theme the page has already been painted in,
 // and — on a designed site — the design document, scrubbed and scoped exactly
 // as /api/design/public would scope it. Read ONCE, here, defensively: every
@@ -24,7 +24,7 @@ function read(): Boot {
   // module evaluation, which is after the document has parsed the head.
   let raw: unknown;
   try {
-    raw = JSON.parse(document.getElementById("vellum-boot")?.textContent ?? "null");
+    raw = JSON.parse(document.getElementById("astrolabe-boot")?.textContent ?? "null");
   } catch {
     raw = null; // a half-written or foreign block is no block
   }

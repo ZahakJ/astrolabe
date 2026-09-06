@@ -130,7 +130,7 @@ const GROUPS: Group[] = [
       {
         label: "scSearch",
         keys: ["Ctrl/Cmd", "K"],
-        run: () => window.dispatchEvent(new CustomEvent("vellum:quicksearch")),
+        run: () => window.dispatchEvent(new CustomEvent("astrolabe:quicksearch")),
       },
       {
         label: "scGraph",

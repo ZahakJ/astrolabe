@@ -1,4 +1,4 @@
-// NATIVE SPELLCHECK, DRAWN IN VELLUM'S OWN MENU.
+// NATIVE SPELLCHECK, DRAWN IN ASTROLABE'S OWN MENU.
 //
 // The browser already spellchecks the editor, because `client/editor/bidi.ts`
 // puts a `lang` on every line whose script disagrees with the document — so an
@@ -84,7 +84,7 @@ export function enableSpellcheck(ses: Session, instanceLang: string, enabled: bo
     if (tags.length > 0) ses.setSpellCheckerLanguages(tags);
     return tags;
   } catch (err) {
-    console.warn("vellum: could not configure the spellchecker:", err);
+    console.warn("astrolabe: could not configure the spellchecker:", err);
     return [];
   }
 }
@@ -99,7 +99,7 @@ export interface SpellMenuPayload {
 }
 
 /** Turn a `context-menu` event into the payload the renderer draws, or null
- *  when the right-click was not on a misspelling and Vellum has nothing to add
+ *  when the right-click was not on a misspelling and Astrolabe has nothing to add
  *  to whatever menu the page itself opens. */
 export function spellMenuFor(params: Electron.ContextMenuParams): SpellMenuPayload | null {
   if (!params.misspelledWord) return null;

@@ -20,7 +20,7 @@ import { marked } from "marked";
 const root = new URL("../", import.meta.url).pathname;
 const DOCS = join(root, "docs");
 const OUT = join(DOCS, "site");
-const REPO = "https://github.com/ZahakJ/vellum";
+const REPO = "https://github.com/ZahakJ/astrolabe";
 
 /** The navigation: sections and pages, in reading order, named in both
  *  languages. `file` is the Markdown source under docs/ and docs/ar/. */
@@ -93,13 +93,13 @@ const UI = {
     menu: "Menu",
     theme: "Light / dark",
     repo: "GitHub",
-    app: "Vellum",
+    app: "Astrolabe",
     tagline: "The manual. The app's own tour (Ctrl/Cmd P → Take the tour) shows most of it live.",
-    foot: "Vellum is free software. These pages are built from the Markdown in the repo's docs folder.",
+    foot: "Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.",
   },
   ar: {
     dir: "rtl",
-    docs: "الدليل",
+    docs: "دليل",
     home: "نظرة عامة",
     search: "ابحث في الدليل…",
     noResults: "لا نتائج",
@@ -113,9 +113,9 @@ const UI = {
     menu: "القائمة",
     theme: "فاتح / داكن",
     repo: "GitHub",
-    app: "فيلم",
+    app: "أسطرلاب",
     tagline: "الدليل الكامل. جولة التطبيق نفسه (Ctrl/Cmd P ← خذ الجولة) تعرض معظمه حيًّا.",
-    foot: "فيلم برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.",
+    foot: "أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.",
   },
 };
 
@@ -213,7 +213,7 @@ function shell({ lang, title, body, toc, current, prev, next, editHref, summary,
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)} · ${ui.app} ${ui.docs}</title>
+<title>${esc(title)} · ${lang === "ar" ? `${ui.docs} ${ui.app}` : `${ui.app} ${ui.docs}`}</title>
 <meta name="description" content="${esc(summary)}">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -223,7 +223,7 @@ function shell({ lang, title, body, toc, current, prev, next, editHref, summary,
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="${ui.menu}" data-menu>☰</button>
-  <a class="top__brand" href="${base}${lang}/"><span class="top__star">✦</span> ${ui.app} <span class="top__docs">${ui.docs}</span></a>
+  <a class="top__brand" href="${base}${lang}/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> ${lang === "ar" ? `<span class="top__docs">${ui.docs}</span> ${ui.app}` : `${ui.app} <span class="top__docs">${ui.docs}</span>`}</a>
   <label class="top__search"><input type="search" placeholder="${ui.search}" aria-label="${ui.search}" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="${other}" hreflang="${ui.switchHref}">${ui.switchTo}</a>
   <button class="top__theme" type="button" title="${ui.theme}" aria-label="${ui.theme}" data-theme>◐</button>
@@ -256,8 +256,8 @@ function homeBody(lang, summaries) {
   ).join("");
   const intro =
     lang === "ar"
-      ? `<h1>دليل فيلم</h1><p class="lede">${ui.tagline}</p>`
-      : `<h1>The Vellum manual</h1><p class="lede">${ui.tagline}</p>`;
+      ? `<h1>دليل أسطرلاب</h1><p class="strap">ملاحظاتك، على الخريطة.</p><p class="lede">${ui.tagline}</p><p class="was"><b>كان اسمه ڤيلوم.</b> كل ما كُتب للاسم القديم ما زال يعمل: مفاتيح البيئة <code>VELLUM_*</code>، وروابط <code>vellum://</code>، ومجلد <code>~/.config/vellum</code>، وملف تعريف الجلسة، و<code>\\usepackage{vellum}</code>، وتفضيلات المتصفح المحفوظة. الأسماء الجديدة هي <code>ASTROLABE_*</code> و<code>astrolabe://</code> و<code>astrolabe.sty</code>.</p>`
+      : `<h1>The Astrolabe manual</h1><p class="strap">Your notes, charted.</p><p class="lede">${ui.tagline}</p><p class="was"><b>Astrolabe was Vellum.</b> Everything written for the old name keeps working: <code>VELLUM_*</code> environment keys, <code>vellum://</code> links, <code>~/.config/vellum</code>, the session cookie, <code>\\usepackage{vellum}</code>, and your browser's stored preferences. The new names are <code>ASTROLABE_*</code>, <code>astrolabe://</code> and <code>astrolabe.sty</code>.</p>`;
   return intro + cards;
 }
 
@@ -311,5 +311,5 @@ for (const lang of ["en", "ar"]) {
   write(join(OUT, lang, "index.html"), shell({ lang, title: UI[lang].home, body: homeBody(lang, summaries), toc: [], current: null, prev: null, next: null, editHref: null, summary: UI[lang].tagline, untranslated: "", depth: 1 }));
   write(join(OUT, `search-${lang}.json`), JSON.stringify(search[lang]));
 }
-write(join(OUT, "index.html"), `<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=en/"><a href="en/">Vellum documentation</a>`);
+write(join(OUT, "index.html"), `<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=en/"><a href="en/">Astrolabe documentation</a>`);
 console.log(`build-docs: ${built} pages → docs/site (en, ar)`);

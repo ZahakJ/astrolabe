@@ -1,23 +1,25 @@
-<p align="center"><img src="docs/gh-hero.png" alt="Vellum" width="720"></p>
+<p align="center"><img src="docs/gh-hero.png" alt="Astrolabe" width="720"></p>
 
-# Vellum
+# Astrolabe
 
-**Your Obsidian-style vault, self-hosted — and, when you want it, published as a beautiful blog. One small Node process.**
+**Your notes, charted. An Obsidian-style vault, self-hosted — and, when you want it, published as a site. One small Node process.**
 
-<p align="center"><a href="https://zahakj.github.io/vellum/"><strong>✦ Visit the project site ✦</strong></a></p>
+<p align="center"><a href="https://zahakj.github.io/astrolabe/"><strong>✦ Visit the project site ✦</strong></a></p>
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-e3b341.svg)](LICENSE)
 [![Node ≥ 24](https://img.shields.io/badge/node-%E2%89%A5%2024-339933?logo=node.js&logoColor=white)](package.json)
 
-> A *vellum* was the candlelit room where manuscripts were copied and illuminated. This one runs on `localhost`.
+> An *astrolabe* was the instrument that told a traveller where they stood by the stars. This one runs on `localhost`.
+>
+> **Astrolabe was Vellum.** Everything written for the old name keeps working: `VELLUM_*` environment keys, `vellum://` links, `~/.config/vellum`, `vellum_session` cookies, `\usepackage{vellum}` and `/api/vellum.sty`, and your browser's stored preferences. The new names are `ASTROLABE_*`, `astrolabe://`, `~/.config/astrolabe`, `astrolabe.sty`.
 
 ![The live-preview editor: callouts, tasks, wikilinks, KaTeX math, outline, local graph, and backlinks](docs/screenshots/hero-editor.png)
 
-**The manual** lives at [zahakj.github.io/vellum/site/en](https://zahakj.github.io/vellum/site/en/), with a full Arabic edition at [/site/ar](https://zahakj.github.io/vellum/site/ar/). The same pages are the markdown under [`docs/`](docs/README.md).
+**The manual** lives at [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/), with a full Arabic edition at [/site/ar](https://zahakj.github.io/astrolabe/site/ar/). The same pages are the markdown under [`docs/`](docs/README.md).
 
-## Why Vellum
+## Why Astrolabe
 
-Obsidian is excellent — and if it fits, use it. Vellum exists for the gap it leaves: a vault you can open **from any browser** on your network, served by **one small Node process you host yourself**, with no desktop install, no sync subscription, and no plugin sprawl. It is local-first in the strictest sense: your notes are ordinary markdown files in an ordinary folder, readable and writable by every other tool you own. Point Vellum at an existing Obsidian vault and both keep working — it never converts, wraps, or databases your files, ignores `.obsidian/` entirely, and serves your existing attachments in place. If you delete the app tomorrow, your notes don't notice. And when some of those notes deserve readers, flip on [blog mode](docs/blog-mode.md): the same vault becomes a public site with articles, topics, RSS and reader comments — `publish: true` is the only frontmatter it asks for.
+Obsidian is excellent — and if it fits, use it. Astrolabe exists for the gap it leaves: a vault you can open **from any browser** on your network, served by **one small Node process you host yourself**, with no desktop install, no sync subscription, and no plugin sprawl. It is local-first in the strictest sense: your notes are ordinary markdown files in an ordinary folder, readable and writable by every other tool you own. Point Astrolabe at an existing Obsidian vault and both keep working — it never converts, wraps, or databases your files, ignores `.obsidian/` entirely, and serves your existing attachments in place. If you delete the app tomorrow, your notes don't notice. And when some of those notes deserve readers, flip on [blog mode](docs/blog-mode.md): the same vault becomes a public site with articles, topics, RSS and reader comments — `publish: true` is the only frontmatter it asks for.
 
 | | |
 | --- | --- |
@@ -29,13 +31,13 @@ Obsidian is excellent — and if it fits, use it. Vellum exists for the gap it l
 Needs **Node ≥ 24** (`node --version`).
 
 ```sh
-git clone https://github.com/ZahakJ/vellum.git
-cd vellum
+git clone https://github.com/ZahakJ/astrolabe.git
+cd astrolabe
 npm install
 npm start
 ```
 
-Open **http://localhost:6801**. On first launch Vellum creates `./vault` and seeds it with
+Open **http://localhost:6801**. On first launch Astrolabe creates `./vault` and seeds it with
 interlinked starter notes that double as the user manual.
 
 ### Point it at your own notes
@@ -43,7 +45,7 @@ interlinked starter notes that double as the user manual.
 Any folder of `.md` files is a vault — including a real Obsidian vault:
 
 ```sh
-VELLUM_VAULT=~/notes npm start
+ASTROLABE_VAULT=~/notes npm start
 # or:  npm start -- --vault ~/notes
 ```
 

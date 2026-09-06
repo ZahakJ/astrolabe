@@ -50,7 +50,7 @@ function starSvg(fill, size) {
   );
 }
 
-const work = join(tmpdir(), `vellum-icons-${process.pid}`);
+const work = join(tmpdir(), `astrolabe-icons-${process.pid}`);
 mkdirSync(work, { recursive: true });
 
 function magick(args) {

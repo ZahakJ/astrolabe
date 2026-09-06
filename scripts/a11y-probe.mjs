@@ -24,7 +24,7 @@ try {
 
 const base = process.argv[2] ?? "http://127.0.0.1:7092";
 const password = process.argv[3] ?? null;
-const outDir = process.env.OUT_DIR ?? "/tmp/vellum-a11y";
+const outDir = process.env.OUT_DIR ?? "/tmp/astrolabe-a11y";
 mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM });

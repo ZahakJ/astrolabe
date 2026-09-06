@@ -6,7 +6,7 @@
 // handful of imperative DOM nodes that are links in everything but the
 // attribute that makes a browser treat them as one.
 //
-// The trap is a hook rather than a component because every dialog in Vellum
+// The trap is a hook rather than a component because every dialog in Astrolabe
 // already owns its own overlay markup — wrapping them would have re-laid out
 // five modals to fix a keyboard bug.
 

@@ -3,7 +3,7 @@
 // Bulk-edit tools are what note-takers ask for most and trust least, and the
 // reason is always the same — a rewrite that touched four hundred files is not
 // something a reader can inspect afterwards, so a wrong one is unrecoverable.
-// Every such tool in Vellum (tag rename/merge, heading-link repair, and the
+// Every such tool in Astrolabe (tag rename/merge, heading-link repair, and the
 // search-and-replace that lands beside them) runs through this module, so the
 // three promises are made once instead of three times:
 //
@@ -212,7 +212,7 @@ export async function applyBulk(
       // reader is owed the list of files it did not touch, so they can look.
       const conflict = err instanceof VaultError && err.code === "stale";
       skipped.push({ path: relPath, reason: conflict ? "conflict" : "error" });
-      if (!conflict) console.error(`vellum: bulk rewrite of ${relPath} failed`, err);
+      if (!conflict) console.error(`astrolabe: bulk rewrite of ${relPath} failed`, err);
     }
   }
 
@@ -234,7 +234,7 @@ export async function applyBulk(
     // once rather than stranded. (Nothing calls this today: every caller's
     // revert is paired with a bundle. It is here so the pairing cannot rot.)
     await opts.revert().catch((err: unknown) => {
-      console.error("vellum: reverting the non-file half of a bulk edit failed", err);
+      console.error("astrolabe: reverting the non-file half of a bulk edit failed", err);
     });
   }
 
@@ -270,12 +270,12 @@ export async function undoBulk(undoId: string): Promise<BulkResult> {
       changed.push({ path: file.path, count: 1 });
     } catch (err) {
       skipped.push({ path: file.path, reason: "error" });
-      console.error(`vellum: undoing the bulk edit of ${file.path} failed`, err);
+      console.error(`astrolabe: undoing the bulk edit of ${file.path} failed`, err);
     }
   }
   if (bundle.revert) {
     await bundle.revert().catch((err: unknown) => {
-      console.error("vellum: undoing the non-file half of a bulk edit failed", err);
+      console.error("astrolabe: undoing the non-file half of a bulk edit failed", err);
     });
   }
   return { changed, skipped, notes: changed.length, edits: changed.length, undoId: null };

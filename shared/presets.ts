@@ -13,7 +13,7 @@
 // THREE CONSEQUENCES, and each of them is why this shape beat the alternatives:
 //
 //  1. APPLYING A PRESET IS AN IMPORT. `presetExport()` below produces exactly
-//     the `vellum.design` envelope `POST /api/design/docs/import` already
+//     the `astrolabe.design` envelope `POST /api/design/docs/import` already
 //     takes. That route validates strictly, assigns a FREE id, stamps fresh
 //     createdMs/updatedMs, carries custom themes along under fresh slugs, and
 //     never overwrites anything the instance already has. Every property the

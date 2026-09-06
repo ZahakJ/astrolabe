@@ -121,7 +121,7 @@ export default function ReplacePanel({
         })
         .catch((err: unknown) => {
           if (controller.signal.aborted) return;
-          console.error("vellum: previewing a vault-wide replace failed", err);
+          console.error("astrolabe: previewing a vault-wide replace failed", err);
           setPreview(null);
           // A pattern the server refused is the common case here and it is not
           // a failure — it is the reader half-way through typing `(\d+`.
@@ -225,7 +225,7 @@ export default function ReplacePanel({
       );
       onClose();
     } catch (err) {
-      console.error("vellum: a vault-wide replace failed", err);
+      console.error("astrolabe: a vault-wide replace failed", err);
       toast(t("replaceFailed"), "error");
     } finally {
       setBusy(false);

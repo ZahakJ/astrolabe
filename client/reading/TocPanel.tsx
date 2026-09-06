@@ -137,7 +137,7 @@ export default function TocPanel() {
         setHeadings(noteHeadings(openPath, note.content).filter((h) => !h.furniture));
       })
       .catch((err: unknown) => {
-        console.error("vellum: loading note for outline failed", err);
+        console.error("astrolabe: loading note for outline failed", err);
       });
     return () => {
       cancelled = true;
@@ -148,8 +148,8 @@ export default function TocPanel() {
     const onActive = (ev: Event): void => {
       setActive((ev as CustomEvent<string | null>).detail);
     };
-    window.addEventListener("vellum:active-heading", onActive);
-    return () => window.removeEventListener("vellum:active-heading", onActive);
+    window.addEventListener("astrolabe:active-heading", onActive);
+    return () => window.removeEventListener("astrolabe:active-heading", onActive);
   }, []);
 
   useEffect(() => {
@@ -187,8 +187,8 @@ export default function TocPanel() {
     const onPref = (ev: Event): void => {
       setNumbered((ev as CustomEvent<boolean>).detail);
     };
-    window.addEventListener("vellum:heading-numbers", onPref);
-    return () => window.removeEventListener("vellum:heading-numbers", onPref);
+    window.addEventListener("astrolabe:heading-numbers", onPref);
+    return () => window.removeEventListener("astrolabe:heading-numbers", onPref);
   }, []);
 
   const canDrag = admin && sections.length > 1;
@@ -372,7 +372,7 @@ export default function TocPanel() {
                 title={h.text}
                 onClick={() =>
                   window.dispatchEvent(
-                    new CustomEvent("vellum:goto-heading", {
+                    new CustomEvent("astrolabe:goto-heading", {
                       detail: { slug: h.slug, line: h.line, text: h.text },
                     }),
                   )

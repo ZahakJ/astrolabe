@@ -2,7 +2,7 @@
 // preview. It ASSERTS and exits 1 — this feature died silently once already.
 //   node scripts/shoot-hover.mjs http://localhost:7041 /outdir
 // env: CHROMIUM=/usr/bin/chromium
-//      VELLUM_PASSWORD=<pw>  — only if the instance sets ADMIN_PASSWORD_HASH;
+//      ASTROLABE_PASSWORD=<pw>  — only if the instance sets ADMIN_PASSWORD_HASH;
 //      without an admin session no editor mounts and the script refuses,
 //      loudly, instead of reporting a crashed browser.
 //
@@ -122,11 +122,11 @@ await page.waitForTimeout(800);
 // visitor: no editor mounts on an unpublished note, the `.cm-scroller`
 // evaluate times out, and the run printed "browser died (TimeoutError…)" and
 // "the browser crashed (memory?)" — a gate blaming the machine for a session
-// it chose itself. It now signs in when it can (VELLUM_PASSWORD) and refuses
+// it chose itself. It now signs in when it can (ASTROLABE_PASSWORD) and refuses
 // with the real reason when it cannot.
 const me = await page.evaluate(async () => await (await fetch("/api/me")).json());
 if (!me.admin) {
-  const password = process.env.VELLUM_PASSWORD ?? "";
+  const password = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) ?? "";
   const res = password
     ? await page.evaluate(async (pw) => {
         const r = await fetch("/api/login", {
@@ -138,7 +138,7 @@ if (!me.admin) {
       }, password)
     : null;
   if (res && res.status === 200) {
-    console.log("[shoot-hover] signed in with $VELLUM_PASSWORD");
+    console.log("[shoot-hover] signed in with $ASTROLABE_PASSWORD");
     await page.goto(url, { waitUntil: "load" });
     await page.waitForTimeout(800);
   } else {
@@ -146,7 +146,7 @@ if (!me.admin) {
       "[shoot-hover] this session is NOT an admin — no editor mounts, so there is nothing to hover.\n" +
         `  is this instance password-protected? /api/me says protected=${me.protected === true}, public=${me.public === true}.\n` +
         "  fix: point the script at an instance started without ADMIN_PASSWORD_HASH,\n" +
-        "  or set VELLUM_PASSWORD=<the password> so this harness can sign in." +
+        "  or set ASTROLABE_PASSWORD=<the password> so this harness can sign in." +
         (res ? `\n  login attempt returned ${res.status}: ${res.body.slice(0, 120)}` : ""),
     );
     await browser.close();

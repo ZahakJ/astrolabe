@@ -1,4 +1,4 @@
-// Typed client for the Vellum HTTP API. Every fetcher mirrors an endpoint
+// Typed client for the Astrolabe HTTP API. Every fetcher mirrors an endpoint
 // in CONTRACTS.md and returns the shared wire types.
 
 import type {
@@ -47,11 +47,11 @@ import type {
 import type { TrackerFields } from "../shared/tracker.ts";
 
 // ── Visitor preview (admin-only) ────────────────────────────────────────────
-// While on, every API call carries X-Vellum-Preview: visitor and the server —
+// While on, every API call carries X-Astrolabe-Preview: visitor and the server —
 // seeing a valid admin session — walks its real visitor code path (published-
 // only filtering everywhere). The client never imitates that filtering.
 
-const PREVIEW_HEADER = "X-Vellum-Preview";
+const PREVIEW_HEADER = "X-Astrolabe-Preview";
 let previewOn = false;
 
 /** Flip the preview flag for all subsequent API calls (state.ts drives this). */
@@ -59,7 +59,7 @@ export function setPreviewVisitor(on: boolean): void {
   previewOn = on;
 }
 
-// ── Reader language (X-Vellum-Lang) ─────────────────────────────────────────
+// ── Reader language (X-Astrolabe-Lang) ─────────────────────────────────────────
 // The chrome language this browser is actually reading in. It rides on EVERY
 // API call for one reason: with `settings.languageFilter: "follow"` the server
 // scopes the published collection to the reader's language, so the question
@@ -68,11 +68,11 @@ export function setPreviewVisitor(on: boolean): void {
 //
 // A claim, not a command — the server honors it only while the instance offers
 // the EN/ع switch, and only for the two values it knows, exactly as it treats
-// X-Vellum-Preview. Sending it always (rather than only under "follow") keeps
+// X-Astrolabe-Preview. Sending it always (rather than only under "follow") keeps
 // this one line instead of a mode-dependent branch, and costs a header on
 // requests the server will ignore it on.
 
-const LANG_HEADER = "X-Vellum-Lang";
+const LANG_HEADER = "X-Astrolabe-Lang";
 let readerLang: string | null = null;
 
 /** Set the language every subsequent API call declares (state.ts drives this,
@@ -195,7 +195,7 @@ async function request<T>(
   }
   if (res.ok && !parsed) {
     // A 2xx THIS API DID NOT SEND. The shape that produces it is an auth proxy
-    // in front of Vellum: the session cookie expires, the proxy answers the
+    // in front of Astrolabe: the session cookie expires, the proxy answers the
     // XHR with its own 200 HTML login page, and `return body as T` handed every
     // caller a `null` typed as a tree, a note or a settings object. What the
     // reader saw was an empty vault, or a crash three frames later inside a
@@ -762,7 +762,7 @@ export function listAttachments(asAdmin = false): Promise<string[]> {
 // them: the Typography tab stays reachable while previewing the public site,
 // and /api/fonts/custom answers a preview session with a 404.
 
-/** Every uploaded face under VELLUM_DATA/fonts/custom. */
+/** Every uploaded face under ASTROLABE_DATA/fonts/custom. */
 export function listCustomFonts(): Promise<CustomFontInfo[]> {
   return request<CustomFontInfo[]>("/api/fonts/custom", undefined, true);
 }
@@ -786,7 +786,7 @@ export function deleteCustomFont(file: string): Promise<{ ok: true }> {
   return request<{ ok: true }>(`/api/fonts/custom/${encodeURIComponent(file)}`, { method: "DELETE" }, true);
 }
 
-/** Instance settings (admin only; VELLUM_DATA/settings.json). */
+/** Instance settings (admin only; ASTROLABE_DATA/settings.json). */
 /** Every collection the server knows (admin): settings rows, tag pages and
  *  derived categories, merged — the list the tree's popover ticks against. */
 export function getCollections(): Promise<PublicFolderRef[]> {
@@ -894,7 +894,7 @@ export function getNoteRevision(path: string, sha: string): Promise<NoteRevision
  * optimistically and was then removed again by the next refresh, with no
  * message; and the whole thing only existed when a password hash was
  * configured AND public reads were open, so an open local vault had no
- * publish marks at all. X-Vellum-Preview exists precisely so a session never
+ * publish marks at all. X-Astrolabe-Preview exists precisely so a session never
  * has to pretend to be someone else.
  */
 export async function getPublishedPaths(): Promise<Set<string>> {
@@ -940,7 +940,7 @@ export function subscribeEvents(
     try {
       cb(JSON.parse(e.data) as VaultEvent);
     } catch (err) {
-      console.error("vellum: bad SSE payload", err);
+      console.error("astrolabe: bad SSE payload", err);
     }
   };
   // Dropped-and-came-back, told apart from connected-for-the-first-time. The

@@ -43,7 +43,7 @@ export type { DesignChrome } from "./designChrome.ts";
  *    · older, with a step registered in MIGRATIONS → migrated, then validated
  *    · anything else (older with no step, or NEWER than this build) →
  *      QUARANTINED: kept on disk byte-for-byte, never rendered, and named in
- *      a message. A design authored by a newer Vellum must not be rendered
+ *      a message. A design authored by a newer Astrolabe must not be rendered
  *      "as best we can" — half-understood sections are precisely how a public
  *      site silently becomes wrong. */
 export const DESIGN_SCHEMA = 1;
@@ -110,7 +110,7 @@ export interface HeroSection extends SectionBase {
    *  stock blog's own dashboard has had it since before this engine existed: a
    *  photograph running the FULL WIDTH OF THE WINDOW with the site's name over
    *  it. Every other treatment lives inside `--dsn-width`, which meant the one
-   *  opening a Vellum site most often already has was the one thing a design
+   *  opening an Astrolabe site most often already has was the one thing a design
    *  could not reproduce — an author who liked their front page could not start
    *  from it. It is the only section in the engine that leaves the column, it
    *  says so in its name, and `design.css` carries the full-bleed idiom (a
@@ -828,7 +828,7 @@ export function migrateDesign(
   if (declared === DESIGN_SCHEMA) return doc;
   if (declared > DESIGN_SCHEMA) {
     throw new QuarantineError(
-      `design schema ${declared} was written by a newer Vellum (this build understands ${DESIGN_SCHEMA}) — kept, not rendered`,
+      `design schema ${declared} was written by a newer Astrolabe (this build understands ${DESIGN_SCHEMA}) — kept, not rendered`,
     );
   }
   let current = doc;
@@ -852,7 +852,7 @@ export function migrateDesign(
  *  what an importer checks BEFORE parsing, so dropping the wrong JSON on the
  *  panel is a sentence rather than forty field errors. */
 export interface DesignExport {
-  kind: "vellum.design";
+  kind: "astrolabe.design";
   schema: number;
   exportedAt: string;
   design: DesignDoc;
@@ -865,7 +865,7 @@ export interface DesignExport {
 
 export function designExport(design: DesignDoc, themes: unknown[] = []): DesignExport {
   return {
-    kind: "vellum.design",
+    kind: "astrolabe.design",
     schema: DESIGN_SCHEMA,
     exportedAt: new Date().toISOString(),
     design,
@@ -878,8 +878,8 @@ export function designExport(design: DesignDoc, themes: unknown[] = []): DesignE
  *  writes, and the object somebody pasted out of it. */
 export function readDesignExport(input: unknown): { design: unknown; themes: unknown[] } {
   const raw = asObject(input, "");
-  if (raw.kind !== undefined && raw.kind !== "vellum.design") {
-    throw new DesignError("kind", "is not a Vellum design file");
+  if (raw.kind !== undefined && raw.kind !== "astrolabe.design") {
+    throw new DesignError("kind", "is not an Astrolabe design file");
   }
   const design = raw.design !== undefined ? raw.design : raw;
   const themes = Array.isArray(raw.themes) ? raw.themes : [];

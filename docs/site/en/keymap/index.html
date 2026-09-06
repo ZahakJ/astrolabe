@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Keymap · Vellum Documentation</title>
+<title>Keymap · Astrolabe Documentation</title>
 <meta name="description" content="Every keyboard binding, and why the awkward ones are where they are.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,11 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
-  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
   <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../ar/keymap/" hreflang="ar">العربية</a>
   <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link is-current" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
@@ -57,13 +57,13 @@ correction until the two rows are given their real Mac spellings.</p>
 CodeMirror&#39;s <code>searchKeymap</code> binds <code>Mod-g</code> to &quot;find again&quot;, and the shell claims the key first in the
 capture phase — so that binding has never fired here. It stays that way: find-again already has two
 other ways to run (<code>F3</code>, and <code>Enter</code> in the find field), while the graph toggle is a documented
-Vellum binding a reader would be surprised to lose halfway through a note. This is the opposite call
+Astrolabe binding a reader would be surprised to lose halfway through a note. This is the opposite call
 to the one made for <code>Ctrl/Cmd D</code> and <code>Ctrl/Cmd B</code>, where the editor&#39;s meaning is the per-minute one
 and the shell&#39;s was the once-a-day one — the rule is which verb the key is worth more to, not who
 asked first. Written down because a keymap gate that compares this page to the shortcut sheet cannot
 see CodeMirror&#39;s own keymaps, so the next reader to notice <code>Mod-g</code> would otherwise &quot;fix&quot; it.</p>
 <!-- keymap:end --><h2 id="menus-gestures-and-the-pointer"><a class="anchor" href="#menus-gestures-and-the-pointer">Menus, gestures and the pointer</a></h2>
-<p>Below the line the ledger stops. These are SURFACES rather than bindings — Vellum claims no
+<p>Below the line the ledger stops. These are SURFACES rather than bindings — Astrolabe claims no
 keystroke of its own for them, so the shortcut sheet names the surface where its other rows name a
 key, and the keymap gate leaves them alone.</p>
 <div class="table"><table><thead><tr><th>How</th><th>Action</th></tr></thead><tbody><tr><td>Click</td><td>Follow a rendered wikilink (create it if unresolved)</td></tr><tr><td><code>Ctrl/Cmd</code>-click</td><td>Follow a wikilink on the line you&#39;re editing</td></tr><tr><td>Click</td><td>Open an image or PDF from the tree, in the attachment viewer</td></tr><tr><td>Right-click, <code>Shift F10</code>, or the menu key</td><td>Formatting menu for the selection — text style, structure, insert, colour</td></tr><tr><td>Right-click a misspelled word (nothing selected)</td><td>Spelling suggestions and &quot;Add to dictionary&quot; — with a selection, right-click means formatting instead</td></tr><tr><td>Right-click a heading, or the ⋯ beside it</td><td>Section menu — the whole subtree, not the line</td></tr><tr><td>Drag a row in <strong>Outline</strong></td><td>Reorder a section, and everything under it</td></tr><tr><td><code>/</code> at line start</td><td>Slash menu (callout, code fence, table, …)</td></tr><tr><td><code>Tab</code></td><td>Indent (CodeMirror&#39;s <code>indentWithTab</code>)</td></tr><tr><td><code>↑</code> <code>↓</code> <code>Enter</code> <code>Esc</code></td><td>Navigate / confirm / dismiss the palette (<code>Enter</code> always runs the keyboard&#39;s row, never whatever the mouse happens to rest on)</td></tr><tr><td>Selection menu</td><td>Extract the selection into a new linked note — <code>[[link]]</code> left standing, and the toast&#39;s Undo restores <strong>both</strong> files</td></tr><tr><td>Selection menu → Insert</td><td>Footnote — <code>[^n]</code> numbered so existing footnotes stay ordered, definition stub at the note&#39;s end; <code>\footnote{…}</code> in a <code>.tex</code> note</td></tr><tr><td>Selection menu → Structure</td><td>Title Case / UPPERCASE / lowercase over the selection, per cursor — wikilink targets and code spans untouched</td></tr><tr><td>Selection menu → Callout</td><td>Wrap the selection in a <code>&gt; [!type]</code> callout — every line prefixed, blank lines kept inside the callout</td></tr></tbody></table></div><p>Every modal, popover and picker in the product answers the same four keys — <code>Esc</code> to leave, arrows
@@ -84,7 +84,7 @@ are the palette (<em>Take the tour</em>), the quiet line on an empty vault, the 
 <div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>←</code> / <code>→</code>, or <code>h</code> / <code>l</code></td><td>Flip a card. <strong>Logical</strong>: in Arabic, <code>←</code> goes forward</td></tr><tr><td>Swipe</td><td>The same flip, on a touch screen — mirrored the same way</td></tr><tr><td><code>Esc</code></td><td>Leave. The card you were on is where you come back</td></tr></tbody></table></div><h2 id="the-designer"><a class="anchor" href="#the-designer">The designer</a></h2>
 <div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd S</code></td><td>Save the design draft</td></tr><tr><td><code>Space</code></td><td>Lift / drop a section row</td></tr><tr><td><code>↑</code> / <code>↓</code></td><td>Move a lifted row (<code>Alt ↑</code> / <code>↓</code> moves any row)</td></tr><tr><td><code>Esc</code></td><td>Cancel a lift, close the section picker, close the designer</td></tr></tbody></table></div><h2 id="why-these-keys"><a class="anchor" href="#why-these-keys">Why these keys</a></h2>
 <p>The five formatting keys are Obsidian&#39;s, checked against its shortcut tables rather than guessed —
-except underline, which Obsidian has no command for at all (markdown has no underline; Vellum&#39;s
+except underline, which Obsidian has no command for at all (markdown has no underline; Astrolabe&#39;s
 emits <code>&lt;u&gt;</code>, which the sanitizer already admitted and the reading view already rendered). All five
 <strong>toggle</strong>: press twice and the markers come off. With nothing selected they insert the pair and
 park the caret between them, so bold-then-type works. Across a multi-line selection they apply
@@ -118,7 +118,7 @@ inside the editor stays redo; <code>Ctrl Shift Z</code> enters zen there.</p>
 <p><strong>Every binding on this page works with an Arabic, Persian, Russian, Greek or Hebrew system
 keyboard.</strong> That deserves saying out loud, because for a while it did not: the shortcuts were
 matched against the letter the keyboard <em>typed</em>, and on an Arabic layout the key marked <code>P</code> types
-<code>ح</code>, so <code>Ctrl P</code> opened nothing at all. If you run Vellum in Arabic — and the interface is fully
+<code>ح</code>, so <code>Ctrl P</code> opened nothing at all. If you run Astrolabe in Arabic — and the interface is fully
 <a href="../arabic-and-rtl/">translated and mirrored</a> for exactly that — your shortcuts are the keys marked
 with the Latin letters on your keycaps.</p>
 <p>The rule, in one line: <strong>a shortcut follows the letter your layout types when that letter is
@@ -139,9 +139,9 @@ elsewhere it prints the letters alone rather than guessing.</li>
 <p>Vim mode is the exception, and it is not one this can fix: in normal mode <code>hjkl</code> are keys your
 Arabic or Russian layout does not have, so vim is a Latin-layout feature.</p>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/keymap.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/keymap.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/printing/"><span class="pager__kicker">Previous</span><span class="pager__title">Printing &amp; PDF</span></a><a class="pager__link pager__link--next" href="../../en/blog-mode/"><span class="pager__kicker">Next</span><span class="pager__title">Blog mode</span></a></nav>
-    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
   <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#shell">Shell</a><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#tables">Tables</a><a class="toc__link toc__link--2" href="#templates">Templates</a><a class="toc__link toc__link--2" href="#sections-folding">Sections &amp;amp; folding</a><a class="toc__link toc__link--2" href="#menus-gestures-and-the-pointer">Menus, gestures and the pointer</a><a class="toc__link toc__link--2" href="#the-pdf-reader">The PDF reader</a><a class="toc__link toc__link--2" href="#the-tour">The tour</a><a class="toc__link toc__link--2" href="#the-designer">The designer</a><a class="toc__link toc__link--2" href="#why-these-keys">Why these keys</a><a class="toc__link toc__link--2" href="#non-latin-keyboards">Non-Latin keyboards</a></aside>
 </div>

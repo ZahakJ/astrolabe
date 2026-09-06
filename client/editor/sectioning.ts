@@ -13,7 +13,7 @@
 //     rather than by line number so a paragraph typed above a fold does not
 //     silently move it to a different section;
 //   · the bridge the outline panel and the reading view write through
-//     (`vellum:section-read` / `vellum:section-apply`), which is what makes
+//     (`astrolabe:section-read` / `astrolabe:section-apply`), which is what makes
 //     "the open editor is the source of truth" true rather than aspirational.
 //
 // Registered as ONE entry in setup.ts's extension list, markdown only: a
@@ -157,7 +157,7 @@ function leaveFocus(view: EditorView): boolean {
 // rule the outline and the anchor table use, so `[[Note#Heading]]`, the TOC
 // row and the remembered fold all name the same place.
 
-const FOLDS_KEY = "vellum.folds";
+const FOLDS_KEY = "astrolabe.folds";
 const FOLDS_MAX_NOTES = 80;
 
 function readFolds(): Record<string, string[]> {
@@ -355,8 +355,8 @@ export function sectioning(): Extension {
               selection: { anchor: Math.min(view.state.selection.main.head, d.content.length) },
             });
           };
-          window.addEventListener("vellum:section-read", this.onRead);
-          window.addEventListener("vellum:section-apply", this.onApply);
+          window.addEventListener("astrolabe:section-read", this.onRead);
+          window.addEventListener("astrolabe:section-apply", this.onApply);
           // Folds are restored a tick after the view exists: dispatching from
           // inside a plugin constructor is a re-entrant update.
           queueMicrotask(() => {
@@ -383,8 +383,8 @@ export function sectioning(): Extension {
 
         destroy(): void {
           window.clearTimeout(this.saveTimer);
-          window.removeEventListener("vellum:section-read", this.onRead);
-          window.removeEventListener("vellum:section-apply", this.onApply);
+          window.removeEventListener("astrolabe:section-read", this.onRead);
+          window.removeEventListener("astrolabe:section-apply", this.onApply);
           const path = this.view.state.facet(notePathFacet);
           if (viewsByPath.get(path) === this.view) viewsByPath.delete(path);
         }

@@ -22,7 +22,7 @@
 // chunk in order to draw a line of text that might open it. Same argument,
 // same shape, as client/components/design/openDesigner.ts.
 
-const SEEN_KEY = "vellum.tour-seen";
+const SEEN_KEY = "astrolabe.tour-seen";
 
 /** Read once. A private window throws on the accessor, and "we have never
  *  shown the mark" is the safe answer there: a nudge that reappears on every
@@ -76,6 +76,6 @@ export function openTour(): void {
   void import("./components/Tour.tsx")
     .then((mod) => mod.openTour())
     .catch((err: unknown) => {
-      console.error("vellum: loading the tour failed", err);
+      console.error("astrolabe: loading the tour failed", err);
     });
 }

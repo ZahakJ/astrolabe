@@ -1,25 +1,25 @@
-/* Vellum — note annotations (client/annotations/). The marks are painted by
+/* Astrolabe — note annotations (client/annotations/). The marks are painted by
    the CSS Custom Highlight API, so nothing here is a node inside the prose;
    the six inks are the book reader's (tokens.css). A public mark also wears
    an accent underline, so the owner can tell at a glance which of their notes
    a reader will see. Prefix: s-ann. */
 
-::highlight(vellum-note-r-1), ::highlight(vellum-note-p-1), ::highlight(vellum-note-l-1), ::highlight(vellum-note-d-1) { background: var(--book-ink-1); }
-::highlight(vellum-note-r-2), ::highlight(vellum-note-p-2), ::highlight(vellum-note-l-2), ::highlight(vellum-note-d-2) { background: var(--book-ink-2); }
-::highlight(vellum-note-r-3), ::highlight(vellum-note-p-3), ::highlight(vellum-note-l-3), ::highlight(vellum-note-d-3) { background: var(--book-ink-3); }
-::highlight(vellum-note-r-4), ::highlight(vellum-note-p-4), ::highlight(vellum-note-l-4), ::highlight(vellum-note-d-4) { background: var(--book-ink-4); }
-::highlight(vellum-note-r-5), ::highlight(vellum-note-p-5), ::highlight(vellum-note-l-5), ::highlight(vellum-note-d-5) { background: var(--book-ink-5); }
-::highlight(vellum-note-r-6), ::highlight(vellum-note-p-6), ::highlight(vellum-note-l-6), ::highlight(vellum-note-d-6) { background: var(--book-ink-6); }
+::highlight(astrolabe-note-r-1), ::highlight(astrolabe-note-p-1), ::highlight(astrolabe-note-l-1), ::highlight(astrolabe-note-d-1) { background: var(--book-ink-1); }
+::highlight(astrolabe-note-r-2), ::highlight(astrolabe-note-p-2), ::highlight(astrolabe-note-l-2), ::highlight(astrolabe-note-d-2) { background: var(--book-ink-2); }
+::highlight(astrolabe-note-r-3), ::highlight(astrolabe-note-p-3), ::highlight(astrolabe-note-l-3), ::highlight(astrolabe-note-d-3) { background: var(--book-ink-3); }
+::highlight(astrolabe-note-r-4), ::highlight(astrolabe-note-p-4), ::highlight(astrolabe-note-l-4), ::highlight(astrolabe-note-d-4) { background: var(--book-ink-4); }
+::highlight(astrolabe-note-r-5), ::highlight(astrolabe-note-p-5), ::highlight(astrolabe-note-l-5), ::highlight(astrolabe-note-d-5) { background: var(--book-ink-5); }
+::highlight(astrolabe-note-r-6), ::highlight(astrolabe-note-p-6), ::highlight(astrolabe-note-l-6), ::highlight(astrolabe-note-d-6) { background: var(--book-ink-6); }
 /* Each ink also draws a firmer line under its words, in the ink's own hue —
    a mark should read as a mark and not as a smudge of colour, and the line is
    what survives beside the theme's own selection tint. */
-::highlight(vellum-note-r-1), ::highlight(vellum-note-p-1), ::highlight(vellum-note-l-1), ::highlight(vellum-note-d-1) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-1) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
-::highlight(vellum-note-r-2), ::highlight(vellum-note-p-2), ::highlight(vellum-note-l-2), ::highlight(vellum-note-d-2) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-2) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
-::highlight(vellum-note-r-3), ::highlight(vellum-note-p-3), ::highlight(vellum-note-l-3), ::highlight(vellum-note-d-3) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-3) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
-::highlight(vellum-note-r-4), ::highlight(vellum-note-p-4), ::highlight(vellum-note-l-4), ::highlight(vellum-note-d-4) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-4) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
-::highlight(vellum-note-r-5), ::highlight(vellum-note-p-5), ::highlight(vellum-note-l-5), ::highlight(vellum-note-d-5) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-5) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
-::highlight(vellum-note-r-6), ::highlight(vellum-note-p-6), ::highlight(vellum-note-l-6), ::highlight(vellum-note-d-6) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-6) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
-::highlight(vellum-note-r-public), ::highlight(vellum-note-p-public), ::highlight(vellum-note-l-public), ::highlight(vellum-note-d-public) {
+::highlight(astrolabe-note-r-1), ::highlight(astrolabe-note-p-1), ::highlight(astrolabe-note-l-1), ::highlight(astrolabe-note-d-1) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-1) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
+::highlight(astrolabe-note-r-2), ::highlight(astrolabe-note-p-2), ::highlight(astrolabe-note-l-2), ::highlight(astrolabe-note-d-2) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-2) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
+::highlight(astrolabe-note-r-3), ::highlight(astrolabe-note-p-3), ::highlight(astrolabe-note-l-3), ::highlight(astrolabe-note-d-3) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-3) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
+::highlight(astrolabe-note-r-4), ::highlight(astrolabe-note-p-4), ::highlight(astrolabe-note-l-4), ::highlight(astrolabe-note-d-4) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-4) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
+::highlight(astrolabe-note-r-5), ::highlight(astrolabe-note-p-5), ::highlight(astrolabe-note-l-5), ::highlight(astrolabe-note-d-5) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-5) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
+::highlight(astrolabe-note-r-6), ::highlight(astrolabe-note-p-6), ::highlight(astrolabe-note-l-6), ::highlight(astrolabe-note-d-6) { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--book-ink-6) 60%, var(--text)); text-decoration-thickness: 2px; text-underline-offset: 2px; }
+::highlight(astrolabe-note-r-public), ::highlight(astrolabe-note-p-public), ::highlight(astrolabe-note-l-public), ::highlight(astrolabe-note-d-public) {
   text-decoration: underline;
   text-decoration-color: var(--accent);
   text-decoration-thickness: 1.5px;

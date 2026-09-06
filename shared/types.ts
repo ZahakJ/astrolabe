@@ -363,7 +363,7 @@ export interface LibraryPath {
  *  wrote about it. Anchored by the passage's own words (a quote with a little
  *  context either side), never by an offset: the note may be edited, re-rendered
  *  in three shells and reflowed in a different reading face, and the sentence
- *  is still the sentence. Kept in VELLUM_DATA, never in the note — the whole
+ *  is still the sentence. Kept in ASTROLABE_DATA, never in the note — the whole
  *  point is to say something about a note without changing it. */
 export interface NoteAnnotation {
   id: string;
@@ -420,10 +420,10 @@ export interface MeData {
   admin: boolean;      // this session may mutate the vault
   public: boolean;     // reads are open without a session (PUBLIC != false)
   protected: boolean;  // an ADMIN_PASSWORD_HASH is configured (sign in/out is meaningful)
-  preview?: boolean;   // admin session previewing as visitor (X-Vellum-Preview) — payload above is visitor-shaped
+  preview?: boolean;   // admin session previewing as visitor (X-Astrolabe-Preview) — payload above is visitor-shaped
   homeNote?: string;   // note opened for fresh visitors (HOME_NOTE)
   published?: PublishedCounts; // publish stats for admin UI copy (admin sessions only)
-  siteName?: string;   // instance branding (SITE_NAME; default "Vellum")
+  siteName?: string;   // instance branding (SITE_NAME; default "Astrolabe")
   /** The author's other sites, enriched and ready to render (blog home shows
    *  them as cards). Present only when configured AND the server has cards —
    *  a cold cache warms in the background and the next load carries them. */
@@ -472,12 +472,12 @@ export interface MeData {
    *  already answered instance-wide. Visitor-safe: it describes the public
    *  shell, exactly like languageToggle. */
   comments?: boolean;
-  customCss?: boolean; // VELLUM_DATA/custom.css exists → client links /api/custom.css
+  customCss?: boolean; // ASTROLABE_DATA/custom.css exists → client links /api/custom.css
   // Blog mode (PUBLIC_LAYOUT=blog): visitors get a classic blog shell instead
   // of the app chrome; admin sessions keep the full app. Fields below are
   // present only when blog mode is on.
   /** PUBLIC_LAYOUT (absent = "app"). "designed" is the site design engine:
-   *  the visitor shell is composed from VELLUM_DATA/designs.json instead of
+   *  the visitor shell is composed from ASTROLABE_DATA/designs.json instead of
    *  the stock blog components. The server only ever SENDS "designed" when a
    *  design is actually renderable — an empty store, a corrupt file or a
    *  quarantined document all answer "blog", so a visitor's first byte is the
@@ -714,14 +714,14 @@ export interface TrackerMeta {
   updatedMs: number;
 }
 
-// Instance settings (VELLUM_DATA/settings.json) — admin-editable at runtime,
+// Instance settings (ASTROLABE_DATA/settings.json) — admin-editable at runtime,
 // unlike the env-driven site config. GET /api/settings (admin) →
 // SettingsResponse, PATCH /api/settings (admin) body = partial SettingsData
 // (null clears a key back to its env default) → SettingsResponse. Unknown keys
 // already in the file are preserved on write; unknown keys in a PATCH are 400.
 // A stored value overrides its env counterpart; an absent key falls back to
 // env. Env-only forever (never in settings.json): ADMIN_PASSWORD_HASH,
-// SESSION_SECRET, TRUSTED_PROXIES, PORT, HOST, VELLUM_VAULT, VELLUM_DATA,
+// SESSION_SECRET, TRUSTED_PROXIES, PORT, HOST, ASTROLABE_VAULT, ASTROLABE_DATA,
 // PUBLIC.
 export interface HomeSettings {
   /** What "/" renders for blog-mode visitors: "note" (default — the classic
@@ -757,7 +757,7 @@ export interface SettingsData {
    *  the pin nor the mirror. Read only while `defaultTheme` is "follow". */
   adminTheme?: string;
   /** Visitor-facing layout (overrides PUBLIC_LAYOUT). "designed" renders the
-   *  active design in VELLUM_DATA/designs.json; the stock blog stays exactly
+   *  active design in ASTROLABE_DATA/designs.json; the stock blog stays exactly
    *  where it is, so switching back is a rescue rather than a migration. */
   publicLayout?: "app" | "blog" | "designed";
   /** Chrome language (overrides SITE_LANG): "ar" localizes all chrome
@@ -828,10 +828,10 @@ export interface SettingsData {
    *  the default — means new notes are born empty, as they always have been. */
   defaultTemplate?: string;
   /** Git backup & sync (off by default). The token, when one is used, is NOT
-   *  here — it lives in VELLUM_DATA/git-credentials.json (0600). */
+   *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
   /** Typography: catalog ids (or "system") per slot. Chosen faces are cached
-   *  under VELLUM_DATA/fonts/catalog/ and served from this instance only. */
+   *  under ASTROLABE_DATA/fonts/catalog/ and served from this instance only. */
   fonts?: FontSlotSettings;
   // ── Localization: calendar, note layout, tag labels ──────────────────────
   // (See "Hijri dates", "Note alignment" and "Localised tag labels" in
@@ -910,12 +910,12 @@ export interface AboutInfo {
   version: string;      // package.json version
   node: string;         // process.version, e.g. "v22.11.0"
   vaultPath: string;    // resolved vault root
-  dataPath: string;     // VELLUM_DATA (settings.json, fonts, credentials)
+  dataPath: string;     // ASTROLABE_DATA (settings.json, fonts, credentials)
   /** The settings FILE itself. The panel used to say "— settings.json" in its
    *  own title, which named a file without saying where it was; the answer
    *  belongs in About, next to the other absolute paths. */
   settingsPath: string;
-  /** VELLUM_DATA/fonts/custom — where uploaded faces land. */
+  /** ASTROLABE_DATA/fonts/custom — where uploaded faces land. */
   customFontsPath: string;
   notes: number;        // indexed .md files
   published: number;    // notes with publish: true
@@ -1071,7 +1071,7 @@ export interface SettingsPatch {
     pullFirst?: boolean | null;
     authMode?: "ssh" | "token" | null;
   } | null;
-  /** WRITE-ONLY. Stored outside settings.json (VELLUM_DATA/git-credentials.json,
+  /** WRITE-ONLY. Stored outside settings.json (ASTROLABE_DATA/git-credentials.json,
    *  0600) and never returned by any read — GET answers `tokenSet` instead.
    *  null / "" clears the stored token. */
   gitToken?: string | null;
@@ -1108,7 +1108,7 @@ export interface TagLabelsResponse {
 
 // ── Typography (settings.fonts) ────────────────────────────────────────────
 // A curated webfont catalog, self-hosted: the server fetches the chosen
-// families ONCE (Google Fonts, at save time) into VELLUM_DATA/fonts/catalog/
+// families ONCE (Google Fonts, at save time) into ASTROLABE_DATA/fonts/catalog/
 // and serves them from there. Visitors never contact an external host.
 
 export type FontCategory = "serif" | "sans" | "mono";
@@ -1149,7 +1149,7 @@ export interface FontSlotsEffective {
   arabicSizeAdjust?: number | null;
 }
 
-/** An uploaded face under VELLUM_DATA/fonts/custom — offered in every slot
+/** An uploaded face under ASTROLABE_DATA/fonts/custom — offered in every slot
  *  under "Your fonts", served from this instance like the catalog cache. */
 export type FontFormat = "woff2" | "woff" | "ttf" | "otf";
 
@@ -1396,7 +1396,7 @@ export interface GitSyncSettings {
   /** Fast-forward-only pull before each sync (default true). */
   pullFirst?: boolean;
   /** "ssh" — the machine's own keys/agent, no secret stored.
-   *  "token" — a write-only token in VELLUM_DATA/git-credentials.json. */
+   *  "token" — a write-only token in ASTROLABE_DATA/git-credentials.json. */
   authMode?: "ssh" | "token";
 }
 
@@ -1621,7 +1621,7 @@ export interface BookOpenResponse {
 // ── Annotations (GET|PUT|DELETE /api/books/highlights) ──────────────────────
 //
 // A highlight is a rectangle on a page and the words under it. It lives in
-// VELLUM_DATA against the book's CONTENT KEY, never in the PDF — the PDF is a
+// ASTROLABE_DATA against the book's CONTENT KEY, never in the PDF — the PDF is a
 // file the owner owns, syncs and backs up, and a reader who marks a sentence
 // must not thereby rewrite a 400 MB scan. shared/bookAnchor.ts carries the
 // shape (`BookHighlight`) and the validator; these are the envelopes the

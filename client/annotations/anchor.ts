@@ -144,7 +144,7 @@ function ctor(): HighlightCtor | null {
   return (globalThis as { Highlight?: HighlightCtor }).Highlight ?? null;
 }
 
-export const MARK_PREFIX = "vellum-note-";
+export const MARK_PREFIX = "astrolabe-note-";
 
 /** Paint `ranges` grouped by ink (and one extra name per public mark). The
  *  registry is global to the page, so each host paints under its own

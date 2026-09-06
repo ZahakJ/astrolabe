@@ -56,7 +56,7 @@ function EnvPanel({ env, id, labelledBy, open }: { env: EnvVar; id: string; labe
   // — which is what tf() would do: correct for direction, unable to style half
   // a string.
   // The row NAMES WHICH SOURCE IS WINNING, because the .env line alone cannot:
-  // an operator reading `SITE_NAME=Vellum` under a field that holds its own
+  // an operator reading `SITE_NAME=Astrolabe` under a field that holds its own
   // value would take the variable for the answer, and settings.json outranks
   // it. So the two states get two DIFFERENT sentences rather than one and a
   // silence: an inheriting row says where its value comes from, an overridden

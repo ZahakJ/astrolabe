@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Backup &amp; sync · Vellum Documentation</title>
+<title>Backup &amp; sync · Astrolabe Documentation</title>
 <meta name="description" content="Committing your vault and pushing it to a private git remote you own — by hand or on a timer.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,11 +13,11 @@
 <body>
 <header class="top">
   <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
-  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
   <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
   <a class="top__lang" href="../../ar/backup-and-sync/" hreflang="ar">العربية</a>
   <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
-  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
   <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link is-current" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
@@ -27,7 +27,7 @@
 <p><em>Committing your vault and pushing it to a private git remote you own — by hand or on a timer.</em></p>
 <hr>
 <p>Your vault is a folder of markdown files, so the oldest, most portable backup there is also the
-best one: <strong>git</strong>. Vellum can commit the vault and push it to a remote you own — by hand, or
+best one: <strong>git</strong>. Astrolabe can commit the vault and push it to a remote you own — by hand, or
 every few minutes — and it stays completely off until you switch it on.</p>
 <blockquote>
 <p><strong>Backup &amp; sync needs an admin password in every mode.</strong> Without one, anyone who can reach the
@@ -36,7 +36,7 @@ port could point the remote at their own server and push your whole vault to it.
 </blockquote>
 <h2 id="1-have-a-remote-to-push-to"><a class="anchor" href="#1-have-a-remote-to-push-to">1. Have a remote to push to</a></h2>
 <p>Create an <strong>empty, private</strong> repository on whatever host you
-use (a self-hosted Forgejo/Gitea/GitLab, or one of the big ones). Empty matters: Vellum only
+use (a self-hosted Forgejo/Gitea/GitLab, or one of the big ones). Empty matters: Astrolabe only
 ever fast-forwards, so a remote that already has commits of its own will refuse to sync until
 you reconcile the two histories yourself. Copy its clone URL — either form works:</p>
 <pre><code>https://git.example.com/you/vault.git      # HTTPS: needs a token (below)
@@ -44,7 +44,7 @@ git@git.example.com:you/vault.git          # SSH: needs a key on this machine
 </code></pre>
 <h2 id="2-choose-how-this-server-signs-in"><a class="anchor" href="#2-choose-how-this-server-signs-in">2. Choose how this server signs in</a></h2>
 <ul>
-<li><strong>SSH keys (recommended).</strong> Vellum stores <strong>no secret at all</strong>; it runs <code>git</code> as the user your
+<li><strong>SSH keys (recommended).</strong> Astrolabe stores <strong>no secret at all</strong>; it runs <code>git</code> as the user your
 server runs as, and that user&#39;s own SSH key or agent does the authentication. Generate a key
 for the server (<code>ssh-keygen -t ed25519</code>), add the <strong>public</strong> half to your remote as a deploy
 key with write access, and confirm it works from a shell first — <code>ssh -T git@git.example.com</code>
@@ -55,7 +55,7 @@ repository with contents read/write and the shortest expiry you can live with �
 full-account classic token. Paste it into Settings → Backup &amp; sync → Access token, with
 the username it pairs with (many hosts ignore the username; put anything non-empty).</li>
 </ul>
-<p><strong>Where the token lives.</strong> In <code>VELLUM_DATA/git-credentials.json</code>, mode <code>0600</code>, owned by the
+<p><strong>Where the token lives.</strong> In <code>ASTROLABE_DATA/git-credentials.json</code>, mode <code>0600</code>, owned by the
 server user. It is <strong>never</strong> written into <code>settings.json</code>, never into the vault, never into
 <code>.git/config</code>, and never into the remote URL — which is why the remote field refuses a URL with
 credentials baked in (<code>https://user:token@host/…</code>). At push time it reaches git through
@@ -82,24 +82,24 @@ one-click jump to the settings section. <strong>Sync now</strong> is in that pan
 One pass is:</p>
 <ol>
 <li>optionally <code>fetch</code> + <code>merge --ff-only</code> — see below;</li>
-<li><code>git add -A</code>, then <code>.trash/</code> (and <code>VELLUM_DATA</code>, if you put it inside the vault) are dropped
+<li><code>git add -A</code>, then <code>.trash/</code> (and <code>ASTROLABE_DATA</code>, if you put it inside the vault) are dropped
 back out of the index — see <strong>What sync never stages</strong> below;</li>
-<li>commit <code>vellum sync: &lt;ISO timestamp&gt;</code>, <strong>skipped entirely when nothing changed</strong>;</li>
+<li>commit <code>astrolabe sync: &lt;ISO timestamp&gt;</code>, <strong>skipped entirely when nothing changed</strong>;</li>
 <li><code>git push</code>.</li>
 </ol>
 <h2 id="why-pulls-are-fast-forward-only"><a class="anchor" href="#why-pulls-are-fast-forward-only">Why pulls are fast-forward-only</a></h2>
 <p>Because the alternative can corrupt your notes. A real
 merge of two diverged histories writes <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> conflict markers <em>into the markdown files</em>, and
 an unattended background job that does that to a thousand notes is a worse outcome than any
-missed backup. So Vellum never merges and never rebases (a <code>pull.rebase = true</code> in your own
+missed backup. So Astrolabe never merges and never rebases (a <code>pull.rebase = true</code> in your own
 gitconfig cannot change that — no <code>git pull</code> runs at all): if the remote has commits you do not
 have, the sync stops <strong>before touching the working tree</strong> and tells you the histories diverged.
 Nothing is committed, nothing is pushed, no note is modified. You then reconcile in a terminal,
-which is where a human belongs for that decision. Vellum never force-pushes.</p>
+which is where a human belongs for that decision. Astrolabe never force-pushes.</p>
 <h2 id="what-sync-never-stages"><a class="anchor" href="#what-sync-never-stages">What sync never stages</a></h2>
 <p>Two paths are removed from the index on every single pass, before
 anything is committed, <strong>whatever your vault&#39;s own <code>.gitignore</code> says about them</strong>:</p>
-<div class="table"><table><thead><tr><th>Path</th><th>Why</th></tr></thead><tbody><tr><td><code>.trash/</code></td><td>Deleting a note, an attachment or a folder <em>moves</em> it here, and the whole promise of that is that it is a <strong>local</strong> bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: <code>Ctrl/Cmd P</code> → Open trash). Committing it makes every deletion permanent remote history, which is the opposite guarantee. The small <code>.vellum-trash.json</code> inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule.</td></tr><tr><td><code>VELLUM_DATA</code>, when it is inside the vault</td><td>It holds <code>settings.json</code>, the comments database and your git <strong>access token</strong>.</td></tr></tbody></table></div><p>This is enforced with <code>git rm --cached</code> against the index, not with an ignore rule, and the
+<div class="table"><table><thead><tr><th>Path</th><th>Why</th></tr></thead><tbody><tr><td><code>.trash/</code></td><td>Deleting a note, an attachment or a folder <em>moves</em> it here, and the whole promise of that is that it is a <strong>local</strong> bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: <code>Ctrl/Cmd P</code> → Open trash). Committing it makes every deletion permanent remote history, which is the opposite guarantee. The small <code>.astrolabe-trash.json</code> inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule.</td></tr><tr><td><code>ASTROLABE_DATA</code>, when it is inside the vault</td><td>It holds <code>settings.json</code>, the comments database and your git <strong>access token</strong>.</td></tr></tbody></table></div><p>This is enforced with <code>git rm --cached</code> against the index, not with an ignore rule, and the
 difference matters. An ignore rule is your file and your opinion: git&#39;s <em>last matching rule</em>
 wins, so a vault whose <code>.gitignore</code> carries <code>.trash/</code> and then <code>!.trash/</code> un-ignores it again,
 and a build that only checked &quot;is there a <code>.trash/</code> line?&quot; saw nothing to do and pushed the
@@ -107,7 +107,7 @@ trash. The index eviction asks no ignore file anything. It also <strong>repairs<
 older build already pushed: the first sync after upgrading stages the removal, so the trash
 leaves the tip of your branch on its own (it stays in the <em>history</em> — see the note about
 rewriting below).</p>
-<p>Vellum still <em>appends</em> <code>.trash/</code> and <code>.obsidian/workspace*.json</code> to your <code>.gitignore</code> if they
+<p>Astrolabe still <em>appends</em> <code>.trash/</code> and <code>.obsidian/workspace*.json</code> to your <code>.gitignore</code> if they
 are missing, so a <code>git status</code> in a terminal is quiet too — but that is a courtesy, not the
 mechanism.</p>
 <h2 id="gitignore-advice"><a class="anchor" href="#gitignore-advice">.gitignore advice</a></h2>
@@ -118,10 +118,10 @@ does <em>not</em> belong in a backup before the first push:</p>
 *.pdf                   # large attachments, if your remote has a size limit
 </code></pre>
 <p>Keep <code>.obsidian/</code> itself if you want your Obsidian settings backed up; drop the whole directory
-if you do not. <strong>Never commit your instance data directory.</strong> <code>VELLUM_DATA</code> (default <code>./data</code>)
+if you do not. <strong>Never commit your instance data directory.</strong> <code>ASTROLABE_DATA</code> (default <code>./data</code>)
 holds <code>settings.json</code>, comment data and the git token, so keep it <em>outside</em> the vault — that is
 the default, and this repository&#39;s own <code>.gitignore</code> already excludes <code>data/</code>.</p>
-<p>If you have pointed <code>VELLUM_DATA</code> inside the vault anyway, Vellum defends it four ways, and all
+<p>If you have pointed <code>ASTROLABE_DATA</code> inside the vault anyway, Astrolabe defends it four ways, and all
 four run on an existing repository with an existing <code>.gitignore</code> (which is the normal case, not
 a special one): <strong>Initialize repository</strong> creates <code>.gitignore</code> or <em>appends</em> the data-directory
 rule to the one you already have; every sync re-checks the rule with <code>git check-ignore</code> and
@@ -157,7 +157,7 @@ turning on Backup &amp; sync (step 3 above) is what starts keeping history in th
 <p>History is admin-only in both directions: a visitor cannot see that a published note had eleven
 drafts, and cannot read any of them.</p>
 <h2 id="two-servers-one-vault"><a class="anchor" href="#two-servers-one-vault">Two servers, one vault</a></h2>
-<p>It is a perfectly ordinary thing to end up with <strong>two Vellum servers over the same folder</strong> — the
+<p>It is a perfectly ordinary thing to end up with <strong>two Astrolabe servers over the same folder</strong> — the
 desktop app runs a server of its own, and plenty of people also keep one running as a systemd
 service so they can reach the vault from a browser. A <code>git pull</code>, Obsidian, Syncthing or a text
 editor writing into the same folder is the same situation with a different second writer.</p>
@@ -174,7 +174,7 @@ server watches the vault for its own connected clients, so the &quot;this file c
 reached the sleeping desktop app — and a browser&#39;s event stream replays nothing it missed while
 the laptop was shut. The refusal above is what kept the note safe. What was missing was any way to
 find out <em>before</em> trying to save.</p>
-<p>So Vellum now <strong>re-checks when it wakes up</strong>: when its connection to the server comes back, or when
+<p>So Astrolabe now <strong>re-checks when it wakes up</strong>: when its connection to the server comes back, or when
 you return to a window that had been hidden, it asks the server for the current state of the notes
 you have open. Ones you have not touched reload silently; one with unsaved edits gets the same
 resolution strip immediately, while you are looking at it, instead of interrupting you later.</p>
@@ -189,28 +189,28 @@ script of your own, an older desktop build — behaves exactly as it always did:
 The check is opt-in, and only clients that can handle a refusal ask for one.</li>
 </ul>
 <p>If you run two servers, point both at the same vault directory and give them <strong>different data
-directories</strong> (<code>VELLUM_DATA</code>) unless you also want them to share sessions and settings.</p>
+directories</strong> (<code>ASTROLABE_DATA</code>) unless you also want them to share sessions and settings.</p>
 <h3 id="one-sync-at-a-time-across-every-server"><a class="anchor" href="#one-sync-at-a-time-across-every-server">One sync at a time — across every server</a></h3>
 <p>Notes are written one at a time; a <strong>commit is written for the whole vault at once</strong>, through a
-single <code>.git/index</code> that git guards with a lock of its own. Two Vellums committing the same folder
+single <code>.git/index</code> that git guards with a lock of its own. Two Astrolabes committing the same folder
 in the same second do not produce two backups — one of them dies with <em>&quot;Another git process seems
 to be running in this repository&quot;</em>, possibly having already staged half the vault. That is not
 hypothetical: it is why sync used to be worth running only by hand on a machine that also ran the
 desktop app.</p>
 <p>So a mutating pass — <strong>Sync now</strong>, <strong>Snapshot now</strong>, <strong>Make it a repo</strong>, and every scheduled tick —
-takes a lock file at <code>.git/vellum-sync.lock</code> first, and holds it until the pass is over. Only one
+takes a lock file at <code>.git/astrolabe-sync.lock</code> first, and holds it until the pass is over. Only one
 of them exists, so only one pass runs at a time <strong>across every process sharing that vault</strong>: the
 desktop app, a systemd service, a second terminal, a scheduled interval. This is what makes an
 automatic interval safe to leave switched on next to a desktop app.</p>
 <ul>
-<li><strong>What contention looks like.</strong> A <strong>Sync now</strong> that arrives while another Vellum is mid-pass is
-not an error and does not retry: the backup panel&#39;s last line says <em>&quot;Another Vellum is syncing
+<li><strong>What contention looks like.</strong> A <strong>Sync now</strong> that arrives while another Astrolabe is mid-pass is
+not an error and does not retry: the backup panel&#39;s last line says <em>&quot;Another Astrolabe is syncing
 this vault (pid …) — this pass did nothing&quot;</em>, naming the process that has it, and the status
 glyph reads as busy for as long as the other one is working. <strong>Snapshot now</strong> and <strong>Make it a
 repo</strong> answer <code>409</code> with the same sentence. A scheduled tick that finds the vault locked simply
 skips and tries again on the next one; it records nothing.</li>
 <li><strong>How a crash recovers.</strong> A lock file is not a file descriptor — nothing in the kernel removes it
-when its owner dies — so a Vellum killed mid-sync would otherwise wedge backup forever. Any other
+when its owner dies — so an Astrolabe killed mid-sync would otherwise wedge backup forever. Any other
 process may break the lock when <strong>the process that took it is gone</strong> (it records its pid and
 hostname, checked against the machine&#39;s own process table) or when <strong>nothing has touched it for
 fifteen minutes</strong>. Either way the break is logged as a warning naming the dead holder. A pass
@@ -233,9 +233,9 @@ scp-style <code>git@host:path</code> and <code>ssh://</code> forms where a plain
 <code>GIT_CONFIG_COUNT</code>/<code>GIT_CONFIG_KEY_n</code>), <code>GIT_SSH</code>, <code>GIT_SSH_COMMAND</code>, <code>GIT_PROXY_COMMAND</code> and
 <code>GIT_EXTERNAL_DIFF</code> are all removed, so nothing in the server&#39;s own environment can point git
 at another repository, another config, or another transport. If you <em>need</em> a custom SSH
-invocation — a specific deploy key, say — set <strong><code>VELLUM_GIT_SSH_COMMAND</code></strong> (e.g.
-<code>VELLUM_GIT_SSH_COMMAND=&quot;ssh -i /path/to/vault_ed25519 -o IdentitiesOnly=yes&quot;</code>) and
-Vellum passes exactly that to git as <code>GIT_SSH_COMMAND</code>.</li>
+invocation — a specific deploy key, say — set <strong><code>ASTROLABE_GIT_SSH_COMMAND</code></strong> (e.g.
+<code>ASTROLABE_GIT_SSH_COMMAND=&quot;ssh -i /path/to/vault_ed25519 -o IdentitiesOnly=yes&quot;</code>) and
+Astrolabe passes exactly that to git as <code>GIT_SSH_COMMAND</code>.</li>
 <li>&quot;Ahead / behind&quot; has a third state. Until a fetch or a push has succeeded once there is no
 remote-tracking ref to compare against, and the panel says <strong>&quot;Nothing has reached the remote
 yet&quot;</strong> rather than &quot;0 ahead · 0 behind&quot; — which is what a fully backed-up vault reads.</li>
@@ -243,9 +243,9 @@ yet&quot;</strong> rather than &quot;0 ahead · 0 behind&quot; — which is what
 read the status — the branch, the dirty count and the remote host say too much about you.</li>
 <li>Only one sync runs at a time, and that means <em>at a time on this vault</em>, not merely in this
 server: a second request inside the same process answers <code>409</code> immediately, and a pass started by
-another Vellum over the same folder is held off by the lock file described above.</li>
+another Astrolabe over the same folder is held off by the lock file described above.</li>
 <li>A failing scheduled sync is logged <strong>once</strong>, not once per tick.</li>
-<li>If the machine has no git identity configured, commits are made as <code>Vellum &lt;vellum@localhost&gt;</code>; set <code>user.name</code>/<code>user.email</code> in the vault (or globally) to use your own.</li>
+<li>If the machine has no git identity configured, commits are made as <code>Astrolabe &lt;astrolabe@localhost&gt;</code>; set <code>user.name</code>/<code>user.email</code> in the vault (or globally) to use your own.</li>
 <li>The API, for anyone scripting it (admin-only): <code>GET /api/sync/status</code>, <code>POST /api/sync/init</code>,
 <code>POST /api/sync/now</code>, <code>POST /api/sync/snapshot</code> (a local commit, no network), plus the two
 read-only history routes — <code>GET /api/history?path=</code> and <code>GET /api/history/blob?path=&amp;sha=</code>. The
@@ -253,9 +253,9 @@ blob route wants the path <strong>that revision</strong> lives under, which the 
 note that has been renamed lives under its old name in its older commits.</li>
 </ul>
 </article>
-    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/backup-and-sync.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/backup-and-sync.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/publishing/"><span class="pager__kicker">Previous</span><span class="pager__title">Publishing &amp; access</span></a><a class="pager__link pager__link--next" href="../../en/desktop/"><span class="pager__kicker">Next</span><span class="pager__title">The desktop app</span></a></nav>
-    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
   <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#1-have-a-remote-to-push-to">1. Have a remote to push to</a><a class="toc__link toc__link--2" href="#2-choose-how-this-server-signs-in">2. Choose how this server signs in</a><a class="toc__link toc__link--2" href="#3-turn-it-on">3. Turn it on</a><a class="toc__link toc__link--2" href="#4-sync">4. Sync</a><a class="toc__link toc__link--2" href="#why-pulls-are-fast-forward-only">Why pulls are fast-forward-only</a><a class="toc__link toc__link--2" href="#what-sync-never-stages">What sync never stages</a><a class="toc__link toc__link--2" href="#gitignore-advice">.gitignore advice</a><a class="toc__link toc__link--2" href="#note-history-reading-what-the-backup-kept">Note history: reading what the backup kept</a><a class="toc__link toc__link--3" href="#snapshot-now">Snapshot now</a><a class="toc__link toc__link--2" href="#two-servers-one-vault">Two servers, one vault</a><a class="toc__link toc__link--3" href="#one-sync-at-a-time-across-every-server">One sync at a time — across every server</a><a class="toc__link toc__link--2" href="#things-worth-knowing">Things worth knowing</a></aside>
 </div>

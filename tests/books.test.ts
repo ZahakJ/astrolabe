@@ -796,7 +796,7 @@ const vault = makeVault({
 });
 
 before(() => {
-  initSite({ VELLUM_DATA: data });
+  initSite({ ASTROLABE_DATA: data });
   initVault(vault);
 });
 
@@ -863,7 +863,7 @@ describe("the book store", () => {
     assert.throws(() => getBookState("nope"), VaultError);
   });
 
-  it("writes into VELLUM_DATA and NEVER into the vault", async () => {
+  it("writes into ASTROLABE_DATA and NEVER into the vault", async () => {
     const key = await bookKey("Books/Other.pdf");
     const bookPath = path.join(vault, "Books", "Other.pdf");
     const bytesBefore = statSync(bookPath).size;
@@ -875,7 +875,7 @@ describe("the book store", () => {
     assert.deepEqual(listTree(vault), vaultBefore, "the reader left nothing behind in the vault");
     assert.equal(statSync(bookPath).size, bytesBefore, "the PDF itself is never written to");
     assert.equal(statSync(bookPath).mtimeMs, mtimeBefore);
-    assert.ok(readdirSync(data).includes("books.json"), "the position lives in VELLUM_DATA");
+    assert.ok(readdirSync(data).includes("books.json"), "the position lives in ASTROLABE_DATA");
   });
 
   it("lists the vault's PDFs and nothing else, most recently read first", async () => {
@@ -922,7 +922,7 @@ describe("annotations on disk", () => {
     assert.deepEqual(listTree(vault), vaultBefore, "nothing was left in the vault");
     assert.ok(readFileSync(book).equals(bytesBefore), "the PDF's bytes are untouched");
     assert.equal(statSync(book).mtimeMs, mtimeBefore, "and so is its mtime");
-    assert.ok(readdirSync(data).includes("books.json"), "the passages live in VELLUM_DATA");
+    assert.ok(readdirSync(data).includes("books.json"), "the passages live in ASTROLABE_DATA");
   });
 
   it("keeps them in reading order and upserts by id", async () => {

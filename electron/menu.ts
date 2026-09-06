@@ -54,7 +54,7 @@ export interface MenuHandlers {
   recents: RecentEntry[];
   spellcheckEnabled: boolean;
   setSpellcheck: (on: boolean) => void;
-  /** Null when the focused window is not one Vellum owns. */
+  /** Null when the focused window is not one Astrolabe owns. */
   focused: BrowserWindow | null;
 }
 
@@ -86,7 +86,7 @@ export function buildMenu(h: MenuHandlers): Menu {
     template.push({
       // The application menu is titled by the app on macOS, whatever we put
       // here, so this one label is not translated copy — it is the bundle name.
-      label: "Vellum",
+      label: "Astrolabe",
       submenu: [
         { label: m("menuAbout"), click: () => h.about() },
         { type: "separator" },
@@ -274,7 +274,7 @@ export function trayMenu(h: {
   openVault: () => void;
 }): Menu {
   return Menu.buildFromTemplate([
-    { label: m("menuShowVellum"), click: h.show },
+    { label: m("menuShowAstrolabe"), click: h.show },
     { label: m("newNote"), click: h.newNote },
     { label: m("menuOpenVault"), click: h.openVault },
     { type: "separator" },

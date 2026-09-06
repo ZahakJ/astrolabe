@@ -2,6 +2,7 @@
 // rejected password. Success flips the store's admin flag and the whole app
 // re-renders into edit mode live — no reload.
 
+import BrandMark from "./BrandMark.tsx";
 import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useDialog } from "../a11y.ts";
@@ -58,7 +59,9 @@ export default function LoginModal() {
         onAnimationEnd={() => setShaking(false)}
         onSubmit={submit}
       >
-        <div className="s-login__glyph" aria-hidden="true">✦</div>
+        <div className="s-login__glyph" aria-hidden="true">
+          <BrandMark size={40} />
+        </div>
         <h2 className="s-login__title" id={titleId}>{tf("signInTo", { site: siteName })}</h2>
         <p className="s-login__hint">{t("signInHint")}</p>
         <input

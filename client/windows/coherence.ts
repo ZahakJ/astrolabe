@@ -115,5 +115,5 @@ export function popOutNote(path: string): void {
   // `noopener` would sever `window.opener`, which we do not use — but it also
   // makes some browsers open a TAB rather than a window, and the point here is
   // a window. The features string is what asks for one.
-  window.open(url.toString(), `vellum:${path}`, "popup=yes,width=900,height=1000");
+  window.open(url.toString(), `astrolabe:${path}`, "popup=yes,width=900,height=1000");
 }

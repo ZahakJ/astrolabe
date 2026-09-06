@@ -52,14 +52,14 @@ import { renderNoteContent } from "../reading/renderNote.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 import "../styles/history.css";
 
-const COLLAPSED_KEY = "vellum.history-collapsed";
+const COLLAPSED_KEY = "astrolabe.history-collapsed";
 
 /** "Open the history section." Rung by any surface that wants to SHOW this
  *  list rather than merely reveal the pane around it — the tour's history
  *  folio is the first. Declared here because the listener is here; callers
  *  outside this chunk dispatch the literal rather than import it, so pressing
  *  a button never fetches the revision reader. */
-export const HISTORY_REVEAL_EVENT = "vellum:history-reveal";
+export const HISTORY_REVEAL_EVENT = "astrolabe:history-reveal";
 
 /** Collapsed BY DEFAULT — see decision 1 above. An unreadable stored value is
  *  the default, not a crash: private windows throw on the accessor. */
@@ -96,12 +96,12 @@ function fullWhen(iso: string, locale: string): string {
   });
 }
 
-/** Vellum's own commit subjects, told in the reader's language. `commit()`
- *  writes `vellum snapshot:` / `vellum sync:` and an ISO instant — the subject
+/** Astrolabe's own commit subjects, told in the reader's language. `commit()`
+ *  writes `astrolabe snapshot:` / `astrolabe sync:` and an ISO instant — the subject
  *  for a terminal `git log`, and the wrong one in a timeline whose first
  *  column is already the moment: the row would say when twice, once in words
  *  and once as a machine timestamp. Anyone else's subject is left as written. */
-const MACHINE_SUBJECT = /^vellum (snapshot|sync): /;
+const MACHINE_SUBJECT = /^astrolabe (snapshot|sync): /;
 
 function subjectOf(rev: NoteRevision): string {
   const m = MACHINE_SUBJECT.exec(rev.subject);
@@ -151,7 +151,7 @@ function RevisionModal({
         if (!dead) setBody({ state: "ready", content: blob.content });
       })
       .catch((err: unknown) => {
-        console.error("vellum: reading a revision failed", err);
+        console.error("astrolabe: reading a revision failed", err);
         if (!dead) setBody({ state: "error" });
       });
     return () => {
@@ -206,13 +206,13 @@ function RevisionModal({
             void applyNoteContent(path, before)
               .then(() => toast(t("revisionRestoreUndone")))
               .catch((err: unknown) => {
-                console.error("vellum: undoing a restore failed", err);
+                console.error("astrolabe: undoing a restore failed", err);
                 toast(t("revisionRestoreFailed"), "error");
               });
           },
         );
       } catch (err) {
-        console.error("vellum: restoring a revision failed", err);
+        console.error("astrolabe: restoring a revision failed", err);
         toast(t("revisionRestoreFailed"), "error");
         setRestoring(false);
       }
@@ -302,7 +302,7 @@ export default function HistoryPanel() {
         setFeed({ state: "ready", repo: answer.repo, revisions: answer.revisions, truncated: answer.truncated });
       })
       .catch((err: unknown) => {
-        console.error("vellum: reading note history failed", err);
+        console.error("astrolabe: reading note history failed", err);
         if (!dead) setFeed({ state: "error" });
       });
     return () => {

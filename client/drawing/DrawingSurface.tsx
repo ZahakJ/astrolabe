@@ -2,7 +2,7 @@
 //
 // The canvas is Excalidraw's, whole — the owner asked for "a cooler, better
 // version of excalidraw" and the honest answer is Excalidraw itself, wearing
-// Vellum's theme and language, saving into the vault the way a note saves, and
+// Astrolabe's theme and language, saving into the vault the way a note saves, and
 // leaving a picture beside the file so every other surface (the reading view,
 // the blog, a visitor's page) shows the drawing without ever loading this
 // chunk. This file owns exactly that seam: load, autosave under the mtime
@@ -114,7 +114,7 @@ export default function DrawingSurface({ path, active }: { path: string; active:
   }, [path]);
 
   // First load: the file becomes Excalidraw's initialData. `theme` comes off
-  // the stored appState because the prop below decides it, from Vellum's own
+  // the stored appState because the prop below decides it, from Astrolabe's own
   // room, and a drawing saved in the dark must not open dark on a light day.
   useEffect(() => {
     let alive = true;
@@ -180,7 +180,7 @@ export default function DrawingSurface({ path, active }: { path: string; active:
           });
           await putDrawingSvg(path, svg.outerHTML);
         } catch (err) {
-          console.warn("vellum: drawing export failed", err);
+          console.warn("astrolabe: drawing export failed", err);
         }
       } catch (err) {
         if (isStaleWriteError(err)) {
@@ -293,7 +293,7 @@ export default function DrawingSurface({ path, active }: { path: string; active:
             }}
           >
             {/* Our own menu: the package's default carries its socials (GitHub,
-                X, Discord) and a theme toggle; the theme is Vellum's and the
+                X, Discord) and a theme toggle; the theme is Astrolabe's and the
                 links are Excalidraw's, so the menu keeps only the verbs a
                 drawing in a vault has a use for. */}
             <MainMenu>

@@ -73,7 +73,7 @@ export function installReadingSections(): void {
  */
 function installJumpKeys(): void {
   let active: string | null = null;
-  window.addEventListener("vellum:active-heading", (ev) => {
+  window.addEventListener("astrolabe:active-heading", (ev) => {
     active = (ev as CustomEvent<string | null>).detail;
   });
   window.addEventListener(
@@ -93,7 +93,7 @@ function installJumpKeys(): void {
       const next = heads[Math.max(0, Math.min(heads.length - 1, (at === -1 ? 0 : at) + dir))];
       if (next) {
         window.dispatchEvent(
-          new CustomEvent("vellum:goto-heading", { detail: { slug: next.id } }),
+          new CustomEvent("astrolabe:goto-heading", { detail: { slug: next.id } }),
         );
       }
     },

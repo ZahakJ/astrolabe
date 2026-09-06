@@ -20,7 +20,7 @@ import { Lru } from "../lru.ts";
 import { useStore } from "../state.ts";
 import { mixColors, readThemeColors } from "./graphColors.ts";
 
-const COLLAPSED_KEY = "vellum.localgraph-collapsed";
+const COLLAPSED_KEY = "astrolabe.localgraph-collapsed";
 
 // Physics — deliberately soft: a ~200px pane should breathe, not jitter.
 const SPRING_K = 0.055; // neighbor ↔ center pull

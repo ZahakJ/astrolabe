@@ -94,7 +94,7 @@ describe("the request deadline", () => {
 
 describe("a 2xx that is not this API", () => {
   it("throws instead of handing every caller a null typed as data", async () => {
-    // The shape: an auth proxy in front of Vellum answers the expired XHR with
+    // The shape: an auth proxy in front of Astrolabe answers the expired XHR with
     // its own 200 HTML login page. `return body as T` used to make that an
     // empty vault, or a crash three frames later inside a component that had
     // every right to assume its data existed.

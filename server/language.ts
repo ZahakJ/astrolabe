@@ -18,9 +18,11 @@ import { publishedCensus, visibleUnder, type FilterLang } from "./indexer.ts";
 import { languageFilterMode, languageToggleEnabled, siteLanguage } from "./site.ts";
 
 /** The header the client sends its ACTIVE chrome language in. Named and gated
- *  as a sibling of X-Vellum-Preview, and for the same reason: it is a claim
+ *  as a sibling of X-Astrolabe-Preview, and for the same reason: it is a claim
  *  the client makes about itself which the server may or may not honor. */
-export const LANG_HEADER = "X-Vellum-Lang";
+export const LANG_HEADER = "X-Astrolabe-Lang";
+/** The header's spelling before the rename, still read. */
+export const LEGACY_LANG_HEADER = "X-Vellum-Lang";
 
 /** Surfaces that accept `?lang=` instead, because they cannot send a header:
  *  EventSource (SSE) has no header API at all, and neither a feed reader
@@ -37,7 +39,7 @@ const QUERY_PATHS = new Set(["/api/events", "/feed.xml", "/sitemap.xml"]);
 
 /** The reader's active language as CLAIMED by the request, or null.
  *
- *  Asking is not getting, exactly like X-Vellum-Preview:
+ *  Asking is not getting, exactly like X-Astrolabe-Preview:
  *   • the value must be exactly "ar" or "en" — anything else is dropped
  *     silently rather than coerced, because a mistyped scope should fall back
  *     to the site's own language, not to a guess;
@@ -47,7 +49,7 @@ const QUERY_PATHS = new Set(["/api/events", "/feed.xml", "/sitemap.xml"]);
  *     header say otherwise would hand any caller a second, undocumented way to
  *     re-scope the public site. */
 export function readerLanguage(c: Context): "ar" | "en" | null {
-  let raw = c.req.header(LANG_HEADER)?.trim().toLowerCase();
+  let raw = (c.req.header(LANG_HEADER) ?? c.req.header(LEGACY_LANG_HEADER))?.trim().toLowerCase();
   if (raw === undefined && QUERY_PATHS.has(c.req.path)) {
     raw = c.req.query("lang")?.trim().toLowerCase();
   }

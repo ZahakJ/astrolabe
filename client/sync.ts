@@ -19,7 +19,7 @@ import { actionToast } from "./undoToast.ts";
  *  idiom the tree's "reveal this note" already uses (Sidebar.tsx). SyncBadge
  *  listens while it is mounted; nothing happens on an instance that never
  *  configured backup, which is exactly right. */
-export const SYNC_PANEL_EVENT = "vellum:sync-panel";
+export const SYNC_PANEL_EVENT = "astrolabe:sync-panel";
 
 export function openSyncPanel(): void {
   window.dispatchEvent(new CustomEvent(SYNC_PANEL_EVENT));
@@ -134,7 +134,7 @@ function fail(err: unknown): void {
   // "Updates were rejected", "Permission denied (publickey)", "Remote history
   // has diverged". Nothing generic replaces it: it is the whole diagnosis.
   const message = err instanceof Error ? err.message : t("syncFailed");
-  console.error("vellum: git sync failed", message);
+  console.error("astrolabe: git sync failed", message);
   toast(message);
 }
 
@@ -160,7 +160,7 @@ export async function runSyncNow(): Promise<void> {
  *  it just made, and polling git for that would be a process per second.
  *  Window event rather than store state for the reason at the top of this
  *  file — none of this belongs in the app's model. */
-export const HISTORY_CHANGED_EVENT = "vellum:history-changed";
+export const HISTORY_CHANGED_EVENT = "astrolabe:history-changed";
 
 export function historyChanged(): void {
   window.dispatchEvent(new CustomEvent(HISTORY_CHANGED_EVENT));
@@ -194,7 +194,7 @@ export async function runSnapshotNow(): Promise<void> {
     if (made.committed) historyChanged();
   } catch (err) {
     const message = err instanceof Error ? err.message : "";
-    console.error("vellum: snapshot failed", err);
+    console.error("astrolabe: snapshot failed", err);
     toast(tf("snapshotFailed", { message }), "error");
   } finally {
     pending = false;

@@ -9,7 +9,7 @@ import { useStore } from "./state.ts";
 
 /** App.tsx fires this on every vault event; spelled here rather than imported
  *  from the Media page, which is a lazy chunk the entry must not pull in. */
-export const VAULT_EVENT = "vellum:vault";
+export const VAULT_EVENT = "astrolabe:vault";
 
 let shelf: TrackerMeta[] | null = null;
 let inflight: Promise<TrackerMeta[]> | null = null;

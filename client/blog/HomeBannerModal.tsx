@@ -74,7 +74,7 @@ export default function HomeBannerModal({ onClose }: { onClose: () => void }) {
           onClose();
         })
         .catch((err: unknown) => {
-          console.error("vellum: saving home banner failed", err);
+          console.error("astrolabe: saving home banner failed", err);
           toast(err instanceof Error ? err.message : t("homeBannerFailed"));
         })
         .finally(() => setBusy(false));
@@ -93,7 +93,7 @@ export default function HomeBannerModal({ onClose }: { onClose: () => void }) {
         })
         .catch((err: unknown) => {
           setBusy(false);
-          console.error("vellum: upload failed", err);
+          console.error("astrolabe: upload failed", err);
           toast(err instanceof Error ? err.message : t("uploadFailed"));
         });
     },

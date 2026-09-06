@@ -86,13 +86,13 @@ export async function extractSelection(view: EditorView, path: string): Promise<
           await useStore.getState().loadTree();
           toast(t("selectionExtractUndone"));
         } catch (err) {
-          console.error("vellum: undoing a selection extraction failed", err);
+          console.error("astrolabe: undoing a selection extraction failed", err);
           toast(t("selectionExtractFailed"), "error");
         }
       })();
     });
   } catch (err) {
-    console.error("vellum: extracting the selection failed", err);
+    console.error("astrolabe: extracting the selection failed", err);
     // A taken name 409s before a byte of the source is rewritten — the same
     // distinction, on the same 409, as extractSection and templateActions.
     const taken = err instanceof Error && /exists/i.test(err.message);

@@ -1,15 +1,15 @@
 ---
 title: Welcome
-tags: [vellum, start-here]
+tags: [astrolabe, start-here]
 ---
 
-# Welcome to Vellum
+# Welcome to Astrolabe
 
 You are looking at a plain Markdown file on your own disk. Everything in this
-vault is just `.md` — no database, no proprietary format, no account. Vellum
+vault is just `.md` — no database, no proprietary format, no account. Astrolabe
 is the reading room built around those files. #start-here
 
-> *A vellum was the room in a monastery where manuscripts were copied and
+> *An astrolabe was the room in a monastery where manuscripts were copied and
 > illuminated. This one is yours.*
 
 ## Find your way around
@@ -24,7 +24,7 @@ way your own notes eventually will:
 - [[Embeds & Transclusion]] — pull images, PDFs, and whole notes into a note
 - [[Trackers]] — a progress card for anything you are part-way through
 - [[Command Palette]] — do everything from the keyboard
-- [[Hosting Your Own Vault]] — point Vellum at your real notes
+- [[Hosting Your Own Vault]] — point Astrolabe at your real notes
 
 There is more in here than these eight notes cover — a site designer, a book
 reader, trackers, twenty-one themes, split panes, backup. Press `Ctrl/Cmd P` and
@@ -32,7 +32,7 @@ run **Take the tour** to meet them one card at a time.
 
 ## First steps
 
-- [x] Open Vellum
+- [x] Open Astrolabe
 - [ ] Click through the links above (Ctrl/Cmd-click a [[Wikilinks & Backlinks|wikilink]] to follow it)
 - [ ] Press `Ctrl/Cmd P` and fuzzy-jump to any note
 - [ ] Press `Ctrl/Cmd G` and watch these seven notes form a graph

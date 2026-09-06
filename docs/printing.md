@@ -10,7 +10,7 @@
 dialog. The command palette carries the same row — **Print / Export PDF…** — and on the desktop app
 it is **File → Print / Export PDF…**.
 
-It is `Alt P` and not the `Ctrl/Cmd P` every other application prints with, because in Vellum that
+It is `Alt P` and not the `Ctrl/Cmd P` every other application prints with, because in Astrolabe that
 chord has been the command palette since the first release and `Ctrl/Cmd Shift P` publishes the
 open note. Neither of those was worth moving. On the **public blog** nothing is swallowed at all:
 a visitor's own `Ctrl/Cmd P` is the browser's, and it produces the same pages.
@@ -38,7 +38,7 @@ a visitor's own `Ctrl/Cmd P` is the browser's, and it produces the same pages.
 
 For a PDF, choose *Save as PDF* (or *Print to file*) as the destination in the print dialog. If you
 want the callout tints, the highlight marks and the banner in the file, leave **Background
-graphics** on — Vellum only asks the printer for ink where the colour is carrying meaning.
+graphics** on — Astrolabe only asks the printer for ink where the colour is carrying meaning.
 
 ## What is left off
 

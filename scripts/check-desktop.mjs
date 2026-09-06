@@ -247,7 +247,7 @@ const mainSide = walk("electron")
   .filter((rel) => rel !== path.join("electron", "preload.ts"))
   .map((rel) => [rel, read(rel)]);
 
-/** `{ name: "vellum:x" }` entries out of an `as const` block in ipc.ts. */
+/** `{ name: "astrolabe:x" }` entries out of an `as const` block in ipc.ts. */
 function channels(block) {
   const start = ipcSrc.indexOf(`export const ${block} = {`);
   if (start === -1) {
@@ -290,7 +290,7 @@ for (const [name, literal] of toRenderer) {
 
 // A channel the preload names that ipc.ts does not declare is the same bug from
 // the other end: a hole with no entry in the register.
-for (const m of preloadSrc.matchAll(/"(vellum:[a-z-]+)"/g)) {
+for (const m of preloadSrc.matchAll(/"(astrolabe:[a-z-]+)"/g)) {
   const known = [...toMain.values(), ...toRenderer.values()].includes(m[1]);
   if (!known) errs.push(`IPC  preload.ts uses "${m[1]}", which electron/ipc.ts does not declare`);
 }
@@ -370,9 +370,9 @@ for (const [rel, src] of [...mainSide, [path.join("electron", "preload.ts"), pre
 const menuTs = read("electron/menu.ts");
 menuTs.split("\n").forEach((line, i) => {
   for (const match of line.matchAll(/\blabel:\s*"([^"]+)"/g)) {
-    // "Vellum" is the bundle name macOS prints over the application menu
+    // "Astrolabe" is the bundle name macOS prints over the application menu
     // whatever we pass; it is a proper noun, not copy.
-    if (match[1] === "Vellum") continue;
+    if (match[1] === "Astrolabe") continue;
     errs.push(`MENU COPY  BARE ENGLISH  electron/menu.ts:${i + 1}  \u201c${match[1]}\u201d`);
   }
 });

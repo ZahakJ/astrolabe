@@ -223,7 +223,7 @@ export async function printNote(): Promise<void> {
       return;
     }
   } catch (err: unknown) {
-    console.error("vellum: could not prepare the page for printing", err);
+    console.error("astrolabe: could not prepare the page for printing", err);
     toast(tf("openFailed", { path: path ?? "" }), "error");
     teardown();
     return;

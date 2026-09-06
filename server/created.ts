@@ -6,7 +6,7 @@
 // every keystroke that lands. So "the day I wrote it" quietly became "the day
 // I fixed a typo", and the blog reordered itself under the owner. The fix is
 // not to give up atomic writes; it is to remember the first birthtime this
-// instance ever saw for a path, in VELLUM_DATA/created.json, and answer with
+// instance ever saw for a path, in ASTROLABE_DATA/created.json, and answer with
 // that from then on. Frontmatter still wins (a `date:` is the author's word);
 // this ledger is only the fallback's memory.
 //

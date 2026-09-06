@@ -41,7 +41,7 @@ function pdfjsAssets(): Plugin {
   const require = createRequire(import.meta.url);
   const root = path.dirname(require.resolve("pdfjs-dist/package.json"));
   return {
-    name: "vellum:pdfjs-assets",
+    name: "astrolabe:pdfjs-assets",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const url = (req.url ?? "").split("?")[0];
@@ -87,7 +87,7 @@ function excalidrawAssets(): Plugin {
   const entry = require.resolve("@excalidraw/excalidraw").replace(/\\/g, "/");
   const root = path.join(entry.slice(0, entry.lastIndexOf("/dist/")), "dist", "prod");
   return {
-    name: "vellum:excalidraw-assets",
+    name: "astrolabe:excalidraw-assets",
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const url = (req.url ?? "").split("?")[0];

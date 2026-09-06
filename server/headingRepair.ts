@@ -12,7 +12,7 @@
 // argued. Three candidates:
 //
 //   (a) the editor, watching the heading line as it is typed. Cheapest to
-//       reason about and wrong: it sees only edits made in Vellum's own
+//       reason about and wrong: it sees only edits made in Astrolabe's own
 //       CodeMirror, so a heading renamed in the reading view's source, by a
 //       template, by the desktop app's other window, or by any future write
 //       path is a rename this feature never hears about. It also fires

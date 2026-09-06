@@ -7,10 +7,10 @@ import { t } from "./i18n.ts";
  * Every call here goes through `CapacitorHttp`, not `fetch`, and that is not a
  * preference — it is the only thing that works. The connection screen is served
  * from https://localhost; the vault lives on the owner's host. A browser `fetch`
- * between them is cross-origin, and Vellum's server ships no CORS headers at
+ * between them is cross-origin, and Astrolabe's server ships no CORS headers at
  * all (correctly: it is not an API anyone else should be calling). CapacitorHttp
  * performs the request natively, so there is no preflight to fail — and it
- * shares the WebView's CookieManager, so the `vellum_session` cookie the served
+ * shares the WebView's CookieManager, so the `astrolabe_session` cookie the served
  * app set when the owner signed in rides along on the capture sheet's write.
  */
 
@@ -72,7 +72,7 @@ export function normalizeServerUrl(input: string): NormalizeOk | NormalizeErr {
   }
   if (!url.hostname) return { ok: false, message: t.errUrl };
 
-  // Keep a base path if there is one ("https://box.example/vellum"), drop the
+  // Keep a base path if there is one ("https://box.example/astrolabe"), drop the
   // trailing slash so joining is a plain concatenation everywhere below.
   const path = url.pathname.replace(/\/+$/, "");
   return { ok: true, url: `${url.protocol}//${url.host}${path}`, host: url.host };
@@ -100,7 +100,7 @@ function isMe(data: unknown): data is MeData {
   return typeof d.admin === "boolean" && typeof d.public === "boolean" && typeof d.protected === "boolean";
 }
 
-/** Is this a Vellum server, and what kind of welcome does it give? */
+/** Is this an Astrolabe server, and what kind of welcome does it give? */
 export async function probe(base: string, host: string): Promise<ProbeResult> {
   let res: HttpResponse;
   try {
@@ -127,10 +127,10 @@ export async function probe(base: string, host: string): Promise<ProbeResult> {
     try {
       data = JSON.parse(data);
     } catch {
-      return { ok: false, message: t.errNotVellum(host) };
+      return { ok: false, message: t.errNotAstrolabe(host) };
     }
   }
-  if (!isMe(data)) return { ok: false, message: t.errNotVellum(host) };
+  if (!isMe(data)) return { ok: false, message: t.errNotAstrolabe(host) };
   return { ok: true, me: data };
 }
 

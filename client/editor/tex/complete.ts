@@ -135,7 +135,7 @@ function citeSource(context: CompletionContext): CompletionResult | null {
 }
 
 /** The environments this reader renders. Offering only these is deliberate: a
- *  list of every environment in TeX Live would be a list of things Vellum
+ *  list of every environment in TeX Live would be a list of things Astrolabe
  *  shows as raw source. */
 const ENVIRONMENTS = [
   "abstract", "align", "align*", "center", "description", "enumerate",

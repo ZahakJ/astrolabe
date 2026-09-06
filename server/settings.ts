@@ -1,9 +1,9 @@
-// Instance settings: VELLUM_DATA/settings.json — the runtime-editable side of
+// Instance settings: ASTROLABE_DATA/settings.json — the runtime-editable side of
 // site configuration, written by the admin UI via PATCH /api/settings and in
 // effect at once (no restart). Every stored key OVERRIDES its env counterpart;
 // an absent key falls back to env (site.ts getters do the merging). Env-only
 // forever — never read from this file: ADMIN_PASSWORD_HASH, SESSION_SECRET,
-// TRUSTED_PROXIES, PORT, HOST, VELLUM_VAULT, VELLUM_DATA, PUBLIC.
+// TRUSTED_PROXIES, PORT, HOST, ASTROLABE_VAULT, ASTROLABE_DATA, PUBLIC.
 // Keys: siteName, tagline, footer, defaultTheme, adminTheme, publicLayout, blogLocale,
 // language, languageFilter, languageToggle, excludeTags, commentsEnabled, shareButtons,
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
@@ -246,10 +246,10 @@ function readRaw(): Record<string, unknown> {
     if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
       raw = parsed as Record<string, unknown>;
     } else {
-      console.warn("vellum: settings.json is not a JSON object — ignoring it (env defaults in effect)");
+      console.warn("astrolabe: settings.json is not a JSON object — ignoring it (env defaults in effect)");
     }
   } catch (err) {
-    console.warn("vellum: settings.json unreadable — ignoring it (env defaults in effect):", err);
+    console.warn("astrolabe: settings.json unreadable — ignoring it (env defaults in effect):", err);
   }
   cache = { raw, mtimeMs };
   return raw;
@@ -1368,7 +1368,7 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     else raw.gitSync = next;
   },
   // WRITE-ONLY. Neither of these lands in settings.json: they go to
-  // VELLUM_DATA/git-credentials.json (0600), and no read ever answers with the
+  // ASTROLABE_DATA/git-credentials.json (0600), and no read ever answers with the
   // token — only `effective.gitSync.tokenSet`.
   gitToken: (_raw, value) => setGitToken(value),
   gitUser: (_raw, value) => setGitUser(value),
@@ -1655,7 +1655,7 @@ export function patchSettings(patch: Record<string, unknown>): SettingsResponse 
   // patch below then rewrites the file from scratch, discarding whatever the
   // corrupt file held (it was unrecoverable anyway; availability wins).
   const raw = { ...readRaw() };
-  // gitToken/gitUser write to a different file (VELLUM_DATA/git-credentials.json),
+  // gitToken/gitUser write to a different file (ASTROLABE_DATA/git-credentials.json),
   // so they only VALIDATE below and are written after the whole patch is
   // accepted — a patch that 400s later must not have changed the credential.
   // Anything a previous failed patch staged is dropped here.
@@ -1706,7 +1706,7 @@ function persist(raw: Record<string, unknown>): void {
   mkdirSync(path.dirname(file), { recursive: true });
   // Write-then-rename so a crash mid-write never leaves a torn settings.json.
   const tmp = `${file}.tmp`;
-  // Same treatment as the git credential file next door in VELLUM_DATA: this
+  // Same treatment as the git credential file next door in ASTROLABE_DATA: this
   // file holds no secret by design, but it does hold operator-private
   // configuration (the backup remote, the branch), it is the file a pasted
   // token would land in if any validator ever let one through, and there is no

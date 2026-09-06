@@ -1,7 +1,7 @@
 // ACADEMIC & RESEARCH — designs drawn around a page that carries MATHEMATICS.
 //
 // This is one of the two families that exist to show what a note-hooked
-// publisher can do that a plugin economy does badly. A Vellum note is rendered
+// publisher can do that a plugin economy does badly. An Astrolabe note is rendered
 // by ONE renderer, and that renderer already sets `$$…$$` with KaTeX, resolves
 // `[[wikilinks]]` between papers, and lays a right-to-left abstract out with
 // logical properties. So the design's whole job here is to get out of the way
