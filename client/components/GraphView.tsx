@@ -68,7 +68,11 @@ const STEP_MS = 1000 / 60;
  *  follows the clock exactly (see `frame`), but the INTEGRATION is capped, so a
  *  slow frame cannot spend its whole budget on forces and make itself slower. */
 const MAX_CATCHUP_STEPS = 3;
-const ZOOM_MIN = 0.15;
+// The floor was 0.15, which a vault of a few hundred notes fills edge to
+// edge; the owner wanted to step back further ("zoom out a bit further"),
+// so it is 0.04 — a thousand-note vault as one constellation, dots still a
+// pixel or two wide (the radius floors in `draw` keep them visible).
+const ZOOM_MIN = 0.04;
 const ZOOM_MAX = 4;
 const TAU = Math.PI * 2;
 /** How many labels one frame may draw, whatever the zoom rule allows.

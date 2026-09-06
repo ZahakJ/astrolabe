@@ -38,11 +38,12 @@
   picker that previews the filled result — see [Templates](templates-and-notes.md#templates)
 - **Paste or drop attachments** — an image on your clipboard (or any accepted file dragged from a
   file manager: PDF, audio, video too) uploads and lands as `![[name.png]]` at the cursor, with an
-  "Uploading…" placeholder holding the spot while it's in flight. Files can also be dropped
-  straight onto the sidebar tree — onto a folder row, onto a note row, or onto the tree's own
-  ground. Where they land is a [setting](configuration.md#attachments); a type the server would
-  reject is refused before the upload, not after, and the toast that reports the drop carries an
-  Undo
+  "Uploading…" placeholder holding the spot while it's in flight. Where a paste or a drop into
+  the note lands is a [setting](configuration.md#attachments). Files can also be dropped straight
+  onto the sidebar tree — onto a folder row, onto a note row, or onto the tree's own ground — and
+  a tree drop is a filing: the file lands in the folder you aimed at, whatever the setting says.
+  A type the server would reject is refused before the upload, not after, and the toast that
+  reports the drop carries an Undo
 - **Slash commands** — type `/` at the start of a line for a fuzzy menu of inserts: callout, code
   fence (with language search), table skeleton, task list, math block, divider, today's date,
   daily-note link

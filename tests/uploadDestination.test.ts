@@ -1,8 +1,8 @@
-// A BOOK DROPPED ON A FOLDER IS FILED THERE; an image keeps the attachment
-// setting. The owner dragged a PDF onto Library/ and found it in attachments/,
-// because the default location mode ("specified") is built to ignore the drop
-// target — which is right for an image that belongs to a note and wrong for a
-// document being filed. `uploadDestination` is that distinction as a function.
+// A DROP ON THE TREE IS FILED WHERE IT WAS DROPPED; a paste into a note keeps
+// the attachment setting. The owner dragged a PDF onto Library/ and found it
+// in attachments/; later a friend dropped a folder of icons on a folder and
+// found them all in attachments/ too. The location setting is for uploads
+// that named no place. `uploadDestination` is that distinction as a function.
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -20,22 +20,26 @@ describe("uploadDestination", () => {
     }
   });
 
-  it("a book dropped on the tree's root is filed at the root", () => {
+  it("files a dropped image there too: the folder aimed at is the choice", () => {
+    for (const loc of [specified, root, sub]) {
+      assert.equal(uploadDestination(loc, "icons", "png", true), "icons");
+      assert.equal(uploadDestination(loc, "Design/marks", "svg", true), "Design/marks");
+    }
+  });
+
+  it("a file dropped on the tree's root is filed at the root", () => {
     assert.equal(uploadDestination(specified, "", "pdf", true), "");
+    assert.equal(uploadDestination(specified, "", "png", true), "");
   });
 
-  it("an image keeps the attachment setting even when dropped on a folder", () => {
-    assert.equal(uploadDestination(specified, "Library", "png", true), "attachments");
-    assert.equal(uploadDestination(root, "Library", "jpg", true), "");
-    assert.equal(uploadDestination(sub, "Library", "webp", true), "Library/_att");
-  });
-
-  it("a book PASTED into a note (not filed) is still an attachment", () => {
+  it("a paste into a note (not filed) keeps the attachment setting", () => {
+    assert.equal(uploadDestination(specified, "Library", "png", false), "attachments");
     assert.equal(uploadDestination(specified, "Library", "pdf", false), "attachments");
+    assert.equal(uploadDestination(root, "Library", "jpg", false), "");
+    assert.equal(uploadDestination(sub, "Library", "webp", false), "Library/_att");
   });
 
-  it("the type is the server's, so a renamed image cannot ride in as a book", () => {
-    // The server sniffs bytes; `ext` here is what it found, never the name.
-    assert.equal(uploadDestination(specified, "Library", "png", true), "attachments");
+  it("the context is tidied, never trusted, on the way to a folder", () => {
+    assert.equal(uploadDestination(specified, "/icons/./", "png", true), "icons");
   });
 });

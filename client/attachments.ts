@@ -183,7 +183,7 @@ export interface UploadOutcome {
 export async function uploadFiles(
   files: File[],
   dir: string,
-  /** True for a tree drop: the reader aimed at a folder, and a book goes
+  /** True for a tree drop: the reader aimed at a folder, and the file goes
    *  where it was aimed. False for a paste into a note, where the
    *  attachment-location setting is the whole answer. */
   filed = false,
@@ -210,12 +210,11 @@ export async function uploadDroppedFiles(files: File[], dir: string): Promise<st
   const sorted = sortFiles(files);
   if (!(await reportRefusals(sorted))) return [];
   if (sorted.ok.length === 0) return [];
-  // A tree drop is a FILING: a book lands in the folder it was dropped on.
+  // A tree drop is a FILING: the file lands in the folder it was dropped on.
   const outcome = await uploadFiles(sorted.ok, dir, true);
   if (outcome.paths.length === 0) return [];
-  // Where they LANDED, not where they were dropped: the attachment-location
-  // setting may have sent them somewhere else entirely, and the toast is the
-  // only place a reader finds that out.
+  // Where they LANDED (the drop folder, with any renaming the server did): the
+  // toast is the one place that says so, with the undo beside it.
   const landed = outcome.paths[0].slice(0, Math.max(0, outcome.paths[0].lastIndexOf("/")));
   let message = tf("filesAdded", {
     files: countPhrase(outcome.paths.length, "files"),
