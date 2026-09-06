@@ -968,6 +968,19 @@ everything inside" writes the expanded map under one folder (`setFoldersUnder`) 
 `.cm-content`, zen's editor and zen's reading column take (648 / 672 / 800px defaults). Full width
 gives the scroller a gutter instead. Settings → This device row.
 
+## The status bar keeps the note; the shell's tools moved up
+
+`StatusBar.tsx` renders two things: the bar (crumbs, counts, the published count and reach, the
+Publish button, the layout chip, the mode pills) and `topTools` — the designer door, the gear, the
+preview eye, the pane toggles, zen, the shortcut sheet, the theme picker, the graph toggle and the
+session control — which it PORTALS into `#s-topactions`, the host App.tsx places at the top of
+`.s-main` (`.s-topactions`, absolute, trailing end, 2.5rem, `pointer-events: none` with its child
+`auto`). The portal's wrapper is `.s-statusbar.s-statusbar--top` so every bar rule applies, with
+the chrome (height, background, border, grid-area) overridden. A ResizeObserver publishes the
+cluster's width as `--topactions-w` on `.s-main`, which the last tab strip pads by. Zen hides the
+cluster. Without a host (a bare test) the tools stay in the bar. The owner's screenshot drew the
+line: "the status stuff def belongs to bottom".
+
 ## The status bar in Arabic
 
 `html[dir="rtl"] .s-statusbar__spacer` is 18px, not `flex: 1`: the bar packs at its start (the

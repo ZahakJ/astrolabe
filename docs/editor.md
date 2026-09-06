@@ -193,6 +193,12 @@
 
 ![Command palette](screenshots/palette.png)
 
+## The bar and the top cluster
+
+The bar under the note says where you are, how long the note is, whether it is published and
+which mode it is in. The shell's own controls sit at the top, trailing the tabs: the panes, zen,
+the graph, the site designer, settings, the theme, and signing out.
+
 ## Arranging the tree
 
 The vault's order is the default, not the law. In the sidebar's footer, **Sort the tree** offers
