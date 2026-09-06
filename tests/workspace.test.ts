@@ -195,8 +195,12 @@ describe("workspace: panes", () => {
       assertInvariants(ws, "after inline split");
     }
     assert.equal(splitPane(ws, ws.focus, "inline", null), null, "column cap refuses by name");
-    const stacked = splitPane(ws, ws.focus, "block", null);
-    assert.ok(stacked, "block split still allowed");
+    let stacked = ws;
+    for (let i = 0; i < MAX_ROWS - 1; i++) {
+      const next = splitPane(stacked, stacked.focus, "block", null);
+      assert.ok(next, "block split within the cap");
+      stacked = next;
+    }
     assert.equal(splitPane(stacked, stacked.focus, "block", null), null, "row cap");
   });
 
@@ -270,8 +274,7 @@ describe("workspace: panes", () => {
     // when the split cannot.
     let ws = soloWorkspace(tabs("A.md", "B.md"), "A.md");
     const p0 = ws.focus;
-    ws = splitPane(ws, p0, "inline", null)!;
-    ws = splitPane(ws, ws.focus, "inline", null)!; // MAX_COLUMNS reached
+    for (let i = 0; i < MAX_COLUMNS - 1; i++) ws = splitPane(ws, ws.focus, "inline", null)!; // MAX_COLUMNS reached
     const before = ws;
     ws = dropTabSplit(ws, p0, "B.md", ws.focus, "end-inline");
     assert.deepEqual(allPaths(ws).sort(), allPaths(before).sort(), "no tab eaten");

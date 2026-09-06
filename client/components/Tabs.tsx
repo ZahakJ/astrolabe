@@ -21,6 +21,8 @@ import {
   closeAllPanes,
   closeOthersIn,
   isGraphTab,
+  isMediaTab,
+  isVirtualTab,
   paneAt,
   type Workspace,
 } from "../workspace.ts";
@@ -32,6 +34,7 @@ import { noteLabelOf } from "../../shared/noteFormat.ts";
  *  and these labels travel into aria-labels and the document title. */
 function titleOf(path: string): string {
   if (isGraphTab(path)) return t("docTitleGraph");
+  if (isMediaTab(path)) return t("media");
   const base = path.slice(path.lastIndexOf("/") + 1);
   return stripBidiControls(noteLabelOf(base));
 }
@@ -285,7 +288,7 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
           <div
             key={path}
             role="presentation"
-            title={isGraphTab(path) ? titleOf(path) : path}
+            title={isVirtualTab(path) ? titleOf(path) : path}
             className={`s-tab${isActive ? " s-tab--active" : ""}${isDirty ? " s-tab--dirty" : ""}${
               pinned ? " s-tab--pinned" : ""
             }${ephemeral ? " s-tab--ephemeral" : ""}${

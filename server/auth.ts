@@ -24,7 +24,7 @@ import { libraryFor } from "./library.ts";
 import { currentVisibility, isReducingReach } from "./visibility.ts";
 import { commentsEnabled } from "./comments.ts";
 import { siteFontsSignature } from "./fonts.ts";
-import { dateCalendar, fontSlots, getSettings, textAlign, textDirection } from "./settings.ts";
+import { dateCalendar, drawingsFolder, fontSlots, getSettings, textAlign, textDirection } from "./settings.ts";
 import { FOLLOW_THEME } from "../shared/themes.ts";
 import { attachmentLocation, bannerFallback, blogLocale, customCssPath, dataDir, footerLine, publicLayout, siteLanguage, siteName, tagline, themePinnedByEnv, themePref, visitorTheme } from "./site.ts";
 import { activeDesign, activeDesignFontRefs, customThemesSig, hasThemeChoice } from "./designs.ts";
@@ -768,6 +768,8 @@ authRoutes.get("/me", (c) => {
     if (attach.mode === "specified" || attach.mode === "subfolder") {
       me.attachmentFolder = { mode: attach.mode, folder: attach.folder };
     }
+    const drawings = drawingsFolder();
+    if (drawings !== null) me.drawingsFolder = drawings;
   }
   // The theme a session with no stored pick lands on: a pinned
   // settings.defaultTheme/DEFAULT_THEME, or — by default — the theme the admin

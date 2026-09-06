@@ -785,7 +785,10 @@ const AUDIENCES = [
   // drawn from geometry (shared/brandMark.ts) that the blog footer's "powered
   // by" wears beside the new name, and the storage migration that carries a
   // reader's `vellum.*` preferences over to `astrolabe.*`.
-  { name: "anonymous blog reader", keys: blog, budget: 880 * 1024 },
+  // …and for THE MEDIA TAB AND THE FOLDER NAMES (880.4 kB actual → 884): the
+  // workspace model's two virtual-tab sentinels and the Arabic media folder
+  // table sit in shared code the reading view already carries.
+  { name: "anonymous blog reader", keys: blog, budget: 884 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -885,7 +888,9 @@ const AUDIENCES = [
   // …and again for THE NAME (1285.0 kB actual → 1290): the mark in the
   // wordmark and the sign-in modal, the storage migration, the two legacy
   // header spellings.
-  { name: "admin first paint", keys: app, budget: 1290 * 1024 },
+  // …and for 3.2.0 (1292.2 kB actual → 1296): the tags shelf grip, the media
+  // tab's status-bar and router wiring, the drawings-folder setting row.
+  { name: "admin first paint", keys: app, budget: 1296 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

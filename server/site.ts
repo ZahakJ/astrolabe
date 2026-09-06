@@ -17,6 +17,7 @@ import { numeralSystem, toNumerals } from "../shared/numerals.ts";
 import { FOLLOW_THEME, isTheme, THEMES as THEME_IDS } from "../shared/themes.ts";
 import { isCustomThemeId } from "../shared/customTheme.ts";
 import { getSettings } from "./settings.ts";
+import { getVaultRoot } from "./vault.ts";
 
 interface SiteConfig {
   siteName: string;
@@ -46,7 +47,7 @@ let config: SiteConfig = {
   language: "en",
   languageFilter: "off",
   siteUrl: null,
-  attachmentsDir: "attachments",
+  attachmentsDir: "",
   bannerFallback: "generated",
 };
 
@@ -146,8 +147,9 @@ export function initSite(env: NodeJS.ProcessEnv = process.env): void {
     siteUrl: env.SITE_URL?.trim().replace(/\/+$/, "") || null,
     // Vault-relative directory uploaded images land in (created on demand).
     // Slashes trimmed; the API layer path-safety-checks the joined result.
-    attachmentsDir:
-      env.ATTACHMENTS_DIR?.trim().replace(/\\/g, "/").replace(/^\/+|\/+$/g, "") || "attachments",
+    // Empty means "not set": the default is then resolved against the vault
+    // and the language at upload time (`attachmentsDir()` below).
+    attachmentsDir: env.ATTACHMENTS_DIR?.trim().replace(/\\/g, "/").replace(/^\/+|\/+$/g, "") || "",
     // Notes without a banner: "generated" (default) shows a deterministic
     // abstract gradient in the blog list + article hero; "none" shows nothing.
     bannerFallback:
@@ -339,10 +341,28 @@ export function customCssPath(): string | null {
   return existsSync(p) ? p : null;
 }
 
+/** The default attachment folders, by name. The English one is capitalised
+ *  like every other folder a reader makes ("Media", "Templates"); the owner
+ *  disliked the one lowercase name in the tree. The lowercase spelling is
+ *  kept for the vaults that already have it: an existing folder always wins,
+ *  so no vault grows a second attachments folder beside its first. */
+const ATTACHMENTS_DEFAULT_EN = "Attachments";
+const ATTACHMENTS_DEFAULT_AR = "مرفقات";
+const ATTACHMENTS_LEGACY = "attachments";
+
 /** Vault-relative directory POST /api/upload writes into when no attachment
- *  LOCATION setting overrides it (ATTACHMENTS_DIR; default "attachments"). */
+ *  LOCATION setting overrides it. ATTACHMENTS_DIR when set; otherwise the
+ *  folder that already exists among the three names, else the language's own
+ *  ("Attachments", or "مرفقات" on an Arabic instance). */
 export function attachmentsDir(): string {
-  return config.attachmentsDir;
+  if (config.attachmentsDir !== "") return config.attachmentsDir;
+  const own = siteLanguage() === "ar" ? ATTACHMENTS_DEFAULT_AR : ATTACHMENTS_DEFAULT_EN;
+  const candidates = [own, ATTACHMENTS_LEGACY, ATTACHMENTS_DEFAULT_EN, ATTACHMENTS_DEFAULT_AR];
+  const root = getVaultRoot();
+  for (const name of candidates) {
+    if (existsSync(path.join(root, name))) return name;
+  }
+  return own;
 }
 
 /** Where new attachments go: settings.attachments merged over the env
@@ -353,7 +373,7 @@ export function attachmentLocation(): AttachmentLocation {
   const stored = getSettings().attachments;
   return {
     mode: stored?.mode ?? "specified",
-    folder: stored?.folder ?? config.attachmentsDir,
+    folder: stored?.folder ?? attachmentsDir(),
   };
 }
 

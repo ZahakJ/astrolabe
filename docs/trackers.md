@@ -103,8 +103,9 @@ the same allowlist that governs banners and embeds.
 
 The board is a fence you put in a note. The **Media page** is the same shelf
 as a place of its own: a button beside the settings gear (admins only; or
-"Open the Media page" in the command palette) swaps the note column for every
-tracker in the vault, shelved by kind.
+"Open the Media page" in the command palette) opens it as a **tab** in the
+focused pane, beside the notes, holding every tracker in the vault shelved by
+kind; the same button closes it again, and it drags into a split like any tab.
 
 The shelves stack vertically with a hairline between them, in this order:
 shows, games, books, films, courses, then projects, habits and whatever kinds
@@ -129,8 +130,10 @@ whose body is one ` ```tracker ` fence with those fields, so everything the
 rest of this page says applies to it: it renders as a card in the note, it
 appears on any board, and you can edit the fence by hand. The kind decides the
 folder (`Books`, `Games`, `Shows`, `Films`, `Courses`, and a capitalised
-folder for a kind of your own). A title that already has a note is refused
-rather than overwritten.
+folder for a kind of your own). On an Arabic instance the folders are Arabic
+too: `وسائط/كتب`, `ألعاب`, `مسلسلات`, `أفلام`, `دورات`; a vault that already has
+a `Media` root keeps filing there, and the reverse holds. A title that already
+has a note is refused rather than overwritten.
 
 For a game whose length nobody has timed, switch the total off: the fence
 says `progress: 62/?`, the card counts hours and draws no bar. Turn it back on

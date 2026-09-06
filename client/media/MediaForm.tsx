@@ -23,14 +23,14 @@ import { PathInput } from "../components/controls/PathInput.tsx";
 import { pickFolder } from "../components/FolderPicker.tsx";
 import { NumberInput, SegmentedControl, TextInput, Toggle } from "../components/controls/Fields.tsx";
 import { UPLOAD_MAX_MB } from "../../shared/limits.ts";
-import { mediaNoteContent, mediaNotePath, mediaProgress } from "../../shared/media.ts";
+import { MEDIA_ROOTS, mediaNoteContent, mediaNotePath, mediaProgress } from "../../shared/media.ts";
 import { defaultTrackerStep, foldKind, type TrackerFields, type TrackerKind, type TrackerStatus } from "../../shared/tracker.ts";
 import type { TrackerMeta } from "../../shared/types.ts";
 import { countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { KIND_UNIT } from "../trackerUnits.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
-import { draftOf, emptyDraft, numberOf, treeHasPath, type MediaDraft } from "./mediaModel.ts";
+import { draftOf, emptyDraft, numberOf, treeHasFolder, treeHasPath, type MediaDraft } from "./mediaModel.ts";
 
 const KINDS: TrackerKind[] = ["show", "game", "book", "film", "course"];
 
@@ -137,8 +137,12 @@ export function MediaForm({
         await updateTracker(editing.path, editing.index, fields);
         toast(tf("mediaSaved", { title }));
       } else {
-        const path = mediaNotePath(draft.kind.trim() || "other", title);
-        if (treeHasPath(useStore.getState().tree, path)) {
+        const state = useStore.getState();
+        const path = mediaNotePath(draft.kind.trim() || "other", title, {
+          lang: state.siteLanguage,
+          existing: MEDIA_ROOTS.filter((root) => treeHasFolder(state.tree, root)),
+        });
+        if (treeHasPath(state.tree, path)) {
           setError(tf("mediaExists", { path }));
           setBusy(false);
           return;

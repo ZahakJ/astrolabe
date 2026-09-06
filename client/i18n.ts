@@ -481,6 +481,7 @@ const DICT = {
   treeFocusAll: { en: "Show all", ar: "إظهار الكل" },
   treeFocusedOn: { en: "Focused on “{name}”", ar: "التركيز على “{name}”" },
   paneGripNotes: { en: "Drag to resize the notes sidebar; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض لوحة الملاحظات؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
+  tagsGrip: { en: "Drag to resize the tag shelf; double-click to reset", ar: "اسحب لتغيير ارتفاع رف الوسوم؛ انقر مرتين لإعادة الضبط" },
   splitGripCols: { en: "Drag to resize the panes; double-click to even them out", ar: "اسحب لتغيير عرض اللوحات؛ انقر مرتين لتساويها" },
   splitGripRows: { en: "Drag to resize the panes; double-click to even them out", ar: "اسحب لتغيير ارتفاع اللوحات؛ انقر مرتين لتساويها" },
   paneGripPanel: { en: "Drag to resize the side panel; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض اللوحة الجانبية؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
@@ -2683,6 +2684,11 @@ const DICT = {
     ar: "تعيش ملاحظات القوالب هنا ولا تصل إلى قائمة مقالات المدونة.",
   },
   templatesDetectedHint: { en: "Found automatically: {folder}", ar: "اكتُشف تلقائيًا: {folder}" },
+  drawingsFolderLabel: { en: "Drawings folder", ar: "مجلد الرسومات" },
+  drawingsFolderHint: {
+    en: "Where the pencil at the top of the sidebar starts a new drawing. Empty means the vault root; a folder's own menu still puts one inside it.",
+    ar: "حيث يبدأ قلم الرصاص في أعلى الشريط الجانبي رسمة جديدة. فارغ يعني جذر الخزانة؛ وقائمة المجلد ما زالت تضع واحدة داخله.",
+  },
   defaultTemplateLabel: { en: "Template for new notes", ar: "قالب الملاحظات الجديدة" },
   defaultTemplateHint: {
     en: "Applied to every note made from here; off by default.",

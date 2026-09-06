@@ -70,7 +70,10 @@ import {
   isBookPath,
   isDrawingPath,
   isGraphTab,
+  isMediaTab,
+  isVirtualTab,
   GRAPH_TAB,
+  MEDIA_TAB,
   openInPane,
   resizeCols as resizeColsIn,
   resizeRows as resizeRowsIn,
@@ -200,7 +203,7 @@ export type { ThemeChoice } from "./themes.ts";
 /** "graph" left this union when the graph became a tab (`GRAPH_TAB` in
  *  client/workspace.ts): asking for it through `setView("graph")` still works
  *  and opens that tab in the focused pane. */
-export type View = "editor" | "media";
+export type View = "editor";
 
 /** Where a dropped tab lands on its target pane. */
 export type TabDropDest = { kind: "tabs"; index: number } | { kind: "edge"; edge: DropEdge };
@@ -436,6 +439,8 @@ export interface State {
   /** Where new attachments land (MeData.attachmentFolder), or null when the
    *  policy names no folder. The "Move to…" picker keeps notes out of it. */
   attachmentFolder: { mode: "specified" | "subfolder"; folder: string } | null;
+  /** Where the sidebar's pencil starts a drawing ("" = the vault root). */
+  drawingsFolder: string;
   /** Store a fresh folder→glyph map (the tree picker, post-PATCH). */
   setFolderIcons(icons: Record<string, FolderMark>): void;
   /** Merge a fresh home config into the store (the dashboard's banner save). */
@@ -554,9 +559,12 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph"): void;
+  setView(v: View | "graph" | "media"): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
+  /** The Media page, on the same terms as the graph. */
+  mediaOpen(): boolean;
+  toggleMedia(): void;
   /** Toggle the graph tab in the focused pane: open (or focus) it, or, when it
    *  is already the active tab, close it and land on the tab beside it. */
   toggleGraph(): void;
@@ -940,7 +948,7 @@ function mirrorOf(
   // A drawing is a picture in a tab, like a book: it is never "the open note"
   // (the outline, the word count and the publish pill have nothing to say
   // about a canvas), so the mirror looks past it to the nearest note.
-  if (here !== null && !isBookPath(here.path) && !isDrawingPath(here.path) && !isGraphTab(here.path)) {
+  if (here !== null && !isBookPath(here.path) && !isDrawingPath(here.path) && !isVirtualTab(here.path)) {
     return { workspace: ws, openTabs, openPath: here.path, readingMode };
   }
   const noteHome = paneAt(ws, ws.noteFocus);
@@ -953,7 +961,7 @@ function mirrorOf(
     workspace: ws,
     openTabs,
     openPath:
-      note === null || isBookPath(note.path) || isDrawingPath(note.path) || isGraphTab(note.path)
+      note === null || isBookPath(note.path) || isDrawingPath(note.path) || isVirtualTab(note.path)
         ? null
         : note.path,
     readingMode,
@@ -1354,6 +1362,7 @@ export const useStore = create<State>()((set, get) => {
     textAlign: DEFAULT_TEXT_ALIGN,
     folderIcons: NO_FOLDER_ICONS,
     attachmentFolder: null,
+    drawingsFolder: "",
     // Normalized to the shared empty object, not stored as a fresh `{}`:
     // clearing the last folder's mark must leave the tree's 1.4k memoized rows
     // reading the same identity they read before anything was marked.
@@ -1499,6 +1508,7 @@ export const useStore = create<State>()((set, get) => {
           textAlign: noteAlign,
           folderIcons: icons,
           attachmentFolder: me.attachmentFolder ?? null,
+          drawingsFolder: me.drawingsFolder ?? "",
         });
         // The tag-label map is scoped by session (a visitor is told about
         // visible tags only), so it is refetched on every /api/me — which is
@@ -2031,16 +2041,28 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph") {
+      if (view === "graph" || view === "media") {
+        const path = view === "graph" ? GRAPH_TAB : MEDIA_TAB;
         set((s) => ({
           ...s,
-          ...mirrorOf(openInPane(s.workspace, s.workspace.focus, GRAPH_TAB)),
+          ...mirrorOf(openInPane(s.workspace, s.workspace.focus, path)),
           view: "editor",
           sidebarOpen: false,
         }));
         return;
       }
       set({ view });
+    },
+    mediaOpen: () => {
+      const ws = get().workspace;
+      const pane = paneAt(ws, ws.focus);
+      const tab = pane === null ? null : activeTabOf(pane);
+      return tab !== null && isMediaTab(tab.path);
+    },
+    toggleMedia: () => {
+      const s = get();
+      if (s.mediaOpen()) s.closeTab(MEDIA_TAB);
+      else s.setView("media");
     },
     graphOpen: () => {
       const ws = get().workspace;

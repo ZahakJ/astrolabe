@@ -18,7 +18,8 @@ it is a tab beside the notes you are writing, the words on its canvas are in sea
 
 ## Making one
 
-The pencil at the top of the notes sidebar starts a drawing in the vault's root. Right-click a
+The pencil at the top of the notes sidebar starts a drawing in the vault's root, or in the
+**Drawings folder** named in settings (beside the templates folder). Right-click a
 folder → **New drawing here** puts one inside that folder, and **New drawing** in the command
 palette lands in the open note's folder. The name prompt offers `Drawing.excalidraw`, and the extension is the
 format:

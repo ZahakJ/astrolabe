@@ -41,7 +41,7 @@ summary.
 | `SITE_LANG` | Site language: `en` (default) or `ar`. `ar` localizes every chrome string and mirrors the whole UI right-to-left (see [Arabic & RTL](arabic-and-rtl.md)). What *you* edit in is a separate per-browser choice — Settings → *Editor language* |
 | `BLOG_LOCALE` | BCP47 locale for post-date digits and the RSS channel language (default: follows `SITE_LANG`). Month names follow the chrome language when the visitor switch is on |
 | `LANGUAGE_FILTER` | Which published notes the public site shows, by the language they are written in: `off` (default) · `follow` (each reader gets their own) · `ar` · `en`. Legacy `true`/`false` still parse — see [Language filter](arabic-and-rtl.md#language-filter) |
-| `ATTACHMENTS_DIR` | Vault-relative directory in-app uploads write into (default `attachments`), created on demand. The **Attachments** setting can override where uploads go entirely — see [Attachments](#attachments) |
+| `ATTACHMENTS_DIR` | Vault-relative directory in-app uploads write into (default `Attachments`, or `مرفقات` on an Arabic instance; an existing `attachments` folder is kept), created on demand. The **Attachments** setting can override where uploads go entirely — see [Attachments](#attachments) |
 | `BANNER_FALLBACK` | Blog hero for posts without a `banner:` — `generated` (default; a deterministic abstract gradient from the note title) or `none` |
 | `ASTROLABE_GIT_SSH_COMMAND` | The one `GIT_*` variable Astrolabe passes through to the git child process, verbatim, as `GIT_SSH_COMMAND` — see [Backup & sync](backup-and-sync.md#things-worth-knowing) |
 
@@ -107,7 +107,7 @@ in **Publishing & comments**, beside the templates folder.
 | Vault root | the top of the vault |
 | Same folder as the note | beside the note being edited |
 | Subfolder of the note's folder | `<note's folder>/<name>` — e.g. an `assets` next to each note |
-| Specified folder *(default)* | one fixed vault-relative folder — `ATTACHMENTS_DIR`, default `attachments` |
+| Specified folder *(default)* | one fixed vault-relative folder — `ATTACHMENTS_DIR`, else `Attachments` (`مرفقات` on an Arabic instance); a vault that already has an `attachments` folder keeps it |
 
 The setting answers for uploads that named no place: a paste into a note, or a drop into the
 editor. A drop onto the sidebar tree names one, and lands in the folder it was dropped on.
@@ -185,8 +185,9 @@ write them. Anything absent falls back to the env default in the table above.
 | `home.note` | vault-relative note (`.md` / `.tex` / `.latex`) | `HOME_NOTE` |
 | `home.banner` | https URL or vault image | none — a generated gradient seeded from the site name |
 | `attachments.mode` | `vault-root` · `same-folder` · `subfolder` · `specified` | `specified` |
-| `attachments.folder` | vault-relative folder, ≤ 180 chars; read by `subfolder` and `specified` only. No traversal, no absolute path, no dot-folder | `ATTACHMENTS_DIR`, else `attachments` |
+| `attachments.folder` | vault-relative folder, ≤ 180 chars; read by `subfolder` and `specified` only. No traversal, no absolute path, no dot-folder | `ATTACHMENTS_DIR`, else an existing `attachments`/`Attachments`/`مرفقات`, else `Attachments` (`مرفقات` on an Arabic instance) |
 | `templatesFolder` | vault-relative folder | auto-detected (`Templates`, `_templates`, `قوالب`), else none |
+| `drawingsFolder` | vault-relative folder the sidebar's pencil starts a drawing in | none — the vault root |
 | `defaultTemplate` | vault-relative note applied to every new note | none |
 | `dateCalendar` | `gregorian` · `hijri` · `both` | `gregorian` |
 | `textDirection` | `auto` · `ltr` · `rtl` | `auto` |

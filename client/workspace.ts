@@ -37,7 +37,7 @@ export type PaneMode = "edit" | "reading" | "graph" | "library";
  *  invariant has to be policed at the component boundary: a `.pdf` tab renders
  *  the reader whatever the mode says, which is exactly what makes Ctrl/Cmd+E a
  *  harmless no-op on a book instead of a mode the pane cannot honour. */
-export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "library" | "empty";
+export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "library" | "empty";
 
 /** Where in a book an open should land. There is ONE spelling of "where in a
  *  book" in this product — shared/bookAnchor.ts owns it, the citation wikilink
@@ -103,9 +103,13 @@ export interface Workspace {
   layoutName: string | null;
 }
 
-export const MAX_COLUMNS = 3;
-export const MAX_ROWS = 2;
-export const MAX_PANES = 6;
+// Raised from 3 × 2 (six) when the owner asked for "four windows" and found
+// the drop targets gone: a zone the layout would refuse is not drawn, so a
+// full grid looked like a broken drag. Four columns and three rows are as far
+// as a laptop screen goes before a pane cannot show a tab name.
+export const MAX_COLUMNS = 4;
+export const MAX_ROWS = 3;
+export const MAX_PANES = 8;
 
 /** Books are the one non-note thing that opens as a tab. */
 export function isBookPath(path: string): boolean {
@@ -129,9 +133,20 @@ export const GRAPH_TAB = "~graph";
 export function isGraphTab(path: string): boolean {
   return path === GRAPH_TAB;
 }
+/** The Media page, on the same terms (the owner: "clicking on the media
+ *  tracker icon should open a tab"). */
+export const MEDIA_TAB = "~media";
+export function isMediaTab(path: string): boolean {
+  return path === MEDIA_TAB;
+}
+/** A tab that names no file: the graph or the Media page. Never "the open
+ *  note", never pruned against the tree, titled by the chrome. */
+export function isVirtualTab(path: string): boolean {
+  return isGraphTab(path) || isMediaTab(path);
+}
 
 export function isTabbablePath(path: string): boolean {
-  return isNotePath(path) || isBookPath(path) || isGraphTab(path);
+  return isNotePath(path) || isBookPath(path) || isVirtualTab(path);
 }
 
 // ── ids ─────────────────────────────────────────────────────────────────────
@@ -184,6 +199,7 @@ export function surfaceOf(p: Pane): PaneSurface {
   const tab = activeTabOf(p);
   if (p.follow === null && tab === null) return "empty";
   if (tab !== null && isGraphTab(tab.path)) return "graph";
+  if (tab !== null && isMediaTab(tab.path)) return "media";
   if (tab !== null && isBookPath(tab.path)) return "book";
   // A drawing has one surface: the canvas is the editor AND the reading view,
   // and a pane mode of "reading" over it would be a grey box.
@@ -756,7 +772,7 @@ export function pruneWorkspace(ws: Workspace, visible: Set<string>): Workspace {
     // The graph tab names no file, so no tree can vouch for it; it is kept
     // on its own account (a restored session used to lose it whenever it
     // was not the active tab, because only the /graph URL reopened it).
-    out = dropTabsUnconditional(out, pane.id, (t) => !visible.has(t.path) && !isGraphTab(t.path));
+    out = dropTabsUnconditional(out, pane.id, (t) => !visible.has(t.path) && !isVirtualTab(t.path));
   }
   return out;
 }

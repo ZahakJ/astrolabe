@@ -70,6 +70,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "publishing", label: "rowHomeBanner", hint: "hintHomeBanner" },
   { tab: "vault", label: "templatesFolderLabel", hint: "templatesFolderHint" },
   { tab: "vault", label: "defaultTemplateLabel", hint: "defaultTemplateHint" },
+  { tab: "vault", label: "drawingsFolderLabel", hint: "drawingsFolderHint" },
   { tab: "vault", label: "rowAttachmentLocation", hint: "hintAttachmentLocation" },
   { tab: "vault", label: "rowAttachmentFolder" },
   { tab: "vault", label: "rowTagsFolder", hint: "hintTagsFolder" },

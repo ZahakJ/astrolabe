@@ -159,6 +159,7 @@ interface Form {
   // prints what was detected rather than sitting blank beside a working
   // feature (the `inherited` note under it).
   templatesFolder: string;
+  drawingsFolder: string;
   defaultTemplate: string;
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
@@ -273,6 +274,7 @@ function formFrom(s: SettingsResponse): Form {
     attachMode: s.attachments?.mode ?? "",
     attachFolder: s.attachments?.folder ?? "",
     templatesFolder: s.templatesFolder ?? "",
+    drawingsFolder: s.drawingsFolder ?? "",
     defaultTemplate: s.defaultTemplate ?? "",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
@@ -1273,6 +1275,7 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       | "favicon"
       | "logo"
       | "templatesFolder"
+      | "drawingsFolder"
       | "defaultTemplate",
   ): void => {
     const value = f[key].trim();
@@ -1286,6 +1289,7 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   str("favicon");
   str("logo");
   str("templatesFolder");
+  str("drawingsFolder");
   str("defaultTemplate");
   if (f.language !== initial.language) {
     patch.language = f.language === "en" || f.language === "ar" ? f.language : null;
@@ -3732,6 +3736,18 @@ export default function SettingsModal() {
                       dir="ltr"
                       label={t("defaultTemplateLabel")}
                       {...field("defaultTemplate")}
+                    />
+                  </Row>
+                  {/* Where the sidebar's pencil files a drawing (the owner:
+                      "create the drawing in a specified space in settings or
+                      by default the root directory"). Beside the other two
+                      folder questions, for the reason they are together. */}
+                  <Row label={t("drawingsFolderLabel")} hint={t("drawingsFolderHint")}>
+                    <TextInput
+                      placeholder={t("vaultRoot")}
+                      dir="ltr"
+                      label={t("drawingsFolderLabel")}
+                      {...field("drawingsFolder")}
                     />
                   </Row>
 

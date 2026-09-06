@@ -110,7 +110,6 @@ const SSE_COALESCE_MS = 250;
 const Workspace = lazySurface(() => import("./components/Workspace.tsx"));
 const BlogShell = lazySurface(() => import("./blog/BlogShell.tsx"));
 const DesignedSite = lazySurface(() => import("./design/DesignedSite.tsx"));
-const MediaView = lazySurface(() => import("./media/MediaView.tsx"));
 const Sidebar = lazySurface(() => import("./components/Sidebar.tsx"));
 const EditorAnnotator = lazySurface(() => import("./annotations/EditorAnnotator.tsx"));
 const Tabs = lazySurface(() => import("./components/Tabs.tsx"));
@@ -824,7 +823,10 @@ export default function App() {
         e.preventDefault();
         e.stopPropagation();
         store.setZen(!store.zen);
-      } else if (key === "\\") {
+      } else if (isKey(e, "\\")) {
+        // `isKey`, not `key ===`: Shift+\ arrives as "|" on a US keyboard, so
+        // the stacked split answered only to the harness that sends "\"
+        // with Shift held (the owner: "ctrl \ works but ctrl shift \ doesn't").
         // Ctrl/Cmd+\ splits along the INLINE axis, +Shift stacks instead, and
         // +Alt closes the pane. One key, one mental model: "another one of
         // these", with Shift choosing the direction — the same shape the pane
@@ -1068,18 +1070,9 @@ export default function App() {
             </button>
           </div>
         )}
-        {/* The graph is a TAB now (client/workspace.ts GRAPH_TAB) and draws
-            inside the pane that holds it; only the Media page is still about
-            the whole window. */}
-        {view === "media" ? (
-          // The Media page is the graph's shape exactly: the whole working
-          // area, one lazy chunk, out of the pane model.
-          <section className="s-view">
-            <Surface fallback={<div className="s-media" />}>
-              <MediaView />
-            </Surface>
-          </section>
-        ) : (
+        {/* The graph and the Media page are TABS (client/workspace.ts
+            GRAPH_TAB, MEDIA_TAB) and draw inside the pane that holds them. */}
+        {(
           // Every pane draws its own note. The children below are the states
           // that belong to the window rather than to a pane — a locked vault,
           // an empty one — and a pane with no tab hands them straight through.
