@@ -13,8 +13,8 @@ used to print died at `npm start` on an unknown flag.
 
 ## Identity & design language
 
-Vellum: a candlelit manuscript room. Dark theme "iron-gall" (near-black warm ink background,
-warm off-white text), light theme "parchment" (warm paper background). Accent: gold-leaf
+Vellum, in the app: a candlelit manuscript room. Dark theme "iron-gall" (near-black warm ink
+background, warm off-white text), light theme "parchment" (warm paper background). Accent: gold-leaf
 `#c9a227` (dark) / `#7a5f14` (light — darkened from `#8a6d1a`, which sat at 4.13:1 and
 therefore failed AA as link text and as the lit mode pill; see the contrast gate below). Serif display font for headings in rendered markdown
 (Georgia/serif stack), system sans for UI, monospace (ui-monospace stack) for raw markdown/code. No
@@ -24,6 +24,14 @@ forever after (see "Typography" at the end of this file); the Arabic naskh faces
 and serif stacks, where they catch only the codepoints no Latin face covers. Density: calm, generous line-height (1.6 editor),
 subtle 1px borders using `var(--border)`, minimal chrome. Everything themeable via the CSS custom
 properties listed in the styles contract; components must use tokens, never hard-coded colors.
+
+**The brand is a different room (2.18).** The icon, the README banner (`docs/brand/hero.html` →
+`docs/gh-hero.png` via `scripts/shoot-brand.mjs`), the pages site (`docs/index.html`) and the manual
+(`docs/site/docs.css`) are painted in the `sidereal` theme, starlight `#9aa3ff` on `#070a17`: the owner
+and his readers found the gold heavy and asked for something darker and easier on the eye. The in-app
+default theme stays iron-gall; a reader picks a room in the picker, and the product does not move
+under them. Screenshots in `docs/screenshots/` are shot in sidereal (`scratchpad/sky/shoot-docs-sidereal.mjs`,
+`check-signatures.mjs` with `THEME=sidereal`) so the pages stay in one room.
 
 ## Runtime layout
 

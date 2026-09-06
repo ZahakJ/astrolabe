@@ -11,8 +11,9 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
 <style>
   :root {
-    --bg: #100e0a; --bg-raised: #1a1610; --text: #f0e6d0; --muted: #b9aa7f; --faint: #7d6b3a;
-    --accent: #c9a227; --accent-hi: #e8c96a; --border: #2c261d; --ink: #0b0906;
+    /* Sidereal: deep space, starlight. The same room as the app's `sidereal` theme. */
+    --bg: #070a17; --bg-raised: #0d1122; --text: #e6e6f0; --muted: #9fa0b8; --faint: #6a6c85;
+    --accent: #9aa3ff; --accent-hi: #c8ccff; --border: #1e2340; --ink: #05060d;
   }
   * { box-sizing: border-box; margin: 0; }
   html { scroll-behavior: smooth; }
@@ -26,8 +27,8 @@
   .sky { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
   .sky i { position: absolute; inset: -20%; background-repeat: repeat; opacity: .8; }
   .sky i:nth-child(1) { background-image: radial-gradient(1px 1px at 20% 30%, #fff 60%, transparent 61%), radial-gradient(1px 1px at 70% 60%, #fff 60%, transparent 61%), radial-gradient(1px 1px at 45% 85%, #fff 60%, transparent 61%), radial-gradient(1px 1px at 90% 15%, #fff 60%, transparent 61%); background-size: 420px 420px; opacity: .45; animation: drift 160s linear infinite; }
-  .sky i:nth-child(2) { background-image: radial-gradient(1.5px 1.5px at 30% 70%, #e8c96a 60%, transparent 61%), radial-gradient(1px 1px at 80% 20%, #fff 60%, transparent 61%), radial-gradient(1px 1px at 55% 45%, #fff 60%, transparent 61%); background-size: 620px 620px; opacity: .55; animation: drift 260s linear infinite reverse; }
-  .sky i:nth-child(3) { background: radial-gradient(60% 45% at 50% 25%, rgba(201,162,39,.16), transparent 70%); animation: none; }
+  .sky i:nth-child(2) { background-image: radial-gradient(1.5px 1.5px at 30% 70%, #c8ccff 60%, transparent 61%), radial-gradient(1px 1px at 80% 20%, #fff 60%, transparent 61%), radial-gradient(1px 1px at 55% 45%, #fff 60%, transparent 61%); background-size: 620px 620px; opacity: .55; animation: drift 260s linear infinite reverse; }
+  .sky i:nth-child(3) { background: radial-gradient(60% 45% at 50% 25%, rgba(154,163,255,.18), transparent 70%); animation: none; }
   @keyframes drift { to { transform: translate3d(-200px, -120px, 0); } }
   @media (prefers-reduced-motion: reduce) { .sky i { animation: none; } }
 
@@ -45,7 +46,7 @@
   .topbar__nav .is-docs:hover { background: var(--accent); color: var(--ink); }
   @media (max-width: 640px) { .topbar .wrap { flex-direction: column; gap: 8px; } header { padding-top: 150px; } }
   header .wrap { position: relative; z-index: 1; }
-  .star { color: var(--accent-hi); font-size: 26px; text-shadow: 0 0 18px rgba(232,201,106,.6); }
+  .star { color: var(--accent-hi); font-size: 26px; text-shadow: 0 0 18px rgba(200,204,255,.7); }
   h1 { font-size: clamp(3.2rem, 9vw, 6rem); font-weight: 600; letter-spacing: .04em; margin: 8px 0 4px; line-height: 1; }
   h1 .br { color: var(--accent); font-size: .78em; }
   .tagline { font-style: italic; font-size: 1.3rem; color: var(--muted); }
@@ -60,7 +61,7 @@
 
   /* Four rooms, one folder. */
   .rooms { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 46px; }
-  .room { text-align: start; padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; background: rgba(26,22,16,.7); backdrop-filter: blur(6px); }
+  .room { text-align: start; padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; background: rgba(13,17,34,.7); backdrop-filter: blur(6px); }
   .room b { display: block; font-size: 1.05rem; margin-bottom: 4px; }
   .room span { color: var(--muted); font-size: .95rem; }
   .room em { color: var(--accent-hi); font-style: normal; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; display: block; margin-bottom: 6px; }
@@ -137,7 +138,7 @@
       <div class="room"><em>The library</em><b>Teach</b><span>Books and lecture series as paths a reader walks in order, with their place kept.</span></div>
     </div>
   </div>
-  <div class="hero-shot"><img class="shot" src="screenshots/hero-house.png" alt="A designed site in the Mission Control house, in the tallow theme: a radar opening in candle amber, a ruled log of entries beneath it"></div>
+  <div class="hero-shot"><img class="shot" src="screenshots/hero-house.png" alt="A designed site in the Mission Control house, in the sidereal theme: a radar opening in starlight, a ruled log of entries beneath it"></div>
 </header>
 
 <section>
