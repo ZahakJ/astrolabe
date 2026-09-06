@@ -327,14 +327,80 @@
   background: color-mix(in oklab, var(--danger) 10%, transparent);
 }
 
-.s-tb__token {
+/* The row names the thing in words and keeps the token in mono beside it:
+   "Sidebar background" is what a reader is looking for, `--sidebar-bg` is
+   what they paste into custom.css. */
+.s-tb__name {
   flex: 1;
   min-width: 0;
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.s-tb__labeltext {
+  font-size: 0.857rem;
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-tb__token {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: start;
+}
+
+.s-tb__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-block: 4px 8px;
+}
+
+.s-tb__filter {
+  flex: 1;
+  min-width: 0;
+}
+
+.s-tb__groupreset {
+  flex: none;
+  border: 1px solid var(--border);
+  font-size: 0.857rem;
+  white-space: nowrap;
+}
+
+.s-tb__tabcount {
+  display: inline-block;
+  min-width: 16px;
+  margin-inline-start: 5px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.7rem;
+  line-height: 16px;
+  text-align: center;
+}
+
+.s-tb__grouphead {
+  margin: 10px 6px 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.s-tb__nomatch {
+  margin: 12px 6px;
+  color: var(--text-faint);
+  font-style: italic;
 }
 
 .s-tb__swatch {

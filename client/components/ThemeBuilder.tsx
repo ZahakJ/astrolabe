@@ -30,6 +30,7 @@ import {
   MAX_CUSTOM_THEMES,
   THEME_NAME_MAX,
   THEME_TOKENS,
+  TOKEN_GROUPS,
   customThemeChoice,
   customThemesCss,
   isValidTokenValue,
@@ -50,7 +51,7 @@ import {
   invalidateCustomThemes,
   reloadCustomThemes,
 } from "../design/customThemes.ts";
-import { t, tf } from "../i18n.ts";
+import { t, tf, type I18nKey } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { THEME_LABELS } from "../themes.ts";
 import { confirmModal } from "./Confirm.tsx";
@@ -62,25 +63,41 @@ import "../styles/themebuilder.css";
  *  underscore. */
 const PREVIEW_ID = "__preview";
 
-const GROUP_LABELS: Record<TokenGroup, string> = {
+const GROUP_LABELS: Record<TokenGroup, I18nKey> = {
   ground: "tbGroupGround",
   text: "tbGroupText",
   accent: "tbGroupAccent",
   line: "tbGroupLine",
+  sidebar: "tbGroupSidebar",
+  tabs: "tbGroupTabs",
+  statusbar: "tbGroupStatusbar",
+  editor: "tbGroupEditor",
+  reading: "tbGroupReading",
+  links: "tbGroupLinks",
+  controls: "tbGroupControls",
+  overlays: "tbGroupOverlays",
   callout: "tbGroupCallout",
   code: "tbGroupCode",
   graph: "tbGroupGraph",
-} as unknown as Record<TokenGroup, string>;
+  blog: "tbGroupBlog",
+  cards: "tbGroupCards",
+};
 
-const GROUP_ORDER: TokenGroup[] = [
-  "ground",
-  "text",
-  "accent",
-  "line",
-  "callout",
-  "code",
-  "graph",
-];
+const GROUP_ORDER: TokenGroup[] = TOKEN_GROUPS;
+
+/** The human name of a token, in the reader's language. */
+function tokenLabel(spec: TokenSpec): string {
+  return t(spec.label as I18nKey);
+}
+
+/** Does a row answer a filter? The label in the reader's language, the raw
+ *  token name, and the group's name all count: someone who types "sidebar"
+ *  and someone who types «الشريط» should both land on the same rows. */
+function rowMatches(spec: TokenSpec, needle: string): boolean {
+  if (needle === "") return true;
+  const hay = `${tokenLabel(spec)} ${spec.name} ${t(GROUP_LABELS[spec.group])}`.toLowerCase();
+  return hay.includes(needle);
+}
 
 /** A computed CSS colour → the hex grammar the store accepts. `getComputedStyle`
  *  hands back whatever tokens.css wrote — `#c9a227` for most tokens and
@@ -153,7 +170,9 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openGroup, setOpenGroup] = useState<TokenGroup>("ground");
+  const [filter, setFilter] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const needle = filter.trim().toLowerCase();
 
   const baseTokens = useMemo(() => readBaseTokens(draft.base), [draft.base]);
   const resolved = useMemo(
@@ -230,6 +249,21 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
       return { ...d, tokens };
     });
   };
+
+  /** Delete every override in one group, or in the whole theme. A delete and
+   *  not a re-derivation, for the reason every row's reset is: the base keeps
+   *  flowing into a token nobody has set. */
+  const resetGroup = (group: TokenGroup | null): void => {
+    setDraft((d) => {
+      const tokens = { ...d.tokens };
+      for (const spec of THEME_TOKENS) {
+        if (group === null || spec.group === group) delete tokens[spec.name];
+      }
+      return { ...d, tokens };
+    });
+  };
+  const setInGroup = (group: TokenGroup): number =>
+    THEME_TOKENS.filter((spec) => spec.group === group && draft.tokens[spec.name] !== undefined).length;
 
   /** Refresh the registry AND the stylesheet, so every picker behind the panel
    *  is correct when it closes and the theme just saved actually paints. The
@@ -450,7 +484,28 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
             )}
           </div>
 
-          <nav className="s-tb__tabs" role="tablist" aria-label={t("tbTokens")}>
+          <div className="s-tb__toolbar">
+            <input
+              className="s-tb__filter"
+              type="search"
+              value={filter}
+              placeholder={t("tbFilter")}
+              aria-label={t("tbFilter")}
+              dir="auto"
+              onChange={(e) => setFilter(e.target.value)}
+            />
+            <button
+              type="button"
+              className="s-btn s-tb__groupreset"
+              onClick={() => resetGroup(needle === "" ? openGroup : null)}
+              disabled={needle === "" ? setInGroup(openGroup) === 0 : Object.keys(draft.tokens).length === 0}
+              title={t(needle === "" ? "tbResetGroup" : "tbResetAll")}
+            >
+              {t(needle === "" ? "tbResetGroup" : "tbResetAll")}
+            </button>
+          </div>
+
+          <nav className="s-tb__tabs" role="tablist" aria-label={t("tbTokens")} hidden={needle !== ""}>
             {GROUP_ORDER.map((group) => {
               const failed = failures.some((check) =>
                 THEME_TOKENS.some(
@@ -468,24 +523,42 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
                   }`}
                   onClick={() => setOpenGroup(group)}
                 >
-                  {t(GROUP_LABELS[group] as never)}
+                  {t(GROUP_LABELS[group])}
+                  {setInGroup(group) > 0 && <span className="s-tb__tabcount">{setInGroup(group)}</span>}
                 </button>
               );
             })}
           </nav>
 
           <div className="s-tb__tokens">
-            {THEME_TOKENS.filter((spec) => spec.group === openGroup).map((spec) => (
-              <TokenRow
-                key={spec.name}
-                spec={spec}
-                value={draft.tokens[spec.name]}
-                inherited={baseTokens[spec.name] ?? "#000000"}
-                failing={failures.some((check) => check.token === spec.name)}
-                onChange={(value) => setToken(spec.name, value)}
-                onReset={() => resetToken(spec.name)}
-              />
-            ))}
+            {(() => {
+              const rows = needle === ""
+                ? THEME_TOKENS.filter((spec) => spec.group === openGroup)
+                : THEME_TOKENS.filter((spec) => rowMatches(spec, needle));
+              if (rows.length === 0) return <p className="s-tb__nomatch">{t("tbNoMatch")}</p>;
+              let lastGroup: TokenGroup | null = null;
+              return rows.map((spec) => {
+                const head =
+                  needle !== "" && spec.group !== lastGroup ? (
+                    <h3 className="s-tb__grouphead" key={`head-${spec.group}`}>
+                      {t(GROUP_LABELS[spec.group])}
+                    </h3>
+                  ) : null;
+                lastGroup = spec.group;
+                return [
+                  head,
+                  <TokenRow
+                    key={spec.name}
+                    spec={spec}
+                    value={draft.tokens[spec.name]}
+                    inherited={baseTokens[spec.name] ?? "#000000"}
+                    failing={failures.some((check) => check.token === spec.name || check.against === spec.name)}
+                    onChange={(value) => setToken(spec.name, value)}
+                    onReset={() => resetToken(spec.name)}
+                  />,
+                ];
+              });
+            })()}
           </div>
         </div>
 
@@ -539,9 +612,13 @@ function warningFor(check: ContrastCheck): string {
   if (check.kind === "deltaE") {
     return tf("tbWarnDeltaE", { value: check.value.toFixed(1), min: check.min });
   }
+  const name = (token: string): string => {
+    const spec = THEME_TOKENS.find((s) => s.name === token);
+    return spec ? tokenLabel(spec) : token;
+  };
   return tf("tbWarnRatio", {
-    token: check.token,
-    ground: check.against,
+    token: name(check.token),
+    ground: name(check.against),
     value: check.value.toFixed(2),
     min: check.min,
   });
@@ -568,10 +645,18 @@ function TokenRow({
   // TEXT field beside it, which is the field that actually stores the value.
   const swatch = shown.length > 7 ? shown.slice(0, 7) : shown;
   const invalid = set && !isValidTokenValue(spec.kind, shown);
+  const label = tokenLabel(spec);
+  // A surface's row says what it follows while unset ("Follows --bg-raised
+  // until you paint it"), because that is the fact a reader needs before
+  // deciding whether to touch it at all.
+  const derived = spec.derivedFrom !== undefined && !set ? tf("tbDerived", { base: spec.derivedFrom }) : null;
   return (
-    <div className={`s-tb__row${failing ? " s-tb__row--warn" : ""}`}>
-      <span className="s-tb__token" dir="ltr">
-        {spec.name}
+    <div className={`s-tb__row${failing ? " s-tb__row--warn" : ""}`} title={derived ?? undefined}>
+      <span className="s-tb__name">
+        <span className="s-tb__labeltext">{label}</span>
+        <span className="s-tb__token" dir="ltr">
+          {spec.name}
+        </span>
       </span>
       <input
         type="color"
@@ -584,7 +669,7 @@ function TokenRow({
               : e.target.value,
           )
         }
-        aria-label={spec.name}
+        aria-label={label}
       />
       <input
         className={`s-tb__hex${invalid ? " s-tb__hex--bad" : ""}`}
@@ -592,7 +677,7 @@ function TokenRow({
         dir="ltr"
         spellCheck={false}
         onChange={(e) => onChange(e.target.value)}
-        aria-label={spec.name}
+        aria-label={`${label} (${spec.name})`}
       />
       <button
         type="button"

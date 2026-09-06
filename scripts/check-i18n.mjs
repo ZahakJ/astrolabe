@@ -25,7 +25,11 @@ import { join } from "node:path";
 // could have shipped untranslated past a green build. The dictionary itself
 // stays put: the point is that `electron/` USES it rather than keeping a second
 // one that would drift.
-const ROOTS = ["../client/", "../electron/"].map(
+// `shared/` joined the roots with the theme builder's surface layer: every
+// token in shared/customTheme.ts names its dictionary key (`label:
+// "tkSidebarBg"`), which is the one place those 124 keys are spoken, and a
+// scan that could not see it reported the whole dictionary block dead.
+const ROOTS = ["../client/", "../electron/", "../shared/"].map(
   (r) => new URL(r, import.meta.url).pathname,
 );
 const root = ROOTS[0];
@@ -143,6 +147,10 @@ const COUNT_UNITS = new Set(
 const hasCopyWord = (text) => /[A-Za-z]{3,}/.test(text.replace(/\$\{[^}]*\}/g, " "));
 for (const { abs: f, rel } of files) {
   if (rel === "i18n.ts") continue; // the dictionary itself
+  // shared/ is in the roots for the USAGE scan (its token specs name
+  // dictionary keys); it builds no DOM, so its `typeof x === "string"` is
+  // not copy and this scan does not read it.
+  if (f.includes("/shared/")) continue;
   readFileSync(f, "utf8").split("\n").forEach((line, i) => {
     DOM_SINK.lastIndex = 0;
     for (const sink of line.matchAll(DOM_SINK)) {
