@@ -44,6 +44,7 @@ import type {
   VaultEvent,
   XrefResponse,
   VisibilityImpact, PublicFolderRef } from "../shared/types.ts";
+import type { TrackerFields } from "../shared/tracker.ts";
 
 // ── Visitor preview (admin-only) ────────────────────────────────────────────
 // While on, every API call carries X-Vellum-Preview: visitor and the server —
@@ -621,6 +622,18 @@ export function getLibrary(): Promise<LibraryPath[]> {
  *  shelf a ```tracker-board draws. Scoped server-side exactly like /api/posts
  *  (published only for a visitor, language filter applied, templates out), so
  *  a board on a PUBLISHED note is safe to leave in place. */
+/** Edit one tracker fence from the Media page: set fields, nudge progress
+ *  by `delta` units, or both. Admin only; the server rewrites the fence in
+ *  place and writes the note under its mtime precondition. */
+export function updateTracker(
+  path: string,
+  index: number,
+  set: TrackerFields | null,
+  delta = 0,
+): Promise<{ ok: true; path: string; index: number }> {
+  return request<{ ok: true; path: string; index: number }>("/api/tracker", json("POST", { path, index, set, delta }));
+}
+
 export function getTrackers(): Promise<TrackerMeta[]> {
   return request<TrackerMeta[]>("/api/trackers");
 }

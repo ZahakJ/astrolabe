@@ -81,6 +81,9 @@ export interface Tracker {
    *  instance's calendar by the renderer; anything else prints as written. */
   started: string | null;
   finished: string | null;
+  /** `season:` verbatim — a show's season, printed beside the count. Kept so
+   *  the Media page can hand it back to its form. Null when absent. */
+  season: string | null;
   /** `notes:` — markdown, rendered through the normal inline pipeline. */
   notes: string | null;
 }
@@ -262,6 +265,14 @@ function clamp(value: number, min: number, max: number): number {
  *  from the other two forms. */
 function parseProgress(raw: string): { done: number | null; total: number | null; percent: number | null } {
   const text = foldDigits(raw).trim();
+  // OPEN-ENDED: `62/?` — a count with no ceiling (the hours of a game nobody
+  // has timed). The card prints the count and draws no bar. A bare number
+  // stays a percentage, as it always was; the `?` is what says "count".
+  const open = /^(-?[\d.,]+)\s*(?:\/|of|من)\s*[?~∞]\s*$/i.exec(text);
+  if (open) {
+    const done = num(open[1]);
+    if (done !== null) return { done, total: null, percent: null };
+  }
   const fraction = /^(-?[\d.,]+)\s*(?:\/|of|من)\s*([\d.,]+)/i.exec(text);
   if (fraction) {
     const done = num(fraction[1]);
@@ -413,6 +424,7 @@ export function parseTracker(body: string): Tracker | null {
   const coverRaw = fields.get("cover")?.trim() ?? "";
   const started = fields.get("started")?.trim();
   const finished = fields.get("finished")?.trim();
+  const season = fields.get("season")?.trim();
   const notes = fields.get("notes");
   return {
     title,
@@ -428,6 +440,7 @@ export function parseTracker(body: string): Tracker | null {
     rating: parseRating(fields.get("rating") ?? ""),
     started: started === undefined || started === "" ? null : started,
     finished: finished === undefined || finished === "" ? null : finished,
+    season: season === undefined || season === "" ? null : season,
     notes: notes === undefined || notes.trim() === "" ? null : notes,
   };
 }
@@ -563,4 +576,164 @@ export function setTrackerProgress(body: string, delta: number): string {
     parts.splice(at, 0, insert + eol);
   }
   return parts.join("");
+}
+
+// ── The Media page's edits ──────────────────────────────────────────────────
+//
+// The Media page (client/media/) edits a tracker OUTSIDE the editor, so the
+// fence is rewritten on the server through these pure transforms, on the
+// stepper's byte discipline: the line that carries a key keeps its spelling,
+// its indent and its terminator, and only its value changes; a key the fence
+// does not have yet is written under the title in a fixed order; a value of
+// null removes the line. `notes:` is written as a block scalar, indented two
+// spaces, which is the form the parser reads back.
+
+/** The fields the page may set. A string sets, null removes, absent leaves. */
+export interface TrackerFields {
+  title?: string;
+  kind?: string | null;
+  season?: string | null;
+  cover?: string | null;
+  progress?: string | null;
+  unit?: string | null;
+  status?: string | null;
+  rating?: string | null;
+  started?: string | null;
+  finished?: string | null;
+  notes?: string | null;
+}
+
+const FIELD_ORDER = ["title", "kind", "season", "cover", "progress", "unit", "status", "rating", "started", "finished", "notes"] as const;
+type FieldKey = (typeof FIELD_ORDER)[number];
+
+/** The lines of `body`, each with its own terminator, so what comes back is
+ *  byte-for-byte what went in wherever nothing changed. */
+function linesWithEol(body: string): string[] {
+  return body.match(/[^\n]*\n|[^\n]+$/g) ?? [];
+}
+
+function splitEol(line: string): [string, string] {
+  const eol = /(\r?\n)?$/.exec(line)?.[1] ?? "";
+  return [line.slice(0, line.length - eol.length), eol];
+}
+
+/** How many lines after `i` belong to a block scalar opened on line `i`:
+ *  every following line that is indented or blank. */
+function blockExtent(lines: string[], i: number): number {
+  let j = i + 1;
+  for (; j < lines.length; j++) {
+    const [text] = splitEol(lines[j]);
+    if (text.trim() !== "" && !/^\s/.test(text)) break;
+  }
+  return j - i - 1;
+}
+
+function renderField(key: string, value: string, eol: string): string {
+  if (key === "notes") {
+    const block = value
+      .replace(/\r?\n/g, "\n")
+      .split("\n")
+      .map((l) => (l === "" ? "" : `  ${l}`))
+      .join(eol);
+    return `notes: |${eol}${block}${eol}`;
+  }
+  return `${key}: ${value}${eol}`;
+}
+
+export function setTrackerFields(body: string, fields: TrackerFields): string {
+  const lines = linesWithEol(body);
+  const eol = /(\r\n|\n)/.exec(body)?.[1] ?? "\n";
+  const pending = new Map<FieldKey, string | null>();
+  for (const key of FIELD_ORDER) {
+    const v = fields[key];
+    if (v !== undefined) pending.set(key, v);
+  }
+  if (pending.size === 0) return body;
+  // Rewrite the lines the fence already has.
+  for (let i = 0; i < lines.length; i++) {
+    const [text, lineEol] = splitEol(lines[i]);
+    const m = FIELD_RE.exec(text);
+    if (!m) continue;
+    const key = m[2].toLowerCase() as FieldKey;
+    if (!pending.has(key)) continue;
+    const value = pending.get(key) ?? null;
+    pending.delete(key);
+    const isBlock = /^\s*[|>][-+]?\s*$/.test(m[3]);
+    const extent = isBlock ? blockExtent(lines, i) : 0;
+    if (value === null) {
+      lines.splice(i, 1 + extent);
+      i--;
+      continue;
+    }
+    if (key === "notes" || isBlock) {
+      lines.splice(i, 1 + extent, `${m[1]}${renderField(key, value, lineEol || eol)}`);
+      continue;
+    }
+    // Keep the key's own spelling and the space after the colon as written.
+    const gap = /^\s*/.exec(m[3])?.[0] ?? " ";
+    lines[i] = `${m[1]}${m[2]}:${gap === "" ? " " : gap}${value}${lineEol}`;
+  }
+  // Write the rest under the title, in a fixed order, so a fence made by the
+  // page and one made by hand read alike.
+  const additions = [...pending.entries()].filter((e): e is [FieldKey, string] => e[1] !== null);
+  if (additions.length > 0) {
+    let at = lines.findIndex((l) => FIELD_RE.exec(splitEol(l)[0])?.[2].toLowerCase() === "title");
+    at = at >= 0 ? at + 1 : 0;
+    for (const [key, value] of additions) {
+      const order = FIELD_ORDER.indexOf(key);
+      let pos = at;
+      for (let i = at; i < lines.length; i++) {
+        const [t] = splitEol(lines[i]);
+        const k = FIELD_RE.exec(t)?.[2].toLowerCase() as FieldKey | undefined;
+        const kOrder = k ? FIELD_ORDER.indexOf(k) : -1;
+        if (kOrder === -1 || kOrder > order) break;
+        const isBlock = /:\s*[|>][-+]?\s*$/.test(t);
+        pos = i + 1 + (isBlock ? blockExtent(lines, i) : 0);
+        i = pos - 1;
+      }
+      if (pos > 0 && !/\n$/.test(lines[pos - 1])) lines[pos - 1] += eol;
+      lines.splice(pos, 0, renderField(key, value, eol));
+    }
+  }
+  return lines.join("");
+}
+
+/** Where every ```tracker fence body sits in a note's source: character
+ *  offsets of the body (the lines between the opener and the closer, with
+ *  their terminators). `index` counts tracker fences only, in order — the
+ *  number the Media page sends back to name one. */
+export function trackerFenceSpans(md: string): { index: number; start: number; end: number; body: string }[] {
+  const out: { index: number; start: number; end: number; body: string }[] = [];
+  const lines = linesWithEol(md);
+  let offset = 0;
+  let index = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const [text] = splitEol(lines[i]);
+    const fence = fenceOpener(text);
+    offset += lines[i].length;
+    if (!fence) continue;
+    const kind = trackerFenceKind(text);
+    const bodyStart = offset;
+    let bodyEnd = bodyStart;
+    let j = i + 1;
+    for (; j < lines.length; j++) {
+      const [t] = splitEol(lines[j]);
+      if (closesFence(t, fence)) break;
+      bodyEnd += lines[j].length;
+    }
+    if (kind === "tracker") out.push({ index: index++, start: bodyStart, end: bodyEnd, body: md.slice(bodyStart, bodyEnd) });
+    offset = bodyEnd + (j < lines.length ? lines[j].length : 0);
+    i = j;
+  }
+  return out;
+}
+
+/** `md` with the body of its `index`-th tracker fence replaced by
+ *  `edit(body)`; unchanged when there is no such fence. */
+export function editTrackerFence(md: string, index: number, edit: (body: string) => string): string {
+  const span = trackerFenceSpans(md).find((s) => s.index === index);
+  if (!span) return md;
+  const next = edit(span.body);
+  if (next === span.body) return md;
+  return md.slice(0, span.start) + next + md.slice(span.end);
 }

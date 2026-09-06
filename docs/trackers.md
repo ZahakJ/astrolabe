@@ -31,7 +31,8 @@ notes: |
 | `title` | any text | Or just write the title on a line of its own. |
 | `kind` | `book` `game` `film` `show` `course` `project` `habit`, or your own word | Picks the glyph and the default unit. `movie`, `series`, `tv`, `novel`, `anime`, `class`, `routine` fold into the seven; anything else keeps your word and gets the ✦ glyph. |
 | `cover` | an attachment name, or `![[name.jpg]]` | Resolved exactly like an embed. Missing or broken → the kind's glyph, never a broken picture. |
-| `progress` | `62/130`, `45%`, `45`, `62 of 130` | A fraction derives the percentage; a bare number *is* the percentage. Eastern Arabic digits are read too. |
+| `progress` | `62/130`, `45%`, `45`, `62 of 130`, `62/?` | A fraction derives the percentage; a bare number *is* the percentage. `62/?` is a count with no ceiling (hours in a game nobody has timed): the card prints the count and draws no bar. Eastern Arabic digits are read too. |
+| `season` | any text | A show's season, printed on the card's cover. Kept verbatim; the Media page's form writes it for shows. |
 | `unit` | any word | Yours, printed as you wrote it. Leave it out and the kind's own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised. |
 | `status` | `planned` `active` `done` `paused` `dropped` | Plus the words people actually type: `reading`, `playing`, `watching`, `in-progress`, `started`, `finished`, `on hold`, `dnf`, `backlog`… Left out, it is derived from the progress. |
 | `rating` | `8/10`, `4/5`, `★★★★`, `4` | A bare number is out of five up to five, out of ten above it. |
@@ -95,6 +96,49 @@ So a board left on a published note is safe: put your reading year on the
 public site without opening the rest of the vault. Cover art on a published
 tracker is served to visitors too — the indexer collects tracker covers into
 the same allowlist that governs banners and embeds.
+
+## The Media page
+
+The board is a fence you put in a note. The **Media page** is the same shelf
+as a place of its own: a button beside the settings gear (admins only; or
+"Open the Media page" in the command palette) swaps the note column for every
+tracker in the vault, shelved by kind.
+
+The shelves stack vertically with a hairline between them, in this order:
+shows, games, books, films, courses, then projects, habits and whatever kinds
+of your own you have invented. Each shelf is a grid of at most five works
+across, fewer as the window narrows, and the page scrolls down and never
+sideways. A row of filters at the top narrows every shelf to one status.
+
+Each card is the fence's card in miniature: cover, title, bar, count, status,
+rating, dates and the first lines of your notes. Its **− / +** nudge the
+progress exactly as the editor's stepper does, **Edit** reopens the form
+filled in, and the cover or title opens the note.
+
+**Add media** is a form: kind, title, cover (pick a picture the vault already
+has, upload one, or paste an `https://` link), progress, unit, a season for a
+show, status, rating, dates and notes. It writes one note:
+
+```
+Media/Shows/Severance.md
+```
+
+whose body is one ` ```tracker ` fence with those fields, so everything the
+rest of this page says applies to it: it renders as a card in the note, it
+appears on any board, and you can edit the fence by hand. The kind decides the
+folder (`Books`, `Games`, `Shows`, `Films`, `Courses`, and a capitalised
+folder for a kind of your own). A title that already has a note is refused
+rather than overwritten.
+
+For a game whose length nobody has timed, switch the total off: the fence
+says `progress: 62/?`, the card counts hours and draws no bar. Turn it back on
+later and the bar returns.
+
+Editing from the page rewrites **only the fence** in the note. The prose under
+it, the frontmatter and any second tracker stay byte for byte as they were.
+
+The page is admin-only because it writes; a visitor's shelf is the board, on
+whatever note you chose to publish it.
 
 ## In Obsidian
 

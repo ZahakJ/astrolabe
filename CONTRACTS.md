@@ -101,6 +101,7 @@ that is the pre-existing pattern, and the door is now open.
 - `GET  /api/backlinks?path=` → `Backlink[]`
 - `GET  /api/tags` → `TagCount[]` (from `#tag` inline + frontmatter `tags:`)
 - `GET  /api/trackers` → `TrackerMeta[]` — every ```` ```tracker ```` fence this session may see, newest-touched first (the shelf a ```` ```tracker-board ```` draws). Scoped EXACTLY like `/api/posts`: a visitor gets published notes only with the language filter applied, an admin gets the whole vault, and templates are out of both. Covers are resolved server-side, per session, so the board spends no `/api/resolve` per card and a visitor is never handed a path they may not fetch. See "Trackers".
+- `POST /api/tracker` (admin) `{ path, index?, set?, delta? }` → `{ ok, path, index }` — edit ONE ```` ```tracker ```` fence from outside the editor (the Media page). `set` is a `TrackerFields` (a string sets a key, `null` removes it, absent leaves it), `delta` nudges the progress by that many units; the `index`-th tracker fence of the note (counting tracker fences only, the `TrackerMeta.index` the shelf hands out) is rewritten in place by `setTrackerFields` + `setTrackerProgress` and the note is written under its mtime precondition. 400 when the note carries no tracker fence. One request, one write, one `changed` event. See "Trackers".
 - `GET  /api/aliases` → `AliasesResponse` (`{ alias, path, title }[]`, sorted by alias) — the name table the client cannot derive, since a tree carries filenames and an alias is frontmatter. Visitor-scoped exactly as resolution is.
 - `GET  /api/events` → SSE stream of `VaultEvent` (chokidar watcher; debounced 100ms per path; events named `message`, JSON data). **Above 25 events in 200ms the stream stops narrating and sends one `{ kind: "bulk", path: "" }`** once the burst settles (and at least every 2s while it does not) — a `git pull` is one frame, not a thousand, and a client answers it by re-reading the tree and revalidating its buffers. The INDEX still receives every named event; only the refetching subscribers are coalesced (server/vault.ts `onEventCoalesced`). A delivery failure ENDS the stream so EventSource reconnects, rather than leaving a live-looking socket that receives nothing.
 - `POST /api/upload` (admin) multipart `file` + optional `dir` → `UploadResult` — see "Attachments"
@@ -988,7 +989,14 @@ session control — which it PORTALS into `#s-topactions`, the host App.tsx plac
 `.s-main` (`.s-topactions`, absolute, trailing end, 2.5rem, `pointer-events: none` with its child
 `auto`). The portal's wrapper is `.s-statusbar.s-statusbar--top` so every bar rule applies, with
 the chrome (height, background, border, grid-area) overridden. A ResizeObserver publishes the
-cluster's width as `--topactions-w` on `.s-main`, which the last tab strip pads by. Zen hides the
+cluster's width as `--topactions-w` on `.s-main`, which the last tab strip pads by. **The strip is
+a box and the tabs scroll in a box inside it** (`.s-tabs__scroll`, Tabs.tsx `scrollRef`): a scroll
+container's end padding exists only at the END of its scroll, so while the strip itself scrolled,
+twenty-five tabs ran under the cluster on the row's first screen. The reservation lives on the
+strip, the overflow in the scroller whose width is the strip's less that room, tabs keep their
+width (`flex: none`) and the active tab is scrolled into view on open and on resize. At phone
+width the cluster is wider than the phone and the scroller has no room; the tabs are then out of
+sight rather than under the buttons, which is the lesser lie until the cluster folds. Zen hides the
 cluster. Without a host (a bare test) the tools stay in the bar. The owner's screenshot drew the
 line: "the status stuff def belongs to bottom".
 
@@ -8813,6 +8821,31 @@ same lie in the admin's list as on the public page. `NoteRecord.trackers` is fil
 literals (the oversized-note path carries none: it never read a body). `NoteRecord.mtimeMs` is the
 board's sort key and is NOT `dateMs`: a shelf answers "what did I touch last", not "when was this
 written".
+
+**The Media page (`client/media/`, `shared/media.ts`) is a second drawing of the shelf, not a
+second shelf.** `view === "media"` in the store, a lazy chunk with its own stylesheet
+(`client/styles/media.css`) rendered in the graph's place by App.tsx, opened by the status bar's
+admin-only door beside the gear or the palette's "Open the Media page"; Ctrl/Cmd+E leaves it for
+the editor as it leaves the graph. It reads `GET /api/trackers` and groups by `foldKind()`
+(`mediaModel.ts::shelve`, tested) in a fixed order — show, game, book, film, course, project,
+habit, other — vertically, one hairline between shelves, and a grid capped at FIVE across by a
+container query on the page; it never scrolls sideways. The page has two write paths and both go
+through the note. **New:** `mediaNotePath(kind, title)` → `Media/<Folder>/<Title>.md` and
+`mediaNoteContent(fields)` → frontmatter plus one tracker fence, PUT as any autosave is; the form
+refuses a path the tree already holds (asked of the store's tree, not the server — a 404 for "not
+yet" is a red console line for the usual answer). **Edit and nudge:** `POST /api/tracker`, which
+rewrites the `index`-th fence through `editTrackerFence()` + `setTrackerFields()` (in-place
+rewrite of existing keys keeping spelling, indent and CRLF; removal on `null` with the block
+scalar's extent; missing keys added under the title in `FIELD_ORDER`) and `setTrackerProgress()`
+for the delta. Nothing outside the fence is touched. Three model additions carry it:
+`progress: 62/?` is an OPEN-ENDED count (`done`, no `total`, no `percent` — the card counts and
+draws no bar; a bare number stays a percentage), `season:` is kept verbatim on `Tracker` and
+`TrackerMeta`, and `TrackerMeta` gained `index`, `started`, `finished`, `season` and `notes` so the
+form can open pre-filled. `trackers()` resolves covers by the same path-then-basename ladder
+`trackerCovers()` climbs (`coverPath()`), so a full attachment path — what the picker and the
+upload write — draws on the shelf as it does in the editor; an `https://` cover passes through.
+The page re-reads the shelf on the window's `vellum:vault` event, which App.tsx raises for every
+vault event, because a fence edited by hand in another window is still this page's business.
 
 ## Tests (`npm test`) — the release gate
 
