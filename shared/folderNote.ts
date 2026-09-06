@@ -24,7 +24,7 @@
 // something — the vault is where the facts live, settings is where the owner
 // overrides one. Pure: shared by the indexer and the tests.
 
-import { isFolderIcon, type FolderIcon } from "./folderIcons.ts";
+import { isFolderMark, type FolderMark } from "./folderIcons.ts";
 import { isLibraryKind } from "./library.ts";
 import { vaultFolderPath } from "./publicFolders.ts";
 import type { LibraryKind } from "./types.ts";
@@ -32,7 +32,7 @@ import type { LibraryKind } from "./types.ts";
 export interface FolderMeta {
   title?: string;
   description?: string;
-  icon?: FolderIcon;
+  icon?: FolderMark;
   cover?: string;
   source?: string;
   library?: LibraryKind;
@@ -76,7 +76,7 @@ export function folderMetaOf(fm: Record<string, unknown>): FolderMeta {
   if (title) out.title = title;
   const description = str(fm.description, 300) ?? str(fm.blurb, 300) ?? str(fm.summary, 300);
   if (description) out.description = description;
-  if (isFolderIcon(fm.icon)) out.icon = fm.icon;
+  if (isFolderMark(fm.icon)) out.icon = fm.icon;
   const cover = str(fm.cover, 500) ?? str(fm.banner, 500);
   if (cover) out.cover = cover;
   const source = str(fm.source, 500);

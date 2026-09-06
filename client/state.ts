@@ -27,7 +27,7 @@ import { DEFAULT_DATE_CALENDAR, isDateCalendar, type DateCalendar } from "../sha
 // it put four kilobytes of path data into that download to render pages with
 // no folder glyphs on them (check-bundle caught it at +6.5 kB on the entry).
 // A type import is erased; nothing here needs a value from that module.
-import type { FolderIcon } from "../shared/folderIcons.ts";
+import type { FolderMark } from "../shared/folderIcons.ts";
 import {
   DEFAULT_TEXT_ALIGN,
   DEFAULT_TEXT_DIRECTION,
@@ -155,7 +155,7 @@ const ZEN_KEY = "vellum.zen";
  *  `{}` per loadMe: TreeRow is memoized over 1.4k rows, and the overwhelming
  *  majority of vaults mark nothing at all — those vaults should never see the
  *  store's `folderIcons` identity change and so never re-key a single row. */
-const NO_FOLDER_ICONS: Record<string, FolderIcon> = Object.freeze({});
+const NO_FOLDER_ICONS: Record<string, FolderMark> = Object.freeze({});
 
 /** The empty public-folder list, shared. Same argument as NO_FOLDER_ICONS: a
  *  site with the feature off must never see this array's identity change. */
@@ -420,12 +420,12 @@ export interface State {
    *  would not. It is replaced only when /api/me answers or the picker saves;
    *  the empty case is one shared frozen object, so a vault with no marks
    *  never allocates. */
-  folderIcons: Record<string, FolderIcon>;
+  folderIcons: Record<string, FolderMark>;
   /** Where new attachments land (MeData.attachmentFolder), or null when the
    *  policy names no folder. The "Move to…" picker keeps notes out of it. */
   attachmentFolder: { mode: "specified" | "subfolder"; folder: string } | null;
   /** Store a fresh folder→glyph map (the tree picker, post-PATCH). */
-  setFolderIcons(icons: Record<string, FolderIcon>): void;
+  setFolderIcons(icons: Record<string, FolderMark>): void;
   /** Merge a fresh home config into the store (the dashboard's banner save). */
   setHome(home: HomeSettings | null): void;
 

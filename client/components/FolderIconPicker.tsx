@@ -24,7 +24,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { FOLDER_ICON_ENTRIES, type FolderIconEntry } from "../../shared/folderIconCatalog.ts";
 import { FOLDER_ICON_KEYS } from "../../shared/folderIconPaths.ts";
-import type { FolderIcon } from "../../shared/folderIcons.ts";
+import { isFolderImage, type FolderIcon, type FolderMark } from "../../shared/folderIcons.ts";
+import { uploadAttachment } from "../api.ts";
+import { toast } from "../toast.ts";
+import { PathInput } from "./controls/PathInput.tsx";
 import { FOLDER_ICON_GROUPS, folderIconGroupLabel, folderIconLabel } from "../folderIconLabels.ts";
 import { getLang, t, tf } from "../i18n.ts";
 import { anchorPopover } from "./anchorPopover.ts";
@@ -40,8 +43,8 @@ export interface IconPickState {
   path: string;
   /** The folder's own name, for the popover's title. */
   name: string;
-  /** What it wears now, or null. */
-  current: FolderIcon | null;
+  /** What it wears now — a glyph or an image — or null. */
+  current: FolderMark | null;
   x: number;
   y: number;
   /** Opened from the keyboard, so focus must come back to the tree on close. */
@@ -83,8 +86,8 @@ export default function FolderIconPicker({
   onClose,
 }: {
   state: IconPickState;
-  /** null clears the folder's mark. */
-  onPick(icon: FolderIcon | null): void;
+  /** A glyph, an image of the owner's own, or null to clear the mark. */
+  onPick(icon: FolderMark | null): void;
   onClose(): void;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -93,7 +96,12 @@ export default function FolderIconPicker({
   const [query, setQuery] = useState("");
   // What the footer names: the cell under the pointer or the arrows, else
   // the current mark.
-  const [named, setNamed] = useState<FolderIcon | null>(state.current);
+  const [named, setNamed] = useState<FolderIcon | null>(isFolderImage(state.current) ? null : state.current);
+  // The image row: a vault image typed or picked, or one uploaded here.
+  const [imageRow, setImageRow] = useState(isFolderImage(state.current));
+  const [imagePath, setImagePath] = useState(isFolderImage(state.current) ? state.current : "");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const cols = useMemo(columns, []);
 
   // The visible cells, flat, in reading order — the roving tab stop walks this
@@ -103,7 +111,7 @@ export default function FolderIconPicker({
     return FOLDER_ICON_GROUPS.map((g) => ({ id: g.id, icons: g.icons }));
   }, [query]);
   const flat = useMemo(() => shelves.flatMap((s) => s.icons.map((e) => e.name as FolderIcon)), [shelves]);
-  const [at, setAt] = useState(() => Math.max(0, flat.indexOf(state.current as FolderIcon)));
+  const [at, setAt] = useState(() => Math.max(0, isFolderImage(state.current) ? -1 : flat.indexOf(state.current as FolderIcon)));
   useEffect(() => {
     setAt((i) => (i < flat.length ? i : 0));
   }, [flat]);
@@ -284,6 +292,55 @@ export default function FolderIconPicker({
           ),
         )}
       </div>
+      {imageRow && (
+        <div className="s-tree-iconpick__image">
+          <PathInput value={imagePath} onChange={setImagePath} kind="image" placeholder={t("folderIconImagePlaceholder")} label={t("folderIconImage")} />
+          <div className="s-tree-iconpick__image-row">
+            <button
+              type="button"
+              className="s-tree-iconpick__clear"
+              disabled={uploading}
+              onClick={() => fileRef.current?.click()}
+            >
+              {uploading ? t("folderIconUploading") : t("folderIconUpload")}
+            </button>
+            <button
+              type="button"
+              className="s-tree-iconpick__clear s-tree-iconpick__clear--on"
+              disabled={!isFolderImage(imagePath.trim())}
+              onClick={() => onPick(imagePath.trim() as FolderMark)}
+            >
+              {t("folderIconUseImage")}
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".svg,.png,.webp,.gif,.jpg,.jpeg,image/svg+xml,image/png,image/webp,image/gif,image/jpeg"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                if (file.size > 512 * 1024) {
+                  toast(t("folderIconTooBig"), "error");
+                  return;
+                }
+                setUploading(true);
+                // Stored like any attachment (the attachments setting decides
+                // where); the returned path is the mark.
+                void uploadAttachment(file, true)
+                  .then((r) => {
+                    if (isFolderImage(r.path)) onPick(r.path);
+                    else toast(t("folderIconUploadFailed"), "error");
+                  })
+                  .catch(() => toast(t("folderIconUploadFailed"), "error"))
+                  .finally(() => setUploading(false));
+              }}
+            />
+          </div>
+          <p className="s-tree-iconpick__hint">{t("folderIconImageHint")}</p>
+        </div>
+      )}
       <div className="s-tree-iconpick__foot">
         <span className="s-tree-iconpick__named" dir="auto">
           {namedEntry ? (
@@ -291,12 +348,25 @@ export default function FolderIconPicker({
               <FolderGlyph icon={namedEntry.name} size={14} />
               {lang === "ar" ? namedEntry.ar : namedEntry.en}
             </>
+          ) : isFolderImage(state.current) ? (
+            <>
+              <FolderGlyph icon={state.current} size={14} />
+              {folderIconLabel(state.current)}
+            </>
           ) : state.current ? (
             folderIconLabel(state.current)
           ) : (
             t("folderIconNone")
           )}
         </span>
+        <button
+          type="button"
+          className={`s-tree-iconpick__clear${imageRow ? " s-tree-iconpick__clear--on" : ""}`}
+          aria-pressed={imageRow}
+          onClick={() => setImageRow((v) => !v)}
+        >
+          {t("folderIconImage")}
+        </button>
         <button
           type="button"
           className={`s-tree-iconpick__clear${state.current === null ? " s-tree-iconpick__clear--on" : ""}`}

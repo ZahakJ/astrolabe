@@ -205,3 +205,23 @@
     min-block-size: 44px;
   }
 }
+
+/* The image row: a vault image typed or picked, or uploaded here. */
+.s-tree-iconpick__image {
+  margin-block-start: 6px;
+  padding-block-start: 6px;
+  border-block-start: 1px solid var(--border);
+}
+
+.s-tree-iconpick__image-row {
+  display: flex;
+  gap: 6px;
+  margin-block-start: 6px;
+}
+
+.s-tree-iconpick__hint {
+  margin: 6px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-faint);
+}

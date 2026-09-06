@@ -95,8 +95,8 @@ import {
   FOLDER_ICONS,
   FOLDER_ICONS_MAX,
   folderIconKey,
-  isFolderIcon,
-  type FolderIcon,
+  isFolderMark,
+  type FolderMark,
 } from "../shared/folderIcons.ts";
 import { isCustomThemeId } from "../shared/customTheme.ts";
 // The design store owns the custom themes `defaultTheme` may now name. The
@@ -1515,7 +1515,7 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
         `Settings key "folderIcons" holds too many folders (${FOLDER_ICONS_MAX} max)`,
       );
     }
-    const map: Record<string, FolderIcon> = {};
+    const map: Record<string, FolderMark> = {};
     for (const [rawPath, icon] of entries) {
       const key = folderIconKey(rawPath);
       if (key === null) {
@@ -1535,7 +1535,7 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
           `Settings folderIcons key ${JSON.stringify(rawPath)} names a note, not a folder`,
         );
       }
-      if (!isFolderIcon(icon)) {
+      if (!isFolderMark(icon)) {
         throw new VaultError(
           400,
           `Settings folderIcons value for ${JSON.stringify(rawPath)} must be one of: ${FOLDER_ICONS.join(", ")}`,
@@ -1572,7 +1572,7 @@ export function moveFolderIcons(from: string, to: string | null): void {
   if (source === null) return;
   const prefix = `${source}/`;
   const target = to === null ? null : folderIconKey(to);
-  const next: Record<string, FolderIcon> = {};
+  const next: Record<string, FolderMark> = {};
   let changed = false;
   for (const [key, icon] of Object.entries(stored)) {
     const under = key === source || key.startsWith(prefix);

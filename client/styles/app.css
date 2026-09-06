@@ -6420,3 +6420,13 @@ html[data-editor-width="full"] .s-editor .cm-scroller {
 html[dir="rtl"] .s-statusbar__spacer {
   flex: 0 0 18px;
 }
+
+
+/* An image mark (shared/folderIcons.ts FolderImage): the glyph's slot, the
+   owner's own picture in it. */
+.s-folder-mark--img {
+  display: inline-block;
+  object-fit: contain;
+  border-radius: 2px;
+  vertical-align: middle;
+}
