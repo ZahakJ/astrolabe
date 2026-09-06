@@ -23,6 +23,7 @@ import { getTrackers, updateTracker } from "../api.ts";
 import FolderGlyph from "../components/FolderGlyph.tsx";
 import { relativeDate, siteDate } from "../dates.ts";
 import { autoDir, countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
+import { confirmDeleteNote } from "../components/deleteFlow.ts";
 import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
 import { TREE_REVEAL_EVENT } from "../components/Sidebar.tsx";
 import { sidebarIsDrawer } from "../state.ts";
@@ -210,6 +211,22 @@ function MediaCard({
             <path d="M13.5 6.5l3 3" />
           </svg>
           <span>{t("mediaEdit")}</span>
+        </button>
+        {/* A work is a note; deleting it is the note's own delete — the same
+            dialog and the same trash the tree uses, so the toast's Undo and
+            the trash browser both apply (the owner: "we should have an option
+            to delete media entries"). */}
+        <button
+          type="button"
+          className="s-media__editbtn s-media__delbtn"
+          onClick={() => void confirmDeleteNote(meta.path)}
+          aria-label={tf("mediaDeleteTitle", { title: meta.title })}
+          title={tf("mediaDeleteTitle", { title: meta.title })}
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+          </svg>
+          <span>{t("mediaDelete")}</span>
         </button>
       </div>
     </article>

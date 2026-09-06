@@ -4318,6 +4318,8 @@ const DICT = {
   },
   mediaAdd: { en: "Add media", ar: "إضافة عمل" },
   mediaEdit: { en: "Edit", ar: "تعديل" },
+  mediaDelete: { en: "Delete", ar: "حذف" },
+  mediaDeleteTitle: { en: "Delete “{title}” (to the trash)", ar: "حذف «{title}» (إلى المهملات)" },
   mediaEditTitle: { en: "Edit {title}", ar: "تعديل {title}" },
   mediaOpenNote: { en: "Open the note for {title}", ar: "فتح ملاحظة {title}" },
   mediaSectionShow: { en: "Shows", ar: "المسلسلات" },
