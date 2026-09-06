@@ -144,6 +144,15 @@ Every modal, popover and picker in the product answers the same four keys — `E
 to move, `Enter` to commit, type-ahead where there is a list — and `Esc` always belongs to the
 innermost layer that is open.
 
+## The PDF reader
+
+The reader has its own sheet (`?` inside a book) and its own grammar, deliberately outside the
+ledger above: `j`/`k` scroll, `J`/`K` page, `gg`/`G`, `p` go to, `o` contents, `/` `n` `N` search,
+`+`/`-` zoom, `a`/`s`/`d` fit width, fit page, two pages, `i` night, `r` rotate, `m<c>`/`'<c>`
+marks, `h` highlight, `c` cite, `e` margin note, `x` unmark, `A` marked passages, `:` command
+line, `z` zen, `q` close, and counts before any of them. The whole table, with what each does, is
+in [The PDF reader](books.md#reading).
+
 ## The tour
 
 A deck of illustrated cards, one feature each, with a **Show me** that really opens the thing it

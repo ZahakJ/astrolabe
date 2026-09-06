@@ -174,6 +174,7 @@ write them. Anything absent falls back to the env default in the table above.
 | `excludeTags` | array of strings, ≤ 200 entries, ≤ 50 chars each | `EXCLUDE_TAGS`, else empty |
 | `commentsEnabled` | boolean | `COMMENTS`, else `false` |
 | `shareButtons` | boolean — the share row under blog articles | `true` |
+| `authorSites` | array of `{ url }` (https), each enriched once from its own OpenGraph and cached in `VELLUM_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
 | `ambient` | boolean — a slow decorative atmosphere behind the public masthead, drawn per theme (see [Theming](theming.md#the-ambient-masthead)) | `false` |
 | `favicon` | vault-relative image (`.ico .png .svg .jpg .jpeg .gif .webp .avif`) | none |
 | `logo` | https URL or vault-relative image | none |

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The PDF reader · Vellum Documentation</title>
+<meta name="description" content="Every PDF in the vault, read in a viewer that answers to the keyboard, remembers your page, and turns a highlight into a note.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/books/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link is-current" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="the-pdf-reader">The PDF reader</h1>
+<p><em>Every PDF in the vault, read in a viewer that answers to the keyboard, remembers your page, and turns a highlight into a note.</em></p>
+<hr>
+<p>Click a <code>.pdf</code> in the tree and it opens as a <strong>book</strong>: a reader with no permanent toolbar,
+driven by keys the way zathura and vim are, that keeps your place across sessions and renames,
+and hands what you mark straight into the note beside you. It is a workspace tab like any note,
+so a book can sit in a pane next to the notes you are writing about it. The shelf of every book
+in the vault is at <code>/library</code> in the app (and <em>A library in the vault</em> in the tour).</p>
+<h2 id="the-shelf"><a class="anchor" href="#the-shelf">The shelf</a></h2>
+<p>Every PDF in the vault as a card: cover, title, author where the file names one, page count,
+folder, file size, and how far you have read (<em>38 % read</em>). Covers are page one rendered small,
+requested as cards scroll into view and cancelled as they leave, so a shelf of two hundred books
+opens at once and the resting card is a typographic plate rather than a spinner. The search field
+filters titles, authors and paths, <strong>and every marked passage in every book</strong>, through the same
+<a href="../arabic-and-rtl/#searching-in-arabic">Arabic fold</a> as the rest of the product.</p>
+<h2 id="reading"><a class="anchor" href="#reading">Reading</a></h2>
+<p>The chrome stays out of the way: a title bar and a status line appear when the pointer moves or a
+key is pressed and fade again after a couple of seconds. The status line carries the page counter
+(a button; it opens <em>Go to</em>), the zoom, the search counter and a swatch of the ink <code>h</code> will use.</p>
+<p>Layout-independent keys:</p>
+<div class="table"><table><thead><tr><th>Key</th><th>Does</th></tr></thead><tbody><tr><td><code>↓</code> / <code>↑</code></td><td>scroll by four lines of body type</td></tr><tr><td><code>PageDown</code> / <code>PageUp</code>, <code>Space</code> / <code>Shift Space</code>, <code>Enter</code></td><td>a screen down or up</td></tr><tr><td><code>Home</code> / <code>End</code></td><td>first page / last page</td></tr><tr><td><code>Ctrl/Cmd D</code> / <code>Ctrl/Cmd U</code></td><td>half a screen down / up</td></tr><tr><td><code>Esc</code></td><td>close whatever overlay is open, else clear the search highlight</td></tr></tbody></table></div><p>Letter keys follow your keyboard&#39;s Latin caps, so they work on an Arabic or Russian layout too
+(see <a href="../keymap/#non-latin-keyboards">Non-Latin keyboards</a>); a number typed first is a count.</p>
+<div class="table"><table><thead><tr><th>Key</th><th>Does</th></tr></thead><tbody><tr><td><code>j</code> / <code>k</code></td><td>scroll down / up (<code>5j</code> five steps)</td></tr><tr><td><code>J</code> / <code>K</code></td><td>next / previous page (<code>5J</code> five pages)</td></tr><tr><td><code>gg</code> / <code>G</code></td><td>first / last page; <code>12G</code> goes to page 12</td></tr><tr><td><code>p</code></td><td><strong>Go to</strong>: a page number, <code>+3</code>, <code>40%</code>, or a chapter name, with the contents listed under the field</td></tr><tr><td><code>o</code></td><td>the contents (the PDF&#39;s own outline)</td></tr><tr><td><code>/</code> then <code>n</code> / <code>N</code></td><td>search from this page forward, wrapping; next / previous match</td></tr><tr><td><code>+</code> / <code>=</code> / <code>-</code></td><td>zoom in / out</td></tr><tr><td><code>a</code> / <code>s</code></td><td>fit width / fit the whole page</td></tr><tr><td><code>d</code></td><td>two pages side by side</td></tr><tr><td><code>i</code></td><td>night mode: off → <strong>night</strong> → <strong>flip</strong></td></tr><tr><td><code>r</code> / <code>R</code></td><td>rotate a quarter turn</td></tr><tr><td><code>m&lt;c&gt;</code> / <code>&#39;&lt;c&gt;</code></td><td>set a mark at this page / jump to it; named by the character typed, so <code>mج</code> is recalled with <code>&#39;ج</code></td></tr><tr><td><code>h</code> / <code>H</code></td><td>highlight the selection in the current ink / step to the next of six inks</td></tr><tr><td><code>c</code> / <code>C</code></td><td>cite the selection into the note beside you / pick which open note first</td></tr><tr><td><code>e</code></td><td>write a note in the margin of the selection or the highlight under it</td></tr><tr><td><code>x</code></td><td>unmark the passage under the selection (Undo on the toast)</td></tr><tr><td><code>A</code></td><td><em>Marked passages</em>: every highlight with its ink, page, text and note</td></tr><tr><td><code>:</code></td><td>the command line</td></tr><tr><td><code>z</code></td><td>zen: the book alone on the screen</td></tr><tr><td><code>l</code> / <code>q</code></td><td>back to the shelf / close the book</td></tr><tr><td><code>?</code></td><td>the reader&#39;s own key sheet</td></tr></tbody></table></div><p><strong>Night mode is three states, not a switch.</strong> <em>Night</em> draws the page through a dark filter and
+then redraws <strong>every picture unfiltered on top</strong>, so type inverts and photographs, plates and
+figures do not; an art book or an atlas is exactly what a plain inversion ruins. <em>Flip</em> inverts
+everything, which is what a scanned book wants.</p>
+<p><strong>Right-to-left books are detected from their own text</strong> (sampled from the middle of the volume,
+where the copyright page is not) and remembered; <code>:rtl</code> and <code>:ltr</code> override. In two-page mode an
+Arabic book puts page 2 to the <em>left</em> of page 3. The spread mirrors with the book; the panel
+around it mirrors with the interface language.</p>
+<h2 id="the-command-line"><a class="anchor" href="#the-command-line">The command line</a></h2>
+<p><code>:</code> opens a vi-style command line. A word matches the first command it abbreviates, so <code>:z</code> is
+zoom and <code>:h</code> is help, never highlight:</p>
+<p><code>:212</code> · <code>:+3</code> / <code>:-3</code> · <code>:40%</code> · <code>:page</code> · <code>:quit</code> (<code>:q</code>) · <code>:library</code> (<code>:lib</code>) · <code>:zoom 150</code>
+(<code>:z</code>; bare <code>:zoom</code> is 100 %) · <code>:zen</code> · <code>:fit width|page|height</code> · <code>:rotate [90|180|270]</code> ·
+<code>:dual on|off|toggle</code> · <code>:invert off|night|flip</code> · <code>:rtl</code> / <code>:ltr</code> · <code>:mark &lt;c&gt;</code> · <code>:jump &lt;c&gt;</code> ·
+<code>:search &lt;text&gt;</code> · <code>:outline</code> · <code>:forget</code> · <code>:help</code> · <code>:highlight</code> · <code>:ink [1-6]</code> · <code>:cite</code> ·
+<code>:note</code> · <code>:annotations</code></p>
+<p>Numbers read in Latin, Arabic-Indic and Persian digits alike: <code>:٢١٢</code> is page 212.</p>
+<h2 id="your-place-is-kept"><a class="anchor" href="#your-place-is-kept">Your place is kept</a></h2>
+<p>The reader remembers the page and the position <em>within</em> the page, the fit, the zoom, two-page
+mode, rotation, night mode, the direction and your marks, per book, in <code>VELLUM_DATA/books.json</code>.
+The key is a <strong>hash of the file&#39;s bytes</strong>, never its path, so renaming or re-filing a book in
+Obsidian, Syncthing or a terminal loses nothing: page 612 is still page 612, and so are the
+highlights and the citations that point at them. Scrolling is saved a moment after you stop; a
+zoom or a rotation is saved at once and re-anchors the page so zooming in to read a footnote does
+not throw your place away. <code>:forget</code> discards a reading position.</p>
+<h2 id="highlights-citations-and-margin-notes"><a class="anchor" href="#highlights-citations-and-margin-notes">Highlights, citations and margin notes</a></h2>
+<p>Select a passage and press <code>h</code>: the words are marked in the current ink (six of them; <code>H</code> steps),
+as rectangles in page fractions plus the text under them, stored beside the vault. <strong>The PDF file
+is never written to.</strong></p>
+<p>Press <code>c</code> and the passage is <strong>cited into the note beside you</strong>. The quote is rebuilt from the
+page&#39;s geometry rather than the PDF&#39;s internal order: columns are found, lines are grouped, an
+Arabic line runs right to left, and an end-of-line hyphen is rejoined (<em>sig-</em> / <em>nificant</em>)
+while <em>Anglo-Saxon</em> and <em>1990-1995</em> survive. It appears in an editable field before a single
+character reaches the note, because an assembler guesses and a sentence the author never wrote
+must not land in your notes silently. It is appended as a <code>&gt; [!quote]</code> callout followed by a link
+to the exact spot, <code>[[Book.pdf#page=42&amp;rect=…|Book, p. 42]]</code>, in the instance&#39;s own numerals.
+The write goes through the open editor when one holds the note, so it is one undoable step and
+the toast carries <strong>Undo</strong>. <code>C</code> asks which open note first.</p>
+<p>Clicking such a link later reopens the book at that page and pulses the marked rectangle once.
+If the file has since been renamed the link still resolves, by the highlight&#39;s id and the
+file&#39;s content, and a toast <strong>offers</strong> to repair the link in the note; it never rewrites one on
+its own.</p>
+<p><code>e</code> attaches a note to a highlight; <code>A</code> lists every marked passage in the book; the shelf&#39;s search
+finds them across the vault.</p>
+<h2 id="search-inside-a-book"><a class="anchor" href="#search-inside-a-book">Search inside a book</a></h2>
+<p><code>/</code> searches the book&#39;s text from the current page forward and wraps, so it finds <em>the next one
+of these</em> rather than the first in the volume; <code>n</code> and <code>N</code> step, and the counter reads <em>3 of 41</em>.
+The match is tinted without touching the text layer, and it becomes the keyboard&#39;s selection, so
+<code>/phrase</code> then <code>h</code> marks exactly what was found. The matcher folds Arabic diacritics and letter
+forms like every other search in the product.</p>
+<h2 id="what-it-does-not-do"><a class="anchor" href="#what-it-does-not-do">What it does not do</a></h2>
+<p>It never publishes. Both shelf and reader are admin surfaces over the owner&#39;s vault; a PDF
+reaches a visitor only as an attachment of a published note, through the same door every embed
+uses. It reads metadata as untrusted text (capped, control characters stripped) and it caps marks
+at 64 per book. Visitors get no shelf.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/books.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/trackers/"><span class="pager__kicker">Previous</span><span class="pager__title">Trackers</span></a><a class="pager__link pager__link--next" href="../../en/workspace/"><span class="pager__kicker">Next</span><span class="pager__title">Panes, tabs &amp; windows</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-shelf">The shelf</a><a class="toc__link toc__link--2" href="#reading">Reading</a><a class="toc__link toc__link--2" href="#the-command-line">The command line</a><a class="toc__link toc__link--2" href="#your-place-is-kept">Your place is kept</a><a class="toc__link toc__link--2" href="#highlights-citations-and-margin-notes">Highlights, citations and margin notes</a><a class="toc__link toc__link--2" href="#search-inside-a-book">Search inside a book</a><a class="toc__link toc__link--2" href="#what-it-does-not-do">What it does not do</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

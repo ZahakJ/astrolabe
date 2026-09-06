@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The desktop app · Vellum Documentation</title>
+<meta name="description" content="Vellum as a native application: the menu bar, vaults, windows, the reference window, find in page, updates and deep links.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/desktop/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link is-current" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="the-desktop-app">The desktop app</h1>
+<p><em>Vellum as a native application: the menu bar, vaults, windows, the reference window, find in page, updates and deep links.</em></p>
+<hr>
+<p>The <a href="https://github.com/ZahakJ/vellum/releases/latest" target="_blank" rel="noreferrer">releases page</a> carries an AppImage, a
+<code>.deb</code>, a <code>.pacman</code> and an unsigned Windows <code>.exe</code>. Each one is the same product as the server
+you can host yourself, wrapped as an Electron app that starts a server of its own for every vault
+you open, on a port it remembers per vault. Nothing about the vault changes: the folder on disk
+is the folder on disk, and a browser on the network can still reach the same vault through a
+<a href="../publishing/">hosted instance</a> at the same time. If you run both over one folder, see
+<a href="../backup-and-sync/#two-servers-one-vault">two servers, one vault</a>.</p>
+<h2 id="vaults-and-windows"><a class="anchor" href="#vaults-and-windows">Vaults and windows</a></h2>
+<p><strong>File → Open vault…</strong> (<code>Ctrl/Cmd O</code>) picks a folder; <strong>Recent vaults</strong> lists the ones you have
+opened, and <em>Clear the list</em> forgets them. <strong>New window</strong> (<code>Ctrl/Cmd Shift N</code>) opens another
+window on the current vault, which is how a <a href="../workspace/#several-windows-one-vault">second window over one vault</a>
+starts; <strong>Close window</strong> is <code>Ctrl/Cmd W</code>. <em>Show the vault in the file manager</em> opens the folder
+itself. The app keeps a tray icon with <em>Show Vellum</em> and <em>Quit</em>.</p>
+<p>Every command the app has is in the menu bar with its chord, in both languages: new note, the
+daily note, save, print, reading view, the graph, zen, the two side panes, the palette, search,
+publish, the shortcut sheet. The desktop app also claims a few chords the browser cannot:</p>
+<div class="table"><table><thead><tr><th>Keys</th><th>Does</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd Shift N</code></td><td>New window on this vault</td></tr><tr><td><code>Ctrl/Cmd O</code></td><td>Open vault…</td></tr><tr><td><code>Ctrl/Cmd W</code></td><td>Close window</td></tr><tr><td><code>Ctrl/Cmd Shift F</code></td><td><strong>Find in page</strong> (below)</td></tr><tr><td><code>Ctrl/Cmd Alt R</code></td><td>Open the note as a reference window</td></tr><tr><td><code>Ctrl/Cmd =</code> / <code>-</code> / <code>0</code>, and the numpad</td><td>Zoom in / out / actual size</td></tr><tr><td><code>Ctrl/Cmd Y</code></td><td>Redo, beside <code>Ctrl/Cmd Shift Z</code></td></tr></tbody></table></div><h2 id="the-reference-window"><a class="anchor" href="#the-reference-window">The reference window</a></h2>
+<p><strong>Window → Open as reference window</strong> (<code>Ctrl/Cmd Alt R</code>) opens the current note in a second,
+smaller window that stays <strong>always on top</strong>: the source you are quoting, the outline you are
+following, the checklist, kept over the window you are writing in. <em>Always on top</em> is a switch on
+any window. It is the clearest thing a desktop app can do that a browser tab cannot.</p>
+<h2 id="find-in-page"><a class="anchor" href="#find-in-page">Find in page</a></h2>
+<p><code>Ctrl/Cmd F</code> finds and replaces <em>in the note&#39;s text</em>. <code>Ctrl/Cmd Shift F</code> on the desktop app
+opens <strong>Find in page</strong>, Chromium&#39;s own search over <em>what is on screen</em>: the reading view, the
+outline, the backlinks, a transclusion, the tab strip, a settings panel; exactly the half the
+editor&#39;s search structurally cannot reach. The bar is drawn in Vellum&#39;s own tokens, with <em>Find
+next</em> and <em>Find previous</em> in the Edit menu. (In the browser that chord opens
+<a href="../editor/#find-and-replace">search and replace across the vault</a> instead.)</p>
+<h2 id="spelling"><a class="anchor" href="#spelling">Spelling</a></h2>
+<p>Underlines come from the system&#39;s spellchecker; right-click a misspelled word (with nothing
+selected) for suggestions and <strong>Add to dictionary</strong>, drawn in the app&#39;s own menu rather than a
+native popup, so it takes the theme and the direction. <em>Check spelling while typing</em> is in the
+Edit menu.</p>
+<h2 id="updates"><a class="anchor" href="#updates">Updates</a></h2>
+<p>The app checks the releases page and downloads a new release <strong>in the background</strong>; when it is
+ready a toast offers <strong>Restart now</strong>, never a dialog. <strong>Help → Check for updates…</strong> asks at once,
+and says so when you are on the latest.</p>
+<h2 id="deep-links-and-file-association"><a class="anchor" href="#deep-links-and-file-association">Deep links and file association</a></h2>
+<p><code>vellum://note?path=Folder/Note.md</code> opens a note from outside the app, and the app registers for
+<code>.md</code> files so a note double-clicked in the file manager opens here. The path is checked, not
+cleaned: <code>..</code>, a leading <code>/</code>, a drive letter or a control character is refused.</p>
+<h2 id="where-things-live"><a class="anchor" href="#where-things-live">Where things live</a></h2>
+<p>The app&#39;s own configuration is in <code>~/.config/vellum</code> (<code>desktop.json</code>: the vaults, their ports
+and, for each, the data directory it uses), and each vault&#39;s instance data in the
+<a href="../configuration/#environment-variables"><code>VELLUM_DATA</code></a> that entry names. The Linux build is
+packaged with <code>asar: false</code> deliberately, because the server child reads real files from the
+package.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/desktop.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/backup-and-sync/"><span class="pager__kicker">Previous</span><span class="pager__title">Backup &amp; sync</span></a><a class="pager__link pager__link--next" href="../../en/editor/"><span class="pager__kicker">Next</span><span class="pager__title">The editor &amp; reading view</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#vaults-and-windows">Vaults and windows</a><a class="toc__link toc__link--2" href="#the-reference-window">The reference window</a><a class="toc__link toc__link--2" href="#find-in-page">Find in page</a><a class="toc__link toc__link--2" href="#spelling">Spelling</a><a class="toc__link toc__link--2" href="#updates">Updates</a><a class="toc__link toc__link--2" href="#deep-links-and-file-association">Deep links and file association</a><a class="toc__link toc__link--2" href="#where-things-live">Where things live</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

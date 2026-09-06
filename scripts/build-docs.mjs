@@ -32,6 +32,7 @@ const SECTIONS = [
       { slug: "configuration", file: "configuration.md", title: { en: "Configuration", ar: "الإعداد" } },
       { slug: "publishing", file: "publishing.md", title: { en: "Publishing & access", ar: "النشر والوصول" } },
       { slug: "backup-and-sync", file: "backup-and-sync.md", title: { en: "Backup & sync", ar: "النسخ الاحتياطي والمزامنة" } },
+      { slug: "desktop", file: "desktop.md", title: { en: "The desktop app", ar: "تطبيق سطح المكتب" } },
     ],
   },
   {
@@ -42,6 +43,8 @@ const SECTIONS = [
       { slug: "templates-and-notes", file: "templates-and-notes.md", title: { en: "Templates, banners & notes", ar: "القوالب واللافتات والملاحظات" } },
       { slug: "latex", file: "latex.md", title: { en: "LaTeX notes", ar: "ملاحظات LaTeX" } },
       { slug: "trackers", file: "trackers.md", title: { en: "Trackers", ar: "المتتبِّعات" } },
+      { slug: "books", file: "books.md", title: { en: "The PDF reader", ar: "قارئ PDF" } },
+      { slug: "workspace", file: "workspace.md", title: { en: "Panes, tabs & windows", ar: "اللوحات والتبويبات والنوافذ" } },
       { slug: "printing", file: "printing.md", title: { en: "Printing & PDF", ar: "الطباعة وPDF" } },
       { slug: "keymap", file: "keymap.md", title: { en: "Keymap", ar: "اختصارات لوحة المفاتيح" } },
     ],

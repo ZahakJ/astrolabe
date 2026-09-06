@@ -18,6 +18,7 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 | [Configuration](configuration.md) | Every `.env` key, the runtime Settings panel, [where attachments land](configuration.md#attachments), every settings key, and which wins |
 | [Publishing & access](publishing.md) | Public reading vs admin editing, the `publish:` flag, preview as visitor, HTTPS, comments |
 | [Backup & sync](backup-and-sync.md) | Committing the vault to a private git remote, by hand or on a timer, and [reading a note's history](backup-and-sync.md#note-history-reading-what-the-backup-kept) out of it |
+| [The desktop app](desktop.md) | The native app: menu bar, vaults, the reference window, find in page, updates, deep links |
 | [Development](development.md) | Dev mode, the gate scripts, the screenshot harnesses, contributing a change |
 
 ## Writing
@@ -28,6 +29,8 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 | [Templates, banners & notes](templates-and-notes.md) | `banner:`, Obsidian-compatible templates, sections, attachments, trash |
 | [LaTeX notes](latex.md) | `.tex` as a first-class note, `vellum.sty`, and exactly what renders |
 | [Trackers](trackers.md) | The `tracker` fence, the board, the Media page that shelves them all, and what a visitor sees of your shelf |
+| [The PDF reader](books.md) | Every PDF in the vault as a book: vim keys, a `:` command line, a remembered page, highlights that become cited notes |
+| [Panes, tabs & windows](workspace.md) | Splitting the note column, preview and pinned tabs, several windows over one vault, the local graph, the trash, the tour, aliases |
 | [Printing & PDF](printing.md) | A note on paper: the print palette, page breaks, PDF bookmarks and working internal links |
 | [Keymap](keymap.md) | Every binding, and why the awkward ones are where they are |
 
