@@ -968,10 +968,13 @@ topics in both shells (BlogShell, DesignedSite) under folders. `collectionRows()
 server/indexer.ts is THE list of collections: the declared rows, plus — under folders — one derived
 row per parent folder of a published post (templates and library lessons make none; a root note has
 no parent), title `libraryTitleOf(folder)`, mark `settings.folderIcons[folder] ?? "archive"`, slug
-from the title made unique in path order (stable across requests), id `a` + sha1(folder)[:12]. A
-declared row with the same `folder` REPLACES the derived one — that is how a category is renamed,
-re-marked, blurbed or hidden. `auth.ts` builds `me.publicFolders` from `collectionRows()` and treats
-the feature as ON under folders whatever the master switch says.
+from the title made unique in path order (stable across requests), id `a` + sha1(folder)[:12].
+UNDER FOLDERS THE DECLARED ROWS ARE SET ASIDE WHOLE (kept for switching back): the folders are the
+categories, a folder note renames, describes, re-marks or hides one, the settings panel shows no
+collections block and the tree offers no collection verbs (2.10.1 — the owner met the two side by
+side as "kinda confusing"). Under tags, collections are hand-made topics beside the tag topics.
+`auth.ts` builds `me.publicFolders` from `collectionRows()` and treats the feature as ON under
+folders whatever the master switch says.
 
 **A COLLECTION CAN NAME A FOLDER.** `PublicFolderRef.folder` (vault-relative, `vaultFolderPath()`,
 boundary at the slash): `effectiveFolders(declared, path, rows)` (shared/publicFolders.ts) is what

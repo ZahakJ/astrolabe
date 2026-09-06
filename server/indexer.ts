@@ -2366,17 +2366,20 @@ function lessonFoldersNow(): string[] {
  *  `settings.topics: "folders"`, one row per parent folder of a published
  *  post: title from the folder's name (sorting prefix stripped), mark from
  *  the tree's own folder icon, slug from the title and unique in path order,
- *  so the address a folder gets is the same on every request. A declared row
- *  naming the same folder REPLACES the derived one (a nicer title, a blurb, a
- *  hide), which is how the owner customises a category without leaving the
- *  vault's order. Templates and library lessons are not posts and make no
- *  category; a note at the vault root has no parent and none either. */
+ *  so the address a folder gets is the same on every request. Under folders
+ *  the declared rows are not consulted at all — a folder note (title,
+ *  description, icon, hidden) is how a category is customised — so the two
+ *  systems never show side by side. Templates and library lessons are not
+ *  posts and make no category; a note at the vault root has no parent and
+ *  none either. */
 export function collectionRows(): PublicFolderRef[] {
   const settings = getSettings();
   const declared = settings.publicFolders?.folders ?? [];
   if (settings.topics !== "folders") return withFolderNotes(declared);
-  const covered = new Set(declared.map((r) => r.folder).filter((f): f is string => typeof f === "string"));
-  const taken = new Set(declared.map((r) => r.slug));
+  // Under folders the declared rows are set aside whole (kept in settings
+  // for the day the owner switches back): the folders are the categories,
+  // and a folder note is how one is described or hidden.
+  const taken = new Set<string>();
   const isTemplate = templateMatcher();
   const lessonFolders = lessonFoldersNow();
   const parents = new Set<string>();
@@ -2385,8 +2388,7 @@ export function collectionRows(): PublicFolderRef[] {
     if (slash <= 0) continue;
     if (isTemplate(notePath)) continue;
     if (lessonFolders.length > 0 && isLibraryLesson(notePath, lessonFolders)) continue;
-    const parent = notePath.slice(0, slash);
-    if (!covered.has(parent)) parents.add(parent);
+    parents.add(notePath.slice(0, slash));
   }
   const icons = settings.folderIcons ?? {};
   const derived: PublicFolderRef[] = [];
@@ -2404,7 +2406,7 @@ export function collectionRows(): PublicFolderRef[] {
     if (meta?.hidden) row.hidden = true;
     derived.push(row);
   }
-  return [...withFolderNotes(declared), ...derived];
+  return derived;
 }
 
 function collectionRowsNow(): PublicFolderRef[] {

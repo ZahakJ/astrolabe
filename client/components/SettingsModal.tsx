@@ -3481,13 +3481,18 @@ export default function SettingsModal() {
                     />
                   </Row>
                   {form.topicsMode === "folders" && <p className="s-smodal__offnote">{t("topicsModeFoldersNotice")}</p>}
-                  <Row label={t("rowPublicFolders")} hint={t("hintPublicFolders")} off={form.topicsMode === "folders"}>
+                  {/* COLLECTIONS BELONG TO THE TAGS SYSTEM: hand-made topics
+                      beside the tag topics. Under folders the folders ARE the
+                      categories and this whole block is gone — the owner met
+                      the two side by side as "kinda confusing". */}
+                  {form.topicsMode !== "folders" && (
+                    <>
+                  <Row label={t("rowPublicFolders")} hint={t("hintPublicFolders")}>
                     <Toggle
                       label={t("rowPublicFolders")}
                       onLabel={t("on")}
                       offLabel={t("off")}
-                      disabled={form.topicsMode === "folders"}
-                      value={form.publicFoldersOn === "on" || form.topicsMode === "folders"}
+                      value={form.publicFoldersOn === "on"}
                       onChange={(on) =>
                         setForm((f) => (f ? { ...f, publicFoldersOn: on ? "on" : "off" } : f))
                       }
@@ -3514,6 +3519,8 @@ export default function SettingsModal() {
                       navigation to nothing, and nothing else on this panel
                       explains that membership is declared in the note. */}
                   <p className="s-smodal__offnote">{t("publicFoldersFrontmatter")}</p>
+                    </>
+                  )}
                   <Row label={t("rowPublicFoldersHome")} hint={t("hintPublicFoldersHome")} off={foldersOff}>
                     <Toggle
                       label={t("rowPublicFoldersHome")}

@@ -820,8 +820,8 @@ const DICT = {
   },
   rowPublicFolders: { en: "Collections", ar: "المجموعات" },
   hintPublicFolders: {
-    en: "Off by default. Turning it off is a take-down: the folders keep their titles and members.",
-    ar: "معطّلة افتراضيًا. إيقافها إخفاء لا حذف: تحتفظ المجلدات بعناوينها وبمحتواها.",
+    en: "Hand-made topics beside the tag topics: a collection is a tag you curate yourself. Off is a take-down: the collections keep their titles and members.",
+    ar: "مواضيع يدوية إلى جانب مواضيع الوسوم: المجموعة وسم تنتقيه بنفسك. الإيقاف إخفاء لا حذف: تحتفظ المجموعات بعناوينها وبمحتواها.",
   },
   publicFoldersOffNotice: {
     en: "Custom folders are off, so none of them reaches a visitor.",
@@ -838,7 +838,7 @@ const DICT = {
   },
   rowPublicFoldersHome: { en: "Show on home page", ar: "إظهارها في الصفحة الرئيسية" },
   hintPublicFoldersHome: {
-    en: "A band of folder cards above your writings.",
+    en: "A band of category cards above your writings.",
     ar: "شريط من بطاقات المجلدات فوق كتاباتك.",
   },
   rowPublicFoldersNav: { en: "Show in navigation", ar: "إظهارها في شريط التنقل" },
@@ -875,7 +875,7 @@ const DICT = {
   topicsModeTagsNote: { en: "a topic per tag", ar: "موضوع لكل وسم" },
   topicsModeFolders: { en: "Folders", ar: "المجلدات" },
   topicsModeFoldersNote: { en: "the vault's own order", ar: "ترتيب الخزانة نفسه" },
-  topicsModeFoldersNotice: { en: "Every published note takes its parent folder as its category, with the folder's name and tree mark. A collection below that names a folder overrides its title, mark and blurb, or hides it.", ar: "كل ملاحظة منشورة تأخذ مجلدها الأب فئةً لها، باسم المجلد وعلامته في الشجرة. المجموعة أدناه التي تسمّي مجلدًا تستبدل عنوانه وعلامته ونبذته، أو تخفيه." },
+  topicsModeFoldersNotice: { en: "Every published note takes its parent folder as its category, with the folder's name and tree mark. Describe a folder with a folder note: a note named like the folder, or index.md inside it, carrying description:, icon:, title: or hidden: true.", ar: "كل ملاحظة منشورة تأخذ مجلدها الأب فئةً لها، باسم المجلد وعلامته في الشجرة. صِف المجلد بملاحظة مجلد: ملاحظة باسم المجلد أو index.md بداخله، تحمل description: وicon: وtitle: أو hidden: true." },
   collectionsMenu: { en: "Collections…", ar: "المجموعات…" },
   collectionsFolderMenu: { en: "Publish as a collection…", ar: "انشر كمجموعة…" },
   collectionsNone: { en: "No collections yet. Right-click a folder and publish it as one, or add one under Settings → Publishing.", ar: "لا مجموعات بعد. انقر بالزر الأيمن على مجلد وانشره كمجموعة، أو أضف واحدة من الإعدادات ← النشر." },
