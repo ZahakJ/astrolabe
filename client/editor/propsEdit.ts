@@ -294,6 +294,7 @@ function openAddForm(
         row.type = "button";
         row.className = "cm-s-props__keyrow";
         row.setAttribute("role", "option");
+        row.setAttribute("aria-label", `${k.key}: ${t(k.hint)}`);
         const name = document.createElement("code");
         name.textContent = k.key;
         const hint = document.createElement("span");

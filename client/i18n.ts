@@ -2503,7 +2503,6 @@ const DICT = {
   scSpellMenuKey: { en: "Right-click the word itself, nothing selected", ar: "نقرة يمنى على الكلمة نفسها، دون تحديد" },
 
   selMenuTitle: { en: "Formatting", ar: "التنسيق" },
-  selMenuBack: { en: "Back", ar: "رجوع" },
   selGroupStyle: { en: "Text style", ar: "نمط النص" },
   selGroupStructure: { en: "Structure", ar: "البنية" },
   selGroupInsert: { en: "Insert", ar: "إدراج" },
