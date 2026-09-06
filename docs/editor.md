@@ -97,8 +97,7 @@
 - **Align a line** — end any paragraph, heading or image line with `{.center}`, `{.right}`,
   `{.left}` or `{.justify}` and that block sits there, over the note's own `align:`. The marker
   hides like other syntax; `/center`, `/right` and `/left` in the slash menu write it for you, and
-  so does **right-click → Structure → Align** over a selection, for every paragraph the selection
-  touches. Pandoc reads the same braces; Obsidian shows them as text
+  so does **right-click → Align** over a selection, for every paragraph the selection touches. Pandoc reads the same braces; Obsidian shows them as text
 - **Note transclusions** — `![[Note]]` renders the target note as a full-fidelity card (callouts,
   math, code highlighting included), with an "Open note" affordance when the excerpt overflows
 - **PDF & attachment cards** — `![[file.pdf]]` (mp4, mp3, zip, …) becomes a card that opens the

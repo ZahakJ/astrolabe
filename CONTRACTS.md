@@ -2560,7 +2560,8 @@ A block says where it sits with a trailing `{.left}` / `{.center}` / `{.right}` 
 classes every line of the block `cm-s-align-<a>` and hides the marker off the active line; the
 reading view classes the `<p>`/`<h*>` `s-rv-align-<a>` and strips it. Both rules outrank the
 note-level `[data-note-align]`. `/center`, `/right`, `/left` in the slash menu write the marker
-for the caret's line (`alignLine`); the selection menu's Structure page carries an Align group
+for the caret's line (`alignLine`); the selection menu's Align door (its own flyout, 3.3.3; it was
+a group inside Structure and went unfound) carries the five rows
 (`alignSelection`: every block the selection touches, marker on the last line, one transaction).
 The outline and the `[[Note#Heading]]` completions strip the marker from heading text
 (`client/reading/toc.ts`, `client/editor/links.ts`).
