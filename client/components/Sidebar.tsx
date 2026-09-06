@@ -48,7 +48,7 @@ import {
   parentDir,
   type MoveItem,
 } from "../move.ts";
-import { promptNewFolder, promptNewNote } from "../prompts.ts";
+import { promptNewDrawing, promptNewFolder, promptNewNote } from "../prompts.ts";
 import { newNoteFromTemplateCommand } from "../templateActions.ts";
 import { useStore, sidebarIsDrawer } from "../state.ts";
 import AttachmentViewer, { fileUrl, isViewable } from "./AttachmentViewer.tsx";
@@ -89,7 +89,7 @@ import {
 import type { FolderMark } from "../../shared/folderIcons.ts";
 import { toast } from "../toast.ts";
 import "../styles/move.css";
-import { isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
+import { isDrawingPath, isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
 
 const SEARCH_DEBOUNCE_MS = 200;
 
@@ -508,6 +508,16 @@ function IconFile() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
       <path d="M14 3v5h5" />
+    </svg>
+  );
+}
+
+function IconDrawing() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 20l4-1 10.5-10.5a2.1 2.1 0 0 0-3-3L5 16z" />
+      <path d="M13.5 6.5l3 3" />
+      <path d="M3 20h6" />
     </svg>
   );
 }
@@ -2082,6 +2092,17 @@ export default function Sidebar() {
               >
                 {t("newNoteHere")}
               </button>
+              <button
+                type="button"
+                className="s-menu__item"
+                role="menuitem"
+                onClick={() => {
+                  setMenu(null);
+                  void promptNewDrawing(menu.node.path);
+                }}
+              >
+                {t("newDrawingHere")}
+              </button>
               {/* The third door into templates, and the one that carries a
                   DESTINATION: the palette and the keystroke create wherever
                   the reader last was, while this one creates in the folder
@@ -3086,6 +3107,13 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
           </span>
         )}
         {attachment && <AttachmentGlyph kind={attachment.kind} />}
+        {/* A drawing is a note row with a pencil: it opens in the canvas,
+            and a reader scanning the tree should know that before the click. */}
+        {!isFolder && !attachment && isDrawingPath(node.path) && (
+          <span className="s-tree__glyph">
+            <IconDrawing />
+          </span>
+        )}
         {renaming === node.path ? (
           <RenameInput
             initial={node.name}

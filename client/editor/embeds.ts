@@ -3,6 +3,7 @@
 // this file is what lets the reading view ship without the editor bundle.
 
 import { withPreview } from "../api.ts";
+import { drawingSvgPath, isDrawingPath } from "../../shared/noteFormat.ts";
 import { clearBannerCache } from "../banner.ts";
 import { t } from "../i18n.ts";
 import { Lru } from "../lru.ts";
@@ -14,7 +15,7 @@ export interface EmbedParts {
   target: string; // file/note name, may include a path and #heading
   alias: string | null;
   width: number | null; // parsed from a numeric alias like |300
-  kind: "image" | "file" | "note";
+  kind: "image" | "file" | "note" | "drawing";
   /** The `#…` suffix, kept rather than only stripped. A transclusion that
    *  names an anchor pulls in JUST that block — `![[Paper#eq:fourier]]` is one
    *  equation, rendered by KaTeX, inside a markdown note — and the anchor may
@@ -34,12 +35,24 @@ export function parseEmbed(inner: string): EmbedParts {
   const anchor = hash > 0 ? target.slice(hash + 1).trim() || null : null;
   if (hash > 0) target = target.slice(0, hash).trim();
   const width = alias && /^\d{2,4}$/.test(alias) ? parseInt(alias, 10) : null;
-  const kind = IMAGE_EXT.test(target)
-    ? "image"
-    : ATTACHMENT_EXT.test(target)
-      ? "file"
-      : "note";
+  // A drawing before an image: `.excalidraw.svg` is the PICTURE of one and
+  // renders as an image, but `![[sketch.excalidraw]]` names the drawing
+  // itself, whose picture is looked up beside it (drawingSvgName).
+  const kind = isDrawingPath(target)
+    ? "drawing"
+    : IMAGE_EXT.test(target)
+      ? "image"
+      : ATTACHMENT_EXT.test(target)
+        ? "file"
+        : "note";
   return { target, alias, width, kind, anchor };
+}
+
+/** The attachment name a drawing embed shows: the svg exported beside the
+ *  drawing, resolved by basename like any other attachment, so a drawing that
+ *  moved folders keeps rendering. */
+export function drawingSvgName(target: string): string {
+  return drawingSvgPath(target);
 }
 
 export function fileUrl(path: string): string {

@@ -29,6 +29,7 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 | [Templates, banners & notes](templates-and-notes.md) | `banner:`, Obsidian-compatible templates, sections, attachments, trash |
 | [LaTeX notes](latex.md) | `.tex` as a first-class note, `vellum.sty`, and exactly what renders |
 | [Trackers](trackers.md) | The `tracker` fence, the board, the Media page that shelves them all, and what a visitor sees of your shelf |
+| [Drawings](drawing.md) | An Excalidraw canvas in the vault: `.excalidraw` and the Obsidian plugin's `.excalidraw.md`, the svg exported beside it, `![[sketch.excalidraw]]` everywhere |
 | [The PDF reader](books.md) | Every PDF in the vault as a book: vim keys, a `:` command line, a remembered page, highlights that become cited notes |
 | [Panes, tabs & windows](workspace.md) | Splitting the note column, preview and pinned tabs, several windows over one vault, the local graph, the trash, the tour, aliases |
 | [Printing & PDF](printing.md) | A note on paper: the print palette, page breaks, PDF bookmarks and working internal links |

@@ -1,4 +1,8 @@
 import React from "react";
+// Excalidraw reads its font base URL when its chunk EVALUATES, and rollup
+// hoists a chunk's vendor imports above its own body — so the global has to be
+// set from the entry, before any drawing is opened, or the fonts go to a CDN.
+import "./drawing/assetPath.ts";
 import { applyEditorWidth } from "./editorWidth.ts";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
