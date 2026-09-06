@@ -161,6 +161,13 @@
   --sw-accent: var(--swatch-sidereal-accent);
 }
 
+[data-theme-swatch="graphite"],
+[data-theme-dot="graphite"] {
+  --sw-bg: var(--swatch-graphite-bg);
+  --sw-text: var(--swatch-graphite-text);
+  --sw-accent: var(--swatch-graphite-accent);
+}
+
 [data-theme-swatch="murex"],
 [data-theme-dot="murex"] {
   --sw-bg: var(--swatch-murex-bg);

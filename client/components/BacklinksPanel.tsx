@@ -16,6 +16,7 @@ import { lazySurface } from "../lazySurface.tsx";
 import TocPanel from "../reading/TocPanel.tsx";
 import { hasPanelPreference, useStore } from "../state.ts";
 import LocalGraph from "./LocalGraph.tsx";
+import TrackerPanel from "./TrackerPanel.tsx";
 
 // NOTE HISTORY IS LAZY, and it is the only one of the three stacked sections
 // that is. It carries a markdown renderer (the revision viewer draws the whole
@@ -151,6 +152,7 @@ export default function BacklinksPanel() {
       >
         <TocPanel />
         <LocalGraph />
+        <TrackerPanel />
         {/* Its own boundary, and a null fallback: the section is a collapsed
             header row until somebody opens it, so a skeleton where a one-line
             header is about to be would be the only thing that flickered. */}

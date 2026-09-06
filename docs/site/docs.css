@@ -3,17 +3,22 @@
    follow the brand's room (tokens.css, sidereal): deep space, starlight,
    hairlines; the light sheet is the same cool cast on paper. */
 
+/* The Vellum manual — one sheet for both languages. Logical properties
+   throughout: the Arabic site is the same sheet read from the right. Tokens
+   follow the brand's room (tokens.css, graphite): solid neutral greys, gold
+   leaf for the one accent; the light sheet is plain paper with the same gold. */
+
 :root {
-  --bg: #070a17;
-  --bg-raised: #0d1122;
-  --bg-hover: #151a30;
-  --text: #e3e0e6;
-  --text-muted: #9fa0b8;
-  --text-faint: #6a6c85;
-  --accent: #9aa3ff;
-  --accent-soft: rgba(154, 163, 255, 0.16);
-  --border: #1e2340;
-  --code: #101529;
+  --bg: #0d1117;
+  --bg-raised: #161b22;
+  --bg-hover: #1f2630;
+  --text: #e6edf3;
+  --text-muted: #9aa4b2;
+  --text-faint: #6e7681;
+  --accent: #e3b341;
+  --accent-soft: rgba(227, 179, 65, 0.14);
+  --border: #30363d;
+  --code: #161b22;
   --serif: "EB Garamond", "Noto Naskh Arabic", Georgia, serif;
   --sans: "Noto Sans", "Noto Sans Arabic", system-ui, sans-serif;
   --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
@@ -24,16 +29,16 @@
 }
 
 :root[data-theme="light"] {
-  --bg: #f6f7fb;
-  --bg-raised: #ffffff;
-  --bg-hover: #eceef7;
-  --text: #1d2130;
-  --text-muted: #525a78;
-  --text-faint: #858ca8;
-  --accent: #4650c4;
-  --accent-soft: rgba(70, 80, 196, 0.12);
-  --border: #dde0ee;
-  --code: #eef0f8;
+  --bg: #ffffff;
+  --bg-raised: #f6f8fa;
+  --bg-hover: #eaeef2;
+  --text: #1f2328;
+  --text-muted: #59636e;
+  --text-faint: #818b98;
+  --accent: #9a6700;
+  --accent-soft: rgba(154, 103, 0, 0.12);
+  --border: #d1d9e0;
+  --code: #f6f8fa;
   color-scheme: light;
 }
 

@@ -2361,6 +2361,22 @@ export function libraryRefs(): LibraryPathRef[] {
     found.push({ folder, meta: record.folderMeta });
   }
   found.sort((a, b) => a.folder.localeCompare(b.folder));
+  // A Media tracker that names a path's folder LENDS ITS COVER, over the row's
+  // and the folder note's: the book the owner tracks and the book a reader
+  // opens are one picture. Resolved in admin scope; the ref cover then joins
+  // the visitor allowlist through libraryCoverPaths like any other.
+  const lent = new Map<string, string>();
+  for (const record of notes.values()) {
+    for (const tracker of record.trackers) {
+      if (tracker.folder === null || tracker.cover === null || lent.has(tracker.folder)) continue;
+      const cover = coverPath(tracker.cover, false, null);
+      if (cover !== null) lent.set(tracker.folder, cover);
+    }
+  }
+  for (const row of rows) {
+    const cover = lent.get(row.folder);
+    if (cover !== undefined) row.cover = cover;
+  }
   for (const { folder, meta } of found) {
     const row = byFolder.get(folder);
     if (row) {
@@ -2377,6 +2393,8 @@ export function libraryRefs(): LibraryPathRef[] {
     const ref: LibraryPathRef = { id: `l${createHash("sha1").update(folder).digest("hex").slice(0, 12)}`, slug, folder, kind: meta.library as LibraryKind, title };
     if (meta.description) ref.blurb = meta.description;
     if (meta.cover) ref.cover = meta.cover;
+    const lentCover = lent.get(folder);
+    if (lentCover !== undefined) ref.cover = lentCover;
     if (meta.source) ref.source = meta.source;
     if (meta.hidden) ref.hidden = true;
     rows.push(ref);
@@ -2635,6 +2653,23 @@ export function pages(visitor: boolean, lang: FilterLang): PageMeta[] {
  *  The cover is resolved HERE, through the ladder embeds use, so the board
  *  spends no /api/resolve per card — and it is resolved against the SESSION's
  *  scope, so a visitor is never handed a path they would be 404'd for. */
+/** What a work's `folder:` amounts to: how many notes are under it, and the
+ *  note that stands for the folder itself. Counted over the live index, so a
+ *  note added to the folder in Obsidian is on the card at the next read. */
+function folderFacts(folder: string | null): Pick<TrackerMeta, "folder" | "folderNotes" | "folderNote"> {
+  if (folder === null) return { folder: null, folderNotes: 0, folderNote: null };
+  const prefix = `${folder}/`;
+  const base = folder.split("/").pop() ?? folder;
+  let count = 0;
+  let own: string | null = null;
+  for (const p of notes.keys()) {
+    if (!p.startsWith(prefix)) continue;
+    count++;
+    if (p === `${prefix}${base}.md` || (own === null && p === `${prefix}index.md`)) own = p;
+  }
+  return { folder, folderNotes: count, folderNote: own };
+}
+
 export function trackers(visitor: boolean, lang: FilterLang): TrackerMeta[] {
   const out: TrackerMeta[] = [];
   const paths = visitor ? publishedSet : notes.keys();
@@ -2653,6 +2688,8 @@ export function trackers(visitor: boolean, lang: FilterLang): TrackerMeta[] {
         finished: tracker.finished,
         season: tracker.season,
         notes: tracker.notes,
+        ...folderFacts(visitor ? null : tracker.folder),
+        step: tracker.step,
         title: tracker.title,
         noteTitle: record.title,
         kind: tracker.kind,

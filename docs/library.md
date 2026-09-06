@@ -55,7 +55,7 @@ reopens that chooser; nothing here is typed as a path.
 | Folder | The vault folder the path reads, chosen from the tree. |
 | Blurb, cover, source | Folded under one line until a row has them. Blurb: one or two sentences under the title. |
 | Cover | Start typing and the vault's images are offered, with thumbnails; pick one, or paste an https URL. |
-| Cover | An image, as a banner value (`attachments/cover.jpg` or an https URL). Without one the site draws a cover from the title. |
+| Cover | An image, as a banner value (`attachments/cover.jpg` or an https URL). Without one the site draws a cover from the title. A [Media tracker](trackers.md#the-media-page) whose `folder:` is this path's folder lends its cover instead, over this field. |
 | Source link | Where the material came from: the course page, the publisher. Shown on the path. |
 | Hidden | A lossless take-down: the row keeps every field and reaches nobody. |
 

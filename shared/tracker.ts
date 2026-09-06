@@ -86,6 +86,14 @@ export interface Tracker {
   season: string | null;
   /** `notes:` — markdown, rendered through the normal inline pipeline. */
   notes: string | null;
+  /** How far one press of − / + moves the count: `step:` when the author
+   *  says, else 10 for pages and minutes (a book is read ten pages at a time,
+   *  a film watched in tens of minutes) and 1 for everything else. */
+  step: number;
+  /** `folder:` — a vault folder this work's own notes live in ("1 - Source
+   *  Material/Books/The Linux Memory Manager"). The card counts them and
+   *  opens the folder; the tracker itself never reads them. Null when absent. */
+  folder: string | null;
 }
 
 /** What a ```tracker-board fence asks for. Every field optional: an empty
@@ -425,6 +433,9 @@ export function parseTracker(body: string): Tracker | null {
   const started = fields.get("started")?.trim();
   const finished = fields.get("finished")?.trim();
   const season = fields.get("season")?.trim();
+  const folder = fields.get("folder")?.trim().replace(/^\/+|\/+$/g, "");
+  const stepRaw = Number(foldDigits(fields.get("step") ?? "").trim());
+  const step = Number.isFinite(stepRaw) && stepRaw > 0 ? stepRaw : defaultTrackerStep(unit === undefined || unit === "" ? null : unit, kindKey);
   const notes = fields.get("notes");
   return {
     title,
@@ -441,8 +452,22 @@ export function parseTracker(body: string): Tracker | null {
     started: started === undefined || started === "" ? null : started,
     finished: finished === undefined || finished === "" ? null : finished,
     season: season === undefined || season === "" ? null : season,
+    folder: folder === undefined || folder === "" || folder.includes("..") ? null : folder,
+    step,
     notes: notes === undefined || notes.trim() === "" ? null : notes,
   };
+}
+
+/** The nudge a unit deserves when the author names none. Pages and minutes
+ *  move in tens — nobody presses + a hundred times for a chapter — and the
+ *  words are read in both languages so «صفحات» gets the same ten. */
+export function defaultTrackerStep(unit: string | null, kindKey: TrackerKind | null): number {
+  const word = (unit ?? "").trim().toLowerCase();
+  if (word !== "") {
+    if (["page", "pages", "صفحة", "صفحات", "minute", "minutes", "min", "mins", "دقيقة", "دقائق"].includes(word)) return 10;
+    return 1;
+  }
+  return kindKey === "book" || kindKey === "film" ? 10 : 1;
 }
 
 /** A ```tracker-board fence body. Unknown keys and unknown status words are
@@ -593,9 +618,11 @@ export interface TrackerFields {
   title?: string;
   kind?: string | null;
   season?: string | null;
+  folder?: string | null;
   cover?: string | null;
   progress?: string | null;
   unit?: string | null;
+  step?: string | null;
   status?: string | null;
   rating?: string | null;
   started?: string | null;
@@ -603,7 +630,7 @@ export interface TrackerFields {
   notes?: string | null;
 }
 
-const FIELD_ORDER = ["title", "kind", "season", "cover", "progress", "unit", "status", "rating", "started", "finished", "notes"] as const;
+const FIELD_ORDER = ["title", "kind", "season", "cover", "progress", "unit", "step", "status", "rating", "started", "finished", "folder", "notes"] as const;
 type FieldKey = (typeof FIELD_ORDER)[number];
 
 /** The lines of `body`, each with its own terminator, so what comes back is

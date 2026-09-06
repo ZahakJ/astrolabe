@@ -3866,6 +3866,127 @@ select:focus,
   border-bottom: 1px solid var(--border);
 }
 
+/* The tracker section: a Media work above the note you are in, or the notes
+   under the work you are on. Same header row as the local graph. */
+.s-trackerpanel__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+.s-trackerpanel__work {
+  padding: 8px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.s-trackerpanel__open {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: start;
+}
+.s-trackerpanel__open:hover .s-trackerpanel__title {
+  color: var(--accent);
+}
+.s-trackerpanel__glyph {
+  color: var(--accent);
+  display: inline-flex;
+}
+.s-trackerpanel__track {
+  block-size: 5px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  overflow: hidden;
+}
+.s-trackerpanel__fill {
+  display: block;
+  block-size: 100%;
+  background: var(--accent);
+  transition: inline-size 300ms ease;
+}
+.s-trackerpanel__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+.s-trackerpanel__steps {
+  display: inline-flex;
+  gap: 4px;
+}
+.s-trackerpanel__step {
+  inline-size: 26px;
+  block-size: 24px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-raised);
+  color: var(--text);
+  cursor: pointer;
+}
+.s-trackerpanel__step:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.s-trackerpanel__step:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.s-trackerpanel__notes {
+  list-style: none;
+  margin: 0;
+  padding: 4px 8px 10px;
+  max-block-size: 40vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.s-trackerpanel__note {
+  display: block;
+  inline-size: 100%;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  text-align: start;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.s-trackerpanel__note:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
+.s-trackerpanel__empty {
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
 .s-localgraph__header {
   border-bottom: none;
   padding-inline-start: 8px;

@@ -36,6 +36,25 @@ import { makeDir, makeVault, note, removeVault } from "./helpers/vault.ts";
 
 // ── The parser ──────────────────────────────────────────────────────────────
 
+describe("parseTracker: step", () => {
+  it("moves pages and minutes by ten, everything else by one, unless told", () => {
+    assert.equal(parseTracker("title: A\nkind: book\nprogress: 4/1250")?.step, 10);
+    assert.equal(parseTracker("title: A\nprogress: 4/1250\nunit: صفحات")?.step, 10);
+    assert.equal(parseTracker("title: A\nkind: book\nprogress: 1/14\nunit: chapters")?.step, 1);
+    assert.equal(parseTracker("title: A\nkind: game\nprogress: 62/?")?.step, 1);
+    assert.equal(parseTracker("title: A\nkind: book\nprogress: 4/1250\nstep: 25")?.step, 25);
+    assert.equal(parseTracker("title: A\nkind: book\nprogress: 4/1250\nstep: nope")?.step, 10);
+  });
+});
+
+describe("parseTracker: folder", () => {
+  it("reads a vault folder, trimmed of slashes, and refuses a climb", () => {
+    assert.equal(parseTracker("title: A\nfolder: /1 - Source/Books/X/")?.folder, "1 - Source/Books/X");
+    assert.equal(parseTracker("title: A\nfolder: ../secrets")?.folder, null);
+    assert.equal(parseTracker("title: A")?.folder, null);
+  });
+});
+
 describe("parseTracker: progress", () => {
   it("reads a done/total fraction and derives the percentage", () => {
     const tr = parseTracker("title: Elden Ring\nprogress: 62/130\n");

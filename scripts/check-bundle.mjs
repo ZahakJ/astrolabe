@@ -571,7 +571,13 @@ const AUDIENCES = [
   // The page, its form, its model and its stylesheet are MediaView-*.js
   // behind the button — asserted split below — so what the entry pays is,
   // once more, the words.
-{ name: "entry (everyone)", keys: entry, budget: 602 * 1024 },
+  // …and again for A WORK'S NOTES (603.6 kB actual → 608, actual + ~0.7%):
+  // the right panel's tracker section — the parent above a child note, the
+  // children under a tracker — with its dozen rows, the unit-word table that
+  // agrees "chapters" and «فصول» (its own module, `client/trackerUnits.ts`,
+  // so the panel did not drag the reading renderer into the entry), and the
+  // folder chip's strings. The Media page itself stays behind its button.
+{ name: "entry (everyone)", keys: entry, budget: 608 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -746,7 +752,9 @@ const AUDIENCES = [
   // folder verbs.
   // …and again for THE MEDIA PAGE (835.8 kB actual → 840): the dictionary,
   // as above — nothing of the page itself reaches a blog reader.
-  { name: "anonymous blog reader", keys: blog, budget: 840 * 1024 },
+  // …and again for A WORK'S NOTES (840.5 kB actual → 846): the dictionary and
+  // the rendered card's one folder line.
+  { name: "anonymous blog reader", keys: blog, budget: 846 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -833,7 +841,9 @@ const AUDIENCES = [
   // the pane grips and the draggable graph panel.
   // …and again for THE MEDIA PAGE (1234.8 kB actual → 1240): the dictionary,
   // the status bar's one more door and the palette's row.
-  { name: "admin first paint", keys: app, budget: 1240 * 1024 },
+  // …and again for A WORK'S NOTES (1245.0 kB actual → 1252): the panel
+  // section and its styles, as above.
+  { name: "admin first paint", keys: app, budget: 1252 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

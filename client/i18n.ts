@@ -391,6 +391,8 @@ const DICT = {
   thSiderealDesc: { en: "Starlight on a moonless sky", ar: "ضوء النجوم على سماء بلا قمر" },
   thMurex: { en: "Murex", ar: "أرجوان" },
   thMurexDesc: { en: "Tyrian purple on a violet night", ar: "أرجوان صُوري على ليل بنفسجي" },
+  thGraphite: { en: "Graphite", ar: "غرافيت" },
+  thGraphiteDesc: { en: "Solid neutral greys, gold leaf", ar: "رماديات محايدة صلبة، ورق ذهب" },
   thParchment: { en: "Parchment", ar: "رَقّ" },
   thParchmentDesc: { en: "Gold leaf on warm paper", ar: "ذهب على ورق دافئ" },
   thSandstone: { en: "Sandstone", ar: "حجر رملي" },
@@ -4143,6 +4145,25 @@ const DICT = {
   },
   mediaFormUnit: { en: "Unit", ar: "الوحدة" },
   mediaFormSeason: { en: "Season", ar: "الموسم" },
+  mediaFormStep: { en: "Nudge by", ar: "خطوة الدفع" },
+  mediaFormFolder: { en: "Notes in the vault", ar: "الملاحظات في الخزانة" },
+  trackerFolderNotes: { en: "Notes in {folder}", ar: "ملاحظات في {folder}" },
+  panelTrackedIn: { en: "Tracked in", ar: "متابَع في" },
+  trackerStepFailed: { en: "The nudge did not save.", ar: "لم يُحفظ الدفع." },
+  panelWorkNotes: { en: "Notes of this work", ar: "ملاحظات هذا العمل" },
+  panelWorkNoNotes: { en: "No notes in its folder yet.", ar: "لا ملاحظات في مجلده بعد." },
+  panelOpenTracker: { en: "Open the tracker", ar: "افتح المتتبع" },
+  showTrackerPanel: { en: "Show the tracker", ar: "إظهار المتتبع" },
+  hideTrackerPanel: { en: "Hide the tracker", ar: "إخفاء المتتبع" },
+  mediaFormFolderHint: {
+    en: "A folder of your own notes on this work. The card counts them and opens the folder.",
+    ar: "مجلد ملاحظاتك عن هذا العمل. تعدّها البطاقة وتفتح المجلد.",
+  },
+  mediaFormFolderChoose: { en: "Choose a folder…", ar: "اختر مجلدًا…" },
+  mediaFormFolderNone: { en: "No folder linked", ar: "لا مجلد مرتبط" },
+  mediaFormFolderClear: { en: "Unlink the folder", ar: "فكّ ربط المجلد" },
+  mediaFolderNotes: { en: "{count} in {folder}", ar: "{count} في {folder}" },
+  mediaFolderOpen: { en: "Open the notes of {title}", ar: "افتح ملاحظات {title}" },
   mediaFormStatus: { en: "Status", ar: "الحالة" },
   mediaFormRating: { en: "Rating", ar: "التقييم" },
   mediaFormRatingUnit: { en: "of 10", ar: "من ١٠" },
@@ -4243,6 +4264,7 @@ export type CountUnit =
   | "trashItems"
   | "publishedNotes"
   | "links"
+  | "chapters"
   // What a vault-wide replace is about to WRITE, as opposed to how many notes
   // it will touch. Both numbers are in the same sentence and they are rarely
   // the same number — "3 replacements in 2 notes" is the shape of the answer —
@@ -4335,6 +4357,7 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   minutes: { en: ["minute", "minutes"], ar: { one: "دقيقة واحدة", two: "دقيقتان", few: "دقائق", many: "دقيقة" } },
   episodes: { en: ["episode", "episodes"], ar: { one: "حلقة واحدة", two: "حلقتان", few: "حلقات", many: "حلقة" } },
   lessons: { en: ["lesson", "lessons"], ar: { one: "درس واحد", two: "درسان", few: "دروس", many: "درسًا" } },
+  chapters: { en: ["chapter", "chapters"], ar: { one: "فصل واحد", two: "فصلان", few: "فصول", many: "فصلًا" } },
   tasks: { en: ["task", "tasks"], ar: { one: "مهمة واحدة", two: "مهمتان", few: "مهام", many: "مهمة" } },
   days: { en: ["day", "days"], ar: { one: "يوم واحد", two: "يومان", few: "أيام", many: "يومًا" } },
 };

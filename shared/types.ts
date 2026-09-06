@@ -677,6 +677,15 @@ export interface TrackerMeta {
   season: string | null;
   /** `notes:`, as authored (markdown), for the Media page's card. */
   notes: string | null;
+  /** `folder:` — the vault folder of this work's own notes, or null. Admin
+   *  only: a visitor's shelf never names a folder of the vault. */
+  folder: string | null;
+  /** One press of − / + moves the count by this much (see Tracker.step). */
+  step: number;
+  /** How many notes live under `folder`, and the folder's own note (a note
+   *  named like it, or index.md) when there is one — the card's door. */
+  folderNotes: number;
+  folderNote: string | null;
   title: string;     // the tracker's own title ("Elden Ring")
   noteTitle: string; // the note's title — the card's tooltip, since one note may hold many
   kind: string | null;   // as authored ("game", "مسلسل"); null when the fence names none

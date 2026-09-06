@@ -82,7 +82,7 @@ Beyond the sections, a design carries the frame:
 - **Article page** — which furniture an article keeps: banner, meta line, tags, related posts,
   the back link.
 - **Theme** — a design is a look, and a look is a theme plus a layout, so the design names one of
-  the [twenty-one themes](theming.md) (or a custom one). It applies to visitors who have not chosen a
+  the [twenty-two themes](theming.md) (or a custom one). It applies to visitors who have not chosen a
   theme of their own; `null` leaves `settings.defaultTheme` alone.
 - **Site** — the section column's width in px, and `compact` / `regular` / `roomy` density.
 

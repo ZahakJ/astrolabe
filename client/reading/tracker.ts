@@ -37,7 +37,9 @@ import {
 import type { TrackerMeta } from "../../shared/types.ts";
 import { getTrackers } from "../api.ts";
 import { siteDate } from "../dates.ts";
-import { autoDir, countPhrase, localeNum, t, tf, type CountUnit, type I18nKey } from "../i18n.ts";
+import { autoDir, countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
+import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
+export { KIND_UNIT, unitKey } from "../trackerUnits.ts";
 import { Lru } from "../lru.ts";
 import { useStore } from "../state.ts";
 import {
@@ -83,21 +85,6 @@ const KIND_LABEL: Record<TrackerKind, I18nKey> = {
   course: "trackerKindCourse",
   project: "trackerKindProject",
   habit: "trackerKindHabit",
-};
-
-/** What each kind is counted in when the author names no `unit:`. These are
- *  countPhrase keys, not words: "130 pages" is "١٣٠ صفحات" in Arabic and a
- *  bare English noun on an Arabic card is exactly the half-translation
- *  check-i18n exists to catch. An author's own `unit:` is CONTENT and prints
- *  as they wrote it. */
-export const KIND_UNIT: Record<TrackerKind, CountUnit> = {
-  book: "pages",
-  game: "hours",
-  film: "minutes",
-  show: "episodes",
-  course: "lessons",
-  project: "tasks",
-  habit: "days",
 };
 
 /** The board's reading order: what you are doing now, then what you mean to
@@ -162,6 +149,8 @@ function dateText(raw: string): string {
 function fractionText(tracker: Tracker): string | null {
   if (tracker.done === null || tracker.total === null) return null;
   if (tracker.unit !== null) {
+    const known = unitKey(tracker.unit);
+    if (known !== null) return `${localeNum(tracker.done)} / ${countPhrase(tracker.total, known)}`;
     return `${localeNum(tracker.done)} / ${localeNum(tracker.total)} ${tracker.unit}`;
   }
   if (tracker.kindKey !== null) {
@@ -228,15 +217,37 @@ function mountCover(
     img.src = fileUrl(path);
     slot.replaceChildren(img);
   };
-  const resolved = resolveAttachment(name);
-  if (typeof resolved === "string") mount(resolved);
-  else if (resolved === null) fallback();
-  else {
-    fallback(); // the glyph holds the box's size while the lookup is out
-    void resolved.then((path) => {
-      if (path && slot.isConnected) mount(path);
-    });
+  // An https cover is the picture itself; the Media form writes those and
+  // the Media page already draws them.
+  if (/^https:\/\//i.test(name)) {
+    const img = document.createElement("img");
+    img.className = "s-rv-tracker__coverimg";
+    img.alt = "";
+    img.draggable = false;
+    img.onload = () => hooks.onResize?.();
+    img.onerror = fallback;
+    img.src = name;
+    slot.replaceChildren(img);
+    return;
   }
+  // The attachment index answers to basenames, the way `![[cover.jpg]]`
+  // does; a cover written as a vault PATH (`attachments/cover.jpg`, which is
+  // what the Media form's picker writes) is looked up by its last segment
+  // when the whole path finds nothing — the same ladder the server climbs.
+  const settle = (resolved: string | null | Promise<string | null>, retry: (() => void) | null): void => {
+    if (typeof resolved === "string") mount(resolved);
+    else if (resolved === null) (retry ?? fallback)();
+    else {
+      fallback(); // the glyph holds the box's size while the lookup is out
+      void resolved.then((path) => {
+        if (!slot.isConnected) return;
+        if (path) mount(path);
+        else retry?.();
+      });
+    }
+  };
+  const base = name.includes("/") ? (name.split("/").pop() ?? name) : null;
+  settle(resolveAttachment(name), base ? () => settle(resolveAttachment(base), null) : null);
 }
 
 // ── The card ────────────────────────────────────────────────────────────────
@@ -330,6 +341,12 @@ export function renderTrackerCard(tracker: Tracker, hooks: TrackerHooks): HTMLEl
       el("span", `s-rv-tracker__date${i === 0 ? " s-rv-tracker__date--lead" : ""}`, text),
     );
   }
+  // The folder of the work's own notes, by its last name: the reader knows
+  // their vault, and the Media page is where the count and the door live.
+  if (tracker.folder !== null) {
+    const name = tracker.folder.split("/").pop() ?? tracker.folder;
+    meta.appendChild(el("span", "s-rv-tracker__folder", tf("trackerFolderNotes", { folder: name })));
+  }
   if (meta.childNodes.length > 0) body.appendChild(meta);
 
   if (tracker.rating !== null) {
@@ -363,8 +380,8 @@ export function renderTrackerCard(tracker: Tracker, hooks: TrackerHooks): HTMLEl
   if (onStep) {
     const step = el("div", "s-rv-tracker__step");
     for (const [delta, key, label] of [
-      [1, "+", "trackerStepUp"],
-      [-1, "−", "trackerStepDown"],
+      [tracker.step, "+", "trackerStepUp"],
+      [-tracker.step, "−", "trackerStepDown"],
     ] as const) {
       const button = document.createElement("button");
       button.className = "s-rv-tracker__stepbtn";

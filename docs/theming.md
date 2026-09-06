@@ -1,6 +1,6 @@
 # Theming
 
-*The twenty-one built-in themes, the ambient masthead, the custom-theme builder, the CSS token API, and `custom.css`.*
+*The twenty-two built-in themes, the ambient masthead, the custom-theme builder, the CSS token API, and `custom.css`.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
@@ -16,7 +16,7 @@ sidebar, the browser tab titles (`Note · Night Garden`), and the sign-in modal.
 
 ## Pick the default look
 
-Vellum ships **twenty-one** themes — fourteen dark rooms and seven lit ones. Every one of them
+Vellum ships **twenty-two** themes — fifteen dark rooms and seven lit ones. Every one of them
 defines the whole palette for itself (ground, type, accent, selection, focus ring, graph, all
 thirteen callout hues, all eight syntax colors), so none of them is another theme wearing a
 different background.
@@ -39,6 +39,7 @@ different background.
 | `phosphor` | CRT green-black, P1 phosphor green | | |
 | `sidereal` | blue-violet deep space, starlight | | |
 | `murex` | violet-black, Tyrian purple | | |
+| `graphite` | solid neutral greys (GitHub dark), gold leaf; the brand's room | | |
 
 Six of them arrived together, and each was drawn for a room the set did not have:
 
