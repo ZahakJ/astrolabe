@@ -99,11 +99,21 @@
    a footnote. */
 /* A field under a segmented control, in the same row (the custom width). */
 .s-smodal__inline {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
   align-items: center;
-  gap: 8px 12px;
-  margin-top: 8px;
+  gap: 6px 12px;
+  margin-top: 10px;
+}
+
+.s-smodal__inline .s-ctl-input {
+  inline-size: 9rem;
+}
+
+.s-smodal__inline-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .s-smodal__note {

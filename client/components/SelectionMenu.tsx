@@ -47,6 +47,7 @@
 
 import "../styles/selection.css";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { stripAlignMarker, withAlignMarker, type BlockAlign } from "../../shared/blockAlign.ts";
 import { createRoot, type Root } from "react-dom/client";
 import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { Prec, type Extension } from "@codemirror/state";
@@ -346,12 +347,25 @@ function pagesFor(
       }),
     ],
   };
+  // Alignment, per BLOCK: every paragraph or heading the selection touches
+  // takes the marker at the end of its last line (shared/blockAlign.ts), the
+  // same one `/center` and a picture's hover buttons write. "None" strips it.
+  const alignRows: Group = {
+    title: "selGroupAlign",
+    rows: [
+      act("alignLeft", (v) => alignSelection(v, "left")),
+      act("alignCenter", (v) => alignSelection(v, "center")),
+      act("alignRight", (v) => alignSelection(v, "right")),
+      act("alignJustify", (v) => alignSelection(v, "justify")),
+      act("alignNone", (v) => alignSelection(v, null)),
+    ],
+  };
   const back = (title: I18nKey, rows: Row[]): Group[] => [{ title, rows }];
   return {
     root: tex
       ? [style, doors, annotate, toolbar]
       : [style, colour, doors, extract, annotate, toolbar],
-    structure: [...back("selGroupStructure", structure.rows), caseRows],
+    structure: [...back("selGroupStructure", structure.rows), alignRows, caseRows],
     insert: back("selGroupInsert", insert.rows),
     callout: back("tbGroupCallout", callout.rows),
   };
@@ -412,6 +426,37 @@ function flatten(groups: Group[]): { group: number; row: number }[] {
   const out: { group: number; row: number }[] = [];
   groups.forEach((g, gi) => g.rows.forEach((_, ri) => out.push({ group: gi, row: ri })));
   return out;
+}
+
+/** Align every block the main selection touches. A block is a run of
+ *  non-blank lines (a paragraph, a heading, an image line); the marker goes
+ *  on its LAST line and any marker on its other lines is stripped, so a
+ *  block never says two things. One transaction, so one undo. */
+export function alignSelection(view: EditorView, align: BlockAlign | null): void {
+  const { doc } = view.state;
+  const sel = view.state.selection.main;
+  let first = doc.lineAt(sel.from).number;
+  let last = doc.lineAt(sel.to).number;
+  // Grow to the blocks' own edges.
+  while (first > 1 && doc.line(first - 1).text.trim() !== "" && doc.line(first).text.trim() !== "") first--;
+  while (last < doc.lines && doc.line(last + 1).text.trim() !== "" && doc.line(last).text.trim() !== "") last++;
+  const changes: { from: number; to: number; insert: string }[] = [];
+  let n = first;
+  while (n <= last) {
+    if (doc.line(n).text.trim() === "") {
+      n++;
+      continue;
+    }
+    let end = n;
+    while (end < last && doc.line(end + 1).text.trim() !== "") end++;
+    for (let k = n; k <= end; k++) {
+      const line = doc.line(k);
+      const next = k === end ? withAlignMarker(line.text, align) : stripAlignMarker(line.text);
+      if (next !== line.text) changes.push({ from: line.from, to: line.to, insert: next });
+    }
+    n = end + 1;
+  }
+  if (changes.length > 0) view.dispatch({ changes, userEvent: "input" });
 }
 
 /** Which colour tier the reader last chose, for the session. A per-menu state

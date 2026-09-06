@@ -1006,6 +1006,16 @@ and folder-move routes carry entries to the new path. The owner reads and writes
 of any note; a visitor reads the PUBLIC ones of a PUBLISHED note and never learns the private ones
 exist — the comments gate, line for line. `public` is off by default: a note to self is to self.
 
+## Arabic descenders in ellipsis labels (3.3.2)
+
+`overflow: hidden` on a one-line ellipsis label clips at the line box, and an Arabic face's ح, م,
+ج and ي reach below it — a friend saw every one of them cut in the tree. The tree label, the tab
+title, the breadcrumb and the palette title use `overflow: clip` with an `overflow-clip-margin`
+(3–5px) instead: `text-overflow: ellipsis` still applies to `clip`, the ellipsis still replaces the
+overflowing text, and the ink may spill a few pixels past the box on every side. The tree label
+also takes the row's full line height so its box IS the row. Measured on a canvas with the
+label's own font: ascent 11 + descent 6 in a 28px box, nothing clipped.
+
 ## The tree's arrangement (client/treeOrder.ts, Sidebar.tsx)
 
 Per browser (`localStorage["astrolabe.treeOrder"]`: `sort` name|name-desc|manual, `order` parent →
@@ -1023,11 +1033,11 @@ everything inside" writes the expanded map under one folder (`setFoldersUnder`) 
 
 ## The writing column (client/editorWidth.ts)
 
-`localStorage["astrolabe.editorWidth"]` measure|wide|wider|full|custom → `data-editor-width` on `<html>` at boot
+`localStorage["astrolabe.editorWidth"]` measure|wide|full|custom (3.3.2 dropped `wider`; a device that
+kept it reads as `custom` at 1200px) → `data-editor-width` on `<html>` at boot
 (main.tsx) and on change; app.css reads it into `--editor-measure`, which the editor's
 `.cm-content`, the reading view's `.s-reading__content` (3.3.0; it used to keep 760px whatever the
-choice), zen's editor and zen's reading column take (648 / 760 / 672 / 800px defaults; wide 960,
-wider 1200). Full width gives the scroller a gutter instead. **Custom** (3.3.0) stores a CSS length
+choice), zen's editor and zen's reading column take (648 / 760 / 672 / 800px defaults; wide 960). Full width gives the scroller a gutter instead. **Custom** (3.3.0) stores a CSS length
 in `astrolabe.editorWidthCustom` (`normalizeCustomWidth`: 320–2400px or 30–100%) and sets
 `--editor-measure` inline on `<html>`, applied on every keystroke of the field. Settings → This
 device row.
@@ -2550,7 +2560,10 @@ A block says where it sits with a trailing `{.left}` / `{.center}` / `{.right}` 
 classes every line of the block `cm-s-align-<a>` and hides the marker off the active line; the
 reading view classes the `<p>`/`<h*>` `s-rv-align-<a>` and strips it. Both rules outrank the
 note-level `[data-note-align]`. `/center`, `/right`, `/left` in the slash menu write the marker
-for the caret's line (`alignLine`).
+for the caret's line (`alignLine`); the selection menu's Structure page carries an Align group
+(`alignSelection`: every block the selection touches, marker on the last line, one transaction).
+The outline and the `[[Note#Heading]]` completions strip the marker from heading text
+(`client/reading/toc.ts`, `client/editor/links.ts`).
 
 **The picture stays while its line is edited.** An image embed on the ACTIVE line used to be
 replaced by its source, which shrank the line by the picture's height and jumped the view; now

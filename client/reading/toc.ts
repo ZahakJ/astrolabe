@@ -2,6 +2,7 @@
 // reads, so the outline's idea of what is code and the anchor table's cannot
 // drift. See that file for what a marker-blind toggle cost.
 import { closesFence, fenceOpener, sourceLines, type Fence } from "../../shared/fences.ts";
+import { stripAlignMarker } from "../../shared/blockAlign.ts";
 import { isTexPath } from "../../shared/noteFormat.ts";
 import { inlineText as texInlineText, parseTex } from "../../shared/tex.ts";
 
@@ -119,7 +120,8 @@ export function extractHeadings(md: string): Heading[] {
       continue;
     }
     finalize();
-    const text = stripInline(m[2]);
+    // `# Title {.center}` is "Title" in the outline (shared/blockAlign.ts).
+    const text = stripInline(stripAlignMarker(m[2]));
     current = { level: m[1].length, text, slug: slugger.slug(text), line: i + 1 };
     out.push(current);
     sawContent = false;

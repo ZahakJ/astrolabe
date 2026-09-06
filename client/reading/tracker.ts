@@ -328,30 +328,25 @@ export function renderTrackerCard(tracker: Tracker, hooks: TrackerHooks): HTMLEl
     star.title = t("trackerComplete");
     meta.appendChild(star);
   }
-  // The dates are their own group at the far end of the line. They go in as
-  // SIBLINGS of the counts rather than in a box of their own, so the meta
-  // line's one hairline rule separates them from each other too — two runs of
-  // text with nothing but whitespace between them is the ambiguity the
-  // separator rule exists to end.
+  // The dates follow the counts in the same run, hairline-separated like every
+  // other pair. They used to be pushed to the far end of the line, which read
+  // as one fact stranded across a gap — worst in Arabic, where the friend's
+  // card had the date alone at the left edge and the stars on a line of their
+  // own. One run, one rhythm, wrapping when it must.
   const dates: string[] = [];
   if (tracker.started !== null) dates.push(tf("trackerStarted", { date: dateText(tracker.started) }));
   if (tracker.finished !== null) dates.push(tf("trackerFinished", { date: dateText(tracker.finished) }));
-  for (const [i, text] of dates.entries()) {
-    meta.appendChild(
-      el("span", `s-rv-tracker__date${i === 0 ? " s-rv-tracker__date--lead" : ""}`, text),
-    );
-  }
+  for (const text of dates) meta.appendChild(el("span", "s-rv-tracker__date", text));
   // The folder of the work's own notes, by its last name: the reader knows
   // their vault, and the Media page is where the count and the door live.
   if (tracker.folder !== null) {
     const name = tracker.folder.split("/").pop() ?? tracker.folder;
     meta.appendChild(el("span", "s-rv-tracker__folder", tf("trackerFolderNotes", { folder: name })));
   }
-  if (meta.childNodes.length > 0) body.appendChild(meta);
-
   if (tracker.rating !== null) {
     const { value, max } = tracker.rating;
-    const stars = el("div", "s-rv-tracker__stars");
+    // The stars are one more cell of the meta run, not a line of their own.
+    const stars = el("span", "s-rv-tracker__stars");
     // The stars are the PICTURE of the rating; the sentence beside them in the
     // accessibility tree is the rating. aria-hidden on the glyphs would fight
     // the label, so the row carries the label and the glyphs are its text.
@@ -366,8 +361,9 @@ export function renderTrackerCard(tracker: Tracker, hooks: TrackerHooks): HTMLEl
         el("span", `s-rv-tracker__star s-rv-tracker__star--${on ? "on" : "off"}`, on ? "★" : "☆"),
       );
     }
-    body.appendChild(stars);
+    meta.appendChild(stars);
   }
+  if (meta.childNodes.length > 0) body.appendChild(meta);
 
   if (hooks.notesHtml) {
     const notes = el("div", "s-rv-tracker__notes");

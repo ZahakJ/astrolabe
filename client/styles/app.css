@@ -450,7 +450,8 @@ select:focus,
   color: var(--text-muted);
   font-size: 0.929rem;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 3px; /* the label's descenders, see .s-tree__label */
   cursor: pointer;
   user-select: none;
   transition: background 0.15s ease, color 0.15s ease;
@@ -494,9 +495,18 @@ select:focus,
   padding-inline-start: 16px;
 }
 
+/* ARABIC DESCENDERS ARE NOT CLIPPED. `overflow: hidden` on an ellipsis
+   label cuts at the line box, and an Arabic face's ح, م and ج reach below
+   it — a friend saw every one of them "eaten" in the tree. `clip` with a
+   clip margin keeps the ellipsis (the text-overflow rule still applies) and
+   lets the ink spill a few pixels past the box on every side; the label
+   also takes the row's full height so the box is the row. Same treatment
+   for every ellipsis label a note name can reach. */
 .s-tree__label {
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 5px;
   text-overflow: ellipsis;
+  line-height: 1.8rem;
 }
 
 .s-tree__rename {
@@ -1077,7 +1087,8 @@ select:focus,
 }
 
 .s-tab-title {
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 5px;
   text-overflow: ellipsis;
 }
 
@@ -2761,7 +2772,8 @@ select:focus,
 }
 
 .s-statusbar__crumb {
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 4px;
   text-overflow: ellipsis;
 }
 
@@ -2972,7 +2984,8 @@ select:focus,
 .s-palette-item-title {
   flex: none;
   max-width: 60%;
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 4px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6785,10 +6798,6 @@ button.s-title:hover {
    the same value where it sets one. */
 html[data-editor-width="wide"] {
   --editor-measure: 960px;
-}
-
-html[data-editor-width="wider"] {
-  --editor-measure: 1200px;
 }
 
 html[data-editor-width="full"] {

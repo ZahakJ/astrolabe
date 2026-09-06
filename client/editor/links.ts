@@ -1,5 +1,6 @@
 // Wikilink parsing + resolution against the vault tree held in the zustand store.
 
+import { stripAlignMarker } from "../../shared/blockAlign.ts";
 import { closesFence, fenceOpener, sourceLines, type Fence } from "../../shared/fences.ts";
 import type { AliasEntry, TreeNode } from "../../shared/types.ts";
 import { isNotePath, noteCandidates, stripNoteExt } from "../../shared/noteFormat.ts";
@@ -152,7 +153,8 @@ export function extractHeadings(content: string): string[] {
       continue;
     }
     const m = /^\s{0,3}#{1,6}\s+(.+?)\s*$/.exec(line);
-    if (m) out.push(m[1]);
+    // `# Title {.center}` is titled "Title" (shared/blockAlign.ts).
+    if (m) out.push(stripAlignMarker(m[1]));
   }
   return out;
 }
