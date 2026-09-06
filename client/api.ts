@@ -82,6 +82,12 @@ export function setReaderLang(lang: string | null): void {
   readerLang = lang;
 }
 
+/** Has any language been declared yet? loadMe() asks so it can send the
+ *  stored visitor choice on the very first request. */
+export function hasReaderLang(): boolean {
+  return readerLang !== null;
+}
+
 /** Merge the session headers (preview, reader language) into a fetch init —
  *  for the few callers outside this module that fetch /api/* directly. */
 export function withPreview(init?: RequestInit): RequestInit | undefined {

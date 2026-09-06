@@ -1350,6 +1350,17 @@ export const useStore = create<State>()((set, get) => {
 
     loadMe: async () => {
       try {
+        // DECLARE THE VISITOR'S LANGUAGE BEFORE THE FIRST /api/me, not after
+        // it. The header was set from the RESOLVED language further down, so
+        // the boot request went out with none and the server scoped it to the
+        // site language: on an Arabic site a visitor who had switched to
+        // English refreshed and the library door vanished, because /api/me
+        // answers "is there a lesson this session may read" under the
+        // language it was asked in. The stored choice is what the resolved
+        // language will be for a visitor anyway; the server ignores the
+        // header for an admin and while the toggle is off, and the resolved
+        // value below overwrites this in every case.
+        if (!api.hasReaderLang()) api.setReaderLang(readVisitorLang());
         const me = await api.getMe();
         // A preview flag the server did NOT honor (me.preview absent) means
         // the admin session is gone — we are a real visitor now, so drop the
