@@ -1,0 +1,630 @@
+/* Vellum — the Media page (client/media/MediaView.tsx, MediaForm.tsx).
+   Its own file, loaded with the page's lazy chunk: app.css is in every first
+   paint and nothing here is needed before the button is pressed.
+
+   THREE RULES FROM THE OWNER, and the layout is their consequence:
+     · the kinds stack VERTICALLY, a hairline between them, and the page
+       scrolls — the shelves are sections of one column, never a carousel;
+     · a shelf is at most FIVE works across, so a card never shrinks to a
+       stamp and never grows to a poster. The count is a container query on
+       the page, so the same rule holds beside an open sidebar;
+     · it NEVER scrolls sideways. Every grid track is minmax(0, 1fr), every
+       text block has min-inline-size: 0, and the page itself hides x overflow
+       as the belt to those braces.
+
+   Logical properties throughout: an Arabic instance reads the shelves from
+   the right, and each card takes its TITLE's direction (dir set per card),
+   so the bar fills from the side the title starts on — the tracker card's
+   own rule (client/reading/tracker.css). Tokens only. */
+
+.s-media {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  container-type: inline-size;
+  padding: 28px clamp(16px, 4cqi, 48px) 64px;
+  background: var(--bg);
+  scrollbar-width: thin;
+}
+
+/* ── Head ──────────────────────────────────────────────────────────────── */
+
+.s-media__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  max-inline-size: 1240px;
+  margin-inline: auto;
+}
+
+.s-media__headtext {
+  min-inline-size: 0;
+}
+
+.s-media__h1 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.714rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.s-media__lead {
+  margin: 4px 0 0;
+  font-size: 0.929rem;
+  color: var(--text-muted);
+}
+
+.s-media__addbtn {
+  flex: none;
+  padding: 6px 14px;
+}
+
+/* ── Filters ───────────────────────────────────────────────────────────── */
+
+.s-media__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-inline-size: 1240px;
+  margin: 18px auto 0;
+}
+
+.s-media__filter {
+  font: inherit;
+  font-size: 0.857rem;
+  padding: 4px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.s-media__filter:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.s-media__filter--on,
+.s-media__filter--on:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ── Shelves ───────────────────────────────────────────────────────────── */
+
+.s-media__shelf {
+  max-inline-size: 1240px;
+  margin: 28px auto 0;
+  padding-block-start: 22px;
+  /* THE DIVIDER. One hairline between kinds, and the first shelf's own
+     hairline separates it from the filters above. */
+  border-block-start: 1px solid var(--border);
+}
+
+.s-media__shelfhead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-family: var(--font-serif);
+  font-size: 1.143rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.s-media__shelfglyph {
+  display: inline-flex;
+  color: var(--text-muted);
+}
+
+.s-media__shelfcount {
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  color: var(--text-faint);
+  padding-inline-start: 2px;
+}
+
+/* THE CAP. Two across on a phone, up to five in a wide window; the
+   thresholds are the page's own width (a container query), so a shelf
+   beside an open sidebar counts its columns from the room it actually has. */
+.s-media__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 16px;
+}
+
+@container (min-width: 560px) {
+  .s-media__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 820px) {
+  .s-media__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 1080px) {
+  .s-media__grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* ── One card ──────────────────────────────────────────────────────────── */
+
+.s-media__card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-inline-size: 0;
+  padding: 10px 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.s-media__card:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.s-media__open {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  min-inline-size: 0;
+  border-radius: var(--radius);
+}
+
+.s-media__open:hover {
+  background: transparent;
+}
+
+.s-media__open:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.s-media__cover {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: calc(var(--radius) - 1px);
+  background: var(--bg-hover);
+}
+
+.s-media__coverimg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.s-media__open:hover .s-media__coverimg {
+  transform: scale(1.03);
+}
+
+/* No cover: the kind, large and quiet — never a broken picture. */
+.s-media__coverfall {
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  block-size: 100%;
+  color: var(--text-muted);
+}
+
+.s-media__season {
+  position: absolute;
+  inset-block-end: 6px;
+  inset-inline-start: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.714rem;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  color: var(--text);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.s-media__title {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.3;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* ── The bar ───────────────────────────────────────────────────────────── */
+
+.s-media__track {
+  position: relative;
+  block-size: 6px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  overflow: hidden;
+}
+
+.s-media__fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) 90%, transparent),
+    color-mix(in srgb, var(--accent) 65%, transparent)
+  );
+  transition: inline-size 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.s-media__fill:dir(rtl) {
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--accent) 90%, transparent),
+    color-mix(in srgb, var(--accent) 65%, transparent)
+  );
+}
+
+.s-media__card--done .s-media__fill {
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.s-media__meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  min-inline-size: 0;
+}
+
+.s-media__pct {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.s-media__count {
+  overflow-wrap: anywhere;
+}
+
+.s-media__flourish {
+  color: var(--accent);
+}
+
+/* ── Status, rating, dates, notes ──────────────────────────────────────── */
+
+.s-media__line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.s-media__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  font-size: 0.714rem;
+  letter-spacing: 0.02em;
+}
+
+.s-media__status--active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.s-media__dot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.s-media__status--done .s-media__dot {
+  background: var(--callout-success);
+}
+
+.s-media__status--paused .s-media__dot {
+  background: var(--callout-warning);
+}
+
+.s-media__status--dropped .s-media__dot {
+  background: var(--callout-quote);
+}
+
+.s-media__rating {
+  font-size: 0.786rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.s-media__dates {
+  font-size: 0.714rem;
+  color: var(--text-faint);
+  overflow-wrap: anywhere;
+}
+
+.s-media__notes {
+  margin: 0;
+  font-size: 0.821rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+/* ── Actions ───────────────────────────────────────────────────────────── */
+
+.s-media__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: auto;
+  padding-block-start: 4px;
+}
+
+.s-media__stepbtn {
+  inline-size: 28px;
+  block-size: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.s-media__stepbtn:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.s-media__stepbtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.s-media__editbtn {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-block-size: 28px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.786rem;
+  cursor: pointer;
+}
+
+.s-media__editbtn:hover {
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .s-media__stepbtn {
+    inline-size: 44px;
+    block-size: 44px;
+  }
+
+  .s-media__editbtn,
+  .s-media__filter,
+  .s-media__addbtn {
+    min-block-size: 44px;
+  }
+}
+
+/* ── Empty ─────────────────────────────────────────────────────────────── */
+
+.s-media__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 80px auto 0;
+  max-inline-size: 420px;
+  text-align: center;
+  font-family: var(--font-serif);
+  color: var(--text-muted);
+}
+
+.s-media__emptystar {
+  font-size: 1.5rem;
+  color: var(--accent);
+}
+
+.s-media__emptytext {
+  margin: 0;
+  font-size: 1.071rem;
+  color: var(--text);
+}
+
+.s-media__emptyhint {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.929rem;
+}
+
+/* ── The form ──────────────────────────────────────────────────────────── */
+
+.s-mediaform {
+  inline-size: min(640px, calc(100vw - 32px));
+  max-block-size: min(84vh, 900px);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: s-palette-in 0.14s ease;
+}
+
+.s-mediaform__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px 10px;
+  border-block-end: 1px solid var(--border);
+}
+
+.s-mediaform__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.071rem;
+  font-weight: 500;
+  color: var(--text);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.s-mediaform__close {
+  font-size: 1.286rem;
+  line-height: 1;
+  padding: 2px 8px;
+  color: var(--text-faint);
+}
+
+.s-mediaform__close:hover {
+  color: var(--text);
+}
+
+.s-mediaform__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.s-mediaform__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.s-mediaform__label {
+  font-size: 0.786rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-mediaform__hint {
+  margin: 0;
+  font-size: 0.786rem;
+  color: var(--text-faint);
+}
+
+.s-mediaform__pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 14px;
+}
+
+.s-mediaform__coverrow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.s-mediaform__coverrow > .s-ctl-path {
+  flex: 1 1 260px;
+  min-inline-size: 0;
+}
+
+.s-mediaform__upload {
+  flex: none;
+  min-block-size: 32px;
+  border: 1px solid var(--border);
+}
+
+.s-mediaform__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.s-mediaform__progress > .s-ctl-num {
+  flex: 1 1 150px;
+}
+
+.s-mediaform__notes {
+  resize: vertical;
+  min-block-size: 72px;
+  line-height: 1.45;
+}
+
+.s-mediaform__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px 14px;
+  border-block-start: 1px solid var(--border);
+}
+
+.s-mediaform__error {
+  margin-inline-end: auto;
+  font-size: 0.857rem;
+  color: var(--danger);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .s-mediaform__foot .s-btn,
+  .s-mediaform__upload {
+    min-block-size: 44px;
+  }
+}

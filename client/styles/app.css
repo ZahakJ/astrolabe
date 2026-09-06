@@ -902,25 +902,55 @@ select:focus,
   padding-inline: 0;
 }
 
+/* THE STRIP IS A BOX; THE TABS SCROLL IN A BOX INSIDE IT. The strip used to
+   be the scroll container itself, with the top-right tool cluster's width
+   reserved as its end padding — and a scroll container's end padding exists
+   only at the END of its scroll, so with enough notes open the row's first
+   screen ran under the cluster and the last tabs on it sat behind the
+   buttons. The reservation is on the strip (a plain box that honours it)
+   and the overflow is the inner `.s-tabs__scroll`'s, whose width is the
+   strip's less that room: no tab can be drawn under the cluster in any
+   scroll position, and the strip's own background still runs under the
+   buttons. (client/components/Tabs.tsx, scrollRef.) */
 .s-tabs {
   display: flex;
   align-items: stretch;
-  overflow-x: auto;
+  overflow: hidden;
   flex: none;
   height: 2.5rem;
   background: var(--bg-raised);
   border-bottom: 1px solid var(--border);
-  scrollbar-width: none;
 }
 
-.s-tabs::-webkit-scrollbar {
-  display: none;
+.s-tabs__scroll {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* A thin rule, only while there is more row than window; the row is
+     also draggable by wheel and the active tab is scrolled into view. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.s-tabs__scroll::-webkit-scrollbar {
+  height: 5px;
+}
+
+.s-tabs__scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
 }
 
 .s-tab {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  /* A tab keeps its width and the row scrolls; a tab that shrank to fit
+     would be twenty-five slivers with no names on them. */
+  flex: none;
   max-width: 180px;
   padding: 0 12px;
   border: none;

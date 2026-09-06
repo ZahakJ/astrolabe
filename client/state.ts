@@ -192,7 +192,7 @@ export type { Theme } from "./themes.ts";
  *  surfaces that must cope with both ask client/themes.ts's choiceGroup /
  *  counterpartChoice / choiceBase instead of the built-in-only functions. */
 export type { ThemeChoice } from "./themes.ts";
-export type View = "editor" | "graph";
+export type View = "editor" | "graph" | "media";
 
 /** Where a dropped tab lands on its target pane. */
 export type TabDropDest = { kind: "tabs"; index: number } | { kind: "edge"; edge: DropEdge };

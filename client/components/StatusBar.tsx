@@ -285,6 +285,34 @@ export default function StatusBar() {
           on its far side is a rule separating a group from empty space. */}
       {admin && (
         <span className="s-statusbar__group">
+          {/* THE MEDIA PAGE'S DOOR. A toggle like the graph's, admin-only
+              because the page writes: it sits with the gear and the designer
+              — the cluster of doors OUT of the note — and its glyph is a
+              shelf: three spines and one leaning. */}
+          <button
+            type="button"
+            className={`s-statusbar__btn s-statusbar__icon${view === "media" ? " s-statusbar__btn--on" : ""}`}
+            aria-pressed={view === "media"}
+            onClick={() => setView(view === "media" ? "editor" : "media")}
+            title={t("mediaTitle")}
+            aria-label={t("media")}
+            data-testid="media-door"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 4v16M9 4v16" />
+              <path d="M13.5 5.5l4.5-1.2 4 15.2-4.5 1.2z" />
+            </svg>
+          </button>
           {/* THE DESIGNER'S OWN DOOR. `openDesigner()` used to have exactly one
               call site in the client — the command palette — so the whole
               feature was behind Ctrl+P and a guess at the word. It sits beside
