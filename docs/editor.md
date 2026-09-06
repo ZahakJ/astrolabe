@@ -211,7 +211,7 @@ note or folder and the way to it; *Show all* brings the rest back. Every folder'
 **Collapse everything inside** and *Expand everything inside*. All of this is per browser; the
 vault on disk is never reordered.
 
-**The writing column** (Settings → This device) is the reading measure by default; *Wide* and
+**The writing column** (Settings → This device) is the reading measure by default; *Wide*, *Wider* and
 *Full width* let a table or a code-heavy note use the screen.
 
 ## The two side panes

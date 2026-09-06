@@ -186,6 +186,7 @@ export default function DeviceTab() {
           segments={[
             { value: "measure", label: t("editorWidthMeasure") },
             { value: "wide", label: t("editorWidthWide") },
+            { value: "wider", label: t("editorWidthWider") },
             { value: "full", label: t("editorWidthFull") },
           ]}
         />
