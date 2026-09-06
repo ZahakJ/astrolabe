@@ -2,7 +2,7 @@
 // fresh incrementally from vault watcher events.
 
 import { isLibraryLesson, libraryCoverPaths, libraryLessonFolders, libraryTitleOf } from "../shared/library.ts";
-import { effectiveFolders, suggestSlug } from "../shared/publicFolders.ts";
+import { effectiveFolders, folderSlug, suggestSlug } from "../shared/publicFolders.ts";
 import { folderMetaOf, folderNoteCandidates, folderOfNote, type FolderMeta } from "../shared/folderNote.ts";
 import { createHash } from "node:crypto";
 import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
@@ -27,7 +27,7 @@ import { readTexNote } from "./texNote.ts";
 import { blogLocale, excludedTags } from "./site.ts";
 // Cyclic with this module (settings.ts → site.ts → here) and inert: every
 // call below happens at request time, never while either module is loading.
-import { getSettings, templatesFolder } from "./settings.ts";
+import { getSettings, tagsFolder, templatesFolder } from "./settings.ts";
 import { listFolderFiles, listVaultFiles, onEvent, readNote, safeAbs } from "./vault.ts";
 
 interface NoteRecord {
@@ -69,6 +69,10 @@ interface NoteRecord {
    *  (shared/folderNote.ts): a note named like the folder, or index.md
    *  inside it. Null for every other note. */
   folderMeta: FolderMeta | null;
+  /** What this note says when it is a TAG PAGE declaring `collection: true`:
+   *  the collection's mark, line, title, folder and hidden flag. Read only for
+   *  notes under the tags folder; null everywhere else. */
+  collectionMeta: FolderMeta | null;
   /** Every ```tracker fence in this note, parsed (shared/tracker.ts). Empty
    *  for almost every note.
    *
@@ -811,6 +815,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     // from its `%---` comment block exactly as a markdown note does.
     folders: parseFolders(fm),
     folderMeta: folderOfNote(relPath) !== null ? folderMetaOf(fm) : null,
+    collectionMeta: fm.collection === true ? folderMetaOf(fm) : null,
     // The fence walk is shared/fences.ts', so a ```tracker shown INSIDE a
     // ```markdown block is documentation, not a tracker — the same rule the
     // outline and the anchor table keep.
@@ -1123,6 +1128,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     // folders exactly as a normal one is.
     folders: parseFolders(fm),
     folderMeta: folderOfNote(relPath) !== null ? folderMetaOf(fm) : null,
+    collectionMeta: fm.collection === true ? folderMetaOf(fm) : null,
     // No body was read at all (metadata-only), so this note contributes no
     // trackers and no tracker covers — the same silence it keeps about links
     // and assets, and for the same reason.
@@ -2295,7 +2301,7 @@ function postMeta(record: NoteRecord, hidden: ReadonlySet<string>, collectionRow
   // …and the FOLDER-BACKED collections (a row whose `folder` holds this
   // note) join the declared ones here, at read time, because the mapping
   // lives in settings and moves without the note changing.
-  const folders = effectiveFolders(record.folders, record.path, collectionRows);
+  const folders = effectiveFolders(record.folders, record.path, collectionRows, record.tags);
   if (folders.length > 0) meta.folders = folders;
   const banner = resolveBanner(record);
   if (banner) meta.banner = banner;
@@ -2375,7 +2381,7 @@ function lessonFoldersNow(): string[] {
 export function collectionRows(): PublicFolderRef[] {
   const settings = getSettings();
   const declared = settings.publicFolders?.folders ?? [];
-  if (settings.topics !== "folders") return withFolderNotes(declared);
+  if (settings.topics !== "folders") return withTagPages(withFolderNotes(declared));
   // Under folders the declared rows are set aside whole (kept in settings
   // for the day the owner switches back): the folders are the categories,
   // and a folder note is how one is described or hidden.
@@ -2413,6 +2419,54 @@ function collectionRowsNow(): PublicFolderRef[] {
   return collectionRows();
 }
 
+/** The collections the VAULT declares: every tag page under the tags folder
+ *  with `collection: true`. The tag is the collection (the page's own name),
+ *  its members are the notes carrying the tag plus a `folder:` the page may
+ *  name, its mark/line/title come from the page. A settings row with the
+ *  same slug wins field by field — that is the override, and it is rare. */
+export function tagPageCollections(): PublicFolderRef[] {
+  const root = tagsFolder().replace(/^\/+|\/+$/g, "");
+  if (root === "") return [];
+  const prefix = `${root.toLowerCase()}/`;
+  const out: PublicFolderRef[] = [];
+  for (const record of notes.values()) {
+    if (!record.collectionMeta) continue;
+    if (!record.path.toLowerCase().startsWith(prefix)) continue;
+    const tag = tagKey(stripNoteExt(record.path.slice(prefix.length)));
+    if (tag === "") continue;
+    const meta = record.collectionMeta;
+    const slug = folderSlug(tag) ?? suggestSlug(tag) ?? `t-${createHash("sha1").update(tag).digest("hex").slice(0, 8)}`;
+    const row: PublicFolderRef = {
+      id: `t${createHash("sha1").update(tag).digest("hex").slice(0, 12)}`,
+      slug,
+      title: meta.title ?? record.labels?.en ?? record.title ?? tag,
+      icon: meta.icon ?? "tag",
+      tag,
+    };
+    if (meta.description) row.description = meta.description;
+    if (meta.folder) row.folder = meta.folder;
+    if (meta.hidden) row.hidden = true;
+    out.push(row);
+  }
+  return out.sort((a, b) => a.title.localeCompare(b.title));
+}
+
+function withTagPages(declared: readonly PublicFolderRef[]): PublicFolderRef[] {
+  const out: PublicFolderRef[] = declared.map((row) => ({ ...row }));
+  for (const page of tagPageCollections()) {
+    const row = out.find((r) => r.slug === page.slug);
+    if (!row) {
+      out.push(page);
+      continue;
+    }
+    // The row overrides what it says; the page supplies the rest.
+    if (!row.description && page.description) row.description = page.description;
+    if (!row.folder && page.folder) row.folder = page.folder;
+    if (!row.tag) row.tag = page.tag;
+  }
+  return out;
+}
+
 /** Declared rows that name a folder take the folder note's description when
  *  they have none of their own — the row says WHICH folder, the vault says
  *  what it is about. */
@@ -2445,7 +2499,7 @@ export function publicFolderCounts(
   for (const notePath of publishedSet) {
     const record = notes.get(notePath);
     if (!record) continue;
-    const folders = effectiveFolders(record.folders, record.path, rows);
+    const folders = effectiveFolders(record.folders, record.path, rows, record.tags);
     if (folders.length === 0) continue;
     if (visitor && languageHidden(record, lang)) continue;
     if (isTemplate(notePath)) continue;

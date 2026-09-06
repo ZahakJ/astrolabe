@@ -43,8 +43,7 @@ import type {
   UploadResult,
   VaultEvent,
   XrefResponse,
-  VisibilityImpact,
-} from "../shared/types.ts";
+  VisibilityImpact, PublicFolderRef } from "../shared/types.ts";
 
 // ── Visitor preview (admin-only) ────────────────────────────────────────────
 // While on, every API call carries X-Vellum-Preview: visitor and the server —
@@ -764,6 +763,12 @@ export function deleteCustomFont(file: string): Promise<{ ok: true }> {
 }
 
 /** Instance settings (admin only; VELLUM_DATA/settings.json). */
+/** Every collection the server knows (admin): settings rows, tag pages and
+ *  derived categories, merged — the list the tree's popover ticks against. */
+export function getCollections(): Promise<PublicFolderRef[]> {
+  return request<PublicFolderRef[]>("/api/collections");
+}
+
 export function getSettings(): Promise<SettingsResponse> {
   return request<SettingsResponse>("/api/settings", undefined, true);
 }

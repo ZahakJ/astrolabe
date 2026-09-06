@@ -86,11 +86,19 @@ title, an address (the `/folder/<slug>` URL), one mark from the same closed glyp
 tree uses, and an optional line of description. Up to twelve, in whatever order you arrange them —
 that order is the order readers meet them.
 
-**From the tree, no typing.** Right-click a note → **Collections…** and tick the ones it belongs
-to; the frontmatter is written for you. Right-click a folder → **Publish as a collection…** and
-every published note under it belongs, with frontmatter still able to add notes from elsewhere.
-The same folder can be chosen for a collection in Settings, from the vault's folders laid out to
-click. The first collection switches the feature on.
+**A collection is a tag page.** Declare one in the vault, not in Settings: a page in your tags
+folder (`2 - Tags/games.md`) with `collection: true`, and as you like `icon:`, `description:`,
+`title:`, `hidden: true` and `folder:` (a vault folder whose published notes all belong). The tag
+is the collection: every note carrying `#games` is in it, and its chip in the navigation stands in
+for the tag's own. Nothing is enumerated in Settings; the panel lists what the vault declared.
+
+**From the tree, no typing.** Right-click a folder → **Publish folder as a topic…** and the tag
+page is written for you, with the folder's tree mark and `folder:` set to it. Right-click a note →
+**Collections…** and tick the ones it belongs to; `tags:` (or `folders:` for an older row) is
+written for you. A membership that comes from a folder shows ticked and stays.
+
+Publishing notes without making their folder a topic is just publishing them: a note's tags file
+it, and only a folder you have published as a topic becomes one.
 
 A note also joins a folder from its own frontmatter, and every spelling YAML gives you works:
 

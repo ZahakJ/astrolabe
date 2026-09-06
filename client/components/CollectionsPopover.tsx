@@ -1,21 +1,30 @@
-// "Collections…" on a note, "Publish as a collection…" on a folder.
+// "Collections…" on a note, "Publish folder as a topic…" on a folder.
 //
-// A collection was joined by typing `folders: games` into frontmatter, and a
-// collection could only be a list of such notes. Both are now a right-click
-// away: a note's popover ticks the collections it belongs to (the write goes
-// through /api/frontmatter, byte-surgical, the shape the properties card
-// uses), and a folder's popover makes the folder a collection — every
-// published note under it belongs, and frontmatter still adds strays from
-// elsewhere. Anchored like the Library popover, placed by the same rule.
+// Both live under the TAGS system (under folders the folders are the
+// categories and neither verb is offered). A collection is a tag the owner
+// curates: it is declared in the vault by a TAG PAGE (`<tags folder>/<tag>.md`
+// with `collection: true`), notes join by carrying the tag, and the page may
+// name a `folder:` whose published notes all belong. So:
+//
+//  * a FOLDER's popover writes that tag page — tag, title, description, the
+//    folder's tree mark, `folder: <this folder>` — through the note routes,
+//    nothing in settings;
+//  * a NOTE's popover ticks the collections the server knows (/api/collections:
+//    tag pages and any settings rows), writing `tags:` for a collection that
+//    is a tag and `folders:` for a legacy row, byte-surgically through
+//    /api/frontmatter. A membership that comes from the folder is shown ticked
+//    and cannot be unticked here.
+//
+// Anchored like the Library popover, placed by the same rule.
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { FOLDER_DESC_MAX, FOLDER_TITLE_MAX, PUBLIC_FOLDERS_MAX, collectionsForPath, folderId, suggestSlug } from "../../shared/publicFolders.ts";
+import { FOLDER_DESC_MAX, FOLDER_TITLE_MAX, collectionsForPath, suggestSlug } from "../../shared/publicFolders.ts";
 import { libraryTitleOf } from "../../shared/library.ts";
 import type { FolderIcon } from "../../shared/folderIcons.ts";
 import type { PublicFolderRef } from "../../shared/types.ts";
-import { getNote, getSettings, patchSettings, setFrontmatter } from "../api.ts";
-import { foldersOf } from "../collections/foldersOf.ts";
-import { localeNum, t, tf } from "../i18n.ts";
+import { createNote, getCollections, getNote, getSettings, setFrontmatter } from "../api.ts";
+import { foldersOf, tagsOf } from "../collections/foldersOf.ts";
+import { t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { anchorPopover } from "./anchorPopover.ts";
@@ -32,18 +41,13 @@ export interface CollectionsPopState {
   fromKeyboard: boolean;
 }
 
-interface Rows {
-  enabled: boolean;
-  nav: boolean;
-  home: boolean;
-  folders: PublicFolderRef[];
-}
-
 export default function CollectionsPopover({ state, onClose }: { state: CollectionsPopState; onClose(): void }) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [rows, setRows] = useState<Rows | null>(null);
-  const [declared, setDeclared] = useState<string[] | null>(null);
+  const [rows, setRows] = useState<PublicFolderRef[] | null>(null);
+  const [tagsFolder, setTagsFolder] = useState<string>("");
+  const [declared, setDeclared] = useState<{ folders: string[]; tags: string[] } | null>(null);
   const [title, setTitle] = useState(() => libraryTitleOf(state.path) || state.name);
+  const [tag, setTag] = useState(() => suggestSlug(libraryTitleOf(state.path) || state.name));
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const treeIcon = useStore((s) => (state.kind === "folder" ? s.folderIcons[state.path] : undefined));
@@ -51,14 +55,15 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
   useEffect(() => {
     let live = true;
     void Promise.all([
+      getCollections(),
       getSettings(),
-      state.kind === "note" ? getNote(state.path).then((n) => foldersOf(n.content)) : Promise.resolve([] as string[]),
+      state.kind === "note" ? getNote(state.path).then((n) => ({ folders: foldersOf(n.content), tags: tagsOf(n.content) })) : Promise.resolve(null),
     ])
-      .then(([s, mine]) => {
+      .then(([list, s, mine]) => {
         if (!live) return;
-        const pf = s.effective.publicFolders;
-        setRows({ enabled: pf.enabled, nav: pf.nav, home: pf.home, folders: pf.folders.map((r) => ({ ...r })) });
-        setDeclared(mine);
+        setRows(list);
+        setTagsFolder(s.effective.tagsFolder);
+        setDeclared(mine ?? { folders: [], tags: [] });
       })
       .catch(() => {
         if (live) toast(t("collectionsFailed"), "error");
@@ -94,33 +99,30 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
     };
   }, [onClose]);
 
-  const saveRows = async (next: Rows, done: string): Promise<void> => {
-    setBusy(true);
-    try {
-      await patchSettings({ publicFolders: { enabled: next.enabled, nav: next.nav, home: next.home, folders: next.folders.length ? next.folders : null } });
-      toast(done);
-      onClose();
-    } catch {
-      toast(t("collectionsFailed"), "error");
-      setBusy(false);
-    }
-  };
-
   // ── A note: tick the collections it belongs to ────────────────────────────
-  const toggle = async (slug: string, on: boolean): Promise<void> => {
+  const toggle = async (row: PublicFolderRef, on: boolean): Promise<void> => {
     if (!declared) return;
-    const next = on ? [...declared, slug] : declared.filter((s) => s !== slug);
-    setDeclared(next);
+    const before = declared;
     try {
-      await setFrontmatter(state.path, "folders", next.length ? { kind: "list", items: next } : null);
+      if (row.tag) {
+        const next = on ? [...declared.tags, row.tag] : declared.tags.filter((s) => s !== row.tag);
+        setDeclared({ ...declared, tags: next });
+        await setFrontmatter(state.path, "tags", next.length ? { kind: "list", items: next } : null);
+      } else {
+        const next = on ? [...declared.folders, row.slug] : declared.folders.filter((s) => s !== row.slug);
+        setDeclared({ ...declared, folders: next });
+        await setFrontmatter(state.path, "folders", next.length ? { kind: "list", items: next } : null);
+      }
     } catch {
       toast(t("collectionsFailed"), "error");
-      setDeclared(declared);
+      setDeclared(before);
     }
   };
 
-  const auto = rows ? collectionsForPath(state.path, rows.folders) : [];
-  const owning = rows && state.kind === "folder" ? rows.folders.find((r) => r.folder === state.path) ?? null : null;
+  const auto = rows ? collectionsForPath(state.path, rows) : [];
+  const owning = rows && state.kind === "folder" ? rows.find((r) => r.folder === state.path) ?? null : null;
+  const cleanTag = tag.trim().replace(/^#/, "").toLowerCase().replace(/\s+/g, "-");
+  const pagePath = tagsFolder && cleanTag ? `${tagsFolder}/${cleanTag}.md` : "";
 
   return (
     <div ref={ref} className="s-libpop" role="dialog" aria-label={t("rowPublicFolders")} style={{ left: state.x, top: state.y }} onMouseDown={(e) => e.stopPropagation()}>
@@ -130,24 +132,24 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
       </div>
 
       {rows && state.kind === "note" && declared && (
-        rows.folders.length === 0 ? (
+        rows.filter((r) => !r.hidden).length === 0 ? (
           <p className="s-libpop__hint">{t("collectionsNone")}</p>
         ) : (
           <div className="s-libpop__rows" role="group" aria-label={t("rowPublicFolders")}>
-            {rows.folders.map((row) => {
+            {rows.filter((r) => !r.hidden).map((row) => {
               const byFolder = auto.includes(row.slug);
-              const on = byFolder || declared.includes(row.slug);
+              const mine = row.tag ? declared.tags.includes(row.tag) : declared.folders.includes(row.slug);
+              const on = byFolder || mine;
               return (
-                <label key={row.id} className={`s-libpop__row${row.hidden ? " s-libpop__row--hidden" : ""}`}>
-                  <input type="checkbox" checked={on} disabled={byFolder} onChange={(e) => void toggle(row.slug, e.target.checked)} />
+                <label key={row.id} className="s-libpop__row">
+                  <input type="checkbox" checked={on} disabled={byFolder} onChange={(e) => void toggle(row, e.target.checked)} />
                   <span className="s-libpop__glyph" aria-hidden="true">
                     <FolderGlyph icon={row.icon} size={14} />
                   </span>
                   <span className="s-libpop__rowtitle" dir="auto">
                     {row.title}
                   </span>
-                  {byFolder && <span className="s-libpop__kind">{t("collectionsWholeFolder")}</span>}
-                  {row.hidden && !byFolder && <span className="s-libpop__kind">{t("publicFolderHidden")}</span>}
+                  {byFolder ? <span className="s-libpop__kind">{t("collectionsWholeFolder")}</span> : row.tag ? <span className="s-libpop__kind">#{row.tag}</span> : null}
                 </label>
               );
             })}
@@ -158,23 +160,12 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
       {rows && state.kind === "folder" && owning && (
         <>
           <p className="s-libpop__on" dir="auto">
-            {tf("collectionPopOn", { title: owning.title })}
+            {tf("collectionTopicExists", { title: owning.title })}
           </p>
           <div className="s-libpop__actions">
             <a className="s-btn" href={`/folder/${encodeURIComponent(owning.slug)}`} target="_blank" rel="noreferrer">
               {t("collectionPopOpen")}
             </a>
-            <button
-              type="button"
-              className="s-btn s-btn--danger"
-              disabled={busy}
-              onClick={() => {
-                const { folder: _drop, ...rest } = owning;
-                void saveRows({ ...rows, folders: rows.folders.map((r) => (r.id === owning.id ? rest : r)) }, t("collectionUnlinked"));
-              }}
-            >
-              {t("collectionPopStop")}
-            </button>
           </div>
         </>
       )}
@@ -183,18 +174,23 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
         <>
           <input
             className="s-input s-libpop__name"
+            value={tag}
+            dir="ltr"
+            maxLength={60}
+            aria-label={t("collectionTopicTag")}
+            placeholder={t("collectionTopicTag")}
+            spellCheck={false}
+            onChange={(e) => setTag(e.target.value)}
+          />
+          <input
+            className="s-input s-libpop__name"
             value={title}
             dir="auto"
             maxLength={FOLDER_TITLE_MAX}
             aria-label={t("publicFolderTitle")}
+            placeholder={t("publicFolderTitle")}
             spellCheck={false}
             onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && title.trim()) {
-                e.preventDefault();
-                void make();
-              }
-            }}
           />
           <input
             className="s-input s-libpop__name"
@@ -205,21 +201,20 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
             placeholder={t("publicFolderDescPlaceholder")}
             spellCheck={false}
             onChange={(e) => setDescription(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && cleanTag) {
+                e.preventDefault();
+                void make();
+              }
+            }}
           />
-          <p className="s-libpop__hint">{t("collectionPopHint")}</p>
-          <p className="s-libpop__hint">{t("folderNoteHint")}</p>
+          <p className="s-libpop__hint">{t("collectionTopicHint")}</p>
           <div className="s-libpop__actions">
             <span className="s-libpop__url" dir="ltr">
-              /folder/{freshSlug(title, rows.folders)}
+              {pagePath}
             </span>
-            <button
-              type="button"
-              className="s-btn s-btn--accent"
-              disabled={busy || !title.trim() || rows.folders.length >= PUBLIC_FOLDERS_MAX}
-              title={rows.folders.length >= PUBLIC_FOLDERS_MAX ? tf("collectionsFull", { max: localeNum(PUBLIC_FOLDERS_MAX) }) : undefined}
-              onClick={() => void make()}
-            >
-              {t("collectionPopMake")}
+            <button type="button" className="s-btn s-btn--accent" disabled={busy || !cleanTag || !pagePath} onClick={() => void make()}>
+              {t("collectionTopicMake")}
             </button>
           </div>
         </>
@@ -228,25 +223,23 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
   );
 
   async function make(): Promise<void> {
-    if (!rows) return;
-    const icon: FolderIcon = treeIcon ?? "archive";
-    const row: PublicFolderRef = { id: folderId(), slug: freshSlug(title, rows.folders), title: title.trim(), icon, folder: state.path };
-    if (description.trim()) row.description = description.trim();
-    // The first collection switches the feature on, as the first library
-    // path switches the library on: a collection nobody can reach is a
-    // mistake, not a setting.
-    const enabled = rows.enabled || rows.folders.length === 0;
-    await saveRows({ ...rows, enabled, folders: [...rows.folders, row] }, enabled && !rows.enabled ? t("collectionMadeOn") : t("collectionMade"));
-  }
-}
-
-/** A slug for a new row that no row already holds. */
-function freshSlug(title: string, taken: readonly PublicFolderRef[]): string {
-  const base = suggestSlug(title) || "collection";
-  const used = new Set(taken.map((r) => r.slug));
-  if (!used.has(base)) return base;
-  for (let n = 2; ; n++) {
-    const slug = `${base}-${n}`;
-    if (!used.has(slug)) return slug;
+    if (!pagePath) return;
+    setBusy(true);
+    try {
+      // The page may already exist (a tag with labels, say): creating it is
+      // then a no-op and the keys below are added to what is there.
+      await createNote(pagePath).catch(() => undefined);
+      const icon: FolderIcon = treeIcon ?? "tag";
+      await setFrontmatter(pagePath, "collection", { kind: "bool", bool: true });
+      await setFrontmatter(pagePath, "folder", { kind: "text", text: state.path });
+      await setFrontmatter(pagePath, "icon", { kind: "text", text: icon });
+      if (title.trim() && title.trim() !== cleanTag) await setFrontmatter(pagePath, "title", { kind: "text", text: title.trim() });
+      if (description.trim()) await setFrontmatter(pagePath, "description", { kind: "text", text: description.trim() });
+      toast(tf("collectionTopicMade", { path: pagePath }));
+      onClose();
+    } catch {
+      toast(t("collectionsFailed"), "error");
+      setBusy(false);
+    }
   }
 }

@@ -72,7 +72,7 @@ import {
   listCustomFonts,
   patchSettings,
   uploadAttachment,
-  uploadFont, getLibrary } from "../api.ts";
+  uploadFont, getLibrary, getCollections } from "../api.ts";
 import { bannerSrc } from "../banner.ts";
 // The calendar specimen: the panel shows what a choice PRINTS, in this
 // instance's own locale and numerals, before the reader commits to it.
@@ -1038,6 +1038,18 @@ function PublicFolderEditor({
   const set = (i: number, patch: Partial<PublicFolderRef>): void => {
     onChange(rows.map((row, n) => (n === i ? { ...row, ...patch } : row)));
   };
+  // The collections the VAULT declares (tag pages), listed under the rows so
+  // the owner sees the whole navigation from here without a row per one.
+  const [fromPages, setFromPages] = useState<PublicFolderRef[]>([]);
+  useEffect(() => {
+    let live = true;
+    void getCollections()
+      .then((all) => live && setFromPages(all.filter((r) => r.tag && !rows.some((row) => row.slug === r.slug))))
+      .catch(() => live && setFromPages([]));
+    return () => {
+      live = false;
+    };
+  }, [rows]);
   // The glyph button opens the tree's own picker (search, shelves, the lot)
   // anchored under the button; `path` carries the row id so the pick lands
   // on the right row when the list has reordered underneath.
@@ -1192,6 +1204,27 @@ function PublicFolderEditor({
           </div>
         ))
       )}
+      {fromPages.length > 0 && (
+        <div className="s-libpaths__vault">
+          <span className="s-libpaths__caption">{t("collectionsVaultRows")}</span>
+          {fromPages.map((r) => (
+            <div key={r.id} className="s-libpaths__vaultrow">
+              <span className="s-pfolders__glyph" aria-hidden="true">
+                <FolderGlyph icon={r.icon} size={16} />
+              </span>
+              <span className="s-libpaths__vaulttitle" dir="auto">
+                {r.title}
+              </span>
+              <span className="s-libpaths__url" dir="ltr">
+                #{r.tag}
+                {r.folder ? ` · ${r.folder}` : ""}
+              </span>
+              <span className="s-libpaths__count">{t("collectionFromTagPage")}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="s-libpaths__hint">{t("tagPageHint")}</p>
       {iconPick && (
         <Suspense fallback={null}>
           <FolderIconPicker

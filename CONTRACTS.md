@@ -976,6 +976,19 @@ side as "kinda confusing"). Under tags, collections are hand-made topics beside 
 `auth.ts` builds `me.publicFolders` from `collectionRows()` and treats the feature as ON under
 folders whatever the master switch says.
 
+**A COLLECTION IS A TAG PAGE (2.11).** Under tags, `collectionRows()` = settings rows (legacy,
+still honoured) merged with `tagPageCollections()`: every note under `tagsFolder()` whose
+frontmatter says `collection: true`, read through `folderMetaOf()` (title, description, icon,
+hidden, `folder:`), the tag being the page's own name (`tagKey`), slug `folderSlug(tag)` else
+`suggestSlug`, id `t` + sha1(tag)[:12], mark `icon ?? "tag"`. `PublicFolderRef.tag` /
+`PublicFolderCard.tag` carry the tag; `effectiveFolders(declared, path, rows, tags)` counts a note
+carrying the tag as a member; both shells drop a claimed tag's own topic chip so it is not listed
+twice. `GET /api/collections` (admin) answers the merged list — the tree's popover ticks against it,
+writing `tags:` for a tag collection and `folders:` for a legacy row; "Publish folder as a topic…"
+writes the tag page itself through `createNote` + `/api/frontmatter` (collection, folder, icon,
+title, description), so nothing lands in settings. The settings panel keeps its rows for
+overrides and lists the vault-declared ones read-only beneath them.
+
 **A COLLECTION CAN NAME A FOLDER.** `PublicFolderRef.folder` (vault-relative, `vaultFolderPath()`,
 boundary at the slash): `effectiveFolders(declared, path, rows)` (shared/publicFolders.ts) is what
 `postMeta()` and `publicFolderCounts()` read, so a note under the folder belongs without

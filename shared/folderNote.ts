@@ -12,6 +12,11 @@
 //   title: A nicer name than the folder's
 //   hidden: true
 //
+// A TAG PAGE (a note in the tags folder) reads the same keys under
+// `collection: true`, plus `folder:` — that is how a collection is declared in
+// the vault rather than in a settings row: the tag is the collection, notes
+// join by carrying it, and the page gives it a mark, a line and a folder.
+//
 // Categories (settings.topics: folders) read title, description, icon and
 // hidden from here; collections that name the folder fall back to the
 // description; the library takes the whole set, and `library:` DECLARES a
@@ -21,6 +26,7 @@
 
 import { isFolderIcon, type FolderIcon } from "./folderIcons.ts";
 import { isLibraryKind } from "./library.ts";
+import { vaultFolderPath } from "./publicFolders.ts";
 import type { LibraryKind } from "./types.ts";
 
 export interface FolderMeta {
@@ -31,6 +37,9 @@ export interface FolderMeta {
   source?: string;
   library?: LibraryKind;
   hidden?: boolean;
+  /** For a TAG PAGE declaring a collection: the vault folder whose published
+   *  notes all belong, beside the ones carrying the tag. */
+  folder?: string;
 }
 
 const INDEX_NAMES = new Set(["index", "_index", "readme"]);
@@ -75,6 +84,8 @@ export function folderMetaOf(fm: Record<string, unknown>): FolderMeta {
   if (isLibraryKind(fm.library)) out.library = fm.library;
   else if (fm.library === true) out.library = "book";
   if (fm.hidden === true) out.hidden = true;
+  const folder = vaultFolderPath(fm.folder);
+  if (folder !== null) out.folder = folder;
   return out;
 }
 

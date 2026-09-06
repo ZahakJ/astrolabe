@@ -2008,7 +2008,7 @@ export default function Sidebar() {
                 setColPop({ kind: "folder", path: node.path, name: node.name, x: menu.x, y: menu.y, fromKeyboard });
               }}
             >
-              {t("collectionsFolderMenu")}
+              {t("collectionTopicMenu")}
             </button>
           )}
           {/* The keyboard and touch route to the same operation the drag

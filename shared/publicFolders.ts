@@ -101,6 +101,8 @@ export function cleanPublicFolder(entry: unknown, fallbackId: () => string): Pub
   // silence and the row stays a frontmatter-only collection.
   const folder = vaultFolderPath(row.folder);
   if (folder !== null) out.folder = folder;
+  const tag = typeof row.tag === "string" ? row.tag.trim().replace(/^#/, "").toLowerCase() : "";
+  if (tag !== "" && tag.length <= 100) out.tag = tag;
   // LOSSLESS TAKE-DOWN, the NavItem rule (shared/designChrome.ts): hiding a
   // folder must not cost the owner its title, its glyph or the notes that name
   // its slug — they publish it again by unticking one box.
@@ -156,8 +158,19 @@ export function collectionsForPath(notePath: string, rows: readonly PublicFolder
 /** What a note's `folders` mean once the folder-backed collections have had
  *  their say: the frontmatter slugs first, in their own order, then the rows
  *  whose folder holds the note. No repeats. */
-export function effectiveFolders(declared: readonly string[], notePath: string, rows: readonly PublicFolderRef[]): string[] {
+export function effectiveFolders(
+  declared: readonly string[],
+  notePath: string,
+  rows: readonly PublicFolderRef[],
+  tags: readonly string[] = [],
+): string[] {
   const out = [...declared];
   for (const slug of collectionsForPath(notePath, rows)) if (!out.includes(slug)) out.push(slug);
+  // …and the collections that ARE a tag the note carries.
+  if (tags.length > 0) {
+    for (const row of rows) {
+      if (row.tag && tags.includes(row.tag) && !out.includes(row.slug)) out.push(row.slug);
+    }
+  }
   return out;
 }

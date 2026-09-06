@@ -16,5 +16,6 @@ describe("folder notes", () => {
     assert.deepEqual(meta, { title: "Feynman", description: "Fields, flows and the odd vortex.", icon: "atom", cover: "attachments/f.jpg", source: "https://x", library: "course", hidden: true });
     assert.deepEqual(folderMetaOf({ blurb: "B", banner: "x.png", library: true, icon: "not-a-glyph" }), { description: "B", cover: "x.png", library: "book" });
     assert.deepEqual(folderMetaOf({ library: "poem", hidden: "yes" }), {});
+    assert.deepEqual(folderMetaOf({ collection: true, folder: "Play/Games/" }), { folder: "Play/Games" });
   });
 });
