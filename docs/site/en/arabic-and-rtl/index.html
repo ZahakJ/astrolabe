@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arabic &amp; RTL · Vellum Documentation</title>
+<meta name="description" content="Vellum in Arabic: a mirrored interface, the visitor language switch, the four-value language filter, Hijri dates, note direction and localised tag labels.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/arabic-and-rtl/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link is-current" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="arabic-rtl">Arabic &amp; RTL</h1>
+<p><em>Vellum in Arabic: a mirrored interface, the visitor language switch, the four-value language filter, Hijri dates, note direction and localised tag labels.</em></p>
+<hr>
+<p>Vellum speaks Arabic. <code>SITE_LANG=ar</code> (or <strong>Settings → Appearance &amp; language → Site language →
+العربية</strong>, applied live without a restart) does two things at once.</p>
+<p><strong>It translates the chrome.</strong> Every label, button, placeholder, menu item, toast and confirm
+dialog in both shells — sidebar, tabs, status bar, command palette, backlinks/outline/local-graph
+panels, settings, and the whole blog (masthead, topic nav, article furniture, share row,
+prev/next, Marginalia) — comes from a single dictionary in <code>client/i18n.ts</code>. Counts agree
+properly in Arabic (<code>حاشية واحدة</code>, <code>حاشيتان</code>, <code>3 حواشٍ</code>, <code>40 حاشية</code>), not by bolting an &quot;s&quot; on.</p>
+<p><strong>It mirrors the interface.</strong> The document becomes <code>&lt;html dir=&quot;rtl&quot; lang=&quot;ar&quot;&gt;</code> and the layout
+follows: the notes sidebar moves to the right and the outline/backlinks panel to the left — and
+it keeps following, because the side is a <strong>three-state</strong> preference. <em>Follow the language</em> is
+the default and is re-evaluated every time the language changes; <em>pin to the left edge</em> and <em>pin
+to the right edge</em> name a screen edge in both languages and outrank the direction for good. All
+three sit in the palette and as a segmented control in <strong>Settings → Appearance &amp; language</strong>,
+directly under the row that moves it — where <em>Auto</em> also names the edge it has landed on, so the
+default state is never a silent one. (The third state is how you get back to automatic.) Tree
+indentation and chevrons flip, the active-note accent bar moves to the other edge, the status
+bar and blog nav reverse, and &quot;older/newer&quot; arrows point the way you actually read. Because the
+panes swap ends, nothing in the interface calls either of them &quot;the left one&quot;: the toggles, the
+palette and the shortcut sheet say <strong>Notes sidebar</strong> and <strong>Outline &amp; backlinks</strong>, in both
+languages, with the keystroke in the tooltip. This is
+built on CSS logical properties (<code>margin-inline-*</code>, <code>inset-inline-*</code>, <code>text-align: start</code>), so
+it is the same stylesheet in both directions — <code>[dir=&quot;rtl&quot;]</code> overrides exist only where no
+logical property can express the idea, such as flipping an arrow glyph or a gradient&#39;s angle.</p>
+<p>On a phone the sidebar drawer slides in from the right. Every modal — settings, banner picker,
+moderation, login, confirm — lays out right-to-left, and the blog shell mirrors the same way.</p>
+<p><strong>Your notes are left alone.</strong> Note content is never translated and never re-flowed: each block
+picks its own direction from its own text (<code>dir=&quot;auto&quot;</code>), which is why a vault that mixes Arabic
+and English reads correctly under either setting — and why Arabic notes already rendered
+right-to-left before you touched this switch. The same rule applies to note-derived text that
+appears inside the chrome (tree rows, tab titles, outline entries, search hits, backlink cards,
+breadcrumbs): each picks its own direction, so a vault mixing <code>مكاتيب</code> and <code>1 - Source Material</code>
+reads correctly in either language.</p>
+<p><strong>Dates.</strong> With <code>BLOG_LOCALE</code> unset, <code>SITE_LANG=ar</code> formats post dates and comment timestamps in
+Arabic with Eastern Arabic numerals (<code>١٤ يوليو ٢٠٢٦</code>, <code>قبل ٧ دقائق</code>) — every date in the
+product, blog and admin panels alike, from one rule. Set <code>BLOG_LOCALE</code> explicitly to override —
+<code>BLOG_LOCALE=ar-u-nu-latn</code> keeps Arabic month names with 1/2/3 digits. Counters elsewhere in the
+chrome (word counts, reading minutes) stay in Western numerals.</p>
+<p><strong>Type.</strong> Arabic gets its own type stack and its own scale. The font tokens name naskh faces
+(<code>Noto Naskh Arabic</code>, <code>Amiri</code>, <code>Scheherazade New</code>) after the Latin ones, so Latin text still
+renders in Georgia / system-ui and only Arabic characters — which no Latin face covers — fall
+through to them; nothing is fetched from a CDN. Because a naskh face reads perceptibly smaller
+than Georgia at the same pixel size, <code>lang=&quot;ar&quot;</code> also multiplies the two type-scale tokens
+(<code>--font-scale</code>, <code>--prose-scale</code>), which lifts the whole UI ~6% and the reading column ~10%. A
+<code>--font-base</code> you set in <code>custom.css</code> is multiplied, not overwritten. For per-character Arabic
+face selection — an Arabic word inside an English sentence, set correctly, on an English
+instance — see <a href="../typography/#the-arabic-slot-is-per-character-not-per-language">Typography</a>.</p>
+<p><strong>Your keyboard is part of this too.</strong> An Arabic system layout puts <code>ح</code> on the key marked <code>P</code>, and
+for a while that meant <code>Ctrl P</code> opened nothing — an Arabic interface whose shortcuts only answered
+to an English keyboard. It does not any more: a shortcut follows the letter your layout types when
+that letter is Latin and the key&#39;s <em>position</em> when it is not, so the keys marked with Latin letters
+on your keycaps are your shortcuts. The <code>Ctrl/Cmd /</code> sheet prints what each of them actually types
+beside the letter. See <a href="../keymap/#non-latin-keyboards">Keymap → Non-Latin keyboards</a>.</p>
+<h2 id="your-editor-39-s-language-is-yours"><a class="anchor" href="#your-editor-39-s-language-is-yours">Your editor&#39;s language is yours</a></h2>
+<p><code>SITE_LANG</code> is a decision about what you <strong>publish</strong> in. It is not a decision about what you
+have to <strong>work</strong> in, and <strong>Settings → Appearance &amp; language → Editor language</strong> is where those
+two part company: <em>Follow site</em> (the default, which names the language it lands on), <em>English</em>,
+or <em>العربية</em>. It moves the same two things the visitor switch moves — the chrome strings and
+the direction — and it moves them for you alone. It lives in this browser, like your theme and
+your sidebar edge; it is never sent to the server, never appears in the Save diff, and cannot
+change a single byte of what a reader is served. Run an Arabic site from an English editor, or
+an English site from an Arabic one; the site does not notice either way.</p>
+<p>There are three palette commands for it too — <code>Editor language: English</code>, <code>Editor language: العربية</code>, <code>Editor language: follow the site</code> — and each names its language in that language&#39;s
+own script on purpose. <strong>That is the way back if you ever cannot read the interface</strong>:
+<code>Ctrl/Cmd K</code>, type <code>English</code>, Enter. Nothing else has to be legible for that to work.</p>
+<blockquote>
+<p><strong>If you are reading this because you are stuck in Arabic and did not choose it</strong>, this is
+almost certainly why: before the split, a visitor&#39;s EN/ع choice was applied to <em>every</em> session
+in that browser, the owner&#39;s editor included — and on an instance whose public site is the app
+layout, the EN/ع control is never drawn, so there was nothing to click to undo it. Upgrading
+fixes it on the next reload, with no action from you. On an older build, clear the stored
+visitor choice by hand: <code>localStorage.removeItem(&quot;vellum.lang&quot;)</code> in the browser console.</p>
+</blockquote>
+<h2 id="visitor-language-switch"><a class="anchor" href="#visitor-language-switch">Visitor language switch</a></h2>
+<p><code>SITE_LANG</code> picks the language your site publishes in — for readers, and, unless you have said
+otherwise above, for you. <strong>Settings → Appearance &amp; language → Visitor
+switch</strong> (settings key <code>languageToggle</code>, <strong>off by default</strong>, no env counterpart) adds a small
+<code>EN</code> / <code>ع</code> control at the edge of the public nav so a reader can pick the other one for
+themselves. Their choice lives in their own browser&#39;s <code>localStorage</code> and survives return visits;
+nobody else&#39;s site changes.</p>
+<p>It moves the <strong>chrome strings</strong>, the <strong>text direction</strong>, and <strong>month names</strong> — for <em>that
+reader</em>. English chrome prints &quot;August&quot;; Arabic chrome prints &quot;أغسطس&quot;. Digits stay on the
+instance&#39;s numeral policy, so a visitor&#39;s EN/ع tap cannot mix <code>١٤</code> with <code>14</code> on one line. It
+cannot reach your editor: an admin session reads its own <strong>Editor language</strong> and never a
+visitor&#39;s, which is why flipping the public switch to check what a reader sees no longer leaves
+you editing in a language you did not pick. (Visitor <em>preview</em> is the honest way to check:
+previewing puts you on the visitor&#39;s side of that line deliberately, so you see their language,
+not yours.) Note content is untouched — it renders as authored, per block, the way it always
+does. Leave the switch off (the default) and the public site has no language chrome at all.</p>
+<blockquote>
+<p><strong>Digits are still per instance.</strong> <code>BLOG_LOCALE</code> picks the numeral tag (and the RSS channel
+language). An Arabic instance whose visitor picks English reads <code>14 August 2026</code>, not
+<code>14 أغسطس 2026</code>. Flip the switch back and the Arabic names return. Eastern digits still
+require an explicit <code>-u-nu-arab</code> on that tag.</p>
+</blockquote>
+<h2 id="language-filter"><a class="anchor" href="#language-filter">Language filter</a></h2>
+<p>A bilingual vault often wants a monolingual public site — or, better, a bilingual one that
+gives each reader their own language. <strong>Settings → Appearance &amp; language → Language filter</strong>
+(<code>LANGUAGE_FILTER</code>) is a four-value enum:</p>
+<div class="table"><table><thead><tr><th>Value</th><th>Who decides</th><th>What the public site shows</th></tr></thead><tbody><tr><td><code>off</code> <em>(default)</em></td><td>nobody</td><td>every published note</td></tr><tr><td><code>follow</code></td><td><strong>the reader</strong></td><td>only notes in the language that reader is reading in</td></tr><tr><td><code>ar</code></td><td>you</td><td>only notes whose letters are ≥ 40% Arabic-script</td></tr><tr><td><code>en</code></td><td>you</td><td>only notes that are majority non-Arabic</td></tr></tbody></table></div><p><strong><code>follow</code> is the one that makes the visitor switch mean something.</strong> With <strong>Visitor switch</strong> on,
+a reader who taps ع gets Arabic chrome <em>and</em> the Arabic writing; tapping EN brings
+back the English. Without it — chrome in one language, posts in the other — the switch was
+half a feature. A reader who never touches it gets the site language. (With the visitor switch
+<em>off</em>, <code>follow</code> has no reader to follow and behaves exactly like pinning to <code>SITE_LANG</code>; the
+settings panel says so in those words rather than letting the setting mean something other than
+its name.)</p>
+<blockquote>
+<p><strong>Legacy booleans still parse.</strong> <code>LANGUAGE_FILTER=true</code> means &quot;<code>SITE_LANG</code>, pinned&quot;, which is
+what it always meant, and <code>false</code> means <code>off</code>. A stored <code>true</code> in <code>settings.json</code> is migrated at
+startup to the matching <code>&quot;ar&quot;</code>/<code>&quot;en&quot;</code> — never to <code>&quot;follow&quot;</code>, because upgrading must not change
+what a live site shows.</p>
+</blockquote>
+<p><strong>It tells you what it will cost, before you save it.</strong> The row prints the consequence in real
+counts from your own vault — <em>&quot;Pinned to Arabic: 3 of your 22 published notes qualify; 19 would
+be hidden from every visitor&quot;</em> — warns harder when that is most of the site, and refuses to be
+quiet about it afterwards: while a filter is materially reducing what visitors see, the status
+bar carries a standing <code>3/22 public</code> beside the published count. The two numbers disagreeing is
+the state worth noticing, and before this round there was nowhere in the product that showed it.
+The same treatment covers every other setting that can shrink the public site — excluded tags,
+the blog front door, and <code>PUBLIC=false</code>.</p>
+<p><strong>It will not hand anyone an empty site.</strong> If the language in force matches no published note at
+all, the filter stands down for that request: the reader gets the whole collection with one
+quiet line explaining why they are seeing both languages, and you get the loud version.</p>
+<p>Detection runs in the indexer, is cached per note, and refreshes incrementally as notes change —
+no configuration, no frontmatter to maintain. The filter applies to every public discovery
+surface: the post list, the dashboard grid and &quot;Most discussed&quot; row, topic pages <em>and the topic
+nav itself</em>, the graph, search, prev/next links, and the RSS feed. A topic carried only by
+filtered-out notes disappears entirely rather than leading to an empty page. Admin sessions are
+never filtered — signed in, you always see the whole vault.</p>
+<p><strong>What it counts.</strong> Only the note&#39;s <em>prose</em>: fenced and inline code, HTML tags and comments, and
+link destinations (markdown, reference and bare URLs) are stripped before the letters are
+counted, so an Arabic article does not read as English because every highlight carries a
+<code>readwise.io</code> URL or because it embeds one YouTube player. Link <em>text</em> still counts — it is what
+a reader reads. A note whose prose has no letters at all (an image-only or numbers-only page)
+belongs to no language and is shown under either setting rather than guessed at.</p>
+<blockquote>
+<p><strong>The filter is curation, not access control.</strong> A published note it hides from the lists is
+still served on its own URL: <code>/api/note</code> is never filtered, and both shells resolve an article
+route from the URL itself rather than from the (filtered) tree, so every permalink you have
+already shared keeps working after you flip the switch — the note simply stops appearing in
+the lists, topics, graph, search and feed. What the filter must never do is <em>leak</em> what it
+curates away, so the surfaces that enumerate notes — including the <code>/api/events</code> push stream,
+which would otherwise announce a hidden note&#39;s path the moment it changed — all apply it. If a
+note should not be public at all, unpublish it (<code>publish: false</code>); that is the switch with
+teeth.</p>
+</blockquote>
+<h2 id="hijri-dates"><a class="anchor" href="#hijri-dates">Hijri dates</a></h2>
+<p>An Arabic site often dates its writing by the Hijri calendar, and until now Vellum could only
+print Gregorian. <strong>Settings → Appearance &amp; language → Date calendar</strong> (settings key
+<code>dateCalendar</code>) takes three values:</p>
+<div class="table"><table><thead><tr><th></th><th>prints</th></tr></thead><tbody><tr><td><code>gregorian</code> <em>(default)</em></td><td><code>15 August 2026</code> / <code>١٥ أغسطس ٢٠٢٦</code></td></tr><tr><td><code>hijri</code></td><td><code>٢ صفر ١٤٤٨ هـ</code></td></tr><tr><td><code>both</code></td><td>one with the other parenthesised beside it</td></tr></tbody></table></div><p><code>both</code> is ordered by the <strong>site language</strong>: an Arabic instance leads with the Hijri date and
+puts the Gregorian one in brackets, an English instance does the reverse. The panel prints a
+live specimen of today under whichever segment is highlighted, so you can see the answer before
+you save it.</p>
+<p>The Hijri calendar is <strong>Umm al-Qura</strong> (<code>islamic-umalqura</code>). Intl offers four Islamic calendars:
+<code>islamic</code> is observational and its answer drifts by a day between platforms; the two tabular
+variants never drift but are not what anyone&#39;s wall calendar says. Umm al-Qura is both stable
+and recognisable, so it is the one Vellum uses — this is a display convention, not a preference
+with a long tail. Month names come from <code>Intl</code> in the chrome language (English chrome says
+&quot;August&quot;, Arabic chrome says &quot;أغسطس&quot;) and digits from the same numeral rule everything else
+uses, so nothing is hand-spelled and one instance never mixes two numbering systems on a line.</p>
+<p>It reaches <strong>every human-facing date</strong>: blog post meta and dashboard cards, comment timestamps
+(the relative &quot;5 minutes ago&quot; keeps its wording and gains the absolute date in its tooltip),
+the moderation rows, the backup badge and the settings panel. <strong>Daily notes keep their ISO
+filenames</strong> — <code>daily/2026-08-16.md</code> still sorts, still resolves as <code>[[2026-08-16]]</code>, still opens
+in Obsidian — but outside Gregorian mode the status bar names the open one in the calendar you
+chose.</p>
+<blockquote>
+<p><strong>RSS is deliberately untouched.</strong> <code>/feed.xml</code> keeps RFC-822 Gregorian <code>&lt;pubDate&gt;</code>s whatever
+this setting says. That is a wire format an aggregator parses, not a date a person reads.</p>
+</blockquote>
+<h2 id="note-direction-alignment"><a class="anchor" href="#note-direction-alignment">Note direction &amp; alignment</a></h2>
+<p>Two settings under <strong>Appearance &amp; language → Note layout</strong>, applied identically in the editor,
+the reading view and blog articles:</p>
+<ul>
+<li><strong>Text direction</strong> (<code>textDirection</code>): <code>auto</code> <em>(default)</em>, <code>ltr</code>, <code>rtl</code>. <code>auto</code> is what shipped
+before — every block takes its own direction from its own first strong letter, which is what a
+bilingual vault wants. Pinning one makes the whole document read that way.</li>
+<li><strong>Text alignment</strong> (<code>textAlign</code>): <code>start</code> <em>(default)</em>, <code>left</code>, <code>right</code>, <code>center</code>, <code>justify</code>.</li>
+</ul>
+<p><strong>Any note overrides both from its own frontmatter</strong>, and the note wins:</p>
+<pre><code class="language-yaml">---
+dir: rtl
+align: justify
+---
+</code></pre>
+<p>(<code>direction:</code> and <code>text-align:</code> are accepted as spellings of the same two keys, as are
+<code>centre</code>/<code>centered</code> and <code>justified</code>.)</p>
+<p>A note that disagrees with the site default <strong>says so</strong>: a chip in its properties card, beside
+the tag pills where the frontmatter is, and a quiet segment in the status bar. Both carry the
+same tooltip, which names each half and where it came from — <em>Direction: RTL — set by this
+note · Alignment: Justified — the site default</em>. A setting that silently changes how the text
+under your caret behaves is the trap the mode pills exist to close, and this is the same rule.</p>
+<p><strong>Code blocks, tables and display maths never take a centred or justified measure</strong>, and never
+take a pinned direction either: <code>const x = 1;</code> inside a right-to-left document renders as
+<code>;const x = 1</code>, and a <code>|---|---|</code> table rule stops lining up with its own header. They keep the
+reading direction&#39;s leading edge and resolve their own direction per line, in the editor and in
+the rendered view alike. Callouts, quotes and lists are prose and follow the note. A <code>.tex</code>
+note takes the direction (an Arabic paper is written right to left) and refuses the measure —
+its source is markup end to end.</p>
+<h2 id="searching-in-arabic"><a class="anchor" href="#searching-in-arabic">Searching in Arabic</a></h2>
+<p>Arabic text that has been <strong>pointed</strong> — a Qur&#39;anic quotation, a classical text, anything a careful
+typist vowelled — is spelled differently from the way anyone types it into a search box. «المقدمة»
+and «الْمُقَدِّمَة» are the same word. So Vellum folds, on both sides of the index: what it files
+and what you ask for go through the same table, which means the plain spelling finds the pointed
+note <em>and</em> the pointed spelling finds the plain one.</p>
+<p>What folds:</p>
+<ul>
+<li><strong>Harakat and the Quranic marks</strong> — fatha, damma, kasra, shadda, sukun, the superscript alef,
+the pause marks</li>
+<li><strong>The alef family</strong> — أ إ آ ٱ are ا</li>
+<li><strong>ى → ي</strong>, <strong>ة → ه</strong>, and the Persian <strong>ی → ي</strong>, <strong>ک → ك</strong></li>
+<li><strong>Tatweel</strong> (ـــ), which is a typographic stretch and not a letter</li>
+<li><strong>Zero-width joiners, the bidi marks and the soft hyphen</strong></li>
+<li><strong>Latin combining marks</strong>, in the same breath and by the same table: <code>resume</code> finds <em>résumé</em>,
+<code>naive</code> finds <em>naïve</em>, <code>cafe</code> finds <em>café</em></li>
+</ul>
+<p>It is one table (<code>shared/fold.ts</code>) and every matcher in the product consults it — the sidebar
+search and the lines it quotes under a hit, the <code>[[</code> wikilink completion, the command palette&#39;s
+note rows, and the PDF reader&#39;s own <code>/</code> search, which is where the table was written.</p>
+<p><strong>Replace does not fold</strong>, deliberately. See
+<a href="../editor/#navigating">Search &amp; replace</a>: finding is a question and folding widens it kindly, but
+replacing is a write, and a replace that quietly rewrote «الْمُقَدِّمَة» would strip harakat you
+never typed and never saw.</p>
+<h2 id="localised-tag-labels"><a class="anchor" href="#localised-tag-labels">Localised tag labels</a></h2>
+<p>A vault&#39;s tags are English because tags are addresses: <code>#software</code> is in your files, in your
+links, in <code>EXCLUDE_TAGS</code>, in every URL you have shared. But an Arabic front end should say
+«برمجيات». Both are true at once, because a label is <strong>display only</strong> — nothing here ever
+rewrites a note.</p>
+<p>There are two places to put a label, and the first one is better.</p>
+<p><strong>1 — the tag&#39;s own page</strong>, so the naming travels with the vault. Put a note at
+<code>tags/&lt;tag&gt;.md</code> (the folder is <strong>Settings → Appearance &amp; language → Tags folder</strong>, <code>tagsFolder</code>,
+default <code>tags</code>; nested tags nest, so <code>#lang/arabic</code> is <code>tags/lang/arabic.md</code>) and give it a
+<code>labels:</code> map:</p>
+<pre><code class="language-markdown">---
+labels:
+  ar: برمجيات
+  en: Software
+---
+
+Notes about software: the craft, not the industry.
+</code></pre>
+<p>Clone the vault, sync it, open it in Obsidian — the label is still there, because it is a note.
+A bare <code>labels: برمجيات</code> is read as the Arabic label, which is what a hand-written Arabic tag
+page actually says.</p>
+<p><strong>2 — <code>settings.tagLabels</code></strong>, for tags with no page of their own: a compact table in
+<strong>Settings → Appearance &amp; language → Tag labels</strong>, one row per tag with a column per language.
+A tag page outranks it, per language, so a page naming only an Arabic label does not erase an
+English one set here.</p>
+<p>Every tag surface uses the label: the blog&#39;s topic nav and topic pages, post chips, the
+dashboard cards, the sidebar tag cloud and topic sections, the properties card in the editor
+and the reading view, and the hover previews. Everything else stays <strong>canonical</strong>:</p>
+<ul>
+<li><strong>URLs keep canonical slugs.</strong> <code>/topic/software</code> is what the site draws and what your links
+point at. The localised spelling is accepted as a redirect — <code>/topic/برمجيات</code> lands on the
+same page and quietly rewrites the address — because a reader copies the word they can see.</li>
+<li><strong>Frontmatter is untouched</strong>, <code>EXCLUDE_TAGS</code> and the language filter keep matching the real
+value, and the tooltip on a labelled chip names the canonical tag.</li>
+<li><strong>Search answers to both spellings.</strong> Typing «برمجيات» finds the notes tagged <code>#software</code>, and
+typing <code>software</code> still does. The query is expanded, not the index — so editing a label takes
+effect immediately, with no reindex.</li>
+</ul>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/arabic-and-rtl.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/typography/"><span class="pager__kicker">Previous</span><span class="pager__title">Typography</span></a><a class="pager__link pager__link--next" href="../../en/development/"><span class="pager__kicker">Next</span><span class="pager__title">Development</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#your-editor-39-s-language-is-yours">Your editor&amp;#39;s language is yours</a><a class="toc__link toc__link--2" href="#visitor-language-switch">Visitor language switch</a><a class="toc__link toc__link--2" href="#language-filter">Language filter</a><a class="toc__link toc__link--2" href="#hijri-dates">Hijri dates</a><a class="toc__link toc__link--2" href="#note-direction-alignment">Note direction &amp;amp; alignment</a><a class="toc__link toc__link--2" href="#searching-in-arabic">Searching in Arabic</a><a class="toc__link toc__link--2" href="#localised-tag-labels">Localised tag labels</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

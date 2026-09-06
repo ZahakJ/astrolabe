@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LaTeX notes · Vellum Documentation</title>
+<meta name="description" content=".tex and .latex files are notes, not imports — edited, published, searched and linked exactly as markdown is.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/latex/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link is-current" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="latex-notes">LaTeX notes</h1>
+<p><em><code>.tex</code> and <code>.latex</code> files are notes, not imports — edited, published, searched and linked exactly as markdown is.</em></p>
+<hr>
+<p>A <code>.tex</code> file is a <strong>note</strong>, not an import. It is in the tree, in search, in
+the graph, in the backlinks panel, in the tag counts, in the post list and in
+the RSS feed, and it publishes to the blog exactly as a <code>.md</code> note does — same
+typography, same themes, same visitor scoping, both languages. And it still
+compiles: everything Vellum adds is a LaTeX comment or a macro you can ship
+beside the file.</p>
+<ul>
+<li><strong>Live-preview editor</strong> — the CodeMirror <code>stex</code> mode themed to whichever of
+the twenty-one rooms you are in, with the same bargain the markdown editor
+makes: the caret&#39;s line shows raw TeX, every other line reads as the thing it
+becomes. Sectioning is set in serif, <code>\emph</code>/<code>\textbf</code>/<code>\texttt</code> render,
+<code>\item</code> becomes a bullet or its number, <code>$…$</code> and display environments are
+set by KaTeX, <code>\cite</code> is a chip, and <code>\begin{figure}</code> shows <strong>your vault&#39;s
+actual image</strong> with its caption. (Section and equation <em>numbers</em> are the
+reading view&#39;s — they are a property of the whole document, and a number that
+renumbered itself as you typed above it would be a distraction rather than a
+preview; the outline panel beside the editor prints them.) Fold any
+environment or section from the chevron beside it. Autocomplete covers
+<code>\note{</code>, <code>\ref{</code>, <code>\cite{</code> and <code>\begin{</code> (which writes the matching <code>\end</code>)</li>
+<li><strong>The formatting keys write LaTeX here</strong> — <code>Ctrl/Cmd B</code> in a <code>.tex</code> note is
+<code>\textbf{…}</code>, not <code>**…**</code>; <code>Ctrl/Cmd I</code> is <code>\emph{…}</code>, inline code is
+<code>\texttt{…}</code>, &quot;Heading 2&quot; is <code>\subsection{…}</code>, a bulleted list is an
+<code>itemize</code> environment and a wikilink is <code>\note{…}</code>. Strikethrough, highlight,
+the task list and the colour swatches are <strong>absent</strong> from the menu in a
+<code>.tex</code> note rather than approximated: LaTeX cannot spell them without a
+package your document may not load, and a key that quietly writes something
+neither Vellum nor <code>pdflatex</code> can render is worse than a key that does
+nothing</li>
+<li><strong>Reading &amp; publishing</strong> — rendered in the same visual language as markdown:
+numbered sections, numbered equations, &quot;Figure 1&quot; captions, theorem boxes,
+resolved cross-references, a <code>\bibitem</code> bibliography, footnotes. The outline
+panel follows the <code>\section</code> hierarchy</li>
+<li><strong>Frontmatter that pdflatex ignores</strong> — a leading comment block:<pre><code class="language-latex">%---
+% publish: true
+% tags: [physics, fourier]
+% banner: &quot;Media/heat.png&quot;
+%---%
+</code></pre>
+or, if you would rather write a macro, <code>\vellum{publish=true, citekey=fourier1822}</code></li>
+<li><strong>Links, three ways</strong> — <code>\note{Fourier Transform}</code> and
+<code>\note[the transform]{Fourier Transform}</code> are Vellum&#39;s own macro (ship
+<a href="#vellumsty"><code>vellum.sty</code></a> beside the file and it compiles anywhere);
+<code>%% [[Private Scratch]] %%</code> is a link the PDF never shows; and an existing
+project lights up <strong>unmodified</strong>, because <code>\input</code>, <code>\include</code>, <code>\cite</code>,
+<code>\ref</code> and <code>\eqref</code> already say what they mean — Vellum simply extends their
+search path to the vault, local definitions first, so importing a project can
+never change how it compiles</li>
+<li><strong>One anchor space</strong> — a markdown heading and a LaTeX <code>\label</code> are the same
+kind of thing, so <code>[[Heat Equation#eq:fourier]]</code> and <code>\note{Notes\#Derivation}</code>
+are one lookup in either direction, and <code>![[Heat Equation#eq:fourier]]</code>
+transcludes <strong>just that equation</strong>, rendered by KaTeX, into a markdown note</li>
+</ul>
+<p>A <code>.tex</code> note takes the site&#39;s <a href="../arabic-and-rtl/#note-direction--alignment">text direction</a> — an
+Arabic paper is written right to left — and refuses the alignment measure: its source is markup
+end to end.</p>
+<h2 id="vellum-sty"><a class="anchor" href="#vellum-sty"><code>vellum.sty</code></a></h2>
+<p>The dozen lines that make <code>\note{…}</code> compile outside Vellum. Download it from your own instance at
+<code>/api/vellum.sty</code> (or &quot;LaTeX: download vellum.sty&quot; in the command palette), drop it beside your
+document, and <code>\usepackage{vellum}</code>. Without it the file still opens in Vellum; with it,
+<code>pdflatex</code> renders the very same file.</p>
+<h2 id="what-renders-and-what-does-not"><a class="anchor" href="#what-renders-and-what-does-not">What renders, and what does not</a></h2>
+<p>An honest boundary beats a leaky claim of &quot;full LaTeX&quot;. Anything not listed
+below is <strong>passed through as a quiet inline marker</strong> — never as raw source,
+never as a crash — and an unparseable document still opens, lists, publishes
+and searches by its title.</p>
+<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>Structure</strong></td><td><code>\part</code> <code>\chapter</code> <code>\section</code> <code>\subsection</code> <code>\subsubsection</code> <code>\paragraph</code> <code>\subparagraph</code> (starred forms unnumbered), <code>\appendix</code>, <code>\maketitle</code> with <code>\title</code>/<code>\author</code>/<code>\date</code>, <code>abstract</code>, <code>\tableofcontents</code>, <code>\label</code> anywhere</td></tr><tr><td><strong>Text</strong></td><td><code>\emph</code> <code>\textit</code> <code>\textbf</code> <code>\texttt</code> <code>\textsc</code> <code>\textsf</code> <code>\underline</code>, <code>\footnote</code>, <code>\\</code> breaks, <code>~</code>, <code>--</code>/<code>---</code>, <code>``…&#39;&#39;</code> quotes, accents (<code>\&#39;e</code> <code>\&quot;o</code> <code>\c{c}</code> …), <code>\LaTeX</code> and the common symbol macros, <code>\url</code> and <code>\href</code></td></tr><tr><td><strong>Lists</strong></td><td><code>itemize</code>, <code>enumerate</code> (numbered), <code>description</code></td></tr><tr><td><strong>Maths</strong></td><td><code>$…$</code>, <code>\(…\)</code>, <code>\[…\]</code>, <code>$$…$$</code>, <code>equation</code> <code>align</code> <code>gather</code> <code>multline</code> <code>alignat</code> <code>flalign</code> <code>eqnarray</code> <code>displaymath</code> and their starred forms, <code>aligned</code> <code>gathered</code> <code>split</code> <code>cases</code> <code>array</code> and the matrix family — all through KaTeX, with <strong>Vellum&#39;s own equation numbering</strong> (KaTeX restarts its counter per block, which would print &quot;(1)&quot; for every equation in a paper) and <code>\nonumber</code>/<code>\notag</code> honoured</td></tr><tr><td><strong>Floats</strong></td><td><code>figure</code> with <code>\includegraphics</code> (extension optional, resolved against your vault) and <code>\caption</code>; <code>table</code> with <code>tabular</code>/<code>tabularx</code>/<code>longtable</code>, <code>\multicolumn</code>, alignment from the column spec</td></tr><tr><td><strong>Blocks</strong></td><td><code>quote</code> <code>quotation</code> <code>verse</code>, <code>center</code>, <code>verbatim</code> <code>lstlisting</code> <code>minted</code> (highlighted), <code>thebibliography</code> with <code>\bibitem</code></td></tr><tr><td><strong>Theorems</strong></td><td><code>theorem</code> <code>lemma</code> <code>proposition</code> <code>corollary</code> <code>definition</code> <code>remark</code> <code>example</code> <code>proof</code> and friends, numbered, with the optional <code>[title]</code></td></tr><tr><td><strong>Macros</strong></td><td><code>\newcommand</code>/<code>\renewcommand</code> with up to nine arguments and an optional default — expanded in text, and handed to KaTeX for maths</td></tr><tr><td><strong>Ignored</strong></td><td>preamble furniture (<code>\documentclass</code>, <code>\usepackage</code>, <code>\setlength</code>, <code>\hypersetup</code>, spacing commands, <code>\index</code>, <code>\nocite</code>) — consumed silently, never printed</td></tr></tbody></table></div><p>Known simplifications, stated rather than discovered: numbering is
+article-style (<code>1</code>, <code>1.1</code>, <code>1.1.1</code>) whatever the document class; <code>\ref</code> prints a
+number for a local label and the target&#39;s <em>title</em> across a note boundary,
+because a bare &quot;1&quot; means nothing in someone else&#39;s paper; and BibTeX is not
+run — <code>\cite</code> resolves against a <code>\bibitem</code> in the document or a note carrying
+that <code>citekey:</code>, and is otherwise left alone.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/latex.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/templates-and-notes/"><span class="pager__kicker">Previous</span><span class="pager__title">Templates, banners &amp; notes</span></a><a class="pager__link pager__link--next" href="../../en/trackers/"><span class="pager__kicker">Next</span><span class="pager__title">Trackers</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#vellum-sty">vellum.sty</a><a class="toc__link toc__link--2" href="#what-renders-and-what-does-not">What renders, and what does not</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration · Vellum Documentation</title>
+<meta name="description" content="Every .env key, the runtime Settings panel, and how the two decide who wins.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/configuration/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link is-current" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="configuration">Configuration</h1>
+<p><em>Every <code>.env</code> key, the runtime Settings panel, and how the two decide who wins.</em></p>
+<hr>
+<p>Vellum is configured in two places, and they are the same place twice: an <code>.env</code> file read at
+startup, and a <strong>Settings</strong> panel that writes <code>VELLUM_DATA/settings.json</code> while the server runs.
+Most site-identity keys exist in both. A value saved in the panel <strong>overrides</strong> its env
+counterpart; clearing that field in the panel falls back to the env default. A handful of keys —
+the security-sensitive ones — are env-only forever.</p>
+<h2 id="environment-variables"><a class="anchor" href="#environment-variables">Environment variables</a></h2>
+<p>npm scripts load <code>.env</code> automatically (<code>node --env-file-if-exists=.env</code>), so no <code>export</code> and no
+<code>source</code> is needed. <code>.env.example</code> in the repo root is the annotated full list; this is the
+summary.</p>
+<div class="table"><table><thead><tr><th>Key</th><th>What</th></tr></thead><tbody><tr><td><code>PORT</code></td><td>Server port (default 6801)</td></tr><tr><td><code>HOST</code></td><td>Bind address (default <code>0.0.0.0</code>). A non-loopback bind with no password prints a loud warning: everyone who can reach the port is an admin</td></tr><tr><td><code>VELLUM_VAULT</code></td><td>Vault directory (default <code>./vault</code>). The <code>--vault &lt;path&gt;</code> CLI argument outranks it</td></tr><tr><td><code>VELLUM_DATA</code></td><td>Server data directory — <code>settings.json</code>, the comments SQLite db, your <code>custom.css</code>, <code>designs.json</code>, the git credentials file, and <code>fonts/</code> (your own files, plus the self-hosted catalog cache in <code>fonts/catalog/</code> and uploads in <code>fonts/custom/</code>; default <code>./data</code>)</td></tr><tr><td><code>ADMIN_PASSWORD_HASH</code></td><td>argon2id hash from <code>npm run hash-password</code>; unset → open local mode</td></tr><tr><td><code>SESSION_SECRET</code></td><td>Signs session cookies; unset → an ephemeral secret is generated and sessions die on restart</td></tr><tr><td><code>PUBLIC</code></td><td><code>false</code> requires login even to read (default: reading is public). <strong>Refuses to start without <code>ADMIN_PASSWORD_HASH</code></strong></td></tr><tr><td><code>SECURE_COOKIES</code></td><td><code>true</code>/<code>false</code> to force the session cookie&#39;s <code>Secure</code> flag; unset → derived from the request scheme (and <code>X-Forwarded-Proto</code> from a trusted proxy)</td></tr><tr><td><code>TRUSTED_PROXIES</code></td><td>Comma-separated IPs/CIDRs allowed to set <code>X-Forwarded-For</code> / <code>X-Forwarded-Proto</code> (e.g. <code>127.0.0.1,::1</code>); unset → both headers ignored, rate limit uses the socket address</td></tr><tr><td><code>HOME_NOTE</code></td><td>Vault-relative note fresh visitors land on, e.g. <code>index.md</code></td></tr><tr><td><code>COMMENTS</code></td><td><code>on</code> (also <code>true</code>/<code>1</code>/<code>yes</code>) enables reader comments under published notes (default off)</td></tr><tr><td><code>SITE_NAME</code></td><td>Site name shown in the sidebar wordmark, page titles, and the login modal (default <code>Vellum</code>)</td></tr><tr><td><code>SITE_TAGLINE</code></td><td>Masthead subtitle under the site name (blog mode)</td></tr><tr><td><code>SITE_FOOTER</code></td><td>Blog footer line; <code>{year}</code>/<code>{siteName}</code> substituted (default <code>© {year} {siteName}</code>)</td></tr><tr><td><code>SITE_URL</code></td><td>Canonical origin for RSS/canonical links, e.g. <code>https://notes.example.com</code>; unset → derived from request headers. <strong>Env-only — it has no Settings-panel counterpart</strong></td></tr><tr><td><code>DEFAULT_THEME</code></td><td>Theme for visitors who haven&#39;t picked one — any of the twenty-one, or <code>custom:&lt;name&gt;</code> for one you built (see <a href="../theming/">Theming</a>), or <code>follow</code>, which is also what unset means: visitors get the theme <em>you</em> edit in; case-insensitive; unknown names are ignored with one line on stderr</td></tr><tr><td><code>EXCLUDE_TAGS</code></td><td>Comma-separated tags hidden from the visitor site&#39;s topic sections and tag pills (workflow/status tags like <code>draft,seedling</code>); case-insensitive, a leading <code>#</code> is fine; admin views unaffected</td></tr><tr><td><code>PUBLIC_LAYOUT</code></td><td><code>blog</code> gives visitors a classic blog layout instead of the app shell (see <a href="../blog-mode/">Blog mode</a>); <code>designed</code> composes it from a design you author (see <a href="../designer/">Designer</a>); anything else → <code>app</code> (the default)</td></tr><tr><td><code>SITE_LANG</code></td><td>Site language: <code>en</code> (default) or <code>ar</code>. <code>ar</code> localizes every chrome string and mirrors the whole UI right-to-left (see <a href="../arabic-and-rtl/">Arabic &amp; RTL</a>). What <em>you</em> edit in is a separate per-browser choice — Settings → <em>Editor language</em></td></tr><tr><td><code>BLOG_LOCALE</code></td><td>BCP47 locale for post-date digits and the RSS channel language (default: follows <code>SITE_LANG</code>). Month names follow the chrome language when the visitor switch is on</td></tr><tr><td><code>LANGUAGE_FILTER</code></td><td>Which published notes the public site shows, by the language they are written in: <code>off</code> (default) · <code>follow</code> (each reader gets their own) · <code>ar</code> · <code>en</code>. Legacy <code>true</code>/<code>false</code> still parse — see <a href="../arabic-and-rtl/#language-filter">Language filter</a></td></tr><tr><td><code>ATTACHMENTS_DIR</code></td><td>Vault-relative directory in-app uploads write into (default <code>attachments</code>), created on demand. The <strong>Attachments</strong> setting can override where uploads go entirely — see <a href="#attachments">Attachments</a></td></tr><tr><td><code>BANNER_FALLBACK</code></td><td>Blog hero for posts without a <code>banner:</code> — <code>generated</code> (default; a deterministic abstract gradient from the note title) or <code>none</code></td></tr><tr><td><code>VELLUM_GIT_SSH_COMMAND</code></td><td>The one <code>GIT_*</code> variable Vellum passes through to the git child process, verbatim, as <code>GIT_SSH_COMMAND</code> — see <a href="../backup-and-sync/#things-worth-knowing">Backup &amp; sync</a></td></tr></tbody></table></div><p>Request bodies are capped server-side before any parsing buffers them, with no env key: 10 MB on
+any <code>/api</code> request, and a much tighter 64 KB on the anonymous surfaces (comment posts and login),
+so oversized uploads are rejected (HTTP 413) instead of occupying memory. Uploads get their own
+allowance on top. A matching cap at the proxy is still a sensible extra layer — e.g. nginx
+<code>client_max_body_size 10m;</code>.</p>
+<h2 id="the-settings-panel"><a class="anchor" href="#the-settings-panel">The Settings panel</a></h2>
+<p>Most of the site-identity keys above can also be changed <strong>at runtime, from the app</strong> — no
+<code>.env</code> edit, no restart. As admin, open <strong>Settings</strong> (the gear in the status bar, or the
+command palette): a panel with six tabs, each opening with its name and one sentence saying what
+it decides.</p>
+<ul>
+<li><strong>Site identity</strong> — site name, tagline, footer line, a <strong>logo</strong> image (replaces the text
+wordmark in the sidebar and the blog masthead), and a <strong>favicon</strong> (served at <code>/favicon.ico</code>
+with its real content type and injected into every page&#39;s <code>&lt;link rel=&quot;icon&quot;&gt;</code>).</li>
+<li><strong>Appearance &amp; language</strong> — the default theme visitors arrive on, <strong>your own</strong> theme (this
+browser only, with <em>Themes</em>), the <strong>site language</strong> (English / العربية — what visitors read
+it in), your own <strong>editor language</strong> (<em>Follow site</em> / English / العربية, this browser only,
+and never what visitors get), which edge the
+<strong>notes sidebar</strong> sits on (<em>Auto</em> follows the language — Arabic carries it to the right — or
+pin it to a screen edge for good), the date locale, the language filter and the optional
+<strong>visitor switch</strong> — plus the three localization rows below it: the <strong>date calendar</strong>
+(Gregorian / Hijri / both, with a live specimen of today), the <strong>note layout</strong> pair (text
+direction and alignment for note prose, which any note may override from its own
+frontmatter), the <strong>tags folder</strong>, and the <strong>tag labels</strong> table — display names for canonical
+tags, for a front end that should read «برمجيات» over a vault that keeps <code>#software</code>. See
+<a href="../arabic-and-rtl/#hijri-dates">Hijri dates</a>,
+<a href="../arabic-and-rtl/#note-direction--alignment">Note direction &amp; alignment</a> and
+<a href="../arabic-and-rtl/#localised-tag-labels">Localised tag labels</a>.</li>
+<li><strong>Publishing &amp; comments</strong> — public layout (<code>app</code> / <code>blog</code> / <code>designed</code>), excluded tags, the
+comments and share-button toggles, the <strong>templates folder</strong> and the <strong>template for new notes</strong>,
+and the home page visitors land on at <code>/</code>: classic <code>note</code> mode with a chosen home note, or the
+<code>dashboard</code> magazine layout, plus an optional hero banner. The home rows are read by the <code>blog</code>
+and <code>designed</code> layouts only, so with <code>Public layout: app</code> the panel greys them and says so — an
+app-layout instance opens the home note at <code>/</code>. This tab also holds the two <strong>folder</strong> settings
+— where templates live, and <strong>where new attachments are written</strong> (see
+<a href="#attachments">Attachments</a>) — because both answer the same question: where does this instance
+put things in the vault.</li>
+<li><strong>Typography</strong> — four font slots (text / interface / code / Arabic script) over a curated,
+self-hosted catalog <em>or</em> faces you upload yourself, with a live specimen that stays on screen
+while you choose. See <a href="../typography/">Typography</a>.</li>
+<li><strong>Backup &amp; sync</strong> — commit the vault and push it to a private git remote you own, manually or
+on a timer. Off until you turn it on. See <a href="../backup-and-sync/">Backup &amp; sync</a>.</li>
+<li><strong>About</strong> — the version, the Node version, the vault&#39;s counts, and the absolute paths of the
+vault, the data directory, <code>settings.json</code> and the uploaded-fonts folder.</li>
+</ul>
+<p>Image fields reuse the banner machinery: pick from the vault&#39;s attachments or upload right
+there (drag &amp; drop; bytes are sniffed; lands wherever the <a href="#attachments">Attachments</a> setting
+points).</p>
+<h3 id="attachments"><a class="anchor" href="#attachments">Attachments</a></h3>
+<p><strong>Where new attachments go</strong> is a setting, named the way Obsidian names it (<em>Default location
+for new attachments</em>), so a migrating vault behaves the way its owner already expects. It sits
+in <strong>Publishing &amp; comments</strong>, beside the templates folder.</p>
+<div class="table"><table><thead><tr><th>Mode</th><th>An upload lands in</th></tr></thead><tbody><tr><td>Vault root</td><td>the top of the vault</td></tr><tr><td>Same folder as the note</td><td>beside the note being edited</td></tr><tr><td>Subfolder of the note&#39;s folder</td><td><code>&lt;note&#39;s folder&gt;/&lt;name&gt;</code> — e.g. an <code>assets</code> next to each note</td></tr><tr><td>Specified folder <em>(default)</em></td><td>one fixed vault-relative folder — <code>ATTACHMENTS_DIR</code>, default <code>attachments</code></td></tr></tbody></table></div><p>The folder field is validated the way every vault path is: it stays inside the vault, is never
+a dot-folder (those are invisible to the tree, the indexer and the watcher), and is created on
+demand. <strong>Existing attachments are never moved</strong> — the setting decides where the <em>next</em> upload
+is written, and embeds resolve by basename regardless of which folder they live in.</p>
+<p>Every upload path obeys it: paste or drop in the editor, the file drop on the sidebar tree, and
+the banner/logo/favicon pickers&#39; upload — those last three keep writing images, but into the
+same resolved folder. Fonts (<code>VELLUM_DATA/fonts</code>) and <code>custom.css</code> keep their own homes.</p>
+<p><strong>Anything the vault can hold, not just images.</strong> <code>POST /api/upload</code> accepts images (png, jpeg,
+webp, gif, svg, avif, heic, bmp), <strong>PDF</strong>, audio (mp3, m4a, wav, ogg, opus, flac) and video
+(mp4, mov, webm) — 10 MB each, and the <em>bytes</em> are sniffed, so a renamed <code>.exe</code> is refused
+whatever its extension claims. Anything outside that list is refused <strong>in the browser, before
+the upload</strong>, in a message that names both what was turned away and what would have been
+welcome.</p>
+<p><strong>Drop files anywhere on the tree.</strong> Drag files from your file manager onto a folder row (or
+onto a note row — they land beside it) and they are attached; the row lights up and says how
+many are coming. The toast afterwards names the folder they actually landed in and carries an
+<strong>Undo</strong> that moves them to <code>.trash/</code>. Names that collide are given the first free
+<code>name-2.ext</code>, and the toast says so.</p>
+<p><strong>Deleting says what it is really taking.</strong> The vault tree holds markdown only, so a folder left
+holding four images after its note moved out used to describe itself as &quot;0 notes&quot; — and deleting
+it silently broke a published essay. Every delete confirmation now asks the server what is
+inside:</p>
+<blockquote>
+<p><strong>Move &quot;Media&quot; to .trash?</strong>
+0 notes, 60 attachments — 53 of them referenced by 48 notes. All of it moves to the vault&#39;s
+.trash folder — recoverable from disk.</p>
+</blockquote>
+<p>Referencing notes are named outright while they are few enough to read. Only notes that
+<em>survive</em> the delete count as breakage — a note going in the same act is not a broken link.
+Both wikilink embeds (<code>![[fig.png]]</code>) and markdown links (<code>![](assets/fig.png)</code>) count, plus a
+note&#39;s <code>banner:</code>. The permanent-delete escalation repeats the same inventory, and deleting a
+single attachment (the × on a row of the banner picker&#39;s list) asks the same question.</p>
+<p><strong>Every control in the panel is drawn by Vellum</strong>, not by your operating system. Lists are a
+themed popover anchored to their trigger and kept inside the panel — height capped to the room
+available, flipping above the trigger when there is none, arrow keys and type-ahead, <code>Enter</code> to
+commit, <code>Esc</code> to put the value back; switches are switches; three-way rows (<em>inherit</em> / on / off)
+show all three states at once; numbers carry their unit inside the field. A native <code>&lt;select&gt;</code>
+opens an OS-drawn window that no theme can reach and no panel can contain, which is exactly what
+a twenty-seven-face font list must never do.</p>
+<h2 id="settings-keys"><a class="anchor" href="#settings-keys">Settings keys</a></h2>
+<p>These are the keys <code>VELLUM_DATA/settings.json</code> can hold, as the panel and <code>PATCH /api/settings</code>
+write them. Anything absent falls back to the env default in the table above.</p>
+<div class="table"><table><thead><tr><th>Key</th><th>Values</th><th>Default</th></tr></thead><tbody><tr><td><code>siteName</code></td><td>string, ≤ 80 chars</td><td><code>SITE_NAME</code>, else <code>Vellum</code></td></tr><tr><td><code>tagline</code></td><td>string, ≤ 160</td><td><code>SITE_TAGLINE</code>, else none</td></tr><tr><td><code>footer</code></td><td>string, ≤ 200</td><td><code>SITE_FOOTER</code>, else <code>© {year} {siteName}</code></td></tr><tr><td><code>defaultTheme</code></td><td>one of the twenty-one ids, <code>custom:&lt;name&gt;</code> for a theme that exists, or <code>follow</code> (visitors track your editor theme)</td><td><code>DEFAULT_THEME</code>, else <code>follow</code></td></tr><tr><td><code>adminTheme</code></td><td>one theme id — <strong>written by the app, not by hand</strong>: your own editor theme, mirrored from your browser so <code>follow</code> has something to serve</td><td>none until you pick a theme</td></tr><tr><td><code>publicLayout</code></td><td><code>app</code> · <code>blog</code> · <code>designed</code></td><td><code>PUBLIC_LAYOUT</code>, else <code>app</code></td></tr><tr><td><code>blogLocale</code></td><td>BCP47 tag, ≤ 35 chars, canonicalized on save</td><td><code>BLOG_LOCALE</code>, else <code>ar</code> when the language is Arabic, else <code>en</code></td></tr><tr><td><code>language</code></td><td><code>en</code> · <code>ar</code></td><td><code>SITE_LANG</code>, else <code>en</code></td></tr><tr><td><code>languageFilter</code></td><td><code>off</code> · <code>follow</code> · <code>ar</code> · <code>en</code></td><td><code>LANGUAGE_FILTER</code>, else <code>off</code></td></tr><tr><td><code>languageToggle</code></td><td>boolean — the public <code>EN</code>/<code>ع</code> switch. <strong>No env counterpart</strong></td><td><code>false</code></td></tr><tr><td><code>excludeTags</code></td><td>array of strings, ≤ 200 entries, ≤ 50 chars each</td><td><code>EXCLUDE_TAGS</code>, else empty</td></tr><tr><td><code>commentsEnabled</code></td><td>boolean</td><td><code>COMMENTS</code>, else <code>false</code></td></tr><tr><td><code>shareButtons</code></td><td>boolean — the share row under blog articles</td><td><code>true</code></td></tr><tr><td><code>ambient</code></td><td>boolean — a slow decorative atmosphere behind the public masthead, drawn per theme (see <a href="../theming/#the-ambient-masthead">Theming</a>)</td><td><code>false</code></td></tr><tr><td><code>favicon</code></td><td>vault-relative image (<code>.ico .png .svg .jpg .jpeg .gif .webp .avif</code>)</td><td>none</td></tr><tr><td><code>logo</code></td><td>https URL or vault-relative image</td><td>none</td></tr><tr><td><code>home.mode</code></td><td><code>note</code> · <code>dashboard</code></td><td><code>note</code></td></tr><tr><td><code>home.note</code></td><td>vault-relative note (<code>.md</code> / <code>.tex</code> / <code>.latex</code>)</td><td><code>HOME_NOTE</code></td></tr><tr><td><code>home.banner</code></td><td>https URL or vault image</td><td>none — a generated gradient seeded from the site name</td></tr><tr><td><code>attachments.mode</code></td><td><code>vault-root</code> · <code>same-folder</code> · <code>subfolder</code> · <code>specified</code></td><td><code>specified</code></td></tr><tr><td><code>attachments.folder</code></td><td>vault-relative folder, ≤ 180 chars; read by <code>subfolder</code> and <code>specified</code> only. No traversal, no absolute path, no dot-folder</td><td><code>ATTACHMENTS_DIR</code>, else <code>attachments</code></td></tr><tr><td><code>templatesFolder</code></td><td>vault-relative folder</td><td>auto-detected (<code>Templates</code>, <code>_templates</code>, <code>قوالب</code>), else none</td></tr><tr><td><code>defaultTemplate</code></td><td>vault-relative note applied to every new note</td><td>none</td></tr><tr><td><code>dateCalendar</code></td><td><code>gregorian</code> · <code>hijri</code> · <code>both</code></td><td><code>gregorian</code></td></tr><tr><td><code>textDirection</code></td><td><code>auto</code> · <code>ltr</code> · <code>rtl</code></td><td><code>auto</code></td></tr><tr><td><code>textAlign</code></td><td><code>start</code> · <code>left</code> · <code>right</code> · <code>center</code> · <code>justify</code></td><td><code>start</code></td></tr><tr><td><code>tagsFolder</code></td><td>vault-relative folder holding tag pages</td><td>auto-detected, else <code>tags</code></td></tr><tr><td><code>tagLabels</code></td><td><code>{ tag: { en, ar } }</code>, ≤ 200 tags — <strong>replaced whole, not merged</strong></td><td>empty</td></tr><tr><td><code>fonts.prose</code> / <code>.ui</code> / <code>.mono</code> / <code>.arabic</code></td><td>a catalog id, <code>custom:&lt;file&gt;</code> for an upload, or <code>system</code></td><td><code>system</code></td></tr><tr><td><code>fonts.arabicSizeAdjust</code></td><td>integer percent, 50–300</td><td>the catalog face&#39;s own measured value, or none</td></tr><tr><td><code>gitSync.enabled</code></td><td>boolean</td><td><code>false</code></td></tr><tr><td><code>gitSync.remote</code></td><td><code>https://…</code>, <code>ssh://…</code> or <code>git@host:path</code>, no embedded credentials</td><td>none</td></tr><tr><td><code>gitSync.branch</code></td><td>string</td><td><code>main</code></td></tr><tr><td><code>gitSync.intervalMinutes</code></td><td>integer 0–1440; <code>0</code> is <em>manual only</em></td><td><code>0</code></td></tr><tr><td><code>gitSync.pullFirst</code></td><td>boolean — fast-forward-only pull before each sync</td><td><code>true</code></td></tr><tr><td><code>gitSync.authMode</code></td><td><code>ssh</code> · <code>token</code></td><td><code>ssh</code></td></tr></tbody></table></div><p>Two more keys are <strong>write-only</strong>: <code>gitToken</code> and <code>gitUser</code> are accepted by <code>PATCH /api/settings</code>
+and stored in <code>VELLUM_DATA/git-credentials.json</code> at mode <code>0600</code> — never in <code>settings.json</code>, and
+never readable back. A read answers <code>gitSync.tokenSet: true</code> and the username, nothing more.</p>
+<p><code>settings.json</code> is written atomically — a crash can&#39;t tear it. Changes apply live: the wordmark,
+layout, theme default, excluded tags, comments routes, and favicon all update without a restart.
+If the file is ever corrupted, the server logs one warning and runs on env defaults.</p>
+<p>Security-sensitive keys are deliberately <strong>env-only forever</strong> and never readable or writable
+through the panel or <code>/api/settings</code>: <code>ADMIN_PASSWORD_HASH</code>, <code>SESSION_SECRET</code>, <code>TRUSTED_PROXIES</code>,
+<code>PORT</code>, <code>HOST</code>, <code>VELLUM_VAULT</code>, <code>VELLUM_DATA</code>, <code>PUBLIC</code>. <code>SITE_URL</code> is env-only too, for the
+duller reason that nothing has ever needed to change it at runtime.</p>
+<h2 id="the-settings-api"><a class="anchor" href="#the-settings-api">The settings API</a></h2>
+<p>Admin-only; visitors get a 404.</p>
+<ul>
+<li><code>GET /api/settings</code> answers the stored keys plus <code>effective</code> (the merged values actually in
+use), the font catalog, and an <code>about</code> block (version, Node version, absolute paths, counts).</li>
+<li><code>PATCH /api/settings</code> takes a partial object — only named keys change, <code>null</code> clears one and
+falls back to env — validates strictly (unknown keys are a 400), and answers the same shape.
+The git credential keys additionally require a real password on the instance.</li>
+</ul>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/configuration.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><span></span><a class="pager__link pager__link--next" href="../../en/publishing/"><span class="pager__kicker">Next</span><span class="pager__title">Publishing &amp; access</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#environment-variables">Environment variables</a><a class="toc__link toc__link--2" href="#the-settings-panel">The Settings panel</a><a class="toc__link toc__link--3" href="#attachments">Attachments</a><a class="toc__link toc__link--2" href="#settings-keys">Settings keys</a><a class="toc__link toc__link--2" href="#the-settings-api">The settings API</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

@@ -13,6 +13,8 @@
 
 ![The live-preview editor: callouts, tasks, wikilinks, KaTeX math, outline, local graph, and backlinks](docs/screenshots/hero-editor.png)
 
+**The manual** lives at [zahakj.github.io/vellum/site/en](https://zahakj.github.io/vellum/site/en/), with a full Arabic edition at [/site/ar](https://zahakj.github.io/vellum/site/ar/). The same pages are the markdown under [`docs/`](docs/README.md).
+
 ## Why Vellum
 
 Obsidian is excellent — and if it fits, use it. Vellum exists for the gap it leaves: a vault you can open **from any browser** on your network, served by **one small Node process you host yourself**, with no desktop install, no sync subscription, and no plugin sprawl. It is local-first in the strictest sense: your notes are ordinary markdown files in an ordinary folder, readable and writable by every other tool you own. Point Vellum at an existing Obsidian vault and both keep working — it never converts, wraps, or databases your files, ignores `.obsidian/` entirely, and serves your existing attachments in place. If you delete the app tomorrow, your notes don't notice. And when some of those notes deserve readers, flip on [blog mode](docs/blog-mode.md): the same vault becomes a public site with articles, topics, RSS and reader comments — `publish: true` is the only frontmatter it asks for.

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Templates, banners &amp; notes · Vellum Documentation</title>
+<meta name="description" content="Note banners, Obsidian-compatible templates, heading sections, attachments and the trash.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/templates-and-notes/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link is-current" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="templates-banners-notes">Templates, banners &amp; notes</h1>
+<p><em>Note banners, Obsidian-compatible templates, heading sections, attachments and the trash.</em></p>
+<hr>
+<h2 id="note-banners"><a class="anchor" href="#note-banners">Note banners</a></h2>
+<p>Give any note a hero image with a <code>banner:</code> frontmatter line. It renders as a wide hero above
+the note in the editor and reading view, and in blog mode as the article hero and a
+right-aligned thumbnail in the post list. A published note&#39;s banner attachment is automatically
+visitor-fetchable; unpublished notes&#39; attachments stay invisible as always.</p>
+<p><strong>Four forms are accepted, tried in this order</strong> — the same ladder every image reference in
+Vellum climbs, including the site logo and the dashboard hero:</p>
+<div class="table"><table><thead><tr><th>What you write</th><th>What it finds</th></tr></thead><tbody><tr><td><code>banner: https://example.com/cover.jpg</code></td><td>the URL itself (https only — an <code>http://</code> banner would be mixed content, so it is refused rather than rendered)</td></tr><tr><td><code>banner: Media/cover.png</code></td><td>that exact path from the vault root</td></tr><tr><td><code>banner: cover.png</code> <em>(note in <code>Trips/</code>)</em></td><td><code>Trips/cover.png</code> — beside the note, where Obsidian keeps a note&#39;s own images. <code>img/cover.png</code> and <code>../shared/cover.png</code> work the same way</td></tr><tr><td><code>banner: cover.png</code> <em>(no such neighbour)</em></td><td>any <code>cover.png</code> in the vault, resolved exactly as <code>![[cover.png]]</code> resolves it: case-insensitive, shortest path wins</td></tr></tbody></table></div><p>A <strong>bare filename is the form most people write</strong>, and it used to be the one form that did not
+work — it was sent to the vault root and 404&#39;d — while wikilinks and embeds had always found a
+file by name from anywhere. It works now, and so does the note&#39;s own folder.</p>
+<p>If the value names nothing, <strong>you are told</strong>. As the signed-in admin the hero is replaced by a
+dashed card naming the value that failed, with <strong>Set banner…</strong> beside it. Visitors see nothing
+at all: a stranger cannot fix your typo, and blog posts fall back to the generated gradient.
+(Before this, a broken banner deleted itself, which made a typo and &quot;no banner&quot; identical.)</p>
+<p>As admin you rarely touch the YAML: the command palette&#39;s <strong>Set banner…</strong> (also a quiet button
+on the properties card) opens a modal to paste a URL, pick from the vault&#39;s image attachments,
+or upload a file (drag &amp; drop or picker; png/jpeg/webp/gif/svg, 10 MB max, bytes are sniffed —
+the upload lands wherever the <a href="../configuration/#attachments">Attachments</a> setting points). The
+write is a surgical one-line frontmatter edit —
+the rest of the file is untouched. Posts without a banner get a subtle generated gradient in
+the blog list and article hero (<code>BANNER_FALLBACK=none</code> turns that off).</p>
+<h2 id="templates"><a class="anchor" href="#templates">Templates</a></h2>
+<p>Point Vellum at a folder of template notes and it fills them in for you — the same syntax
+Obsidian&#39;s core Templates plugin uses, so <strong>the templates in a vault you brought over work
+unmodified</strong>.</p>
+<p>The folder is <code>Settings → Publishing → Templates folder</code>. Leave it empty and Vellum finds one
+itself, as long as the answer is unambiguous: a folder called <code>Templates</code>, <code>_templates</code> or
+<code>قوالب</code>, with a leading ordering prefix allowed (<code>4 - Templates</code>, <code>04. Templates</code>). Two
+plausible candidates and no root-level tie-break means it stays unset rather than guessing —
+a wrong guess would hide real posts from your blog. <strong>Notes in the templates folder never
+appear in the post list</strong> (or RSS, or the dashboard), even when they carry <code>publish: true</code>
+so the notes made from them inherit it.</p>
+<p>Two commands, both in the palette, both on a keystroke, and &quot;New note from template…&quot; is also
+in the tree&#39;s right-click menu on any folder (where it creates <em>into that folder</em>):</p>
+<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>Insert template…</strong> (<code>Ctrl/Cmd Alt T</code>)</td><td>drops the template&#39;s body at the cursor of the open note</td></tr><tr><td><strong>New note from template…</strong> (<code>Ctrl/Cmd Alt Shift T</code>)</td><td>asks for a name, creates the note with the template applied, and opens it</td></tr></tbody></table></div><p>Both open a picker that <strong>previews the template with its placeholders already filled</strong> — what
+is about to land, not what the file says. (<code>Ctrl/Cmd Alt</code> rather than the obvious <code>Ctrl/Cmd T</code>:
+that one is the browser&#39;s new tab, and <code>Ctrl/Cmd Shift T</code> reopens a closed one. Neither is
+takeable.)</p>
+<p><strong>Placeholders</strong> — Obsidian&#39;s, plus two:</p>
+<div class="table"><table><thead><tr><th>Placeholder</th><th>Becomes</th></tr></thead><tbody><tr><td><code>{{date}}</code></td><td><code>2026-08-16</code></td></tr><tr><td><code>{{time}}</code></td><td><code>05:23</code></td></tr><tr><td><code>{{date:FORMAT}}</code> / <code>{{time:FORMAT}}</code></td><td>moment-style tokens: <code>YYYY MM DD HH mm ss</code>, <code>MMMM</code>/<code>MMM</code> month names, <code>dddd</code>/<code>ddd</code> weekdays, <code>A</code>/<code>a</code>, and <code>[literal text]</code> in brackets. Named formats too: <code>{{date:long}}</code>, <code>full</code>, <code>medium</code>, <code>short</code></td></tr><tr><td><code>{{title}}</code> / <code>{{Title}}</code></td><td>the new note&#39;s filename, as typed and in Title Case</td></tr><tr><td><code>{{hdate}}</code> / <code>{{date:hijri}}</code></td><td>the Umm al-Qura Hijri date</td></tr></tbody></table></div><p>Anything else is <strong>left exactly as written</strong> — <code>{{cursor}}</code>, a Templater expression, a stray
+<code>{{</code>. Blanking a token Vellum does not implement would destroy text you typed and hide the
+fact that the template expects something we do not do.</p>
+<p>Dates follow the site&#39;s settings where a reader can see them and stay machine-shaped where
+something has to parse them: the named formats (<code>{{date:long}}</code>) and <code>{{hdate}}</code> use
+<code>settings.dateCalendar</code> and the instance&#39;s numeral system, while the token formats stay
+Gregorian and Western-digit — <code>{{date}}</code> is <code>YYYY-MM-DD</code> by Obsidian&#39;s definition, and it
+lands in <code>date:</code> frontmatter lines and filenames where <code>١٤٤٨-٠٢-١٣</code> parses as nothing. See
+<a href="../arabic-and-rtl/#hijri-dates">Hijri dates</a>.</p>
+<p><strong>Frontmatter is merged, never stacked, and identity is never copied.</strong> Inserting into a note
+that already has a <code>---</code> block folds the template&#39;s keys into it — one block, no key twice,
+and <strong>the note&#39;s own values win</strong> (its <code>publish:</code>, its <code>date:</code>, its <code>tags:</code> are facts about
+that note; the template&#39;s are defaults). Identity keys (<code>id</code>, <code>uuid</code>, <code>guid</code>, <code>permalink</code>,
+<code>slug</code>) are <strong>minted fresh</strong>, in the same shape as the template&#39;s own value: a uuid stays a
+uuid, a 16-digit timestamp stays 16 digits. A template carrying <code>id:</code> used to hand the same id
+to every note ever made from it.</p>
+<p><strong>Template for new notes</strong> (also in Settings) applies one template to every note created from
+inside Vellum — <code>Ctrl/Cmd N</code>, the sidebar&#39;s <code>+</code>, the tree menu. Off by default: new notes are
+born empty, as they always were.</p>
+<h2 id="sections-fold-extract-move"><a class="anchor" href="#sections-fold-extract-move">Sections: fold, extract, move</a></h2>
+<ul>
+<li><strong>Heading folding</strong> — a chevron sits beside every heading (visible at rest, not on hover — a
+control nobody can see is a control nobody finds, and there is no hover on a phone); click it,
+or <code>Ctrl/Cmd Shift [</code> / <code>]</code>, to fold a section down to a &quot;N folded lines&quot; chip.
+<code>Ctrl/Cmd Alt [</code> / <code>]</code> folds or opens everything.</li>
+<li><strong>Section actions on every heading</strong> — a ⋯ beside the fold chevron (and a right-click on any
+heading line, or on any outline row) opens one menu: copy a <code>[[Note#Heading]]</code> link to the
+section, copy the section as Markdown, <strong>extract it into a new note</strong> with a <code>[[link]]</code> left
+standing where it was, fold or unfold everything below it, select it, focus it.</li>
+<li><strong>Drag a heading in the outline to move that whole section</strong> — heading, body and every
+subheading travel as one block, with a drop rule showing the depth it will land at <em>before</em> you
+let go; drag toward the reading direction to nest deeper, or rest on a row for a moment to drop
+inside it. One transaction, so <code>Ctrl/Cmd Z</code> takes it back — and the toast carries an Undo button
+too. <code>npm run check-sections</code> property-tests the rewrite against frontmatter, nested headings
+and code fences containing <code>###</code> lines — see <a href="../development/">Development</a>.</li>
+<li><strong>Focus one section</strong> — <code>Ctrl/Cmd Alt F</code> collapses everything except the section your cursor is
+in; <code>Esc</code> puts the note back exactly as it was, folds and all. <code>Ctrl/Cmd Alt ↑</code> / <code>↓</code> jump to the
+previous or next heading (they scroll, in reading view). Fold state is remembered per note across
+reloads.</li>
+<li><strong>Auto-numbered headings</strong> — off by default; the outline&#39;s <code>1.</code> button turns them on for reading
+view, and <code>numbered: true</code> in a note&#39;s frontmatter numbers it for everyone, including on the
+blog. Nothing is written into your markdown.</li>
+</ul>
+<h2 id="attachments"><a class="anchor" href="#attachments">Attachments</a></h2>
+<p>Your vault is not only <code>.md</code>, and the sidebar says so: images, PDFs, audio, video and everything
+else sit under their folder beneath the notes, each with a type glyph, and the footer counts both
+(&quot;1,388 notes · 1,176 files&quot;). Clicking an image opens a lightbox — natural size capped to the
+viewport, filename, pixel dimensions and file size, <code>←</code>/<code>→</code> through the rest of that folder
+(&quot;3 / 47&quot;), <code>Esc</code> or a click outside to leave. PDFs open in a browser tab, audio and video get an
+inline player, anything else offers a download. The paperclip in the sidebar footer hides them all
+again, and remembers.</p>
+<p>Paste or drop an image into the editor (or drag one from a file manager) and it uploads and lands
+as <code>![[name.png]]</code> at the cursor, with an &quot;Uploading…&quot; placeholder holding the spot while it is
+in flight. PDFs, audio and video are accepted too, and files can be dropped onto the sidebar tree
+as well as into the document. Where an upload lands is a
+<a href="../configuration/#attachments">setting</a> with four modes.</p>
+<h2 id="deleting-and-the-trash"><a class="anchor" href="#deleting-and-the-trash">Deleting, and the trash</a></h2>
+<p><strong>Deletes say what they are taking.</strong> Notes, attachments <em>and</em> folders all delete the same way:
+the default <em>moves</em> the thing to the vault&#39;s <code>.trash/</code>, and a quieter &quot;Delete permanently&quot; beside
+it erases instead, behind a second red-at-rest confirmation. Every dialog is built from what the
+indexer actually knows, so the folder one reads &quot;0 notes and 4 files&quot; rather than counting
+markdown and stopping — and when something that <em>survives</em> the delete still points inside it, the
+dialog says so and names it: &quot;4 files in here — embedded by &quot;The Moved Essay&quot;. Those embeds
+break.&quot; (Deleting a note names the notes that link to it, the same way.) Attachments have their
+own &quot;Delete file&quot; on their tree row, which they never had: removing one stale image used to mean
+deleting the folder around it.</p>
+<p><strong>Trash browser</strong> — <code>Ctrl/Cmd P</code> → <strong>Open trash</strong>: everything in <code>.trash/</code>, what is inside it,
+how big it is and when it went, with <strong>Restore</strong> and a permanent erase per row plus &quot;Empty trash&quot;.
+Restore puts each entry back <strong>where it came from</strong> — Vellum records the origin at delete time —
+and tells you up front when that spot is taken (it lands beside it) or unknown (it lands at the
+vault root). Admin-only, and <code>.trash/</code> is
+<a href="../backup-and-sync/#what-sync-never-stages">never committed to your git remote</a>.</p>
+<h2 id="reorganizing-by-dragging"><a class="anchor" href="#reorganizing-by-dragging">Reorganizing by dragging</a></h2>
+<p>Drag a note or a whole folder onto any folder row, onto an ancestor, or onto the vault&#39;s name to
+send it back to the top level. The valid target lights up in the accent; one it cannot take — a
+folder onto its own descendant, or the folder it is already in — is refused in red rather than
+staying quiet. Hovering a collapsed folder mid-drag <strong>springs it open</strong> after a beat so you can
+drill into a nested destination without letting go, the tree auto-scrolls near either edge, and
+dropping onto a folder that is still shut works fine.</p>
+<p><strong>Every link follows</strong>: <code>[[wikilinks]]</code> written as paths, <code>[markdown](links)</code>, and the relative
+<code>![embeds](../Media/x.png)</code> inside the notes that moved — a folder move of 1,214 notes repairs 246
+notes&#39; links and is indexed before the request answers, so search, the graph and the public site
+are correct the moment it lands. A name collision asks for another name instead of overwriting,
+and every move raises a toast naming both ends <strong>with Undo</strong>. No mouse? &quot;Move to…&quot; in a row&#39;s
+right-click menu and in the command palette opens a filterable folder picker that does exactly the
+same thing — as does dropping images straight from your desktop onto a folder row. The picker ends
+in a pinned <strong>New folder…</strong> row, named after whatever you typed into the filter, so &quot;there is
+nowhere to put this&quot; is a folder away rather than a dead end; it does not offer your attachments
+folder as a home for a note.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/templates-and-notes.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/editor/"><span class="pager__kicker">Previous</span><span class="pager__title">The editor &amp; reading view</span></a><a class="pager__link pager__link--next" href="../../en/latex/"><span class="pager__kicker">Next</span><span class="pager__title">LaTeX notes</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#note-banners">Note banners</a><a class="toc__link toc__link--2" href="#templates">Templates</a><a class="toc__link toc__link--2" href="#sections-fold-extract-move">Sections: fold, extract, move</a><a class="toc__link toc__link--2" href="#attachments">Attachments</a><a class="toc__link toc__link--2" href="#deleting-and-the-trash">Deleting, and the trash</a><a class="toc__link toc__link--2" href="#reorganizing-by-dragging">Reorganizing by dragging</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

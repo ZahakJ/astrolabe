@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The library · Vellum Documentation</title>
+<meta name="description" content="Books, courses and lecture series on the public site, as paths a reader walks in order.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/library/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link is-current" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="the-library">The library</h1>
+<p><em>Books, courses and lecture series on the public site, as paths a reader walks in order.</em></p>
+<hr>
+<p>A blog is for written things: an essay is read once, whole, and the next one is whichever came
+next in time. Notes on a book or a lecture series are not that. They are read in order, over
+weeks, a piece at a time, and a reader wants to know where they are in the whole. The library is
+the shell for them. It sits beside the blog and the designed home, behind one door in the
+navigation, and nothing about it reaches the blog unless you ask for it.</p>
+<h2 id="a-path-is-a-folder"><a class="anchor" href="#a-path-is-a-folder">A path is a folder</a></h2>
+<p>The vault already has the shape. A book is a folder of chapter folders of concept notes; a course
+is a folder of lecture folders of notes. So a path in the library is a <strong>folder you declare</strong>, and
+the folder&#39;s own structure is the path&#39;s:</p>
+<ul>
+<li>every immediate subfolder is a <strong>unit</strong> (a chapter, a lecture, a week), named from the folder:
+<code>L3</code> prints as <em>Lecture 3</em>, <code>B2| Chapter 40</code> as <em>Chapter 40</em>, <code>Week 2</code> as <em>Week 2</em>; a folder with
+no number keeps its name and sorts after the numbered ones;</li>
+<li>every <strong>published</strong> note inside is a <strong>lesson</strong>, in natural order by title, with a note named like
+its unit (the chapter hub the reading companion writes) first;</li>
+<li>notes sitting directly in the path&#39;s folder are its <strong>introduction</strong>.</li>
+</ul>
+<p>No frontmatter is asked of any note beyond <code>publish: true</code>. A note that is not published is not a
+lesson; a path with no lesson a visitor may read is not sent to that visitor at all.</p>
+<h2 id="declaring-a-path"><a class="anchor" href="#declaring-a-path">Declaring a path</a></h2>
+<p><strong>From the vault.</strong> Put a note named like the folder (or <code>index.md</code>) inside it and write, in its
+frontmatter, <code>library: book</code> (or <code>course</code>, <code>series</code>). The folder is on the shelf, with <code>title:</code>,
+<code>description:</code>, <code>cover:</code> and <code>source:</code> from the same note when they are there. Nothing is typed in
+Settings; the settings list shows these paths under its rows, and <em>Customise here</em> turns one into a
+row when you want to override something. A row that names the same folder wins field by field and
+takes the rest from the note.</p>
+<p><strong>From the tree.</strong> Right-click the folder in the sidebar and choose <strong>Library…</strong>. The popover guesses
+the kind from what is inside (<code>L1..L14</code> is a course, <code>Chapter 39..41</code> a book, a folder under
+<em>Talks</em> a series), takes the folder&#39;s name as the title, and <strong>Put on the shelf</strong> saves it. The first
+path switches the library on. Right-click the same folder again and the popover says it is on the
+shelf, opens it, or takes it off.</p>
+<p><strong>Settings → Publishing → The library.</strong> The same rows, with the fields the tree does not ask for.
+<strong>Add a path</strong> opens the vault&#39;s folders to click (type to filter), and each row&#39;s folder line
+reopens that chooser; nothing here is typed as a path.</p>
+<div class="table"><table><thead><tr><th>Field</th><th>What it is</th></tr></thead><tbody><tr><td>Kind</td><td>Book, course or series. It decides the cover&#39;s shape and the shelf&#39;s grouping.</td></tr><tr><td>Title</td><td>What the shelf and the door call it.</td></tr><tr><td>Address</td><td>The URL segment: <code>/library/&lt;address&gt;</code>. Lowercase letters, digits, hyphens.</td></tr><tr><td>Folder</td><td>The vault folder the path reads, chosen from the tree.</td></tr><tr><td>Blurb, cover, source</td><td>Folded under one line until a row has them. Blurb: one or two sentences under the title.</td></tr><tr><td>Cover</td><td>Start typing and the vault&#39;s images are offered, with thumbnails; pick one, or paste an https URL.</td></tr><tr><td>Cover</td><td>An image, as a banner value (<code>attachments/cover.jpg</code> or an https URL). Without one the site draws a cover from the title.</td></tr><tr><td>Source link</td><td>Where the material came from: the course page, the publisher. Shown on the path.</td></tr><tr><td>Hidden</td><td>A lossless take-down: the row keeps every field and reaches nobody.</td></tr></tbody></table></div><p>Two placements and a name sit above the rows: <strong>Door in the navigation</strong> (on by default once the
+library is on; a <em>Library</em> link beside the topics on both public shells) and <strong>Shelf on the home
+page</strong> (off by default; a band of covers on the blog home, above the writings). <strong>Name</strong> renames the
+door and the page; empty means &quot;Library&quot;.</p>
+<p>Each card counts the notes inside and how many are published. <strong>The library lists published notes
+only</strong>: a path whose notes are all drafts is a shelf with nothing on it, and the door in the
+navigation stays hidden until some path has a note a reader may open.</p>
+<p>Up to 24 paths. The rows&#39; order is the shelf&#39;s order.</p>
+<h2 id="what-a-reader-gets"><a class="anchor" href="#what-a-reader-gets">What a reader gets</a></h2>
+<ul>
+<li><strong>The shelf</strong> (<code>/library</code>): courses, books and series in groups, each as a cover, a title, a blurb,
+the count of lessons and the reading time, and this browser&#39;s progress.</li>
+<li><strong>A path</strong> (<code>/library/&lt;address&gt;</code>): the cover, the blurb, the source, a <em>Start reading</em> or
+<em>Continue with lesson n</em> button, and the contents by unit with every lesson numbered.</li>
+<li><strong>A lesson</strong> (<code>/library/&lt;address&gt;/&lt;n&gt;</code>): the note rendered by the reading renderer, with its place
+said at the top (<em>Lesson 7 of 24 · Lecture 3</em>), the path&#39;s outline down the side with this lesson
+lit, and the previous and next lesson at the foot. <code>←</code> and <code>→</code> walk the path.</li>
+</ul>
+<p><strong>A lesson is not a post.</strong> A published note inside a library path lives on the shelf and leaves the
+blog: it is not in the home lists, the topics, the RSS feed or the sitemap&#39;s post entries. Its own
+URL still works. Turning the library off, or hiding the path, gives those notes back to the blog.
+The two placements are independent: a shelf on the home page with no door in the navigation is a
+fine way to keep a library quiet.</p>
+<p><strong>Links stay on the path.</strong> A wikilink inside a lesson that points at another lesson of the
+library opens that lesson, in the library, with its contents and its place; a link to a note that is
+not on any shelf opens the note&#39;s own page as it always did.</p>
+<p>Progress is the reader&#39;s own, per browser, never sent anywhere: opening a lesson marks it read,
+the path page counts, the shelf card says <em>Continue with lesson n</em>, and <em>Forget my place</em> clears it.</p>
+<h2 id="where-it-lives"><a class="anchor" href="#where-it-lives">Where it lives</a></h2>
+<p><code>shared/library.ts</code> holds the rules (what a legal row is, how a unit&#39;s name is read, how things
+sort), shared by the settings editor and the server so a green field and a 400 cannot disagree.
+<code>server/library.ts</code> resolves a path against the index for one session&#39;s scope. <code>GET /api/library</code>
+is the shelf; <code>/api/me.library</code> is the door. <code>client/library/</code> is the pages, the band, the covers
+and the progress. <code>npm test</code> covers the rules (<code>tests/library.test.ts</code>).</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/library.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/designer/"><span class="pager__kicker">Previous</span><span class="pager__title">Designed mode</span></a><a class="pager__link pager__link--next" href="../../en/theming/"><span class="pager__kicker">Next</span><span class="pager__title">Theming</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#a-path-is-a-folder">A path is a folder</a><a class="toc__link toc__link--2" href="#declaring-a-path">Declaring a path</a><a class="toc__link toc__link--2" href="#what-a-reader-gets">What a reader gets</a><a class="toc__link toc__link--2" href="#where-it-lives">Where it lives</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

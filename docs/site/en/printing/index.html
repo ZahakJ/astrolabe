@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Printing &amp; PDF · Vellum Documentation</title>
+<meta name="description" content="A note, on paper — and the same thing your reader gets from an article on your site.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star">✦</span> Vellum <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/printing/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/vellum" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link is-current" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="printing-pdf">Printing &amp; PDF</h1>
+<p><em>A note, on paper — and the same thing your reader gets from an article on your site.</em></p>
+<hr>
+<p><code>Ctrl/Cmd Alt P</code> prints the open note, or exports it to PDF through your browser&#39;s own print
+dialog. The command palette carries the same row — <strong>Print / Export PDF…</strong> — and on the desktop app
+it is <strong>File → Print / Export PDF…</strong>.</p>
+<p>It is <code>Alt P</code> and not the <code>Ctrl/Cmd P</code> every other application prints with, because in Vellum that
+chord has been the command palette since the first release and <code>Ctrl/Cmd Shift P</code> publishes the
+open note. Neither of those was worth moving. On the <strong>public blog</strong> nothing is swallowed at all:
+a visitor&#39;s own <code>Ctrl/Cmd P</code> is the browser&#39;s, and it produces the same pages.</p>
+<h2 id="what-comes-out"><a class="anchor" href="#what-comes-out">What comes out</a></h2>
+<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>The document, whole</strong></td><td>Not the screen. The app prints a freshly rendered copy of the note, so what lands on the page is the whole note — including the part you had scrolled past, and the body of a callout you had folded shut.</td></tr><tr><td><strong>Paper colours</strong></td><td>A light, parchment-cast palette, whatever theme you read in. Your theme is a property of the screen; the page is white because paper is.</td></tr><tr><td><strong>A real serif page</strong></td><td>11pt serif on A4 or Letter with 20/25mm margins. The page box is the measure — there is no second column drawn inside it.</td></tr><tr><td><strong>Sensible breaks</strong></td><td>A heading never ends a page on its own, callouts, tables, figures, tracker cards and equations do not split, paragraphs keep three lines on either side of a break, and a table that runs over repeats its header row.</td></tr><tr><td><strong>Footnotes at the end</strong>, under a hairline, as they are on screen.</td><td></td></tr><tr><td><strong>Links that make sense on paper</strong></td><td>An external link prints its address beside it. A <code>[[wikilink]]</code> prints as the words you wrote — it points into a vault the person holding the sheet does not have.</td></tr><tr><td><strong>A right-to-left page for a right-to-left note</strong></td><td>Margins, list markers, quotation bars and table column order all mirror, from an English instance as readily as from an Arabic one.</td></tr></tbody></table></div><h2 id="what-a-pdf-gets-that-most-exports-do-not"><a class="anchor" href="#what-a-pdf-gets-that-most-exports-do-not">What a PDF gets that most exports do not</a></h2>
+<ul>
+<li><strong>Bookmarks.</strong> Your headings become the PDF&#39;s outline, because the reading view renders real
+<code>h1</code>–<code>h6</code> elements and every one of them carries an id.</li>
+<li><strong>Working internal links.</strong> A footnote reference, its return arrow, and a <code>[[#Heading]]</code> pointer
+inside the same note are real fragment links, which Chrome turns into PDF link annotations. Click
+a footnote number in the exported PDF and it goes to the footnote.</li>
+<li><strong>Selectable text and real maths.</strong> KaTeX renders to glyphs, not pictures.</li>
+</ul>
+<p>For a PDF, choose <em>Save as PDF</em> (or <em>Print to file</em>) as the destination in the print dialog. If you
+want the callout tints, the highlight marks and the banner in the file, leave <strong>Background
+graphics</strong> on — Vellum only asks the printer for ink where the colour is carrying meaning.</p>
+<h2 id="what-is-left-off"><a class="anchor" href="#what-is-left-off">What is left off</a></h2>
+<p>The frontmatter properties card. It is the note&#39;s filing card, not its content — <code>id</code>, <code>publish</code>
+and the <code>dg-*</code> keys say nothing to somebody holding paper — and the published blog has always
+hidden it for the same reason. A <code>banner:</code> picture is the note&#39;s own and stays, clamped to 55mm so
+it does not eat a third of the first sheet. A blog article&#39;s <em>generated</em> gradient banner — the
+placeholder for a picture the author never chose — is dropped.</p>
+<h2 id="printing-a-published-article"><a class="anchor" href="#printing-a-published-article">Printing a published article</a></h2>
+<p>Nothing to configure. Open the piece on your site and print it: the masthead, the topic nav, the
+share row, previous/next, related writings, the comment thread and the back-to-top button all step
+aside, and the title, byline, hero and body print exactly as the reader sees them. That page needs
+no JavaScript from us to do it, which is the point — the person printing your writing is usually
+not you.</p>
+<h2 id="if-nothing-seems-to-print"><a class="anchor" href="#if-nothing-seems-to-print">If nothing seems to print</a></h2>
+<p>Printing from the graph view or the empty state prints one line saying so, because there is no
+document on screen to print. Open a note first.</p>
+<hr>
+<p><em>Under the hood: <code>client/reading/print.css</code> is the whole <code>@media print</code> answer, and
+<code>client/print.ts</code> decides which document is on the paper. <code>npm run check-print</code>
+(<a href="../development/">Development</a>) is the gate that keeps both honest — a print stylesheet is the one
+surface no screenshot ever shows.</em></p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/vellum/edit/main/docs/printing.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/trackers/"><span class="pager__kicker">Previous</span><span class="pager__title">Trackers</span></a><a class="pager__link pager__link--next" href="../../en/keymap/"><span class="pager__kicker">Next</span><span class="pager__title">Keymap</span></a></nav>
+    <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#what-comes-out">What comes out</a><a class="toc__link toc__link--2" href="#what-a-pdf-gets-that-most-exports-do-not">What a PDF gets that most exports do not</a><a class="toc__link toc__link--2" href="#what-is-left-off">What is left off</a><a class="toc__link toc__link--2" href="#printing-a-published-article">Printing a published article</a><a class="toc__link toc__link--2" href="#if-nothing-seems-to-print">If nothing seems to print</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

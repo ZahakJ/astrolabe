@@ -2,6 +2,8 @@
 
 *The long-form manual. The [project README](../README.md) is the one-minute version.*
 
+Read it as a site, with search, an outline and both languages: [zahakj.github.io/vellum/site/en](https://zahakj.github.io/vellum/site/en/) · [العربية](https://zahakj.github.io/vellum/site/ar/). The Arabic sources are under [`ar/`](ar/); `npm run build-docs` renders both into `site/`.
+
 **Before reading any of it**, the running app will show you most of what is below: press
 `Ctrl/Cmd P` and run **Take the tour** — fifteen illustrated cards, one feature each, and every one
 of them has a *Show me* that opens the real thing rather than a picture of it. It is also on the
