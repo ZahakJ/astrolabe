@@ -6,7 +6,7 @@
 
 <p align="center"><a href="https://zahakj.github.io/vellum/"><strong>✦ Visit the project site ✦</strong></a></p>
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-b8912f.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-6c78ff.svg)](LICENSE)
 [![Node ≥ 24](https://img.shields.io/badge/node-%E2%89%A5%2024-339933?logo=node.js&logoColor=white)](package.json)
 
 > A *vellum* was the candlelit room where manuscripts were copied and illuminated. This one runs on `localhost`.

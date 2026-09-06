@@ -2,12 +2,12 @@
 //
 //   node desktop/icons/make-icon.mjs
 //
-// Vellum's identity is one sentence in CONTRACTS.md — "a candlelit manuscript
-// room", gold-leaf `#c9a227` on iron-gall `#16130e` — and the two colours are
-// tokens the whole product is painted with (`--swatch-iron-gall-bg`,
-// `--swatch-iron-gall-accent` in client/styles/tokens.css). An icon is the one
-// surface a reader sees before any of that loads, so it is those two colours
-// and nothing else.
+// Vellum's identity moved rooms in 2.18: from the candlelit manuscript room
+// (gold leaf on iron-gall) to deep space — starlight `#9aa3ff` on sidereal
+// `#070a17`, the `sidereal` theme in client/styles/tokens.css, because the
+// owner and his readers found the gold heavy and wanted something darker and
+// easier on the eye. An icon is the one surface a reader sees before any of
+// that loads, so it is those two colours and nothing else.
 //
 // The mark is the four-pointed star the startup banner already prints
 // (`.   ✦   .` in server/index.ts) — an astroid, |x|^(2/3) + |y|^(2/3) = r^(2/3),
@@ -28,8 +28,8 @@ import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const SIZE = 512;
-const BG = [0x16, 0x13, 0x0e]; // iron-gall
-const GOLD = [0xc9, 0xa2, 0x27]; // gold-leaf
+const BG = [0x07, 0x0a, 0x17]; // sidereal
+const GOLD = [0x9a, 0xa3, 0xff]; // starlight (the name stays: it is the accent channel)
 const RADIUS = SIZE * 0.22; // the corner radius of the app's own `--radius`, scaled
 
 /** Coverage of a rounded square at (x, y), antialiased by 3× supersampling. */
