@@ -353,12 +353,18 @@
   inline-size: 100%;
   max-inline-size: 1120px;
   margin-inline: auto;
+  /* Air under the shell's bar before the breadcrumb: the lesson used to start
+     four pixels under the navigation and read as one crowded block. The
+     shelf and the path page already stand 36px off the bar (above). */
+  padding-block: clamp(28px, 4vw, 44px) 56px;
   padding-inline: clamp(16px, 3vw, 32px);
   box-sizing: border-box;
 }
 
 .s-dsn-page .s-lib-lesson-wrap {
   padding-inline: 0;
+  /* A designed page pads its own top; do not double it. */
+  padding-block-start: 0;
 }
 
 .s-lib-lesson {

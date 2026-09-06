@@ -973,6 +973,14 @@ attachments (the allowlist walk in server/indexer.ts) AND for `libraryCoverPaths
 `isAllowedAttachment()`, because the allowlist cache is dropped only by index mutations and a cover
 set in the panel moves no file. Https covers are not files and are not listed.
 
+**THE FIRST /api/me DECLARES THE STORED VISITOR LANGUAGE.** `loadMe()` calls
+`api.setReaderLang(readVisitorLang())` before the boot request when nothing has been declared yet
+(`api.hasReaderLang()`); it used to set the header only from the RESOLVED language after the
+answer, so the boot request carried none, the server scoped it to the site language, and on an
+Arabic site a visitor switched to English lost the library door on every refresh (2.8.2). The
+resolved language still overwrites it; the server ignores the header for an admin and while the
+toggle is off.
+
 **THE SHELF IS LANGUAGE-SCOPED LIKE THE FEED.** On a site whose language is Arabic with the
 filter on `follow`, a visitor sees the English books only after the ع/EN toggle; the owner, logged
 in, sees them always. That is the feed's own rule, not a bug, and the reason "how do I see the
