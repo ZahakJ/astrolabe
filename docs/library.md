@@ -73,6 +73,12 @@ Up to 24 paths. The rows' order is the shelf's order.
   said at the top (*Lesson 7 of 24 · Lecture 3*), the path's outline down the side with this lesson
   lit, and the previous and next lesson at the foot. `←` and `→` walk the path.
 
+**A lesson is not a post.** A published note inside a library path lives on the shelf and leaves the
+blog: it is not in the home lists, the topics, the RSS feed or the sitemap's post entries. Its own
+URL still works. Turning the library off, or hiding the path, gives those notes back to the blog.
+The two placements are independent: a shelf on the home page with no door in the navigation is a
+fine way to keep a library quiet.
+
 Progress is the reader's own, per browser, never sent anywhere: opening a lesson marks it read,
 the path page counts, the shelf card says *Continue with lesson n*, and *Forget my place* clears it.
 

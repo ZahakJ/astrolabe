@@ -959,6 +959,14 @@ every published note inside is a lesson in natural title order with a note named
 first, and notes at the path's own root are the introduction. No note is asked for any frontmatter
 beyond `publish: true`.
 
+**A LESSON IS NOT A POST.** `posts()` (server/indexer.ts) skips every published note under a
+folder `libraryLessonFolders(settings.library)` names — the enabled library's visible paths,
+boundary at the slash (`isLibraryLesson`) — in the admin list and the visitor list alike. Before
+2.8.1 publishing a book's chapters put them all on the blog home, in the topics and in RSS, which
+the owner met as "my chapter notes went to be actual blog posts" the moment they toggled the door
+(the door had nothing to do with it; the feed had never excluded them). The note's own URL still
+renders; hidden paths and a disabled library give the notes back to the blog.
+
 **THE DOOR NEEDS A LESSON.** `/api/me.library` is sent only when some path has a lesson this
 session may read; a path whose notes are all drafts hides the door for visitors (and the owner,
 logged out, asked where the library went). The settings card prints "N of M notes published" per

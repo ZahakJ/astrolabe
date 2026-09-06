@@ -5,8 +5,10 @@ import {
   compareLessons,
   compareUnits,
   guessLibraryKind,
+  isLibraryLesson,
   libraryFolder,
   libraryFreshSlug,
+  libraryLessonFolders,
   libraryList,
   libraryRowError,
   libraryRowForFolder,
@@ -100,5 +102,28 @@ describe("a folder becoming a path", () => {
     assert.equal(row.folder, "Books/Feynman");
     assert.equal(libraryFreshSlug("The Feynman Lectures", []), "the-feynman-lectures");
     assert.equal(libraryFreshSlug("محاضرات", []), "shelf");
+  });
+});
+
+describe("a lesson is not a post", () => {
+  it("names the lesson folders of an enabled library, visible paths only", () => {
+    const lib = {
+      enabled: true,
+      paths: [
+        { id: "a", slug: "a", folder: "Books/Feynman/", kind: "book" as const, title: "F" },
+        { id: "b", slug: "b", folder: "Lectures/6.824", kind: "course" as const, title: "L", hidden: true },
+        { id: "c", slug: "c", folder: "Books/Feynman", kind: "book" as const, title: "F again" },
+      ],
+    };
+    assert.deepEqual(libraryLessonFolders(lib), ["Books/Feynman"]);
+    assert.deepEqual(libraryLessonFolders({ ...lib, enabled: false }), []);
+    assert.deepEqual(libraryLessonFolders(undefined), []);
+  });
+  it("draws the boundary at the slash", () => {
+    const folders = ["Books/Feynman"];
+    assert.equal(isLibraryLesson("Books/Feynman/Chapter 1/vortex.md", folders), true);
+    assert.equal(isLibraryLesson("Books/Feynman Lectures/x.md", folders), false);
+    assert.equal(isLibraryLesson("Books/Feynman.md", folders), false);
+    assert.equal(isLibraryLesson("essays/x.md", []), false);
   });
 });

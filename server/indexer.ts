@@ -1,6 +1,7 @@
 // Indexer: in-memory search + link-graph index, built once at startup and kept
 // fresh incrementally from vault watcher events.
 
+import { isLibraryLesson, libraryLessonFolders } from "../shared/library.ts";
 import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
@@ -23,7 +24,7 @@ import { readTexNote } from "./texNote.ts";
 import { blogLocale, excludedTags } from "./site.ts";
 // Cyclic with this module (settings.ts → site.ts → here) and inert: every
 // call below happens at request time, never while either module is loading.
-import { templatesFolder } from "./settings.ts";
+import { getSettings, templatesFolder } from "./settings.ts";
 import { listFolderFiles, listVaultFiles, onEvent, readNote, safeAbs } from "./vault.ts";
 
 interface NoteRecord {
@@ -2355,10 +2356,19 @@ export function posts(visitor: boolean, lang: FilterLang, excludePages = false):
   const out: { dateMs: number; meta: PostMeta }[] = [];
   const isTemplate = templateMatcher(); // once for the loop — see templateMatcher()
   const hidden = excludedTags(); // likewise: one Set for the list, not one per post
+  // A LESSON IS NOT A POST. A published note inside a library path belongs to
+  // the shelf (server/library.ts reads it there); listing it here as well put
+  // every chapter of a book on the blog home, in the topics and in the feed
+  // the day the owner published them — "my chapter notes went to be actual
+  // blog posts". Both lists, admin and visitor: the admin's answers "what is
+  // on my blog", and the shelf is not the blog. The note's own URL still
+  // works; only the listings change.
+  const lessonFolders = libraryLessonFolders(getSettings().library);
   for (const notePath of publishedSet) {
     const record = notes.get(notePath);
     if (!record) continue;
     if (visitor && languageHidden(record, lang)) continue;
+    if (lessonFolders.length > 0 && isLibraryLesson(notePath, lessonFolders)) continue;
     // A template is not a post — in EITHER list. The admin's post list is the
     // one that answers "what is on my blog", so a stencil sitting in it is the
     // same lie there as on the public page.
