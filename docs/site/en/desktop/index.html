@@ -67,8 +67,11 @@ for updates…</strong> asks at once, and says so when you are on the latest.</p
 and relaunched. The <strong>Windows</strong> install runs the new installer silently and the installer
 relaunches the app. Both downloads are checked against the release&#39;s own checksum file before
 anything runs. The <strong>deb</strong> and <strong>pacman</strong> packages belong to a package manager, so there the toast
-opens the release page instead. There is no phone app to update: on a phone Astrolabe is the
-site itself, which is always the deployed version.</p>
+opens the release page instead. The <strong>Android app</strong> (the APK on the same release page) checks
+the same endpoint at launch: when a newer APK exists it offers <strong>Update</strong>, the browser downloads
+it, and Android installs it over the current copy, notes, settings and sign-in untouched. <em>Later</em>
+snoozes the offer for a day. Everything web-side reaches the phone the moment the server deploys;
+the APK only changes when the shell itself does.</p>
 <h2 id="deep-links-and-file-association"><a class="anchor" href="#deep-links-and-file-association">Deep links and file association</a></h2>
 <p><code>astrolabe://note?path=Folder/Note.md</code> opens a note from outside the app, and the app registers for
 <code>.md</code> files so a note double-clicked in the file manager opens here. The path is checked, not

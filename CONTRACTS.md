@@ -5643,8 +5643,14 @@ checksum the same way, and on "Restart now" spawns it detached with `/S --force-
 (deb, pacman, a dev checkout) only says a release exists and opens the release page. The renderer
 hears `phase` changes (`current` | `available` | `downloading` | `ready` | `failed`) through the
 IPC bridge and shows the toast; the menu's "Check for updates…" runs the same path with
-`manual = true`, which is the only difference between silence and "you are current". There is no
-phone app: on a phone the product is the deployed site.
+`manual = true`, which is the only difference between silence and "you are current". **The Android
+shell** (mobile/, `UpdateCheck.java`, 3.4.0) asks the same endpoint once per launch on a thread,
+compares `tag_name` with `BuildConfig.VERSION_NAME`, and offers the first `.apk` asset in an
+AlertDialog (Update → `ACTION_VIEW` on the asset URL, the browser downloads and the package
+installer upgrades in place; Later → snoozed a day in SharedPreferences). The install id stays
+`dev.vellum.mobile` and the key stays `mobile/vellum-release.keystore`, because Android upgrades
+only what carries the same id and signature; the Java package and the label say Astrolabe. Every
+release must carry the APK (`Astrolabe-<v>.apk`) for the phone to see it.
 
 ## The desktop main process boots, and a gate says so (3.3.5)
 

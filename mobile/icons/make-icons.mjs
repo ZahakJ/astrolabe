@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Every raster the APK ships, drawn from one path.
+// Every raster the APK ships, drawn from one geometry.
 //
-// The mark is ✦ — the four-pointed star from the app's own wordmark — in gold
-// leaf on iron-gall. It is authored here as an SVG path rather than set as a
-// font glyph, because the glyph is a different shape in every font on every
-// phone, and a launcher icon is the one place a brand cannot be "whatever
-// Roboto has".
+// The mark is the ASTROLABE from shared/brandMark.ts — the same rings, rule
+// and star the web client's wordmark, the favicon and the desktop icon draw —
+// in gold on graphite. It used to be a four-pointed star drawn here by hand;
+// since the rename every surface takes the one geometry, so the launcher
+// cannot drift from the app it launches.
 //
 //   node icons/make-icons.mjs        (needs ImageMagick's `magick` on PATH)
 //
@@ -18,36 +18,18 @@ import { mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
+import { brandMarkSvg } from "../../shared/brandMark.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RES = join(HERE, "..", "android", "app", "src", "main", "res");
 
-const IRON_GALL = "#16130e";
-const GOLD = "#c9a227";
+// The graphite room (client/styles/tokens.css [data-theme="graphite"]).
+const GRAPHITE = "#0d1117";
+const GOLD = "#e3b341";
 
-/** How pinched the star's waist is. Small k = long slender points, which is
- *  what the ✦ in the wordmark looks like; at k=1.5 it reads as a fat diamond. */
-const WAIST = 0.65;
-
-function starSvg(fill, size) {
-  const c = 12;
-  const k = WAIST;
-  const d = [
-    "M12,0.6",
-    `Q${c + k},${c - k} 23.4,12`,
-    `Q${c + k},${c + k} 12,23.4`,
-    `Q${c - k},${c + k} 0.6,12`,
-    `Q${c - k},${c - k} 12,0.6`,
-    "Z",
-  ].join(" ");
-  // WIDTH AND HEIGHT, not just a viewBox. ImageMagick rasterizes an SVG at its
-  // intrinsic size and only then applies `-resize`, so a viewBox-only file is
-  // drawn at 24 px and blown up — which is exactly how a vector mark ends up
-  // shipping as a blurry one.
-  return (
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24">` +
-    `<path d="${d}" fill="${fill}"/></svg>`
-  );
+/** The mark at `size` px, full detail, in `color`, on transparency. */
+function markSvg(color, size) {
+  return brandMarkSvg({ size, detail: "full", color });
 }
 
 const work = join(tmpdir(), `astrolabe-icons-${process.pid}`);
@@ -57,17 +39,17 @@ function magick(args) {
   execFileSync("magick", args, { stdio: ["ignore", "ignore", "inherit"] });
 }
 
-/** The star, at `size` px, on transparency. */
-function star(size, out) {
-  const svg = join(work, `star-${size}.svg`);
-  writeFileSync(svg, starSvg(GOLD, size));
-  magick(["-background", "none", svg, out]);
+/** The mark, at `size` px, on transparency. */
+function mark(size, out) {
+  const svg = join(work, `mark-${size}.svg`);
+  writeFileSync(svg, markSvg(GOLD, size));
+  magick(["-background", "none", "-density", "384", svg, "-resize", `${size}x${size}`, out]);
 }
 
-/** The star centred on a canvas, with whatever ground is asked for. */
-function plate(canvas, starSize, ground, out, mask) {
-  const glyph = join(work, `glyph-${starSize}.png`);
-  star(starSize, glyph);
+/** The mark centred on a canvas, with whatever ground is asked for. */
+function plate(canvas, markSize, ground, out, mask) {
+  const glyph = join(work, `glyph-${markSize}.png`);
+  mark(markSize, glyph);
   const args = ["-size", `${canvas}x${canvas}`, ground === null ? "xc:none" : `xc:${ground}`];
   if (mask) args.push(...mask(canvas));
   args.push(glyph, "-gravity", "center", "-composite", out);
@@ -104,9 +86,9 @@ const circle = (canvas) => {
 // ── launcher icons ─────────────────────────────────────────────────────────
 //
 // The adaptive foreground is a 108dp canvas of which the launcher may crop to
-// the inner 72dp and mask to any shape it likes. The star is drawn at 50% of
-// the canvas — comfortably inside the safe circle at every mask, and small
-// enough that a squircle launcher does not clip its points.
+// the inner 72dp and mask to any shape it likes. The mark is drawn at 56% of
+// the canvas — inside the safe circle at every mask, since the mark's own
+// outer ring already sits inside its box.
 const LAUNCHER = [
   ["mdpi", 48, 108],
   ["hdpi", 72, 162],
@@ -114,67 +96,65 @@ const LAUNCHER = [
   ["xxhdpi", 144, 324],
   ["xxxhdpi", 192, 432],
 ];
-
 for (const [density, legacy, adaptive] of LAUNCHER) {
   const dir = join(RES, `mipmap-${density}`);
   mkdirSync(dir, { recursive: true });
-  plate(adaptive, Math.round(adaptive * 0.5), null, join(dir, "ic_launcher_foreground.png"));
-  plate(legacy, Math.round(legacy * 0.56), IRON_GALL, join(dir, "ic_launcher.png"), rounded);
-  plate(legacy, Math.round(legacy * 0.52), IRON_GALL, join(dir, "ic_launcher_round.png"), circle);
+  plate(adaptive, Math.round(adaptive * 0.56), null, join(dir, "ic_launcher_foreground.png"));
+  plate(legacy, Math.round(legacy * 0.72), GRAPHITE, join(dir, "ic_launcher.png"), rounded);
+  plate(legacy, Math.round(legacy * 0.68), GRAPHITE, join(dir, "ic_launcher_round.png"), circle);
 }
-
-// The splash is NOT generated here. It is res/drawable/splash.xml — a layer-list
-// over the vector below — because a shape with no pixels in it needs no density
-// ladder. See that file for the argument.
 
 // ── vectors ────────────────────────────────────────────────────────────────
 //
-// Two places want the star as a VECTOR rather than a bitmap, and both of them
+// Two places want the mark as a VECTOR rather than a bitmap, and both of them
 // are the system drawing it for us at a size we do not choose:
 //
 //   splash_star            — `windowSplashScreenAnimatedIcon` (API 31+), which
 //                            Android masks to a circle at 2/3 of the canvas.
 //   ic_launcher_monochrome — the themed-icon layer (API 33+), where the
 //                            launcher tints a silhouette to the wallpaper's
-//                            palette. Without it a themed home screen keeps
-//                            one stubbornly gold square.
+//                            palette.
 //
-// Both are written from the same path as the bitmaps above, so the mark cannot
-// drift between the splash, the icon and the wordmark.
-//
-// The 36-unit viewport is the inset: the star occupies the middle 24, which
-// leaves its points clear of the circular mask instead of shaved off by it.
-function starVectorDrawable(fill) {
-  const c = 18;
-  const k = WAIST;
-  const d = [
-    "M18,6.6",
-    `Q${c + k},${c - k} 29.4,18`,
-    `Q${c + k},${c + k} 18,29.4`,
-    `Q${c - k},${c + k} 6.6,18`,
-    `Q${c - k},${c - k} 18,6.6`,
-    "Z",
-  ].join(" ");
+// A VectorDrawable is SVG's little cousin: paths only, no <circle>. So the
+// mark's SVG is read element by element and each circle becomes two arcs.
+// The 150-unit viewport is the inset: the mark occupies the middle 100, which
+// leaves its outer ring clear of the circular mask instead of shaved by it.
+function vectorDrawable(color) {
+  const svg = markSvg(color, 100);
+  const paths = [];
+  const num = (s) => Number(s);
+  for (const m of svg.matchAll(/<circle ([^>]*)\/>/g)) {
+    const attr = Object.fromEntries([...m[1].matchAll(/([\w-]+)="([^"]*)"/g)].map((a) => [a[1], a[2]]));
+    const cx = num(attr.cx), cy = num(attr.cy), r = num(attr.r);
+    const d = `M${(cx - r).toFixed(2)},${cy.toFixed(2)} a${r},${r} 0 1,0 ${(2 * r).toFixed(2)},0 a${r},${r} 0 1,0 ${(-2 * r).toFixed(2)},0`;
+    if (attr.fill && attr.fill !== "none") paths.push(`    <path android:fillColor="${color}" android:pathData="${d}" />`);
+    else paths.push(`    <path android:strokeColor="${color}" android:strokeWidth="${attr["stroke-width"]}" android:strokeLineCap="round" android:pathData="${d}" />`);
+  }
+  for (const m of svg.matchAll(/<path ([^>]*)\/>/g)) {
+    const attr = Object.fromEntries([...m[1].matchAll(/([\w-]+)="([^"]*)"/g)].map((a) => [a[1], a[2]]));
+    if (attr.fill && attr.fill !== "none") paths.push(`    <path android:fillColor="${color}" android:pathData="${attr.d}" />`);
+    else paths.push(`    <path android:strokeColor="${color}" android:strokeWidth="${attr["stroke-width"]}" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="${attr.d}" />`);
+  }
   return `<?xml version="1.0" encoding="utf-8"?>
-<!-- GENERATED by icons/make-icons.mjs. Edit the star there, not here. -->
+<!-- GENERATED by icons/make-icons.mjs from shared/brandMark.ts. Edit the mark there, not here. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="36"
-    android:viewportHeight="36">
-    <path
-        android:fillColor="${fill}"
-        android:pathData="${d}" />
+    android:viewportWidth="150"
+    android:viewportHeight="150">
+  <group android:translateX="25" android:translateY="25">
+${paths.join("\n")}
+  </group>
 </vector>
 `;
 }
 
 const drawable = join(RES, "drawable");
 mkdirSync(drawable, { recursive: true });
-writeFileSync(join(drawable, "splash_star.xml"), starVectorDrawable(GOLD));
+writeFileSync(join(drawable, "splash_star.xml"), vectorDrawable(GOLD));
 // Flat white: the launcher tints this layer itself, and any colour baked in
 // here is a colour it has to fight.
-writeFileSync(join(drawable, "ic_launcher_monochrome.xml"), starVectorDrawable("#FFFFFF"));
+writeFileSync(join(drawable, "ic_launcher_monochrome.xml"), vectorDrawable("#FFFFFF"));
 
 rmSync(work, { recursive: true, force: true });
 console.log("icons: launcher + splash + vectors written to android/app/src/main/res");

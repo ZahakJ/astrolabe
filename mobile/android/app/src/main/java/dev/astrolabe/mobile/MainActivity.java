@@ -44,6 +44,12 @@ public class MainActivity extends BridgeActivity {
         // password every morning.
         CookieManager.getInstance().setAcceptCookie(true);
 
+        // A newer APK on the release page is offered once per launch and
+        // snoozed for a day on "Later" (UpdateCheck). The phone gets every
+        // web-side release from the server the moment prod deploys; this is
+        // only for the shell itself.
+        UpdateCheck.run(this);
+
         getOnBackPressedDispatcher()
             .addCallback(
                 this,

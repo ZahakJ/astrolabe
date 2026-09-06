@@ -67,8 +67,11 @@ What "restart" does depends on how the app was installed. The **AppImage** is sw
 and relaunched. The **Windows** install runs the new installer silently and the installer
 relaunches the app. Both downloads are checked against the release's own checksum file before
 anything runs. The **deb** and **pacman** packages belong to a package manager, so there the toast
-opens the release page instead. There is no phone app to update: on a phone Astrolabe is the
-site itself, which is always the deployed version.
+opens the release page instead. The **Android app** (the APK on the same release page) checks
+the same endpoint at launch: when a newer APK exists it offers **Update**, the browser downloads
+it, and Android installs it over the current copy, notes, settings and sign-in untouched. *Later*
+snoozes the offer for a day. Everything web-side reaches the phone the moment the server deploys;
+the APK only changes when the shell itself does.
 
 ## Deep links and file association
 

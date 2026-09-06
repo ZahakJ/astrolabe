@@ -13,6 +13,6 @@
 
     <!-- Identifiers the Capacitor CLI reads out of this file. Not user-facing,
          not translatable, and not to be renamed. -->
-    <string name="package_name" translatable="false">dev.astrolabe.mobile</string>
+    <string name="package_name" translatable="false">dev.vellum.mobile</string>
     <string name="custom_url_scheme" translatable="false">dev.astrolabe.mobile</string>
 </resources>
