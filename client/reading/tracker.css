@@ -228,17 +228,10 @@
   font-weight: 600;
 }
 
-/* The dates open their own group at the far end. The FIRST of them carries no
-   hairline — a separator with nothing but space on its far side is a stray
-   tick, the status bar's rule — while a second date is separated from the
-   first by the same hairline every other pair on this line gets. */
+/* The dates sit in the run with everyone else (3.3.2; they used to be pushed
+   to the far end, which stranded them across a gap). */
 .s-rv-tracker__date {
   color: var(--text-muted);
-}
-
-.s-rv-tracker__meta > .s-rv-tracker__date--lead {
-  margin-inline-start: auto;
-  border-inline-start: 0;
 }
 
 /* The wordmark's star, earned. It appears only at 100%. */
@@ -264,9 +257,10 @@
 /* ── Rating ────────────────────────────────────────────────────────────── */
 
 .s-rv-tracker__stars {
-  margin-block-start: 6px;
+  display: inline-flex;
+  align-items: center;
   font-size: 13px;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   line-height: 1;
 }
 

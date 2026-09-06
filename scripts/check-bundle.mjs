@@ -601,7 +601,9 @@ const AUDIENCES = [
   // dictionary rows.
   // …and for 3.3.0 (646.7 kB actual → 648): the block-alignment reader and
   // the custom-width normaliser sit in code the entry already carries.
-{ name: "entry (everyone)", keys: entry, budget: 648 * 1024 },
+  // …and for 3.3.2 (648.3 kB actual → 650): the outline strips alignment
+  // markers, which brings the marker reader into the entry's link module.
+{ name: "entry (everyone)", keys: entry, budget: 650 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
