@@ -15,7 +15,8 @@ import { stripBidiControls } from "../shared/bidi.ts";
 import { findAnyMatches, foldQuery, foldTerm } from "../shared/fold.ts";
 import { parseSearchQuery, type QueryFilter } from "../shared/searchQuery.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
-import { isNotePath, isTexPath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
+import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
+import { drawingIndexText } from "../shared/drawing.ts";
 import { markdownAnchors, type NoteAnchor } from "../shared/anchors.ts";
 import { uncomment } from "../shared/yaml.ts";
 import { countNoteWords, countWords, readingMinutes } from "../shared/wordCount.ts";
@@ -797,9 +798,15 @@ async function applyIndexFile(relPath: string): Promise<void> {
   // every field is format-blind again: links are wikilink-shaped either way,
   // tags come from the same frontmatter text, and `prose` is what the search
   // index, the language detector and the excerpt builder all read.
+  // A DRAWING IS INDEXED BY ITS WORDS. The file is a scene (JSON, or JSON in a
+  // fence); what a reader can search for and what the graph can follow are
+  // the text elements on the canvas and the [[links]] typed into them, so
+  // that is the content the note record is built from — never the JSON,
+  // which would put every element id into the search index.
+  const indexed = isDrawingPath(relPath) ? drawingIndexText(relPath, content) : content;
   const parts = isTexPath(relPath)
-    ? texParts(relPath, content)
-    : markdownParts(relPath, content);
+    ? texParts(relPath, indexed)
+    : markdownParts(relPath, indexed);
   const fm = parts.fm;
   const record: NoteRecord = {
     path: relPath,
@@ -1887,6 +1894,16 @@ function allowedAttachments(): Set<string> {
       for (const link of record.links) {
         const resolved = resolveEmbed(link.target, false, null);
         if (resolved && attachmentPaths.has(resolved)) allowed.add(resolved);
+        // `![[sketch.excalidraw]]` resolves to the DRAWING, a note, and what
+        // the published page shows is the picture exported beside it. The
+        // picture rides the drawing's door: the note is published, so the
+        // svg it embeds is a visitor's to fetch, and nothing else about the
+        // drawing is.
+        const drawing = resolved ?? resolveLink(link.target, false, null);
+        if (drawing && isDrawingPath(drawing)) {
+          const svg = drawingSvgPath(drawing);
+          if (attachmentPaths.has(svg)) allowed.add(svg);
+        }
       }
       // The other half of the embed syntax. `![alt](Media/x.png)` never went
       // through wikilinkRegex(), so `record.links` cannot see it — and the

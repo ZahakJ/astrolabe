@@ -46,6 +46,7 @@ import {
   parseEmbed,
   resolveRelative,
 } from "./widgets.ts";
+import { drawingSvgName } from "./embeds.ts";
 import {
   calloutFoldDecos,
   calloutFoldField,
@@ -574,6 +575,10 @@ function buildDecorations(view: EditorView): DecorationSet {
         let widget: WidgetType;
         if (embed.kind === "image") {
           widget = new ImageWidget(embed.target, null, embed.width);
+        } else if (embed.kind === "drawing") {
+          // The drawing's exported picture, resolved by name like an image;
+          // the owner sees it a save after they drew it.
+          widget = new ImageWidget(drawingSvgName(embed.target), null, embed.width);
         } else if (embed.kind === "file") {
           widget = new FileCardWidget(embed.target);
         } else {

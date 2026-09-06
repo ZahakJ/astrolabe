@@ -8765,6 +8765,61 @@ exactly one snippet field selecting the first header cell; from there every
 Tab is the table's (three fields would feed Tab to the snippet walker
 instead of the cell walker).
 
+## Drawings (`shared/drawing.ts`, `client/drawing/`, `PUT /api/drawing-svg`)
+
+A drawing is a NOTE (`.excalidraw` is a note extension in `shared/noteFormat.ts`, after `.md`,
+`.tex` and `.latex` so it never wins a `[[name]]` tie) whose one surface is the canvas:
+`surfaceOf()` answers `"drawing"` for `isDrawingPath()` tabs before the reading/edit decision,
+`mirrorOf()` keeps it out of `openPath` like a book, and the editor never opens one.
+
+- **Two spellings, one scene, nothing invented.** `parseDrawing()` reads Excalidraw's own JSON
+  (`.excalidraw`) and the Obsidian plugin's markdown (`.excalidraw.md`: frontmatter, a ```` ```json ````
+  or ```` ```compressed-json ```` fence, LZ-base64 for the latter). `serializeDrawing()` writes the
+  file's OWN spelling back: a plugin file keeps its frontmatter verbatim, keeps compression if it
+  had it, and lists the live text elements under `## Text Elements` with `^id` marks, so
+  Obsidian's search and links keep working on what Vellum saved. A scene that cannot be read is
+  `null` and the surface says so rather than saving an empty canvas over it.
+- **A drawing is indexed by its words.** The indexer replaces a drawing's content with
+  `drawingIndexText()` — the frontmatter (plugin files) plus every live text element and every
+  `[[link]]` set on a shape, one per line — before `markdownParts()`, so search files the words on
+  the canvas, `record.links` carries the wikilinks typed into it, and the JSON never enters the
+  index. `noteTitleOf("Sketch.excalidraw.md")` is `Sketch`: both suffixes come off together.
+- **Saving is a note save.** The surface autosaves ~900 ms after the last change through
+  `PUT /api/note` with `baseMtimeMs`; a `409 stale` becomes the conflict strip (Keep mine / Use the
+  disk version) and the pending scene is never dropped; `pagehide` and unmount flush through the
+  beacon with the precondition. `markSelfWrite()` precedes every write. The scene written is
+  Excalidraw's own `serializeAsJSON(…, "local")` output, so the session state (selection,
+  collaborators, the open menu) never reaches disk.
+- **The picture beside the file.** Every successful save exports the scene with `exportToSvg`
+  (light, fonts inlined) and `PUT /api/drawing-svg?path=<drawing>` writes `<drawing>.svg`
+  (`drawingSvgPath`: `a.excalidraw` and `a.excalidraw.md` both → `a.excalidraw.svg`, the plugin's
+  auto-export name). Admin only; the client names the drawing, the server names the file; the body
+  must be an `<svg` document under `UPLOAD_MAX_BYTES`; the svg is registered as an attachment and
+  emits `created`/`changed`.
+- **The embed is the picture.** `parseEmbed()` classifies `![[x.excalidraw]]` /
+  `![[x.excalidraw.md]]` as `kind: "drawing"` BEFORE the image test; the live preview and the
+  reading view render `drawingSvgName(target)` as an image (width honoured like an image). The
+  reading view's owner-only fallback (`attachDrawingSrc` → `import("../drawing/renderEmbed.ts")`)
+  draws the scene when no svg exists; a visitor gets the ordinary placeholder.
+- **The publish door.** A published note's `![[drawing]]` puts `drawingSvgPath(resolved)` into
+  `allowedAttachments()` — the svg walks through the note's door exactly like a banner or an
+  embedded image — and nothing else about the drawing reaches a visitor: the drawing is a note and
+  an unpublished note is a 404.
+- **Chunks.** `@excalidraw/excalidraw`, `DrawingSurface.tsx` and `renderEmbed.ts` are FORBIDDEN
+  from every first paint and `DrawingSurface.tsx` MUST_SPLIT (`scripts/check-bundle.mjs`);
+  `shared/drawing.ts` (the plugin's compressor) is reached from the entry only through `import()`
+  in `promptNewDrawing`. Fonts are copied to `dist/excalidraw/fonts` by `vite.config.ts` and named
+  by `window.EXCALIDRAW_ASSET_PATH`, set from the ENTRY (`client/drawing/assetPath.ts`, imported by
+  `main.tsx`) because rollup hoists a chunk's vendor imports above its body; the same module shims
+  `FontFace` to drop the package's CDN fallback sources, which the CSP (`font-src 'self' data:`)
+  refuses anyway and Chromium would otherwise log a violation per face. The package's font
+  subsetter tries a `blob:` worker once per session and the `worker-src 'self'` wall refuses it;
+  the export still inlines the used font unsubsetted. That one refusal is the only console noise
+  the feature makes, and it is the package's.
+- **New drawing.** `promptNewDrawing(dir)` (tree menu, palette): `Drawing.excalidraw.md` when
+  `/api/me.obsidianVault` (the vault has `.obsidian/`), else `Drawing.excalidraw`; a typed
+  extension in either spelling is kept. `tests/drawing.test.ts` holds the format contract.
+
 ## Trackers (`shared/tracker.ts`, `client/reading/tracker.ts`, `client/editor/tracker.ts`)
 
 A ```` ```tracker ```` fence is a progress card; a ```` ```tracker-board ```` fence is the shelf

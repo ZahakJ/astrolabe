@@ -309,6 +309,17 @@ export function putNote(
   );
 }
 
+/** The drawing surface's picture, written beside the drawing as
+ *  `<drawing>.svg` on every save (server names the file; the client names the
+ *  drawing). What the reading view and a visitor's page show for the embed. */
+export function putDrawingSvg(path: string, svg: string): Promise<{ path: string }> {
+  return request<{ path: string }>(`/api/drawing-svg?path=${encodeURIComponent(path)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "image/svg+xml" },
+    body: svg,
+  });
+}
+
 /** True when a save was refused because the note changed on disk. */
 export function isStaleWriteError(err: unknown): boolean {
   return err instanceof ApiError && err.code === "stale";

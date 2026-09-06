@@ -59,6 +59,11 @@ config dir (must be ignored everywhere: tree, index, graph, watcher).
 - `[[Note#Heading]]` navigates to the heading; heading autocomplete after `#` inside `[[ ]]`.
 - Unresolved wikilinks styled dashed; clicking one creates the note (admin only).
 - Outline/TOC panel section (right panel): headings of open note, click scrolls.
+- Excalidraw drawings: the plugin's `.excalidraw.md` (plain or compressed scene) and Excalidraw's
+  own `.excalidraw` both open in a full canvas, save back in the same spelling (frontmatter,
+  compression and the `## Text Elements` list kept), and `![[sketch.excalidraw]]` renders the svg
+  exported beside the file — the plugin's auto-export name. A vault with `.obsidian/` gets new
+  drawings in the plugin's spelling. See [docs/drawing.md](docs/drawing.md).
 
 ## C1. Auth: public view / admin edit
 

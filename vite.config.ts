@@ -70,8 +70,46 @@ function pdfjsAssets(): Plugin {
   };
 }
 
+// ── Excalidraw's fonts ──────────────────────────────────────────────────────
+// The drawing surface's package resolves its typefaces (Excalifont, Virgil,
+// Cascadia, the CJK and Arabic fallbacks) at runtime from
+// `window.EXCALIDRAW_ASSET_PATH` — a URL, not a module — and would otherwise
+// go to a CDN, which `connect-src 'self'` refuses and a self-hosted product
+// must not want. Same arrangement as pdf.js above: copied verbatim to
+// `/excalidraw/fonts/…` under dist/, served from node_modules in dev, and the
+// prefix is spelled again in client/drawing/assetPath.ts.
+const EXCALIDRAW_BASE = "/excalidraw/";
+
+function excalidrawAssets(): Plugin {
+  const require = createRequire(import.meta.url);
+  // The package's exports map hides its package.json, so the root is found
+  // from the entry module: …/dist/<dev|prod>/index.js → …/dist/prod.
+  const entry = require.resolve("@excalidraw/excalidraw").replace(/\\/g, "/");
+  const root = path.join(entry.slice(0, entry.lastIndexOf("/dist/")), "dist", "prod");
+  return {
+    name: "vellum:excalidraw-assets",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = (req.url ?? "").split("?")[0];
+        if (!url.startsWith(EXCALIDRAW_BASE)) return next();
+        const abs = path.resolve(root, decodeURIComponent(url.slice(EXCALIDRAW_BASE.length)));
+        if (!abs.startsWith(root + path.sep) || !existsSync(abs) || !statSync(abs).isFile()) {
+          return next();
+        }
+        res.setHeader("Content-Type", abs.endsWith(".woff2") ? "font/woff2" : "application/octet-stream");
+        createReadStream(abs).pipe(res);
+      });
+    },
+    closeBundle() {
+      const out = path.resolve(fileURLToPath(new URL(".", import.meta.url)), "dist", "excalidraw");
+      const from = path.join(root, "fonts");
+      if (existsSync(from)) cpSync(from, path.join(out, "fonts"), { recursive: true });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), pdfjsAssets()],
+  plugins: [react(), pdfjsAssets(), excalidrawAssets()],
   root: "client",
   build: {
     outDir: "../dist",

@@ -1,0 +1,84 @@
+/* The drawing surface: a pane-filling canvas, Vellum's chrome kept to a
+   status word in a corner and a strip when the file moved under it. */
+
+.s-drawing {
+  position: relative;
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.s-drawing__canvas {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+  /* Excalidraw sizes itself to its parent's height; a flex item's is
+     definite only when it is spelled, so it is. */
+  block-size: 100%;
+}
+
+/* The package paints its own light and dark rooms; the palette below is the
+   one Vellum's rooms lend it so the canvas chrome reads as ours. */
+.s-drawing .excalidraw {
+  --color-primary: var(--accent);
+  --color-primary-darker: var(--accent);
+  --color-primary-darkest: var(--accent);
+  --color-primary-light: var(--accent-soft);
+  --color-surface-primary-container: var(--accent-soft);
+  font-family: var(--font-ui);
+}
+
+.s-drawing__status {
+  position: absolute;
+  inset-block-end: 8px;
+  inset-inline-end: 12px;
+  z-index: 3;
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  color: var(--text-faint);
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.s-drawing__status--clean {
+  opacity: 0;
+}
+.s-drawing__status--conflict {
+  display: none;
+}
+
+.s-drawing__conflict {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  background: var(--bg-raised);
+  border-block-end: 1px solid var(--accent);
+}
+.s-drawing__conflict span {
+  flex: 1;
+}
+
+.s-drawing--failed {
+  align-items: center;
+  justify-content: center;
+}
+.s-drawing__failed {
+  max-inline-size: 40ch;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+}
+
+/* A drawing embedded in prose: the exported picture, sized like an image,
+   on a paper ground so a dark room does not swallow a white canvas. */
+.s-rv-drawing,
+.cm-s-embed-image img.s-rv-drawing {
+  background: #fff;
+  border-radius: var(--radius);
+}
