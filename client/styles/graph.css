@@ -29,6 +29,14 @@
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
   font-size: 0.857rem;
   scrollbar-width: thin;
+  /* The corner grip: the panel was as tall as the graph and the owner wanted
+     it shorter. The browser writes the dragged size as inline width/height,
+     which outranks the pinned bottom edge; GraphView remembers it. */
+  resize: both;
+  min-inline-size: 220px;
+  min-block-size: 160px;
+  max-inline-size: calc(100% - 24px);
+  max-block-size: calc(100% - 24px);
 }
 
 .s-graph__panel-head {

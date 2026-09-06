@@ -1853,6 +1853,32 @@ function GraphPanel({
     }
   });
   const [panelDrag, setPanelDrag] = useState(false);
+  // The size the owner dragged the corner to, if any: inline width/height the
+  // browser's `resize: both` wrote, read back on pointerup and kept per browser.
+  const [panelSize, setPanelSize] = useState<{ width: number; height: number } | null>(() => {
+    try {
+      const raw = localStorage.getItem("vellum.graphPanelSize");
+      const v = raw ? (JSON.parse(raw) as { width?: unknown; height?: unknown }) : null;
+      return v && typeof v.width === "number" && typeof v.height === "number" ? { width: v.width, height: v.height } : null;
+    } catch {
+      return null;
+    }
+  });
+  const onPanelResized = (): void => {
+    const el = panelRef.current;
+    if (!el) return;
+    const width = parseFloat(el.style.width);
+    const height = parseFloat(el.style.height);
+    if (!Number.isFinite(width) || !Number.isFinite(height)) return;
+    if (panelSize && panelSize.width === width && panelSize.height === height) return;
+    const next = { width, height };
+    setPanelSize(next);
+    try {
+      localStorage.setItem("vellum.graphPanelSize", JSON.stringify(next));
+    } catch {
+      // the size lasts the session
+    }
+  };
   useEffect(() => {
     if (!open || !panelPos) return;
     const el = panelRef.current;
@@ -1944,7 +1970,8 @@ function GraphPanel({
     <aside
       ref={panelRef}
       className={`s-graph__panel${panelPos ? " s-graph__panel--moved" : ""}${panelDrag ? " s-graph__panel--dragging" : ""}`}
-      style={panelPos ? { left: panelPos.left, top: panelPos.top } : undefined}
+      style={{ ...(panelPos ? { left: panelPos.left, top: panelPos.top } : {}), ...(panelSize ? panelSize : {}) }}
+      onPointerUp={onPanelResized}
       aria-label={t("graphSettings")}
     >
       <div className="s-graph__panel-head" onPointerDown={onPanelGrab}>
@@ -1956,6 +1983,18 @@ function GraphPanel({
             const d = defaultGraphPrefs();
             setPrefs({ ...d, panelOpen: true });
             setQuery("");
+            // Reset is the whole panel, its corner included.
+            setPanelSize(null);
+            const el = panelRef.current;
+            if (el) {
+              el.style.removeProperty("width");
+              el.style.removeProperty("height");
+            }
+            try {
+              localStorage.removeItem("vellum.graphPanelSize");
+            } catch {
+              // nothing to forget
+            }
           }}
         >
           {t("graphReset")}
