@@ -164,7 +164,9 @@ regex over YAML is how other tools eat your quote styles.</li>
 <p>A file that changed on disk between the preview and the press is <strong>skipped and named</strong>, never
 overwritten.</p>
 </li>
-<li><p><strong>Tags</strong> — <code>#inline</code> and frontmatter <code>tags:</code>, counted and clickable in the sidebar. Right-click
+<li><p><strong>Tags</strong> — <code>#inline</code> and frontmatter <code>tags:</code>, counted and clickable in the sidebar. A click
+filters the tree to that tag; <code>Esc</code> anywhere in the sidebar (or with nothing focused) clears
+the filter again, and the click on the lit pill does too. Right-click
 a pill to <strong>rename</strong> the tag across the whole vault — inline <code>#tags</code> and frontmatter <code>tags:</code>
 alike, with everything nested under it coming along (<code>#zettel</code> → <code>#slip</code> takes <code>#zettel/seed</code>
 with it). Renaming onto a tag that already exists <strong>merges</strong> the two, and the dialog says so
