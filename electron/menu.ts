@@ -196,6 +196,14 @@ export function buildMenu(h: MenuHandlers): Menu {
       { type: "separator" },
       { label: m("zoomIn"), role: "zoomIn" },
       { label: m("zoomOut"), role: "zoomOut" },
+      // Electron's zoomIn role answers only CmdOrCtrl+Plus, which on a US
+      // keyboard is Shift held down, so the Ctrl+= every browser zooms with
+      // did nothing here ("zoom does not work for his notes"). The same roles
+      // again, invisible, on the chords people actually press.
+      { role: "zoomIn", accelerator: "CmdOrCtrl+=", visible: false },
+      { role: "zoomIn", accelerator: "CmdOrCtrl+numadd", visible: false },
+      { role: "zoomOut", accelerator: "CmdOrCtrl+numsub", visible: false },
+      { role: "resetZoom", accelerator: "CmdOrCtrl+num0", visible: false },
       { label: m("menuActualSize"), role: "resetZoom" },
       { label: m("menuFullScreen"), role: "togglefullscreen" },
       { type: "separator" },

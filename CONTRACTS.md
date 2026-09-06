@@ -1368,7 +1368,10 @@ commands write the same map.
 
 ## CSS tokens (tokens.css defines the FULL set on `:root` and on every `[data-theme="…"]`)
 
-`--bg`, `--bg-raised`, `--bg-hover`, `--text`, `--text-muted`, `--text-faint`, `--accent`,
+`--bg`, `--bg-raised`, `--bg-hover`, `--text`, `--text-muted`, `--text-faint`, `--heading`
+(every heading: the editor's heading lines, the reading view's h1 to h5, the blog's article title,
+the library's page titles; each built-in freezes its old fifteen-percent accent mix to a hex so the
+custom theme builder can show and override it; held to 4.5:1 on all three grounds), `--accent`,
 `--accent-soft` (translucent accent for backgrounds), `--border`, `--danger`, `--font-ui`,
 `--font-serif`, `--font-mono`, `--radius` (6px), `--sidebar-w` (292px), `--font-scale`/`--prose-scale` (per-language type-scale
 multipliers, 1 by default; `:root[lang="ar"]` raises them because naskh reads smaller than

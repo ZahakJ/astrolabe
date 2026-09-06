@@ -1528,6 +1528,10 @@ const DICT = {
     en: "“{path}” is not published — visitors cannot see it, so it left the tab bar",
     ar: "«{path}» غير منشورة — لا يراها الزوار، لذلك غادرت شريط التبويبات",
   },
+  previewHiddenNamed: {
+    en: "“{path}” is published, but the language filter or an excluded tag hides it from visitors reading in this language, so it left the tab bar",
+    ar: "«{path}» منشورة، لكن مرشح اللغة أو وسمًا مستبعدًا يخفيها عن الزوار الذين يقرؤون بهذه اللغة، لذلك غادرت شريط التبويبات",
+  },
 
   // ── Wikilink clicks (editor + reading view) ─────────────────────────────
   linkNotPublished: { en: "“{name}” isn’t published here", ar: "“{name}” غير منشورة هنا" },

@@ -107,7 +107,9 @@
   levels deep) or by **tag**, with a legend where each group can be recoloured or hidden; a search
   that lights the matching notes; filters for orphans and a minimum number of links; the three
   forces (spread, link length, pull to centre); node size, link opacity, the zoom at which labels
-  appear, and a glow. All of it is remembered per browser and never touches the vault
+  appear, and a glow. The panel itself is yours to place: drag it by its title anywhere over the
+  graph, drag its corner to make it as short or as narrow as you like, and *Reset* puts it back.
+  All of it is remembered per browser and never touches the vault
 - **Full-text search** — prefix + fuzzy (MiniSearch), highlighted snippets with markdown syntax
   stripped, instant. It answers to [localised tag labels](arabic-and-rtl.md#localised-tag-labels)
   as well as canonical ones, and it **folds diacritics and letter shapes**, so «المقدمة» finds a

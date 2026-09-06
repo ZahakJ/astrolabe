@@ -64,22 +64,36 @@ export function mountToast(el: HTMLElement, kind: "plain" | "action"): void {
  *  in the same frame it appears is not a way back. */
 export function dismissToasts(): void {
   for (const el of document.querySelectorAll<HTMLElement>(`.s-toast:not(.${ACTION_CLASS})`)) {
+    // A toast that EXPLAINS a navigation must outlive it: "this note left
+    // the tab bar" mounts a frame before the tab bar changes, and entering
+    // preview moves openPath twice (the note leaves, the home note arrives),
+    // so the openPath effect was deleting it before anyone read it. A kept
+    // toast is immune for a short grace, then behaves like any other.
+    if (Number(el.dataset.keepUntil ?? 0) > Date.now()) continue;
     el.remove();
   }
 }
+
+/** How long a `keep` toast ignores navigation-driven dismissal. */
+const KEEP_MS = 2500;
 
 /** `error` paints the leading rule in --danger (app.css's `.s-toast--error`,
  *  which existed and was never once applied); the default accent rule is for
  *  confirmations and for the calm "this is the expected answer" messages —
  *  a 404 while previewing as a visitor is not a fault, and dressing it as one
  *  is what made the owner's first use of preview report a failure. */
-export function toast(msg: string, tone: "info" | "error" = "info"): void {
+export function toast(
+  msg: string,
+  tone: "info" | "error" = "info",
+  opts: { keep?: boolean } = {},
+): void {
   // Replace any lingering PLAIN toast so messages never stack unreadably.
   dismissToasts();
 
   const el = document.createElement("div");
   el.className = tone === "error" ? "s-toast s-toast--error" : "s-toast";
   el.setAttribute("role", "status");
+  if (opts.keep) el.dataset.keepUntil = String(Date.now() + KEEP_MS);
   // The live region has to be in the document BEFORE it has content: a
   // role="status" node that arrives already full is, to most screen readers,
   // just a new element — nothing changed inside a region they were watching,

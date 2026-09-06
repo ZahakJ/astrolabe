@@ -42,7 +42,7 @@ notes: |
   Margit took 14 tries.
 </code></pre>
 <h2 id="the-fields"><a class="anchor" href="#the-fields">The fields</a></h2>
-<div class="table"><table><thead><tr><th>Key</th><th>What it takes</th><th>Notes</th></tr></thead><tbody><tr><td><code>title</code></td><td>any text</td><td>Or just write the title on a line of its own.</td></tr><tr><td><code>kind</code></td><td><code>book</code> <code>game</code> <code>film</code> <code>show</code> <code>course</code> <code>project</code> <code>habit</code>, or your own word</td><td>Picks the glyph and the default unit. <code>movie</code>, <code>series</code>, <code>tv</code>, <code>novel</code>, <code>anime</code>, <code>class</code>, <code>routine</code> fold into the seven; anything else keeps your word and gets the ✦ glyph.</td></tr><tr><td><code>cover</code></td><td>an attachment name, or <code>![[name.jpg]]</code></td><td>Resolved exactly like an embed. Missing or broken → the kind&#39;s glyph, never a broken picture.</td></tr><tr><td><code>progress</code></td><td><code>62/130</code>, <code>45%</code>, <code>45</code>, <code>62 of 130</code></td><td>A fraction derives the percentage; a bare number <em>is</em> the percentage. Eastern Arabic digits are read too.</td></tr><tr><td><code>unit</code></td><td>any word</td><td>Yours, printed as you wrote it. Leave it out and the kind&#39;s own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised.</td></tr><tr><td><code>status</code></td><td><code>planned</code> <code>active</code> <code>done</code> <code>paused</code> <code>dropped</code></td><td>Plus the words people actually type: <code>reading</code>, <code>playing</code>, <code>watching</code>, <code>in-progress</code>, <code>started</code>, <code>finished</code>, <code>on hold</code>, <code>dnf</code>, <code>backlog</code>… Left out, it is derived from the progress.</td></tr><tr><td><code>rating</code></td><td><code>8/10</code>, <code>4/5</code>, <code>★★★★</code>, <code>4</code></td><td>A bare number is out of five up to five, out of ten above it.</td></tr><tr><td><code>started</code>, <code>finished</code></td><td>a date</td><td>An ISO date (<code>2026-07-01</code>) is formatted in the site&#39;s own calendar and numerals; anything else prints as written.</td></tr><tr><td><code>notes</code></td><td>a block scalar (the key, a colon, then a <code>|</code>)</td><td>Markdown, rendered through the normal pipeline.</td></tr></tbody></table></div><p>Unknown keys are ignored, and a fence with <strong>neither a title nor a progress</strong>
+<div class="table"><table><thead><tr><th>Key</th><th>What it takes</th><th>Notes</th></tr></thead><tbody><tr><td><code>title</code></td><td>any text</td><td>Or just write the title on a line of its own.</td></tr><tr><td><code>kind</code></td><td><code>book</code> <code>game</code> <code>film</code> <code>show</code> <code>course</code> <code>project</code> <code>habit</code>, or your own word</td><td>Picks the glyph and the default unit. <code>movie</code>, <code>series</code>, <code>tv</code>, <code>novel</code>, <code>anime</code>, <code>class</code>, <code>routine</code> fold into the seven; anything else keeps your word and gets the ✦ glyph.</td></tr><tr><td><code>cover</code></td><td>an attachment name, or <code>![[name.jpg]]</code></td><td>Resolved exactly like an embed. Missing or broken → the kind&#39;s glyph, never a broken picture.</td></tr><tr><td><code>progress</code></td><td><code>62/130</code>, <code>45%</code>, <code>45</code>, <code>62 of 130</code>, <code>62/?</code></td><td>A fraction derives the percentage; a bare number <em>is</em> the percentage. <code>62/?</code> is a count with no ceiling (hours in a game nobody has timed): the card prints the count and draws no bar. Eastern Arabic digits are read too.</td></tr><tr><td><code>season</code></td><td>any text</td><td>A show&#39;s season, printed on the card&#39;s cover. Kept verbatim; the Media page&#39;s form writes it for shows.</td></tr><tr><td><code>unit</code></td><td>any word</td><td>Yours, printed as you wrote it. Leave it out and the kind&#39;s own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised.</td></tr><tr><td><code>status</code></td><td><code>planned</code> <code>active</code> <code>done</code> <code>paused</code> <code>dropped</code></td><td>Plus the words people actually type: <code>reading</code>, <code>playing</code>, <code>watching</code>, <code>in-progress</code>, <code>started</code>, <code>finished</code>, <code>on hold</code>, <code>dnf</code>, <code>backlog</code>… Left out, it is derived from the progress.</td></tr><tr><td><code>rating</code></td><td><code>8/10</code>, <code>4/5</code>, <code>★★★★</code>, <code>4</code></td><td>A bare number is out of five up to five, out of ten above it.</td></tr><tr><td><code>started</code>, <code>finished</code></td><td>a date</td><td>An ISO date (<code>2026-07-01</code>) is formatted in the site&#39;s own calendar and numerals; anything else prints as written.</td></tr><tr><td><code>notes</code></td><td>a block scalar (the key, a colon, then a <code>|</code>)</td><td>Markdown, rendered through the normal pipeline.</td></tr></tbody></table></div><p>Unknown keys are ignored, and a fence with <strong>neither a title nor a progress</strong>
 stays a plain code block. That is deliberate: unparseable content must read as
 its own source rather than vanish into an empty card, which is the rule
 <code>$$ math $$</code> already follows.</p>
@@ -81,6 +81,38 @@ would otherwise shelve itself as a book nobody has started.</li>
 public site without opening the rest of the vault. Cover art on a published
 tracker is served to visitors too — the indexer collects tracker covers into
 the same allowlist that governs banners and embeds.</p>
+<h2 id="the-media-page"><a class="anchor" href="#the-media-page">The Media page</a></h2>
+<p>The board is a fence you put in a note. The <strong>Media page</strong> is the same shelf
+as a place of its own: a button beside the settings gear (admins only; or
+&quot;Open the Media page&quot; in the command palette) swaps the note column for every
+tracker in the vault, shelved by kind.</p>
+<p>The shelves stack vertically with a hairline between them, in this order:
+shows, games, books, films, courses, then projects, habits and whatever kinds
+of your own you have invented. Each shelf is a grid of at most five works
+across, fewer as the window narrows, and the page scrolls down and never
+sideways. A row of filters at the top narrows every shelf to one status.</p>
+<p>Each card is the fence&#39;s card in miniature: cover, title, bar, count, status,
+rating, dates and the first lines of your notes. Its <strong>− / +</strong> nudge the
+progress exactly as the editor&#39;s stepper does, <strong>Edit</strong> reopens the form
+filled in, and the cover or title opens the note.</p>
+<p><strong>Add media</strong> is a form: kind, title, cover (pick a picture the vault already
+has, upload one, or paste an <code>https://</code> link), progress, unit, a season for a
+show, status, rating, dates and notes. It writes one note:</p>
+<pre><code>Media/Shows/Severance.md
+</code></pre>
+<p>whose body is one <code>```tracker</code> fence with those fields, so everything the
+rest of this page says applies to it: it renders as a card in the note, it
+appears on any board, and you can edit the fence by hand. The kind decides the
+folder (<code>Books</code>, <code>Games</code>, <code>Shows</code>, <code>Films</code>, <code>Courses</code>, and a capitalised
+folder for a kind of your own). A title that already has a note is refused
+rather than overwritten.</p>
+<p>For a game whose length nobody has timed, switch the total off: the fence
+says <code>progress: 62/?</code>, the card counts hours and draws no bar. Turn it back on
+later and the bar returns.</p>
+<p>Editing from the page rewrites <strong>only the fence</strong> in the note. The prose under
+it, the frontmatter and any second tracker stay byte for byte as they were.</p>
+<p>The page is admin-only because it writes; a visitor&#39;s shelf is the board, on
+whatever note you chose to publish it.</p>
 <h2 id="in-obsidian"><a class="anchor" href="#in-obsidian">In Obsidian</a></h2>
 <p><code>tracker</code> is a Vellum extension, not an Obsidian feature. Open the same vault
 in Obsidian and the fence degrades to what it is — a labelled code block whose
@@ -92,7 +124,7 @@ still says everything it said here. See
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/latex/"><span class="pager__kicker">Previous</span><span class="pager__title">LaTeX notes</span></a><a class="pager__link pager__link--next" href="../../en/printing/"><span class="pager__kicker">Next</span><span class="pager__title">Printing &amp; PDF</span></a></nav>
     <footer class="foot">Vellum is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-fields">The fields</a><a class="toc__link toc__link--2" href="#nudging-the-bar">Nudging the bar</a><a class="toc__link toc__link--2" href="#the-board">The board</a><a class="toc__link toc__link--2" href="#publishing-a-shelf">Publishing a shelf</a><a class="toc__link toc__link--2" href="#in-obsidian">In Obsidian</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-fields">The fields</a><a class="toc__link toc__link--2" href="#nudging-the-bar">Nudging the bar</a><a class="toc__link toc__link--2" href="#the-board">The board</a><a class="toc__link toc__link--2" href="#publishing-a-shelf">Publishing a shelf</a><a class="toc__link toc__link--2" href="#the-media-page">The Media page</a><a class="toc__link toc__link--2" href="#in-obsidian">In Obsidian</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

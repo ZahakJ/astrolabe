@@ -1637,7 +1637,16 @@ export const useStore = create<State>()((set, get) => {
           // the other direction: the tab vanishes, the pane reads "The vault
           // is open", and nothing connects either to the eye button.
           if (before && !visible.has(before)) {
-            toast(tf("previewNotPublishedNamed", { path: noteTitle(before) }));
+            // Two reasons a note is not in the visitor tree, and they call for
+            // different fixes: publish it, or look at the language filter /
+            // excluded tags. "Not published" on a note that IS published sent
+            // the owner hunting for a flag that was already on.
+            const published = get().publishedPaths?.has(before) ?? false;
+            // `keep`: the tab bar changes a frame after this mounts, and the
+            // openPath effect would otherwise dismiss the explanation unread.
+            toast(tf(published ? "previewHiddenNamed" : "previewNotPublishedNamed", { path: noteTitle(before) }), "info", {
+              keep: true,
+            });
           }
           void get().refreshBacklinks();
         } else {
