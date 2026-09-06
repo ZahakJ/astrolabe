@@ -6430,3 +6430,42 @@ html[dir="rtl"] .s-statusbar__spacer {
   border-radius: 2px;
   vertical-align: middle;
 }
+
+
+/* ── The top tool cluster (StatusBar.tsx portal → App.tsx host) ─────────
+   The shell's own controls, at the trailing end of the tab row, over the
+   note column's top edge; the tab strips keep `--topactions-w` clear. */
+.s-topactions {
+  position: absolute;
+  top: 0;
+  inset-inline-end: var(--fold-trail, 0px);
+  height: 2.5rem;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.s-topactions > * {
+  pointer-events: auto;
+}
+
+.s-statusbar.s-statusbar--top {
+  grid-area: auto;
+  position: static;
+  height: 2.5rem;
+  padding-inline: 6px 8px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.s-main > .s-tabs,
+.s-main .s-view:last-of-type .s-tabs {
+  padding-inline-end: var(--topactions-w, 0px);
+}
+
+/* Zen hides the cluster with the rest of the chrome; the ✕ is the way out. */
+.s-app--zen .s-topactions {
+  display: none;
+}

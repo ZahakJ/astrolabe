@@ -12,6 +12,7 @@
 // bar reads as a row of switches rather than a row of alarms.
 
 import { Fragment, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { getNote } from "../api.ts";
 import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
@@ -138,6 +139,21 @@ function PaneIcon({ kind }: { kind: "sidebar" | "panel" | "zen" | "help" }) {
 }
 
 export default function StatusBar() {
+  // The top cluster's host (App.tsx), found after mount; its width is
+  // published as `--topactions-w` on the main column so the tab strips keep
+  // clear of it.
+  const [topHost, setTopHost] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    const host = document.getElementById("s-topactions");
+    setTopHost(host);
+    if (!host) return;
+    const main = host.parentElement;
+    const ro = new ResizeObserver(() => {
+      main?.style.setProperty("--topactions-w", `${Math.ceil(host.getBoundingClientRect().width)}px`);
+    });
+    ro.observe(host);
+    return () => ro.disconnect();
+  }, []);
   const openPath = useStore((s) => s.openPath);
   const isDirty = useStore((s) => (s.openPath ? !!s.dirty[s.openPath] : false));
   const reloadTick = useStore((s) => s.reloadTick);
@@ -252,6 +268,230 @@ export default function StatusBar() {
       ? [...stripNoteExt(openPath).split("/").slice(0, -1), leaf]
       : [leaf]
     : [];
+
+  // The shell's tools, as one fragment: portalled to the top when the host
+  // exists (the app shell), left in the bar when it does not (a bare test).
+  const topTools = (
+    <>
+      {/* ── Admin tools: the two doors OUT of the workspace ───────────────
+          Groups are marked by ONE hairline each, never by sprinkled dots.
+          The bar had eleven controls with separator dots between some
+          neighbours and not others, which read as an undifferentiated icon
+          strip rather than the deliberate groups the code actually builds.
+          Every right-cluster segment is a group now — the counts, the publish
+          toggle, the sync badge, the mode pills, these two, the panes, the
+          view controls and the session control — and app.css drops the rule
+          on whichever one opens the cluster, because a hairline with nothing
+          on its far side is a rule separating a group from empty space. */}
+      {admin && (
+        <span className="s-statusbar__group">
+          {/* THE DESIGNER'S OWN DOOR. `openDesigner()` used to have exactly one
+              call site in the client — the command palette — so the whole
+              feature was behind Ctrl+P and a guess at the word. It sits beside
+              the gear because that is where an admin already goes to change
+              what a visitor sees, and its glyph is the shape of a composed
+              page: a masthead over a column and a grid. */}
+          <button
+            type="button"
+            className="s-statusbar__btn s-statusbar__icon"
+            onClick={openDesigner}
+            title={t("designTitle")}
+            aria-label={t("designTitle")}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18M9 9v12" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="s-statusbar__btn s-statusbar__gear"
+            onClick={() => useStore.getState().setSettingsOpen(true)}
+            title={t("siteSettingsTitle")}
+            aria-label={t("siteSettings")}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="s-statusbar__btn s-statusbar__eye"
+            onClick={() => void useStore.getState().setPreviewVisitor(true)}
+            title={t("previewAsVisitorTitle")}
+            aria-label={t("previewAsVisitor")}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </span>
+      )}
+      {/* ── Pane toggles ──────────────────────────────────────────────────
+          Sidebar, right panel and zen each get a visible switch: a keystroke
+          nobody can see is a feature nobody finds. */}
+      <span className="s-statusbar__panes">
+        <button
+          type="button"
+          className={`s-statusbar__btn s-statusbar__icon${sidebarShown ? " s-statusbar__btn--on" : ""}`}
+          onClick={() => useStore.getState().toggleSidebar()}
+          title={t(sidebarShown ? "hidePaneNotes" : "showPaneNotes")}
+          aria-label={t(sidebarShown ? "hidePaneNotes" : "showPaneNotes")}
+          aria-pressed={sidebarShown}
+        >
+          <PaneIcon kind="sidebar" />
+        </button>
+        <button
+          type="button"
+          className={`s-statusbar__btn s-statusbar__icon s-statusbar__pane-outline${panelCollapsed ? "" : " s-statusbar__btn--on"}`}
+          onClick={() => setPanelCollapsed(!panelCollapsed)}
+          title={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
+          aria-label={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
+          aria-pressed={!panelCollapsed}
+        >
+          <PaneIcon kind="panel" />
+        </button>
+        <button
+          type="button"
+          className="s-statusbar__btn s-statusbar__icon"
+          onClick={() => setZen(true)}
+          title={t("enterZen")}
+          aria-label={t("enterZen")}
+        >
+          <PaneIcon kind="zen" />
+        </button>
+        <button
+          type="button"
+          className="s-statusbar__btn s-statusbar__icon"
+          onClick={() => setShortcutsOpen(true)}
+          title={t("shortcutsTitleKey")}
+          aria-label={t("shortcutsTitleKey")}
+        >
+          <PaneIcon kind="help" />
+        </button>
+      </span>
+      {/* Twenty-one themes cannot hang off a button that steps to the next one:
+          blind cycling is the same invisible state as a silent reading mode —
+          the only feedback is that everything changed. It opens the PICKER,
+          which shows what is available, previews live and can be cancelled.
+          The glyph reads the theme's GROUP, not one theme's name: with a whole
+          group of light rooms, `theme === "parchment"` drew a moon on every one
+          of them but parchment. */}
+      {/* View group: what the centre column shows, and in what light. */}
+      <span className="s-statusbar__group">
+        <button
+          type="button"
+          className="s-statusbar__btn"
+          onClick={openThemePicker}
+          title={tf("themeTitle", { theme: choiceLabel(theme) })}
+          aria-label={t("browseThemes")}
+        >
+          {choiceGroup(theme) === "light" ? "☀" : "☾"}
+        </button>
+        <button
+          type="button"
+          className={`s-statusbar__btn${view === "graph" ? " s-statusbar__btn--on" : ""}`}
+          // A toggle, not a link: it swaps the workspace between the note and
+          // the graph, and the class that says so visually needs a twin a
+          // screen reader can hear.
+          aria-pressed={view === "graph"}
+          onClick={() => setView(view === "graph" ? "editor" : "graph")}
+          title={t("graphTitle")}
+        >
+          {t("graph")}
+        </button>
+      </span>
+      {admin && authProtected && (
+        <span className="s-statusbar__group">
+          <button
+            type="button"
+            className="s-statusbar__btn s-statusbar__signout"
+            onClick={() => void useStore.getState().logout()}
+            title={t("signOutTitle")}
+            aria-label={t("signOut")}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="M16 17l5-5-5-5" />
+              <path d="M21 12H9" />
+            </svg>
+            <span className="s-statusbar__signout-label">{t("signOut")}</span>
+          </button>
+        </span>
+      )}
+      {!admin && (
+        <span className="s-statusbar__group">
+          {previewVisitor ? (
+            // Inside preview the session IS still an admin one — the shell is
+            // only wearing a visitor's clothes — so "Sign in to edit this
+            // vault" was a lie the product could not honour: the modal opened,
+            // the password was accepted, and the shell stayed a visitor shell.
+            // The honest control here is the way OUT, which is the same door
+            // the PREVIEW pill and Esc already use.
+            <button
+              type="button"
+              className="s-statusbar__btn s-statusbar__exitpreview"
+              onClick={() => void setPreviewVisitor(false)}
+              title={t("exitPreviewTitle")}
+            >
+              {t("exitPreview")}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="s-statusbar__btn s-statusbar__signin"
+              onClick={() => setLoginOpen(true)}
+              title={t("signInTitle")}
+            >
+              {t("signIn")}
+            </button>
+          )}
+        </span>
+      )}
+    </>
+  );
 
   return (
     // A named landmark, because this <footer> is not a site footer: it is the
@@ -490,223 +730,13 @@ export default function StatusBar() {
           )}
         </span>
       )}
-      {/* ── Admin tools: the two doors OUT of the workspace ───────────────
-          Groups are marked by ONE hairline each, never by sprinkled dots.
-          The bar had eleven controls with separator dots between some
-          neighbours and not others, which read as an undifferentiated icon
-          strip rather than the deliberate groups the code actually builds.
-          Every right-cluster segment is a group now — the counts, the publish
-          toggle, the sync badge, the mode pills, these two, the panes, the
-          view controls and the session control — and app.css drops the rule
-          on whichever one opens the cluster, because a hairline with nothing
-          on its far side is a rule separating a group from empty space. */}
-      {admin && (
-        <span className="s-statusbar__group">
-          {/* THE DESIGNER'S OWN DOOR. `openDesigner()` used to have exactly one
-              call site in the client — the command palette — so the whole
-              feature was behind Ctrl+P and a guess at the word. It sits beside
-              the gear because that is where an admin already goes to change
-              what a visitor sees, and its glyph is the shape of a composed
-              page: a masthead over a column and a grid. */}
-          <button
-            type="button"
-            className="s-statusbar__btn s-statusbar__icon"
-            onClick={openDesigner}
-            title={t("designTitle")}
-            aria-label={t("designTitle")}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="13"
-              height="13"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M3 9h18M9 9v12" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="s-statusbar__btn s-statusbar__gear"
-            onClick={() => useStore.getState().setSettingsOpen(true)}
-            title={t("siteSettingsTitle")}
-            aria-label={t("siteSettings")}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="13"
-              height="13"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="s-statusbar__btn s-statusbar__eye"
-            onClick={() => void useStore.getState().setPreviewVisitor(true)}
-            title={t("previewAsVisitorTitle")}
-            aria-label={t("previewAsVisitor")}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="13"
-              height="13"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          </button>
-        </span>
-      )}
-      {/* ── Pane toggles ──────────────────────────────────────────────────
-          Sidebar, right panel and zen each get a visible switch: a keystroke
-          nobody can see is a feature nobody finds. */}
-      <span className="s-statusbar__panes">
-        <button
-          type="button"
-          className={`s-statusbar__btn s-statusbar__icon${sidebarShown ? " s-statusbar__btn--on" : ""}`}
-          onClick={() => useStore.getState().toggleSidebar()}
-          title={t(sidebarShown ? "hidePaneNotes" : "showPaneNotes")}
-          aria-label={t(sidebarShown ? "hidePaneNotes" : "showPaneNotes")}
-          aria-pressed={sidebarShown}
-        >
-          <PaneIcon kind="sidebar" />
-        </button>
-        <button
-          type="button"
-          className={`s-statusbar__btn s-statusbar__icon s-statusbar__pane-outline${panelCollapsed ? "" : " s-statusbar__btn--on"}`}
-          onClick={() => setPanelCollapsed(!panelCollapsed)}
-          title={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
-          aria-label={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
-          aria-pressed={!panelCollapsed}
-        >
-          <PaneIcon kind="panel" />
-        </button>
-        <button
-          type="button"
-          className="s-statusbar__btn s-statusbar__icon"
-          onClick={() => setZen(true)}
-          title={t("enterZen")}
-          aria-label={t("enterZen")}
-        >
-          <PaneIcon kind="zen" />
-        </button>
-        <button
-          type="button"
-          className="s-statusbar__btn s-statusbar__icon"
-          onClick={() => setShortcutsOpen(true)}
-          title={t("shortcutsTitleKey")}
-          aria-label={t("shortcutsTitleKey")}
-        >
-          <PaneIcon kind="help" />
-        </button>
-      </span>
-      {/* Twenty-one themes cannot hang off a button that steps to the next one:
-          blind cycling is the same invisible state as a silent reading mode —
-          the only feedback is that everything changed. It opens the PICKER,
-          which shows what is available, previews live and can be cancelled.
-          The glyph reads the theme's GROUP, not one theme's name: with a whole
-          group of light rooms, `theme === "parchment"` drew a moon on every one
-          of them but parchment. */}
-      {/* View group: what the centre column shows, and in what light. */}
-      <span className="s-statusbar__group">
-        <button
-          type="button"
-          className="s-statusbar__btn"
-          onClick={openThemePicker}
-          title={tf("themeTitle", { theme: choiceLabel(theme) })}
-          aria-label={t("browseThemes")}
-        >
-          {choiceGroup(theme) === "light" ? "☀" : "☾"}
-        </button>
-        <button
-          type="button"
-          className={`s-statusbar__btn${view === "graph" ? " s-statusbar__btn--on" : ""}`}
-          // A toggle, not a link: it swaps the workspace between the note and
-          // the graph, and the class that says so visually needs a twin a
-          // screen reader can hear.
-          aria-pressed={view === "graph"}
-          onClick={() => setView(view === "graph" ? "editor" : "graph")}
-          title={t("graphTitle")}
-        >
-          {t("graph")}
-        </button>
-      </span>
-      {admin && authProtected && (
-        <span className="s-statusbar__group">
-          <button
-            type="button"
-            className="s-statusbar__btn s-statusbar__signout"
-            onClick={() => void useStore.getState().logout()}
-            title={t("signOutTitle")}
-            aria-label={t("signOut")}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="13"
-              height="13"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <path d="M16 17l5-5-5-5" />
-              <path d="M21 12H9" />
-            </svg>
-            <span className="s-statusbar__signout-label">{t("signOut")}</span>
-          </button>
-        </span>
-      )}
-      {!admin && (
-        <span className="s-statusbar__group">
-          {previewVisitor ? (
-            // Inside preview the session IS still an admin one — the shell is
-            // only wearing a visitor's clothes — so "Sign in to edit this
-            // vault" was a lie the product could not honour: the modal opened,
-            // the password was accepted, and the shell stayed a visitor shell.
-            // The honest control here is the way OUT, which is the same door
-            // the PREVIEW pill and Esc already use.
-            <button
-              type="button"
-              className="s-statusbar__btn s-statusbar__exitpreview"
-              onClick={() => void setPreviewVisitor(false)}
-              title={t("exitPreviewTitle")}
-            >
-              {t("exitPreview")}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="s-statusbar__btn s-statusbar__signin"
-              onClick={() => setLoginOpen(true)}
-              title={t("signInTitle")}
-            >
-              {t("signIn")}
-            </button>
-          )}
-        </span>
-      )}
+      {/* THE TOOLS LIVE AT THE TOP. Everything that is about the SHELL — the
+          panes, zen, the graph, the designer, settings, the theme, the
+          session — renders into the top-right cluster App.tsx hosts above
+          the note (a portal, so the hooks stay here); the bar keeps what is
+          about the NOTE: where it is, how long it is, whether it is published,
+          which mode it is in. The owner's screenshot drew the line. */}
+      {topHost ? createPortal(<div className="s-statusbar s-statusbar--top">{topTools}</div>, topHost) : topTools}
     </footer>
   );
 }

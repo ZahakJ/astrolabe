@@ -1017,6 +1017,9 @@ export default function App() {
             <path d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
+        {/* The shell's tools, top and trailing: StatusBar portals them here
+            (see its note). An empty div until it does. */}
+        <div id="s-topactions" className="s-topactions" />
         <Surface fallback={<div className="s-tabs" aria-hidden="true" />}>
           {/* The shell's bar belongs to the shell only while there is one pane.
               Split, each pane carries its own — a tab bar names what is open
