@@ -918,6 +918,7 @@ authRoutes.get("/me", (c) => {
           count: counts.get(folder.slug) ?? 0,
         };
         if (folder.description) card.description = folder.description;
+        if (folder.tag) card.tag = folder.tag;
         return card;
       });
       // The two placement sub-options, defaults resolved here so no client has

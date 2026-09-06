@@ -309,17 +309,20 @@ export default function DesignedSite() {
   }, [route, siteName, tagline, folders, shelf]);
 
   const tagTopics = useStore((s) => s.topicsMode === "tags");
+  const collectionCards = useStore((s) => s.publicFolders);
   const topics = useMemo(() => {
     const counts = new Map<string, number>();
     if (!tagTopics) return [];
+    const claimed = new Set(collectionCards.map((c) => c.tag).filter((t): t is string => !!t));
     for (const post of posts ?? []) {
       for (const tag of post.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
     }
     return [...counts.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .slice(0, 10)
-      .map(([tag]) => tag);
-  }, [posts, tagTopics]);
+      .map(([tag]) => tag)
+      .filter((tag) => !claimed.has(tag));
+  }, [posts, tagTopics, collectionCards]);
 
   // ── The fallback decision ────────────────────────────────────────────────
   // One expression, evaluated the same way for every kind of failure.

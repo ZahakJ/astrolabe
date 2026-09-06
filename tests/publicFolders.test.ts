@@ -185,3 +185,13 @@ describe("folder-backed collections", () => {
     assert.deepEqual(effectiveFolders(["books", "games"], "Play/Games/elden.md", rows), ["books", "games", "play"]);
   });
 });
+
+describe("collections that are tags", () => {
+  it("count a note that carries the tag as a member, and keep a row's tag", () => {
+    const rows = [{ id: "t", slug: "games", title: "Games", icon: "gamepad" as const, tag: "games" }];
+    assert.deepEqual(effectiveFolders([], "x/y.md", rows, ["life", "games"]), ["games"]);
+    assert.deepEqual(effectiveFolders([], "x/y.md", rows, ["life"]), []);
+    const row = cleanPublicFolder({ slug: "games", title: "Games", icon: "gamepad", tag: " #Games " }, () => "x");
+    assert.equal(row?.tag, "games");
+  });
+});

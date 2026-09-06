@@ -93,8 +93,7 @@ import {
   trackers,
   visibleNotesUnder,
   whenIndexed,
-  wikilinkRegex,
-} from "./indexer.ts";
+  wikilinkRegex, collectionRows } from "./indexer.ts";
 import { sendEncoded } from "./compress.ts";
 import { graphBody, invalidateGraph, localGraphJson } from "./graphCache.ts";
 import { invalidateTree, treeBody } from "./treeCache.ts";
@@ -2287,6 +2286,16 @@ api.get("/visibility", (c) => {
 api.get("/settings", (c) => {
   if (isPublishLimited(c)) throw new VaultError(404, "Not found");
   return c.json(settingsResponse());
+});
+
+// THE COLLECTIONS AS THE SERVER SEES THEM — settings rows, tag pages and,
+// under folders, the derived categories, merged (server/indexer.ts
+// collectionRows). Admin only: the rows carry vault folders. The tree's
+// popover ticks against this list rather than against settings alone, or a
+// collection declared by a tag page could not be joined by right-click.
+api.get("/collections", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  return c.json(collectionRows());
 });
 
 api.patch("/settings", async (c) => {

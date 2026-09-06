@@ -336,16 +336,20 @@ export default function BlogShell() {
   // come from the vault's folders (settings.topics), when the row holds the
   // collections alone and every one of them is a folder.
   const tagTopics = useStore((s) => s.topicsMode === "tags");
+  const collectionCards = useStore((s) => s.publicFolders);
   const topics = useMemo(() => {
     const counts = new Map<string, number>();
     if (!tagTopics) return [];
+    // A collection that IS a tag stands in for that tag's chip.
+    const claimed = new Set(collectionCards.map((c) => c.tag).filter((t): t is string => !!t));
     for (const p of posts ?? []) {
       for (const t of p.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
     }
     return [...counts.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([tag]) => tag);
-  }, [posts, tagTopics]);
+      .map(([tag]) => tag)
+      .filter((tag) => !claimed.has(tag));
+  }, [posts, tagTopics, collectionCards]);
   const activeTag = route.kind === "topic" ? route.tag : null;
 
   // NAV CHIPS ARE NAVIGATION; THE HOME BAND IS AN INVITATION (v1.8 UX audit

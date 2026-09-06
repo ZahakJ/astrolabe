@@ -247,6 +247,10 @@ export interface PublicFolderRef {
    *  a collection with none is joined by frontmatter alone, and one with a
    *  folder still takes frontmatter members from elsewhere. */
   folder?: string;
+  /** The TAG this collection is: every published note carrying it belongs.
+   *  Set by a tag page declaring `collection: true`; a settings row may name
+   *  one too. */
+  tag?: string;
   /** Taken down without being deleted (the NavItem precedent): the folder
    *  keeps its title, glyph and members and reaches no visitor at all. */
   hidden?: boolean;
@@ -402,6 +406,9 @@ export interface PublicFolderCard {
   title: string;
   icon: FolderIcon;
   description?: string;
+  /** The tag this collection is, when it is one — the nav drops that tag's
+   *  own topic chip so the collection is not listed twice. */
+  tag?: string;
   /** Published posts carrying this slug that THIS session may see (the
    *  languageFilter and EXCLUDE_TAGS apply, exactly as they do to /api/posts).
    *  Zero is a real answer and still renders: an empty folder on a live site is

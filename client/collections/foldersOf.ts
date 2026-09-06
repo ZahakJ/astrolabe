@@ -14,17 +14,21 @@ function block(content: string): string | null {
   return m ? m[1] : null;
 }
 
-export function foldersOf(content: string): string[] {
+/** The values a frontmatter LIST key holds, in every spelling YAML gives:
+ *  a flow list, a block list, a comma scalar, a bare scalar. `clean` decides
+ *  what a value becomes (a slug, a tag) and drops it by answering null. */
+export function frontmatterListOf(content: string, keys: readonly string[], clean: (raw: string) => string | null): string[] {
   const fm = block(content);
   if (fm === null) return [];
   const lines = fm.split(/\r?\n/);
   const out: string[] = [];
   const add = (raw: string): void => {
-    const slug = folderSlug(raw.trim().replace(/^["']|["']$/g, ""));
-    if (slug !== null && !out.includes(slug)) out.push(slug);
+    const value = clean(raw.trim().replace(/^["']|["']$/g, ""));
+    if (value !== null && value !== "" && !out.includes(value)) out.push(value);
   };
+  const keyRe = new RegExp(`^(${keys.join("|")})\\s*:\\s*(.*)$`);
   for (let i = 0; i < lines.length; i++) {
-    const m = /^(folders?)\s*:\s*(.*)$/.exec(lines[i]);
+    const m = keyRe.exec(lines[i]);
     if (!m) continue;
     const value = m[2].trim();
     if (value === "" ) {
@@ -41,4 +45,15 @@ export function foldersOf(content: string): string[] {
     }
   }
   return out;
+}
+
+export function foldersOf(content: string): string[] {
+  return frontmatterListOf(content, ["folders", "folder"], folderSlug);
+}
+
+/** The note's frontmatter tags (`tags:` / `tag:`), lowercased, `#` dropped.
+ *  Inline `#tags` in the body are not here: they cannot be edited from a
+ *  checkbox, and the popover says so. */
+export function tagsOf(content: string): string[] {
+  return frontmatterListOf(content, ["tags", "tag"], (raw) => raw.replace(/^#/, "").trim().toLowerCase() || null);
 }
