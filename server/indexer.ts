@@ -3,12 +3,13 @@
 
 import { isLibraryLesson, libraryCoverPaths, libraryLessonFolders, libraryTitleOf } from "../shared/library.ts";
 import { effectiveFolders, suggestSlug } from "../shared/publicFolders.ts";
+import { folderMetaOf, folderNoteCandidates, folderOfNote, type FolderMeta } from "../shared/folderNote.ts";
 import { createHash } from "node:crypto";
 import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import MiniSearch from "minisearch";
-import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent } from "../shared/types.ts";
+import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent, LibraryKind, LibraryPathRef } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { findAnyMatches, foldQuery, foldTerm } from "../shared/fold.ts";
 import { parseSearchQuery, type QueryFilter } from "../shared/searchQuery.ts";
@@ -64,6 +65,10 @@ interface NoteRecord {
    *  setting for the reason `labels` gives: the setting is edited at runtime,
    *  and a gate here would need a full reindex to take effect. */
   folders: string[];
+  /** What this note says about ITS FOLDER when it is that folder's note
+   *  (shared/folderNote.ts): a note named like the folder, or index.md
+   *  inside it. Null for every other note. */
+  folderMeta: FolderMeta | null;
   /** Every ```tracker fence in this note, parsed (shared/tracker.ts). Empty
    *  for almost every note.
    *
@@ -805,6 +810,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     // live in markdownParts/texParts), so a `.tex` note joins a public folder
     // from its `%---` comment block exactly as a markdown note does.
     folders: parseFolders(fm),
+    folderMeta: folderOfNote(relPath) !== null ? folderMetaOf(fm) : null,
     // The fence walk is shared/fences.ts', so a ```tracker shown INSIDE a
     // ```markdown block is documentation, not a tracker — the same rule the
     // outline and the anchor table keep.
@@ -1116,6 +1122,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     // read BOTH formats out of it), so an oversized note is a member of its
     // folders exactly as a normal one is.
     folders: parseFolders(fm),
+    folderMeta: folderOfNote(relPath) !== null ? folderMetaOf(fm) : null,
     // No body was read at all (metadata-only), so this note contributes no
     // trackers and no tracker covers — the same silence it keeps about links
     // and assets, and for the same reason.
@@ -2041,7 +2048,8 @@ export function isAllowedAttachment(relPath: string): boolean {
   // from settings rather than baked into the allowlist above: that cache is
   // dropped only by index mutations, and a cover set in the panel has moved
   // no file — it would have stayed a 404 until the next vault event.
-  return attachmentPaths.has(relPath) && libraryCoverPaths(getSettings().library).includes(relPath);
+  const lib = getSettings().library;
+  return attachmentPaths.has(relPath) && libraryCoverPaths({ enabled: lib?.enabled, paths: libraryRefs() }).includes(relPath);
 }
 
 /** Published notes as { path, title }, unsorted. */
@@ -2294,6 +2302,65 @@ function postMeta(record: NoteRecord, hidden: ReadonlySet<string>, collectionRow
   return meta;
 }
 
+/** The folder note's metadata for `folder`, if the vault has one (the note
+ *  named like the folder, else index.md and friends — shared/folderNote.ts). */
+export function folderMeta(folder: string): FolderMeta | null {
+  for (const candidate of folderNoteCandidates(folder)) {
+    const record = notes.get(candidate);
+    if (record?.folderMeta) return record.folderMeta;
+  }
+  return null;
+}
+
+/** Every path on the shelf: the settings rows, PLUS the folders whose note
+ *  declares `library: book|course|series`. A settings row naming the same
+ *  folder wins field by field and fills its blanks from the note (a blurb
+ *  written once in the vault, a cover the row never mentioned); a folder
+ *  declared only in the vault gets a slug from its title, unique after the
+ *  rows' own. Settings' `enabled` still gates the whole shelf. */
+export function libraryRefs(): LibraryPathRef[] {
+  const lib = getSettings().library;
+  const rows = (lib?.paths ?? []).map((row) => ({ ...row }));
+  const byFolder = new Map(rows.map((row) => [row.folder, row]));
+  const taken = new Set(rows.map((row) => row.slug));
+  const found: { folder: string; meta: FolderMeta }[] = [];
+  for (const record of notes.values()) {
+    if (!record.folderMeta?.library) continue;
+    const folder = folderOfNote(record.path);
+    if (folder === null) continue;
+    found.push({ folder, meta: record.folderMeta });
+  }
+  found.sort((a, b) => a.folder.localeCompare(b.folder));
+  for (const { folder, meta } of found) {
+    const row = byFolder.get(folder);
+    if (row) {
+      if (!row.blurb && meta.description) row.blurb = meta.description;
+      if (!row.cover && meta.cover) row.cover = meta.cover;
+      if (!row.source && meta.source) row.source = meta.source;
+      continue;
+    }
+    const title = meta.title ?? libraryTitleOf(folder) ?? folder;
+    const base = suggestSlug(title) || "path";
+    let slug = base;
+    for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
+    taken.add(slug);
+    const ref: LibraryPathRef = { id: `l${createHash("sha1").update(folder).digest("hex").slice(0, 12)}`, slug, folder, kind: meta.library as LibraryKind, title };
+    if (meta.description) ref.blurb = meta.description;
+    if (meta.cover) ref.cover = meta.cover;
+    if (meta.source) ref.source = meta.source;
+    if (meta.hidden) ref.hidden = true;
+    rows.push(ref);
+  }
+  return rows;
+}
+
+/** The lesson folders as the shelf stands now (settings rows and folder
+ *  notes together), or none while the library is off. */
+function lessonFoldersNow(): string[] {
+  const lib = getSettings().library;
+  return libraryLessonFolders({ enabled: lib?.enabled, paths: libraryRefs() });
+}
+
 /** The collection rows as settings hold them right now — the folder-backed
  *  membership is read live, like the library's lesson folders — PLUS, under
  *  `settings.topics: "folders"`, one row per parent folder of a published
@@ -2307,11 +2374,11 @@ function postMeta(record: NoteRecord, hidden: ReadonlySet<string>, collectionRow
 export function collectionRows(): PublicFolderRef[] {
   const settings = getSettings();
   const declared = settings.publicFolders?.folders ?? [];
-  if (settings.topics !== "folders") return declared;
+  if (settings.topics !== "folders") return withFolderNotes(declared);
   const covered = new Set(declared.map((r) => r.folder).filter((f): f is string => typeof f === "string"));
   const taken = new Set(declared.map((r) => r.slug));
   const isTemplate = templateMatcher();
-  const lessonFolders = libraryLessonFolders(settings.library);
+  const lessonFolders = lessonFoldersNow();
   const parents = new Set<string>();
   for (const notePath of publishedSet) {
     const slash = notePath.lastIndexOf("/");
@@ -2324,18 +2391,35 @@ export function collectionRows(): PublicFolderRef[] {
   const icons = settings.folderIcons ?? {};
   const derived: PublicFolderRef[] = [];
   for (const folder of [...parents].sort()) {
-    const title = libraryTitleOf(folder) || folder;
+    // The folder's own note speaks first (title, description, mark, hidden),
+    // then the tree's mark, then the folder's name.
+    const meta = folderMeta(folder);
+    const title = meta?.title ?? (libraryTitleOf(folder) || folder);
     const base = suggestSlug(title) || "folder";
     let slug = base;
     for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
     taken.add(slug);
-    derived.push({ id: `a${createHash("sha1").update(folder).digest("hex").slice(0, 12)}`, slug, title, icon: icons[folder] ?? "archive", folder });
+    const row: PublicFolderRef = { id: `a${createHash("sha1").update(folder).digest("hex").slice(0, 12)}`, slug, title, icon: meta?.icon ?? icons[folder] ?? "archive", folder };
+    if (meta?.description) row.description = meta.description;
+    if (meta?.hidden) row.hidden = true;
+    derived.push(row);
   }
-  return [...declared, ...derived];
+  return [...withFolderNotes(declared), ...derived];
 }
 
 function collectionRowsNow(): PublicFolderRef[] {
   return collectionRows();
+}
+
+/** Declared rows that name a folder take the folder note's description when
+ *  they have none of their own — the row says WHICH folder, the vault says
+ *  what it is about. */
+function withFolderNotes(rows: readonly PublicFolderRef[]): PublicFolderRef[] {
+  return rows.map((row) => {
+    if (!row.folder || row.description) return row;
+    const meta = folderMeta(row.folder);
+    return meta?.description ? { ...row, description: meta.description } : row;
+  });
 }
 
 /** How many posts THIS session can see in each public folder — slug → count.
@@ -2421,7 +2505,7 @@ export function posts(visitor: boolean, lang: FilterLang, excludePages = false):
   // blog posts". Both lists, admin and visitor: the admin's answers "what is
   // on my blog", and the shelf is not the blog. The note's own URL still
   // works; only the listings change.
-  const lessonFolders = libraryLessonFolders(getSettings().library);
+  const lessonFolders = lessonFoldersNow();
   const rows = collectionRowsNow();
   for (const notePath of publishedSet) {
     const record = notes.get(notePath);

@@ -342,6 +342,10 @@ export interface LibraryPath {
   slug: string;
   kind: LibraryKind;
   title: string;
+  /** The vault folder the path reads — the lessons' own paths already name
+   *  it, so nothing new is said to a visitor; the settings editor uses it to
+   *  tell a folder-note path from a declared row. */
+  folder: string;
   blurb?: string;
   cover?: string;
   source?: string;

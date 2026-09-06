@@ -13,7 +13,7 @@ import {
 } from "../shared/library.ts";
 import type { LibraryLesson, LibraryPath, LibraryPathRef, LibraryUnit } from "../shared/types.ts";
 import { isPublishLimited } from "./auth.ts";
-import { libraryLessons, type FilterLang } from "./indexer.ts";
+import { libraryLessons, libraryRefs, type FilterLang } from "./indexer.ts";
 import { languageScope } from "./language.ts";
 import { getSettings } from "./settings.ts";
 
@@ -56,6 +56,7 @@ export function resolveLibraryPath(ref: LibraryPathRef, visitor: boolean, lang: 
     slug: ref.slug,
     kind: ref.kind,
     title: ref.title,
+    folder: ref.folder,
     units,
     lessons: count,
     minutes,
@@ -75,7 +76,7 @@ export function libraryFor(c: Context): LibraryPath[] {
   const limited = isPublishLimited(c);
   const lang = languageScope(c, limited).lang;
   const out: LibraryPath[] = [];
-  for (const ref of lib.paths ?? []) {
+  for (const ref of libraryRefs()) {
     if (ref.hidden) continue;
     const resolved = resolveLibraryPath(ref, limited, lang);
     if (resolved) out.push(resolved);

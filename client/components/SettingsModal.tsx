@@ -49,6 +49,7 @@ import {
 } from "../../shared/publicFolders.ts";
 import {
   libraryList,
+  libraryPathId,
   libraryRowError,
   libraryRowForFolder,
   libraryTitleOf,
@@ -61,7 +62,7 @@ import {
   LIBRARY_SOURCE_MAX,
   LIBRARY_TITLE_MAX,
 } from "../../shared/library.ts";
-import type { LibraryKind, LibraryPathRef, TreeNode } from "../../shared/types.ts";
+import type { LibraryKind, LibraryPath, LibraryPathRef, TreeNode } from "../../shared/types.ts";
 import {
   ApiError,
   deleteCustomFont,
@@ -71,8 +72,7 @@ import {
   listCustomFonts,
   patchSettings,
   uploadAttachment,
-  uploadFont,
-} from "../api.ts";
+  uploadFont, getLibrary } from "../api.ts";
 import { bannerSrc } from "../banner.ts";
 // The calendar specimen: the panel shows what a choice PRINTS, in this
 // instance's own locale and numerals, before the reader commits to it.
@@ -672,6 +672,19 @@ function LibraryPathEditor({
     if (node) walk(node);
     return { notes, published };
   };
+  // The shelf as the server sees it — settings rows AND the folders whose
+  // note declares `library:`. The latter are listed below the rows, so the
+  // owner sees what the vault has put on the shelf, and one press turns any
+  // of them into a row here when they want to override it.
+  const [shelf, setShelf] = useState<LibraryPath[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    void getLibrary().then((paths) => live && setShelf(paths)).catch(() => live && setShelf([]));
+    return () => {
+      live = false;
+    };
+  }, [rows.length]);
+  const fromVault = (shelf ?? []).filter((p) => !rows.some((r) => r.folder === p.folder));
   const arrow = (up: boolean) => (
     <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
       <path
@@ -845,6 +858,30 @@ function LibraryPathEditor({
           </div>
         ))
       )}
+      {fromVault.length > 0 && (
+        <div className="s-libpaths__vault">
+          <span className="s-libpaths__caption">{t("libraryVaultPaths")}</span>
+          {fromVault.map((p) => (
+            <div key={p.id} className="s-libpaths__vaultrow">
+              <span className="s-libpaths__vaulttitle" dir="auto">
+                {p.title}
+              </span>
+              <span className="s-libpaths__url" dir="ltr">
+                {p.folder}
+              </span>
+              <span className="s-libpaths__count">{t("libraryFromFolderNote")}</span>
+              <button
+                type="button"
+                className="s-pfolders__unlink"
+                disabled={disabled || rows.length >= LIBRARY_PATHS_MAX}
+                onClick={() => onChange([...rows, { id: libraryPathId(), slug: p.slug, folder: p.folder, kind: p.kind, title: p.title }])}
+              >
+                {t("libraryCustomise")}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="s-libpaths__actions">
         <button
           type="button"
@@ -855,6 +892,7 @@ function LibraryPathEditor({
           {t("libraryPathAdd")}
         </button>
         <span className="s-libpaths__hint">{t("libraryPathsTreeHint")}</span>
+        <span className="s-libpaths__hint">{t("folderNoteHint")}</span>
       </div>
     </div>
   );

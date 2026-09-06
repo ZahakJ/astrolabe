@@ -255,3 +255,25 @@
 .s-pfolders__unlink:hover:not(:disabled) {
   color: var(--danger);
 }
+
+/* Paths the vault declared through folder notes: listed under the rows. */
+.s-libpaths__vault {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: calc(var(--radius) + 2px);
+}
+
+.s-libpaths__vaultrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.857rem;
+}
+
+.s-libpaths__vaulttitle {
+  font-weight: 600;
+}

@@ -30,6 +30,13 @@ lesson; a path with no lesson a visitor may read is not sent to that visitor at 
 
 ## Declaring a path
 
+**From the vault.** Put a note named like the folder (or `index.md`) inside it and write, in its
+frontmatter, `library: book` (or `course`, `series`). The folder is on the shelf, with `title:`,
+`description:`, `cover:` and `source:` from the same note when they are there. Nothing is typed in
+Settings; the settings list shows these paths under its rows, and *Customise here* turns one into a
+row when you want to override something. A row that names the same folder wins field by field and
+takes the rest from the note.
+
 **From the tree.** Right-click the folder in the sidebar and choose **Library…**. The popover guesses
 the kind from what is inside (`L1..L14` is a course, `Chapter 39..41` a book, a folder under
 *Talks* a series), takes the folder's name as the title, and **Put on the shelf** saves it. The first
