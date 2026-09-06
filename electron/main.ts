@@ -28,7 +28,7 @@ import {
   session,
   shell,
 } from "electron";
-import { cpSync, existsSync, readFileSync, renameSync, rmSync } from "node:fs";
+import { cpSync, existsSync, readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { TO_MAIN, TO_RENDERER, type Command, type Hello } from "./ipc.ts";
@@ -111,31 +111,25 @@ for (const scheme of [PROTOCOL, LEGACY_PROTOCOL]) {
 {
   const appData = app.getPath("appData");
   const fresh = path.join(appData, "astrolabe");
-  if (!existsSync(fresh)) {
-    const old = ["vellum", "Vellum"].map((n) => path.join(appData, n)).find((p) => existsSync(p));
-    if (old) {
-      try {
-        // A move: the directory travels to its new name and nothing is left
-        // behind under the old one (the owner asked for a machine with no
-        // trace of it). A rename across devices is the one case that fails,
-        // and then a copy stands in.
-        try {
-          renameSync(old, fresh);
-        } catch {
-          // The copy is all-or-nothing too: a half-copied directory would
-          // satisfy the `existsSync(fresh)` above on every later launch and
-          // strand the rest of the memory under the old name.
-          try {
-            cpSync(old, fresh, { recursive: true });
-            rmSync(old, { recursive: true, force: true });
-          } catch (err) {
-            rmSync(fresh, { recursive: true, force: true });
-            throw err;
-          }
-        }
-      } catch (err) {
-        console.error("astrolabe: could not carry the old config directory over", err);
-      }
+  const old = ["vellum", "Vellum"].map((n) => path.join(appData, n)).find((p) => existsSync(p));
+  // THE NEW DIRECTORY MAY ALREADY EXIST AND STILL BE NOBODY'S MEMORY. Electron
+  // creates the product's userData folder on its own, before this file runs
+  // — and the 3.1.0–3.3.4 builds crashed at load, so on every machine that
+  // tried one, `astrolabe` stood there empty beside a full `vellum`, and the
+  // first working build "found" the new directory and skipped the move. A
+  // friend lost every setting that way, and then made a few new ones in the
+  // empty app before the fix reached them. So the rule is simply: while the
+  // old directory still exists, COPY it in — entry by entry, never over a
+  // file the new directory already holds. Whatever the new app wrote stays;
+  // whatever it never had comes back. The old directory is left where it is
+  // for now (the owner: "copy by default, delete on a future update"): a
+  // later release, once every machine has crossed, removes it.
+  // TODO(3.5): rmSync(old, { recursive: true, force: true }) after the copy.
+  if (old && old.toLowerCase() !== fresh.toLowerCase()) {
+    try {
+      cpSync(old, fresh, { recursive: true, force: false, errorOnExist: false });
+    } catch (err) {
+      console.error("astrolabe: could not carry the old config directory over", err);
     }
   }
   app.setPath("userData", fresh);
