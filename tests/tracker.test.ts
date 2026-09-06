@@ -338,3 +338,45 @@ describe("trackers() — who may see which shelf", () => {
     assert.ok(!trackersRaw(false, null).some((meta) => meta.path === "No trackers.md"));
   });
 });
+
+describe("the Media page's edits", () => {
+  it("rewrites a field in place, keeping the fence's own spelling and bytes", async () => {
+    const { setTrackerFields } = await import("../shared/tracker.ts");
+    const body = "Title: Elden Ring\r\nprogress:   62/130\r\nunit: hours\r\nnotes: |\r\n  Margit took 14 tries.\r\n  Twice.\r\nrating: 9/10\r\n";
+    const next = setTrackerFields(body, { progress: "70/130", notes: "Radahn next." });
+    assert.equal(next, "Title: Elden Ring\r\nprogress:   70/130\r\nunit: hours\r\nnotes: |\r\n  Radahn next.\r\nrating: 9/10\r\n");
+    assert.equal(setTrackerFields(body, {}), body);
+  });
+  it("adds missing fields under the title in a fixed order and removes on null", async () => {
+    const { setTrackerFields, parseTracker } = await import("../shared/tracker.ts");
+    const next = setTrackerFields("title: Dune\nrating: 4/5\n", { status: "active", kind: "book", progress: "10/600", rating: null });
+    assert.equal(next, "title: Dune\nkind: book\nprogress: 10/600\nstatus: active\n");
+    const t = parseTracker(next);
+    assert.equal(t?.kindKey, "book");
+    assert.equal(t?.total, 600);
+  });
+  it("finds every tracker fence's body and edits one by index", async () => {
+    const { trackerFenceSpans, editTrackerFence } = await import("../shared/tracker.ts");
+    const md = "# Shelf\n\n```tracker\ntitle: A\nprogress: 1/2\n```\n\ntext\n\n```js\nx\n```\n\n```tracker\ntitle: B\n```\n";
+    const spans = trackerFenceSpans(md);
+    assert.deepEqual(spans.map((s) => [s.index, s.body]), [[0, "title: A\nprogress: 1/2\n"], [1, "title: B\n"]]);
+    const edited = editTrackerFence(md, 1, (b) => b + "status: done\n");
+    assert.ok(edited.includes("title: B\nstatus: done\n```"));
+    assert.equal(editTrackerFence(md, 5, (b) => b + "x"), md);
+  });
+  it("reads an open-ended count and composes a media note", async () => {
+    const { parseTracker, scanTrackers } = await import("../shared/tracker.ts");
+    const open = parseTracker("title: Hades\nprogress: 12/?\nunit: hours\n");
+    assert.deepEqual([open?.done, open?.total, open?.percent], [12, null, null]);
+    const { mediaNotePath, mediaNoteContent, mediaProgress } = await import("../shared/media.ts");
+    assert.equal(mediaNotePath("show", "Severance: Season 2?"), "Media/Shows/Severance Season 2.md");
+    assert.equal(mediaNotePath("podcast", "X"), "Media/Podcast/X.md");
+    assert.equal(mediaProgress(62.5, 130), "62.5/130");
+    assert.equal(mediaProgress(12, null), "12/?");
+    const note = mediaNoteContent({ title: "Elden Ring", kind: "game", progress: "62/130", unit: "hours", status: "active", notes: "Margit." });
+    const [t] = scanTrackers(note);
+    assert.equal(t.title, "Elden Ring");
+    assert.equal(Math.round(t.percent ?? 0), 48);
+    assert.equal(t.notes, "Margit.");
+  });
+});

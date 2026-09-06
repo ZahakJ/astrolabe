@@ -6,7 +6,7 @@
 // closes the focused tab. Activation follows the arrows, the way browser tab
 // bars behave: a reader arrowing along the bar is reading, not hunting.
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DragEvent as ReactDragEvent, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { claimFocus } from "../a11y.ts";
 import { countPhrase, t, tf } from "../i18n.ts";
@@ -82,7 +82,39 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
   };
   useStore((s) => s.language); // re-render the chrome strings on language change
   const barRef = useRef<HTMLDivElement | null>(null);
+  /** The scroller INSIDE the strip (see the render): the tabs overflow in
+   *  here, not in the strip itself, so the strip's end padding — the room the
+   *  top-right tool cluster needs — is honoured whether or not the row is
+   *  scrolled. A scroll container's own end padding only exists at the end
+   *  of its scroll, which is how twenty-five tabs used to run under the
+   *  cluster the moment the strip was scrolled to its start. */
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const [menu, setMenu] = useState<(MenuAnchor & { path: string }) | null>(null);
+  // The active tab is always in view. Opening a note from the tree, a link
+  // or the palette can select a tab that the scroller has out of sight to
+  // the trailing end; nothing else scrolls a strip on the reader's behalf.
+  useEffect(() => {
+    const reveal = (): void => {
+      const active = barRef.current?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+      // The whole row — the tab AND its ×, which is a sibling of the tab
+      // button, not a child; scrolling the button alone left the close
+      // button of the last tab under the clipped edge.
+      (active?.closest<HTMLElement>(".s-tab") ?? active)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    };
+    reveal();
+    // …and again when the scroller's own width changes (a pane opened, the
+    // window narrowed, the cluster grew): the scroll position survives a
+    // resize, the view it framed does not.
+    const scroller = scrollRef.current;
+    if (!scroller || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(reveal);
+    ro.observe(scroller);
+    return () => ro.disconnect();
+  }, [openPath, openTabs.length]);
+  /** Is the pointer over the strip's own empty space (the room after the
+   *  last tab), in either of the two boxes that room can belong to? */
+  const overStripSpace = (e: ReactDragEvent): boolean =>
+    e.target === e.currentTarget || e.target === scrollRef.current;
   /** Insertion point while a dragged tab hovers this strip, in PRE-REMOVAL
    *  tab indices; null when nothing hovers. Drives the drop caret only — the
    *  actual move happens on drop. */
@@ -224,10 +256,10 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
         if (tabDrag() === null) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
-        if (e.target === e.currentTarget) setDropAt(openTabs.length);
+        if (overStripSpace(e)) setDropAt(openTabs.length);
       }}
       onDragLeave={(e) => {
-        if (e.target === e.currentTarget) setDropAt(null);
+        if (overStripSpace(e)) setDropAt(null);
       }}
       onDrop={(e) => {
         if (tabDrag() === null) return;
@@ -235,6 +267,7 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
         landAt(openTabs.length);
       }}
     >
+      <div className="s-tabs__scroll" ref={scrollRef}>
       {openTabs.map((path) => {
         const isActive = path === openPath;
         const isDirty = Boolean(dirty[path]);
@@ -355,6 +388,7 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
           </div>
         );
       })}
+      </div>
       {menu && (
         <ContextMenu
           at={menu}

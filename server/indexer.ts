@@ -1961,6 +1961,25 @@ function collectAttachmentTargets(record: NoteRecord, add: (att: string) => void
 /** The attachment paths a note's ```tracker fences name as covers, resolved.
  *  One implementation, two callers (the allowlist and the reference map), for
  *  the reason collectAttachmentTargets() itself exists. */
+/** A tracker's `cover:` as something the session may fetch, or null.
+ *
+ *  The same path-then-basename ladder `trackerCovers()` climbs, applied per
+ *  session: a FULL PATH (what the Media page's picker and its upload write,
+ *  `attachments/cover.jpg`) is taken as it is when the file exists — and for
+ *  a visitor only when the allowlist carries it — and anything else goes
+ *  through `resolveEmbed()` as a wikilink name would, then by its basename.
+ *  Before this the shelf resolved the raw text only, so a cover the editor's
+ *  card drew (its resolver tries the literal path) was a glyph on the board.
+ *  An `https://` cover passes through untouched: it is not ours to scope. */
+function coverPath(cover: string | null, visitor: boolean, lang: FilterLang): string | null {
+  if (cover === null) return null;
+  if (/^https:\/\//i.test(cover)) return cover;
+  if (attachmentPaths.has(cover)) {
+    return visitor && !allowedAttachments().has(cover) ? null : cover;
+  }
+  return resolveEmbed(cover, visitor, lang) ?? resolveEmbed(path.posix.basename(cover), visitor, lang);
+}
+
 function trackerCovers(record: NoteRecord): string[] {
   const out: string[] = [];
   for (const tracker of record.trackers) {
@@ -2625,9 +2644,15 @@ export function trackers(visitor: boolean, lang: FilterLang): TrackerMeta[] {
     if (!record || record.trackers.length === 0) continue;
     if (visitor && languageHidden(record, lang)) continue;
     if (isTemplate(notePath)) continue;
+    let index = 0;
     for (const tracker of record.trackers) {
       out.push({
         path: record.path,
+        index: index++,
+        started: tracker.started,
+        finished: tracker.finished,
+        season: tracker.season,
+        notes: tracker.notes,
         title: tracker.title,
         noteTitle: record.title,
         kind: tracker.kind,
@@ -2638,7 +2663,7 @@ export function trackers(visitor: boolean, lang: FilterLang): TrackerMeta[] {
         unit: tracker.unit,
         status: tracker.status,
         rating: tracker.rating,
-        cover: tracker.cover === null ? null : resolveEmbed(tracker.cover, visitor, lang),
+        cover: coverPath(tracker.cover, visitor, lang),
         updatedMs: record.mtimeMs,
       });
     }

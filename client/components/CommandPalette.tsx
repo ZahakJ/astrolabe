@@ -279,6 +279,12 @@ const COMMANDS: Command[] = [
     available: () => true,
   },
   {
+    id: "open-media",
+    label: () => t("cmdOpenMedia"),
+    hint: () => t("cmdViewHint"),
+    available: ({ admin }) => admin,
+  },
+  {
     id: "toggle-reading",
     label: () => t("cmdToggleReading"),
     hint: () => "Ctrl/Cmd E",
@@ -986,9 +992,12 @@ export default function CommandPalette() {
         case "toggle-graph":
           store.setView(store.view === "graph" ? "editor" : "graph");
           break;
+        case "open-media":
+          store.setView(store.view === "media" ? "editor" : "media");
+          break;
         case "toggle-reading":
           store.toggleReading();
-          if (store.view === "graph") store.setView("editor");
+          if (store.view !== "editor") store.setView("editor");
           break;
         case "toggle-vim":
           store.toggleVim();
