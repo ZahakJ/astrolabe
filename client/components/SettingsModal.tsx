@@ -31,7 +31,7 @@ import {
 } from "../../shared/attachments.ts";
 import type { AboutInfo, CustomFontInfo, FontCatalogEntry, VisibilityImpact } from "../../shared/types.ts";
 import type { PublicFolderRef, SettingsPatch, SettingsResponse } from "../../shared/types.ts";
-import type { FolderIcon } from "../../shared/folderIcons.ts";
+import type { FolderMark } from "../../shared/folderIcons.ts";
 import { folderIconLabel } from "../folderIconLabels.ts";
 import FolderGlyph from "./FolderGlyph.tsx";
 import type { IconPickState } from "./FolderIconPicker.tsx";
@@ -1229,7 +1229,7 @@ function PublicFolderEditor({
         <Suspense fallback={null}>
           <FolderIconPicker
             state={iconPick}
-            onPick={(icon: FolderIcon | null) => {
+            onPick={(icon: FolderMark | null) => {
               // A public folder always wears a mark, so "No icon" only closes.
               if (icon !== null) {
                 const i = rows.findIndex((r) => r.id === iconPick.path);

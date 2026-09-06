@@ -221,7 +221,10 @@ Right-click a folder and choose **Folder icon**: a search field (it has focus, s
 press Enter for the telescope) over three hundred glyphs on nine shelves, from writing and science
 to places, nature, food and money. Both languages are searched whatever the chrome speaks, and so
 are each glyph's keywords ("gym" finds the dumbbell). The public site's custom folders pick from
-the same set through their glyph button in Settings.
+the same set through their glyph button in Settings. **Your own image** at the foot of the picker takes a
+vault image instead, typed, picked from the vault, or uploaded on the spot (SVG, PNG, WebP, GIF or
+JPEG, up to 512 KB; a small square reads best). It is kept in the vault like any attachment, and a
+collection or a folder note can wear one too (`icon: attachments/icons/rocket.svg`).
 
 ## Notes to self
 

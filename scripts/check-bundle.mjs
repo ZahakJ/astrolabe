@@ -563,7 +563,9 @@ const AUDIENCES = [
   // search keys are a lazy chunk, but the names must validate synchronously),
   // the dictionary took the picker's shelves, the graph's gatherings and the
   // library popover, and shared/library.ts learned to guess a folder's kind.
-  { name: "entry (everyone)", keys: entry, budget: 592 * 1024 },
+    // …and again for IMAGE MARKS (592.4 kB actual → 600): the mark validator and
+  // the picker's image row.
+{ name: "entry (everyone)", keys: entry, budget: 600 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this

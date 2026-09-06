@@ -17,7 +17,7 @@
 // The SHAPES live in shared/types.ts beside every other wire type; only the
 // rules live here.
 
-import { isFolderIcon, type FolderIcon } from "./folderIcons.ts";
+import { isFolderMark, type FolderMark } from "./folderIcons.ts";
 import type { PublicFolderRef } from "./types.ts";
 
 /** How many folders a site may declare. Twelve, and the number is a design
@@ -75,7 +75,7 @@ export function folderRowError(entry: unknown): FolderProblem | null {
   if (folderSlug(row.slug) === null) return "slug";
   const title = typeof row.title === "string" ? row.title.trim() : "";
   if (title === "" || title.length > FOLDER_TITLE_MAX) return "title";
-  if (!isFolderIcon(row.icon)) return "icon";
+  if (!isFolderMark(row.icon)) return "icon";
   const desc = row.description;
   if (desc !== undefined && desc !== null && desc !== "") {
     if (typeof desc !== "string" || desc.trim().length > FOLDER_DESC_MAX) return "description";
@@ -93,7 +93,7 @@ export function cleanPublicFolder(entry: unknown, fallbackId: () => string): Pub
     id: typeof row.id === "string" && ID_RE.test(row.id) ? row.id : fallbackId(),
     slug: folderSlug(row.slug) as string,
     title: (row.title as string).trim(),
-    icon: row.icon as FolderIcon,
+    icon: row.icon as FolderMark,
   };
   const desc = typeof row.description === "string" ? row.description.trim() : "";
   if (desc !== "") out.description = desc;

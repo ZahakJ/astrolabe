@@ -15,7 +15,10 @@ import {
   FOLDER_ICONS,
   FOLDER_ICONS_MAX,
   folderIconKey,
+  folderImagePaths,
   isFolderIcon,
+  isFolderImage,
+  isFolderMark,
 } from "../shared/folderIcons.ts";
 import { FOLDER_ICON_ENTRIES, FOLDER_ICON_GROUPS } from "../shared/folderIconCatalog.ts";
 import { FOLDER_ICON_HAND_PATHS } from "../shared/folderIconsHand.ts";
@@ -241,5 +244,23 @@ describe("cleanFolderIcons", () => {
     assert.equal(({} as Record<string, unknown>).polluted, undefined);
     assert.equal(Object.getPrototypeOf({}), Object.prototype);
     assert.equal(cleaned.Reading, "leaf");
+  });
+});
+
+describe("an image as a mark", () => {
+  it("accepts a vault image path and refuses the rest", () => {
+    assert.equal(isFolderImage("attachments/icons/rocket.svg"), true);
+    assert.equal(isFolderImage("Icons/Mark.PNG"), true);
+    assert.equal(isFolderImage("/etc/x.svg"), false);
+    assert.equal(isFolderImage("a/../b.png"), false);
+    assert.equal(isFolderImage("notes/x.md"), false);
+    assert.equal(isFolderImage("book"), false);
+    assert.equal(isFolderMark("book"), true);
+    assert.equal(isFolderMark("attachments/a.webp"), true);
+  });
+  it("keeps image marks through the read-side cleaner and lists them for the file gate", () => {
+    const map = cleanFolderIcons({ games: "gamepad", art: "attachments/icons/palette.svg", bad: "nope.txt" });
+    assert.deepEqual(map, { games: "gamepad", art: "attachments/icons/palette.svg" });
+    assert.deepEqual(folderImagePaths(map), ["attachments/icons/palette.svg"]);
   });
 });

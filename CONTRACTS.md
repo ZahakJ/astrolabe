@@ -7018,6 +7018,17 @@ than as JSX.
   by `anchorPopover()` — the one placement rule the tree menu, the picker and the Library popover
   share. Labels come from the catalog through `client/folderIconLabels.ts` (`getLang()`), not the
   dictionary: three hundred names in two languages are data, not chrome copy.
+- **A MARK MAY BE AN IMAGE (2.14).** `FolderMark = FolderIcon | FolderImage`, where `FolderImage`
+  is a vault-relative path with an image extension (svg/png/webp/gif/jpg, ≤400 chars, no leading
+  slash, no `..`) — `isFolderImage()`, `isFolderMark()`. Every validator that took the glyph enum
+  takes the mark: `cleanFolderIcons()`, the PATCH (`settings.folderIcons` values), `cleanPublicFolder`
+  (`PublicFolderRef.icon`), `folderMetaOf` (`icon:` in a folder note or tag page). `FolderGlyph`
+  draws an image mark as `<img src="/api/file?path=…">` (aria-hidden, hidden on error) and imports
+  nothing new. `isAllowedAttachment()` answers a visitor for the images among `settings.folderIcons`
+  (`folderImagePaths`) and among `collectionRows()` icons, live, on the covers' terms. The picker's
+  "Your own image" row is a `PathInput` over the vault's images plus an upload
+  (`uploadAttachment`, 512 KB cap; the attachments setting decides where it lands). The tracker keeps
+  drawing from the hand-drawn table and is untouched by image marks.
 - **`isFolderIcon()`, `folderIconKey()`** (a stored key normalized to the path `TreeNode.path`
   uses), **`cleanFolderIcons()`** (the read-side cleaner), **`FOLDER_ICONS_MAX`** = 200, as before.
 - **`settings.folderIcons` is `folder path → icon`, replaced WHOLE.** The `tagLabels` contract, for

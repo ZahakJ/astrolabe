@@ -2,7 +2,7 @@
 
 import type { AttachmentMode } from "./attachments.ts";
 import type { BookHighlight, BookState } from "./bookAnchor.ts";
-import type { FolderIcon } from "./folderIcons.ts";
+import type { FolderIcon, FolderMark } from "./folderIcons.ts";
 import type { TrackerRating, TrackerStatus } from "./tracker.ts";
 
 export interface TreeNode {
@@ -238,8 +238,8 @@ export interface PublicFolderRef {
   slug: string;
   /** What the folder is CALLED — the card, the page heading, the nav chip. */
   title: string;
-  /** One glyph from the closed set in shared/folderIcons.ts. */
-  icon: FolderIcon;
+  /** A glyph from the closed set in shared/folderIcons.ts, or a vault image. */
+  icon: FolderMark;
   /** One line under the title on the card and the folder page. ≤ 200. */
   description?: string;
   /** A VAULT FOLDER whose published notes all belong to this collection, on
@@ -404,7 +404,7 @@ export interface PublicFolderCard {
   id: string;
   slug: string;
   title: string;
-  icon: FolderIcon;
+  icon: FolderMark;
   description?: string;
   /** The tag this collection is, when it is one — the nav drops that tag's
    *  own topic chip so the collection is not listed twice. */
@@ -549,7 +549,7 @@ export interface MeData {
    *  and a visitor's tree has no folders in it — publishedTree() gives them a
    *  flat published-note list, which is precisely the promise that stops
    *  vault paths reaching them. Absent when nothing is marked. */
-  folderIcons?: Record<string, FolderIcon>;
+  folderIcons?: Record<string, FolderMark>;
   /** Where new attachments land, as the "Move to…" picker needs to know it
    *  (v1.8 audit, F11: the picker offered `attachments/` as a destination for
    *  NOTES, which is the one folder in the vault a note has no business in).
@@ -838,7 +838,7 @@ export interface SettingsData {
    *  entry wears nothing, which is the default and the majority. Lives here
    *  rather than in a sidecar file for the reason CONTRACTS.md:2918-2938
    *  gives: a handful of short strings, rewritten whole, on no hot path. */
-  folderIcons?: Record<string, FolderIcon>;
+  folderIcons?: Record<string, FolderMark>;
 }
 
 export interface AttachmentSettings {
@@ -978,7 +978,7 @@ export interface EffectiveSettings {
   tagsFolderDetected: boolean;
   tagLabels: Record<string, Record<string, string>>;
   /** The stored folder→glyph map, `{}` when nothing is marked. */
-  folderIcons: Record<string, FolderIcon>;
+  folderIcons: Record<string, FolderMark>;
 }
 
 /** PATCH /api/settings body: only the named keys change; null (or "") clears
@@ -1068,7 +1068,7 @@ export interface SettingsPatch {
   /** Folder glyphs, replaced WHOLE like `tagLabels` above and for the same
    *  reason: the picker writes the map the client is holding, so a merging
    *  PATCH would make "None" impossible — the cleared row would come back. */
-  folderIcons?: Record<string, FolderIcon> | null;
+  folderIcons?: Record<string, FolderMark> | null;
 }
 
 // GET /api/tag-labels → TagLabelsResponse. The DISPLAY names of the vault's

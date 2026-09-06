@@ -86,7 +86,7 @@ import {
   type TreeOrderPrefs,
   type TreeSort,
 } from "../treeOrder.ts";
-import type { FolderIcon } from "../../shared/folderIcons.ts";
+import type { FolderMark } from "../../shared/folderIcons.ts";
 import { toast } from "../toast.ts";
 import "../styles/move.css";
 import { isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
@@ -920,9 +920,9 @@ export default function Sidebar() {
   // read. The store is updated from the server's own answer rather than
   // optimistically: this is one small PATCH on an explicit click, and a row
   // that shows a glyph the disk does not have is the worse failure.
-  const chooseFolderIcon = useCallback((path: string, icon: FolderIcon | null) => {
+  const chooseFolderIcon = useCallback((path: string, icon: FolderMark | null) => {
     setIconPick(null);
-    const next: Record<string, FolderIcon> = { ...useStore.getState().folderIcons };
+    const next: Record<string, FolderMark> = { ...useStore.getState().folderIcons };
     if (icon === null) delete next[path];
     else next[path] = icon;
     void (async () => {

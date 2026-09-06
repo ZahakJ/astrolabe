@@ -40,6 +40,37 @@ export type FolderIcon = (typeof FOLDER_ICON_NAMES)[number];
 
 export const FOLDER_ICONS: readonly FolderIcon[] = FOLDER_ICON_NAMES;
 
+/** A folder's mark may also be AN IMAGE OF THE OWNER'S OWN — a vault-relative
+ *  attachment (`attachments/icons/rocket.svg`), uploaded through the picker
+ *  or pointed at. The union stays closed in the sense that matters: a glyph
+ *  name is one of the set, an image is a path with an image extension and no
+ *  `..`, and anything else is a 400 at the door. The renderer draws the
+ *  glyph from its paths and the image from /api/file, which serves it to a
+ *  visitor on the covers' terms (server/indexer.ts isAllowedAttachment). */
+export type FolderImage = `${string}.${"svg" | "png" | "webp" | "gif" | "jpg" | "jpeg"}`;
+export type FolderMark = FolderIcon | FolderImage;
+
+const IMAGE_RE = /\.(?:svg|png|webp|gif|jpe?g)$/i;
+
+export function isFolderImage(value: unknown): value is FolderImage {
+  if (typeof value !== "string" || value.length > 400 || !IMAGE_RE.test(value)) return false;
+  if (value.startsWith("/") || value.includes("\\") || /^[A-Za-z]:/.test(value)) return false;
+  return !value.split("/").some((part) => part === "" || part === "." || part === "..");
+}
+
+/** A glyph name or an image path — what a folder, a collection, a folder
+ *  note or a tag page may wear. */
+export function isFolderMark(value: unknown): value is FolderMark {
+  return isFolderIcon(value) || isFolderImage(value);
+}
+
+/** The image marks among a folder-icon map's values, for the file gate. */
+export function folderImagePaths(map: Readonly<Record<string, FolderMark>> | undefined): string[] {
+  const out: string[] = [];
+  for (const mark of Object.values(map ?? {})) if (isFolderImage(mark) && !out.includes(mark)) out.push(mark);
+  return out;
+}
+
 /** Is this a glyph this build can actually draw? The one gate every PATCH,
  *  every frontmatter row and every hydrated store value goes through — a
  *  value that fails it must never reach a renderer, because an unknown icon
@@ -72,14 +103,14 @@ export const FOLDER_ICONS_MAX = 200;
  *  exist must not cost the other nineteen folders their marks, and a read
  *  that throws takes the instance down. The PATCH handler is where a bad row
  *  is a 400 — a write is a person making a claim, a read is a file. */
-export function cleanFolderIcons(value: unknown): Record<string, FolderIcon> {
-  const out: Record<string, FolderIcon> = Object.create(null) as Record<string, FolderIcon>;
+export function cleanFolderIcons(value: unknown): Record<string, FolderMark> {
+  const out: Record<string, FolderMark> = Object.create(null) as Record<string, FolderMark>;
   if (typeof value !== "object" || value === null || Array.isArray(value)) return { ...out };
   let kept = 0;
   for (const [rawKey, icon] of Object.entries(value as Record<string, unknown>)) {
     if (kept >= FOLDER_ICONS_MAX) break;
     const key = folderIconKey(rawKey);
-    if (key === null || !isFolderIcon(icon)) continue;
+    if (key === null || !isFolderMark(icon)) continue;
     out[key] = icon;
     kept++;
   }

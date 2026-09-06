@@ -9,13 +9,14 @@
 // catalog holds both languages side by side so neither can go missing.
 
 import { FOLDER_ICON_BY_NAME, FOLDER_ICON_GROUPS, type FolderIconGroupId } from "../shared/folderIconCatalog.ts";
-import type { FolderIcon } from "../shared/folderIcons.ts";
+import { isFolderImage, type FolderMark } from "../shared/folderIcons.ts";
 import { getLang, t, type I18nKey } from "./i18n.ts";
 
 /** The localized name of one glyph — a button's accessible name, a select
  *  row's text. Read at call time, never cached: the chrome language can
  *  change under a mounted component. */
-export function folderIconLabel(icon: FolderIcon): string {
+export function folderIconLabel(icon: FolderMark): string {
+  if (isFolderImage(icon)) return icon.slice(icon.lastIndexOf("/") + 1);
   const entry = FOLDER_ICON_BY_NAME.get(icon);
   if (!entry) return icon;
   return getLang() === "ar" ? entry.ar : entry.en;

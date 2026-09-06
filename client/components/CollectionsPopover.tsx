@@ -20,7 +20,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FOLDER_DESC_MAX, FOLDER_TITLE_MAX, collectionsForPath, suggestSlug } from "../../shared/publicFolders.ts";
 import { libraryTitleOf } from "../../shared/library.ts";
-import type { FolderIcon } from "../../shared/folderIcons.ts";
+import type { FolderMark } from "../../shared/folderIcons.ts";
 import type { PublicFolderRef } from "../../shared/types.ts";
 import { createNote, getCollections, getNote, getSettings, setFrontmatter } from "../api.ts";
 import { foldersOf, tagsOf } from "../collections/foldersOf.ts";
@@ -229,7 +229,7 @@ export default function CollectionsPopover({ state, onClose }: { state: Collecti
       // The page may already exist (a tag with labels, say): creating it is
       // then a no-op and the keys below are added to what is there.
       await createNote(pagePath).catch(() => undefined);
-      const icon: FolderIcon = treeIcon ?? "tag";
+      const icon: FolderMark = treeIcon ?? "tag";
       await setFrontmatter(pagePath, "collection", { kind: "bool", bool: true });
       await setFrontmatter(pagePath, "folder", { kind: "text", text: state.path });
       await setFrontmatter(pagePath, "icon", { kind: "text", text: icon });

@@ -19,7 +19,7 @@
 // is `aria-hidden` and carries no fact of its own (map-vault §5).
 
 import { useSyncExternalStore } from "react";
-import { isFolderIcon } from "../../shared/folderIcons.ts";
+import { isFolderIcon, isFolderImage } from "../../shared/folderIcons.ts";
 
 type PathTable = Record<string, readonly string[]>;
 
@@ -62,6 +62,23 @@ export function useFolderIconPaths(): PathTable | null {
 
 export default function FolderGlyph({ icon, size = 14 }: { icon: string; size?: number }) {
   const paths = useFolderIconPaths();
+  // An image of the owner's own: served by /api/file, which answers a
+  // visitor for it on the covers' terms. Still decoration, still aria-hidden;
+  // a broken file draws nothing rather than the browser's broken-image box.
+  if (isFolderImage(icon)) {
+    return (
+      <img
+        className="s-folder-mark s-folder-mark--img"
+        src={`/api/file?path=${encodeURIComponent(icon)}`}
+        width={size}
+        height={size}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        onError={(e) => ((e.target as HTMLImageElement).hidden = true)}
+      />
+    );
+  }
   // An unknown icon draws NOTHING, never a placeholder box — the rule
   // PanelGlyphs.tsx:92-100 set for the design rail. A settings.json edited by
   // hand, or a build older than the glyph it is being asked for, leaves the

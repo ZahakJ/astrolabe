@@ -3,6 +3,7 @@
 
 import { isLibraryLesson, libraryCoverPaths, libraryLessonFolders, libraryTitleOf } from "../shared/library.ts";
 import { effectiveFolders, folderSlug, suggestSlug } from "../shared/publicFolders.ts";
+import { folderImagePaths } from "../shared/folderIcons.ts";
 import { folderMetaOf, folderNoteCandidates, folderOfNote, type FolderMeta } from "../shared/folderNote.ts";
 import { createHash } from "node:crypto";
 import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
@@ -2054,8 +2055,12 @@ export function isAllowedAttachment(relPath: string): boolean {
   // from settings rather than baked into the allowlist above: that cache is
   // dropped only by index mutations, and a cover set in the panel has moved
   // no file — it would have stayed a 404 until the next vault event.
-  const lib = getSettings().library;
-  return attachmentPaths.has(relPath) && libraryCoverPaths({ enabled: lib?.enabled, paths: libraryRefs() }).includes(relPath);
+  if (!attachmentPaths.has(relPath)) return false;
+  const settings = getSettings();
+  if (libraryCoverPaths({ enabled: settings.library?.enabled, paths: libraryRefs() }).includes(relPath)) return true;
+  // A folder's or a collection's image mark, on the same live terms.
+  if (folderImagePaths(settings.folderIcons).includes(relPath)) return true;
+  return collectionRows().some((row) => row.icon === relPath);
 }
 
 /** Published notes as { path, title }, unsorted. */
