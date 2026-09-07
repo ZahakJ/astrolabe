@@ -13,8 +13,7 @@ import {
 } from "react";
 import { lazySurface } from "./lazySurface.tsx";
 import { reopenDragProps } from "./components/PaneGrip.tsx";
-import BrandMark from "./components/BrandMark.tsx";
-import { useBannerSrc } from "./components/BannerImg.tsx";
+import SiteMark from "./components/SiteMark.tsx";
 import type { PropertyValue, VaultEvent } from "../shared/types.ts";
 import { subscribeEvents } from "./api.ts";
 import { coalesce } from "./coalesce.ts";
@@ -138,15 +137,12 @@ const ShortcutsHelp = lazySurface(() => import("./components/ShortcutsHelp.tsx")
  *  (the crown, the seal — whatever the sidebar wears), else the brand mark.
  *  A friend saw the app's star over their vault and asked why. */
 function EmptyGlyph() {
-  const logo = useStore((s) => s.logo);
-  const desktopIcon = useStore((s) => s.desktopBrandIcon);
-  // The site's logo first, then the desktop app's own icon (the reader's,
-  // when they set one — electron/brand.ts), then the product's mark. Every
-  // state of this page — locked, open, empty — draws through here.
-  const src = useBannerSrc(logo).src ?? desktopIcon;
+  // The site's logo, then the desktop app's own icon, then the product's mark
+  // (client/components/SiteMark.tsx). Every state of this page — locked,
+  // open, empty — draws through here.
   return (
     <div className="s-empty__glyph" aria-hidden="true">
-      {src ? <img className="s-empty__logo" src={src} alt="" /> : <BrandMark size={44} />}
+      <SiteMark size={44} className="s-empty__logo" />
     </div>
   );
 }
@@ -1212,7 +1208,7 @@ export default function App() {
                 className="s-empty__tour"
                 onClick={openTour}
               >
-                <span className="s-empty__tourstar" aria-hidden="true">✦</span>
+                <span className="s-empty__tourstar" aria-hidden="true"><SiteMark size={14} /></span>
                 {t("tourDoor")}
                 {nudgeTour && <span className="s-empty__tourdot" aria-hidden="true" />}
               </button>

@@ -13,6 +13,7 @@
 // designed site.
 
 import { useEffect, useRef, useState } from "react";
+import SiteMark from "../components/SiteMark.tsx";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import { getNote, isNotPublishedError } from "../api.ts";
 import { t } from "../i18n.ts";
@@ -87,7 +88,7 @@ export default function PageView({ path }: { path: string }) {
     return (
       <div className="s-blog-page s-blog-locked">
         <div className="s-blog-locked__glyph" aria-hidden="true">
-          ✦
+          <SiteMark size={40} />
         </div>
         <p className="s-blog-locked__title">{t("blogNoPage")}</p>
         <NavLink url="/" className="s-blog-locked__home">

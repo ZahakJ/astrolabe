@@ -13,6 +13,7 @@
 // PostMeta.folders, so this page costs no request of its own.
 
 import { useMemo } from "react";
+import SiteMark from "../components/SiteMark.tsx";
 import type { PostMeta } from "../../shared/types.ts";
 import FolderGlyph from "../components/FolderGlyph.tsx";
 import { countPhrase, t } from "../i18n.ts";
@@ -64,7 +65,7 @@ export default function BlogFolder({
     return (
       <div className="s-blog-page s-blog-locked">
         <div className="s-blog-locked__glyph" aria-hidden="true">
-          ✦
+          <SiteMark size={40} />
         </div>
         <p className="s-blog-locked__title">{t("blogNoPage")}</p>
         <NavLink url="/" className="s-blog-locked__home">

@@ -18,6 +18,7 @@
 // purpose: a boundary that itself throws is worse than no boundary.
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import BrandMark from "./components/BrandMark.tsx";
 import { flushAllBuffers } from "./editor/bufferBridge.ts";
 import { t } from "./i18n.ts";
 
@@ -52,10 +53,10 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, St
     return (
       <div className="s-crash" role="alert">
         <div className="s-crash__card">
-          {/* The wordmark's star, as on every other empty surface: this is
-              still Astrolabe, and the page should look like it knows that. */}
+          {/* The product's mark, drawn without the store — the store may be
+              what just threw. */}
           <div className="s-crash__glyph" aria-hidden="true">
-            ✦
+            <BrandMark size={40} />
           </div>
           <h1 className="s-crash__title">{t("crashTitle")}</h1>
           <p className="s-crash__body">{t("crashBody")}</p>

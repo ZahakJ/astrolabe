@@ -17,6 +17,7 @@
 // full window both obey the cap.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import SiteMark from "../components/SiteMark.tsx";
 import { foldKind, type TrackerKind, type TrackerStatus } from "../../shared/tracker.ts";
 import type { TrackerMeta } from "../../shared/types.ts";
 import { getTrackers, updateTracker } from "../api.ts";
@@ -349,7 +350,7 @@ export default function MediaView() {
         <p className="s-media__empty">{t("mediaFailed")}</p>
       ) : all !== null && total === 0 ? (
         <div className="s-media__empty">
-          <span className="s-media__emptystar" aria-hidden="true">✦</span>
+          <span className="s-media__emptystar" aria-hidden="true"><SiteMark size={32} /></span>
           <p className="s-media__emptytext">{t("mediaEmpty")}</p>
           <p className="s-media__emptyhint">{t("mediaEmptyHint")}</p>
         </div>

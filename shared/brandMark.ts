@@ -77,7 +77,7 @@ export function brandMarkSvg(opts: BrandMarkOptions = {}): string {
   const a1 = polar(alidade.angle, alidade.length);
   const a2 = polar(alidade.angle + 180, alidade.length);
   // The pointers: a short triangle past each end of the rule, pointing out.
-  const tip = (end: { x: number; y: number }, angle: number): string => {
+  const tip = (_end: { x: number; y: number }, angle: number): string => {
     const p = polar(angle, alidade.length + alidade.pointer);
     const left = polar(angle, alidade.length);
     const ux = -Math.sin(rad(angle)) * alidade.width;

@@ -11,6 +11,7 @@
 // arrow keys walk it. Opening a lesson marks it read, in this browser only.
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import SiteMark from "../components/SiteMark.tsx";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import { libraryUrl } from "../../shared/library.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
@@ -75,7 +76,7 @@ function MissingPath() {
   return (
     <div className="s-blog-page s-blog-locked">
       <div className="s-blog-locked__glyph" aria-hidden="true">
-        ✦
+        <SiteMark size={40} />
       </div>
       <p className="s-blog-locked__title">{t("libraryMissing")}</p>
       <NavLink url={libraryUrl()} className="s-btn s-btn--accent">
