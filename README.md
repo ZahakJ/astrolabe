@@ -2,7 +2,7 @@
 
 # Astrolabe
 
-**Your notes, charted. An Obsidian-style vault, self-hosted — and, when you want it, published as a site. One small Node process.**
+**Your notes, charted. A self-hosted reading room for a folder of plain Markdown and LaTeX, in Arabic and English as equals, with a press attached. One small Node process.**
 
 <p align="center"><a href="https://zahakj.github.io/astrolabe/"><strong>✦ Visit the project site ✦</strong></a></p>
 
@@ -15,9 +15,13 @@
 
 **The manual** lives at [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/), with a full Arabic edition at [/site/ar](https://zahakj.github.io/astrolabe/site/ar/). The same pages are the markdown under [`docs/`](docs/README.md).
 
-## Why Astrolabe
+## What it is
 
-Obsidian is excellent — and if it fits, use it. Astrolabe exists for the gap it leaves: a vault you can open **from any browser** on your network, served by **one small Node process you host yourself**, with no desktop install, no sync subscription, and no plugin sprawl. It is local-first in the strictest sense: your notes are ordinary markdown files in an ordinary folder, readable and writable by every other tool you own. Point Astrolabe at an existing Obsidian vault and both keep working — it never converts, wraps, or databases your files, ignores `.obsidian/` entirely, and serves your existing attachments in place. If you delete the app tomorrow, your notes don't notice. And when some of those notes deserve readers, flip on [blog mode](docs/blog-mode.md): the same vault becomes a public site with articles, topics, RSS and reader comments — `publish: true` is the only frontmatter it asks for.
+Astrolabe is an instrument for people who read seriously and write from what they read. It runs as **one small Node process you host yourself**, over an ordinary folder of Markdown and LaTeX files, and everything it knows about your notes it reads from those files. It gives you a live-preview editor with wikilinks and backlinks; a graph; a search that understands Arabic letter forms and diacritics; a [PDF reader](docs/books.md) driven by vim keys that cites your highlights straight into the note beside it; [trackers](docs/trackers.md) for the books, games and courses you are working through; a [canvas](docs/drawing.md) for drawings; and a [typography](docs/typography.md) catalogue that sets Arabic and Latin on one line without flinching.
+
+It is **bilingual by design**: Arabic and English are two equal renderings of the same product, with a mirrored shell, [Hijri dates](docs/arabic-and-rtl.md#hijri-dates), and right-to-left prose that behaves in the editor, the reading view and on the page. It opens **from any browser** on your network, so a phone, a laptop and the [desktop app](docs/desktop.md) are three windows on one vault.
+
+When some of those notes deserve readers, the same vault becomes a public site with one frontmatter flag: articles, topics, RSS and reader comments in [blog mode](docs/blog-mode.md), a homepage you [compose](docs/designer.md) from sections or one of the shipped houses, and a [library](docs/library.md) that walks a reader through a course in order. Nothing is converted, wrapped or put in a database; delete the app tomorrow and the folder does not notice.
 
 | | |
 | --- | --- |
@@ -40,18 +44,19 @@ interlinked starter notes that double as the user manual.
 
 ### Point it at your own notes
 
-Any folder of `.md` files is a vault — including a real Obsidian vault:
+Any folder of `.md` (and `.tex`) files is a vault — including one you already keep in another tool:
 
 ```sh
 ASTROLABE_VAULT=~/notes npm start
 # or:  npm start -- --vault ~/notes
 ```
 
-What carries over: `[[wikilinks]]` (aliases, `#heading` links, rename-safe), `![[embeds]]`,
-callouts, `$…$`/`$$…$$` math, `#tags` and frontmatter `tags:`, properties, highlights, comments,
-footnotes, daily notes, and your Templates folder. Nothing is converted or moved, `.obsidian/` is
-ignored everywhere, and attachments are served in place — the same vault keeps working in
-Obsidian. ([Details](OBSIDIAN-COMPAT.md).)
+Astrolabe reads and writes the conventions the Markdown world already shares: `[[wikilinks]]`
+(aliases, `#heading` links, rename-safe), `![[embeds]]`, callouts, `$…$`/`$$…$$` math, `#tags`
+and frontmatter `tags:`, properties, highlights, comments, footnotes, daily notes, `{{date}}`
+templates and `.excalidraw` drawings. Nothing is converted or moved, another tool's own config
+folders are ignored, and attachments are served in place, so a vault you keep in Obsidian opens
+here unchanged and keeps working there. ([Details](OBSIDIAN-COMPAT.md).)
 
 ### Publish it
 
@@ -93,11 +98,11 @@ internet behind any HTTPS reverse proxy pointed at `localhost:6801` — see
 - **[A live-preview editor](docs/editor.md)** — CodeMirror 6, wikilinks with autocomplete, hover previews, callouts, KaTeX, transclusions, slash commands, vim mode
 - **[Backlinks, outline, graph and instant search](docs/editor.md#navigating)** — a hand-rolled canvas force simulation, MiniSearch over the whole vault, live file watching. Search takes **operators** (`tag:`, `path:`, `is:published`, `before:`/`after:`, `linkto:`/`linkfrom:`, negated with `-`) and **folds diacritics**, so «المقدمة» finds «الْمُقَدِّمَة» and `resume` finds *résumé*
 - **[Search and replace across the vault](docs/editor.md#navigating)** — the thing every note-taker wants and nobody ships, because a bad vault-wide edit is unrecoverable. So it is built on the safety net rather than beside it: a dry run of every file and every line with a checkbox on each, an offer to snapshot the vault to git first, and one **Undo** on the toast. Matching is exact and frontmatter is never touched
-- **[Templates and banners](docs/templates-and-notes.md)** — Obsidian's own template syntax, a `banner:` hero on any note, drag-to-move sections, a trash you can restore from
+- **[Templates and banners](docs/templates-and-notes.md)** — `{{date}}`, `{{time}}`, `{{title}}` templates in the syntax other tools share, a `banner:` hero on any note, drag-to-move sections, a trash you can restore from
 - **[A PDF reader](docs/books.md)** — every PDF in the vault opens as a book: vim keys and a `:` command line, a page remembered by the file's bytes so a rename loses nothing, night mode that leaves the pictures alone, and highlights that cite themselves into the note beside you with Undo
 - **[Panes, tabs and windows](docs/workspace.md)** — split the column, drag a tab to split, preview and pinned tabs, and several windows over one vault where one holds the edit lease and the other reads live
 - **[LaTeX notes](docs/latex.md)** — `.tex` files are notes: edited, searched, linked and published like any other, and they still compile
-- **[Drawings](docs/drawing.md)** — an Excalidraw canvas in a pane, saved into the vault as `.excalidraw` or the Obsidian plugin's `.excalidraw.md` so both tools open the same file; a picture exported beside it on every save, so `![[sketch.excalidraw]]` renders in the editor, the reading view and on the published site without anyone loading the editor
+- **[Drawings](docs/drawing.md)** — an Excalidraw canvas in a pane, saved into the vault as `.excalidraw` (or the `.excalidraw.md` form other tools' plugins read) so every tool opens the same file; a picture exported beside it on every save, so `![[sketch.excalidraw]]` renders in the editor, the reading view and on the published site without anyone loading the editor
 - **[Trackers](docs/trackers.md)** — a `tracker` fence turns a note into a progress card for a book, a game, a course, with a bar you can nudge; a `tracker-board` fence shelves all of them, the Media page shelves them by kind with a form that writes the note for you, and the shelf knows who is looking
 - **[Publishing](docs/publishing.md)** — one frontmatter flag, a real server-side visitor preview, rate-limited reader comments with built-in moderation
 - **[Blog mode](docs/blog-mode.md)** — masthead, topic nav, dashboard home, hover previews, RSS, sitemap/robots and server-injected SEO meta

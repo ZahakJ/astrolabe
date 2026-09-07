@@ -17,7 +17,7 @@
   render as `Note › Heading` and jump straight to the heading; renames rewrite every link that
   pointed at the old name
 - **Click to follow, click to create** — plain click follows a rendered link; clicking an
-  unresolved (dashed) link creates the note, Obsidian-style
+  unresolved (dashed) link creates the note
 - **Selection that knows what it is looking at** — double-click takes the word under the pointer
   (by grapheme cluster, so Arabic harakat and Persian ZWNJ stay inside the word), or the whole
   rendered object when you double-click one: a wikilink, a `#tag`, an inline `$math$` span, a code
@@ -40,7 +40,7 @@
   takes the `---` fences with it instead of leaving a stray rule behind. Machine keys (`id`,
   `uuid`, `dg-*`) stay read-only, and `publish:` keeps its own switch in the status bar. It works
   the same on a `.tex` note, whose properties live in a `%---` comment block
-- **Templates, Obsidian-compatible** — `{{date}}`, `{{time}}`, `{{title}}`, `{{date:FORMAT}}` (plus
+- **Templates** — `{{date}}`, `{{time}}`, `{{title}}`, `{{date:FORMAT}}` in the syntax other tools share (plus
   `{{hdate}}` for the Hijri date); insert one at the cursor or start a new note from one, with a
   picker that previews the filled result — see [Templates](templates-and-notes.md#templates)
 - **Paste or drop attachments** — an image on your clipboard (or any accepted file dragged from a

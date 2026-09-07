@@ -26,7 +26,7 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 | | |
 | --- | --- |
 | [The editor & reading view](editor.md) | Live preview, wikilinks, selection, rendering, navigation |
-| [Templates, banners & notes](templates-and-notes.md) | `banner:`, Obsidian-compatible templates, sections, attachments, trash |
+| [Templates, banners & notes](templates-and-notes.md) | `banner:`, `{{date}}` templates, sections, attachments, trash |
 | [LaTeX notes](latex.md) | `.tex` as a first-class note, `astrolabe.sty`, and exactly what renders |
 | [Trackers](trackers.md) | The `tracker` fence, the board, the Media page that shelves them all, and what a visitor sees of your shelf |
 | [Drawings](drawing.md) | An Excalidraw canvas in the vault: `.excalidraw` and the Obsidian plugin's `.excalidraw.md`, the svg exported beside it, `![[sketch.excalidraw]]` everywhere |
