@@ -48,7 +48,7 @@ import {
 import { APP_ROOT, parseEnvFile, startVaultServer, type VaultServer } from "./server.ts";
 import { enableSpellcheck, replaceMisspelling, spellMenuFor } from "./spellcheck.ts";
 import { dataDirFor, flushPrefs, loadPrefs, partitionFor, savePrefs } from "./store.ts";
-import { applyStagedUpdate, checkForUpdates, installUpdater, onUpdateState } from "./update.ts";
+import { applyStagedUpdate, checkForUpdates, installUpdater, onUpdateState, relaunchForSelfTest } from "./update.ts";
 import { createReferenceWindow, createVaultWindow, focusedFirst, tell } from "./windows.ts";
 
 const ICON = path.join(APP_ROOT, "desktop", "icons", "icon.png");
@@ -212,6 +212,14 @@ async function start(): Promise<void> {
   if (instances.size === 0) await openVaultDialog();
   if (instances.size === 0 && process.platform !== "darwin") app.quit();
   installUpdater();
+  // The boot gate's relaunch test (scripts/check-desktop-relaunch.sh): a few
+  // seconds after boot, restart the way an applied update does, and let the
+  // script see a second instance come up on the same file.
+  if (process.env.ASTROLABE_SELFTEST === "relaunch") {
+    setTimeout(() => {
+      if (!relaunchForSelfTest()) console.error("astrolabe: selftest relaunch: not an AppImage");
+    }, 4000);
+  }
 }
 
 app.on("window-all-closed", () => {

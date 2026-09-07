@@ -846,6 +846,21 @@ export function syncInit(): Promise<GitSyncStatus> {
 
 /** One sync pass: (optional) ff-only pull, stage, commit, push. 409 while a
  *  sync is already running. Same long deadline, same reason. */
+/** "A window opened": the server runs a sync pass when one is due. Errors
+ *  are the caller's to swallow — an open local vault answers 403 by design. */
+export function syncLaunch(): Promise<{ ran: boolean }> {
+  return request<{ ran: boolean }>("/api/sync/launch", { method: "POST" });
+}
+
+/** The last workspace kept beside the vault (server/workspaceState.ts). */
+export function getWorkspaceState(): Promise<{ workspace: unknown }> {
+  return request<{ workspace: unknown }>("/api/state/workspace");
+}
+
+export function putWorkspaceState(workspace: unknown): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>("/api/state/workspace", json("PUT", { workspace }));
+}
+
 export function syncNow(): Promise<GitSyncStatus> {
   return request<GitSyncStatus>("/api/sync/now", { method: "POST" }, true, UPLOAD_TIMEOUT_MS);
 }

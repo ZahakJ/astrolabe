@@ -12,7 +12,8 @@ import { staticAssets } from "./assets.ts";
 import { ConfigError, canRead, initAuth, isPublishLimited, servedLayout } from "./auth.ts";
 import { injectHead, renderFeed, renderRobots, renderSitemap, requestOrigin } from "./blog.ts";
 import { compressDynamic } from "./compress.ts";
-import { startGitSyncTimer } from "./gitSync.ts";
+import { startGitSyncTimer, syncAtLaunch } from "./gitSync.ts";
+import { startConfigMirror } from "./configMirror.ts";
 import { languageScope } from "./language.ts";
 import { bootPayload, injectBoot } from "./boot.ts";
 import { injectPreloads, preloadTags } from "./preload.ts";
@@ -55,6 +56,10 @@ initComments();
 // asks. Fire and forget: a dead site costs boot nothing.
 warmAuthorSites(getSettings().authorSites ?? []);
 initVault(vaultDir);
+// Instance settings travel with the vault (server/configMirror.ts): the
+// vault's copy of settings.json, designs.json, custom.css and the fonts is
+// taken now when it is newer, BEFORE anything reads the merged view.
+await startConfigMirror();
 // Astrolabe was Vellum: an .env that still spells its keys VELLUM_* keeps
 // working, and this is the one line that says so.
 reportEnvFallbacks();
@@ -63,6 +68,9 @@ await initIndexer();
 // Backup & sync scheduler. Inert unless settings.gitSync is enabled with a
 // remote and a non-zero interval — a fresh instance never touches a network.
 startGitSyncTimer();
+// And one pass now, when configured: a server that just came up pulls what
+// the other machines pushed before it answers its first window.
+void syncAtLaunch();
 
 const app = new Hono();
 

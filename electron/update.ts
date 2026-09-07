@@ -332,8 +332,47 @@ export async function applyStagedUpdate(): Promise<void> {
   }
   await fs.rename(staged.file, self);
   staged = null;
-  app.relaunch();
+  relaunchAppImage(self);
   app.quit();
+}
+
+/** Start the AppImage again once this process is gone.
+ *
+ *  NOT `app.relaunch()`. Electron's relauncher is a helper run from the
+ *  MOUNTED image, and the AppImage runtime unmounts that the moment the
+ *  process exits; the instance it then started died with "fusermount: mount
+ *  failed: Operation not permitted", which the owner met as "when I clicked
+ *  restart it didn't restart on its own, I had to open the app again". A
+ *  detached shell — its own session, nothing of ours left in its hands —
+ *  waits for this pid to disappear and execs the file, with an environment
+ *  scrubbed of the old mount and of the runtime's own variables, so the new
+ *  runtime sets them for itself. */
+function relaunchAppImage(self: string): void {
+  const mount = path.dirname(process.execPath);
+  const env: NodeJS.ProcessEnv = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (typeof value !== "string") continue;
+    if (["APPIMAGE", "APPDIR", "ARGV0", "OWD", "ELECTRON_RUN_AS_NODE"].includes(key)) continue;
+    if (value.includes(mount)) continue;
+    env[key] = value;
+  }
+  const child = spawn(
+    "/bin/sh",
+    ["-c", 'while kill -0 "$1" 2>/dev/null; do sleep 0.2; done; exec "$0"', self, String(process.pid)],
+    { detached: true, stdio: "ignore", env, cwd: app.getPath("home") },
+  );
+  child.unref();
+}
+
+/** The desktop boot gate's hook (ASTROLABE_SELFTEST=relaunch): relaunch this
+ *  AppImage exactly as an applied update would, so the mechanism is tested
+ *  on a real file rather than believed. A no-op on any other install. */
+export function relaunchForSelfTest(): boolean {
+  const self = selfPath();
+  if (self === null) return false;
+  relaunchAppImage(self);
+  app.quit();
+  return true;
 }
 
 export function openReleasePage(): void {

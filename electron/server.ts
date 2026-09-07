@@ -214,7 +214,15 @@ export async function startVaultServer(opts: StartOptions): Promise<VaultServer>
   let lastError: unknown = null;
 
   for (const port of candidates) {
-    if (!(await isPortFree(port))) continue;
+    // The remembered port is this vault's ORIGIN — its localStorage, its
+    // tabs. A previous instance still dying may hold it for a second or two;
+    // waiting beats moving to a new port and opening on nothing.
+    let free = await isPortFree(port);
+    for (let tries = 0; !free && port === wanted && tries < 10; tries++) {
+      await new Promise((r) => setTimeout(r, 300));
+      free = await isPortFree(port);
+    }
+    if (!free) continue;
     try {
       const started = await spawnOn(port, opts);
       return { ...started, moved: wanted !== 0 && started.port !== wanted };

@@ -1147,7 +1147,32 @@ async function commit(kind: "sync" | "snapshot" = "sync"): Promise<void> {
 
 // ---------------------------------------------------------------------- sync
 
-export type SyncTrigger = "manual" | "timer";
+export type SyncTrigger = "manual" | "timer" | "launch";
+
+/** How long after one pass a launch may start another. A phone reopened
+ *  every ten minutes is not ten syncs; the timer is still running. */
+const LAUNCH_GAP_MS = 5 * 60_000;
+
+/** A sync pass because something OPENED: this server booting, or a window
+ *  (a browser, the phone, a desktop window) saying hello as an admin. The
+ *  owner: "the first thing we do on all platforms when the app is opened is
+ *  try to sync and pull all stuff from remote". Inert unless Backup & sync is
+ *  enabled with a remote; never while a pass is running here or in another
+ *  Astrolabe over this vault; never twice within LAUNCH_GAP_MS. Returns
+ *  whether a pass ran; a failed pass is recorded by syncNow and not thrown. */
+export async function syncAtLaunch(): Promise<boolean> {
+  const eff = gitSyncEffective();
+  if (!eff.enabled || eff.remote === null) return false;
+  if (busy || syncingElsewhere()) return false;
+  if (Date.now() - lastAttemptMs < LAUNCH_GAP_MS) return false;
+  lastAttemptMs = Date.now();
+  try {
+    await syncNow("launch");
+  } catch {
+    // recorded and (once) logged by syncNow
+  }
+  return true;
+}
 
 /** One sync pass: (optional) fast-forward-only pull, stage everything, commit
  *  when there is something to commit, push.

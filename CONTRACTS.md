@@ -5461,6 +5461,42 @@ trapdoor one level further out.
   carries the notes. `Settings → Device → Settings travel with the vault` is the per-device
   switch (`astrolabe.prefs-sync-off`, itself never synced).
 
+## Instance settings travel with the vault (server/configMirror.ts)
+
+- `settings.json`, `designs.json`, `custom.css` and `fonts/*` are mirrored between
+  `ASTROLABE_DATA` and `<vault>/.astrolabe/` at boot (awaited, before the first read) and every
+  5 s, both ways, newest mtime wins (`pickSource`, pinned by `tests/configMirror.test.ts`), mtime
+  carried on copy so the sides settle. No merge. NEVER mirrored: `git-credentials.json`,
+  `comments.db`, `created.json`, `books.json`, `session-epoch`, `author-sites.json`,
+  `workspace.json`. Adding a file to the list is a decision about every machine and about what a
+  git remote will hold.
+
+## Sync at launch (server/gitSync.ts::syncAtLaunch)
+
+- A third trigger, `"launch"`: the server boots → one pass; `POST /api/sync/launch` (credentialed
+  like `/sync/now`; the client calls it once per load when `/api/me` says admin) → one pass. Both
+  refuse while a pass runs here or elsewhere and within 5 min of the last attempt; a failure is
+  recorded by `syncNow`, never thrown to the caller.
+
+## The desktop restarts itself (electron/update.ts)
+
+- An applied AppImage update never calls `app.relaunch()`: the relauncher runs from the mounted
+  image, unmounted by then, and the new instance died on FUSE. `relaunchAppImage` spawns a
+  detached `/bin/sh` that waits for this pid to vanish and execs the file with an environment
+  scrubbed of the old mount and of `APPIMAGE`/`APPDIR`/`ARGV0`/`OWD`. `ASTROLABE_SELFTEST=relaunch`
+  fires the same path 4 s after boot; `scripts/check-desktop-relaunch.sh` runs every AppImage
+  through it before upload, beside `check-desktop-boot.sh`.
+
+## The last workspace beside the vault (server/workspaceState.ts)
+
+- `ASTROLABE_DATA/workspace.json` holds the client's own serialisation, written by the desktop
+  client (admin, debounced 1 s) on every workspace change and read only when a desktop window
+  finds NOTHING in its own localStorage — a port moved, so a new origin. Browsers and the phone
+  never restore from it: a phone must not inherit four columns. `startVaultServer` also waits
+  up to 3 s for the remembered port before moving, because the port is the origin.
+- With nothing to restore, `enterVault` opens the most recent note (client/recents.ts), then the
+  seed guide, then the first name in the tree — never the first name while a recent one exists.
+
 ## Desktop sessions (electron/auth.ts, electron/main.ts, client/desktop)
 
 - A vault whose password THIS LAUNCH minted is owned by the app: `hello.ownsSession` is true,

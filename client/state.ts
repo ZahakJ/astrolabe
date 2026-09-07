@@ -96,7 +96,8 @@ import {
 } from "./workspace.ts";
 import { applyDefaultTemplate } from "./templateActions.ts";
 import { toast } from "./toast.ts";
-import { desktop } from "./desktop/bridge.ts";
+import { desktop, IS_DESKTOP } from "./desktop/bridge.ts";
+import { recentNotes } from "./recents.ts";
 import { actionToast } from "./undoToast.ts";
 import { noteLabelOf, noteTitleOf } from "../shared/noteFormat.ts";
 
@@ -914,11 +915,26 @@ function persistTabs(tabs: string[], open: string | null): void {
   }
 }
 
+let workspaceBackupTimer: ReturnType<typeof setTimeout> | null = null;
+let launchSyncAsked = false;
+
 function persistWorkspace(ws: Workspace): void {
+  const stored = serializeWorkspace(ws);
   try {
-    localStorage.setItem(WORKSPACE_KEY, JSON.stringify(serializeWorkspace(ws)));
+    localStorage.setItem(WORKSPACE_KEY, JSON.stringify(stored));
   } catch {
     // storage full/unavailable — session restore just won't work
+  }
+  // THE DESKTOP KEEPS A COPY BESIDE THE VAULT. localStorage is per origin and
+  // the desktop's origin is a port; a launch that had to move ports opened
+  // on nothing and then on the first note in the tree. Debounced: a drag
+  // across four panes is one write, a second later.
+  if (IS_DESKTOP && useStore.getState().admin) {
+    if (workspaceBackupTimer !== null) clearTimeout(workspaceBackupTimer);
+    workspaceBackupTimer = setTimeout(() => {
+      workspaceBackupTimer = null;
+      void api.putWorkspaceState(stored).catch(() => {});
+    }, 1000);
   }
 }
 
@@ -1181,8 +1197,18 @@ export const useStore = create<State>()((set, get) => {
     // the upgrade invisible: an instance that has never seen this build has no
     // workspace key, and its tab list becomes a one-pane workspace holding
     // exactly the notes it had open. Nobody's session is spent on the upgrade.
-    const restored = readStoredWorkspace();
+    let restored = readStoredWorkspace();
     const stored = readStoredTabs();
+    if (restored === null && stored === null && IS_DESKTOP && get().admin) {
+      // Nothing in this origin's storage: a desktop window on a new port.
+      // The copy beside the vault is what this window was showing last.
+      try {
+        const backup = (await api.getWorkspaceState()).workspace;
+        if (backup !== null) restored = parseWorkspace(backup);
+      } catch {
+        // no backup yet, or a build without the route: the fallbacks below
+      }
+    }
     const ws = restored ?? (stored === null ? null : fromStoredTabs(stored));
     if (ws !== null) {
       // A note in the stored workspace may have been deleted, renamed or hidden
@@ -1227,8 +1253,12 @@ export const useStore = create<State>()((set, get) => {
     if (!get().admin) return;
     const notes = collectNotes(tree);
     if (notes.length === 0) return;
+    // The note the reader was in most recently, before the seed guide, before
+    // the first name in the tree — "the app keeps opening on 1T-SRAM" was a
+    // vault whose first note sorts first and a window with nothing to restore.
+    const recent = recentNotes(tree, { limit: 1 })[0];
     const guide = resolveLink(SEED_GUIDE, tree);
-    get().openNote(guide ?? notes[0].path);
+    get().openNote(recent ?? guide ?? notes[0].path);
   };
 
   return {
@@ -1438,6 +1468,15 @@ export const useStore = create<State>()((set, get) => {
         // visitor view, which is at least honest.
         if (!me.admin && get().desktopOwnsSession && (await desktop()?.sessionRestore?.()) === true) {
           me = await api.getMe();
+        }
+        // A WINDOW OPENED: the server runs a sync pass when one is due
+        // (Backup & sync enabled with a remote; not within five minutes of
+        // the last). Once per load, admins only, every answer ignored — an
+        // open local vault says 403 by design and the status panel says the
+        // rest.
+        if (me.admin && !launchSyncAsked) {
+          launchSyncAsked = true;
+          void api.syncLaunch().catch(() => {});
         }
         // THE SERVER MAY HAVE MOVED ON. A tab that outlived a deploy still
         // runs the old build and asks for on-demand chunks by names the
