@@ -637,7 +637,10 @@ export default function App() {
       // Ctrl/Cmd+Shift+F: search and replace across the vault (the sidebar's
       // own panel). Before Escape, before everything: it is a chord nothing
       // else in the shell claims, and it must beat the browser's.
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.key.toLowerCase() === "f" && store.admin) {
+      // `isKey`, never `e.key`: on an Arabic layout the F key sends "ب" and
+      // this chord was the one in the shell still reading the character
+      // (the owner: "all shortcuts must work in both langs").
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && isKey(e, "f") && store.admin) {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent("astrolabe:replace-open"));
         return;

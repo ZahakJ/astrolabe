@@ -202,6 +202,7 @@ export default function StatusBar() {
   const admin = useStore((s) => s.admin);
   const setLoginOpen = useStore((s) => s.setLoginOpen);
   const authProtected = useStore((s) => s.authProtected);
+  const desktopOwnsSession = useStore((s) => s.desktopOwnsSession);
   const openPublished = useStore((s) => s.openPublished);
   const publishedCounts = useStore((s) => s.publishedCounts);
   const publishedFilter = useStore((s) => s.publishedFilter);
@@ -484,7 +485,7 @@ export default function StatusBar() {
           {t("graph")}
         </button>
       </span>
-      {admin && authProtected && (
+      {admin && authProtected && !desktopOwnsSession && (
         <span className="s-statusbar__group">
           <button
             type="button"

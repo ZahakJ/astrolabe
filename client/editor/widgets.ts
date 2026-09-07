@@ -172,7 +172,6 @@ function embedSpanOf(view: EditorView, wrap: HTMLElement, name: string): { from:
 function imageTools(view: EditorView, wrap: HTMLElement, img: HTMLImageElement, name: string): HTMLElement {
   const box = document.createElement("span");
   box.className = "cm-s-embed-tools";
-  const rtl = getComputedStyle(view.contentDOM).direction === "rtl";
 
   // Alignment: the marker at the end of the line, the same one `/center`
   // writes. The lit button is the block's current alignment.
@@ -228,12 +227,20 @@ function imageTools(view: EditorView, wrap: HTMLElement, img: HTMLImageElement, 
     handle.setPointerCapture(e.pointerId);
     const startX = e.clientX;
     const startW = img.getBoundingClientRect().width;
+    // Which way is "wider": away from the picture's centre, on whichever
+    // side the handle sits. Reading the editor's `direction` was wrong for
+    // an Arabic note whose lines set their own — the drag then shrank the
+    // picture as the hand pulled it open (the owner: "resizing does not
+    // seem to work in arabic mode").
+    const imgRect = img.getBoundingClientRect();
+    const handleRect = handle.getBoundingClientRect();
+    const outward = handleRect.left + handleRect.width / 2 >= imgRect.left + imgRect.width / 2 ? 1 : -1;
     const maxW = Math.max(80, (wrap.closest(".cm-line")?.getBoundingClientRect().width ?? 800) - 8);
     let last = Math.round(startW);
     wrap.classList.add("cm-s-embed-image--dragging");
     box.appendChild(readout);
     const move = (ev: PointerEvent): void => {
-      const dx = (ev.clientX - startX) * (rtl ? -1 : 1);
+      const dx = (ev.clientX - startX) * outward;
       last = Math.round(Math.max(40, Math.min(maxW, startW + dx)));
       img.style.width = `${last}px`;
       readout.textContent = `${last}px`;

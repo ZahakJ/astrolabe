@@ -220,7 +220,10 @@ keyboard.** That deserves saying out loud, because for a while it did not: the s
 matched against the letter the keyboard *typed*, and on an Arabic layout the key marked `P` types
 `ح`, so `Ctrl P` opened nothing at all. If you run Astrolabe in Arabic — and the interface is fully
 [translated and mirrored](arabic-and-rtl.md) for exactly that — your shortcuts are the keys marked
-with the Latin letters on your keycaps.
+with the Latin letters on your keycaps. That includes every chord with `Shift` in it:
+`Ctrl/Cmd Shift F` (find and replace across the vault) is the `ب` key on an Arabic layout, and
+`npm run check-keymap` refuses any handler in the client that compares the typed character
+instead of the key.
 
 The rule, in one line: **a shortcut follows the letter your layout types when that letter is
 Latin, and the key's position when it is not.**

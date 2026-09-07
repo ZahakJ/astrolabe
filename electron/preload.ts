@@ -62,6 +62,8 @@ contextBridge.exposeInMainWorld("astrolabeDesktop", {
   dragNote: (rel: string) => ipcRenderer.invoke("astrolabe:drag-note", rel),
   /** Open this route in an always-on-top reference window. */
   openReference: (route: string) => ipcRenderer.invoke("astrolabe:open-reference", route),
+  /** Sign the window back in to a vault whose password this launch minted. */
+  sessionRestore: () => ipcRenderer.invoke("astrolabe:session-restore"),
   /** Apply a staged update and relaunch — or open the release page on a build
    *  that cannot swap itself in place. */
   updateApply: () => ipcRenderer.invoke("astrolabe:update-apply"),

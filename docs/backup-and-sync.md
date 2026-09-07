@@ -240,6 +240,27 @@ automatic interval safe to leave switched on next to a desktop app.
   vault over a network filesystem is outside what this buys: exclusive creation is only as atomic
   as the filesystem makes it, and the fifteen-minute age check is the only recovery there.
 
+## Settings travel with the vault
+
+The settings on the Device tab — theme, chrome and editor language, vim, the writing column's
+width, heading numbers, the formatting toolbar, which side the sidebar hangs on — are kept in
+**one file inside the vault**, `.astrolabe/prefs.json`, and every server over that folder reads
+it: the desktop app on your Linux machine, the desktop app on your Windows machine, and the hosted
+instance your phone opens. Change the theme on one and the next launch of the others has it.
+There is no account and nothing to configure: whatever carries your notes between machines
+(Syncthing, git sync, a shared disk) carries the file with them, and a hosted instance and a
+desktop app over the same folder need nothing at all.
+
+Each device pushes what it changes a second after the change and pulls the file before it draws
+anything, so a setting never arrives mid-session and moves things under you. Per key the newest
+change wins, and a setting cleared on one device clears on the next rather than coming back from
+it. What travels is what a person would call a setting. Tabs, the workspace, pane widths, the
+tags shelf's height, fold state and every collapsed flag describe *this window on this screen*
+and stay where they are. **Settings → Device → Settings travel with the vault** switches it off
+for a device that should keep its own; the file is admin-only and never reaches a visitor. If
+you keep the vault in git, commit `.astrolabe/` (it is not in the [ignore advice](#gitignore-advice)
+because you want it).
+
 ## Things worth knowing
 
 - Every git invocation is an `execFile` with a fixed argument array. No shell is involved

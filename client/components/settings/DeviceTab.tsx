@@ -31,6 +31,7 @@ import { SegmentedControl, TextInput, Toggle } from "../controls/Fields.tsx";
 import { openThemePicker } from "../ThemePicker.tsx";
 import { readCustomWidth, readEditorWidth, setCustomWidth, setEditorWidth, type EditorWidth } from "../../editorWidth.ts";
 import { Row } from "./Row.tsx";
+import { prefsSyncEnabled, setPrefsSyncEnabled } from "../../prefsSync.ts";
 
 /** A localStorage preference that is NOT in the store, kept live the way its
  *  own module already publishes it: a window event. Both of these have a
@@ -78,6 +79,7 @@ export default function DeviceTab() {
   const toggleVim = useStore((s) => s.toggleVim);
   const numbered = useEventPref("astrolabe:heading-numbers", headingNumbersPref);
   const toolbar = useEventPref("astrolabe:seltoolbar", selectionToolbarEnabled);
+  const prefsSync = useEventPref("astrolabe:prefs-sync", prefsSyncEnabled);
 
   return (
     <section data-section="device">
@@ -219,6 +221,15 @@ export default function DeviceTab() {
           offLabel={t("off")}
           value={vimMode}
           onChange={() => toggleVim()}
+        />
+      </Row>
+      <Row label={t("rowPrefsSync")} hint={t("hintPrefsSync")}>
+        <Toggle
+          label={t("rowPrefsSync")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={prefsSync}
+          onChange={setPrefsSyncEnabled}
         />
       </Row>
       <Row label={t("selToolbarLabel")} hint={t("hintSelToolbar")}>

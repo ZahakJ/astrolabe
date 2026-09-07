@@ -79,6 +79,15 @@ the APK only changes when the shell itself does.
 `.md` files so a note double-clicked in the file manager opens here. The path is checked, not
 cleaned: `..`, a leading `/`, a drive letter or a control character is refused.
 
+## Sessions
+
+A vault the app opened itself is signed in by the app: the password is minted at launch and no
+human ever sees it, so there is nothing to sign out of and the status bar shows no **Sign out**.
+A session that lapses anyway (a long sleep, a server restarted underneath) is restored on the
+next request rather than asked for. The one exception is an [env-linked vault](#where-things-live),
+which runs under its deployment's own `.env`: there the window opens as a reader and **Sign in**
+takes the same password the site takes.
+
 ## Where things live
 
 The app's own configuration is in `~/.config/astrolabe` (`desktop.json`: the vaults, their ports

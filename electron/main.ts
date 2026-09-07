@@ -28,7 +28,7 @@ import {
   session,
   shell,
 } from "electron";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { TO_MAIN, TO_RENDERER, type Command, type Hello } from "./ipc.ts";
@@ -121,10 +121,20 @@ for (const scheme of [PROTOCOL, LEGACY_PROTOCOL]) {
   // empty app before the fix reached them. So the rule is simply: while the
   // old directory still exists, COPY it in — entry by entry, never over a
   // file the new directory already holds. Whatever the new app wrote stays;
-  // whatever it never had comes back. The old directory is left where it is
-  // for now (the owner: "copy by default, delete on a future update"): a
-  // later release, once every machine has crossed, removes it.
-  // TODO(3.5): rmSync(old, { recursive: true, force: true }) after the copy.
+  // whatever it never had comes back. Then, from 3.5.0, the old directory is
+  // REMOVED (the owner: "copy old to new configs by default and we can delete
+  // it on a future update"; then "feel free to remove any vellum backups
+  // now"). Removed only after a carry that threw nothing, so a machine where
+  // the copy failed keeps its old directory and a second launch tries again.
+  //
+  // What the carry cannot do, and never could: merge Chromium's own
+  // databases. `Partitions/<vault>/Local Storage` is a LevelDB, and a LevelDB
+  // is its MANIFEST plus the files it names — copying the old one's files in
+  // beside the new one's leaves orphans the new one never opens. So the
+  // client-side preferences of the old app (theme, editor width, languages)
+  // did not cross on a machine that had already run the new app once. From
+  // 3.5.0 those preferences live in the vault itself (server/prefs.ts) and
+  // reach every device from there, which is the durable answer.
   if (old && old.toLowerCase() !== fresh.toLowerCase()) {
     // By hand, not `cpSync`: with both directories standing (a machine that
     // has run both apps), Node's copier threw EEXIST on the destination
@@ -145,6 +155,7 @@ for (const scheme of [PROTOCOL, LEGACY_PROTOCOL]) {
     };
     try {
       carry(old, fresh);
+      rmSync(old, { recursive: true, force: true });
     } catch (err) {
       console.error("astrolabe: could not carry the old config directory over", err);
     }
@@ -744,7 +755,22 @@ function registerBridge(): void {
       pendingRoute,
       spellcheck: instance?.spellcheck ?? false,
       spellLanguages: instance?.spellLanguages ?? [],
+      ownsSession: instance !== null && instance.restart.deployEnv === null,
     };
+  });
+
+  ipcMain.handle(TO_MAIN.sessionRestore, async (event): Promise<boolean> => {
+    const instance = instanceOf(event.sender);
+    // Only for a credential this launch minted: an env-linked vault runs
+    // under the owner's own hash and the app must not pretend to know it.
+    if (instance === null || instance.restart.deployEnv !== null) return false;
+    try {
+      await signIn(instance.session, instance.server.origin, instance.credential);
+      return true;
+    } catch (err) {
+      console.error("astrolabe: could not restore the desktop session:", err);
+      return false;
+    }
   });
 
   ipcMain.handle(TO_MAIN.spellReplace, (event, text: unknown) => {

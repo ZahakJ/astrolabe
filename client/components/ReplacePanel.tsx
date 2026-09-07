@@ -233,7 +233,21 @@ export default function ReplacePanel({
   }, [preview, chosen, find, replace, regex, snapshot, gitReady, selection, onClose]);
 
   return (
-    <div className="s-replace" role="region" aria-label={t("replaceTitle")}>
+    <div
+      className="s-replace"
+      role="region"
+      aria-label={t("replaceTitle")}
+      // Escape leaves the panel from any field in it (the owner: "escape
+      // should allow you to exit the global find and replace"). Stopped here
+      // so the shell's own Escape does not also clear the search behind it.
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && !busy) {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }
+      }}
+    >
       <div className="s-replace__head">
         <h2 className="s-replace__title">{t("replaceTitle")}</h2>
         <button

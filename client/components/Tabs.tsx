@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import type { DragEvent as ReactDragEvent, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 import { claimFocus } from "../a11y.ts";
 import { countPhrase, t, tf } from "../i18n.ts";
-import { beginTabDrag, endTabDrag, tabDrag, TAB_MIME } from "../dragTab.ts";
+import { beginTabDrag, dropPayload, endTabDrag, markTabDropHandled, tabDrag, tabDropHandled, TAB_MIME } from "../dragTab.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { ContextMenu, type MenuAnchor, type MenuRow } from "./ContextMenu.tsx";
@@ -138,9 +138,10 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
     return trailingHalf ? rowIndex + 1 : rowIndex;
   };
 
-  const landAt = (insertion: number): void => {
-    const drag = tabDrag();
+  const landAt = (e: React.DragEvent, insertion: number): void => {
+    const drag = dropPayload(e.dataTransfer);
     if (drag === null) return;
+    markTabDropHandled();
     // `reorderTab` (and `moveTab` on top of it) splices AFTER removing the
     // dragged tab, so a same-pane insertion past the source slides back one.
     const fromIdx = drag.pane === id ? openTabs.indexOf(drag.path) : -1;
@@ -269,7 +270,7 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
       onDrop={(e) => {
         if (tabDrag() === null) return;
         e.preventDefault();
-        landAt(openTabs.length);
+        landAt(e, openTabs.length);
       }}
     >
       <div className="s-tabs__scroll" ref={scrollRef}>
@@ -320,11 +321,19 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
               e.dataTransfer.effectAllowed = "move";
               beginTabDrag({ pane: id, path });
             }}
-            onDragEnd={() => {
+            onDragEnd={(e) => {
               // Fires on drop AND on a miss — the one hook that always runs,
               // so the zones never outlive the ghost.
+              // A drop nobody HERE handled that still reports "move" was
+              // taken by another window (client/dragTab.ts): the tab has a
+              // home there now, so it leaves this one.
+              const adopted = !tabDropHandled() && e.dataTransfer.dropEffect === "move";
               endTabDrag();
               setDropAt(null);
+              if (adopted) {
+                focusPane(id);
+                closeTab(path);
+              }
             }}
             onDragOver={(e) => {
               if (tabDrag() === null) return;
@@ -337,7 +346,7 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
               if (tabDrag() === null) return;
               e.preventDefault();
               e.stopPropagation(); // the strip's own drop would double-fire
-              landAt(aimAt(e, openTabs.indexOf(path)));
+              landAt(e, aimAt(e, openTabs.indexOf(path)));
             }}
           >
             <button

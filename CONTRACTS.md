@@ -5436,6 +5436,63 @@ read "1 change not saved yet", one keystroke later the panel was gone and reopen
 with the design under edit still unsaved behind it" for the preset detail; this is the same
 trapdoor one level further out.
 
+## Settings travel with the vault (server/prefs.ts, client/prefsSync.ts)
+
+- The Device-tab preferences (an allowlist in `client/prefsSync.ts`: theme, site-theme, lang,
+  editorLang, vim, editorWidth, editorWidthCustom, headingNumbers, selToolbar, sidebarSide,
+  show-attachments, graph, comment.author) are mirrored to `<vault>/.astrolabe/prefs.json` as a
+  map of localStorage key → `{ v, t }`. Window state (tabs, workspace, pane widths, tags height,
+  recents, folds, every `*-collapsed`, window identity) NEVER travels. Adding a key to the
+  allowlist is a decision about every device the owner has, not a convenience.
+- Merge is per key, newest `t` wins, ties keep the file's copy, `v: null` is a tombstone. Both
+  halves implement the same rule; `tests/prefs.test.ts` pins the server's.
+- The client pulls ONCE, before React mounts (`client/main.tsx`), and writes newer keys into
+  localStorage through the unpatched `Storage.prototype` methods so the pull never pushes. Pushes
+  come from a patch on `Storage.prototype.setItem/removeItem`, only for `localStorage` and only
+  for travelling keys, debounced 1.2 s, flushed with `keepalive` on `pagehide`. A 401/403 marks
+  the session denied and stops every further request until the next pull succeeds.
+- `GET/PUT /api/prefs` are admin-only both ways (`isPublishLimited` → 401): a visitor and an
+  admin wearing the preview header get nothing. Keys must carry the `astrolabe.` prefix, match
+  `^[\w.:-]+$`, and stay under 120 chars / 64 KB each, 200 keys, 512 KB file; anything else is
+  dropped silently, never fatal — a hand-edited file must not lock every device out.
+- The file lives INSIDE the vault (a dot-directory: never listed, indexed, watched or served) and
+  not in `ASTROLABE_DATA`, because the point is every server over the folder — each machine's
+  desktop app, the hosted instance the phone opens — reading the same one, carried by whatever
+  carries the notes. `Settings → Device → Settings travel with the vault` is the per-device
+  switch (`astrolabe.prefs-sync-off`, itself never synced).
+
+## Desktop sessions (electron/auth.ts, electron/main.ts, client/desktop)
+
+- A vault whose password THIS LAUNCH minted is owned by the app: `hello.ownsSession` is true,
+  the status bar hides **Sign out**, and `loadMe` seeing `admin: false` asks main
+  (`astrolabe:session-restore`) to sign in again once before accepting the visitor view. The
+  modal for a password no human has ever seen must never be the surface a desktop reader meets.
+- An env-linked vault (`restart.deployEnv !== null`) is NOT owned: restore answers false, "Sign
+  in" takes the deployment's own password, and the app never pretends to know it.
+- From 3.5.0 the first launch that finds `~/.config/vellum` carries it into `astrolabe` (files
+  the new directory lacks only) and then REMOVES it, only after a carry that threw nothing. The
+  carry cannot merge Chromium's LevelDB stores; the client preferences that were lost that way
+  now travel with the vault instead (above).
+
+## Tabs between windows (client/dragTab.ts, Tabs.tsx, PaneDropZones.tsx)
+
+- A tab drag from ANOTHER window (desktop second window, another browser tab) is adopted: a
+  `dragenter` carrying `TAB_MIME` raises a foreign drag (`pane: null, path: "", foreign: true`),
+  every pane's zones rise for it, and the drop reads the payload off the DataTransfer
+  (`dropPayload`) — the only moment the browser lets it be read. A foreign drag is lowered when
+  the `dragover` heartbeat stops for 250 ms or a drop lands.
+- The source window learns of the move from its own `dragend`: a drop no target HERE marked
+  handled (`markTabDropHandled`) that still reports `dropEffect: "move"` was taken elsewhere, and
+  the tab is closed in this window. Every local drop target marks itself handled, or the tab
+  would vanish from the window that just re-homed it.
+
+## Chords resolve by key position (scripts/check-keymap.mjs)
+
+- No handler under `client/` may compare `e.key` (or `.toLowerCase()`) to a Latin letter; the
+  gate refuses it. Every chord goes through `isKey`/`shortcutKey` (client/keys.ts), which reads
+  the typed character when it is Latin and the physical key when it is not — so `Ctrl Shift F`
+  is `ب` on an Arabic layout and the same chord.
+
 ## Backup & sync (server/gitSync.ts)
 
 `settings.gitSync { enabled (default FALSE), remote, branch (default "main"), intervalMinutes

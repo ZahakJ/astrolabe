@@ -237,6 +237,16 @@ export async function mountDesktop(): Promise<void> {
   });
 
   const hello = await bridge.hello();
+  // A vault the desktop signed itself into cannot be signed out of by hand:
+  // the password is a launch-time secret nobody could type back. So the
+  // status bar hides "Sign out", and a session that lapses anyway is
+  // restored by main (state.ts::loadMe). The owner met the other version of
+  // this: "cannot sign in with my password" on the desktop app, against a
+  // modal that was asking for a credential no human has ever seen.
+  if (hello.ownsSession === true) {
+    useStore.setState({ desktopOwnsSession: true });
+    if (!useStore.getState().admin) void useStore.getState().loadMe();
+  }
   // Tell the editor which languages a DICTIONARY actually exists for, so the
   // per-line `lang` invites the checker only where checking can be right —
   // "*" is macOS, whose system checker reads the attribute itself.

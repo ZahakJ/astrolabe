@@ -96,6 +96,7 @@ import {
 } from "./workspace.ts";
 import { applyDefaultTemplate } from "./templateActions.ts";
 import { toast } from "./toast.ts";
+import { desktop } from "./desktop/bridge.ts";
 import { actionToast } from "./undoToast.ts";
 import { noteLabelOf, noteTitleOf } from "../shared/noteFormat.ts";
 
@@ -372,6 +373,9 @@ export interface State {
    *  nothing about what visitors are served. */
   setEditorLang(lang: Lang | null): void;
   loginOpen: boolean;
+  /** The desktop app holds this vault's credential itself (client/desktop):
+   *  "Sign out" is hidden and a lapsed session is restored, never asked for. */
+  desktopOwnsSession: boolean;
   /** Admin moderation panel (palette: "Moderate comments"). */
   moderationOpen: boolean;
   setModerationOpen(b: boolean): void;
@@ -1351,6 +1355,7 @@ export const useStore = create<State>()((set, get) => {
       });
     },
     loginOpen: false,
+    desktopOwnsSession: false,
     moderationOpen: false,
     trashOpen: false,
     previewVisitor: false,
@@ -1419,7 +1424,16 @@ export const useStore = create<State>()((set, get) => {
         // header for an admin and while the toggle is off, and the resolved
         // value below overwrites this in every case.
         if (!api.hasReaderLang()) api.setReaderLang(readVisitorLang());
-        const me = await api.getMe();
+        let me = await api.getMe();
+        // THE DESKTOP OWNS THIS SESSION. A window that finds itself signed
+        // out of a vault whose password the app minted at launch asks main
+        // to sign in again rather than showing a modal for a password nobody
+        // can type (the owner: "cannot sign in with my password… at least on
+        // the app"). One attempt per load; a restore that fails leaves the
+        // visitor view, which is at least honest.
+        if (!me.admin && get().desktopOwnsSession && (await desktop()?.sessionRestore?.()) === true) {
+          me = await api.getMe();
+        }
         // THE SERVER MAY HAVE MOVED ON. A tab that outlived a deploy still
         // runs the old build and asks for on-demand chunks by names the
         // server no longer has; the first symptom the owner saw was "Failed
