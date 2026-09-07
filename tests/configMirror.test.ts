@@ -21,3 +21,12 @@ test("copies a rounding error apart are the same write and settle", () => {
   // Same moment, different bytes: something is off; the later one still wins.
   assert.equal(pickSource({ mtimeMs: 10_000.4, size: 5 }, { mtimeMs: 10_000, size: 6 }), "data");
 });
+
+test("on first contact the vault wins whatever the clocks say", () => {
+  // The desktop's 31-byte defaults, a day younger than the site's settings.
+  assert.equal(pickSource({ mtimeMs: 90_000, size: 31 }, { mtimeMs: 10_000, size: 1373 }, true), "vault");
+  // Afterwards, the clocks decide again.
+  assert.equal(pickSource({ mtimeMs: 90_000, size: 31 }, { mtimeMs: 10_000, size: 1373 }, false), "data");
+  // A vault with no copy still takes this side's file.
+  assert.equal(pickSource({ mtimeMs: 90_000, size: 31 }, null, true), "data");
+});

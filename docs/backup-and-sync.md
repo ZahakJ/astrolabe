@@ -252,7 +252,9 @@ automatic interval safe to leave switched on next to a desktop app.
 language, home note, folders, typography, calendars, the sync settings themselves), the
 designer's `designs.json`, `custom.css` and your custom fonts are mirrored from
 `ASTROLABE_DATA` into `<vault>/.astrolabe/` and back, every few seconds and once at boot,
-newest copy wins, on every server over the folder. Set the site name on the hosted instance
+newest copy wins, on every server over the folder. The first time a server meets the vault's
+copy of a file, the vault wins outright, so a fresh machine takes the site's settings rather
+than pushing its own defaults over them. Set the site name on the hosted instance
 and the desktop app on the other machine has it after its next pull; upload a logo in the
 designer on the laptop and the site shows it after the next push. What stays put: the git
 token (a device's own), the comments database, the reading positions and creation ledger, and

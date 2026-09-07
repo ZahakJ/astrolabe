@@ -55,11 +55,22 @@ interface Copy {
 
 /** Which side has the copy the other should take, or null when they agree.
  *  Pure, for the tests: `data` and `vault` are the two copies' stats, absent
- *  as null. */
-export function pickSource(data: Copy | null, vault: Copy | null): Side | null {
+ *  as null.
+ *
+ *  FIRST CONTACT IS NOT A RACE. `firstContact` is true the first time this
+ *  server compares a file against the vault's copy, and then THE VAULT WINS
+ *  whenever it holds one, whatever the clocks say. The vault is the source
+ *  of truth the owner asked for; a data directory that has never met it is
+ *  a machine's private defaults, and its mtime says nothing about which is
+ *  right. This rule was written after the alternative happened: a desktop
+ *  whose settings.json was 31 bytes and a day younger than the site's met
+ *  the vault, "won" on mtime, and within five seconds the hosted instance
+ *  had imported the 31 bytes over its own configuration. */
+export function pickSource(data: Copy | null, vault: Copy | null, firstContact = false): Side | null {
   if (data === null && vault === null) return null;
   if (data === null) return "vault";
   if (vault === null) return "data";
+  if (firstContact) return "vault";
   const gap = data.mtimeMs - vault.mtimeMs;
   if (Math.abs(gap) < SAME_MS) return data.size === vault.size ? null : gap >= 0 ? "data" : "vault";
   return gap > 0 ? "data" : "vault";
@@ -89,13 +100,41 @@ async function carry(from: string, to: string): Promise<void> {
   await fs.rename(tmp, to);
 }
 
-async function mirrorOne(rel: string): Promise<Side | null> {
+async function mirrorOne(rel: string, firstContact: boolean): Promise<Side | null> {
   const inData = path.join(dataDir(), rel);
   const inVault = path.join(mirrorRoot(), rel);
-  const source = pickSource(await statOrNull(inData), await statOrNull(inVault));
+  const source = pickSource(await statOrNull(inData), await statOrNull(inVault), firstContact);
   if (source === "data") await carry(inData, inVault);
   else if (source === "vault") await carry(inVault, inData);
   return source;
+}
+
+// ── Which files this server has met the vault over ──────────────────────
+// ASTROLABE_DATA/mirror-state.json: the relative paths already reconciled once.
+// Absent for every file on an instance that predates the mirror, which is
+// exactly the first-contact case above.
+const STATE_FILE = "mirror-state.json";
+let reconciled: Set<string> | null = null;
+
+async function loadReconciled(): Promise<Set<string>> {
+  if (reconciled !== null) return reconciled;
+  try {
+    const parsed: unknown = JSON.parse(await fs.readFile(path.join(dataDir(), STATE_FILE), "utf8"));
+    const list = (parsed as { reconciled?: unknown })?.reconciled;
+    reconciled = new Set(Array.isArray(list) ? list.filter((x): x is string => typeof x === "string") : []);
+  } catch {
+    reconciled = new Set();
+  }
+  return reconciled;
+}
+
+async function saveReconciled(): Promise<void> {
+  if (reconciled === null) return;
+  const target = path.join(dataDir(), STATE_FILE);
+  const tmp = `${target}.${process.pid}.tmp`;
+  await fs.mkdir(path.dirname(target), { recursive: true });
+  await fs.writeFile(tmp, JSON.stringify({ reconciled: [...reconciled].sort() }, null, 2) + "\n", "utf8");
+  await fs.rename(tmp, target);
 }
 
 async function listFiles(dir: string): Promise<string[]> {
@@ -122,15 +161,22 @@ export async function mirrorConfig(): Promise<{ toVault: string[]; toData: strin
     const names = new Set([...(await listFiles(path.join(data, dir))), ...(await listFiles(path.join(mirror, dir)))]);
     for (const name of names) rels.push(path.join(dir, name));
   }
+  const met = await loadReconciled();
+  let learned = false;
   for (const rel of rels) {
     try {
-      const moved = await mirrorOne(rel);
+      const moved = await mirrorOne(rel, !met.has(rel));
       if (moved === "data") out.toVault.push(rel);
       else if (moved === "vault") out.toData.push(rel);
+      if (!met.has(rel)) {
+        met.add(rel);
+        learned = true;
+      }
     } catch (err) {
       console.warn(`astrolabe: could not mirror ${rel}:`, err instanceof Error ? err.message : err);
     }
   }
+  if (learned) await saveReconciled().catch(() => {});
   return out;
 }
 
