@@ -553,29 +553,6 @@ export default function StatusBar() {
           {t("graph")}
         </button>
       </span>
-      {admin && APP_VERSION !== "" && (
-        // The build, and the door to the next one (the owner: "how do I reach
-        // software update? should be a button at the bottom"). On the desktop
-        // app the chip runs the same check Help → Check for updates… does and
-        // the updater answers with its toast; in a browser it opens the
-        // release page, since a hosted instance updates when its server does.
-        <span className="s-statusbar__group">
-          {desktop()?.updateCheck !== undefined ? (
-            <UpdateChip />
-          ) : (
-            <a
-              className="s-statusbar__btn s-statusbar__version"
-              href={RELEASES_URL}
-              target="_blank"
-              rel="noopener"
-              title={tf("versionTitle", { v: APP_VERSION })}
-              aria-label={tf("versionAria", { v: APP_VERSION })}
-            >
-              {APP_VERSION}
-            </a>
-          )}
-        </span>
-      )}
       {admin && authProtected && !desktopOwnsSession && (
         <span className="s-statusbar__group">
           <button
@@ -870,6 +847,31 @@ export default function StatusBar() {
                 onClick={toggleVim}
               />
             </>
+          )}
+        </span>
+      )}
+      {admin && APP_VERSION !== "" && (
+        // The build, and the door to the next one, at the END OF THE BOTTOM
+        // ROW — not in the top cluster, which is for the things clicked
+        // often (the owner: "I would move it to the bottom status bar; the
+        // top one is cluttered"). On the desktop app the chip is the updater
+        // (client/desktop): check, a bar while downloading, Restart now. In a
+        // browser it opens the release page, since a hosted instance updates
+        // when its server does.
+        <span className="s-statusbar__group">
+          {desktop()?.updateCheck !== undefined ? (
+            <UpdateChip />
+          ) : (
+            <a
+              className="s-statusbar__btn s-statusbar__version"
+              href={RELEASES_URL}
+              target="_blank"
+              rel="noopener"
+              title={tf("versionTitle", { v: APP_VERSION })}
+              aria-label={tf("versionAria", { v: APP_VERSION })}
+            >
+              {APP_VERSION}
+            </a>
           )}
         </span>
       )}
