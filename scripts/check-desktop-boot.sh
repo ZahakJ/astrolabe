@@ -13,6 +13,13 @@ export ASTROLABE_DATA="$ASTROLABE_VAULT/.data"
 # single-instance lock would make this launch hand off to a running app and
 # exit 0 — which reads as "booted" and is nothing of the kind.
 export XDG_CONFIG_HOME="$(mktemp -d)"
+# NEVER from the repository: a checkout carries a .env, and a desktop app
+# started beside one links to that deployment — it opened the owner's real
+# vault on the vault's own first port candidate while their app was down, and
+# their next launch moved ports and lost its tabs. An empty directory is the
+# only honest place to boot a test instance from.
+app="$(readlink -f "$app")"
+cd "$(mktemp -d)"
 timeout 25 xvfb-run -a "$app" --no-sandbox > "$log" 2>&1
 code=$?
 if grep -qiE "A JavaScript error occurred|Uncaught Exception|SyntaxError|Cannot find module" "$log"; then
