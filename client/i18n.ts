@@ -3948,6 +3948,9 @@ const DICT = {
     en: "Theme, languages, editor width and the other settings on this tab are kept in the vault, so every device over it — the desktop on each machine, the phone — shares them. Off keeps this device's own.",
     ar: "السمة واللغات وعرض المحرر وسائر إعدادات هذه اللوحة تُحفظ في الخزانة، فتتشاركها كل الأجهزة عليها: سطح المكتب على كل جهاز، والهاتف. الإيقاف يُبقي إعدادات هذا الجهاز له وحده.",
   },
+  checkForUpdates: { en: "Check for updates…", ar: "التحقق من التحديثات…" },
+  versionTitle: { en: "Astrolabe {v} — the releases page", ar: "أسطرلاب {v}، صفحة الإصدارات" },
+  versionAria: { en: "Version {v}", ar: "الإصدار {v}" },
   hintSelToolbar: {
     en: "Formatting buttons appear over text you select.",
     ar: "تظهر أزرار التنسيق فوق النص الذي تحدده.",

@@ -36,6 +36,10 @@ import { isHardWrapped, layoutBadge, noteLayout, type NoteLayout } from "../text
 // became lazy — App renders the zen strip from the same table and must be able
 // to read it without importing (and therefore eagerly loading) the status bar.
 import { vimSubCopy } from "../vimCopy.ts";
+import { desktop } from "../desktop/bridge.ts";
+
+const RELEASES_URL = "https://github.com/ZahakJ/astrolabe/releases/latest";
+const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
 
 /** True while the shell shows the sidebar as an overlay drawer (app.css's
  *  `@media (max-width: 999px)`). The switch below has to know: at those widths
@@ -485,6 +489,37 @@ export default function StatusBar() {
           {t("graph")}
         </button>
       </span>
+      {admin && APP_VERSION !== "" && (
+        // The build, and the door to the next one (the owner: "how do I reach
+        // software update? should be a button at the bottom"). On the desktop
+        // app the chip runs the same check Help → Check for updates… does and
+        // the updater answers with its toast; in a browser it opens the
+        // release page, since a hosted instance updates when its server does.
+        <span className="s-statusbar__group">
+          {desktop()?.updateCheck !== undefined ? (
+            <button
+              type="button"
+              className="s-statusbar__btn s-statusbar__version"
+              onClick={() => void desktop()?.updateCheck?.()}
+              title={t("checkForUpdates")}
+              aria-label={tf("versionAria", { v: APP_VERSION })}
+            >
+              {APP_VERSION}
+            </button>
+          ) : (
+            <a
+              className="s-statusbar__btn s-statusbar__version"
+              href={RELEASES_URL}
+              target="_blank"
+              rel="noopener"
+              title={tf("versionTitle", { v: APP_VERSION })}
+              aria-label={tf("versionAria", { v: APP_VERSION })}
+            >
+              {APP_VERSION}
+            </a>
+          )}
+        </span>
+      )}
       {admin && authProtected && !desktopOwnsSession && (
         <span className="s-statusbar__group">
           <button

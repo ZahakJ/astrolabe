@@ -6644,6 +6644,19 @@ button.s-title:hover {
 }
 
 
+/* The version chip at the end of the status bar: quiet figures, a door to
+   the update check (desktop) or the releases page (browser). */
+.s-statusbar__version {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+.s-statusbar__version:hover {
+  opacity: 1;
+}
+
 /* ── The pane grips (client/components/PaneGrip.tsx) ─────────────────────
    An 8px strip on each pane's INNER edge: drag to resize, drag off the
    window edge to collapse, double-click to reset. A 2px accent line appears
@@ -6659,22 +6672,27 @@ button.s-title:hover {
   touch-action: none;
 }
 
+/* LOGICAL insets, because the panes follow the reading direction: in Arabic
+   the sidebar is on the RIGHT and its inner edge is its left, and a grip at
+   `right: 0` there sat on the window's edge where nothing could take hold
+   (the owner: "I still cannot resize panels in arabic mode"). Inline-end is
+   the sidebar's inner edge in either language; flipped, the other one. */
 .s-sidebar .s-pane-grip {
-  right: 0;
+  inset-inline-end: 0;
 }
 
 .s-app--flip .s-sidebar .s-pane-grip {
-  right: auto;
-  left: 0;
+  inset-inline-end: auto;
+  inset-inline-start: 0;
 }
 
 .s-panel .s-pane-grip {
-  left: 0;
+  inset-inline-start: 0;
 }
 
 .s-app--flip .s-panel .s-pane-grip {
-  left: auto;
-  right: 0;
+  inset-inline-start: auto;
+  inset-inline-end: 0;
 }
 
 .s-pane-grip::after {
