@@ -25,18 +25,25 @@ LOG="$WORK/run.log"
 # AppImage runtime exports the file's path as APPIMAGE.
 mains() {
   for p in $(pgrep -f "astrolabe" 2>/dev/null); do
-    tr '\0' ' ' < "/proc/$p/cmdline" 2>/dev/null | grep -q -- "--type=" && continue
-    tr '\0' '\n' < "/proc/$p/environ" 2>/dev/null | grep -qx "APPIMAGE=$IMG" || continue
-    tr '\0' '\n' < "/proc/$p/environ" 2>/dev/null | grep -qx "XDG_CONFIG_HOME=$WORK/xdg" || continue
+    cat "/proc/$p/cmdline" 2>/dev/null | tr '\0' ' ' | grep -q -- "--type=" && continue
+    env="$(cat "/proc/$p/environ" 2>/dev/null | tr '\0' '\n')" || continue
+    grep -qx "APPIMAGE=$IMG" <<< "$env" || continue
+    grep -qx "XDG_CONFIG_HOME=$WORK/xdg" <<< "$env" || continue
     echo "$p"
   done
 }
 
 cd "$WORK/home"
-XDG_CONFIG_HOME="$WORK/xdg" HOME="$WORK/home" ASTROLABE_SELFTEST=relaunch \
+mkdir -p "$WORK/vault"
+XDG_CONFIG_HOME="$WORK/xdg" HOME="$WORK/home" ASTROLABE_VAULT="$WORK/vault" ASTROLABE_SELFTEST=relaunch \
   xvfb-run -a "$IMG" --no-sandbox > "$LOG" 2>&1 &
-sleep 3
-FIRST="$(mains | head -1)"
+# Mounting the image and starting the main process takes a few seconds.
+FIRST=""
+for _ in $(seq 1 15); do
+  sleep 1
+  FIRST="$(mains | head -1)"
+  [ -n "$FIRST" ] && break
+done
 [ -n "$FIRST" ] || { echo "RELAUNCH FAIL: the first instance never came up"; tail -5 "$LOG"; exit 1; }
 
 # The self-test fires at 4 s; give the exit and the relaunch a moment each.
