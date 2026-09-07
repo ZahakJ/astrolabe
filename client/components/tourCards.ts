@@ -80,7 +80,7 @@ export const TOUR_PREREQ: Record<TourPrereq, TourText> = {
   },
   repo: {
     en: "This vault is not a git work tree yet, so there is no history to read — backup is what makes it.",
-    ar: "هذا القبو ليس شجرة عمل git بعد، فلا تأريخ يُقرأ — النسخ الاحتياطي هو ما يصنعه.",
+    ar: "هذه الخزانة ليست شجرة عمل git بعد، فلا تأريخ يُقرأ — النسخ الاحتياطي هو ما يصنعه.",
   },
 };
 
@@ -169,7 +169,7 @@ export const TOUR_CARDS: TourCard[] = [
     name: { en: "Trackers", ar: "المتتبِّعات" },
     blurb: {
       en: "A fenced block turns any note into a living progress card — a book, a game, a course — with a bar you can nudge one unit at a time. A second fence shelves every tracker in the vault.",
-      ar: "كتلة مسيَّجة تحوّل أي ملاحظة إلى بطاقة تقدُّمٍ حيّة — كتابًا أو لعبة أو دورة — بشريطٍ تدفعه وحدةً وحدة. وكتلة ثانية ترصّ كل متتبِّعات القبو على رفٍّ واحد.",
+      ar: "كتلة مسيَّجة تحوّل أي ملاحظة إلى بطاقة تقدُّمٍ حيّة — كتابًا أو لعبة أو دورة — بشريطٍ تدفعه وحدةً وحدة. وكتلة ثانية ترصّ كل متتبِّعات الخزانة على رفٍّ واحد.",
     },
     action: "trackers",
     verb: { en: "Make me one", ar: "اصنع لي واحدة" },
@@ -218,10 +218,10 @@ export const TOUR_CARDS: TourCard[] = [
   },
   {
     id: "books",
-    name: { en: "A library in the vault", ar: "مكتبةٌ داخل القبو" },
+    name: { en: "A library in the vault", ar: "مكتبةٌ داخل الخزانة" },
     blurb: {
       en: "Drop a PDF into the vault and it becomes a book: read it in a tab beside your notes, mark it up, and cite a page with a wikilink that lands on the very rectangle you highlighted.",
-      ar: "ألقِ ملف PDF في القبو فيصير كتابًا: تقرؤه في لسانٍ بجوار ملاحظاتك، وتعلّم عليه، وتستشهد بصفحةٍ برابط ويكي يهبط على المستطيل الذي ظلّلته بعينه.",
+      ar: "ألقِ ملف PDF في الخزانة فيصير كتابًا: تقرؤه في لسانٍ بجوار ملاحظاتك، وتعلّم عليه، وتستشهد بصفحةٍ برابط ويكي يهبط على المستطيل الذي ظلّلته بعينه.",
     },
     action: "library",
   },
@@ -238,7 +238,7 @@ export const TOUR_CARDS: TourCard[] = [
   },
   {
     id: "graph",
-    name: { en: "The vault as a constellation", ar: "القبو كوكبةً" },
+    name: { en: "The vault as a constellation", ar: "الخزانة كوكبةً" },
     blurb: {
       en: "Every note is a disc and every link a thread, settled by a force simulation that runs entirely on your own machine. Rest the pointer on a note and its whole neighbourhood lights up.",
       ar: "كل ملاحظةٍ قرصٌ وكل رابطٍ خيط، تستقر بمحاكاة قوًى تجري على جهازك وحده لا غير. أرِح المؤشر على ملاحظة فيضيء جوارها كله.",
@@ -247,10 +247,10 @@ export const TOUR_CARDS: TourCard[] = [
   },
   {
     id: "sync",
-    name: { en: "A vault that backs itself up", ar: "قبوٌ ينسخ نفسه" },
+    name: { en: "A vault that backs itself up", ar: "خزانةٌ تنسخ نفسها" },
     blurb: {
       en: "Commit the whole vault to a private git remote that you own, by hand or on a timer, fast-forward only so nothing is ever overwritten. Nothing leaves this machine that you did not point it at.",
-      ar: "أودِع القبو كله في مستودع git خاصٍّ تملكه أنت، بيدك أو على مؤقِّت، تقديمًا سريعًا لا غير فلا يُطمس شيء أبدًا. ولا يغادر هذا الجهاز شيءٌ لم توجّهه إليه بنفسك.",
+      ar: "أودِع الخزانة كلها في مستودع git خاصٍّ تملكه أنت، بيدك أو على مؤقِّت، تقديمًا سريعًا لا غير فلا يُطمس شيء أبدًا. ولا يغادر هذا الجهاز شيءٌ لم توجّهه إليه بنفسك.",
     },
     action: "sync",
     admin: true,

@@ -29,6 +29,7 @@ Runs the API server and Vite with hot reload side by side.
 | `npm run build` | Build the client into `dist/`. The server needs no build — Node runs the TypeScript directly |
 | `npm start` | Build, then serve |
 | `npm run serve` | Serve without rebuilding |
+| `node scripts/rebrand.mjs --name … --icon …` | Stamp your own product name and icon on the desktop build before `npm --prefix desktop run dist` ([the desktop app](desktop.md#your-own-name-and-icon)) |
 | `npm run hash-password` | Prompt (no echo, or piped stdin) and print an argon2id hash for `ADMIN_PASSWORD_HASH` |
 | `npm run typecheck` | `tsc --noEmit` — the strict TypeScript gate |
 

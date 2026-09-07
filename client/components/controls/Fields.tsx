@@ -178,6 +178,8 @@ interface TextInputProps extends ControlIdentity {
   maxLength?: number;
   autoComplete?: string;
   spellCheck?: boolean;
+  /** Commit on leaving the field, for a value that is saved rather than live. */
+  onBlur?: () => void;
 }
 
 export function TextInput({
@@ -192,6 +194,7 @@ export function TextInput({
   maxLength,
   autoComplete,
   spellCheck = false,
+  onBlur,
   id,
   "aria-describedby": describedBy,
 }: TextInputProps) {
@@ -213,6 +216,7 @@ export function TextInput({
       autoComplete={autoComplete}
       spellCheck={spellCheck}
       onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+      onBlur={onBlur}
     />
   );
 }

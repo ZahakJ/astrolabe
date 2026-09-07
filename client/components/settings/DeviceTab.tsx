@@ -22,7 +22,7 @@
 // none of them needs the server to answer.
 
 import { useEffect, useState } from "react";
-import { t } from "../../i18n.ts";
+import { t, tf } from "../../i18n.ts";
 import { defaultSide, useStore, type SidebarSidePref } from "../../state.ts";
 import { choiceBase, choiceLabel } from "../../themes.ts";
 import { headingNumbersPref, setHeadingNumbersPref } from "../../reading/headingNumbers.ts";
@@ -32,6 +32,8 @@ import { openThemePicker } from "../ThemePicker.tsx";
 import { readCustomWidth, readEditorWidth, setCustomWidth, setEditorWidth, type EditorWidth } from "../../editorWidth.ts";
 import { Row } from "./Row.tsx";
 import { prefsSyncEnabled, setPrefsSyncEnabled } from "../../prefsSync.ts";
+import { desktop, type DesktopBrand } from "../../desktop/bridge.ts";
+import { toast } from "../../toast.ts";
 
 /** A localStorage preference that is NOT in the store, kept live the way its
  *  own module already publishes it: a window event. Both of these have a
@@ -46,6 +48,71 @@ function useEventPref(event: string, read: () => boolean): boolean {
     return () => window.removeEventListener(event, sync);
   }, [event, read]);
   return on;
+}
+
+/** THIS APP'S NAME AND ICON, on the desktop only. Astrolabe is one person's
+ *  name for it; the reader running it over their own vault gets to call the
+ *  tray, the window, the launcher entry and the About box whatever they like,
+ *  and an update never takes it back (electron/brand.ts). The rows render
+ *  only where the bridge offers them — a browser has no tray to rename. */
+function AppIdentityRows() {
+  const bridge = desktop();
+  const [brand, setBrand] = useState<DesktopBrand | null>(null);
+  const [name, setName] = useState("");
+  useEffect(() => {
+    void bridge?.brandGet?.().then((b) => {
+      setBrand(b);
+      setName(b.custom ? b.name : "");
+    });
+  }, [bridge]);
+  if (!bridge?.brandGet || brand === null) return null;
+  const apply = (b: DesktopBrand): void => {
+    setBrand(b);
+    setName(b.custom ? b.name : "");
+  };
+  const save = (): void => {
+    const typed = name.trim();
+    const current = brand.custom ? brand.name : "";
+    if (typed === current) return;
+    void bridge.brandSet?.(typed).then(apply);
+  };
+  return (
+    <>
+      <Row label={t("rowAppName")} hint={t("hintAppName")}>
+        <TextInput label={t("rowAppName")} value={name} placeholder={brand.name} onChange={setName} onBlur={save} />
+      </Row>
+      <Row label={t("rowAppIcon")} hint={t("hintAppIcon")}>
+        <span className="s-ctl-inline">
+          {brand.iconDataUrl && <img className="s-ctl-iconpreview" src={brand.iconDataUrl} alt="" width={28} height={28} />}
+          <button type="button" className="s-ctl-select" onClick={() => void bridge.brandPickIcon?.().then(apply)}>
+            {t("appIconChoose")}
+          </button>
+          {brand.custom && (
+            <button type="button" className="s-ctl-select" onClick={() => void bridge.brandClear?.().then(apply)}>
+              {t("appBrandReset")}
+            </button>
+          )}
+        </span>
+      </Row>
+      {brand.launcher !== "none" && (
+        <Row label={t(brand.launcher === "start-menu" ? "rowAppLauncherWin" : "rowAppLauncher")} hint={t("hintAppLauncher")}>
+          <button
+            type="button"
+            className="s-ctl-select"
+            onClick={() =>
+              void bridge.brandInstall?.().then((r) => {
+                if (!r.ok) toast(t("appLauncherFailed"), "error");
+                else if (r.note === "png-icon-skipped") toast(t("appLauncherPngIcon"));
+                else toast(tf("appLauncherDone", { where: r.where }));
+              })
+            }
+          >
+            {t(brand.launcher === "start-menu" ? "appLauncherInstallWin" : "appLauncherInstall")}
+          </button>
+        </Row>
+      )}
+    </>
+  );
 }
 
 export default function DeviceTab() {
@@ -223,6 +290,7 @@ export default function DeviceTab() {
           onChange={() => toggleVim()}
         />
       </Row>
+      <AppIdentityRows />
       <Row label={t("rowPrefsSync")} hint={t("hintPrefsSync")}>
         <Toggle
           label={t("rowPrefsSync")}

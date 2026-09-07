@@ -33,6 +33,7 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import { TO_MAIN, TO_RENDERER, type Command, type Hello } from "./ipc.ts";
 import { keepSignedIn, mintCredential, signIn } from "./auth.ts";
+import { applyBrand, brandIcon, brandInfo, brandName, clearBrand, installLauncher, pickBrandIcon, setBrandName } from "./brand.ts";
 import type { Credential } from "./server.ts";
 import { LEGACY_PROTOCOL, PROTOCOL, knownVault, parseDeepLink, relativeNote, routeForNote, vaultForFile } from "./deeplink.ts";
 import { applyMenu, trayMenu, type RecentEntry } from "./menu.ts";
@@ -184,6 +185,8 @@ if (!app.requestSingleInstanceLock()) {
 
 async function start(): Promise<void> {
   await app.whenReady();
+  // The reader's name for the app, before anything the OS sees is drawn.
+  applyBrand();
   // The boot gate's relaunch test (scripts/check-desktop-relaunch.sh): a few
   // seconds after boot, restart the way an applied update does, and let the
   // script see a second instance come up on the same file. Armed HERE, before
@@ -615,8 +618,19 @@ function windowContext(instance: Instance): Parameters<typeof createVaultWindow>
     vaultName: instance.vaultName,
     origin: instance.server.origin,
     partition: partitionFor(instance.vault),
+    icon: brandIcon(ICON),
     onBounds: (bounds: Bounds) => savePrefs(rememberBounds(loadPrefs(), instance.vault, bounds)),
   };
+}
+
+/** After a change to the name or the icon: the tray follows at once; windows
+ *  already open keep their icon until they are opened again. */
+function refreshBrand(): void {
+  if (tray !== null) {
+    const image = nativeImage.createFromPath(brandIcon(ICON));
+    if (!image.isEmpty()) tray.setImage(image.resize({ width: 22, height: 22 }));
+    tray.setToolTip(brandName());
+  }
 }
 
 function newWindowFor(instance: Instance, route = "/"): BrowserWindow {
@@ -757,6 +771,24 @@ function registerBridge(): void {
       tell(win, TO_RENDERER.updateState, state);
     }
   });
+  ipcMain.handle(TO_MAIN.brandGet, () => brandInfo());
+  ipcMain.handle(TO_MAIN.brandSet, (_event, name: unknown) => {
+    const info = setBrandName(name);
+    refreshBrand();
+    return info;
+  });
+  ipcMain.handle(TO_MAIN.brandPickIcon, async (event) => {
+    const info = await pickBrandIcon(BrowserWindow.fromWebContents(event.sender));
+    refreshBrand();
+    return info;
+  });
+  ipcMain.handle(TO_MAIN.brandInstall, () => installLauncher(ICON));
+  ipcMain.handle(TO_MAIN.brandClear, () => {
+    const info = clearBrand();
+    refreshBrand();
+    return info;
+  });
+
   ipcMain.handle(TO_MAIN.updateCheck, () => {
     void checkForUpdates(true);
   });
@@ -783,6 +815,7 @@ function registerBridge(): void {
       spellcheck: instance?.spellcheck ?? false,
       spellLanguages: instance?.spellLanguages ?? [],
       ownsSession: instance !== null && instance.restart.deployEnv === null,
+      brandIconDataUrl: brandInfo().iconDataUrl,
     };
   });
 
@@ -948,7 +981,7 @@ function showAbout(): void {
   void dialog.showMessageBox({
     type: "info",
     title: m("menuAbout"),
-    message: `Astrolabe ${app.getVersion()}`,
+    message: `${brandName()} ${app.getVersion()}`,
     detail: `Electron ${process.versions.electron} · Chromium ${process.versions.chrome} · Node ${process.versions.node}`,
   });
 }
@@ -957,10 +990,10 @@ function showAbout(): void {
  *  the last window does not have to mean quitting the app, so the vault the
  *  reader lives in is one click away all day. */
 function installTray(): void {
-  const image = nativeImage.createFromPath(ICON);
+  const image = nativeImage.createFromPath(brandIcon(ICON));
   if (image.isEmpty()) return; // no icon on disk (dev, before the build) — no tray
   tray = new Tray(image.resize({ width: 22, height: 22 }));
-  tray.setToolTip("Astrolabe");
+  tray.setToolTip(brandName());
   tray.setContextMenu(
     trayMenu({
       show: () => {

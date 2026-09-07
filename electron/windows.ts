@@ -35,6 +35,8 @@ export interface WindowContext {
   vaultName: string;
   origin: string;
   partition: string;
+  /** The window's icon: the reader's own when they set one (electron/brand.ts). */
+  icon?: string;
   /** Called whenever this window's geometry settles, so the vault's bounds
    *  are what the reader last left, not what they first got. */
   onBounds: (bounds: Bounds) => void;
@@ -120,6 +122,7 @@ export function createVaultWindow(ctx: WindowContext, bounds: Bounds | null, rou
     // overwrite the window title with no vault in it. `title` + this flag mean
     // "the vault is always in the title bar".
     title: ctx.vaultName,
+    ...(ctx.icon ? { icon: ctx.icon } : {}),
     backgroundColor: IRON_GALL,
     show: false,
     autoHideMenuBar: false,

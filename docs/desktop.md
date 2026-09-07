@@ -42,6 +42,32 @@ publish, the shortcut sheet. The desktop app also claims a few chords the browse
 | `Ctrl/Cmd =` / `-` / `0`, and the numpad | Zoom in / out / actual size |
 | `Ctrl/Cmd Y` | Redo, beside `Ctrl/Cmd Shift Z` |
 
+## Your own name and icon
+
+Astrolabe is one person's name for it. **Settings → Device → This app** lets you call the app
+whatever you like on this computer and give it your own icon: the tray, its tooltip, the window
+icon, the About box and the launcher entry all follow. The site's own name and logo are a
+separate thing, under *Site*, and title the window and the sidebar. **An update never touches
+either**: the AppImage is swapped over its own path, so a file you renamed keeps its name; the
+Windows installer replaces the program directory and nothing else; and your name and icon live
+beside the app's settings, which no update writes.
+
+*Add to the applications menu* (Linux) writes a desktop entry in your name, with your icon,
+pointing at the AppImage wherever you keep it. *Add to the Start Menu* (Windows) creates a
+shortcut the same way; a shortcut's icon must be an `.ico`, so choose one of those there.
+Run it again after changing the name or the icon.
+
+The full rebrand — the executable's own file name and the icon baked into it — is a build:
+
+```
+node scripts/rebrand.mjs --name "Marginalia" --icon ~/marginalia.png
+npm --prefix desktop run dist
+```
+
+Every artifact in `desktop/release` then carries your name and icon. The updater still follows
+the release page the build was made from (`RELEASES_PAGE` in `electron/update.ts`); point it at
+your own if you publish your own releases.
+
 ## The reference window
 
 **Window → Open as reference window** (`Ctrl/Cmd Alt R`) opens the current note in a second,

@@ -139,7 +139,11 @@ const ShortcutsHelp = lazySurface(() => import("./components/ShortcutsHelp.tsx")
  *  A friend saw the app's star over their vault and asked why. */
 function EmptyGlyph() {
   const logo = useStore((s) => s.logo);
-  const src = useBannerSrc(logo).src;
+  const desktopIcon = useStore((s) => s.desktopBrandIcon);
+  // The site's logo first, then the desktop app's own icon (the reader's,
+  // when they set one — electron/brand.ts), then the product's mark. Every
+  // state of this page — locked, open, empty — draws through here.
+  const src = useBannerSrc(logo).src ?? desktopIcon;
   return (
     <div className="s-empty__glyph" aria-hidden="true">
       {src ? <img className="s-empty__logo" src={src} alt="" /> : <BrandMark size={44} />}

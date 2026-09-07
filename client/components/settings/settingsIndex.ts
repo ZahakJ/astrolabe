@@ -27,6 +27,8 @@ export interface SettingEntry {
 }
 
 export const SETTINGS_INDEX: SettingEntry[] = [
+  { tab: "device", label: "rowAppName", hint: "hintAppName" },
+  { tab: "device", label: "rowAppIcon", hint: "hintAppIcon" },
   { tab: "device", label: "rowYourTheme", hint: "hintYourTheme" },
   { tab: "device", label: "rowEditorLanguage", hint: "hintEditorLanguage" },
   { tab: "device", label: "rowSidebarSide", hint: "hintSidebarSide" },

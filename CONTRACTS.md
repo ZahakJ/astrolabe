@@ -5502,6 +5502,22 @@ trapdoor one level further out.
 - With nothing to restore, `enterVault` opens the most recent note (client/recents.ts), then the
   seed guide, then the first name in the tree — never the first name while a recent one exists.
 
+## The app's name and icon are the reader's (electron/brand.ts)
+
+- `<userData>/brand.json` `{ name, icon }` is read at ready; `app.name`, the tray image and
+  tooltip, the window icon (`WindowContext.icon`) and the About box draw from `brandName()` /
+  `brandIcon(default)`. Anything new the shell draws with the product's identity MUST go through
+  those two, never the literal "Astrolabe" or the bundled icon path.
+- The icon is COPIED under `<userData>/brand/` and only a path inside that directory is trusted
+  from the file. Name: ≤ 60 chars, control characters stripped, "Astrolabe" itself stored as null.
+- Updates never touch it: the AppImage swap targets `APPIMAGE` (the reader's own file name), the
+  Windows installer the program directory, and `userData` neither. `installLauncher` writes
+  `~/.local/share/applications/<slug>.desktop` (Exec = the AppImage path, `StartupWMClass=astrolabe`)
+  or a Start Menu `.lnk` (icon only from an `.ico`; a PNG reports `png-icon-skipped`).
+- The build-time rebrand is `scripts/rebrand.mjs` (productName/copyright in electron-builder.yml,
+  desktop/icons/icon.png); it does not touch `appId` or `RELEASES_PAGE`, so a rebranded build of
+  this repository still takes this repository's updates unless the constant is changed.
+
 ## Desktop sessions (electron/auth.ts, electron/main.ts, client/desktop)
 
 - A vault whose password THIS LAUNCH minted is owned by the app: `hello.ownsSession` is true,

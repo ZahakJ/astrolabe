@@ -30,6 +30,16 @@ export interface DesktopHello {
    *  and a lost session is restored through `sessionRestore`. Absent on a
    *  desktop build older than 3.4.2. */
   ownsSession?: boolean;
+  /** The reader's own app icon, as a data URL. Absent before 3.6.0. */
+  brandIconDataUrl?: string | null;
+}
+
+/** The desktop's own name and icon, as electron/brand.ts reports them. */
+export interface DesktopBrand {
+  name: string;
+  custom: boolean;
+  iconDataUrl: string | null;
+  launcher: "desktop-entry" | "start-menu" | "none";
 }
 
 export interface DesktopBridge {
@@ -52,6 +62,12 @@ export interface DesktopBridge {
   sessionRestore?(): Promise<boolean>;
   /** Absent on a desktop build older than 3.5.0. */
   updateCheck?(): Promise<void>;
+  /** The reader's own name and icon for the app. Absent before 3.6.0. */
+  brandGet?(): Promise<DesktopBrand>;
+  brandSet?(name: string): Promise<DesktopBrand>;
+  brandPickIcon?(): Promise<DesktopBrand>;
+  brandInstall?(): Promise<{ ok: boolean; where: string; note: "png-icon-skipped" | null }>;
+  brandClear?(): Promise<DesktopBrand>;
 }
 
 declare global {
