@@ -62,6 +62,12 @@ button disappears once the vault is a repository.
 
 ## 4. Sync
 
+**Every launch syncs first.** With Backup & sync enabled, a server that comes up runs a pass
+before it answers its first window, and every window that opens as an admin — a browser, the
+phone, a desktop window — asks the server for one more, which it runs unless one ran in the last
+five minutes or is running now. So the first thing any device does is pull what the others
+pushed. The manual **Sync now** below stays, for whenever you want it.
+
 The status bar shows a quiet branch glyph while backup is on: plain when everything
 is committed, with a count when it is not, gold while a sync runs, red when the last one failed.
 Click it for a small panel carrying the branch, the ahead/behind counts, the last result and —
@@ -241,6 +247,16 @@ automatic interval safe to leave switched on next to a desktop app.
   as the filesystem makes it, and the fifteen-minute age check is the only recovery there.
 
 ## Settings travel with the vault
+
+**The instance's own configuration travels too.** `settings.json` (site name, tagline, logo,
+language, home note, folders, typography, calendars, the sync settings themselves), the
+designer's `designs.json`, `custom.css` and your custom fonts are mirrored from
+`ASTROLABE_DATA` into `<vault>/.astrolabe/` and back, every few seconds and once at boot,
+newest copy wins, on every server over the folder. Set the site name on the hosted instance
+and the desktop app on the other machine has it after its next pull; upload a logo in the
+designer on the laptop and the site shows it after the next push. What stays put: the git
+token (a device's own), the comments database, the reading positions and creation ledger, and
+sessions.
 
 The settings on the Device tab — theme, chrome and editor language, vim, the writing column's
 width, heading numbers, the formatting toolbar, which side the sidebar hangs on — are kept in

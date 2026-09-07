@@ -69,7 +69,9 @@ percentage; once the download is on disk and verified it reads **Restart now**. 
 opens the releases page, since a hosted instance updates when its server does.
 
 What "restart" does depends on how the app was installed. The **AppImage** is swapped in place
-and relaunched. The **Windows** install runs the new installer silently and the installer
+and relaunched: the app leaves, and a moment later the new file starts on its own (a release
+that made you open it again yourself is behind us; every AppImage build is now relaunch-tested
+before it is published). The **Windows** install runs the new installer silently and the installer
 relaunches the app. Both downloads are checked against the release's own checksum file before
 anything runs. The **deb** and **pacman** packages belong to a package manager, so there the toast
 opens the release page instead. The **Android app** (the APK on the same release page) checks

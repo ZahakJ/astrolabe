@@ -102,8 +102,9 @@ import { activeDesignFontRefs } from "./designs.ts";
 import { designRoutes } from "./designRoutes.ts";
 import { bookRoutes } from "./bookRoutes.ts";
 import { prefsRoutes } from "./prefs.ts";
+import { readWorkspaceState, writeWorkspaceState } from "./workspaceState.ts";
 import { staticPagesActive } from "./pages.ts";
-import { gitStatus, initRepo, noteHistory, noteRevisionBlob, snapshotNow, syncNow } from "./gitSync.ts";
+import { gitStatus, initRepo, noteHistory, noteRevisionBlob, snapshotNow, syncNow, syncAtLaunch } from "./gitSync.ts";
 import { dirOf, rewriteDestinations, rewriteForMove } from "./moveLinks.ts";
 // The three v1.8 bulk verbs: the engine, the tag surgeon, the heading detector.
 import { applyBulk, previewBulk, undoBulk } from "./bulkRewrite.ts";
@@ -2617,6 +2618,34 @@ api.post("/sync/init", async (c) => {
 api.post("/sync/now", async (c) => {
   assertCredentialed();
   return c.json(await syncNow("manual"));
+});
+
+// A window opened: the client says so once per load, and the server runs a
+// pass when one is due (server/gitSync.ts::syncAtLaunch). The answer is only
+// whether it ran; the status route says how it went.
+api.post("/sync/launch", async (c) => {
+  assertCredentialed();
+  return c.json({ ran: await syncAtLaunch() });
+});
+
+// The last workspace, kept beside the vault (server/workspaceState.ts): what
+// a desktop window restores when its own storage is empty — a new port is a
+// new origin, and a new origin has no tabs.
+api.get("/state/workspace", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json({ workspace: await readWorkspaceState() });
+});
+
+api.put("/state/workspace", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    throw new VaultError(400, "Invalid JSON body");
+  }
+  const ok = await writeWorkspaceState((body as { workspace?: unknown })?.workspace);
+  return c.json({ ok });
 });
 
 // A LOCAL commit, and nothing else. Deliberately NOT behind
