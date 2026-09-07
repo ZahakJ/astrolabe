@@ -18,7 +18,15 @@ is the folder on disk, and a browser on the network can still reach the same vau
 opened, and *Clear the list* forgets them. **New window** (`Ctrl/Cmd Shift N`) opens another
 window on the current vault, which is how a [second window over one vault](workspace.md#several-windows-one-vault)
 starts; **Close window** is `Ctrl/Cmd W`. *Show the vault in the file manager* opens the folder
-itself. The app keeps a tray icon with *Show Astrolabe* and *Quit*.
+itself. The app keeps a tray icon with *Show Astrolabe* and *Quit*. `ASTROLABE_VAULT=/path` in
+the environment opens that folder at launch without the picker, for a launcher or a script.
+
+**Your tabs survive a port change.** The window's tabs and layout live in the browser storage of
+the vault's port, and a launch that finds that port busy moves to the next one — a fresh origin
+with nothing in it. So the desktop also keeps the last workspace beside the vault's data and
+restores it when a window opens on nothing; it waits a few seconds for the remembered port first;
+and a window with truly nothing to restore opens the note you were in most recently rather than
+the first name in the tree.
 
 Every command the app has is in the menu bar with its chord, in both languages: new note, the
 daily note, save, print, reading view, the graph, zen, the two side panes, the palette, search,
@@ -97,7 +105,8 @@ takes the same password the site takes.
 
 ## Where things live
 
-The app's own configuration is in `~/.config/astrolabe` (`desktop.json`: the vaults, their ports
+The app's own configuration is in `~/.config/astrolabe` (the old `vellum` directory from before
+the rename is carried in on first launch and then removed) (`desktop.json`: the vaults, their ports
 and, for each, the data directory it uses), and each vault's instance data in the
 [`ASTROLABE_DATA`](configuration.md#environment-variables) that entry names. The Linux build is
 packaged with `asar: false` deliberately, because the server child reads real files from the
