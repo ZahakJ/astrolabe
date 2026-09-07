@@ -752,7 +752,7 @@ export function settingsResponse(): SettingsResponse {
 
 /** package.json's version, read once. The file sits next to server/ in every
  *  layout this ships in (clone-and-run, no bundling on the server side). */
-const VERSION = ((): string => {
+export const VERSION = ((): string => {
   try {
     const raw = readFileSync(new URL("../package.json", import.meta.url), "utf8");
     const parsed: unknown = JSON.parse(raw);

@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { cpSync, createReadStream, existsSync, statSync } from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin } from "vite";
+import { readFileSync } from "node:fs";
 import react from "@vitejs/plugin-react";
 import { chunkFor } from "./build/chunks.ts";
 
@@ -109,6 +110,9 @@ function excalidrawAssets(): Plugin {
 }
 
 export default defineConfig({
+  // The build's own version, so a tab can tell when the server has moved on
+  // (client/state.ts loadMe compares it with /api/me's `version`).
+  define: { __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version) },
   plugins: [react(), pdfjsAssets(), excalidrawAssets()],
   root: "client",
   build: {

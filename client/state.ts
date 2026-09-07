@@ -1008,6 +1008,14 @@ function clearStoredPreview(): void {
  *  and then looked at their site as a visitor should not find the split gone. */
 /** The reader language the preview borrowed (see setPreviewVisitor), and
  *  the one to put back on exit. */
+let newBuildNoticed = false;
+function noticeNewBuild(serverVersion: unknown): void {
+  const mine = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
+  if (newBuildNoticed || mine === "" || typeof serverVersion !== "string" || serverVersion === mine) return;
+  newBuildNoticed = true;
+  actionToast(tf("newBuildOnServer", { version: serverVersion }), t("crashReload"), () => location.reload());
+}
+
 let previewLangBefore: string | null = null;
 let previewLangFlipped: string | null = null;
 let previewSnapshot: Workspace | null = null;
@@ -1412,6 +1420,12 @@ export const useStore = create<State>()((set, get) => {
         // value below overwrites this in every case.
         if (!api.hasReaderLang()) api.setReaderLang(readVisitorLang());
         const me = await api.getMe();
+        // THE SERVER MAY HAVE MOVED ON. A tab that outlived a deploy still
+        // runs the old build and asks for on-demand chunks by names the
+        // server no longer has; the first symptom the owner saw was "Failed
+        // to open <note>". So every /api/me compares the server's version
+        // with this build's, and says "reload" once, plainly.
+        noticeNewBuild(me.version);
         // A preview flag the server did NOT honor (me.preview absent) means
         // the admin session is gone — we are a real visitor now, so drop the
         // flag rather than showing a lying "previewing" banner.
@@ -1638,6 +1652,15 @@ export const useStore = create<State>()((set, get) => {
       guarded("toggling visitor preview", async () => {
         if (on === get().previewVisitor) return;
         if (on && !get().admin) return; // admin-only affordance
+        // A PRIVATE VAULT HAS NO VISITOR TO BE. With PUBLIC=false (the desktop
+        // app's way of running a vault) the visitor branch answers 401 to
+        // everything, and the preview used to walk into it anyway: the tree
+        // failed, the note "failed to open", and the owner read it as a bug in
+        // the note. Say what a stranger would meet, and stay put.
+        if (on && !get().publicReads) {
+          toast(t("previewPrivateVault"), "info", { keep: true });
+          return;
+        }
         // Let a pending autosave land first — the Editor unmounts on entry.
         const before = get().openPath;
         if (before && get().dirty[before]) await waitForClean(before, 2000);
@@ -1688,14 +1711,26 @@ export const useStore = create<State>()((set, get) => {
           previewLangBefore = api.getReaderLang();
           previewLangFlipped = null;
           if (before !== null && !visible.has(before) && (get().publishedPaths?.has(before) ?? false)) {
+            // With no reader language declared, the server picks one of its
+            // own (the site language, or none at all), and guessing which
+            // sent the flip the wrong way: an English editor on an Arabic
+            // site tried "en" for an Arabic note and gave up. So both
+            // languages are tried, the likelier one first.
             const current = previewLangBefore ?? get().language;
-            const other = current === "ar" ? "en" : "ar";
-            api.setReaderLang(other);
-            await get().loadTree();
-            const again = new Set(collectNotes(get().tree).map((n) => n.path));
-            if (again.has(before)) {
-              visible = again;
-              previewLangFlipped = other;
+            const tries = current === "ar" ? ["en", "ar"] : ["ar", "en"];
+            let found: string | null = null;
+            for (const candidate of tries) {
+              api.setReaderLang(candidate);
+              await get().loadTree();
+              const again = new Set(collectNotes(get().tree).map((n) => n.path));
+              if (again.has(before)) {
+                visible = again;
+                found = candidate;
+                break;
+              }
+            }
+            if (found !== null) {
+              previewLangFlipped = found;
               await get().loadMe();
             } else {
               api.setReaderLang(previewLangBefore);

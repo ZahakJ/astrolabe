@@ -37,6 +37,15 @@ function ChunkGone(): React.JSX.Element {
   );
 }
 
+/** True for the error a dynamic `import()` throws when the chunk it names is
+ *  gone — the shape of a browser tab that outlived a deploy. Chromium says
+ *  "Failed to fetch dynamically imported module", Firefox "error loading
+ *  dynamically imported module", Safari "Importing a module script failed". */
+export function isChunkLoadError(err: unknown): boolean {
+  const text = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+  return /dynamically imported module|Importing a module script failed|Loading chunk|Loading CSS chunk/i.test(text);
+}
+
 /** `lazy()`, with the failure handled.
  *
  *  ONE retry before giving up, and it is not superstition: the common causes

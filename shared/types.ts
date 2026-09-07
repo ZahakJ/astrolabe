@@ -565,6 +565,9 @@ export interface MeData {
    *  grounds as folderIcons above: it is a vault path, and moving is admin. */
   /** settings.emptyPropsCard, sent only when the owner turned it OFF. */
   emptyPropsCard?: false;
+  /** The server's package version, so a tab that outlived a deploy can tell
+   *  (client/state.ts noticeNewBuild). */
+  version?: string;
   attachmentFolder?: { mode: "specified" | "subfolder"; folder: string };
   /** Where a new drawing goes by default (settings.drawingsFolder); absent
    *  means the vault root. Admin only, like the two above. */
