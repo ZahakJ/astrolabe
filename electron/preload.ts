@@ -64,6 +64,8 @@ contextBridge.exposeInMainWorld("astrolabeDesktop", {
   openReference: (route: string) => ipcRenderer.invoke("astrolabe:open-reference", route),
   /** Sign the window back in to a vault whose password this launch minted. */
   sessionRestore: () => ipcRenderer.invoke("astrolabe:session-restore"),
+  /** Check the release page now; the answer arrives as an update-state toast. */
+  updateCheck: () => ipcRenderer.invoke("astrolabe:update-check"),
   /** Apply a staged update and relaunch — or open the release page on a build
    *  that cannot swap itself in place. */
   updateApply: () => ipcRenderer.invoke("astrolabe:update-apply"),

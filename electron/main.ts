@@ -739,6 +739,10 @@ function registerBridge(): void {
       tell(win, TO_RENDERER.updateState, state);
     }
   });
+  ipcMain.handle(TO_MAIN.updateCheck, () => {
+    void checkForUpdates(true);
+  });
+
   ipcMain.handle(TO_MAIN.updateApply, async () => {
     await applyStagedUpdate();
   });

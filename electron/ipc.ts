@@ -57,6 +57,10 @@ export const TO_MAIN = {
    *  vault, whose password is the owner's own, it answers false and the
    *  login modal stays the honest surface. */
   sessionRestore: "astrolabe:session-restore",
+  /** The reader asked for an update check from the app's own chrome (the
+   *  version chip in the status bar) — the same check Help → Check for
+   *  updates… runs, answered through the update-state toasts. */
+  updateCheck: "astrolabe:update-check",
 } as const;
 
 /** Main tells, renderer listens (`webContents.send` ⇄ `ipcRenderer.on`). */

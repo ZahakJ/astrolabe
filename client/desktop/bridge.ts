@@ -50,6 +50,8 @@ export interface DesktopBridge {
   openReference(route: string): Promise<void>;
   /** Absent on a desktop build older than 3.4.2. */
   sessionRestore?(): Promise<boolean>;
+  /** Absent on a desktop build older than 3.5.0. */
+  updateCheck?(): Promise<void>;
 }
 
 declare global {
