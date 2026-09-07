@@ -31,6 +31,12 @@ interface SiteConfig {
   language: "en" | "ar"; // SITE_LANG — chrome language + RTL mirroring when "ar"
   languageFilter: EnvLanguageFilter; // LANGUAGE_FILTER — see readEnvLanguageFilter
   siteUrl: string | null; // canonical origin for absolute links (RSS, canonical); null → derive from request
+  /** Hostnames this site USED to answer under (LEGACY_HOSTS, comma-separated,
+   *  lowercased, no port). A request arriving for one of them is sent to
+   *  SITE_URL with the same path, permanently — a site that changed its name
+   *  keeps every old link alive. Empty when SITE_URL is unset: there is
+   *  nowhere to send anyone. */
+  legacyHosts: string[];
   attachmentsDir: string; // vault-relative dir uploads land in (ATTACHMENTS_DIR)
   bannerFallback: "generated" | "none"; // BANNER_FALLBACK — hero for banner-less blog posts
 }
@@ -47,6 +53,7 @@ let config: SiteConfig = {
   language: "en",
   languageFilter: "off",
   siteUrl: null,
+  legacyHosts: [],
   attachmentsDir: "",
   bannerFallback: "generated",
 };
@@ -145,6 +152,10 @@ export function initSite(env: NodeJS.ProcessEnv = process.env): void {
     // Public-surface language filter (see indexer + LanguageFilterMode).
     languageFilter: readEnvLanguageFilter(env.LANGUAGE_FILTER),
     siteUrl: env.SITE_URL?.trim().replace(/\/+$/, "") || null,
+    legacyHosts: (env.LEGACY_HOSTS ?? "")
+      .split(",")
+      .map((h) => h.trim().toLowerCase().replace(/:\d+$/, ""))
+      .filter((h) => h !== ""),
     // Vault-relative directory uploaded images land in (created on demand).
     // Slashes trimmed; the API layer path-safety-checks the joined result.
     // Empty means "not set": the default is then resolved against the vault
@@ -331,6 +342,25 @@ export function languageToggleEnabled(): boolean {
  *  callers then derive the origin from the request. */
 export function siteUrl(): string | null {
   return config.siteUrl;
+}
+
+/** Where a request for `hostHeader` should be sent instead, or null when it
+ *  is not one of the site's old names (or there is no SITE_URL to send it
+ *  to). Pure, for the tests: `path` and `search` ride along untouched so a
+ *  deep link into an article survives the rename. */
+export function legacyRedirectTarget(hostHeader: string | undefined, path: string, search: string): string | null {
+  const canonical = config.siteUrl;
+  if (canonical === null || hostHeader === undefined) return null;
+  const host = hostHeader.trim().toLowerCase().replace(/:\d+$/, "");
+  if (!config.legacyHosts.includes(host)) return null;
+  let canonicalHost = "";
+  try {
+    canonicalHost = new URL(canonical).host.toLowerCase();
+  } catch {
+    return null;
+  }
+  if (canonicalHost === host) return null; // already home
+  return `${canonical}${path}${search}`;
 }
 
 /** Absolute path of ASTROLABE_DATA/custom.css when it exists right now, else
