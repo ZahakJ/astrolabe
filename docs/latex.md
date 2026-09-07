@@ -14,7 +14,7 @@ compiles: everything Astrolabe adds is a LaTeX comment or a macro you can ship
 beside the file.
 
 - **Live-preview editor** — the CodeMirror `stex` mode themed to whichever of
-  the twenty-two rooms you are in, with the same bargain the markdown editor
+  the forty-six rooms you are in, with the same bargain the markdown editor
   makes: the caret's line shows raw TeX, every other line reads as the thing it
   becomes. Sectioning is set in serif, `\emph`/`\textbf`/`\texttt` render,
   `\item` becomes a bullet or its number, `$…$` and display environments are

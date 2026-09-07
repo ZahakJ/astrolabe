@@ -5436,6 +5436,26 @@ read "1 change not saved yet", one keystroke later the panel was gone and reopen
 with the design under edit still unsaved behind it" for the preset detail; this is the same
 trapdoor one level further out.
 
+## The preset rooms (scripts/gen-themes.mjs)
+
+- Twenty-four themes are GENERATED, not hand-written: `scripts/gen-themes.mjs` holds one compact
+  spec per palette (grounds, four text tones, accent, danger, radius, the palette's eight colours)
+  and writes the `[data-theme]` blocks and swatch trios into `client/styles/tokens.css` between
+  the two marker comments. Edit the spec and rerun; never the generated CSS. Every tone is
+  measured against the contrast gate's floors before it is written (`clear()`), so the generator
+  and `check-contrast` agree by construction; an accent within 18 ΔE of the text is reported and
+  fixed in the spec by hand.
+- `DARK_THEMES[0]` is the product default and is `github-dark` (sky blue on neutral greys). The
+  old rooms keep their ids; only their labels changed (Arabic names now say what the room looks
+  like rather than naming a pigment).
+- `check-contrast` takes the light list from `shared/themes.ts` — a copy once matched
+  `solarized-dark` by the prefix `solar`. `client/styles/textcolor.css` must list every light
+  room in its selector; the semantic inks (`--vc-*`) and the literal inks (`shared/textColors.ts`)
+  are solved against EVERY room's grounds, so a new room with a lighter dark ground (Nord) or a
+  warmer light one (gruvbox-light) may move them — rerun the solve, never loosen the gate.
+- A mid-grey ground cannot hold the literal inks at 3:1 on both sides; that is why there is no
+  Zenburn.
+
 ## Settings travel with the vault (server/prefs.ts, client/prefsSync.ts)
 
 - The Device-tab preferences (an allowlist in `client/prefsSync.ts`: theme, site-theme, lang,

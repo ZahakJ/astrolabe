@@ -184,8 +184,11 @@ for (const [name, t] of Object.entries(themes)) {
 
 const { SEMANTIC_COLORS, LITERAL_COLORS } = await import("../shared/textColors.ts");
 
-const LIGHT_THEMES = ["parchment", "sandstone", "linen", "solar", "palimpsest", "porcelain", "mauveine"];
-const isLight = (name) => LIGHT_THEMES.some((id) => name.startsWith(id));
+// The catalogue's own word on which rooms are lit — a list copied here once
+// said "solar" and matched "solarized-dark" by prefix, which checked the
+// light inks against a dark ground and failed the wrong room.
+const { LIGHT_THEMES } = await import("../shared/themes.ts");
+const isLight = (name) => LIGHT_THEMES.some((id) => name === id || name.startsWith(`${id} `));
 
 /** Every ground a note's prose can sit on, per theme. `--bg-raised` counts:
  *  colored text shows up inside hover preview cards and callouts too. */

@@ -14,17 +14,17 @@
    it.
 
    The default block is the DARK set, matching tokens.css: no `data-theme`
-   attribute means iron-gall. */
+   attribute means github-dark, the default. */
 
 :root {
-  --vc-red: #db8076;
-  --vc-orange: #d18952;
-  --vc-amber: #b99531;
-  --vc-green: #40b12f;
-  --vc-teal: #2da999;
-  --vc-blue: #6a9dd7;
-  --vc-violet: #b586df;
-  --vc-magenta: #db76b6;
+  --vc-red: #e79b95;
+  --vc-orange: #dda176;
+  --vc-amber: #c5ad5d;
+  --vc-green: #6fc162;
+  --vc-teal: #60bdb5;
+  --vc-blue: #87b1e1;
+  --vc-violet: #c2a0e7;
+  --vc-magenta: #e795c3;
 }
 
 /* The lit rooms. Listed by name rather than by a media query: the theme is a
@@ -35,13 +35,20 @@
 :root[data-theme="solar"],
 :root[data-theme="palimpsest"],
 :root[data-theme="porcelain"],
-:root[data-theme="mauveine"] {
+:root[data-theme="mauveine"],
+:root[data-theme="github-light"],
+:root[data-theme="solarized-light"],
+:root[data-theme="gruvbox-light"],
+:root[data-theme="catppuccin-latte"],
+:root[data-theme="ayu-light"],
+:root[data-theme="everforest-light"],
+:root[data-theme="rose-pine-dawn"] {
   --vc-red: #a93528;
-  --vc-orange: #8c5021;
-  --vc-amber: #745c1b;
+  --vc-orange: #894e20;
+  --vc-amber: #725a1a;
   --vc-green: #246b19;
-  --vc-teal: #196b60;
+  --vc-teal: #19695e;
   --vc-blue: #265fa1;
-  --vc-violet: #8530cf;
+  --vc-violet: #822fcb;
   --vc-magenta: #a9287a;
 }

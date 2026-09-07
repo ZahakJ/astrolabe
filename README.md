@@ -26,7 +26,7 @@ When some of those notes deserve readers, the same vault becomes a public site w
 | | |
 | --- | --- |
 | ![Blog dashboard home](docs/screenshots/blog-dashboard.png)<br>*Blog mode's dashboard home — posts as cards, each with a generated gradient until you set a banner.* | ![Blog article with comments](docs/screenshots/blog-article.png)<br>*An article page: related posts, then "Marginalia" — built-in, rate-limited reader comments.* |
-| ![Graph view](docs/screenshots/graph.png)<br>*Graph view — a hand-rolled canvas force simulation; drag nodes, click to open.* | ![The twenty-two themes](docs/screenshots/themes.png)<br>*Twenty-two hand-tuned themes — fifteen dark, seven light — each defining its whole palette.* |
+| ![Graph view](docs/screenshots/graph.png)<br>*Graph view — a hand-rolled canvas force simulation; drag nodes, click to open.* | ![The forty-six themes](docs/screenshots/themes.jpg)<br>*Forty-six themes — thirty-two dark, fourteen light, twenty-four of them the palettes editors already agree on — each defining its whole palette.* |
 
 ## Quickstart
 
@@ -123,7 +123,7 @@ The site's own name and logo are settings too, and they travel with the vault. S
 - **[Blog mode](docs/blog-mode.md)** — masthead, topic nav, dashboard home, hover previews, RSS, sitemap/robots and server-injected SEO meta
 - **[Designed mode](docs/designer.md)** — compose your own homepage from sections, fifty-nine shipped presets, with the stock blog kept as an always-working fallback
 - **[The library](docs/library.md)** — books, courses and lecture series as paths a reader walks in order: a folder becomes a shelf entry, its subfolders the chapters, its published notes the lessons
-- **[Twenty-two themes](docs/theming.md)** — fifteen dark, seven light, every one gated at WCAG AA, plus a custom-theme builder and `custom.css`
+- **[Forty-six themes](docs/theming.md)** — thirty-two dark, fourteen light, Nord and Dracula and Catppuccin among them, every one gated at WCAG AA, plus a custom-theme builder and `custom.css`
 - **[Real typography](docs/typography.md)** — a self-hosted font catalog and your own uploads, with per-character Arabic that sets correctly inside an English sentence
 - **[Arabic & RTL](docs/arabic-and-rtl.md)** — the whole interface mirrored and translated, an optional visitor `EN`/`ع` switch, a language filter, Hijri dates
 - **[A desktop app](docs/desktop.md)** — AppImage, deb, pacman and a Windows build: a native menu bar in both languages, recent vaults, an always-on-top reference window, find in page, and background updates

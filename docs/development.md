@@ -50,7 +50,7 @@ is excluded from the usage scan, because a key whose English value happens to be
 
 ### `npm run check-contrast` — the accessibility gate
 
-Holds every one of the twenty-two themes in `client/styles/tokens.css` to WCAG on the five text
+Holds every one of the forty-six themes in `client/styles/tokens.css` to WCAG on the five text
 tokens: body text, headings and secondary text against all three grounds (`--bg`, the raised surfaces and
 the hover ground the tag pills sit on), the accent against the page, and `--text-faint` at the 3:1
 non-text bar on the two grounds it is licensed to paint on. The accent pair is read as text twice
