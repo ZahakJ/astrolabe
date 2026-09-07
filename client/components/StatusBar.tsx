@@ -41,6 +41,70 @@ import { desktop } from "../desktop/bridge.ts";
 const RELEASES_URL = "https://github.com/ZahakJ/astrolabe/releases/latest";
 const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
 
+/** The desktop app's version chip, which is the updater's face (the owner:
+ *  "a self-contained updater with an update bar status and all that"). At
+ *  rest it is the build and a click checks; while a release downloads it is
+ *  a bar with the percentage; once the download is on disk and verified it
+ *  is **Restart now**; a build a package manager owns gets a link to the
+ *  release instead. The updater itself is electron/update.ts. */
+function UpdateChip() {
+  const update = useStore((s) => s.desktopUpdate);
+  const phase = update?.phase ?? "";
+  if (phase === "downloading") {
+    const pct = update?.total ? Math.min(100, Math.floor(((update.received ?? 0) / update.total) * 100)) : null;
+    const label = tf("updateChipDownloading", { version: update?.version ?? "", pct: pct ?? 0 });
+    return (
+      <span
+        className="s-statusbar__btn s-statusbar__version s-statusbar__version--busy"
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        {...(pct !== null ? { "aria-valuenow": pct } : {})}
+        title={label}
+      >
+        <span className="s-statusbar__update-bar" style={{ "--p": pct === null ? "30%" : `${pct}%` } as React.CSSProperties} />
+        <span>{pct === null ? "…" : `${localeNum(pct)}%`}</span>
+      </span>
+    );
+  }
+  if (phase === "ready") {
+    return (
+      <button
+        type="button"
+        className="s-statusbar__btn s-statusbar__version s-statusbar__version--ready"
+        onClick={() => void desktop()?.updateApply()}
+        title={tf("updateChipReady", { version: update?.version ?? "" })}
+      >
+        {t("updateRestart")}
+      </button>
+    );
+  }
+  if (phase === "available") {
+    return (
+      <button
+        type="button"
+        className="s-statusbar__btn s-statusbar__version"
+        onClick={() => void desktop()?.updateApply()}
+        title={tf("updateAvailable", { version: update?.version ?? "" })}
+      >
+        {update?.version ?? APP_VERSION} ↗
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="s-statusbar__btn s-statusbar__version"
+      onClick={() => void desktop()?.updateCheck?.()}
+      title={phase === "failed" ? t("updateFailed") : t("checkForUpdates")}
+      aria-label={tf("versionAria", { v: APP_VERSION })}
+    >
+      {APP_VERSION}
+    </button>
+  );
+}
+
 /** True while the shell shows the sidebar as an overlay drawer (app.css's
  *  `@media (max-width: 999px)`). The switch below has to know: at those widths
  *  "the sidebar is showing" is `sidebarOpen`, not `!sidebarCollapsed`, and a
@@ -497,15 +561,7 @@ export default function StatusBar() {
         // release page, since a hosted instance updates when its server does.
         <span className="s-statusbar__group">
           {desktop()?.updateCheck !== undefined ? (
-            <button
-              type="button"
-              className="s-statusbar__btn s-statusbar__version"
-              onClick={() => void desktop()?.updateCheck?.()}
-              title={t("checkForUpdates")}
-              aria-label={tf("versionAria", { v: APP_VERSION })}
-            >
-              {APP_VERSION}
-            </button>
+            <UpdateChip />
           ) : (
             <a
               className="s-statusbar__btn s-statusbar__version"

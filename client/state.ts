@@ -373,6 +373,10 @@ export interface State {
    *  nothing about what visitors are served. */
   setEditorLang(lang: Lang | null): void;
   loginOpen: boolean;
+  /** The desktop updater's last word (client/desktop): the status bar's
+   *  version chip draws it — a bar while downloading, "Restart now" when
+   *  staged. Null in a browser and before the first check. */
+  desktopUpdate: { phase: string; version: string; received?: number; total?: number } | null;
   /** The desktop app holds this vault's credential itself (client/desktop):
    *  "Sign out" is hidden and a lapsed session is restored, never asked for. */
   desktopOwnsSession: boolean;
@@ -1355,6 +1359,7 @@ export const useStore = create<State>()((set, get) => {
       });
     },
     loginOpen: false,
+    desktopUpdate: null,
     desktopOwnsSession: false,
     moderationOpen: false,
     trashOpen: false,

@@ -6418,6 +6418,17 @@ button.s-title:hover {
   z-index: 6; /* over the focus rule (4) and the pane's own content */
 }
 
+/* The TAB STRIP stays above the zones while they are up. The overlay used to
+   cover it, so a tab dropped on another pane's strip landed on that pane's
+   top edge zone and split a new row instead of joining the strip (the owner:
+   "cannot drag a tab from some window and add it to a window with multiple
+   tabs as yet another tab"). The strip has its own drop targets — the caret
+   between tabs — and they are the better answer wherever they apply. */
+.s-pane:has(> .s-dropzones) > .s-tabs {
+  position: relative;
+  z-index: 7;
+}
+
 .s-dropzone {
   position: absolute;
   background: transparent;
@@ -6655,6 +6666,44 @@ button.s-title:hover {
 
 .s-statusbar__version:hover {
   opacity: 1;
+}
+
+/* Mid-download the chip is a bar and a percentage; staged, it is the one
+   button in the bar drawn in the accent, because a restart is the one thing
+   the reader can do for it. */
+.s-statusbar__version--busy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 1;
+  cursor: progress;
+}
+
+.s-statusbar__update-bar {
+  position: relative;
+  display: inline-block;
+  width: 64px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.s-statusbar__update-bar::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--p, 0%);
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 200ms linear;
+}
+
+.s-statusbar__version--ready {
+  opacity: 1;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* ── The pane grips (client/components/PaneGrip.tsx) ─────────────────────

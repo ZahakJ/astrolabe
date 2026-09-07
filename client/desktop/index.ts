@@ -192,8 +192,15 @@ export async function mountDesktop(): Promise<void> {
   // phases are one quiet line each, and the timer's "you are current" is not
   // shown at all — only the menu's explicit ask answers out loud.
   bridge.onUpdateState((payload) => {
-    const state = payload as { phase?: string; version?: string };
+    const state = payload as { phase?: string; version?: string; received?: number; total?: number };
     const version = state.version ?? "";
+    // The status bar's chip follows every phase (a bar while downloading,
+    // "Restart now" once staged); the toasts below stay for the moments that
+    // deserve a sentence. Progress ticks are chip-only.
+    if (typeof state.phase === "string") {
+      useStore.setState({ desktopUpdate: { phase: state.phase, version, received: state.received, total: state.total } });
+    }
+    if (state.phase === "downloading" && (state.received ?? 0) > 0) return;
     switch (state.phase) {
       case "ready":
         actionToast(tf("updateReady", { version }), t("updateRestart"), () => {

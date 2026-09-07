@@ -28,8 +28,11 @@ article deep links keep their normal note URLs.
 
 Every note with `publish: true`, newest first. A post's date comes from
 frontmatter — `date:`, `created:`, or `published:`, the first that parses wins (bare YAML dates
-like `2024-05-01` and quoted/ISO strings both work); otherwise the moment the note was **first
-seen** by this instance. That is not the file's birthtime as the disk reports it today: every save
+like `2024-05-01` and quoted/ISO strings both work); then a numeric `id:`, when the template
+minted one — that is `Date.now()` at the moment the note was made, padded to the template's
+length, and it is the truest creation time a note carries, older than anything the disk or the
+ledger below can know and unmoved by a reorganisation of the vault; otherwise the moment the
+note was **first seen** by this instance. That is not the file's birthtime as the disk reports it today: every save
 writes a temp file and renames it over the note, which mints a new inode with a new birthtime, so
 the raw birthtime is really the last edit. The instance remembers the first birthtime it met for
 each path in `ASTROLABE_DATA/created.json`, and when the vault is a git repository it seeds that

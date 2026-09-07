@@ -13,6 +13,7 @@ import MiniSearch from "minisearch";
 import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent, LibraryKind, LibraryPathRef } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
+import { idStampMs } from "../shared/idStamp.ts";
 import { findAnyMatches, foldQuery, foldTerm } from "../shared/fold.ts";
 import { parseSearchQuery, type QueryFilter } from "../shared/searchQuery.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
@@ -841,6 +842,10 @@ async function applyIndexFile(relPath: string): Promise<void> {
       parseFmDate(fm.date) ??
       parseFmDate(fm.created) ??
       parseFmDate(fm.published) ??
+      // A numeric `id` is the stamp the template minted when the note was
+      // made (shared/idStamp.ts) — the creation time itself, and older than
+      // anything the filesystem or the ledger can know.
+      idStampMs(fm.id) ??
       // Not the birthtime itself: a save is a rename over the note and gives
       // it a new inode, so the birthtime is the last edit. The ledger keeps
       // the first one this instance saw (server/created.ts).
@@ -1157,6 +1162,10 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
       parseFmDate(fm.date) ??
       parseFmDate(fm.created) ??
       parseFmDate(fm.published) ??
+      // A numeric `id` is the stamp the template minted when the note was
+      // made (shared/idStamp.ts) — the creation time itself, and older than
+      // anything the filesystem or the ledger can know.
+      idStampMs(fm.id) ??
       // Not the birthtime itself: a save is a rename over the note and gives
       // it a new inode, so the birthtime is the last edit. The ledger keeps
       // the first one this instance saw (server/created.ts).
