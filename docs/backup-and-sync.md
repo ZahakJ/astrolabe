@@ -258,7 +258,9 @@ than pushing its own defaults over them. Set the site name on the hosted instanc
 and the desktop app on the other machine has it after its next pull; upload a logo in the
 designer on the laptop and the site shows it after the next push. What stays put: the git
 token (a device's own), the comments database, the reading positions and creation ledger, and
-sessions.
+sessions. A value a hosted instance takes from its `.env` (`SITE_NAME`, `SITE_TAGLINE`,
+`HOME_NOTE`…) is that server's alone until it is saved in the settings panel, which writes it
+into `settings.json` and so into the vault.
 
 The settings on the Device tab — theme, chrome and editor language, vim, the writing column's
 width, heading numbers, the formatting toolbar, which side the sidebar hangs on — are kept in
