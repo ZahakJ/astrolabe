@@ -154,6 +154,11 @@ for (const scheme of [PROTOCOL, LEGACY_PROTOCOL]) {
       }
     };
     try {
+      // The new directory may not exist yet at all — on a machine whose first
+      // launch of the new name this is, Electron has not created it by the
+      // time this file runs — and copying a top-level file into a directory
+      // that is not there is ENOENT, which the isolated boot test caught.
+      mkdirSync(fresh, { recursive: true });
       carry(old, fresh);
       rmSync(old, { recursive: true, force: true });
     } catch (err) {
