@@ -7,7 +7,7 @@
 // operator has asked for a private instance (PUBLIC=false).
 
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import { isIP } from "node:net";
 import { isNotePath } from "../shared/noteFormat.ts";
 import path from "node:path";
@@ -791,7 +791,15 @@ authRoutes.get("/me", (c) => {
       ...(themePinnedByEnv() ? { env: true } : {}),
     };
   }
-  if (customCssPath()) me.customCss = true;
+  const cssFile = customCssPath();
+  if (cssFile) {
+    me.customCss = true;
+    try {
+      me.customCssVersion = Math.floor(statSync(cssFile).mtimeMs).toString(36);
+    } catch {
+      // the file just vanished: the link still loads, uncached
+    }
+  }
   // Typography: the four-slot signature, for every session. Its presence is
   // what makes the client link /api/site-fonts.css at all, and its value is
   // the ?v= on that link — so changing a pick changes the URL and the browser

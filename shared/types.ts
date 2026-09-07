@@ -473,6 +473,11 @@ export interface MeData {
    *  shell, exactly like languageToggle. */
   comments?: boolean;
   customCss?: boolean; // ASTROLABE_DATA/custom.css exists → client links /api/custom.css
+  /** The file's modification stamp, ridden as `?v=` on the link so a changed
+   *  custom.css is a NEW URL: an edge that ignores no-cache on `.css` (Cloudflare
+   *  rewrote it to four hours) served the owner's old rules for the rest of
+   *  the afternoon. */
+  customCssVersion?: string;
   // Blog mode (PUBLIC_LAYOUT=blog): visitors get a classic blog shell instead
   // of the app chrome; admin sessions keep the full app. Fields below are
   // present only when blog mode is on.

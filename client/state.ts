@@ -726,16 +726,22 @@ function mirrorTheme(theme: ThemeChoice): void {
 /** Add (or drop) the instance stylesheet link for ASTROLABE_DATA/custom.css.
  *  Appended to <head> so it lands after every built-in stylesheet and its
  *  rules win ties — that is the whole point of a custom.css. */
-function ensureCustomCss(enabled: boolean): void {
-  const existing = document.head.querySelector("link[data-astrolabe-custom]");
-  if (enabled && !existing) {
+function ensureCustomCss(enabled: boolean, version = ""): void {
+  const existing = document.head.querySelector<HTMLLinkElement>("link[data-astrolabe-custom]");
+  // The version rides as ?v= so a changed file is a new URL — an edge that
+  // caches `.css` by extension whatever the origin says (Cloudflare gave it
+  // four hours) otherwise serves the old rules until they expire.
+  const href = version ? `/api/custom.css?v=${encodeURIComponent(version)}` : "/api/custom.css";
+  if (enabled && existing && existing.getAttribute("href") !== href) existing.remove();
+  const current = document.head.querySelector("link[data-astrolabe-custom]");
+  if (enabled && !current) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "/api/custom.css";
+    link.href = href;
     link.setAttribute("data-astrolabe-custom", "");
     document.head.appendChild(link);
-  } else if (!enabled && existing) {
-    existing.remove();
+  } else if (!enabled && current) {
+    current.remove();
   }
 }
 
@@ -1664,7 +1670,7 @@ export const useStore = create<State>()((set, get) => {
         // Fonts before custom.css: ensureSiteFonts inserts itself ahead of the
         // custom.css link, and on first load that link does not exist yet.
         ensureSiteFonts(typeof me.fonts === "string" && me.fonts !== "" ? me.fonts : null);
-        ensureCustomCss(me.customCss === true);
+        ensureCustomCss(me.customCss === true, me.customCssVersion ?? "");
         ensureFavicon(me.favicon === true);
       } catch (err) {
         // Server unreachable/old — behave like open local mode.
