@@ -9,6 +9,10 @@ app="${1:?AppImage path}"
 log="$(mktemp)"
 export ASTROLABE_VAULT="$(mktemp -d)"
 export ASTROLABE_DATA="$ASTROLABE_VAULT/.data"
+# Its own config home: never the reader's ~/.config/astrolabe, whose
+# single-instance lock would make this launch hand off to a running app and
+# exit 0 — which reads as "booted" and is nothing of the kind.
+export XDG_CONFIG_HOME="$(mktemp -d)"
 timeout 25 xvfb-run -a "$app" --no-sandbox > "$log" 2>&1
 code=$?
 if grep -qiE "A JavaScript error occurred|Uncaught Exception|SyntaxError|Cannot find module" "$log"; then

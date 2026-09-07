@@ -28,7 +28,7 @@ import {
   session,
   shell,
 } from "electron";
-import { cpSync, existsSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { TO_MAIN, TO_RENDERER, type Command, type Hello } from "./ipc.ts";
@@ -126,8 +126,25 @@ for (const scheme of [PROTOCOL, LEGACY_PROTOCOL]) {
   // later release, once every machine has crossed, removes it.
   // TODO(3.5): rmSync(old, { recursive: true, force: true }) after the copy.
   if (old && old.toLowerCase() !== fresh.toLowerCase()) {
+    // By hand, not `cpSync`: with both directories standing (a machine that
+    // has run both apps), Node's copier threw EEXIST on the destination
+    // directory itself, so nothing was carried and the error hid the cause.
+    // Every regular file that the new directory does not hold is copied;
+    // sockets, symlinks and Chromium's own locks are left alone.
+    const carry = (from: string, to: string): void => {
+      for (const entry of readdirSync(from, { withFileTypes: true })) {
+        const src = path.join(from, entry.name);
+        const dst = path.join(to, entry.name);
+        if (entry.isDirectory()) {
+          if (!existsSync(dst)) mkdirSync(dst, { recursive: true });
+          carry(src, dst);
+        } else if (entry.isFile() && !existsSync(dst)) {
+          copyFileSync(src, dst);
+        }
+      }
+    };
     try {
-      cpSync(old, fresh, { recursive: true, force: false, errorOnExist: false });
+      carry(old, fresh);
     } catch (err) {
       console.error("astrolabe: could not carry the old config directory over", err);
     }
