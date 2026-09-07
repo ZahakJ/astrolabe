@@ -606,7 +606,9 @@ const AUDIENCES = [
 // …and for 3.5.0 (653.7 kB actual → 660): the preferences that travel with
   // the vault (client/prefsSync.ts) are pulled BEFORE the first paint, so
   // they are entry by definition, and the foreign-drag adoption in dragTab.ts.
-  { name: "entry (everyone)", keys: entry, budget: 668 * 1024 },
+  // …and for 3.7.0 (692.2 kB actual → 700): twenty-four preset rooms in
+  // tokens.css, generated from their published palettes (scripts/gen-themes.mjs).
+  { name: "entry (everyone)", keys: entry, budget: 700 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -803,7 +805,7 @@ const AUDIENCES = [
   // the store, the app-identity rows: a few kB in each closure)
   // (899.1 kB actual → 912): the desktop's own icon reaches the
   // empty state through the store, and the app-identity rows in the Device tab.
-  { name: "anonymous blog reader", keys: blog, budget: 912 * 1024 },
+  { name: "anonymous blog reader", keys: blog, budget: 944 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -911,7 +913,7 @@ const AUDIENCES = [
   // …and for 3.5.0 (1314.7 kB actual → 1320): the entry growth above, plus the
   // desktop session-ownership flag in the status bar.
   // …and for 3.6.0 (1322.6 kB actual → 1330): the same.
-  { name: "admin first paint", keys: app, budget: 1340 * 1024 },
+  { name: "admin first paint", keys: app, budget: 1372 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

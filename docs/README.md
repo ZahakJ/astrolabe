@@ -47,7 +47,7 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 
 | | |
 | --- | --- |
-| [Theming](theming.md) | The twenty-two themes, the custom-theme builder, the CSS token API, `custom.css` |
+| [Theming](theming.md) | The forty-six themes, the custom-theme builder, the CSS token API, `custom.css` |
 | [Typography](typography.md) | The self-hosted font catalog, your own uploads, per-character Arabic |
 | [Arabic & RTL](arabic-and-rtl.md) | The mirrored interface, the visitor switch, the language filter, Hijri dates, tag labels |
 

@@ -477,3 +477,173 @@ body:has(.s-tpick-host) .s-smodal-overlay {
     flex-wrap: wrap;
   }
 }
+
+/* ── generated preset swatch rules: scripts/gen-themes.mjs ── */
+[data-theme-swatch="github-dark"],
+[data-theme-dot="github-dark"] {
+  --sw-bg: var(--swatch-github-dark-bg);
+  --sw-text: var(--swatch-github-dark-text);
+  --sw-accent: var(--swatch-github-dark-accent);
+}
+
+[data-theme-swatch="nord"],
+[data-theme-dot="nord"] {
+  --sw-bg: var(--swatch-nord-bg);
+  --sw-text: var(--swatch-nord-text);
+  --sw-accent: var(--swatch-nord-accent);
+}
+
+[data-theme-swatch="dracula"],
+[data-theme-dot="dracula"] {
+  --sw-bg: var(--swatch-dracula-bg);
+  --sw-text: var(--swatch-dracula-text);
+  --sw-accent: var(--swatch-dracula-accent);
+}
+
+[data-theme-swatch="one-dark"],
+[data-theme-dot="one-dark"] {
+  --sw-bg: var(--swatch-one-dark-bg);
+  --sw-text: var(--swatch-one-dark-text);
+  --sw-accent: var(--swatch-one-dark-accent);
+}
+
+[data-theme-swatch="solarized-dark"],
+[data-theme-dot="solarized-dark"] {
+  --sw-bg: var(--swatch-solarized-dark-bg);
+  --sw-text: var(--swatch-solarized-dark-text);
+  --sw-accent: var(--swatch-solarized-dark-accent);
+}
+
+[data-theme-swatch="gruvbox-dark"],
+[data-theme-dot="gruvbox-dark"] {
+  --sw-bg: var(--swatch-gruvbox-dark-bg);
+  --sw-text: var(--swatch-gruvbox-dark-text);
+  --sw-accent: var(--swatch-gruvbox-dark-accent);
+}
+
+[data-theme-swatch="catppuccin-mocha"],
+[data-theme-dot="catppuccin-mocha"] {
+  --sw-bg: var(--swatch-catppuccin-mocha-bg);
+  --sw-text: var(--swatch-catppuccin-mocha-text);
+  --sw-accent: var(--swatch-catppuccin-mocha-accent);
+}
+
+[data-theme-swatch="tokyo-night"],
+[data-theme-dot="tokyo-night"] {
+  --sw-bg: var(--swatch-tokyo-night-bg);
+  --sw-text: var(--swatch-tokyo-night-text);
+  --sw-accent: var(--swatch-tokyo-night-accent);
+}
+
+[data-theme-swatch="monokai"],
+[data-theme-dot="monokai"] {
+  --sw-bg: var(--swatch-monokai-bg);
+  --sw-text: var(--swatch-monokai-text);
+  --sw-accent: var(--swatch-monokai-accent);
+}
+
+[data-theme-swatch="material-ocean"],
+[data-theme-dot="material-ocean"] {
+  --sw-bg: var(--swatch-material-ocean-bg);
+  --sw-text: var(--swatch-material-ocean-text);
+  --sw-accent: var(--swatch-material-ocean-accent);
+}
+
+[data-theme-swatch="palenight"],
+[data-theme-dot="palenight"] {
+  --sw-bg: var(--swatch-palenight-bg);
+  --sw-text: var(--swatch-palenight-text);
+  --sw-accent: var(--swatch-palenight-accent);
+}
+
+[data-theme-swatch="ayu-dark"],
+[data-theme-dot="ayu-dark"] {
+  --sw-bg: var(--swatch-ayu-dark-bg);
+  --sw-text: var(--swatch-ayu-dark-text);
+  --sw-accent: var(--swatch-ayu-dark-accent);
+}
+
+[data-theme-swatch="ayu-mirage"],
+[data-theme-dot="ayu-mirage"] {
+  --sw-bg: var(--swatch-ayu-mirage-bg);
+  --sw-text: var(--swatch-ayu-mirage-text);
+  --sw-accent: var(--swatch-ayu-mirage-accent);
+}
+
+[data-theme-swatch="everforest-dark"],
+[data-theme-dot="everforest-dark"] {
+  --sw-bg: var(--swatch-everforest-dark-bg);
+  --sw-text: var(--swatch-everforest-dark-text);
+  --sw-accent: var(--swatch-everforest-dark-accent);
+}
+
+[data-theme-swatch="rose-pine"],
+[data-theme-dot="rose-pine"] {
+  --sw-bg: var(--swatch-rose-pine-bg);
+  --sw-text: var(--swatch-rose-pine-text);
+  --sw-accent: var(--swatch-rose-pine-accent);
+}
+
+[data-theme-swatch="night-owl"],
+[data-theme-dot="night-owl"] {
+  --sw-bg: var(--swatch-night-owl-bg);
+  --sw-text: var(--swatch-night-owl-text);
+  --sw-accent: var(--swatch-night-owl-accent);
+}
+
+[data-theme-swatch="kanagawa"],
+[data-theme-dot="kanagawa"] {
+  --sw-bg: var(--swatch-kanagawa-bg);
+  --sw-text: var(--swatch-kanagawa-text);
+  --sw-accent: var(--swatch-kanagawa-accent);
+}
+
+[data-theme-swatch="github-light"],
+[data-theme-dot="github-light"] {
+  --sw-bg: var(--swatch-github-light-bg);
+  --sw-text: var(--swatch-github-light-text);
+  --sw-accent: var(--swatch-github-light-accent);
+}
+
+[data-theme-swatch="solarized-light"],
+[data-theme-dot="solarized-light"] {
+  --sw-bg: var(--swatch-solarized-light-bg);
+  --sw-text: var(--swatch-solarized-light-text);
+  --sw-accent: var(--swatch-solarized-light-accent);
+}
+
+[data-theme-swatch="gruvbox-light"],
+[data-theme-dot="gruvbox-light"] {
+  --sw-bg: var(--swatch-gruvbox-light-bg);
+  --sw-text: var(--swatch-gruvbox-light-text);
+  --sw-accent: var(--swatch-gruvbox-light-accent);
+}
+
+[data-theme-swatch="catppuccin-latte"],
+[data-theme-dot="catppuccin-latte"] {
+  --sw-bg: var(--swatch-catppuccin-latte-bg);
+  --sw-text: var(--swatch-catppuccin-latte-text);
+  --sw-accent: var(--swatch-catppuccin-latte-accent);
+}
+
+[data-theme-swatch="ayu-light"],
+[data-theme-dot="ayu-light"] {
+  --sw-bg: var(--swatch-ayu-light-bg);
+  --sw-text: var(--swatch-ayu-light-text);
+  --sw-accent: var(--swatch-ayu-light-accent);
+}
+
+[data-theme-swatch="everforest-light"],
+[data-theme-dot="everforest-light"] {
+  --sw-bg: var(--swatch-everforest-light-bg);
+  --sw-text: var(--swatch-everforest-light-text);
+  --sw-accent: var(--swatch-everforest-light-accent);
+}
+
+[data-theme-swatch="rose-pine-dawn"],
+[data-theme-dot="rose-pine-dawn"] {
+  --sw-bg: var(--swatch-rose-pine-dawn-bg);
+  --sw-text: var(--swatch-rose-pine-dawn-text);
+  --sw-accent: var(--swatch-rose-pine-dawn-accent);
+}
+/* ── end of generated preset swatch rules ── */

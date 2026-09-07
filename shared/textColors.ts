@@ -43,27 +43,27 @@ export interface TextColor {
 
 /** Tier 1. Values resolve through client/styles/textcolor.css. */
 export const SEMANTIC_COLORS: TextColor[] = [
-  { id: "red", value: "var(--vc-red)", swatchDark: "#db8076", swatchLight: "#a93528" },
-  { id: "orange", value: "var(--vc-orange)", swatchDark: "#d18952", swatchLight: "#8c5021" },
-  { id: "amber", value: "var(--vc-amber)", swatchDark: "#b99531", swatchLight: "#745c1b" },
-  { id: "green", value: "var(--vc-green)", swatchDark: "#40b12f", swatchLight: "#246b19" },
-  { id: "teal", value: "var(--vc-teal)", swatchDark: "#2da999", swatchLight: "#196b60" },
-  { id: "blue", value: "var(--vc-blue)", swatchDark: "#6a9dd7", swatchLight: "#265fa1" },
-  { id: "violet", value: "var(--vc-violet)", swatchDark: "#b586df", swatchLight: "#8530cf" },
-  { id: "magenta", value: "var(--vc-magenta)", swatchDark: "#db76b6", swatchLight: "#a9287a" },
+  { id: "red", value: "var(--vc-red)", swatchDark: "#e79b95", swatchLight: "#a93528" },
+  { id: "orange", value: "var(--vc-orange)", swatchDark: "#dda176", swatchLight: "#894e20" },
+  { id: "amber", value: "var(--vc-amber)", swatchDark: "#c5ad5d", swatchLight: "#725a1a" },
+  { id: "green", value: "var(--vc-green)", swatchDark: "#6fc162", swatchLight: "#246b19" },
+  { id: "teal", value: "var(--vc-teal)", swatchDark: "#60bdb5", swatchLight: "#19695e" },
+  { id: "blue", value: "var(--vc-blue)", swatchDark: "#87b1e1", swatchLight: "#265fa1" },
+  { id: "violet", value: "var(--vc-violet)", swatchDark: "#c2a0e7", swatchLight: "#822fcb" },
+  { id: "magenta", value: "var(--vc-magenta)", swatchDark: "#e795c3", swatchLight: "#a9287a" },
 ];
 
 /** Tier 2. One ink, every ground, 3:1 or better. */
 export const LITERAL_COLORS: TextColor[] = [
-  { id: "red", value: "#d1483c", swatchDark: "#d1483c", swatchLight: "#d1483c" },
-  { id: "orange", value: "#b06936", swatchDark: "#b06936", swatchLight: "#b06936" },
-  { id: "amber", value: "#94771e", swatchDark: "#94771e", swatchLight: "#94771e" },
-  { id: "green", value: "#3f8b18", swatchDark: "#3f8b18", swatchLight: "#3f8b18" },
-  { id: "teal", value: "#1e8a6f", swatchDark: "#1e8a6f", swatchLight: "#1e8a6f" },
-  { id: "blue", value: "#187fc9", swatchDark: "#187fc9", swatchLight: "#187fc9" },
-  { id: "violet", value: "#9c5add", swatchDark: "#9c5add", swatchLight: "#9c5add" },
+  { id: "red", value: "#d35248", swatchDark: "#d35248", swatchLight: "#d35248" },
+  { id: "orange", value: "#b26e3c", swatchDark: "#b26e3c", swatchLight: "#b26e3c" },
+  { id: "amber", value: "#977b25", swatchDark: "#977b25", swatchLight: "#977b25" },
+  { id: "green", value: "#458e1f", swatchDark: "#458e1f", swatchLight: "#458e1f" },
+  { id: "teal", value: "#258e73", swatchDark: "#258e73", swatchLight: "#258e73" },
+  { id: "blue", value: "#1f83cb", swatchDark: "#1f83cb", swatchLight: "#1f83cb" },
+  { id: "violet", value: "#9f5fde", swatchDark: "#9f5fde", swatchLight: "#9f5fde" },
   { id: "magenta", value: "#c74fa0", swatchDark: "#c74fa0", swatchLight: "#c74fa0" },
-  { id: "grey", value: "#81786e", swatchDark: "#81786e", swatchLight: "#81786e" },
+  { id: "grey", value: "#857c72", swatchDark: "#857c72", swatchLight: "#857c72" },
 ];
 
 /** THE ONLY custom properties a `style` attribute may name. A `var()` is a

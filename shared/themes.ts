@@ -14,6 +14,23 @@
 /** Dark themes, in the order the picker lists them. `iron-gall` is first
  *  overall because THEMES[0] is the product default. */
 export const DARK_THEMES = [
+  "github-dark",
+  "nord",
+  "dracula",
+  "one-dark",
+  "tokyo-night",
+  "catppuccin-mocha",
+  "gruvbox-dark",
+  "solarized-dark",
+  "monokai",
+  "material-ocean",
+  "palenight",
+  "ayu-dark",
+  "ayu-mirage",
+  "everforest-dark",
+  "rose-pine",
+  "night-owl",
+  "kanagawa",
   "iron-gall",
   "cinnabar",
   "sumi",
@@ -33,6 +50,13 @@ export const DARK_THEMES = [
 
 /** Light themes, same order rule. */
 export const LIGHT_THEMES = [
+  "github-light",
+  "catppuccin-latte",
+  "solarized-light",
+  "gruvbox-light",
+  "ayu-light",
+  "everforest-light",
+  "rose-pine-dawn",
   "parchment",
   "sandstone",
   "solar",

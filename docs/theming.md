@@ -16,16 +16,36 @@ sidebar, the browser tab titles (`Note · Night Garden`), and the sign-in modal.
 
 ## Pick the default look
 
-Astrolabe ships **twenty-two** themes — fifteen dark rooms and seven lit ones. Every one of them
-defines the whole palette for itself (ground, type, accent, selection, focus ring, graph, all
-thirteen callout hues, all eight syntax colors), so none of them is another theme wearing a
-different background.
+Astrolabe ships **forty-six** themes — thirty-two dark rooms and fourteen lit ones. Every one of
+them defines the whole palette for itself (ground, type, accent, selection, focus ring, graph, all
+thirteen callout hues, all eight syntax colors, and the corner radius of its chrome), so none of
+them is another theme wearing a different background. Twenty-four are the palettes editors and
+terminals already agree on, under the names people know them by, from their published specs, with
+the sidebar, the tab strip and the panels standing on the darker ground their editors use — so a
+Dracula room reads as Dracula from the first glance. **GitHub Dark is the default.**
 
-![The built-in themes](screenshots/themes.png)
+![The built-in themes](screenshots/themes.jpg)
 
 | Dark | | Light | |
 | --- | --- | --- | --- |
-| `iron-gall` | warm near-black, gold leaf — **the default** | `parchment` | warm paper, gold leaf |
+| `github-dark` | solid neutral greys, sky blue — **the default** | `github-light` | clean white, link blue |
+| `nord` | arctic blue-greys, frost cyan | `catppuccin-latte` | soft light grey, mauve |
+| `dracula` | purple-grey night, violet and pink | `solarized-light` | cream paper, blue |
+| `one-dark` | Atom's grey, soft blue | `gruvbox-light` | warm cream, burnt orange |
+| `tokyo-night` | deep blue night, neon blue and violet | `ayu-light` | bright white, blue |
+| `catppuccin-mocha` | soft dark lavender, pastel mauve | `everforest-light` | warm paper, forest green |
+| `gruvbox-dark` | warm retro dark, orange | `rose-pine-dawn` | dawn cream, pine |
+| `solarized-dark` | deep teal-black, cyan | | |
+| `monokai` | olive-black, lime green | | |
+| `material-ocean` | near-black navy, ocean blue | | |
+| `palenight` | muted indigo night, lilac | | |
+| `ayu-dark` | true dark, warm orange | | |
+| `ayu-mirage` | slate blue-grey, sky blue | | |
+| `everforest-dark` | forest green-grey, sage | | |
+| `rose-pine` | velvet purple-black, iris | | |
+| `night-owl` | midnight navy, sky blue | | |
+| `kanagawa` | ink-wash charcoal, wave blue | | |
+| `iron-gall` | warm near-black, gold leaf | `parchment` | warm paper, gold leaf |
 | `cinnabar` | neutral graphite, vermilion type | `sandstone` | dry desert paper, burnt orange |
 | `sumi` | ink-stick grey, aizome indigo | `solar` | brightest white paper, burnt gold |
 | `void` | true black, cold signal cyan | `linen` | cool daylight, ink blue |
