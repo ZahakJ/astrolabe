@@ -1535,6 +1535,10 @@ const DICT = {
     en: "“{path}” is not published — visitors cannot see it, so it left the tab bar",
     ar: "«{path}» غير منشورة — لا يراها الزوار، لذلك غادرت شريط التبويبات",
   },
+  previewPrivateVault: {
+    en: "This vault is private: a visitor would meet the sign-in page and nothing else, so there is nothing to preview here. Preview on the instance that publishes it.",
+    ar: "هذه الخزانة خاصة: لن يلقى الزائر إلا صفحة تسجيل الدخول، فلا شيء يُعاين هنا. عاين على النسخة التي تنشرها.",
+  },
   previewAsArabicReader: {
     en: "Previewing as an Arabic reader: the language filter shows this note to them, not to English readers",
     ar: "المعاينة بوصفك قارئًا عربيًا: مرشح اللغة يعرض هذه الملاحظة لهم لا لقرّاء الإنجليزية",
@@ -4187,6 +4191,10 @@ const DICT = {
     ar: "أُرسلت ملاحظاتك غير المحفوظة إلى الخزانة. أعد التحميل للمتابعة.",
   },
   crashReload: { en: "Reload", ar: "إعادة التحميل" },
+  newBuildOnServer: {
+    en: "Astrolabe {version} is now on the server; this tab still runs the old build. Reload to catch up.",
+    ar: "أسطرلاب {version} صار على الخادم؛ وما زال هذا التبويب يشغّل البناء القديم. أعد التحميل لتلحق به.",
+  },
   chunkGone: {
     en: "This part of Astrolabe could not be loaded — it may have been updated while you were here.",
     ar: "تعذّر تحميل هذا الجزء من أسطرلاب — ربما جرى تحديثه أثناء وجودك هنا.",

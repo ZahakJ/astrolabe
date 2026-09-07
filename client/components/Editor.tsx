@@ -23,6 +23,8 @@ import { Lru } from "../lru.ts";
 import { useStore } from "../state.ts";
 import { paneAt, surfaceOf } from "../workspace.ts";
 import { toast } from "../toast.ts";
+import { actionToast } from "../undoToast.ts";
+import { isChunkLoadError } from "../lazySurface.tsx";
 import { offerHeadingRepair } from "../bulkEdit.ts";
 // Side-effect import: it registers the `beforeprint` handler, and `beforeprint`
 // fires synchronously — a module fetched at print time arrives after the pages
@@ -292,6 +294,16 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
         // published", which is the correct answer, not a failure.
         if (isNotPublishedError(err)) {
           toast(t("previewNotPublished"));
+          return;
+        }
+        // A tab that outlived a deploy: the editor's own on-demand pieces
+        // (the vim binding, for one) are chunks the server no longer has
+        // under their old names. That is not a broken note; it is a stale
+        // page, and the fix is one reload — say so instead of "failed to
+        // open", which sent the owner looking at the file.
+        if (isChunkLoadError(err)) {
+          console.error(`stale build while opening ${path}`, err);
+          actionToast(t("chunkGone"), t("crashReload"), () => location.reload());
           return;
         }
         console.error(`Failed to open ${path}`, err);

@@ -102,6 +102,10 @@ would see it: the preview borrows the reader language for as long as it lasts, s
 and hands it back on exit. A note that is simply not published shows the empty state, as it does
 for a visitor.
 
+On a **private** instance (`PUBLIC=false`, which is how the desktop app runs a vault) there is
+nothing to preview: a visitor would meet the sign-in page and nothing else. The eye says so in a
+toast and leaves you where you are; preview your writing on the hosted instance that publishes it.
+
 ## Putting it on the internet
 
 Run Astrolabe behind any HTTPS reverse proxy (Caddy, nginx, a Cloudflare tunnel, …) forwarding to

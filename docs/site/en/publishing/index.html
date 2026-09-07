@@ -100,6 +100,9 @@ an Arabic note previewed from an English instance say, is shown as a reader of t
 would see it: the preview borrows the reader language for as long as it lasts, says so in a toast,
 and hands it back on exit. A note that is simply not published shows the empty state, as it does
 for a visitor.</p>
+<p>On a <strong>private</strong> instance (<code>PUBLIC=false</code>, which is how the desktop app runs a vault) there is
+nothing to preview: a visitor would meet the sign-in page and nothing else. The eye says so in a
+toast and leaves you where you are; preview your writing on the hosted instance that publishes it.</p>
 <h2 id="putting-it-on-the-internet"><a class="anchor" href="#putting-it-on-the-internet">Putting it on the internet</a></h2>
 <p>Run Astrolabe behind any HTTPS reverse proxy (Caddy, nginx, a Cloudflare tunnel, …) forwarding to
 <code>localhost:6801</code> — the app is a single origin (API + static client on one port), so no special
