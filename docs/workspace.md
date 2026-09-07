@@ -12,7 +12,7 @@ direction, at most three stacked in a column, four columns, eight panes in all; 
 refused with a sentence rather than a shuffle. `Ctrl/Cmd Alt \` closes the focused pane and its
 tabs are **adopted by a neighbour, never dropped**. `Ctrl/Cmd Alt Shift` with an arrow moves the
 focus between panes, physically, in both languages, and *Focus next pane* in the palette walks
-them in order.
+them in order. A window with nothing to restore opens the note you were in most recently.
 
 **Drag the seam between two panes to resize them.** The hairline between two columns, and the
 one between the two panes of a column, is a grip: drag it and the weights follow the hand, from

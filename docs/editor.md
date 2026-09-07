@@ -224,13 +224,15 @@ Enter goes to the next match, Shift+Enter to the previous, Enter in the replace 
 one and Ctrl/Cmd+Enter replaces all; the three pills are match case, regular expression and
 whole word. `Ctrl/Cmd Shift F` opens **Search & replace across the vault** in the sidebar: every
 note that matches, line by line, ticked or unticked, replaced in one go with an undo and an
-optional snapshot first.
+optional snapshot first. `Esc` from any field in that panel closes it.
 
 ## The bar and the top cluster
 
 The bar under the note says where you are, how long the note is, whether it is published and
-which mode it is in. The shell's own controls sit at the top, trailing the tabs: the panes, zen,
-the graph, the site designer, settings, the theme, and signing out.
+which mode it is in, and ends with the build you are on — the [updater](desktop.md#updates) on
+the desktop app, the releases page in a browser. The shell's own controls sit at the top,
+trailing the tabs: the panes, zen, the graph, the site designer, settings, the theme, and
+signing out.
 
 ## Arranging the tree
 

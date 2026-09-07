@@ -213,6 +213,18 @@ Unique slug ids, a bilingual name and blurb with real Arabic, a known family, at
 per family, and no preset naming a note in somebody's vault. It runs the shared `assertCatalog`
 rather than reimplementing it.
 
+### `scripts/check-desktop-boot.sh` and `check-desktop-relaunch.sh` — the desktop gates
+
+Both take an AppImage and boot it under Xvfb with an isolated config directory, from an empty
+temp directory (never from the checkout: an app started beside a `.env` links itself to that
+deployment), over an empty temp vault named by `ASTROLABE_VAULT`. The **boot** gate fails on an
+uncaught exception or a syntax error in the first 25 seconds — the 3.1.0–3.3.4 builds crashed at
+load and nothing said so. The **relaunch** gate sets `ASTROLABE_SELFTEST=relaunch`, which makes
+the app restart itself four seconds after boot exactly the way an applied update does, and
+passes only when the first process is gone *and* a second one started from the same file is
+running — `app.relaunch()` looked like it worked and did not, because Electron's relauncher runs
+from the mounted image after it is unmounted. Every AppImage release runs both before upload.
+
 ## Screenshot harnesses
 
 Not wired into `package.json` — run by hand, for visual review. All take `CHROMIUM`, and most take
