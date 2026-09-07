@@ -4132,6 +4132,8 @@ const DICT = {
     ar: "يجري تنزيل أسطرلاب {version} في الخلفية…",
   },
   updateCurrent: { en: "You are on the latest release.", ar: "أنت على أحدث إصدار." },
+  updateChipDownloading: { en: "Downloading {version}: {pct}%", ar: "يجري تنزيل {version}: {pct}٪" },
+  updateChipReady: { en: "Astrolabe {version} is downloaded and verified. Restart to use it.", ar: "نُزّل أسطرلاب {version} وتُحقّق منه. أعد التشغيل لتستخدمه." },
   updateFailed: {
     en: "Could not check for updates — will try again later.",
     ar: "تعذّر التحقق من التحديثات — ستُعاد المحاولة لاحقًا.",

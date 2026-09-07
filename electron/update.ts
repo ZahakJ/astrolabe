@@ -54,6 +54,10 @@ export interface UpdateState {
   /** "current" | "available" | "downloading" | "ready" | "failed" */
   phase: string;
   version: string;
+  /** While downloading: bytes on disk so far, and the asset's size when the
+   *  release named one — the status bar draws a bar from the two. */
+  received?: number;
+  total?: number;
 }
 
 type Listener = (state: UpdateState) => void;
@@ -108,7 +112,7 @@ function fetchJson(url: string): Promise<unknown> {
 
 /** Follow redirects by hand — GitHub asset downloads bounce through one — and
  *  stream to disk, resolving with the byte count actually written. */
-function download(url: string, to: string, depth = 0): Promise<number> {
+function download(url: string, to: string, onProgress?: (bytes: number) => void, depth = 0): Promise<number> {
   return new Promise((resolve, reject) => {
     if (depth > 4) {
       reject(new Error("too many redirects"));
@@ -118,7 +122,7 @@ function download(url: string, to: string, depth = 0): Promise<number> {
       const where = res.headers.location;
       if (res.statusCode !== undefined && res.statusCode >= 300 && res.statusCode < 400 && where) {
         res.resume();
-        resolve(download(where, to, depth + 1));
+        resolve(download(where, to, onProgress, depth + 1));
         return;
       }
       if (res.statusCode !== 200) {
@@ -128,7 +132,10 @@ function download(url: string, to: string, depth = 0): Promise<number> {
       }
       const out = createWriteStream(to);
       let bytes = 0;
-      res.on("data", (chunk: Buffer) => (bytes += chunk.length));
+      res.on("data", (chunk: Buffer) => {
+        bytes += chunk.length;
+        onProgress?.(bytes);
+      });
       res.pipe(out);
       out.on("finish", () => out.close(() => resolve(bytes)));
       out.on("error", reject);
@@ -246,7 +253,17 @@ export async function checkForUpdates(manual = false): Promise<void> {
       notify({ phase: "available", version: tag });
       return;
     }
-    notify({ phase: "downloading", version: tag });
+    const total = typeof asset.size === "number" && asset.size > 0 ? asset.size : undefined;
+    notify({ phase: "downloading", version: tag, received: 0, total });
+    // Progress every 200 ms, not every chunk: the renderer redraws a bar per
+    // message and a 190 MB download is tens of thousands of chunks.
+    let lastTick = 0;
+    const progress = (received: number): void => {
+      const now = Date.now();
+      if (now - lastTick < 200) return;
+      lastTick = now;
+      notify({ phase: "downloading", version: tag, received, total });
+    };
     const self = selfPath();
     // An AppImage stages beside the target, dot-prefixed — the same
     // siblings-only rule the vault's atomic write follows, because /tmp may be
@@ -259,7 +276,8 @@ export async function checkForUpdates(manual = false): Promise<void> {
         : path.join(app.getPath("userData"), "updates", asset.name);
     try {
       await fs.mkdir(path.dirname(tmp), { recursive: true });
-      const bytes = await download(asset.browser_download_url, tmp);
+      const bytes = await download(asset.browser_download_url, tmp, progress);
+      notify({ phase: "downloading", version: tag, received: bytes, total: total ?? bytes });
       if (typeof asset.size === "number" && asset.size > 0 && bytes !== asset.size) {
         throw new Error(`short download: ${bytes} of ${asset.size} bytes`);
       }

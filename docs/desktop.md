@@ -63,9 +63,10 @@ The app checks the releases page at launch and every six hours, and downloads a 
 the background**; when it is ready a toast offers **Restart now**, never a dialog. **Help → Check
 for updates…** asks at once, and says so when you are on the latest.
 
-The build you are on is printed at the end of the status bar; on the desktop app that chip *is*
-the update check (click it and the updater answers with its toast), and in a browser it opens
-the releases page.
+The build you are on is printed at the end of the status bar, and on the desktop app that chip
+*is* the updater: click it to check; while a release downloads it turns into a bar with the
+percentage; once the download is on disk and verified it reads **Restart now**. In a browser it
+opens the releases page, since a hosted instance updates when its server does.
 
 What "restart" does depends on how the app was installed. The **AppImage** is swapped in place
 and relaunched. The **Windows** install runs the new installer silently and the installer
