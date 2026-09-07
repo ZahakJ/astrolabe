@@ -189,6 +189,16 @@ html[data-theme="lapis"] {
 }
 ```
 
+**The site's name and tagline have one hook each, wherever they stand.** `.s-site-name` is on
+the masthead's name over every article and on the home page's hero alike, and `.s-site-tagline`
+on both taglines, so a wordmark rule written once reaches both:
+
+```css
+/* data/custom.css — a Kufic wordmark everywhere the site names itself */
+.s-site-name { font-family: "Reem Kufi", var(--font-serif); font-weight: 600; }
+.s-site-tagline { letter-spacing: 0.35em; text-transform: lowercase; }
+```
+
 The token API (define them on `:root` for all themes, or under `html[data-theme="void"]` etc.
 for one):
 

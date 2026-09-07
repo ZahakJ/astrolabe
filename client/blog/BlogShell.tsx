@@ -410,7 +410,7 @@ export default function BlogShell() {
               own h1 is the article, the topic or the collection. */}
           {routeIsHome ? (
             <h1 className="s-blog-mast__title">
-              <NavLink url="/" className="s-blog-mast__name" dir="auto">
+              <NavLink url="/" className="s-blog-mast__name s-site-name" dir="auto">
                 {logoSrc ? (
                   <img className="s-blog-mast__logo" src={logoSrc} alt={siteName} />
                 ) : (
@@ -419,7 +419,7 @@ export default function BlogShell() {
               </NavLink>
             </h1>
           ) : (
-            <NavLink url="/" className="s-blog-mast__name" dir="auto">
+            <NavLink url="/" className="s-blog-mast__name s-site-name" dir="auto">
               {logoSrc ? (
                 <img className="s-blog-mast__logo" src={logoSrc} alt={siteName} />
               ) : (
@@ -428,7 +428,7 @@ export default function BlogShell() {
             </NavLink>
           )}
           {tagline && (
-            <p className="s-blog-mast__tagline" dir="auto">
+            <p className="s-blog-mast__tagline s-site-tagline" dir="auto">
               {tagline}
             </p>
           )}
