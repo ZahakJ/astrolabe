@@ -18,7 +18,7 @@ import { languageScope } from "./language.ts";
 import { bootPayload, injectBoot } from "./boot.ts";
 import { injectPreloads, preloadTags } from "./preload.ts";
 import { faviconPath, migrateSettings } from "./settings.ts";
-import { initSite, publicLayout } from "./site.ts";
+import { initSite, publicLayout, legacyRedirectTarget } from "./site.ts";
 import { reportEnvFallbacks } from "../shared/envName.ts";
 import { warmAuthorSites } from "./authorSites.ts";
 import { getSettings } from "./settings.ts";
@@ -125,6 +125,21 @@ const SHELL_CSP = [
   "form-action 'self'",
   "frame-ancestors 'none'",
 ].join("; ");
+
+// ── The site's old names ────────────────────────────────────────────────────
+// A request that arrives under a hostname the site used to have (LEGACY_HOSTS)
+// is sent to SITE_URL, same path and query, permanently: the site was renamed
+// and every link anyone ever posted to it should still land. Reads only — a
+// POST carries a body that a redirect would drop, and nothing should be
+// posting to a name the site no longer answers to.
+app.use("*", async (c, next) => {
+  if (c.req.method === "GET" || c.req.method === "HEAD") {
+    const url = new URL(c.req.url);
+    const target = legacyRedirectTarget(c.req.header("host"), url.pathname, url.search);
+    if (target !== null) return c.redirect(target, 301);
+  }
+  await next();
+});
 
 app.use("*", async (c, next) => {
   await next();

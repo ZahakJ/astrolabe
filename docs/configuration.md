@@ -35,6 +35,7 @@ summary.
 | `SITE_TAGLINE` | Masthead subtitle under the site name (blog mode) |
 | `SITE_FOOTER` | Blog footer line; `{year}`/`{siteName}` substituted (default `© {year} {siteName}`) |
 | `SITE_URL` | Canonical origin for RSS/canonical links, e.g. `https://notes.example.com`; unset → derived from request headers. **Env-only — it has no Settings-panel counterpart** |
+| `LEGACY_HOSTS` | Hostnames the site used to answer under, comma-separated. A read request arriving for one of them is redirected permanently to `SITE_URL` with the same path, so old links survive a rename. Needs `SITE_URL`; env-only |
 | `DEFAULT_THEME` | Theme for visitors who haven't picked one — any of the forty-six, or `custom:<name>` for one you built (see [Theming](theming.md)), or `follow`, which is also what unset means: visitors get the theme *you* edit in; case-insensitive; unknown names are ignored with one line on stderr |
 | `EXCLUDE_TAGS` | Comma-separated tags hidden from the visitor site's topic sections and tag pills (workflow/status tags like `draft,seedling`); case-insensitive, a leading `#` is fine; admin views unaffected |
 | `PUBLIC_LAYOUT` | `blog` gives visitors a classic blog layout instead of the app shell (see [Blog mode](blog-mode.md)); `designed` composes it from a design you author (see [Designer](designer.md)); anything else → `app` (the default) |
