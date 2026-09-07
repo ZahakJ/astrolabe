@@ -5,6 +5,7 @@
 // navigation, popstate, per-page document.title.
 
 import BrandMark from "../components/BrandMark.tsx";
+import SiteMark from "../components/SiteMark.tsx";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import type { PostMeta, PublicFolderCard } from "../../shared/types.ts";
@@ -394,7 +395,7 @@ export default function BlogShell() {
           <Ambient />
           {!logoSrc && (
             <div className="s-blog-mast__star" aria-hidden="true">
-              ✦
+              <SiteMark size={22} />
             </div>
           )}
           {/* THE HOME PAGE'S OWN TITLE IS THE SITE'S NAME. Moving the
@@ -500,7 +501,7 @@ export default function BlogShell() {
         {locked ? (
           <div className="s-blog-page s-blog-locked">
             <div className="s-blog-locked__glyph" aria-hidden="true">
-              ✦
+              <SiteMark size={40} />
             </div>
             <p className="s-blog-locked__title">{t("blogPrivate")}</p>
             <button
@@ -530,7 +531,7 @@ export default function BlogShell() {
         ) : route.kind === "probe" ? null : (
           <div className="s-blog-page s-blog-locked">
             <div className="s-blog-locked__glyph" aria-hidden="true">
-              ✦
+              <SiteMark size={40} />
             </div>
             <p className="s-blog-locked__title">{t("blogNoPage")}</p>
             <NavLink url="/" className="s-blog-locked__home">

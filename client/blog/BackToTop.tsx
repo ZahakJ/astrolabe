@@ -11,6 +11,7 @@
 //     shimmer, no nudge. The gold trail is delight, not information.
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import BrandMark from "../components/BrandMark.tsx";
 import { t } from "../i18n.ts";
 import { useStore } from "../state.ts";
 
@@ -121,7 +122,7 @@ export default function BackToTop({ scroller }: { scroller: HTMLElement | null }
       onClick={toTop}
     >
       <span className="s-btt__glyph" aria-hidden="true">
-        ✦
+        <BrandMark size={16} />
       </span>
       <span className="s-btt__trail" aria-hidden="true" />
     </button>

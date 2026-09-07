@@ -3,6 +3,7 @@
 // double-click; context menu for new note / new folder / rename / delete.
 
 import { memo, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import SiteMark from "./SiteMark.tsx";
 import { lazySurface } from "../lazySurface.tsx";
 import type {
   DragEvent as ReactDragEvent,
@@ -2649,7 +2650,7 @@ function TreeEmpty() {
 
   return (
     <div className="s-tree__empty">
-      <span className="s-tree__empty-star" aria-hidden="true">✦</span>
+      <span className="s-tree__empty-star" aria-hidden="true"><SiteMark size={28} /></span>
       <p className="s-tree__empty-body">{t("vaultEmptyBody")}</p>
       <div className="s-tree__empty-acts">
         <button

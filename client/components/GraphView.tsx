@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import SiteMark from "./SiteMark.tsx";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { prefersReducedMotion } from "../a11y.ts";
 import { useVaultGraph, vaultGraphFailed } from "../graphCache.ts";
@@ -1693,7 +1694,7 @@ export default function GraphView() {
           // drawer that is closed. The star matches the visitor's empty state
           // above; only the door is new, and it is what the whole pane is for.
           <div className="s-graph__empty s-graph__empty--admin">
-            <span className="s-graph__empty-star" aria-hidden="true">✦</span>
+            <span className="s-graph__empty-star" aria-hidden="true"><SiteMark size={32} /></span>
             {t("graphEmptyAdmin")}
             <button
               type="button"
@@ -1705,7 +1706,7 @@ export default function GraphView() {
           </div>
         ) : (
           <div className="s-graph__empty s-graph__empty--visitor">
-            <span className="s-graph__empty-star" aria-hidden="true">✦</span>
+            <span className="s-graph__empty-star" aria-hidden="true"><SiteMark size={32} /></span>
             {t("graphEmptyVisitor")}
           </div>
         ))}
