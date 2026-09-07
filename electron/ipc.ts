@@ -61,6 +61,14 @@ export const TO_MAIN = {
    *  version chip in the status bar) — the same check Help → Check for
    *  updates… runs, answered through the update-state toasts. */
   updateCheck: "astrolabe:update-check",
+  /** The reader's own name and icon for this app (electron/brand.ts): read
+   *  the current values; set the name; pick an icon file; write a launcher
+   *  entry in that name; go back to the product's own. */
+  brandGet: "astrolabe:brand-get",
+  brandSet: "astrolabe:brand-set",
+  brandPickIcon: "astrolabe:brand-pick-icon",
+  brandInstall: "astrolabe:brand-install",
+  brandClear: "astrolabe:brand-clear",
 } as const;
 
 /** Main tells, renderer listens (`webContents.send` ⇄ `ipcRenderer.on`). */
@@ -132,4 +140,7 @@ export interface Hello {
    *  minted at launch that no human can type). True means "Sign out" is
    *  meaningless here and a lost session is restored, never asked for. */
   ownsSession: boolean;
+  /** The reader's own icon for the app as a data URL, or null (electron/brand.ts):
+   *  the empty state draws it when the site has no logo of its own. */
+  brandIconDataUrl: string | null;
 }

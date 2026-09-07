@@ -93,6 +93,21 @@ Restart, and `/` is a blog: masthead, topic nav, article pages, RSS at `/feed.xm
 internet behind any HTTPS reverse proxy pointed at `localhost:6801` — see
 [Publishing & access](docs/publishing.md).
 
+## Make it yours
+
+The desktop app answers to whatever name and icon you give it. **Settings → Device → This app**
+sets both on your computer — the tray, the window icon, the About box and a launcher entry in
+your name — and an update never takes them back. To bake your name and icon into the executable
+itself:
+
+```
+node scripts/rebrand.mjs --name "Marginalia" --icon ~/marginalia.png
+npm --prefix desktop run dist
+```
+
+The site's own name and logo are settings too, and they travel with the vault. See
+[the desktop app](docs/desktop.md#your-own-name-and-icon).
+
 ## What's in it
 
 - **[A live-preview editor](docs/editor.md)** — CodeMirror 6, wikilinks with autocomplete, hover previews, callouts, KaTeX, transclusions, slash commands, vim mode

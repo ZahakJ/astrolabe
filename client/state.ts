@@ -381,6 +381,8 @@ export interface State {
   /** The desktop app holds this vault's credential itself (client/desktop):
    *  "Sign out" is hidden and a lapsed session is restored, never asked for. */
   desktopOwnsSession: boolean;
+  /** The desktop app's own icon (the reader's, when set), as a data URL. */
+  desktopBrandIcon: string | null;
   /** Admin moderation panel (palette: "Moderate comments"). */
   moderationOpen: boolean;
   setModerationOpen(b: boolean): void;
@@ -1391,6 +1393,7 @@ export const useStore = create<State>()((set, get) => {
     loginOpen: false,
     desktopUpdate: null,
     desktopOwnsSession: false,
+    desktopBrandIcon: null,
     moderationOpen: false,
     trashOpen: false,
     previewVisitor: false,

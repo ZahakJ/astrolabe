@@ -806,6 +806,21 @@
   }
 }
 
+/* This app's icon row: preview beside its two buttons. */
+.s-ctl-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.s-ctl-iconpreview {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
 .s-smodal__search {
   position: relative;
   flex: none;

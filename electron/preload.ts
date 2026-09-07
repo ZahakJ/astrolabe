@@ -66,6 +66,12 @@ contextBridge.exposeInMainWorld("astrolabeDesktop", {
   sessionRestore: () => ipcRenderer.invoke("astrolabe:session-restore"),
   /** Check the release page now; the answer arrives as an update-state toast. */
   updateCheck: () => ipcRenderer.invoke("astrolabe:update-check"),
+  /** The reader's own name and icon for this app (electron/brand.ts). */
+  brandGet: () => ipcRenderer.invoke("astrolabe:brand-get"),
+  brandSet: (name: string) => ipcRenderer.invoke("astrolabe:brand-set", name),
+  brandPickIcon: () => ipcRenderer.invoke("astrolabe:brand-pick-icon"),
+  brandInstall: () => ipcRenderer.invoke("astrolabe:brand-install"),
+  brandClear: () => ipcRenderer.invoke("astrolabe:brand-clear"),
   /** Apply a staged update and relaunch — or open the release page on a build
    *  that cannot swap itself in place. */
   updateApply: () => ipcRenderer.invoke("astrolabe:update-apply"),
