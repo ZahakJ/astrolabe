@@ -178,7 +178,20 @@ export function clearBrand(): BrandInfo {
  *  a PNG cannot be a shortcut's icon and the reader is told so). */
 export function installLauncher(defaultIcon: string): { ok: boolean; where: string; note: "png-icon-skipped" | null } {
   const name = brandName();
-  const icon = brandIcon(defaultIcon);
+  let icon = brandIcon(defaultIcon);
+  // The product's own icon lives INSIDE the AppImage, on a mount that is gone
+  // the moment the app exits — a launcher pointing there has an icon only
+  // while the app runs. A copy beside the settings outlives every run.
+  if (icon === defaultIcon && existsSync(defaultIcon)) {
+    try {
+      mkdirSync(dir(), { recursive: true });
+      const kept = path.join(dir(), "app-icon.png");
+      copyFileSync(defaultIcon, kept);
+      icon = kept;
+    } catch {
+      // the mounted path still works for this run
+    }
+  }
   if (process.platform === "linux") {
     const target = process.env.APPIMAGE ?? process.execPath;
     const slug = name.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "astrolabe";
@@ -210,7 +223,7 @@ export function installLauncher(defaultIcon: string): { ok: boolean; where: stri
       iconIndex: 0,
       description: name,
     });
-    return { ok, where, note: ico || icon === defaultIcon ? null : "png-icon-skipped" };
+    return { ok, where, note: ico || readBrand().icon === null ? null : "png-icon-skipped" };
   }
   return { ok: false, where: "", note: null };
 }
