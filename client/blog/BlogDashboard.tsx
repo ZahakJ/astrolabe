@@ -202,10 +202,10 @@ export default function BlogDashboard({
               <img className="s-dash-hero__logo" src={logoSrc.src} alt={siteName} />
             </NavLink>
           ) : (
-            {/* THE SITE'S NAME IS ONE THING WHEREVER IT STANDS. `s-site-name`
-                is the hook a site's own custom.css styles, and it sits on the
-                masthead's name and on this hero alike — the owner's Kufic
-                wordmark reached the articles and not the home until it did. */}
+            // THE SITE'S NAME IS ONE THING WHEREVER IT STANDS. `s-site-name` is
+            // the hook a site's own custom.css styles, and it sits on the
+            // masthead's name and on this hero alike — the owner's Kufic
+            // wordmark reached the articles and not the home until it did.
             <h1 className="s-dash-hero__name" dir="auto">
               <NavLink url="/" className="s-site-name">{siteName}</NavLink>
             </h1>
