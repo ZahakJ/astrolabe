@@ -5466,7 +5466,12 @@ trapdoor one level further out.
 - `settings.json`, `designs.json`, `custom.css` and `fonts/*` are mirrored between
   `ASTROLABE_DATA` and `<vault>/.astrolabe/` at boot (awaited, before the first read) and every
   5 s, both ways, newest mtime wins (`pickSource`, pinned by `tests/configMirror.test.ts`), mtime
-  carried on copy so the sides settle. No merge. NEVER mirrored: `git-credentials.json`,
+  carried on copy so the sides settle. No merge. **FIRST CONTACT: THE VAULT WINS.** The first time
+  this server compares a file (`ASTROLABE_DATA/mirror-state.json` lists the files already met),
+  the vault's copy is taken whatever the mtimes say — a data directory that has never met the
+  vault holds a machine's private defaults, and on 2026-09-07 a desktop's 31-byte settings.json,
+  a day younger than the site's, overwrote the hosted instance's configuration within five
+  seconds. Recovered from the vault's git history; never again by construction. NEVER mirrored: `git-credentials.json`,
   `comments.db`, `created.json`, `books.json`, `session-epoch`, `author-sites.json`,
   `workspace.json`. Adding a file to the list is a decision about every machine and about what a
   git remote will hold.
