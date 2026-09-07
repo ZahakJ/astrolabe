@@ -26,6 +26,10 @@ export interface DesktopHello {
   pendingRoute: string | null;
   spellcheck: boolean;
   spellLanguages: string[];
+  /** The desktop minted this vault's password itself: "Sign out" is hidden
+   *  and a lost session is restored through `sessionRestore`. Absent on a
+   *  desktop build older than 3.4.2. */
+  ownsSession?: boolean;
 }
 
 export interface DesktopBridge {
@@ -44,6 +48,8 @@ export interface DesktopBridge {
   findStop(): Promise<void>;
   dragNote(rel: string): Promise<void>;
   openReference(route: string): Promise<void>;
+  /** Absent on a desktop build older than 3.4.2. */
+  sessionRestore?(): Promise<boolean>;
 }
 
 declare global {

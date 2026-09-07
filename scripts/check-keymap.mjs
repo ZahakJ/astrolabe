@@ -23,7 +23,8 @@
 // grammar, the scope model and the parsers live in client/keymap.ts so that
 // tests/keymap.test.ts drives exactly the same code this gate does.
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import path from "node:path";
 import {
   RESOLVED,
   parseGroups,
@@ -37,6 +38,7 @@ import {
 const sheetPath = new URL("../client/components/ShortcutsHelp.tsx", import.meta.url).pathname;
 const docPath = new URL("../docs/keymap.md", import.meta.url).pathname;
 
+const ROOT = new URL("..", import.meta.url).pathname;
 const errs = [];
 
 // ── The ledger ─────────────────────────────────────────────────────────────
@@ -149,6 +151,33 @@ console.log(
   `keymap: ${rows.length} rows · ${groups.size} groups · ${claims.size} chords · ` +
     `${docChords.length} in docs/keymap.md · ${overlaps} declared overlap${overlaps === 1 ? "" : "s"}`,
 );
+// ── Every shell chord resolves by key POSITION, not by the character ──────
+// `e.key` is the letter the LAYOUT produced: on an Arabic keyboard the F key
+// sends "ب", so `e.key.toLowerCase() === "f"` is false and the chord is dead
+// in one of the two languages this product promises. client/keys.ts
+// (`shortcutKey`, `isKey`) resolves the physical key; every handler goes
+// through it. Ctrl/Cmd+Shift+F was the last one that did not (3.4.2).
+{
+  const walk = (dir, out = []) => {
+    for (const name of readdirSync(dir)) {
+      const abs = path.join(dir, name);
+      if (statSync(abs).isDirectory()) walk(abs, out);
+      else if (/\.tsx?$/.test(name)) out.push(abs);
+    }
+    return out;
+  };
+  const RAW = /\b(?:e|ev|event)\.key(?:\.toLowerCase\(\))?\s*===?\s*"[a-zA-Z]"/g;
+  for (const file of walk(path.join(ROOT, "client"))) {
+    if (file.endsWith(path.join("client", "keys.ts"))) continue;
+    const src = readFileSync(file, "utf8");
+    src.split("\n").forEach((line, i) => {
+      if (line.trim().startsWith("//") || line.trim().startsWith("*")) return;
+      if (RAW.test(line)) errs.push(`RAW LETTER CHORD  - ${path.relative(ROOT, file)}:${i + 1}  ${line.trim().slice(0, 90)}  — use isKey()/shortcutKey() (client/keys.ts) so the chord works on an Arabic layout`);
+      RAW.lastIndex = 0;
+    });
+  }
+}
+
 if (errs.length) {
   console.log(`FAIL: ${errs.length}\n\n${errs.join("\n\n")}`);
   process.exit(1);

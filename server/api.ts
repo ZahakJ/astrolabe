@@ -101,6 +101,7 @@ import { invalidateTree, treeBody } from "./treeCache.ts";
 import { activeDesignFontRefs } from "./designs.ts";
 import { designRoutes } from "./designRoutes.ts";
 import { bookRoutes } from "./bookRoutes.ts";
+import { prefsRoutes } from "./prefs.ts";
 import { staticPagesActive } from "./pages.ts";
 import { gitStatus, initRepo, noteHistory, noteRevisionBlob, snapshotNow, syncNow } from "./gitSync.ts";
 import { dirOf, rewriteDestinations, rewriteForMove } from "./moveLinks.ts";
@@ -2317,6 +2318,12 @@ api.route("/design", designRoutes);
 // served from here at all — the reader fetches them from /api/file, gated
 // exactly as every embed is. See server/bookRoutes.ts.
 api.route("/books", bookRoutes);
+// --------------------------------------------------------------------- prefs
+// The client's localStorage preferences, kept in `.astrolabe/prefs.json`
+// INSIDE the vault so every server over this folder — the desktop app on each
+// machine, the hosted instance the phone opens — reads the same ones, and
+// whatever syncs the notes syncs them. Admin-only both ways. See server/prefs.ts.
+api.route("/prefs", prefsRoutes);
 // ---------------------------------------------------------------- visibility
 // "What will this setting cost me?", answered in notes, from this vault,
 // BEFORE the save. Admin-only (the counts describe exactly what the public

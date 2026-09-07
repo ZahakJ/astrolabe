@@ -51,6 +51,12 @@ export const TO_MAIN = {
   dragNote: "astrolabe:drag-note",
   /** Open a second, always-on-top window on one note — the reference window. */
   openReference: "astrolabe:open-reference",
+  /** The window found itself signed out of a vault whose password THIS
+   *  LAUNCH minted (a "Sign out" click, a cookie that lapsed while the
+   *  machine slept). Main signs in again and answers true; on an env-linked
+   *  vault, whose password is the owner's own, it answers false and the
+   *  login modal stays the honest surface. */
+  sessionRestore: "astrolabe:session-restore",
 } as const;
 
 /** Main tells, renderer listens (`webContents.send` ⇄ `ipcRenderer.on`). */
@@ -118,4 +124,8 @@ export interface Hello {
    *  `lang` invites the checker only for these — a line checked against a
    *  dictionary that does not exist is a line underlined entirely in red. */
   spellLanguages: string[];
+  /** Whether the desktop holds this vault's credential itself (a password
+   *  minted at launch that no human can type). True means "Sign out" is
+   *  meaningless here and a lost session is restored, never asked for. */
+  ownsSession: boolean;
 }

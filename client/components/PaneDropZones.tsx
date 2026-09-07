@@ -14,7 +14,7 @@
 
 import { useState } from "react";
 import { useStore } from "../state.ts";
-import { endTabDrag, useTabDrag } from "../dragTab.ts";
+import { dropPayload, endTabDrag, markTabDropHandled, useTabDrag } from "../dragTab.ts";
 import {
   MAX_COLUMNS,
   MAX_PANES,
@@ -62,7 +62,11 @@ export default function PaneDropZones({ paneId }: { paneId: string }) {
   };
   const land = (dest: Parameters<typeof dropTab>[3]) => (e: React.DragEvent) => {
     e.preventDefault();
-    dropTab(drag.pane, drag.path, paneId, dest);
+    // A drag from another window names its path only now, on the drop.
+    const payload = dropPayload(e.dataTransfer);
+    if (payload === null) return;
+    markTabDropHandled();
+    dropTab(payload.pane, payload.path, paneId, dest);
     endTabDrag();
   };
 

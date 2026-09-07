@@ -343,9 +343,29 @@ select:focus,
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* The wordmark and the five tools do not both fit a narrow pane. The
+     wordmark yields first (it shrinks and ellipsises); when even that is not
+     enough the tools drop to a second line INSIDE the pane rather than
+     running past its leading edge and under the tab strip, which is where
+     "new folder" ended up on a 290px Arabic sidebar. */
+  flex-wrap: wrap;
+  column-gap: 8px;
   flex: none;
-  height: 3rem;
+  min-height: 3rem;
   padding: 0 10px 0 16px;
+}
+
+.s-sidebar-header .s-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-sidebar-actions {
+  flex: none;
 }
 
 /* Wordmark: ✦ Astrolabe — a small illuminated colophon. */
@@ -1553,10 +1573,11 @@ select:focus,
 }
 
 .s-editor .cm-s-props__addprop {
-  padding: 1px 8px;
-  margin-inline-start: -8px;
+  padding: 3px 10px;
+  margin-inline-start: -10px;
   border-radius: 999px;
   font-size: 0.75rem;
+  line-height: 1.7;
   letter-spacing: 0.04em;
   color: var(--text-muted);
   transition: color 0.15s ease, background 0.15s ease;
@@ -5164,7 +5185,7 @@ button.s-title:hover {
   }
 
   .s-sidebar-header {
-    height: 3.5rem;
+    min-height: 3.5rem;
     padding-inline: 16px 6px;
   }
 
@@ -5984,6 +6005,15 @@ button.s-title:hover {
    alone and the mirroring has to be explicit. Only the collapsed state points
    sideways and needs it; expanded already points down, which is down in any
    direction — rotating it again would aim it up. */
+/* Arabic letters join; tracking them apart is a typographic error, and on
+   the add-property pill it also left the word touching the pill's edge (the
+   owner: "the words seem attached to the border"). */
+[dir="rtl"] .s-editor .cm-s-props__addprop {
+  letter-spacing: 0;
+  padding-inline: 12px;
+  margin-inline-start: -12px;
+}
+
 [dir="rtl"] .s-editor .cm-s-props--collapsed .cm-s-props__chevron {
   transform: scaleX(-1);
 }
