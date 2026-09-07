@@ -184,6 +184,16 @@ if (!app.requestSingleInstanceLock()) {
 
 async function start(): Promise<void> {
   await app.whenReady();
+  // The boot gate's relaunch test (scripts/check-desktop-relaunch.sh): a few
+  // seconds after boot, restart the way an applied update does, and let the
+  // script see a second instance come up on the same file. Armed HERE, before
+  // anything that can wait on a person — the vault picker below is a native
+  // dialog, and under the gate nobody answers it.
+  if (process.env.ASTROLABE_SELFTEST === "relaunch") {
+    setTimeout(() => {
+      if (!relaunchForSelfTest()) console.error("astrolabe: selftest relaunch: not an AppImage");
+    }, 4000);
+  }
   await runProbe();
   credential = await mintCredential();
   nativeTheme.on("updated", () => {
@@ -207,19 +217,19 @@ async function start(): Promise<void> {
     const last = loadPrefs().vaults[0];
     if (last !== undefined && existsSync(last.path)) await openVault(last.path);
   }
+  // A vault named by the environment — `ASTROLABE_VAULT=/path Astrolabe.AppImage`
+  // — opens before the picker is considered: the boot gates run the app over
+  // an empty temp vault this way, and it is the one-line answer for a script
+  // or a launcher that wants a particular folder without a dialog.
+  const envVault = process.env.ASTROLABE_VAULT;
+  if (instances.size === 0 && typeof envVault === "string" && envVault !== "" && existsSync(envVault)) {
+    await openVault(path.resolve(envVault));
+  }
   // Still nothing to open: ask. A vault picker on first launch is the app's
   // first sentence, so it is a real dialog with a real question, not "Open…".
   if (instances.size === 0) await openVaultDialog();
   if (instances.size === 0 && process.platform !== "darwin") app.quit();
   installUpdater();
-  // The boot gate's relaunch test (scripts/check-desktop-relaunch.sh): a few
-  // seconds after boot, restart the way an applied update does, and let the
-  // script see a second instance come up on the same file.
-  if (process.env.ASTROLABE_SELFTEST === "relaunch") {
-    setTimeout(() => {
-      if (!relaunchForSelfTest()) console.error("astrolabe: selftest relaunch: not an AppImage");
-    }, 4000);
-  }
 }
 
 app.on("window-all-closed", () => {
