@@ -820,6 +820,43 @@ export default function Sidebar() {
   // position inside it, so ← / → walk that folder and nothing else.
   const [viewer, setViewer] = useState<{ items: TreeNode[]; index: number } | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  /** SEARCH BY KEYBOARD ALONE: type, arrow down the hits, Enter to open.
+   *
+   *  Roving FOCUS rather than the palette's `aria-activedescendant`, and the
+   *  difference is the markup: a palette row is a `role="option"` div, while a
+   *  hit is a real <button> sitting beside a second button (the chevron). Move
+   *  focus and Enter, Space, the browser's own scrolling and every screen
+   *  reader's announcement come for free — and nothing has to pretend a
+   *  button is an option, which is the nested-interactive trap the chevron was
+   *  split out to avoid in the first place. */
+  const hitButtons = (): HTMLButtonElement[] =>
+    [...(resultsRef.current?.querySelectorAll<HTMLButtonElement>(".s-search-hit") ?? [])];
+
+  const focusHit = (index: number): void => {
+    const buttons = hitButtons();
+    if (buttons.length === 0) return;
+    // Wrap at both ends: a list you can walk off is a list you have to look at.
+    buttons[((index % buttons.length) + buttons.length) % buttons.length].focus();
+  };
+
+  /** Arrows walk the hits; Escape and walking up off the top return to the
+   *  field, so the reader never has to reach for the mouse to type again. */
+  const onResultsKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "Escape") return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const buttons = hitButtons();
+    const at = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (e.key === "Escape") {
+      e.preventDefault();
+      searchRef.current?.focus();
+      return;
+    }
+    if (at === -1) return; // focus is on a chevron or a match row: leave it alone
+    e.preventDefault();
+    if (e.key === "ArrowUp" && at === 0) searchRef.current?.focus();
+    else focusHit(at + (e.key === "ArrowDown" ? 1 : -1));
+  };
   // The tree's own scroller — the auto-scroll target during a drag, and the
   // element that wears the vault-root drop ring. NOT the same element as
   // `treeRef` below: that one is the inner `role="tree"` div, which is the
@@ -1666,6 +1703,14 @@ export default function Sidebar() {
             if (e.key === "Escape" && query) {
               e.preventDefault();
               setQuery("");
+              return;
+            }
+            // Down from the field steps into the results; Enter does too, so
+            // the fastest path from a typed word to an open note is two keys.
+            if ((e.key === "ArrowDown" || e.key === "Enter") && !e.altKey && !e.ctrlKey && !e.metaKey) {
+              if (hitButtons().length === 0) return;
+              e.preventDefault();
+              focusHit(0);
             }
           }}
           spellCheck={false}
@@ -1741,7 +1786,13 @@ export default function Sidebar() {
       ) : hits !== null ? (
         // A results list that swaps in silently is a list a screen-reader user
         // never learns about — the count is announced politely as it lands.
-        <div className="s-search__results" role="region" aria-label={t("searchResultsAria")} ref={resultsRef}>
+        <div
+          className="s-search__results"
+          role="region"
+          aria-label={t("searchResultsAria")}
+          ref={resultsRef}
+          onKeyDown={onResultsKeyDown}
+        >
           <p className="s-sr-only" role="status">
             {hits.length === 0 ? t("noResultsAria") : tf("resultCount", { count: localeNum(hits.length) })}
           </p>
