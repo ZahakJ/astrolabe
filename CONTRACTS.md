@@ -1104,7 +1104,12 @@ restored to the pre-drag width so it reopens whole. Double-click clears the prop
 stored width. The root wears `.s-app--pane-drag` mid-drag (transitions off, column cursor, no
 selection). The reopen handles take `reopenDragProps(pane)`: a drag inward of `PANE_REOPEN_AT`
 (40px) reopens; a click still does. No grip on a collapsed pane, in zen, under the phone's
-breakpoint or a coarse pointer.
+breakpoint, in the sub-1000px drawer (its width is fixed and `--sidebar-w` is not read there — and
+the drawer block's `width: 100%` rule for the sidebar's children must keep excluding the grip,
+which it once caught and turned into a full-width sheet over the tree), or on a device with NO fine
+pointer: `not all and (any-pointer: fine)`, deliberately not `(pointer: coarse)` — that is the
+PRIMARY pointer, and Chromium reports it coarse on a touchscreen laptop with a mouse attached, which
+is how a Windows reader lost the grips (3.8.2).
 
 **The split grips (Workspace.tsx `ColGrip`/`RowGrip`, 3.1.0).** Every `.s-panecol` is `position:
 relative` and carries an 8px `role="separator"` on its inline-end edge when a column follows it

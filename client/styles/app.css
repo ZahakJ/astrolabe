@@ -5068,8 +5068,18 @@ button.s-title:hover {
     transition: transform 0.2s ease, visibility 0s linear 0.2s;
   }
 
-  .s-sidebar > *:not(.s-menu) {
+  /* The drawer's rows fill its width — but not the grip, which is
+     `position: absolute` and 8px wide by design. Caught by this rule it became
+     a full-width sheet over the tree (z-index 6), and every click and drag on
+     the drawer landed on it: nothing to resize, nothing to open. The drawer's
+     width is fixed (`min(84vw, 320px)`) and `--sidebar-w` is not read here,
+     so a grip has nothing to do in this mode; it goes. */
+  .s-sidebar > *:not(.s-menu):not(.s-pane-grip) {
     width: 100%;
+  }
+
+  .s-sidebar .s-pane-grip {
+    display: none;
   }
 
   .s-app--drawer .s-sidebar {
@@ -6794,7 +6804,14 @@ button.s-title:hover {
   display: none;
 }
 
-@media (max-width: 700px), (pointer: coarse) {
+/* No grip on a phone, and no grip on a device with NO fine pointer at all.
+   This used to key on `(pointer: coarse)`, which is the PRIMARY pointer — and
+   Chromium calls the primary pointer coarse on a touchscreen laptop, mouse and
+   trackpad notwithstanding. A Windows reader with a touch display could not
+   resize either pane: the grip was simply not there. `any-pointer: fine` asks
+   the question that matters — is there something that can hit 8px — and the
+   phone (no fine pointer) still gets the buttons instead. */
+@media (max-width: 700px), not all and (any-pointer: fine) {
   .s-pane-grip {
     display: none;
   }
