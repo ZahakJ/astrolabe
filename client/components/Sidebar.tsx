@@ -11,7 +11,7 @@ import type {
   MouseEvent as ReactMouseEvent,
 } from "react";
 import type { AttachmentKind, SearchHit, SearchMatch, TagCount, TreeNode } from "../../shared/types.ts";
-import { getGraph, getTags, patchSettings, search, searchMatches, seedStatus, seedVault } from "../api.ts";
+import { getGraph, getTags, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
 import {
   dragFileCount,
   dragHasFiles,
@@ -756,6 +756,55 @@ export default function Sidebar() {
     },
     [setTreePrefs],
   );
+  /** PUBLISH EVERY NOTE UNDER A FOLDER.
+   *
+   *  One `publish: true` per note, through the same route the status bar's
+   *  star uses — never a bulk endpoint of its own, so a folder publish and a
+   *  single publish cannot drift apart in what they write or in what they
+   *  refuse. Notes already published are skipped rather than rewritten, which
+   *  is what lets the confirm dialog name a truthful number.
+   *
+   *  It asks first, and the dialog says the consequence out loud: this is the
+   *  one tree action whose effect is visible to strangers. */
+  const publishFolder = useCallback(async (node: TreeNode): Promise<void> => {
+    const paths: string[] = [];
+    const walk = (n: TreeNode): void => {
+      if (n.type === "file" && !n.attachment && n.path.endsWith(".md")) paths.push(n.path);
+      for (const child of n.children ?? []) walk(child);
+    };
+    walk(node);
+    if (paths.length === 0) {
+      toast(t("folderPublishEmpty"));
+      return;
+    }
+    const published = useStore.getState().publishedPaths;
+    const todo = published === null ? paths : paths.filter((p) => !published.has(p));
+    if (todo.length === 0) {
+      toast(t("folderPublishNone"));
+      return;
+    }
+    const ok = await confirmModal({
+      title: tf("folderPublishTitle", { count: countPhrase(todo.length, "notes") }),
+      body: tf("folderPublishBody", { folder: node.name }),
+      confirmLabel: t("folderPublishConfirm"),
+    });
+    if (!ok) return;
+    let done = 0;
+    let failed = 0;
+    for (const path of todo) {
+      try {
+        await publishNote(path, true);
+        done++;
+      } catch (err) {
+        failed++;
+        console.error(`astrolabe: could not publish ${path}:`, err);
+      }
+    }
+    await useStore.getState().loadPublished();
+    if (done > 0) toast(tf("folderPublishDone", { count: countPhrase(done, "notes") }));
+    if (failed > 0) toast(tf("folderPublishFailed", { count: countPhrase(failed, "notes") }), "error");
+  }, []);
+
   const selectedItems = useCallback((): MoveItem[] => {
     const tree = useStore.getState().tree;
     return topLevelOf([...selected])
@@ -2330,6 +2379,25 @@ export default function Sidebar() {
               }}
             >
               {t("collectionTopicMenu")}
+            </button>
+          )}
+          {/* PUBLISHING IS ITS OWN VERB. The topic row above writes a page
+              whose members are notes that are already published; this is the
+              row that publishes them, and the two sit together so the
+              difference is visible at the moment it matters. Folders only,
+              never the vault root — "publish everything" is not a menu item. */}
+          {admin && menu.node.type === "folder" && menu.node.path !== "" && (
+            <button
+              type="button"
+              className="s-menu__item"
+              role="menuitem"
+              onClick={() => {
+                const node = menu.node;
+                setMenu(null);
+                void publishFolder(node);
+              }}
+            >
+              {t("folderPublishAll")}
             </button>
           )}
           {/* The keyboard and touch route to the same operation the drag
