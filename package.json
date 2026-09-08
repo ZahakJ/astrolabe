@@ -1,6 +1,6 @@
 {
   "name": "astrolabe",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "A self-hosted reading room for a folder of plain Markdown and LaTeX: live-preview editor, wikilinks, graph, Arabic-aware search, a PDF reader, trackers, drawings, and a press that publishes what you choose.",
   "private": true,
   "type": "module",

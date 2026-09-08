@@ -568,6 +568,13 @@ select:focus,
   background: var(--bg-hover);
 }
 
+/* Walked to with the arrows, not pointed at: the row carries the hover ground
+   as well as the ring, so the keyboard reader sees the same "this one" the
+   mouse reader does. */
+.s-search-hit:focus-visible {
+  background: var(--bg-hover);
+}
+
 .s-search-hit__title {
   display: block;
   font-family: var(--font-serif);

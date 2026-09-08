@@ -410,16 +410,22 @@ export default function ShortcutsHelp({ shell = "app" }: { shell?: Shell }) {
     return q ? [...scored].sort((a, b) => b.best - a.best) : scored;
   }, [query, admin, shell]);
 
-  /** The rows the cursor can land on, in the order the sheet prints them —
+  /** EVERY row the cursor can land on, in the order the sheet prints them —
    *  one flat list across the groups, so ↓ walks straight through a heading
    *  the way the eye does. Keyed the same way the rows are, so a row can
-   *  find its own index without a second traversal. */
+   *  find its own index without a second traversal.
+   *
+   *  Every row, not only the runnable ones. Five of these rows carry a `run`
+   *  and the rest document a chord, so a cursor limited to the runnable five
+   *  had nothing to stand on for most queries: the reader typed a word, got
+   *  a dozen matches, and the arrow keys did NOTHING (the owner: "I should be
+   *  able to go through options with my arrow keys"). Reading the sheet is
+   *  what the sheet is for, so the cursor walks it all; Enter still runs a
+   *  row only when the row has something to run. */
   const actions = useMemo(() => {
     const out: string[] = [];
     for (const group of groups) {
-      for (const { item } of group.items) {
-        if (item.run) out.push(`${group.title}:${item.label}`);
-      }
+      for (const { item } of group.items) out.push(`${group.title}:${item.label}`);
     }
     return out;
   }, [groups]);
@@ -558,7 +564,7 @@ export default function ShortcutsHelp({ shell = "app" }: { shell?: Shell }) {
                   </>
                 );
                 const key = `${group.title}:${item.label}`;
-                const at = item.run ? actions.indexOf(key) : -1;
+                const at = actions.indexOf(key);
                 const lit = at !== -1 && key === cursorKey;
                 // Close FIRST: every one of these commands acts on the app,
                 // and running one behind an open modal is a change the reader
@@ -584,7 +590,17 @@ export default function ShortcutsHelp({ shell = "app" }: { shell?: Shell }) {
                     {body}
                   </button>
                 ) : (
-                  <div className="s-shortcuts__row" key={key}>
+                  // Not runnable, but still walkable and still announced: the
+                  // id and the cursor class are what `aria-activedescendant`
+                  // and the scroll-into-view effect above both point at.
+                  <div
+                    className={`s-shortcuts__row${lit ? " s-shortcuts__row--cursor" : ""}`}
+                    id={`s-sc-opt-${at}`}
+                    key={key}
+                    onMouseMove={() => {
+                      if (at !== cursor) setCursor(at);
+                    }}
+                  >
                     {body}
                   </div>
                 );
