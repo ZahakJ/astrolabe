@@ -5436,6 +5436,20 @@ read "1 change not saved yet", one keystroke later the panel was gone and reopen
 with the design under edit still unsaved behind it" for the preset detail; this is the same
 trapdoor one level further out.
 
+## Topics and publishing are separate verbs (client/components/Sidebar.tsx)
+
+- **Making a topic publishes nothing.** A collection's members are the notes in its folder that are
+  ALREADY in `publishedSet`, plus notes carrying the tag; `collectionRows` derives categories from
+  the published set, so a topic over private notes is an empty page and the library drops such a
+  path entirely (`resolveLibraryPath` returns null on zero lessons). The menu row therefore reads
+  "Create a topic from this folder…", never "Publish folder as a topic…" — the old label promised
+  the one thing the action cannot do, and the owner lost an afternoon to it.
+- **Publishing a folder is its own row**, `folderPublishAll`. It walks the tree node for `.md`
+  files, skips paths already in `publishedPaths`, confirms with the count and the consequence
+  named, then calls `publishNote(path, true)` once per note — the SAME route the status bar's star
+  uses, never a bulk endpoint, so the two can never disagree about what `publish: true` means or
+  who may write it. Offered on folders only, never on the vault root.
+
 ## The preset rooms (scripts/gen-themes.mjs)
 
 - Twenty-four themes are GENERATED, not hand-written: `scripts/gen-themes.mjs` holds one compact

@@ -100,13 +100,18 @@ folder (`2 - Tags/games.md`) with `collection: true`, and as you like `icon:`, `
 is the collection: every note carrying `#games` is in it, and its chip in the navigation stands in
 for the tag's own. Nothing is enumerated in Settings; the panel lists what the vault declared.
 
-**From the tree, no typing.** Right-click a folder → **Publish folder as a topic…** and the tag
-page is written for you, with the folder's tree mark and `folder:` set to it. Right-click a note →
-**Collections…** and tick the ones it belongs to; `tags:` (or `folders:` for an older row) is
+**From the tree, no typing.** Right-click a folder → **Create a topic from this folder…** and the
+tag page is written for you, with the folder's tree mark and `folder:` set to it. Right-click a note
+→ **Collections…** and tick the ones it belongs to; `tags:` (or `folders:` for an older row) is
 written for you. A membership that comes from a folder shows ticked and stays.
 
-Publishing notes without making their folder a topic is just publishing them: a note's tags file
-it, and only a folder you have published as a topic becomes one.
+**Making a topic publishes nothing, and publishing makes no topic.** The two are separate on
+purpose, and the menu names them separately. A topic's members are the notes in the folder that
+are *already* published, plus any note carrying the tag — so a topic over a folder of private
+notes is an empty page, and the library does the same thing for the same reason. To publish the
+notes, right-click the folder → **Publish every note in this folder…**: it asks first, naming how
+many, then writes `publish: true` into each note that does not already have it, one at a time
+through the same route the status bar's ✦ uses. Notes already published are left untouched.
 
 A note also joins a folder from its own frontmatter, and every spelling YAML gives you works:
 

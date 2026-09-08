@@ -968,10 +968,26 @@ const DICT = {
   collectionsWholeFolder: { en: "Whole folder", ar: "المجلد كله" },
   collectionsFailed: { en: "Saving the collection failed", ar: "فشل حفظ المجموعة" },
   collectionPopOpen: { en: "Open on the site", ar: "افتح على الموقع" },
-  collectionTopicMenu: { en: "Publish folder as a topic…", ar: "انشر المجلد كموضوع…" },
+  // "Publish folder as a topic…" read like it published the notes, and it
+  // never did — it writes a topic page whose members are the notes that are
+  // ALREADY published (the owner: "shouldn't publishing the whole folder as a
+  // tag publish all the notes automatically?"). The verb is now the one the
+  // action performs, and `folderPublishAll` below is the one that publishes.
+  collectionTopicMenu: { en: "Create a topic from this folder…", ar: "أنشئ موضوعًا من هذا المجلد…" },
   collectionTopicTag: { en: "Tag", ar: "الوسم" },
-  collectionTopicHint: { en: "A tag page is written for it in your tags folder; every published note inside the folder joins, and so does any note carrying the tag.", ar: "تُكتب له صفحة وسم في مجلد الوسوم؛ تنضم كل ملاحظة منشورة داخل المجلد، وكذلك أي ملاحظة تحمل الوسم." },
+  collectionTopicHint: { en: "A tag page is written for it in your tags folder. This does not publish anything: the members are the notes inside the folder that are already published, plus any note carrying the tag. To publish them, use Publish every note in this folder.", ar: "تُكتب له صفحة وسم في مجلد الوسوم. وهذا لا ينشر شيئًا: الأعضاء هم الملاحظات المنشورة أصلًا داخل المجلد، وأي ملاحظة تحمل الوسم. ولنشرها استخدم «انشر كل ملاحظة في هذا المجلد»." },
   collectionTopicMake: { en: "Make it a topic", ar: "اجعله موضوعًا" },
+  folderPublishAll: { en: "Publish every note in this folder…", ar: "انشر كل ملاحظة في هذا المجلد…" },
+  folderPublishTitle: { en: "Publish {count}?", ar: "نشر {count}؟" },
+  folderPublishBody: {
+    en: "Every note in “{folder}” and its subfolders becomes readable by anyone who can reach your site. Notes already published are left alone.",
+    ar: "كل ملاحظة في «{folder}» ومجلداتها الفرعية تصير مقروءة لكل من يصل إلى موقعك. والملاحظات المنشورة أصلًا تُترك كما هي.",
+  },
+  folderPublishConfirm: { en: "Publish them", ar: "انشرها" },
+  folderPublishNone: { en: "Every note in this folder is already published.", ar: "كل ملاحظة في هذا المجلد منشورة أصلًا." },
+  folderPublishEmpty: { en: "No notes in this folder.", ar: "لا ملاحظات في هذا المجلد." },
+  folderPublishDone: { en: "Published {count}.", ar: "نُشرت {count}." },
+  folderPublishFailed: { en: "{count} could not be published.", ar: "تعذّر نشر {count}." },
   collectionTopicMade: { en: "Now a topic. Its page: {path}", ar: "صار موضوعًا. صفحته: {path}" },
   collectionTopicExists: { en: "Already a topic: “{title}”", ar: "موضوع بالفعل: “{title}”" },
   collectionsVaultRows: { en: "Also in the navigation, from tag pages", ar: "في شريط التنقل أيضًا، من صفحات الوسوم" },
