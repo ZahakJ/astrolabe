@@ -25,6 +25,19 @@
   aspect-ratio: 16 / 10;
 }
 
+/* …EXCEPT ON THE SHELF. A screen and a spine are the right shapes on the
+   library PAGE, where each card owns its own grid row. In the band they share
+   one row of equal columns, so a 16/10 plate came out less than half the
+   height of the books beside it and left a hole — first under the title, then
+   (when the covers were bottom-aligned) above the cover, which was worse. One
+   aspect for every card on the shelf, and the hole has nowhere to be.
+   `object-fit: cover` was already cropping these images anyway: this cover is
+   a 376x600 portrait engraving that the 16/10 box was slicing into a letterbox
+   sliver. */
+.s-lib-cover--band {
+  aspect-ratio: 3 / 4;
+}
+
 .s-lib-cover__img {
   display: block;
   inline-size: 100%;
@@ -108,28 +121,13 @@
   gap: 16px;
 }
 
-/* ONE SHELF, ONE BASELINE.
-   A book's cover is a spine (3/4) and a course's is a screen (16/10), which is
-   deliberate — but in a row of equal columns the course plate is less than half
-   as tall, and as a plain column flex its title rode up level with the MIDDLE of
-   the books beside it (the owner: "kinda weird that the politics course is
-   filling only half of its entry"). Measured on the live band: books 225px tall
-   with titles at y=751, the course 105px with its title at y=631.
-   The item is a grid instead: the cover takes the leftover height and rests at
-   its END, so every cover — whatever its shape — sits on the same line and every
-   title aligns underneath. The shapes stay different; the shelf stops looking
-   broken. */
 .s-lib-band__item {
-  display: grid;
-  grid-template-rows: 1fr auto;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   min-inline-size: 0;
   text-decoration: none;
   color: var(--text);
-}
-
-.s-lib-band__item > .s-lib-cover {
-  align-self: end;
 }
 
 .s-lib-band__item:hover .s-lib-cover {
