@@ -108,13 +108,28 @@
   gap: 16px;
 }
 
+/* ONE SHELF, ONE BASELINE.
+   A book's cover is a spine (3/4) and a course's is a screen (16/10), which is
+   deliberate — but in a row of equal columns the course plate is less than half
+   as tall, and as a plain column flex its title rode up level with the MIDDLE of
+   the books beside it (the owner: "kinda weird that the politics course is
+   filling only half of its entry"). Measured on the live band: books 225px tall
+   with titles at y=751, the course 105px with its title at y=631.
+   The item is a grid instead: the cover takes the leftover height and rests at
+   its END, so every cover — whatever its shape — sits on the same line and every
+   title aligns underneath. The shapes stay different; the shelf stops looking
+   broken. */
 .s-lib-band__item {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 1fr auto;
   gap: 8px;
   min-inline-size: 0;
   text-decoration: none;
   color: var(--text);
+}
+
+.s-lib-band__item > .s-lib-cover {
+  align-self: end;
 }
 
 .s-lib-band__item:hover .s-lib-cover {
