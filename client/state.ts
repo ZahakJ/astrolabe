@@ -1492,7 +1492,12 @@ export const useStore = create<State>()((set, get) => {
         // server no longer has; the first symptom the owner saw was "Failed
         // to open <note>". So every /api/me compares the server's version
         // with this build's, and says "reload" once, plainly.
-        noticeNewBuild(me.version);
+        // ADMINS ONLY. This is a maintenance line — "the server moved on,
+        // reload" — and it was going to every visitor, on a page they have no
+        // stake in and often cannot fix by reloading (the owner: "we shouldn't
+        // print that to visitors"). The reason it exists is the admin's own
+        // long-lived tab asking for chunks a deploy has replaced.
+        if (me.admin) noticeNewBuild(me.version);
         // A preview flag the server did NOT honor (me.preview absent) means
         // the admin session is gone — we are a real visitor now, so drop the
         // flag rather than showing a lying "previewing" banner.

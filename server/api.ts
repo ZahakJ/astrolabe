@@ -1716,12 +1716,13 @@ api.get("/file", async (c) => {
   // checked before stat so unpublished files 404 without revealing existence.
   // Settings-named assets (dashboard home banner, logo) are visitor-visible
   // by definition: the admin pointed the public homepage at them.
-  if (
-    isPublishLimited(c) &&
-    !isAllowedAttachment(normalizeRel(relQuery)) &&
-    !settingsAssetPaths().has(normalizeRel(relQuery))
-  ) {
-    throw new VaultError(404, `File not found: ${normalizeRel(relQuery)}`);
+  // PUBLIC here means "a visitor may have this", and it decides two separate
+  // things: whether this request is answered at all, and whether the answer
+  // may be cached by anything between us and the reader.
+  const rel = normalizeRel(relQuery);
+  const publicFile = isAllowedAttachment(rel) || settingsAssetPaths().has(rel);
+  if (isPublishLimited(c) && !publicFile) {
+    throw new VaultError(404, `File not found: ${rel}`);
   }
   const file = await statAttachment(relQuery);
 
@@ -1731,7 +1732,20 @@ api.get("/file", async (c) => {
     "ETag": etag,
     "Accept-Ranges": "bytes",
     "X-Content-Type-Options": "nosniff",
-    "Cache-Control": "no-cache",
+    // A PUBLISHED attachment is public by definition, so let the browser and
+    // the CDN in front of us hold it: every one of these used to be `no-cache`,
+    // which meant a reader on the other side of the world pulled the whole
+    // gallery back through the tunnel on every visit — measured at 1.3 MB and
+    // a 6.3 s largest-contentful-paint for one home page. Five minutes fresh,
+    // then served stale for an hour while it revalidates behind the reader:
+    // long enough to help, short enough that unpublishing a note takes its
+    // pictures off the edge in minutes rather than days. Anything a visitor
+    // may NOT have stays uncacheable and private, so a shared cache can never
+    // hold a file the owner has not published.
+    "Cache-Control": publicFile
+      ? "public, max-age=300, stale-while-revalidate=3600"
+      : "private, no-cache",
+    ...(publicFile ? {} : { Vary: "Cookie" }),
   };
   // SVG/PDF can carry scripts — sandbox them so they can't run in our origin.
   if (/\.(svg|pdf|html?)$/i.test(file.rel)) {
