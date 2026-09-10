@@ -11,6 +11,7 @@ import { bannerFromContent, bannerSrc } from "../banner.ts";
 import { useBannerSrc } from "./BannerImg.tsx";
 import { localeNum, t, tf } from "../i18n.ts";
 import { UPLOAD_MAX_MB } from "../../shared/limits.ts";
+import { parentDir } from "../move.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
@@ -105,7 +106,13 @@ export default function BannerModal() {
     (file: File) => {
       if (!openPath || busy) return;
       setBusy(true);
-      uploadAttachment(file)
+      // The note's folder rides along as CONTEXT, exactly as an editor paste
+      // sends it: the attachment-location setting's "same folder" and
+      // "subfolder" modes are relative to it. Without it this picker sent no
+      // folder at all, so a banner chosen for `Essays/Kant.md` under "same
+      // folder" landed at the vault root while a pasted image landed beside
+      // the note — the one upload path that ignored the setting.
+      uploadAttachment(file, false, parentDir(openPath))
         .then((res) => {
           setBusy(false);
           apply(res.path);

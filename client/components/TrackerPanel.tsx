@@ -4,15 +4,20 @@
 // own notes on that book or show already live in. This section is the other
 // half of that link: on a note INSIDE such a folder it names the work, shows
 // its bar, nudges it, and opens the tracker note; on the tracker note itself
-// it turns around and lists the notes under the folder. One section, two
-// directions, so moving between a work and its notes is a click either way
-// and nothing has to be typed into any note.
+// it turns around and shows the note touched LAST under the folder — where
+// the work was left off — with the count in the header and a door to the
+// folder itself. It used to list every note under the folder; the owner's
+// book folders hold dozens of atomic notes, and the list was the height of
+// the panel. One section, two directions, so moving between a work and its
+// notes is a click either way and nothing has to be typed into any note.
 //
 // Admin only, like the Media page: the trackers route is the owner's shelf.
 import { useMemo, useState } from "react";
-import type { TrackerMeta, TreeNode } from "../../shared/types.ts";
+import type { TrackerMeta } from "../../shared/types.ts";
 import { updateTracker } from "../api.ts";
 import { loadShelf, useTrackerShelf } from "../trackerShelf.ts";
+import { openTrackerFolder } from "../trackerFolder.ts";
+import { relativeDate } from "../dates.ts";
 import { autoDir, countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
 import { foldKind } from "../../shared/tracker.ts";
@@ -30,21 +35,6 @@ function readCollapsed(): boolean {
   }
 }
 
-/** The notes under `folder`, from the tree the sidebar already holds. */
-function notesUnder(tree: TreeNode | null, folder: string): TreeNode[] {
-  const out: TreeNode[] = [];
-  const prefix = `${folder}/`;
-  const walk = (node: TreeNode): void => {
-    if (node.type === "folder") {
-      for (const child of node.children ?? []) walk(child);
-    } else if (node.path.startsWith(prefix)) {
-      out.push(node);
-    }
-  };
-  if (tree) walk(tree);
-  return out.sort((a, b) => a.path.localeCompare(b.path));
-}
-
 function countText(meta: TrackerMeta): string | null {
   if (meta.done === null) return null;
   const known = unitKey(meta.unit);
@@ -58,9 +48,9 @@ export default function TrackerPanel() {
   const admin = useStore((s) => s.admin);
   const preview = useStore((s) => s.previewVisitor);
   const openPath = useStore((s) => s.openPath);
-  const tree = useStore((s) => s.tree);
   const openNote = useStore((s) => s.openNote);
   const setView = useStore((s) => s.setView);
+  const locale = useStore((s) => s.blogLocale);
   useStore((s) => s.language);
   const list = useTrackerShelf();
   const [collapsed, setCollapsed] = useState(readCollapsed);
@@ -77,8 +67,11 @@ export default function TrackerPanel() {
     }
     return best;
   }, [openPath, list]);
+  // The shelf already carries the folder's count and its last-touched note
+  // (server/indexer.ts folderFacts), counted over the live index — no walk of
+  // the tree here, and the same answer the Media card gives.
   const own = useMemo(() => (openPath && list ? (list.find((m) => m.path === openPath && m.folder !== null) ?? null) : null), [openPath, list]);
-  const children = useMemo(() => (own?.folder ? notesUnder(tree, own.folder) : []), [own, tree]);
+  const last = own?.folderRecent[0] ?? null;
 
   if (!admin || preview || !openPath || (!parent && !own)) return null;
 
@@ -105,7 +98,7 @@ export default function TrackerPanel() {
   };
 
   const title = parent ? t("panelTrackedIn") : t("panelWorkNotes");
-  const count = parent ? null : children.length;
+  const count = parent ? null : (own?.folderNotes ?? 0);
   return (
     <section className="s-trackerpanel">
       <header className="s-panel-header s-trackerpanel__header">
@@ -148,16 +141,20 @@ export default function TrackerPanel() {
         </div>
       )}
       {!collapsed && !parent && own && (
-        <ul className="s-trackerpanel__notes">
-          {children.length === 0 && <li className="s-trackerpanel__empty">{t("panelWorkNoNotes")}</li>}
-          {children.map((n) => (
-            <li key={n.path}>
-              <button type="button" className="s-trackerpanel__note" onClick={() => go(n.path)} title={n.path}>
-                <bdi>{n.name.replace(/\.(md|tex|latex)$/i, "")}</bdi>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="s-trackerpanel__notes">
+          {last === null && <div className="s-trackerpanel__empty">{t("panelWorkNoNotes")}</div>}
+          {last !== null && (
+            <button type="button" className="s-trackerpanel__note" onClick={() => go(last.path)} title={last.path}>
+              <span className="s-trackerpanel__notehead">{t("mediaLastNote")}</span>
+              <bdi className="s-trackerpanel__notetitle">{last.title}</bdi>
+              <span className="s-trackerpanel__notewhen">{relativeDate(last.mtimeMs, locale, { dateStyle: "medium" })}</span>
+            </button>
+          )}
+          <button type="button" className="s-trackerpanel__folder" onClick={() => openTrackerFolder(own)} title={own.folder ?? undefined}>
+            <FolderGlyph icon={own.icon} size={14} />
+            <span>{t("panelOpenFolder")}</span>
+          </button>
+        </div>
       )}
     </section>
   );

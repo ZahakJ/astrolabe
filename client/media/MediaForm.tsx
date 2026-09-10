@@ -27,6 +27,7 @@ import { MEDIA_ROOTS, mediaNoteContent, mediaNotePath, mediaProgress } from "../
 import { defaultTrackerStep, foldKind, type TrackerFields, type TrackerKind, type TrackerStatus } from "../../shared/tracker.ts";
 import type { TrackerMeta } from "../../shared/types.ts";
 import { countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
+import { parentDir } from "../move.ts";
 import { KIND_UNIT } from "../trackerUnits.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
@@ -163,7 +164,21 @@ export function MediaForm({
       return;
     }
     setUploading(true);
-    uploadAttachment(file, true)
+    // The tracker note's folder is the upload's context, as it is for a
+    // banner: under the "same folder" and "subfolder" attachment modes the
+    // cover lands beside the note it decorates. A work not yet saved has the
+    // folder its note WILL take (`Media/<Kind>/`), computed the way `save`
+    // computes the path so the two never disagree.
+    const state = useStore.getState();
+    const context = editing
+      ? parentDir(editing.path)
+      : parentDir(
+          mediaNotePath(draft.kind.trim() || "other", draft.title.trim() || "untitled", {
+            lang: state.siteLanguage,
+            existing: MEDIA_ROOTS.filter((root) => treeHasFolder(state.tree, root)),
+          }),
+        );
+    uploadAttachment(file, true, context)
       .then((res) => set("cover", res.path))
       .catch(() => toast(tf("mediaSaveFailed", { title: file.name }), "error"))
       .finally(() => setUploading(false));

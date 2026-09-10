@@ -2691,9 +2691,12 @@ export function pages(visitor: boolean, lang: FilterLang): PageMeta[] {
  *  The cover is resolved HERE, through the ladder embeds use, so the board
  *  spends no /api/resolve per card — and it is resolved against the SESSION's
  *  scope, so a visitor is never handed a path they would be 404'd for. */
-/** What a work's `folder:` amounts to: how many notes are under it, and the
- *  note that stands for the folder itself. Counted over the live index, so a
- *  note added to the folder in Obsidian is on the card at the next read. */
+/** What a work's `folder:` amounts to: how many notes are under it, the note
+ *  that stands for the folder itself, and the note touched LAST under it (a
+ *  one-element list: the wire shape stayed a list when the card went from
+ *  three recent notes to one, so an older client still reads it). Counted
+ *  over the live index, so a note added to the folder in Obsidian is on the
+ *  card at the next read. */
 function folderFacts(folder: string | null): Pick<TrackerMeta, "folder" | "folderNotes" | "folderNote" | "folderRecent"> {
   if (folder === null) return { folder: null, folderNotes: 0, folderNote: null, folderRecent: [] };
   const prefix = `${folder}/`;
@@ -2708,7 +2711,7 @@ function folderFacts(folder: string | null): Pick<TrackerMeta, "folder" | "folde
     recent.push({ path: p, title: record.title, mtimeMs: record.mtimeMs });
   }
   recent.sort((a, b) => b.mtimeMs - a.mtimeMs);
-  return { folder, folderNotes: count, folderNote: own, folderRecent: recent.slice(0, 3) };
+  return { folder, folderNotes: count, folderNote: own, folderRecent: recent.slice(0, 1) };
 }
 
 export function trackers(visitor: boolean, lang: FilterLang): TrackerMeta[] {
