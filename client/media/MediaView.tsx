@@ -26,9 +26,8 @@ import { relativeDate, siteDate } from "../dates.ts";
 import { autoDir, countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { confirmDeleteNote } from "../components/deleteFlow.ts";
 import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
-import { TREE_REVEAL_EVENT } from "../components/Sidebar.tsx";
-import { sidebarIsDrawer } from "../state.ts";
 import { useStore } from "../state.ts";
+import { openTrackerFolder } from "../trackerFolder.ts";
 import { toast } from "../toast.ts";
 import { fileUrl } from "../editor/embeds.ts";
 import { MediaForm } from "./MediaForm.tsx";
@@ -182,20 +181,17 @@ function MediaCard({
         </button>
       )}
       {meta.folder && meta.folderRecent.length > 0 && (
-        /* The last notes touched under the folder: the work's own history,
-           newest first, each a door. Three is a strip, not a list. */
+        /* The note touched LAST under the folder — one door, where the work
+           was left off. It was a strip of three; the owner, whose book folders
+           hold dozens of atomic notes, read even three as "a list of all the
+           notes taken" and asked for the last one only. The chip above still
+           counts them all and opens the folder. */
         <div className="s-media__recent">
-          <span className="s-media__recenthead">{t("mediaRecentNotes")}</span>
-          <ul className="s-media__recentlist">
-            {meta.folderRecent.map((n) => (
-              <li key={n.path}>
-                <button type="button" className="s-media__recentnote" onClick={() => onOpenPath(n.path)} title={n.path}>
-                  <bdi className="s-media__recenttitle">{n.title}</bdi>
-                  <span className="s-media__recentwhen">{relativeDate(n.mtimeMs, locale, { dateStyle: "medium" })}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <span className="s-media__recenthead">{t("mediaLastNote")}</span>
+          <button type="button" className="s-media__recentnote" onClick={() => onOpenPath(meta.folderRecent[0].path)} title={meta.folderRecent[0].path}>
+            <bdi className="s-media__recenttitle">{meta.folderRecent[0].title}</bdi>
+            <span className="s-media__recentwhen">{relativeDate(meta.folderRecent[0].mtimeMs, locale, { dateStyle: "medium" })}</span>
+          </button>
         </div>
       )}
       {meta.notes && <p className="s-media__notes" dir="auto">{meta.notes}</p>}
@@ -280,22 +276,6 @@ export default function MediaView() {
     setView("editor");
   };
 
-  const openFolder = (meta: TrackerMeta): void => {
-    if (meta.folder === null) return;
-    if (meta.folderNote !== null) {
-      openNote(meta.folderNote);
-      setView("editor");
-      return;
-    }
-    // No note stands for the folder: show it in the tree instead, with the
-    // pane open first — the same order the palette's own reveal keeps.
-    const store = useStore.getState();
-    if (sidebarIsDrawer()) store.setSidebarOpen(true);
-    else store.setSidebarCollapsed(false);
-    const path = meta.folder;
-    requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(TREE_REVEAL_EVENT, { detail: { path } })));
-  };
-
   const step = async (meta: TrackerMeta, delta: number): Promise<void> => {
     // Paint the nudge before the round trip: the bar is the feel of the
     // feature, and a bar that waits for the server reads as a bar that did
@@ -369,7 +349,7 @@ export default function MediaView() {
                   meta={meta}
                   locale={locale}
                   onOpen={() => open(meta)}
-                  onFolder={() => openFolder(meta)}
+                  onFolder={() => openTrackerFolder(meta)}
                   onOpenPath={(path) => {
                     openNote(path);
                     setView("editor");

@@ -9231,6 +9231,22 @@ upload write — draws on the shelf as it does in the editor; an `https://` cove
 The page re-reads the shelf on the window's `astrolabe:vault` event, which App.tsx raises for every
 vault event, because a fence edited by hand in another window is still this page's business.
 
+**A work's `folder:` answers with ONE note, not a list (3.9.0).** `folderFacts()` in the indexer
+carries `folderNotes` (the count), `folderNote` (the folder's own note) and `folderRecent`, a
+list of AT MOST ONE — the note touched last under the folder. It carried three, and the right
+panel's "Notes of this work" walked the tree and listed every note under the folder; the owner's
+book folders hold dozens of atomic notes and the section was the height of the panel ("a long
+list of all the notes taken"). Both surfaces now show the last note only — the Media card's
+"Last note" door and the panel's, with the count in the panel header and an "Open the folder"
+door — and both doors go through one function, `openTrackerFolder()` (`client/trackerFolder.ts`):
+the folder's own note when it has one, else the folder revealed in the tree with the sidebar
+open. The wire shape stayed a list so an older client still reads it. The banner picker and the
+Media form's cover upload send the note's folder as the upload CONTEXT (`uploadAttachment(file,
+admin, dir)`), as an editor paste does: they sent none, so under the "same folder" and
+"subfolder" attachment modes a banner landed at the vault root while a pasted image landed
+beside the note — the one upload path that ignored the setting. The site-wide pickers (home
+banner, logo, favicon) belong to no note and keep the root as their context.
+
 ## Tests (`npm test`) — the release gate
 
 `node --test` over `tests/*.test.ts`. No new dependencies, no test framework, no fixtures on disk
