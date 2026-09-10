@@ -101,7 +101,7 @@ points).
 
 **Where new attachments go** is a setting, named the way Obsidian names it (*Default location
 for new attachments*), so a migrating vault behaves the way its owner already expects. It sits
-in **Publishing & comments**, beside the templates folder.
+in **Vault**, beside the templates and drawings folders.
 
 | Mode | An upload lands in |
 | --- | --- |
@@ -119,8 +119,11 @@ demand. **Existing attachments are never moved** — the setting decides where t
 is written, and embeds resolve by basename regardless of which folder they live in.
 
 Every upload path obeys it: paste or drop in the editor, the file drop on the sidebar tree, and
-the banner/logo/favicon pickers' upload — those last three keep writing images, but into the
-same resolved folder. Fonts (`ASTROLABE_DATA/fonts`) and `custom.css` keep their own homes.
+the pickers' upload. A note's banner and a Media work's cover count as uploads *into that note*,
+so under *Same folder* and *Subfolder* the picture lands beside the note (or the tracker note)
+it decorates; the site-wide pickers — home banner, logo, favicon — belong to no note and are
+measured from the vault root. Fonts (`ASTROLABE_DATA/fonts`) and `custom.css` keep their own
+homes.
 
 **Anything the vault can hold, not just images.** `POST /api/upload` accepts images (png, jpeg,
 webp, gif, svg, avif, heic, bmp), **PDF**, audio (mp3, m4a, wav, ogg, opus, flac) and video

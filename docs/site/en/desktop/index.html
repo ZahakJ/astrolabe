@@ -38,11 +38,37 @@ is the folder on disk, and a browser on the network can still reach the same vau
 opened, and <em>Clear the list</em> forgets them. <strong>New window</strong> (<code>Ctrl/Cmd Shift N</code>) opens another
 window on the current vault, which is how a <a href="../workspace/#several-windows-one-vault">second window over one vault</a>
 starts; <strong>Close window</strong> is <code>Ctrl/Cmd W</code>. <em>Show the vault in the file manager</em> opens the folder
-itself. The app keeps a tray icon with <em>Show Astrolabe</em> and <em>Quit</em>.</p>
+itself. The app keeps a tray icon with <em>Show Astrolabe</em> and <em>Quit</em>. <code>ASTROLABE_VAULT=/path</code> in
+the environment opens that folder at launch without the picker, for a launcher or a script.</p>
+<p><strong>Your tabs survive a port change.</strong> The window&#39;s tabs and layout live in the browser storage of
+the vault&#39;s port, and a launch that finds that port busy moves to the next one — a fresh origin
+with nothing in it. So the desktop also keeps the last workspace beside the vault&#39;s data and
+restores it when a window opens on nothing; it waits a few seconds for the remembered port first;
+and a window with truly nothing to restore opens the note you were in most recently rather than
+the first name in the tree.</p>
 <p>Every command the app has is in the menu bar with its chord, in both languages: new note, the
 daily note, save, print, reading view, the graph, zen, the two side panes, the palette, search,
 publish, the shortcut sheet. The desktop app also claims a few chords the browser cannot:</p>
-<div class="table"><table><thead><tr><th>Keys</th><th>Does</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd Shift N</code></td><td>New window on this vault</td></tr><tr><td><code>Ctrl/Cmd O</code></td><td>Open vault…</td></tr><tr><td><code>Ctrl/Cmd W</code></td><td>Close window</td></tr><tr><td><code>Ctrl/Cmd Shift F</code></td><td><strong>Find in page</strong> (below)</td></tr><tr><td><code>Ctrl/Cmd Alt R</code></td><td>Open the note as a reference window</td></tr><tr><td><code>Ctrl/Cmd =</code> / <code>-</code> / <code>0</code>, and the numpad</td><td>Zoom in / out / actual size</td></tr><tr><td><code>Ctrl/Cmd Y</code></td><td>Redo, beside <code>Ctrl/Cmd Shift Z</code></td></tr></tbody></table></div><h2 id="the-reference-window"><a class="anchor" href="#the-reference-window">The reference window</a></h2>
+<div class="table"><table><thead><tr><th>Keys</th><th>Does</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd Shift N</code></td><td>New window on this vault</td></tr><tr><td><code>Ctrl/Cmd O</code></td><td>Open vault…</td></tr><tr><td><code>Ctrl/Cmd W</code></td><td>Close window</td></tr><tr><td><code>Ctrl/Cmd Shift F</code></td><td><strong>Find in page</strong> (below)</td></tr><tr><td><code>Ctrl/Cmd Alt R</code></td><td>Open the note as a reference window</td></tr><tr><td><code>Ctrl/Cmd =</code> / <code>-</code> / <code>0</code>, and the numpad</td><td>Zoom in / out / actual size</td></tr><tr><td><code>Ctrl/Cmd Y</code></td><td>Redo, beside <code>Ctrl/Cmd Shift Z</code></td></tr></tbody></table></div><h2 id="your-own-name-and-icon"><a class="anchor" href="#your-own-name-and-icon">Your own name and icon</a></h2>
+<p>Astrolabe is one person&#39;s name for it. <strong>Settings → Device → This app</strong> lets you call the app
+whatever you like on this computer and give it your own icon: the tray, its tooltip, the window
+icon, the About box and the launcher entry all follow. The site&#39;s own name and logo are a
+separate thing, under <em>Site</em>, and title the window and the sidebar. <strong>An update never touches
+either</strong>: the AppImage is swapped over its own path, so a file you renamed keeps its name; the
+Windows installer replaces the program directory and nothing else; and your name and icon live
+beside the app&#39;s settings, which no update writes.</p>
+<p><em>Add to the applications menu</em> (Linux) writes a desktop entry in your name, with your icon,
+pointing at the AppImage wherever you keep it. <em>Add to the Start Menu</em> (Windows) creates a
+shortcut the same way; a shortcut&#39;s icon must be an <code>.ico</code>, so choose one of those there.
+Run it again after changing the name or the icon.</p>
+<p>The full rebrand — the executable&#39;s own file name and the icon baked into it — is a build:</p>
+<pre><code>node scripts/rebrand.mjs --name &quot;Marginalia&quot; --icon ~/marginalia.png
+npm --prefix desktop run dist
+</code></pre>
+<p>Every artifact in <code>desktop/release</code> then carries your name and icon. The updater still follows
+the release page the build was made from (<code>RELEASES_PAGE</code> in <code>electron/update.ts</code>); point it at
+your own if you publish your own releases.</p>
+<h2 id="the-reference-window"><a class="anchor" href="#the-reference-window">The reference window</a></h2>
 <p><strong>Window → Open as reference window</strong> (<code>Ctrl/Cmd Alt R</code>) opens the current note in a second,
 smaller window that stays <strong>always on top</strong>: the source you are quoting, the outline you are
 following, the checklist, kept over the window you are writing in. <em>Always on top</em> is a switch on
@@ -63,8 +89,14 @@ Edit menu.</p>
 <p>The app checks the releases page at launch and every six hours, and downloads a new release <strong>in
 the background</strong>; when it is ready a toast offers <strong>Restart now</strong>, never a dialog. <strong>Help → Check
 for updates…</strong> asks at once, and says so when you are on the latest.</p>
+<p>The build you are on is printed at the end of the bottom status bar, and on the desktop app that chip
+<em>is</em> the updater: click it to check; while a release downloads it turns into a bar with the
+percentage; once the download is on disk and verified it reads <strong>Restart now</strong>. In a browser it
+opens the releases page, since a hosted instance updates when its server does.</p>
 <p>What &quot;restart&quot; does depends on how the app was installed. The <strong>AppImage</strong> is swapped in place
-and relaunched. The <strong>Windows</strong> install runs the new installer silently and the installer
+and relaunched: the app leaves, and a moment later the new file starts on its own (a release
+that made you open it again yourself is behind us; every AppImage build is now relaunch-tested
+before it is published). The <strong>Windows</strong> install runs the new installer silently and the installer
 relaunches the app. Both downloads are checked against the release&#39;s own checksum file before
 anything runs. The <strong>deb</strong> and <strong>pacman</strong> packages belong to a package manager, so there the toast
 opens the release page instead. The <strong>Android app</strong> (the APK on the same release page) checks
@@ -76,8 +108,16 @@ the APK only changes when the shell itself does.</p>
 <p><code>astrolabe://note?path=Folder/Note.md</code> opens a note from outside the app, and the app registers for
 <code>.md</code> files so a note double-clicked in the file manager opens here. The path is checked, not
 cleaned: <code>..</code>, a leading <code>/</code>, a drive letter or a control character is refused.</p>
+<h2 id="sessions"><a class="anchor" href="#sessions">Sessions</a></h2>
+<p>A vault the app opened itself is signed in by the app: the password is minted at launch and no
+human ever sees it, so there is nothing to sign out of and the status bar shows no <strong>Sign out</strong>.
+A session that lapses anyway (a long sleep, a server restarted underneath) is restored on the
+next request rather than asked for. The one exception is an <a href="#where-things-live">env-linked vault</a>,
+which runs under its deployment&#39;s own <code>.env</code>: there the window opens as a reader and <strong>Sign in</strong>
+takes the same password the site takes.</p>
 <h2 id="where-things-live"><a class="anchor" href="#where-things-live">Where things live</a></h2>
-<p>The app&#39;s own configuration is in <code>~/.config/astrolabe</code> (<code>desktop.json</code>: the vaults, their ports
+<p>The app&#39;s own configuration is in <code>~/.config/astrolabe</code> (the old <code>vellum</code> directory from before
+the rename is carried in on first launch and then removed) (<code>desktop.json</code>: the vaults, their ports
 and, for each, the data directory it uses), and each vault&#39;s instance data in the
 <a href="../configuration/#environment-variables"><code>ASTROLABE_DATA</code></a> that entry names. The Linux build is
 packaged with <code>asar: false</code> deliberately, because the server child reads real files from the
@@ -87,7 +127,7 @@ package.</p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/backup-and-sync/"><span class="pager__kicker">Previous</span><span class="pager__title">Backup &amp; sync</span></a><a class="pager__link pager__link--next" href="../../en/editor/"><span class="pager__kicker">Next</span><span class="pager__title">The editor &amp; reading view</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#vaults-and-windows">Vaults and windows</a><a class="toc__link toc__link--2" href="#the-reference-window">The reference window</a><a class="toc__link toc__link--2" href="#find-in-page">Find in page</a><a class="toc__link toc__link--2" href="#spelling">Spelling</a><a class="toc__link toc__link--2" href="#updates">Updates</a><a class="toc__link toc__link--2" href="#deep-links-and-file-association">Deep links and file association</a><a class="toc__link toc__link--2" href="#where-things-live">Where things live</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#vaults-and-windows">Vaults and windows</a><a class="toc__link toc__link--2" href="#your-own-name-and-icon">Your own name and icon</a><a class="toc__link toc__link--2" href="#the-reference-window">The reference window</a><a class="toc__link toc__link--2" href="#find-in-page">Find in page</a><a class="toc__link toc__link--2" href="#spelling">Spelling</a><a class="toc__link toc__link--2" href="#updates">Updates</a><a class="toc__link toc__link--2" href="#deep-links-and-file-association">Deep links and file association</a><a class="toc__link toc__link--2" href="#sessions">Sessions</a><a class="toc__link toc__link--2" href="#where-things-live">Where things live</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

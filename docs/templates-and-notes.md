@@ -35,7 +35,8 @@ at all: a stranger cannot fix your typo, and blog posts fall back to the generat
 As admin you rarely touch the YAML: the command palette's **Set banner…** (also a quiet button
 on the properties card) opens a modal to paste a URL, pick from the vault's image attachments,
 or upload a file (drag & drop or picker; png/jpeg/webp/gif/svg, 10 MB max, bytes are sniffed —
-the upload lands wherever the [Attachments](configuration.md#attachments) setting points). The
+the upload lands wherever the [Attachments](configuration.md#attachments) setting points,
+measured from the note's own folder — under *Same folder* the banner sits beside the note). The
 write is a surgical one-line frontmatter edit —
 the rest of the file is untouched. Posts without a banner get a subtle generated gradient in
 the blog list and article hero (`BANNER_FALLBACK=none` turns that off).

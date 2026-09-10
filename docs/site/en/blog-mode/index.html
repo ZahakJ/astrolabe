@@ -44,8 +44,11 @@ article deep links keep their normal note URLs.</p>
 <h2 id="what-counts-as-a-post"><a class="anchor" href="#what-counts-as-a-post">What counts as a post</a></h2>
 <p>Every note with <code>publish: true</code>, newest first. A post&#39;s date comes from
 frontmatter — <code>date:</code>, <code>created:</code>, or <code>published:</code>, the first that parses wins (bare YAML dates
-like <code>2024-05-01</code> and quoted/ISO strings both work); otherwise the moment the note was <strong>first
-seen</strong> by this instance. That is not the file&#39;s birthtime as the disk reports it today: every save
+like <code>2024-05-01</code> and quoted/ISO strings both work); then a numeric <code>id:</code>, when the template
+minted one — that is <code>Date.now()</code> at the moment the note was made, padded to the template&#39;s
+length, and it is the truest creation time a note carries, older than anything the disk or the
+ledger below can know and unmoved by a reorganisation of the vault; otherwise the moment the
+note was <strong>first seen</strong> by this instance. That is not the file&#39;s birthtime as the disk reports it today: every save
 writes a temp file and renames it over the note, which mints a new inode with a new birthtime, so
 the raw birthtime is really the last edit. The instance remembers the first birthtime it met for
 each path in <code>ASTROLABE_DATA/created.json</code>, and when the vault is a git repository it seeds that
@@ -102,12 +105,16 @@ folder (<code>2 - Tags/games.md</code>) with <code>collection: true</code>, and 
 <code>title:</code>, <code>hidden: true</code> and <code>folder:</code> (a vault folder whose published notes all belong). The tag
 is the collection: every note carrying <code>#games</code> is in it, and its chip in the navigation stands in
 for the tag&#39;s own. Nothing is enumerated in Settings; the panel lists what the vault declared.</p>
-<p><strong>From the tree, no typing.</strong> Right-click a folder → <strong>Publish folder as a topic…</strong> and the tag
-page is written for you, with the folder&#39;s tree mark and <code>folder:</code> set to it. Right-click a note →
-<strong>Collections…</strong> and tick the ones it belongs to; <code>tags:</code> (or <code>folders:</code> for an older row) is
+<p><strong>From the tree, no typing.</strong> Right-click a folder → <strong>Create a topic from this folder…</strong> and the
+tag page is written for you, with the folder&#39;s tree mark and <code>folder:</code> set to it. Right-click a note
 written for you. A membership that comes from a folder shows ticked and stays.</p>
-<p>Publishing notes without making their folder a topic is just publishing them: a note&#39;s tags file
-it, and only a folder you have published as a topic becomes one.</p>
+<p><strong>Making a topic publishes nothing, and publishing makes no topic.</strong> The two are separate on
+purpose, and the menu names them separately. A topic&#39;s members are the notes in the folder that
+are <em>already</em> published, plus any note carrying the tag — so a topic over a folder of private
+notes is an empty page, and the library does the same thing for the same reason. To publish the
+notes, right-click the folder → <strong>Publish every note in this folder…</strong>: it asks first, naming how
+many, then writes <code>publish: true</code> into each note that does not already have it, one at a time
+through the same route the status bar&#39;s ✦ uses. Notes already published are left untouched.</p>
 <p>A note also joins a folder from its own frontmatter, and every spelling YAML gives you works:</p>
 <pre><code class="language-yaml">---
 title: Elden Ring, finished
