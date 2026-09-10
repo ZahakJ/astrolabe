@@ -74,6 +74,11 @@ repository</strong>: that runs <code>git init</code>, makes the first commit, wr
 your instance data directory can never be committed, and points <code>origin</code> at your remote. The
 button disappears once the vault is a repository.</p>
 <h2 id="4-sync"><a class="anchor" href="#4-sync">4. Sync</a></h2>
+<p><strong>Every launch syncs first.</strong> With Backup &amp; sync enabled, a server that comes up runs a pass
+before it answers its first window, and every window that opens as an admin — a browser, the
+phone, a desktop window — asks the server for one more, which it runs unless one ran in the last
+five minutes or is running now. So the first thing any device does is pull what the others
+pushed. The manual <strong>Sync now</strong> below stays, for whenever you want it.</p>
 <p>The status bar shows a quiet branch glyph while backup is on: plain when everything
 is committed, with a count when it is not, gold while a sync runs, red when the last one failed.
 Click it for a small panel carrying the branch, the ahead/behind counts, the last result and —
@@ -221,6 +226,37 @@ unaffected — that has always been git&#39;s <code>index.lock</code> to arbitra
 vault over a network filesystem is outside what this buys: exclusive creation is only as atomic
 as the filesystem makes it, and the fifteen-minute age check is the only recovery there.</li>
 </ul>
+<h2 id="settings-travel-with-the-vault"><a class="anchor" href="#settings-travel-with-the-vault">Settings travel with the vault</a></h2>
+<p><strong>The instance&#39;s own configuration travels too.</strong> <code>settings.json</code> (site name, tagline, logo,
+language, home note, folders, typography, calendars, the sync settings themselves), the
+designer&#39;s <code>designs.json</code>, <code>custom.css</code> and your custom fonts are mirrored from
+<code>ASTROLABE_DATA</code> into <code>&lt;vault&gt;/.astrolabe/</code> and back, every few seconds and once at boot,
+newest copy wins, on every server over the folder. The first time a server meets the vault&#39;s
+copy of a file, the vault wins outright, so a fresh machine takes the site&#39;s settings rather
+than pushing its own defaults over them. Set the site name on the hosted instance
+and the desktop app on the other machine has it after its next pull; upload a logo in the
+designer on the laptop and the site shows it after the next push. What stays put: the git
+token (a device&#39;s own), the comments database, the reading positions and creation ledger, and
+sessions. A value a hosted instance takes from its <code>.env</code> (<code>SITE_NAME</code>, <code>SITE_TAGLINE</code>,
+<code>HOME_NOTE</code>…) is that server&#39;s alone until it is saved in the settings panel, which writes it
+into <code>settings.json</code> and so into the vault.</p>
+<p>The settings on the Device tab — theme, chrome and editor language, vim, the writing column&#39;s
+width, heading numbers, the formatting toolbar, which side the sidebar hangs on — are kept in
+<strong>one file inside the vault</strong>, <code>.astrolabe/prefs.json</code>, and every server over that folder reads
+it: the desktop app on your Linux machine, the desktop app on your Windows machine, and the hosted
+instance your phone opens. Change the theme on one and the next launch of the others has it.
+There is no account and nothing to configure: whatever carries your notes between machines
+(Syncthing, git sync, a shared disk) carries the file with them, and a hosted instance and a
+desktop app over the same folder need nothing at all.</p>
+<p>Each device pushes what it changes a second after the change and pulls the file before it draws
+anything, so a setting never arrives mid-session and moves things under you. Per key the newest
+change wins, and a setting cleared on one device clears on the next rather than coming back from
+it. What travels is what a person would call a setting. Tabs, the workspace, pane widths, the
+tags shelf&#39;s height, fold state and every collapsed flag describe <em>this window on this screen</em>
+and stay where they are. <strong>Settings → Device → Settings travel with the vault</strong> switches it off
+for a device that should keep its own; the file is admin-only and never reaches a visitor. If
+you keep the vault in git, commit <code>.astrolabe/</code> (it is not in the <a href="#gitignore-advice">ignore advice</a>
+because you want it).</p>
 <h2 id="things-worth-knowing"><a class="anchor" href="#things-worth-knowing">Things worth knowing</a></h2>
 <ul>
 <li>Every git invocation is an <code>execFile</code> with a fixed argument array. No shell is involved
@@ -257,7 +293,7 @@ note that has been renamed lives under its old name in its older commits.</li>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/publishing/"><span class="pager__kicker">Previous</span><span class="pager__title">Publishing &amp; access</span></a><a class="pager__link pager__link--next" href="../../en/desktop/"><span class="pager__kicker">Next</span><span class="pager__title">The desktop app</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#1-have-a-remote-to-push-to">1. Have a remote to push to</a><a class="toc__link toc__link--2" href="#2-choose-how-this-server-signs-in">2. Choose how this server signs in</a><a class="toc__link toc__link--2" href="#3-turn-it-on">3. Turn it on</a><a class="toc__link toc__link--2" href="#4-sync">4. Sync</a><a class="toc__link toc__link--2" href="#why-pulls-are-fast-forward-only">Why pulls are fast-forward-only</a><a class="toc__link toc__link--2" href="#what-sync-never-stages">What sync never stages</a><a class="toc__link toc__link--2" href="#gitignore-advice">.gitignore advice</a><a class="toc__link toc__link--2" href="#note-history-reading-what-the-backup-kept">Note history: reading what the backup kept</a><a class="toc__link toc__link--3" href="#snapshot-now">Snapshot now</a><a class="toc__link toc__link--2" href="#two-servers-one-vault">Two servers, one vault</a><a class="toc__link toc__link--3" href="#one-sync-at-a-time-across-every-server">One sync at a time — across every server</a><a class="toc__link toc__link--2" href="#things-worth-knowing">Things worth knowing</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#1-have-a-remote-to-push-to">1. Have a remote to push to</a><a class="toc__link toc__link--2" href="#2-choose-how-this-server-signs-in">2. Choose how this server signs in</a><a class="toc__link toc__link--2" href="#3-turn-it-on">3. Turn it on</a><a class="toc__link toc__link--2" href="#4-sync">4. Sync</a><a class="toc__link toc__link--2" href="#why-pulls-are-fast-forward-only">Why pulls are fast-forward-only</a><a class="toc__link toc__link--2" href="#what-sync-never-stages">What sync never stages</a><a class="toc__link toc__link--2" href="#gitignore-advice">.gitignore advice</a><a class="toc__link toc__link--2" href="#note-history-reading-what-the-backup-kept">Note history: reading what the backup kept</a><a class="toc__link toc__link--3" href="#snapshot-now">Snapshot now</a><a class="toc__link toc__link--2" href="#two-servers-one-vault">Two servers, one vault</a><a class="toc__link toc__link--3" href="#one-sync-at-a-time-across-every-server">One sync at a time — across every server</a><a class="toc__link toc__link--2" href="#settings-travel-with-the-vault">Settings travel with the vault</a><a class="toc__link toc__link--2" href="#things-worth-knowing">Things worth knowing</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>
