@@ -80,7 +80,7 @@ export const TOUR_PREREQ: Record<TourPrereq, TourText> = {
   },
   repo: {
     en: "This vault is not a git work tree yet, so there is no history to read — backup is what makes it.",
-    ar: "هذه الخزانة ليست شجرة عمل git بعد، فلا تأريخ يُقرأ — النسخ الاحتياطي هو ما يصنعه.",
+    ar: "هذه الخزانة ليست شجرة عمل git بعد، فلا تاريخ فيها يُقرأ — والنسخ الاحتياطي هو ما يكتبه.",
   },
 };
 
@@ -94,7 +94,7 @@ export const TOUR_UI = {
   cardOf: { en: "{name} — {n} of {total}", ar: "{name} — {n} من {total}" },
   position: { en: "{n} of {total}", ar: "{n} من {total}" },
   deck: { en: "The tour", ar: "الجولة" },
-  goTo: { en: "Go to {name}", ar: "الانتقال إلى {name}" },
+  goTo: { en: "Go to {name}", ar: "اذهب إلى {name}" },
   /** Under the buttons: how to flip, and that leaving is free. TWO of them,
    *  and CSS picks — a keyboard legend on a device with no keyboard is a
    *  taunt, which is the lesson the empty state learned one surface over. */
@@ -109,7 +109,7 @@ export const TOUR_UI = {
   /** The whole point, said once, on the last folio's back. */
   end: {
     en: "That is the tour. Everything in it also lives in the command palette — and now you know what to look for.",
-    ar: "تلك هي الجولة. وكل ما فيها موجود في لوحة الأوامر أيضًا — وقد صرت تعرف الآن ما تبحث عنه.",
+    ar: "هذه هي الجولة. وكل ما فيها يسكن لوحة الأوامر أيضًا — وصرتَ الآن تعرف عمّ تبحث.",
   },
 } satisfies Record<string, TourText>;
 
@@ -138,7 +138,7 @@ export const TOUR_CARDS: TourCard[] = [
     name: { en: "Twenty-one rooms", ar: "إحدى وعشرون غرفة" },
     blurb: {
       en: "A theme here is a whole room — its own ground, type, accent and thirteen callout hues, each solved against the others, and some of them carry a slow ambient air behind the masthead. Walk them with the arrow keys and the app changes around you as you go.",
-      ar: "السمة ها هنا غرفة كاملة: أرضيتها وخطها ولونها المميز وثلاثة عشر لونًا للتنبيهات، كلٌّ محلولٌ في مواجهة الآخر، وبعضها يحمل أجواءً بطيئة خلف ترويسة الموقع. امشِ بينها بمفاتيح الأسهم يتبدّل التطبيق حولك وأنت تمشي.",
+      ar: "السمة هنا غرفة كاملة: أرضيتها وخطها ولونها المميز وثلاثة عشر لونًا للتنبيهات، كلٌّ منها مضبوطٌ على الآخر، وبعضها يحمل أجواءً بطيئة خلف ترويسة الموقع. امشِ بينها بمفاتيح الأسهم، والتطبيق يتبدّل حولك وأنت تمشي.",
     },
     action: "themes",
   },
@@ -191,7 +191,7 @@ export const TOUR_CARDS: TourCard[] = [
     name: { en: "Search that takes orders", ar: "بحثٌ يتلقّى الأوامر" },
     blurb: {
       en: "Ask for tag:, path:, is:published, before: or linkto:, and put a minus in front of any of them to mean “not”. Diacritics fold on both sides, so «المقدمة» finds «الْمُقَدِّمَة» and resume finds résumé.",
-      ar: "اطلب ‎tag:‎ أو ‎path:‎ أو ‎is:published‎ أو ‎before:‎ أو ‎linkto:‎، وضع سالبًا أمام أيٍّ منها بمعنى «ليس». وتُطرح التشكيلات من الطرفين، فتجد «المقدمة» «الْمُقَدِّمَة» ويجد resume كلمة résumé.",
+      ar: "اطلب ‎tag:‎ أو ‎path:‎ أو ‎is:published‎ أو ‎before:‎ أو ‎linkto:‎، وضع سالبًا أمام أيٍّ منها بمعنى «ليس». ويسقط التشكيل من الطرفين، فـ«المقدمة» تجد «الْمُقَدِّمَة»، وresume تجد résumé.",
     },
     action: "search",
     verb: { en: "Run one", ar: "نفّذ بحثًا" },
@@ -211,7 +211,7 @@ export const TOUR_CARDS: TourCard[] = [
     name: { en: "LaTeX notes", ar: "ملاحظات لاتخ" },
     blurb: {
       en: "A .tex file is a note like any other here: edited, linked, searched, backlinked and published — and it still compiles on your own machine. The macro package that keeps that promise is one row away.",
-      ar: "ملف ‎.tex‎ ملاحظةٌ كسائر الملاحظات هنا: يُحرَّر ويُربط ويُبحث فيه وتُجمع إحالاته ويُنشر — ولا يزال يُصرَّف على جهازك. وحزمة الماكرو التي تحفظ هذا الوعد على بعد صفٍّ واحد.",
+      ar: "ملف ‎.tex‎ ملاحظةٌ كسائر الملاحظات هنا: يُحرَّر ويُربط ويُبحث فيه وتُجمع إحالاته ويُنشر — ولا يزال يُبنى على جهازك. وحزمة الماكرو التي تحفظ هذا الوعد على بعد صفٍّ واحد.",
     },
     action: "palette",
     verb: { en: "Open the palette", ar: "افتح لوحة الأوامر" },
