@@ -30,6 +30,8 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "device", label: "rowAppName", hint: "hintAppName" },
   { tab: "device", label: "rowAppIcon", hint: "hintAppIcon" },
   { tab: "device", label: "rowYourTheme", hint: "hintYourTheme" },
+  { tab: "device", label: "rowScreenWarmth", hint: "hintScreenWarmth" },
+  { tab: "device", label: "rowScreenDim", hint: "hintScreenDim" },
   { tab: "device", label: "rowEditorLanguage", hint: "hintEditorLanguage" },
   { tab: "device", label: "rowSidebarSide", hint: "hintSidebarSide" },
   { tab: "device", label: "rowEditorWidth", hint: "hintEditorWidth" },

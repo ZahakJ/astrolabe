@@ -34,6 +34,7 @@ import { renderSnippet, snippetIsEmpty } from "./snippet.tsx";
 import { openThemePicker } from "./ThemePicker.tsx";
 import { openDesigner } from "./design/openDesigner.ts";
 import { openTour } from "../tour.ts";
+import { readWarmth, toggleWarmth } from "../eyeComfort.ts";
 import { installRecents, recentNotes } from "../recents.ts";
 import { getNote } from "../api.ts";
 import { noteAnchors, type NoteAnchor } from "../../shared/anchors.ts";
@@ -427,6 +428,17 @@ const COMMANDS: Command[] = [
     label: () => t("cmdToggleVim"),
     hint: () => t("cmdEditorHint"),
     available: ({ admin }) => admin,
+  },
+  {
+    // THE NIGHT LIGHT'S ONE-KEY SWITCH. The sliders live on the settings
+    // panel's device tab; this is the row for the reader whose eyes are
+    // already tired and who does not want to find a slider. Everybody gets
+    // it, a visitor included — the sheet is of the screen, not the vault.
+    // The label is the STATE: it names the direction the press will take.
+    id: "warm-screen",
+    label: () => t(readWarmth() > 0 ? "cmdCoolScreen" : "cmdWarmScreen"),
+    hint: () => t("cmdWarmScreenHint"),
+    available: () => true,
   },
   {
     id: "publish-note",
@@ -1016,6 +1028,9 @@ export default function CommandPalette() {
           break;
         case "toggle-vim":
           store.toggleVim();
+          break;
+        case "warm-screen":
+          toggleWarmth();
           break;
         case "zen-mode":
           store.setZen(!store.zen);

@@ -111,6 +111,29 @@ puts visitors back on whatever you are actually using. A reader who has chosen a
 moved by any of this, and an unknown `DEFAULT_THEME` is ignored with a line on stderr at startup
 rather than silently.
 
+## Easy on the eyes
+
+A light room is bright by design, and a bright screen late in the day is a different problem from
+a wrong theme. So beside the theme there are two sliders on **Settings → This device** that sit
+*over* whatever theme you are in rather than replacing it:
+
+- **Screen warmth** lays an amber sheet over the whole page, the way a phone's night light does —
+  the chrome, the note, the dialogs and the PDF reader all take the colour of paper under a reading
+  lamp, and the blue that tires eyes goes with it. Drag until the page stops glaring: 40–60 is a
+  lamp, 100 is candlelight.
+- **Dim the screen** darkens the page below the point your monitor's own brightness control can
+  reach, for the panel whose lowest setting is still too bright at midnight. It stops at 70; past
+  that the text would go with the glare.
+
+Both apply as you drag. Both are **per device** — they never sync to your other machines (a phone
+has its own night light), are never saved into the vault, and are never seen by a visitor. The
+command palette carries **Warm the screen** / **Cool the screen** for the one-key version: it flips
+the warmth between off and the level you last used. The sheet is not printed.
+
+If what you want is a warm *room* rather than a warm sheet, the light half of the picker already
+has four: `parchment`, `sandstone`, `palimpsest` and `linen` are paper-toned by design, and the
+warmth slider stacks on any of them.
+
 ## The ambient masthead
 
 A theme is a set of *static* tokens by architecture — every gate in this repo measures those
