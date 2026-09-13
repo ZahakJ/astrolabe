@@ -608,7 +608,13 @@ const AUDIENCES = [
   // they are entry by definition, and the foreign-drag adoption in dragTab.ts.
   // …and for 3.7.0 (692.2 kB actual → 700): twenty-four preset rooms in
   // tokens.css, generated from their published palettes (scripts/gen-themes.mjs).
-  { name: "entry (everyone)", keys: entry, budget: 700 * 1024 },
+  // …and for 3.10.0 (702.8 kB actual → 706, actual + ~0.45%): the eye-comfort
+  // sheet (client/eyeComfort.ts, its `.s-eye` rules in app.css, its nine
+  // dictionary keys). It goes up from main.tsx BEFORE the first paint and
+  // before the prefs pull — a reader who warmed the screen last night must not
+  // get a flash of blue-white first — so it is entry by definition, like the
+  // theme and the editor's measure before it.
+  { name: "entry (everyone)", keys: entry, budget: 706 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1036,6 +1042,26 @@ const editorKey = Object.keys(manifest).find(
 );
 if (!editorKey) fail("no editor chunk in the manifest at all");
 else console.log(`  ok    editor chunk                       ${manifest[editorKey].file} (${kb(bytes([manifest[editorKey].file]))})`);
+
+// ── the version the entry carries ───────────────────────────────────────────
+// vite.config.ts bakes package.json's version into the entry as
+// `__APP_VERSION__`, and client/state.ts compares it with /api/me's `version`
+// to toast "Astrolabe X is now on the server; reload". That toast is only as
+// honest as the bake: 3.9.0's bundle was built at 09:22 with the version still
+// reading 3.8.2, the bump landed at 09:27, and nobody rebuilt — so every tab
+// on the new build was told, forever and after every reload, that it was the
+// old one. A dist whose entry does not carry the CURRENT package version is a
+// dist that was built before the last bump, and must not ship.
+{
+  const pkgVersion = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")).version;
+  const entryFile = manifest["index.html"]?.file;
+  const entrySrc = entryFile ? readFileSync(path.join(dist, entryFile), "utf8") : "";
+  if (!entrySrc.includes(JSON.stringify(pkgVersion))) {
+    fail(`the entry chunk does not carry package.json's version ${pkgVersion} — rebuild after bumping (npm run build)`);
+  } else {
+    console.log(`  ok    entry carries version ${pkgVersion}`);
+  }
+}
 
 console.log(failed ? "\nBUNDLE BUDGET FAILED" : "\nBUNDLE OK");
 process.exit(failed ? 1 : 0);
