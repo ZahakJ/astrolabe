@@ -506,6 +506,20 @@ const DICT = {
   // The keystrokes moved: Ctrl/Cmd+B is BOLD in the editor now (every reader
   // arrives with that binding), so the two pane toggles took one more
   // modifier and kept their shape — same key, Shift picks the second pane.
+  rowScreenWarmth: { en: "Screen warmth", ar: "دفء الشاشة" },
+  hintScreenWarmth: {
+    en: "An amber sheet over the whole page, like a phone's night light — less blue, easier on the eyes. Per device.",
+    ar: "طبقة كهرمانية فوق الصفحة كلها، مثل الإضاءة الليلية في الهاتف: أزرق أقل وراحة أكبر للعين. لكل جهاز.",
+  },
+  rowScreenDim: { en: "Dim the screen", ar: "تعتيم الشاشة" },
+  hintScreenDim: {
+    en: "Darkens the page below what the monitor's own brightness reaches. Per device.",
+    ar: "يعتّم الصفحة إلى ما دون أدنى سطوع تبلغه الشاشة نفسها. لكل جهاز.",
+  },
+  eyeComfortOff: { en: "Off", ar: "متوقف" },
+  cmdWarmScreen: { en: "Warm the screen", ar: "دفّئ الشاشة" },
+  cmdCoolScreen: { en: "Cool the screen", ar: "برّد الشاشة" },
+  cmdWarmScreenHint: { en: "Night light: an amber sheet over the page, per device", ar: "إضاءة ليلية: طبقة كهرمانية فوق الصفحة، لكل جهاز" },
   rowEditorWidth: { en: "Writing column", ar: "عرض عمود الكتابة" },
   hintEditorWidth: { en: "How wide the editor and the reading view set their text. Per device.", ar: "عرض النص في المحرر وعرض القراءة. لكل جهاز." },
   editorWidthMeasure: { en: "Reading measure", ar: "قياس القراءة" },

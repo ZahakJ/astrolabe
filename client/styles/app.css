@@ -7153,3 +7153,40 @@ html[dir="rtl"] .s-statusbar__spacer {
   margin-inline-start: 4px;
   border-color: transparent;
 }
+
+/* ── Easy on the eyes: the warm/dim sheet (client/eyeComfort.ts) ──────────
+ * One fixed, inert element over EVERYTHING, modals and toasts included —
+ * that is the point: a phone's night light does not spare the dialogs. The
+ * warm layer multiplies, so white paper turns lamp-coloured and dark rooms
+ * lose only their blue; the dim layer is plain black at a low opacity. Both
+ * read a custom property the module sets, and the element is removed rather
+ * than hidden when both are 0, so an idle compositor has nothing to blend.
+ * Never printed: the sheet is of the screen. */
+.s-eye {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+}
+.s-eye__warm,
+.s-eye__dim {
+  position: absolute;
+  inset: 0;
+}
+.s-eye__warm {
+  /* Measured, not guessed: at 60% the first cut (255 170 64) turned white
+   * paper the colour of a traffic cone. This is a reading lamp at 50 and a
+   * candle at 100 — white lands on (255 220 176) and (255 184 96). */
+  background: rgb(255 184 96);
+  mix-blend-mode: multiply;
+  opacity: var(--eye-warmth, 0);
+}
+.s-eye__dim {
+  background: #000;
+  opacity: var(--eye-dim, 0);
+}
+@media print {
+  .s-eye {
+    display: none;
+  }
+}

@@ -34,6 +34,7 @@ import { Row } from "./Row.tsx";
 import { prefsSyncEnabled, setPrefsSyncEnabled } from "../../prefsSync.ts";
 import { desktop, type DesktopBrand } from "../../desktop/bridge.ts";
 import { toast } from "../../toast.ts";
+import { DIM_MAX, EYE_COMFORT_EVENT, WARMTH_MAX, readDim, readWarmth, setDim, setWarmth } from "../../eyeComfort.ts";
 
 /** A localStorage preference that is NOT in the store, kept live the way its
  *  own module already publishes it: a window event. Both of these have a
@@ -48,6 +49,44 @@ function useEventPref(event: string, read: () => boolean): boolean {
     return () => window.removeEventListener(event, sync);
   }, [event, read]);
   return on;
+}
+
+/** A 0–max level of the eye-comfort sheet (client/eyeComfort.ts), kept live
+ *  the same way: the palette's "Warm the screen" flips the same value, and a
+ *  slider that stays put while the page turns amber is a slider that lies. */
+function useLevel(read: () => number): number {
+  const [level, setLevel] = useState(read);
+  useEffect(() => {
+    const sync = (): void => setLevel(read());
+    window.addEventListener(EYE_COMFORT_EVENT, sync);
+    return () => window.removeEventListener(EYE_COMFORT_EVENT, sync);
+  }, [read]);
+  return level;
+}
+
+/** A level slider with its value spoken beside it: "45%" or "Off", because a
+ *  thumb at the left end says nothing about whether the sheet is gone or
+ *  merely faint. The row's label is the control's accessible name, as every
+ *  row here wires it. */
+function LevelSlider({ label, max, value, onChange }: { label: string; max: number; value: number; onChange: (v: number) => void }) {
+  return (
+    <span className="s-ctl-inline s-ctl-level">
+      <input
+        className="s-ctl-range"
+        type="range"
+        min={0}
+        max={max}
+        step={1}
+        value={value}
+        aria-label={label}
+        aria-valuetext={value === 0 ? t("eyeComfortOff") : `${value}%`}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+      <span className="s-ctl-level__value" aria-hidden="true">
+        {value === 0 ? t("eyeComfortOff") : <bdi dir="ltr">{value}%</bdi>}
+      </span>
+    </span>
+  );
 }
 
 /** THIS APP'S NAME AND ICON, on the desktop only. Astrolabe is one person's
@@ -147,6 +186,8 @@ export default function DeviceTab() {
   const numbered = useEventPref("astrolabe:heading-numbers", headingNumbersPref);
   const toolbar = useEventPref("astrolabe:seltoolbar", selectionToolbarEnabled);
   const prefsSync = useEventPref("astrolabe:prefs-sync", prefsSyncEnabled);
+  const warmth = useLevel(readWarmth);
+  const dim = useLevel(readDim);
 
   return (
     <section data-section="device">
@@ -192,6 +233,18 @@ export default function DeviceTab() {
             />
           </svg>
         </button>
+      </Row>
+
+      {/* EASY ON THE EYES, right under the theme, because it is the question
+          the theme row does not answer: "light mode is nice but almost blinds
+          me". A theme is ink and paper; these two are the lamp and the blind
+          over ANY theme — the phone's night light, brought to the page
+          (client/eyeComfort.ts). Applied as it is dragged, never saved. */}
+      <Row label={t("rowScreenWarmth")} hint={t("hintScreenWarmth")}>
+        <LevelSlider label={t("rowScreenWarmth")} max={WARMTH_MAX} value={warmth} onChange={setWarmth} />
+      </Row>
+      <Row label={t("rowScreenDim")} hint={t("hintScreenDim")}>
+        <LevelSlider label={t("rowScreenDim")} max={DIM_MAX} value={dim} onChange={setDim} />
       </Row>
 
       {/* THE ROW THAT UNWELDS THE TWO LANGUAGES. Language & dates decides what

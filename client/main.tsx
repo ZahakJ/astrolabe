@@ -13,6 +13,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import ErrorBoundary from "./ErrorBoundary.tsx";
 import { installSafetyNet } from "./safety.ts";
+import { applyEyeComfort } from "./eyeComfort.ts";
 
 // PREFERENCES ARRIVE BEFORE ANYTHING READS THEM. The vault's own copy of this
 // device's settings (theme, languages, editor width… client/prefsSync.ts) is
@@ -25,6 +26,10 @@ import { installSafetyNet } from "./safety.ts";
 // is a net installed after the fall (v1.8 client-solidity audit, B2).
 installSafetyNet();
 installPrefsSync();
+// The warm/dim sheet (client/eyeComfort.ts) is this device's own and never
+// travels, so it goes up NOW rather than after the prefs pull: a reader who
+// warmed the screen last night must not get a flash of blue-white first.
+applyEyeComfort();
 
 const root = document.getElementById("root");
 if (!root) throw new Error("astrolabe: #root element missing");

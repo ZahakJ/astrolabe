@@ -88,6 +88,26 @@ the setting) puts it back. Your pin and your editor theme are stored separately,
 puts visitors back on whatever you are actually using. A reader who has chosen a theme is never
 moved by any of this, and an unknown <code>DEFAULT_THEME</code> is ignored with a line on stderr at startup
 rather than silently.</p>
+<h2 id="easy-on-the-eyes"><a class="anchor" href="#easy-on-the-eyes">Easy on the eyes</a></h2>
+<p>A light room is bright by design, and a bright screen late in the day is a different problem from
+a wrong theme. So beside the theme there are two sliders on <strong>Settings → This device</strong> that sit
+<em>over</em> whatever theme you are in rather than replacing it:</p>
+<ul>
+<li><strong>Screen warmth</strong> lays an amber sheet over the whole page, the way a phone&#39;s night light does —
+the chrome, the note, the dialogs and the PDF reader all take the colour of paper under a reading
+lamp, and the blue that tires eyes goes with it. Drag until the page stops glaring: 40–60 is a
+lamp, 100 is candlelight.</li>
+<li><strong>Dim the screen</strong> darkens the page below the point your monitor&#39;s own brightness control can
+reach, for the panel whose lowest setting is still too bright at midnight. It stops at 70; past
+that the text would go with the glare.</li>
+</ul>
+<p>Both apply as you drag. Both are <strong>per device</strong> — they never sync to your other machines (a phone
+has its own night light), are never saved into the vault, and are never seen by a visitor. The
+command palette carries <strong>Warm the screen</strong> / <strong>Cool the screen</strong> for the one-key version: it flips
+the warmth between off and the level you last used. The sheet is not printed.</p>
+<p>If what you want is a warm <em>room</em> rather than a warm sheet, the light half of the picker already
+has four: <code>parchment</code>, <code>sandstone</code>, <code>palimpsest</code> and <code>linen</code> are paper-toned by design, and the
+warmth slider stacks on any of them.</p>
 <h2 id="the-ambient-masthead"><a class="anchor" href="#the-ambient-masthead">The ambient masthead</a></h2>
 <p>A theme is a set of <em>static</em> tokens by architecture — every gate in this repo measures those
 hexes against one another, and a value that moves is a value nobody screenshotted at the frame
@@ -205,7 +225,7 @@ floor, which is the most a fixed color can promise. <code>node scripts/check-con
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/library/"><span class="pager__kicker">Previous</span><span class="pager__title">The library</span></a><a class="pager__link pager__link--next" href="../../en/typography/"><span class="pager__kicker">Next</span><span class="pager__title">Typography</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#name-it">Name it</a><a class="toc__link toc__link--2" href="#pick-the-default-look">Pick the default look</a><a class="toc__link toc__link--2" href="#the-ambient-masthead">The ambient masthead</a><a class="toc__link toc__link--2" href="#make-your-own">Make your own</a><a class="toc__link toc__link--2" href="#restyle-it">Restyle it</a><a class="toc__link toc__link--2" href="#bring-your-own-fonts-the-css-route">Bring your own fonts (the CSS route)</a><a class="toc__link toc__link--2" href="#colored-text-in-two-tiers">Colored text in two tiers</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#name-it">Name it</a><a class="toc__link toc__link--2" href="#pick-the-default-look">Pick the default look</a><a class="toc__link toc__link--2" href="#easy-on-the-eyes">Easy on the eyes</a><a class="toc__link toc__link--2" href="#the-ambient-masthead">The ambient masthead</a><a class="toc__link toc__link--2" href="#make-your-own">Make your own</a><a class="toc__link toc__link--2" href="#restyle-it">Restyle it</a><a class="toc__link toc__link--2" href="#bring-your-own-fonts-the-css-route">Bring your own fonts (the CSS route)</a><a class="toc__link toc__link--2" href="#colored-text-in-two-tiers">Colored text in two tiers</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>
