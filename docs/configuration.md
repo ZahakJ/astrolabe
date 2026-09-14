@@ -31,6 +31,7 @@ summary.
 | `TRUSTED_PROXIES` | Comma-separated IPs/CIDRs allowed to set `X-Forwarded-For` / `X-Forwarded-Proto` (e.g. `127.0.0.1,::1`); unset → both headers ignored, rate limit uses the socket address |
 | `HOME_NOTE` | Vault-relative note fresh visitors land on, e.g. `index.md` |
 | `COMMENTS` | `on` (also `true`/`1`/`yes`) enables reader comments under published notes (default off) |
+| `NOTE_VERSIONS` | `off` (also `false`/`0`/`no`) stops the vault keeping a version of every note before each save in `ASTROLABE_DATA/versions/` (default on) — see [Versions, before and beside git](backup-and-sync.md#versions-before-and-beside-git) |
 | `SITE_NAME` | Site name shown in the sidebar wordmark, page titles, and the login modal (default `Astrolabe`) |
 | `SITE_TAGLINE` | Masthead subtitle under the site name (blog mode) |
 | `SITE_FOOTER` | Blog footer line; `{year}`/`{siteName}` substituted (default `© {year} {siteName}`) |
@@ -180,6 +181,7 @@ write them. Anything absent falls back to the env default in the table above.
 | `languageToggle` | boolean — the public `EN`/`ع` switch. **No env counterpart** | `false` |
 | `excludeTags` | array of strings, ≤ 200 entries, ≤ 50 chars each | `EXCLUDE_TAGS`, else empty |
 | `commentsEnabled` | boolean | `COMMENTS`, else `false` |
+| `noteVersions` | boolean — keep a version of every note before each save (Vault tab) | `NOTE_VERSIONS`, else `true` |
 | `shareButtons` | boolean — the share row under blog articles | `true` |
 | `authorSites` | array of `{ url }` (https), each enriched once from its own OpenGraph and cached in `ASTROLABE_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
 | `ambient` | boolean — a slow decorative atmosphere behind the public masthead, drawn per theme (see [Theming](theming.md#the-ambient-masthead)) | `false` |
