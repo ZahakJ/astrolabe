@@ -636,7 +636,10 @@ const AUDIENCES = [
   // for the whole release (block references, the query and tasks fences,
   // unlinked mentions, on this day, the periodic settings rows), which ship
   // whole to every surface, as every note in this file says.
-  { name: "entry (everyone)", keys: entry, budget: 726 * 1024 },
+  // …and 728.8 → 731 once the release's other three features merged (note
+  // versions, PDF search, export): their dictionary blocks, and the export
+  // door's and the versions fetchers' few hundred bytes.
+  { name: "entry (everyone)", keys: entry, budget: 731 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -840,7 +843,8 @@ const AUDIENCES = [
   // static PARSER (the fence decision is synchronous) with its renderer and
   // stylesheet lazy, plus the reading renderer's block-id handling and the
   // dictionary's keys for all of it.
-  { name: "anonymous blog reader", keys: blog, budget: 988 * 1024 },
+  // …and 991.2 → 995 with the same three merges (dictionary blocks).
+  { name: "anonymous blog reader", keys: blog, budget: 995 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -953,7 +957,9 @@ const AUDIENCES = [
   // 3.12.0: 1418.9 kB actual → 1424 — the blog closure's bytes plus the
   // right panel's two new sections (unlinked mentions, on this day), the
   // periodic-note settings rows and the palette's new doors.
-  { name: "admin first paint", keys: app, budget: 1424 * 1024 },
+  // …and 1428.0 → 1432 with the same three merges, plus the History panel's
+  // version rows and the sidebar's book-hit row.
+  { name: "admin first paint", keys: app, budget: 1432 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

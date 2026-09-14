@@ -387,6 +387,60 @@ export const RELEASES: Release[] = [
         },
         docs: "backup-and-sync",
       },
+      {
+        title: { en: "Search inside every book", ar: "ابحث داخل كل كتاب" },
+        body: {
+          en: "The search box now reads every PDF on your shelf: a book page appears beside your notes with its page number, and a click opens the reader right there. in:books or in:notes picks a side; the shelf is read once, in the background.",
+          ar: "صندوق البحث يقرأ الآن كل ملف PDF على رفّك: تظهر صفحة الكتاب بجانب ملاحظاتك مع رقمها، والنقر يفتح القارئ عليها مباشرة. in:books أو in:notes يختار جانبًا؛ ويُقرأ الرف مرة واحدة في الخلفية.",
+        },
+        visual: {
+          kind: "svg",
+          svg: `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="30" y="30" width="500" height="32" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="44" y="51" fill="var(--text)">zephyr</text>
+  <g transform="translate(30 80)">
+    <text y="14" fill="var(--text)" font-weight="500">Marginalia</text><text x="120" y="14" fill="var(--text-faint)" font-size="11">note</text>
+    <text y="34" fill="var(--text-muted)" font-size="12">…a <tspan fill="var(--accent)">zephyr</tspan> through the margins of the book…</text>
+  </g>
+  <g transform="translate(30 134)">
+    <rect x="-8" y="-14" width="516" height="52" rx="8" fill="color-mix(in srgb, var(--accent) 8%, transparent)"/>
+    <text y="14" fill="var(--text)" font-weight="500">A Treatise on Winds</text><text x="190" y="14" fill="var(--accent)" font-size="11">book page · p. 42</text>
+    <text y="34" fill="var(--text-muted)" font-size="12">…the western <tspan fill="var(--accent)">zephyr</tspan> arrives before the rains…</text>
+  </g>
+</svg>`,
+        },
+        docs: "books",
+      },
+      {
+        title: { en: "Export, in any shape", ar: "تصدير بأي شكل" },
+        body: {
+          en: "Export… puts a note, a folder, a tag or the whole vault into a ZIP with the pictures they use, wikilinks kept or turned into standard links. One note can leave as a single HTML page that carries your theme and its images inside it. Nothing leaves the machine.",
+          ar: "تصدير… يضع ملاحظة أو مجلدًا أو وسمًا أو الخزانة كلها في ملف ZIP مع الصور التي تستعملها، بروابط ويكية كما هي أو محوَّلة إلى روابط قياسية. ويمكن لملاحظة واحدة أن تخرج صفحةَ HTML واحدة تحمل سمتك وصورها في داخلها. لا شيء يغادر الجهاز.",
+        },
+        visual: {
+          kind: "svg",
+          svg: `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">EXPORT…</text>
+  <g transform="translate(30 60)">
+    <rect width="96" height="28" rx="14" fill="var(--bg)" stroke="var(--border)"/><text x="48" y="18" text-anchor="middle" fill="var(--text-muted)" font-size="12">This note</text>
+    <rect x="104" width="96" height="28" rx="14" fill="color-mix(in srgb, var(--accent) 16%, var(--bg))" stroke="var(--accent)"/><text x="152" y="18" text-anchor="middle" fill="var(--text)" font-size="12">This folder</text>
+    <rect x="208" width="72" height="28" rx="14" fill="var(--bg)" stroke="var(--border)"/><text x="244" y="18" text-anchor="middle" fill="var(--text-muted)" font-size="12">A tag</text>
+    <rect x="288" width="110" height="28" rx="14" fill="var(--bg)" stroke="var(--border)"/><text x="343" y="18" text-anchor="middle" fill="var(--text-muted)" font-size="12">Whole vault</text>
+  </g>
+  <g font-family="ui-monospace, monospace" font-size="12" transform="translate(30 116)">
+    <text y="0" fill="var(--text)">Essays 2026-09-14.zip</text>
+    <text x="20" y="22" fill="var(--text-muted)">Essays/Deep note.md</text>
+    <text x="20" y="42" fill="var(--text-muted)">Essays/On Marginalia.md</text>
+    <text x="20" y="62" fill="var(--text-muted)">Media/cover.png</text>
+  </g>
+  <text x="330" y="140" fill="var(--text-faint)" font-size="12">[[Deep note]] →</text>
+  <text x="330" y="160" fill="var(--accent)" font-size="12">[Deep note](Deep%20note.md)</text>
+</svg>`,
+        },
+        docs: "export",
+      },
     ],
   },
   {
