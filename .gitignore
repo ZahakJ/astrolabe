@@ -2,6 +2,9 @@ node_modules/
 dist/
 vault/
 data/
+# …but not the app's own shipped data (the Quran text the ayah callout draws
+# from; client/reading/ayah.ts). `data/` above is the server's runtime store.
+!client/data/
 .env
 shots/
 *.log
