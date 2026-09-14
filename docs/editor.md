@@ -324,7 +324,9 @@ device opens a new version of Astrolabe as an admin, a short deck walks the rele
 one slide per feature, a live piece of the product on each (a routine card you can tick, a warmth
 slider you can drag), next and back, `←`/`→` on the keyboard. It appears once per *minor* version:
 a bug-fix release shows nothing new, and a reader who skipped 3.11.0 and lands on 3.11.2 still gets
-the 3.11 deck. Close it and it is seen; *Don't show these after updates* on its footer, or the switch
+the 3.11 deck. A device that skipped several releases gets every deck it missed, oldest first, in
+one walk. A brand-new install gets no deck at all — the tour is that reader's welcome, and the
+palette door below is there when they are curious. Close it and it is seen; *Don't show these after updates* on its footer, or the switch
 in Settings, turns it off for good (the switch travels with your preferences). *What's new in this
 version* in the command palette reopens the deck on purpose, including every earlier release.
 

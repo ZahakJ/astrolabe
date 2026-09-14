@@ -64,6 +64,15 @@ function anyAstrolabeKey(): boolean {
   return false;
 }
 
+/** READ ONCE, AT MODULE LOAD. The boot itself writes `astrolabe.recents`,
+ *  `astrolabe.tabs` and `astrolabe.prefs-sync` within the first frames — so
+ *  by the time the door's timer fires, a fresh install has keys and reads
+ *  as an old device (every new reader got 3.11.0's deck through 3.13.0).
+ *  This module evaluates with App.tsx's imports, before main.tsx runs a
+ *  line, and storageMigration — the one import ahead of it — writes
+ *  nothing on a vault that has nothing to migrate. */
+const FRESH_AT_LOAD = seenVersion() === null && !anyAstrolabeKey();
+
 export function markWhatsNewSeen(version: string = current()): void {
   try {
     localStorage.setItem(SEEN_KEY, version);
@@ -91,7 +100,7 @@ let opened = false;
  *  is on. Called by App.tsx once the admin shell has settled. */
 export function maybeOpenWhatsNew(): void {
   if (opened) return;
-  if (seenVersion() === null && !anyAstrolabeKey()) {
+  if (FRESH_AT_LOAD && seenVersion() === null) {
     // A fresh install: this build is the first one, not a new one.
     markWhatsNewSeen();
     return;
