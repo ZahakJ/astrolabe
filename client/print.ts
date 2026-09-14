@@ -61,7 +61,7 @@ function teardown(): void {
 /** The document on screen in the pane that has focus. Not "the first one in
  *  the DOM": with two panes open, printing has to mean the one being read,
  *  and the workspace already knows which that is. */
-function onScreenDoc(): HTMLElement | null {
+export function onScreenDoc(): HTMLElement | null {
   const focus = useStore.getState().workspace.focus;
   const pane = document.querySelector<HTMLElement>(`[data-pane="${CSS.escape(focus)}"]`);
   return (pane ?? document).querySelector<HTMLElement>(`.s-reading__body ${DOC}`);
@@ -70,7 +70,7 @@ function onScreenDoc(): HTMLElement | null {
 /** Render `content` the way the reading view renders it — same renderer, same
  *  layout call, same heading numbering, so the paper and the screen cannot
  *  disagree about what the note says. */
-function renderFor(path: string, content: string): HTMLElement {
+export function renderFor(path: string, content: string): HTMLElement {
   const el = renderNoteContent(content, { notePath: path, tree: useStore.getState().tree });
   el.classList.add("s-reading__content");
   applyNoteLayoutTo(el, content);
@@ -83,7 +83,7 @@ function renderFor(path: string, content: string): HTMLElement {
  *  titles is worse, and "# Title" as the first line is how most of this vault
  *  is written. So: prepend one exactly when the document does not open with a
  *  level-1 heading of its own. */
-function titleFor(doc: HTMLElement, path: string): HTMLElement | null {
+export function titleFor(doc: HTMLElement, path: string): HTMLElement | null {
   if (doc.querySelector(".s-rv-h1") !== null) return null;
   const h1 = document.createElement("h1");
   h1.className = "s-print__title";
@@ -110,7 +110,7 @@ function titleFor(doc: HTMLElement, path: string): HTMLElement | null {
  *  left-to-right because they were "Properties". Removing them is the fix that
  *  cannot come apart. (print.css hides both as well, for the surfaces that
  *  build no host of their own.) */
-function stripChrome(doc: HTMLElement): void {
+export function stripChrome(doc: HTMLElement): void {
   for (const card of doc.querySelectorAll(".s-rv-props")) card.remove();
   for (const missing of doc.querySelectorAll(".s-rv-banner__missing")) {
     (missing.closest(".s-rv-banner") ?? missing).remove();
@@ -122,7 +122,7 @@ function stripChrome(doc: HTMLElement): void {
  *  host's whole `textContent`: see `stripChrome` for the two ways that answer
  *  was wrong, and for why this one is read off an element that is the author's
  *  own words by construction. */
-function proseDirection(doc: HTMLElement): "ltr" | "rtl" {
+export function proseDirection(doc: HTMLElement): "ltr" | "rtl" {
   const prose = doc.querySelector(
     ".s-rv-h, .s-rv-p, .s-rv-list, .s-rv-quote, .s-rv-callout, .s-rv-table",
   );
@@ -161,7 +161,7 @@ function mount(doc: HTMLElement | null, path: string | null): void {
  *  tracker card are dynamic imports (they are why an anonymous reader's blog
  *  page does not carry 280 kB of math), so a note printed the instant it was
  *  rendered would print `$\int$` as its own source. */
-async function settle(el: HTMLElement): Promise<void> {
+export async function settle(el: HTMLElement): Promise<void> {
   const pending = () => el.querySelector(".s-rv-math-pending, .s-rv-tracker-pending") !== null;
   if (el.querySelector(".s-rv-math-pending") !== null) {
     await loadKatex().catch(() => undefined);

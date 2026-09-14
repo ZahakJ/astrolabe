@@ -48,6 +48,7 @@ import type {
   XrefResponse,
 } from "../shared/types.ts";
 import { authGuard, authRoutes, clientIp, isProtected, isPublishLimited } from "./auth.ts";
+import { contentDisposition, exportStream, parseExportQuery, planExport, summarize } from "./export.ts";
 import { languageScope } from "./language.ts";
 import { libraryFor } from "./library.ts";
 import { deleteAnnotation, listAnnotations, moveAnnotations, moveAnnotationsFolder, publicAnnotations, putAnnotation } from "./annotations.ts";
@@ -2474,6 +2475,36 @@ api.get("/routines", (c) => {
   // that did (the books shelf's rule, server/bookRoutes.ts).
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
   return c.json(routines());
+});
+
+// -------------------------------------------------------------------- export
+// A ZIP of the notes a scope names and the attachments they reference
+// (server/export.ts). Admin only, 401 rather than a smaller archive: the
+// published subset already has a door — the site — and a visitor handed a
+// zip of "what you may see" would learn which paths exist from its names.
+// The response is a download, not JSON: the client reaches it through an
+// `<a download>` so the browser's own download manager shows the progress
+// and the cookie carries the session.
+api.get("/export", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const request = parseExportQuery({
+    scope: c.req.query("scope"),
+    target: c.req.query("target"),
+    links: c.req.query("links"),
+    attachments: c.req.query("attachments"),
+  });
+  const plan = await planExport(request);
+  // The DRY RUN: the same validation, the same cap, the same 404 for an
+  // empty scope — answered as JSON so the dialog can print the count and
+  // the size (or the refusal, in the reader's language) before a download
+  // that the browser would otherwise report as "failed" with no reason.
+  if (c.req.query("dry") === "1") return c.json(summarize(plan));
+  return c.body(exportStream(plan), 200, {
+    "Content-Type": "application/zip",
+    "Content-Disposition": contentDisposition(plan.filename),
+    "X-Content-Type-Options": "nosniff",
+    "Cache-Control": "private, no-store",
+  });
 });
 
 // -------------------------------------------------------------------- design
