@@ -141,6 +141,7 @@ interface Form {
   noteVersions: string; // "" | "on" | "off" (keep a version before every save; default on)
   share: string;        // "" | "on" | "off" (blog article share row; default on)
   ambient: string;      // "" | "on" | "off" (public masthead ambient layer; default off)
+  pdfSearch: string;    // "" | "on" | "off" (the shelf's page text in the sidebar search; default on)
   favicon: string;      // vault path or ""
   logo: string;         // vault path / https URL or ""
   homeMode: string;     // "" | "note" | "dashboard"
@@ -276,6 +277,7 @@ function formFrom(s: SettingsResponse): Form {
     noteVersions: s.noteVersions === undefined ? "" : s.noteVersions ? "on" : "off",
     share: s.shareButtons === undefined ? "" : s.shareButtons ? "on" : "off",
     ambient: s.ambient === undefined ? "" : s.ambient ? "on" : "off",
+    pdfSearch: s.pdfSearch === undefined ? "" : s.pdfSearch ? "on" : "off",
     favicon: s.favicon ?? "",
     logo: s.logo ?? "",
     homeMode: s.home?.mode ?? "",
@@ -1356,6 +1358,9 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   }
   if (f.noteVersions !== initial.noteVersions) {
     patch.noteVersions = f.noteVersions === "" ? null : f.noteVersions === "on";
+  }
+  if (f.pdfSearch !== initial.pdfSearch) {
+    patch.pdfSearch = f.pdfSearch === "" ? null : f.pdfSearch === "on";
   }
   if (
     f.attachMode !== initial.attachMode ||
@@ -3969,6 +3974,24 @@ export default function SettingsModal() {
                       label={t("rowNoteVersions")}
                       segments={onOffSegments(inh.noteVersions)}
                       {...field("noteVersions")}
+                    />
+                  </Row>
+                  {/* The shelf's page text (server/pdfText.ts): whether the
+                      sidebar search reads the vault's PDFs. Filed here with the
+                      other questions about what this instance does with the
+                      vault's own files, and a three-way row like Comments
+                      because the middle state — "whatever PDF_SEARCH says" —
+                      is the row being empty, which a checkbox cannot be. */}
+                  <div className="s-smodal__sub">{t("libraryBooks")}</div>
+                  <Row
+                    label={t("rowPdfSearch")}
+                    hint={t("hintPdfSearch")}
+                    env={{ name: "PDF_SEARCH", value: eff.pdfSearch ? "on" : "off", inherits: form.pdfSearch === "" }}
+                  >
+                    <SegmentedControl
+                      label={t("rowPdfSearch")}
+                      segments={onOffSegments(inh.pdfSearch)}
+                      {...field("pdfSearch")}
                     />
                   </Row>
                 </section>

@@ -105,6 +105,7 @@ import { invalidateTree, treeBody } from "./treeCache.ts";
 import { activeDesignFontRefs } from "./designs.ts";
 import { designRoutes } from "./designRoutes.ts";
 import { bookRoutes } from "./bookRoutes.ts";
+import { searchPages } from "./pdfText.ts";
 import { prefsRoutes } from "./prefs.ts";
 import { readWorkspaceState, writeWorkspaceState } from "./workspaceState.ts";
 import { staticPagesActive } from "./pages.ts";
@@ -2143,14 +2144,29 @@ api.delete("/comments/:id", (c) => {
 // the localised spelling of a tag reach its canonical form, one for the
 // operator and one for the loose words, and neither is applied to the other's
 // half (see SearchOptions).
+/** The contract's cap on one answer — the note index's own, restated here
+ *  because this route is now where two indexes share it. */
+const SEARCH_HITS_MAX = 50;
+
+// BOOK PAGES ANSWER THE SAME BOX (server/pdfText.ts). Two indexes, one query,
+// one list: the note index first, then the pages of the shelf's PDFs as
+// `kind: "book"` rows, together capped at the fifty the contract promises —
+// notes give way to books only when the books are there, so a vault without
+// a PDF sees exactly the list it always saw. `in:books` / `in:notes` pick one
+// index; the scope is read from the same parse both sides use. Admin sessions
+// only: the shelf is an enumeration of the owner's directory, and a visitor
+// never learns a PDF exists from a search any more than from the tree.
 api.get("/search", (c) => {
   const limited = isPublishLimited(c);
-  return c.json(
-    search(c.req.query("q") ?? "", limited, languageScope(c, limited).lang, {
-      canonicalTag,
-      expandTerms: expandTagQuery,
-    }),
-  );
+  const q = c.req.query("q") ?? "";
+  const hits = search(q, limited, languageScope(c, limited).lang, {
+    canonicalTag,
+    expandTerms: expandTagQuery,
+  });
+  if (limited) return c.json(hits);
+  const pages = searchPages(q);
+  if (pages.length === 0) return c.json(hits);
+  return c.json([...hits.slice(0, Math.max(0, SEARCH_HITS_MAX - pages.length)), ...pages]);
 });
 
 // The expansion under one hit: every line of ONE note the query matches, so a

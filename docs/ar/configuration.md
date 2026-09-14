@@ -24,6 +24,7 @@
 | `HOME_NOTE` | ملاحظة نسبية إلى الخزانة يحطّ عليها الزوار الجدد، مثل `index.md` |
 | `COMMENTS` | `on` (وكذلك `true`/`1`/`yes`) يفعّل تعليقات القرّاء تحت الملاحظات المنشورة (الافتراضي معطّل) |
 | `NOTE_VERSIONS` | `off` (وكذلك `false`/`0`/`no`) يوقف حفظ الخزانة نسخةً من كل ملاحظة قبل كل حفظ في `ASTROLABE_DATA/versions/` (الافتراضي مفعّل)؛ انظر [النسخ، قبل git وإلى جانبه](backup-and-sync.md#النسخ-قبل-git-وإلى-جانبه) |
+| `PDF_SEARCH` | `off` (وكذلك `false`/`0`/`no`) يمنع بحث الشريط الجانبي من قراءة ملفات PDF على الرف (الافتراضي مفعّل؛ انظر [البحث داخل كل كتاب](books.md#searching-inside-every-book)) |
 | `SITE_NAME` | اسم الموقع في شعار الشريط الجانبي وعناوين الصفحات ونافذة الدخول (الافتراضي `Astrolabe`) |
 | `SITE_TAGLINE` | العنوان الفرعي تحت اسم الموقع (وضع المدونة) |
 | `SITE_FOOTER` | سطر تذييل المدونة؛ يُستبدل `{year}`/`{siteName}` (الافتراضي `© {year} {siteName}`) |
@@ -106,6 +107,7 @@
 | `shareButtons` | منطقي: صف المشاركة تحت مقالات المدونة | `true` |
 | `authorSites` | مصفوفة `{ url }` (https)، يُثرى كل منها مرة من OpenGraph الخاص به ويُخزَّن في `ASTROLABE_DATA/author-sites.json`؛ تُعرض على المدونة بطاقات *المزيد من الكاتب*. **لا نظير له في البيئة** | فارغة |
 | `ambient` | منطقي: جو زخرفي بطيء خلف ترويسة الموقع العام، يُرسم لكل سمة (انظر [السمات](theming.md#the-ambient-masthead)) | `false` |
+| `pdfSearch` | منطقي: بحث الشريط الجانبي يقرأ صفحات كل ملف PDF على الرف (انظر [البحث داخل كل كتاب](books.md#searching-inside-every-book)) | `PDF_SEARCH`، وإلا `true` |
 | `favicon` | صورة نسبية إلى الخزانة (`.ico .png .svg .jpg .jpeg .gif .webp .avif`) | لا شيء |
 | `logo` | رابط https أو صورة نسبية إلى الخزانة | لا شيء |
 | `home.mode` | `note` · `dashboard` | `note` |

@@ -25,6 +25,7 @@ import { warmAuthorSites } from "./authorSites.ts";
 import { getSettings } from "./settings.ts";
 import { initComments } from "./comments.ts";
 import { initIndexer } from "./indexer.ts";
+import { initPdfText, startPdfText } from "./pdfText.ts";
 import { seedIfNew } from "./seed.ts";
 import { initVault, resolveVaultRoot, startWatcher, statAttachment } from "./vault.ts";
 
@@ -53,6 +54,7 @@ initSite();
 // and before anything reads the merged view. Silent unless something moved.
 migrateSettings();
 initComments();
+initPdfText();
 // The author-site cards' OpenGraph cache, warmed before the first visitor
 // asks. Fire and forget: a dead site costs boot nothing.
 warmAuthorSites(getSettings().authorSites ?? []);
@@ -77,6 +79,11 @@ await startConfigMirror();
 reportEnvFallbacks();
 startWatcher();
 await initIndexer();
+// The shelf's page text (server/pdfText.ts), read in the background after
+// the note index the first request needs. Nothing waits on it: a search that
+// arrives mid-pass answers from the books read so far, and a vault without a
+// PDF never loads the engine at all.
+startPdfText();
 // Backup & sync scheduler. Inert unless settings.gitSync is enabled with a
 // remote and a non-zero interval — a fresh instance never touches a network.
 startGitSyncTimer();

@@ -145,6 +145,7 @@
   | `after:2024`, `before:2024-06-15` | by the note's own date (`YYYY`, `YYYY-MM`, `YYYY-MM-DD`, UTC; `after:` is inclusive from the start of the named period and `before:` is exclusive of it, so `after:2024 before:2025` is exactly 2024) |
   | `linkto:Ledger` | notes that link **to** that note |
   | `linkfrom:Ledger` | notes that note links **to** |
+  | `in:books`, `in:notes` | only pages of the shelf's PDFs, or only notes — see [Searching inside every book](books.md#searching-inside-every-book) |
   | `-tag:draft` | everything but |
   | `path:"Reading notes"` | a value with a space in it |
 

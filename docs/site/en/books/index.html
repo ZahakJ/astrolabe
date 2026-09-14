@@ -95,6 +95,25 @@ of these</em> rather than the first in the volume; <code>n</code> and <code>N</c
 The match is tinted without touching the text layer, and it becomes the keyboard&#39;s selection, so
 <code>/phrase</code> then <code>h</code> marks exactly what was found. The matcher folds Arabic diacritics and letter
 forms like every other search in the product.</p>
+<h2 id="searching-inside-every-book"><a class="anchor" href="#searching-inside-every-book">Searching inside every book</a></h2>
+<p>The sidebar&#39;s search box answers from <strong>the pages of every PDF on the shelf</strong> as well as from
+notes. A book row shows the book&#39;s title (its own <code>/Title</code>, or the file name), the page — <em>p. 42</em>,
+in the instance&#39;s numerals — and the page&#39;s text around the match; clicking it opens the reader on
+that page. Every word must appear on the page, as with the operators; <code>path:Books</code> narrows by
+folder; the note operators (<code>tag:</code>, <code>is:</code>, dates, links) are questions about notes and leave
+books out. Two operators pick a side:</p>
+<div class="table"><table><thead><tr><th>Type</th><th>Finds</th></tr></thead><tbody><tr><td><code>in:books</code></td><td>pages of the shelf&#39;s books only; on its own, one row per book</td></tr><tr><td><code>in:notes</code></td><td>notes only, the way the box always searched</td></tr></tbody></table></div><p>A mixed answer holds up to twenty book pages, at most five from one volume, beside the notes;
+<code>in:books</code> lists up to fifty. Visitors never get book rows: the shelf is the owner&#39;s.</p>
+<p>The text is read <strong>once</strong>, in the background after the server starts, two books at a time, and
+kept in <code>ASTROLABE_DATA/pdftext.json</code> under the same content key as your reading position — so a
+renamed or re-filed book keeps its text, and a book saved again (an OCR pass) is read again. A
+book that cannot be read (damaged, password-protected, over 256 MB) is remembered as such and not
+retried until its bytes change. Per book the store keeps at most 2,000 pages, 8,000 characters a
+page and 1.5 million characters in all; the store as a whole stops at 40 million characters, and
+the boot line says how many books it holds. A scanned book with no text layer has nothing to
+find, exactly as in the reader&#39;s own <code>/</code>. The <a href="../configuration/#settings-keys"><strong>Search inside books</strong></a>
+row in <em>Settings › Vault</em> (or <code>PDF_SEARCH=off</code>) turns the whole thing off, and stops a pass in
+progress.</p>
 <h2 id="what-it-does-not-do"><a class="anchor" href="#what-it-does-not-do">What it does not do</a></h2>
 <p>It never publishes. Both shelf and reader are admin surfaces over the owner&#39;s vault; a PDF
 reaches a visitor only as an attachment of a published note, through the same door every embed
@@ -105,7 +124,7 @@ at 64 per book. Visitors get no shelf.</p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/drawing/"><span class="pager__kicker">Previous</span><span class="pager__title">Drawings</span></a><a class="pager__link pager__link--next" href="../../en/workspace/"><span class="pager__kicker">Next</span><span class="pager__title">Panes, tabs &amp; windows</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-shelf">The shelf</a><a class="toc__link toc__link--2" href="#reading">Reading</a><a class="toc__link toc__link--2" href="#the-command-line">The command line</a><a class="toc__link toc__link--2" href="#your-place-is-kept">Your place is kept</a><a class="toc__link toc__link--2" href="#highlights-citations-and-margin-notes">Highlights, citations and margin notes</a><a class="toc__link toc__link--2" href="#search-inside-a-book">Search inside a book</a><a class="toc__link toc__link--2" href="#what-it-does-not-do">What it does not do</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-shelf">The shelf</a><a class="toc__link toc__link--2" href="#reading">Reading</a><a class="toc__link toc__link--2" href="#the-command-line">The command line</a><a class="toc__link toc__link--2" href="#your-place-is-kept">Your place is kept</a><a class="toc__link toc__link--2" href="#highlights-citations-and-margin-notes">Highlights, citations and margin notes</a><a class="toc__link toc__link--2" href="#search-inside-a-book">Search inside a book</a><a class="toc__link toc__link--2" href="#searching-inside-every-book">Searching inside every book</a><a class="toc__link toc__link--2" href="#what-it-does-not-do">What it does not do</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

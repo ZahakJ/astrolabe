@@ -4720,6 +4720,15 @@ const DICT = {
     en: "Keep what a note said before each save — forty per note, one per five minutes, in the data directory. Needs no git.",
     ar: "احتفظ بما قالته الملاحظة قبل كل حفظ — أربعون لكل ملاحظة، واحدة كل خمس دقائق، في مجلد البيانات. لا يحتاج git.",
   },
+  // ── PDF search ──
+  searchOpIn: { en: "only the shelf's books, or only notes (in:notes)", ar: "كتب الرف وحدها، أو الملاحظات وحدها (in:notes)" },
+  searchKindBook: { en: "Book page", ar: "صفحة كتاب" },
+  searchHitPage: { en: "p. {n}", ar: "ص {n}" },
+  rowPdfSearch: { en: "Search inside books", ar: "البحث داخل الكتب" },
+  hintPdfSearch: {
+    en: "Read every PDF on the shelf once so the sidebar search answers from its pages.",
+    ar: "قراءة كل ملف PDF على الرف مرة واحدة ليجيب بحث الشريط الجانبي من صفحاته.",
+  },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;
