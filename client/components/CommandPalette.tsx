@@ -36,6 +36,7 @@ import { openDesigner } from "./design/openDesigner.ts";
 import { openTour } from "../tour.ts";
 import { readWarmth, toggleWarmth } from "../eyeComfort.ts";
 import { openWhatsNew } from "../whatsnew/door.ts";
+import { openExportDialog } from "../export/door.ts";
 import { installRecents, recentNotes } from "../recents.ts";
 import { getNote } from "../api.ts";
 import { noteAnchors, type NoteAnchor } from "../../shared/anchors.ts";
@@ -300,6 +301,15 @@ const COMMANDS: Command[] = [
     label: () => t("cmdOpenRoutines"),
     hint: () => t("cmdViewHint"),
     available: ({ admin }) => admin,
+  },
+  {
+    // THE OTHER DOOR OUT OF THE VAULT. Not while previewing as a visitor:
+    // the archive is the admin's whole vault, and the preview is the one
+    // session that has promised to behave like a stranger.
+    id: "export",
+    label: () => t("cmdExport"),
+    hint: () => t("cmdExportHint"),
+    available: ({ admin, preview }) => admin && !preview,
   },
   {
     // THE DECK'S RE-ENTRY: the popup shows itself once per update; this is
@@ -1042,6 +1052,9 @@ export default function CommandPalette() {
           break;
         case "whats-new":
           openWhatsNew();
+          break;
+        case "export":
+          openExportDialog();
           break;
         case "toggle-reading":
           store.toggleReading();
