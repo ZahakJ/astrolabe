@@ -297,6 +297,20 @@ if (existsSync(distDir)) {
   // "/" and "/index.html" would otherwise be served raw by serveStatic.
   app.get("/", serveShell);
   app.get("/index.html", serveShell);
+  // The service worker (client/sw.ts → dist/sw.js, docs/offline.md). Its
+  // name never changes, so it must not be cached like a hashed chunk: the
+  // browser re-checks it on every visit and a new build is picked up the
+  // next time the site opens. `Service-Worker-Allowed` is stated so the
+  // scope is the whole origin whatever proxy sits in front.
+  app.get("/sw.js", (c) => {
+    const file = path.join(distDir, "sw.js");
+    if (!existsSync(file)) return c.notFound();
+    return c.body(readFileSync(file), 200, {
+      "Content-Type": "text/javascript; charset=utf-8",
+      "Cache-Control": "no-cache",
+      "Service-Worker-Allowed": "/",
+    });
+  });
   // pdf.js side data (dist/pdfjs/**, put there by the pdfjsAssets() plugin in
   // vite.config.ts). serveStatic below already answers these; what it gets
   // wrong is the ONE content type that is load-bearing. `WebAssembly.

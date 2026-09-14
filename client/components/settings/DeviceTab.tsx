@@ -36,6 +36,7 @@ import { desktop, type DesktopBrand } from "../../desktop/bridge.ts";
 import { toast } from "../../toast.ts";
 import { DIM_MAX, EYE_COMFORT_EVENT, WARMTH_MAX, readDim, readWarmth, setDim, setWarmth } from "../../eyeComfort.ts";
 import { WHATSNEW_EVENT, setWhatsNewEnabled, whatsNewEnabled } from "../../whatsnew/door.ts";
+import { OFFLINE_EVENT, clearOfflineCopy, offlineEnabled, offlineSupported, setOfflineEnabled } from "../../offline.ts";
 
 /** A localStorage preference that is NOT in the store, kept live the way its
  *  own module already publishes it: a window event. Both of these have a
@@ -188,6 +189,7 @@ export default function DeviceTab() {
   const toolbar = useEventPref("astrolabe:seltoolbar", selectionToolbarEnabled);
   const prefsSync = useEventPref("astrolabe:prefs-sync", prefsSyncEnabled);
   const whatsNew = useEventPref(WHATSNEW_EVENT, whatsNewEnabled);
+  const offline = useEventPref(OFFLINE_EVENT, offlineEnabled);
   const warmth = useLevel(readWarmth);
   const dim = useLevel(readDim);
 
@@ -349,6 +351,22 @@ export default function DeviceTab() {
       <Row label={t("rowWhatsNew")} hint={t("hintWhatsNew")}>
         <Toggle value={whatsNew} onChange={setWhatsNewEnabled} label={t("rowWhatsNew")} onLabel={t("on")} offLabel={t("off")} />
       </Row>
+      {offlineSupported() && (
+        <Row label={t("rowOffline")} hint={t("hintOffline")}>
+          <div className="s-settings__inline">
+            <Toggle value={offline} onChange={setOfflineEnabled} label={t("rowOffline")} onLabel={t("on")} offLabel={t("off")} />
+            <button
+              type="button"
+              className="s-btn"
+              onClick={() => {
+                void clearOfflineCopy().then(() => toast(t("offlineCleared")));
+              }}
+            >
+              {t("offlineClear")}
+            </button>
+          </div>
+        </Row>
+      )}
       <Row label={t("rowPrefsSync")} hint={t("hintPrefsSync")}>
         <Toggle
           label={t("rowPrefsSync")}

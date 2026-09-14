@@ -4561,6 +4561,13 @@ const DICT = {
   routinesCardsDueOne: { en: "1 flashcard due", ar: "بطاقة واحدة مستحقة" },
   routinesReview: { en: "Review", ar: "راجع" },
   addFlashcard: { en: "Make a flashcard", ar: "اصنع بطاقة" },
+  // ── Offline reading (client/offline.ts, client/sw.ts, docs/offline.md) ──
+  rowOffline: { en: "Offline reading", ar: "القراءة دون اتصال" },
+  hintOffline: { en: "Keep a copy of what you read on this device, so the notes you opened are still there without a network. Cleared when you sign out.", ar: "احتفظ بنسخة مما تقرؤه على هذا الجهاز، فتبقى الملاحظات التي فتحتها موجودة بلا شبكة. تُمسح عند تسجيل الخروج." },
+  offlineClear: { en: "Clear offline copy", ar: "امسح النسخة دون اتصال" },
+  offlineCleared: { en: "Offline copy cleared", ar: "مُسحت النسخة دون اتصال" },
+  offlineStrip: { en: "Offline", ar: "دون اتصال" },
+  offlineStripHint: { en: "Reading this device's copy. Edits are kept and saved when the network is back.", ar: "تقرأ نسخة هذا الجهاز. تُحفظ التعديلات وتُرسل عند عودة الشبكة." },
   routinesTitleRequired: { en: "Give the routine a title", ar: "أعطِ الروتين عنوانًا" },
   routineFormSlotsPlaceholder: { en: "morning, evening", ar: "صباحًا، مساءً" },
   routinesEdit: { en: "Edit", ar: "تعديل" },

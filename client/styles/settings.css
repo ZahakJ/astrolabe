@@ -948,3 +948,12 @@
   outline: 2px solid var(--accent);
   outline-offset: -1px;
 }
+
+/* A control and its neighbour on one line — the offline row's switch and
+   its "clear" button. Wraps at phone width rather than overflowing. */
+.s-settings__inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
