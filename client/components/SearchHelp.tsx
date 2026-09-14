@@ -33,6 +33,7 @@ const ROWS: { example: string; key: Parameters<typeof t>[0] }[] = [
   { example: "is:published", key: "searchOpIs" },
   { example: "after:2024-06", key: "searchOpDate" },
   { example: "linkto:Ledger", key: "searchOpLink" },
+  { example: "in:books", key: "searchOpIn" },
   { example: "-tag:draft", key: "searchOpNot" },
   { example: 'path:"Reading notes"', key: "searchOpQuote" },
 ];

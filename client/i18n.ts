@@ -4616,6 +4616,15 @@ const DICT = {
   hintWhatsNew: { en: "The first time this device opens a new version, a short walk through its features. Travels with your preferences.", ar: "أول مرة يفتح فيها هذا الجهاز نسخة جديدة، جولة قصيرة في ميزاتها. ينتقل مع تفضيلاتك." },
   cmdWhatsNew: { en: "What's new in this version", ar: "ما الجديد في هذه النسخة" },
   cmdOpenMedia: { en: "Open the Media page", ar: "فتح صفحة الوسائط" },
+  // ── PDF search ──
+  searchOpIn: { en: "only the shelf's books, or only notes (in:notes)", ar: "كتب الرف وحدها، أو الملاحظات وحدها (in:notes)" },
+  searchKindBook: { en: "Book page", ar: "صفحة كتاب" },
+  searchHitPage: { en: "p. {n}", ar: "ص {n}" },
+  rowPdfSearch: { en: "Search inside books", ar: "البحث داخل الكتب" },
+  hintPdfSearch: {
+    en: "Read every PDF on the shelf once so the sidebar search answers from its pages.",
+    ar: "قراءة كل ملف PDF على الرف مرة واحدة ليجيب بحث الشريط الجانبي من صفحاته.",
+  },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;
