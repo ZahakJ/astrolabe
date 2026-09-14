@@ -9395,6 +9395,75 @@ reader: `server/pdfText.ts` reaches pdf.js by a DYNAMIC `import("pdfjs-dist/lega
 caught it); and `compileFilters`' `in:` case answers through `searchScope()` and `continue`s, so its
 negation lives in the scope, not the predicate.
 
+## 3.13.0 — bookmarks, layouts, the tag tree, pace, scripture, harakat, the sweep, flashcards, offline
+
+**Bookmarks (`shared/bookmarks.ts`, `client/bookmarks.ts`).** `Bookmarks.md` at the vault root IS
+the list — one `- [[Note]]` per line, parsed and rewritten whole by the pure model (`add`, `remove`,
+`reorder`). The sidebar draws it as a starred section above the tree (`BookmarksRows.tsx`); the
+chord `Ctrl/Cmd Shift B` sits BEFORE the plain `b` branch in App.tsx's keydown, because a later
+branch already swallows `b`. Obsidian reads the same note as a list of links.
+
+**Named layouts (`server/layouts.ts`).** `ASTROLABE_DATA/layouts.json`, the books.ts shape (version 1,
+never-throwing read, tmp+rename 0o600, a cap). `PUT /api/layouts/:name` stores a whole `Workspace`;
+`applyWorkspace(ws)` in the store swaps it in and prunes against the tree with a `Set` of existing
+paths, exactly as boot does. The palette's "Save layout as…" is a prompt-mode command handled in
+`submitPrompt`.
+
+**Tag tree (`shared/tagTree.ts`).** `a/b/c` folds under `a` with ONE count per branch (a note tagged
+`a/b` counts once for `a`); open branches and the sort (count | name) are device keys
+(`astrolabe.tags-open`, `astrolabe.tags-sort`).
+
+**Pace (`shared/tracker.ts`).** `pace:` (units per day) or `due:` (a date) on a tracker;
+`paceProjection()` answers the other one from progress and today. A routine with `book:` gains
+`{ key: "read", book: true }` as its first task, and ticking it moves the tracker by the pace.
+
+**Ayah and hadith callouts (`shared/quranRefs.ts`, `shared/hadithRefs.ts`, `client/reading/ayah.ts`).**
+`> [!ayah] 2:255` draws the verse from `client/data/quran-uthmani.json` — 1.3 MB, a LAZY chunk
+(`ayah-*.js`) that check-bundle FORBIDS in every first paint; the parser is a static import, the
+drawing is not. `> [!hadith] Bukhari 1` asks `GET /api/hadith?ref=` which reads the corpus folder
+(`hadithFolder` setting) through `NoteRecord.hadithRef` — kept on every record, filtered at lookup,
+so changing the folder needs no reindex. The caption's `dir="auto"`, because a reference is Latin
+under Arabic text.
+
+**Harakat (`shared/tashkeel.ts`, `client/editor/harakat.ts`).** `Ctrl/Cmd Alt ;` opens a palette at the
+caret; the selection menu's Arabic page strips or copies-without. `shared/tashkeel.ts` removes
+exactly the set the palette can write — the two doors agree about what a diacritic is. The palette
+opens a tick AFTER the selection menu closes (`setTimeout 0`), or `run()`'s own focus takes it away.
+
+**Unused attachments (`server/unusedAttachments.ts`).** `GET /api/attachments/unused` walks the index
+for every file no note embeds or links; the modal moves what is ticked to the trash — never a
+delete. Toasts sit at z-index 430, above the modal.
+
+**Flashcards (`shared/flashcards.ts`, `shared/srs.ts`, `client/review/`).** No new syntax: a
+`==highlight==` paragraph is a cloze, a `> [!quote]` callout (the PDF reader's citations) a quote
+card, `Q::A` or `Q\n?\nA` a question. `scanCards` walks outside fences and frontmatter; the schedule
+is the Spaced Repetition plugin's `<!--SR:!date,interval,ease-->` on the line after the block (the
+end of an inline card's own line), written by `writeSchedule` with every other byte kept, so
+Obsidian's plugin and the Review page share one vault. `review()` is SM-2 as the plugin applies it
+(1, 6, then × ease; ease floor 1.3). `NoteRecord.cards`; `GET /api/cards`; `POST /api/card/review`
+grades ONE card by its line and 409s when the line is no longer that card. The Review page keys
+its queue by `path#kind#front`, NOT by line — the first grade inserts a line and moves every card
+below it. The reading renderer drops SR comments outside fences (`withoutSrComments`); the editor
+shows them as source. `~review` is registered exactly where `~routines` is: workspace, store,
+router, Pane, Tabs, palette, MUST_SPLIT.
+
+**Offline reading (`shared/offlinePolicy.ts`, `client/sw.ts`, `client/offline.ts`).** The worker is a
+switch over the policy: shell and the note reads (`/api/me`, `/api/tree`, `/api/note`,
+`/api/backlinks`, `/api/settings`, `/api/boot`) network-first with the copy as fallback; assets
+cache-first; everything else bypassed — every write, every other API. Only clean `200 basic`
+answers are kept. Keys are URL STRINGS and matches pass `ignoreVary` (the API carries `Vary:
+Cookie`). One cache per build (`astrolabe-offline-<version>`); activate deletes the others. Built by
+`scripts/build-sw.mjs` as the second step of `npm run build` (esbuild, iife, `__APP_VERSION__`
+defined) to `dist/sw.js`; the server serves it with `Cache-Control: no-cache`; check-bundle fails a
+dist whose sw.js is missing or built for another version — `vite build` alone is not a build.
+Registration follows the session: an admin with the device key `astrolabe.offline` not "off";
+anything else unregisters and deletes the copy (sign-out, a visitor, the desktop app). A fallback
+answer carries `X-Astrolabe-Offline: 1`; `client/api.ts` turns the TRANSITIONS into
+`astrolabe:served-offline` / `astrolabe:served-online`, and `useOffline()` — the strip and the
+shell's `s-app--notice` row (renamed from `s-app--preview`, shared with the preview banner) —
+reads that OR `navigator.onLine`, seeded from `servingOfflineNow()` for a listener that mounts
+after `/api/me` came back. Edits offline are the editor's retry's business, not the worker's.
+
 ## Tests (`npm test`) — the release gate
 
 `node --test` over `tests/*.test.ts`. No new dependencies, no test framework, no fixtures on disk

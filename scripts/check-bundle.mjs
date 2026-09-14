@@ -639,7 +639,14 @@ const AUDIENCES = [
   // …and 728.8 → 731 once the release's other three features merged (note
   // versions, PDF search, export): their dictionary blocks, and the export
   // door's and the versions fetchers' few hundred bytes.
-  { name: "entry (everyone)", keys: entry, budget: 731 * 1024 },
+  // 3.13.0: 750.0 kB actual → 754 — the i18n dictionary's blocks for
+  // bookmarks, layouts, the tag tree, tashkeel, the attachments sweep,
+  // scripture, flashcards and offline reading (every string of every
+  // feature lives in the entry's dictionary), plus the tag-tree model, the
+  // bookmarks model, the SR-comment strip in the reading renderer and the
+  // offline door (client/offline.ts) — the worker itself is dist/sw.js,
+  // outside every budget.
+  { name: "entry (everyone)", keys: entry, budget: 754 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -844,7 +851,9 @@ const AUDIENCES = [
   // stylesheet lazy, plus the reading renderer's block-id handling and the
   // dictionary's keys for all of it.
   // …and 991.2 → 995 with the same three merges (dictionary blocks).
-  { name: "anonymous blog reader", keys: blog, budget: 995 * 1024 },
+  // 3.13.0: 1028.5 kB actual → 1032 — the entry growth above; the blog
+  // shell itself did not move.
+  { name: "anonymous blog reader", keys: blog, budget: 1032 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -959,7 +968,12 @@ const AUDIENCES = [
   // periodic-note settings rows and the palette's new doors.
   // …and 1428.0 → 1432 with the same three merges, plus the History panel's
   // version rows and the sidebar's book-hit row.
-  { name: "admin first paint", keys: app, budget: 1432 * 1024 },
+  // 3.13.0: 1470.5 kB actual → 1474 — the entry growth above, plus the
+  // sidebar's bookmarks rows and tag tree, the layout picker, the palette's
+  // new doors (save/restore layout, bookmark, review, unused attachments),
+  // the status bar's routines door and the shell's offline strip. The
+  // Review page, the scripture chunk and the harakat palette are lazy.
+  { name: "admin first paint", keys: app, budget: 1474 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
