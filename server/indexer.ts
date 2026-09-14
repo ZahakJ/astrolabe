@@ -10,11 +10,11 @@ import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import MiniSearch from "minisearch";
-import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, RoutineMeta, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent, LibraryKind, LibraryPathRef } from "../shared/types.ts";
+import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, Mention, OnThisDayHit, PublicFolderRef, QueryHit, RoutineMeta, SearchHit, TaskMeta, SearchMatch, TagCount, TrackerMeta, VaultEvent, LibraryKind, LibraryPathRef } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
-import { findAnyMatches, foldQuery, foldTerm } from "../shared/fold.ts";
+import { findAnyMatches, foldQuery, foldTerm, findMatches } from "../shared/fold.ts";
 import { parseSearchQuery, type QueryFilter } from "../shared/searchQuery.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
 import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
@@ -28,6 +28,7 @@ import { publishFlag, readFrontmatter } from "./publish.ts";
 import { parseAliases, parseFolders, readNoteFrontmatter } from "./noteFrontmatter.ts";
 import { scanTrackers, type Tracker } from "../shared/tracker.ts";
 import { scanRoutines, type RoutineBlock } from "../shared/routine.ts";
+import { scanTasks, type Task } from "../shared/tasks.ts";
 import { readTexNote } from "./texNote.ts";
 import { blogLocale, excludedTags } from "./site.ts";
 // Cyclic with this module (settings.ts → site.ts → here) and inert: every
@@ -92,6 +93,8 @@ interface NoteRecord {
   /** Every ```routine plan in this note with its log (shared/routine.ts) —
    *  the Routines page's list. Empty for almost every note. */
   routines: RoutineBlock[];
+  /** Every task line in this note (shared/tasks.ts), full-source lines. */
+  tasks: Task[];
   /** File mtime in epoch ms — what the tracker board sorts by. `dateMs` below
    *  is the POST date (frontmatter first, birthtime second), which is when a
    *  thing was written; a shelf answers "what did I touch last". */
@@ -148,6 +151,10 @@ interface NoteRecord {
    *  says WHICH alias matched, `[[` autocomplete offers them, and removeFile
    *  unregisters them. */
   aliases: string[];
+  /** Scalar frontmatter as strings, keys lowercased, lists joined with
+   *  ", " — what `prop:status=reading` tests and a ```query table shows.
+   *  Kept on the record rather than re-read, like `labels` and `folders`. */
+  props: Record<string, string>;
   /** Lazily computed prose-stripped body for snippets (null until first use).
    *  Records are replaced wholesale on reindex, so this never goes stale. */
   flat: string | null;
@@ -269,7 +276,9 @@ const SIG_FIELD = "\u0001";
  *  signature all have to agree on that or one of them registers a key another
  *  forgets. */
 function labelAnchors(record: NoteRecord): NoteAnchor[] {
-  return record.anchors.filter((a) => a.kind !== "heading" && a.kind !== "section");
+  // A block id is a note-local address like a heading, never a vault-wide
+  // \\ref label.
+  return record.anchors.filter((a) => a.kind !== "heading" && a.kind !== "section" && a.kind !== "block");
 }
 
 // Publish state: the set of published note paths, plus (derived lazily) the
@@ -839,6 +848,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     // outline and the anchor table keep.
     trackers: scanTrackers(parts.body),
     routines: scanRoutines(parts.body),
+    tasks: scanTasks(content),
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
@@ -860,6 +870,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     anchors: parts.anchors,
     citekeys: parts.citekeys,
     aliases: parseAliases(fm),
+    props: scalarProps(fm),
     excerptSource: parts.firstParagraph,
     flat: null,
     post: null,
@@ -1160,6 +1171,8 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     // and assets, and for the same reason.
     trackers: [],
     routines: [],
+    tasks: [],
+    props: {},
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
@@ -2816,6 +2829,27 @@ export interface SearchOptions {
  *  thousand `resolveLink` calls. A filter naming a note that does not exist
  *  compiles to "match nothing", which is the honest answer — `linkto:Ghost` is
  *  a question with no results, not a question to ignore. */
+/** Frontmatter as a flat string map: strings, numbers, booleans and dates
+ *  as written; a list of scalars joined with ", "; anything nested dropped.
+ *  Keys are lowercased so `prop:Status=x` and `prop:status=x` agree. */
+function scalarProps(fm: Record<string, unknown>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(fm)) {
+    const k = key.trim().toLowerCase();
+    if (k === "") continue;
+    const scalar = (v: unknown): string | null =>
+      typeof v === "string" ? v.trim() : typeof v === "number" || typeof v === "boolean" ? String(v) : v instanceof Date ? v.toISOString().slice(0, 10) : null;
+    if (Array.isArray(value)) {
+      const items = value.map(scalar).filter((x): x is string => x !== null && x !== "");
+      if (items.length > 0) out[k] = items.join(", ");
+      continue;
+    }
+    const s = scalar(value);
+    if (s !== null && s !== "") out[k] = s.slice(0, 400);
+  }
+  return out;
+}
+
 function compileFilters(
   filters: readonly QueryFilter[],
   publishedOnly: boolean,
@@ -2870,6 +2904,21 @@ function compileFilters(
         test = (r) => sources.has(r.path);
         break;
       }
+      case "prop": {
+        // Presence when no value was given; else the folded value, whole or
+        // as one item of a list ("reading" matches `status: reading` and
+        // `tags-like: done, reading`). Folded like search terms, so Arabic
+        // letter forms and diacritics do not decide a match.
+        const key = filter.key ?? "";
+        const want = foldTerm(filter.value);
+        test = (r) => {
+          const have = r.props[key];
+          if (have === undefined) return false;
+          if (want === "") return true;
+          return have.split(/,\s*/).some((part) => foldTerm(part.toLowerCase()) === want) || foldTerm(have.toLowerCase()) === want;
+        };
+        break;
+      }
       case "linkfrom": {
         const source = resolveLink(filter.value, publishedOnly, lang);
         const record = source === null ? undefined : notes.get(source);
@@ -2885,6 +2934,171 @@ function compileFilters(
     tests.push(filter.negated ? (r) => !test(r) : test);
   }
   return (record) => tests.every((t) => t(record));
+}
+
+/** The ```query fence's answer: every note the operators keep (and, when
+ *  words were given, that minisearch finds), sorted as asked, capped as
+ *  asked — a report, not a sidebar glance, so no fifty-row ceiling. Scoped
+ *  exactly like search(): a visitor's fence on a published note lists
+ *  published notes only. */
+/** Notes that NAME `targetPath` — its title or an alias, as prose — without
+ *  linking it: the backlinks panel's "unlinked mentions". Whole words only
+ *  (a letter on either side disqualifies), never inside a `[[link]]`, inline
+ *  code or a fence, never the note itself or a template; folded like search,
+ *  so a pointed Arabic title finds its plain spelling. Capped so a title
+ *  that is also an everyday word does not list the vault. */
+export function mentions(targetPath: string, limit = 60): Mention[] {
+  const target = notes.get(targetPath);
+  if (!target) return [];
+  const needles = [target.title, ...target.aliases].map((n) => n.trim()).filter((n) => n.length >= 2);
+  if (needles.length === 0) return [];
+  const isTemplate = templateMatcher();
+  const out: Mention[] = [];
+  const wordish = (ch: string | undefined): boolean => ch !== undefined && /[\p{L}\p{N}_]/u.test(ch);
+  for (const record of notes.values()) {
+    if (record.path === targetPath || isTemplate(record.path)) continue;
+    // A note that already links the target may still mention it in prose
+    // elsewhere; only the mentions INSIDE links are skipped, below.
+    const lines = record.body.split("\n");
+    let fence: Fence | null = null;
+    for (let i = 0; i < lines.length && out.length < limit; i++) {
+      const line = lines[i];
+      if (fence) {
+        if (closesFence(line, fence)) fence = null;
+        continue;
+      }
+      const opened = fenceOpener(line);
+      if (opened) {
+        fence = opened;
+        continue;
+      }
+      // Spans no mention may sit in: wikilinks, markdown links' targets, code.
+      const dead: { from: number; to: number }[] = [];
+      for (const m of line.matchAll(/!?\[\[[^\]]*\]\]|`[^`]*`|\]\([^)]*\)/g)) dead.push({ from: m.index ?? 0, to: (m.index ?? 0) + m[0].length });
+      let hitThisLine = false;
+      for (const needle of needles) {
+        if (hitThisLine) break;
+        for (const match of findMatches(line, needle, 8)) {
+          if (dead.some((d) => match.start < d.to && match.end > d.from)) continue;
+          if (wordish(line[match.start - 1]) || wordish(line[match.end])) continue;
+          out.push({
+            path: record.path,
+            title: record.title,
+            line: fileLine(record, i),
+            context: cleanContextLine(line),
+            phrase: line.slice(match.start, match.end),
+            start: match.start,
+            end: match.end,
+          });
+          hitThisLine = true;
+          break;
+        }
+      }
+    }
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+/** The link the mention route writes: the title when the basename is unique
+ *  in the vault, else the path without its extension, so the link resolves
+ *  to THIS note and not to a namesake. */
+export function linkSpellingFor(targetPath: string): string {
+  const record = notes.get(targetPath);
+  if (!record) return targetPath.replace(/\.(md|tex|latex)$/i, "");
+  const candidates = byName.get(record.title.toLowerCase());
+  if (candidates && candidates.size > 1) return targetPath.replace(/\.(md|tex|latex)$/i, "");
+  return record.title;
+}
+
+/** Every task in the vault, open and done, newest-touched note first. The
+ *  fence and the page filter; templates are skipped as everywhere. */
+export function tasks(): TaskMeta[] {
+  const out: TaskMeta[] = [];
+  const isTemplate = templateMatcher();
+  for (const record of notes.values()) {
+    if (record.tasks.length === 0 || isTemplate(record.path)) continue;
+    for (const task of record.tasks) out.push({ path: record.path, title: record.title, tags: record.tags, task });
+  }
+  return out;
+}
+
+/** The archive on this month-day: notes dated to it in earlier years, and
+ *  trackers finished on it. Templates skipped; newest year first. */
+export function onThisDay(iso: string): OnThisDayHit[] {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return [];
+  const year = Number(m[1]);
+  const monthDay = `${m[2]}-${m[3]}`;
+  const isTemplate = templateMatcher();
+  const out: OnThisDayHit[] = [];
+  for (const record of notes.values()) {
+    if (isTemplate(record.path)) continue;
+    if (record.dateMs > 0) {
+      const d = new Date(record.dateMs);
+      const key = `${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+      if (key === monthDay && d.getUTCFullYear() < year) {
+        out.push({ path: record.path, title: record.title, year: d.getUTCFullYear(), kind: "written", what: record.title });
+      }
+    }
+    for (const tracker of record.trackers) {
+      if (!tracker.finished) continue;
+      const f = /^(\d{4})-(\d{2}-\d{2})/.exec(tracker.finished);
+      if (f && f[2] === monthDay && Number(f[1]) < year) {
+        out.push({ path: record.path, title: record.title, year: Number(f[1]), kind: "finished", what: tracker.title });
+      }
+    }
+  }
+  return out.sort((a, b) => b.year - a.year || a.path.localeCompare(b.path)).slice(0, 40);
+}
+
+export function queryNotes(
+  query: string,
+  publishedOnly: boolean,
+  lang: FilterLang,
+  sort: { key: "date" | "modified" | "title" | "path" | "relevance"; dir: "asc" | "desc" },
+  limit: number,
+  opts: SearchOptions = {},
+): QueryHit[] {
+  const parsed = parseSearchQuery(query);
+  const keep = compileFilters(parsed.filters, publishedOnly, lang, opts);
+  const bare = parsed.text.trim();
+  const visible = (record: NoteRecord): boolean => !(publishedOnly && (!record.published || languageHidden(record, lang)));
+  let records: NoteRecord[];
+  if (bare === "") {
+    records = [];
+    for (const record of notes.values()) if (visible(record) && (keep === null || keep(record))) records.push(record);
+  } else {
+    const q = opts.expandTerms?.(bare) ?? bare;
+    records = [];
+    for (const hit of mini.search(q)) {
+      const record = notes.get(hit.id as string);
+      if (!record || !visible(record)) continue;
+      if (keep !== null && !keep(record)) continue;
+      records.push(record);
+    }
+  }
+  const dir = sort.dir === "asc" ? 1 : -1;
+  if (sort.key !== "relevance" || bare === "") {
+    const key = sort.key === "relevance" ? "date" : sort.key;
+    records.sort((a, b) => {
+      let d = 0;
+      if (key === "date") d = a.dateMs - b.dateMs;
+      else if (key === "modified") d = a.mtimeMs - b.mtimeMs;
+      else if (key === "title") d = a.title.localeCompare(b.title);
+      else d = a.path.localeCompare(b.path);
+      return d * dir || a.path.localeCompare(b.path);
+    });
+  }
+  return records.slice(0, Math.max(1, Math.min(500, limit))).map((record) => ({
+    path: record.path,
+    title: record.title,
+    dateMs: record.dateMs,
+    mtimeMs: record.mtimeMs,
+    tags: record.tags,
+    props: record.props,
+    excerpt: makeSnippet(record, []).replace(/<[^>]+>/g, ""),
+  }));
 }
 
 export function search(

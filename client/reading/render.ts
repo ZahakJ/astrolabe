@@ -21,6 +21,7 @@ import { toast } from "../toast.ts";
 import { parseWikilink, resolveLink } from "../editor/links.ts";
 import { parseBookAnchor } from "../../shared/bookAnchor.ts";
 import { blockAlignOf, parseAlignMarker, stripAlignMarker } from "../../shared/blockAlign.ts";
+import { isBareBlockId, parseBlockId, stripBlockId } from "../../shared/blockId.ts";
 import {
   brokenEmbed,
   embedKnownBroken,
@@ -51,6 +52,11 @@ import {
   type RoutinePlan,
 } from "../../shared/routine.ts";
 import type { RoutineHooks } from "./routine.ts";
+import { parseQueryFence, type QuerySpec } from "../../shared/queryFence.ts";
+import type { QueryHooks } from "./query.ts";
+import { parseTasksFence, type TasksSpec } from "../../shared/tasks.ts";
+import { isoDate } from "../../shared/routine.ts";
+import type { TasksHooks } from "./tasks.ts";
 // The DRAWING half is loaded on demand (see trackerBlock); only its types are
 // imported here, and types are erased.
 import type { TrackerHooks } from "./tracker.ts";
@@ -936,6 +942,31 @@ export function renderRoutineFence(
   return routineBlock(kind, plan, entries, ctx, hooks);
 }
 
+/** A query fence's host: in the tree at once, filled when the renderer's
+ *  chunk and the rows arrive (the tracker board's shape). */
+export function renderQueryBlock(spec: QuerySpec, opts: RenderOptions, hooks: Partial<QueryHooks> = {}): HTMLElement {
+  const host = document.createElement("div");
+  host.className = "s-rv-tracker-pending";
+  void import("./query.ts").then((mod) => {
+    host.className = "s-rv-tracker-host";
+    host.replaceChildren(mod.renderQueryFence(spec, { notePath: opts.notePath, ...hooks }));
+    hooks.onResize?.();
+  });
+  return host;
+}
+
+/** A tasks fence's host, filled when the chunk and the rows arrive. */
+export function renderTasksBlock(spec: TasksSpec, opts: RenderOptions, hooks: Partial<TasksHooks> = {}): HTMLElement {
+  const host = document.createElement("div");
+  host.className = "s-rv-tracker-pending";
+  void import("./tasks.ts").then((mod) => {
+    host.className = "s-rv-tracker-host";
+    host.replaceChildren(mod.renderTasksFence(spec, { notePath: opts.notePath, ...hooks }));
+    hooks.onResize?.();
+  });
+  return host;
+}
+
 // ── Block renderer ──────────────────────────────────────────────────────────
 
 function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
@@ -987,6 +1018,17 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
           root.appendChild(routineBlock("routine", plan, entries, ctx));
           continue;
         }
+      }
+      // ```query — a live list over the search operators (shared/queryFence.ts).
+      if (lang === "query") {
+        root.appendChild(renderQueryBlock(parseQueryFence(buf.join("\n")), ctx));
+        continue;
+      }
+      // ```tasks — open tasks across the vault (shared/tasks.ts). Inert here;
+      // the editor widget and the Routines page pass `live`.
+      if (lang === "tasks") {
+        root.appendChild(renderTasksBlock(parseTasksFence(buf.join("\n"), isoDate(new Date())), ctx));
+        continue;
       }
       if (lang === "routine-log" && ctx.lastRoutine && !ctx.routineLogged) {
         ctx.routineLogged = true;
@@ -1182,6 +1224,14 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
         }
         const li = document.createElement("li");
         li.dir = "auto";
+        // ` ^id` at the item's end is its address, not its text
+        // (shared/blockId.ts): the marker comes off and the <li> takes the
+        // id, caret included, which is what `[[Note#^id]]` looks up.
+        const itemId = parseBlockId(m[3]);
+        if (itemId) {
+          m[3] = stripBlockId(m[3]);
+          if (ctx.assignIds) li.id = `^${itemId.id}`;
+        }
         const task = /^\[([ xX])\]\s?(.*)$/.exec(m[3]);
         if (task) {
           const done = /x/i.test(task[1]);
@@ -1276,6 +1326,19 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
     const p = document.createElement("p");
     p.className = "s-rv-p";
     p.dir = "auto"; // Arabic/Hebrew paragraphs read right-to-left
+    // A block id (shared/blockId.ts) — at the end of the last line, or on a
+    // line of its own under the paragraph — is the paragraph's address: the
+    // marker comes off, the <p> takes the id.
+    if (para.length > 1 && isBareBlockId(para[para.length - 1])) {
+      const own = parseBlockId(para.pop() ?? "");
+      if (own && ctx.assignIds) p.id = `^${own.id}`;
+    } else {
+      const own = parseBlockId(para[para.length - 1]);
+      if (own) {
+        para[para.length - 1] = stripBlockId(para[para.length - 1]);
+        if (ctx.assignIds) p.id = `^${own.id}`;
+      }
+    }
     // A paragraph (or a lone image line) ending in `{.center}` sits there.
     const align = blockAlignOf(para);
     if (align !== null) {

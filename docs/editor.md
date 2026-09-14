@@ -191,7 +191,7 @@
   [Attachments](templates-and-notes.md#attachments)
 - **Reorganize by dragging**, with every link repaired — see
   [Reorganizing](templates-and-notes.md#reorganizing-by-dragging)
-- **Daily notes** — `Ctrl/Cmd D` opens (or creates) `daily/YYYY-MM-DD.md`
+- **Daily notes** — `Ctrl/Cmd Alt D` opens (or creates) today's note (`daily/YYYY-MM-DD.md` unless [configured otherwise](templates-and-notes.md#daily-and-weekly-notes))
 - **A shell that gets out of the way** — collapse either pane (`Ctrl/Cmd Alt B`,
   `Ctrl/Cmd Alt Shift B`) down to a slim reopen handle, or go **zen** (`Ctrl/Cmd Shift Z`):
   sidebar, panel, tabs and status bar step aside and the prose centers on a wide measure. `Esc` (or
@@ -216,6 +216,73 @@
   (chokidar + SSE)
 
 ![Command palette](screenshots/palette.png)
+
+## Live queries
+
+A ` ```query ` fence is a list of notes that answers a search, drawn live wherever the note is
+read — the editor, reading view, the blog. It takes the search box's operators and four keys:
+
+```query
+tag:reading prop:status=reading -tag:draft
+show: title, date, status, tags
+sort: date desc
+limit: 20
+as: table
+```
+
+| Key | Values |
+| --- | --- |
+| `show` | columns: `title`, `date`, `modified`, `tags`, `excerpt`, `path`, or any frontmatter key (`status`, `author`) |
+| `sort` | `date`, `modified`, `title`, `path`, `relevance`, each with `asc` or `desc` |
+| `limit` | at most this many rows (500 at most) |
+| `as` | `list` (title and excerpt), `table`, or `cards` |
+
+Every other line is the query. `prop:status=reading` is new with it: search by any frontmatter
+property, `prop:author` alone for "has one", `-prop:draft` to exclude. The list is scoped to the
+reader — a visitor's fence on a published note lists published notes only — and it re-reads when
+the vault changes. Obsidian renders the same fence language, so the note stays readable there.
+
+## Tasks across the vault
+
+Every `- [ ]` line is a task, and the fields the Tasks plugin taught vaults to write are read off its
+end: `📅 2026-09-20` due, `⏳` scheduled, `🛫` start, `✅` done on, `🔁 every week`, and `⏫ 🔼 🔽`
+priority. A ` ```tasks ` fence lists them from the whole vault, grouped by note, and in the editor
+each box is live: a tick flips that one line in the note it lives in and stamps `✅ today`, so
+Obsidian's Tasks reads the same state.
+
+```tasks
+not done
+due this week
+tag:work
+sort: priority
+```
+
+Lines: `not done` (the default), `done`, `all`; `due today`, `due this week`, `overdue`, `due before
+2026-10-01`, `due after …`, `due on …`, `has due date`; `path:Projects`, `tag:work`, `limit: 50`,
+`group: none`, `sort: due | priority | path`. The Routines page opens with the tasks due by today.
+
+## Unlinked mentions
+
+Under the backlinks, the right panel lists notes whose prose names the open note's title or an
+alias without linking it — whole words only, never inside a link, code or a template, and folded
+like search so a pointed Arabic title finds its plain spelling. **Link** wraps those words as
+`[[Note]]` (or `[[Note|the words]]` when they are not the title's own spelling) with one edit to
+that line; **Link all** does every row. This is how atomic notes get woven.
+
+## Block references
+
+Any paragraph or list item can be addressed. End it with a space and a caret id — `…the rule of
+three. ^rule3` — or put `^rule3` on a line of its own right under the block, and:
+
+- `[[Note#^rule3]]` links to that block and lands on it; the hover card shows just that block;
+- `![[Note#^rule3]]` transcludes only that block, in the editor, the reading view and on the blog;
+- `[[Note#` in the editor offers block ids beside headings, and the palette's `#` jump lists them.
+
+The marker is hidden in reading view and in live preview until the caret is on its line, where it
+shows faint and monospace so it can be read or changed. **Copy link to this block** in the command
+palette mints an id for the block under the caret (or reuses the one it has), appends it as one undo
+step, and copies the link; on a heading line it copies the section link instead. The syntax is
+Obsidian's, so a vault that already carries `^ids` keeps every link.
 
 ## Find and replace
 

@@ -109,7 +109,7 @@ export type Block =
 export interface NoteAnchor {
   /** Address: a slugified heading, or a `\label{...}` value verbatim. */
   id: string;
-  kind: "heading" | "label" | "equation" | "figure" | "table" | "section" | "theorem";
+  kind: "heading" | "label" | "equation" | "figure" | "table" | "section" | "theorem" | "block";
   /** What a reader would call it: heading text, caption, or "Equation (3)". */
   title: string;
   /** 1-based source line. */
