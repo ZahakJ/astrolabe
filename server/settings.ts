@@ -5,7 +5,7 @@
 // forever — never read from this file: ADMIN_PASSWORD_HASH, SESSION_SECRET,
 // TRUSTED_PROXIES, PORT, HOST, ASTROLABE_VAULT, ASTROLABE_DATA, PUBLIC.
 // Keys: siteName, tagline, footer, defaultTheme, adminTheme, publicLayout, blogLocale,
-// language, languageFilter, languageToggle, excludeTags, commentsEnabled, shareButtons,
+// language, languageFilter, languageToggle, excludeTags, commentsEnabled, shareButtons, pdfSearch,
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
 // templatesFolder, drawingsFolder, defaultTemplate, dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
@@ -104,6 +104,7 @@ import { isCustomThemeId } from "../shared/customTheme.ts";
 import { hasThemeChoice } from "./designs.ts";
 import { envHomeNote } from "./auth.ts";
 import { commentsEnabled, envCommentsEnabled } from "./comments.ts";
+import { envPdfSearch, pdfSearchEnabled } from "./pdfText.ts";
 // Backup & sync: the gitSync validators and the write-only credential store
 // live in gitSync.ts (this import pair is circular and inert — both modules
 // export functions only and neither calls the other at module top level).
@@ -462,6 +463,7 @@ export function getSettings(): SettingsData {
   if (typeof raw.commentsEnabled === "boolean") out.commentsEnabled = raw.commentsEnabled;
   if (typeof raw.shareButtons === "boolean") out.shareButtons = raw.shareButtons;
   if (typeof raw.ambient === "boolean") out.ambient = raw.ambient;
+  if (typeof raw.pdfSearch === "boolean") out.pdfSearch = raw.pdfSearch;
   str("favicon", VALUE_MAX);
   str("logo", VALUE_MAX);
   // ── Attachments ──────────────────────────────────────────────────────────
@@ -660,6 +662,7 @@ export function effectiveSettings(): EffectiveSettings {
     // Decoration defaults OFF, unlike the share row above: a site that has
     // never heard of this feature must not start moving on upgrade.
     ambient: s.ambient ?? false,
+    pdfSearch: pdfSearchEnabled(),
     favicon: s.favicon ?? null,
     logo: s.logo ?? null,
     // Always resolved: what the next upload will actually do.
@@ -734,6 +737,7 @@ export function inheritedSettings(): InheritedSettings {
     commentsEnabled: envCommentsEnabled(),
     shareButtons: true,
     ambient: false,
+    pdfSearch: envPdfSearch(),
   };
 }
 
@@ -1085,6 +1089,11 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     if (value === null) delete raw.ambient;
     else if (typeof value === "boolean") raw.ambient = value;
     else throw new VaultError(400, 'Settings key "ambient" must be a boolean or null');
+  },
+  pdfSearch: (raw, value) => {
+    if (value === null) delete raw.pdfSearch;
+    else if (typeof value === "boolean") raw.pdfSearch = value;
+    else throw new VaultError(400, 'Settings key "pdfSearch" must be a boolean or null');
   },
   favicon: stringKey("favicon", (v) => cleanVaultImage(v, "favicon")),
   // A logo may be an https URL or a vault image path.

@@ -11,7 +11,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { findAnyMatches, findMatches, foldKeep, foldTerm } from "../shared/fold.ts";
-import { parseSearchQuery, SEARCH_OPERATORS } from "../shared/searchQuery.ts";
+import { parseSearchQuery, SEARCH_OPERATORS, searchScope } from "../shared/searchQuery.ts";
 import { applyBulk, clearUndoBundles, undoBulk } from "../server/bulkRewrite.ts";
 import {
   initIndexer,
@@ -161,9 +161,27 @@ describe("search operators: the grammar", () => {
 
   it("names every operator it parses, for the help popover", () => {
     for (const op of SEARCH_OPERATORS) {
-      const value = op === "is" ? "page" : op === "before" || op === "after" ? "2024" : "x";
+      const value =
+        op === "is" ? "page" : op === "in" ? "books" : op === "before" || op === "after" ? "2024" : "x";
       assert.equal(parseSearchQuery(`${op}:${value}`).filters.length, 1, op);
     }
+  });
+
+  // `in:` picks an INDEX rather than narrowing one, so it is read off the
+  // filters as a scope (shared/searchQuery.ts::searchScope) by both sides.
+  it("in:books and in:notes choose a scope, and a value it does not know is a word", () => {
+    assert.equal(searchScope(parseSearchQuery("cumin").filters), "all");
+    assert.equal(searchScope(parseSearchQuery("in:books cumin").filters), "books");
+    assert.equal(searchScope(parseSearchQuery("in:notes cumin").filters), "notes");
+    assert.equal(searchScope(parseSearchQuery("-in:books cumin").filters), "notes");
+    assert.equal(searchScope(parseSearchQuery("-in:notes cumin").filters), "books");
+    // AND, like everything else: nothing is both.
+    assert.equal(searchScope(parseSearchQuery("in:books in:notes").filters), "none");
+    const word = parseSearchQuery("in:drawer cumin");
+    assert.deepEqual(word.filters, []);
+    assert.equal(word.text, "in:drawer cumin");
+    // Case does not matter to the operator, as with is:.
+    assert.equal(searchScope(parseSearchQuery("IN:Books").filters), "books");
   });
 });
 
