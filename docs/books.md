@@ -127,6 +127,34 @@ The match is tinted without touching the text layer, and it becomes the keyboard
 `/phrase` then `h` marks exactly what was found. The matcher folds Arabic diacritics and letter
 forms like every other search in the product.
 
+## Searching inside every book
+
+The sidebar's search box answers from **the pages of every PDF on the shelf** as well as from
+notes. A book row shows the book's title (its own `/Title`, or the file name), the page — *p. 42*,
+in the instance's numerals — and the page's text around the match; clicking it opens the reader on
+that page. Every word must appear on the page, as with the operators; `path:Books` narrows by
+folder; the note operators (`tag:`, `is:`, dates, links) are questions about notes and leave
+books out. Two operators pick a side:
+
+| Type | Finds |
+| --- | --- |
+| `in:books` | pages of the shelf's books only; on its own, one row per book |
+| `in:notes` | notes only, the way the box always searched |
+
+A mixed answer holds up to twenty book pages, at most five from one volume, beside the notes;
+`in:books` lists up to fifty. Visitors never get book rows: the shelf is the owner's.
+
+The text is read **once**, in the background after the server starts, two books at a time, and
+kept in `ASTROLABE_DATA/pdftext.json` under the same content key as your reading position — so a
+renamed or re-filed book keeps its text, and a book saved again (an OCR pass) is read again. A
+book that cannot be read (damaged, password-protected, over 256 MB) is remembered as such and not
+retried until its bytes change. Per book the store keeps at most 2,000 pages, 8,000 characters a
+page and 1.5 million characters in all; the store as a whole stops at 40 million characters, and
+the boot line says how many books it holds. A scanned book with no text layer has nothing to
+find, exactly as in the reader's own `/`. The [**Search inside books**](configuration.md#settings-keys)
+row in *Settings › Vault* (or `PDF_SEARCH=off`) turns the whole thing off, and stops a pass in
+progress.
+
 ## What it does not do
 
 It never publishes. Both shelf and reader are admin surfaces over the owner's vault; a PDF

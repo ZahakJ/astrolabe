@@ -31,6 +31,7 @@ summary.
 | `TRUSTED_PROXIES` | Comma-separated IPs/CIDRs allowed to set `X-Forwarded-For` / `X-Forwarded-Proto` (e.g. `127.0.0.1,::1`); unset → both headers ignored, rate limit uses the socket address |
 | `HOME_NOTE` | Vault-relative note fresh visitors land on, e.g. `index.md` |
 | `COMMENTS` | `on` (also `true`/`1`/`yes`) enables reader comments under published notes (default off) |
+| `PDF_SEARCH` | `off` (also `false`/`0`/`no`) stops the sidebar search from reading the shelf's PDFs (default on; see [Searching inside every book](books.md#searching-inside-every-book)) |
 | `SITE_NAME` | Site name shown in the sidebar wordmark, page titles, and the login modal (default `Astrolabe`) |
 | `SITE_TAGLINE` | Masthead subtitle under the site name (blog mode) |
 | `SITE_FOOTER` | Blog footer line; `{year}`/`{siteName}` substituted (default `© {year} {siteName}`) |
@@ -183,6 +184,7 @@ write them. Anything absent falls back to the env default in the table above.
 | `shareButtons` | boolean — the share row under blog articles | `true` |
 | `authorSites` | array of `{ url }` (https), each enriched once from its own OpenGraph and cached in `ASTROLABE_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
 | `ambient` | boolean — a slow decorative atmosphere behind the public masthead, drawn per theme (see [Theming](theming.md#the-ambient-masthead)) | `false` |
+| `pdfSearch` | boolean — the sidebar search reads the pages of every PDF on the shelf (see [Searching inside every book](books.md#searching-inside-every-book)) | `PDF_SEARCH`, else `true` |
 | `favicon` | vault-relative image (`.ico .png .svg .jpg .jpeg .gif .webp .avif`) | none |
 | `logo` | https URL or vault-relative image | none |
 | `home.mode` | `note` · `dashboard` | `note` |
