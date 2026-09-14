@@ -163,6 +163,18 @@ in flight. PDFs, audio and video are accepted too. Where a paste or a drop into 
 is a [setting](configuration.md#attachments) with four modes; a drop onto the sidebar tree is a
 filing, and lands in the folder it was dropped on.
 
+**Unused attachments** — `Ctrl/Cmd P` → **Unused attachments** lists every file in the vault that no
+note points at, with its size, so the stale screenshots can be told from the figures an essay still
+embeds. "Used" means what the indexer means by it — the same walk that decides what a visitor may
+fetch and what a delete would break: embedded (`![[x.png]]`, `![alt](x.png)`), linked (`[[x.pdf]]`),
+a note's `banner:`, a tracker's `cover:`, a folder's icon (from settings or the folder note), a
+library path's cover, a drawing's exported svg, and the site's logo, favicon and home banner. Tick
+the rows (or *Select all*), read the total, and **Move to trash**: each file goes to `.trash/`
+through the same door the tree's *Delete file* uses, with its origin recorded, and the toast's
+**Undo** restores the whole sweep. Nothing here erases; the [trash browser](#deleting-and-the-trash)
+is where that decision lives. The list is capped at 2,000 rows and says so when the vault holds more
+— sweep those and reopen for the rest. Admin-only, and `.trash/` itself is never listed.
+
 ## Deleting, and the trash
 
 **Deletes say what they are taking.** Notes, attachments *and* folders all delete the same way:

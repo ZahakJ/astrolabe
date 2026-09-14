@@ -226,6 +226,12 @@ const GROUPS: Group[] = [
       { label: "scStrikethrough", keys: ["Ctrl/Cmd", "Shift", "X"], admin: true },
       { label: "scHighlight", keys: ["Ctrl/Cmd", "Shift", "H"], admin: true },
       { label: "scComment", keys: ["Ctrl/Cmd", "Alt", "/"], admin: true },
+      // The harakat palette (editor/harakat.ts). `;` because it is the same
+      // PHYSICAL key on the Arabic 101 layout as on a US one, so the chord
+      // works from the keyboard the feature exists for; Alt, like the
+      // comment and the pane toggles, because `Ctrl/Cmd ;` is not free in
+      // every browser.
+      { label: "scHarakat", keys: ["Ctrl/Cmd", "Alt", ";"], admin: true },
       { label: "scSplitPane", keys: ["Ctrl/Cmd", "\\"], admin: true },
       { label: "scSplitPaneDown", keys: ["Ctrl/Cmd", "Shift", "\\"], admin: true },
       { label: "scClosePane", keys: ["Ctrl/Cmd", "Alt", "\\"], admin: true },

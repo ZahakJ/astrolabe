@@ -1,0 +1,94 @@
+/* Astrolabe — the harakat palette (client/editor/harakat.ts).
+
+   The selection menu's own box, one size down: same raised ground, same lit
+   row (--accent-soft with the gold leading bar), because two popovers a
+   reader opens from the same caret may not have two vocabularies for "this
+   is the row". Every colour is a token; the box is placed by JS
+   (anchorPopover) and its insides mirror by themselves. */
+
+.s-harakat-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.s-harakat {
+  position: fixed;
+  min-width: 13rem;
+  max-width: min(20rem, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  outline: none; /* a11y-ok: role=menu, tabIndex=-1; the marker is `.s-harakat__row--active`, not a ring on the box */
+}
+
+.s-harakat__title {
+  padding: 5px 10px 3px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-harakat__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-harakat__row:hover {
+  background: none;
+}
+
+.s-harakat__row--active,
+.s-harakat__row--active:hover {
+  background: var(--accent-soft);
+}
+
+.s-harakat__row--active::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* The mark on its dotted circle, in the serif face and a size that shows
+   the mark's shape — at the UI size a kasra and a kasratan are two smudges.
+   Isolated and RTL so the ب‍ـ‍ب sample of the tatweel joins the right way
+   inside an English menu too. */
+.s-harakat__glyph {
+  flex: none;
+  min-width: 2.2em;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1;
+  text-align: center;
+  direction: rtl;
+  unicode-bidi: isolate;
+  color: var(--text);
+}
+
+.s-harakat__name {
+  flex: 1;
+}

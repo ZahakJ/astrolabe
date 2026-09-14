@@ -49,6 +49,7 @@ import type {
 } from "../shared/types.ts";
 import { authGuard, authRoutes, clientIp, isProtected, isPublishLimited } from "./auth.ts";
 import { contentDisposition, exportStream, parseExportQuery, planExport, summarize } from "./export.ts";
+import { listUnusedAttachments } from "./unusedAttachments.ts";
 import { languageScope } from "./language.ts";
 import { libraryFor } from "./library.ts";
 import { deleteAnnotation, listAnnotations, moveAnnotations, moveAnnotationsFolder, publicAnnotations, putAnnotation } from "./annotations.ts";
@@ -1998,6 +1999,17 @@ api.put("/drawing-svg", async (c) => {
 api.get("/attachments", (c) => {
   if (isPublishLimited(c)) throw new VaultError(404, "Not found");
   return c.json(listImageAttachments());
+});
+
+// The files no note references (server/unusedAttachments.ts): the delete
+// previews' complement. Admin-eyes-only for the same reason as the list
+// above and the trash — every row names a vault path — so a visitor (and an
+// admin previewing as one) gets the 404 an unknown route answers. Read-only:
+// the sweep itself goes through DELETE /api/attachment, one file at a time,
+// so every move lands in `.trash/` with an origin and an Undo.
+api.get("/attachments/unused", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(404, "Not found");
+  return c.json(await listUnusedAttachments());
 });
 
 // The admin UI's publish state, from an ADMIN source. The client used to read

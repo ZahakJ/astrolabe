@@ -67,6 +67,7 @@ import {
   type NoteSyntax,
 } from "../editor/commands.ts";
 import { CALLOUT_TYPES } from "../editor/calloutDefs.ts";
+import { HARAKAT_KEYS, copyWithoutTashkeel, openHarakatPalette, stripTashkeelSelection } from "../editor/harakat.ts";
 import { notePathFacet } from "../editor/livePreview.ts";
 import { extractSelection } from "../composerActions.ts";
 import { ANNOTATE_EVENT, proseOfSource, type AnnotateRequest } from "../annotations/fromSource.ts";
@@ -132,7 +133,7 @@ interface Group {
   rows: Row[];
 }
 
-type PageId = "root" | "structure" | "insert" | "align" | "callout";
+type PageId = "root" | "structure" | "insert" | "align" | "callout" | "arabic";
 
 /** The i18n key for each swatch, written out. The gate counts a key as USED
  *  only when it appears as a quoted token in client/, so `t(`color_${id}`)`
@@ -257,6 +258,18 @@ function pagesFor(
   const footnote: Row = act("insFootnote", (v) => {
     insertFootnote(v);
   });
+  // The harakat palette (editor/harakat.ts) — a popover of its own at the
+  // caret, so it opens a tick AFTER this menu has closed and handed focus
+  // back to the note; opened synchronously it would take focus and then
+  // lose it to `run()`'s own `view.focus()` before the reader saw it. In
+  // both languages: Arabic prose in a `.tex` note is pointed the same way.
+  const harakat: Row = act(
+    "insHarakat",
+    (v) => {
+      window.setTimeout(() => openHarakatPalette(v), 0);
+    },
+    HARAKAT_KEYS,
+  );
   const insert: Group = {
     title: "selGroupInsert",
     rows: tex
@@ -267,6 +280,7 @@ function pagesFor(
           act("insCodeBlock", (v) =>
             insertPair(v, "\\begin{verbatim}\n", "\n\\end{verbatim}")),
           footnote,
+          harakat,
         ]
       : [
           act("insWikilink", (v) => insertPair(v, "[[", "]]")),
@@ -274,7 +288,23 @@ function pagesFor(
           act("insMath", (v) => insertPair(v, "$", "$")),
           act("insCodeBlock", (v) => insertPair(v, "```\n", "\n```")),
           footnote,
+          harakat,
         ],
+  };
+  // The Arabic page: the palette again (it is the row a reader pointing a
+  // quotation looks for first), and the two ways OUT of pointing — strip the
+  // marks from the selected words, or copy them without the marks and leave
+  // the note as it is. shared/tashkeel.ts removes exactly what the palette
+  // can write, so the two doors agree about what a diacritic is.
+  const arabic: Group = {
+    title: "selGroupArabic",
+    rows: [
+      harakat,
+      act("stripTashkeelSelection", (v) => {
+        stripTashkeelSelection(v);
+      }),
+      act("copyWithoutTashkeel", copyWithoutTashkeel),
+    ],
   };
   // Case transforms live at the bottom of the Structure page — per range
   // (every caret of a multi-cursor selection transforms its own), wikilink
@@ -322,6 +352,7 @@ function pagesFor(
       // Its own door: inside Structure the owner could not find it.
       { kind: "page", label: "selGroupAlign", page: "align" },
       ...(tex ? [] : [{ kind: "page", label: "calloutPage", page: "callout" } as Row]),
+      { kind: "page", label: "selGroupArabic", page: "arabic" },
     ],
   };
   // Extract the selection into its own note, `[[link]]` left standing — the
@@ -371,6 +402,7 @@ function pagesFor(
     align: [alignRows],
     insert: back("selGroupInsert", insert.rows),
     callout: back("tbGroupCallout", callout.rows),
+    arabic: back("selGroupArabic", arabic.rows),
   };
 }
 

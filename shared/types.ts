@@ -266,6 +266,28 @@ export interface DeletePreview {
   referrerCount: number;
 }
 
+/** One file no note references — `GET /api/attachments/unused`.
+ *
+ *  The complement of the delete previews: those say what a delete would
+ *  break, this says what a delete would not touch. Sizes and mtimes ride
+ *  along so the list can be sorted by what is worth reclaiming. */
+export interface UnusedAttachment {
+  /** Vault-relative path. */
+  path: string;
+  /** Bytes on disk. */
+  size: number;
+  /** Last modified, ms since the epoch. */
+  mtimeMs: number;
+}
+
+export interface UnusedAttachments {
+  /** At most `UNUSED_ATTACHMENTS_MAX` rows, sorted by path. */
+  files: UnusedAttachment[];
+  /** How many unreferenced files there are in all — more than `files`
+   *  holds when the cap cut the list. */
+  total: number;
+}
+
 /** One top-level entry of the vault's `.trash/` — `GET /api/trash`.
  *
  *  The trash is the safety promise every delete dialog makes ("recoverable

@@ -38,6 +38,11 @@ export const FIND_IN_NOTE_EVENT = "astrolabe:find-in-note";
  *  because only it knows where the caret is and can dispatch the one-line
  *  edit as one undo step. */
 export const COPY_BLOCK_LINK_EVENT = "astrolabe:copy-block-link";
+/** The palette's "Strip diacritics from note": the mounted editor rewrites
+ *  the open note without its harakat as ONE change (harakat.ts), so a single
+ *  undo takes every mark back — which only the editor, holding the history,
+ *  can promise. Same door as the two above, for the same reason. */
+export const STRIP_TASHKEEL_EVENT = "astrolabe:strip-tashkeel";
 
 export interface DocStats {
   path: string;
