@@ -6,6 +6,12 @@
 #   scripts/check-desktop-boot.sh desktop/release/Astrolabe-<v>.AppImage
 set -u
 app="${1:?AppImage path}"
+# NO CORE DUMPS. Both gates end an Electron process with a signal (the boot
+# gate's timeout, the relaunch's own exit), and systemd-coredump streams the
+# whole multi-gigabyte core to disk before compressing it to a few megabytes
+# — two gates back to back took the owner's root filesystem to zero for a
+# minute, beside a running prod. A zero core limit tells it to keep nothing.
+ulimit -c 0
 log="$(mktemp)"
 export ASTROLABE_VAULT="$(mktemp -d)"
 export ASTROLABE_DATA="$ASTROLABE_VAULT/.data"
