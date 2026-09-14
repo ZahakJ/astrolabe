@@ -9344,6 +9344,57 @@ its Arabic half. Bumping the minor without writing the deck is therefore impossi
 is the reminder the owner asked for ("remind future sessions to create a new preview with every
 major change").
 
+## 3.12.0 — block references, live queries, tasks, mentions, periodic notes, versions, PDF search, export
+
+Eight features, one rule under all of them: the note is the state, Obsidian reads the same syntax,
+and every fence's PARSER is a static import while its renderer is a lazy chunk.
+
+**Block references (`shared/blockId.ts`).** ` ^id` at the end of a paragraph or list item (or on a
+line of its own under it) is the block's address. `markdownAnchors()` emits `kind: "block"` anchors
+with the caret KEPT in the id, so `findAnchor`'s exact pass matches `[[Note#^id]]`; the indexer keeps
+blocks out of the vault-wide `\ref` labels. `renderNoteSlice` — the single decider — slices one block
+(`markdownBlock`) for a block anchor and a section for a heading. The reading renderer strips the
+marker and puts the id on the `<p>`/`<li>` (with `assignIds`); the live preview hides it off the
+caret like a `%%comment%%`; the hover card shows the block alone. "Copy link to this block" is a
+palette→editor event (`COPY_BLOCK_LINK_EVENT`, the find-in-note shape): the editor mints an id on
+the block's last line as one dispatch and copies the link.
+
+**Query fence (`shared/queryFence.ts`, `client/reading/query.ts`).** Body = operators + `show:` /
+`sort:` / `limit:` / `as:`. `GET /api/query` walks the index through `queryNotes()` — uncapped by the
+sidebar's fifty, scoped like search — and `prop:key=value` joins the operators, reading
+`NoteRecord.props` (scalar frontmatter, keys lowercased, lists joined). Rows are `.s-rv-wikilink`
+anchors so the reading root's one delegated handler navigates. A note's own date prints in UTC (it
+is a calendar day at UTC midnight).
+
+**Tasks (`shared/tasks.ts`, `client/reading/tasks.ts`).** The Tasks plugin's grammar exactly.
+`NoteRecord.tasks` (full-source lines); `GET /api/tasks`; `POST /api/task` flips ONE line through
+`toggleTaskLine` (✅ stamped/removed) under the mtime precondition, 409 when the line is no longer a
+task. The ```tasks fence filters with the plugin's phrases; live boxes only where `live` is passed
+(the editor widget for an admin, the Routines page's "due by today" section).
+
+**Unlinked mentions (`mentions()` in the indexer, `client/components/MentionsPanel.tsx`).** Title
+and aliases as whole words, folded like search, never inside `[[…]]`, inline code, a fence, the note
+itself or a template; one mention per line. `POST /api/mentions/link` re-checks the slice against
+the phrase, then splices `[[Title]]` or `[[Title|phrase]]` (`linkSpellingFor`: the path when the
+basename is not unique). The panel re-reads on `astrolabe:vault`.
+
+**Periodic notes (`shared/periodic.ts`, `client/daily.ts`).** A format of moment-style tokens
+(`YYYY MM DD ww [literal] /`) names a day or an ISO week and reads it back; Gregorian and Western
+digits by construction. Five settings (`dailyFolder`, `dailyFormat`, `dailyTemplate`,
+`weeklyFormat` — "" is off — `weeklyTemplate`), validated in server/settings.ts (`periodFormat`,
+`templateNote`), primed once by `loadPeriodic()` from App.tsx. `openPeriodicNote(kind, offset)`
+walks from the open daily note when it is one; the period's template wins over the default.
+`GET /api/onthisday` reads the archive from `dateMs` and trackers' `finished:`; nothing stored.
+
+**Note versions (`server/versions.ts`)**, **PDF search (`server/pdfText.ts`, `server/snippet.ts`)**
+and **Export (`server/export.ts`, `shared/zip.ts`, `shared/exportLinks.ts`, `client/export/`)** were
+built in isolated worktrees and merged; their headers carry their contracts. Two notes for the next
+reader: `server/pdfText.ts` reaches pdf.js by a DYNAMIC `import("pdfjs-dist/legacy/build/pdf.mjs")`
+— the second door into that vendor after the reader, and `pdfjs-dist` therefore had to join
+`desktop/package.json` (the desktop spawns the server beside the packaged app; `check-desktop`
+caught it); and `compileFilters`' `in:` case answers through `searchScope()` and `continue`s, so its
+negation lives in the scope, not the predicate.
+
 ## Tests (`npm test`) — the release gate
 
 `node --test` over `tests/*.test.ts`. No new dependencies, no test framework, no fixtures on disk
