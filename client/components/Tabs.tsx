@@ -21,7 +21,7 @@ import {
   closeAllPanes,
   closeOthersIn,
   isGraphTab,
-  isMediaTab,
+  isMediaTab, isRoutinesTab,
   isVirtualTab,
   paneAt,
   type Workspace,
@@ -35,6 +35,7 @@ import { noteLabelOf } from "../../shared/noteFormat.ts";
 function titleOf(path: string): string {
   if (isGraphTab(path)) return t("docTitleGraph");
   if (isMediaTab(path)) return t("media");
+  if (isRoutinesTab(path)) return t("routines");
   const base = path.slice(path.lastIndexOf("/") + 1);
   return stripBidiControls(noteLabelOf(base));
 }

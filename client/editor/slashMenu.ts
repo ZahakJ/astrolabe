@@ -126,6 +126,17 @@ function slashItems(): SlashItem[] {
       ),
     },
     {
+      // The daily tracker, beside the work tracker: its skeleton is the
+      // documentation too — a title, the week's columns, one weekday.
+      label: "Routine",
+      displayLabel: "slashRoutine",
+      detail: "```routine",
+      boost: 6.45,
+      apply: snippet(
+        "```routine\ntitle: ${Title}\nkind: ${habit}\nslots: ${morning, evening}\nmonday:\n  morning: ${}\n```",
+      ),
+    },
+    {
       label: "Tracker board",
       displayLabel: "slashTrackerBoard",
       detailKey: "slashTrackerBoardDetail",

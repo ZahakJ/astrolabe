@@ -1,0 +1,204 @@
+/* Astrolabe — the Routines page (client/routines/RoutinesView.tsx,
+   RoutineForm.tsx). Its own file, loaded with the page's lazy chunk. The
+   cards are the reading renderer's (client/reading/routine.css); this sheet
+   only lays the page out and dresses the form. Media page's rules apply:
+   the page scrolls down, never sideways; tokens only; logical properties.
+
+   The form wears the Media form's dress (.s-mediaform*), which lives in
+   media.css — a sheet that arrives with the MEDIA chunk, and a reader who
+   opens Routines first has never fetched it. So it is imported here: vite
+   folds it into this chunk's own CSS, and the two forms stay one form. */
+@import "./media.css";
+
+.s-routines {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  container-type: inline-size;
+  padding: 28px clamp(16px, 4cqi, 48px) 64px;
+  background: var(--bg);
+  scrollbar-width: thin;
+}
+
+.s-routines__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  max-inline-size: 1240px;
+  margin-inline: auto;
+}
+
+.s-routines__headtext {
+  min-inline-size: 0;
+}
+
+.s-routines__date {
+  margin: 0;
+  font-size: 0.786rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-routines__h1 {
+  margin: 2px 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.714rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.s-routines__lead {
+  margin: 4px 0 0;
+  font-size: 0.929rem;
+  color: var(--text-muted);
+}
+
+.s-routines__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: 18px;
+  max-inline-size: 1240px;
+  margin: 24px auto 0;
+}
+
+@container (inline-size < 520px) {
+  .s-routines__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.s-routines__card {
+  min-inline-size: 0;
+}
+.s-routines__card .s-rv-routine {
+  margin-block: 0;
+  block-size: 100%;
+  box-sizing: border-box;
+}
+
+.s-routines__empty {
+  max-inline-size: 520px;
+  margin: 64px auto 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.s-routines__emptystar {
+  display: inline-block;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.s-routines__emptytext {
+  margin: 12px 0 4px;
+  font-family: var(--font-serif);
+  font-size: 1.143rem;
+  color: var(--text);
+}
+
+.s-routines__emptyhint {
+  margin: 0;
+  font-size: 0.929rem;
+}
+
+/* ── The form ──────────────────────────────────────────────────────────── */
+
+.s-routineform {
+  inline-size: min(760px, calc(100vw - 32px));
+}
+
+.s-routineform__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.s-routineform__preset {
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.857rem;
+  cursor: pointer;
+}
+.s-routineform__preset:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.s-routineform__preset.is-on {
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg));
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.s-routineform__sublabel {
+  margin-block-start: 8px;
+}
+
+.s-routineform__weekwrap {
+  overflow-x: auto;
+}
+
+.s-routineform__week {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 0.857rem;
+}
+
+.s-routineform__week th,
+.s-routineform__week td {
+  padding: 4px;
+  text-align: start;
+  vertical-align: top;
+}
+
+.s-routineform__week thead th {
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.s-routineform__week tbody th {
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-weight: 500;
+  padding-inline-end: 8px;
+}
+
+.s-routineform__cell,
+.s-routineform__fields {
+  inline-size: 100%;
+  min-inline-size: 140px;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.857rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+.s-routineform__cell:focus-visible,
+.s-routineform__fields:focus-visible {
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 1px;
+}
+
+.s-routineform__fields {
+  font-family: var(--font-mono);
+  min-inline-size: 0;
+}
+
+.s-routineform__spacer {
+  flex: 1;
+}

@@ -71,9 +71,11 @@ import {
   isDrawingPath,
   isGraphTab,
   isMediaTab,
+  isRoutinesTab,
   isVirtualTab,
   GRAPH_TAB,
   MEDIA_TAB,
+  ROUTINES_TAB,
   openInPane,
   resizeCols as resizeColsIn,
   resizeRows as resizeRowsIn,
@@ -572,12 +574,15 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph" | "media"): void;
+  setView(v: View | "graph" | "media" | "routines"): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
   /** The Media page, on the same terms as the graph. */
   mediaOpen(): boolean;
   toggleMedia(): void;
+  /** The Routines page, on the same terms. */
+  routinesOpen(): boolean;
+  toggleRoutines(): void;
   /** Toggle the graph tab in the focused pane: open (or focus) it, or, when it
    *  is already the active tab, close it and land on the tab beside it. */
   toggleGraph(): void;
@@ -2153,8 +2158,8 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph" || view === "media") {
-        const path = view === "graph" ? GRAPH_TAB : MEDIA_TAB;
+      if (view === "graph" || view === "media" || view === "routines") {
+        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : ROUTINES_TAB;
         set((s) => ({
           ...s,
           ...mirrorOf(openInPane(s.workspace, s.workspace.focus, path)),
@@ -2175,6 +2180,17 @@ export const useStore = create<State>()((set, get) => {
       const s = get();
       if (s.mediaOpen()) s.closeTab(MEDIA_TAB);
       else s.setView("media");
+    },
+    routinesOpen: () => {
+      const ws = get().workspace;
+      const pane = paneAt(ws, ws.focus);
+      const tab = pane === null ? null : activeTabOf(pane);
+      return tab !== null && isRoutinesTab(tab.path);
+    },
+    toggleRoutines: () => {
+      const s = get();
+      if (s.routinesOpen()) s.closeTab(ROUTINES_TAB);
+      else s.setView("routines");
     },
     graphOpen: () => {
       const ws = get().workspace;
