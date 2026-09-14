@@ -3029,7 +3029,18 @@ export function mentions(targetPath: string, limit = 60): Mention[] {
   const isTemplate = templateMatcher();
   const out: Mention[] = [];
   const wordish = (ch: string | undefined): boolean => ch !== undefined && /[\p{L}\p{N}_]/u.test(ch);
-  for (const record of notes.values()) {
+  // CANDIDATES FIRST. The line walk below folds every character it looks
+  // at; over a large vault, on every panel open, that was a full-vault scan
+  // on the event loop. minisearch already holds every folded word, so the
+  // notes that carry ALL of a needle's words are asked for first and only
+  // they are walked — the same trick `linkto:` plays with the reverse index.
+  const candidates = new Set<string>();
+  for (const needle of needles) {
+    for (const hit of mini.search(needle, { combineWith: "AND", prefix: false, fuzzy: false })) candidates.add(hit.id as string);
+  }
+  for (const path of candidates) {
+    const record = notes.get(path);
+    if (!record) continue;
     if (record.path === targetPath || isTemplate(record.path)) continue;
     // A note that already links the target may still mention it in prose
     // elsewhere; only the mentions INSIDE links are skipped, below.
@@ -3074,6 +3085,11 @@ export function mentions(targetPath: string, limit = 60): Mention[] {
   return out;
 }
 
+/** True when the vault holds a note at `path` — the mention route's guard. */
+export function hasNote(path: string): boolean {
+  return notes.has(path);
+}
+
 /** The link the mention route writes: the title when the basename is unique
  *  in the vault, else the path without its extension, so the link resolves
  *  to THIS note and not to a namesake. */
@@ -3109,10 +3125,15 @@ export function onThisDay(iso: string): OnThisDayHit[] {
   for (const record of notes.values()) {
     if (isTemplate(record.path)) continue;
     if (record.dateMs > 0) {
+      // A frontmatter `date: 2024-09-13` is a calendar day and names itself;
+      // a birthtime is a local moment and is read in local time — the UTC
+      // getters put a UTC+3 midnight note on the previous day.
+      const fm = /^(\d{4})-(\d{2}-\d{2})/.exec(record.props.date ?? "");
       const d = new Date(record.dateMs);
-      const key = `${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-      if (key === monthDay && d.getUTCFullYear() < year) {
-        out.push({ path: record.path, title: record.title, year: d.getUTCFullYear(), kind: "written", what: record.title });
+      const key = fm ? fm[2] : `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const y = fm ? Number(fm[1]) : d.getFullYear();
+      if (key === monthDay && y < year) {
+        out.push({ path: record.path, title: record.title, year: y, kind: "written", what: record.title });
       }
     }
     for (const tracker of record.trackers) {

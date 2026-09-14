@@ -3846,7 +3846,7 @@ export default function SettingsModal() {
                     <TextInput placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Daily.md` : "Templates/Daily.md"} dir="ltr" label={t("dailyTemplateLabel")} {...field("dailyTemplate")} />
                   </Row>
                   <Row label={t("weeklyFormatLabel")} hint={t("weeklyFormatHint")}>
-                    <TextInput placeholder={eff.weeklyFormat ?? "off"} dir="ltr" label={t("weeklyFormatLabel")} {...field("weeklyFormat")} />
+                    <TextInput placeholder={eff.weeklyFormat ?? t("off")} dir="ltr" label={t("weeklyFormatLabel")} {...field("weeklyFormat")} />
                   </Row>
                   <Row label={t("weeklyTemplateLabel")} hint={t("weeklyTemplateHint")}>
                     <TextInput placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Weekly.md` : "Templates/Weekly.md"} dir="ltr" label={t("weeklyTemplateLabel")} {...field("weeklyTemplate")} />

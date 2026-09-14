@@ -200,7 +200,9 @@ export async function applyBulk(
       // watcher's echo of it would arrive a debounce later and be read as
       // somebody editing the file in Obsidian.
       suppressWatcherEcho(relPath);
-      const written = await writeNote(relPath, next.text, mtimeMs);
+      // A vault-wide replace is not an autosave: the text before it is kept
+      // whatever the five-minute window says.
+      const written = await writeNote(relPath, next.text, mtimeMs, "bulk");
       undoFiles.push({ path: relPath, before: content, mtimeAfter: written.mtimeMs });
       bytes += content.length;
       emitEvent({ kind: "changed", path: relPath });
@@ -264,7 +266,7 @@ export async function undoBulk(undoId: string): Promise<BulkResult> {
         continue;
       }
       suppressWatcherEcho(file.path);
-      await writeNote(file.path, file.before, note.mtimeMs);
+      await writeNote(file.path, file.before, note.mtimeMs, "bulk");
       emitEvent({ kind: "changed", path: file.path });
       await indexFile(file.path);
       changed.push({ path: file.path, count: 1 });

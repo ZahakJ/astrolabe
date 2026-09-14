@@ -146,12 +146,17 @@ export class ZipWriter {
 
   /** Open an entry. `name` is the path inside the archive, POSIX separators,
    *  no leading slash — a vault-relative path is already the right shape. */
-  begin(name: string, mtimeMs: number = Date.now()): void {
+  begin(name: string, mtimeMs: number = Date.now(), size: number | null = null): void {
     if (this.finished) throw new Error("zip: archive already finished");
     if (this.open) throw new Error("zip: an entry is still open");
     const nameBytes = encoder.encode(name);
     const { time, date } = dosDateTime(mtimeMs);
     const record: Record = { name: nameBytes, crc: 0, size: 0, offset: this.offset, time, date };
+    // THE SIZE GOES IN THE LOCAL HEADER WHEN IT IS KNOWN. A stored entry with
+    // bit 3 and zero sizes has no length a sequential reader can find (the
+    // descriptor comes after data it cannot measure), and Java's
+    // ZipInputStream and libarchive reject exactly that. The CRC stays in
+    // the descriptor, which every reader accepts.
     const header = new Header(30)
       .u32(SIG_LOCAL)
       .u16(VERSION_NEEDED)
@@ -160,8 +165,8 @@ export class ZipWriter {
       .u16(time)
       .u16(date)
       .u32(0) // crc — in the descriptor
-      .u32(0) // compressed size — in the descriptor
-      .u32(0) // uncompressed size — in the descriptor
+      .u32(size ?? 0) // compressed size
+      .u32(size ?? 0) // uncompressed size
       .u16(nameBytes.length)
       .u16(0); // no extra field
     this.emit(header.bytes);
@@ -191,7 +196,7 @@ export class ZipWriter {
 
   /** A whole entry from bytes already in hand. */
   file(name: string, data: Uint8Array, mtimeMs?: number): void {
-    this.begin(name, mtimeMs);
+    this.begin(name, mtimeMs, data.length);
     this.write(data);
     this.end();
   }

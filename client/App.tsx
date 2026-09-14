@@ -482,7 +482,10 @@ export default function App() {
         store.remapPath(ev.path, ev.toPath);
       } else if (ev.kind === "deleted" && store.openTabs.includes(ev.path)) {
         store.closeTab(ev.path);
-      } else if (ev.kind === "changed" && ev.path === store.openPath) {
+      } else if (ev.kind === "changed" && (ev.path === store.openPath || store.openTabs.includes(ev.path))) {
+        // Not only the focused note: a task ticked in a fence, or a mention
+        // linked from the panel, rewrites a note that may be open in ANOTHER
+        // pane, and a clean buffer left stale there 409s on its next save.
         // A publish toggle rewrites the file too; its echo is handled by
         // togglePublish's own bumpReload, not the external-change path.
         // Two ways to recognise our own write, and the FIRST is the one

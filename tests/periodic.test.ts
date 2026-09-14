@@ -16,6 +16,12 @@ describe("a period format", () => {
     assert.equal(isWeeklyFormat("YYYY-MM-DD"), false);
     assert.equal(isWeeklyFormat("[week]-YYYY-MM-DD"), false);
   });
+  it("names a weekly note by the ISO week-year, and keeps a [YYYY] literal", () => {
+    const monday = new Date(2025, 11, 29, 12); // Monday 29 December 2025 = week 1 of 2026
+    assert.equal(formatPeriod("YYYY-[W]ww", monday), "2026-W01");
+    assert.equal(parsePeriod("YYYY-[W]ww", "2026-W01")?.getDate(), 29);
+    assert.equal(formatPeriod("[YYYY]-YYYY", monday), "YYYY-2025");
+  });
   it("reads a name back, rejecting what does not fit", () => {
     assert.equal(parsePeriod("YYYY-MM-DD", "2026-09-13")?.getDate(), 13);
     assert.equal(parsePeriod("YYYY-MM-DD", "2026-02-31"), null);

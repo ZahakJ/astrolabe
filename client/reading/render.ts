@@ -21,7 +21,7 @@ import { toast } from "../toast.ts";
 import { parseWikilink, resolveLink } from "../editor/links.ts";
 import { parseBookAnchor } from "../../shared/bookAnchor.ts";
 import { blockAlignOf, parseAlignMarker, stripAlignMarker } from "../../shared/blockAlign.ts";
-import { isBareBlockId, parseBlockId, stripBlockId } from "../../shared/blockId.ts";
+import { BLOCK_ID_RE, isBareBlockId, parseBlockId, stripBlockId } from "../../shared/blockId.ts";
 import {
   brokenEmbed,
   embedKnownBroken,
@@ -1137,6 +1137,19 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
         i++;
       }
       const stripQuote = (l: string): string => l.replace(/^\s*>\s?/, "");
+      // A block id on the quote's last line (or a bare `^id` line under the
+      // quote, already consumed into qlines when it wears a `>`) names the
+      // whole quote: the marker comes off the text and the box takes the id.
+      let quoteId: string | null = null;
+      {
+        const lastText = stripQuote(qlines[qlines.length - 1]);
+        const own = parseBlockId(lastText);
+        if (own) {
+          quoteId = ctx.assignIds ? `^${own.id}` : null;
+          qlines[qlines.length - 1] = isBareBlockId(lastText) ? "" : qlines[qlines.length - 1].replace(BLOCK_ID_RE, "");
+          if (qlines[qlines.length - 1] === "" && qlines.length > 1) qlines.pop();
+        }
+      }
       const cm = CALLOUT_TITLE_RE.exec(qlines[0]);
       const nested: Ctx = { ...ctx, assignIds: false };
       if (cm) {
@@ -1152,6 +1165,7 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
         const title = custom || (isQuote ? "" : cm[2][0].toUpperCase() + type.slice(1));
         const box = document.createElement("div");
         box.className = `s-rv-callout s-rv-callout--${group}${marker === "-" ? " s-rv-callout--folded" : ""}`;
+        if (quoteId) box.id = quoteId;
         // The BOX takes the direction of its own words. Not dir="auto": the
         // paragraphs inside carry their own dir attribute, and the algorithm
         // SKIPS such descendants when resolving a parent, so an Arabic quote's
@@ -1191,6 +1205,7 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       } else {
         const bq = document.createElement("blockquote");
         bq.className = "s-rv-quote";
+        if (quoteId) bq.id = quoteId;
         // Same as the callout box above: the paragraphs inside carry their
         // own dir, which the algorithm skips when resolving the parent, so
         // an Arabic quote in an English instance had its bar on the left.
@@ -1205,6 +1220,7 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
     if (LIST_ITEM_RE.test(line)) {
       const stack: { indent: number; el: HTMLElement }[] = [];
       let firstList: HTMLElement | null = null;
+      let lastItem: HTMLElement | null = null;
       while (i < lines.length) {
         const m = LIST_ITEM_RE.exec(lines[i]);
         if (!m) break;
@@ -1241,6 +1257,14 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
           li.innerHTML = renderInline(m[3], ctx);
         }
         top.el.appendChild(li);
+        lastItem = li;
+        i++;
+      }
+      // Obsidian's other spelling: `^id` on a line of its own under the list
+      // names its last item, and must not become an empty paragraph.
+      if (lastItem && i < lines.length && isBareBlockId(lines[i])) {
+        const own = parseBlockId(lines[i]);
+        if (own && ctx.assignIds) lastItem.id = `^${own.id}`;
         i++;
       }
       if (firstList) root.appendChild(firstList);

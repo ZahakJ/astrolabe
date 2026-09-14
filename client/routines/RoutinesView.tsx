@@ -78,9 +78,18 @@ function DueTasks({ today }: { today: string }) {
   const host = useRef<HTMLDivElement | null>(null);
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    const onVault = (): void => setTick((n) => n + 1);
+    // Every vault frame would re-fetch every task in the vault; a burst of
+    // autosaves is one re-read, a beat after the last of them.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onVault = (): void => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => setTick((n) => n + 1), 400);
+    };
     window.addEventListener(VAULT_EVENT, onVault);
-    return () => window.removeEventListener(VAULT_EVENT, onVault);
+    return () => {
+      window.removeEventListener(VAULT_EVENT, onVault);
+      if (timer) clearTimeout(timer);
+    };
   }, []);
   useEffect(() => {
     const el = host.current;

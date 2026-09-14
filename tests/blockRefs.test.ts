@@ -62,6 +62,21 @@ describe("the block a line belongs to", () => {
   });
 });
 
+describe("block ranges, the corners", () => {
+  it("is a quote's run of > lines, and the id comes off the last quoted line", () => {
+    const md = "> one\n> two ^q1\n\nafter";
+    assert.deepEqual(blockRange(md.split("\n"), 2), { start: 0, end: 2 });
+    assert.equal(markdownBlock(md, 2), "> one\n> two");
+  });
+  it("registers ^Abc and ^abc once, the first spelling winning", () => {
+    const anchors = markdownAnchors("a ^Abc\n\nb ^abc\n").filter((a) => a.kind === "block");
+    assert.deepEqual(anchors.map((a) => a.id), ["^Abc"]);
+  });
+  it("does not read a heading's tail as an id", () => {
+    assert.equal(markdownAnchors("# Title ^h1\n").some((a) => a.kind === "block"), false);
+  });
+});
+
 describe("block anchors", () => {
   it("join the anchor table with the caret kept, titled by the block's text", () => {
     const anchors = markdownAnchors(NOTE);

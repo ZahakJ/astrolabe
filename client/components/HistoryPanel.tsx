@@ -166,6 +166,7 @@ function subjectOf(rev: NoteRevision): string {
 function reasonOf(ver: NoteVersion): string {
   if (ver.reason === "restore") return t("versionRestore");
   if (ver.reason === "rename") return t("versionRename");
+  if (ver.reason === "bulk") return t("versionBulk");
   return t("versionAutosave");
 }
 
@@ -312,6 +313,13 @@ function RevisionModal({
     // Unsaved edits land on disk FIRST, so the version the server keeps of
     // "what it says now" is what the reader sees and not a stale copy.
     await flushBufferPath(path);
+    // A buffer the flush could not land (diverged, or a save that failed)
+    // is still unsaved here; restoring over it would write the version on
+    // top of newer text the confirm dialog promised to keep.
+    if (useStore.getState().dirty[path]) {
+      toast(t("restoreVersionUnsaved"), "error");
+      return;
+    }
     // Claimed as our own write: the SSE echo is then not adopted a second
     // time by the shell (it would be inside the flush's self-save window
     // anyway, and skipped for the wrong reason); the adoption below is the

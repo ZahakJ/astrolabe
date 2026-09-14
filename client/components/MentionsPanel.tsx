@@ -76,6 +76,7 @@ export default function MentionsPanel() {
     setBusy(key);
     try {
       await linkMention(m, openPath);
+      void import("../editor/bufferBridge.ts").then((x) => x.adoptExternalChange(m.path));
       setRows((list) => list.filter((r) => r !== m));
       toast(tf("mentionLinked", { title: m.title }));
     } catch {
@@ -94,6 +95,7 @@ export default function MentionsPanel() {
     for (const m of rows) {
       try {
         await linkMention(m, openPath);
+        void import("../editor/bufferBridge.ts").then((x) => x.adoptExternalChange(m.path));
         done++;
       } catch {
         // stays in the list on reload

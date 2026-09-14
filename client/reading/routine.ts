@@ -37,6 +37,7 @@ import {
 import { siteDate } from "../dates.ts";
 import { autoDir, getLang, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { useStore } from "../state.ts";
+import { el } from "./dom.ts";
 
 export interface RoutineHooks {
   notePath: string;
@@ -83,13 +84,6 @@ const WEEKDAY_LABEL: Record<Weekday, I18nKey> = {
   sat: "weekdaySat",
   sun: "weekdaySun",
 };
-
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  node.className = cls;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
 
 function glyph(icon: FolderIcon, size: number): SVGSVGElement {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");

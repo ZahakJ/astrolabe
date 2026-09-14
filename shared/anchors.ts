@@ -84,8 +84,10 @@ export function markdownAnchors(md: string): NoteAnchor[] {
     // marker is on, which is the block's LAST line (blockRange walks up).
     // First one wins on a duplicate, as findAnchor's loop does.
     const block = parseBlockId(line);
-    if (block && !seen.has(`^${block.id}`)) {
-      seen.set(`^${block.id}`, 1);
+    // Resolution lowercases (findAnchor), so `^Abc` and `^abc` are one id:
+    // the first spelling wins, as it does for a duplicate heading slug.
+    if (block && !seen.has(`^${block.id.toLowerCase()}`)) {
+      seen.set(`^${block.id.toLowerCase()}`, 1);
       const own = isBareBlockId(line) ? (lines[i - 1] ?? "") : line;
       const title = stripInline(stripBlockId(own).replace(/^\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s*)?/, "")).trim();
       out.push({ id: `^${block.id}`, kind: "block", title: title.length > 80 ? `${title.slice(0, 79)}…` : title, line: i + 1 });

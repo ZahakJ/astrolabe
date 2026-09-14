@@ -236,6 +236,7 @@ function countStoreChars(store: StoreFile): number {
   if (countedFor !== store || storeChars < 0) {
     storeChars = 0;
     for (const entry of Object.values(store.texts)) storeChars += entryChars(entry);
+  foldInBackground(store);
     countedFor = store;
   }
   return storeChars;
@@ -435,13 +436,33 @@ function kick(walk: boolean): void {
  *  IS on the shelf is never evicted for one that is not. */
 function evictOverCap(store: StoreFile): void {
   const keys = Object.keys(store.texts);
-  if (keys.length <= PDFTEXT_STORE_BOOKS_MAX) return;
   const gone = keys.filter((key) => !pathByKey.has(key)).sort((a, b) => store.texts[a].extractedAt - store.texts[b].extractedAt);
-  for (const key of gone.slice(0, keys.length - PDFTEXT_STORE_BOOKS_MAX)) {
+  // Over the book cap: the oldest orphans go. Over the CHAR cap: orphans go
+  // too, oldest first, until it fits — a re-saved PDF gets a new key and its
+  // old text would otherwise count against the cap forever, silently
+  // shutting new books out.
+  let overBooks = Math.max(0, keys.length - PDFTEXT_STORE_BOOKS_MAX);
+  for (const key of gone) {
+    if (overBooks <= 0 && storeChars <= PDFTEXT_STORE_CHARS_MAX) break;
     storeChars -= entryChars(store.texts[key]);
     delete store.texts[key];
+    overBooks--;
     schedulePersist();
   }
+}
+
+/** Fold the loaded pages off the request path: one entry per turn of the
+ *  event loop, so the first search after boot does not fold forty million
+ *  characters synchronously. */
+function foldInBackground(store: StoreFile): void {
+  const entries = Object.values(store.texts);
+  let i = 0;
+  const step = (): void => {
+    if (i >= entries.length) return;
+    foldedOf(entries[i++]);
+    setImmediate(step);
+  };
+  setImmediate(step);
 }
 
 async function run(): Promise<void> {

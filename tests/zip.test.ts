@@ -57,11 +57,14 @@ function readZip(bytes: Uint8Array): Entry[] {
     assert.equal(dec.decode(bytes.subarray(offset + 30, offset + 30 + localNameLen)), name);
     const dataAt = offset + 30 + localNameLen + localExtraLen;
     const data = bytes.subarray(dataAt, dataAt + size);
-    // With bit 3 set, the local header's numbers are zero and the descriptor
-    // after the data carries the truth.
+    // With bit 3 set, the local header's CRC is zero and the descriptor after
+    // the data carries the truth; the SIZE is written up front whenever the
+    // writer knew it (a sequential reader needs it to find the entry's end)
+    // and is zero only for a truly streamed entry.
     if (flags & (1 << 3)) {
       assert.equal(view.getUint32(offset + 14, true), 0, "local crc deferred");
-      assert.equal(view.getUint32(offset + 18, true), 0, "local size deferred");
+      const localSize = view.getUint32(offset + 18, true);
+      assert.ok(localSize === 0 || localSize === size, "local size is the entry's or deferred");
       const descAt = dataAt + size;
       assert.equal(view.getUint32(descAt, true), 0x08074b50, "data descriptor signature");
       assert.equal(view.getUint32(descAt + 4, true), crc, "descriptor crc equals central crc");
@@ -178,5 +181,19 @@ describe("ZipWriter", () => {
     const bytes = zipSync([]);
     assert.equal(bytes.length, 22);
     assert.deepEqual(readZip(bytes), []);
+  });
+});
+
+describe("a stored entry's local header", () => {
+  it("carries the size when the writer knows it, so a sequential reader can find the end", async () => {
+    const { ZipWriter } = await import("../shared/zip.ts");
+    const chunks: Uint8Array[] = [];
+    const w = new ZipWriter((c) => chunks.push(c));
+    w.file("a.txt", new TextEncoder().encode("hello"), 0);
+    w.finish();
+    const bytes = Buffer.concat(chunks.map((c) => Buffer.from(c)));
+    // local header: sig(4) ver(2) flag(2) method(2) time(2) date(2) crc(4) csize(4) usize(4)
+    assert.equal(bytes.readUInt32LE(18), 5);
+    assert.equal(bytes.readUInt32LE(22), 5);
   });
 });

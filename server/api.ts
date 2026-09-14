@@ -93,7 +93,7 @@ import {
   resolveCitekey,
   resolveEmbed,
   resolveLabel,
-  search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor,
+  search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor, hasNote,
   searchMatches,
   tags,
   trackers, routines,
@@ -2233,6 +2233,7 @@ api.post("/mentions/link", async (c) => {
   const start = typeof body.start === "number" && Number.isInteger(body.start) && body.start >= 0 ? body.start : -1;
   const end = typeof body.end === "number" && Number.isInteger(body.end) && body.end > start ? body.end : -1;
   if (line === 0 || start < 0 || end < 0) throw new VaultError(400, "A mention needs a line and a span");
+  if (!hasNote(target)) throw new VaultError(404, "No such note to link to");
   const note = await readNote(notePath);
   const lines = note.content.split(/(?<=\n)/);
   const raw = lines[line - 1];

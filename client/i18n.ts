@@ -4693,6 +4693,7 @@ const DICT = {
   versionAutosave: { en: "Earlier save", ar: "حفظ سابق" },
   versionRestore: { en: "Before a restore", ar: "قبل استرجاع" },
   versionRename: { en: "Before a link rewrite", ar: "قبل إعادة كتابة الروابط" },
+  versionBulk: { en: "Before a replace across the vault", ar: "قبل استبدال عبر الخزانة" },
   noteVersionAria: { en: "Open this version", ar: "افتح هذه النسخة" },
   versionKb: { en: "{n} KB", ar: "{n} ك.ب" },
   versionsOff: {
@@ -4710,6 +4711,7 @@ const DICT = {
     ar: "تصير «{name}» النص الذي حملته {when}. وما تقوله الآن يُحفظ نسخةً أيضًا.",
   },
   restoreVersionConfirm: { en: "Restore", ar: "استرجع" },
+  restoreVersionUnsaved: { en: "Save the note first — its unsaved edits could not be written", ar: "احفظ الملاحظة أولًا؛ تعذّرت كتابة تعديلاتها غير المحفوظة" },
   versionRestored: { en: "Restored “{name}” to its version from {when}", ar: "استُرجعت «{name}» إلى نسختها من {when}" },
   historyNoRepoBeside: {
     en: "Backup is off — versions stay on this machine; turn it on for history that travels.",

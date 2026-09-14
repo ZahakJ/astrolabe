@@ -4,27 +4,13 @@
 
 import { Decoration, EditorView, WidgetType } from "@codemirror/view";
 import type { EditorState, Range } from "@codemirror/state";
+import { fenceSpanOf, type FenceSpan } from "./fenceSpan.ts";
 import { parseQueryFence, queryFenceKind } from "../../shared/queryFence.ts";
 import { renderQueryBlock } from "../reading/render.ts";
 import { useStore } from "../state.ts";
 
-interface FenceSpan {
-  from: number;
-  to: number;
-  bodyFrom: number;
-  bodyTo: number;
-}
-
 export function queryFenceSpan(state: EditorState, firstLine: number, lastLine: number): FenceSpan | null {
-  const doc = state.doc;
-  const open = doc.line(firstLine);
-  if (queryFenceKind(open.text) === null) return null;
-  const close = doc.line(lastLine);
-  const closed = lastLine > firstLine && /^\s*(```|~~~)\s*$/.test(close.text);
-  const bodyFrom = lastLine > firstLine ? doc.line(firstLine + 1).from : open.to;
-  const bodyLast = closed ? lastLine - 1 : lastLine;
-  const bodyTo = bodyLast > firstLine ? doc.line(bodyLast).to : bodyFrom;
-  return { from: open.from, to: close.to, bodyFrom, bodyTo };
+  return queryFenceKind(state.doc.line(firstLine).text) === null ? null : fenceSpanOf(state, firstLine, lastLine);
 }
 
 class QueryWidget extends WidgetType {

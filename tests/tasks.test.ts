@@ -27,6 +27,9 @@ describe("a task line", () => {
     const md = "---\nx: 1\n---\n- [ ] one\n```\n- [ ] not a task\n```\n1. [x] two\n";
     assert.deepEqual(scanTasks(md).map((t) => [t.line, t.text, t.done]), [[4, "one", false], [8, "two", true]]);
   });
+  it("toggles a line with a tab indent and a trailing tab", () => {
+    assert.equal(toggleTaskLine("\t- [ ] tabbed\t", true, "2026-09-13"), "\t- [x] tabbed ✅ 2026-09-13");
+  });
   it("toggles one line, stamping and unstamping ✅, keeping the fields", () => {
     const line = "- [ ] Read ch. 3 📅 2026-09-20";
     const done = toggleTaskLine(line, true, "2026-09-13");
