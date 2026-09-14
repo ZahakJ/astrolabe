@@ -4616,6 +4616,41 @@ const DICT = {
   hintWhatsNew: { en: "The first time this device opens a new version, a short walk through its features. Travels with your preferences.", ar: "أول مرة يفتح فيها هذا الجهاز نسخة جديدة، جولة قصيرة في ميزاتها. ينتقل مع تفضيلاتك." },
   cmdWhatsNew: { en: "What's new in this version", ar: "ما الجديد في هذه النسخة" },
   cmdOpenMedia: { en: "Open the Media page", ar: "فتح صفحة الوسائط" },
+  // ── Note versions ──
+  // The timeline's rows for what the vault's own write path kept, beside
+  // git's commits. A version's subject is WHY it exists — the reason the text
+  // it holds was replaced — because the moment is already the row's first
+  // column and a commit-style message would say it twice.
+  versionAutosave: { en: "Earlier save", ar: "حفظ سابق" },
+  versionRestore: { en: "Before a restore", ar: "قبل استرجاع" },
+  versionRename: { en: "Before a link rewrite", ar: "قبل إعادة كتابة الروابط" },
+  noteVersionAria: { en: "Open this version", ar: "افتح هذه النسخة" },
+  versionKb: { en: "{n} KB", ar: "{n} ك.ب" },
+  versionsOff: {
+    en: "Versions are off — only backup keeps this note's past.",
+    ar: "النسخ معطّلة — النسخ الاحتياطي وحده يحفظ ماضي هذه الملاحظة.",
+  },
+  versionsOpenSettings: { en: "Open Vault settings", ar: "افتح إعدادات الخزانة" },
+  versionsEmpty: {
+    en: "No versions yet — the next save keeps the text before it.",
+    ar: "لا نسخ بعد — الحفظ التالي يحفظ النص الذي قبله.",
+  },
+  restoreVersionTitle: { en: "Restore this version?", ar: "استرجاع هذه النسخة؟" },
+  restoreVersionBody: {
+    en: "“{name}” becomes the text it held {when}. What it says now is kept as a version too.",
+    ar: "تصير «{name}» النص الذي حملته {when}. وما تقوله الآن يُحفظ نسخةً أيضًا.",
+  },
+  restoreVersionConfirm: { en: "Restore", ar: "استرجع" },
+  versionRestored: { en: "Restored “{name}” to its version from {when}", ar: "استُرجعت «{name}» إلى نسختها من {when}" },
+  historyNoRepoBeside: {
+    en: "Backup is off — versions stay on this machine; turn it on for history that travels.",
+    ar: "النسخ الاحتياطي مُطفأ — النسخ تبقى على هذا الجهاز؛ شغّله لسجل يسافر معك.",
+  },
+  rowNoteVersions: { en: "Keep note versions", ar: "حفظ نسخ الملاحظات" },
+  hintNoteVersions: {
+    en: "Keep what a note said before each save — forty per note, one per five minutes, in the data directory. Needs no git.",
+    ar: "احتفظ بما قالته الملاحظة قبل كل حفظ — أربعون لكل ملاحظة، واحدة كل خمس دقائق، في مجلد البيانات. لا يحتاج git.",
+  },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;
