@@ -559,6 +559,8 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
    placeholder exists to prevent. */
 .s-editor .cm-s-tracker .s-rv-tracker,
 .s-editor .cm-s-tracker .s-rv-board,
+.s-editor .cm-s-tracker .s-rv-routine,
+.s-editor .cm-s-tracker .s-rv-routinelog,
 .s-editor .cm-s-tracker .s-rv-tracker-pending {
   margin-block: 0;
 }

@@ -614,7 +614,23 @@ const AUDIENCES = [
   // before the prefs pull — a reader who warmed the screen last night must not
   // get a flash of blue-white first — so it is entry by definition, like the
   // theme and the editor's measure before it.
-  { name: "entry (everyone)", keys: entry, budget: 706 * 1024 },
+  // …and for 3.11.0 (710.4 kB actual → 713, actual + ~0.35%; the blog and
+  // admin closures below move by MORE than the entry, and that is the point
+  // of naming it): ROUTINES, the daily tracker. What lands in the ENTRY is
+  // the dictionary's ~90 keys (the card's vocabulary, the page's, the
+  // form's — `t()` ships whole, the debt every note in this file names) and
+  // the workspace's third virtual tab. What lands in the READING closure and
+  // not the entry is shared/routine.ts, the pure model: render.ts and the
+  // live preview must PARSE a fence before anything paints (the tracker's
+  // "decision is synchronous, the drawing is not" rule), so the parser is
+  // static while the card, its stylesheet, the page and the presets are all
+  // lazy chunks of their own — the presets were moved out of the model into
+  // shared/routinePresets.ts for exactly this line.
+  // …and 713.0 kB actual → 716 for the WHAT'S NEW door (client/whatsnew/
+  // door.ts + versions.ts: two localStorage keys, a version compare and a
+  // dynamic import) and its eleven dictionary keys. The deck itself, its
+  // demos and its prose are a lazy chunk pinned by MUST_SPLIT.
+  { name: "entry (everyone)", keys: entry, budget: 716 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -811,7 +827,9 @@ const AUDIENCES = [
   // the store, the app-identity rows: a few kB in each closure)
   // (899.1 kB actual → 912): the desktop's own icon reaches the
   // empty state through the store, and the app-identity rows in the Device tab.
-  { name: "anonymous blog reader", keys: blog, budget: 944 * 1024 },
+  // 3.11.0: 963.9 kB actual → 968 — the routine model and render.ts's
+  // routine branch, both in the reading closure (see the entry note above).
+  { name: "anonymous blog reader", keys: blog, budget: 968 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -919,7 +937,9 @@ const AUDIENCES = [
   // …and for 3.5.0 (1314.7 kB actual → 1320): the entry growth above, plus the
   // desktop session-ownership flag in the status bar.
   // …and for 3.6.0 (1322.6 kB actual → 1330): the same.
-  { name: "admin first paint", keys: app, budget: 1372 * 1024 },
+  // 3.11.0: 1392.3 kB actual → 1398 — the same bytes as the blog closure
+  // plus the status bar's door and the store's routines tab.
+  { name: "admin first paint", keys: app, budget: 1398 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -991,6 +1011,11 @@ const MUST_SPLIT = [
   // The Media page: the shelves, the form and their stylesheet, behind the
   // status bar's button. A workspace view like the graph, and split like it.
   "media/MediaView.tsx",
+  // The Routines page, on the same terms as the Media page.
+  "routines/RoutinesView.tsx",
+  // The "What's new" deck: slides, live demos and prose for every release,
+  // behind a door (whatsnew/door.ts) that is a version compare and nothing else.
+  "whatsnew/WhatsNew.tsx",
   // The drawing surface: Excalidraw whole, the largest chunk in the product,
   // behind a tab that opens only when a drawing does. The renderer's owner
   // fallback (renderEmbed.ts) is a second door into the same vendor chunk,

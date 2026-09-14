@@ -1,0 +1,593 @@
+/* THE ROUTINE CARD — one stylesheet, every surface (client/reading/routine.ts).
+ * Classes are `s-rv-*` for the tracker's reason: the editor's widget, the
+ * reading view, the blog and the Routines page all draw with this one skin.
+ * Logical properties throughout; tokens only. The status colours are the
+ * theme's own callout hues so a "missed" day reads as the theme's warning
+ * and a "complete" one as its success, in every room. */
+
+.s-rv-routine {
+  display: grid;
+  gap: 14px;
+  margin-block: 1.2em;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  font-family: var(--font-ui);
+  --rt-ok: var(--callout-success, var(--accent));
+  --rt-part: var(--callout-warning, var(--accent));
+  --rt-miss: var(--danger);
+  --rt-rest: var(--border);
+}
+
+/* ── Head ──────────────────────────────────────────────────────────────── */
+
+.s-rv-routine__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  flex-wrap: wrap;
+}
+
+.s-rv-routine__ident {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-inline-size: 0;
+}
+
+.s-rv-routine__glyph {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  flex: none;
+}
+
+.s-rv-routine__names {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.s-rv-routine__eyebrow {
+  font-size: 0.714rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-rv-routine__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.214rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.s-rv-routine__title--door {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+.s-rv-routine__title--door:hover {
+  color: var(--accent);
+}
+
+.s-rv-routine__chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.s-rv-routine__chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-inline-size: 64px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  line-height: 1.15;
+}
+
+.s-rv-routine__chipnum {
+  font-family: var(--font-serif);
+  font-size: 1.143rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.s-rv-routine__chiplabel {
+  font-size: 0.643rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-rv-routine__chip--streak.is-lit {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+}
+.s-rv-routine__chip--streak.is-lit .s-rv-routine__chipnum {
+  color: var(--accent);
+}
+
+.s-rv-routine__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.s-rv-routine__action {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.786rem;
+  cursor: pointer;
+}
+.s-rv-routine__action:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* ── Today ─────────────────────────────────────────────────────────────── */
+
+.s-rv-routine__today {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.s-rv-routine__today[data-status="complete"] {
+  border-color: color-mix(in srgb, var(--rt-ok) 55%, var(--border));
+}
+
+.s-rv-routine__todayhead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.s-rv-routine__todaylabel {
+  font-size: 0.714rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-rv-routine__todaydate {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.s-rv-routine__status {
+  margin-inline-start: auto;
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.s-rv-routine__status--complete { color: var(--rt-ok); }
+.s-rv-routine__status--partial { color: var(--rt-part); }
+.s-rv-routine__status--missed { color: var(--rt-miss); }
+
+.s-rv-routine__rest {
+  margin: 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.s-rv-routine__tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.s-rv-routine__task {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.s-rv-routine__tasklabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-inline-size: 0;
+  cursor: pointer;
+}
+
+.s-rv-routine__check {
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.s-rv-routine__check:disabled {
+  cursor: default;
+}
+
+.s-rv-routine__taskwords {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  line-height: 1.4;
+}
+
+.s-rv-routine__taskkey {
+  color: var(--text);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.s-rv-routine__tasktext {
+  color: var(--text-muted);
+  font-size: 0.929rem;
+  overflow-wrap: anywhere;
+}
+
+.s-rv-routine__task.is-done .s-rv-routine__taskkey {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--rt-ok) 70%, transparent);
+}
+.s-rv-routine__task.is-skipped .s-rv-routine__taskkey {
+  color: var(--text-faint);
+  text-decoration: line-through;
+}
+
+.s-rv-routine__skip {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-faint);
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.s-rv-routine__task:hover .s-rv-routine__skip,
+.s-rv-routine__skip:focus-visible,
+.s-rv-routine__skip.is-on {
+  opacity: 1;
+}
+.s-rv-routine__skip:hover,
+.s-rv-routine__skip.is-on {
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+/* ── Fields ────────────────────────────────────────────────────────────── */
+
+.s-rv-routine__fields {
+  display: flex;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+  padding-block-start: 6px;
+  border-block-start: 1px dashed var(--border);
+}
+
+.s-rv-routine__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+.s-rv-routine__fieldname {
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.s-rv-routine__fieldvalue {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.s-rv-routine__input {
+  inline-size: 7em;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.929rem;
+}
+.s-rv-routine__field--text .s-rv-routine__input {
+  inline-size: 12em;
+}
+.s-rv-routine__input:focus-visible {
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 1px;
+}
+
+.s-rv-routine__unit {
+  font-size: 0.786rem;
+  color: var(--text-faint);
+}
+
+.s-rv-routine__scale {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.s-rv-routine__scalebtn {
+  inline-size: 26px;
+  block-size: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-size: 0.786rem;
+  cursor: pointer;
+}
+.s-rv-routine__scalebtn.is-on {
+  background: color-mix(in srgb, var(--accent) 22%, var(--bg-raised));
+  border-color: var(--accent);
+  color: var(--text);
+}
+.s-rv-routine__scalebtn:disabled {
+  cursor: default;
+}
+
+.s-rv-routine__note {
+  inline-size: 100%;
+  padding: 6px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.929rem;
+}
+.s-rv-routine__note:focus-visible {
+  border-style: solid;
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 1px;
+}
+.s-rv-routine__note::placeholder {
+  color: var(--text-faint);
+}
+
+.s-rv-routine__notetext {
+  margin: 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── Week strip ────────────────────────────────────────────────────────── */
+
+.s-rv-routine__week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.s-rv-routine__day {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 6px 2px;
+  border-radius: 8px;
+  font-size: 0.714rem;
+  color: var(--text-muted);
+}
+.s-rv-routine__day.is-today {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text);
+}
+
+.s-rv-routine__dayname {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.s-rv-routine__daynum {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.s-rv-routine__daydot {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--rt-rest);
+  background: transparent;
+}
+.s-rv-routine__day--complete .s-rv-routine__daydot { background: var(--rt-ok); border-color: var(--rt-ok); }
+.s-rv-routine__day--partial .s-rv-routine__daydot {
+  border-color: var(--rt-part);
+  background: linear-gradient(to top, var(--rt-part) 50%, transparent 50%);
+}
+.s-rv-routine__day--missed .s-rv-routine__daydot { border-color: var(--rt-miss); }
+.s-rv-routine__day--none .s-rv-routine__daydot { border-color: var(--text-faint); }
+
+/* ── Heatmap ───────────────────────────────────────────────────────────── */
+
+.s-rv-routine__heat {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px;
+  align-items: start;
+}
+
+.s-rv-routine__heatdays {
+  display: grid;
+  grid-template-rows: repeat(7, 12px);
+  gap: 3px;
+  font-size: 0.571rem;
+  color: var(--text-faint);
+  line-height: 12px;
+  text-align: center;
+  inline-size: 12px;
+}
+
+.s-rv-routine__heatgrid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 12px);
+  grid-auto-columns: 12px;
+  gap: 3px;
+}
+
+.s-rv-routine__cell {
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--rt-ok) calc(var(--ratio, 0) * 100%), var(--bg));
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.s-rv-routine__cell--rest {
+  background: repeating-linear-gradient(135deg, transparent 0 2px, color-mix(in srgb, var(--border) 60%, transparent) 2px 3px);
+}
+.s-rv-routine__cell--missed {
+  background: color-mix(in srgb, var(--rt-miss) 22%, var(--bg));
+}
+.s-rv-routine__cell.is-today {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 1px;
+}
+.s-rv-routine__cell.is-future {
+  opacity: 0.35;
+}
+
+/* ── The plan table ────────────────────────────────────────────────────── */
+
+.s-rv-routine__plan {
+  border-block-start: 1px solid var(--border);
+  padding-block-start: 8px;
+}
+
+.s-rv-routine__plansum {
+  cursor: pointer;
+  font-size: 0.786rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-rv-routine__tablewrap {
+  overflow-x: auto;
+  margin-block-start: 8px;
+}
+
+.s-rv-routine__table,
+.s-rv-routinelog__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 0.857rem;
+}
+
+.s-rv-routine__table th,
+.s-rv-routine__table td,
+.s-rv-routinelog__table th,
+.s-rv-routinelog__table td {
+  padding: 6px 8px;
+  border-block-end: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.s-rv-routine__table thead th,
+.s-rv-routinelog__table thead th {
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.s-rv-routine__table tbody th,
+.s-rv-routinelog__table tbody th {
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.s-rv-routine__table tr.is-today {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.s-rv-routine__table td.is-empty,
+.s-rv-routinelog__table td.is-empty {
+  color: var(--text-faint);
+}
+
+.s-rv-routine__notes {
+  color: var(--text-muted);
+  font-size: 0.929rem;
+}
+.s-rv-routine__notes > :first-child { margin-block-start: 0; }
+.s-rv-routine__notes > :last-child { margin-block-end: 0; }
+
+/* ── The log ───────────────────────────────────────────────────────────── */
+
+.s-rv-routinelog {
+  margin-block: 1.2em;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  font-family: var(--font-ui);
+  --rt-ok: var(--callout-success, var(--accent));
+  --rt-part: var(--callout-warning, var(--accent));
+  --rt-miss: var(--danger);
+  --rt-rest: var(--border);
+}
+
+.s-rv-routinelog__title {
+  margin: 0 0 6px;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.s-rv-routinelog__empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.s-rv-routinelog__table tbody th {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.s-rv-routinelog__note {
+  color: var(--text-muted);
+}
+
+@media print {
+  .s-rv-routine__skip,
+  .s-rv-routine__note { display: none; }
+}

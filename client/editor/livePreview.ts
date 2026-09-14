@@ -57,6 +57,8 @@ import {
 import { blockMathDecos, inlineMathDecos } from "./math.ts";
 import { trackerBlockDeco, trackerFenceSpan } from "./tracker.ts";
 import { trackerFenceKind } from "../../shared/tracker.ts";
+import { routineFenceKind } from "../../shared/routine.ts";
+import { routineBlockDeco, routineFenceSpan } from "./routine.ts";
 import { sanitizeHtml, sanitizeStyle } from "../reading/rawHtml.ts";
 import { isNotePath } from "../../shared/noteFormat.ts";
 
@@ -400,7 +402,7 @@ function buildDecorations(view: EditorView): DecorationSet {
             // (`#tags`, `[[links]]`, `==marks==`) must not run inside it.
             const first = doc.lineAt(node.from).number;
             const last = doc.lineAt(node.to).number;
-            let replaced = trackerFenceKind(doc.line(first).text) !== null;
+            let replaced = trackerFenceKind(doc.line(first).text) !== null || routineFenceKind(doc.line(first).text) !== null;
             for (let n = first; replaced && n <= last; n++) {
               if (active.has(n)) replaced = false;
             }
@@ -1243,6 +1245,16 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
       const span = trackerFenceSpan(state, firstLine, lastLine);
       if (span) {
         const deco = trackerBlockDeco(state, span, notePath);
+        if (deco) {
+          decos.push(deco);
+          return false;
+        }
+      }
+      // ```routine / ```routine-log: the same one-block replace, through the
+      // routine widget (client/editor/routine.ts).
+      const rspan = routineFenceSpan(state, firstLine, lastLine);
+      if (rspan) {
+        const deco = routineBlockDeco(state, rspan, notePath);
         if (deco) {
           decos.push(deco);
           return false;

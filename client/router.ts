@@ -22,7 +22,7 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, isGraphTab, isMediaTab, paneAt, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isGraphTab, isMediaTab, isRoutinesTab, paneAt, surfaceOf, type Workspace } from "./workspace.ts";
 
 /** The focused pane is showing the graph tab. */
 function graphTabActive(ws: Workspace): boolean {
@@ -36,6 +36,12 @@ function mediaTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isMediaTab(tab.path);
+}
+/** …or the Routines page's. */
+function routinesTabActive(ws: Workspace): boolean {
+  const pane = paneAt(ws, ws.focus);
+  const tab = pane === null ? null : activeTabOf(pane);
+  return tab !== null && isRoutinesTab(tab.path);
 }
 import { toast } from "./toast.ts";
 
@@ -119,6 +125,7 @@ function bookSurfaceOf(ws: Workspace): { kind: "library" } | { kind: "book"; pat
 function urlForState(view: string, openPath: string | null, ws: Workspace): string {
   if (view === "editor" && graphTabActive(ws)) return "/graph";
   if (view === "editor" && mediaTabActive(ws)) return "/media";
+  if (view === "editor" && routinesTabActive(ws)) return "/routines";
   const book = bookSurfaceOf(ws);
   if (book !== null) return urlForBooksRoute(book);
   return openPath ? notePathToUrl(openPath) : "/";
@@ -135,6 +142,8 @@ function setTitle(openPath: string | null, view: string): void {
     document.title = `${t("docTitleGraph")} · ${base}`;
   } else if (view === "editor" && mediaTabActive(useStore.getState().workspace)) {
     document.title = `${t("media")} · ${base}`;
+  } else if (view === "editor" && routinesTabActive(useStore.getState().workspace)) {
+    document.title = `${t("routines")} · ${base}`;
   } else if (book !== null) {
     document.title =
       book.kind === "library"
@@ -181,6 +190,10 @@ export function applyUrl(initial = false): boolean {
       store.setView("media");
       return true;
     }
+    if (location.pathname === "/routines") {
+      store.setView("routines");
+      return true;
+    }
     const path = urlToNotePath(location.pathname, store.tree);
     if (path) {
       open(store, path);
@@ -224,7 +237,7 @@ export function applyUrl(initial = false): boolean {
       // The cost is the tab arrangement, and it is bounded: this entry only
       // EXISTS if the session began with nothing open, and Forward reopens the
       // note the reader stepped back from.
-      if (store.openPath !== null || graphTabActive(store.workspace) || mediaTabActive(store.workspace)) {
+      if (store.openPath !== null || graphTabActive(store.workspace) || mediaTabActive(store.workspace) || routinesTabActive(store.workspace)) {
         store.closeAllTabs();
       }
       return true;

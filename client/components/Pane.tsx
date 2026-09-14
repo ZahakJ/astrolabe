@@ -20,6 +20,7 @@ import { useStore } from "../state.ts";
 import { activeTabOf, paneAt, surfaceOf } from "../workspace.ts";
 const GraphView = lazySurface(() => import("./GraphView.tsx"));
 const MediaView = lazySurface(() => import("../media/MediaView.tsx"));
+const RoutinesView = lazySurface(() => import("../routines/RoutinesView.tsx"));
 import Tabs from "./Tabs.tsx";
 import { useTabDrag } from "../dragTab.ts";
 
@@ -123,6 +124,12 @@ export default function Pane({
       // shelved, in the pane that holds it.
       <Suspense fallback={<div className="s-media" />}>
         <MediaView />
+      </Suspense>
+    ) : surface === "routines" ? (
+      // The Routines page: today's checklists, every routine in the vault,
+      // a tab like the Media page.
+      <Suspense fallback={<div className="s-routines" />}>
+        <RoutinesView />
       </Suspense>
     ) : surface === "drawing" && tab !== null ? (
       // A DRAWING IS A TAB, like a book: the canvas fills the pane beside

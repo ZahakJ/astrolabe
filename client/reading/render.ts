@@ -39,6 +39,18 @@ import {
   calloutIconSvg,
 } from "../editor/calloutDefs.ts";
 import { parseBoard, parseTracker } from "../../shared/tracker.ts";
+import {
+  closesFence as routineCloses,
+  fenceOpener as routineOpener,
+} from "../../shared/fences.ts";
+import {
+  parseRoutine,
+  parseRoutineLog,
+  routineFenceKind,
+  type RoutineEntry,
+  type RoutinePlan,
+} from "../../shared/routine.ts";
+import type { RoutineHooks } from "./routine.ts";
 // The DRAWING half is loaded on demand (see trackerBlock); only its types are
 // imported here, and types are erased.
 import type { TrackerHooks } from "./tracker.ts";
@@ -93,6 +105,11 @@ interface Ctx extends RenderOptions {
   slugger: Slugger;
   footnotes: { label: string; text: string }[];
   assignIds: boolean; // only top-level headings get TOC ids
+  /** The last ```routine plan this pass drew, so the ```routine-log that
+   *  follows it knows the plan's fields; and whether that plan has already
+   *  taken a log, so a second log fence reads as its own source. */
+  lastRoutine?: RoutinePlan | null;
+  routineLogged?: boolean;
 }
 
 // ── Escaping helpers ────────────────────────────────────────────────────────
@@ -851,6 +868,74 @@ export function renderTrackerFence(
   return trackerBlock(lang, src, makeCtx(opts), hooks);
 }
 
+/** The body of the first ```routine-log fence at or after line `from`,
+ *  before any other ```routine fence; null when there is none. The plan's
+ *  card is what draws the log, so the plan has to see it first. */
+function logAfter(lines: string[], from: number): string | null {
+  for (let i = from; i < lines.length; i++) {
+    const fence = routineOpener(lines[i]);
+    if (!fence) continue;
+    const kind = routineFenceKind(lines[i]);
+    const body: string[] = [];
+    let j = i + 1;
+    for (; j < lines.length && !routineCloses(lines[j], fence); j++) body.push(lines[j]);
+    if (kind === "routine") return null;
+    if (kind === "routine-log") return body.join("\n");
+    i = j;
+  }
+  return null;
+}
+
+/** A routine card or ledger, drawn late like the tracker: the renderer and
+ *  its stylesheet arrive through a dynamic import into a host already in
+ *  the tree, at the card's own height. */
+function routineBlock(
+  kind: "routine" | "routine-log",
+  plan: RoutinePlan,
+  entries: RoutineEntry[],
+  ctx: Ctx,
+  hooks?: Partial<RoutineHooks>,
+): HTMLElement {
+  const host = document.createElement("div");
+  host.className = "s-rv-tracker-pending";
+  const notesHtml = kind === "routine" && plan.notes !== null ? renderInline(plan.notes, ctx, true) : undefined;
+  void import("./routine.ts").then((mod) => {
+    host.className = "s-rv-tracker-host";
+    const card =
+      kind === "routine"
+        ? mod.renderRoutineCard(plan, entries, { notePath: ctx.notePath, notesHtml, ...hooks })
+        : mod.renderRoutineLog(plan, entries, { today: hooks?.today });
+    host.replaceChildren(card);
+    hooks?.onResize?.();
+  });
+  return host;
+}
+
+/** The editor's live-preview widget draws its routine through THIS — the
+ *  same block the reading view's fence branch builds. A log fence with no
+ *  plan draws its ledger bare (dates and notes, no fields). */
+export function renderRoutineFence(
+  kind: "routine" | "routine-log",
+  plan: RoutinePlan | null,
+  entries: RoutineEntry[],
+  opts: RenderOptions,
+  hooks: Partial<RoutineHooks>,
+): HTMLElement | null {
+  if (kind === "routine" && plan === null) return null;
+  const ctx = makeCtx(opts);
+  if (plan === null) {
+    const host = document.createElement("div");
+    host.className = "s-rv-tracker-pending";
+    void import("./routine.ts").then((mod) => {
+      host.className = "s-rv-tracker-host";
+      host.replaceChildren(mod.renderRoutineLog(null, entries, {}));
+      hooks.onResize?.();
+    });
+    return host;
+  }
+  return routineBlock(kind, plan, entries, ctx, hooks);
+}
+
 // ── Block renderer ──────────────────────────────────────────────────────────
 
 function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
@@ -887,6 +972,27 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
           root.appendChild(block);
           continue;
         }
+      }
+      // ```routine / ```routine-log — the daily tracker (shared/routine.ts).
+      // The plan's card draws its log too, so on meeting a plan the pass
+      // looks ahead for the log fence that follows it; the log fence, when
+      // its own turn comes, draws the ledger against that plan's fields.
+      if (lang === "routine") {
+        const plan = parseRoutine(buf.join("\n"));
+        if (plan) {
+          ctx.lastRoutine = plan;
+          ctx.routineLogged = false;
+          const logSrc = logAfter(lines, i);
+          const entries = logSrc === null ? [] : parseRoutineLog(logSrc, plan.fields);
+          root.appendChild(routineBlock("routine", plan, entries, ctx));
+          continue;
+        }
+      }
+      if (lang === "routine-log" && ctx.lastRoutine && !ctx.routineLogged) {
+        ctx.routineLogged = true;
+        const plan = ctx.lastRoutine;
+        root.appendChild(routineBlock("routine-log", plan, parseRoutineLog(buf.join("\n"), plan.fields), ctx));
+        continue;
       }
       const pre = document.createElement("pre");
       pre.className = "s-rv-pre";

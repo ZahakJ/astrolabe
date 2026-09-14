@@ -35,6 +35,7 @@ import { openThemePicker } from "./ThemePicker.tsx";
 import { openDesigner } from "./design/openDesigner.ts";
 import { openTour } from "../tour.ts";
 import { readWarmth, toggleWarmth } from "../eyeComfort.ts";
+import { openWhatsNew } from "../whatsnew/door.ts";
 import { installRecents, recentNotes } from "../recents.ts";
 import { getNote } from "../api.ts";
 import { noteAnchors, type NoteAnchor } from "../../shared/anchors.ts";
@@ -292,6 +293,20 @@ const COMMANDS: Command[] = [
     id: "open-media",
     label: () => t("cmdOpenMedia"),
     hint: () => t("cmdViewHint"),
+    available: ({ admin }) => admin,
+  },
+  {
+    id: "open-routines",
+    label: () => t("cmdOpenRoutines"),
+    hint: () => t("cmdViewHint"),
+    available: ({ admin }) => admin,
+  },
+  {
+    // THE DECK'S RE-ENTRY: the popup shows itself once per update; this is
+    // how a reader who closed it, or turned it off, sees it again on purpose.
+    id: "whats-new",
+    label: () => t("cmdWhatsNew"),
+    hint: () => t("tourHint"),
     available: ({ admin }) => admin,
   },
   {
@@ -1021,6 +1036,12 @@ export default function CommandPalette() {
           break;
         case "open-media":
           store.toggleMedia();
+          break;
+        case "open-routines":
+          store.toggleRoutines();
+          break;
+        case "whats-new":
+          openWhatsNew();
           break;
         case "toggle-reading":
           store.toggleReading();
