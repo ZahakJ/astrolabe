@@ -17,6 +17,8 @@ import TocPanel from "../reading/TocPanel.tsx";
 import { hasPanelPreference, useStore } from "../state.ts";
 import LocalGraph from "./LocalGraph.tsx";
 import TrackerPanel from "./TrackerPanel.tsx";
+import MentionsPanel from "./MentionsPanel.tsx";
+import OnThisDayPanel from "./OnThisDayPanel.tsx";
 
 // NOTE HISTORY IS LAZY, and it is the only one of the three stacked sections
 // that is. It carries a markdown renderer (the revision viewer draws the whole
@@ -229,6 +231,8 @@ export default function BacklinksPanel() {
             ))
           )}
         </div>
+        <MentionsPanel />
+        <OnThisDayPanel />
         <PaneGrip pane="panel" />
       </aside>
       {collapsed && !zen && (
