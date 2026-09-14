@@ -41,6 +41,7 @@ const vault = makeVault({
   "Old Name.md": "named\n",
   "Restore.md": "r0\n",
   "Gone.md": "gone\n",
+  "ForGood.md": "for good\n",
   "Folder/Inner.md": "inner\n",
   "Big.md": "big\n",
   "Off.md": "off\n",
@@ -184,6 +185,25 @@ describe("the switch", () => {
     await writeNote("Off.md", "off3\n");
     assert.deepEqual(await listVersions("Off.md"), []);
     assert.equal((await readNote("Off.md")).content, "off3\n", "the write itself is untouched");
+  });
+});
+
+describe("deleted for good means the versions too", () => {
+  it("drops a note's versions on a permanent delete", async () => {
+    await writeNote("ForGood.md", "for good 2\n");
+    assert.equal((await listVersions("ForGood.md")).length, 1);
+    await deleteNote("ForGood.md", { permanent: true });
+    assert.equal((await listVersions("ForGood.md")).length, 0);
+    assert.equal(existsSync(dirFor("ForGood.md")), false);
+  });
+});
+
+describe("a vault-wide replace keeps the text before it", () => {
+  it("is not an autosave: the window does not swallow it", async () => {
+    await writeNote("Burst.md", "b1\n");
+    const before = (await listVersions("Burst.md")).length;
+    await writeNote("Burst.md", "b2\n", undefined, "bulk");
+    assert.equal((await listVersions("Burst.md")).length, before + 1);
   });
 });
 

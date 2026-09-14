@@ -58,6 +58,14 @@ export function blockRange(lines: readonly string[], line: number): { start: num
     i--;
   }
   if (lines[i].trim() === "") return null;
+  // A blockquote is the run of `>` lines around this one.
+  if (/^\s*>/.test(lines[i])) {
+    let start = i;
+    while (start > 0 && /^\s*>/.test(lines[start - 1])) start--;
+    let end = i + 1;
+    while (end < lines.length && /^\s*>/.test(lines[end])) end++;
+    return { start, end };
+  }
   const item = LIST_LINE_RE.exec(lines[i]);
   if (item) {
     const indent = item[1].length;
@@ -86,7 +94,8 @@ export function markdownBlock(md: string, line: number): string | null {
   const range = blockRange(lines, line);
   if (!range) return null;
   const slice = lines.slice(range.start, range.end);
-  // The id on its own line goes; the id at the end of the last line goes.
+  // The id on its own line goes; the id at the end of the last line goes —
+  // for a quote, from the last quoted line's text, keeping its `>`.
   while (slice.length > 0 && isBareBlockId(slice[slice.length - 1])) slice.pop();
   if (slice.length > 0) slice[slice.length - 1] = stripBlockId(slice[slice.length - 1]);
   const text = slice.join("\n").trim();

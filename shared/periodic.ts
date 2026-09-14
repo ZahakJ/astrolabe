@@ -45,11 +45,16 @@ const pad = (n: number, w: number): string => String(n).padStart(w, "0");
 
 export function formatPeriod(format: string, date: Date): string {
   const { year: wy, week } = isoWeek(date);
+  // A WEEKLY format's year is the ISO week-year, not the calendar year:
+  // Monday 2025-12-29 is week 1 of 2026, and `2025-W01` would read back as
+  // a week a year earlier (the review's first finding).
+  const weekly = isWeeklyFormat(format);
+  const year = weekly ? wy : date.getFullYear();
   return format.replace(TOKEN_RE, (tok, literal?: string) => {
     if (literal !== undefined) return literal;
     switch (tok) {
-      case "YYYY": return String(date.getFullYear());
-      case "YY": return pad(date.getFullYear() % 100, 2);
+      case "YYYY": return String(year);
+      case "YY": return pad(year % 100, 2);
       case "MM": return pad(date.getMonth() + 1, 2);
       case "M": return String(date.getMonth() + 1);
       case "DD": return pad(date.getDate(), 2);
@@ -59,7 +64,7 @@ export function formatPeriod(format: string, date: Date): string {
       case "w": return String(week);
       default: return tok;
     }
-  }).replace(/YYYY/g, String(wy) === String(date.getFullYear()) ? String(date.getFullYear()) : String(date.getFullYear()));
+  });
 }
 
 /** A note NAME (path without folder or extension) read back through the

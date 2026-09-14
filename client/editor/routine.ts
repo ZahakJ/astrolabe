@@ -21,6 +21,7 @@
 
 import { Decoration, EditorView, WidgetType } from "@codemirror/view";
 import type { EditorState, Range } from "@codemirror/state";
+import { fenceSpanOf, type FenceSpan } from "./fenceSpan.ts";
 import {
   logEditFor,
   parseRoutine,
@@ -33,25 +34,12 @@ import {
 import { renderRoutineFence } from "../reading/render.ts";
 import { useStore } from "../state.ts";
 
-interface FenceSpan {
-  kind: RoutineFenceKind;
-  from: number;
-  to: number;
-  bodyFrom: number;
-  bodyTo: number;
-}
+type RoutineSpan = FenceSpan & { kind: RoutineFenceKind };
 
-export function routineFenceSpan(state: EditorState, firstLine: number, lastLine: number): FenceSpan | null {
-  const doc = state.doc;
-  const open = doc.line(firstLine);
-  const kind = routineFenceKind(open.text);
+export function routineFenceSpan(state: EditorState, firstLine: number, lastLine: number): RoutineSpan | null {
+  const kind = routineFenceKind(state.doc.line(firstLine).text);
   if (kind === null) return null;
-  const close = doc.line(lastLine);
-  const closed = lastLine > firstLine && /^\s*(```|~~~)\s*$/.test(close.text);
-  const bodyFrom = lastLine > firstLine ? doc.line(firstLine + 1).from : open.to;
-  const bodyLast = closed ? lastLine - 1 : lastLine;
-  const bodyTo = bodyLast > firstLine ? doc.line(bodyLast).to : bodyFrom;
-  return { kind, from: open.from, to: close.to, bodyFrom, bodyTo };
+  return { kind, ...fenceSpanOf(state, firstLine, lastLine) };
 }
 
 /** Which plan (by index) a fence at `bodyFrom` belongs to, and the log text
@@ -131,7 +119,7 @@ class RoutineWidget extends WidgetType {
   }
 }
 
-export function routineBlockDeco(state: EditorState, span: FenceSpan, notePath: string): Range<Decoration> | null {
+export function routineBlockDeco(state: EditorState, span: RoutineSpan, notePath: string): Range<Decoration> | null {
   const place = placeOf(state.doc.toString(), span.kind, span.bodyFrom);
   if (!place) return null;
   if (span.kind === "routine" && parseRoutine(place.planSrc) === null) return null;

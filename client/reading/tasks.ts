@@ -11,6 +11,7 @@ import { getTasks, toggleTask } from "../api.ts";
 import { siteDate } from "../dates.ts";
 import { autoDir, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { useStore } from "../state.ts";
+import { el } from "./dom.ts";
 import { toast } from "../toast.ts";
 
 export interface TasksHooks {
@@ -20,13 +21,6 @@ export interface TasksHooks {
   onResize?: () => void;
   /** The page passes its own rows to spare a second fetch. */
   rows?: TaskMeta[];
-}
-
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  node.className = cls;
-  if (text !== undefined) node.textContent = text;
-  return node;
 }
 
 const PRIORITY_LABEL: Record<string, I18nKey> = {
@@ -86,6 +80,7 @@ export function renderTasksFence(spec: TasksSpec, hooks: TasksHooks): HTMLElemen
       const list = el("ul", "s-rv-tasks__list");
       for (const r of g.items) {
         const li = el("li", `s-rv-tasks__item${r.task.done ? " is-done" : ""}${r.task.cancelled ? " is-cancelled" : ""}`);
+        li.dir = autoDir(r.task.text);
         const label = el("label", "s-rv-tasks__label");
         const box2 = el("input", "s-rv-tasks__check");
         box2.type = "checkbox";
@@ -98,6 +93,11 @@ export function renderTasksFence(spec: TasksSpec, hooks: TasksHooks): HTMLElemen
               .then(() => {
                 r.task.done = box2.checked;
                 draw(rows);
+                // The note may be open in an editor whose last autosave was a
+                // moment ago; the SSE echo would then read as a self-save and
+                // leave the buffer stale. Adopt the write explicitly, as a
+                // version restore does.
+                void import("../editor/bufferBridge.ts").then((m) => m.adoptExternalChange(r.path));
               })
               .catch(() => {
                 toast(t("tasksToggleFailed"), "error");

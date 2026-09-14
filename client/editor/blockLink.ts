@@ -8,7 +8,7 @@
 // instead, which is what the reader meant by "link to this".
 
 import type { EditorView } from "@codemirror/view";
-import { blockRange, isBareBlockId, mintBlockId, parseBlockId, withBlockId } from "../../shared/blockId.ts";
+import { blockRange, mintBlockId, parseBlockId, withBlockId } from "../../shared/blockId.ts";
 import { t } from "../i18n.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
 import { slugAnchor } from "../../shared/tex.ts";
@@ -36,14 +36,17 @@ export function copyBlockLink(view: EditorView, path: string): void {
     toast(t("blockLinkNoBlock"), "error");
     return;
   }
-  // The id lives on the block's last line, or on a bare line right under it.
-  const lastLine = doc.line(range.end); // 1-based: range.end is the exclusive 0-based end
-  const own = parseBlockId(lastLine.text) ?? (isBareBlockId(lastLine.text) ? parseBlockId(lastLine.text) : null);
-  let id = own?.id ?? null;
+  // The id lives on a LIST ITEM's own line (its children are their own
+  // blocks, with their own ids), else on the block's last line — which is a
+  // bare `^id` line when the author wrote one under the paragraph.
+  const startLine = doc.line(range.start + 1);
+  const isItem = /^\s*(?:[-*+]|\d+[.)])\s+/.test(startLine.text);
+  const target = isItem ? startLine : doc.line(range.end); // range.end is the exclusive 0-based end
+  let id = parseBlockId(target.text)?.id ?? null;
   if (id === null) {
     id = mintBlockId();
-    const next = withBlockId(lastLine.text, id);
-    view.dispatch({ changes: { from: lastLine.from, to: lastLine.to, insert: next }, userEvent: "input" });
+    const next = withBlockId(target.text, id);
+    view.dispatch({ changes: { from: target.from, to: target.to, insert: next }, userEvent: "input" });
   }
   const link = `[[${noteTitleOf(path)}#^${id}]]`;
   void navigator.clipboard

@@ -13,6 +13,7 @@
 // and the toggle route applies `toggleTaskLine` byte for byte.
 
 import { closesFence, fenceOpener, sourceLines } from "./fences.ts";
+import { weekMonday } from "./periodic.ts";
 
 export type TaskPriority = "highest" | "high" | "medium" | "low" | "lowest" | null;
 
@@ -151,13 +152,13 @@ export interface TasksSpec {
 
 export function parseTasksFence(body: string, today: string): TasksSpec {
   const spec: TasksSpec = { status: "todo", dueFrom: null, dueTo: null, hasDue: false, path: null, tag: null, limit: 200, group: "note", sort: "due" };
+  // Monday to Sunday, as shared/periodic.ts counts weeks; UTC arithmetic
+  // on the ISO day so the machine's zone never moves the boundary.
   const week = (iso: string): [string, string] => {
-    const d = new Date(`${iso}T00:00:00Z`);
-    const day = (d.getUTCDay() + 6) % 7; // Monday-first
-    d.setUTCDate(d.getUTCDate() - day);
-    const from = d.toISOString().slice(0, 10);
-    d.setUTCDate(d.getUTCDate() + 6);
-    return [from, d.toISOString().slice(0, 10)];
+    const d = new Date(`${iso}T12:00:00Z`);
+    const monday = weekMonday(d);
+    const from = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
+    return [from, shift(from, 6)];
   };
   for (const raw of body.split(/\r?\n/)) {
     const line = raw.trim().toLowerCase();

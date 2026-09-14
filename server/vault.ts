@@ -682,6 +682,9 @@ export async function deleteNote(
   let trashPath: string | undefined;
   if (opts?.permanent) {
     await fs.rm(abs);
+    // "For good" means the versions too: a note deleted for good must not
+    // keep forty readable copies in the data directory.
+    await dropVersions(relPath);
   } else {
     const base = path.posix.basename(relPath);
     const ext = noteExtOf(base);
@@ -748,6 +751,7 @@ export async function deleteAttachment(
   suppress(relPath);
   if (opts?.permanent) {
     await fs.rm(abs);
+    await dropVersions(relPath);
     emit({ kind: "deleted", path: relPath });
     return {};
   }
@@ -873,6 +877,8 @@ export async function deleteFolder(
   let trashPath: string | undefined;
   if (opts?.permanent) {
     await fs.rm(abs, { recursive: true, force: true });
+    // Nothing under the folder is live any more: every version goes.
+    await dropVersionsUnder(relPath, async () => false);
   } else {
     const destAbs = await trashDestination(path.posix.basename(relPath));
     try {

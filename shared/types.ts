@@ -1714,7 +1714,7 @@ export interface NoteRevisionBlob {
  *  version restore — the text it replaced is kept unconditionally, outside
  *  the collapse window, because a restore is a deliberate act and the text
  *  it overwrote is the one a reader is most likely to want back. */
-export type VersionReason = "autosave" | "rename" | "restore";
+export type VersionReason = "autosave" | "rename" | "restore" | "bulk";
 
 /** One kept version, newest first in a listing. */
 export interface NoteVersion {

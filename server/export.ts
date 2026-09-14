@@ -152,11 +152,17 @@ export async function planExport(request: ExportRequest): Promise<ExportPlan> {
       abs,
       size: stat.size,
       mtimeMs: stat.mtimeMs,
-      rewrite: request.links === "relative" && isNotePath(name) && !isTexPath(name) && name.endsWith(".md"),
+      // Rewriting reads the whole note into memory; a note the index only
+      // ever read the head of (over 2 MB) streams as it is instead.
+      rewrite: request.links === "relative" && isNotePath(name) && !isTexPath(name) && name.endsWith(".md") && stat.size <= 2 * 1024 * 1024,
     });
     totalBytes += stat.size;
   }
   if (entries.length === 0) throw new VaultError(404, "Nothing to export", "exportEmpty");
+  // The central directory counts entries in sixteen bits (no ZIP64 here).
+  if (entries.length > 0xffff) {
+    throw new VaultError(413, `Export holds ${entries.length} files; an archive can hold 65,535. Export a folder or a tag at a time.`, "exportTooLarge");
+  }
   if (totalBytes > EXPORT_MAX_BYTES) {
     throw new VaultError(
       413,
@@ -196,11 +202,13 @@ async function* archiveChunks(plan: ExportPlan): AsyncGenerator<Uint8Array> {
   const writer = new ZipWriter((chunk) => queue.push(chunk));
   const resolve = plan.request.links === "relative" ? resolverFor(plan) : null;
   for (const entry of plan.entries) {
-    writer.begin(entry.name, entry.mtimeMs);
     if (entry.rewrite && resolve) {
       const text = await fs.readFile(entry.abs, "utf8");
-      writer.write(new TextEncoder().encode(rewriteWikilinks(text, entry.name, resolve)));
+      const bytes = new TextEncoder().encode(rewriteWikilinks(text, entry.name, resolve));
+      writer.begin(entry.name, entry.mtimeMs, bytes.length);
+      writer.write(bytes);
     } else {
+      writer.begin(entry.name, entry.mtimeMs, entry.size);
       const stream = createReadStream(entry.abs, { highWaterMark: 1 << 20 });
       for await (const chunk of stream) {
         writer.write(chunk as Buffer);

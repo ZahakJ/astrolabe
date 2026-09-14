@@ -544,7 +544,10 @@ function buildDecorations(view: EditorView): DecorationSet {
       // hidden off the cursor like a comment, faint ink on it so it can be
       // read and edited. Inside a fence it is code and stays (blocked()).
       {
-        const own = parseBlockId(text);
+        // Not on a heading: `# Title ^h1` is heading text (the anchor table
+        // skips it), and hiding it here would show the reader one thing and
+        // the reading view another.
+        const own = /^\s{0,3}#{1,6}\s/.test(text) ? null : parseBlockId(text);
         if (own) {
           const start = line.from + own.start;
           const end = line.to;

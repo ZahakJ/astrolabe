@@ -11,17 +11,11 @@ import { queryNotes } from "../api.ts";
 import { siteDate } from "../dates.ts";
 import { autoDir, localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
+import { el } from "./dom.ts";
 
 export interface QueryHooks {
   notePath: string;
   onResize?: () => void;
-}
-
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  node.className = cls;
-  if (text !== undefined) node.textContent = text;
-  return node;
 }
 
 const BUILT_IN = new Set(["title", "date", "modified", "tags", "excerpt", "path"]);
@@ -113,6 +107,7 @@ export function renderQueryFence(spec: QuerySpec, hooks: QueryHooks): HTMLElemen
         const list = el(spec.as === "cards" ? "div" : "ul", spec.as === "cards" ? "s-rv-query__grid" : "s-rv-query__list");
         for (const hit of hits) {
           const item = el(spec.as === "cards" ? "div" : "li", spec.as === "cards" ? "s-rv-query__card" : "s-rv-query__row");
+          item.dir = autoDir(hit.title);
           item.appendChild(noteLink(hit, "s-rv-query__title"));
           const meta: string[] = [];
           for (const col of spec.show) {
