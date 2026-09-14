@@ -749,6 +749,21 @@ select:focus,
   border-color: var(--accent);
 }
 
+/* The row was the last thing in a scrolling shelf under a fade mask: at a
+   tablet height it sat below the fold and, when reached, half-faded. It is
+   pinned to the shelf's bottom edge now, over a solid ground, and the shelf
+   drops its fade while the row is there (the row IS the "there is more"). */
+.s-tags:has(.s-tags__more) {
+  mask-image: none;
+  -webkit-mask-image: none;
+  padding-bottom: 8px;
+}
+.s-tags__more {
+  position: sticky;
+  bottom: 0;
+  background: var(--sidebar-bg, var(--bg-raised));
+}
+
 .s-tag {
   display: inline-flex;
   align-items: center;
@@ -5204,9 +5219,24 @@ button.s-title:hover {
     --fold-gutter: 0px;
   }
 
-  /* Backlinks/outline panel would eat the whole viewport on a phone — and a
-     13px edge handle is not a phone affordance either. */
-  .s-panel,
+  /* A phone has no room for a third column, and a 13px edge handle is no
+     affordance there. The panel is a DRAWER instead: hidden until the status
+     bar's outline switch opens it, then over the page from the end edge,
+     the way the notes sidebar already slides in below 1000px. The reopen
+     handle stays gone; the switch is the door. */
+  .s-panel:not(.s-panel--collapsed) {
+    display: flex;
+    position: fixed;
+    inset-block: 0 2.1rem;
+    inset-inline-end: 0;
+    width: min(86vw, 360px);
+    z-index: 60;
+    box-shadow: -12px 0 32px rgba(0, 0, 0, 0.35);
+  }
+  .s-statusbar .s-statusbar__pane-outline {
+    display: inline-flex;
+  }
+  .s-panel--collapsed,
   .s-reopen {
     display: none;
   }
@@ -7303,4 +7333,125 @@ html[dir="rtl"] .s-statusbar__spacer {
 }
 .s-otd__open:hover {
   color: var(--text);
+}
+
+/* ── The tag shelf as a tree (shared/tagTree.ts) ─────────────────────── */
+.s-tag__row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-inline-size: 100%;
+}
+.s-tag__branch {
+  inline-size: 18px;
+  block-size: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+.s-tag__branch--open {
+  transform: rotate(90deg);
+}
+[dir="rtl"] .s-tag__branch:not(.s-tag__branch--open) {
+  transform: rotate(180deg);
+}
+.s-tag__branch:hover {
+  color: var(--text);
+}
+.s-tags__sort {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 8px;
+  padding: 1px 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.714rem;
+  cursor: pointer;
+}
+.s-tags__sort:hover {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* ── Bookmarks above the tree (client/components/BookmarksRows.tsx) ───── */
+.s-bookmarks__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  inline-size: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+.s-bookmarks__count {
+  margin-inline-start: auto;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.s-bookmarks__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.s-bookmarks__row.is-dragging {
+  opacity: 0.5;
+}
+.s-bookmarks__row--missing {
+  color: var(--text-faint);
+  text-decoration: line-through;
+}
+.s-bookmarks__star {
+  color: var(--accent);
+  font-size: 0.786rem;
+}
+
+/* ── Named layouts (client/components/LayoutPicker.tsx) ───────────────── */
+.s-layouts__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.s-layouts__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.s-layouts__name {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.s-layouts__when {
+  color: var(--text-faint);
+  font-size: 0.786rem;
+  white-space: nowrap;
+}
+
+/* Phone: the pane cluster leaves at 640px, but the outline switch is the
+   panel drawer's only door there (see the 700px rule on .s-panel), so it
+   alone stays, at the specificity the cluster's own rule set. */
+@media (max-width: 700px) {
+  .s-statusbar .s-statusbar__panes {
+    display: inline-flex;
+  }
+  .s-statusbar .s-statusbar__panes > :not(.s-statusbar__pane-outline) {
+    display: none;
+  }
 }

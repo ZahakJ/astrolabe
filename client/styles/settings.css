@@ -421,6 +421,14 @@
     min-width: 0;
     max-height: none;
     padding-inline-end: 0;
+    /* A strip that scrolls sideways has to say so: the last visible tab
+       fades at the edge, and a flick snaps to whole tabs. */
+    scroll-snap-type: x proximity;
+    mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 28px), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 28px), transparent);
+  }
+  .s-smodal__railbtn {
+    scroll-snap-align: start;
   }
 
   /* app.css moves the marker to a bottom border for the strip; the fill stays

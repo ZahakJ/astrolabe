@@ -274,11 +274,16 @@ export function RoutineForm({
             <TextInput value={draft.title} onChange={(v) => set("title", v)} placeholder={t("routineFormTitlePlaceholder")} label={t("routineFormTitle")} maxLength={200} dir="auto" />
           </label>
 
+          {/* A preset already answers "what kind": the row repeats the same
+              eight words a screen above it, so it shows for a blank sheet, an
+              edit, or a template of the reader's own. */}
+          {(source === "blank" || source === "edit" || !KINDS.includes(source as RoutineKind)) && (
           <div className="s-mediaform__row">
             <span className="s-mediaform__label">{t("routineFormKind")}</span>
             <SegmentedControl value={segmentValue} onChange={(v) => set("kind", v)} segments={segments} label={t("routineFormKind")} />
             <TextInput value={kindKey ? "" : draft.kind} onChange={(v) => set("kind", v)} placeholder={t("routineFormKindOwn")} label={t("routineFormKindOwn")} maxLength={40} dir="auto" />
           </div>
+          )}
 
           <div className="s-mediaform__pair">
             <label className="s-mediaform__row">
@@ -338,6 +343,12 @@ export function RoutineForm({
             <span className="s-mediaform__label">{t("routineFormFields")}</span>
             <textarea className="s-ctl s-ctl-input s-routineform__fields" rows={3} value={fieldsText} dir="auto" onChange={(e) => setFieldsText(e.target.value)} placeholder={"minutes:number\nweight:number:kg\nmood:scale:5"} />
             <p className="s-mediaform__hint">{t("routineFormFieldsHint")}</p>
+          </label>
+
+          <label className="s-mediaform__row">
+            <span className="s-mediaform__label">{t("routineFormBook")}</span>
+            <TextInput value={draft.book} onChange={(v) => set("book", v)} label={t("routineFormBook")} maxLength={200} dir="auto" />
+            <p className="s-mediaform__hint">{t("routineFormBookHint")}</p>
           </label>
 
           <label className="s-mediaform__row">

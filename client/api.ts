@@ -663,6 +663,20 @@ export function updateTracker(
   return request<{ ok: true; path: string; index: number }>("/api/tracker", json("POST", { path, index, set, delta }));
 }
 
+/** Named layouts (server/layouts.ts): an arrangement under a name. */
+export function getLayouts(): Promise<{ layouts: { name: string; at: number }[] }> {
+  return request("/api/layouts");
+}
+export function getLayout(name: string): Promise<{ name: string; workspace: unknown }> {
+  return request(`/api/layouts/one?name=${encodeURIComponent(name)}`);
+}
+export function putLayout(name: string, workspace: unknown): Promise<{ ok: true; name: string }> {
+  return request("/api/layouts", json("PUT", { name, workspace }));
+}
+export function deleteLayout(name: string): Promise<{ ok: true }> {
+  return request(`/api/layouts?name=${encodeURIComponent(name)}`, { method: "DELETE" });
+}
+
 /** The archive on this month-day in earlier years (admin). */
 export function getOnThisDay(iso: string): Promise<OnThisDayHit[]> {
   return request<OnThisDayHit[]>(`/api/onthisday?date=${encodeURIComponent(iso)}`);

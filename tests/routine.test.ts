@@ -231,3 +231,12 @@ describe("composing a plan", () => {
     }
   });
 });
+
+describe("a book in the plan (3.13.0)", () => {
+  it("adds the reading task first and round-trips through the draft", () => {
+    const plan = parseRoutine("title: Mornings\nbook: [[The Muqaddima|the book]]\nitems: coffee\n")!;
+    assert.equal(plan.book, "The Muqaddima");
+    assert.deepEqual(tasksFor(plan, "2026-09-14").map((t) => [t.key, t.book ?? false]), [["read", true], ["coffee", false]]);
+    assert.ok(routineFenceBody(draftOf(plan)).includes("book: The Muqaddima"));
+  });
+});

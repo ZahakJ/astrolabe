@@ -109,6 +109,7 @@ import { bookRoutes } from "./bookRoutes.ts";
 import { searchPages } from "./pdfText.ts";
 import { prefsRoutes } from "./prefs.ts";
 import { readWorkspaceState, writeWorkspaceState } from "./workspaceState.ts";
+import { cleanName, deleteLayout, getLayout, listLayouts, putLayout } from "./layouts.ts";
 import { staticPagesActive } from "./pages.ts";
 import { gitStatus, initRepo, noteHistory, noteRevisionBlob, snapshotNow, syncNow, syncAtLaunch } from "./gitSync.ts";
 import { listVersions, readVersion, versionsEnabled } from "./versions.ts";
@@ -2399,7 +2400,7 @@ api.post("/tracker", async (c) => {
   const delta = typeof body.delta === "number" && Number.isFinite(body.delta) ? body.delta : 0;
   const fields: TrackerFields = {};
   if (set) {
-    for (const key of ["kind", "season", "cover", "progress", "unit", "status", "rating", "started", "finished", "notes"] as const) {
+    for (const key of ["kind", "season", "cover", "progress", "unit", "status", "rating", "started", "finished", "pace", "due", "notes"] as const) {
       const v = set[key];
       if (v === null) fields[key] = null;
       else if (typeof v === "string") fields[key] = v.slice(0, key === "notes" ? 4000 : 400);
@@ -2840,6 +2841,34 @@ api.post("/sync/launch", async (c) => {
 api.get("/state/workspace", async (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
   return c.json({ workspace: await readWorkspaceState() });
+});
+
+// Named layouts (server/layouts.ts): the arrangement under a name.
+api.get("/layouts", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json({ layouts: listLayouts() });
+});
+api.get("/layouts/one", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const name = cleanName(c.req.query("name"));
+  if (name === null) throw new VaultError(400, "A layout needs a name");
+  const workspace = getLayout(name);
+  if (workspace === null) throw new VaultError(404, "No such layout");
+  return c.json({ name, workspace });
+});
+api.put("/layouts", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const body = await jsonBody(c);
+  const name = cleanName(body.name);
+  if (name === null) throw new VaultError(400, "A layout needs a name (one line, up to 60 characters)");
+  if (!putLayout(name, body.workspace)) throw new VaultError(400, "That layout could not be saved (too large, or the store is full)");
+  return c.json({ ok: true, name });
+});
+api.delete("/layouts", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const name = cleanName(c.req.query("name"));
+  if (name === null || !deleteLayout(name)) throw new VaultError(404, "No such layout");
+  return c.json({ ok: true });
 });
 
 api.put("/state/workspace", async (c) => {

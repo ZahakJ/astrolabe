@@ -106,9 +106,33 @@ themes, publishing, collections, trackers, history, search, templates, LaTeX, th
 panes, the graph, backup, the phone layout and the keys. It also waits on an empty vault, at
 the foot of the `Ctrl/Cmd /` sheet, and in `Welcome.md`. It never opens by itself.
 
+## Bookmarks
+
+`Ctrl/Cmd Shift B` bookmarks the open note (or takes the bookmark off), and so does **Bookmark this
+note** in the palette. The bookmarks are a note, `Bookmarks.md` at the vault root — a Markdown list
+of wikilinks, readable in Obsidian, synced with everything else, edited by hand whenever you like —
+and the sidebar draws it as a starred section above the tree. Drag a row onto another to reorder;
+the list lines move in the note and nothing else on the page does. This replaced the per-browser
+"pin to top", which the phone never saw.
+
+## Named layouts
+
+**Save layout as…** in the palette keeps the current arrangement — panes, tabs, splits, never
+content — under a name (*Research*, *Writing*), beside the vault so the desktop app and a browser
+share them. **Restore a layout…** lists them with Restore and Delete; restoring swaps the whole
+arrangement and prunes tabs whose notes have gone since.
+
+## Tags as a tree
+
+The tag shelf under the tree is a tree of its own: `book/fiction` and `book/history` show as `book`
+once, with the count of everything under it, and a chevron opens the branch. The small control in
+the shelf's corner sorts by count or by name; both choices and the open branches are remembered per
+device. A click still filters the tree, a second click clears, and a right-click renames.
+
 ## On a phone
 
 The sidebar is a drawer that follows your finger: a horizontal swipe anywhere drags it in,
 interruptible and reversible, committed by distance or a flick; the outline pane answers the
 mirrored swipe. Edges are logical, so in Arabic the drawer comes from the right with no second
-rule.
+rule. The outline pane is a drawer on a phone too: the outline switch in the status bar slides it
+over the page from the end edge, backlinks, unlinked mentions and on-this-day included.

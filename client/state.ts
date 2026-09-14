@@ -583,6 +583,8 @@ export interface State {
   /** The Routines page, on the same terms. */
   routinesOpen(): boolean;
   toggleRoutines(): void;
+  /** Swap in a whole workspace — a restored named layout. */
+  applyWorkspace(ws: Workspace): void;
   /** Toggle the graph tab in the focused pane: open (or focus) it, or, when it
    *  is already the active tab, close it and land on the tab beside it. */
   toggleGraph(): void;
@@ -2180,6 +2182,15 @@ export const useStore = create<State>()((set, get) => {
       const s = get();
       if (s.mediaOpen()) s.closeTab(MEDIA_TAB);
       else s.setView("media");
+    },
+    applyWorkspace: (ws) => {
+      // A restored layout: the arrangement swapped whole, then pruned against
+      // the tree the way a stored one is on boot, so a note that has gone
+      // since the save does not become a dead tab.
+      const existing = new Set(collectNotes(get().tree).map((n) => n.path));
+      const pruned = pruneWorkspace(ws, existing);
+      set((s) => ({ ...s, ...mirrorOf(pruned) }));
+      persistWorkspace(pruned);
     },
     routinesOpen: () => {
       const ws = get().workspace;

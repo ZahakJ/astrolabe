@@ -29,6 +29,7 @@ import type { FolderIcon } from "../../shared/folderIcons.ts";
 import { FOLDER_ICON_HAND_PATHS } from "../../shared/folderIconsHand.ts";
 import {
   foldKind,
+  paceProjection,
   type BoardFilter,
   type Tracker,
   type TrackerKind,
@@ -336,6 +337,16 @@ export function renderTrackerCard(tracker: Tracker, hooks: TrackerHooks): HTMLEl
   const dates: string[] = [];
   if (tracker.started !== null) dates.push(tf("trackerStarted", { date: dateText(tracker.started) }));
   if (tracker.finished !== null) dates.push(tf("trackerFinished", { date: dateText(tracker.finished) }));
+  // The pace, projected: "20 pages a day — done by 3 Nov", or the pace a
+  // `due:` date asks for. The unit is the card's own word.
+  const projection = paceProjection(tracker, new Date().toISOString().slice(0, 10));
+  if (projection) {
+    const known = unitKey(tracker.unit);
+    const kind = foldKind(tracker.kind);
+    const unitWord = known ? countPhrase(10, known).replace(/^[\d٠-٩٬,.\s]+/, "") : tracker.unit ?? (kind ? countPhrase(10, KIND_UNIT[kind]).replace(/^[\d٠-٩٬,.\s]+/, "") : "");
+    const perDay = `${localeNum(projection.pace)} ${unitWord}`.trim();
+    dates.push(tf(projection.kind === "done-by" ? "trackerPaceDoneBy" : "trackerPaceNeeded", { pace: perDay, date: dateText(projection.date) }));
+  }
   for (const text of dates) meta.appendChild(el("span", "s-rv-tracker__date", text));
   // The folder of the work's own notes, by its last name: the reader knows
   // their vault, and the Media page is where the count and the door live.

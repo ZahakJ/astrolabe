@@ -37,6 +37,9 @@ import { openTour } from "../tour.ts";
 import { collectNotes } from "../editor/links.ts";
 import { readWarmth, toggleWarmth } from "../eyeComfort.ts";
 import { openWhatsNew } from "../whatsnew/door.ts";
+import { isNoteBookmarked, toggleBookmark } from "../bookmarks.ts";
+import { putLayout } from "../api.ts";
+import { serializeWorkspace } from "../workspace.ts";
 import { openExportDialog } from "../export/door.ts";
 import { installRecents, recentNotes } from "../recents.ts";
 import { getNote } from "../api.ts";
@@ -550,6 +553,25 @@ const COMMANDS: Command[] = [
     available: ({ openPath, admin }) => admin && openPath !== null,
   },
   {
+    id: "bookmark-note",
+    label: () => t(useStore.getState().openPath !== null && isNoteBookmarked(useStore.getState().openPath ?? "") ? "cmdUnbookmarkNote" : "cmdBookmarkNote"),
+    hint: () => t("cmdBookmarkHint"),
+    available: ({ admin, openPath }) => admin && openPath !== null,
+  },
+  {
+    id: "save-layout",
+    label: () => t("cmdSaveLayout"),
+    hint: () => t("cmdSaveLayoutHint"),
+    prompt: { placeholder: "Research", initial: () => "" },
+    available: ({ admin }) => admin,
+  },
+  {
+    id: "restore-layout",
+    label: () => t("cmdRestoreLayout"),
+    hint: () => t("cmdRestoreLayoutHint"),
+    available: ({ admin }) => admin,
+  },
+  {
     id: "copy-block-link",
     label: () => t("cmdCopyBlockLink"),
     hint: () => t("cmdCopyBlockLinkHint"),
@@ -1059,6 +1081,17 @@ export default function CommandPalette() {
         case "copy-note-link":
           if (store.openPath) copyNoteLink(store.openPath);
           break;
+        case "bookmark-note":
+          if (store.openPath) {
+            const path = store.openPath;
+            toggleBookmark(path)
+              .then((on) => toast(t(on ? "bookmarkAdded" : "bookmarkRemoved")))
+              .catch(() => toast(t("bookmarkFailed"), "error"));
+          }
+          break;
+        case "restore-layout":
+          void import("./LayoutPicker.tsx").then((m) => m.openLayoutPicker());
+          break;
         case "copy-block-link":
           // The editor answers (Editor.tsx), after the palette has closed and
           // focus is back where the caret is — the find-in-note shape.
@@ -1246,6 +1279,12 @@ export default function CommandPalette() {
         console.error("CommandPalette: rename failed", err);
         toast(t("couldNotRenameNote"));
       });
+    } else if (command.id === "save-layout") {
+      // The arrangement as the store serialises it — paths and geometry,
+      // never content — under the name just typed (server/layouts.ts).
+      putLayout(value, serializeWorkspace(store.workspace))
+        .then(() => toast(tf("layoutSaved", { name: value })))
+        .catch(() => toast(t("layoutFailed"), "error"));
     }
     close();
   }, [mode.command, query, close]);

@@ -48,6 +48,7 @@ sunday: 60 min walk
 | a weekday | `monday: 60 min walk`, or `monday:` with slots indented under it | The plan for that day. Weekdays are read in both languages (`الاثنين`) and short (`mon`). A day with nothing under it is a rest day. |
 | `fields` | `name:type`, comma-separated | Numbers to keep per day. Types: `number` (with an optional unit, `weight:number:kg`), `scale` (with a ceiling, `mood:scale:5`), `check`, `text`. A bare unit or ceiling is enough: `weight:kg`, `mood:5`. |
 | `target` | `6/week`, `5` | Days a week you aim to complete. Without it, the week's denominator is the number of days the plan asks something of. |
+| `book` | a tracked work's title (`[[…]]` allowed) | The day gains **Read N pages of it** first, N from the [tracker's](trackers.md) `pace:` (or its step). Ticking it moves the tracker by that much; unticking moves it back. |
 | `notes` | a block scalar (`notes: \|`) | Markdown, rendered under the card. |
 
 A fence with **neither a title nor a plan** stays a plain code block — the same rule a tracker and

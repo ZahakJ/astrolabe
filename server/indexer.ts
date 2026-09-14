@@ -2816,6 +2816,8 @@ export function trackers(visitor: boolean, lang: FilterLang): TrackerMeta[] {
         notes: tracker.notes,
         ...folderFacts(visitor ? null : tracker.folder),
         step: tracker.step,
+        pace: tracker.pace,
+        due: tracker.due,
         title: tracker.title,
         noteTitle: record.title,
         kind: tracker.kind,

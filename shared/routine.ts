@@ -144,6 +144,9 @@ export interface RoutineField {
 /** One thing a day's checklist asks for: an every-day item, or a slot of the
  *  weekday's plan. `key` is what the log's `done:` names. */
 export interface RoutineTask {
+  /** True for the reading task a `book:` line adds: its text and its nudge
+   *  come from the tracker at render time. */
+  book?: boolean;
   key: string;
   /** The plan text for a weekday slot ("60 min brisk walk"); null for a bare
    *  every-day item, whose key is its whole text. */
@@ -167,6 +170,10 @@ export interface RoutinePlan {
   fields: RoutineField[];
   /** Days per week aimed for, or null. */
   target: number | null;
+  /** `book:` — a tracked work (its tracker's title, `[[…]]` allowed). The
+   *  day's checklist gains "Read N pages of it", N from the tracker's pace,
+   *  and ticking it nudges the tracker (client/reading/routine.ts). */
+  book: string | null;
   /** `notes: |` markdown, verbatim. */
   notes: string | null;
 }
@@ -249,6 +256,7 @@ export function parseRoutine(body: string): RoutinePlan | null {
   const week = emptyWeek();
   const fields: RoutineField[] = [];
   let target: number | null = null;
+  let book: string | null = null;
   let notes: string | null = null;
   let day: Weekday | null = null;
   let anyPlan = false;
@@ -324,6 +332,12 @@ export function parseRoutine(body: string): RoutinePlan | null {
       case "هدف":
         target = parseTarget(value);
         break;
+      case "book":
+      case "work":
+      case "كتاب":
+        book = value.replace(/^\[\[|\]\]$/g, "").split("|")[0].trim() || null;
+        if (book) anyPlan = true;
+        break;
       case "notes":
       case "ملاحظات":
         if (value === "|" || value === ">" || value === "") {
@@ -356,6 +370,7 @@ export function parseRoutine(body: string): RoutinePlan | null {
     week,
     fields,
     target,
+    book,
     notes,
   };
 }
@@ -365,6 +380,7 @@ export function parseRoutine(body: string): RoutinePlan | null {
  *  weekday line, the weekday itself; of an item, the item. */
 export function tasksFor(plan: RoutinePlan, iso: string): RoutineTask[] {
   const out: RoutineTask[] = [];
+  if (plan.book !== null) out.push({ key: "read", text: plan.book, slot: null, book: true });
   for (const item of plan.items) out.push({ key: item, text: null, slot: null });
   const wd = weekdayOfDate(iso);
   for (const s of plan.week[wd]) out.push({ key: s.slot === "" ? wd : s.slot, text: s.text, slot: s.slot === "" ? null : s.slot });
@@ -802,11 +818,12 @@ export interface RoutineDraft {
   /** Field specs as the plan writes them: `minutes:number`, `mood:scale:5`. */
   fields: string[];
   target: number | null;
+  book: string;
   notes: string;
 }
 
 export function emptyDraft(): RoutineDraft {
-  return { title: "", kind: "", slots: [], items: [], week: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} }, fields: [], target: null, notes: "" };
+  return { title: "", kind: "", slots: [], items: [], week: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} }, fields: [], target: null, book: "", notes: "" };
 }
 
 export function fieldSpec(f: RoutineField): string {
@@ -827,6 +844,7 @@ export function draftOf(plan: RoutinePlan): RoutineDraft {
     week,
     fields: plan.fields.map(fieldSpec),
     target: plan.target,
+    book: plan.book ?? "",
     notes: plan.notes ?? "",
   };
 }
@@ -843,6 +861,7 @@ export function routineFenceBody(draft: RoutineDraft): string {
   const fields = draft.fields.map((s) => s.trim()).filter((s) => s !== "");
   if (fields.length > 0) out.push(`fields: ${fields.join(", ")}`);
   if (draft.target !== null && draft.target >= 1) out.push(`target: ${draft.target}/week`);
+  if (draft.book.trim() !== "") out.push(`book: ${draft.book.trim()}`);
   for (const wd of WEEKDAYS) {
     const day = draft.week[wd];
     const entries = Object.entries(day).filter(([, v]) => v.trim() !== "");
