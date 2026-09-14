@@ -2229,7 +2229,7 @@ export default function Sidebar() {
               const active = query.trim() === `#${tag}`;
               const branch = node.children.length > 0;
               return (
-              <span key={tag} className="s-tag__row" style={depth > 0 ? { paddingInlineStart: `${depth * 14}px` } : undefined}>
+              <span key={tag} className={`s-tag__row${depth > 0 || (branch && openTags.has(tag)) ? " s-tag__row--full" : ""}`} style={depth > 0 ? { paddingInlineStart: `${depth * 14}px` } : undefined}>
               {branch && (
                 <button
                   type="button"
