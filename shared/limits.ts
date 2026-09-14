@@ -17,3 +17,13 @@ export const FONT_UPLOAD_MAX_MB = 5;
 
 /** The same cap in bytes (what server/customFonts.ts checks). */
 export const FONT_UPLOAD_MAX_BYTES = FONT_UPLOAD_MAX_MB * 1024 * 1024;
+
+/** The most an export archive may hold, in whole gigabytes. The ZIP writer
+ *  (shared/zip.ts) keeps 32-bit sizes and offsets and no ZIP64 record, so
+ *  the format's own ceiling is 4 GB; two is the stated cap, with room under
+ *  it for the archive's own headers, and it is stated in the dialog's error
+ *  line for the same reason the upload cap is stated in the drop-zone. */
+export const EXPORT_MAX_GB = 2;
+
+/** The same cap in bytes (what server/export.ts sums the files against). */
+export const EXPORT_MAX_BYTES = EXPORT_MAX_GB * 1024 * 1024 * 1024;

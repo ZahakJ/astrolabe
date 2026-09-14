@@ -10,7 +10,7 @@ import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import MiniSearch from "minisearch";
-import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, RoutineMeta, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent, LibraryKind, LibraryPathRef } from "../shared/types.ts";
+import type { AliasEntry, Backlink, ExportScope, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, RoutineMeta, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent, LibraryKind, LibraryPathRef } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
@@ -2058,6 +2058,68 @@ function attachmentRefs(): Map<string, Set<string>> {
     attachmentRefsCache = map;
   }
   return attachmentRefsCache;
+}
+
+// ---------------------------------------------------------------------- export
+
+export interface ExportSelection {
+  /** Note paths in the archive, sorted — every format the index holds. */
+  notes: string[];
+  /** Attachment paths the notes point at, sorted, deduplicated. Empty when
+   *  the caller asked for notes alone. */
+  attachments: string[];
+}
+
+/** What an export takes: the notes a scope names, and the files those notes
+ *  reference by any route the renderer honours. Answered from the index —
+ *  the same `collectAttachmentTargets()` walk the delete dialog and the
+ *  publish allowlist use, so an export can never carry a picture the app
+ *  would not show, nor miss one it would. Not re-parsed: the index already
+ *  knows every note's links, assets, banner and tracker covers, and a second
+ *  parser here would drift from the first the way the three regexes this
+ *  file keeps in step nearly did.
+ *
+ *  A drawing embed (`![[sketch.excalidraw]]`) brings the svg exported beside
+ *  it, on the argument `allowedAttachments()` makes: the picture is what the
+ *  drawing SHOWS, and a reader without Excalidraw has nothing else.
+ *
+ *  Folder and tag scopes are the ADMIN's: every note, published or not —
+ *  the export is admin-only and a visitor never reaches it. */
+export function exportSelection(scope: ExportScope, target: string, withAttachments: boolean): ExportSelection {
+  let paths: string[];
+  switch (scope) {
+    case "note":
+      paths = notes.has(target) ? [target] : [];
+      break;
+    case "folder": {
+      const prefix = target === "" ? "" : `${target}/`;
+      paths = [...notes.keys()].filter((p) => p.startsWith(prefix));
+      break;
+    }
+    case "tag":
+      paths = notesWithTag(target);
+      break;
+    case "vault":
+      paths = [...notes.keys()];
+      break;
+  }
+  paths.sort();
+  const attachments = new Set<string>();
+  if (withAttachments) {
+    for (const notePath of paths) {
+      const record = notes.get(notePath);
+      if (!record) continue;
+      collectAttachmentTargets(record, (att) => attachments.add(att));
+      for (const link of record.links) {
+        const drawing = resolveLink(link.target, false, null);
+        if (drawing && isDrawingPath(drawing)) {
+          const svg = drawingSvgPath(drawing);
+          if (attachmentPaths.has(svg)) attachments.add(svg);
+        }
+      }
+    }
+  }
+  return { notes: paths, attachments: [...attachments].sort() };
 }
 
 /** The notes that embed or link `attachmentRel`, sorted. Empty for a path no

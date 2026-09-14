@@ -107,6 +107,26 @@ export interface SearchMatch { line: number; text: string }
 
 export interface TagCount { tag: string; count: number }
 
+/** `GET /api/export` — what the archive holds. `note` and `folder` take a
+ *  vault path as `target`, `tag` a tag name, `vault` nothing. */
+export type ExportScope = "note" | "folder" | "tag" | "vault";
+
+/** `links=`: keep `[[wikilinks]]` as written, or rewrite the COPIES to
+ *  standard relative Markdown links (shared/exportLinks.ts). */
+export type ExportLinkStyle = "wiki" | "relative";
+
+/** `GET /api/export?…&dry=1` — the dry run: what the same query would
+ *  download, so the dialog can say "12 notes, 4 files, 3.2 MB" (or the cap's
+ *  refusal) before the browser's download manager is involved at all. */
+export interface ExportSummary {
+  notes: number;
+  attachments: number;
+  /** The files' own bytes, before the archive's headers. */
+  bytes: number;
+  /** The name the download will carry. */
+  filename: string;
+}
+
 export interface VaultEvent {
   /** `"bulk"` is the ONE kind that names no file: "too much changed to
    *  narrate — re-read everything you are holding". It is produced only by the
