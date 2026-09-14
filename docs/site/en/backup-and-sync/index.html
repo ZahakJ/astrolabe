@@ -161,6 +161,55 @@ in your history as <em>Snapshot</em>.</p>
 turning on Backup &amp; sync (step 3 above) is what starts keeping history in the first place.</p>
 <p>History is admin-only in both directions: a visitor cannot see that a published note had eleven
 drafts, and cannot read any of them.</p>
+<h2 id="versions-before-and-beside-git"><a class="anchor" href="#versions-before-and-beside-git">Versions, before and beside git</a></h2>
+<p>A note&#39;s history used to begin the day the vault became a repository, and not a minute before.
+Backup &amp; sync is off by default and stays off on most instances for weeks — and in that time the
+editor&#39;s autosave, which writes about 600 ms after you stop typing, turned a bad paste or a
+select-all-and-type into the only copy of the note within a second. The trash catches deletes;
+nothing caught overwrites.</p>
+<p>Now every save keeps a <strong>version</strong>: before the vault writes a note, it puts the text the note held
+a moment ago in the data directory, at <code>ASTROLABE_DATA/versions/&lt;sha1 of the note&#39;s path&gt;/&lt;time&gt;.md</code>,
+beside a small <code>index.json</code> that names the path in clear and lists each version with the moment it
+was replaced, when that text was last saved, its size, and <em>why</em> it was kept. This happens on the
+vault&#39;s one write path, so it covers every write in the product — the autosave, a script&#39;s <code>PUT</code>,
+a tracker or routine fence edited from the Media page, the wikilink rewrites a rename fans out —
+and it needs no git, no remote and no setting. It is on from the first launch.</p>
+<p>They appear in the same <strong>History</strong> section of the right-hand panel, in one timeline with the
+commits, ordered by time. A version row reads quieter than a commit row — a commit is something
+you named, a version is something the app kept — and says why it exists: <em>Earlier save</em>, <em>Before a
+restore</em>, or <em>Before a link rewrite</em>. Tap one to read it rendered; <strong>Restore this revision</strong> asks
+first, then writes it back through the same write path, so the text it replaces is kept as a
+version too, the open editor takes the result as an undoable change, and the toast carries an
+<strong>Undo</strong>.</p>
+<p>What keeps the store honest:</p>
+<ul>
+<li><strong>Bursts collapse.</strong> Two autosaves closer than five minutes keep only the <em>older</em> version, so an
+afternoon of typing leaves one version per five-minute window — and the one it leaves is the
+text from <em>before</em> the burst, which is the one that predates the mistake. A restore is exempt:
+the text it overwrites is always kept.</li>
+<li><strong>Caps in three directions.</strong> At most forty versions per note (the oldest goes); a note over
+2 MB is not versioned; and the whole store is held under 500 MB by evicting the oldest version
+anywhere. Every file is written by temp-file-and-rename at mode <code>0600</code>, like everything else in
+the data directory.</li>
+<li><strong>A rename moves the folder.</strong> A renamed note, or a note inside a moved folder, keeps its past
+under its new name. A note restored from the trash to a name beside its origin (because the
+origin was taken) takes its versions with it.</li>
+<li><strong>A deleted note keeps its versions until you empty the trash.</strong> The trash is the promise that a
+delete is recoverable, and the versions are part of what that means. Erasing an entry for good
+from the trash browser erases its versions too — unless a live note has since taken the same
+path, whose history is then its own.</li>
+<li><strong>Off is a setting.</strong> Settings → <strong>Vault</strong> → <em>Keep note versions</em>, or <code>NOTE_VERSIONS=off</code> in
+<code>.env</code> as that instance&#39;s default. When it is off the History section says so and offers the
+row. Versions never travel: they live in <code>ASTROLABE_DATA</code>, which sync never stages, and a
+visitor cannot list, read or restore them.</li>
+</ul>
+<p>Versions do not replace the backup: they are on this machine, in this instance&#39;s data directory,
+and they thin out with time. Git is what makes a note&#39;s past leave the building. The two stand
+together in the panel for that reason — one is always there, the other is the one worth turning on.</p>
+<p>The API, admin-only: <code>GET /api/versions?path=</code> lists them newest first (<code>{ enabled, versions }</code>),
+<code>GET /api/versions/one?path=&amp;at=</code> answers one version&#39;s text, and <code>POST /api/versions/restore</code>
+<code>{ path, at }</code> writes it back through the ordinary write path and emits the vault&#39;s <code>changed</code>
+event. A visitor gets <code>401</code> from all three.</p>
 <h2 id="two-servers-one-vault"><a class="anchor" href="#two-servers-one-vault">Two servers, one vault</a></h2>
 <p>It is a perfectly ordinary thing to end up with <strong>two Astrolabe servers over the same folder</strong> — the
 desktop app runs a server of its own, and plenty of people also keep one running as a systemd
@@ -293,7 +342,7 @@ note that has been renamed lives under its old name in its older commits.</li>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/publishing/"><span class="pager__kicker">Previous</span><span class="pager__title">Publishing &amp; access</span></a><a class="pager__link pager__link--next" href="../../en/desktop/"><span class="pager__kicker">Next</span><span class="pager__title">The desktop app</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#1-have-a-remote-to-push-to">1. Have a remote to push to</a><a class="toc__link toc__link--2" href="#2-choose-how-this-server-signs-in">2. Choose how this server signs in</a><a class="toc__link toc__link--2" href="#3-turn-it-on">3. Turn it on</a><a class="toc__link toc__link--2" href="#4-sync">4. Sync</a><a class="toc__link toc__link--2" href="#why-pulls-are-fast-forward-only">Why pulls are fast-forward-only</a><a class="toc__link toc__link--2" href="#what-sync-never-stages">What sync never stages</a><a class="toc__link toc__link--2" href="#gitignore-advice">.gitignore advice</a><a class="toc__link toc__link--2" href="#note-history-reading-what-the-backup-kept">Note history: reading what the backup kept</a><a class="toc__link toc__link--3" href="#snapshot-now">Snapshot now</a><a class="toc__link toc__link--2" href="#two-servers-one-vault">Two servers, one vault</a><a class="toc__link toc__link--3" href="#one-sync-at-a-time-across-every-server">One sync at a time — across every server</a><a class="toc__link toc__link--2" href="#settings-travel-with-the-vault">Settings travel with the vault</a><a class="toc__link toc__link--2" href="#things-worth-knowing">Things worth knowing</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#1-have-a-remote-to-push-to">1. Have a remote to push to</a><a class="toc__link toc__link--2" href="#2-choose-how-this-server-signs-in">2. Choose how this server signs in</a><a class="toc__link toc__link--2" href="#3-turn-it-on">3. Turn it on</a><a class="toc__link toc__link--2" href="#4-sync">4. Sync</a><a class="toc__link toc__link--2" href="#why-pulls-are-fast-forward-only">Why pulls are fast-forward-only</a><a class="toc__link toc__link--2" href="#what-sync-never-stages">What sync never stages</a><a class="toc__link toc__link--2" href="#gitignore-advice">.gitignore advice</a><a class="toc__link toc__link--2" href="#note-history-reading-what-the-backup-kept">Note history: reading what the backup kept</a><a class="toc__link toc__link--3" href="#snapshot-now">Snapshot now</a><a class="toc__link toc__link--2" href="#versions-before-and-beside-git">Versions, before and beside git</a><a class="toc__link toc__link--2" href="#two-servers-one-vault">Two servers, one vault</a><a class="toc__link toc__link--3" href="#one-sync-at-a-time-across-every-server">One sync at a time — across every server</a><a class="toc__link toc__link--2" href="#settings-travel-with-the-vault">Settings travel with the vault</a><a class="toc__link toc__link--2" href="#things-worth-knowing">Things worth knowing</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

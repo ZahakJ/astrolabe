@@ -17,6 +17,8 @@ import type {
   NoteData,
   NoteHistoryResponse,
   NoteRevisionBlob,
+  NoteVersionBlob,
+  NoteVersionsResponse,
   NoteState,
   NoteStatesResponse,
   NoteWriteResult,
@@ -945,6 +947,28 @@ export function getNoteRevision(path: string, sha: string): Promise<NoteRevision
     undefined,
     true,
   );
+}
+
+/** The versions the vault's own write path kept for a note — with or without
+ *  git — newest first, plus whether the store is switched on at all. */
+export function getNoteVersions(path: string): Promise<NoteVersionsResponse> {
+  return request<NoteVersionsResponse>(`/api/versions?path=${encodeURIComponent(path)}`, undefined, true);
+}
+
+/** One version's text. `at` is the listing's key for that row. */
+export function getNoteVersion(path: string, at: number): Promise<NoteVersionBlob> {
+  return request<NoteVersionBlob>(
+    `/api/versions/one?path=${encodeURIComponent(path)}&at=${at}`,
+    undefined,
+    true,
+  );
+}
+
+/** Write a version back as the note, through the ordinary write path — so
+ *  the text it replaces is kept too, and an open editor adopts the result
+ *  as an undoable external change. */
+export function restoreNoteVersion(path: string, at: number): Promise<NoteData> {
+  return request<NoteData>("/api/versions/restore", json("POST", { path, at }), true);
 }
 
 /**

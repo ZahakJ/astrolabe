@@ -164,6 +164,20 @@
   color: color-mix(in srgb, var(--danger) 65%, var(--text-muted));
 }
 
+/* A VERSION ROW READS QUIETER THAN A COMMIT ROW. A commit is something a
+   person named; a version is something the app kept. The subject drops from
+   the serif to the UI face and from --text to --text-muted (still text, so
+   never the non-text floor), and the size takes the +/− column in one hue. */
+.s-histrow--version .s-histrow__subject {
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+.s-histrow__size {
+  color: var(--text-muted);
+}
+
 /* ── The revision viewer ───────────────────────────────────────────────────*/
 
 .s-revision-overlay {

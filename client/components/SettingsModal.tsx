@@ -138,6 +138,7 @@ interface Form {
   excludeTags: string;  // comma-separated
   authorSites: string;  // one per line: "https://url | optional title"
   comments: string;     // "" | "on" | "off"
+  noteVersions: string; // "" | "on" | "off" (keep a version before every save; default on)
   share: string;        // "" | "on" | "off" (blog article share row; default on)
   ambient: string;      // "" | "on" | "off" (public masthead ambient layer; default off)
   favicon: string;      // vault path or ""
@@ -272,6 +273,7 @@ function formFrom(s: SettingsResponse): Form {
       .map((site) => (site.title ? `${site.url} | ${site.title}` : site.url))
       .join("\n"),
     comments: s.commentsEnabled === undefined ? "" : s.commentsEnabled ? "on" : "off",
+    noteVersions: s.noteVersions === undefined ? "" : s.noteVersions ? "on" : "off",
     share: s.shareButtons === undefined ? "" : s.shareButtons ? "on" : "off",
     ambient: s.ambient === undefined ? "" : s.ambient ? "on" : "off",
     favicon: s.favicon ?? "",
@@ -1351,6 +1353,9 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   }
   if (f.ambient !== initial.ambient) {
     patch.ambient = f.ambient === "" ? null : f.ambient === "on";
+  }
+  if (f.noteVersions !== initial.noteVersions) {
+    patch.noteVersions = f.noteVersions === "" ? null : f.noteVersions === "on";
   }
   if (
     f.attachMode !== initial.attachMode ||
@@ -3948,6 +3953,24 @@ export default function SettingsModal() {
                       {tf("templatesDetectedHint", { folder: eff.tagsFolder })}
                     </p>
                   )}
+
+                  {/* The net under the autosave. On this tab because it is a
+                      question about what this instance WRITES and where (the
+                      data directory), like every row above it — and not on
+                      Backup & sync, whose rows all describe a repository this
+                      row exists to do without. */}
+                  <div className="s-smodal__sub">{t("history")}</div>
+                  <Row
+                    label={t("rowNoteVersions")}
+                    hint={t("hintNoteVersions")}
+                    env={{ name: "NOTE_VERSIONS", value: eff.noteVersions ? "on" : "off", inherits: form.noteVersions === "" }}
+                  >
+                    <SegmentedControl
+                      label={t("rowNoteVersions")}
+                      segments={onOffSegments(inh.noteVersions)}
+                      {...field("noteVersions")}
+                    />
+                  </Row>
                 </section>
                 )}
 

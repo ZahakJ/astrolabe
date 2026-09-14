@@ -890,6 +890,10 @@ export interface SettingsData {
   authorSites?: AuthorSiteRef[];
   /** Marginalia comments on/off (overrides COMMENTS). */
   commentsEnabled?: boolean;
+  /** Keep a version of every note before each write (overrides
+   *  NOTE_VERSIONS). Absent = on: the net is the default, opting out is the
+   *  choice. */
+  noteVersions?: boolean;
   /** Show the share-links row under blog articles (default ON). */
   shareButtons?: boolean;
   /** The public masthead's ambient layer — a slow, decorative atmosphere
@@ -1057,6 +1061,7 @@ export interface InheritedSettings {
   attachmentsMode: NonNullable<AttachmentSettings["mode"]>;
   languageToggle: boolean;
   commentsEnabled: boolean;
+  noteVersions: boolean;
   shareButtons: boolean;
   ambient: boolean;
 }
@@ -1083,6 +1088,8 @@ export interface EffectiveSettings {
   excludeTags: string[];
   authorSites: AuthorSiteRef[];
   commentsEnabled: boolean;
+  /** Whether the version store is keeping copies right now. */
+  noteVersions: boolean;
   shareButtons: boolean;
   ambient: boolean;
   favicon: string | null;
@@ -1155,6 +1162,7 @@ export interface SettingsPatch {
   excludeTags?: string[] | null;
   authorSites?: AuthorSiteRef[] | null;
   commentsEnabled?: boolean | null;
+  noteVersions?: boolean | null;
   shareButtons?: boolean | null;
   ambient?: boolean | null;
   favicon?: string | null;
@@ -1652,6 +1660,50 @@ export interface NoteHistoryResponse {
 export interface NoteRevisionBlob {
   sha: string;
   path: string;
+  content: string;
+}
+
+// ── Note versions (kept without git) ────────────────────────────────────────
+// A note's history used to begin the day the vault became a git repository;
+// before that a 600 ms autosave over a bad paste was final, and the trash
+// covered deletes only. Every write through the vault's one write path now
+// keeps the PREVIOUS content under ASTROLABE_DATA/versions/, so the undo of
+// last resort exists on a first-run instance too. Admin-only, like history.
+
+/** Why the content this version holds was superseded. `autosave` is any
+ *  ordinary write (the editor, a script, a fence edit); `rename` is a
+ *  wikilink rewrite that followed a rename or folder move; `restore` is a
+ *  version restore — the text it replaced is kept unconditionally, outside
+ *  the collapse window, because a restore is a deliberate act and the text
+ *  it overwrote is the one a reader is most likely to want back. */
+export type VersionReason = "autosave" | "rename" | "restore";
+
+/** One kept version, newest first in a listing. */
+export interface NoteVersion {
+  /** Epoch ms of the write that superseded this content — the file's own
+   *  name in the store, and what the blob and restore routes are asked for. */
+  at: number;
+  /** The note's mtime when it held this content: when this text was last
+   *  saved, which is the moment a reader thinks of as "the version". */
+  mtimeMs: number;
+  /** Bytes of the kept content. */
+  size: number;
+  reason: VersionReason;
+}
+
+/** GET /api/versions?path= */
+export interface NoteVersionsResponse {
+  /** False when the setting (or NOTE_VERSIONS=off) has switched the store
+   *  off — the client says so and offers the settings row rather than
+   *  printing an empty list under a heading that promises versions. */
+  enabled: boolean;
+  versions: NoteVersion[];
+}
+
+/** GET /api/versions/one?path=&at= */
+export interface NoteVersionBlob {
+  path: string;
+  at: number;
   content: string;
 }
 

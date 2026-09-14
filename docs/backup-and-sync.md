@@ -173,6 +173,61 @@ turning on Backup & sync (step 3 above) is what starts keeping history in the fi
 History is admin-only in both directions: a visitor cannot see that a published note had eleven
 drafts, and cannot read any of them.
 
+## Versions, before and beside git
+
+A note's history used to begin the day the vault became a repository, and not a minute before.
+Backup & sync is off by default and stays off on most instances for weeks — and in that time the
+editor's autosave, which writes about 600 ms after you stop typing, turned a bad paste or a
+select-all-and-type into the only copy of the note within a second. The trash catches deletes;
+nothing caught overwrites.
+
+Now every save keeps a **version**: before the vault writes a note, it puts the text the note held
+a moment ago in the data directory, at `ASTROLABE_DATA/versions/<sha1 of the note's path>/<time>.md`,
+beside a small `index.json` that names the path in clear and lists each version with the moment it
+was replaced, when that text was last saved, its size, and *why* it was kept. This happens on the
+vault's one write path, so it covers every write in the product — the autosave, a script's `PUT`,
+a tracker or routine fence edited from the Media page, the wikilink rewrites a rename fans out —
+and it needs no git, no remote and no setting. It is on from the first launch.
+
+They appear in the same **History** section of the right-hand panel, in one timeline with the
+commits, ordered by time. A version row reads quieter than a commit row — a commit is something
+you named, a version is something the app kept — and says why it exists: *Earlier save*, *Before a
+restore*, or *Before a link rewrite*. Tap one to read it rendered; **Restore this revision** asks
+first, then writes it back through the same write path, so the text it replaces is kept as a
+version too, the open editor takes the result as an undoable change, and the toast carries an
+**Undo**.
+
+What keeps the store honest:
+
+- **Bursts collapse.** Two autosaves closer than five minutes keep only the *older* version, so an
+  afternoon of typing leaves one version per five-minute window — and the one it leaves is the
+  text from *before* the burst, which is the one that predates the mistake. A restore is exempt:
+  the text it overwrites is always kept.
+- **Caps in three directions.** At most forty versions per note (the oldest goes); a note over
+  2 MB is not versioned; and the whole store is held under 500 MB by evicting the oldest version
+  anywhere. Every file is written by temp-file-and-rename at mode `0600`, like everything else in
+  the data directory.
+- **A rename moves the folder.** A renamed note, or a note inside a moved folder, keeps its past
+  under its new name. A note restored from the trash to a name beside its origin (because the
+  origin was taken) takes its versions with it.
+- **A deleted note keeps its versions until you empty the trash.** The trash is the promise that a
+  delete is recoverable, and the versions are part of what that means. Erasing an entry for good
+  from the trash browser erases its versions too — unless a live note has since taken the same
+  path, whose history is then its own.
+- **Off is a setting.** Settings → **Vault** → *Keep note versions*, or `NOTE_VERSIONS=off` in
+  `.env` as that instance's default. When it is off the History section says so and offers the
+  row. Versions never travel: they live in `ASTROLABE_DATA`, which sync never stages, and a
+  visitor cannot list, read or restore them.
+
+Versions do not replace the backup: they are on this machine, in this instance's data directory,
+and they thin out with time. Git is what makes a note's past leave the building. The two stand
+together in the panel for that reason — one is always there, the other is the one worth turning on.
+
+The API, admin-only: `GET /api/versions?path=` lists them newest first (`{ enabled, versions }`),
+`GET /api/versions/one?path=&at=` answers one version's text, and `POST /api/versions/restore`
+`{ path, at }` writes it back through the ordinary write path and emits the vault's `changed`
+event. A visitor gets `401` from all three.
+
 ## Two servers, one vault
 
 It is a perfectly ordinary thing to end up with **two Astrolabe servers over the same folder** — the

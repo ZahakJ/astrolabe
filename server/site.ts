@@ -39,6 +39,11 @@ interface SiteConfig {
   legacyHosts: string[];
   attachmentsDir: string; // vault-relative dir uploads land in (ATTACHMENTS_DIR)
   bannerFallback: "generated" | "none"; // BANNER_FALLBACK — hero for banner-less blog posts
+  /** NOTE_VERSIONS — the version store's env default. ON unless the operator
+   *  says `off`: the net is the default and opting out is the choice, the
+   *  opposite polarity to COMMENTS because a missing version costs a note and
+   *  a missing comment box costs nothing. */
+  noteVersions: boolean;
 }
 
 let config: SiteConfig = {
@@ -56,6 +61,7 @@ let config: SiteConfig = {
   legacyHosts: [],
   attachmentsDir: "",
   bannerFallback: "generated",
+  noteVersions: true,
 };
 
 /** DEFAULT_THEME, checked against the shared theme list (plus the "follow"
@@ -165,6 +171,7 @@ export function initSite(env: NodeJS.ProcessEnv = process.env): void {
     // abstract gradient in the blog list + article hero; "none" shows nothing.
     bannerFallback:
       env.BANNER_FALLBACK?.trim().toLowerCase() === "none" ? "none" : "generated",
+    noteVersions: !/^(off|false|0|no)$/i.test(env.NOTE_VERSIONS?.trim() ?? ""),
   };
 }
 
@@ -422,6 +429,12 @@ export function dataDir(): string {
 /** BANNER_FALLBACK: what banner-less blog posts show as their hero. */
 export function bannerFallback(): "generated" | "none" {
   return config.bannerFallback;
+}
+
+/** NOTE_VERSIONS alone — what the versions row's "Inherit" lands on. The
+ *  live merge with settings.json is `noteVersionsEnabled()` in settings.ts. */
+export function envNoteVersions(): boolean {
+  return config.noteVersions;
 }
 
 /** ASTROLABE_DATA/fonts — the directory GET /api/fonts/:file serves from. */
