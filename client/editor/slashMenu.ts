@@ -137,6 +137,21 @@ function slashItems(): SlashItem[] {
       ),
     },
     {
+      // A live list of notes over the search operators — Dataview's one job.
+      label: "Query",
+      displayLabel: "slashQuery",
+      detail: "```query",
+      boost: 6.42,
+      apply: snippet("```query\ntag:${topic}\nsort: date desc\nas: ${list}\n```"),
+    },
+    {
+      label: "Tasks",
+      displayLabel: "slashTasks",
+      detail: "```tasks",
+      boost: 6.41,
+      apply: snippet("```tasks\nnot done\n${due this week}\n```"),
+    },
+    {
       label: "Tracker board",
       displayLabel: "slashTrackerBoard",
       detailKey: "slashTrackerBoardDetail",

@@ -7190,3 +7190,95 @@ html[dir="rtl"] .s-statusbar__spacer {
     display: none;
   }
 }
+
+/* ── Unlinked mentions (client/components/MentionsPanel.tsx) ─────────────
+ * The backlinks list's twin, under it: the same card and context rows, plus
+ * one Link button per mention that stays quiet until hovered. */
+.s-mentions__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.s-mentions__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+.s-mentions__linkall,
+.s-mentions__link {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.s-mentions__linkall:hover,
+.s-mentions__link:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.s-mentions__linkall:disabled,
+.s-mentions__link:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.s-mentions__line {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.s-mentions__context {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* ── On this day (client/components/OnThisDayPanel.tsx) ──────────────── */
+.s-otd__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.s-otd__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.857rem;
+}
+.s-otd__ago {
+  flex: none;
+  min-inline-size: 3.5em;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.s-otd__open {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.s-otd__open:hover {
+  color: var(--text);
+}

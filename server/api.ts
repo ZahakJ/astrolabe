@@ -18,6 +18,7 @@ import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, stripNoteExt } fr
 import { UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import { applyEdit, editRoutinePlan, logEditFor, routineFenceSpans, type EntryPatch } from "../shared/routine.ts";
+import { TASK_LINE_RE, toggleTaskLine } from "../shared/tasks.ts";
 import type {
   AliasesResponse,
   AnchorsResponse,
@@ -89,7 +90,7 @@ import {
   resolveCitekey,
   resolveEmbed,
   resolveLabel,
-  search,
+  search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor,
   searchMatches,
   tags,
   trackers, routines,
@@ -2155,6 +2156,94 @@ api.get("/search", (c) => {
 // label-spelled query FOUND the note would expand it to "no matches". The
 // answer for a hidden note is the answer for a missing one: `[]`, never a 404
 // that confirms the path exists (searchMatches applies the visitor filter).
+api.get("/onthisday", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(onThisDay(c.req.query("date") ?? ""));
+});
+
+api.get("/tasks", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(tasks());
+});
+
+// Flip one task line: `[ ]` ↔ `[x]`, ✅ stamped or removed
+// (shared/tasks.ts toggleTaskLine). The line must still be a task when the
+// write lands, or the answer is 409 — the note may have moved under a fence.
+api.post("/task", async (c) => {
+  const body = await jsonBody(c);
+  const notePath = requiredString(body, "path");
+  const line = typeof body.line === "number" && Number.isInteger(body.line) && body.line >= 1 ? body.line : 0;
+  const done = body.done === true;
+  if (line === 0) throw new VaultError(400, "A task needs a line");
+  const today = typeof body.today === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.today) ? body.today : new Date().toISOString().slice(0, 10);
+  const note = await readNote(notePath);
+  const lines = note.content.split(/(?<=\n)/);
+  const raw = lines[line - 1];
+  if (raw === undefined) throw new VaultError(409, "That line is gone", "stale");
+  const eol = /\r?\n$/.exec(raw)?.[0] ?? "";
+  const text = raw.slice(0, raw.length - eol.length);
+  if (!TASK_LINE_RE.test(text)) throw new VaultError(409, "That line is no longer a task", "stale");
+  const next = toggleTaskLine(text, done, today);
+  if (next !== text) {
+    lines[line - 1] = next + eol;
+    suppressWatcherEcho(note.path);
+    await writeNote(note.path, lines.join(""), note.mtimeMs);
+    emitEvent({ kind: "changed", path: note.path });
+    await indexFile(note.path);
+  }
+  return c.json({ ok: true, path: note.path, line, done });
+});
+
+api.get("/mentions", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(mentions(c.req.query("path") ?? ""));
+});
+
+// Turn one prose mention into a link: the phrase at [start, end) of `line`
+// in `path` becomes `[[Target]]` (or `[[Target|phrase]]` when the words are
+// not the title's own spelling). The slice is re-checked against `phrase`
+// before anything is written — the note may have moved under the panel —
+// and the write goes under the mtime precondition like every line edit.
+api.post("/mentions/link", async (c) => {
+  const body = await jsonBody(c);
+  const notePath = requiredString(body, "path");
+  const target = requiredString(body, "target");
+  const phrase = requiredString(body, "phrase");
+  const line = typeof body.line === "number" && Number.isInteger(body.line) && body.line >= 1 ? body.line : 0;
+  const start = typeof body.start === "number" && Number.isInteger(body.start) && body.start >= 0 ? body.start : -1;
+  const end = typeof body.end === "number" && Number.isInteger(body.end) && body.end > start ? body.end : -1;
+  if (line === 0 || start < 0 || end < 0) throw new VaultError(400, "A mention needs a line and a span");
+  const note = await readNote(notePath);
+  const lines = note.content.split(/(?<=\n)/);
+  const raw = lines[line - 1];
+  if (raw === undefined) throw new VaultError(409, "That line is gone", "stale");
+  const text = raw.replace(/\r?\n$/, "");
+  if (text.slice(start, end) !== phrase) throw new VaultError(409, "That mention has moved", "stale");
+  const spelling = linkSpellingFor(target);
+  const link = phrase === spelling ? `[[${spelling}]]` : `[[${spelling}|${phrase}]]`;
+  lines[line - 1] = `${text.slice(0, start)}${link}${text.slice(end)}${raw.slice(text.length)}`;
+  const updated = lines.join("");
+  suppressWatcherEcho(note.path);
+  await writeNote(note.path, updated, note.mtimeMs);
+  emitEvent({ kind: "changed", path: note.path });
+  await indexFile(note.path);
+  return c.json({ ok: true, path: note.path, line, link });
+});
+
+api.get("/query", (c) => {
+  const limited = isPublishLimited(c);
+  const key = c.req.query("sort") ?? "date";
+  const sortKey = (["date", "modified", "title", "path", "relevance"] as const).find((k) => k === key) ?? "date";
+  const dir = c.req.query("dir") === "asc" ? "asc" : "desc";
+  const limit = Number(c.req.query("limit")) || 100;
+  return c.json(
+    queryNotes(c.req.query("q") ?? "", limited, languageScope(c, limited).lang, { key: sortKey, dir }, limit, {
+      canonicalTag,
+      expandTerms: expandTagQuery,
+    }),
+  );
+});
+
 api.get("/search/matches", (c) => {
   const limited = isPublishLimited(c);
   return c.json(

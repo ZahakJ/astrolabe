@@ -43,7 +43,7 @@ import type {
   UploadResult,
   VaultEvent,
   XrefResponse,
-  VisibilityImpact, PublicFolderRef, RoutineMeta
+  VisibilityImpact, PublicFolderRef, Mention, OnThisDayHit, QueryHit, TaskMeta, RoutineMeta
 } from "../shared/types.ts";
 import type { EntryPatch } from "../shared/routine.ts";
 import type { TrackerFields } from "../shared/tracker.ts";
@@ -585,6 +585,16 @@ export function getBacklinks(path: string): Promise<Backlink[]> {
   return request<Backlink[]>(`/api/backlinks?path=${encodeURIComponent(path)}`);
 }
 
+/** Prose that names the open note without linking it (admin only). */
+export function getMentions(path: string): Promise<Mention[]> {
+  return request<Mention[]>(`/api/mentions?path=${encodeURIComponent(path)}`);
+}
+
+/** Wrap one mention in a wikilink to `target`. */
+export function linkMention(m: Mention, target: string): Promise<{ ok: true; path: string; line: number; link: string }> {
+  return request("/api/mentions/link", json("POST", { path: m.path, line: m.line, start: m.start, end: m.end, phrase: m.phrase, target }));
+}
+
 export function getTags(): Promise<TagCount[]> {
   return request<TagCount[]>("/api/tags");
 }
@@ -649,6 +659,25 @@ export function updateTracker(
   delta = 0,
 ): Promise<{ ok: true; path: string; index: number }> {
   return request<{ ok: true; path: string; index: number }>("/api/tracker", json("POST", { path, index, set, delta }));
+}
+
+/** The archive on this month-day in earlier years (admin). */
+export function getOnThisDay(iso: string): Promise<OnThisDayHit[]> {
+  return request<OnThisDayHit[]>(`/api/onthisday?date=${encodeURIComponent(iso)}`);
+}
+
+/** Every task in the vault (admin), and the flip of one line. */
+export function getTasks(): Promise<TaskMeta[]> {
+  return request<TaskMeta[]>("/api/tasks");
+}
+export function toggleTask(path: string, line: number, done: boolean, today: string): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/api/task", json("POST", { path, line, done, today }));
+}
+
+/** The ```query fence's rows (shared/queryFence.ts). */
+export function queryNotes(q: string, sort: string, dir: "asc" | "desc", limit: number, signal?: AbortSignal): Promise<QueryHit[]> {
+  const qs = `q=${encodeURIComponent(q)}&sort=${encodeURIComponent(sort)}&dir=${dir}&limit=${limit}`;
+  return request<QueryHit[]>(`/api/query?${qs}`, signal ? { signal } : undefined);
 }
 
 export function getTrackers(): Promise<TrackerMeta[]> {

@@ -1,0 +1,138 @@
+/* THE QUERY FENCE (client/reading/query.ts) — one skin, every surface.
+ * Tokens only; logical properties; each row takes its title's direction. */
+
+.s-rv-query {
+  margin-block: 1.2em;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  font-family: var(--font-ui);
+}
+
+.s-rv-query__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 8px;
+}
+
+.s-rv-query__q {
+  font-family: var(--font-mono);
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.s-rv-query__count {
+  font-size: 0.714rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.s-rv-query__empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.s-rv-query__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.s-rv-query__row {
+  display: grid;
+  gap: 2px;
+  padding-block: 6px;
+  border-block-end: 1px solid var(--border);
+}
+.s-rv-query__row:last-child {
+  border-block-end: 0;
+}
+
+.s-rv-query__title,
+.s-rv-query__link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+.s-rv-query__title:hover,
+.s-rv-query__link:hover {
+  text-decoration: underline;
+}
+
+.s-rv-query__excerpt {
+  margin: 0;
+  font-size: 0.929rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.s-rv-query__meta {
+  font-size: 0.786rem;
+  color: var(--text-faint);
+}
+
+.s-rv-query__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.s-rv-query__card {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  min-inline-size: 0;
+}
+
+.s-rv-query__tablewrap {
+  overflow-x: auto;
+}
+
+.s-rv-query__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 0.929rem;
+}
+
+.s-rv-query__table th,
+.s-rv-query__table td {
+  padding: 6px 8px;
+  border-block-end: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.s-rv-query__table thead th {
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.s-rv-query__tags,
+.s-rv-query__date,
+.s-rv-query__modified,
+.s-rv-query__path {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.s-rv-query__tags {
+  white-space: normal;
+}
+.s-rv-query__excerpt {
+  max-inline-size: 40ch;
+}

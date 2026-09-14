@@ -43,8 +43,11 @@
  *  lowercased and unquoted; `ms` is filled in only for the date operators,
  *  which parse at the boundary so the index never sees a string date. */
 export interface QueryFilter {
-  kind: "tag" | "path" | "is" | "before" | "after" | "linkto" | "linkfrom";
+  kind: "tag" | "path" | "is" | "before" | "after" | "linkto" | "linkfrom" | "prop";
   value: string;
+  /** `prop:status=reading` → key "status", value "reading"; `prop:author`
+   *  alone is presence: key "author", value "". Keys are lowercased. */
+  key?: string;
   /** Epoch ms — `before`/`after` only. */
   ms: number;
   /** `-tag:draft`: keep the notes this filter does NOT match. */
@@ -68,6 +71,7 @@ export const SEARCH_OPERATORS = [
   "after",
   "linkto",
   "linkfrom",
+  "prop",
 ] as const;
 
 /** The two values `is:` accepts. Anything else is a word. */
@@ -145,6 +149,15 @@ function asFilter(token: string): QueryFilter | null {
     case "after": {
       const ms = dayStartMs(value);
       return ms === null ? null : { kind, value, ms, negated };
+    }
+    case "prop": {
+      // A frontmatter property: `prop:status=reading` matches the value,
+      // `prop:author` matches any note that has the key at all.
+      const eq = value.indexOf("=");
+      const key = (eq === -1 ? value : value.slice(0, eq)).trim().toLowerCase();
+      if (key === "") return null;
+      const want = eq === -1 ? "" : value.slice(eq + 1).trim().toLowerCase();
+      return { kind, key, value: want, ms: 0, negated };
     }
     default:
       return null;
