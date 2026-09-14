@@ -12,8 +12,10 @@ import type {
   TrashEntry,
   TreeNode,
   VaultEvent,
+  VersionReason,
 } from "../shared/types.ts";
 import { isNotePath, noteExtOf } from "../shared/noteFormat.ts";
+import { captureVersion, dropVersions, dropVersionsUnder, moveVersions } from "./versions.ts";
 
 export class VaultError extends Error {
   status: number;
@@ -538,42 +540,61 @@ async function writeFileAtomic(abs: string, content: string): Promise<number> {
  *  its own `stat`, so a tolerance would only serve to accept a real conflict on
  *  filesystems whose mtime granularity is coarse — which is the wrong direction
  *  to fail. It remains a net rather than a lock: two writes inside one tick of
- *  a coarse clock are genuinely indistinguishable, and the contract says so. */
+ *  a coarse clock are genuinely indistinguishable, and the contract says so.
+ *
+ *  `reason` names why the content being replaced is being replaced, for the
+ *  version this write leaves behind (server/versions.ts). Every mutating path
+ *  in the product comes through here — the autosave, the fence routes, the
+ *  rename link-rewrites, a restore — which is why the versioning hooks in at
+ *  this seam and nowhere above it: hooking the HTTP layer would have missed
+ *  every write a route makes on a note the reader never named. */
 export async function writeNote(
   rel: string,
   content: string,
   baseMtimeMs?: number,
+  reason: VersionReason = "autosave",
 ): Promise<NoteData> {
   const relPath = assertMarkdown(rel);
   const abs = safeAbs(relPath);
-  if (baseMtimeMs !== undefined) {
-    let current: number | null = null;
-    try {
-      current = (await fs.stat(abs)).mtimeMs;
-    } catch (err) {
-      // ENOENT ONLY. Gone since the caller read it: writing recreates it,
-      // which is kinder than refusing to save work into a file somebody else
-      // deleted — and the caller hears about the deletion from the watcher
-      // either way.
-      //
-      // ANY OTHER errno means we could not LOOK, which is not the same as
-      // nothing being there — and this `catch` used to swallow all of them,
-      // so one EACCES or EIO on the stat turned a guarded save into an
-      // unguarded one and the precondition this whole function exists for was
-      // skipped in silence. A write we cannot check is a write that can
-      // clobber, so it is refused and the reader is told why.
-      if (!isMissing(err)) throw writeFailure(err, relPath);
-    }
-    if (current !== null && current !== baseMtimeMs) {
-      throw new VaultError(409, `Note changed on disk: ${relPath}`, "stale");
-    }
+  // ONE stat serves both the precondition and the version: the file about to
+  // be replaced, as it stands right now.
+  let current: { mtimeMs: number; size: number } | null = null;
+  try {
+    const stat = await fs.stat(abs);
+    current = { mtimeMs: stat.mtimeMs, size: stat.size };
+  } catch (err) {
+    // ENOENT ONLY. Gone since the caller read it: writing recreates it,
+    // which is kinder than refusing to save work into a file somebody else
+    // deleted — and the caller hears about the deletion from the watcher
+    // either way. There is then nothing to compare against and nothing to
+    // keep a version of.
+    //
+    // ANY OTHER errno means we could not LOOK, which is not the same as
+    // nothing being there — and this `catch` used to swallow all of them,
+    // so one EACCES or EIO on the stat turned a guarded save into an
+    // unguarded one and the precondition this whole function exists for was
+    // skipped in silence. A write we cannot check is a write that can
+    // clobber, so it is refused and the reader is told why. An UNGUARDED
+    // write (no baseMtimeMs) proceeds exactly as it always did and simply
+    // keeps no version: the version is insurance on the save, never a
+    // condition of it.
+    if (baseMtimeMs !== undefined && !isMissing(err)) throw writeFailure(err, relPath);
   }
+  if (baseMtimeMs !== undefined && current !== null && current.mtimeMs !== baseMtimeMs) {
+    throw new VaultError(409, `Note changed on disk: ${relPath}`, "stale");
+  }
+  // The previous content is READ before the rename replaces it and WRITTEN to
+  // the store only after the note is safely on disk — a version of a save
+  // that failed would be a version of nothing.
+  const version = await captureVersion(relPath, abs, current, content, reason);
   try {
     await fs.mkdir(path.dirname(abs), { recursive: true });
   } catch (err) {
     throw writeFailure(err, relPath);
   }
-  return { path: relPath, content, mtimeMs: await writeFileAtomic(abs, content) };
+  const mtimeMs = await writeFileAtomic(abs, content);
+  if (version) await version.keep();
+  return { path: relPath, content, mtimeMs };
 }
 
 /** True when `rel` names an existing note file. Callers that emit their own
@@ -615,6 +636,10 @@ export async function renameNote(rel: string, toRel: string): Promise<void> {
   suppress(fromPath);
   suppress(toPath);
   await fs.rename(fromAbs, toAbs);
+  // The note's past follows its name: the versions are keyed by path, and a
+  // rename that left them behind would make "Rename" the one gesture that
+  // silently erased a note's history.
+  await moveVersions(fromPath, toPath);
   emit({ kind: "renamed", path: fromPath, toPath });
 }
 
@@ -1026,6 +1051,11 @@ export async function moveFolder(rel: string, toRel: string): Promise<MoveFolder
     }
     await fs.rm(fromAbs, { recursive: true, force: true });
   }
+  // Every note in the subtree took a new path; its versions go with it, for
+  // the reason renameNote gives.
+  for (const m of moved) {
+    if (isNotePath(m.from)) await moveVersions(m.from, m.to);
+  }
   emit({ kind: "renamed", path: fromPath, toPath, dir: true });
   return { notes: notes.length, moved };
 }
@@ -1371,6 +1401,20 @@ export async function restoreFromTrash(name: string): Promise<RestoreResult> {
     await fs.cp(abs, destAbs, { recursive: true });
     await fs.rm(abs, { recursive: true, force: true });
   }
+  // A deleted note KEEPS its versions (they sit under its origin path), so a
+  // restore to the origin needs nothing. A restore that had to land beside
+  // the origin — "Essay-2.md" because "Essay.md" was taken — is a rename in
+  // effect, and the versions follow it exactly as they follow a rename.
+  // Only when the origin was RECORDED: an entry restored to the root by its
+  // bare name has no path its history could have been kept under.
+  if (recorded && rel !== wanted) {
+    if (stat.isDirectory()) {
+      const { notes: restored } = await listFolderFiles(rel);
+      for (const p of restored) await moveVersions(`${wanted}${p.slice(rel.length)}`, p);
+    } else if (isNotePath(rel)) {
+      await moveVersions(wanted, rel);
+    }
+  }
   await forgetTrashed(name);
   return { path: rel, renamed: rel !== wanted, dir: stat.isDirectory() };
 }
@@ -1384,8 +1428,27 @@ export async function purgeFromTrash(name: string): Promise<void> {
   } catch {
     throw new VaultError(404, `Trash entry not found: ${name}`);
   }
+  // Read BEFORE forgetting: the manifest is the only record of where this
+  // entry lived, and that path is where its versions are kept.
+  const record = (await readManifest())[name];
   await fs.rm(abs, { recursive: true, force: true });
   await forgetTrashed(name);
+  // A deleted note keeps its versions until the trash lets go of it — the
+  // trash is the promise that a delete is recoverable, and the versions are
+  // part of what "recoverable" means. Erasing the entry for good is the one
+  // moment the versions should go too, with one guard: a path a LIVE note
+  // has since taken again is that note's history now, not the dead one's.
+  if (record?.origin && record.kind !== "attachment") {
+    const live = async (rel: string): Promise<boolean> => {
+      try {
+        return await exists(safeAbs(rel));
+      } catch {
+        return false;
+      }
+    };
+    if (record.kind === "folder") await dropVersionsUnder(record.origin, live);
+    else if (!(await live(record.origin))) await dropVersions(record.origin);
+  }
 }
 
 /** Does a NAME exist at `abs` — `lstat`, not `access`.
