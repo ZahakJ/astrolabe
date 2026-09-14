@@ -259,6 +259,7 @@ other. To go from one to the other, uninstall first.
 ## What this app does not do
 
 No camera, no location, no contacts, no storage, no analytics, no push. Its
-manifest asks for `INTERNET` and nothing else. It has no offline mode — when the
-server is unreachable, it says so and stops, because the alternative was a second
-copy of your vault with its own opinions.
+manifest asks for `INTERNET` and nothing else. It has no offline mode of its own:
+the page it shows keeps the web app's offline copy (`docs/offline.md`) the way a
+browser does, and when there is no copy and no server, it says so and stops,
+because the alternative was a second copy of your vault with its own opinions.

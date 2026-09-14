@@ -174,6 +174,27 @@ export function timeoutError(timeoutMs: number): ApiError {
   return new ApiError(`Timed out after ${Math.round(timeoutMs / 1000)}s`, 0, "timeout");
 }
 
+/** OFFLINE, AS THE WORKER SEES IT. The service worker (client/sw.ts) marks
+ *  an answer it served from the device's copy with `X-Astrolabe-Offline`;
+ *  the first such answer, and the first plain one after it, each fire an
+ *  event, so the offline strip (components/OfflineStrip.tsx) follows what
+ *  is actually happening to requests rather than `navigator.onLine`'s guess. */
+export const SERVED_OFFLINE_EVENT = "astrolabe:served-offline";
+export const SERVED_ONLINE_EVENT = "astrolabe:served-online";
+let servingOffline = false;
+/** For a listener that mounts after the first answers came in — the strip
+ *  renders once the session is known, and /api/me is the answer that
+ *  made it known. */
+export function servingOfflineNow(): boolean {
+  return servingOffline;
+}
+function noteServedFrom(res: Response): void {
+  const offline = res.headers.get("X-Astrolabe-Offline") === "1";
+  if (offline === servingOffline) return;
+  servingOffline = offline;
+  window.dispatchEvent(new CustomEvent(offline ? SERVED_OFFLINE_EVENT : SERVED_ONLINE_EVENT));
+}
+
 async function request<T>(
   url: string,
   init?: RequestInit,
@@ -196,6 +217,7 @@ async function request<T>(
     if (signal.aborted && caller?.aborted !== true) throw timeoutError(timeoutMs);
     throw err;
   }
+  noteServedFrom(res);
   let body: unknown = null;
   let parsed = false;
   try {

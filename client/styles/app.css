@@ -279,7 +279,7 @@ select:focus,
 /* Visitor preview adds a ROW above every pane (never an overlay — see the
    preview strip near the bottom of this file). The flipped variant carries
    two classes, so it outranks .s-app--flip above by specificity. */
-.s-app--preview {
+.s-app--notice {
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     "notice  notice notice"
@@ -287,7 +287,7 @@ select:focus,
     "status  status status";
 }
 
-.s-app--preview.s-app--flip {
+.s-app--notice.s-app--flip {
   grid-template-areas:
     "notice notice notice"
     "panel  main   sidebar"
@@ -296,7 +296,7 @@ select:focus,
 
 /* The reopen handles are absolute inside the shell: start them below the
    strip so a collapsed pane's door never covers it. */
-.s-app--preview .s-reopen {
+.s-app--notice .s-reopen {
   top: var(--preview-h);
 }
 
@@ -4407,6 +4407,20 @@ select:focus,
   grid-area: notice;
 }
 
+/* `.s-app--notice` (App.tsx) is the shell with a notice row — the preview
+   banner's or the offline strip's; the grid rules above are keyed on it. */
+/* The offline strip (components/OfflineStrip.tsx) wears the same dress in
+   the same row, in the muted ink rather than the accent: it reports a
+   condition, it does not name a mode the reader chose. */
+.s-offline-strip {
+  background: color-mix(in srgb, var(--text-muted) 12%, var(--bg-raised));
+  border-bottom-color: var(--border);
+  box-shadow: inset 0 2px 0 var(--text-muted);
+}
+.s-offline-strip .s-preview-strip__icon {
+  color: var(--text-muted);
+}
+
 .s-preview-strip__icon {
   display: inline-flex;
   flex: none;
@@ -5102,7 +5116,7 @@ button.s-title:hover {
       "status status";
   }
 
-  .s-app--preview {
+  .s-app--notice {
     grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
       "notice notice"
@@ -5110,7 +5124,7 @@ button.s-title:hover {
       "status status";
   }
 
-  .s-app--preview.s-app--flip {
+  .s-app--notice.s-app--flip {
     grid-template-areas:
       "notice notice"
       "panel  main"
@@ -6291,8 +6305,8 @@ button.s-title:hover {
 }
 
 @media (max-width: 700px) {
-  .s-app--preview,
-  .s-app--preview.s-app--flip {
+  .s-app--notice,
+  .s-app--notice.s-app--flip {
     grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
       "notice"

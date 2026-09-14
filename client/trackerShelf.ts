@@ -24,6 +24,10 @@ export function loadShelf(force: boolean): Promise<TrackerMeta[]> {
       for (const fn of listeners) fn();
       return list;
     })
+    // A read that fails (the server down, the network gone) keeps whatever
+    // the shelf held: the callers are `void`, and an unhandled rejection
+    // here reached the reader as a crash toast over a note that was fine.
+    .catch(() => shelf ?? [])
     .finally(() => {
       inflight = null;
     });

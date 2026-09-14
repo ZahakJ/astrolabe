@@ -47,6 +47,8 @@ import { insertTemplateCommand, newNoteFromTemplateCommand } from "./templateAct
 import { applyUrl, installRouter, syncUrl } from "./router.ts";
 import { openTour, subscribeTourSeen, tourSeen } from "./tour.ts";
 import { maybeOpenWhatsNew } from "./whatsnew/door.ts";
+import { syncOfflineWorker, useOffline } from "./offline.ts";
+import OfflineStrip from "./components/OfflineStrip.tsx";
 import { recentSelfWrite, sidebarIsDrawer, useStore } from "./state.ts";
 import {
   adoptExternalChange,
@@ -233,6 +235,7 @@ export default function App() {
     (s) => s.workspace.layout.columns.length > 1 || s.workspace.layout.columns[0].length > 1,
   );
   const admin = useStore((s) => s.admin);
+  const offline = useOffline();
   // Only the SSE effect below reads this, and only to reconnect the stream
   // when the reader's language changes (see the comment there).
   const language = useStore((s) => s.language);
@@ -417,6 +420,18 @@ export default function App() {
     const timer = window.setTimeout(maybeOpenWhatsNew, 900);
     return () => window.clearTimeout(timer);
   }, [authReady, admin, blogVisitor]);
+
+  // OFFLINE READING (client/offline.ts): the worker follows the session —
+  // registered for an admin with the switch on, unregistered and its copy
+  // deleted the moment the session ends. Re-run on the switch's own event
+  // so the settings row acts at once.
+  useEffect(() => {
+    if (!authReady) return;
+    void syncOfflineWorker(admin);
+    const again = (): void => void syncOfflineWorker(admin);
+    window.addEventListener("astrolabe:offline", again);
+    return () => window.removeEventListener("astrolabe:offline", again);
+  }, [authReady, admin]);
 
   // Navigating to another note dismisses lingering PLAIN toasts — a message
   // about the previous interaction must not overlay unrelated content. An
@@ -1022,7 +1037,9 @@ export default function App() {
     // sibling's class is not something CSS can ask about.
     panelCollapsed ? "s-app--nopanel" : "",
     zen ? "s-app--zen" : "",
-    previewVisitor ? "s-app--preview" : "",
+    // The notice row exists while EITHER strip is up: the preview banner or
+    // the offline strip (both components render into grid-area notice).
+    previewVisitor || offline ? "s-app--notice" : "",
     readingLocked ? "s-app--reading" : "",
     // Zen's ✕ steps below whichever strip is up; one class covers both so the
     // offset rule does not have to enumerate the modes.
@@ -1040,6 +1057,7 @@ export default function App() {
       </a>
       {/* Grid row above every pane (grid-area: notice) — never an overlay. */}
       <PreviewBanner />
+      <OfflineStrip />
       {/* The sidebar's own boundary. Its fallback holds the grid column open
           at the width the pane will occupy, so the shell does not reflow
           sideways when the chunk lands. */}

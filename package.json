@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "concurrently -n server,web -c yellow,cyan \"node --env-file-if-exists=.env --watch server/index.ts\" \"vite\"",
-    "build": "vite build",
+    "build": "vite build && node scripts/build-sw.mjs",
     "start": "npm run build && node --env-file-if-exists=.env server/index.ts",
     "serve": "node --env-file-if-exists=.env server/index.ts",
     "hash-password": "node scripts/hash-password.ts",

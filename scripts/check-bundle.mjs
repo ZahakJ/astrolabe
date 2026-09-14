@@ -25,7 +25,7 @@
 // Budgets are raw (uncompressed) bytes: they measure what the build produced,
 // independently of how a given deployment negotiates encoding.
 
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -1122,6 +1122,21 @@ else console.log(`  ok    editor chunk                       ${manifest[editorKe
     fail(`the entry chunk does not carry package.json's version ${pkgVersion} — rebuild after bumping (npm run build)`);
   } else {
     console.log(`  ok    entry carries version ${pkgVersion}`);
+  }
+}
+
+// The service worker (scripts/build-sw.mjs) is a second build step after
+// vite's, and a dist made with a bare `vite build` has none — or last
+// release's. Either ships a site that cannot be read offline, or one that
+// caches under the wrong version's name.
+{
+  const pkgVersion = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")).version;
+  const swPath = path.join(dist, "sw.js");
+  const swSrc = existsSync(swPath) ? readFileSync(swPath, "utf8") : "";
+  if (!swSrc.includes(JSON.stringify(pkgVersion))) {
+    fail(`dist/sw.js is missing or built for another version — run npm run build, not vite build alone`);
+  } else {
+    console.log(`  ok    sw.js carries version ${pkgVersion}`);
   }
 }
 
