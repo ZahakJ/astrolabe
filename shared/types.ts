@@ -1,6 +1,7 @@
 // Shared types — the wire contract between server and client. Do not drift from these.
 
 import type { AttachmentMode } from "./attachments.ts";
+import type { RoutineEntry, RoutinePlan } from "./routine.ts";
 import type { BookHighlight, BookState } from "./bookAnchor.ts";
 import type { FolderIcon, FolderMark } from "./folderIcons.ts";
 import type { TrackerRating, TrackerStatus } from "./tracker.ts";
@@ -728,6 +729,24 @@ export interface TrackerMeta {
   /** The note's mtime in epoch ms — the board's sort key. NOT the post date:
    *  `date:` in frontmatter is when the thing was started, and a shelf sorts
    *  by what you touched last. */
+  updatedMs: number;
+}
+
+// GET /api/routines → RoutineMeta[]: every ```routine plan in the vault with
+// its log, one row per plan, newest-touched first. ADMIN ONLY: the Routines
+// page writes, and a visitor's card is drawn from the published note itself,
+// so no public shape of this exists. Template notes are INCLUDED and marked,
+// because the page's form offers them as templates — the one query in the
+// product that wants the stencils.
+export interface RoutineMeta {
+  path: string;
+  /** Which plan of the note, counting routine fences only. */
+  index: number;
+  noteTitle: string;
+  plan: RoutinePlan;
+  entries: RoutineEntry[];
+  /** True when the note lives in the templates folder. */
+  template: boolean;
   updatedMs: number;
 }
 

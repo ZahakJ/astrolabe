@@ -43,7 +43,9 @@ import type {
   UploadResult,
   VaultEvent,
   XrefResponse,
-  VisibilityImpact, PublicFolderRef } from "../shared/types.ts";
+  VisibilityImpact, PublicFolderRef, RoutineMeta
+} from "../shared/types.ts";
+import type { EntryPatch } from "../shared/routine.ts";
 import type { TrackerFields } from "../shared/tracker.ts";
 
 // ── Visitor preview (admin-only) ────────────────────────────────────────────
@@ -651,6 +653,21 @@ export function updateTracker(
 
 export function getTrackers(): Promise<TrackerMeta[]> {
   return request<TrackerMeta[]>("/api/trackers");
+}
+
+/** Record one day of a routine, and/or replace its plan, from the Routines
+ *  page. The server rewrites the note's fences in place (shared/routine.ts). */
+export function updateRoutine(
+  path: string,
+  index: number,
+  entry: EntryPatch | null,
+  plan: string | null = null,
+): Promise<{ ok: true; path: string; index: number }> {
+  return request<{ ok: true; path: string; index: number }>("/api/routine", json("POST", { path, index, entry, plan }));
+}
+
+export function getRoutines(): Promise<RoutineMeta[]> {
+  return request<RoutineMeta[]>("/api/routines");
 }
 
 /**
