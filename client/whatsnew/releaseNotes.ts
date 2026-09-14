@@ -261,9 +261,107 @@ function eyeDemo(host: HTMLElement, lang: Lang): void {
   host.replaceChildren(wrap);
 }
 
+// ── 3.13.0: an ayah drawn in, harakat put on ────────────────────────────────
+// DOM rather than SVG: Arabic script needs the browser's shaping and a real
+// right-to-left line, which an SVG the stage forces left-to-right cannot
+// give it (the first drawing ran the verse off the frame). The loop is CSS
+// (whatsnew.css, ".s-wn-ayah", ".s-wn-harakat").
+
+function ayahDemo(host: HTMLElement, lang: Lang): void {
+  const wrap = el("div", "s-wn-ayah");
+  wrap.appendChild(el("div", "s-wn-ayah__src", "> [!ayah] 2:255"));
+  const callout = el("div", "s-wn-ayah__callout");
+  callout.appendChild(el("p", "s-wn-ayah__verse", "ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ لَا تَأْخُذُهُۥ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُۥ مَا فِى ٱلسَّمَٰوَٰتِ وَمَا فِى ٱلْأَرْضِ ۗ …"));
+  callout.appendChild(el("p", "s-wn-ayah__ref", lang === "ar" ? "البقرة · ٢٥٥" : "Al-Baqarah · 255"));
+  wrap.appendChild(callout);
+  const hadith = el("div", "s-wn-ayah__hadith", "> [!hadith] Bukhari 1");
+  hadith.appendChild(el("b", "", lang === "ar" ? "→ من مجلد مجموعتك" : "→ from your corpus folder"));
+  wrap.appendChild(hadith);
+  host.replaceChildren(wrap);
+}
+
+function harakatDemo(host: HTMLElement, lang: Lang): void {
+  void lang; // the line is Arabic in both languages; the caption is a chord
+  const wrap = el("div", "s-wn-harakat");
+  const line = el("div", "s-wn-harakat__line", "كتب الطالب الدرس");
+  line.appendChild(el("span", "s-wn-harakat__pointed", "كَتَبَ الطَّالِبُ الدَّرْسَ"));
+  wrap.appendChild(line);
+  wrap.appendChild(el("div", "s-wn-harakat__keys", "Ctrl/Cmd Alt ;"));
+  const palette = el("div", "s-wn-harakat__palette");
+  ["ـَ", "ـُ", "ـِ", "ـّ", "ـْ", "ـً", "ـٰ"].forEach((mark, i) => {
+    const key = el("span", "s-wn-harakat__key", mark);
+    key.style.setProperty("--i", String(i));
+    palette.appendChild(key);
+  });
+  wrap.appendChild(palette);
+  host.replaceChildren(wrap);
+}
+
 // ── The registry ────────────────────────────────────────────────────────────
 
 export const RELEASES: Release[] = [
+  {
+    version: "3.14.0",
+    title: { en: "Counting from the caret", ar: "العدّ من المؤشر" },
+    slides: [
+      {
+        title: { en: "Relative line numbers, for vim", ar: "أرقام أسطر نسبية، لـ Vim" },
+        body: {
+          en: "With vim keys on, the margin counts lines outward from the caret — 7j and 3k read straight off it — and the caret's line shows its own number. The column sits against the text and follows every move. Its switch lives under Vim keys in Settings → This device.",
+          ar: "مع مفاتيح Vim، يعدّ الهامش الأسطر بعيدًا عن المؤشر (تُقرأ 7j و3k منه مباشرة) ويعرض سطر المؤشر رقمه. يجلس العمود بجانب النص ويتبع كل حركة. مفتاحه تحت مفاتيح Vim في الإعدادات ← هذا الجهاز.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => {
+            const lines = lang === "ar"
+              ? ["في البدء كانت الكلمة", "ثم جاء الهامش", "يعدّ من حيث أنت", "سبعة أسطر إلى أسفل", "ثلاثة إلى أعلى", "والباقي حساب", "لا تخمين فيه", "هذا السطر الآن", "وما بعده يعدّ", "من جديد"]
+              : ["In the beginning was the word,", "then the margin,", "counting from where you are:", "seven lines down,", "three up,", "and the rest is arithmetic", "with no guessing in it.", "This line, now.", "And after it the count", "starts again."];
+            const caret = 7;
+            const rows = lines.map((text, i) => {
+              const y = 44 + i * 18;
+              const n = i === caret ? String(i + 1) : String(Math.abs(i - caret));
+              const cls = i === caret ? "wa-pulse" : "";
+              const numFill = i === caret ? "var(--accent)" : "var(--text-faint)";
+              const textFill = i === caret ? "var(--text)" : "var(--text-muted)";
+              return `<g><text class="${cls}" x="70" y="${y}" text-anchor="end" font-family="ui-monospace, monospace" font-size="11" fill="${numFill}"${i === caret ? ' font-weight="600"' : ""}>${n}</text><text x="92" y="${y}" font-family="Georgia, serif" font-size="12.5" fill="${textFill}">${text}</text></g>`;
+            }).join("");
+            const cy = 44 + caret * 18;
+            return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="86" y="${cy - 13}" width="6" height="16" fill="var(--accent)" opacity="0.7"/>
+  ${rows}
+  <g><rect x="400" y="30" width="128" height="22" rx="11" fill="var(--bg)" stroke="var(--border)"/><text x="464" y="45" text-anchor="middle" fill="var(--text-muted)" font-size="11">VIM · NORMAL</text></g>
+  <g class="wa-late"><text x="464" y="${cy - 22}" text-anchor="middle" font-family="ui-monospace, monospace" font-size="18" fill="var(--accent)">3k</text><text x="464" y="${cy + 30}" text-anchor="middle" font-family="ui-monospace, monospace" font-size="18" fill="var(--accent)">2j</text></g>
+</svg>`;
+          },
+        },
+        docs: "editor",
+      },
+      {
+        title: { en: "A routine takes the room it has", ar: "الروتين يأخذ ما لديه من مكان" },
+        body: {
+          en: "On the Routines page one routine spans the whole row, its week strip beside its heatmap; two share a row; more wrap in pairs. And this deck now plays: every drawing moves, and the dots below are grouped by release.",
+          ar: "في صفحة الروتين يمتد الروتين الواحد على الصف كله، وشريط أسبوعه بجانب خريطته الحرارية؛ والاثنان يتقاسمان صفًّا؛ والأكثر يلتفّ أزواجًا. وهذه الجولة تتحرك الآن: كل رسم يتحرك، والنقاط أدناه مجمّعة حسب الإصدار.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="36" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "ROUTINES · 1", "الروتين · 1")}</text>
+  <g><rect x="30" y="46" width="500" height="70" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="44" y="66" fill="var(--text)" font-family="Georgia, serif" font-size="13">${L(lang, "Weekly exercise", "تمارين الأسبوع")}</text>
+    <g fill="var(--bg-hover)"><rect x="44" y="78" width="26" height="26" rx="4"/><rect x="76" y="78" width="26" height="26" rx="4"/><rect x="108" y="78" width="26" height="26" rx="4"/><rect x="140" y="78" width="26" height="26" rx="4"/><rect x="172" y="78" width="26" height="26" rx="4"/><rect x="204" y="78" width="26" height="26" rx="4"/><rect x="236" y="78" width="26" height="26" rx="4"/></g>
+    <rect x="44" y="78" width="26" height="26" rx="4" fill="color-mix(in srgb, var(--accent) 30%, var(--bg))" stroke="var(--accent)"/>
+    <g fill="var(--bg-hover)">${Array.from({ length: 12 }, (_, c) => Array.from({ length: 7 }, (__, r) => `<rect x="${340 + c * 14}" y="${58 + r * 7}" width="5" height="5" rx="1"${(c * 7 + r) % 5 === 0 ? ' fill="var(--callout-success)"' : ""}/>`).join("")).join("")}</g>
+  </g>
+  <text class="wa-late" x="30" y="140" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "ROUTINES · 2", "الروتين · 2")}</text>
+  <g class="wa-late"><rect x="30" y="150" width="244" height="48" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="44" y="170" fill="var(--text)" font-family="Georgia, serif" font-size="13">${L(lang, "Weekly exercise", "تمارين الأسبوع")}</text><g fill="var(--bg-hover)"><rect x="44" y="180" width="12" height="12" rx="3"/><rect x="60" y="180" width="12" height="12" rx="3"/><rect x="76" y="180" width="12" height="12" rx="3"/><rect x="92" y="180" width="12" height="12" rx="3"/><rect x="108" y="180" width="12" height="12" rx="3"/><rect x="124" y="180" width="12" height="12" rx="3"/><rect x="140" y="180" width="12" height="12" rx="3"/></g></g>
+  <g class="wa-late"><rect x="286" y="150" width="244" height="48" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="300" y="170" fill="var(--text)" font-family="Georgia, serif" font-size="13">${L(lang, "Prayers", "الصلوات")}</text><g fill="var(--bg-hover)"><rect x="300" y="180" width="12" height="12" rx="3"/><rect x="316" y="180" width="12" height="12" rx="3"/><rect x="332" y="180" width="12" height="12" rx="3"/><rect x="348" y="180" width="12" height="12" rx="3"/><rect x="364" y="180" width="12" height="12" rx="3"/><rect x="380" y="180" width="12" height="12" rx="3"/><rect x="396" y="180" width="12" height="12" rx="3"/></g></g>
+</svg>`,
+        },
+        docs: "routines",
+      },
+    ],
+  },
   {
     version: "3.13.0",
     title: { en: "Cards, callouts, and reading anywhere", ar: "بطاقات ونداءات وقراءة في أي مكان" },
@@ -279,7 +377,7 @@ export const RELEASES: Release[] = [
           svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "BOOKMARKS · 3", "المفضلة · 3")}</text>
-  <g fill="var(--text)"><text x="30" y="70"><tspan fill="var(--accent)">★</tspan>  ${L(lang, "The Muqaddima", "المقدمة")}</text><text x="30" y="96"><tspan fill="var(--accent)">★</tspan>  ${L(lang, "Reading list", "قائمة القراءة")}</text><text x="30" y="122"><tspan fill="var(--accent)">★</tspan>  ${L(lang, "Weekly exercise", "تمارين الأسبوع")}</text></g>
+  <g fill="var(--text)"><text x="30" y="70"><tspan fill="var(--accent)" class="wa-pulse">★</tspan>  ${L(lang, "The Muqaddima", "المقدمة")}</text><text x="30" y="96"><tspan fill="var(--accent)">★</tspan>  ${L(lang, "Reading list", "قائمة القراءة")}</text><text x="30" y="122"><tspan fill="var(--accent)">★</tspan>  ${L(lang, "Weekly exercise", "تمارين الأسبوع")}</text></g>
   <line x1="30" y1="140" x2="530" y2="140" stroke="var(--border)"/>
   <g fill="var(--text-muted)" font-size="12"><text x="30" y="164">▸ 1 - Source Material</text><text x="30" y="186">▸ Journal</text></g>
   <g font-family="ui-monospace, monospace" font-size="11" fill="var(--text-faint)"><text x="330" y="70">Bookmarks.md</text><text x="330" y="90">- [[The Muqaddima]]</text><text x="330" y="108">- [[Reading list]]</text><text x="330" y="126">- [[Weekly exercise]]</text></g>
@@ -299,7 +397,7 @@ export const RELEASES: Release[] = [
   <rect x="12" y="12" width="250" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "LAYOUTS", "التخطيطات")}</text>
   <g fill="var(--text)"><text x="30" y="72">${L(lang, "Research", "بحث")}</text><text x="30" y="100">${L(lang, "Writing", "كتابة")}</text><text x="30" y="128">${L(lang, "Reading room", "غرفة القراءة")}</text></g>
-  <g fill="var(--accent)" font-size="11"><text x="190" y="72">${L(lang, "RESTORE", "استرجع")}</text><text x="190" y="100">${L(lang, "RESTORE", "استرجع")}</text><text x="190" y="128">${L(lang, "RESTORE", "استرجع")}</text></g>
+  <g fill="var(--accent)" font-size="11"><text class="wa-late" x="190" y="72">${L(lang, "RESTORE", "استرجع")}</text><text x="190" y="100">${L(lang, "RESTORE", "استرجع")}</text><text x="190" y="128">${L(lang, "RESTORE", "استرجع")}</text></g>
   <rect x="298" y="12" width="250" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <text x="316" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "TAGS", "الوسوم")}</text>
   <g fill="var(--text)"><text x="316" y="72"><tspan fill="var(--text-faint)">▾</tspan> #book <tspan fill="var(--text-faint)">42</tspan></text><text x="340" y="96"><tspan fill="var(--text-muted)">#fiction</tspan> <tspan fill="var(--text-faint)">18</tspan></text><text x="340" y="120"><tspan fill="var(--text-muted)">#history</tspan> <tspan fill="var(--text-faint)">24</tspan></text><text x="316" y="148"><tspan fill="var(--text-faint)">▸</tspan> #zettel <tspan fill="var(--text-faint)">131</tspan></text><text x="316" y="176">#recipes <tspan fill="var(--text-faint)">7</tspan></text></g>
@@ -318,13 +416,13 @@ export const RELEASES: Release[] = [
           svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <text x="30" y="46" fill="var(--text)" font-family="Georgia, serif" font-size="16">${L(lang, "The Muqaddima", "المقدمة")}</text>
-  <rect x="30" y="60" width="320" height="8" rx="4" fill="var(--bg-hover)"/><rect x="30" y="60" width="106" height="8" rx="4" fill="var(--accent)"/>
+  <rect x="30" y="60" width="320" height="8" rx="4" fill="var(--bg-hover)"/><rect class="wa-grow" x="30" y="60" width="128" height="8" rx="4" fill="var(--accent)"/>
   <text x="30" y="88" fill="var(--text-muted)" font-size="12">100 / 300 ${L(lang, "pages", "صفحة")} · <tspan fill="var(--accent)">20 ${L(lang, "pages a day — done by 24 September", "صفحة في اليوم؛ ينتهي في 24 سبتمبر")}</tspan></text>
   <rect x="30" y="112" width="500" height="80" rx="10" fill="var(--bg)" stroke="var(--border)"/>
   <text x="46" y="136" fill="var(--accent)" font-size="11" letter-spacing="1">${L(lang, "TODAY", "اليوم")}</text>
-  <rect x="46" y="150" width="16" height="16" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path d="M50 158l4 4 7-8" fill="none" stroke="var(--accent)" stroke-width="2"/>
+  <rect x="46" y="150" width="16" height="16" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path class="wa-draw" d="M50 158l4 4 7-8" fill="none" stroke="var(--accent)" stroke-width="2"/>
   <text x="70" y="163" fill="var(--text)">${L(lang, "Read", "اقرأ")} <tspan fill="var(--text-muted)">20 ${L(lang, "pages of The Muqaddima", "صفحة من المقدمة")}</tspan></text>
-  <text x="46" y="184" fill="var(--text-faint)" font-size="11">${L(lang, "→ the tracker moves to 120 / 300", "→ ينتقل المتتبِّع إلى 120 / 300")}</text>
+  <text class="wa-late" x="46" y="184" fill="var(--text-faint)" font-size="11">${L(lang, "→ the tracker moves to 120 / 300", "→ ينتقل المتتبِّع إلى 120 / 300")}</text>
 </svg>`,
         },
         docs: "routines",
@@ -342,13 +440,13 @@ export const RELEASES: Release[] = [
   <rect x="30" y="30" width="72" height="18" rx="9" fill="none" stroke="var(--accent)" opacity="0.6"/><text x="66" y="43" text-anchor="middle" fill="var(--accent)" font-size="10" letter-spacing="1">${L(lang, "CLOZE", "فراغ")}</text>
   <text x="112" y="43" fill="var(--text-muted)" font-size="12">${L(lang, "Cell biology", "بيولوجيا الخلية")}</text>
   <text x="30" y="78" fill="var(--text)" font-family="Georgia, serif" font-size="16">${L(lang, "The", "")} <tspan font-weight="bold">[…]</tspan> ${L(lang, "is the powerhouse of the cell.", "هي مصنع طاقة الخلية.")}</text>
-  <line x1="30" y1="96" x2="530" y2="96" stroke="var(--border)" stroke-dasharray="3 3"/>
-  <text x="30" y="122" fill="var(--text)" font-family="Georgia, serif" font-size="16">${L(lang, "mitochondria", "الميتوكوندريا")}</text>
+  <line class="wa-late" x1="30" y1="96" x2="530" y2="96" stroke="var(--border)" stroke-dasharray="3 3"/>
+  <text class="wa-late" x="30" y="122" fill="var(--text)" font-family="Georgia, serif" font-size="16">${L(lang, "mitochondria", "الميتوكوندريا")}</text>
   <g font-size="12">
-    <rect x="30" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect x="30" y="142" width="3" height="46" fill="var(--danger)"/><text x="89" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Again", "مرة أخرى")}</text><text x="89" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">1d</text>
-    <rect x="158" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect x="158" y="142" width="3" height="46" fill="var(--callout-warning)"/><text x="217" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Hard", "صعب")}</text><text x="217" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">3d</text>
-    <rect x="286" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect x="286" y="142" width="3" height="46" fill="var(--accent)"/><text x="345" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Good", "جيد")}</text><text x="345" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">6d</text>
-    <rect x="414" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect x="414" y="142" width="3" height="46" fill="var(--callout-success)"/><text x="473" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Easy", "سهل")}</text><text x="473" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">8d</text>
+    <rect class="wa-late" x="30" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect class="wa-late" x="30" y="142" width="3" height="46" fill="var(--danger)"/><text class="wa-late" x="89" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Again", "مرة أخرى")}</text><text class="wa-late" x="89" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">1d</text>
+    <rect class="wa-late" x="158" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect class="wa-late" x="158" y="142" width="3" height="46" fill="var(--callout-warning)"/><text class="wa-late" x="217" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Hard", "صعب")}</text><text class="wa-late" x="217" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">3d</text>
+    <rect class="wa-press" x="286" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect class="wa-late" x="286" y="142" width="3" height="46" fill="var(--accent)"/><text class="wa-late" x="345" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Good", "جيد")}</text><text class="wa-late" x="345" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">6d</text>
+    <rect class="wa-late" x="414" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect class="wa-late" x="414" y="142" width="3" height="46" fill="var(--callout-success)"/><text class="wa-late" x="473" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Easy", "سهل")}</text><text class="wa-late" x="473" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">8d</text>
   </g>
 </svg>`,
         },
@@ -364,10 +462,10 @@ export const RELEASES: Release[] = [
           kind: "svg",
           svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <rect x="12" y="12" width="536" height="34" rx="12" fill="var(--bg-hover)"/><rect x="12" y="34" width="536" height="12" fill="var(--bg-hover)"/>
-  <g transform="translate(30 22)" fill="none" stroke="var(--text-muted)" stroke-width="1.6" stroke-linecap="round"><path d="M1 6a5 5 0 0 1 9 0"/><path d="M3.2 8.4a2.6 2.6 0 0 1 4.6 0"/><circle cx="5.5" cy="11" r=".8"/><path d="M0 0l11 11"/></g>
+  <g class="wa-drop"><rect x="12" y="12" width="536" height="34" rx="12" fill="var(--bg-hover)"/><rect x="12" y="34" width="536" height="12" fill="var(--bg-hover)"/>
+  <g transform="translate(30 22)" fill="none" stroke="var(--text-muted)" stroke-width="1.6" stroke-linecap="round"><path d="M1 6a5 5 0 0 1 9 0"/><path d="M3.2 8.4a2.6 2.6 0 0 1 4.6 0"/><circle cx="5.5" cy="11" r=".8"/><path class="wa-draw" d="M0 0l11 11"/></g>
   <text x="50" y="34" fill="var(--text)" font-weight="600" font-size="12">${L(lang, "Offline", "دون اتصال")}</text>
-  <text x="104" y="34" fill="var(--text-muted)" font-size="12">${L(lang, "Reading this device's copy. Edits are kept and saved when the network is back.", "تقرأ نسخة هذا الجهاز. تُحفظ التعديلات وتُرسل عند عودة الشبكة.")}</text>
+  <text x="104" y="34" fill="var(--text-muted)" font-size="12">${L(lang, "Reading this device's copy. Edits are kept and saved when the network is back.", "تقرأ نسخة هذا الجهاز. تُحفظ التعديلات وتُرسل عند عودة الشبكة.")}</text></g>
   <rect x="30" y="62" width="130" height="130" rx="8" fill="var(--bg)" stroke="var(--border)"/>
   <g fill="var(--text-muted)" font-size="12"><text x="42" y="86">${L(lang, "Journal", "اليوميات")}</text><text x="42" y="108" fill="var(--text)">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="42" y="130">${L(lang, "Reading list", "قائمة القراءة")}</text><text x="42" y="152">${L(lang, "Routines", "الروتين")}</text></g>
   <text x="180" y="90" fill="var(--text)" font-family="Georgia, serif" font-size="18">${L(lang, "The Muqaddima", "المقدمة")}</text>
@@ -383,18 +481,7 @@ export const RELEASES: Release[] = [
           en: "> [!ayah] 2:255 draws the verse itself, in the Uthmani script, with the surah and number under it — the whole Quran ships with the app. > [!hadith] Bukhari 1 draws from your own corpus folder. The autocomplete offers surahs by name while you type the reference.",
           ar: "> [!ayah] 2:255 يرسم الآية نفسها بالرسم العثماني، وتحتها السورة والرقم؛ المصحف كله يأتي مع التطبيق. و> [!hadith] Bukhari 1 يرسم من مجلد مجموعتك أنت. والإكمال التلقائي يعرض السور بأسمائها وأنت تكتب المرجع.",
         },
-        visual: {
-          kind: "svg",
-          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
-  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <g font-family="ui-monospace, monospace" font-size="12" fill="var(--text-faint)"><text x="30" y="40">&gt; [!ayah] 2:255</text></g>
-  <rect x="30" y="52" width="500" height="118" rx="8" fill="var(--bg)" stroke="var(--border)"/><rect x="30" y="52" width="4" height="118" fill="var(--accent)"/>
-  <text x="510" y="92" text-anchor="end" fill="var(--text)" font-family="'Amiri Quran', 'Scheherazade New', 'Noto Naskh Arabic', serif" font-size="22" direction="rtl">ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ</text>
-  <text x="510" y="126" text-anchor="end" fill="var(--text)" font-family="'Amiri Quran', 'Scheherazade New', 'Noto Naskh Arabic', serif" font-size="22" direction="rtl">لَا تَأْخُذُهُۥ سِنَةٌ وَلَا نَوْمٌ ۚ …</text>
-  <text x="510" y="156" text-anchor="end" fill="var(--text-muted)" font-size="12">${L(lang, "Al-Baqarah · 255", "البقرة · ٢٥٥")}</text>
-  <g font-family="ui-monospace, monospace" font-size="12" fill="var(--text-faint)"><text x="30" y="196">&gt; [!hadith] Bukhari 1</text><text x="200" y="196" fill="var(--text-muted)" font-family="ui-sans-serif, system-ui, sans-serif">${L(lang, "→ from your corpus folder", "→ من مجلد مجموعتك")}</text></g>
-</svg>`,
-        },
+        visual: { kind: "demo", mount: ayahDemo },
         docs: "arabic-and-rtl",
       },
       {
@@ -403,19 +490,7 @@ export const RELEASES: Release[] = [
           en: "Ctrl/Cmd Alt ; opens a palette of the marks at the caret — fatha, damma, kasra, shadda, sukun, tanwin, the superscript alef — and the selection menu's Arabic page strips them from the selected words, or copies the words without them and leaves the note as it is.",
           ar: "Ctrl/Cmd Alt ; يفتح لوحة الحركات عند المؤشر: الفتحة والضمة والكسرة والشدة والسكون والتنوين والألف الخنجرية؛ وصفحة العربية في قائمة التحديد تنزعها من الكلمات المحددة، أو تنسخ الكلمات بلا حركات وتترك الملاحظة كما هي.",
         },
-        visual: {
-          kind: "svg",
-          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
-  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <text x="280" y="70" text-anchor="middle" fill="var(--text-muted)" font-family="'Noto Naskh Arabic', 'Scheherazade New', serif" font-size="30" direction="rtl">كتب الطالب الدرس</text>
-  <text x="280" y="92" text-anchor="middle" fill="var(--text-faint)" font-size="11">Ctrl/Cmd Alt ;</text>
-  <text x="280" y="140" text-anchor="middle" fill="var(--text)" font-family="'Noto Naskh Arabic', 'Scheherazade New', serif" font-size="30" direction="rtl">كَتَبَ الطَّالِبُ الدَّرْسَ</text>
-  <g transform="translate(150 160)"><rect width="260" height="34" rx="8" fill="var(--bg)" stroke="var(--border)"/>
-    <g fill="var(--text)" font-family="'Noto Naskh Arabic', serif" font-size="18" text-anchor="middle"><text x="24" y="24">ـَ</text><text x="60" y="24">ـُ</text><text x="96" y="24">ـِ</text><text x="132" y="24">ـّ</text><text x="168" y="24">ـْ</text><text x="204" y="24">ـً</text><text x="240" y="24">ـٰ</text></g>
-    <rect x="8" y="4" width="32" height="26" rx="6" fill="none" stroke="var(--accent)"/>
-  </g>
-</svg>`,
-        },
+        visual: { kind: "demo", mount: harakatDemo },
         docs: "arabic-and-rtl",
       },
       {
@@ -430,12 +505,12 @@ export const RELEASES: Release[] = [
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "UNUSED ATTACHMENTS · 4 · 6.1 MB", "مرفقات غير مستخدمة · 4 · 6.1 م.ب")}</text>
   <g font-family="ui-monospace, monospace" font-size="12" fill="var(--text)">
-    <rect x="30" y="58" width="14" height="14" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path d="M33 65l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="54" y="70">Attachments/Pasted image 20250812.png</text><text x="470" y="70" fill="var(--text-faint)">2.4 MB</text>
-    <rect x="30" y="84" width="14" height="14" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path d="M33 91l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="54" y="96">Attachments/Pasted image 20250812 (1).png</text><text x="470" y="96" fill="var(--text-faint)">2.4 MB</text>
+    <rect x="30" y="58" width="14" height="14" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path class="wa-draw" d="M33 65l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="54" y="70">Attachments/Pasted image 20250812.png</text><text x="470" y="70" fill="var(--text-faint)">2.4 MB</text>
+    <rect x="30" y="84" width="14" height="14" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path class="wa-draw" d="M33 91l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="54" y="96">Attachments/Pasted image 20250812 (1).png</text><text x="470" y="96" fill="var(--text-faint)">2.4 MB</text>
     <rect x="30" y="110" width="14" height="14" rx="3" fill="none" stroke="var(--border)" stroke-width="1.5"/><text x="54" y="122">Media/covers/old-cover.jpg</text><text x="470" y="122" fill="var(--text-faint)">910 kB</text>
     <rect x="30" y="136" width="14" height="14" rx="3" fill="none" stroke="var(--border)" stroke-width="1.5"/><text x="54" y="148">Attachments/scan-draft.pdf</text><text x="470" y="148" fill="var(--text-faint)">420 kB</text>
   </g>
-  <rect x="380" y="168" width="150" height="26" rx="13" fill="var(--accent)"/><text x="455" y="185" text-anchor="middle" fill="var(--button-accent-text)" font-size="12">${L(lang, "Move 2 to the trash", "انقل 2 إلى السلة")}</text>
+  <rect class="wa-late" x="380" y="168" width="150" height="26" rx="13" fill="var(--accent)"/><text class="wa-late" x="455" y="185" text-anchor="middle" fill="var(--button-accent-text)" font-size="12">${L(lang, "Move 2 to the trash", "انقل 2 إلى السلة")}</text>
 </svg>`,
         },
         docs: "templates-and-notes",

@@ -379,3 +379,11 @@ sit at the foot of the editor, and in zen — where the whole status bar is at z
 says it instead. [Visitor preview](publishing.md#preview-as-visitor) is a strip at the top that
 pushes the page down — it never covers the layout you opened it to judge — and it never survives a
 reload.
+
+**Relative line numbers.** With vim keys on, the margin counts lines outward from the caret — `7j`
+and `3k` read straight off it — and the caret's own line shows its absolute number, vim's
+`number relativenumber`. The column sits against the text, not at the window's edge, and it follows
+every caret move, not only edits. It is the only line numbering the editor has: a prose editor
+wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
+**Settings → This device → Relative line numbers** (under Vim keys, on by default) turns it off for
+readers who navigate by search.

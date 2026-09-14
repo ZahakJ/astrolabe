@@ -185,6 +185,8 @@ export default function DeviceTab() {
   const siteLanguage = useStore((s) => s.siteLanguage);
   const vimMode = useStore((s) => s.vimMode);
   const toggleVim = useStore((s) => s.toggleVim);
+  const relativeLines = useStore((s) => s.relativeLines);
+  const toggleRelativeLines = useStore((s) => s.toggleRelativeLines);
   const numbered = useEventPref("astrolabe:heading-numbers", headingNumbersPref);
   const toolbar = useEventPref("astrolabe:seltoolbar", selectionToolbarEnabled);
   const prefsSync = useEventPref("astrolabe:prefs-sync", prefsSyncEnabled);
@@ -345,6 +347,16 @@ export default function DeviceTab() {
           offLabel={t("off")}
           value={vimMode}
           onChange={() => toggleVim()}
+        />
+      </Row>
+      <Row label={t("rowRelativeLines")} hint={t("hintRelativeLines")} off={!vimMode}>
+        <Toggle
+          label={t("rowRelativeLines")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={relativeLines}
+          disabled={!vimMode}
+          onChange={() => toggleRelativeLines()}
         />
       </Row>
       <AppIdentityRows />

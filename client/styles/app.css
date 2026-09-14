@@ -1265,6 +1265,21 @@ select:focus,
   caret-color: var(--accent);
 }
 
+/* VIM'S RELATIVE LINE NUMBERS (editor/relativeLines.ts) sit AGAINST the
+   text, not at the scroller's far edge: the gutter takes the leading auto
+   margin and the content keeps the trailing one, so the pair is centred as
+   one block and the numbers read as the margin of the paragraph they count.
+   CodeMirror's own gutter chrome (a pale ground, a hairline) goes; the
+   column is the page's colour and the numbers are the only ink. */
+.s-editor .cm-editor.s-relnum-on .cm-gutters {
+  margin-inline-start: auto;
+  background: transparent;
+  border: 0;
+}
+.s-editor .cm-editor.s-relnum-on .cm-content {
+  margin-inline-start: 0;
+}
+
 /* Task checkboxes: 15px rounded square, gold when done. */
 .s-editor input.cm-s-task {
   appearance: none;

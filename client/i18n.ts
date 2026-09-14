@@ -4017,6 +4017,8 @@ const DICT = {
   },
   groupEditing: { en: "Editing", ar: "التحرير" },
   rowVimKeys: { en: "Vim keys", ar: "مفاتيح Vim" },
+  rowRelativeLines: { en: "Relative line numbers", ar: "أرقام الأسطر النسبية" },
+  hintRelativeLines: { en: "With vim keys on, the margin counts lines outward from the caret — 7j and 3k read straight off it — and shows the caret's own line number.", ar: "مع مفاتيح Vim، يعدّ الهامش الأسطر بعيدًا عن المؤشر (7j و3k تُقرأ منه مباشرة) ويعرض رقم سطر المؤشر نفسه." },
   hintVimKeys: {
     en: "Modal editing: Normal, Insert and Visual keys in the editor.",
     ar: "تحرير بالأوضاع: مفاتيح Normal وInsert وVisual في المحرر.",

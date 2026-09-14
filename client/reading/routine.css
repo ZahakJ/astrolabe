@@ -8,6 +8,7 @@
 .s-rv-routine {
   display: grid;
   gap: 14px;
+  container-type: inline-size;
   margin-block: 1.2em;
   padding: 16px;
   border: 1px solid var(--border);
@@ -429,6 +430,23 @@
 }
 .s-rv-routine__day--missed .s-rv-routine__daydot { border-color: var(--rt-miss); }
 .s-rv-routine__day--none .s-rv-routine__daydot { border-color: var(--text-faint); }
+
+/* A WIDE CARD — one routine on the Routines page spans the whole row —
+   sets the week strip and the heatmap side by side, so the card's lower
+   half is not a strip above a small grid with a blank right half. The
+   twelve-week heatmap is a fixed size; the strip takes the rest. */
+@container (inline-size >= 640px) {
+  .s-rv-routine {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 24px;
+  }
+  .s-rv-routine > :not(.s-rv-routine__week):not(.s-rv-routine__heat) {
+    grid-column: 1 / -1;
+  }
+  .s-rv-routine__week {
+    align-self: center;
+  }
+}
 
 /* ── Heatmap ───────────────────────────────────────────────────────────── */
 

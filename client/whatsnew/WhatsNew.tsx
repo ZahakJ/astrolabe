@@ -27,6 +27,37 @@ interface Card {
   slide: Slide;
 }
 
+/** GIVE A DRAWING ITS TIMING. Every part of an SVG after its frame (the
+ *  first rect) gets `.wa` and an index, so it arrives in document order
+ *  and the drawing plays like a short loop (whatsnew.css, "Motion"). A
+ *  group's children are timed one by one rather than the group at once —
+ *  a list should tick in row by row. A part that already carries a `wa-`
+ *  effect keeps it, and takes only its place in the order. */
+function stagger(host: HTMLElement): void {
+  const svg = host.querySelector("svg");
+  if (!svg) return;
+  let i = 0;
+  const time = (node: Element): void => {
+    if (!(node instanceof SVGElement)) return;
+    const named = [...node.classList].some((c) => c.startsWith("wa-"));
+    if (!named && !node.classList.contains("wa")) node.classList.add("wa");
+    node.style.setProperty("--i", String(i++));
+  };
+  const parts = [...svg.children].filter((n) => n.tagName !== "defs" && n.tagName !== "style");
+  parts.forEach((node, k) => {
+    if (k === 0 && node.tagName === "rect") return; // the frame
+    if (node.tagName === "g" && node.children.length > 1 && !node.hasAttribute("transform")) {
+      for (const child of node.children) time(child);
+    } else {
+      time(node);
+    }
+  });
+  // The whole cascade fits in the first third of the loop whatever the part
+  // count: a drawing of thirty parts at a fixed step had its last parts
+  // arrive as the loop was already fading.
+  svg.style.setProperty("--step", `${Math.min(0.32, 2.6 / Math.max(1, i)).toFixed(3)}s`);
+}
+
 function VisualStage({ visual, lang }: { visual: Visual; lang: Lang }) {
   const host = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -41,6 +72,7 @@ function VisualStage({ visual, lang }: { visual: Visual; lang: Lang }) {
     }
     if (visual.kind === "svg") {
       el.innerHTML = typeof visual.svg === "function" ? visual.svg(lang) : visual.svg;
+      stagger(el);
       return () => el.replaceChildren();
     }
     const img = document.createElement("img");
@@ -64,6 +96,17 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
     }
     return out;
   }, [versions, lang]);
+  // The dots, grouped by release — a walk through several missed releases
+  // shows where each begins (the owner asked for a divider between them).
+  const groups = useMemo(() => {
+    const out: { version: string; indices: number[] }[] = [];
+    cards.forEach((c, i) => {
+      const last = out[out.length - 1];
+      if (last && last.version === c.version) last.indices.push(i);
+      else out.push({ version: c.version, indices: [i] });
+    });
+    return out;
+  }, [cards]);
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
   const [enabled, setEnabled] = useState(whatsNewEnabled);
@@ -145,18 +188,25 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
             <span>{t("whatsnewDontShow")}</span>
           </label>
           <div className="s-wn__dots" aria-label={tf("whatsnewCount", { n: localeNum(index + 1), of: localeNum(cards.length) })}>
-            {cards.map((c, i) => (
-              <button
-                key={`${c.version}-${i}`}
-                type="button"
-                className={`s-wn__dot${i === index ? " is-on" : ""}`}
-                aria-label={localeNum(i + 1)}
-                aria-current={i === index}
-                onClick={() => {
-                  setDir(i > index ? 1 : -1);
-                  setIndex(i);
-                }}
-              />
+            {groups.map((g) => (
+              <div key={g.version} className={`s-wn__group${g.version === card.version ? " is-current" : ""}`}>
+                <div className="s-wn__groupdots">
+                  {g.indices.map((i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={`s-wn__dot${i === index ? " is-on" : ""}`}
+                      aria-label={localeNum(i + 1)}
+                      aria-current={i === index}
+                      onClick={() => {
+                        setDir(i > index ? 1 : -1);
+                        setIndex(i);
+                      }}
+                    />
+                  ))}
+                </div>
+                {groups.length > 1 && <span className="s-wn__grouplabel" dir="ltr">{g.version}</span>}
+              </div>
             ))}
           </div>
           <div className="s-wn__nav">

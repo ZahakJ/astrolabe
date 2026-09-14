@@ -32,7 +32,7 @@ import { offerHeadingRepair } from "../bulkEdit.ts";
 // CodeMirror renders only the lines near the caret and printing its DOM prints
 // a fragment of the note (client/print.ts).
 import "../print.ts";
-import { buildEditorState, setEditorLanguage, setVim } from "../editor/setup.ts";
+import { buildEditorState, setEditorLanguage, setRelativeLines, setVim } from "../editor/setup.ts";
 import {
   acquire,
   attach,
@@ -177,6 +177,7 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
   }, [path]);
   const viewRef = useRef<EditorView | null>(null);
   const vimMode = useStore((s) => s.vimMode);
+  const relativeLines = useStore((s) => s.relativeLines);
   // The editor's chrome (properties card, fold chevrons, transclusion cards,
   // upload pills) is CM6 widget DOM, not React, so it cannot subscribe to the
   // store the way i18n.ts asks components to. This is its subscription: a
@@ -199,6 +200,7 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
         doc,
         path,
         vimMode: useStore.getState().vimMode,
+        relativeLines: useStore.getState().relativeLines,
         // Dirty tracking and the autosave timer belong to the buffer now: a
         // save must survive the pane that started it being unmounted, and a
         // per-view timer cannot. `dispatchFrom` below is where they are driven.
@@ -342,6 +344,10 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
   useEffect(() => {
     if (viewRef.current) setVim(viewRef.current, vimMode);
   }, [vimMode]);
+
+  useEffect(() => {
+    if (viewRef.current) setRelativeLines(viewRef.current, vimMode && relativeLines);
+  }, [vimMode, relativeLines]);
 
   useEffect(() => {
     const view = viewRef.current;

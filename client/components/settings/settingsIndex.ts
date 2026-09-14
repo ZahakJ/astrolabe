@@ -37,6 +37,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "device", label: "rowEditorWidth", hint: "hintEditorWidth" },
   { tab: "device", label: "editorWidthCustom" },
   { tab: "device", label: "rowVimKeys", hint: "hintVimKeys" },
+  { tab: "device", label: "rowRelativeLines", hint: "hintRelativeLines" },
   { tab: "device", label: "rowWhatsNew", hint: "hintWhatsNew" },
   { tab: "device", label: "rowOffline", hint: "hintOffline" },
   { tab: "device", label: "rowPrefsSync", hint: "hintPrefsSync" },
