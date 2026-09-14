@@ -14,6 +14,12 @@
 # anyone heard of it. Every AppImage release runs this before upload.
 set -u
 IMG="${1:?usage: $0 <AppImage>}"
+# NO CORE DUMPS. Both gates end an Electron process with a signal (the boot
+# gate's timeout, the relaunch's own exit), and systemd-coredump streams the
+# whole multi-gigabyte core to disk before compressing it to a few megabytes
+# — two gates back to back took the owner's root filesystem to zero for a
+# minute, beside a running prod. A zero core limit tells it to keep nothing.
+ulimit -c 0
 [ -x "$IMG" ] || { echo "RELAUNCH FAIL: $IMG is not executable"; exit 1; }
 IMG="$(readlink -f "$IMG")"
 WORK="$(mktemp -d)"
