@@ -75,6 +75,12 @@ const SECTIONS = [
     pages: [{ slug: "development", file: "development.md", title: { en: "Development", ar: "التطوير" } }],
   },
 ];
+// EVERY PAGE SHIPS IN BOTH LANGUAGES. A page without docs/ar/<file> used to
+// render English under a "not translated yet" notice, which the owner does
+// not want to ship ("remember to also update docs with all these features"
+// — and the Arabic edition is half of the docs). The builder now refuses:
+// the missing files are named and the exit code fails the build.
+const missingArabic = [];
 const PAGES = SECTIONS.flatMap((s) => s.pages.map((p) => ({ ...p, section: s })));
 
 const UI = {
@@ -275,6 +281,7 @@ for (const lang of ["en", "ar"]) {
     const page = PAGES[i];
     const src = lang === "en" ? join(DOCS, page.file) : join(DOCS, "ar", page.file);
     const translated = lang === "en" || existsSync(src);
+    if (!translated) missingArabic.push(page.file);
     // The GitHub-facing navigation line ("← Back to the README · All docs")
     // is the site's own chrome here; drop it.
     const markdown = readFileSync(translated ? src : join(DOCS, page.file), "utf8").replace(/^←.*\n/m, "").replace(/^→.*\n/m, "");
@@ -314,3 +321,7 @@ for (const lang of ["en", "ar"]) {
 }
 write(join(OUT, "index.html"), `<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=en/"><a href="en/">Astrolabe documentation</a>`);
 console.log(`build-docs: ${built} pages → docs/site (en, ar)`);
+if (missingArabic.length > 0) {
+  console.error(`build-docs: ${missingArabic.length} page(s) have no Arabic source — write docs/ar/<file> for: ${missingArabic.join(", ")}`);
+  process.exit(1);
+}
