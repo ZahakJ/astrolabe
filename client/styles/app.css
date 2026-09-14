@@ -7342,6 +7342,12 @@ html[dir="rtl"] .s-statusbar__spacer {
   gap: 2px;
   max-inline-size: 100%;
 }
+/* An OPEN branch and its children each take a row of their own: pills in
+   flow read as a flat shelf, and a tree that wraps inline is no tree. Leaves
+   keep the wrapped shelf. */
+.s-tag__row--full {
+  flex-basis: 100%;
+}
 .s-tag__branch {
   inline-size: 18px;
   block-size: 22px;
@@ -7365,7 +7371,7 @@ html[dir="rtl"] .s-statusbar__spacer {
 }
 .s-tags__sort {
   position: absolute;
-  inset-inline-end: 12px;
+  inset-inline-end: 38px;
   top: 8px;
   padding: 1px 6px;
   border: 1px solid transparent;
