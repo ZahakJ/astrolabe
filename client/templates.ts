@@ -44,6 +44,12 @@ export interface TemplateSettings {
   /** True when `folder` was auto-detected rather than configured. */
   detected: boolean;
   defaultTemplate: string | null;
+  /** Periodic notes (shared/periodic.ts): folder, formats, templates. */
+  dailyFolder: string | null;
+  dailyFormat: string | null;
+  dailyTemplate: string | null;
+  weeklyFormat: string | null;
+  weeklyTemplate: string | null;
   locale: string;
   calendar: DateCalendar;
   lang: "en" | "ar";
@@ -61,6 +67,11 @@ export async function templateSettings(): Promise<TemplateSettings> {
         folder: res.effective.templatesFolder,
         detected: res.effective.templatesFolderDetected,
         defaultTemplate: res.effective.defaultTemplate,
+        dailyFolder: res.effective.dailyFolder,
+        dailyFormat: res.effective.dailyFormat,
+        dailyTemplate: res.effective.dailyTemplate,
+        weeklyFormat: res.effective.weeklyFormat,
+        weeklyTemplate: res.effective.weeklyTemplate,
         locale: res.effective.blogLocale,
         calendar: res.effective.dateCalendar,
         lang: res.effective.language,

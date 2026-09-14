@@ -161,6 +161,11 @@ interface Form {
   templatesFolder: string;
   drawingsFolder: string;
   defaultTemplate: string;
+  dailyFolder: string;
+  dailyFormat: string;
+  dailyTemplate: string;
+  weeklyFormat: string;
+  weeklyTemplate: string;
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
   // no env counterpart, so "inherit" is meaningless here — every control shows
@@ -279,6 +284,11 @@ function formFrom(s: SettingsResponse): Form {
     templatesFolder: s.templatesFolder ?? "",
     drawingsFolder: s.drawingsFolder ?? "",
     defaultTemplate: s.defaultTemplate ?? "",
+    dailyFolder: s.dailyFolder ?? "",
+    dailyFormat: s.dailyFormat ?? "",
+    dailyTemplate: s.dailyTemplate ?? "",
+    weeklyFormat: s.weeklyFormat ?? "",
+    weeklyTemplate: s.weeklyTemplate ?? "",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
     syncBranch: s.effective.gitSync.branch,
@@ -1282,7 +1292,12 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       | "logo"
       | "templatesFolder"
       | "drawingsFolder"
-      | "defaultTemplate",
+      | "defaultTemplate"
+      | "dailyFolder"
+      | "dailyFormat"
+      | "dailyTemplate"
+      | "weeklyFormat"
+      | "weeklyTemplate",
   ): void => {
     const value = f[key].trim();
     if (value !== initial[key].trim()) patch[key] = value === "" ? null : value;
@@ -1297,6 +1312,11 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   str("templatesFolder");
   str("drawingsFolder");
   str("defaultTemplate");
+  str("dailyFolder");
+  str("dailyFormat");
+  str("dailyTemplate");
+  str("weeklyFormat");
+  str("weeklyTemplate");
   if (f.language !== initial.language) {
     patch.language = f.language === "en" || f.language === "ar" ? f.language : null;
   }
@@ -3800,6 +3820,26 @@ export default function SettingsModal() {
                       label={t("defaultTemplateLabel")}
                       {...field("defaultTemplate")}
                     />
+                  </Row>
+                  {/* PERIODIC NOTES (shared/periodic.ts): the daily note's
+                      folder, format and template, and the weekly note's. The
+                      placeholders are what is in force, as the templates
+                      folder's is. */}
+                  <div className="s-smodal__sub">{t("periodicSection")}</div>
+                  <Row label={t("dailyFolderLabel")} hint={t("dailyFolderHint")}>
+                    <TextInput placeholder={eff.dailyFolder || "/"} dir="ltr" label={t("dailyFolderLabel")} {...field("dailyFolder")} />
+                  </Row>
+                  <Row label={t("dailyFormatLabel")} hint={t("dailyFormatHint")}>
+                    <TextInput placeholder={eff.dailyFormat} dir="ltr" label={t("dailyFormatLabel")} {...field("dailyFormat")} />
+                  </Row>
+                  <Row label={t("dailyTemplateLabel")} hint={t("dailyTemplateHint")}>
+                    <TextInput placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Daily.md` : "Templates/Daily.md"} dir="ltr" label={t("dailyTemplateLabel")} {...field("dailyTemplate")} />
+                  </Row>
+                  <Row label={t("weeklyFormatLabel")} hint={t("weeklyFormatHint")}>
+                    <TextInput placeholder={eff.weeklyFormat ?? "off"} dir="ltr" label={t("weeklyFormatLabel")} {...field("weeklyFormat")} />
+                  </Row>
+                  <Row label={t("weeklyTemplateLabel")} hint={t("weeklyTemplateHint")}>
+                    <TextInput placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Weekly.md` : "Templates/Weekly.md"} dir="ltr" label={t("weeklyTemplateLabel")} {...field("weeklyTemplate")} />
                   </Row>
                   {/* Where the sidebar's pencil files a drawing (the owner:
                       "create the drawing in a specified space in settings or

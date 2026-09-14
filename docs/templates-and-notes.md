@@ -101,7 +101,29 @@ to every note ever made from it.
 inside Astrolabe — `Ctrl/Cmd N`, the sidebar's `+`, the tree menu. Off by default: new notes are
 born empty, as they always were.
 
-## Sections: fold, extract, move
+## Daily and weekly notes
+
+`Ctrl/Cmd Alt D` (or *Open today's daily note* in the palette) opens today's note, creating it if
+it is not there yet. Where it lives and what it is called are settings, in Settings → Vault under
+*Daily & weekly notes*:
+
+| Setting | Default | Notes |
+| --- | --- | --- |
+| Daily notes folder | `daily` | Empty for the vault root. |
+| Daily note name | `YYYY-MM-DD` | Tokens `YYYY`, `MM`, `DD`, `[literals]`, and `/` for subfolders: `YYYY/YYYY-MM-DD` files each year in its own folder. Always Gregorian and Western digits — a file name is an address, and the Hijri date is printed beside it in the sidebar on a Hijri instance. |
+| Daily note template | *(the template for new notes)* | Applied when the day's note is created. |
+| Weekly note name | `YYYY-[W]ww` | `ww` is the ISO week; the note lives in the daily folder. Type `off` to turn weekly notes off. |
+| Weekly note template | *(none)* | Applied when the week's note is created. |
+
+The palette also has **Yesterday's note**, **Tomorrow's note** and **This week's note**. When the
+open note is itself a daily note, yesterday and tomorrow walk from *that* day, so a journal can be
+read backwards a day at a time. A vault that already keeps `Journal/2026/2026-09-13.md` keeps
+working: set the folder to `Journal` and the name to `YYYY/YYYY-MM-DD`.
+
+**On this day.** Under the backlinks, the right panel lists what you wrote, published or finished on
+this day in earlier years — a strip that reads the archive back to you, drawn from the notes' own
+dates and the trackers' `finished:` lines, nothing stored. The Routines page opens with the same.
+
 
 - **Heading folding** — a chevron sits beside every heading (visible at rest, not on hover — a
   control nobody can see is a control nobody finds, and there is no hover on a phone); click it,

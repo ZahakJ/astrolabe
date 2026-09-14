@@ -37,7 +37,7 @@ import { vimSubCopy } from "./vimCopy.ts";
 import DesignStatus from "./design/DesignStatus.tsx";
 
 import TemplatePicker from "./components/TemplatePicker.tsx";
-import { openDailyNote } from "./daily.ts";
+import { loadPeriodic, openDailyNote } from "./daily.ts";
 import { t, tf } from "./i18n.ts";
 import { isKey, shortcutKey } from "./keys.ts";
 import { promptNewNote } from "./prompts.ts";
@@ -406,6 +406,10 @@ export default function App() {
   // the session is known, so a blog visitor's shell never even imports it.
   useEffect(() => {
     if (!authReady || !admin || blogVisitor) return;
+    // The periodic-note settings (folder, formats) prime once here, so the
+    // palette's synchronous hint and the sidebar's Hijri label read the
+    // instance's answer rather than the defaults.
+    void loadPeriodic();
     const timer = window.setTimeout(maybeOpenWhatsNew, 900);
     return () => window.clearTimeout(timer);
   }, [authReady, admin, blogVisitor]);
