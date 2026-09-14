@@ -84,6 +84,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "vault", label: "rowAttachmentLocation", hint: "hintAttachmentLocation" },
   { tab: "vault", label: "rowAttachmentFolder" },
   { tab: "vault", label: "rowTagsFolder", hint: "hintTagsFolder" },
+  { tab: "vault", label: "rowPdfSearch", hint: "hintPdfSearch", env: "PDF_SEARCH" },
   { tab: "typography", label: "rowFontProse", hint: "hintFontProse" },
   { tab: "typography", label: "rowFontUi", hint: "hintFontUi" },
   { tab: "typography", label: "rowFontMono", hint: "hintFontMono" },

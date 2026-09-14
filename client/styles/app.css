@@ -611,6 +611,20 @@ select:focus,
   color: var(--text-muted);
 }
 
+/* A book page's row (server/pdfText.ts): the page number sits after the title
+   as a small chip, the accent of the alias line above — it explains the row
+   the same way — in the chrome's own numerals and never wrapping, because
+   "p. 42" cut to "p." is the one thing on the row that must survive. Inline
+   start margin so the chip follows the title in either direction. */
+.s-search-hit__page {
+  margin-inline-start: 0.5em;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
 /* ------------------------------------------------------------ tag pills -- */
 
 .s-tags {
