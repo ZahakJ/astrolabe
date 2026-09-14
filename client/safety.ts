@@ -68,7 +68,9 @@ export function installSafetyNet(): void {
     // A failed <img>/<link>/<script> load also raises `error` on the window,
     // with no `error` property — a broken attachment thumbnail is the note's
     // business and the embed card already draws it. Only real exceptions here.
-    if (!(ev instanceof ErrorEvent) || ev.error === undefined) return;
+    // `error: null` is the same noise (a cross-origin script, a resource)
+    // and it raised a red "Something went wrong" on every phone paint.
+    if (!(ev instanceof ErrorEvent) || ev.error === undefined || ev.error === null) return;
     console.error("astrolabe: uncaught error", ev.error);
     if (isQuiet(ev.error)) return;
     toast(errorSentence(ev.error), "error");

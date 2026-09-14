@@ -1128,9 +1128,12 @@ select:focus,
 }
 
 .s-tab-title {
-  overflow: clip;
-  overflow-clip-margin: 5px;
+  /* `overflow: clip` shows no ellipsis in Chromium; a long title read
+     "Block" and, in Arabic, its tail ("nbed"). */
+  overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .s-tab-dirty {
@@ -2225,10 +2228,15 @@ select:focus,
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /* Six sections now stack here (outline, local graph, tracker, history,
+     backlinks, mentions, on this day); with several open the backlinks list
+     was squeezed to twenty pixels and nothing below it could be reached.
+     The aside scrolls, and the list keeps a floor. */
+  overflow-y: auto;
   background: var(--panel-bg);
   color: var(--panel-text);
   border-inline-start: 1px solid var(--panel-border);
-  overflow: hidden;
+  overflow-x: hidden;
   transition: width 0.18s ease, border-color 0.18s ease;
 }
 
@@ -2383,7 +2391,7 @@ select:focus,
 
 .s-panel-body {
   flex: 1;
-  min-height: 0;
+  min-height: 120px;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 10px;

@@ -736,3 +736,10 @@
     min-block-size: 44px;
   }
 }
+
+@media (pointer: coarse) {
+  .s-mediaform__close {
+    min-inline-size: 36px;
+    min-block-size: 36px;
+  }
+}

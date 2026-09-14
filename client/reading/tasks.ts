@@ -21,6 +21,9 @@ export interface TasksHooks {
   onResize?: () => void;
   /** The page passes its own rows to spare a second fetch. */
   rows?: TaskMeta[];
+  /** The caller's inline markdown renderer (render.ts), so `**bold**`,
+   *  `[[links]]` and code in a task read as they do in the note. */
+  renderInline?: (md: string) => string;
 }
 
 const PRIORITY_LABEL: Record<string, I18nKey> = {
@@ -107,7 +110,9 @@ export function renderTasksFence(spec: TasksSpec, hooks: TasksHooks): HTMLElemen
           });
         }
         label.appendChild(box2);
-        const text = el("span", "s-rv-tasks__text", r.task.text);
+        const text = el("span", "s-rv-tasks__text");
+        if (hooks.renderInline) text.innerHTML = hooks.renderInline(r.task.text);
+        else text.textContent = r.task.text;
         text.dir = autoDir(r.task.text);
         label.appendChild(text);
         li.appendChild(label);

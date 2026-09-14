@@ -40,7 +40,7 @@ function VisualStage({ visual, lang }: { visual: Visual; lang: Lang }) {
       };
     }
     if (visual.kind === "svg") {
-      el.innerHTML = visual.svg;
+      el.innerHTML = typeof visual.svg === "function" ? visual.svg(lang) : visual.svg;
       return () => el.replaceChildren();
     }
     const img = document.createElement("img");
@@ -68,7 +68,12 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
   const [dir, setDir] = useState<1 | -1>(1);
   const [enabled, setEnabled] = useState(whatsNewEnabled);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  useDialog(panelRef, { onEscape: onClose });
+  // The dialog takes focus itself: the default lands on the first button,
+  // the ×, which opened every deck with a focus ring around its close.
+  useDialog(panelRef, { onEscape: onClose, manualFocus: true });
+  useEffect(() => {
+    panelRef.current?.focus();
+  }, []);
 
   const go = useCallback(
     (delta: 1 | -1): void => {
@@ -100,6 +105,7 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
       <div
         ref={panelRef}
         className="s-wn"
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={tf("whatsnewTitle", { version: card.version })}
