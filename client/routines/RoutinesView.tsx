@@ -22,8 +22,10 @@ import { confirmDeleteNote } from "../components/deleteFlow.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { renderRoutineCard } from "../reading/routine.ts";
-import { renderMarkdown } from "../reading/render.ts";
+import { renderMarkdown, renderTasksBlock } from "../reading/render.ts";
+import { parseTasksFence, shift } from "../../shared/tasks.ts";
 import { RoutineForm } from "./RoutineForm.tsx";
+import { OnThisDayList, useOnThisDay } from "../components/OnThisDayPanel.tsx";
 import "../styles/routines.css";
 
 export const VAULT_EVENT = "astrolabe:vault";
@@ -68,6 +70,26 @@ function RoutineCard({
     return () => el.replaceChildren();
   }, [meta, today, onLog, onOpen, onEdit, onDelete]);
   return <div ref={host} className="s-routines__card" />;
+}
+
+/** Open tasks due by today, live: the day's dashboard is where a to-do
+ *  with a date belongs, next to the routines that carry no dates. */
+function DueTasks({ today }: { today: string }) {
+  const host = useRef<HTMLDivElement | null>(null);
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const onVault = (): void => setTick((n) => n + 1);
+    window.addEventListener(VAULT_EVENT, onVault);
+    return () => window.removeEventListener(VAULT_EVENT, onVault);
+  }, []);
+  useEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    const spec = parseTasksFence(`not done\ndue before ${shift(today, 1)}`, today);
+    el.replaceChildren(renderTasksBlock(spec, { notePath: "", tree: useStore.getState().tree }, { live: true }));
+    return () => el.replaceChildren();
+  }, [today, tick]);
+  return <div ref={host} className="s-routines__tasks" />;
 }
 
 export default function RoutinesView() {
@@ -137,6 +159,7 @@ export default function RoutinesView() {
     [load],
   );
 
+  const onThisDay = useOnThisDay();
   const dateLine = siteDate(`${today}T12:00:00`, locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   return (
@@ -153,6 +176,15 @@ export default function RoutinesView() {
           {t("routinesAdd")}
         </button>
       </header>
+      {onThisDay.length > 0 && (
+        <section className="s-routines__otd" aria-label={t("onThisDay")}>
+          <h2 className="s-routines__otdhead">{t("onThisDay")}</h2>
+          <OnThisDayList rows={onThisDay} />
+        </section>
+      )}
+      <section className="s-routines__due" aria-label={t("routinesTasksHead")}>
+        <DueTasks today={today} />
+      </section>
       {failed ? (
         <p className="s-routines__empty">{t("routinesFailed")}</p>
       ) : all !== null && live.length === 0 ? (

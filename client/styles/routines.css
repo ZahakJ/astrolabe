@@ -202,3 +202,32 @@
 .s-routineform__spacer {
   flex: 1;
 }
+
+/* Tasks due by today, above the cards (client/reading/tasks.ts draws it). */
+.s-routines__due {
+  max-inline-size: 1240px;
+  margin: 20px auto 0;
+}
+.s-routines__due .s-rv-tasks {
+  margin-block: 0;
+}
+.s-routines__due .s-rv-tasks:has(.s-rv-tasks__empty) {
+  display: none;
+}
+
+/* On this day, above the tasks. */
+.s-routines__otd {
+  max-inline-size: 1240px;
+  margin: 20px auto 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+.s-routines__otdhead {
+  margin: 0 0 6px;
+  font-size: 0.714rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
