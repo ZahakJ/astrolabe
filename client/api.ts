@@ -47,9 +47,10 @@ import type {
   UploadResult,
   VaultEvent,
   XrefResponse,
-  VisibilityImpact, PublicFolderRef, Mention, OnThisDayHit, QueryHit, TaskMeta, RoutineMeta
+  VisibilityImpact, PublicFolderRef, Mention, OnThisDayHit, QueryHit, TaskMeta, RoutineMeta, CardMeta
 } from "../shared/types.ts";
 import type { EntryPatch } from "../shared/routine.ts";
+import type { Grade, Schedule } from "../shared/srs.ts";
 import type { TrackerFields } from "../shared/tracker.ts";
 
 // ── Visitor preview (admin-only) ────────────────────────────────────────────
@@ -726,6 +727,16 @@ export function updateRoutine(
   plan: string | null = null,
 ): Promise<{ ok: true; path: string; index: number }> {
   return request<{ ok: true; path: string; index: number }>("/api/routine", json("POST", { path, index, entry, plan }));
+}
+
+/** Every flashcard in the vault with its schedule (admin only). */
+export function getCards(): Promise<CardMeta[]> {
+  return request<CardMeta[]>("/api/cards");
+}
+
+/** Grade one card; the server writes the next schedule into the note. */
+export function reviewCard(path: string, line: number, grade: Grade, today: string): Promise<{ ok: true; schedule: Schedule }> {
+  return request<{ ok: true; schedule: Schedule }>("/api/card/review", json("POST", { path, line, grade, today }));
 }
 
 export function getRoutines(): Promise<RoutineMeta[]> {

@@ -15,7 +15,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SiteMark from "../components/SiteMark.tsx";
 import type { RoutineMeta } from "../../shared/types.ts";
 import { dayStatus, isoDate, type EntryPatch } from "../../shared/routine.ts";
-import { getRoutines, updateRoutine } from "../api.ts";
+import { getCards, getRoutines, updateRoutine } from "../api.ts";
+import { isDue } from "../../shared/srs.ts";
 import { siteDate } from "../dates.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { confirmDeleteNote } from "../components/deleteFlow.ts";
@@ -99,6 +100,44 @@ function DueTasks({ today }: { today: string }) {
     return () => el.replaceChildren();
   }, [today, tick]);
   return <div ref={host} className="s-routines__tasks" />;
+}
+
+/** How many flashcards are due today — one line with a door to the Review
+ *  page, because the morning's checklist is where the day's cards belong. */
+function CardsDue({ today }: { today: string }) {
+  const [due, setDue] = useState(0);
+  const toggleReview = useStore((s) => s.toggleReview);
+  useEffect(() => {
+    let alive = true;
+    const read = (): void => {
+      getCards()
+        .then((list) => {
+          if (alive) setDue(list.filter((m) => isDue(m.card.schedule, today)).length);
+        })
+        .catch(() => {});
+    };
+    read();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onVault = (): void => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(read, 400);
+    };
+    window.addEventListener(VAULT_EVENT, onVault);
+    return () => {
+      alive = false;
+      window.removeEventListener(VAULT_EVENT, onVault);
+      if (timer) clearTimeout(timer);
+    };
+  }, [today]);
+  if (due === 0) return null;
+  return (
+    <section className="s-routines__cards" data-testid="routines-cards-due">
+      <span className="s-routines__cardstext">{due === 1 ? t("routinesCardsDueOne") : tf("routinesCardsDue", { n: localeNum(due) })}</span>
+      <button type="button" className="s-btn s-btn--accent" onClick={toggleReview}>
+        {t("routinesReview")}
+      </button>
+    </section>
+  );
 }
 
 export default function RoutinesView() {
@@ -191,6 +230,7 @@ export default function RoutinesView() {
           <OnThisDayList rows={onThisDay} />
         </section>
       )}
+      <CardsDue today={today} />
       <section className="s-routines__due" aria-label={t("routinesTasksHead")}>
         <DueTasks today={today} />
       </section>

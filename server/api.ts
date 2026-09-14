@@ -19,6 +19,8 @@ import { UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import { applyEdit, editRoutinePlan, logEditFor, routineFenceSpans, type EntryPatch } from "../shared/routine.ts";
 import { TASK_LINE_RE, toggleTaskLine } from "../shared/tasks.ts";
+import { scanCards, writeSchedule } from "../shared/flashcards.ts";
+import { review as reviewCard, type Grade } from "../shared/srs.ts";
 import type {
   AliasesResponse,
   AnchorsResponse,
@@ -97,7 +99,7 @@ import {
   search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor, hasNote,
   searchMatches,
   tags,
-  trackers, routines, hadithLookup,
+  trackers, routines, hadithLookup, cards,
   visibleNotesUnder,
   whenIndexed,
   wikilinkRegex, collectionRows } from "./indexer.ts";
@@ -2226,6 +2228,38 @@ api.post("/task", async (c) => {
     await indexFile(note.path);
   }
   return c.json({ ok: true, path: note.path, line, done });
+});
+
+// ---------------------------------------------------------------- flashcards
+// The Review page (shared/flashcards.ts). A grade writes the next schedule
+// into the note as the Spaced Repetition plugin's own comment, so a vault
+// reviewed in Obsidian and here is one vault. Admin only — the guard above
+// 401s a visitor's POST, and the list is refused below.
+api.get("/cards", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(cards());
+});
+
+api.post("/card/review", async (c) => {
+  const body = await jsonBody(c);
+  const notePath = requiredString(body, "path");
+  const line = typeof body.line === "number" && Number.isInteger(body.line) && body.line >= 1 ? body.line : 0;
+  if (line === 0) throw new VaultError(400, "A card needs a line");
+  const grade = body.grade;
+  if (grade !== "again" && grade !== "hard" && grade !== "good" && grade !== "easy") throw new VaultError(400, "Grade one of again, hard, good, easy");
+  const today = typeof body.today === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.today) ? body.today : new Date().toISOString().slice(0, 10);
+  const note = await readNote(notePath);
+  const card = scanCards(note.content).find((k) => k.line === line);
+  if (!card) throw new VaultError(409, "That card is gone", "stale");
+  const schedule = reviewCard(card.schedule, grade as Grade, today);
+  const next = writeSchedule(note.content, line, schedule);
+  if (next !== note.content) {
+    suppressWatcherEcho(note.path);
+    await writeNote(note.path, next, note.mtimeMs);
+    emitEvent({ kind: "changed", path: note.path });
+    await indexFile(note.path);
+  }
+  return c.json({ ok: true, path: note.path, line, schedule });
 });
 
 api.get("/mentions", (c) => {

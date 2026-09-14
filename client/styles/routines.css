@@ -106,6 +106,26 @@
   font-size: 0.929rem;
 }
 
+/* The flashcards line: a count and a door to the Review page. */
+.s-routines__cards {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-inline-size: 1240px;
+  margin: 20px auto 0;
+  padding: 10px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+}
+.s-routines__cardstext {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--text);
+}
+
 /* ── The form ──────────────────────────────────────────────────────────── */
 
 .s-routineform {

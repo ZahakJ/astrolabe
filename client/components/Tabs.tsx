@@ -21,7 +21,7 @@ import {
   closeAllPanes,
   closeOthersIn,
   isGraphTab,
-  isMediaTab, isRoutinesTab,
+  isMediaTab, isRoutinesTab, isReviewTab,
   isVirtualTab,
   paneAt,
   type Workspace,
@@ -36,6 +36,7 @@ function titleOf(path: string): string {
   if (isGraphTab(path)) return t("docTitleGraph");
   if (isMediaTab(path)) return t("media");
   if (isRoutinesTab(path)) return t("routines");
+  if (isReviewTab(path)) return t("review");
   const base = path.slice(path.lastIndexOf("/") + 1);
   return stripBidiControls(noteLabelOf(base));
 }

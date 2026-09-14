@@ -50,6 +50,7 @@ import {
   closesFence as routineCloses,
   fenceOpener as routineOpener,
 } from "../../shared/fences.ts";
+import { SR_RE as SR_COMMENT_RE } from "../../shared/srs.ts";
 import {
   parseRoutine,
   parseRoutineLog,
@@ -1569,6 +1570,31 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
 
 // ── Note-level rendering ────────────────────────────────────────────────────
 
+function withoutSrComments(lines: string[]): string[] {
+  const out: string[] = [];
+  let fence: ReturnType<typeof routineOpener> = null;
+  for (const line of lines) {
+    if (fence) {
+      if (routineCloses(line, fence)) fence = null;
+      out.push(line);
+      continue;
+    }
+    const opened = routineOpener(line);
+    if (opened) {
+      fence = opened;
+      out.push(line);
+      continue;
+    }
+    if (!SR_COMMENT_RE.test(line)) {
+      out.push(line);
+      continue;
+    }
+    const bare = line.replace(SR_COMMENT_RE, "");
+    if (bare.trim() !== "") out.push(bare.replace(/\s+$/, ""));
+  }
+  return out;
+}
+
 function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
   let lines = md.replace(/\r\n/g, "\n").split("\n");
 
@@ -1606,6 +1632,12 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
       lines = lines.slice(close + 1);
     }
   }
+
+  // A flashcard's schedule (shared/srs.ts, `<!--SR:!2026-09-27,4,2500-->`)
+  // is the note's own record, not its prose: a line that is only the comment
+  // goes, and one at the end of an inline `Q::A` line is trimmed off. Inside
+  // a code fence it is shown as written, like everything else there.
+  lines = withoutSrComments(lines);
 
   renderBlocks(lines, ctx, root);
 

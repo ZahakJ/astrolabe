@@ -72,10 +72,12 @@ import {
   isGraphTab,
   isMediaTab,
   isRoutinesTab,
+  isReviewTab,
   isVirtualTab,
   GRAPH_TAB,
   MEDIA_TAB,
   ROUTINES_TAB,
+  REVIEW_TAB,
   openInPane,
   resizeCols as resizeColsIn,
   resizeRows as resizeRowsIn,
@@ -579,7 +581,7 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph" | "media" | "routines"): void;
+  setView(v: View | "graph" | "media" | "routines" | "review"): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
   /** The Media page, on the same terms as the graph. */
@@ -588,6 +590,9 @@ export interface State {
   /** The Routines page, on the same terms. */
   routinesOpen(): boolean;
   toggleRoutines(): void;
+  /** The Review page (flashcards), on the same terms. */
+  reviewOpen(): boolean;
+  toggleReview(): void;
   /** Swap in a whole workspace — a restored named layout. */
   applyWorkspace(ws: Workspace): void;
   /** Toggle the graph tab in the focused pane: open (or focus) it, or, when it
@@ -2169,8 +2174,8 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph" || view === "media" || view === "routines") {
-        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : ROUTINES_TAB;
+      if (view === "graph" || view === "media" || view === "routines" || view === "review") {
+        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : view === "routines" ? ROUTINES_TAB : REVIEW_TAB;
         set((s) => ({
           ...s,
           ...mirrorOf(openInPane(s.workspace, s.workspace.focus, path)),
@@ -2211,6 +2216,17 @@ export const useStore = create<State>()((set, get) => {
       const s = get();
       if (s.routinesOpen()) s.closeTab(ROUTINES_TAB);
       else s.setView("routines");
+    },
+    reviewOpen: () => {
+      const ws = get().workspace;
+      const pane = paneAt(ws, ws.focus);
+      const tab = pane === null ? null : activeTabOf(pane);
+      return tab !== null && isReviewTab(tab.path);
+    },
+    toggleReview: () => {
+      const s = get();
+      if (s.reviewOpen()) s.closeTab(REVIEW_TAB);
+      else s.setView("review");
     },
     graphOpen: () => {
       const ws = get().workspace;
