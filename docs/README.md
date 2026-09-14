@@ -18,6 +18,7 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 | [Configuration](configuration.md) | Every `.env` key, the runtime Settings panel, [where attachments land](configuration.md#attachments), every settings key, and which wins |
 | [Publishing & access](publishing.md) | Public reading vs admin editing, the `publish:` flag, preview as visitor, HTTPS, comments |
 | [Backup & sync](backup-and-sync.md) | Committing the vault to a private git remote, by hand or on a timer, and [reading a note's history](backup-and-sync.md#note-history-reading-what-the-backup-kept) out of it |
+| [Export](export.md) | A ZIP of a note, a folder, a tag or the vault with the files they use, `[[wikilinks]]` kept or rewritten to standard links, and any note as a standalone HTML page |
 | [The desktop app](desktop.md) | The native app: menu bar, vaults, the reference window, find in page, updates, deep links |
 | [Development](development.md) | Dev mode, the gate scripts, the screenshot harnesses, contributing a change |
 
