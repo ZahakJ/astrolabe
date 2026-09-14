@@ -56,7 +56,7 @@ import { trackerOfFolder, useTrackerShelf } from "../trackerShelf.ts";
 import AttachmentViewer, { fileUrl, isViewable } from "./AttachmentViewer.tsx";
 // The reader's door only — a tiny module whose heavy half (the shelf, the page
 // renderer, pdf.js) is behind a dynamic import. See client/books/door.ts.
-import { openBookPath } from "../books/door.ts";
+import { openBookPage, openBookPath } from "../books/door.ts";
 import { confirmModal, confirmModalEx } from "./Confirm.tsx";
 import { moveViaPicker, pickMoveTarget } from "./MovePicker.tsx";
 import {
@@ -1797,7 +1797,36 @@ export default function Sidebar() {
             {hits.length === 0 ? t("noResultsAria") : tf("resultCount", { count: localeNum(hits.length) })}
           </p>
           {hits.length === 0 && <p className="s-search__none">{t("noMatchesDot")}</p>}
-          {hits.map((hit) => (
+          {hits.map((hit) =>
+            hit.kind === "book" ? (
+              // ONE PAGE OF A BOOK (server/pdfText.ts). Keyed by page, because
+              // the same volume answers several times; no hover preview and no
+              // line chevron, because both are about a note's source. The click
+              // opens the reader on the page by the road a citation takes.
+              <div key={`${hit.path}#${hit.page ?? 1}`} className="s-search-row s-search-row--book">
+                <button
+                  type="button"
+                  className="s-search-hit s-search-hit--book"
+                  onClick={() => openBookPage(hit.path, hit.page ?? 1)}
+                >
+                  <span className="s-search-hit__title">
+                    <span className="s-sr-only">{t("searchKindBook")} </span>
+                    <bdi>{hit.title}</bdi>
+                    {/* A real space, not only a margin: a screen reader (and
+                        innerText) would otherwise run "Treatise" into "p. 3". */}
+                    {" "}
+                    <span className="s-search-hit__page">
+                      {tf("searchHitPage", { n: localeNum(hit.page ?? 1) })}
+                    </span>
+                  </span>
+                  {!snippetIsEmpty(hit.snippet) && (
+                    <span className="s-search-hit__snippet" dir="auto">
+                      {renderSnippet(hit.snippet)}
+                    </span>
+                  )}
+                </button>
+              </div>
+            ) : (
             <div key={hit.path} className="s-search-row" data-preview-path={hit.path}>
             <button
               type="button"
@@ -1879,7 +1908,8 @@ export default function Sidebar() {
               );
             })()}
             </div>
-          ))}
+            ),
+          )}
         </div>
       ) : topics !== null && flatNotes !== null ? (
         <nav className="s-publist s-topics" aria-label={t("notesByTopic")}>

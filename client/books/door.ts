@@ -130,3 +130,11 @@ export function openBookCitation(
 export function openBookPath(path: string): void {
   useStore.getState().openBook(path, null);
 }
+
+/** Open a book ON A PAGE — what a click on a book row in the sidebar's search
+ *  does. The same one-shot target a citation rides in on (BookReader lands on
+ *  `page` and, with no rectangle to pulse, simply stays there), so a search
+ *  hit and a `[[Book.pdf#page=42]]` link open the book by one road. */
+export function openBookPage(path: string, page: number): void {
+  useStore.getState().openBook(path, { page: Math.max(1, Math.floor(page)), rect: null, id: null });
+}

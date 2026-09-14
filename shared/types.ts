@@ -73,6 +73,16 @@ export interface SearchHit {
    *  row says so, because a result whose words appear nowhere in the note
    *  otherwise reads as a bug. Absent on an ordinary title/body match. */
   alias?: string;
+  /** What this row IS. Absent (the shape every client before 3.12 read) means
+   *  a note; `"book"` means ONE PAGE of a PDF on the shelf — `path` is the
+   *  book's vault path, `title` its /Title or basename, `snippet` the page's
+   *  text around the match, and `page` says which. Appended so an older
+   *  client renders a book hit as a note row that opens the book at page 1,
+   *  which is degraded rather than wrong. Admin sessions only: the shelf is
+   *  an enumeration of the owner's vault (server/pdfText.ts). */
+  kind?: "note" | "book";
+  /** 1-based page of the hit, `kind: "book"` only. */
+  page?: number;
 }
 
 /** One frontmatter alias and the note it names — `GET /api/aliases`, which is
@@ -899,6 +909,9 @@ export interface SettingsData {
   /** The public masthead's ambient layer — a slow, decorative atmosphere
    *  behind the site name, drawn per theme (default OFF). */
   ambient?: boolean;
+  /** Read the text of every PDF on the shelf so the sidebar search answers
+   *  from book pages (overrides PDF_SEARCH; default ON). */
+  pdfSearch?: boolean;
   /** Favicon: vault-relative image path (uploaded attachment), served at
    *  /favicon.ico. Absent → the built-in glyph. */
   favicon?: string;
@@ -1064,6 +1077,8 @@ export interface InheritedSettings {
   noteVersions: boolean;
   shareButtons: boolean;
   ambient: boolean;
+  /** PDF_SEARCH alone — what the row's "Inherit" lands on. */
+  pdfSearch: boolean;
 }
 
 export interface EffectiveSettings {
@@ -1092,6 +1107,8 @@ export interface EffectiveSettings {
   noteVersions: boolean;
   shareButtons: boolean;
   ambient: boolean;
+  /** Whether the sidebar search reads book pages right now. */
+  pdfSearch: boolean;
   favicon: string | null;
   logo: string | null;
   /** The templates folder actually in force: the stored value when set, the
@@ -1165,6 +1182,7 @@ export interface SettingsPatch {
   noteVersions?: boolean | null;
   shareButtons?: boolean | null;
   ambient?: boolean | null;
+  pdfSearch?: boolean | null;
   favicon?: string | null;
   home?: {
     mode?: "note" | "dashboard" | null;
