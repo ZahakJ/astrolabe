@@ -94,6 +94,23 @@ function slashItems(): SlashItem[] {
       apply: snippet("> [!${note}] ${}"),
     },
     {
+      // Scripture, right under the callout it is a kind of. The skeleton IS
+      // the documentation: a reference where the title goes, and the popup
+      // that follows offers the surah names (autocomplete.ts ayahRefSource).
+      label: "Ayah",
+      displayLabel: "slashAyah",
+      detailKey: "slashAyahDetail",
+      boost: 8.6,
+      apply: snippetThenComplete("> [!ayah] ${}"),
+    },
+    {
+      label: "Hadith",
+      displayLabel: "slashHadith",
+      detailKey: "slashHadithDetail",
+      boost: 8.5,
+      apply: snippet("> [!hadith] ${Bukhari 1}"),
+    },
+    {
       label: "Code block",
       displayLabel: "slashCodeBlock",
       detailKey: "slashCodeBlockDetail",
@@ -285,6 +302,11 @@ function applyCalloutType(
       userEvent: "input.complete",
     });
   }
+  // An ayah callout's title is a reference, and the surah popup
+  // (autocomplete.ts ayahRefSource) is the whole convenience — it opens
+  // here rather than waiting for a keystroke a "completion" event would not
+  // count as typing.
+  if (completion.label === "ayah") window.setTimeout(() => startCompletion(view), 0);
 }
 
 export function calloutTypeSource(

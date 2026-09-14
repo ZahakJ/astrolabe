@@ -40,6 +40,7 @@ import type {
   TagRenamePreview,
   TagRenameResult,
   TrackerMeta,
+  HadithHit,
   TrashEntry,
   TreeNode,
   UnusedAttachments,
@@ -707,6 +708,13 @@ export function queryNotes(q: string, sort: string, dir: "asc" | "desc", limit: 
 
 export function getTrackers(): Promise<TrackerMeta[]> {
   return request<TrackerMeta[]>("/api/trackers");
+}
+
+/** The corpus note answering a `> [!hadith]` reference, at this session's
+ *  scope; rejects (404) when none does, and the callout falls back to a
+ *  quote. `ref` is the text as the author typed it — the server parses it. */
+export function getHadith(ref: string): Promise<HadithHit> {
+  return request<HadithHit>(`/api/hadith?ref=${encodeURIComponent(ref)}`);
 }
 
 /** Record one day of a routine, and/or replace its plan, from the Routines

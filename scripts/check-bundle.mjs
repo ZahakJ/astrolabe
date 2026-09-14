@@ -1008,6 +1008,17 @@ const FORBIDDEN = [
   // embeds use (shared/drawing.ts) deliberately imports none of it.
   { label: "Excalidraw", test: (k) => /node_modules\/@excalidraw\//.test(k) },
   { label: "the drawing surface", test: (k) => /drawing\/(DrawingSurface|renderEmbed)\.tsx?$/.test(k) },
+  // The Quran text: 1.3 MB of Uthmani script (client/data/quran-uthmani.json)
+  // that exactly one callout kind needs, reached only through the dynamic
+  // `import("./ayah.ts")` in client/reading/render.ts's callout branch. Two
+  // ways to undo the split, so two patterns: the data module itself, and the
+  // one module that imports it statically — which comes back into a first
+  // paint the moment someone imports `renderAyahText` from ayah.ts rather
+  // than through render.ts. The reference grammar (shared/quranRefs.ts, a few
+  // kB) is first-paint on purpose: the callout must be RECOGNISED before it
+  // is drawn, or an unparseable reference would paint a verse box and turn
+  // back into a quote.
+  { label: "the Quran text", test: (k) => /data\/quran-uthmani\.json$/.test(k) || /reading\/ayah\.ts$/.test(k) },
 ];
 
 // ── surfaces that must remain separately loadable ───────────────────────────
@@ -1042,6 +1053,10 @@ const MUST_SPLIT = [
   // and both are asserted absent from every first paint by the FORBIDDEN
   // rule below.
   "drawing/DrawingSurface.tsx",
+  // The verse chunk: the Quran text and the one module that draws from it,
+  // behind render.ts's `import("./ayah.ts")`. Asserted split AND forbidden
+  // from every first paint above — a boundary this large is asserted twice.
+  "reading/ayah.ts",
 ];
 
 let failed = false;

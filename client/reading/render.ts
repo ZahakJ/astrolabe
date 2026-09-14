@@ -38,7 +38,13 @@ import {
   CALLOUT_TITLE_RE,
   calloutGroup,
   calloutIconSvg,
+  scriptureKind,
 } from "../editor/calloutDefs.ts";
+import { formatAyahRef, parseAyahRef, type AyahRef } from "../../shared/quranRefs.ts";
+import type { HadithHit } from "../../shared/types.ts";
+import { getHadith } from "../api.ts";
+import { getLang } from "../i18n.ts";
+import { Lru } from "../lru.ts";
 import { parseBoard, parseTracker } from "../../shared/tracker.ts";
 import {
   closesFence as routineCloses,
@@ -103,6 +109,12 @@ export interface RenderOptions {
    *  pills linking toward topics the public nav hides. Absent (the app
    *  shell) every tag stays a pill. */
   visibleTags?: Set<string>;
+  /** Called when a block's height settles AFTER the tree was handed back — a
+   *  verse landing from the lazy Quran chunk, a hadith answered by the
+   *  corpus. The editor's scripture widget passes `view.requestMeasure` so
+   *  CodeMirror's height map hears about the real height; the reading view
+   *  and the blog need nothing. */
+  onResize?: () => void;
 }
 
 interface Ctx extends RenderOptions {
@@ -861,6 +873,157 @@ function trackerBlock(
   return host;
 }
 
+// ── Scripture (> [!ayah], > [!hadith]) ─────────────────────────────────────
+
+/** The verse chunk, requested once per page and shared by every ayah callout
+ *  on it. The module is 1.3 MB of Uthmani text and this is its ONLY door —
+ *  scripts/check-bundle.mjs forbids it from every first paint. */
+let ayahModule: Promise<typeof import("./ayah.ts")> | null = null;
+
+function loadAyah(): Promise<typeof import("./ayah.ts")> {
+  ayahModule ??= import("./ayah.ts");
+  return ayahModule;
+}
+
+/** An ayah callout: the verse (Uthmani, pointed) above its reference, the
+ *  author's commentary under both. THE DECISION IS SYNCHRONOUS; THE DRAWING
+ *  IS NOT — the tracker's rule: the reference is parsed here, so an
+ *  unparseable one never paints a verse box (the caller falls back to a
+ *  quote), and the text arrives into a box already in the tree. */
+function ayahBlock(ref: AyahRef, bodyLines: string[], ctx: Ctx, id: string | null): HTMLElement {
+  const box = document.createElement("div");
+  box.className = "s-rv-callout s-rv-callout--ayah";
+  if (id) box.id = id;
+  // The box takes the verse's direction — the same rule the quote callout
+  // follows (its box is its words'), and dir="auto" cannot see it here for
+  // the reason given there.
+  box.dir = "rtl";
+  const pending = document.createElement("div");
+  pending.className = "s-rv-ayah__text s-rv-ayah--pending";
+  pending.dir = "rtl";
+  pending.lang = "ar";
+  pending.textContent = t("ayahPending");
+  box.appendChild(pending);
+  const cite = document.createElement("footer");
+  cite.className = "s-rv-callout__cite s-rv-ayah__cite";
+  const label = document.createElement("span");
+  label.className = "s-rv-ayah__ref";
+  // The ornate brackets ﴿﴾ are mirrored glyphs: inside the RTL box a Latin
+  // reference came out as }Al-Baqarah 2:255{. The caption takes its own
+  // text's direction.
+  label.dir = "auto";
+  // «﴿البقرة ٢٥٥﴾» / "﴿Al-Baqarah 2:255﴾": the ornate brackets are the
+  // Quranic quotation marks, and the caption inside them speaks the chrome's
+  // language (shared/quranRefs.ts formatAyahRef says why the digits differ).
+  label.dir = "auto";
+  label.textContent = `﴿${formatAyahRef(ref, getLang())}﴾`;
+  const source = document.createElement("a");
+  source.className = "s-rv-ayah__source";
+  source.href = "https://tanzil.net";
+  source.target = "_blank";
+  source.rel = "noopener";
+  // The Tanzil license asks for the credit and the link under every use of
+  // the text; this is that, and it is also how a reader checks a verse.
+  source.textContent = t("ayahSource");
+  source.title = t("ayahSourceTitle");
+  cite.append(label, source);
+  box.appendChild(cite);
+  if (bodyLines.some((l) => l.trim() !== "")) {
+    const body = document.createElement("div");
+    body.className = "s-rv-callout__body";
+    renderBlocks(bodyLines, ctx, body);
+    box.appendChild(body);
+  }
+  void loadAyah().then((mod) => {
+    pending.replaceWith(mod.renderAyahText(ref));
+    ctx.onResize?.();
+  });
+  return box;
+}
+
+/** Corpus answers, remembered for a minute per reference: the editor
+ *  rebuilds its widget on every keystroke that changes the callout's source,
+ *  and the same hadith cited twice on a page is one request. A miss is
+ *  remembered as null too, so an unanswered reference is not re-asked. */
+const hadithCache = new Lru<Promise<HadithHit | null>>({ max: 64, ttlMs: 60_000 });
+
+function lookupHadith(ref: string): Promise<HadithHit | null> {
+  const cached = hadithCache.get(ref);
+  if (cached !== undefined) return cached;
+  const promise = getHadith(ref).catch(() => null);
+  hadithCache.set(ref, promise);
+  return promise;
+}
+
+/** The hadith card that REPLACES the quote callout once the corpus answers:
+ *  the chain of narrators set small and quiet, the matn in the serif, the
+ *  grade and the source note under them, the author's commentary last.
+ *  Built only on a hit — the quote the caller drew is what a reader sees
+ *  until then, and forever when no corpus note answers. */
+function hadithCard(hit: HadithHit, refText: string, bodyLines: string[], ctx: Ctx, id: string | null): HTMLElement {
+  const box = document.createElement("div");
+  box.className = "s-rv-callout s-rv-callout--hadith";
+  if (id) box.id = id;
+  box.dir = firstStrongDirection(hit.matn) ?? "auto";
+  const bar = document.createElement("div");
+  bar.className = "s-rv-callout__title";
+  const icon = document.createElement("span");
+  icon.className = "s-rv-callout__icon";
+  icon.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${calloutIconSvg("hadith")}</svg>`;
+  const text = document.createElement("span");
+  text.className = "s-rv-callout__text";
+  text.dir = "auto";
+  // The collection's name comes from the server in both languages (the
+  // corpus is the server's, and so is the alias table that names it) — the
+  // client just picks the chrome's. `refText` is the author's own spelling,
+  // the fallback when the corpus note names nothing.
+  text.textContent = `${hit.label[getLang()] || refText} ${hit.number}`;
+  bar.append(icon, text);
+  box.appendChild(bar);
+  const card = document.createElement("div");
+  card.className = "s-rv-hadith";
+  if (hit.chain) {
+    const chain = document.createElement("p");
+    chain.className = "s-rv-hadith__chain";
+    chain.dir = "auto";
+    chain.title = t("hadithChain");
+    chain.innerHTML = renderInline(hit.chain, ctx);
+    card.appendChild(chain);
+  }
+  const matn = document.createElement("div");
+  matn.className = "s-rv-hadith__matn";
+  renderBlocks(hit.matn.split("\n"), ctx, matn);
+  card.appendChild(matn);
+  const foot = document.createElement("footer");
+  foot.className = "s-rv-hadith__source";
+  if (hit.grade) {
+    const grade = document.createElement("span");
+    grade.className = "s-rv-hadith__grade";
+    grade.dir = "auto";
+    grade.textContent = hit.grade;
+    foot.appendChild(grade);
+  }
+  // The source note, through the same delegated wikilink handler every
+  // other link in the tree takes — one behaviour, whichever surface.
+  const link = document.createElement("a");
+  link.className = "s-rv-wikilink s-rv-hadith__note";
+  link.dataset.target = hit.path;
+  link.dir = "auto";
+  link.tabIndex = 0;
+  link.textContent = hit.title;
+  link.title = t("hadithOpenSource");
+  foot.appendChild(link);
+  card.appendChild(foot);
+  box.appendChild(card);
+  if (bodyLines.some((l) => l.trim() !== "")) {
+    const body = document.createElement("div");
+    body.className = "s-rv-callout__body";
+    renderBlocks(bodyLines, ctx, body);
+    box.appendChild(body);
+  }
+  return box;
+}
+
 /** The editor's live-preview widget draws its tracker through THIS — the same
  *  entry the reading view's fence branch takes, one function later. The card
  *  in the editor and the card on the blog are the same card, which is the rule
@@ -1155,7 +1318,21 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       const nested: Ctx = { ...ctx, assignIds: false };
       if (cm) {
         const type = cm[2].toLowerCase();
-        const group = calloutGroup(type);
+        // SCRIPTURE FIRST. An ayah whose reference parses is drawn by
+        // ayahBlock and the generic path never runs; one whose reference
+        // does not parse — and every hadith, until the corpus answers — is
+        // a QUOTE callout wearing the reference as its attribution, so a
+        // callout is never broken and never blank.
+        const scripture = scriptureKind(type);
+        const refText = cm[4].trim();
+        if (scripture === "ayah") {
+          const ref = parseAyahRef(refText);
+          if (ref) {
+            root.appendChild(ayahBlock(ref, qlines.slice(1).map(stripQuote), nested, quoteId));
+            continue;
+          }
+        }
+        const group = scripture !== null ? "quote" : calloutGroup(type);
         const marker = cm[3];
         // A QUOTE CARRIES NO LABEL. Every other kind wears its name in a title
         // bar; a quotation wearing the word "Quote" (in English, on an Arabic
@@ -1203,6 +1380,20 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
           );
         }
         root.appendChild(box);
+        // The corpus door. The quote above is on the page already; if a
+        // corpus note answers, the hadith card takes its place — and if none
+        // does, nothing moves. The grammar lives on the server (it parses
+        // the reference through shared/hadithRefs.ts, which the client's
+        // first paint does not carry); the one thing checked here is that
+        // there is a number to look up at all.
+        if (scripture === "hadith" && /[0-9٠-٩]/.test(refText)) {
+          const bodyLines = qlines.slice(1).map(stripQuote);
+          void lookupHadith(refText).then((hit) => {
+            if (hit === null || !box.isConnected) return;
+            box.replaceWith(hadithCard(hit, refText, bodyLines, nested, quoteId));
+            ctx.onResize?.();
+          });
+        }
       } else {
         const bq = document.createElement("blockquote");
         bq.className = "s-rv-quote";

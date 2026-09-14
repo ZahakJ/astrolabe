@@ -79,6 +79,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "publishing", label: "rowHomeNote", hint: "hintHomeNote", env: "HOME_NOTE" },
   { tab: "publishing", label: "rowHomeBanner", hint: "hintHomeBanner" },
   { tab: "vault", label: "templatesFolderLabel", hint: "templatesFolderHint" },
+  { tab: "vault", label: "hadithFolderLabel", hint: "hadithFolderHint" },
   { tab: "vault", label: "defaultTemplateLabel", hint: "defaultTemplateHint" },
   { tab: "vault", label: "dailyFolderLabel", hint: "dailyFolderHint" },
   { tab: "vault", label: "dailyFormatLabel", hint: "dailyFormatHint" },

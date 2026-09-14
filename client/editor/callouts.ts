@@ -19,6 +19,8 @@ import {
   CALLOUT_TITLE_RE as TITLE_RE,
   calloutGroup,
   calloutIconSvg,
+  scriptureKind,
+  type ScriptureKind,
 } from "./calloutDefs.ts";
 export { TITLE_RE as CALLOUT_TITLE_RE, calloutGroup, calloutIconSvg };
 
@@ -27,6 +29,10 @@ export interface Callout {
   to: number; // blockquote end
   type: string; // raw type text as typed
   group: string; // color/icon group
+  /** An ayah or hadith callout — replaced whole by a block widget while the
+   *  caret is outside it (editor/scripture.ts), so the line pass must not
+   *  dress its lines. Null for every ordinary callout. */
+  scripture: ScriptureKind | null;
   marker: "" | "+" | "-";
   title: string; // explicit title or capitalized type
   titleLineFrom: number;
@@ -59,6 +65,7 @@ export function findCallouts(
         to: node.to,
         type,
         group,
+        scripture: scriptureKind(type),
         marker: (m[3] as Callout["marker"]) ?? "",
         // A quote's default title is NONE (the reading renderer agrees): its
         // explicit title is an attribution, not a label.
@@ -207,6 +214,16 @@ export function calloutLineDecos(
     const open = calloutIsOpen(state, callout);
     const firstLine = doc.lineAt(callout.from).number;
     const lastLine = doc.lineAt(callout.to).number;
+    // A scripture callout with the caret outside it is REPLACED by the
+    // rendered card (scriptureBlockDeco in the block pass), so tinting its
+    // lines and mounting a title widget inside the replaced range would be
+    // dressing lines nobody sees — the tracker fence's rule. The moment the
+    // caret lands inside, it is an ordinary callout's source again.
+    if (callout.scripture !== null) {
+      let inside = false;
+      for (let n = firstLine; n <= lastLine && !inside; n++) inside = activeLines.has(n);
+      if (!inside) continue;
+    }
     for (let n = firstLine; n <= lastLine; n++) {
       const cls = [
         "cm-s-callout",
@@ -248,6 +265,11 @@ export function calloutFoldDecos(
   for (const callout of findCallouts(state)) {
     if (calloutIsOpen(state, callout)) continue;
     if (callout.titleLineTo >= callout.to) continue; // title-only callout
+    // A scripture callout is replaced whole while the caret is outside it,
+    // and a fold replace nested inside a block replace is a decoration the
+    // view cannot honour; while the caret is inside, the source is the
+    // point and folding it would hide the commentary being edited.
+    if (callout.scripture !== null) continue;
     decos.push(
       Decoration.replace({}).range(callout.titleLineTo, callout.to),
     );

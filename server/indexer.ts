@@ -34,7 +34,9 @@ import { readTexNote } from "./texNote.ts";
 import { blogLocale, excludedTags } from "./site.ts";
 // Cyclic with this module (settings.ts → site.ts → here) and inert: every
 // call below happens at request time, never while either module is loading.
-import { getSettings, settingsAssetPaths, tagsFolder, templatesFolder } from "./settings.ts";
+import { getSettings, hadithFolder, settingsAssetPaths, tagsFolder, templatesFolder } from "./settings.ts";
+import { collectionLabel, hadithKeyOfFrontmatter, splitHadith } from "../shared/hadithRefs.ts";
+import type { HadithHit } from "../shared/types.ts";
 import { listFolderFiles, listVaultFiles, onEvent, readNote, safeAbs } from "./vault.ts";
 
 interface NoteRecord {
@@ -91,6 +93,13 @@ interface NoteRecord {
    *  without this the art on a published shelf renders for the owner and
    *  404s for every visitor. */
   trackers: Tracker[];
+  /** Frontmatter `collection:` + `number:` → the key a `> [!hadith]` callout
+   *  looks this note up by (shared/hadithRefs.ts hadithKey), or null — which
+   *  is every note but the corpus. Kept on every record rather than only
+   *  under the hadith folder, for `labels`' reason: the folder is a runtime
+   *  setting, and gating the read on it would need a full reindex to take
+   *  effect. The folder is applied at lookup time (hadithLookup). */
+  hadithRef: string | null;
   /** Every ```routine plan in this note with its log (shared/routine.ts) —
    *  the Routines page's list. Empty for almost every note. */
   routines: RoutineBlock[];
@@ -312,6 +321,7 @@ function invalidateDerived(): void {
   allowedAttachmentsCache = null;
   attachmentRefsCache = null;
   templatesFolderMemo = null;
+  hadithFolderMemo = null;
 }
 
 // Attachments (non-md files): known paths + lowercased basename (with
@@ -848,6 +858,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     // ```markdown block is documentation, not a tracker — the same rule the
     // outline and the anchor table keep.
     trackers: scanTrackers(parts.body),
+    hadithRef: hadithKeyOfFrontmatter(fm),
     routines: scanRoutines(parts.body),
     tasks: scanTasks(content),
     mtimeMs: stat.mtimeMs,
@@ -1171,6 +1182,10 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     // trackers and no tracker covers — the same silence it keeps about links
     // and assets, and for the same reason.
     trackers: [],
+    // The head carried the frontmatter, so an oversized corpus note still
+    // files under its key — though with no body read, a lookup that lands on
+    // it has no text to show and answers as if it were not there.
+    hadithRef: hadithKeyOfFrontmatter(fm),
     routines: [],
     tasks: [],
     props: {},
@@ -1844,6 +1859,87 @@ export function detectTemplatesFolder(): string | null {
     candidates.size === 1 ? [...candidates][0] : atRoot.length === 1 ? atRoot[0] : null;
   templatesFolderMemo = { value };
   return value;
+}
+
+// ------------------------------------------------------------ hadith corpus
+
+/** Folder basenames that MEAN "the hadith corpus lives here", on the
+ *  templates matcher's terms (ordering prefix stripped, whole-name match):
+ *  the English word and its plural, the Arabic singular, plural and the
+ *  definite forms. `Corpus/hadith` — the layout the docs suggest — matches
+ *  on its last segment, which is what the walk below tests. */
+const HADITH_FOLDER_NAMES = /^_?(?:a?hadith|ahadeeth)$|^حديث$|^الحديث$|^أحاديث$|^الأحاديث$|^احاديث$/i;
+
+function looksLikeHadithFolder(name: string): boolean {
+  return HADITH_FOLDER_NAMES.test(name.replace(ORDERING_PREFIX, "").trim());
+}
+
+let hadithFolderMemo: { value: string | null } | null = null;
+
+/** The vault's hadith corpus folder when it is UNAMBIGUOUS, else null — the
+ *  `detectTemplatesFolder` rule, memoized the same way and dropped by the
+ *  same `invalidateDerived()`, because a callout on a public page asks this
+ *  on every render. Only folders that actually hold a corpus note count: a
+ *  folder called "hadith" full of essays about hadith is not a corpus, and
+ *  guessing it would answer every callout with "nothing here". */
+export function detectHadithFolder(): string | null {
+  if (hadithFolderMemo !== null) return hadithFolderMemo.value;
+  const candidates = new Set<string>();
+  for (const record of notes.values()) {
+    if (record.hadithRef === null) continue;
+    const segments = record.path.split("/");
+    for (let i = 0; i < segments.length - 1; i++) {
+      if (looksLikeHadithFolder(segments[i])) candidates.add(segments.slice(0, i + 1).join("/"));
+    }
+  }
+  // A nested match ("Corpus/hadith") and its parent ("Corpus/hadith/Bukhari"
+  // is not a candidate, but "1 - Hadith/Bukhari" and "1 - Hadith" could both
+  // be) resolve to the SHORTEST, which contains the rest.
+  let value: string | null = null;
+  if (candidates.size > 0) {
+    const sorted = [...candidates].sort((a, b) => a.length - b.length);
+    const root = sorted[0];
+    value = sorted.every((c) => c === root || c.startsWith(`${root}/`)) ? root : null;
+  }
+  hadithFolderMemo = { value };
+  return value;
+}
+
+/** The corpus note that answers `key` (`bukhari#1`) for this session, or
+ *  null. `visitor` scopes it exactly as `/api/note` scopes a read — published
+ *  notes only, the language filter applied — so the path handed back is
+ *  always one the caller may open, and an unpublished corpus is invisible
+ *  rather than half-visible. Ties (two notes claiming the same hadith) go to
+ *  the lexically first path, so the answer is stable across restarts. */
+export function hadithLookup(key: string, visitor: boolean, lang: FilterLang): HadithHit | null {
+  const folder = hadithFolder();
+  if (folder === null) return null;
+  const prefix = `${folder}/`;
+  let best: NoteRecord | null = null;
+  for (const record of notes.values()) {
+    if (record.hadithRef !== key || !record.path.startsWith(prefix)) continue;
+    if (visitor && (!publishedSet.has(record.path) || languageHidden(record, lang))) continue;
+    if (oversized.has(record.path)) continue; // no body was read — nothing to show
+    if (best === null || record.path < best.path) best = record;
+  }
+  if (best === null) return null;
+  const props = best.props;
+  const { chain, matn } = splitHadith(best.body, props.chain ?? props.isnad ?? null);
+  const collection = key.slice(0, key.lastIndexOf("#"));
+  const asWritten = props.collection ?? collection;
+  return {
+    path: best.path,
+    title: best.title,
+    collection,
+    label: {
+      en: collectionLabel(collection, "en", asWritten),
+      ar: collectionLabel(collection, "ar", asWritten),
+    },
+    number: Number(key.slice(key.lastIndexOf("#") + 1)),
+    chain,
+    matn,
+    grade: props.grade ?? props.الدرجة ?? null,
+  };
 }
 
 // --------------------------------------------------------------- tag pages
