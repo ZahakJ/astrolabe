@@ -206,7 +206,7 @@ automatic, and it too carries an Undo</p>
 <li><p><strong>Reorganize by dragging</strong>, with every link repaired — see
 <a href="../templates-and-notes/#reorganizing-by-dragging">Reorganizing</a></p>
 </li>
-<li><p><strong>Daily notes</strong> — <code>Ctrl/Cmd D</code> opens (or creates) <code>daily/YYYY-MM-DD.md</code></p>
+<li><p><strong>Daily notes</strong> — <code>Ctrl/Cmd Alt D</code> opens (or creates) today&#39;s note (<code>daily/YYYY-MM-DD.md</code> unless <a href="../templates-and-notes/#daily-and-weekly-notes">configured otherwise</a>)</p>
 </li>
 <li><p><strong>A shell that gets out of the way</strong> — collapse either pane (<code>Ctrl/Cmd Alt B</code>,
 <code>Ctrl/Cmd Alt Shift B</code>) down to a slim reopen handle, or go <strong>zen</strong> (<code>Ctrl/Cmd Shift Z</code>):
@@ -237,6 +237,50 @@ sit above or below your notes according to which matched better. Typing <code>so
 </li>
 </ul>
 <p><figure><img src="../../../screenshots/palette.png" alt="Command palette" loading="lazy"></figure></p>
+<h2 id="live-queries"><a class="anchor" href="#live-queries">Live queries</a></h2>
+<p>A <code>```query</code> fence is a list of notes that answers a search, drawn live wherever the note is
+read — the editor, reading view, the blog. It takes the search box&#39;s operators and four keys:</p>
+<pre><code class="language-query">tag:reading prop:status=reading -tag:draft
+show: title, date, status, tags
+sort: date desc
+limit: 20
+as: table
+</code></pre>
+<div class="table"><table><thead><tr><th>Key</th><th>Values</th></tr></thead><tbody><tr><td><code>show</code></td><td>columns: <code>title</code>, <code>date</code>, <code>modified</code>, <code>tags</code>, <code>excerpt</code>, <code>path</code>, or any frontmatter key (<code>status</code>, <code>author</code>)</td></tr><tr><td><code>sort</code></td><td><code>date</code>, <code>modified</code>, <code>title</code>, <code>path</code>, <code>relevance</code>, each with <code>asc</code> or <code>desc</code></td></tr><tr><td><code>limit</code></td><td>at most this many rows (500 at most)</td></tr><tr><td><code>as</code></td><td><code>list</code> (title and excerpt), <code>table</code>, or <code>cards</code></td></tr></tbody></table></div><p>Every other line is the query. <code>prop:status=reading</code> is new with it: search by any frontmatter
+property, <code>prop:author</code> alone for &quot;has one&quot;, <code>-prop:draft</code> to exclude. The list is scoped to the
+reader — a visitor&#39;s fence on a published note lists published notes only — and it re-reads when
+the vault changes. Obsidian renders the same fence language, so the note stays readable there.</p>
+<h2 id="tasks-across-the-vault"><a class="anchor" href="#tasks-across-the-vault">Tasks across the vault</a></h2>
+<p>Every <code>- [ ]</code> line is a task, and the fields the Tasks plugin taught vaults to write are read off its
+end: <code>📅 2026-09-20</code> due, <code>⏳</code> scheduled, <code>🛫</code> start, <code>✅</code> done on, <code>🔁 every week</code>, and <code>⏫ 🔼 🔽</code>
+priority. A <code>```tasks</code> fence lists them from the whole vault, grouped by note, and in the editor
+each box is live: a tick flips that one line in the note it lives in and stamps <code>✅ today</code>, so
+Obsidian&#39;s Tasks reads the same state.</p>
+<pre><code class="language-tasks">not done
+due this week
+tag:work
+sort: priority
+</code></pre>
+<p>Lines: <code>not done</code> (the default), <code>done</code>, <code>all</code>; <code>due today</code>, <code>due this week</code>, <code>overdue</code>, <code>due before 2026-10-01</code>, <code>due after …</code>, <code>due on …</code>, <code>has due date</code>; <code>path:Projects</code>, <code>tag:work</code>, <code>limit: 50</code>,
+<code>group: none</code>, <code>sort: due | priority | path</code>. The Routines page opens with the tasks due by today.</p>
+<h2 id="unlinked-mentions"><a class="anchor" href="#unlinked-mentions">Unlinked mentions</a></h2>
+<p>Under the backlinks, the right panel lists notes whose prose names the open note&#39;s title or an
+alias without linking it — whole words only, never inside a link, code or a template, and folded
+like search so a pointed Arabic title finds its plain spelling. <strong>Link</strong> wraps those words as
+<code>[[Note]]</code> (or <code>[[Note|the words]]</code> when they are not the title&#39;s own spelling) with one edit to
+that line; <strong>Link all</strong> does every row. This is how atomic notes get woven.</p>
+<h2 id="block-references"><a class="anchor" href="#block-references">Block references</a></h2>
+<p>Any paragraph or list item can be addressed. End it with a space and a caret id — <code>…the rule of three. ^rule3</code> — or put <code>^rule3</code> on a line of its own right under the block, and:</p>
+<ul>
+<li><code>[[Note#^rule3]]</code> links to that block and lands on it; the hover card shows just that block;</li>
+<li><code>![[Note#^rule3]]</code> transcludes only that block, in the editor, the reading view and on the blog;</li>
+<li><code>[[Note#</code> in the editor offers block ids beside headings, and the palette&#39;s <code>#</code> jump lists them.</li>
+</ul>
+<p>The marker is hidden in reading view and in live preview until the caret is on its line, where it
+shows faint and monospace so it can be read or changed. <strong>Copy link to this block</strong> in the command
+palette mints an id for the block under the caret (or reuses the one it has), appends it as one undo
+step, and copies the link; on a heading line it copies the section link instead. The syntax is
+Obsidian&#39;s, so a vault that already carries <code>^ids</code> keeps every link.</p>
 <h2 id="find-and-replace"><a class="anchor" href="#find-and-replace">Find and replace</a></h2>
 <p><code>Ctrl/Cmd F</code> opens find and replace inside the note: type, and the count says where you are;
 Enter goes to the next match, Shift+Enter to the previous, Enter in the replace field replaces
@@ -317,7 +361,7 @@ reload.</p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/desktop/"><span class="pager__kicker">Previous</span><span class="pager__title">The desktop app</span></a><a class="pager__link pager__link--next" href="../../en/templates-and-notes/"><span class="pager__kicker">Next</span><span class="pager__title">Templates, banners &amp; notes</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#rendering">Rendering</a><a class="toc__link toc__link--2" href="#navigating">Navigating</a><a class="toc__link toc__link--2" href="#find-and-replace">Find and replace</a><a class="toc__link toc__link--2" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a><a class="toc__link toc__link--2" href="#arranging-the-tree">Arranging the tree</a><a class="toc__link toc__link--2" href="#the-two-side-panes">The two side panes</a><a class="toc__link toc__link--2" href="#folder-marks">Folder marks</a><a class="toc__link toc__link--2" href="#notes-to-self">Notes to self</a><a class="toc__link toc__link--2" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#rendering">Rendering</a><a class="toc__link toc__link--2" href="#navigating">Navigating</a><a class="toc__link toc__link--2" href="#live-queries">Live queries</a><a class="toc__link toc__link--2" href="#tasks-across-the-vault">Tasks across the vault</a><a class="toc__link toc__link--2" href="#unlinked-mentions">Unlinked mentions</a><a class="toc__link toc__link--2" href="#block-references">Block references</a><a class="toc__link toc__link--2" href="#find-and-replace">Find and replace</a><a class="toc__link toc__link--2" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a><a class="toc__link toc__link--2" href="#arranging-the-tree">Arranging the tree</a><a class="toc__link toc__link--2" href="#the-two-side-panes">The two side panes</a><a class="toc__link toc__link--2" href="#folder-marks">Folder marks</a><a class="toc__link toc__link--2" href="#notes-to-self">Notes to self</a><a class="toc__link toc__link--2" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

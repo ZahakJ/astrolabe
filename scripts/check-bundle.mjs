@@ -630,7 +630,13 @@ const AUDIENCES = [
   // door.ts + versions.ts: two localStorage keys, a version compare and a
   // dynamic import) and its eleven dictionary keys. The deck itself, its
   // demos and its prose are a lazy chunk pinned by MUST_SPLIT.
-  { name: "entry (everyone)", keys: entry, budget: 716 * 1024 },
+  // 3.12.0 (723.5 kB actual → 726): PERIODIC NOTES — client/daily.ts is
+  // imported by the shell (Ctrl/Cmd Alt D) and now carries the format engine
+  // (shared/periodic.ts) and the settings cache; and the dictionary's keys
+  // for the whole release (block references, the query and tasks fences,
+  // unlinked mentions, on this day, the periodic settings rows), which ship
+  // whole to every surface, as every note in this file says.
+  { name: "entry (everyone)", keys: entry, budget: 726 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -829,7 +835,12 @@ const AUDIENCES = [
   // empty state through the store, and the app-identity rows in the Device tab.
   // 3.11.0: 963.9 kB actual → 968 — the routine model and render.ts's
   // routine branch, both in the reading closure (see the entry note above).
-  { name: "anonymous blog reader", keys: blog, budget: 968 * 1024 },
+  // 3.12.0: 983.9 kB actual → 988 — three more fence languages in the
+  // reading closure (```query, ```tasks, and the block-id pass), each a
+  // static PARSER (the fence decision is synchronous) with its renderer and
+  // stylesheet lazy, plus the reading renderer's block-id handling and the
+  // dictionary's keys for all of it.
+  { name: "anonymous blog reader", keys: blog, budget: 988 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -939,7 +950,10 @@ const AUDIENCES = [
   // …and for 3.6.0 (1322.6 kB actual → 1330): the same.
   // 3.11.0: 1392.3 kB actual → 1398 — the same bytes as the blog closure
   // plus the status bar's door and the store's routines tab.
-  { name: "admin first paint", keys: app, budget: 1398 * 1024 },
+  // 3.12.0: 1418.9 kB actual → 1424 — the blog closure's bytes plus the
+  // right panel's two new sections (unlinked mentions, on this day), the
+  // periodic-note settings rows and the palette's new doors.
+  { name: "admin first paint", keys: app, budget: 1424 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
