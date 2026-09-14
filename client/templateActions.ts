@@ -124,17 +124,20 @@ export async function newNoteFromTemplateCommand(dir = ""): Promise<void> {
 /** The default template, applied to a note that was just created empty. Off
  *  unless `settings.defaultTemplate` names one — a product that silently puts
  *  text in every new note is a product that has to be fought. */
-export async function applyDefaultTemplate(path: string): Promise<void> {
+export async function applyDefaultTemplate(path: string, templatePath: string | null = null): Promise<void> {
   let settings;
   try {
     settings = await templateSettings();
   } catch {
     return; // settings unreachable: a new note is empty, as it always was
   }
-  if (!settings.defaultTemplate || settings.defaultTemplate === path) return;
+  // A period's own template (the daily note's, the weekly's) wins over the
+  // default for new notes; neither → the note stays empty.
+  const chosen = templatePath ?? settings.defaultTemplate;
+  if (!chosen || chosen === path) return;
   try {
     const [template, vars] = await Promise.all([
-      getNote(settings.defaultTemplate),
+      getNote(chosen),
       varsFor(noteTitleOf(path)),
     ]);
     const applied = applyTemplate(template.content, "", vars);

@@ -29,7 +29,7 @@ is what refuses two rows claiming one keystroke; see [Development](development.m
 | `Ctrl/Cmd E` | Toggle reading view ⇄ editor |
 | `Ctrl/Cmd G` | Open the graph tab, or close it |
 | `Ctrl/Cmd N` | New note |
-| `Ctrl/Cmd Alt D` | Open today's daily note (`daily/YYYY-MM-DD.md`) |
+| `Ctrl/Cmd Alt D` | Open today's daily note (folder and name format in Settings → Vault; `daily/YYYY-MM-DD.md` by default) |
 | `Ctrl/Cmd Shift P` | Publish / unpublish the open note |
 | `Ctrl/Cmd Alt P` | [Print the open note, or export it to PDF](printing.md) — Alt because `Ctrl/Cmd P` is the palette |
 | `Ctrl/Cmd Alt B` | Collapse / reopen the **Notes sidebar** |

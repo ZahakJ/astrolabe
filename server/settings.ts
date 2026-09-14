@@ -7,7 +7,8 @@
 // Keys: siteName, tagline, footer, defaultTheme, adminTheme, publicLayout, blogLocale,
 // language, languageFilter, languageToggle, excludeTags, commentsEnabled, shareButtons,
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
-// templatesFolder, drawingsFolder, defaultTemplate, dateCalendar, textDirection, textAlign,
+// templatesFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
+// weeklyFormat, weeklyTemplate, dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
 // Unknown keys in the file are preserved verbatim on every write so external
@@ -15,6 +16,7 @@
 // PATCH are a 400 (strict allowlist).
 
 import { chmodSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { DAILY_FOLDER_DEFAULT, DAILY_FORMAT_DEFAULT, WEEKLY_FORMAT_DEFAULT } from "../shared/periodic.ts";
 import path from "node:path";
 import { isNotePath } from "../shared/noteFormat.ts";
 import {
@@ -486,6 +488,11 @@ export function getSettings(): SettingsData {
   if (typeof raw.defaultTemplate === "string" && raw.defaultTemplate.trim() !== "") {
     out.defaultTemplate = raw.defaultTemplate.trim();
   }
+  for (const key of ["dailyFolder", "dailyFormat", "dailyTemplate", "weeklyFormat", "weeklyTemplate"] as const) {
+    const v = raw[key];
+    // The weekly format keeps an EMPTY string: it means "weekly notes off".
+    if (typeof v === "string" && (v.trim() !== "" || key === "weeklyFormat")) out[key] = v.trim();
+  }
   const home = raw.home;
   if (typeof home === "object" && home !== null && !Array.isArray(home)) {
     const h = home as Record<string, unknown>;
@@ -668,6 +675,11 @@ export function effectiveSettings(): EffectiveSettings {
     templatesFolderDetected: s.templatesFolder === undefined && templatesFolder() !== null,
     drawingsFolder: drawingsFolder(),
     defaultTemplate: defaultTemplate(),
+    dailyFolder: dailyFolder(),
+    dailyFormat: s.dailyFormat ?? DAILY_FORMAT_DEFAULT,
+    dailyTemplate: periodicTemplate(s.dailyTemplate),
+    weeklyFormat: s.weeklyFormat === undefined ? WEEKLY_FORMAT_DEFAULT : s.weeklyFormat === "" ? null : s.weeklyFormat,
+    weeklyTemplate: periodicTemplate(s.weeklyTemplate),
     home: {
       mode: s.home?.mode ?? "note",
       ...(s.home?.note ?? envHomeNote() ? { note: s.home?.note ?? envHomeNote() ?? undefined } : {}),
@@ -867,6 +879,32 @@ export function tagsFolder(): string {
   return detectTagsFolder() ?? DEFAULT_TAGS_FOLDER;
 }
 
+/** The daily note's folder: the stored value, cleaned, else `daily`. The
+ *  vault root is spelled "" or "/" and means the root. */
+export function dailyFolder(): string {
+  const stored = getSettings().dailyFolder;
+  if (stored === undefined) return DAILY_FOLDER_DEFAULT;
+  if (stored === "" || stored === "/") return "";
+  try {
+    const rel = normalizeRel(stored);
+    safeAbs(rel);
+    return rel;
+  } catch {
+    return DAILY_FOLDER_DEFAULT;
+  }
+}
+
+function periodicTemplate(stored: string | undefined): string | null {
+  if (!stored) return null;
+  try {
+    const rel = normalizeRel(stored);
+    safeAbs(rel);
+    return isNotePath(rel) ? rel : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The template applied to new notes, or null (the default). */
 export function defaultTemplate(): string | null {
   const stored = getSettings().defaultTemplate;
@@ -897,6 +935,32 @@ type PatchHandler = (raw: Record<string, unknown>, value: unknown) => void;
 
 /** Set raw[key] = clean(value), or delete raw[key] when the value clears
  *  (null / "" / clean() returning null). */
+/** A period format must name a year and, for a day, a month and a day, or
+ *  a week for the weekly one; `[literals]` and `/` are fine. The weekly
+ *  format alone may be "off" (stored as ""), which turns weekly notes off. */
+function periodFormat(v: string, key: string, weekly: boolean): string | null {
+  const clean = cleanValue(v, key);
+  if (clean === null) return null;
+  if (weekly && /^(off|none|-)$/i.test(clean)) return "";
+  if (clean === "") return null;
+  if (/[\\:*?"<>|]/.test(clean) || clean.includes("..")) throw new VaultError(400, `Settings key "${key}" holds characters a file name cannot`);
+  const bare = clean.replace(/\[[^\]]*\]/g, "");
+  if (!/YYYY|YY/.test(bare)) throw new VaultError(400, `Settings key "${key}" must name the year (YYYY)`);
+  if (weekly ? !/ww|WW|w/.test(bare) : !(/MM|M/.test(bare) && /DD|D/.test(bare))) {
+    throw new VaultError(400, weekly ? `Settings key "${key}" must name the week (ww)` : `Settings key "${key}" must name the month and the day (MM, DD)`);
+  }
+  return clean;
+}
+
+function templateNote(v: string, key: string): string | null {
+  const clean = cleanValue(v, key);
+  if (clean === null) return null;
+  const rel = vaultRel(clean, key);
+  if (rel === "") return null;
+  if (!isNotePath(rel)) throw new VaultError(400, `Settings key "${key}" must be a note path (.md, .tex or .latex)`);
+  return rel;
+}
+
 function stringKey(
   key: string,
   clean: (value: string) => string | null,
@@ -1112,6 +1176,19 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     }
     return rel;
   }),
+  // ── Periodic notes ───────────────────────────────────────────────────────
+  dailyFolder: stringKey("dailyFolder", (v) => {
+    const clean = cleanValue(v, "dailyFolder");
+    if (clean === null) return null;
+    const rel = vaultRel(clean, "dailyFolder");
+    if (isNotePath(rel)) throw new VaultError(400, 'Settings key "dailyFolder" must be a folder, not a note');
+    // "" is the vault root and is stored as such: null would mean "default".
+    return rel;
+  }),
+  dailyFormat: stringKey("dailyFormat", (v) => periodFormat(v, "dailyFormat", false)),
+  weeklyFormat: stringKey("weeklyFormat", (v) => periodFormat(v, "weeklyFormat", true)),
+  dailyTemplate: stringKey("dailyTemplate", (v) => templateNote(v, "dailyTemplate")),
+  weeklyTemplate: stringKey("weeklyTemplate", (v) => templateNote(v, "weeklyTemplate")),
   defaultTemplate: stringKey("defaultTemplate", (v) => {
     const clean = cleanValue(v, "defaultTemplate");
     if (clean === null) return null;
