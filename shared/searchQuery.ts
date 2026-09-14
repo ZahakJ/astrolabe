@@ -43,7 +43,7 @@
  *  lowercased and unquoted; `ms` is filled in only for the date operators,
  *  which parse at the boundary so the index never sees a string date. */
 export interface QueryFilter {
-  kind: "tag" | "path" | "is" | "before" | "after" | "linkto" | "linkfrom";
+  kind: "tag" | "path" | "is" | "before" | "after" | "linkto" | "linkfrom" | "in";
   value: string;
   /** Epoch ms — `before`/`after` only. */
   ms: number;
@@ -68,10 +68,41 @@ export const SEARCH_OPERATORS = [
   "after",
   "linkto",
   "linkfrom",
+  "in",
 ] as const;
 
 /** The two values `is:` accepts. Anything else is a word. */
 const IS_VALUES = new Set(["published", "page"]);
+
+/** The two values `in:` accepts — the two kinds of thing the box can search.
+ *  `in:books` is the pages of the vault's PDFs (server/pdfText.ts), `in:notes`
+ *  is what the box has always searched. Anything else is a word. */
+const IN_VALUES = new Set(["books", "notes"]);
+
+/** Where a query looks.
+ *
+ *  `in:` is not a predicate over a note record the way every other operator
+ *  is — it chooses which INDEX answers — so the two callers (the note index
+ *  and the page store) read it off the filters here rather than compiling it
+ *  into a test. AND like everything else: `in:books in:notes` asks for a thing
+ *  that is both, and nothing is. */
+export type SearchScope = "all" | "notes" | "books" | "none";
+
+export function searchScope(filters: readonly QueryFilter[]): SearchScope {
+  let notes = true;
+  let books = true;
+  for (const f of filters) {
+    if (f.kind !== "in") continue;
+    // `in:books` keeps books and `-in:books` keeps notes — and vice versa.
+    const keepBooks = (f.value === "books") !== f.negated;
+    if (keepBooks) notes = false;
+    else books = false;
+  }
+  if (notes && books) return "all";
+  if (notes) return "notes";
+  if (books) return "books";
+  return "none";
+}
 
 /** `2024`, `2024-06`, `2024-06-15` → the epoch ms of the START of that period,
  *  in UTC. Null for anything else, which sends the token back to the text.
@@ -139,6 +170,10 @@ function asFilter(token: string): QueryFilter | null {
       return { kind, value: value.toLowerCase(), ms: 0, negated };
     case "is":
       return IS_VALUES.has(value.toLowerCase())
+        ? { kind, value: value.toLowerCase(), ms: 0, negated }
+        : null;
+    case "in":
+      return IN_VALUES.has(value.toLowerCase())
         ? { kind, value: value.toLowerCase(), ms: 0, negated }
         : null;
     case "before":

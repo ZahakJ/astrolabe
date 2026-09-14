@@ -15,7 +15,8 @@ import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
 import { findAnyMatches, foldQuery, foldTerm } from "../shared/fold.ts";
-import { parseSearchQuery, type QueryFilter } from "../shared/searchQuery.ts";
+import { parseSearchQuery, searchScope, type QueryFilter } from "../shared/searchQuery.ts";
+import { markHtml, snippetOf, windowAround } from "./snippet.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
 import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { drawingIndexText } from "../shared/drawing.ts";
@@ -2881,6 +2882,17 @@ function compileFilters(
         test = (r) => targets.has(r.path);
         break;
       }
+      case "in":
+        // Not a predicate over a note: `in:` picks WHICH index answers, and
+        // search() has already read it (searchScope) and returned nothing
+        // when notes were excluded. Down here every note passes — which is
+        // also what makes a lone `in:notes` a real query that lists the
+        // vault newest first, like a lone `tag:` does.
+        test = () => true;
+        // Negation was folded into the scope above; `-in:books` is "notes",
+        // not "every note that is not in books" (all of them, twice over).
+        tests.push(test);
+        continue;
     }
     tests.push(filter.negated ? (r) => !test(r) : test);
   }
@@ -2899,6 +2911,12 @@ export function search(
   // must list every recipe, which is the most obvious thing anybody will type
   // and the one shape a term index cannot answer.
   const parsed = parseSearchQuery(query);
+  // `in:books` (or `-in:notes`) is a question for the page store
+  // (server/pdfText.ts), and the route asks it beside this one; the note index
+  // answers such a query with nothing rather than with every note that is
+  // "not a book".
+  const scope = searchScope(parsed.filters);
+  if (scope === "books" || scope === "none") return [];
   const keep = compileFilters(parsed.filters, publishedOnly, lang, opts);
   const bare = parsed.text.trim();
   if (!bare) return keep === null ? [] : filteredNotes(keep, publishedOnly, lang);
@@ -3590,7 +3608,6 @@ function stripMarkdown(body: string): string {
 
 // ------------------------------------------------------------------ snippets
 
-const SNIPPET_RADIUS = 80;
 const BACKLINK_CONTEXT_MAX = 180;
 const BACKLINK_CONTEXT_RADIUS = 85;
 
@@ -3598,33 +3615,6 @@ const BACKLINK_CONTEXT_RADIUS = 85;
  *  to prose. A match past the cap still lists the note — its snippet just
  *  windows the head of the document instead of the exact hit. */
 const MAX_SNIPPET_SOURCE_CHARS = 128 * 1024;
-
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-/** Cut a word-boundary window out of `flat` around [at, at+len), returning
- *  the trimmed text with "…" marking every real elision — never a half word,
- *  never an orphaned punctuation fragment at either edge. */
-function windowAround(flat: string, at: number, len: number, radius: number): string {
-  let start = Math.max(0, at - radius);
-  let end = Math.min(flat.length, at + len + radius);
-  if (start > 0) {
-    // Snap forward to the next word boundary.
-    const space = flat.indexOf(" ", start - 1);
-    if (space !== -1 && space < at) start = space + 1;
-  }
-  if (end < flat.length) {
-    // Snap back to the previous word boundary.
-    const space = flat.lastIndexOf(" ", end);
-    if (space > at + len) end = space;
-  }
-  let text = flat.slice(start, end).trim();
-  // Drop orphaned punctuation left behind by the cut (edges only).
-  if (start > 0) text = text.replace(/^[\s,;:.!?…·—–-]+/, "");
-  if (end < flat.length) text = text.replace(/[\s,;:·—–-]+$/, "");
-  return `${start > 0 ? "…" : ""}${text}${end < flat.length ? "…" : ""}`;
-}
 
 /** Prose-stripped, whitespace-collapsed body — computed once per record and
  *  cached (records are replaced on reindex), input capped so a single huge
@@ -3641,44 +3631,10 @@ function flatBody(record: NoteRecord): string {
   return record.flat;
 }
 
-/** ESCAPE AND MARK IN ONE PASS, over the fold.
- *
- *  Two things forced this out of the regex it used to be. The fold is the
- *  loud one: the terms the index matched on are folded, so «المقدمة» has to
- *  light up the «الْمُقَدِّمَة» a line actually prints — and a regex built from
- *  the typed term cannot see it. The quiet one is that marking AFTER escaping
- *  searched the escaped text: a note containing `&amp;` had its own entity
- *  hunted for the letters of a query, and `<` had become four characters that
- *  the offsets no longer agreed with.
- *
- *  So the match runs on the RAW text (findAnyMatches reports offsets into it),
- *  and each slice is escaped as it is emitted. `<mark>` is the only markup that
- *  reaches the client, exactly as before. */
-function markHtml(text: string, terms: readonly string[]): string {
-  if (terms.length === 0) return escapeHtml(text);
-  const hits = findAnyMatches(text, terms, 200);
-  if (hits.length === 0) return escapeHtml(text);
-  let out = "";
-  let at = 0;
-  for (const hit of hits) {
-    out += escapeHtml(text.slice(at, hit.start));
-    out += `<mark>${escapeHtml(text.slice(hit.start, hit.end))}</mark>`;
-    at = hit.end;
-  }
-  return out + escapeHtml(text.slice(at));
-}
-
+// The window, the escape and the `<mark>` pass live in server/snippet.ts now,
+// shared with the page store (server/pdfText.ts): a book page's snippet must
+// be cut by the rule a note's is, because the client draws both with one
+// renderer.
 function makeSnippet(record: NoteRecord, terms: string[]): string {
-  const flat = flatBody(record);
-  const first = findAnyMatches(flat, terms, 1)[0];
-  const windowed = windowAround(
-    flat,
-    first?.start ?? 0,
-    first === undefined ? 0 : first.end - first.start,
-    SNIPPET_RADIUS,
-  );
-  // The window is re-matched rather than offset-shifted: windowAround snaps to
-  // word boundaries and prefixes an ellipsis, so the offsets it returns from
-  // are not the offsets it returns into.
-  return markHtml(windowed, terms);
+  return snippetOf(flatBody(record), terms);
 }
