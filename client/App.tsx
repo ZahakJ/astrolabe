@@ -44,6 +44,7 @@ import { promptNewNote } from "./prompts.ts";
 import { insertTemplateCommand, newNoteFromTemplateCommand } from "./templateActions.ts";
 import { applyUrl, installRouter, syncUrl } from "./router.ts";
 import { openTour, subscribeTourSeen, tourSeen } from "./tour.ts";
+import { maybeOpenWhatsNew } from "./whatsnew/door.ts";
 import { recentSelfWrite, sidebarIsDrawer, useStore } from "./state.ts";
 import {
   adoptExternalChange,
@@ -397,6 +398,17 @@ export default function App() {
   // yesterday. Per browser, once, ever.
   const seen = useSyncExternalStore(subscribeTourSeen, tourSeen, tourSeen);
   const nudgeTour = !seen;
+
+  // WHAT'S NEW, once per update: the first time this device opens a new
+  // minor version as an admin in the editor shell, the release's deck
+  // (client/whatsnew/) walks its features. A visitor never sees it — the
+  // deck is about the tools, and the tools are the admin's. Settled once
+  // the session is known, so a blog visitor's shell never even imports it.
+  useEffect(() => {
+    if (!authReady || !admin || blogVisitor) return;
+    const timer = window.setTimeout(maybeOpenWhatsNew, 900);
+    return () => window.clearTimeout(timer);
+  }, [authReady, admin, blogVisitor]);
 
   // Navigating to another note dismisses lingering PLAIN toasts — a message
   // about the previous interaction must not overlay unrelated content. An

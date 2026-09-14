@@ -1,6 +1,6 @@
 {
   "name": "astrolabe",
-  "version": "3.10.0",
+  "version": "3.11.0",
   "description": "A self-hosted reading room for a folder of plain Markdown and LaTeX: live-preview editor, wikilinks, graph, Arabic-aware search, a PDF reader, trackers, drawings, and a press that publishes what you choose.",
   "private": true,
   "type": "module",
@@ -34,6 +34,7 @@
     "check-keymap": "node scripts/check-keymap.mjs",
     "check-desktop": "node scripts/check-desktop.mjs && npm --prefix desktop run -s typecheck",
     "check-settings": "node scripts/check-settings.mjs",
+    "check-whatsnew": "node scripts/check-whatsnew.mjs",
     "check-icons": "node scripts/gen-folder-icons.mjs --check",
     "gen-icons": "node scripts/gen-folder-icons.mjs",
     "build-docs": "node scripts/build-docs.mjs",

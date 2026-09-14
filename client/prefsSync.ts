@@ -48,6 +48,7 @@ const TRAVELS = new Set([
   "show-attachments",
   "graph",
   "comment.author",
+  "whatsnew",
 ]);
 
 interface Entry {
