@@ -109,7 +109,9 @@ so the page and the editor never disagree about the log's shape. The page re-rea
 event, so a box ticked in the editor shows here at once.
 
 Each card carries **Edit** (the form, filled in), **Delete** (the note goes to the trash through the
-same dialog the tree uses) and its title opens the note.
+same dialog the tree uses) and its title opens the note. One routine spans the whole row, with the
+week strip beside the heatmap; two share a row, and more wrap in pairs — the grid fits what is there
+rather than holding a column open for a routine that does not exist.
 
 **New routine** is a form. It opens on a row of templates:
 

@@ -141,6 +141,8 @@ function themeKey(): string {
   return THEME_KEY;
 }
 const VIM_KEY = "astrolabe.vim";
+/** Relative line numbers beside vim keys — on by default, a device choice. */
+const RELNUM_KEY = "astrolabe.relativeLines";
 const READING_KEY = "astrolabe.reading";
 const TABS_KEY = "astrolabe.tabs";
 /** The workspace supersedes `astrolabe.tabs`, and BOTH are written. The old key
@@ -238,6 +240,9 @@ export interface State {
   view: View;
   theme: ThemeChoice;
   vimMode: boolean;
+  /** Vim's relative line numbers in the gutter (editor/relativeLines.ts);
+   *  read only while vimMode is on. Device-local, on by default. */
+  relativeLines: boolean;
   /** Which vim sub-mode the live editor is in, or null when vim is off /
    *  no editor is mounted. NOT persisted and never written by the shell —
    *  client/editor/vimStatus.ts is the only writer, forwarding vim's own
@@ -622,6 +627,7 @@ export interface State {
    *  change it in the same breath. Writes settings.defaultTheme. */
   setPublicTheme(theme: ThemeChoice | null): Promise<void>;
   toggleVim(): void;
+  toggleRelativeLines(): void;
   toggleReading(): void;
   setReadingMode(b: boolean): void;
   setPaletteOpen(b: boolean): void;
@@ -807,6 +813,10 @@ function ensureFavicon(enabled: boolean): void {
   } else if (link.getAttribute("href")?.startsWith("/favicon.ico") && !defaultFaviconHref.startsWith("/favicon.ico")) {
     link.href = defaultFaviconHref;
   }
+}
+
+function readRelativeLines(): boolean {
+  return localStorage.getItem(RELNUM_KEY) !== "false";
 }
 
 function readVim(): boolean {
@@ -1297,6 +1307,7 @@ export const useStore = create<State>()((set, get) => {
     // Admin-only, and only once /api/me has answered.
     publicTheme: null,
     vimMode: readVim(),
+    relativeLines: readRelativeLines(),
     vimSubMode: null,
     readingMode: readReading(),
     paletteOpen: false,
@@ -2304,6 +2315,12 @@ export const useStore = create<State>()((set, get) => {
       // the editor's effect: the pill must never read "VIM · INSERT" for a
       // mode that is already off.
       set({ vimMode, vimSubMode: vimMode ? get().vimSubMode : null });
+    },
+
+    toggleRelativeLines: () => {
+      const relativeLines = !get().relativeLines;
+      localStorage.setItem(RELNUM_KEY, String(relativeLines));
+      set({ relativeLines });
     },
 
     setVimSubMode: (vimSubMode) => set({ vimSubMode }),

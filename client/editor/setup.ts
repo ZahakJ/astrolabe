@@ -58,12 +58,15 @@ import { isTexPath } from "../../shared/noteFormat.ts";
 import { texFolds, texHighlighting, texLanguage } from "./tex/lang.ts";
 import { texPreview } from "./tex/preview.ts";
 import { texAutocomplete } from "./tex/complete.ts";
+import { relativeLineNumbers } from "./relativeLines.ts";
 
 export interface EditorSetupOptions {
   doc: string;
   /** Vault-relative path of the note (embeds resolve against its folder). */
   path: string;
   vimMode: boolean;
+  /** Relative line numbers beside vim (store.relativeLines). */
+  relativeLines: boolean;
   /** Fired on every document change (Editor.tsx debounces the autosave). */
   onDocChanged: (view: EditorView) => void;
   /** Fired on Ctrl/Cmd+S. */
@@ -71,6 +74,9 @@ export interface EditorSetupOptions {
 }
 
 const vimCompartment = new Compartment();
+/** Vim's relative line numbers (editor/relativeLines.ts): on only while vim
+ *  is on and the device switch says so; a compartment for the same reason. */
+const relnumCompartment = new Compartment();
 
 /** The two facets that SPEAK the instance's language — the find panel's words
  *  and `.cm-content`'s `lang` (the spellcheck dictionary's floor). In a
@@ -128,6 +134,7 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
       // vimMode flag reconfigure it on a live view without a rebuild. When the
       // module has not arrived yet, setVim() patches it in async after mount.
       vimCompartment.of(options.vimMode && vimExt ? vimExt : []),
+      relnumCompartment.of(options.vimMode && options.relativeLines ? relativeLineNumbers() : []),
       // NON-LATIN KEYBOARDS. Every keymap below resolves through `e.key` —
       // what the LAYOUT produced — so on the owner's Arabic keyboard the
       // physical B key reports the two-code-point ligature "لا" and Ctrl+B
@@ -282,6 +289,11 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
 
 /** Toggle vim on a live view without recreating state (undo history survives).
  *  First activation loads the vim module on demand. */
+/** The relative gutter follows both switches; either off takes it away. */
+export function setRelativeLines(view: EditorView, on: boolean): void {
+  view.dispatch({ effects: relnumCompartment.reconfigure(on ? relativeLineNumbers() : []) });
+}
+
 export function setVim(view: EditorView, on: boolean): void {
   if (!on) {
     view.dispatch({ effects: vimCompartment.reconfigure([]) });

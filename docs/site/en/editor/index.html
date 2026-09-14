@@ -358,6 +358,13 @@ sit at the foot of the editor, and in zen — where the whole status bar is at z
 says it instead. <a href="../publishing/#preview-as-visitor">Visitor preview</a> is a strip at the top that
 pushes the page down — it never covers the layout you opened it to judge — and it never survives a
 reload.</p>
+<p><strong>Relative line numbers.</strong> With vim keys on, the margin counts lines outward from the caret — <code>7j</code>
+and <code>3k</code> read straight off it — and the caret&#39;s own line shows its absolute number, vim&#39;s
+<code>number relativenumber</code>. The column sits against the text, not at the window&#39;s edge, and it follows
+every caret move, not only edits. It is the only line numbering the editor has: a prose editor
+wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
+<strong>Settings → This device → Relative line numbers</strong> (under Vim keys, on by default) turns it off for
+readers who navigate by search.</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/editor.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/desktop/"><span class="pager__kicker">Previous</span><span class="pager__title">The desktop app</span></a><a class="pager__link pager__link--next" href="../../en/templates-and-notes/"><span class="pager__kicker">Next</span><span class="pager__title">Templates, banners &amp; notes</span></a></nav>

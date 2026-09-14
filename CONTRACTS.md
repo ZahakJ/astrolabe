@@ -9464,6 +9464,34 @@ shell's `s-app--notice` row (renamed from `s-app--preview`, shared with the prev
 reads that OR `navigator.onLine`, seeded from `servingOfflineNow()` for a listener that mounts
 after `/api/me` came back. Edits offline are the editor's retry's business, not the worker's.
 
+## 3.14.0 — relative line numbers, the deck in motion, the Routines row
+
+**Relative line numbers (`client/editor/relativeLines.ts`).** A custom `gutter()`, not
+`lineNumbers()`: the built-in recomputes its markers on document and viewport changes only, and a
+relative column that lags the caret by a keystroke is worse than none — `lineMarkerChange` answers
+`selectionSet` too. On only while `vimMode && relativeLines` (store; device key
+`astrolabe.relativeLines`, default on), through `relnumCompartment` beside `vimCompartment`;
+`setRelativeLines()` is dispatched by Editor.tsx's effect on either flag. The extension adds the
+editor class `s-relnum-on`, and app.css moves the gutter from the scroller's far edge to the text's
+side (the gutter takes the leading auto margin, the content keeps the trailing one) and strips
+CodeMirror's gutter chrome. No top padding on the gutter: CodeMirror places markers by block
+position itself, and the padding put every number a line low.
+
+**The deck (`client/whatsnew/`).** The stage is the hero: a flex column, the stage `flex: 1` with
+the drawing scaled to fill, the title, blurb (three lines, clamped) and manual link beneath.
+`stagger()` in WhatsNew.tsx assigns `.wa` and `--i` to every part of an SVG after its frame (a
+`<g>` without a transform is timed child by child) and sets `--step` so the whole cascade fits the
+first third of a nine-second loop whatever the part count; the named effects (`wa-draw`, `wa-grow`,
+`wa-late`, `wa-press`, `wa-pulse`, `wa-drop`) are opt-in classes in the markup. Arabic-heavy
+slides are DOM demos (`ayahDemo`, `harakatDemo`): an SVG the stage forces LTR cannot shape or
+align an RTL run, and the first ayah drawing ran the verse off its frame. Dots are grouped by
+release with the version under each group when the walk spans more than one. Reduced motion shows
+everything at once. Fresh installs: `FRESH_AT_LOAD` in door.ts is read at module evaluation,
+because boot writes `astrolabe.recents/tabs/prefs-sync` before the door's timer fires (3.13.1).
+
+**The Routines grid** is `auto-fit`: one routine spans the row, two share it. A card wider than
+640px (a container query on `.s-rv-routine`) sets the week strip beside the heatmap.
+
 ## Tests (`npm test`) — the release gate
 
 `node --test` over `tests/*.test.ts`. No new dependencies, no test framework, no fixtures on disk

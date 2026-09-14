@@ -60,7 +60,10 @@
 
 .s-routines__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  /* auto-FIT, not auto-fill: one routine spans the row, two share it, and
+     the empty second column auto-fill kept open for a card that did not
+     exist is gone (the owner: "the right half seems completely blank"). */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
   gap: 18px;
   max-inline-size: 1240px;
   margin: 24px auto 0;

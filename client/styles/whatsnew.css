@@ -70,12 +70,10 @@
 
 .s-wn__body {
   flex: 1;
-  display: grid;
-  align-content: start;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 24px;
-  padding: 22px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 22px 8px;
   min-block-size: 0;
   animation: s-wn-slide 0.26s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -98,29 +96,25 @@
   animation-name: s-wn-slide;
 }
 
-@container (inline-size < 700px) {
-  .s-wn__body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-@media (max-width: 760px) {
-  .s-wn__body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
+/* THE STAGE IS THE HERO. It takes every pixel the text leaves, and the
+   drawing scales to fill it — the owner: "so much empty space left at the
+   bottom of the preview card". A drawing keeps its aspect and centres; a
+   live demo taller than the stage scrolls inside it. */
 .s-wn-stage {
+  flex: 1;
+  min-block-size: 0;
   min-inline-size: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--bg);
   border: 1px solid var(--border);
   padding: 14px;
   overflow: hidden;
   display: grid;
-  align-content: start;
+  place-items: center;
 }
 .s-wn-stage--svg svg {
   inline-size: 100%;
+  max-block-size: 100%;
   block-size: auto;
   /* A drawing is laid out left-to-right whatever the chrome's direction;
      under `direction: rtl` its labels were cut at the left edge. Its words
@@ -128,8 +122,9 @@
   direction: ltr;
 }
 .s-wn-stage--demo {
-  max-block-size: 100%;
+  place-items: start stretch;
   overflow: auto;
+  scrollbar-width: thin;
 }
 .s-wn-stage .s-rv-routine {
   margin-block: 0;
@@ -141,30 +136,46 @@
 }
 
 .s-wn__text {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title docs"
+    "blurb blurb";
+  align-items: baseline;
+  column-gap: 16px;
+  row-gap: 6px;
   min-inline-size: 0;
+  padding-block-end: 8px;
 }
 
 .s-wn__title {
+  grid-area: title;
   margin: 0;
   font-family: var(--font-serif);
-  font-size: 1.5rem;
+  font-size: 1.429rem;
   font-weight: 500;
   line-height: 1.2;
   color: var(--text);
 }
 
 .s-wn__blurb {
+  grid-area: blurb;
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 0.929rem;
+  line-height: 1.55;
   color: var(--text-muted);
+  /* Three lines, then an ellipsis: the manual carries the rest, and a
+     blurb that grows pushes the stage down. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .s-wn__docs {
-  align-self: flex-start;
+  grid-area: docs;
+  white-space: nowrap;
   color: var(--accent);
   font-size: 0.929rem;
   text-decoration: none;
@@ -197,7 +208,37 @@
 .s-wn__dots {
   margin-inline: auto;
   display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+/* One group of dots per release, its version under it, a hairline between
+   groups: the walk through several missed releases says where each begins. */
+.s-wn__group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+.s-wn__group + .s-wn__group::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -7px;
+  inset-block: 0;
+  border-inline-start: 1px solid var(--border);
+}
+.s-wn__group.is-current .s-wn__grouplabel {
+  color: var(--text-muted);
+}
+.s-wn__groupdots {
+  display: flex;
   gap: 6px;
+}
+.s-wn__grouplabel {
+  font-size: 0.643rem;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
 }
 
 .s-wn__dot {
@@ -367,4 +408,261 @@
 .s-wn:focus-visible {
   outline: none;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--accent);
+}
+
+/* ── Motion: the drawings play, gif-style ────────────────────────────────
+   Every drawing's parts arrive one after another and, after a hold, leave
+   the same way, on a loop — so a slide moves while it is looked at. The
+   stage assigns `.wa` and `--i` to a drawing's parts automatically
+   (WhatsNew.tsx, VisualStage); a slide's markup adds the named effects
+   below where the feature has a story to tell (a bar that grows, a card
+   that turns, a tick that draws). `both` keeps a part hidden until its
+   turn. Reduced motion: everything simply shows. */
+.s-wn-stage .wa {
+  animation: s-wn-in 9s calc(var(--i, 0) * var(--step, 0.32s)) infinite both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes s-wn-in {
+  0% { opacity: 0; transform: translateY(6px) scale(0.985); }
+  4% { opacity: 1; transform: none; }
+  90% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+/* A tick or a slash draws itself. */
+.s-wn-stage .wa-draw {
+  stroke-dasharray: 40;
+  animation: s-wn-draw 9s calc(var(--i, 0) * var(--step, 0.32s)) infinite both;
+}
+@keyframes s-wn-draw {
+  0%, 3% { stroke-dashoffset: 40; opacity: 1; }
+  10% { stroke-dashoffset: 0; opacity: 1; }
+  90% { stroke-dashoffset: 0; opacity: 1; }
+  96%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+/* A progress bar grows to its second width. */
+.s-wn-stage .wa-grow {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: s-wn-grow 9s calc(var(--i, 0) * var(--step, 0.32s)) infinite both;
+}
+@keyframes s-wn-grow {
+  0% { opacity: 0; transform: scaleX(0); }
+  4% { opacity: 1; transform: scaleX(0.83); }
+  45% { transform: scaleX(0.83); }
+  55% { transform: scaleX(1); }
+  90% { opacity: 1; transform: scaleX(1); }
+  96%, 100% { opacity: 0; transform: scaleX(1); }
+}
+/* The answer side of a card: turns up after the front has been read. */
+.s-wn-stage .wa-late {
+  animation: s-wn-late 9s calc(var(--i, 0) * var(--step, 0.32s)) infinite both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes s-wn-late {
+  0%, 28% { opacity: 0; transform: translateY(6px); }
+  34% { opacity: 1; transform: none; }
+  90% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; }
+}
+/* A button that gets pressed, once, late in the loop. */
+.s-wn-stage .wa-press {
+  animation: s-wn-press 9s calc(var(--i, 0) * var(--step, 0.32s)) infinite both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes s-wn-press {
+  0%, 28% { opacity: 0; transform: translateY(6px); }
+  34% { opacity: 1; transform: none; }
+  62% { transform: none; fill: var(--bg); }
+  66% { transform: scale(0.96); fill: color-mix(in srgb, var(--accent) 40%, var(--bg)); }
+  72% { transform: none; fill: color-mix(in srgb, var(--accent) 40%, var(--bg)); }
+  90% { opacity: 1; fill: color-mix(in srgb, var(--accent) 40%, var(--bg)); }
+  96%, 100% { opacity: 0; }
+}
+/* Something that keeps a soft pulse while shown — a star, a live count. */
+.s-wn-stage .wa-pulse {
+  animation: s-wn-pulse 9s calc(var(--i, 0) * var(--step, 0.32s)) infinite both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes s-wn-pulse {
+  0% { opacity: 0; transform: scale(0.6); }
+  4% { opacity: 1; transform: scale(1.25); }
+  8% { transform: scale(1); }
+  40% { transform: scale(1); }
+  44% { transform: scale(1.2); }
+  48% { transform: scale(1); }
+  90% { opacity: 1; transform: scale(1); }
+  96%, 100% { opacity: 0; }
+}
+/* A strip that drops in from above. */
+.s-wn-stage .wa-drop {
+  animation: s-wn-drop 9s calc(var(--i, 0) * var(--step, 0.32s)) infinite both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes s-wn-drop {
+  0%, 20% { opacity: 0; transform: translateY(-100%); }
+  26% { opacity: 1; transform: none; }
+  90% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: translateY(-100%); }
+}
+/* A caret. */
+.s-wn-stage .wa-blink {
+  animation: s-wn-blink 1s steps(2, start) infinite;
+}
+@keyframes s-wn-blink {
+  to { visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-wn-stage .wa,
+  .s-wn-stage .wa-draw,
+  .s-wn-stage .wa-grow,
+  .s-wn-stage .wa-late,
+  .s-wn-stage .wa-press,
+  .s-wn-stage .wa-pulse,
+  .s-wn-stage .wa-drop,
+  .s-wn-stage .wa-blink {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+    visibility: visible;
+  }
+  .s-wn__body {
+    animation: none;
+  }
+}
+
+/* ── The DOM demos of 3.13.0: an ayah drawn in, harakat put on ─────────── */
+
+.s-wn-ayah {
+  inline-size: 100%;
+  display: grid;
+  gap: 12px;
+  align-self: center;
+}
+.s-wn-ayah__src {
+  font-family: var(--font-mono);
+  font-size: 0.857rem;
+  color: var(--text-faint);
+  direction: ltr;
+  text-align: start;
+  white-space: nowrap;
+  overflow: hidden;
+  inline-size: 0;
+  animation: s-wn-type 9s steps(16) infinite both;
+}
+:dir(rtl) .s-wn-ayah__src {
+  text-align: end;
+}
+@keyframes s-wn-type {
+  0% { inline-size: 0; }
+  14% { inline-size: 16ch; }
+  90% { inline-size: 16ch; opacity: 1; }
+  96%, 100% { inline-size: 16ch; opacity: 0; }
+}
+.s-wn-ayah__callout {
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--accent);
+  border-radius: 8px;
+  background: var(--bg-raised);
+  padding: 18px 22px;
+  direction: rtl;
+  text-align: right;
+  animation: s-wn-in 9s 1.4s infinite both;
+}
+.s-wn-ayah__verse {
+  font-family: "Amiri Quran", "KFGQPC Uthmanic Script HAFS", "Scheherazade New", "Noto Naskh Arabic", var(--font-serif);
+  font-size: clamp(1.4rem, 3.2cqi, 2rem);
+  line-height: 2;
+  color: var(--text);
+  margin: 0;
+}
+.s-wn-ayah__ref {
+  margin: 8px 0 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+.s-wn-ayah__hadith {
+  font-family: var(--font-mono);
+  font-size: 0.857rem;
+  color: var(--text-faint);
+  direction: ltr;
+  text-align: start;
+  animation: s-wn-late 9s 1s infinite both;
+}
+:dir(rtl) .s-wn-ayah__hadith {
+  text-align: end;
+}
+.s-wn-ayah__hadith b {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  margin-inline-start: 10px;
+}
+
+.s-wn-harakat {
+  inline-size: 100%;
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+  align-self: center;
+}
+.s-wn-harakat__line {
+  position: relative;
+  direction: rtl;
+  font-family: "Noto Naskh Arabic", "Scheherazade New", "Amiri", var(--font-serif);
+  font-size: clamp(1.8rem, 5cqi, 3rem);
+  line-height: 1.7;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+/* The pointed line lies exactly over the plain one (combining marks take
+   no advance) and is revealed right to left, the way it would be typed. */
+.s-wn-harakat__pointed {
+  position: absolute;
+  inset: 0;
+  color: var(--text);
+  clip-path: inset(0 0 0 100%);
+  animation: s-wn-wipe 9s infinite both;
+}
+@keyframes s-wn-wipe {
+  0%, 18% { clip-path: inset(0 0 0 100%); }
+  55% { clip-path: inset(0 0 0 0); }
+  90% { clip-path: inset(0 0 0 0); opacity: 1; }
+  96%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
+}
+.s-wn-harakat__keys {
+  font-size: 0.714rem;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+.s-wn-harakat__palette {
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-raised);
+  direction: rtl;
+}
+.s-wn-harakat__key {
+  inline-size: 36px;
+  block-size: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  font-family: "Noto Naskh Arabic", "Scheherazade New", var(--font-serif);
+  font-size: 1.286rem;
+  color: var(--text);
+  animation: s-wn-key 9s calc(var(--i) * 0.55s + 1.6s) infinite both;
+}
+@keyframes s-wn-key {
+  0%, 2% { background: transparent; box-shadow: none; }
+  4% { background: color-mix(in srgb, var(--accent) 22%, transparent); box-shadow: inset 0 0 0 1px var(--accent); }
+  8%, 100% { background: transparent; box-shadow: none; }
 }
