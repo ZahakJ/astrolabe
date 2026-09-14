@@ -136,3 +136,10 @@
 .s-rv-query__excerpt {
   max-inline-size: 40ch;
 }
+
+/* A narrow screen: never break a word in half to fit a column. */
+.s-rv-query__table td,
+.s-rv-query__table th {
+  overflow-wrap: normal;
+  hyphens: none;
+}

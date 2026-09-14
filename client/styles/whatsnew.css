@@ -9,7 +9,10 @@
 
 .s-wn {
   inline-size: min(880px, calc(100vw - 32px));
-  max-block-size: calc(100vh - 48px);
+  /* A fixed height, not a maximum: the deck resized on every slide (560 →
+     427 → 811 px) and the Next button jumped under the pointer. The body
+     scrolls when a slide is taller. */
+  block-size: min(680px, calc(100vh - 48px));
   display: flex;
   flex-direction: column;
   background: var(--bg-raised);
@@ -66,7 +69,9 @@
 }
 
 .s-wn__body {
+  flex: 1;
   display: grid;
+  align-content: start;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   gap: 24px;
   padding: 22px;
@@ -117,6 +122,14 @@
 .s-wn-stage--svg svg {
   inline-size: 100%;
   block-size: auto;
+  /* A drawing is laid out left-to-right whatever the chrome's direction;
+     under `direction: rtl` its labels were cut at the left edge. Its words
+     are localised in releaseNotes.ts instead. */
+  direction: ltr;
+}
+.s-wn-stage--demo {
+  max-block-size: 100%;
+  overflow: auto;
 }
 .s-wn-stage .s-rv-routine {
   margin-block: 0;
@@ -342,4 +355,16 @@
   min-inline-size: 3em;
   text-align: end;
   font-variant-numeric: tabular-nums;
+}
+
+.s-wn__nav .s-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* The dialog takes focus on open so the × does not. Its own focus wears a
+   hairline of accent in the shadow rather than a ring around a 900px panel. */
+.s-wn:focus-visible {
+  outline: none;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--accent);
 }

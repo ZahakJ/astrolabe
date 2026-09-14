@@ -959,9 +959,10 @@ export function renderQueryBlock(spec: QuerySpec, opts: RenderOptions, hooks: Pa
 export function renderTasksBlock(spec: TasksSpec, opts: RenderOptions, hooks: Partial<TasksHooks> = {}): HTMLElement {
   const host = document.createElement("div");
   host.className = "s-rv-tracker-pending";
+  const ctx = makeCtx(opts);
   void import("./tasks.ts").then((mod) => {
     host.className = "s-rv-tracker-host";
-    host.replaceChildren(mod.renderTasksFence(spec, { notePath: opts.notePath, ...hooks }));
+    host.replaceChildren(mod.renderTasksFence(spec, { notePath: opts.notePath, renderInline: (md) => renderInline(md, ctx), ...hooks }));
     hooks.onResize?.();
   });
   return host;

@@ -591,3 +591,19 @@
   .s-rv-routine__skip,
   .s-rv-routine__note { display: none; }
 }
+
+/* A finger, not a pointer: the boxes and the skip grow to a target. */
+@media (pointer: coarse) {
+  .s-rv-routine__check {
+    inline-size: 24px;
+    block-size: 24px;
+  }
+  .s-rv-routine__skip {
+    opacity: 1;
+    min-block-size: 32px;
+  }
+  .s-rv-routine__scalebtn {
+    inline-size: 32px;
+    block-size: 32px;
+  }
+}

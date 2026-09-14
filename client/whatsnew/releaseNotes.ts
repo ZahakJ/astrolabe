@@ -18,9 +18,12 @@ import { t } from "../i18n.ts";
 export type Lang = "en" | "ar";
 export type Text = Record<Lang, string>;
 
+/** A drawing's label in the reader's language. */
+const L = (lang: Lang, en: string, ar: string): string => (lang === "ar" ? ar : en);
+
 export type Visual =
   | { kind: "demo"; mount: (host: HTMLElement, lang: Lang) => void | (() => void) }
-  | { kind: "svg"; svg: string }
+  | { kind: "svg"; svg: string | ((lang: Lang) => string) }
   | { kind: "image"; src: string; alt: Text };
 
 export interface Slide {
@@ -212,7 +215,7 @@ function tasksDemo(host: HTMLElement, lang: Lang): () => void {
     const spec = tk.parseTasksFence("not done\nlimit: 6", today);
     const sample = [
       { path: "Ledger.md", title: lang === "ar" ? "الدفتر" : "Ledger", tags: [], task: tk.parseTaskLine(`- [ ] ${lang === "ar" ? "اقرأ الفصل الثالث" : "Read chapter 3"} 📅 ${today} ⏫`, 1)! },
-      { path: "Ledger.md", title: lang === "ar" ? "الدفتر" : "Ledger", tags: [], task: tk.parseTaskLine(`- [ ] ${lang === "ar" ? "راجع الحسابات" : "Reconcile the accounts"} 📅 ${shiftDate(today, 4)} 🔁 every week`, 2)! },
+      { path: "Ledger.md", title: lang === "ar" ? "الدفتر" : "Ledger", tags: [], task: tk.parseTaskLine(`- [ ] ${lang === "ar" ? "راجع الحسابات" : "Reconcile the accounts"} 📅 ${shiftDate(today, 4)} 🔁 ${lang === "ar" ? "كل أسبوع" : "every week"}`, 2)! },
       { path: "Kitchen.md", title: lang === "ar" ? "المطبخ" : "Kitchen", tags: [], task: tk.parseTaskLine(`- [ ] ${lang === "ar" ? "اشترِ الكمون" : "Buy cumin"} 📅 ${shiftDate(today, -1)}`, 1)! },
     ];
     host.replaceChildren(mod.renderTasksFence(spec, { notePath: "", live: false, rows: sample }));
@@ -268,8 +271,8 @@ export const RELEASES: Release[] = [
       {
         title: { en: "Live queries in a note", ar: "استعلامات حيّة في ملاحظة" },
         body: {
-          en: "A ```query fence lists the notes that answer a search — tag:reading prop:status=reading — as a list, a table or cards, sorted and capped as you say, live wherever the note is read. This one is your own vault, right now.",
-          ar: "سياج ```query يعدّد الملاحظات التي تجيب عن بحث — tag:reading prop:status=reading — قائمةً أو جدولًا أو بطاقات، مرتبةً ومحدودةً كما تقول، حيّةً حيثما تُقرأ الملاحظة. وهذا هو خزانتك الآن.",
+          en: "A query fence lists the notes that answer a search — tag:reading prop:status=reading — as a list, a table or cards, sorted and capped as you say, live wherever the note is read. This one is your own vault, right now.",
+          ar: "سياج query يعدّد الملاحظات التي تجيب عن بحث — tag:reading prop:status=reading — قائمةً أو جدولًا أو بطاقات، مرتبةً ومحدودةً كما تقول، حيّةً حيثما تُقرأ الملاحظة. وهذا هو خزانتك الآن.",
         },
         visual: { kind: "demo", mount: queryDemo },
         docs: "editor",
@@ -277,8 +280,8 @@ export const RELEASES: Release[] = [
       {
         title: { en: "Tasks across the vault", ar: "المهام عبر الخزانة" },
         body: {
-          en: "Every - [ ] line is a task, with the Tasks plugin's fields read off its end: 📅 due, ⏫ priority, 🔁 recurrence. A ```tasks fence gathers them — not done, due this week — and a tick flips the one line where the task lives, stamped ✅ today.",
-          ar: "كل سطر - [ ] مهمة، تُقرأ من آخره حقول إضافة Tasks: 📅 الاستحقاق، ⏫ الأولوية، 🔁 التكرار. سياج ```tasks يجمعها — not done، due this week — والتعليم يقلب السطر الواحد الذي تسكنه المهمة مختومًا بـ✅ اليوم.",
+          en: "Every - [ ] line is a task, with the Tasks plugin's fields read off its end: 📅 due, ⏫ priority, 🔁 recurrence. A tasks fence gathers them — not done, due this week — and a tick flips the one line where the task lives, stamped ✅ today.",
+          ar: "كل سطر - [ ] مهمة، تُقرأ من آخره حقول إضافة Tasks: 📅 الاستحقاق، ⏫ الأولوية، 🔁 التكرار. سياج tasks يجمعها — not done، due this week — والتعليم يقلب السطر الواحد الذي تسكنه المهمة مختومًا بـ✅ اليوم.",
         },
         visual: { kind: "demo", mount: tasksDemo },
         docs: "editor",
@@ -291,19 +294,19 @@ export const RELEASES: Release[] = [
         },
         visual: {
           kind: "svg",
-          svg: `<svg viewBox="0 0 560 250" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+          svg: (lang) => `<svg viewBox="0 0 560 250" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="250" height="226" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <text x="30" y="40" fill="var(--text-muted)" font-size="11" letter-spacing="1">LEDGER</text>
-  <text x="30" y="72" fill="var(--text)">The rule of three:</text>
-  <text x="30" y="92" fill="var(--text)">never keep fewer than</text>
-  <text x="30" y="112" fill="var(--text)">three copies. <tspan fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="11">^rule3</tspan></text>
+  <text x="30" y="40" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "LEDGER", "الدفتر")}</text>
+  <text x="30" y="72" fill="var(--text)">${L(lang, "The rule of three:", "قاعدة الثلاثة:")}</text>
+  <text x="30" y="92" fill="var(--text)">${L(lang, "never keep fewer than", "لا تحتفظ بأقل من")}</text>
+  <text x="30" y="112" fill="var(--text)">${L(lang, "three copies.", "ثلاث نسخ.")} <tspan fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="11">^rule3</tspan></text>
   <rect x="298" y="12" width="250" height="226" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <text x="316" y="40" fill="var(--text-muted)" font-size="11" letter-spacing="1">JOURNAL</text>
-  <text x="316" y="72" fill="var(--text)">See <tspan fill="var(--accent)">[[Ledger#^rule3]]</tspan></text>
+  <text x="316" y="40" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "JOURNAL", "اليوميات")}</text>
+  <text x="316" y="72" fill="var(--text)">${L(lang, "See", "انظر")} <tspan fill="var(--accent)">[[Ledger#^rule3]]</tspan></text>
   <rect x="316" y="92" width="214" height="86" rx="8" fill="var(--bg)" stroke="var(--accent)" stroke-opacity="0.5"/>
   <text x="330" y="114" fill="var(--accent)" font-size="11">Ledger › ^rule3</text>
-  <text x="330" y="136" fill="var(--text)" font-size="12">The rule of three: never</text>
-  <text x="330" y="154" fill="var(--text)" font-size="12">keep fewer than three copies.</text>
+  <text x="330" y="136" fill="var(--text)" font-size="12">${L(lang, "The rule of three: never", "قاعدة الثلاثة: لا تحتفظ")}</text>
+  <text x="330" y="154" fill="var(--text)" font-size="12">${L(lang, "keep fewer than three copies.", "بأقل من ثلاث نسخ.")}</text>
   <path d="M262 100 C 285 100, 285 100, 298 100" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-dasharray="3 3"/>
 </svg>`,
         },
@@ -317,21 +320,21 @@ export const RELEASES: Release[] = [
         },
         visual: {
           kind: "svg",
-          svg: `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">UNLINKED MENTIONS · 3</text>
+  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "UNLINKED MENTIONS · 3", "إشارات غير مرتبطة · 3")}</text>
   <g transform="translate(30 60)">
-    <text y="16" fill="var(--text)" font-weight="500">Journal</text>
-    <text y="38" fill="var(--text-muted)" font-size="12">Today I read the <tspan fill="var(--text)" text-decoration="underline">Ledger</tspan> and thought about it.</text>
-    <rect x="440" y="22" width="64" height="24" rx="6" fill="var(--bg)" stroke="var(--accent)"/><text x="472" y="38" text-anchor="middle" fill="var(--accent)" font-size="11">LINK</text>
+    <text y="16" fill="var(--text)" font-weight="500">${L(lang, "Journal", "اليوميات")}</text>
+    <text y="38" fill="var(--text-muted)" font-size="12">${L(lang, "Today I read the", "اليوم قرأت")} <tspan fill="var(--text)" text-decoration="underline">${L(lang, "Ledger", "الدفتر")}</tspan> ${L(lang, "and thought about it.", "وفكّرت فيه.")}</text>
+    <rect x="440" y="22" width="64" height="24" rx="6" fill="var(--bg)" stroke="var(--accent)"/><text x="472" y="38" text-anchor="middle" fill="var(--accent)" font-size="11">${L(lang, "LINK", "اربط")}</text>
   </g>
   <g transform="translate(30 116)">
-    <text y="16" fill="var(--text)" font-weight="500">Monday</text>
-    <text y="38" fill="var(--text-muted)" font-size="12">…wrote in <tspan fill="var(--text)" text-decoration="underline">the book of accounts</tspan> after lunch.</text>
-    <rect x="440" y="22" width="64" height="24" rx="6" fill="var(--bg)" stroke="var(--border)"/><text x="472" y="38" text-anchor="middle" fill="var(--text-muted)" font-size="11">LINK</text>
+    <text y="16" fill="var(--text)" font-weight="500">${L(lang, "Monday", "الاثنين")}</text>
+    <text y="38" fill="var(--text-muted)" font-size="12">${L(lang, "…wrote in", "…كتبت في")} <tspan fill="var(--text)" text-decoration="underline">${L(lang, "the book of accounts", "دفتر الحسابات")}</tspan> ${L(lang, "after lunch.", "بعد الغداء.")}</text>
+    <rect x="440" y="22" width="64" height="24" rx="6" fill="var(--bg)" stroke="var(--border)"/><text x="472" y="38" text-anchor="middle" fill="var(--text-muted)" font-size="11">${L(lang, "LINK", "اربط")}</text>
   </g>
   <g transform="translate(30 172)">
-    <text y="16" fill="var(--text-faint)" font-size="12">→ becomes <tspan fill="var(--accent)">[[Ledger|the book of accounts]]</tspan></text>
+    <text y="16" fill="var(--text-faint)" font-size="12">${L(lang, "→ becomes", "→ يصير")} <tspan fill="var(--accent)">[[Ledger|the book of accounts]]</tspan></text>
   </g>
 </svg>`,
         },
@@ -345,7 +348,7 @@ export const RELEASES: Release[] = [
         },
         visual: {
           kind: "svg",
-          svg: `<svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+          svg: (lang) => `<svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="206" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <g font-family="ui-monospace, monospace" font-size="12">
     <text x="30" y="44" fill="var(--text-muted)">Journal/</text>
@@ -353,16 +356,16 @@ export const RELEASES: Release[] = [
     <text x="70" y="88" fill="var(--text-faint)">2025-09-13.md</text>
     <text x="50" y="110" fill="var(--text-muted)">2026/</text>
     <text x="70" y="132" fill="var(--text-faint)">2026-09-12.md</text>
-    <text x="70" y="154" fill="var(--text)">2026-09-13.md  <tspan fill="var(--accent)">← today</tspan></text>
+    <text x="70" y="154" fill="var(--text)">2026-09-13.md  <tspan fill="var(--accent)">${L(lang, "← today", "← اليوم")}</tspan></text>
     <text x="70" y="176" fill="var(--text-faint)">2026-W37.md</text>
   </g>
   <g transform="translate(300 40)">
-    <text y="0" fill="var(--text-muted)" font-size="11" letter-spacing="1">ON THIS DAY</text>
-    <text y="30" fill="var(--accent)" font-size="11">1Y AGO</text><text x="60" y="30" fill="var(--text)">you wrote “On Marginalia”</text>
-    <text y="56" fill="var(--accent)" font-size="11">2Y AGO</text><text x="60" y="56" fill="var(--text)">you finished “Elden Ring”</text>
-    <text y="96" fill="var(--text-muted)" font-size="11" letter-spacing="1">PALETTE</text>
-    <text y="122" fill="var(--text)">Yesterday's note · Tomorrow's note</text>
-    <text y="146" fill="var(--text)">This week's note · Random note</text>
+    <text y="0" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "ON THIS DAY", "في مثل هذا اليوم")}</text>
+    <text y="30" fill="var(--accent)" font-size="11">${L(lang, "1Y AGO", "قبل سنة")}</text><text x="60" y="30" fill="var(--text)">${L(lang, "you wrote “On Marginalia”", "كتبت «في الهوامش»")}</text>
+    <text y="56" fill="var(--accent)" font-size="11">${L(lang, "2Y AGO", "قبل سنتين")}</text><text x="60" y="56" fill="var(--text)">${L(lang, "you finished “Elden Ring”", "أنهيت «إلدن رينغ»")}</text>
+    <text y="96" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "PALETTE", "اللوحة")}</text>
+    <text y="122" fill="var(--text)">${L(lang, "Yesterday's note · Tomorrow's note", "ملاحظة الأمس · ملاحظة الغد")}</text>
+    <text y="146" fill="var(--text)">${L(lang, "This week's note · Random note", "ملاحظة هذا الأسبوع · ملاحظة عشوائية")}</text>
   </g>
 </svg>`,
         },
@@ -376,13 +379,13 @@ export const RELEASES: Release[] = [
         },
         visual: {
           kind: "svg",
-          svg: `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">HISTORY</text>
+  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "HISTORY", "السجل")}</text>
   <line x1="44" y1="60" x2="44" y2="190" stroke="var(--border)" stroke-width="2"/>
-  <g transform="translate(44 72)"><circle r="5" fill="var(--accent)"/><text x="18" y="4" fill="var(--text)">Before a restore</text><text x="18" y="22" fill="var(--text-faint)" font-size="11">2 minutes ago · 1.2 kB</text></g>
-  <g transform="translate(44 118)"><circle r="5" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/><text x="18" y="4" fill="var(--text)">Autosave</text><text x="18" y="22" fill="var(--text-faint)" font-size="11">yesterday · 1.1 kB · <tspan fill="var(--accent)">Restore</tspan></text></g>
-  <g transform="translate(44 164)"><circle r="5" fill="var(--bg)" stroke="var(--border)" stroke-width="2"/><text x="18" y="4" fill="var(--text)">Commit 4afec81</text><text x="18" y="22" fill="var(--text-faint)" font-size="11">3 days ago · git</text></g>
+  <g transform="translate(44 72)"><circle r="5" fill="var(--accent)"/><text x="18" y="4" fill="var(--text)">${L(lang, "Before a restore", "قبل استرجاع")}</text><text x="18" y="22" fill="var(--text-faint)" font-size="11">${L(lang, "2 minutes ago · 1.2 kB", "قبل دقيقتين · 1.2 ك.ب")}</text></g>
+  <g transform="translate(44 118)"><circle r="5" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/><text x="18" y="4" fill="var(--text)">${L(lang, "Autosave", "حفظ تلقائي")}</text><text x="18" y="22" fill="var(--text-faint)" font-size="11">${L(lang, "yesterday · 1.1 kB ·", "أمس · 1.1 ك.ب ·")} <tspan fill="var(--accent)">${L(lang, "Restore", "استرجع")}</tspan></text></g>
+  <g transform="translate(44 164)"><circle r="5" fill="var(--bg)" stroke="var(--border)" stroke-width="2"/><text x="18" y="4" fill="var(--text)">${L(lang, "Commit 4afec81", "إيداع 4afec81")}</text><text x="18" y="22" fill="var(--text-faint)" font-size="11">${L(lang, "3 days ago · git", "قبل 3 أيام · git")}</text></g>
 </svg>`,
         },
         docs: "backup-and-sync",
@@ -395,18 +398,18 @@ export const RELEASES: Release[] = [
         },
         visual: {
           kind: "svg",
-          svg: `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <rect x="30" y="30" width="500" height="32" rx="8" fill="var(--bg)" stroke="var(--border)"/>
   <text x="44" y="51" fill="var(--text)">zephyr</text>
   <g transform="translate(30 80)">
-    <text y="14" fill="var(--text)" font-weight="500">Marginalia</text><text x="120" y="14" fill="var(--text-faint)" font-size="11">note</text>
-    <text y="34" fill="var(--text-muted)" font-size="12">…a <tspan fill="var(--accent)">zephyr</tspan> through the margins of the book…</text>
+    <text y="14" fill="var(--text)" font-weight="500">${L(lang, "Marginalia", "الهوامش")}</text><text x="120" y="14" fill="var(--text-faint)" font-size="11">${L(lang, "note", "ملاحظة")}</text>
+    <text y="34" fill="var(--text-muted)" font-size="12">${L(lang, "…a", "…نسيم")} <tspan fill="var(--accent)">zephyr</tspan> ${L(lang, "through the margins of the book…", "في هوامش الكتاب…")}</text>
   </g>
   <g transform="translate(30 134)">
     <rect x="-8" y="-14" width="516" height="52" rx="8" fill="color-mix(in srgb, var(--accent) 8%, transparent)"/>
-    <text y="14" fill="var(--text)" font-weight="500">A Treatise on Winds</text><text x="190" y="14" fill="var(--accent)" font-size="11">book page · p. 42</text>
-    <text y="34" fill="var(--text-muted)" font-size="12">…the western <tspan fill="var(--accent)">zephyr</tspan> arrives before the rains…</text>
+    <text y="14" fill="var(--text)" font-weight="500">${L(lang, "A Treatise on Winds", "رسالة في الرياح")}</text><text x="190" y="14" fill="var(--accent)" font-size="11">${L(lang, "book page · p. 42", "صفحة كتاب · ص 42")}</text>
+    <text y="34" fill="var(--text-muted)" font-size="12">${L(lang, "…the western", "…الغربي")} <tspan fill="var(--accent)">zephyr</tspan> ${L(lang, "arrives before the rains…", "يصل قبل الأمطار…")}</text>
   </g>
 </svg>`,
         },
@@ -420,14 +423,14 @@ export const RELEASES: Release[] = [
         },
         visual: {
           kind: "svg",
-          svg: `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">EXPORT…</text>
+  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "EXPORT…", "تصدير…")}</text>
   <g transform="translate(30 60)">
-    <rect width="96" height="28" rx="14" fill="var(--bg)" stroke="var(--border)"/><text x="48" y="18" text-anchor="middle" fill="var(--text-muted)" font-size="12">This note</text>
-    <rect x="104" width="96" height="28" rx="14" fill="color-mix(in srgb, var(--accent) 16%, var(--bg))" stroke="var(--accent)"/><text x="152" y="18" text-anchor="middle" fill="var(--text)" font-size="12">This folder</text>
-    <rect x="208" width="72" height="28" rx="14" fill="var(--bg)" stroke="var(--border)"/><text x="244" y="18" text-anchor="middle" fill="var(--text-muted)" font-size="12">A tag</text>
-    <rect x="288" width="110" height="28" rx="14" fill="var(--bg)" stroke="var(--border)"/><text x="343" y="18" text-anchor="middle" fill="var(--text-muted)" font-size="12">Whole vault</text>
+    <rect width="96" height="28" rx="14" fill="var(--bg)" stroke="var(--border)"/><text x="48" y="18" text-anchor="middle" fill="var(--text-muted)" font-size="12">${L(lang, "This note", "هذه الملاحظة")}</text>
+    <rect x="104" width="96" height="28" rx="14" fill="color-mix(in srgb, var(--accent) 16%, var(--bg))" stroke="var(--accent)"/><text x="152" y="18" text-anchor="middle" fill="var(--text)" font-size="12">${L(lang, "This folder", "هذا المجلد")}</text>
+    <rect x="208" width="72" height="28" rx="14" fill="var(--bg)" stroke="var(--border)"/><text x="244" y="18" text-anchor="middle" fill="var(--text-muted)" font-size="12">${L(lang, "A tag", "وسم")}</text>
+    <rect x="288" width="110" height="28" rx="14" fill="var(--bg)" stroke="var(--border)"/><text x="343" y="18" text-anchor="middle" fill="var(--text-muted)" font-size="12">${L(lang, "Whole vault", "الخزانة كلها")}</text>
   </g>
   <g font-family="ui-monospace, monospace" font-size="12" transform="translate(30 116)">
     <text y="0" fill="var(--text)">Essays 2026-09-14.zip</text>
