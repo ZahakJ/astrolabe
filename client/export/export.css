@@ -1,0 +1,43 @@
+/* The export dialog's own few rules. Everything else it wears is the Media
+   form's (client/styles/media.css), imported beside this file by the dialog's
+   lazy chunk — one sheet family for the two forms an admin fills in here. */
+
+/* The dry run's line: the one sentence in the form that changes by itself,
+   so it gets the mono face a count deserves and the danger colour when the
+   server refused. It always occupies its row — a line that appears and
+   disappears would move the buttons under a pointer about to press one. */
+.s-export__preview {
+  margin: 0;
+  min-block-size: 1.4em;
+  font-family: var(--font-mono);
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+.s-export__preview--bad {
+  font-family: var(--font-ui);
+  color: var(--danger);
+}
+
+/* The open note's title under "This note": a hint that is a name, so it
+   takes the direction of what it says rather than the interface's. */
+.s-export__path {
+  font-family: var(--font-serif);
+  font-size: 0.929rem;
+  color: var(--text);
+}
+
+/* The stage a freshly rendered document settles on before the HTML export
+   serialises it (client/print.ts documentForExport). Out of the flow and
+   out of sight, but NOT display:none — pictures do not load and KaTeX does
+   not measure inside a box that has no layout. */
+.s-export-stage {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 720px;
+  block-size: 1px;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}

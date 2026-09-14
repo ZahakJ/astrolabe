@@ -50,6 +50,7 @@ import {
   type MoveItem,
 } from "../move.ts";
 import { promptNewDrawing, promptNewFolder, promptNewNote } from "../prompts.ts";
+import { openExportDialog } from "../export/door.ts";
 import { newNoteFromTemplateCommand } from "../templateActions.ts";
 import { useStore, sidebarIsDrawer } from "../state.ts";
 import { trackerOfFolder, useTrackerShelf } from "../trackerShelf.ts";
@@ -2449,6 +2450,22 @@ export default function Sidebar() {
               }}
             >
               {t("folderPublishAll")}
+            </button>
+          )}
+          {/* The folder as a ZIP — the export dialog opened on this folder,
+              with the rest of its choices still the reader's to make. */}
+          {admin && menu.node.type === "folder" && menu.node.path !== "" && (
+            <button
+              type="button"
+              className="s-menu__item"
+              role="menuitem"
+              onClick={() => {
+                const node = menu.node;
+                setMenu(null);
+                openExportDialog({ scope: "folder", folder: node.path });
+              }}
+            >
+              {t("treeExportFolder")}
             </button>
           )}
           {/* The keyboard and touch route to the same operation the drag
