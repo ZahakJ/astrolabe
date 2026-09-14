@@ -424,6 +424,13 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
   font-style: italic;
 }
 
+/* A block id on the caret's line: faint, monospace, there to be read. */
+.s-editor .cm-s-blockid {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
 .s-editor .cm-s-footnote {
   color: var(--accent);
   font-size: 0.72em;

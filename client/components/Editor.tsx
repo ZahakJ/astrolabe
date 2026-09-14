@@ -57,7 +57,8 @@ import { anchorLine } from "../../shared/anchors.ts";
 import { caretHome } from "../editor/caretHome.ts";
 import { INSERT_TEMPLATE_EVENT, type InsertTemplateDetail } from "../templateActions.ts";
 import { openSearchPanel } from "@codemirror/search";
-import { FIND_IN_NOTE_EVENT } from "../editor/bufferBridge.ts";
+import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT } from "../editor/bufferBridge.ts";
+import { copyBlockLink } from "../editor/blockLink.ts";
 import { applyTemplate, splitFrontmatter } from "../templates.ts";
 
 /** The caret each note was last seen at, so a REMOUNT does not throw it away.
@@ -468,8 +469,25 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
       openSearchPanel(view);
     };
     window.addEventListener(FIND_IN_NOTE_EVENT, onFind);
-    return () => window.removeEventListener(FIND_IN_NOTE_EVENT, onFind);
-  }, [paneId]);
+    // "Copy link to this block" answers from the SAME editor the find panel
+    // would open in, for the same reason: the caret is in one of them.
+    const onBlockLink = (): void => {
+      const view = viewRef.current;
+      if (!view) return;
+      if (paneId !== null) {
+        const ws = useStore.getState().workspace;
+        const focused = paneAt(ws, ws.focus);
+        const target = focused !== null && surfaceOf(focused) === "edit" ? ws.focus : ws.noteFocus;
+        if (paneId !== target) return;
+      }
+      copyBlockLink(view, path);
+    };
+    window.addEventListener(COPY_BLOCK_LINK_EVENT, onBlockLink);
+    return () => {
+      window.removeEventListener(FIND_IN_NOTE_EVENT, onFind);
+      window.removeEventListener(COPY_BLOCK_LINK_EVENT, onBlockLink);
+    };
+  }, [paneId, path]);
 
   return (
     <div className="s-editor-wrap">

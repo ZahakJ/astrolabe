@@ -7,6 +7,7 @@
 // six separate remembering-to-do-its.
 
 import { findAnchor, noteAnchors } from "../../shared/anchors.ts";
+import { markdownBlock } from "../../shared/blockId.ts";
 import { isTexPath } from "../../shared/noteFormat.ts";
 import { markdownSection, renderMarkdown, type RenderOptions } from "./render.ts";
 import { renderTex, renderTexAnchor } from "./texRender.ts";
@@ -42,6 +43,8 @@ export function renderNoteSlice(
     // rarer than a miss and handled the same way: the whole note.
     return renderTexAnchor(content, anchor, opts) ?? renderTex(content, opts);
   }
-  const section = markdownSection(content, hit.line);
-  return section === null ? renderMarkdown(content, opts) : renderMarkdown(section, opts);
+  // A block anchor slices ONE block (shared/blockId.ts markdownBlock); a
+  // heading slices its section. Either miss falls back to the whole note.
+  const slice = hit.kind === "block" ? markdownBlock(content, hit.line) : markdownSection(content, hit.line);
+  return slice === null ? renderMarkdown(content, opts) : renderMarkdown(slice, opts);
 }

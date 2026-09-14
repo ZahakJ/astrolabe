@@ -2,6 +2,7 @@
 
 import type { AttachmentMode } from "./attachments.ts";
 import type { RoutineEntry, RoutinePlan } from "./routine.ts";
+import type { Task } from "./tasks.ts";
 import type { BookHighlight, BookState } from "./bookAnchor.ts";
 import type { FolderIcon, FolderMark } from "./folderIcons.ts";
 import type { TrackerRating, TrackerStatus } from "./tracker.ts";
@@ -103,6 +104,66 @@ export interface Backlink {
  *  terms wrapped in literal `<mark>…</mark>`, so the client renders both
  *  through the same renderer and they cannot drift apart. `line` counts like
  *  `Backlink.line`: 1-based, full source, frontmatter included. */
+// GET /api/query?q=&sort=&dir=&limit= → QueryHit[]: the ```query fence's
+// answer (shared/queryFence.ts). The same operators and the same scope as
+// /api/search, but UNCAPPED at fifty and unranked unless asked: a fence is a
+// report, a sidebar is a glance. Scalar frontmatter rides along as `props`
+// so a table can show `status` beside the title.
+export interface QueryHit {
+  path: string;
+  title: string;
+  dateMs: number;
+  mtimeMs: number;
+  tags: string[];
+  /** Scalar frontmatter as strings (lists joined with ", "); keys lowercased. */
+  props: Record<string, string>;
+  /** The note's opening, plain text, for the list and the cards. */
+  excerpt: string;
+}
+
+// GET /api/mentions?path= → Mention[]: notes whose prose names this note's
+// title or an alias WITHOUT linking it — the backlinks panel's second list,
+// and the one door that turns prose into a link (POST /api/mentions/link).
+// Admin only: it reads every note's body. Offsets are UTF-16 units into the
+// mention's own line, which is what the link route splices.
+export interface Mention {
+  path: string;
+  title: string;
+  /** 1-based line in the note's FULL source. */
+  line: number;
+  /** The line, cleaned for display. */
+  context: string;
+  /** The words that matched, as the author spelled them. */
+  phrase: string;
+  start: number;
+  end: number;
+}
+
+// GET /api/tasks → TaskMeta[]: every `- [ ]` line in the vault with the
+// Tasks plugin's fields read (shared/tasks.ts), open and done alike; the
+// ```tasks fence and the Routines page's "due" section filter it. Admin
+// only. POST /api/task {path, line, done} flips one line and stamps ✅.
+export interface TaskMeta {
+  path: string;
+  title: string;
+  /** The note's tags, for `tag:` in a fence. */
+  tags: string[];
+  task: Task;
+}
+
+// GET /api/onthisday?date=YYYY-MM-DD → OnThisDayHit[]: what happened on
+// this month-day in EARLIER years — a note written (its own date), a tracker
+// finished. Drawn from dates the vault already holds; nothing is stored.
+// Admin only (a visitor has no archive strip).
+export interface OnThisDayHit {
+  path: string;
+  title: string;
+  year: number;
+  kind: "written" | "finished";
+  /** The tracker's title for a "finished" hit; the note's for "written". */
+  what: string;
+}
+
 export interface SearchMatch { line: number; text: string }
 
 export interface TagCount { tag: string; count: number }
@@ -866,6 +927,15 @@ export interface SettingsData {
   /** Template applied to every NEW note (vault-relative note path). Absent —
    *  the default — means new notes are born empty, as they always have been. */
   defaultTemplate?: string;
+  /** Periodic notes (shared/periodic.ts). Folder and format of the daily
+   *  note (`daily`, `YYYY-MM-DD`), its template, and the weekly note's
+   *  format (`YYYY-[W]ww`; an empty string turns weekly notes off) and
+   *  template. Absent → the defaults, which are what the app always did. */
+  dailyFolder?: string;
+  dailyFormat?: string;
+  dailyTemplate?: string;
+  weeklyFormat?: string;
+  weeklyTemplate?: string;
   /** Git backup & sync (off by default). The token, when one is used, is NOT
    *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
@@ -1028,6 +1098,13 @@ export interface EffectiveSettings {
   /** The drawings folder in force, or null for the vault root. */
   drawingsFolder: string | null;
   defaultTemplate: string | null;
+  /** Periodic notes, resolved: the folder and daily format always hold a
+   *  value (the defaults when unset); the weekly format is null when off. */
+  dailyFolder: string;
+  dailyFormat: string;
+  dailyTemplate: string | null;
+  weeklyFormat: string | null;
+  weeklyTemplate: string | null;
   home: Required<Pick<HomeSettings, "mode">> & Omit<HomeSettings, "mode">;
   /** Public folders with every default filled in — what the settings editor
    *  prefills from, so an unset key and an explicitly-default one look the
@@ -1115,6 +1192,12 @@ export interface SettingsPatch {
   templatesFolder?: string | null;
   /** Drawings folder; null (or "") clears it back to the vault root. */
   drawingsFolder?: string | null;
+  dailyFolder?: string | null;
+  dailyFormat?: string | null;
+  dailyTemplate?: string | null;
+  /** Weekly format; null clears back to the default, "off" disables. */
+  weeklyFormat?: string | null;
+  weeklyTemplate?: string | null;
   /** Template for new notes; null (or "") turns the default back off. */
   defaultTemplate?: string | null;
   /** Git sync configuration; null clears the whole key. */
@@ -1586,7 +1669,7 @@ export interface NoteRevisionBlob {
 export interface NoteAnchorInfo {
   /** Address: a slugified heading, or a `\label{…}` value verbatim. */
   id: string;
-  kind: "heading" | "label" | "equation" | "figure" | "table" | "section" | "theorem";
+  kind: "heading" | "label" | "equation" | "figure" | "table" | "section" | "theorem" | "block";
   /** What a reader would call it — heading text, caption, or "(3)". */
   title: string;
   /** 1-based source line. */

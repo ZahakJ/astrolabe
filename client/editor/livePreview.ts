@@ -40,6 +40,7 @@ import { label as tagLabel } from "../tagLabels.ts";
 import { buildBannerEl, buildPropsCard, parseProps, TAG_RE } from "./noteMeta.ts";
 import { propsEditor } from "./propsEdit.ts";
 import { parseAlignMarker } from "../../shared/blockAlign.ts";
+import { parseBlockId } from "../../shared/blockId.ts";
 import {
   FileCardWidget,
   ImageWidget,
@@ -59,6 +60,10 @@ import { trackerBlockDeco, trackerFenceSpan } from "./tracker.ts";
 import { trackerFenceKind } from "../../shared/tracker.ts";
 import { routineFenceKind } from "../../shared/routine.ts";
 import { routineBlockDeco, routineFenceSpan } from "./routine.ts";
+import { queryBlockDeco, queryFenceSpan } from "./queryFence.ts";
+import { queryFenceKind } from "../../shared/queryFence.ts";
+import { tasksBlockDeco, tasksFenceSpan } from "./tasksFence.ts";
+import { tasksFenceKind } from "../../shared/tasks.ts";
 import { sanitizeHtml, sanitizeStyle } from "../reading/rawHtml.ts";
 import { isNotePath } from "../../shared/noteFormat.ts";
 
@@ -402,7 +407,11 @@ function buildDecorations(view: EditorView): DecorationSet {
             // (`#tags`, `[[links]]`, `==marks==`) must not run inside it.
             const first = doc.lineAt(node.from).number;
             const last = doc.lineAt(node.to).number;
-            let replaced = trackerFenceKind(doc.line(first).text) !== null || routineFenceKind(doc.line(first).text) !== null;
+            let replaced =
+              trackerFenceKind(doc.line(first).text) !== null ||
+              routineFenceKind(doc.line(first).text) !== null ||
+              queryFenceKind(doc.line(first).text) !== null ||
+              tasksFenceKind(doc.line(first).text) !== null;
             for (let n = first; replaced && n <= last; n++) {
               if (active.has(n)) replaced = false;
             }
@@ -530,6 +539,22 @@ function buildDecorations(view: EditorView): DecorationSet {
       if (line.number <= fmLastLine) continue; // frontmatter is not markdown
       const lineIsActive = active.has(line.number);
       const text = line.text;
+
+      // ` ^id` at the line's end (shared/blockId.ts) — the block's address,
+      // hidden off the cursor like a comment, faint ink on it so it can be
+      // read and edited. Inside a fence it is code and stays (blocked()).
+      {
+        const own = parseBlockId(text);
+        if (own) {
+          const start = line.from + own.start;
+          const end = line.to;
+          if (!blocked(start, end)) {
+            if (lineIsActive) mark(start, end, "cm-s-blockid");
+            else hide(start, end);
+            claimed.push({ from: start, to: end });
+          }
+        }
+      }
 
       // %%comments%% — hidden entirely off the cursor, faint ink on it.
       COMMENT_RE.lastIndex = 0;
@@ -1259,6 +1284,18 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
           decos.push(deco);
           return false;
         }
+      }
+      // ```query: always a widget — an empty query is "every note", not a
+      // failure to parse.
+      const qspan = queryFenceSpan(state, firstLine, lastLine);
+      if (qspan) {
+        decos.push(queryBlockDeco(state, qspan, notePath));
+        return false;
+      }
+      const tspan = tasksFenceSpan(state, firstLine, lastLine);
+      if (tspan) {
+        decos.push(tasksBlockDeco(state, tspan, notePath));
+        return false;
       }
       if (/^\s*(```|~~~)/.test(open.text)) {
         decos.push(Decoration.replace({ block: true }).range(open.from, open.to));

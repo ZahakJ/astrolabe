@@ -34,6 +34,8 @@
 // precisely the cases that kept passing while the feature was broken.
 
 import { StateEffect, StateField, type Extension } from "@codemirror/state";
+import { findAnchor, noteAnchors } from "../../shared/anchors.ts";
+import { markdownBlock } from "../../shared/blockId.ts";
 import {
   EditorView,
   repositionTooltips,
@@ -82,7 +84,13 @@ async function noteContent(path: string): Promise<string | null> {
 /** Strip frontmatter, optionally start at a heading, cap the excerpt. */
 function excerpt(content: string, heading: string | null, title?: string): string {
   let body = content.replace(/^---\r?\n[\s\S]*?\r?\n(?:---|\.\.\.)(?:\r?\n|$)/, "");
-  if (heading) {
+  if (heading && heading.startsWith("^")) {
+    // A block reference: the card shows THAT block and nothing else. Anchors
+    // count full-file lines, so the block is found in `content`, not `body`.
+    const hit = findAnchor(noteAnchors("hover.md", content), heading);
+    const block = hit ? markdownBlock(content, hit.line) : null;
+    if (block !== null) return block;
+  } else if (heading) {
     const line = findHeadingLine(body, heading);
     if (line !== null) body = body.split("\n").slice(line - 1).join("\n");
   } else if (title) {

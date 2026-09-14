@@ -19,7 +19,7 @@ import {
 import { choiceBase, choiceLabel, counterpartChoice } from "../themes.ts";
 import type { Theme } from "../state.ts";
 import { search } from "../api.ts";
-import { dailyNotePath, openDailyNote } from "../daily.ts";
+import { dailyNotePath, openDailyNote, openPeriodicNote } from "../daily.ts";
 import { popOutNote } from "../windows/coherence.ts";
 import { insertTemplateCommand, newNoteFromTemplateCommand } from "../templateActions.ts";
 import { localeNum, t, tf, type I18nKey } from "../i18n.ts";
@@ -34,6 +34,7 @@ import { renderSnippet, snippetIsEmpty } from "./snippet.tsx";
 import { openThemePicker } from "./ThemePicker.tsx";
 import { openDesigner } from "./design/openDesigner.ts";
 import { openTour } from "../tour.ts";
+import { collectNotes } from "../editor/links.ts";
 import { readWarmth, toggleWarmth } from "../eyeComfort.ts";
 import { openWhatsNew } from "../whatsnew/door.ts";
 import { installRecents, recentNotes } from "../recents.ts";
@@ -43,7 +44,7 @@ import { noteAnchors, type NoteAnchor } from "../../shared/anchors.ts";
 // drives exactly this code rather than a second copy of the arithmetic.
 import { commandCut, fuzzyMatch, rankCommands } from "../paletteRank.ts";
 import { TREE_REVEAL_EVENT } from "./Sidebar.tsx";
-import { FIND_IN_NOTE_EVENT } from "../editor/bufferBridge.ts";
+import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT } from "../editor/bufferBridge.ts";
 import { promptNewDrawing, promptNewFolder } from "../prompts.ts";
 import { duplicateNote } from "../duplicate.ts";
 import { copyNoteLink } from "../sectionActions.ts";
@@ -176,6 +177,32 @@ const COMMANDS: Command[] = [
     label: () => t("cmdDailyNote"),
     hint: () => dailyNotePath(),
     available: ({ admin }) => admin,
+  },
+  {
+    id: "yesterday-note",
+    label: () => t("cmdYesterdayNote"),
+    hint: () => t("cmdPeriodicHint"),
+    available: ({ admin }) => admin,
+  },
+  {
+    id: "tomorrow-note",
+    label: () => t("cmdTomorrowNote"),
+    hint: () => t("cmdPeriodicHint"),
+    available: ({ admin }) => admin,
+  },
+  {
+    id: "weekly-note",
+    label: () => t("cmdWeeklyNote"),
+    hint: () => t("cmdPeriodicHint"),
+    available: ({ admin }) => admin,
+  },
+  {
+    // A door to a note you did not choose: the vault re-read at random,
+    // which is how a well-cited note from two years ago gets read again.
+    id: "random-note",
+    label: () => t("cmdRandomNote"),
+    hint: () => t("cmdRandomNoteHint"),
+    available: () => true,
   },
   // Pop the note out into a real second window — same origin, so it shares the
   // session cookie, the theme, the stored workspace and the bus that keeps the
@@ -511,6 +538,12 @@ const COMMANDS: Command[] = [
     label: () => t("cmdDuplicateNote"),
     hint: () => t("cmdDuplicateHint"),
     available: ({ openPath, admin }) => admin && openPath !== null,
+  },
+  {
+    id: "copy-block-link",
+    label: () => t("cmdCopyBlockLink"),
+    hint: () => t("cmdCopyBlockLinkHint"),
+    available: ({ admin, openPath }) => admin && openPath !== null,
   },
   {
     // The outline has copied a link to a SECTION since sections were
@@ -934,6 +967,20 @@ export default function CommandPalette() {
         return;
       }
       switch (command.id) {
+        case "yesterday-note":
+          void openPeriodicNote("day", -1);
+          break;
+        case "tomorrow-note":
+          void openPeriodicNote("day", 1);
+          break;
+        case "weekly-note":
+          void openPeriodicNote("week", 0);
+          break;
+        case "random-note": {
+          const all = collectNotes(store.tree).map((n) => n.path).filter((p) => p !== store.openPath);
+          if (all.length > 0) store.openNote(all[Math.floor(Math.random() * all.length)]);
+          break;
+        }
         case "daily-note":
           void openDailyNote();
           break;
@@ -1001,6 +1048,11 @@ export default function CommandPalette() {
           break;
         case "copy-note-link":
           if (store.openPath) copyNoteLink(store.openPath);
+          break;
+        case "copy-block-link":
+          // The editor answers (Editor.tsx), after the palette has closed and
+          // focus is back where the caret is — the find-in-note shape.
+          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(COPY_BLOCK_LINK_EVENT)));
           break;
         case "print-note":
           // Dynamic, and it has to be: client/print.ts renders a note through

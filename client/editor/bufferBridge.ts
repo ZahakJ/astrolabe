@@ -33,6 +33,11 @@ export const DOC_STATS_EVENT = "astrolabe:doc";
  *  editor must be able to answer without knowing the palette exists. Only the
  *  pane the command was aimed at answers — see Editor.tsx. */
 export const FIND_IN_NOTE_EVENT = "astrolabe:find-in-note";
+/** The palette's "Copy link to this block": the mounted editor mints (or
+ *  finds) the caret line's ` ^id` and copies `[[Note#^id]]` — the editor,
+ *  because only it knows where the caret is and can dispatch the one-line
+ *  edit as one undo step. */
+export const COPY_BLOCK_LINK_EVENT = "astrolabe:copy-block-link";
 
 export interface DocStats {
   path: string;

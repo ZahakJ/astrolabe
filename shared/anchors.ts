@@ -13,6 +13,7 @@
 // shows a `~~~` block became an addressable anchor the reading view never
 // assigns an id to — a `[[Note#…]]` that silently misses, and a transclusion
 // that pulls the wrong span.
+import { isBareBlockId, parseBlockId, stripBlockId } from "./blockId.ts";
 import { closesFence, fenceOpener, sourceLines, type Fence } from "./fences.ts";
 import { isTexPath } from "./noteFormat.ts";
 import { findAnchor, parseTex, slugAnchor, type NoteAnchor } from "./tex.ts";
@@ -68,12 +69,27 @@ export function markdownAnchors(md: string): NoteAnchor[] {
       continue;
     }
     const m = HEADING_RE.exec(line);
-    if (!m) continue;
-    const text = stripInline(m[2]);
-    const base = slugAnchor(text);
-    const n = seen.get(base) ?? 0;
-    seen.set(base, n + 1);
-    out.push({ id: n === 0 ? base : `${base}-${n}`, kind: "heading", title: text, line: i + 1 });
+    if (m) {
+      const text = stripInline(m[2]);
+      const base = slugAnchor(text);
+      const n = seen.get(base) ?? 0;
+      seen.set(base, n + 1);
+      out.push({ id: n === 0 ? base : `${base}-${n}`, kind: "heading", title: text, line: i + 1 });
+      continue;
+    }
+    // A block id (shared/blockId.ts): ` ^id` at the end of a paragraph or a
+    // list item, or on a line of its own under the block. The anchor's id
+    // KEEPS the caret — `[[Note#^id]]` parses to the anchor "^id", and
+    // findAnchor's first pass is the exact id — and its line is the line the
+    // marker is on, which is the block's LAST line (blockRange walks up).
+    // First one wins on a duplicate, as findAnchor's loop does.
+    const block = parseBlockId(line);
+    if (block && !seen.has(`^${block.id}`)) {
+      seen.set(`^${block.id}`, 1);
+      const own = isBareBlockId(line) ? (lines[i - 1] ?? "") : line;
+      const title = stripInline(stripBlockId(own).replace(/^\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s*)?/, "")).trim();
+      out.push({ id: `^${block.id}`, kind: "block", title: title.length > 80 ? `${title.slice(0, 79)}…` : title, line: i + 1 });
+    }
   }
   return out;
 }
