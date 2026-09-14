@@ -34,7 +34,7 @@ import { readTexNote } from "./texNote.ts";
 import { blogLocale, excludedTags } from "./site.ts";
 // Cyclic with this module (settings.ts → site.ts → here) and inert: every
 // call below happens at request time, never while either module is loading.
-import { getSettings, tagsFolder, templatesFolder } from "./settings.ts";
+import { getSettings, settingsAssetPaths, tagsFolder, templatesFolder } from "./settings.ts";
 import { listFolderFiles, listVaultFiles, onEvent, readNote, safeAbs } from "./vault.ts";
 
 interface NoteRecord {
@@ -2251,6 +2251,46 @@ const IMAGE_EXT_RE = /\.(png|jpe?g|webp|gif|svg|avif|bmp|ico)$/i;
 /** All indexed image attachments, sorted — the admin banner picker's list. */
 export function listImageAttachments(): string[] {
   return [...attachmentPaths].filter((p) => IMAGE_EXT_RE.test(p)).sort((a, b) => a.localeCompare(b));
+}
+
+/** Every attachment NO note points at — the complement of `attachmentRefs()`
+ *  plus the four routes a file is used by WITHOUT a note naming it: the svg a
+ *  drawing exports beside itself, a library path's cover, a folder's or a
+ *  collection's image mark (settings, or the folder note's own `icon:` /
+ *  `banner:`), and the site assets settings name (logo, favicon, the home
+ *  banner). Reused collectors, never a second parse: a file this list calls
+ *  unused while the publish allowlist serves it is the delete-preview bug
+ *  wearing a third hat, and the only way to be sure the two agree is for
+ *  them to be the same walk.
+ *
+ *  `.trash/`, `.obsidian/` and every other ignored tree are absent by
+ *  construction — `attachmentPaths` is filled by the same walk that ignores
+ *  them (vault.ts listVaultFiles). Sorted, so the list is stable between two
+ *  openings of the modal. */
+export function unreferencedAttachments(): string[] {
+  const used = new Set<string>(attachmentRefs().keys());
+  const settings = getSettings();
+  for (const record of notes.values()) {
+    if (isDrawingPath(record.path)) {
+      const svg = drawingSvgPath(record.path);
+      if (attachmentPaths.has(svg)) used.add(svg);
+    }
+    // A folder note's own mark and cover, resolved the way a banner is:
+    // from the note's folder first, then anywhere in the vault by name.
+    for (const meta of [record.folderMeta, record.collectionMeta]) {
+      if (!meta) continue;
+      for (const value of [meta.icon, meta.cover]) {
+        if (typeof value !== "string" || value === "") continue;
+        const resolved = resolveImageRef(value, folderOf(record.path));
+        if (resolved !== null && attachmentPaths.has(resolved)) used.add(resolved);
+      }
+    }
+  }
+  for (const cover of libraryCoverPaths({ enabled: settings.library?.enabled, paths: libraryRefs() })) used.add(cover);
+  for (const icon of folderImagePaths(settings.folderIcons)) used.add(icon);
+  for (const row of collectionRows()) if (typeof row.icon === "string") used.add(row.icon);
+  for (const asset of settingsAssetPaths()) used.add(asset);
+  return [...attachmentPaths].filter((p) => !used.has(p)).sort((a, b) => a.localeCompare(b));
 }
 
 /** Register a just-written attachment immediately (uploads must show up in

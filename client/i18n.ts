@@ -4795,6 +4795,51 @@ const DICT = {
   exportTooLarge: { en: "Over {gb} GB — export a folder or a tag at a time.", ar: "فوق {gb} غيغابايت — صدّر مجلدًا أو وسمًا في كل مرة." },
   exportFailed: { en: "The export could not start.", ar: "تعذّر بدء التصدير." },
   treeExportFolder: { en: "Export folder…", ar: "تصدير المجلد…" },
+  // ── Tashkeel & attachments sweep ──
+  // The harakat palette (client/editor/harakat.ts). Each mark by its own
+  // name in both languages — the English ones are the transliterations every
+  // grammar uses, not translations ("opening vowel" is not what anyone calls
+  // a fatha).
+  tkFatha: { en: "Fatha", ar: "فتحة" },
+  tkDamma: { en: "Damma", ar: "ضمة" },
+  tkKasra: { en: "Kasra", ar: "كسرة" },
+  tkFathatan: { en: "Fathatan (tanwin fath)", ar: "فتحتان (تنوين فتح)" },
+  tkDammatan: { en: "Dammatan (tanwin damm)", ar: "ضمتان (تنوين ضم)" },
+  tkKasratan: { en: "Kasratan (tanwin kasr)", ar: "كسرتان (تنوين كسر)" },
+  tkShadda: { en: "Shadda", ar: "شدة" },
+  tkSukun: { en: "Sukun", ar: "سكون" },
+  tkDaggerAlif: { en: "Dagger alif (superscript)", ar: "ألف خنجرية" },
+  tkTatweel: { en: "Tatweel (stretch)", ar: "تطويل (كشيدة)" },
+  harakatPalette: { en: "Harakat", ar: "الحركات" },
+  insHarakat: { en: "Haraka…", ar: "حركة…" },
+  selGroupArabic: { en: "Arabic", ar: "عربي" },
+  stripTashkeelSelection: { en: "Strip diacritics from selection", ar: "إزالة التشكيل من التحديد" },
+  copyWithoutTashkeel: { en: "Copy without harakat", ar: "نسخ بلا حركات" },
+  copiedWithoutTashkeel: { en: "Copied without harakat", ar: "نُسخ بلا حركات" },
+  cmdStripTashkeel: { en: "Strip diacritics from note", ar: "إزالة التشكيل من الملاحظة" },
+  cmdStripTashkeelHint: { en: "every haraka and tatweel, one undo step", ar: "كل الحركات والتطويل، خطوة تراجع واحدة" },
+  tashkeelStrippedToast: { en: "Diacritics removed — Ctrl/Cmd Z takes them back", ar: "أُزيل التشكيل — Ctrl/Cmd Z يعيده" },
+  tashkeelNoneToast: { en: "No diacritics in this note", ar: "لا تشكيل في هذه الملاحظة" },
+  scHarakat: { en: "Harakat palette — a diacritic for the caret, or every letter of the selection", ar: "لوحة الحركات: حركة للمؤشر، أو لكل حرف في التحديد" },
+  // The unused-attachments sweep (client/components/UnusedAttachmentsModal.tsx).
+  cmdUnusedAttachments: { en: "Unused attachments", ar: "المرفقات غير المستخدمة" },
+  cmdUnusedAttachmentsHint: { en: "files no note references — review, then move to .trash", ar: "ملفات لا تشير إليها ملاحظة — راجعها ثم انقلها إلى ‎.trash‎" },
+  unusedTitle: { en: "Unused attachments", ar: "المرفقات غير المستخدمة" },
+  closeUnused: { en: "Close the unused attachments list", ar: "إغلاق قائمة المرفقات غير المستخدمة" },
+  unusedHelp: {
+    en: "Nothing here is embedded or linked by a note, or used as a banner, a tracker cover, a folder icon or a site image. Moving is recoverable: everything lands in .trash with an Undo.",
+    ar: "لا شيء هنا تضمّنه ملاحظة أو تربط إليه، ولا يُستخدم لافتةً أو غلاف متتبِّع أو أيقونة مجلد أو صورة للموقع. النقل قابل للاسترجاع: كل شيء يحطّ في ‎.trash‎ مع زر تراجع.",
+  },
+  unusedLoading: { en: "Reading the index…", ar: "جارٍ قراءة الفهرس…" },
+  unusedLoadFailed: { en: "Could not list the vault's files.", ar: "تعذّر سرد ملفات الخزانة." },
+  unusedEmpty: { en: "Every file in the vault is used by a note.", ar: "كل ملف في الخزانة تستخدمه ملاحظة." },
+  unusedSelectAll: { en: "Select all", ar: "تحديد الكل" },
+  unusedTruncated: { en: "Showing the first {shown} of {total} — sweep these and reopen for the rest", ar: "يُعرض أول {shown} من {total} — انقل هذه وأعد الفتح للبقية" },
+  unusedSelected: { en: "{files} selected · {size}", ar: "{files} محددة · {size}" },
+  unusedTrash: { en: "Move to trash", ar: "نقل إلى المهملات" },
+  unusedTrashedToast: { en: "Moved {files} to .trash", ar: "نُقلت {files} إلى ‎.trash‎" },
+  unusedTrashFailed: { en: "{files} could not be moved", ar: "تعذّر نقل {files}" },
+  unusedRestoredToast: { en: "Restored {files}", ar: "استُرجعت {files}" },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;

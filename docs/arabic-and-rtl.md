@@ -281,6 +281,40 @@ note rows, and the PDF reader's own `/` search, which is where the table was wri
 replacing is a write, and a replace that quietly rewrote «الْمُقَدِّمَة» would strip harakat you
 never typed and never saw.
 
+## Writing harakat
+
+Search has folded the diacritics for a long time; writing them was the part every keyboard makes
+hard. The marks sit behind Shift on keys nobody has memorised (fatha is `Shift Q` on the Arabic 101
+layout, kasra `Shift A`, shadda `Shift ~`), the dagger alif is on no layout at all, and a Latin
+keyboard has none of them. So the editor has a palette.
+
+**`Ctrl/Cmd Alt ;`** — or *Haraka…* on the selection menu's **Insert** page and on its **Arabic**
+page — opens a small list at the caret: fatha, damma, kasra, the three tanwin, shadda, sukun, the
+dagger alif and the tatweel, each with its glyph on a dotted circle and its name in the interface
+language. `↑` `↓` walk it, `Enter` inserts, `Esc` leaves. With a bare caret the mark lands on the
+letter you just typed, which is where a keyboard would put it. With a **selection**, every Arabic
+letter in it takes the mark — after any marks the letter already carries, and never twice — so
+selecting a word and choosing *sukun* points the whole word, and a shadda added to «كَتب» keeps the
+fatha. The tatweel is the exception, because it is not a combining mark: on a selection it goes
+*between* letters only, which stretches the word the way a calligrapher would rather than drawing a
+stroke into a space. (The chord is `;` because it is the same physical key on the Arabic layout as
+on a US one — it types «ك» there — and every chord in this product resolves by position when the
+layout's character is not Latin; see [Keymap](keymap.md).)
+
+Two ways back out of pointing, both on the selection menu's **Arabic** page: **Strip diacritics
+from selection** removes every haraka, dagger alif and tatweel from the selected words and nothing
+else — hamza, the alef family, `ة` and `ى` are letters and stay — and **Copy without harakat** puts
+the unpointed text on the clipboard and leaves the note as it is, for the quotation that is going
+into a search box or a message where the marks would be noise. For a whole note, `Ctrl/Cmd P` →
+**Strip diacritics from note** rewrites the open note through the editor as **one undo step**, so a
+single `Ctrl/Cmd Z` puts every mark back; it says so when there was nothing to strip rather than
+saving the file into itself.
+
+The three share one table (`shared/tashkeel.ts`): the strip removes exactly the code points the
+palette can write — U+064B–U+0652, U+0670 and U+0640 — and no more. The Qur'anic pause marks and
+small high letters are not in it, on purpose: a strip that reached past what the palette writes
+would take marks a careful typist never asked it to touch.
+
 ## Localised tag labels
 
 A vault's tags are English because tags are addresses: `#software` is in your files, in your
