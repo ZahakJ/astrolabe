@@ -1274,3 +1274,147 @@ span.s-rv-math-live {
     max-height: min(30vh, 200px);
   }
 }
+
+/* ── Ayah & hadith callouts (render.ts ayahBlock / hadithCard) ─────────────
+   Two more callout kinds, on the callout box's own terms: the same tint,
+   bar and radius, a hue each from the callout set (green is the mushaf's
+   colour; the hadith takes the abstract's teal so the two never read as one
+   kind). The VERSE is the only text in the product set in the serif at this
+   size: Uthmani script carries marks above and below every letter, and at
+   the prose size with prose leading they collide with the line above. The
+   stack is --font-serif, whose Arabic faces (Noto Naskh Arabic, Amiri,
+   Scheherazade) all carry the Quranic annotation block — and because font
+   fallback is per character, an English instance's Georgia-first stack still
+   falls through to them for every Arabic code point. Logical properties
+   throughout: the box is dir="rtl" (its words'), the commentary under it
+   follows its own text. */
+.s-rv-callout--ayah { --co: var(--callout-success); }
+.s-rv-callout--hadith { --co: var(--callout-abstract); }
+
+.s-rv-callout--ayah {
+  padding-block: 0.9em 0.7em;
+  padding-inline: 1.15em 1em;
+}
+
+.s-rv-ayah__text {
+  font-family: var(--font-serif);
+  font-size: 1.35em;
+  line-height: 2.15;
+  color: var(--text);
+  text-align: start;
+  word-spacing: 0.08em;
+}
+
+/* The box the verse lands in while the chunk is in flight: one line of the
+   verse's own leading, so the swap moves the paragraph below by the verse's
+   height and not by a placeholder's too. */
+.s-rv-ayah--pending {
+  min-block-size: 2.15em;
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.s-rv-ayah__basmala {
+  display: block;
+  text-align: center;
+  margin-block-end: 0.2em;
+}
+
+/* The end-of-ayah number, in the mushaf's ornate brackets: the callout's
+   hue, a step smaller, and never split from its verse at a line end. */
+.s-rv-ayah__num {
+  color: var(--co);
+  font-size: 0.78em;
+  white-space: nowrap;
+}
+
+/* The caption: the reference in the callout's hue at the inline start, the
+   Tanzil credit quietly at the inline end. Overrides the quote cite's
+   end-alignment because a row with two ends has no single "end". */
+.s-rv-ayah__cite {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+  flex-wrap: wrap;
+  margin-block-start: 0.55em;
+  text-align: start;
+}
+
+.s-rv-ayah__ref {
+  color: var(--co);
+  font-weight: 600;
+  font-size: 1.05em;
+}
+
+.s-rv-ayah__source {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.92em;
+}
+
+.s-rv-ayah__source:hover,
+.s-rv-ayah__source:focus-visible {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+/* Commentary sits under a hairline in the callout's hue — the verse is
+   quoted, the words under it are the author's, and the line says so. */
+.s-rv-callout--ayah .s-rv-callout__body,
+.s-rv-callout--hadith .s-rv-callout__body {
+  margin-block-start: 0.65em;
+  padding-block-start: 0.55em;
+  border-block-start: 1px solid color-mix(in srgb, var(--co) 28%, transparent);
+}
+
+.s-rv-hadith {
+  margin-block-start: 0.4em;
+}
+
+/* The chain of narrators: present, legible, and a step behind the words it
+   carries — the matn is what the reader came for. */
+.s-rv-hadith__chain {
+  font-family: var(--font-serif);
+  font-size: 0.92em;
+  line-height: 1.85;
+  color: var(--text-muted);
+  margin-block: 0 0.45em;
+}
+
+.s-rv-hadith__matn {
+  font-family: var(--font-serif);
+  font-size: 1.12em;
+  line-height: 1.9;
+}
+
+.s-rv-hadith__matn > :last-child {
+  margin-bottom: 0;
+}
+
+.s-rv-hadith__matn p {
+  margin-block: 0.3em;
+}
+
+.s-rv-hadith__source {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+  flex-wrap: wrap;
+  margin-block-start: 0.5em;
+  font-family: var(--font-ui);
+  font-size: 0.82em;
+  color: var(--text-muted);
+}
+
+.s-rv-hadith__grade {
+  color: var(--co);
+  font-weight: 600;
+}
+
+/* The source note is a wikilink (the delegated handler opens it) and is
+   dressed as one; it only sits at the inline end of its row. */
+.s-rv-hadith__note {
+  margin-inline-start: auto;
+}

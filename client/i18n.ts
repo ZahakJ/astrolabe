@@ -4840,6 +4840,24 @@ const DICT = {
   unusedTrashedToast: { en: "Moved {files} to .trash", ar: "نُقلت {files} إلى ‎.trash‎" },
   unusedTrashFailed: { en: "{files} could not be moved", ar: "تعذّر نقل {files}" },
   unusedRestoredToast: { en: "Restored {files}", ar: "استُرجعت {files}" },
+  // ── Ayah & hadith ──
+  // The slash rows and their previews; the ayah card's furniture; the hadith
+  // card's; the settings row for the corpus folder.
+  slashAyah: { en: "Ayah", ar: "آية" },
+  slashAyahDetail: { en: "A verse of the Quran, by reference", ar: "آية من القرآن، بمرجعها" },
+  slashHadith: { en: "Hadith", ar: "حديث" },
+  slashHadithDetail: { en: "A hadith from your corpus, by reference", ar: "حديث من مدوّنتك، بمرجعه" },
+  ayahSurahDetail: { en: "Surah {n} · {name}", ar: "سورة {n} · {name}" },
+  ayahSource: { en: "Text: Tanzil", ar: "النص: تنزيل" },
+  ayahSourceTitle: { en: "Uthmani text from the Tanzil Project (tanzil.net)", ar: "النص العثماني من مشروع تنزيل (tanzil.net)" },
+  ayahPending: { en: "Loading the verse…", ar: "جارٍ تحميل الآية…" },
+  hadithChain: { en: "Chain of narration", ar: "السند" },
+  hadithOpenSource: { en: "Open the source note", ar: "افتح ملاحظة المصدر" },
+  hadithFolderLabel: { en: "Hadith corpus folder", ar: "مجلد الأحاديث" },
+  hadithFolderHint: {
+    en: "Notes here with collection: and number: in their frontmatter answer > [!hadith] callouts. Empty means the folder is detected (\"hadith\", \"Corpus/hadith\", \"أحاديث\").",
+    ar: "الملاحظات هنا التي تحمل collection: وnumber: في مقدمتها تجيب تنبيهات > [!hadith]. فارغ يعني اكتشاف المجلد تلقائيًا («hadith»، «Corpus/hadith»، «أحاديث»).",
+  },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;

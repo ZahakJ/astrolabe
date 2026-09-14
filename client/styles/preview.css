@@ -1034,3 +1034,18 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
   font-size: 0.82em;
   color: var(--text-muted);
 }
+
+/* ── Scripture widgets (client/editor/scripture.ts) ──────────────────────
+   The ayah and hadith callouts' block widget: the card inside is the reading
+   renderer's and wears reading.css (which widgets.ts already loads for the
+   editor); this only settles the widget into the column. The card's own
+   outer margin is dropped for the tracker's reason — a margin on a block
+   widget's root is air CodeMirror's height map cannot see. */
+.s-editor .cm-s-scripture {
+  padding: 0.2em 0;
+  max-width: 100%;
+}
+
+.s-editor .cm-s-scripture .s-rv-callout {
+  margin-block: 0;
+}

@@ -7,7 +7,7 @@
 // Keys: siteName, tagline, footer, defaultTheme, adminTheme, publicLayout, blogLocale,
 // language, languageFilter, languageToggle, excludeTags, commentsEnabled, shareButtons, pdfSearch,
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
-// templatesFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
+// templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
 // weeklyFormat, weeklyTemplate, dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
@@ -142,6 +142,7 @@ import {
 import { customDir } from "./customFonts.ts";
 import { catalogList, cleanFontSlots, readFontSlots, slotsAreSystem } from "./fonts.ts";
 import {
+  detectHadithFolder,
   detectTagsFolder,
   detectTemplatesFolder,
   listImageAttachments,
@@ -486,6 +487,9 @@ export function getSettings(): SettingsData {
   if (typeof raw.templatesFolder === "string" && raw.templatesFolder.trim() !== "") {
     out.templatesFolder = raw.templatesFolder.trim();
   }
+  if (typeof raw.hadithFolder === "string" && raw.hadithFolder.trim() !== "") {
+    out.hadithFolder = raw.hadithFolder.trim();
+  }
   if (typeof raw.drawingsFolder === "string" && raw.drawingsFolder.trim() !== "") {
     out.drawingsFolder = raw.drawingsFolder.trim();
   }
@@ -679,6 +683,8 @@ export function effectiveSettings(): EffectiveSettings {
     attachments: attachmentLocation(),
     templatesFolder: templatesFolder(),
     templatesFolderDetected: s.templatesFolder === undefined && templatesFolder() !== null,
+    hadithFolder: hadithFolder(),
+    hadithFolderDetected: s.hadithFolder === undefined && hadithFolder() !== null,
     drawingsFolder: drawingsFolder(),
     defaultTemplate: defaultTemplate(),
     dailyFolder: dailyFolder(),
@@ -853,6 +859,25 @@ export function templatesFolder(): string | null {
     }
   }
   return detectTemplatesFolder();
+}
+
+/** The hadith corpus folder: the stored value when set, else the indexer's
+ *  auto-detection, else null — `templatesFolder()`'s rule exactly, because it
+ *  is the same promise (a folder the vault already names should just work,
+ *  and a guess between two candidates would answer a callout from the wrong
+ *  book). Null means `> [!hadith]` callouts all fall back to plain quotes. */
+export function hadithFolder(): string | null {
+  const stored = getSettings().hadithFolder;
+  if (stored) {
+    try {
+      const rel = normalizeRel(stored);
+      safeAbs(rel);
+      return rel === "" ? null : rel;
+    } catch {
+      return null;
+    }
+  }
+  return detectHadithFolder();
 }
 
 /** Where the sidebar's pencil starts a drawing: the stored folder, or null
@@ -1188,6 +1213,18 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     if (rel === "") return null;
     if (isNotePath(rel)) {
       throw new VaultError(400, 'Settings key "templatesFolder" must be a folder, not a note');
+    }
+    return rel;
+  }),
+  // The hadith corpus folder, on the templates folder's terms: a folder, and
+  // clearing it returns the key to auto-detection.
+  hadithFolder: stringKey("hadithFolder", (v) => {
+    const clean = cleanValue(v, "hadithFolder");
+    if (clean === null) return null;
+    const rel = vaultRel(clean, "hadithFolder");
+    if (rel === "") return null;
+    if (isNotePath(rel)) {
+      throw new VaultError(400, 'Settings key "hadithFolder" must be a folder, not a note');
     }
     return rel;
   }),

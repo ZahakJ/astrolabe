@@ -31,6 +31,15 @@ const TYPE_GROUP: Record<string, string> = {
   example: "example",
   quote: "quote",
   cite: "quote",
+  // Scripture (render.ts's ayah/hadith branch; CONTRACTS "Ayah and hadith
+  // callouts"). Both scripts, because the type is typed by hand in whichever
+  // language the note is written in.
+  ayah: "ayah",
+  aya: "ayah",
+  quran: "ayah",
+  آية: "ayah",
+  hadith: "hadith",
+  حديث: "hadith",
 };
 
 /** 14px stroke icons per group (lucide-style paths, stroke=currentColor). */
@@ -48,9 +57,26 @@ const GROUP_ICON: Record<string, string> = {
   bug: '<path d="m8 2 1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6z"/><path d="M12 20v-9M6.53 9C4.6 8.8 3 7.1 3 5M6 13H2M3 21c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4M17.2 17c2.1.1 3.8 1.9 3.8 4"/>',
   example: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
   quote: '<path d="M17 6H3M21 12H8M21 18H8"/>',
+  // An open book for the Quran, a scroll for a hadith.
+  ayah: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  hadith: '<path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M15 8h-5M15 12h-5"/>',
 };
 
-const TITLE_RE = /^(\s*>\s*)\[!(\w+)\]([+-]?)\s*(.*)$/;
+// `\w` and the Arabic letter block: `[!آية]` and `[!حديث]` are callout types
+// too (TYPE_GROUP above), and a regex that could not read them would leave
+// an Arabic writer's callout rendering as a plain quote with "[!آية]" in it.
+const TITLE_RE = /^(\s*>\s*)\[!([\w؀-ۿ]+)\]([+-]?)\s*(.*)$/;
+
+/** The two callout kinds whose body is fetched rather than written: an ayah
+ *  (verse text from the lazy Quran chunk) and a hadith (a corpus note). The
+ *  editor's live preview replaces these whole — like a tracker fence — and
+ *  the reading renderer branches on them before the generic callout path. */
+export type ScriptureKind = "ayah" | "hadith";
+
+export function scriptureKind(type: string): ScriptureKind | null {
+  const group = calloutGroup(type);
+  return group === "ayah" || group === "hadith" ? group : null;
+}
 
 /** Canonical callout types (one per color group), in display order — the
  *  editor's "> [!" autocomplete offers these. */
@@ -68,6 +94,8 @@ export const CALLOUT_TYPES: readonly string[] = [
   "bug",
   "example",
   "quote",
+  "ayah",
+  "hadith",
 ];
 
 // ── Shared with the reading-view renderer (client/reading/render.ts) ────────

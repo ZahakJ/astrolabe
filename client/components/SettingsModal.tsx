@@ -161,6 +161,7 @@ interface Form {
   // prints what was detected rather than sitting blank beside a working
   // feature (the `inherited` note under it).
   templatesFolder: string;
+  hadithFolder: string;
   drawingsFolder: string;
   defaultTemplate: string;
   dailyFolder: string;
@@ -286,6 +287,7 @@ function formFrom(s: SettingsResponse): Form {
     attachMode: s.attachments?.mode ?? "",
     attachFolder: s.attachments?.folder ?? "",
     templatesFolder: s.templatesFolder ?? "",
+    hadithFolder: s.hadithFolder ?? "",
     drawingsFolder: s.drawingsFolder ?? "",
     defaultTemplate: s.defaultTemplate ?? "",
     dailyFolder: s.dailyFolder ?? "",
@@ -1295,6 +1297,7 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       | "favicon"
       | "logo"
       | "templatesFolder"
+      | "hadithFolder"
       | "drawingsFolder"
       | "defaultTemplate"
       | "dailyFolder"
@@ -1314,6 +1317,7 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   str("favicon");
   str("logo");
   str("templatesFolder");
+  str("hadithFolder");
   str("drawingsFolder");
   str("defaultTemplate");
   str("dailyFolder");
@@ -3821,6 +3825,23 @@ export default function SettingsModal() {
                   {form.templatesFolder.trim() === "" && eff.templatesFolderDetected && eff.templatesFolder && (
                     <p className="s-smodal__note">
                       {tf("templatesDetectedHint", { folder: eff.templatesFolder })}
+                    </p>
+                  )}
+                  {/* The hadith corpus: a folder question on the templates
+                      folder's terms — detected when the vault names it, and
+                      the detected value printed rather than a blank field
+                      beside a feature that is quietly working. */}
+                  <Row label={t("hadithFolderLabel")} hint={t("hadithFolderHint")}>
+                    <TextInput
+                      placeholder={eff.hadithFolder ?? "Corpus/hadith"}
+                      dir="ltr"
+                      label={t("hadithFolderLabel")}
+                      {...field("hadithFolder")}
+                    />
+                  </Row>
+                  {form.hadithFolder.trim() === "" && eff.hadithFolderDetected && eff.hadithFolder && (
+                    <p className="s-smodal__note">
+                      {tf("templatesDetectedHint", { folder: eff.hadithFolder })}
                     </p>
                   )}
                   <Row label={t("defaultTemplateLabel")} hint={t("defaultTemplateHint")}>

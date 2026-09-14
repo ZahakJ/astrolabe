@@ -51,7 +51,8 @@ import { noteAnchors } from "../../shared/anchors.ts";
 import { foldTerm } from "../../shared/fold.ts";
 import { isNotePath, stripNoteExt } from "../../shared/noteFormat.ts";
 import { notePathFacet } from "./livePreview.ts";
-import { t, tf } from "../i18n.ts";
+import { getLang, t, tf } from "../i18n.ts";
+import { matchSurahs } from "../../shared/quranRefs.ts";
 import {
   calloutIconRender,
   calloutTypeSource,
@@ -465,11 +466,58 @@ async function tagSource(
   };
 }
 
+// ── The surah source (inside "> [!ayah] ") ─────────────────────────────────
+
+const AYAH_TITLE_TAIL = /^\s*>\s*\[!(?:ayah|aya|quran|آية)\]\s*(.*)$/iu;
+
+/** Surah names as the reference is typed: `> [!ayah] ba` offers Al-Baqarah,
+ *  `> [!ayah] الب` offers البقرة, `> [!ayah] 11` offers surahs 11 and
+ *  110–114 — the joy of the feature, and the reason nobody has to remember
+ *  that Al-Kahf is 18. Ranked by shared/quranRefs.ts (prefixes first, then
+ *  mushaf order), so the list is filtered here and CodeMirror's own scorer is
+ *  turned off, as the `[[` source does. The popup yields as soon as the
+ *  writer moves on to the ayah number. */
+function ayahRefSource(context: CompletionContext): CompletionResult | null {
+  const line = context.state.doc.lineAt(context.pos);
+  const before = line.text.slice(0, context.pos - line.from);
+  const m = AYAH_TITLE_TAIL.exec(before);
+  if (!m) return null;
+  const typed = m[1];
+  // A separator, or digits after a name, means the surah is settled and the
+  // verse number is being typed — a popup there would only steal Enter.
+  if (/[:：/]/.test(typed) || /\S\s+\d/.test(typed)) return null;
+  const lang = getLang();
+  const rows = matchSurahs(typed);
+  if (rows.length === 0) return null;
+  // The name is inserted in the script the writer is already using — an
+  // Arabic prefix completes to «البقرة», a Latin one to "Al-Baqarah", a
+  // number (or nothing yet) to the chrome's language. The parser reads all
+  // three, so a note keeps rendering whichever chrome reads it later.
+  const arabic = /[؀-ۿ]/.test(typed);
+  const inArabic = typed.trim() === "" || /^\d+$/.test(typed.trim()) ? lang === "ar" : arabic;
+  const options: Completion[] = rows.map((s, i) => ({
+    label: inArabic ? s.ar : s.en,
+    detail: tf("ayahSurahDetail", { n: s.n, name: inArabic ? s.en : s.ar }),
+    type: "text",
+    boost: rows.length - i,
+    apply: (view: EditorView, completion: Completion, from: number, to: number): void => {
+      const insert = `${completion.label}:`;
+      view.dispatch({
+        changes: { from, to, insert },
+        selection: { anchor: from + insert.length },
+        userEvent: "input.complete",
+      });
+    },
+  }));
+  return { from: context.pos - typed.length, options, filter: false };
+}
+
 export function wikilinkAutocomplete(): Extension {
   return autocompletion({
     override: [
       wikilinkSource,
       tagSource,
+      ayahRefSource,
       calloutTypeSource,
       fenceLanguageSource,
       slashSource,

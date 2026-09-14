@@ -55,6 +55,7 @@ import {
   calloutLineDecos,
   findCallouts,
 } from "./callouts.ts";
+import { scriptureBlockDeco } from "./scripture.ts";
 import { blockMathDecos, inlineMathDecos } from "./math.ts";
 import { trackerBlockDeco, trackerFenceSpan } from "./tracker.ts";
 import { trackerFenceKind } from "../../shared/tracker.ts";
@@ -1318,6 +1319,16 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
     (pos) => overlaps(fenceSpans, pos, pos + 1),
     decos,
   );
+
+  // > [!ayah] and > [!hadith]: ONE block replace over the whole callout,
+  // markers included, carrying the reading renderer's card — the tracker
+  // fence's shape, because the body is fetched, not written (scripture.ts).
+  // The line pass (calloutLineDecos) already skips these while replaced.
+  for (const callout of findCallouts(state)) {
+    if (callout.scripture === null) continue;
+    if (anyActiveBetween(doc.lineAt(callout.from).number, doc.lineAt(callout.to).number)) continue;
+    decos.push(scriptureBlockDeco(state, callout, notePath));
+  }
 
   // Folded callout bodies (inline fold-style replaces).
   calloutFoldDecos(state, decos);

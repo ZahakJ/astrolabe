@@ -97,11 +97,12 @@ import {
   search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor, hasNote,
   searchMatches,
   tags,
-  trackers, routines,
+  trackers, routines, hadithLookup,
   visibleNotesUnder,
   whenIndexed,
   wikilinkRegex, collectionRows } from "./indexer.ts";
 import { sendEncoded } from "./compress.ts";
+import { hadithKey, parseHadithRef } from "../shared/hadithRefs.ts";
 import { graphBody, invalidateGraph, localGraphJson } from "./graphCache.ts";
 import { invalidateTree, treeBody } from "./treeCache.ts";
 import { activeDesignFontRefs } from "./designs.ts";
@@ -2438,6 +2439,22 @@ api.post("/tracker", async (c) => {
 api.get("/trackers", (c) => {
   const limited = isPublishLimited(c);
   return c.json(trackers(limited, languageScope(c, limited).lang));
+});
+
+// The corpus door for `> [!hadith] Bukhari 1`: the callout's text, parsed on
+// the server through the same shared grammar the indexer filed the corpus
+// under (shared/hadithRefs.ts), answered from the hadith folder at THIS
+// session's scope — a visitor is answered only from published notes, so the
+// path in the answer is always one they may open. 404 when no corpus note
+// answers, and the client draws a plain quote callout then: the reference is
+// still the author's words, and a callout is never broken.
+api.get("/hadith", (c) => {
+  const ref = parseHadithRef(requiredQuery(c.req.query("ref"), "ref"));
+  if (ref === null) throw new VaultError(400, "Not a hadith reference");
+  const limited = isPublishLimited(c);
+  const hit = hadithLookup(hadithKey(ref.collection, ref.number), limited, languageScope(c, limited).lang);
+  if (hit === null) throw new VaultError(404, "No corpus note answers this reference");
+  return c.json(hit);
 });
 
 // ------------------------------------------------------------------ routines

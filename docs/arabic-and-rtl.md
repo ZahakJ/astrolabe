@@ -315,7 +315,26 @@ palette can write — U+064B–U+0652, U+0670 and U+0640 — and no more. The Qu
 small high letters are not in it, on purpose: a strip that reached past what the palette writes
 would take marks a careful typist never asked it to touch.
 
-## Localised tag labels
+## Ayah and hadith callouts
+
+`> [!ayah] 2:255` renders the verse in Uthmani script with full tashkeel, set right-to-left in the
+Arabic face, with its reference as the caption — `﴿Al-Baqarah 2:255﴾` on an English instance,
+`﴿البقرة ٢٥٥﴾` on an Arabic one. A range is `2:255-257`; the surah may be its number or its name
+in either language, article and pointing optional (`البقرة`, `Baqara`, `Al-Baqarah`). Any lines
+you write under the callout are your commentary and render beneath the verse. In the editor,
+`/ayah` inserts the skeleton and, inside `> [!ayah] `, typing offers the surah names as you go.
+The text is the Tanzil Project's, credited under every callout; it is a 1.3 MB chunk that arrives
+only on a page that carries a verse, so a note without one downloads none of it, and a published
+note shows its verses to visitors from the same chunk.
+
+`> [!hadith] Bukhari 1` renders a hadith from a **corpus you supply**: notes under `Corpus/hadith/`
+(or the folder named in Settings → Vault, *Hadith corpus folder*) whose frontmatter carries
+`collection:` and `number:`; the body's first paragraph is the chain, the rest the text. The
+common collections answer to their usual spellings in either language (`Bukhari`, `البخاري`,
+`Sahih al-Bukhari` are one key); an uncommon one answers to its own name. A reference with no
+corpus note behind it renders as an ordinary quote callout wearing the reference as its title —
+never broken — and a visitor is answered only from published corpus notes.
+
 
 A vault's tags are English because tags are addresses: `#software` is in your files, in your
 links, in `EXCLUDE_TAGS`, in every URL you have shared. But an Arabic front end should say

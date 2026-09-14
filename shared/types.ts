@@ -799,6 +799,27 @@ export interface PageMeta {
 // out (a stencil would list as a book you are 0% through). An admin sees the
 // whole vault. Publishing your gaming shelf is the point of the feature, so
 // the endpoint has to be trustworthy about which half of it is public.
+/** What `GET /api/hadith?ref=` answers when a corpus note matches: the note,
+ *  its chain and text split (shared/hadithRefs.ts splitHadith), and the
+ *  collection both as the index keys it and as the note spelled it — the
+ *  client names a known book in the chrome's language and a custom one as
+ *  written. Scoped like a note read: a visitor is answered only from
+ *  published notes, so `path` is always one they may open. */
+export interface HadithHit {
+  path: string;
+  title: string;
+  collection: string;
+  /** The collection's name in each chrome language — a known book's
+   *  translation, a custom one as the corpus note spelled it. Resolved on
+   *  the server so the client carries no alias table in its first paint. */
+  label: { en: string; ar: string };
+  number: number;
+  chain: string | null;
+  matn: string;
+  /** Frontmatter `grade:` (صحيح, hasan, …), verbatim, or null. */
+  grade: string | null;
+}
+
 export interface TrackerMeta {
   path: string;      // the note the fence lives in
   /** Which tracker fence of the note this is, counting tracker fences only
@@ -983,6 +1004,11 @@ export interface SettingsData {
    *  ("Templates", "_templates", "قوالب"); ambiguity means unset, never a
    *  guess. Notes inside it are stencils: they never appear in the post list. */
   templatesFolder?: string;
+  /** The hadith corpus folder (vault-relative): notes whose frontmatter
+   *  carries `collection:` and `number:` answer `> [!hadith]` callouts.
+   *  Absent → auto-detected like the templates folder ("hadith", "Corpus/
+   *  hadith", "أحاديث"); ambiguity means unset. */
+  hadithFolder?: string;
   /** Where the sidebar's pencil (and the palette, with no note open) starts a
    *  new drawing, vault-relative. Absent → the vault root. */
   drawingsFolder?: string;
@@ -1164,6 +1190,10 @@ export interface EffectiveSettings {
    *  the settings panel can say so instead of showing an empty field beside a
    *  feature that is quietly working. */
   templatesFolderDetected: boolean;
+  /** The hadith corpus folder in force — stored, else detected, else null —
+   *  and whether it was detected, on the templates folder's terms. */
+  hadithFolder: string | null;
+  hadithFolderDetected: boolean;
   /** The drawings folder in force, or null for the vault root. */
   drawingsFolder: string | null;
   defaultTemplate: string | null;
@@ -1261,6 +1291,8 @@ export interface SettingsPatch {
   } | null;
   /** Templates folder; null (or "") clears it back to auto-detection. */
   templatesFolder?: string | null;
+  /** Hadith corpus folder; null (or "") clears it back to auto-detection. */
+  hadithFolder?: string | null;
   /** Drawings folder; null (or "") clears it back to the vault root. */
   drawingsFolder?: string | null;
   dailyFolder?: string | null;
