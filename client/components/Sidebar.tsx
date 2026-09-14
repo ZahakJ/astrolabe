@@ -30,6 +30,8 @@ import { countPhrase, localeNum, t, tf, type Lang } from "../i18n.ts";
 // Tag chips print the vault's own display label when one exists (a tag page's
 // `labels:` map, or settings.tagLabels); `data`/keys/searches stay canonical.
 import { label as tagLabel, useTagLabels } from "../tagLabels.ts";
+import { flattenTagTree, tagTree, type TagSort } from "../../shared/tagTree.ts";
+import BookmarksRows from "./BookmarksRows.tsx";
 // Rename/merge a tag across the whole vault — the pill's one verb.
 import { promptTagRename } from "../tagRename.ts";
 import { beginTabDrag, endTabDrag } from "../dragTab.ts";
@@ -191,6 +193,8 @@ function loadTagsHeight(): number | null {
  *  dozen is about four rows in a 292px sidebar, which leaves the tree the pane.
  *  The pills arrive sorted by count, so the twelve shown are the twelve used. */
 const TAG_SHELF_CAP = 12;
+const TAG_SORT_KEY = "astrolabe.tags-sort";
+const TAG_OPEN_KEY = "astrolabe.tags-open";
 
 function loadTagsCollapsed(): boolean {
   try {
@@ -1443,16 +1447,59 @@ export default function Sidebar() {
   /** Where Tab enters the shelf: the reader's own cursor while it still names
    *  a tag, else the tag currently filtering the search (so Tab lands on the
    *  filter you are looking at), else the first pill. */
+  // THE SHELF IS A TREE. `zettel/seed` and `zettel/idea` used to be two
+  // pills that both began with "zettel/"; now `zettel` is one row with the
+  // count of everything under it, and a chevron opens the branch. Sort by
+  // count (the old order) or by name; both remembered per device.
+  const [tagSort, setTagSort] = useState<TagSort>(() => {
+    try {
+      return localStorage.getItem(TAG_SORT_KEY) === "name" ? "name" : "count";
+    } catch {
+      return "count";
+    }
+  });
+  const [openTags, setOpenTags] = useState<Set<string>>(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(TAG_OPEN_KEY) ?? "[]") as string[]);
+    } catch {
+      return new Set();
+    }
+  });
+  const toggleBranch = useCallback((tag: string): void => {
+    setOpenTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag);
+      else next.add(tag);
+      try {
+        localStorage.setItem(TAG_OPEN_KEY, JSON.stringify([...next]));
+      } catch {
+        // storage unavailable
+      }
+      return next;
+    });
+  }, []);
+  const tagRows = useMemo(() => {
+    // The filtering tag's branch is open whatever was stored: a filter whose
+    // own pill is folded away is a filter with no way to clear it.
+    const filtering = query.trim().startsWith("#") ? query.trim().slice(1) : null;
+    const open = new Set(openTags);
+    if (filtering !== null) {
+      const parts = filtering.split("/");
+      for (let i = 1; i < parts.length; i++) open.add(parts.slice(0, i).join("/"));
+    }
+    return flattenTagTree(tagTree(shownTags, tagSort), open);
+  }, [shownTags, tagSort, openTags, query]);
+
   const tagStop = useMemo(() => {
     // Over the SHOWN pills, not every tag: a stop on a pill that is not on the
     // shelf leaves the shelf with no tabIndex 0 in it at all, i.e. unreachable.
     const has = (tag: string | null): boolean =>
-      tag !== null && shownTags.some((entry) => entry.tag === tag);
+      tag !== null && tagRows.some((row) => row.node.tag === tag);
     if (has(tagCursor)) return tagCursor;
     const filtering = query.trim().startsWith("#") ? query.trim().slice(1) : null;
     if (has(filtering)) return filtering;
-    return shownTags[0]?.tag ?? null;
-  }, [tagCursor, query, shownTags]);
+    return tagRows[0]?.node.tag ?? null;
+  }, [tagCursor, query, tagRows]);
 
   /**
    * ARROWS WALK THE PILLS. The shelf is a WRAPPED grid, so both axes have to
@@ -2023,6 +2070,7 @@ export default function Sidebar() {
                 index/setSize down to each row for aria-posinset/setsize. */}
             {/* THE SCRATCH AREA: pinned notes and folders, above the vault in
                 the reader's own order, each row the row it is elsewhere. */}
+            <BookmarksRows />
             {pinnedNodes.length > 0 && (
               <div className="s-tree__pinned" role="group" aria-label={t("treePinned")}>
                 <div className="s-tree__pinned-head">
@@ -2138,6 +2186,25 @@ export default function Sidebar() {
             <span className="s-tags__total">{localeNum(tags.length)}</span>
           </button>
           {!tagsCollapsed && (
+            <button
+              type="button"
+              className="s-tags__sort"
+              onClick={() => {
+                const next: TagSort = tagSort === "count" ? "name" : "count";
+                setTagSort(next);
+                try {
+                  localStorage.setItem(TAG_SORT_KEY, next);
+                } catch {
+                  // storage unavailable
+                }
+              }}
+              title={t(tagSort === "count" ? "tagsSortByName" : "tagsSortByCount")}
+              aria-label={t(tagSort === "count" ? "tagsSortByName" : "tagsSortByCount")}
+            >
+              {tagSort === "count" ? "#↓" : "A→Z"}
+            </button>
+          )}
+          {!tagsCollapsed && (
           /* ONE TAB STOP FOR THE WHOLE TAG SHELF, for the reason the tree
              beside it is one: on the 1,388-note fixture this list is 113
              pills, and 113 plain buttons made the sidebar 120 tab stops —
@@ -2156,11 +2223,28 @@ export default function Sidebar() {
             aria-label={t("tags")}
             onKeyDown={onTagsKeyDown}
           >
-            {shownTags.map(({ tag, count }) => {
+            {tagRows.map(({ node, depth }) => {
+              const tag = node.tag;
+              const count = node.count;
               const active = query.trim() === `#${tag}`;
+              const branch = node.children.length > 0;
               return (
+              <span key={tag} className="s-tag__row" style={depth > 0 ? { paddingInlineStart: `${depth * 14}px` } : undefined}>
+              {branch && (
+                <button
+                  type="button"
+                  className={`s-tag__branch${openTags.has(tag) ? " s-tag__branch--open" : ""}`}
+                  aria-label={tf(openTags.has(tag) ? "tagsCloseBranch" : "tagsOpenBranch", { tag })}
+                  tabIndex={-1}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleBranch(tag);
+                  }}
+                >
+                  ›
+                </button>
+              )}
               <button
-                key={tag}
                 type="button"
                 role="option"
                 data-tag={tag}
@@ -2195,10 +2279,11 @@ export default function Sidebar() {
                     blog's .s-blog-chip. */}
                 <bdi className="s-tag__name">
                   <span className="s-tag__hash" aria-hidden="true">#</span>
-                  {tagLabel(tag)}
+                  {depth > 0 ? tagLabel(tag).split("/").pop() : tagLabel(tag)}
                 </bdi>
                 <span className="s-tag__count">{localeNum(count)}</span>
               </button>
+              </span>
               );
             })}
           </div>

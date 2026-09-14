@@ -88,6 +88,8 @@ export interface MediaDraft {
   rating: string;
   started: string;
   finished: string;
+  pace: string;
+  due: string;
   notes: string;
 }
 
@@ -107,6 +109,8 @@ export function emptyDraft(kind: TrackerKind = "show"): MediaDraft {
     rating: "",
     started: "",
     finished: "",
+    pace: "",
+    due: "",
     notes: "",
   };
 }
@@ -129,6 +133,8 @@ export function draftOf(meta: TrackerMeta): MediaDraft {
     rating: meta.rating === null ? "" : String(Math.round((meta.rating.value / meta.rating.max) * 100) / 10),
     started: meta.started ?? "",
     finished: meta.finished ?? "",
+    pace: meta.pace === null ? "" : String(meta.pace),
+    due: meta.due ?? "",
     notes: meta.notes ?? "",
   };
 }

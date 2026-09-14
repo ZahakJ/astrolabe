@@ -793,6 +793,9 @@ export interface TrackerMeta {
   folder: string | null;
   /** One press of − / + moves the count by this much (see Tracker.step). */
   step: number;
+  /** `pace:` units a day and `due:` date, for the projection (3.13.0). */
+  pace: number | null;
+  due: string | null;
   /** How many notes live under `folder`, and the folder's own note (a note
    *  named like it, or index.md) when there is one — the card's door. */
   folderNotes: number;

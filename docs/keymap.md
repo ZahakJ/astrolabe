@@ -32,6 +32,7 @@ is what refuses two rows claiming one keystroke; see [Development](development.m
 | `Ctrl/Cmd Alt D` | Open today's daily note (folder and name format in Settings → Vault; `daily/YYYY-MM-DD.md` by default) |
 | `Ctrl/Cmd Shift P` | Publish / unpublish the open note |
 | `Ctrl/Cmd Alt P` | [Print the open note, or export it to PDF](printing.md) — Alt because `Ctrl/Cmd P` is the palette |
+| `Ctrl/Cmd Shift B` | Bookmark the open note, or take the bookmark off (`Bookmarks.md`) |
 | `Ctrl/Cmd Alt B` | Collapse / reopen the **Notes sidebar** |
 | `Ctrl/Cmd Alt Shift B` | Collapse / reopen **Outline & backlinks** |
 | `Ctrl/Cmd Shift Z` | Zen mode — all chrome steps aside (`Esc` returns) |

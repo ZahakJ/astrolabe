@@ -79,6 +79,11 @@ function fieldsOf(draft: MediaDraft): TrackerFields & { title: string } {
     rating: rating === null ? null : `${Math.min(10, rating)}/10`,
     started: draft.started.trim() === "" ? null : draft.started.trim(),
     finished: draft.finished.trim() === "" ? null : draft.finished.trim(),
+    pace: (() => {
+      const n = numberOf(draft.pace);
+      return n === null || n <= 0 ? null : String(n);
+    })(),
+    due: draft.due.trim() === "" ? null : draft.due.trim(),
     notes: draft.notes.trim() === "" ? null : draft.notes.trim(),
   };
 }
@@ -324,6 +329,21 @@ export function MediaForm({
             <label className="s-mediaform__row">
               <span className="s-mediaform__label">{t("mediaFormFinished")}</span>
               <input className="s-ctl s-ctl-input" type="date" value={draft.finished} onChange={(e) => set("finished", e.target.value)} dir="ltr" />
+            </label>
+          </div>
+
+          {/* THE PACE: how many units a day, or the day to be done by — the
+              card projects one from the other (shared/tracker.ts
+              paceProjection), and a reading routine that names this work
+              reads the day's pages from it. */}
+          <div className="s-mediaform__pair">
+            <label className="s-mediaform__row">
+              <span className="s-mediaform__label">{t("mediaFormPace")}</span>
+              <NumberInput value={draft.pace} onChange={(v) => set("pace", v)} unit={`${unitWord} ${t("mediaFormPaceUnit")}`} min={0} label={t("mediaFormPace")} />
+            </label>
+            <label className="s-mediaform__row">
+              <span className="s-mediaform__label">{t("mediaFormDue")}</span>
+              <input className="s-ctl s-ctl-input" type="date" value={draft.due} onChange={(e) => set("due", e.target.value)} dir="ltr" />
             </label>
           </div>
 

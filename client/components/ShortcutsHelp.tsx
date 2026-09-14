@@ -142,6 +142,7 @@ const GROUPS: Group[] = [
       // which had been dead since it shipped, swallowed here in the capture
       // phase. A once-a-day verb does not outrank a per-minute one.
       { label: "cmdDailyNote", keys: ["Ctrl/Cmd", "Alt", "D"], admin: true, run: () => void openDailyNote() },
+      { label: "cmdBookmarkNote", keys: ["Ctrl/Cmd", "Shift", "B"], admin: true },
       { label: "newNote", keys: ["Ctrl/Cmd", "N"], admin: true },
       // Templates wear Alt because Ctrl/Cmd+T and +Shift+T belong to the
       // browser (new tab / reopen closed tab) — the sheet has to be able to

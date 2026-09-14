@@ -265,6 +265,73 @@ function eyeDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.13.0",
+    title: { en: "Fundamentals, and a few joys", ar: "أساسيات، وبعض المسرّات" },
+    slides: [
+      {
+        title: { en: "Bookmarks that travel with the vault", ar: "مفضلة تسافر مع الخزانة" },
+        body: {
+          en: "Ctrl/Cmd Shift B bookmarks the open note. The list is a note of its own, Bookmarks.md, drawn as a starred section above the tree — readable in Obsidian, on the phone, everywhere the vault goes. Drag a row to reorder.",
+          ar: "Ctrl/Cmd Shift B يضيف الملاحظة المفتوحة إلى المفضلة. والقائمة ملاحظة بنفسها، Bookmarks.md، تُرسم قسمًا بنجمة فوق الشجرة: تُقرأ في Obsidian وعلى الهاتف وحيثما تذهب الخزانة. اسحب صفًّا لإعادة الترتيب.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "BOOKMARKS · 3", "المفضلة · 3")}</text>
+  <g fill="var(--text)"><text x="30" y="70"><tspan fill="var(--accent)">★</tspan>  ${L(lang, "The Muqaddima", "المقدمة")}</text><text x="30" y="96"><tspan fill="var(--accent)">★</tspan>  ${L(lang, "Reading list", "قائمة القراءة")}</text><text x="30" y="122"><tspan fill="var(--accent)">★</tspan>  ${L(lang, "Weekly exercise", "تمارين الأسبوع")}</text></g>
+  <line x1="30" y1="140" x2="530" y2="140" stroke="var(--border)"/>
+  <g fill="var(--text-muted)" font-size="12"><text x="30" y="164">▸ 1 - Source Material</text><text x="30" y="186">▸ Journal</text></g>
+  <g font-family="ui-monospace, monospace" font-size="11" fill="var(--text-faint)"><text x="330" y="70">Bookmarks.md</text><text x="330" y="90">- [[The Muqaddima]]</text><text x="330" y="108">- [[Reading list]]</text><text x="330" y="126">- [[Weekly exercise]]</text></g>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+      {
+        title: { en: "Named layouts, and a tag tree", ar: "تخطيطات مسمّاة، وشجرة وسوم" },
+        body: {
+          en: "Save layout as… keeps your panes and splits under a name; Restore a layout… brings one back, shared with the desktop app. The tag shelf is a tree now: book/fiction and book/history fold under book with one count, sorted by count or by name.",
+          ar: "احفظ التخطيط باسم… يحفظ لوحاتك وتقسيماتك تحت اسم؛ واسترجع تخطيطًا… يعيد واحدًا، مشتركًا مع تطبيق سطح المكتب. ورفّ الوسوم شجرة الآن: يُطوى book/fiction وbook/history تحت book بعدد واحد، مرتّبًا بالعدد أو بالاسم.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="250" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "LAYOUTS", "التخطيطات")}</text>
+  <g fill="var(--text)"><text x="30" y="72">${L(lang, "Research", "بحث")}</text><text x="30" y="100">${L(lang, "Writing", "كتابة")}</text><text x="30" y="128">${L(lang, "Reading room", "غرفة القراءة")}</text></g>
+  <g fill="var(--accent)" font-size="11"><text x="190" y="72">${L(lang, "RESTORE", "استرجع")}</text><text x="190" y="100">${L(lang, "RESTORE", "استرجع")}</text><text x="190" y="128">${L(lang, "RESTORE", "استرجع")}</text></g>
+  <rect x="298" y="12" width="250" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="316" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "TAGS", "الوسوم")}</text>
+  <g fill="var(--text)"><text x="316" y="72"><tspan fill="var(--text-faint)">▾</tspan> #book <tspan fill="var(--text-faint)">42</tspan></text><text x="340" y="96"><tspan fill="var(--text-muted)">#fiction</tspan> <tspan fill="var(--text-faint)">18</tspan></text><text x="340" y="120"><tspan fill="var(--text-muted)">#history</tspan> <tspan fill="var(--text-faint)">24</tspan></text><text x="316" y="148"><tspan fill="var(--text-faint)">▸</tspan> #zettel <tspan fill="var(--text-faint)">131</tspan></text><text x="316" y="176">#recipes <tspan fill="var(--text-faint)">7</tspan></text></g>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+      {
+        title: { en: "A pace, and today's pages", ar: "وتيرة، وصفحات اليوم" },
+        body: {
+          en: "A tracker takes pace: 20 (or due: a date) and its card says the day you will be done — or the pace that gets you there. A routine that names the book gains \"Read 20 pages of it\" as its first task, and ticking it moves the tracker.",
+          ar: "يأخذ المتتبِّع pace: 20 (أو due: تاريخًا) فتقول بطاقته اليوم الذي تنتهي فيه، أو الوتيرة التي تبلغك إياه. والروتين الذي يسمّي الكتاب يكتسب «اقرأ 20 صفحة منه» مهمةً أولى، والتعليم عليها يحرّك المتتبِّع.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="46" fill="var(--text)" font-family="Georgia, serif" font-size="16">${L(lang, "The Muqaddima", "المقدمة")}</text>
+  <rect x="30" y="60" width="320" height="8" rx="4" fill="var(--bg-hover)"/><rect x="30" y="60" width="106" height="8" rx="4" fill="var(--accent)"/>
+  <text x="30" y="88" fill="var(--text-muted)" font-size="12">100 / 300 ${L(lang, "pages", "صفحة")} · <tspan fill="var(--accent)">20 ${L(lang, "pages a day — done by 24 September", "صفحة في اليوم؛ ينتهي في 24 سبتمبر")}</tspan></text>
+  <rect x="30" y="112" width="500" height="80" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="46" y="136" fill="var(--accent)" font-size="11" letter-spacing="1">${L(lang, "TODAY", "اليوم")}</text>
+  <rect x="46" y="150" width="16" height="16" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path d="M50 158l4 4 7-8" fill="none" stroke="var(--accent)" stroke-width="2"/>
+  <text x="70" y="163" fill="var(--text)">${L(lang, "Read", "اقرأ")} <tspan fill="var(--text-muted)">20 ${L(lang, "pages of The Muqaddima", "صفحة من المقدمة")}</tspan></text>
+  <text x="46" y="184" fill="var(--text-faint)" font-size="11">${L(lang, "→ the tracker moves to 120 / 300", "→ ينتقل المتتبِّع إلى 120 / 300")}</text>
+</svg>`,
+        },
+        docs: "routines",
+      },
+    ],
+  },
+  {
     version: "3.12.0",
     title: { en: "The vault, woven", ar: "الخزانة منسوجة" },
     slides: [

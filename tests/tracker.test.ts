@@ -405,3 +405,16 @@ describe("the Media page's edits", () => {
     assert.equal(t.notes, "Margit.");
   });
 });
+
+describe("the pace (3.13.0)", () => {
+  it("reads pace: and due:, and projects the finish or the pace it takes", async () => {
+    const { parseTracker, paceProjection } = await import("../shared/tracker.ts");
+    const t = parseTracker("title: Ledger\nprogress: 100/300\npace: 20\n")!;
+    assert.equal(t.pace, 20);
+    assert.deepEqual(paceProjection(t, "2026-09-14"), { kind: "done-by", date: "2026-09-24", pace: 20 });
+    const d = parseTracker("title: Ledger\nprogress: 100/300\ndue: 2026-09-24\n")!;
+    assert.equal(d.due, "2026-09-24");
+    assert.deepEqual(paceProjection(d, "2026-09-14"), { kind: "needs", pace: 20, date: "2026-09-24" });
+    assert.equal(paceProjection(parseTracker("title: x\nprogress: 300/300\npace: 5\n")!, "2026-09-14"), null);
+  });
+});

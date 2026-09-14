@@ -38,6 +38,8 @@ import DesignStatus from "./design/DesignStatus.tsx";
 
 import TemplatePicker from "./components/TemplatePicker.tsx";
 import { loadPeriodic, openDailyNote } from "./daily.ts";
+import { bookmarksChanged, toggleBookmark } from "./bookmarks.ts";
+import { BOOKMARKS_PATH } from "../shared/bookmarks.ts";
 import { t, tf } from "./i18n.ts";
 import { isKey, shortcutKey } from "./keys.ts";
 import { promptNewNote } from "./prompts.ts";
@@ -477,6 +479,9 @@ export default function App() {
 
       // New/renamed files may satisfy embeds that 404'd earlier.
       if (ev.kind === "created" || ev.kind === "renamed") clearBrokenEmbeds();
+      // Bookmarks.md edited anywhere (by hand, in Obsidian, on the phone):
+      // the sidebar's rows re-read it.
+      if (ev.path === BOOKMARKS_PATH || ev.toPath === BOOKMARKS_PATH) bookmarksChanged();
 
       if (ev.kind === "renamed" && ev.toPath) {
         store.remapPath(ev.path, ev.toPath);
@@ -843,6 +848,15 @@ export default function App() {
         e.stopPropagation();
         if (e.shiftKey) store.setPanelCollapsed(!store.panelCollapsed);
         else store.toggleSidebar();
+      } else if (bKey && e.shiftKey && !e.altKey) {
+        // Ctrl/Cmd+Shift+B — bookmark the open note (or take the bookmark
+        // off). Plain Ctrl/Cmd+B is bold in the editor; Alt+B is the sidebar.
+        if (!store.admin || !store.openPath) return;
+        e.preventDefault();
+        const path = store.openPath;
+        toggleBookmark(path)
+          .then((on) => toast(t(on ? "bookmarkAdded" : "bookmarkRemoved")))
+          .catch(() => toast(t("bookmarkFailed"), "error"));
       } else if (bKey) {
         // Plain Ctrl/Cmd+B (and +Shift+B) are swallowed above — Firefox's
         // bookmarks sidebar and Chrome's bookmark bar must never open over the

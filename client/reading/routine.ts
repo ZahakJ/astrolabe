@@ -35,7 +35,10 @@ import {
   type Weekday,
 } from "../../shared/routine.ts";
 import { siteDate } from "../dates.ts";
-import { autoDir, getLang, localeNum, t, tf, type I18nKey } from "../i18n.ts";
+import { getTrackers, updateTracker } from "../api.ts";
+import { foldKind } from "../../shared/tracker.ts";
+import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
+import { autoDir, countPhrase, getLang, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { el } from "./dom.ts";
 
@@ -288,9 +291,33 @@ function renderDay(
       }
       label.appendChild(box2);
       const words = el("span", "s-rv-routine__taskwords");
-      words.appendChild(el("span", "s-rv-routine__taskkey", task.text ? task.key : task.key));
-      if (task.text) words.appendChild(el("span", "s-rv-routine__tasktext", task.text));
+      words.appendChild(el("span", "s-rv-routine__taskkey", task.book ? t("routineReadKey") : task.key));
+      const textEl = el("span", "s-rv-routine__tasktext", task.text ?? "");
+      if (task.text) words.appendChild(textEl);
       label.appendChild(words);
+      if (task.book && task.text) {
+        // THE BOOK'S DAY: the tracker names the pace ("20 pages a day") and
+        // the tick moves it. Read from the shelf the trackers already keep;
+        // a book with no pace still lists, as "Read <title>".
+        const title = task.text;
+        void getTrackers()
+          .then((shelf) => {
+            const meta = shelf.find((m) => m.title.trim().toLowerCase() === title.toLowerCase());
+            if (!meta) return;
+            const pace = meta.pace ?? meta.step;
+            const known = unitKey(meta.unit);
+            const kind = foldKind(meta.kind);
+            const unitWord = known ? countPhrase(10, known).replace(/^[\d٠-٩٬,.\s]+/, "") : meta.unit ?? (kind ? countPhrase(10, KIND_UNIT[kind]).replace(/^[\d٠-٩٬,.\s]+/, "") : "");
+            textEl.textContent = tf("routineReadTask", { n: localeNum(pace), unit: unitWord, title: meta.title });
+            if (onLog) {
+              box2.addEventListener("change", () => {
+                // Ticked → the tracker moves by the day's pace; unticked → back.
+                void updateTracker(meta.path, meta.index, null, box2.checked ? pace : -pace).catch(() => {});
+              });
+            }
+          })
+          .catch(() => {});
+      }
       li.appendChild(label);
       if (onLog && !isDone) {
         const skip = el("button", `s-rv-routine__skip${isSkipped ? " is-on" : ""}`, isSkipped ? t("routineSkipped") : t("routineSkip"));

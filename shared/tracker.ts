@@ -90,6 +90,12 @@ export interface Tracker {
    *  says, else 10 for pages and minutes (a book is read ten pages at a time,
    *  a film watched in tens of minutes) and 1 for everything else. */
   step: number;
+  /** `pace:` — units per day the reader means to move ("20"); null when
+   *  none. With a total, the card projects the finish date. */
+  pace: number | null;
+  /** `due:` — the date the reader means to be done by (ISO); with a total
+   *  and no pace, the card says the pace that would get there. */
+  due: string | null;
   /** `folder:` — a vault folder this work's own notes live in ("1 - Source
    *  Material/Books/The Linux Memory Manager"). The card counts them and
    *  opens the folder; the tracker itself never reads them. Null when absent. */
@@ -432,6 +438,10 @@ export function parseTracker(body: string): Tracker | null {
   const coverRaw = fields.get("cover")?.trim() ?? "";
   const started = fields.get("started")?.trim();
   const finished = fields.get("finished")?.trim();
+  const paceRaw = Number(foldDigits(fields.get("pace") ?? "").replace(/[^\d.]/g, ""));
+  const pace = Number.isFinite(paceRaw) && paceRaw > 0 ? paceRaw : null;
+  const dueRaw = foldDigits(fields.get("due") ?? fields.get("by") ?? "").trim();
+  const due = /^\d{4}-\d{2}-\d{2}/.test(dueRaw) ? dueRaw.slice(0, 10) : null;
   const season = fields.get("season")?.trim();
   const folder = fields.get("folder")?.trim().replace(/^\/+|\/+$/g, "");
   const stepRaw = Number(foldDigits(fields.get("step") ?? "").trim());
@@ -454,8 +464,30 @@ export function parseTracker(body: string): Tracker | null {
     season: season === undefined || season === "" ? null : season,
     folder: folder === undefined || folder === "" || folder.includes("..") ? null : folder,
     step,
+    pace,
+    due,
     notes: notes === undefined || notes.trim() === "" ? null : notes,
   };
+}
+
+/** What the pace means for this work, on `today` (ISO): the day it will be
+ *  done at the stated pace, or the pace it would take to be done by `due`.
+ *  Null without a total, or when it is already done. */
+export function paceProjection(tracker: Pick<Tracker, "done" | "total" | "pace" | "due">, today: string): { kind: "done-by"; date: string; pace: number } | { kind: "needs"; pace: number; date: string } | null {
+  if (tracker.done === null || tracker.total === null) return null;
+  const remaining = tracker.total - tracker.done;
+  if (remaining <= 0) return null;
+  const day = (iso: string): number => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
+  if (tracker.pace !== null && tracker.pace > 0) {
+    const days = Math.ceil(remaining / tracker.pace);
+    const date = new Date(day(today) + days * 86400000).toISOString().slice(0, 10);
+    return { kind: "done-by", date, pace: tracker.pace };
+  }
+  if (tracker.due !== null) {
+    const daysLeft = Math.max(1, Math.round((day(tracker.due) - day(today)) / 86400000));
+    return { kind: "needs", pace: Math.ceil(remaining / daysLeft), date: tracker.due };
+  }
+  return null;
 }
 
 /** The nudge a unit deserves when the author names none. Pages and minutes
@@ -627,10 +659,12 @@ export interface TrackerFields {
   rating?: string | null;
   started?: string | null;
   finished?: string | null;
+  pace?: string | null;
+  due?: string | null;
   notes?: string | null;
 }
 
-const FIELD_ORDER = ["title", "kind", "season", "cover", "progress", "unit", "step", "status", "rating", "started", "finished", "folder", "notes"] as const;
+const FIELD_ORDER = ["title", "kind", "season", "cover", "progress", "unit", "step", "pace", "due", "status", "rating", "started", "finished", "folder", "notes"] as const;
 type FieldKey = (typeof FIELD_ORDER)[number];
 
 /** The lines of `body`, each with its own terminator, so what comes back is
