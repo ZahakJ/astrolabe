@@ -1,0 +1,101 @@
+/* THE TASKS FENCE (client/reading/tasks.ts). Tokens only; logical props. */
+
+.s-rv-tasks {
+  margin-block: 1.2em;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  font-family: var(--font-ui);
+}
+.s-rv-tasks__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 8px;
+}
+.s-rv-tasks__title {
+  font-size: 0.714rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.s-rv-tasks__count {
+  font-size: 0.714rem;
+  color: var(--text-faint);
+}
+.s-rv-tasks__empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.s-rv-tasks__group + .s-rv-tasks__group {
+  margin-block-start: 10px;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--border);
+}
+.s-rv-tasks__note {
+  display: inline-block;
+  margin-block-end: 4px;
+  font-size: 0.786rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+.s-rv-tasks__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.s-rv-tasks__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.s-rv-tasks__label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-inline-size: 0;
+  cursor: pointer;
+}
+.s-rv-tasks__check {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  margin: 3px 0 0;
+  accent-color: var(--accent);
+}
+.s-rv-tasks__text {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.s-rv-tasks__item.is-done .s-rv-tasks__text,
+.s-rv-tasks__item.is-cancelled .s-rv-tasks__text {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.s-rv-tasks__meta {
+  display: inline-flex;
+  gap: 8px;
+  flex: none;
+  font-size: 0.786rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.s-rv-tasks__due.is-today {
+  color: var(--accent);
+}
+.s-rv-tasks__due.is-overdue {
+  color: var(--danger);
+}
+.s-rv-tasks__prio--highest,
+.s-rv-tasks__prio--high {
+  color: var(--callout-warning, var(--accent));
+}
