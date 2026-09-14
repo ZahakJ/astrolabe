@@ -57,8 +57,9 @@ import { anchorLine } from "../../shared/anchors.ts";
 import { caretHome } from "../editor/caretHome.ts";
 import { INSERT_TEMPLATE_EVENT, type InsertTemplateDetail } from "../templateActions.ts";
 import { openSearchPanel } from "@codemirror/search";
-import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT } from "../editor/bufferBridge.ts";
+import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT, STRIP_TASHKEEL_EVENT } from "../editor/bufferBridge.ts";
 import { copyBlockLink } from "../editor/blockLink.ts";
+import { stripTashkeelNote } from "../editor/harakat.ts";
 import { applyTemplate, splitFrontmatter } from "../templates.ts";
 
 /** The caret each note was last seen at, so a REMOUNT does not throw it away.
@@ -483,9 +484,26 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
       copyBlockLink(view, path);
     };
     window.addEventListener(COPY_BLOCK_LINK_EVENT, onBlockLink);
+    // "Strip diacritics from note": the same one-editor resolution, because
+    // the whole point is that the change lands in the history of the note
+    // the reader is looking at, as one step.
+    const onStrip = (): void => {
+      const view = viewRef.current;
+      if (!view) return;
+      if (paneId !== null) {
+        const ws = useStore.getState().workspace;
+        const focused = paneAt(ws, ws.focus);
+        const target = focused !== null && surfaceOf(focused) === "edit" ? ws.focus : ws.noteFocus;
+        if (paneId !== target) return;
+      }
+      view.focus();
+      stripTashkeelNote(view);
+    };
+    window.addEventListener(STRIP_TASHKEEL_EVENT, onStrip);
     return () => {
       window.removeEventListener(FIND_IN_NOTE_EVENT, onFind);
       window.removeEventListener(COPY_BLOCK_LINK_EVENT, onBlockLink);
+      window.removeEventListener(STRIP_TASHKEEL_EVENT, onStrip);
     };
   }, [paneId, path]);
 
