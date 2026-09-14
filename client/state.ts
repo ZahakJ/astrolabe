@@ -392,6 +392,11 @@ export interface State {
    *  promises; nothing in the product could see it until this landed. */
   trashOpen: boolean;
   setTrashOpen(b: boolean): void;
+  /** Admin list of the files no note references (palette: "Unused
+   *  attachments"). Same lifecycle as the trash browser: an admin surface
+   *  over vault paths, closed by sign-out and by visitor preview. */
+  unusedOpen: boolean;
+  setUnusedOpen(b: boolean): void;
   /** Admin previewing the public site: every API call carries the preview
    *  flag and the server answers along its real visitor code path, so what
    *  renders IS the visitor experience (blog shell / visitor app view). */
@@ -1407,6 +1412,7 @@ export const useStore = create<State>()((set, get) => {
     desktopBrandIcon: null,
     moderationOpen: false,
     trashOpen: false,
+    unusedOpen: false,
     previewVisitor: false,
 
     // The layout the served shell named, so a visitor's first frame is the
@@ -1704,7 +1710,7 @@ export const useStore = create<State>()((set, get) => {
       guarded("signing out", async () => {
         await api.logout();
         await get().loadMe();
-        set({ publishedPaths: null, publishedFilter: false, openPublished: null, moderationOpen: false, trashOpen: false });
+        set({ publishedPaths: null, publishedFilter: false, openPublished: null, moderationOpen: false, trashOpen: false, unusedOpen: false });
         const { admin, publicReads } = get();
         if (!admin && !publicReads) {
           // Vault is locked again for this session — drop everything readable.
@@ -1724,6 +1730,8 @@ export const useStore = create<State>()((set, get) => {
     setModerationOpen: (moderationOpen) => set({ moderationOpen }),
 
     setTrashOpen: (trashOpen) => set({ trashOpen }),
+
+    setUnusedOpen: (unusedOpen) => set({ unusedOpen }),
 
     setPreviewVisitor: (on) =>
       guarded("toggling visitor preview", async () => {
@@ -1768,6 +1776,7 @@ export const useStore = create<State>()((set, get) => {
             // The trash browser is an admin surface over deleted vault paths;
             // it must not survive into a visitor preview.
             trashOpen: false,
+            unusedOpen: false,
           }));
           // Tree BEFORE me: the shell swap (admin flips false on loadMe) must
           // find the visitor tree already in place, or the blog router would

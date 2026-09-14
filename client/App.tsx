@@ -121,6 +121,7 @@ const CommandPalette = lazySurface(() => import("./components/CommandPalette.tsx
 const BannerModal = lazySurface(() => import("./components/BannerModal.tsx"));
 const ModerationPanel = lazySurface(() => import("./components/ModerationPanel.tsx"));
 const TrashModal = lazySurface(() => import("./components/TrashModal.tsx"));
+const UnusedAttachmentsModal = lazySurface(() => import("./components/UnusedAttachmentsModal.tsx"));
 const SettingsModal = lazySurface(() => import("./components/SettingsModal.tsx"));
 // The keyboard-shortcut sheet is lazy AND mount-gated on `shortcutsOpen` —
 // which is why it is worth splitting when the other always-mounted hosts are
@@ -215,6 +216,7 @@ export default function App() {
   const bannerModalOpen = useStore((s) => s.bannerModalOpen);
   const moderationOpen = useStore((s) => s.moderationOpen);
   const trashOpen = useStore((s) => s.trashOpen);
+  const unusedOpen = useStore((s) => s.unusedOpen);
   const settingsOpen = useStore((s) => s.settingsOpen);
   // Subscribed here (not only inside the sheet) because App now decides
   // whether the sheet is MOUNTED at all — that is what keeps its chunk out of
@@ -628,6 +630,7 @@ export default function App() {
       store.bannerModalOpen ||
       store.moderationOpen ||
       store.trashOpen ||
+      store.unusedOpen ||
       store.settingsOpen ||
       document.querySelector(".s-confirm-overlay, .s-tpick-overlay, .s-att-view") !== null;
 
@@ -1294,6 +1297,11 @@ export default function App() {
       {trashOpen && admin && (
         <Surface>
           <TrashModal />
+        </Surface>
+      )}
+      {unusedOpen && admin && (
+        <Surface>
+          <UnusedAttachmentsModal />
         </Surface>
       )}
       {settingsOpen && admin && (
