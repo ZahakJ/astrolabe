@@ -124,6 +124,7 @@ import {
   footerTemplate,
   LANGUAGE_FILTER_MODES,
   envLanguageFilterMode,
+  envNoteVersions,
   envPublicLayout,
   envSiteLanguage,
   envThemePref,
@@ -460,6 +461,7 @@ export function getSettings(): SettingsData {
   if (typeof raw.languageToggle === "boolean") out.languageToggle = raw.languageToggle;
   if (raw.topics === "tags" || raw.topics === "folders") out.topics = raw.topics;
   if (typeof raw.commentsEnabled === "boolean") out.commentsEnabled = raw.commentsEnabled;
+  if (typeof raw.noteVersions === "boolean") out.noteVersions = raw.noteVersions;
   if (typeof raw.shareButtons === "boolean") out.shareButtons = raw.shareButtons;
   if (typeof raw.ambient === "boolean") out.ambient = raw.ambient;
   str("favicon", VALUE_MAX);
@@ -656,6 +658,7 @@ export function effectiveSettings(): EffectiveSettings {
     excludeTags: [...excludedTags()],
     authorSites: (s.authorSites ?? []).map((site) => ({ ...site })),
     commentsEnabled: commentsEnabled(),
+    noteVersions: noteVersionsEnabled(),
     shareButtons: s.shareButtons ?? true,
     // Decoration defaults OFF, unlike the share row above: a site that has
     // never heard of this feature must not start moving on upgrade.
@@ -732,9 +735,17 @@ export function inheritedSettings(): InheritedSettings {
     // never has to know which rows have a variable behind them.
     languageToggle: false,
     commentsEnabled: envCommentsEnabled(),
+    noteVersions: envNoteVersions(),
     shareButtons: true,
     ambient: false,
   };
+}
+
+/** Live merge: settings.noteVersions when set, else NOTE_VERSIONS. Read by
+ *  the version store at EVERY write (server/versions.ts), so switching it in
+ *  the panel takes effect on the next save with no restart. */
+export function noteVersionsEnabled(): boolean {
+  return getSettings().noteVersions ?? envNoteVersions();
 }
 
 /** GET/PATCH /api/settings payload: stored keys + the effective merge + what
@@ -1075,6 +1086,11 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     if (value === null) delete raw.commentsEnabled;
     else if (typeof value === "boolean") raw.commentsEnabled = value;
     else throw new VaultError(400, 'Settings key "commentsEnabled" must be a boolean or null');
+  },
+  noteVersions: (raw, value) => {
+    if (value === null) delete raw.noteVersions;
+    else if (typeof value === "boolean") raw.noteVersions = value;
+    else throw new VaultError(400, 'Settings key "noteVersions" must be a boolean or null');
   },
   shareButtons: (raw, value) => {
     if (value === null) delete raw.shareButtons;

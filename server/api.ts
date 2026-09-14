@@ -29,6 +29,8 @@ import type {
   NoteData,
   NoteState,
   NoteStatesResponse,
+  NoteVersionBlob,
+  NoteVersionsResponse,
   NoteWriteResult,
   PropertyValue,
   TagRenamePreview,
@@ -106,6 +108,7 @@ import { prefsRoutes } from "./prefs.ts";
 import { readWorkspaceState, writeWorkspaceState } from "./workspaceState.ts";
 import { staticPagesActive } from "./pages.ts";
 import { gitStatus, initRepo, noteHistory, noteRevisionBlob, snapshotNow, syncNow, syncAtLaunch } from "./gitSync.ts";
+import { listVersions, readVersion, versionsEnabled } from "./versions.ts";
 import { dirOf, rewriteDestinations, rewriteForMove } from "./moveLinks.ts";
 // The three v1.8 bulk verbs: the engine, the tag surgeon, the heading detector.
 import { applyBulk, previewBulk, undoBulk } from "./bulkRewrite.ts";
@@ -2769,6 +2772,58 @@ api.get("/history/blob", async (c) => {
   return c.json(await noteRevisionBlob(rel, sha));
 });
 
+// ------------------------------------------------------ note versions
+//
+// The other half of history: what the vault's own write path kept, with or
+// without git (server/versions.ts). Same admin gate as /history, but a 401
+// rather than a 404 — this store exists on every instance, so "there is
+// nothing here" would be the one answer that is never true, and the client
+// treats a 401 as "log in" rather than as "this note has no past".
+
+/** `at` is a filename in the store: digits, nothing else. */
+function versionAt(raw: string | undefined): number {
+  const s = (raw ?? "").trim();
+  if (!/^[1-9][0-9]{0,15}$/.test(s)) throw new VaultError(400, "Query param \"at\" must be an epoch-ms integer");
+  return Number.parseInt(s, 10);
+}
+
+api.get("/versions", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Login required");
+  const rel = assertNotePath(c.req.query("path") ?? "");
+  safeAbs(rel); // the same containment throw /history relies on
+  const answer: NoteVersionsResponse = { enabled: versionsEnabled(), versions: await listVersions(rel) };
+  return c.json(answer);
+});
+
+api.get("/versions/one", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Login required");
+  const rel = assertNotePath(c.req.query("path") ?? "");
+  safeAbs(rel);
+  const at = versionAt(c.req.query("at"));
+  const content = await readVersion(rel, at);
+  if (content === null) throw new VaultError(404, `No version of ${rel} at ${at}`);
+  const answer: NoteVersionBlob = { path: rel, at, content };
+  return c.json(answer);
+});
+
+// Restore THROUGH the ordinary write path, so the text being replaced is
+// itself kept (reason "restore", exempt from the collapse window) and the
+// open editor learns of it the way it learns of any external write — the
+// `changed` event, adopted as an undoable transaction. No special path.
+api.post("/versions/restore", async (c) => {
+  const body = await jsonBody(c);
+  const rel = assertNotePath(requiredString(body, "path"));
+  const at = versionAt(typeof body.at === "number" ? String(body.at) : typeof body.at === "string" ? body.at : "");
+  const content = await readVersion(rel, at);
+  if (content === null) throw new VaultError(404, `No version of ${rel} at ${at}`);
+  const existed = await noteExists(rel);
+  suppressWatcherEcho(rel);
+  const written = await writeNote(rel, content, undefined, "restore");
+  emitEvent({ kind: existed ? "changed" : "created", path: written.path });
+  await indexFile(written.path);
+  return c.json(written);
+});
+
 // ---------------------------------------------------------------- SSE events
 
 /** Map a vault event to the events a publish-limited visitor may see: only events
@@ -2983,7 +3038,7 @@ async function renameWithLinkRewrite(from: string, to: string): Promise<void> {
         // `[[wikilink]]` spelling lost to a concurrent edit of the SAME line of
         // the SAME third-party note, which the next rename of that target
         // rewrites correctly anyway.
-        await writeNote(toPath, rewritten);
+        await writeNote(toPath, rewritten, undefined, "rename");
       }
     } catch (err) {
       console.error(`move: failed to rewrite embeds in ${toPath}:`, err);
@@ -3026,8 +3081,10 @@ async function renameWithLinkRewrite(from: string, to: string): Promise<void> {
       if (isTexPath(at)) rewritten = rewriteTexNoteMacros(rewritten, oldTitle, newTitle, titleChanged);
       if (rewritten !== note.content) {
         // Unconditional, per the paragraph above: the rename is already done,
-        // and a refusal here would abort it half-applied.
-        await writeNote(at, rewritten);
+        // and a refusal here would abort it half-applied. The version this
+        // leaves is tagged "rename", so a timeline can say why a note the
+        // reader never touched has a copy from today.
+        await writeNote(at, rewritten, undefined, "rename");
         await indexFile(at);
       }
     } catch (err) {
@@ -3112,7 +3169,7 @@ async function moveFolderWithLinkRewrite(from: string, to: string): Promise<Move
       if (map.has(before)) suppressWatcherEcho(after);
       // Unconditional, for the reason the rename rewrite gives: the folder has
       // already moved, so a 409 could only abort a gesture half-applied.
-      await writeNote(after, next);
+      await writeNote(after, next, undefined, "rename");
       rewritten.push(after);
     } catch (err) {
       console.error(`move: failed to rewrite links in ${after}:`, err);
