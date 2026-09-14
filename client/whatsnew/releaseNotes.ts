@@ -266,7 +266,7 @@ function eyeDemo(host: HTMLElement, lang: Lang): void {
 export const RELEASES: Release[] = [
   {
     version: "3.13.0",
-    title: { en: "Fundamentals, and a few joys", ar: "أساسيات، وبعض المسرّات" },
+    title: { en: "Cards, callouts, and reading anywhere", ar: "بطاقات ونداءات وقراءة في أي مكان" },
     slides: [
       {
         title: { en: "Bookmarks that travel with the vault", ar: "مفضلة تسافر مع الخزانة" },
@@ -328,6 +328,117 @@ export const RELEASES: Release[] = [
 </svg>`,
         },
         docs: "routines",
+      },
+      {
+        title: { en: "Flashcards from what you already marked", ar: "بطاقات مما علّمته أصلًا" },
+        body: {
+          en: "Every ==highlight==, every quote callout — the PDF reader's citations included — and every Question / ? / Answer block is a card. The Review page asks them back on the SM-2 schedule Obsidian's Spaced Repetition plugin uses, and writes the due day into the note as that plugin's own comment. Nothing is stored anywhere else.",
+          ar: "كل ==تظليل==، وكل نداء اقتباس (ومنها اقتباسات قارئ PDF)، وكل كتلة سؤال / ? / جواب هي بطاقة. تسألك صفحة المراجعة عنها على جدول SM-2 الذي تستخدمه إضافة Spaced Repetition في Obsidian، وتكتب يوم الاستحقاق في الملاحظة بتعليق الإضافة نفسه. لا يُخزَّن شيء في مكان آخر.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="30" y="30" width="72" height="18" rx="9" fill="none" stroke="var(--accent)" opacity="0.6"/><text x="66" y="43" text-anchor="middle" fill="var(--accent)" font-size="10" letter-spacing="1">${L(lang, "CLOZE", "فراغ")}</text>
+  <text x="112" y="43" fill="var(--text-muted)" font-size="12">${L(lang, "Cell biology", "بيولوجيا الخلية")}</text>
+  <text x="30" y="78" fill="var(--text)" font-family="Georgia, serif" font-size="16">${L(lang, "The", "")} <tspan font-weight="bold">[…]</tspan> ${L(lang, "is the powerhouse of the cell.", "هي مصنع طاقة الخلية.")}</text>
+  <line x1="30" y1="96" x2="530" y2="96" stroke="var(--border)" stroke-dasharray="3 3"/>
+  <text x="30" y="122" fill="var(--text)" font-family="Georgia, serif" font-size="16">${L(lang, "mitochondria", "الميتوكوندريا")}</text>
+  <g font-size="12">
+    <rect x="30" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect x="30" y="142" width="3" height="46" fill="var(--danger)"/><text x="89" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Again", "مرة أخرى")}</text><text x="89" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">1d</text>
+    <rect x="158" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect x="158" y="142" width="3" height="46" fill="var(--callout-warning)"/><text x="217" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Hard", "صعب")}</text><text x="217" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">3d</text>
+    <rect x="286" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect x="286" y="142" width="3" height="46" fill="var(--accent)"/><text x="345" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Good", "جيد")}</text><text x="345" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">6d</text>
+    <rect x="414" y="142" width="118" height="46" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect x="414" y="142" width="3" height="46" fill="var(--callout-success)"/><text x="473" y="161" text-anchor="middle" fill="var(--text)">${L(lang, "Easy", "سهل")}</text><text x="473" y="178" text-anchor="middle" fill="var(--text-faint)" font-size="11">8d</text>
+  </g>
+</svg>`,
+        },
+        docs: "flashcards",
+      },
+      {
+        title: { en: "Reading without a network", ar: "القراءة بلا شبكة" },
+        body: {
+          en: "The notes you opened stay on the device: a train, a flight, the server rebooting, and the same address opens the same note. Only for your own session — signing out clears the copy — and edits made offline are saved when the network is back. Settings → This device → Offline reading.",
+          ar: "الملاحظات التي فتحتها تبقى على الجهاز: في قطار أو طائرة أو أثناء إعادة تشغيل الخادم، يفتح العنوان نفسه الملاحظة نفسها. لجلستك وحدها؛ تسجيل الخروج يمسح النسخة، والتعديلات دون اتصال تُحفظ عند عودة الشبكة. الإعدادات ← هذا الجهاز ← القراءة دون اتصال.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="12" y="12" width="536" height="34" rx="12" fill="var(--bg-hover)"/><rect x="12" y="34" width="536" height="12" fill="var(--bg-hover)"/>
+  <g transform="translate(30 22)" fill="none" stroke="var(--text-muted)" stroke-width="1.6" stroke-linecap="round"><path d="M1 6a5 5 0 0 1 9 0"/><path d="M3.2 8.4a2.6 2.6 0 0 1 4.6 0"/><circle cx="5.5" cy="11" r=".8"/><path d="M0 0l11 11"/></g>
+  <text x="50" y="34" fill="var(--text)" font-weight="600" font-size="12">${L(lang, "Offline", "دون اتصال")}</text>
+  <text x="104" y="34" fill="var(--text-muted)" font-size="12">${L(lang, "Reading this device's copy. Edits are kept and saved when the network is back.", "تقرأ نسخة هذا الجهاز. تُحفظ التعديلات وتُرسل عند عودة الشبكة.")}</text>
+  <rect x="30" y="62" width="130" height="130" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <g fill="var(--text-muted)" font-size="12"><text x="42" y="86">${L(lang, "Journal", "اليوميات")}</text><text x="42" y="108" fill="var(--text)">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="42" y="130">${L(lang, "Reading list", "قائمة القراءة")}</text><text x="42" y="152">${L(lang, "Routines", "الروتين")}</text></g>
+  <text x="180" y="90" fill="var(--text)" font-family="Georgia, serif" font-size="18">${L(lang, "The Muqaddima", "المقدمة")}</text>
+  <g fill="var(--text-muted)" font-size="12"><text x="180" y="116">${L(lang, "Ibn Khaldun opens with the errors of", "يفتتح ابن خلدون بأخطاء المؤرخين")}</text><text x="180" y="134">${L(lang, "historians, and the causes of them —", "وأسبابها، ثم يمضي إلى علم العمران")}</text><text x="180" y="152">${L(lang, "and then to the science of civilisation.", "الذي يؤسسه.")}</text></g>
+  <text x="180" y="184" fill="var(--text-faint)" font-size="11">${L(lang, "✓ read this morning · kept on this device", "✓ قُرئت صباح اليوم · محفوظة على هذا الجهاز")}</text>
+</svg>`,
+        },
+        docs: "offline",
+      },
+      {
+        title: { en: "An ayah, a hadith, drawn in", ar: "آية وحديث يُرسمان" },
+        body: {
+          en: "> [!ayah] 2:255 draws the verse itself, in the Uthmani script, with the surah and number under it — the whole Quran ships with the app. > [!hadith] Bukhari 1 draws from your own corpus folder. The autocomplete offers surahs by name while you type the reference.",
+          ar: "> [!ayah] 2:255 يرسم الآية نفسها بالرسم العثماني، وتحتها السورة والرقم؛ المصحف كله يأتي مع التطبيق. و> [!hadith] Bukhari 1 يرسم من مجلد مجموعتك أنت. والإكمال التلقائي يعرض السور بأسمائها وأنت تكتب المرجع.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g font-family="ui-monospace, monospace" font-size="12" fill="var(--text-faint)"><text x="30" y="40">&gt; [!ayah] 2:255</text></g>
+  <rect x="30" y="52" width="500" height="118" rx="8" fill="var(--bg)" stroke="var(--border)"/><rect x="30" y="52" width="4" height="118" fill="var(--accent)"/>
+  <text x="510" y="92" text-anchor="end" fill="var(--text)" font-family="'Amiri Quran', 'Scheherazade New', 'Noto Naskh Arabic', serif" font-size="22" direction="rtl">ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ</text>
+  <text x="510" y="126" text-anchor="end" fill="var(--text)" font-family="'Amiri Quran', 'Scheherazade New', 'Noto Naskh Arabic', serif" font-size="22" direction="rtl">لَا تَأْخُذُهُۥ سِنَةٌ وَلَا نَوْمٌ ۚ …</text>
+  <text x="510" y="156" text-anchor="end" fill="var(--text-muted)" font-size="12">${L(lang, "Al-Baqarah · 255", "البقرة · ٢٥٥")}</text>
+  <g font-family="ui-monospace, monospace" font-size="12" fill="var(--text-faint)"><text x="30" y="196">&gt; [!hadith] Bukhari 1</text><text x="200" y="196" fill="var(--text-muted)" font-family="ui-sans-serif, system-ui, sans-serif">${L(lang, "→ from your corpus folder", "→ من مجلد مجموعتك")}</text></g>
+</svg>`,
+        },
+        docs: "arabic-and-rtl",
+      },
+      {
+        title: { en: "Harakat, on and off", ar: "الحركات، وضعًا ونزعًا" },
+        body: {
+          en: "Ctrl/Cmd Alt ; opens a palette of the marks at the caret — fatha, damma, kasra, shadda, sukun, tanwin, the superscript alef — and the selection menu's Arabic page strips them from the selected words, or copies the words without them and leaves the note as it is.",
+          ar: "Ctrl/Cmd Alt ; يفتح لوحة الحركات عند المؤشر: الفتحة والضمة والكسرة والشدة والسكون والتنوين والألف الخنجرية؛ وصفحة العربية في قائمة التحديد تنزعها من الكلمات المحددة، أو تنسخ الكلمات بلا حركات وتترك الملاحظة كما هي.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="280" y="70" text-anchor="middle" fill="var(--text-muted)" font-family="'Noto Naskh Arabic', 'Scheherazade New', serif" font-size="30" direction="rtl">كتب الطالب الدرس</text>
+  <text x="280" y="92" text-anchor="middle" fill="var(--text-faint)" font-size="11">Ctrl/Cmd Alt ;</text>
+  <text x="280" y="140" text-anchor="middle" fill="var(--text)" font-family="'Noto Naskh Arabic', 'Scheherazade New', serif" font-size="30" direction="rtl">كَتَبَ الطَّالِبُ الدَّرْسَ</text>
+  <g transform="translate(150 160)"><rect width="260" height="34" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text)" font-family="'Noto Naskh Arabic', serif" font-size="18" text-anchor="middle"><text x="24" y="24">ـَ</text><text x="60" y="24">ـُ</text><text x="96" y="24">ـِ</text><text x="132" y="24">ـّ</text><text x="168" y="24">ـْ</text><text x="204" y="24">ـً</text><text x="240" y="24">ـٰ</text></g>
+    <rect x="8" y="4" width="32" height="26" rx="6" fill="none" stroke="var(--accent)"/>
+  </g>
+</svg>`,
+        },
+        docs: "arabic-and-rtl",
+      },
+      {
+        title: { en: "What nothing points at", ar: "ما لا يشير إليه شيء" },
+        body: {
+          en: "Unused attachments, in the palette, lists every file in the vault that no note embeds or links — the screenshot you pasted twice, the cover of a book you deleted — with its size, and sweeps what you tick into the trash, where it can come back.",
+          ar: "المرفقات غير المستخدمة، في اللوحة، تعدّد كل ملف في الخزانة لا تضمّنه ولا تربطه أي ملاحظة، كلقطة الشاشة التي لصقتها مرتين أو غلاف كتاب حذفته، مع حجمه، وتكنس ما تعلّم عليه إلى سلة المهملات حيث يمكنه العودة.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "UNUSED ATTACHMENTS · 4 · 6.1 MB", "مرفقات غير مستخدمة · 4 · 6.1 م.ب")}</text>
+  <g font-family="ui-monospace, monospace" font-size="12" fill="var(--text)">
+    <rect x="30" y="58" width="14" height="14" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path d="M33 65l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="54" y="70">Attachments/Pasted image 20250812.png</text><text x="470" y="70" fill="var(--text-faint)">2.4 MB</text>
+    <rect x="30" y="84" width="14" height="14" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path d="M33 91l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="54" y="96">Attachments/Pasted image 20250812 (1).png</text><text x="470" y="96" fill="var(--text-faint)">2.4 MB</text>
+    <rect x="30" y="110" width="14" height="14" rx="3" fill="none" stroke="var(--border)" stroke-width="1.5"/><text x="54" y="122">Media/covers/old-cover.jpg</text><text x="470" y="122" fill="var(--text-faint)">910 kB</text>
+    <rect x="30" y="136" width="14" height="14" rx="3" fill="none" stroke="var(--border)" stroke-width="1.5"/><text x="54" y="148">Attachments/scan-draft.pdf</text><text x="470" y="148" fill="var(--text-faint)">420 kB</text>
+  </g>
+  <rect x="380" y="168" width="150" height="26" rx="13" fill="var(--accent)"/><text x="455" y="185" text-anchor="middle" fill="var(--button-accent-text)" font-size="12">${L(lang, "Move 2 to the trash", "انقل 2 إلى السلة")}</text>
+</svg>`,
+        },
+        docs: "templates-and-notes",
       },
     ],
   },
