@@ -17,8 +17,9 @@ import { startConfigMirror } from "./configMirror.ts";
 import { languageScope } from "./language.ts";
 import { bootPayload, injectBoot } from "./boot.ts";
 import { injectPreloads, preloadTags } from "./preload.ts";
-import { faviconPath, migrateSettings } from "./settings.ts";
-import { initSite, publicLayout, legacyRedirectTarget } from "./site.ts";
+import { faviconPath, migrateSettings, noteVersionsEnabled } from "./settings.ts";
+import { dataDir, initSite, publicLayout, legacyRedirectTarget } from "./site.ts";
+import { initVersions } from "./versions.ts";
 import { reportEnvFallbacks } from "../shared/envName.ts";
 import { warmAuthorSites } from "./authorSites.ts";
 import { getSettings } from "./settings.ts";
@@ -55,6 +56,17 @@ initComments();
 // The author-site cards' OpenGraph cache, warmed before the first visitor
 // asks. Fire and forget: a dead site costs boot nothing.
 warmAuthorSites(getSettings().authorSites ?? []);
+// The version store: every note write keeps what it replaced, in
+// ASTROLABE_DATA/versions. Before initVault, because writes begin the moment
+// the vault is open. NOTE_VERSIONS_WINDOW_MS is NOT a setting — it shortens
+// the five-minute collapse window so a browser harness can make two versions
+// in one sitting, and it is read here so it is grep-able from one place.
+const versionWindow = Number.parseInt(process.env.NOTE_VERSIONS_WINDOW_MS ?? "", 10);
+initVersions({
+  dir: path.join(dataDir(), "versions"),
+  enabled: noteVersionsEnabled,
+  windowMs: Number.isFinite(versionWindow) && versionWindow >= 0 ? versionWindow : undefined,
+});
 initVault(vaultDir);
 // Instance settings travel with the vault (server/configMirror.ts): the
 // vault's copy of settings.json, designs.json, custom.css and the fonts is
