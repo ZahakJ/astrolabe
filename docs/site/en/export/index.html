@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Export · Astrolabe Documentation</title>
+<meta name="description" content="A ZIP of your notes and the files they use — one note, a folder, a tag, or the whole vault — and any note as a standalone HTML page.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/export/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link is-current" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/routines/">Routines</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="export">Export</h1>
+<p><em>A ZIP of your notes and the files they use — one note, a folder, a tag, or the whole vault — and any note as a standalone HTML page.</em></p>
+<hr>
+<p>Your vault is a folder of Markdown files, and nothing Astrolabe does ever changes that; you can
+copy the folder and you have a copy. <strong>Export</strong> is for the moments when a plain copy is the wrong
+shape: you want <em>this folder</em> and only the pictures <em>it</em> uses, or every note carrying a tag, or a
+copy whose <code>[[wikilinks]]</code> work in a tool that does not know them, or one note as a single page
+you can mail to someone with no vault at all.</p>
+<p>Press <code>Ctrl/Cmd P</code> and run <strong>Export…</strong>, or right-click a folder in the tree and pick <strong>Export
+folder…</strong>. Both open the same small sheet. Export is for the admin only: a visitor to your site
+has the site, and the archive never leaves your own server except into your own downloads folder.</p>
+<h2 id="the-archive"><a class="anchor" href="#the-archive">The archive</a></h2>
+<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>What to export</strong></td><td><strong>This note</strong>, <strong>A folder</strong> (the tree&#39;s right-click starts here, on that folder; <strong>Choose…</strong> picks another, or the vault root), <strong>A tag</strong> (every note carrying it — inline <code>#tag</code> or frontmatter <code>tags:</code>, nested tags included), or <strong>The whole vault</strong>.</td></tr><tr><td><strong>Attachments</strong></td><td><strong>Included</strong> takes every file the exported notes point at, by every route the reader honours: <code>![[embeds]]</code>, <code>![alt](Media/x.png)</code>, a note&#39;s <code>banner:</code>, a tracker&#39;s <code>cover:</code>, the svg beside an embedded drawing. Nothing else — an image no exported note uses stays behind. <strong>Notes only</strong> leaves them all out.</td></tr><tr><td><strong>The paths inside</strong></td><td>The vault&#39;s own: <code>Folder/Note.md</code>, <code>Media/cover.png</code>, whatever the scope. Unzip two exports into one folder and you have the vault&#39;s layout, not two competing ones. Arabic names survive — the archive marks every name as UTF-8.</td></tr><tr><td><strong>The bytes</strong></td><td>As on disk, unless you asked for standard links (below). Modification times are kept to the second. The archive is stored, not compressed: a vault&#39;s bulk is its pictures, which are already compressed, and the point of an export is fidelity.</td></tr><tr><td><strong>The line under the controls</strong></td><td>Before you download, the sheet asks the server what the same download would hold and prints it — <em>12 notes, 4 files · 3.2 MB</em> — so a refusal is a sentence here rather than a failed download in your browser&#39;s list.</td></tr><tr><td><strong>The cap</strong></td><td>Two gigabytes. Above it the sheet says so and asks you to export a folder or a tag at a time.</td></tr></tbody></table></div><p>The download is your browser&#39;s own — its progress bar, its downloads folder — named after what you
+exported and the day: <code>Ideas 2026-09-14.zip</code>, <code>Reading 2026-09-14.zip</code>, <code>vault 2026-09-14.zip</code>.</p>
+<h2 id="links-in-the-copies"><a class="anchor" href="#links-in-the-copies">Links in the copies</a></h2>
+<p>Astrolabe&#39;s notes link with <code>[[wikilinks]]</code>, and so do Obsidian&#39;s; most other Markdown tools —
+a static site generator, GitHub, a plain viewer — do not. <strong>Links in the copies</strong> decides what the
+exported files carry:</p>
+<ul>
+<li><strong>Keep <code>[[wikilinks]]</code></strong> — the default. The files are byte-for-byte what is on disk, which is the
+right export for another Astrolabe or Obsidian vault.</li>
+<li><strong>Standard Markdown links</strong> — every <code>[[Note]]</code>, <code>[[Note#Heading|label]]</code> and <code>![[picture.png]]</code>
+in the <em>exported copies</em> is rewritten to a relative link that works after unzipping:
+<code>[Note](../Note.md)</code>, <code>[label](../Note.md#heading)</code>, <code>![picture.png](Media/picture.png)</code>. Headings
+are slugged the way the reading view ids them, so <code>#My Heading</code> becomes <code>#my-heading</code>. An
+embedded <em>note</em> (<code>![[Other]]</code>) has no standard equivalent and becomes a link to it.</li>
+</ul>
+<p>Two honest limits. <strong>Your vault is never touched</strong> — the rewrite happens in the archive and nowhere
+else. And <strong>a link to a note that is not in the export stays exactly as written</strong>: a
+<code>[Note](Note.md)</code> pointing at a file that is not there would be worse than the <code>[[Note]]</code> you
+wrote, which at least says what it was. Code fences and inline code are left alone for the same
+reason: a wikilink inside them is text <em>about</em> wikilinks.</p>
+<h2 id="one-note-as-an-html-page"><a class="anchor" href="#one-note-as-an-html-page">One note as an HTML page</a></h2>
+<p>With <strong>This note</strong> selected the sheet offers a second button, <strong>Export as HTML</strong>. It builds one
+<code>.html</code> file in your browser — nothing is asked of the server that reading the note does not ask —
+and hands it to your downloads:</p>
+<ul>
+<li><strong>Rendered exactly as you read it.</strong> The same renderer as the reading view, with the properties
+card and the app&#39;s own controls left off, the way <a href="../printing/">printing</a> leaves them off.</li>
+<li><strong>Your theme, inlined.</strong> The colours, faces and measures of the room you are reading in are
+written into the page as CSS custom properties, along with the reading stylesheets themselves.
+Open it anywhere and it looks like your Astrolabe.</li>
+<li><strong>Pictures inside the file.</strong> Every image the note shows is fetched and embedded as a data URI,
+so the page is complete on its own. One that cannot be fetched — or one above 25 MB — keeps its
+address instead, absolute, so it still shows beside a running instance and is an honest broken
+image away from one; it is never silently dropped.</li>
+<li><strong>Right-to-left when the note is.</strong> The page&#39;s direction is the note&#39;s prose, or the <code>dir:</code> its
+frontmatter pins.</li>
+</ul>
+<p>Math is rendered, tracker and routine cards are drawn (without their buttons), and a <code>.tex</code> note
+comes out as the page its reading view shows.</p>
+<h2 id="from-the-command-line"><a class="anchor" href="#from-the-command-line">From the command line</a></h2>
+<p>The sheet is a front for one route, which <code>curl</code> can call with an admin session cookie:</p>
+<pre><code>GET /api/export?scope=note|folder|tag|vault&amp;target=&lt;path or tag&gt;&amp;links=wiki|relative&amp;attachments=1|0
+</code></pre>
+<p><code>scope=vault</code> needs no <code>target</code>. Add <code>&amp;dry=1</code> for the JSON the sheet&#39;s line is made of — <code>{ notes, attachments, bytes, filename }</code> — with the same refusals: <code>404 exportEmpty</code> when nothing matches,
+<code>413 exportTooLarge</code> above the cap, <code>401</code> without an admin session. See
+<a href="../backup-and-sync/">Backup &amp; sync</a> for the <em>other</em> way out of the vault — the one that keeps
+history.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/export.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/backup-and-sync/"><span class="pager__kicker">Previous</span><span class="pager__title">Backup &amp; sync</span></a><a class="pager__link pager__link--next" href="../../en/desktop/"><span class="pager__kicker">Next</span><span class="pager__title">The desktop app</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-archive">The archive</a><a class="toc__link toc__link--2" href="#links-in-the-copies">Links in the copies</a><a class="toc__link toc__link--2" href="#one-note-as-an-html-page">One note as an HTML page</a><a class="toc__link toc__link--2" href="#from-the-command-line">From the command line</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>
