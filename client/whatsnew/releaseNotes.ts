@@ -188,6 +188,40 @@ function templatesDemo(host: HTMLElement, lang: Lang): void {
   host.replaceChildren(wrap);
 }
 
+// ── 3.12.0: queries and tasks, over the reader's own vault ──────────────────
+
+function queryDemo(host: HTMLElement, lang: Lang): () => void {
+  let alive = true;
+  void Promise.all([import("../reading/query.ts"), import("../../shared/queryFence.ts")]).then(([mod, q]) => {
+    if (!alive) return;
+    const spec = q.parseQueryFence(lang === "ar" ? "sort: modified desc\nlimit: 6\nas: table\nshow: title, modified, tags" : "sort: modified desc\nlimit: 6\nas: table\nshow: title, modified, tags");
+    host.replaceChildren(mod.renderQueryFence(spec, { notePath: "" }));
+  });
+  return () => {
+    alive = false;
+  };
+}
+
+function tasksDemo(host: HTMLElement, lang: Lang): () => void {
+  let alive = true;
+  void lang;
+  void Promise.all([import("../reading/tasks.ts"), import("../../shared/tasks.ts")]).then(([mod, tk]) => {
+    if (!alive) return;
+    const today = isoDate(new Date());
+    // The reader's own open tasks when they have any; a sample list when not.
+    const spec = tk.parseTasksFence("not done\nlimit: 6", today);
+    const sample = [
+      { path: "Ledger.md", title: lang === "ar" ? "الدفتر" : "Ledger", tags: [], task: tk.parseTaskLine(`- [ ] ${lang === "ar" ? "اقرأ الفصل الثالث" : "Read chapter 3"} 📅 ${today} ⏫`, 1)! },
+      { path: "Ledger.md", title: lang === "ar" ? "الدفتر" : "Ledger", tags: [], task: tk.parseTaskLine(`- [ ] ${lang === "ar" ? "راجع الحسابات" : "Reconcile the accounts"} 📅 ${shiftDate(today, 4)} 🔁 every week`, 2)! },
+      { path: "Kitchen.md", title: lang === "ar" ? "المطبخ" : "Kitchen", tags: [], task: tk.parseTaskLine(`- [ ] ${lang === "ar" ? "اشترِ الكمون" : "Buy cumin"} 📅 ${shiftDate(today, -1)}`, 1)! },
+    ];
+    host.replaceChildren(mod.renderTasksFence(spec, { notePath: "", live: false, rows: sample }));
+  });
+  return () => {
+    alive = false;
+  };
+}
+
 // ── 3.10.0: Easy on the eyes ────────────────────────────────────────────────
 
 function eyeDemo(host: HTMLElement, lang: Lang): void {
@@ -227,6 +261,134 @@ function eyeDemo(host: HTMLElement, lang: Lang): void {
 // ── The registry ────────────────────────────────────────────────────────────
 
 export const RELEASES: Release[] = [
+  {
+    version: "3.12.0",
+    title: { en: "The vault, woven", ar: "الخزانة منسوجة" },
+    slides: [
+      {
+        title: { en: "Live queries in a note", ar: "استعلامات حيّة في ملاحظة" },
+        body: {
+          en: "A ```query fence lists the notes that answer a search — tag:reading prop:status=reading — as a list, a table or cards, sorted and capped as you say, live wherever the note is read. This one is your own vault, right now.",
+          ar: "سياج ```query يعدّد الملاحظات التي تجيب عن بحث — tag:reading prop:status=reading — قائمةً أو جدولًا أو بطاقات، مرتبةً ومحدودةً كما تقول، حيّةً حيثما تُقرأ الملاحظة. وهذا هو خزانتك الآن.",
+        },
+        visual: { kind: "demo", mount: queryDemo },
+        docs: "editor",
+      },
+      {
+        title: { en: "Tasks across the vault", ar: "المهام عبر الخزانة" },
+        body: {
+          en: "Every - [ ] line is a task, with the Tasks plugin's fields read off its end: 📅 due, ⏫ priority, 🔁 recurrence. A ```tasks fence gathers them — not done, due this week — and a tick flips the one line where the task lives, stamped ✅ today.",
+          ar: "كل سطر - [ ] مهمة، تُقرأ من آخره حقول إضافة Tasks: 📅 الاستحقاق، ⏫ الأولوية، 🔁 التكرار. سياج ```tasks يجمعها — not done، due this week — والتعليم يقلب السطر الواحد الذي تسكنه المهمة مختومًا بـ✅ اليوم.",
+        },
+        visual: { kind: "demo", mount: tasksDemo },
+        docs: "editor",
+      },
+      {
+        title: { en: "Block references", ar: "مراجع الفقرات" },
+        body: {
+          en: "End a paragraph with ^id and it has an address: [[Note#^id]] links to it, ![[Note#^id]] transcludes just that block, the hover card shows it. Copy link to this block in the palette mints the id for you.",
+          ar: "اختم فقرة بـ^id فيصير لها عنوان: [[Note#^id]] يربط إليها، و![[Note#^id]] يضمّن تلك الفقرة وحدها، وبطاقة التمرير تعرضها. ونسخ رابط هذه الفقرة في اللوحة يسكّ المعرّف لك.",
+        },
+        visual: {
+          kind: "svg",
+          svg: `<svg viewBox="0 0 560 250" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="250" height="226" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="40" fill="var(--text-muted)" font-size="11" letter-spacing="1">LEDGER</text>
+  <text x="30" y="72" fill="var(--text)">The rule of three:</text>
+  <text x="30" y="92" fill="var(--text)">never keep fewer than</text>
+  <text x="30" y="112" fill="var(--text)">three copies. <tspan fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="11">^rule3</tspan></text>
+  <rect x="298" y="12" width="250" height="226" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="316" y="40" fill="var(--text-muted)" font-size="11" letter-spacing="1">JOURNAL</text>
+  <text x="316" y="72" fill="var(--text)">See <tspan fill="var(--accent)">[[Ledger#^rule3]]</tspan></text>
+  <rect x="316" y="92" width="214" height="86" rx="8" fill="var(--bg)" stroke="var(--accent)" stroke-opacity="0.5"/>
+  <text x="330" y="114" fill="var(--accent)" font-size="11">Ledger › ^rule3</text>
+  <text x="330" y="136" fill="var(--text)" font-size="12">The rule of three: never</text>
+  <text x="330" y="154" fill="var(--text)" font-size="12">keep fewer than three copies.</text>
+  <path d="M262 100 C 285 100, 285 100, 298 100" stroke="var(--accent)" stroke-width="1.5" fill="none" stroke-dasharray="3 3"/>
+</svg>`,
+        },
+        docs: "editor",
+      },
+      {
+        title: { en: "Unlinked mentions", ar: "إشارات غير مرتبطة" },
+        body: {
+          en: "Under the backlinks, the notes that name the open note without linking it — whole words, folded like search — each with a Link button that wraps the words as [[Note]] in one edit. Link all does the lot. This is how atomic notes get woven.",
+          ar: "تحت الروابط الخلفية، الملاحظات التي تسمّي الملاحظة المفتوحة من غير رابط — كلمات كاملة، مطويّة كما في البحث — لكلٍّ زر اربط يلفّ الكلمات [[Note]] بتعديل واحد. واربط الكل يفعلها كلها. هكذا تُنسج الملاحظات الذرية.",
+        },
+        visual: {
+          kind: "svg",
+          svg: `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">UNLINKED MENTIONS · 3</text>
+  <g transform="translate(30 60)">
+    <text y="16" fill="var(--text)" font-weight="500">Journal</text>
+    <text y="38" fill="var(--text-muted)" font-size="12">Today I read the <tspan fill="var(--text)" text-decoration="underline">Ledger</tspan> and thought about it.</text>
+    <rect x="440" y="22" width="64" height="24" rx="6" fill="var(--bg)" stroke="var(--accent)"/><text x="472" y="38" text-anchor="middle" fill="var(--accent)" font-size="11">LINK</text>
+  </g>
+  <g transform="translate(30 116)">
+    <text y="16" fill="var(--text)" font-weight="500">Monday</text>
+    <text y="38" fill="var(--text-muted)" font-size="12">…wrote in <tspan fill="var(--text)" text-decoration="underline">the book of accounts</tspan> after lunch.</text>
+    <rect x="440" y="22" width="64" height="24" rx="6" fill="var(--bg)" stroke="var(--border)"/><text x="472" y="38" text-anchor="middle" fill="var(--text-muted)" font-size="11">LINK</text>
+  </g>
+  <g transform="translate(30 172)">
+    <text y="16" fill="var(--text-faint)" font-size="12">→ becomes <tspan fill="var(--accent)">[[Ledger|the book of accounts]]</tspan></text>
+  </g>
+</svg>`,
+        },
+        docs: "editor",
+      },
+      {
+        title: { en: "Daily and weekly notes, your way", ar: "الملاحظات اليومية والأسبوعية على طريقتك" },
+        body: {
+          en: "The daily note's folder, name and template are settings now — YYYY/YYYY-MM-DD files each year in its own folder — and a weekly note joins it. Yesterday's note and Tomorrow's note walk from the day you are on, and On this day reads the archive back: what you wrote or finished on this date in earlier years.",
+          ar: "مجلد الملاحظة اليومية واسمها وقالبها إعدادات الآن — YYYY/YYYY-MM-DD يودع كل سنة في مجلدها — وتنضم إليها ملاحظة أسبوعية. ملاحظة الأمس وملاحظة الغد تمشيان من اليوم الذي أنت فيه، وفي مثل هذا اليوم يقرأ عليك أرشيفك: ما كتبته أو أنهيته في هذا التاريخ من سنوات مضت.",
+        },
+        visual: {
+          kind: "svg",
+          svg: `<svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="206" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g font-family="ui-monospace, monospace" font-size="12">
+    <text x="30" y="44" fill="var(--text-muted)">Journal/</text>
+    <text x="50" y="66" fill="var(--text-muted)">2025/</text>
+    <text x="70" y="88" fill="var(--text-faint)">2025-09-13.md</text>
+    <text x="50" y="110" fill="var(--text-muted)">2026/</text>
+    <text x="70" y="132" fill="var(--text-faint)">2026-09-12.md</text>
+    <text x="70" y="154" fill="var(--text)">2026-09-13.md  <tspan fill="var(--accent)">← today</tspan></text>
+    <text x="70" y="176" fill="var(--text-faint)">2026-W37.md</text>
+  </g>
+  <g transform="translate(300 40)">
+    <text y="0" fill="var(--text-muted)" font-size="11" letter-spacing="1">ON THIS DAY</text>
+    <text y="30" fill="var(--accent)" font-size="11">1Y AGO</text><text x="60" y="30" fill="var(--text)">you wrote “On Marginalia”</text>
+    <text y="56" fill="var(--accent)" font-size="11">2Y AGO</text><text x="60" y="56" fill="var(--text)">you finished “Elden Ring”</text>
+    <text y="96" fill="var(--text-muted)" font-size="11" letter-spacing="1">PALETTE</text>
+    <text y="122" fill="var(--text)">Yesterday's note · Tomorrow's note</text>
+    <text y="146" fill="var(--text)">This week's note · Random note</text>
+  </g>
+</svg>`,
+        },
+        docs: "templates-and-notes",
+      },
+      {
+        title: { en: "Every save keeps what it replaced", ar: "كل حفظ يحتفظ بما استبدله" },
+        body: {
+          en: "Forty versions per note, with or without git, in one History timeline beside your commits — each a tap from being read or restored. A bad paste over a good paragraph is no longer final.",
+          ar: "أربعون نسخة لكل ملاحظة، مع git أو بدونه، في خط زمني واحد في السجل إلى جانب إيداعاتك، وكل نسخة على بعد نقرة من القراءة أو الاسترجاع. اللصق السيئ فوق فقرة جيدة لم يعد نهائيًا.",
+        },
+        visual: {
+          kind: "svg",
+          svg: `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="42" fill="var(--text-muted)" font-size="11" letter-spacing="1">HISTORY</text>
+  <line x1="44" y1="60" x2="44" y2="190" stroke="var(--border)" stroke-width="2"/>
+  <g transform="translate(44 72)"><circle r="5" fill="var(--accent)"/><text x="18" y="4" fill="var(--text)">Before a restore</text><text x="18" y="22" fill="var(--text-faint)" font-size="11">2 minutes ago · 1.2 kB</text></g>
+  <g transform="translate(44 118)"><circle r="5" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/><text x="18" y="4" fill="var(--text)">Autosave</text><text x="18" y="22" fill="var(--text-faint)" font-size="11">yesterday · 1.1 kB · <tspan fill="var(--accent)">Restore</tspan></text></g>
+  <g transform="translate(44 164)"><circle r="5" fill="var(--bg)" stroke="var(--border)" stroke-width="2"/><text x="18" y="4" fill="var(--text)">Commit 4afec81</text><text x="18" y="22" fill="var(--text-faint)" font-size="11">3 days ago · git</text></g>
+</svg>`,
+        },
+        docs: "backup-and-sync",
+      },
+    ],
+  },
   {
     version: "3.11.0",
     title: { en: "Routines", ar: "الروتين" },
