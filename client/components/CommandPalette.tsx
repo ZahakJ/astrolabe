@@ -45,7 +45,7 @@ import { noteAnchors, type NoteAnchor } from "../../shared/anchors.ts";
 // drives exactly this code rather than a second copy of the arithmetic.
 import { commandCut, fuzzyMatch, rankCommands } from "../paletteRank.ts";
 import { TREE_REVEAL_EVENT } from "./Sidebar.tsx";
-import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT } from "../editor/bufferBridge.ts";
+import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT, STRIP_TASHKEEL_EVENT } from "../editor/bufferBridge.ts";
 import { promptNewDrawing, promptNewFolder } from "../prompts.ts";
 import { duplicateNote } from "../duplicate.ts";
 import { copyNoteLink } from "../sectionActions.ts";
@@ -554,6 +554,16 @@ const COMMANDS: Command[] = [
     label: () => t("cmdCopyBlockLink"),
     hint: () => t("cmdCopyBlockLinkHint"),
     available: ({ admin, openPath }) => admin && openPath !== null,
+  },
+  {
+    // Every haraka and tatweel out of the open note, as one undo step — the
+    // editor answers (Editor.tsx), because only it holds the history that
+    // makes "one step" true. Editor panes only, like find-in-note: a reading
+    // pane has no CodeMirror to rewrite through.
+    id: "strip-tashkeel",
+    label: () => t("cmdStripTashkeel"),
+    hint: () => t("cmdStripTashkeelHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
   },
   {
     // The outline has copied a link to a SECTION since sections were
@@ -1203,6 +1213,11 @@ export default function CommandPalette() {
           break;
         case "unused-attachments":
           store.setUnusedOpen(true);
+          break;
+        case "strip-tashkeel":
+          // The editor answers, a frame after the palette has closed and
+          // handed focus back to the caret — the find-in-note shape.
+          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(STRIP_TASHKEEL_EVENT)));
           break;
         case "moderate-comments":
           store.setModerationOpen(true);

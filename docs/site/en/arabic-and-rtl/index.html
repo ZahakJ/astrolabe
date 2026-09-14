@@ -254,6 +254,35 @@ note rows, and the PDF reader&#39;s own <code>/</code> search, which is where th
 <a href="../editor/#navigating">Search &amp; replace</a>: finding is a question and folding widens it kindly, but
 replacing is a write, and a replace that quietly rewrote «الْمُقَدِّمَة» would strip harakat you
 never typed and never saw.</p>
+<h2 id="writing-harakat"><a class="anchor" href="#writing-harakat">Writing harakat</a></h2>
+<p>Search has folded the diacritics for a long time; writing them was the part every keyboard makes
+hard. The marks sit behind Shift on keys nobody has memorised (fatha is <code>Shift Q</code> on the Arabic 101
+layout, kasra <code>Shift A</code>, shadda <code>Shift ~</code>), the dagger alif is on no layout at all, and a Latin
+keyboard has none of them. So the editor has a palette.</p>
+<p><strong><code>Ctrl/Cmd Alt ;</code></strong> — or <em>Haraka…</em> on the selection menu&#39;s <strong>Insert</strong> page and on its <strong>Arabic</strong>
+page — opens a small list at the caret: fatha, damma, kasra, the three tanwin, shadda, sukun, the
+dagger alif and the tatweel, each with its glyph on a dotted circle and its name in the interface
+language. <code>↑</code> <code>↓</code> walk it, <code>Enter</code> inserts, <code>Esc</code> leaves. With a bare caret the mark lands on the
+letter you just typed, which is where a keyboard would put it. With a <strong>selection</strong>, every Arabic
+letter in it takes the mark — after any marks the letter already carries, and never twice — so
+selecting a word and choosing <em>sukun</em> points the whole word, and a shadda added to «كَتب» keeps the
+fatha. The tatweel is the exception, because it is not a combining mark: on a selection it goes
+<em>between</em> letters only, which stretches the word the way a calligrapher would rather than drawing a
+stroke into a space. (The chord is <code>;</code> because it is the same physical key on the Arabic layout as
+on a US one — it types «ك» there — and every chord in this product resolves by position when the
+layout&#39;s character is not Latin; see <a href="../keymap/">Keymap</a>.)</p>
+<p>Two ways back out of pointing, both on the selection menu&#39;s <strong>Arabic</strong> page: <strong>Strip diacritics
+from selection</strong> removes every haraka, dagger alif and tatweel from the selected words and nothing
+else — hamza, the alef family, <code>ة</code> and <code>ى</code> are letters and stay — and <strong>Copy without harakat</strong> puts
+the unpointed text on the clipboard and leaves the note as it is, for the quotation that is going
+into a search box or a message where the marks would be noise. For a whole note, <code>Ctrl/Cmd P</code> →
+<strong>Strip diacritics from note</strong> rewrites the open note through the editor as <strong>one undo step</strong>, so a
+single <code>Ctrl/Cmd Z</code> puts every mark back; it says so when there was nothing to strip rather than
+saving the file into itself.</p>
+<p>The three share one table (<code>shared/tashkeel.ts</code>): the strip removes exactly the code points the
+palette can write — U+064B–U+0652, U+0670 and U+0640 — and no more. The Qur&#39;anic pause marks and
+small high letters are not in it, on purpose: a strip that reached past what the palette writes
+would take marks a careful typist never asked it to touch.</p>
 <h2 id="localised-tag-labels"><a class="anchor" href="#localised-tag-labels">Localised tag labels</a></h2>
 <p>A vault&#39;s tags are English because tags are addresses: <code>#software</code> is in your files, in your
 links, in <code>EXCLUDE_TAGS</code>, in every URL you have shared. But an Arabic front end should say
@@ -297,7 +326,7 @@ effect immediately, with no reindex.</li>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/typography/"><span class="pager__kicker">Previous</span><span class="pager__title">Typography</span></a><a class="pager__link pager__link--next" href="../../en/development/"><span class="pager__kicker">Next</span><span class="pager__title">Development</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#your-editor-39-s-language-is-yours">Your editor&amp;#39;s language is yours</a><a class="toc__link toc__link--2" href="#visitor-language-switch">Visitor language switch</a><a class="toc__link toc__link--2" href="#language-filter">Language filter</a><a class="toc__link toc__link--2" href="#hijri-dates">Hijri dates</a><a class="toc__link toc__link--2" href="#note-direction-alignment">Note direction &amp;amp; alignment</a><a class="toc__link toc__link--2" href="#searching-in-arabic">Searching in Arabic</a><a class="toc__link toc__link--2" href="#localised-tag-labels">Localised tag labels</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#your-editor-39-s-language-is-yours">Your editor&amp;#39;s language is yours</a><a class="toc__link toc__link--2" href="#visitor-language-switch">Visitor language switch</a><a class="toc__link toc__link--2" href="#language-filter">Language filter</a><a class="toc__link toc__link--2" href="#hijri-dates">Hijri dates</a><a class="toc__link toc__link--2" href="#note-direction-alignment">Note direction &amp;amp; alignment</a><a class="toc__link toc__link--2" href="#searching-in-arabic">Searching in Arabic</a><a class="toc__link toc__link--2" href="#writing-harakat">Writing harakat</a><a class="toc__link toc__link--2" href="#localised-tag-labels">Localised tag labels</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

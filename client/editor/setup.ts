@@ -44,6 +44,7 @@ import { markdownTables } from "./tables.ts";
 import { pointerSelection } from "./pointer.ts";
 import { searchPhrases } from "./searchPhrases.ts";
 import { formatKeymap } from "./commands.ts";
+import { harakatKeymap } from "./harakat.ts";
 import { selectionMenu } from "../components/SelectionMenu.tsx";
 import { wikilinkAutocomplete } from "./autocomplete.ts";
 import { imageUploads } from "./uploads.ts";
@@ -231,6 +232,9 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
       // BOTH formats: each key resolves its own spelling from the note, and
       // the two LaTeX cannot spell decline rather than writing markdown.
       formatKeymap,
+      // `Mod-Alt-;` opens the harakat palette at the caret (harakat.ts): the
+      // Arabic diacritics every keyboard hides, named and pickable.
+      harakatKeymap,
       // Right-click (and Shift+F10) over a selection opens the formatting
       // menu; a floating toolbar follows every selection unless the reader
       // has turned it off. Both run the same commands as the keystrokes, and

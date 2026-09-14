@@ -58,6 +58,7 @@ is handed straight back to the browser.
 | `Ctrl/Cmd Shift X` | Strikethrough |
 | `Ctrl/Cmd Shift H` | Highlight |
 | `Ctrl/Cmd Alt /` | Comment out the selection — `%%…%%` in a note, `%` in a `.tex` file |
+| `Ctrl/Cmd Alt ;` | [Harakat palette](arabic-and-rtl.md#writing-harakat) — pick an Arabic diacritic for the caret, or point every letter of the selection |
 | `Ctrl/Cmd D` | Select the next occurrence of the word under the cursor |
 | `Ctrl/Cmd S` | Save now (autosave runs regardless, 600 ms after you stop) |
 | `Ctrl/Cmd ↑` / `↓` | Move the current line up / down |
