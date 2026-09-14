@@ -17,6 +17,7 @@ import { stripBidiControls } from "../shared/bidi.ts";
 import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
 import { UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
+import { applyEdit, editRoutinePlan, logEditFor, routineFenceSpans, type EntryPatch } from "../shared/routine.ts";
 import type {
   AliasesResponse,
   AnchorsResponse,
@@ -91,7 +92,7 @@ import {
   search,
   searchMatches,
   tags,
-  trackers,
+  trackers, routines,
   visibleNotesUnder,
   whenIndexed,
   wikilinkRegex, collectionRows } from "./indexer.ts";
@@ -2314,6 +2315,57 @@ api.post("/tracker", async (c) => {
 api.get("/trackers", (c) => {
   const limited = isPublishLimited(c);
   return c.json(trackers(limited, languageScope(c, limited).lang));
+});
+
+// ------------------------------------------------------------------ routines
+// The daily tracker (shared/routine.ts). Two writes, both through the note:
+// `entry` records one day in the plan's ```routine-log (the same edit the
+// editor's widget dispatches into its buffer, computed by the same pure
+// function, so the page and the editor never disagree about the log's
+// shape); `plan` replaces the plan fence's body from the form. Admin only:
+// the auth guard above already 401s a visitor's POST.
+api.post("/routine", async (c) => {
+  const body = await jsonBody(c);
+  const notePath = requiredString(body, "path");
+  const index = typeof body.index === "number" && Number.isInteger(body.index) && body.index >= 0 ? body.index : 0;
+  const note = await readNote(notePath);
+  if (!routineFenceSpans(note.content).some((s) => s.kind === "routine" && s.index === index)) {
+    throw new VaultError(400, "That note carries no routine fence");
+  }
+  let updated = note.content;
+  const entry = body.entry && typeof body.entry === "object" ? (body.entry as Record<string, unknown>) : null;
+  if (entry && typeof entry.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
+    const list = (v: unknown): string[] | undefined =>
+      Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").map((x) => x.slice(0, 200)).slice(0, 100) : undefined;
+    const patch: EntryPatch = { date: entry.date, done: list(entry.done), skipped: list(entry.skipped) };
+    if (entry.values && typeof entry.values === "object") {
+      patch.values = {};
+      for (const [k, v] of Object.entries(entry.values as Record<string, unknown>)) {
+        if (v === null) patch.values[k.slice(0, 100)] = null;
+        else if (typeof v === "string") patch.values[k.slice(0, 100)] = v.slice(0, 400);
+      }
+    }
+    if (entry.note === null) patch.note = null;
+    else if (typeof entry.note === "string") patch.note = entry.note.slice(0, 2000);
+    const edit = logEditFor(updated, index, patch);
+    if (edit) updated = applyEdit(updated, edit);
+  }
+  if (typeof body.plan === "string") updated = editRoutinePlan(updated, index, body.plan.slice(0, 20000));
+  if (updated !== note.content) {
+    suppressWatcherEcho(note.path);
+    await writeNote(note.path, updated, note.mtimeMs);
+    emitEvent({ kind: "changed", path: note.path });
+  }
+  await indexFile(note.path);
+  return c.json({ ok: true, path: note.path, index });
+});
+
+api.get("/routines", (c) => {
+  // Admin only, 401 rather than an empty list: a visitor has no page that
+  // asks, and a list of nothing would read as "no routines" to any client
+  // that did (the books shelf's rule, server/bookRoutes.ts).
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(routines());
 });
 
 // -------------------------------------------------------------------- design

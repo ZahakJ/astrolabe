@@ -10,7 +10,7 @@ import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import MiniSearch from "minisearch";
-import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent, LibraryKind, LibraryPathRef } from "../shared/types.ts";
+import type { AliasEntry, Backlink, GraphData, GraphEdge, PageMeta, PostMeta, PublicFolderRef, RoutineMeta, SearchHit, SearchMatch, TagCount, TrackerMeta, VaultEvent, LibraryKind, LibraryPathRef } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
@@ -27,6 +27,7 @@ import { pageFlag } from "./pages.ts";
 import { publishFlag, readFrontmatter } from "./publish.ts";
 import { parseAliases, parseFolders, readNoteFrontmatter } from "./noteFrontmatter.ts";
 import { scanTrackers, type Tracker } from "../shared/tracker.ts";
+import { scanRoutines, type RoutineBlock } from "../shared/routine.ts";
 import { readTexNote } from "./texNote.ts";
 import { blogLocale, excludedTags } from "./site.ts";
 // Cyclic with this module (settings.ts → site.ts → here) and inert: every
@@ -88,6 +89,9 @@ interface NoteRecord {
    *  without this the art on a published shelf renders for the owner and
    *  404s for every visitor. */
   trackers: Tracker[];
+  /** Every ```routine plan in this note with its log (shared/routine.ts) —
+   *  the Routines page's list. Empty for almost every note. */
+  routines: RoutineBlock[];
   /** File mtime in epoch ms — what the tracker board sorts by. `dateMs` below
    *  is the POST date (frontmatter first, birthtime second), which is when a
    *  thing was written; a shelf answers "what did I touch last". */
@@ -834,6 +838,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     // ```markdown block is documentation, not a tracker — the same rule the
     // outline and the anchor table keep.
     trackers: scanTrackers(parts.body),
+    routines: scanRoutines(parts.body),
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
@@ -1154,6 +1159,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     // trackers and no tracker covers — the same silence it keeps about links
     // and assets, and for the same reason.
     trackers: [],
+    routines: [],
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
@@ -2752,6 +2758,32 @@ export function trackers(visitor: boolean, lang: FilterLang): TrackerMeta[] {
   return out.sort(
     (a, b) => b.updatedMs - a.updatedMs || a.path.localeCompare(b.path) || a.title.localeCompare(b.title),
   );
+}
+
+/** Every ```routine in the vault with its log, newest-touched first. Admin
+ *  only by construction (the route asserts it): the page that reads this
+ *  writes, and a visitor's card is drawn from the note they are reading.
+ *  Templates are kept and MARKED rather than dropped — the page's form
+ *  offers a template note's plan as a starting point. */
+export function routines(): RoutineMeta[] {
+  const out: RoutineMeta[] = [];
+  const isTemplate = templateMatcher();
+  for (const [notePath, record] of notes) {
+    if (record.routines.length === 0) continue;
+    const template = isTemplate(notePath);
+    for (const block of record.routines) {
+      out.push({
+        path: record.path,
+        index: block.index,
+        noteTitle: record.title,
+        plan: block.plan,
+        entries: block.entries,
+        template,
+        updatedMs: record.mtimeMs,
+      });
+    }
+  }
+  return out.sort((a, b) => b.updatedMs - a.updatedMs || a.path.localeCompare(b.path) || a.index - b.index);
 }
 
 /** True when this note is a published static page — the designed shell's
