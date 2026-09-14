@@ -21,6 +21,7 @@ import { activeTabOf, paneAt, surfaceOf } from "../workspace.ts";
 const GraphView = lazySurface(() => import("./GraphView.tsx"));
 const MediaView = lazySurface(() => import("../media/MediaView.tsx"));
 const RoutinesView = lazySurface(() => import("../routines/RoutinesView.tsx"));
+const ReviewView = lazySurface(() => import("../review/ReviewView.tsx"));
 import Tabs from "./Tabs.tsx";
 import { useTabDrag } from "../dragTab.ts";
 
@@ -130,6 +131,12 @@ export default function Pane({
       // a tab like the Media page.
       <Suspense fallback={<div className="s-routines" />}>
         <RoutinesView />
+      </Suspense>
+    ) : surface === "review" ? (
+      // The Review page: the vault's flashcards, due ones first — a tab on
+      // the Routines page's terms.
+      <Suspense fallback={<div className="s-review" />}>
+        <ReviewView />
       </Suspense>
     ) : surface === "drawing" && tab !== null ? (
       // A DRAWING IS A TAB, like a book: the canvas fills the pane beside

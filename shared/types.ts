@@ -3,6 +3,7 @@
 import type { AttachmentMode } from "./attachments.ts";
 import type { RoutineEntry, RoutinePlan } from "./routine.ts";
 import type { Task } from "./tasks.ts";
+import type { Card } from "./flashcards.ts";
 import type { BookHighlight, BookState } from "./bookAnchor.ts";
 import type { FolderIcon, FolderMark } from "./folderIcons.ts";
 import type { TrackerRating, TrackerStatus } from "./tracker.ts";
@@ -159,6 +160,18 @@ export interface TaskMeta {
   /** The note's tags, for `tag:` in a fence. */
   tags: string[];
   task: Task;
+}
+
+// GET /api/cards → CardMeta[]: every flashcard the vault already holds
+// (shared/flashcards.ts — Q/A blocks, ==highlights== as cloze, quote
+// callouts) with the schedule the Spaced Repetition plugin's comment records.
+// The Review page filters to what is due. Admin only. POST /api/card/review
+// {path, line, grade, today} grades one card and writes the next schedule
+// into the note as that comment.
+export interface CardMeta {
+  path: string;
+  title: string;
+  card: Card;
 }
 
 // GET /api/onthisday?date=YYYY-MM-DD → OnThisDayHit[]: what happened on

@@ -1,0 +1,218 @@
+/* Astrolabe — the Review page (client/review/ReviewView.tsx). Its own file,
+   loaded with the page's lazy chunk. One card at a time in the middle of the
+   page, the four grades under it; the Routines page's rules: the page
+   scrolls down, never sideways; tokens only; logical properties. */
+
+.s-review {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  container-type: inline-size;
+  padding: 28px clamp(16px, 4cqi, 48px) 64px;
+  background: var(--bg);
+  scrollbar-width: thin;
+}
+/* The page takes focus for its keys (Space, 1–4); the ring would frame the
+   whole pane, and the card's own controls carry theirs. */
+.s-review:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.s-review__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  max-inline-size: 760px;
+  margin-inline: auto;
+}
+
+.s-review__headtext {
+  min-inline-size: 0;
+}
+
+.s-review__date {
+  margin: 0;
+  font-size: 0.786rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-review__h1 {
+  margin: 2px 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.714rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.s-review__lead {
+  margin: 4px 0 0;
+  font-size: 0.929rem;
+  color: var(--text-muted);
+}
+
+.s-review__progress {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+.s-review__card {
+  max-inline-size: 760px;
+  margin: 28px auto 0;
+  padding: 24px clamp(16px, 4cqi, 32px) 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.s-review__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-inline-size: 0;
+}
+
+.s-review__kind {
+  flex: none;
+  font-size: 0.714rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.s-review__note {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  min-block-size: 24px;
+}
+.s-review__note:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.s-review__front,
+.s-review__back {
+  font-family: var(--font-serif);
+  font-size: 1.143rem;
+  line-height: 1.6;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.s-review__front > :first-child,
+.s-review__back > :first-child {
+  margin-block-start: 0;
+}
+.s-review__front > :last-child,
+.s-review__back > :last-child {
+  margin-block-end: 0;
+}
+
+.s-review__rule {
+  border: 0;
+  border-block-start: 1px dashed var(--border);
+  margin: 0;
+}
+
+.s-review__show {
+  align-self: center;
+  min-inline-size: 160px;
+}
+
+.s-review__grades {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.s-review__grade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-block: 8px;
+  min-block-size: 44px;
+  border: 1px solid var(--border);
+  border-inline-start: 3px solid var(--grade, var(--border));
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+.s-review__grade:hover {
+  background: var(--button-hover-bg);
+}
+.s-review__grade--again { --grade: var(--danger); }
+.s-review__grade--hard { --grade: var(--callout-warning); }
+.s-review__grade--good { --grade: var(--accent); }
+.s-review__grade--easy { --grade: var(--callout-success); }
+
+.s-review__gradekey {
+  font-size: 0.714rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.s-review__gradelabel {
+  font-weight: 500;
+}
+.s-review__gradein {
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@container (inline-size < 420px) {
+  .s-review__grades {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.s-review__empty {
+  max-inline-size: 520px;
+  margin: 64px auto 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.s-review__emptystar {
+  display: inline-block;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.s-review__emptytext {
+  margin: 12px 0 4px;
+  font-family: var(--font-serif);
+  font-size: 1.143rem;
+  color: var(--text);
+}
+
+.s-review__emptyhint {
+  margin: 0;
+  font-size: 0.929rem;
+}
+
+.s-review__ahead {
+  margin-block-start: 16px;
+}

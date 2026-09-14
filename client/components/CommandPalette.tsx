@@ -333,6 +333,12 @@ const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
+    id: "open-review",
+    label: () => t("cmdOpenReview"),
+    hint: () => t("cmdViewHint"),
+    available: ({ admin }) => admin,
+  },
+  {
     // THE OTHER DOOR OUT OF THE VAULT. Not while previewing as a visitor:
     // the archive is the admin's whole vault, and the preview is the one
     // session that has promised to behave like a stranger.
@@ -1154,6 +1160,9 @@ export default function CommandPalette() {
           break;
         case "open-routines":
           store.toggleRoutines();
+          break;
+        case "open-review":
+          store.toggleReview();
           break;
         case "whats-new":
           openWhatsNew();

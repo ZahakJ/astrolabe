@@ -184,6 +184,24 @@ function annotateSelection(v: EditorView): void {
   window.dispatchEvent(new CustomEvent(ANNOTATE_EVENT, { detail }));
 }
 
+/** MAKE A FLASHCARD OF THE SELECTED WORDS. The selection is the ANSWER (a
+ *  reader marks the passage worth remembering, then writes what should call
+ *  it up), so a `Question\n?\nAnswer` block goes in after the block the
+ *  selection sits in, with the caret on the empty question line. The
+ *  Review page finds it on the next index (shared/flashcards.ts). */
+function makeFlashcard(v: EditorView): void {
+  const { from, to } = v.state.selection.main;
+  if (from === to) return;
+  const doc = v.state.doc;
+  const answer = doc.sliceString(from, to).trim();
+  if (answer === "") return;
+  let last = doc.lineAt(to).number;
+  while (last < doc.lines && doc.line(last + 1).text.trim() !== "") last++;
+  const at = doc.line(last).to;
+  const insert = `\n\n\n?\n${answer}`;
+  v.dispatch({ changes: { from: at, insert }, selection: { anchor: at + 2 }, userEvent: "input", scrollIntoView: true });
+}
+
 /** The style row's label and keystroke, per kind — one table so the menu, the
  *  toolbar and the shortcut sheet cannot disagree about what a key does. */
 const STYLE_ROW: Record<FormatKind, { label: I18nKey; keys?: string; glyph: string }> = {
@@ -368,7 +386,7 @@ function pagesFor(
   // A note to self on the selected words (client/annotations/). In both
   // syntaxes: the anchor is the prose, and a `.tex` note has prose too.
   const annotate: Group = {
-    rows: [act("annotateSelection", annotateSelection)],
+    rows: [act("annotateSelection", annotateSelection), act("addFlashcard", makeFlashcard)],
   };
   // The floating toolbar's switch. An ACTION, not a checkbox: it names the
   // thing it will do next ("Hide the floating toolbar"), which is the one

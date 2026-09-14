@@ -10,7 +10,7 @@ import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import MiniSearch from "minisearch";
-import type { AliasEntry, Backlink, ExportScope, GraphData, GraphEdge, LibraryKind, LibraryPathRef, Mention, OnThisDayHit, PageMeta, PostMeta, PublicFolderRef, QueryHit, RoutineMeta, SearchHit, SearchMatch, TagCount, TaskMeta, TrackerMeta, VaultEvent } from "../shared/types.ts";
+import type { AliasEntry, Backlink, CardMeta, ExportScope, GraphData, GraphEdge, LibraryKind, LibraryPathRef, Mention, OnThisDayHit, PageMeta, PostMeta, PublicFolderRef, QueryHit, RoutineMeta, SearchHit, SearchMatch, TagCount, TaskMeta, TrackerMeta, VaultEvent } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
@@ -30,6 +30,7 @@ import { parseAliases, parseFolders, readNoteFrontmatter } from "./noteFrontmatt
 import { scanTrackers, type Tracker } from "../shared/tracker.ts";
 import { scanRoutines, type RoutineBlock } from "../shared/routine.ts";
 import { scanTasks, type Task } from "../shared/tasks.ts";
+import { scanCards, type Card } from "../shared/flashcards.ts";
 import { readTexNote } from "./texNote.ts";
 import { blogLocale, excludedTags } from "./site.ts";
 // Cyclic with this module (settings.ts → site.ts → here) and inert: every
@@ -105,6 +106,8 @@ interface NoteRecord {
   routines: RoutineBlock[];
   /** Every task line in this note (shared/tasks.ts), full-source lines. */
   tasks: Task[];
+  /** Every flashcard this note already holds (shared/flashcards.ts). */
+  cards: Card[];
   /** File mtime in epoch ms — what the tracker board sorts by. `dateMs` below
    *  is the POST date (frontmatter first, birthtime second), which is when a
    *  thing was written; a shelf answers "what did I touch last". */
@@ -861,6 +864,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     hadithRef: hadithKeyOfFrontmatter(fm),
     routines: scanRoutines(parts.body),
     tasks: scanTasks(content),
+    cards: scanCards(content),
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
@@ -1188,6 +1192,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     hadithRef: hadithKeyOfFrontmatter(fm),
     routines: [],
     tasks: [],
+    cards: [],
     props: {},
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
@@ -3247,6 +3252,19 @@ export function tasks(): TaskMeta[] {
   for (const record of notes.values()) {
     if (record.tasks.length === 0 || isTemplate(record.path)) continue;
     for (const task of record.tasks) out.push({ path: record.path, title: record.title, tags: record.tags, task });
+  }
+  return out;
+}
+
+/** Every flashcard in the vault, in note order, newest-touched note first;
+ *  templates skipped as everywhere. The Review page sorts the due ones. */
+export function cards(): CardMeta[] {
+  const out: CardMeta[] = [];
+  const isTemplate = templateMatcher();
+  const list = [...notes.values()].sort((a, b) => b.mtimeMs - a.mtimeMs || a.path.localeCompare(b.path));
+  for (const record of list) {
+    if (record.cards.length === 0 || isTemplate(record.path)) continue;
+    for (const card of record.cards) out.push({ path: record.path, title: record.title, card });
   }
   return out;
 }

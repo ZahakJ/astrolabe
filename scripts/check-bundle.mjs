@@ -1044,6 +1044,8 @@ const MUST_SPLIT = [
   "media/MediaView.tsx",
   // The Routines page, on the same terms as the Media page.
   "routines/RoutinesView.tsx",
+  // The Review page (flashcards), on the same terms.
+  "review/ReviewView.tsx",
   // The "What's new" deck: slides, live demos and prose for every release,
   // behind a door (whatsnew/door.ts) that is a version compare and nothing else.
   "whatsnew/WhatsNew.tsx",
