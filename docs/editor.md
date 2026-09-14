@@ -251,6 +251,15 @@ vault on disk is never reordered.
 in pixels (`900px`) or as a share of the pane (`70%`), applied as you type. The reading view follows
 the same choice.
 
+**What's new after an update** (Settings → This device, on by default). The first time this
+device opens a new version of Astrolabe as an admin, a short deck walks the release's features —
+one slide per feature, a live piece of the product on each (a routine card you can tick, a warmth
+slider you can drag), next and back, `←`/`→` on the keyboard. It appears once per *minor* version:
+a bug-fix release shows nothing new, and a reader who skipped 3.11.0 and lands on 3.11.2 still gets
+the 3.11 deck. Close it and it is seen; *Don't show these after updates* on its footer, or the switch
+in Settings, turns it off for good (the switch travels with your preferences). *What's new in this
+version* in the command palette reopens the deck on purpose, including every earlier release.
+
 ## The two side panes
 
 Drag the inner edge of the notes sidebar or the side panel to resize it; the width is remembered

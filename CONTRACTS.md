@@ -9247,6 +9247,103 @@ admin, dir)`), as an editor paste does: they sent none, so under the "same folde
 beside the note — the one upload path that ignored the setting. The site-wide pickers (home
 banner, logo, favicon) belong to no note and keep the root as their context.
 
+## Routines (`shared/routine.ts`, `client/reading/routine.ts`, `client/editor/routine.ts`, `client/routines/`)
+
+A ```` ```routine ```` fence is a PLAN by the day; the ```` ```routine-log ```` fence after it is the
+LOG the app writes. The owner asked for "a daily tracker … per-day details on specific activities …
+templates like an exercise tracker … custom templates". A tracker is a card about one work; a
+routine is a card about your days, and it follows every rule the tracker set rather than inventing
+new ones.
+
+**The model is pure and in the entry; the presets are not.** `shared/routine.ts` — no DOM, no
+CodeMirror, no React — loads under `node --test` (tests/routine.test.ts) and in `server/indexer.ts`
+(`NoteRecord.routines`, filled at both record literals, empty on the oversized path). render.ts and
+the live preview parse a fence before anything paints, so the parser is a static import; the
+templates the form offers live in `shared/routinePresets.ts` and reach only the form's lazy chunk.
+Syntax is tolerant and line-based: `key: value`, a weekday's slots INDENTED under it, `items:` for
+every-day tasks, `fields: name:type[:unit|max]`, `target: n/week`, `notes: |`. Weekday and kind
+words fold in both languages. **A body with neither a title nor a plan parses to null** and the
+fence reads as its own source (the $$-math rule).
+
+**The log is one line per day, read by segments.** `date | done: a, b | skipped: c | <field>: v |
+note`. `parseLogLine` takes the plan's fields so a segment whose key is not a field is prose, not a
+value; the last line for a date wins; Eastern Arabic digits fold. `upsertLogLine` is byte-disciplined
+(other lines and CRLF survive; the new line goes in date order; an empty entry removes its line) and
+`logEditFor(md, index, patch)` answers the ONE `{from, to, insert}` that records a patch — a line
+inside the existing log, or a whole log fence written under the plan when the note has none. A plan
+is paired with the first log fence after it and before the next plan (`scanRoutines`,
+`routineFenceSpans`), so `index` counts plans only and a log takes its plan's index.
+
+**A tick is a document edit.** `client/editor/routine.ts` mirrors the tracker widget: caret outside →
+one block replace carrying the reading renderer's card; the card's `onLog` computes `logEditFor`
+over the whole document and dispatches exactly that change (`input.routine`), one undo step. The
+widget over the PLAN draws the log's entries (streak, week, heat), so `eq` compares the paired log's
+text as well as its own; `ignoreEvent` keeps change/input/keydown/toggle for the card's controls.
+The Routines page makes the same patch through `POST /api/routine`, which applies the same
+`logEditFor` server-side (and `editRoutinePlan` for the form's `plan`), writes under the mtime
+precondition and emits `changed`. `GET /api/routines` is ADMIN ONLY (401, the books shelf's rule) and
+INCLUDES template notes, marked `template: true` — the one query that wants the stencils, because
+the form offers them.
+
+**One renderer, every surface.** `client/reading/routine.ts` draws the card (today's checklist with
+every-day items first, fields as inputs, a note line, streak / this week / last-30 chips, the
+seven-dot week strip, the twelve-week heatmap, the folded plan table) and the ledger; classes are
+`s-rv-routine*` / `s-rv-routinelog*` in `client/reading/routine.css`, statuses painted from
+`--callout-success` / `--callout-warning` / `--danger`. render.ts's fence branch looks AHEAD for the
+plan's log (`logAfter`) so the card can draw it, and remembers the plan (`ctx.lastRoutine`) so the log
+fence, when its turn comes, knows the fields. The host is the tracker's `.s-rv-tracker-pending` box
+and the editor wrapper is `.cm-s-tracker`; both sheets already state them. Controls appear only when
+`onLog` is passed; reading view and the blog are inert. The week starts on Monday (en) or Saturday
+(ar) — `weekStart`/`weekOrder` — and `dayStatus` is complete / partial / missed / rest / none, with
+rest days transparent to the streak and an unfinished today neutral.
+
+**The Routines page is the Media page's twin.** `ROUTINES_TAB = "~routines"`, `surface === "routines"`,
+`setView("routines")` / `toggleRoutines()`, `/routines` in the router, a lazy chunk pinned by
+`MUST_SPLIT`, its stylesheet importing `media.css` so the form (which wears `.s-mediaform*`) is
+dressed even when the Media chunk was never fetched. Cards are the reading renderer's mounted into
+React and rebuilt on every meta change; the page re-reads on `astrolabe:vault`. The form composes a
+draft (`routineFenceBody`, round-trip tested) and writes `Routines/<Title>.md` (`روتين/` on an Arabic
+instance, an existing root kept) with frontmatter + plan + an EMPTY log fence; an edit sends only the
+plan body. "Save as template" writes the same note into the templates folder.
+
+## What's new after an update (`client/whatsnew/`)
+
+The owner: "whenever you update to a new version and open that version for the first time you get
+some super nice looking modern popup with a preview of all the features added in said update" —
+on by default, a switch in Settings → This device, "not just a bunch of words but images", and
+"we shouldn't change it for bug fixes".
+
+**Three files, one boundary.** `versions.ts` is the list of minor versions that have a deck and a
+version compare — the entry carries that and nothing else. `door.ts` (first paint) holds the two
+keys — `astrolabe.whatsnewSeen`, the newest deck this DEVICE has seen, and `astrolabe.whatsnew`
+= "off", the switch, which TRAVELS (prefsSync) — and `maybeOpenWhatsNew()`, which App.tsx calls
+once the admin shell has settled (never for a visitor). `releaseNotes.ts` + `WhatsNew.tsx` +
+`styles/whatsnew.css` are the lazy chunk (`MUST_SPLIT`): the registry of releases and slides, and
+the deck that walks them.
+
+**Decks belong to MINOR versions.** `RELEASE_VERSIONS` holds `x.Y.0` only; a patch inherits its
+minor's deck. `pendingReleases()` is every listed version above the seen-mark and not above the
+build, newest first — so a reader who skipped 3.11.0 and lands on 3.11.2 gets 3.11's deck, and a
+reader who saw 3.11.0 gets nothing from 3.11.2. A fresh install (no `astrolabe.*` key at all) marks
+itself seen in silence: the tour is that reader's welcome. A device with other keys and no mark is
+an update and gets the CURRENT minor's deck only, never the back catalogue. Closing the deck marks
+the newest shown version seen; the palette's *What's new in this version* reopens every deck up to
+the build.
+
+**A slide is a VISUAL and a few words, both languages.** `Visual` is `demo` (a function that
+mounts a live piece of the product — the routine card drawn by the reading renderer over sample
+entries, with a working `onLog`; a warmth slider over a paper mock), `svg` (a mechanism a drawing
+explains better) or `image` (a PNG imported as a URL; the last resort). Prose lives in the registry
+as `{en, ar}` — NOT in the dictionary, which ships whole to every surface — and the only strings
+that go through `t()` are the ones the check-i18n DOM scan would otherwise flag.
+
+**The rule is a gate.** `npm run check-whatsnew` (scripts/check-whatsnew.mjs) fails the build when
+package.json is at a new `x.Y.0` that `versions.ts` does not list or `releaseNotes.ts` has no entry
+for, when a listed version is a patch, or when a slide's title or body is empty or not Arabic in
+its Arabic half. Bumping the minor without writing the deck is therefore impossible to ship — which
+is the reminder the owner asked for ("remind future sessions to create a new preview with every
+major change").
+
 ## Tests (`npm test`) — the release gate
 
 `node --test` over `tests/*.test.ts`. No new dependencies, no test framework, no fixtures on disk
@@ -9263,6 +9360,7 @@ node scripts/check-contrast.mjs
 npm run check-bundle
 npm run check-keymap
 npm run check-books
+npm run check-whatsnew
 ```
 
 (plus whatever visual gates the repo carries at the time — `check-caret`, `check-sections`,
