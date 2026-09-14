@@ -4758,6 +4758,26 @@ const DICT = {
   exportTooLarge: { en: "Over {gb} GB — export a folder or a tag at a time.", ar: "فوق {gb} غيغابايت — صدّر مجلدًا أو وسمًا في كل مرة." },
   exportFailed: { en: "The export could not start.", ar: "تعذّر بدء التصدير." },
   treeExportFolder: { en: "Export folder…", ar: "تصدير المجلد…" },
+  // ── Tashkeel & attachments sweep ──
+  // The unused-attachments sweep (client/components/UnusedAttachmentsModal.tsx).
+  cmdUnusedAttachments: { en: "Unused attachments", ar: "المرفقات غير المستخدمة" },
+  cmdUnusedAttachmentsHint: { en: "files no note references — review, then move to .trash", ar: "ملفات لا تشير إليها ملاحظة — راجعها ثم انقلها إلى ‎.trash‎" },
+  unusedTitle: { en: "Unused attachments", ar: "المرفقات غير المستخدمة" },
+  closeUnused: { en: "Close the unused attachments list", ar: "إغلاق قائمة المرفقات غير المستخدمة" },
+  unusedHelp: {
+    en: "Nothing here is embedded or linked by a note, or used as a banner, a tracker cover, a folder icon or a site image. Moving is recoverable: everything lands in .trash with an Undo.",
+    ar: "لا شيء هنا تضمّنه ملاحظة أو تربط إليه، ولا يُستخدم لافتةً أو غلاف متتبِّع أو أيقونة مجلد أو صورة للموقع. النقل قابل للاسترجاع: كل شيء يحطّ في ‎.trash‎ مع زر تراجع.",
+  },
+  unusedLoading: { en: "Reading the index…", ar: "جارٍ قراءة الفهرس…" },
+  unusedLoadFailed: { en: "Could not list the vault's files.", ar: "تعذّر سرد ملفات الخزانة." },
+  unusedEmpty: { en: "Every file in the vault is used by a note.", ar: "كل ملف في الخزانة تستخدمه ملاحظة." },
+  unusedSelectAll: { en: "Select all", ar: "تحديد الكل" },
+  unusedTruncated: { en: "Showing the first {shown} of {total} — sweep these and reopen for the rest", ar: "يُعرض أول {shown} من {total} — انقل هذه وأعد الفتح للبقية" },
+  unusedSelected: { en: "{files} selected · {size}", ar: "{files} محددة · {size}" },
+  unusedTrash: { en: "Move to trash", ar: "نقل إلى المهملات" },
+  unusedTrashedToast: { en: "Moved {files} to .trash", ar: "نُقلت {files} إلى ‎.trash‎" },
+  unusedTrashFailed: { en: "{files} could not be moved", ar: "تعذّر نقل {files}" },
+  unusedRestoredToast: { en: "Restored {files}", ar: "استُرجعت {files}" },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;

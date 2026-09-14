@@ -593,6 +593,16 @@ const COMMANDS: Command[] = [
     available: ({ admin, preview }) => admin && !preview,
   },
   {
+    // The files no note points at (UnusedAttachmentsModal.tsx): the other
+    // half of the delete previews. Those say what a delete would BREAK; this
+    // says what a delete would not touch at all. Beside the trash row on
+    // purpose — everything it moves lands there, and Undo puts it back.
+    id: "unused-attachments",
+    label: () => t("cmdUnusedAttachments"),
+    hint: () => t("cmdUnusedAttachmentsHint"),
+    available: ({ admin, preview }) => admin && !preview,
+  },
+  {
     id: "moderate-comments",
     label: () => t("cmdModerateComments"),
     hint: () => t("cmdMarginaliaHint"),
@@ -1190,6 +1200,9 @@ export default function CommandPalette() {
           break;
         case "open-trash":
           store.setTrashOpen(true);
+          break;
+        case "unused-attachments":
+          store.setUnusedOpen(true);
           break;
         case "moderate-comments":
           store.setModerationOpen(true);

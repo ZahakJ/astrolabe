@@ -3122,7 +3122,14 @@ select:focus,
   position: fixed;
   left: 50%;
   bottom: 44px;
-  z-index: 200;
+  /* ABOVE THE MODAL PANELS (trash browser, history, unused attachments: 420)
+     and below the confirm dialog (500). At 200 an action toast raised from
+     INSIDE a panel — "Moved 12 files to .trash — Undo" from the unused
+     attachments sweep — was painted behind that panel's blurred overlay,
+     which intercepted the click: an Undo the reader could see and could not
+     press. A confirmation may sit under a dialog that is asking a question;
+     it may not sit under the surface that raised it. */
+  z-index: 430;
   transform: translateX(-50%);
   /* AN EXPLICIT WIDTH, not shrink-to-fit. A fixed box with `left: 50%` and no
      width takes its available space as "half the viewport", so on a 390px

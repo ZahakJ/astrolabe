@@ -132,6 +132,17 @@ as <code>![[name.png]]</code> at the cursor, with an &quot;Uploading…&quot; pl
 in flight. PDFs, audio and video are accepted too. Where a paste or a drop into the document lands
 is a <a href="../configuration/#attachments">setting</a> with four modes; a drop onto the sidebar tree is a
 filing, and lands in the folder it was dropped on.</p>
+<p><strong>Unused attachments</strong> — <code>Ctrl/Cmd P</code> → <strong>Unused attachments</strong> lists every file in the vault that no
+note points at, with its size, so the stale screenshots can be told from the figures an essay still
+embeds. &quot;Used&quot; means what the indexer means by it — the same walk that decides what a visitor may
+fetch and what a delete would break: embedded (<code>![[x.png]]</code>, <code>![alt](x.png)</code>), linked (<code>[[x.pdf]]</code>),
+a note&#39;s <code>banner:</code>, a tracker&#39;s <code>cover:</code>, a folder&#39;s icon (from settings or the folder note), a
+library path&#39;s cover, a drawing&#39;s exported svg, and the site&#39;s logo, favicon and home banner. Tick
+the rows (or <em>Select all</em>), read the total, and <strong>Move to trash</strong>: each file goes to <code>.trash/</code>
+through the same door the tree&#39;s <em>Delete file</em> uses, with its origin recorded, and the toast&#39;s
+<strong>Undo</strong> restores the whole sweep. Nothing here erases; the <a href="#deleting-and-the-trash">trash browser</a>
+is where that decision lives. The list is capped at 2,000 rows and says so when the vault holds more
+— sweep those and reopen for the rest. Admin-only, and <code>.trash/</code> itself is never listed.</p>
 <h2 id="deleting-and-the-trash"><a class="anchor" href="#deleting-and-the-trash">Deleting, and the trash</a></h2>
 <p><strong>Deletes say what they are taking.</strong> Notes, attachments <em>and</em> folders all delete the same way:
 the default <em>moves</em> the thing to the vault&#39;s <code>.trash/</code>, and a quieter &quot;Delete permanently&quot; beside

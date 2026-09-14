@@ -42,6 +42,7 @@ import type {
   TrackerMeta,
   TrashEntry,
   TreeNode,
+  UnusedAttachments,
   UploadResult,
   VaultEvent,
   XrefResponse,
@@ -401,6 +402,14 @@ export function deleteAttachment(
  *  silence. */
 export function deletePreview(path: string): Promise<DeletePreview> {
   return request<DeletePreview>(`/api/delete-preview?path=${encodeURIComponent(path)}`);
+}
+
+/** The files no note references, with size and mtime, capped by the server
+ *  (`total` says how many there really are). Admin-only; the sweep itself
+ *  is `deleteAttachment()` per chosen path, so every move is a trash entry
+ *  with an origin and an Undo. */
+export function listUnusedAttachments(): Promise<UnusedAttachments> {
+  return request<UnusedAttachments>("/api/attachments/unused");
 }
 
 // ── Trash (admin) ───────────────────────────────────────────────────────────
