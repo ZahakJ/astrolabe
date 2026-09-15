@@ -658,7 +658,9 @@ const AUDIENCES = [
   // (labels, hints, the settings row) landing in one entry after the two
   // branches merged; the French detector was split out of the correction
   // table for this very gate (shared/frenchLine.ts).
-  { name: "entry (everyone)", keys: entry, budget: 763 * 1024 },
+  // 3.16.0 release: 763.9 kB actual → 764 — the Orbits/Sigils dictionary and
+  // the French/furigana dictionary meeting in one entry at integration.
+  { name: "entry (everyone)", keys: entry, budget: 764 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -877,7 +879,8 @@ const AUDIENCES = [
   // (~125 kB), the suggestion code and the popover are lazy and asserted
   // absent above.
   // 3.16.0: 1046.5 kB actual → 1047 after the French/furigana merge (above).
-  { name: "anonymous blog reader", keys: blog, budget: 1047 * 1024 },
+  // 3.16.0 release: 1047.8 kB actual → 1048 (the merge above).
+  { name: "anonymous blog reader", keys: blog, budget: 1048 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1005,7 +1008,8 @@ const AUDIENCES = [
   // the menu row, the door in editor/furigana.ts) rides the editor chunk,
   // which is not a first paint.
   // 3.16.0: 1491.4 kB actual → 1492 after the French/furigana merge (above).
-  { name: "admin first paint", keys: app, budget: 1492 * 1024 },
+  // 3.16.0 release: 1493.4 kB actual → 1494 (the merge above).
+  { name: "admin first paint", keys: app, budget: 1494 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
