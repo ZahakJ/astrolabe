@@ -1,13 +1,10 @@
 # Astrolabe documentation
 
-*The long-form manual. The [project README](../README.md) is the one-minute version.*
+*The full manual. The [project README](../README.md) is the one-minute version.*
 
-Read it as a site, with search, an outline and both languages: [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/) · [العربية](https://zahakj.github.io/astrolabe/site/ar/). The Arabic sources are under [`ar/`](ar/); `npm run build-docs` renders both into `site/`.
+You can read this manual as a website, with search, a page outline and both languages: [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/) · [العربية](https://zahakj.github.io/astrolabe/site/ar/). The Arabic pages live under [`ar/`](ar/), and `npm run build-docs` builds both languages into `site/`.
 
-**Before reading any of it**, the running app will show you most of what is below: press
-`Ctrl/Cmd P` and run **Take the tour** — fifteen illustrated cards, one feature each, and every one
-of them has a *Show me* that opens the real thing rather than a picture of it. It is also on the
-empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by itself.
+**Before you read any of it**, let the app show you around. Press `Ctrl/Cmd P` and choose **Take the tour**. The tour is fifteen short cards, one feature each, and every card has a *Show me* button that opens the real thing instead of a picture of it. The tour is also offered on an empty vault and at the bottom of the `Ctrl/Cmd /` shortcuts sheet. It never opens on its own.
 
 ---
 
@@ -15,49 +12,49 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 
 | | |
 | --- | --- |
-| [Configuration](configuration.md) | Every `.env` key, the runtime Settings panel, [where attachments land](configuration.md#attachments), every settings key, and which wins |
-| [Publishing & access](publishing.md) | Public reading vs admin editing, the `publish:` flag, preview as visitor, HTTPS, comments |
-| [Backup & sync](backup-and-sync.md) | Committing the vault to a private git remote, by hand or on a timer, [reading a note's history](backup-and-sync.md#note-history-reading-what-the-backup-kept) out of it, and the [versions every save keeps](backup-and-sync.md#versions-before-and-beside-git) with or without git |
-| [Offline reading](offline.md) | A service worker keeps the app and the notes you read on the device; what is kept, what is not, and the strip that says so |
-| [Export](export.md) | A ZIP of a note, a folder, a tag or the vault with the files they use, `[[wikilinks]]` kept or rewritten to standard links, and any note as a standalone HTML page |
-| [The desktop app](desktop.md) | The native app: menu bar, vaults, the reference window, find in page, updates, deep links |
-| [Development](development.md) | Dev mode, the gate scripts, the screenshot harnesses, contributing a change |
+| [Configuration](configuration.md) | Every setting you can change, where each one lives (the `.env` file or the Settings panel), [where attachments are stored](configuration.md#attachments), and which setting wins when two disagree |
+| [Publishing & access](publishing.md) | How visitors read your site while only you can edit it: the `publish:` flag, previewing the site as a visitor, HTTPS, and comments |
+| [Backup & sync](backup-and-sync.md) | Saving your vault to a private git repository, by hand or on a timer; [reading an old version of a note](backup-and-sync.md#note-history-reading-what-the-backup-kept) from that backup; and the [versions the app keeps on every save](backup-and-sync.md#versions-before-and-beside-git), with or without git |
+| [Offline reading](offline.md) | The notes you have already opened stay readable when the network is gone: what is kept, what is not, and the strip that tells you |
+| [Export](export.md) | Download a note, a folder, a tag or the whole vault as a ZIP with the files it uses, with `[[wikilinks]]` kept or turned into ordinary links; or save any note as a standalone HTML page |
+| [The desktop app](desktop.md) | The app as a native program: the menu bar, several vaults, the reference window, find in page, updates, and links that open straight into a note |
+| [Development](development.md) | Running the app in dev mode, the check scripts that guard it, the screenshot tools, and how to contribute a change |
 
 ## Writing
 
 | | |
 | --- | --- |
-| [The editor & reading view](editor.md) | Live preview, wikilinks, selection, rendering, navigation |
-| [Templates, banners & notes](templates-and-notes.md) | `banner:`, `{{date}}` templates, sections, attachments, trash |
-| [LaTeX notes](latex.md) | `.tex` as a first-class note, `astrolabe.sty`, and exactly what renders |
-| [Trackers](trackers.md) | The `tracker` fence, the board, the Media page that shelves them all, and what a visitor sees of your shelf |
-| [Routines](routines.md) | The daily tracker: a plan by the day, the log the app writes, streaks, the heatmap, templates and the Routines page |
-| [Flashcards](flashcards.md) | Highlights, quotes and `?` blocks as spaced-repetition cards, graded on the Review page, scheduled in the note itself |
-| [Drawings](drawing.md) | An Excalidraw canvas in the vault: `.excalidraw` and the Obsidian plugin's `.excalidraw.md`, the svg exported beside it, `![[sketch.excalidraw]]` everywhere |
-| [The PDF reader](books.md) | Every PDF in the vault as a book: vim keys, a `:` command line, a remembered page, highlights that become cited notes |
-| [Panes, tabs & windows](workspace.md) | Splitting the note column, preview and pinned tabs, several windows over one vault, the local graph, the trash, the tour, aliases |
-| [Printing & PDF](printing.md) | A note on paper: the print palette, page breaks, PDF bookmarks and working internal links |
-| [Keymap](keymap.md) | Every binding, and why the awkward ones are where they are |
+| [The editor & reading view](editor.md) | Writing with live preview, linking notes with wikilinks, selecting text, how notes are rendered, and moving around |
+| [Templates, banners & notes](templates-and-notes.md) | A banner image at the top of a note (`banner:`), templates with `{{date}}` and friends, sections, attachments, and the trash |
+| [LaTeX notes](latex.md) | A `.tex` file is a note like any other: the `astrolabe.sty` package and exactly what the app can render |
+| [Trackers](trackers.md) | A `tracker` block that keeps a list of things you follow (games, films, books), the board it draws, the Media page that shelves them all, and what a visitor sees |
+| [Orbits](orbits.md) | Your daily habits, one per orbit: a plan for each day, a log the app writes for you, streaks, a heatmap, templates, and the Orbits page |
+| [Flashcards](flashcards.md) | Turn highlights, quotes and `?` questions into flashcards, review them on a schedule, and keep that schedule inside the note itself |
+| [Drawings](drawing.md) | A drawing canvas (Excalidraw) inside your vault: `.excalidraw` files and the Obsidian plugin's `.excalidraw.md`, an SVG exported beside each one, and `![[sketch.excalidraw]]` to embed it anywhere |
+| [The PDF reader](books.md) | Every PDF in the vault opens as a book: vim keys, a `:` command line, the page you left off on, and highlights that become notes with a citation |
+| [Panes, tabs & windows](workspace.md) | Splitting the screen, preview tabs and pinned tabs, several windows on one vault, the local graph, the trash, the tour, and aliases |
+| [Printing & PDF](printing.md) | Putting a note on paper: the print palette, page breaks, PDF bookmarks, and internal links that still work in the PDF |
+| [Keymap](keymap.md) | Every keyboard shortcut, and why the awkward ones are where they are |
 
 ## Publishing
 
 | | |
 | --- | --- |
-| [Blog mode](blog-mode.md) | The stock blog: masthead, topic nav, dashboard home, RSS, sitemap, SEO |
-| [Designed mode](designer.md) | Composing your own homepage from sections; presets, nav, static pages |
-| [The library](library.md) | Books, courses and lecture series as paths a reader walks in order |
+| [Blog mode](blog-mode.md) | The ready-made blog for visitors: the site title at the top, a row of topics, a magazine-style home page, an RSS feed, a sitemap, and search-engine tags |
+| [Designed mode](designer.md) | Build your own home page out of sections; ready-made designs, your own navigation menu, and static pages such as About |
+| [The library](library.md) | Books, courses and lecture series presented as a path a reader walks through in order |
 
 ## Look & language
 
 | | |
 | --- | --- |
-| [Theming](theming.md) | The forty-six themes, the eye-comfort sheet, the custom-theme builder, the CSS token API, `custom.css` |
-| [Typography](typography.md) | The self-hosted font catalog, your own uploads, per-character Arabic |
-| [Arabic & RTL](arabic-and-rtl.md) | The mirrored interface, the visitor switch, the language filter, Hijri dates, tag labels |
+| [Theming](theming.md) | The forty-six built-in colour themes, the eye-comfort sliders, the tool for building your own theme, the CSS variables the app is painted with, and `custom.css` |
+| [Typography](typography.md) | Choosing fonts from a built-in catalog served by your own server, uploading your own fonts, and giving Arabic letters their own font even inside English text |
+| [Arabic & RTL](arabic-and-rtl.md) | The whole interface in Arabic and mirrored right-to-left, a language switch for visitors, showing each reader only notes in their language, Hijri dates, and Arabic names for your tags |
 
 ## Also in the repo
 
 - [`DESIGN.md`](../DESIGN.md) — the rules a change is judged against
-- [`CONTRACTS.md`](../CONTRACTS.md) — the invariants the code has committed to
+- [`CONTRACTS.md`](../CONTRACTS.md) — the promises the code has committed to keeping
 - [`OBSIDIAN-COMPAT.md`](../OBSIDIAN-COMPAT.md) — what carries over from an Obsidian vault, in detail
-- [`.env.example`](../.env.example) — the annotated environment file
+- [`.env.example`](../.env.example) — the environment file, with every key explained
