@@ -31,6 +31,8 @@ import { scanTrackers, type Tracker } from "../shared/tracker.ts";
 import { scanRoutines, type RoutineBlock } from "../shared/routine.ts";
 import { scanTasks, type Task } from "../shared/tasks.ts";
 import { scanCards, type Card } from "../shared/flashcards.ts";
+import { DEFAULT_NEW_PER_DAY, DEFAULT_STEPS, EVERYTHING_ELSE, constellationOf, starsOfCards, type Constellation, type ConstellationMeta, type Star } from "../shared/constellations.ts";
+import { isDue } from "../shared/srs.ts";
 import { readTexNote } from "./texNote.ts";
 import { blogLocale, excludedTags } from "./site.ts";
 // Cyclic with this module (settings.ts → site.ts → here) and inert: every
@@ -108,6 +110,10 @@ interface NoteRecord {
   tasks: Task[];
   /** Every flashcard this note already holds (shared/flashcards.ts). */
   cards: Card[];
+  /** The note as a constellation when it carries a ```constellation fence
+   *  (shared/constellations.ts) — its stars are `cards` with the fence's
+   *  kind applied. Null for almost every note. */
+  constellation: Constellation | null;
   /** File mtime in epoch ms — what the tracker board sorts by. `dateMs` below
    *  is the POST date (frontmatter first, birthtime second), which is when a
    *  thing was written; a shelf answers "what did I touch last". */
@@ -865,6 +871,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     routines: scanRoutines(parts.body),
     tasks: scanTasks(content),
     cards: scanCards(content),
+    constellation: constellationOf(content, relPath, title),
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
@@ -1193,6 +1200,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     routines: [],
     tasks: [],
     cards: [],
+    constellation: null,
     props: {},
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
@@ -3256,17 +3264,87 @@ export function tasks(): TaskMeta[] {
   return out;
 }
 
-/** Every flashcard in the vault, in note order, newest-touched note first;
- *  templates skipped as everywhere. The Review page sorts the due ones. */
+/** Every flashcard in the vault OUTSIDE a constellation note, in note
+ *  order, newest-touched note first; templates skipped as everywhere. The
+ *  implicit "Everything else" constellation and the Review page's alias
+ *  read this; a constellation's stars are its own (constellationStars). */
 export function cards(): CardMeta[] {
   const out: CardMeta[] = [];
   const isTemplate = templateMatcher();
   const list = [...notes.values()].sort((a, b) => b.mtimeMs - a.mtimeMs || a.path.localeCompare(b.path));
   for (const record of list) {
-    if (record.cards.length === 0 || isTemplate(record.path)) continue;
+    if (record.cards.length === 0 || record.constellation !== null || isTemplate(record.path)) continue;
     for (const card of record.cards) out.push({ path: record.path, title: record.title, card });
   }
   return out;
+}
+
+/** The top folder a note files under, for the implicit constellation's
+ *  sections; a note at the root is its own section, by title. */
+function topFolderOf(record: NoteRecord): string {
+  const slash = record.path.indexOf("/");
+  return slash === -1 ? record.title : record.path.slice(0, slash);
+}
+
+/** The stars of the implicit "Everything else" constellation: every card
+ *  outside a constellation note, read as a basic deck, each star's section
+ *  its note's top folder so the shelf can study one folder. Path order, so
+ *  a session walks the vault the way the tree shows it. */
+function everythingElseStars(): Star[] {
+  const out: Star[] = [];
+  const isTemplate = templateMatcher();
+  const list = [...notes.values()].filter((r) => r.cards.length > 0 && r.constellation === null && !isTemplate(r.path)).sort((a, b) => a.path.localeCompare(b.path));
+  for (const record of list) {
+    const section = topFolderOf(record);
+    for (const star of starsOfCards(record.cards, record.path, "basic")) out.push({ ...star, section });
+  }
+  return out;
+}
+
+/** The constellation records, title order, templates skipped. */
+function constellationRecords(): NoteRecord[] {
+  const isTemplate = templateMatcher();
+  return [...notes.values()].filter((r) => r.constellation !== null && !isTemplate(r.path)).sort((a, b) => a.title.localeCompare(b.title) || a.path.localeCompare(b.path));
+}
+
+function metaOf(c: Constellation, stars: Star[], implicit: boolean, today: string): ConstellationMeta {
+  const sections = new Map<string, { name: string; total: number; due: number }>();
+  let fresh = 0;
+  let due = 0;
+  for (const star of stars) {
+    if (star.schedule === null) fresh++;
+    else if (isDue(star.schedule, today)) due++;
+    if (star.section !== null) {
+      const row = sections.get(star.section) ?? { name: star.section, total: 0, due: 0 };
+      row.total++;
+      if (star.schedule !== null && isDue(star.schedule, today)) row.due++;
+      sections.set(star.section, row);
+    }
+  }
+  return { path: c.path, title: c.title, icon: c.icon, kind: c.kind, tags: c.tags, newPerDay: c.newPerDay, steps: c.steps, implicit, counts: { total: stars.length, new: fresh, due }, sections: [...sections.values()] };
+}
+
+/** Every constellation on the shelf with its counts for `today`, and the
+ *  implicit "Everything else" last — present even when empty, so the shelf
+ *  has somewhere to point a reader whose vault holds cards but no fence. */
+export function constellations(today: string): ConstellationMeta[] {
+  const out = constellationRecords().map((r) => metaOf(r.constellation!, r.constellation!.stars, false, today));
+  const rest = everythingElseStars();
+  out.push(metaOf({ path: EVERYTHING_ELSE, title: "", icon: null, kind: "basic", newPerDay: DEFAULT_NEW_PER_DAY, steps: DEFAULT_STEPS, tags: [], sections: [], stars: rest }, rest, true, today));
+  return out;
+}
+
+/** The stars of one constellation (or of "Everything else") in document
+ *  order, optionally one section's. Null when no such constellation. */
+export function constellationStars(notePath: string, section: string | null): Star[] | null {
+  let stars: Star[];
+  if (notePath === EVERYTHING_ELSE) stars = everythingElseStars();
+  else {
+    const record = notes.get(notePath);
+    if (!record || record.constellation === null) return null;
+    stars = record.constellation.stars;
+  }
+  return section === null ? stars : stars.filter((s) => s.section === section);
 }
 
 /** The archive on this month-day: notes dated to it in earlier years, and

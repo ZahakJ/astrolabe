@@ -51,6 +51,7 @@ import type {
 } from "../shared/types.ts";
 import type { EntryPatch } from "../shared/routine.ts";
 import type { Grade, Schedule } from "../shared/srs.ts";
+import type { ConstellationKind, ConstellationMeta, NewCard, Star } from "../shared/constellations.ts";
 import type { TrackerFields } from "../shared/tracker.ts";
 
 // ── Visitor preview (admin-only) ────────────────────────────────────────────
@@ -759,6 +760,50 @@ export function getCards(): Promise<CardMeta[]> {
 /** Grade one card; the server writes the next schedule into the note. */
 export function reviewCard(path: string, line: number, grade: Grade, today: string): Promise<{ ok: true; schedule: Schedule }> {
   return request<{ ok: true; schedule: Schedule }>("/api/card/review", json("POST", { path, line, grade, today }));
+}
+
+// ── Constellations (shared/constellations.ts) ───────────────────────────────
+
+/** The shelf: every constellation with its counts for `today` (the client's
+ *  local day), the implicit "Everything else" last. Admin only. */
+export function getConstellations(today: string): Promise<ConstellationMeta[]> {
+  return request<ConstellationMeta[]>(`/api/constellations?today=${encodeURIComponent(today)}`);
+}
+
+/** The stars of one constellation (EVERYTHING_ELSE for the implicit one) in
+ *  document order, or of one of its sections; the session orders them. */
+export function getStars(path: string, section?: string | null): Promise<Star[]> {
+  const q = section ? `&section=${encodeURIComponent(section)}` : "";
+  return request<Star[]>(`/api/constellations/stars?path=${encodeURIComponent(path)}${q}`);
+}
+
+/** Grade one star; the server writes the schedule into the star's slot of
+ *  the note's comment and answers with what it wrote. */
+export function reviewStar(
+  path: string,
+  line: number,
+  dir: "fwd" | "rev",
+  grade: Grade,
+  today: string,
+): Promise<{ ok: true; path: string; line: number; dir: "fwd" | "rev"; schedule: Schedule }> {
+  return request("/api/star/review", json("POST", { path, line, dir, grade, today }));
+}
+
+export interface NewConstellation {
+  title: string;
+  icon?: string | null;
+  kind?: ConstellationKind;
+  /** Vault folder; the server's default is `Constellations`. */
+  folder?: string | null;
+  tags?: string[];
+  newPerDay?: number;
+  cards: NewCard[];
+}
+
+/** Create `<folder>/<title>.md` with the fence and the cards. 409 `exists`
+ *  when a note of that name is already there. */
+export function createConstellation(spec: NewConstellation): Promise<{ ok: true; path: string; stars: number }> {
+  return request("/api/constellations", json("POST", spec));
 }
 
 export function getRoutines(): Promise<RoutineMeta[]> {

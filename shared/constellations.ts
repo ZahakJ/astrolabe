@@ -10,10 +10,13 @@
 // reads; each star's schedule is the Obsidian Spaced Repetition plugin's
 // comment, so the vault stays one vault with the plugin.
 //
-// This file is the skeleton the builders fill (see the spec the orchestrator
-// wrote); the TYPES are the contract and do not change without telling the
-// other worktrees.
+// The TYPES are the contract and do not change without telling the other
+// worktrees. The functions are thin on purpose: scanCards already knows the
+// lines, the pairs, the tags and the sections, and this module only applies
+// the note's `kind` to what it found and gives each star a name.
 
+import { closesFence, fenceOpener, sourceLines } from "./fences.ts";
+import { scanCards, writeSchedule, type Card } from "./flashcards.ts";
 import type { Schedule } from "./srs.ts";
 
 /** How a constellation's `::` lines become stars. */
@@ -62,6 +65,11 @@ export interface ConstellationMeta {
   icon: string | null;
   kind: ConstellationKind;
   tags: string[];
+  /** The fence's session parameters, so the shelf can start a session
+   *  without a second read: the daily new allowance and the learning steps
+   *  in minutes. The implicit constellation carries the defaults. */
+  newPerDay: number;
+  steps: Step[];
   /** The implicit "Everything else" constellation, grouped from the whole vault. */
   implicit: boolean;
   counts: { total: number; new: number; due: number };
@@ -73,6 +81,10 @@ export const DEFAULT_STEPS: Step[] = [1, 10];
 export const RELEARN_STEPS: Step[] = [10];
 export const DEFAULT_NEW_PER_DAY = 10;
 export const DEFAULT_FOLDER = "Constellations";
+/** The `path` of the implicit "Everything else" constellation on the wire:
+ *  every card outside a constellation note, its sections the vault's top
+ *  folders. Not a note path, and no note can be called it. */
+export const EVERYTHING_ELSE = "*";
 
 export interface FenceHead {
   title: string | null;
@@ -83,25 +95,201 @@ export interface FenceHead {
   tags: string[];
 }
 
-/** The fence's key: value lines, or null when the note has no fence. */
-export function parseConstellationFence(_md: string): FenceHead | null {
-  throw new Error("not implemented (builder A)");
+const KINDS: readonly ConstellationKind[] = ["basic", "reversed", "both", "typed", "cloze-only"];
+
+/** Which constellation fence this line opens, or null — the tracker's
+ *  question (shared/tracker.ts trackerFenceKind), asked of our word. */
+export function constellationFenceOpens(line: string): boolean {
+  const m = /^\s*(?:`{3,}|~{3,})\s*([^\s`~]*)\s*$/.exec(line);
+  return m !== null && m[1].toLowerCase() === CONSTELLATION_FENCE;
 }
 
-/** Every star in the note, in document order, with the note's kind applied. */
-export function scanStars(_md: string, _path: string, _kind: ConstellationKind): Star[] {
-  throw new Error("not implemented (builder A)");
+/** The fence's key: value lines, or null when the note has no fence.
+ *
+ *  Line-based on purpose, like the tracker: the body looks like YAML and is
+ *  not, because "title: Lesson 3: verbs" must be a title and not a syntax
+ *  error. Keys are matched with their spaces, hyphens, underscores and case
+ *  folded away — `new per day`, `new-per-day` and `newPerDay` are one key —
+ *  and unknown keys are ignored. An empty fence is still a constellation:
+ *  the fence is the declaration, the values are optional. */
+export function parseConstellationFence(md: string): FenceHead | null {
+  const body = fenceBody(md);
+  if (body === null) return null;
+  const head: FenceHead = { title: null, icon: null, kind: "basic", newPerDay: DEFAULT_NEW_PER_DAY, steps: DEFAULT_STEPS.slice(), tags: [] };
+  for (const raw of body) {
+    const m = /^\s*([^:#][^:]*?)\s*:\s*(.*?)\s*$/.exec(raw);
+    if (!m) continue;
+    const key = m[1].toLowerCase().replace(/[\s_-]+/g, "");
+    const value = m[2];
+    if (key === "title") head.title = value || null;
+    else if (key === "icon") head.icon = value || null;
+    else if (key === "kind") {
+      const kind = value.toLowerCase().replace(/[\s_]+/g, "-");
+      if ((KINDS as readonly string[]).includes(kind)) head.kind = kind as ConstellationKind;
+    } else if (key === "newperday") {
+      const n = Number.parseInt(value, 10);
+      if (Number.isFinite(n) && n >= 0) head.newPerDay = n;
+    } else if (key === "steps") {
+      const steps = parseSteps(value);
+      if (steps.length > 0) head.steps = steps;
+    } else if (key === "tags") {
+      head.tags = value
+        .split(/[,\s]+/)
+        .map((tag) => tag.replace(/^#+/, "").toLowerCase())
+        .filter((tag) => tag !== "");
+    }
+  }
+  return head;
 }
 
-/** The note as a constellation, or null when it carries no fence. */
-export function constellationOf(_md: string, _path: string, _title: string): Constellation | null {
-  throw new Error("not implemented (builder A)");
+/** The lines inside the first ```constellation fence, or null. Frontmatter
+ *  is skipped so a `---` block cannot hide one, and the fence walk is
+ *  shared/fences.ts' so a fence shown INSIDE a ```markdown block is
+ *  documentation, not a declaration. */
+function fenceBody(md: string): string[] | null {
+  const lines = sourceLines(md);
+  let inFrontmatter = lines[0]?.trim() === "---";
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (inFrontmatter) {
+      if (i > 0 && (line.trim() === "---" || line.trim() === "...")) inFrontmatter = false;
+      continue;
+    }
+    const fence = fenceOpener(line);
+    if (!fence) continue;
+    const ours = constellationFenceOpens(line);
+    const body: string[] = [];
+    let j = i + 1;
+    for (; j < lines.length && !closesFence(lines[j], fence); j++) body.push(lines[j]);
+    if (ours) return body;
+    i = j;
+  }
+  return null;
+}
+
+/** "1m, 10m" → [1, 10]; "1h" is 60, "1d" 1440, a bare number is minutes.
+ *  Zero and nonsense are dropped, so a typo cannot make a step that never
+ *  comes due. */
+export function parseSteps(value: string): Step[] {
+  const out: Step[] = [];
+  for (const part of value.split(/[,\s]+/)) {
+    const m = /^(\d+(?:\.\d+)?)\s*(m|min|h|d)?$/i.exec(part);
+    if (!m) continue;
+    const n = Number(m[1]);
+    const unit = (m[2] ?? "m").toLowerCase();
+    const minutes = unit === "h" ? n * 60 : unit === "d" ? n * 1440 : n;
+    if (minutes > 0) out.push(minutes);
+  }
+  return out;
+}
+
+/** Every star in the note, in document order, with the note's kind applied:
+ *
+ *   · basic / typed: a `::` line is one star front→back; a `:::` line is two.
+ *   · both: every `::` line is a pair as well.
+ *   · reversed: a `::` line is one star back→front; a `:::` line stays two.
+ *   · cloze-only: only the ==highlight== cards, nothing else.
+ *
+ *  Block cards (`?`), clozes and quotes are always one star front→back —
+ *  a reversed cloze would be a question with no answer. The twin of a pair
+ *  keeps the line's `extra` on its answer side: a mnemonic helps both ways. */
+export function scanStars(md: string, path: string, kind: ConstellationKind): Star[] {
+  return starsOfCards(scanCards(md), path, kind);
+}
+
+/** scanStars over cards already scanned — the indexer holds every note's
+ *  cards and not its text, and the implicit constellation is read from them. */
+export function starsOfCards(cards: readonly Card[], path: string, kind: ConstellationKind): Star[] {
+  const out: Star[] = [];
+  for (const card of cards) {
+    if (kind === "cloze-only" && card.kind !== "cloze") continue;
+    const inline = card.kind === "qa" && card.end === card.line;
+    const pair = card.reversed || (inline && kind === "both");
+    const only = inline && !card.reversed && kind === "reversed" ? "rev" : "fwd";
+    if (pair) {
+      out.push(starOf(card, path, "fwd", card.schedule));
+      out.push(starOf(card, path, "rev", card.scheduleRev));
+    } else {
+      out.push(starOf(card, path, only, card.schedule));
+    }
+  }
+  return out;
+}
+
+function starOf(card: Card, path: string, dir: "fwd" | "rev", schedule: Schedule | null): Star {
+  const flipped = dir === "rev";
+  return {
+    id: `${path}#${card.line}#${dir}`,
+    path,
+    line: card.line,
+    end: card.end,
+    dir,
+    kind: card.kind,
+    front: flipped ? card.back : card.front,
+    back: flipped ? card.front : card.back,
+    extra: card.extra,
+    section: card.section,
+    tags: card.tags,
+    schedule,
+  };
+}
+
+/** The note as a constellation, or null when it carries no fence. `title`
+ *  is the note's own (the indexer's), used when the fence names none.
+ *  `sections` are the headings that have at least one star under them, in
+ *  document order — a heading over prose alone is not a lesson. */
+export function constellationOf(md: string, path: string, title: string): Constellation | null {
+  const head = parseConstellationFence(md);
+  if (!head) return null;
+  const stars = scanStars(md, path, head.kind);
+  const sections: string[] = [];
+  for (const star of stars) {
+    if (star.section !== null && !sections.includes(star.section)) sections.push(star.section);
+  }
+  return {
+    path,
+    title: head.title ?? title,
+    icon: head.icon,
+    kind: head.kind,
+    newPerDay: head.newPerDay,
+    steps: head.steps,
+    tags: head.tags,
+    sections,
+    stars,
+  };
 }
 
 /** The note text with one star's schedule written: the plugin's comment
- *  after the block, with two schedules in one comment for a `:::` pair. */
-export function writeStarSchedule(_md: string, _star: Star, _schedule: Schedule): string {
-  throw new Error("not implemented (builder A)");
+ *  after the block, with two schedules in one comment for a `:::` pair.
+ *
+ *  Which slot a "rev" star owns depends on the line: the twin of a pair is
+ *  the second schedule; the lone back→front star of a `reversed` note is the
+ *  line's only card and owns the first. The note itself says which, through
+ *  its fence — so a star from a note whose kind has since changed still
+ *  lands in the slot the note now means. */
+export function writeStarSchedule(md: string, star: Star, schedule: Schedule): string {
+  let slot: 0 | 1 = 0;
+  if (star.dir === "rev") {
+    const card = scanCards(md).find((c) => c.line === star.line);
+    if (!card) return md;
+    const kind = parseConstellationFence(md)?.kind ?? "basic";
+    slot = card.reversed || kind === "both" ? 1 : 0;
+  }
+  return writeSchedule(md, star.line, schedule, slot);
+}
+
+/** Where a new constellation lands: `<folder>/<title>.md`. The title is
+ *  made a filename by the rule the composer's extractions use
+ *  (client/noteName.ts): the filesystem's forbidden set plus the three the
+ *  vault forbids (`[`, `]`, `#`), because the shelf will spell this note as
+ *  `[[title]]` in an orbit. An empty folder means the vault root. */
+export function constellationNotePath(folder: string | null | undefined, title: string): string {
+  const base = title
+    .replace(/[\\/:*?"<>|[\]#]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const dir = (folder ?? DEFAULT_FOLDER).replace(/\\/g, "/").replace(/^\/+|\/+$/g, "").trim();
+  return `${dir ? `${dir}/` : ""}${base || "Constellation"}.md`;
 }
 
 export interface NewCard {
@@ -112,7 +300,56 @@ export interface NewCard {
 }
 
 /** The text of a new constellation note: frontmatter title, the fence, then
- *  the cards as `front::back::extra` lines under their section headings. */
-export function serialiseConstellation(_head: { title: string; icon?: string | null; kind?: ConstellationKind; tags?: string[]; newPerDay?: number }, _cards: NewCard[]): string {
-  throw new Error("not implemented (builder A)");
+ *  the cards as `front::back::extra` lines under their section headings.
+ *
+ *  A card's text is folded to one line and its `::` runs to a single colon,
+ *  because a line is the syntax and a second `::` would move the answer into
+ *  the extra. Cards with no front or no back are dropped rather than written
+ *  as lines the scanner would not read back. A leading `#`, `>` or `|` is
+ *  escaped so a front cannot become a heading, a quote or a table row. */
+export function serialiseConstellation(head: { title: string; icon?: string | null; kind?: ConstellationKind; tags?: string[]; newPerDay?: number }, cards: NewCard[]): string {
+  const title = head.title.trim();
+  const lines: string[] = ["---", `title: ${yamlScalar(title)}`, "---", "", "```" + CONSTELLATION_FENCE];
+  // The shelf reads the FENCE's title, and the indexer names a note by its
+  // file: a title the filename rule had to bend ("Lesson 3: verbs") is
+  // written into the fence so the shelf still says what the reader typed.
+  if (constellationNotePath("", title) !== `${title}.md`) lines.push(`title: ${title}`);
+  if (head.icon && head.icon.trim()) lines.push(`icon: ${head.icon.trim()}`);
+  lines.push(`kind: ${head.kind ?? "basic"}`);
+  if (head.newPerDay !== undefined && head.newPerDay !== DEFAULT_NEW_PER_DAY && head.newPerDay >= 0) lines.push(`new per day: ${Math.floor(head.newPerDay)}`);
+  const tags = (head.tags ?? []).map((t) => t.replace(/^#+/, "").trim()).filter((t) => t !== "");
+  if (tags.length > 0) lines.push(`tags: ${tags.join(", ")}`);
+  lines.push("```", "");
+  let section: string | null = null;
+  for (const card of cards) {
+    const front = segment(card.front);
+    const back = segment(card.back);
+    if (front === "" || back === "") continue;
+    const at = card.section?.trim() || null;
+    if (at !== null && at !== section) {
+      if (lines[lines.length - 1] !== "") lines.push("");
+      lines.push(`## ${at.replace(/\s+/g, " ")}`, "");
+      section = at;
+    }
+    const extra = segment(card.extra ?? "");
+    lines.push(`${escapeLead(front)}::${back}${extra ? `::${extra}` : ""}`);
+  }
+  return lines.join("\n") + "\n";
+}
+
+function segment(text: string): string {
+  return text
+    .replace(/\r?\n/g, " ")
+    .replace(/:{2,}/g, ":")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapeLead(front: string): string {
+  return /^[#>|]/.test(front) ? `\\${front}` : front;
+}
+
+/** A frontmatter title, quoted only when YAML would misread it bare. */
+function yamlScalar(value: string): string {
+  return /[:#"'[\]{}&*!|>%@`,?-]|^\s|\s$/.test(value) || value === "" ? JSON.stringify(value) : value;
 }

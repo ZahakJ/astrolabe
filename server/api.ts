@@ -19,8 +19,8 @@ import { UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import { applyEdit, editRoutinePlan, logEditFor, routineFenceSpans, type EntryPatch } from "../shared/routine.ts";
 import { TASK_LINE_RE, toggleTaskLine } from "../shared/tasks.ts";
-import { scanCards, writeSchedule } from "../shared/flashcards.ts";
 import { review as reviewCard, type Grade } from "../shared/srs.ts";
+import { constellationNotePath, parseConstellationFence, scanStars, serialiseConstellation, writeStarSchedule, type ConstellationKind, type NewCard } from "../shared/constellations.ts";
 import type {
   AliasesResponse,
   AnchorsResponse,
@@ -99,7 +99,7 @@ import {
   search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor, hasNote,
   searchMatches,
   tags,
-  trackers, routines, hadithLookup, cards,
+  trackers, routines, hadithLookup, cards, constellations, constellationStars,
   visibleNotesUnder,
   whenIndexed,
   wikilinkRegex, collectionRows } from "./indexer.ts";
@@ -2230,36 +2230,107 @@ api.post("/task", async (c) => {
   return c.json({ ok: true, path: note.path, line, done });
 });
 
-// ---------------------------------------------------------------- flashcards
-// The Review page (shared/flashcards.ts). A grade writes the next schedule
-// into the note as the Spaced Repetition plugin's own comment, so a vault
-// reviewed in Obsidian and here is one vault. Admin only — the guard above
-// 401s a visitor's POST, and the list is refused below.
+// ------------------------------------------------------------ constellations
+// The vault's own spaced repetition (shared/constellations.ts). A grade
+// writes the next schedule into the note as the Spaced Repetition plugin's
+// own comment, so a vault reviewed in Obsidian and here is one vault. Admin
+// only — the guard above 401s a visitor's POST, and the lists are refused
+// below. `GET /api/cards` and `POST /api/card/review` are the Review page's
+// older names for the implicit constellation and a front→back grade; they
+// stay so an open tab from before the shelf keeps working.
 api.get("/cards", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
   return c.json(cards());
 });
 
-api.post("/card/review", async (c) => {
+/** `today` is the CLIENT's day: due is a local-calendar question and the
+ *  server's clock may sit in another zone. */
+function todayOf(value: unknown): string {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : new Date().toISOString().slice(0, 10);
+}
+
+api.get("/constellations", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(constellations(todayOf(c.req.query("today"))));
+});
+
+api.get("/constellations/stars", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const notePath = c.req.query("path") ?? "";
+  if (notePath === "") throw new VaultError(400, "A constellation needs a path");
+  const section = c.req.query("section");
+  const stars = constellationStars(notePath, section === undefined || section === "" ? null : section);
+  if (stars === null) throw new VaultError(404, `Not a constellation: ${notePath}`);
+  return c.json(stars);
+});
+
+/** One grade on one star. The star is re-found in the note AS IT IS NOW —
+ *  a line may have moved under an edit in another pane — and the schedule
+ *  is written into the slot the star owns (the second of a `:::` pair's
+ *  comment for its back→front twin). The write goes under the mtime
+ *  precondition like every line edit. */
+async function reviewStarRoute(c: Context): Promise<Response> {
   const body = await jsonBody(c);
   const notePath = requiredString(body, "path");
   const line = typeof body.line === "number" && Number.isInteger(body.line) && body.line >= 1 ? body.line : 0;
-  if (line === 0) throw new VaultError(400, "A card needs a line");
+  if (line === 0) throw new VaultError(400, "A star needs a line");
+  const dir = body.dir === "rev" ? "rev" : "fwd";
   const grade = body.grade;
   if (grade !== "again" && grade !== "hard" && grade !== "good" && grade !== "easy") throw new VaultError(400, "Grade one of again, hard, good, easy");
-  const today = typeof body.today === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.today) ? body.today : new Date().toISOString().slice(0, 10);
+  const today = todayOf(body.today);
   const note = await readNote(notePath);
-  const card = scanCards(note.content).find((k) => k.line === line);
-  if (!card) throw new VaultError(409, "That card is gone", "stale");
-  const schedule = reviewCard(card.schedule, grade as Grade, today);
-  const next = writeSchedule(note.content, line, schedule);
+  const kind = parseConstellationFence(note.content)?.kind ?? "basic";
+  const star = scanStars(note.content, note.path, kind).find((s) => s.line === line && s.dir === dir);
+  if (!star) throw new VaultError(409, "That star is gone", "stale");
+  const schedule = reviewCard(star.schedule, grade as Grade, today);
+  const next = writeStarSchedule(note.content, star, schedule);
   if (next !== note.content) {
     suppressWatcherEcho(note.path);
     await writeNote(note.path, next, note.mtimeMs);
     emitEvent({ kind: "changed", path: note.path });
     await indexFile(note.path);
   }
-  return c.json({ ok: true, path: note.path, line, schedule });
+  return c.json({ ok: true, path: note.path, line, dir, schedule });
+}
+
+api.post("/star/review", reviewStarRoute);
+api.post("/card/review", reviewStarRoute);
+
+/** A new constellation from the modal or the importer: `<folder>/<title>.md`
+ *  through the vault's own create path — the title made a filename by the
+ *  composer's rule, an existing note never overwritten (409), the mirror
+ *  and the watchers told the way every other creation tells them. */
+api.post("/constellations", async (c) => {
+  const body = await jsonBody(c);
+  const title = requiredString(body, "title").trim();
+  if (title === "") throw new VaultError(400, "A constellation needs a title");
+  const kinds: ConstellationKind[] = ["basic", "reversed", "both", "typed", "cloze-only"];
+  const kind = typeof body.kind === "string" && (kinds as string[]).includes(body.kind) ? (body.kind as ConstellationKind) : "basic";
+  const icon = typeof body.icon === "string" && body.icon.trim() ? body.icon.trim().slice(0, 8) : null;
+  const folder = typeof body.folder === "string" ? body.folder : null;
+  const tags = Array.isArray(body.tags) ? body.tags.filter((t): t is string => typeof t === "string") : [];
+  const newPerDay = typeof body.newPerDay === "number" && Number.isFinite(body.newPerDay) && body.newPerDay >= 0 ? Math.floor(body.newPerDay) : undefined;
+  const cards: NewCard[] = [];
+  if (Array.isArray(body.cards)) {
+    for (const raw of body.cards) {
+      if (typeof raw !== "object" || raw === null) continue;
+      const card = raw as Record<string, unknown>;
+      if (typeof card.front !== "string" || typeof card.back !== "string") continue;
+      cards.push({
+        front: card.front,
+        back: card.back,
+        extra: typeof card.extra === "string" ? card.extra : null,
+        section: typeof card.section === "string" ? card.section : null,
+      });
+    }
+  }
+  const notePath = assertNotePath(constellationNotePath(folder, title));
+  if (await noteExists(notePath)) throw new VaultError(409, `Note already exists: ${notePath}`, "exists");
+  const text = serialiseConstellation({ title, icon, kind, tags, newPerDay }, cards);
+  const written = await writeNote(notePath, text);
+  await indexFile(notePath);
+  emitEvent({ kind: "created", path: notePath });
+  return c.json({ ok: true, path: written.path, stars: scanStars(text, notePath, kind).length });
 });
 
 api.get("/mentions", (c) => {
