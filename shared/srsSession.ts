@@ -5,7 +5,7 @@
 // with a kana needs minutes: see it, fail it, see it again in one minute,
 // then in ten, and only then let it go for a day. So a session keeps a
 // LEARNING QUEUE the note never sees — a new star, or a review the reader
-// failed, walks the constellation's steps (`steps:` in the fence, default
+// failed, walks the deck's steps (`steps:` in the fence, default
 // 1m then 10m; relearning always 10m) and is shown again when its step has
 // elapsed within the same session. GRADUATING — good after the last step,
 // easy at any step — is the moment the note is written. Closing the page
@@ -16,11 +16,11 @@
 // (ISO day) and returns a NEW session, never mutating the one it was given.
 // That is what makes "undo the last grade" one line in the client (keep the
 // previous session) and what lets the tests walk a whole evening in
-// microseconds. The client (client/stars/queue.ts) owns the clock, the
+// microseconds. The client (client/orbits/queue.ts) owns the clock, the
 // localStorage daily-new counter and the write to the server.
 
 import { isDue, review, type Grade, type Schedule } from "./srs.ts";
-import { DEFAULT_STEPS, RELEARN_STEPS, type Star, type Step } from "./constellations.ts";
+import { DEFAULT_STEPS, RELEARN_STEPS, type DeckCard, type Step } from "./decks.ts";
 
 /** Where a star is in the session. "review" is a star with a schedule that
  *  has come due; "new" one with none; "learning" a new star inside its
@@ -44,7 +44,7 @@ export interface SessionLog {
 
 export interface Session {
   /** Every star the session was built from, by id — the faces to show. */
-  stars: Record<string, Star>;
+  stars: Record<string, DeckCard>;
   /** Learning steps in minutes; relearning steps likewise. */
   steps: Step[];
   relearnSteps: Step[];
@@ -81,8 +81,8 @@ export interface SessionOptions {
 /** What the session shows next. `early` is true when only stars inside a
  *  step remain and the soonest is being shown before its step elapsed —
  *  Anki does the same rather than make the reader watch a clock. */
-export interface NextStar {
-  star: Star;
+export interface NextCard {
+  star: DeckCard;
   phase: Phase;
   early: boolean;
 }
@@ -101,9 +101,9 @@ export interface GradeResult {
 const REVIEWS_PER_NEW = 4;
 
 /** A session over `stars` (document order) for `today`. */
-export function createSession(stars: readonly Star[], today: string, now: number, options: SessionOptions): Session {
-  const byId: Record<string, Star> = {};
-  const due: Star[] = [];
+export function createSession(stars: readonly DeckCard[], today: string, now: number, options: SessionOptions): Session {
+  const byId: Record<string, DeckCard> = {};
+  const due: DeckCard[] = [];
   const fresh: string[] = [];
   for (const star of stars) {
     if (byId[star.id]) continue;
@@ -139,7 +139,7 @@ export function createSession(stars: readonly Star[], today: string, now: number
  *  a due review → a new star; and after every four reviews one new star is
  *  slipped in so the new ones are not all left for the end. When only
  *  stars inside a step remain, the soonest is shown early. */
-export function nextStar(session: Session, now: number): NextStar | null {
+export function nextCard(session: Session, now: number): NextCard | null {
   const ready = soonest(session.learning.filter((e) => e.dueAt <= now));
   if (ready) return { star: session.stars[ready.id], phase: ready.phase, early: false };
   const hasReviews = session.reviews.length > 0;
@@ -164,7 +164,7 @@ function soonest(entries: LearningEntry[]): LearningEntry | null {
  *  session has nothing but waiting stars — the client's timer. Null when
  *  there is something to show now or nothing at all. */
 export function waitFor(session: Session, now: number): number | null {
-  const next = nextStar(session, now);
+  const next = nextCard(session, now);
   if (!next || !next.early) return null;
   const entry = soonest(session.learning);
   return entry ? Math.max(0, entry.dueAt - now) : null;
@@ -210,7 +210,7 @@ export function previews(session: Session, id: string, today: string): Record<Gr
  *  down 200) at once and keeps the star in the relearning step, so the
  *  note is right even if the page closes mid-step. Graduating relearning
  *  writes nothing more: the lapse already did. */
-export function gradeStar(session: Session, id: string, grade: Grade, now: number, today: string): GradeResult {
+export function gradeCard(session: Session, id: string, grade: Grade, now: number, today: string): GradeResult {
   const star = session.stars[id];
   const phase = phaseOf(session, id);
   if (!star || phase === null) return { session, write: null };
@@ -258,7 +258,7 @@ export function gradeStar(session: Session, id: string, grade: Grade, now: numbe
 
 /** Bury the star for this session: it leaves every queue and is not
  *  counted as done. A skipped new star was not introduced. */
-export function skipStar(session: Session, id: string): Session {
+export function skipCard(session: Session, id: string): Session {
   return {
     ...session,
     reviews: session.reviews.filter((r) => r !== id),

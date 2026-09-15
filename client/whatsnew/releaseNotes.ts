@@ -134,7 +134,7 @@ function routineDemo(host: HTMLElement, lang: Lang): () => void {
   const fields: [string, string] = lang === "ar" ? ["دقائق", "الوزن"] : ["minutes", "weight"];
   let entries: RoutineEntry[] = parseRoutineLog(sampleLog(slots, fields), plan.fields);
   let alive = true;
-  const draw = (mod: typeof import("../reading/routine.ts")): void => {
+  const draw = (mod: typeof import("../reading/routine.ts")): void => { // lineage
     if (!alive) return;
     const card = mod.renderRoutineCard(plan, entries, {
       notePath: "Routines/Weekly exercise.md",
@@ -149,7 +149,7 @@ function routineDemo(host: HTMLElement, lang: Lang): () => void {
     });
     host.replaceChildren(card);
   };
-  void import("../reading/routine.ts").then(draw);
+  void import("../reading/routine.ts").then(draw); // lineage
   return () => {
     alive = false;
   };
@@ -170,7 +170,7 @@ function templatesDemo(host: HTMLElement, lang: Lang): void {
   const page = el("div", "s-wn-page");
   const head = el("div", "s-wn-page__head");
   head.appendChild(el("span", "s-wn-page__date", lang === "ar" ? "الأحد، 13 سبتمبر" : "Sunday, September 13"));
-  head.appendChild(el("span", "s-wn-page__title", lang === "ar" ? "الروتين" : "Routines"));
+  head.appendChild(el("span", "s-wn-page__title", lang === "ar" ? "الروتين" : "Routines")); // lineage
   head.appendChild(el("span", "s-wn-page__lead", lang === "ar" ? "2 من 3 مكتمل اليوم" : "2 of 3 complete today"));
   page.appendChild(head);
   const cards = el("div", "s-wn-page__cards");
@@ -308,13 +308,13 @@ function manualDemo(host: HTMLElement, lang: Lang): void {
   const wrap = el("div", "s-wn-manual");
   const en = el("div", "s-wn-manual__page");
   en.dir = "ltr";
-  en.appendChild(el("h4", "s-wn-manual__h", "Orbits"));
-  en.appendChild(el("p", "s-wn-manual__p", "An orbit is something you come back to every day: a walk, the prayers, a page of reading."));
+  en.appendChild(el("h4", "s-wn-manual__h", "Sigils"));
+  en.appendChild(el("p", "s-wn-manual__p", "A sigil is something you keep every day: a walk, the prayers, a page of reading."));
   en.appendChild(el("p", "s-wn-manual__p", "You write the plan once. Each day you tick what you did, and the note keeps the record."));
   const ar = el("div", "s-wn-manual__page s-wn-manual__page--ar");
   ar.dir = "rtl";
-  ar.appendChild(el("h4", "s-wn-manual__h", "المدارات"));
-  ar.appendChild(el("p", "s-wn-manual__p", "المدار شيء تعود إليه كل يوم: مشية، أو الصلوات، أو صفحة قراءة."));
+  ar.appendChild(el("h4", "s-wn-manual__h", "السِّجِلّ"));
+  ar.appendChild(el("p", "s-wn-manual__p", "السِّجِلّ شيء تحافظ عليه كل يوم: مشية، أو الصلوات، أو صفحة قراءة."));
   ar.appendChild(el("p", "s-wn-manual__p", "تكتب الخطة مرة واحدة، وكل يوم تعلّم على ما فعلت، والملاحظة تحفظ السجل."));
   wrap.appendChild(en);
   wrap.appendChild(ar);
@@ -326,21 +326,20 @@ function manualDemo(host: HTMLElement, lang: Lang): void {
 export const RELEASES: Release[] = [
   {
     version: "3.15.0",
-    title: { en: "Orbits, and a manual you can read", ar: "المدارات، ودليل يُقرأ" },
+    title: { en: "Sigils, and a manual you can read", ar: "السِّجِلّ، ودليل يُقرأ" },
     slides: [
       {
-        title: { en: "Routines are Orbits now", ar: "الروتين صار مدارات" },
+        title: { en: "Routines are Sigils now", ar: "الروتين صار السِّجِلّ" }, // lineage
         body: {
-          en: "The things you circle back to every day. Same notes, same fences (the old routine fence still works), a new name in both languages — and a rebuilt form: pick a preset or start from nothing, give it an emoji and a banner, and choose exactly what to record each day, every field explained. Nothing is forced on you.",
-          ar: "الأشياء التي تعود إليها كل يوم. الملاحظات نفسها والسياجات نفسها (سياج routine القديم ما زال يعمل)، واسم جديد باللغتين، ونموذج أُعيد بناؤه: اختر قالبًا أو ابدأ من لا شيء، وأعطه رمزًا تعبيريًا ولافتة، واختر بالضبط ما تسجّله كل يوم، وكل حقل مشروح. لا شيء يُفرض عليك.",
+          en: "The things you keep every day. The name changed twice: 3.15 called them Orbits, and 3.16 gives that word to spaced repetition, where it fits — a card comes back around. A sigil is a seal you set on a kept day, and the same root in Arabic is the word for a register. Same notes, same fences (the older routine and orbit fences still work) — and a rebuilt form: pick a preset or start from nothing, give it an emoji and a banner, and choose exactly what to record each day, every field explained.", // lineage
+          ar: "الأشياء التي تحافظ عليها كل يوم. تغيّر الاسم مرتين: سمّاها الإصدار 3.15 المدارات، وأعطى 3.16 تلك الكلمة للتكرار المتباعد حيث تليق بها، فالبطاقة تعود في مدارها. والسِّجِلّ ختم تضعه على يوم حافظت عليه، وجذره نفسه في العربية هو الدفتر الذي تُقيَّد فيه الأيام. الملاحظات نفسها والسياجات نفسها (سياجا routine وorbit الأقدم ما زالا يعملان)، ونموذج أُعيد بناؤه: اختر قالبًا أو ابدأ من لا شيء، وأعطه رمزًا تعبيريًا ولافتة، واختر بالضبط ما تسجّله كل يوم، وكل حقل مشروح.", // lineage
         },
         visual: {
           kind: "svg",
           svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <g><circle cx="80" cy="110" r="46" fill="none" stroke="var(--border)" stroke-dasharray="3 4"/><circle cx="80" cy="110" r="14" fill="var(--accent)" opacity="0.25"/><circle cx="80" cy="110" r="6" fill="var(--accent)"/></g>
-  <circle class="wa-pulse" cx="126" cy="110" r="5" fill="var(--accent)"/>
-  <text x="150" y="52" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "NEW ORBIT", "مدار جديد")}</text>
+  <g><circle cx="80" cy="110" r="46" fill="none" stroke="var(--border)" stroke-dasharray="3 4"/><circle cx="80" cy="110" r="30" fill="var(--accent)" opacity="0.18" stroke="var(--accent)" stroke-width="2"/><path class="wa-draw" d="M66 112l10 10 20-24" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <text x="150" y="52" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "NEW SIGIL", "سِجِلّ جديد")}</text>
   <g><rect x="150" y="62" width="380" height="40" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="166" y="88" font-size="20">🚶</text><text x="196" y="87" fill="var(--text)" font-family="Georgia, serif" font-size="15">${L(lang, "Daily exercise", "رياضة يومية")}</text><text x="450" y="87" fill="var(--text-faint)" font-size="11">${L(lang, "6 / week", "6 في الأسبوع")}</text></g>
   <text x="150" y="126" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "WHAT TO RECORD EACH DAY", "ما تسجّله كل يوم")}</text>
   <g font-size="12" fill="var(--text)">
@@ -353,7 +352,7 @@ export const RELEASES: Release[] = [
   </g>
 </svg>`,
         },
-        docs: "orbits",
+        docs: "sigils",
       },
       {
         title: { en: "Nothing updates itself", ar: "لا شيء يحدّث نفسه" },
@@ -387,7 +386,7 @@ export const RELEASES: Release[] = [
           svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <g><rect x="40" y="30" width="480" height="160" rx="8" fill="var(--bg)" stroke="var(--border)"/><rect x="40" y="30" width="480" height="22" rx="8" fill="var(--bg-hover)"/><circle cx="54" cy="41" r="4" fill="var(--danger)" opacity="0.7"/><circle cx="68" cy="41" r="4" fill="var(--callout-warning)" opacity="0.7"/><circle cx="82" cy="41" r="4" fill="var(--callout-success)" opacity="0.7"/><text x="280" y="45" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "900 px · Windows · 150%", "900 بكسل · ويندوز · 150%")}</text></g>
-  <g><rect x="40" y="52" width="130" height="138" fill="var(--bg-raised)"/><g fill="var(--text-muted)" font-size="11"><text x="52" y="76">${L(lang, "Journal", "اليوميات")}</text><text x="52" y="96" fill="var(--text)">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="52" y="116">${L(lang, "Reading list", "قائمة القراءة")}</text><text x="52" y="136">${L(lang, "Orbits", "المدارات")}</text></g></g>
+  <g><rect x="40" y="52" width="130" height="138" fill="var(--bg-raised)"/><g fill="var(--text-muted)" font-size="11"><text x="52" y="76">${L(lang, "Journal", "اليوميات")}</text><text x="52" y="96" fill="var(--text)">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="52" y="116">${L(lang, "Reading list", "قائمة القراءة")}</text><text x="52" y="136">${L(lang, "Sigils", "السِّجِلّ")}</text></g></g>
   <rect class="wa-grow" x="170" y="52" width="60" height="138" fill="var(--bg-raised)" opacity="0.6"/>
   <g class="wa-late"><rect x="228" y="52" width="3" height="138" fill="var(--accent)"/><path d="M222 121l-6-6 6-6M240 121l6-6-6-6" fill="none" stroke="var(--accent)" stroke-width="2"/></g>
   <g fill="var(--text-muted)" font-size="11"><text x="250" y="80" fill="var(--text)" font-family="Georgia, serif" font-size="14">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="250" y="102">${L(lang, "Ibn Khaldun opens with the errors", "يفتتح ابن خلدون بأخطاء")}</text><text x="250" y="120">${L(lang, "of historians and their causes…", "المؤرخين وأسبابها…")}</text></g>
@@ -403,7 +402,7 @@ export const RELEASES: Release[] = [
           ar: "أُعيدت كتابة كل صفحة من الدليل لقارئ لا يعرف المصطلحات: كلمات بسيطة، وجمل قصيرة، وما ينفع الشيء قبل كيف يعمل. وكُتبت النسخة العربية عربيةً لا مترجمة، وراجعتها عين ثانية. ونصوص الواجهة العربية نالت المرور نفسه.",
         },
         visual: { kind: "demo", mount: manualDemo },
-        docs: "orbits",
+        docs: "sigils",
       },
     ],
   },
@@ -445,27 +444,27 @@ export const RELEASES: Release[] = [
         docs: "editor",
       },
       {
-        title: { en: "A routine takes the room it has", ar: "الروتين يأخذ ما لديه من مكان" },
+        title: { en: "A sigil takes the room it has", ar: "السِّجِلّ يأخذ ما لديه من مكان" },
         body: {
-          en: "On the Routines page one routine spans the whole row, its week strip beside its heatmap; two share a row; more wrap in pairs. And this deck now plays: every drawing moves, and the dots below are grouped by release.",
-          ar: "في صفحة الروتين يمتد الروتين الواحد على الصف كله، وشريط أسبوعه بجانب خريطته الحرارية؛ والاثنان يتقاسمان صفًّا؛ والأكثر يلتفّ أزواجًا. وهذه الجولة تتحرك الآن: كل رسم يتحرك، والنقاط أدناه مجمّعة حسب الإصدار.",
+          en: "On the Sigils page one sigil spans the whole row, its week strip beside its heatmap; two share a row; more wrap in pairs. And this deck now plays: every drawing moves, and the dots below are grouped by release.",
+          ar: "في صفحة السِّجِلّ يمتد السِّجِلّ الواحد على الصف كله، وشريط أسبوعه بجانب خريطته الحرارية؛ والاثنان يتقاسمان صفًّا؛ والأكثر يلتفّ أزواجًا. وهذه الجولة تتحرك الآن: كل رسم يتحرك، والنقاط أدناه مجمّعة حسب الإصدار.",
         },
         visual: {
           kind: "svg",
           svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <text x="30" y="36" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "ROUTINES · 1", "الروتين · 1")}</text>
+  <text x="30" y="36" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "SIGILS · 1", "السِّجِلّ · 1")}</text>
   <g><rect x="30" y="46" width="500" height="70" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="44" y="66" fill="var(--text)" font-family="Georgia, serif" font-size="13">${L(lang, "Weekly exercise", "تمارين الأسبوع")}</text>
     <g fill="var(--bg-hover)"><rect x="44" y="78" width="26" height="26" rx="4"/><rect x="76" y="78" width="26" height="26" rx="4"/><rect x="108" y="78" width="26" height="26" rx="4"/><rect x="140" y="78" width="26" height="26" rx="4"/><rect x="172" y="78" width="26" height="26" rx="4"/><rect x="204" y="78" width="26" height="26" rx="4"/><rect x="236" y="78" width="26" height="26" rx="4"/></g>
     <rect x="44" y="78" width="26" height="26" rx="4" fill="color-mix(in srgb, var(--accent) 30%, var(--bg))" stroke="var(--accent)"/>
     <g fill="var(--bg-hover)">${Array.from({ length: 12 }, (_, c) => Array.from({ length: 7 }, (__, r) => `<rect x="${340 + c * 14}" y="${58 + r * 7}" width="5" height="5" rx="1"${(c * 7 + r) % 5 === 0 ? ' fill="var(--callout-success)"' : ""}/>`).join("")).join("")}</g>
   </g>
-  <text class="wa-late" x="30" y="140" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "ROUTINES · 2", "الروتين · 2")}</text>
+  <text class="wa-late" x="30" y="140" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "SIGILS · 2", "السِّجِلّ · 2")}</text>
   <g class="wa-late"><rect x="30" y="150" width="244" height="48" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="44" y="170" fill="var(--text)" font-family="Georgia, serif" font-size="13">${L(lang, "Weekly exercise", "تمارين الأسبوع")}</text><g fill="var(--bg-hover)"><rect x="44" y="180" width="12" height="12" rx="3"/><rect x="60" y="180" width="12" height="12" rx="3"/><rect x="76" y="180" width="12" height="12" rx="3"/><rect x="92" y="180" width="12" height="12" rx="3"/><rect x="108" y="180" width="12" height="12" rx="3"/><rect x="124" y="180" width="12" height="12" rx="3"/><rect x="140" y="180" width="12" height="12" rx="3"/></g></g>
   <g class="wa-late"><rect x="286" y="150" width="244" height="48" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="300" y="170" fill="var(--text)" font-family="Georgia, serif" font-size="13">${L(lang, "Prayers", "الصلوات")}</text><g fill="var(--bg-hover)"><rect x="300" y="180" width="12" height="12" rx="3"/><rect x="316" y="180" width="12" height="12" rx="3"/><rect x="332" y="180" width="12" height="12" rx="3"/><rect x="348" y="180" width="12" height="12" rx="3"/><rect x="364" y="180" width="12" height="12" rx="3"/><rect x="380" y="180" width="12" height="12" rx="3"/><rect x="396" y="180" width="12" height="12" rx="3"/></g></g>
 </svg>`,
         },
-        docs: "routines",
+        docs: "sigils",
       },
     ],
   },
@@ -515,8 +514,8 @@ export const RELEASES: Release[] = [
       {
         title: { en: "A pace, and today's pages", ar: "وتيرة، وصفحات اليوم" },
         body: {
-          en: "A tracker takes pace: 20 (or due: a date) and its card says the day you will be done — or the pace that gets you there. A routine that names the book gains \"Read 20 pages of it\" as its first task, and ticking it moves the tracker.",
-          ar: "يأخذ المتتبِّع pace: 20 (أو due: تاريخًا) فتقول بطاقته اليوم الذي تنتهي فيه، أو الوتيرة التي تبلغك إياه. والروتين الذي يسمّي الكتاب يكتسب «اقرأ 20 صفحة منه» مهمةً أولى، والتعليم عليها يحرّك المتتبِّع.",
+          en: "A tracker takes pace: 20 (or due: a date) and its card says the day you will be done — or the pace that gets you there. A routine that names the book gains \"Read 20 pages of it\" as its first task, and ticking it moves the tracker.", // lineage
+          ar: "يأخذ المتتبِّع pace: 20 (أو due: تاريخًا) فتقول بطاقته اليوم الذي تنتهي فيه، أو الوتيرة التي تبلغك إياه. والروتين الذي يسمّي الكتاب يكتسب «اقرأ 20 صفحة منه» مهمةً أولى، والتعليم عليها يحرّك المتتبِّع.", // lineage
         },
         visual: {
           kind: "svg",
@@ -535,7 +534,7 @@ export const RELEASES: Release[] = [
         docs: "routines",
       },
       {
-        title: { en: "Flashcards from what you already marked", ar: "بطاقات مما علّمته أصلًا" },
+        title: { en: "Flashcards from what you already marked", ar: "بطاقات مما علّمته أصلًا" }, // lineage
         body: {
           en: "Every ==highlight==, every quote callout — the PDF reader's citations included — and every Question / ? / Answer block is a card. The Review page asks them back on the SM-2 schedule Obsidian's Spaced Repetition plugin uses, and writes the due day into the note as that plugin's own comment. Nothing is stored anywhere else.",
           ar: "كل ==تظليل==، وكل نداء اقتباس (ومنها اقتباسات قارئ PDF)، وكل كتلة سؤال / ? / جواب هي بطاقة. تسألك صفحة المراجعة عنها على جدول SM-2 الذي تستخدمه إضافة Spaced Repetition في Obsidian، وتكتب يوم الاستحقاق في الملاحظة بتعليق الإضافة نفسه. لا يُخزَّن شيء في مكان آخر.",
@@ -574,7 +573,7 @@ export const RELEASES: Release[] = [
   <text x="50" y="34" fill="var(--text)" font-weight="600" font-size="12">${L(lang, "Offline", "دون اتصال")}</text>
   <text x="104" y="34" fill="var(--text-muted)" font-size="12">${L(lang, "Reading this device's copy. Edits are kept and saved when the network is back.", "تقرأ نسخة هذا الجهاز؛ تعديلاتك محفوظة.")}</text></g>
   <rect x="30" y="62" width="130" height="130" rx="8" fill="var(--bg)" stroke="var(--border)"/>
-  <g fill="var(--text-muted)" font-size="12"><text x="42" y="86">${L(lang, "Journal", "اليوميات")}</text><text x="42" y="108" fill="var(--text)">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="42" y="130">${L(lang, "Reading list", "قائمة القراءة")}</text><text x="42" y="152">${L(lang, "Routines", "الروتين")}</text></g>
+  <g fill="var(--text-muted)" font-size="12"><text x="42" y="86">${L(lang, "Journal", "اليوميات")}</text><text x="42" y="108" fill="var(--text)">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="42" y="130">${L(lang, "Reading list", "قائمة القراءة")}</text><text x="42" y="152">${L(lang, "Routines", "الروتين")}</text></g> // lineage
   <text x="180" y="90" fill="var(--text)" font-family="Georgia, serif" font-size="18">${L(lang, "The Muqaddima", "المقدمة")}</text>
   <g fill="var(--text-muted)" font-size="12"><text x="180" y="116">${L(lang, "Ibn Khaldun opens with the errors of", "يفتتح ابن خلدون بأخطاء المؤرخين")}</text><text x="180" y="134">${L(lang, "historians, and the causes of them —", "وأسبابها، ثم يمضي إلى علم العمران")}</text><text x="180" y="152">${L(lang, "and then to the science of civilisation.", "الذي يؤسسه.")}</text></g>
   <text x="180" y="184" fill="var(--text-faint)" font-size="11">${L(lang, "✓ read this morning · kept on this device", "✓ محفوظة على هذا الجهاز")}</text>
@@ -808,13 +807,13 @@ export const RELEASES: Release[] = [
   },
   {
     version: "3.11.0",
-    title: { en: "Routines", ar: "الروتين" },
+    title: { en: "Routines", ar: "الروتين" }, // lineage
     slides: [
       {
         title: { en: "A plan you follow by the day", ar: "خطة تتبعها يومًا بيوم" },
         body: {
-          en: "An exercise week, the five prayers, sleep, water — a routine is a card about your days. Today's checklist, the numbers you keep, a streak that lights, the week as seven dots and twelve weeks as a heatmap. Tick a box on this one.",
-          ar: "أسبوع تمارين، الصلوات الخمس، النوم، الماء: الروتين بطاقة عن أيامك. قائمة اليوم، والأرقام التي تحفظها، وسلسلة تضيء، والأسبوع سبع نقاط، واثنا عشر أسبوعًا خريطة حرارية. علّم على مربع في هذه.",
+          en: "An exercise week, the five prayers, sleep, water — a routine is a card about your days. Today's checklist, the numbers you keep, a streak that lights, the week as seven dots and twelve weeks as a heatmap. Tick a box on this one.", // lineage
+          ar: "أسبوع تمارين، الصلوات الخمس، النوم، الماء: الروتين بطاقة عن أيامك. قائمة اليوم، والأرقام التي تحفظها، وسلسلة تضيء، والأسبوع سبع نقاط، واثنا عشر أسبوعًا خريطة حرارية. علّم على مربع في هذه.", // lineage
         },
         visual: { kind: "demo", mount: routineDemo },
         docs: "routines",
@@ -829,13 +828,13 @@ export const RELEASES: Release[] = [
           kind: "svg",
           svg: `<svg viewBox="0 0 560 260" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace, monospace" font-size="13">
   <rect x="12" y="12" width="536" height="236" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <text x="32" y="46" fill="var(--text-faint)">\`\`\`routine</text>
+  <text x="32" y="46" fill="var(--text-faint)">\`\`\`routine</text> // lineage
   <text x="32" y="68" fill="var(--text)">title: <tspan fill="var(--accent)">Weekly exercise</tspan></text>
   <text x="32" y="90" fill="var(--text)">slots: <tspan fill="var(--accent)">morning, evening</tspan></text>
   <text x="32" y="112" fill="var(--text)">monday:</text>
   <text x="52" y="134" fill="var(--text-muted)">morning: 60 min brisk walk</text>
   <text x="32" y="156" fill="var(--text-faint)">\`\`\`</text>
-  <text x="32" y="190" fill="var(--text-faint)">\`\`\`routine-log</text>
+  <text x="32" y="190" fill="var(--text-faint)">\`\`\`routine-log</text> // lineage
   <text x="32" y="212" fill="var(--text)"><tspan fill="var(--accent)">2026-09-14</tspan> | done: morning, evening | minutes: 62</text>
   <text x="32" y="234" fill="var(--text-faint)">\`\`\`</text>
   <g transform="translate(470 196)"><circle r="14" fill="var(--callout-success, var(--accent))" opacity="0.18"/><path d="M-6 0l4 4 8-9" fill="none" stroke="var(--callout-success, var(--accent))" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>
@@ -843,9 +842,9 @@ export const RELEASES: Release[] = [
         },
       },
       {
-        title: { en: "The Routines page, and templates", ar: "صفحة الروتين، والقوالب" },
+        title: { en: "The Routines page, and templates", ar: "صفحة الروتين، والقوالب" }, // lineage
         body: {
-          en: "The calendar button beside the gear opens every routine as today's checklists. New routine starts from a template — an exercise week, prayers, sleep, water, mood, reading, study — or from one of your own, saved with one click.",
+          en: "The calendar button beside the gear opens every routine as today's checklists. New routine starts from a template — an exercise week, prayers, sleep, water, mood, reading, study — or from one of your own, saved with one click.", // lineage
           ar: "زر التقويم بجانب الترس يفتح كل روتين قوائمَ لليوم. روتين جديد يبدأ من قالب: أسبوع تمارين، صلاة، نوم، ماء، مزاج، قراءة، دراسة؛ أو من قالب لك تحفظه بنقرة واحدة.",
         },
         visual: { kind: "demo", mount: templatesDemo },

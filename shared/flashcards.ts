@@ -10,7 +10,7 @@
 //   · `> [!quote]` callouts, including the PDF reader's citations — the
 //     source and the opening words are the front, the whole quote the back.
 //
-// Constellations (shared/constellations.ts) read the same lines and add
+// Orbits (shared/decks.ts) read the same lines and add
 // three things the plugin's syntax already allows:
 //
 //   · a third segment, `front::back::extra` — a reading, an example, a

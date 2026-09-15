@@ -129,17 +129,17 @@
   color: var(--text);
 }
 
-/* ── A slot that names a constellation (client/routines/stars.ts) ───────
+/* ── A slot that names a deck (client/routines/orbits.ts) ───────
    The chip row wraps under the slot's text: the task row is the reading
    renderer's flex line, and a row that grows a chip is allowed to wrap here,
    on this page only. The chip is a small pill — the count in the accent,
    quiet once nothing is due — and the whole pill is the Study link. */
 
-.s-routines .s-rv-routine__task:has(.s-stars-chips) {
+.s-routines .s-rv-routine__task:has(.s-orbits-chips) {
   flex-wrap: wrap;
 }
 
-.s-stars-chips {
+.s-orbits-chips {
   flex-basis: 100%;
   display: flex;
   flex-wrap: wrap;
@@ -147,7 +147,7 @@
   padding-inline-start: 28px;
 }
 
-.s-stars-chip {
+.s-orbits-chip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -165,26 +165,26 @@
     border-color 120ms ease,
     color 120ms ease;
 }
-.s-stars-chip__icon {
+.s-orbits-chip__icon {
   font-size: 0.857rem;
   line-height: 1;
   margin-inline-end: 2px;
 }
-.s-stars-chip__n {
+.s-orbits-chip__n {
   color: var(--accent);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.s-stars-chip.is-clear .s-stars-chip__n {
+.s-orbits-chip.is-clear .s-orbits-chip__n {
   color: var(--text-faint);
   font-weight: 500;
 }
-.s-stars-chip:hover,
-.s-stars-chip:focus-visible {
+.s-orbits-chip:hover,
+.s-orbits-chip:focus-visible {
   border-color: var(--accent);
   color: var(--text);
 }
-.s-stars-chip:focus-visible {
+.s-orbits-chip:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -197,11 +197,11 @@
    column of inputs and the owner could not tell where one question ended
    and the next began. Same tokens as everything else; nothing new. */
 
-.s-orbitform {
+.s-sigilform {
   inline-size: min(820px, calc(100vw - 32px));
 }
 
-.s-orbitform__body {
+.s-sigilform__body {
   gap: 0;
   padding-block: 0;
   /* The sheet is its own query container: the rules below that stack a row
@@ -211,7 +211,7 @@
   container-type: inline-size;
 }
 
-.s-orbitform__start {
+.s-sigilform__start {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -219,23 +219,23 @@
   border-block-end: 1px solid var(--border);
 }
 
-.s-orbitform__section {
+.s-sigilform__section {
   display: flex;
   flex-direction: column;
   gap: 14px;
   padding-block: 18px 22px;
 }
-.s-orbitform__section + .s-orbitform__section {
+.s-sigilform__section + .s-sigilform__section {
   border-block-start: 1px solid var(--border);
 }
 
-.s-orbitform__sechead {
+.s-sigilform__sechead {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.s-orbitform__secnum {
+.s-sigilform__secnum {
   display: inline-grid;
   place-items: center;
   inline-size: 24px;
@@ -248,7 +248,7 @@
   flex: none;
 }
 
-.s-orbitform__sectitle {
+.s-sigilform__sectitle {
   margin: 0;
   font-family: var(--font-serif);
   font-size: 1.071rem;
@@ -256,7 +256,7 @@
   color: var(--text);
 }
 
-.s-orbitform__lead {
+.s-sigilform__lead {
   margin-block-start: -6px;
   font-size: 0.857rem;
   color: var(--text-muted);
@@ -264,13 +264,13 @@
 
 /* ── Start from: the presets, each with its icon ── */
 
-.s-orbitform__presets {
+.s-sigilform__presets {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.s-orbitform__preset {
+.s-sigilform__preset {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -282,42 +282,42 @@
   font-size: 0.857rem;
   cursor: pointer;
 }
-.s-orbitform__preset:hover {
+.s-sigilform__preset:hover {
   color: var(--text);
   border-color: var(--accent);
 }
-.s-orbitform__preset.is-on {
+.s-sigilform__preset.is-on {
   background: color-mix(in srgb, var(--accent) 16%, var(--bg));
   border-color: var(--accent);
   color: var(--text);
 }
-.s-orbitform__presetglyph {
+.s-sigilform__presetglyph {
   font-size: 1rem;
   line-height: 1;
 }
-.s-orbitform__preset--custom .s-orbitform__presetglyph {
+.s-sigilform__preset--custom .s-sigilform__presetglyph {
   color: var(--accent);
 }
 
-.s-orbitform__sublabel {
+.s-sigilform__sublabel {
   margin-block-start: 8px;
 }
 
 /* ── The icon: a shelf of glyphs and a field for any other ── */
 
-.s-orbitform__iconrow {
+.s-sigilform__iconrow {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.s-orbitform__emoji {
+.s-sigilform__emoji {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
   gap: 4px;
 }
 
-.s-orbitform__emojibtn {
+.s-sigilform__emojibtn {
   inline-size: 100%;
   aspect-ratio: 1;
   padding: 0;
@@ -329,34 +329,34 @@
   cursor: pointer;
   transition: border-color 0.12s ease, background 0.12s ease;
 }
-.s-orbitform__emojibtn:hover {
+.s-sigilform__emojibtn:hover {
   border-color: var(--border);
   background: var(--bg-hover);
 }
-.s-orbitform__emojibtn.is-on {
+.s-sigilform__emojibtn.is-on {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 16%, var(--bg));
 }
-.s-orbitform__emojibtn:focus-visible {
+.s-sigilform__emojibtn:focus-visible {
   outline: 2px solid var(--focus, var(--accent));
   outline-offset: 1px;
 }
-.s-orbitform__emojinone {
+.s-sigilform__emojinone {
   font-size: 0.714rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
-.s-orbitform__iconown {
+.s-sigilform__iconown {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.s-orbitform__iconown > .s-ctl-input {
+.s-sigilform__iconown > .s-ctl-input {
   flex: 0 1 220px;
 }
-.s-orbitform__iconpreview {
+.s-sigilform__iconpreview {
   display: inline-grid;
   place-items: center;
   inline-size: 36px;
@@ -368,30 +368,30 @@
   line-height: 1;
   flex: none;
 }
-.s-orbitform__iconpreview.is-empty {
+.s-sigilform__iconpreview.is-empty {
   color: var(--text-faint);
 }
 
 /* ── The week table ── */
 
-.s-orbitform__weekwrap {
+.s-sigilform__weekwrap {
   overflow-x: auto;
 }
 
-.s-orbitform__week {
+.s-sigilform__week {
   inline-size: 100%;
   border-collapse: collapse;
   font-size: 0.857rem;
 }
 
-.s-orbitform__week th,
-.s-orbitform__week td {
+.s-sigilform__week th,
+.s-sigilform__week td {
   padding: 4px;
   text-align: start;
   vertical-align: top;
 }
 
-.s-orbitform__week thead th {
+.s-sigilform__week thead th {
   font-size: 0.714rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -399,14 +399,14 @@
   font-weight: 500;
 }
 
-.s-orbitform__week tbody th {
+.s-sigilform__week tbody th {
   white-space: nowrap;
   color: var(--text-muted);
   font-weight: 500;
   padding-inline-end: 8px;
 }
 
-.s-orbitform__cell {
+.s-sigilform__cell {
   inline-size: 100%;
   min-inline-size: 140px;
   box-sizing: border-box;
@@ -420,20 +420,20 @@
   line-height: 1.4;
   resize: vertical;
 }
-.s-orbitform__cell:focus-visible {
+.s-sigilform__cell:focus-visible {
   outline: 2px solid var(--focus, var(--accent));
   outline-offset: 1px;
 }
 
 /* ── What to record: one toggle per field, a sentence under each ── */
 
-.s-orbitform__opts {
+.s-sigilform__opts {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
   gap: 6px;
 }
 
-.s-orbitform__opt {
+.s-sigilform__opt {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -443,19 +443,19 @@
   background: var(--bg);
   transition: border-color 0.12s ease;
 }
-.s-orbitform__opt.is-on {
+.s-sigilform__opt.is-on {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
   background: color-mix(in srgb, var(--accent) 6%, var(--bg));
 }
 
-.s-orbitform__optlabel {
+.s-sigilform__optlabel {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   cursor: pointer;
 }
 
-.s-orbitform__optbox {
+.s-sigilform__optbox {
   flex: none;
   inline-size: 18px;
   block-size: 18px;
@@ -464,14 +464,14 @@
   cursor: pointer;
 }
 
-.s-orbitform__optwords {
+.s-sigilform__optwords {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-inline-size: 0;
 }
 
-.s-orbitform__optname {
+.s-sigilform__optname {
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -480,13 +480,13 @@
   font-weight: 500;
 }
 
-.s-orbitform__optkey {
+.s-sigilform__optkey {
   font-family: var(--font-mono);
   font-size: 0.714rem;
   color: var(--text-faint);
 }
 
-.s-orbitform__opthelp {
+.s-sigilform__opthelp {
   font-size: 0.786rem;
   line-height: 1.4;
   color: var(--text-muted);
@@ -494,26 +494,26 @@
 
 /* The one part a known field lets you change: the unit of a number, the
    ceiling of a rating. Indented under the words, past the box. */
-.s-orbitform__optextra {
+.s-sigilform__optextra {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-inline-start: 28px;
 }
-.s-orbitform__optextralabel {
+.s-sigilform__optextralabel {
   font-size: 0.714rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-muted);
   white-space: nowrap;
 }
-.s-orbitform__optextra > .s-ctl-input {
+.s-sigilform__optextra > .s-ctl-input {
   flex: 0 1 140px;
 }
 
 /* ── Your own fields ── */
 
-.s-orbitform__own {
+.s-sigilform__own {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -522,34 +522,34 @@
   border-radius: 10px;
 }
 
-.s-orbitform__ownrow {
+.s-sigilform__ownrow {
   display: grid;
   grid-template-columns: minmax(120px, 1.4fr) minmax(130px, 1fr) minmax(90px, 0.8fr) auto;
   gap: 6px;
   align-items: center;
 }
-.s-orbitform__ownrow > .s-ctl-num {
+.s-sigilform__ownrow > .s-ctl-num {
   min-inline-size: 0;
 }
 /* The kind's one-line hint belongs in the open list, where there is room
    for it; in the closed trigger it crowded the word out on a phone. */
-.s-orbitform__ownrow .s-ctl-select__note {
+.s-sigilform__ownrow .s-ctl-select__note {
   display: none;
 }
-.s-orbitform__ownremove {
+.s-sigilform__ownremove {
   padding-inline: 8px;
   color: var(--text-faint);
 }
-.s-orbitform__ownremove:hover {
+.s-sigilform__ownremove:hover {
   color: var(--danger);
 }
 
-.s-orbitform__addfield {
+.s-sigilform__addfield {
   align-self: flex-start;
   border: 1px solid var(--border);
 }
 
-.s-orbitform__spacer {
+.s-sigilform__spacer {
   flex: 1;
 }
 
@@ -557,22 +557,22 @@
    large enough for a finger, and the week's cells keep their measure by
    scrolling the table sideways (the wrap above already allows it). */
 @container (inline-size < 560px) {
-  .s-orbitform__ownrow {
+  .s-sigilform__ownrow {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   }
-  .s-orbitform__ownrow > .s-ctl-input:first-child {
+  .s-sigilform__ownrow > .s-ctl-input:first-child {
     grid-column: 1 / 3;
   }
-  .s-orbitform__ownrow > .s-orbitform__ownremove {
+  .s-sigilform__ownrow > .s-sigilform__ownremove {
     grid-column: 3;
     grid-row: 1;
   }
 }
 @media (pointer: coarse) {
-  .s-orbitform__emojibtn {
+  .s-sigilform__emojibtn {
     min-inline-size: 42px;
   }
-  .s-orbitform__optbox {
+  .s-sigilform__optbox {
     inline-size: 22px;
     block-size: 22px;
   }
@@ -611,7 +611,7 @@
    symbol: the number field's stock 96px and its 42px of end padding were
    cut for "kg" and "%", and the phrase sat under the digits. Room for the
    sentence the field is. */
-.s-orbitform__target .s-ctl-num__input {
+.s-sigilform__target .s-ctl-num__input {
   inline-size: 200px;
   padding-inline-end: 118px;
 }

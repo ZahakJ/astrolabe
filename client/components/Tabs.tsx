@@ -21,7 +21,7 @@ import {
   closeAllPanes,
   closeOthersIn,
   isGraphTab,
-  isMediaTab, isRoutinesTab, isStarsTab, starsPathOf,
+  isMediaTab, isRoutinesTab, isOrbitsTab, orbitsPathOf,
   isVirtualTab,
   paneAt,
   type Workspace,
@@ -36,13 +36,13 @@ function titleOf(path: string): string {
   if (isGraphTab(path)) return t("docTitleGraph");
   if (isMediaTab(path)) return t("media");
   if (isRoutinesTab(path)) return t("routines");
-  // The shelf is named; a session over a constellation wears the note's
+  // The shelf is named; a session over a deck wears the note's
   // own name, so the strip reads "Hiragana" beside "Hiragana" the note.
-  // The implicit constellation is not a note and is named for what it is.
-  if (isStarsTab(path)) {
-    const studied = starsPathOf(path);
-    if (studied === null) return t("stars");
-    if (!isNotePath(studied)) return t("starsEverything");
+  // The implicit deck is not a note and is named for what it is.
+  if (isOrbitsTab(path)) {
+    const studied = orbitsPathOf(path);
+    if (studied === null) return t("orbits");
+    if (!isNotePath(studied)) return t("orbitsEverything");
     path = studied;
   }
   const base = path.slice(path.lastIndexOf("/") + 1);

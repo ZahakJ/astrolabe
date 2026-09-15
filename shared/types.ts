@@ -152,7 +152,7 @@ export interface Mention {
 
 // GET /api/tasks → TaskMeta[]: every `- [ ]` line in the vault with the
 // Tasks plugin's fields read (shared/tasks.ts), open and done alike; the
-// ```tasks fence and the Orbits page's "due" section filter it. Admin
+// ```tasks fence and the Sigils page's "due" section filter it. Admin
 // only. POST /api/task {path, line, done} flips one line and stamps ✅.
 export interface TaskMeta {
   path: string;

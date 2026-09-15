@@ -53,6 +53,20 @@ from the call sites only: the dictionary file is excluded from the usage scan, b
 whose English value happens to be its own name (`read: { en: "read" }`) would otherwise match
 inside its own definition and report itself as used.
 
+### `npm run check-names` — the names gate
+
+Two features were renamed in 3.15 and again in 3.16: the daily routine is **Sigils**, and **Orbits** <!-- lineage -->
+is spaced repetition. A rename that leaves one toast, one hint or one heading saying the old word is
+worse than none, so this gate greps every surface a reader sees — every English and Arabic value in
+`client/i18n.ts` and in `client/orbits/copy.ts`, every page of this manual in both languages, the
+README, the seed vault, the what's-new deck and the section headings of `CONTRACTS.md` — for the words
+that may not appear there any more (the old word for a sigil, the study page's working name, and "flash card",
+which is "card" now; and their Arabic), and `client/` and `server/` for the old page addresses,
+which may exist only as redirect sources. A line that has to tell the history (which older fences
+still work, what a release was called at the time) carries the word `lineage` in a comment on that
+line — `<!-- lineage -->` in Markdown, `// lineage` in the deck — and is skipped; a dictionary value
+never gets that exception. Each hit is printed as `file:line`, and the script exits non-zero.
+
 ### `npm run check-contrast` — the accessibility gate
 
 Holds every one of the forty-six themes in `client/styles/tokens.css` to the WCAG contrast

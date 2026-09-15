@@ -30,16 +30,16 @@ export interface KnownField {
 }
 
 export const KNOWN_FIELDS: readonly KnownField[] = [
-  { id: "minutes", key: { en: "minutes", ar: "دقائق" }, type: "number", unit: null, max: null, label: "orbitFieldMinutes", help: "orbitFieldMinutesHelp" },
-  { id: "weight", key: { en: "weight", ar: "الوزن" }, type: "number", unit: { en: "kg", ar: "كغ" }, max: null, label: "orbitFieldWeight", help: "orbitFieldWeightHelp" },
-  { id: "focus", key: { en: "focus", ar: "التركيز" }, type: "scale", unit: null, max: 5, label: "orbitFieldFocus", help: "orbitFieldFocusHelp" },
-  { id: "mood", key: { en: "mood", ar: "المزاج" }, type: "scale", unit: null, max: 5, label: "orbitFieldMood", help: "orbitFieldMoodHelp" },
-  { id: "energy", key: { en: "energy", ar: "الطاقة" }, type: "scale", unit: null, max: 5, label: "orbitFieldEnergy", help: "orbitFieldEnergyHelp" },
-  { id: "water", key: { en: "water", ar: "ماء" }, type: "count", unit: { en: "glasses", ar: "أكواب" }, max: null, label: "orbitFieldWater", help: "orbitFieldWaterHelp" },
-  { id: "pages", key: { en: "pages", ar: "صفحات" }, type: "count", unit: null, max: null, label: "orbitFieldPages", help: "orbitFieldPagesHelp" },
-  { id: "hours", key: { en: "hours", ar: "ساعات" }, type: "number", unit: null, max: null, label: "orbitFieldHours", help: "orbitFieldHoursHelp" },
-  { id: "quality", key: { en: "quality", ar: "الجودة" }, type: "scale", unit: null, max: 5, label: "orbitFieldQuality", help: "orbitFieldQualityHelp" },
-  { id: "notes", key: { en: "notes", ar: "ملاحظات" }, type: "text", unit: null, max: null, label: "orbitFieldNotes", help: "orbitFieldNotesHelp" },
+  { id: "minutes", key: { en: "minutes", ar: "دقائق" }, type: "number", unit: null, max: null, label: "sigilFieldMinutes", help: "sigilFieldMinutesHelp" },
+  { id: "weight", key: { en: "weight", ar: "الوزن" }, type: "number", unit: { en: "kg", ar: "كغ" }, max: null, label: "sigilFieldWeight", help: "sigilFieldWeightHelp" },
+  { id: "focus", key: { en: "focus", ar: "التركيز" }, type: "scale", unit: null, max: 5, label: "sigilFieldFocus", help: "sigilFieldFocusHelp" },
+  { id: "mood", key: { en: "mood", ar: "المزاج" }, type: "scale", unit: null, max: 5, label: "sigilFieldMood", help: "sigilFieldMoodHelp" },
+  { id: "energy", key: { en: "energy", ar: "الطاقة" }, type: "scale", unit: null, max: 5, label: "sigilFieldEnergy", help: "sigilFieldEnergyHelp" },
+  { id: "water", key: { en: "water", ar: "ماء" }, type: "count", unit: { en: "glasses", ar: "أكواب" }, max: null, label: "sigilFieldWater", help: "sigilFieldWaterHelp" },
+  { id: "pages", key: { en: "pages", ar: "صفحات" }, type: "count", unit: null, max: null, label: "sigilFieldPages", help: "sigilFieldPagesHelp" },
+  { id: "hours", key: { en: "hours", ar: "ساعات" }, type: "number", unit: null, max: null, label: "sigilFieldHours", help: "sigilFieldHoursHelp" },
+  { id: "quality", key: { en: "quality", ar: "الجودة" }, type: "scale", unit: null, max: 5, label: "sigilFieldQuality", help: "sigilFieldQualityHelp" },
+  { id: "notes", key: { en: "notes", ar: "ملاحظات" }, type: "text", unit: null, max: null, label: "sigilFieldNotes", help: "sigilFieldNotesHelp" },
 ];
 
 function sameKey(a: string, b: string): boolean {
@@ -65,15 +65,15 @@ export function fieldHelp(field: RoutineField): string {
   if (known) return t(known.help);
   switch (field.type) {
     case "scale":
-      return tf("orbitFieldScaleHelp", { key: field.key, max: String(field.max ?? 5) });
+      return tf("sigilFieldScaleHelp", { key: field.key, max: String(field.max ?? 5) });
     case "number":
-      return field.unit ? tf("orbitFieldNumberUnitHelp", { key: field.key, unit: field.unit }) : tf("orbitFieldNumberHelp", { key: field.key });
+      return field.unit ? tf("sigilFieldNumberUnitHelp", { key: field.key, unit: field.unit }) : tf("sigilFieldNumberHelp", { key: field.key });
     case "count":
-      return field.unit ? tf("orbitFieldCountUnitHelp", { key: field.key, unit: field.unit }) : tf("orbitFieldCountHelp", { key: field.key });
+      return field.unit ? tf("sigilFieldCountUnitHelp", { key: field.key, unit: field.unit }) : tf("sigilFieldCountHelp", { key: field.key });
     case "check":
-      return tf("orbitFieldCheckHelp", { key: field.key });
+      return tf("sigilFieldCheckHelp", { key: field.key });
     default:
-      return tf("orbitFieldTextHelp", { key: field.key });
+      return tf("sigilFieldTextHelp", { key: field.key });
   }
 }
 

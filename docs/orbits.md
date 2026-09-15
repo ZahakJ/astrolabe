@@ -1,225 +1,163 @@
 # Orbits
 
-*The things you come back to every day — a plan for each day, a record of what you did, and a page that asks you every morning.*
+*Decks of cards that are notes in your vault, studied on a schedule the note itself keeps.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
 ---
 
-Some things in life are not projects. They do not finish. You do not "complete" walking, or
-praying, or sleeping well — you come back round to them, day after day, the way a moon comes back
-round its planet. That is what an **orbit** is in Astrolabe: something you do by the day, with a
-card that shows you what today asks, lets you tick it off, and keeps count of how the days are
-going — your streak, this week, and the last twelve weeks as a little grid of colour.
+A card you are learning comes back around: tomorrow, then in a week, then in a month, each time a little later than the last. That is an orbit, and it is the picture behind this page. **Orbits** is Astrolabe's own spaced-repetition system. A **deck** is a set of things you want to know by heart, a **card** is one of them, and a **session** is a sitting in which you are asked them and say how well you knew. It does what Anki does, and it needs no second program, no separate database and no export: a deck is a Markdown note, its cards are lines in that note, and the day each card comes back is written into the note beside it.
 
-A [tracker](trackers.md) is a card about one thing you are working *through* (a book, a game, a
-course) and how far you have got. An orbit is a card about your *days*. An exercise week, the five
-prayers, sleep, water, a mood journal, twenty pages a night — anything you mean to do again
-tomorrow.
+A vault that never writes a deck still has one. Every highlight, quote and question you already marked in your notes (the forms are listed [below](#what-already-counts-as-a-card)) is gathered into an implicit deck called **Everything else**, grouped by top folder, so nothing you did before this page existed is lost.
 
-Everything an orbit knows lives in one ordinary note in your vault: the **plan** (what you mean to
-do) and the **log** (what you did). There is no hidden database. Tick a box and one line changes in
-your file; edit the line by hand and the card follows. Open the same vault in Obsidian and both
-parts are plain, readable code blocks that say exactly what they say here.
+> Until 3.15 this page's name belonged to the daily routine, which is now [Sigils](sigils.md). The word moved to where it fits: a routine is something you keep, and a card is something that comes back around. <!-- lineage -->
 
-> Before 3.15 this feature was called *routines* and the blocks were named ` ```routine ` and
-> ` ```routine-log `. Those names still work, in every note you already have — nothing needs
-> renaming. New orbits are written with the names below.
+## The note
 
-## What an orbit looks like in the note
+A note becomes a deck when it carries a `deck` code block. Everything else in the note is ordinary Markdown; the block only names the deck and says how it should be studied. Here is a whole one:
 
-Two blocks. The first is the plan; Astrolabe writes the second, the log, right under it the first
-time you tick something.
+````md
+---
+title: Hiragana
+---
 
-```orbit
-title: Daily exercise
-kind: exercise
-icon: 🚶
-slots: morning, evening
-target: 6/week
+```deck
+title: Hiragana
+icon: あ
+kind: typed
+new per day: 10
+steps: 1m, 10m
+tags: japanese, kana
+```
+
+Type the romaji and press Enter.
+
+## Basic
+
+あ::a
+い::i
+か::ka
+し::shi
+
+## Dakuten
+
+が::ga
+じ::ji
+
+## Combinations
+
+きゃ::kya
+しゃ::sha
+````
+
+Every line of the form `front::back` is a card: the front is what you are shown, the back is what you try to recall. A third part, `front::back::extra`, is shown on the answer side only, for a reading, an example sentence or a mnemonic:
+
+```md
+食べる::to eat::たべる · 朝ご飯を食べます
+```
+
+Headings are **sections**. The session shows the section's name above the card as a breadcrumb, and the shelf can study one section on its own, *Lesson 3 only*, which is how a textbook's chapters fit in one note. A line may end with `#tags` of its own. Anything inside another code block is never a card, and neither are headings, tables and task lines.
+
+The block's keys, all optional:
+
+| Key | Values | What it does |
+| --- | --- | --- |
+| `title` | a name | The name on the shelf. Without it, the note's title. |
+| `icon` | one emoji or a short glyph | Drawn on the shelf's card and above each card in a session. |
+| `kind` | `basic` `reversed` `both` `typed` `cloze-only` | How the `::` lines are asked; see the table below. `basic` when absent. |
+| `new per day` | a number | How many cards you have never seen this deck may show you in one day. Ten when absent; `0` means reviews only. |
+| `steps` | durations: `1m, 10m` | The learning steps a new card climbs before it gets a real schedule; see [Learning steps](#learning-steps-and-the-daily-limit). `1m, 10m` when absent. |
+| `tags` | words, separated by commas | The shelf filters by them. |
+
+### Kinds
+
+| `kind` | A `front::back` line becomes |
+| --- | --- |
+| `basic` | One card, front → back. |
+| `reversed` | One card the other way round, back → front. |
+| `both` | Two cards, front → back and back → front, each with its own schedule. Vocabulary wants this: you must produce the word as well as recognise it. |
+| `typed` | One card that shows an input box on the front. You type the answer and press Enter; the app compares it with the back (ignoring case, spaces at the ends, and the difference between full-width and half-width kana) and colours the letters that differ. The grade is still yours to give. |
+| `cloze-only` | The `::` lines are ignored; only `==highlights==` in the note are cards. |
+
+Whatever the kind, a line written with three colons, `front:::back`, is always a pair asked both ways, exactly as the Obsidian Spaced Repetition plugin reads it.
+
+### What already counts as a card
+
+These have been cards since before this page existed and still are, inside a deck note or anywhere else in the vault:
+
+| In the note | The card |
+| --- | --- |
+| `The ==mitochondria== is the powerhouse of the cell.` | A **cloze**: the front is the paragraph with the highlighted words blanked out; the back is the words. Several highlights in one paragraph make one card. |
+| `> [!quote] Ibn Khaldun, p. 12` and the quoted lines under it | A **quote**: the front is the source and the first few words; the back is the whole passage. A highlight you cite from a PDF in the reader lands in your note in this form, so it is already a card. |
+| A line, then `?` on its own line, then the answer under it | A **question**, front and back as written, either side allowed several lines. |
+
+## Studying
+
+Open Orbits from the command palette (**Open Orbits**, or **Study due cards** to go straight into whatever is due), from the ring door in the status bar — a small body on its orbit — or from the line the [Sigils](sigils.md) page shows when cards are due. The address is `/orbits`; the old `/review` still opens it.
+
+The **shelf** lists every deck as a card: its icon, its title and tags, how many cards are due, new and in all, and a thin line drawn from the last thirty days of your grades. The header counts what is due today across all of them and how many days in a row you have studied. **Study** starts a session with the due cards and today's new ones; **Study section ▾** limits it to one heading. *Everything else* sits last.
+
+A **session** shows one card at a time. The deck's icon and the section's name stand above it; a bar shows how many are done and how many remain. You read the front, try to recall, then turn it over with **Show answer** (Space or Enter). On a `typed` card you type first and Enter checks; the answer then shows with your attempt beside it. Four grades follow, *Again*, *Hard*, *Good* and *Easy*, each with the wait it would give the card, so you never grade blind. The keys **1** to **4** pick a grade. **Edit** opens the note at the card's line in a new tab. **Skip** puts the card aside for the rest of this session. **Undo** takes back the last grade and restores the schedule it replaced (one step). When the pile is empty a summary says how many you did, how long it took, how many you knew, and lists the ones you graded *Again*, with **Study more** and **Back to the shelf**. On a phone the grade row stays at the bottom, under your thumb.
+
+When nothing is due, **Study ahead** goes on through the rest of the deck, soonest due first.
+
+### Learning steps and the daily limit
+
+The schedule itself is SM-2, the method the Obsidian Spaced Repetition plugin uses: the first *Good* makes a card wait a day, the next six days, and after that each wait is multiplied by the card's *ease*, a number that says how easy it has been for you. *Hard* and *Again* lower the ease, *Easy* raises it, and it never drops below 1.3.
+
+What SM-2 lacks is a first day, and that is what **learning steps** give. A card you have never seen, or one you have just failed, is not sent off for a day; it comes back within the same session, first after one minute, then after ten (the `steps:` line changes these). *Good* on the last step, or *Easy* at any step, **graduates** it: it gets its first real schedule, one day for *Good* and four for *Easy*, written into the note. *Again* on a card you have known before is a **lapse**: the note gets SM-2's own answer (back tomorrow, ease lowered) and the card also returns in ten minutes, so you leave the session having seen it right at least once. The steps live only in the open page: close it and they are forgotten, and the note is the truth.
+
+Every deck also has a **daily limit on new cards**, `new per day`, ten unless you say otherwise. Reviews are never limited, and the limit is counted on this device for the local day, so a fresh deck of two hundred kana meets you ten at a time. Within a session the order is: learning cards whose step has come, then due reviews (the most overdue first), then new cards in the order they appear in the note; after every four reviews, one new one, so the new ones do not all arrive at the end.
+
+## Where the schedule lives
+
+When you grade a card, the app writes one comment into the note, after the card's line or block, in the plugin's own format:
+
+```md
+食べる::to eat::たべる <!--SR:!2026-09-27,4,2500-->
+```
+
+That comment is the whole state of the card: the day it is due, its current wait in days, and its ease times a thousand. A `:::` pair, or any line in a `both` deck, keeps two schedules in one comment, `<!--SR:!d1,i1,e1!d2,i2,e2-->`, which is the plugin's format for a pair too. The reading view hides the comment; the editor shows it as plain text; deleting it makes the card new again.
+
+This is the promise the page keeps: **a vault you study in Astrolabe and in Obsidian's Spaced Repetition plugin is one vault.** The plugin reads every deck note as a deck it wrote itself, and Astrolabe reads the plugin's decks as its own. Nothing about a card is stored anywhere but the note, with two exceptions that are caches rather than state: the learning steps of the open session, and the per-device log the statistics are drawn from.
+
+## Statistics
+
+Each shelf card opens a **stats** drawer for its deck: retention over the last thirty days (the share of grades that were *Good* or *Easy*); a forecast of how many cards come due on each of the next thirty days, computed from the schedules; the cards by state, new, learning, young (waiting less than three weeks) and mature; and the ten you have failed most often. The grades come from a log this device keeps of your last five thousand answers; the note has no history, and neither does the plugin, so a second device shows the statistics of its own sessions.
+
+## Creating a deck
+
+**New deck…** on the shelf (also in the command palette) asks for a title, an icon, a kind and a folder (`Orbits/` unless you choose another), then gives you a box to write the cards into, one `front::back::extra` line each, with a count that updates as you type. Save writes the note and returns you to the shelf. You can just as well write the code block by hand in any note.
+
+A card from a passage you are reading: select it, open the selection menu and choose **Make a card**. The selection becomes the answer of a `?` block placed after the paragraph, with the cursor on the empty question line above it. Highlighting a phrase (Ctrl/Cmd ⇧ H) makes a cloze card with no menu at all.
+
+### Importing
+
+**Import…** on the shelf takes an Anki package (`.apkg`) or a spreadsheet (`.csv` or `.tsv`).
+
+An **Anki deck** becomes one deck note per Anki deck, with its subdecks as sections. The note types are mapped to what you would have written by hand: *Basic* to `front::back`, *Basic (and reversed card)* to `front:::back`, *Cloze* to `==highlights==` in the text, and any further field to the `::extra` part. Pictures and sounds the cards use are copied into the vault's attachments folder beside the note and embedded as `![[file]]`. Anki's own scheduling, the due day, interval and ease of every card you have already studied, becomes the schedule comment, so the deck carries on where it was, not from the start. A card the note cannot hold as a line (a front the scanner would read as a heading, a quote or a table row is escaped and kept; one that still would not read back is left out) is counted and reported. Reading a `.apkg` needs Node 26 or later on the server (it uses Node's built-in SQLite); an older server says so plainly and skips the file.
+
+A **CSV or TSV** file shows a column mapper: choose which column is the front, which the back and, if you like, which the extra. The first row is treated as a header when it looks like one.
+
+Whatever the source, the result is a note you can open and edit like any other.
+
+## The sigil link
+
+A [sigil](sigils.md) is where the day's plan lives, and a slot in it can name a deck with a wikilink:
+
+```sigil
+title: Japanese
+slots: review, study
 monday:
-  morning: 60 min brisk walk
-  evening: Full Body A: leg press 3×8–12, chest press 3×8–12, plank 3×45 sec
-tuesday:
-  morning: 60 min easy walk
+  review: [[Orbits/Japanese/Hiragana]] — every card due, then ten new (10 min)
 ```
 
-```orbit-log
-2026-09-14 | done: morning, evening | Felt strong
-```
+On the sigil's card that slot shows the deck by name and wears a small chip after its text, *12 due · Study*, that opens the session. When a session for that deck ends with nothing left due today, the app ticks the slot for you, through the same log line the checkbox writes. A slot that names several decks is ticked when none of them has a card due. The Sigils page's own line, *N due in Orbits*, opens the shelf.
 
-Read it top to bottom and it says: *this orbit is called Daily exercise, it is an exercise, it
-wears a walking figure as its icon, each day has a morning and an evening, I am aiming for six days
-a week, and here is what Monday and Tuesday ask.* The log says: *on the 14th of September I did the
-morning and the evening, and I felt strong.*
+## Related
 
-You do not have to write any of this by hand. The **New orbit** form (below) writes it for you.
-But it is worth knowing that this is all there is.
+- [Sigils](sigils.md) — the day's page, where due cards appear and where a slot can point at a deck
+- [The PDF reader](books.md) — citations that arrive as quote cards
+- [The editor & reading view](editor.md) — highlights, callouts and the selection menu
 
-## The plan, line by line
-
-Every line is a word, a colon, and a value. Only the title is required — and even that can just be
-the first line on its own.
-
-| Line | What you put after the colon | What it does |
-| --- | --- | --- |
-| `title` | a name | What the card is called. |
-| `kind` | `exercise` `habit` `prayer` `sleep` `water` `mood` `reading` `study` — or any word of your own | Picks the small glyph on the card and the suggestions the form offers. Synonyms in both languages are understood (`workout`, `salah`, `رياضة`, `صلاة`…). Your own word is kept as written and gets the ✦ glyph. |
-| `icon` | one emoji or a short symbol — `🚶`, `☪`, `✦` | Drawn in the card's corner instead of the kind's glyph. |
-| `banner` | a picture — a file in the vault (`walk.jpg`, `Media/walk.jpg`) or an `https://` link | Drawn as a strip across the top of the card. It is found the same way a note's banner is: by its full path, then beside the note, then anywhere in the vault by name. |
-| `slots` | words with commas between them — `morning, evening` | The **parts of a day** you plan by. They become the columns of your week. Leave this line out and each day is just one line. |
-| `items` | things with commas between them — `Fajr, Dhuhr, Asr, Maghrib, Isha`, or `8 glasses` | Things asked of you **every** day. Each becomes a box to tick. |
-| a weekday | `monday: 60 min walk` — or `monday:` on its own with the parts indented under it | What that day asks. Weekdays are understood in English and Arabic, long or short (`mon`, `الاثنين`). A day with nothing under it is a **rest day**: it never counts against you. |
-| `fields` | things to record, with commas between them — see [What to record each day](#what-to-record-each-day) | The small inputs on the card: a number, a rating, a line of text. |
-| `target` | a number of days — `6/week`, or just `6` | How many days a week you are aiming for. The card counts against it: *3 of 6 this week*. Without it, the card counts the days the plan actually asks something of. |
-| `book` | the title of a book you are [tracking](trackers.md) — `[[…]]` is fine | Adds **Read N pages of it** to every day, N being the tracker's pace. Ticking it moves the tracker forward; unticking moves it back. |
-| `notes` | `notes: \|` and then lines indented under it | Anything you want to remember about this orbit — why you started, the rules you set yourself. Shown under the card. |
-
-A block with **no title and no plan at all** stays a plain code block, so a half-typed orbit reads as
-what you typed rather than vanishing into an empty card. One note can hold several orbits; each one
-takes the log block that follows it.
-
-## What to record each day
-
-Ticking boxes tells you *whether* you did something. Sometimes you also want to write down *how
-much*, or *how it went*. That is what fields are: small inputs on the card, one per day, each with
-its own column in the log.
-
-The form offers the common ones as toggles, each with a sentence saying what it means:
-
-- **Minutes** — how long it took, as a number.
-- **Weight** — your weight that day, a number with a unit (`kg` by default; change it if you like).
-- **Focus** — how focused you were, rated from 1 (scattered) to 5 (fully there).
-- **Mood** — how you felt, 1 (low) to 5 (great).
-- **Energy** — how much energy you had, 1 to 5.
-- **Water** — how much you drank, as a count of glasses.
-- **Pages** — how many pages you read.
-- **Hours** — how many hours, of sleep or of work.
-- **Quality** — how good it was, 1 to 5.
-- **Notes** — a line of text about the day.
-
-**None of them is required.** A template such as *Exercise* pre-ticks Minutes and Weight because
-many people want them; untick either and it is gone. Anything not on the list is yours to add under
-**Your own fields**: give it a name and say what kind of value it holds:
-
-| Kind of value | Means | Written in the plan as |
-| --- | --- | --- |
-| Number | any number, decimals allowed — 62, 84.2 | `weight:number:kg` (the unit is optional) |
-| Count | whole things you count — 3 glasses, 20 pages | `water:count:glasses` |
-| Rating | a mark from 1 to a ceiling you choose | `focus:scale:5` |
-| Text | a line of words | `soreness:text` |
-| Yes / no | a single box: did it happen | `stretched:check` |
-
-On the card, a rating is a row of numbered buttons: click one to set it, click it again to clear
-it. Hover a field's name and it tells you what it means — the same sentence the form showed you.
-
-## The log
-
-One line per day. Astrolabe writes these lines when you tick and type on the card, but they are
-made to be read — and edited — by a person:
-
-```
-2026-09-14 | done: morning, evening | skipped: stretch | minutes: 62 | weight: 84.2 | Felt strong
-```
-
-Reading left to right, separated by ` | `:
-
-- the **date** opens the line (Eastern Arabic digits are fine too);
-- `done:` names what you ticked — a part of the day (`morning`), an every-day item (`Fajr`), or
-  the weekday itself when the day was a single line (`sunday`);
-- `skipped:` names what you passed on **on purpose** — the day still counts as missed, but the log
-  remembers why;
-- anything whose name is one of your fields sets that field;
-- whatever is left is the day's **note**.
-
-Lines that do not start with a date are ignored, the last line for a date wins, and Astrolabe keeps
-the lines in date order when it writes. Whatever you typed by hand survives to the byte; the app
-only ever replaces the one line it is recording.
-
-## The card
-
-The plan turns into a card wherever the note is shown — in the editor, in reading view, on your
-published site, inside a transclusion — always the same card:
-
-- **The head**: the icon (or the kind's glyph), the name, and the banner strip above them if you set
-  one.
-- **Today**: the date, the day's checklist (every-day items first, then the day's parts with what
-  each asks), the fields, and a one-line note. In the editor, ticking a box rewrites the log as
-  **one undo step**. Hover a task for *skip*.
-- **Three numbers**: the **streak** (complete days in a row — rest days do not break it, and a day
-  that is not over yet neither adds nor breaks), **this week** (`3/6`, against your target), and
-  the **last 30 days** as a percentage.
-- **The week**: seven dots, today ringed — full for complete, half for partly done, red-rimmed for
-  missed, hollow for a rest day. The week starts on Monday for an English site and on Saturday for
-  an Arabic one.
-- **Twelve weeks**: a small grid, one cell per day, coloured by how much of the day you did.
-  Hatched cells are rest days; today is ringed.
-- **The week's plan**, folded away under a heading: each day and its parts, today's row lit.
-
-The log block renders as a table of the days, newest first: the date with its status dot, what was
-done, each field, the note.
-
-Reading view and the public site show the card without its controls. A visitor cannot write to
-your note, and a box that cannot be ticked would be a box that lies.
-
-## The Orbits page
-
-The orbit button in the status bar (the small body on its ring, beside the settings gear; admins
-only — or **Open the Orbits page** in the command palette) opens every orbit in the vault as
-today's checklists, in a tab in the current pane. The address is `/orbits` (`/routines` still gets
-you there). The line under the heading counts the day: *3 of 5 complete today*.
-
-A tick on this page goes to the note the orbit lives in, by the very same edit the editor would
-make, so the page and the editor never disagree about what the log says. The page re-reads on
-every change to the vault, so a box ticked in the editor shows here at once.
-
-Each card has **Edit** (the form, filled in), **Delete** (the note goes to the trash through the
-same dialog the tree uses), and its name opens the note. One orbit spans the whole row, with the
-week strip beside the twelve-week grid; two share a row; more wrap in pairs.
-
-## New orbit — the form
-
-**New orbit** opens a sheet in four parts.
-
-**Start from.** A row of templates. **Custom** starts from nothing and lets you choose each part
-yourself. The built-in ones fill the sheet in: *Exercise* (a whole week of morning walks and evening
-full-body sessions), *Habits*, *Prayers* (the five, every day, with a count of those prayed in
-congregation), *Sleep* (hours, quality, bedtime), *Water*, *Mood* (mood, energy, gratitude),
-*Reading*, *Study* — each in your site's language. Under them, **Your templates**: any note in the
-[templates folder](templates-and-notes.md) that carries an ` ```orbit ` block. A template only
-fills the sheet in; everything on it stays yours to change.
-
-1. **Name and look.** The name; the kind (or your own word); the **icon** — a shelf of forty
-   glyphs, or type any emoji or short symbol; the **banner** — a picture from the vault, chosen from
-   a list as you type, or **Choose…** to upload one.
-2. **Days and parts.** The parts of a day (`morning, evening`); the things asked of every day; and
-   a table — one row per weekday, one column per part — where you write what each day asks. Leave a
-   day blank and it is a rest day.
-3. **What to record each day.** The toggles described above, each with its sentence, plus **Your
-   own fields**. Tick only what you actually want to write down.
-4. **Target and notes.** Days a week you are aiming for; a book you are tracking; notes.
-
-**Save** writes one note:
-
-```
-Orbits/Daily exercise.md
-```
-
-holding the name as frontmatter, the plan block and an empty log block. On an Arabic site the
-folder is `مدارات`; a vault that already has a `Routines/` or `روتين/` folder from before 3.15
-keeps filing there. A name that already has a note is refused rather than overwritten. Editing from
-the page rewrites **only the plan block** — the log under it and any prose around it stay exactly as
-they were, byte for byte. **Save as template** writes the same note into the templates folder
-instead, so an orbit you drew up once can seed the next.
-
-## In the editor
-
-Type ` ```orbit ` by hand, or `/orbit` from the slash menu for a skeleton. With the caret outside
-the block you see the card; put the caret inside and it is source again, so the plan can be edited
-in place. The log block behaves the same way.
-
-## In Obsidian
-
-`orbit` is an Astrolabe extension. In Obsidian the two blocks are labelled code blocks whose lines
-are all readable — nothing is converted and nothing is lost. See
-[OBSIDIAN-COMPAT.md](../OBSIDIAN-COMPAT.md).
+A kanji deck built from [KANJIDIC2](https://www.edrdg.org/kanjidic/kanjd2index.html), as the author's own were, carries the dictionary's meanings and readings, © the Electronic Dictionary Research and Development Group, used under the CC BY-SA 4.0 licence; say so in the note's frontmatter, as they do.

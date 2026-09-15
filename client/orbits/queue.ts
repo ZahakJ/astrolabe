@@ -3,32 +3,32 @@
 // The session view asks this for the next star, hands it each grade, and
 // reads its summary at the end; everything it knows that the shared machine
 // does not is the plumbing of a browser — the daily new-star counter and
-// the grade log in localStorage (client/stars/log.ts), the one-level undo,
+// the grade log in localStorage (client/orbits/log.ts), the one-level undo,
 // and the clock. No React in here, so the rules can be read in one place
 // and the view stays a view. The machine's sessions are immutable, which is
 // what makes undo one field: the session as it was before the grade.
 //
-// STARS ARE KEYED BY THEIR TEXT, NOT THEIR LINE. The first grade on a
+// CARDS ARE KEYED BY THEIR TEXT, NOT THEIR LINE. The first grade on a
 // `?` block or a cloze writes a comment LINE into the note and every star
 // below it moves down one; a queue keyed by line would lose its place on the
 // re-read that follows. The note, the direction, the kind and the two faces
 // are stable until the reader edits them — and an edited star is a new
 // star. Two stars that share all of that (`dog::chien` under one heading,
 // `dog::perro` under the next; the same phrase highlighted in two notes of
-// the implicit constellation) are told apart by their ORDER in the note,
+// the implicit deck) are told apart by their ORDER in the note,
 // which a comment line does not change either. `refresh()` swaps in the
 // re-read stars under the same keys and the walk goes on.
 
-import type { ConstellationMeta, Star, Step } from "../../shared/constellations.ts";
-import { DEFAULT_NEW_PER_DAY, DEFAULT_STEPS } from "../../shared/constellations.ts";
+import type { DeckMeta, DeckCard, Step } from "../../shared/decks.ts";
+import { DEFAULT_NEW_PER_DAY, DEFAULT_STEPS } from "../../shared/decks.ts";
 import { isDue, type Grade, type Schedule } from "../../shared/srs.ts";
 import {
   createSession,
-  gradeStar,
-  nextStar,
+  gradeCard,
+  nextCard,
   previews as previewsOf,
   remaining,
-  skipStar,
+  skipCard,
   type IntervalPreview,
   type Phase,
   type Session,
@@ -49,7 +49,7 @@ export type Preview = IntervalPreview;
 
 /** Session keys for a list of stars in document order: the same list on
  *  a later read yields the same keys, whatever the line numbers did. */
-export function keysOf(stars: readonly Star[]): string[] {
+export function keysOf(stars: readonly DeckCard[]): string[] {
   const seen = new Map<string, number>();
   return stars.map((s) => {
     const base = `${s.path}#${s.dir}#${s.kind}#${s.front}#${s.back}`;
@@ -59,9 +59,9 @@ export function keysOf(stars: readonly Star[]): string[] {
   });
 }
 
-/** What the view needs to know about the constellation a session is over.
+/** What the view needs to know about the deck a session is over.
  *  The fence's steps and daily limit ride on the shelf's meta row when the
- *  server sends them (the implicit constellation has none); the defaults
+ *  server sends them (the implicit deck has none); the defaults
  *  stand in otherwise, so a session never waits on a second request. */
 export interface SessionHead {
   path: string;
@@ -69,7 +69,7 @@ export interface SessionHead {
   newPerDay: number;
 }
 
-export function headOf(meta: ConstellationMeta & { steps?: Step[]; newPerDay?: number }): SessionHead {
+export function headOf(meta: DeckMeta & { steps?: Step[]; newPerDay?: number }): SessionHead {
   const steps = Array.isArray(meta.steps) && meta.steps.length > 0 ? meta.steps : DEFAULT_STEPS;
   const newPerDay = typeof meta.newPerDay === "number" && meta.newPerDay >= 0 ? meta.newPerDay : DEFAULT_NEW_PER_DAY;
   return { path: meta.path, steps, newPerDay };
@@ -87,22 +87,22 @@ interface Undo {
 }
 
 export interface Graded {
-  /** The session key — `starOf(key)` is the star AS THE LAST READ HAS IT,
+  /** The session key — `cardOf(key)` is the star AS THE LAST READ HAS IT,
    *  which is the line a write must name once an earlier write moved it. */
   key: string;
-  star: Star;
+  star: DeckCard;
   pick: Pick;
   grade: Grade;
   /** The schedule to write into the note, or null for a step move. */
   write: Schedule | null;
 }
 
-export class StarQueue {
+export class CardQueue {
   readonly head: SessionHead;
   readonly today: string;
   readonly ahead: boolean;
   readonly startedAt: number;
-  private stars = new Map<string, Star>();
+  private stars = new Map<string, DeckCard>();
   private session: Session;
   private undo: Undo | null = null;
   /** Keys put aside for this walk ("Skip") — the summary still counts the
@@ -112,7 +112,7 @@ export class StarQueue {
    *  so a learning timer elapsing behind the card does not swap it. */
   private current: Pick | null = null;
 
-  constructor(head: SessionHead, stars: Star[], today: string, ahead = false, now = Date.now()) {
+  constructor(head: SessionHead, stars: DeckCard[], today: string, ahead = false, now = Date.now()) {
     this.head = head;
     this.today = today;
     this.ahead = ahead;
@@ -126,40 +126,40 @@ export class StarQueue {
 
   /** Stars with their session key in place of the vault id — the machine
    *  never sees a line number. */
-  private keyed(stars: Star[]): Star[] {
+  private keyed(stars: DeckCard[]): DeckCard[] {
     const keys = keysOf(stars);
     return stars.map((s, i) => ({ ...s, id: keys[i] }));
   }
 
   /** A re-read of the note: faces and schedules refresh under the same
    *  keys; the order the reader is walking stays theirs. */
-  refresh(stars: Star[]): void {
+  refresh(stars: DeckCard[]): void {
     const keys = keysOf(stars);
     this.stars = new Map(stars.map((s, i) => [keys[i], s]));
   }
 
-  starOf(key: string): Star | null {
+  cardOf(key: string): DeckCard | null {
     return this.stars.get(key) ?? null;
   }
 
   /** The star to show now. A key whose star vanished between reads is
    *  dropped rather than shown as a blank. */
-  next(now = Date.now()): { pick: Pick; star: Star } | null {
+  next(now = Date.now()): { pick: Pick; star: DeckCard } | null {
     if (this.current !== null) {
       const star = this.stars.get(this.current.id);
       if (star) return { pick: this.current, star };
-      this.session = skipStar(this.session, this.current.id);
+      this.session = skipCard(this.session, this.current.id);
       this.current = null;
     }
     for (;;) {
-      const n = nextStar(this.session, now);
+      const n = nextCard(this.session, now);
       if (n === null) return null;
       const star = this.stars.get(n.star.id);
       if (star) {
         this.current = { id: n.star.id, phase: n.phase, early: n.early };
         return { pick: this.current, star };
       }
-      this.session = skipStar(this.session, n.star.id);
+      this.session = skipCard(this.session, n.star.id);
     }
   }
 
@@ -171,7 +171,7 @@ export class StarQueue {
     return entry ? Math.max(0, entry.dueAt - now) : 0;
   }
 
-  previews(p: Pick, star: Star): Record<Grade, Preview> {
+  previews(p: Pick, star: DeckCard): Record<Grade, Preview> {
     const got = previewsOf(this.withStar(p.id, star), p.id, this.today);
     // A pick the machine no longer knows (never, in practice: the pick is
     // held until graded) previews as a plain new star would.
@@ -180,7 +180,7 @@ export class StarQueue {
 
   /** The session with the star AS THE LAST READ HAS IT: a schedule edited
    *  in the note since the walk began is what SM-2 must build on. */
-  private withStar(key: string, star: Star): Session {
+  private withStar(key: string, star: DeckCard): Session {
     const known = this.session.stars[key];
     if (known && known.schedule === star.schedule) return this.session;
     return { ...this.session, stars: { ...this.session.stars, [key]: { ...star, id: key } } };
@@ -191,7 +191,7 @@ export class StarQueue {
     if (cur === null) return null;
     const { pick: p, star } = cur;
     const before = this.session;
-    const result = gradeStar(this.withStar(p.id, star), p.id, g, now, this.today);
+    const result = gradeCard(this.withStar(p.id, star), p.id, g, now, this.today);
     const countedNew = p.phase === "new";
     this.undo = { session: before, key: p.id, before: star.schedule, wrote: result.write !== null, grade: g, countedNew };
     this.session = result.session;
@@ -204,7 +204,7 @@ export class StarQueue {
   /** Put the current star aside for this session. */
   skip(): void {
     if (this.current === null) return;
-    this.session = skipStar(this.session, this.current.id);
+    this.session = skipCard(this.session, this.current.id);
     this.buried.push(this.current.id);
     this.undo = null;
     this.current = null;
@@ -217,7 +217,7 @@ export class StarQueue {
   /** Take back the last grade: the queue returns to where it was, the log
    *  forgets the grade, and the caller is told what schedule to put back in
    *  the note (nothing, when the grade only moved a step). */
-  undoLast(): { key: string; star: Star; wrote: boolean; grade: Grade; restore: Schedule | null } | null {
+  undoLast(): { key: string; star: DeckCard; wrote: boolean; grade: Grade; restore: Schedule | null } | null {
     const u = this.undo;
     if (u === null) return null;
     const star = this.stars.get(u.key);
@@ -241,9 +241,9 @@ export class StarQueue {
   /** `dueLeft` counts what is still due today after this walk: the reviews
    *  not reached, and the due ones the reader skipped — a skipped star is
    *  put aside for the session, not for the day. */
-  summary(now = Date.now()): { graded: number; kept: number; again: Star[]; seconds: number; dueLeft: number } {
+  summary(now = Date.now()): { graded: number; kept: number; again: DeckCard[]; seconds: number; dueLeft: number } {
     const log = this.session.log;
-    const again = this.session.again.map((k) => this.stars.get(k)).filter((s): s is Star => s !== undefined);
+    const again = this.session.again.map((k) => this.stars.get(k)).filter((s): s is DeckCard => s !== undefined);
     const kept = log.filter((x) => x.grade === "good" || x.grade === "easy").length;
     const skippedDue = this.buried.filter((k) => {
       const s = this.stars.get(k);

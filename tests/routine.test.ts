@@ -244,7 +244,7 @@ describe("a book in the plan (3.13.0)", () => {
   });
 });
 
-describe("orbits (3.15.0) — the new word, the same model", () => {
+describe("sigils (3.16.0; orbits in 3.15.0) — the new word, the same model", () => {
   const OWNER = `title: Daily exercise
 kind: exercise
 icon: 🚶
@@ -256,12 +256,16 @@ monday:
 tuesday:
   morning: 60 min easy walk
 `;
-  it("reads an orbit fence and a routine fence as the same thing", () => {
+  it("reads a sigil fence, a 3.15 orbit fence and a routine fence as the same thing", () => {
+    const sigil = scanRoutines("```sigil\n" + OWNER + "```\n\n```sigil-log\n2026-09-14 | done: morning\n```\n");
     const orbit = scanRoutines("```orbit\n" + OWNER + "```\n\n```orbit-log\n2026-09-14 | done: morning\n```\n");
     const legacy = scanRoutines("```routine\n" + OWNER + "```\n\n```routine-log\n2026-09-14 | done: morning\n```\n");
+    assert.equal(sigil.length, 1);
     assert.equal(orbit.length, 1);
     assert.equal(legacy.length, 1);
+    assert.deepEqual(sigil[0].plan, legacy[0].plan);
     assert.deepEqual(orbit[0].plan, legacy[0].plan);
+    assert.deepEqual(sigil[0].entries, legacy[0].entries);
     assert.deepEqual(orbit[0].entries, legacy[0].entries);
   });
   it("keeps an icon and a banner, and the owner's plan round-trips untouched", () => {
@@ -278,9 +282,11 @@ tuesday:
     assert.equal(parseRoutine("title: X\nicon: not an icon at all\nitems: a\n")!.emoji, null);
   });
   it("spells a new log fence the way its plan is spelled", () => {
+    const sigilNote = "```sigil\n" + OWNER + "```\n";
     const orbitNote = "```orbit\n" + OWNER + "```\n";
     const legacyNote = "```routine\n" + OWNER + "```\n";
     const patch = { date: "2026-09-14", done: ["morning"] };
+    assert.ok(applyEdit(sigilNote, logEditFor(sigilNote, 0, patch)!).includes("```sigil-log\n"));
     assert.ok(applyEdit(orbitNote, logEditFor(orbitNote, 0, patch)!).includes("```orbit-log\n"));
     assert.ok(applyEdit(legacyNote, logEditFor(legacyNote, 0, patch)!).includes("```routine-log\n"));
   });
@@ -295,11 +301,15 @@ tuesday:
     const bare = parseLogLine("2026-09-14 | notes: felt fine", [])!;
     assert.equal(bare.note, "felt fine");
   });
-  it("files a new orbit under Orbits, or under the folder a vault already keeps", () => {
-    assert.equal(routinesRootFor("en", []), "Orbits");
-    assert.equal(routinesRootFor("ar", []), "مدارات");
+  it("files a new sigil under Sigils, or under the Routines folder a vault already keeps — never under Orbits", () => {
+    assert.equal(routinesRootFor("en", []), "Sigils");
+    assert.equal(routinesRootFor("ar", []), "سجل");
     assert.equal(routinesRootFor("en", ["Routines"]), "Routines");
-    assert.equal(routinesRootFor("en", ["Routines", "Orbits"]), "Orbits");
-    assert.ok(routineNoteContent(draftOf(parseRoutine(OWNER)!)).startsWith('---\ntitle: "Daily exercise"\n---\n\n```orbit\n'));
+    assert.equal(routinesRootFor("en", ["Routines", "Sigils"]), "Sigils");
+    // Orbits/ is the decks' folder from 3.16: a 3.15 vault that filed its
+    // sigils there gets a Sigils/ folder for the next one.
+    assert.equal(routinesRootFor("en", ["Orbits"]), "Sigils");
+    assert.equal(routinesRootFor("ar", ["مدارات"]), "سجل");
+    assert.ok(routineNoteContent(draftOf(parseRoutine(OWNER)!)).startsWith('---\ntitle: "Daily exercise"\n---\n\n```sigil\n'));
   });
 });

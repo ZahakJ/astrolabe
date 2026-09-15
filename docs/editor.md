@@ -285,7 +285,7 @@ sort: priority
 
 Lines: `not done` (the default), `done`, `all`; `due today`, `due this week`, `overdue`, `due before
 2026-10-01`, `due after …`, `due on …`, `has due date`; `path:Projects`, `tag:work`, `limit: 50`,
-`group: none`, `sort: due | priority | path`. The Orbits page opens with the tasks due by today.
+`group: none`, `sort: due | priority | path`. The Sigils page opens with the tasks due by today.
 
 ## Unlinked mentions
 
@@ -346,7 +346,7 @@ the same choice.
 
 **What's new after an update** (Settings → This device, on by default). The first time this device
 opens a new version of Astrolabe as an admin, a short deck walks through the release's features: one
-slide per feature, a live piece of the product on each (an orbit card you can tick, a warmth slider
+slide per feature, a live piece of the product on each (a sigil card you can tick, a warmth slider
 you can drag), next and back, `←`/`→` on the keyboard. It appears once per *minor* version: a
 bug-fix release shows nothing new, and a reader who skipped 3.11.0 and lands on 3.11.2 still gets
 the 3.11 deck. A device that skipped several releases gets every deck it missed, oldest first, in one

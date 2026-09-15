@@ -1,5 +1,5 @@
-/* Astrolabe — Constellations (client/stars/*): the shelf, the session, the
-   statistics drawer and the New constellation form. Its own file, loaded
+/* Astrolabe — Orbits (client/orbits/*): the shelf, the session, the
+   statistics drawer and the New deck form. Its own file, loaded
    with the surface's lazy chunk. The Orbits page's rules: the page scrolls
    down, never sideways; tokens only; logical properties. The session's
    own rule: THE CARD IS THE HERO — one calm column, the card in the middle,
@@ -9,12 +9,12 @@
 
    The form and the drawer wear the Media form's frame (.s-mediaform), which
    arrives with the MEDIA chunk; imported here so a reader who opens
-   Constellations first has it. */
+   Orbits first has it. */
 @import "./media.css";
 
 /* ── the page ─────────────────────────────────────────────────────────── */
 
-.s-stars {
+.s-orbits {
   flex: 1;
   min-block-size: 0;
   overflow-y: auto;
@@ -26,12 +26,12 @@
 }
 /* The session takes focus for its keys (Space, 1–4); the ring would frame
    the whole pane, and the card's own controls carry theirs. */
-.s-stars:focus-visible {
+.s-orbits:focus-visible {
   outline: none;
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 
-.s-stars__head {
+.s-orbits__head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -41,24 +41,24 @@
   margin-inline: auto;
 }
 
-.s-stars__headtext {
+.s-orbits__headtext {
   min-inline-size: 0;
 }
 
-.s-stars__headactions {
+.s-orbits__headactions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
-.s-stars__headactions .s-btn {
+.s-orbits__headactions .s-btn {
   border: 1px solid var(--border);
   min-block-size: 34px;
 }
-.s-stars__headactions .s-btn--accent {
+.s-orbits__headactions .s-btn--accent {
   border-color: transparent;
 }
 
-.s-stars__date {
+.s-orbits__date {
   margin: 0;
   font-size: 0.786rem;
   letter-spacing: 0.08em;
@@ -66,7 +66,7 @@
   color: var(--accent);
 }
 
-.s-stars__h1 {
+.s-orbits__h1 {
   margin: 2px 0 0;
   font-family: var(--font-serif);
   font-size: 1.714rem;
@@ -75,39 +75,39 @@
   color: var(--text);
 }
 
-.s-stars__lead {
+.s-orbits__lead {
   margin: 4px 0 0;
   font-size: 0.929rem;
   color: var(--text-muted);
 }
 
-.s-stars__empty {
+.s-orbits__empty {
   max-inline-size: 560px;
   margin: 64px auto 0;
   text-align: center;
   color: var(--text-muted);
 }
 
-.s-stars__emptystar {
+.s-orbits__emptymark {
   display: inline-block;
   color: var(--accent);
   opacity: 0.8;
 }
 
-.s-stars__emptytext {
+.s-orbits__emptytext {
   margin: 12px 0 4px;
   font-family: var(--font-serif);
   font-size: 1.143rem;
   color: var(--text);
 }
 
-.s-stars__emptyhint {
+.s-orbits__emptyhint {
   margin: 0;
   font-size: 0.929rem;
 }
 
 /* The two lines that teach the syntax, as they would be typed. */
-.s-stars__syntax {
+.s-orbits__syntax {
   display: inline-block;
   margin: 14px auto;
   padding: 12px 18px;
@@ -147,7 +147,7 @@
 .s-shelf__card:hover {
   border-color: var(--card-hover-border);
 }
-/* The implicit constellation is the vault's leftovers: it keeps its place
+/* The implicit deck is the vault's leftovers: it keeps its place
    at the end and dresses down. */
 .s-shelf__card--implicit {
   border-style: dashed;
@@ -517,7 +517,7 @@
   min-block-size: 40px;
 }
 
-/* A typed star: the input on the front, Enter checks. */
+/* A typed card: the input on the front, Enter checks. */
 .s-session__typed {
   display: flex;
   gap: 8px;
@@ -826,7 +826,7 @@
   min-inline-size: 0;
 }
 .s-statsdrawer__state--new {
-  /* Grey: a new star is a blank, not a colour yet. Young takes the accent
+  /* Grey: a new card is a blank, not a colour yet. Young takes the accent
      so it never shares a hue with new in a blue-accent theme. */
   background: var(--text-faint);
 }
@@ -883,7 +883,7 @@
   gap: 8px;
   min-inline-size: 0;
 }
-.s-statsdrawer__star {
+.s-statsdrawer__card {
   flex: 1;
   min-inline-size: 0;
   text-align: start;
@@ -900,7 +900,7 @@
   white-space: nowrap;
   min-block-size: 28px;
 }
-.s-statsdrawer__star:hover {
+.s-statsdrawer__card:hover {
   background: var(--bg-hover);
 }
 .s-statsdrawer__again {
@@ -909,48 +909,48 @@
   color: var(--danger);
 }
 
-/* ── the New constellation form ───────────────────────────────────────── */
+/* ── the New deck form ───────────────────────────────────────── */
 
-.s-starsform {
+.s-deckform {
   inline-size: min(680px, calc(100vw - 32px));
 }
-.s-starsform__tabs {
+.s-deckform__tabs {
   display: flex;
   gap: 2px;
   padding: 8px 18px 0;
   border-block-end: 1px solid var(--border);
 }
-.s-starsform__tab {
+.s-deckform__tab {
   padding: 8px 12px;
   border-radius: var(--radius) var(--radius) 0 0;
   color: var(--text-muted);
   border-block-end: 2px solid transparent;
   margin-block-end: -1px;
 }
-.s-starsform__tab--on {
+.s-deckform__tab--on {
   color: var(--text);
   border-block-end-color: var(--accent);
 }
-.s-starsform__body {
+.s-deckform__body {
   gap: 16px;
 }
-.s-starsform__cards {
+.s-deckform__cards {
   font-family: var(--font-mono);
   font-size: 0.857rem;
   min-block-size: 140px;
 }
-.s-starsform__count {
+.s-deckform__count {
   margin: 0;
   font-size: 0.857rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
-.s-starsform__mapper {
+.s-deckform__mapper {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
   gap: 10px;
 }
-.s-starsform__col {
+.s-deckform__col {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -958,7 +958,7 @@
   color: var(--text-muted);
   min-inline-size: 0;
 }
-.s-starsform__check {
+.s-deckform__check {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -966,7 +966,7 @@
   color: var(--text-muted);
   min-block-size: 28px;
 }
-.s-starsform__iconrow .s-ctl-input {
+.s-deckform__iconrow .s-ctl-input {
   max-inline-size: 120px;
 }
 
@@ -974,10 +974,10 @@
   .s-shelf__study,
   .s-shelf__sections,
   .s-shelf__small,
-  .s-stars__headactions .s-btn,
+  .s-orbits__headactions .s-btn,
   .s-session__show,
   .s-session__check,
-  .s-starsform__tab {
+  .s-deckform__tab {
     min-block-size: 44px;
   }
 }

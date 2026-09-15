@@ -9297,14 +9297,22 @@ admin, dir)`), as an editor paste does: they sent none, so under the "same folde
 beside the note — the one upload path that ignored the setting. The site-wide pickers (home
 banner, logo, favicon) belong to no note and keep the root as their context.
 
-## Orbits — formerly Routines (`shared/routine.ts`, `client/reading/routine.ts`, `client/editor/routine.ts`, `client/routines/`)
+## Sigils — the daily routine (Routines in 3.11–3.14, Orbits in 3.15) (`shared/routine.ts`, `client/reading/routine.ts`, `client/editor/routine.ts`, `client/routines/`) <!-- lineage -->
 
-An ```` ```orbit ```` fence is a PLAN by the day; the ```` ```orbit-log ```` fence after it is the
-LOG the app writes. **Until 3.15 the feature was called ROUTINES and the fences were spelled
-```` ```routine ```` / ```` ```routine-log ````**; the identifiers, file names, routes and test names
-below keep that word (renaming a thousand symbols for a word the reader never sees buys nothing),
-and every user-facing string, the fence the form writes, the URL, the tab and the docs say orbit.
-The section under 3.15.0 lists exactly what changed and what the legacy spelling still gets. The owner asked for "a daily tracker … per-day details on specific activities …
+A ```` ```sigil ```` fence is a PLAN by the day; the ```` ```sigil-log ```` fence after it is the
+LOG the app writes. Lineage, once: the feature shipped as Routines (3.11–3.14, fences ```` ```routine ````
+/ ```` ```routine-log ````), was renamed Orbits in 3.15 (```` ```orbit ```` / ```` ```orbit-log ````), and
+in 3.16 gave that word to spaced repetition and became Sigils — Latin *sigillum*, Arabic سِجِلّ, the
+same root, a seal set on a kept day and the register of those days. **Every spelling is read** <!-- lineage -->
+(`fenceWord` in shared/routine.ts; `logFenceWordFor` answers a legacy plan with its own log word,
+so one note keeps one vocabulary); the form and the seed WRITE `sigil`. The identifiers, file names,
+routes and test names below keep "routine" (renaming a thousand symbols for a word the reader never
+sees buys nothing), and every user-facing string, the URL (`/sigils`; `/routines` redirects), the tab
+(`~sigils`; `~routines` is folded), the folder (`Sigils/`, `سجل/`; an existing `Routines/` or `روتين/`
+kept; NEVER `Orbits/`, which is the decks' folder now — `routinesRootFor`), the door (a seal glyph,
+`data-testid="sigils-door"`, beside the Orbits ring) and the docs (`docs/sigils.md`) say sigil.
+`npm run check-names` (scripts/check-names.mjs) greps every user-facing surface for the old words and
+fails on a hit. The owner asked for "a daily tracker … per-day details on specific activities …
 templates like an exercise tracker … custom templates". A tracker is a card about one work; a
 routine is a card about your days, and it follows every rule the tracker set rather than inventing
 new ones.
@@ -9333,7 +9341,7 @@ one block replace carrying the reading renderer's card; the card's `onLog` compu
 over the whole document and dispatches exactly that change (`input.routine`), one undo step. The
 widget over the PLAN draws the log's entries (streak, week, heat), so `eq` compares the paired log's
 text as well as its own; `ignoreEvent` keeps change/input/keydown/toggle for the card's controls.
-The Routines page makes the same patch through `POST /api/routine`, which applies the same
+The Sigils page makes the same patch through `POST /api/routine`, which applies the same
 `logEditFor` server-side (and `editRoutinePlan` for the form's `plan`), writes under the mtime
 precondition and emits `changed`. `GET /api/routines` is ADMIN ONLY (401, the books shelf's rule) and
 INCLUDES template notes, marked `template: true` — the one query that wants the stencils, because
@@ -9351,89 +9359,109 @@ and the editor wrapper is `.cm-s-tracker`; both sheets already state them. Contr
 (ar) — `weekStart`/`weekOrder` — and `dayStatus` is complete / partial / missed / rest / none, with
 rest days transparent to the streak and an unfinished today neutral.
 
-**The Routines page is the Media page's twin.** `ROUTINES_TAB = "~routines"`, `surface === "routines"`,
-`setView("routines")` / `toggleRoutines()`, `/routines` in the router, a lazy chunk pinned by
+**The Sigils page is the Media page's twin.** `ROUTINES_TAB = "~sigils"`, `surface === "routines"`,
+`setView("routines")` / `toggleRoutines()`, `/sigils` in the router, a lazy chunk pinned by
 `MUST_SPLIT`, its stylesheet importing `media.css` so the form (which wears `.s-mediaform*`) is
 dressed even when the Media chunk was never fetched. Cards are the reading renderer's mounted into
 React and rebuilt on every meta change; the page re-reads on `astrolabe:vault`. The form composes a
-draft (`routineFenceBody`, round-trip tested) and writes `Routines/<Title>.md` (`روتين/` on an Arabic
-instance, an existing root kept) with frontmatter + plan + an EMPTY log fence; an edit sends only the
-plan body. "Save as template" writes the same note into the templates folder.
+draft (`routineFenceBody`, round-trip tested) and writes `Sigils/<Title>.md` (`سجل/` on an Arabic
+instance, an existing `Routines/` root kept) with frontmatter + plan + an EMPTY log fence; an edit
+sends only the plan body. "Save as template" writes the same note into the templates folder. The
+"N due in Orbits" line on the page (`routinesOrbitsDue`) opens the Orbits shelf, and a slot that
+wikilinks a deck wears the chip `client/routines/orbits.ts` draws (see Orbits below).
 
-## Constellations (`shared/constellations.ts`, `shared/srsSession.ts`, `client/stars/`, `client/routines/stars.ts`)
+## Orbits — spaced repetition (`shared/decks.ts`, `shared/srsSession.ts`, `client/orbits/`, `server/deckImport.ts`)
 
 The vault's own spaced-repetition system, replacing Anki for the owner ("screw Anki… let's make
-our own version and integrate it"). The astrolabe's rete is a map of the stars you learn to
-recognise: a DECK is a **constellation** (كوكبة), a CARD a **star** (نجم), a study run a
-**session** (جلسة). The page is Constellations (`/constellations`, `~constellations`); `/review`
-and `~review` are aliases, not a second page. CONSTELLATIONS-SPEC.md is the long form; these are
-the promises.
+our own version and integrate it"). A card comes back around on its schedule, which is what an
+orbit is: the page is **Orbits** (المدارات), inside it a **deck** (مجموعة) is a note and a **card**
+(بطاقة) a line, a study run a **session** (جلسة). Lineage, once: the system was built under the
+working name Constellations (a deck a constellation, a card a star) and renamed before it shipped, <!-- lineage -->
+and the page took the name the daily routine wore in 3.15 (that page is Sigils now) — so `/orbits`
+and `~orbits` mean THIS page from 3.16, a 3.15 workspace with the routine page open opens Orbits
+instead, and the 3.15.0 what's-new slide says so. `/review`, `~review`, `/constellations` and <!-- lineage -->
+`~constellations` are aliases, not a second page. `npm run check-names` fails on the old words.
 
-**The note is the state.** A constellation is a Markdown note with a ```` ```constellation ````
-fence (first one wins: `title`, `icon`, `kind`, `new per day`, `steps`, `tags`); its stars are the
-card lines shared/flashcards.ts already reads, in document order, with two extensions —
+**The note is the state.** A deck is a Markdown note with a ```` ```deck ```` fence (first one wins:
+`title`, `icon`, `kind`, `new per day`, `steps`, `tags`); its cards are the card lines
+shared/flashcards.ts already reads (`Card` there is the scanned line; `DeckCard` in shared/decks.ts is
+one face of it, named `${path}#${line}#${dir}`), in document order, with two extensions —
 `front::back::extra` (the third segment shows on the answer side) and the plugin's `front:::back`
-reversed pair (two stars, `dir: "fwd"|"rev"`, two schedules in ONE comment
+reversed pair (two cards, `dir: "fwd"|"rev"`, two schedules in ONE comment
 `<!--SR:!d1,i1,e1!d2,i2,e2-->`). Headings are sections; a line's trailing `#tags` are its tags; a
-fence's contents are never stars; a note without the fence keeps being the implicit "Everything
-else" grouped by top folder. A star's schedule is the Spaced Repetition plugin's comment, unchanged,
-so the vault stays ONE vault with the plugin; nothing else about a star lives outside the note except
+fence's contents are never cards; a note without the fence keeps being the implicit "Everything
+else" grouped by top folder. A card's schedule is the Spaced Repetition plugin's comment, unchanged,
+so the vault stays ONE vault with the plugin; nothing else about a card lives outside the note except
 two caches that can be rebuilt: the session's learning steps (memory only) and the per-device grade
-log (`astrolabe.stars.log`, ring of 5000) the statistics are drawn from.
+log (`astrolabe.orbits.log`, ring of 5000) the statistics are drawn from.
 
 **Kinds.** `basic` (default: fwd only), `reversed` (rev only), `both` (every `::` line behaves as
 `:::`), `typed` (an input on the front, compared after trim / case-fold / NFKC / kana-width, diffs
 coloured — the grade stays the reader's), `cloze-only` (`::` lines ignored).
 
 **Scheduling.** Stored state is SM-2 (`shared/srs.ts`, `review()` untouched). A session adds Anki's
-learning queue IN MEMORY (`shared/srsSession.ts`): a new star, or an again'd review, climbs `steps`
-(default 1m, 10m) within the session; graduating (good after the last step, easy at any) writes the
-first SM-2 comment (1d / 4d); again on a review is a lapse — SM-2's `again` written AND a 10m relearn
-step in memory. The daily NEW limit (`new per day`, default 10, 0 = reviews only) is per constellation
-per local day in localStorage (`astrolabe.stars.new.<path>.<YYYY-MM-DD>`); reviews are never
-limited. Order: learning due → reviews (soonest due, then document order) → new (document order, to
-the limit), one new after every four reviews. Retention = good+easy over all grades in the last 30
-days from the log; the forecast is computed from the schedules, never stored.
+learning queue IN MEMORY (`shared/srsSession.ts`: `createSession` / `nextCard` / `gradeCard` /
+`previews` / `skipCard` / `waitFor` / `remaining` / `retention`, pure and clock-free, every call
+returns a NEW session — which is what makes undo one field): a new card, or an again'd review,
+climbs `steps` (default 1m, 10m) within the session; graduating (good after the last step, easy at
+any) writes the first SM-2 comment (1d / 4d); again on a review is a lapse — SM-2's `again` written
+AND a 10m relearn step in memory. The daily NEW limit (`new per day`, default 10, 0 = reviews only)
+is per deck per local day in localStorage (`astrolabe.orbits.new.<path>.<YYYY-MM-DD>`); reviews are
+never limited; study ahead asks for no new cards. Order: learning due → reviews (soonest due, then
+document order) → new (document order, to the limit), one new after every four reviews. Retention =
+good+easy over all grades in the last 30 days from the log; the forecast, the streak and the
+new/young/mature split are `client/orbits/stats.ts`, computed from the schedules, never stored.
 
-**Server.** `constellationOf` fills `NoteRecord.constellation`; `GET /api/constellations` (meta +
-counts + sections, the implicit one last), `GET /api/constellations/stars?path&section`,
-`POST /api/star/review {path, line, dir, grade, today}` (writes through `writeStarSchedule`;
-`/api/card/review` stays as an alias), `POST /api/constellations` (creates `<folder>/<title>.md`,
-default `Constellations/`, via `serialiseConstellation`), `POST /api/constellations/import`
-(multipart `.apkg` / `.csv` / `.tsv`). The .apkg reader is `node:zlib` + a small zip reader +
-`node:sqlite` behind a dynamic import with a plain error on a Node older than 26 — no new
-dependency on either side, ever. Import mapping: Basic → `front::back`, Basic (and reversed) →
-`front:::back`, Cloze → `==cloze==` highlights, extra fields → `::extra`, media → the attachments
-folder beside the note as `![[file]]`, Anki's scheduling (factor/10 is the ease ×1000 already; due
-days from the collection's `crt`) → the SR comment, one note per deck, subdecks → sections.
+**Server.** `deckOf` fills `NoteRecord.deck`; `GET /api/orbits?today` (meta + counts + sections, the
+implicit one last; `today` is the CLIENT's day), `GET /api/orbits/cards?path&section`,
+`POST /api/orbits/card/review {path, line, dir, grade, today, restore?}` (writes through
+`writeCardSchedule`; `restore` present is the session's UNDO — the previous schedule written back
+verbatim through `restoreCardSchedule`, or null to take out the comment a first grade wrote, a pair's
+twin slot kept; `/api/card/review` stays as the legacy alias), `POST /api/orbits` (creates
+`<folder>/<title>.md`, default `Orbits/`, via `serialiseDeck`), `POST /api/orbits/import` (multipart
+`.apkg` / `.csv` / `.tsv`, server/deckImportRoutes.ts). ONE serialiser: `serialiseDeck` /
+`cardLineOf` in shared/decks.ts write the modal's note and the importer's alike — a front that begins
+with `#`, `>`, `|`, `- [` or three backticks is escaped with a backslash, a `::` inside a face is
+spaced to `: :`, a pair's comment carries two schedules, a cloze's comment sits on the line after it —
+and the importer's readability check reads its own line back through the scanner. The .apkg reader
+is `node:zlib` + a small zip reader + `node:sqlite` behind a dynamic import with a plain error on a
+Node older than 26 — no new dependency on either side, ever. Import mapping: Basic → `front::back`,
+Basic (and reversed) → `front:::back`, Cloze → `==cloze==` highlights, extra fields → `::extra`,
+media → the attachments folder beside the note as `![[file]]`, Anki's scheduling (factor/10 is the
+ease ×1000 already; due days from the collection's `crt`) → the SR comment, one note per deck,
+subdecks → sections; what cannot be kept is counted and reported by reason (`suspended`, `empty`,
+`frontTooLong`, `extraTemplates`, `unreadable`, `mediaUnsupported`, `mediaMissing`).
 
-**Client.** Shelf (`/constellations`): one card per constellation (icon, title, tags, due/new/total,
-30-day retention sparkline, Study, Study section ▾), "Everything else" last, header with today's
-due and the streak, "New constellation…" and "Import…", an empty state that teaches the syntax.
-Session (`/constellations/<path>`): one star at a time, breadcrumb, progress, Show answer
-(Space/Enter), grades 1–4 with interval previews (step text for learning stars), Edit (the note at
-the line, new tab), Skip (bury for the session), Undo (one level, re-writes the previous schedule),
-end-of-session summary. Stats drawer: retention 30d, forecast 30d, states, the ten hardest.
-The queue is `client/stars/queue.ts` over `shared/srsSession.ts`. Palette: Open Constellations,
-Study due cards, New constellation…, Import an Anki deck…. The status-bar Review door is the
-Constellations door (three stars, two lines). i18n keys are prefixed `stars`.
+**Client.** Shelf (`/orbits`): one card per deck (icon, title, tags, due/new/total, 30-day retention
+sparkline, Study, Study section ▾), "Everything else" last, header with today's due and the streak,
+"New deck…" and "Import…", an empty state that teaches the syntax. Session (`/orbits/<path>`, the
+note path with its extension encoded a segment at a time, a section after `#`): one card at a time,
+breadcrumb, progress, Show answer (Space/Enter), grades 1–4 with interval previews (step text for
+learning cards), Edit (the note at the line, new tab), Skip (bury for the session), Undo (one level,
+sends `restore`), end-of-session summary. Stats drawer: retention 30d, forecast 30d, states, the ten
+hardest. The queue is `client/orbits/queue.ts` (`CardQueue`, keyed by text and order rather than
+line, so a comment line written by a first grade does not lose the reader's place) over
+`shared/srsSession.ts`; writes go one at a time, each followed by a re-read. Palette: Open Orbits,
+Study due cards, New deck…, Import an Anki deck…. The status-bar Orbits door is the 3.15 ring glyph
+(`data-testid="orbits-door"`). i18n keys are prefixed `orbits`; the surface's own copy is
+`client/orbits/copy.ts`, gated by tests/srsSession.test.ts.
 
-**The orbit link (`client/routines/stars.ts` — the whole of the Orbits touch).** A slot text or
-every-day item that wikilinks a constellation note shows, on the orbit card, the link by its name
-and a chip per linked constellation, "N due · Study" (`decorateStarTasks`, run by the Orbits page
-after each card draw; counts from `GET /api/constellations?today=<the reader's day>`, cached a few
-seconds; the chip is an `<a href="/constellations/<note path with .md, a segment at a time>">` — the
-router's `starsUrl` shape — pushed through the router; the checkbox's aria-label loses the brackets too). `tickSlotForConstellation(path)` is
-the ONE export the session-end handler calls when a session ends with nothing due: it ticks, for
-today, every slot of every live orbit that links that note, through `POST /api/routine` — the same
-log line the checkbox writes — and a slot that links several constellations is ticked only when
-none of them has a star due. Task ↔ row alignment is positional: the renderer draws
-`tasksFor(plan, today)` in order, one `<li>` each.
+**The sigil link (`client/routines/orbits.ts` — the whole of the Sigils touch).** A slot text or
+every-day item that wikilinks a deck note shows, on the sigil card, the link by its name and a chip
+per linked deck, "N due · Study" (`decorateDeckTasks`, run by the Sigils page after each card draw;
+counts from `GET /api/orbits?today=<the reader's day>`, cached a few seconds; the chip is an
+`<a href="/orbits/<note path with .md, a segment at a time>">` — the router's `orbitsUrl` shape —
+pushed through the router; the checkbox's aria-label loses the brackets too). `tickSlotForDeck(path)`
+is the ONE export the session-end handler calls when a session ends with nothing due: it ticks, for
+today, every slot of every live sigil that links that note, through `POST /api/routine` — the same
+log line the checkbox writes — and a slot that links several decks is ticked only when none of them
+has a card due. Task ↔ row alignment is positional: the renderer draws `tasksFor(plan, today)` in
+order, one `<li>` each.
 
-**Docs.** `docs/constellations.md` + `docs/ar/constellations.md` replace the flashcards pages; the
-site keeps answering at `flashcards/` through `MOVED` (the 3.13 deck slide links it), as `routines/`
-does for `orbits/`. Kanji data in the owner's example constellations is KANJIDIC2 (EDRDG,
-CC BY-SA 4.0), attributed in the notes' frontmatter and in the docs.
+**Docs.** `docs/orbits.md` + `docs/ar/orbits.md`; the site keeps answering at `flashcards/` through
+`MOVED` (the 3.13 deck slide links it), as `routines/` does for `sigils/`. Kanji data in the owner's
+example decks is KANJIDIC2 (EDRDG, CC BY-SA 4.0), attributed in the notes' frontmatter and in the
+docs.
 
 ## What's new after an update (`client/whatsnew/`)
 
@@ -9524,7 +9552,7 @@ reader: `server/pdfText.ts` reaches pdf.js by a DYNAMIC `import("pdfjs-dist/lega
 caught it); and `compileFilters`' `in:` case answers through `searchScope()` and `continue`s, so its
 negation lives in the scope, not the predicate.
 
-## 3.13.0 — bookmarks, layouts, the tag tree, pace, scripture, harakat, the sweep, flashcards, offline
+## 3.13.0 — bookmarks, layouts, the tag tree, pace, scripture, harakat, the sweep, flashcards, offline <!-- lineage -->
 
 **Bookmarks (`shared/bookmarks.ts`, `client/bookmarks.ts`).** `Bookmarks.md` at the vault root IS
 the list — one `- [[Note]]` per line, parsed and rewritten whole by the pure model (`add`, `remove`,
@@ -9593,7 +9621,7 @@ shell's `s-app--notice` row (renamed from `s-app--preview`, shared with the prev
 reads that OR `navigator.onLine`, seeded from `servingOfflineNow()` for a listener that mounts
 after `/api/me` came back. Edits offline are the editor's retry's business, not the worker's.
 
-## 3.14.0 — relative line numbers, the deck in motion, the Routines row
+## 3.14.0 — relative line numbers, the deck in motion, the Routines row <!-- lineage -->
 
 **Relative line numbers (`client/editor/relativeLines.ts`).** A custom `gutter()`, not
 `lineNumbers()`: the built-in recomputes its markers on document and viewport changes only, and a
@@ -9622,7 +9650,7 @@ because boot writes `astrolabe.recents/tabs/prefs-sync` before the door's timer 
 week strip beside the heatmap through a container query on the card's own width — a rule that
 resolves against the card's ANCESTOR container, which is the squish 3.15 fixes; see below.)
 
-## 3.15.0 — Orbits: the name, the icon and banner, the rebuilt form, the squish
+## 3.15.0 — Orbits: the name, the icon and banner, the rebuilt form, the squish <!-- lineage -->
 
 **The name.** The owner: "routine is kinda a lame name… name it something cooler that sounds cool
 and legit in arabic and english". Orbits / المدارات (singular مدار). What changed is every VALUE a

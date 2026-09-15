@@ -45,8 +45,8 @@ const SECTIONS = [
       { slug: "templates-and-notes", file: "templates-and-notes.md", title: { en: "Templates, banners & notes", ar: "القوالب واللافتات والملاحظات" } },
       { slug: "latex", file: "latex.md", title: { en: "LaTeX notes", ar: "ملاحظات LaTeX" } },
       { slug: "trackers", file: "trackers.md", title: { en: "Trackers", ar: "المتتبِّعات" } },
+      { slug: "sigils", file: "sigils.md", title: { en: "Sigils", ar: "السِّجِلّ" } },
       { slug: "orbits", file: "orbits.md", title: { en: "Orbits", ar: "المدارات" } },
-      { slug: "constellations", file: "constellations.md", title: { en: "Constellations", ar: "الكوكبات" } },
       { slug: "drawing", file: "drawing.md", title: { en: "Drawings", ar: "الرسومات" } },
       { slug: "books", file: "books.md", title: { en: "The PDF reader", ar: "قارئ PDF" } },
       { slug: "workspace", file: "workspace.md", title: { en: "Panes, tabs & windows", ar: "اللوحات والتبويبات والنوافذ" } },
@@ -90,8 +90,13 @@ const PAGES = SECTIONS.flatMap((s) => s.pages.map((p) => ({ ...p, section: s }))
 // the old slug that refreshes to the new. The what's-new decks of earlier
 // releases link the manual by slug (`docs: "routines"` on the 3.11–3.14
 // slides, `docs: "flashcards"` on 3.13's) and those links are history, not
-// something to rewrite.
-const MOVED = { routines: "orbits", flashcards: "constellations" };
+// something to rewrite. Two lineages meet here: the daily routine was
+// "routines" (3.11–3.14) and "orbits" (3.15) and is "sigils" now; the
+// spaced-repetition page was "flashcards" (the Review page) and is "orbits"
+// now — so a 3.15 link to "orbits" lands on the study page, which is the
+// one thing a redirect table cannot undo, and the 3.15 slide says so.
+// lineage: "routines" and "flashcards" are redirect sources only.
+const MOVED = { routines: "sigils", flashcards: "orbits" };
 
 const UI = {
   en: {

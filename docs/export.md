@@ -71,7 +71,7 @@ already ask — and hands it to your downloads:
 - **Right-to-left when the note is.** The page's direction follows the note's prose, or the
   `dir:` its frontmatter pins.
 
-Math is rendered, tracker and orbit cards are drawn (without their buttons), and a `.tex` note
+Math is rendered, tracker and sigil cards are drawn (without their buttons), and a `.tex` note
 comes out as the page its reading view shows.
 
 ## From the command line

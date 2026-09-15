@@ -5,7 +5,7 @@
 // machine every grade goes through), so it lives beside the views that
 // read it, pure and node-testable like the machine.
 
-import type { Star } from "../../shared/constellations.ts";
+import type { DeckCard } from "../../shared/decks.ts";
 
 /** Days with at least one grade, counted back from `today` without a gap —
  *  the shelf's streak. `days` are ISO days that saw a session, any order. */
@@ -31,7 +31,7 @@ export function shiftDay(iso: string, days: number): string {
 
 /** Stars due on each of the next `days` days, from their schedules — the
  *  forecast. Index 0 is today (overdue stars included there). */
-export function forecast(stars: Star[], today: string, days = 30): number[] {
+export function forecast(stars: DeckCard[], today: string, days = 30): number[] {
   const out = new Array<number>(days).fill(0);
   const last = shiftDay(today, days - 1);
   for (const s of stars) {
@@ -49,7 +49,7 @@ export function forecast(stars: Star[], today: string, days = 30): number[] {
 /** New / learning / young / mature, as Anki draws them: young is a schedule
  *  under 21 days, mature 21 and over. "Learning" is session-local and the
  *  note cannot say it, so it is what the caller's session knows. */
-export function statesOf(stars: Star[], learningIds: Set<string> = new Set()): { new: number; learning: number; young: number; mature: number } {
+export function statesOf(stars: DeckCard[], learningIds: Set<string> = new Set()): { new: number; learning: number; young: number; mature: number } {
   const out = { new: 0, learning: 0, young: 0, mature: 0 };
   for (const s of stars) {
     if (learningIds.has(s.id)) out.learning += 1;

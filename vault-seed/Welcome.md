@@ -19,7 +19,7 @@ way your own notes eventually will:
 
 - [[Editing]] — the live-preview editor, autosave, and vim mode
 - [[Wikilinks & Backlinks]] — how notes connect, and how to see what points here
-- [[Graph View]] — your vault as a constellation
+- [[Graph View]] — your vault as a star map
 - [[Search & Tags]] — full-text search and #tags
 - [[Embeds & Transclusion]] — pull images, PDFs, and whole notes into a note
 - [[Trackers]] — a progress card for anything you are part-way through

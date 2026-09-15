@@ -1,18 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { Star } from "../shared/constellations.ts";
+import type { DeckCard } from "../shared/decks.ts";
 import type { Schedule } from "../shared/srs.ts";
-import { createSession, gradeStar, nextStar, phaseOf, previews, remaining, retention, skipStar, waitFor, type Session } from "../shared/srsSession.ts";
-import { STARS_COPY } from "../client/stars/copy.ts";
-import { delimiterOf, parseDelimited, stripAnkiHeader } from "../client/stars/csv.ts";
-import { cardsOfText } from "../client/stars/lines.ts";
-import { hardest, newIntroduced, readLog, retention as deviceRetention, retentionSeries } from "../client/stars/log.ts";
-import { headOf, keysOf, StarQueue } from "../client/stars/queue.ts";
-import { forecast, statesOf, streakOf } from "../client/stars/stats.ts";
-import { diffAnswer, normaliseAnswer } from "../client/stars/typed.ts";
+import { createSession, gradeCard, nextCard, phaseOf, previews, remaining, retention, skipCard, waitFor, type Session } from "../shared/srsSession.ts";
+import { ORBITS_COPY } from "../client/orbits/copy.ts";
+import { delimiterOf, parseDelimited, stripAnkiHeader } from "../client/orbits/csv.ts";
+import { cardsOfText } from "../client/orbits/lines.ts";
+import { hardest, newIntroduced, readLog, retention as deviceRetention, retentionSeries } from "../client/orbits/log.ts";
+import { headOf, keysOf, CardQueue } from "../client/orbits/queue.ts";
+import { forecast, statesOf, streakOf } from "../client/orbits/stats.ts";
+import { diffAnswer, normaliseAnswer } from "../client/orbits/typed.ts";
 
 // A fake localStorage for the queue's daily counter and the device's log
-// (client/stars/log.ts reads it lazily; node's own wants a flag and warns
+// (client/orbits/log.ts reads it lazily; node's own wants a flag and warns
 // without it).
 const store = new Map<string, string>();
 Object.defineProperty(globalThis, "localStorage", {
@@ -28,16 +28,16 @@ const TODAY = "2026-09-28";
 const T0 = Date.UTC(2026, 8, 28, 9, 0, 0);
 const MIN = 60_000;
 
-function star(n: number, schedule: Schedule | null = null): Star {
+function star(n: number, schedule: Schedule | null = null): DeckCard {
   return { id: `k.md#${n}#fwd`, path: "k.md", line: n, end: n, dir: "fwd", kind: "qa", front: `f${n}`, back: `b${n}`, extra: null, section: null, tags: [], schedule };
 }
 const due = (day: string, interval = 6): Schedule => ({ due: day, interval, ease: 2500 });
 
 /** Grade whatever is next; returns the new session and what was written. */
 function step(s: Session, grade: "again" | "hard" | "good" | "easy", now: number): { session: Session; write: Schedule | null; id: string } {
-  const next = nextStar(s, now);
+  const next = nextCard(s, now);
   assert.ok(next, "nothing to show");
-  const r = gradeStar(s, next.star.id, grade, now, TODAY);
+  const r = gradeCard(s, next.star.id, grade, now, TODAY);
   return { ...r, id: next.star.id };
 }
 
@@ -48,8 +48,8 @@ describe("a session's queues", () => {
     assert.deepEqual(s.reviews, ["k.md#3#fwd", "k.md#2#fwd"]);
     assert.deepEqual(s.fresh, ["k.md#1#fwd", "k.md#5#fwd"]);
     assert.deepEqual(remaining(s), { review: 2, new: 2, learning: 0, total: 4 });
-    assert.equal(nextStar(s, T0)!.star.id, "k.md#3#fwd");
-    assert.equal(nextStar(s, T0)!.phase, "review");
+    assert.equal(nextCard(s, T0)!.star.id, "k.md#3#fwd");
+    assert.equal(nextCard(s, T0)!.phase, "review");
     // Study ahead brings the not-yet-due one in, after the due ones.
     const ahead = createSession(stars, TODAY, T0, { newLimit: 0, studyAhead: true });
     assert.deepEqual(ahead.reviews, ["k.md#3#fwd", "k.md#2#fwd", "k.md#4#fwd"]);
@@ -66,7 +66,7 @@ describe("a session's queues", () => {
       s = r.session;
     }
     assert.deepEqual(shown, ["k.md#3#fwd", "k.md#4#fwd", "k.md#5#fwd", "k.md#6#fwd", "k.md#1#fwd", "k.md#7#fwd", "k.md#8#fwd", "k.md#9#fwd", "k.md#10#fwd", "k.md#2#fwd", "k.md#11#fwd"]);
-    assert.equal(nextStar(s, T0 + 12 * MIN), null);
+    assert.equal(nextCard(s, T0 + 12 * MIN), null);
     assert.equal(s.introduced, 2);
     assert.equal(s.done, 11);
   });
@@ -83,14 +83,14 @@ describe("learning steps", () => {
     assert.equal(s.introduced, 1);
     assert.deepEqual(previews(s, "k.md#1#fwd", TODAY), { again: { minutes: 1 }, hard: { minutes: 10 }, good: { days: 1 }, easy: { days: 4 } });
     // Not due for ten minutes: shown early only because nothing else remains.
-    assert.equal(nextStar(s, T0 + MIN)!.early, true);
+    assert.equal(nextCard(s, T0 + MIN)!.early, true);
     assert.equal(waitFor(s, T0 + MIN), 9 * MIN);
-    assert.equal(nextStar(s, T0 + 10 * MIN)!.early, false);
+    assert.equal(nextCard(s, T0 + 10 * MIN)!.early, false);
     assert.equal(waitFor(s, T0 + 10 * MIN), null);
     r = step(s, "good", T0 + 10 * MIN);
     s = r.session;
     assert.deepEqual(r.write, { due: "2026-09-29", interval: 1, ease: 2500 });
-    assert.equal(nextStar(s, T0 + 11 * MIN), null);
+    assert.equal(nextCard(s, T0 + 11 * MIN), null);
     assert.equal(s.done, 1);
     assert.deepEqual(s.stars["k.md#1#fwd"].schedule, r.write);
   });
@@ -110,7 +110,7 @@ describe("learning steps", () => {
     assert.equal(s.learning[0].dueAt, T0 + 12 * MIN);
     r = step(s, "easy", T0 + 12 * MIN);
     assert.deepEqual(r.write, { due: "2026-10-02", interval: 4, ease: 2650 });
-    assert.equal(nextStar(r.session, T0 + 13 * MIN), null);
+    assert.equal(nextCard(r.session, T0 + 13 * MIN), null);
   });
 
   it("a due learning star comes before every review and every new star", () => {
@@ -119,13 +119,13 @@ describe("learning steps", () => {
     s = step(s, "good", T0).session; // review 2
     s = step(s, "good", T0).session; // review 3
     s = step(s, "good", T0).session; // new 1 → learning, due at +10m
-    assert.equal(nextStar(s, T0 + 10 * MIN)!.star.id, "k.md#1#fwd");
+    assert.equal(nextCard(s, T0 + 10 * MIN)!.star.id, "k.md#1#fwd");
     const withMore = createSession([star(4), ...stars], TODAY, T0, { newLimit: 10 });
     let w = step(withMore, "good", T0).session; // review 2
     // 4 is new; 1 is new; the learning one, once due, outranks both.
     w = { ...w, learning: [{ id: "k.md#3#fwd", phase: "learning", step: 1, dueAt: T0 + MIN }], reviews: [] };
-    assert.equal(nextStar(w, T0)!.star.id, "k.md#4#fwd");
-    assert.equal(nextStar(w, T0 + MIN)!.star.id, "k.md#3#fwd");
+    assert.equal(nextCard(w, T0)!.star.id, "k.md#4#fwd");
+    assert.equal(nextCard(w, T0 + MIN)!.star.id, "k.md#3#fwd");
   });
 });
 
@@ -144,12 +144,12 @@ describe("lapses", () => {
     r = step(s, "good", T0 + 10 * MIN);
     assert.equal(r.write, null);
     assert.equal(r.session.done, 1);
-    assert.equal(nextStar(r.session, T0 + 11 * MIN), null);
+    assert.equal(nextCard(r.session, T0 + 11 * MIN), null);
   });
 
   it("good, hard and easy on a review write SM-2 and finish the star", () => {
     const s = createSession([star(1, due("2026-09-27", 6)), star(2, due("2026-09-27", 6))], TODAY, T0, { newLimit: 0 });
-    const r = gradeStar(s, "k.md#1#fwd", "hard", T0, TODAY);
+    const r = gradeCard(s, "k.md#1#fwd", "hard", T0, TODAY);
     assert.deepEqual(r.write, { due: "2026-10-05", interval: 7, ease: 2350 });
     assert.deepEqual(r.session.reviews, ["k.md#2#fwd"]);
     assert.equal(r.session.done, 1);
@@ -161,39 +161,39 @@ describe("the rest of a session", () => {
   it("skips, counts, tells retention, ignores an unknown star, and never mutates", () => {
     const stars = [star(1), star(2, due("2026-09-27"))];
     const s = createSession(stars, TODAY, T0, { newLimit: 10 });
-    const skipped = skipStar(s, "k.md#2#fwd");
+    const skipped = skipCard(s, "k.md#2#fwd");
     assert.deepEqual(remaining(skipped), { review: 0, new: 1, learning: 0, total: 1 });
     assert.deepEqual(remaining(s), { review: 1, new: 1, learning: 0, total: 2 });
-    assert.equal(gradeStar(s, "nope", "good", T0, TODAY).session, s);
+    assert.equal(gradeCard(s, "nope", "good", T0, TODAY).session, s);
     assert.equal(phaseOf(s, "nope"), null);
     assert.equal(previews(s, "nope", TODAY), null);
     assert.equal(retention([]), null);
     let t = s;
-    t = gradeStar(t, "k.md#2#fwd", "good", T0, TODAY).session;
-    t = gradeStar(t, "k.md#1#fwd", "again", T0, TODAY).session;
-    t = gradeStar(t, "k.md#1#fwd", "easy", T0 + MIN, TODAY).session;
+    t = gradeCard(t, "k.md#2#fwd", "good", T0, TODAY).session;
+    t = gradeCard(t, "k.md#1#fwd", "again", T0, TODAY).session;
+    t = gradeCard(t, "k.md#1#fwd", "easy", T0 + MIN, TODAY).session;
     assert.equal(retention(t.log), 2 / 3);
     assert.deepEqual(s.reviews, ["k.md#2#fwd"]);
     assert.equal(s.log.length, 0);
-    assert.equal(nextStar(createSession([], TODAY, T0, { newLimit: 10 }), T0), null);
+    assert.equal(nextCard(createSession([], TODAY, T0, { newLimit: 10 }), T0), null);
   });
 });
 
-// The surface's copy travels in its own chunk (client/stars/copy.ts), which
+// The surface's copy travels in its own chunk (client/orbits/copy.ts), which
 // check-i18n does not walk — so this is that table's parity gate, with the
 // same rules: both halves present, the Arabic actually Arabic, and the
 // placeholders the same on both sides.
-describe("the constellations' own copy", () => {
+describe("the decks' own copy", () => {
   it("has both languages and matching placeholders for every key", () => {
     const ph = (s: string): string => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(",");
-    for (const [key, text] of Object.entries(STARS_COPY)) {
+    for (const [key, text] of Object.entries(ORBITS_COPY)) {
       assert.ok(text.en.trim() !== "", `${key}: empty en`);
       assert.ok(text.ar.trim() !== "", `${key}: empty ar`);
       assert.ok(/[؀-ۿ]/.test(text.ar), `${key}: ar has no Arabic script`);
       assert.notEqual(text.en, text.ar, `${key}: untranslated`);
       assert.equal(ph(text.en), ph(text.ar), `${key}: placeholders differ`);
     }
-    assert.ok(Object.keys(STARS_COPY).length > 80);
+    assert.ok(Object.keys(ORBITS_COPY).length > 80);
   });
 });
 
@@ -203,7 +203,7 @@ describe("the constellations' own copy", () => {
 const DAY = "2026-09-15";
 const NOW = Date.parse("2026-09-15T09:00:00Z");
 
-function s2(line: number, schedule: Star["schedule"] = null): Star {
+function s2(line: number, schedule: DeckCard["schedule"] = null): DeckCard {
   return { id: `n.md#${line}#fwd`, path: "n.md", line, end: line, dir: "fwd", kind: "qa", front: `f${line}`, back: `b${line}`, extra: null, section: null, tags: [], schedule };
 }
 
@@ -224,12 +224,12 @@ describe("a session's queue, from the client's side", () => {
     assert.deepEqual(s.fresh, ["n.md#4#fwd", "n.md#5#fwd"]);
     const order: string[] = [];
     for (let i = 0; i < 7; i++) {
-      const p = nextStar(s, NOW)!;
+      const p = nextCard(s, NOW)!;
       order.push(`${p.phase}:${p.star.id.split("#")[1]}`);
-      s = gradeStar(s, p.star.id, "easy", NOW, DAY).session;
+      s = gradeCard(s, p.star.id, "easy", NOW, DAY).session;
     }
     assert.deepEqual(order, ["review:2", "review:1", "review:6", "review:7", "new:4", "review:8", "new:5"]);
-    assert.equal(nextStar(s, NOW), null);
+    assert.equal(nextCard(s, NOW), null);
   });
 
   it("caps new stars at the daily allowance and never limits reviews", () => {
@@ -243,44 +243,44 @@ describe("a session's queue, from the client's side", () => {
   it("walks a new star through the learning steps and writes only on graduation", () => {
     const n = s2(1);
     let s = createSession([n], DAY, NOW, { newLimit: 10, steps: [1, 10] });
-    let p = nextStar(s, NOW)!;
+    let p = nextCard(s, NOW)!;
     assert.equal(p.phase, "new");
     assert.deepEqual(previews(s, n.id, DAY)!.good, { minutes: 10 });
     assert.deepEqual(previews(s, n.id, DAY)!.easy, { days: 4 });
     assert.deepEqual(previews(s, n.id, DAY)!.again, { minutes: 1 });
-    let r = gradeStar(s, p.star.id, "good", NOW, DAY);
+    let r = gradeCard(s, p.star.id, "good", NOW, DAY);
     assert.equal(r.write, null);
     s = r.session;
     assert.equal(s.learning[0].step, 1);
     assert.equal(s.learning[0].dueAt, NOW + 10 * MIN);
     // Not due yet, but nothing else is left: shown early.
-    p = nextStar(s, NOW + MIN)!;
+    p = nextCard(s, NOW + MIN)!;
     assert.equal(p.phase, "learning");
     assert.equal(p.early, true);
     assert.deepEqual(previews(s, n.id, DAY)!.good, { days: 1 });
-    r = gradeStar(s, p.star.id, "good", NOW + 11 * MIN, DAY);
+    r = gradeCard(s, p.star.id, "good", NOW + 11 * MIN, DAY);
     assert.deepEqual(r.write, { due: "2026-09-16", interval: 1, ease: 2500 });
-    assert.equal(nextStar(r.session, NOW), null);
+    assert.equal(nextCard(r.session, NOW), null);
   });
 
   it("a lapse writes SM-2's again and relearns for ten minutes, then writes nothing more", () => {
     const rv = s2(1, { due: "2026-09-14", interval: 12, ease: 2500 });
     const s = createSession([rv], DAY, NOW, { newLimit: 10, steps: [1, 10] });
-    const p = nextStar(s, NOW)!;
+    const p = nextCard(s, NOW)!;
     assert.equal(p.phase, "review");
     assert.deepEqual(previews(s, rv.id, DAY)!.good, { days: 30 });
-    const r = gradeStar(s, p.star.id, "again", NOW, DAY);
+    const r = gradeCard(s, p.star.id, "again", NOW, DAY);
     assert.deepEqual(r.write, { due: "2026-09-16", interval: 1, ease: 2300 });
     assert.equal(r.session.learning.length, 1);
     assert.equal(r.session.learning[0].phase, "relearning");
     assert.equal(r.session.learning[0].dueAt, NOW + 10 * MIN);
     // Ready learning stars come before anything else.
-    const again = nextStar(r.session, NOW + 10 * MIN)!;
+    const again = nextCard(r.session, NOW + 10 * MIN)!;
     assert.equal(again.phase, "relearning");
     assert.equal(again.early, false);
-    const done = gradeStar(r.session, again.star.id, "good", NOW + 10 * MIN, DAY);
+    const done = gradeCard(r.session, again.star.id, "good", NOW + 10 * MIN, DAY);
     assert.equal(done.write, null);
-    assert.equal(nextStar(done.session, NOW + 10 * MIN), null);
+    assert.equal(nextCard(done.session, NOW + 10 * MIN), null);
   });
 
   it("study ahead takes the stars not yet due, soonest first, and no new ones", () => {
@@ -342,9 +342,9 @@ describe("the CSV reader", () => {
   });
 });
 
-// ── The client's queue over the machine (client/stars/queue.ts) ─────────────
+// ── The client's queue over the machine (client/orbits/queue.ts) ─────────────
 
-function twin(line: number, front: string, back: string, dir: "fwd" | "rev" = "fwd", schedule: Star["schedule"] = null): Star {
+function twin(line: number, front: string, back: string, dir: "fwd" | "rev" = "fwd", schedule: DeckCard["schedule"] = null): DeckCard {
   return { id: `n.md#${line}#${dir}`, path: "n.md", line, end: line, dir, kind: "qa", front, back, extra: null, section: null, tags: [], schedule };
 }
 const HEAD = { path: "n.md", steps: [1, 10], newPerDay: 10 };
@@ -362,7 +362,7 @@ describe("the session keys", () => {
   it("the queue shows both twins and writes each grade to its own line", () => {
     store.clear();
     const stars = [twin(3, "dog", "chien"), twin(9, "dog", "perro")];
-    const q = new StarQueue(HEAD, stars, DAY, false, NOW);
+    const q = new CardQueue(HEAD, stars, DAY, false, NOW);
     const a = q.grade("easy", NOW)!;
     const b = q.grade("easy", NOW)!;
     assert.deepEqual([a.star.line, b.star.line], [3, 9]);
@@ -374,7 +374,7 @@ describe("the session keys", () => {
   it("a re-read after a write keeps the reader's place and hands the write the moved line", () => {
     store.clear();
     const stars = [twin(5, "a", "1"), twin(7, "b", "2"), twin(9, "c", "3")];
-    const q = new StarQueue(HEAD, stars, DAY, false, NOW);
+    const q = new CardQueue(HEAD, stars, DAY, false, NOW);
     const first = q.grade("easy", NOW)!;
     assert.equal(first.star.line, 5);
     // The write put a comment line under `a`; every star below moved.
@@ -383,7 +383,7 @@ describe("the session keys", () => {
     assert.equal(next.star.front, "b");
     assert.equal(next.star.line, 8);
     const second = q.grade("easy", NOW)!;
-    assert.equal(q.starOf(second.key)?.line, 8);
+    assert.equal(q.cardOf(second.key)?.line, 8);
     // A star that vanished between reads is dropped, not shown blank.
     q.refresh([twin(5, "a", "1", "fwd", first.write), twin(8, "b", "2", "fwd", second.write)]);
     assert.equal(q.next(NOW), null);
@@ -393,7 +393,7 @@ describe("the session keys", () => {
     store.clear();
     const due = { due: "2026-09-10", interval: 3, ease: 2500 };
     const stars = [twin(3, "x", "1", "fwd", due), twin(4, "y", "2", "fwd", due), twin(5, "z", "3")];
-    const q = new StarQueue(HEAD, stars, DAY, false, NOW);
+    const q = new CardQueue(HEAD, stars, DAY, false, NOW);
     const g = q.grade("again", NOW)!;
     assert.equal(g.star.front, "x");
     assert.deepEqual(g.write, { due: "2026-09-16", interval: 1, ease: 2300 });

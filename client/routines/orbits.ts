@@ -1,21 +1,21 @@
-// THE ORBIT ↔ CONSTELLATION LINK. An orbit slot that names a constellation
-// note with a wikilink ("review: [[Constellations/Japanese/Hiragana]] — every
-// star due, 10 min") is the day's study in the plan, and the constellation is
-// where the studying happens, so the two are wired both ways:
+// THE SIGIL ↔ DECK LINK. A sigil slot that names a deck note with a
+// wikilink ("review: [[Orbits/Japanese/Hiragana]] — every card due, 10
+// min") is the day's study in the plan, and the deck is where the studying
+// happens, so the two are wired both ways:
 //
-//   - the orbit card shows, after that slot's text, a chip per linked
-//     constellation: how many stars are due and a Study link into the session
-//     (`decorateStarTasks`, called by the Orbits page once the card is drawn);
+//   - the sigil card shows, after that slot's text, a chip per linked
+//     deck: how many cards are due and a Study link into the session
+//     (`decorateDeckTasks`, called by the Sigils page once the card is drawn);
 //   - a session that ends with nothing due ticks the slot for today through
-//     the tick route the checkbox already uses (`tickSlotForConstellation`,
+//     the tick route the checkbox already uses (`tickSlotForDeck`,
 //     the one export the session-end handler calls).
 //
 // Nothing here is a new kind of state: the link is the note's own wikilink,
 // the tick is the log line the checkbox writes, the due count is the shelf's.
-// The module stays small on purpose — the Orbits files belong to another
+// The module stays small on purpose — the Sigils files belong to another
 // session and this is the whole of the touch.
 
-import type { ConstellationMeta } from "../../shared/constellations.ts";
+import type { DeckMeta } from "../../shared/decks.ts";
 import { isoDate, tasksFor, type RoutineTask } from "../../shared/routine.ts";
 import { stripNoteExt } from "../../shared/noteFormat.ts";
 import type { RoutineMeta, TreeNode } from "../../shared/types.ts";
@@ -44,7 +44,7 @@ function linksOf(task: RoutineTask, tree: TreeNode | null): TaskLink[] {
   for (const m of text.matchAll(WIKILINK_RE)) {
     const parts = parseWikilink(m[1]);
     // Without a tree (the page opened before the vault arrived) the target's
-    // own spelling still names the note, so a `Constellations/…/Hiragana`
+    // own spelling still names the note, so a `Orbits/…/Hiragana`
     // link ticks and links correctly even then.
     const path = resolveLink(parts.target, tree) ?? (parts.target.includes("/") ? `${stripNoteExt(parts.target)}.md` : null);
     const label = parts.alias ?? stripNoteExt(parts.target).split("/").pop() ?? parts.target;
@@ -67,16 +67,16 @@ function tasksLinking(meta: RoutineMeta, date: string, path: string, tree: TreeN
 // Orbits page asks for them when it is drawn, and a page of six orbits is one
 // request, not six. A vault event redraws the cards and the cache has lapsed
 // by then, so a session's grades show up as they land.
-let shelf: { at: number; p: Promise<ConstellationMeta[]> } | null = null;
-function constellations(fresh = false): Promise<ConstellationMeta[]> {
+let shelf: { at: number; p: Promise<DeckMeta[]> } | null = null;
+function decks(fresh = false): Promise<DeckMeta[]> {
   const now = Date.now();
   if (!fresh && shelf && now - shelf.at < 3000) return shelf.p;
   // "Due" is a question about the reader's calendar day, and the server's
   // clock may sit in another zone: the day goes with the request, as the
   // Orbits page reckons it.
-  const p = fetch(`/api/constellations?today=${isoDate(new Date())}`, withPreview({ credentials: "same-origin" }))
-    .then((res) => (res.ok ? (res.json() as Promise<ConstellationMeta[]>) : []))
-    .catch(() => [] as ConstellationMeta[]);
+  const p = fetch(`/api/orbits?today=${isoDate(new Date())}`, withPreview({ credentials: "same-origin" }))
+    .then((res) => (res.ok ? (res.json() as Promise<DeckMeta[]>) : []))
+    .catch(() => [] as DeckMeta[]);
   shelf = { at: now, p };
   return p;
 }
@@ -85,22 +85,22 @@ function sameKey(a: string, b: string): boolean {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
-/** The session's address: `/constellations/<note path>`, the path WITH its
+/** The session's address: `/orbits/<note path>`, the path WITH its
  *  extension, encoded a segment at a time — the shape the router's
- *  `starsUrl` builds and `starsRouteOf` reads back as the note path the
+ *  `orbitsUrl` builds and `orbitsRouteOf` reads back as the note path the
  *  API wants. Not `notePathToUrl`: that strips the extension, and the
- *  session looks the constellation up by its full path. */
+ *  session looks the deck up by its full path. */
 function sessionUrl(path: string): string {
-  return `/constellations/${path.split("/").map(encodeURIComponent).join("/")}`;
+  return `/orbits/${path.split("/").map(encodeURIComponent).join("/")}`;
 }
 
-/** Tick, for today, every orbit slot whose text wikilinks the constellation
+/** Tick, for today, every orbit slot whose text wikilinks the deck
  *  at `path` — the session for it just ended with nothing due. A slot that
- *  links several constellations is ticked only when none of them has a star
+ *  links several decks is ticked only when none of them has a star
  *  due, because "review" was the whole slot, not one deck of it. Resolves to
  *  the number of slots ticked; a failure to read or write is a quiet zero,
  *  the session's own summary is the thing the reader is looking at. */
-export async function tickSlotForConstellation(path: string): Promise<number> {
+export async function tickSlotForDeck(path: string): Promise<number> {
   const today = isoDate(new Date());
   const tree = useStore.getState().tree;
   let routines: RoutineMeta[];
@@ -123,7 +123,7 @@ export async function tickSlotForConstellation(path: string): Promise<number> {
         if (dueOf === null) {
           // Fresh, not the card's cache: the grades that just landed are
           // the counts this decision is about.
-          const list = await constellations(true);
+          const list = await decks(true);
           dueOf = (p) => list.find((c) => samePath(c.path, p))?.counts.due ?? 0;
         }
         if (others.some((p) => (dueOf as (p: string) => number)(p) > 0)) continue;
@@ -143,11 +143,11 @@ export async function tickSlotForConstellation(path: string): Promise<number> {
 }
 
 /** Dress a drawn orbit card: for each of today's tasks that links a
- *  constellation, show the link by its name instead of its brackets and add
- *  a chip per constellation, "N due · Study", opening the session. The card
+ *  deck, show the link by its name instead of its brackets and add
+ *  a chip per deck, "N due · Study", opening the session. The card
  *  is the reading renderer's, rebuilt whole on every change, so this runs
  *  after each draw and holds nothing between draws. */
-export function decorateStarTasks(card: HTMLElement, meta: RoutineMeta, today: string): void {
+export function decorateDeckTasks(card: HTMLElement, meta: RoutineMeta, today: string): void {
   const tree = useStore.getState().tree;
   const tasks = tasksFor(meta.plan, today);
   const rows = card.querySelectorAll<HTMLElement>(".s-rv-routine__task");
@@ -174,11 +174,11 @@ export function decorateStarTasks(card: HTMLElement, meta: RoutineMeta, today: s
     wanted.push({ row, links });
   });
   if (wanted.length === 0) return;
-  void constellations().then((list) => {
+  void decks().then((list) => {
     if (!card.isConnected) return;
     for (const { row, links } of wanted) {
       const chips = document.createElement("span");
-      chips.className = "s-stars-chips";
+      chips.className = "s-orbits-chips";
       const seen = new Set<string>();
       for (const l of links) {
         const path = l.path as string;
@@ -186,29 +186,29 @@ export function decorateStarTasks(card: HTMLElement, meta: RoutineMeta, today: s
         if (seen.has(key)) continue;
         seen.add(key);
         const c = list.find((m) => samePath(m.path, path));
-        // A note the shelf does not list is not a constellation (or the
+        // A note the shelf does not list is not a deck (or the
         // shelf is unreachable): no chip, the name alone is the link's due.
         if (!c) continue;
         const a = document.createElement("a");
-        a.className = `s-stars-chip${c.counts.due === 0 ? " is-clear" : ""}`;
+        a.className = `s-orbits-chip${c.counts.due === 0 ? " is-clear" : ""}`;
         a.href = sessionUrl(path);
         a.title = c.title;
-        a.setAttribute("aria-label", tf("starsOrbitStudyTitle", { title: c.title }));
-        // A slot that names four constellations gets four chips in a row;
+        a.setAttribute("aria-label", tf("orbitsChipStudyTitle", { title: c.title }));
+        // A slot that names four decks gets four chips in a row;
         // the icon says which is which (the title is on hover and for the
         // screen reader).
         if (c.icon) {
           const icon = document.createElement("span");
-          icon.className = "s-stars-chip__icon";
+          icon.className = "s-orbits-chip__icon";
           icon.textContent = c.icon;
           icon.setAttribute("aria-hidden", "true");
           a.appendChild(icon);
         }
         const n = document.createElement("span");
-        n.className = "s-stars-chip__n";
-        n.textContent = tf("starsOrbitDue", { n: localeNum(c.counts.due) });
+        n.className = "s-orbits-chip__n";
+        n.textContent = tf("orbitsChipDue", { n: localeNum(c.counts.due) });
         a.appendChild(n);
-        a.appendChild(document.createTextNode(` · ${t("starsOrbitStudy")}`));
+        a.appendChild(document.createTextNode(` · ${t("orbitsChipStudy")}`));
         a.addEventListener("click", (ev) => {
           if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button !== 0) return; // a new tab is the browser's
           ev.preventDefault();

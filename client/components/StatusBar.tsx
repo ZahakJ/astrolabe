@@ -18,7 +18,7 @@ import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
 import { DRAWER_QUERY, useStore } from "../state.ts";
-import { activeTabOf, isGraphTab, isMediaTab, isRoutinesTab, isStarsTab, paneAt } from "../workspace.ts";
+import { activeTabOf, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, paneAt } from "../workspace.ts";
 import { choiceGroup, choiceLabel } from "../themes.ts";
 import SyncBadge from "./SyncBadge.tsx";
 import { openThemePicker } from "./ThemePicker.tsx";
@@ -265,11 +265,11 @@ export default function StatusBar() {
     const tab = pane === null ? null : activeTabOf(pane);
     return tab !== null && isRoutinesTab(tab.path);
   });
-  const toggleStars = useStore((s) => s.toggleStars);
-  const starsOn = useStore((s) => {
+  const toggleOrbits = useStore((s) => s.toggleOrbits);
+  const orbitsOn = useStore((s) => {
     const pane = paneAt(s.workspace, s.workspace.focus);
     const tab = pane === null ? null : activeTabOf(pane);
-    return tab !== null && isStarsTab(tab.path);
+    return tab !== null && isOrbitsTab(tab.path);
   });
   const mediaOn = useStore((s) => {
     const pane = paneAt(s.workspace, s.workspace.focus);
@@ -401,8 +401,8 @@ export default function StatusBar() {
     ...(admin
       ? [
           { label: t("media"), onSelect: toggleMedia },
+          { label: t("orbits"), onSelect: toggleOrbits },
           { label: t("routines"), onSelect: toggleRoutines },
-          { label: t("stars"), onSelect: toggleStars },
           { label: null },
           { label: t("designTitle"), onSelect: openDesigner },
           { label: t("previewAsVisitor"), onSelect: () => void useStore.getState().setPreviewVisitor(true) },
@@ -463,17 +463,20 @@ export default function StatusBar() {
               <path d="M13.5 5.5l4.5-1.2 4 15.2-4.5 1.2z" />
             </svg>
           </button>
-          {/* THE ORBITS PAGE'S DOOR, beside the shelf: a small body on its
-              ring — the thing you come back round to. Admin-only for the
-              shelf's reason. */}
+          {/* THE ORBITS DOOR, beside the shelf: a small body on its ring —
+              the thing that comes back round. The glyph opened the routine
+              page in 3.15, when that page wore the name; from 3.16 Orbits is
+              spaced repetition, where a card comes back around on its
+              schedule, and the ring goes with the word. Admin-only for the
+              shelf's reason: a session writes into the notes. */}
           <button
             type="button"
-            className={`s-statusbar__btn s-statusbar__icon${routinesOn ? " s-statusbar__btn--on" : ""}`}
-            aria-pressed={routinesOn}
-            onClick={toggleRoutines}
-            title={t("routinesTitle")}
-            aria-label={t("routines")}
-            data-testid="routines-door"
+            className={`s-statusbar__btn s-statusbar__icon${orbitsOn ? " s-statusbar__btn--on" : ""}`}
+            aria-pressed={orbitsOn}
+            onClick={toggleOrbits}
+            title={t("orbitsTitle")}
+            aria-label={t("orbits")}
+            data-testid="orbits-door"
           >
             <svg
               viewBox="0 0 24 24"
@@ -491,18 +494,18 @@ export default function StatusBar() {
               <circle cx="20.2" cy="7.25" r="1.6" fill="currentColor" stroke="none" />
             </svg>
           </button>
-          {/* THE CONSTELLATIONS DOOR, beside the orbits: three stars joined
-              by two strokes — the rete's own drawing of a thing you learn to
-              recognise. It was the Review door until 3.16. Admin-only for
-              the shelf's reason: a session writes into the notes. */}
+          {/* THE SIGILS DOOR, beside the orbits: a seal — a ring with a small
+              mark inside it, the stamp you set on a day you kept. The daily
+              routine and its log (Routines until 3.15, Orbits in 3.15).
+              Admin-only for the same reason: a tick writes into the note. */}
           <button
             type="button"
-            className={`s-statusbar__btn s-statusbar__icon${starsOn ? " s-statusbar__btn--on" : ""}`}
-            aria-pressed={starsOn}
-            onClick={toggleStars}
-            title={t("starsTitle")}
-            aria-label={t("stars")}
-            data-testid="stars-door"
+            className={`s-statusbar__btn s-statusbar__icon${routinesOn ? " s-statusbar__btn--on" : ""}`}
+            aria-pressed={routinesOn}
+            onClick={toggleRoutines}
+            title={t("routinesTitle")}
+            aria-label={t("routines")}
+            data-testid="sigils-door"
           >
             <svg
               viewBox="0 0 24 24"
@@ -515,10 +518,8 @@ export default function StatusBar() {
               strokeLinejoin="round"
               aria-hidden="true"
             >
-              <path d="M5 18L12 7l7 8" />
-              <circle cx="5" cy="18" r="2.2" fill="currentColor" stroke="none" />
-              <circle cx="12" cy="7" r="2.2" fill="currentColor" stroke="none" />
-              <circle cx="19" cy="15" r="2.2" fill="currentColor" stroke="none" />
+              <circle cx="12" cy="12" r="9" />
+              <path d="M9 12.5l2 2 4-5" />
             </svg>
           </button>
           <button

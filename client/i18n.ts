@@ -1647,7 +1647,7 @@ const DICT = {
     ar: "لا ملاحظات بعد — أنشئ واحدة واربطها بروابط ويكي.",
   },
   graphEmptyVisitor: {
-    en: "Nothing is published yet — the constellation awaits.",
+    en: "Nothing is published yet — the deck awaits.",
     ar: "لا شيء منشور بعد — الكوكبة تنتظر أن تتشكل.",
   },
   zoomIn: { en: "Zoom in", ar: "تكبير" },
@@ -4549,56 +4549,63 @@ const DICT = {
   mediaAdded: { en: "Added {title}", ar: "أُضيف {title}" },
   mediaSaved: { en: "Saved {title}", ar: "حُفظ {title}" },
   mediaSaveFailed: { en: "Could not save {title}", ar: "تعذّر حفظ {title}" },
-  // ── Orbits: the daily tracker (shared/routine.ts, client/reading/routine.ts, client/routines/).
-  //    The keys keep the old identifier; every VALUE says orbit (3.15). ──
-  routines: { en: "Orbits", ar: "المدارات" },
-  routinesTitle: { en: "Open the Orbits page", ar: "فتح صفحة المدارات" },
-  cmdOpenRoutines: { en: "Open the Orbits page", ar: "فتح صفحة المدارات" },
-  // The row's hint names the old word: the palette matches on the hint too,
-  // so `routine`, typed from three releases of habit, still finds the door.
-  cmdOpenRoutinesHint: { en: "view · formerly Routines", ar: "عرض · «الروتين» سابقًا" },
+  // ── Sigils: the daily routine and its log (shared/routine.ts, client/reading/routine.ts, client/routines/).
+  //    The keys keep the identifier the code was born with; every VALUE says
+  //    Sigils / سِجِلّ (3.16 — Latin sigillum, Arabic sijill, the same root; the
+  //    feature was Routines in 3.11–3.14 and Orbits in 3.15, when the word
+  //    went to spaced repetition, where things come back around). ──
+  routines: { en: "Sigils", ar: "السِّجِلّ" },
+  routinesTitle: { en: "Open Sigils", ar: "فتح السِّجِلّ" },
+  cmdOpenRoutines: { en: "Open Sigils", ar: "فتح السِّجِلّ" },
+  // The hint says what a sigil IS, since the word is new: the palette
+  // matches on the hint too, so "daily", "habit" and "log" all find the door.
+  cmdOpenRoutinesHint: { en: "view · what you keep every day, and its log", ar: "عرض · روتينك اليومي وسجلّه" },
   routinesLead: { en: "What today asks of you, in one place — tick it off here and the note keeps the day.", ar: "ما يطلبه منك اليوم في مكان واحد: علّم عليه هنا وتحفظ الملاحظة يومك." },
-  routinesAdd: { en: "New orbit", ar: "مدار جديد" },
-  routinesEmpty: { en: "No orbits yet.", ar: "لا مدارات بعد." },
-  routinesEmptyHint: { en: "An orbit is something you come back to every day — an exercise week, the prayers, sleep, water. Start from a template or draw up your own.", ar: "المدار شيء تعود إليه كل يوم: أسبوع تمارين، الصلوات، النوم، الماء. ابدأ من قالب أو ارسم مدارك بنفسك." },
-  routinesFailed: { en: "The orbits could not be loaded.", ar: "تعذّر تحميل المدارات." },
+  routinesAdd: { en: "New sigil", ar: "سِجِلّ جديد" },
+  routinesEmpty: { en: "No sigils yet.", ar: "لا سِجِلّات بعد." },
+  routinesEmptyHint: { en: "A sigil is a seal you set on the day — an exercise week, the prayers, sleep, water — and the log of every day you kept it. Start from a template or draw up your own.", ar: "السِّجِلّ ختم تضعه على يومك: أسبوع تمارين، الصلوات، النوم، الماء، وسجلّ كل يوم حافظت عليه. ابدأ من قالب أو ارسم سجلّك بنفسك." },
+  routinesFailed: { en: "The sigils could not be loaded.", ar: "تعذّر تحميل السِّجِلّات." },
   routinesSummary: { en: "{done} of {of} complete today", ar: "{done} من {of} مكتمل اليوم" },
   routinesSaveFailed: { en: "“{title}” could not be saved", ar: "تعذّر حفظ «{title}»" },
   routinesSaved: { en: "“{title}” saved", ar: "حُفظ «{title}»" },
-  routinesAdded: { en: "“{title}” added to your orbits", ar: "أُضيف «{title}» إلى مداراتك" },
+  routinesAdded: { en: "“{title}” added to your sigils", ar: "أُضيف «{title}» إلى سِجِلّاتك" },
   routinesExists: { en: "A note already lives at {path}", ar: "توجد ملاحظة بالفعل في {path}" },
-  // ── Constellations: its DOORS, and only its doors ────────────────────────
-  // The names are the astrolabe's: a deck is a constellation (كوكبة), a card
-  // a star (نجم), a study run a session (جلسة). The page replaced Review in
-  // 3.16. What is here is what gets painted before the surface exists — the
-  // status bar's door, the tab's name, the palette's four rows, the Orbits
+  // ── Orbits: spaced repetition — its DOORS, and only its doors ─────────────
+  // Orbits (المدارات) is the page: a card comes back around on its
+  // schedule, which is what the word says. Inside it a deck (مجموعة) is a
+  // note and a card (بطاقة) a line. The page replaced Review in 3.16 and
+  // took the name the routine page wore in 3.15 (that page is Sigils now).
+  // What is here is what gets painted before the surface exists — the
+  // status bar's door, the tab's name, the palette's four rows, the Sigils
   // line. The shelf's, the session's, the drawer's and the form's own copy
-  // lives in client/stars/copy.ts, in the tour deck's `{ en, ar }` shape
+  // lives in client/orbits/copy.ts, in the tour deck's `{ en, ar }` shape
   // and for the tour deck's reason (see client/components/tourCards.ts):
   // the DICT is entry-chunk code, and a hundred strings for a page behind
   // an admin door do not belong in a visitor's first paint. Gated by
   // tests/srsSession.test.ts the way the deck's are.
-  stars: { en: "Constellations", ar: "الكوكبات" },
-  starsTitle: { en: "Constellations — study the stars you marked", ar: "الكوكبات: ادرس النجوم التي علّمتها" },
-  cmdOpenStars: { en: "Open Constellations", ar: "افتح الكوكبات" },
-  cmdStudyDue: { en: "Study due cards", ar: "ادرس النجوم المستحقة" },
-  cmdStudyDueHint: { en: "the first constellation with stars due", ar: "أول كوكبة فيها نجوم مستحقة" },
-  starsNew: { en: "New constellation…", ar: "كوكبة جديدة…" },
-  // The implicit constellation — every card outside a constellation note —
-  // has no note to be named after, so its session tab wears this.
-  starsEverything: { en: "Everything else", ar: "كل ما سواها" },
-  cmdNewConstellationHint: { en: "a note of front::back lines", ar: "ملاحظة من أسطر وجه::ظهر" },
+  orbits: { en: "Orbits", ar: "المدارات" },
+  orbitsTitle: { en: "Open Orbits", ar: "فتح المدارات" },
+  cmdOpenOrbits: { en: "Open Orbits", ar: "فتح المدارات" },
+  cmdOpenOrbitsHint: { en: "view · spaced repetition: your decks and what is due", ar: "عرض · التكرار المتباعد: مجموعاتك وما استُحق منها" },
+  cmdStudyDue: { en: "Study due cards", ar: "ادرس البطاقات المستحقة" },
+  cmdStudyDueHint: { en: "the first deck with cards due", ar: "أول مجموعة فيها بطاقات مستحقة" },
+  orbitsNewDeck: { en: "New deck…", ar: "مجموعة جديدة…" },
+  // The implicit deck — every card outside a deck note — has no note to be
+  // named after, so its session tab wears this.
+  orbitsEverything: { en: "Everything else", ar: "كل ما سواها" },
+  cmdNewDeckHint: { en: "a note of front::back lines", ar: "ملاحظة من أسطر وجه::ظهر" },
   cmdImportDeck: { en: "Import an Anki deck…", ar: "استيراد مجموعة Anki…" },
   cmdImportDeckHint: { en: ".apkg, .csv or .tsv", ar: "ملف .apkg أو .csv أو .tsv" },
-  // "{n}" is a countPhrase ("3 stars" / "٣ نجوم"); the Arabic ends in it so
-  // no adjective has to agree with a count that changes gender at one.
-  routinesStarsDue: { en: "{n} due", ar: "المستحق اليوم: {n}" },
-  addFlashcard: { en: "Make a flashcard", ar: "اصنع بطاقة" },
-  // ── Constellations on an orbit card (client/routines/stars.ts): the chip a
-  // slot wears when its text wikilinks a constellation note ──
-  starsOrbitDue: { en: "{n} due", ar: "{n} مستحقة" },
-  starsOrbitStudy: { en: "Study", ar: "ادرس" },
-  starsOrbitStudyTitle: { en: "Study {title}", ar: "ادرس {title}" },
+  // The line on the Sigils page: "{n}" is a countPhrase ("3 cards" /
+  // "٣ بطاقات"); the Arabic ends in it so no adjective has to agree with a
+  // count that changes gender at one.
+  routinesOrbitsDue: { en: "{n} due in Orbits", ar: "المستحق في المدارات: {n}" },
+  addFlashcard: { en: "Make a card", ar: "اصنع بطاقة" },
+  // ── Orbits on a sigil card (client/routines/orbits.ts): the chip a slot
+  // wears when its text wikilinks a deck note ──
+  orbitsChipDue: { en: "{n} due", ar: "{n} مستحقة" },
+  orbitsChipStudy: { en: "Study", ar: "ادرس" },
+  orbitsChipStudyTitle: { en: "Study {title}", ar: "ادرس {title}" },
   // ── Offline reading (client/offline.ts, client/sw.ts, docs/offline.md) ──
   rowOffline: { en: "Offline reading", ar: "القراءة دون اتصال" },
   hintOffline: {
@@ -4609,7 +4616,7 @@ const DICT = {
   offlineCleared: { en: "Offline copy cleared", ar: "مُسحت النسخة دون اتصال" },
   offlineStrip: { en: "Offline", ar: "دون اتصال" },
   offlineStripHint: { en: "Reading this device's copy. Edits are kept and saved when the network is back.", ar: "تقرأ نسخة هذا الجهاز. تُحفظ التعديلات وتُرسل عند عودة الشبكة." },
-  routinesTitleRequired: { en: "Give the orbit a name", ar: "أعطِ المدار اسمًا" },
+  routinesTitleRequired: { en: "Give the sigil a name", ar: "أعطِ السِّجِلّ اسمًا" },
   routineFormSlotsPlaceholder: { en: "morning, evening", ar: "صباحًا، مساءً" },
   routinesEdit: { en: "Edit", ar: "تعديل" },
   routinesDelete: { en: "Delete", ar: "حذف" },
@@ -4617,13 +4624,13 @@ const DICT = {
   routinesPresetsHead: { en: "Start from", ar: "ابدأ من" },
   routinesSaveTemplate: { en: "Save as template", ar: "احفظ كقالب" },
   routinesTemplateSaved: { en: "Template “{title}” saved under {folder}", ar: "حُفظ القالب «{title}» في {folder}" },
-  routineFormNew: { en: "New orbit", ar: "مدار جديد" },
+  routineFormNew: { en: "New sigil", ar: "سِجِلّ جديد" },
   routineFormEdit: { en: "Edit “{title}”", ar: "تعديل «{title}»" },
   routineFormTitle: { en: "Name", ar: "الاسم" },
   routineFormTitlePlaceholder: { en: "Daily exercise", ar: "تمارين يومية" },
   routineFormKind: { en: "Kind", ar: "النوع" },
   routineFormKindOwn: { en: "Or your own word", ar: "أو كلمتك الخاصة" },
-  routineFormKindHint: { en: "What sort of orbit this is. It picks the glyph and a matching set of suggestions below; the word itself is yours to change.", ar: "أي نوع من المدارات هذا. يختار الرمز ويرتّب الاقتراحات تحته، والكلمة نفسها لك أن تغيّرها." },
+  routineFormKindHint: { en: "What sort of sigil this is. It picks the glyph and a matching set of suggestions below; the word itself is yours to change.", ar: "أي نوع من السِّجِلّات هذا. يختار الرمز ويرتّب الاقتراحات تحته، والكلمة نفسها لك أن تغيّرها." },
   routineFormSlots: { en: "Parts of the day", ar: "أجزاء اليوم" },
   routineFormSlotsHint: { en: "Split each day into parts you plan by — morning, evening — written with commas between them. Leave it empty and each day is one line.", ar: "قسّم كل يوم إلى أجزاء تخطط بها، مثل: صباحًا، مساءً، وبينها فواصل. اتركه فارغًا فيكون كل يوم سطرًا واحدًا." },
   routineFormItems: { en: "Every day", ar: "كل يوم" },
@@ -4653,7 +4660,7 @@ const DICT = {
   routineFormTargetUnit: { en: "days a week", ar: "أيام في الأسبوع" },
   routineFormTargetHint: { en: "How many days a week you mean to complete. The card counts against it: \"3 of 6 this week\". Leave it empty and the card counts the days the plan asks something of.", ar: "كم يومًا في الأسبوع تنوي إكماله. تحسب البطاقة عليه: «3 من 6 هذا الأسبوع». اتركه فارغًا فتحسب البطاقة الأيام التي تطلب فيها الخطة شيئًا." },
   routineFormNotes: { en: "Notes", ar: "ملاحظات" },
-  routineFormNotesHint: { en: "Anything you want to remember about this orbit — why you started, the rules you set yourself. Shown under the card.", ar: "أي شيء تريد تذكّره عن هذا المدار: لماذا بدأت، والقواعد التي وضعتها لنفسك. يظهر تحت البطاقة." },
+  routineFormNotesHint: { en: "Anything you want to remember about this sigil — why you started, the rules you set yourself. Shown under the card.", ar: "أي شيء تريد تذكّره عن هذا السِّجِلّ: لماذا بدأت، والقواعد التي وضعتها لنفسك. يظهر تحت البطاقة." },
   routineFormSave: { en: "Save", ar: "حفظ" },
   routineFormCancel: { en: "Cancel", ar: "إلغاء" },
   routineFormWhere: { en: "Saved as a note under {folder}. Its plan and its log are both in the note — edit them by hand any time.", ar: "يُحفظ ملاحظةً في {folder}. خطته وسجلّه كلاهما في الملاحظة؛ عدّلهما بيدك متى شئت." },
@@ -4664,7 +4671,7 @@ const DICT = {
   routineFormSectionFields: { en: "What to record each day", ar: "ما تسجّله كل يوم" },
   routineFormSectionGoal: { en: "Target and notes", ar: "الهدف والملاحظات" },
   routineFormIcon: { en: "Icon", ar: "الرمز" },
-  routineFormIconHint: { en: "One emoji or a short glyph that stands for this orbit on its card. Pick one, or type your own.", ar: "إيموجي واحد أو رمز قصير يدلّ على هذا المدار في بطاقته. اختر واحدًا، أو اكتب رمزك." },
+  routineFormIconHint: { en: "One emoji or a short glyph that stands for this sigil on its card. Pick one, or type your own.", ar: "إيموجي واحد أو رمز قصير يدلّ على هذا السِّجِلّ في بطاقته. اختر واحدًا، أو اكتب رمزك." },
   routineFormIconOwn: { en: "Or type one", ar: "أو اكتب واحدًا" },
   routineFormIconNone: { en: "None", ar: "بلا" },
   routineFormBanner: { en: "Banner", ar: "اللافتة" },
@@ -4672,34 +4679,34 @@ const DICT = {
   routineFormBannerPlaceholder: { en: "A picture in the vault, or an https:// link", ar: "صورة في الخزانة، أو رابط https://" },
   routineFormBannerChoose: { en: "Choose…", ar: "اختر…" },
   routineFormBannerRemove: { en: "Remove the banner", ar: "أزل اللافتة" },
-  orbitFieldMinutes: { en: "Minutes", ar: "الدقائق" },
-  orbitFieldMinutesHelp: { en: "How long it took, as a number of minutes.", ar: "كم استغرق الأمر، عددًا من الدقائق." },
-  orbitFieldWeight: { en: "Weight", ar: "الوزن" },
-  orbitFieldWeightHelp: { en: "Your weight that day — a number with a unit.", ar: "وزنك في ذلك اليوم: رقم مع وحدة." },
-  orbitFieldFocus: { en: "Focus", ar: "التركيز" },
-  orbitFieldFocusHelp: { en: "How focused you were, rated from 1 (scattered) to 5 (fully there).", ar: "كم كنت مركّزًا، بدرجة من 1 (مشتّت) إلى 5 (حاضر تمامًا)." },
-  orbitFieldMood: { en: "Mood", ar: "المزاج" },
-  orbitFieldMoodHelp: { en: "How you felt, rated from 1 (low) to 5 (great).", ar: "كيف كان شعورك، بدرجة من 1 (متعب) إلى 5 (ممتاز)." },
-  orbitFieldEnergy: { en: "Energy", ar: "الطاقة" },
-  orbitFieldEnergyHelp: { en: "How much energy you had, rated from 1 (drained) to 5 (full).", ar: "كم كانت طاقتك، بدرجة من 1 (منهك) إلى 5 (ممتلئ)." },
-  orbitFieldWater: { en: "Water", ar: "الماء" },
-  orbitFieldWaterHelp: { en: "How much you drank, as a count of glasses.", ar: "كم شربت، عددًا من الأكواب." },
-  orbitFieldPages: { en: "Pages", ar: "الصفحات" },
-  orbitFieldPagesHelp: { en: "How many pages you read.", ar: "كم صفحة قرأت." },
-  orbitFieldHours: { en: "Hours", ar: "الساعات" },
-  orbitFieldHoursHelp: { en: "How many hours — of sleep, of work — as a number.", ar: "كم ساعة، من النوم أو العمل، رقمًا." },
-  orbitFieldQuality: { en: "Quality", ar: "الجودة" },
-  orbitFieldQualityHelp: { en: "How good it was, rated from 1 (poor) to 5 (excellent).", ar: "كم كان جيدًا، بدرجة من 1 (سيئ) إلى 5 (ممتاز)." },
-  orbitFieldNotes: { en: "Notes", ar: "ملاحظات" },
-  orbitFieldNotesHelp: { en: "A line of text about the day — what you did, how it went.", ar: "سطر عن اليوم: ماذا فعلت، وكيف جرى." },
-  orbitFieldScaleHelp: { en: "{key}, rated from 1 to {max}.", ar: "{key}، بدرجة من 1 إلى {max}." },
-  orbitFieldNumberHelp: { en: "{key}, as a number.", ar: "{key}، رقمًا." },
-  orbitFieldNumberUnitHelp: { en: "{key}, as a number of {unit}.", ar: "{key}، رقمًا بوحدة {unit}." },
-  orbitFieldCountHelp: { en: "{key}, as a count.", ar: "{key}، عددًا." },
-  orbitFieldCountUnitHelp: { en: "{key}, as a count of {unit}.", ar: "{key}، عددًا من {unit}." },
-  orbitFieldCheckHelp: { en: "{key} — tick it if it happened.", ar: "{key}: علّم عليه إن حدث." },
-  orbitFieldTextHelp: { en: "{key}, as a line of text.", ar: "{key}، سطرًا من النص." },
-  orbitScaleTitle: { en: "{help} Click a number; click it again to clear.", ar: "{help} انقر رقمًا، وانقره ثانيةً لمسحه." },
+  sigilFieldMinutes: { en: "Minutes", ar: "الدقائق" },
+  sigilFieldMinutesHelp: { en: "How long it took, as a number of minutes.", ar: "كم استغرق الأمر، عددًا من الدقائق." },
+  sigilFieldWeight: { en: "Weight", ar: "الوزن" },
+  sigilFieldWeightHelp: { en: "Your weight that day — a number with a unit.", ar: "وزنك في ذلك اليوم: رقم مع وحدة." },
+  sigilFieldFocus: { en: "Focus", ar: "التركيز" },
+  sigilFieldFocusHelp: { en: "How focused you were, rated from 1 (scattered) to 5 (fully there).", ar: "كم كنت مركّزًا، بدرجة من 1 (مشتّت) إلى 5 (حاضر تمامًا)." },
+  sigilFieldMood: { en: "Mood", ar: "المزاج" },
+  sigilFieldMoodHelp: { en: "How you felt, rated from 1 (low) to 5 (great).", ar: "كيف كان شعورك، بدرجة من 1 (متعب) إلى 5 (ممتاز)." },
+  sigilFieldEnergy: { en: "Energy", ar: "الطاقة" },
+  sigilFieldEnergyHelp: { en: "How much energy you had, rated from 1 (drained) to 5 (full).", ar: "كم كانت طاقتك، بدرجة من 1 (منهك) إلى 5 (ممتلئ)." },
+  sigilFieldWater: { en: "Water", ar: "الماء" },
+  sigilFieldWaterHelp: { en: "How much you drank, as a count of glasses.", ar: "كم شربت، عددًا من الأكواب." },
+  sigilFieldPages: { en: "Pages", ar: "الصفحات" },
+  sigilFieldPagesHelp: { en: "How many pages you read.", ar: "كم صفحة قرأت." },
+  sigilFieldHours: { en: "Hours", ar: "الساعات" },
+  sigilFieldHoursHelp: { en: "How many hours — of sleep, of work — as a number.", ar: "كم ساعة، من النوم أو العمل، رقمًا." },
+  sigilFieldQuality: { en: "Quality", ar: "الجودة" },
+  sigilFieldQualityHelp: { en: "How good it was, rated from 1 (poor) to 5 (excellent).", ar: "كم كان جيدًا، بدرجة من 1 (سيئ) إلى 5 (ممتاز)." },
+  sigilFieldNotes: { en: "Notes", ar: "ملاحظات" },
+  sigilFieldNotesHelp: { en: "A line of text about the day — what you did, how it went.", ar: "سطر عن اليوم: ماذا فعلت، وكيف جرى." },
+  sigilFieldScaleHelp: { en: "{key}, rated from 1 to {max}.", ar: "{key}، بدرجة من 1 إلى {max}." },
+  sigilFieldNumberHelp: { en: "{key}, as a number.", ar: "{key}، رقمًا." },
+  sigilFieldNumberUnitHelp: { en: "{key}, as a number of {unit}.", ar: "{key}، رقمًا بوحدة {unit}." },
+  sigilFieldCountHelp: { en: "{key}, as a count.", ar: "{key}، عددًا." },
+  sigilFieldCountUnitHelp: { en: "{key}, as a count of {unit}.", ar: "{key}، عددًا من {unit}." },
+  sigilFieldCheckHelp: { en: "{key} — tick it if it happened.", ar: "{key}: علّم عليه إن حدث." },
+  sigilFieldTextHelp: { en: "{key}, as a line of text.", ar: "{key}، سطرًا من النص." },
+  sigilScaleTitle: { en: "{help} Click a number; click it again to clear.", ar: "{help} انقر رقمًا، وانقره ثانيةً لمسحه." },
   routineKindExercise: { en: "Exercise", ar: "رياضة" },
   routineKindHabit: { en: "Habits", ar: "عادات" },
   routineKindPrayer: { en: "Prayers", ar: "صلاة" },
@@ -4708,8 +4715,8 @@ const DICT = {
   routineKindMood: { en: "Mood", ar: "مزاج" },
   routineKindReading: { en: "Reading", ar: "قراءة" },
   routineKindStudy: { en: "Study", ar: "دراسة" },
-  routineKindOwn: { en: "Orbit", ar: "مدار" },
-  routineUntitled: { en: "Untitled orbit", ar: "مدار بلا اسم" },
+  routineKindOwn: { en: "Sigil", ar: "سِجِلّ" },
+  routineUntitled: { en: "Untitled sigil", ar: "سِجِلّ بلا اسم" },
   routineStreak: { en: "day streak", ar: "يوم متتالٍ" },
   routineStreakTitle: { en: "{n} complete days in a row", ar: "{n} يومًا مكتملًا على التوالي" },
   routineThisWeek: { en: "this week", ar: "هذا الأسبوع" },
@@ -4742,7 +4749,7 @@ const DICT = {
   weekdayFri: { en: "Fri", ar: "جمعة" },
   weekdaySat: { en: "Sat", ar: "سبت" },
   weekdaySun: { en: "Sun", ar: "أحد" },
-  slashRoutine: { en: "Orbit", ar: "مدار" },
+  slashRoutine: { en: "Sigil", ar: "سِجِلّ" },
   // ── Reading pace (shared/tracker.ts paceProjection) ──
   trackerPaceDoneBy: { en: "{pace} a day — done by {date}", ar: "{pace} في اليوم؛ ينتهي في {date}" },
   trackerPaceNeeded: { en: "{pace} a day to finish by {date}", ar: "{pace} في اليوم للانتهاء في {date}" },
@@ -5107,7 +5114,7 @@ export type CountUnit =
   | "lessons"
   | "tasks"
   | "days"
-  | "stars";
+  | "cards";
 
 const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: string; few: string; many: string } }> = {
   // What a bulk tab-close is about to FLUSH. It is a count with a consequence
@@ -5178,8 +5185,8 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   chapters: { en: ["chapter", "chapters"], ar: { one: "فصل واحد", two: "فصلان", few: "فصول", many: "فصلًا" } },
   tasks: { en: ["task", "tasks"], ar: { one: "مهمة واحدة", two: "مهمتان", few: "مهام", many: "مهمة" } },
   days: { en: ["day", "days"], ar: { one: "يوم واحد", two: "يومان", few: "أيام", many: "يومًا" } },
-  // The constellations count their stars: "3 stars due", "١٠ نجوم".
-  stars: { en: ["star", "stars"], ar: { one: "نجم واحد", two: "نجمان", few: "نجوم", many: "نجمًا" } },
+  // The decks count their cards: "3 cards due", "١٠ بطاقات".
+  cards: { en: ["card", "cards"], ar: { one: "بطاقة واحدة", two: "بطاقتان", few: "بطاقات", many: "بطاقة" } },
 };
 
 /** "3 notes" / "3 ملاحظات" — a number with its correctly-agreed unit. */

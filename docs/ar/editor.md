@@ -119,7 +119,7 @@ tag:work
 sort: priority
 ```
 
-الأسطر: `not done` (الافتراضي) و`done` و`all`؛ و`due today` و`due this week` و`overdue` و`due before 2026-10-01` و`due after …` و`due on …` و`has due date`؛ و`path:Projects` و`tag:work` و`limit: 50` و`group: none` و`sort: due | priority | path`. وتفتح صفحة المدارات على المهام المستحقة حتى اليوم.
+الأسطر: `not done` (الافتراضي) و`done` و`all`؛ و`due today` و`due this week` و`overdue` و`due before 2026-10-01` و`due after …` و`due on …` و`has due date`؛ و`path:Projects` و`tag:work` و`limit: 50` و`group: none` و`sort: due | priority | path`. وتفتح صفحة السِّجِلّ على المهام المستحقة حتى اليوم.
 
 ## إشارات غير مرتبطة
 

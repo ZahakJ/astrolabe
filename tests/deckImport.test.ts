@@ -1,7 +1,7 @@
-// The importer (server/starsImport.ts) and the ZIP reader under it
+// The importer (server/deckImport.ts) and the ZIP reader under it
 // (server/zip.ts): an Anki package BUILT HERE — a real SQLite collection
 // written with node:sqlite, zipped with headers written by hand — goes in,
-// and the constellation notes the spec describes come out, byte for byte.
+// and the deck notes the spec describes come out, byte for byte.
 //
 // The archive is written by this file and not by shared/zip.ts on purpose:
 // a reader tested only against our own writer would prove the two agree,
@@ -35,7 +35,7 @@ import {
   Skips,
   writeDecks,
   type ImportDeck,
-} from "../server/starsImport.ts";
+} from "../server/deckImport.ts";
 import { initIndexer } from "../server/indexer.ts";
 import { initSite } from "../server/site.ts";
 import { initVault } from "../server/vault.ts";
@@ -242,7 +242,7 @@ describe("CSV / TSV", () => {
     assert.deepEqual(skips.list(), [{ reason: "empty", count: 1 }]);
     assert.equal(
       serialiseImportedDeck(deck),
-      "---\ntitle: Spanish\n---\n\n```constellation\ntitle: Spanish\nkind: basic\n```\n\ncat::gato::el gato #animals\ndog::perro #animals #pets\n",
+      "---\ntitle: Spanish\n---\n\n```deck\ntitle: Spanish\nkind: basic\n```\n\ncat::gato::el gato #animals\ndog::perro #animals #pets\n",
     );
   });
 });
@@ -260,7 +260,7 @@ describe("serialiseImportedDeck", () => {
     assert.equal(
       serialiseImportedDeck(deck),
       [
-        "---", 'title: "Physics: Light"', "---", "", "```constellation", "title: Physics: Light", "kind: basic", "```", "",
+        "---", 'title: "Physics: Light"', "---", "", "```deck", "title: Physics: Light", "kind: basic", "```", "",
         "c::speed of light", "", "## Waves", "",
         "ν:::frequency::Hz <!--SR:!2024-01-05,2,2400!2024-01-05,2,2400-->",
         "==Light== is a wave #opt", "",
@@ -270,9 +270,9 @@ describe("serialiseImportedDeck", () => {
     // A newline folds; the backticks stay (one line cannot open a fence),
     // and YAML gets them quoted.
     const odd = serialiseImportedDeck({ title: "Two\nlines ```", cards: [] });
-    assert.ok(odd.startsWith("---\ntitle: \"Two lines ```\"\n---\n\n```constellation\ntitle: Two lines ```\nkind: basic\n```\n"), odd);
+    assert.ok(odd.startsWith("---\ntitle: \"Two lines ```\"\n---\n\n```deck\ntitle: Two lines ```\nkind: basic\n```\n"), odd);
     assert.equal(noteBaseName("A/B: C?"), "A B C");
-    assert.equal(noteBaseName("///"), "Imported constellation");
+    assert.equal(noteBaseName("///"), "Imported deck");
   });
 });
 
@@ -356,7 +356,7 @@ async function buildApkg(): Promise<Uint8Array> {
 }
 
 const JAPANESE = [
-  "---", "title: Japanese", "---", "", "```constellation", "title: Japanese", "kind: basic", "```", "",
+  "---", "title: Japanese", "---", "", "```deck", "title: Japanese", "kind: basic", "```", "",
   "猫::cat & kitten #animals <!--SR:!2024-01-11,4,2500-->",
   "犬:::dog <!--SR:!2024-01-04,1,2300!2024-01-04,1,2300-->",
   "学ぶ::to learn <!--SR:!2024-02-01,1,2500-->",
@@ -366,7 +366,7 @@ const JAPANESE = [
 ].join("\n");
 
 const PHYSICS = [
-  "---", "title: Physics", "---", "", "```constellation", "title: Physics", "kind: basic", "```", "",
+  "---", "title: Physics", "---", "", "```deck", "title: Physics", "kind: basic", "```", "",
   "The speed of light is ==299,792 km/s== in vacuum.", "",
   "The speed of light is 299,792 km/s in ==vacuum==.", "<!--SR:!2024-01-21,7,2650-->", "",
   "Einstein: **[…]** in 1905::E = mc²",
@@ -376,7 +376,7 @@ const PHYSICS = [
 
 describe("the .apkg importer", () => {
   const data = makeDir();
-  const root = makeVault({ "Constellations/Physics.md": "an older note with the deck's name\n" });
+  const root = makeVault({ "Orbits/Physics.md": "an older note with the deck's name\n" });
   let apkg: Uint8Array;
 
   before(async () => {
@@ -407,12 +407,12 @@ describe("the .apkg importer", () => {
     const skips = new Skips();
     const contents = await readApkg(apkg, path.join(data, "tmp"), skips);
     const result = await writeDecks(contents.decks, { folder: "" }, contents.media, apkg, skips);
-    assert.deepEqual(result.created, ["Constellations/Japanese.md", "Constellations/Physics 2.md"]);
+    assert.deepEqual(result.created, ["Orbits/Japanese.md", "Orbits/Physics 2.md"]);
     assert.equal(result.cards, 12, "stars, not lines: the two `:::` pairs count twice");
     assert.deepEqual(result.skipped, [{ reason: "suspended", count: 1 }]);
-    assert.equal(readFileSync(path.join(root, "Constellations/Japanese.md"), "utf8"), JAPANESE);
-    assert.equal(readFileSync(path.join(root, "Constellations/Physics 2.md"), "utf8"), PHYSICS);
-    assert.equal(readFileSync(path.join(root, "Constellations/Physics.md"), "utf8"), "an older note with the deck's name\n");
+    assert.equal(readFileSync(path.join(root, "Orbits/Japanese.md"), "utf8"), JAPANESE);
+    assert.equal(readFileSync(path.join(root, "Orbits/Physics 2.md"), "utf8"), PHYSICS);
+    assert.equal(readFileSync(path.join(root, "Orbits/Physics.md"), "utf8"), "an older note with the deck's name\n");
     // Only the media the cards mention is copied, into the attachments folder.
     assert.ok(existsSync(path.join(root, "Attachments/cat.png")));
     assert.ok(existsSync(path.join(root, "Attachments/meow.mp3")));
@@ -473,7 +473,7 @@ describe("the .apkg importer", () => {
     await assert.rejects(readApkg(zipDeflated([{ name: "readme.txt", data: enc.encode("hi") }]), path.join(data, "tmp"), skips), /no collection/);
     await assert.rejects(
       readApkg(zipDeflated([{ name: "collection.anki2", data: enc.encode("not sqlite at all, just text") }]), path.join(data, "tmp"), skips),
-      (err: unknown) => (err as { status: number; code: string }).status === 400 && (err as { code: string }).code === "starsImportNotApkg",
+      (err: unknown) => (err as { status: number; code: string }).status === 400 && (err as { code: string }).code === "orbitsImportNotApkg",
     );
     await assert.rejects(
       readApkg(zipDeflated([{ name: "collection.anki2", data: await emptyDb() }]), path.join(data, "tmp"), skips),
