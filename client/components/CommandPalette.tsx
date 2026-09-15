@@ -48,7 +48,13 @@ import { noteAnchors, type NoteAnchor } from "../../shared/anchors.ts";
 // drives exactly this code rather than a second copy of the arithmetic.
 import { commandCut, fuzzyMatch, rankCommands } from "../paletteRank.ts";
 import { TREE_REVEAL_EVENT } from "./Sidebar.tsx";
-import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT, STRIP_TASHKEEL_EVENT } from "../editor/bufferBridge.ts";
+import {
+  COPY_BLOCK_LINK_EVENT,
+  FIND_IN_NOTE_EVENT,
+  FURIGANA_EVENT,
+  STRIP_TASHKEEL_EVENT,
+  type FuriganaMode,
+} from "../editor/bufferBridge.ts";
 import { promptNewDrawing, promptNewFolder } from "../prompts.ts";
 import { duplicateNote } from "../duplicate.ts";
 import { copyNoteLink } from "../sectionActions.ts";
@@ -616,6 +622,22 @@ const COMMANDS: Command[] = [
     id: "strip-tashkeel",
     label: () => t("cmdStripTashkeel"),
     hint: () => t("cmdStripTashkeelHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
+  },
+  {
+    // Furigana over the selected kanji (editor/furigana.ts): the popover
+    // with the readings table's suggestions, or the automatic mode that
+    // writes the first suggestion over every kanji run without asking.
+    // Editor panes only, like the row above: both act on a selection.
+    id: "furigana",
+    label: () => t("cmdFurigana"),
+    hint: () => t("cmdFuriganaHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
+  },
+  {
+    id: "furigana-auto",
+    label: () => t("cmdFuriganaAuto"),
+    hint: () => t("cmdFuriganaAutoHint"),
     available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
   },
   {
@@ -1296,6 +1318,12 @@ export default function CommandPalette() {
           // handed focus back to the caret — the find-in-note shape.
           requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(STRIP_TASHKEEL_EVENT)));
           break;
+        case "furigana":
+        case "furigana-auto": {
+          const mode: FuriganaMode = command.id === "furigana" ? "popover" : "auto";
+          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(FURIGANA_EVENT, { detail: mode })));
+          break;
+        }
         case "moderate-comments":
           store.setModerationOpen(true);
           break;

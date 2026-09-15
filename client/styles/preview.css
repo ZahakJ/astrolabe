@@ -1049,3 +1049,28 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
 .s-editor .cm-s-scripture .s-rv-callout {
   margin-block: 0;
 }
+
+/* ── Furigana ─────────────────────────────────────────────────────────── */
+/* Off the caret the span is a `<ruby>` widget (livePreview.ts::RubyWidget),
+   dressed exactly as reading.css dresses the reading view's: the reading
+   centred over the base at half its size, in the Japanese face, muted. A
+   line WITH ruby grows taller to make room — that is correct — and a line
+   without one matches nothing here. On the caret's line the braces and bars
+   read as syntax and the readings sit in muted ink after their base, so a
+   wrong reading can be fixed by typing over it. */
+.s-editor ruby {
+  ruby-position: over;
+  ruby-align: center;
+}
+
+.s-editor rt {
+  font-family: var(--font-ja);
+  font-size: 0.5em;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.s-editor .cm-s-furigana-src {
+  color: var(--text-muted);
+}

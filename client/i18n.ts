@@ -4081,6 +4081,14 @@ const DICT = {
     en: "Numbers sections in the reading view; a note can override it.",
     ar: "يرقّم الأقسام في عرض القراءة، وللملاحظة أن تتجاوزه.",
   },
+  // The French switch: what it corrects, in one breath, and the one fact a
+  // person needs before trusting a thing that edits their words — that a
+  // single undo takes each correction back.
+  rowFrenchAutocorrect: { en: "Auto-correct French", ar: "تصحيح الفرنسية تلقائيًا" },
+  hintFrenchAutocorrect: {
+    en: "On lines written in French: missing accents (tres → très, coeur → cœur), the space before ; : ! ? and inside « », and … for three dots. Ctrl/Cmd Z undoes one correction.",
+    ar: "في السطور المكتوبة بالفرنسية: الحركات الناقصة (⁦tres → très, coeur → cœur⁩)، والمسافة قبل ⁦; : ! ?⁩ وداخل ⁦« »⁩، و… بدل ثلاث نقاط. و⁦Ctrl/Cmd Z⁩ يتراجع عن تصحيح واحد.",
+  },
 
   // ── Settings → tab names that had none ──────────────────────────────────
   tabLanguage: { en: "Language & dates", ar: "اللغة والتواريخ" },
@@ -4968,6 +4976,24 @@ const DICT = {
   tashkeelStrippedToast: { en: "Diacritics removed — Ctrl/Cmd Z takes them back", ar: "أُزيل التشكيل — Ctrl/Cmd Z يعيده" },
   tashkeelNoneToast: { en: "No diacritics in this note", ar: "لا تشكيل في هذه الملاحظة" },
   scHarakat: { en: "Harakat palette — a diacritic for the caret, or every letter of the selection", ar: "لوحة الحركات: حركة للمؤشر، أو لكل حرف في التحديد" },
+  // ── Furigana (client/editor/furigana.ts, components/FuriganaPopover.tsx) ──
+  // "Furigana" is the word in every language that writes about Japanese; the
+  // Arabic transliterates it and the hints say what it is, because a reader
+  // of an Arabic instance may well be meeting the word for the first time.
+  insFurigana: { en: "Furigana…", ar: "فوريغانا…" },
+  furiganaTitle: { en: "Furigana", ar: "فوريغانا" },
+  furiganaNote: { en: "Per-kanji readings, not a dictionary of words — check before you insert.", ar: "قراءات لكل كانجي لا قاموس كلمات — راجعها قبل الإدراج." },
+  furiganaModeWord: { en: "One reading for the word", ar: "قراءة واحدة للكلمة" },
+  furiganaModeChar: { en: "A reading per character", ar: "قراءة لكل حرف" },
+  furiganaReadingLabel: { en: "Reading for {kanji}", ar: "قراءة {kanji}" },
+  furiganaInsert: { en: "Insert", ar: "إدراج" },
+  furiganaNoKanji: { en: "Select text with a kanji in it first", ar: "حدّد أولًا نصًّا فيه كانجي" },
+  furiganaNoneKnown: { en: "No readings known for these kanji", ar: "لا قراءات معروفة لهذه الكانجي" },
+  furiganaWritten: { en: "Furigana on {words} — Ctrl/Cmd Z takes it back", ar: "فوريغانا على {words} — Ctrl/Cmd Z يعيدها" },
+  cmdFurigana: { en: "Add furigana to selection", ar: "إضافة فوريغانا إلى التحديد" },
+  cmdFuriganaHint: { en: "readings written above Japanese characters, from suggestions", ar: "قراءات تُكتب فوق الحروف اليابانية، من اقتراحات" },
+  cmdFuriganaAuto: { en: "Furigana: automatic for selection", ar: "فوريغانا: تلقائيًا للتحديد" },
+  cmdFuriganaAutoHint: { en: "the first suggested reading over every kanji, no popover", ar: "أول قراءة مقترحة فوق كل كانجي، بلا نافذة" },
   // The unused-attachments sweep (client/components/UnusedAttachmentsModal.tsx).
   cmdUnusedAttachments: { en: "Unused attachments", ar: "المرفقات غير المستخدمة" },
   cmdUnusedAttachmentsHint: { en: "files no note references — review, then move to .trash", ar: "ملفات لا تشير إليها ملاحظة — راجعها ثم انقلها إلى ‎.trash‎" },

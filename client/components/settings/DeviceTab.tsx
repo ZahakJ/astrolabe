@@ -45,6 +45,7 @@ import { toast } from "../../toast.ts";
 import { DIM_MAX, EYE_COMFORT_EVENT, WARMTH_MAX, readDim, readWarmth, setDim, setWarmth } from "../../eyeComfort.ts";
 import { WHATSNEW_EVENT, setWhatsNewEnabled, whatsNewEnabled } from "../../whatsnew/door.ts";
 import { OFFLINE_EVENT, clearOfflineCopy, offlineEnabled, offlineSupported, setOfflineEnabled } from "../../offline.ts";
+import { FRENCH_AUTOCORRECT_EVENT, frenchAutocorrectEnabled, setFrenchAutocorrectEnabled } from "../../frenchPref.ts";
 
 /** A localStorage preference that is NOT in the store, kept live the way its
  *  own module already publishes it: a window event. Both of these have a
@@ -246,6 +247,7 @@ export default function DeviceTab() {
   const relativeLines = useStore((s) => s.relativeLines);
   const toggleRelativeLines = useStore((s) => s.toggleRelativeLines);
   const numbered = useEventPref("astrolabe:heading-numbers", headingNumbersPref);
+  const french = useEventPref(FRENCH_AUTOCORRECT_EVENT, frenchAutocorrectEnabled);
   const toolbar = useEventPref("astrolabe:seltoolbar", selectionToolbarEnabled);
   const prefsSync = useEventPref("astrolabe:prefs-sync", prefsSyncEnabled);
   const whatsNew = useEventPref(WHATSNEW_EVENT, whatsNewEnabled);
@@ -433,6 +435,20 @@ export default function DeviceTab() {
           offLabel={t("off")}
           value={numbered}
           onChange={setHeadingNumbersPref}
+        />
+      </Row>
+      {/* FRENCH, CORRECTED AS YOU TYPE — on by default, because the person
+          who asked for it writes French (client/frenchPref.ts). The hint
+          carries the two things a person needs before they let an editor
+          touch their words: what it changes, and that one undo takes it
+          back. */}
+      <Row label={t("rowFrenchAutocorrect")} hint={t("hintFrenchAutocorrect")}>
+        <Toggle
+          label={t("rowFrenchAutocorrect")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={french}
+          onChange={setFrenchAutocorrectEnabled}
         />
       </Row>
 

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Japanese &amp; furigana · Astrolabe Documentation</title>
+<meta name="description" content="Small readings over kanji: the {漢字|かんじ} syntax, a right-click that suggests the reading, an automatic mode, and a Japanese typeface that only Japanese lines get.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/japanese/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link is-current" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="japanese-furigana">Japanese &amp; furigana</h1>
+<p><em>Small readings over kanji: the <code>{漢字|かんじ}</code> syntax, a right-click that suggests the reading, an automatic mode, and a Japanese typeface that only Japanese lines get.</em></p>
+<hr>
+<p><strong>Furigana</strong> are the small kana printed above a kanji to say how it is read: the かんじ over 漢字 in a children&#39;s book, a textbook or a newspaper&#39;s rarer names. In a browser they are drawn by the <code>&lt;ruby&gt;</code> element, and Astrolabe draws them in the editor, in the reading view, on the public site and on paper.</p>
+<h2 id="writing-it-by-hand"><a class="anchor" href="#writing-it-by-hand">Writing it by hand</a></h2>
+<p>Astrolabe reads the syntax of the Obsidian <em>Markdown Furigana</em> plugin, so a note stays a plain text file that both programs render the same way:</p>
+<div class="table"><table><thead><tr><th>You write</th><th>You see</th></tr></thead><tbody><tr><td><code>{漢字|かんじ}</code></td><td>漢字 with かんじ over the whole word</td></tr><tr><td><code>{漢字|かん|じ}</code></td><td>かん over 漢 and じ over 字 — one reading per kanji, in order</td></tr><tr><td><code>{食べ物|た|もの}</code></td><td>た over 食, nothing over べ, もの over 物 — kana inside the word are skipped</td></tr></tbody></table></div><p>The rules, briefly: the braces must be on one line; the part before the first <code>|</code> must contain at least one Japanese character (so <code>{x|y}</code> in an English sentence about sets stays exactly as written); a <code>\{</code> is an ordinary brace; a <code>{…}</code> with no <code>|</code> inside is not furigana; and if you give more or fewer readings than there are kanji, the readings are joined and drawn over the whole word rather than misplaced. A <code>&lt;ruby&gt;</code> you write in HTML yourself keeps working beside it.</p>
+<p>In the editor, a span shows as its ruby until the caret is on its line, when the source comes back with the braces and bars dimmed and the readings in muted ink, so a reading can be corrected by typing over it. The outline, search and a copied title use the word without its braces.</p>
+<h2 id="from-the-right-click-menu"><a class="anchor" href="#from-the-right-click-menu">From the right-click menu</a></h2>
+<p>Select a word with a kanji in it, right-click (or press <code>Shift F10</code>), open <strong>Insert</strong> and choose <strong>Furigana…</strong>. A small box opens under the selection:</p>
+<ul>
+<li>the word you selected at the top;</li>
+<li>a switch between <strong>one reading for the word</strong> (<code>{漢字|かんじ}</code>, the default) and <strong>a reading per character</strong> (<code>{漢字|かん|じ}</code>);</li>
+<li>one field for the reading, or one per kanji, each already filled with the most likely reading;</li>
+<li>under each kanji, a row of chips with the other readings it has. Clicking a chip fills that kanji&#39;s slot — in word mode it rebuilds the whole reading from the chosen pieces.</li>
+</ul>
+<p><code>Enter</code> inserts, <code>Esc</code> cancels, <code>Tab</code> walks the fields, chips and buttons without leaving the box. The command palette (<code>Ctrl/Cmd P</code>) has the same box as <strong>Add furigana to selection</strong>. The row is offered only when the selection actually contains a kanji.</p>
+<p>To change a reading that is already there, select any part of the span — its word, its reading or a brace — and choose <strong>Furigana…</strong> again: the box opens on the whole span with its own readings in the fields, in the shape it was written in, and <code>Enter</code> replaces it rather than nesting a second span inside the first.</p>
+<p>Which reading comes first: in a compound of two or more kanji (学校, 日本) the <em>on&#39;yomi</em> leads, because that is how compounds are usually read; for a single kanji the <em>kun&#39;yomi</em> leads, and when kana follow it the reading whose okurigana those kana continue goes to the very front — 食 before べる is offered た, before う it is offered く.</p>
+<h2 id="the-automatic-mode"><a class="anchor" href="#the-automatic-mode">The automatic mode</a></h2>
+<p><strong>Furigana: automatic for selection</strong>, in the command palette, writes the first suggestion over every run of kanji in the selection, one reading per word, without asking. Kanji the table does not know are left as they are, spans that are already there are left alone, and a toast says how many words were written; <code>Ctrl/Cmd Z</code> takes all of them back in one step. It is the fast way through a paragraph you will proofread anyway.</p>
+<h2 id="where-the-readings-come-from"><a class="anchor" href="#where-the-readings-come-from">Where the readings come from</a></h2>
+<p>The suggestions are the readings of the 2,136 jōyō kanji, taken from <strong>KANJIDIC2</strong>, the kanji dictionary file of the Electronic Dictionary Research and Development Group. The table is downloaded only when the box or the automatic command first opens (about 125 kB), so a vault that never writes a kanji never fetches it.</p>
+<blockquote>
+<p><strong>Notice.</strong> KANJIDIC2 is the property of the <a href="https://www.edrdg.org/" target="_blank" rel="noreferrer">Electronic Dictionary Research and Development Group</a> and is used in conformance with the Group&#39;s <a href="https://www.edrdg.org/edrdg/licence.html" target="_blank" rel="noreferrer">licence</a> (Creative Commons Attribution-ShareAlike 4.0). The generated table (<code>shared/data/kanjiReadings.json</code>) carries the same notice, and <code>scripts/gen-kanji-readings.mjs</code> rebuilds it from a fresh <code>kanjidic2.xml</code>.</p>
+</blockquote>
+<h2 id="what-it-does-and-does-not-do"><a class="anchor" href="#what-it-does-and-does-not-do">What it does and does not do</a></h2>
+<ul>
+<li>It suggests how each <strong>kanji</strong> can be read, not how a <strong>word</strong> is read. There is no dictionary of words behind it, so 今日 is offered こんにち rather than きょう, and 学校 is offered がくこう rather than がっこう: the box exists so you can check and fix the reading before it is inserted, and the chips are there for the cases the first guess gets wrong.</li>
+<li>It does not convert kana, romanise anything, or touch text you did not select.</li>
+<li>Only the jōyō kanji are in the table. A name kanji or a rare one gets an empty field; type the reading yourself.</li>
+<li>Furigana inside a table cell does not work, because the <code>|</code> that separates the readings is also what separates the cells — the same limit the Obsidian plugin has.</li>
+</ul>
+<h2 id="fonts-and-spacing"><a class="anchor" href="#fonts-and-spacing">Fonts and spacing</a></h2>
+<p>A line written in Japanese takes <code>lang=&quot;ja&quot;</code>, in the editor and in the reading view, and with it a Japanese typeface (<code>Noto Sans CJK JP</code>, <code>Noto Sans JP</code>, <code>Hiragino Sans</code>, <code>Yu Gothic UI</code>, <code>Meiryo</code>, then the system&#39;s sans-serif) — the serif stack the rest of the note uses has no kana in it. A line is Japanese when its Japanese characters outnumber its Latin letters, so an English sentence quoting one kanji keeps its own type. The browser is also told not to spellcheck those lines, since it has no Japanese dictionary to check them against.</p>
+<p>A line with a ruby grows a little taller to make room for the reading; that is correct. A line without one does not change at all: nothing about this feature touches the English or Arabic font stacks or the spacing of a line that carries no Japanese, and the release was measured to that rule — every English and Arabic line&#39;s height and typeface identical with the feature on and off.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/japanese.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/arabic-and-rtl/"><span class="pager__kicker">Previous</span><span class="pager__title">Arabic &amp; RTL</span></a><a class="pager__link pager__link--next" href="../../en/development/"><span class="pager__kicker">Next</span><span class="pager__title">Development</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing-it-by-hand">Writing it by hand</a><a class="toc__link toc__link--2" href="#from-the-right-click-menu">From the right-click menu</a><a class="toc__link toc__link--2" href="#the-automatic-mode">The automatic mode</a><a class="toc__link toc__link--2" href="#where-the-readings-come-from">Where the readings come from</a><a class="toc__link toc__link--2" href="#what-it-does-and-does-not-do">What it does and does not do</a><a class="toc__link toc__link--2" href="#fonts-and-spacing">Fonts and spacing</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

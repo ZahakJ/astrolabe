@@ -22,6 +22,7 @@
 // tsconfig's `include`.
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
 import {
@@ -470,4 +471,25 @@ describe("an env-linked vault is the deployment, in a window", () => {
     assert.equal(env.PUBLIC, "false");
   });
 });
+
+// ── The spellchecker's languages ───────────────────────────────────────────
+//
+// electron/spellcheck.ts imports Electron's types, which the root typecheck
+// cannot resolve (desktop/ has its own node_modules; `npm run check-desktop`
+// typechecks it there), so the whitelist is asserted from the SOURCE: every
+// language `shared/script.ts::spellcheckLang` can stamp on a line must be
+// enabled, or the attribute is inert on the desktop.
+
+describe("spellcheck languages", () => {
+  it("enables every language a line can be stamped with", () => {
+    const src = readFileSync(new URL("../electron/spellcheck.ts", import.meta.url), "utf8");
+    const m = /export const LINE_LANGUAGES = \[([^\]]+)\]/.exec(src);
+    assert.ok(m, "LINE_LANGUAGES is declared");
+    const listed = [...(m?.[1] ?? "").matchAll(/"([a-z]+)"/g)].map((x) => x[1]);
+    // he, fa, ar from the script test; fr from shared/french.ts's line test;
+    // ja from the furigana work (no dictionary anywhere — dropped at runtime).
+    assert.deepEqual(listed, ["he", "fa", "ar", "fr", "ja"]);
+  });
+});
+
 

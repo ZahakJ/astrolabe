@@ -53,6 +53,9 @@ const TRAVELS = new Set([
   // stayed behind on their device.
   "relativeLines",
   "tags-sort",
+  // Whether your French is corrected as you type is a fact about you, not
+  // about the window (client/frenchPref.ts).
+  "frenchAutocorrect",
 ]);
 
 interface Entry {

@@ -70,6 +70,7 @@ const SECTIONS = [
       { slug: "theming", file: "theming.md", title: { en: "Theming", ar: "السمات" } },
       { slug: "typography", file: "typography.md", title: { en: "Typography", ar: "الخطوط" } },
       { slug: "arabic-and-rtl", file: "arabic-and-rtl.md", title: { en: "Arabic & RTL", ar: "العربية والكتابة من اليمين" } },
+      { slug: "japanese", file: "japanese.md", title: { en: "Japanese & furigana", ar: "اليابانية والفوريغانا" } },
     ],
   },
   {
