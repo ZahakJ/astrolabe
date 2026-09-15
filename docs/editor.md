@@ -101,6 +101,45 @@ those four words freely.
 - **Vim mode** for those who already know that editor's keys, autosave (600 ms after you stop
   typing, plus `Ctrl/Cmd S`), and a surface built to be driven from the keyboard.
 
+## French, corrected as you type
+
+If you write French, the editor quietly puts the accents back. Type `tres` and a space and it
+becomes `très`; `coeur` becomes `cœur`, `etre` becomes `être`, `Ecole` becomes `École`, `deja`
+becomes `déjà`, `ca` becomes `ça`. Nothing appears on screen to tell you: the corrected word is
+the whole message. It is on by default, and Settings → This device → **Auto-correct French**
+turns it off.
+
+- **Only on lines that read as French.** A line counts as French when it has at least two
+  French words on it (`je`, `est`, `les`, `pour`, `c'est`…), or when the note's frontmatter says
+  `lang: fr`, in which case every line counts. So `This is tres chic` in an English sentence is
+  left exactly as you typed it — an English line with one French word in it is still an English
+  line, and the editor never edits words you did not ask it to. A line of Arabic, Hebrew or
+  Chinese is never French, whatever Latin words it also carries.
+- **Only at the end of a word.** The correction happens when you finish the word: a space, a
+  comma, a full stop, Enter, a closing bracket or quote. While you are still typing the word,
+  nothing moves.
+- **Only words that can go one way.** The list holds several hundred spellings that are not
+  words without their accent — `tres`, `etre`, `hopital`, `francais`, `ecole`, `deja`,
+  `bientot`, `theatre`, `resume`, `oeuvre`… It never touches a word that exists both ways:
+  `a`/`à`, `ou`/`où`, `la`/`là`, `sur`/`sûr`, `du`/`dû`, `cote`/`côte`/`côté`, `tache`/`tâche`,
+  `mur`/`mûr`, `eleve`/`élève`/`élevé`. Those need a reader, not a table. Capitals follow you
+  (`Etat` → `État`); a word in all capitals is left alone.
+- **French spacing, too.** A space you type before `;` `:` `!` `?` becomes the narrow no-break
+  space French typesetting wants there, so a question mark can never start the next line by
+  itself; a space just inside `«` or `»` becomes a no-break space; and three dots become the one
+  `…` character. These follow the same French-line rule.
+- **Never in code, links or math.** A code fence, inline code, a link's address, a wikilink's
+  target, the frontmatter, `$math$`, a `\command` and anything inside a URL are not prose and are
+  never corrected.
+- **One undo takes one correction back.** Every correction is its own undo step: press
+  `Ctrl/Cmd Z` straight after `très ` and you have `tres ` again — the word as you typed it, the
+  space still there — and the editor remembers that you refused it and will not correct that word
+  at that spot again. With vim keys on, corrections happen in insert mode only.
+- **Spellchecked as French.** A line the editor treats as French is also handed to the French
+  dictionary, so the words it has just corrected are not underlined in red by the English one.
+  In the desktop app that is automatic; in a browser it depends on which dictionaries the
+  browser has, and a French line is left unchecked rather than wrongly checked.
+
 ## Rendering
 
 - **Image embeds.** `![[image.png]]`, `![[image.png|300]]` and the standard `![alt](path)` all

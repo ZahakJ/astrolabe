@@ -13,6 +13,18 @@
 // from Latin letters is a different problem with a much worse failure mode, and
 // the answer there — inherit the instance's own language — is already correct
 // for the overwhelming majority of lines.
+//
+// FRENCH IS THE ONE EXCEPTION, and it is a narrow one. The owner writes French
+// and asked for it to be corrected as typed (shared/french.ts), and a line the
+// editor is prepared to CORRECT as French had better be spellchecked as French
+// too — otherwise every word it has just fixed is underlined in red by the
+// English dictionary. So a Latin line is French when shared/french.ts's
+// `looksFrench` says so (two French function words, whole words, or the note's
+// own `lang: fr`), and inherits the instance language otherwise. The failure
+// mode above is contained by the same threshold that contains the corrections:
+// an English line with one French word in it is not French.
+
+import { looksFrench } from "./french.ts";
 
 const HEBREW_RE = /[\u0590-\u05ff\ufb1d-\ufb4f]/;
 const ARABIC_RE = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]/;
@@ -57,8 +69,12 @@ export function spellcheckKnown(lang: string): boolean {
   return available.has("*") || available.has(lang);
 }
 
-export function spellcheckLang(text: string): string | null {
+/** @param noteFrench the note said `lang: fr` in its frontmatter, so every
+ *  Latin line is French without the per-line test (the caller reads it once
+ *  per note — shared/french.ts's `noteIsFrench`). */
+export function spellcheckLang(text: string, noteFrench = false): string | null {
   if (HEBREW_RE.test(text)) return "he";
   if (ARABIC_RE.test(text)) return PERSIAN_RE.test(text) ? "fa" : "ar";
+  if (noteFrench || looksFrench(text)) return "fr";
   return null;
 }

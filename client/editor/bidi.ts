@@ -21,7 +21,9 @@ import {
   type EditorView,
   type ViewUpdate,
 } from "@codemirror/view";
+import { noteIsFrench } from "../../shared/french.ts";
 import { spellcheckKnown, spellcheckLang } from "../../shared/script.ts";
+import { frontmatterText } from "../../shared/textLayout.ts";
 import { noteLayout } from "../textLayout.ts";
 import { layoutSignal, sourceLines } from "./noteLayout.ts";
 
@@ -42,12 +44,16 @@ const FRONTMATTER_SCAN = 4000;
 // `.cm-content` carries the instance's own language (see setup.ts), so a Latin
 // line needs no attribute at all and inherits it — only a line that DISAGREES
 // with the document is worth marking, which also keeps the attribute off the
-// overwhelming majority of lines.
+// overwhelming majority of lines. A FRENCH line is the one Latin line that
+// disagrees (shared/script.ts, shared/french.ts): it gets `lang="fr"`, so the
+// words the editor has just corrected are checked against the dictionary that
+// knows them, and so the note's `lang: fr` is read here, once per rebuild,
+// rather than once per line.
 /** `dir|lang|source` → the one Decoration that spells it. CodeMirror diffs a
  *  range set by decoration IDENTITY, so these are memoized rather than rebuilt
  *  per line per frame — which is what the four module constants here used to
  *  buy before the language made the set open-ended. The map is bounded by the
- *  handful of combinations that can exist (three directions × four languages). */
+ *  handful of combinations that can exist (three directions × five languages). */
 const lineDecos = new Map<string, Decoration>();
 
 function lineDeco(dir: string, lang: string | null, source: boolean): Decoration {
@@ -72,8 +78,10 @@ function lineDeco(dir: string, lang: string | null, source: boolean): Decoration
 }
 
 function buildDecos(view: EditorView): DecorationSet {
-  const pinned = noteLayout(view.state.doc.sliceString(0, FRONTMATTER_SCAN)).dir;
+  const head = view.state.doc.sliceString(0, FRONTMATTER_SCAN);
+  const pinned = noteLayout(head).dir;
   const dir = pinned === "ltr" || pinned === "rtl" ? pinned : "auto";
+  const noteFrench = noteIsFrench(frontmatterText(head));
   const source = sourceLines(view);
   const builder = new RangeSetBuilder<Decoration>();
   for (const { from, to } of view.visibleRanges) {
@@ -90,7 +98,7 @@ function buildDecos(view: EditorView): DecorationSet {
       builder.add(
         line.from,
         line.from,
-        lineDeco(isSource ? "auto" : dir, isSource ? null : spellcheckLang(line.text), isSource),
+        lineDeco(isSource ? "auto" : dir, isSource ? null : spellcheckLang(line.text, noteFrench), isSource),
       );
       pos = line.to + 1;
     }

@@ -41,6 +41,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "device", label: "rowRelativeLines", hint: "hintRelativeLines" },
   { tab: "device", label: "selToolbarLabel", hint: "hintSelToolbar" },
   { tab: "device", label: "rowHeadingNumbers", hint: "hintHeadingNumbers" },
+  { tab: "device", label: "rowFrenchAutocorrect", hint: "hintFrenchAutocorrect" },
   { tab: "device", label: "rowWhatsNew", hint: "hintWhatsNew" },
   { tab: "device", label: "rowOffline", hint: "hintOffline" },
   { tab: "device", label: "rowPrefsSync", hint: "hintPrefsSync" },

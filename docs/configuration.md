@@ -76,8 +76,10 @@ what it decides. The first tab is yours; the rest are the site's and share one *
 - **This device** — preferences kept in this browser, each saving itself on click: your own
   theme and the two eye-comfort sliders, your **editor language** (*Follow site* / English /
   العربية — never what visitors get) and which edge the **notes sidebar** sits on; under
-  *Reading & writing*, the writing column, vim keys, relative line numbers, the floating toolbar
-  and numbered headings; under *This browser*, the what's-new deck, the offline copy and whether
+  *Reading & writing*, the writing column, vim keys, relative line numbers, the floating toolbar,
+  numbered headings and **Auto-correct French** (see
+  [the editor](editor.md#french-corrected-as-you-type)); under *This browser*, the what's-new
+  deck, the offline copy and whether
   settings travel with the vault; and, in the desktop app only, *This app* — its name, its icon,
   a launcher entry and **Software updates** (see [the desktop app](desktop.md#updates)).
 - **Site** — what the site is called and looks like: name, tagline, footer line, a **logo**
