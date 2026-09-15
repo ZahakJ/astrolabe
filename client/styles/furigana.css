@@ -1,0 +1,167 @@
+/* Astrolabe — the furigana popover (client/components/FuriganaPopover.tsx).
+
+   The selection menu's box (same raised ground, same border, same shadow,
+   the same 8px keep-out anchorPopover gives every popover), with the chip
+   the colour row uses for "this one is chosen": --accent-soft with the
+   accent ink. Every colour is a token; the box is placed by JS and its
+   insides mirror on their own in the Arabic chrome — only the base and the
+   reading fields are pinned LTR, because Japanese is written that way. */
+
+.s-furi-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.s-furi {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(24rem, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  color: var(--text);
+}
+
+.s-furi__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.s-furi__title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* The word itself, in the Japanese face at a size the strokes can be read
+   at — this is what the reader is annotating, so it is the largest thing in
+   the box. Isolated so an Arabic chrome cannot reorder it. */
+.s-furi__base {
+  font-family: var(--font-ja);
+  font-size: 1.25rem;
+  line-height: 1.3;
+  unicode-bidi: isolate;
+  overflow-wrap: anywhere;
+}
+
+/* Two states, one control: the segmented pair the settings sheet draws,
+   at the popover's size. `aria-checked` carries the state for the
+   keyboard and the screen reader; the class only paints it. */
+.s-furi__modes {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  align-self: flex-start;
+}
+
+.s-furi__mode {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.s-furi__mode--on,
+.s-furi__mode--on:hover {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.s-furi__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.s-furi__input {
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-ja);
+  font-size: 1rem;
+  padding: 5px 8px;
+}
+
+/* One kanji, then its readings: the glyph as a label at the start, the
+   chips wrapping after it. In character mode the input sits between. */
+.s-furi__slot {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.s-furi__kanji {
+  flex: none;
+  min-width: 1.6em;
+  padding-top: 3px;
+  font-family: var(--font-ja);
+  font-size: 1.05rem;
+  line-height: 1.3;
+  color: var(--text);
+  text-align: center;
+}
+
+.s-furi__slotbody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.s-furi__chips {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-top: 2px;
+}
+
+.s-furi__chip {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: var(--font-ja);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.s-furi__chip:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--bg-hover);
+}
+
+.s-furi__chip--on,
+.s-furi__chip--on:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.s-furi__note {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.s-furi__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}

@@ -43,6 +43,11 @@ export const COPY_BLOCK_LINK_EVENT = "astrolabe:copy-block-link";
  *  undo takes every mark back — which only the editor, holding the history,
  *  can promise. Same door as the two above, for the same reason. */
 export const STRIP_TASHKEEL_EVENT = "astrolabe:strip-tashkeel";
+/** The palette's two furigana rows: the mounted editor opens the popover
+ *  over its selection, or writes the automatic readings straight in
+ *  (editor/furigana.ts). `detail` is the mode. Same door, same reason. */
+export const FURIGANA_EVENT = "astrolabe:furigana";
+export type FuriganaMode = "popover" | "auto";
 
 export interface DocStats {
   path: string;

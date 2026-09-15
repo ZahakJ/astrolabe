@@ -49,6 +49,14 @@ const FRONTMATTER_SCAN = 4000;
 // words the editor has just corrected are checked against the dictionary that
 // knows them, and so the note's `lang: fr` is read here, once per rebuild,
 // rather than once per line.
+//
+//
+// A JAPANESE line takes `lang="ja"` by the same route, and for one more
+// reason than the dictionary: the font. The serif stack has no CJK face, so
+// kana and kanji fell through to whatever the platform chose, and a font that
+// is asked for by `[lang="ja"]` alone (styles/app.css) is the only way to
+// give those lines a Japanese face without touching the stack an English or
+// Arabic line resolves — which is the owner's condition for the feature.
 /** `dir|lang|source` → the one Decoration that spells it. CodeMirror diffs a
  *  range set by decoration IDENTITY, so these are memoized rather than rebuilt
  *  per line per frame — which is what the four module constants here used to

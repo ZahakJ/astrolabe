@@ -51,6 +51,7 @@ You can read this manual as a website, with search, a page outline and both lang
 | [Theming](theming.md) | The forty-six built-in colour themes, the eye-comfort sliders, the tool for building your own theme, the CSS variables the app is painted with, and `custom.css` |
 | [Typography](typography.md) | Choosing fonts from a built-in catalog served by your own server, uploading your own fonts, and giving Arabic letters their own font even inside English text |
 | [Arabic & RTL](arabic-and-rtl.md) | The whole interface in Arabic and mirrored right-to-left, a language switch for visitors, showing each reader only notes in their language, Hijri dates, and Arabic names for your tags |
+| [Japanese & furigana](japanese.md) | Readings over kanji with `{漢字|かんじ}`, a right-click that suggests them from the jōyō table, an automatic mode, and a Japanese typeface that only Japanese lines get |
 
 ## Also in the repo
 

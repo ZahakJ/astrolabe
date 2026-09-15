@@ -52,6 +52,40 @@
   margin: 0 0 0.9em;
 }
 
+/* Furigana — `{漢字|かんじ}` (shared/furigana.ts) and a hand-written <ruby>
+   alike. The reading sits over the base, centred, at half the base size —
+   the proportion every printed book uses — in the Japanese face and muted
+   ink. A line WITH ruby grows taller to make room; that is correct, the
+   reading needs the room. A line without one matches nothing here, which is
+   the condition the feature shipped under. The <rp> parentheses stay hidden
+   on screen (the browser's own default) and come back in a plain-text copy
+   and to a screen reader: 漢字(かんじ). The editor's copy of this rule is
+   styles/preview.css. */
+.s-rv ruby {
+  ruby-position: over;
+  ruby-align: center;
+}
+
+.s-rv rt {
+  font-family: var(--font-ja);
+  font-size: 0.5em;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+/* A Japanese list item's NESTED list is not Japanese by inheritance. The
+   item takes `lang="ja"` for its own line (render.ts::markJapanese) and its
+   sub-items are judged one by one, but `font-family` inherits regardless of
+   who carries the attribute — so an English item indented under a Japanese
+   one was set in the Japanese face, which is exactly the line the owner's
+   rule protects. The nested list goes back to the column's own face, the
+   one .s-reading__content gives every block; a Japanese sub-item inside it
+   still carries its own `lang` and takes `--font-ja` from app.css. */
+.s-rv li[lang="ja"] > .s-rv-list {
+  font-family: var(--font-serif);
+}
+
 .s-rv .s-rv-h {
   font-family: var(--font-serif);
   font-weight: 700;
