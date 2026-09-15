@@ -84,7 +84,7 @@ Six of them arrived together, and each was drawn for a room the set did not have
   synthesise quinine in 1856 and washed the flask out with alcohol. The lit set had no violet.
 
 Every reader picks their own from the **theme picker** — the theme control in the status bar
-opens it, and so does *Themes* in Settings → Appearance & language. Each row is a
+opens it, and so does *Themes* in Settings → This device. Each row is a
 miniature of the room — its ground carrying a heading rule, a line of type and an accent chip —
 next to a human name and a one-line description, both localized; the raw id (what `DEFAULT_THEME`
 and the palette take) is in the row's tooltip. It is a grouped, keyboard-driven
@@ -102,7 +102,7 @@ first-time visitors land in the same room — a one-author blog looking like its
 nothing to configure. Your theme lives in your browser, so Astrolabe mirrors it to the server when
 your choice settles (once, a second after you stop browsing themes — not once per row). Both
 places that choose a theme say so out loud, in the theme's own name: the picker's footer and
-Settings → Appearance & language → *Default theme* read *"Visitors see Cinnabar — following your
+Settings → Site → *Default theme* read *"Visitors see Cinnabar — following your
 editor theme"*, each with a one-click **Pin this instead**. Pin one and the public site stops
 moving with you (*"Visitors see Parchment — pinned"*, with **Follow my theme** to undo it);
 `DEFAULT_THEME=cinnabar` pins the same way from the environment, and `DEFAULT_THEME=follow` (or
