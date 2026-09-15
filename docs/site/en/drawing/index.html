@@ -20,39 +20,46 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/routines/">Routines</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link is-current" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link is-current" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="drawings">Drawings</h1>
 <p><em>An Excalidraw canvas in the vault: a drawing is a note that opens as a whiteboard, embeds as a picture, and keeps working in Obsidian.</em></p>
 <hr>
-<p>A drawing is a file in the vault, in a format Excalidraw already speaks: the editor&#39;s own
-<code>.excalidraw</code> JSON, or the shape the Obsidian Excalidraw plugin writes into a markdown note,
-<code>.excalidraw.md</code>. Astrolabe did not invent a third one. Both open here as a full Excalidraw canvas in
-a pane, both save back into the same file, and both keep opening in Obsidian afterwards.</p>
+<p>Excalidraw is a free whiteboard tool: shapes, arrows, freehand strokes and text, in a hand-drawn
+style. A drawing in Astrolabe is a file in the vault in a format Excalidraw already speaks: either
+the editor&#39;s own <code>.excalidraw</code> file (a plain data file), or the shape the Obsidian Excalidraw plugin writes into a
+markdown note, <code>.excalidraw.md</code>. Astrolabe did not invent a third format. Both open here as a full
+Excalidraw canvas in a pane, both save back into the same file, and both keep opening in Obsidian
+afterwards.</p>
 <p>A drawing is a <strong>note</strong> by every other measure: it sits in the tree with a pencil beside its name,
 it is a tab beside the notes you are writing, the words on its canvas are in search, and a
-<code>[[wikilink]]</code> typed into a text element counts in the graph and the backlinks. It is a
-<strong>picture</strong> by one: it never opens in CodeMirror.</p>
+<code>[[wikilink]]</code> typed into a text element counts in the graph and the backlinks. It is a <strong>picture</strong>
+by one measure only: it never opens in the text editor.</p>
 <h2 id="making-one"><a class="anchor" href="#making-one">Making one</a></h2>
 <p>The pencil at the top of the notes sidebar starts a drawing in the vault&#39;s root, or in the
-<strong>Drawings folder</strong> named in settings (beside the templates folder). Right-click a
-folder → <strong>New drawing here</strong> puts one inside that folder, and <strong>New drawing</strong> in the command
-palette lands in the open note&#39;s folder. The name prompt offers <code>Drawing.excalidraw</code>, and the extension is the
-format:</p>
-<div class="table"><table><thead><tr><th>The vault</th><th>A new drawing is</th><th>Why</th></tr></thead><tbody><tr><td>has an <code>.obsidian/</code> folder</td><td><code>Drawing.excalidraw.md</code></td><td>the Obsidian Excalidraw plugin opens it there, as a note with the scene inside</td></tr><tr><td>does not</td><td><code>Drawing.excalidraw</code></td><td>Excalidraw&#39;s own file, readable by excalidraw.com and every tool that speaks it</td></tr></tbody></table></div><p><strong>From inside a note, type <code>/draw</code>.</strong> The slash menu makes the drawing beside the note, named after it (<code>Essay sketch.excalidraw</code>, then <code>sketch 2</code>…), writes the <code>![[embed]]</code> where the caret was, and opens the canvas in a pane next to the note, so you draw with the prose in view and the embed fills in as you save. No separate note, nothing to paste.</p>
+<strong>Drawings folder</strong> named in settings (beside the templates folder). Right-click a folder →
+<strong>New drawing here</strong> puts one inside that folder, and <strong>New drawing</strong> in the command palette lands
+in the open note&#39;s folder. The name prompt offers <code>Drawing.excalidraw</code>, and the extension decides
+the format:</p>
+<div class="table"><table><thead><tr><th>The vault</th><th>A new drawing is</th><th>Why</th></tr></thead><tbody><tr><td>has an <code>.obsidian/</code> folder</td><td><code>Drawing.excalidraw.md</code></td><td>the Obsidian Excalidraw plugin opens it there, as a note with the scene inside</td></tr><tr><td>does not</td><td><code>Drawing.excalidraw</code></td><td>Excalidraw&#39;s own file, readable by excalidraw.com and every tool that speaks it</td></tr></tbody></table></div><p><strong>From inside a note, type <code>/draw</code>.</strong> The slash menu makes the drawing beside the note, named after
+it (<code>Essay sketch.excalidraw</code>, then <code>sketch 2</code>…), writes the <code>![[embed]]</code> where the caret was, and
+opens the canvas in a pane next to the note, so you draw with the prose in view and the embed fills
+in as you save. No separate note, nothing to paste.</p>
 <p>Type either extension yourself to choose. A drawing made in Obsidian, compressed or not, opens
-without conversion; when Astrolabe saves a plugin file it keeps the frontmatter, keeps the compression
-if the file had it, and lists the text elements under <code>## Text Elements</code> where the plugin does, so
-Obsidian&#39;s own search and links keep working on what Astrolabe drew.</p>
+without conversion. When Astrolabe saves a plugin file it keeps the frontmatter, keeps the
+compression if the file had it, and lists the text elements under <code>## Text Elements</code> where the
+plugin does, so Obsidian&#39;s own search and links keep working on what Astrolabe drew.</p>
 <h2 id="drawing"><a class="anchor" href="#drawing">Drawing</a></h2>
-<p>The menu in the corner (≡) carries the verbs a drawing in a vault has a use for: export an image, find on the canvas, the command palette, help, clear the canvas, and the canvas background. Excalidraw&#39;s own links and its theme switch are not there; the canvas follows Astrolabe&#39;s theme. Dialogs open centred on the canvas, not the window, and the sidebar stays clear.</p>
-<p>The canvas is Excalidraw, whole: shapes, arrows, freehand, text, images, the library, every one of
-its keys (<code>r</code> rectangle, <code>t</code> text, <code>v</code> select, <code>?</code> for the rest). It wears Astrolabe&#39;s room — dark or
-light follows <a href="../theming/">the theme</a> you are in — and speaks the
+<p>The menu in the corner (≡) carries the actions a drawing in a vault has a use for: export an image,
+find on the canvas, the command palette, help, clear the canvas, and the canvas background.
+Excalidraw&#39;s own links and its theme switch are not there; the canvas follows Astrolabe&#39;s theme.
+Dialogs open centred on the canvas, not the window, and the sidebar stays clear.</p>
+<p>The canvas is Excalidraw, whole: shapes, arrows, freehand, text, images, the library, and every one
+of its keys (<code>r</code> rectangle, <code>t</code> text, <code>v</code> select, <code>?</code> for the rest). It wears Astrolabe&#39;s colours,
+so dark or light follows <a href="../theming/">the theme</a> you are in, and it speaks the
 <a href="../arabic-and-rtl/#your-editors-language-is-yours">editor&#39;s language</a>: an Arabic interface gets
-Excalidraw in Arabic, mirrored. Its fonts are served from this instance; no request leaves the
-origin.</p>
+Excalidraw in Arabic, mirrored. Its fonts are served from your own server; no request leaves it.</p>
 <p><strong>It saves like a note.</strong> A stroke lands in the file about a second after the pen lifts, under the
 same rule every note save keeps: if the file changed on disk in the meantime (Obsidian, a
 <code>git pull</code>, another window), the save is refused and a strip offers <strong>Keep mine</strong> or <strong>Use the disk
@@ -67,25 +74,25 @@ picture in a note, sized like an image and taking <code>|300</code> the way an i
 live preview, the reading view, a blog article, a designed page and a library lesson all draw the
 exported svg; none of them loads the canvas.</p>
 <p>A visitor sees the svg of a <strong>published</strong> note&#39;s embed exactly as they see any other attachment of
-it: the drawing itself is a note and an unpublished one is a 404, but the picture beside it walks
-through the note&#39;s own door. Unpublish the note and the door closes.</p>
-<p>If the svg is not on disk yet (a drawing made in Obsidian with auto-export off, or a file older
-than this feature), you, the owner, see it anyway: the reading view draws it with the canvas
-chunk, once, for that page. Open the drawing and save once and the svg exists for everyone.</p>
+that note: the drawing itself is a note, and an unpublished one is not served at all, but the picture beside
+it walks through the note&#39;s own door. Unpublish the note and the door closes.</p>
+<p>If the picture is not on disk yet (a drawing made in Obsidian with auto-export off, or a file older than
+this feature), you, the owner, see it anyway: the reading view draws it with the canvas code, once,
+for that page. Open the drawing and save it once and the picture exists for everyone.</p>
 <h2 id="what-is-indexed"><a class="anchor" href="#what-is-indexed">What is indexed</a></h2>
-<p>The text elements, one per line, and a <code>[[link]]</code> set on any shape. Not the JSON: an element id is
-not a word anyone searches for. A drawing therefore appears in search by what is written on it,
-in the graph by what it links to, and in a note&#39;s backlinks when the drawing names that note.</p>
+<p>The text elements, one per line, and a <code>[[link]]</code> set on any shape. Not the file&#39;s internal data:
+an element id is not a word anyone searches for. So a drawing appears in search by what is written on it, in the
+graph by what it links to, and in a note&#39;s backlinks when the drawing names that note.</p>
 <h2 id="in-obsidian"><a class="anchor" href="#in-obsidian">In Obsidian</a></h2>
-<p>Everything here is the plugin&#39;s own format, so the plugin sees a drawing Astrolabe made as its own.
-Obsidian&#39;s core app (without the plugin) shows a <code>.excalidraw.md</code> as a markdown note whose scene
-is folded in a <code>%%</code> comment, which is what the plugin&#39;s files have always looked like there. A
+<p>Everything here is the plugin&#39;s own format, so the plugin sees a drawing Astrolabe made as one of
+its own. Obsidian&#39;s core app (without the plugin) shows a <code>.excalidraw.md</code> as a markdown note whose
+scene is folded in a <code>%%</code> comment, which is what the plugin&#39;s files have always looked like there. A
 plain <code>.excalidraw</code> is an attachment to Obsidian, as it always was. See
 <a href="https://github.com/ZahakJ/astrolabe/blob/main/OBSIDIAN-COMPAT.md" target="_blank" rel="noreferrer">OBSIDIAN-COMPAT.md</a>.</p>
 <hr>
 <p><em>Under the hood: <code>shared/drawing.ts</code> reads and writes both spellings (<code>tests/drawing.test.ts</code>);
 <code>client/drawing/DrawingSurface.tsx</code> is the pane; <code>PUT /api/drawing-svg?path=</code> is the picture&#39;s
-door; <code>scripts/check-bundle.mjs</code> asserts the canvas never joins a first paint.</em></p>
+door; <code>scripts/check-bundle.mjs</code> asserts the canvas is never loaded with a page&#39;s first paint.</em></p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/drawing.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/flashcards/"><span class="pager__kicker">Previous</span><span class="pager__title">Flashcards</span></a><a class="pager__link pager__link--next" href="../../en/books/"><span class="pager__kicker">Next</span><span class="pager__title">The PDF reader</span></a></nav>

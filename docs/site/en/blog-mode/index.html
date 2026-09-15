@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Blog mode · Astrolabe Documentation</title>
-<meta name="description" content="The stock blog: masthead and topic nav, article pages, the dashboard home, RSS and SEO.">
+<meta name="description" content="The ready-made blog: a masthead and a row of topics, article pages, a magazine-style home page, an RSS feed and search-engine tags.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
@@ -20,102 +20,49 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/routines/">Routines</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link is-current" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link is-current" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="blog-mode">Blog mode</h1>
-<p><em>The stock blog: masthead and topic nav, article pages, the dashboard home, RSS and SEO.</em></p>
+<p><em>The ready-made blog: a masthead and a row of topics, article pages, a magazine-style home page, an RSS feed and search-engine tags.</em></p>
 <hr>
-<p><code>PUBLIC_LAYOUT=blog</code> (or <strong>Settings → Publishing &amp; comments → Public layout → Blog</strong>) re-dresses
-the visitor-facing site as a classic blog: a masthead with the site name and <code>SITE_TAGLINE</code>, a
-horizontal nav of topic categories, article pages with title, date, word count, reading time and
-tags, comments below (with <code>COMMENTS=on</code>), and a footer (<code>SITE_FOOTER</code>, default
-<code>© &lt;year&gt; &lt;SITE_NAME&gt;</code>; <code>{year}</code> and <code>{siteName}</code> placeholders are substituted). Arabic and other
-RTL content renders per-article in its natural direction — and <code>SITE_LANG=ar</code> mirrors the whole
-blog shell to match (see <a href="../arabic-and-rtl/">Arabic &amp; RTL</a>). Signed-in admins are unaffected — the
-full app, sidebar and all, stays exactly as it is; the blog shell exists only for visitors. Post
-dates take month names from the chrome language (English chrome says August, Arabic chrome says
-أغسطس) and digits from the instance numeral policy; <code>BLOG_LOCALE</code> is that tag, and the RSS
-channel language (any BCP47 tag, default <code>en</code>).</p>
+<p>Astrolabe can show visitors your published notes in the shape of a classic blog. Turn it on with <code>PUBLIC_LAYOUT=blog</code>, or in <strong>Settings → Publishing &amp; comments → Public layout → Blog</strong>. Visitors then get:</p>
+<ul>
+<li>a <strong>masthead</strong> at the top of every page, carrying the site name and its tagline (<code>SITE_TAGLINE</code>);</li>
+<li>a horizontal row of <strong>topics</strong>, one per tag;</li>
+<li><strong>article pages</strong> with a title, a date, a word count, an estimated reading time and the note&#39;s tags, with comments underneath when <code>COMMENTS=on</code>;</li>
+<li>a <strong>footer</strong> (<code>SITE_FOOTER</code>, which defaults to <code>© &lt;year&gt; &lt;SITE_NAME&gt;</code>; write <code>{year}</code> and <code>{siteName}</code> in it and they are filled in for you).</li>
+</ul>
+<p>An Arabic article is shown right-to-left and an English one left-to-right, each on its own. If the whole site is Arabic, <code>SITE_LANG=ar</code> mirrors the blog&#39;s frame too (see <a href="../arabic-and-rtl/">Arabic &amp; RTL</a>). None of this touches you as the signed-in admin: you keep the full app, sidebar and all. The blog is only what visitors see.</p>
+<p>Dates on posts take their month names from the interface language (an English interface says August, an Arabic one says أغسطس) and their digits from the instance&#39;s numeral setting. <code>BLOG_LOCALE</code> is that setting: a language code such as <code>en</code> or <code>ar</code> (any BCP 47 tag; the default is <code>en</code>), which also becomes the language of the RSS feed.</p>
 <p><figure><img src="../../../screenshots/blog-dashboard.png" alt="Blog dashboard home" loading="lazy"></figure></p>
-<p>The home page opens with <code>HOME_NOTE</code> rendered as an intro section (when that note is
-published) above the reverse-chronological post list. Topic pages live at <code>/topic/&lt;tag&gt;</code>;
-article deep links keep their normal note URLs.</p>
+<p>The home page starts with your <code>HOME_NOTE</code>, rendered as an introduction, when that note is published. Below it comes the list of posts, newest first. Each topic has its own page at <code>/topic/&lt;tag&gt;</code>. An article&#39;s address is the note&#39;s ordinary address; nothing changes there.</p>
 <h2 id="what-counts-as-a-post"><a class="anchor" href="#what-counts-as-a-post">What counts as a post</a></h2>
-<p>Every note with <code>publish: true</code>, newest first. A post&#39;s date comes from
-frontmatter — <code>date:</code>, <code>created:</code>, or <code>published:</code>, the first that parses wins (bare YAML dates
-like <code>2024-05-01</code> and quoted/ISO strings both work); then a numeric <code>id:</code>, when the template
-minted one — that is <code>Date.now()</code> at the moment the note was made, padded to the template&#39;s
-length, and it is the truest creation time a note carries, older than anything the disk or the
-ledger below can know and unmoved by a reorganisation of the vault; otherwise the moment the
-note was <strong>first seen</strong> by this instance. That is not the file&#39;s birthtime as the disk reports it today: every save
-writes a temp file and renames it over the note, which mints a new inode with a new birthtime, so
-the raw birthtime is really the last edit. The instance remembers the first birthtime it met for
-each path in <code>ASTROLABE_DATA/created.json</code>, and when the vault is a git repository it seeds that
-memory from the commit that added the file, so an old vault with backup on gets its true dates
-back. A vault migrated by copying files, with no history, still needs <code>date:</code> frontmatter or
-its posts sort as &quot;created the day of the copy&quot;. The
-excerpt is the first real paragraph of prose (markdown stripped, template furniture like bare
-timestamps and <code>Tags: #a #b</code> lines skipped), cut at ~220 characters on a word boundary.
-<code>GET /api/posts</code> serves the list.</p>
-<p>Notes in the <a href="../templates-and-notes/#templates">templates folder</a> never appear in the post list,
-RSS or the dashboard, even when they carry <code>publish: true</code> so the notes made from them inherit it.</p>
+<p>Every note with <code>publish: true</code> is a post, and the list is sorted newest first. The date of a post is decided in this order:</p>
+<ol>
+<li><strong>The frontmatter.</strong> (Frontmatter is the block between two <code>---</code> lines at the top of a note.) <code>date:</code>, <code>created:</code> or <code>published:</code>, whichever is found first and can be read as a date. Both a bare YAML date like <code>2024-05-01</code> and a quoted or ISO string work.</li>
+<li><strong>A numeric <code>id:</code></strong>, if the note&#39;s template made one. Such an id is the exact moment the note was created (<code>Date.now()</code>, padded to the length the template asked for). It is the truest creation time a note can carry: older than anything the disk or the record described below knows, and unaffected by moving files around in the vault.</li>
+<li><strong>The moment this instance first saw the note.</strong> That is not the file&#39;s creation time as the disk reports it today. Every save writes a temporary file and renames it over the note, and the operating system treats that as a brand-new file, so the disk&#39;s &quot;created&quot; time is really the time of the last edit. The instance therefore remembers the first creation time it ever met for each path, in <code>ASTROLABE_DATA/created.json</code>. When the vault is a git repository, it fills that memory from the commit that first added the file, so an old vault with backup turned on gets its true dates back. A vault that was moved by copying files, with no git history, still needs <code>date:</code> in the frontmatter; otherwise its posts all look like they were created on the day of the copy.</li>
+</ol>
+<p>The <strong>excerpt</strong> shown in lists is the first real paragraph of prose: markdown marks are stripped, and template leftovers such as a bare timestamp or a <code>Tags: #a #b</code> line are skipped. It is cut at about 220 characters, at a word boundary. <code>GET /api/posts</code> serves the list.</p>
+<p>Notes in the <a href="../templates-and-notes/#templates">templates folder</a> never appear in the post list, the feed or the dashboard, even when they carry <code>publish: true</code> so that notes made from them inherit it.</p>
 <blockquote>
-<p><strong>Set <code>EXCLUDE_TAGS</code> before you go live.</strong> The topic nav is built from the tags of published
-notes — including workflow tags (status markers like <code>#draft</code>/<code>#seedling</code>, zettel maturity,
-todo states), which would otherwise surface as public categories. List them in
-<code>EXCLUDE_TAGS</code> and they disappear from the nav, topic pages, and article tag chips; your
-vault and the admin view are unaffected.</p>
+<p><strong>Set <code>EXCLUDE_TAGS</code> before you go live.</strong> The topic row is built from the tags of your published notes, and that includes workflow tags: status markers like <code>#draft</code> or <code>#seedling</code>, note-maturity tags, todo states. Left alone, those become public categories. List them in <code>EXCLUDE_TAGS</code> and they disappear from the topic row, the topic pages and the tag chips on articles. Your vault and the admin view are not affected.</p>
 </blockquote>
 <h2 id="the-nav-is-always-one-line"><a class="anchor" href="#the-nav-is-always-one-line">The nav is always one line</a></h2>
-<p>However many topics your published tags add up to, the row measures itself and folds whatever will
-not fit into an inline &quot;More ▾&quot; menu beside the topics that do — re-measured on every resize, in
-either direction, so it never wraps into a second ragged line. Below ~840px the <em>topics</em> collapse
-into the usual burger panel, which shows every one of them at once.</p>
-<p>Your <strong>collections do not collapse with them</strong>. Where the row carries collection chips, Home and
-those chips stay in the bar at every width — swiping sideways if there are more of them than the
-phone is wide — and only the topics fold away. A declared collection is the site&#39;s own structure,
-and a structure reachable only through a menu labelled <em>Topics</em> has been demoted to one of them.
-A hairline sits between the two runs, because <code>GAMES</code> the collection and <code>games</code> the topic are
-otherwise the same pill twice.</p>
-<p>Topic names are the <a href="../arabic-and-rtl/#localised-tag-labels">localised label</a> where one exists;
-the URL stays the canonical slug.</p>
+<p>However many topics your tags add up to, the topic row stays on one line. It measures itself, keeps the topics that fit, and folds the rest into a &quot;More ▾&quot; menu beside them. It measures again on every resize, in both directions, so it never wraps into a ragged second line. Below about 840px of width the topics move into the usual collapsed menu (the ☰ button), which lists all of them at once.</p>
+<p><strong>Collections do not fold.</strong> When the row also carries collection chips (see the next section), Home and those chips stay in the bar at every width; if there are more than fit on a phone, the row scrolls sideways. Only the topics fold away. The reasoning: a collection is something you declared as part of the site&#39;s structure, and a structure hidden behind a menu labelled <em>Topics</em> would have been demoted to just another topic. A thin line separates the two groups, because otherwise the collection <code>GAMES</code> and the topic <code>games</code> would look like the same chip twice.</p>
+<p>A topic is shown under its <a href="../arabic-and-rtl/#localised-tag-labels">localised label</a> when it has one; its address keeps the original name.</p>
 <h2 id="custom-public-folders"><a class="anchor" href="#custom-public-folders">Custom public folders</a></h2>
 <p>Collections and author-site gallery cards are also available in <a href="../designer/">designed mode</a>, with the same visibility and placement settings.</p>
-<p><strong>Where categories come from</strong> is one choice, at the top of the section: <strong>Tags</strong> (a topic per
-tag, the default) or <strong>Folders</strong> (the vault&#39;s own order). Under <em>Folders</em>, every published note
-takes its parent folder as its category: the folder&#39;s name is the category&#39;s title (a sorting
-prefix such as <code>2| </code> is stripped), the mark you gave the folder in the tree is its mark, and the
-navigation, the home band and each category&#39;s page come from that alone. Notes at the vault root
-have no category. Tag topics leave the navigation; tags still show on posts. A <strong>folder note</strong> (a
-note named like the folder, or <code>index.md</code> inside it) gives the category its <code>description:</code>, a
-<code>title:</code>, an <code>icon:</code> and <code>hidden: true</code>, from the vault itself. Under <strong>Tags</strong>, collections are
-hand-made topics: a collection is a tag you curate yourself, and it sits in the navigation beside
-the tag topics. Collections do not exist in
-this mode; the folders are the categories.</p>
-<p>Topics are what your notes say about <em>themselves</em>. <strong>Public folders</strong> (collections) are what <em>you</em>
-say about a group of them: your own collections — Games, Reading, Field notes — declared once in
-Settings and joined by the notes that belong in them.</p>
-<p>Turn them on in <strong>Settings → Publishing &amp; comments → Custom public folders</strong>. Each folder gets a
-title, an address (the <code>/folder/&lt;slug&gt;</code> URL), one mark from the same closed glyph set the vault
-tree uses, and an optional line of description. Up to twelve, in whatever order you arrange them —
-that order is the order readers meet them.</p>
-<p><strong>A collection is a tag page.</strong> Declare one in the vault, not in Settings: a page in your tags
-folder (<code>2 - Tags/games.md</code>) with <code>collection: true</code>, and as you like <code>icon:</code>, <code>description:</code>,
-<code>title:</code>, <code>hidden: true</code> and <code>folder:</code> (a vault folder whose published notes all belong). The tag
-is the collection: every note carrying <code>#games</code> is in it, and its chip in the navigation stands in
-for the tag&#39;s own. Nothing is enumerated in Settings; the panel lists what the vault declared.</p>
-<p><strong>From the tree, no typing.</strong> Right-click a folder → <strong>Create a topic from this folder…</strong> and the
-tag page is written for you, with the folder&#39;s tree mark and <code>folder:</code> set to it. Right-click a note
-written for you. A membership that comes from a folder shows ticked and stays.</p>
-<p><strong>Making a topic publishes nothing, and publishing makes no topic.</strong> The two are separate on
-purpose, and the menu names them separately. A topic&#39;s members are the notes in the folder that
-are <em>already</em> published, plus any note carrying the tag — so a topic over a folder of private
-notes is an empty page, and the library does the same thing for the same reason. To publish the
-notes, right-click the folder → <strong>Publish every note in this folder…</strong>: it asks first, naming how
-many, then writes <code>publish: true</code> into each note that does not already have it, one at a time
-through the same route the status bar&#39;s ✦ uses. Notes already published are left untouched.</p>
-<p>A note also joins a folder from its own frontmatter, and every spelling YAML gives you works:</p>
+<p><strong>Where do categories come from?</strong> That is the first choice at the top of the section: <strong>Tags</strong> (one topic per tag; the default) or <strong>Folders</strong> (the vault&#39;s own layout).</p>
+<p>Under <strong>Folders</strong>, every published note takes its parent folder as its category. The folder&#39;s name becomes the category&#39;s title (a sorting prefix such as <code>2| </code> is removed), the mark you gave the folder in the note tree becomes its mark, and the navigation, the band on the home page and each category&#39;s page all come from that alone. Notes at the root of the vault have no category. Tag topics leave the navigation, though tags still appear on posts. A <strong>folder note</strong> (a note named like its folder, or an <code>index.md</code> inside it) can give the category a <code>description:</code>, a <code>title:</code>, an <code>icon:</code> and <code>hidden: true</code>, from the vault itself. Collections do not exist in this mode; the folders are the categories.</p>
+<p>Under <strong>Tags</strong>, you get <strong>collections</strong>. Topics are what your notes say about <em>themselves</em>, through their tags. A collection is what <em>you</em> say about a group of notes: Games, Reading, Field notes, whatever your site is really about. A collection is a hand-made topic that sits in the navigation beside the automatic ones.</p>
+<p>Turn collections on in <strong>Settings → Publishing &amp; comments → Custom public folders</strong>. Each collection has a title, an address (<code>/folder/&lt;slug&gt;</code>), one mark from the same set of glyphs the note tree uses, and an optional line of description. You can have up to twelve, in the order you arrange them, and that is the order readers meet them.</p>
+<p><strong>A collection is a tag page.</strong> You declare it in the vault, not in Settings: make a note in your tags folder (for example <code>2 - Tags/games.md</code>) with <code>collection: true</code> in its frontmatter, and, if you like, <code>icon:</code>, <code>description:</code>, <code>title:</code>, <code>hidden: true</code> and <code>folder:</code> (a vault folder whose published notes all belong to the collection). The tag <em>is</em> the collection: every note carrying <code>#games</code> is in it, and the collection&#39;s chip in the navigation takes the place of the tag&#39;s own. Nothing is typed into Settings; the panel simply lists what the vault declared.</p>
+<p><strong>From the tree, without typing.</strong> Right-click a folder and choose <strong>Create a topic from this folder…</strong>: the tag page is written for you, with the folder&#39;s tree mark and <code>folder:</code> already set. Right-click a note and choose <strong>Collections…</strong> to tick the collections it belongs to; the <code>tags:</code> line (or <code>folders:</code>, on an older note) is written for you. A membership that comes from the folder shows as ticked and stays that way.</p>
+<p><strong>Making a topic publishes nothing, and publishing makes no topic.</strong> The two are kept separate on purpose, and the menu names them separately. A topic&#39;s members are the notes in its folder that are <em>already</em> published, plus any note carrying its tag. So a topic made over a folder of private notes is an empty page (the library behaves the same way, for the same reason). To publish the notes, right-click the folder and choose <strong>Publish every note in this folder…</strong>. It asks first, telling you how many notes, and then writes <code>publish: true</code> into each note that lacks it, one note at a time, through the same route the ✦ in the status bar uses. Notes that are already published are left alone.</p>
+<p>A note can also join a collection from its own frontmatter, and every spelling YAML allows works:</p>
 <pre><code class="language-yaml">---
 title: Elden Ring, finished
 publish: true
@@ -129,106 +76,44 @@ folders:                # a block list
   - games
   - books
 </code></pre>
-<p>A <code>.tex</code> note declares it in <a href="../latex/">its own comment block</a>, like every other frontmatter key.
-Addresses are lowercase letters, digits and hyphens; case, padding and a pasted <code>/folder/games/</code>
-are all forgiven. A slug no folder declares simply matches nothing — which is what lets you write
-the frontmatter first and make the folder afterwards.</p>
-<p>Two sub-options decide where folders <em>show</em>:</p>
+<p>A <code>.tex</code> note declares the same thing in <a href="../latex/">its own comment block</a>, like every other frontmatter key. Addresses are lowercase letters, digits and hyphens; wrong case, extra spaces and a pasted <code>/folder/games/</code> are all forgiven. An address that no collection declares simply matches nothing, which is what lets you write the frontmatter first and make the collection later.</p>
+<p>Two switches decide where collections <em>appear</em>:</p>
 <ul>
-<li><strong>Show on home page</strong> (on by default) — a band of folder cards <strong>above</strong> your writings, on
-either home: a list is browsing, a collection is navigation, and navigation goes above the
-thing it navigates. An empty folder still shows there: a collection you have made and not
-filled yet is an invitation, not a bug, and its card says &quot;0 published notes&quot; on its face.</li>
-<li><strong>Show in navigation</strong> (off by default) — folder chips lead the topics row, each wearing its
-own mark instead of a <code>#</code>, and they never fold into &quot;More ▾&quot; or into the phone&#39;s burger: a
-declared collection is the site&#39;s own structure. A collection with <em>nothing in it</em> gets no
-chip — the band is an invitation and a nav chip is a promise of somewhere to go, and on a
-phone that chip costs a slot the collections with posts in them need.</li>
+<li><strong>Show on home page</strong> (on by default) puts a band of collection cards <strong>above</strong> your posts, on either kind of home page. A list of posts is for browsing; a collection is for navigating; and navigation belongs above the thing it navigates. An empty collection still shows here: a collection you made and have not filled yet is an invitation, not a bug, and its card says &quot;0 published notes&quot; on its face.</li>
+<li><strong>Show in navigation</strong> (off by default) puts collection chips at the start of the topic row, each wearing its own mark instead of a <code>#</code>. They never fold into &quot;More ▾&quot; or into the phone&#39;s collapsed menu, because a declared collection is the site&#39;s own structure. A collection with <em>nothing in it</em> gets no chip, though: the band is an invitation, but a chip in the navigation is a promise of somewhere to go, and on a phone that chip would take a slot the collections with posts in them need.</li>
 </ul>
-<p>Every folder page works either way — the two switches hide doors, not the rooms behind them. Each
-one lists its posts exactly as a topic page does, under a header carrying the folder&#39;s mark, title,
-description and count. Individual folders can be <strong>hidden</strong> without being deleted: the folder keeps
-its title, mark and members and reaches no visitor at all, and un-hiding restores it whole.</p>
-<p>Folder pages stay out of the sitemap for the same reason topic pages do — each is an index over
-URLs the file already names.</p>
+<p>Every collection page works either way; the two switches hide doors, not the rooms behind them. Each page lists its posts exactly as a topic page does, under a header carrying the collection&#39;s mark, title, description and count. A single collection can be <strong>hidden</strong> without being deleted: it keeps its title, mark and members, no visitor can reach it, and un-hiding brings it back whole.</p>
+<p>Collection pages stay out of the sitemap for the same reason topic pages do: each is an index over addresses the sitemap already lists.</p>
 <blockquote>
-<p>Public folders are a <strong>stock blog</strong> feature. The <a href="../designer/">designed site</a> composes its own
-navigation from nav items and ignores this setting; carrying folders into that shell is deferred.</p>
+<p>Public folders are a feature of the <strong>ready-made blog</strong>. The <a href="../designer/">designed site</a> builds its own navigation from the items you give it and ignores this setting; carrying folders into that shell is deferred.</p>
 </blockquote>
 <h2 id="hover-previews"><a class="anchor" href="#hover-previews">Hover previews</a></h2>
-<p>Resting the pointer on any post link — a list entry, a dashboard card, a related or prev/next
-link, a search result — floats the opening of that note, rendered by the same reading renderer the
-article page uses. The card <em>scrolls</em>, so a reader can skim well past the excerpt without leaving
-the page they are on; it flips above the link near the bottom of the viewport and stays put while
-the pointer travels into it. It opens into whichever room the viewport has, fades at whichever
-edge has more prose past it, and answers the keyboard too — a Tab-focused link gets the same card.
-Touch devices and readers who ask for reduced motion get no card at all, and the fetch is the
-ordinary visitor-scoped one — an unpublished note has nothing to preview.</p>
+<p>Rest the pointer on any post link (an entry in the list, a dashboard card, a related or previous/next link, a search result) and the opening of that note floats up in a card, rendered exactly as the article page renders it. The card <em>scrolls</em>, so a reader can read well past the excerpt without leaving the page they are on. Near the bottom of the window it flips to sit above the link, and it stays put while the pointer travels into it. It opens into whatever room the window has, fades at the edge that has more text beyond it, and answers to the keyboard too: a link reached with Tab gets the same card. Touch devices and readers who have asked for reduced motion get no card. The note is fetched exactly as a visitor would fetch it, so an unpublished note has nothing to preview.</p>
 <h2 id="back-to-top"><a class="anchor" href="#back-to-top">Back to top</a></h2>
-<p>After a viewport of scrolling, a small ✦ appears in the trailing corner (the leading one under
-RTL) and carries the reader back up with a gold shimmer; it lifts itself out of the way of the
-footer and the comment box rather than sitting on them, and jumps instantly with no shimmer when
-<code>prefers-reduced-motion</code> is set.</p>
+<p>After the reader scrolls about one screen down, a small ✦ appears in the bottom corner at the end of the line (bottom-right in English, bottom-left in Arabic). It carries the reader back to the top with a gold shimmer. It lifts itself out of the way of the footer and the comment box rather than sitting on top of them, and when <code>prefers-reduced-motion</code> is set it jumps at once, with no shimmer.</p>
 <h2 id="dashboard-home"><a class="anchor" href="#dashboard-home">Dashboard home</a></h2>
-<p>Prefer a magazine front page over the note-style home? Set <strong>Settings → Publishing &amp; comments →
-Home page → Dashboard</strong> (settings key <code>home.mode: &quot;dashboard&quot;</code>, also reachable as
-<code>{ &quot;home&quot;: { &quot;mode&quot;: &quot;dashboard&quot; } }</code> in <code>ASTROLABE_DATA/settings.json</code> or through
-<code>PATCH /api/settings</code>, and picked up live) and <code>/</code> becomes:</p>
+<p>Would you rather have a magazine front page than a note-style home page? Set <strong>Settings → Publishing &amp; comments → Home page → Dashboard</strong>. (The settings key is <code>home.mode: &quot;dashboard&quot;</code>; you can also write <code>{ &quot;home&quot;: { &quot;mode&quot;: &quot;dashboard&quot; } }</code> into <code>ASTROLABE_DATA/settings.json</code> or send it through <code>PATCH /api/settings</code>, and the change is picked up live.) The front page <code>/</code> then becomes:</p>
 <ul>
-<li>a full-width hero carrying the site name (or logo) and tagline over a banner image
-(<code>home.banner</code> — an https URL or a vault attachment; without one, a generated gradient seeded
-from the site name);</li>
-<li>a responsive card grid of the latest posts (1/2/3 columns by viewport; banner thumbnails with
-the same generated fallback, excerpts, tag chips);</li>
-<li>and — when readers have been talking — a slim &quot;Most discussed&quot; row ranked by comment count.</li>
+<li>a full-width <strong>hero</strong> (a big opening block at the top of the page): the site name (or logo) and tagline over a banner image (<code>home.banner</code>, an https URL or a vault attachment; without one, a gradient generated from the site name);</li>
+<li>a <strong>grid of cards</strong> for the latest posts, one, two or three columns depending on the width, each card with a banner thumbnail (the same generated fallback), an excerpt and tag chips;</li>
+<li>and, once readers have been talking, a slim <strong>&quot;Most discussed&quot;</strong> row ranked by comment count.</li>
 </ul>
-<p>As admin, enter <strong>Preview as visitor</strong> and hover the hero for a &quot;Change banner…&quot; button that opens
-the usual picker (paste a URL, choose a vault attachment, or upload). <code>home.mode: &quot;note&quot;</code> (or
-leaving it unset) keeps the classic home. With <code>COMMENTS=on</code>, <code>GET /api/posts</code> carries a
-<code>commentCount</code> per post — visitors count visible comments only.</p>
-<p>The home rows are read by the <code>blog</code> and <code>designed</code> layouts and by nothing else, so in the default
-<code>app</code> layout they are inert — which the settings panel says on the row itself, greying them. An
-app-layout instance simply opens the home note at <code>/</code>.</p>
+<p>As admin, open <strong>Preview as visitor</strong> and hover the hero: a &quot;Change banner…&quot; button appears and opens the usual picker (paste a URL, choose a vault attachment, or upload). <code>home.mode: &quot;note&quot;</code>, or leaving the key unset, keeps the classic home page. With <code>COMMENTS=on</code>, <code>GET /api/posts</code> carries a <code>commentCount</code> for each post; a visitor&#39;s count includes only comments that are visible.</p>
+<p>The home rows are read by the <code>blog</code> and <code>designed</code> layouts and by nothing else. In the default <code>app</code> layout they do nothing, which the settings panel says on the rows themselves, greying them out. An instance in the app layout simply opens the home note at <code>/</code>.</p>
 <h2 id="article-furniture"><a class="anchor" href="#article-furniture">Article furniture</a></h2>
 <p><figure><img src="../../../screenshots/blog-article.png" alt="Blog article with comments" loading="lazy"></figure></p>
-<p>Each article ends with share links (Settings → Publishing &amp; comments can turn the row off), prev/
-next posts, a &quot;Related&quot; list (published notes wikilinked from/to it), and
-<a href="../publishing/#comments">comments</a>. The footer carries a quiet RSS link, a sign-in link, and a
-tiny &quot;powered by Astrolabe&quot; credit — hide it with <code>.s-blog-powered { display: none }</code> in your
-<a href="../theming/#restyle-it"><code>custom.css</code></a> if you prefer.</p>
+<p>Each article ends with share links (Settings → Publishing &amp; comments can turn the row off), links to the previous and next posts, a &quot;Related&quot; list (published notes that link to this one or that it links to), and <a href="../publishing/#comments">comments</a>. The footer carries a quiet RSS link, a sign-in link and a tiny &quot;powered by Astrolabe&quot; credit. To hide the credit, put <code>.s-blog-powered { display: none }</code> in your <a href="../theming/#restyle-it"><code>custom.css</code></a>.</p>
 <h2 id="rss-sitemap-and-seo"><a class="anchor" href="#rss-sitemap-and-seo">RSS, sitemap and SEO</a></h2>
-<p>Four crawler-facing surfaces come along regardless of layout (all of them respect <code>PUBLIC=false</code>
-and speak only in published notes — unpublished paths are indistinguishable from unknown ones):</p>
+<p>Four things for search-engine crawlers and feed readers come with every layout. All of them respect <code>PUBLIC=false</code>, and all of them mention only published notes, so an unpublished address looks exactly like an address that does not exist.</p>
 <ul>
-<li><strong>RSS</strong> at <code>/feed.xml</code> — RSS 2.0, advertised on every page via
-<code>&lt;link rel=&quot;alternate&quot; type=&quot;application/rss+xml&quot;&gt;</code>, items linking to each note&#39;s deep-link
-URL with the excerpt as description. <code>&lt;pubDate&gt;</code>s are always RFC-822 Gregorian, whatever the
-<a href="../arabic-and-rtl/#hijri-dates">date calendar setting</a> says — that is a wire format an
-aggregator parses, not a date a person reads.</li>
-<li><strong>Sitemap</strong> at <code>/sitemap.xml</code> — the sitemaps.org 0.9 <code>urlset</code>: the front door, then every
-visitor-visible published note, newest first, each with a <code>&lt;lastmod&gt;</code> taken from the note&#39;s own
-date (frontmatter <code>date</code>/<code>created</code>/<code>published</code>, else the file&#39;s birthtime). Static pages
-(<code>page: true</code>) are listed here even though the feed drops them — an About page is not an
-article, but it is a URL this site serves. Topic pages and public-folder pages are not: each
-one is an index over URLs already in the file. Capped at the protocol&#39;s 50,000 URLs, newest kept, with an XML comment
-saying so if your vault ever gets there.</li>
-<li><strong>Robots</strong> at <code>/robots.txt</code> — <code>Allow: /</code>, <code>Disallow: /api/</code>, and a <code>Sitemap:</code> line pointing at
-the sitemap above.</li>
-<li><strong>SEO meta</strong> — the served HTML shell carries server-injected <code>&lt;title&gt;</code>, <code>meta description</code>,
-Open Graph (<code>og:type=article</code> on note pages) and canonical tags; note deep links get the
-note&#39;s own title and excerpt, everything else the generic site meta.</li>
+<li><strong>RSS</strong> at <code>/feed.xml</code>: an RSS 2.0 feed, advertised on every page with <code>&lt;link rel=&quot;alternate&quot; type=&quot;application/rss+xml&quot;&gt;</code>. Each item links to the note&#39;s own address and carries the excerpt as its description. The <code>&lt;pubDate&gt;</code> is always an RFC-822 Gregorian date, whatever the <a href="../arabic-and-rtl/#hijri-dates">date calendar setting</a> says: it is a format a feed reader parses, not a date a person reads.</li>
+<li><strong>Sitemap</strong> at <code>/sitemap.xml</code>: a sitemaps.org 0.9 <code>urlset</code> listing the front page and then every published note a visitor can see, newest first, each with a <code>&lt;lastmod&gt;</code> taken from the note&#39;s own date (<code>date</code>, <code>created</code> or <code>published</code> in the frontmatter, else the file&#39;s creation time). Static pages (<code>page: true</code>) are listed even though the feed leaves them out: an About page is not an article, but it is an address this site serves. Topic pages and public-folder pages are not listed, because each is an index over addresses already in the file. The list stops at the protocol&#39;s limit of 50,000 addresses, keeping the newest, with an XML comment saying so if your vault ever gets there.</li>
+<li><strong>Robots</strong> at <code>/robots.txt</code>: <code>Allow: /</code>, <code>Disallow: /api/</code>, and a <code>Sitemap:</code> line pointing at the sitemap above.</li>
+<li><strong>SEO meta</strong>: the HTML the server sends carries a <code>&lt;title&gt;</code>, a <code>meta description</code>, Open Graph tags (<code>og:type=article</code> on note pages) and a canonical tag. A note&#39;s page gets the note&#39;s own title and excerpt; every other page gets the site&#39;s general meta.</li>
 </ul>
-<p>Absolute URLs in all of them are built from <code>SITE_URL</code> when set, else derived from the request&#39;s
-<code>Host</code>/<code>X-Forwarded-*</code> headers.</p>
-<p>Both the feed and the sitemap take <code>?lang=ar</code> / <code>?lang=en</code> when
-<a href="../arabic-and-rtl/">the language filter</a> is on — a crawler and a feed reader cannot send the
-header the app&#39;s own pages use, so a bilingual site&#39;s two sides are two URLs.</p>
-<p><strong>On a <code>PUBLIC=false</code> instance</strong> the sitemap is behind login exactly like the feed (a 401 without
-a session), and <code>robots.txt</code> answers <code>Disallow: /</code> to anyone who is not signed in. That last one
-is deliberately <em>not</em> a 401: <a href="https://www.rfc-editor.org/rfc/rfc9309.html" target="_blank" rel="noreferrer">RFC 9309 §2.3.1.3</a>
-reads a 4xx on <code>robots.txt</code> as &quot;no rules exist, crawl freely&quot;, which is the opposite of what a
-private vault means. The <code>Disallow: /</code> body discloses nothing — every real path still 401s on its
-own — it just stops the crawl before it starts.</p>
+<p>Absolute URLs in all four are built from <code>SITE_URL</code> when it is set, and otherwise from the request&#39;s <code>Host</code> and <code>X-Forwarded-*</code> headers.</p>
+<p>Both the feed and the sitemap accept <code>?lang=ar</code> or <code>?lang=en</code> when <a href="../arabic-and-rtl/">the language filter</a> is on. A crawler or a feed reader cannot send the header the app&#39;s own pages use, so a bilingual site&#39;s two halves are two addresses.</p>
+<p><strong>On a <code>PUBLIC=false</code> instance</strong>, the sitemap sits behind login exactly like the feed (a 401 without a session), and <code>robots.txt</code> answers <code>Disallow: /</code> to anyone who is not signed in. That last one is deliberately <em>not</em> a 401: <a href="https://www.rfc-editor.org/rfc/rfc9309.html" target="_blank" rel="noreferrer">RFC 9309 §2.3.1.3</a> says a crawler should read a 4xx on <code>robots.txt</code> as &quot;there are no rules, crawl freely&quot;, which is the opposite of what a private vault means. The <code>Disallow: /</code> body reveals nothing, since every real address still answers 401 on its own; it only stops the crawl before it starts.</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/blog-mode.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/keymap/"><span class="pager__kicker">Previous</span><span class="pager__title">Keymap</span></a><a class="pager__link pager__link--next" href="../../en/designer/"><span class="pager__kicker">Next</span><span class="pager__title">Designed mode</span></a></nav>

@@ -20,349 +20,377 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link is-current" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/routines/">Routines</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link is-current" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="the-editor-reading-view">The editor &amp; reading view</h1>
 <p><em>What the live-preview editor does, what markdown Astrolabe renders, and how you get around the vault.</em></p>
 <hr>
 <p><figure><img src="../../../screenshots/hero-editor.png" alt="The live-preview editor" loading="lazy"></figure></p>
+<p>A quick word on the words. Your <strong>vault</strong> is the folder of files Astrolabe opens; every note in it
+is a plain text file. <strong>Markdown</strong> is the light markup those files use: <code>**bold**</code>, <code># Heading</code>,
+<code>- a list</code>. <strong>Frontmatter</strong> is the small block of <code>key: value</code> lines between two <code>---</code> fences at the
+top of a note, where a note keeps facts about itself (its tags, its date, whether it is published).
+A <strong>wikilink</strong> is <code>[[Name of a note]]</code>: a link to another note, by name. The rest of this page uses
+those four words freely.</p>
 <h2 id="writing"><a class="anchor" href="#writing">Writing</a></h2>
 <ul>
-<li><strong>Live-preview editor</strong> (CodeMirror 6) — markdown syntax hides itself except on the line you&#39;re
-editing; headings set in serif, clickable checkboxes, gold <code>[[wikilinks]]</code>, tag pills</li>
-<li><strong>Wikilinks with autocomplete</strong> — type <code>[[</code> and pick any note; <code>[[Name|alias]]</code> and
-<code>[[Name#heading]]</code> supported (type <code>#</code> inside the brackets to complete headings); heading links
-render as <code>Note › Heading</code> and jump straight to the heading; renames rewrite every link that
-pointed at the old name</li>
-<li><strong>Click to follow, click to create</strong> — plain click follows a rendered link; clicking an
-unresolved (dashed) link creates the note</li>
-<li><strong>Selection that knows what it is looking at</strong> — double-click takes the word under the pointer
-(by grapheme cluster, so Arabic harakat and Persian ZWNJ stay inside the word), or the whole
-rendered object when you double-click one: a wikilink, a <code>#tag</code>, an inline <code>$math$</code> span, a code
-chip; inside a fence it takes the identifier, <code>$jquery</code> and <code>snake_case_name</code> included.
-Triple-click takes the paragraph, drag extends by character, shift-click extends from where you
-were. Gated in both language shells by <code>npm run check-caret</code></li>
-<li><strong>Frontmatter properties card, editable in place</strong> — YAML frontmatter collapses to a neat
-key/value card with clickable tag pills while your cursor is outside it, and you edit it there:
-click a value to type over it, tick a checkbox for <code>true</code>/<code>false</code>, pick a date from a calendar,
-add and remove list values as chips, add a property, remove one with the × at the end of its row.
-<strong>Add property</strong> lists every key the app understands — <code>title</code>, <code>tags</code>, <code>aliases</code>, <code>banner</code>,
-<code>date</code>, <code>publish</code>, <code>description</code>, <code>dir</code>, <code>align</code>, <code>numbered</code>, <code>icon</code>, <code>language</code>,
-<code>cssclasses</code> — with a line on what each does; type to filter, ↑/↓ and Enter to take one, or type
-any key of your own. <code>tags</code> and <code>aliases</code> are written as lists (comma-separated values become
-items). A note with no properties yet still wears the card, one line with <em>Add property</em> and
-<em>Set banner…</em>, so every note starts from the same place (Settings → Appearance &amp; language →
-<em>Properties card on empty notes</em> turns that off).
-Every one of those writes is <strong>byte-surgical</strong> — your quote style, your comments, your key order
-and every line you did not touch survive exactly as they were, and deleting the last property
-takes the <code>---</code> fences with it instead of leaving a stray rule behind. Machine keys (<code>id</code>,
-<code>uuid</code>, <code>dg-*</code>) stay read-only, and <code>publish:</code> keeps its own switch in the status bar. It works
-the same on a <code>.tex</code> note, whose properties live in a <code>%---</code> comment block</li>
-<li><strong>Templates</strong> — <code>{{date}}</code>, <code>{{time}}</code>, <code>{{title}}</code>, <code>{{date:FORMAT}}</code> in the syntax other tools share (plus
-<code>{{hdate}}</code> for the Hijri date); insert one at the cursor or start a new note from one, with a
-picker that previews the filled result — see <a href="../templates-and-notes/#templates">Templates</a></li>
-<li><strong>Paste or drop attachments</strong> — an image on your clipboard (or any accepted file dragged from a
-file manager: PDF, audio, video too) uploads and lands as <code>![[name.png]]</code> at the cursor, with an
-&quot;Uploading…&quot; placeholder holding the spot while it&#39;s in flight. Where a paste or a drop into
-the note lands is a <a href="../configuration/#attachments">setting</a>. Files can also be dropped straight
-onto the sidebar tree — onto a folder row, onto a note row, or onto the tree&#39;s own ground — and
-a tree drop is a filing: the file lands in the folder you aimed at, whatever the setting says.
-A type the server would reject is refused before the upload, not after, and the toast that
-reports the drop carries an Undo</li>
-<li><strong>Slash commands</strong> — type <code>/</code> at the start of a line for a fuzzy menu of inserts: callout, code
-fence (with language search), table skeleton, task list, math block, divider, today&#39;s date,
-daily-note link</li>
-<li><strong>Callout &amp; fence autocomplete</strong> — <code>&gt; [!</code> suggests every callout type with its icon and color;
-<code>```</code> suggests languages as you type</li>
-<li><strong>Hover previews</strong> — rest on a <code>[[wikilink]]</code> and a floating card shows the target note&#39;s
-rendered opening (<code>[[Note#Heading]]</code> previews from that heading); footnote refs preview their
-definition</li>
-<li><strong>Section surgery</strong> — fold a heading, extract it into a new note, or drag it in the outline to
-move the whole subtree; see <a href="../templates-and-notes/#sections-fold-extract-move">Sections</a></li>
-<li><strong>Auto-numbered headings</strong> — off by default; the outline&#39;s <code>1.</code> button turns them on for reading
-view, and <code>numbered: true</code> in a note&#39;s frontmatter numbers it for everyone, including on the
-blog. Nothing is written into your markdown</li>
-<li><strong>List/quote continuation</strong> — <code>Enter</code> continues <code>-</code> lists, <code>- [ ]</code> tasks, numbered lists, and <code>&gt;</code>
-quotes; <code>Enter</code> on an empty item exits. <code>Ctrl/Cmd ↑/↓</code> moves the current line. Pasting a URL over
-selected text makes a markdown link</li>
-<li><strong>Text formatting on the keys you already know</strong> — <code>Ctrl/Cmd B</code> / <code>I</code> / <code>U</code>, plus strikethrough
-(<code>Ctrl/Cmd Shift X</code>) and highlight (<code>Ctrl/Cmd Shift H</code>) on Obsidian&#39;s own bindings. Every one
-toggles, works with no selection (markers inserted, caret between them), and applies per line
-across a multi-line selection — see <a href="../keymap/#why-these-keys">Keymap</a></li>
-<li><strong>Selection menu and floating toolbar</strong> — right-click a selection (or <code>Shift F10</code>) for the whole
-vocabulary, grouped: text style, structure, insert, colour. It is keyboard-complete, never
-overflows the viewport, and mirrors in Arabic. A Notion-style strip with the six most-used
-actions floats over every selection unless you turn it off from the menu&#39;s last row (the palette
-turns it back on)</li>
-<li><strong>Headings in a colour of your own</strong> — every heading, in the editor and the reading view alike, takes the theme&#39;s <code>--heading</code> token; the custom theme builder (Themes → New custom theme → Text) sets it outright, and the blog&#39;s article titles and the library&#39;s page titles follow. See <a href="../theming/#make-your-own">Theming</a>.</li>
-<li><strong>Coloured text in two tiers</strong> — a theme-aware palette that clears AA on every built-in theme, and
-a fixed-ink one for when you mean <em>that</em> colour; see
-<a href="../theming/#colored-text-in-two-tiers">Theming</a></li>
-<li><strong>Deletes that say what they are taking</strong>, and a <strong>trash browser</strong> — see
-<a href="../templates-and-notes/#deleting-and-the-trash">Deleting</a></li>
-<li><strong>Vim mode</strong>, autosave (600 ms debounce + <code>Ctrl/Cmd S</code>), and a keyboard-first surface</li>
+<li><strong>Live-preview editor</strong> (CodeMirror 6). Markdown syntax hides itself on every line except the one
+you are editing. Headings are set in a serif face, checkboxes can be ticked, <code>[[wikilinks]]</code> are
+gold, and tags show as small pills.</li>
+<li><strong>Wikilinks with autocomplete.</strong> Type <code>[[</code> and pick any note from the list. <code>[[Name|alias]]</code>
+shows different words for the link, and <code>[[Name#heading]]</code> points at one heading inside the note
+(type <code>#</code> inside the brackets to pick the heading). A heading link renders as <code>Note › Heading</code>
+and jumps straight to that heading. Rename a note and every link that pointed at the old name is
+rewritten for you.</li>
+<li><strong>Click to follow, click to create.</strong> A plain click on a rendered link opens the note. If the
+link is dashed, the note does not exist yet; clicking it creates the note.</li>
+<li><strong>Selection that knows what it is looking at.</strong> Double-click takes the word under the pointer.
+It treats a letter and the marks on it as one unit, so Arabic harakat and the Persian ZWNJ (the
+invisible joiner) stay inside the word rather than splitting it. Double-click a rendered object
+and you get the whole object: a wikilink, a <code>#tag</code>, an inline <code>$math$</code> span, a code chip. Inside
+a code fence, double-click takes the whole name, <code>$jquery</code> and <code>snake_case_name</code> included.
+Triple-click takes the paragraph, dragging extends the selection by character, and shift-click
+extends from where you were. The gate <code>npm run check-caret</code> tests this in both the English and
+the Arabic shell.</li>
+<li><strong>Frontmatter properties card, editable in place.</strong> While your cursor is outside the frontmatter,
+it collapses to a neat key/value card with clickable tag pills, and you edit it right there: click
+a value to type over it, tick a checkbox for <code>true</code>/<code>false</code>, pick a date from a calendar, add and
+remove list values as chips, add a property, or remove one with the × at the end of its row.
+<strong>Add property</strong> lists every key the app understands (<code>title</code>, <code>tags</code>, <code>aliases</code>, <code>banner</code>,
+<code>date</code>, <code>publish</code>, <code>description</code>, <code>dir</code>, <code>align</code>, <code>numbered</code>, <code>icon</code>, <code>language</code>, <code>cssclasses</code>)
+with one line on what each does. Type to filter, use ↑/↓ and Enter to take one, or type any key of
+your own. <code>tags</code> and <code>aliases</code> are written as lists; comma-separated values become items. A note
+with no properties yet still gets the card: one line with <em>Add property</em> and <em>Set banner…</em>, so
+every note starts from the same place (Settings → Language &amp; dates → <em>Properties card on
+empty notes</em> turns that off).
+Every one of those edits <strong>touches only its own spot</strong>: your quote style, your comments, the
+order of your keys and every line you did not touch stay exactly as they were. Deleting the last
+property also removes the <code>---</code> fences instead of leaving an empty rule behind. Keys that
+programs write rather than people (<code>id</code>, <code>uuid</code>, <code>dg-*</code>) stay read-only, and <code>publish:</code> has its
+own switch in the status bar. It works the same on a <code>.tex</code> note, whose properties live in a
+<code>%---</code> comment block.</li>
+<li><strong>Templates.</strong> <code>{{date}}</code>, <code>{{time}}</code>, <code>{{title}}</code> and <code>{{date:FORMAT}}</code> in the syntax other tools
+share, plus <code>{{hdate}}</code> for the Hijri date. Insert a template at the cursor or start a new note
+from one; the picker previews the filled-in result before you commit. See
+<a href="../templates-and-notes/#templates">Templates</a>.</li>
+<li><strong>Paste or drop attachments.</strong> An image on your clipboard, or any accepted file dragged from a
+file manager (PDF, audio and video too), uploads and lands as <code>![[name.png]]</code> at the cursor. An
+&quot;Uploading…&quot; placeholder holds the spot while the file is on its way. Where a paste or a drop into
+the note lands is a <a href="../configuration/#attachments">setting</a>. You can also drop files straight
+onto the sidebar tree, onto a folder row, a note row or the tree&#39;s own background. A drop on the
+tree is a filing: the file lands in the folder you aimed at, whatever the setting says. A file
+type the server would reject is refused before the upload starts, not after, and the toast that
+reports the drop carries an Undo.</li>
+<li><strong>Slash commands.</strong> Type <code>/</code> at the start of a line for a menu of things to insert, filtered as
+you type: a callout, a code fence (with a language search), a table skeleton, a task list, a math
+block, a divider, today&#39;s date, a link to today&#39;s daily note.</li>
+<li><strong>Callout and fence autocomplete.</strong> <code>&gt; [!</code> suggests every callout type with its icon and colour;
+<code>```</code> suggests languages as you type.</li>
+<li><strong>Hover previews.</strong> Rest the pointer on a <code>[[wikilink]]</code> and a floating card shows the opening of
+the target note, rendered (<code>[[Note#Heading]]</code> previews from that heading). Footnote references
+preview their definition.</li>
+<li><strong>Section surgery.</strong> Fold a heading, extract it into a new note, or drag it in the outline to move
+the whole subtree. See <a href="../templates-and-notes/#sections-fold-extract-move">Sections</a>.</li>
+<li><strong>Auto-numbered headings.</strong> Off by default. The outline&#39;s <code>1.</code> button turns numbering on for the
+reading view, and <code>numbered: true</code> in a note&#39;s frontmatter numbers it for everyone, including on
+the blog. Nothing is written into your markdown.</li>
+<li><strong>List and quote continuation.</strong> <code>Enter</code> continues <code>-</code> lists, <code>- [ ]</code> tasks, numbered lists and
+<code>&gt;</code> quotes; <code>Enter</code> on an empty item ends the list. <code>Ctrl/Cmd ↑/↓</code> moves the current line up or
+down. Paste a URL over selected text and you get a markdown link.</li>
+<li><strong>Text formatting on the keys you already know.</strong> <code>Ctrl/Cmd B</code> / <code>I</code> / <code>U</code>, plus strikethrough
+(<code>Ctrl/Cmd Shift X</code>) and highlight (<code>Ctrl/Cmd Shift H</code>), the same bindings Obsidian uses. Each one
+toggles, works with nothing selected (the markers are inserted and the caret sits between them),
+and applies line by line across a multi-line selection. See <a href="../keymap/#why-these-keys">Keymap</a>.</li>
+<li><strong>Selection menu and floating toolbar.</strong> Right-click a selection (or press <code>Shift F10</code>) for the
+full menu, grouped: text style, structure, insert, colour. It works entirely from the keyboard,
+never runs off the screen, and mirrors in Arabic. A small Notion-style strip with the six most
+used actions floats over every selection; the last row of the menu turns it off, and the command
+palette turns it back on.</li>
+<li><strong>Headings in a colour of your own.</strong> Every heading, in the editor and the reading view alike,
+takes the theme&#39;s <code>--heading</code> token. The custom theme builder (Themes → New custom theme → Text)
+sets it directly, and the blog&#39;s article titles and the library&#39;s page titles follow. See
+<a href="../theming/#make-your-own">Theming</a>.</li>
+<li><strong>Coloured text in two tiers.</strong> A theme-aware palette that stays readable (AA contrast) on every
+built-in theme, and a fixed-ink palette for when you mean <em>that exact</em> colour. See
+<a href="../theming/#colored-text-in-two-tiers">Theming</a>.</li>
+<li><strong>Deletes that say what they are taking</strong>, and a <strong>trash browser</strong>. See
+<a href="../templates-and-notes/#deleting-and-the-trash">Deleting</a>.</li>
+<li><strong>Vim mode</strong> for those who already know that editor&#39;s keys, autosave (600 ms after you stop
+typing, plus <code>Ctrl/Cmd S</code>), and a surface built to be driven from the keyboard.</li>
 </ul>
 <h2 id="rendering"><a class="anchor" href="#rendering">Rendering</a></h2>
 <ul>
-<li><strong>Image embeds</strong> — <code>![[image.png]]</code>, <code>![[image.png|300]]</code>, and standard <code>![alt](path)</code> render
-inline from your vault&#39;s attachments; a picture given a width sits centred in the column, in
-an Arabic note as in an English one; broken embeds get a dashed placeholder. <strong>Hover a picture</strong>
-for its tools: drag the handle on its corner to resize (the <code>|300</code> is written for you;
-double-click the handle for the picture&#39;s own size), and three buttons align it left, centre or
-right by writing <code>{.left}</code>, <code>{.center}</code> or <code>{.right}</code> at the end of its line. Clicking a picture
-no longer swaps it for its source and jumps the view: the picture stays, with the source
-editable beside it</li>
-<li><strong>Align a line</strong> — end any paragraph, heading or image line with <code>{.center}</code>, <code>{.right}</code>,
-<code>{.left}</code> or <code>{.justify}</code> and that block sits there, over the note&#39;s own <code>align:</code>. The marker
-hides like other syntax; <code>/center</code>, <code>/right</code> and <code>/left</code> in the slash menu write it for you, and
-so does <strong>right-click → Align</strong> over a selection, for every paragraph the selection touches. Pandoc reads the same braces; Obsidian shows them as text</li>
-<li><strong>Note transclusions</strong> — <code>![[Note]]</code> renders the target note as a full-fidelity card (callouts,
-math, code highlighting included), with an &quot;Open note&quot; affordance when the excerpt overflows</li>
-<li><strong>PDF &amp; attachment cards</strong> — <code>![[file.pdf]]</code> (mp4, mp3, zip, …) becomes a card that opens the
-file in a new tab</li>
-<li><strong>Callouts</strong> — <code>&gt; [!note]</code>, <code>[!tip]</code>, <code>[!warning]</code>, <code>[!danger]</code> and friends, tinted and iconed,
-foldable with <code>-</code></li>
-<li><strong>Math</strong> — <code>$inline$</code> and <code>$$block$$</code> via KaTeX</li>
-<li><strong>Code highlighting</strong> — fenced blocks highlight for all common languages, themed to match</li>
-<li><strong>Highlights, comments, footnotes</strong> — <code>==mark==</code>, <code>%%hidden comment%%</code>, <code>[^1]</code> superscript refs
-that jump to their definitions</li>
-<li><strong>Reading view</strong> — <code>Ctrl/Cmd E</code> flips the note to a fully rendered, read-only page (tables
-included), sharing the editor&#39;s resolve logic</li>
+<li><strong>Image embeds.</strong> <code>![[image.png]]</code>, <code>![[image.png|300]]</code> and the standard <code>![alt](path)</code> all
+render inline from your vault&#39;s attachments. A picture given a width sits centred in the column,
+in an Arabic note as in an English one; a broken embed gets a dashed placeholder. <strong>Hover a
+picture</strong> for its tools: drag the handle on its corner to resize it (the <code>|300</code> is written for
+you; double-click the handle to return to the picture&#39;s own size), and three buttons align it
+left, centre or right by writing <code>{.left}</code>, <code>{.center}</code> or <code>{.right}</code> at the end of its line.
+Clicking a picture does not swap it for its source and jump the view: the picture stays, with the
+source editable beside it.</li>
+<li><strong>Align a line.</strong> End any paragraph, heading or image line with <code>{.center}</code>, <code>{.right}</code>, <code>{.left}</code>
+or <code>{.justify}</code> and that block sits there, overriding the note&#39;s own <code>align:</code>. The marker hides
+like other syntax. <code>/center</code>, <code>/right</code> and <code>/left</code> in the slash menu write it for you, and so does
+<strong>right-click → Align</strong> over a selection, for every paragraph the selection touches. Pandoc reads
+the same braces; Obsidian shows them as text.</li>
+<li><strong>Note transclusions.</strong> <code>![[Note]]</code> renders the target note as a full card (callouts, math and
+code highlighting included), with an &quot;Open note&quot; button when the excerpt is longer than the card.</li>
+<li><strong>PDF and attachment cards.</strong> <code>![[file.pdf]]</code> (also mp4, mp3, zip, …) becomes a card that opens
+the file in a new tab.</li>
+<li><strong>Callouts.</strong> <code>&gt; [!note]</code>, <code>[!tip]</code>, <code>[!warning]</code>, <code>[!danger]</code> and friends: tinted, iconed, and
+foldable with <code>-</code>.</li>
+<li><strong>Math.</strong> <code>$inline$</code> and <code>$$block$$</code>, rendered by KaTeX.</li>
+<li><strong>Code highlighting.</strong> Fenced blocks are highlighted for all common languages, in colours that
+match the theme.</li>
+<li><strong>Highlights, comments, footnotes.</strong> <code>==mark==</code>, <code>%%hidden comment%%</code>, and <code>[^1]</code> superscript
+references that jump to their definitions.</li>
+<li><strong>Reading view.</strong> <code>Ctrl/Cmd E</code> flips the note to a fully rendered, read-only page (tables
+included). It resolves links exactly the way the editor does.</li>
 </ul>
-<p><code>.tex</code> and <code>.latex</code> files are first-class notes with their own renderer — see
+<p><code>.tex</code> and <code>.latex</code> files are first-class notes with their own renderer. See
 <a href="../latex/">LaTeX notes</a>.</p>
 <h2 id="navigating"><a class="anchor" href="#navigating">Navigating</a></h2>
 <p><figure><img src="../../../screenshots/graph.png" alt="Graph view" loading="lazy"></figure></p>
 <ul>
-<li><p><strong>Backlinks panel</strong> — every note shows who links to it, with the sentence that did</p>
+<li><p><strong>Backlinks panel.</strong> Every note shows which notes link to it, with the sentence that does.</p>
 </li>
-<li><p><strong>Outline (TOC) panel</strong> — the open note&#39;s headings, tracking your scroll position; click to jump</p>
+<li><p><strong>Outline (table of contents) panel.</strong> The open note&#39;s headings, following your scroll position;
+click one to jump to it.</p>
 </li>
-<li><p><strong>Graph view</strong> — hand-rolled canvas force simulation; drag nodes, hover to highlight neighbors,
-click to open. It opens as a <a href="../workspace/#panes">tab</a> in the focused pane (<code>Ctrl/Cmd G</code>), so
-the map and a note sit side by side or flip back and forth. The sliders button opens its settings: colour the notes by <strong>folder</strong> (one or two
-levels deep) or by <strong>tag</strong>, with a legend where each group can be recoloured or hidden; a search
-that lights the matching notes; filters for orphans and a minimum number of links; the three
-forces (spread, link length, pull to centre); node size, link opacity, the zoom at which labels
-appear, and a glow. The panel itself is yours to place: drag it by its title anywhere over the
-graph, drag its corner to make it as short or as narrow as you like, and <em>Reset</em> puts it back.
-All of it is remembered per browser and never touches the vault</p>
+<li><p><strong>Graph view.</strong> A map of your notes as dots, with a line for every link; the dots push apart and
+the links pull them together until the map settles, so linked notes end up beside each other by
+themselves. Drag the dots, hover to light up a note&#39;s neighbours, click to open.
+It opens as a <a href="../workspace/#panes">tab</a> in the focused pane (<code>Ctrl/Cmd G</code>), so the map and a note
+can sit side by side or flip back and forth. The sliders button opens its settings: colour the
+notes by <strong>folder</strong> (one or two levels deep) or by <strong>tag</strong>, with a legend where each group can be
+recoloured or hidden; a search that lights the matching notes; filters that hide orphans (notes
+with no links) or anything under a minimum number of links; the three forces (spread, link length, pull to centre); dot size, link opacity,
+the zoom level at which labels appear, and a glow. The settings panel itself is yours to place:
+drag it by its title anywhere over the graph, drag its corner to make it as short or as narrow as
+you like, and <em>Reset</em> puts it back. All of this is remembered per browser and never touches the
+vault.</p>
 </li>
-<li><p><strong>Full-text search</strong> — prefix + fuzzy (MiniSearch), highlighted snippets with markdown syntax
-stripped, instant. It answers to <a href="../arabic-and-rtl/#localised-tag-labels">localised tag labels</a>
-as well as canonical ones, and it <strong>folds diacritics and letter shapes</strong>, so «المقدمة» finds a
-note that spells it «الْمُقَدِّمَة» and <code>resume</code> finds <em>résumé</em> — see
-<a href="../arabic-and-rtl/#searching-in-arabic">Searching in Arabic</a></p>
+<li><p><strong>Full-text search.</strong> Instant; it matches a word from its first letters and forgives a small
+typo, and shows highlighted snippets with the markdown syntax stripped out. It answers to
+<a href="../arabic-and-rtl/#localised-tag-labels">localised tag labels</a> as well as the canonical ones, and
+it <strong>folds diacritics and letter shapes</strong>, so «المقدمة» finds a note that spells it «الْمُقَدِّمَة»
+and <code>resume</code> finds <em>résumé</em>. See <a href="../arabic-and-rtl/#searching-in-arabic">Searching in Arabic</a>.</p>
 </li>
-<li><p><strong>Search operators</strong> — the <code>?</code> under the search box opens the card that lists them; they narrow
-together, and any one of them can be negated with a leading <code>-</code>:</p>
+<li><p><strong>Search operators.</strong> The <code>?</code> under the search box opens a card that lists them. Operators narrow
+the results together, and any one of them can be negated with a leading <code>-</code>:</p>
 <div class="table"><table><thead><tr><th>Type</th><th>Finds</th></tr></thead><tbody><tr><td><code>tag:recipes</code></td><td>the topic and everything nested under it</td></tr><tr><td><code>path:Journal</code></td><td>notes whose path holds the text</td></tr><tr><td><code>is:published</code>, <code>is:page</code></td><td>the frontmatter flags</td></tr><tr><td><code>after:2024</code>, <code>before:2024-06-15</code></td><td>by the note&#39;s own date (<code>YYYY</code>, <code>YYYY-MM</code>, <code>YYYY-MM-DD</code>, UTC; <code>after:</code> is inclusive from the start of the named period and <code>before:</code> is exclusive of it, so <code>after:2024 before:2025</code> is exactly 2024)</td></tr><tr><td><code>linkto:Ledger</code></td><td>notes that link <strong>to</strong> that note</td></tr><tr><td><code>linkfrom:Ledger</code></td><td>notes that note links <strong>to</strong></td></tr><tr><td><code>in:books</code>, <code>in:notes</code></td><td>only pages of the shelf&#39;s PDFs, or only notes — see <a href="../books/#searching-inside-every-book">Searching inside every book</a></td></tr><tr><td><code>-tag:draft</code></td><td>everything but</td></tr><tr><td><code>path:&quot;Reading notes&quot;</code></td><td>a value with a space in it</td></tr></tbody></table></div><p>A query made only of operators is a real query: <code>tag:recipes</code> on its own lists every recipe,
-newest first. Anything that does not parse — <code>before:soon</code>, a bare <code>tag:</code> — stays an ordinary
-word rather than silently matching nothing.</p>
+newest first. Anything that does not parse (<code>before:soon</code>, a bare <code>tag:</code>) is treated as an
+ordinary word, rather than silently matching nothing.</p>
 </li>
-<li><p><strong>Search &amp; replace across the vault</strong> — the ⇄ button under the search box (admins only). The
-search box sets the <strong>scope</strong>: whatever operators are in it decide which notes are considered,
-so <code>tag:recipes</code> replaces in the recipes and nowhere else. You get a <strong>dry run first, always</strong> —
+<li><p><strong>Search and replace across the vault.</strong> The ⇄ button under the search box (admins only). The
+search box sets the <strong>scope</strong>: whatever operators are in it decide which notes are considered, so
+<code>tag:recipes</code> replaces inside the recipes and nowhere else. You always get a <strong>dry run first</strong>:
 every file it would touch, every line, the replacement beside the original, and a checkbox on
-each — then one button, and a toast with <strong>Undo</strong>. Where the vault is a git repository the panel
-offers to take a <strong>snapshot</strong> first, ticked by default: the in-memory undo expires and the commit
-does not, so a replace you regret tomorrow is still in
+each. Then one button, and a toast with <strong>Undo</strong>. Where the vault is a git repository the panel
+offers to take a <strong>snapshot</strong> first, ticked by default: the in-memory undo expires, a commit does
+not, so a replace you regret tomorrow is still recoverable through
 <a href="../backup-and-sync/">Backup &amp; sync</a>. Two rules worth knowing before you type:</p>
 <ul>
-<li><strong>Matching is exact.</strong> Case and diacritics count, and it is a literal string unless you tick
-<em>Regular expression</em> (then it is a JavaScript pattern, <code>$1</code> capture references and all, applied
-one line at a time — so <code>^</code> and <code>$</code> mean the ends of a line). The search box above folds and
-shrugs at case because finding is a question; replacing is a write, and a replace that stripped
-the harakat off a word you never typed would be destroying text you never saw.</li>
-<li><strong>Frontmatter is never touched.</strong> Properties have their own byte-surgical editor; a blind
-regex over YAML is how other tools eat your quote styles.</li>
+<li><strong>Matching is exact.</strong> Case and diacritics count, and the text is taken letter for letter
+unless you tick <em>Regular expression</em> (then it is a pattern in JavaScript&#39;s syntax, <code>$1</code> capture
+references included, applied one line at a time, so <code>^</code> and <code>$</code> mean the ends of a line). The search box above folds
+case and diacritics because finding is a question; replacing is a write, and a replace that
+stripped the harakat off a word you never typed would be destroying text you never saw.</li>
+<li><strong>Frontmatter is never touched.</strong> Properties have their own editor, the one that changes only
+the spot you edited. A blind pattern run over the frontmatter is how other tools eat your quote
+styles.</li>
 </ul>
 <p>A file that changed on disk between the preview and the press is <strong>skipped and named</strong>, never
 overwritten.</p>
 </li>
-<li><p><strong>Tags</strong> — <code>#inline</code> and frontmatter <code>tags:</code>, counted and clickable in the sidebar. A click
-filters the tree to that tag; <code>Esc</code> anywhere in the sidebar (or with nothing focused) clears
-the filter again, and the click on the lit pill does too. Right-click
-a pill to <strong>rename</strong> the tag across the whole vault — inline <code>#tags</code> and frontmatter <code>tags:</code>
-alike, with everything nested under it coming along (<code>#zettel</code> → <code>#slip</code> takes <code>#zettel/seed</code>
-with it). Renaming onto a tag that already exists <strong>merges</strong> the two, and the dialog says so
-before you press anything. You are shown how many notes will change before it runs, and the
-toast that follows carries one <strong>Undo</strong>. The rewrite never enters a code fence or an inline
-code span, so a <code>#define</code> in a shell block is left exactly where it is; your quote styles,
-comments and every other frontmatter key survive byte for byte. The tag&#39;s own page under the
-tags folder comes along, and its <a href="../arabic-and-rtl/#localised-tag-labels">localised label</a>
-moves with it</p>
+<li><p><strong>Tags.</strong> <code>#inline</code> tags and frontmatter <code>tags:</code> are counted and clickable in the sidebar. A click
+filters the tree to that tag; <code>Esc</code> anywhere in the sidebar (or with nothing focused) clears the
+filter, and so does a second click on the lit pill. Right-click a pill to <strong>rename</strong> the tag
+across the whole vault, inline <code>#tags</code> and frontmatter <code>tags:</code> alike, with everything nested under
+it coming along (<code>#zettel</code> → <code>#slip</code> takes <code>#zettel/seed</code> with it). Renaming onto a tag that
+already exists <strong>merges</strong> the two, and the dialog says so before you press anything. You are told
+how many notes will change before it runs, and the toast that follows carries one <strong>Undo</strong>. The
+rewrite never enters a code fence or an inline code span, so a <code>#define</code> in a shell block is left
+exactly where it is; your quote styles, comments and every other frontmatter key survive byte for
+byte. The tag&#39;s own page under the tags folder comes along, and its
+<a href="../arabic-and-rtl/#localised-tag-labels">localised label</a> moves with it.</p>
 </li>
-<li><p><strong>Rename a heading and the links follow</strong> — <code>[[Note#Heading]]</code> links break silently when the
-heading is renamed: the link still opens the note and quietly lands at the top. When a save
-renames a heading other notes point into, Astrolabe says so — <em>&quot;3 links point at “Introduction”.
-Update them to “Preface”?&quot;</em> — and one button repairs them all. It is always an offer, never
-automatic, and it too carries an Undo</p>
+<li><p><strong>Rename a heading and the links follow.</strong> A <code>[[Note#Heading]]</code> link breaks quietly when the
+heading is renamed: it still opens the note, but lands at the top. When a save renames a heading
+that other notes point into, Astrolabe says so: <em>&quot;3 links point at “Introduction”. Update them to
+“Preface”?&quot;</em>, and one button repairs them all. It is always an offer, never automatic, and it too
+carries an Undo.</p>
 </li>
-<li><p><strong>Attachments are in the tree</strong>, with a lightbox, players and downloads — see
-<a href="../templates-and-notes/#attachments">Attachments</a></p>
+<li><p><strong>Attachments are in the tree</strong>, with a lightbox, players and downloads. See
+<a href="../templates-and-notes/#attachments">Attachments</a>.</p>
 </li>
-<li><p><strong>Reorganize by dragging</strong>, with every link repaired — see
-<a href="../templates-and-notes/#reorganizing-by-dragging">Reorganizing</a></p>
+<li><p><strong>Reorganize by dragging</strong>, with every link repaired. See
+<a href="../templates-and-notes/#reorganizing-by-dragging">Reorganizing</a>.</p>
 </li>
-<li><p><strong>Daily notes</strong> — <code>Ctrl/Cmd Alt D</code> opens (or creates) today&#39;s note (<code>daily/YYYY-MM-DD.md</code> unless <a href="../templates-and-notes/#daily-and-weekly-notes">configured otherwise</a>)</p>
+<li><p><strong>Daily notes.</strong> <code>Ctrl/Cmd Alt D</code> opens today&#39;s note, creating it if needed
+(<code>daily/YYYY-MM-DD.md</code> unless <a href="../templates-and-notes/#daily-and-weekly-notes">configured otherwise</a>).</p>
 </li>
-<li><p><strong>A shell that gets out of the way</strong> — collapse either pane (<code>Ctrl/Cmd Alt B</code>,
-<code>Ctrl/Cmd Alt Shift B</code>) down to a slim reopen handle, or go <strong>zen</strong> (<code>Ctrl/Cmd Shift Z</code>):
-sidebar, panel, tabs and status bar step aside and the prose centers on a wide measure. <code>Esc</code> (or
-the faint ✕) comes back. Every state is remembered across reloads — and <strong>folding a pane never
-moves the note</strong>: the column stays optically centred in the window whichever panes are open, with
-deliberate air beside a closed pane&#39;s reopen handle</p>
+<li><p><strong>A shell that gets out of the way.</strong> Collapse either side pane (<code>Ctrl/Cmd Alt B</code>,
+<code>Ctrl/Cmd Alt Shift B</code>) down to a slim reopen handle, or go <strong>zen</strong> (<code>Ctrl/Cmd Shift Z</code>): the
+sidebar, the panel, the tabs and the status bar step aside and the prose sits centred on a wide
+measure. <code>Esc</code> (or the faint ✕) brings everything back. Every state is remembered across reloads,
+and <strong>folding a pane never moves the note</strong>: the column stays optically centred in the window
+whichever panes are open, with deliberate air beside a closed pane&#39;s reopen handle.</p>
 </li>
-<li><p><strong>Notes sidebar on either side</strong> — three states, in the palette and in Settings → Appearance &amp;
-language: <em>follow the language</em> (the default — left in English, right in Arabic, re-evaluated
-whenever the language changes) or pin it to the left or right screen edge for good</p>
+<li><p><strong>Notes sidebar on either side.</strong> Three states, in the palette and in Settings → Appearance &amp;
+language: <em>follow the language</em> (the default: left in English, right in Arabic, re-evaluated
+whenever the language changes), or pin it to the left or right edge for good.</p>
 </li>
-<li><p><strong>Your editor&#39;s language is yours</strong> — three more states in the same two places: <em>Editor
-language: follow the site</em> (the default), <em>English</em> or <em>العربية</em>. It is a per-browser choice
-that changes nothing about what your site publishes, so an Arabic site can be run from an
-English editor. Each palette row names its language in that language&#39;s own script, which is
-the point: it stays findable when the interface is one you cannot read. See
-<a href="../arabic-and-rtl/#your-editors-language-is-yours">Arabic &amp; RTL</a></p>
+<li><p><strong>Your editor&#39;s language is yours.</strong> Three more states in the same two places: <em>Editor language:
+follow the site</em> (the default), <em>English</em> or <em>العربية</em>. It is a per-browser choice that changes
+nothing about what your site publishes, so an Arabic site can be run from an English editor. Each
+palette row names its language in that language&#39;s own script, on purpose: it stays findable when
+the interface is in a language you cannot read. See
+<a href="../arabic-and-rtl/#your-editors-language-is-yours">Arabic &amp; RTL</a>.</p>
 </li>
-<li><p><strong>Command palette</strong> — fuzzy over notes and commands alike, and every command row has to earn
-its place: a query only surfaces commands it genuinely matches, at most five of them, and they
-sit above or below your notes according to which matched better. Typing <code>sort</code> used to put
-<em>Design your site</em> over the whole vault. Start the query with <code>@</code> or <code>#</code> to jump to a heading
-(or a LaTeX <code>\label</code>) inside the note you are reading instead.</p>
+<li><p><strong>Command palette.</strong> <code>Ctrl/Cmd P</code> searches notes and commands together. A command only appears
+when the query genuinely matches it, at most five of them, and they sit above or below your notes
+depending on which matched better. (Typing <code>sort</code> used to put <em>Design your site</em> over the whole
+vault.) Start the query with <code>@</code> or <code>#</code> to jump to a heading (or a LaTeX <code>\label</code>) inside the note
+you are reading instead.</p>
 </li>
-<li><p><strong>Live vault watching</strong> — edit a file in any other editor and the app updates within ~100 ms
-(chokidar + SSE)</p>
+<li><p><strong>Live vault watching.</strong> Edit a file in any other editor and the app updates within about a
+tenth of a second.</p>
 </li>
 </ul>
 <p><figure><img src="../../../screenshots/palette.png" alt="Command palette" loading="lazy"></figure></p>
 <h2 id="live-queries"><a class="anchor" href="#live-queries">Live queries</a></h2>
 <p>A <code>```query</code> fence is a list of notes that answers a search, drawn live wherever the note is
-read — the editor, reading view, the blog. It takes the search box&#39;s operators and four keys:</p>
+read: the editor, the reading view, the blog. It takes the search box&#39;s operators and four keys:</p>
 <pre><code class="language-query">tag:reading prop:status=reading -tag:draft
 show: title, date, status, tags
 sort: date desc
 limit: 20
 as: table
 </code></pre>
-<div class="table"><table><thead><tr><th>Key</th><th>Values</th></tr></thead><tbody><tr><td><code>show</code></td><td>columns: <code>title</code>, <code>date</code>, <code>modified</code>, <code>tags</code>, <code>excerpt</code>, <code>path</code>, or any frontmatter key (<code>status</code>, <code>author</code>)</td></tr><tr><td><code>sort</code></td><td><code>date</code>, <code>modified</code>, <code>title</code>, <code>path</code>, <code>relevance</code>, each with <code>asc</code> or <code>desc</code></td></tr><tr><td><code>limit</code></td><td>at most this many rows (500 at most)</td></tr><tr><td><code>as</code></td><td><code>list</code> (title and excerpt), <code>table</code>, or <code>cards</code></td></tr></tbody></table></div><p>Every other line is the query. <code>prop:status=reading</code> is new with it: search by any frontmatter
-property, <code>prop:author</code> alone for &quot;has one&quot;, <code>-prop:draft</code> to exclude. The list is scoped to the
-reader — a visitor&#39;s fence on a published note lists published notes only — and it re-reads when
-the vault changes. Obsidian renders the same fence language, so the note stays readable there.</p>
+<div class="table"><table><thead><tr><th>Key</th><th>Values</th></tr></thead><tbody><tr><td><code>show</code></td><td>columns: <code>title</code>, <code>date</code>, <code>modified</code>, <code>tags</code>, <code>excerpt</code>, <code>path</code>, or any frontmatter key (<code>status</code>, <code>author</code>)</td></tr><tr><td><code>sort</code></td><td><code>date</code>, <code>modified</code>, <code>title</code>, <code>path</code>, <code>relevance</code>, each with <code>asc</code> or <code>desc</code></td></tr><tr><td><code>limit</code></td><td>at most this many rows (500 at most)</td></tr><tr><td><code>as</code></td><td><code>list</code> (title and excerpt), <code>table</code>, or <code>cards</code></td></tr></tbody></table></div><p>Every other line is the query. <code>prop:status=reading</code> is an operator that came with this feature:
+search by any frontmatter property. <code>prop:author</code> alone means &quot;has one&quot;, and <code>-prop:draft</code> excludes.
+The list is scoped to the reader (a visitor&#39;s fence on a published note lists published notes only)
+and it re-reads when the vault changes. Obsidian renders the same fence language, so the note stays
+readable there.</p>
 <h2 id="tasks-across-the-vault"><a class="anchor" href="#tasks-across-the-vault">Tasks across the vault</a></h2>
-<p>Every <code>- [ ]</code> line is a task, and the fields the Tasks plugin taught vaults to write are read off its
-end: <code>📅 2026-09-20</code> due, <code>⏳</code> scheduled, <code>🛫</code> start, <code>✅</code> done on, <code>🔁 every week</code>, and <code>⏫ 🔼 🔽</code>
-priority. A <code>```tasks</code> fence lists them from the whole vault, grouped by note, and in the editor
-each box is live: a tick flips that one line in the note it lives in and stamps <code>✅ today</code>, so
-Obsidian&#39;s Tasks reads the same state.</p>
+<p>Every <code>- [ ]</code> line is a task. The fields Obsidian&#39;s Tasks plugin taught vaults to write are read off
+the end of the line: <code>📅 2026-09-20</code> due, <code>⏳</code> scheduled, <code>🛫</code> start, <code>✅</code> done on, <code>🔁 every week</code>, and
+<code>⏫ 🔼 🔽</code> priority. A <code>```tasks</code> fence lists tasks from the whole vault, grouped by note, and in the
+editor each box is live: a tick flips that one line in the note it lives in and stamps <code>✅ today</code>,
+so Obsidian&#39;s Tasks reads the same state.</p>
 <pre><code class="language-tasks">not done
 due this week
 tag:work
 sort: priority
 </code></pre>
 <p>Lines: <code>not done</code> (the default), <code>done</code>, <code>all</code>; <code>due today</code>, <code>due this week</code>, <code>overdue</code>, <code>due before 2026-10-01</code>, <code>due after …</code>, <code>due on …</code>, <code>has due date</code>; <code>path:Projects</code>, <code>tag:work</code>, <code>limit: 50</code>,
-<code>group: none</code>, <code>sort: due | priority | path</code>. The Routines page opens with the tasks due by today.</p>
+<code>group: none</code>, <code>sort: due | priority | path</code>. The Orbits page opens with the tasks due by today.</p>
 <h2 id="unlinked-mentions"><a class="anchor" href="#unlinked-mentions">Unlinked mentions</a></h2>
-<p>Under the backlinks, the right panel lists notes whose prose names the open note&#39;s title or an
-alias without linking it — whole words only, never inside a link, code or a template, and folded
-like search so a pointed Arabic title finds its plain spelling. <strong>Link</strong> wraps those words as
+<p>Under the backlinks, the right panel lists notes whose prose mentions the open note&#39;s title, or one
+of its aliases, without linking to it. Whole words only, never inside a link, code or a template, and
+folded like search, so a pointed Arabic title finds its plain spelling. <strong>Link</strong> wraps those words as
 <code>[[Note]]</code> (or <code>[[Note|the words]]</code> when they are not the title&#39;s own spelling) with one edit to
-that line; <strong>Link all</strong> does every row. This is how atomic notes get woven.</p>
+that line; <strong>Link all</strong> does every row. This is how small notes get woven into a web.</p>
 <h2 id="block-references"><a class="anchor" href="#block-references">Block references</a></h2>
-<p>Any paragraph or list item can be addressed. End it with a space and a caret id — <code>…the rule of three. ^rule3</code> — or put <code>^rule3</code> on a line of its own right under the block, and:</p>
+<p>You can link to one paragraph or one list item, not only to a whole note. End it with a space and
+an id that starts with <code>^</code>, like <code>…the rule of three. ^rule3</code>, or put <code>^rule3</code> on a line of its own
+right under the block. Then:</p>
 <ul>
 <li><code>[[Note#^rule3]]</code> links to that block and lands on it; the hover card shows just that block;</li>
 <li><code>![[Note#^rule3]]</code> transcludes only that block, in the editor, the reading view and on the blog;</li>
 <li><code>[[Note#</code> in the editor offers block ids beside headings, and the palette&#39;s <code>#</code> jump lists them.</li>
 </ul>
-<p>The marker is hidden in reading view and in live preview until the caret is on its line, where it
-shows faint and monospace so it can be read or changed. <strong>Copy link to this block</strong> in the command
-palette mints an id for the block under the caret (or reuses the one it has), appends it as one undo
-step, and copies the link; on a heading line it copies the section link instead. The syntax is
-Obsidian&#39;s, so a vault that already carries <code>^ids</code> keeps every link.</p>
+<p>The marker is hidden in the reading view and in live preview until the caret is on its line, where
+it shows faint and monospace so it can be read or changed. <strong>Copy link to this block</strong> in the
+command palette makes an id for the block under the caret (or uses the one it already has), appends
+it as one undo step, and copies the link; on a heading line it copies the section link instead. The syntax
+is Obsidian&#39;s, so a vault that already carries <code>^ids</code> keeps every link.</p>
 <h2 id="find-and-replace"><a class="anchor" href="#find-and-replace">Find and replace</a></h2>
-<p><code>Ctrl/Cmd F</code> opens find and replace inside the note: type, and the count says where you are;
-Enter goes to the next match, Shift+Enter to the previous, Enter in the replace field replaces
-one and Ctrl/Cmd+Enter replaces all; the three pills are match case, regular expression and
-whole word. <code>Ctrl/Cmd Shift F</code> opens <strong>Search &amp; replace across the vault</strong> in the sidebar: every
-note that matches, line by line, ticked or unticked, replaced in one go with an undo and an
-optional snapshot first. <code>Esc</code> from any field in that panel closes it.</p>
+<p><code>Ctrl/Cmd F</code> opens find and replace inside the note. Type, and the count says where you are. Enter
+goes to the next match, Shift+Enter to the previous; Enter in the replace field replaces one and
+Ctrl/Cmd+Enter replaces all. The three pills are match case, regular expression and whole word.
+<code>Ctrl/Cmd Shift F</code> opens <strong>Search &amp; replace across the vault</strong> in the sidebar: every note that
+matches, line by line, ticked or unticked, replaced in one go with an undo and an optional snapshot
+first. <code>Esc</code> from any field in that panel closes it.</p>
 <h2 id="the-bar-and-the-top-cluster"><a class="anchor" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a></h2>
-<p>The bar under the note says where you are, how long the note is, whether it is published and
-which mode it is in, and ends with the build you are on — the <a href="../desktop/#updates">updater</a> on
-the desktop app, the releases page in a browser. The shell&#39;s own controls sit at the top,
-trailing the tabs: the panes, zen, the graph, the site designer, settings, the theme, and
-signing out.</p>
+<p>The bar under the note says where you are, how long the note is, whether it is published and which
+mode you are in. It ends with the version you are on: the <a href="../desktop/#updates">updater</a> on the
+desktop app, the releases page in a browser. The shell&#39;s own controls sit at the top, after the tabs: the
+panes, zen, the graph, the site designer, settings, the theme, and signing out.</p>
 <h2 id="arranging-the-tree"><a class="anchor" href="#arranging-the-tree">Arranging the tree</a></h2>
-<p>The vault&#39;s order is the default, not the law. In the sidebar&#39;s footer, <strong>Sort the tree</strong> offers
-by name, by name reversed, or <strong>my own order</strong>; dragging a row above or below a sibling switches
-to your own order by itself, and <em>Forget my order</em> puts everything back. <strong>Ctrl/Cmd-click</strong> gathers
-rows into a selection: drag them together, or right-click one to move or pin them all. <strong>Pin to
-top</strong> puts a note or a folder in a scratch area above the vault, in any order you drag it into,
-for as long as you are working on it; <em>Unpin all</em> clears the area. <strong>Focus here</strong> shows only one
-note or folder and the way to it; <em>Show all</em> brings the rest back. Every folder&#39;s menu also has
-<strong>Collapse everything inside</strong> and <em>Expand everything inside</em>. All of this is per browser; the
-vault on disk is never reordered.</p>
-<p><strong>The writing column</strong> (Settings → This device) is the reading measure by default; <em>Wide</em> and
+<p>The order the vault has on disk is the default, not the law. In the sidebar&#39;s footer, <strong>Sort the
+tree</strong> offers by name, by name reversed, or <strong>my own order</strong>. Dragging a row above or below a sibling
+switches to your own order by itself, and <em>Forget my order</em> puts everything back. <strong>Ctrl/Cmd-click</strong>
+gathers rows into a selection: drag them together, or right-click one to move or pin them all.
+<strong>Pin to top</strong> puts a note or a folder in a scratch area above the vault, in any order you drag it
+into, for as long as you are working on it; <em>Unpin all</em> clears the area. <strong>Focus here</strong> shows only
+one note or folder and the path to it; <em>Show all</em> brings the rest back. Every folder&#39;s menu also has
+<strong>Collapse everything inside</strong> and <em>Expand everything inside</em>. All of this is per browser; the vault
+on disk is never reordered.</p>
+<p><strong>The writing column</strong> (Settings → This device) is the reading measure by default. <em>Wide</em> and
 <em>Full width</em> let a table or a code-heavy note use the screen, and <em>Custom</em> takes a width of your own,
 in pixels (<code>900px</code>) or as a share of the pane (<code>70%</code>), applied as you type. The reading view follows
 the same choice.</p>
-<p><strong>What&#39;s new after an update</strong> (Settings → This device, on by default). The first time this
-device opens a new version of Astrolabe as an admin, a short deck walks the release&#39;s features —
-one slide per feature, a live piece of the product on each (a routine card you can tick, a warmth
-slider you can drag), next and back, <code>←</code>/<code>→</code> on the keyboard. It appears once per <em>minor</em> version:
-a bug-fix release shows nothing new, and a reader who skipped 3.11.0 and lands on 3.11.2 still gets
-the 3.11 deck. A device that skipped several releases gets every deck it missed, oldest first, in
-one walk. A brand-new install gets no deck at all — the tour is that reader&#39;s welcome, and the
-palette door below is there when they are curious. Close it and it is seen; <em>Don&#39;t show these after updates</em> on its footer, or the switch
-in Settings, turns it off for good (the switch travels with your preferences). <em>What&#39;s new in this
-version</em> in the command palette reopens the deck on purpose, including every earlier release.</p>
+<p><strong>What&#39;s new after an update</strong> (Settings → This device, on by default). The first time this device
+opens a new version of Astrolabe as an admin, a short deck walks through the release&#39;s features: one
+slide per feature, a live piece of the product on each (an orbit card you can tick, a warmth slider
+you can drag), next and back, <code>←</code>/<code>→</code> on the keyboard. It appears once per <em>minor</em> version: a
+bug-fix release shows nothing new, and a reader who skipped 3.11.0 and lands on 3.11.2 still gets
+the 3.11 deck. A device that skipped several releases gets every deck it missed, oldest first, in one
+walk. A brand-new install gets no deck at all: the tour is that reader&#39;s welcome, and the palette
+door below is there when they are curious. Close the deck and it counts as seen. <em>Don&#39;t show these
+after updates</em> on its footer, or the switch in Settings, turns it off for good (the switch travels
+with your preferences). <em>What&#39;s new in this version</em> in the command palette reopens the deck on
+purpose, including every earlier release.</p>
 <h2 id="the-two-side-panes"><a class="anchor" href="#the-two-side-panes">The two side panes</a></h2>
-<p>Drag the inner edge of the notes sidebar or the side panel to resize it; the width is remembered
-per browser. Drag it off the window edge and it closes, and the slim handle it leaves behind
-reopens it with a click or a drag inward. Double-click the edge to go back to the default width.
-Ctrl/Cmd+B and the collapse buttons still do what they did. The seams between split panes are
-grips too; see <a href="../workspace/#panes">panes</a>.</p>
+<p>Drag the inner edge of the notes sidebar or the side panel to resize it; the width is remembered per
+browser. Drag it off the window edge and it closes; the slim handle it leaves behind reopens it with
+a click or a drag inward. Double-click the edge to go back to the default width. Ctrl/Cmd+B and the
+collapse buttons still do what they did. The seams between split panes are grips too; see
+<a href="../workspace/#panes">panes</a>.</p>
 <h2 id="folder-marks"><a class="anchor" href="#folder-marks">Folder marks</a></h2>
-<p>Right-click a folder and choose <strong>Folder icon</strong>: a search field (it has focus, so type &quot;tele&quot; and
-press Enter for the telescope) over three hundred glyphs on nine shelves, from writing and science
-to places, nature, food and money. Both languages are searched whatever the chrome speaks, and so
-are each glyph&#39;s keywords (&quot;gym&quot; finds the dumbbell). The public site&#39;s custom folders pick from
-the same set through their glyph button in Settings. <strong>Your own image</strong> at the foot of the picker takes a
-vault image instead, typed, picked from the vault, or uploaded on the spot (SVG, PNG, WebP, GIF or
-JPEG, up to 512 KB; a small square reads best). It is kept in the vault like any attachment, and a
-collection or a folder note can wear one too (<code>icon: attachments/icons/rocket.svg</code>).</p>
+<p>Right-click a folder and choose <strong>Folder icon</strong>: a search field (it already has focus, so type
+&quot;tele&quot; and press Enter for the telescope) over three hundred glyphs on nine shelves, from writing and
+science to places, nature, food and money. Both languages are searched whatever language the
+interface speaks, and so are each glyph&#39;s keywords (&quot;gym&quot; finds the dumbbell). The public site&#39;s
+custom folders pick from the same set through their glyph button in Settings. <strong>Your own image</strong> at
+the foot of the picker takes a vault image instead: typed, picked from the vault, or uploaded on the
+spot (SVG, PNG, WebP, GIF or JPEG, up to 512 KB; a small square reads best). It is kept in the vault
+like any attachment, and a collection or a folder note can wear one too
+(<code>icon: attachments/icons/rocket.svg</code>).</p>
 <h2 id="notes-to-self"><a class="anchor" href="#notes-to-self">Notes to self</a></h2>
-<p>Select a passage in the reading view and press <strong>Annotate</strong>, or select words in the editor and
-press the pen on the floating toolbar (or <strong>Annotate</strong> in the right-click menu): the passage takes
-an ink and you write what you want to say about it. The words stay marked in both views, editor
-and reading, in their ink with a line under them. Rest the pointer on a mark and the note appears;
-click it to edit the note, change its ink, show or hide it from readers, or delete it. The note itself is never touched. Annotations live beside the
-vault in <code>ASTROLABE_DATA/annotations.json</code>, anchored by the passage&#39;s own words (with a little context
-either side), so they survive the note being edited above them, moved, renamed, or rendered in a
-different face. A passage that is gone is listed under the prose as no longer in the note.</p>
+<p>An annotation is a note you attach to a passage of your own text, without changing the text. Select
+a passage in the reading view and press <strong>Annotate</strong>, or select words in the editor and press the pen
+on the floating toolbar (or <strong>Annotate</strong> in the right-click menu): the passage takes an ink colour
+and you write what you want to say about it. The words stay marked in both views, editor and
+reading, in their ink with a line under them. Rest the pointer on a mark and the note appears; click
+it to edit the note, change its ink, show or hide it from readers, or delete it. The note file itself
+is never touched. Annotations live beside the vault in <code>ASTROLABE_DATA/annotations.json</code>, anchored
+by the passage&#39;s own words (with a little context on either side), so they survive the note being
+edited above them, moved, renamed, or rendered in a different typeface. A passage that is gone is
+listed under the prose as no longer in the note.</p>
 <p>Click a mark to read, edit, recolour or delete it, or open it from the list under the prose. Each
-annotation has a <strong>Show to readers</strong> switch: on, it appears on the blog article and on the lesson
+annotation has a <strong>Show to readers</strong> switch. On, it appears on the blog article and on the lesson
 page in the library as <em>The author&#39;s note</em>, with an accent underline, when the note is published.
-Off (the default) it is yours alone, and a visitor never learns it exists. Six inks, the reader&#39;s.</p>
+Off (the default), it is yours alone, and a visitor never learns it exists. Six inks, your choice.</p>
 <h2 id="modes-you-cannot-sit-in-by-accident"><a class="anchor" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></h2>
 <p>Reading, vim and visitor preview each light a pill in the status bar (accent-filled, clickable to
-leave, tooltip naming the shortcut), and a mode that takes typing away also states itself <em>in the
-workspace</em>: a one-line strip above the note (&quot;Reading — this note is read-only&quot; + an <strong>Edit</strong>
-button) plus an accent rule down the column&#39;s leading edge.</p>
-<p>Vim gets the same treatment one level deeper, because &quot;vim is on&quot; is not the trap — &quot;the keys under
-your fingers are commands right now&quot; is: the pill carries the live sub-mode (<strong>VIM │ NORMAL</strong>,
-<strong>│ INSERT</strong>, <strong>│ VISUAL</strong>, <strong>│ REPLACE</strong>), vim&#39;s own <code>-- INSERT --</code> line and <code>:</code> / <code>/</code> command line
-sit at the foot of the editor, and in zen — where the whole status bar is at zero height — the strip
-says it instead. <a href="../publishing/#preview-as-visitor">Visitor preview</a> is a strip at the top that
-pushes the page down — it never covers the layout you opened it to judge — and it never survives a
-reload.</p>
-<p><strong>Relative line numbers.</strong> With vim keys on, the margin counts lines outward from the caret — <code>7j</code>
-and <code>3k</code> read straight off it — and the caret&#39;s own line shows its absolute number, vim&#39;s
-<code>number relativenumber</code>. The column sits against the text, not at the window&#39;s edge, and it follows
-every caret move, not only edits. It is the only line numbering the editor has: a prose editor
-wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
+leave, with a tooltip naming the shortcut). A mode that takes typing away also states itself <em>in the
+workspace</em>: a one-line strip above the note (&quot;Reading — this note is read-only&quot; plus an <strong>Edit</strong>
+button) and an accent rule down the column&#39;s leading edge.</p>
+<p>Vim gets the same treatment one level deeper, because &quot;vim is on&quot; is not the trap; &quot;the keys under
+your fingers are commands right now&quot; is. So the pill carries the live sub-mode (<strong>VIM │ NORMAL</strong>,
+<strong>│ INSERT</strong>, <strong>│ VISUAL</strong>, <strong>│ REPLACE</strong>), vim&#39;s own <code>-- INSERT --</code> line and its <code>:</code> / <code>/</code> command
+line sit at the foot of the editor, and in zen, where the status bar has zero height, the strip says
+it instead. <a href="../publishing/#preview-as-visitor">Visitor preview</a> is a strip at the top that pushes
+the page down, so it never covers the layout you opened it to judge, and it never survives a reload.</p>
+<p><strong>Relative line numbers.</strong> With vim keys on, the margin counts lines outward from the caret, so
+<code>7j</code> and <code>3k</code> can be read straight off it, and the caret&#39;s own line shows its absolute number
+(vim&#39;s <code>number relativenumber</code>). The column sits against the text, not at the window&#39;s edge, and it
+follows every caret move, not only edits. It is the only line numbering the editor has: a prose
+editor wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
 <strong>Settings → This device → Relative line numbers</strong> (under Vim keys, on by default) turns it off for
 readers who navigate by search.</p>
 </article>

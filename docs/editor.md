@@ -44,7 +44,7 @@ those four words freely.
   with one line on what each does. Type to filter, use ↑/↓ and Enter to take one, or type any key of
   your own. `tags` and `aliases` are written as lists; comma-separated values become items. A note
   with no properties yet still gets the card: one line with *Add property* and *Set banner…*, so
-  every note starts from the same place (Settings → Appearance & language → *Properties card on
+  every note starts from the same place (Settings → Language & dates → *Properties card on
   empty notes* turns that off).
   Every one of those edits **touches only its own spot**: your quote style, your comments, the
   order of your keys and every line you did not touch stay exactly as they were. Deleting the last

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Backup &amp; sync · Astrolabe Documentation</title>
-<meta name="description" content="Committing your vault and pushing it to a private git remote you own — by hand or on a timer.">
+<meta name="description" content="Saving your vault to a private git repository you own — by hand or on a timer — and the note history that comes with it.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
@@ -20,171 +20,182 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link is-current" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/routines/">Routines</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link is-current" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="backup-sync">Backup &amp; sync</h1>
-<p><em>Committing your vault and pushing it to a private git remote you own — by hand or on a timer.</em></p>
+<p><em>Saving your vault to a private git repository you own — by hand or on a timer — and the note history that comes with it.</em></p>
 <hr>
-<p>Your vault is a folder of markdown files, so the oldest, most portable backup there is also the
-best one: <strong>git</strong>. Astrolabe can commit the vault and push it to a remote you own — by hand, or
-every few minutes — and it stays completely off until you switch it on.</p>
+<p>Your vault is a folder of Markdown files. That makes the oldest and most portable backup tool
+there is also the best one: <strong>git</strong>. Git keeps every version of every file, and it can copy the
+whole folder to another computer (a <em>remote</em>) and back. Astrolabe can do the two git steps for
+you — record a version (<em>commit</em>) and send it to the remote (<em>push</em>) — either when you ask, or
+every few minutes. The feature is completely off until you switch it on.</p>
 <blockquote>
 <p><strong>Backup &amp; sync needs an admin password in every mode.</strong> Without one, anyone who can reach the
 port could point the remote at their own server and push your whole vault to it. See
 <a href="../publishing/#public-reading-admin-editing">Publishing</a>.</p>
 </blockquote>
 <h2 id="1-have-a-remote-to-push-to"><a class="anchor" href="#1-have-a-remote-to-push-to">1. Have a remote to push to</a></h2>
-<p>Create an <strong>empty, private</strong> repository on whatever host you
-use (a self-hosted Forgejo/Gitea/GitLab, or one of the big ones). Empty matters: Astrolabe only
-ever fast-forwards, so a remote that already has commits of its own will refuse to sync until
-you reconcile the two histories yourself. Copy its clone URL — either form works:</p>
+<p>Create an <strong>empty, private</strong> repository on whatever git host you use — a self-hosted Forgejo,
+Gitea or GitLab, or one of the big ones. <em>Empty</em> matters: Astrolabe only ever adds commits on
+top of what is there (a <em>fast-forward</em>), so a remote that already has commits of its own will
+refuse to sync until you reconcile the two histories yourself. Copy the repository&#39;s clone URL.
+Either form works:</p>
 <pre><code>https://git.example.com/you/vault.git      # HTTPS: needs a token (below)
 git@git.example.com:you/vault.git          # SSH: needs a key on this machine
 </code></pre>
 <h2 id="2-choose-how-this-server-signs-in"><a class="anchor" href="#2-choose-how-this-server-signs-in">2. Choose how this server signs in</a></h2>
+<p>The server needs permission to push to your repository. There are two ways to give it.</p>
 <ul>
-<li><strong>SSH keys (recommended).</strong> Astrolabe stores <strong>no secret at all</strong>; it runs <code>git</code> as the user your
-server runs as, and that user&#39;s own SSH key or agent does the authentication. Generate a key
-for the server (<code>ssh-keygen -t ed25519</code>), add the <strong>public</strong> half to your remote as a deploy
-key with write access, and confirm it works from a shell first — <code>ssh -T git@git.example.com</code>
-and one manual <code>git push</code> — because a key with a passphrase and no agent will simply fail
-under the server too.</li>
-<li><strong>Access token.</strong> For HTTPS remotes. Create a <strong>fine-grained</strong> token scoped to that one
-repository with contents read/write and the shortest expiry you can live with — never a
-full-account classic token. Paste it into Settings → Backup &amp; sync → Access token, with
-the username it pairs with (many hosts ignore the username; put anything non-empty).</li>
+<li><strong>SSH keys (recommended).</strong> Astrolabe stores <strong>no secret at all</strong>. It runs <code>git</code> as the same
+system user your server runs as, and that user&#39;s own SSH key (or SSH agent) does the
+authenticating. Make a key for the server (<code>ssh-keygen -t ed25519</code>), add the <strong>public</strong> half
+to your repository as a <em>deploy key</em> with write access, and check that it works from a shell
+first: <code>ssh -T git@git.example.com</code>, then one manual <code>git push</code>. Do the shell test — a key
+that has a passphrase and no agent will fail just as silently under the server.</li>
+<li><strong>Access token.</strong> For HTTPS remotes. A token is a password made for one purpose. Create a
+<strong>fine-grained</strong> one, limited to that one repository, with read and write access to its
+contents, and with the shortest expiry you can live with. Never use a classic token that can
+reach your whole account. Paste it into Settings → Backup &amp; sync → Access token, together with
+the username it belongs to (many hosts ignore the username; anything non-empty will do).</li>
 </ul>
-<p><strong>Where the token lives.</strong> In <code>ASTROLABE_DATA/git-credentials.json</code>, mode <code>0600</code>, owned by the
-server user. It is <strong>never</strong> written into <code>settings.json</code>, never into the vault, never into
-<code>.git/config</code>, and never into the remote URL — which is why the remote field refuses a URL with
-credentials baked in (<code>https://user:token@host/…</code>). At push time it reaches git through
-<code>GIT_ASKPASS</code> and an environment variable on that one child process, so it never appears in a
-command line (<code>ps</code> is readable by every user on the box) and never lands in your machine&#39;s own
-credential store (each network call runs with <code>-c credential.helper=</code> to empty the helper list).
-The API never gives it back: <code>GET /api/settings</code> answers <code>tokenSet: true</code> and nothing else, and
-any git error shown to you or written to the log is scrubbed of the stored token and of any URL
-userinfo first. <strong>Clear token</strong> deletes the file.</p>
+<p><strong>Where the token is kept.</strong> In <code>ASTROLABE_DATA/git-credentials.json</code>, readable only by the
+system user the server runs as (mode <code>0600</code>). It is <strong>never</strong> written into <code>settings.json</code>, never into the vault,
+never into <code>.git/config</code>, and never into the remote URL — which is why the remote field refuses
+a URL with a token baked in (<code>https://user:token@host/…</code>). When git needs it, it is handed over
+through <code>GIT_ASKPASS</code> and an environment variable on that one git process. So it never appears
+on a command line (anyone on the machine can read those with <code>ps</code>), and it never lands in your
+machine&#39;s own credential store (each network call runs with <code>-c credential.helper=</code> to switch
+those helpers off). The API never gives it back: <code>GET /api/settings</code> answers <code>tokenSet: true</code>
+and nothing more, and every git error you see or that reaches the log is scrubbed of the token
+and of any user info in a URL first. <strong>Clear token</strong> deletes the file.</p>
 <h2 id="3-turn-it-on"><a class="anchor" href="#3-turn-it-on">3. Turn it on</a></h2>
-<p>Settings → <strong>Backup &amp; sync</strong>: switch Backup on (everything below that
-switch stays disabled until you do), paste the remote URL, pick the branch (default <code>main</code>), and
-pick an <strong>Automatic sync</strong> period — <em>Manual only</em> through <em>Once a day</em> (the timer skips a tick
-while a sync is still running). If the vault is not a git repository yet, press <strong>Initialize
-repository</strong>: that runs <code>git init</code>, makes the first commit, writes or extends <code>.gitignore</code> so
-your instance data directory can never be committed, and points <code>origin</code> at your remote. The
-button disappears once the vault is a repository.</p>
+<p>Open Settings → <strong>Backup &amp; sync</strong>. Switch Backup on (everything below that switch stays disabled
+until you do), paste the remote URL, pick the branch (default <code>main</code>), and choose an
+<strong>Automatic sync</strong> period, from <em>Manual only</em> to <em>Once a day</em>. (If a sync is still running when
+the timer fires, that tick is skipped.) If the vault is not a git repository yet, press
+<strong>Initialize repository</strong>. That runs <code>git init</code>, makes the first commit, writes or extends
+<code>.gitignore</code> so your data directory can never be committed, and points <code>origin</code> at your remote.
+The button disappears once the vault is a repository.</p>
 <h2 id="4-sync"><a class="anchor" href="#4-sync">4. Sync</a></h2>
-<p><strong>Every launch syncs first.</strong> With Backup &amp; sync enabled, a server that comes up runs a pass
-before it answers its first window, and every window that opens as an admin — a browser, the
-phone, a desktop window — asks the server for one more, which it runs unless one ran in the last
-five minutes or is running now. So the first thing any device does is pull what the others
-pushed. The manual <strong>Sync now</strong> below stays, for whenever you want it.</p>
-<p>The status bar shows a quiet branch glyph while backup is on: plain when everything
-is committed, with a count when it is not, gold while a sync runs, red when the last one failed.
-Click it for a small panel carrying the branch, the ahead/behind counts, the last result and —
-on a failure — git&#39;s own error line as selectable text with a <strong>Copy the error</strong> button and a
-one-click jump to the settings section. <strong>Sync now</strong> is in that panel and in the command palette.
-One pass is:</p>
+<p><strong>Every launch syncs first.</strong> With Backup &amp; sync on, a server that starts up runs one sync
+before it serves its first window. And every window that opens as an admin — a browser tab, the
+phone, a desktop window — asks the server for one more, which it runs unless a sync ran in the
+last five minutes or is running right now. So the first thing any device does is pull what the
+others pushed. The manual <strong>Sync now</strong> stays available for whenever you want it.</p>
+<p>While backup is on, the status bar shows a small branch symbol: plain when everything is
+committed, with a count when something is not, gold while a sync is running, red when the last
+one failed. Click it for a small panel with the branch, how many commits you are ahead of and
+behind the remote, the last result, and — after a failure — git&#39;s own error line as selectable
+text, a <strong>Copy the error</strong> button, and a one-click jump to the settings section. <strong>Sync now</strong>
+lives in that panel and in the command palette. One sync does this:</p>
 <ol>
 <li>optionally <code>fetch</code> + <code>merge --ff-only</code> — see below;</li>
-<li><code>git add -A</code>, then <code>.trash/</code> (and <code>ASTROLABE_DATA</code>, if you put it inside the vault) are dropped
+<li><code>git add -A</code>, then <code>.trash/</code> (and <code>ASTROLABE_DATA</code>, if you put it inside the vault) are taken
 back out of the index — see <strong>What sync never stages</strong> below;</li>
 <li>commit <code>astrolabe sync: &lt;ISO timestamp&gt;</code>, <strong>skipped entirely when nothing changed</strong>;</li>
 <li><code>git push</code>.</li>
 </ol>
 <h2 id="why-pulls-are-fast-forward-only"><a class="anchor" href="#why-pulls-are-fast-forward-only">Why pulls are fast-forward-only</a></h2>
-<p>Because the alternative can corrupt your notes. A real
-merge of two diverged histories writes <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> conflict markers <em>into the markdown files</em>, and
-an unattended background job that does that to a thousand notes is a worse outcome than any
-missed backup. So Astrolabe never merges and never rebases (a <code>pull.rebase = true</code> in your own
-gitconfig cannot change that — no <code>git pull</code> runs at all): if the remote has commits you do not
-have, the sync stops <strong>before touching the working tree</strong> and tells you the histories diverged.
-Nothing is committed, nothing is pushed, no note is modified. You then reconcile in a terminal,
-which is where a human belongs for that decision. Astrolabe never force-pushes.</p>
+<p>Because the alternative can corrupt your notes. When two copies of a repository have both
+changed, git&#39;s usual answer is a <em>merge</em>, and when the same lines changed on both sides a merge
+writes <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> conflict markers <em>straight into the files</em>. An unattended background job that
+does that to a thousand notes is a worse outcome than any missed backup. So Astrolabe never
+merges and never rewrites history (what git calls a <em>rebase</em>) — a <code>pull.rebase = true</code> in your
+own git config cannot change that, because no <code>git pull</code> runs at all. If the remote has commits you do not have, the sync stops
+<strong>before touching a single file</strong> and tells you the histories diverged. Nothing is committed,
+nothing is pushed, no note is modified. You then reconcile the two in a terminal, which is where
+a human belongs for that decision. Astrolabe never force-pushes (never overwrites what the
+remote holds).</p>
 <h2 id="what-sync-never-stages"><a class="anchor" href="#what-sync-never-stages">What sync never stages</a></h2>
-<p>Two paths are removed from the index on every single pass, before
-anything is committed, <strong>whatever your vault&#39;s own <code>.gitignore</code> says about them</strong>:</p>
-<div class="table"><table><thead><tr><th>Path</th><th>Why</th></tr></thead><tbody><tr><td><code>.trash/</code></td><td>Deleting a note, an attachment or a folder <em>moves</em> it here, and the whole promise of that is that it is a <strong>local</strong> bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: <code>Ctrl/Cmd P</code> → Open trash). Committing it makes every deletion permanent remote history, which is the opposite guarantee. The small <code>.astrolabe-trash.json</code> inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule.</td></tr><tr><td><code>ASTROLABE_DATA</code>, when it is inside the vault</td><td>It holds <code>settings.json</code>, the comments database and your git <strong>access token</strong>.</td></tr></tbody></table></div><p>This is enforced with <code>git rm --cached</code> against the index, not with an ignore rule, and the
+<p>To <em>stage</em> a file is to mark it for the next commit (the list of staged files is called the
+<em>index</em>). Two paths are taken out of the index on every single sync, before anything is
+committed, <strong>whatever your vault&#39;s own <code>.gitignore</code> says about them</strong>:</p>
+<div class="table"><table><thead><tr><th>Path</th><th>Why</th></tr></thead><tbody><tr><td><code>.trash/</code></td><td>Deleting a note, an attachment or a folder <em>moves</em> it here, and the whole promise of that is that it is a <strong>local</strong> bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: <code>Ctrl/Cmd P</code> → Open trash). Committing it would make every deletion permanent remote history, which is the opposite guarantee. The small <code>.astrolabe-trash.json</code> inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule.</td></tr><tr><td><code>ASTROLABE_DATA</code>, when it is inside the vault</td><td>It holds <code>settings.json</code>, the comments database and your git <strong>access token</strong>.</td></tr></tbody></table></div><p>This is done with <code>git rm --cached</code> against the index, not with an ignore rule, and the
 difference matters. An ignore rule is your file and your opinion: git&#39;s <em>last matching rule</em>
-wins, so a vault whose <code>.gitignore</code> carries <code>.trash/</code> and then <code>!.trash/</code> un-ignores it again,
-and a build that only checked &quot;is there a <code>.trash/</code> line?&quot; saw nothing to do and pushed the
-trash. The index eviction asks no ignore file anything. It also <strong>repairs</strong> a vault that an
+wins, so a <code>.gitignore</code> that says <code>.trash/</code> and later <code>!.trash/</code> un-ignores it again, and an
+older build that only checked &quot;is there a <code>.trash/</code> line?&quot; saw nothing to do and pushed the
+trash. Removing it from the index asks no ignore file anything. It also <strong>repairs</strong> a vault an
 older build already pushed: the first sync after upgrading stages the removal, so the trash
-leaves the tip of your branch on its own (it stays in the <em>history</em> — see the note about
-rewriting below).</p>
-<p>Astrolabe still <em>appends</em> <code>.trash/</code> and <code>.obsidian/workspace*.json</code> to your <code>.gitignore</code> if they
-are missing, so a <code>git status</code> in a terminal is quiet too — but that is a courtesy, not the
+leaves the latest commit on your branch on its own. (It stays in the <em>history</em> — the older
+commits — see the note about rewriting below.)</p>
+<p>Astrolabe still <em>adds</em> <code>.trash/</code> and <code>.obsidian/workspace*.json</code> to your <code>.gitignore</code> if they are
+missing, so that <code>git status</code> in a terminal is quiet too — but that is a courtesy, not the
 mechanism.</p>
 <h2 id="gitignore-advice"><a class="anchor" href="#gitignore-advice">.gitignore advice</a></h2>
-<p>Beyond those two, the vault is committed as it stands, so decide what
-does <em>not</em> belong in a backup before the first push:</p>
+<p>Beyond those two paths, the vault is committed as it stands. So decide what does <em>not</em> belong in
+a backup before the first push. A <code>.gitignore</code> file at the top of the vault lists files git
+should leave alone:</p>
 <pre><code class="language-gitignore">.obsidian/workspace*    # Obsidian&#39;s per-machine window state, if you also use Obsidian
 .DS_Store
 *.pdf                   # large attachments, if your remote has a size limit
 </code></pre>
 <p>Keep <code>.obsidian/</code> itself if you want your Obsidian settings backed up; drop the whole directory
-if you do not. <strong>Never commit your instance data directory.</strong> <code>ASTROLABE_DATA</code> (default <code>./data</code>)
-holds <code>settings.json</code>, comment data and the git token, so keep it <em>outside</em> the vault — that is
-the default, and this repository&#39;s own <code>.gitignore</code> already excludes <code>data/</code>.</p>
-<p>If you have pointed <code>ASTROLABE_DATA</code> inside the vault anyway, Astrolabe defends it four ways, and all
-four run on an existing repository with an existing <code>.gitignore</code> (which is the normal case, not
-a special one): <strong>Initialize repository</strong> creates <code>.gitignore</code> or <em>appends</em> the data-directory
-rule to the one you already have; every sync re-checks the rule with <code>git check-ignore</code> and
-<strong>refuses to run</strong> if the directory is still not ignored; anything an older build already
-committed is dropped from the index (<code>git rm --cached</code>); and the same eviction runs again after
-<code>git add -A</code> on every pass, so the directory is out of the index no matter which ignore rule
-matched last. A sync never stages your credentials. Note that files already pushed stay in the
-remote&#39;s <em>history</em> — if that happened, rotate the token and rewrite the history in a terminal.</p>
+if you do not. <strong>Never commit your data directory.</strong> <code>ASTROLABE_DATA</code> (default <code>./data</code>) holds
+<code>settings.json</code>, comment data and the git token, so keep it <em>outside</em> the vault. That is the
+default, and this repository&#39;s own <code>.gitignore</code> already excludes <code>data/</code>.</p>
+<p>If you have pointed <code>ASTROLABE_DATA</code> inside the vault anyway, Astrolabe defends it four ways —
+and all four work on an existing repository with an existing <code>.gitignore</code>, which is the normal
+case, not a special one. <strong>Initialize repository</strong> creates <code>.gitignore</code>, or <em>appends</em> the
+data-directory rule to the one you already have. Every sync re-checks the rule with
+<code>git check-ignore</code> and <strong>refuses to run</strong> if the directory is still not ignored. Anything an
+older build already committed is dropped from the index (<code>git rm --cached</code>). And that same
+removal runs again after <code>git add -A</code> on every sync, so the directory is out of the index no
+matter which ignore rule matched last. A sync never stages your credentials. One caveat: files
+already pushed stay in the remote&#39;s <em>history</em>. If that happened, rotate the token and rewrite
+the history in a terminal.</p>
 <h2 id="note-history-reading-what-the-backup-kept"><a class="anchor" href="#note-history-reading-what-the-backup-kept">Note history: reading what the backup kept</a></h2>
-<p>Every sync makes a commit, and every commit is a version of every note in it. <strong>History</strong> is the
-read half of that: open a note, open the <em>History</em> section in the right-hand panel, and you get
-the commits that touched this note — newest first, with the date, the message and how many lines
-each one added and removed.</p>
+<p>Every sync makes a commit, and every commit holds a version of every note in it. <strong>History</strong> is
+how you read those versions back. Open a note, open the <strong>History</strong> section in the right-hand panel, and
+you get the commits that touched this note — newest first, with the date, the message, and how
+many lines each one added and removed.</p>
 <ul>
 <li>Tap a row to <strong>read that revision</strong>, rendered exactly as the note renders anywhere else.</li>
-<li><strong>Restore this revision</strong> writes it back through the ordinary save path, so it is undoable with
-<code>Ctrl/Cmd+Z</code> in the editor, and the toast that follows carries an <strong>Undo</strong> of its own. A restore
-is itself an edit, so the version you restored <em>from</em> is one snapshot away from being history
-too — nothing is lost either way.</li>
-<li>History <strong>follows renames</strong>. A note that used to be called something else keeps everything it
-was before the rename.</li>
+<li><strong>Restore this revision</strong> writes it back through the ordinary save path. So it can be undone
+with <code>Ctrl/Cmd+Z</code> in the editor, and the toast that follows carries an <strong>Undo</strong> of its own. A
+restore is itself an edit, so the version you restored <em>from</em> becomes history one snapshot
+later — nothing is lost either way.</li>
+<li>History <strong>follows renames</strong>. A note that used to have another name keeps everything it was
+before the rename.</li>
 </ul>
-<p>The section starts closed and asks git nothing until you open it: reading a note&#39;s log is a real
-piece of work, and most of the time you are writing rather than looking backwards. Open it once and
-it stays open.</p>
+<p>The section starts closed and asks git nothing until you open it: reading a note&#39;s log is real
+work for git, and most of the time you are writing rather than looking back. Open it once and it
+stays open.</p>
 <h3 id="snapshot-now"><a class="anchor" href="#snapshot-now">Snapshot now</a></h3>
-<p>The palette has <strong>Snapshot now</strong> — one commit of the whole vault, on this machine, with nothing
-sent anywhere. It is the thing to press before an edit you are not sure about, and it does not
-need a remote, a token or a network: any vault that is a git repository can take one. It appears
-in your history as <em>Snapshot</em>.</p>
+<p>The command palette has <strong>Snapshot now</strong> — one commit of the whole vault, on this machine, with
+nothing sent anywhere. It is the thing to press before an edit you are not sure about. It needs
+no remote, no token and no network: any vault that is a git repository can take one. It shows up
+in the history as <em>Snapshot</em>.</p>
 <p>If the vault is not a git repository yet, the History section says so and offers the switch —
 turning on Backup &amp; sync (step 3 above) is what starts keeping history in the first place.</p>
-<p>History is admin-only in both directions: a visitor cannot see that a published note had eleven
-drafts, and cannot read any of them.</p>
+<p>History is admin-only: a visitor cannot see that a published note went through eleven drafts,
+and cannot read any of them.</p>
 <h2 id="versions-before-and-beside-git"><a class="anchor" href="#versions-before-and-beside-git">Versions, before and beside git</a></h2>
-<p>A note&#39;s history used to begin the day the vault became a repository, and not a minute before.
-Backup &amp; sync is off by default and stays off on most instances for weeks — and in that time the
-editor&#39;s autosave, which writes about 600 ms after you stop typing, turned a bad paste or a
-select-all-and-type into the only copy of the note within a second. The trash catches deletes;
-nothing caught overwrites.</p>
-<p>Now every save keeps a <strong>version</strong>: before the vault writes a note, it puts the text the note held
-a moment ago in the data directory, at <code>ASTROLABE_DATA/versions/&lt;sha1 of the note&#39;s path&gt;/&lt;time&gt;.md</code>,
-beside a small <code>index.json</code> that names the path in clear and lists each version with the moment it
-was replaced, when that text was last saved, its size, and <em>why</em> it was kept. This happens on the
-vault&#39;s one write path, so it covers every write in the product — the autosave, a script&#39;s <code>PUT</code>,
-a tracker or routine fence edited from the Media page, the wikilink rewrites a rename fans out —
-and it needs no git, no remote and no setting. It is on from the first launch.</p>
-<p>They appear in the same <strong>History</strong> section of the right-hand panel, in one timeline with the
-commits, ordered by time. A version row reads quieter than a commit row — a commit is something
-you named, a version is something the app kept — and says why it exists: <em>Earlier save</em>, <em>Before a
-restore</em>, or <em>Before a link rewrite</em>. Tap one to read it rendered; <strong>Restore this revision</strong> asks
-first, then writes it back through the same write path, so the text it replaces is kept as a
-version too, the open editor takes the result as an undoable change, and the toast carries an
-<strong>Undo</strong>.</p>
-<p>What keeps the store honest:</p>
+<p>A note&#39;s history used to begin the day the vault became a git repository, and not a minute
+before. Backup &amp; sync is off by default, and on most instances it stays off for weeks. In that
+time the editor&#39;s autosave — which writes about 600 ms after you stop typing — could turn a bad
+paste, or a select-all-and-type, into the only copy of the note within a second. The trash
+catches deletes; nothing caught overwrites.</p>
+<p>Now every save keeps a <strong>version</strong>. Before the vault writes a note, it puts the text the note
+held a moment ago in the data directory, at
+<code>ASTROLABE_DATA/versions/&lt;sha1 of the note&#39;s path&gt;/&lt;time&gt;.md</code>, beside a small <code>index.json</code> that
+names the path in clear and lists each version: when it was replaced, when that text was last
+saved, its size, and <em>why</em> it was kept. This happens on the vault&#39;s one write path, so it covers
+every write in the product — the autosave, a script&#39;s <code>PUT</code>, a tracker or orbit fence edited
+from the Media page, the wikilink rewrites a rename fans out. It needs no git, no remote and no
+setting, and it is on from the first launch.</p>
+<p>Versions appear in the same <strong>History</strong> section of the right-hand panel, in one timeline with
+the commits, ordered by time. A version row reads quieter than a commit row — a commit is
+something you named, a version is something the app kept — and says why it exists: <em>Earlier
+save</em>, <em>Before a restore</em>, or <em>Before a link rewrite</em>. Tap one to read it rendered. <strong>Restore
+this revision</strong> asks first, then writes it back through the same write path — so the text it
+replaces is kept as a version too, the open editor takes the result as an undoable change, and
+the toast carries an <strong>Undo</strong>.</p>
+<p>What keeps the store from growing without limit:</p>
 <ul>
-<li><strong>Bursts collapse.</strong> Two autosaves closer than five minutes keep only the <em>older</em> version, so an
-afternoon of typing leaves one version per five-minute window — and the one it leaves is the
+<li><strong>Close saves merge.</strong> Two autosaves closer than five minutes keep only the <em>older</em> version. So
+an afternoon of typing leaves one version per five-minute window — and the one it leaves is the
 text from <em>before</em> the burst, which is the one that predates the mistake. A restore is exempt:
 the text it overwrites is always kept.</li>
 <li><strong>Caps in three directions.</strong> At most forty versions per note (the oldest goes); a note over
@@ -192,143 +203,150 @@ the text it overwrites is always kept.</li>
 anywhere. Every file is written by temp-file-and-rename at mode <code>0600</code>, like everything else in
 the data directory.</li>
 <li><strong>A rename moves the folder.</strong> A renamed note, or a note inside a moved folder, keeps its past
-under its new name. A note restored from the trash to a name beside its origin (because the
-origin was taken) takes its versions with it.</li>
+under its new name. A note restored from the trash to a name beside its original (because the
+original was taken) takes its versions with it.</li>
 <li><strong>A deleted note keeps its versions until you empty the trash.</strong> The trash is the promise that a
 delete is recoverable, and the versions are part of what that means. Erasing an entry for good
 from the trash browser erases its versions too — unless a live note has since taken the same
-path, whose history is then its own.</li>
+path, in which case the history is that note&#39;s own.</li>
 <li><strong>Off is a setting.</strong> Settings → <strong>Vault</strong> → <em>Keep note versions</em>, or <code>NOTE_VERSIONS=off</code> in
-<code>.env</code> as that instance&#39;s default. When it is off the History section says so and offers the
-row. Versions never travel: they live in <code>ASTROLABE_DATA</code>, which sync never stages, and a
+<code>.env</code> as that instance&#39;s default. When it is off, the History section says so and offers the
+switch. Versions never travel: they live in <code>ASTROLABE_DATA</code>, which sync never stages, and a
 visitor cannot list, read or restore them.</li>
 </ul>
-<p>Versions do not replace the backup: they are on this machine, in this instance&#39;s data directory,
+<p>Versions do not replace the backup. They are on this machine, in this instance&#39;s data directory,
 and they thin out with time. Git is what makes a note&#39;s past leave the building. The two stand
-together in the panel for that reason — one is always there, the other is the one worth turning on.</p>
+together in the panel for that reason: one is always there, the other is the one worth turning
+on.</p>
 <p>The API, admin-only: <code>GET /api/versions?path=</code> lists them newest first (<code>{ enabled, versions }</code>),
 <code>GET /api/versions/one?path=&amp;at=</code> answers one version&#39;s text, and <code>POST /api/versions/restore</code>
 <code>{ path, at }</code> writes it back through the ordinary write path and emits the vault&#39;s <code>changed</code>
 event. A visitor gets <code>401</code> from all three.</p>
 <h2 id="two-servers-one-vault"><a class="anchor" href="#two-servers-one-vault">Two servers, one vault</a></h2>
-<p>It is a perfectly ordinary thing to end up with <strong>two Astrolabe servers over the same folder</strong> — the
-desktop app runs a server of its own, and plenty of people also keep one running as a systemd
+<p>It is perfectly ordinary to end up with <strong>two Astrolabe servers over the same folder</strong>. The
+desktop app runs a server of its own, and plenty of people also keep one running as a system
 service so they can reach the vault from a browser. A <code>git pull</code>, Obsidian, Syncthing or a text
 editor writing into the same folder is the same situation with a different second writer.</p>
-<p><strong>The guarantee: a note you did not save cannot be overwritten by a copy somebody was still
-holding.</strong> Every save the editor makes carries the modification time of the file it was loaded
-from, and the server refuses the write — <code>409</code>, nothing touched — if the file on disk is no longer
-that one. Nothing is lost when this happens: your text stays in the editor, autosave stops so the
-next keystroke cannot clobber the newer version, and a strip above the note offers the two ways
-out — <strong>Keep my version</strong> (write yours over the newer file) or <strong>Use the disk version</strong> (take
-theirs, undoably).</p>
-<p>The reason this needed saying out loud is a real incident. A note was published from the browser;
+<p><strong>The guarantee: a note you did not save cannot be overwritten by a stale copy somebody else was
+still holding.</strong> Every save the editor makes carries the modification time of the file it was
+loaded from, and the server refuses the write — <code>409</code>, nothing touched — if the file on disk is
+no longer that one. Nothing is lost when this happens: your text stays in the editor, autosave
+pauses so the next keystroke cannot overwrite the newer version, and a strip above the note
+offers the two ways out — <strong>Keep my version</strong> (write yours over the newer file) or <strong>Use the
+disk version</strong> (take theirs, undoably).</p>
+<p>This needed saying out loud because of a real incident. A note was published from the browser;
 the desktop app had been open for days with that note loaded from <em>before</em> the publish. Each
 server watches the vault for its own connected clients, so the &quot;this file changed&quot; message never
 reached the sleeping desktop app — and a browser&#39;s event stream replays nothing it missed while
-the laptop was shut. The refusal above is what kept the note safe. What was missing was any way to
-find out <em>before</em> trying to save.</p>
-<p>So Astrolabe now <strong>re-checks when it wakes up</strong>: when its connection to the server comes back, or when
-you return to a window that had been hidden, it asks the server for the current state of the notes
-you have open. Ones you have not touched reload silently; one with unsaved edits gets the same
-resolution strip immediately, while you are looking at it, instead of interrupting you later.</p>
+the laptop was shut. The refusal above is what kept the note safe. What was missing was any way
+to find out <em>before</em> trying to save.</p>
+<p>So Astrolabe now <strong>re-checks when it wakes up</strong>: when its connection to the server comes back,
+or when you return to a window that had been hidden, it asks the server for the current state of
+the notes you have open. Ones you have not touched reload silently; one with unsaved edits gets
+the same resolution strip immediately, while you are looking at it, instead of interrupting you
+later.</p>
 <p>Two things worth knowing about the arrangement:</p>
 <ul>
-<li><strong>No note is locked.</strong> Neither server owns the vault, and either can be stopped at any time —
-the refusal above is a check made at the moment of writing, not a claim staked in advance.
+<li><strong>No note is locked.</strong> Neither server owns the vault, and either can be stopped at any time.
+The refusal above is a check made at the moment of writing, not a reservation made in advance.
 Backup &amp; sync is the one deliberate exception, for the reason in the next section: a commit is
-a whole-vault operation with a single git index, so it cannot be two things at once.</li>
-<li><strong>Scripts and older clients still work.</strong> A write with no modification time attached — <code>curl</code>, a
-script of your own, an older desktop build — behaves exactly as it always did: last writer wins.
-The check is opt-in, and only clients that can handle a refusal ask for one.</li>
+a whole-vault operation with a single git index, so two cannot run at once.</li>
+<li><strong>Scripts and older clients still work.</strong> A write with no modification time attached — <code>curl</code>,
+a script of your own, an older desktop build — behaves exactly as it always did: the last
+writer wins. The check is opt-in, and only clients that can handle a refusal ask for one.</li>
 </ul>
 <p>If you run two servers, point both at the same vault directory and give them <strong>different data
-directories</strong> (<code>ASTROLABE_DATA</code>) unless you also want them to share sessions and settings.</p>
+directories</strong> (<code>ASTROLABE_DATA</code>) — unless you also want them to share sessions and settings.</p>
 <h3 id="one-sync-at-a-time-across-every-server"><a class="anchor" href="#one-sync-at-a-time-across-every-server">One sync at a time — across every server</a></h3>
-<p>Notes are written one at a time; a <strong>commit is written for the whole vault at once</strong>, through a
-single <code>.git/index</code> that git guards with a lock of its own. Two Astrolabes committing the same folder
-in the same second do not produce two backups — one of them dies with <em>&quot;Another git process seems
-to be running in this repository&quot;</em>, possibly having already staged half the vault. That is not
-hypothetical: it is why sync used to be worth running only by hand on a machine that also ran the
-desktop app.</p>
-<p>So a mutating pass — <strong>Sync now</strong>, <strong>Snapshot now</strong>, <strong>Make it a repo</strong>, and every scheduled tick —
-takes a lock file at <code>.git/astrolabe-sync.lock</code> first, and holds it until the pass is over. Only one
-of them exists, so only one pass runs at a time <strong>across every process sharing that vault</strong>: the
-desktop app, a systemd service, a second terminal, a scheduled interval. This is what makes an
-automatic interval safe to leave switched on next to a desktop app.</p>
+<p>Notes are written one at a time. A <strong>commit, though, is written for the whole vault at once</strong>,
+through a single <code>.git/index</code> that git guards with a lock of its own. Two Astrolabes committing
+the same folder in the same second do not produce two backups: one of them dies with <em>&quot;Another
+git process seems to be running in this repository&quot;</em>, possibly having already staged half the
+vault. That is not hypothetical. It is why sync used to be worth running only by hand on a
+machine that also ran the desktop app.</p>
+<p>So every pass that changes the repository — <strong>Sync now</strong>, <strong>Snapshot now</strong>, <strong>Initialize
+repository</strong>, and every scheduled tick — first takes a lock file at <code>.git/astrolabe-sync.lock</code>,
+and holds it until the pass is over. Only one such file can exist, so only one pass runs at a
+time <strong>across every process sharing that vault</strong>: the desktop app, a system service, a second
+terminal, a scheduled interval. This is what makes an automatic interval safe to leave on next
+to a desktop app.</p>
 <ul>
-<li><strong>What contention looks like.</strong> A <strong>Sync now</strong> that arrives while another Astrolabe is mid-pass is
-not an error and does not retry: the backup panel&#39;s last line says <em>&quot;Another Astrolabe is syncing
-this vault (pid …) — this pass did nothing&quot;</em>, naming the process that has it, and the status
-glyph reads as busy for as long as the other one is working. <strong>Snapshot now</strong> and <strong>Make it a
-repo</strong> answer <code>409</code> with the same sentence. A scheduled tick that finds the vault locked simply
-skips and tries again on the next one; it records nothing.</li>
-<li><strong>How a crash recovers.</strong> A lock file is not a file descriptor — nothing in the kernel removes it
-when its owner dies — so an Astrolabe killed mid-sync would otherwise wedge backup forever. Any other
-process may break the lock when <strong>the process that took it is gone</strong> (it records its pid and
-hostname, checked against the machine&#39;s own process table) or when <strong>nothing has touched it for
-fifteen minutes</strong>. Either way the break is logged as a warning naming the dead holder. A pass
-that is merely slow is never mistaken for a dead one: a live holder refreshes the lock every
-minute while it works.</li>
-<li><strong>What it does not cover.</strong> The lock is advisory, so your own <code>git commit</code> in a terminal is
-unaffected — that has always been git&#39;s <code>index.lock</code> to arbitrate. And two <em>machines</em> sharing one
-vault over a network filesystem is outside what this buys: exclusive creation is only as atomic
-as the filesystem makes it, and the fifteen-minute age check is the only recovery there.</li>
+<li><strong>What contention looks like.</strong> A <strong>Sync now</strong> that arrives while another Astrolabe is mid-pass
+is not an error and does not retry. The backup panel&#39;s last line says <em>&quot;Another Astrolabe is
+syncing this vault (pid …) — this pass did nothing&quot;</em>, naming the process that holds the lock,
+and the status symbol reads as busy for as long as the other one is working. <strong>Snapshot now</strong>
+and <strong>Initialize repository</strong> answer <code>409</code> with the same sentence. A scheduled tick that finds
+the vault locked simply skips and tries again next time; it records nothing.</li>
+<li><strong>How a crash recovers.</strong> A lock file is just a file — nothing in the operating system removes
+it when its owner dies — so an Astrolabe killed mid-sync would otherwise jam backup forever.
+Any other process may break the lock when <strong>the process that took it is gone</strong> (the lock
+records its process id and hostname, checked against the machine&#39;s own process table) or when
+<strong>nothing has touched it for fifteen minutes</strong>. Either way the break is logged as a warning
+naming the dead holder. A pass that is merely slow is never mistaken for a dead one: a live
+holder refreshes the lock every minute while it works.</li>
+<li><strong>What it does not cover.</strong> The lock is advisory — it only stops programs that look for it —
+so your own <code>git commit</code> in a terminal is unaffected; that has always been git&#39;s own
+<code>index.lock</code> to arbitrate. And two <em>machines</em> sharing one vault over a network filesystem is
+outside what this lock guarantees: whether one side or both can create the lock file at the
+same instant depends on the network filesystem, and the fifteen-minute age check is the only
+recovery there.</li>
 </ul>
 <h2 id="settings-travel-with-the-vault"><a class="anchor" href="#settings-travel-with-the-vault">Settings travel with the vault</a></h2>
 <p><strong>The instance&#39;s own configuration travels too.</strong> <code>settings.json</code> (site name, tagline, logo,
 language, home note, folders, typography, calendars, the sync settings themselves), the
 designer&#39;s <code>designs.json</code>, <code>custom.css</code> and your custom fonts are mirrored from
-<code>ASTROLABE_DATA</code> into <code>&lt;vault&gt;/.astrolabe/</code> and back, every few seconds and once at boot,
-newest copy wins, on every server over the folder. The first time a server meets the vault&#39;s
-copy of a file, the vault wins outright, so a fresh machine takes the site&#39;s settings rather
-than pushing its own defaults over them. Set the site name on the hosted instance
-and the desktop app on the other machine has it after its next pull; upload a logo in the
-designer on the laptop and the site shows it after the next push. What stays put: the git
-token (a device&#39;s own), the comments database, the reading positions and creation ledger, and
-sessions. A value a hosted instance takes from its <code>.env</code> (<code>SITE_NAME</code>, <code>SITE_TAGLINE</code>,
-<code>HOME_NOTE</code>…) is that server&#39;s alone until it is saved in the settings panel, which writes it
-into <code>settings.json</code> and so into the vault.</p>
-<p>The settings on the Device tab — theme, chrome and editor language, vim, the writing column&#39;s
-width, heading numbers, the formatting toolbar, which side the sidebar hangs on — are kept in
-<strong>one file inside the vault</strong>, <code>.astrolabe/prefs.json</code>, and every server over that folder reads
-it: the desktop app on your Linux machine, the desktop app on your Windows machine, and the hosted
-instance your phone opens. Change the theme on one and the next launch of the others has it.
-There is no account and nothing to configure: whatever carries your notes between machines
-(Syncthing, git sync, a shared disk) carries the file with them, and a hosted instance and a
-desktop app over the same folder need nothing at all.</p>
-<p>Each device pushes what it changes a second after the change and pulls the file before it draws
-anything, so a setting never arrives mid-session and moves things under you. Per key the newest
+<code>ASTROLABE_DATA</code> into <code>&lt;vault&gt;/.astrolabe/</code> and back — every few seconds and once at boot, newest
+copy wins, on every server over the folder. The first time a server meets the vault&#39;s copy of a
+file, the vault wins outright, so a fresh machine takes the site&#39;s settings rather than pushing
+its own defaults over them. Set the site name on the hosted instance, and the desktop app on the
+other machine has it after its next pull; upload a logo in the designer on the laptop, and the
+site shows it after the next push. What stays put: the git token (each device&#39;s own), the
+comments database, reading positions in books, the record of when each note was created, and
+sessions. A value a hosted
+instance takes from its <code>.env</code> (<code>SITE_NAME</code>, <code>SITE_TAGLINE</code>, <code>HOME_NOTE</code>…) is that server&#39;s alone
+until it is saved in the settings panel, which writes it into <code>settings.json</code> and so into the
+vault.</p>
+<p>The settings on the <strong>This device</strong> tab — theme, interface and editor language, vim, the writing
+column&#39;s width, heading numbers, the formatting toolbar, which side the sidebar hangs on — are
+kept in <strong>one file inside the vault</strong>, <code>.astrolabe/prefs.json</code>, and every server over that folder
+reads it: the desktop app on your Linux machine, the desktop app on your Windows machine, and
+the hosted instance your phone opens. Change the theme on one, and the next launch of the others
+has it. There is no account and nothing to configure: whatever carries your notes between
+machines (Syncthing, git sync, a shared disk) carries the file with them, and a hosted instance
+and a desktop app over the same folder need nothing at all.</p>
+<p>Each device pushes what it changes a second after the change, and pulls the file before it draws
+anything, so a setting never arrives mid-session and moves things under you. Per key, the newest
 change wins, and a setting cleared on one device clears on the next rather than coming back from
 it. What travels is what a person would call a setting. Tabs, the workspace, pane widths, the
-tags shelf&#39;s height, fold state and every collapsed flag describe <em>this window on this screen</em>
-and stay where they are. <strong>Settings → Device → Settings travel with the vault</strong> switches it off
-for a device that should keep its own; the file is admin-only and never reaches a visitor. If
-you keep the vault in git, commit <code>.astrolabe/</code> (it is not in the <a href="#gitignore-advice">ignore advice</a>
-because you want it).</p>
+tags shelf&#39;s height, fold state and every collapsed flag describe <em>this window on this screen</em>,
+and stay where they are. <strong>Settings → This device → Settings travel with the vault</strong> switches it
+off for a device that should keep its own. The file is admin-only and never reaches a visitor.
+If you keep the vault in git, commit <code>.astrolabe/</code> — it is not in the
+<a href="#gitignore-advice">ignore advice</a> because you want it.</p>
 <h2 id="things-worth-knowing"><a class="anchor" href="#things-worth-knowing">Things worth knowing</a></h2>
 <ul>
-<li>Every git invocation is an <code>execFile</code> with a fixed argument array. No shell is involved
-anywhere, and the remote URL and branch name are validated (scheme, no shell characters, no
-embedded credentials, safe ref name) before they are ever handed over. A <code>user@</code> that is
-<em>token-shaped</em> (<code>ghp_…</code>, <code>github_pat_…</code>, <code>glpat-…</code>) is refused on every scheme, including the
-scp-style <code>git@host:path</code> and <code>ssh://</code> forms where a plain username is fine.</li>
-<li>The git child process gets a <strong>scrubbed environment</strong>: <code>GIT_DIR</code>, <code>GIT_WORK_TREE</code>,
+<li>Every git call is an <code>execFile</code> with a fixed list of arguments. No command line that could
+be tampered with is involved anywhere, and the remote URL and branch name are validated (the
+URL&#39;s scheme, no shell characters, no embedded credentials, a valid branch name) before they
+are ever handed over. A <code>user@</code> that <em>looks like a
+token</em> (<code>ghp_…</code>, <code>github_pat_…</code>, <code>glpat-…</code>) is refused on every scheme, including the scp-style
+<code>git@host:path</code> and <code>ssh://</code> forms where a plain username is fine.</li>
+<li>The git process Astrolabe starts gets a <strong>scrubbed environment</strong>: <code>GIT_DIR</code>, <code>GIT_WORK_TREE</code>,
 <code>GIT_INDEX_FILE</code>, the object-directory variables, <code>GIT_CONFIG*</code> (including
 <code>GIT_CONFIG_COUNT</code>/<code>GIT_CONFIG_KEY_n</code>), <code>GIT_SSH</code>, <code>GIT_SSH_COMMAND</code>, <code>GIT_PROXY_COMMAND</code> and
 <code>GIT_EXTERNAL_DIFF</code> are all removed, so nothing in the server&#39;s own environment can point git
 at another repository, another config, or another transport. If you <em>need</em> a custom SSH
-invocation — a specific deploy key, say — set <strong><code>ASTROLABE_GIT_SSH_COMMAND</code></strong> (e.g.
+command — a specific deploy key, say — set <strong><code>ASTROLABE_GIT_SSH_COMMAND</code></strong> (e.g.
 <code>ASTROLABE_GIT_SSH_COMMAND=&quot;ssh -i /path/to/vault_ed25519 -o IdentitiesOnly=yes&quot;</code>) and
 Astrolabe passes exactly that to git as <code>GIT_SSH_COMMAND</code>.</li>
 <li>&quot;Ahead / behind&quot; has a third state. Until a fetch or a push has succeeded once there is no
-remote-tracking ref to compare against, and the panel says <strong>&quot;Nothing has reached the remote
-yet&quot;</strong> rather than &quot;0 ahead · 0 behind&quot; — which is what a fully backed-up vault reads.</li>
+remote branch to compare against, so the panel says <strong>&quot;Nothing has reached the remote yet&quot;</strong>
+rather than &quot;0 ahead · 0 behind&quot; — which is what a fully backed-up vault reads.</li>
 <li>Sync is admin-only, including for an admin previewing the public site. Visitors cannot even
 read the status — the branch, the dirty count and the remote host say too much about you.</li>
 <li>Only one sync runs at a time, and that means <em>at a time on this vault</em>, not merely in this
-server: a second request inside the same process answers <code>409</code> immediately, and a pass started by
-another Astrolabe over the same folder is held off by the lock file described above.</li>
+server: a second request inside the same process answers <code>409</code> immediately, and a pass started
+by another Astrolabe over the same folder is held off by the lock file described above.</li>
 <li>A failing scheduled sync is logged <strong>once</strong>, not once per tick.</li>
 <li>If the machine has no git identity configured, commits are made as <code>Astrolabe &lt;astrolabe@localhost&gt;</code>; set <code>user.name</code>/<code>user.email</code> in the vault (or globally) to use your own.</li>
 <li>The API, for anyone scripting it (admin-only): <code>GET /api/sync/status</code>, <code>POST /api/sync/init</code>,

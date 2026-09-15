@@ -20,16 +20,17 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link is-current" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/routines/">Routines</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link is-current" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="trackers">Trackers</h1>
 <p><em>A fenced block that turns a note into a living progress card — and a board that shelves all of them.</em></p>
 <hr>
-<p>A tracker is a <code>```tracker</code> fence. It renders as a card with cover art, a
-progress bar, a status chip, a rating and your own notes — in the editor, in
-reading view, on the published blog, and inside a transclusion, because all
-four draw it with the same renderer.</p>
+<p>A tracker keeps count of how far you are through something: a book, a game, a course, a project. You
+write it as a <code>```tracker</code> fence (a code block whose language is <code>tracker</code>) inside any note, and it
+renders as a card with cover art, a progress bar, a status chip, a rating and your own notes. The
+card looks the same in the editor, in the reading view, on the published blog, and inside a
+transclusion, because all four draw it with the same renderer.</p>
 <pre><code class="language-tracker">title: Elden Ring
 kind: game
 cover: elden-ring.jpg
@@ -42,92 +43,94 @@ notes: |
   Margit took 14 tries.
 </code></pre>
 <h2 id="the-fields"><a class="anchor" href="#the-fields">The fields</a></h2>
-<div class="table"><table><thead><tr><th>Key</th><th>What it takes</th><th>Notes</th></tr></thead><tbody><tr><td><code>title</code></td><td>any text</td><td>Or just write the title on a line of its own.</td></tr><tr><td><code>kind</code></td><td><code>book</code> <code>game</code> <code>film</code> <code>show</code> <code>course</code> <code>project</code> <code>habit</code>, or your own word</td><td>Picks the glyph and the default unit. <code>movie</code>, <code>series</code>, <code>tv</code>, <code>novel</code>, <code>anime</code>, <code>class</code>, <code>routine</code> fold into the seven; anything else keeps your word and gets the ✦ glyph.</td></tr><tr><td><code>cover</code></td><td>an attachment name, or <code>![[name.jpg]]</code></td><td>Resolved exactly like an embed. Missing or broken → the kind&#39;s glyph, never a broken picture.</td></tr><tr><td><code>progress</code></td><td><code>62/130</code>, <code>45%</code>, <code>45</code>, <code>62 of 130</code>, <code>62/?</code></td><td>A fraction derives the percentage; a bare number <em>is</em> the percentage. <code>62/?</code> is a count with no ceiling (hours in a game nobody has timed): the card prints the count and draws no bar. Eastern Arabic digits are read too.</td></tr><tr><td><code>season</code></td><td>any text</td><td>A show&#39;s season, printed on the card&#39;s cover. Kept verbatim; the Media page&#39;s form writes it for shows.</td></tr><tr><td><code>step</code></td><td>a number</td><td>How far one press of − / + moves the count. Left out: ten for pages and minutes, one for everything else.</td></tr><tr><td><code>pace</code></td><td>a number</td><td>Units a day you mean to move — <code>pace: 20</code>. With a total, the card says the day you will be done. A <a href="../routines/">routine</a> that names this work reads the day&#39;s pages from it.</td></tr><tr><td><code>due</code></td><td>a date</td><td>The day you mean to be done by. With a total and no pace, the card says the pace that gets there.</td></tr><tr><td><code>folder</code></td><td>a vault folder</td><td>Where your own notes on this work live (<code>1 - Source Material/Books/The Linux Memory Manager</code>). The rendered card names it; the Media page counts the notes in it and opens it. A <a href="../library/">library path</a> on the same folder wears this tracker&#39;s cover.</td></tr><tr><td><code>unit</code></td><td>any word</td><td>Yours, printed as you wrote it, except that a unit the chrome already knows, in either language (<code>chapters</code>, <code>صفحات</code>, <code>hours</code>, <code>episodes</code>…), is agreed and translated like a default one. Leave it out and the kind&#39;s own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised.</td></tr><tr><td><code>status</code></td><td><code>planned</code> <code>active</code> <code>done</code> <code>paused</code> <code>dropped</code></td><td>Plus the words people actually type: <code>reading</code>, <code>playing</code>, <code>watching</code>, <code>in-progress</code>, <code>started</code>, <code>finished</code>, <code>on hold</code>, <code>dnf</code>, <code>backlog</code>… Left out, it is derived from the progress.</td></tr><tr><td><code>rating</code></td><td><code>8/10</code>, <code>4/5</code>, <code>★★★★</code>, <code>4</code></td><td>A bare number is out of five up to five, out of ten above it.</td></tr><tr><td><code>started</code>, <code>finished</code></td><td>a date</td><td>An ISO date (<code>2026-07-01</code>) is formatted in the site&#39;s own calendar and numerals; anything else prints as written.</td></tr><tr><td><code>notes</code></td><td>a block scalar (the key, a colon, then a <code>|</code>)</td><td>Markdown, rendered through the normal pipeline.</td></tr></tbody></table></div><p>Unknown keys are ignored, and a fence with <strong>neither a title nor a progress</strong>
-stays a plain code block. That is deliberate: unparseable content must read as
-its own source rather than vanish into an empty card, which is the rule
-<code>$$ math $$</code> already follows.</p>
+<div class="table"><table><thead><tr><th>Key</th><th>What it takes</th><th>Notes</th></tr></thead><tbody><tr><td><code>title</code></td><td>any text</td><td>Or just write the title on a line of its own.</td></tr><tr><td><code>kind</code></td><td><code>book</code> <code>game</code> <code>film</code> <code>show</code> <code>course</code> <code>project</code> <code>habit</code>, or your own word</td><td>Picks the glyph and the default unit. <code>movie</code>, <code>series</code>, <code>tv</code>, <code>novel</code>, <code>anime</code>, <code>class</code>, <code>routine</code> fold into the seven; anything else keeps your word and gets the ✦ glyph.</td></tr><tr><td><code>cover</code></td><td>an attachment name, or <code>![[name.jpg]]</code></td><td>Resolved exactly like an embed. Missing or broken → the kind&#39;s glyph, never a broken picture.</td></tr><tr><td><code>progress</code></td><td><code>62/130</code>, <code>45%</code>, <code>45</code>, <code>62 of 130</code>, <code>62/?</code></td><td>A fraction derives the percentage; a bare number <em>is</em> the percentage. <code>62/?</code> is a count with no ceiling (hours in a game nobody has timed): the card prints the count and draws no bar. Eastern Arabic digits are read too.</td></tr><tr><td><code>season</code></td><td>any text</td><td>A show&#39;s season, printed on the card&#39;s cover. Kept verbatim; the Media page&#39;s form writes it for shows.</td></tr><tr><td><code>step</code></td><td>a number</td><td>How far one press of − / + moves the count. Left out: ten for pages and minutes, one for everything else.</td></tr><tr><td><code>pace</code></td><td>a number</td><td>Units a day you mean to move — <code>pace: 20</code>. With a total, the card says the day you will be done. An <a href="https://github.com/ZahakJ/astrolabe/blob/main/docs/routines.md" target="_blank" rel="noreferrer">orbit</a> that names this work reads the day&#39;s pages from it.</td></tr><tr><td><code>due</code></td><td>a date</td><td>The day you mean to be done by. With a total and no pace, the card says the pace that gets there.</td></tr><tr><td><code>folder</code></td><td>a vault folder</td><td>Where your own notes on this work live (<code>1 - Source Material/Books/The Linux Memory Manager</code>). The rendered card names it; the Media page counts the notes in it and opens it. A <a href="../library/">library path</a> on the same folder wears this tracker&#39;s cover.</td></tr><tr><td><code>unit</code></td><td>any word</td><td>Yours, printed as you wrote it, except that a unit the chrome already knows, in either language (<code>chapters</code>, <code>صفحات</code>, <code>hours</code>, <code>episodes</code>…), is agreed and translated like a default one. Leave it out and the kind&#39;s own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised.</td></tr><tr><td><code>status</code></td><td><code>planned</code> <code>active</code> <code>done</code> <code>paused</code> <code>dropped</code></td><td>Plus the words people actually type: <code>reading</code>, <code>playing</code>, <code>watching</code>, <code>in-progress</code>, <code>started</code>, <code>finished</code>, <code>on hold</code>, <code>dnf</code>, <code>backlog</code>… Left out, it is derived from the progress.</td></tr><tr><td><code>rating</code></td><td><code>8/10</code>, <code>4/5</code>, <code>★★★★</code>, <code>4</code></td><td>A bare number is out of five up to five, out of ten above it.</td></tr><tr><td><code>started</code>, <code>finished</code></td><td>a date</td><td>An ISO date (<code>2026-07-01</code>) is formatted in the site&#39;s own calendar and numerals; anything else prints as written.</td></tr><tr><td><code>notes</code></td><td>a value over several lines (the key, a colon, then a <code>|</code>)</td><td>Markdown, rendered the way any note is.</td></tr></tbody></table></div><p>Unknown keys are ignored. A fence with <strong>neither a title nor a progress</strong> stays a plain code block.
+That is deliberate: content that cannot be parsed should read as its own source rather than vanish
+into an empty card, which is the rule <code>$$ math $$</code> already follows.</p>
 <p>A note may hold as many trackers as you like.</p>
 <h2 id="nudging-the-bar"><a class="anchor" href="#nudging-the-bar">Nudging the bar</a></h2>
-<p>In the editor, an admin session gets a quiet <strong>−</strong> and <strong>+</strong> at the card&#39;s
-inline edge. One press is one unit — it rewrites the <code>progress:</code> line in your
-file and nothing else, as a single undo step. There is no separate store: the
-note <em>is</em> the state, so editing the number by hand does exactly what the button
-does.</p>
-<p>Cross into 100% and the fill takes on a soft glow and the wordmark&#39;s ✦ appears
-beside the count.</p>
-<p>Reading view and the public site are inert by design — there is no write path
-for a visitor, and buttons that cannot work are furniture that lies.</p>
+<p>In the editor, an admin session gets a quiet <strong>−</strong> and <strong>+</strong> at the card&#39;s inline edge. One press is
+one unit: it rewrites the <code>progress:</code> line in your file and nothing else, as a single undo step.
+There is no separate store. The note <em>is</em> the state, so editing the number by hand does exactly what
+the button does.</p>
+<p>Cross 100% and the bar takes on a soft glow, and Astrolabe&#39;s own ✦ appears beside the count.</p>
+<p>The reading view and the public site are inert by design: there is no write path for a visitor, and
+buttons that cannot work are furniture that lies.</p>
 <h2 id="the-board"><a class="anchor" href="#the-board">The board</a></h2>
-<p>A <code>```tracker-board</code> fence draws every tracker in the vault as a grid of
-mini-cards, grouped by status (active first, then planned, done, paused,
-dropped). Each card links to the note its tracker lives in.</p>
+<p>A <code>```tracker-board</code> fence draws every tracker in the vault as a grid of mini-cards, grouped by
+status (active first, then planned, done, paused, dropped). Each card links to the note its tracker
+lives in.</p>
 <pre><code class="language-tracker-board">kind: game
 status: active
 limit: 12
 </code></pre>
-<div class="table"><table><thead><tr><th>Filter</th><th>Effect</th></tr></thead><tbody><tr><td><code>kind</code></td><td>Only that kind. Folded like the card&#39;s own <code>kind:</code>, so <code>kind: movie</code> finds your films.</td></tr><tr><td><code>status</code></td><td>Only that status, synonyms included.</td></tr><tr><td><code>limit</code></td><td>At most that many cards.</td></tr></tbody></table></div><p>An empty body is a board of everything. A vault with no trackers gets an
-inviting empty state rather than a blank.</p>
+<div class="table"><table><thead><tr><th>Filter</th><th>Effect</th></tr></thead><tbody><tr><td><code>kind</code></td><td>Only that kind. Folded like the card&#39;s own <code>kind:</code>, so <code>kind: movie</code> finds your films.</td></tr><tr><td><code>status</code></td><td>Only that status, synonyms included.</td></tr><tr><td><code>limit</code></td><td>At most that many cards.</td></tr></tbody></table></div><p>An empty body is a board of everything. A vault with no trackers gets an inviting empty state rather
+than a blank.</p>
 <h2 id="publishing-a-shelf"><a class="anchor" href="#publishing-a-shelf">Publishing a shelf</a></h2>
-<p>The board is audience-aware. It reads <code>GET /api/trackers</code>, which is scoped
-exactly like the blog&#39;s own post list:</p>
+<p>The board knows who is looking. It reads <code>GET /api/trackers</code>, which answers each viewer with what
+they are allowed to see, by the same rule as the blog&#39;s own post list:</p>
 <ul>
-<li>a <strong>visitor</strong> sees trackers from <strong>published notes only</strong>, with the language
-filter applied at their scope;</li>
+<li>a <strong>visitor</strong> sees trackers from <strong>published notes only</strong>, with the same language filter the
+blog applies;</li>
 <li>an <strong>admin</strong> sees the whole vault;</li>
-<li><strong>templates are excluded from both</strong> — a stencil carrying a tracker skeleton
-would otherwise shelve itself as a book nobody has started.</li>
+<li><strong>templates are excluded from both</strong>: a template carrying a tracker skeleton would otherwise
+shelve itself as a book nobody has started.</li>
 </ul>
-<p>So a board left on a published note is safe: put your reading year on the
-public site without opening the rest of the vault. Cover art on a published
-tracker is served to visitors too — the indexer collects tracker covers into
-the same allowlist that governs banners and embeds.</p>
+<p>So a board left on a published note is safe: you can put your reading year on the public site
+without opening the rest of the vault. Cover art on a published tracker is served to visitors too;
+the indexer adds tracker covers to the same list of files a visitor may fetch, beside banners and
+embeds.</p>
 <h2 id="the-media-page"><a class="anchor" href="#the-media-page">The Media page</a></h2>
-<p>The board is a fence you put in a note. The <strong>Media page</strong> is the same shelf
-as a place of its own: a button beside the settings gear (admins only; or
-&quot;Open the Media page&quot; in the command palette) opens it as a <strong>tab</strong> in the
-focused pane, beside the notes, holding every tracker in the vault shelved by
-kind; the same button closes it again, and it drags into a split like any tab.</p>
-<p>The shelves stack vertically with a hairline between them, in this order:
-shows, games, books, films, courses, then projects, habits and whatever kinds
-of your own you have invented. Each shelf is a grid of at most five works
-across, fewer as the window narrows, and the page scrolls down and never
-sideways. A row of filters at the top narrows every shelf to one status.</p>
-<p>Each card is the fence&#39;s card in miniature: cover, title, bar, count, status,
-rating, dates and the first lines of your notes. Its <strong>− / +</strong> nudge the
-progress exactly as the editor&#39;s stepper does, <strong>Edit</strong> reopens the form
-filled in, <strong>Delete</strong> sends the work&#39;s note to the trash through the same dialog the tree uses
-(Undo on the toast, and the trash browser can bring it back), and the cover or title opens the
-note.</p>
-<p><strong>Add media</strong> is a form: kind, title, cover (pick a picture the vault already
-has, upload one, or paste an <code>https://</code> link), progress, unit, a season for a
-show, status, rating, dates and notes. It writes one note:</p>
+<p>The board is a fence you put in a note. The <strong>Media page</strong> is the same shelf as a place of its own.
+A button beside the settings gear (admins only; or &quot;Open the Media page&quot; in the command palette)
+opens it as a <strong>tab</strong> in the focused pane, beside the notes, holding every tracker in the vault
+shelved by kind. The same button closes it again, and it drags into a split like any tab.</p>
+<p>The shelves stack vertically with a hairline between them, in this order: shows, games, books,
+films, courses, then projects, habits and whatever kinds of your own you have invented. Each shelf
+is a grid of at most five works across, fewer as the window narrows, and the page scrolls down and
+never sideways. A row of filters at the top narrows every shelf to one status.</p>
+<p>Each card is the fence&#39;s card in miniature: cover, title, bar, count, status, rating, dates and the
+first lines of your notes. Its <strong>− / +</strong> nudge the progress exactly as the editor&#39;s stepper does,
+<strong>Edit</strong> reopens the form filled in, <strong>Delete</strong> sends the work&#39;s note to the trash through the same
+dialog the tree uses (Undo on the toast, and the trash browser can bring it back), and the cover or
+title opens the note.</p>
+<p><strong>Add media</strong> is a form: kind, title, cover (pick a picture the vault already has, upload one, or
+paste an <code>https://</code> link), progress, unit, a season for a show, status, rating, dates and notes. It
+writes one note:</p>
 <pre><code>Media/Shows/Severance.md
 </code></pre>
-<p>whose body is one <code>```tracker</code> fence with those fields, so everything the
-rest of this page says applies to it: it renders as a card in the note, it
-appears on any board, and you can edit the fence by hand. The kind decides the
-folder (<code>Books</code>, <code>Games</code>, <code>Shows</code>, <code>Films</code>, <code>Courses</code>, and a capitalised
-folder for a kind of your own). On an Arabic instance the folders are Arabic
-too: <code>وسائط/كتب</code>, <code>ألعاب</code>, <code>مسلسلات</code>, <code>أفلام</code>, <code>دورات</code>; a vault that already has
-a <code>Media</code> root keeps filing there, and the reverse holds. A title that already
-has a note is refused rather than overwritten.</p>
-<p>For a game whose length nobody has timed, switch the total off: the fence
-says <code>progress: 62/?</code>, the card counts hours and draws no bar. Turn it back on
-later and the bar returns.</p>
-<p><strong>A folder of your own notes.</strong> <em>Notes in the vault</em> on the form (or <code>folder:</code> in the fence) points a work at a folder, the one you already keep your chapter notes or episode notes in. The card grows a chip that counts the notes there and opens them: the folder&#39;s own note when it has one (a note named like the folder, or <code>index.md</code>), otherwise the folder revealed in the sidebar; under the chip, the one note you touched last, a door back to where you left off. The right panel keeps the same link from either end: on a note inside the folder, <strong>Tracked in</strong> names the work, draws its bar and nudges it; on the tracker note itself, <strong>Notes of this work</strong> counts the notes, shows the last one you touched and opens the folder. In the sidebar the folder wears the work&#39;s glyph beside its name, and that mark opens the tracker. Nothing is moved and nothing is written into those notes. When the same folder is a <a href="../library/">library path</a>, the path&#39;s shelf card and page wear this tracker&#39;s cover, over any cover the row or the folder note names, so the book you are tracking and the book your readers open are one picture.</p>
-<p>Editing from the page rewrites <strong>only the fence</strong> in the note. The prose under
-it, the frontmatter and any second tracker stay byte for byte as they were.</p>
-<p>The page is admin-only because it writes; a visitor&#39;s shelf is the board, on
-whatever note you chose to publish it.</p>
+<p>whose body is one <code>```tracker</code> fence with those fields, so everything the rest of this page says
+applies to it: it renders as a card in the note, it appears on any board, and you can edit the fence
+by hand. The kind decides the folder (<code>Books</code>, <code>Games</code>, <code>Shows</code>, <code>Films</code>, <code>Courses</code>, and a
+capitalised folder for a kind of your own). On an Arabic instance the folders are Arabic too:
+<code>وسائط/كتب</code>, <code>ألعاب</code>, <code>مسلسلات</code>, <code>أفلام</code>, <code>دورات</code>. A vault that already has a <code>Media</code> root keeps
+filing there, and the reverse holds. A title that already has a note is refused rather than
+overwritten.</p>
+<p>For a game whose length nobody has timed, switch the total off: the fence says <code>progress: 62/?</code>,
+and the card counts hours and draws no bar. Turn it back on later and the bar returns.</p>
+<p><strong>A folder of your own notes.</strong> <em>Notes in the vault</em> on the form (or <code>folder:</code> in the fence) points
+a work at a folder, the one you already keep your chapter notes or episode notes in. The card grows
+a chip that counts the notes there and opens them: the folder&#39;s own note when it has one (a note
+named like the folder, or <code>index.md</code>), otherwise the folder revealed in the sidebar; under the chip,
+the one note you touched last, a door back to where you left off. The right panel keeps the same
+link from either end: on a note inside the folder, <strong>Tracked in</strong> names the work, draws its bar and
+nudges it; on the tracker note itself, <strong>Notes of this work</strong> counts the notes, shows the last one
+you touched and opens the folder. In the sidebar the folder wears the work&#39;s glyph beside its name,
+and that mark opens the tracker. Nothing is moved and nothing is written into those notes. When the
+same folder is a <a href="../library/">library path</a>, the path&#39;s shelf card and page wear this tracker&#39;s
+cover, over any cover the row or the folder note names, so the book you are tracking and the book
+your readers open are one picture.</p>
+<p>Editing from the page rewrites <strong>only the fence</strong> in the note. The prose under it, the frontmatter
+and any second tracker stay byte for byte as they were.</p>
+<p>The page is admin-only because it writes. A visitor&#39;s shelf is the board, on whatever note you chose
+to publish it.</p>
 <h2 id="in-obsidian"><a class="anchor" href="#in-obsidian">In Obsidian</a></h2>
-<p><code>tracker</code> is an Astrolabe extension, not an Obsidian feature. Open the same vault
-in Obsidian and the fence degrades to what it is — a labelled code block whose
-lines are all readable. Nothing is converted, nothing is lost, and the note
-still says everything it said here. See
+<p><code>tracker</code> is an Astrolabe extension, not an Obsidian feature. Open the same vault in Obsidian and the
+fence goes back to what it is underneath: a labelled code block whose lines are all readable. Nothing is
+converted, nothing is lost, and the note still says everything it said here. See
 <a href="https://github.com/ZahakJ/astrolabe/blob/main/OBSIDIAN-COMPAT.md" target="_blank" rel="noreferrer">OBSIDIAN-COMPAT.md</a>.</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/trackers.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
-    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/latex/"><span class="pager__kicker">Previous</span><span class="pager__title">LaTeX notes</span></a><a class="pager__link pager__link--next" href="../../en/routines/"><span class="pager__kicker">Next</span><span class="pager__title">Routines</span></a></nav>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/latex/"><span class="pager__kicker">Previous</span><span class="pager__title">LaTeX notes</span></a><a class="pager__link pager__link--next" href="../../en/orbits/"><span class="pager__kicker">Next</span><span class="pager__title">Orbits</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
   <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-fields">The fields</a><a class="toc__link toc__link--2" href="#nudging-the-bar">Nudging the bar</a><a class="toc__link toc__link--2" href="#the-board">The board</a><a class="toc__link toc__link--2" href="#publishing-a-shelf">Publishing a shelf</a><a class="toc__link toc__link--2" href="#the-media-page">The Media page</a><a class="toc__link toc__link--2" href="#in-obsidian">In Obsidian</a></aside>

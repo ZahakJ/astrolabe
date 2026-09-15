@@ -301,6 +301,96 @@ function harakatDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.15.0",
+    title: { en: "Orbits, and a manual you can read", ar: "المدارات، ودليل يُقرأ" },
+    slides: [
+      {
+        title: { en: "Routines are Orbits now", ar: "الروتين صار مدارات" },
+        body: {
+          en: "The things you circle back to every day. Same notes, same fences (the old routine fence still works), a new name in both languages — and a rebuilt form: pick a preset or start from nothing, give it an emoji and a banner, and choose exactly what to record each day, every field explained. Nothing is forced on you.",
+          ar: "الأشياء التي تعود إليها كل يوم. الملاحظات نفسها والسياجات نفسها (سياج routine القديم ما زال يعمل)، واسم جديد باللغتين، ونموذج أُعيد بناؤه: اختر قالبًا أو ابدأ من لا شيء، وأعطه رمزًا تعبيريًا ولافتة، واختر بالضبط ما تسجّله كل يوم، وكل حقل مشروح. لا شيء يُفرض عليك.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g><circle cx="80" cy="110" r="46" fill="none" stroke="var(--border)" stroke-dasharray="3 4"/><circle cx="80" cy="110" r="14" fill="var(--accent)" opacity="0.25"/><circle cx="80" cy="110" r="6" fill="var(--accent)"/></g>
+  <circle class="wa-pulse" cx="126" cy="110" r="5" fill="var(--accent)"/>
+  <text x="150" y="52" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "NEW ORBIT", "مدار جديد")}</text>
+  <g><rect x="150" y="62" width="380" height="40" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="166" y="88" font-size="20">🚶</text><text x="196" y="87" fill="var(--text)" font-family="Georgia, serif" font-size="15">${L(lang, "Daily exercise", "رياضة يومية")}</text><text x="520" y="87" text-anchor="end" fill="var(--text-faint)" font-size="11">${L(lang, "6 / week", "6 في الأسبوع")}</text></g>
+  <text x="150" y="126" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "WHAT TO RECORD EACH DAY", "ما تسجّله كل يوم")}</text>
+  <g font-size="12" fill="var(--text)">
+    <rect x="150" y="136" width="14" height="14" rx="3" fill="none" stroke="var(--border)"/><text x="172" y="147">${L(lang, "Minutes", "الدقائق")}</text><text x="230" y="147" fill="var(--text-faint)" font-size="11">${L(lang, "a number", "رقم")}</text>
+    <rect x="150" y="158" width="14" height="14" rx="3" fill="none" stroke="var(--border)"/><text x="172" y="169">${L(lang, "Weight", "الوزن")}</text><text x="230" y="169" fill="var(--text-faint)" font-size="11">${L(lang, "a number, kg", "رقم، كغ")}</text>
+    <rect x="150" y="180" width="14" height="14" rx="3" fill="none" stroke="var(--accent)"/><path class="wa-draw" d="M153 187l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="172" y="191">${L(lang, "Focus", "التركيز")}</text><text x="230" y="191" fill="var(--text-faint)" font-size="11">${L(lang, "1–5, how focused", "1–5، كم كنت مركّزًا")}</text>
+    <rect x="400" y="136" width="14" height="14" rx="3" fill="none" stroke="var(--accent)"/><path class="wa-draw" d="M403 143l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="422" y="147">${L(lang, "Mood", "المزاج")}</text>
+    <rect x="400" y="158" width="14" height="14" rx="3" fill="none" stroke="var(--border)"/><text x="422" y="169">${L(lang, "Water", "الماء")}</text>
+    <rect x="400" y="180" width="14" height="14" rx="3" fill="none" stroke="var(--border)"/><text x="422" y="191">${L(lang, "Your own field…", "حقلك أنت…")}</text>
+  </g>
+</svg>`,
+        },
+        docs: "orbits",
+      },
+      {
+        title: { en: "Nothing updates itself", ar: "لا شيء يحدّث نفسه" },
+        body: {
+          en: "The desktop app no longer downloads anything on its own. It looks quietly, and when a newer release exists the build number says so; you click to download, and click again to restart into it. Settings → This device → Software updates turns even the looking off. Settings itself is re-cut into calmer, evenly filled tabs.",
+          ar: "لم يعد تطبيق سطح المكتب ينزّل شيئًا من تلقاء نفسه. يتحقق بهدوء، وإذا وُجد إصدار أحدث قال رقم البناء ذلك؛ تنقر لتنزّله، ثم تنقر مرة أخرى لتعيد التشغيل إليه. والإعدادات ← هذا الجهاز ← تحديثات البرنامج يوقف حتى التحقق. والإعدادات نفسها أُعيد تقسيمها إلى تبويبات أهدأ وأكثر توازنًا.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="12" y="160" width="536" height="48" fill="var(--bg-hover)"/><rect x="12" y="150" width="536" height="30" fill="var(--bg-hover)"/>
+  <g><text x="30" y="188" fill="var(--text-muted)" font-size="12">${L(lang, "12 notes", "12 ملاحظة")}</text></g>
+  <g><rect x="380" y="170" width="150" height="26" rx="13" fill="var(--bg)" stroke="var(--accent)"/><text x="455" y="187" text-anchor="middle" fill="var(--accent)" font-size="12">${L(lang, "3.15.0 available · Download", "3.15.0 متاح · نزّل")}</text></g>
+  <text class="wa-late" x="455" y="140" text-anchor="middle" fill="var(--text-faint)" font-size="11">${L(lang, "…then: Restart to update", "…ثم: أعد التشغيل للتحديث")}</text>
+  <text x="30" y="46" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "SETTINGS · THIS DEVICE", "الإعدادات · هذا الجهاز")}</text>
+  <g><text x="30" y="72" fill="var(--text)" font-size="13">${L(lang, "Software updates", "تحديثات البرنامج")}</text><text x="30" y="90" fill="var(--text-muted)" font-size="11">${L(lang, "Nothing is ever installed without asking.", "لا يُثبَّت شيء أبدًا من دون سؤال.")}</text></g>
+  <g><rect x="330" y="58" width="100" height="26" rx="13" fill="color-mix(in srgb, var(--accent) 22%, var(--bg))" stroke="var(--accent)"/><text x="380" y="75" text-anchor="middle" fill="var(--text)" font-size="12">${L(lang, "Tell me", "أخبرني")}</text><rect x="434" y="58" width="80" height="26" rx="13" fill="var(--bg)" stroke="var(--border)"/><text x="474" y="75" text-anchor="middle" fill="var(--text-muted)" font-size="12">${L(lang, "Off", "إيقاف")}</text></g>
+</svg>`,
+        },
+        docs: "desktop",
+      },
+      {
+        title: { en: "Panes you can resize, on Windows too", ar: "لوحات تغيّر حجمها، وعلى ويندوز أيضًا" },
+        body: {
+          en: "A window under 1000 pixels wide used to turn into a phone: the sidebar slid in from the edge and nothing had a grip. A scaled Windows laptop lives there. With a mouse, panes now stay docked and resizable down to phone width; the drawer is for devices with no fine pointer. The outline pane's grip no longer scrolls away with a long list.",
+          ar: "كانت النافذة الأضيق من 1000 بكسل تتحول إلى هاتف: ينزلق الشريط الجانبي من الحافة ولا مقبض لشيء. وحاسوب ويندوز المحمول بتكبيره يعيش هناك. مع الفأرة تبقى اللوحات الآن راسية وقابلة لتغيير الحجم حتى عرض الهاتف؛ والدرج للأجهزة التي لا مؤشر دقيقًا لها. ومقبض لوحة المخطط لم يعد ينزلق بعيدًا مع قائمة طويلة.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g><rect x="40" y="30" width="480" height="160" rx="8" fill="var(--bg)" stroke="var(--border)"/><rect x="40" y="30" width="480" height="22" rx="8" fill="var(--bg-hover)"/><circle cx="54" cy="41" r="4" fill="var(--danger)" opacity="0.7"/><circle cx="68" cy="41" r="4" fill="var(--callout-warning)" opacity="0.7"/><circle cx="82" cy="41" r="4" fill="var(--callout-success)" opacity="0.7"/><text x="280" y="45" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "900 px · Windows · 150%", "900 بكسل · ويندوز · 150%")}</text></g>
+  <g><rect x="40" y="52" width="130" height="138" fill="var(--bg-raised)"/><g fill="var(--text-muted)" font-size="11"><text x="52" y="76">${L(lang, "Journal", "اليوميات")}</text><text x="52" y="96" fill="var(--text)">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="52" y="116">${L(lang, "Reading list", "قائمة القراءة")}</text><text x="52" y="136">${L(lang, "Orbits", "المدارات")}</text></g></g>
+  <rect class="wa-grow" x="170" y="52" width="60" height="138" fill="var(--bg-raised)" opacity="0.6"/>
+  <g class="wa-late"><rect x="228" y="52" width="3" height="138" fill="var(--accent)"/><path d="M222 121l-6-6 6-6M240 121l6-6-6-6" fill="none" stroke="var(--accent)" stroke-width="2"/></g>
+  <g fill="var(--text-muted)" font-size="11"><text x="250" y="80" fill="var(--text)" font-family="Georgia, serif" font-size="14">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="250" y="102">${L(lang, "Ibn Khaldun opens with the errors", "يفتتح ابن خلدون بأخطاء")}</text><text x="250" y="120">${L(lang, "of historians and their causes…", "المؤرخين وأسبابها…")}</text></g>
+  <text class="wa-late" x="280" y="176" text-anchor="middle" fill="var(--accent)" font-size="11">${L(lang, "docked, with a grip — no drawer", "راسية، بمقبض؛ لا درج")}</text>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+      {
+        title: { en: "A manual for people, in both languages", ar: "دليل للناس، باللغتين" },
+        body: {
+          en: "Every page of the manual was rewritten for a reader who does not know the terminology: plain words, short sentences, what a thing is for before how it works. The Arabic edition was written as Arabic, not translated, and read back by a second pair of eyes. The interface's Arabic strings got the same pass.",
+          ar: "أُعيدت كتابة كل صفحة من الدليل لقارئ لا يعرف المصطلحات: كلمات بسيطة، وجمل قصيرة، وما ينفع الشيء قبل كيف يعمل. وكُتبت النسخة العربية عربيةً لا مترجمة، وراجعتها عين ثانية. ونصوص الواجهة العربية نالت المرور نفسه.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g><rect x="30" y="30" width="240" height="160" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="46" y="56" fill="var(--text)" font-family="Georgia, serif" font-size="15">Orbits</text><g fill="var(--text-muted)" font-size="11"><text x="46" y="80">An orbit is something you come</text><text x="46" y="96">back to every day: a walk, the</text><text x="46" y="112">prayers, a page of reading.</text><text x="46" y="136">You write the plan once. Each</text><text x="46" y="152">day you tick what you did, and</text><text x="46" y="168">the note keeps the record.</text></g></g>
+  <g><rect x="290" y="30" width="240" height="160" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="514" y="56" text-anchor="end" fill="var(--text)" font-family="'Noto Naskh Arabic', 'Scheherazade New', serif" font-size="16" direction="rtl">المدارات</text><g fill="var(--text-muted)" font-family="'Noto Naskh Arabic', 'Scheherazade New', serif" font-size="13" text-anchor="end" direction="rtl"><text x="514" y="82">المدار شيء تعود إليه كل يوم:</text><text x="514" y="102">مشية، أو الصلوات، أو صفحة قراءة.</text><text x="514" y="130">تكتب الخطة مرة واحدة، وكل يوم</text><text x="514" y="150">تعلّم على ما فعلت، والملاحظة</text><text x="514" y="170">تحفظ السجل.</text></g></g>
+</svg>`,
+        },
+        docs: "orbits",
+      },
+    ],
+  },
+  {
     version: "3.14.0",
     title: { en: "Counting from the caret", ar: "العدّ من المؤشر" },
     slides: [
