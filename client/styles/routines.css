@@ -129,6 +129,66 @@
   color: var(--text);
 }
 
+/* ── A slot that names a constellation (client/routines/stars.ts) ───────
+   The chip row wraps under the slot's text: the task row is the reading
+   renderer's flex line, and a row that grows a chip is allowed to wrap here,
+   on this page only. The chip is a small pill — the count in the accent,
+   quiet once nothing is due — and the whole pill is the Study link. */
+
+.s-routines .s-rv-routine__task:has(.s-stars-chips) {
+  flex-wrap: wrap;
+}
+
+.s-stars-chips {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-inline-start: 28px;
+}
+
+.s-stars-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-block-size: 24px;
+  padding: 1px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.786rem;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
+}
+.s-stars-chip__icon {
+  font-size: 0.857rem;
+  line-height: 1;
+  margin-inline-end: 2px;
+}
+.s-stars-chip__n {
+  color: var(--accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.s-stars-chip.is-clear .s-stars-chip__n {
+  color: var(--text-faint);
+  font-weight: 500;
+}
+.s-stars-chip:hover,
+.s-stars-chip:focus-visible {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.s-stars-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ── The form ──────────────────────────────────────────────────────────── */
 
 /* THE ORBIT FORM wears the Media form's frame (.s-mediaform: the head, the

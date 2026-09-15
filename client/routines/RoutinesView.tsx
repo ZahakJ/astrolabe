@@ -26,6 +26,7 @@ import { renderRoutineCard } from "../reading/routine.ts";
 import { renderMarkdown, renderTasksBlock } from "../reading/render.ts";
 import { parseTasksFence, shift } from "../../shared/tasks.ts";
 import { RoutineForm } from "./RoutineForm.tsx";
+import { decorateStarTasks } from "./stars.ts";
 import { OnThisDayList, useOnThisDay } from "../components/OnThisDayPanel.tsx";
 import "../styles/routines.css";
 
@@ -68,6 +69,9 @@ function RoutineCard({
       ],
     });
     el.replaceChildren(card);
+    // A slot that wikilinks a constellation gets its "N due · Study" chip
+    // (client/routines/stars.ts) — after the draw, on the drawn card.
+    decorateStarTasks(card, meta, today);
     return () => el.replaceChildren();
   }, [meta, today, onLog, onOpen, onEdit, onDelete]);
   return <div ref={host} className="s-routines__card" />;
