@@ -546,3 +546,12 @@
   text-transform: uppercase;
   color: var(--text-muted);
 }
+
+/* The target's unit is a phrase ("days a week", «أيام في الأسبوع»), not a
+   symbol: the number field's stock 96px and its 42px of end padding were
+   cut for "kg" and "%", and the phrase sat under the digits. Room for the
+   sentence the field is. */
+.s-orbitform__target .s-ctl-num__input {
+  inline-size: 200px;
+  padding-inline-end: 118px;
+}

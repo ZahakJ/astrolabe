@@ -24,7 +24,7 @@
 // template" writes the draft there, so an orbit drawn up once can seed the
 // next — the owner's ask: "ability to create custom templates".
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useDialog } from "../a11y.ts";
 import { putNote, updateRoutine, uploadAttachment } from "../api.ts";
 import { NumberInput, SegmentedControl, TextInput } from "../components/controls/Fields.tsx";
@@ -33,6 +33,7 @@ import { Select } from "../components/controls/Select.tsx";
 import {
   ROUTINES_ROOTS,
   WEEKDAYS,
+  cleanIcon,
   draftOf,
   emptyDraft,
   fieldSpec,
@@ -125,6 +126,20 @@ function fieldsOf(draft: RoutineDraft): RoutineField[] {
   return draft.fields.map(parseField).filter((f): f is RoutineField => f !== null);
 }
 
+/** A field's name or unit with the characters the fence cannot carry taken
+ *  out. The `fields:` line is `name:type:unit` entries with commas between
+ *  them and the log is `key: value` segments with bars between them, so a
+ *  colon, a comma or a bar typed into a name would split it into two fields
+ *  or two segments — "a:b, c" came back as `a:number:b` and a field `c`. */
+function fieldWord(raw: string): string {
+  return raw.replace(/[:,|]/g, "");
+}
+/** …and a unit on those terms, null when nothing is left. */
+function unitWord(raw: string): string | null {
+  const unit = fieldWord(raw).trim();
+  return unit === "" ? null : unit;
+}
+
 export function RoutineForm({
   editing,
   templates,
@@ -198,6 +213,11 @@ export function RoutineForm({
 
   const composed = (): RoutineDraft => ({
     ...draft,
+    // The icon as the card will READ it: a paragraph typed into the free
+    // field is not an icon (shared/routine.ts cleanIcon), and writing it
+    // would leave an `icon:` line that draws nothing and vanishes on the
+    // next edit. The preview beside the field shows the same reading.
+    icon: cleanIcon(draft.icon) ?? "",
     slots,
     items: textList(itemsText),
     fields: fields.filter((f) => f.key.trim() !== "").map(fieldSpec),
@@ -282,8 +302,36 @@ export function RoutineForm({
   };
 
   const heading = editing ? tf("routineFormEdit", { title: editing.plan.title }) : t("routineFormNew");
-  const iconValue = draft.icon.trim();
+  const iconValue = cleanIcon(draft.icon) ?? "";
   const iconOnShelf = EMOJI.includes(iconValue);
+  // THE SHELF IS ONE TAB STOP. Forty-one radios that each took a Tab put
+  // the banner field forty-one presses away from the name; a radiogroup's
+  // rule is one stop and arrows within it, which the kind's segments beside
+  // it already follow. The horizontal arrows name a physical direction and
+  // the shelf is laid out by the inline one, so in an Arabic sheet
+  // ArrowRight walks backward — the finger and the ring must move the same
+  // way; the vertical pair skips a row of the grid.
+  const shelf = ["", ...EMOJI];
+  const shelfStop = iconOnShelf ? iconValue : "";
+  const shelfKey = (e: KeyboardEvent<HTMLButtonElement>): void => {
+    // A row is however many squares the grid fitted on the first line —
+    // read off the layout rather than divided out of widths and gaps.
+    const squares = Array.from(e.currentTarget.parentElement!.children) as HTMLElement[];
+    const row = Math.max(1, squares.filter((b) => b.offsetTop === squares[0].offsetTop).length);
+    const rtl = e.currentTarget.closest("[dir]")?.getAttribute("dir") === "rtl";
+    const step =
+      e.key === "ArrowDown" ? row
+      : e.key === "ArrowUp" ? -row
+      : e.key === "ArrowRight" ? (rtl ? -1 : 1)
+      : e.key === "ArrowLeft" ? (rtl ? 1 : -1)
+      : 0;
+    if (step === 0) return;
+    e.preventDefault();
+    const at = shelf.indexOf(shelfStop);
+    const next = (at + step + shelf.length) % shelf.length;
+    set("icon", shelf[next]);
+    (e.currentTarget.parentElement!.children[next] as HTMLElement | undefined)?.focus();
+  };
 
   return (
     <div className="s-palette-overlay" onMouseDown={onClose}>
@@ -393,6 +441,8 @@ export function RoutineForm({
                     aria-checked={iconValue === ""}
                     className={`s-orbitform__emojibtn s-orbitform__emojibtn--none${iconValue === "" ? " is-on" : ""}`}
                     title={t("routineFormIconNone")}
+                    tabIndex={shelfStop === "" ? 0 : -1}
+                    onKeyDown={shelfKey}
                     onClick={() => set("icon", "")}
                   >
                     <span className="s-orbitform__emojinone">{t("routineFormIconNone")}</span>
@@ -405,6 +455,8 @@ export function RoutineForm({
                       aria-checked={iconValue === e}
                       aria-label={e}
                       className={`s-orbitform__emojibtn${iconValue === e ? " is-on" : ""}`}
+                      tabIndex={shelfStop === e ? 0 : -1}
+                      onKeyDown={shelfKey}
                       onClick={() => set("icon", e)}
                     >
                       {e}
@@ -537,7 +589,7 @@ export function RoutineForm({
                     {on && (on.type === "number" || on.type === "count") && (
                       <label className="s-orbitform__optextra">
                         <span className="s-orbitform__optextralabel">{t("routineFormFieldUnit")}</span>
-                        <TextInput value={on.unit ?? ""} onChange={(v) => patchField(on, { unit: v.trim() === "" ? null : v.trim() })} label={t("routineFormFieldUnit")} maxLength={20} dir="auto" />
+                        <TextInput value={on.unit ?? ""} onChange={(v) => patchField(on, { unit: unitWord(v) })} label={t("routineFormFieldUnit")} maxLength={20} dir="auto" />
                       </label>
                     )}
                     {on && on.type === "scale" && (
@@ -556,7 +608,7 @@ export function RoutineForm({
               <p className="s-mediaform__hint">{t("routineFormFieldsCustomHint")}</p>
               {ownFields.map((f, i) => (
                 <div key={i} className="s-orbitform__ownrow">
-                  <TextInput value={f.key} onChange={(v) => patchField(f, { key: v })} placeholder={t("routineFormFieldName")} label={t("routineFormFieldName")} maxLength={40} dir="auto" />
+                  <TextInput value={f.key} onChange={(v) => patchField(f, { key: fieldWord(v) })} placeholder={t("routineFormFieldName")} label={t("routineFormFieldName")} maxLength={40} dir="auto" />
                   <Select
                     value={f.type}
                     onChange={(v) => patchField(f, { type: v as RoutineFieldType, unit: v === "number" || v === "count" ? f.unit : null, max: v === "scale" ? (f.max ?? 5) : null })}
@@ -564,7 +616,7 @@ export function RoutineForm({
                     label={t("routineFormFieldType")}
                   />
                   {(f.type === "number" || f.type === "count") && (
-                    <TextInput value={f.unit ?? ""} onChange={(v) => patchField(f, { unit: v.trim() === "" ? null : v.trim() })} placeholder={t("routineFormFieldUnit")} label={t("routineFormFieldUnit")} maxLength={20} dir="auto" />
+                    <TextInput value={f.unit ?? ""} onChange={(v) => patchField(f, { unit: unitWord(v) })} placeholder={t("routineFormFieldUnit")} label={t("routineFormFieldUnit")} maxLength={20} dir="auto" />
                   )}
                   {f.type === "scale" && (
                     <NumberInput value={String(f.max ?? 5)} onChange={(v) => patchField(f, { max: Math.max(2, Math.min(10, Math.round(Number(v)) || 5)) })} unit="" min={2} max={10} label={t("routineFormFieldMax")} />
@@ -587,7 +639,7 @@ export function RoutineForm({
               <h3 className="s-orbitform__sectitle" id="s-orbitform-s4">{t("routineFormSectionGoal")}</h3>
             </header>
 
-            <label className="s-mediaform__row">
+            <label className="s-mediaform__row s-orbitform__target">
               <span className="s-mediaform__label">{t("routineFormTarget")}</span>
               <NumberInput value={draft.target === null ? "" : String(draft.target)} onChange={(v) => set("target", v.trim() === "" ? null : Math.max(1, Math.min(7, Math.round(Number(v)) || 1)))} unit={t("routineFormTargetUnit")} min={1} max={7} label={t("routineFormTarget")} />
               <p className="s-mediaform__hint">{t("routineFormTargetHint")}</p>

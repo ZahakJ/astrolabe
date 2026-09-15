@@ -4526,6 +4526,9 @@ const DICT = {
   routines: { en: "Orbits", ar: "المدارات" },
   routinesTitle: { en: "Open the Orbits page", ar: "فتح صفحة المدارات" },
   cmdOpenRoutines: { en: "Open the Orbits page", ar: "فتح صفحة المدارات" },
+  // The row's hint names the old word: the palette matches on the hint too,
+  // so `routine`, typed from three releases of habit, still finds the door.
+  cmdOpenRoutinesHint: { en: "view · formerly Routines", ar: "عرض · «الروتين» سابقًا" },
   routinesLead: { en: "What today asks of you, in one place — tick it off here and the note keeps the day.", ar: "ما يطلبه منك اليوم في مكان واحد: علّم عليه هنا وتحفظ الملاحظة يومك." },
   routinesAdd: { en: "New orbit", ar: "مدار جديد" },
   routinesEmpty: { en: "No orbits yet.", ar: "لا مدارات بعد." },

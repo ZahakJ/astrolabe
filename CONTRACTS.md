@@ -9595,6 +9595,26 @@ untouched leaves the note byte for byte; a custom rating and Focus land as
 with the form open; the 412px form fits, scrolls only down, and its emoji targets are 42px; the
 Arabic sheet reads المدارات. Unit tests: `orbits (3.15.0)` in tests/routine.test.ts.
 
+**The review's findings, fixed** (a second harness, scratchpad/review/probe*.mjs, against a
+vault holding legacy ```` ```routine ```` notes in `Routines/` beside new ones):
+- The icon's free field wrote whatever was typed: `icon: hello` landed in the fence, the card drew
+  nothing (`cleanIcon` drops more than three graphemes) and the next edit lost it. The form now
+  composes `cleanIcon(draft.icon) ?? ""` and the preview shows that same reading — a paragraph
+  previews as nothing and is not written.
+- An own field's name accepted the spec's separators: "a:b, c" came back as `a:number:b` and a
+  field `c`. The name and unit inputs strip `:` `,` `|` (the third splits a log line).
+- The emoji shelf was forty-one tab stops. It is a radiogroup with ONE stop (the picked square, or
+  None) and arrows within it: horizontal arrows follow the sheet's direction (ArrowLeft walks
+  forward in Arabic), vertical ones move a row of the grid, and focus moves with the pick.
+- The target's unit ("days a week", «أيام في الأسبوع») sat under the digits in the stock 96px
+  number field; `.s-orbitform__target` gives the input 200px and 118px of end padding.
+- A `notes:text` field hid a day's loose note logged before the field existed; the box falls back
+  to `entry.note` when the field has no value.
+- The palette row's hint reads "view · formerly Routines" so `routine` typed from habit still
+  finds the door (the hint is a haystack, client/paletteRank.ts).
+- build-docs writes a refresh stub at `docs/site/<lang>/routines/` (`MOVED` map): the 3.11–3.14
+  deck slides link the manual by that slug and are history.
+
 ## Tests (`npm test`) — the release gate
 
 `node --test` over `tests/*.test.ts`. No new dependencies, no test framework, no fixtures on disk
