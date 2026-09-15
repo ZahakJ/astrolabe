@@ -49,7 +49,18 @@ import {
 import { APP_ROOT, parseEnvFile, startVaultServer, type VaultServer } from "./server.ts";
 import { enableSpellcheck, replaceMisspelling, spellMenuFor } from "./spellcheck.ts";
 import { dataDirFor, flushPrefs, loadPrefs, partitionFor, savePrefs } from "./store.ts";
-import { applyStagedUpdate, checkForUpdates, installUpdater, onUpdateState, relaunchForSelfTest } from "./update.ts";
+import {
+  applyStagedUpdate,
+  checkForUpdates,
+  currentUpdateState,
+  downloadUpdate,
+  installUpdater,
+  onUpdateState,
+  relaunchForSelfTest,
+  setUpdatesPref,
+  updatesPref,
+} from "./update.ts";
+import { parseUpdatesPref } from "./updatePolicy.ts";
 import { createReferenceWindow, createVaultWindow, focusedFirst, tell } from "./windows.ts";
 
 const ICON = path.join(APP_ROOT, "desktop", "icons", "icon.png");
@@ -793,8 +804,21 @@ function registerBridge(): void {
     void checkForUpdates(true);
   });
 
+  // The two clicks an update takes, in order — and the only two places bytes
+  // move. A check (the timer, the menu, the chip at rest) never reaches
+  // either; see electron/updatePolicy.ts.
+  ipcMain.handle(TO_MAIN.updateDownload, async () => {
+    await downloadUpdate();
+  });
   ipcMain.handle(TO_MAIN.updateApply, async () => {
     await applyStagedUpdate();
+  });
+  ipcMain.handle(TO_MAIN.updatesPrefGet, () => updatesPref());
+  ipcMain.handle(TO_MAIN.updatesPrefSet, (_event, pref: unknown) => {
+    // Parsed rather than trusted: the renderer is the reader's own notes'
+    // HTML one wall away, and a preference is still an input.
+    setUpdatesPref(parseUpdatesPref(pref));
+    return updatesPref();
   });
   ipcMain.handle(TO_MAIN.chromeLang, (_event, lang: unknown) => {
     // The menu speaks the reader's chrome language, not the site's — see the
@@ -816,6 +840,7 @@ function registerBridge(): void {
       spellLanguages: instance?.spellLanguages ?? [],
       ownsSession: instance !== null && instance.restart.deployEnv === null,
       brandIconDataUrl: brandInfo().iconDataUrl,
+      update: currentUpdateState(),
     };
   });
 

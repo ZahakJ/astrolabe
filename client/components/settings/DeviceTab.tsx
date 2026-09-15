@@ -20,6 +20,14 @@
 // Every row here is a preference of the PERSON, never of the site: none of
 // them travels to a co-author, none of them changes what a visitor sees, and
 // none of them needs the server to answer.
+//
+// FOUR GROUPS, IN THE ORDER A READER MEETS THEM. The tab grew a row at a time
+// — the eye-comfort sliders, the desktop's name and icon, the offline copy,
+// the what's-new deck — and by eighteen rows the desktop's rename sat between
+// vim keys and the what's-new switch, which is to say nowhere. Now: what the
+// screen looks like (no heading; it is the tab's first breath), then Reading
+// & writing, then This browser (what this profile keeps), then This app —
+// the desktop-only rows, rendered only where there IS an app around the page.
 
 import { useEffect, useState } from "react";
 import { t, tf } from "../../i18n.ts";
@@ -32,7 +40,7 @@ import { openThemePicker } from "../ThemePicker.tsx";
 import { readCustomWidth, readEditorWidth, setCustomWidth, setEditorWidth, type EditorWidth } from "../../editorWidth.ts";
 import { Row } from "./Row.tsx";
 import { prefsSyncEnabled, setPrefsSyncEnabled } from "../../prefsSync.ts";
-import { desktop, type DesktopBrand } from "../../desktop/bridge.ts";
+import { desktop, type DesktopBrand, type DesktopUpdatesPref } from "../../desktop/bridge.ts";
 import { toast } from "../../toast.ts";
 import { DIM_MAX, EYE_COMFORT_EVENT, WARMTH_MAX, readDim, readWarmth, setDim, setWarmth } from "../../eyeComfort.ts";
 import { WHATSNEW_EVENT, setWhatsNewEnabled, whatsNewEnabled } from "../../whatsnew/door.ts";
@@ -152,6 +160,56 @@ function AppIdentityRows() {
           </button>
         </Row>
       )}
+    </>
+  );
+}
+
+/** SOFTWARE UPDATES, on the desktop only — and the row that exists because a
+ *  friend's Windows build downloaded a release he had not asked for. Two
+ *  positions, not a checkbox: "Tell me" checks quietly and says when a
+ *  release exists; "Off" never checks and never reminds. Neither position
+ *  downloads anything — that is the policy (electron/updatePolicy.ts), and
+ *  the hint says so under the control rather than in a manual nobody opens.
+ *  Stored desktop-side, in desktop.json beside the window bounds, because
+ *  it is about this INSTALL rather than this browser profile: a second vault
+ *  in a second window is the same app, and the same answer. */
+function UpdatesRow() {
+  const bridge = desktop();
+  const [pref, setPref] = useState<DesktopUpdatesPref | null>(null);
+  useEffect(() => {
+    void bridge?.updatesPrefGet?.().then(setPref);
+  }, [bridge]);
+  if (!bridge?.updatesPrefGet || pref === null) return null;
+  return (
+    <Row label={t("rowUpdates")} hint={t("hintUpdates")}>
+      <SegmentedControl
+        label={t("rowUpdates")}
+        value={pref}
+        onChange={(v) => {
+          const next: DesktopUpdatesPref = v === "off" ? "off" : "notify";
+          setPref(next);
+          void bridge.updatesPrefSet?.(next).then(setPref);
+        }}
+        segments={[
+          { value: "notify", label: t("updatesNotify") },
+          { value: "off", label: t("updatesOff") },
+        ]}
+      />
+    </Row>
+  );
+}
+
+/** The desktop-only group under its own heading. The heading is drawn by the
+ *  same test that draws the rows — a bridge with the brand or the updates
+ *  call — so a browser never shows a heading over nothing. */
+function AppRows() {
+  const bridge = desktop();
+  if (!bridge || (!bridge.brandGet && !bridge.updatesPrefGet)) return null;
+  return (
+    <>
+      <div className="s-smodal__sub">{t("groupThisApp")}</div>
+      <AppIdentityRows />
+      <UpdatesRow />
     </>
   );
 }
@@ -359,7 +417,30 @@ export default function DeviceTab() {
           onChange={() => toggleRelativeLines()}
         />
       </Row>
-      <AppIdentityRows />
+      <Row label={t("selToolbarLabel")} hint={t("hintSelToolbar")}>
+        <Toggle
+          label={t("selToolbarLabel")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={toolbar}
+          onChange={setSelectionToolbarEnabled}
+        />
+      </Row>
+      <Row label={t("rowHeadingNumbers")} hint={t("hintHeadingNumbers")}>
+        <Toggle
+          label={t("rowHeadingNumbers")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={numbered}
+          onChange={setHeadingNumbersPref}
+        />
+      </Row>
+
+      {/* WHAT THIS PROFILE KEEPS: the deck it shows after an update, the
+          offline copy it holds, and whether its settings ride along in the
+          vault. None of these is about the page's look or the editor's
+          behaviour, which is why they sit apart from both. */}
+      <div className="s-smodal__sub">{t("groupThisBrowser")}</div>
       <Row label={t("rowWhatsNew")} hint={t("hintWhatsNew")}>
         <Toggle value={whatsNew} onChange={setWhatsNewEnabled} label={t("rowWhatsNew")} onLabel={t("on")} offLabel={t("off")} />
       </Row>
@@ -388,24 +469,8 @@ export default function DeviceTab() {
           onChange={setPrefsSyncEnabled}
         />
       </Row>
-      <Row label={t("selToolbarLabel")} hint={t("hintSelToolbar")}>
-        <Toggle
-          label={t("selToolbarLabel")}
-          onLabel={t("on")}
-          offLabel={t("off")}
-          value={toolbar}
-          onChange={setSelectionToolbarEnabled}
-        />
-      </Row>
-      <Row label={t("rowHeadingNumbers")} hint={t("hintHeadingNumbers")}>
-        <Toggle
-          label={t("rowHeadingNumbers")}
-          onLabel={t("on")}
-          offLabel={t("off")}
-          value={numbered}
-          onChange={setHeadingNumbersPref}
-        />
-      </Row>
+
+      <AppRows />
     </section>
   );
 }

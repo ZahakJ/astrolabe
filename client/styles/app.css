@@ -6859,6 +6859,16 @@ button.s-title:hover {
   font-weight: 600;
 }
 
+/* "3.x available": the whole of the reminder, since nothing is fetched until
+   this is clicked. Full opacity and the accent's tint so it reads as an
+   offer rather than as the figures it replaces — but not the accent's
+   weight, which is kept for "Restart to update", the click that changes
+   the installed app. */
+.s-statusbar__version--available {
+  opacity: 1;
+  color: var(--accent);
+}
+
 /* ── The pane grips (client/components/PaneGrip.tsx) ─────────────────────
    An 8px strip on each pane's INNER edge: drag to resize, drag off the
    window edge to collapse, double-click to reset. A 2px accent line appears

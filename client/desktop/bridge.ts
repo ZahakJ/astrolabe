@@ -32,7 +32,24 @@ export interface DesktopHello {
   ownsSession?: boolean;
   /** The reader's own app icon, as a data URL. Absent before 3.6.0. */
   brandIconDataUrl?: string | null;
+  /** What the updater last said, so a window opened after the check draws
+   *  the "available" pill without a second toast. Absent before 3.15.0. */
+  update?: DesktopUpdateState | null;
 }
+
+/** One message from the updater (electron/update.ts `UpdateState`). */
+export interface DesktopUpdateState {
+  phase: string;
+  version: string;
+  received?: number;
+  total?: number;
+  /** With "available": this build can download and install the release
+   *  itself; false means the pill can only open the release page. */
+  installable?: boolean;
+}
+
+/** The one preference about updates: check and say, or stay quiet. */
+export type DesktopUpdatesPref = "notify" | "off";
 
 /** The desktop's own name and icon, as electron/brand.ts reports them. */
 export interface DesktopBrand {
@@ -62,6 +79,14 @@ export interface DesktopBridge {
   sessionRestore?(): Promise<boolean>;
   /** Absent on a desktop build older than 3.5.0. */
   updateCheck?(): Promise<void>;
+  /** Fetch the release the last check found — the reader's first click, and
+   *  the only path that downloads anything. Absent before 3.15.0, when the
+   *  check itself downloaded. */
+  updateDownload?(): Promise<void>;
+  /** The updates preference, kept in the desktop's own desktop.json. Absent
+   *  before 3.15.0. */
+  updatesPrefGet?(): Promise<DesktopUpdatesPref>;
+  updatesPrefSet?(pref: DesktopUpdatesPref): Promise<DesktopUpdatesPref>;
   /** The reader's own name and icon for the app. Absent before 3.6.0. */
   brandGet?(): Promise<DesktopBrand>;
   brandSet?(name: string): Promise<DesktopBrand>;

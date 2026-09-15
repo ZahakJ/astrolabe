@@ -72,9 +72,14 @@ contextBridge.exposeInMainWorld("astrolabeDesktop", {
   brandPickIcon: () => ipcRenderer.invoke("astrolabe:brand-pick-icon"),
   brandInstall: () => ipcRenderer.invoke("astrolabe:brand-install"),
   brandClear: () => ipcRenderer.invoke("astrolabe:brand-clear"),
+  /** Download the release the last check found. Nothing else in the app does. */
+  updateDownload: () => ipcRenderer.invoke("astrolabe:update-download"),
   /** Apply a staged update and relaunch — or open the release page on a build
    *  that cannot swap itself in place. */
   updateApply: () => ipcRenderer.invoke("astrolabe:update-apply"),
+  /** The updates preference: "notify" (check and say) or "off". */
+  updatesPrefGet: () => ipcRenderer.invoke("astrolabe:updates-pref-get"),
+  updatesPrefSet: (pref: string) => ipcRenderer.invoke("astrolabe:updates-pref-set", pref),
   /** The chrome language, so the native menu follows the reader. */
   chromeLang: (lang: string) => ipcRenderer.invoke("astrolabe:chrome-lang", lang),
 });

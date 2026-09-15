@@ -33,7 +33,7 @@ import { t, tf } from "../i18n.ts";
 import { toast } from "../toast.ts";
 import { actionToast } from "../undoToast.ts";
 import { setSpellcheckAvailable } from "../../shared/script.ts";
-import { desktop, IS_DESKTOP } from "./bridge.ts";
+import { desktop, IS_DESKTOP, type DesktopUpdateState } from "./bridge.ts";
 import { closeFindBar, openFindBar, showFindResult } from "./findBar.ts";
 import { openSpellMenu } from "./spellMenu.ts";
 
@@ -188,17 +188,23 @@ export async function mountDesktop(): Promise<void> {
   bridge.onOsTheme(followOsTheme);
   // Updates, said in the app's own voice. Never a dialog: a release is good
   // news arriving at a random moment, and good news does not get to interrupt
-  // a sentence. "Ready" carries the one action worth a button; the other
-  // phases are one quiet line each, and the timer's "you are current" is not
-  // shown at all — only the menu's explicit ask answers out loud.
+  // a sentence. And never on the app's own initiative: "available" offers
+  // the download, "ready" offers the restart, and each is a click the reader
+  // makes (electron/updatePolicy.ts). The timer's "you are current" is not
+  // shown at all — only the menu's explicit ask answers out loud — and the
+  // desktop sends "available" once per version per launch, so the toast is
+  // the reminder, not a nag.
   bridge.onUpdateState((payload) => {
-    const state = payload as { phase?: string; version?: string; received?: number; total?: number };
+    const state = payload as DesktopUpdateState;
     const version = state.version ?? "";
-    // The status bar's chip follows every phase (a bar while downloading,
-    // "Restart now" once staged); the toasts below stay for the moments that
-    // deserve a sentence. Progress ticks are chip-only.
+    const before = useStore.getState().desktopUpdate?.phase;
+    // The status bar's chip follows every phase ("3.x available", a bar while
+    // downloading, "Restart to update" once staged); the toasts below stay
+    // for the moments that deserve a sentence. Progress ticks are chip-only.
     if (typeof state.phase === "string") {
-      useStore.setState({ desktopUpdate: { phase: state.phase, version, received: state.received, total: state.total } });
+      useStore.setState({
+        desktopUpdate: { phase: state.phase, version, received: state.received, total: state.total, installable: state.installable },
+      });
     }
     if (state.phase === "downloading" && (state.received ?? 0) > 0) return;
     switch (state.phase) {
@@ -208,11 +214,17 @@ export async function mountDesktop(): Promise<void> {
         });
         break;
       case "available":
-        // A build a package manager owns cannot swap itself; the button opens
-        // the release page instead of pretending.
-        actionToast(tf("updateAvailable", { version }), t("updateView"), () => {
-          void bridge.updateApply();
-        });
+        // A build a package manager owns cannot swap itself; there the button
+        // opens the release page instead of pretending to download.
+        if (state.installable === true && bridge.updateDownload) {
+          actionToast(tf("updateAvailable", { version }), tf("updateDownload", { version }), () => {
+            void bridge.updateDownload?.();
+          });
+        } else {
+          actionToast(tf("updateAvailable", { version }), t("updateView"), () => {
+            void bridge.updateApply();
+          });
+        }
         break;
       case "downloading":
         toast(tf("updateDownloading", { version }));
@@ -221,7 +233,10 @@ export async function mountDesktop(): Promise<void> {
         toast(t("updateCurrent"));
         break;
       case "failed":
-        toast(t("updateFailed"), "error");
+        // The same phase answers a check that could not reach GitHub and a
+        // download that broke off; the phase before it says which, and the
+        // download's sentence names the way back (the chip's click).
+        toast(t(before === "downloading" ? "updateDownloadFailed" : "updateFailed"), "error");
         break;
     }
   });
@@ -255,6 +270,14 @@ export async function mountDesktop(): Promise<void> {
   // and in all states the logo on that page is the same app logo the user
   // customized").
   if (typeof hello.brandIconDataUrl === "string") useStore.setState({ desktopBrandIcon: hello.brandIconDataUrl });
+  // A window opened after the check already happened draws the pill from
+  // what the desktop last said — the store only, no toast: the reminder was
+  // given once, to the window that was open, and a second window is not a
+  // second reader.
+  const said = hello.update;
+  if (said && (said.phase === "available" || said.phase === "ready") && useStore.getState().desktopUpdate === null) {
+    useStore.setState({ desktopUpdate: { phase: said.phase, version: said.version, installable: said.installable } });
+  }
   if (hello.ownsSession === true) {
     useStore.setState({ desktopOwnsSession: true });
     if (!useStore.getState().admin) void useStore.getState().loadMe();

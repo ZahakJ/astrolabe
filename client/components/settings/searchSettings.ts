@@ -7,7 +7,16 @@
 // part worth pinning.
 
 import { t } from "../../i18n.ts";
+import { IS_DESKTOP } from "../../desktop/bridge.ts";
 import { SETTINGS_INDEX, type SettingEntry } from "./settingsIndex.ts";
+
+/** Rows that exist only where there is an app around the page (DeviceTab's
+ *  "This app" group). The index is generated from the panel's source and
+ *  cannot know which rows a browser will not draw; a hit that scrolls to
+ *  nothing is the failure this module exists to prevent, so these are named
+ *  here and dropped from a browser's results. Kept in step by the test that
+ *  asserts each name is a real index entry. */
+export const DESKTOP_ONLY_ROWS: ReadonlySet<string> = new Set(["rowAppName", "rowAppIcon", "rowUpdates"]);
 
 /** Casefold, strip Arabic diacritics and tatweel, and unify the letters Arabic
  *  spells more than one way — a reader types what they hear.
@@ -47,11 +56,12 @@ export interface SettingHit {
   label: string;
 }
 
-export function searchSettings(query: string): SettingHit[] {
+export function searchSettings(query: string, desktop: boolean = IS_DESKTOP): SettingHit[] {
   const q = fold(query.trim());
   if (q === "") return [];
   const hits: { hit: SettingHit; rank: number }[] = [];
   for (const entry of SETTINGS_INDEX) {
+    if (!desktop && DESKTOP_ONLY_ROWS.has(entry.label)) continue;
     const label = t(entry.label);
     const hint = entry.hint === undefined ? "" : t(entry.hint);
     const env = entry.env ?? "";
