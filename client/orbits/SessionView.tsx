@@ -272,7 +272,7 @@ export default function SessionView({ path, section }: { path: string; section: 
     return () => el.removeEventListener("keydown", onKey);
   }, [current, revealed, grade, reveal]);
 
-  // The end of a session, once per walk. When an orbit slot names this
+  // The end of a session, once per walk. When a sigil slot names this
   // deck and nothing is due here any more, the slot is ticked for
   // today through client/routines' helper — an effect and not part of the
   // render, because a tick is a write. The implicit deck is no

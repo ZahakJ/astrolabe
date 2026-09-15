@@ -16,8 +16,8 @@
   <project_license>MIT</project_license>
   <developer id="io.github.zahakj"><name>ZahakJ</name></developer>
   <description>
-    <p>Astrolabe is an instrument for people who read seriously and write from what they read. It runs over an ordinary folder of Markdown files and reads everything it knows from those files: a live-preview editor with wikilinks and backlinks, a graph, a search that understands Arabic letter forms, a PDF reader that cites your highlights into notes, trackers and orbits for the days, flashcards, and typography that sets Arabic and Latin on one line.</p>
-    <p xml:lang="ar">أسطرلاب أداة لمن يقرأ بجدية ويكتب مما يقرأ. يعمل فوق مجلد عادي من ملفات Markdown ويقرأ كل ما يعرفه من تلك الملفات: محرر بمعاينة حية وروابط ويكي وروابط خلفية، ومخطط، وبحث يفهم أشكال الحروف العربية، وقارئ PDF يقتبس تظليلاتك في ملاحظات، ومتتبعات ومدارات للأيام، وبطاقات تعليمية، وطباعة تضع العربية واللاتينية في سطر واحد.</p>
+    <p>Astrolabe is an instrument for people who read seriously and write from what they read. It runs over an ordinary folder of Markdown files and reads everything it knows from those files: a live-preview editor with wikilinks and backlinks, a graph, a search that understands Arabic letter forms, a PDF reader that cites your highlights into notes, trackers, sigils for the days, orbits for spaced repetition, and typography that sets Arabic and Latin on one line.</p>
+    <p xml:lang="ar">أسطرلاب أداة لمن يقرأ بجدية ويكتب مما يقرأ. يعمل فوق مجلد عادي من ملفات Markdown ويقرأ كل ما يعرفه من تلك الملفات: محرر بمعاينة حية وروابط ويكي وروابط خلفية، ومخطط، وبحث يفهم أشكال الحروف العربية، وقارئ PDF يقتبس تظليلاتك في ملاحظات، ومتتبعات، وسِجِلّات للأيام، ومدارات للتكرار المتباعد، وطباعة تضع العربية واللاتينية في سطر واحد.</p>
   </description>
   <launchable type="desktop-id">astrolabe.desktop</launchable>
   <url type="homepage">https://zahakj.github.io/astrolabe/</url>

@@ -376,8 +376,8 @@ export const RELEASES: Release[] = [
       {
         title: { en: "Orbits — your own spaced repetition", ar: "المدارات: تكرارك المتباعد أنت" },
         body: {
-          en: "A deck is a note with a deck block and front::back lines. A session asks what is due, with Anki's learning steps and a daily limit of new cards, and writes each card's next date into the note as the Obsidian plugin's own comment. Typed answers, reversed pairs, sections, Anki and CSV import, and six Japanese decks ready to study.",
-          ar: "المجموعة ملاحظة فيها كتلة deck وأسطر وجه::ظهر. والجلسة تسألك ما استُحق، بخطوات التعلم التي في Anki وحدٍّ يومي للبطاقات الجديدة، وتكتب موعد كل بطاقة التالي في الملاحظة تعليقًا بصيغة إضافة Obsidian نفسها. إجابات تكتبها، وأزواج معكوسة، وأقسام، واستيراد من Anki وCSV، وست مجموعات يابانية جاهزة.",
+          en: "A deck is a note with a deck block and front::back lines. A session asks what is due, with Anki's learning steps and a daily limit of new cards, and writes each card's next date into the note as the Obsidian plugin's own comment. Typed answers, reversed pairs, a section per lesson, Anki or CSV import; and a sigil slot that names a deck shows what is due and ticks itself.",
+          ar: "المجموعة ملاحظة فيها كتلة deck وأسطر وجه::ظهر. والجلسة تسألك ما استُحق، بخطوات التعلم التي في Anki وحدٍّ يومي للبطاقات الجديدة، وتكتب موعد كل بطاقة التالي في الملاحظة تعليقًا بصيغة إضافة Obsidian نفسها. إجابات تكتبها، وأزواج معكوسة، وقسم لكل درس، واستيراد من Anki أو CSV؛ وخانة السِّجِلّ التي تسمّي مجموعةً تُظهر ما استُحق وتعلّم على نفسها.",
         },
         visual: {
           kind: "svg",
@@ -396,10 +396,14 @@ export const RELEASES: Release[] = [
     <text x="385" y="98" text-anchor="middle" font-size="40" fill="var(--text)">あ</text>
     <g><rect x="300" y="108" width="170" height="24" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="310" y="125" fill="var(--text)" font-family="ui-monospace, monospace" font-size="13">a</text><rect class="wa-blink" x="320" y="113" width="1.5" height="14" fill="var(--accent)"/></g>
     <g font-size="10">
-      <rect x="256" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="287" y="160" text-anchor="middle" fill="var(--text)">${L(lang, "Again", "مرة أخرى")}</text><text x="287" y="177" text-anchor="middle" fill="var(--text-faint)">1m</text>
-      <rect x="324" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="355" y="160" text-anchor="middle" fill="var(--text)">${L(lang, "Hard", "صعب")}</text><text x="355" y="177" text-anchor="middle" fill="var(--text-faint)">10m</text>
-      <rect x="392" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--accent)"/><text x="423" y="160" text-anchor="middle" fill="var(--accent)">${L(lang, "Good", "جيد")}</text><text x="423" y="177" text-anchor="middle" fill="var(--text-faint)">1d</text>
-      <rect x="460" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="491" y="160" text-anchor="middle" fill="var(--text)">${L(lang, "Easy", "سهل")}</text><text x="491" y="177" text-anchor="middle" fill="var(--text-faint)">4d</text>
+      <!-- The Arabic intervals open with a right-to-left mark: the drawing
+           is set left-to-right, and without it "1د" would put the unit on
+           the right of the number, the mirror of what the session's own
+           buttons show under the RTL chrome. -->
+      <rect x="256" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="287" y="160" text-anchor="middle" fill="var(--text)">${L(lang, "Again", "مرة أخرى")}</text><text x="287" y="177" text-anchor="middle" fill="var(--text-faint)">${L(lang, "1m", "\u200F1د")}</text>
+      <rect x="324" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="355" y="160" text-anchor="middle" fill="var(--text)">${L(lang, "Hard", "صعب")}</text><text x="355" y="177" text-anchor="middle" fill="var(--text-faint)">${L(lang, "10m", "\u200F10د")}</text>
+      <rect x="392" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--accent)"/><text x="423" y="160" text-anchor="middle" fill="var(--accent)">${L(lang, "Good", "جيد")}</text><text x="423" y="177" text-anchor="middle" fill="var(--text-faint)">${L(lang, "1d", "\u200F1ي")}</text>
+      <rect x="460" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="491" y="160" text-anchor="middle" fill="var(--text)">${L(lang, "Easy", "سهل")}</text><text x="491" y="177" text-anchor="middle" fill="var(--text-faint)">${L(lang, "4d", "\u200F4ي")}</text>
     </g>
   </g>
   <g class="wa-pulse" style="--i:3" transform="translate(500 22) scale(0.9)"><circle cx="12" cy="12" r="3.2" fill="none" stroke="var(--accent)" stroke-width="2"/><ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(-30 12 12)" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="20.2" cy="7.25" r="1.6" fill="var(--accent)"/></g>
