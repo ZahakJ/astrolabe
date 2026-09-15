@@ -6,14 +6,14 @@
 
 ---
 
-`Ctrl/Cmd Alt P` prints the open note, or exports it to PDF through your browser's own print
-dialog. The command palette carries the same row — **Print / Export PDF…** — and on the desktop app
-it is **File → Print / Export PDF…**.
+`Ctrl/Cmd Alt P` prints the open note, or exports it to PDF, through your browser's own print
+dialog. The command palette carries the same row, **Print / Export PDF…**, and on the desktop app it
+is **File → Print / Export PDF…**.
 
-It is `Alt P` and not the `Ctrl/Cmd P` every other application prints with, because in Astrolabe that
-chord has been the command palette since the first release and `Ctrl/Cmd Shift P` publishes the
-open note. Neither of those was worth moving. On the **public blog** nothing is swallowed at all:
-a visitor's own `Ctrl/Cmd P` is the browser's, and it produces the same pages.
+It is `Alt P` and not the `Ctrl/Cmd P` every other application prints with, because in Astrolabe
+that chord has been the command palette since the first release, and `Ctrl/Cmd Shift P` publishes
+the open note. Neither of those was worth moving. On the **public blog** nothing is swallowed at
+all: a visitor's own `Ctrl/Cmd P` is the browser's, and it produces the same pages.
 
 ## What comes out
 
@@ -38,23 +38,23 @@ a visitor's own `Ctrl/Cmd P` is the browser's, and it produces the same pages.
 
 For a PDF, choose *Save as PDF* (or *Print to file*) as the destination in the print dialog. If you
 want the callout tints, the highlight marks and the banner in the file, leave **Background
-graphics** on — Astrolabe only asks the printer for ink where the colour is carrying meaning.
+graphics** on; Astrolabe only asks the printer for ink where the colour is carrying meaning.
 
 ## What is left off
 
-The frontmatter properties card. It is the note's filing card, not its content — `id`, `publish`
-and the `dg-*` keys say nothing to somebody holding paper — and the published blog has always
-hidden it for the same reason. A `banner:` picture is the note's own and stays, clamped to 55mm so
-it does not eat a third of the first sheet. A blog article's *generated* gradient banner — the
-placeholder for a picture the author never chose — is dropped.
+The frontmatter properties card. It is the note's filing card, not its content (`id`, `publish` and
+the `dg-*` keys say nothing to somebody holding paper), and the published blog has always hidden it
+for the same reason. A `banner:` picture is the note's own and stays, clamped to 55mm so it does not
+eat a third of the first sheet. A blog article's *generated* gradient banner, the placeholder for a
+picture the author never chose, is dropped.
 
 ## Printing a published article
 
 Nothing to configure. Open the piece on your site and print it: the masthead, the topic nav, the
 share row, previous/next, related writings, the comment thread and the back-to-top button all step
 aside, and the title, byline, hero and body print exactly as the reader sees them. That page needs
-no JavaScript from us to do it, which is the point — the person printing your writing is usually
-not you.
+no JavaScript from us to do it, which is the point: the person printing your writing is usually not
+you.
 
 ## If nothing seems to print
 
