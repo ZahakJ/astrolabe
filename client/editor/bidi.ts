@@ -21,7 +21,7 @@ import {
   type EditorView,
   type ViewUpdate,
 } from "@codemirror/view";
-import { noteIsFrench } from "../../shared/french.ts";
+import { noteIsFrench } from "../../shared/frenchLine.ts";
 import { spellcheckKnown, spellcheckLang } from "../../shared/script.ts";
 import { frontmatterText } from "../../shared/textLayout.ts";
 import { noteLayout } from "../textLayout.ts";

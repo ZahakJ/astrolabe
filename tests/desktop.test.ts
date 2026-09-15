@@ -486,8 +486,9 @@ describe("spellcheck languages", () => {
     const m = /export const LINE_LANGUAGES = \[([^\]]+)\]/.exec(src);
     assert.ok(m, "LINE_LANGUAGES is declared");
     const listed = [...(m?.[1] ?? "").matchAll(/"([a-z]+)"/g)].map((x) => x[1]);
-    // he, fa, ar from the script test; fr from shared/french.ts's line test.
-    assert.deepEqual(listed, ["he", "fa", "ar", "fr"]);
+    // he, fa, ar from the script test; fr from shared/french.ts's line test;
+    // ja from the furigana work (no dictionary anywhere — dropped at runtime).
+    assert.deepEqual(listed, ["he", "fa", "ar", "fr", "ja"]);
   });
 });
 
