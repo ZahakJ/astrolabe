@@ -20,7 +20,7 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link is-current" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link is-current" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="the-editor-reading-view">The editor &amp; reading view</h1>
@@ -107,6 +107,9 @@ full menu, grouped: text style, structure, insert, colour. It works entirely fro
 never runs off the screen, and mirrors in Arabic. A small Notion-style strip with the six most
 used actions floats over every selection; the last row of the menu turns it off, and the command
 palette turns it back on.</li>
+<li><strong>Furigana over kanji.</strong> <code>{漢字|かんじ}</code> renders as a ruby in every surface; select a word with a
+kanji in it, right-click → Insert → <strong>Furigana…</strong> for suggested readings, or run the automatic
+command. See <a href="../japanese/">Japanese &amp; furigana</a>.</li>
 <li><strong>Headings in a colour of your own.</strong> Every heading, in the editor and the reading view alike,
 takes the theme&#39;s <code>--heading</code> token. The custom theme builder (Themes → New custom theme → Text)
 sets it directly, and the blog&#39;s article titles and the library&#39;s page titles follow. See
@@ -118,6 +121,53 @@ built-in theme, and a fixed-ink palette for when you mean <em>that exact</em> co
 <a href="../templates-and-notes/#deleting-and-the-trash">Deleting</a>.</li>
 <li><strong>Vim mode</strong> for those who already know that editor&#39;s keys, autosave (600 ms after you stop
 typing, plus <code>Ctrl/Cmd S</code>), and a surface built to be driven from the keyboard.</li>
+</ul>
+<h2 id="french-corrected-as-you-type"><a class="anchor" href="#french-corrected-as-you-type">French, corrected as you type</a></h2>
+<p>If you write French, the editor quietly puts the accents back. Type <code>tres</code> and a space and it
+becomes <code>très</code>; <code>coeur</code> becomes <code>cœur</code>, <code>etre</code> becomes <code>être</code>, <code>Ecole</code> becomes <code>École</code>, <code>deja</code>
+becomes <code>déjà</code>, <code>ca</code> becomes <code>ça</code>. Nothing appears on screen to tell you: the corrected word is
+the whole message. It is on by default, and Settings → This device → <strong>Auto-correct French</strong>
+turns it off.</p>
+<ul>
+<li><strong>Only on lines that read as French.</strong> A line counts as French when it has at least two
+French words on it (<code>je</code>, <code>est</code>, <code>les</code>, <code>pour</code>, <code>c&#39;est</code>…), or when the note&#39;s frontmatter says
+<code>lang: fr</code>, in which case every line counts. So <code>This is tres chic</code> in an English sentence is
+left exactly as you typed it — an English line with one French word in it is still an English
+line, and the editor never edits words you did not ask it to. A word in capitals (<code>UN</code>, <code>LA</code>,
+<code>EST</code>) does not count; a line with a Spanish, Italian, Portuguese or Catalan word on it (<code>el</code>,
+<code>del</code>, <code>una</code>, <code>di</code>, <code>não</code>…) is not French, since those languages share <code>la</code>, <code>de</code>, <code>un</code> and
+<code>que</code>; and a line of Arabic, Hebrew or Chinese is never French, whatever Latin words it also
+carries.</li>
+<li><strong>Only at the end of a word.</strong> The correction happens when you finish the word: a space, a
+comma, a full stop, Enter, a closing bracket or quote. While you are still typing the word,
+nothing moves. A line&#39;s first words are usually finished before the line has its second
+French word, so at the moment a line <em>becomes</em> French — its <code>je</code>, its <code>les</code> — the words
+already on it are corrected too, in one step: <code>Tres bien, c&#39;est</code> becomes <code>Très bien, c&#39;est</code>
+at the apostrophe.</li>
+<li><strong>Only words that can go one way.</strong> The list holds several hundred spellings that are not
+words without their accent — <code>tres</code>, <code>etre</code>, <code>hopital</code>, <code>francais</code>, <code>ecole</code>, <code>deja</code>,
+<code>bientot</code>, <code>theatre</code>, <code>evenement</code>, <code>oeuvre</code>… It never touches a word that exists both ways:
+<code>a</code>/<code>à</code>, <code>ou</code>/<code>où</code>, <code>la</code>/<code>là</code>, <code>sur</code>/<code>sûr</code>, <code>du</code>/<code>dû</code>, <code>cote</code>/<code>côte</code>/<code>côté</code>, <code>tache</code>/<code>tâche</code>,
+<code>mur</code>/<code>mûr</code>, <code>eleve</code>/<code>élève</code>/<code>élevé</code> — nor one whose accents could land two ways, like <code>cree</code>
+(<code>crée</code> or <code>créé</code>), <code>resume</code> (<code>résume</code> or <code>résumé</code>) and <code>reserve</code> (<code>réserve</code> or <code>réservé</code>).
+Those need a reader, not a table. Capitals follow you (<code>Etat</code> → <code>État</code>); a word in all
+capitals is left alone.</li>
+<li><strong>French spacing, too.</strong> A space you type before <code>;</code> <code>:</code> <code>!</code> <code>?</code> becomes the narrow no-break
+space French typesetting wants there, so a question mark can never start the next line by
+itself; a space just inside <code>«</code> or <code>»</code> becomes a no-break space; and three dots become the one
+<code>…</code> character. These follow the same French-line rule.</li>
+<li><strong>Never in code, links or math.</strong> A code fence, inline code, a link&#39;s address, a wikilink&#39;s
+target, the frontmatter, <code>$math$</code>, a <code>\command</code> and anything inside a URL are not prose and are
+never corrected.</li>
+<li><strong>One undo takes one correction back.</strong> Every correction is its own undo step: press
+<code>Ctrl/Cmd Z</code> straight after <code>très </code> and you have <code>tres </code> again — the word as you typed it, the
+space still there — and the editor remembers that you refused it and will not correct that word
+at that spot again. (The words a line gets when it becomes French are one step together.)
+With vim keys on, corrections happen in insert mode only.</li>
+<li><strong>Spellchecked as French.</strong> A line the editor treats as French is also handed to the French
+dictionary, so the words it has just corrected are not underlined in red by the English one.
+In the desktop app that is automatic; in a browser it depends on which dictionaries the
+browser has, and a French line is left unchecked rather than wrongly checked.</li>
 </ul>
 <h2 id="rendering"><a class="anchor" href="#rendering">Rendering</a></h2>
 <ul>
@@ -286,7 +336,7 @@ tag:work
 sort: priority
 </code></pre>
 <p>Lines: <code>not done</code> (the default), <code>done</code>, <code>all</code>; <code>due today</code>, <code>due this week</code>, <code>overdue</code>, <code>due before 2026-10-01</code>, <code>due after …</code>, <code>due on …</code>, <code>has due date</code>; <code>path:Projects</code>, <code>tag:work</code>, <code>limit: 50</code>,
-<code>group: none</code>, <code>sort: due | priority | path</code>. The Orbits page opens with the tasks due by today.</p>
+<code>group: none</code>, <code>sort: due | priority | path</code>. The Sigils page opens with the tasks due by today.</p>
 <h2 id="unlinked-mentions"><a class="anchor" href="#unlinked-mentions">Unlinked mentions</a></h2>
 <p>Under the backlinks, the right panel lists notes whose prose mentions the open note&#39;s title, or one
 of its aliases, without linking to it. Whole words only, never inside a link, code or a template, and
@@ -335,7 +385,7 @@ in pixels (<code>900px</code>) or as a share of the pane (<code>70%</code>), app
 the same choice.</p>
 <p><strong>What&#39;s new after an update</strong> (Settings → This device, on by default). The first time this device
 opens a new version of Astrolabe as an admin, a short deck walks through the release&#39;s features: one
-slide per feature, a live piece of the product on each (an orbit card you can tick, a warmth slider
+slide per feature, a live piece of the product on each (a sigil card you can tick, a warmth slider
 you can drag), next and back, <code>←</code>/<code>→</code> on the keyboard. It appears once per <em>minor</em> version: a
 bug-fix release shows nothing new, and a reader who skipped 3.11.0 and lands on 3.11.2 still gets
 the 3.11 deck. A device that skipped several releases gets every deck it missed, oldest first, in one
@@ -398,7 +448,7 @@ readers who navigate by search.</p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/desktop/"><span class="pager__kicker">Previous</span><span class="pager__title">The desktop app</span></a><a class="pager__link pager__link--next" href="../../en/templates-and-notes/"><span class="pager__kicker">Next</span><span class="pager__title">Templates, banners &amp; notes</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#rendering">Rendering</a><a class="toc__link toc__link--2" href="#navigating">Navigating</a><a class="toc__link toc__link--2" href="#live-queries">Live queries</a><a class="toc__link toc__link--2" href="#tasks-across-the-vault">Tasks across the vault</a><a class="toc__link toc__link--2" href="#unlinked-mentions">Unlinked mentions</a><a class="toc__link toc__link--2" href="#block-references">Block references</a><a class="toc__link toc__link--2" href="#find-and-replace">Find and replace</a><a class="toc__link toc__link--2" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a><a class="toc__link toc__link--2" href="#arranging-the-tree">Arranging the tree</a><a class="toc__link toc__link--2" href="#the-two-side-panes">The two side panes</a><a class="toc__link toc__link--2" href="#folder-marks">Folder marks</a><a class="toc__link toc__link--2" href="#notes-to-self">Notes to self</a><a class="toc__link toc__link--2" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#french-corrected-as-you-type">French, corrected as you type</a><a class="toc__link toc__link--2" href="#rendering">Rendering</a><a class="toc__link toc__link--2" href="#navigating">Navigating</a><a class="toc__link toc__link--2" href="#live-queries">Live queries</a><a class="toc__link toc__link--2" href="#tasks-across-the-vault">Tasks across the vault</a><a class="toc__link toc__link--2" href="#unlinked-mentions">Unlinked mentions</a><a class="toc__link toc__link--2" href="#block-references">Block references</a><a class="toc__link toc__link--2" href="#find-and-replace">Find and replace</a><a class="toc__link toc__link--2" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a><a class="toc__link toc__link--2" href="#arranging-the-tree">Arranging the tree</a><a class="toc__link toc__link--2" href="#the-two-side-panes">The two side panes</a><a class="toc__link toc__link--2" href="#folder-marks">Folder marks</a><a class="toc__link toc__link--2" href="#notes-to-self">Notes to self</a><a class="toc__link toc__link--2" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

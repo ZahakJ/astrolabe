@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orbits · Astrolabe Documentation</title>
-<meta name="description" content="The things you come back to every day — a plan for each day, a record of what you did, and a page that asks you every morning.">
+<meta name="description" content="Decks of cards that are notes in your vault, studied on a schedule the note itself keeps.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
@@ -20,175 +20,106 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link is-current" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link is-current" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="orbits">Orbits</h1>
-<p><em>The things you come back to every day — a plan for each day, a record of what you did, and a page that asks you every morning.</em></p>
+<p><em>Decks of cards that are notes in your vault, studied on a schedule the note itself keeps.</em></p>
 <hr>
-<p>Some things in life are not projects. They do not finish. You do not &quot;complete&quot; walking, or
-praying, or sleeping well — you come back round to them, day after day, the way a moon comes back
-round its planet. That is what an <strong>orbit</strong> is in Astrolabe: something you do by the day, with a
-card that shows you what today asks, lets you tick it off, and keeps count of how the days are
-going — your streak, this week, and the last twelve weeks as a little grid of colour.</p>
-<p>A <a href="../trackers/">tracker</a> is a card about one thing you are working <em>through</em> (a book, a game, a
-course) and how far you have got. An orbit is a card about your <em>days</em>. An exercise week, the five
-prayers, sleep, water, a mood journal, twenty pages a night — anything you mean to do again
-tomorrow.</p>
-<p>Everything an orbit knows lives in one ordinary note in your vault: the <strong>plan</strong> (what you mean to
-do) and the <strong>log</strong> (what you did). There is no hidden database. Tick a box and one line changes in
-your file; edit the line by hand and the card follows. Open the same vault in Obsidian and both
-parts are plain, readable code blocks that say exactly what they say here.</p>
+<p>A card you are learning comes back around: tomorrow, then in a week, then in a month, each time a little later than the last. That is an orbit, and it is the picture behind this page. <strong>Orbits</strong> is Astrolabe&#39;s own spaced-repetition system. A <strong>deck</strong> is a set of things you want to know by heart, a <strong>card</strong> is one of them, and a <strong>session</strong> is a sitting in which you are asked them and say how well you knew. It does what Anki does, and it needs no second program, no separate database and no export: a deck is a Markdown note, its cards are lines in that note, and the day each card comes back is written into the note beside it.</p>
+<p>A vault that never writes a deck still has one. Every highlight, quote and question you already marked in your notes (the forms are listed <a href="#what-already-counts-as-a-card">below</a>) is gathered into an implicit deck called <strong>Everything else</strong>, grouped by top folder, so nothing you did before this page existed is lost.</p>
 <blockquote>
-<p>Before 3.15 this feature was called <em>routines</em> and the blocks were named <code>```routine</code> and
-<code>```routine-log</code>. Those names still work, in every note you already have — nothing needs
-renaming. New orbits are written with the names below.</p>
+<p>Until 3.15 this page&#39;s name belonged to the daily routine, which is now <a href="../sigils/">Sigils</a>. The word moved to where it fits: a routine is something you keep, and a card is something that comes back around. <!-- lineage --></p>
 </blockquote>
-<h2 id="what-an-orbit-looks-like-in-the-note"><a class="anchor" href="#what-an-orbit-looks-like-in-the-note">What an orbit looks like in the note</a></h2>
-<p>Two blocks. The first is the plan; Astrolabe writes the second, the log, right under it the first
-time you tick something.</p>
-<pre><code class="language-orbit">title: Daily exercise
-kind: exercise
-icon: 🚶
-slots: morning, evening
-target: 6/week
+<h2 id="the-note"><a class="anchor" href="#the-note">The note</a></h2>
+<p>A note becomes a deck when it carries a <code>deck</code> code block. Everything else in the note is ordinary Markdown; the block only names the deck and says how it should be studied. Here is a whole one:</p>
+<pre><code class="language-md">---
+title: Hiragana
+---
+
+```deck
+title: Hiragana
+icon: あ
+kind: typed
+new per day: 10
+steps: 1m, 10m
+tags: japanese, kana
+```
+
+Type the romaji and press Enter.
+
+## Basic
+
+あ::a
+い::i
+か::ka
+し::shi
+
+## Dakuten
+
+が::ga
+じ::ji
+
+## Combinations
+
+きゃ::kya
+しゃ::sha
+</code></pre>
+<p>Every line of the form <code>front::back</code> is a card: the front is what you are shown, the back is what you try to recall. A third part, <code>front::back::extra</code>, is shown on the answer side only, for a reading, an example sentence or a mnemonic:</p>
+<pre><code class="language-md">食べる::to eat::たべる · 朝ご飯を食べます
+</code></pre>
+<p>Headings are <strong>sections</strong>. The session shows the section&#39;s name above the card as a breadcrumb, and the shelf can study one section on its own, <em>Lesson 3 only</em>, which is how a textbook&#39;s chapters fit in one note. A line may end with <code>#tags</code> of its own. Anything inside another code block is never a card, and neither are headings, tables and task lines.</p>
+<p>The block&#39;s keys, all optional:</p>
+<div class="table"><table><thead><tr><th>Key</th><th>Values</th><th>What it does</th></tr></thead><tbody><tr><td><code>title</code></td><td>a name</td><td>The name on the shelf. Without it, the note&#39;s title.</td></tr><tr><td><code>icon</code></td><td>one emoji or a short glyph</td><td>Drawn on the shelf&#39;s card and above each card in a session.</td></tr><tr><td><code>kind</code></td><td><code>basic</code> <code>reversed</code> <code>both</code> <code>typed</code> <code>cloze-only</code></td><td>How the <code>::</code> lines are asked; see the table below. <code>basic</code> when absent.</td></tr><tr><td><code>new per day</code></td><td>a number</td><td>How many cards you have never seen this deck may show you in one day. Ten when absent; <code>0</code> means reviews only.</td></tr><tr><td><code>steps</code></td><td>durations: <code>1m, 10m</code></td><td>The learning steps a new card climbs before it gets a real schedule; see <a href="#learning-steps-and-the-daily-limit">Learning steps</a>. <code>1m, 10m</code> when absent.</td></tr><tr><td><code>tags</code></td><td>words, separated by commas</td><td>The shelf filters by them.</td></tr></tbody></table></div><h3 id="kinds"><a class="anchor" href="#kinds">Kinds</a></h3>
+<div class="table"><table><thead><tr><th><code>kind</code></th><th>A <code>front::back</code> line becomes</th></tr></thead><tbody><tr><td><code>basic</code></td><td>One card, front → back.</td></tr><tr><td><code>reversed</code></td><td>One card the other way round, back → front.</td></tr><tr><td><code>both</code></td><td>Two cards, front → back and back → front, each with its own schedule. Vocabulary wants this: you must produce the word as well as recognise it.</td></tr><tr><td><code>typed</code></td><td>One card that shows an input box on the front. You type the answer and press Enter; the app compares it with the back (ignoring case, spaces at the ends, and the difference between full-width and half-width kana) and colours the letters that differ. The grade is still yours to give.</td></tr><tr><td><code>cloze-only</code></td><td>The <code>::</code> lines are ignored; only <code>==highlights==</code> in the note are cards.</td></tr></tbody></table></div><p>Whatever the kind, a line written with three colons, <code>front:::back</code>, is always a pair asked both ways, exactly as the Obsidian Spaced Repetition plugin reads it.</p>
+<h3 id="what-already-counts-as-a-card"><a class="anchor" href="#what-already-counts-as-a-card">What already counts as a card</a></h3>
+<p>These have been cards since before this page existed and still are, inside a deck note or anywhere else in the vault:</p>
+<div class="table"><table><thead><tr><th>In the note</th><th>The card</th></tr></thead><tbody><tr><td><code>The ==mitochondria== is the powerhouse of the cell.</code></td><td>A <strong>cloze</strong>: the front is the paragraph with the highlighted words blanked out; the back is the words. Several highlights in one paragraph make one card.</td></tr><tr><td><code>&gt; [!quote] Ibn Khaldun, p. 12</code> and the quoted lines under it</td><td>A <strong>quote</strong>: the front is the source and the first few words; the back is the whole passage. A highlight you cite from a PDF in the reader lands in your note in this form, so it is already a card.</td></tr><tr><td>A line, then <code>?</code> on its own line, then the answer under it</td><td>A <strong>question</strong>, front and back as written, either side allowed several lines.</td></tr></tbody></table></div><h2 id="studying"><a class="anchor" href="#studying">Studying</a></h2>
+<p>Open Orbits from the command palette (<strong>Open Orbits</strong>, or <strong>Study due cards</strong> to go straight into whatever is due), from the ring door in the status bar — a small body on its orbit — or from the line the <a href="../sigils/">Sigils</a> page shows when cards are due. The address is <code>/orbits</code>; the old <code>/review</code> still opens it.</p>
+<p>The <strong>shelf</strong> lists every deck as a card: its icon, its title and tags, how many cards are due, new and in all, and a thin line drawn from the last thirty days of your grades. The header counts what is due today across all of them and how many days in a row you have studied. <strong>Study</strong> starts a session with the due cards and today&#39;s new ones; <strong>Study section ▾</strong> limits it to one heading. <em>Everything else</em> sits last.</p>
+<p>A <strong>session</strong> shows one card at a time. The deck&#39;s icon and the section&#39;s name stand above it; a bar shows how many are done and how many remain. You read the front, try to recall, then turn it over with <strong>Show answer</strong> (Space or Enter). On a <code>typed</code> card you type first and Enter checks; the answer then shows with your attempt beside it. Four grades follow, <em>Again</em>, <em>Hard</em>, <em>Good</em> and <em>Easy</em>, each with the wait it would give the card, so you never grade blind. The keys <strong>1</strong> to <strong>4</strong> pick a grade. <strong>Edit</strong> opens the note at the card&#39;s line in a new tab. <strong>Skip</strong> puts the card aside for the rest of this session. <strong>Undo</strong> takes back the last grade and restores the schedule it replaced (one step). When the pile is empty a summary says how many you did, how long it took, how many you knew, and lists the ones you graded <em>Again</em>, with <strong>Study more</strong> and <strong>Back to the shelf</strong>. On a phone the grade row stays at the bottom, under your thumb.</p>
+<p>When nothing is due, <strong>Study ahead</strong> goes on through the rest of the deck, soonest due first.</p>
+<h3 id="learning-steps-and-the-daily-limit"><a class="anchor" href="#learning-steps-and-the-daily-limit">Learning steps and the daily limit</a></h3>
+<p>The schedule itself is SM-2, the method the Obsidian Spaced Repetition plugin uses: the first <em>Good</em> makes a card wait a day, the next six days, and after that each wait is multiplied by the card&#39;s <em>ease</em>, a number that says how easy it has been for you. <em>Hard</em> and <em>Again</em> lower the ease, <em>Easy</em> raises it, and it never drops below 1.3.</p>
+<p>What SM-2 lacks is a first day, and that is what <strong>learning steps</strong> give. A card you have never seen, or one you have just failed, is not sent off for a day; it comes back within the same session, first after one minute, then after ten (the <code>steps:</code> line changes these). <em>Good</em> on the last step, or <em>Easy</em> at any step, <strong>graduates</strong> it: it gets its first real schedule, one day for <em>Good</em> and four for <em>Easy</em>, written into the note. <em>Again</em> on a card you have known before is a <strong>lapse</strong>: the note gets SM-2&#39;s own answer (back tomorrow, ease lowered) and the card also returns in ten minutes, so you leave the session having seen it right at least once. The steps live only in the open page: close it and they are forgotten, and the note is the truth.</p>
+<p>Every deck also has a <strong>daily limit on new cards</strong>, <code>new per day</code>, ten unless you say otherwise. Reviews are never limited, and the limit is counted on this device for the local day, so a fresh deck of two hundred kana meets you ten at a time. Within a session the order is: learning cards whose step has come, then due reviews (the most overdue first), then new cards in the order they appear in the note; after every four reviews, one new one, so the new ones do not all arrive at the end.</p>
+<h2 id="where-the-schedule-lives"><a class="anchor" href="#where-the-schedule-lives">Where the schedule lives</a></h2>
+<p>When you grade a card, the app writes one comment into the note, after the card&#39;s line or block, in the plugin&#39;s own format:</p>
+<pre><code class="language-md">食べる::to eat::たべる &lt;!--SR:!2026-09-27,4,2500--&gt;
+</code></pre>
+<p>That comment is the whole state of the card: the day it is due, its current wait in days, and its ease times a thousand. A <code>:::</code> pair, or any line in a <code>both</code> deck, keeps two schedules in one comment, <code>&lt;!--SR:!d1,i1,e1!d2,i2,e2--&gt;</code>, which is the plugin&#39;s format for a pair too. The reading view hides the comment; the editor shows it as plain text; deleting it makes the card new again.</p>
+<p>This is the promise the page keeps: <strong>a vault you study in Astrolabe and in Obsidian&#39;s Spaced Repetition plugin is one vault.</strong> The plugin reads every deck note as a deck it wrote itself, and Astrolabe reads the plugin&#39;s decks as its own. Nothing about a card is stored anywhere but the note, with two exceptions that are caches rather than state: the learning steps of the open session, and the per-device log the statistics are drawn from.</p>
+<h2 id="statistics"><a class="anchor" href="#statistics">Statistics</a></h2>
+<p>Each shelf card opens a <strong>stats</strong> drawer for its deck: retention over the last thirty days (the share of grades that were <em>Good</em> or <em>Easy</em>); a forecast of how many cards come due on each of the next thirty days, computed from the schedules; the cards by state, new, learning, young (waiting less than three weeks) and mature; and the ten you have failed most often. The grades come from a log this device keeps of your last five thousand answers; the note has no history, and neither does the plugin, so a second device shows the statistics of its own sessions.</p>
+<h2 id="creating-a-deck"><a class="anchor" href="#creating-a-deck">Creating a deck</a></h2>
+<p><strong>New deck…</strong> on the shelf (also in the command palette) asks for a title, an icon, a kind and a folder (<code>Orbits/</code> unless you choose another), then gives you a box to write the cards into, one <code>front::back::extra</code> line each, with a count that updates as you type. Save writes the note and returns you to the shelf. You can just as well write the code block by hand in any note.</p>
+<p>A card from a passage you are reading: select it, open the selection menu and choose <strong>Make a card</strong>. The selection becomes the answer of a <code>?</code> block placed after the paragraph, with the cursor on the empty question line above it. Highlighting a phrase (Ctrl/Cmd ⇧ H) makes a cloze card with no menu at all.</p>
+<h3 id="importing"><a class="anchor" href="#importing">Importing</a></h3>
+<p><strong>Import…</strong> on the shelf takes an Anki package (<code>.apkg</code>) or a spreadsheet (<code>.csv</code> or <code>.tsv</code>).</p>
+<p>An <strong>Anki deck</strong> becomes one deck note per Anki deck, with its subdecks as sections. The note types are mapped to what you would have written by hand: <em>Basic</em> to <code>front::back</code>, <em>Basic (and reversed card)</em> to <code>front:::back</code>, <em>Cloze</em> to <code>==highlights==</code> in the text, and any further field to the <code>::extra</code> part. Pictures and sounds the cards use are copied into the vault&#39;s attachments folder beside the note and embedded as <code>![[file]]</code>. Anki&#39;s own scheduling, the due day, interval and ease of every card you have already studied, becomes the schedule comment, so the deck carries on where it was, not from the start. A card the note cannot hold as a line (a front the scanner would read as a heading, a quote or a table row is escaped and kept; one that still would not read back is left out) is counted and reported. Reading a <code>.apkg</code> needs Node 26 or later on the server (it uses Node&#39;s built-in SQLite); an older server says so plainly and skips the file.</p>
+<p>A <strong>CSV or TSV</strong> file shows a column mapper: choose which column is the front, which the back and, if you like, which the extra. The first row is treated as a header when it looks like one.</p>
+<p>Whatever the source, the result is a note you can open and edit like any other.</p>
+<h2 id="the-sigil-link"><a class="anchor" href="#the-sigil-link">The sigil link</a></h2>
+<p>A <a href="../sigils/">sigil</a> is where the day&#39;s plan lives, and a slot in it can name a deck with a wikilink:</p>
+<pre><code class="language-sigil">title: Japanese
+slots: review, study
 monday:
-  morning: 60 min brisk walk
-  evening: Full Body A: leg press 3×8–12, chest press 3×8–12, plank 3×45 sec
-tuesday:
-  morning: 60 min easy walk
+  review: [[Orbits/Japanese/Hiragana]] — every card due, then ten new (10 min)
 </code></pre>
-<pre><code class="language-orbit-log">2026-09-14 | done: morning, evening | Felt strong
-</code></pre>
-<p>Read it top to bottom and it says: <em>this orbit is called Daily exercise, it is an exercise, it
-wears a walking figure as its icon, each day has a morning and an evening, I am aiming for six days
-a week, and here is what Monday and Tuesday ask.</em> The log says: <em>on the 14th of September I did the
-morning and the evening, and I felt strong.</em></p>
-<p>You do not have to write any of this by hand. The <strong>New orbit</strong> form (below) writes it for you.
-But it is worth knowing that this is all there is.</p>
-<h2 id="the-plan-line-by-line"><a class="anchor" href="#the-plan-line-by-line">The plan, line by line</a></h2>
-<p>Every line is a word, a colon, and a value. Only the title is required — and even that can just be
-the first line on its own.</p>
-<div class="table"><table><thead><tr><th>Line</th><th>What you put after the colon</th><th>What it does</th></tr></thead><tbody><tr><td><code>title</code></td><td>a name</td><td>What the card is called.</td></tr><tr><td><code>kind</code></td><td><code>exercise</code> <code>habit</code> <code>prayer</code> <code>sleep</code> <code>water</code> <code>mood</code> <code>reading</code> <code>study</code> — or any word of your own</td><td>Picks the small glyph on the card and the suggestions the form offers. Synonyms in both languages are understood (<code>workout</code>, <code>salah</code>, <code>رياضة</code>, <code>صلاة</code>…). Your own word is kept as written and gets the ✦ glyph.</td></tr><tr><td><code>icon</code></td><td>one emoji or a short symbol — <code>🚶</code>, <code>☪</code>, <code>✦</code></td><td>Drawn in the card&#39;s corner instead of the kind&#39;s glyph.</td></tr><tr><td><code>banner</code></td><td>a picture — a file in the vault (<code>walk.jpg</code>, <code>Media/walk.jpg</code>) or an <code>https://</code> link</td><td>Drawn as a strip across the top of the card. It is found the same way a note&#39;s banner is: by its full path, then beside the note, then anywhere in the vault by name.</td></tr><tr><td><code>slots</code></td><td>words with commas between them — <code>morning, evening</code></td><td>The <strong>parts of a day</strong> you plan by. They become the columns of your week. Leave this line out and each day is just one line.</td></tr><tr><td><code>items</code></td><td>things with commas between them — <code>Fajr, Dhuhr, Asr, Maghrib, Isha</code>, or <code>8 glasses</code></td><td>Things asked of you <strong>every</strong> day. Each becomes a box to tick.</td></tr><tr><td>a weekday</td><td><code>monday: 60 min walk</code> — or <code>monday:</code> on its own with the parts indented under it</td><td>What that day asks. Weekdays are understood in English and Arabic, long or short (<code>mon</code>, <code>الاثنين</code>). A day with nothing under it is a <strong>rest day</strong>: it never counts against you.</td></tr><tr><td><code>fields</code></td><td>things to record, with commas between them — see <a href="#what-to-record-each-day">What to record each day</a></td><td>The small inputs on the card: a number, a rating, a line of text.</td></tr><tr><td><code>target</code></td><td>a number of days — <code>6/week</code>, or just <code>6</code></td><td>How many days a week you are aiming for. The card counts against it: <em>3 of 6 this week</em>. Without it, the card counts the days the plan actually asks something of.</td></tr><tr><td><code>book</code></td><td>the title of a book you are <a href="../trackers/">tracking</a> — <code>[[…]]</code> is fine</td><td>Adds <strong>Read N pages of it</strong> to every day, N being the tracker&#39;s pace. Ticking it moves the tracker forward; unticking moves it back.</td></tr><tr><td><code>notes</code></td><td><code>notes: |</code> and then lines indented under it</td><td>Anything you want to remember about this orbit — why you started, the rules you set yourself. Shown under the card.</td></tr></tbody></table></div><p>A block with <strong>no title and no plan at all</strong> stays a plain code block, so a half-typed orbit reads as
-what you typed rather than vanishing into an empty card. One note can hold several orbits; each one
-takes the log block that follows it.</p>
-<h2 id="what-to-record-each-day"><a class="anchor" href="#what-to-record-each-day">What to record each day</a></h2>
-<p>Ticking boxes tells you <em>whether</em> you did something. Sometimes you also want to write down <em>how
-much</em>, or <em>how it went</em>. That is what fields are: small inputs on the card, one per day, each with
-its own column in the log.</p>
-<p>The form offers the common ones as toggles, each with a sentence saying what it means:</p>
+<p>On the sigil&#39;s card that slot shows the deck by name and wears a small chip after its text, <em>12 due · Study</em>, that opens the session. When a session for that deck ends with nothing left due today, the app ticks the slot for you, through the same log line the checkbox writes. A slot that names several decks is ticked when none of them has a card due. The Sigils page&#39;s own line, <em>N due in Orbits</em>, opens the shelf.</p>
+<h2 id="related"><a class="anchor" href="#related">Related</a></h2>
 <ul>
-<li><strong>Minutes</strong> — how long it took, as a number.</li>
-<li><strong>Weight</strong> — your weight that day, a number with a unit (<code>kg</code> by default; change it if you like).</li>
-<li><strong>Focus</strong> — how focused you were, rated from 1 (scattered) to 5 (fully there).</li>
-<li><strong>Mood</strong> — how you felt, 1 (low) to 5 (great).</li>
-<li><strong>Energy</strong> — how much energy you had, 1 to 5.</li>
-<li><strong>Water</strong> — how much you drank, as a count of glasses.</li>
-<li><strong>Pages</strong> — how many pages you read.</li>
-<li><strong>Hours</strong> — how many hours, of sleep or of work.</li>
-<li><strong>Quality</strong> — how good it was, 1 to 5.</li>
-<li><strong>Notes</strong> — a line of text about the day.</li>
+<li><a href="../sigils/">Sigils</a> — the day&#39;s page, where due cards appear and where a slot can point at a deck</li>
+<li><a href="../books/">The PDF reader</a> — citations that arrive as quote cards</li>
+<li><a href="../editor/">The editor &amp; reading view</a> — highlights, callouts and the selection menu</li>
 </ul>
-<p><strong>None of them is required.</strong> A template such as <em>Exercise</em> pre-ticks Minutes and Weight because
-many people want them; untick either and it is gone. Anything not on the list is yours to add under
-<strong>Your own fields</strong>: give it a name and say what kind of value it holds:</p>
-<div class="table"><table><thead><tr><th>Kind of value</th><th>Means</th><th>Written in the plan as</th></tr></thead><tbody><tr><td>Number</td><td>any number, decimals allowed — 62, 84.2</td><td><code>weight:number:kg</code> (the unit is optional)</td></tr><tr><td>Count</td><td>whole things you count — 3 glasses, 20 pages</td><td><code>water:count:glasses</code></td></tr><tr><td>Rating</td><td>a mark from 1 to a ceiling you choose</td><td><code>focus:scale:5</code></td></tr><tr><td>Text</td><td>a line of words</td><td><code>soreness:text</code></td></tr><tr><td>Yes / no</td><td>a single box: did it happen</td><td><code>stretched:check</code></td></tr></tbody></table></div><p>On the card, a rating is a row of numbered buttons: click one to set it, click it again to clear
-it. Hover a field&#39;s name and it tells you what it means — the same sentence the form showed you.</p>
-<h2 id="the-log"><a class="anchor" href="#the-log">The log</a></h2>
-<p>One line per day. Astrolabe writes these lines when you tick and type on the card, but they are
-made to be read — and edited — by a person:</p>
-<pre><code>2026-09-14 | done: morning, evening | skipped: stretch | minutes: 62 | weight: 84.2 | Felt strong
-</code></pre>
-<p>Reading left to right, separated by <code>|</code>:</p>
-<ul>
-<li>the <strong>date</strong> opens the line (Eastern Arabic digits are fine too);</li>
-<li><code>done:</code> names what you ticked — a part of the day (<code>morning</code>), an every-day item (<code>Fajr</code>), or
-the weekday itself when the day was a single line (<code>sunday</code>);</li>
-<li><code>skipped:</code> names what you passed on <strong>on purpose</strong> — the day still counts as missed, but the log
-remembers why;</li>
-<li>anything whose name is one of your fields sets that field;</li>
-<li>whatever is left is the day&#39;s <strong>note</strong>.</li>
-</ul>
-<p>Lines that do not start with a date are ignored, the last line for a date wins, and Astrolabe keeps
-the lines in date order when it writes. Whatever you typed by hand survives to the byte; the app
-only ever replaces the one line it is recording.</p>
-<h2 id="the-card"><a class="anchor" href="#the-card">The card</a></h2>
-<p>The plan turns into a card wherever the note is shown — in the editor, in reading view, on your
-published site, inside a transclusion — always the same card:</p>
-<ul>
-<li><strong>The head</strong>: the icon (or the kind&#39;s glyph), the name, and the banner strip above them if you set
-one.</li>
-<li><strong>Today</strong>: the date, the day&#39;s checklist (every-day items first, then the day&#39;s parts with what
-each asks), the fields, and a one-line note. In the editor, ticking a box rewrites the log as
-<strong>one undo step</strong>. Hover a task for <em>skip</em>.</li>
-<li><strong>Three numbers</strong>: the <strong>streak</strong> (complete days in a row — rest days do not break it, and a day
-that is not over yet neither adds nor breaks), <strong>this week</strong> (<code>3/6</code>, against your target), and
-the <strong>last 30 days</strong> as a percentage.</li>
-<li><strong>The week</strong>: seven dots, today ringed — full for complete, half for partly done, red-rimmed for
-missed, hollow for a rest day. The week starts on Monday for an English site and on Saturday for
-an Arabic one.</li>
-<li><strong>Twelve weeks</strong>: a small grid, one cell per day, coloured by how much of the day you did.
-Hatched cells are rest days; today is ringed.</li>
-<li><strong>The week&#39;s plan</strong>, folded away under a heading: each day and its parts, today&#39;s row lit.</li>
-</ul>
-<p>The log block renders as a table of the days, newest first: the date with its status dot, what was
-done, each field, the note.</p>
-<p>Reading view and the public site show the card without its controls. A visitor cannot write to
-your note, and a box that cannot be ticked would be a box that lies.</p>
-<h2 id="the-orbits-page"><a class="anchor" href="#the-orbits-page">The Orbits page</a></h2>
-<p>The orbit button in the status bar (the small body on its ring, beside the settings gear; admins
-only — or <strong>Open the Orbits page</strong> in the command palette) opens every orbit in the vault as
-today&#39;s checklists, in a tab in the current pane. The address is <code>/orbits</code> (<code>/routines</code> still gets
-you there). The line under the heading counts the day: <em>3 of 5 complete today</em>.</p>
-<p>A tick on this page goes to the note the orbit lives in, by the very same edit the editor would
-make, so the page and the editor never disagree about what the log says. The page re-reads on
-every change to the vault, so a box ticked in the editor shows here at once.</p>
-<p>Each card has <strong>Edit</strong> (the form, filled in), <strong>Delete</strong> (the note goes to the trash through the
-same dialog the tree uses), and its name opens the note. One orbit spans the whole row, with the
-week strip beside the twelve-week grid; two share a row; more wrap in pairs.</p>
-<h2 id="new-orbit-the-form"><a class="anchor" href="#new-orbit-the-form">New orbit — the form</a></h2>
-<p><strong>New orbit</strong> opens a sheet in four parts.</p>
-<p><strong>Start from.</strong> A row of templates. <strong>Custom</strong> starts from nothing and lets you choose each part
-yourself. The built-in ones fill the sheet in: <em>Exercise</em> (a whole week of morning walks and evening
-full-body sessions), <em>Habits</em>, <em>Prayers</em> (the five, every day, with a count of those prayed in
-congregation), <em>Sleep</em> (hours, quality, bedtime), <em>Water</em>, <em>Mood</em> (mood, energy, gratitude),
-<em>Reading</em>, <em>Study</em> — each in your site&#39;s language. Under them, <strong>Your templates</strong>: any note in the
-<a href="../templates-and-notes/">templates folder</a> that carries an <code>```orbit</code> block. A template only
-fills the sheet in; everything on it stays yours to change.</p>
-<ol>
-<li><strong>Name and look.</strong> The name; the kind (or your own word); the <strong>icon</strong> — a shelf of forty
-glyphs, or type any emoji or short symbol; the <strong>banner</strong> — a picture from the vault, chosen from
-a list as you type, or <strong>Choose…</strong> to upload one.</li>
-<li><strong>Days and parts.</strong> The parts of a day (<code>morning, evening</code>); the things asked of every day; and
-a table — one row per weekday, one column per part — where you write what each day asks. Leave a
-day blank and it is a rest day.</li>
-<li><strong>What to record each day.</strong> The toggles described above, each with its sentence, plus <strong>Your
-own fields</strong>. Tick only what you actually want to write down.</li>
-<li><strong>Target and notes.</strong> Days a week you are aiming for; a book you are tracking; notes.</li>
-</ol>
-<p><strong>Save</strong> writes one note:</p>
-<pre><code>Orbits/Daily exercise.md
-</code></pre>
-<p>holding the name as frontmatter, the plan block and an empty log block. On an Arabic site the
-folder is <code>مدارات</code>; a vault that already has a <code>Routines/</code> or <code>روتين/</code> folder from before 3.15
-keeps filing there. A name that already has a note is refused rather than overwritten. Editing from
-the page rewrites <strong>only the plan block</strong> — the log under it and any prose around it stay exactly as
-they were, byte for byte. <strong>Save as template</strong> writes the same note into the templates folder
-instead, so an orbit you drew up once can seed the next.</p>
-<h2 id="in-the-editor"><a class="anchor" href="#in-the-editor">In the editor</a></h2>
-<p>Type <code>```orbit</code> by hand, or <code>/orbit</code> from the slash menu for a skeleton. With the caret outside
-the block you see the card; put the caret inside and it is source again, so the plan can be edited
-in place. The log block behaves the same way.</p>
-<h2 id="in-obsidian"><a class="anchor" href="#in-obsidian">In Obsidian</a></h2>
-<p><code>orbit</code> is an Astrolabe extension. In Obsidian the two blocks are labelled code blocks whose lines
-are all readable — nothing is converted and nothing is lost. See
-<a href="https://github.com/ZahakJ/astrolabe/blob/main/OBSIDIAN-COMPAT.md" target="_blank" rel="noreferrer">OBSIDIAN-COMPAT.md</a>.</p>
+<p>A kanji deck built from <a href="https://www.edrdg.org/kanjidic/kanjd2index.html" target="_blank" rel="noreferrer">KANJIDIC2</a>, as the author&#39;s own were, carries the dictionary&#39;s meanings and readings, © the Electronic Dictionary Research and Development Group, used under the CC BY-SA 4.0 licence; say so in the note&#39;s frontmatter, as they do.</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/orbits.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
-    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/trackers/"><span class="pager__kicker">Previous</span><span class="pager__title">Trackers</span></a><a class="pager__link pager__link--next" href="../../en/flashcards/"><span class="pager__kicker">Next</span><span class="pager__title">Flashcards</span></a></nav>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/sigils/"><span class="pager__kicker">Previous</span><span class="pager__title">Sigils</span></a><a class="pager__link pager__link--next" href="../../en/drawing/"><span class="pager__kicker">Next</span><span class="pager__title">Drawings</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#what-an-orbit-looks-like-in-the-note">What an orbit looks like in the note</a><a class="toc__link toc__link--2" href="#the-plan-line-by-line">The plan, line by line</a><a class="toc__link toc__link--2" href="#what-to-record-each-day">What to record each day</a><a class="toc__link toc__link--2" href="#the-log">The log</a><a class="toc__link toc__link--2" href="#the-card">The card</a><a class="toc__link toc__link--2" href="#the-orbits-page">The Orbits page</a><a class="toc__link toc__link--2" href="#new-orbit-the-form">New orbit — the form</a><a class="toc__link toc__link--2" href="#in-the-editor">In the editor</a><a class="toc__link toc__link--2" href="#in-obsidian">In Obsidian</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-note">The note</a><a class="toc__link toc__link--3" href="#kinds">Kinds</a><a class="toc__link toc__link--3" href="#what-already-counts-as-a-card">What already counts as a card</a><a class="toc__link toc__link--2" href="#studying">Studying</a><a class="toc__link toc__link--3" href="#learning-steps-and-the-daily-limit">Learning steps and the daily limit</a><a class="toc__link toc__link--2" href="#where-the-schedule-lives">Where the schedule lives</a><a class="toc__link toc__link--2" href="#statistics">Statistics</a><a class="toc__link toc__link--2" href="#creating-a-deck">Creating a deck</a><a class="toc__link toc__link--3" href="#importing">Importing</a><a class="toc__link toc__link--2" href="#the-sigil-link">The sigil link</a><a class="toc__link toc__link--2" href="#related">Related</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

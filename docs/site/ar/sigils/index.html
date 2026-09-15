@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>السِّجِلّ · دليل أسطرلاب</title>
+<meta name="description" content="الأشياء التي تعود إليها كل يوم: خطة لكل يوم، وسجلّ لما فعلته، وصفحة تسألك كل صباح.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
+  <a class="top__brand" href="../../ar/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> <span class="top__docs">دليل</span> أسطرلاب</a>
+  <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../en/sigils/" hreflang="en">English</a>
+  <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a><a class="nav__link" href="../../ar/offline/">القراءة دون اتصال</a><a class="nav__link" href="../../ar/export/">التصدير</a><a class="nav__link" href="../../ar/desktop/">تطبيق سطح المكتب</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link is-current" href="../../ar/sigils/">السِّجِلّ</a><a class="nav__link" href="../../ar/orbits/">المدارات</a><a class="nav__link" href="../../ar/drawing/">الرسومات</a><a class="nav__link" href="../../ar/books/">قارئ PDF</a><a class="nav__link" href="../../ar/workspace/">اللوحات والتبويبات والنوافذ</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a><a class="nav__link" href="../../ar/japanese/">اليابانية والفوريغانا</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="الس-ج-ل">السِّجِلّ</h1>
+<p><em>الأشياء التي تعود إليها كل يوم: خطة لكل يوم، وسجلّ لما فعلته، وصفحة تسألك كل صباح.</em></p>
+<hr>
+<p>في الحياة أشياء ليست مشاريع. لا تنتهي أبدًا. أنت لا «تُكمل» المشي، ولا الصلاة، ولا النوم الجيد؛ بل تحافظ عليها، يومًا بعد يوم، وكل يوم حافظت عليه يوم تضع عليه ختمك. هذا هو <strong>السِّجِلّ</strong> في أسطرلاب: شيء تفعله يومًا بيوم، وله بطاقة تريك ما يطلبه منك اليوم، وتدعك تعلّم عليه حين تنجزه، وتحسب لك كيف تمضي الأيام: سلسلتك المتصلة، وهذا الأسبوع، والأسابيع الاثنا عشر الأخيرة في شبكة صغيرة ملوّنة. والكلمة من اللاتينية <em>sigillum</em>، الختم، ولها في العربية الجذر نفسه، <em>سِجِلّ</em>، وهو أيضًا الدفتر الذي تُقيَّد فيه الأيام؛ وذلك بالضبط ما هو السجل أدناه.</p>
+<p><a href="../trackers/">المتتبِّع</a> بطاقة عن شيء واحد تمضي <em>فيه</em> (كتاب، لعبة، دورة) وكم قطعت منه. أما السِّجِلّ فبطاقة عن <em>أيامك</em>. أسبوع تمارين، الصلوات الخمس، النوم، الماء، يوميات المزاج، عشرون صفحة كل ليلة؛ أي شيء تنوي أن تفعله غدًا من جديد.</p>
+<p>كل ما يعرفه السِّجِلّ يعيش في ملاحظة عادية واحدة في خزانتك: <strong>الخطة</strong> (ما تنوي فعله) و<strong>السجل</strong> (ما فعلته). لا قاعدة بيانات مخفية. علّم على مربع فيتغير سطر واحد في ملفك؛ وعدّل السطر بيدك فتتبعه البطاقة. افتح الخزانة نفسها في Obsidian فتجد الجزأين كتلتي كود واضحتين تقولان بالضبط ما تقولانه هنا.</p>
+<blockquote>
+<p>غيّرت هذه الميزة اسمها مرتين: كانت <em>الروتين</em> حتى الإصدار 3.14 (والكتلتان <code>```routine</code> و<code>```routine-log</code>)، ثم *المدارات* في 3.15 (<code>```orbit</code> و<code>```orbit-log</code>)، قبل أن يمنح الإصدار 3.16 كلمة المدارات <a href="../orbits/">للتكرار المتباعد</a>، حيث تعود البطاقة في مدارها. الملاحظات الأقدم المكتوبة بـ<code>routine</code> أو <code>orbit</code> ما زالت تعمل، في كل ملاحظة عندك؛ لا شيء يحتاج إلى إعادة تسمية. أما السِّجِلّات الجديدة فتُكتب بالأسماء التي تراها أدناه. <!-- lineage --></p>
+</blockquote>
+<h2 id="كيف-يبدو-الس-ج-ل-في-الملاحظة"><a class="anchor" href="#كيف-يبدو-الس-ج-ل-في-الملاحظة">كيف يبدو السِّجِلّ في الملاحظة</a></h2>
+<p>كتلتان. الأولى هي الخطة؛ والثانية، السجل، يكتبها أسطرلاب تحتها مباشرة أول مرة تعلّم فيها على شيء.</p>
+<pre><code class="language-sigil">title: Daily exercise
+kind: exercise
+icon: 🚶
+slots: morning, evening
+target: 6/week
+monday:
+  morning: 60 min brisk walk
+  evening: Full Body A: leg press 3×8–12, chest press 3×8–12, plank 3×45 sec
+tuesday:
+  morning: 60 min easy walk
+</code></pre>
+<pre><code class="language-sigil-log">2026-09-14 | done: morning, evening | Felt strong
+</code></pre>
+<p>اقرأها من أعلى إلى أسفل فتقول: <em>هذا سِجِلّ اسمه «تمارين يومية»، نوعه رياضة، رمزه شخص يمشي، لكل يوم صباح ومساء، أستهدف ستة أيام في الأسبوع، وهذا ما يطلبه الاثنين والثلاثاء.</em> ويقول السجل: <em>في الرابع عشر من سبتمبر أنجزت الصباح والمساء، وشعرت بقوة.</em></p>
+<p>لست مضطرًا إلى كتابة شيء من هذا بيدك؛ فنموذج <strong>سِجِلّ جديد</strong> (أدناه) يكتبه لك. لكن من المفيد أن تعرف أن هذا كل ما في الأمر.</p>
+<h2 id="الخطة-سطر-ا-سطر-ا"><a class="anchor" href="#الخطة-سطر-ا-سطر-ا">الخطة سطرًا سطرًا</a></h2>
+<p>كل سطر كلمة، ثم نقطتان، ثم قيمة. العنوان وحده مطلوب، وحتى هو يكفي أن يكون السطر الأول وحده.</p>
+<div class="table"><table><thead><tr><th>السطر</th><th>ما تكتبه بعد النقطتين</th><th>ما يفعله</th></tr></thead><tbody><tr><td><code>title</code></td><td>اسم</td><td>اسم البطاقة.</td></tr><tr><td><code>kind</code></td><td><code>exercise</code> <code>habit</code> <code>prayer</code> <code>sleep</code> <code>water</code> <code>mood</code> <code>reading</code> <code>study</code>، أو أي كلمة من عندك</td><td>يختار الرمز الصغير على البطاقة والاقتراحات التي يعرضها النموذج. المرادفات باللغتين مفهومة (<code>workout</code>، <code>salah</code>، <code>رياضة</code>، <code>صلاة</code>…). كلمتك الخاصة تبقى كما كتبتها وتأخذ الرمز ✦.</td></tr><tr><td><code>icon</code></td><td>إيموجي واحد أو رمز قصير: <code>🚶</code>، <code>☪</code>، <code>✦</code></td><td>يُرسم في زاوية البطاقة بدل رمز النوع.</td></tr><tr><td><code>banner</code></td><td>صورة: ملف في الخزانة (<code>walk.jpg</code>، <code>Media/walk.jpg</code>) أو رابط <code>https://</code></td><td>تُرسم شريطًا أعلى البطاقة. يُعثر عليها كما يُعثر على لافتة الملاحظة: بمسارها الكامل، ثم بجوار الملاحظة، ثم في أي مكان في الخزانة باسمها.</td></tr><tr><td><code>slots</code></td><td>كلمات بينها فواصل: <code>morning, evening</code> أو <code>صباحًا، مساءً</code></td><td><strong>أجزاء اليوم</strong> التي تخطط بها. تصير أعمدة أسبوعك. احذف هذا السطر فيكون كل يوم سطرًا واحدًا فقط.</td></tr><tr><td><code>items</code></td><td>بنود بينها فواصل: <code>الفجر، الظهر، العصر، المغرب، العشاء</code>، أو <code>8 أكواب</code></td><td>ما يُطلب منك <strong>كل</strong> يوم. كل بند يصير مربعًا تعلّم عليه.</td></tr><tr><td>يوم من الأسبوع</td><td><code>monday: 60 min walk</code>، أو <code>الاثنين:</code> وحده وتحته الأجزاء بمسافة بادئة</td><td>ما يطلبه ذلك اليوم. أيام الأسبوع مفهومة بالعربية والإنجليزية، كاملة أو مختصرة (<code>mon</code>، <code>الاثنين</code>). اليوم الذي لا شيء تحته <strong>يوم راحة</strong>، ولا يُحسب عليك أبدًا.</td></tr><tr><td><code>fields</code></td><td>أشياء تسجّلها، بينها فواصل؛ انظر «ما تسجّله كل يوم» أدناه</td><td>المدخلات الصغيرة على البطاقة: رقم، أو تقييم، أو سطر نص.</td></tr><tr><td><code>target</code></td><td>عدد أيام: <code>6/week</code>، أو <code>6</code> فقط</td><td>كم يومًا في الأسبوع تستهدف. تحسب البطاقة عليه: <em>3 من 6 هذا الأسبوع</em>. بدونه تحسب البطاقة الأيام التي تطلب فيها الخطة شيئًا فعلًا.</td></tr><tr><td><code>book</code></td><td>عنوان كتاب <a href="../trackers/">تتابعه</a>، و<code>[[…]]</code> مقبول</td><td>يضيف إلى كل يوم <strong>اقرأ N صفحة منه</strong>، وN وتيرة المتتبِّع. التعليم عليه يقدّم المتتبِّع، وإلغاؤه يرجعه.</td></tr><tr><td><code>notes</code></td><td><code>notes: |</code> ثم أسطر تحته بمسافة بادئة</td><td>أي شيء تريد تذكّره عن هذا السِّجِلّ: لماذا بدأت، والقواعد التي وضعتها لنفسك. يظهر تحت البطاقة.</td></tr></tbody></table></div><p>الكتلة التي <strong>لا عنوان فيها ولا خطة أصلًا</strong> تبقى كتلة كود عادية، فالسِّجِلّ نصف المكتوب يُقرأ كما كتبته بدل أن يختفي في بطاقة فارغة. ويمكن أن تحمل الملاحظة الواحدة عدة سِجِلّات؛ كل واحد يأخذ كتلة السجل التي تليه.</p>
+<h2 id="ما-تسج-له-كل-يوم"><a class="anchor" href="#ما-تسج-له-كل-يوم">ما تسجّله كل يوم</a></h2>
+<p>التعليم على المربعات يخبرك <em>هل</em> فعلت الشيء. وأحيانًا تريد أيضًا أن تدوّن <em>كم</em>، أو <em>كيف جرى</em>. هذه هي الحقول: مدخلات صغيرة على البطاقة، واحدة لكل يوم، ولكل منها عمودها في السجل.</p>
+<p>يعرض النموذج الحقول الشائعة على هيئة مفاتيح، وتحت كل مفتاح جملة تقول ما معناه:</p>
+<ul>
+<li><strong>الدقائق</strong>: كم استغرق الأمر، رقمًا.</li>
+<li><strong>الوزن</strong>: وزنك في ذلك اليوم، رقم مع وحدة (<code>كغ</code> افتراضيًا، وغيّرها إن شئت).</li>
+<li><strong>التركيز</strong>: كم كنت مركّزًا، بدرجة من 1 (مشتّت) إلى 5 (حاضر تمامًا).</li>
+<li><strong>المزاج</strong>: كيف كان شعورك، من 1 (متعب) إلى 5 (ممتاز).</li>
+<li><strong>الطاقة</strong>: كم كانت طاقتك، من 1 إلى 5.</li>
+<li><strong>الماء</strong>: كم شربت، عددًا من الأكواب.</li>
+<li><strong>الصفحات</strong>: كم صفحة قرأت.</li>
+<li><strong>الساعات</strong>: كم ساعة، من النوم أو العمل.</li>
+<li><strong>الجودة</strong>: كم كان الأمر جيدًا، من 1 إلى 5.</li>
+<li><strong>ملاحظات</strong>: سطر عن اليوم.</li>
+</ul>
+<p><strong>لا شيء منها إلزامي.</strong> قالب مثل <em>رياضة</em> يعلّم مسبقًا على الدقائق والوزن لأن كثيرين يريدونهما؛ ألغِ التعليم على أيهما فيختفي. وما ليس في القائمة تضيفه بنفسك تحت <strong>حقولك الخاصة</strong>: سمّه، وقل أي نوع من القيم يحمل:</p>
+<div class="table"><table><thead><tr><th>نوع القيمة</th><th>معناه</th><th>يُكتب في الخطة هكذا</th></tr></thead><tbody><tr><td>رقم</td><td>أي رقم، والكسور مسموحة: 62، 84.2</td><td><code>weight:number:kg</code> (الوحدة اختيارية)</td></tr><tr><td>عدد</td><td>أشياء كاملة تعدّها: 3 أكواب، 20 صفحة</td><td><code>water:count:glasses</code></td></tr><tr><td>تقييم</td><td>درجة من 1 إلى سقف تختاره</td><td><code>focus:scale:5</code></td></tr><tr><td>نص</td><td>سطر من الكلمات</td><td><code>soreness:text</code></td></tr><tr><td>نعم / لا</td><td>مربع واحد: هل حدث</td><td><code>stretched:check</code></td></tr></tbody></table></div><p>على البطاقة يظهر التقييم صفًّا من الأزرار المرقّمة: انقر أحدها لتضبطه، وانقره ثانيةً لتمسحه. ومرّر المؤشر فوق اسم أي حقل فيخبرك ما معناه، بالجملة نفسها التي أراك إياها النموذج.</p>
+<h2 id="السجل"><a class="anchor" href="#السجل">السجل</a></h2>
+<p>سطر واحد لكل يوم. يكتب أسطرلاب هذه الأسطر حين تعلّم وتكتب على البطاقة، لكنها مصنوعة ليقرأها إنسان، ويعدّلها:</p>
+<pre><code>2026-09-14 | done: morning, evening | skipped: stretch | minutes: 62 | weight: 84.2 | Felt strong
+</code></pre>
+<p>اقرأه جزءًا جزءًا، والفاصل بين الأجزاء <code>|</code>:</p>
+<ul>
+<li><strong>التاريخ</strong> يفتح السطر (والأرقام العربية المشرقية مقبولة أيضًا)؛</li>
+<li><code>done:</code> يسمّي ما علّمت عليه: جزءًا من اليوم (<code>morning</code>)، أو بندًا يوميًا (<code>الفجر</code>)، أو اليوم نفسه إن كان سطرًا واحدًا (<code>sunday</code>)؛</li>
+<li><code>skipped:</code> يسمّي ما تجاوزته <strong>عمدًا</strong>؛ يبقى اليوم محسوبًا فائتًا، لكن السجل يتذكر السبب؛</li>
+<li>أي جزء اسمه أحد حقولك يضبط ذلك الحقل؛</li>
+<li>وما بقي هو <strong>ملاحظة</strong> اليوم.</li>
+</ul>
+<p>الأسطر التي لا تبدأ بتاريخ تُهمل، وآخر سطر لتاريخ ما هو الذي يُعتمد، ويحفظ أسطرلاب الأسطر بترتيب التاريخ حين يكتب. كل ما كتبته بيدك يبقى حرفًا بحرف؛ التطبيق لا يستبدل إلا السطر الواحد الذي يسجّله.</p>
+<h2 id="البطاقة"><a class="anchor" href="#البطاقة">البطاقة</a></h2>
+<p>تتحول الخطة إلى بطاقة أينما عُرضت الملاحظة: في المحرر، وفي عرض القراءة، وعلى موقعك المنشور، وداخل تضمين؛ وهي دائمًا البطاقة نفسها:</p>
+<ul>
+<li><strong>الرأس</strong>: الرمز (أو رمز النوع)، والاسم، وفوقهما شريط اللافتة إن وضعت واحدة.</li>
+<li><strong>اليوم</strong>: التاريخ، وقائمة اليوم (البنود اليومية أولًا، ثم أجزاء اليوم وما يطلبه كل جزء)، والحقول، وملاحظة من سطر واحد. في المحرر، التعليم على مربع يعيد كتابة السجل في <strong>خطوة تراجع واحدة</strong>. مرّر المؤشر فوق مهمة لترى <em>تخطٍّ</em>. والجزء الذي يربط نصه مجموعة مذاكرة برابط ويكي، <code>review: [[Orbits/Hiragana]]</code>، يعرض المجموعة باسمها ويلبس شريحة صغيرة، <em>12 مستحقة · ادرس</em>، تفتح الجلسة؛ وحين لا تترك الجلسة شيئًا مستحقًا يُعلَّم الجزء نيابة عنك (انظر <a href="../orbits/">المدارات</a>).</li>
+<li><strong>ثلاثة أرقام</strong>: <strong>السلسلة</strong> (أيام مكتملة متتالية؛ أيام الراحة لا تقطعها، واليوم الذي لم ينتهِ بعد لا يزيدها ولا يقطعها)، و<strong>هذا الأسبوع</strong> (<code>3/6</code> مقابل هدفك)، و<strong>آخر 30 يومًا</strong> نسبةً مئوية.</li>
+<li><strong>الأسبوع</strong>: سبع نقاط، واليوم محاط بحلقة؛ ممتلئة للمكتمل، ونصف ممتلئة لما أُنجز جزئيًا، وحمراء الحافة للفائت، وفارغة ليوم الراحة. يبدأ الأسبوع بالاثنين في الموقع الإنجليزي وبالسبت في الموقع العربي.</li>
+<li><strong>اثنا عشر أسبوعًا</strong>: شبكة صغيرة، خلية لكل يوم، لونها بقدر ما أنجزت في ذلك اليوم. الخلايا المخطّطة أيام راحة، واليوم محاط بحلقة.</li>
+<li><strong>خطة الأسبوع</strong>، مطوية تحت عنوان: كل يوم وأجزاؤه، وصفّ اليوم مضاء.</li>
+</ul>
+<p>وتُعرض كتلة السجل جدولًا للأيام، الأحدث أولًا: التاريخ ونقطة حالته، وما أُنجز، وكل حقل، والملاحظة.</p>
+<p>عرض القراءة والموقع العام يعرضان البطاقة بلا أدواتها. الزائر لا يستطيع الكتابة في ملاحظتك، والمربع الذي لا يمكن التعليم عليه مربع يكذب.</p>
+<h2 id="صفحة-الس-ج-ل"><a class="anchor" href="#صفحة-الس-ج-ل">صفحة السِّجِلّ</a></h2>
+<p>زر الختم في شريط الحالة (حلقة بداخلها علامة صغيرة، بجوار ترس الإعدادات؛ للمشرفين فقط، أو <strong>فتح السِّجِلّ</strong> من لوحة الأوامر، أو <strong>السِّجِلّ</strong> من قائمة ⋯ على الهاتف) يفتح كل سِجِلّات الخزانة على هيئة قوائم اليوم، في تبويب داخل اللوحة الحالية. عنوانها <code>/sigils</code> (و<code>/routines</code> ما زال يوصلك إليها). والسطر تحت العنوان يحسب اليوم: <em>3 من 5 مكتمل اليوم</em>؛ وحين تكون بطاقات مستحقة في <a href="../orbits/">المدارات</a> يقول سطر ثانٍ كم هي ويفتح الرف. <!-- lineage --></p>
+<p>التعليم في هذه الصفحة يذهب إلى الملاحظة التي يعيش فيها السِّجِلّ، بالتعديل نفسه الذي يجريه المحرر، فلا تختلف الصفحة والمحرر أبدًا على ما يقوله السجل. وتعيد الصفحة القراءة عند كل تغيير في الخزانة، فالمربع الذي علّمت عليه في المحرر يظهر هنا فورًا.</p>
+<p>لكل بطاقة <strong>تعديل</strong> (النموذج معبّأ)، و<strong>حذف</strong> (تذهب الملاحظة إلى سلة المهملات عبر الحوار نفسه الذي تستخدمه الشجرة)، واسمها يفتح الملاحظة. السِّجِلّ الواحد يمتد على الصف كله، وشريط الأسبوع بجوار شبكة الأسابيع الاثني عشر؛ والاثنان يتقاسمان صفًّا؛ وما زاد يلتف أزواجًا.</p>
+<h2 id="س-ج-ل-جديد-النموذج"><a class="anchor" href="#س-ج-ل-جديد-النموذج">سِجِلّ جديد: النموذج</a></h2>
+<p>يفتح <strong>سِجِلّ جديد</strong> صفحة من أربعة أقسام.</p>
+<p><strong>ابدأ من.</strong> صف من القوالب. <strong>مخصص</strong> يبدأ من لا شيء ويدعك تختار كل جزء بنفسك. أما القوالب المدمجة فتملأ الصفحة: <em>رياضة</em> (أسبوع كامل من مشي الصباح وتمارين المساء لكامل الجسم)، <em>عادات</em>، <em>صلاة</em> (الخمس، كل يوم، مع عدد ما صليته في جماعة)، <em>نوم</em> (ساعات، جودة، وقت النوم)، <em>ماء</em>، <em>مزاج</em> (المزاج، الطاقة، الامتنان)، <em>قراءة</em>، <em>دراسة</em>؛ كلٌّ بلغة موقعك. وتحتها <strong>قوالبك</strong>: أي ملاحظة في <a href="../templates-and-notes/">مجلد القوالب</a> تحمل كتلة <code>```sigil</code>. القالب يملأ الصفحة فقط؛ وكل ما فيها يبقى لك أن تغيّره.</p>
+<ol>
+<li><strong>الاسم والمظهر.</strong> الاسم؛ والنوع (أو كلمتك الخاصة)؛ و<strong>الرمز</strong>: رفّ من أربعين رمزًا، أو اكتب أي إيموجي أو رمز قصير؛ و<strong>اللافتة</strong>: صورة من الخزانة تُقترح عليك وأنت تكتب، أو <strong>اختر…</strong> لترفع واحدة.</li>
+<li><strong>الأيام والأجزاء.</strong> أجزاء اليوم (<code>صباحًا، مساءً</code>)؛ وما يُطلب كل يوم؛ وجدول، صف لكل يوم من الأسبوع وعمود لكل جزء، تكتب فيه ما يطلبه كل يوم. اترك يومًا فارغًا فيكون يوم راحة.</li>
+<li><strong>ما تسجّله كل يوم.</strong> المفاتيح المشروحة أعلاه، تحت كل منها جملته، ثم <strong>حقولك الخاصة</strong>. علّم فقط على ما تريد تدوينه فعلًا.</li>
+<li><strong>الهدف والملاحظات.</strong> كم يومًا في الأسبوع تستهدف؛ وكتاب تتابعه؛ وملاحظات.</li>
+</ol>
+<p><strong>حفظ</strong> يكتب ملاحظة واحدة:</p>
+<pre><code>سجل/تمارين يومية.md
+</code></pre>
+<p>تحمل الاسم في الترويسة، وكتلة الخطة، وكتلة سجل فارغة. في الموقع الإنجليزي المجلد هو <code>Sigils</code>؛ والخزانة التي فيها أصلًا مجلد <code>Routines/</code> أو <code>روتين/</code> من قبل الإصدار 3.15 تواصل الحفظ فيه. أما خزانة من 3.15 كانت تحفظ في <code>Orbits/</code> فلا: ذلك المجلد صار حيث تعيش مجموعات المذاكرة، فالسِّجِلّ التالي يبدأ مجلد <code>Sigils/</code>، وما في <code>Orbits/</code> يواصل العمل حيث هو. والاسم الذي له ملاحظة بالفعل يُرفض بدل أن يُستبدل. والتعديل من الصفحة يعيد كتابة <strong>كتلة الخطة وحدها</strong>؛ فالسجل تحتها وأي نص حولها يبقيان كما كانا حرفًا بحرف. و<strong>احفظ كقالب</strong> يكتب الملاحظة نفسها في مجلد القوالب بدلًا من ذلك، فالسِّجِلّ الذي رسمته مرة يصلح بذرة لسِجِلّ جديد. <!-- lineage --></p>
+<h2 id="في-المحرر"><a class="anchor" href="#في-المحرر">في المحرر</a></h2>
+<p>اكتب <code>```sigil</code> بيدك، أو <code>/sigil</code> من قائمة الشرطة المائلة لتحصل على هيكل جاهز. حين يكون المؤشر خارج الكتلة ترى البطاقة؛ وحين تضعه داخلها تعود مصدرًا، فتعدّل الخطة في مكانها. وكتلة السجل تتصرف بالطريقة نفسها.</p>
+<h2 id="في-obsidian"><a class="anchor" href="#في-obsidian">في Obsidian</a></h2>
+<p><code>sigil</code> امتداد خاص بأسطرلاب. في Obsidian تظهر الكتلتان كتلتي كود معنونتين كل أسطرهما مقروءة؛ لا شيء يُحوَّل ولا شيء يضيع. انظر <a href="https://github.com/ZahakJ/astrolabe/blob/main/../OBSIDIAN-COMPAT.md" target="_blank" rel="noreferrer">OBSIDIAN-COMPAT.md</a>.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/ar/sigils.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/trackers/"><span class="pager__kicker">السابق</span><span class="pager__title">المتتبِّعات</span></a><a class="pager__link pager__link--next" href="../../ar/orbits/"><span class="pager__kicker">التالي</span><span class="pager__title">المدارات</span></a></nav>
+    <footer class="foot">أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#كيف-يبدو-الس-ج-ل-في-الملاحظة">كيف يبدو السِّجِلّ في الملاحظة</a><a class="toc__link toc__link--2" href="#الخطة-سطر-ا-سطر-ا">الخطة سطرًا سطرًا</a><a class="toc__link toc__link--2" href="#ما-تسج-له-كل-يوم">ما تسجّله كل يوم</a><a class="toc__link toc__link--2" href="#السجل">السجل</a><a class="toc__link toc__link--2" href="#البطاقة">البطاقة</a><a class="toc__link toc__link--2" href="#صفحة-الس-ج-ل">صفحة السِّجِلّ</a><a class="toc__link toc__link--2" href="#س-ج-ل-جديد-النموذج">سِجِلّ جديد: النموذج</a><a class="toc__link toc__link--2" href="#في-المحرر">في المحرر</a><a class="toc__link toc__link--2" href="#في-obsidian">في Obsidian</a></aside>
+</div>
+<script>window.__docs = { lang: "ar", base: "../../", noResults: "لا نتائج" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>
