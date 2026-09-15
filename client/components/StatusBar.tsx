@@ -370,7 +370,7 @@ export default function StatusBar() {
 
   // THE PHONE'S OVERFLOW MENU. Below 640px the cluster kept every control and
   // scrolled sideways with no scrollbar, right-aligned — so its first two
-  // doors (the library, the Routines page) sat off-screen to the left with
+  // doors (the library, the Orbits page) sat off-screen to the left with
   // no hint they existed (the owner: "the APK doesn't show everything on
   // the top bar"). At that width the bar keeps the gear, the outline switch
   // and a ⋯; everything else is a LABELLED row here, which on a phone reads
@@ -444,8 +444,9 @@ export default function StatusBar() {
               <path d="M13.5 5.5l4.5-1.2 4 15.2-4.5 1.2z" />
             </svg>
           </button>
-          {/* THE ROUTINES PAGE'S DOOR, beside the shelf: a calendar leaf with
-              a tick — the day, done. Admin-only for the shelf's reason. */}
+          {/* THE ORBITS PAGE'S DOOR, beside the shelf: a small body on its
+              ring — the thing you come back round to. Admin-only for the
+              shelf's reason. */}
           <button
             type="button"
             className={`s-statusbar__btn s-statusbar__icon${routinesOn ? " s-statusbar__btn--on" : ""}`}
@@ -466,9 +467,9 @@ export default function StatusBar() {
               strokeLinejoin="round"
               aria-hidden="true"
             >
-              <rect x="3" y="5" width="18" height="16" rx="2" />
-              <path d="M3 10h18M8 3v4M16 3v4" />
-              <path d="M8.5 15.5l2.5 2.5 4.5-5" />
+              <circle cx="12" cy="12" r="3.2" />
+              <ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(-30 12 12)" />
+              <circle cx="20.2" cy="7.25" r="1.6" fill="currentColor" stroke="none" />
             </svg>
           </button>
           <button

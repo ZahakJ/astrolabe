@@ -1,10 +1,10 @@
-// THE ROUTINES PAGE. Every ```routine in the vault, as today's checklists.
+// THE ORBITS PAGE. Every ```orbit in the vault, as today's checklists.
 //
 // A workspace TAB like the Media page (`ROUTINES_TAB` in client/workspace.ts)
 // and a lazy chunk with its own stylesheet. It is a second drawing of the
 // card the note already draws — the same renderer (client/reading/routine.ts)
 // mounted into React, one card per plan — plus a form that writes a new
-// routine as a note of its own under `Routines/`. A tick here goes to
+// orbit as a note of its own under `Orbits/`. A tick here goes to
 // `POST /api/routine`, which records the day in the note's log fence with
 // the same pure edit the editor's widget dispatches into its buffer.
 //

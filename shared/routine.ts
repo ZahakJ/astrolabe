@@ -1,18 +1,27 @@
-// ROUTINES — a plan you follow by the day, and the log of what you did.
+// ORBITS — a plan you follow by the day, and the log of what you did.
 //
 // The owner: "some sorta daily tracker. A way to add per-day details on
 // specific activities, and just like media we can have templates for specific
 // things to track, for example an exercise tracker". A ```tracker is a card
-// about ONE WORK (a book, a game) and how far through it you are; a
-// ```routine is a card about YOUR DAYS — what today asks of you, what you
+// about ONE WORK (a book, a game) and how far through it you are; an
+// ```orbit is a card about YOUR DAYS — what today asks of you, what you
 // ticked, the streak, the week, the last twelve weeks as a heatmap.
 //
-// Two fences, one note, no store. The PLAN is a ```routine fence: a title, a
-// kind, the columns of your week (`slots: morning, evening`), the things you
-// do every day (`items:`), a plan per weekday, the numbers you want to keep
-// per day (`fields: minutes:number, weight:number:kg, mood:scale:5`) and a
-// weekly target. The LOG is a ```routine-log fence that the app writes right
-// under the plan the first time you tick something — one line per day:
+// THE NAME. This shipped as "routines" (3.11 – 3.14) and the owner found the
+// word "kinda lame". An orbit is the same thing said better: a path you come
+// back round to every day, and Arabic has the word ready — مدار — with no
+// borrowing. The identifiers in this file, its tests, its routes and its
+// file names keep "routine": renaming a thousand symbols for a word the
+// reader never sees would churn every file that imports this one and buy
+// nothing. Everything a READER sees says orbit, and the fence does too.
+//
+// Two fences, one note, no store. The PLAN is an ```orbit fence: a title, a
+// kind, an icon and a banner, the columns of your week (`slots: morning,
+// evening`), the things you do every day (`items:`), a plan per weekday, the
+// numbers you want to keep per day (`fields: minutes:number,
+// weight:number:kg, mood:scale:5`) and a weekly target. The LOG is an
+// ```orbit-log fence that the app writes right under the plan the first time
+// you tick something — one line per day:
 //
 //     2026-09-13 | done: morning, evening | minutes: 62 | weight: 84.2 | Felt strong
 //
@@ -20,6 +29,12 @@
 // box and a line changes in your file; edit the line by hand and the card
 // follows. Open the same vault in Obsidian and both fences are readable
 // code blocks that say everything they say here.
+//
+// THE OLD FENCE STILL WORKS. A vault written before 3.15 carries
+// ```routine / ```routine-log, and it must keep working without anyone
+// touching a file: `routineFenceKind` reads both spellings, and a log fence
+// the app adds under a legacy plan is spelled the way that plan is, so one
+// note never mixes the two words.
 //
 // PURE, like shared/tracker.ts, and load-bearing twice for the same reasons:
 // `node --test` (tests/routine.test.ts) and server/indexer.ts both load it,
@@ -128,15 +143,18 @@ export function routineIcon(kind: string | null): FolderIcon {
 
 // ── The model ───────────────────────────────────────────────────────────────
 
-export type RoutineFieldType = "number" | "scale" | "text" | "check";
+export type RoutineFieldType = "number" | "count" | "scale" | "text" | "check";
 
 /** One value kept per day: `minutes:number`, `weight:number:kg`,
- *  `mood:scale:5`, `soreness:text`, `stretched:check`. */
+ *  `water:count:glasses`, `mood:scale:5`, `soreness:text`, `stretched:check`.
+ *  A count is a number that only ever means whole things — glasses, pages,
+ *  prayers — so the card's input steps by one and takes no decimal. */
 export interface RoutineField {
   /** The key as written, which is also how the log names it. */
   key: string;
   type: RoutineFieldType;
-  /** A unit for a number (`kg`), the ceiling for a scale (5), null else. */
+  /** A unit for a number or a count (`kg`), the ceiling for a scale (5),
+   *  null else. */
   unit: string | null;
   max: number | null;
 }
@@ -159,7 +177,15 @@ export interface RoutinePlan {
   title: string;
   kind: string | null;
   kindKey: RoutineKind | null;
+  /** The kind's glyph — what the card head draws when `emoji` is null. */
   icon: FolderIcon;
+  /** `icon:` — one emoji or a short glyph the author chose (🚶, ☪) that
+   *  stands for this orbit in place of the kind's glyph. */
+  emoji: string | null;
+  /** `banner:` — an image drawn as a strip across the top of the card,
+   *  resolved the way a note's banner is (client/banner.ts): an https URL,
+   *  a vault path, a file beside the note, or a bare filename. */
+  banner: string | null;
   /** The declared columns of the week, in order; may be empty. */
   slots: string[];
   /** Every-day items, in order. */
@@ -205,7 +231,10 @@ function splitList(raw: string): string[] {
     .filter((s) => s !== "");
 }
 
-function parseField(spec: string): RoutineField | null {
+/** One `fields:` entry → a field, or null for an empty key. Exported for
+ *  the form, which edits fields as parts (name, type, unit) and needs the
+ *  same reading the plan gets. */
+export function parseField(spec: string): RoutineField | null {
   const parts = spec.split(":").map((p) => p.trim());
   const key = parts[0] ?? "";
   if (key === "") return null;
@@ -213,6 +242,7 @@ function parseField(spec: string): RoutineField | null {
   const extra = parts[2] ?? "";
   let type: RoutineFieldType = "text";
   if (["number", "num", "n", "رقم", "عدد"].includes(typeWord)) type = "number";
+  else if (["count", "tally", "عدّ", "عد"].includes(typeWord)) type = "count";
   else if (["scale", "rating", "مقياس", "تقييم"].includes(typeWord)) type = "scale";
   else if (["check", "bool", "yes", "تحقق"].includes(typeWord)) type = "check";
   else if (["text", "نص"].includes(typeWord)) type = "text";
@@ -227,8 +257,18 @@ function parseField(spec: string): RoutineField | null {
     const max = Number(foldDigits(extra));
     return { key, type, unit: null, max: Number.isFinite(max) && max >= 2 ? Math.min(10, Math.round(max)) : 5 };
   }
-  if (type === "number") return { key, type, unit: extra === "" ? null : extra, max: null };
+  if (type === "number" || type === "count") return { key, type, unit: extra === "" ? null : extra, max: null };
   return { key, type, unit: null, max: null };
+}
+
+/** A short glyph for `icon:` — one emoji (with its modifiers and joiners),
+ *  or a word of at most a few letters (☪, ✦, "AB"). Anything longer is not
+ *  an icon and is dropped rather than drawn as a paragraph in a badge. */
+export function cleanIcon(raw: string): string | null {
+  const s = raw.trim();
+  if (s === "") return null;
+  const glyphs = [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(s)].map((g) => g.segment);
+  return glyphs.length <= 3 ? glyphs.join("") : null;
 }
 
 function parseTarget(raw: string): number | null {
@@ -251,6 +291,8 @@ export function parseRoutine(body: string): RoutinePlan | null {
   const lines = body.split(/\r?\n/);
   let title: string | null = null;
   let kind: string | null = null;
+  let emoji: string | null = null;
+  let banner: string | null = null;
   const slots: string[] = [];
   const items: string[] = [];
   const week = emptyWeek();
@@ -303,6 +345,20 @@ export function parseRoutine(body: string): RoutinePlan | null {
       case "type":
       case "نوع":
         kind = value || null;
+        break;
+      case "icon":
+      case "emoji":
+      case "رمز":
+      case "أيقونة":
+        emoji = cleanIcon(value);
+        break;
+      case "banner":
+      case "image":
+      case "لافتة":
+      case "صورة":
+        // `banner: cover.jpg`, `banner: [[cover.jpg]]` or a pasted
+        // `![](Media/cover.jpg)` all name the same file.
+        banner = value.replace(/^!?\[\[|\]\]$/g, "").replace(/^!\[[^\]]*\]\((.*)\)$/, "$1").split("|")[0].trim() || null;
         break;
       case "slots":
       case "columns":
@@ -365,6 +421,8 @@ export function parseRoutine(body: string): RoutinePlan | null {
     kind,
     kindKey: foldRoutineKind(kind),
     icon: routineIcon(kind),
+    emoji,
+    banner,
     slots,
     items,
     week,
@@ -453,13 +511,17 @@ export function parseLogLine(raw: string, fields: RoutineField[]): RoutineEntry 
       for (const k of splitList(value)) if (!entry.skipped.some((d) => sameKey(d, k))) entry.skipped.push(k);
       continue;
     }
-    if (key === "note" || key === "notes" || key === "ملاحظة") {
-      if (value !== "") notes.push(value);
-      continue;
-    }
+    // A DECLARED field wins over the note keyword: a plan that keeps a
+    // `notes:text` field (the form offers one) gets its column, and a log
+    // written before that field existed still reads `note: …` as the day's
+    // note, because no field claims it.
     const field = key === "" ? undefined : fields.find((f) => sameKey(f.key, key));
     if (field) {
       if (value !== "") entry.values[field.key] = value;
+      continue;
+    }
+    if (key === "note" || key === "notes" || key === "ملاحظة") {
+      if (value !== "") notes.push(value);
       continue;
     }
     notes.push(seg);
@@ -642,13 +704,31 @@ export function routineStats(
 
 // ── Scanning a note ─────────────────────────────────────────────────────────
 
+/** The two fences, by ROLE. The words a note actually spells them with are
+ *  `orbit` / `orbit-log` (3.15+) or `routine` / `routine-log` (before);
+ *  `logFenceWordFor` answers which a note is using. */
 export type RoutineFenceKind = "routine" | "routine-log";
 
-export function routineFenceKind(line: string): RoutineFenceKind | null {
+/** The fence's info string, lower-cased, when it opens a plan or a log in
+ *  either spelling; null for any other line. */
+function fenceWord(line: string): string | null {
   const m = /^\s*(?:`{3,}|~{3,})\s*([^\s`~]*)\s*$/.exec(line);
   if (!m) return null;
   const info = m[1].toLowerCase();
-  return info === "routine" || info === "routine-log" ? info : null;
+  return info === "orbit" || info === "orbit-log" || info === "routine" || info === "routine-log" ? info : null;
+}
+
+export function routineFenceKind(line: string): RoutineFenceKind | null {
+  const word = fenceWord(line);
+  if (word === null) return null;
+  return word.endsWith("-log") ? "routine-log" : "routine";
+}
+
+/** The word the plan fence's log should open with: a legacy ```routine plan
+ *  gets a ```routine-log under it, a new ```orbit an ```orbit-log — one
+ *  note, one vocabulary. */
+export function logFenceWordFor(planOpener: string): string {
+  return fenceWord(planOpener) === "routine" ? "routine-log" : "orbit-log";
 }
 
 /** A plan and its log, paired: the log is the first ```routine-log after
@@ -787,7 +867,7 @@ export function logEditFor(md: string, index: number, patch: EntryPatch): TextEd
   // The plan's closer may be the last line of the file with no EOL; the log
   // then opens on its own line after one added.
   const closed = md.slice(plan.end - eol.length, plan.end) === eol;
-  const insert = `${closed ? "" : eol}${eol}${indent}${marker}routine-log${eol}${indent}${line}${eol}${indent}${marker}${closed ? eol : ""}`;
+  const insert = `${closed ? "" : eol}${eol}${indent}${marker}${logFenceWordFor(plan.opener)}${eol}${indent}${line}${eol}${indent}${marker}${closed ? eol : ""}`;
   return { from: plan.end, to: plan.end, insert };
 }
 
@@ -812,6 +892,10 @@ export function editRoutinePlan(md: string, index: number, body: string): string
 export interface RoutineDraft {
   title: string;
   kind: string;
+  /** `icon:` as typed; "" for none. */
+  icon: string;
+  /** `banner:` as typed; "" for none. */
+  banner: string;
   slots: string[];
   items: string[];
   week: Record<Weekday, Record<string, string>>;
@@ -823,11 +907,11 @@ export interface RoutineDraft {
 }
 
 export function emptyDraft(): RoutineDraft {
-  return { title: "", kind: "", slots: [], items: [], week: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} }, fields: [], target: null, book: "", notes: "" };
+  return { title: "", kind: "", icon: "", banner: "", slots: [], items: [], week: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} }, fields: [], target: null, book: "", notes: "" };
 }
 
 export function fieldSpec(f: RoutineField): string {
-  if (f.type === "number") return f.unit ? `${f.key}:number:${f.unit}` : `${f.key}:number`;
+  if (f.type === "number" || f.type === "count") return f.unit ? `${f.key}:${f.type}:${f.unit}` : `${f.key}:${f.type}`;
   if (f.type === "scale") return `${f.key}:scale:${f.max ?? 5}`;
   if (f.type === "check") return `${f.key}:check`;
   return `${f.key}:text`;
@@ -839,6 +923,8 @@ export function draftOf(plan: RoutinePlan): RoutineDraft {
   return {
     title: plan.title,
     kind: plan.kind ?? "",
+    icon: plan.emoji ?? "",
+    banner: plan.banner ?? "",
     slots: [...plan.slots],
     items: [...plan.items],
     week,
@@ -849,11 +935,13 @@ export function draftOf(plan: RoutinePlan): RoutineDraft {
   };
 }
 
-/** The ```routine body a draft writes, in the order the docs list the keys. */
+/** The ```orbit body a draft writes, in the order the docs list the keys. */
 export function routineFenceBody(draft: RoutineDraft): string {
   const out: string[] = [];
   out.push(`title: ${draft.title.trim()}`);
   if (draft.kind.trim() !== "") out.push(`kind: ${draft.kind.trim()}`);
+  if (draft.icon.trim() !== "") out.push(`icon: ${draft.icon.trim()}`);
+  if (draft.banner.trim() !== "") out.push(`banner: ${draft.banner.trim()}`);
   const slots = draft.slots.map((s) => s.trim()).filter((s) => s !== "");
   if (slots.length > 0) out.push(`slots: ${slots.join(", ")}`);
   const items = draft.items.map((s) => s.trim()).filter((s) => s !== "");
@@ -890,23 +978,26 @@ const WEEKDAY_NAMES: Record<Weekday, string> = {
   mon: "monday", tue: "tuesday", wed: "wednesday", thu: "thursday", fri: "friday", sat: "saturday", sun: "sunday",
 };
 
-/** The whole note a new routine becomes: the title as frontmatter, the plan
+/** The whole note a new orbit becomes: the title as frontmatter, the plan
  *  fence, and an empty log fence so the shape is visible before day one. */
 export function routineNoteContent(draft: RoutineDraft): string {
   const title = draft.title.trim().replace(/"/g, "'");
-  return `---\ntitle: "${title}"\n---\n\n\`\`\`routine\n${routineFenceBody(draft)}\`\`\`\n\n\`\`\`routine-log\n\`\`\`\n`;
+  return `---\ntitle: "${title}"\n---\n\n\`\`\`orbit\n${routineFenceBody(draft)}\`\`\`\n\n\`\`\`orbit-log\n\`\`\`\n`;
 }
 
-export const ROUTINES_ROOT = "Routines";
-export const ROUTINES_ROOT_AR = "روتين";
-export const ROUTINES_ROOTS: readonly string[] = [ROUTINES_ROOT, ROUTINES_ROOT_AR];
+export const ROUTINES_ROOT = "Orbits";
+export const ROUTINES_ROOT_AR = "مدارات";
+/** The folders a new orbit may be filed in: the two current names first,
+ *  then the two a vault from before 3.15 already has — a reader who kept
+ *  `Routines/` for a year keeps filing there rather than growing a second
+ *  folder for the same thing. */
+export const ROUTINES_ROOTS: readonly string[] = [ROUTINES_ROOT, ROUTINES_ROOT_AR, "Routines", "روتين"];
 
 export function routinesRootFor(lang: "en" | "ar" | undefined, existing: readonly string[]): string {
   const own = lang === "ar" ? ROUTINES_ROOT_AR : ROUTINES_ROOT;
-  const other = own === ROUTINES_ROOT ? ROUTINES_ROOT_AR : ROUTINES_ROOT;
   if (existing.includes(own)) return own;
-  if (existing.includes(other)) return other;
-  return own;
+  const kept = ROUTINES_ROOTS.find((root) => existing.includes(root));
+  return kept ?? own;
 }
 
 export function routineFileName(title: string): string {

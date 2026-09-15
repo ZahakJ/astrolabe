@@ -1,6 +1,6 @@
 // THE REVIEW PAGE. The vault's flashcards, the due ones first.
 //
-// A workspace TAB like the Routines page (`REVIEW_TAB` in client/workspace.ts)
+// A workspace TAB like the Orbits page (`REVIEW_TAB` in client/workspace.ts)
 // and a lazy chunk with its own stylesheet. Nothing here is new syntax: a
 // card is a ==highlight==, a `> [!quote]`, or a `Question\n?\nAnswer` the
 // note already holds (shared/flashcards.ts), and a grade goes to

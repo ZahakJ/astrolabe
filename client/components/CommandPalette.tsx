@@ -329,7 +329,7 @@ const COMMANDS: Command[] = [
   {
     id: "open-routines",
     label: () => t("cmdOpenRoutines"),
-    hint: () => t("cmdViewHint"),
+    hint: () => t("cmdOpenRoutinesHint"),
     available: ({ admin }) => admin,
   },
   {

@@ -144,13 +144,15 @@ function slashItems(): SlashItem[] {
     },
     {
       // The daily tracker, beside the work tracker: its skeleton is the
-      // documentation too — a title, the week's columns, one weekday.
-      label: "Routine",
+      // documentation too — a title, the week's columns, one weekday. The
+      // label carries both words so `/routine`, typed from habit, still
+      // finds the row.
+      label: "Orbit routine",
       displayLabel: "slashRoutine",
-      detail: "```routine",
+      detail: "```orbit",
       boost: 6.45,
       apply: snippet(
-        "```routine\ntitle: ${Title}\nkind: ${habit}\nslots: ${morning, evening}\nmonday:\n  morning: ${}\n```",
+        "```orbit\ntitle: ${Title}\nkind: ${habit}\nicon: ${🌱}\nslots: ${morning, evening}\nmonday:\n  morning: ${}\n```",
       ),
     },
     {
