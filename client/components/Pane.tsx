@@ -127,14 +127,14 @@ export default function Pane({
         <MediaView />
       </Suspense>
     ) : surface === "routines" ? (
-      // The Routines page: today's checklists, every routine in the vault,
+      // The Orbits page: today's checklists, every orbit in the vault,
       // a tab like the Media page.
       <Suspense fallback={<div className="s-routines" />}>
         <RoutinesView />
       </Suspense>
     ) : surface === "review" ? (
       // The Review page: the vault's flashcards, due ones first — a tab on
-      // the Routines page's terms.
+      // the Orbits page's terms.
       <Suspense fallback={<div className="s-review" />}>
         <ReviewView />
       </Suspense>

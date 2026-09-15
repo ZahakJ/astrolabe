@@ -139,10 +139,14 @@ export const MEDIA_TAB = "~media";
 export function isMediaTab(path: string): boolean {
   return path === MEDIA_TAB;
 }
-/** The Routines page — today's checklists, every routine in the vault. */
-export const ROUTINES_TAB = "~routines";
+/** The Orbits page — today's checklists, every orbit in the vault. The
+ *  sentinel was `~routines` until 3.15; a workspace stored under that name
+ *  is read as this tab (`parseTab` folds it), so a reader who kept the page
+ *  open across the rename finds it open. */
+export const ROUTINES_TAB = "~orbits";
+export const LEGACY_ROUTINES_TAB = "~routines";
 export function isRoutinesTab(path: string): boolean {
-  return path === ROUTINES_TAB;
+  return path === ROUTINES_TAB || path === LEGACY_ROUTINES_TAB;
 }
 /** The Review page — the vault's flashcards, the due ones first. */
 export const REVIEW_TAB = "~review";
@@ -876,7 +880,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function parseTab(raw: unknown): TabState | null {
   if (!isRecord(raw)) return null;
-  const path = raw.path;
+  const path = raw.path === LEGACY_ROUTINES_TAB ? ROUTINES_TAB : raw.path;
   if (typeof path !== "string" || path === "" || !isTabbablePath(path)) return null;
   const pinned = raw.pinned === true;
   return { path, pinned, ephemeral: pinned ? false : raw.ephemeral === true };

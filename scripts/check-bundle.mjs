@@ -646,7 +646,15 @@ const AUDIENCES = [
   // bookmarks model, the SR-comment strip in the reading renderer and the
   // offline door (client/offline.ts) — the worker itself is dist/sw.js,
   // outside every budget.
-  { name: "entry (everyone)", keys: entry, budget: 754 * 1024 },
+  // 3.15.0: 759.1 kB actual → 762 — ORBITS. Almost all of it is the
+  // dictionary again: the rebuilt form explains every field in a sentence
+  // (the `orbitField*` help block, the section titles, the hints under each
+  // control) in two languages, and `t()` ships whole. The rest is the model's
+  // `icon:` / `banner:` keys, the `count` field type and the second fence
+  // spelling in shared/routine.ts, which the reading closure parses before
+  // it paints. The known-field table (client/routineFields.ts) is reached
+  // only from the card's and the form's lazy chunks.
+  { name: "entry (everyone)", keys: entry, budget: 762 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -853,7 +861,9 @@ const AUDIENCES = [
   // …and 991.2 → 995 with the same three merges (dictionary blocks).
   // 3.13.0: 1028.5 kB actual → 1032 — the entry growth above; the blog
   // shell itself did not move.
-  { name: "anonymous blog reader", keys: blog, budget: 1032 * 1024 },
+  // 3.15.0: 1038.6 kB actual → 1042 — the entry growth above (orbits); the
+  // blog shell itself did not move.
+  { name: "anonymous blog reader", keys: blog, budget: 1042 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -973,7 +983,10 @@ const AUDIENCES = [
   // new doors (save/restore layout, bookmark, review, unused attachments),
   // the status bar's routines door and the shell's offline strip. The
   // Review page, the scripture chunk and the harakat palette are lazy.
-  { name: "admin first paint", keys: app, budget: 1474 * 1024 },
+  // 3.15.0: 1482.1 kB actual → 1486 — the entry growth above (orbits), plus
+  // the status bar's new door glyph and the workspace's legacy-tab fold.
+  // The Orbits page, its form and the known-field table stay lazy.
+  { name: "admin first paint", keys: app, budget: 1486 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1056,7 +1069,7 @@ const MUST_SPLIT = [
   // The Media page: the shelves, the form and their stylesheet, behind the
   // status bar's button. A workspace view like the graph, and split like it.
   "media/MediaView.tsx",
-  // The Routines page, on the same terms as the Media page.
+  // The Orbits page, on the same terms as the Media page.
   "routines/RoutinesView.tsx",
   // The Review page (flashcards), on the same terms.
   "review/ReviewView.tsx",

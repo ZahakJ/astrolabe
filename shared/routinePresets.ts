@@ -1,4 +1,4 @@
-// THE ROUTINE PRESETS — what the form offers before the vault has templates.
+// THE ORBIT PRESETS — what the form offers before the vault has templates.
 //
 // In a file of their own, away from shared/routine.ts, because the model is
 // in the ENTRY chunk (render.ts and the live preview parse a fence before
@@ -11,7 +11,11 @@ import { emptyDraft, type RoutineDraft, type RoutineKind } from "./routine.ts";
 
 /** The templates the form offers before the vault has any of its own. Each
  *  is a draft in one language; the form shows the instance's. The exercise
- *  plan is the owner's own week, which is how this feature began. */
+ *  plan is the owner's own week, which is how this feature began.
+ *
+ *  A preset's `fields` are SUGGESTIONS: the form pre-ticks them and the
+ *  reader unticks what they do not want — the owner keeps no minutes and no
+ *  weight on their exercise orbit, and nothing here forces either. */
 export interface RoutinePreset {
   id: RoutineKind;
   draft: (lang: "en" | "ar") => RoutineDraft;
@@ -28,6 +32,7 @@ export const ROUTINE_PRESETS: RoutinePreset[] = [
       {
         title: "Weekly exercise",
         kind: "exercise",
+        icon: "🏃",
         slots: ["morning", "evening"],
         fields: ["minutes:number", "weight:number:kg"],
         target: 6,
@@ -44,6 +49,7 @@ export const ROUTINE_PRESETS: RoutinePreset[] = [
       {
         title: "تمارين الأسبوع",
         kind: "رياضة",
+        icon: "🏃",
         slots: ["صباحًا", "مساءً"],
         fields: ["دقائق:number", "الوزن:number:كغ"],
         target: 6,
@@ -62,50 +68,50 @@ export const ROUTINE_PRESETS: RoutinePreset[] = [
   {
     id: "habit",
     draft: preset(
-      { title: "Daily habits", kind: "habit", items: ["Read 20 pages", "Drink 2 L water", "No phone after 22:00", "Tidy the desk"], target: 7 },
-      { title: "عادات يومية", kind: "عادات", items: ["قراءة 20 صفحة", "شرب لترين من الماء", "لا هاتف بعد 22:00", "ترتيب المكتب"], target: 7 },
+      { title: "Daily habits", kind: "habit", icon: "🌱", items: ["Read 20 pages", "Drink 2 L water", "No phone after 22:00", "Tidy the desk"], target: 7 },
+      { title: "عادات يومية", kind: "عادات", icon: "🌱", items: ["قراءة 20 صفحة", "شرب لترين من الماء", "لا هاتف بعد 22:00", "ترتيب المكتب"], target: 7 },
     ),
   },
   {
     id: "prayer",
     draft: preset(
-      { title: "Prayers", kind: "prayer", items: ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"], fields: ["in congregation:number", "quran pages:number"], target: 7 },
-      { title: "الصلوات", kind: "صلاة", items: ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"], fields: ["في جماعة:number", "صفحات القرآن:number"], target: 7 },
+      { title: "Prayers", kind: "prayer", icon: "🕌", items: ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"], fields: ["in congregation:count", "quran pages:count"], target: 7 },
+      { title: "الصلوات", kind: "صلاة", icon: "🕌", items: ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"], fields: ["في جماعة:count", "صفحات القرآن:count"], target: 7 },
     ),
   },
   {
     id: "sleep",
     draft: preset(
-      { title: "Sleep", kind: "sleep", fields: ["hours:number", "quality:scale:5", "bedtime:text"], target: 7 },
-      { title: "النوم", kind: "نوم", fields: ["ساعات:number", "الجودة:scale:5", "وقت النوم:text"], target: 7 },
+      { title: "Sleep", kind: "sleep", icon: "🌙", fields: ["hours:number", "quality:scale:5", "bedtime:text"], target: 7 },
+      { title: "النوم", kind: "نوم", icon: "🌙", fields: ["ساعات:number", "الجودة:scale:5", "وقت النوم:text"], target: 7 },
     ),
   },
   {
     id: "water",
     draft: preset(
-      { title: "Water", kind: "water", items: ["8 glasses"], fields: ["glasses:number"], target: 7 },
-      { title: "الماء", kind: "ماء", items: ["8 أكواب"], fields: ["أكواب:number"], target: 7 },
+      { title: "Water", kind: "water", icon: "💧", items: ["8 glasses"], fields: ["water:count:glasses"], target: 7 },
+      { title: "الماء", kind: "ماء", icon: "💧", items: ["8 أكواب"], fields: ["ماء:count:أكواب"], target: 7 },
     ),
   },
   {
     id: "mood",
     draft: preset(
-      { title: "Mood journal", kind: "mood", fields: ["mood:scale:5", "energy:scale:5", "gratitude:text"], target: 7 },
-      { title: "يوميات المزاج", kind: "مزاج", fields: ["المزاج:scale:5", "الطاقة:scale:5", "امتنان:text"], target: 7 },
+      { title: "Mood journal", kind: "mood", icon: "🙂", fields: ["mood:scale:5", "energy:scale:5", "gratitude:text"], target: 7 },
+      { title: "يوميات المزاج", kind: "مزاج", icon: "🙂", fields: ["المزاج:scale:5", "الطاقة:scale:5", "امتنان:text"], target: 7 },
     ),
   },
   {
     id: "reading",
     draft: preset(
-      { title: "Daily reading", kind: "reading", items: ["Read"], fields: ["pages:number", "book:text"], target: 6 },
-      { title: "قراءة يومية", kind: "قراءة", items: ["قراءة"], fields: ["صفحات:number", "الكتاب:text"], target: 6 },
+      { title: "Daily reading", kind: "reading", icon: "📖", items: ["Read"], fields: ["pages:count", "book:text"], target: 6 },
+      { title: "قراءة يومية", kind: "قراءة", icon: "📖", items: ["قراءة"], fields: ["صفحات:count", "الكتاب:text"], target: 6 },
     ),
   },
   {
     id: "study",
     draft: preset(
-      { title: "Study", kind: "study", items: ["Deep work block", "Review notes"], fields: ["minutes:number", "focus:scale:5"], target: 5 },
-      { title: "الدراسة", kind: "دراسة", items: ["جلسة تركيز عميق", "مراجعة الملاحظات"], fields: ["دقائق:number", "التركيز:scale:5"], target: 5 },
+      { title: "Study", kind: "study", icon: "📚", items: ["Deep work block", "Review notes"], fields: ["minutes:number", "focus:scale:5"], target: 5 },
+      { title: "الدراسة", kind: "دراسة", icon: "📚", items: ["جلسة تركيز عميق", "مراجعة الملاحظات"], fields: ["دقائق:number", "التركيز:scale:5"], target: 5 },
     ),
   },
 ];

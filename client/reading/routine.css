@@ -1,6 +1,6 @@
-/* THE ROUTINE CARD — one stylesheet, every surface (client/reading/routine.ts).
+/* THE ORBIT CARD — one stylesheet, every surface (client/reading/routine.ts).
  * Classes are `s-rv-*` for the tracker's reason: the editor's widget, the
- * reading view, the blog and the Routines page all draw with this one skin.
+ * reading view, the blog and the Orbits page all draw with this one skin.
  * Logical properties throughout; tokens only. The status colours are the
  * theme's own callout hues so a "missed" day reads as the theme's warning
  * and a "complete" one as its success, in every room. */
@@ -8,7 +8,6 @@
 .s-rv-routine {
   display: grid;
   gap: 14px;
-  container-type: inline-size;
   margin-block: 1.2em;
   padding: 16px;
   border: 1px solid var(--border);
@@ -19,6 +18,31 @@
   --rt-part: var(--callout-warning, var(--accent));
   --rt-miss: var(--danger);
   --rt-rest: var(--border);
+}
+
+/* ── Banner ────────────────────────────────────────────────────────────── */
+
+/* A strip across the card's top edge, bled out through the padding so the
+   picture meets the border. Not in the layout until the image lands — a
+   hidden <img> still fetches — so an author's typo costs the card nothing,
+   not even the grid gap, and never draws a broken picture. */
+.s-rv-routine__banner {
+  display: none;
+  margin: -16px -16px 0;
+  block-size: 132px;
+  overflow: hidden;
+  border-start-start-radius: var(--radius);
+  border-start-end-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+}
+.s-rv-routine__banner.is-loaded {
+  display: block;
+}
+.s-rv-routine__bannerimg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
 }
 
 /* ── Head ──────────────────────────────────────────────────────────────── */
@@ -47,6 +71,14 @@
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
   flex: none;
+}
+/* The author's own icon: an emoji at a size that fills the badge the glyph
+   fills, and a short word of letters (☪, "AB") in the accent, upright. */
+.s-rv-routine__glyph--emoji {
+  font-size: 1.286rem;
+  line-height: 1;
+  font-family: var(--font-ui);
+  font-style: normal;
 }
 
 .s-rv-routine__names {
@@ -431,21 +463,30 @@
 .s-rv-routine__day--missed .s-rv-routine__daydot { border-color: var(--rt-miss); }
 .s-rv-routine__day--none .s-rv-routine__daydot { border-color: var(--text-faint); }
 
-/* A WIDE CARD — one routine on the Routines page spans the whole row —
-   sets the week strip and the heatmap side by side, so the card's lower
-   half is not a strip above a small grid with a blank right half. The
-   twelve-week heatmap is a fixed size; the strip takes the rest. */
-@container (inline-size >= 640px) {
-  .s-rv-routine {
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 24px;
-  }
-  .s-rv-routine > :not(.s-rv-routine__week):not(.s-rv-routine__heat) {
-    grid-column: 1 / -1;
-  }
-  .s-rv-routine__week {
-    align-self: center;
-  }
+/* THE LOWER HALF: the week strip and the heatmap share a row when the card
+   is wide (one orbit spanning the Orbits page) and stack when it is not.
+   A flex row that WRAPS, and no container query — the first cut queried
+   the card's own width to switch the card's grid to two columns, and a
+   rule on an element resolves against its nearest ANCESTOR container, not
+   itself: the card's columns switched on the page's width while its
+   children's spans (in the same block) switched on the card's. Two cards
+   sharing a row were each narrower than the threshold, so the first got
+   two columns and children that did not span them — the head squeezed
+   into a 27px column, "weirdly squished to the right" the moment a second
+   orbit was created. The strip asks for 340px and takes the rest; the
+   heatmap is a fixed size and drops under it when the two do not fit. */
+.s-rv-routine__lower {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+}
+.s-rv-routine__lower > .s-rv-routine__week {
+  flex: 1 1 340px;
+  min-inline-size: 0;
+}
+.s-rv-routine__lower > .s-rv-routine__heat {
+  flex: none;
 }
 
 /* ── Heatmap ───────────────────────────────────────────────────────────── */

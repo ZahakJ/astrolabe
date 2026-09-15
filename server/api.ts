@@ -2504,7 +2504,7 @@ api.post("/routine", async (c) => {
   const index = typeof body.index === "number" && Number.isInteger(body.index) && body.index >= 0 ? body.index : 0;
   const note = await readNote(notePath);
   if (!routineFenceSpans(note.content).some((s) => s.kind === "routine" && s.index === index)) {
-    throw new VaultError(400, "That note carries no routine fence");
+    throw new VaultError(400, "That note carries no orbit fence");
   }
   let updated = note.content;
   const entry = body.entry && typeof body.entry === "object" ? (body.entry as Record<string, unknown>) : null;
