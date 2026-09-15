@@ -34,6 +34,8 @@ export interface Card {
 const QA_INLINE_RE = /^(.{1,400}?)\s?::\s?(.+)$/;
 const CLOZE_RE = /==([^=\n]{1,200})==/g;
 const HEADING_RE = /^\s{0,3}#{1,6}\s/;
+/** The comment at the end of an inline card's line. */
+const SR_TAIL_RE = /\s*<!--\s*SR:[^>]*-->\s*$/;
 
 /** Every card in a note, in document order. */
 export function scanCards(md: string): Card[] {
@@ -56,7 +58,12 @@ export function scanCards(md: string): Card[] {
       fence = opened;
       continue;
     }
-    if (line.trim() === "" || HEADING_RE.test(line) || hasSrComment(line)) continue;
+    // A line that is ONLY a schedule comment belongs to the block above it.
+    // An inline card carries its comment on its own line (writeSchedule puts
+    // it there), so a line that is a card AND a comment is still a card —
+    // skipping every line with a comment made a `::` card vanish from the
+    // scan the moment it was first reviewed.
+    if (line.trim() === "" || HEADING_RE.test(line) || (hasSrComment(line) && !line.replace(SR_TAIL_RE, "").includes("::"))) continue;
 
     // A quote callout: `> [!quote] Source` then quoted lines.
     const quote = /^\s*>\s*\[!(quote|cite|citation)\]\s*(.*)$/i.exec(line);
@@ -97,7 +104,7 @@ export function scanCards(md: string): Card[] {
     }
 
     // Inline `Question::Answer`.
-    const inline = QA_INLINE_RE.exec(line.replace(/\s*<!--\s*SR:[^>]*-->\s*$/, ""));
+    const inline = QA_INLINE_RE.exec(line.replace(SR_TAIL_RE, ""));
     if (inline && !line.includes("::") === false && !/^\s*[-*+]\s+\[/.test(line) && !line.trim().startsWith("|")) {
       out.push({ kind: "qa", line: i + 1, end: i + 1, front: inline[1].trim(), back: inline[2].trim(), schedule: parseSrComment(line) ?? scheduleAfter(lines, i + 1) });
       continue;
