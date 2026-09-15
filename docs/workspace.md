@@ -138,6 +138,6 @@ rule. The outline pane is a drawer on a phone too: the outline switch in the sta
 over the page from the end edge, backlinks, unlinked mentions and on-this-day included.
 
 The top bar keeps three controls on a phone — the outline switch, the settings gear and a **⋯** —
-and the ⋯ opens every other tool as a labelled row: the library, Routines, Review, the designer,
+and the ⋯ opens every other tool as a labelled row: the library, Orbits, Review, the designer,
 visitor preview, the graph, themes and sign out. Nothing scrolls off the edge; zen and the
 shortcut sheet are not offered, since neither means anything on a phone.

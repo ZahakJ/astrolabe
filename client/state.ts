@@ -592,7 +592,7 @@ export interface State {
   /** The Media page, on the same terms as the graph. */
   mediaOpen(): boolean;
   toggleMedia(): void;
-  /** The Routines page, on the same terms. */
+  /** The Orbits page, on the same terms. */
   routinesOpen(): boolean;
   toggleRoutines(): void;
   /** The Review page (flashcards), on the same terms. */

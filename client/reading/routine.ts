@@ -1,8 +1,8 @@
-// THE ROUTINE CARD, DRAWN. One renderer, every surface — the tracker's rule
+// THE ORBIT CARD, DRAWN. One renderer, every surface — the tracker's rule
 // (client/reading/tracker.ts), kept: the reading view, the blog article, a
 // transclusion, the hover preview, the editor's block widget and the
-// Routines page all draw a routine through this module, and there is no
-// second skin.
+// Orbits page all draw an orbit through this module, and there is no
+// second skin. (The file keeps its old name, as shared/routine.ts explains.)
 //
 // LOADED ON DEMAND, like the tracker card: render.ts reaches this through a
 // dynamic import into a host already in the tree, so a note without a
@@ -10,7 +10,7 @@
 //
 // INERT BY DEFAULT. The checkboxes, the field inputs and the note box appear
 // only when the caller passes `onLog` — the editor widget (which turns a
-// patch into ONE document edit) and the Routines page (which posts it). A
+// patch into ONE document edit) and the Orbits page (which posts it). A
 // visitor's card is a picture: there is no write path for them, and controls
 // that cannot work are furniture that lies.
 
@@ -36,6 +36,8 @@ import {
 } from "../../shared/routine.ts";
 import { siteDate } from "../dates.ts";
 import { getTrackers, updateTracker } from "../api.ts";
+import { bannerSrc, resolveBanner } from "../banner.ts";
+import { fieldHelp, isNotesField } from "../routineFields.ts";
 import { foldKind } from "../../shared/tracker.ts";
 import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
 import { autoDir, countPhrase, getLang, localeNum, t, tf, type I18nKey } from "../i18n.ts";
@@ -48,10 +50,10 @@ export interface RoutineHooks {
   notesHtml?: string;
   /** The day the card is about; today unless a caller says otherwise. */
   today?: string;
-  /** Editor and Routines page only: record a change to one day. Its
+  /** Editor and Orbits page only: record a change to one day. Its
    *  absence is what makes every other surface inert. */
   onLog?: (patch: EntryPatch) => void;
-  /** Open the note the routine lives in — the Routines page's title door. */
+  /** Open the note the routine lives in — the Orbits page's title door. */
   onOpen?: () => void;
   /** Called when the card's height changes after mount (a section opened). */
   onResize?: () => void;
@@ -140,11 +142,17 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
   card.dir = autoDir(plan.title || kindLabel(plan));
   card.dataset.kind = plan.kindKey ?? "own";
 
+  // ── Banner ──
+  if (plan.banner !== null) card.appendChild(renderBanner(plan.banner, hooks));
+
   // ── Head ──
   const head = el("header", "s-rv-routine__head");
   const ident = el("div", "s-rv-routine__ident");
-  const mark = el("span", "s-rv-routine__glyph");
-  mark.appendChild(glyph(plan.icon, 18));
+  const mark = el("span", `s-rv-routine__glyph${plan.emoji ? " s-rv-routine__glyph--emoji" : ""}`);
+  // The author's own icon stands in for the kind's glyph; the glyph is what
+  // a plan that names none still gets.
+  if (plan.emoji) mark.textContent = plan.emoji;
+  else mark.appendChild(glyph(plan.icon, 18));
   ident.appendChild(mark);
   const names = el("div", "s-rv-routine__names");
   names.appendChild(el("span", "s-rv-routine__eyebrow", kindLabel(plan)));
@@ -191,7 +199,8 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
   // ── Today ──
   card.appendChild(renderDay(plan, entryOf(today), today, today, locale, interactive ? hooks.onLog : undefined));
 
-  // ── Week strip ──
+  // ── Week strip and heatmap: one row when the card is wide (routine.css) ──
+  const lower = el("div", "s-rv-routine__lower");
   const strip = el("div", "s-rv-routine__week");
   strip.setAttribute("role", "list");
   const start = weekStart(today, lang);
@@ -206,7 +215,7 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
     cell.appendChild(el("span", "s-rv-routine__daynum", shortDay(iso, locale)));
     strip.appendChild(cell);
   }
-  card.appendChild(strip);
+  lower.appendChild(strip);
 
   // ── Heatmap: twelve weeks, oldest at the top ──
   const heat = el("div", "s-rv-routine__heat");
@@ -227,7 +236,8 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
     }
   }
   heat.appendChild(grid);
-  card.appendChild(heat);
+  lower.appendChild(heat);
+  card.appendChild(lower);
 
   // ── The plan ──
   const hasWeek = plan.slots.length > 0 || Object.values(plan.week).some((d) => d.length > 0);
@@ -245,6 +255,37 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
     card.appendChild(notes);
   }
   return card;
+}
+
+/** The banner strip: a box that holds the card's top edge, filled with the
+ *  image once it resolves and loads. The value climbs the same ladder a
+ *  note's `banner:` climbs (client/banner.ts) — an https URL, a vault
+ *  path, a file beside the note, a bare name — and a value that names
+ *  nothing leaves the strip empty rather than drawing a broken picture. */
+function renderBanner(value: string, hooks: RoutineHooks): HTMLElement {
+  const strip = el("div", "s-rv-routine__banner");
+  strip.setAttribute("aria-hidden", "true");
+  const mount = (path: string): void => {
+    const img = document.createElement("img");
+    img.className = "s-rv-routine__bannerimg";
+    img.alt = "";
+    img.draggable = false;
+    img.onload = () => {
+      strip.classList.add("is-loaded");
+      hooks.onResize?.();
+    };
+    img.onerror = () => img.remove();
+    img.src = bannerSrc(path);
+    strip.appendChild(img);
+  };
+  const hit = resolveBanner(value, hooks.notePath || null);
+  if (typeof hit === "string") mount(hit);
+  else if (hit !== null) {
+    void hit.then((path) => {
+      if (path && strip.isConnected) mount(path);
+    });
+  }
+  return strip;
 }
 
 /** One day's checklist, fields and note: the card's heart, and the log's
@@ -334,24 +375,31 @@ function renderDay(
     box.appendChild(list);
   }
 
-  if (plan.fields.length > 0) {
-    const fields = el("div", "s-rv-routine__fields");
-    for (const f of plan.fields) fields.appendChild(renderField(f, entry?.values[f.key] ?? "", iso, onLog));
-    box.appendChild(fields);
+  // A `notes:text` field IS the day's note: the note box below writes to
+  // it, so the card does not show a field input and a note line that mean
+  // the same thing twice.
+  const notesField = plan.fields.find(isNotesField) ?? null;
+  const fields = plan.fields.filter((f) => f !== notesField);
+  if (fields.length > 0) {
+    const row = el("div", "s-rv-routine__fields");
+    for (const f of fields) row.appendChild(renderField(f, entry?.values[f.key] ?? "", iso, onLog));
+    box.appendChild(row);
   }
 
   // The note: an input when live, a line when not.
+  const noteText = notesField ? (entry?.values[notesField.key] ?? "") : (entry?.note ?? "");
   if (onLog) {
     const note = el("input", "s-rv-routine__note");
     note.type = "text";
     note.placeholder = t("routineNotePlaceholder");
-    note.value = entry?.note ?? "";
+    note.value = noteText;
     note.setAttribute("aria-label", t("routineNotePlaceholder"));
     note.dir = "auto";
     const commit = (): void => {
       const value = note.value.trim();
-      if (value === (entry?.note ?? "")) return;
-      onLog({ date: iso, note: value === "" ? null : value });
+      if (value === noteText) return;
+      if (notesField) onLog({ date: iso, values: { [notesField.key]: value === "" ? null : value } });
+      else onLog({ date: iso, note: value === "" ? null : value });
     };
     note.addEventListener("change", commit);
     note.addEventListener("keydown", (e) => {
@@ -362,8 +410,8 @@ function renderDay(
       }
     });
     box.appendChild(note);
-  } else if (entry?.note) {
-    const p = el("p", "s-rv-routine__notetext", entry.note);
+  } else if (noteText !== "") {
+    const p = el("p", "s-rv-routine__notetext", noteText);
     p.dir = "auto";
     box.appendChild(p);
   }
@@ -373,13 +421,18 @@ function renderDay(
 function renderField(f: RoutineField, value: string, iso: string, onLog: ((patch: EntryPatch) => void) | undefined): HTMLElement {
   const wrap = el("label", `s-rv-routine__field s-rv-routine__field--${f.type}`);
   const name = el("span", "s-rv-routine__fieldname", f.key);
+  // The name says what the field is called; its title says what it MEANS
+  // — the owner's "idk what the focus thingy is" is answered on hover.
+  const help = fieldHelp(f);
+  name.title = help;
   wrap.appendChild(name);
   const set = (v: string | null): void => onLog?.({ date: iso, values: { [f.key]: v } });
   if (f.type === "scale") {
     const max = f.max ?? 5;
     const row = el("span", "s-rv-routine__scale");
     row.setAttribute("role", onLog ? "radiogroup" : "img");
-    row.setAttribute("aria-label", f.key);
+    row.setAttribute("aria-label", help);
+    row.title = onLog ? tf("orbitScaleTitle", { help }) : help;
     const current = Number(value);
     for (let n = 1; n <= max; n++) {
       const b = el("button", `s-rv-routine__scalebtn${Number.isFinite(current) && n <= current ? " is-on" : ""}`, localeNum(n));
@@ -406,14 +459,21 @@ function renderField(f: RoutineField, value: string, iso: string, onLog: ((patch
     return wrap;
   }
   const input = el("input", "s-rv-routine__input");
-  input.type = f.type === "number" ? "number" : "text";
+  input.type = f.type === "number" || f.type === "count" ? "number" : "text";
   if (f.type === "number") {
     input.step = "any";
     input.inputMode = "decimal";
     input.dir = "ltr";
+  } else if (f.type === "count") {
+    // Whole things: the keyboard a phone shows has no decimal point.
+    input.step = "1";
+    input.min = "0";
+    input.inputMode = "numeric";
+    input.dir = "ltr";
   } else input.dir = "auto";
   input.value = value;
   input.setAttribute("aria-label", f.key);
+  input.title = help;
   const commit = (): void => {
     const v = input.value.trim();
     if (v === value) return;
@@ -465,7 +525,7 @@ function renderPlanTable(plan: RoutinePlan, today: string, lang: "en" | "ar"): H
 
 // ── The log ─────────────────────────────────────────────────────────────────
 
-/** A ```routine-log fence: the days, newest first, as a table. */
+/** An ```orbit-log fence: the days, newest first, as a table. */
 export function renderRoutineLog(plan: RoutinePlan | null, entries: RoutineEntry[], hooks: Pick<RoutineHooks, "today">): HTMLElement {
   const locale = useStore.getState().blogLocale;
   const today = hooks.today ?? isoDate(new Date());

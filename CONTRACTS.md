@@ -9247,10 +9247,14 @@ admin, dir)`), as an editor paste does: they sent none, so under the "same folde
 beside the note — the one upload path that ignored the setting. The site-wide pickers (home
 banner, logo, favicon) belong to no note and keep the root as their context.
 
-## Routines (`shared/routine.ts`, `client/reading/routine.ts`, `client/editor/routine.ts`, `client/routines/`)
+## Orbits — formerly Routines (`shared/routine.ts`, `client/reading/routine.ts`, `client/editor/routine.ts`, `client/routines/`)
 
-A ```` ```routine ```` fence is a PLAN by the day; the ```` ```routine-log ```` fence after it is the
-LOG the app writes. The owner asked for "a daily tracker … per-day details on specific activities …
+An ```` ```orbit ```` fence is a PLAN by the day; the ```` ```orbit-log ```` fence after it is the
+LOG the app writes. **Until 3.15 the feature was called ROUTINES and the fences were spelled
+```` ```routine ```` / ```` ```routine-log ````**; the identifiers, file names, routes and test names
+below keep that word (renaming a thousand symbols for a word the reader never sees buys nothing),
+and every user-facing string, the fence the form writes, the URL, the tab and the docs say orbit.
+The section under 3.15.0 lists exactly what changed and what the legacy spelling still gets. The owner asked for "a daily tracker … per-day details on specific activities …
 templates like an exercise tracker … custom templates". A tracker is a card about one work; a
 routine is a card about your days, and it follows every rule the tracker set rather than inventing
 new ones.
@@ -9489,8 +9493,107 @@ release with the version under each group when the walk spans more than one. Red
 everything at once. Fresh installs: `FRESH_AT_LOAD` in door.ts is read at module evaluation,
 because boot writes `astrolabe.recents/tabs/prefs-sync` before the door's timer fires (3.13.1).
 
-**The Routines grid** is `auto-fit`: one routine spans the row, two share it. A card wider than
-640px (a container query on `.s-rv-routine`) sets the week strip beside the heatmap.
+**The Routines grid** is `auto-fit`: one routine spans the row, two share it. (3.14 also set the
+week strip beside the heatmap through a container query on the card's own width — a rule that
+resolves against the card's ANCESTOR container, which is the squish 3.15 fixes; see below.)
+
+## 3.15.0 — Orbits: the name, the icon and banner, the rebuilt form, the squish
+
+**The name.** The owner: "routine is kinda a lame name… name it something cooler that sounds cool
+and legit in arabic and english". Orbits / المدارات (singular مدار). What changed is every VALUE a
+reader sees and every word a note is written with; what did not change is a single identifier:
+`ROUTINES_TAB`, `isRoutinesTab`, `toggleRoutines`, `POST /api/routine`, `GET /api/routines`,
+`RoutineMeta`, `client/routines/`, `tests/routine.test.ts` all stand, and the i18n KEYS keep
+`routine*` with orbit VALUES (the dictionary block's comment says so). Concretely:
+
+- **Fences.** `routineFenceKind` reads `orbit`, `orbit-log`, `routine`, `routine-log` and answers
+  the ROLE (`"routine"` / `"routine-log"`). render.ts's fence branch takes both words; the editor
+  widget, the indexer, the spans and the routes all go through the one reader. The form and the
+  seed write ```` ```orbit ````. **A log fence the app ADDS is spelled the way its plan is**
+  (`logFenceWordFor(plan.opener)`): a legacy ```` ```routine ```` plan gets a ```` ```routine-log ````
+  under it, never an `orbit-log`, so a note keeps one vocabulary and the owner's
+  `~/Documents/alchemy/Routines/*.md` are never touched. Tested both ways.
+- **Folder.** `ROUTINES_ROOT` = `Orbits` / `مدارات`; `ROUTINES_ROOTS` lists the two legacy names
+  after them, and `routinesRootFor` prefers the instance's own new name, then ANY root the vault
+  already has (a vault with `Routines/` keeps filing there), then the new name.
+- **Tab and route.** `ROUTINES_TAB = "~orbits"`, `LEGACY_ROUTINES_TAB = "~routines"`;
+  `isRoutinesTab` answers both and `parseTab` folds the legacy sentinel to the new one on read, so a
+  stored workspace reopens the page as one tab, not two. The router serves `/orbits` and still
+  answers `/routines` (the bar then shows `/orbits`).
+- **Chrome.** The status-bar door is a body on its ring (was a calendar leaf); the palette row,
+  the phone ⋯ row, the tab title and the slash-menu row (`Orbit routine`, so `/routine` typed from
+  habit still finds it; the snippet writes ```` ```orbit ````) all read the dictionary.
+- **Docs.** `docs/orbits.md` + `docs/ar/orbits.md` (the routines pages are gone), SECTIONS slug
+  `orbits`, README/docs index rows, the seed `vault-seed/Orbits.md`. Both pages carry the
+  one-line note that the fence was called routine before 3.15 and still works.
+
+**Icon and banner.** `icon:` (also `emoji:` / `رمز` / `أيقونة`) is one grapheme cluster or a word of
+at most three (`cleanIcon`, `Intl.Segmenter`): 🚶, ☪, "AB" pass, a sentence does not — it parses to
+null rather than a paragraph in a badge. It is `plan.emoji` (the FolderIcon `plan.icon` is still the
+kind's glyph, drawn when `emoji` is null). `banner:` (also `image:` / `لافتة` / `صورة`) takes a bare
+value, `[[…]]` or `![](…)`, and is `plan.banner`; the card resolves it through THE NOTE BANNER'S
+LADDER (`resolveBanner(value, notePath)` in client/banner.ts — https, exact path, beside the note,
+basename vault-wide) and draws `.s-rv-routine__banner`, a strip bled through the card's padding,
+`display:none` until the image's `load` fires (a hidden `<img>` still fetches; a `loading="lazy"`
+one does NOT — it was lazy for one build and never loaded). A miss or a broken file draws nothing and
+costs no grid gap. The draft carries `icon` / `banner` and `routineFenceBody` writes them right
+after `kind`, which is why the owner's sample round-trips byte for byte (tested).
+
+**The form, rebuilt** (`client/routines/RoutineForm.tsx`, `.s-orbitform*` in
+client/styles/routines.css, the Media form's frame kept). A sheet in four numbered sections —
+name and look; days and parts; what to record each day; target and notes — with a plain sentence
+under every control. **Fields are edited as PARTS, not specs**: the form's state is
+`RoutineField[]` in the plan's order (`parseField` is exported for it), composed back through
+`fieldSpec`, so an untouched edit writes the same `fields:` line. The KNOWN fields
+(`client/routineFields.ts`: minutes, weight, focus, mood, energy, water, pages, hours, quality,
+notes — each with an en and an ar key, a type, a default unit or ceiling, and a help sentence) are
+toggles: on = a field with that key (either language) is in the list; toggling on appends
+`fieldFromKnown` in the instance's language; a number's unit and a scale's ceiling are editable in
+the row. Anything else is a **Your own fields** row (name, kind of value as a Select whose note
+explains it, unit or ceiling). **Presets pre-tick, nothing is forced** — the exercise preset lists
+minutes and weight and the owner unticks both; the fence then has no `fields:` line (tested in the
+browser). "Custom" (was "Blank") starts from nothing and the hint says so. The kind row always
+shows. The icon is a shelf of forty emoji (radio buttons) plus a free field (≤8 chars, `cleanIcon`
+on parse); the banner is the Media form's cover row — `PathInput kind="image"` and an upload
+button ("Choose…") whose context folder is the note's, or the folder the note will take.
+
+**Fields, the model.** `RoutineFieldType` gains `count` (`water:count:glasses`): a number that
+means whole things, drawn as `<input type=number step=1 inputmode=numeric>`; `fieldSpec` writes it
+back as `count`. **A declared field wins over the note keyword** in `parseLogLine`: a plan with a
+`notes:text` field (the form offers one) reads `notes: …` into `values.notes`, and a log with no
+such field still reads it as the day's note. On the card `isNotesField` makes that field THE note
+box (one input, writing `values[key]`), not a field input beside a note line that mean the same.
+
+**"What is the focus thingy".** Every field name on the card carries `title = fieldHelp(field)` —
+the known field's sentence, or the generic one for its type ("soreness, rated from 1 to 5") — and a
+scale row's `title` adds "click a number; click it again to clear". The same sentences sit under
+the form's toggles. The dictionary's `orbitField*` block is theirs.
+
+**The squish** (the owner: "when clicking to create a new routine my first routine gets weirdly
+squished to the right"). Reproduced in Chromium with TWO cards on the row: the first card's head
+sat in a 27px column with everything else in the second. Cause: 3.14's `@container (inline-size
+>= 640px) { .s-rv-routine { grid-template-columns: 1fr auto } .s-rv-routine > :not(week):not(heat)
+{ grid-column: 1 / -1 } }` with `container-type: inline-size` ON the card. A container rule on an
+element resolves against its nearest ANCESTOR container, so the card's own columns switched on the
+PAGE's width (≥640 always) while its children's spans switched on the CARD's (<640 once two cards
+shared the row) — two columns, nothing spanning them. Creating a second orbit is what put two on
+the row, hence "when clicking to create a new routine". Fix: no container query at all — the week
+strip and the heatmap live in `.s-rv-routine__lower`, a wrapping flex row (`week: flex 1 1 340px`,
+`heat: flex none`), so a wide card sets them side by side and a narrow one stacks them by
+geometry. The card's `container-type` is gone. Measured before/after with the form open and closed
+(scratchpad harness); the head spans its card in every case.
+
+**The form's own container.** `.s-orbitform__body` is a query container so the rules that stack
+the own-field row on a narrow SHEET ask the sheet's width — the lesson above, applied.
+
+**Verified** (scratchpad/orbits/verify.mjs against a scratch server): `/routines` → `/orbits`; the
+owner's sample renders with its 🚶; a legacy ```` ```routine ```` plan renders on the page and in
+the editor and a tick writes into its ```` ```routine-log ````; the exercise preset with minutes and
+weight unticked saves a note with no `fields:` line and ```` ```orbit ```` fences; an edit saved
+untouched leaves the note byte for byte; a custom rating and Focus land as
+`fields: soreness:scale:5, focus:scale:5`; a `banner:` strip draws; the first card keeps its box
+with the form open; the 412px form fits, scrolls only down, and its emoji targets are 42px; the
+Arabic sheet reads المدارات. Unit tests: `orbits (3.15.0)` in tests/routine.test.ts.
 
 ## Tests (`npm test`) — the release gate
 

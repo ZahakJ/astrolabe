@@ -8,6 +8,7 @@ import {
   applyEdit,
   dayStatus,
   draftOf,
+  fieldSpec,
   editRoutinePlan,
   formatLogLine,
   logEditFor,
@@ -17,6 +18,8 @@ import {
   parseRoutineLog,
   routineFenceBody,
   routineFenceSpans,
+  routineNoteContent,
+  routinesRootFor,
   routineStats,
   scanRoutines,
   tasksFor,
@@ -238,5 +241,65 @@ describe("a book in the plan (3.13.0)", () => {
     assert.equal(plan.book, "The Muqaddima");
     assert.deepEqual(tasksFor(plan, "2026-09-14").map((t) => [t.key, t.book ?? false]), [["read", true], ["coffee", false]]);
     assert.ok(routineFenceBody(draftOf(plan)).includes("book: The Muqaddima"));
+  });
+});
+
+describe("orbits (3.15.0) — the new word, the same model", () => {
+  const OWNER = `title: Daily exercise
+kind: exercise
+icon: 🚶
+slots: morning, evening
+target: 6/week
+monday:
+  morning: 60 min brisk walk
+  evening: Full Body A: leg press 3×8–12, chest press 3×8–12, plank 3×45 sec
+tuesday:
+  morning: 60 min easy walk
+`;
+  it("reads an orbit fence and a routine fence as the same thing", () => {
+    const orbit = scanRoutines("```orbit\n" + OWNER + "```\n\n```orbit-log\n2026-09-14 | done: morning\n```\n");
+    const legacy = scanRoutines("```routine\n" + OWNER + "```\n\n```routine-log\n2026-09-14 | done: morning\n```\n");
+    assert.equal(orbit.length, 1);
+    assert.equal(legacy.length, 1);
+    assert.deepEqual(orbit[0].plan, legacy[0].plan);
+    assert.deepEqual(orbit[0].entries, legacy[0].entries);
+  });
+  it("keeps an icon and a banner, and the owner's plan round-trips untouched", () => {
+    const plan = parseRoutine(OWNER)!;
+    assert.equal(plan.emoji, "🚶");
+    assert.equal(plan.fields.length, 0);
+    // Opened in the form and saved with nothing changed: the same bytes.
+    assert.equal(routineFenceBody(draftOf(plan)), OWNER);
+    const withBanner = parseRoutine("title: X\nicon: ☪\nbanner: [[Media/walk.jpg]]\nitems: a\n")!;
+    assert.equal(withBanner.emoji, "☪");
+    assert.equal(withBanner.banner, "Media/walk.jpg");
+    assert.ok(routineFenceBody(draftOf(withBanner)).includes("banner: Media/walk.jpg"));
+    // A paragraph is not an icon.
+    assert.equal(parseRoutine("title: X\nicon: not an icon at all\nitems: a\n")!.emoji, null);
+  });
+  it("spells a new log fence the way its plan is spelled", () => {
+    const orbitNote = "```orbit\n" + OWNER + "```\n";
+    const legacyNote = "```routine\n" + OWNER + "```\n";
+    const patch = { date: "2026-09-14", done: ["morning"] };
+    assert.ok(applyEdit(orbitNote, logEditFor(orbitNote, 0, patch)!).includes("```orbit-log\n"));
+    assert.ok(applyEdit(legacyNote, logEditFor(legacyNote, 0, patch)!).includes("```routine-log\n"));
+  });
+  it("knows a count, and lets a declared notes field claim its segment", () => {
+    const plan = parseRoutine("title: Water\nfields: water:count:glasses, notes:text\nitems: drink\n")!;
+    assert.deepEqual(plan.fields.map(fieldSpec), ["water:count:glasses", "notes:text"]);
+    const entry = parseLogLine("2026-09-14 | done: drink | water: 6 | notes: felt fine", plan.fields)!;
+    assert.equal(entry.values.water, "6");
+    assert.equal(entry.values.notes, "felt fine");
+    assert.equal(entry.note, null);
+    // Without such a field the same segment is still the day's note.
+    const bare = parseLogLine("2026-09-14 | notes: felt fine", [])!;
+    assert.equal(bare.note, "felt fine");
+  });
+  it("files a new orbit under Orbits, or under the folder a vault already keeps", () => {
+    assert.equal(routinesRootFor("en", []), "Orbits");
+    assert.equal(routinesRootFor("ar", []), "مدارات");
+    assert.equal(routinesRootFor("en", ["Routines"]), "Routines");
+    assert.equal(routinesRootFor("en", ["Routines", "Orbits"]), "Orbits");
+    assert.ok(routineNoteContent(draftOf(parseRoutine(OWNER)!)).startsWith('---\ntitle: "Daily exercise"\n---\n\n```orbit\n'));
   });
 });

@@ -45,7 +45,7 @@ const SECTIONS = [
       { slug: "templates-and-notes", file: "templates-and-notes.md", title: { en: "Templates, banners & notes", ar: "القوالب واللافتات والملاحظات" } },
       { slug: "latex", file: "latex.md", title: { en: "LaTeX notes", ar: "ملاحظات LaTeX" } },
       { slug: "trackers", file: "trackers.md", title: { en: "Trackers", ar: "المتتبِّعات" } },
-      { slug: "routines", file: "routines.md", title: { en: "Routines", ar: "الروتين" } },
+      { slug: "orbits", file: "orbits.md", title: { en: "Orbits", ar: "المدارات" } },
       { slug: "flashcards", file: "flashcards.md", title: { en: "Flashcards", ar: "البطاقات التعليمية" } },
       { slug: "drawing", file: "drawing.md", title: { en: "Drawings", ar: "الرسومات" } },
       { slug: "books", file: "books.md", title: { en: "The PDF reader", ar: "قارئ PDF" } },

@@ -102,7 +102,7 @@ interface NoteRecord {
    *  effect. The folder is applied at lookup time (hadithLookup). */
   hadithRef: string | null;
   /** Every ```routine plan in this note with its log (shared/routine.ts) —
-   *  the Routines page's list. Empty for almost every note. */
+   *  the Orbits page's list. Empty for almost every note. */
   routines: RoutineBlock[];
   /** Every task line in this note (shared/tasks.ts), full-source lines. */
   tasks: Task[];

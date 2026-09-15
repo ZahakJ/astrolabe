@@ -1,0 +1,225 @@
+# Orbits
+
+*The things you come back to every day — a plan for each day, a record of what you did, and a page that asks you every morning.*
+
+← [Back to the README](../README.md) · [All docs](README.md)
+
+---
+
+Some things in life are not projects. They do not finish. You do not "complete" walking, or
+praying, or sleeping well — you come back round to them, day after day, the way a moon comes back
+round its planet. That is what an **orbit** is in Astrolabe: something you do by the day, with a
+card that shows you what today asks, lets you tick it off, and keeps count of how the days are
+going — your streak, this week, and the last twelve weeks as a little grid of colour.
+
+A [tracker](trackers.md) is a card about one thing you are working *through* (a book, a game, a
+course) and how far you have got. An orbit is a card about your *days*. An exercise week, the five
+prayers, sleep, water, a mood journal, twenty pages a night — anything you mean to do again
+tomorrow.
+
+Everything an orbit knows lives in one ordinary note in your vault: the **plan** (what you mean to
+do) and the **log** (what you did). There is no hidden database. Tick a box and one line changes in
+your file; edit the line by hand and the card follows. Open the same vault in Obsidian and both
+parts are plain, readable code blocks that say exactly what they say here.
+
+> Before 3.15 this feature was called *routines* and the blocks were named ` ```routine ` and
+> ` ```routine-log `. Those names still work, in every note you already have — nothing needs
+> renaming. New orbits are written with the names below.
+
+## What an orbit looks like in the note
+
+Two blocks. The first is the plan; Astrolabe writes the second, the log, right under it the first
+time you tick something.
+
+```orbit
+title: Daily exercise
+kind: exercise
+icon: 🚶
+slots: morning, evening
+target: 6/week
+monday:
+  morning: 60 min brisk walk
+  evening: Full Body A: leg press 3×8–12, chest press 3×8–12, plank 3×45 sec
+tuesday:
+  morning: 60 min easy walk
+```
+
+```orbit-log
+2026-09-14 | done: morning, evening | Felt strong
+```
+
+Read it top to bottom and it says: *this orbit is called Daily exercise, it is an exercise, it
+wears a walking figure as its icon, each day has a morning and an evening, I am aiming for six days
+a week, and here is what Monday and Tuesday ask.* The log says: *on the 14th of September I did the
+morning and the evening, and I felt strong.*
+
+You do not have to write any of this by hand. The **New orbit** form (below) writes it for you.
+But it is worth knowing that this is all there is.
+
+## The plan, line by line
+
+Every line is a word, a colon, and a value. Only the title is required — and even that can just be
+the first line on its own.
+
+| Line | What you put after the colon | What it does |
+| --- | --- | --- |
+| `title` | a name | What the card is called. |
+| `kind` | `exercise` `habit` `prayer` `sleep` `water` `mood` `reading` `study` — or any word of your own | Picks the small glyph on the card and the suggestions the form offers. Synonyms in both languages are understood (`workout`, `salah`, `رياضة`, `صلاة`…). Your own word is kept as written and gets the ✦ glyph. |
+| `icon` | one emoji or a short symbol — `🚶`, `☪`, `✦` | Drawn in the card's corner instead of the kind's glyph. |
+| `banner` | a picture — a file in the vault (`walk.jpg`, `Media/walk.jpg`) or an `https://` link | Drawn as a strip across the top of the card. It is found the same way a note's banner is: by its full path, then beside the note, then anywhere in the vault by name. |
+| `slots` | words with commas between them — `morning, evening` | The **parts of a day** you plan by. They become the columns of your week. Leave this line out and each day is just one line. |
+| `items` | things with commas between them — `Fajr, Dhuhr, Asr, Maghrib, Isha`, or `8 glasses` | Things asked of you **every** day. Each becomes a box to tick. |
+| a weekday | `monday: 60 min walk` — or `monday:` on its own with the parts indented under it | What that day asks. Weekdays are understood in English and Arabic, long or short (`mon`, `الاثنين`). A day with nothing under it is a **rest day**: it never counts against you. |
+| `fields` | things to record, with commas between them — see [What to record each day](#what-to-record-each-day) | The small inputs on the card: a number, a rating, a line of text. |
+| `target` | a number of days — `6/week`, or just `6` | How many days a week you are aiming for. The card counts against it: *3 of 6 this week*. Without it, the card counts the days the plan actually asks something of. |
+| `book` | the title of a book you are [tracking](trackers.md) — `[[…]]` is fine | Adds **Read N pages of it** to every day, N being the tracker's pace. Ticking it moves the tracker forward; unticking moves it back. |
+| `notes` | `notes: \|` and then lines indented under it | Anything you want to remember about this orbit — why you started, the rules you set yourself. Shown under the card. |
+
+A block with **no title and no plan at all** stays a plain code block, so a half-typed orbit reads as
+what you typed rather than vanishing into an empty card. One note can hold several orbits; each one
+takes the log block that follows it.
+
+## What to record each day
+
+Ticking boxes tells you *whether* you did something. Sometimes you also want to write down *how
+much*, or *how it went*. That is what fields are: small inputs on the card, one per day, each with
+its own column in the log.
+
+The form offers the common ones as toggles, each with a sentence saying what it means:
+
+- **Minutes** — how long it took, as a number.
+- **Weight** — your weight that day, a number with a unit (`kg` by default; change it if you like).
+- **Focus** — how focused you were, rated from 1 (scattered) to 5 (fully there).
+- **Mood** — how you felt, 1 (low) to 5 (great).
+- **Energy** — how much energy you had, 1 to 5.
+- **Water** — how much you drank, as a count of glasses.
+- **Pages** — how many pages you read.
+- **Hours** — how many hours, of sleep or of work.
+- **Quality** — how good it was, 1 to 5.
+- **Notes** — a line of text about the day.
+
+**None of them is required.** A template such as *Exercise* pre-ticks Minutes and Weight because
+many people want them; untick either and it is gone. Anything not on the list is yours to add under
+**Your own fields**: give it a name and say what kind of value it holds:
+
+| Kind of value | Means | Written in the plan as |
+| --- | --- | --- |
+| Number | any number, decimals allowed — 62, 84.2 | `weight:number:kg` (the unit is optional) |
+| Count | whole things you count — 3 glasses, 20 pages | `water:count:glasses` |
+| Rating | a mark from 1 to a ceiling you choose | `focus:scale:5` |
+| Text | a line of words | `soreness:text` |
+| Yes / no | a single box: did it happen | `stretched:check` |
+
+On the card, a rating is a row of numbered buttons: click one to set it, click it again to clear
+it. Hover a field's name and it tells you what it means — the same sentence the form showed you.
+
+## The log
+
+One line per day. Astrolabe writes these lines when you tick and type on the card, but they are
+made to be read — and edited — by a person:
+
+```
+2026-09-14 | done: morning, evening | skipped: stretch | minutes: 62 | weight: 84.2 | Felt strong
+```
+
+Reading left to right, separated by ` | `:
+
+- the **date** opens the line (Eastern Arabic digits are fine too);
+- `done:` names what you ticked — a part of the day (`morning`), an every-day item (`Fajr`), or
+  the weekday itself when the day was a single line (`sunday`);
+- `skipped:` names what you passed on **on purpose** — the day still counts as missed, but the log
+  remembers why;
+- anything whose name is one of your fields sets that field;
+- whatever is left is the day's **note**.
+
+Lines that do not start with a date are ignored, the last line for a date wins, and Astrolabe keeps
+the lines in date order when it writes. Whatever you typed by hand survives to the byte; the app
+only ever replaces the one line it is recording.
+
+## The card
+
+The plan turns into a card wherever the note is shown — in the editor, in reading view, on your
+published site, inside a transclusion — always the same card:
+
+- **The head**: the icon (or the kind's glyph), the name, and the banner strip above them if you set
+  one.
+- **Today**: the date, the day's checklist (every-day items first, then the day's parts with what
+  each asks), the fields, and a one-line note. In the editor, ticking a box rewrites the log as
+  **one undo step**. Hover a task for *skip*.
+- **Three numbers**: the **streak** (complete days in a row — rest days do not break it, and a day
+  that is not over yet neither adds nor breaks), **this week** (`3/6`, against your target), and
+  the **last 30 days** as a percentage.
+- **The week**: seven dots, today ringed — full for complete, half for partly done, red-rimmed for
+  missed, hollow for a rest day. The week starts on Monday for an English site and on Saturday for
+  an Arabic one.
+- **Twelve weeks**: a small grid, one cell per day, coloured by how much of the day you did.
+  Hatched cells are rest days; today is ringed.
+- **The week's plan**, folded away under a heading: each day and its parts, today's row lit.
+
+The log block renders as a table of the days, newest first: the date with its status dot, what was
+done, each field, the note.
+
+Reading view and the public site show the card without its controls. A visitor cannot write to
+your note, and a box that cannot be ticked would be a box that lies.
+
+## The Orbits page
+
+The orbit button in the status bar (the small body on its ring, beside the settings gear; admins
+only — or **Open the Orbits page** in the command palette) opens every orbit in the vault as
+today's checklists, in a tab in the current pane. The address is `/orbits` (`/routines` still gets
+you there). The line under the heading counts the day: *3 of 5 complete today*.
+
+A tick on this page goes to the note the orbit lives in, by the very same edit the editor would
+make, so the page and the editor never disagree about what the log says. The page re-reads on
+every change to the vault, so a box ticked in the editor shows here at once.
+
+Each card has **Edit** (the form, filled in), **Delete** (the note goes to the trash through the
+same dialog the tree uses), and its name opens the note. One orbit spans the whole row, with the
+week strip beside the twelve-week grid; two share a row; more wrap in pairs.
+
+## New orbit — the form
+
+**New orbit** opens a sheet in four parts.
+
+**Start from.** A row of templates. **Custom** starts from nothing and lets you choose each part
+yourself. The built-in ones fill the sheet in: *Exercise* (a whole week of morning walks and evening
+full-body sessions), *Habits*, *Prayers* (the five, every day, with a count of those prayed in
+congregation), *Sleep* (hours, quality, bedtime), *Water*, *Mood* (mood, energy, gratitude),
+*Reading*, *Study* — each in your site's language. Under them, **Your templates**: any note in the
+[templates folder](templates-and-notes.md) that carries an ` ```orbit ` block. A template only
+fills the sheet in; everything on it stays yours to change.
+
+1. **Name and look.** The name; the kind (or your own word); the **icon** — a shelf of forty
+   glyphs, or type any emoji or short symbol; the **banner** — a picture from the vault, chosen from
+   a list as you type, or **Choose…** to upload one.
+2. **Days and parts.** The parts of a day (`morning, evening`); the things asked of every day; and
+   a table — one row per weekday, one column per part — where you write what each day asks. Leave a
+   day blank and it is a rest day.
+3. **What to record each day.** The toggles described above, each with its sentence, plus **Your
+   own fields**. Tick only what you actually want to write down.
+4. **Target and notes.** Days a week you are aiming for; a book you are tracking; notes.
+
+**Save** writes one note:
+
+```
+Orbits/Daily exercise.md
+```
+
+holding the name as frontmatter, the plan block and an empty log block. On an Arabic site the
+folder is `مدارات`; a vault that already has a `Routines/` or `روتين/` folder from before 3.15
+keeps filing there. A name that already has a note is refused rather than overwritten. Editing from
+the page rewrites **only the plan block** — the log under it and any prose around it stay exactly as
+they were, byte for byte. **Save as template** writes the same note into the templates folder
+instead, so an orbit you drew up once can seed the next.
+
+## In the editor
+
+Type ` ```orbit ` by hand, or `/orbit` from the slash menu for a skeleton. With the caret outside
+the block you see the card; put the caret inside and it is source again, so the plan can be edited
+in place. The log block behaves the same way.
+
+## In Obsidian
+
+`orbit` is an Astrolabe extension. In Obsidian the two blocks are labelled code blocks whose lines
+are all readable — nothing is converted and nothing is lost. See
+[OBSIDIAN-COMPAT.md](../OBSIDIAN-COMPAT.md).
