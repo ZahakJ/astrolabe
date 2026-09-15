@@ -274,3 +274,36 @@ export function writeSchedule(md: string, line: number, schedule: Schedule, slot
   else lines.splice(after, 0, comment);
   return lines.join(eol) + (trailing ? eol : "");
 }
+
+/** `md` with the schedule in `slot` of the card starting on `line` taken
+ *  OUT — the undo of a first grade, which wrote a comment where there was
+ *  none. The comment is removed whole when the slot was its only schedule;
+ *  a pair's comment keeps the twin's slot, the cleared one becoming the
+ *  same placeholder writeSchedule leaves for a not-yet-graded first half
+ *  (the slots are positional, so a first slot cannot simply go). A trailing
+ *  slot is dropped rather than replaced: a comment reads to its last
+ *  schedule and needs no placeholder there. Every other byte kept. */
+export function clearSchedule(md: string, line: number, slot: 0 | 1 = 0): string {
+  const card = scanCards(md).find((c) => c.line === line);
+  if (!card) return md;
+  const eol = /\r\n/.test(md) ? "\r\n" : "\n";
+  const lines = md.replace(/\r?\n$/, "").split(/\r?\n/);
+  const trailing = /\r?\n$/.test(md);
+  const inline = card.kind === "qa" && card.end === card.line;
+  const own = card.line - 1;
+  const after = card.end;
+  const onOwnLine = inline && hasSrComment(lines[own]);
+  const onNextLine = !onOwnLine && lines[after] !== undefined && lines[after].replace(TRAILING_SR_RE, "").trim() === "" && hasSrComment(lines[after]);
+  if (!onOwnLine && !onNextLine) return md;
+  const slots: Schedule[] = parseSrComments(onOwnLine ? lines[own] : lines[after]);
+  if (slot >= slots.length) return md;
+  if (slot === slots.length - 1) slots.pop();
+  else slots[slot] = { due: slots[slot].due, interval: 0, ease: EASE_START };
+  // Nothing real left (the last slot went, or only placeholders remain):
+  // the comment goes, and a line that held nothing else goes with it.
+  const empty = slots.every((s) => s.interval === 0);
+  if (onOwnLine) lines[own] = empty ? lines[own].replace(TRAILING_SR_RE, "") : `${lines[own].replace(TRAILING_SR_RE, "")} ${formatSrComments(slots)}`;
+  else if (empty) lines.splice(after, 1);
+  else lines[after] = formatSrComments(slots);
+  return lines.join(eol) + (trailing ? eol : "");
+}

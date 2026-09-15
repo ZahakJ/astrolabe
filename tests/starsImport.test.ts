@@ -31,7 +31,7 @@ import {
   noteBaseName,
   parseDelimited,
   readApkg,
-  serialiseImportedConstellation,
+  serialiseImportedDeck,
   Skips,
   writeDecks,
   type ImportDeck,
@@ -222,7 +222,7 @@ describe("CSV / TSV", () => {
       "x,y,",
     ].join("\r\n");
     const deck = csvDeck(csv, { title: "Edges", front: 0, back: 1, extra: 2, tags: null, header: null }, skips);
-    const text = serialiseImportedConstellation(deck);
+    const text = serialiseImportedDeck(deck);
     const cards = scanCards(text);
     assert.equal(cards.length, 9, text);
     assert.deepEqual(cards.map((c) => c.front), ["\\# of legs on a spider", "\\```js", "\\> quoted", "\\| pipe", "\\- [ ] task", "a: : :b", "東京：首都", "plain", "x"]);
@@ -241,13 +241,13 @@ describe("CSV / TSV", () => {
     );
     assert.deepEqual(skips.list(), [{ reason: "empty", count: 1 }]);
     assert.equal(
-      serialiseImportedConstellation(deck),
+      serialiseImportedDeck(deck),
       "---\ntitle: Spanish\n---\n\n```constellation\ntitle: Spanish\nkind: basic\n```\n\ncat::gato::el gato #animals\ndog::perro #animals #pets\n",
     );
   });
 });
 
-describe("serialiseImportedConstellation", () => {
+describe("serialiseImportedDeck", () => {
   it("writes sections as headings and quotes a title YAML would misread", () => {
     const deck: ImportDeck = {
       title: "Physics: Light",
@@ -258,7 +258,7 @@ describe("serialiseImportedConstellation", () => {
       ],
     };
     assert.equal(
-      serialiseImportedConstellation(deck),
+      serialiseImportedDeck(deck),
       [
         "---", 'title: "Physics: Light"', "---", "", "```constellation", "title: Physics: Light", "kind: basic", "```", "",
         "c::speed of light", "", "## Waves", "",
@@ -267,8 +267,10 @@ describe("serialiseImportedConstellation", () => {
       ].join("\n"),
     );
     // A title the caller typed with a newline and a fence in it stays one line, and the fence stays whole.
-    const odd = serialiseImportedConstellation({ title: "Two\nlines ```", cards: [] });
-    assert.ok(odd.startsWith("---\ntitle: Two lines\n---\n\n```constellation\ntitle: Two lines\nkind: basic\n```\n"), odd);
+    // A newline folds; the backticks stay (one line cannot open a fence),
+    // and YAML gets them quoted.
+    const odd = serialiseImportedDeck({ title: "Two\nlines ```", cards: [] });
+    assert.ok(odd.startsWith("---\ntitle: \"Two lines ```\"\n---\n\n```constellation\ntitle: Two lines ```\nkind: basic\n```\n"), odd);
     assert.equal(noteBaseName("A/B: C?"), "A B C");
     assert.equal(noteBaseName("///"), "Imported constellation");
   });

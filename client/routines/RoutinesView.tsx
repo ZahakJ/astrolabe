@@ -18,7 +18,7 @@ import { dayStatus, isoDate, type EntryPatch } from "../../shared/routine.ts";
 import { getCards, getRoutines, updateRoutine } from "../api.ts";
 import { isDue } from "../../shared/srs.ts";
 import { siteDate } from "../dates.ts";
-import { localeNum, t, tf } from "../i18n.ts";
+import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { confirmDeleteNote } from "../components/deleteFlow.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
@@ -106,11 +106,11 @@ function DueTasks({ today }: { today: string }) {
   return <div ref={host} className="s-routines__tasks" />;
 }
 
-/** How many flashcards are due today — one line with a door to the Review
- *  page, because the morning's checklist is where the day's cards belong. */
+/** How many stars are due today — one line with a door to the Constellations
+ *  shelf, because the morning's checklist is where the day's stars belong. */
 function CardsDue({ today }: { today: string }) {
   const [due, setDue] = useState(0);
-  const toggleReview = useStore((s) => s.toggleReview);
+  const openStars = useStore((s) => s.openStars);
   useEffect(() => {
     let alive = true;
     const read = (): void => {
@@ -136,9 +136,9 @@ function CardsDue({ today }: { today: string }) {
   if (due === 0) return null;
   return (
     <section className="s-routines__cards" data-testid="routines-cards-due">
-      <span className="s-routines__cardstext">{due === 1 ? t("routinesCardsDueOne") : tf("routinesCardsDue", { n: localeNum(due) })}</span>
-      <button type="button" className="s-btn s-btn--accent" onClick={toggleReview}>
-        {t("routinesReview")}
+      <span className="s-routines__cardstext">{tf("routinesStarsDue", { n: countPhrase(due, "stars") })}</span>
+      <button type="button" className="s-btn s-btn--accent" onClick={() => openStars(null)}>
+        {t("stars")}
       </button>
     </section>
   );

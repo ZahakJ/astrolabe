@@ -6,11 +6,12 @@ import {
   constellationOf,
   parseConstellationFence,
   parseSteps,
+  restoreStarSchedule,
   scanStars,
   serialiseConstellation,
   writeStarSchedule,
 } from "../shared/constellations.ts";
-import { scanCards, writeSchedule } from "../shared/flashcards.ts";
+import { clearSchedule, scanCards, writeSchedule } from "../shared/flashcards.ts";
 import { formatSrComments, parseSrComment, parseSrComments } from "../shared/srs.ts";
 
 // ------------------------------------------------------------------ fixtures
@@ -276,6 +277,52 @@ describe("writing a star's schedule", () => {
   });
 });
 
+// The session's undo: POST /api/star/review with `restore` writes the
+// schedule the star had before the grade back verbatim — or, for a first
+// grade, takes the comment out — so the note is the note it was.
+describe("restoring a star's schedule", () => {
+  const s1 = { due: "2026-10-01", interval: 3, ease: 2500 };
+  const s2 = { due: "2026-10-05", interval: 7, ease: 2650 };
+
+  it("puts a previous schedule back verbatim, and strips a first grade's comment byte for byte", () => {
+    const stars = scanStars(KANA, "k.md", "typed");
+    const graded = writeStarSchedule(KANA, stars[0], s1);
+    assert.notEqual(graded, KANA);
+    assert.equal(restoreStarSchedule(graded, { ...stars[0], schedule: s1 }, null), KANA);
+    // う had a schedule before its grade; restoring it is the old comment again.
+    const u = stars[2];
+    const regraded = writeStarSchedule(KANA, u, s2);
+    assert.ok(regraded.includes("う::u <!--SR:!2026-10-05,7,2650-->"));
+    assert.equal(restoreStarSchedule(regraded, { ...u, schedule: s2 }, u.schedule), KANA);
+  });
+  it("keeps the twin's slot when one half of a pair is un-graded", () => {
+    const [fwd, rev] = scanStars(PAIRS, "c.md", "basic").filter((s) => s.line === 6);
+    // Iran:::Tehran carries two schedules; undoing the reverse half's first
+    // grade would leave the forward one — a trailing slot simply goes.
+    const revGone = restoreStarSchedule(PAIRS, rev, null);
+    assert.ok(revGone.includes("Iran:::Tehran <!--SR:!2026-09-20,6,2500-->\n"), revGone);
+    // Undoing the forward half instead leaves the placeholder the plugin
+    // can read and the scanner reads as "new", with the twin's kept.
+    const fwdGone = restoreStarSchedule(PAIRS, fwd, null);
+    assert.ok(fwdGone.includes("Iran:::Tehran <!--SR:!2026-09-20,0,2500!2026-09-25,3,2350-->\n"), fwdGone);
+    const back = scanStars(fwdGone, "c.md", "basic").filter((s) => s.line === 6);
+    assert.deepEqual(back.map((s) => s.schedule), [null, { due: "2026-09-25", interval: 3, ease: 2350 }]);
+    // Both gone: no comment at all.
+    const none = restoreStarSchedule(fwdGone, back[1], null);
+    assert.ok(none.includes("Iran:::Tehran\n"), none);
+    assert.equal((none.match(/<!--SR/g) ?? []).length, 0);
+  });
+  it("removes a block's comment line, not the block", () => {
+    const stars = scanStars(MIXED, "a.md", "basic");
+    const cloze = writeStarSchedule(MIXED, stars[0], s1);
+    assert.equal(restoreStarSchedule(cloze, { ...stars[0], schedule: s1 }, null), MIXED);
+    const quote = writeStarSchedule(MIXED, stars[2], s1);
+    assert.equal(clearSchedule(quote, stars[2].line), MIXED);
+    // Nothing to clear is nothing changed.
+    assert.equal(clearSchedule(MIXED, stars[0].line), MIXED);
+  });
+});
+
 // ------------------------------------------------------------- a new note
 
 describe("a new constellation note", () => {
@@ -285,6 +332,9 @@ describe("a new constellation note", () => {
       { front: "い", back: "i", extra: "as in eat", section: "Row a" },
       { front: "か", back: "ka", section: "Row k" },
       { front: "", back: "dropped" },
+      // A `::` inside a face is spaced, not collapsed: the importer's rule
+      // (tests/starsImport.test.ts), now the one rule — `std::vector` keeps
+      // both its colons and still cannot split the line.
       { front: "no::colons", back: "line\nbreak" },
     ]);
     assert.equal(
@@ -309,7 +359,7 @@ describe("a new constellation note", () => {
         "## Row k",
         "",
         "か::ka",
-        "no:colons::line break",
+        "no: :colons::line break",
         "",
       ].join("\n"),
     );
