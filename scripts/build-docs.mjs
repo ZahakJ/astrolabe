@@ -45,7 +45,7 @@ const SECTIONS = [
       { slug: "templates-and-notes", file: "templates-and-notes.md", title: { en: "Templates, banners & notes", ar: "القوالب واللافتات والملاحظات" } },
       { slug: "latex", file: "latex.md", title: { en: "LaTeX notes", ar: "ملاحظات LaTeX" } },
       { slug: "trackers", file: "trackers.md", title: { en: "Trackers", ar: "المتتبِّعات" } },
-      { slug: "routines", file: "routines.md", title: { en: "Routines", ar: "الروتين" } },
+      { slug: "orbits", file: "orbits.md", title: { en: "Orbits", ar: "المدارات" } },
       { slug: "flashcards", file: "flashcards.md", title: { en: "Flashcards", ar: "البطاقات التعليمية" } },
       { slug: "drawing", file: "drawing.md", title: { en: "Drawings", ar: "الرسومات" } },
       { slug: "books", file: "books.md", title: { en: "The PDF reader", ar: "قارئ PDF" } },
@@ -85,6 +85,12 @@ const SECTIONS = [
 // the missing files are named and the exit code fails the build.
 const missingArabic = [];
 const PAGES = SECTIONS.flatMap((s) => s.pages.map((p) => ({ ...p, section: s })));
+
+// A page that changed its name keeps answering at the old one: a stub at
+// the old slug that refreshes to the new. The what's-new decks of earlier
+// releases link the manual by slug (`docs: "routines"` on the 3.11–3.14
+// slides) and those links are history, not something to rewrite.
+const MOVED = { routines: "orbits" };
 
 const UI = {
   en: {
@@ -318,6 +324,9 @@ for (const lang of ["en", "ar"]) {
       });
     }
     built++;
+  }
+  for (const [from, to] of Object.entries(MOVED)) {
+    write(join(OUT, lang, from, "index.html"), `<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=../${to}/"><a href="../${to}/">${to}</a>`);
   }
   write(join(OUT, lang, "index.html"), shell({ lang, title: UI[lang].home, body: homeBody(lang, summaries), toc: [], current: null, prev: null, next: null, editHref: null, summary: UI[lang].tagline, untranslated: "", depth: 1 }));
   write(join(OUT, `search-${lang}.json`), JSON.stringify(search[lang]));

@@ -34,7 +34,7 @@ notes: |
 | `progress` | `62/130`, `45%`, `45`, `62 of 130`, `62/?` | A fraction derives the percentage; a bare number *is* the percentage. `62/?` is a count with no ceiling (hours in a game nobody has timed): the card prints the count and draws no bar. Eastern Arabic digits are read too. |
 | `season` | any text | A show's season, printed on the card's cover. Kept verbatim; the Media page's form writes it for shows. |
 | `step` | a number | How far one press of − / + moves the count. Left out: ten for pages and minutes, one for everything else. |
-| `pace` | a number | Units a day you mean to move — `pace: 20`. With a total, the card says the day you will be done. A [routine](routines.md) that names this work reads the day's pages from it. |
+| `pace` | a number | Units a day you mean to move — `pace: 20`. With a total, the card says the day you will be done. An [orbit](orbits.md) that names this work reads the day's pages from it. |
 | `due` | a date | The day you mean to be done by. With a total and no pace, the card says the pace that gets there. |
 | `folder` | a vault folder | Where your own notes on this work live (`1 - Source Material/Books/The Linux Memory Manager`). The rendered card names it; the Media page counts the notes in it and opens it. A [library path](library.md) on the same folder wears this tracker's cover. |
 | `unit` | any word | Yours, printed as you wrote it, except that a unit the chrome already knows, in either language (`chapters`, `صفحات`, `hours`, `episodes`…), is agreed and translated like a default one. Leave it out and the kind's own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised. |

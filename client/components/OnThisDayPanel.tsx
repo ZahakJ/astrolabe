@@ -1,6 +1,6 @@
 // ON THIS DAY — the archive read back: what you wrote, or finished, on
 // this month-day in earlier years. A strip under the backlinks, present
-// only when there is something to say; the Routines page draws the same
+// only when there is something to say; the Orbits page draws the same
 // list at the top of the day. Nothing is stored — the notes' own dates and
 // the trackers' `finished:` lines are the record.
 

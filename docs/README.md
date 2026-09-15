@@ -31,7 +31,7 @@ empty vault and at the foot of the `Ctrl/Cmd /` sheet, and it never opens by its
 | [Templates, banners & notes](templates-and-notes.md) | `banner:`, `{{date}}` templates, sections, attachments, trash |
 | [LaTeX notes](latex.md) | `.tex` as a first-class note, `astrolabe.sty`, and exactly what renders |
 | [Trackers](trackers.md) | The `tracker` fence, the board, the Media page that shelves them all, and what a visitor sees of your shelf |
-| [Routines](routines.md) | The daily tracker: a plan by the day, the log the app writes, streaks, the heatmap, templates and the Routines page |
+| [Orbits](orbits.md) | The things you come back to every day: a plan by the day, the log the app writes, streaks, the heatmap, icons and banners, the form's field toggles, templates and the Orbits page |
 | [Flashcards](flashcards.md) | Highlights, quotes and `?` blocks as spaced-repetition cards, graded on the Review page, scheduled in the note itself |
 | [Drawings](drawing.md) | An Excalidraw canvas in the vault: `.excalidraw` and the Obsidian plugin's `.excalidraw.md`, the svg exported beside it, `![[sketch.excalidraw]]` everywhere |
 | [The PDF reader](books.md) | Every PDF in the vault as a book: vim keys, a `:` command line, a remembered page, highlights that become cited notes |

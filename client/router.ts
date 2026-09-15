@@ -37,7 +37,7 @@ function mediaTabActive(ws: Workspace): boolean {
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isMediaTab(tab.path);
 }
-/** …or the Routines page's. */
+/** …or the Orbits page's. */
 function routinesTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
@@ -131,7 +131,7 @@ function bookSurfaceOf(ws: Workspace): { kind: "library" } | { kind: "book"; pat
 function urlForState(view: string, openPath: string | null, ws: Workspace): string {
   if (view === "editor" && graphTabActive(ws)) return "/graph";
   if (view === "editor" && mediaTabActive(ws)) return "/media";
-  if (view === "editor" && routinesTabActive(ws)) return "/routines";
+  if (view === "editor" && routinesTabActive(ws)) return "/orbits";
   if (view === "editor" && reviewTabActive(ws)) return "/review";
   const book = bookSurfaceOf(ws);
   if (book !== null) return urlForBooksRoute(book);
@@ -199,7 +199,9 @@ export function applyUrl(initial = false): boolean {
       store.setView("media");
       return true;
     }
-    if (location.pathname === "/routines") {
+    // `/routines` was the page's address until 3.15; a bookmark still opens
+    // it, and the bar then shows `/orbits`.
+    if (location.pathname === "/orbits" || location.pathname === "/routines") {
       store.setView("routines");
       return true;
     }

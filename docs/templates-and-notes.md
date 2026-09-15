@@ -122,7 +122,7 @@ working: set the folder to `Journal` and the name to `YYYY/YYYY-MM-DD`.
 
 **On this day.** Under the backlinks, the right panel lists what you wrote, published or finished on
 this day in earlier years — a strip that reads the archive back to you, drawn from the notes' own
-dates and the trackers' `finished:` lines, nothing stored. The Routines page opens with the same.
+dates and the trackers' `finished:` lines, nothing stored. The Orbits page opens with the same.
 
 
 - **Heading folding** — a chevron sits beside every heading (visible at rest, not on hover — a

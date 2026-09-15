@@ -1169,11 +1169,12 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
           continue;
         }
       }
-      // ```routine / ```routine-log — the daily tracker (shared/routine.ts).
-      // The plan's card draws its log too, so on meeting a plan the pass
-      // looks ahead for the log fence that follows it; the log fence, when
-      // its own turn comes, draws the ledger against that plan's fields.
-      if (lang === "routine") {
+      // ```orbit / ```orbit-log — the daily tracker (shared/routine.ts), and
+      // the ```routine / ```routine-log a vault from before 3.15 spells it
+      // with. The plan's card draws its log too, so on meeting a plan the
+      // pass looks ahead for the log fence that follows it; the log fence,
+      // when its own turn comes, draws the ledger against that plan's fields.
+      if (lang === "orbit" || lang === "routine") {
         const plan = parseRoutine(buf.join("\n"));
         if (plan) {
           ctx.lastRoutine = plan;
@@ -1190,12 +1191,12 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
         continue;
       }
       // ```tasks — open tasks across the vault (shared/tasks.ts). Inert here;
-      // the editor widget and the Routines page pass `live`.
+      // the editor widget and the Orbits page pass `live`.
       if (lang === "tasks") {
         root.appendChild(renderTasksBlock(parseTasksFence(buf.join("\n"), isoDate(new Date())), ctx));
         continue;
       }
-      if (lang === "routine-log" && ctx.lastRoutine && !ctx.routineLogged) {
+      if ((lang === "orbit-log" || lang === "routine-log") && ctx.lastRoutine && !ctx.routineLogged) {
         ctx.routineLogged = true;
         const plan = ctx.lastRoutine;
         root.appendChild(routineBlock("routine-log", plan, parseRoutineLog(buf.join("\n"), plan.fields), ctx));
