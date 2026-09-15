@@ -1,109 +1,127 @@
 # Configuration
 
-*Every `.env` key, the runtime Settings panel, and how the two decide who wins.*
+*Every `.env` key, the Settings panel inside the app, and which of the two wins when both say something.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
 ---
 
-Astrolabe is configured in two places, and they are the same place twice: an `.env` file read at
-startup, and a **Settings** panel that writes `ASTROLABE_DATA/settings.json` while the server runs.
-Most site-identity keys exist in both. A value saved in the panel **overrides** its env
-counterpart; clearing that field in the panel falls back to the env default. A handful of keys —
-the security-sensitive ones — are env-only forever.
+There are two places to configure Astrolabe, and they mostly cover the same ground.
+
+1. **An `.env` file.** This is a plain text file next to the app, one `KEY=value` per line. The
+   server reads it once, when it starts. To change something here you edit the file and restart.
+2. **The Settings panel.** This is inside the app itself. When you change something there, the
+   server writes it to a file called `settings.json` in its data directory, and the change takes
+   effect immediately. No restart.
+
+Most settings exist in both places. When they disagree, **the Settings panel wins**: a value saved
+in the panel overrides the same key in `.env`. If you clear the field in the panel, the `.env`
+value takes over again. A few keys are the exception: the security-sensitive ones (the password,
+the session secret, the port, and so on) live in `.env` only, and the panel never shows or
+changes them.
 
 ## Environment variables
 
-npm scripts load `.env` automatically (`node --env-file-if-exists=.env`), so no `export` and no
-`source` is needed. `.env.example` in the repo root is the annotated full list; this is the
-summary.
+An *environment variable* is a named value the server reads when it starts. You can set it in
+`.env` or in the shell that starts the server; either way it reaches the same place.
+
+The npm scripts load `.env` on their own (`node --env-file-if-exists=.env`), so you never need
+`export` or `source`. The file `.env.example` in the repository root lists every key with a
+comment explaining it. The table below is the short version.
 
 | Key | What |
 | --- | ---- |
-| `PORT` | Server port (default 6801) |
-| `HOST` | Bind address (default `0.0.0.0`). A non-loopback bind with no password prints a loud warning: everyone who can reach the port is an admin |
-| `ASTROLABE_VAULT` | Vault directory (default `./vault`). The `--vault <path>` CLI argument outranks it |
-| `ASTROLABE_DATA` | Server data directory — `settings.json`, the comments SQLite db, your `custom.css`, `designs.json`, the git credentials file, and `fonts/` (your own files, plus the self-hosted catalog cache in `fonts/catalog/` and uploads in `fonts/custom/`; default `./data`) |
-| `ADMIN_PASSWORD_HASH` | argon2id hash from `npm run hash-password`; unset → open local mode |
-| `SESSION_SECRET` | Signs session cookies; unset → an ephemeral secret is generated and sessions die on restart |
-| `PUBLIC` | `false` requires login even to read (default: reading is public). **Refuses to start without `ADMIN_PASSWORD_HASH`** |
-| `SECURE_COOKIES` | `true`/`false` to force the session cookie's `Secure` flag; unset → derived from the request scheme (and `X-Forwarded-Proto` from a trusted proxy) |
-| `TRUSTED_PROXIES` | Comma-separated IPs/CIDRs allowed to set `X-Forwarded-For` / `X-Forwarded-Proto` (e.g. `127.0.0.1,::1`); unset → both headers ignored, rate limit uses the socket address |
-| `HOME_NOTE` | Vault-relative note fresh visitors land on, e.g. `index.md` |
-| `COMMENTS` | `on` (also `true`/`1`/`yes`) enables reader comments under published notes (default off) |
-| `NOTE_VERSIONS` | `off` (also `false`/`0`/`no`) stops the vault keeping a version of every note before each save in `ASTROLABE_DATA/versions/` (default on) — see [Versions, before and beside git](backup-and-sync.md#versions-before-and-beside-git) |
-| `PDF_SEARCH` | `off` (also `false`/`0`/`no`) stops the sidebar search from reading the shelf's PDFs (default on; see [Searching inside every book](books.md#searching-inside-every-book)) |
-| `SITE_NAME` | Site name shown in the sidebar wordmark, page titles, and the login modal (default `Astrolabe`) |
-| `SITE_TAGLINE` | Masthead subtitle under the site name (blog mode) |
-| `SITE_FOOTER` | Blog footer line; `{year}`/`{siteName}` substituted (default `© {year} {siteName}`) |
-| `SITE_URL` | Canonical origin for RSS/canonical links, e.g. `https://notes.example.com`; unset → derived from request headers. **Env-only — it has no Settings-panel counterpart** |
-| `LEGACY_HOSTS` | Hostnames the site used to answer under, comma-separated. A read request arriving for one of them is redirected permanently to `SITE_URL` with the same path, so old links survive a rename. Needs `SITE_URL`; env-only |
-| `DEFAULT_THEME` | Theme for visitors who haven't picked one — any of the forty-six, or `custom:<name>` for one you built (see [Theming](theming.md)), or `follow`, which is also what unset means: visitors get the theme *you* edit in; case-insensitive; unknown names are ignored with one line on stderr |
-| `EXCLUDE_TAGS` | Comma-separated tags hidden from the visitor site's topic sections and tag pills (workflow/status tags like `draft,seedling`); case-insensitive, a leading `#` is fine; admin views unaffected |
-| `PUBLIC_LAYOUT` | `blog` gives visitors a classic blog layout instead of the app shell (see [Blog mode](blog-mode.md)); `designed` composes it from a design you author (see [Designer](designer.md)); anything else → `app` (the default) |
-| `SITE_LANG` | Site language: `en` (default) or `ar`. `ar` localizes every chrome string and mirrors the whole UI right-to-left (see [Arabic & RTL](arabic-and-rtl.md)). What *you* edit in is a separate per-browser choice — Settings → *Editor language* |
-| `BLOG_LOCALE` | BCP47 locale for post-date digits and the RSS channel language (default: follows `SITE_LANG`). Month names follow the chrome language when the visitor switch is on |
-| `LANGUAGE_FILTER` | Which published notes the public site shows, by the language they are written in: `off` (default) · `follow` (each reader gets their own) · `ar` · `en`. Legacy `true`/`false` still parse — see [Language filter](arabic-and-rtl.md#language-filter) |
-| `ATTACHMENTS_DIR` | Vault-relative directory in-app uploads write into (default `Attachments`, or `مرفقات` on an Arabic instance; an existing `attachments` folder is kept), created on demand. The **Attachments** setting can override where uploads go entirely — see [Attachments](#attachments) |
-| `BANNER_FALLBACK` | Blog hero for posts without a `banner:` — `generated` (default; a deterministic abstract gradient from the note title) or `none` |
-| `ASTROLABE_GIT_SSH_COMMAND` | The one `GIT_*` variable Astrolabe passes through to the git child process, verbatim, as `GIT_SSH_COMMAND` — see [Backup & sync](backup-and-sync.md#things-worth-knowing) |
+| `PORT` | The port the server listens on (default 6801) |
+| `HOST` | The address the server listens on (default `0.0.0.0`, which means every network interface). If you listen on anything other than the local machine *and* have no password, the server prints a loud warning at startup: anyone who can reach the port is an admin |
+| `ASTROLABE_VAULT` | The vault folder — the folder that holds your notes (default `./vault`). A `--vault <path>` argument on the command line takes precedence over this |
+| `ASTROLABE_DATA` | The server's data folder (default `./data`). It holds `settings.json`, the comments database (SQLite), your `custom.css`, `designs.json`, the git credentials file, and `fonts/` (your own font files, plus the cached catalog in `fonts/catalog/` and uploads in `fonts/custom/`) |
+| `ADMIN_PASSWORD_HASH` | The admin password, stored as an argon2id hash. `npm run hash-password` makes one. When it is not set, the app runs in *open local mode*: no password, everyone is an admin |
+| `SESSION_SECRET` | A long random string used to sign login cookies. When it is not set, the server invents one at startup, so every login expires when the server restarts |
+| `PUBLIC` | `false` requires login even to read notes (default: reading is public, editing needs login). **The server refuses to start with `PUBLIC=false` and no `ADMIN_PASSWORD_HASH`** |
+| `SECURE_COOKIES` | `true` or `false` to force the `Secure` flag on the login cookie. When it is not set, the server decides from the request: HTTPS gets the flag, plain HTTP does not (a trusted proxy can say HTTPS through `X-Forwarded-Proto`) |
+| `TRUSTED_PROXIES` | Comma-separated IP addresses or CIDR ranges whose `X-Forwarded-For` and `X-Forwarded-Proto` headers are believed (for example `127.0.0.1,::1`). When it is not set, both headers are ignored and the rate limit counts by the connecting address |
+| `HOME_NOTE` | The note a first-time visitor lands on, as a path inside the vault, for example `index.md` |
+| `COMMENTS` | `on` (also `true`, `1`, `yes`) lets readers leave comments under published notes (default off) |
+| `NOTE_VERSIONS` | `off` (also `false`, `0`, `no`) stops the app keeping a copy of every note before each save in `ASTROLABE_DATA/versions/` (default on) — see [Versions, before and beside git](backup-and-sync.md#versions-before-and-beside-git) |
+| `PDF_SEARCH` | `off` (also `false`, `0`, `no`) stops the sidebar search from reading the text of the PDFs on your shelf (default on; see [Searching inside every book](books.md#searching-inside-every-book)) |
+| `SITE_NAME` | The site's name, shown in the sidebar, in page titles and on the login dialog (default `Astrolabe`) |
+| `SITE_TAGLINE` | A short line under the site name, in blog mode |
+| `SITE_FOOTER` | The footer line in blog mode. `{year}` and `{siteName}` are filled in (default `© {year} {siteName}`) |
+| `SITE_URL` | The site's public address, for RSS and canonical links, for example `https://notes.example.com`. When it is not set, it is worked out from each request. **`.env` only — the panel has no field for it** |
+| `LEGACY_HOSTS` | Old hostnames the site used to answer on, comma-separated. A request that arrives on one of them is redirected permanently to the same path on `SITE_URL`, so old links keep working after a rename. Needs `SITE_URL`; `.env` only |
+| `DEFAULT_THEME` | The theme a visitor sees before choosing one: any of the forty-six built-in themes, `custom:<name>` for one you built (see [Theming](theming.md)), or `follow`. Unset means `follow`: visitors get whichever theme *you* are editing in. Case does not matter; an unknown name is ignored with one line on stderr |
+| `EXCLUDE_TAGS` | Comma-separated tags to hide from the public site's topic lists and tag pills — typically workflow tags like `draft,seedling`. Case does not matter and a leading `#` is fine. The admin's own views are not affected |
+| `PUBLIC_LAYOUT` | What a visitor sees: `blog` for a classic blog layout (see [Blog mode](blog-mode.md)), `designed` for a home page you compose yourself (see [Designer](designer.md)), anything else for `app`, the read-only app (the default) |
+| `SITE_LANG` | The site's language: `en` (default) or `ar`. With `ar` every interface string is Arabic and the whole interface is mirrored right-to-left (see [Arabic & RTL](arabic-and-rtl.md)). The language *you* edit in is a separate choice, per browser: Settings → *Editor language* |
+| `BLOG_LOCALE` | A BCP47 locale tag (like `ar-EG` or `en-GB`) for the digits in post dates and the RSS feed's language (default: follows `SITE_LANG`). Month names follow the interface language when the visitor language switch is on |
+| `LANGUAGE_FILTER` | Which published notes the public site shows, by the language they are written in: `off` (default, show all) · `follow` (each reader sees their own language) · `ar` · `en`. The old values `true` and `false` still work — see [Language filter](arabic-and-rtl.md#language-filter) |
+| `ATTACHMENTS_DIR` | The vault folder that uploads from inside the app are saved into (default `Attachments`, or `مرفقات` on an Arabic site; an existing `attachments` folder is kept). It is created when first needed. The **Attachments** setting can send uploads elsewhere entirely — see [Attachments](#attachments) |
+| `BANNER_FALLBACK` | The header image for blog posts that have no `banner:` of their own — `generated` (default: an abstract gradient made from the note's title, always the same for the same title) or `none` |
+| `ASTROLABE_GIT_SSH_COMMAND` | The one `GIT_*` variable Astrolabe passes on to git, unchanged, as `GIT_SSH_COMMAND` — see [Backup & sync](backup-and-sync.md#things-worth-knowing) |
 
-Request bodies are capped server-side before any parsing buffers them, with no env key: 10 MB on
-any `/api` request, and a much tighter 64 KB on the anonymous surfaces (comment posts and login),
-so oversized uploads are rejected (HTTP 413) instead of occupying memory. Uploads get their own
-allowance on top. A matching cap at the proxy is still a sensible extra layer — e.g. nginx
+**Request size limits.** Every request to the server is capped in size before anything reads
+it, and there is no key for this: 10 MB on any `/api` request, and a much smaller 64 KB on the
+two things anonymous visitors can send (comments and login attempts). Anything bigger is refused
+with HTTP 413 instead of being held in memory. Uploads have their own, separate allowance. If
+you run the app behind a proxy, a matching limit there is a sensible extra layer — in nginx,
 `client_max_body_size 10m;`.
 
 ## The Settings panel
 
-Most of the site-identity keys above can also be changed **at runtime, from the app** — no
-`.env` edit, no restart. As admin, open **Settings** (the gear in the status bar, or the
-command palette): a panel with six tabs, each opening with its name and one sentence saying what
-it decides.
+Most of the site settings above can be changed **from inside the app, while it runs**. No editing
+`.env`, no restart. Sign in as admin and open **Settings** (the gear in the status bar, or type
+"Settings" in the command palette). The panel has eight tabs. Each opens with its name and one
+sentence saying what it decides.
 
-- **Site identity** — site name, tagline, footer line, a **logo** image (replaces the text
-  wordmark in the sidebar and the blog masthead), and a **favicon** (served at `/favicon.ico`
-  with its real content type and injected into every page's `<link rel="icon">`).
-- **Appearance & language** — the default theme visitors arrive on, **your own** theme (this
-  browser only, with *Themes*), the **site language** (English / العربية — what visitors read
-  it in), your own **editor language** (*Follow site* / English / العربية, this browser only,
-  and never what visitors get), which edge the
-  **notes sidebar** sits on (*Auto* follows the language — Arabic carries it to the right — or
-  pin it to a screen edge for good), the date locale, the language filter and the optional
-  **visitor switch** — plus the three localization rows below it: the **date calendar**
-  (Gregorian / Hijri / both, with a live specimen of today), the **note layout** pair (text
-  direction and alignment for note prose, which any note may override from its own
-  frontmatter), the **tags folder**, and the **tag labels** table — display names for canonical
-  tags, for a front end that should read «برمجيات» over a vault that keeps `#software`. See
+- **This device** — preferences kept in *this browser only*, which save themselves the moment
+  you click: your own theme, your own editor language (*Follow site* / English / العربية —
+  this never changes what visitors see), which edge the notes sidebar sits on (*Auto* follows
+  the language, so Arabic puts it on the right), vim keys, the formatting toolbar, numbered
+  headings, and on the desktop app the app's own name and icon. **Settings travel with the
+  vault** decides whether these preferences follow you to your other devices (see
+  [Backup & sync](backup-and-sync.md#settings-travel-with-the-vault)).
+- **Identity** — what the site is called and the marks it wears: the site name, the tagline, the
+  footer line, a **logo** image (it replaces the text name in the sidebar and the blog header),
+  and a **favicon** (served at `/favicon.ico` and linked from every page).
+- **Language & dates** — the **site language** (what visitors read the interface in), the
+  language filter, the optional **visitor switch** (a little `EN`/`ع` toggle for readers), the
+  date locale, the **calendar** (Gregorian, Hijri or both, with a live example of today's
+  date), the **note layout** pair (text direction and alignment for note prose, which any note
+  can override in its own frontmatter), and the **tag labels** table — display names for tags,
+  so a site can show «برمجيات» over a vault whose tag is `#software`. See
   [Hijri dates](arabic-and-rtl.md#hijri-dates),
   [Note direction & alignment](arabic-and-rtl.md#note-direction--alignment) and
   [Localised tag labels](arabic-and-rtl.md#localised-tag-labels).
-- **Publishing & comments** — public layout (`app` / `blog` / `designed`), excluded tags, the
-  comments and share-button toggles, the **templates folder** and the **template for new notes**,
-  and the home page visitors land on at `/`: classic `note` mode with a chosen home note, or the
-  `dashboard` magazine layout, plus an optional hero banner. The home rows are read by the `blog`
-  and `designed` layouts only, so with `Public layout: app` the panel greys them and says so — an
-  app-layout instance opens the home note at `/`. This tab also holds the two **folder** settings
-  — where templates live, and **where new attachments are written** (see
-  [Attachments](#attachments)) — because both answer the same question: where does this instance
-  put things in the vault.
-- **Typography** — four font slots (text / interface / code / Arabic script) over a curated,
-  self-hosted catalog *or* faces you upload yourself, with a live specimen that stays on screen
-  while you choose. See [Typography](typography.md).
-- **Backup & sync** — commit the vault and push it to a private git remote you own, manually or
-  on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
-- **About** — the version, the Node version, the vault's counts, and the absolute paths of the
-  vault, the data directory, `settings.json` and the uploaded-fonts folder.
+- **Publishing & comments** — what visitors may see: the public layout (`app` / `blog` /
+  `designed`), the default theme for visitors, excluded tags, the comments and share-button
+  toggles, *Your other sites* (shown on the blog as *More from the author*), and the home page at `/`: either a chosen home note or
+  the `dashboard` magazine layout, with an optional header banner. The home rows only matter to
+  the `blog` and `designed` layouts, so with `Public layout: app` the panel greys them out and
+  says so — the app layout simply opens the home note. The [library](library.md) and the
+  [public folders](blog-mode.md#custom-public-folders) are set up here too.
+- **Vault** — which folders this instance writes into: **where new attachments go** (see
+  [Attachments](#attachments)), the templates folder and the template for new notes, the daily
+  and weekly note folders, the drawings folder, the tags folder — plus two switches:
+  *Keep note versions* and *Search inside books*.
+- **Typography** — four font slots (text / interface / code / Arabic script), chosen from a
+  self-hosted catalog *or* from font files you upload, with a live sample that stays on screen
+  while you pick. See [Typography](typography.md).
+- **Backup & sync** — commit the vault to git and push it to a private repository you own, by
+  hand or on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
+- **About** — the version, the Node version, how many notes and files the vault holds, and the
+  full paths of the vault, the data folder, `settings.json` and the uploaded-fonts folder.
 
-Image fields reuse the banner machinery: pick from the vault's attachments or upload right
-there (drag & drop; bytes are sniffed; lands wherever the [Attachments](#attachments) setting
-points).
+Every image field (logo, favicon, banners) works the same way: pick a picture already in the
+vault, or drag one in and upload it right there. The bytes are checked, not just the file
+extension, and the file lands wherever the [Attachments](#attachments) setting points.
 
 ### Attachments
 
-**Where new attachments go** is a setting, named the way Obsidian names it (*Default location
-for new attachments*), so a migrating vault behaves the way its owner already expects. It sits
-in **Vault**, beside the templates and drawings folders.
+An *attachment* is any file you put into the vault that is not a note — a picture, a PDF, an
+audio clip. **Where new attachments go** is a setting, named the same way Obsidian names it
+(*Default location for new attachments*), so a vault that moved from Obsidian behaves the way
+its owner already expects. It lives in the **Vault** tab, beside the templates and drawings
+folders.
 
 | Mode | An upload lands in |
 | --- | --- |
@@ -112,61 +130,65 @@ in **Vault**, beside the templates and drawings folders.
 | Subfolder of the note's folder | `<note's folder>/<name>` — e.g. an `assets` next to each note |
 | Specified folder *(default)* | one fixed vault-relative folder — `ATTACHMENTS_DIR`, else `Attachments` (`مرفقات` on an Arabic instance); a vault that already has an `attachments` folder keeps it |
 
-The setting answers for uploads that named no place: a paste into a note, or a drop into the
-editor. A drop onto the sidebar tree names one, and lands in the folder it was dropped on.
+The setting only decides for uploads that did not name a place themselves: a picture pasted
+into a note, or a file dropped into the editor. A file dropped onto a folder in the sidebar
+tree already names a place, and lands in that folder.
 
-The folder field is validated the way every vault path is: it stays inside the vault, is never
-a dot-folder (those are invisible to the tree, the indexer and the watcher), and is created on
-demand. **Existing attachments are never moved** — the setting decides where the *next* upload
-is written, and embeds resolve by basename regardless of which folder they live in.
+The folder you type is checked like every vault path: it must stay inside the vault, it cannot
+be a dot-folder (a folder whose name starts with `.` — the tree, the indexer and the file
+watcher all ignore those), and it is created when first needed. **Attachments you already have
+are never moved.** The setting decides where the *next* upload goes; existing embeds keep
+working because a note finds its images by file name, whatever folder they are in.
 
-Every upload path obeys it: paste or drop in the editor, the file drop on the sidebar tree, and
-the pickers' upload. A note's banner and a Media work's cover count as uploads *into that note*,
-so under *Same folder* and *Subfolder* the picture lands beside the note (or the tracker note)
-it decorates; the site-wide pickers — home banner, logo, favicon — belong to no note and are
-measured from the vault root. Fonts (`ASTROLABE_DATA/fonts`) and `custom.css` keep their own
-homes.
+Every way of uploading obeys the setting: paste or drop in the editor, drop onto the sidebar
+tree, and the upload button in any picker. A note's banner and a Media entry's cover count as
+uploads *into that note*, so under *Same folder* and *Subfolder* the picture lands beside the
+note (or the tracker note) it belongs to. The site-wide pickers — home banner, logo, favicon —
+belong to no note and are measured from the vault root. Fonts (`ASTROLABE_DATA/fonts`) and
+`custom.css` have their own homes and are not affected.
 
-**Anything the vault can hold, not just images.** `POST /api/upload` accepts images (png, jpeg,
-webp, gif, svg, avif, heic, bmp), **PDF**, audio (mp3, m4a, wav, ogg, opus, flac) and video
-(mp4, mov, webm) — 10 MB each, and the *bytes* are sniffed, so a renamed `.exe` is refused
-whatever its extension claims. Anything outside that list is refused **in the browser, before
-the upload**, in a message that names both what was turned away and what would have been
-welcome.
+**Any file the vault can hold, not just images.** `POST /api/upload` accepts images (png, jpeg,
+webp, gif, svg, avif, heic, bmp), **PDF**, audio (mp3, m4a, wav, ogg, opus, flac) and video (mp4,
+mov, webm), up to 10 MB each. The *contents* of the file are inspected, so a program renamed to
+`.png` is refused whatever its extension says. Anything not on that list is refused **in the
+browser, before the upload starts**, with a message naming what was refused and what would have
+been accepted.
 
-**Drop files anywhere on the tree.** Drag files from your file manager onto a folder row (or
-onto a note row — they land beside it) and they are attached; the row lights up and says how
-many are coming. The toast afterwards names the folder they actually landed in and carries an
-**Undo** that moves them to `.trash/`. Names that collide are given the first free
-`name-2.ext`, and the toast says so.
+**Drop files anywhere on the tree.** Drag files from your file manager onto a folder in the
+sidebar (or onto a note — they land beside it) and they are added to the vault. The row lights
+up and says how many files are coming. Afterwards a toast names the folder they actually landed
+in and offers **Undo**, which moves them to `.trash/`. If a name is already taken, the new file
+gets the first free `name-2.ext` and the toast says so.
 
-**Deleting says what it is really taking.** The vault tree holds markdown only, so a folder left
-holding four images after its note moved out used to describe itself as "0 notes" — and deleting
-it silently broke a published essay. Every delete confirmation now asks the server what is
-inside:
+**Deleting tells you what it is really taking.** The sidebar tree shows notes only. So a folder
+that still held four images after its note moved away used to describe itself as "0 notes" —
+and deleting it silently broke a published essay. Now every delete confirmation asks the server
+what is actually inside:
 
 > **Move "Media" to .trash?**
 > 0 notes, 60 attachments — 53 of them referenced by 48 notes. All of it moves to the vault's
 > .trash folder — recoverable from disk.
 
-Referencing notes are named outright while they are few enough to read. Only notes that
-*survive* the delete count as breakage — a note going in the same act is not a broken link.
-Both wikilink embeds (`![[fig.png]]`) and markdown links (`![](assets/fig.png)`) count, plus a
-note's `banner:`. The permanent-delete escalation repeats the same inventory, and deleting a
-single attachment (the × on a row of the banner picker's list) asks the same question.
+When only a few notes reference the files, they are named. Only notes that *survive* the delete
+count as breakage; a note that goes in the same act is not a broken link. Both kinds of link
+count — wikilink embeds (`![[fig.png]]`) and Markdown links (`![](assets/fig.png)`) — and so does
+a note's `banner:`. The confirmation for a permanent delete repeats the same inventory, and
+deleting a single attachment (the × on a row in the banner picker's list) asks the same question.
 
-**Every control in the panel is drawn by Astrolabe**, not by your operating system. Lists are a
-themed popover anchored to their trigger and kept inside the panel — height capped to the room
-available, flipping above the trigger when there is none, arrow keys and type-ahead, `Enter` to
-commit, `Esc` to put the value back; switches are switches; three-way rows (*inherit* / on / off)
-show all three states at once; numbers carry their unit inside the field. A native `<select>`
-opens an OS-drawn window that no theme can reach and no panel can contain, which is exactly what
-a twenty-seven-face font list must never do.
+**Every control in the panel is drawn by Astrolabe**, not by your operating system. A dropdown
+list is a themed popover attached to its button and kept inside the panel: it grows no taller
+than the room available, flips upward when there is no room below, and takes arrow keys and
+type-ahead, `Enter` to confirm and `Esc` to put the old value back. Switches are switches;
+three-way rows (*inherit* / on / off) show all three states at once; numbers carry their unit
+inside the field. The reason: a native `<select>` opens a window drawn by the operating system,
+which no theme can style and no panel can keep inside its bounds — exactly what a font list of
+twenty-seven faces must not do.
 
 ## Settings keys
 
-These are the keys `ASTROLABE_DATA/settings.json` can hold, as the panel and `PATCH /api/settings`
-write them. Anything absent falls back to the env default in the table above.
+These are the keys `ASTROLABE_DATA/settings.json` can hold. The panel writes them, and so does
+`PATCH /api/settings`. Any key that is absent falls back to its `.env` default from the table
+above.
 
 | Key | Values | Default |
 | --- | --- | --- |
@@ -214,25 +236,29 @@ write them. Anything absent falls back to the env default in the table above.
 | `gitSync.pullFirst` | boolean — fast-forward-only pull before each sync | `true` |
 | `gitSync.authMode` | `ssh` · `token` | `ssh` |
 
-Two more keys are **write-only**: `gitToken` and `gitUser` are accepted by `PATCH /api/settings`
-and stored in `ASTROLABE_DATA/git-credentials.json` at mode `0600` — never in `settings.json`, and
-never readable back. A read answers `gitSync.tokenSet: true` and the username, nothing more.
+Two more keys are **write-only**: `gitToken` and `gitUser`. `PATCH /api/settings` accepts them
+and stores them in `ASTROLABE_DATA/git-credentials.json`, readable by the server's user only
+(mode `0600`). They never go into `settings.json` and can never be read back: a read answers
+`gitSync.tokenSet: true` and the username, nothing more.
 
-`settings.json` is written atomically — a crash can't tear it. Changes apply live: the wordmark,
-layout, theme default, excluded tags, comments routes, and favicon all update without a restart.
-If the file is ever corrupted, the server logs one warning and runs on env defaults.
+`settings.json` is written atomically, meaning the file is either fully old or fully new — a
+crash in the middle cannot leave it half-written. Changes apply live: the site name, the layout,
+the default theme, the excluded tags, the comment routes and the favicon all update without a
+restart. If the file is ever corrupted, the server logs one warning and runs on the `.env`
+defaults.
 
-Security-sensitive keys are deliberately **env-only forever** and never readable or writable
-through the panel or `/api/settings`: `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `TRUSTED_PROXIES`,
-`PORT`, `HOST`, `ASTROLABE_VAULT`, `ASTROLABE_DATA`, `PUBLIC`. `SITE_URL` is env-only too, for the
-duller reason that nothing has ever needed to change it at runtime.
+The security-sensitive keys are deliberately **`.env` only, forever**. The panel and
+`/api/settings` can neither read nor write them: `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`,
+`TRUSTED_PROXIES`, `PORT`, `HOST`, `ASTROLABE_VAULT`, `ASTROLABE_DATA`, `PUBLIC`. `SITE_URL` is
+`.env` only too, for a duller reason: nothing has ever needed to change it while the server runs.
 
 ## The settings API
 
-Admin-only; visitors get a 404.
+For scripts. Admin only; a visitor gets a 404.
 
-- `GET /api/settings` answers the stored keys plus `effective` (the merged values actually in
+- `GET /api/settings` returns the stored keys, plus `effective` (the merged values actually in
   use), the font catalog, and an `about` block (version, Node version, absolute paths, counts).
-- `PATCH /api/settings` takes a partial object — only named keys change, `null` clears one and
-  falls back to env — validates strictly (unknown keys are a 400), and answers the same shape.
-  The git credential keys additionally require a real password on the instance.
+- `PATCH /api/settings` takes a partial object. Only the keys you name change; `null` clears a key
+  so it falls back to `.env`. Validation is strict — an unknown key is a 400 — and the answer has
+  the same shape as `GET`. The git credential keys additionally require that the instance has a
+  real password.

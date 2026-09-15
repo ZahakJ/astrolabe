@@ -6,31 +6,34 @@
 
 The [releases page](https://github.com/ZahakJ/astrolabe/releases/latest) carries an AppImage, a
 `.deb`, a `.pacman` and an unsigned Windows `.exe`. Each one is the same product as the server
-you can host yourself, wrapped as an Electron app that starts a server of its own for every vault
-you open, on a port it remembers per vault. Nothing about the vault changes: the folder on disk
-is the folder on disk, and a browser on the network can still reach the same vault through a
-[hosted instance](publishing.md) at the same time. If you run both over one folder, see
-[two servers, one vault](backup-and-sync.md#two-servers-one-vault).
+you can host yourself, wrapped as a desktop (Electron) app. Behind the scenes the app starts a
+server of its own for every vault you open, on a port it remembers per vault. Nothing about the
+vault changes: the folder on disk is the folder on disk, and a browser on the network can still
+reach the same vault through a [hosted instance](publishing.md) at the same time. If you run
+both over one folder, see [two servers, one vault](backup-and-sync.md#two-servers-one-vault).
 
 ## Vaults and windows
 
-**File → Open vault…** (`Ctrl/Cmd O`) picks a folder; **Recent vaults** lists the ones you have
-opened, and *Clear the list* forgets them. **New window** (`Ctrl/Cmd Shift N`) opens another
-window on the current vault, which is how a [second window over one vault](workspace.md#several-windows-one-vault)
-starts; **Close window** is `Ctrl/Cmd W`. *Show the vault in the file manager* opens the folder
-itself. The app keeps a tray icon with *Show Astrolabe* and *Quit*. `ASTROLABE_VAULT=/path` in
-the environment opens that folder at launch without the picker, for a launcher or a script.
+**File → Open vault…** (`Ctrl/Cmd O`) picks a folder. **Recent vaults** lists the ones you have
+opened before, and *Clear the list* forgets them. **New window** (`Ctrl/Cmd Shift N`) opens
+another window on the current vault — that is how a
+[second window over one vault](workspace.md#several-windows-one-vault) starts — and
+**Close window** is `Ctrl/Cmd W`. *Show the vault in the file manager* opens the folder itself.
+The app keeps a tray icon with *Show Astrolabe* and *Quit*. For a launcher or a script,
+`ASTROLABE_VAULT=/path` in the environment opens that folder at launch without asking.
 
-**Your tabs survive a port change.** The window's tabs and layout live in the browser storage of
-the vault's port, and a launch that finds that port busy moves to the next one — a fresh origin
-with nothing in it. So the desktop also keeps the last workspace beside the vault's data and
-restores it when a window opens on nothing; it waits a few seconds for the remembered port first;
-and a window with truly nothing to restore opens the note you were in most recently rather than
-the first name in the tree.
+**Your tabs survive a port change.** The window's tabs and layout are kept in the browser
+storage that belongs to the vault's port. If a launch finds that port busy, the app moves to
+the next one — which, to the browser storage, is a brand-new place with nothing in it. So the
+desktop also keeps the last workspace beside the vault's data and restores it when a window
+opens on nothing. It waits a few seconds for the remembered port first; and a window with truly
+nothing to restore opens the note you were in most recently, rather than the first name in the
+tree.
 
-Every command the app has is in the menu bar with its chord, in both languages: new note, the
-daily note, save, print, reading view, the graph, zen, the two side panes, the palette, search,
-publish, the shortcut sheet. The desktop app also claims a few chords the browser cannot:
+Every command the app has is in the menu bar with its keyboard shortcut, in both languages: new
+note, the daily note, save, print, reading view, the graph, zen, the two side panes, the
+palette, search, publish, the shortcut sheet. The desktop app also claims a few shortcuts the
+browser cannot:
 
 | Keys | Does |
 | --- | --- |
@@ -44,18 +47,18 @@ publish, the shortcut sheet. The desktop app also claims a few chords the browse
 
 ## Your own name and icon
 
-Astrolabe is one person's name for it. **Settings → Device → This app** lets you call the app
-whatever you like on this computer and give it your own icon: the tray, its tooltip, the window
-icon, the About box and the launcher entry all follow. The site's own name and logo are a
-separate thing, under *Site*, and title the window and the sidebar. **An update never touches
-either**: the AppImage is swapped over its own path, so a file you renamed keeps its name; the
-Windows installer replaces the program directory and nothing else; and your name and icon live
-beside the app's settings, which no update writes.
+"Astrolabe" is one person's name for it. **Settings → This device → This app** lets you call the
+app whatever you like on this computer and give it your own icon. The tray, its tooltip, the
+window icon, the About box and the launcher entry all follow. The site's own name and logo are a
+separate thing, under *Identity*, and they title the window and the sidebar. **An update never
+touches either**: the AppImage is replaced at its own path, so a file you renamed keeps its
+name; the Windows installer replaces the program directory and nothing else; and your name and
+icon live beside the app's settings, which no update writes.
 
 *Add to the applications menu* (Linux) writes a desktop entry in your name, with your icon,
 pointing at the AppImage wherever you keep it. *Add to the Start Menu* (Windows) creates a
-shortcut the same way; a shortcut's icon must be an `.ico`, so choose one of those there.
-Run it again after changing the name or the icon.
+shortcut the same way; a shortcut's icon must be an `.ico`, so choose one of those there. Run it
+again after changing the name or the icon.
 
 The full rebrand — the executable's own file name and the icon baked into it — is a build:
 
@@ -64,76 +67,85 @@ node scripts/rebrand.mjs --name "Marginalia" --icon ~/marginalia.png
 npm --prefix desktop run dist
 ```
 
-Every artifact in `desktop/release` then carries your name and icon. The updater still follows
-the release page the build was made from (`RELEASES_PAGE` in `electron/update.ts`); point it at
+Every file in `desktop/release` then carries your name and icon. The update check still looks at
+the releases page the build was made from (`RELEASES_PAGE` in `electron/update.ts`); point it at
 your own if you publish your own releases.
 
 ## The reference window
 
 **Window → Open as reference window** (`Ctrl/Cmd Alt R`) opens the current note in a second,
 smaller window that stays **always on top**: the source you are quoting, the outline you are
-following, the checklist, kept over the window you are writing in. *Always on top* is a switch on
-any window. It is the clearest thing a desktop app can do that a browser tab cannot.
+following, the checklist — kept over the window you are writing in. *Always on top* is a switch
+on any window. It is the clearest thing a desktop app can do that a browser tab cannot.
 
 ## Find in page
 
 `Ctrl/Cmd F` finds and replaces *in the note's text*. `Ctrl/Cmd Shift F` on the desktop app
-opens **Find in page**, Chromium's own search over *what is on screen*: the reading view, the
-outline, the backlinks, a transclusion, the tab strip, a settings panel; exactly the half the
-editor's search structurally cannot reach. The bar is drawn in Astrolabe's own tokens, with *Find
-next* and *Find previous* in the Edit menu. (In the browser that chord opens
+opens **Find in page**, the browser engine's own search over *whatever is on screen*: the
+reading view, the outline, the backlinks, an embedded note, the tab strip, a settings panel —
+exactly the half the editor's search cannot reach. The bar is drawn in Astrolabe's own style,
+with *Find next* and *Find previous* in the Edit menu. (In the browser, that shortcut opens
 [search and replace across the vault](editor.md#find-and-replace) instead.)
 
 ## Spelling
 
-Underlines come from the system's spellchecker; right-click a misspelled word (with nothing
-selected) for suggestions and **Add to dictionary**, drawn in the app's own menu rather than a
-native popup, so it takes the theme and the direction. *Check spelling while typing* is in the
-Edit menu.
+The red underlines come from your operating system's spellchecker. Right-click a misspelled
+word (with nothing selected) for suggestions and **Add to dictionary**, drawn in the app's own
+menu rather than a native popup, so it takes the theme and the text direction. *Check spelling
+while typing* is in the Edit menu.
 
 ## Updates
 
-The app checks the releases page at launch and every six hours, and downloads a new release **in
-the background**; when it is ready a toast offers **Restart now**, never a dialog. **Help → Check
-for updates…** asks at once, and says so when you are on the latest.
+**The app never downloads or installs an update on its own.** It only checks — quietly, at
+launch and every six hours — whether a newer release exists. When one does, the status bar says
+so: **3.x available**, in place of the version number that is normally printed at the end of
+the bar. Nothing else happens until you act.
 
-The build you are on is printed at the end of the bottom status bar, and on the desktop app that chip
-*is* the updater: click it to check; while a release downloads it turns into a bar with the
-percentage; once the download is on disk and verified it reads **Restart now**. In a browser it
-opens the releases page, since a hosted instance updates when its server does.
+1. Click **3.x available** to download the release. While it downloads, the chip turns into a
+   bar with the percentage.
+2. When the download is on disk and verified, the chip reads **Restart now**. Click it, and the
+   app restarts into the new version.
 
-What "restart" does depends on how the app was installed. The **AppImage** is swapped in place
-and relaunched: the app leaves, and a moment later the new file starts on its own (a release
-that made you open it again yourself is behind us; every AppImage build is now relaunch-tested
-before it is published). The **Windows** install runs the new installer silently and the installer
-relaunches the app. Both downloads are checked against the release's own checksum file before
-anything runs. The **deb** and **pacman** packages belong to a package manager, so there the toast
-opens the release page instead. The **Android app** (the APK on the same release page) checks
-the same endpoint at launch: when a newer APK exists it offers **Update**, the browser downloads
-it, and Android installs it over the current copy, notes, settings and sign-in untouched. *Later*
-snoozes the offer for a day. Everything web-side reaches the phone the moment the server deploys;
-the APK only changes when the shell itself does.
+**Help → Check for updates…** always works by hand, and says so when you are already on the
+latest. If you would rather not be told at all, **Settings → This device → Software updates**
+has two positions: *tell me* (the default) and *off*, which stops the automatic check entirely.
+The menu item still works when the check is off.
+
+What "restart" does depends on how the app was installed. The **AppImage** is replaced at its
+own path and relaunched: the app closes, and a moment later the new file starts on its own.
+(Every AppImage build is relaunch-tested before it is published.) The **Windows** install runs
+the new installer silently, and the installer relaunches the app. Both downloads are checked
+against the release's own checksum file before anything runs. The **deb** and **pacman**
+packages belong to a package manager, so there the chip opens the releases page instead. The
+**Android app** (the APK on the same releases page) checks the same address at launch: when a
+newer APK exists it offers **Update**, the browser downloads it, and Android installs it over
+the current copy — notes, settings and sign-in untouched. *Later* snoozes the offer for a day.
+Everything on the web side reaches the phone the moment the server deploys; the APK only
+changes when the shell itself does.
+
+In a browser, the version chip simply opens the releases page, since a hosted instance updates
+when its server does.
 
 ## Deep links and file association
 
-`astrolabe://note?path=Folder/Note.md` opens a note from outside the app, and the app registers for
-`.md` files so a note double-clicked in the file manager opens here. The path is checked, not
-cleaned: `..`, a leading `/`, a drive letter or a control character is refused.
+`astrolabe://note?path=Folder/Note.md` opens a note from outside the app, and the app registers
+itself for `.md` files, so a note double-clicked in the file manager opens here. The path is
+checked, not cleaned: `..`, a leading `/`, a drive letter or a control character is refused.
 
 ## Sessions
 
 A vault the app opened itself is signed in by the app: the password is minted at launch and no
-human ever sees it, so there is nothing to sign out of and the status bar shows no **Sign out**.
+human ever sees it, so there is nothing to sign out of, and the status bar shows no **Sign out**.
 A session that lapses anyway (a long sleep, a server restarted underneath) is restored on the
 next request rather than asked for. The one exception is an [env-linked vault](#where-things-live),
-which runs under its deployment's own `.env`: there the window opens as a reader and **Sign in**
+which runs under its deployment's own `.env`: there the window opens as a reader, and **Sign in**
 takes the same password the site takes.
 
 ## Where things live
 
 The app's own configuration is in `~/.config/astrolabe` (the old `vellum` directory from before
-the rename is carried in on first launch and then removed) (`desktop.json`: the vaults, their ports
-and, for each, the data directory it uses), and each vault's instance data in the
-[`ASTROLABE_DATA`](configuration.md#environment-variables) that entry names. The Linux build is
-packaged with `asar: false` deliberately, because the server child reads real files from the
+the rename is carried in on first launch and then removed). `desktop.json` there lists the
+vaults, their ports and, for each, the data directory it uses. Each vault's instance data is in
+the [`ASTROLABE_DATA`](configuration.md#environment-variables) that entry names. The Linux build
+is packaged with `asar: false` deliberately, because the server child reads real files from the
 package.

@@ -12,13 +12,15 @@
 npm run dev
 ```
 
-Runs the API server and Vite with hot reload side by side.
+This runs two things side by side: the API server, and Vite, the tool that serves the client
+and reloads it in the browser the moment you save a file.
 
 | Port | What | When |
 | ---- | ---- | ---- |
 | 6801 | Hono server (API + built client) | `npm start` / always |
 | 5801 | Vite dev server (proxies `/api` → 6801) | `npm run dev` only |
 
+In dev mode you open port 5801; requests to `/api` are passed through to the server on 6801.
 `PORT` overrides the server port.
 
 ## The scripts
@@ -35,161 +37,165 @@ Runs the API server and Vite with hot reload side by side.
 
 ## The gates
 
-Each one exits non-zero on failure. The pure-logic gates need nothing; the browser gates need a
-running instance plus `npm i -D playwright` and either `npx playwright install chromium` or a
-system browser via `CHROMIUM=/usr/bin/chromium`. Those that sign in take `ASTROLABE_PASSWORD`
-(open local mode needs no password).
+A *gate* is a script that checks one specific promise the product makes, and exits with an error
+when the promise is broken. Each one below exits non-zero on failure. The pure-logic gates need
+nothing. The browser gates need a running instance, plus `npm i -D playwright` and either
+`npx playwright install chromium` or a system browser via `CHROMIUM=/usr/bin/chromium`. Those
+that sign in take `ASTROLABE_PASSWORD` (open local mode needs no password).
 
 ### `npm run check-i18n` — the dictionary
 
-Fails if any `t()` key is missing, untranslated, dead, or if the English and Arabic sides of an
-entry disagree about their `{placeholders}` — and it also fails on hardcoded English copy in JSX
-*and* in imperative DOM builders. "Dead" is counted from the call sites only: the dictionary file
-is excluded from the usage scan, because a key whose English value happens to be its own name
-(`read: { en: "read" }`) otherwise matches inside its own definition and reports itself used.
+Every string a user can see comes from one dictionary, `client/i18n.ts`, with an English and an
+Arabic entry per key. This gate fails if any `t()` key is missing, untranslated or dead, or if
+the English and Arabic sides of an entry disagree about their `{placeholders}`. It also fails on
+hardcoded English text in JSX *and* in code that builds DOM elements by hand. "Dead" is counted
+from the call sites only: the dictionary file is excluded from the usage scan, because a key
+whose English value happens to be its own name (`read: { en: "read" }`) would otherwise match
+inside its own definition and report itself as used.
 
 ### `npm run check-contrast` — the accessibility gate
 
-Holds every one of the forty-six themes in `client/styles/tokens.css` to WCAG on the five text
-tokens: body text, headings and secondary text against all three grounds (`--bg`, the raised surfaces and
-the hover ground the tag pills sit on), the accent against the page, and `--text-faint` at the 3:1
-non-text bar on the two grounds it is licensed to paint on. The accent pair is read as text twice
-over (wikilinks and tag pills in the prose, and the lit mode pill, which is the same two colors
-swapped). Run it after touching theme tokens.
+Holds every one of the forty-six themes in `client/styles/tokens.css` to the WCAG contrast
+rules on the five text tokens: body text, headings and secondary text against all three
+backgrounds (`--bg`, the raised surfaces, and the hover background the tag pills sit on), the
+accent colour against the page, and `--text-faint` at the 3:1 non-text floor on the two
+backgrounds it is allowed on. The accent pair is read as text twice over (wikilinks and tag
+pills in the prose, and the lit mode pill, which is the same two colours swapped). Run it after
+touching theme tokens.
 
 The formulas and floors live in `shared/contrast.ts`, which the
-[custom theme builder](theming.md#make-your-own) imports as well — one implementation, or a
-builder would eventually bless a theme the gate rejects.
+[custom theme builder](theming.md#make-your-own) imports as well — one implementation, so the
+builder can never bless a theme the gate rejects.
 
-It also holds the **text-colour palettes** (`shared/textColors.ts`,
-`client/styles/textcolor.css`), which exist in two tiers for an arithmetic reason: against
-`void`'s `#050508` a colour needs relative luminance ≥ 0.186 and against `solar`'s `#ffffff` it
+It also checks the **text-colour palettes** (`shared/textColors.ts`,
+`client/styles/textcolor.css`). These exist in two tiers for an arithmetic reason: against
+`void`'s `#050508` a colour needs relative luminance ≥ 0.186, and against `solar`'s `#ffffff` it
 needs ≤ 0.183, so **no single colour clears AA on every theme**. The theme-aware tier
 (`var(--vc-*)`, the default) therefore carries one value per theme *group* and is held to 4.5:1
-against every ground in its group; the fixed-ink tier carries one hex for all of them and is held
-to 3:1, WCAG 1.4.11's non-text floor, which is the most a fixed colour can promise. The gate
+against every background in its group. The fixed-ink tier carries one hex for all themes and is
+held to 3:1, WCAG 1.4.11's non-text floor, which is the most a fixed colour can promise. The gate
 prints both, and checks the stylesheet's values against the module's.
 
 ### `npm run check-sections` — the section-surgery gate
 
-No browser, no server. Dragging a heading in the outline rewrites the note — a block of lines
-leaves one place and arrives in another, with the moved subtree re-levelled — which is the most
-destructive operation in the product that is not called "delete": it runs on a keyless gesture, it
-is one 4px slip away by accident, and the reader is looking at a forty-row outline rather than at
-the 1,200 lines it is rearranging, so a single dropped paragraph would be invisible until the day
-it was needed.
+No browser, no server. Dragging a heading in the outline rewrites the note: a block of lines
+leaves one place and arrives in another, with the moved subtree's headings re-levelled. That is
+the most destructive operation in the product that is not called "delete". It runs on a gesture
+with no key, it is one 4px slip away by accident, and the reader is looking at a forty-row
+outline rather than at the 1,200 lines being rearranged — so a single dropped paragraph would be
+invisible until the day it was needed.
 
 The gate generates thousands of documents out of the shapes that break naive implementations —
 YAML frontmatter, code fences whose bodies contain `### ` lines, headings that skip levels, empty
 sections, a section at end of file, CRLF, no trailing newline — and asserts the reorder is a
 **permutation**: it may change the order of a note's lines and the depth of the moved subtree's
-own headings, and it may add a blank line at a seam; it may never lose a line and never duplicate
-one. It also asserts that a section cannot be dropped inside itself, that a zero-distance move is
-a no-op, and that extraction's two halves cover the original exactly. `SEED=…` replays a failure,
-`ROUNDS=…` sets the sample size.
+own headings, and it may add a blank line at a seam; it may never lose a line and never
+duplicate one. It also asserts that a section cannot be dropped inside itself, that a
+zero-distance move changes nothing, and that extraction's two halves cover the original exactly.
+`SEED=…` replays a failure, `ROUNDS=…` sets the sample size.
 
 ### `npm run check-caret` — the click-to-caret gate
 
-Live preview replaces markdown source with rendered boxes of a different width *and* a different
-length — eighteen characters of `$7.7\ \text{km/s}$` standing under seven glyphs of KaTeX — so any
-pointer→document mapping that reasons about geometry instead of about the DOM drifts by exactly
-that difference.
+Live preview replaces Markdown source with rendered boxes of a different width *and* a different
+length — eighteen characters of `$7.7\ \text{km/s}$` standing under seven glyphs of KaTeX — so
+any pointer-to-document mapping that reasons about geometry instead of about the DOM drifts by
+exactly that difference.
 
-It writes its own note (inline math, inline code, wikilinks, tags, highlights and an image, in
-English and Arabic, on lines long enough to wrap several times), drives a real mouse over it —
-single, double and triple click, drag, shift-click, select-all — runs the whole matrix once in each
-shell direction, and reads back what the reader would actually copy (`window.getSelection()`),
-requiring every clicked glyph to take the caret **within one character**. Before the fix it
-reported misses up to **82 characters**; after it, zero.
+The gate writes its own note (inline math, inline code, wikilinks, tags, highlights and an
+image, in English and Arabic, on lines long enough to wrap several times), drives a real mouse
+over it — single, double and triple click, drag, shift-click, select-all — runs the whole matrix
+once in each shell direction, and reads back what the reader would actually copy
+(`window.getSelection()`), requiring every clicked glyph to take the caret **within one
+character**. Before the fix it reported misses of up to **82 characters**; after it, zero.
 
 It exists because that one question has broken four separate ways here (click position, hover
-previews, mod-click navigation, text selection) and the common cause is always a pixel the
-editor's height map cannot see: **nothing inside `.cm-content` may carry a vertical CSS margin.**
-CodeMirror measures every line and block widget by its border box, so padding and borders are
-counted and margins are not — put the air on a wrapper's padding, or in a transparent border with
-`background-clip: padding-box`, never in a margin. It restores the instance language and deletes
-its fixture however the run ends.
+previews, mod-click navigation, text selection), and the common cause is always a pixel the
+editor's height map cannot see: **nothing inside `.cm-content` may carry a vertical CSS
+margin.** CodeMirror measures every line and block widget by its border box, so padding and
+borders are counted and margins are not — put the air on a wrapper's padding, or in a
+transparent border with `background-clip: padding-box`, never in a margin. The gate restores the
+instance language and deletes its fixture however the run ends.
 
 ### `npm run check-layouts` — the keyboard-layout gate
 
-`KeyboardEvent.key` is what the *layout* produced. The shell compared it to Latin letters, so on
-an Arabic keyboard — where the key marked `P` reports `ح` — every global shortcut in the product
-was dead, in an app that ships a complete Arabic translation and mirrors its whole interface for
-it. It was invisible to every test we had, because every test typed Latin letters.
+`KeyboardEvent.key` is the character the *keyboard layout* produced. The shell used to compare
+it to Latin letters, so on an Arabic keyboard — where the key marked `P` reports `ح` — every
+global shortcut in the product was dead, in an app that ships a complete Arabic translation and
+mirrors its whole interface for it. No test caught it, because every test typed Latin letters.
 
 So this one does not. It drives the real app through the DevTools Protocol
 (`Input.dispatchKeyEvent`, the only way to set `key`, `code` and `keyCode` independently —
-Playwright's own keyboard always sends the US `key` for a `code`) with the keydowns Arabic 101,
-ЙЦУКЕН, Greek, Hebrew, AZERTY, Dvorak and US QWERTY actually send, and asserts that the palette,
-the graph, the shortcut sheet, zen, reading view, search, the pane toggles, bold and strikethrough
-all still fire — including `Ctrl/Cmd K` in the signed-out blog shell, which is an anonymous
-reader's only binding. **72 checks; 46 of them passed before the fix.**
+Playwright's own keyboard always sends the US `key` for a `code`) with the keydowns that Arabic
+101, ЙЦУКЕН, Greek, Hebrew, AZERTY, Dvorak and US QWERTY actually send, and asserts that the
+palette, the graph, the shortcut sheet, zen, reading view, search, the pane toggles, bold and
+strikethrough all still fire — including `Ctrl/Cmd K` in the signed-out blog shell, which is an
+anonymous reader's only binding. **72 checks; 46 of them passed before the fix.**
 
-Its second half is the one that keeps the fix from over-correcting: on Dvorak the key that types
-`b` is physical `KeyN`, so `Ctrl Alt` on physical `KeyB` — which types `x` there — must do
-**nothing**. Layout first, position only as the fallback. `tests/shortcuts.test.ts` runs the same
-matrix over the resolver with no browser at all, and holds the cases a browser cannot deliver
-(Chromium flattens Arabic's two-code-point lam-alef to an empty `key`). A binding added to the
-shortcut sheet and not to that file is a binding untested on every non-Latin keyboard on earth.
+Its second half keeps the fix from over-correcting: on Dvorak the key that types `b` is physical
+`KeyN`, so `Ctrl Alt` on physical `KeyB` — which types `x` there — must do **nothing**. Layout
+first, physical position only as the fallback. `tests/shortcuts.test.ts` runs the same matrix
+over the resolver with no browser at all, and holds the cases a browser cannot deliver (Chromium
+flattens Arabic's two-code-point lam-alef to an empty `key`). A binding added to the shortcut
+sheet and not to that file is a binding untested on every non-Latin keyboard on earth.
 
-`node scripts/shoot-layouts.mjs` is the companion picture: the `Ctrl/Cmd /` sheet with the layout
-map stubbed to Arabic and to Russian, which is how the annotated keycaps are reviewed.
+`node scripts/shoot-layouts.mjs` is the companion picture: the `Ctrl/Cmd /` sheet with the
+layout map stubbed to Arabic and to Russian, which is how the annotated keycaps are reviewed.
 
 ### `npm run check-keymap` — the binding ledger
 
 A colliding shortcut is the quietest bug this product can have. One handler answers the key, the
-other never sees the event, and neither of them knows the other exists — so it surfaces weeks
-later as "Ctrl+B does nothing", on one platform, from one reader, with nothing to grep for, because
+other never sees the event, and neither knows the other exists — so it surfaces weeks later as
+"Ctrl+B does nothing", on one platform, from one reader, with nothing to grep for, because
 nothing is wrong with either binding. What is wrong is that there are two.
 
-So a binding exists in ONE place: the `GROUPS` table in `client/components/ShortcutsHelp.tsx`, the
-same table `Ctrl/Cmd /` prints. This gate parses it out of the source text (never imports it — the
-rows carry React and store closures, and a gate that needs a browser is a gate nobody runs), turns
-every row's `keys` into a normalized chord, and fails when two rows resolve to the same key,
-modifiers and scope. Scope is the shell (`app` / `blog`) and the runtime (browser / desktop), and
-deliberately **not** `admin`: an admin session sees the visitor's rows plus its own, so `admin`
-never keeps two bindings apart — it names the reader a collision reaches first.
+So a binding exists in ONE place: the `GROUPS` table in `client/components/ShortcutsHelp.tsx`,
+the same table `Ctrl/Cmd /` prints. This gate parses it out of the source text (never imports
+it — the rows carry React and store closures, and a gate that needs a browser is a gate nobody
+runs), turns every row's `keys` into a normalized chord, and fails when two rows resolve to the
+same key, modifiers and scope. Scope is the shell (`app` / `blog`) and the runtime (browser /
+desktop), and deliberately **not** `admin`: an admin session sees the visitor's rows plus its
+own, so `admin` never keeps two bindings apart — it names the reader a collision reaches first.
 
 One overlap is real, argued and declared: `Ctrl/Cmd Shift Z` is zen AND CodeMirror's only macOS
-redo binding, and `client/App.tsx` breaks the tie by caret. Declaring one costs a paragraph in
-`RESOLVED` (`client/keymap.ts`) saying where the tie is broken, and a declaration that stops
-colliding fails the build too — a dead exception is a claim the next reader believes.
+redo binding, and `client/App.tsx` breaks the tie by where the caret is. Declaring one costs a
+paragraph in `RESOLVED` (`client/keymap.ts`) saying where the tie is broken, and a declaration
+that stops colliding fails the build too — a dead exception is a claim the next reader believes.
 
-The second half is `docs/keymap.md`, which is a RENDERING of the ledger rather than a second copy
-of it: the gate diffs the chords in the tables between `<!-- keymap:begin -->` and
+The second half is `docs/keymap.md`, which is a RENDERING of the ledger rather than a second
+copy of it: the gate diffs the chords in the tables between `<!-- keymap:begin -->` and
 `<!-- keymap:end -->` against `GROUPS`, in both directions. Surfaces that carry no keystroke — a
 click, the slash menu, an outline drag — live below the end marker, where the gate leaves them
 alone. `tests/keymap.test.ts` runs the same code with no files to write.
 
 ### `npm run check-excerpt` — the tag-in-prose gate
 
-`DESIGN.md`'s hard rule is that a snippet outside the editor either STRIPS markdown or RENDERS it;
-removing a `#` and leaving the word standing in the sentence is neither, and it shipped — a post
-ending "…it buys the reader a breath. #design #typography" printed on the front page as "…it buys
-the reader a breath. design typography". The three surfaces that flow through one stripper
-(`stripInlineMd`) are all walked from one fixture whose body **ends** in a tag line: the post
-excerpt (`/api/posts` — blog cards, RSS, `og:description`), the search snippet (`/api/search`), and
-the backlink context line (`/api/backlinks`). It also checks the other direction — that the
-stripped sentence survives and that the tags still appear where tags belong (`post.tags`, and the
-search index still matches them) — so a stripper that passes by deleting everything fails too. No
-browser needed; it deletes its fixtures however the run ends.
+`DESIGN.md`'s hard rule is that a snippet shown outside the editor either STRIPS Markdown or
+RENDERS it. Removing a `#` and leaving the bare word standing in the sentence is neither, and it
+shipped: a post ending "…it buys the reader a breath. #design #typography" printed on the front
+page as "…it buys the reader a breath. design typography". The three surfaces that flow through
+one stripper (`stripInlineMd`) are all walked from one fixture whose body **ends** in a tag line:
+the post excerpt (`/api/posts` — blog cards, RSS, `og:description`), the search snippet
+(`/api/search`), and the backlink context line (`/api/backlinks`). It also checks the other
+direction — that the stripped sentence survives, and that the tags still appear where tags
+belong (`post.tags`, and the search index still matches them) — so a stripper that passes by
+deleting everything fails too. No browser needed; it deletes its fixtures however the run ends.
 
 ### `npm run check-design` — the error boundary
 
-The gate for the [design engine](designer.md)'s one promise that cannot be reviewed by reading it.
-It breaks a designed site three ways on purpose (a corrupt `designs.json`, a section pointing at a
-note that is not there, and a section renderer patched to throw and rebuilt) and, for each,
-measures what a VISITOR gets (the built-in blog, a page with real text on it, nothing escaping the
-boundary) against what the OWNER gets (the designed page, the failing section named, the revert
-control present). It also round-trips stock ⇄ designed and asserts the design comes back
-byte-identical. Everything it touched is restored on the way out, including on failure:
-`PORT=6801 ASTROLABE_PASSWORD=… npm run check-design`.
+The gate for the [design engine](designer.md)'s one promise that cannot be reviewed by reading
+the code. It breaks a designed site three ways on purpose (a corrupt `designs.json`, a section
+pointing at a note that is not there, and a section renderer patched to throw and rebuilt) and,
+for each, measures what a VISITOR gets (the built-in blog, a page with real text on it, nothing
+escaping the boundary) against what the OWNER gets (the designed page, the failing section
+named, the revert control present). It also round-trips stock ⇄ designed and asserts the design
+comes back byte-identical. Everything it touched is restored on the way out, including on
+failure: `PORT=6801 ASTROLABE_PASSWORD=… npm run check-design`.
 
 ### `npm run check-board` — the designer's section board
 
 Three ways to move a row (the ↑/↓ buttons, a pointer drag, and a `Space`/arrows/`Space` keyboard
-lift), the drop preview before commit, `Esc` belonging to the innermost layer, the save-bar count,
-and a `Ctrl/Cmd S` round trip through the store.
+lift), the drop preview before commit, `Esc` belonging to the innermost layer, the save-bar
+count, and a `Ctrl/Cmd S` round trip through the store.
 
 ### `npm run check-preview` — the designer's live preview
 
@@ -199,14 +205,14 @@ live theme switch), and that it lays out at 390 / tablet / 1440 device widths.
 ### `npm run check-print` — the printed page
 
 `PORT=6801 npm run check-print`. The only surface nobody looks at while they work: `@media print`
-rules are invisible to every screenshot harness above, because a browser applies them only when a
-human opens a dialog. So this drives the app under `emulateMedia("print")` and asserts that the
-print host is the only thing on the paper (and is `display: none` on screen, so it can never
-flash), that the paper palette wins from a dark theme, that a folded callout prints its body, that
-headings stay real `h1`–`h6` with ids and internal anchors keep fragment `href`s — the two things
-Chrome builds a PDF's bookmark outline and its link annotations from — and that an Arabic note
-prints as a right-to-left page from an English instance. It writes two fixture notes through the
-API and deletes them on the way out. See [Printing & PDF](printing.md).
+rules are invisible to every screenshot harness above, because a browser applies them only when
+a human opens the print dialog. So this drives the app under `emulateMedia("print")` and asserts
+that the print host is the only thing on the paper (and is `display: none` on screen, so it can
+never flash), that the paper palette wins over a dark theme, that a folded callout prints its
+body, that headings stay real `h1`–`h6` with ids and internal anchors keep fragment `href`s —
+the two things Chrome builds a PDF's bookmark outline and its link annotations from — and that
+an Arabic note prints as a right-to-left page from an English instance. It writes two fixture
+notes through the API and deletes them on the way out. See [Printing & PDF](printing.md).
 
 ### `npm run check-presets` — the preset catalog
 
@@ -216,20 +222,22 @@ rather than reimplementing it.
 
 ### `scripts/check-desktop-boot.sh` and `check-desktop-relaunch.sh` — the desktop gates
 
-Both take an AppImage and boot it under Xvfb with an isolated config directory, from an empty
-temp directory (never from the checkout: an app started beside a `.env` links itself to that
-deployment), over an empty temp vault named by `ASTROLABE_VAULT`. The **boot** gate fails on an
-uncaught exception or a syntax error in the first 25 seconds — the 3.1.0–3.3.4 builds crashed at
-load and nothing said so. The **relaunch** gate sets `ASTROLABE_SELFTEST=relaunch`, which makes
-the app restart itself four seconds after boot exactly the way an applied update does, and
-passes only when the first process is gone *and* a second one started from the same file is
-running — `app.relaunch()` looked like it worked and did not, because Electron's relauncher runs
-from the mounted image after it is unmounted. Every AppImage release runs both before upload.
+Both take an AppImage and boot it under Xvfb (a virtual screen) with an isolated config
+directory, from an empty temp directory (never from the checkout: an app started beside a `.env`
+links itself to that deployment), over an empty temp vault named by `ASTROLABE_VAULT`. The
+**boot** gate fails on an uncaught exception or a syntax error in the first 25 seconds — the
+3.1.0–3.3.4 builds crashed at load and nothing said so. The **relaunch** gate sets
+`ASTROLABE_SELFTEST=relaunch`, which makes the app restart itself four seconds after boot
+exactly the way an applied update does, and passes only when the first process is gone *and* a
+second one started from the same file is running — `app.relaunch()` looked like it worked and
+did not, because Electron's relauncher runs from the mounted image after it is unmounted. Every
+AppImage release runs both before upload.
 
 ## Screenshot harnesses
 
-Not wired into `package.json` — run by hand, for visual review. All take `CHROMIUM`, and most take
-`THEME=parchment` and `LANGSET=ar` to check a theme or the right-to-left mirror.
+These are not wired into `package.json`; run them by hand, for visual review. All take
+`CHROMIUM`, and most take `THEME=parchment` and `LANGSET=ar` to check a theme or the
+right-to-left mirror.
 
 | Harness | Captures |
 | --- | --- |
@@ -247,17 +255,18 @@ Not wired into `package.json` — run by hand, for visual review. All take `CHRO
 ## Contributing a change
 
 1. **Read `DESIGN.md` and `CONTRACTS.md` first.** `DESIGN.md` carries the rules a change is judged
-   against; `CONTRACTS.md` carries the invariants the code has already committed to. Most review
-   comments here are one of those two documents quoted back.
-2. **Run `npm run typecheck`.** The build is strict and the server has no compile step to catch
+   against; `CONTRACTS.md` carries the promises the code has already made. Most review comments
+   here are one of those two documents quoted back.
+2. **Run `npm run typecheck`.** The build is strict, and the server has no compile step to catch
    things later.
-3. **Run the gates your change touches** — theme tokens mean `check-contrast`, any user-visible
-   string means `check-i18n`, the outline or note-rewriting code means `check-sections`, the editor
-   means `check-caret`, the designer means `check-board` / `check-preview` / `check-design`, and
-   **anything that reads a keystroke means `check-keymap` and `check-layouts`, plus
-   `tests/shortcuts.test.ts`** — is the binding unique, and can a non-Latin keyboard reach it.
-4. **Both languages, both directions.** Every string comes from `client/i18n.ts`, and every layout
-   is built on CSS logical properties. A change that only reads correctly left-to-right is not
-   finished — `LANGSET=ar` on any shoot harness is the cheapest way to see it.
+3. **Run the gates your change touches.** Theme tokens mean `check-contrast`; any user-visible
+   string means `check-i18n`; the outline or note-rewriting code means `check-sections`; the
+   editor means `check-caret`; the designer means `check-board` / `check-preview` /
+   `check-design`; and **anything that reads a keystroke means `check-keymap` and
+   `check-layouts`, plus `tests/shortcuts.test.ts`** — is the binding unique, and can a non-Latin
+   keyboard reach it?
+4. **Both languages, both directions.** Every string comes from `client/i18n.ts`, and every
+   layout is built on CSS logical properties. A change that only reads correctly left-to-right is
+   not finished — `LANGSET=ar` on any shoot harness is the cheapest way to see it.
 5. **Say why in the code.** This codebase's comments explain the decision, not the mechanism. A
    patch that changes a rule should move the paragraph that stated it.
