@@ -22,7 +22,6 @@ import type { RoutineMeta, TreeNode } from "../../shared/types.ts";
 import { getRoutines, updateRoutine, withPreview } from "../api.ts";
 import { parseWikilink, resolveLink, WIKILINK_RE } from "../editor/links.ts";
 import { localeNum, t, tf } from "../i18n.ts";
-import { notePathToUrl } from "../router.ts";
 import { useStore } from "../state.ts";
 
 /** One wikilink in a task's text, resolved to a vault path when the tree
@@ -72,7 +71,10 @@ let shelf: { at: number; p: Promise<ConstellationMeta[]> } | null = null;
 function constellations(fresh = false): Promise<ConstellationMeta[]> {
   const now = Date.now();
   if (!fresh && shelf && now - shelf.at < 3000) return shelf.p;
-  const p = fetch("/api/constellations", withPreview({ credentials: "same-origin" }))
+  // "Due" is a question about the reader's calendar day, and the server's
+  // clock may sit in another zone: the day goes with the request, as the
+  // Orbits page reckons it.
+  const p = fetch(`/api/constellations?today=${isoDate(new Date())}`, withPreview({ credentials: "same-origin" }))
     .then((res) => (res.ok ? (res.json() as Promise<ConstellationMeta[]>) : []))
     .catch(() => [] as ConstellationMeta[]);
   shelf = { at: now, p };
@@ -81,6 +83,15 @@ function constellations(fresh = false): Promise<ConstellationMeta[]> {
 
 function sameKey(a: string, b: string): boolean {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
+/** The session's address: `/constellations/<note path>`, the path WITH its
+ *  extension, encoded a segment at a time — the shape the router's
+ *  `starsUrl` builds and `starsRouteOf` reads back as the note path the
+ *  API wants. Not `notePathToUrl`: that strips the extension, and the
+ *  session looks the constellation up by its full path. */
+function sessionUrl(path: string): string {
+  return `/constellations/${path.split("/").map(encodeURIComponent).join("/")}`;
 }
 
 /** Tick, for today, every orbit slot whose text wikilinks the constellation
@@ -148,11 +159,18 @@ export function decorateStarTasks(card: HTMLElement, meta: RoutineMeta, today: s
     if (!row) return;
     const links = linksOf(task, tree).filter((l) => l.path !== null);
     if (links.length === 0) return;
-    for (const span of row.querySelectorAll<HTMLElement>(".s-rv-routine__taskkey, .s-rv-routine__tasktext")) {
-      let text = span.textContent ?? "";
+    const unbracket = (text: string): string => {
       for (const l of links) text = text.split(l.raw).join(l.label);
-      span.textContent = text;
+      return text;
+    };
+    for (const span of row.querySelectorAll<HTMLElement>(".s-rv-routine__taskkey, .s-rv-routine__tasktext")) {
+      span.textContent = unbracket(span.textContent ?? "");
     }
+    // The checkbox names the task for the screen reader; it loses the
+    // brackets too, or it would read the slot as "review: bracket bracket".
+    const check = row.querySelector<HTMLElement>(".s-rv-routine__check");
+    const aria = check?.getAttribute("aria-label");
+    if (check && aria) check.setAttribute("aria-label", unbracket(aria));
     wanted.push({ row, links });
   });
   if (wanted.length === 0) return;
@@ -173,7 +191,7 @@ export function decorateStarTasks(card: HTMLElement, meta: RoutineMeta, today: s
         if (!c) continue;
         const a = document.createElement("a");
         a.className = `s-stars-chip${c.counts.due === 0 ? " is-clear" : ""}`;
-        a.href = `/constellations${notePathToUrl(path)}`;
+        a.href = sessionUrl(path);
         a.title = c.title;
         a.setAttribute("aria-label", tf("starsOrbitStudyTitle", { title: c.title }));
         // A slot that names four constellations gets four chips in a row;
