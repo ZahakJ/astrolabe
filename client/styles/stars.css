@@ -1,0 +1,983 @@
+/* Astrolabe — Constellations (client/stars/*): the shelf, the session, the
+   statistics drawer and the New constellation form. Its own file, loaded
+   with the surface's lazy chunk. The Orbits page's rules: the page scrolls
+   down, never sideways; tokens only; logical properties. The session's
+   own rule: THE CARD IS THE HERO — one calm column, the card in the middle,
+   the grades under it, nothing overlaying anything. A turned card
+   cross-fades (no 3D), and stands still for anyone who asked for less
+   motion.
+
+   The form and the drawer wear the Media form's frame (.s-mediaform), which
+   arrives with the MEDIA chunk; imported here so a reader who opens
+   Constellations first has it. */
+@import "./media.css";
+
+/* ── the page ─────────────────────────────────────────────────────────── */
+
+.s-stars {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  container-type: inline-size;
+  padding: 28px clamp(16px, 4cqi, 48px) 64px;
+  background: var(--bg);
+  scrollbar-width: thin;
+}
+/* The session takes focus for its keys (Space, 1–4); the ring would frame
+   the whole pane, and the card's own controls carry theirs. */
+.s-stars:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.s-stars__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  max-inline-size: 1240px;
+  margin-inline: auto;
+}
+
+.s-stars__headtext {
+  min-inline-size: 0;
+}
+
+.s-stars__headactions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.s-stars__headactions .s-btn {
+  border: 1px solid var(--border);
+  min-block-size: 34px;
+}
+.s-stars__headactions .s-btn--accent {
+  border-color: transparent;
+}
+
+.s-stars__date {
+  margin: 0;
+  font-size: 0.786rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-stars__h1 {
+  margin: 2px 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.714rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.s-stars__lead {
+  margin: 4px 0 0;
+  font-size: 0.929rem;
+  color: var(--text-muted);
+}
+
+.s-stars__empty {
+  max-inline-size: 560px;
+  margin: 64px auto 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.s-stars__emptystar {
+  display: inline-block;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.s-stars__emptytext {
+  margin: 12px 0 4px;
+  font-family: var(--font-serif);
+  font-size: 1.143rem;
+  color: var(--text);
+}
+
+.s-stars__emptyhint {
+  margin: 0;
+  font-size: 0.929rem;
+}
+
+/* The two lines that teach the syntax, as they would be typed. */
+.s-stars__syntax {
+  display: inline-block;
+  margin: 14px auto;
+  padding: 12px 18px;
+  text-align: start;
+  font-family: var(--font-mono);
+  font-size: 0.857rem;
+  line-height: 1.6;
+  color: var(--codeblock-text);
+  background: var(--codeblock-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  max-inline-size: 100%;
+  overflow-x: auto;
+}
+
+/* ── the shelf ────────────────────────────────────────────────────────── */
+
+.s-shelf__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 18px;
+  max-inline-size: 1240px;
+  margin: 24px auto 0;
+}
+
+.s-shelf__card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-inline-size: 0;
+  padding: 18px 18px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  background: var(--card-bg);
+  transition: border-color 0.15s ease;
+}
+.s-shelf__card:hover {
+  border-color: var(--card-hover-border);
+}
+/* The implicit constellation is the vault's leftovers: it keeps its place
+   at the end and dresses down. */
+.s-shelf__card--implicit {
+  border-style: dashed;
+}
+
+.s-shelf__cardhead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-inline-size: 0;
+}
+
+.s-shelf__icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  line-height: 1;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.s-shelf__cardtext {
+  min-inline-size: 0;
+  flex: 1;
+}
+
+.s-shelf__cardtitle {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.143rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.s-shelf__cardsub {
+  margin: 2px 0 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+.s-shelf__tags {
+  margin: 4px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.s-shelf__tag {
+  font-size: 0.714rem;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--tagpill-bg);
+  color: var(--tagpill-text);
+}
+
+.s-shelf__counts {
+  margin: 0;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.s-shelf__stat b {
+  font-weight: 500;
+  color: var(--text);
+}
+/* The number that matters today lights up; the others stay grey. */
+.s-shelf__stat--due b {
+  color: var(--accent);
+  font-size: 1.071rem;
+}
+
+.s-shelf__retention {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.s-shelf__spark {
+  flex: none;
+  max-inline-size: 100%;
+  overflow: visible;
+}
+.s-shelf__sparkbase {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.s-shelf__sparkline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.s-shelf__sparkdot {
+  fill: var(--accent);
+}
+
+.s-shelf__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-block-start: auto;
+}
+.s-shelf__study {
+  min-inline-size: 88px;
+  min-block-size: 34px;
+}
+.s-shelf__sections {
+  border: 1px solid var(--border);
+  min-block-size: 34px;
+}
+/* The card's quiet row: the statistics and the note, under a hairline, so
+   the two loud buttons above keep the eye. */
+.s-shelf__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-block-start: -4px;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--border);
+}
+.s-shelf__small {
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  padding-inline: 8px;
+  min-block-size: 30px;
+}
+.s-shelf__small:hover {
+  color: var(--text);
+}
+
+/* ── the session ──────────────────────────────────────────────────────── */
+
+.s-session {
+  display: flex;
+  flex-direction: column;
+  padding-block-start: 18px;
+}
+
+.s-session__head {
+  inline-size: 100%;
+  max-inline-size: 760px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.s-session__crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-inline-size: 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+.s-session__crumb {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.s-session__crumb--back {
+  background: none;
+  border: 0;
+  padding: 4px 6px;
+  margin-inline-start: -6px;
+  font: inherit;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  min-block-size: 28px;
+}
+.s-session__crumb--back:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+.s-session__crumb--title {
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.s-session__icon {
+  display: inline-block;
+  font-size: 1.071rem;
+  line-height: 1;
+  margin-inline-end: 6px;
+}
+.s-session__crumbsep {
+  color: var(--text-faint);
+}
+/* The chevrons point along the reading direction: a breadcrumb in Arabic
+   walks to the left. */
+.s-session__chev {
+  display: inline-block;
+}
+[dir="rtl"] .s-session__chev {
+  transform: scaleX(-1);
+}
+
+.s-session__progress {
+  position: relative;
+  block-size: 4px;
+  border-radius: 999px;
+  background: var(--progress-track);
+  overflow: visible;
+}
+.s-session__bar {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--progress-fill);
+  transition: inline-size 0.3s ease;
+}
+.s-session__progresstext {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: 8px;
+  font-size: 0.714rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-session__card {
+  inline-size: 100%;
+  max-inline-size: 760px;
+  margin: 36px auto 0;
+  padding: 20px clamp(16px, 4cqi, 32px) 24px;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-sizing: border-box;
+}
+.s-session__card--loading {
+  min-block-size: 220px;
+  opacity: 0.5;
+}
+
+.s-session__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-inline-size: 0;
+}
+.s-session__kind {
+  flex: none;
+  font-size: 0.714rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.s-session__kind--new {
+  color: var(--callout-info);
+  border-color: color-mix(in srgb, var(--callout-info) 40%, transparent);
+}
+.s-session__kind--learning {
+  color: var(--callout-warning);
+  border-color: color-mix(in srgb, var(--callout-warning) 40%, transparent);
+}
+.s-session__early {
+  font-size: 0.786rem;
+  color: var(--text-faint);
+}
+.s-session__spacer {
+  flex: 1;
+}
+.s-session__action {
+  background: none;
+  border: 0;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  min-block-size: 28px;
+  border-radius: var(--radius);
+}
+.s-session__action:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+.s-session__action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.s-session__front,
+.s-session__back,
+.s-session__extra {
+  font-family: var(--font-serif);
+  font-size: 1.286rem;
+  line-height: 1.6;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.s-session__front {
+  padding-block: 8px;
+}
+.s-session__extra {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-block-start: 10px;
+}
+.s-session__front > :first-child,
+.s-session__back > :first-child,
+.s-session__extra > :first-child {
+  margin-block-start: 0;
+}
+.s-session__front > :last-child,
+.s-session__back > :last-child,
+.s-session__extra > :last-child {
+  margin-block-end: 0;
+}
+
+.s-session__rule {
+  border: 0;
+  border-block-start: 1px dashed var(--border);
+  margin: 0 0 16px;
+}
+
+/* The turn: a short cross-fade, and none at all under reduced motion. */
+.s-session__answer {
+  animation: s-session-turn 0.18s ease;
+}
+@keyframes s-session-turn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-session__answer {
+    animation: none;
+  }
+  .s-session__bar {
+    transition: none;
+  }
+}
+
+.s-session__show {
+  align-self: center;
+  min-inline-size: 180px;
+  min-block-size: 40px;
+}
+
+/* A typed star: the input on the front, Enter checks. */
+.s-session__typed {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.s-session__input {
+  flex: 1 1 220px;
+  min-inline-size: 0;
+  font-family: var(--font-serif);
+  font-size: 1.143rem;
+  padding: 8px 12px;
+  min-block-size: 40px;
+}
+.s-session__check {
+  min-inline-size: 100px;
+  min-block-size: 40px;
+}
+.s-session__verdict {
+  margin: 0 0 12px;
+  font-size: 0.929rem;
+  color: var(--text-muted);
+}
+.s-session__verdict--ok b {
+  color: var(--callout-success);
+}
+.s-session__verdict--no b {
+  color: var(--callout-warning);
+}
+.s-session__verdictlabel {
+  color: var(--text-faint);
+}
+.s-session__diff {
+  font-family: var(--font-serif);
+  font-size: 1.071rem;
+  color: var(--text);
+}
+/* What was typed and is not there is struck; what was missed is underlined
+   in the accent — two marks a colour-blind reader can still tell apart. */
+.s-session__diff--drop {
+  color: var(--danger);
+  text-decoration: line-through;
+}
+.s-session__diff--add {
+  color: var(--callout-success);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.s-session__grades {
+  inline-size: 100%;
+  max-inline-size: 760px;
+  margin: 14px auto 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.s-session__grade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-block: 10px;
+  min-block-size: 56px;
+  border: 1px solid var(--border);
+  border-block-end: 3px solid var(--grade, var(--border));
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+.s-session__grade:hover {
+  background: var(--button-hover-bg);
+}
+.s-session__grade--again {
+  --grade: var(--danger);
+}
+.s-session__grade--hard {
+  --grade: var(--callout-warning);
+}
+.s-session__grade--good {
+  --grade: var(--accent);
+}
+.s-session__grade--easy {
+  --grade: var(--callout-success);
+}
+.s-session__gradekey {
+  font-size: 0.714rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.s-session__gradelabel {
+  font-weight: 500;
+}
+.s-session__gradein {
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-session__keys {
+  margin: 18px auto 0;
+  font-size: 0.786rem;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+/* THE PHONE: the grade row is thumb-sized and sticks to the bottom of the
+   scroll, so a long card never puts the grades out of reach. The page pads
+   its bottom so the last line of a card can scroll clear of the row. */
+@container (inline-size < 520px) {
+  .s-session {
+    padding-inline: 12px;
+    padding-block-end: 24px;
+  }
+  .s-session__card {
+    margin-block-start: 20px;
+    border-radius: 14px;
+  }
+  .s-session__grades {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 1;
+    margin-block-start: 12px;
+    padding-block: 8px;
+    background: var(--bg);
+    gap: 6px;
+  }
+  .s-session__grade {
+    min-block-size: 64px;
+    padding-block: 8px;
+  }
+  .s-session__gradelabel {
+    font-size: 0.857rem;
+  }
+  .s-session__keys {
+    display: none;
+  }
+  .s-session__progresstext {
+    display: none;
+  }
+}
+
+/* The end of a session. */
+.s-session__summary {
+  inline-size: 100%;
+  max-inline-size: 560px;
+  margin: 48px auto 0;
+  text-align: center;
+}
+.s-session__summaryhead {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.429rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.s-session__summarylead {
+  margin: 6px 0 0;
+  font-size: 0.929rem;
+  color: var(--text-muted);
+}
+.s-session__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 24px 0 0;
+}
+.s-session__stat {
+  padding: 12px 8px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+}
+.s-session__stat dt {
+  font-size: 0.714rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.s-session__stat dd {
+  margin: 4px 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.286rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.s-session__againlist {
+  margin-block-start: 22px;
+  text-align: start;
+}
+.s-session__againhead {
+  margin: 0 0 6px;
+  font-size: 0.786rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.s-session__againlist ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.s-session__againrow {
+  inline-size: 100%;
+  text-align: start;
+  background: none;
+  border: 0;
+  padding: 6px 8px;
+  font: inherit;
+  font-family: var(--font-serif);
+  color: var(--text);
+  border-radius: var(--radius);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  min-block-size: 32px;
+}
+.s-session__againrow:hover {
+  background: var(--bg-hover);
+}
+.s-session__summaryactions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-block-start: 24px;
+}
+.s-session__summaryactions .s-btn,
+.s-session__backbtn {
+  border: 1px solid var(--border);
+  min-block-size: 38px;
+  min-inline-size: 140px;
+}
+.s-session__summaryactions .s-btn--accent {
+  border-color: transparent;
+}
+.s-session__backbtn {
+  margin-block-start: 16px;
+}
+
+/* ── the statistics drawer ────────────────────────────────────────────── */
+
+.s-statsdrawer {
+  inline-size: min(560px, calc(100vw - 32px));
+}
+.s-statsdrawer__body {
+  gap: 20px;
+}
+.s-statsdrawer__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.s-statsdrawer__head {
+  margin: 0;
+  font-size: 0.786rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.s-statsdrawer__big {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.714rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-statsdrawer__forecast {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  block-size: 72px;
+  padding-block-end: 1px;
+  border-block-end: 1px solid var(--border);
+}
+.s-statsdrawer__bar {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  block-size: 100%;
+  min-inline-size: 0;
+}
+.s-statsdrawer__fill {
+  display: block;
+  inline-size: 100%;
+  min-block-size: 2px;
+  border-radius: 2px 2px 0 0;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.s-statsdrawer__bar--today .s-statsdrawer__fill {
+  background: var(--accent);
+}
+
+.s-statsdrawer__states {
+  display: flex;
+  block-size: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--progress-track);
+}
+.s-statsdrawer__state {
+  flex-basis: 0;
+  min-inline-size: 0;
+}
+.s-statsdrawer__state--new {
+  /* Grey: a new star is a blank, not a colour yet. Young takes the accent
+     so it never shares a hue with new in a blue-accent theme. */
+  background: var(--text-faint);
+}
+.s-statsdrawer__state--learning {
+  background: var(--callout-warning);
+}
+.s-statsdrawer__state--young {
+  background: var(--accent);
+}
+.s-statsdrawer__state--mature {
+  background: var(--callout-success);
+}
+.s-statsdrawer__legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 4px 12px;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+.s-statsdrawer__legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.s-statsdrawer__legend b {
+  font-weight: 500;
+  color: var(--text);
+}
+.s-statsdrawer__pct {
+  color: var(--text-faint);
+}
+.s-statsdrawer__swatch {
+  inline-size: 10px;
+  block-size: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.s-statsdrawer__hardest {
+  margin: 0;
+  padding-inline-start: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.s-statsdrawer__hardest li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-inline-size: 0;
+}
+.s-statsdrawer__star {
+  flex: 1;
+  min-inline-size: 0;
+  text-align: start;
+  background: none;
+  border: 0;
+  padding: 4px 6px;
+  font: inherit;
+  font-family: var(--font-serif);
+  color: var(--text);
+  border-radius: var(--radius);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-block-size: 28px;
+}
+.s-statsdrawer__star:hover {
+  background: var(--bg-hover);
+}
+.s-statsdrawer__again {
+  flex: none;
+  font-size: 0.786rem;
+  color: var(--danger);
+}
+
+/* ── the New constellation form ───────────────────────────────────────── */
+
+.s-starsform {
+  inline-size: min(680px, calc(100vw - 32px));
+}
+.s-starsform__tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 18px 0;
+  border-block-end: 1px solid var(--border);
+}
+.s-starsform__tab {
+  padding: 8px 12px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  color: var(--text-muted);
+  border-block-end: 2px solid transparent;
+  margin-block-end: -1px;
+}
+.s-starsform__tab--on {
+  color: var(--text);
+  border-block-end-color: var(--accent);
+}
+.s-starsform__body {
+  gap: 16px;
+}
+.s-starsform__cards {
+  font-family: var(--font-mono);
+  font-size: 0.857rem;
+  min-block-size: 140px;
+}
+.s-starsform__count {
+  margin: 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.s-starsform__mapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 10px;
+}
+.s-starsform__col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  min-inline-size: 0;
+}
+.s-starsform__check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  min-block-size: 28px;
+}
+.s-starsform__iconrow .s-ctl-input {
+  max-inline-size: 120px;
+}
+
+@media (pointer: coarse) {
+  .s-shelf__study,
+  .s-shelf__sections,
+  .s-shelf__small,
+  .s-stars__headactions .s-btn,
+  .s-session__show,
+  .s-session__check,
+  .s-starsform__tab {
+    min-block-size: 44px;
+  }
+}

@@ -21,7 +21,7 @@ import {
   closeAllPanes,
   closeOthersIn,
   isGraphTab,
-  isMediaTab, isRoutinesTab, isReviewTab,
+  isMediaTab, isRoutinesTab, isStarsTab, starsPathOf,
   isVirtualTab,
   paneAt,
   type Workspace,
@@ -36,7 +36,13 @@ function titleOf(path: string): string {
   if (isGraphTab(path)) return t("docTitleGraph");
   if (isMediaTab(path)) return t("media");
   if (isRoutinesTab(path)) return t("routines");
-  if (isReviewTab(path)) return t("review");
+  // The shelf is named; a session over a constellation wears the note's
+  // own name, so the strip reads "Hiragana" beside "Hiragana" the note.
+  if (isStarsTab(path)) {
+    const studied = starsPathOf(path);
+    if (studied === null) return t("stars");
+    path = studied;
+  }
   const base = path.slice(path.lastIndexOf("/") + 1);
   return stripBidiControls(noteLabelOf(base));
 }

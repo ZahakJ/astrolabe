@@ -50,6 +50,7 @@ import type {
   VisibilityImpact, PublicFolderRef, Mention, OnThisDayHit, QueryHit, TaskMeta, RoutineMeta, CardMeta
 } from "../shared/types.ts";
 import type { EntryPatch } from "../shared/routine.ts";
+import type { ConstellationKind, ConstellationMeta, NewCard, Star } from "../shared/constellations.ts";
 import type { Grade, Schedule } from "../shared/srs.ts";
 import type { TrackerFields } from "../shared/tracker.ts";
 
@@ -759,6 +760,59 @@ export function getCards(): Promise<CardMeta[]> {
 /** Grade one card; the server writes the next schedule into the note. */
 export function reviewCard(path: string, line: number, grade: Grade, today: string): Promise<{ ok: true; schedule: Schedule }> {
   return request<{ ok: true; schedule: Schedule }>("/api/card/review", json("POST", { path, line, grade, today }));
+}
+
+// ── Constellations (CONSTELLATIONS-SPEC.md; client/stars/*) ─────────────────
+
+/** Every constellation on the shelf, the implicit "Everything else" last
+ *  (admin only). */
+export function getConstellations(): Promise<ConstellationMeta[]> {
+  return request<ConstellationMeta[]>("/api/constellations");
+}
+
+/** The stars of one constellation, or of one section of it, for a session.
+ *  The client orders them (client/stars/queue.ts). */
+export function getStars(path: string, section: string | null = null): Promise<Star[]> {
+  const q = `path=${encodeURIComponent(path)}${section ? `&section=${encodeURIComponent(section)}` : ""}`;
+  return request<Star[]>(`/api/constellations/stars?${q}`);
+}
+
+/** Grade one star; the server writes the schedule into the note (a `:::`
+ *  pair keeps two schedules in one comment, so `dir` says which). `restore`
+ *  is the undo path: write THIS schedule back rather than grading — null
+ *  strips the comment a first grade wrote. */
+export function reviewStar(
+  path: string,
+  line: number,
+  dir: Star["dir"],
+  grade: Grade,
+  today: string,
+  restore?: Schedule | null,
+): Promise<{ ok?: true; schedule: Schedule | null }> {
+  const body = restore === undefined ? { path, line, dir, grade, today } : { path, line, dir, grade, today, restore };
+  return request<{ ok?: true; schedule: Schedule | null }>("/api/star/review", json("POST", body));
+}
+
+/** Create a constellation note at `<folder>/<title>.md`. */
+export function createConstellation(head: {
+  title: string;
+  icon: string | null;
+  kind: ConstellationKind;
+  folder: string;
+  tags?: string[];
+  cards: NewCard[];
+}): Promise<{ ok?: true; path: string }> {
+  return request<{ ok?: true; path: string }>("/api/constellations", json("POST", head));
+}
+
+/** Import an Anki .apkg (or a .csv/.tsv the server maps itself): one
+ *  constellation note per deck, media into the attachments folder. */
+export function importConstellations(file: File, folder: string): Promise<{ ok?: true; created: string[] }> {
+  const form = new FormData();
+  form.append("file", file, file.name);
+  form.append("folder", folder);
+  // No Content-Type header: the browser sets the multipart boundary itself.
+  return request<{ ok?: true; created: string[] }>("/api/constellations/import", { method: "POST", body: form }, false, UPLOAD_TIMEOUT_MS);
 }
 
 export function getRoutines(): Promise<RoutineMeta[]> {
