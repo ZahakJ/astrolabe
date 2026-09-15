@@ -145,7 +145,7 @@ const DICT = {
   },
   deleteFilePermBody: {
     en: "“{path}” will be erased from disk. This cannot be undone.",
-    ar: "سيُمحى “{path}” من القرص. لا يمكن التراجع عن هذا.",
+    ar: "سيُمحى “{path}” من القرص. لا رجعة فيه.",
   },
   // The tail these three used to carry — "restore it from the trash browser"
   // — was the whole of what a delete offered: an instruction to go and find a
@@ -172,7 +172,7 @@ const DICT = {
   deletePermanently: { en: "Delete permanently", ar: "حذف نهائي" },
   deleteFolderPermBody: {
     en: "The folder and its contents — {contents} — will be erased from disk. This cannot be undone.",
-    ar: "سيُمحى المجلد ومحتواه — {contents} — من القرص. لا يمكن التراجع عن هذا.",
+    ar: "سيُمحى المجلد ومحتواه — {contents} — من القرص. لا رجعة فيه.",
   },
   // "0 notes and 4 files". Both halves come from countPhrase(), so the Arabic
   // agrees (ملاحظة / ملاحظتان / ملاحظات) instead of gluing a numeral to a
@@ -201,7 +201,7 @@ const DICT = {
   },
   noteRefsWarn: {
     en: "Linked from {notes} — those links go broken.",
-    ar: "مرتبط بها من {notes} — ستصبح تلك الروابط مكسورة.",
+    ar: "تُحيل إليها {notes} — وستنكسر تلك الروابط.",
   },
   folderTrashedToast: {
     en: "Moved “{name}” to .trash",
@@ -235,7 +235,7 @@ const DICT = {
   trashFrom: { en: "from {path}", ar: "من {path}" },
   trashOriginUnknown: {
     en: "origin unknown — restores to the vault root",
-    ar: "المصدر غير معروف — سيُسترجع إلى جذر الخزانة",
+    ar: "أصله مجهول — يُسترجع إلى جذر الخزانة",
   },
   trashOriginTaken: { en: "{path} is taken — restores beside it", ar: "{path} مشغول — سيُسترجع بجانبه" },
   restore: { en: "Restore", ar: "استرجاع" },
@@ -249,7 +249,7 @@ const DICT = {
   // nothing behind it, which is what the body says.
   purgeBody: {
     en: "“{name}” will be erased from .trash. Nothing is behind this one.",
-    ar: "سيُمحى “{name}” من ‎.trash‎. لا شيء بعد هذه الخطوة.",
+    ar: "سيُمحى “{name}” من ‎.trash‎ — ولا سلةَ بعد السلة.",
   },
   purgedToast: { en: "Erased “{name}” from .trash", ar: "مُحي “{name}” من ‎.trash‎" },
   purgeFailed: { en: "Could not erase that", ar: "تعذر المحو" },
@@ -257,7 +257,7 @@ const DICT = {
   emptyTrashTitle: { en: "Empty the trash?", ar: "إفراغ سلة المهملات؟" },
   emptyTrashBody: {
     en: "Everything in .trash — {contents} — will be erased from disk. This cannot be undone.",
-    ar: "سيُمحى كل ما في ‎.trash‎ — {contents} — من القرص. لا يمكن التراجع عن هذا.",
+    ar: "سيُمحى كل ما في ‎.trash‎ — {contents} — من القرص. لا رجعة فيه.",
   },
   emptiedTrashToast: { en: "Emptied .trash", ar: "أُفرغت ‎.trash‎" },
   // The wordmark ENTERS visitor preview — a mode that takes the editor away.
@@ -309,7 +309,7 @@ const DICT = {
   unsaved: { en: "unsaved", ar: "غير محفوظ" },
 
   // ── Status bar ──────────────────────────────────────────────────────────
-  noNoteOpen: { en: "No note open", ar: "لا توجد ملاحظة مفتوحة" },
+  noNoteOpen: { en: "No note open", ar: "لا ملاحظة مفتوحة" },
   publish: { en: "Publish", ar: "نشر" },
   publishTitle: {
     en: "Publish this note for visitors (Ctrl/Cmd+Shift+P)",
@@ -321,7 +321,7 @@ const DICT = {
   },
   filterToPublished: {
     en: "Filter the sidebar to published notes",
-    ar: "قصر الشريط الجانبي على الملاحظات المنشورة",
+    ar: "قَصْر الشريط الجانبي على الملاحظات المنشورة",
   },
   showFullVault: {
     en: "Show the full vault in the sidebar",
@@ -413,13 +413,13 @@ const DICT = {
   thRosePineDawn: { en: "Rosé Pine Dawn", ar: "روزيه باين فجر" },
   thRosePineDawnDesc: { en: "Dawn cream, pine", ar: "كريمي الفجر وأخضر الصنوبر" },
   thIronGall: { en: "Iron gall", ar: "حبر داكن" },
-  thIronGallDesc: { en: "Gold leaf on candlelit ink", ar: "أسود دافئ وذهبي" },
+  thIronGallDesc: { en: "Gold leaf on candlelit ink", ar: "ورق ذهب على حبرٍ بضوء الشموع" },
   thVoid: { en: "Void", ar: "فراغ" },
   thVoidDesc: { en: "Cold cyan on true black", ar: "سماوي بارد على أسود خالص" },
   thLapis: { en: "Lapis", ar: "لازورد" },
-  thLapisDesc: { en: "Bright gold on lapis blue-black", ar: "ذهب لامع على أزرق داكن" },
+  thLapisDesc: { en: "Bright gold on lapis blue-black", ar: "ذهب لامع على لازورد داكن" },
   thCinnabar: { en: "Cinnabar", ar: "أحمر زنجفري" },
-  thCinnabarDesc: { en: "Vermilion on neutral graphite", ar: "رمادي محايد وأحمر قرمزي" },
+  thCinnabarDesc: { en: "Vermilion on neutral graphite", ar: "أحمر زنجفري على غرافيت محايد" },
   thBasalt: { en: "Basalt", ar: "بازلت" },
   thBasaltDesc: { en: "Pale sky on blue-grey stone", ar: "أزرق فاتح على حجر رمادي" },
   thVerdigris: { en: "Verdigris", ar: "نحاس مؤكسد" },
@@ -433,7 +433,7 @@ const DICT = {
   thSumi: { en: "Sumi", ar: "حبر صيني" },
   thSumiDesc: { en: "Indigo on ink-stick grey", ar: "نيلي على رمادي حبر الصين" },
   thMoss: { en: "Moss", ar: "طحلب" },
-  thMossDesc: { en: "Lichen green on olive-black", ar: "أخضر أشن على زيتوني داكن" },
+  thMossDesc: { en: "Lichen green on olive-black", ar: "أخضر الأُشنة على زيتوني داكن" },
   thPhosphor: { en: "Phosphor", ar: "شاشة خضراء" },
   thPhosphorDesc: { en: "P1 green on a cold screen", ar: "أخضر الفوسفور على شاشة باردة" },
   thSidereal: { en: "Sidereal", ar: "نجوم" },
@@ -451,7 +451,7 @@ const DICT = {
   thSolar: { en: "Solar", ar: "أبيض ساطع" },
   thSolarDesc: { en: "Burnt gold on the brightest paper", ar: "ذهب محروق على أنصع ورق" },
   thPalimpsest: { en: "Palimpsest", ar: "ورق رمادي" },
-  thPalimpsestDesc: { en: "Rubric red on scraped parchment", ar: "ورق رمادي مكشوط وأحمر" },
+  thPalimpsestDesc: { en: "Rubric red on scraped parchment", ar: "أحمر العناوين على رَقٍّ مكشوط" },
   thPorcelain: { en: "Porcelain", ar: "خزف أبيض" },
   thPorcelainDesc: { en: "Deep celadon on glazed white", ar: "أخضر خزفي على بياض مطليّ" },
   thMauveine: { en: "Mauveine", ar: "بنفسجي فاتح" },
@@ -482,7 +482,7 @@ const DICT = {
   visitorsPinned: { en: "Visitors see {theme} — pinned", ar: "يرى الزوار {theme} — مثبّتة" },
   pinForVisitors: { en: "Pin this instead", ar: "ثبّت هذه بدلًا منها" },
   followMyTheme: { en: "Follow my theme", ar: "اتبع سمتي" },
-  themePinnedNow: { en: "Visitors are pinned to {theme}", ar: "ثُبِّت الزوار على {theme}" },
+  themePinnedNow: { en: "Visitors are pinned to {theme}", ar: "ثُبّتت سمة {theme} للزوار" },
   themeFollowingNow: {
     en: "Visitors follow your editor theme again",
     ar: "عاد الزوار يتبعون سمة محرِّرك",
@@ -522,13 +522,13 @@ const DICT = {
   cmdCoolScreen: { en: "Cool the screen", ar: "برّد الشاشة" },
   cmdWarmScreenHint: { en: "Night light: an amber sheet over the page, per device", ar: "إضاءة ليلية: طبقة كهرمانية فوق الصفحة، لكل جهاز" },
   rowEditorWidth: { en: "Writing column", ar: "عرض عمود الكتابة" },
-  hintEditorWidth: { en: "How wide the editor and the reading view set their text. Per device.", ar: "عرض النص في المحرر وعرض القراءة. لكل جهاز." },
+  hintEditorWidth: { en: "How wide the editor and the reading view set their text. Per device.", ar: "عرض النص في المحرر وفي وضع القراءة. يُحفظ لكل جهاز على حدة." },
   editorWidthMeasure: { en: "Reading measure", ar: "قياس القراءة" },
   editorWidthWide: { en: "Wide", ar: "عريض" },
   editorWidthFull: { en: "Full width", ar: "العرض الكامل" },
   editorWidthCustom: { en: "Custom", ar: "مخصص" },
   editorWidthCustomPlaceholder: { en: "900px or 70%", ar: "900px أو 70%" },
-  editorWidthCustomHint: { en: "Pixels (320–2400) or a share of the pane (30–100%). It applies as you type.", ar: "بكسل (320–2400) أو نسبة من اللوحة (30–100%). يُطبَّق أثناء الكتابة." },
+  editorWidthCustomHint: { en: "Pixels (320–2400) or a share of the pane (30–100%). It applies as you type.", ar: "بكسل (320–2400) أو نسبة من اللوحة (30–100%). يسري وأنت تكتب." },
   treeFoldInside: { en: "Collapse everything inside", ar: "طيّ كل ما بداخله" },
   treeUnfoldInside: { en: "Expand everything inside", ar: "بسط كل ما بداخله" },
   treeSort: { en: "Sort the tree", ar: "ترتيب الشجرة" },
@@ -547,8 +547,8 @@ const DICT = {
   treeFocusedOn: { en: "Focused on “{name}”", ar: "التركيز على “{name}”" },
   paneGripNotes: { en: "Drag to resize the notes sidebar; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض لوحة الملاحظات؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
   tagsGrip: { en: "Drag to resize the tag shelf; double-click to reset", ar: "اسحب لتغيير ارتفاع رف الوسوم؛ انقر مرتين لإعادة الضبط" },
-  splitGripCols: { en: "Drag to resize the panes; double-click to even them out", ar: "اسحب لتغيير عرض اللوحات؛ انقر مرتين لتساويها" },
-  splitGripRows: { en: "Drag to resize the panes; double-click to even them out", ar: "اسحب لتغيير ارتفاع اللوحات؛ انقر مرتين لتساويها" },
+  splitGripCols: { en: "Drag to resize the panes; double-click to even them out", ar: "اسحب لتغيير عرض اللوحات؛ انقر مرتين لتتساوى" },
+  splitGripRows: { en: "Drag to resize the panes; double-click to even them out", ar: "اسحب لتغيير ارتفاع اللوحات؛ انقر مرتين لتتساوى" },
   paneGripPanel: { en: "Drag to resize the side panel; drag it off the edge to close it; double-click to reset", ar: "اسحب لتغيير عرض اللوحة الجانبية؛ اسحبها خارج الحافة لإغلاقها؛ انقر مرتين لإعادة الضبط" },
   showPaneNotes: {
     en: "Show Notes sidebar (Ctrl/Cmd+Alt+B)",
@@ -569,7 +569,7 @@ const DICT = {
 
   // ── Right panel ─────────────────────────────────────────────────────────
   backlinks: { en: "Backlinks", ar: "روابط راجعة" },
-  noNoteOpenDot: { en: "No note open.", ar: "لا توجد ملاحظة مفتوحة." },
+  noNoteOpenDot: { en: "No note open.", ar: "لا ملاحظة مفتوحة." },
   noBacklinks: {
     en: "No backlinks yet — link to this note with [[…]]",
     ar: "لا روابط راجعة بعد — اربط بهذه الملاحظة عبر [[…]]",
@@ -652,7 +652,7 @@ const DICT = {
 
   // ── Snapshot ────────────────────────────────────────────────────────────
   // One local commit. The point a reader comes back to after a bulk edit.
-  snapshotNow: { en: "Snapshot now", ar: "لقطة الآن" },
+  snapshotNow: { en: "Snapshot now", ar: "التقاط لقطة الآن" },
   cmdSnapshotHint: {
     en: "Commit the vault locally — a point to come back to",
     ar: "أودِع الخزانة محليًا — نقطة تعود إليها",
@@ -730,10 +730,10 @@ const DICT = {
   cmdEditorLangAr: { en: "Editor language: العربية", ar: "لغة المحرّر: العربية" },
   cmdEditorLangHint: { en: "this browser", ar: "هذا المتصفح" },
   cmdEditorLangCurrentHint: { en: "this browser · in force", ar: "هذا المتصفح · الحالي" },
-  cmdTogglePaneNotes: { en: "Toggle Notes sidebar", ar: "طي لوحة الملاحظات" },
+  cmdTogglePaneNotes: { en: "Toggle Notes sidebar", ar: "تبديل لوحة الملاحظات" },
   cmdTogglePaneOutline: {
     en: "Toggle Outline & backlinks",
-    ar: "طي المحتويات والروابط الراجعة",
+    ar: "تبديل المحتويات والروابط الراجعة",
   },
   cmdZen: { en: "Zen mode", ar: "وضع التركيز" },
   cmdZenHint: { en: "chrome steps aside", ar: "تنحسر الواجهة" },
@@ -769,7 +769,7 @@ const DICT = {
   // menu, a chord, a tree row — and nowhere in the one surface that is meant
   // to be the complete list of what this app can do. A command that exists
   // only behind a right-click is a command a keyboard reader does not have.
-  cmdRevealInTree: { en: "Reveal note in sidebar", ar: "إظهار الملاحظة في اللوحة الجانبية" },
+  cmdRevealInTree: { en: "Reveal note in sidebar", ar: "إظهار الملاحظة في لوحة الملاحظات" },
   cmdRevealInTreeHint: { en: "opens its folders", ar: "يفتح مجلداتها" },
   cmdFindInNote: { en: "Find in note", ar: "بحث داخل الملاحظة" },
   cmdSplitPane: { en: "Split pane", ar: "تقسيم اللوح" },
@@ -811,7 +811,7 @@ const DICT = {
    *  console label — see the note there. Deliberately says nothing about what
    *  went wrong: the honest diagnosis is the console entry beside it, and a
    *  sentence invented to fill the gap would be a guess. */
-  actionFailed: { en: "That did not go through", ar: "لم يتم ذلك" },
+  actionFailed: { en: "That did not go through", ar: "لم يُفلح ذلك" },
 
   // ── Confirm / prompt / login modals ─────────────────────────────────────
   cancel: { en: "Cancel", ar: "إلغاء" },
@@ -822,7 +822,7 @@ const DICT = {
   promptInFolder: { en: "In {folder}", ar: "في {folder}" },
   promptAtRoot: {
     en: "At the vault root — type ideas/Name to nest it",
-    ar: "في جذر المخزن — اكتب ideas/Name للتداخل داخل مجلد",
+    ar: "في جذر الخزانة — اكتب ideas/Name لتُنشئ داخل مجلد",
   },
   phFolderName: { en: "Folder name", ar: "اسم المجلد" },
   // What the typed text will actually become, shown BEFORE anything is
@@ -830,11 +830,11 @@ const DICT = {
   promptCreates: { en: "Creates {path}", ar: "سيُنشئ {path}" },
   promptNoTraversal: {
     en: "A path may not step outside the vault",
-    ar: "لا يمكن للمسار الخروج من المخزن",
+    ar: "لا يجوز للمسار أن يخرج من الخزانة",
   },
   promptNoDotName: {
     en: "Names beginning with a dot are hidden from the vault",
-    ar: "الأسماء التي تبدأ بنقطة مخفية عن المخزن",
+    ar: "ما بدأ اسمه بنقطة لا تراه الخزانة",
   },
   signInTo: { en: "Sign in to {site}", ar: "تسجيل الدخول إلى {site}" },
   signInHint: { en: "Admin password unlocks editing.", ar: "كلمة مرور المشرف تفتح التحرير." },
@@ -873,7 +873,7 @@ const DICT = {
   deleteCommentTitle: { en: "Delete comment?", ar: "حذف التعليق؟" },
   deleteCommentBody: {
     en: "The comment will be removed for everyone. This cannot be undone.",
-    ar: "سيُحذف التعليق للجميع. لا يمكن التراجع عن هذا.",
+    ar: "سيُحذف التعليق عند الجميع، ولا رجعة فيه.",
   },
   // Every moderation outcome speaks now, not only the failures (F25).
   commentHiddenToast: { en: "Comment hidden from visitors", ar: "أُخفي التعليق عن الزوار" },
@@ -924,7 +924,7 @@ const DICT = {
   rowPublicFolders: { en: "Collections", ar: "المجموعات" },
   hintPublicFolders: {
     en: "Hand-made topics beside the tag topics: a collection is a tag you curate yourself. Off is a take-down: the collections keep their titles and members.",
-    ar: "مواضيع يدوية إلى جانب مواضيع الوسوم: المجموعة وسم تنتقيه بنفسك. الإيقاف إخفاء لا حذف: تحتفظ المجموعات بعناوينها وبمحتواها.",
+    ar: "مواضيع تصنعها بيدك إلى جانب مواضيع الوسوم: المجموعة وسمٌ تنتقي أنت ما فيه. والإيقاف إخفاءٌ لا حذف: تبقى المجموعات بعناوينها وأعضائها.",
   },
   publicFoldersOffNotice: {
     en: "Custom folders are off, so none of them reaches a visitor.",
@@ -951,7 +951,7 @@ const DICT = {
   },
   publicFoldersEmpty: {
     en: "No folders yet. Add one to give your readers a collection of their own.",
-    ar: "لا توجد مجلدات بعد. أضف واحدًا لتمنح قراءك مجموعة خاصة.",
+    ar: "لا مجلدات بعد. أضف واحدًا لتهدي قرّاءك مجموعةً خاصة بهم.",
   },
   publicFolderIcon: { en: "Mark", ar: "العلامة" },
   publicFolderTitle: { en: "Title", ar: "العنوان" },
@@ -1005,12 +1005,12 @@ const DICT = {
   folderPublishDone: { en: "Published {count}.", ar: "نُشرت {count}." },
   folderPublishFailed: { en: "{count} could not be published.", ar: "تعذّر نشر {count}." },
   collectionTopicMade: { en: "Now a topic. Its page: {path}", ar: "صار موضوعًا. صفحته: {path}" },
-  collectionTopicExists: { en: "Already a topic: “{title}”", ar: "موضوع بالفعل: “{title}”" },
+  collectionTopicExists: { en: "Already a topic: “{title}”", ar: "موضوعٌ أصلًا: «{title}»" },
   collectionsVaultRows: { en: "Also in the navigation, from tag pages", ar: "في شريط التنقل أيضًا، من صفحات الوسوم" },
-  collectionFromTagPage: { en: "Declared by its tag page", ar: "معلن من صفحة وسمه" },
+  collectionFromTagPage: { en: "Declared by its tag page", ar: "تُعلنه صفحة وسمه" },
   tagPageHint: { en: "Or declare one in the vault: a page in your tags folder with collection: true, and icon:, description:, folder: as you like. Nothing to list here.", ar: "أو أعلنها في الخزانة: صفحة في مجلد الوسوم فيها collection: true، ومعها icon: وdescription: وfolder: كما تشاء. لا شيء يُدرج هنا." },
   folderNoteHint: { en: "A note named like the folder, or index.md inside it, can carry description:, icon:, cover: and library: for the folder.", ar: "ملاحظة باسم المجلد، أو index.md بداخله، يمكن أن تحمل description: وicon: وcover: وlibrary: للمجلد." },
-  libraryFromFolderNote: { en: "Declared by its folder note", ar: "معلن من ملاحظة المجلد" },
+  libraryFromFolderNote: { en: "Declared by its folder note", ar: "تُعلنه ملاحظة المجلد" },
   libraryCustomise: { en: "Customise here", ar: "خصّص هنا" },
   libraryVaultPaths: { en: "Also on the shelf, from folder notes", ar: "على الرف أيضًا، من ملاحظات المجلدات" },
   // ── Note annotations (client/annotations/) ─────────────────────────────
@@ -1018,7 +1018,7 @@ const DICT = {
   annotationTitle: { en: "Note to self", ar: "ملاحظة لنفسي" },
   annotationPublicTitle: { en: "The author's note", ar: "ملاحظة الكاتب" },
   annotationPlaceholder: { en: "What do you want to say about this passage?", ar: "ماذا تريد أن تقول عن هذا المقطع؟" },
-  annotationInk: { en: "Ink", ar: "اللون" },
+  annotationInk: { en: "Ink", ar: "الحبر" },
   annotationPublic: { en: "Show to readers", ar: "إظهار للقرّاء" },
   annotationPublicHint: { en: "On the blog and in the library, when the note is published.", ar: "في المدونة والمكتبة، عندما تكون الملاحظة منشورة." },
   annotationPrivate: { en: "Only you", ar: "أنت فقط" },
@@ -1068,7 +1068,7 @@ const DICT = {
   groupLibrary: { en: "The library", ar: "المكتبة" },
   libraryNote: {
     en: "Books, courses and lecture series as paths a reader walks in order. A path is a folder of your vault: its subfolders are the chapters or lectures, the published notes inside are the lessons.",
-    ar: "الكتب والدورات وسلاسل المحاضرات مساراتٍ يسلكها القارئ بالترتيب. المسار مجلد من خزانتك: مجلداته الفرعية هي الفصول أو المحاضرات، والملاحظات المنشورة داخلها هي الدروس.",
+    ar: "الكتب والدورات وسلاسل المحاضرات مساراتٌ يسلكها القارئ بالترتيب. المسار مجلد من خزانتك: مجلداته الفرعية هي الفصول أو المحاضرات، والملاحظات المنشورة داخلها هي الدروس.",
   },
   rowLibrary: { en: "Library", ar: "المكتبة" },
   hintLibrary: { en: "The master switch. Off, no visitor can reach a path.", ar: "المفتاح الرئيسي. عند الإيقاف لا يصل أي زائر إلى أي مسار." },
@@ -1105,7 +1105,7 @@ const DICT = {
   errLibraryFolder: { en: "“{title}” names no vault folder.", ar: "«{title}» لا يسمّي مجلدًا في الخزانة." },
   errLibrarySlug: { en: "“{slug}” is not an address: lowercase letters, digits and hyphens.", ar: "«{slug}» ليس عنوانًا شبكيًا: حروف لاتينية صغيرة وأرقام وشرطات." },
   errLibraryDupSlug: { en: "Two paths share the address “{slug}”.", ar: "مساران يتشاركان العنوان الشبكي «{slug}»." },
-  errFoldersMax: { en: "{max} folders at most.", ar: "{max} مجلدات كحد أقصى." },
+  errFoldersMax: { en: "{max} folders at most.", ar: "{max} مجلدات على الأكثر." },
   errFolderTitle: { en: "Every folder needs a title.", ar: "كل مجلد يحتاج عنوانًا." },
   errFolderSlug: {
     en: "“{slug}” is not a valid address — lowercase letters, digits and hyphens only.",
@@ -1153,7 +1153,7 @@ const DICT = {
   rowYourTheme: { en: "Your theme", ar: "سمتك" },
   hintYourTheme: {
     en: "Only this browser sees it; visitors get the site default.",
-    ar: "لا يراها إلا هذا المتصفح؛ ويصل الزوار إلى سمة الموقع.",
+    ar: "لا يراها إلا هذا المتصفح؛ أما الزوار فلهم سمة الموقع الافتراضية.",
   },
 
   // ── The visitor language switch, said out loud ───────────────────────────
@@ -1179,7 +1179,7 @@ const DICT = {
   aboutFontsDir: { en: "Uploaded fonts", ar: "الخطوط المرفوعة" },
   aboutSettingsNote: {
     en: "Delete that file and the instance falls back to its env defaults.",
-    ar: "احذف ذلك الملف لتعود النسخة إلى إعداداتها البيئية الافتراضية.",
+    ar: "احذف ذلك الملف فترجع النسخة إلى القيم الافتراضية لمتغيّرات البيئة.",
   },
   aboutContents: { en: "Contents", ar: "المحتويات" },
   aboutNotes: { en: "notes", ar: "ملاحظات" },
@@ -1348,7 +1348,7 @@ const DICT = {
   rowExcludeTags: { en: "Excluded tags", ar: "وسوم مستبعدة" },
   hintExcludeTags: {
     en: "Notes carrying these tags are hidden from visitors; comma-separated.",
-    ar: "تُخفى الملاحظات الحاملة لهذه الوسوم عن الزوار، وتُفصل بفواصل.",
+    ar: "تُخفى عن الزوار الملاحظات التي تحمل هذه الوسوم؛ افصل بينها بفواصل.",
   },
   // Same treatment as the language filter, for the same reason: this removes
   // topic pills — and with them whole topic pages — and used to do it in
@@ -1399,11 +1399,11 @@ const DICT = {
   visibilityHead: { en: "What visitors see", ar: "ما يراه الزوار" },
   visibilityNow: {
     en: "{visible} of your {total} published notes are discoverable right now.",
-    ar: "{visible} من ملاحظاتك المنشورة البالغة {total} قابلة للاكتشاف الآن.",
+    ar: "{visible} من ملاحظاتك المنشورة البالغة {total} يجدها الزوار الآن.",
   },
   visibilityAll: {
     en: "All {total} of your published notes are discoverable.",
-    ar: "كل ملاحظاتك المنشورة البالغة {total} قابلة للاكتشاف.",
+    ar: "كل ملاحظاتك المنشورة البالغة {total} يجدها الزوار.",
   },
   visibilityNothingPublished: {
     en: "Nothing is published yet, so visitors see an empty site whatever these settings say.",
@@ -1433,7 +1433,7 @@ const DICT = {
     en: "A row of share links under every blog article.",
     ar: "صف روابط مشاركة أسفل كل مقالة في المدونة.",
   },
-  rowAmbient: { en: "Ambient masthead", ar: "ترويسة بأجواء" },
+  rowAmbient: { en: "Ambient masthead", ar: "أجواء الترويسة" },
   // The hint has to say all three things an owner needs before switching this
   // on: it is theme-dependent (not every room has one), it is behind the
   // words, and a reader who has asked their system for less motion gets none
@@ -1468,16 +1468,16 @@ const DICT = {
   saving: { en: "Saving…", ar: "جارٍ الحفظ…" },
   unsavedChanges: { en: "Unsaved changes", ar: "تغييرات غير محفوظة" },
   fixMarkedFields: { en: "Fix the marked fields", ar: "صحح الحقول المعلمة" },
-  settingsSaved: { en: "Settings saved", ar: "تم حفظ الإعدادات" },
+  settingsSaved: { en: "Settings saved", ar: "حُفظت الإعدادات" },
   settingsSaveFailed: { en: "Could not save settings", ar: "تعذر حفظ الإعدادات" },
   settingsLoadFailed: { en: "Could not load settings", ar: "تعذر تحميل الإعدادات" },
-  pick: { en: "Pick…", ar: "اختيار…" },
+  pick: { en: "Pick…", ar: "اختر…" },
   clear: { en: "Clear", ar: "مسح" },
   faviconImage: { en: "Favicon image", ar: "صورة الأيقونة" },
   logoImage: { en: "Logo image", ar: "صورة الشعار" },
-  errMaxChars: { en: "{count} max", ar: "{count} كحد أقصى" },
+  errMaxChars: { en: "{count} max", ar: "{count} على الأكثر" },
   errLocale: { en: "not a valid BCP47 locale (en, ar-EG, de…)", ar: "ليست لغة ‎BCP47‎ صالحة (‎en, ar-EG, de‎…)" },
-  errNotSimpleTag: { en: "“{tag}” is not a simple tag", ar: "“{tag}” ليس وسمًا بسيطًا" },
+  errNotSimpleTag: { en: "“{tag}” is not a simple tag", ar: "«{tag}» ليس وسمًا بسيطًا" },
   // A note is `.md`, `.tex` or `.latex` now — the field validates all three,
   // so the message may not keep naming only one of them.
   errMdPath: {
@@ -1538,18 +1538,18 @@ const DICT = {
   // The refusal has a voice: planFootnote declines in code spans and on a
   // duplicate definition, and a silent decline reads as a broken key.
   footnoteCollision: { en: "Could not insert a footnote here", ar: "تعذّر إدراج حاشية هنا" },
-  caseTitle: { en: "Title Case", ar: "حالة العنوان" },
+  caseTitle: { en: "Title Case", ar: "أوائل الكلمات كبيرة" },
   caseUpper: { en: "UPPERCASE", ar: "أحرف كبيرة" },
   caseLower: { en: "lowercase", ar: "أحرف صغيرة" },
   calloutPage: { en: "Callout", ar: "تنبيه" },
   scExtractSelection: { en: "Extract the selection into a new linked note", ar: "استخراج التحديد إلى ملاحظة مرتبطة جديدة" },
   scInsertFootnote: { en: "Insert a footnote (numbered in order)", ar: "إدراج حاشية سفلية (مرقّمة بالترتيب)" },
-  scCaseTransform: { en: "Change the selection's case (Title / UPPER / lower)", ar: "تغيير حالة أحرف التحديد" },
-  scWrapCallout: { en: "Wrap the selection in a callout", ar: "لفّ التحديد في تنبيه" },
+  scCaseTransform: { en: "Change the selection's case (Title / UPPER / lower)", ar: "تغيير حالة أحرف التحديد (أوائل الكلمات / كبيرة / صغيرة)" },
+  scWrapCallout: { en: "Wrap the selection in a callout", ar: "وضع التحديد داخل تنبيه" },
   // ── The table keymap's shortcut-sheet rows ───────────────────────────────
   scTableCells: { en: "Next table cell (in the last cell: adds a row)", ar: "الخلية التالية في الجدول (في الخلية الأخيرة: يضيف صفًا)" },
   scTableCellsBack: { en: "Previous table cell", ar: "الخلية السابقة في الجدول" },
-  scTableRowDown: { en: "Down a row (out of the table from the last row)", ar: "صف إلى الأسفل (خروج من الجدول من الصف الأخير)" },
+  scTableRowDown: { en: "Down a row (out of the table from the last row)", ar: "صف إلى الأسفل (ومن الصف الأخير: خروج من الجدول)" },
   scTableMoveRow: { en: "Move table row", ar: "نقل صف الجدول" },
   scTableMoveColumn: { en: "Move table column (with its alignment)", ar: "نقل عمود الجدول (مع محاذاته)" },
   openSidebar: { en: "Open Notes sidebar", ar: "فتح لوحة الملاحظات" },
@@ -1568,14 +1568,14 @@ const DICT = {
    *  private vault, and the line says that rather than counting to one. */
   publishedFirstToast: {
     en: "Your first note is live — the site is public now.",
-    ar: "أولى ملاحظاتك صارت منشورة — الموقع علني الآن.",
+    ar: "نُشرت أولى ملاحظاتك — الموقع علنيّ الآن.",
   },
   /** The arrow leans with the reading direction: a ← in an Arabic sentence
    *  points forward, the way → does in English. */
   publishedViewAction: { en: "View →", ar: "عرض ←" },
   unpublishedToast: { en: "Unpublished", ar: "أُلغي النشر" },
-  bannerSetToast: { en: "Banner set", ar: "تم تعيين الغلاف" },
-  bannerRemovedToast: { en: "Banner removed", ar: "تمت إزالة الغلاف" },
+  bannerSetToast: { en: "Banner set", ar: "وُضع الغلاف" },
+  bannerRemovedToast: { en: "Banner removed", ar: "أُزيل الغلاف" },
   noDailyNote: {
     en: "No daily note for today — sign in to create it",
     ar: "لا توجد ملاحظة لليوم — سجل الدخول لإنشائها",
@@ -1621,15 +1621,15 @@ const DICT = {
   },
   previewAsArabicReader: {
     en: "Previewing as an Arabic reader: the language filter shows this note to them, not to English readers",
-    ar: "المعاينة بوصفك قارئًا عربيًا: مرشح اللغة يعرض هذه الملاحظة لهم لا لقرّاء الإنجليزية",
+    ar: "المعاينة كقارئ عربي: مرشّح اللغة يُظهر هذه الملاحظة لقرّاء العربية لا لقرّاء الإنجليزية",
   },
   previewAsEnglishReader: {
     en: "Previewing as an English reader: the language filter shows this note to them, not to Arabic readers",
-    ar: "المعاينة بوصفك قارئًا إنجليزيًا: مرشح اللغة يعرض هذه الملاحظة لهم لا لقرّاء العربية",
+    ar: "المعاينة كقارئ إنجليزي: مرشّح اللغة يُظهر هذه الملاحظة لقرّاء الإنجليزية لا لقرّاء العربية",
   },
   previewHiddenNamed: {
     en: "“{path}” is published, but the language filter or an excluded tag hides it from visitors reading in this language, so it left the tab bar",
-    ar: "«{path}» منشورة، لكن مرشح اللغة أو وسمًا مستبعدًا يخفيها عن الزوار الذين يقرؤون بهذه اللغة، لذلك غادرت شريط التبويبات",
+    ar: "«{path}» منشورة، لكن يحجبها مرشّح اللغة أو وسم مستبعد عن الزوار الذين يقرؤون بهذه اللغة، لذلك غادرت شريط التبويبات",
   },
 
   // ── Wikilink clicks (editor + reading view) ─────────────────────────────
@@ -1659,7 +1659,7 @@ const DICT = {
   },
   graphWalkedTo: {
     en: "Now at “{name}”, {count} links",
-    ar: "الآن عند “{name}”، {count} رابطًا",
+    ar: "الآن عند “{name}”، عدد الروابط: {count}",
   },
 
   // ── Reading view ────────────────────────────────────────────────────────
@@ -1689,7 +1689,7 @@ const DICT = {
   propHintTitle: { en: "The note's title, over its file name", ar: "عنوان الملاحظة، فوق اسم ملفها" },
   propHintTags: { en: "Tags, beside any #inline ones", ar: "الوسوم، بجانب أي وسوم # داخل النص" },
   propHintAliases: { en: "Other names [[links]] may use", ar: "أسماء أخرى تقبلها روابط [[ ]]" },
-  propHintBanner: { en: "A hero image: a vault path or an https link", ar: "صورة لافتة: مسار في الخزانة أو رابط https" },
+  propHintBanner: { en: "A hero image: a vault path or an https link", ar: "صورة الغلاف: مسار في الخزانة أو رابط https" },
   propHintDate: { en: "The date the blog shows for this note", ar: "التاريخ الذي تعرضه المدونة لهذه الملاحظة" },
   propHintPublish: { en: "true puts the note on the public site", ar: "true تضع الملاحظة على الموقع العام" },
   propHintDescription: { en: "A line under the title on the blog", ar: "سطر تحت العنوان في المدونة" },
@@ -1711,7 +1711,7 @@ const DICT = {
   // builders, not JSX — which is exactly why they were missed twice. The
   // check-i18n "bare English" scan now covers .ts DOM writes too.
   foldSection: { en: "Fold section", ar: "طي القسم" },
-  unfoldSection: { en: "Unfold section", ar: "توسيع القسم" },
+  unfoldSection: { en: "Unfold section", ar: "بسط القسم" },
   missingImage: { en: "Missing image", ar: "صورة مفقودة" },
   uploadingImage: { en: "Uploading {name}…", ar: "جارٍ رفع {name}…" },
   embedNotCreated: {
@@ -1790,7 +1790,7 @@ const DICT = {
   slashCodeBlock: { en: "Code block", ar: "كتلة شفرة" },
   slashCodeBlockDetail: { en: "``` with language search", ar: "``` مع بحث عن اللغة" },
   slashTable: { en: "Table", ar: "جدول" },
-  slashTableDetail: { en: "2×2 skeleton", ar: "هيكل ٢×٢" },
+  slashTableDetail: { en: "2×2 skeleton", ar: "هيكل 2×2" },
   slashTaskList: { en: "Task list", ar: "قائمة مهام" },
   slashMathBlock: { en: "Math block", ar: "كتلة معادلات" },
   slashMathDetail: { en: "$$ display math $$", ar: "$$ معادلة مستقلة $$" },
@@ -1813,7 +1813,7 @@ const DICT = {
     ar: "أُعيدت التسمية — لم يعد “{title}” اسمًا لهذه الملاحظة.",
   },
   renameKeepAliasAction: { en: "Keep as alias", ar: "الاحتفاظ كاسم بديل" },
-  renameAliasKeptToast: { en: "“{title}” still finds this note.", ar: "لا يزال “{title}” يصل إلى هذه الملاحظة." },
+  renameAliasKeptToast: { en: "“{title}” still finds this note.", ar: "ما زال “{title}” يهتدي إلى هذه الملاحظة." },
   renameAliasFailed: { en: "Could not keep “{title}” as an alias.", ar: "تعذّر الاحتفاظ بـ “{title}” كاسم بديل." },
 
   // ── Bulk rewrites: heading-link repair and tag rename/merge ──────────────
@@ -1838,7 +1838,7 @@ const DICT = {
   headingRepairAction: { en: "Update links", ar: "تحديث الروابط" },
   headingRepairedToast: {
     en: "Updated {count} to “{heading}”.",
-    ar: "تحديث {count} إلى “{heading}”.",
+    ar: "حُدِّث {count} إلى “{heading}”.",
   },
   headingRepairFailed: { en: "Could not update the links.", ar: "تعذّر تحديث الروابط." },
 
@@ -1858,7 +1858,7 @@ const DICT = {
   },
   tagRenameBadName: {
     en: "A tag is letters, digits, _ - and / between parts.",
-    ar: "الوسم حروف وأرقام و_ و- و/ بين الأجزاء." ,
+    ar: "الوسم حروف وأرقام و_ و-، و/ تفصل بين أجزائه." ,
   },
   tagRenameSameName: { en: "That is the name it already has.", ar: "هذا هو اسمه الحالي." },
   tagRenameNested: {
@@ -1937,7 +1937,7 @@ const DICT = {
   // reader types anything: what it matches, and what it will never touch.
   replaceRule: {
     en: "Matching is exact — case and diacritics count. Frontmatter is never touched.",
-    ar: "المطابقة حرفية، تُراعى الحالة والحركات. ولا تُمَسّ المقدمة أبدًا.",
+    ar: "المطابقة حرفية — تفرق فيها حالة الأحرف والحركات. والمقدمة لا تُمسّ أبدًا.",
   },
   replaceScope: {
     en: "The search box above sets the scope: its operators narrow which notes are considered.",
@@ -1973,7 +1973,7 @@ const DICT = {
   replaceDoneToast: { en: "{edits} across {notes}.", ar: "{edits} عبر {notes}." },
   replaceStale: {
     en: "{count} changed while you were looking — left untouched.",
-    ar: "{count} تغيّرت أثناء نظرك — تُركت كما هي.",
+    ar: "{count} تغيّرت وأنت تنظر — تُركت كما هي.",
   },
   replaceSnapshotTaken: { en: "Snapshot {sha} taken first.", ar: "أُخذت نسخة {sha} أولًا." },
   replaceFailed: { en: "Could not run that replace.", ar: "تعذّر تنفيذ الاستبدال." },
@@ -1998,7 +1998,7 @@ const DICT = {
   blogNoPage: { en: "There is no page here.", ar: "لا توجد صفحة هنا." },
   blogBackToWritings: { en: "Back to the writings", ar: "العودة إلى الكتابات" },
   blogSearchHint: { en: "search", ar: "بحث" },
-  blogPoweredBy: { en: "powered by", ar: "مدعوم بـ" },
+  blogPoweredBy: { en: "powered by", ar: "يعمل بـ" },
   blogSwitchTheme: { en: "Switch theme", ar: "تبديل السمة" },
   // The switch always targets the OTHER language, and this label renders in
   // the CURRENT one — so the two entries are each other's counterpart, not a
@@ -2017,7 +2017,7 @@ const DICT = {
   },
   phAuthorSites: { en: "https://photos.example.com | My photography", ar: "https://photos.example.com | تصويري" },
   errAuthorSite: { en: "Not a valid site line: {url}", ar: "سطر موقع غير صالح: {url}" },
-  errAuthorSitesMax: { en: "Six sites at most.", ar: "ستة مواقع كحد أقصى." },
+  errAuthorSitesMax: { en: "Six sites at most.", ar: "ستة مواقع لا أكثر." },
   authorSitesEffect: { en: "{count} card(s) will appear on the blog home.", ar: "ستظهر {count} بطاقة/بطاقات في صفحة المدونة الرئيسية." },
   // ── Public folders (the owner's own collections) ────────────────────────
   // "Collections", not "Folders": the word FOLDER already means a directory in
@@ -2043,11 +2043,11 @@ const DICT = {
    *  rather than the concept. */
   blogPublishHow: {
     en: "Turn on a note’s publish star (✦ in the status bar, or “Publish” in its sidebar menu) and it appears here.",
-    ar: "فعّل نجمة النشر لملاحظة (✦ في شريط الحالة، أو «نشر» في قائمتها الجانبية) لتظهر هنا.",
+    ar: "أضئ نجمة النشر على أي ملاحظة (✦ في شريط الحالة، أو «نشر» في قائمتها الجانبية) فتظهر هنا.",
   },
   blogFilteredByLanguage: {
     en: "This site lists only notes written in its own language.",
-    ar: "يعرض هذا الموقع الملاحظات المكتوبة بلغته فقط.",
+    ar: "لا يعرض هذا الموقع إلا الملاحظات المكتوبة بلغته.",
   },
   blogNoTopicWritings: { en: "No writings under this topic.", ar: "لا كتابات تحت هذا الموضوع." },
   blogChangeBanner: { en: "Change banner…", ar: "تغيير الغلاف…" },
@@ -2055,7 +2055,7 @@ const DICT = {
   // ── Blog article ────────────────────────────────────────────────────────
   blogShare: { en: "Share", ar: "مشاركة" },
   blogCopyLink: { en: "Copy link", ar: "نسخ الرابط" },
-  blogLinkCopied: { en: "Link copied", ar: "تم نسخ الرابط" },
+  blogLinkCopied: { en: "Link copied", ar: "نُسخ الرابط" },
   blogCopyFailed: { en: "Could not copy the link", ar: "تعذر نسخ الرابط" },
   blogOlder: { en: "Older", ar: "أقدم" },
   blogNewer: { en: "Newer", ar: "أحدث" },
@@ -2071,18 +2071,18 @@ const DICT = {
   // ── Marginalia (reader comments) ────────────────────────────────────────
   marginalia: { en: "Marginalia", ar: "الحواشي" },
   marginaliaAria: { en: "Comments", ar: "التعليقات" },
-  marginaliaEmpty: { en: "no notes yet", ar: "لا توجد حواشٍ بعد" },
+  marginaliaEmpty: { en: "no notes yet", ar: "لا حواشيَ بعد" },
   marginaliaName: { en: "Your name (optional)", ar: "اسمك (اختياري)" },
   marginaliaBody: { en: "Write in the margin…", ar: "اكتب في الهامش…" },
   marginaliaPost: { en: "Leave a note", ar: "اترك حاشية" },
-  marginaliaFailed: { en: "Posting failed", ar: "فشل النشر" },
+  marginaliaFailed: { en: "Posting failed", ar: "لم تُنشر الحاشية" },
   marginaliaAnonymous: { en: "Anonymous", ar: "مجهول" },
 
   // ── Home banner modal (dashboard hero) ──────────────────────────────────
   homeBannerTitle: { en: "Home banner", ar: "غلاف الرئيسية" },
   homeBannerSubtitle: { en: "dashboard hero", ar: "واجهة اللوحة" },
-  homeBannerSet: { en: "Home banner set", ar: "تم تعيين غلاف الرئيسية" },
-  homeBannerRemoved: { en: "Home banner removed", ar: "تمت إزالة غلاف الرئيسية" },
+  homeBannerSet: { en: "Home banner set", ar: "عُيِّن غلاف الرئيسية" },
+  homeBannerRemoved: { en: "Home banner removed", ar: "أُزيل غلاف الرئيسية" },
   homeBannerFailed: { en: "Saving the banner failed", ar: "فشل حفظ الغلاف" },
 
   // ── Typography (settings panel) ─────────────────────────────────────────
@@ -2132,7 +2132,7 @@ const DICT = {
   fontPreview: { en: "Preview", ar: "معاينة" },
   fontPreviewNote: {
     en: "Live — updates before you save.",
-    ar: "مباشرة — تتحدث قبل الحفظ.",
+    ar: "حيّة — تتغيّر أمامك قبل الحفظ.",
   },
   // "…fonts", not "…to defaults": the button sits at the end of a section in a
   // five-section panel, one row above the next heading, and an unqualified
@@ -2161,7 +2161,7 @@ const DICT = {
     en: "woff2, woff, ttf or otf — up to {max} MB",
     ar: "‎woff2 أو woff أو ttf أو otf — حتى {max} ميغابايت",
   },
-  noCustomFonts: { en: "No fonts uploaded yet.", ar: "لم تُرفع أي خطوط بعد." },
+  noCustomFonts: { en: "No fonts uploaded yet.", ar: "لم يُرفع خطٌّ بعد." },
   fontSizeKb: { en: "{count} KB", ar: "{count} ك.ب" },
   // A face a slot still names has no delete button at all; the row says which
   // slot is holding it, so the way out is obvious.
@@ -2180,7 +2180,7 @@ const DICT = {
   },
   errFontDamaged: {
     en: "That font file is damaged and no browser could render it.",
-    ar: "ملف الخط تالف ولن يتمكن أي متصفح من عرضه.",
+    ar: "ملف الخط هذا تالف، وما من متصفح يقدر على عرضه.",
   },
   errFontTooLarge: {
     en: "That font file is larger than {max} MB.",
@@ -2254,24 +2254,24 @@ const DICT = {
   rowSyncUser: { en: "Username", ar: "اسم المستخدم" },
   hintSyncUser: {
     en: "The username the access token belongs to.",
-    ar: "اسم المستخدم الذي يخصّه رمز الوصول.",
+    ar: "اسم المستخدم صاحب رمز الوصول.",
   },
-  phSyncUser: { en: "your git username", ar: "اسم مستخدم git الخاص بك" },
+  phSyncUser: { en: "your git username", ar: "اسم مستخدمك في git" },
   rowSyncToken: { en: "Access token", ar: "رمز الوصول" },
   hintSyncToken: {
     en: "Write-only; it is stored outside the vault.",
-    ar: "للكتابة فقط؛ ويُحفظ خارج الخزانة.",
+    ar: "يُكتب ولا يُقرأ، ويُحفظ خارج الخزانة.",
   },
   phTokenStored: { en: "replace the stored token", ar: "استبدال الرمز المحفوظ" },
   phTokenNew: { en: "paste a token", ar: "الصق رمزًا" },
   tokenSetYes: { en: "A token is stored.", ar: "يوجد رمز محفوظ." },
   tokenSetNo: { en: "No token stored.", ar: "لا يوجد رمز محفوظ." },
   clearToken: { en: "Clear token", ar: "مسح الرمز" },
-  tokenCleared: { en: "Token cleared", ar: "تم مسح الرمز" },
+  tokenCleared: { en: "Token cleared", ar: "مُسح الرمز" },
   rowSyncPull: { en: "Pull first", ar: "السحب أولًا" },
   hintSyncPull: {
     en: "Fast-forwards from the remote before pushing; it never merges.",
-    ar: "يقدّم من المستودع قبل الرفع، ولا يدمج أبدًا.",
+    ar: "يسحب من المستودع بتقديم سريع قبل الرفع، ولا يدمج أبدًا.",
   },
   // "Every" + a bare "0" + "minutes; 0 = manual only" made the reader decode a
   // magic number to learn the setting was off. The choice is a small closed
@@ -2279,13 +2279,13 @@ const DICT = {
   rowSyncInterval: { en: "Automatic sync", ar: "المزامنة التلقائية" },
   hintSyncInterval: {
     en: "How often the vault is backed up unattended.",
-    ar: "كم مرة تُنسخ الخزانة احتياطيًا تلقائيًا.",
+    ar: "كم مرةً تُنسخ الخزانة احتياطيًا من دون تدخّل منك.",
   },
   syncIntervalManual: { en: "Manual only", ar: "يدويًا فقط" },
   syncIntervalMinutes: { en: "Every {count} minutes", ar: "كل {count} دقيقة" },
   syncIntervalHourly: { en: "Every hour", ar: "كل ساعة" },
   syncIntervalHours: { en: "Every {count} hours", ar: "كل {count} ساعات" },
-  syncIntervalDaily: { en: "Once a day", ar: "مرة كل يوم" },
+  syncIntervalDaily: { en: "Once a day", ar: "مرة في اليوم" },
   rowSyncStatus: { en: "Status", ar: "الحالة" },
   hintSyncStatus: {
     en: "What this vault's repository looks like right now.",
@@ -2302,12 +2302,12 @@ const DICT = {
   },
   syncErrorShort: { en: "failed", ar: "فشلت" },
   syncFailed: { en: "Sync failed", ar: "فشلت المزامنة" },
-  syncPushed: { en: "Vault committed and pushed", ar: "تم إيداع الخزانة ورفعها" },
+  syncPushed: { en: "Vault committed and pushed", ar: "أُودعت الخزانة ورُفعت" },
   /** The same fact, NAMED (F40). The sha is a git object id: it stays in its
    *  own LTR isolate and its own numerals wherever it is rendered — never
    *  through localeNum(), which would spell an Eastern Arabic "٣" into a
    *  string an operator is going to paste into `git show`. */
-  syncPushedSha: { en: "Vault committed and pushed — {sha}", ar: "تم إيداع الخزانة ورفعها — {sha}" },
+  syncPushedSha: { en: "Vault committed and pushed — {sha}", ar: "أُودعت الخزانة ورُفعت — {sha}" },
   syncOpenPanel: { en: "Backup", ar: "النسخ الاحتياطي" },
   syncUpToDate: {
     en: "Nothing to commit — already up to date",
@@ -2326,7 +2326,7 @@ const DICT = {
   syncOnBranch: { en: "On {branch} → {host}", ar: "على {branch} ← {host}" },
   syncTokenMissing: {
     en: "Token mode is selected but no token is stored.",
-    ar: "وضع الرمز مُختار لكن لا يوجد رمز محفوظ.",
+    ar: "اخترت المصادقة بالرمز، لكن ما من رمز محفوظ.",
   },
   syncTipBranch: { en: "Branch {branch} → {host}", ar: "الفرع {branch} ← {host}" },
   syncTipNoRepo: { en: "Not a git repository yet", ar: "ليست مستودع git بعد" },
@@ -2366,7 +2366,7 @@ const DICT = {
     ar: "لا تضع بيانات اعتماد في عنوان ‎https://‎ — استخدم حقل الرمز",
   },
   errBranchName: { en: "Not a valid branch name", ar: "اسم فرع غير صالح" },
-  errInterval: { en: "Whole minutes, 0 to 1440", ar: "دقائق صحيحة، من ٠ إلى ١٤٤٠" },
+  errInterval: { en: "Whole minutes, 0 to 1440", ar: "دقائق صحيحة، من 0 إلى 1440" },
   errTokenSpaces: { en: "A token cannot contain spaces", ar: "لا يمكن أن يحتوي الرمز على مسافات" },
 
   // ── Settings panel navigation ───────────────────────────────────────────
@@ -2398,7 +2398,7 @@ const DICT = {
   },
   modeReadOffTitle: {
     en: "Editing. Click (or Ctrl/Cmd+E) for reading mode.",
-    ar: "وضع التحرير. انقر (أو Ctrl/Cmd+E) للانتقال إلى وضع القراءة.",
+    ar: "تحرير. انقر (أو Ctrl/Cmd+E) لوضع القراءة.",
   },
   modeVimOnTitle: {
     en: "Vim keybindings are ON — click to turn them off.",
@@ -2423,7 +2423,7 @@ const DICT = {
   vimReplace: { en: "REPLACE", ar: "استبدال" },
   vimNormalTitle: {
     en: "Vim NORMAL mode — keys are commands, not text. Press i to type; click to leave vim.",
-    ar: "وضع vim العادي — المفاتيح أوامر لا نص. اضغط i للكتابة؛ انقر للخروج من vim.",
+    ar: "وضع الأوامر في vim — المفاتيح أوامر لا نص. اضغط i للكتابة؛ انقر للخروج من vim.",
   },
   vimInsertTitle: {
     en: "Vim INSERT mode — keys type text. Press Esc for commands; click to leave vim.",
@@ -2445,7 +2445,7 @@ const DICT = {
   // ZEN + VIM was a modal editor with no on-screen state at all.
   vimStripNormal: {
     en: "Vim NORMAL — keys are commands, not text. Press i to type.",
-    ar: "vim العادي — المفاتيح أوامر لا نص. اضغط i للكتابة.",
+    ar: "أوامر vim — المفاتيح أوامر لا نص. اضغط i للكتابة.",
   },
   vimStripInsert: {
     en: "Vim INSERT — keys type text. Esc returns to commands.",
@@ -2510,7 +2510,7 @@ const DICT = {
   // that position actually types on this keyboard.
   scLayoutNote: {
     en: "Your keyboard does not type these letters. A shortcut follows the key’s position — the letter printed on the keycap — and the character it types is shown beside it.",
-    ar: "لوحة مفاتيحك لا تكتب هذه الحروف. يتبع الاختصار موضع المفتاح — الحرف المطبوع عليه — ويظهر بجانبه الحرف الذي يكتبه فعلاً.",
+    ar: "لوحة مفاتيحك لا تكتب هذه الحروف. الاختصار يتبع موضع المفتاح — الحرف المطبوع عليه — وبجانبه ما يكتبه ذلك المفتاح فعلًا عندك.",
   },
 
   // ── Moving things (drag in the tree, "Move to…", undo) ────────────────────
@@ -2528,7 +2528,7 @@ const DICT = {
   moveNowhere: {
     en: "There is nowhere else to put it — the vault has no other folder.",
     // «الخزانة» is feminine, so the verb is تحتوي, not يحتوي.
-    ar: "لا مكان آخر له — لا تحتوي الخزانة على مجلد آخر.",
+    ar: "لا مكان آخر يذهب إليه — ليس في الخزانة مجلد آخر.",
   },
   // The door out of both dead ends (F11): a vault with no other folder, and a
   // filter that matches none. Named with the filter text when there is any,
@@ -2537,7 +2537,7 @@ const DICT = {
   moveNewFolderNamed: { en: "New folder “{name}”…", ar: "مجلد جديد “{name}”…" },
   // The conflict dialog. It offers a NAME, never an overwrite: the two files
   // both exist and the reader decides which name the arriving one keeps.
-  moveConflictTitle: { en: "“{name}” is already there", ar: "“{name}” موجود هناك بالفعل" },
+  moveConflictTitle: { en: "“{name}” is already there", ar: "“{name}” موجود هناك أصلًا" },
   moveConflictBody: {
     en: "{folder} already holds a “{name}”. Give this one another name, or cancel.",
     ar: "يحتوي {folder} على “{name}” بالفعل. اختر اسمًا آخر لهذا، أو ألغِ النقل.",
@@ -2557,7 +2557,7 @@ const DICT = {
   moveFailed: { en: "Could not move “{name}”.", ar: "تعذّر نقل “{name}”." },
   moveNotAllowed: { en: "That folder cannot take “{name}”.", ar: "لا يمكن لهذا المجلد استقبال “{name}”." },
   moveIntoSelfError: { en: "A folder cannot move inside itself.", ar: "لا يمكن نقل مجلد إلى داخل نفسه." },
-  moveConflictError: { en: "“{name}” already exists there.", ar: "“{name}” موجود هناك بالفعل." },
+  moveConflictError: { en: "“{name}” already exists there.", ar: "“{name}” موجود هناك أصلًا." },
   moveGoneError: { en: "“{name}” is no longer there.", ar: "“{name}” لم يعد موجودًا." },
   // Files dragged in from the desktop onto a folder row. The landed NAME is in
   // the message because the server takes the first free one — a counter the
@@ -2598,9 +2598,9 @@ const DICT = {
   fmtStrikethrough: { en: "Strikethrough", ar: "يتوسطه خط" },
   fmtHighlight: { en: "Highlight", ar: "تظليل" },
   fmtCode: { en: "Inline code", ar: "شفرة داخل السطر" },
-  fmtHeading1: { en: "Heading 1", ar: "عنوان ١" },
-  fmtHeading2: { en: "Heading 2", ar: "عنوان ٢" },
-  fmtHeading3: { en: "Heading 3", ar: "عنوان ٣" },
+  fmtHeading1: { en: "Heading 1", ar: "عنوان 1" },
+  fmtHeading2: { en: "Heading 2", ar: "عنوان 2" },
+  fmtHeading3: { en: "Heading 3", ar: "عنوان 3" },
   fmtBulletList: { en: "Bulleted list", ar: "قائمة نقطية" },
   fmtNumberedList: { en: "Numbered list", ar: "قائمة مرقّمة" },
   fmtTaskList: { en: "Task list", ar: "قائمة مهام" },
@@ -2615,9 +2615,9 @@ const DICT = {
   colorThemeAware: { en: "Theme-aware", ar: "متوافق مع السمة" },
   colorThemeAwareNote: {
     en: "Follows the theme — stays legible in every room, light and dark.",
-    ar: "يتبع السمة — يبقى مقروءًا في كل غرفة، الفاتحة والداكنة.",
+    ar: "يتبع السمة، فيبقى مقروءًا أيًّا كانت، فاتحةً أو داكنة.",
   },
-  colorFixed: { en: "Fixed ink", ar: "لون ثابت" },
+  colorFixed: { en: "Fixed ink", ar: "حبر ثابت" },
   colorFixedNote: {
     en: "One exact colour, whatever the theme. Readable everywhere, sharpest on some.",
     ar: "لون واحد محدّد مهما كانت السمة. مقروء في كل مكان، وأوضح في بعضها.",
@@ -2710,7 +2710,7 @@ const DICT = {
   unfoldBelow: { en: "Unfold all below", ar: "توسيع كل ما تحته" },
   sectionLinkCopied: { en: "Link to section copied", ar: "نُسخ رابط القسم" },
   sectionCopied: { en: "Section copied", ar: "نُسخ القسم" },
-  sectionCopyFailed: { en: "Could not copy — the clipboard refused", ar: "تعذّر النسخ — رفضت الحافظة" },
+  sectionCopyFailed: { en: "Could not copy — the clipboard refused", ar: "تعذّر النسخ — أبَت الحافظة" },
   sectionExtracted: {
     en: "Moved “{title}” into {path}",
     ar: "نُقل “{title}” إلى {path}",
@@ -2762,7 +2762,7 @@ const DICT = {
   // Why a note whose frontmatter says `align: justify` is set flush anyway.
   layoutHardWrapped: {
     en: "set flush — this note’s paragraphs are wrapped by hand",
-    ar: "يُضبط على الحافة — فقرات هذه الملاحظة ملفوفة يدويًا",
+    ar: "محاذاةٌ دون ضبط — أسطر هذه الملاحظة مقطوعة باليد",
   },
   templateSetsProps: { en: "Properties it sets", ar: "الخصائص التي يضبطها" },
   templateNoProps: { en: "No properties — body only", ar: "بلا خصائص — متن فقط" },
@@ -2775,7 +2775,7 @@ const DICT = {
     en: "No templates folder yet. Name one in Settings → Vault.",
     ar: "لا يوجد مجلد قوالب بعد. حدّده في الإعدادات ← الخزانة.",
   },
-  templatesFolderEmpty: { en: "“{folder}” holds no notes yet.", ar: "المجلد “{folder}” لا يحتوي ملاحظات بعد." },
+  templatesFolderEmpty: { en: "“{folder}” holds no notes yet.", ar: "لا ملاحظات في “{folder}” بعد." },
   templatesFolderIs: { en: "Templates: {folder}", ar: "القوالب: {folder}" },
   templatesFolderDetected: { en: "Templates: {folder} (detected)", ar: "القوالب: {folder} (مكتشف تلقائيًا)" },
   templatesFailed: { en: "Could not load the templates.", ar: "تعذّر تحميل القوالب." },
@@ -2790,13 +2790,13 @@ const DICT = {
   templatesFolderLabel: { en: "Templates folder", ar: "مجلد القوالب" },
   templatesFolderHint: {
     en: "Template notes live here and never reach the blog's post list.",
-    ar: "تعيش ملاحظات القوالب هنا ولا تصل إلى قائمة مقالات المدونة.",
+    ar: "هنا تسكن ملاحظات القوالب، ولا تتسرّب إلى قائمة مقالات المدونة.",
   },
   templatesDetectedHint: { en: "Found automatically: {folder}", ar: "اكتُشف تلقائيًا: {folder}" },
   drawingsFolderLabel: { en: "Drawings folder", ar: "مجلد الرسومات" },
   drawingsFolderHint: {
     en: "Where the pencil at the top of the sidebar starts a new drawing. Empty means the vault root; a folder's own menu still puts one inside it.",
-    ar: "حيث يبدأ قلم الرصاص في أعلى الشريط الجانبي رسمة جديدة. فارغ يعني جذر الخزانة؛ وقائمة المجلد ما زالت تضع واحدة داخله.",
+    ar: "هنا يفتح قلمُ الرصاص في أعلى الشريط الجانبي رسمةً جديدة. اتركه فارغًا فيكون جذر الخزانة؛ أما قائمة المجلد نفسه فتظلّ تضع الرسمة داخله.",
   },
   defaultTemplateLabel: { en: "Template for new notes", ar: "قالب الملاحظات الجديدة" },
   defaultTemplateHint: {
@@ -2819,8 +2819,8 @@ const DICT = {
   layoutDirection: { en: "Direction", ar: "الاتجاه" },
   layoutAlignment: { en: "Alignment", ar: "المحاذاة" },
   layoutDirAuto: { en: "Auto", ar: "تلقائي" },
-  layoutDirLtr: { en: "LTR", ar: "يسارية" },
-  layoutDirRtl: { en: "RTL", ar: "يمينية" },
+  layoutDirLtr: { en: "LTR", ar: "من اليسار" },
+  layoutDirRtl: { en: "RTL", ar: "من اليمين" },
   layoutAlignStart: { en: "Start", ar: "البداية" },
   layoutAlignLeft: { en: "Left", ar: "يسار" },
   layoutAlignRight: { en: "Right", ar: "يمين" },
@@ -2847,10 +2847,10 @@ const DICT = {
   dateOrderGregorianFirst: { en: "Gregorian first", ar: "الميلادي أولًا" },
   rowDateSeparator: { en: "Between the two", ar: "بين التاريخين" },
   hintDateSeparator: { en: "A bar, a dot, or the second date in brackets.", ar: "شرطة عمودية، أو نقطة، أو التاريخ الثاني بين قوسين." },
-  calSpecimen: { en: "Today reads", ar: "تاريخ اليوم" },
+  calSpecimen: { en: "Today reads", ar: "اليوم كما سيظهر" },
   calFeedNote: {
     en: "RSS keeps Gregorian RFC-822 dates, which is what aggregators parse.",
-    ar: "تبقى تواريخ ‎RSS‎ ميلادية بصيغة ‎RFC-822‎، وهي ما يقرأه القارئ الآلي.",
+    ar: "تواريخ ‎RSS‎ تبقى ميلادية بصيغة ‎RFC-822‎، فهي ما تفهمه مجمِّعات الخلاصات.",
   },
   calArabicSuggest: {
     en: "Many Arabic sites date their writing by the Hijri calendar.",
@@ -2868,11 +2868,11 @@ const DICT = {
   rowEmptyPropsCard: { en: "Properties card on empty notes", ar: "بطاقة الخصائص في الملاحظات الفارغة" },
   hintEmptyPropsCard: {
     en: "A one-line card with Add property and Set banner on notes that have no properties yet.",
-    ar: "بطاقة من سطر واحد فيها إضافة خاصية وتعيين لافتة في الملاحظات التي لا خصائص لها بعد.",
+    ar: "بطاقةٌ من سطر واحد، فيها «إضافة خاصية» و«تعيين الغلاف»، تظهر في الملاحظات التي لا خصائص لها بعد.",
   },
   hintTextAlign: {
     en: "Where lines sit in the column; code and tables never move.",
-    ar: "موضع الأسطر في العمود؛ ولا تتحرك الشيفرة والجداول.",
+    ar: "أين تستقر الأسطر في العمود؛ أما الشيفرة والجداول فلا تتزحزح.",
   },
   noteLayoutOverride: {
     en: "A note's own frontmatter — dir, align — overrides both.",
@@ -2914,7 +2914,7 @@ const DICT = {
   // notices, which a visitor never sees — a broken design gives them the stock
   // blog and no explanation) or the designed site's own small chrome.
   layoutDesigned: { en: "Designed", ar: "مصمَّمة" },
-  secHero: { en: "Hero", ar: "واجهة" },
+  secHero: { en: "Hero", ar: "صدر الصفحة" },
   secRichText: { en: "Text", ar: "نص" },
   secNote: { en: "Note", ar: "ملاحظة" },
   secPostGrid: { en: "Post grid", ar: "شبكة مقالات" },
@@ -2925,7 +2925,7 @@ const DICT = {
   secConfig: { en: "Design settings", ar: "إعدادات التصميم" },
   secPage: { en: "Page", ar: "صفحة" },
   dsnReadMore: { en: "Read more", ar: "اقرأ المزيد" },
-  dsnNoPosts: { en: "Nothing published here yet.", ar: "لا يوجد منشور هنا بعد." },
+  dsnNoPosts: { en: "Nothing published here yet.", ar: "لم يُنشر هنا شيء بعد." },
   dsnRelated: { en: "Related", ar: "ذات صلة" },
   dsnBrokenTitle: { en: "Design problem.", ar: "مشكلة في التصميم." },
   dsnFellBack: {
@@ -2997,11 +2997,11 @@ const DICT = {
   tbGroupReading: { en: "Reading", ar: "القراءة" },
   tbGroupLinks: { en: "Links & tags", ar: "الروابط والوسوم" },
   tbGroupControls: { en: "Controls", ar: "عناصر التحكم" },
-  tbGroupOverlays: { en: "Dialogs & toasts", ar: "الحوارات والتنبيهات" },
+  tbGroupOverlays: { en: "Dialogs & toasts", ar: "الحوارات والتنبيهات المنبثقة" },
   tbGroupBlog: { en: "Site", ar: "الموقع" },
   tbGroupCards: { en: "Cards & bars", ar: "البطاقات والأشرطة" },
   tbFilter: { en: "Find a setting…", ar: "ابحث عن إعداد…" },
-  tbNoMatch: { en: "Nothing here matches.", ar: "لا شيء هنا يطابق." },
+  tbNoMatch: { en: "Nothing here matches.", ar: "لا شيء يطابق ما كتبت." },
   tbResetGroup: { en: "Reset this group", ar: "إعادة ضبط هذه المجموعة" },
   tbResetAll: { en: "Reset all", ar: "إعادة ضبط الكل" },
   tbDerived: { en: "Follows {base} until you paint it", ar: "يتبع {base} حتى تلوّنه" },
@@ -3015,7 +3015,7 @@ const DICT = {
   tkTextFaint: { en: "Hints and counts", ar: "التلميحات والأعداد" },
   tkHeading: { en: "Headings", ar: "العناوين" },
   tkAccent: { en: "Accent", ar: "اللون المميز" },
-  tkAccentSoft: { en: "Accent wash", ar: "غسلة اللون المميز" },
+  tkAccentSoft: { en: "Accent wash", ar: "مسحة اللون المميز" },
   tkSelectionBg: { en: "Text selection", ar: "تحديد النص" },
   tkFocusRing: { en: "Focus ring", ar: "حلقة التركيز" },
   tkBorder: { en: "Hairlines", ar: "الخطوط الرفيعة" },
@@ -3042,7 +3042,7 @@ const DICT = {
   tkSynProp: { en: "Properties", ar: "الخصائص" },
   tkSynOperator: { en: "Operators", ar: "المعاملات" },
   tkGraphNode: { en: "Graph nodes", ar: "عقد المخطط" },
-  tkGraphEdge: { en: "Graph edges", ar: "حواف المخطط" },
+  tkGraphEdge: { en: "Graph edges", ar: "وصلات المخطط" },
   tkGraphVignette: { en: "Graph vignette", ar: "تظليل حواف المخطط" },
   tkSidebarBg: { en: "Sidebar background", ar: "خلفية شريط الملاحظات" },
   tkSidebarText: { en: "Sidebar text", ar: "نص شريط الملاحظات" },
@@ -3052,8 +3052,8 @@ const DICT = {
   tkSidebarActiveBg: { en: "Open note's row", ar: "صف الملاحظة المفتوحة" },
   tkSidebarActiveBar: { en: "Open note's edge bar", ar: "شريط حافة الملاحظة المفتوحة" },
   tkSidebarSearchBg: { en: "Search field", ar: "حقل البحث" },
-  tkTagpillBg: { en: "Tag pills", ar: "حبوب الوسوم" },
-  tkTagpillText: { en: "Tag pill text", ar: "نص حبوب الوسوم" },
+  tkTagpillBg: { en: "Tag pills", ar: "أقراص الوسوم" },
+  tkTagpillText: { en: "Tag pill text", ar: "نص أقراص الوسوم" },
   tkTabsBg: { en: "Tab strip", ar: "شريط التبويبات" },
   tkTabsBorder: { en: "Tab strip rules", ar: "خطوط شريط التبويبات" },
   tkTabText: { en: "Tab titles", ar: "عناوين التبويبات" },
@@ -3061,8 +3061,8 @@ const DICT = {
   tkTabActiveBg: { en: "Active tab", ar: "التبويب النشط" },
   tkTabActiveText: { en: "Active tab title", ar: "عنوان التبويب النشط" },
   tkTabActiveBar: { en: "Active tab's top line", ar: "خط أعلى التبويب النشط" },
-  tkPanelBg: { en: "Outline panel background", ar: "خلفية لوحة المخطط" },
-  tkPanelText: { en: "Outline panel text", ar: "نص لوحة المخطط" },
+  tkPanelBg: { en: "Outline panel background", ar: "خلفية لوحة المحتويات" },
+  tkPanelText: { en: "Outline panel text", ar: "نص لوحة المحتويات" },
   tkPanelHeading: { en: "Panel section headings", ar: "عناوين أقسام اللوحة" },
   tkPanelBorder: { en: "Panel edge and rules", ar: "حافة اللوحة وخطوطها" },
   tkStatusbarBg: { en: "Status bar", ar: "شريط الحالة" },
@@ -3140,11 +3140,11 @@ const DICT = {
   },
   tbWarnRatio: {
     en: "{token} on {ground} is {value}:1 — the floor is {min}:1.",
-    ar: "‏{token} على {ground} يساوي {value}:1 — الحد الأدنى {min}:1.",
+    ar: "‏{token} على {ground}: نسبة التباين {value}:1، والحد الأدنى {min}:1.",
   },
   tbWarnDeltaE: {
     en: "The accent is only {value} ΔE from the body text — it needs {min} to read as an accent at all.",
-    ar: "اللون المميز يبعد {value} ΔE فقط عن نص المتن — يلزم {min} ليُقرأ كلون مميز أصلًا.",
+    ar: "لا يبعد اللون المميز عن نص المتن إلا {value} ΔE — ويلزمه {min} حتى يُقرأ لونًا مميزًا أصلًا.",
   },
   tbNeedName: { en: "Give the theme a name.", ar: "أعطِ السمة اسمًا." },
   tbNotATheme: { en: "That file is not an Astrolabe theme.", ar: "هذا الملف ليس سمة أسطرلاب." },
@@ -3159,7 +3159,7 @@ const DICT = {
   tbDeleteTitle: { en: "Delete this theme?", ar: "حذف هذه السمة؟" },
   tbDeleteBody: {
     en: "“{name}” will be removed from the picker. Anything using it falls back to the theme it was built on.",
-    ar: "ستُزال «{name}» من قائمة السمات، وسيعود كل ما يستخدمها إلى السمة المبنية عليها.",
+    ar: "ستُزال «{name}» من قائمة السمات، وكل ما كان يستخدمها يرجع إلى السمة التي بُنيت عليها.",
   },
 
   // ── The site designer (designed mode) ────────────────────────────────────
@@ -3171,7 +3171,7 @@ const DICT = {
   designSecFooter: { en: "the footer", ar: "التذييل" },
   designCorruptNotice: {
     en: "A design in this instance could not be read, so the stock site is being served.",
-    ar: "تعذّرت قراءة أحد التصاميم في هذه النسخة، لذا يُقدَّم الموقع الأصلي.",
+    ar: "تعذّرت قراءة أحد التصاميم في هذه النسخة، فالمعروض الآن هو الموقع الأصلي.",
   },
 
   designTitle: { en: "Design your site", ar: "صمّم موقعك" },
@@ -3220,7 +3220,7 @@ const DICT = {
    *  back is real. */
   designLiveKeep: {
     en: "Either way nothing is lost: your designs stay exactly as you left them, and the stock blog is never edited.",
-    ar: "في الحالين لا يُفقد شيء: تبقى تصاميمك كما تركتها، والمدونة الأصلية لا تُحرَّر أبدًا.",
+    ar: "في الحالين لا يضيع شيء: تصاميمك تبقى كما تركتها، والمدونة الأصلية لا تُمسّ أبدًا.",
   },
   designLiveNoneYet: {
     en: "Start a design below and this is where you will put it live.",
@@ -3272,22 +3272,22 @@ const DICT = {
   designTabType: { en: "Typography", ar: "الطباعة" },
   designTabTypeIntro: {
     en: "Size, scale, measure and rhythm. Every control is bounded to values that stay readable.",
-    ar: "الحجم والتدرّج وعرض السطر والإيقاع. كل عنصر محدود بقيم تبقى مقروءة.",
+    ar: "الحجم والتدرّج وطول السطر والإيقاع. وكل أداة محصورةٌ في قيمٍ تبقى مقروءة.",
   },
   designTabChrome: { en: "Header & footer", ar: "الترويسة والتذييل" },
   designTabChromeIntro: {
     en: "Where the identity sits, what follows the reader down the page, and what the footer holds.",
-    ar: "أين تقف هوية الموقع، وما الذي يتبع القارئ أثناء التمرير، وما الذي يحمله التذييل.",
+    ar: "أين تقف هوية الموقع، وما الذي يرافق القارئ في نزوله عبر الصفحة، وما يحمله التذييل.",
   },
   designTabFile: { en: "Design file", ar: "ملف التصميم" },
   designTabFileIntro: {
     en: "Name this design, export it as JSON, import one, or reset to the stock defaults.",
-    ar: "سمِّ هذا التصميم، أو صدّره بصيغة JSON، أو استورد آخر، أو أعِد الضبط الأصلي.",
+    ar: "سمِّ هذا التصميم، أو صدّره بصيغة JSON، أو استورد غيره، أو أرجعه إلى ضبطه الأصلي.",
   },
 
   designNavEmpty: {
     en: "No menu items yet — the site falls back to your busiest topics.",
-    ar: "لا عناصر في القائمة بعد — يعود الموقع إلى أكثر موضوعاتك تكرارًا.",
+    ar: "لا عناصر في القائمة بعد — فيلجأ الموقع إلى أغزر موضوعاتك.",
   },
   designAddItem: { en: "Add", ar: "إضافة" },
   designNewItem: { en: "New item", ar: "عنصر جديد" },
@@ -3316,11 +3316,11 @@ const DICT = {
   designNewTab: { en: "Open in a new tab", ar: "فتح في تبويب جديد" },
   designItemUnpublished: {
     en: "Not visible to readers yet — publish this note and it appears.",
-    ar: "غير ظاهر للقراء بعد — انشر هذه الملاحظة ليظهر.",
+    ar: "لا يراه القراء بعد — انشر هذه الملاحظة فيظهر.",
   },
   designItemBadUrl: {
     en: "Needs an https:// address or a site path starting with /",
-    ar: "يحتاج عنوان ‎https://‎ أو مسارًا داخل الموقع يبدأ بـ ‎/‎",
+    ar: "يلزم عنوانٌ يبدأ بـ ‎https://‎ أو مسارٌ داخل الموقع يبدأ بـ ‎/‎",
   },
   designItemHidden: { en: "Hidden — kept here, not shown on the site", ar: "مخفي — محفوظ هنا، وغير معروض في الموقع" },
   designNavStyle: { en: "How the links are drawn", ar: "كيف تُرسم الروابط" },
@@ -3335,7 +3335,7 @@ const DICT = {
   designNavFallback: { en: "When the menu is empty", ar: "عندما تكون القائمة فارغة" },
   designNavFallbackHint: {
     en: "The stock rule: your busiest published topics.",
-    ar: "القاعدة الأصلية: أكثر موضوعاتك المنشورة تكرارًا.",
+    ar: "القاعدة الأصلية: أغزر موضوعاتك المنشورة.",
   },
   designFallbackTopics: { en: "Show topics", ar: "إظهار الموضوعات" },
   designFallbackNone: { en: "Show nothing", ar: "بلا شيء" },
@@ -3367,13 +3367,13 @@ const DICT = {
   designTypeRhythm: { en: "Section rhythm", ar: "إيقاع الأقسام" },
   designHeadingCase: { en: "Heading case", ar: "حالة أحرف العناوين" },
   designCaseNormal: { en: "Normal", ar: "عادية" },
-  designCaseSmall: { en: "Small caps", ar: "كبيرة صغيرة" },
+  designCaseSmall: { en: "Small caps", ar: "كبيرة مصغَّرة" },
   designCaseUpper: { en: "Uppercase", ar: "كبيرة" },
   designHeadingFamily: { en: "Heading face", ar: "خط العناوين" },
   designBodyFamily: { en: "Body face", ar: "خط النص" },
   designFamilyHint: {
     en: "Which of the instance's three stacks — pick the faces themselves in Settings → Typography.",
-    ar: "أي مجموعات الخطوط الثلاث في هذه النسخة — واختر الخطوط نفسها من الإعدادات ← الطباعة.",
+    ar: "أيُّ مجموعات الخطوط الثلاث في هذه النسخة — أما الخطوط نفسها فاخترها من الإعدادات ← الطباعة.",
   },
   designSerif: { en: "Serif", ar: "مذيّل" },
   designSans: { en: "Sans", ar: "غير مذيّل" },
@@ -3415,7 +3415,7 @@ const DICT = {
   designScenery: { en: "The world", ar: "العالم" },
   designSceneryHint: {
     en: "What the page is standing in: a field of the theme’s own light behind everything, fixed to the window rather than to the paper. It clears away where the writing is, so no text is less readable for it — which also means a narrow page leaves the world more room, and a phone shows none of it.",
-    ar: "ما يقف فيه الموقع: حقل من ضوء السمة نفسها خلف كل شيء، ثابت مع النافذة لا مع الورق. ينحسر حيث تقع الكتابة، فلا يقلّ وضوح أي نص بسببه — ولهذا تترك الصفحة الضيّقة مجالًا أوسع للعالم، ولا يظهر منه شيء على الهاتف.",
+    ar: "ما تقف فيه الصفحة: حقل من ضوء السمة نفسها خلف كل شيء، ثابت مع النافذة لا مع الورق. ينحسر حيث تقع الكتابة، فلا يقلّ وضوح أي نص بسببه — ولهذا تترك الصفحة الضيّقة مجالًا أوسع للعالم، ولا يظهر منه شيء على الهاتف.",
   },
   designSceneryNone: { en: "None", ar: "بلا" },
   designSceneryStarfield: { en: "Stars", ar: "نجوم" },
@@ -3550,7 +3550,7 @@ const DICT = {
   designResetConfirm: { en: "Reset the design", ar: "إعادة الضبط" },
   designFileNote: {
     en: "The design is kept even while the public site is on the stock blog, so switching between them loses nothing.",
-    ar: "يُحفظ التصميم حتى بينما يعمل الموقع العام بالمدونة الأصلية، فالتبديل بينهما لا يفقد شيئًا.",
+    ar: "يبقى التصميم محفوظًا ولو كان الموقع العام على المدوّنة الأصلية، فالتبديل بينهما لا يُضيع شيئًا.",
   },
 
   designSpecimenTitle: { en: "A page of your site", ar: "صفحة من موقعك" },
@@ -3615,7 +3615,7 @@ const DICT = {
   // the grips they describe — so this line says what the tab is and stops.
   designTabSectionsIntro: {
     en: "What the home page is made of, top to bottom. Open a row to edit what it shows.",
-    ar: "مما تتكوّن الصفحة الرئيسية، من أعلاها إلى أسفلها. افتح صفًا لتحرير ما يعرضه.",
+    ar: "ما تُبنى منه الصفحة الرئيسية، من أعلاها إلى أسفلها. افتح صفًّا لتحرير ما يعرضه.",
   },
   designNew: { en: "New design", ar: "تصميم جديد" },
   designNewTitle: { en: "New design", ar: "تصميم جديد" },
@@ -3662,7 +3662,7 @@ const DICT = {
   dsoHeading: { en: "Heading", ar: "العنوان" },
   dsoHeadingHint: { en: "Leave empty for none", ar: "اتركه فارغًا لإخفائه" },
   dsoNoHeading: { en: "no heading", ar: "بلا عنوان" },
-  dsoHeroHeadingHint: { en: "Empty uses the site name", ar: "الفارغ يستخدم اسم الموقع" },
+  dsoHeroHeadingHint: { en: "Empty uses the site name", ar: "إن تركته فارغًا حلّ اسم الموقع مكانه" },
   dsoHeroSiteName: { en: "the site name", ar: "اسم الموقع" },
   dsoSub: { en: "Subtitle", ar: "العنوان الفرعي" },
   dsoImage: { en: "Image", ar: "صورة" },
@@ -3734,12 +3734,12 @@ const DICT = {
 
   dsnCorruptStore: {
     en: "designs.json could not be read, so visitors are getting the stock blog. The file is untouched — repair it, or import a design over it.",
-    ar: "تعذّرت قراءة designs.json، لذا يحصل الزوّار على المدوّنة الأصلية. الملف لم يُمَس — أصلحه أو استورد تصميمًا فوقه.",
+    ar: "تعذّرت قراءة designs.json، فالزوّار يرون المدوّنة الأصلية الآن. الملف لم يُمَس — أصلحه، أو استورد تصميمًا فوقه.",
   },
   dsoAddSection: { en: "Add a section", ar: "إضافة قسم" },
   dsoPageSection: { en: "The page", ar: "الصفحة" },
   dsoWidth: { en: "Column width", ar: "عرض العمود" },
-  dsoWidthHint: { en: "How wide the composed page runs", ar: "كم يتّسع عرض الصفحة المركّبة" },
+  dsoWidthHint: { en: "How wide the composed page runs", ar: "كم تمتدّ الصفحة المركّبة عرضًا" },
   dsoDensity: { en: "Density", ar: "الكثافة" },
   dsoCompact: { en: "Compact", ar: "مضغوطة" },
   dsoRegular: { en: "Regular", ar: "معتادة" },
@@ -3784,7 +3784,7 @@ const DICT = {
   presetFamLetter: { en: "Letter", ar: "نشرة" },
   presetBlank: { en: "Start from blank", ar: "ابدأ من صفحة فارغة" },
   presetBlankHint: { en: "The stock defaults, and nothing else.", ar: "الإعدادات الأصلية، ولا شيء غيرها." },
-  presetNoMatch: { en: "No preset matches that.", ar: "لا يوجد قالب مطابق لذلك." },
+  presetNoMatch: { en: "No preset matches that.", ar: "لا قالب يطابق ذلك." },
   presetSampleNote: {
     en: "Some rows are samples — your own posts fill them in as you publish.",
     ar: "بعض الصفوف نماذج — وستحلّ مقالاتك محلّها كلما نشرت.",
@@ -3802,7 +3802,7 @@ const DICT = {
    *  rather than at the foot of a column. */
   presetForkNote: {
     en: "Applying makes an editable copy — the preset itself never changes. Your public site keeps showing exactly what it shows now until you put a design live, and going back to the stock blog is one click that loses nothing.",
-    ar: "التطبيق ينشئ نسخة قابلة للتحرير — والقالب نفسه لا يتغيّر. ويبقى موقعك العام كما هو تمامًا حتى تنشر تصميمًا، والعودة إلى المدونة الأصلية نقرة واحدة لا تُفقد شيئًا.",
+    ar: "التطبيق يصنع لك نسخةً قابلة للتحرير، والقالب نفسه لا يمسّه شيء. وموقعك العام يبقى كما تراه الآن بالضبط حتى تُطلق تصميمًا، والرجوع إلى المدونة الأصلية نقرةٌ واحدة لا تخسر بها شيئًا.",
   },
   presetApplied: {
     en: "Your copy is open — the public site has not changed",
@@ -3820,7 +3820,7 @@ const DICT = {
   presetPreviewOnly: { en: "Preview — not applied yet", ar: "معاينة — لم يُطبَّق بعد" },
   presetKeysHint: {
     en: "Esc goes back to the shelf; ← and → step through it.",
-    ar: "Esc يعيدك إلى الرف، و← و→ يتنقلان بين القوالب.",
+    ar: "Esc يعيدك إلى الرفّ، والسهمان ← و→ يقلّبانه.",
   },
 
   // ── Preview content: the sample rows a fresh vault is padded with ────────
@@ -3833,13 +3833,13 @@ const DICT = {
   // ── The preview stage: the device bar over the frame ─────────────────────
   designDevice: { en: "Preview width", ar: "عرض المعاينة" },
   designDeviceDesktop: { en: "Desktop", ar: "سطح المكتب" },
-  designDeviceTablet: { en: "Tablet", ar: "لوح" },
+  designDeviceTablet: { en: "Tablet", ar: "جهاز لوحي" },
   designDevicePhone: { en: "Phone", ar: "هاتف" },
   designPreviewWidth: { en: "{w} px wide", ar: "بعرض {w} بكسل" },
   designZoomFit: { en: "Fit to pane", ar: "ملء اللوحة" },
   designZoomActual: { en: "Actual size", ar: "الحجم الفعلي" },
   designPreviewFrame: { en: "Live preview of {name}", ar: "معاينة حيّة لـ{name}" },
-  pvTitle1: { en: "On keeping a notebook", ar: "في مداومة تدوين الدفاتر" },
+  pvTitle1: { en: "On keeping a notebook", ar: "في ملازمة الدفتر" },
   pvTitle2: { en: "The long walk home", ar: "الطريق الطويل إلى البيت" },
   pvTitle3: { en: "Notes on a quiet winter", ar: "ملاحظات عن شتاء هادئ" },
   pvTitle4: { en: "What the archive remembers", ar: "ما يتذكّره الأرشيف" },
@@ -3928,7 +3928,7 @@ const DICT = {
   attachKinds: { en: "images, audio, video and PDF", ar: "الصور والصوت والفيديو وملفات PDF" },
   refuseType: {
     en: "{files} can’t be attached ({exts}) — Astrolabe takes {kinds}.",
-    ar: "تعذّر إرفاق {files} ({exts}) — المقبول هو {kinds}.",
+    ar: "تعذّر إرفاق {files} ({exts}) — أسطرلاب يقبل {kinds}.",
   },
   refuseSize: {
     en: "{files} are over the {max} MB limit.",
@@ -3936,7 +3936,7 @@ const DICT = {
   },
   someFilesRefused: { en: "Some files can’t be attached", ar: "بعض الملفات لا يمكن إرفاقها" },
   unknownType: { en: "unknown type", ar: "نوع غير معروف" },
-  uploadTheRest: { en: "Upload {files}?", ar: "هل تريد رفع {files}؟" },
+  uploadTheRest: { en: "Upload {files}?", ar: "رفع {files}؟" },
   upload: { en: "Upload", ar: "رفع" },
   filesAdded: { en: "Added {files} to {folder}", ar: "أُضيفت {files} إلى {folder}" },
   /** ONE file, named. A pasted screenshot arrives called "image.png" and is
@@ -3965,10 +3965,10 @@ const DICT = {
   rowAttachmentLocation: { en: "New attachments", ar: "المرفقات الجديدة" },
   hintAttachmentLocation: {
     en: "Where an upload is written; existing attachments never move.",
-    ar: "أين يُكتب الملف المرفوع؛ ولا تُنقل المرفقات الموجودة.",
+    ar: "أين يُحفظ ما ترفعه؛ أما المرفقات الموجودة فلا تبرح مكانها.",
   },
   locVaultRoot: { en: "Vault root", ar: "جذر الخزانة" },
-  locSameFolder: { en: "Same folder as the note", ar: "نفس مجلد الملاحظة" },
+  locSameFolder: { en: "Same folder as the note", ar: "مجلد الملاحظة نفسه" },
   locSubfolder: { en: "Subfolder of the note’s folder", ar: "مجلد فرعي داخل مجلد الملاحظة" },
   locSpecified: { en: "Specified folder", ar: "مجلد محدد" },
   rowAttachmentFolder: { en: "Attachment folder", ar: "مجلد المرفقات" },
@@ -3990,7 +3990,7 @@ const DICT = {
   },
   errFolderDotfolder: {
     en: "Dot-folders are invisible to the vault",
-    ar: "المجلدات التي تبدأ بنقطة غير مرئية للخزانة",
+    ar: "المجلدات التي تبدأ بنقطة لا تراها الخزانة",
   },
   errFolderControl: {
     en: "Control characters are not allowed",
@@ -4004,7 +4004,7 @@ const DICT = {
   statusCarets: { en: "{n} carets", ar: "{n} مؤشرات" },
 
   // ── The sentence: multi-cursor, comments ─────────────────────────────────
-  scComment: { en: "Comment out the selection", ar: "تعليق على التحديد" },
+  scComment: { en: "Comment out the selection", ar: "جعل التحديد تعليقًا" },
   scSelectNext: { en: "Select the next occurrence", ar: "تحديد التكرار التالي" },
   scAddCursor: { en: "Add a cursor", ar: "إضافة مؤشر" },
   scAddCursorHow: { en: "Ctrl/Cmd-click", ar: "نقر مع Ctrl/Cmd" },
@@ -4015,7 +4015,7 @@ const DICT = {
   tabDevice: { en: "This device", ar: "هذا الجهاز" },
   introDevice: {
     en: "Preferences kept in this browser; each one saves itself on click.",
-    ar: "تفضيلات تُحفظ في هذا المتصفح، ويُحفظ كل منها فور النقر.",
+    ar: "تفضيلات يحتفظ بها هذا المتصفح، ونقرةٌ واحدة تكفي لحفظ كلٍّ منها.",
   },
   groupEditing: { en: "Editing", ar: "التحرير" },
   rowVimKeys: { en: "Vim keys", ar: "مفاتيح Vim" },
@@ -4028,7 +4028,7 @@ const DICT = {
   rowAppName: { en: "This app's name", ar: "اسم هذا التطبيق" },
   hintAppName: {
     en: "What the tray, the window icon's tooltip, the About box and a launcher entry call the app on this computer. The site's own name is under Site. An update never changes this.",
-    ar: "ما تسمّي به الصينيةُ وتلميحُ أيقونة النافذة ومربعُ «حول» ومدخلُ المشغّل هذا التطبيقَ على هذا الحاسوب. أما اسم الموقع نفسه فتحت «الموقع». والتحديث لا يغيّر هذا أبدًا.",
+    ar: "الاسم الذي يحمله التطبيق على هذا الحاسوب: في صينية النظام، وتلميح أيقونة النافذة، ومربع «حول»، ومدخل المشغّل. اسم الموقع نفسه تحت «الموقع». والتحديث لا يمسّ هذا أبدًا.",
   },
   rowAppIcon: { en: "This app's icon", ar: "أيقونة هذا التطبيق" },
   hintAppIcon: {
@@ -4041,7 +4041,7 @@ const DICT = {
   rowAppLauncherWin: { en: "Add to the Start Menu", ar: "أضف إلى قائمة ابدأ" },
   hintAppLauncher: {
     en: "A launcher entry in the name and icon above, pointing at this very file, wherever you keep it. Run it again after changing either. On Windows a shortcut's icon must be an .ico; with a PNG it keeps the app's own.",
-    ar: "مدخل مشغّل بالاسم والأيقونة أعلاه يشير إلى هذا الملف بعينه حيثما احتفظت به. أعد تشغيله بعد تغيير أيّ منهما. وعلى ويندوز يجب أن تكون أيقونة الاختصار ‎.ico، ومع PNG يحتفظ بأيقونة التطبيق نفسه.",
+    ar: "مدخل مشغّل بالاسم والأيقونة أعلاه، يشير إلى هذا الملف بعينه أينما وضعته. كرّر الخطوة إن غيّرت أحدهما. وعلى ويندوز لا بدّ أن تكون أيقونة الاختصار ‎.ico؛ ومع PNG يبقى على أيقونة التطبيق نفسه.",
   },
   appLauncherInstall: { en: "Write the launcher entry", ar: "اكتب مدخل المشغّل" },
   appLauncherInstallWin: { en: "Create the shortcut", ar: "أنشئ الاختصار" },
@@ -4051,7 +4051,7 @@ const DICT = {
   rowPrefsSync: { en: "Settings travel with the vault", ar: "الإعدادات تسافر مع الخزانة" },
   hintPrefsSync: {
     en: "Theme, languages, editor width and the other settings on this tab are kept in the vault, so every device over it — the desktop on each machine, the phone — shares them. Off keeps this device's own.",
-    ar: "السمة واللغات وعرض المحرر وسائر إعدادات هذه اللوحة تُحفظ في الخزانة، فتتشاركها كل الأجهزة عليها: سطح المكتب على كل جهاز، والهاتف. الإيقاف يُبقي إعدادات هذا الجهاز له وحده.",
+    ar: "السمة واللغات وعرض المحرر وسائر إعدادات هذه اللوحة تُحفظ في الخزانة، فتتقاسمها كل الأجهزة التي تفتحها: سطح المكتب على كل حاسوب، والهاتف. وإيقافه يُبقي لهذا الجهاز إعداداته وحده.",
   },
   checkForUpdates: { en: "Check for updates…", ar: "التحقق من التحديثات…" },
   versionTitle: { en: "Astrolabe {v} — the releases page", ar: "أسطرلاب {v}، صفحة الإصدارات" },
@@ -4160,7 +4160,7 @@ const DICT = {
   dlgPortMovedTitle: { en: "This vault opened on a different port", ar: "فُتحت هذه الخزانة على منفذ مختلف" },
   dlgPortMovedBody: {
     en: "Astrolabe keeps one port per vault ({old}) because your theme, open tabs, folds and pane sizes are stored against it. That port was taken, so this window is on {port} and starts from the defaults. Close whatever is using {old} and reopen the vault to get your layout back.",
-    ar: "يحتفظ أسطرلاب بمنفذ واحد لكل خزانة ({old}) لأن السمة والتبويبات المفتوحة والطيّات وأحجام اللوحات محفوظة بحسبه. كان ذلك المنفذ مشغولًا، لذا فُتحت هذه النافذة على {port} وبدأت من الإعدادات الافتراضية. أغلق ما يشغل {old} ثم أعد فتح الخزانة لاستعادة تخطيطك.",
+    ar: "يخصّ أسطرلاب كل خزانة بمنفذ واحد ({old})، لأن سمتك وتبويباتك المفتوحة وطيّاتك وأحجام لوحاتك مربوطة به. وكان ذلك المنفذ مشغولًا، فانفتحت هذه النافذة على {port} وبدأت من الإعدادات الافتراضية. أغلق ما يشغل {old} ثم أعد فتح الخزانة، يعُد إليك تخطيطك.",
   },
   dlgServerFailedTitle: { en: "Astrolabe could not start this vault", ar: "تعذّر على أسطرلاب فتح هذه الخزانة" },
   dlgProbeFailedTitle: { en: "This build of Astrolabe cannot run its own server", ar: "لا تستطيع هذه النسخة من أسطرلاب تشغيل خادمها" },
@@ -4169,7 +4169,7 @@ const DICT = {
 
   // Annotating: highlights, margin notes, and the six page inks.
   bookNoSelection: { en: "Select a passage first.", ar: "حدّد مقطعًا أولًا." },
-  bookNoHighlightHere: { en: "No marked passage on this page.", ar: "لا يوجد مقطع مُعلَّم في هذه الصفحة." },
+  bookNoHighlightHere: { en: "No marked passage on this page.", ar: "ليس في هذه الصفحة مقطع معلَّم." },
   bookHighlightFailed: { en: "That passage could not be saved.", ar: "تعذّر حفظ هذا المقطع." },
   bookHighlightDeleted: { en: "Passage unmarked.", ar: "أُزيل تعليم المقطع." },
   bookInkSet: { en: "Ink {ink}", ar: "اللون {ink}" },
@@ -4185,18 +4185,18 @@ const DICT = {
   bookCiteFailed: { en: "The quotation could not be written.", ar: "تعذّرت كتابة الاقتباس." },
   bookCiteLabel: { en: "{title}, p. {page}", ar: "{title}، ص {page}" },
   bookPassages: { en: "Marked passages", ar: "المقاطع المعلَّمة" },
-  bookPassagesTruncated: { en: "Searching the most recent passages only.", ar: "يجري البحث في أحدث المقاطع فقط." },
+  bookPassagesTruncated: { en: "Searching the most recent passages only.", ar: "البحث مقصورٌ على أحدث المقاطع." },
   // A citation whose book has been renamed or has left the vault.
   bookCitationMoved: { en: "This book is filed as “{name}” now.", ar: "أصبح هذا الكتاب مُدرجًا باسم «{name}»." },
   bookCitationRepair: { en: "Repair the link", ar: "إصلاح الرابط" },
   bookCitationRepaired: { en: "The link now points at “{name}”.", ar: "صار الرابط يشير إلى «{name}»." },
-  bookCitationRepairNothing: { en: "No link to “{name}” in this note.", ar: "لا يوجد رابط إلى «{name}» في هذه الملاحظة." },
+  bookCitationRepairNothing: { en: "No link to “{name}” in this note.", ar: "لا رابط إلى «{name}» في هذه الملاحظة." },
   bookCitationRepairFailed: { en: "The link could not be repaired.", ar: "تعذّر إصلاح الرابط." },
   bookCitationLost: { en: "“{name}” is not in this vault any more.", ar: "لم يعد «{name}» في هذه الخزانة." },
   // The reader's own key sheet.
   bookKeyHighlight: { en: "Mark the selection (Shift to change ink)", ar: "تعليم التحديد (Shift لتغيير اللون)" },
   bookKeyCite: { en: "Quote it into a note (Shift picks the note)", ar: "اقتباسه إلى ملاحظة (Shift لاختيار الملاحظة)" },
-  bookKeyMarginNote: { en: "Write a note in the margin", ar: "كتابة تعليق على الهامش" },
+  bookKeyMarginNote: { en: "Write a note in the margin", ar: "كتابة حاشية في الهامش" },
   bookKeyUnhighlight: { en: "Unmark a passage", ar: "إزالة تعليم مقطع" },
   bookKeyAnnotations: { en: "Marked passages", ar: "المقاطع المعلَّمة" },
 
@@ -4238,7 +4238,7 @@ const DICT = {
   },
   updateCurrent: { en: "You are on the latest release.", ar: "أنت على أحدث إصدار." },
   updateChipDownloading: { en: "Downloading {version}: {pct}%", ar: "يجري تنزيل {version}: {pct}٪" },
-  updateChipReady: { en: "Astrolabe {version} is downloaded and verified. Restart to use it.", ar: "نُزّل أسطرلاب {version} وتُحقّق منه. أعد التشغيل لتستخدمه." },
+  updateChipReady: { en: "Astrolabe {version} is downloaded and verified. Restart to use it.", ar: "نُزّل أسطرلاب {version} وثبتت سلامته. أعد التشغيل لتستخدمه." },
   updateFailed: {
     en: "Could not check for updates — will try again later.",
     ar: "تعذّر التحقق من التحديثات — ستُعاد المحاولة لاحقًا.",
@@ -4250,7 +4250,7 @@ const DICT = {
   // three columns of two is the largest layout that still has a name.
   paneCapReached: {
     en: "No room for another pane in this window",
-    ar: "لا مساحة للوحة أخرى في هذه النافذة",
+    ar: "لا متّسع للوحة أخرى في هذه النافذة",
   },
   scSplitPane: { en: "Split the pane", ar: "تقسيم اللوحة" },
   scSplitPaneDown: { en: "Split the pane downwards", ar: "تقسيم اللوحة للأسفل" },
@@ -4270,9 +4270,9 @@ const DICT = {
   // has to say that before it says anything else.
   leaseElsewhere: {
     en: "Another window is editing this note",
-    ar: "نافذة أخرى تحرر هذه الملاحظة",
+    ar: "نافذة أخرى تُحرِّر هذه الملاحظة",
   },
-  leaseTakeOver: { en: "Edit here", ar: "التحرير هنا" },
+  leaseTakeOver: { en: "Edit here", ar: "حرّر هنا" },
   cmdPopOut: { en: "Open this note in a new window", ar: "فتح هذه الملاحظة في نافذة جديدة" },
 
   // ── Buffers: the document outliving the pane that shows it ───────────────
@@ -4288,7 +4288,7 @@ const DICT = {
   // typed here.
   conflictStrip: {
     en: "This note changed on disk while you were editing. Your text is intact but not saved.",
-    ar: "تغيّرت هذه الملاحظة على القرص أثناء تحريرك. نصّك سليم لكنه غير محفوظ.",
+    ar: "تغيّرت هذه الملاحظة على القرص وأنت تحرّرها. نصّك سليمٌ، لكنه غير محفوظ.",
   },
   conflictKeepMine: { en: "Keep my version", ar: "احتفظ بنسختي" },
   conflictTakeDisk: { en: "Use the disk version", ar: "استخدم نسخة القرص" },
@@ -4308,11 +4308,11 @@ const DICT = {
   crashReload: { en: "Reload", ar: "إعادة التحميل" },
   newBuildOnServer: {
     en: "Astrolabe {version} is now on the server; this tab still runs the old build. Reload to catch up.",
-    ar: "أسطرلاب {version} صار على الخادم؛ وما زال هذا التبويب يشغّل البناء القديم. أعد التحميل لتلحق به.",
+    ar: "أسطرلاب {version} صار على الخادم، وهذا التبويب ما زال على النسخة القديمة. أعد التحميل لتلحق به.",
   },
   chunkGone: {
     en: "This part of Astrolabe could not be loaded — it may have been updated while you were here.",
-    ar: "تعذّر تحميل هذا الجزء من أسطرلاب — ربما جرى تحديثه أثناء وجودك هنا.",
+    ar: "تعذّر تحميل هذا الجزء من أسطرلاب — ربما حُدِّث وأنت هنا.",
   },
   netTimeout: { en: "The server did not answer in time", ar: "لم يستجب الخادم في الوقت المتاح" },
   sessionStale: {
@@ -4329,7 +4329,7 @@ const DICT = {
   bookLibrary: { en: "Library", ar: "المكتبة" },
   bookCloseLibrary: { en: "Close the library", ar: "إغلاق المكتبة" },
   bookShelfSearch: { en: "Search the shelf…", ar: "بحث في المكتبة…" },
-  bookShelfEmpty: { en: "No PDFs in this vault yet. Put a book in it and it appears here.", ar: "لا توجد ملفات PDF في هذه الخزانة بعد. ضع كتابًا فيها يظهر هنا." },
+  bookShelfEmpty: { en: "No PDFs in this vault yet. Put a book in it and it appears here.", ar: "لا ملفات PDF في هذه الخزانة بعد. ضع فيها كتابًا يظهر هنا." },
   bookShelfFailed: { en: "The library could not be read.", ar: "تعذّرت قراءة المكتبة." },
   bookShelfTruncated: { en: "Showing the first {count} books in this vault.", ar: "تُعرض أول {count} كتاب في هذه الخزانة." },
   bookProgress: { en: "{percent}% read", ar: "قُرئ {percent}٪" },
@@ -4344,15 +4344,15 @@ const DICT = {
   bookMatchOf: { en: "{index} of {total}", ar: "{index} من {total}" },
   bookNoMatches: { en: "No matches in this book.", ar: "لا نتائج في هذا الكتاب." },
   bookOutline: { en: "Contents", ar: "المحتويات" },
-  bookNoOutline: { en: "This book has no contents page.", ar: "لا يحتوي هذا الكتاب على فهرس." },
-  bookMarkSet: { en: "Mark {name} set at page {page}", ar: "ضُبطت العلامة {name} عند الصفحة {page}" },
-  bookNoMark: { en: "No mark {name} in this book", ar: "لا توجد علامة {name} في هذا الكتاب" },
+  bookNoOutline: { en: "This book has no contents page.", ar: "ليس لهذا الكتاب فهرس." },
+  bookMarkSet: { en: "Mark {name} set at page {page}", ar: "وُضعت العلامة {name} على الصفحة {page}" },
+  bookNoMark: { en: "No mark {name} in this book", ar: "لا علامة {name} في هذا الكتاب" },
   bookForgot: { en: "Reading position forgotten.", ar: "نُسي موضع القراءة." },
   bookInvertOff: { en: "Night mode off", ar: "الوضع الليلي متوقف" },
-  bookInvertNight: { en: "Night mode — figures kept", ar: "الوضع الليلي — مع الإبقاء على الصور" },
-  bookInvertFlip: { en: "Night mode — everything inverted", ar: "الوضع الليلي — عكس كل شيء" },
+  bookInvertNight: { en: "Night mode — figures kept", ar: "الوضع الليلي — والصور على حالها" },
+  bookInvertFlip: { en: "Night mode — everything inverted", ar: "الوضع الليلي — كل شيء معكوس" },
   bookCommandLabel: { en: "Reader command", ar: "أمر القارئ" },
-  bookCommandPlaceholder: { en: "Type a command — help lists them", ar: "اكتب أمرًا — يسرد help قائمتها" },
+  bookCommandPlaceholder: { en: "Type a command — help lists them", ar: "اكتب أمرًا — help يسرد الأوامر كلَّها" },
   bookSearchLabel: { en: "Search in this book", ar: "بحث في هذا الكتاب" },
   bookSearchPlaceholder: { en: "Search in this book…", ar: "بحث في هذا الكتاب…" },
   bookUnknownCommand: { en: "Unknown command: {word}", ar: "أمر غير معروف: {word}" },
@@ -4427,7 +4427,7 @@ const DICT = {
   tourTake: { en: "Take the tour", ar: "خُذ جولة في الخزانة" },
   tourHint: { en: "A deck of what this vault can do", ar: "بطاقاتٌ بما تستطيعه هذه الخزانة" },
   tourDoor: { en: "See what the vault can do", ar: "انظر ما تستطيعه الخزانة" },
-  tourFooterLead: { en: "Not sure what to look for?", ar: "ألا تدري ما الذي تبحث عنه؟" },
+  tourFooterLead: { en: "Not sure what to look for?", ar: "لا تدري عمّ تبحث؟" },
   // ── The Media page (client/media/MediaView.tsx) ───────────────────────────
   // The shelves' chrome. The kinds and statuses reuse the tracker's own words
   // above; what is new here is the page, its form and its section heads,
@@ -4481,11 +4481,11 @@ const DICT = {
   },
   mediaFormUnit: { en: "Unit", ar: "الوحدة" },
   mediaFormSeason: { en: "Season", ar: "الموسم" },
-  mediaFormStep: { en: "Nudge by", ar: "خطوة الدفع" },
+  mediaFormStep: { en: "Nudge by", ar: "مقدار الخطوة" },
   mediaFormFolder: { en: "Notes in the vault", ar: "الملاحظات في الخزانة" },
   trackerFolderNotes: { en: "Notes in {folder}", ar: "ملاحظات في {folder}" },
   panelTrackedIn: { en: "Tracked in", ar: "متابَع في" },
-  trackerStepFailed: { en: "The nudge did not save.", ar: "لم يُحفظ الدفع." },
+  trackerStepFailed: { en: "The nudge did not save.", ar: "لم تُحفظ الخطوة." },
   panelWorkNotes: { en: "Notes of this work", ar: "ملاحظات هذا العمل" },
   panelWorkNoNotes: { en: "No notes in its folder yet.", ar: "لا ملاحظات في مجلده بعد." },
   panelOpenTracker: { en: "Open the tracker", ar: "افتح المتتبع" },
@@ -4503,7 +4503,7 @@ const DICT = {
   panelOpenFolder: { en: "Open the folder", ar: "افتح المجلد" },
   slashDrawing: { en: "Drawing", ar: "رسمة" },
   slashDrawingDetail: { en: "a canvas beside this note, embedded here", ar: "لوحة رسم بجانب هذه الملاحظة، مضمّنة هنا" },
-  treeTrackedAs: { en: "On the shelf as {title}: open its tracker", ar: "على الرف بوصفه {title}: افتح متتبعه" },
+  treeTrackedAs: { en: "On the shelf as {title}: open its tracker", ar: "على الرف باسم {title}: افتح متتبعه" },
   mediaFolderOpen: { en: "Open the notes of {title}", ar: "افتح ملاحظات {title}" },
   mediaFormStatus: { en: "Status", ar: "الحالة" },
   mediaFormRating: { en: "Rating", ar: "التقييم" },
@@ -4513,11 +4513,11 @@ const DICT = {
   mediaFormNotes: { en: "Notes", ar: "ملاحظات" },
   mediaFormNotesPlaceholder: {
     en: "A line or two of impressions. Markdown is fine.",
-    ar: "سطر أو سطران من الانطباعات. يمكنك كتابة ماركداون.",
+    ar: "سطر أو سطران من الانطباعات، ولا بأس بماركداون.",
   },
   mediaCreate: { en: "Add to the shelf", ar: "أضف إلى الرف" },
   mediaTitleRequired: { en: "Give it a title first", ar: "اكتب العنوان أولًا" },
-  mediaExists: { en: "A note already exists at {path}", ar: "توجد ملاحظة بالفعل في {path}" },
+  mediaExists: { en: "A note already exists at {path}", ar: "ثمة ملاحظة في {path} أصلًا" },
   mediaAdded: { en: "Added {title}", ar: "أُضيف {title}" },
   mediaSaved: { en: "Saved {title}", ar: "حُفظ {title}" },
   mediaSaveFailed: { en: "Could not save {title}", ar: "تعذّر حفظ {title}" },
