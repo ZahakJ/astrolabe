@@ -2669,15 +2669,25 @@ export default function SettingsModal() {
    *  one answered. Shared by the panel's own search and by the surfaces
    *  elsewhere in the app that point at a row (`openSettingsAt`). */
   const reveal = useCallback((label: string) => {
-    requestAnimationFrame(() => {
+    // Not one frame but up to a second of them: the desktop's rows under
+    // "This app" (settings/DeviceTab.tsx) are drawn only once the bridge has
+    // answered, and an IPC round-trip is longer than a frame. A search that
+    // switched the tab and then looked once found nothing there and scrolled
+    // to nothing — the exact failure the index exists to prevent.
+    const deadline = performance.now() + 1000;
+    const look = (): void => {
       const row = bodyRef.current?.querySelector<HTMLElement>(
         `[data-setting="${CSS.escape(label)}"]`,
       );
-      if (!row) return;
+      if (!row) {
+        if (performance.now() < deadline) requestAnimationFrame(look);
+        return;
+      }
       row.scrollIntoView({ block: "center", behavior: "smooth" });
       row.classList.add("s-smodal__row--found");
       window.setTimeout(() => row.classList.remove("s-smodal__row--found"), 1600);
-    });
+    };
+    requestAnimationFrame(look);
   }, []);
 
   /** ↑/↓ walk the rail, the way a tab list is expected to behave; the arrow

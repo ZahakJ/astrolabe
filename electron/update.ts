@@ -384,8 +384,12 @@ export async function downloadUpdate(): Promise<void> {
     console.error("astrolabe: update download failed", err);
     // A download the reader asked for is always answered, unlike the timer's
     // check — and the release stays `found`, so the pill's next click can try
-    // again rather than waiting for the next tick to rediscover it.
+    // again rather than waiting for the next tick to rediscover it. The
+    // window that heard "failed" keeps its pill on "available" for the same
+    // reason (client/desktop); what a LATER window is handed in `hello` has
+    // to agree, so the remembered state is the offer, not the stumble.
     notify({ phase: "failed", version: tag });
+    lastState = { phase: "available", version: tag, installable: true };
   } finally {
     busy = false;
   }
