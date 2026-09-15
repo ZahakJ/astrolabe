@@ -386,8 +386,11 @@ function renderDay(
     box.appendChild(row);
   }
 
-  // The note: an input when live, a line when not.
-  const noteText = notesField ? (entry?.values[notesField.key] ?? "") : (entry?.note ?? "");
+  // The note: an input when live, a line when not. Under a notes field the
+  // box shows that field's value — and, for a day logged before the field
+  // was declared, the loose note the line still carries, so adding the
+  // field to an old plan hides nothing.
+  const noteText = notesField ? (entry?.values[notesField.key] ?? entry?.note ?? "") : (entry?.note ?? "");
   if (onLog) {
     const note = el("input", "s-rv-routine__note");
     note.type = "text";

@@ -86,6 +86,12 @@ const SECTIONS = [
 const missingArabic = [];
 const PAGES = SECTIONS.flatMap((s) => s.pages.map((p) => ({ ...p, section: s })));
 
+// A page that changed its name keeps answering at the old one: a stub at
+// the old slug that refreshes to the new. The what's-new decks of earlier
+// releases link the manual by slug (`docs: "routines"` on the 3.11–3.14
+// slides) and those links are history, not something to rewrite.
+const MOVED = { routines: "orbits" };
+
 const UI = {
   en: {
     dir: "ltr",
@@ -318,6 +324,9 @@ for (const lang of ["en", "ar"]) {
       });
     }
     built++;
+  }
+  for (const [from, to] of Object.entries(MOVED)) {
+    write(join(OUT, lang, from, "index.html"), `<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=../${to}/"><a href="../${to}/">${to}</a>`);
   }
   write(join(OUT, lang, "index.html"), shell({ lang, title: UI[lang].home, body: homeBody(lang, summaries), toc: [], current: null, prev: null, next: null, editHref: null, summary: UI[lang].tagline, untranslated: "", depth: 1 }));
   write(join(OUT, `search-${lang}.json`), JSON.stringify(search[lang]));
