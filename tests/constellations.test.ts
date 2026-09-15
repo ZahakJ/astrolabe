@@ -359,3 +359,83 @@ describe("a graded inline card", () => {
     assert.equal(scanCards(graded).length, 2);
   });
 });
+
+// ---------------------------------------------------------------- the edges
+// What the owner will meet mid-session: a line the syntax almost matches, a
+// note Obsidian's plugin graded first, a note saved by Windows.
+
+describe("the edges of a card line", () => {
+  it("reads an empty extra as no extra, not as an answer ending in ::", () => {
+    assert.deepEqual(scanCards("a::b::\n").map((c) => [c.front, c.back, c.extra]), [["a", "b", null]]);
+  });
+  it("never reads a card inside a code fence, whichever fence", () => {
+    assert.deepEqual(scanCards("```\na::b\n```\n~~~\nc:::d\n~~~\nreal::yes\n").map((c) => c.front), ["real"]);
+  });
+  it("keeps a full-width colon in a Japanese front and back", () => {
+    assert.deepEqual(scanCards("日本：東京::Japan: Tokyo\n読み：よみ::reading::example：here\n").map((c) => [c.front, c.back, c.extra]), [
+      ["日本：東京", "Japan: Tokyo", null],
+      ["読み：よみ", "reading", "example：here"],
+    ]);
+  });
+  it("reads a ::: pair with only its first schedule as half graded", () => {
+    const [card] = scanCards("Egypt:::Cairo <!--SR:!2026-09-20,6,2500-->\n");
+    assert.equal(card.schedule?.interval, 6);
+    assert.equal(card.scheduleRev, null);
+  });
+  it("reads a comment with spaces inside the markers", () => {
+    assert.equal(scanCards("a::b <!-- SR:!2026-09-20,6,2500 -->\n")[0].schedule?.interval, 6);
+  });
+  it("reads and writes a CRLF note without changing its line endings", () => {
+    const crlf = "```constellation\r\nkind: both\r\n```\r\n\r\n## S\r\n\r\nx::y\r\nq:::w <!--SR:!2026-09-20,6,2500!2026-09-25,3,2350-->\r\n";
+    assert.deepEqual(scanCards(crlf).map((c) => [c.front, c.section, c.scheduleRev?.interval ?? null]), [["x", "S", null], ["q", "S", 3]]);
+    assert.equal(parseConstellationFence(crlf)?.kind, "both");
+    const written = writeSchedule(crlf, 7, { due: "2026-10-01", interval: 1, ease: 2500 }, 1);
+    assert.equal(written.includes("\n"), true);
+    assert.equal(written.split("\r\n").length, crlf.split("\r\n").length);
+    assert.equal(/[^\r]\n/.test(written), false);
+    assert.equal(scanCards(written)[0].scheduleRev?.interval, 1);
+  });
+});
+
+describe("a kind: both note", () => {
+  it("keeps the back→front grade of a :: line, and the next front→back grade keeps it too", () => {
+    const both = "```constellation\nkind: both\n```\n\nx::y\n";
+    const stars = scanStars(both, "n.md", "both");
+    const rev = writeStarSchedule(both, stars[1], { due: "2026-10-01", interval: 4, ease: 2650 });
+    assert.equal(rev, "```constellation\nkind: both\n```\n\nx::y <!--SR:!2026-09-27,0,2500!2026-10-01,4,2650-->\n");
+    const back = scanStars(rev, "n.md", "both");
+    assert.equal(back[0].schedule, null);
+    assert.equal(back[1].schedule?.interval, 4);
+    const fwd = writeStarSchedule(rev, back[0], { due: "2026-09-16", interval: 1, ease: 2500 });
+    assert.equal(fwd, "```constellation\nkind: both\n```\n\nx::y <!--SR:!2026-09-16,1,2500!2026-10-01,4,2650-->\n");
+  });
+});
+
+describe("where the comment goes", () => {
+  it("rewrites the plugin's next-line comment in place rather than adding a second", () => {
+    const md = "a::b\n<!--SR:!2026-09-20,6,2500-->\nc::d\n";
+    const written = writeSchedule(md, 1, { due: "2026-10-01", interval: 10, ease: 2500 });
+    assert.equal(written, "a::b\n<!--SR:!2026-10-01,10,2500-->\nc::d\n");
+    assert.deepEqual(scanCards(written).map((c) => [c.front, c.schedule?.interval ?? null]), [["a", 10], ["c", null]]);
+  });
+  it("keeps the second schedule of a two-cloze paragraph the plugin graded", () => {
+    const md = "A ==b== and ==c==.\n<!--SR:!2026-09-20,6,2500!2026-09-25,3,2350-->\n";
+    const written = writeSchedule(md, 1, { due: "2026-10-01", interval: 15, ease: 2500 });
+    assert.equal(written, "A ==b== and ==c==.\n<!--SR:!2026-10-01,15,2500!2026-09-25,3,2350-->\n");
+  });
+});
+
+describe("a note written from the modal", () => {
+  it("folds a newline in the title, the icon and a tag so the fence cannot be closed early", () => {
+    const text = serialiseConstellation({ title: "Bad\n```\nfoo::bar", icon: "😀\nq::a", tags: ["t\n```", "two words"] }, [{ front: "x", back: "y" }]);
+    const head = parseConstellationFence(text)!;
+    assert.equal(head.title, "Bad ``` foo::bar");
+    assert.equal(head.icon, "😀 q::a");
+    assert.deepEqual(head.tags, ["t-```", "two-words"]);
+    assert.deepEqual(scanCards(text).map((c) => c.front), ["x"]);
+  });
+  it("never names a file with a leading dot", () => {
+    assert.equal(constellationNotePath(null, "..."), "Constellations/Constellation.md");
+    assert.equal(constellationNotePath(null, ".hidden"), "Constellations/hidden.md");
+  });
+});

@@ -85,6 +85,12 @@ export function writeFailure(err: unknown, relPath: string): unknown {
     case "EMFILE":
     case "ENFILE":
       return new VaultError(503, `Too many open files — the vault is busy (${relPath})`, "vaultBusy");
+    // A FILE STANDS WHERE A FOLDER WOULD GO: `Root.md/x.md` asks to make a
+    // folder out of a note. mkdir says EEXIST, the write after it ENOTDIR;
+    // both are the caller's path, not the server's fault.
+    case "EEXIST":
+    case "ENOTDIR":
+      return new VaultError(409, `A file already stands where a folder of that name would go (${relPath})`, "notAFolder");
     default:
       return err;
   }

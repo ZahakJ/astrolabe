@@ -287,7 +287,10 @@ export function constellationNotePath(folder: string | null | undefined, title: 
   const base = title
     .replace(/[\\/:*?"<>|[\]#]/g, " ")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    // A name that begins with a dot is a file the vault never lists — the
+    // title "..." would make a note nobody could open.
+    .replace(/^\.+/, "");
   const dir = (folder ?? DEFAULT_FOLDER).replace(/\\/g, "/").replace(/^\/+|\/+$/g, "").trim();
   return `${dir ? `${dir}/` : ""}${base || "Constellation"}.md`;
 }
@@ -308,16 +311,23 @@ export interface NewCard {
  *  as lines the scanner would not read back. A leading `#`, `>` or `|` is
  *  escaped so a front cannot become a heading, a quote or a table row. */
 export function serialiseConstellation(head: { title: string; icon?: string | null; kind?: ConstellationKind; tags?: string[]; newPerDay?: number }, cards: NewCard[]): string {
-  const title = head.title.trim();
+  // Every value in the fence is ONE LINE: a title, an icon or a tag holding
+  // a newline would end the fence early and turn the rest of the head into
+  // cards. The fence is line-based (parseConstellationFence), so folding
+  // is the whole of the escaping it needs.
+  const title = oneLine(head.title);
+  const icon = oneLine(head.icon ?? "");
   const lines: string[] = ["---", `title: ${yamlScalar(title)}`, "---", "", "```" + CONSTELLATION_FENCE];
   // The shelf reads the FENCE's title, and the indexer names a note by its
   // file: a title the filename rule had to bend ("Lesson 3: verbs") is
   // written into the fence so the shelf still says what the reader typed.
   if (constellationNotePath("", title) !== `${title}.md`) lines.push(`title: ${title}`);
-  if (head.icon && head.icon.trim()) lines.push(`icon: ${head.icon.trim()}`);
+  if (icon) lines.push(`icon: ${icon}`);
   lines.push(`kind: ${head.kind ?? "basic"}`);
   if (head.newPerDay !== undefined && head.newPerDay !== DEFAULT_NEW_PER_DAY && head.newPerDay >= 0) lines.push(`new per day: ${Math.floor(head.newPerDay)}`);
-  const tags = (head.tags ?? []).map((t) => t.replace(/^#+/, "").trim()).filter((t) => t !== "");
+  // A tag is one word to the fence (it splits on commas and spaces), so a
+  // tag typed with a space is joined the way the indexer spells tags.
+  const tags = (head.tags ?? []).map((t) => t.replace(/^#+/, "").trim().replace(/[\s,]+/g, "-")).filter((t) => t !== "");
   if (tags.length > 0) lines.push(`tags: ${tags.join(", ")}`);
   lines.push("```", "");
   let section: string | null = null;
@@ -335,6 +345,10 @@ export function serialiseConstellation(head: { title: string; icon?: string | nu
     lines.push(`${escapeLead(front)}::${back}${extra ? `::${extra}` : ""}`);
   }
   return lines.join("\n") + "\n";
+}
+
+function oneLine(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
 }
 
 function segment(text: string): string {

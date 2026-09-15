@@ -2306,7 +2306,7 @@ api.post("/constellations", async (c) => {
   if (title === "") throw new VaultError(400, "A constellation needs a title");
   const kinds: ConstellationKind[] = ["basic", "reversed", "both", "typed", "cloze-only"];
   const kind = typeof body.kind === "string" && (kinds as string[]).includes(body.kind) ? (body.kind as ConstellationKind) : "basic";
-  const icon = typeof body.icon === "string" && body.icon.trim() ? body.icon.trim().slice(0, 8) : null;
+  const icon = typeof body.icon === "string" && body.icon.trim() ? Array.from(body.icon.trim()).slice(0, 8).join("") : null;
   const folder = typeof body.folder === "string" ? body.folder : null;
   const tags = Array.isArray(body.tags) ? body.tags.filter((t): t is string => typeof t === "string") : [];
   const newPerDay = typeof body.newPerDay === "number" && Number.isFinite(body.newPerDay) && body.newPerDay >= 0 ? Math.floor(body.newPerDay) : undefined;
