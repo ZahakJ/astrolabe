@@ -45,8 +45,8 @@ The server needs permission to push to your repository. There are two ways to gi
   reach your whole account. Paste it into Settings → Backup & sync → Access token, together with
   the username it belongs to (many hosts ignore the username; anything non-empty will do).
 
-**Where the token is kept.** In `ASTROLABE_DATA/git-credentials.json`, readable by the server's
-user only (mode `0600`). It is **never** written into `settings.json`, never into the vault,
+**Where the token is kept.** In `ASTROLABE_DATA/git-credentials.json`, readable only by the
+system user the server runs as (mode `0600`). It is **never** written into `settings.json`, never into the vault,
 never into `.git/config`, and never into the remote URL — which is why the remote field refuses
 a URL with a token baked in (`https://user:token@host/…`). When git needs it, it is handed over
 through `GIT_ASKPASS` and an environment variable on that one git process. So it never appears
@@ -93,11 +93,12 @@ Because the alternative can corrupt your notes. When two copies of a repository 
 changed, git's usual answer is a *merge*, and when the same lines changed on both sides a merge
 writes `<<<<<<<` conflict markers *straight into the files*. An unattended background job that
 does that to a thousand notes is a worse outcome than any missed backup. So Astrolabe never
-merges and never rebases — a `pull.rebase = true` in your own git config cannot change that,
-because no `git pull` runs at all. If the remote has commits you do not have, the sync stops
+merges and never rewrites history (what git calls a *rebase*) — a `pull.rebase = true` in your
+own git config cannot change that, because no `git pull` runs at all. If the remote has commits you do not have, the sync stops
 **before touching a single file** and tells you the histories diverged. Nothing is committed,
 nothing is pushed, no note is modified. You then reconcile the two in a terminal, which is where
-a human belongs for that decision. Astrolabe never force-pushes.
+a human belongs for that decision. Astrolabe never force-pushes (never overwrites what the
+remote holds).
 
 ## What sync never stages
 
@@ -116,8 +117,8 @@ wins, so a `.gitignore` that says `.trash/` and later `!.trash/` un-ignores it a
 older build that only checked "is there a `.trash/` line?" saw nothing to do and pushed the
 trash. Removing it from the index asks no ignore file anything. It also **repairs** a vault an
 older build already pushed: the first sync after upgrading stages the removal, so the trash
-leaves the tip of your branch on its own. (It stays in the *history* — see the note about
-rewriting below.)
+leaves the latest commit on your branch on its own. (It stays in the *history* — the older
+commits — see the note about rewriting below.)
 
 Astrolabe still *adds* `.trash/` and `.obsidian/workspace*.json` to your `.gitignore` if they are
 missing, so that `git status` in a terminal is quiet too — but that is a courtesy, not the
@@ -154,7 +155,7 @@ the history in a terminal.
 ## Note history: reading what the backup kept
 
 Every sync makes a commit, and every commit holds a version of every note in it. **History** is
-the reading half of that. Open a note, open the **History** section in the right-hand panel, and
+how you read those versions back. Open a note, open the **History** section in the right-hand panel, and
 you get the commits that touched this note — newest first, with the date, the message, and how
 many lines each one added and removed.
 
@@ -180,8 +181,8 @@ in the history as *Snapshot*.
 If the vault is not a git repository yet, the History section says so and offers the switch —
 turning on Backup & sync (step 3 above) is what starts keeping history in the first place.
 
-History is admin-only in both directions: a visitor cannot see that a published note went
-through eleven drafts, and cannot read any of them.
+History is admin-only: a visitor cannot see that a published note went through eleven drafts,
+and cannot read any of them.
 
 ## Versions, before and beside git
 
@@ -210,7 +211,7 @@ the toast carries an **Undo**.
 
 What keeps the store from growing without limit:
 
-- **Bursts collapse.** Two autosaves closer than five minutes keep only the *older* version. So
+- **Close saves merge.** Two autosaves closer than five minutes keep only the *older* version. So
   an afternoon of typing leaves one version per five-minute window — and the one it leaves is the
   text from *before* the burst, which is the one that predates the mistake. A restore is exempt:
   the text it overwrites is always kept.
@@ -271,9 +272,9 @@ later.
 Two things worth knowing about the arrangement:
 
 - **No note is locked.** Neither server owns the vault, and either can be stopped at any time.
-  The refusal above is a check made at the moment of writing, not a claim staked in advance.
+  The refusal above is a check made at the moment of writing, not a reservation made in advance.
   Backup & sync is the one deliberate exception, for the reason in the next section: a commit is
-  a whole-vault operation with a single git index, so it cannot be two things at once.
+  a whole-vault operation with a single git index, so two cannot run at once.
 - **Scripts and older clients still work.** A write with no modification time attached — `curl`,
   a script of your own, an older desktop build — behaves exactly as it always did: the last
   writer wins. The check is opt-in, and only clients that can handle a refusal ask for one.
@@ -310,11 +311,12 @@ to a desktop app.
   **nothing has touched it for fifteen minutes**. Either way the break is logged as a warning
   naming the dead holder. A pass that is merely slow is never mistaken for a dead one: a live
   holder refreshes the lock every minute while it works.
-- **What it does not cover.** The lock is advisory, so your own `git commit` in a terminal is
-  unaffected — that has always been git's own `index.lock` to arbitrate. And two *machines*
-  sharing one vault over a network filesystem is outside what this buys: creating a file
-  exclusively is only as atomic as the filesystem makes it, and the fifteen-minute age check is
-  the only recovery there.
+- **What it does not cover.** The lock is advisory — it only stops programs that look for it —
+  so your own `git commit` in a terminal is unaffected; that has always been git's own
+  `index.lock` to arbitrate. And two *machines* sharing one vault over a network filesystem is
+  outside what this lock guarantees: whether one side or both can create the lock file at the
+  same instant depends on the network filesystem, and the fifteen-minute age check is the only
+  recovery there.
 
 ## Settings travel with the vault
 
@@ -327,7 +329,8 @@ file, the vault wins outright, so a fresh machine takes the site's settings rath
 its own defaults over them. Set the site name on the hosted instance, and the desktop app on the
 other machine has it after its next pull; upload a logo in the designer on the laptop, and the
 site shows it after the next push. What stays put: the git token (each device's own), the
-comments database, the reading positions and creation ledger, and sessions. A value a hosted
+comments database, reading positions in books, the record of when each note was created, and
+sessions. A value a hosted
 instance takes from its `.env` (`SITE_NAME`, `SITE_TAGLINE`, `HOME_NOTE`…) is that server's alone
 until it is saved in the settings panel, which writes it into `settings.json` and so into the
 vault.
@@ -353,12 +356,13 @@ If you keep the vault in git, commit `.astrolabe/` — it is not in the
 
 ## Things worth knowing
 
-- Every git call is an `execFile` with a fixed list of arguments. No shell is involved anywhere,
-  and the remote URL and branch name are validated (scheme, no shell characters, no embedded
-  credentials, a safe ref name) before they are ever handed over. A `user@` that *looks like a
+- Every git call is an `execFile` with a fixed list of arguments. No command line that could
+  be tampered with is involved anywhere, and the remote URL and branch name are validated (the
+  URL's scheme, no shell characters, no embedded credentials, a valid branch name) before they
+  are ever handed over. A `user@` that *looks like a
   token* (`ghp_…`, `github_pat_…`, `glpat-…`) is refused on every scheme, including the scp-style
   `git@host:path` and `ssh://` forms where a plain username is fine.
-- The git child process gets a **scrubbed environment**: `GIT_DIR`, `GIT_WORK_TREE`,
+- The git process Astrolabe starts gets a **scrubbed environment**: `GIT_DIR`, `GIT_WORK_TREE`,
   `GIT_INDEX_FILE`, the object-directory variables, `GIT_CONFIG*` (including
   `GIT_CONFIG_COUNT`/`GIT_CONFIG_KEY_n`), `GIT_SSH`, `GIT_SSH_COMMAND`, `GIT_PROXY_COMMAND` and
   `GIT_EXTERNAL_DIFF` are all removed, so nothing in the server's own environment can point git

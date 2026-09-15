@@ -64,8 +64,8 @@ already ask — and hands it to your downloads:
 - **Your theme, inlined.** The colours, fonts and measures of the theme you are reading in are
   written into the page as CSS custom properties, along with the reading stylesheets themselves.
   Open it anywhere and it looks like your Astrolabe.
-- **Pictures inside the file.** Every image the note shows is fetched and embedded in the page
-  itself (as a data URI), so the page is complete on its own. One that cannot be fetched — or one
+- **Pictures inside the file.** Every image the note shows is fetched and written into the page
+  itself as text (a data URI), so the page is complete on its own. One that cannot be fetched — or one
   above 25 MB — keeps its address instead, as an absolute URL: it still shows next to a running
   instance, and is an honest broken image away from one. It is never silently dropped.
 - **Right-to-left when the note is.** The page's direction follows the note's prose, or the

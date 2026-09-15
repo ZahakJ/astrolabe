@@ -5,7 +5,7 @@
 ---
 
 The [releases page](https://github.com/ZahakJ/astrolabe/releases/latest) carries an AppImage, a
-`.deb`, a `.pacman` and an unsigned Windows `.exe`. Each one is the same product as the server
+`.deb`, a `.pacman` and an unsigned Windows `.exe` (Windows warns the first time you run it). Each one is the same product as the server
 you can host yourself, wrapped as a desktop (Electron) app. Behind the scenes the app starts a
 server of its own for every vault you open, on a port it remembers per vault. Nothing about the
 vault changes: the folder on disk is the folder on disk, and a browser on the network can still
@@ -26,7 +26,7 @@ The app keeps a tray icon with *Show Astrolabe* and *Quit*. For a launcher or a 
 storage that belongs to the vault's port. If a launch finds that port busy, the app moves to
 the next one — which, to the browser storage, is a brand-new place with nothing in it. So the
 desktop also keeps the last workspace beside the vault's data and restores it when a window
-opens on nothing. It waits a few seconds for the remembered port first; and a window with truly
+opens on nothing. It waits a few seconds for the usual port before moving on; and a window with truly
 nothing to restore opens the note you were in most recently, rather than the first name in the
 tree.
 
@@ -115,13 +115,14 @@ What "restart" does depends on how the app was installed. The **AppImage** is re
 own path and relaunched: the app closes, and a moment later the new file starts on its own.
 (Every AppImage build is relaunch-tested before it is published.) The **Windows** install runs
 the new installer silently, and the installer relaunches the app. Both downloads are checked
-against the release's own checksum file before anything runs. The **deb** and **pacman**
+against the fingerprint published with the release before anything runs, so a file that arrived
+incomplete or altered never starts. The **deb** and **pacman**
 packages belong to a package manager, so there the chip opens the releases page instead. The
 **Android app** (the APK on the same releases page) checks the same address at launch: when a
 newer APK exists it offers **Update**, the browser downloads it, and Android installs it over
 the current copy — notes, settings and sign-in untouched. *Later* snoozes the offer for a day.
 Everything on the web side reaches the phone the moment the server deploys; the APK only
-changes when the shell itself does.
+changes when the wrapper itself does.
 
 In a browser, the version chip simply opens the releases page, since a hosted instance updates
 when its server does.
@@ -134,11 +135,11 @@ checked, not cleaned: `..`, a leading `/`, a drive letter or a control character
 
 ## Sessions
 
-A vault the app opened itself is signed in by the app: the password is minted at launch and no
-human ever sees it, so there is nothing to sign out of, and the status bar shows no **Sign out**.
+A vault the app opened itself is signed in by the app: a random password is made at launch and
+no human ever sees it, so there is nothing to sign out of, and the status bar shows no **Sign out**.
 A session that lapses anyway (a long sleep, a server restarted underneath) is restored on the
-next request rather than asked for. The one exception is an [env-linked vault](#where-things-live),
-which runs under its deployment's own `.env`: there the window opens as a reader, and **Sign in**
+next request rather than asked for. The one exception is an [env-linked vault](#where-things-live) — a vault with a `.env` file
+beside it, which runs under that deployment's own settings: there the window opens as a reader, and **Sign in**
 takes the same password the site takes.
 
 ## Where things live
@@ -147,5 +148,5 @@ The app's own configuration is in `~/.config/astrolabe` (the old `vellum` direct
 the rename is carried in on first launch and then removed). `desktop.json` there lists the
 vaults, their ports and, for each, the data directory it uses. Each vault's instance data is in
 the [`ASTROLABE_DATA`](configuration.md#environment-variables) that entry names. The Linux build
-is packaged with `asar: false` deliberately, because the server child reads real files from the
-package.
+is packaged with `asar: false` deliberately, because the server the app starts reads real files
+from the package.

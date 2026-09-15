@@ -38,15 +38,15 @@ In dev mode you open port 5801; requests to `/api` are passed through to the ser
 ## The gates
 
 A *gate* is a script that checks one specific promise the product makes, and exits with an error
-when the promise is broken. Each one below exits non-zero on failure. The pure-logic gates need
-nothing. The browser gates need a running instance, plus `npm i -D playwright` and either
+when the promise is broken. Each one below exits non-zero on failure. The gates that need no browser
+need no setup at all. The browser gates need a running instance, plus `npm i -D playwright` and either
 `npx playwright install chromium` or a system browser via `CHROMIUM=/usr/bin/chromium`. Those
 that sign in take `ASTROLABE_PASSWORD` (open local mode needs no password).
 
 ### `npm run check-i18n` — the dictionary
 
 Every string a user can see comes from one dictionary, `client/i18n.ts`, with an English and an
-Arabic entry per key. This gate fails if any `t()` key is missing, untranslated or dead, or if
+Arabic entry per key. This gate fails if any `t()` key is missing, untranslated or dead (used nowhere), or if
 the English and Arabic sides of an entry disagree about their `{placeholders}`. It also fails on
 hardcoded English text in JSX *and* in code that builds DOM elements by hand. "Dead" is counted
 from the call sites only: the dictionary file is excluded from the usage scan, because a key
@@ -151,7 +151,7 @@ nothing is wrong with either binding. What is wrong is that there are two.
 So a binding exists in ONE place: the `GROUPS` table in `client/components/ShortcutsHelp.tsx`,
 the same table `Ctrl/Cmd /` prints. This gate parses it out of the source text (never imports
 it — the rows carry React and store closures, and a gate that needs a browser is a gate nobody
-runs), turns every row's `keys` into a normalized chord, and fails when two rows resolve to the
+runs), turns every row's `keys` into one standard spelling, and fails when two rows resolve to the
 same key, modifiers and scope. Scope is the shell (`app` / `blog`) and the runtime (browser /
 desktop), and deliberately **not** `admin`: an admin session sees the visitor's rows plus its
 own, so `admin` never keeps two bindings apart — it names the reader a collision reaches first.
@@ -183,7 +183,7 @@ deleting everything fails too. No browser needed; it deletes its fixtures howeve
 ### `npm run check-design` — the error boundary
 
 The gate for the [design engine](designer.md)'s one promise that cannot be reviewed by reading
-the code. It breaks a designed site three ways on purpose (a corrupt `designs.json`, a section
+the code: that a section which breaks does not take the whole page down with it. It breaks a designed site three ways on purpose (a corrupt `designs.json`, a section
 pointing at a note that is not there, and a section renderer patched to throw and rebuilt) and,
 for each, measures what a VISITOR gets (the built-in blog, a page with real text on it, nothing
 escaping the boundary) against what the OWNER gets (the designed page, the failing section
@@ -209,7 +209,7 @@ rules are invisible to every screenshot harness above, because a browser applies
 a human opens the print dialog. So this drives the app under `emulateMedia("print")` and asserts
 that the print host is the only thing on the paper (and is `display: none` on screen, so it can
 never flash), that the paper palette wins over a dark theme, that a folded callout prints its
-body, that headings stay real `h1`–`h6` with ids and internal anchors keep fragment `href`s —
+body, that headings stay real `h1`–`h6` with ids and internal links keep their `#fragment` `href`s —
 the two things Chrome builds a PDF's bookmark outline and its link annotations from — and that
 an Arabic note prints as a right-to-left page from an English instance. It writes two fixture
 notes through the API and deletes them on the way out. See [Printing & PDF](printing.md).
