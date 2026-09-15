@@ -648,7 +648,7 @@ const AUDIENCES = [
   // outside every budget.
   // 3.15.0: 759.1 kB actual → 762 — ORBITS. Almost all of it is the
   // dictionary again: the rebuilt form explains every field in a sentence
-  // (the `orbitField*` help block, the section titles, the hints under each
+  // (the `sigilField*` help block, the section titles, the hints under each
   // control) in two languages, and `t()` ships whole. The rest is the model's
   // `icon:` / `banner:` keys, the `count` field type and the second fence
   // spelling in shared/routine.ts, which the reading closure parses before
@@ -985,7 +985,7 @@ const AUDIENCES = [
   // Review page, the scripture chunk and the harakat palette are lazy.
   // 3.15.0: 1482.1 kB actual → 1486 — the entry growth above (orbits), plus
   // the status bar's new door glyph and the workspace's legacy-tab fold.
-  // The Orbits page, its form and the known-field table stay lazy.
+  // The Sigils page, its form and the known-field table stay lazy.
   { name: "admin first paint", keys: app, budget: 1486 * 1024 },
 ];
 
@@ -1069,10 +1069,10 @@ const MUST_SPLIT = [
   // The Media page: the shelves, the form and their stylesheet, behind the
   // status bar's button. A workspace view like the graph, and split like it.
   "media/MediaView.tsx",
-  // The Orbits page, on the same terms as the Media page.
+  // The Sigils page, on the same terms as the Media page.
   "routines/RoutinesView.tsx",
   // Orbits (the shelf and the session, one chunk), on the same terms.
-  "stars/OrbitsSurface.tsx",
+  "orbits/OrbitsSurface.tsx",
   // The "What's new" deck: slides, live demos and prose for every release,
   // behind a door (whatsnew/door.ts) that is a version compare and nothing else.
   "whatsnew/WhatsNew.tsx",

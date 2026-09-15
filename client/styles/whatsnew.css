@@ -715,3 +715,65 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* The furigana slide (3.16.0): a real <ruby> line, its source, and the
+   chips the box offers for one kanji. */
+.s-wn-ruby {
+  inline-size: 100%;
+  display: grid;
+  gap: 14px;
+  align-self: center;
+  direction: ltr;
+}
+.s-wn-ruby__line {
+  margin: 0;
+  font-family: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  font-size: 1.857rem;
+  line-height: 2;
+  color: var(--text);
+  text-align: center;
+  animation: s-wn-in 9s infinite both;
+}
+.s-wn-ruby__line rt {
+  font-size: 0.45em;
+  color: var(--text-muted);
+}
+.s-wn-ruby__src {
+  font-family: var(--font-mono);
+  font-size: 0.857rem;
+  color: var(--text-faint);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.s-wn-ruby__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+.s-wn-ruby__kanji {
+  font-family: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", sans-serif;
+  font-size: 1.143rem;
+  color: var(--text);
+  margin-inline-end: 4px;
+}
+.s-wn-ruby__chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: var(--bg-raised);
+  animation: s-wn-late 9s infinite both;
+}
+.s-wn-ruby__chip.is-on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.s-wn-ruby__hint {
+  margin-inline-start: 8px;
+  color: var(--text-faint);
+}
