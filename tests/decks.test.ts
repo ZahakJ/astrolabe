@@ -484,6 +484,11 @@ describe("a note written from the modal", () => {
     assert.deepEqual(head.tags, ["t-```", "two-words"]);
     assert.deepEqual(scanCards(text).map((c) => c.front), ["x"]);
   });
+  it("writes a card's tag with a space the way the fence writes one, so the tag does not read back as the answer's tail", () => {
+    const text = serialiseDeck({ title: "T" }, [{ front: "x", back: "y", tags: ["two words", "#c"] }]);
+    assert.equal(text.endsWith("x::y #two-words #c\n"), true);
+    assert.deepEqual(scanCards(text).map((c) => c.back), ["y"]);
+  });
   it("never names a file with a leading dot", () => {
     assert.equal(deckNotePath(null, "..."), "Orbits/Deck.md");
     assert.equal(deckNotePath(null, ".hidden"), "Orbits/hidden.md");

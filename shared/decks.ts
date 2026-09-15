@@ -349,7 +349,9 @@ export interface NewCard {
  *     away. A cloze's comment sits on the line after it, where the scanner
  *     reads a block's. */
 export function cardLineOf(card: NewCard): string | null {
-  const tags = (card.tags ?? []).map((t) => t.replace(/^#+/, "").trim()).filter((t) => t !== "");
+  // The fence's rule for a tag with a space in it, so `#a b` cannot read
+  // back as a back that ends in " #a b".
+  const tags = (card.tags ?? []).map((t) => t.replace(/^#+/, "").trim().replace(/[\s,]+/g, "-")).filter((t) => t !== "");
   const tail = tags.length > 0 ? ` ${tags.map((t) => `#${t}`).join(" ")}` : "";
   const front = escapeLead(segment(card.front));
   if (front === "") return null;
