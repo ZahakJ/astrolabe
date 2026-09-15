@@ -42,7 +42,7 @@ notes: |
 | `status` | `planned` `active` `done` `paused` `dropped` | Plus the words people actually type: `reading`, `playing`, `watching`, `in-progress`, `started`, `finished`, `on hold`, `dnf`, `backlog`… Left out, it is derived from the progress. |
 | `rating` | `8/10`, `4/5`, `★★★★`, `4` | A bare number is out of five up to five, out of ten above it. |
 | `started`, `finished` | a date | An ISO date (`2026-07-01`) is formatted in the site's own calendar and numerals; anything else prints as written. |
-| `notes` | a block scalar (the key, a colon, then a `\|`) | Markdown, rendered through the normal pipeline. |
+| `notes` | a value over several lines (the key, a colon, then a `\|`) | Markdown, rendered the way any note is. |
 
 Unknown keys are ignored. A fence with **neither a title nor a progress** stays a plain code block.
 That is deliberate: content that cannot be parsed should read as its own source rather than vanish
@@ -57,7 +57,7 @@ one unit: it rewrites the `progress:` line in your file and nothing else, as a s
 There is no separate store. The note *is* the state, so editing the number by hand does exactly what
 the button does.
 
-Cross 100% and the fill takes on a soft glow, and the wordmark's ✦ appears beside the count.
+Cross 100% and the bar takes on a soft glow, and Astrolabe's own ✦ appears beside the count.
 
 The reading view and the public site are inert by design: there is no write path for a visitor, and
 buttons that cannot work are furniture that lies.
@@ -85,18 +85,19 @@ than a blank.
 
 ## Publishing a shelf
 
-The board knows who is looking. It reads `GET /api/trackers`, which is scoped exactly like the
-blog's own post list:
+The board knows who is looking. It reads `GET /api/trackers`, which answers each viewer with what
+they are allowed to see, by the same rule as the blog's own post list:
 
-- a **visitor** sees trackers from **published notes only**, with the language filter applied at
-  their scope;
+- a **visitor** sees trackers from **published notes only**, with the same language filter the
+  blog applies;
 - an **admin** sees the whole vault;
 - **templates are excluded from both**: a template carrying a tracker skeleton would otherwise
   shelve itself as a book nobody has started.
 
 So a board left on a published note is safe: you can put your reading year on the public site
 without opening the rest of the vault. Cover art on a published tracker is served to visitors too;
-the indexer collects tracker covers into the same allowlist that governs banners and embeds.
+the indexer adds tracker covers to the same list of files a visitor may fetch, beside banners and
+embeds.
 
 ## The Media page
 
@@ -157,6 +158,6 @@ to publish it.
 ## In Obsidian
 
 `tracker` is an Astrolabe extension, not an Obsidian feature. Open the same vault in Obsidian and the
-fence degrades to what it is: a labelled code block whose lines are all readable. Nothing is
+fence goes back to what it is underneath: a labelled code block whose lines are all readable. Nothing is
 converted, nothing is lost, and the note still says everything it said here. See
 [OBSIDIAN-COMPAT.md](../OBSIDIAN-COMPAT.md).

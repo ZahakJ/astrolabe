@@ -28,12 +28,13 @@ those four words freely.
 - **Click to follow, click to create.** A plain click on a rendered link opens the note. If the
   link is dashed, the note does not exist yet; clicking it creates the note.
 - **Selection that knows what it is looking at.** Double-click takes the word under the pointer.
-  It counts by grapheme cluster, which means Arabic harakat and the Persian ZWNJ stay inside the
-  word rather than splitting it. Double-click a rendered object and you get the whole object: a
-  wikilink, a `#tag`, an inline `$math$` span, a code chip. Inside a code fence, double-click takes
-  the identifier, `$jquery` and `snake_case_name` included. Triple-click takes the paragraph,
-  dragging extends the selection by character, and shift-click extends from where you were. The
-  gate `npm run check-caret` tests this in both the English and the Arabic shell.
+  It treats a letter and the marks on it as one unit, so Arabic harakat and the Persian ZWNJ (the
+  invisible joiner) stay inside the word rather than splitting it. Double-click a rendered object
+  and you get the whole object: a wikilink, a `#tag`, an inline `$math$` span, a code chip. Inside
+  a code fence, double-click takes the whole name, `$jquery` and `snake_case_name` included.
+  Triple-click takes the paragraph, dragging extends the selection by character, and shift-click
+  extends from where you were. The gate `npm run check-caret` tests this in both the English and
+  the Arabic shell.
 - **Frontmatter properties card, editable in place.** While your cursor is outside the frontmatter,
   it collapses to a neat key/value card with clickable tag pills, and you edit it right there: click
   a value to type over it, tick a checkbox for `true`/`false`, pick a date from a calendar, add and
@@ -45,11 +46,12 @@ those four words freely.
   with no properties yet still gets the card: one line with *Add property* and *Set banner…*, so
   every note starts from the same place (Settings → Appearance & language → *Properties card on
   empty notes* turns that off).
-  Every one of those edits is **byte-surgical**: your quote style, your comments, the order of your
-  keys and every line you did not touch stay exactly as they were. Deleting the last property also
-  removes the `---` fences instead of leaving an empty rule behind. Machine keys (`id`, `uuid`,
-  `dg-*`) stay read-only, and `publish:` has its own switch in the status bar. It works the same on
-  a `.tex` note, whose properties live in a `%---` comment block.
+  Every one of those edits **touches only its own spot**: your quote style, your comments, the
+  order of your keys and every line you did not touch stay exactly as they were. Deleting the last
+  property also removes the `---` fences instead of leaving an empty rule behind. Keys that
+  programs write rather than people (`id`, `uuid`, `dg-*`) stay read-only, and `publish:` has its
+  own switch in the status bar. It works the same on a `.tex` note, whose properties live in a
+  `%---` comment block.
 - **Templates.** `{{date}}`, `{{time}}`, `{{title}}` and `{{date:FORMAT}}` in the syntax other tools
   share, plus `{{hdate}}` for the Hijri date. Insert a template at the cursor or start a new note
   from one; the picker previews the filled-in result before you commit. See
@@ -96,8 +98,8 @@ those four words freely.
   [Theming](theming.md#colored-text-in-two-tiers).
 - **Deletes that say what they are taking**, and a **trash browser**. See
   [Deleting](templates-and-notes.md#deleting-and-the-trash).
-- **Vim mode**, autosave (600 ms after you stop typing, plus `Ctrl/Cmd S`), and a surface built to
-  be driven from the keyboard.
+- **Vim mode** for those who already know that editor's keys, autosave (600 ms after you stop
+  typing, plus `Ctrl/Cmd S`), and a surface built to be driven from the keyboard.
 
 ## Rendering
 
@@ -138,19 +140,20 @@ those four words freely.
 - **Backlinks panel.** Every note shows which notes link to it, with the sentence that does.
 - **Outline (table of contents) panel.** The open note's headings, following your scroll position;
   click one to jump to it.
-- **Graph view.** A map of your notes as dots, with a line for every link, drawn by a hand-rolled
-  force simulation on a canvas. Drag the dots, hover to light up a note's neighbours, click to open.
+- **Graph view.** A map of your notes as dots, with a line for every link; the dots push apart and
+  the links pull them together until the map settles, so linked notes end up beside each other by
+  themselves. Drag the dots, hover to light up a note's neighbours, click to open.
   It opens as a [tab](workspace.md#panes) in the focused pane (`Ctrl/Cmd G`), so the map and a note
   can sit side by side or flip back and forth. The sliders button opens its settings: colour the
   notes by **folder** (one or two levels deep) or by **tag**, with a legend where each group can be
-  recoloured or hidden; a search that lights the matching notes; filters for orphans and a minimum
-  number of links; the three forces (spread, link length, pull to centre); dot size, link opacity,
+  recoloured or hidden; a search that lights the matching notes; filters that hide orphans (notes
+  with no links) or anything under a minimum number of links; the three forces (spread, link length, pull to centre); dot size, link opacity,
   the zoom level at which labels appear, and a glow. The settings panel itself is yours to place:
   drag it by its title anywhere over the graph, drag its corner to make it as short or as narrow as
   you like, and *Reset* puts it back. All of this is remembered per browser and never touches the
   vault.
-- **Full-text search.** Prefix and fuzzy matching (MiniSearch), instant, with highlighted snippets
-  that have the markdown syntax stripped out. It answers to
+- **Full-text search.** Instant; it matches a word from its first letters and forgives a small
+  typo, and shows highlighted snippets with the markdown syntax stripped out. It answers to
   [localised tag labels](arabic-and-rtl.md#localised-tag-labels) as well as the canonical ones, and
   it **folds diacritics and letter shapes**, so «المقدمة» finds a note that spells it «الْمُقَدِّمَة»
   and `resume` finds *résumé*. See [Searching in Arabic](arabic-and-rtl.md#searching-in-arabic).
@@ -181,13 +184,14 @@ those four words freely.
   not, so a replace you regret tomorrow is still recoverable through
   [Backup & sync](backup-and-sync.md). Two rules worth knowing before you type:
 
-  - **Matching is exact.** Case and diacritics count, and the text is a literal string unless you
-    tick *Regular expression* (then it is a JavaScript pattern, `$1` capture references and all,
-    applied one line at a time, so `^` and `$` mean the ends of a line). The search box above folds
+  - **Matching is exact.** Case and diacritics count, and the text is taken letter for letter
+    unless you tick *Regular expression* (then it is a pattern in JavaScript's syntax, `$1` capture
+    references included, applied one line at a time, so `^` and `$` mean the ends of a line). The search box above folds
     case and diacritics because finding is a question; replacing is a write, and a replace that
     stripped the harakat off a word you never typed would be destroying text you never saw.
-  - **Frontmatter is never touched.** Properties have their own byte-surgical editor. A blind regex
-    over YAML is how other tools eat your quote styles.
+  - **Frontmatter is never touched.** Properties have their own editor, the one that changes only
+    the spot you edited. A blind pattern run over the frontmatter is how other tools eat your quote
+    styles.
 
   A file that changed on disk between the preview and the press is **skipped and named**, never
   overwritten.
@@ -233,8 +237,8 @@ those four words freely.
   depending on which matched better. (Typing `sort` used to put *Design your site* over the whole
   vault.) Start the query with `@` or `#` to jump to a heading (or a LaTeX `\label`) inside the note
   you are reading instead.
-- **Live vault watching.** Edit a file in any other editor and the app updates within about
-  100 ms (chokidar + SSE).
+- **Live vault watching.** Edit a file in any other editor and the app updates within about a
+  tenth of a second.
 
 ![Command palette](screenshots/palette.png)
 
@@ -266,8 +270,8 @@ readable there.
 
 ## Tasks across the vault
 
-Every `- [ ]` line is a task. The fields the Tasks plugin taught vaults to write are read off the
-end of the line: `📅 2026-09-20` due, `⏳` scheduled, `🛫` start, `✅` done on, `🔁 every week`, and
+Every `- [ ]` line is a task. The fields Obsidian's Tasks plugin taught vaults to write are read off
+the end of the line: `📅 2026-09-20` due, `⏳` scheduled, `🛫` start, `✅` done on, `🔁 every week`, and
 `⏫ 🔼 🔽` priority. A ` ```tasks ` fence lists tasks from the whole vault, grouped by note, and in the
 editor each box is live: a tick flips that one line in the note it lives in and stamps `✅ today`,
 so Obsidian's Tasks reads the same state.
@@ -293,8 +297,9 @@ that line; **Link all** does every row. This is how small notes get woven into a
 
 ## Block references
 
-Any paragraph or list item can be addressed. End it with a space and a caret id, like `…the rule of
-three. ^rule3`, or put `^rule3` on a line of its own right under the block. Then:
+You can link to one paragraph or one list item, not only to a whole note. End it with a space and
+an id that starts with `^`, like `…the rule of three. ^rule3`, or put `^rule3` on a line of its own
+right under the block. Then:
 
 - `[[Note#^rule3]]` links to that block and lands on it; the hover card shows just that block;
 - `![[Note#^rule3]]` transcludes only that block, in the editor, the reading view and on the blog;
@@ -302,8 +307,8 @@ three. ^rule3`, or put `^rule3` on a line of its own right under the block. Then
 
 The marker is hidden in the reading view and in live preview until the caret is on its line, where
 it shows faint and monospace so it can be read or changed. **Copy link to this block** in the
-command palette mints an id for the block under the caret (or reuses the one it has), appends it as
-one undo step, and copies the link; on a heading line it copies the section link instead. The syntax
+command palette makes an id for the block under the caret (or uses the one it already has), appends
+it as one undo step, and copies the link; on a heading line it copies the section link instead. The syntax
 is Obsidian's, so a vault that already carries `^ids` keeps every link.
 
 ## Find and replace
@@ -318,8 +323,8 @@ first. `Esc` from any field in that panel closes it.
 ## The bar and the top cluster
 
 The bar under the note says where you are, how long the note is, whether it is published and which
-mode you are in. It ends with the build you are on: the [updater](desktop.md#updates) on the desktop
-app, the releases page in a browser. The shell's own controls sit at the top, after the tabs: the
+mode you are in. It ends with the version you are on: the [updater](desktop.md#updates) on the
+desktop app, the releases page in a browser. The shell's own controls sit at the top, after the tabs: the
 panes, zen, the graph, the site designer, settings, the theme, and signing out.
 
 ## Arranging the tree

@@ -41,18 +41,18 @@ the note, or double-clicking, keeps the tab. `Ctrl/Cmd Alt PageDown` / `PageUp` 
 `Ctrl/Cmd Alt W` closes a tab; middle-click closes one too, and a tab with unsaved changes wears a
 dot. The strip is one tab stop for the keyboard: arrows walk it, `Home` and `End` jump, `Delete`
 closes the focused tab. Right-click a tab for **pin** (a ◆ in the row, protected from *close
-others*), close others, close to the right, reveal in the sidebar, and copy the path. When more tabs
+others*), close others, close the tabs after this one, reveal in the sidebar, and copy the path. When more tabs
 are open than the strip is wide, it scrolls inside its own box and the active tab is kept in view;
 the tool cluster at the top never goes under it.
 
 ## Several windows, one vault
 
 Open a second window on the vault (*Open this note in a new window* in the palette; on the desktop
-app also `Ctrl/Cmd Shift N`). Two windows on the same note are not two editors: one holds the **edit
-lease** and saves, and the other becomes a live reader with a strip that says *Another window is
-editing this note* and an **Edit here** button that takes the lease over. No coordinator and no lock
-file: the oldest window wins a tie, claims age out with a heartbeat, and a window that closes
-releases its lease. Theme and editor language follow between windows, and signing out in one signs
+app also `Ctrl/Cmd Shift N`). Two windows on the same note are not two editors: one holds the **right
+to edit** and saves, and the other becomes a live reader with a strip that says *Another window is
+editing this note* and an **Edit here** button that takes that right over. No referee between the
+windows and no lock file: the oldest window wins a tie, a window that stops checking in loses its
+claim, and a window that closes gives its right up. Theme and editor language follow between windows, and signing out in one signs
 out all. The desktop app adds a [reference window](desktop.md#the-reference-window) that stays on
 top.
 
@@ -60,14 +60,14 @@ top.
 
 A save that would overwrite a version of the note you never saw is **refused**, not merged: the
 server compares the file's modification time with the one your editor loaded. Your text stays in the
-editor, autosave pauses, and a strip above the note offers **Keep mine** or **Take theirs**
-(undoably). The full story, including the two-server case, is in
+editor, autosave pauses, and a strip above the note offers **Keep my version** or **Use the disk
+version** (undoably). The full story, including the two-server case, is in
 [Backup & sync](backup-and-sync.md#two-servers-one-vault).
 
 ## The local graph
 
 The right panel carries a **local graph**: the open note in the centre with the notes it links to
-and the notes that link to it, drawn with springy physics you can grab. Drag with momentum, click to
+and the notes that link to it, moving as if hung on springs you can grab. Drag and let go and it keeps moving a little, click to
 open, double-click to open in place. It stays live as you write and link, collapses with the panel's
 other sections, and remembers whether it was open. The whole-vault graph is
 [the graph view](editor.md#navigating).
@@ -75,8 +75,8 @@ other sections, and remembers whether it was open. The whole-vault graph is
 ## The command palette, beyond notes
 
 `Ctrl/Cmd P` searches notes and commands together. With an empty query it lists the notes you open
-most, ranked by a decaying visit count kept in this browser (paths only, pruned against the tree,
-never shown to a visitor). The same ledger breaks ties in wikilink autocomplete. Rows worth knowing:
+most, ranked by how often you visit each, a count that fades with time and is kept in this browser (paths
+only, dropped when the note leaves the tree, never shown to a visitor). The same ledger breaks ties in wikilink autocomplete. Rows worth knowing:
 *Reveal note in sidebar*, *Copy link to note*, *Duplicate note* (a copy beside it), *Open this note
 in a new window*, *Focus next pane*, *Switch to* the light or dark twin of your theme, *Snapshot
 now*, *Open trash*, *Take the tour*.
@@ -133,9 +133,8 @@ device. A click still filters the tree, a second click clears the filter, and a 
 ## On a phone
 
 The sidebar is a drawer that follows your finger: a horizontal swipe anywhere drags it in, and the
-gesture can be interrupted or reversed; it commits by distance or by a flick. The outline pane
-answers the mirrored swipe. Edges are logical, so in Arabic the drawer comes from the right with no
-second rule. The outline pane is a drawer on a phone too: the outline switch in the status bar
+gesture can be interrupted or reversed; it opens fully once you have dragged far enough, or with a flick. The outline pane
+answers the mirrored swipe. In Arabic the drawer comes from the right by itself, with no second rule. The outline pane is a drawer on a phone too: the outline switch in the status bar
 slides it over the page from the end edge, with backlinks, unlinked mentions and on-this-day inside.
 
 The top bar keeps three controls on a phone: the outline switch, the settings gear and a **⋯**. The

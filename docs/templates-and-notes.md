@@ -14,32 +14,32 @@ note in the editor and the reading view, and in blog mode it becomes the article
 right-aligned thumbnail in the post list. A published note's banner file can be fetched by visitors
 automatically; the attachments of unpublished notes stay invisible, as always.
 
-**Four forms are accepted, tried in this order.** It is the same ladder every image reference in
-Astrolabe climbs, the site logo and the dashboard hero included:
+**Four forms are accepted, tried in this order.** Every picture Astrolabe is pointed at is looked
+up the same way, the site logo and the dashboard hero included:
 
 | What you write | What it finds |
 | --- | --- |
-| `banner: https://example.com/cover.jpg` | the URL itself (https only — an `http://` banner would be mixed content, so it is refused rather than rendered) |
+| `banner: https://example.com/cover.jpg` | the URL itself (https only — a browser blocks an `http://` picture on a secure site, so it is refused rather than shown broken) |
 | `banner: Media/cover.png` | that exact path from the vault root |
 | `banner: cover.png` *(note in `Trips/`)* | `Trips/cover.png` — beside the note, where Obsidian keeps a note's own images. `img/cover.png` and `../shared/cover.png` work the same way |
 | `banner: cover.png` *(no such neighbour)* | any `cover.png` in the vault, resolved exactly as `![[cover.png]]` resolves it: case-insensitive, shortest path wins |
 
 A **bare filename is what most people write**, and for a while it was the one form that did not
-work: it was sent to the vault root and came back 404, even though wikilinks and embeds had always
-found a file by name from anywhere. It works now, and so does the note's own folder.
+work: it was looked for in the vault root alone and not found, even though wikilinks and embeds had
+always found a file by name from anywhere. It works now, and so does the note's own folder.
 
 If the value names nothing, **you are told**. As the signed-in admin you see, instead of the hero, a
 dashed card naming the value that failed, with **Set banner…** beside it. Visitors see nothing at
 all: a stranger cannot fix your typo, and blog posts fall back to the generated gradient. (Before
 this, a broken banner deleted itself, which made a typo and "no banner" look identical.)
 
-As admin you rarely touch the YAML by hand. **Set banner…** in the command palette (also a quiet
-button on the properties card) opens a dialog to paste a URL, pick from the vault's image
+As admin you rarely write the `banner:` line by hand. **Set banner…** in the command palette (also
+a quiet button on the properties card) opens a dialog to paste a URL, pick from the vault's image
 attachments, or upload a file (drag and drop, or a file picker; png/jpeg/webp/gif/svg, 10 MB at
-most, and the bytes are checked, not just the extension). The upload lands wherever the
-[Attachments](configuration.md#attachments) setting points, measured from the note's own folder;
-under *Same folder* the banner sits beside the note. The write is a surgical one-line edit of the
-frontmatter, and the rest of the file is untouched. Posts without a banner get a subtle generated
+most, and the file's contents are checked, not just its extension). The upload lands wherever the
+[Attachments](configuration.md#attachments) setting points, counted from the note's own folder;
+under *Same folder* the banner sits beside the note. That changes one line of the frontmatter and
+nothing else in the file. Posts without a banner get a subtle generated
 gradient in the blog list and the article hero (`BANNER_FALLBACK=none` turns that off).
 
 ## Templates
@@ -85,18 +85,19 @@ Anything else is **left exactly as written**: `{{cursor}}`, a Templater expressi
 Blanking a token Astrolabe does not implement would destroy text you typed and hide the fact that
 the template expects something we do not do.
 
-Dates follow the site's settings where a reader can see them, and stay machine-shaped where
-something has to parse them. The named formats (`{{date:long}}`) and `{{hdate}}` use
-`settings.dateCalendar` and the instance's numeral system. The token formats stay Gregorian with
+Dates follow the site's settings where a reader can see them, and stay in a form a program can read
+where one has to. The named formats (`{{date:long}}`) and `{{hdate}}` use the site's calendar
+(`settings.dateCalendar`) and the instance's numeral system. The token formats stay Gregorian with
 Western digits: `{{date}}` is `YYYY-MM-DD` by Obsidian's definition, and it lands in `date:`
 frontmatter lines and in filenames, where `١٤٤٨-٠٢-١٣` would parse as nothing. See
 [Hijri dates](arabic-and-rtl.md#hijri-dates).
 
-**Frontmatter is merged, never stacked, and identity is never copied.** Inserting a template into a
-note that already has a `---` block folds the template's keys into that block: one block, no key
-twice, and **the note's own values win** (its `publish:`, its `date:`, its `tags:` are facts about
-that note; the template's are only defaults). Identity keys (`id`, `uuid`, `guid`, `permalink`,
-`slug`) are **minted fresh**, in the same shape as the template's own value: a uuid stays a uuid, a
+**Frontmatter is merged, never stacked, and a note's id is never copied.** Inserting a template
+into a note that already has a `---` block folds the template's keys into that block: one block, no
+key twice, and **the note's own values win** (its `publish:`, its `date:`, its `tags:` are facts
+about that note; the template's are only defaults). The keys that tell one note from another
+(`id`, `uuid`, `guid`, `permalink`, `slug`) are **generated fresh**, in the same shape as the
+template's own value: a uuid stays a uuid, a
 16-digit timestamp stays 16 digits. A template carrying `id:` used to hand the same id to every note
 ever made from it.
 
@@ -141,10 +142,11 @@ A section is a heading and everything under it, up to the next heading of the sa
   standing where it was, fold or unfold everything below it, select it, focus it.
 - **Drag a heading in the outline to move that whole section.** The heading, its body and every
   subheading travel as one block, and a drop rule shows the depth it will land at *before* you let
-  go. Drag toward the reading direction to nest deeper, or rest on a row for a moment to drop inside
-  it. It is one transaction, so `Ctrl/Cmd Z` takes it back, and the toast carries an Undo button
-  too. `npm run check-sections` property-tests the rewrite against frontmatter, nested headings and
-  code fences containing `###` lines; see [Development](development.md).
+  go. Drag toward the reading direction to nest it one level deeper, or rest on a row for a moment
+  to drop inside it. It is one step, so `Ctrl/Cmd Z` takes it back, and the toast carries an Undo
+  button too. `npm run check-sections` tests the rewrite against thousands of generated notes with
+  frontmatter, nested headings and code fences containing `###` lines; see
+  [Development](development.md).
 - **Focus one section.** `Ctrl/Cmd Alt F` collapses everything except the section your cursor is in;
   `Esc` puts the note back exactly as it was, folds and all. `Ctrl/Cmd Alt ↑` / `↓` jump to the
   previous or next heading (in the reading view they scroll). Fold state is remembered per note
@@ -171,7 +173,7 @@ and lands in the folder it was dropped on.
 
 **Unused attachments.** `Ctrl/Cmd P` → **Unused attachments** lists every file in the vault that no
 note points at, with its size, so stale screenshots can be told apart from the figures an essay still
-embeds. "Used" means what the indexer means by it, the same walk that decides what a visitor may
+embeds. "Used" means what the indexer means by it, the same count that decides what a visitor may
 fetch and what a delete would break: embedded (`![[x.png]]`, `![alt](x.png)`), linked (`[[x.pdf]]`),
 a note's `banner:`, a tracker's `cover:`, a folder's icon (from settings or the folder note), a
 library path's cover, a drawing's exported svg, and the site's logo, favicon and home banner. Tick
@@ -211,8 +213,8 @@ and dropping onto a folder that is still shut works fine.
 
 **Every link follows**: `[[wikilinks]]` written as paths, `[markdown](links)`, and the relative
 `![embeds](../Media/x.png)` inside the notes that moved. A folder move of 1,214 notes repairs 246
-notes' links and is indexed before the request answers, so search, the graph and the public site are
-correct the moment it lands. A name collision asks for another name instead of overwriting, and every
+notes' links and the indexes are updated before the move reports back, so search, the graph and the
+public site are correct the moment it lands. A name collision asks for another name instead of overwriting, and every
 move raises a toast naming both ends **with Undo**. No mouse? "Move to…" in a row's right-click menu
 and in the command palette opens a filterable folder picker that does exactly the same thing, and so
 does dropping images straight from your desktop onto a folder row. The picker ends in a pinned

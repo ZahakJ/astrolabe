@@ -8,7 +8,7 @@
 
 Excalidraw is a free whiteboard tool: shapes, arrows, freehand strokes and text, in a hand-drawn
 style. A drawing in Astrolabe is a file in the vault in a format Excalidraw already speaks: either
-the editor's own `.excalidraw` JSON file, or the shape the Obsidian Excalidraw plugin writes into a
+the editor's own `.excalidraw` file (a plain data file), or the shape the Obsidian Excalidraw plugin writes into a
 markdown note, `.excalidraw.md`. Astrolabe did not invent a third format. Both open here as a full
 Excalidraw canvas in a pane, both save back into the same file, and both keep opening in Obsidian
 afterwards.
@@ -52,8 +52,7 @@ The canvas is Excalidraw, whole: shapes, arrows, freehand, text, images, the lib
 of its keys (`r` rectangle, `t` text, `v` select, `?` for the rest). It wears Astrolabe's colours,
 so dark or light follows [the theme](theming.md) you are in, and it speaks the
 [editor's language](arabic-and-rtl.md#your-editors-language-is-yours): an Arabic interface gets
-Excalidraw in Arabic, mirrored. Its fonts are served from this instance; no request leaves the
-origin.
+Excalidraw in Arabic, mirrored. Its fonts are served from your own server; no request leaves it.
 
 **It saves like a note.** A stroke lands in the file about a second after the pen lifts, under the
 same rule every note save keeps: if the file changed on disk in the meantime (Obsidian, a
@@ -73,17 +72,17 @@ live preview, the reading view, a blog article, a designed page and a library le
 exported svg; none of them loads the canvas.
 
 A visitor sees the svg of a **published** note's embed exactly as they see any other attachment of
-that note: the drawing itself is a note, and an unpublished one is a 404, but the picture beside it
-walks through the note's own door. Unpublish the note and the door closes.
+that note: the drawing itself is a note, and an unpublished one is not served at all, but the picture beside
+it walks through the note's own door. Unpublish the note and the door closes.
 
-If the svg is not on disk yet (a drawing made in Obsidian with auto-export off, or a file older than
+If the picture is not on disk yet (a drawing made in Obsidian with auto-export off, or a file older than
 this feature), you, the owner, see it anyway: the reading view draws it with the canvas code, once,
-for that page. Open the drawing and save it once and the svg exists for everyone.
+for that page. Open the drawing and save it once and the picture exists for everyone.
 
 ## What is indexed
 
-The text elements, one per line, and a `[[link]]` set on any shape. Not the JSON: an element id is
-not a word anyone searches for. So a drawing appears in search by what is written on it, in the
+The text elements, one per line, and a `[[link]]` set on any shape. Not the file's internal data:
+an element id is not a word anyone searches for. So a drawing appears in search by what is written on it, in the
 graph by what it links to, and in a note's backlinks when the drawing names that note.
 
 ## In Obsidian
@@ -98,4 +97,4 @@ plain `.excalidraw` is an attachment to Obsidian, as it always was. See
 
 *Under the hood: `shared/drawing.ts` reads and writes both spellings (`tests/drawing.test.ts`);
 `client/drawing/DrawingSurface.tsx` is the pane; `PUT /api/drawing-svg?path=` is the picture's
-door; `scripts/check-bundle.mjs` asserts the canvas never joins a first paint.*
+door; `scripts/check-bundle.mjs` asserts the canvas is never loaded with a page's first paint.*
