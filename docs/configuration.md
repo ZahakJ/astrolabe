@@ -35,11 +35,11 @@ comment explaining it. The table below is the short version.
 | `HOST` | The address the server listens on (default `0.0.0.0`, which means every network interface). If you listen on anything other than the local machine *and* have no password, the server prints a loud warning at startup: anyone who can reach the port is an admin |
 | `ASTROLABE_VAULT` | The vault folder — the folder that holds your notes (default `./vault`). A `--vault <path>` argument on the command line takes precedence over this |
 | `ASTROLABE_DATA` | The server's data folder (default `./data`). It holds `settings.json`, the comments database (SQLite), your `custom.css`, `designs.json`, the git credentials file, and `fonts/` (your own font files, plus the cached catalog in `fonts/catalog/` and uploads in `fonts/custom/`) |
-| `ADMIN_PASSWORD_HASH` | The admin password, stored as an argon2id hash. `npm run hash-password` makes one. When it is not set, the app runs in *open local mode*: no password, everyone is an admin |
-| `SESSION_SECRET` | A long random string used to sign login cookies. When it is not set, the server invents one at startup, so every login expires when the server restarts |
+| `ADMIN_PASSWORD_HASH` | The admin password, stored as an argon2id *hash* — a fingerprint the server can check a password against but cannot turn back into the password. `npm run hash-password` makes one. When it is not set, the app runs in *open local mode*: no password, everyone is an admin |
+| `SESSION_SECRET` | A long random string used to sign login cookies (the small token your browser keeps to prove you are signed in). When it is not set, the server invents a new one at every startup, so every restart signs you out |
 | `PUBLIC` | `false` requires login even to read notes (default: reading is public, editing needs login). **The server refuses to start with `PUBLIC=false` and no `ADMIN_PASSWORD_HASH`** |
 | `SECURE_COOKIES` | `true` or `false` to force the `Secure` flag on the login cookie. When it is not set, the server decides from the request: HTTPS gets the flag, plain HTTP does not (a trusted proxy can say HTTPS through `X-Forwarded-Proto`) |
-| `TRUSTED_PROXIES` | Comma-separated IP addresses or CIDR ranges whose `X-Forwarded-For` and `X-Forwarded-Proto` headers are believed (for example `127.0.0.1,::1`). When it is not set, both headers are ignored and the rate limit counts by the connecting address |
+| `TRUSTED_PROXIES` | Comma-separated IP addresses, or address ranges in CIDR notation, whose `X-Forwarded-For` and `X-Forwarded-Proto` headers are believed (for example `127.0.0.1,::1`). When it is not set, both headers are ignored and the rate limit counts by the connecting address |
 | `HOME_NOTE` | The note a first-time visitor lands on, as a path inside the vault, for example `index.md` |
 | `COMMENTS` | `on` (also `true`, `1`, `yes`) lets readers leave comments under published notes (default off) |
 | `NOTE_VERSIONS` | `off` (also `false`, `0`, `no`) stops the app keeping a copy of every note before each save in `ASTROLABE_DATA/versions/` (default on) — see [Versions, before and beside git](backup-and-sync.md#versions-before-and-beside-git) |
@@ -53,7 +53,7 @@ comment explaining it. The table below is the short version.
 | `EXCLUDE_TAGS` | Comma-separated tags to hide from the public site's topic lists and tag pills — typically workflow tags like `draft,seedling`. Case does not matter and a leading `#` is fine. The admin's own views are not affected |
 | `PUBLIC_LAYOUT` | What a visitor sees: `blog` for a classic blog layout (see [Blog mode](blog-mode.md)), `designed` for a home page you compose yourself (see [Designer](designer.md)), anything else for `app`, the read-only app (the default) |
 | `SITE_LANG` | The site's language: `en` (default) or `ar`. With `ar` every interface string is Arabic and the whole interface is mirrored right-to-left (see [Arabic & RTL](arabic-and-rtl.md)). The language *you* edit in is a separate choice, per browser: Settings → *Editor language* |
-| `BLOG_LOCALE` | A BCP47 locale tag (like `ar-EG` or `en-GB`) for the digits in post dates and the RSS feed's language (default: follows `SITE_LANG`). Month names follow the interface language when the visitor language switch is on |
+| `BLOG_LOCALE` | A language-and-region code (a BCP47 tag like `ar-EG` or `en-GB`) that decides the digits in post dates and the RSS feed's language (default: follows `SITE_LANG`). Month names follow the interface language when the visitor language switch is on |
 | `LANGUAGE_FILTER` | Which published notes the public site shows, by the language they are written in: `off` (default, show all) · `follow` (each reader sees their own language) · `ar` · `en`. The old values `true` and `false` still work — see [Language filter](arabic-and-rtl.md#language-filter) |
 | `ATTACHMENTS_DIR` | The vault folder that uploads from inside the app are saved into (default `Attachments`, or `مرفقات` on an Arabic site; an existing `attachments` folder is kept). It is created when first needed. The **Attachments** setting can send uploads elsewhere entirely — see [Attachments](#attachments) |
 | `BANNER_FALLBACK` | The header image for blog posts that have no `banner:` of their own — `generated` (default: an abstract gradient made from the note's title, always the same for the same title) or `none` |
@@ -62,7 +62,7 @@ comment explaining it. The table below is the short version.
 **Request size limits.** Every request to the server is capped in size before anything reads
 it, and there is no key for this: 10 MB on any `/api` request, and a much smaller 64 KB on the
 two things anonymous visitors can send (comments and login attempts). Anything bigger is refused
-with HTTP 413 instead of being held in memory. Uploads have their own, separate allowance. If
+with HTTP 413 ("request too large") instead of being held in memory. Uploads have their own, separate allowance. If
 you run the app behind a proxy, a matching limit there is a sensible extra layer — in nginx,
 `client_max_body_size 10m;`.
 
@@ -103,8 +103,8 @@ sentence saying what it decides.
   [Attachments](#attachments)), the templates folder and the template for new notes, the daily
   and weekly note folders, the drawings folder, the tags folder — plus two switches:
   *Keep note versions* and *Search inside books*.
-- **Typography** — four font slots (text / interface / code / Arabic script), chosen from a
-  self-hosted catalog *or* from font files you upload, with a live sample that stays on screen
+- **Typography** — four font slots (the text face, the interface face, the code face and the
+  Arabic face), each chosen from a catalog the server hosts itself *or* from font files you upload, with a live sample that stays on screen
   while you pick. See [Typography](typography.md).
 - **Backup & sync** — commit the vault to git and push it to a private repository you own, by
   hand or on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
@@ -198,7 +198,7 @@ above.
 | `defaultTheme` | one of the forty-six ids, `custom:<name>` for a theme that exists, or `follow` (visitors track your editor theme) | `DEFAULT_THEME`, else `follow` |
 | `adminTheme` | one theme id — **written by the app, not by hand**: your own editor theme, mirrored from your browser so `follow` has something to serve | none until you pick a theme |
 | `publicLayout` | `app` · `blog` · `designed` | `PUBLIC_LAYOUT`, else `app` |
-| `blogLocale` | BCP47 tag, ≤ 35 chars, canonicalized on save | `BLOG_LOCALE`, else `ar` when the language is Arabic, else `en` |
+| `blogLocale` | language-and-region code (BCP47), ≤ 35 chars, tidied into its standard form on save | `BLOG_LOCALE`, else `ar` when the language is Arabic, else `en` |
 | `language` | `en` · `ar` | `SITE_LANG`, else `en` |
 | `languageFilter` | `off` · `follow` · `ar` · `en` | `LANGUAGE_FILTER`, else `off` |
 | `languageToggle` | boolean — the public `EN`/`ع` switch. **No env counterpart** | `false` |
@@ -206,7 +206,7 @@ above.
 | `commentsEnabled` | boolean | `COMMENTS`, else `false` |
 | `noteVersions` | boolean — keep a version of every note before each save (Vault tab) | `NOTE_VERSIONS`, else `true` |
 | `shareButtons` | boolean — the share row under blog articles | `true` |
-| `authorSites` | array of `{ url }` (https), each enriched once from its own OpenGraph and cached in `ASTROLABE_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
+| `authorSites` | array of `{ url }` (https); each site's title and preview image are fetched once (from its OpenGraph tags) and cached in `ASTROLABE_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
 | `ambient` | boolean — a slow decorative atmosphere behind the public masthead, drawn per theme (see [Theming](theming.md#the-ambient-masthead)) | `false` |
 | `pdfSearch` | boolean — the sidebar search reads the pages of every PDF on the shelf (see [Searching inside every book](books.md#searching-inside-every-book)) | `PDF_SEARCH`, else `true` |
 | `favicon` | vault-relative image (`.ico .png .svg .jpg .jpeg .gif .webp .avif`) | none |
@@ -233,12 +233,12 @@ above.
 | `gitSync.remote` | `https://…`, `ssh://…` or `git@host:path`, no embedded credentials | none |
 | `gitSync.branch` | string | `main` |
 | `gitSync.intervalMinutes` | integer 0–1440; `0` is *manual only* | `0` |
-| `gitSync.pullFirst` | boolean — fast-forward-only pull before each sync | `true` |
+| `gitSync.pullFirst` | boolean — pull the remote before each sync, and only if it merely adds on top of what you have (a *fast-forward*) | `true` |
 | `gitSync.authMode` | `ssh` · `token` | `ssh` |
 
 Two more keys are **write-only**: `gitToken` and `gitUser`. `PATCH /api/settings` accepts them
-and stores them in `ASTROLABE_DATA/git-credentials.json`, readable by the server's user only
-(mode `0600`). They never go into `settings.json` and can never be read back: a read answers
+and stores them in `ASTROLABE_DATA/git-credentials.json`, readable only by the system user the
+server runs as (mode `0600`). They never go into `settings.json` and can never be read back: a read answers
 `gitSync.tokenSet: true` and the username, nothing more.
 
 `settings.json` is written atomically, meaning the file is either fully old or fully new — a

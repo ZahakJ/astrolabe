@@ -22,8 +22,9 @@ you declare**, and the folder's own structure becomes the path's:
 - every immediate subfolder is a **unit** (a chapter, a lecture, a week), named from the folder:
   `L3` prints as *Lecture 3*, `B2| Chapter 40` as *Chapter 40*, `Week 2` as *Week 2*; a folder
   with no number keeps its name and sorts after the numbered ones;
-- every **published** note inside is a **lesson**, in natural order by title, with a note named
-  like its unit (the chapter hub the reading companion writes) first;
+- every **published** note inside is a **lesson**, ordered by title in a way that understands
+  numbers (lesson 2 before lesson 10), with a note named like its unit (the chapter hub the
+  reading companion writes) first;
 - notes sitting directly in the path's folder are its **introduction**.
 
 No frontmatter is asked of any note beyond `publish: true`. A note that is not published is not
@@ -46,21 +47,20 @@ under *Talks* a series), takes the folder's name as the title, and **Put on the 
 it. The first path switches the library on. Right-click the same folder again and the popover
 says it is on the shelf, opens it, or takes it off.
 
-**Settings → Publishing → The library.** The same rows, with the fields the tree does not ask
-for. **Add a path** opens the vault's folders to click (type to filter), and each row's folder
+**Settings → Publishing & comments → The library.** The same rows, with the fields the tree does
+not ask for. **Add a path** opens the vault's folders to click (type to filter), and each row's folder
 line reopens that chooser; nothing here is typed as a path.
 
 | Field | What it is |
 | --- | --- |
 | Kind | Book, course or series. It decides the cover's shape and the shelf's grouping. |
 | Title | What the shelf and the door call it. |
-| Address | The URL segment: `/library/<address>`. Lowercase letters, digits, hyphens. |
-| Folder | The vault folder the path reads, chosen from the tree. |
+| Address | The last part of the URL: `/library/<address>`. Lowercase letters, digits, hyphens. |
+| Vault folder | The folder the path reads, chosen from the tree. |
 | Blurb, cover, source | Folded under one line until a row has them. Blurb: one or two sentences under the title. |
-| Cover | Start typing and the vault's images are offered, with thumbnails; pick one, or paste an https URL. |
-| Cover | An image, as a banner value (`attachments/cover.jpg` or an https URL). Without one the site draws a cover from the title. A [Media tracker](trackers.md#the-media-page) whose `folder:` is this path's folder lends its cover instead, over this field. |
+| Cover | An image from the vault (start typing and the vault's images are offered, with thumbnails) or an https URL, written the way a note's banner is (`attachments/cover.jpg` or `https://…`). Without one the site draws a cover from the title. A [Media tracker](trackers.md#the-media-page) whose `folder:` is this path's folder lends its cover instead, over this field. |
 | Source link | Where the material came from: the course page, the publisher. Shown on the path. |
-| Hidden | A lossless take-down: the row keeps every field and reaches nobody. |
+| Hidden | A take-down that loses nothing: the row keeps every field and nobody sees it. |
 
 Two placements and a name sit above the rows. **Door in the navigation** is on by default once
 the library is on: a *Library* link beside the topics on both public shells. **Shelf on the
@@ -100,7 +100,8 @@ place* clears it.
 ## Where it lives
 
 `shared/library.ts` holds the rules (what a legal row is, how a unit's name is read, how things
-sort), shared by the settings editor and the server so a green field and a 400 cannot disagree.
-`server/library.ts` resolves a path against the index for one session's scope. `GET /api/library`
+sort), shared by the settings editor and the server so the editor (a green field) can never
+accept what the server (a 400) refuses. `server/library.ts` builds a path from the vault index,
+limited to what one session may see. `GET /api/library`
 is the shelf; `/api/me.library` is the door. `client/library/` is the pages, the band, the covers
 and the progress. `npm test` covers the rules (`tests/library.test.ts`).

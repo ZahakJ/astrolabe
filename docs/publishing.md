@@ -59,9 +59,9 @@ old password dies the moment the new one is in place, which is exactly what you 
 laptop goes missing. (Upgrading Astrolabe also invalidates existing sessions once; you sign in
 again.)
 
-**Login rate limit.** Ten failed attempts per minute per IP address, plus a global ceiling. The
-slot is taken *before* the password is checked, so a thousand guesses fired at once are still
-only ten guesses. And at most two passwords are being verified at any moment — each argon2id
+**Login rate limit.** Ten failed attempts per minute per IP address, plus a global ceiling across
+all addresses. An attempt is counted *before* the password is checked, so a thousand guesses
+fired at once still get only ten checked. And at most two passwords are being verified at any moment — each argon2id
 check costs 64 MB of memory by design — so a flood of login attempts cannot starve the server
 that is also serving your notes.
 
@@ -123,9 +123,9 @@ toast and leaves you where you are. Preview your writing on the hosted instance 
 ## Putting it on the internet
 
 Run Astrolabe behind any HTTPS *reverse proxy* — a web server that sits in front of the app,
-holds the TLS certificate, and forwards requests to `localhost:6801`. Caddy, nginx and a
-Cloudflare tunnel all work. The app is a single origin (the API and the client on one port), so
-no special proxy rules are needed. Just make sure it can only be reached over HTTPS, so the
+holds the HTTPS certificate, and forwards requests to `localhost:6801`. Caddy, nginx and a
+Cloudflare tunnel all work. The whole app lives at one address and one port (the pages and the
+API together), so no special proxy rules are needed. Just make sure it can only be reached over HTTPS, so the
 password and the session cookie never travel in the clear.
 
 When you do sit it behind a proxy, also set `TRUSTED_PROXIES` to the proxy's address (for
@@ -136,7 +136,7 @@ otherwise it is ignored, because anyone can forge it.
 
 Request sizes are capped on the server before anything reads them: 10 MB on any `/api` request,
 and a much smaller 64 KB on the two things anonymous visitors can send (comments and login
-attempts). Anything bigger is refused with HTTP 413 rather than held in memory. A matching cap
+attempts). Anything bigger is refused with HTTP 413 ("request too large") rather than held in memory. A matching cap
 at the proxy is a sensible extra layer — in nginx, `client_max_body_size 10m;`.
 
 ## Comments
@@ -144,8 +144,8 @@ at the proxy is a sensible extra layer — in nginx, `client_max_body_size 10m;`
 Set `COMMENTS=on` (or flip the toggle in Settings → Publishing & comments) and every
 **published** note grows a quiet **Marginalia** section under its reading view, where visitors
 can leave a plain-text note. A name is optional; without one the comment says "Anonymous". While
-comments are off (the default) the feature is completely dark: no interface, and the API routes
-answer 404.
+comments are off (the default) the feature is completely absent: no interface, and its API routes
+answer 404 as if they did not exist.
 
 Moderation is built in for the admin. Each comment has a quiet delete `×` (it asks before doing
 anything irreversible) and an eye toggle that **hides** the comment instead. A hidden comment
@@ -159,7 +159,7 @@ needed, ignored by git) using Node's built-in `node:sqlite`, so there is nothing
 install. The abuse controls are built in too: a comment request over 64 KB is refused before
 anything parses it; posting is limited to 5 comments per minute per IP address (using
 `TRUSTED_PROXIES` for the real address, the same as login); a comment is at most 2000 characters
-of plain text (always shown escaped, never as HTML or Markdown) and a name at most 40; and the
+of plain text (always shown as text, never interpreted as HTML or Markdown) and a name at most 40; and the
 form carries a hidden field that silently swallows submissions from bots. Comments can only be
 read or written on notes with `publish: true`; for any other path the API answers the same 404 a
 missing note would, so unpublished paths stay unguessable. With `PUBLIC=false` (a fully private
