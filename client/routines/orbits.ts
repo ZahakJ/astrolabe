@@ -64,7 +64,7 @@ function tasksLinking(meta: RoutineMeta, date: string, path: string, tree: TreeN
 }
 
 // The shelf's counts, fetched at most every few seconds: every card on the
-// Orbits page asks for them when it is drawn, and a page of six orbits is one
+// Sigils page asks for them when it is drawn, and a page of six sigils is one
 // request, not six. A vault event redraws the cards and the cache has lapsed
 // by then, so a session's grades show up as they land.
 let shelf: { at: number; p: Promise<DeckMeta[]> } | null = null;
@@ -94,9 +94,9 @@ function sessionUrl(path: string): string {
   return `/orbits/${path.split("/").map(encodeURIComponent).join("/")}`;
 }
 
-/** Tick, for today, every orbit slot whose text wikilinks the deck
+/** Tick, for today, every sigil slot whose text wikilinks the deck
  *  at `path` — the session for it just ended with nothing due. A slot that
- *  links several decks is ticked only when none of them has a star
+ *  links several decks is ticked only when none of them has a card
  *  due, because "review" was the whole slot, not one deck of it. Resolves to
  *  the number of slots ticked; a failure to read or write is a quiet zero,
  *  the session's own summary is the thing the reader is looking at. */
@@ -142,7 +142,7 @@ export async function tickSlotForDeck(path: string): Promise<number> {
   return ticked;
 }
 
-/** Dress a drawn orbit card: for each of today's tasks that links a
+/** Dress a drawn sigil card: for each of today's tasks that links a
  *  deck, show the link by its name instead of its brackets and add
  *  a chip per deck, "N due · Study", opening the session. The card
  *  is the reading renderer's, rebuilt whole on every change, so this runs

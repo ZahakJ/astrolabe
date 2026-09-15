@@ -2293,7 +2293,7 @@ async function reviewDeckCardRoute(c: Context): Promise<Response> {
   const body = await jsonBody(c);
   const notePath = requiredString(body, "path");
   const line = typeof body.line === "number" && Number.isInteger(body.line) && body.line >= 1 ? body.line : 0;
-  if (line === 0) throw new VaultError(400, "A star needs a line");
+  if (line === 0) throw new VaultError(400, "A card needs a line");
   const dir = body.dir === "rev" ? "rev" : "fwd";
   const grade = body.grade;
   if (grade !== "again" && grade !== "hard" && grade !== "good" && grade !== "easy") throw new VaultError(400, "Grade one of again, hard, good, easy");
@@ -2309,7 +2309,7 @@ async function reviewDeckCardRoute(c: Context): Promise<Response> {
   const note = await readNote(notePath);
   const kind = parseDeckFence(note.content)?.kind ?? "basic";
   const star = scanDeckCards(note.content, note.path, kind).find((s) => s.line === line && s.dir === dir);
-  if (!star) throw new VaultError(409, "That star is gone", "stale");
+  if (!star) throw new VaultError(409, "That card is gone", "stale");
   const schedule = restore !== undefined ? restore : reviewCard(star.schedule, grade as Grade, today);
   const next = restore !== undefined ? restoreCardSchedule(note.content, star, restore) : writeCardSchedule(note.content, star, schedule as Schedule);
   if (next !== note.content) {

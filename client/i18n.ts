@@ -4559,7 +4559,7 @@ const DICT = {
   cmdOpenRoutines: { en: "Open Sigils", ar: "فتح السِّجِلّ" },
   // The hint says what a sigil IS, since the word is new: the palette
   // matches on the hint too, so "daily", "habit" and "log" all find the door.
-  cmdOpenRoutinesHint: { en: "view · what you keep every day, and its log", ar: "عرض · روتينك اليومي وسجلّه" },
+  cmdOpenRoutinesHint: { en: "view · what you keep every day, and its log", ar: "عرض · ما تحافظ عليه كل يوم، وسجلّه" },
   routinesLead: { en: "What today asks of you, in one place — tick it off here and the note keeps the day.", ar: "ما يطلبه منك اليوم في مكان واحد: علّم عليه هنا وتحفظ الملاحظة يومك." },
   routinesAdd: { en: "New sigil", ar: "سِجِلّ جديد" },
   routinesEmpty: { en: "No sigils yet.", ar: "لا سِجِلّات بعد." },

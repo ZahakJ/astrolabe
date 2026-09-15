@@ -113,7 +113,7 @@ linux:
   # metainfo file (desktop/appstream/, stamped with the version into
   # desktop/build/ by scripts/stamp-metainfo.mjs before a build) is what the
   # centre reads.
-  description: A reading room for your Markdown notes — a live-preview editor with wikilinks and backlinks, a graph, Arabic-aware search, a citing PDF reader, trackers, orbits and flashcards.
+  description: A reading room for your Markdown notes — a live-preview editor with wikilinks and backlinks, a graph, Arabic-aware search, a citing PDF reader, trackers, sigils for the days and orbits for spaced repetition.
   synopsis: A reading room for your Markdown notes
   vendor: ZahakJ
   maintainer: ZahakJ <77855241+ZahakJ@users.noreply.github.com>

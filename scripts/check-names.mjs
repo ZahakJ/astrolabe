@@ -9,9 +9,10 @@
 //
 // WHAT IS READ: every en and ar VALUE in client/i18n.ts and in the Orbits
 // surface's own copy table (client/orbits/copy.ts); every docs/*.md and
-// docs/ar/*.md; README.md; vault-seed/**; the what's-new deck
-// (client/whatsnew/releaseNotes.ts); and the section headings of
-// CONTRACTS.md. WHAT IS LOOKED FOR: the words nothing a reader sees may say
+// docs/ar/*.md; README.md; vault-seed/**; the packages' own descriptions
+// (the AppStream metainfo, electron-builder.yml, the package.json files);
+// the what's-new deck (client/whatsnew/releaseNotes.ts); and the section
+// headings of CONTRACTS.md. WHAT IS LOOKED FOR: the words nothing a reader sees may say
 // any more — routine, constellation, flashcard (say "card") — and their
 // Arabic (الروتين, الكوكبات, بطاقات تعليمية). Then client/ and server/
 // source for the old ADDRESSES "/constellations" and "/routines", which
@@ -101,6 +102,14 @@ for (const dir of ["docs", "docs/ar"]) {
 scanLines(join(root, "README.md"), readFileSync(join(root, "README.md"), "utf8").split("\n"), { allowLineage: true });
 for (const file of walk(join(root, "vault-seed"))) {
   if (!/\.(md|tex|txt)$/.test(file)) continue;
+  scanLines(file, readFileSync(file, "utf8").split("\n"), { allowLineage: true });
+}
+// The packages' own blurbs: what a software centre or `apt show` prints.
+// The 3.16 rename sweep read every page of the manual and missed both of
+// these ("trackers, orbits and flashcards"), which is how a store listing
+// ends up describing a release two names ago.
+for (const rel of ["desktop/appstream/dev.astrolabe.desktop.metainfo.xml", "desktop/electron-builder.yml", "package.json", "mobile/package.json", "desktop/package.json"]) {
+  const file = join(root, rel);
   scanLines(file, readFileSync(file, "utf8").split("\n"), { allowLineage: true });
 }
 
