@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbits · Astrolabe Documentation</title>
+<meta name="description" content="The things you come back to every day — a plan for each day, a record of what you did, and a page that asks you every morning.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/orbits/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link is-current" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/flashcards/">Flashcards</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="orbits">Orbits</h1>
+<p><em>The things you come back to every day — a plan for each day, a record of what you did, and a page that asks you every morning.</em></p>
+<hr>
+<p>Some things in life are not projects. They do not finish. You do not &quot;complete&quot; walking, or
+praying, or sleeping well — you come back round to them, day after day, the way a moon comes back
+round its planet. That is what an <strong>orbit</strong> is in Astrolabe: something you do by the day, with a
+card that shows you what today asks, lets you tick it off, and keeps count of how the days are
+going — your streak, this week, and the last twelve weeks as a little grid of colour.</p>
+<p>A <a href="../trackers/">tracker</a> is a card about one thing you are working <em>through</em> (a book, a game, a
+course) and how far you have got. An orbit is a card about your <em>days</em>. An exercise week, the five
+prayers, sleep, water, a mood journal, twenty pages a night — anything you mean to do again
+tomorrow.</p>
+<p>Everything an orbit knows lives in one ordinary note in your vault: the <strong>plan</strong> (what you mean to
+do) and the <strong>log</strong> (what you did). There is no hidden database. Tick a box and one line changes in
+your file; edit the line by hand and the card follows. Open the same vault in Obsidian and both
+parts are plain, readable code blocks that say exactly what they say here.</p>
+<blockquote>
+<p>Before 3.15 this feature was called <em>routines</em> and the blocks were named <code>```routine</code> and
+<code>```routine-log</code>. Those names still work, in every note you already have — nothing needs
+renaming. New orbits are written with the names below.</p>
+</blockquote>
+<h2 id="what-an-orbit-looks-like-in-the-note"><a class="anchor" href="#what-an-orbit-looks-like-in-the-note">What an orbit looks like in the note</a></h2>
+<p>Two blocks. The first is the plan; Astrolabe writes the second, the log, right under it the first
+time you tick something.</p>
+<pre><code class="language-orbit">title: Daily exercise
+kind: exercise
+icon: 🚶
+slots: morning, evening
+target: 6/week
+monday:
+  morning: 60 min brisk walk
+  evening: Full Body A: leg press 3×8–12, chest press 3×8–12, plank 3×45 sec
+tuesday:
+  morning: 60 min easy walk
+</code></pre>
+<pre><code class="language-orbit-log">2026-09-14 | done: morning, evening | Felt strong
+</code></pre>
+<p>Read it top to bottom and it says: <em>this orbit is called Daily exercise, it is an exercise, it
+wears a walking figure as its icon, each day has a morning and an evening, I am aiming for six days
+a week, and here is what Monday and Tuesday ask.</em> The log says: <em>on the 14th of September I did the
+morning and the evening, and I felt strong.</em></p>
+<p>You do not have to write any of this by hand. The <strong>New orbit</strong> form (below) writes it for you.
+But it is worth knowing that this is all there is.</p>
+<h2 id="the-plan-line-by-line"><a class="anchor" href="#the-plan-line-by-line">The plan, line by line</a></h2>
+<p>Every line is a word, a colon, and a value. Only the title is required — and even that can just be
+the first line on its own.</p>
+<div class="table"><table><thead><tr><th>Line</th><th>What you put after the colon</th><th>What it does</th></tr></thead><tbody><tr><td><code>title</code></td><td>a name</td><td>What the card is called.</td></tr><tr><td><code>kind</code></td><td><code>exercise</code> <code>habit</code> <code>prayer</code> <code>sleep</code> <code>water</code> <code>mood</code> <code>reading</code> <code>study</code> — or any word of your own</td><td>Picks the small glyph on the card and the suggestions the form offers. Synonyms in both languages are understood (<code>workout</code>, <code>salah</code>, <code>رياضة</code>, <code>صلاة</code>…). Your own word is kept as written and gets the ✦ glyph.</td></tr><tr><td><code>icon</code></td><td>one emoji or a short symbol — <code>🚶</code>, <code>☪</code>, <code>✦</code></td><td>Drawn in the card&#39;s corner instead of the kind&#39;s glyph.</td></tr><tr><td><code>banner</code></td><td>a picture — a file in the vault (<code>walk.jpg</code>, <code>Media/walk.jpg</code>) or an <code>https://</code> link</td><td>Drawn as a strip across the top of the card. It is found the same way a note&#39;s banner is: by its full path, then beside the note, then anywhere in the vault by name.</td></tr><tr><td><code>slots</code></td><td>words with commas between them — <code>morning, evening</code></td><td>The <strong>parts of a day</strong> you plan by. They become the columns of your week. Leave this line out and each day is just one line.</td></tr><tr><td><code>items</code></td><td>things with commas between them — <code>Fajr, Dhuhr, Asr, Maghrib, Isha</code>, or <code>8 glasses</code></td><td>Things asked of you <strong>every</strong> day. Each becomes a box to tick.</td></tr><tr><td>a weekday</td><td><code>monday: 60 min walk</code> — or <code>monday:</code> on its own with the parts indented under it</td><td>What that day asks. Weekdays are understood in English and Arabic, long or short (<code>mon</code>, <code>الاثنين</code>). A day with nothing under it is a <strong>rest day</strong>: it never counts against you.</td></tr><tr><td><code>fields</code></td><td>things to record, with commas between them — see <a href="#what-to-record-each-day">What to record each day</a></td><td>The small inputs on the card: a number, a rating, a line of text.</td></tr><tr><td><code>target</code></td><td>a number of days — <code>6/week</code>, or just <code>6</code></td><td>How many days a week you are aiming for. The card counts against it: <em>3 of 6 this week</em>. Without it, the card counts the days the plan actually asks something of.</td></tr><tr><td><code>book</code></td><td>the title of a book you are <a href="../trackers/">tracking</a> — <code>[[…]]</code> is fine</td><td>Adds <strong>Read N pages of it</strong> to every day, N being the tracker&#39;s pace. Ticking it moves the tracker forward; unticking moves it back.</td></tr><tr><td><code>notes</code></td><td><code>notes: |</code> and then lines indented under it</td><td>Anything you want to remember about this orbit — why you started, the rules you set yourself. Shown under the card.</td></tr></tbody></table></div><p>A block with <strong>no title and no plan at all</strong> stays a plain code block, so a half-typed orbit reads as
+what you typed rather than vanishing into an empty card. One note can hold several orbits; each one
+takes the log block that follows it.</p>
+<h2 id="what-to-record-each-day"><a class="anchor" href="#what-to-record-each-day">What to record each day</a></h2>
+<p>Ticking boxes tells you <em>whether</em> you did something. Sometimes you also want to write down <em>how
+much</em>, or <em>how it went</em>. That is what fields are: small inputs on the card, one per day, each with
+its own column in the log.</p>
+<p>The form offers the common ones as toggles, each with a sentence saying what it means:</p>
+<ul>
+<li><strong>Minutes</strong> — how long it took, as a number.</li>
+<li><strong>Weight</strong> — your weight that day, a number with a unit (<code>kg</code> by default; change it if you like).</li>
+<li><strong>Focus</strong> — how focused you were, rated from 1 (scattered) to 5 (fully there).</li>
+<li><strong>Mood</strong> — how you felt, 1 (low) to 5 (great).</li>
+<li><strong>Energy</strong> — how much energy you had, 1 to 5.</li>
+<li><strong>Water</strong> — how much you drank, as a count of glasses.</li>
+<li><strong>Pages</strong> — how many pages you read.</li>
+<li><strong>Hours</strong> — how many hours, of sleep or of work.</li>
+<li><strong>Quality</strong> — how good it was, 1 to 5.</li>
+<li><strong>Notes</strong> — a line of text about the day.</li>
+</ul>
+<p><strong>None of them is required.</strong> A template such as <em>Exercise</em> pre-ticks Minutes and Weight because
+many people want them; untick either and it is gone. Anything not on the list is yours to add under
+<strong>Your own fields</strong>: give it a name and say what kind of value it holds:</p>
+<div class="table"><table><thead><tr><th>Kind of value</th><th>Means</th><th>Written in the plan as</th></tr></thead><tbody><tr><td>Number</td><td>any number, decimals allowed — 62, 84.2</td><td><code>weight:number:kg</code> (the unit is optional)</td></tr><tr><td>Count</td><td>whole things you count — 3 glasses, 20 pages</td><td><code>water:count:glasses</code></td></tr><tr><td>Rating</td><td>a mark from 1 to a ceiling you choose</td><td><code>focus:scale:5</code></td></tr><tr><td>Text</td><td>a line of words</td><td><code>soreness:text</code></td></tr><tr><td>Yes / no</td><td>a single box: did it happen</td><td><code>stretched:check</code></td></tr></tbody></table></div><p>On the card, a rating is a row of numbered buttons: click one to set it, click it again to clear
+it. Hover a field&#39;s name and it tells you what it means — the same sentence the form showed you.</p>
+<h2 id="the-log"><a class="anchor" href="#the-log">The log</a></h2>
+<p>One line per day. Astrolabe writes these lines when you tick and type on the card, but they are
+made to be read — and edited — by a person:</p>
+<pre><code>2026-09-14 | done: morning, evening | skipped: stretch | minutes: 62 | weight: 84.2 | Felt strong
+</code></pre>
+<p>Reading left to right, separated by <code>|</code>:</p>
+<ul>
+<li>the <strong>date</strong> opens the line (Eastern Arabic digits are fine too);</li>
+<li><code>done:</code> names what you ticked — a part of the day (<code>morning</code>), an every-day item (<code>Fajr</code>), or
+the weekday itself when the day was a single line (<code>sunday</code>);</li>
+<li><code>skipped:</code> names what you passed on <strong>on purpose</strong> — the day still counts as missed, but the log
+remembers why;</li>
+<li>anything whose name is one of your fields sets that field;</li>
+<li>whatever is left is the day&#39;s <strong>note</strong>.</li>
+</ul>
+<p>Lines that do not start with a date are ignored, the last line for a date wins, and Astrolabe keeps
+the lines in date order when it writes. Whatever you typed by hand survives to the byte; the app
+only ever replaces the one line it is recording.</p>
+<h2 id="the-card"><a class="anchor" href="#the-card">The card</a></h2>
+<p>The plan turns into a card wherever the note is shown — in the editor, in reading view, on your
+published site, inside a transclusion — always the same card:</p>
+<ul>
+<li><strong>The head</strong>: the icon (or the kind&#39;s glyph), the name, and the banner strip above them if you set
+one.</li>
+<li><strong>Today</strong>: the date, the day&#39;s checklist (every-day items first, then the day&#39;s parts with what
+each asks), the fields, and a one-line note. In the editor, ticking a box rewrites the log as
+<strong>one undo step</strong>. Hover a task for <em>skip</em>.</li>
+<li><strong>Three numbers</strong>: the <strong>streak</strong> (complete days in a row — rest days do not break it, and a day
+that is not over yet neither adds nor breaks), <strong>this week</strong> (<code>3/6</code>, against your target), and
+the <strong>last 30 days</strong> as a percentage.</li>
+<li><strong>The week</strong>: seven dots, today ringed — full for complete, half for partly done, red-rimmed for
+missed, hollow for a rest day. The week starts on Monday for an English site and on Saturday for
+an Arabic one.</li>
+<li><strong>Twelve weeks</strong>: a small grid, one cell per day, coloured by how much of the day you did.
+Hatched cells are rest days; today is ringed.</li>
+<li><strong>The week&#39;s plan</strong>, folded away under a heading: each day and its parts, today&#39;s row lit.</li>
+</ul>
+<p>The log block renders as a table of the days, newest first: the date with its status dot, what was
+done, each field, the note.</p>
+<p>Reading view and the public site show the card without its controls. A visitor cannot write to
+your note, and a box that cannot be ticked would be a box that lies.</p>
+<h2 id="the-orbits-page"><a class="anchor" href="#the-orbits-page">The Orbits page</a></h2>
+<p>The orbit button in the status bar (the small body on its ring, beside the settings gear; admins
+only — or <strong>Open the Orbits page</strong> in the command palette) opens every orbit in the vault as
+today&#39;s checklists, in a tab in the current pane. The address is <code>/orbits</code> (<code>/routines</code> still gets
+you there). The line under the heading counts the day: <em>3 of 5 complete today</em>.</p>
+<p>A tick on this page goes to the note the orbit lives in, by the very same edit the editor would
+make, so the page and the editor never disagree about what the log says. The page re-reads on
+every change to the vault, so a box ticked in the editor shows here at once.</p>
+<p>Each card has <strong>Edit</strong> (the form, filled in), <strong>Delete</strong> (the note goes to the trash through the
+same dialog the tree uses), and its name opens the note. One orbit spans the whole row, with the
+week strip beside the twelve-week grid; two share a row; more wrap in pairs.</p>
+<h2 id="new-orbit-the-form"><a class="anchor" href="#new-orbit-the-form">New orbit — the form</a></h2>
+<p><strong>New orbit</strong> opens a sheet in four parts.</p>
+<p><strong>Start from.</strong> A row of templates. <strong>Custom</strong> starts from nothing and lets you choose each part
+yourself. The built-in ones fill the sheet in: <em>Exercise</em> (a whole week of morning walks and evening
+full-body sessions), <em>Habits</em>, <em>Prayers</em> (the five, every day, with a count of those prayed in
+congregation), <em>Sleep</em> (hours, quality, bedtime), <em>Water</em>, <em>Mood</em> (mood, energy, gratitude),
+<em>Reading</em>, <em>Study</em> — each in your site&#39;s language. Under them, <strong>Your templates</strong>: any note in the
+<a href="../templates-and-notes/">templates folder</a> that carries an <code>```orbit</code> block. A template only
+fills the sheet in; everything on it stays yours to change.</p>
+<ol>
+<li><strong>Name and look.</strong> The name; the kind (or your own word); the <strong>icon</strong> — a shelf of forty
+glyphs, or type any emoji or short symbol; the <strong>banner</strong> — a picture from the vault, chosen from
+a list as you type, or <strong>Choose…</strong> to upload one.</li>
+<li><strong>Days and parts.</strong> The parts of a day (<code>morning, evening</code>); the things asked of every day; and
+a table — one row per weekday, one column per part — where you write what each day asks. Leave a
+day blank and it is a rest day.</li>
+<li><strong>What to record each day.</strong> The toggles described above, each with its sentence, plus <strong>Your
+own fields</strong>. Tick only what you actually want to write down.</li>
+<li><strong>Target and notes.</strong> Days a week you are aiming for; a book you are tracking; notes.</li>
+</ol>
+<p><strong>Save</strong> writes one note:</p>
+<pre><code>Orbits/Daily exercise.md
+</code></pre>
+<p>holding the name as frontmatter, the plan block and an empty log block. On an Arabic site the
+folder is <code>مدارات</code>; a vault that already has a <code>Routines/</code> or <code>روتين/</code> folder from before 3.15
+keeps filing there. A name that already has a note is refused rather than overwritten. Editing from
+the page rewrites <strong>only the plan block</strong> — the log under it and any prose around it stay exactly as
+they were, byte for byte. <strong>Save as template</strong> writes the same note into the templates folder
+instead, so an orbit you drew up once can seed the next.</p>
+<h2 id="in-the-editor"><a class="anchor" href="#in-the-editor">In the editor</a></h2>
+<p>Type <code>```orbit</code> by hand, or <code>/orbit</code> from the slash menu for a skeleton. With the caret outside
+the block you see the card; put the caret inside and it is source again, so the plan can be edited
+in place. The log block behaves the same way.</p>
+<h2 id="in-obsidian"><a class="anchor" href="#in-obsidian">In Obsidian</a></h2>
+<p><code>orbit</code> is an Astrolabe extension. In Obsidian the two blocks are labelled code blocks whose lines
+are all readable — nothing is converted and nothing is lost. See
+<a href="https://github.com/ZahakJ/astrolabe/blob/main/OBSIDIAN-COMPAT.md" target="_blank" rel="noreferrer">OBSIDIAN-COMPAT.md</a>.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/orbits.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/trackers/"><span class="pager__kicker">Previous</span><span class="pager__title">Trackers</span></a><a class="pager__link pager__link--next" href="../../en/flashcards/"><span class="pager__kicker">Next</span><span class="pager__title">Flashcards</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#what-an-orbit-looks-like-in-the-note">What an orbit looks like in the note</a><a class="toc__link toc__link--2" href="#the-plan-line-by-line">The plan, line by line</a><a class="toc__link toc__link--2" href="#what-to-record-each-day">What to record each day</a><a class="toc__link toc__link--2" href="#the-log">The log</a><a class="toc__link toc__link--2" href="#the-card">The card</a><a class="toc__link toc__link--2" href="#the-orbits-page">The Orbits page</a><a class="toc__link toc__link--2" href="#new-orbit-the-form">New orbit — the form</a><a class="toc__link toc__link--2" href="#in-the-editor">In the editor</a><a class="toc__link toc__link--2" href="#in-obsidian">In Obsidian</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

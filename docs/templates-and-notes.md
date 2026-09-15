@@ -49,7 +49,7 @@ A template is a note you use as a starting point for other notes, with placehold
 fills them in for you, using the same syntax as Obsidian's core Templates plugin, so **the templates
 in a vault you brought over work unmodified**.
 
-The folder is `Settings → Publishing → Templates folder`. Leave it empty and Astrolabe finds one
+The folder is `Settings → Vault → Templates folder`. Leave it empty and Astrolabe finds one
 itself, as long as the answer is unambiguous: a folder called `Templates`, `_templates` or `قوالب`,
 with a leading ordering prefix allowed (`4 - Templates`, `04. Templates`). If there are two
 plausible candidates and neither sits at the root to settle it, the setting stays empty rather than

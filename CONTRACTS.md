@@ -9665,6 +9665,19 @@ vault holding legacy ```` ```routine ```` notes in `Routines/` beside new ones):
 - build-docs writes a refresh stub at `docs/site/<lang>/routines/` (`MOVED` map): the 3.11–3.14
   deck slides link the manual by that slug and are history.
 
+## 3.15.0 — the docked layout keeps its grips on a desktop window
+
+**The drawer breakpoint (`DRAWER_QUERY` in client/state.ts, four `@media` blocks in app.css).**
+`(max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine)))` — phone width, or a
+tablet-sized viewport on a device with no fine pointer. It was a bare 999px, which turned a scaled
+Windows laptop (1280 CSS px maximised, ~900 beside a browser) into a phone: the sidebar slid in as
+a drawer, no pane had a grip, a split folded to its focused column. `tests/drawerQuery.test.ts`
+refuses a bare 999px block and a store string that differs from the stylesheet's. The outline
+panel's sections scroll inside `.s-panel__scroll`; the aside no longer scrolls, so the grip
+positioned against it stays put. Verified against the packaged Windows exe under Wine, driven
+over `--remote-debugging-port` with Playwright (`scratchpad/win/`): the recipe for any future
+"does it work on Windows" question. The designer's door lives at the foot of the shell.
+
 ## Tests (`npm test`) — the release gate
 
 `node --test` over `tests/*.test.ts`. No new dependencies, no test framework, no fixtures on disk

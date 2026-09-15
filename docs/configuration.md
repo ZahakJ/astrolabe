@@ -68,52 +68,54 @@ you run the app behind a proxy, a matching limit there is a sensible extra layer
 
 ## The Settings panel
 
-Most of the site settings above can be changed **from inside the app, while it runs**. No editing
-`.env`, no restart. Sign in as admin and open **Settings** (the gear in the status bar, or type
-"Settings" in the command palette). The panel has eight tabs. Each opens with its name and one
-sentence saying what it decides.
+Most of the site-identity keys above can also be changed **at runtime, from the app** — no
+`.env` edit, no restart. As admin, open **Settings** (the gear in the top cluster, or the
+command palette): a panel with eight tabs, each opening with its name and one sentence saying
+what it decides. The first tab is yours; the rest are the site's and share one **Save** button.
 
-- **This device** — preferences kept in *this browser only*, which save themselves the moment
-  you click: your own theme, your own editor language (*Follow site* / English / العربية —
-  this never changes what visitors see), which edge the notes sidebar sits on (*Auto* follows
-  the language, so Arabic puts it on the right), vim keys, the formatting toolbar, numbered
-  headings, and on the desktop app the app's own name and icon. **Settings travel with the
-  vault** decides whether these preferences follow you to your other devices (see
-  [Backup & sync](backup-and-sync.md#settings-travel-with-the-vault)).
-- **Identity** — what the site is called and the marks it wears: the site name, the tagline, the
-  footer line, a **logo** image (it replaces the text name in the sidebar and the blog header),
-  and a **favicon** (served at `/favicon.ico` and linked from every page).
-- **Language & dates** — the **site language** (what visitors read the interface in), the
-  language filter, the optional **visitor switch** (a little `EN`/`ع` toggle for readers), the
-  date locale, the **calendar** (Gregorian, Hijri or both, with a live example of today's
-  date), the **note layout** pair (text direction and alignment for note prose, which any note
-  can override in its own frontmatter), and the **tag labels** table — display names for tags,
-  so a site can show «برمجيات» over a vault whose tag is `#software`. See
-  [Hijri dates](arabic-and-rtl.md#hijri-dates),
+- **This device** — preferences kept in this browser, each saving itself on click: your own
+  theme and the two eye-comfort sliders, your **editor language** (*Follow site* / English /
+  العربية — never what visitors get) and which edge the **notes sidebar** sits on; under
+  *Reading & writing*, the writing column, vim keys, relative line numbers, the floating toolbar
+  and numbered headings; under *This browser*, the what's-new deck, the offline copy and whether
+  settings travel with the vault; and, in the desktop app only, *This app* — its name, its icon,
+  a launcher entry and **Software updates** (see [the desktop app](desktop.md#updates)).
+- **Site** — what the site is called and looks like: name, tagline, footer line, a **logo**
+  image (replaces the text wordmark in the sidebar and the blog masthead), a **favicon** (served
+  at `/favicon.ico` with its real content type and injected into every page's `<link
+  rel="icon">`), the **default theme** visitors arrive on, and the four font slots (text /
+  interface / code / Arabic script) over a curated, self-hosted catalog *or* faces you upload
+  yourself, with a live specimen that stays on screen while you choose. See
+  [Typography](typography.md).
+- **Language & dates** — the **site language** (English / العربية — what visitors read it in),
+  the date locale, the language filter and the optional **visitor switch**; the **date calendar**
+  (Gregorian / Hijri / both, with a live specimen of today); the **note layout** pair (text
+  direction and alignment for note prose, which any note may override from its own
+  frontmatter); the empty properties card; and the **tag labels** table — display names for
+  canonical tags, for a front end that should read «برمجيات» over a vault that keeps
+  `#software`. See [Hijri dates](arabic-and-rtl.md#hijri-dates),
   [Note direction & alignment](arabic-and-rtl.md#note-direction--alignment) and
   [Localised tag labels](arabic-and-rtl.md#localised-tag-labels).
-- **Publishing & comments** — what visitors may see: the public layout (`app` / `blog` /
-  `designed`), the default theme for visitors, excluded tags, the comments and share-button
-  toggles, *Your other sites* (shown on the blog as *More from the author*), and the home page at `/`: either a chosen home note or
-  the `dashboard` magazine layout, with an optional header banner. The home rows only matter to
-  the `blog` and `designed` layouts, so with `Public layout: app` the panel greys them out and
-  says so — the app layout simply opens the home note. The [library](library.md) and the
-  [public folders](blog-mode.md#custom-public-folders) are set up here too.
-- **Vault** — which folders this instance writes into: **where new attachments go** (see
-  [Attachments](#attachments)), the templates folder and the template for new notes, the daily
-  and weekly note folders, the drawings folder, the tags folder — plus two switches:
-  *Keep note versions* and *Search inside books*.
-- **Typography** — four font slots (the text face, the interface face, the code face and the
-  Arabic face), each chosen from a catalog the server hosts itself *or* from font files you upload, with a live sample that stays on screen
-  while you pick. See [Typography](typography.md).
-- **Backup & sync** — commit the vault to git and push it to a private repository you own, by
-  hand or on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
-- **About** — the version, the Node version, how many notes and files the vault holds, and the
-  full paths of the vault, the data folder, `settings.json` and the uploaded-fonts folder.
+- **Publishing & comments** — public layout (`app` / `blog` / `designed`), the designer,
+  excluded tags, the comments and share-button toggles, the ambient masthead, author sites, and
+  the home page visitors land on at `/`: classic `note` mode with a chosen home note, or the
+  `dashboard` magazine layout, plus an optional hero banner. The home rows are read by the `blog`
+  and `designed` layouts only, so with `Public layout: app` the panel greys them and says so — an
+  app-layout instance opens the home note at `/`.
+- **Collections** — how the public site groups notes: whether categories come from tags or from
+  folders, your own hand-made **collections** and where they sit, and the **library** shelf. See
+  [Blog mode](blog-mode.md#custom-public-folders) and [The library](library.md).
+- **Vault** — where this instance writes things: the templates folder and the template for new
+  notes, daily and weekly notes, the drawings folder, **where new attachments are written** (see
+  [Attachments](#attachments)), the tags folder, note versions and PDF search.
+- **Backup & sync** — commit the vault and push it to a private git remote you own, manually or
+  on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
+- **About** — the version, the Node version, the vault's counts, and the absolute paths of the
+  vault, the data directory, `settings.json` and the uploaded-fonts folder.
 
-Every image field (logo, favicon, banners) works the same way: pick a picture already in the
-vault, or drag one in and upload it right there. The bytes are checked, not just the file
-extension, and the file lands wherever the [Attachments](#attachments) setting points.
+Image fields reuse the banner machinery: pick from the vault's attachments or upload right
+there (drag & drop; bytes are sniffed; lands wherever the [Attachments](#attachments) setting
+points).
 
 ### Attachments
 
