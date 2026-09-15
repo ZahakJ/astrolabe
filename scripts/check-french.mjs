@@ -12,7 +12,13 @@
 //
 //   · "Je suis tres " → "très"; "Elle a un coeur " → "cœur"; Enter counts
 //   · "This is tres chic " is NOT corrected (one French word in an English
-//     line — the mixed-line rule, documented in docs/editor.md)
+//     line — the mixed-line rule, documented in docs/editor.md); nor is an
+//     English line whose only French is `EST` and `UN` in capitals, nor a
+//     Spanish line that shares `la`, `de`, `un` with French
+//   · a closing bracket closeBrackets had already placed, stepped over, is a
+//     boundary too: "(tres)" is corrected
+//   · the word that tips a line into French brings the words before it:
+//     "Tres bien, c'est" → "Très bien, c'est" at the apostrophe
 //   · a line inside a code fence is never corrected
 //   · Ctrl+Z after a correction gives "tres " back, space included, and the
 //     same word at the same spot is not corrected again
@@ -163,6 +169,29 @@ try {
   await type("Elle a un coeur");
   await enter();
   check((await lastLine(1)) === "Elle a un cœur", "Enter is a boundary too", JSON.stringify(await lastLine(1)));
+
+  await enter();
+  await type("Meeting at 5pm EST with the UN about the hotel ");
+  check((await lastLine()) === "Meeting at 5pm EST with the UN about the hotel ", "capitals do not make an English line French", JSON.stringify(await lastLine()));
+  await enter();
+  await type("la casa de mi madre es un hotel ");
+  check((await lastLine()) === "la casa de mi madre es un hotel ", "a Spanish line is not French", JSON.stringify(await lastLine()));
+
+  // ── A stepped-over closing bracket is a boundary ───────────────────────
+  await enter();
+  await type("Je suis (tres");
+  await type(")");
+  await type(" ");
+  check((await lastLine()) === "Je suis (très) ", "a closing bracket stepped over finishes the word", JSON.stringify(await lastLine()));
+
+  // ── The tipping word brings the words before it ────────────────────────
+  await enter();
+  await type("Tres bien, c'est deja fait ");
+  check((await lastLine()) === "Très bien, c'est déjà fait ", "a line corrected whole when it becomes French", JSON.stringify(await lastLine()));
+  await enter();
+  await type("Tres `etat` et [[etat]] alors je ");
+  check((await lastLine()) === "Très `etat` et [[etat]] alors je ", "…but not its code spans or link targets", JSON.stringify(await lastLine()));
+  await enter();
 
   // ── Not in a code fence ────────────────────────────────────────────────
   await toLineEnd("const code =");

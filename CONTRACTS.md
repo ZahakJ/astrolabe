@@ -3884,15 +3884,27 @@ the contract is what it refuses:
 - **The table never guesses.** Every source is a spelling that is not a French word without its
   mark (`tres`, `etre`, `hopital`, `coeur`); a word that exists both ways (`a/à`, `ou/où`,
   `la/là`, `sur/sûr`, `du/dû`, `cote`, `tache`, `mur`, `pres`, `gene`, `peche`, `foret`,
-  `eleve`) is not in it and must never be added. `tests/french.test.ts` asserts the exclusions by
-  name, that no source is duplicated, and that every target differs from its source by marks
-  alone. A wrong correction costs the reader's trust in the editor; a missed one costs nothing.
+  `eleve`) is not in it and must never be added — and neither is a source whose accents could
+  land two ways (`cree` → `crée`/`créé`, `resume`, `prefere`, `enonce`, `reserve`, `controle`,
+  `regle`, `age`, `equipe`, `reve`, `fete`…: the noun and its everyday participle).
+  `tests/french.test.ts` asserts both exclusions by name, that no source is duplicated, and
+  that every target differs from its source by marks alone. A wrong correction costs the
+  reader's trust in the editor; a missed one costs nothing.
 - **Only a line that reads as French, only at a word boundary, only in prose.** Two French
   function words (or `lang: fr` in the frontmatter) make the line French; `This is tres chic`
-  is left alone — an English writer did not ask. Code fences, inline code (by backtick parity,
-  so an unclosed span counts), a link's `URL`, a wikilink's target, the frontmatter, `$math$`
-  and `$$` blocks, a `\command` and anything after `https://` on the line are never touched.
-  Vim: insert mode only.
+  is left alone — an English writer did not ask. A word in capitals never counts (`UN`, `LA`,
+  `EST` made an English meeting note French), and one Spanish, Italian, Portuguese, Catalan or
+  Latin function word French does not use (`el`, `del`, `una`, `di`, `não`, `ergo`…) settles the
+  line the other way, because those languages share `la`, `de`, `un`, `que`, `il`. A boundary is
+  a typed space, punctuation, Enter, or a closing bracket or quote — including the one
+  closeBrackets had already placed and the writer steps over, which arrives as the character
+  replacing itself. At the boundary whose word TIPS the line into French (measured against the
+  line without that word, not against the previous keystroke — the `n` of `bien` tips it and the
+  space after is the first boundary since), the whole line is corrected in one step, earlier
+  words and typography included: `shared/french.ts::lineFixes`. Code fences, inline code (by
+  backtick parity, so an unclosed span counts), a link's `URL`, a wikilink's target, the
+  frontmatter, `$math$` and `$$` blocks, a `\command` and anything after `https://` on the line
+  are never touched. Vim: insert mode only.
 - **Each correction is its own undo step and is dispatched as a SECOND transaction**
   (`userEvent: "input.autocorrect"`, `isolateHistory("full")`), off a microtask after the one
   that typed the boundary, re-checking the document before it writes. One Ctrl+Z after `très `

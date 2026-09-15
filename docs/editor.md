@@ -113,17 +113,25 @@ turns it off.
   French words on it (`je`, `est`, `les`, `pour`, `c'est`…), or when the note's frontmatter says
   `lang: fr`, in which case every line counts. So `This is tres chic` in an English sentence is
   left exactly as you typed it — an English line with one French word in it is still an English
-  line, and the editor never edits words you did not ask it to. A line of Arabic, Hebrew or
-  Chinese is never French, whatever Latin words it also carries.
+  line, and the editor never edits words you did not ask it to. A word in capitals (`UN`, `LA`,
+  `EST`) does not count; a line with a Spanish, Italian, Portuguese or Catalan word on it (`el`,
+  `del`, `una`, `di`, `não`…) is not French, since those languages share `la`, `de`, `un` and
+  `que`; and a line of Arabic, Hebrew or Chinese is never French, whatever Latin words it also
+  carries.
 - **Only at the end of a word.** The correction happens when you finish the word: a space, a
   comma, a full stop, Enter, a closing bracket or quote. While you are still typing the word,
-  nothing moves.
+  nothing moves. A line's first words are usually finished before the line has its second
+  French word, so at the moment a line *becomes* French — its `je`, its `les` — the words
+  already on it are corrected too, in one step: `Tres bien, c'est` becomes `Très bien, c'est`
+  at the apostrophe.
 - **Only words that can go one way.** The list holds several hundred spellings that are not
   words without their accent — `tres`, `etre`, `hopital`, `francais`, `ecole`, `deja`,
-  `bientot`, `theatre`, `resume`, `oeuvre`… It never touches a word that exists both ways:
+  `bientot`, `theatre`, `evenement`, `oeuvre`… It never touches a word that exists both ways:
   `a`/`à`, `ou`/`où`, `la`/`là`, `sur`/`sûr`, `du`/`dû`, `cote`/`côte`/`côté`, `tache`/`tâche`,
-  `mur`/`mûr`, `eleve`/`élève`/`élevé`. Those need a reader, not a table. Capitals follow you
-  (`Etat` → `État`); a word in all capitals is left alone.
+  `mur`/`mûr`, `eleve`/`élève`/`élevé` — nor one whose accents could land two ways, like `cree`
+  (`crée` or `créé`), `resume` (`résume` or `résumé`) and `reserve` (`réserve` or `réservé`).
+  Those need a reader, not a table. Capitals follow you (`Etat` → `État`); a word in all
+  capitals is left alone.
 - **French spacing, too.** A space you type before `;` `:` `!` `?` becomes the narrow no-break
   space French typesetting wants there, so a question mark can never start the next line by
   itself; a space just inside `«` or `»` becomes a no-break space; and three dots become the one
@@ -134,7 +142,8 @@ turns it off.
 - **One undo takes one correction back.** Every correction is its own undo step: press
   `Ctrl/Cmd Z` straight after `très ` and you have `tres ` again — the word as you typed it, the
   space still there — and the editor remembers that you refused it and will not correct that word
-  at that spot again. With vim keys on, corrections happen in insert mode only.
+  at that spot again. (The words a line gets when it becomes French are one step together.)
+  With vim keys on, corrections happen in insert mode only.
 - **Spellchecked as French.** A line the editor treats as French is also handed to the French
   dictionary, so the words it has just corrected are not underlined in red by the English one.
   In the desktop app that is automatic; in a browser it depends on which dictionaries the

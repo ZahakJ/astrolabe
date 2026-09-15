@@ -61,6 +61,29 @@ const FRENCH_WORDS = new Set([
   "encore", "toujours", "peu", "beaucoup", "trop", "assez", "autre", "autres", "chaque", "quel", "quelle", "quels", "quelles",
 ]);
 
+/** Words that settle the question the other way. `la`, `de`, `un`, `que`,
+ *  `il`, `les` are Spanish, Italian, Portuguese and Catalan too, and `est`,
+ *  `et`, `qui` are Latin — so *la casa de mi madre es un hotel* scored as
+ *  French and had its hotel given a circumflex. One of these on the line,
+ *  as a whole word, and the line is not French, whatever else it scores;
+ *  each is a function word of one of those languages that neither French
+ *  nor English uses (`do`, `com`, `um`, `non`, `con`, `dos`, `es` are left
+ *  out for exactly that reason — English has the first four, French `con`,
+ *  `dos` and `tu es`). */
+const NOT_FRENCH_WORDS = new Set([
+  // Spanish
+  "el", "los", "las", "del", "por", "para", "una", "pero", "muy", "esta", "este", "como", "yo", "mi", "su", "sus", "mis",
+  "porque", "cuando", "donde", "hasta", "desde", "sin",
+  // Italian
+  "di", "gli", "della", "delle", "dei", "degli", "anche", "questo", "sono", "perché", "più",
+  // Portuguese
+  "uma", "das", "são", "não",
+  // Catalan
+  "els", "amb", "dels", "són",
+  // Latin
+  "quod", "sunt", "ergo", "quae", "enim", "atque",
+]);
+
 /** The elisions: `j'ai`, `qu'il`, `n'est`, `c'est`, `l'école`, `d'un`, `s'il`.
  *  The letter is a hit only when the apostrophe follows it — bare `l` or `d`
  *  is nothing, and English has no elision that leaves one of these letters
@@ -86,6 +109,12 @@ export function frenchScore(line: string): number {
       continue;
     }
     const lower = word.toLowerCase();
+    if (NOT_FRENCH_WORDS.has(lower)) return 0;
+    // A word in capitals is a name or an acronym, not a function word: `UN`,
+    // `LA`, `EST`, `ET` are the United Nations, Los Angeles, a time zone and
+    // a film studio, and an English meeting note carrying two of them was
+    // French. (`Je`, `Il`, `Les` at the head of a sentence still count.)
+    if (word.length > 1 && word === word.toUpperCase()) continue;
     if (FRENCH_WORDS.has(lower)) {
       score += 1;
       continue;
@@ -126,6 +155,14 @@ export function noteIsFrench(fmText: string): boolean {
  *    `the/thé` (an English word a French line may quote). Each source is a
  *    real word, or the accent could go two ways, and the table's one promise
  *    is that it never guesses.
+ *  · NOT HERE EITHER, for the second reason: a source whose two readings
+ *    are both everyday words. `cree` is `crée` as often as `créé`; `resume`
+ *    is `résume` as often as `résumé`; `prefere`, `enonce` likewise; and
+ *    the nouns whose participle is common — `reserve/réserve/réservé`,
+ *    `controle`, `regle`, `celebre`, `age/âge/âgé`, `equipe`, `diplome`,
+ *    `reve`, `depense`, `echange`, `melange`, `prete`, `epouse`, `lache`,
+ *    `fete`, `revolte`, `epice`, `reforme`, `coute`, `equilibre`. A noun
+ *    whose participle is rare (`menage`, `modele`, `siege`, `hate`) stays.
  *  · `meme` → `même` IS here: the internet meme is spelled `mème` in French,
  *    so on a French line `meme` is wrong either way, and `même` is what the
  *    line meant a hundred times out of a hundred and one. */
@@ -168,25 +205,26 @@ const TABLE: Record<string, string> = {
   onzieme: "onzième", douzieme: "douzième", vingtieme: "vingtième", centieme: "centième", enieme: "énième",
   scene: "scène", scenes: "scènes", phenomene: "phénomène", hygiene: "hygiène",
   piece: "pièce", pieces: "pièces", espece: "espèce", especes: "espèces", niece: "nièce",
-  siege: "siège", college: "collège", privilege: "privilège", regle: "règle", regles: "règles",
+  siege: "siège", college: "collège", privilege: "privilège", regles: "règles",
   modele: "modèle", modeles: "modèles", fidele: "fidèle", zele: "zèle", planete: "planète", poete: "poète",
   remede: "remède", critere: "critère", criteres: "critères", hypothese: "hypothèse", siecle: "siècle", siecles: "siècles",
-  celebre: "célèbre", completement: "complètement", legende: "légende", cle: "clé", cles: "clés",
+  completement: "complètement", legende: "légende", cle: "clé", cles: "clés",
 
   // ── the acute accent, at the head of the word ──
   ecrit: "écrit", ecrits: "écrits", ecrite: "écrite", ecrire: "écrire", ecriture: "écriture", ecrivain: "écrivain",
-  ecran: "écran", ecrans: "écrans", ecouter: "écouter", echange: "échange", echec: "échec", echelle: "échelle",
+  ecran: "écran", ecrans: "écrans", ecouter: "écouter", echec: "échec", echelle: "échelle",
   echapper: "échapper", eclair: "éclair", eclat: "éclat", eclairer: "éclairer",
   eglise: "église", eglises: "églises", edition: "édition", editeur: "éditeur", editorial: "éditorial", education: "éducation",
   egal: "égal", egalement: "également", egalite: "égalité", economie: "économie", economique: "économique",
   election: "élection", electrique: "électrique", electricite: "électricité", elephant: "éléphant", eliminer: "éliminer",
   elegant: "élégant", elegance: "élégance", element: "élément", elements: "éléments", elever: "élever", elire: "élire", elu: "élu",
   eloge: "éloge", eloigner: "éloigner", emission: "émission", emotion: "émotion", emergence: "émergence", emerger: "émerger",
-  emettre: "émettre", emouvant: "émouvant", energie: "énergie", enerver: "énerver", enonce: "énoncé",
-  enorme: "énorme", enormement: "énormément", epais: "épais", epaule: "épaule", epee: "épée", epice: "épice", epicerie: "épicerie",
-  episode: "épisode", eponge: "éponge", epoque: "époque", epouse: "épouse", epoux: "époux", epreuve: "épreuve",
-  equation: "équation", equilibre: "équilibre", equipe: "équipe", equipement: "équipement", equivalent: "équivalent",
-  etablir: "établir", etablissement: "établissement", etage: "étage", etape: "étape", etapes: "étapes", etat: "état", etats: "états",
+  emettre: "émettre", emouvant: "émouvant", energie: "énergie", enerver: "énerver", enorme: "énorme", enormement: "énormément",
+  epais: "épais", epaule: "épaule", epee: "épée", epicerie: "épicerie",
+  episode: "épisode", eponge: "éponge", epoque: "époque", epoux: "époux", epreuve: "épreuve",
+  equation: "équation", equipement: "équipement", equivalent: "équivalent",
+  etablir: "établir", etablissement: "établissement", etage: "étage", etape: "étape", etapes: "étapes", etat: "état",
+  etats: "états",
   etendre: "étendre", eternel: "éternel", eternite: "éternité", ethique: "éthique", etiquette: "étiquette", etoile: "étoile",
   etonnant: "étonnant", etonner: "étonner", etouffer: "étouffer", etrange: "étrange", etranger: "étranger", etrangere: "étrangère",
   etroit: "étroit", etude: "étude", etudes: "études", etudier: "étudier",
@@ -206,8 +244,9 @@ const TABLE: Record<string, string> = {
   efficacite: "efficacité", fidelite: "fidélité", fierte: "fierté", publicite: "publicité", propriete: "propriété",
   proprietaire: "propriétaire", responsabilite: "responsabilité", specialite: "spécialité", necessite: "nécessité",
   generosite: "générosité", moitie: "moitié", medecin: "médecin", medecine: "médecine", memoire: "mémoire",
-  methode: "méthode", metier: "métier", metro: "métro", meteo: "météo", menage: "ménage", melange: "mélange", melanger: "mélanger",
-  mecanique: "mécanique", media: "média", medias: "médias", necessaire: "nécessaire", negatif: "négatif", negociation: "négociation",
+  methode: "méthode", metier: "métier", metro: "métro", meteo: "météo", menage: "ménage", melanger: "mélanger",
+  mecanique: "mécanique", media: "média", medias: "médias", necessaire: "nécessaire", negatif: "négatif",
+  negociation: "négociation",
   general: "général", generale: "générale", generaux: "généraux", generation: "génération", genereux: "généreux",
   genie: "génie", geographie: "géographie", heros: "héros", heritage: "héritage", heritier: "héritier",
   hesiter: "hésiter", hesitation: "hésitation", ideal: "idéal", ideologie: "idéologie", imbecile: "imbécile",
@@ -218,32 +257,32 @@ const TABLE: Record<string, string> = {
   itineraire: "itinéraire", leger: "léger", legume: "légume", liberer: "libérer", litterature: "littérature",
   litteraire: "littéraire", materiel: "matériel", obeir: "obéir", opera: "opéra", operation: "opération", operer: "opérer",
   pedagogie: "pédagogie", penible: "pénible", periode: "période", precis: "précis", precisement: "précisément",
-  precision: "précision", preferer: "préférer", prefere: "préféré", preference: "préférence", preparer: "préparer",
+  precision: "précision", preferer: "préférer", preference: "préférence", preparer: "préparer",
   preparation: "préparation", presence: "présence", present: "présent", presenter: "présenter", presentation: "présentation",
   president: "président", prevoir: "prévoir", prevu: "prévu", prevision: "prévision", procedure: "procédure",
   recemment: "récemment", recent: "récent", recente: "récente", reception: "réception", recuperer: "récupérer",
   reduire: "réduire", reduction: "réduction", reel: "réel", reelle: "réelle", reellement: "réellement",
-  reference: "référence", reflechir: "réfléchir", reflexion: "réflexion", reforme: "réforme", regime: "régime",
+  reference: "référence", reflechir: "réfléchir", reflexion: "réflexion", regime: "régime",
   region: "région", regional: "régional", regulier: "régulier", regulierement: "régulièrement",
   repondre: "répondre", reponse: "réponse", reponses: "réponses", reparer: "réparer", repeter: "répéter",
   repetition: "répétition", republique: "république", reputation: "réputation", reseau: "réseau", reseaux: "réseaux",
-  reserve: "réserve", reserver: "réserver", resistance: "résistance", resoudre: "résoudre", resolution: "résolution",
-  resultat: "résultat", resultats: "résultats", resume: "résumé", resumer: "résumer", retablir: "rétablir",
+  reserver: "réserver", resistance: "résistance", resoudre: "résoudre", resolution: "résolution",
+  resultat: "résultat", resultats: "résultats", resumer: "résumer", retablir: "rétablir",
   reunir: "réunir", reunion: "réunion", reussir: "réussir", reussi: "réussi", reussite: "réussite",
-  reveil: "réveil", reveiller: "réveiller", reveler: "révéler", revelation: "révélation", revolte: "révolte",
-  revolution: "révolution", secretaire: "secrétaire", selection: "sélection", separer: "séparer", separation: "séparation",
+  reveil: "réveil", reveiller: "réveiller", reveler: "révéler", revelation: "révélation", revolution: "révolution",
+  secretaire: "secrétaire", selection: "sélection", separer: "séparer", separation: "séparation",
   serie: "série", serieux: "sérieux", serieuse: "sérieuse", serieusement: "sérieusement", severe: "sévère",
   special: "spécial", speciale: "spéciale", specialement: "spécialement", specifique: "spécifique", strategie: "stratégie",
   temoin: "témoin", temoignage: "témoignage", vehicule: "véhicule", verifier: "vérifier", verification: "vérification",
   celebrer: "célébrer", ceremonie: "cérémonie", cereale: "céréale", comedie: "comédie", completer: "compléter",
-  conference: "conférence", consequence: "conséquence", creer: "créer", cree: "créé", creation: "création",
+  conference: "conférence", consequence: "conséquence", creer: "créer", creation: "création",
   creatif: "créatif", credit: "crédit", debat: "débat", debut: "début", debuter: "débuter", decembre: "décembre",
   decider: "décider", decision: "décision", declarer: "déclarer", declaration: "déclaration", decouvrir: "découvrir",
   decouverte: "découverte", decrire: "décrire", defaut: "défaut", defendre: "défendre", defense: "défense",
   definir: "définir", definition: "définition", definitif: "définitif", degre: "degré", delai: "délai",
   delicat: "délicat", delicieux: "délicieux", demarche: "démarche", demenager: "déménager", democratie: "démocratie",
-  demontrer: "démontrer", depart: "départ", departement: "département", depasser: "dépasser", depense: "dépense",
-  dependre: "dépendre", deplacer: "déplacer", deposer: "déposer", deranger: "déranger", desir: "désir",
+  demontrer: "démontrer", depart: "départ", departement: "département", depasser: "dépasser", dependre: "dépendre",
+  deplacer: "déplacer", deposer: "déposer", deranger: "déranger", desir: "désir",
   desirer: "désirer", desole: "désolé", desolee: "désolée", desordre: "désordre", detail: "détail", details: "détails",
   detester: "détester", detruire: "détruire", developper: "développer", developpement: "développement",
   difference: "différence", different: "différent", differente: "différente", differents: "différents",
@@ -252,19 +291,19 @@ const TABLE: Record<string, string> = {
 
   // ── the circumflex ──
   hotel: "hôtel", hotels: "hôtels", bientot: "bientôt", plutot: "plutôt", tot: "tôt", aussitot: "aussitôt", sitot: "sitôt",
-  tantot: "tantôt", role: "rôle", roles: "rôles", controle: "contrôle", controler: "contrôler", diplome: "diplôme",
-  drole: "drôle", fantome: "fantôme", chomage: "chômage", chomeur: "chômeur", depot: "dépôt", impot: "impôt",
+  tantot: "tantôt", role: "rôle", roles: "rôles", controler: "contrôler", drole: "drôle", fantome: "fantôme", chomage: "chômage",
+  chomeur: "chômeur", depot: "dépôt", impot: "impôt",
   impots: "impôts", arome: "arôme", symptome: "symptôme", icone: "icône", trone: "trône", cone: "cône", pole: "pôle",
   ile: "île", iles: "îles", diner: "dîner", boite: "boîte", maitre: "maître", maitresse: "maîtresse",
   connaitre: "connaître", paraitre: "paraître", naitre: "naître", chaine: "chaîne", fraiche: "fraîche", plait: "plaît",
   surement: "sûrement", bruler: "brûler", flute: "flûte", piqure: "piqûre", cout: "coût", couts: "coûts",
-  coute: "coûte", couter: "coûter", gout: "goût", gouts: "goûts", aout: "août",
-  gateau: "gâteau", gateaux: "gâteaux", chateau: "château", chateaux: "châteaux", grace: "grâce", age: "âge",
-  ame: "âme", ane: "âne", bati: "bâti", batiment: "bâtiment", crane: "crâne", lache: "lâche", hate: "hâte",
-  fete: "fête", fetes: "fêtes", tete: "tête", tetes: "têtes", bete: "bête", betes: "bêtes", fenetre: "fenêtre",
+  couter: "coûter", gout: "goût", gouts: "goûts", aout: "août",
+  gateau: "gâteau", gateaux: "gâteaux", chateau: "château", chateaux: "châteaux", grace: "grâce", ame: "âme", ane: "âne",
+  bati: "bâti", batiment: "bâtiment", crane: "crâne", hate: "hâte",
+  fetes: "fêtes", tete: "tête", tetes: "têtes", bete: "bête", betes: "bêtes", fenetre: "fenêtre",
   fenetres: "fenêtres", enquete: "enquête", conquete: "conquête", requete: "requête", quete: "quête",
-  pret: "prêt", prete: "prête", pretre: "prêtre", arret: "arrêt", arrets: "arrêts", arreter: "arrêter",
-  interet: "intérêt", interets: "intérêts", reve: "rêve", reves: "rêves", rever: "rêver", honnete: "honnête",
+  pret: "prêt", pretre: "prêtre", arret: "arrêt", arrets: "arrêts", arreter: "arrêter",
+  interet: "intérêt", interets: "intérêts", reves: "rêves", rever: "rêver", honnete: "honnête",
   extreme: "extrême", extremement: "extrêmement", supreme: "suprême", chene: "chêne", empecher: "empêcher",
   vetement: "vêtement", vetements: "vêtements", tempete: "tempête", crepe: "crêpe", guepe: "guêpe", bapteme: "baptême",
 
@@ -353,6 +392,41 @@ export function wordFix(before: string): (Fix & { word: string }) | null {
   const insert = frenchCorrection(word);
   if (insert === null) return null;
   return { from: start - before.length, to: 0, insert, word };
+}
+
+/** Every correction a WHOLE line is owed, in offsets from the line's start:
+ *  each table word on it, and each of the typographic fixes below. The
+ *  editor asks this once, at the boundary where a line BECOMES French — a
+ *  line's first words are finished before its second French word is, so
+ *  `Tres bien, je` had its `Tres` left alone by `wordFix` at the space, and
+ *  a line that was going to be corrected at all should be corrected whole.
+ *  Same rules as the two per-keystroke planners (a word after a backslash,
+ *  a path, a tag, an address, a digit is not a word; the space after a list
+ *  marker is markdown's); the caller still asks, per fix, whether the spot
+ *  is prose. Sorted by position, never overlapping. */
+export function lineFixes(line: string): Array<Fix & { word?: string }> {
+  const out: Array<Fix & { word?: string }> = [];
+  TOKEN_RE.lastIndex = 0;
+  for (let m = TOKEN_RE.exec(line); m; m = TOKEN_RE.exec(line)) {
+    const word = m[0];
+    const start = m.index;
+    const end = start + word.length;
+    const prev = start > 0 ? line.charAt(start - 1) : "";
+    const next = line.charAt(end);
+    if (NOT_PROSE_BEFORE.has(prev) || /\p{N}/u.test(prev)) continue;
+    if (next === "_" || /\p{N}/u.test(next)) continue;
+    if (URL_RE.test(line.slice(0, start))) continue;
+    const insert = frenchCorrection(word);
+    if (insert !== null) out.push({ from: start, to: end, insert, word });
+  }
+  // ` ?` after a word or a closing bracket; `« ` and ` »`; exactly three dots.
+  const TALL_RE = /(?<=[\p{L}\p{N})»"”’\]]) (?=[;:!?])/gu;
+  for (let m = TALL_RE.exec(line); m; m = TALL_RE.exec(line)) out.push({ from: m.index, to: m.index + 1, insert: NARROW_NBSP });
+  const GUILLEMET_RE = /(?<=«) | (?=»)/g;
+  for (let m = GUILLEMET_RE.exec(line); m; m = GUILLEMET_RE.exec(line)) out.push({ from: m.index, to: m.index + 1, insert: NBSP });
+  const DOTS_RE = /(?<!\.)\.\.\.(?!\.)/g;
+  for (let m = DOTS_RE.exec(line); m; m = DOTS_RE.exec(line)) out.push({ from: m.index, to: m.index + 3, insert: "…" });
+  return out.sort((x, y) => x.from - y.from);
 }
 
 /** The characters after which a word is finished — what makes the editor
