@@ -328,9 +328,9 @@ copy wins, on every server over the folder. The first time a server meets the va
 file, the vault wins outright, so a fresh machine takes the site's settings rather than pushing
 its own defaults over them. Set the site name on the hosted instance, and the desktop app on the
 other machine has it after its next pull; upload a logo in the designer on the laptop, and the
-site shows it after the next push. What stays put: the git token (each device's own), the
-comments database, reading positions in books, the record of when each note was created, and
-sessions. A value a hosted
+site shows it after the next push. So do the ledgers that are yours rather than the machine's:
+your named layouts, the book shelf with the page each book was left on, and your notes to self on
+words. A value a hosted
 instance takes from its `.env` (`SITE_NAME`, `SITE_TAGLINE`, `HOME_NOTE`…) is that server's alone
 until it is saved in the settings panel, which writes it into `settings.json` and so into the
 vault.
@@ -353,6 +353,18 @@ and stay where they are. **Settings → This device → Settings travel with the
 off for a device that should keep its own. The file is admin-only and never reaches a visitor.
 If you keep the vault in git, commit `.astrolabe/` — it is not in the
 [ignore advice](#gitignore-advice) because you want it.
+
+The test is simple: install Astrolabe on a new machine, point it at the vault, and everything you
+set up is there. This is what that means, item by item.
+
+| Travels with the vault | Stays on the device, and why |
+| --- | --- |
+| The site: name, tagline, logo, language, home note, folders, typography, calendars, sync settings | The git token: a credential is one machine's |
+| The designer's documents and custom themes, `custom.css`, every font you chose or uploaded | Note history (versions): large, and git is its durable copy |
+| Named layouts, the book shelf and where each book was left off, notes to self on words | Comments left on the public site: they belong to the site that received them |
+| Your preferences: theme, interface and editor language, vim keys and relative line numbers, editor width, heading numbers, the formatting toolbar, the sidebar's side, the tag sort, the what's-new switch | Screen warmth and dimming: they answer one screen's light |
+| | Offline reading and software updates: one machine's choice about its own disk and network |
+| | Tabs, panes, pane widths, fold state, collapsed sections: this window on this screen |
 
 ## Things worth knowing
 

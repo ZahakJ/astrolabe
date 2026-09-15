@@ -4859,6 +4859,10 @@ const DICT = {
   rowWhatsNew: { en: "What's new after an update", ar: "ما الجديد بعد التحديث" },
   hintWhatsNew: { en: "The first time this device opens a new version, a short walk through its features. Travels with your preferences.", ar: "أول مرة يفتح فيها هذا الجهاز نسخة جديدة، جولة قصيرة في ميزاتها. ينتقل مع تفضيلاتك." },
   cmdWhatsNew: { en: "What's new in this version", ar: "ما الجديد في هذه النسخة" },
+  cmdCopyDiagnostics: { en: "Copy diagnostics", ar: "نسخ بيانات التشخيص" },
+  cmdCopyDiagnosticsHint: { en: "window, pointer and pane facts, for a bug report", ar: "حقائق النافذة والمؤشر واللوحات، لبلاغ خطأ" },
+  diagnosticsCopied: { en: "Diagnostics copied — paste them into your report", ar: "نُسخت بيانات التشخيص؛ الصقها في بلاغك" },
+  diagnosticsLogged: { en: "No clipboard here — the diagnostics are in the browser console", ar: "لا حافظة هنا؛ بيانات التشخيص في وحدة تحكم المتصفح" },
   cmdOpenMedia: { en: "Open the Media page", ar: "فتح صفحة الوسائط" },
   // ── Note versions ──
   // The timeline's rows for what the vault's own write path kept, beside

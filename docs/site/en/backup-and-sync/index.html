@@ -300,9 +300,9 @@ copy wins, on every server over the folder. The first time a server meets the va
 file, the vault wins outright, so a fresh machine takes the site&#39;s settings rather than pushing
 its own defaults over them. Set the site name on the hosted instance, and the desktop app on the
 other machine has it after its next pull; upload a logo in the designer on the laptop, and the
-site shows it after the next push. What stays put: the git token (each device&#39;s own), the
-comments database, reading positions in books, the record of when each note was created, and
-sessions. A value a hosted
+site shows it after the next push. So do the ledgers that are yours rather than the machine&#39;s:
+your named layouts, the book shelf with the page each book was left on, and your notes to self on
+words. A value a hosted
 instance takes from its <code>.env</code> (<code>SITE_NAME</code>, <code>SITE_TAGLINE</code>, <code>HOME_NOTE</code>…) is that server&#39;s alone
 until it is saved in the settings panel, which writes it into <code>settings.json</code> and so into the
 vault.</p>
@@ -323,7 +323,9 @@ and stay where they are. <strong>Settings → This device → Settings travel wi
 off for a device that should keep its own. The file is admin-only and never reaches a visitor.
 If you keep the vault in git, commit <code>.astrolabe/</code> — it is not in the
 <a href="#gitignore-advice">ignore advice</a> because you want it.</p>
-<h2 id="things-worth-knowing"><a class="anchor" href="#things-worth-knowing">Things worth knowing</a></h2>
+<p>The test is simple: install Astrolabe on a new machine, point it at the vault, and everything you
+set up is there. This is what that means, item by item.</p>
+<div class="table"><table><thead><tr><th>Travels with the vault</th><th>Stays on the device, and why</th></tr></thead><tbody><tr><td>The site: name, tagline, logo, language, home note, folders, typography, calendars, sync settings</td><td>The git token: a credential is one machine&#39;s</td></tr><tr><td>The designer&#39;s documents and custom themes, <code>custom.css</code>, every font you chose or uploaded</td><td>Note history (versions): large, and git is its durable copy</td></tr><tr><td>Named layouts, the book shelf and where each book was left off, notes to self on words</td><td>Comments left on the public site: they belong to the site that received them</td></tr><tr><td>Your preferences: theme, interface and editor language, vim keys and relative line numbers, editor width, heading numbers, the formatting toolbar, the sidebar&#39;s side, the tag sort, the what&#39;s-new switch</td><td>Screen warmth and dimming: they answer one screen&#39;s light</td></tr><tr><td></td><td>Offline reading and software updates: one machine&#39;s choice about its own disk and network</td></tr><tr><td></td><td>Tabs, panes, pane widths, fold state, collapsed sections: this window on this screen</td></tr></tbody></table></div><h2 id="things-worth-knowing"><a class="anchor" href="#things-worth-knowing">Things worth knowing</a></h2>
 <ul>
 <li>Every git call is an <code>execFile</code> with a fixed list of arguments. No command line that could
 be tampered with is involved anywhere, and the remote URL and branch name are validated (the

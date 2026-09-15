@@ -49,6 +49,10 @@ const TRAVELS = new Set([
   "graph",
   "comment.author",
   "whatsnew",
+  // 3.16.0: two preferences that arrived after this list was written and
+  // stayed behind on their device.
+  "relativeLines",
+  "tags-sort",
 ]);
 
 interface Entry {

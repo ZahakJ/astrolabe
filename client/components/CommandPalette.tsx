@@ -356,6 +356,14 @@ const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
+    // For a bug that will not reproduce here: the machine's own facts
+    // (client/diagnostics.ts), copied, to paste into a report.
+    id: "copy-diagnostics",
+    label: () => t("cmdCopyDiagnostics"),
+    hint: () => t("cmdCopyDiagnosticsHint"),
+    available: ({ admin }) => admin,
+  },
+  {
     id: "toggle-reading",
     label: () => t("cmdToggleReading"),
     hint: () => "Ctrl/Cmd E",
@@ -1166,6 +1174,9 @@ export default function CommandPalette() {
           break;
         case "whats-new":
           openWhatsNew();
+          break;
+        case "copy-diagnostics":
+          void import("../diagnostics.ts").then((m) => m.copyDiagnostics()).then((ok) => toast(t(ok ? "diagnosticsCopied" : "diagnosticsLogged")));
           break;
         case "export":
           openExportDialog();
