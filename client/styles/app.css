@@ -2261,13 +2261,24 @@ select:focus,
   /* Six sections now stack here (outline, local graph, tracker, history,
      backlinks, mentions, on this day); with several open the backlinks list
      was squeezed to twenty pixels and nothing below it could be reached.
-     The aside scrolls, and the list keeps a floor. */
-  overflow-y: auto;
+     The SCROLLER is the inner wrapper (.s-panel__scroll), not the aside:
+     the grip is absolutely positioned against the aside, and an aside that
+     scrolled carried the grip up with its content — a long backlinks list
+     scrolled the resize handle out of the window (the other half of "I
+     cannot resize the panel"). */
+  overflow: hidden;
   background: var(--panel-bg);
   color: var(--panel-text);
   border-inline-start: 1px solid var(--panel-border);
-  overflow-x: hidden;
   transition: width 0.18s ease, border-color 0.18s ease;
+}
+.s-panel__scroll {
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Same collapse mechanics as the sidebar, including the delayed
@@ -5121,7 +5132,12 @@ button.s-title:hover {
   display: none;
 }
 
-@media (max-width: 999px) {
+/* THE DRAWER BREAKPOINT — three blocks below carry this same list, and
+   state.ts's DRAWER_QUERY mirrors it. Phone width, OR a tablet-sized
+   viewport on a device with no fine pointer. A desktop window at 900px with
+   a mouse keeps its docked, resizable panes: the bare 999px this used to be
+   turned every scaled Windows laptop into a phone (see DRAWER_QUERY). */
+@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
   /* No sidebar column in the grid — the drawer floats over the content. The
      outline pane keeps its column (and, below 1360, its 14px door) until the
      phone breakpoint takes it. Last word by source order, which is how it
@@ -5375,9 +5391,9 @@ button.s-title:hover {
 }
 
 /* The drawer toggle is the touch shell's main navigation control — wherever
-   the drawer exists (≤999) and the pointer is a finger, plus every phone
-   width regardless of pointer. */
-@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse)) {
+   the drawer exists (DRAWER_QUERY), which is every phone width and a tablet
+   with no fine pointer. */
+@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
   /* It was 30px. The tab bar grows to match so the button sits inside it
      rather than hanging over the first tab. */
   .s-drawer-btn {
@@ -6203,8 +6219,8 @@ button.s-title:hover {
 }
 
 /* The drawer slides in from the right in RTL (the sidebar lives there).
-   Same breakpoint as the drawer itself — 999, not 700. */
-@media (max-width: 999px) {
+   Same breakpoint as the drawer itself (DRAWER_QUERY). */
+@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
   [dir="rtl"] .s-sidebar,
   [dir="rtl"] .s-app--nosidebar .s-sidebar,
   [dir="rtl"] .s-app--zen .s-sidebar {
@@ -6634,8 +6650,10 @@ button.s-title:hover {
    measures side by side — the reading column's whole argument is its width —
    so every column but the focused one is hidden rather than squeezed. The
    LAYOUT is untouched: it stays in the store and comes back on a wider
-   viewport, because a resize must never rewrite what the reader arranged. */
-@media (max-width: 999px) {
+   viewport, because a resize must never rewrite what the reader arranged.
+   The same list as the drawer's: with a mouse, two columns in 900px are
+   the reader's choice, not the stylesheet's. */
+@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
   .s-panes {
     display: flex;
     flex-direction: column;

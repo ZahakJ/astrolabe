@@ -154,12 +154,23 @@ const PREVIEW_KEY = "astrolabe.preview";
 const SIDE_KEY = "astrolabe.sidebarSide";
 const SIDEBAR_COLLAPSED_KEY = "astrolabe.sidebarCollapsed";
 
-/** The drawer breakpoint, mirrored from app.css's `@media (max-width: 999px)`.
- *  At and below it the sidebar leaves the grid and becomes an overlay drawer
- *  (so the reading column keeps its full measure at 1024, 900 and 768 alike);
- *  its visibility is then `sidebarOpen`, not `sidebarCollapsed`. Keep the two
- *  numbers in step — this is the only copy of it in the client. */
-export const DRAWER_QUERY = "(max-width: 999px)";
+/** The drawer breakpoint, mirrored from app.css (three `@media` blocks carry
+ *  the same list). At and below it the sidebar leaves the grid and becomes
+ *  an overlay drawer and split columns fold to the focused one; the
+ *  sidebar's visibility is then `sidebarOpen`, not `sidebarCollapsed`.
+ *
+ *  It USED to be a bare `(max-width: 999px)`, chosen so the reading column
+ *  kept its full measure on a tablet. But a Windows laptop at 150% scaling
+ *  is 1280 CSS px wide maximised and ~900 side by side with a browser, and
+ *  at 900 the desktop app turned into a phone: the sidebar SLID in from the
+ *  edge instead of sitting there, no pane had a grip, and a split folded to
+ *  one column — the owner's friend, four releases running: "resizing of
+ *  panels/windows not working on Windows". A device with something that can
+ *  hit an 8px strip keeps the docked, resizable layout down to the phone
+ *  width; only a device with no fine pointer at all gets the drawer early.
+ *  Keep this string and the stylesheet's in step — this is the only copy of
+ *  it in the client. */
+export const DRAWER_QUERY = "(max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine)))";
 
 export function sidebarIsDrawer(): boolean {
   return typeof window !== "undefined" && window.matchMedia(DRAWER_QUERY).matches;
