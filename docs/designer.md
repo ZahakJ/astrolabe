@@ -14,7 +14,7 @@ Open the designer from the command palette: **Design your site**.
 
 ## The built-in blog does not move
 
-The blog and the designer are two separate programs. The designer never touches the blog's code; it is a *second* renderer that draws its own page, not a restyling of the first. That is what makes switching between them safe:
+The blog and the designer are two separate programs. The designer never touches the blog's code; it is a *second* renderer (the part of the program that turns your content into a page) that draws its own page, not a restyling of the first. That is what makes switching between them safe:
 
 **Switching between the blog and a design is instant, and nothing is lost in either direction.** Your designs live in `ASTROLABE_DATA/designs.json`. While the layout is anything other than `designed`, that file is simply not read. So going back to `blog` deletes nothing, and going forward again brings your site back exactly as it was. Going back to the stock blog is a rescue, not a decision.
 
@@ -29,7 +29,7 @@ A design's home page is an ordered list of sections. Any section can be hidden w
 | Kind | What it puts on the page |
 | --- | --- |
 | `hero` | A heading, a sub-heading and an optional image (an https URL or a vault attachment); aligned `start` or `center`, sized `short` or `tall`. Leave the heading empty and the hero shows the site name and tagline, so a hero is useful without typing anything |
-| `richText` | A block of markdown, rendered by the same reading renderer as your notes: the same sanitizer, the same wikilink resolution, the same callouts |
+| `richText` | A block of markdown, rendered by the same reading renderer as your notes: the same HTML cleaning, the same wikilink resolution, the same callouts |
 | `note` | One published note, pulled in whole, or just its first paragraph with a link to the rest |
 | `postGrid` | The newest published posts as cards: a heading, a limit, a column count, an optional tag filter, and switches for the excerpt, the banner and the date |
 | `postList` | The same posts as a plain list: a heading, a limit, a tag filter, and switches for the excerpt and the date |
@@ -55,7 +55,7 @@ Beyond the sections, a design describes the frame around them:
 
 ## Presets
 
-A preset is a finished design you start from. The designer ships **81 of them** in nine families: `editorial`, `minimal`, `journal`, `portfolio`, `reference`, `landing`, `gallery`, `letter` and `signature`. A preset is a fork, not a form to fill in. Three rules govern every one of them, and they are the whole contract for adding another:
+A preset is a finished design you start from. The designer ships **81 of them** in nine families: `editorial`, `minimal`, `journal`, `portfolio`, `reference`, `landing`, `gallery`, `letter` and `signature`. A preset is a copy you start from and change freely, not a form to fill in. Three rules govern every one of them, and they are the whole contract for adding another:
 
 1. **A preset is pure form.** Every text field it could set (a section heading, a hero's own heading, a call-to-action's words, a footer copyright, a nav label) is left **empty**, and the renderers already know what empty means: a hero with no heading shows the site's name and tagline, an empty copyright falls back to the instance's own footer line, an empty button label becomes the translated "Read more". A preset that typed "Latest writing" into a heading would put an English word into an Arabic site and a stranger's voice into everyone's. The shape is ours; every word on the page is yours.
 2. **A preset names nothing in your vault.** No `note` section, no nav item pointing at a note or a page, no tag filter, no image path. A shipped design cannot know what is in someone else's vault, and a preset that guessed would show up as your very first error card. It leans on the fallbacks that already exist instead.
@@ -63,11 +63,11 @@ A preset is a finished design you start from. The designer ships **81 of them** 
 
 `npm run check-presets` holds the catalog to those rules: unique ids, a name and blurb in both languages with real Arabic, a known family, at least one preset per family, and no preset naming a note.
 
-### Signature houses have an opening, and it travels with the design
+### Every signature house has a flourish, and it travels with the design
 
-The 21 `signature` presets each carry a **Signature styling** choice, in the **Header & footer** tab, that travels with the design. It is what makes a house a house rather than just a palette: the broadsheet's nameplate with its ears and dateline strip, the tractor-feed paper and punched tape, the console's radar, the eclipse above Deep Field, the museum wall with a piece hung on wires, the moon phases and star chart of the register. It survives renaming, duplication, and JSON export and import, so a fork of Mission Control that you recolour and reorder is still in the console. Choose **No extra styling** to remove it without touching your sections or typography. Designs saved before this existed carry no signature until you apply a preset that has one.
+The 21 `signature` presets are "houses", in the sense of a fashion house: each has a whole character of its own. Each carries a **Signature styling** choice, in the **Header & footer** tab, that travels with the design. It is what makes a house a house rather than just a palette: the broadsheet's nameplate with its ears and dateline strip, the tractor-feed paper and punched tape, the console's radar, the eclipse above Deep Field, the museum wall with a piece hung on wires, the moon phases and star chart of the register. It survives renaming, duplication, and JSON export and import, so a fork of Mission Control that you recolour and reorder is still in the console. Choose **No extra styling** to remove it without touching your sections or typography. Designs saved before this existed carry no signature until you apply a preset that has one.
 
-Every opening is drawn with the theme's own colours (gradients, rules and shadows, never an image or a fixed colour), so it follows your palette and your light and dark themes. The drawing is a hero section with a blank heading, which is the section that already prints your site's name and tagline, so the masthead above it stays quiet on the front page and returns on every article.
+Every flourish is drawn with the theme's own colours (gradients, rules and shadows, never an image or a fixed colour), so it follows your palette and your light and dark themes. The drawing is a hero section with a blank heading, which is the section that already prints your site's name and tagline, so the masthead above it stays quiet on the front page and returns on every article.
 
 `npm run check-signatures` runs an isolated browser test over the signature collection: desktop and phone layouts, Arabic direction and collection navigation, plus galleries and hover summaries across all 81 presets, keyboard previews, article rendering and designer parity. `SIGNATURES=late-edition,klaxon`, `--houses-only` and `SHOTS=full` narrow it to the houses you are drawing and write screenshots to `shots/signatures/`. It never touches a vault or a saved design.
 
@@ -83,7 +83,7 @@ You can keep several designs, duplicate one to try something, export any of them
 
 ## The live preview
 
-The designer's preview pane is a real page running the real designed layout, not a mock-up. It uses the instance's stylesheets and theme (including a live theme switch), and it lays the page out at phone, tablet and desktop widths so you can check the fold you will actually ship. Keys pressed inside the preview do nothing: a preview that reacted to `Enter` would be a second, silent editor. `npm run check-preview` tests it.
+The designer's preview pane is a real page running the real designed layout, not a mock-up. It uses the instance's stylesheets and theme (including a live theme switch), and it lays the page out at phone, tablet and desktop widths so you can check what a reader will actually see before scrolling. Keys pressed inside the preview do nothing: a preview that reacted to `Enter` would be a second, silent editor. `npm run check-preview` tests it.
 
 ## Static pages
 
