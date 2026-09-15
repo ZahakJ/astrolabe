@@ -21,7 +21,7 @@ all: a visitor's own `Ctrl/Cmd P` is the browser's, and it produces the same pag
 | --- | --- |
 | **The document, whole** | Not the screen. The app prints a freshly rendered copy of the note, so what lands on the page is the whole note — including the part you had scrolled past, and the body of a callout you had folded shut. |
 | **Paper colours** | A light, parchment-cast palette, whatever theme you read in. Your theme is a property of the screen; the page is white because paper is. |
-| **A real serif page** | 11pt serif on A4 or Letter with 20/25mm margins. The page box is the measure — there is no second column drawn inside it. |
+| **A real serif page** | 11pt serif (the kind of type printed books use) on A4 or Letter with 20/25mm margins. The page is the full width of the text — there is no narrower column drawn inside it. |
 | **Sensible breaks** | A heading never ends a page on its own, callouts, tables, figures, tracker cards and equations do not split, paragraphs keep three lines on either side of a break, and a table that runs over repeats its header row. |
 | **Footnotes at the end**, under a hairline, as they are on screen. |
 | **Links that make sense on paper** | An external link prints its address beside it. A `[[wikilink]]` prints as the words you wrote — it points into a vault the person holding the sheet does not have. |
@@ -29,10 +29,11 @@ all: a visitor's own `Ctrl/Cmd P` is the browser's, and it produces the same pag
 
 ## What a PDF gets that most exports do not
 
-- **Bookmarks.** Your headings become the PDF's outline, because the reading view renders real
-  `h1`–`h6` elements and every one of them carries an id.
-- **Working internal links.** A footnote reference, its return arrow, and a `[[#Heading]]` pointer
-  inside the same note are real fragment links, which Chrome turns into PDF link annotations. Click
+- **Bookmarks.** Your headings become the PDF's outline, the contents a reader shows in its side
+  panel, because the reading view writes real headings (`h1`–`h6`) and every one carries an id.
+- **Working internal links.** A footnote number, its return arrow, and a `[[#Heading]]` link
+  inside the same note are real links to places on the page, which Chrome turns into links inside
+  the PDF. Click
   a footnote number in the exported PDF and it goes to the footnote.
 - **Selectable text and real maths.** KaTeX renders to glyphs, not pictures.
 

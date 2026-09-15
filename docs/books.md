@@ -5,17 +5,18 @@
 ---
 
 Click a `.pdf` in the tree and it opens as a **book**: a reader with no permanent toolbar, driven by
-keys the way zathura and vim are, that keeps your place across sessions and renames, and hands what
-you mark straight into the note beside you. It is a workspace tab like any note, so a book can sit
+keys the way zathura and vim are, that keeps your place even after you close the app or rename the file, and hands what you mark
+straight into the note beside you. It is a workspace tab like any note, so a book can sit
 in a pane next to the notes you are writing about it. The shelf of every book in the vault is at
 `/library` in the app (and under *A library in the vault* in the tour).
 
 ## The shelf
 
 Every PDF in the vault as a card: cover, title, author where the file names one, page count, folder,
-file size, and how far you have read (*38 % read*). A cover is page one rendered small. Covers are
-requested as cards scroll into view and cancelled as they leave, so a shelf of two hundred books
-opens at once, and a card that is not yet loaded shows a typographic plate rather than a spinner.
+file size, and how far you have read (*38 % read*). A cover is page one rendered small. A cover is
+only requested when its card scrolls into view, and the request is cancelled as it leaves, so a
+shelf of two hundred books opens at once, and a card whose cover has not arrived shows its title
+set in type rather than a spinner.
 The search field filters titles, authors and paths, **and every marked passage in every book**,
 through the same [Arabic fold](arabic-and-rtl.md#searching-in-arabic) as the rest of the product.
 
@@ -90,20 +91,20 @@ Numbers are read in Latin, Arabic-Indic and Persian digits alike: `:٢١٢` is p
 
 The reader remembers the page and the position *within* the page, the fit, the zoom, two-page mode,
 rotation, night mode, the direction and your marks, per book, in `ASTROLABE_DATA/books.json`. The
-key is a **hash of the file's bytes**, never its path, so renaming or re-filing a book in Obsidian,
+key it is all filed under is a **fingerprint of the file's contents**, never its name or place, so renaming or re-filing a book in Obsidian,
 Syncthing or a terminal loses nothing: page 612 is still page 612, and so are the highlights and the
 citations that point at them. Scrolling is saved a moment after you stop; a zoom or a rotation is
-saved at once and re-anchors the page, so zooming in to read a footnote does not throw your place
-away. `:forget` discards a reading position.
+saved at once and the page stays where it was, so zooming in to read a footnote does not throw
+your place away. `:forget` discards a reading position.
 
 ## Highlights, citations and margin notes
 
 Select a passage and press `h`: the words are marked in the current ink (there are six; `H` steps
-through them), stored as rectangles in page fractions plus the text under them, beside the vault.
+through them), stored beside the vault as rectangles measured as fractions of the page, plus the text under them.
 **The PDF file is never written to.**
 
-Press `c` and the passage is **cited into the note beside you**. The quote is rebuilt from the
-page's geometry rather than the PDF's internal order: columns are found, lines are grouped, an
+Press `c` and the passage is **cited into the note beside you**. The quote is rebuilt from where
+the words sit on the page rather than the PDF's internal order: columns are found, lines are grouped, an
 Arabic line runs right to left, and an end-of-line hyphen is rejoined (*sig-* / *nificant*) while
 *Anglo-Saxon* and *1990-1995* survive. The quote appears in an editable field before a single
 character reaches the note, because the assembler is guessing, and a sentence the author never
@@ -123,7 +124,7 @@ finds them across the vault.
 
 `/` searches the book's text from the current page forward and wraps around, so it finds *the next
 one of these* rather than the first in the volume. `n` and `N` step, and the counter reads *3 of
-41*. The match is tinted without touching the text layer, and it becomes the keyboard's selection,
+41*. The match is tinted without touching the page's text, and it becomes the selection,
 so `/phrase` then `h` marks exactly what was found. The matcher folds Arabic diacritics and letter
 forms like every other search in the product.
 
@@ -145,12 +146,12 @@ A mixed answer holds up to twenty book pages, at most five from one volume, besi
 `in:books` lists up to fifty. Visitors never get book rows: the shelf is the owner's.
 
 The text is read **once**, in the background after the server starts, two books at a time, and kept
-in `ASTROLABE_DATA/pdftext.json` under the same content key as your reading position, so a renamed
+in `ASTROLABE_DATA/pdftext.json` under the same fingerprint as your reading position, so a renamed
 or re-filed book keeps its text, and a book saved again (after an OCR pass, say) is read again. A
 book that cannot be read (damaged, password-protected, over 256 MB) is remembered as such and not
 retried until its bytes change. Per book the store keeps at most 2,000 pages, 8,000 characters a
 page and 1.5 million characters in all; the store as a whole stops at 40 million characters, and the
-boot line says how many books it holds. A scanned book with no text layer has nothing to find,
+server's start-up line says how many books it holds. A scanned book with no text layer has nothing to find,
 exactly as in the reader's own `/`. The [**Search inside books**](configuration.md#settings-keys)
 row in *Settings › Vault* (or `PDF_SEARCH=off`) turns the whole thing off, and stops a pass in
 progress.
@@ -159,5 +160,5 @@ progress.
 
 It never publishes. Both the shelf and the reader are admin surfaces over the owner's vault; a PDF
 reaches a visitor only as an attachment of a published note, through the same door every embed
-uses. It reads a PDF's metadata as untrusted text (capped, control characters stripped), and it caps
-marks at 64 per book. Visitors get no shelf.
+uses. It treats what a PDF says about itself (its title, its author) as text not to be trusted: cut
+short if long, hidden characters stripped; and it caps marks at 64 per book. Visitors get no shelf.

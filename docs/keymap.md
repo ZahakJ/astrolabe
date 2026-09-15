@@ -110,8 +110,8 @@ against this page and cannot see past either of them into CodeMirror, so this pa
 correction until the two rows are given their real Mac spellings.
 
 **`Ctrl/Cmd G` is the graph everywhere, including inside the editor, and that is a decision.**
-CodeMirror's `searchKeymap` binds `Mod-g` to "find again", and the shell claims the key first in the
-capture phase — so that binding has never fired here. It stays that way: find-again already has two
+CodeMirror's `searchKeymap` binds `Mod-g` to "find again", but the shell catches the key before the
+editor sees it — so that binding has never fired here. It stays that way: find-again already has two
 other ways to run (`F3`, and `Enter` in the find field), while the graph toggle is a documented
 Astrolabe binding a reader would be surprised to lose halfway through a note. This is the opposite call
 to the one made for `Ctrl/Cmd D` and `Ctrl/Cmd B`, where the editor's meaning is the per-minute one
@@ -183,7 +183,7 @@ vault, the foot of the `Ctrl/Cmd /` sheet, and a line in `Welcome.md`.
 
 The five formatting keys are Obsidian's, checked against its shortcut tables rather than guessed,
 except underline, which Obsidian has no command for at all (markdown has no underline; Astrolabe's
-writes `<u>`, which the sanitizer already admitted and the reading view already rendered). All five
+writes `<u>`, a tag the HTML filter already allowed and the reading view already rendered). All five
 **toggle**: press twice and the markers come off. With nothing selected they insert the pair and
 park the caret between them, so bold-then-type works. Across a multi-line selection they apply
 **per line**, because markdown emphasis cannot cross a blank line, and one `**` at the top of three
@@ -194,7 +194,7 @@ than approximated.
 **`Ctrl/Cmd B` used to fold the notes sidebar.** Formatting won it: it is the binding every reader
 arrives with, and a key that bolds a word in one half of the window and folds a pane in the other is
 a key nobody can describe. The two pane toggles kept their shape (one key, and `Shift` picks the
-second pane) and moved one modifier out, so the only thing to re-learn is "add `Alt`". Outside the
+second pane) and gained one modifier, so the only thing to re-learn is "add `Alt`". Outside the
 editor `Ctrl/Cmd B` and `Ctrl/Cmd Shift B` are still swallowed, because Firefox's bookmarks sidebar
 and Chrome's bookmark bar must never open over the app. macOS Option+B (`∫`) and Option+T (`†`)
 work, and every binding declines when `AltGr` is held, so a European layout's Right-Alt never folds
@@ -202,7 +202,7 @@ a pane by accident; see [Non-Latin keyboards](#non-latin-keyboards) for how that
 
 **The tab keys wear `Alt` for the same reason the templates do.** The world has three chords for
 tabs, `Ctrl Tab`, `Ctrl PageUp`/`PageDown` and `Ctrl W`, and the browser owns all three. Two of them
-can be worn one modifier over, which is the escape hatch this page keeps taking; the third cannot,
+can take one more modifier, which is the way out this page keeps taking; the third cannot,
 because `Alt Tab` belongs to the window manager. So `Ctrl/Cmd Alt PageDown`/`PageUp` walks the strip
 and `Ctrl/Cmd Alt W` closes the tab, and your muscle memory transfers with one extra finger. Not
 arrows: `Ctrl Alt ←`/`→` is GNOME's workspace switcher and macOS Chrome's own tab switcher, and
