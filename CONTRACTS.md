@@ -9421,8 +9421,9 @@ Constellations door (three stars, two lines). i18n keys are prefixed `stars`.
 **The orbit link (`client/routines/stars.ts` — the whole of the Orbits touch).** A slot text or
 every-day item that wikilinks a constellation note shows, on the orbit card, the link by its name
 and a chip per linked constellation, "N due · Study" (`decorateStarTasks`, run by the Orbits page
-after each card draw; counts from `GET /api/constellations`, cached a few seconds; the chip is an
-`<a href="/constellations/<path>">` pushed through the router). `tickSlotForConstellation(path)` is
+after each card draw; counts from `GET /api/constellations?today=<the reader's day>`, cached a few
+seconds; the chip is an `<a href="/constellations/<note path with .md, a segment at a time>">` — the
+router's `starsUrl` shape — pushed through the router; the checkbox's aria-label loses the brackets too). `tickSlotForConstellation(path)` is
 the ONE export the session-end handler calls when a session ends with nothing due: it ticks, for
 today, every slot of every live orbit that links that note, through `POST /api/routine` — the same
 log line the checkbox writes — and a slot that links several constellations is ticked only when
