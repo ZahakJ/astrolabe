@@ -3328,9 +3328,9 @@ function metaOf(c: Deck, stars: DeckCard[], implicit: boolean, today: string): D
  *  implicit "Everything else" last — present even when empty, so the shelf
  *  has somewhere to point a reader whose vault holds cards but no fence. */
 export function decks(today: string): DeckMeta[] {
-  const out = deckRecords().map((r) => metaOf(r.deck!, r.deck!.stars, false, today));
+  const out = deckRecords().map((r) => metaOf(r.deck!, r.deck!.cards, false, today));
   const rest = everythingElseCards();
-  out.push(metaOf({ path: EVERYTHING_ELSE, title: "", icon: null, kind: "basic", newPerDay: DEFAULT_NEW_PER_DAY, steps: DEFAULT_STEPS, tags: [], sections: [], stars: rest }, rest, true, today));
+  out.push(metaOf({ path: EVERYTHING_ELSE, title: "", icon: null, kind: "basic", newPerDay: DEFAULT_NEW_PER_DAY, steps: DEFAULT_STEPS, tags: [], sections: [], cards: rest }, rest, true, today));
   return out;
 }
 
@@ -3342,7 +3342,7 @@ export function deckCards(notePath: string, section: string | null): DeckCard[] 
   else {
     const record = notes.get(notePath);
     if (!record || record.deck === null) return null;
-    stars = record.deck.stars;
+    stars = record.deck.cards;
   }
   return section === null ? stars : stars.filter((s) => s.section === section);
 }

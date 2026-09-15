@@ -809,7 +809,7 @@ export interface NewDeck {
 
 /** Create `<folder>/<title>.md` with the fence and the cards. 409 `exists`
  *  when a note of that name is already there. */
-export function createDeck(spec: NewDeck): Promise<{ ok: true; path: string; stars: number }> {
+export function createDeck(spec: NewDeck): Promise<{ ok: true; path: string; cards: number }> {
   return request("/api/orbits", json("POST", spec));
 }
 
