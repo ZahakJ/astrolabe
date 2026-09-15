@@ -23,6 +23,7 @@ import { choiceGroup, choiceLabel } from "../themes.ts";
 import SyncBadge from "./SyncBadge.tsx";
 import { openThemePicker } from "./ThemePicker.tsx";
 import { openDesigner } from "./design/openDesigner.ts";
+import { ContextMenu, type MenuAnchor, type MenuRow } from "./ContextMenu.tsx";
 import { noteLabelOf, stripNoteExt } from "../../shared/noteFormat.ts";
 import { dailyNoteLabel } from "../daily.ts";
 import {
@@ -367,6 +368,38 @@ export default function StatusBar() {
       : [leaf]
     : [];
 
+  // THE PHONE'S OVERFLOW MENU. Below 640px the cluster kept every control and
+  // scrolled sideways with no scrollbar, right-aligned — so its first two
+  // doors (the library, the Routines page) sat off-screen to the left with
+  // no hint they existed (the owner: "the APK doesn't show everything on
+  // the top bar"). At that width the bar keeps the gear, the outline switch
+  // and a ⋯; everything else is a LABELLED row here, which on a phone reads
+  // better than a strip of thirteen-pixel glyphs anyway. Zen and the
+  // shortcut sheet are not offered: neither means anything on a phone.
+  const [more, setMore] = useState<MenuAnchor | null>(null);
+  const toggleReview = useStore((s) => s.toggleReview);
+  const moreRows: MenuRow[] = [
+    ...(admin
+      ? [
+          { label: t("media"), onSelect: toggleMedia },
+          { label: t("routines"), onSelect: toggleRoutines },
+          { label: t("review"), onSelect: toggleReview },
+          { label: null },
+          { label: t("designTitle"), onSelect: openDesigner },
+          { label: t("previewAsVisitor"), onSelect: () => void useStore.getState().setPreviewVisitor(true) },
+          { label: null },
+        ]
+      : []),
+    { label: t("docTitleGraph"), onSelect: toggleGraph },
+    { label: t("browseThemes"), onSelect: openThemePicker },
+    ...(admin && authProtected && !desktopOwnsSession ? [{ label: null }, { label: t("signOut"), onSelect: () => void useStore.getState().logout(), danger: true }] : []),
+  ];
+  const openMore = (e: { currentTarget: HTMLElement; detail?: number }): void => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const rtl = getComputedStyle(document.documentElement).direction === "rtl";
+    setMore({ x: rtl ? r.left : r.right, y: r.bottom + 4, fromKeyboard: e.detail === 0 });
+  };
+
   // The shell's tools, as one fragment: portalled to the top when the host
   // exists (the app shell), left in the bar when it does not (a bare test).
   const topTools = (
@@ -468,7 +501,7 @@ export default function StatusBar() {
           </button>
           <button
             type="button"
-            className="s-statusbar__btn s-statusbar__gear"
+            className="s-statusbar__btn s-statusbar__gear s-statusbar__phone"
             onClick={() => useStore.getState().setSettingsOpen(true)}
             title={t("siteSettingsTitle")}
             aria-label={t("siteSettings")}
@@ -643,6 +676,20 @@ export default function StatusBar() {
           )}
         </span>
       )}
+      <button
+        type="button"
+        className="s-statusbar__btn s-statusbar__icon s-statusbar__more s-statusbar__phone"
+        onClick={openMore}
+        title={t("moreTools")}
+        aria-label={t("moreTools")}
+        aria-haspopup="menu"
+        aria-expanded={more !== null}
+      >
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true">
+          <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
+        </svg>
+      </button>
+      {more && <ContextMenu at={more} rows={moreRows} label={t("moreTools")} onClose={() => setMore(null)} />}
     </>
   );
 

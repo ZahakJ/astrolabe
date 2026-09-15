@@ -3077,6 +3077,16 @@ select:focus,
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* The title is the row; the hint is a courtesy that must never take more
+     than a third of it. On a phone it took half and left "LaTeX: download
+     astrolabe.sty" fighting "The macro pack…" for the same 400px. */
+  max-inline-size: 34%;
+  flex: none;
+}
+@media (max-width: 640px) {
+  .s-palette-item-hint {
+    display: none;
+  }
 }
 
 .s-palette-item-snippet {
@@ -7136,6 +7146,36 @@ html[dir="rtl"] .s-statusbar__spacer {
 /* Zen hides the cluster with the rest of the chrome; the ✕ is the way out. */
 .s-app--zen .s-topactions {
   display: none;
+}
+
+/* THE PHONE BAR. Below 640px the cluster kept thirteen controls and scrolled
+   sideways with the scrollbar hidden, right-aligned — its first two doors
+   were off-screen with nothing to say so. Now it keeps three: the outline
+   switch (the panel drawer's only door), the gear, and a ⋯ that opens every
+   other tool as a labelled row (StatusBar.tsx, `moreRows`). Nothing scrolls.
+   The ⋯ itself is display:none above this width — the desktop cluster has
+   every tool in the open. */
+.s-statusbar--top .s-statusbar__more {
+  display: none;
+}
+@media (max-width: 640px) {
+  .s-statusbar--top .s-statusbar__btn:not(.s-statusbar__phone):not(.s-statusbar__pane-outline) {
+    display: none;
+  }
+  .s-statusbar--top .s-statusbar__more {
+    display: inline-flex;
+  }
+  .s-statusbar.s-statusbar--top {
+    overflow: visible;
+    gap: 2px;
+  }
+  /* Bigger targets: the cluster is now three buttons, so each can be a
+     finger's worth wide. */
+  .s-statusbar--top .s-statusbar__phone,
+  .s-statusbar--top .s-statusbar__pane-outline {
+    min-inline-size: 40px;
+    min-block-size: 36px;
+  }
 }
 
 

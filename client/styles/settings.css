@@ -446,6 +446,12 @@
     gap: 4px;
   }
 
+  /* One column: the hint may run the width of the panel instead of the
+     30ch it wraps at beside a control. */
+  .s-smodal__hint {
+    max-width: none;
+  }
+
   .s-smodal__control {
     max-width: none;
   }

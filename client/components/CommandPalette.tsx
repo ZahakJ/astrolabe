@@ -1456,7 +1456,11 @@ export default function CommandPalette() {
           placeholder={
             isPrompt
               ? mode.command?.prompt?.placeholder
-              : t("palettePlaceholder")
+              : // A phone's field holds about thirty characters; the long
+                // sentence was cut at "for a headin".
+                window.matchMedia("(max-width: 640px)").matches
+                ? t("palettePlaceholderShort")
+                : t("palettePlaceholder")
           }
           onChange={(e) => {
             setQuery(e.target.value);
