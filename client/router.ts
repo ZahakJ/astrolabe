@@ -4,9 +4,11 @@
 //   /graph                → graph view
 //   /library              → the book shelf
 //   /book/folder/Book.pdf → that book, at the page its reader left off on
-//   /constellations       → the Constellations shelf (`/review`, its old name,
+//   /sigils               → the Sigils page (`/routines`, its old name, (lineage)
 //                           still lands here)
-//   /constellations/a/B   → a study session over the constellation a/B.md
+//   /orbits               → the Orbits shelf (`/review`, its old name,
+//                           still lands here)
+//   /orbits/a/B           → a study session over the deck a/B.md
 //   /folder/Note          → the note folder/Note.md (".md" stripped, segments
 //                           URL-encoded; matching is case-insensitive)
 //   /folder/Note#Heading  → same note, scrolled to the heading
@@ -25,7 +27,7 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, isGraphTab, isMediaTab, isRoutinesTab, isStarsTab, paneAt, starsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
 
 /** The focused pane is showing the graph tab. */
 function graphTabActive(ws: Workspace): boolean {
@@ -46,34 +48,36 @@ function routinesTabActive(ws: Workspace): boolean {
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isRoutinesTab(tab.path);
 }
-/** …or a Constellations tab: the shelf, or a session over the constellation
+/** …or a Orbits tab: the shelf, or a session over the deck
  *  the returned path names. Null when the focused tab is something else. */
-function starsTabActive(ws: Workspace): { path: string | null; section: string | null } | null {
+function orbitsTabActive(ws: Workspace): { path: string | null; section: string | null } | null {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
-  if (tab === null || !isStarsTab(tab.path)) return null;
-  const session = starsSessionOf(tab.path);
+  if (tab === null || !isOrbitsTab(tab.path)) return null;
+  const session = orbitsSessionOf(tab.path);
   return session === null ? { path: null, section: null } : session;
 }
 
-/** `/constellations`, or `/constellations/<note path>` for a session — the
+/** `/orbits`, or `/orbits/<note path>` for a session — the
  *  note path encoded a segment at a time, like a note's own permalink, and
  *  a section session carries the heading in the hash the way a note's
  *  permalink carries one. */
-export function starsUrl(path: string | null, section: string | null = null): string {
-  if (path === null) return "/constellations";
-  const base = `/constellations/${path.split("/").map(encodeURIComponent).join("/")}`;
+export function orbitsUrl(path: string | null, section: string | null = null): string {
+  if (path === null) return "/orbits";
+  const base = `/orbits/${path.split("/").map(encodeURIComponent).join("/")}`;
   return section ? `${base}#${encodeURIComponent(section)}` : base;
 }
 
-/** The session a `/constellations/…` address names (path null for the
- *  shelf), or undefined when the address is not a Constellations one.
- *  `/review` is the page's old address and still opens the shelf. */
-function starsRouteOf(pathname: string, hash: string): { path: string | null; section: string | null } | undefined {
-  if (pathname === "/review" || pathname === "/constellations" || pathname === "/constellations/") return { path: null, section: null };
-  if (!pathname.startsWith("/constellations/")) return undefined;
+/** The session a `/orbits/…` address names (path null for the shelf), or
+ *  undefined when the address is not an Orbits one. `/review` is the page's
+ *  old address and `/constellations` its working name before it shipped; (lineage)
+ *  both still open the shelf. */
+function orbitsRouteOf(pathname: string, hash: string): { path: string | null; section: string | null } | undefined {
+  // lineage: /review and /constellations are redirect sources only.
+  if (pathname === "/review" || pathname === "/constellations" || pathname === "/constellations/" || pathname === "/orbits" || pathname === "/orbits/") return { path: null, section: null }; // lineage
+  if (!pathname.startsWith("/orbits/")) return undefined;
   try {
-    const rest = pathname.slice("/constellations/".length).split("/").map(decodeURIComponent).join("/");
+    const rest = pathname.slice("/orbits/".length).split("/").map(decodeURIComponent).join("/");
     if (rest === "" || rest.includes("..")) return { path: null, section: null };
     const section = hash.length > 1 ? decodeURIComponent(hash.slice(1)) : null;
     return { path: rest, section: section === "" ? null : section };
@@ -163,9 +167,9 @@ function bookSurfaceOf(ws: Workspace): { kind: "library" } | { kind: "book"; pat
 function urlForState(view: string, openPath: string | null, ws: Workspace): string {
   if (view === "editor" && graphTabActive(ws)) return "/graph";
   if (view === "editor" && mediaTabActive(ws)) return "/media";
-  if (view === "editor" && routinesTabActive(ws)) return "/orbits";
-  const stars = view === "editor" ? starsTabActive(ws) : null;
-  if (stars !== null) return starsUrl(stars.path, stars.section);
+  if (view === "editor" && routinesTabActive(ws)) return "/sigils";
+  const orbits = view === "editor" ? orbitsTabActive(ws) : null;
+  if (orbits !== null) return orbitsUrl(orbits.path, orbits.section);
   const book = bookSurfaceOf(ws);
   if (book !== null) return urlForBooksRoute(book);
   return openPath ? notePathToUrl(openPath) : "/";
@@ -184,10 +188,10 @@ function setTitle(openPath: string | null, view: string): void {
     document.title = `${t("media")} · ${base}`;
   } else if (view === "editor" && routinesTabActive(useStore.getState().workspace)) {
     document.title = `${t("routines")} · ${base}`;
-  } else if (view === "editor" && starsTabActive(useStore.getState().workspace) !== null) {
+  } else if (view === "editor" && orbitsTabActive(useStore.getState().workspace) !== null) {
     // A session is titled by the note it studies; the shelf by the page.
-    const at = starsTabActive(useStore.getState().workspace);
-    const name = at?.path ? (isNotePath(at.path) ? stripBidiControls(noteTitleOf(at.path)) : t("starsEverything")) : t("stars");
+    const at = orbitsTabActive(useStore.getState().workspace);
+    const name = at?.path ? (isNotePath(at.path) ? stripBidiControls(noteTitleOf(at.path)) : t("orbitsEverything")) : t("orbits");
     document.title = `${name} · ${base}`;
   } else if (book !== null) {
     document.title =
@@ -235,17 +239,19 @@ export function applyUrl(initial = false): boolean {
       store.setView("media");
       return true;
     }
-    // `/routines` was the page's address until 3.15; a bookmark still opens
-    // it, and the bar then shows `/orbits`.
-    if (location.pathname === "/orbits" || location.pathname === "/routines") {
+    // `/routines` was the Sigils page's address until 3.15 (and `/orbits` (lineage)
+    // in 3.15, which now means the spaced-repetition shelf below); a
+    // bookmark still opens it, and the bar then shows `/sigils`.
+    // lineage: /routines is a redirect source only.
+    if (location.pathname === "/sigils" || location.pathname === "/routines") { // lineage
       store.setView("routines");
       return true;
     }
-    // `/review` was the page's address until 3.16; a bookmark still opens
-    // the shelf, and the bar then shows `/constellations`.
-    const stars = starsRouteOf(location.pathname, location.hash);
-    if (stars !== undefined) {
-      store.openStars(stars.path, stars.section);
+    // `/review` was the shelf's address until 3.16; a bookmark still opens
+    // the shelf, and the bar then shows `/orbits`.
+    const orbits = orbitsRouteOf(location.pathname, location.hash);
+    if (orbits !== undefined) {
+      store.openOrbits(orbits.path, orbits.section);
       return true;
     }
     const path = urlToNotePath(location.pathname, store.tree);
@@ -291,7 +297,7 @@ export function applyUrl(initial = false): boolean {
       // The cost is the tab arrangement, and it is bounded: this entry only
       // EXISTS if the session began with nothing open, and Forward reopens the
       // note the reader stepped back from.
-      if (store.openPath !== null || graphTabActive(store.workspace) || mediaTabActive(store.workspace) || routinesTabActive(store.workspace) || starsTabActive(store.workspace) !== null) {
+      if (store.openPath !== null || graphTabActive(store.workspace) || mediaTabActive(store.workspace) || routinesTabActive(store.workspace) || orbitsTabActive(store.workspace) !== null) {
         store.closeAllTabs();
       }
       return true;

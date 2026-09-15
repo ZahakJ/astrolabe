@@ -1,6 +1,6 @@
 /* THE ORBIT CARD — one stylesheet, every surface (client/reading/routine.ts).
  * Classes are `s-rv-*` for the tracker's reason: the editor's widget, the
- * reading view, the blog and the Orbits page all draw with this one skin.
+ * reading view, the blog and the Sigils page all draw with this one skin.
  * Logical properties throughout; tokens only. The status colours are the
  * theme's own callout hues so a "missed" day reads as the theme's warning
  * and a "complete" one as its success, in every room. */
@@ -464,7 +464,7 @@
 .s-rv-routine__day--none .s-rv-routine__daydot { border-color: var(--text-faint); }
 
 /* THE LOWER HALF: the week strip and the heatmap share a row when the card
-   is wide (one orbit spanning the Orbits page) and stack when it is not.
+   is wide (one sigil spanning the Sigils page) and stack when it is not.
    A flex row that WRAPS, and no container query — the first cut queried
    the card's own width to switch the card's grid to two columns, and a
    rule on an element resolves against its nearest ANCESTOR container, not
@@ -473,7 +473,7 @@
    sharing a row were each narrower than the threshold, so the first got
    two columns and children that did not span them — the head squeezed
    into a 27px column, "weirdly squished to the right" the moment a second
-   orbit was created. The strip asks for 340px and takes the rest; the
+   sigil was created. The strip asks for 340px and takes the rest; the
    heatmap is a fixed size and drops under it when the two do not fit. */
 .s-rv-routine__lower {
   display: flex;

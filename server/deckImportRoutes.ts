@@ -1,9 +1,9 @@
-// POST /api/constellations/import — an Anki .apkg or a CSV/TSV, as notes.
+// POST /api/orbits/import — an Anki .apkg or a CSV/TSV, as notes.
 //
-// Mounted under /api/constellations from server/api.ts, BELOW the auth
+// Mounted under /api/orbits from server/api.ts, BELOW the auth
 // guard, so a visitor and an admin wearing the preview header are already
 // 401 here: an import writes notes and copies media into the vault, which
-// is the owner's to do and nobody else's. The rest of the constellation
+// is the owner's to do and nobody else's. The rest of the deck
 // routes are api.ts's own; this one sits apart because it is the only one
 // that takes a file, and the only one whose body cap is the import's.
 //
@@ -11,7 +11,7 @@
 // buffers the file; the body cap in api.ts bounds what it buffers):
 //
 //   file    the .apkg, .csv or .tsv (required)
-//   folder  vault-relative folder for the notes; "Constellations" by default
+//   folder  vault-relative folder for the notes; "Orbits" by default
 //   title   CSV only: the note's title (the file's name otherwise)
 //   front, back, extra, tags
 //           CSV only: 0-based column indexes (defaults 0, 1, 2 if present, none)
@@ -23,16 +23,16 @@
 // (`suspended`, `empty`, `frontTooLong`, `extraTemplates`, `unreadable`,
 // `mediaUnsupported`, `mediaMissing`) so the client can say them in the
 // reader's language. A Node without node:sqlite answers 501 with the code
-// `starsImportNoSqlite`, and one without zstd (a recent Anki's export)
-// `starsImportNoZstd`.
+// `deckImportNoSqlite`, and one without zstd (a recent Anki's export)
+// `deckImportNoZstd`.
 
 import { Hono } from "hono";
 import { normalizeFolder, folderError } from "../shared/attachments.ts";
-import { STARS_IMPORT_MAX_BYTES } from "../shared/limits.ts";
-import { importFile, type ImportResult } from "./starsImport.ts";
+import { DECK_IMPORT_MAX_BYTES } from "../shared/limits.ts";
+import { importFile, type ImportResult } from "./deckImport.ts";
 import { VaultError } from "./vault.ts";
 
-export const starsImportRoutes = new Hono();
+export const deckImportRoutes = new Hono();
 
 function column(form: Record<string, unknown>, key: string, fallback: number | null): number | null {
   const raw = form[key];
@@ -42,7 +42,7 @@ function column(form: Record<string, unknown>, key: string, fallback: number | n
   return n;
 }
 
-starsImportRoutes.post("/import", async (c) => {
+deckImportRoutes.post("/import", async (c) => {
   let form: Record<string, unknown>;
   try {
     form = await c.req.parseBody();
@@ -51,7 +51,7 @@ starsImportRoutes.post("/import", async (c) => {
   }
   const file = form.file;
   if (!(file instanceof File)) throw new VaultError(400, 'Multipart field "file" (the deck) is required');
-  if (file.size > STARS_IMPORT_MAX_BYTES) throw new VaultError(413, `File too large (${STARS_IMPORT_MAX_BYTES} bytes max)`);
+  if (file.size > DECK_IMPORT_MAX_BYTES) throw new VaultError(413, `File too large (${DECK_IMPORT_MAX_BYTES} bytes max)`);
   const folderRaw = typeof form.folder === "string" ? form.folder : "";
   const problem = folderError(folderRaw);
   if (problem !== null) throw new VaultError(400, `Field "folder" is not a usable vault folder (${problem})`);

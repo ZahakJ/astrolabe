@@ -1,8 +1,8 @@
-// THE ORBIT FORM — a new orbit from a template, or an edit of one.
+// THE SIGIL FORM — a new sigil from a template, or an edit of one.
 //
-// It writes a NOTE, as the Media form does: `Orbits/<Title>.md` holding the
-// title as frontmatter, the ```orbit plan the draft composes
-// (shared/routine.ts routineFenceBody) and an empty ```orbit-log, so the
+// It writes a NOTE, as the Media form does: `Sigils/<Title>.md` holding the
+// title as frontmatter, the ```sigil plan the draft composes
+// (shared/routine.ts routineFenceBody) and an empty ```sigil-log, so the
 // shape is on the page before day one. An edit sends the plan's new body to
 // POST /api/routine, which replaces the plan fence and nothing else — the
 // log under it, the prose around it, all kept.
@@ -20,8 +20,8 @@
 //
 // TEMPLATES ARE TWO SHELVES. The built-in presets (the owner's exercise week,
 // prayers, sleep, water, mood, reading, study, habits) and the vault's own:
-// any note in the templates folder that carries an ```orbit fence. "Save as
-// template" writes the draft there, so an orbit drawn up once can seed the
+// any note in the templates folder that carries a ```sigil fence. "Save as
+// template" writes the draft there, so a sigil drawn up once can seed the
 // next — the owner's ask: "ability to create custom templates".
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
@@ -95,7 +95,7 @@ const FIELD_TYPES: { value: RoutineFieldType; label: I18nKey; hint: I18nKey }[] 
   { value: "check", label: "routineFieldTypeCheck", hint: "routineFieldTypeCheckHint" },
 ];
 
-/** The picker's shelf: forty glyphs that fit the things people orbit — the
+/** The picker's shelf: forty glyphs that fit the things people keep a sigil for — the
  *  body, the table, the night, the book, the prayer mat, the house. A free
  *  field beside it takes anything else. */
 const EMOJI: readonly string[] = [
@@ -234,7 +234,7 @@ export function RoutineForm({
       return;
     }
     setUploading(true);
-    // The orbit note's folder is the upload's context, as it is for a
+    // The sigil note's folder is the upload's context, as it is for a
     // tracker's cover: under the "same folder" and "subfolder" attachment
     // modes the banner lands beside the note it decorates — the folder the
     // note WILL take when it is not saved yet.
@@ -337,7 +337,7 @@ export function RoutineForm({
     <div className="s-palette-overlay" onMouseDown={onClose}>
       <form
         ref={panelRef}
-        className="s-mediaform s-orbitform"
+        className="s-mediaform s-sigilform"
         role="dialog"
         aria-modal="true"
         aria-label={heading}
@@ -354,19 +354,19 @@ export function RoutineForm({
           </button>
         </div>
 
-        <div className="s-mediaform__body s-orbitform__body">
+        <div className="s-mediaform__body s-sigilform__body">
           {!editing && (
-            <div className="s-orbitform__start">
+            <div className="s-sigilform__start">
               <span className="s-mediaform__label">{t("routinesPresetsHead")}</span>
-              <div className="s-orbitform__presets" role="radiogroup" aria-label={t("routinesPresetsHead")}>
+              <div className="s-sigilform__presets" role="radiogroup" aria-label={t("routinesPresetsHead")}>
                 <button
                   type="button"
                   role="radio"
                   aria-checked={source === "blank"}
-                  className={`s-orbitform__preset s-orbitform__preset--custom${source === "blank" ? " is-on" : ""}`}
+                  className={`s-sigilform__preset s-sigilform__preset--custom${source === "blank" ? " is-on" : ""}`}
                   onClick={() => apply(emptyDraft(), "blank")}
                 >
-                  <span className="s-orbitform__presetglyph" aria-hidden="true">✦</span>
+                  <span className="s-sigilform__presetglyph" aria-hidden="true">✦</span>
                   {t("routinesCustom")}
                 </button>
                 {ROUTINE_PRESETS.map((p) => {
@@ -377,10 +377,10 @@ export function RoutineForm({
                       type="button"
                       role="radio"
                       aria-checked={source === p.id}
-                      className={`s-orbitform__preset${source === p.id ? " is-on" : ""}`}
+                      className={`s-sigilform__preset${source === p.id ? " is-on" : ""}`}
                       onClick={() => apply(d, p.id)}
                     >
-                      <span className="s-orbitform__presetglyph" aria-hidden="true">{d.icon}</span>
+                      <span className="s-sigilform__presetglyph" aria-hidden="true">{d.icon}</span>
                       {t(KIND_LABEL[p.id])}
                     </button>
                   );
@@ -388,20 +388,20 @@ export function RoutineForm({
               </div>
               {templates.length > 0 && (
                 <>
-                  <span className="s-mediaform__label s-orbitform__sublabel">{t("routinesTemplatesHead")}</span>
-                  <div className="s-orbitform__presets" role="radiogroup" aria-label={t("routinesTemplatesHead")}>
+                  <span className="s-mediaform__label s-sigilform__sublabel">{t("routinesTemplatesHead")}</span>
+                  <div className="s-sigilform__presets" role="radiogroup" aria-label={t("routinesTemplatesHead")}>
                     {templates.map((m) => (
                       <button
                         key={`${m.path}::${m.index}`}
                         type="button"
                         role="radio"
                         aria-checked={source === m.path}
-                        className={`s-orbitform__preset${source === m.path ? " is-on" : ""}`}
+                        className={`s-sigilform__preset${source === m.path ? " is-on" : ""}`}
                         title={m.path}
                         dir="auto"
                         onClick={() => apply(draftOf(m.plan), m.path)}
                       >
-                        {m.plan.emoji && <span className="s-orbitform__presetglyph" aria-hidden="true">{m.plan.emoji}</span>}
+                        {m.plan.emoji && <span className="s-sigilform__presetglyph" aria-hidden="true">{m.plan.emoji}</span>}
                         {m.plan.title || m.noteTitle}
                       </button>
                     ))}
@@ -413,10 +413,10 @@ export function RoutineForm({
           )}
 
           {/* ── 1 · Name and look ── */}
-          <section className="s-orbitform__section" aria-labelledby="s-orbitform-s1">
-            <header className="s-orbitform__sechead">
-              <span className="s-orbitform__secnum" aria-hidden="true">1</span>
-              <h3 className="s-orbitform__sectitle" id="s-orbitform-s1">{t("routineFormSectionName")}</h3>
+          <section className="s-sigilform__section" aria-labelledby="s-sigilform-s1">
+            <header className="s-sigilform__sechead">
+              <span className="s-sigilform__secnum" aria-hidden="true">1</span>
+              <h3 className="s-sigilform__sectitle" id="s-sigilform-s1">{t("routineFormSectionName")}</h3>
             </header>
 
             <label className="s-mediaform__row">
@@ -433,19 +433,19 @@ export function RoutineForm({
 
             <div className="s-mediaform__row">
               <span className="s-mediaform__label">{t("routineFormIcon")}</span>
-              <div className="s-orbitform__iconrow">
-                <div className="s-orbitform__emoji" role="radiogroup" aria-label={t("routineFormIcon")}>
+              <div className="s-sigilform__iconrow">
+                <div className="s-sigilform__emoji" role="radiogroup" aria-label={t("routineFormIcon")}>
                   <button
                     type="button"
                     role="radio"
                     aria-checked={iconValue === ""}
-                    className={`s-orbitform__emojibtn s-orbitform__emojibtn--none${iconValue === "" ? " is-on" : ""}`}
+                    className={`s-sigilform__emojibtn s-sigilform__emojibtn--none${iconValue === "" ? " is-on" : ""}`}
                     title={t("routineFormIconNone")}
                     tabIndex={shelfStop === "" ? 0 : -1}
                     onKeyDown={shelfKey}
                     onClick={() => set("icon", "")}
                   >
-                    <span className="s-orbitform__emojinone">{t("routineFormIconNone")}</span>
+                    <span className="s-sigilform__emojinone">{t("routineFormIconNone")}</span>
                   </button>
                   {EMOJI.map((e) => (
                     <button
@@ -454,7 +454,7 @@ export function RoutineForm({
                       role="radio"
                       aria-checked={iconValue === e}
                       aria-label={e}
-                      className={`s-orbitform__emojibtn${iconValue === e ? " is-on" : ""}`}
+                      className={`s-sigilform__emojibtn${iconValue === e ? " is-on" : ""}`}
                       tabIndex={shelfStop === e ? 0 : -1}
                       onKeyDown={shelfKey}
                       onClick={() => set("icon", e)}
@@ -463,8 +463,8 @@ export function RoutineForm({
                     </button>
                   ))}
                 </div>
-                <div className="s-orbitform__iconown">
-                  <span className={`s-orbitform__iconpreview${iconValue === "" ? " is-empty" : ""}`} aria-hidden="true">
+                <div className="s-sigilform__iconown">
+                  <span className={`s-sigilform__iconpreview${iconValue === "" ? " is-empty" : ""}`} aria-hidden="true">
                     {iconValue || "·"}
                   </span>
                   <TextInput value={iconOnShelf ? "" : draft.icon} onChange={(v) => set("icon", v)} placeholder={t("routineFormIconOwn")} label={t("routineFormIconOwn")} maxLength={8} dir="auto" />
@@ -476,7 +476,7 @@ export function RoutineForm({
             <div className="s-mediaform__row">
               <span className="s-mediaform__label">{t("routineFormBanner")}</span>
               <div className="s-mediaform__coverrow">
-                <PathInput id="s-orbitform-banner" value={draft.banner} onChange={(v) => set("banner", v)} kind="image" placeholder={t("routineFormBannerPlaceholder")} label={t("routineFormBanner")} />
+                <PathInput id="s-sigilform-banner" value={draft.banner} onChange={(v) => set("banner", v)} kind="image" placeholder={t("routineFormBannerPlaceholder")} label={t("routineFormBanner")} />
                 <button type="button" className="s-btn s-mediaform__upload" disabled={uploading} onClick={() => fileRef.current?.click()}>
                   {uploading ? t("mediaFormUploading") : t("routineFormBannerChoose")}
                 </button>
@@ -502,10 +502,10 @@ export function RoutineForm({
           </section>
 
           {/* ── 2 · Days and parts ── */}
-          <section className="s-orbitform__section" aria-labelledby="s-orbitform-s2">
-            <header className="s-orbitform__sechead">
-              <span className="s-orbitform__secnum" aria-hidden="true">2</span>
-              <h3 className="s-orbitform__sectitle" id="s-orbitform-s2">{t("routineFormSectionDays")}</h3>
+          <section className="s-sigilform__section" aria-labelledby="s-sigilform-s2">
+            <header className="s-sigilform__sechead">
+              <span className="s-sigilform__secnum" aria-hidden="true">2</span>
+              <h3 className="s-sigilform__sectitle" id="s-sigilform-s2">{t("routineFormSectionDays")}</h3>
             </header>
 
             <label className="s-mediaform__row">
@@ -522,8 +522,8 @@ export function RoutineForm({
 
             <div className="s-mediaform__row">
               <span className="s-mediaform__label">{t("routineFormWeek")}</span>
-              <div className="s-orbitform__weekwrap">
-                <table className="s-orbitform__week">
+              <div className="s-sigilform__weekwrap">
+                <table className="s-sigilform__week">
                   <thead>
                     <tr>
                       <th>{t("routineDay")}</th>
@@ -539,7 +539,7 @@ export function RoutineForm({
                         {columns.map((c) => (
                           <td key={c || "plan"}>
                             <textarea
-                              className="s-orbitform__cell"
+                              className="s-sigilform__cell"
                               rows={2}
                               value={draft.week[wd][c] ?? ""}
                               dir="auto"
@@ -558,43 +558,43 @@ export function RoutineForm({
           </section>
 
           {/* ── 3 · What to record each day ── */}
-          <section className="s-orbitform__section" aria-labelledby="s-orbitform-s3">
-            <header className="s-orbitform__sechead">
-              <span className="s-orbitform__secnum" aria-hidden="true">3</span>
-              <h3 className="s-orbitform__sectitle" id="s-orbitform-s3">{t("routineFormSectionFields")}</h3>
+          <section className="s-sigilform__section" aria-labelledby="s-sigilform-s3">
+            <header className="s-sigilform__sechead">
+              <span className="s-sigilform__secnum" aria-hidden="true">3</span>
+              <h3 className="s-sigilform__sectitle" id="s-sigilform-s3">{t("routineFormSectionFields")}</h3>
             </header>
-            <p className="s-mediaform__hint s-orbitform__lead">{t("routineFormFieldsHint")}</p>
+            <p className="s-mediaform__hint s-sigilform__lead">{t("routineFormFieldsHint")}</p>
 
-            <div className="s-orbitform__opts">
+            <div className="s-sigilform__opts">
               {KNOWN_FIELDS.map((k) => {
                 const on = knownOn(k);
                 return (
-                  <div key={k.id} className={`s-orbitform__opt${on ? " is-on" : ""}`}>
-                    <label className="s-orbitform__optlabel">
+                  <div key={k.id} className={`s-sigilform__opt${on ? " is-on" : ""}`}>
+                    <label className="s-sigilform__optlabel">
                       <input
                         type="checkbox"
-                        className="s-orbitform__optbox"
+                        className="s-sigilform__optbox"
                         checked={on !== null}
                         data-field={k.id}
                         onChange={(e) => toggleKnown(k, e.target.checked)}
                       />
-                      <span className="s-orbitform__optwords">
-                        <span className="s-orbitform__optname">
+                      <span className="s-sigilform__optwords">
+                        <span className="s-sigilform__optname">
                           {t(k.label)}
-                          <span className="s-orbitform__optkey" dir="ltr">{on ? on.key : k.key[lang]}</span>
+                          <span className="s-sigilform__optkey" dir="ltr">{on ? on.key : k.key[lang]}</span>
                         </span>
-                        <span className="s-orbitform__opthelp">{t(k.help)}</span>
+                        <span className="s-sigilform__opthelp">{t(k.help)}</span>
                       </span>
                     </label>
                     {on && (on.type === "number" || on.type === "count") && (
-                      <label className="s-orbitform__optextra">
-                        <span className="s-orbitform__optextralabel">{t("routineFormFieldUnit")}</span>
+                      <label className="s-sigilform__optextra">
+                        <span className="s-sigilform__optextralabel">{t("routineFormFieldUnit")}</span>
                         <TextInput value={on.unit ?? ""} onChange={(v) => patchField(on, { unit: unitWord(v) })} label={t("routineFormFieldUnit")} maxLength={20} dir="auto" />
                       </label>
                     )}
                     {on && on.type === "scale" && (
-                      <label className="s-orbitform__optextra">
-                        <span className="s-orbitform__optextralabel">{t("routineFormFieldMax")}</span>
+                      <label className="s-sigilform__optextra">
+                        <span className="s-sigilform__optextralabel">{t("routineFormFieldMax")}</span>
                         <NumberInput value={String(on.max ?? 5)} onChange={(v) => patchField(on, { max: Math.max(2, Math.min(10, Math.round(Number(v)) || 5)) })} unit="" min={2} max={10} label={t("routineFormFieldMax")} />
                       </label>
                     )}
@@ -603,11 +603,11 @@ export function RoutineForm({
               })}
             </div>
 
-            <div className="s-orbitform__own">
+            <div className="s-sigilform__own">
               <span className="s-mediaform__label">{t("routineFormFieldsCustomHead")}</span>
               <p className="s-mediaform__hint">{t("routineFormFieldsCustomHint")}</p>
               {ownFields.map((f, i) => (
-                <div key={i} className="s-orbitform__ownrow">
+                <div key={i} className="s-sigilform__ownrow">
                   <TextInput value={f.key} onChange={(v) => patchField(f, { key: fieldWord(v) })} placeholder={t("routineFormFieldName")} label={t("routineFormFieldName")} maxLength={40} dir="auto" />
                   <Select
                     value={f.type}
@@ -621,25 +621,25 @@ export function RoutineForm({
                   {f.type === "scale" && (
                     <NumberInput value={String(f.max ?? 5)} onChange={(v) => patchField(f, { max: Math.max(2, Math.min(10, Math.round(Number(v)) || 5)) })} unit="" min={2} max={10} label={t("routineFormFieldMax")} />
                   )}
-                  <button type="button" className="s-btn s-orbitform__ownremove" onClick={() => removeField(f)} aria-label={t("routineFormFieldRemove")} title={t("routineFormFieldRemove")}>
+                  <button type="button" className="s-btn s-sigilform__ownremove" onClick={() => removeField(f)} aria-label={t("routineFormFieldRemove")} title={t("routineFormFieldRemove")}>
                     ×
                   </button>
                 </div>
               ))}
-              <button type="button" className="s-btn s-orbitform__addfield" onClick={addField}>
+              <button type="button" className="s-btn s-sigilform__addfield" onClick={addField}>
                 + {t("routineFormFieldAdd")}
               </button>
             </div>
           </section>
 
           {/* ── 4 · Target and notes ── */}
-          <section className="s-orbitform__section" aria-labelledby="s-orbitform-s4">
-            <header className="s-orbitform__sechead">
-              <span className="s-orbitform__secnum" aria-hidden="true">4</span>
-              <h3 className="s-orbitform__sectitle" id="s-orbitform-s4">{t("routineFormSectionGoal")}</h3>
+          <section className="s-sigilform__section" aria-labelledby="s-sigilform-s4">
+            <header className="s-sigilform__sechead">
+              <span className="s-sigilform__secnum" aria-hidden="true">4</span>
+              <h3 className="s-sigilform__sectitle" id="s-sigilform-s4">{t("routineFormSectionGoal")}</h3>
             </header>
 
-            <label className="s-mediaform__row s-orbitform__target">
+            <label className="s-mediaform__row s-sigilform__target">
               <span className="s-mediaform__label">{t("routineFormTarget")}</span>
               <NumberInput value={draft.target === null ? "" : String(draft.target)} onChange={(v) => set("target", v.trim() === "" ? null : Math.max(1, Math.min(7, Math.round(Number(v)) || 1)))} unit={t("routineFormTargetUnit")} min={1} max={7} label={t("routineFormTarget")} />
               <p className="s-mediaform__hint">{t("routineFormTargetHint")}</p>
@@ -666,7 +666,7 @@ export function RoutineForm({
           <button type="button" className="s-btn" disabled={busy} onClick={() => void saveTemplate()}>
             {t("routinesSaveTemplate")}
           </button>
-          <span className="s-orbitform__spacer" />
+          <span className="s-sigilform__spacer" />
           <button type="button" className="s-btn" onClick={onClose}>
             {t("routineFormCancel")}
           </button>

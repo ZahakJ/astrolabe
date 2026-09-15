@@ -16,7 +16,7 @@ import { toast } from "../toast.ts";
 
 export interface TasksHooks {
   notePath: string;
-  /** Present on the editor and the Orbits page: ticks write. */
+  /** Present on the editor and the Sigils page: ticks write. */
   live?: boolean;
   onResize?: () => void;
   /** The page passes its own rows to spare a second fetch. */

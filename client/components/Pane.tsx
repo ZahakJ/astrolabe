@@ -21,7 +21,7 @@ import { activeTabOf, paneAt, surfaceOf } from "../workspace.ts";
 const GraphView = lazySurface(() => import("./GraphView.tsx"));
 const MediaView = lazySurface(() => import("../media/MediaView.tsx"));
 const RoutinesView = lazySurface(() => import("../routines/RoutinesView.tsx"));
-const StarsSurface = lazySurface(() => import("../stars/StarsSurface.tsx"));
+const OrbitsSurface = lazySurface(() => import("../orbits/OrbitsSurface.tsx"));
 import Tabs from "./Tabs.tsx";
 import { useTabDrag } from "../dragTab.ts";
 
@@ -127,17 +127,17 @@ export default function Pane({
         <MediaView />
       </Suspense>
     ) : surface === "routines" ? (
-      // The Orbits page: today's checklists, every orbit in the vault,
+      // The Sigils page: today's checklists, every sigil in the vault,
       // a tab like the Media page.
       <Suspense fallback={<div className="s-routines" />}>
         <RoutinesView />
       </Suspense>
-    ) : surface === "stars" && tab !== null ? (
-      // Constellations: the shelf, or a session over one constellation —
-      // the tab's path says which. A tab on the Orbits page's terms; keyed
+    ) : surface === "orbits" && tab !== null ? (
+      // Orbits: the shelf, or a session over one deck —
+      // the tab's path says which. A tab on the Sigils page's terms; keyed
       // by path so leaving one session for another starts it afresh.
-      <Suspense fallback={<div className="s-stars" />}>
-        <StarsSurface key={tab.path} tabPath={tab.path} />
+      <Suspense fallback={<div className="s-orbits" />}>
+        <OrbitsSurface key={tab.path} tabPath={tab.path} />
       </Suspense>
     ) : surface === "drawing" && tab !== null ? (
       // A DRAWING IS A TAB, like a book: the canvas fills the pane beside

@@ -126,7 +126,7 @@ keeps working: set the folder to `Journal` and the name to `YYYY/YYYY-MM-DD`.
 
 **On this day.** Under the backlinks, the right panel lists what you wrote, published or finished on
 this day in earlier years: a strip that reads your archive back to you, drawn from the notes' own
-dates and the trackers' `finished:` lines, with nothing stored. The Orbits page opens with the same.
+dates and the trackers' `finished:` lines, with nothing stored. The Sigils page opens with the same.
 
 ## Sections: fold, extract, move
 

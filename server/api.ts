@@ -15,12 +15,12 @@ import {
  uploadDestination } from "../shared/attachments.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
-import { STARS_IMPORT_MAX_BYTES, UPLOAD_MAX_BYTES } from "../shared/limits.ts";
+import { DECK_IMPORT_MAX_BYTES, UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import { applyEdit, editRoutinePlan, logEditFor, routineFenceSpans, type EntryPatch } from "../shared/routine.ts";
 import { TASK_LINE_RE, toggleTaskLine } from "../shared/tasks.ts";
 import { review as reviewCard, type Grade, type Schedule } from "../shared/srs.ts";
-import { constellationNotePath, parseConstellationFence, scanStars, serialiseConstellation, restoreStarSchedule, writeStarSchedule, type ConstellationKind, type NewCard } from "../shared/constellations.ts";
+import { deckNotePath, parseDeckFence, scanDeckCards, serialiseDeck, restoreCardSchedule, writeCardSchedule, type DeckKind, type NewCard } from "../shared/decks.ts";
 import type {
   AliasesResponse,
   AnchorsResponse,
@@ -99,7 +99,7 @@ import {
   search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor, hasNote,
   searchMatches,
   tags,
-  trackers, routines, hadithLookup, cards, constellations, constellationStars,
+  trackers, routines, hadithLookup, cards, decks, deckCards,
   visibleNotesUnder,
   whenIndexed,
   wikilinkRegex, collectionRows } from "./indexer.ts";
@@ -110,7 +110,7 @@ import { invalidateTree, treeBody } from "./treeCache.ts";
 import { activeDesignFontRefs } from "./designs.ts";
 import { designRoutes } from "./designRoutes.ts";
 import { bookRoutes } from "./bookRoutes.ts";
-import { starsImportRoutes } from "./starsImportRoutes.ts";
+import { deckImportRoutes } from "./deckImportRoutes.ts";
 import { searchPages } from "./pdfText.ts";
 import { prefsRoutes } from "./prefs.ts";
 import { readWorkspaceState, writeWorkspaceState } from "./workspaceState.ts";
@@ -243,9 +243,9 @@ const UPLOAD_BODY_MAX = UPLOAD_MAX_BYTES + 64 * 1024;
 // route sniffs magic bytes, so the only thing this stops is a body that never
 // had to be read at all. The multipart envelope rides on top of the file.
 const FONT_BODY_MAX = CUSTOM_FONT_MAX_BYTES + 64 * 1024;
-// An Anki deck is its media (server/starsImportRoutes.ts): the one body this
+// An Anki deck is its media (server/deckImportRoutes.ts): the one body this
 // API buffers whole that is honestly allowed to be big.
-const STARS_IMPORT_BODY_MAX = STARS_IMPORT_MAX_BYTES + 64 * 1024;
+const DECK_IMPORT_BODY_MAX = DECK_IMPORT_MAX_BYTES + 64 * 1024;
 
 function tooLarge(maxBytes: number) {
   return (c: Context) => c.json({ error: `Request body too large (${maxBytes} bytes max)` }, 413);
@@ -260,8 +260,8 @@ api.use("*", async (c, next) => {
       ? UPLOAD_BODY_MAX
       : post && c.req.path === "/api/fonts/upload"
         ? FONT_BODY_MAX
-        : post && c.req.path === "/api/constellations/import"
-          ? STARS_IMPORT_BODY_MAX
+        : post && c.req.path === "/api/orbits/import"
+          ? DECK_IMPORT_BODY_MAX
           : API_BODY_MAX;
   return bodyLimit({ maxSize: max, onError: tooLarge(max) })(c, next);
 });
@@ -2250,13 +2250,13 @@ api.post("/task", async (c) => {
   return c.json({ ok: true, path: note.path, line, done });
 });
 
-// ------------------------------------------------------------ constellations
-// The vault's own spaced repetition (shared/constellations.ts). A grade
+// ------------------------------------------------------------ decks
+// The vault's own spaced repetition (shared/decks.ts). A grade
 // writes the next schedule into the note as the Spaced Repetition plugin's
 // own comment, so a vault reviewed in Obsidian and here is one vault. Admin
 // only — the guard above 401s a visitor's POST, and the lists are refused
 // below. `GET /api/cards` and `POST /api/card/review` are the Review page's
-// older names for the implicit constellation and a front→back grade; they
+// older names for the implicit deck and a front→back grade; they
 // stay so an open tab from before the shelf keeps working.
 api.get("/cards", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
@@ -2269,18 +2269,18 @@ function todayOf(value: unknown): string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : new Date().toISOString().slice(0, 10);
 }
 
-api.get("/constellations", (c) => {
+api.get("/orbits", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
-  return c.json(constellations(todayOf(c.req.query("today"))));
+  return c.json(decks(todayOf(c.req.query("today"))));
 });
 
-api.get("/constellations/stars", (c) => {
+api.get("/orbits/cards", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
   const notePath = c.req.query("path") ?? "";
-  if (notePath === "") throw new VaultError(400, "A constellation needs a path");
+  if (notePath === "") throw new VaultError(400, "A deck needs a path");
   const section = c.req.query("section");
-  const stars = constellationStars(notePath, section === undefined || section === "" ? null : section);
-  if (stars === null) throw new VaultError(404, `Not a constellation: ${notePath}`);
+  const stars = deckCards(notePath, section === undefined || section === "" ? null : section);
+  if (stars === null) throw new VaultError(404, `Not a deck: ${notePath}`);
   return c.json(stars);
 });
 
@@ -2289,7 +2289,7 @@ api.get("/constellations/stars", (c) => {
  *  is written into the slot the star owns (the second of a `:::` pair's
  *  comment for its back→front twin). The write goes under the mtime
  *  precondition like every line edit. */
-async function reviewStarRoute(c: Context): Promise<Response> {
+async function reviewDeckCardRoute(c: Context): Promise<Response> {
   const body = await jsonBody(c);
   const notePath = requiredString(body, "path");
   const line = typeof body.line === "number" && Number.isInteger(body.line) && body.line >= 1 ? body.line : 0;
@@ -2307,11 +2307,11 @@ async function reviewStarRoute(c: Context): Promise<Response> {
   const restore = undo ? scheduleOf(body.restore) : undefined;
   if (undo && restore === undefined) throw new VaultError(400, "restore must be a schedule {due, interval, ease} or null");
   const note = await readNote(notePath);
-  const kind = parseConstellationFence(note.content)?.kind ?? "basic";
-  const star = scanStars(note.content, note.path, kind).find((s) => s.line === line && s.dir === dir);
+  const kind = parseDeckFence(note.content)?.kind ?? "basic";
+  const star = scanDeckCards(note.content, note.path, kind).find((s) => s.line === line && s.dir === dir);
   if (!star) throw new VaultError(409, "That star is gone", "stale");
   const schedule = restore !== undefined ? restore : reviewCard(star.schedule, grade as Grade, today);
-  const next = restore !== undefined ? restoreStarSchedule(note.content, star, restore) : writeStarSchedule(note.content, star, schedule as Schedule);
+  const next = restore !== undefined ? restoreCardSchedule(note.content, star, restore) : writeCardSchedule(note.content, star, schedule as Schedule);
   if (next !== note.content) {
     suppressWatcherEcho(note.path);
     await writeNote(note.path, next, note.mtimeMs);
@@ -2321,19 +2321,19 @@ async function reviewStarRoute(c: Context): Promise<Response> {
   return c.json({ ok: true, path: note.path, line, dir, schedule });
 }
 
-api.post("/star/review", reviewStarRoute);
-api.post("/card/review", reviewStarRoute);
+api.post("/orbits/card/review", reviewDeckCardRoute);
+api.post("/card/review", reviewDeckCardRoute);
 
-/** A new constellation from the modal or the importer: `<folder>/<title>.md`
+/** A new deck from the modal or the importer: `<folder>/<title>.md`
  *  through the vault's own create path — the title made a filename by the
  *  composer's rule, an existing note never overwritten (409), the mirror
  *  and the watchers told the way every other creation tells them. */
-api.post("/constellations", async (c) => {
+api.post("/orbits", async (c) => {
   const body = await jsonBody(c);
   const title = requiredString(body, "title").trim();
-  if (title === "") throw new VaultError(400, "A constellation needs a title");
-  const kinds: ConstellationKind[] = ["basic", "reversed", "both", "typed", "cloze-only"];
-  const kind = typeof body.kind === "string" && (kinds as string[]).includes(body.kind) ? (body.kind as ConstellationKind) : "basic";
+  if (title === "") throw new VaultError(400, "A deck needs a title");
+  const kinds: DeckKind[] = ["basic", "reversed", "both", "typed", "cloze-only"];
+  const kind = typeof body.kind === "string" && (kinds as string[]).includes(body.kind) ? (body.kind as DeckKind) : "basic";
   const icon = typeof body.icon === "string" && body.icon.trim() ? Array.from(body.icon.trim()).slice(0, 8).join("") : null;
   const folder = typeof body.folder === "string" ? body.folder : null;
   const tags = Array.isArray(body.tags) ? body.tags.filter((t): t is string => typeof t === "string") : [];
@@ -2352,13 +2352,13 @@ api.post("/constellations", async (c) => {
       });
     }
   }
-  const notePath = assertNotePath(constellationNotePath(folder, title));
+  const notePath = assertNotePath(deckNotePath(folder, title));
   if (await noteExists(notePath)) throw new VaultError(409, `Note already exists: ${notePath}`, "exists");
-  const text = serialiseConstellation({ title, icon, kind, tags, newPerDay }, cards);
+  const text = serialiseDeck({ title, icon, kind, tags, newPerDay }, cards);
   const written = await writeNote(notePath, text);
   await indexFile(notePath);
   emitEvent({ kind: "created", path: notePath });
-  return c.json({ ok: true, path: written.path, stars: scanStars(text, notePath, kind).length });
+  return c.json({ ok: true, path: written.path, stars: scanDeckCards(text, notePath, kind).length });
 });
 
 api.get("/mentions", (c) => {
@@ -2603,7 +2603,7 @@ api.post("/routine", async (c) => {
   const index = typeof body.index === "number" && Number.isInteger(body.index) && body.index >= 0 ? body.index : 0;
   const note = await readNote(notePath);
   if (!routineFenceSpans(note.content).some((s) => s.kind === "routine" && s.index === index)) {
-    throw new VaultError(400, "That note carries no orbit fence");
+    throw new VaultError(400, "That note carries no sigil fence");
   }
   let updated = note.content;
   const entry = body.entry && typeof body.entry === "object" ? (body.entry as Record<string, unknown>) : null;
@@ -2688,11 +2688,11 @@ api.route("/design", designRoutes);
 // served from here at all — the reader fetches them from /api/file, gated
 // exactly as every embed is. See server/bookRoutes.ts.
 api.route("/books", bookRoutes);
-// ------------------------------------------------------ constellation import
-// An Anki .apkg or a CSV/TSV, written as constellation notes. Admin-only
+// ------------------------------------------------------ deck import
+// An Anki .apkg or a CSV/TSV, written as deck notes. Admin-only
 // like every write; a file route, so it sits apart from the JSON ones. See
-// server/starsImportRoutes.ts.
-api.route("/constellations", starsImportRoutes);
+// server/deckImportRoutes.ts.
+api.route("/orbits", deckImportRoutes);
 // --------------------------------------------------------------------- prefs
 // The client's localStorage preferences, kept in `.astrolabe/prefs.json`
 // INSIDE the vault so every server over this folder — the desktop app on each

@@ -1,26 +1,30 @@
-// ORBITS — a plan you follow by the day, and the log of what you did.
+// SIGILS — a plan you follow by the day, and the log of what you did.
 //
 // The owner: "some sorta daily tracker. A way to add per-day details on
 // specific activities, and just like media we can have templates for specific
 // things to track, for example an exercise tracker". A ```tracker is a card
 // about ONE WORK (a book, a game) and how far through it you are; an
-// ```orbit is a card about YOUR DAYS — what today asks of you, what you
+// ```sigil is a card about YOUR DAYS — what today asks of you, what you
 // ticked, the streak, the week, the last twelve weeks as a heatmap.
 //
-// THE NAME. This shipped as "routines" (3.11 – 3.14) and the owner found the
-// word "kinda lame". An orbit is the same thing said better: a path you come
-// back round to every day, and Arabic has the word ready — مدار — with no
-// borrowing. The identifiers in this file, its tests, its routes and its
-// file names keep "routine": renaming a thousand symbols for a word the
-// reader never sees would churn every file that imports this one and buy
-// nothing. Everything a READER sees says orbit, and the fence does too.
+// THE NAME, twice. This shipped as "routines" (3.11 – 3.14) and the owner
+// found the word "kinda lame"; 3.15 called it Orbits, a path you come back
+// round to. 3.16 gave Orbits to spaced repetition, where the word fits
+// better still (a card comes back around on its schedule), and this is a
+// SIGIL: a seal you set on the day you kept — Latin sigillum, and Arabic
+// has the same root ready, سِجِلّ, which is also the word for a register,
+// which is what the log is. The identifiers in this file, its tests, its
+// routes and its file names keep "routine": renaming a thousand symbols
+// for a word the reader never sees would churn every file that imports
+// this one and buy nothing. Everything a READER sees says sigil, and the
+// fence does too.
 //
-// Two fences, one note, no store. The PLAN is an ```orbit fence: a title, a
+// Two fences, one note, no store. The PLAN is a ```sigil fence: a title, a
 // kind, an icon and a banner, the columns of your week (`slots: morning,
 // evening`), the things you do every day (`items:`), a plan per weekday, the
 // numbers you want to keep per day (`fields: minutes:number,
 // weight:number:kg, mood:scale:5`) and a weekly target. The LOG is an
-// ```orbit-log fence that the app writes right under the plan the first time
+// ```sigil-log fence that the app writes right under the plan the first time
 // you tick something — one line per day:
 //
 //     2026-09-13 | done: morning, evening | minutes: 62 | weight: 84.2 | Felt strong
@@ -180,7 +184,7 @@ export interface RoutinePlan {
   /** The kind's glyph — what the card head draws when `emoji` is null. */
   icon: FolderIcon;
   /** `icon:` — one emoji or a short glyph the author chose (🚶, ☪) that
-   *  stands for this orbit in place of the kind's glyph. */
+   *  stands for this sigil in place of the kind's glyph. */
   emoji: string | null;
   /** `banner:` — an image drawn as a strip across the top of the card,
    *  resolved the way a note's banner is (client/banner.ts): an https URL,
@@ -705,8 +709,9 @@ export function routineStats(
 // ── Scanning a note ─────────────────────────────────────────────────────────
 
 /** The two fences, by ROLE. The words a note actually spells them with are
- *  `orbit` / `orbit-log` (3.15+) or `routine` / `routine-log` (before);
- *  `logFenceWordFor` answers which a note is using. */
+ *  `sigil` / `sigil-log` (3.16+), `orbit` / `orbit-log` (3.15) or `routine`
+ *  / `routine-log` (before); every spelling is read, so an older vault
+ *  works untouched, and `logFenceWordFor` answers which a note is using. */
 export type RoutineFenceKind = "routine" | "routine-log";
 
 /** The fence's info string, lower-cased, when it opens a plan or a log in
@@ -715,7 +720,7 @@ function fenceWord(line: string): string | null {
   const m = /^\s*(?:`{3,}|~{3,})\s*([^\s`~]*)\s*$/.exec(line);
   if (!m) return null;
   const info = m[1].toLowerCase();
-  return info === "orbit" || info === "orbit-log" || info === "routine" || info === "routine-log" ? info : null;
+  return info === "sigil" || info === "sigil-log" || info === "orbit" || info === "orbit-log" || info === "routine" || info === "routine-log" ? info : null;
 }
 
 export function routineFenceKind(line: string): RoutineFenceKind | null {
@@ -725,10 +730,11 @@ export function routineFenceKind(line: string): RoutineFenceKind | null {
 }
 
 /** The word the plan fence's log should open with: a legacy ```routine plan
- *  gets a ```routine-log under it, a new ```orbit an ```orbit-log — one
- *  note, one vocabulary. */
+ *  gets a ```routine-log under it, a 3.15 ```orbit an ```orbit-log, a new
+ *  ```sigil a ```sigil-log — one note, one vocabulary. */
 export function logFenceWordFor(planOpener: string): string {
-  return fenceWord(planOpener) === "routine" ? "routine-log" : "orbit-log";
+  const word = fenceWord(planOpener);
+  return word === "routine" ? "routine-log" : word === "orbit" ? "orbit-log" : "sigil-log";
 }
 
 /** A plan and its log, paired: the log is the first ```routine-log after
@@ -935,7 +941,7 @@ export function draftOf(plan: RoutinePlan): RoutineDraft {
   };
 }
 
-/** The ```orbit body a draft writes, in the order the docs list the keys. */
+/** The ```sigil body a draft writes, in the order the docs list the keys. */
 export function routineFenceBody(draft: RoutineDraft): string {
   const out: string[] = [];
   out.push(`title: ${draft.title.trim()}`);
@@ -978,19 +984,22 @@ const WEEKDAY_NAMES: Record<Weekday, string> = {
   mon: "monday", tue: "tuesday", wed: "wednesday", thu: "thursday", fri: "friday", sat: "saturday", sun: "sunday",
 };
 
-/** The whole note a new orbit becomes: the title as frontmatter, the plan
+/** The whole note a new sigil becomes: the title as frontmatter, the plan
  *  fence, and an empty log fence so the shape is visible before day one. */
 export function routineNoteContent(draft: RoutineDraft): string {
   const title = draft.title.trim().replace(/"/g, "'");
-  return `---\ntitle: "${title}"\n---\n\n\`\`\`orbit\n${routineFenceBody(draft)}\`\`\`\n\n\`\`\`orbit-log\n\`\`\`\n`;
+  return `---\ntitle: "${title}"\n---\n\n\`\`\`sigil\n${routineFenceBody(draft)}\`\`\`\n\n\`\`\`sigil-log\n\`\`\`\n`;
 }
 
-export const ROUTINES_ROOT = "Orbits";
-export const ROUTINES_ROOT_AR = "مدارات";
-/** The folders a new orbit may be filed in: the two current names first,
+export const ROUTINES_ROOT = "Sigils";
+export const ROUTINES_ROOT_AR = "سجل";
+/** The folders a new sigil may be filed in: the two current names first,
  *  then the two a vault from before 3.15 already has — a reader who kept
  *  `Routines/` for a year keeps filing there rather than growing a second
- *  folder for the same thing. */
+ *  folder for the same thing. NEVER `Orbits/`, the 3.15 default: from 3.16
+ *  that folder is where the spaced-repetition decks live, and a new sigil
+ *  filed there would sit among the decks. A 3.15 vault's sigils stay
+ *  readable wherever they are; only where a NEW one lands moved. */
 export const ROUTINES_ROOTS: readonly string[] = [ROUTINES_ROOT, ROUTINES_ROOT_AR, "Routines", "روتين"];
 
 export function routinesRootFor(lang: "en" | "ar" | undefined, existing: readonly string[]): string {

@@ -37,7 +37,7 @@ export type PaneMode = "edit" | "reading" | "graph" | "library";
  *  invariant has to be policed at the component boundary: a `.pdf` tab renders
  *  the reader whatever the mode says, which is exactly what makes Ctrl/Cmd+E a
  *  harmless no-op on a book instead of a mode the pane cannot honour. */
-export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "stars" | "library" | "empty";
+export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "orbits" | "library" | "empty";
 
 /** Where in a book an open should land. There is ONE spelling of "where in a
  *  book" in this product — shared/bookAnchor.ts owns it, the citation wikilink
@@ -139,51 +139,54 @@ export const MEDIA_TAB = "~media";
 export function isMediaTab(path: string): boolean {
   return path === MEDIA_TAB;
 }
-/** The Orbits page — today's checklists, every orbit in the vault. The
- *  sentinel was `~routines` until 3.15; a workspace stored under that name
- *  is read as this tab (`parseTab` folds it), so a reader who kept the page
- *  open across the rename finds it open. */
-export const ROUTINES_TAB = "~orbits";
+/** The Sigils page — today's checklists, every sigil in the vault. The
+ *  sentinel was `~routines` until 3.15 and `~orbits` in 3.15; a workspace
+ *  stored under `~routines` is read as this tab (`parseTab` folds it), so a
+ *  reader who kept the page open across the renames finds it open. `~orbits`
+ *  is NOT folded: from 3.16 it is the spaced-repetition shelf's own name,
+ *  and a 3.15 workspace that had the routine page open opens Orbits instead
+ *  — the one door beside it is the other page, one click away. */
+export const ROUTINES_TAB = "~sigils";
 export const LEGACY_ROUTINES_TAB = "~routines";
 export function isRoutinesTab(path: string): boolean {
   return path === ROUTINES_TAB || path === LEGACY_ROUTINES_TAB;
 }
-/** The Constellations shelf — the vault's study decks — and a SESSION over
- *  one of them: `~constellations` is the shelf, `~constellations/<note
- *  path>` a session, so a session is a tab of its own beside the shelf and
- *  the note it studies, with an address (`/constellations/<path>`) a
- *  bookmark can name. The page was "Review" (`~review`) until 3.16; a
- *  workspace stored under that name is read as the shelf (`parseTab`
- *  folds it). */
-export const STARS_TAB = "~constellations";
-export const LEGACY_STARS_TAB = "~review";
-export function isStarsTab(path: string): boolean {
-  return path === STARS_TAB || path === LEGACY_STARS_TAB || path.startsWith(`${STARS_TAB}/`);
+/** The Orbits shelf — the vault's study decks — and a SESSION over one of
+ *  them: `~orbits` is the shelf, `~orbits/<note path>` a session, so a
+ *  session is a tab of its own beside the shelf and the note it studies,
+ *  with an address (`/orbits/<path>`) a bookmark can name. The page was
+ *  "Review" (`~review`) until 3.16 and was built as "Constellations"
+ *  (`~constellations`) before it shipped; a workspace stored under either
+ *  name is read as the shelf (`parseTab` folds them). */
+export const ORBITS_TAB = "~orbits";
+export const LEGACY_ORBITS_TABS: readonly string[] = ["~review", "~constellations"];
+export function isOrbitsTab(path: string): boolean {
+  return path === ORBITS_TAB || LEGACY_ORBITS_TABS.includes(path) || path.startsWith(`${ORBITS_TAB}/`);
 }
-/** The constellation a session tab studies and, after a `#`, the one
+/** The deck a session tab studies and, after a `#`, the one
  *  section of it ("Lesson 3 only"); null for the shelf. A note path never
  *  carries a `#` — it is the heading separator in every wikilink — so the
  *  last one is unambiguous. */
-export function starsSessionOf(tabPath: string): { path: string; section: string | null } | null {
-  if (!tabPath.startsWith(`${STARS_TAB}/`)) return null;
-  const rest = tabPath.slice(STARS_TAB.length + 1);
+export function orbitsSessionOf(tabPath: string): { path: string; section: string | null } | null {
+  if (!tabPath.startsWith(`${ORBITS_TAB}/`)) return null;
+  const rest = tabPath.slice(ORBITS_TAB.length + 1);
   const hash = rest.lastIndexOf("#");
   if (hash < 0) return { path: rest, section: null };
   const section = rest.slice(hash + 1);
   return { path: rest.slice(0, hash), section: section === "" ? null : section };
 }
-/** The constellation a session tab studies, or null for the shelf. */
-export function starsPathOf(tabPath: string): string | null {
-  return starsSessionOf(tabPath)?.path ?? null;
+/** The deck a session tab studies, or null for the shelf. */
+export function orbitsPathOf(tabPath: string): string | null {
+  return orbitsSessionOf(tabPath)?.path ?? null;
 }
-export function starsTabFor(constellationPath: string | null, section: string | null = null): string {
-  if (constellationPath === null || constellationPath === "") return STARS_TAB;
-  return `${STARS_TAB}/${constellationPath}${section ? `#${section}` : ""}`;
+export function orbitsTabFor(deckPath: string | null, section: string | null = null): string {
+  if (deckPath === null || deckPath === "") return ORBITS_TAB;
+  return `${ORBITS_TAB}/${deckPath}${section ? `#${section}` : ""}`;
 }
 /** A tab that names no file: the graph or the Media page. Never "the open
  *  note", never pruned against the tree, titled by the chrome. */
 export function isVirtualTab(path: string): boolean {
-  return isGraphTab(path) || isMediaTab(path) || isRoutinesTab(path) || isStarsTab(path);
+  return isGraphTab(path) || isMediaTab(path) || isRoutinesTab(path) || isOrbitsTab(path);
 }
 
 export function isTabbablePath(path: string): boolean {
@@ -242,7 +245,7 @@ export function surfaceOf(p: Pane): PaneSurface {
   if (tab !== null && isGraphTab(tab.path)) return "graph";
   if (tab !== null && isMediaTab(tab.path)) return "media";
   if (tab !== null && isRoutinesTab(tab.path)) return "routines";
-  if (tab !== null && isStarsTab(tab.path)) return "stars";
+  if (tab !== null && isOrbitsTab(tab.path)) return "orbits";
   if (tab !== null && isBookPath(tab.path)) return "book";
   // A drawing has one surface: the canvas is the editor AND the reading view,
   // and a pane mode of "reading" over it would be a grey box.
@@ -907,7 +910,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function parseTab(raw: unknown): TabState | null {
   if (!isRecord(raw)) return null;
-  const path = raw.path === LEGACY_ROUTINES_TAB ? ROUTINES_TAB : raw.path === LEGACY_STARS_TAB ? STARS_TAB : raw.path;
+  const path = raw.path === LEGACY_ROUTINES_TAB ? ROUTINES_TAB : typeof raw.path === "string" && LEGACY_ORBITS_TABS.includes(raw.path) ? ORBITS_TAB : raw.path;
   if (typeof path !== "string" || path === "" || !isTabbablePath(path)) return null;
   const pinned = raw.pinned === true;
   return { path, pinned, ephemeral: pinned ? false : raw.ephemeral === true };

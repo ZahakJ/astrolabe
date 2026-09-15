@@ -1071,8 +1071,8 @@ const MUST_SPLIT = [
   "media/MediaView.tsx",
   // The Orbits page, on the same terms as the Media page.
   "routines/RoutinesView.tsx",
-  // Constellations (the shelf and the session, one chunk), on the same terms.
-  "stars/StarsSurface.tsx",
+  // Orbits (the shelf and the session, one chunk), on the same terms.
+  "stars/OrbitsSurface.tsx",
   // The "What's new" deck: slides, live demos and prose for every release,
   // behind a door (whatsnew/door.ts) that is a version compare and nothing else.
   "whatsnew/WhatsNew.tsx",

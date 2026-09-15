@@ -143,16 +143,17 @@ function slashItems(): SlashItem[] {
       ),
     },
     {
-      // The daily tracker, beside the work tracker: its skeleton is the
+      // The daily routine, beside the work tracker: its skeleton is the
       // documentation too — a title, the week's columns, one weekday. The
-      // label carries both words so `/routine`, typed from habit, still
-      // finds the row.
-      label: "Orbit routine",
+      // label (what the matcher sees; the reader sees slashRoutine) carries
+      // the older words too, so `/routine` or `/orbit`, typed from habit,
+      // still finds the row.
+      label: "Sigil routine orbit",
       displayLabel: "slashRoutine",
-      detail: "```orbit",
+      detail: "```sigil",
       boost: 6.45,
       apply: snippet(
-        "```orbit\ntitle: ${Title}\nkind: ${habit}\nicon: ${🌱}\nslots: ${morning, evening}\nmonday:\n  morning: ${}\n```",
+        "```sigil\ntitle: ${Title}\nkind: ${habit}\nicon: ${🌱}\nslots: ${morning, evening}\nmonday:\n  morning: ${}\n```",
       ),
     },
     {

@@ -1,20 +1,20 @@
-// THE SHELF. Every constellation in the vault as a card — its icon, its
+// THE SHELF. Every deck in the vault as a card — its icon, its
 // tags, what is due, a month of retention as a small line — with the
-// implicit "Everything else" (the cards outside any constellation note,
+// implicit "Everything else" (the cards outside any deck note,
 // by folder) last, the way the Review page used to list the whole vault.
 //
-// Reads `GET /api/constellations`; re-read on the vault event, because a
+// Reads `GET /api/orbits`; re-read on the vault event, because a
 // session in the next tab writes schedules into the notes and the counts
 // here should say so. Study opens a SESSION TAB (client/workspace.ts) —
 // the shelf stays where it is, and the session sits beside it. The
-// statistics come from the device's log (client/stars/log.ts) and the
+// statistics come from the device's log (client/orbits/log.ts) and the
 // schedules, nothing stored.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ConstellationMeta } from "../../shared/constellations.ts";
+import type { DeckMeta } from "../../shared/decks.ts";
 import { isoDate } from "../../shared/routine.ts";
 import { streakOf } from "./stats.ts";
-import { getConstellations } from "../api.ts";
+import { getDecks } from "../api.ts";
 import { ContextMenu, type MenuAnchor, type MenuRow } from "../components/ContextMenu.tsx";
 import SiteMark from "../components/SiteMark.tsx";
 import { siteDate } from "../dates.ts";
@@ -22,9 +22,9 @@ import { countPhrase, localeNum, t } from "../i18n.ts";
 import { st, stf } from "./copy.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
-import { STARS_ASK_EVENT, takeStarsAsk, type StarsAsk } from "./ask.ts";
+import { ORBITS_ASK_EVENT, takeOrbitsAsk, type OrbitsAsk } from "./ask.ts";
 import { readLog, retention, retentionSeries, studyDays, type LogEntry } from "./log.ts";
-import NewConstellationModal from "./NewConstellationModal.tsx";
+import NewDeckModal from "./NewDeckModal.tsx";
 import StatsDrawer from "./StatsDrawer.tsx";
 
 const VAULT_EVENT = "astrolabe:vault";
@@ -68,7 +68,7 @@ function ShelfCard({
   onStats,
   onOpen,
 }: {
-  meta: ConstellationMeta;
+  meta: DeckMeta;
   log: LogEntry[];
   today: string;
   onStudy: (section: string | null) => void;
@@ -76,8 +76,8 @@ function ShelfCard({
   onOpen: () => void;
 }) {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
-  // The log names the NOTE a star sits in. For a constellation that is its
-  // path; for the implicit one it is any note that is not a constellation,
+  // The log names the NOTE a star sits in. For a deck that is its
+  // path; for the implicit one it is any note that is not a deck,
   // so the caller hands this card a log already narrowed to those.
   const own = meta.implicit ? null : meta.path;
   const series = useMemo(() => retentionSeries(log, today, 30, own), [log, today, own]);
@@ -89,7 +89,7 @@ function ShelfCard({
     setMenu({ x: rtl ? r.right : r.left, y: r.bottom + 4, fromKeyboard: e.detail === 0 });
   };
   const rows: MenuRow[] = sections.map((s) => ({
-    label: stf("starsSectionRow", { name: s.name, due: localeNum(s.due) }),
+    label: stf("orbitsSectionRow", { name: s.name, due: localeNum(s.due) }),
     onSelect: () => onStudy(s.name),
   }));
   return (
@@ -100,10 +100,10 @@ function ShelfCard({
         </span>
         <div className="s-shelf__cardtext">
           <h2 className="s-shelf__cardtitle" dir="auto">
-            {meta.implicit ? t("starsEverything") : meta.title}
+            {meta.implicit ? t("orbitsEverything") : meta.title}
           </h2>
           {meta.implicit ? (
-            <p className="s-shelf__cardsub">{st("starsEverythingHint")}</p>
+            <p className="s-shelf__cardsub">{st("orbitsEverythingHint")}</p>
           ) : meta.tags.length > 0 ? (
             <p className="s-shelf__tags" dir="auto">
               {meta.tags.map((tag) => (
@@ -117,18 +117,18 @@ function ShelfCard({
       </header>
       <p className="s-shelf__counts">
         <span className={`s-shelf__stat${meta.counts.due > 0 ? " s-shelf__stat--due" : ""}`}>
-          <b>{localeNum(meta.counts.due)}</b> {st("starsDueLabel")}
+          <b>{localeNum(meta.counts.due)}</b> {st("orbitsDueLabel")}
         </span>
         <span className="s-shelf__stat">
-          <b>{localeNum(meta.counts.new)}</b> {st("starsNewLabel")}
+          <b>{localeNum(meta.counts.new)}</b> {st("orbitsNewLabel")}
         </span>
         <span className="s-shelf__stat">
-          <b>{localeNum(meta.counts.total)}</b> {st("starsTotalLabel")}
+          <b>{localeNum(meta.counts.total)}</b> {st("orbitsTotalLabel")}
         </span>
       </p>
-      <div className="s-shelf__retention" title={st("starsRetention30")}>
+      <div className="s-shelf__retention" title={st("orbitsRetention30")}>
         <Sparkline series={series} />
-        <span className="s-shelf__retentionlabel">{kept === null ? st("starsNoGrades") : stf("starsPercent", { n: localeNum(Math.round(kept * 100)) })}</span>
+        <span className="s-shelf__retentionlabel">{kept === null ? st("orbitsNoGrades") : stf("orbitsPercent", { n: localeNum(Math.round(kept * 100)) })}</span>
       </div>
       <div className="s-shelf__actions">
         <button
@@ -138,43 +138,43 @@ function ShelfCard({
           disabled={meta.counts.total === 0}
           data-testid="shelf-study"
         >
-          {st("starsStudy")}
+          {st("orbitsStudy")}
         </button>
         {sections.length > 0 && (
           <button type="button" className="s-btn s-shelf__sections" onClick={openSections} aria-haspopup="menu" aria-expanded={menu !== null}>
-            {st("starsStudySection")} <span aria-hidden="true">▾</span>
+            {st("orbitsStudySection")} <span aria-hidden="true">▾</span>
           </button>
         )}
       </div>
       <footer className="s-shelf__foot">
         <button type="button" className="s-btn s-shelf__small" onClick={onStats} data-testid="shelf-stats">
-          {st("starsStats")}
+          {st("orbitsStats")}
         </button>
         {!meta.implicit && (
-          <button type="button" className="s-btn s-shelf__small" onClick={onOpen} title={st("starsOpenNote")}>
-            {st("starsOpenNote")}
+          <button type="button" className="s-btn s-shelf__small" onClick={onOpen} title={st("orbitsOpenNote")}>
+            {st("orbitsOpenNote")}
           </button>
         )}
       </footer>
-      {menu && <ContextMenu at={menu} rows={rows} label={st("starsStudySection")} onClose={() => setMenu(null)} />}
+      {menu && <ContextMenu at={menu} rows={rows} label={st("orbitsStudySection")} onClose={() => setMenu(null)} />}
     </article>
   );
 }
 
 export default function ShelfView() {
-  const [all, setAll] = useState<ConstellationMeta[] | null>(null);
+  const [all, setAll] = useState<DeckMeta[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [modal, setModal] = useState<"new" | "import" | null>(null);
-  const [stats, setStats] = useState<ConstellationMeta | null>(null);
+  const [stats, setStats] = useState<DeckMeta | null>(null);
   const [log, setLog] = useState<LogEntry[]>(() => readLog());
-  const openStars = useStore((s) => s.openStars);
+  const openOrbits = useStore((s) => s.openOrbits);
   const openNote = useStore((s) => s.openNote);
   const locale = useStore((s) => s.blogLocale);
   const today = isoDate(new Date());
-  const [asked, setAsked] = useState<StarsAsk | null>(null);
+  const [asked, setAsked] = useState<OrbitsAsk | null>(null);
 
   const load = useCallback((): void => {
-    getConstellations(isoDate(new Date()))
+    getDecks(isoDate(new Date()))
       .then((list) => {
         setAll(list);
         setFailed(false);
@@ -205,32 +205,32 @@ export default function ShelfView() {
   // STATE, not a ref: an ask that arrives while the list is already loaded
   // must still run, and only a state change re-runs the effect.
   const study = useCallback(
-    (meta: ConstellationMeta, section: string | null): void => {
-      openStars(meta.path, section);
+    (meta: DeckMeta, section: string | null): void => {
+      openOrbits(meta.path, section);
     },
-    [openStars],
+    [openOrbits],
   );
   useEffect(() => {
-    const answer = (ask: StarsAsk): void => {
+    const answer = (ask: OrbitsAsk): void => {
       if (ask === "new" || ask === "import") setModal(ask);
       else setAsked(ask);
     };
-    const pending = takeStarsAsk();
+    const pending = takeOrbitsAsk();
     if (pending) answer(pending);
     const onAsk = (e: Event): void => {
-      const ask = (e as CustomEvent<{ ask: StarsAsk }>).detail?.ask;
-      takeStarsAsk();
+      const ask = (e as CustomEvent<{ ask: OrbitsAsk }>).detail?.ask;
+      takeOrbitsAsk();
       if (ask) answer(ask);
     };
-    window.addEventListener(STARS_ASK_EVENT, onAsk);
-    return () => window.removeEventListener(STARS_ASK_EVENT, onAsk);
+    window.addEventListener(ORBITS_ASK_EVENT, onAsk);
+    return () => window.removeEventListener(ORBITS_ASK_EVENT, onAsk);
   }, []);
   useEffect(() => {
     if (asked !== "study" || all === null) return;
     setAsked(null);
     const first = all.find((m) => m.counts.due > 0);
     if (first) study(first, null);
-    else toast(st("starsNothingDue"));
+    else toast(st("orbitsNothingDue"));
   }, [asked, all, study]);
 
   const sorted = useMemo(() => {
@@ -239,8 +239,8 @@ export default function ShelfView() {
     return [...list.filter((m) => !m.implicit), ...list.filter((m) => m.implicit && m.counts.total > 0)];
   }, [all]);
   const dueTotal = useMemo(() => sorted.reduce((n, m) => n + m.counts.due, 0), [sorted]);
-  // The implicit constellation's grades are the log entries on notes that
-  // are not constellations — its statistics must not count Hiragana's.
+  // The implicit deck's grades are the log entries on notes that
+  // are not decks — its statistics must not count Hiragana's.
   const restLog = useMemo(() => {
     const named = new Set(sorted.filter((m) => !m.implicit).map((m) => m.path));
     return log.filter((e) => !named.has(e.path));
@@ -249,38 +249,38 @@ export default function ShelfView() {
   const dateLine = siteDate(`${today}T12:00:00`, locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   return (
-    <div className="s-stars s-shelf" data-testid="stars-shelf">
-      <header className="s-stars__head">
-        <div className="s-stars__headtext">
-          <p className="s-stars__date">{dateLine}</p>
-          <h1 className="s-stars__h1">{t("stars")}</h1>
-          <p className="s-stars__lead">
-            {all === null ? st("starsLead") : dueTotal === 0 ? st("starsNothingDue") : stf("starsDueToday", { n: countPhrase(dueTotal, "stars") })}
-            {streak > 0 ? ` · ${stf("starsStreak", { days: countPhrase(streak, "days") })}` : ""}
+    <div className="s-orbits s-shelf" data-testid="orbits-shelf">
+      <header className="s-orbits__head">
+        <div className="s-orbits__headtext">
+          <p className="s-orbits__date">{dateLine}</p>
+          <h1 className="s-orbits__h1">{t("orbits")}</h1>
+          <p className="s-orbits__lead">
+            {all === null ? st("orbitsLead") : dueTotal === 0 ? st("orbitsNothingDue") : stf("orbitsDueToday", { n: countPhrase(dueTotal, "cards") })}
+            {streak > 0 ? ` · ${stf("orbitsStreak", { days: countPhrase(streak, "days") })}` : ""}
           </p>
         </div>
-        <div className="s-stars__headactions">
+        <div className="s-orbits__headactions">
           <button type="button" className="s-btn" onClick={() => setModal("import")} data-testid="shelf-import">
-            {st("starsImport")}
+            {st("orbitsImport")}
           </button>
           <button type="button" className="s-btn s-btn--accent" onClick={() => setModal("new")} data-testid="shelf-new">
-            {t("starsNew")}
+            {t("orbitsNewDeck")}
           </button>
         </div>
       </header>
       {failed ? (
-        <p className="s-stars__empty">{st("starsFailed")}</p>
+        <p className="s-orbits__empty">{st("orbitsFailed")}</p>
       ) : all !== null && sorted.length === 0 ? (
-        <div className="s-stars__empty" data-testid="shelf-empty">
-          <span className="s-stars__emptystar" aria-hidden="true">
+        <div className="s-orbits__empty" data-testid="shelf-empty">
+          <span className="s-orbits__emptymark" aria-hidden="true">
             <SiteMark size={32} />
           </span>
-          <p className="s-stars__emptytext">{st("starsEmpty")}</p>
-          <p className="s-stars__emptyhint">{st("starsEmptyHint")}</p>
-          <pre className="s-stars__syntax" dir="ltr">
-            {"```constellation\nicon: あ\n```\nあ::a\nい::i::the second kana"}
+          <p className="s-orbits__emptytext">{st("orbitsEmpty")}</p>
+          <p className="s-orbits__emptyhint">{st("orbitsEmptyHint")}</p>
+          <pre className="s-orbits__syntax" dir="ltr">
+            {"```deck\nicon: あ\n```\nあ::a\nい::i::the second kana"}
           </pre>
-          <p className="s-stars__emptyhint">{st("starsEmptyHint2")}</p>
+          <p className="s-orbits__emptyhint">{st("orbitsEmptyHint2")}</p>
         </div>
       ) : (
         <div className="s-shelf__grid">
@@ -298,7 +298,7 @@ export default function ShelfView() {
         </div>
       )}
       {modal && (
-        <NewConstellationModal
+        <NewDeckModal
           tab={modal}
           onClose={() => setModal(null)}
           onCreated={() => {

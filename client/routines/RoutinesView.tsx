@@ -1,10 +1,10 @@
-// THE ORBITS PAGE. Every ```orbit in the vault, as today's checklists.
+// THE SIGILS PAGE. Every ```sigil in the vault, as today's checklists.
 //
 // A workspace TAB like the Media page (`ROUTINES_TAB` in client/workspace.ts)
 // and a lazy chunk with its own stylesheet. It is a second drawing of the
 // card the note already draws — the same renderer (client/reading/routine.ts)
 // mounted into React, one card per plan — plus a form that writes a new
-// orbit as a note of its own under `Orbits/`. A tick here goes to
+// sigil as a note of its own under `Sigils/`. A tick here goes to
 // `POST /api/routine`, which records the day in the note's log fence with
 // the same pure edit the editor's widget dispatches into its buffer.
 //
@@ -26,7 +26,7 @@ import { renderRoutineCard } from "../reading/routine.ts";
 import { renderMarkdown, renderTasksBlock } from "../reading/render.ts";
 import { parseTasksFence, shift } from "../../shared/tasks.ts";
 import { RoutineForm } from "./RoutineForm.tsx";
-import { decorateStarTasks } from "./stars.ts";
+import { decorateDeckTasks } from "./orbits.ts";
 import { OnThisDayList, useOnThisDay } from "../components/OnThisDayPanel.tsx";
 import "../styles/routines.css";
 
@@ -69,9 +69,9 @@ function RoutineCard({
       ],
     });
     el.replaceChildren(card);
-    // A slot that wikilinks a constellation gets its "N due · Study" chip
-    // (client/routines/stars.ts) — after the draw, on the drawn card.
-    decorateStarTasks(card, meta, today);
+    // A slot that wikilinks a deck gets its "N due · Study" chip
+    // (client/routines/orbits.ts) — after the draw, on the drawn card.
+    decorateDeckTasks(card, meta, today);
     return () => el.replaceChildren();
   }, [meta, today, onLog, onOpen, onEdit, onDelete]);
   return <div ref={host} className="s-routines__card" />;
@@ -106,11 +106,11 @@ function DueTasks({ today }: { today: string }) {
   return <div ref={host} className="s-routines__tasks" />;
 }
 
-/** How many stars are due today — one line with a door to the Constellations
+/** How many stars are due today — one line with a door to the Orbits
  *  shelf, because the morning's checklist is where the day's stars belong. */
 function CardsDue({ today }: { today: string }) {
   const [due, setDue] = useState(0);
-  const openStars = useStore((s) => s.openStars);
+  const openOrbits = useStore((s) => s.openOrbits);
   useEffect(() => {
     let alive = true;
     const read = (): void => {
@@ -136,9 +136,9 @@ function CardsDue({ today }: { today: string }) {
   if (due === 0) return null;
   return (
     <section className="s-routines__cards" data-testid="routines-cards-due">
-      <span className="s-routines__cardstext">{tf("routinesStarsDue", { n: countPhrase(due, "stars") })}</span>
-      <button type="button" className="s-btn s-btn--accent" onClick={() => openStars(null)}>
-        {t("stars")}
+      <span className="s-routines__cardstext">{tf("routinesOrbitsDue", { n: countPhrase(due, "cards") })}</span>
+      <button type="button" className="s-btn s-btn--accent" onClick={() => openOrbits(null)}>
+        {t("orbits")}
       </button>
     </section>
   );

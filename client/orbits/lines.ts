@@ -1,7 +1,7 @@
 // THE MODAL'S CARD LINES — the textarea's text as cards. Pure and apart
 // from the form so the node tests can read it (they cannot import a .tsx).
 
-import type { NewCard } from "../../shared/constellations.ts";
+import type { NewCard } from "../../shared/decks.ts";
 
 /** `front::back` and `front::back::extra` lines, one card each. A line
  *  without `::` is not a card and is not counted. The plugin's `:::` is

@@ -1,20 +1,20 @@
-// NEW CONSTELLATION — a form that writes a note. Two tabs: WRITE, where the
+// NEW DECK — a form that writes a note. Two tabs: WRITE, where the
 // reader types `front::back::extra` lines and watches the count; IMPORT,
 // where a file becomes the note — an Anki .apkg goes to the server whole
-// (one constellation per deck, media beside the notes), a .csv/.tsv is
+// (one note per Anki deck, media beside the notes), a .csv/.tsv is
 // read here, mapped column by column, and created through the same route
 // the Write tab uses, because a CSV is only lines with a delimiter and the
 // mapper is the whole of what an importer would add.
 //
-// The note lands at `<folder>/<title>.md` (default Constellations/) and
+// The note lands at `<folder>/<title>.md` (default Orbits/) and
 // the shelf reloads. The form wears the Media form's frame (.s-mediaform)
 // and the Orbit form's habits: a dialog with a trap, Escape closes, the
 // primary action on the right.
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { DEFAULT_FOLDER, type ConstellationKind, type NewCard } from "../../shared/constellations.ts";
+import { DEFAULT_FOLDER, type DeckKind, type NewCard } from "../../shared/decks.ts";
 import { useDialog } from "../a11y.ts";
-import { createConstellation, importConstellations } from "../api.ts";
+import { createDeck, importDecks } from "../api.ts";
 import { SegmentedControl, TextInput } from "../components/controls/Fields.tsx";
 import { Select } from "../components/controls/Select.tsx";
 import { countPhrase, localeNum, t } from "../i18n.ts";
@@ -23,12 +23,12 @@ import { toast } from "../toast.ts";
 import { delimiterOf, guessColumns, parseDelimited, stripAnkiHeader } from "./csv.ts";
 import { cardsOfText } from "./lines.ts";
 
-const KINDS: Array<{ value: ConstellationKind; label: "starsKindBasic" | "starsKindReversed" | "starsKindBoth" | "starsKindTyped" | "starsKindClozeOnly" }> = [
-  { value: "basic", label: "starsKindBasic" },
-  { value: "reversed", label: "starsKindReversed" },
-  { value: "both", label: "starsKindBoth" },
-  { value: "typed", label: "starsKindTyped" },
-  { value: "cloze-only", label: "starsKindClozeOnly" },
+const KINDS: Array<{ value: DeckKind; label: "orbitsKindBasic" | "orbitsKindReversed" | "orbitsKindBoth" | "orbitsKindTyped" | "orbitsKindClozeOnly" }> = [
+  { value: "basic", label: "orbitsKindBasic" },
+  { value: "reversed", label: "orbitsKindReversed" },
+  { value: "both", label: "orbitsKindBoth" },
+  { value: "typed", label: "orbitsKindTyped" },
+  { value: "cloze-only", label: "orbitsKindClozeOnly" },
 ];
 
 function cleanTitle(s: string): string {
@@ -41,11 +41,11 @@ function cleanFolder(s: string): string {
 
 type ColumnPick = { front: number; back: number; extra: number | null };
 
-export default function NewConstellationModal({ tab: initialTab, onClose, onCreated }: { tab: "new" | "import"; onClose: () => void; onCreated: () => void }) {
+export default function NewDeckModal({ tab: initialTab, onClose, onCreated }: { tab: "new" | "import"; onClose: () => void; onCreated: () => void }) {
   const [tab, setTab] = useState<"new" | "import">(initialTab);
   const [title, setTitle] = useState("");
   const [icon, setIcon] = useState("");
-  const [kind, setKind] = useState<ConstellationKind>("basic");
+  const [kind, setKind] = useState<DeckKind>("basic");
   const [folder, setFolder] = useState(DEFAULT_FOLDER);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -94,46 +94,46 @@ export default function NewConstellationModal({ tab: initialTab, onClose, onCrea
   const save = async (): Promise<void> => {
     const name = cleanTitle(title);
     if (tab === "import" && file === null) {
-      setError(st("starsFileRequired"));
+      setError(st("orbitsFileRequired"));
       return;
     }
     if (tab === "import" && isApkg) {
       setBusy(true);
       try {
-        const res = await importConstellations(file!, cleanFolder(folder));
-        toast(stf("starsImported", { n: countPhrase(res.created.length, "notes") }));
+        const res = await importDecks(file!, cleanFolder(folder));
+        toast(stf("orbitsImported", { n: countPhrase(res.created.length, "notes") }));
         onCreated();
       } catch (err) {
-        setError(err instanceof Error && err.message ? err.message : st("starsImportFailed"));
+        setError(err instanceof Error && err.message ? err.message : st("orbitsImportFailed"));
       } finally {
         setBusy(false);
       }
       return;
     }
     if (name === "") {
-      setError(st("starsTitleRequired"));
+      setError(st("orbitsTitleRequired"));
       return;
     }
     const list = tab === "import" ? csvCards : cards;
     if (list.length === 0) {
-      setError(st("starsCardsRequired"));
+      setError(st("orbitsCardsRequired"));
       return;
     }
     setBusy(true);
     try {
-      await createConstellation({ title: name, icon: icon.trim() === "" ? null : icon.trim(), kind, folder: cleanFolder(folder), cards: list });
-      toast(stf("starsCreated", { title: name }));
+      await createDeck({ title: name, icon: icon.trim() === "" ? null : icon.trim(), kind, folder: cleanFolder(folder), cards: list });
+      toast(stf("orbitsCreated", { title: name }));
       onCreated();
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : st("starsCreateFailed"));
+      setError(err instanceof Error && err.message ? err.message : st("orbitsCreateFailed"));
     } finally {
       setBusy(false);
     }
   };
 
   const columnOptions = (none: boolean) => [
-    ...(none ? [{ value: "-1", label: st("starsColNone") }] : []),
-    ...Array.from({ length: width }, (_, i) => ({ value: String(i), label: stf("starsColumnN", { n: localeNum(i + 1) }), note: (rows?.[0]?.[i] ?? "").slice(0, 24) })),
+    ...(none ? [{ value: "-1", label: st("orbitsColNone") }] : []),
+    ...Array.from({ length: width }, (_, i) => ({ value: String(i), label: stf("orbitsColumnN", { n: localeNum(i + 1) }), note: (rows?.[0]?.[i] ?? "").slice(0, 24) })),
   ];
 
   const where = `${cleanFolder(folder)}/${cleanTitle(title) || "…"}.md`;
@@ -142,68 +142,68 @@ export default function NewConstellationModal({ tab: initialTab, onClose, onCrea
     <div className="s-palette-overlay" onMouseDown={onClose}>
       <form
         ref={panel}
-        className="s-mediaform s-starsform"
+        className="s-mediaform s-deckform"
         role="dialog"
         aria-modal="true"
-        aria-label={st("starsNewTitle")}
+        aria-label={st("orbitsNewTitle")}
         onMouseDown={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault();
           void save();
         }}
-        data-testid="stars-form"
+        data-testid="orbits-form"
       >
         <div className="s-mediaform__head">
-          <h2 className="s-mediaform__title">{st("starsNewTitle")}</h2>
+          <h2 className="s-mediaform__title">{st("orbitsNewTitle")}</h2>
           <button type="button" className="s-mediaform__close" onClick={onClose} aria-label={t("close")}>
             ×
           </button>
         </div>
-        <div className="s-starsform__tabs" role="tablist">
-          <button type="button" role="tab" aria-selected={tab === "new"} className={`s-starsform__tab${tab === "new" ? " s-starsform__tab--on" : ""}`} onClick={() => setTab("new")}>
-            {st("starsTabWrite")}
+        <div className="s-deckform__tabs" role="tablist">
+          <button type="button" role="tab" aria-selected={tab === "new"} className={`s-deckform__tab${tab === "new" ? " s-deckform__tab--on" : ""}`} onClick={() => setTab("new")}>
+            {st("orbitsTabWrite")}
           </button>
-          <button type="button" role="tab" aria-selected={tab === "import"} className={`s-starsform__tab${tab === "import" ? " s-starsform__tab--on" : ""}`} onClick={() => setTab("import")}>
-            {st("starsTabImport")}
+          <button type="button" role="tab" aria-selected={tab === "import"} className={`s-deckform__tab${tab === "import" ? " s-deckform__tab--on" : ""}`} onClick={() => setTab("import")}>
+            {st("orbitsTabImport")}
           </button>
         </div>
 
-        <div className="s-mediaform__body s-starsform__body">
+        <div className="s-mediaform__body s-deckform__body">
           {tab === "import" && (
             <div className="s-mediaform__row">
-              <span className="s-mediaform__label">{st("starsFieldFile")}</span>
+              <span className="s-mediaform__label">{st("orbitsFieldFile")}</span>
               <div className="s-mediaform__coverrow">
-                <button type="button" className="s-btn s-mediaform__upload" onClick={() => fileRef.current?.click()} data-testid="stars-pick-file">
-                  {file ? file.name : st("starsChooseFile")}
+                <button type="button" className="s-btn s-mediaform__upload" onClick={() => fileRef.current?.click()} data-testid="orbits-pick-file">
+                  {file ? file.name : st("orbitsChooseFile")}
                 </button>
-                <input ref={fileRef} type="file" accept=".apkg,.csv,.tsv,.txt" hidden onChange={pickFile} aria-label={st("starsFieldFile")} />
+                <input ref={fileRef} type="file" accept=".apkg,.csv,.tsv,.txt" hidden onChange={pickFile} aria-label={st("orbitsFieldFile")} />
               </div>
-              <p className="s-mediaform__hint">{isApkg ? st("starsApkgNote") : st("starsFileHint")}</p>
+              <p className="s-mediaform__hint">{isApkg ? st("orbitsApkgNote") : st("orbitsFileHint")}</p>
             </div>
           )}
 
           {tab === "import" && rows !== null && (
             <div className="s-mediaform__row">
-              <span className="s-mediaform__label">{st("starsColumns")}</span>
-              <div className="s-starsform__mapper">
-                <label className="s-starsform__col">
-                  <span>{st("starsColFront")}</span>
-                  <Select value={String(cols.front)} onChange={(v) => setCols((c) => ({ ...c, front: Number(v) }))} options={columnOptions(false)} label={st("starsColFront")} />
+              <span className="s-mediaform__label">{st("orbitsColumns")}</span>
+              <div className="s-deckform__mapper">
+                <label className="s-deckform__col">
+                  <span>{st("orbitsColFront")}</span>
+                  <Select value={String(cols.front)} onChange={(v) => setCols((c) => ({ ...c, front: Number(v) }))} options={columnOptions(false)} label={st("orbitsColFront")} />
                 </label>
-                <label className="s-starsform__col">
-                  <span>{st("starsColBack")}</span>
-                  <Select value={String(cols.back)} onChange={(v) => setCols((c) => ({ ...c, back: Number(v) }))} options={columnOptions(false)} label={st("starsColBack")} />
+                <label className="s-deckform__col">
+                  <span>{st("orbitsColBack")}</span>
+                  <Select value={String(cols.back)} onChange={(v) => setCols((c) => ({ ...c, back: Number(v) }))} options={columnOptions(false)} label={st("orbitsColBack")} />
                 </label>
-                <label className="s-starsform__col">
-                  <span>{st("starsColExtra")}</span>
-                  <Select value={cols.extra === null ? "-1" : String(cols.extra)} onChange={(v) => setCols((c) => ({ ...c, extra: v === "-1" ? null : Number(v) }))} options={columnOptions(true)} label={st("starsColExtra")} />
+                <label className="s-deckform__col">
+                  <span>{st("orbitsColExtra")}</span>
+                  <Select value={cols.extra === null ? "-1" : String(cols.extra)} onChange={(v) => setCols((c) => ({ ...c, extra: v === "-1" ? null : Number(v) }))} options={columnOptions(true)} label={st("orbitsColExtra")} />
                 </label>
               </div>
-              <label className="s-starsform__check">
-                <input type="checkbox" checked={header} onChange={(e) => setHeader(e.target.checked)} /> {st("starsHeaderRow")}
+              <label className="s-deckform__check">
+                <input type="checkbox" checked={header} onChange={(e) => setHeader(e.target.checked)} /> {st("orbitsHeaderRow")}
               </label>
-              <p className="s-mediaform__hint" data-testid="stars-csv-count">
-                {stf("starsRowsFound", { n: countPhrase(csvCards.length, "stars") })}
+              <p className="s-mediaform__hint" data-testid="orbits-csv-count">
+                {stf("orbitsRowsFound", { n: countPhrase(csvCards.length, "cards") })}
               </p>
             </div>
           )}
@@ -212,48 +212,48 @@ export default function NewConstellationModal({ tab: initialTab, onClose, onCrea
             <>
               <div className="s-mediaform__pair">
                 <label className="s-mediaform__row">
-                  <span className="s-mediaform__label">{st("starsFieldTitle")}</span>
-                  <TextInput value={title} onChange={setTitle} label={st("starsFieldTitle")} maxLength={120} dir="auto" />
+                  <span className="s-mediaform__label">{st("orbitsFieldTitle")}</span>
+                  <TextInput value={title} onChange={setTitle} label={st("orbitsFieldTitle")} maxLength={120} dir="auto" />
                 </label>
-                <label className="s-mediaform__row s-starsform__iconrow">
-                  <span className="s-mediaform__label">{st("starsFieldIcon")}</span>
-                  <TextInput value={icon} onChange={setIcon} label={st("starsFieldIcon")} maxLength={4} placeholder="✦" />
-                  <p className="s-mediaform__hint">{st("starsFieldIconHint")}</p>
+                <label className="s-mediaform__row s-deckform__iconrow">
+                  <span className="s-mediaform__label">{st("orbitsFieldIcon")}</span>
+                  <TextInput value={icon} onChange={setIcon} label={st("orbitsFieldIcon")} maxLength={4} placeholder="✦" />
+                  <p className="s-mediaform__hint">{st("orbitsFieldIconHint")}</p>
                 </label>
               </div>
               <div className="s-mediaform__row">
-                <span className="s-mediaform__label">{st("starsFieldKind")}</span>
-                <SegmentedControl value={kind} onChange={(v) => setKind(v as ConstellationKind)} segments={KINDS.map((k) => ({ value: k.value, label: st(k.label) }))} label={st("starsFieldKind")} />
+                <span className="s-mediaform__label">{st("orbitsFieldKind")}</span>
+                <SegmentedControl value={kind} onChange={(v) => setKind(v as DeckKind)} segments={KINDS.map((k) => ({ value: k.value, label: st(k.label) }))} label={st("orbitsFieldKind")} />
               </div>
             </>
           )}
 
           <label className="s-mediaform__row">
-            <span className="s-mediaform__label">{st("starsFieldFolder")}</span>
-            <TextInput value={folder} onChange={setFolder} label={st("starsFieldFolder")} maxLength={200} dir="auto" />
+            <span className="s-mediaform__label">{st("orbitsFieldFolder")}</span>
+            <TextInput value={folder} onChange={setFolder} label={st("orbitsFieldFolder")} maxLength={200} dir="auto" />
           </label>
 
           {tab === "new" && (
             <label className="s-mediaform__row">
-              <span className="s-mediaform__label">{st("starsFieldCards")}</span>
+              <span className="s-mediaform__label">{st("orbitsFieldCards")}</span>
               <textarea
-                className="s-ctl s-ctl-input s-mediaform__notes s-starsform__cards"
+                className="s-ctl s-ctl-input s-mediaform__notes s-deckform__cards"
                 rows={8}
                 value={text}
                 dir="auto"
                 spellCheck={false}
                 placeholder={"front::back\nfront::back::extra"}
                 onChange={(e) => setText(e.target.value)}
-                data-testid="stars-cards"
+                data-testid="orbits-cards"
               />
-              <p className="s-mediaform__hint">{st("starsCardsHint")}</p>
-              <p className="s-starsform__count" aria-live="polite" data-testid="stars-count">
-                {countPhrase(cards.length, "stars")}
+              <p className="s-mediaform__hint">{st("orbitsCardsHint")}</p>
+              <p className="s-deckform__count" aria-live="polite" data-testid="orbits-count">
+                {countPhrase(cards.length, "cards")}
               </p>
             </label>
           )}
 
-          {!(tab === "import" && isApkg) && <p className="s-mediaform__hint">{stf("starsWhere", { path: where })}</p>}
+          {!(tab === "import" && isApkg) && <p className="s-mediaform__hint">{stf("orbitsWhere", { path: where })}</p>}
           {error && (
             <p className="s-mediaform__error" role="alert">
               {error}
@@ -265,8 +265,8 @@ export default function NewConstellationModal({ tab: initialTab, onClose, onCrea
           <button type="button" className="s-btn" onClick={onClose}>
             {t("cancel")}
           </button>
-          <button type="submit" className="s-btn s-btn--accent" disabled={busy} data-testid="stars-save">
-            {tab === "import" ? st("starsImportGo") : st("starsCreate")}
+          <button type="submit" className="s-btn s-btn--accent" disabled={busy} data-testid="orbits-save">
+            {tab === "import" ? st("orbitsImportGo") : st("orbitsCreate")}
           </button>
         </div>
       </form>

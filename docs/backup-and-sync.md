@@ -197,7 +197,7 @@ held a moment ago in the data directory, at
 `ASTROLABE_DATA/versions/<sha1 of the note's path>/<time>.md`, beside a small `index.json` that
 names the path in clear and lists each version: when it was replaced, when that text was last
 saved, its size, and *why* it was kept. This happens on the vault's one write path, so it covers
-every write in the product — the autosave, a script's `PUT`, a tracker or orbit fence edited
+every write in the product — the autosave, a script's `PUT`, a tracker or sigil fence edited
 from the Media page, the wikilink rewrites a rename fans out. It needs no git, no remote and no
 setting, and it is on from the first launch.
 

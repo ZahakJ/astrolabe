@@ -1,8 +1,8 @@
-// THE IMPORTER: an Anki .apkg or a CSV/TSV → constellation notes.
+// THE IMPORTER: an Anki .apkg or a CSV/TSV → deck notes for Orbits.
 //
 // The owner's decks live in Anki, and "screw Anki" is only a plan if the
-// decks come along. This module turns a deck into what CONSTELLATIONS-SPEC
-// calls a constellation: one Markdown note per Anki deck, its cards as the
+// decks come along. This module turns an Anki deck into one of Orbits'
+// decks: one Markdown note per Anki deck, its cards as the
 // lines shared/flashcards.ts already reads, its schedules as the Spaced
 // Repetition plugin's comment — so an imported deck is indistinguishable
 // from one written by hand, and NOTHING about it lives outside the note.
@@ -43,7 +43,7 @@ import { promises as fsp } from "node:fs";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
 import { extensionOf, ATTACHMENT_TYPES } from "../shared/attachments.ts";
-import { cardLineOf, DEFAULT_FOLDER, serialiseConstellation, type ConstellationKind, type NewCard } from "../shared/constellations.ts";
+import { cardLineOf, DEFAULT_FOLDER, serialiseDeck, type DeckKind, type NewCard } from "../shared/decks.ts";
 import { scanCards } from "../shared/flashcards.ts";
 import { EASE_MIN, EASE_START, type Schedule } from "../shared/srs.ts";
 import { registerAttachment, indexFile } from "./indexer.ts";
@@ -242,7 +242,7 @@ function cleanTags(raw: string): string[] {
 // ───────────────────────────────────────────────── the note, serialised
 
 /** An imported card in the shape the shared serialiser writes
- *  (shared/constellations.ts cardLineOf): the pair, the cloze and the two
+ *  (shared/decks.ts cardLineOf): the pair, the cloze and the two
  *  schedules map one to one, and the escaping is the serialiser's. */
 function newCardOf(card: ImportCard): NewCard {
   return {
@@ -258,13 +258,13 @@ function newCardOf(card: ImportCard): NewCard {
   };
 }
 
-/** The text of an imported constellation note — the shared serialiser
+/** The text of an imported deck note — the shared serialiser
  *  over the deck's cards, with the title in the fence: the importer names
  *  its files by a free-path rule that can add a number ("Spanish 2.md"),
  *  and the shelf must still say "Spanish". */
-export function serialiseImportedDeck(deck: ImportDeck, kind: ConstellationKind = "basic"): string {
-  const title = deck.title.replace(/[\s\u0000-\u001f\u007f]+/g, " ").trim() || "Imported constellation";
-  return serialiseConstellation({ title, kind, titleInFence: true }, deck.cards.map(newCardOf));
+export function serialiseImportedDeck(deck: ImportDeck, kind: DeckKind = "basic"): string {
+  const title = deck.title.replace(/[\s\u0000-\u001f\u007f]+/g, " ").trim() || "Imported deck";
+  return serialiseDeck({ title, kind, titleInFence: true }, deck.cards.map(newCardOf));
 }
 
 // ───────────────────────────────────────────────────────── CSV and TSV
@@ -417,7 +417,7 @@ async function openSqlite(file: string): Promise<SqliteDb> {
   try {
     mod = (await import("node:sqlite")) as unknown as typeof mod;
   } catch {
-    throw new VaultError(501, `Importing .apkg needs node:sqlite (Node 22.5 or newer); this server runs ${process.version}`, "starsImportNoSqlite");
+    throw new VaultError(501, `Importing .apkg needs node:sqlite (Node 22.5 or newer); this server runs ${process.version}`, "deckImportNoSqlite");
   }
   return new mod.DatabaseSync(file, { readOnly: true });
 }
@@ -426,7 +426,7 @@ async function zstd(): Promise<(bytes: Uint8Array) => Uint8Array> {
   const zlib = await import("node:zlib");
   const fn = (zlib as unknown as { zstdDecompressSync?: (b: Uint8Array) => Buffer }).zstdDecompressSync;
   if (typeof fn !== "function") {
-    throw new VaultError(501, `This .apkg was made by a recent Anki and is zstd-compressed; reading it needs Node 22.15 or newer (this server runs ${process.version})`, "starsImportNoZstd");
+    throw new VaultError(501, `This .apkg was made by a recent Anki and is zstd-compressed; reading it needs Node 22.15 or newer (this server runs ${process.version})`, "deckImportNoZstd");
   }
   return (bytes) => {
     const out = fn(bytes);
@@ -563,7 +563,7 @@ export async function readApkg(bytes: Uint8Array, tmpDir: string, skips: Skips):
   // preferred when both are there: it needs nothing the stub does not.
   const legacy = index.get("collection.anki21") ?? (index.has("collection.anki21b") ? undefined : index.get("collection.anki2"));
   const modern = legacy ? undefined : index.get("collection.anki21b");
-  if (!modern && !legacy) throw new VaultError(400, "Not an Anki package: no collection inside the archive", "starsImportNotApkg");
+  if (!modern && !legacy) throw new VaultError(400, "Not an Anki package: no collection inside the archive", "orbitsImportNotApkg");
   const inflate = modern ? await zstd() : null;
   const dbBytes = modern && inflate ? inflate(readZipEntry(bytes, modern)) : readZipEntry(bytes, legacy!);
   const media = new Map<string, { entry: ZipEntry; compressed: boolean }>();
@@ -602,7 +602,7 @@ export async function readApkg(bytes: Uint8Array, tmpDir: string, skips: Skips):
     // A file that is not a database, or one without Anki's tables: the
     // archive is the caller's, so the answer is 400 and not a server fault.
     if ((err as NodeJS.ErrnoException | null)?.code === "ERR_SQLITE_ERROR") {
-      throw new VaultError(400, `Not an Anki package: ${(err as Error).message}`, "starsImportNotApkg");
+      throw new VaultError(400, `Not an Anki package: ${(err as Error).message}`, "orbitsImportNotApkg");
     }
     throw err;
   } finally {
@@ -612,7 +612,7 @@ export async function readApkg(bytes: Uint8Array, tmpDir: string, skips: Skips):
 
 function decksOf(db: SqliteDb, skips: Skips): ImportDeck[] {
   const col = db.prepare("select crt, models, decks from col").get();
-  if (!col) throw new VaultError(400, "Not an Anki package: the collection has no col row", "starsImportNotApkg");
+  if (!col) throw new VaultError(400, "Not an Anki package: the collection has no col row", "orbitsImportNotApkg");
   const crt = Number(col.crt) || Math.floor(Date.now() / 1000);
   const tables = new Set(db.prepare("select name from sqlite_master where type = 'table'").all().map((r) => String(r.name)));
 
@@ -790,7 +790,7 @@ export function noteBaseName(title: string): string {
     .trim()
     .replace(/^\.+/, "")
     .slice(0, 120);
-  return clean || "Imported constellation";
+  return clean || "Imported deck";
 }
 
 /** The first free `<dir>/<base>.md`, `<base> 2.md`, …: importing the same
@@ -925,7 +925,7 @@ export async function importFile(req: ImportRequest): Promise<ImportResult> {
     try {
       contents = await readApkg(req.bytes, importTmpDir(), skips);
     } catch (err) {
-      if (err instanceof ZipError) throw new VaultError(400, err.message, "starsImportNotApkg");
+      if (err instanceof ZipError) throw new VaultError(400, err.message, "orbitsImportNotApkg");
       throw err;
     }
     return writeDecks(contents.decks, target, contents.media, req.bytes, skips);
@@ -936,5 +936,5 @@ export async function importFile(req: ImportRequest): Promise<ImportResult> {
     const deck = csvDeck(text, { ...req.csv, title, delimiter: ext === "tsv" ? "\t" : req.csv.delimiter }, skips);
     return writeDecks([deck], target, new Map(), null, skips);
   }
-  throw new VaultError(400, "Import takes an Anki .apkg or a .csv/.tsv file", "starsImportUnknownType");
+  throw new VaultError(400, "Import takes an Anki .apkg or a .csv/.tsv file", "orbitsImportUnknownType");
 }

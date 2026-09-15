@@ -15,7 +15,7 @@ import { emptyDraft, type RoutineDraft, type RoutineKind } from "./routine.ts";
  *
  *  A preset's `fields` are SUGGESTIONS: the form pre-ticks them and the
  *  reader unticks what they do not want — the owner keeps no minutes and no
- *  weight on their exercise orbit, and nothing here forces either. */
+ *  weight on their exercise sigil, and nothing here forces either. */
 export interface RoutinePreset {
   id: RoutineKind;
   draft: (lang: "en" | "ar") => RoutineDraft;

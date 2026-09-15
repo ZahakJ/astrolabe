@@ -1,7 +1,7 @@
 // THE DEVICE'S MEMORY OF ITS SESSIONS. The note holds a star's schedule and
 // nothing else — the plugin keeps no history either — so retention, the
 // streak and "the ten hardest stars" come from a per-device LOG in
-// localStorage (`astrolabe.stars.log`, a ring of the last 5000 grades) and
+// localStorage (`astrolabe.orbits.log`, a ring of the last 5000 grades) and
 // the daily new-star counter beside it. Both are caches a reader can lose
 // without losing anything the vault knows; neither travels with prefs sync
 // (client/prefsSync.ts is an allowlist). Every access is wrapped: a private
@@ -11,9 +11,9 @@
 import type { Grade } from "../../shared/srs.ts";
 import { shiftDay } from "./stats.ts";
 
-export const LOG_KEY = "astrolabe.stars.log";
+export const LOG_KEY = "astrolabe.orbits.log";
 const LOG_CAP = 5000;
-const NEW_PREFIX = "astrolabe.stars.new.";
+const NEW_PREFIX = "astrolabe.orbits.new.";
 
 export interface LogEntry {
   path: string;
@@ -81,7 +81,7 @@ export function dayOf(ts: number): string {
 }
 
 /** Grades good or easy over all grades in the last `days` days, or null
- *  when nothing was graded. `path` narrows to one constellation. */
+ *  when nothing was graded. `path` narrows to one deck. */
 export function retention(log: LogEntry[], today: string, days = 30, path: string | null = null): number | null {
   const since = Date.parse(`${shiftDay(today, -(days - 1))}T00:00:00`);
   let all = 0;
@@ -135,8 +135,8 @@ export function hardest(log: LogEntry[], path: string | null, limit = 10): Array
 }
 
 // ── the daily new-star counter ──────────────────────────────────────────────
-// `astrolabe.stars.new.<path>.<YYYY-MM-DD>`: how many new stars this device
-// introduced from one constellation today, so no device can be walked into
+// `astrolabe.orbits.new.<path>.<YYYY-MM-DD>`: how many new stars this device
+// introduced from one deck today, so no device can be walked into
 // a hundred new kana on day one by reloading. Reviews are never counted.
 
 export function newIntroduced(path: string, today: string): number {

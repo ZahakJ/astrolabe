@@ -53,7 +53,7 @@ import { promptNewDrawing, promptNewFolder } from "../prompts.ts";
 import { duplicateNote } from "../duplicate.ts";
 import { copyNoteLink } from "../sectionActions.ts";
 import { panesInOrder } from "../workspace.ts";
-import { askStars } from "../stars/ask.ts";
+import { askOrbits } from "../orbits/ask.ts";
 import { sidebarIsDrawer } from "../state.ts";
 
 // The palette owns the recents ledger's install: visits are recorded for the
@@ -333,15 +333,15 @@ const COMMANDS: Command[] = [
     hint: () => t("cmdOpenRoutinesHint"),
     available: ({ admin }) => admin,
   },
-  // THE CONSTELLATIONS' FOUR DOORS: the shelf, the day's due stars (the
+  // ORBITS' FOUR DOORS: the shelf, the day's due cards (the
   // shelf's first Study button, from anywhere), and the two makers, which
   // open the shelf with its modal already up. The last two are reached by
-  // an event the shelf listens for (client/stars/ShelfView.tsx) rather than
+  // an event the shelf listens for (client/orbits/ShelfView.tsx) rather than
   // store state, because a modal is the shelf's own affair.
   {
-    id: "open-stars",
-    label: () => t("cmdOpenStars"),
-    hint: () => t("cmdViewHint"),
+    id: "open-orbits",
+    label: () => t("cmdOpenOrbits"),
+    hint: () => t("cmdOpenOrbitsHint"),
     available: ({ admin }) => admin,
   },
   {
@@ -351,13 +351,13 @@ const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
-    id: "new-constellation",
-    label: () => t("starsNew"),
-    hint: () => t("cmdNewConstellationHint"),
+    id: "new-deck",
+    label: () => t("orbitsNewDeck"),
+    hint: () => t("cmdNewDeckHint"),
     available: ({ admin }) => admin,
   },
   {
-    id: "import-constellation",
+    id: "import-deck",
     label: () => t("cmdImportDeck"),
     hint: () => t("cmdImportDeckHint"),
     available: ({ admin }) => admin,
@@ -1186,17 +1186,17 @@ export default function CommandPalette() {
         case "open-routines":
           store.toggleRoutines();
           break;
-        case "open-stars":
-          store.toggleStars();
+        case "open-orbits":
+          store.toggleOrbits();
           break;
         case "study-due":
-        case "new-constellation":
-        case "import-constellation":
+        case "new-deck":
+        case "import-deck":
           // The shelf answers: it opens the first due session, or the modal
           // on the tab asked for. Dispatched after the open so a shelf that
           // is only now mounting still hears it (it replays the last ask).
-          store.openStars(null);
-          askStars(command.id === "study-due" ? "study" : command.id === "new-constellation" ? "new" : "import");
+          store.openOrbits(null);
+          askOrbits(command.id === "study-due" ? "study" : command.id === "new-deck" ? "new" : "import");
           break;
         case "whats-new":
           openWhatsNew();

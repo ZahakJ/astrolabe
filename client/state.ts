@@ -72,13 +72,13 @@ import {
   isGraphTab,
   isMediaTab,
   isRoutinesTab,
-  isStarsTab,
+  isOrbitsTab,
   isVirtualTab,
   GRAPH_TAB,
   MEDIA_TAB,
   ROUTINES_TAB,
-  STARS_TAB,
-  starsTabFor,
+  ORBITS_TAB,
+  orbitsTabFor,
   openInPane,
   resizeCols as resizeColsIn,
   resizeRows as resizeRowsIn,
@@ -599,7 +599,7 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph" | "media" | "routines" | "stars"): void;
+  setView(v: View | "graph" | "media" | "routines" | "orbits"): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
   /** The Media page, on the same terms as the graph. */
@@ -608,13 +608,13 @@ export interface State {
   /** The Orbits page, on the same terms. */
   routinesOpen(): boolean;
   toggleRoutines(): void;
-  /** The Constellations shelf, on the same terms; a session over one
-   *  constellation is its own tab beside it (`openStars`). */
-  starsOpen(): boolean;
-  toggleStars(): void;
-  /** Open a study session over the constellation at `path` — or the shelf,
+  /** The Orbits shelf, on the same terms; a session over one
+   *  deck is its own tab beside it (`openOrbits`). */
+  orbitsOpen(): boolean;
+  toggleOrbits(): void;
+  /** Open a study session over the deck at `path` — or the shelf,
    *  for null — as a tab in the focused pane. */
-  openStars(path: string | null, section?: string | null): void;
+  openOrbits(path: string | null, section?: string | null): void;
   /** Swap in a whole workspace — a restored named layout. */
   applyWorkspace(ws: Workspace): void;
   /** Toggle the graph tab in the focused pane: open (or focus) it, or, when it
@@ -2202,8 +2202,8 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph" || view === "media" || view === "routines" || view === "stars") {
-        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : view === "routines" ? ROUTINES_TAB : STARS_TAB;
+      if (view === "graph" || view === "media" || view === "routines" || view === "orbits") {
+        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : view === "routines" ? ROUTINES_TAB : ORBITS_TAB;
         set((s) => ({
           ...s,
           ...mirrorOf(openInPane(s.workspace, s.workspace.focus, path)),
@@ -2245,26 +2245,26 @@ export const useStore = create<State>()((set, get) => {
       if (s.routinesOpen()) s.closeTab(ROUTINES_TAB);
       else s.setView("routines");
     },
-    starsOpen: () => {
+    orbitsOpen: () => {
       const ws = get().workspace;
       const pane = paneAt(ws, ws.focus);
       const tab = pane === null ? null : activeTabOf(pane);
-      return tab !== null && isStarsTab(tab.path);
+      return tab !== null && isOrbitsTab(tab.path);
     },
-    toggleStars: () => {
+    toggleOrbits: () => {
       const s = get();
       const ws = s.workspace;
       const pane = paneAt(ws, ws.focus);
       const tab = pane === null ? null : activeTabOf(pane);
-      // The door closes whichever Constellations tab is in front — the shelf
+      // The door closes whichever Orbits tab is in front — the shelf
       // or a session — the way the other doors close their page.
-      if (tab !== null && isStarsTab(tab.path)) s.closeTab(tab.path);
-      else s.setView("stars");
+      if (tab !== null && isOrbitsTab(tab.path)) s.closeTab(tab.path);
+      else s.setView("orbits");
     },
-    openStars: (path, section = null) => {
+    openOrbits: (path, section = null) => {
       set((s) => ({
         ...s,
-        ...mirrorOf(openInPane(s.workspace, s.workspace.focus, starsTabFor(path, section))),
+        ...mirrorOf(openInPane(s.workspace, s.workspace.focus, orbitsTabFor(path, section))),
         view: "editor",
         sidebarOpen: false,
       }));

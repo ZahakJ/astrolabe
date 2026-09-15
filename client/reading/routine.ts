@@ -1,7 +1,7 @@
 // THE ORBIT CARD, DRAWN. One renderer, every surface — the tracker's rule
 // (client/reading/tracker.ts), kept: the reading view, the blog article, a
 // transclusion, the hover preview, the editor's block widget and the
-// Orbits page all draw an orbit through this module, and there is no
+// Sigils page all draw a sigil through this module, and there is no
 // second skin. (The file keeps its old name, as shared/routine.ts explains.)
 //
 // LOADED ON DEMAND, like the tracker card: render.ts reaches this through a
@@ -10,7 +10,7 @@
 //
 // INERT BY DEFAULT. The checkboxes, the field inputs and the note box appear
 // only when the caller passes `onLog` — the editor widget (which turns a
-// patch into ONE document edit) and the Orbits page (which posts it). A
+// patch into ONE document edit) and the Sigils page (which posts it). A
 // visitor's card is a picture: there is no write path for them, and controls
 // that cannot work are furniture that lies.
 
@@ -50,10 +50,10 @@ export interface RoutineHooks {
   notesHtml?: string;
   /** The day the card is about; today unless a caller says otherwise. */
   today?: string;
-  /** Editor and Orbits page only: record a change to one day. Its
+  /** Editor and Sigils page only: record a change to one day. Its
    *  absence is what makes every other surface inert. */
   onLog?: (patch: EntryPatch) => void;
-  /** Open the note the routine lives in — the Orbits page's title door. */
+  /** Open the note the routine lives in — the Sigils page's title door. */
   onOpen?: () => void;
   /** Called when the card's height changes after mount (a section opened). */
   onResize?: () => void;
@@ -435,7 +435,7 @@ function renderField(f: RoutineField, value: string, iso: string, onLog: ((patch
     const row = el("span", "s-rv-routine__scale");
     row.setAttribute("role", onLog ? "radiogroup" : "img");
     row.setAttribute("aria-label", help);
-    row.title = onLog ? tf("orbitScaleTitle", { help }) : help;
+    row.title = onLog ? tf("sigilScaleTitle", { help }) : help;
     const current = Number(value);
     for (let n = 1; n <= max; n++) {
       const b = el("button", `s-rv-routine__scalebtn${Number.isFinite(current) && n <= current ? " is-on" : ""}`, localeNum(n));
@@ -528,7 +528,7 @@ function renderPlanTable(plan: RoutinePlan, today: string, lang: "en" | "ar"): H
 
 // ── The log ─────────────────────────────────────────────────────────────────
 
-/** An ```orbit-log fence: the days, newest first, as a table. */
+/** A ```sigil-log fence: the days, newest first, as a table. */
 export function renderRoutineLog(plan: RoutinePlan | null, entries: RoutineEntry[], hooks: Pick<RoutineHooks, "today">): HTMLElement {
   const locale = useStore.getState().blogLocale;
   const today = hooks.today ?? isoDate(new Date());

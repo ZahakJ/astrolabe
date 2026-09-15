@@ -5,7 +5,7 @@ tags: [guide, graph]
 
 # Graph View
 
-Press `Ctrl/Cmd G` and the vault becomes a constellation: every note a node,
+Press `Ctrl/Cmd G` and the vault becomes a star map: every note a node,
 every [[Wikilinks & Backlinks|wikilink]] an edge, laid out by a small physics
 simulation running at 60 fps. #guide #graph
 

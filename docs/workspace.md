@@ -138,6 +138,6 @@ answers the mirrored swipe. In Arabic the drawer comes from the right by itself,
 slides it over the page from the end edge, with backlinks, unlinked mentions and on-this-day inside.
 
 The top bar keeps three controls on a phone: the outline switch, the settings gear and a **⋯**. The
-⋯ opens every other tool as a labelled row: the library, Orbits, Review, the designer, visitor
+⋯ opens every other tool as a labelled row: the library, Orbits, Sigils, the designer, visitor
 preview, the graph, themes and sign out. Nothing scrolls off the edge. Zen and the shortcut sheet
 are not offered, since neither means anything on a phone.
