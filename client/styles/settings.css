@@ -254,10 +254,12 @@
 /* ── Scroll edges ────────────────────────────────────────────────────────── */
 
 /* The body fades at whichever end has content beyond it (`.s-scrollfade`,
-   app.css) — EXCEPT where a sticky block already owns the top edge. On
-   Typography the specimen is pinned there, carries the panel's own ground and
-   its own gradient tail, and fading ITS top would fade the live preview the
-   whole tab is built around. */
+   app.css) — EXCEPT where a sticky block can own the top edge. On Site the
+   typography specimen pins itself there once scrolled to, carries the
+   panel's own ground and its own gradient tail, and fading ITS top would
+   fade the live preview the group is built around. The whole tab forgoes
+   the top fade rather than a rule that has to know whether the block is
+   stuck at this moment. */
 .s-smodal__body:has(.s-smodal__specwrap) {
   --fade-top: 0px;
 }
@@ -463,12 +465,14 @@
 
 /* ── Typography: the specimen leads, and it STAYS ─────────────────────────── */
 
-/* The specimen is stuck to the top of the tab's scroller and every picker
-   below opens downward into the space under its own trigger, so the block that
-   answers "what does this look like" is on screen for the whole time the list
-   that changes it is open. It used to sit UNDER the four pickers, where the
-   popover of the last one covered it — which is the same as having no preview
-   at all, and was flagged as exactly that. */
+/* The specimen is stuck to the top of the scroller for as long as its group
+   lasts (the `[data-section="typography"]` wrapper inside the Site tab is its
+   containing block) and every picker below opens downward into the space
+   under its own trigger, so the block that answers "what does this look like"
+   is on screen for the whole time the list that changes it is open. It used
+   to sit UNDER the four pickers, where the popover of the last one covered it
+   — which is the same as having no preview at all, and was flagged as exactly
+   that. */
 .s-smodal__specwrap {
   position: sticky;
   top: 0;
@@ -504,8 +508,9 @@
 /* The sticky specimen overlaps whatever is scrolled under it, and the browser
    does not know that when it scrolls a row into view — a keyboard tab through
    the pickers, or a programmatic focus, would land the Arabic row UNDER the
-   preview block. Every row in this tab therefore reserves the specimen's
-   height as its scroll margin. */
+   preview block. Every row in the typography group therefore reserves the
+   specimen's height as its scroll margin; the identity rows above the group
+   scroll past it and need none. */
 [data-section="typography"] .s-smodal__row,
 [data-section="typography"] .s-smodal__sub {
   scroll-margin-top: 14rem;

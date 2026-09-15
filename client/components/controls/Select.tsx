@@ -237,10 +237,16 @@ export function Select({
     // defeating the live preview that justifies applying the value on
     // highlight in the first place. A host marks such a block
     // `[data-popclear]` and the room above the trigger starts below it.
-    const clear = trigger
+    // Only a block ABOVE the trigger, though: since the specimen shares a
+    // tab with the site's identity rows (3.15), the default-theme picker
+    // opens with the specimen still BELOW it, unstuck, and a keep-clear
+    // rule read from a block underneath would have started the room under
+    // the trigger — a list placed below the very row it belongs to.
+    const clearRect = trigger
       .closest("[data-popbounds]")
       ?.querySelector<HTMLElement>("[data-popclear]")
       ?.getBoundingClientRect();
+    const clear = clearRect !== undefined && clearRect.bottom <= rect.top ? clearRect : undefined;
     const boundsTop = Math.max(0, host?.top ?? 0, clear?.bottom ?? 0);
     const boundsBottom = Math.min(vh, host?.bottom ?? vh);
     const boundsLeft = Math.max(0, host?.left ?? 0);

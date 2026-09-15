@@ -395,9 +395,10 @@ export interface State {
   setEditorLang(lang: Lang | null): void;
   loginOpen: boolean;
   /** The desktop updater's last word (client/desktop): the status bar's
-   *  version chip draws it — a bar while downloading, "Restart now" when
-   *  staged. Null in a browser and before the first check. */
-  desktopUpdate: { phase: string; version: string; received?: number; total?: number } | null;
+   *  version chip draws it — "3.x available" with a download behind it, a bar
+   *  while downloading, "Restart to update" when staged. Null in a browser
+   *  and before the first check. */
+  desktopUpdate: { phase: string; version: string; received?: number; total?: number; installable?: boolean } | null;
   /** The desktop app holds this vault's credential itself (client/desktop):
    *  "Sign out" is hidden and a lapsed session is restored, never asked for. */
   desktopOwnsSession: boolean;

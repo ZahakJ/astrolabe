@@ -31,9 +31,19 @@ export const TO_MAIN = {
   spellReplace: "astrolabe:spell-replace",
   /** Teach the system dictionary a word ("Add to dictionary"). */
   spellAdd: "astrolabe:spell-add",
-  /** The reader answered an update toast: apply the staged AppImage and
-   *  relaunch, or open the release page on a build that cannot swap itself. */
+  /** The reader's SECOND click on an update: apply the staged, verified file
+   *  and relaunch — or open the release page on a build that cannot swap
+   *  itself. */
   updateApply: "astrolabe:update-apply",
+  /** The reader's FIRST click: fetch the release the last check found. The
+   *  only path in the app that downloads an update — a check never does
+   *  (electron/updatePolicy.ts). */
+  updateDownload: "astrolabe:update-download",
+  /** The one preference about updates — `notify` or `off` — read and written
+   *  by the Settings row. Desktop-side, in desktop.json beside the window
+   *  bounds, because it is about THIS install, not this browser profile. */
+  updatesPrefGet: "astrolabe:updates-pref-get",
+  updatesPrefSet: "astrolabe:updates-pref-set",
   /** The renderer's CHROME language — the reader's own preference, which the
    *  native menu follows. The menu used to follow the SITE's language from
    *  /api/me, which put an Arabic menu bar over an English interface the
@@ -143,4 +153,8 @@ export interface Hello {
   /** The reader's own icon for the app as a data URL, or null (electron/brand.ts):
    *  the empty state draws it when the site has no logo of its own. */
   brandIconDataUrl: string | null;
+  /** What the updater last said, if anything — so a window opened after the
+   *  check can draw the "3.x available" pill without asking again and without
+   *  a second toast. */
+  update: { phase: string; version: string; installable?: boolean } | null;
 }
