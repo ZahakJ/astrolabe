@@ -471,34 +471,6 @@ export default function StatusBar() {
               <path d="M8.5 15.5l2.5 2.5 4.5-5" />
             </svg>
           </button>
-          {/* THE DESIGNER'S OWN DOOR. `openDesigner()` used to have exactly one
-              call site in the client — the command palette — so the whole
-              feature was behind Ctrl+P and a guess at the word. It sits beside
-              the gear because that is where an admin already goes to change
-              what a visitor sees, and its glyph is the shape of a composed
-              page: a masthead over a column and a grid. */}
-          <button
-            type="button"
-            className="s-statusbar__btn s-statusbar__icon"
-            onClick={openDesigner}
-            title={t("designTitle")}
-            aria-label={t("designTitle")}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="13"
-              height="13"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M3 9h18M9 9v12" />
-            </svg>
-          </button>
           <button
             type="button"
             className="s-statusbar__btn s-statusbar__gear s-statusbar__phone"
@@ -928,6 +900,38 @@ export default function StatusBar() {
               />
             </>
           )}
+        </span>
+      )}
+      {admin && (
+        <span className="s-statusbar__group">
+          {/* THE DESIGNER'S OWN DOOR, at the foot of the shell beside the
+              build number — NOT in the top cluster, where its glyph (a
+              masthead over a column) sat next to the pane switches and read
+              as one of them (the owner: "can be mistaken for the close
+              panels button"). A door that changes what a visitor sees
+              belongs with the publishing controls down here anyway. */}
+          <button
+            type="button"
+            className="s-statusbar__btn s-statusbar__icon"
+            onClick={openDesigner}
+            title={t("designTitle")}
+            aria-label={t("designTitle")}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18M9 9v12" />
+            </svg>
+          </button>
         </span>
       )}
       {admin && APP_VERSION !== "" && (
