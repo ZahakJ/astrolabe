@@ -26,10 +26,19 @@
 // read), and every write lands there first. `.astrolabe/` is a dot-directory,
 // never listed, indexed, watched or served (server/vault.ts).
 //
+// Since 3.16.0 the person's own ledgers travel too: layouts.json (the named
+// layouts), books.json (the shelf and where each book was left off) and
+// annotations.json (the notes to self on words). They were kept per
+// instance as "ledgers", and the owner's test was the opposite: "set things
+// up once and transfer all your settings and everything from one device to
+// another by just running the executable and giving it the vault". A
+// reading position is the reader's, not the machine's.
+//
 // What does NOT travel, on purpose: git-credentials.json (a token is a
-// device's), comments.db (a site's social record), created.json and books.json
-// (per-instance ledgers), session-epoch (a session is a server's), and the
-// author-sites cache (rebuilt anywhere).
+// device's), comments.db (a site's social record), created.json (birth
+// times the indexer rebuilds), pdftext.json (a cache), versions/ (note
+// history — large, and git sync is the durable copy), session-epoch (a
+// session is a server's), and the author-sites cache (rebuilt anywhere).
 
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -37,7 +46,9 @@ import { dataDir } from "./site.ts";
 import { getVaultRoot } from "./vault.ts";
 
 export const MIRROR_DIR = ".astrolabe";
-const FILES = ["settings.json", "designs.json", "custom.css"];
+/** Exported for the test that pins the list: a file dropped from it stops
+ *  travelling silently. */
+export const FILES = ["settings.json", "designs.json", "custom.css", "layouts.json", "books.json", "annotations.json"];
 const DIRS = ["fonts"];
 const TICK_MS = 5_000;
 /** Two copies whose mtimes differ by less than this are the same write:

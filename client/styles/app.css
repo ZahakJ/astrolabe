@@ -762,6 +762,19 @@ select:focus,
   position: sticky;
   bottom: 0;
   background: var(--sidebar-bg, var(--bg-raised));
+  isolation: isolate;
+}
+/* The row's ground has to cover its own margin above and the shelf's
+   padding below, or the pills scrolling underneath show through those two
+   strips and the row reads as floating over half-hidden tags (the owner:
+   "the show more option overlays some tags, clunky"). A pseudo-element
+   behind the row paints the sidebar's ground across both. */
+.s-tags__more::before {
+  content: "";
+  position: absolute;
+  inset: -7px 0 -8px;
+  z-index: -1;
+  background: var(--sidebar-bg, var(--bg-raised));
 }
 
 .s-tag {

@@ -2,7 +2,7 @@
 // of an instance file the other side takes.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { pickSource } from "../server/configMirror.ts";
+import { FILES, pickSource } from "../server/configMirror.ts";
 
 test("a file on one side only is copied to the other", () => {
   assert.equal(pickSource({ mtimeMs: 10_000, size: 5 }, null), "data");
@@ -29,4 +29,17 @@ test("on first contact the vault wins whatever the clocks say", () => {
   assert.equal(pickSource({ mtimeMs: 90_000, size: 31 }, { mtimeMs: 10_000, size: 1373 }, false), "data");
   // A vault with no copy still takes this side's file.
   assert.equal(pickSource({ mtimeMs: 90_000, size: 31 }, null, true), "data");
+});
+
+test("what travels with the vault: the site's files and the person's ledgers", () => {
+  // 3.16.0 added the last three: named layouts, the book shelf with its
+  // reading positions, and the annotations. The owner's test is "run the
+  // executable, give it the vault, and everything is there".
+  for (const f of ["settings.json", "designs.json", "custom.css", "layouts.json", "books.json", "annotations.json"]) {
+    assert.ok(FILES.includes(f), `${f} must travel`);
+  }
+  // …and the things that must NOT: a token is a device's, history is git's.
+  for (const f of ["git-credentials.json", "versions", "session-epoch", "comments.db"]) {
+    assert.ok(!FILES.includes(f), `${f} must stay on the server`);
+  }
 });
