@@ -19,8 +19,8 @@ import { STARS_IMPORT_MAX_BYTES, UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import { applyEdit, editRoutinePlan, logEditFor, routineFenceSpans, type EntryPatch } from "../shared/routine.ts";
 import { TASK_LINE_RE, toggleTaskLine } from "../shared/tasks.ts";
-import { review as reviewCard, type Grade } from "../shared/srs.ts";
-import { constellationNotePath, parseConstellationFence, scanStars, serialiseConstellation, writeStarSchedule, type ConstellationKind, type NewCard } from "../shared/constellations.ts";
+import { review as reviewCard, type Grade, type Schedule } from "../shared/srs.ts";
+import { constellationNotePath, parseConstellationFence, scanStars, serialiseConstellation, restoreStarSchedule, writeStarSchedule, type ConstellationKind, type NewCard } from "../shared/constellations.ts";
 import type {
   AliasesResponse,
   AnchorsResponse,
@@ -560,6 +560,20 @@ function requiredString(body: Record<string, unknown>, key: string): string {
     throw new VaultError(400, `Body field "${key}" must be a non-empty string`);
   }
   return value;
+}
+
+/** A schedule as the client sends one back (the session's undo), null for
+ *  "none", or undefined for anything else — the plugin's comment shape is
+ *  a day, a whole number of days and an ease, and nothing looser goes in
+ *  the note. */
+function scheduleOf(value: unknown): Schedule | null | undefined {
+  if (value === null) return null;
+  if (typeof value !== "object") return undefined;
+  const s = value as Record<string, unknown>;
+  if (typeof s.due !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s.due)) return undefined;
+  if (typeof s.interval !== "number" || !Number.isInteger(s.interval) || s.interval < 0 || s.interval > 36500) return undefined;
+  if (typeof s.ease !== "number" || !Number.isInteger(s.ease) || s.ease < 0 || s.ease > 100000) return undefined;
+  return { due: s.due, interval: s.interval, ease: s.ease };
 }
 
 // Visitors (hash configured, no admin session) see the vault as a flat curated
@@ -2284,12 +2298,20 @@ async function reviewStarRoute(c: Context): Promise<Response> {
   const grade = body.grade;
   if (grade !== "again" && grade !== "hard" && grade !== "good" && grade !== "easy") throw new VaultError(400, "Grade one of again, hard, good, easy");
   const today = todayOf(body.today);
+  // UNDO: `restore` present means "put this schedule back", not "grade" —
+  // the one the star had before the last grade, verbatim, or null to take
+  // out the comment a first grade wrote. The client sends the grade along
+  // for a server that predates the field; that server re-grades, and the
+  // client sees the schedule differ and says so.
+  const undo = Object.prototype.hasOwnProperty.call(body, "restore");
+  const restore = undo ? scheduleOf(body.restore) : undefined;
+  if (undo && restore === undefined) throw new VaultError(400, "restore must be a schedule {due, interval, ease} or null");
   const note = await readNote(notePath);
   const kind = parseConstellationFence(note.content)?.kind ?? "basic";
   const star = scanStars(note.content, note.path, kind).find((s) => s.line === line && s.dir === dir);
   if (!star) throw new VaultError(409, "That star is gone", "stale");
-  const schedule = reviewCard(star.schedule, grade as Grade, today);
-  const next = writeStarSchedule(note.content, star, schedule);
+  const schedule = restore !== undefined ? restore : reviewCard(star.schedule, grade as Grade, today);
+  const next = restore !== undefined ? restoreStarSchedule(note.content, star, restore) : writeStarSchedule(note.content, star, schedule as Schedule);
   if (next !== note.content) {
     suppressWatcherEcho(note.path);
     await writeNote(note.path, next, note.mtimeMs);

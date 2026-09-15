@@ -18,7 +18,7 @@ import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
 import { DRAWER_QUERY, useStore } from "../state.ts";
-import { activeTabOf, isGraphTab, isMediaTab, isRoutinesTab, paneAt } from "../workspace.ts";
+import { activeTabOf, isGraphTab, isMediaTab, isRoutinesTab, isStarsTab, paneAt } from "../workspace.ts";
 import { choiceGroup, choiceLabel } from "../themes.ts";
 import SyncBadge from "./SyncBadge.tsx";
 import { openThemePicker } from "./ThemePicker.tsx";
@@ -265,6 +265,12 @@ export default function StatusBar() {
     const tab = pane === null ? null : activeTabOf(pane);
     return tab !== null && isRoutinesTab(tab.path);
   });
+  const toggleStars = useStore((s) => s.toggleStars);
+  const starsOn = useStore((s) => {
+    const pane = paneAt(s.workspace, s.workspace.focus);
+    const tab = pane === null ? null : activeTabOf(pane);
+    return tab !== null && isStarsTab(tab.path);
+  });
   const mediaOn = useStore((s) => {
     const pane = paneAt(s.workspace, s.workspace.focus);
     const tab = pane === null ? null : activeTabOf(pane);
@@ -391,13 +397,12 @@ export default function StatusBar() {
   // better than a strip of thirteen-pixel glyphs anyway. Zen and the
   // shortcut sheet are not offered: neither means anything on a phone.
   const [more, setMore] = useState<MenuAnchor | null>(null);
-  const toggleReview = useStore((s) => s.toggleReview);
   const moreRows: MenuRow[] = [
     ...(admin
       ? [
           { label: t("media"), onSelect: toggleMedia },
           { label: t("routines"), onSelect: toggleRoutines },
-          { label: t("review"), onSelect: toggleReview },
+          { label: t("stars"), onSelect: toggleStars },
           { label: null },
           { label: t("designTitle"), onSelect: openDesigner },
           { label: t("previewAsVisitor"), onSelect: () => void useStore.getState().setPreviewVisitor(true) },
@@ -484,6 +489,36 @@ export default function StatusBar() {
               <circle cx="12" cy="12" r="3.2" />
               <ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(-30 12 12)" />
               <circle cx="20.2" cy="7.25" r="1.6" fill="currentColor" stroke="none" />
+            </svg>
+          </button>
+          {/* THE CONSTELLATIONS DOOR, beside the orbits: three stars joined
+              by two strokes — the rete's own drawing of a thing you learn to
+              recognise. It was the Review door until 3.16. Admin-only for
+              the shelf's reason: a session writes into the notes. */}
+          <button
+            type="button"
+            className={`s-statusbar__btn s-statusbar__icon${starsOn ? " s-statusbar__btn--on" : ""}`}
+            aria-pressed={starsOn}
+            onClick={toggleStars}
+            title={t("starsTitle")}
+            aria-label={t("stars")}
+            data-testid="stars-door"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 18L12 7l7 8" />
+              <circle cx="5" cy="18" r="2.2" fill="currentColor" stroke="none" />
+              <circle cx="12" cy="7" r="2.2" fill="currentColor" stroke="none" />
+              <circle cx="19" cy="15" r="2.2" fill="currentColor" stroke="none" />
             </svg>
           </button>
           <button

@@ -16,8 +16,8 @@
 // the note's `kind` to what it found and gives each star a name.
 
 import { closesFence, fenceOpener, sourceLines } from "./fences.ts";
-import { scanCards, writeSchedule, type Card } from "./flashcards.ts";
-import type { Schedule } from "./srs.ts";
+import { clearSchedule, scanCards, writeSchedule, type Card } from "./flashcards.ts";
+import { formatSrComments, type Schedule } from "./srs.ts";
 
 /** How a constellation's `::` lines become stars. */
 export type ConstellationKind = "basic" | "reversed" | "both" | "typed" | "cloze-only";
@@ -268,14 +268,27 @@ export function constellationOf(md: string, path: string, title: string): Conste
  *  its fence — so a star from a note whose kind has since changed still
  *  lands in the slot the note now means. */
 export function writeStarSchedule(md: string, star: Star, schedule: Schedule): string {
-  let slot: 0 | 1 = 0;
-  if (star.dir === "rev") {
-    const card = scanCards(md).find((c) => c.line === star.line);
-    if (!card) return md;
-    const kind = parseConstellationFence(md)?.kind ?? "basic";
-    slot = card.reversed || kind === "both" ? 1 : 0;
-  }
-  return writeSchedule(md, star.line, schedule, slot);
+  const slot = slotOf(md, star);
+  return slot === null ? md : writeSchedule(md, star.line, schedule, slot);
+}
+
+/** The note text with one star's schedule put BACK — the session's undo.
+ *  `restore` is the schedule the star had before the grade, written
+ *  verbatim; null means it had none, and the comment the grade wrote is
+ *  taken out (or the twin's slot kept, for a pair). The note is then the
+ *  note it was, byte for byte, rather than re-graded from a guess. */
+export function restoreStarSchedule(md: string, star: Star, restore: Schedule | null): string {
+  const slot = slotOf(md, star);
+  if (slot === null) return md;
+  return restore === null ? clearSchedule(md, star.line, slot) : writeSchedule(md, star.line, restore, slot);
+}
+
+function slotOf(md: string, star: Star): 0 | 1 | null {
+  if (star.dir !== "rev") return 0;
+  const card = scanCards(md).find((c) => c.line === star.line);
+  if (!card) return null;
+  const kind = parseConstellationFence(md)?.kind ?? "basic";
+  return card.reversed || kind === "both" ? 1 : 0;
 }
 
 /** Where a new constellation lands: `<folder>/<title>.md`. The title is
@@ -300,17 +313,64 @@ export interface NewCard {
   back: string;
   extra?: string | null;
   section?: string | null;
+  /** A `front:::back` pair — two stars on one line, the plugin's shape. */
+  reversed?: boolean;
+  /** A cloze paragraph: `front` is the whole line with its `==deletions==`
+   *  already marked, and there is no back. */
+  cloze?: boolean;
+  /** Trailing `#tags` for the line, without the `#`. */
+  tags?: string[];
+  /** A schedule the card arrives with — an import's; a new note has none. */
+  schedule?: Schedule | null;
+  /** The twin's schedule, for a pair. */
+  scheduleRev?: Schedule | null;
+}
+
+/** The line one card makes in the note, comment included, or null when
+ *  the card has nothing the scanner would read back (no front; no back on
+ *  a card that needs one). One rule for the modal and the importer alike:
+ *
+ *   · the text is folded to one line, and every `::` inside it is spaced
+ *     to `: :` — a line is the syntax, and a second `::` would move the
+ *     answer into the extra (`std::vector` reads back as `std: :vector`,
+ *     which still says what it said; dropping a colon would not);
+ *   · a front that BEGINS like Markdown structure is escaped with a
+ *     backslash: `# of legs::8` is a heading to the scanner, `> ` a quote,
+ *     `| ` a table row, `- [ ]` a task, and three backticks open a fence
+ *     that swallows every card after it until the note ends. The backslash
+ *     keeps the line a paragraph in every renderer and shows nothing;
+ *   · a pair's comment carries two schedules, and when only one side has
+ *     one the other takes the same — what the plugin itself writes when it
+ *     first meets such a pair, and better than throwing a side's history
+ *     away. A cloze's comment sits on the line after it, where the scanner
+ *     reads a block's. */
+export function cardLineOf(card: NewCard): string | null {
+  const tags = (card.tags ?? []).map((t) => t.replace(/^#+/, "").trim()).filter((t) => t !== "");
+  const tail = tags.length > 0 ? ` ${tags.map((t) => `#${t}`).join(" ")}` : "";
+  const front = escapeLead(segment(card.front));
+  if (front === "") return null;
+  if (card.cloze) {
+    const comment = card.schedule ? `\n${formatSrComments([card.schedule])}` : "";
+    return `${front}${tail}${comment}`;
+  }
+  const back = segment(card.back);
+  if (back === "") return null;
+  const extra = segment(card.extra ?? "");
+  const sep = card.reversed ? ":::" : "::";
+  let comment = "";
+  if (card.reversed) {
+    const one = card.schedule ?? card.scheduleRev ?? null;
+    if (one) comment = formatSrComments([card.schedule ?? one, card.scheduleRev ?? one]);
+  } else if (card.schedule) comment = formatSrComments([card.schedule]);
+  return `${front}${sep}${back}${extra ? `::${extra}` : ""}${tail}${comment ? ` ${comment}` : ""}`;
 }
 
 /** The text of a new constellation note: frontmatter title, the fence, then
- *  the cards as `front::back::extra` lines under their section headings.
- *
- *  A card's text is folded to one line and its `::` runs to a single colon,
- *  because a line is the syntax and a second `::` would move the answer into
- *  the extra. Cards with no front or no back are dropped rather than written
- *  as lines the scanner would not read back. A leading `#`, `>` or `|` is
- *  escaped so a front cannot become a heading, a quote or a table row. */
-export function serialiseConstellation(head: { title: string; icon?: string | null; kind?: ConstellationKind; tags?: string[]; newPerDay?: number }, cards: NewCard[]): string {
+ *  the cards as lines (`cardLineOf`) under their section headings, in the
+ *  order given. Cards the scanner would not read back are dropped rather
+ *  than written as lines nobody will study — the importer counts those
+ *  before it gets here. */
+export function serialiseConstellation(head: { title: string; icon?: string | null; kind?: ConstellationKind; tags?: string[]; newPerDay?: number; titleInFence?: boolean }, cards: NewCard[]): string {
   // Every value in the fence is ONE LINE: a title, an icon or a tag holding
   // a newline would end the fence early and turn the rest of the head into
   // cards. The fence is line-based (parseConstellationFence), so folding
@@ -321,7 +381,7 @@ export function serialiseConstellation(head: { title: string; icon?: string | nu
   // The shelf reads the FENCE's title, and the indexer names a note by its
   // file: a title the filename rule had to bend ("Lesson 3: verbs") is
   // written into the fence so the shelf still says what the reader typed.
-  if (constellationNotePath("", title) !== `${title}.md`) lines.push(`title: ${title}`);
+  if (head.titleInFence || constellationNotePath("", title) !== `${title}.md`) lines.push(`title: ${title}`);
   if (icon) lines.push(`icon: ${icon}`);
   lines.push(`kind: ${head.kind ?? "basic"}`);
   if (head.newPerDay !== undefined && head.newPerDay !== DEFAULT_NEW_PER_DAY && head.newPerDay >= 0) lines.push(`new per day: ${Math.floor(head.newPerDay)}`);
@@ -332,19 +392,20 @@ export function serialiseConstellation(head: { title: string; icon?: string | nu
   lines.push("```", "");
   let section: string | null = null;
   for (const card of cards) {
-    const front = segment(card.front);
-    const back = segment(card.back);
-    if (front === "" || back === "") continue;
+    const line = cardLineOf(card);
+    if (line === null) continue;
     const at = card.section?.trim() || null;
     if (at !== null && at !== section) {
       if (lines[lines.length - 1] !== "") lines.push("");
       lines.push(`## ${at.replace(/\s+/g, " ")}`, "");
       section = at;
     }
-    const extra = segment(card.extra ?? "");
-    lines.push(`${escapeLead(front)}::${back}${extra ? `::${extra}` : ""}`);
+    lines.push(line);
+    // A cloze is a paragraph; a blank line closes it so the next card does
+    // not fold into it.
+    if (card.cloze) lines.push("");
   }
-  return lines.join("\n") + "\n";
+  return lines.join("\n").replace(/\n+$/, "") + "\n";
 }
 
 function oneLine(text: string): string {
@@ -354,13 +415,15 @@ function oneLine(text: string): string {
 function segment(text: string): string {
   return text
     .replace(/\r?\n/g, " ")
-    .replace(/:{2,}/g, ":")
+    .replace(/:(?=:)/g, ": ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
+/** Idempotent: a front already escaped begins with the backslash and is
+ *  left alone, so the importer's text and the modal's meet one rule. */
 function escapeLead(front: string): string {
-  return /^[#>|]/.test(front) ? `\\${front}` : front;
+  return /^(?:#|>|\||`{3}|~{3}|[-*+]\s+\[)/.test(front) ? `\\${front}` : front;
 }
 
 /** A frontmatter title, quoted only when YAML would misread it bare. */

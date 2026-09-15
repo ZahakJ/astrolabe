@@ -43,9 +43,9 @@ import { promises as fsp } from "node:fs";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
 import { extensionOf, ATTACHMENT_TYPES } from "../shared/attachments.ts";
-import { DEFAULT_FOLDER, type ConstellationKind } from "../shared/constellations.ts";
+import { cardLineOf, DEFAULT_FOLDER, serialiseConstellation, type ConstellationKind, type NewCard } from "../shared/constellations.ts";
 import { scanCards } from "../shared/flashcards.ts";
-import { EASE_MIN, EASE_START, formatSrComment, type Schedule } from "../shared/srs.ts";
+import { EASE_MIN, EASE_START, type Schedule } from "../shared/srs.ts";
 import { registerAttachment, indexFile } from "./indexer.ts";
 import { dataDir, uploadDirFor } from "./site.ts";
 import { emitEvent, normalizeRel, safeAbs, VaultError, writeNote } from "./vault.ts";
@@ -159,21 +159,12 @@ function unsplit(text: string): string {
   return text.replace(/:(?=:)/g, ": ");
 }
 
-/** A card line that BEGINS like Markdown structure is not a card any more:
- *  `# of legs::8` is a heading to the scanner, `> ` a quote, `| ` a table
- *  row, `- [ ]` a task — and a line opening with three backticks is a fence
- *  that swallows every card after it until the note ends. A backslash in
- *  front of the first character keeps the line a paragraph in every
- *  Markdown renderer and shows nothing but the character itself. */
-function unstructure(text: string): string {
-  return /^(?:#{1,6}\s|>|\||`{3}|~{3}|[-*+]\s+\[)/.test(text) ? `\\${text}` : text;
-}
-
 /** The last word on whether a line is a card: the vault's own scanner
  *  reads it back. What it cannot read (a front nothing above foresaw) is
  *  skipped and counted rather than written as a line nobody will study. */
 function readable(card: ImportCard): boolean {
-  return scanCards(`${cardLine({ ...card, schedule: null, reverse: null })}\n`).length === 1;
+  const line = cardLineOf(newCardOf({ ...card, schedule: null, reverse: null }));
+  return line !== null && scanCards(`${line}\n`).length === 1;
 }
 
 const CLOZE_RE = /\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g;
@@ -197,16 +188,14 @@ export function clozeOrdinals(text: string): number[] {
  *  text would open a highlight of its own, so it is softened. */
 export function clozeLine(text: string, ord: number): string {
   const soft = text.replace(/==/g, "= =");
-  return unstructure(
-    unsplit(
-      soft.replace(CLOZE_RE, (_, n: string, body: string) => {
-        const inner = body.replace(/==/g, "= =").trim();
-        return Number(n) === ord ? `==${inner}==` : inner;
-      }),
-    )
-      .replace(/\s+/g, " ")
-      .trim(),
-  );
+  return unsplit(
+    soft.replace(CLOZE_RE, (_, n: string, body: string) => {
+      const inner = body.replace(/==/g, "= =").trim();
+      return Number(n) === ord ? `==${inner}==` : inner;
+    }),
+  )
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /** The highlight the vault reads is `==…==` with no `=` inside and at most
@@ -217,18 +206,16 @@ export function clozeLine(text: string, ord: number): string {
  *  deletion as the answer — the same card, studied the same way. */
 export function clozeAsQa(text: string, ord: number): { front: string; back: string } | null {
   const answers: string[] = [];
-  const front = unstructure(
-    unsplit(
-      text.replace(CLOZE_RE, (_, n: string, body: string) => {
-        const inner = body.trim();
-        if (Number(n) !== ord) return inner;
-        answers.push(inner);
-        return "**[…]**";
-      }),
-    )
-      .replace(/\s+/g, " ")
-      .trim(),
-  );
+  const front = unsplit(
+    text.replace(CLOZE_RE, (_, n: string, body: string) => {
+      const inner = body.trim();
+      if (Number(n) !== ord) return inner;
+      answers.push(inner);
+      return "**[…]**";
+    }),
+  )
+    .replace(/\s+/g, " ")
+    .trim();
   const back = unsplit(answers.join(" · ")).replace(/\s+/g, " ").trim();
   return back === "" || front === "" ? null : { front, back };
 }
@@ -254,61 +241,30 @@ function cleanTags(raw: string): string[] {
 
 // ───────────────────────────────────────────────── the note, serialised
 
-function yamlTitle(title: string): string {
-  return /^[\p{L}\p{N}][^:#"'\n]*$/u.test(title) ? title : JSON.stringify(title);
+/** An imported card in the shape the shared serialiser writes
+ *  (shared/constellations.ts cardLineOf): the pair, the cloze and the two
+ *  schedules map one to one, and the escaping is the serialiser's. */
+function newCardOf(card: ImportCard): NewCard {
+  return {
+    front: card.front,
+    back: card.back,
+    extra: card.extra,
+    section: card.section,
+    tags: card.tags,
+    reversed: card.kind === "reversed",
+    cloze: card.kind === "cloze",
+    schedule: card.schedule,
+    scheduleRev: card.reverse,
+  };
 }
 
-/** Two schedules in one comment, the plugin's own shape for a `:::` pair.
- *  When only one side has been reviewed the other takes the same schedule —
- *  which is what the plugin itself writes when it first meets such a pair,
- *  and better than throwing the reviewed side's history away. */
-function pairComment(a: Schedule | null, b: Schedule | null): string {
-  const one = a ?? b;
-  if (!one) return "";
-  const first = a ?? one;
-  const second = b ?? one;
-  return `<!--SR:!${first.due},${first.interval},${first.ease}!${second.due},${second.interval},${second.ease}-->`;
-}
-
-/** The line one card makes in the note, comment included. */
-export function cardLine(card: ImportCard): string {
-  const tags = card.tags.length > 0 ? ` ${card.tags.map((t) => `#${t}`).join(" ")}` : "";
-  if (card.kind === "cloze") {
-    // A cloze card is a paragraph, and its comment sits on the line after
-    // it (shared/flashcards.ts); a blank line closes the paragraph so the
-    // next cloze does not fold into this one.
-    const comment = card.schedule ? `\n${formatSrComment(card.schedule)}` : "";
-    return `${card.front}${tags}${comment}\n`;
-  }
-  const sep = card.kind === "reversed" ? ":::" : "::";
-  const extra = card.extra ? `::${card.extra}` : "";
-  const comment = card.kind === "reversed" ? pairComment(card.schedule, card.reverse) : card.schedule ? formatSrComment(card.schedule) : "";
-  return `${card.front}${sep}${card.back}${extra}${tags}${comment ? ` ${comment}` : ""}`;
-}
-
-/** The text of an imported constellation note, in the spec's shape:
- *  frontmatter title, the fence, then the cards under their section
- *  headings in the order the deck gave them. shared/constellations.ts
- *  has `serialiseConstellation` for the same shape from a NewCard list;
- *  this one also carries the schedules and the reversed pairs, which an
- *  import has and a new note never does. */
-export function serialiseImportedConstellation(deck: ImportDeck, kind: ConstellationKind = "basic"): string {
-  // One line: a title with a newline in it (a CSV's `title` field is the
-  // caller's) would put its second half inside the fence, or close it.
-  const title = deck.title.replace(/[\s\u0000-\u001f\u007f]+/g, " ").replace(/`{3,}|~{3,}/g, "").trim() || "Imported constellation";
-  const out: string[] = ["---", `title: ${yamlTitle(title)}`, "---", "", "```constellation", `title: ${title}`, `kind: ${kind}`, "```", ""];
-  let section: string | null = null;
-  let first = true;
-  for (const card of deck.cards) {
-    if (card.section !== section) {
-      section = card.section;
-      if (!first) out.push("");
-      out.push(`## ${section}`, "");
-    }
-    out.push(cardLine(card));
-    first = false;
-  }
-  return `${out.join("\n").replace(/\n+$/, "")}\n`;
+/** The text of an imported constellation note — the shared serialiser
+ *  over the deck's cards, with the title in the fence: the importer names
+ *  its files by a free-path rule that can add a number ("Spanish 2.md"),
+ *  and the shelf must still say "Spanish". */
+export function serialiseImportedDeck(deck: ImportDeck, kind: ConstellationKind = "basic"): string {
+  const title = deck.title.replace(/[\s\u0000-\u001f\u007f]+/g, " ").trim() || "Imported constellation";
+  return serialiseConstellation({ title, kind, titleInFence: true }, deck.cards.map(newCardOf));
 }
 
 // ───────────────────────────────────────────────────────── CSV and TSV
@@ -417,7 +373,7 @@ export function csvDeck(text: string, opts: CsvOptions, skips: Skips): ImportDec
   const cards: ImportCard[] = [];
   for (const row of header ? rows.slice(1) : rows) {
     const cell = (i: number | null): string => (i === null || i < 0 || i >= row.length ? "" : unsplit(fieldText(row[i])));
-    const front = unstructure(cell(opts.front));
+    const front = cell(opts.front);
     const back = cell(opts.back);
     if (front === "" || back === "") {
       skips.add("empty");
@@ -758,7 +714,7 @@ function decksOf(db: SqliteDb, skips: Skips): ImportDeck[] {
       continue;
     }
 
-    const front = unstructure(unsplit(fieldText(fields[0] ?? "")));
+    const front = unsplit(fieldText(fields[0] ?? ""));
     const back = unsplit(fieldText(fields[1] ?? ""));
     // "Basic (optional reversed card)" keeps its switch in a third field
     // called Add Reverse, holding a "y"; that is a setting, not an extra.
@@ -790,7 +746,7 @@ function decksOf(db: SqliteDb, skips: Skips): ImportDeck[] {
     } else {
       // Only the reverse card exists (an "optional reversed" type whose
       // forward card was deleted): back→front is what Anki asked.
-      made = { kind: "qa", front: unstructure(back), back: front, extra, tags, section, schedule: scheduleOf(reverse!), reverse: null };
+      made = { kind: "qa", front: back, back: front, extra, tags, section, schedule: scheduleOf(reverse!), reverse: null };
     }
     if (!readable(made)) {
       skips.add("unreadable", forward && reverse ? 2 : 1);
@@ -902,7 +858,7 @@ export async function writeDecks(decks: ImportDeck[], target: ImportTarget, medi
         extra: card.extra === null ? null : renameEmbeds(card.extra, placed),
       })),
     };
-    await writeNote(rel, serialiseImportedConstellation(renamed));
+    await writeNote(rel, serialiseImportedDeck(renamed));
     await indexFile(rel);
     emitEvent({ kind: "created", path: rel });
     created.push(rel);

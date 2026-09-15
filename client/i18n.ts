@@ -4567,35 +4567,32 @@ const DICT = {
   routinesSaved: { en: "“{title}” saved", ar: "حُفظ «{title}»" },
   routinesAdded: { en: "“{title}” added to your orbits", ar: "أُضيف «{title}» إلى مداراتك" },
   routinesExists: { en: "A note already lives at {path}", ar: "توجد ملاحظة بالفعل في {path}" },
-  // ── Flashcards: the Review page (shared/flashcards.ts, client/review/) ──
-  review: { en: "Review", ar: "المراجعة" },
-  cmdOpenReview: { en: "Review flashcards", ar: "مراجعة البطاقات" },
-  reviewLead: { en: "Cards drawn from what you already marked — highlights, quotes, questions — asked on a schedule the note keeps.", ar: "بطاقات مأخوذة مما علّمته أصلًا: تظليلات واقتباسات وأسئلة، تُسأل على جدول تحفظه الملاحظة." },
-  reviewDue: { en: "{n} due today", ar: "{n} مستحقة اليوم" },
-  reviewDueOne: { en: "1 due today", ar: "بطاقة واحدة مستحقة اليوم" },
-  reviewNothingDue: { en: "Nothing due today", ar: "لا شيء مستحق اليوم" },
-  reviewTotal: { en: "{n} cards in the vault", ar: "{n} بطاقة في الخزانة" },
-  reviewEmpty: { en: "No cards yet", ar: "لا بطاقات بعد" },
-  reviewEmptyHint: { en: "Highlight a phrase with ==marks==, cite a quote, or write a line, a ? on its own, and the answer under it.", ar: "ظلّل عبارة بعلامتي ==، أو اقتبس نصًا، أو اكتب سطرًا ثم ? في سطر وحده ثم الجواب تحته." },
-  reviewDone: { en: "All caught up", ar: "أنجزت كل شيء" },
-  reviewDoneHint: { en: "Come back tomorrow — or study ahead from the cards below.", ar: "عد غدًا، أو ذاكر مسبقًا من البطاقات أدناه." },
-  reviewShow: { en: "Show answer", ar: "أظهر الجواب" },
-  reviewAgain: { en: "Again", ar: "مرة أخرى" },
-  reviewHard: { en: "Hard", ar: "صعب" },
-  reviewGood: { en: "Good", ar: "جيد" },
-  reviewEasy: { en: "Easy", ar: "سهل" },
-  reviewInDays: { en: "{n}d", ar: "{n}ي" },
-  reviewStudyAhead: { en: "Study ahead", ar: "ذاكر مسبقًا" },
-  reviewOpenNote: { en: "Open the note", ar: "افتح الملاحظة" },
-  reviewFailed: { en: "Could not load the cards.", ar: "تعذّر تحميل البطاقات." },
-  reviewSaveFailed: { en: "Could not record that review", ar: "تعذّر تسجيل تلك المراجعة" },
-  reviewKindQa: { en: "Question", ar: "سؤال" },
-  reviewKindCloze: { en: "Cloze", ar: "فراغ" },
-  reviewKindQuote: { en: "Quote", ar: "اقتباس" },
-  reviewProgress: { en: "{done} of {total}", ar: "{done} من {total}" },
-  routinesCardsDue: { en: "{n} flashcards due", ar: "{n} بطاقات مستحقة" },
-  routinesCardsDueOne: { en: "1 flashcard due", ar: "بطاقة واحدة مستحقة" },
-  routinesReview: { en: "Review", ar: "راجع" },
+  // ── Constellations: its DOORS, and only its doors ────────────────────────
+  // The names are the astrolabe's: a deck is a constellation (كوكبة), a card
+  // a star (نجم), a study run a session (جلسة). The page replaced Review in
+  // 3.16. What is here is what gets painted before the surface exists — the
+  // status bar's door, the tab's name, the palette's four rows, the Orbits
+  // line. The shelf's, the session's, the drawer's and the form's own copy
+  // lives in client/stars/copy.ts, in the tour deck's `{ en, ar }` shape
+  // and for the tour deck's reason (see client/components/tourCards.ts):
+  // the DICT is entry-chunk code, and a hundred strings for a page behind
+  // an admin door do not belong in a visitor's first paint. Gated by
+  // tests/srsSession.test.ts the way the deck's are.
+  stars: { en: "Constellations", ar: "الكوكبات" },
+  starsTitle: { en: "Constellations — study the stars you marked", ar: "الكوكبات: ادرس النجوم التي علّمتها" },
+  cmdOpenStars: { en: "Open Constellations", ar: "افتح الكوكبات" },
+  cmdStudyDue: { en: "Study due cards", ar: "ادرس النجوم المستحقة" },
+  cmdStudyDueHint: { en: "the first constellation with stars due", ar: "أول كوكبة فيها نجوم مستحقة" },
+  starsNew: { en: "New constellation…", ar: "كوكبة جديدة…" },
+  // The implicit constellation — every card outside a constellation note —
+  // has no note to be named after, so its session tab wears this.
+  starsEverything: { en: "Everything else", ar: "كل ما سواها" },
+  cmdNewConstellationHint: { en: "a note of front::back lines", ar: "ملاحظة من أسطر وجه::ظهر" },
+  cmdImportDeck: { en: "Import an Anki deck…", ar: "استيراد مجموعة Anki…" },
+  cmdImportDeckHint: { en: ".apkg, .csv or .tsv", ar: "ملف .apkg أو .csv أو .tsv" },
+  // "{n}" is a countPhrase ("3 stars" / "٣ نجوم"); the Arabic ends in it so
+  // no adjective has to agree with a count that changes gender at one.
+  routinesStarsDue: { en: "{n} due", ar: "المستحق اليوم: {n}" },
   addFlashcard: { en: "Make a flashcard", ar: "اصنع بطاقة" },
   // ── Constellations on an orbit card (client/routines/stars.ts): the chip a
   // slot wears when its text wikilinks a constellation note ──
@@ -5109,7 +5106,8 @@ export type CountUnit =
   | "episodes"
   | "lessons"
   | "tasks"
-  | "days";
+  | "days"
+  | "stars";
 
 const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: string; few: string; many: string } }> = {
   // What a bulk tab-close is about to FLUSH. It is a count with a consequence
@@ -5180,6 +5178,8 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   chapters: { en: ["chapter", "chapters"], ar: { one: "فصل واحد", two: "فصلان", few: "فصول", many: "فصلًا" } },
   tasks: { en: ["task", "tasks"], ar: { one: "مهمة واحدة", two: "مهمتان", few: "مهام", many: "مهمة" } },
   days: { en: ["day", "days"], ar: { one: "يوم واحد", two: "يومان", few: "أيام", many: "يومًا" } },
+  // The constellations count their stars: "3 stars due", "١٠ نجوم".
+  stars: { en: ["star", "stars"], ar: { one: "نجم واحد", two: "نجمان", few: "نجوم", many: "نجمًا" } },
 };
 
 /** "3 notes" / "3 ملاحظات" — a number with its correctly-agreed unit. */

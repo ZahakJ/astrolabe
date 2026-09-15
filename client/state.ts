@@ -72,12 +72,13 @@ import {
   isGraphTab,
   isMediaTab,
   isRoutinesTab,
-  isReviewTab,
+  isStarsTab,
   isVirtualTab,
   GRAPH_TAB,
   MEDIA_TAB,
   ROUTINES_TAB,
-  REVIEW_TAB,
+  STARS_TAB,
+  starsTabFor,
   openInPane,
   resizeCols as resizeColsIn,
   resizeRows as resizeRowsIn,
@@ -598,7 +599,7 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph" | "media" | "routines" | "review"): void;
+  setView(v: View | "graph" | "media" | "routines" | "stars"): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
   /** The Media page, on the same terms as the graph. */
@@ -607,9 +608,13 @@ export interface State {
   /** The Orbits page, on the same terms. */
   routinesOpen(): boolean;
   toggleRoutines(): void;
-  /** The Review page (flashcards), on the same terms. */
-  reviewOpen(): boolean;
-  toggleReview(): void;
+  /** The Constellations shelf, on the same terms; a session over one
+   *  constellation is its own tab beside it (`openStars`). */
+  starsOpen(): boolean;
+  toggleStars(): void;
+  /** Open a study session over the constellation at `path` — or the shelf,
+   *  for null — as a tab in the focused pane. */
+  openStars(path: string | null, section?: string | null): void;
   /** Swap in a whole workspace — a restored named layout. */
   applyWorkspace(ws: Workspace): void;
   /** Toggle the graph tab in the focused pane: open (or focus) it, or, when it
@@ -2197,8 +2202,8 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph" || view === "media" || view === "routines" || view === "review") {
-        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : view === "routines" ? ROUTINES_TAB : REVIEW_TAB;
+      if (view === "graph" || view === "media" || view === "routines" || view === "stars") {
+        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : view === "routines" ? ROUTINES_TAB : STARS_TAB;
         set((s) => ({
           ...s,
           ...mirrorOf(openInPane(s.workspace, s.workspace.focus, path)),
@@ -2240,16 +2245,29 @@ export const useStore = create<State>()((set, get) => {
       if (s.routinesOpen()) s.closeTab(ROUTINES_TAB);
       else s.setView("routines");
     },
-    reviewOpen: () => {
+    starsOpen: () => {
       const ws = get().workspace;
       const pane = paneAt(ws, ws.focus);
       const tab = pane === null ? null : activeTabOf(pane);
-      return tab !== null && isReviewTab(tab.path);
+      return tab !== null && isStarsTab(tab.path);
     },
-    toggleReview: () => {
+    toggleStars: () => {
       const s = get();
-      if (s.reviewOpen()) s.closeTab(REVIEW_TAB);
-      else s.setView("review");
+      const ws = s.workspace;
+      const pane = paneAt(ws, ws.focus);
+      const tab = pane === null ? null : activeTabOf(pane);
+      // The door closes whichever Constellations tab is in front — the shelf
+      // or a session — the way the other doors close their page.
+      if (tab !== null && isStarsTab(tab.path)) s.closeTab(tab.path);
+      else s.setView("stars");
+    },
+    openStars: (path, section = null) => {
+      set((s) => ({
+        ...s,
+        ...mirrorOf(openInPane(s.workspace, s.workspace.focus, starsTabFor(path, section))),
+        view: "editor",
+        sidebarOpen: false,
+      }));
     },
     graphOpen: () => {
       const ws = get().workspace;
