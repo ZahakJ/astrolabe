@@ -29,7 +29,7 @@ You can read this manual as a website, with search, a page outline and both lang
 | [LaTeX notes](latex.md) | A `.tex` file is a note like any other: the `astrolabe.sty` package and exactly what the app can render |
 | [Trackers](trackers.md) | A `tracker` block that keeps a list of things you follow (games, films, books), the board it draws, the Media page that shelves them all, and what a visitor sees |
 | [Orbits](orbits.md) | Your daily habits, one per orbit: a plan for each day, a log the app writes for you, streaks, a heatmap, templates, and the Orbits page |
-| [Flashcards](flashcards.md) | Turn highlights, quotes and `?` questions into flashcards, review them on a schedule, and keep that schedule inside the note itself |
+| [Constellations](constellations.md) | Spaced repetition without a second program: a deck is a note (a `constellation` block and `front::back` lines), studied with learning steps and a daily limit, imported from Anki or CSV, and scheduled inside the note itself in the Obsidian plugin's own format |
 | [Drawings](drawing.md) | A drawing canvas (Excalidraw) inside your vault: `.excalidraw` files and the Obsidian plugin's `.excalidraw.md`, an SVG exported beside each one, and `![[sketch.excalidraw]]` to embed it anywhere |
 | [The PDF reader](books.md) | Every PDF in the vault opens as a book: vim keys, a `:` command line, the page you left off on, and highlights that become notes with a citation |
 | [Panes, tabs & windows](workspace.md) | Splitting the screen, preview tabs and pinned tabs, several windows on one vault, the local graph, the trash, the tour, and aliases |
