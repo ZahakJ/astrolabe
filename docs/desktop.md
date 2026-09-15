@@ -1,6 +1,6 @@
 # The desktop app
 
-*Astrolabe as a native application: the menu bar, vaults, windows, the reference window, find in page, updates and deep links.*
+*Astrolabe as a native application: the menu bar, vaults, windows, the reference window, find in page, updates that wait to be asked, and deep links.*
 
 ---
 
@@ -44,7 +44,7 @@ publish, the shortcut sheet. The desktop app also claims a few chords the browse
 
 ## Your own name and icon
 
-Astrolabe is one person's name for it. **Settings → Device → This app** lets you call the app
+Astrolabe is one person's name for it. **Settings → This device → This app** lets you call the app
 whatever you like on this computer and give it your own icon: the tray, its tooltip, the window
 icon, the About box and the launcher entry all follow. The site's own name and logo are a
 separate thing, under *Site*, and title the window and the sidebar. **An update never touches
@@ -93,26 +93,45 @@ Edit menu.
 
 ## Updates
 
-The app checks the releases page at launch and every six hours, and downloads a new release **in
-the background**; when it is ready a toast offers **Restart now**, never a dialog. **Help → Check
-for updates…** asks at once, and says so when you are on the latest.
+The app never installs anything on its own. Here is the whole of it:
 
-The build you are on is printed at the end of the bottom status bar, and on the desktop app that chip
-*is* the updater: click it to check; while a release downloads it turns into a bar with the
-percentage; once the download is on disk and verified it reads **Restart now**. In a browser it
-opens the releases page, since a hosted instance updates when its server does.
+1. **It looks.** At launch and every six hours the app asks the releases page whether a newer
+   version exists. That is one small request, and it is all that happens by itself.
+2. **It tells you, once.** When there is a newer release, the version chip at the end of the
+   bottom status bar changes to **3.x available**, and a toast says so — one time for that
+   version, for this launch. It does not nag; the next quiet check finds the same release and
+   says nothing.
+3. **You download.** Click the chip (or the toast's **Download 3.x**) and the release is fetched.
+   While it comes down the chip is a bar with the percentage. The file is checked twice before
+   it is called ready — its size against what the release declared, and its checksum against
+   the release's own `SHA256SUMS` file — so a broken download can never become the installed
+   app.
+4. **You restart.** Once the download is on disk and verified, the chip reads **Restart to
+   update**. Nothing changes until you click it.
 
-What "restart" does depends on how the app was installed. The **AppImage** is swapped in place
-and relaunched: the app leaves, and a moment later the new file starts on its own (a release
-that made you open it again yourself is behind us; every AppImage build is now relaunch-tested
-before it is published). The **Windows** install runs the new installer silently and the installer
-relaunches the app. Both downloads are checked against the release's own checksum file before
-anything runs. The **deb** and **pacman** packages belong to a package manager, so there the toast
-opens the release page instead. The **Android app** (the APK on the same release page) checks
-the same endpoint at launch: when a newer APK exists it offers **Update**, the browser downloads
-it, and Android installs it over the current copy, notes, settings and sign-in untouched. *Later*
-snoozes the offer for a day. Everything web-side reaches the phone the moment the server deploys;
-the APK only changes when the shell itself does.
+### Turning it off
+
+**Settings → This device → Software updates** has two positions. *Tell me* (the default) checks
+quietly and shows the chip when a release exists. *Off* never checks and never reminds. Either
+way, **Help → Check for updates…** still asks on the spot — *Off* is about not being interrupted,
+not about being refused an answer — and tells you when you are on the latest. The chip at rest
+does the same when clicked.
+
+### What "restart" does
+
+That depends on how the app was installed. The **AppImage** is swapped in place and relaunched:
+the app leaves, and a moment later the new file starts on its own (every AppImage build is
+relaunch-tested before it is published). The **Windows** install runs the new installer silently,
+and the installer relaunches the app. The **deb** and **pacman** packages belong to a package
+manager, so there the chip reads **3.x ↗** and opens the release page instead of downloading. In a
+browser the chip simply links to the releases page, since a hosted instance updates when its
+server does.
+
+The **Android app** (the APK on the same release page) asks the same endpoint once per launch.
+When a newer APK exists it offers **Update**: the browser downloads it and Android installs it over
+the current copy, with notes, settings and sign-in untouched. *Later* snoozes the offer for a day.
+Everything web-side reaches the phone the moment the server deploys; the APK only changes when
+the shell itself does.
 
 ## Deep links and file association
 

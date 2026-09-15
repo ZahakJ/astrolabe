@@ -331,7 +331,7 @@ anything, so a setting never arrives mid-session and moves things under you. Per
 change wins, and a setting cleared on one device clears on the next rather than coming back from
 it. What travels is what a person would call a setting. Tabs, the workspace, pane widths, the
 tags shelf's height, fold state and every collapsed flag describe *this window on this screen*
-and stay where they are. **Settings → Device → Settings travel with the vault** switches it off
+and stay where they are. **Settings → This device → Settings travel with the vault** switches it off
 for a device that should keep its own; the file is admin-only and never reaches a visitor. If
 you keep the vault in git, commit `.astrolabe/` (it is not in the [ignore advice](#gitignore-advice)
 because you want it).

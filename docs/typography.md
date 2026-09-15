@@ -7,7 +7,7 @@
 ---
 
 The catalog is the no-CSS version of the [`custom.css` escape hatch](theming.md#bring-your-own-fonts-the-css-route) — and its point is **Arabic**.
-Open **Settings → Typography** and you get four pickers:
+Open **Settings → Site → Typography** and you get four pickers:
 
 | Slot | Drives | Offers |
 | --- | --- | --- |
@@ -79,7 +79,7 @@ the Arabic type-metric compensation that `:root[lang="ar"]` applies.
 
 A catalog of twenty-seven Google families cannot be the whole answer for typography, and for
 Arabic it is not even close: the face a serious instance wants is usually one its owner licensed,
-and it is on nobody's CDN. So **Settings → Typography → Your own fonts** takes an upload.
+and it is on nobody's CDN. So **Settings → Site → Your own fonts** takes an upload.
 
 | | |
 | --- | --- |

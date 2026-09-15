@@ -199,8 +199,8 @@
   the faint ✕) comes back. Every state is remembered across reloads — and **folding a pane never
   moves the note**: the column stays optically centred in the window whichever panes are open, with
   deliberate air beside a closed pane's reopen handle
-- **Notes sidebar on either side** — three states, in the palette and in Settings → Appearance &
-  language: *follow the language* (the default — left in English, right in Arabic, re-evaluated
+- **Notes sidebar on either side** — three states, in the palette and in Settings → This
+  device: *follow the language* (the default — left in English, right in Arabic, re-evaluated
   whenever the language changes) or pin it to the left or right screen edge for good
 - **Your editor's language is yours** — three more states in the same two places: *Editor
   language: follow the site* (the default), *English* or *العربية*. It is a per-browser choice
