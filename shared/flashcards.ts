@@ -147,7 +147,12 @@ export function scanCards(md: string): Card[] {
         extra: inline.extra,
         reversed: inline.reversed,
         schedule: slots[0] ?? null,
-        scheduleRev: inline.reversed ? slots[1] ?? null : null,
+        // A second slot is read whenever the comment holds one, not only on
+        // a `:::` line: a `kind: both` note pairs its `::` lines too, and
+        // its back→front grades land in that slot. Reading it only for
+        // `:::` made every such twin new forever, and the next front→back
+        // grade — rebuilding the comment from what was read — erased it.
+        scheduleRev: slots[1] ?? null,
         tags: inline.tags,
         section,
       });
@@ -200,7 +205,9 @@ function parseInline(line: string): InlineCard | null {
   const front = one[1].trim();
   if (front === "" || front.length > FRONT_MAX) return null;
   const rest = one[2];
-  const split = /^(.+?)\s?::\s?(.+)$/.exec(rest);
+  // The extra may be EMPTY — `front::back::` is a card whose author changed
+  // their mind about the mnemonic, not a card whose answer ends in `::`.
+  const split = /^(.+?)\s?::\s?(.*)$/.exec(rest);
   const back = (split ? split[1] : rest).trim();
   const extra = split ? split[2].trim() : null;
   if (back === "") return null;
@@ -229,8 +236,14 @@ function slotsOf(line: string): Array<Schedule | null> {
 }
 
 /** `md` with the card starting on `line` given `schedule`: the SR comment
- *  after its block replaced, or added on the line after it (an inline card
- *  takes the comment at the end of its own line). Every other byte kept.
+ *  the card already has rewritten WHERE IT IS, or one added after its block
+ *  (an inline card takes it at the end of its own line). Every other byte
+ *  kept, including every other schedule in the comment.
+ *
+ *  Where the comment is: an inline card's is at the end of its own line, or
+ *  alone on the line after — the plugin's default placement, and a comment
+ *  it wrote there is rewritten there, not duplicated on the card's line
+ *  with the old one left behind for the plugin to read first.
  *
  *  `slot` is which schedule in the comment is being written — 0 for a card
  *  that is one card and for the front→back half of a pair, 1 for the
@@ -238,31 +251,26 @@ function slotsOf(line: string): Array<Schedule | null> {
  *  spell "the first is still new", so when the second half is graded first
  *  the first slot is filled with a placeholder the plugin can read (due
  *  today, interval 0, the starting ease) and scanCards reads back as
- *  "no schedule". Writing slot 0 later replaces it. */
+ *  "no schedule". Writing slot 0 later replaces it. Slots beyond the one
+ *  written are kept as they were: a paragraph with two clozes carries the
+ *  plugin's two schedules, and grading it here must not shed the second. */
 export function writeSchedule(md: string, line: number, schedule: Schedule, slot: 0 | 1 = 0): string {
   const card = scanCards(md).find((c) => c.line === line);
   if (!card) return md;
   const eol = /\r\n/.test(md) ? "\r\n" : "\n";
   const lines = md.replace(/\r?\n$/, "").split(/\r?\n/);
   const trailing = /\r?\n$/.test(md);
-  const slots: Schedule[] = [];
-  if (slot === 0) {
-    slots.push(schedule);
-    if (card.scheduleRev) slots.push(card.scheduleRev);
-  } else {
-    slots.push(card.schedule ?? { due: shiftDay(schedule.due, -schedule.interval), interval: 0, ease: EASE_START });
-    slots.push(schedule);
-  }
+  const inline = card.kind === "qa" && card.end === card.line;
+  const own = card.line - 1;
+  const after = card.end; // 0-based index of the line after the block
+  const onOwnLine = inline && hasSrComment(lines[own]);
+  const onNextLine = !onOwnLine && lines[after] !== undefined && lines[after].replace(TRAILING_SR_RE, "").trim() === "" && hasSrComment(lines[after]);
+  const slots: Schedule[] = onOwnLine ? parseSrComments(lines[own]) : onNextLine ? parseSrComments(lines[after]) : [];
+  if (slot === 1 && slots.length === 0) slots.push({ due: shiftDay(schedule.due, -schedule.interval), interval: 0, ease: EASE_START });
+  slots[slot] = schedule;
   const comment = formatSrComments(slots);
-  if (card.kind === "qa" && card.end === card.line) {
-    // Inline card: comment on the same line.
-    const idx = card.line - 1;
-    const bare = lines[idx].replace(TRAILING_SR_RE, "");
-    lines[idx] = `${bare} ${comment}`;
-  } else {
-    const after = card.end; // 0-based index of the line after the block
-    if (lines[after] !== undefined && lines[after].replace(TRAILING_SR_RE, "").trim() === "" && hasSrComment(lines[after])) lines[after] = comment;
-    else lines.splice(after, 0, comment);
-  }
+  if (onOwnLine || (inline && !onNextLine)) lines[own] = `${lines[own].replace(TRAILING_SR_RE, "")} ${comment}`;
+  else if (onNextLine) lines[after] = comment;
+  else lines.splice(after, 0, comment);
   return lines.join(eol) + (trailing ? eol : "");
 }
