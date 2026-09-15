@@ -4597,6 +4597,11 @@ const DICT = {
   routinesCardsDueOne: { en: "1 flashcard due", ar: "بطاقة واحدة مستحقة" },
   routinesReview: { en: "Review", ar: "راجع" },
   addFlashcard: { en: "Make a flashcard", ar: "اصنع بطاقة" },
+  // ── Constellations on an orbit card (client/routines/stars.ts): the chip a
+  // slot wears when its text wikilinks a constellation note ──
+  starsOrbitDue: { en: "{n} due", ar: "{n} مستحقة" },
+  starsOrbitStudy: { en: "Study", ar: "ادرس" },
+  starsOrbitStudyTitle: { en: "Study {title}", ar: "ادرس {title}" },
   // ── Offline reading (client/offline.ts, client/sw.ts, docs/offline.md) ──
   rowOffline: { en: "Offline reading", ar: "القراءة دون اتصال" },
   hintOffline: {

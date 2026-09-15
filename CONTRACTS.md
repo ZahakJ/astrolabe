@@ -9360,6 +9360,81 @@ draft (`routineFenceBody`, round-trip tested) and writes `Routines/<Title>.md` (
 instance, an existing root kept) with frontmatter + plan + an EMPTY log fence; an edit sends only the
 plan body. "Save as template" writes the same note into the templates folder.
 
+## Constellations (`shared/constellations.ts`, `shared/srsSession.ts`, `client/stars/`, `client/routines/stars.ts`)
+
+The vault's own spaced-repetition system, replacing Anki for the owner ("screw Anki… let's make
+our own version and integrate it"). The astrolabe's rete is a map of the stars you learn to
+recognise: a DECK is a **constellation** (كوكبة), a CARD a **star** (نجم), a study run a
+**session** (جلسة). The page is Constellations (`/constellations`, `~constellations`); `/review`
+and `~review` are aliases, not a second page. CONSTELLATIONS-SPEC.md is the long form; these are
+the promises.
+
+**The note is the state.** A constellation is a Markdown note with a ```` ```constellation ````
+fence (first one wins: `title`, `icon`, `kind`, `new per day`, `steps`, `tags`); its stars are the
+card lines shared/flashcards.ts already reads, in document order, with two extensions —
+`front::back::extra` (the third segment shows on the answer side) and the plugin's `front:::back`
+reversed pair (two stars, `dir: "fwd"|"rev"`, two schedules in ONE comment
+`<!--SR:!d1,i1,e1!d2,i2,e2-->`). Headings are sections; a line's trailing `#tags` are its tags; a
+fence's contents are never stars; a note without the fence keeps being the implicit "Everything
+else" grouped by top folder. A star's schedule is the Spaced Repetition plugin's comment, unchanged,
+so the vault stays ONE vault with the plugin; nothing else about a star lives outside the note except
+two caches that can be rebuilt: the session's learning steps (memory only) and the per-device grade
+log (`astrolabe.stars.log`, ring of 5000) the statistics are drawn from.
+
+**Kinds.** `basic` (default: fwd only), `reversed` (rev only), `both` (every `::` line behaves as
+`:::`), `typed` (an input on the front, compared after trim / case-fold / NFKC / kana-width, diffs
+coloured — the grade stays the reader's), `cloze-only` (`::` lines ignored).
+
+**Scheduling.** Stored state is SM-2 (`shared/srs.ts`, `review()` untouched). A session adds Anki's
+learning queue IN MEMORY (`shared/srsSession.ts`): a new star, or an again'd review, climbs `steps`
+(default 1m, 10m) within the session; graduating (good after the last step, easy at any) writes the
+first SM-2 comment (1d / 4d); again on a review is a lapse — SM-2's `again` written AND a 10m relearn
+step in memory. The daily NEW limit (`new per day`, default 10, 0 = reviews only) is per constellation
+per local day in localStorage (`astrolabe.stars.new.<path>.<YYYY-MM-DD>`); reviews are never
+limited. Order: learning due → reviews (soonest due, then document order) → new (document order, to
+the limit), one new after every four reviews. Retention = good+easy over all grades in the last 30
+days from the log; the forecast is computed from the schedules, never stored.
+
+**Server.** `constellationOf` fills `NoteRecord.constellation`; `GET /api/constellations` (meta +
+counts + sections, the implicit one last), `GET /api/constellations/stars?path&section`,
+`POST /api/star/review {path, line, dir, grade, today}` (writes through `writeStarSchedule`;
+`/api/card/review` stays as an alias), `POST /api/constellations` (creates `<folder>/<title>.md`,
+default `Constellations/`, via `serialiseConstellation`), `POST /api/constellations/import`
+(multipart `.apkg` / `.csv` / `.tsv`). The .apkg reader is `node:zlib` + a small zip reader +
+`node:sqlite` behind a dynamic import with a plain error on a Node older than 26 — no new
+dependency on either side, ever. Import mapping: Basic → `front::back`, Basic (and reversed) →
+`front:::back`, Cloze → `==cloze==` highlights, extra fields → `::extra`, media → the attachments
+folder beside the note as `![[file]]`, Anki's scheduling (factor/10 is the ease ×1000 already; due
+days from the collection's `crt`) → the SR comment, one note per deck, subdecks → sections.
+
+**Client.** Shelf (`/constellations`): one card per constellation (icon, title, tags, due/new/total,
+30-day retention sparkline, Study, Study section ▾), "Everything else" last, header with today's
+due and the streak, "New constellation…" and "Import…", an empty state that teaches the syntax.
+Session (`/constellations/<path>`): one star at a time, breadcrumb, progress, Show answer
+(Space/Enter), grades 1–4 with interval previews (step text for learning stars), Edit (the note at
+the line, new tab), Skip (bury for the session), Undo (one level, re-writes the previous schedule),
+end-of-session summary. Stats drawer: retention 30d, forecast 30d, states, the ten hardest.
+The queue is `client/stars/queue.ts` over `shared/srsSession.ts`. Palette: Open Constellations,
+Study due cards, New constellation…, Import an Anki deck…. The status-bar Review door is the
+Constellations door (three stars, two lines). i18n keys are prefixed `stars`.
+
+**The orbit link (`client/routines/stars.ts` — the whole of the Orbits touch).** A slot text or
+every-day item that wikilinks a constellation note shows, on the orbit card, the link by its name
+and a chip per linked constellation, "N due · Study" (`decorateStarTasks`, run by the Orbits page
+after each card draw; counts from `GET /api/constellations?today=<the reader's day>`, cached a few
+seconds; the chip is an `<a href="/constellations/<note path with .md, a segment at a time>">` — the
+router's `starsUrl` shape — pushed through the router; the checkbox's aria-label loses the brackets too). `tickSlotForConstellation(path)` is
+the ONE export the session-end handler calls when a session ends with nothing due: it ticks, for
+today, every slot of every live orbit that links that note, through `POST /api/routine` — the same
+log line the checkbox writes — and a slot that links several constellations is ticked only when
+none of them has a star due. Task ↔ row alignment is positional: the renderer draws
+`tasksFor(plan, today)` in order, one `<li>` each.
+
+**Docs.** `docs/constellations.md` + `docs/ar/constellations.md` replace the flashcards pages; the
+site keeps answering at `flashcards/` through `MOVED` (the 3.13 deck slide links it), as `routines/`
+does for `orbits/`. Kanji data in the owner's example constellations is KANJIDIC2 (EDRDG,
+CC BY-SA 4.0), attributed in the notes' frontmatter and in the docs.
+
 ## What's new after an update (`client/whatsnew/`)
 
 The owner: "whenever you update to a new version and open that version for the first time you get
