@@ -89,6 +89,9 @@ those four words freely.
   never runs off the screen, and mirrors in Arabic. A small Notion-style strip with the six most
   used actions floats over every selection; the last row of the menu turns it off, and the command
   palette turns it back on.
+- **Furigana over kanji.** `{漢字|かんじ}` renders as a ruby in every surface; select a word with a
+  kanji in it, right-click → Insert → **Furigana…** for suggested readings, or run the automatic
+  command. See [Japanese & furigana](japanese.md).
 - **Headings in a colour of your own.** Every heading, in the editor and the reading view alike,
   takes the theme's `--heading` token. The custom theme builder (Themes → New custom theme → Text)
   sets it directly, and the blog's article titles and the library's page titles follow. See

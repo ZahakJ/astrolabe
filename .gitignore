@@ -3,8 +3,11 @@ dist/
 vault/
 data/
 # …but not the app's own shipped data (the Quran text the ayah callout draws
-# from; client/reading/ayah.ts). `data/` above is the server's runtime store.
+# from; client/reading/ayah.ts — and the kanji readings table the furigana
+# popover reads, shared/data/kanjiReadings.json). `data/` above is the
+# server's runtime store.
 !client/data/
+!shared/data/
 .env
 shots/
 *.log

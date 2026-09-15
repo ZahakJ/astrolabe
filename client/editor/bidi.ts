@@ -43,11 +43,18 @@ const FRONTMATTER_SCAN = 4000;
 // line needs no attribute at all and inherits it — only a line that DISAGREES
 // with the document is worth marking, which also keeps the attribute off the
 // overwhelming majority of lines.
+//
+// A JAPANESE line takes `lang="ja"` by the same route, and for one more
+// reason than the dictionary: the font. The serif stack has no CJK face, so
+// kana and kanji fell through to whatever the platform chose, and a font that
+// is asked for by `[lang="ja"]` alone (styles/app.css) is the only way to
+// give those lines a Japanese face without touching the stack an English or
+// Arabic line resolves — which is the owner's condition for the feature.
 /** `dir|lang|source` → the one Decoration that spells it. CodeMirror diffs a
  *  range set by decoration IDENTITY, so these are memoized rather than rebuilt
  *  per line per frame — which is what the four module constants here used to
  *  buy before the language made the set open-ended. The map is bounded by the
- *  handful of combinations that can exist (three directions × four languages). */
+ *  handful of combinations that can exist (three directions × five languages). */
 const lineDecos = new Map<string, Decoration>();
 
 function lineDeco(dir: string, lang: string | null, source: boolean): Decoration {

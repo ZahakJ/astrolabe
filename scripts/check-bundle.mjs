@@ -863,7 +863,16 @@ const AUDIENCES = [
   // shell itself did not move.
   // 3.15.0: 1038.6 kB actual → 1042 — the entry growth above (orbits); the
   // blog shell itself did not move.
-  { name: "anonymous blog reader", keys: blog, budget: 1042 * 1024 },
+  // 3.16.0: 1043.7 kB actual → 1046 (actual + ~0.2%) — FURIGANA. The entry
+  // itself stayed under its own line (the dictionary's fourteen keys and the
+  // one `[lang="ja"]` rule fit in what 3.15.1 had left), so what moved the
+  // blog closure is the reading renderer's half: the `{漢字|かんじ}` parser
+  // (shared/furigana.ts, ~1.1 kB — a span has to be RECOGNISED before the
+  // paragraph paints, so it is static), the ruby pass in render.ts and the
+  // `lang="ja"` mark, and the ruby rule in reading.css. The readings table
+  // (~125 kB), the suggestion code and the popover are lazy and asserted
+  // absent above.
+  { name: "anonymous blog reader", keys: blog, budget: 1046 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -986,7 +995,11 @@ const AUDIENCES = [
   // 3.15.0: 1482.1 kB actual → 1486 — the entry growth above (orbits), plus
   // the status bar's new door glyph and the workspace's legacy-tab fold.
   // The Orbits page, its form and the known-field table stay lazy.
-  { name: "admin first paint", keys: app, budget: 1486 * 1024 },
+  // 3.16.0: 1488.6 kB actual → 1491 — the blog closure's bytes above, plus
+  // the palette's two furigana rows. The editor's side (the ruby widget,
+  // the menu row, the door in editor/furigana.ts) rides the editor chunk,
+  // which is not a first paint.
+  { name: "admin first paint", keys: app, budget: 1491 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1046,6 +1059,12 @@ const FORBIDDEN = [
   // is drawn, or an unparseable reference would paint a verse box and turn
   // back into a quote.
   { label: "the Quran text", test: (k) => /data\/quran-uthmani\.json$/.test(k) || /reading\/ayah\.ts$/.test(k) },
+  // The kanji readings table: ~100 kB of KANJIDIC2 (shared/data/
+  // kanjiReadings.json) that only the furigana popover and the automatic
+  // command read, through the one dynamic import in client/editor/furigana.ts.
+  // The popover (components/FuriganaPopover.tsx) is behind the same door.
+  { label: "the kanji readings table", test: (k) => /data\/kanjiReadings\.json$/.test(k) },
+  { label: "the furigana popover", test: (k) => /components\/FuriganaPopover\.tsx$/.test(k) },
 ];
 
 // ── surfaces that must remain separately loadable ───────────────────────────
