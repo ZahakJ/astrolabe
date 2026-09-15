@@ -74,6 +74,18 @@
   color: var(--text-muted);
 }
 
+/* A Japanese list item's NESTED list is not Japanese by inheritance. The
+   item takes `lang="ja"` for its own line (render.ts::markJapanese) and its
+   sub-items are judged one by one, but `font-family` inherits regardless of
+   who carries the attribute — so an English item indented under a Japanese
+   one was set in the Japanese face, which is exactly the line the owner's
+   rule protects. The nested list goes back to the column's own face, the
+   one .s-reading__content gives every block; a Japanese sub-item inside it
+   still carries its own `lang` and takes `--font-ja` from app.css. */
+.s-rv li[lang="ja"] > .s-rv-list {
+  font-family: var(--font-serif);
+}
+
 .s-rv .s-rv-h {
   font-family: var(--font-serif);
   font-weight: 700;

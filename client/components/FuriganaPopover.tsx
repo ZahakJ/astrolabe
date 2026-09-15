@@ -33,16 +33,10 @@ import { createRoot, type Root } from "react-dom/client";
 import type { EditorView } from "@codemirror/view";
 import { isKanji, serialiseFurigana } from "../../shared/furigana.ts";
 import { kanjiRuns, suggestReadings, type ReadingsTable } from "../../shared/furiganaReadings.ts";
-import { writeFurigana } from "../editor/furigana.ts";
+import { writeFurigana, type FuriganaTarget } from "../editor/furigana.ts";
 import { anchorPopover } from "./anchorPopover.ts";
 import { t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
-
-export interface FuriganaTarget {
-  from: number;
-  to: number;
-  base: string;
-}
 
 interface Slot {
   /** The kanji itself. */
@@ -86,12 +80,22 @@ function FuriganaPopover({ view, target, table, x, y, onClose }: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const firstInput = useRef<HTMLInputElement>(null);
   const slots = useMemo(() => slotsOf(target.base, table), [target.base, table]);
-  const [mode, setMode] = useState<"word" | "char">("word");
+  // A span that is already there opens in the shape it was written in — one
+  // reading over the word, or one per kanji — with its own readings in the
+  // fields, so what the reader sees is what the note says and Enter changes
+  // nothing. A new span opens in word mode on the suggestions.
+  const existing = target.readings;
+  const perChar = existing !== null && existing.length > 1 && existing.length === slots.length ? existing : null;
+  const [mode, setMode] = useState<"word" | "char">(perChar ? "char" : "word");
   // The chosen piece per kanji — what the chips write and what word mode is
   // rebuilt from. The first suggestion to begin with, or nothing when the
   // table has none, which leaves the input honestly empty.
-  const [pieces, setPieces] = useState<string[]>(() => slots.map((s) => s.suggestions[0] ?? ""));
-  const [word, setWord] = useState<string>(() => composeWord(target.base, slots.map((s) => s.suggestions[0] ?? "")));
+  const [pieces, setPieces] = useState<string[]>(() => perChar ?? slots.map((s) => s.suggestions[0] ?? ""));
+  const [word, setWord] = useState<string>(() =>
+    existing !== null && perChar === null
+      ? existing.join("")
+      : composeWord(target.base, slots.map((s) => s.suggestions[0] ?? "")),
+  );
 
   useLayoutEffect(() => {
     const el = boxRef.current;
