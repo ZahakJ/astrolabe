@@ -2358,7 +2358,7 @@ api.post("/orbits", async (c) => {
   const written = await writeNote(notePath, text);
   await indexFile(notePath);
   emitEvent({ kind: "created", path: notePath });
-  return c.json({ ok: true, path: written.path, stars: scanDeckCards(text, notePath, kind).length });
+  return c.json({ ok: true, path: written.path, cards: scanDeckCards(text, notePath, kind).length });
 });
 
 api.get("/mentions", (c) => {

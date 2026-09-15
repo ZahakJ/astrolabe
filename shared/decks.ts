@@ -59,7 +59,7 @@ export interface Deck {
   steps: Step[];
   tags: string[];
   sections: string[];
-  stars: DeckCard[];
+  cards: DeckCard[];
 }
 
 /** What GET /api/orbits returns per deck. */
@@ -259,7 +259,7 @@ export function deckOf(md: string, path: string, title: string): Deck | null {
     steps: head.steps,
     tags: head.tags,
     sections,
-    stars,
+    cards: stars,
   };
 }
 

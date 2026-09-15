@@ -210,7 +210,7 @@ describe("stars of a note", () => {
     assert.equal(c.title, "Hiragana");
     assert.equal(c.icon, "あ");
     assert.deepEqual(c.sections, ["Row a", "Row k"]);
-    assert.equal(c.stars.length, 5);
+    assert.equal(c.cards.length, 5);
     assert.deepEqual(c.steps, [1, 10, 60]);
     assert.equal(deckOf(PAIRS, "c.md", "capitals")!.title, "Capitals");
     assert.equal(deckOf(LEGACY, "l.md", "Legacy"), null);
@@ -365,11 +365,11 @@ describe("a new deck note", () => {
     );
     const c = deckOf(text, "Orbits/Hiragana.md", "Hiragana")!;
     assert.deepEqual(c.sections, ["Row a", "Row k"]);
-    assert.equal(c.stars.length, 4);
+    assert.equal(c.cards.length, 4);
     assert.equal(c.kind, "typed");
     assert.equal(c.newPerDay, 5);
     assert.deepEqual(c.tags, ["japanese", "kana"]);
-    assert.equal(c.stars[1].extra, "as in eat");
+    assert.equal(c.cards[1].extra, "as in eat");
   });
   it("quotes a title YAML would misread and escapes a front that would be a heading", () => {
     const text = serialiseDeck({ title: "Lesson 3: verbs" }, [{ front: "# not a heading", back: "b" }]);
@@ -377,7 +377,7 @@ describe("a new deck note", () => {
     assert.ok(text.includes("\\# not a heading::b\n"));
     const c = deckOf(text, "Orbits/Lesson 3 verbs.md", "Lesson 3 verbs")!;
     assert.equal(c.title, "Lesson 3: verbs");
-    assert.equal(c.stars.length, 1);
+    assert.equal(c.cards.length, 1);
     // A title the filename keeps whole needs no fence title.
     assert.ok(!serialiseDeck({ title: "Hiragana" }, []).includes("```deck\ntitle:"));
   });
