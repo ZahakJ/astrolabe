@@ -15,13 +15,16 @@
 //      attribute naming a language that is not on it is simply ignored — so
 //      bidi.ts's per-line work is inert unless every language it can emit is
 //      enabled here. `shared/script.ts::spellcheckLang` returns exactly five
-//      answers (he, fa, ar, fr, or null → inherit the instance's own), so
+//      answers (he, fa, ar, fr, ja, or null → inherit the instance's own), so
 //      those plus the instance language are what gets enabled. Enabling a
 //      language Chromium has no dictionary for throws, so each is tried
 //      against the platform's own list first. French is the one Latin
 //      answer: a line the editor corrects as French (shared/french.ts) is
 //      checked against the French dictionary, not underlined by the
-//      English one for every word it just fixed.
+//      English one for every word it just fixed. Japanese has no dictionary
+//      anywhere and is simply dropped, which is the honest outcome: the
+//      browser then leaves those lines alone instead of underlining every
+//      word of them.
 //
 //   2. THE MENU. Electron's tutorial answer is a native `Menu` popup, and it
 //      is the wrong one HERE. This product has one context menu — `.s-menu`,
@@ -49,7 +52,7 @@ import type { Session, WebContents } from "electron";
  *  Chromium checks against the first enabled language that has a dictionary,
  *  and the instance's own language is unshifted onto the front by
  *  `enableSpellcheck` below. */
-export const LINE_LANGUAGES = ["he", "fa", "ar", "fr"] as const;
+export const LINE_LANGUAGES = ["he", "fa", "ar", "fr", "ja"] as const;
 
 /** BCP-47 tags for the instance language. Chromium's list is region-tagged
  *  ("en-US", not "en"), so a bare "en" would be silently dropped — the failure

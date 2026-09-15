@@ -68,6 +68,7 @@ import {
 } from "../editor/commands.ts";
 import { CALLOUT_TYPES } from "../editor/calloutDefs.ts";
 import { HARAKAT_KEYS, copyWithoutTashkeel, openHarakatPalette, stripTashkeelSelection } from "../editor/harakat.ts";
+import { openFuriganaPopover, selectionHasKanji } from "../editor/furigana.ts";
 import { notePathFacet } from "../editor/livePreview.ts";
 import { extractSelection } from "../composerActions.ts";
 import { ANNOTATE_EVENT, proseOfSource, type AnnotateRequest } from "../annotations/fromSource.ts";
@@ -238,6 +239,8 @@ function pagesFor(
     literal: boolean;
     toggleLiteral: () => void;
     toolbar: boolean;
+    /** The selection holds a kanji: the Furigana row is offered. */
+    kanji: boolean;
   },
 ): Record<PageId, Group[]> {
   const tex = syntax === "latex";
@@ -288,6 +291,19 @@ function pagesFor(
     },
     HARAKAT_KEYS,
   );
+  // Furigana (editor/furigana.ts): the popover opens on the same later tick
+  // as the harakat palette, for the same reason, and only when the selection
+  // has a kanji to annotate — a row that could only say "nothing to do" is
+  // furniture. Markdown only: `{漢字|かんじ}` is the Obsidian plugin's
+  // spelling and a `.tex` note has no honest one.
+  const furigana: Row[] =
+    !tex && ui.kanji
+      ? [
+          act("insFurigana", (v) => {
+            window.setTimeout(() => void openFuriganaPopover(v), 0);
+          }),
+        ]
+      : [];
   const insert: Group = {
     title: "selGroupInsert",
     rows: tex
@@ -307,6 +323,7 @@ function pagesFor(
           act("insCodeBlock", (v) => insertPair(v, "```\n", "\n```")),
           footnote,
           harakat,
+          ...furigana,
         ],
   };
   // The Arabic page: the palette again (it is the row a reader pointing a
@@ -546,6 +563,7 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
           setSwatch(0);
         },
         toolbar,
+        kanji: selectionHasKanji(view),
       }),
     [view, literal, toolbar],
   );

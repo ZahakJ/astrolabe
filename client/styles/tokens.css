@@ -331,6 +331,18 @@
   --font-ui: var(--font-ui-system);
   --font-serif: var(--font-serif-system);
   --font-mono: var(--font-mono-system);
+  /* JAPANESE IS A FOURTH STACK, NOT A NEW ENTRY IN THE OTHER THREE. Neither
+     the serif nor the UI stack has a CJK face, so kana and kanji fell through
+     to whatever the platform picked; naming a Japanese face inside those
+     stacks would be reached per character and change nothing for Latin or
+     Arabic — but it would also be a fourth thing for /api/site-fonts.css and
+     a custom.css to keep in step. So the stack stands alone and is consumed
+     by the `[lang="ja"]` rule in app.css — which the editor and the reading
+     view put only on lines written in Japanese (shared/script.ts) — and by
+     the furigana popover's own Japanese fields. An English or Arabic line
+     never sees it, which is the condition the feature shipped under: not a
+     pixel of their spacing may move. */
+  --font-ja: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
 
   --radius: 6px;
   /* THE SIDEBAR TAKES THE SURPLUS, NOT THE MEASURE. 292px flat made 1024 the

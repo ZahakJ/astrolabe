@@ -67,6 +67,8 @@ import type { TasksHooks } from "./tasks.ts";
 // The DRAWING half is loaded on demand (see trackerBlock); only its types are
 // imported here, and types are erased.
 import type { TrackerHooks } from "./tracker.ts";
+import { findFurigana, rubySegments } from "../../shared/furigana.ts";
+import { spellcheckLang } from "../../shared/script.ts";
 
 /** "rtl" or "ltr" from the first strongly directional character, null when
  *  the text has none (digits, punctuation, an empty quote). The same test the
@@ -78,6 +80,32 @@ function firstStrongDirection(text: string): "rtl" | "ltr" | null {
     if (/\p{L}/u.test(ch)) return "ltr";
   }
   return null;
+}
+
+/** `lang="ja"` on a block written in Japanese — and on nothing else. The
+ *  editor stamps every line whose script disagrees with the document
+ *  (client/editor/bidi.ts); the reading view has never marked a block's
+ *  language, and it does not start now for Arabic or Hebrew, whose blocks
+ *  already pick their direction from `dir="auto"` and whose font is the
+ *  instance's own. Japanese is the one script the serif stack has no face
+ *  for, so its blocks are named, and `[lang="ja"]` in app.css is the only
+ *  rule that answers — an English or Arabic paragraph resolves the same
+ *  font and the same height it did before this attribute existed. */
+function markJapanese(el: HTMLElement, text: string): void {
+  if (spellcheckLang(text) === "ja") el.lang = "ja";
+}
+
+/** `{漢字|かんじ}` → `<ruby>`, on text that is ALREADY ESCAPED (renderInline
+ *  escapes first and runs its passes over the result, and neither a brace
+ *  nor a bar is touched by the escape). The `<rp>` parentheses are for the
+ *  surfaces that cannot stack text: a plain-text copy reads 漢字(かんじ) and
+ *  a screen reader says the same, which is the whole reason they are there. */
+function rubyHtml(base: string, readings: string[]): string {
+  let out = "<ruby>";
+  for (const seg of rubySegments(base, readings)) {
+    out += seg.rt === null ? seg.text : `${seg.text}<rp>(</rp><rt>${seg.rt}</rt><rp>)</rp>`;
+  }
+  return out + "</ruby>";
 }
 import { bannerFromYaml } from "../banner.ts";
 import { buildBannerEl, buildPropsCard, TAG_RE } from "../editor/noteMeta.ts";
@@ -349,6 +377,22 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
       `<sup class="s-rv-fnref"><a href="#fn-${encodeURIComponent(label)}" data-fn="${esc(label)}" id="fnref-${esc(label)}" role="link" tabindex="0">${esc(label)}</a></sup>`,
     ),
   );
+
+  // {漢字|かんじ} furigana (shared/furigana.ts) — after the wikilink pass,
+  // whose `|` alias bar is inside brackets and never braces, and before the
+  // style passes so a reading is never mistaken for emphasis.
+  {
+    const spans = findFurigana(s);
+    if (spans.length > 0) {
+      let out = "";
+      let at = 0;
+      for (const span of spans) {
+        out += s.slice(at, span.start) + keep(rubyHtml(span.base, span.readings));
+        at = span.end;
+      }
+      s = out + s.slice(at);
+    }
+  }
 
   // ==highlight==, **bold**, *italic*, ~~strike~~.
   s = s.replace(/==([^=\n]+?)==/g, '<mark class="s-rv-mark">$1</mark>');
@@ -1278,6 +1322,7 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       const headText = headAlign ? stripAlignMarker(hm[2]) : hm[2];
       if (headAlign) el.classList.add(`s-rv-align-${headAlign.align}`);
       el.innerHTML = renderInline(headText.replace(/\s+#+\s*$/, ""), ctx);
+      markJapanese(el, headText);
       if (ctx.assignIds) el.id = ctx.slugger.slug(stripInline(headText));
       root.appendChild(el);
       i++;
@@ -1450,6 +1495,7 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
         } else {
           li.innerHTML = renderInline(m[3], ctx);
         }
+        markJapanese(li, m[3]);
         top.el.appendChild(li);
         lastItem = li;
         i++;
@@ -1565,6 +1611,7 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       para[0] = stripAlignMarker(para[0]);
     }
     p.innerHTML = renderInline(para.join("\n"), ctx, true);
+    markJapanese(p, para.join("\n"));
     root.appendChild(p);
   }
 }
