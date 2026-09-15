@@ -334,6 +334,7 @@ const DICT = {
   // is the dictionary's own term for the noun, as in settingsSaved and
   // settingsSections — not a fresh coinage.
   siteSettings: { en: "Settings", ar: "الإعدادات" },
+  moreTools: { en: "More", ar: "المزيد" },
   siteSettingsTitle: {
     en: "Settings — identity, home page, behavior, typography, backup",
     ar: "الإعدادات — الهوية والرئيسية والسلوك والطباعة والنسخ الاحتياطي",
@@ -672,6 +673,7 @@ const DICT = {
     en: "Type a command, search notes, @ or # for a heading…",
     ar: "اكتب أمرًا، أو ابحث في الملاحظات، أو @ أو # لعنوان…",
   },
+  palettePlaceholderShort: { en: "Command, note, @ or #…", ar: "أمر، ملاحظة، @ أو #…" },
   paletteCommands: { en: "Commands", ar: "أوامر" },
   paletteOpenTabs: { en: "Open tabs", ar: "التبويبات المفتوحة" },
   paletteNotes: { en: "Notes", ar: "ملاحظات" },
