@@ -27,3 +27,12 @@ export const EXPORT_MAX_GB = 2;
 
 /** The same cap in bytes (what server/export.ts sums the files against). */
 export const EXPORT_MAX_BYTES = EXPORT_MAX_GB * 1024 * 1024 * 1024;
+
+/** Largest file POST /api/constellations/import takes, in whole megabytes:
+ *  an Anki .apkg is mostly its media, and a language deck with audio for
+ *  every word runs to a couple of hundred. The import tab states the number
+ *  for the same reason the drop-zone does. */
+export const STARS_IMPORT_MAX_MB = 256;
+
+/** The same cap in bytes (what the server's body limit checks). */
+export const STARS_IMPORT_MAX_BYTES = STARS_IMPORT_MAX_MB * 1024 * 1024;
