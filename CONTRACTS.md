@@ -5822,8 +5822,10 @@ chip becomes **3.x available** and a toast offers **Download 3.x**, ONCE per ver
 the click calls `updateDownload` (`TO_MAIN.updateDownload`), the only path that fetches bytes,
 verified by size and by the release's `SHA256SUMS` line as before; `ready` makes the chip
 **Restart to update**, and `updateApply` swaps/spawns as it always did. A failed download is
-`failed` after `downloading`, which the renderer turns into its own sentence (the chip's next
-click tries again; `found` is kept). **The preference** `updates: "notify" | "off"` lives in
+`failed` after `downloading`, which the renderer turns into its own sentence while keeping the
+chip on **3.x available** — the way back is the same click as the way in, not the build number
+under a "could not check" title — and `found` is kept so that click retries at once; the
+updater remembers the offer, not the stumble, as what `hello` hands a later window. **The preference** `updates: "notify" | "off"` lives in
 `desktop.json` beside the window bounds (`electron/prefs.ts`, parsed by `parseUpdatesPref`;
 anything but the literal "off" is notify), is read fresh on every tick so a change needs no
 restart, and is exposed as `updatesPrefGet`/`updatesPrefSet` — Settings → This device → This app

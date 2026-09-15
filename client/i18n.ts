@@ -4268,8 +4268,8 @@ const DICT = {
     ar: "تعذّر التحقق من التحديثات — ستُعاد المحاولة لاحقًا.",
   },
   updateDownloadFailed: {
-    en: "The download did not complete. Click the version to try again.",
-    ar: "لم يكتمل التنزيل. انقر رقم الإصدار للمحاولة مرة أخرى.",
+    en: "The download did not complete. Click “{version} available” to try again.",
+    ar: "لم يكتمل التنزيل. انقر «{version} متاح» للمحاولة مرة أخرى.",
   },
 
   // ── Panes ────────────────────────────────────────────────────────────────

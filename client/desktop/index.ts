@@ -201,7 +201,15 @@ export async function mountDesktop(): Promise<void> {
     // The status bar's chip follows every phase ("3.x available", a bar while
     // downloading, "Restart to update" once staged); the toasts below stay
     // for the moments that deserve a sentence. Progress ticks are chip-only.
-    if (typeof state.phase === "string") {
+    // A download that broke off is not the end of the offer. The desktop
+    // says "failed" and keeps the release it found; the chip keeps saying
+    // "3.x available" so the way back is the same click as the way in,
+    // rather than the build number and a title about a check that never
+    // failed (which is what the plain "failed" phase would draw).
+    const brokenDownload = state.phase === "failed" && before === "downloading";
+    if (brokenDownload) {
+      useStore.setState({ desktopUpdate: { phase: "available", version, installable: true } });
+    } else if (typeof state.phase === "string") {
       useStore.setState({
         desktopUpdate: { phase: state.phase, version, received: state.received, total: state.total, installable: state.installable },
       });
@@ -235,8 +243,9 @@ export async function mountDesktop(): Promise<void> {
       case "failed":
         // The same phase answers a check that could not reach GitHub and a
         // download that broke off; the phase before it says which, and the
-        // download's sentence names the way back (the chip's click).
-        toast(t(before === "downloading" ? "updateDownloadFailed" : "updateFailed"), "error");
+        // download's sentence names the way back (the chip, still offering).
+        if (brokenDownload) toast(tf("updateDownloadFailed", { version }), "error");
+        else toast(t("updateFailed"), "error");
         break;
     }
   });
