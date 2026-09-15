@@ -67,6 +67,9 @@ describe("cards in a note", () => {
     assert.equal(scanCards(next).filter((c) => c.kind === "qa").length, 2);
     const inline = writeSchedule(NOTE, 11, s);
     assert.ok(inline.includes("Capital of Egypt::Cairo <!--SR:!2026-10-01,3,2500-->"));
+    // The reviewed inline card is still a card, with its schedule read back.
+    const reviewed = scanCards(inline).find((c) => c.line === 11);
+    assert.deepEqual(reviewed && [reviewed.front, reviewed.back, reviewed.schedule], ["Capital of Egypt", "Cairo", s]);
     const quote = writeSchedule(NOTE, 15, s);
     assert.ok(quote.includes("> It has many aspects.\n<!--SR:!2026-10-01,3,2500-->\n"));
     const again = writeSchedule(quote, 15, { ...s, interval: 9 });

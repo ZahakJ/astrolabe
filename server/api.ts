@@ -15,7 +15,7 @@ import {
  uploadDestination } from "../shared/attachments.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
-import { UPLOAD_MAX_BYTES } from "../shared/limits.ts";
+import { STARS_IMPORT_MAX_BYTES, UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import { applyEdit, editRoutinePlan, logEditFor, routineFenceSpans, type EntryPatch } from "../shared/routine.ts";
 import { TASK_LINE_RE, toggleTaskLine } from "../shared/tasks.ts";
@@ -110,6 +110,7 @@ import { invalidateTree, treeBody } from "./treeCache.ts";
 import { activeDesignFontRefs } from "./designs.ts";
 import { designRoutes } from "./designRoutes.ts";
 import { bookRoutes } from "./bookRoutes.ts";
+import { starsImportRoutes } from "./starsImportRoutes.ts";
 import { searchPages } from "./pdfText.ts";
 import { prefsRoutes } from "./prefs.ts";
 import { readWorkspaceState, writeWorkspaceState } from "./workspaceState.ts";
@@ -242,6 +243,9 @@ const UPLOAD_BODY_MAX = UPLOAD_MAX_BYTES + 64 * 1024;
 // route sniffs magic bytes, so the only thing this stops is a body that never
 // had to be read at all. The multipart envelope rides on top of the file.
 const FONT_BODY_MAX = CUSTOM_FONT_MAX_BYTES + 64 * 1024;
+// An Anki deck is its media (server/starsImportRoutes.ts): the one body this
+// API buffers whole that is honestly allowed to be big.
+const STARS_IMPORT_BODY_MAX = STARS_IMPORT_MAX_BYTES + 64 * 1024;
 
 function tooLarge(maxBytes: number) {
   return (c: Context) => c.json({ error: `Request body too large (${maxBytes} bytes max)` }, 413);
@@ -256,7 +260,9 @@ api.use("*", async (c, next) => {
       ? UPLOAD_BODY_MAX
       : post && c.req.path === "/api/fonts/upload"
         ? FONT_BODY_MAX
-        : API_BODY_MAX;
+        : post && c.req.path === "/api/constellations/import"
+          ? STARS_IMPORT_BODY_MAX
+          : API_BODY_MAX;
   return bodyLimit({ maxSize: max, onError: tooLarge(max) })(c, next);
 });
 
@@ -2660,6 +2666,11 @@ api.route("/design", designRoutes);
 // served from here at all — the reader fetches them from /api/file, gated
 // exactly as every embed is. See server/bookRoutes.ts.
 api.route("/books", bookRoutes);
+// ------------------------------------------------------ constellation import
+// An Anki .apkg or a CSV/TSV, written as constellation notes. Admin-only
+// like every write; a file route, so it sits apart from the JSON ones. See
+// server/starsImportRoutes.ts.
+api.route("/constellations", starsImportRoutes);
 // --------------------------------------------------------------------- prefs
 // The client's localStorage preferences, kept in `.astrolabe/prefs.json`
 // INSIDE the vault so every server over this folder — the desktop app on each
