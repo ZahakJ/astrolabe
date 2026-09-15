@@ -24,7 +24,7 @@
 // mode above is contained by the same threshold that contains the corrections:
 // an English line with one French word in it is not French.
 
-import { looksFrench } from "./french.ts";
+import { looksFrench } from "./frenchLine.ts";
 
 const HEBREW_RE = /[\u0590-\u05ff\ufb1d-\ufb4f]/;
 const ARABIC_RE = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]/;

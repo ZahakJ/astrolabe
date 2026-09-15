@@ -654,7 +654,11 @@ const AUDIENCES = [
   // spelling in shared/routine.ts, which the reading closure parses before
   // it paints. The known-field table (client/routineFields.ts) is reached
   // only from the card's and the form's lazy chunks.
-  { name: "entry (everyone)", keys: entry, budget: 762 * 1024 },
+  // 3.16.0: 762.6 kB actual → 763 — the French and furigana dictionaries
+  // (labels, hints, the settings row) landing in one entry after the two
+  // branches merged; the French detector was split out of the correction
+  // table for this very gate (shared/frenchLine.ts).
+  { name: "entry (everyone)", keys: entry, budget: 763 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -872,7 +876,8 @@ const AUDIENCES = [
   // `lang="ja"` mark, and the ruby rule in reading.css. The readings table
   // (~125 kB), the suggestion code and the popover are lazy and asserted
   // absent above.
-  { name: "anonymous blog reader", keys: blog, budget: 1046 * 1024 },
+  // 3.16.0: 1046.5 kB actual → 1047 after the French/furigana merge (above).
+  { name: "anonymous blog reader", keys: blog, budget: 1047 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -999,7 +1004,8 @@ const AUDIENCES = [
   // the palette's two furigana rows. The editor's side (the ruby widget,
   // the menu row, the door in editor/furigana.ts) rides the editor chunk,
   // which is not a first paint.
-  { name: "admin first paint", keys: app, budget: 1491 * 1024 },
+  // 3.16.0: 1491.4 kB actual → 1492 after the French/furigana merge (above).
+  { name: "admin first paint", keys: app, budget: 1492 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
