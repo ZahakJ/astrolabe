@@ -10,7 +10,7 @@ If Astrolabe is replacing your blog, you probably want it to stop saying "Astrol
 
 ## Name it
 
-`SITE_NAME=Night Garden` renames every visible surface: the `✦` wordmark in the sidebar, the browser tab titles (`Note · Night Garden`) and the sign-in dialog.
+`SITE_NAME=Night Garden` changes the name everywhere it shows: the `✦` wordmark in the sidebar, the browser tab titles (`Note · Night Garden`) and the sign-in dialog.
 
 ## Pick the default look
 
@@ -62,7 +62,7 @@ Six of them arrived together, and each was drawn to fill a gap the set had:
 - **`murex`** is named after the sea snail that the city of Tyre boiled by the ton to make the one colour an emperor was allowed to wear. `porphyry` is the *other* imperial purple; the two are kept 39.6 ΔE apart in their accents: a warm dusty rose there, the dye at full strength here.
 - **`palimpsest`** is older than `parchment`, and that is the point: a sheet scraped clean and written over, grey where parchment is golden, under the red the rubricator used for headings. It is also the light set's first red room.
 - **`porcelain`** is Song-dynasty celadon: a glaze-white ground with a breath of green in it, under the deep sea-green the Longquan kilns were built for. The refined room, and the light set's first green accent.
-- **`mauveine`** is the accident that started the dye industry: in 1856 William Perkin, aged eighteen, failed to make quinine and rinsed the flask out with alcohol. The light set had no violet until this one.
+- **`mauveine`** is the accident that started the dye industry: in 1856 William Perkin, aged eighteen, failed to make quinine and rinsed the flask out with alcohol; the purple residue became the first synthetic dye. The light set had no violet until this one.
 
 Every reader picks their own theme in the **theme picker**. The theme control in the status bar opens it, and so does **Settings → This device → Your theme**. Each row is a miniature of the room (its ground carrying a heading rule, a line of type and an accent chip) next to a human name and a one-line description, both translated. The raw id, which is what `DEFAULT_THEME` and the palette accept, is in the row's tooltip. The list is grouped and driven by the keyboard: `↑↓←→` move the highlight and apply that theme live to the whole app behind the panel, `Enter` keeps it, and `Esc` puts back the theme you started with. The mouse never moves the keyboard highlight; only a click picks. The command palette has exactly one route to the themes: *Themes* opens the same panel, with a dot marking the theme you are in. (It used to list a `Theme: <id>` command for every theme, which was 15 of 41 palette entries spent on one preference, each a blind jump into a room you had not seen. A setting with this many values belongs behind a surface that shows the values.) A reader's choice is remembered in their own browser.
 
@@ -124,7 +124,7 @@ html[data-theme="lapis"] {
 }
 ```
 
-**The site's name and tagline have one hook each, wherever they appear.** `.s-site-name` is on the masthead's name above every article and on the home page's hero alike, and `.s-site-tagline` is on both taglines, so a rule written once reaches both:
+**The site's name and tagline have one CSS class each, wherever they appear.** `.s-site-name` is on the masthead's name above every article and on the home page's hero alike, and `.s-site-tagline` is on both taglines, so a rule written once reaches both:
 
 ```css
 /* data/custom.css — a Kufic wordmark everywhere the site names itself */

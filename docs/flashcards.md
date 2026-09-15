@@ -20,7 +20,7 @@ Headings, tables, task lines and anything inside a code block are never cards.
 
 Open the Review page from the command palette (**Review flashcards**), or from the line the [Orbits](orbits.md) page shows when cards are due. It shows one card at a time: first the front, then **Show answer**, then four grades, *Again*, *Hard*, *Good* and *Easy*. Each grade shows how long the card would wait before coming back, so you never grade blind. Space or Enter turns the card over and grades it *Good*; the keys 1 to 4 pick a grade directly. A card you grade *Again* returns at the end of the day's run. When nothing is due, **Study ahead** lets you go on through the rest of the vault, soonest-due first.
 
-The schedule is SM-2, the same one the Obsidian Spaced Repetition plugin uses. Your first *Good* makes the card wait one day, the second six days, and after that each wait is multiplied by the card's *ease*, a number that says how easy the card has been for you. *Hard* and *Again* lower the ease, *Easy* raises it, and it never drops below 1.3.
+The schedule is SM-2, a well-known spaced-repetition method and the same one the Obsidian Spaced Repetition plugin uses. Your first *Good* makes the card wait one day, the second six days, and after that each wait is multiplied by the card's *ease*, a number that says how easy the card has been for you. *Hard* and *Again* lower the ease, *Easy* raises it, and it never drops below 1.3.
 
 ## Where the schedule lives
 
