@@ -245,6 +245,7 @@ export function applyUrl(initial = false): boolean {
     // lineage: /routines is a redirect source only.
     if (location.pathname === "/sigils" || location.pathname === "/routines") { // lineage
       store.setView("routines");
+      canonicalise("/sigils");
       return true;
     }
     // `/review` was the shelf's address until 3.16; a bookmark still opens
@@ -252,6 +253,7 @@ export function applyUrl(initial = false): boolean {
     const orbits = orbitsRouteOf(location.pathname, location.hash);
     if (orbits !== undefined) {
       store.openOrbits(orbits.path, orbits.section);
+      canonicalise(orbitsUrl(orbits.path, orbits.section));
       return true;
     }
     const path = urlToNotePath(location.pathname, store.tree);
@@ -306,6 +308,15 @@ export function applyUrl(initial = false): boolean {
   } finally {
     applying = false;
   }
+}
+
+/** The address bar set to the page's own address. An old name (`/review`,
+ *  `/routines`) opens the page through the store, and the store's mirror (lineage)
+ *  rewrites the bar only when the state CHANGED — a bookmark to `/review`
+ *  with the shelf already open left `/review` standing, the one vestige a
+ *  redirect table cannot reach. */
+function canonicalise(url: string): void {
+  if (currentUrl() !== url) history.replaceState(null, "", url);
 }
 
 /** Open `path` and canonicalize the address bar to it (short and

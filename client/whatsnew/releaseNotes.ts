@@ -321,9 +321,186 @@ function manualDemo(host: HTMLElement, lang: Lang): void {
   host.replaceChildren(wrap);
 }
 
+
+// ── 3.16.0: furigana, drawn by the real <ruby> ─────────────────────────────
+// DOM, because a reading over a kanji is what the browser's ruby element
+// draws and an SVG imitation would be a picture of it; and because the
+// Arabic caption is a sentence (the slide rule: no Arabic sentence in an
+// SVG <text>).
+function furiganaDemo(host: HTMLElement, lang: Lang): void {
+  const wrap = el("div", "s-wn-ruby");
+  const line = el("p", "s-wn-ruby__line");
+  line.lang = "ja";
+  const ruby = (base: string, readings: string[]): HTMLElement => {
+    const r = document.createElement("ruby");
+    if (readings.length === 1) {
+      r.appendChild(document.createTextNode(base));
+      r.appendChild(el("rt", "", readings[0]));
+    } else {
+      // One reading per kanji, in order; kana inside the word skipped.
+      let i = 0;
+      for (const ch of base) {
+        r.appendChild(document.createTextNode(ch));
+        if (/[一-鿿]/.test(ch)) r.appendChild(el("rt", "", readings[i++] ?? ""));
+      }
+    }
+    return r;
+  };
+  line.appendChild(ruby("漢字", ["かんじ"]));
+  line.appendChild(document.createTextNode("を"));
+  line.appendChild(ruby("食べ物", ["た", "もの"]));
+  line.appendChild(document.createTextNode("と"));
+  line.appendChild(ruby("学校", ["がく", "こう"]));
+  line.appendChild(document.createTextNode("で"));
+  line.appendChild(ruby("書く", ["か"]));
+  wrap.appendChild(line);
+  wrap.appendChild(el("div", "s-wn-ruby__src", "{漢字|かんじ}を{食べ物|た|もの}と{学校|がく|こう}で{書く|か}"));
+  const chips = el("div", "s-wn-ruby__chips");
+  chips.appendChild(el("span", "s-wn-ruby__kanji", "食"));
+  ["た", "く", "ショク", "ジキ"].forEach((r, i) => {
+    const c = el("span", `s-wn-ruby__chip${i === 0 ? " is-on" : ""}`, r);
+    chips.appendChild(c);
+  });
+  chips.appendChild(el("span", "s-wn-ruby__hint", lang === "ar" ? "القراءات المقترحة لكل كانجي" : "the readings offered for each kanji"));
+  wrap.appendChild(chips);
+  host.replaceChildren(wrap);
+}
+
 // ── The registry ────────────────────────────────────────────────────────────
 
 export const RELEASES: Release[] = [
+  {
+    version: "3.16.0",
+    title: { en: "Orbits, Sigils, French and furigana", ar: "المدارات والسِّجِلّ والفرنسية والفوريغانا" },
+    slides: [
+      {
+        title: { en: "Orbits — your own spaced repetition", ar: "المدارات: تكرارك المتباعد أنت" },
+        body: {
+          en: "A deck is a note with a deck block and front::back lines. A session asks what is due, with Anki's learning steps and a daily limit of new cards, and writes each card's next date into the note as the Obsidian plugin's own comment. Typed answers, reversed pairs, sections, Anki and CSV import, and six Japanese decks ready to study.",
+          ar: "المجموعة ملاحظة فيها كتلة deck وأسطر وجه::ظهر. والجلسة تسألك ما استُحق، بخطوات التعلم التي في Anki وحدٍّ يومي للبطاقات الجديدة، وتكتب موعد كل بطاقة التالي في الملاحظة تعليقًا بصيغة إضافة Obsidian نفسها. إجابات تكتبها، وأزواج معكوسة، وأقسام، واستيراد من Anki وCSV، وست مجموعات يابانية جاهزة.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0"><rect x="30" y="30" width="180" height="160" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="48" y="70" font-size="30">あ</text>
+    <text x="90" y="62" fill="var(--text)" font-family="Georgia, serif" font-size="15">Hiragana</text>
+    <text x="90" y="80" fill="var(--text-faint)" font-size="10">${L(lang, "japanese · kana", "japanese · kana")}</text>
+    <g font-size="11"><text x="48" y="112" fill="var(--accent)" font-weight="600">12</text><text x="66" y="112" fill="var(--text-muted)">${L(lang, "due", "مستحقة")}</text><text x="110" y="112" fill="var(--text)" font-weight="600">10</text><text x="128" y="112" fill="var(--text-muted)">${L(lang, "new", "جديدة")}</text><text x="170" y="112" fill="var(--text-faint)">104</text></g>
+    <polyline points="48,150 66,146 84,148 102,140 120,142 138,134 156,136 174,128 192,130" fill="none" stroke="var(--callout-success)" stroke-width="2"/>
+    <g class="wa-press" style="--i:2"><rect x="48" y="160" width="70" height="20" rx="10" fill="var(--bg)" stroke="var(--accent)"/><text x="83" y="174" text-anchor="middle" fill="var(--accent)" font-size="11">${L(lang, "Study", "ادرس")}</text></g>
+  </g>
+  <g class="wa-late" style="--i:1"><rect x="240" y="30" width="290" height="160" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="256" y="52" fill="var(--text-faint)" font-size="10" letter-spacing="1">${L(lang, "HIRAGANA · ROW A", "HIRAGANA · ROW A")}</text>
+    <text x="385" y="98" text-anchor="middle" font-size="40" fill="var(--text)">あ</text>
+    <g><rect x="300" y="108" width="170" height="24" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="310" y="125" fill="var(--text)" font-family="ui-monospace, monospace" font-size="13">a</text><rect class="wa-blink" x="320" y="113" width="1.5" height="14" fill="var(--accent)"/></g>
+    <g font-size="10">
+      <rect x="256" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="287" y="160" text-anchor="middle" fill="var(--text)">${L(lang, "Again", "مرة أخرى")}</text><text x="287" y="177" text-anchor="middle" fill="var(--text-faint)">1m</text>
+      <rect x="324" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="355" y="160" text-anchor="middle" fill="var(--text)">${L(lang, "Hard", "صعب")}</text><text x="355" y="177" text-anchor="middle" fill="var(--text-faint)">10m</text>
+      <rect x="392" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--accent)"/><text x="423" y="160" text-anchor="middle" fill="var(--accent)">${L(lang, "Good", "جيد")}</text><text x="423" y="177" text-anchor="middle" fill="var(--text-faint)">1d</text>
+      <rect x="460" y="146" width="62" height="38" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/><text x="491" y="160" text-anchor="middle" fill="var(--text)">${L(lang, "Easy", "سهل")}</text><text x="491" y="177" text-anchor="middle" fill="var(--text-faint)">4d</text>
+    </g>
+  </g>
+  <g class="wa-pulse" style="--i:3" transform="translate(500 22) scale(0.9)"><circle cx="12" cy="12" r="3.2" fill="none" stroke="var(--accent)" stroke-width="2"/><ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(-30 12 12)" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="20.2" cy="7.25" r="1.6" fill="var(--accent)"/></g>
+</svg>`,
+        },
+        docs: "orbits",
+      },
+      {
+        title: { en: "Sigils — the routine, renamed", ar: "السِّجِلّ: الروتين باسم جديد" }, // lineage
+        body: {
+          en: "The daily plan and its log have a new name and a door of their own: a seal, beside the ring. It was Routines, then Orbits in 3.15; 3.16 gives Orbits to spaced repetition, where a card comes back around, and a sigil is the seal you set on a kept day. Every note you have still works, whichever fence it was written with.", // lineage
+          ar: "لخطة اليوم وسجلّها اسم جديد وباب خاص: ختم بجوار الحلقة. كانت الروتين، ثم المدارات في 3.15؛ ويعطي 3.16 المدارات للتكرار المتباعد حيث تعود البطاقة في مدارها، والسِّجِلّ ختم تضعه على يوم حافظت عليه. وكل ملاحظة عندك ما زالت تعمل بأي سياج كُتبت.", // lineage
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="12" y="164" width="536" height="44" fill="var(--bg-hover)"/>
+  <g transform="translate(400 168) scale(0.75)"><circle cx="12" cy="12" r="3.2" fill="none" stroke="var(--text-muted)" stroke-width="2"/><ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(-30 12 12)" fill="none" stroke="var(--text-muted)" stroke-width="2"/><circle cx="20.2" cy="7.25" r="1.6" fill="var(--text-muted)"/></g>
+  <text x="409" y="201" text-anchor="middle" fill="var(--text-faint)" font-size="9">${L(lang, "Orbits", "المدارات")}</text>
+  <g class="wa-pulse" style="--i:1" transform="translate(440 168) scale(0.75)"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M9 12.5l2 2 4-5" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <text x="449" y="201" text-anchor="middle" fill="var(--accent)" font-size="9">${L(lang, "Sigils", "السِّجِلّ")}</text>
+  <g transform="translate(480 170) scale(0.7)"><circle cx="12" cy="12" r="8" fill="none" stroke="var(--text-faint)" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="var(--text-faint)" stroke-width="2"/></g>
+  <g class="wa" style="--i:0"><rect x="30" y="30" width="500" height="126" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="48" y="58" font-size="18">🗻</text><text x="76" y="57" fill="var(--text)" font-family="Georgia, serif" font-size="15">${L(lang, "Japanese", "اليابانية")}</text>
+    <text x="440" y="57" fill="var(--text-faint)" font-size="11">${L(lang, "4 / 6 this week", "4 / 6 هذا الأسبوع")}</text>
+    <g font-size="12">
+      <rect x="48" y="74" width="13" height="13" rx="3" fill="none" stroke="var(--accent)"/><path class="wa-draw" style="--i:2" d="M51 81l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <text x="70" y="85" fill="var(--text-muted)">${L(lang, "review:", "مراجعة:")}</text><text x="136" y="85" fill="var(--text)">Hiragana</text>
+      <g class="wa-late" style="--i:1"><rect x="200" y="72" width="104" height="18" rx="9" fill="var(--bg-raised)" stroke="var(--accent)"/><text x="252" y="85" text-anchor="middle" fill="var(--accent)" font-size="10">${L(lang, "12 due · Study", "12 مستحقة · ادرس")}</text></g>
+      <rect x="48" y="100" width="13" height="13" rx="3" fill="none" stroke="var(--border)"/><text x="70" y="111" fill="var(--text-muted)">${L(lang, "study:", "دراسة:")}</text><text x="136" y="111" fill="var(--text)">${L(lang, "Genki, grammar point 1", "Genki، القاعدة 1")}</text>
+      <rect x="48" y="126" width="13" height="13" rx="3" fill="none" stroke="var(--border)"/><text x="70" y="137" fill="var(--text-muted)">${L(lang, "immerse:", "انغماس:")}</text><text x="136" y="137" fill="var(--text)">${L(lang, "one video, no pausing", "فيديو واحد بلا توقف")}</text>
+    </g>
+    <g fill="var(--bg-hover)">${Array.from({ length: 12 }, (_, c) => Array.from({ length: 7 }, (__, r) => `<rect x="${360 + c * 14}" y="${74 + r * 8}" width="6" height="6" rx="1"${(c * 7 + r) % 4 === 0 ? ' fill="var(--callout-success)"' : ""}/>`).join("")).join("")}</g>
+  </g>
+</svg>`,
+        },
+        docs: "sigils",
+      },
+      {
+        title: { en: "French, corrected as you type", ar: "الفرنسية، تُصحَّح وأنت تكتب" },
+        body: {
+          en: "Type tres and a space and it becomes très; coeur becomes cœur, Ecole becomes École. Only on lines that read as French, only once a word is finished, and only for words that cannot go the other way — a and à are left to you. Never in code, links or math; one undo takes one correction back. Settings → This device turns it off.",
+          ar: "اكتب tres ومسافةً فتصير très؛ وcoeur تصير cœur، وEcole تصير École. على الأسطر التي تُقرأ فرنسية وحدها، وعند اكتمال الكلمة وحده، وللكلمات التي لا تحتمل الوجهين وحدها؛ فـa وà متروكتان لك. لا في الكود ولا الروابط ولا الرياضيات؛ وتراجع واحد يردّ تصحيحًا واحدًا. والإعدادات ← هذا الجهاز يوقفه.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g font-family="Georgia, serif" font-size="16">
+    <text x="40" y="52" fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="10">1</text>
+    <text x="60" y="52" fill="var(--text-muted)">Tres bien, c'est</text>
+    <rect class="wa-blink" x="181" y="39" width="1.5" height="16" fill="var(--accent)"/>
+    <g class="wa-late" style="--i:0"><path d="M46 62v10a4 4 0 0 0 4 4h4" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="60" y="82" fill="var(--text)">Tr<tspan fill="var(--accent)">è</tspan>s bien, c'est</text><text x="200" y="82" fill="var(--text-faint)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">${L(lang, "at the space", "عند المسافة")}</text></g>
+    <text x="40" y="112" fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="10">2</text>
+    <text x="60" y="112" fill="var(--text-muted)">This is tres chic</text>
+    <text class="wa-late" style="--i:1" x="230" y="112" fill="var(--text-faint)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">${L(lang, "an English line: untouched", "سطر إنجليزي: لا يُمسّ")}</text>
+  </g>
+  <g font-size="12" class="wa-late" style="--i:2">
+    <text x="60" y="146" fill="var(--text-muted)">coeur</text><text x="112" y="146" fill="var(--text-faint)">→</text><text x="130" y="146" fill="var(--text)">cœur</text>
+    <text x="220" y="146" fill="var(--text-muted)">Ecole</text><text x="270" y="146" fill="var(--text-faint)">→</text><text x="288" y="146" fill="var(--text)">École</text>
+    <text x="380" y="146" fill="var(--text-muted)">deja</text><text x="420" y="146" fill="var(--text-faint)">→</text><text x="438" y="146" fill="var(--text)">déjà</text>
+    <text x="60" y="170" fill="var(--text-muted)">a · à</text><text x="130" y="170" fill="var(--text-faint)">${L(lang, "both are words: left to you", "كلتاهما كلمة: متروكة لك")}</text>
+    <text x="60" y="194" fill="var(--text-muted)">Ctrl/Cmd Z</text><text x="150" y="194" fill="var(--text-faint)">${L(lang, "one correction back", "تصحيح واحد إلى الوراء")}</text>
+  </g>
+</svg>`,
+        },
+        docs: "editor",
+      },
+      {
+        title: { en: "Furigana over kanji", ar: "الفوريغانا فوق الكانجي" },
+        body: {
+          en: "Write {漢字|かんじ} — the Obsidian Markdown Furigana plugin's syntax — and the reading is drawn over the word in the editor, the reading view, the site and on paper. Select a word, right-click, Insert → Furigana…: a box suggests each kanji's reading from KANJIDIC2, the other readings as chips; or automatic for a selection, in one undo step.",
+          ar: "اكتب {漢字|かんじ}، صيغة إضافة Markdown Furigana في Obsidian، فتُرسم القراءة فوق الكلمة في المحرر وعرض القراءة والموقع وعلى الورق. حدّد كلمة، وانقر بالزر الأيمن، ثم إدراج ← فوريغانا…: يقترح صندوق قراءة كل كانجي من KANJIDIC2، والقراءات الأخرى شرائح؛ أو تلقائيًا للتحديد في خطوة تراجع واحدة.",
+        },
+        visual: { kind: "demo", mount: furiganaDemo },
+        docs: "japanese",
+      },
+      {
+        title: { en: "Everything follows the vault", ar: "كل شيء يتبع الخزانة" },
+        body: {
+          en: "Your named layouts, the book shelf with the page each book was left on, and your notes to self on words now live in the vault's .astrolabe folder, mirrored as the site's settings and the designer's documents already were. Point a new machine at the vault and they are there; what describes one window on one screen stays put.",
+          ar: "تخطيطاتك المسمّاة، ورف الكتب مع الصفحة التي تركت كل كتاب عندها، وملاحظاتك لنفسك على الكلمات تعيش الآن في مجلد ‎.astrolabe في الخزانة، مرآةً كما كانت إعدادات الموقع ومستندات المصمم من قبل. وجّه جهازًا جديدًا إلى الخزانة فتجدها هناك؛ وما يصف نافذة واحدة على شاشة واحدة يبقى حيث هو.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0"><rect x="36" y="60" width="140" height="90" rx="8" fill="var(--bg)" stroke="var(--border)"/><rect x="24" y="150" width="164" height="10" rx="3" fill="var(--bg-hover)" stroke="var(--border)"/><text x="106" y="176" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the laptop", "الحاسوب المحمول")}</text>
+    <g font-size="10" fill="var(--text-muted)"><text x="50" y="82">${L(lang, "Layout · Reading", "تخطيط · قراءة")}</text><text x="50" y="102">${L(lang, "The Muqaddima · p. 212", "المقدمة · ص 212")}</text><text x="50" y="122">${L(lang, "notes on words", "ملاحظات على الكلمات")}</text></g></g>
+  <g class="wa" style="--i:3"><rect x="384" y="60" width="140" height="90" rx="8" fill="var(--bg)" stroke="var(--border)"/><rect x="372" y="150" width="164" height="10" rx="3" fill="var(--bg-hover)" stroke="var(--border)"/><text x="454" y="176" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "a new machine", "جهاز جديد")}</text>
+    <g class="wa-late" style="--i:2" font-size="10" fill="var(--text-muted)"><text x="398" y="82">${L(lang, "Layout · Reading", "تخطيط · قراءة")}</text><text x="398" y="102">${L(lang, "The Muqaddima · p. 212", "المقدمة · ص 212")}</text><text x="398" y="122">${L(lang, "notes on words", "ملاحظات على الكلمات")}</text></g></g>
+  <g class="wa" style="--i:1"><path d="M240 84h80a6 6 0 0 1 6 6v46a6 6 0 0 1-6 6h-80a6 6 0 0 1-6-6V90a6 6 0 0 1 6-6z" fill="color-mix(in srgb, var(--accent) 14%, var(--bg))" stroke="var(--accent)"/><path d="M234 90a6 6 0 0 1 6-6h26l8 8h46" fill="none" stroke="var(--accent)"/><text x="280" y="119" text-anchor="middle" fill="var(--text)" font-size="11">.astrolabe</text><text x="280" y="160" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the vault", "الخزانة")}</text></g>
+  <g class="wa-late" style="--i:1" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M182 104h44"/><path d="M220 98l8 6-8 6"/><path d="M334 104h44"/><path d="M372 98l8 6-8 6"/></g>
+  <g class="wa-late" style="--i:2"><text x="280" y="40" text-anchor="middle" fill="var(--text-muted)" font-size="11">${L(lang, "layouts · books · annotations", "تخطيطات · كتب · حواشٍ")}</text></g>
+</svg>`,
+        },
+        docs: "backup-and-sync",
+      },
+    ],
+  },
   {
     version: "3.15.0",
     title: { en: "Sigils, and a manual you can read", ar: "السِّجِلّ، ودليل يُقرأ" },

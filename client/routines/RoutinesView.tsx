@@ -15,8 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SiteMark from "../components/SiteMark.tsx";
 import type { RoutineMeta } from "../../shared/types.ts";
 import { dayStatus, isoDate, type EntryPatch } from "../../shared/routine.ts";
-import { getCards, getRoutines, updateRoutine } from "../api.ts";
-import { isDue } from "../../shared/srs.ts";
+import { getDecks, getRoutines, updateRoutine } from "../api.ts";
 import { siteDate } from "../dates.ts";
 import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { confirmDeleteNote } from "../components/deleteFlow.ts";
@@ -106,17 +105,20 @@ function DueTasks({ today }: { today: string }) {
   return <div ref={host} className="s-routines__tasks" />;
 }
 
-/** How many stars are due today — one line with a door to the Orbits
- *  shelf, because the morning's checklist is where the day's stars belong. */
+/** How many cards are due today across every deck — one line with a door
+ *  to the Orbits shelf, because the morning's checklist is where the day's
+ *  cards belong. The count is the shelf's own (`counts.due`, summed), so the
+ *  two pages never disagree: the old cards route counted a never-seen card
+ *  as due, and this line said "1 due" over a shelf that said nothing was. */
 function CardsDue({ today }: { today: string }) {
   const [due, setDue] = useState(0);
   const openOrbits = useStore((s) => s.openOrbits);
   useEffect(() => {
     let alive = true;
     const read = (): void => {
-      getCards()
+      getDecks(today)
         .then((list) => {
-          if (alive) setDue(list.filter((m) => isDue(m.card.schedule, today)).length);
+          if (alive) setDue(list.reduce((n, m) => n + m.counts.due, 0));
         })
         .catch(() => {});
     };
