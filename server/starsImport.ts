@@ -44,6 +44,7 @@ import { randomBytes } from "node:crypto";
 import path from "node:path";
 import { extensionOf, ATTACHMENT_TYPES } from "../shared/attachments.ts";
 import { DEFAULT_FOLDER, type ConstellationKind } from "../shared/constellations.ts";
+import { scanCards } from "../shared/flashcards.ts";
 import { EASE_MIN, EASE_START, formatSrComment, type Schedule } from "../shared/srs.ts";
 import { registerAttachment, indexFile } from "./indexer.ts";
 import { dataDir, uploadDirFor } from "./site.ts";
@@ -79,11 +80,13 @@ export type SkipReason =
   | "empty"
   | "frontTooLong"
   | "extraTemplates"
+  | "unreadable"
   | "mediaUnsupported"
   | "mediaMissing";
 
 export interface ImportResult {
   created: string[];
+  /** Stars written: a `:::` pair counts two, like the skips do. */
   cards: number;
   skipped: Array<{ reason: SkipReason; count: number }>;
 }
@@ -134,7 +137,9 @@ export function fieldText(html: string): string {
     .replace(/\[sound:([^\]]+)\]/g, (_, name: string) => `![[${decodeEntities(name).trim()}]]`)
     .replace(/<img\b[^>]*\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))[^>]*>/gi, (_, a?: string, b?: string, c?: string) => {
       const src = decodeEntities((a ?? b ?? c ?? "").trim());
-      return src === "" ? " " : ` ![[${src}]] `;
+      if (src === "") return " ";
+      // A picture on the web is a link, not a file the archive carries.
+      return /^[a-z][a-z0-9+.-]*:\/\//i.test(src) ? ` ![](${src}) ` : ` ![[${src}]] `;
     })
     // Anki's own LaTeX wrappers → the vault's math delimiters.
     .replace(/\[\$\$\]([\s\S]*?)\[\/\$\$\]/g, "$$$$$1$$$$")
@@ -147,9 +152,28 @@ export function fieldText(html: string): string {
 }
 
 /** `::` is the card separator, so a field that contains it would split
- *  where the author never meant a card to. Spaced out, it still reads. */
+ *  where the author never meant a card to. Spaced out, it still reads.
+ *  Every colon that touches another gets the space, not every pair: a
+ *  `:::` softened pairwise leaves `: ::` behind, and that still splits. */
 function unsplit(text: string): string {
-  return text.replace(/::/g, ": :");
+  return text.replace(/:(?=:)/g, ": ");
+}
+
+/** A card line that BEGINS like Markdown structure is not a card any more:
+ *  `# of legs::8` is a heading to the scanner, `> ` a quote, `| ` a table
+ *  row, `- [ ]` a task — and a line opening with three backticks is a fence
+ *  that swallows every card after it until the note ends. A backslash in
+ *  front of the first character keeps the line a paragraph in every
+ *  Markdown renderer and shows nothing but the character itself. */
+function unstructure(text: string): string {
+  return /^(?:#{1,6}\s|>|\||`{3}|~{3}|[-*+]\s+\[)/.test(text) ? `\\${text}` : text;
+}
+
+/** The last word on whether a line is a card: the vault's own scanner
+ *  reads it back. What it cannot read (a front nothing above foresaw) is
+ *  skipped and counted rather than written as a line nobody will study. */
+function readable(card: ImportCard): boolean {
+  return scanCards(`${cardLine({ ...card, schedule: null, reverse: null })}\n`).length === 1;
 }
 
 const CLOZE_RE = /\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g;
@@ -173,14 +197,50 @@ export function clozeOrdinals(text: string): number[] {
  *  text would open a highlight of its own, so it is softened. */
 export function clozeLine(text: string, ord: number): string {
   const soft = text.replace(/==/g, "= =");
-  return unsplit(
-    soft.replace(CLOZE_RE, (_, n: string, body: string) => {
-      const inner = body.replace(/==/g, "= =").trim();
-      return Number(n) === ord ? `==${inner}==` : inner;
-    }),
-  )
-    .replace(/\s+/g, " ")
-    .trim();
+  return unstructure(
+    unsplit(
+      soft.replace(CLOZE_RE, (_, n: string, body: string) => {
+        const inner = body.replace(/==/g, "= =").trim();
+        return Number(n) === ord ? `==${inner}==` : inner;
+      }),
+    )
+      .replace(/\s+/g, " ")
+      .trim(),
+  );
+}
+
+/** The highlight the vault reads is `==…==` with no `=` inside and at most
+ *  200 characters (shared/flashcards.ts, and the reading view's <mark>
+ *  agrees), so a deletion like `{{c1::E = mc²}}` cannot be a highlight.
+ *  Rather than lose the card it becomes a plain `front::back`: the text
+ *  with the deletion blanked the way the scanner blanks one, and the
+ *  deletion as the answer — the same card, studied the same way. */
+export function clozeAsQa(text: string, ord: number): { front: string; back: string } | null {
+  const answers: string[] = [];
+  const front = unstructure(
+    unsplit(
+      text.replace(CLOZE_RE, (_, n: string, body: string) => {
+        const inner = body.trim();
+        if (Number(n) !== ord) return inner;
+        answers.push(inner);
+        return "**[…]**";
+      }),
+    )
+      .replace(/\s+/g, " ")
+      .trim(),
+  );
+  const back = unsplit(answers.join(" · ")).replace(/\s+/g, " ").trim();
+  return back === "" || front === "" ? null : { front, back };
+}
+
+/** Whether every deletion `ord` marks in `text` reads back as a highlight. */
+export function clozeReadable(text: string, ord: number): boolean {
+  for (const m of text.matchAll(CLOZE_RE)) {
+    if (Number(m[1]) !== ord) continue;
+    const inner = m[2].replace(/==/g, "= =").trim();
+    if (inner === "" || inner.length > 200 || inner.includes("=")) return false;
+  }
+  return true;
 }
 
 /** Anki tags are `parent::child` and may hold anything; the note's are
@@ -233,7 +293,10 @@ export function cardLine(card: ImportCard): string {
  *  this one also carries the schedules and the reversed pairs, which an
  *  import has and a new note never does. */
 export function serialiseImportedConstellation(deck: ImportDeck, kind: ConstellationKind = "basic"): string {
-  const out: string[] = ["---", `title: ${yamlTitle(deck.title)}`, "---", "", "```constellation", `title: ${deck.title}`, `kind: ${kind}`, "```", ""];
+  // One line: a title with a newline in it (a CSV's `title` field is the
+  // caller's) would put its second half inside the fence, or close it.
+  const title = deck.title.replace(/[\s\u0000-\u001f\u007f]+/g, " ").replace(/`{3,}|~{3,}/g, "").trim() || "Imported constellation";
+  const out: string[] = ["---", `title: ${yamlTitle(title)}`, "---", "", "```constellation", `title: ${title}`, `kind: ${kind}`, "```", ""];
   let section: string | null = null;
   let first = true;
   for (const card of deck.cards) {
@@ -354,7 +417,7 @@ export function csvDeck(text: string, opts: CsvOptions, skips: Skips): ImportDec
   const cards: ImportCard[] = [];
   for (const row of header ? rows.slice(1) : rows) {
     const cell = (i: number | null): string => (i === null || i < 0 || i >= row.length ? "" : unsplit(fieldText(row[i])));
-    const front = cell(opts.front);
+    const front = unstructure(cell(opts.front));
     const back = cell(opts.back);
     if (front === "" || back === "") {
       skips.add("empty");
@@ -365,7 +428,7 @@ export function csvDeck(text: string, opts: CsvOptions, skips: Skips): ImportDec
       continue;
     }
     const extra = cell(opts.extra);
-    cards.push({
+    const card: ImportCard = {
       kind: "qa",
       front,
       back,
@@ -374,7 +437,12 @@ export function csvDeck(text: string, opts: CsvOptions, skips: Skips): ImportDec
       section: null,
       schedule: null,
       reverse: null,
-    });
+    };
+    if (!readable(card)) {
+      skips.add("unreadable");
+      continue;
+    }
+    cards.push(card);
   }
   return { title: opts.title, cards };
 }
@@ -574,6 +642,13 @@ export async function readApkg(bytes: Uint8Array, tmpDir: string, skips: Skips):
     } finally {
       db.close();
     }
+  } catch (err) {
+    // A file that is not a database, or one without Anki's tables: the
+    // archive is the caller's, so the answer is 400 and not a server fault.
+    if ((err as NodeJS.ErrnoException | null)?.code === "ERR_SQLITE_ERROR") {
+      throw new VaultError(400, `Not an Anki package: ${(err as Error).message}`, "starsImportNotApkg");
+    }
+    throw err;
   } finally {
     await fsp.rm(file, { force: true });
   }
@@ -671,14 +746,27 @@ function decksOf(db: SqliteDb, skips: Skips): ImportDeck[] {
           continue;
         }
         const { deck, section } = deckFor(card.odid || card.did);
-        deck.cards.push({ kind: "cloze", front: clozeLine(text, ord), back: "", extra: null, tags, section, schedule: scheduleOf(card), reverse: null });
+        const base = { extra: null, tags, section, schedule: scheduleOf(card), reverse: null };
+        const qa = clozeReadable(text, ord) ? null : clozeAsQa(text, ord);
+        const made: ImportCard = qa ? { kind: "qa", ...qa, ...base } : { kind: "cloze", front: clozeLine(text, ord), back: "", ...base };
+        if (!readable(made)) {
+          skips.add("unreadable");
+          continue;
+        }
+        deck.cards.push(made);
       }
       continue;
     }
 
-    const front = unsplit(fieldText(fields[0] ?? ""));
+    const front = unstructure(unsplit(fieldText(fields[0] ?? "")));
     const back = unsplit(fieldText(fields[1] ?? ""));
-    const extras = fields.slice(2).map((f) => unsplit(fieldText(f))).filter((f) => f !== "");
+    // "Basic (optional reversed card)" keeps its switch in a third field
+    // called Add Reverse, holding a "y"; that is a setting, not an extra.
+    const extras = fields
+      .slice(2)
+      .filter((_, i) => !/^add reverse$/i.test(type.fields[i + 2] ?? ""))
+      .map((f) => unsplit(fieldText(f)))
+      .filter((f) => f !== "");
     const extra = extras.length > 0 ? extras.join(" · ") : null;
     const forward = live.find((c) => c.ord === 0) ?? null;
     const reverse = live.find((c) => c.ord === 1) ?? null;
@@ -694,15 +782,21 @@ function decksOf(db: SqliteDb, skips: Skips): ImportDeck[] {
       continue;
     }
     const { deck, section } = deckFor((forward ?? reverse)!.odid || (forward ?? reverse)!.did);
+    let made: ImportCard;
     if (forward && reverse) {
-      deck.cards.push({ kind: "reversed", front, back, extra, tags, section, schedule: scheduleOf(forward), reverse: scheduleOf(reverse) });
+      made = { kind: "reversed", front, back, extra, tags, section, schedule: scheduleOf(forward), reverse: scheduleOf(reverse) };
     } else if (forward) {
-      deck.cards.push({ kind: "qa", front, back, extra, tags, section, schedule: scheduleOf(forward), reverse: null });
+      made = { kind: "qa", front, back, extra, tags, section, schedule: scheduleOf(forward), reverse: null };
     } else {
       // Only the reverse card exists (an "optional reversed" type whose
       // forward card was deleted): back→front is what Anki asked.
-      deck.cards.push({ kind: "qa", front: back, back: front, extra, tags, section, schedule: scheduleOf(reverse!), reverse: null });
+      made = { kind: "qa", front: unstructure(back), back: front, extra, tags, section, schedule: scheduleOf(reverse!), reverse: null };
     }
+    if (!readable(made)) {
+      skips.add("unreadable", forward && reverse ? 2 : 1);
+      continue;
+    }
+    deck.cards.push(made);
   }
 
   // Cards under a section, grouped so each heading is written once, in
@@ -812,7 +906,9 @@ export async function writeDecks(decks: ImportDeck[], target: ImportTarget, medi
     await indexFile(rel);
     emitEvent({ kind: "created", path: rel });
     created.push(rel);
-    cards += deck.cards.length;
+    // Stars, not lines: a `:::` pair is two cards in Anki and two here, and
+    // the skips are counted in cards too, so the two numbers add up.
+    for (const card of deck.cards) cards += card.kind === "reversed" ? 2 : 1;
   }
   return { created, cards, skipped: skips.list() };
 }
