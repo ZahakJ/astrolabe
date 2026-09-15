@@ -152,6 +152,9 @@ export default function BacklinksPanel() {
         aria-label={t("paneOutline")}
         aria-hidden={collapsed || zen}
       >
+        {/* The sections scroll inside this wrapper so the grip, positioned
+            against the aside, stays put (app.css, .s-panel__scroll). */}
+        <div className="s-panel__scroll">
         <TocPanel />
         <LocalGraph />
         <TrackerPanel />
@@ -233,6 +236,7 @@ export default function BacklinksPanel() {
         </div>
         <MentionsPanel />
         <OnThisDayPanel />
+        </div>
         <PaneGrip pane="panel" />
       </aside>
       {collapsed && !zen && (
