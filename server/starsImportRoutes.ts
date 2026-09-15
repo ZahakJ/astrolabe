@@ -18,8 +18,9 @@
 //   header  CSV only: "1" the first row names the columns, "0" it is a
 //           card; unset, the importer looks at the row and decides
 //
-// Answers {created: [paths], cards, skipped: [{reason, count}]}; the
-// reasons are keys (`suspended`, `empty`, `frontTooLong`, `extraTemplates`,
+// Answers {created: [paths], cards, skipped: [{reason, count}]}; `cards`
+// counts stars (a `:::` pair is two), and the reasons are keys
+// (`suspended`, `empty`, `frontTooLong`, `extraTemplates`, `unreadable`,
 // `mediaUnsupported`, `mediaMissing`) so the client can say them in the
 // reader's language. A Node without node:sqlite answers 501 with the code
 // `starsImportNoSqlite`, and one without zstd (a recent Anki's export)

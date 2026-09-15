@@ -20,8 +20,10 @@ import { scanCards } from "../shared/flashcards.ts";
 import { listZip, readZipEntry, zipIndex, ZipError } from "../server/zip.ts";
 import {
   ankiSchedule,
+  clozeAsQa,
   clozeLine,
   clozeOrdinals,
+  clozeReadable,
   csvDeck,
   fieldText,
   looksLikeHeader,
@@ -123,6 +125,7 @@ describe("fieldText", () => {
     assert.equal(fieldText('<img src="cat.png"> a cat [sound:meow.mp3]'), "![[cat.png]] a cat ![[meow.mp3]]");
     assert.equal(fieldText("<b>bold</b> &lt;tag&gt; &#x1F431; &#65;"), "bold <tag> 🐱 A");
     assert.equal(fieldText("[$]x^2[/$] and [$$]\\int[/$$]"), "$x^2$ and $$\\int$$");
+    assert.equal(fieldText('<img src="https://example.org/a.png">'), "![](https://example.org/a.png)");
   });
 });
 
@@ -138,6 +141,20 @@ describe("cloze", () => {
   });
   it("keeps a `::` in the text from becoming a card separator", () => {
     assert.equal(clozeLine("{{c1::x}} in std::vector", 1), "==x== in std: :vector");
+    // Every colon that touches another, not every pair: `:::` softened
+    // pairwise left `: ::`, and the scanner split the line there.
+    assert.equal(clozeLine("{{c1::x}} a:::b", 1), "==x== a: : :b");
+    assert.deepEqual(scanCards("==x== a: : :b\n").map((c) => c.kind), ["cloze"]);
+  });
+  it("turns a deletion the vault cannot highlight into a plain card, so nothing is lost", () => {
+    const eq = "Einstein: {{c1::E = mc²}} in {{c2::1905}}";
+    assert.ok(!clozeReadable(eq, 1), "an `=` inside `==…==` is no highlight to shared/flashcards.ts");
+    assert.ok(clozeReadable(eq, 2));
+    assert.deepEqual(clozeAsQa(eq, 1), { front: "Einstein: **[…]** in 1905", back: "E = mc²" });
+    assert.ok(!clozeReadable(`{{c1::${"x".repeat(201)}}}`, 1), "a highlight is at most 200 characters");
+    assert.ok(!clozeReadable("{{c1::}} empty", 1));
+    // Two deletions with one number are one card with two answers.
+    assert.deepEqual(clozeAsQa("{{c1::a=1}} and {{c1::b=2}}", 1), { front: "**[…]** and **[…]**", back: "a=1 · b=2" });
   });
 });
 
@@ -191,6 +208,30 @@ describe("CSV / TSV", () => {
     assert.ok(!looksLikeHeader(["cat", "gato"]));
     assert.ok(!looksLikeHeader(["What is 2+2?", "4"]));
   });
+  it("keeps a front that begins like Markdown structure a card, and reads every line back", () => {
+    const skips = new Skips();
+    const csv = [
+      "# of legs on a spider,8",
+      "```js,a fence would swallow every card after it",
+      "> quoted,q",
+      "| pipe,p",
+      "- [ ] task,t",
+      "a:::b,c",
+      "東京：首都,Tokyo",
+      "plain,card",
+      "x,y,",
+    ].join("\r\n");
+    const deck = csvDeck(csv, { title: "Edges", front: 0, back: 1, extra: 2, tags: null, header: null }, skips);
+    const text = serialiseImportedConstellation(deck);
+    const cards = scanCards(text);
+    assert.equal(cards.length, 9, text);
+    assert.deepEqual(cards.map((c) => c.front), ["\\# of legs on a spider", "\\```js", "\\> quoted", "\\| pipe", "\\- [ ] task", "a: : :b", "東京：首都", "plain", "x"]);
+    assert.deepEqual(cards.map((c) => c.back), ["8", "a fence would swallow every card after it", "q", "p", "t", "c", "Tokyo", "card", "y"]);
+    assert.deepEqual(skips.list(), []);
+    // An empty third column is no `::extra`.
+    assert.ok(text.endsWith("\nx::y\n"), text);
+  });
+
   it("maps columns by index, drops empty rows, keeps tags", () => {
     const skips = new Skips();
     const deck = csvDeck("Term,Definition,Example,Tags\ncat,gato,el gato,animals\n,empty,,\ndog,perro,,animals pets", { title: "Spanish", front: 0, back: 1, extra: 2, tags: 3, header: null }, skips);
@@ -225,6 +266,9 @@ describe("serialiseImportedConstellation", () => {
         "==Light== is a wave #opt", "",
       ].join("\n"),
     );
+    // A title the caller typed with a newline and a fence in it stays one line, and the fence stays whole.
+    const odd = serialiseImportedConstellation({ title: "Two\nlines ```", cards: [] });
+    assert.ok(odd.startsWith("---\ntitle: Two lines\n---\n\n```constellation\ntitle: Two lines\nkind: basic\n```\n"), odd);
     assert.equal(noteBaseName("A/B: C?"), "A B C");
     assert.equal(noteBaseName("///"), "Imported constellation");
   });
@@ -252,6 +296,7 @@ async function buildCollection(): Promise<Uint8Array> {
     2: { name: "Basic (and reversed card)", type: 0, flds: [{ name: "Front", ord: 0 }, { name: "Back", ord: 1 }], tmpls: [{ name: "Card 1", ord: 0 }, { name: "Card 2", ord: 1 }] },
     3: { name: "Cloze", type: 1, flds: [{ name: "Text", ord: 0 }, { name: "Back Extra", ord: 1 }], tmpls: [{ name: "Cloze", ord: 0 }] },
     4: { name: "Vocab", type: 0, flds: [{ name: "Front", ord: 0 }, { name: "Back", ord: 1 }, { name: "Example", ord: 2 }], tmpls: [{ name: "Card 1", ord: 0 }] },
+    5: { name: "Basic (optional reversed card)", type: 0, flds: [{ name: "Front", ord: 0 }, { name: "Back", ord: 1 }, { name: "Add Reverse", ord: 2 }], tmpls: [{ name: "Card 1", ord: 0 }, { name: "Card 2", ord: 1 }] },
   };
   const decks = { 1: { name: "Default" }, 10: { name: "Japanese" }, 11: { name: "Japanese::Lesson 1" }, 12: { name: "Physics" } };
   db.prepare("insert into col values (1, ?, 0, 0, 11, 0, 0, 0, '{}', ?, ?, '{}', '{}')").run(crt, JSON.stringify(models), JSON.stringify(decks));
@@ -265,6 +310,9 @@ async function buildCollection(): Promise<Uint8Array> {
   note.run(4, "g4", 4, "", '<img src="cat.png">\x1f[sound:meow.mp3] a cat\x1fExample: <b>neko</b>');
   note.run(5, "g5", 1, "", "hidden\x1fsuspended");
   note.run(6, "g6", 1, "", "学ぶ\x1fto learn");
+  note.run(7, "g7", 5, "", "鳥\x1fbird\x1fy");
+  note.run(8, "g8", 3, "", "Einstein: {{c1::E = mc²}} in {{c2::1905}}\x1f");
+  note.run(9, "g9", 1, "", "# of legs on a spider\x1f8");
   // id, nid, did, ord, type, queue, due, ivl, factor, odue, odid
   card.run(101, 1, 10, 0, 2, 2, 10, 4, 2500, 0, 0);
   card.run(102, 2, 10, 0, 0, 0, 5, 0, 0, 0, 0);
@@ -274,6 +322,21 @@ async function buildCollection(): Promise<Uint8Array> {
   card.run(106, 4, 11, 0, 0, 0, 7, 0, 0, 0, 0);
   card.run(107, 5, 10, 0, 2, -1, 2, 3, 2500, 0, 0);
   card.run(108, 6, 10, 0, 1, 1, learningDue, 0, 0, 0, 0);
+  card.run(109, 7, 10, 0, 0, 0, 8, 0, 0, 0, 0);
+  card.run(110, 7, 10, 1, 0, 0, 8, 0, 0, 0, 0);
+  card.run(111, 8, 12, 0, 0, 0, 9, 0, 0, 0, 0);
+  card.run(112, 8, 12, 1, 0, 0, 9, 0, 0, 0, 0);
+  card.run(113, 9, 12, 0, 0, 0, 10, 0, 0, 0, 0);
+  db.close();
+  return new Uint8Array(readFileSync(file));
+}
+
+/** A real SQLite file with none of Anki's tables. */
+async function emptyDb(): Promise<Uint8Array> {
+  const { DatabaseSync } = await import("node:sqlite");
+  const file = path.join(makeDir(), "empty.sqlite");
+  const db = new DatabaseSync(file);
+  db.exec("create table t (x)");
   db.close();
   return new Uint8Array(readFileSync(file));
 }
@@ -295,6 +358,7 @@ const JAPANESE = [
   "猫::cat & kitten #animals <!--SR:!2024-01-11,4,2500-->",
   "犬:::dog <!--SR:!2024-01-04,1,2300!2024-01-04,1,2300-->",
   "学ぶ::to learn <!--SR:!2024-02-01,1,2500-->",
+  "鳥:::bird",
   "", "## Lesson 1", "",
   "![[cat.png]]::![[meow.mp3]] a cat::Example: neko", "",
 ].join("\n");
@@ -303,6 +367,9 @@ const PHYSICS = [
   "---", "title: Physics", "---", "", "```constellation", "title: Physics", "kind: basic", "```", "",
   "The speed of light is ==299,792 km/s== in vacuum.", "",
   "The speed of light is 299,792 km/s in ==vacuum==.", "<!--SR:!2024-01-21,7,2650-->", "",
+  "Einstein: **[…]** in 1905::E = mc²",
+  "Einstein: E = mc² in ==1905==", "",
+  "\\# of legs on a spider::8", "",
 ].join("\n");
 
 describe("the .apkg importer", () => {
@@ -325,8 +392,9 @@ describe("the .apkg importer", () => {
     const skips = new Skips();
     const { decks, media } = await readApkg(apkg, path.join(data, "tmp"), skips);
     assert.deepEqual(decks.map((d) => d.title), ["Japanese", "Physics"]);
-    assert.deepEqual(decks[0].cards.map((c) => [c.kind, c.section]), [["qa", null], ["reversed", null], ["qa", null], ["qa", "Lesson 1"]]);
-    assert.deepEqual(decks[1].cards.map((c) => c.kind), ["cloze", "cloze"]);
+    assert.deepEqual(decks[0].cards.map((c) => [c.kind, c.section]), [["qa", null], ["reversed", null], ["qa", null], ["reversed", null], ["qa", "Lesson 1"]]);
+    assert.equal(decks[0].cards[3].extra, null, "Add Reverse's \"y\" is a switch, not an extra");
+    assert.deepEqual(decks[1].cards.map((c) => c.kind), ["cloze", "cloze", "qa", "cloze", "qa"]);
     assert.deepEqual([...media.keys()], ["cat.png", "meow.mp3", "unused.png", "font.ttf"]);
     assert.deepEqual(skips.list(), [{ reason: "suspended", count: 1 }]);
     assert.deepEqual(decks[0].cards[1].reverse, { due: "2024-01-04", interval: 1, ease: 2300 });
@@ -338,7 +406,7 @@ describe("the .apkg importer", () => {
     const contents = await readApkg(apkg, path.join(data, "tmp"), skips);
     const result = await writeDecks(contents.decks, { folder: "" }, contents.media, apkg, skips);
     assert.deepEqual(result.created, ["Constellations/Japanese.md", "Constellations/Physics 2.md"]);
-    assert.equal(result.cards, 6);
+    assert.equal(result.cards, 12, "stars, not lines: the two `:::` pairs count twice");
     assert.deepEqual(result.skipped, [{ reason: "suspended", count: 1 }]);
     assert.equal(readFileSync(path.join(root, "Constellations/Japanese.md"), "utf8"), JAPANESE);
     assert.equal(readFileSync(path.join(root, "Constellations/Physics 2.md"), "utf8"), PHYSICS);
@@ -357,6 +425,9 @@ describe("the .apkg importer", () => {
     assert.deepEqual(physics.map((c) => [c.kind, c.back, c.schedule?.due ?? null]), [
       ["cloze", "299,792 km/s", null],
       ["cloze", "vacuum", "2024-01-21"],
+      ["qa", "E = mc²", null],
+      ["cloze", "1905", null],
+      ["qa", "8", null],
     ]);
   });
 
@@ -387,7 +458,7 @@ describe("the .apkg importer", () => {
     ]);
     const skips = new Skips();
     const contents = await readApkg(modern, path.join(data, "tmp"), skips);
-    assert.deepEqual(contents.decks.map((d) => [d.title, d.cards.length]), [["Japanese", 4], ["Physics", 2]]);
+    assert.deepEqual(contents.decks.map((d) => [d.title, d.cards.length]), [["Japanese", 5], ["Physics", 5]]);
     assert.deepEqual([...contents.media.keys()], ["cat.png"]);
     const result = await writeDecks(contents.decks, { folder: "Modern" }, contents.media, modern, skips);
     assert.deepEqual(result.created, ["Modern/Japanese.md", "Modern/Physics.md"]);
@@ -395,8 +466,16 @@ describe("the .apkg importer", () => {
     assert.deepEqual(result.skipped, [{ reason: "suspended", count: 1 }, { reason: "mediaMissing", count: 1 }]);
   });
 
-  it("refuses an archive that is no Anki package", async () => {
+  it("refuses an archive that is no Anki package, and a collection that is no database", async () => {
     const skips = new Skips();
     await assert.rejects(readApkg(zipDeflated([{ name: "readme.txt", data: enc.encode("hi") }]), path.join(data, "tmp"), skips), /no collection/);
+    await assert.rejects(
+      readApkg(zipDeflated([{ name: "collection.anki2", data: enc.encode("not sqlite at all, just text") }]), path.join(data, "tmp"), skips),
+      (err: unknown) => (err as { status: number; code: string }).status === 400 && (err as { code: string }).code === "starsImportNotApkg",
+    );
+    await assert.rejects(
+      readApkg(zipDeflated([{ name: "collection.anki2", data: await emptyDb() }]), path.join(data, "tmp"), skips),
+      (err: unknown) => (err as { status: number }).status === 400,
+    );
   });
 });
