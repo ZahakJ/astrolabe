@@ -2565,12 +2565,24 @@ function AboutTab({ about }: { about: AboutInfo | null }) {
  *  — are finally listed.
  *
  *  The rest split by the QUESTION each answers rather than by the machinery
- *  behind it: what the site is called (Identity), what it speaks and how it
- *  writes dates (Language & dates), what a visitor may see (Publishing), which
- *  folders it writes into (Vault), what it is set in (Typography), how it is
+ *  behind it: what the site is called and looks like (Site — its name and
+ *  marks, the theme visitors land on, its type), what it speaks and how it
+ *  writes dates (Language & dates), what a visitor may see (Publishing), how
+ *  the public site groups notes (Collections — categories, hand-made
+ *  collections, the library), which folders it writes into (Vault), how it is
  *  backed up (Backup), and what it IS (About). "Appearance & language" is gone
  *  as a name: half of it was this browser's and half of it was the site's,
- *  which is the confusion the split exists to end. */
+ *  which is the confusion the split exists to end.
+ *
+ *  RE-CUT ONCE MORE (3.15): the eight were uneven — Identity five rows and
+ *  Typography five, Publishing twenty-one — and a rail is a promise about
+ *  where things are, which a tab nobody scrolls to the end of breaks. Identity
+ *  and Typography are one tab (Site) because they answer one question; the
+ *  back half of Publishing is its own tab (Collections) because it answered a
+ *  different one. Every row kept its key, its default and its behaviour; only
+ *  the tab it sits on moved, and the settings index (`settingsIndex.ts`)
+ *  carries the new map so a search and `openSettingsAt` land on the row
+ *  wherever it went. */
 interface Tab {
   id: string;
   key: I18nKey;
@@ -2578,20 +2590,13 @@ interface Tab {
   intro: I18nKey;
 }
 
-// THREE KEYS ARE NAMED HERE AND USED NOWHERE, and this comment is the ONE
-// place in the client where a quoted dictionary key is not a use.
-// `client/i18n.ts` belongs to another agent this round; check-i18n's usage
-// scan counts a key surviving inside a comment, and a gate that goes red
-// halfway through a handover is a gate people learn to run without reading.
-// So they are named here, listed for the dictionary's owner in
-// i18n-stage4.md, and deleted WITH the dictionary rather than before it:
 const TABS: Tab[] = [
   { id: "device", key: "tabDevice", intro: "introDevice" },
-  { id: "identity", key: "tabIdentity", intro: "introIdentity" },
+  { id: "site", key: "tabSite", intro: "introSite" },
   { id: "language", key: "tabLanguage", intro: "introLanguage" },
   { id: "publishing", key: "tabPublishing", intro: "introPublishing" },
+  { id: "collections", key: "tabCollections", intro: "introCollections" },
   { id: "vault", key: "tabVault", intro: "introVault" },
-  { id: "typography", key: "groupTypography", intro: "typographyNote" },
   { id: "sync", key: "groupSync", intro: "syncNote" },
   { id: "about", key: "tabAbout", intro: "introAbout" },
 ];
@@ -3054,8 +3059,8 @@ export default function SettingsModal() {
               >
                 {/* Every tab opens the same way: its name, then one sentence
                     saying what it decides. */}
-                <div className="s-smodal__group">{t(TABS.find((s) => s.id === tab)?.key ?? "tabIdentity")}</div>
-                <p className="s-smodal__note">{t(TABS.find((s) => s.id === tab)?.intro ?? "introIdentity")}</p>
+                <div className="s-smodal__group">{t(TABS.find((s) => s.id === tab)?.key ?? "tabDevice")}</div>
+                <p className="s-smodal__note">{t(TABS.find((s) => s.id === tab)?.intro ?? "introDevice")}</p>
 
                 {/* "This device" is its own module (settings/DeviceTab.tsx) and
                     the FIRST tab, because it is the one tab the Save button in
@@ -3065,8 +3070,18 @@ export default function SettingsModal() {
                     server settings is one they discover by being wrong. */}
                 {tab === "device" && <DeviceTab />}
 
-                {tab === "identity" && (
-                <section data-section="identity">
+                {/* ── Site ───────────────────────────────────────────────
+                    What the site is called, the theme a visitor lands on, and the
+                    type it is set in — the three things a reader sees before they
+                    read a word. Identity was its own five-row tab and Typography
+                    its own five-row tab, and the two were the thin ones in a rail
+                    where Publishing ran to twenty-one; they answer one question
+                    ("what does my site look like"), so they are one tab. The
+                    specimen keeps its sticky perch, now within the typography
+                    group rather than the tab, which is what the wrapper below is
+                    for: `position: sticky` is bounded by its parent. */}
+                {tab === "site" && (
+                <section data-section="site">
                   <p className="s-smodal__note s-smodal__note--inherit">{t("settingsNote")}</p>
                   <Row
                     label={t("rowSiteName")}
@@ -3149,6 +3164,181 @@ export default function SettingsModal() {
                       onOpenPicker={() => setPicker("favicon")}
                     />
                   </Row>
+                  {/* THE THEME A VISITOR ARRIVES ON, beside the marks they arrive
+                      on. It used to stand two rows from "Your theme" — two labels
+                      carrying the same word, one of them in the Save diff and one
+                      of them saving itself on click, with nothing on screen to tell
+                      them apart. Yours is a tab away now, and this row keeps the
+                      only question it ever answered: which room a reader with no
+                      stored choice walks into. */}
+                  <Row
+                    label={t("rowDefaultTheme")}
+                    hint={t("hintDefaultTheme")}
+                    env={{ name: "DEFAULT_THEME", value: eff.defaultTheme ?? "", inherits: form.defaultTheme === "" }}
+                    /* THE ROW SAYS WHAT IT DOES, IN A THEME'S NAME.
+                       "Follow my editor theme" is a rule, not an appearance,
+                       and an owner reading it still does not know what their
+                       readers are looking at tonight. This line answers that
+                       in the same breath, and — while the instance is
+                       following — offers the single click that stops it. It
+                       rides `after` rather than being a second child: the row
+                       wires the label onto its ONE control child. */
+                    after={
+                      <VisitorThemeLine
+                        pref={form.defaultTheme === "" ? inh.defaultTheme : form.defaultTheme}
+                        effective={eff.visitorTheme}
+                        onSet={(v) => setForm((f) => (f ? { ...f, defaultTheme: v } : f))}
+                      />
+                    }
+                  >
+                    {/* Grouped, because twenty-one names in one flat list is the
+                        same "which of these is dark?" guess the picker exists
+                        to end. The GROUP names and the theme labels are both
+                        chrome copy — an Arabic reader met "verdigris" and
+                        "porphyry" in Latin script here — while the raw id
+                        stays the option's VALUE and its muted note, because
+                        that is what settings.defaultTheme and DEFAULT_THEME
+                        take and what a reader has to type into a .env. */}
+                    <Select
+                      label={t("rowDefaultTheme")}
+                      groups={themeChoices(inh.defaultTheme)}
+                      {...field("defaultTheme")}
+                    />
+                  </Row>
+                  <div className="s-smodal__sub">{t("groupTypography")}</div>
+                  <p className="s-smodal__note">{t("typographyNote")}</p>
+                  <div data-section="typography">
+                  {/* The specimen leads the typography group and STAYS on
+                      screen while a picker is open: once scrolled to, it is
+                      stuck to the top of the scroller for as long as the
+                      group lasts, and every picker below opens downward into
+                      the space under its own trigger. Choosing a face is a
+                      compare-and-adjust loop — the control and its effect have
+                      to be in one frame, and a popover that covers the effect
+                      is the same bug as no preview at all. The wrapper is the
+                      sticky's containing block, so the identity rows above
+                      scroll past it untouched. */}
+                  <div className="s-smodal__specwrap" data-popclear>
+                    <div className="s-smodal__speclabelrow">
+                      <span className="s-smodal__speccaption">{t("fontPreview")}</span>
+                      <span className="s-smodal__spechint">{t("fontPreviewNote")}</span>
+                      <button
+                        type="button"
+                        className="s-btn"
+                        onClick={() =>
+                          setForm((f) =>
+                            f
+                              ? {
+                                  ...f,
+                                  fontProse: SYSTEM_FONT,
+                                  fontUi: SYSTEM_FONT,
+                                  fontMono: SYSTEM_FONT,
+                                  fontArabic: SYSTEM_FONT,
+                                  fontSizeAdjust: "",
+                                }
+                              : f,
+                          )
+                        }
+                      >
+                        {t("fontReset")}
+                      </button>
+                    </div>
+                    <FontSpecimens />
+                  </div>
+
+                  <Row label={t("rowFontProse")} hint={t("hintFontProse")}>
+                    <FontPicker
+                      slot="text"
+                      label={t("rowFontProse")}
+                      value={form.fontProse}
+                      catalog={loaded?.fontCatalog ?? []}
+                      custom={customFonts}
+                      onChange={(id) => setForm((f) => (f ? { ...f, fontProse: id } : f))}
+                    />
+                  </Row>
+                  <Row label={t("rowFontUi")} hint={t("hintFontUi")}>
+                    <FontPicker
+                      slot="text"
+                      label={t("rowFontUi")}
+                      value={form.fontUi}
+                      catalog={loaded?.fontCatalog ?? []}
+                      custom={customFonts}
+                      onChange={(id) => setForm((f) => (f ? { ...f, fontUi: id } : f))}
+                    />
+                  </Row>
+                  <Row label={t("rowFontMono")} hint={t("hintFontMono")}>
+                    <FontPicker
+                      slot="mono"
+                      label={t("rowFontMono")}
+                      value={form.fontMono}
+                      catalog={loaded?.fontCatalog ?? []}
+                      custom={customFonts}
+                      onChange={(id) => setForm((f) => (f ? { ...f, fontMono: id } : f))}
+                    />
+                  </Row>
+                  {/* The Arabic slot is not a fourth Latin slot: it is one face
+                      that answers for Arabic letters INSIDE the three above,
+                      per character. Its own sub-heading says so before the
+                      hint has to. */}
+                  <div className="s-smodal__sub">{t("fontArabicHead")}</div>
+                  <p className="s-smodal__note">{t("fontArabicHeadNote")}</p>
+                  <Row label={t("rowFontArabic")} hint={t("hintFontArabic")}>
+                    <FontPicker
+                      slot="arabic"
+                      label={t("rowFontArabic")}
+                      value={form.fontArabic}
+                      catalog={loaded?.fontCatalog ?? []}
+                      custom={customFonts}
+                      onChange={(id) => setForm((f) => (f ? { ...f, fontArabic: id } : f))}
+                    />
+                  </Row>
+                  {/* The dial only exists while there IS an Arabic face to
+                      match, and it is the one number in the panel a reader
+                      arrives at by eye: it is set against the specimen two
+                      rows up, which is why it lives here and not in a
+                      config file. */}
+                  {form.fontArabic !== SYSTEM_FONT && (
+                    <Row
+                      label={t("rowSizeAdjust")}
+                      hint={t("hintSizeAdjust")}
+                      error={errors.fontSizeAdjust}
+                    >
+                      <NumberInput
+                        label={t("rowSizeAdjust")}
+                        unit="%"
+                        min={SIZE_ADJUST_MIN}
+                        max={SIZE_ADJUST_MAX}
+                        step={2}
+                        placeholder={t("sizeAdjustAuto")}
+                        invalid={errors.fontSizeAdjust !== undefined}
+                        {...field("fontSizeAdjust")}
+                      />
+                    </Row>
+                  )}
+
+                  {/* Uploading is the answer to the question the catalog
+                      cannot answer: the face an operator already owns. */}
+                  <div className="s-smodal__sub">{t("fontCustomHead")}</div>
+                  <p className="s-smodal__note">{t("fontCustomNote")}</p>
+                  <CustomFonts
+                    fonts={customFonts}
+                    busy={fontBusy}
+                    usedBy={(id) =>
+                      (
+                        [
+                          [form.fontProse, "rowFontProse"],
+                          [form.fontUi, "rowFontUi"],
+                          [form.fontMono, "rowFontMono"],
+                          [form.fontArabic, "rowFontArabic"],
+                        ] as [string, I18nKey][]
+                      )
+                        .filter(([value]) => value === id)
+                        .map(([, key]) => t(key))
+                    }
+                    onUpload={uploadCustomFont}
+                    onDelete={removeCustomFont}
+                  />
+                  </div>
                 </section>
                 )}
 
@@ -3413,48 +3603,6 @@ export default function SettingsModal() {
                       controls move — the operator never has to save to find
                       out. */}
                   <VisibilityBanner impact={impact} />
-                  {/* THE THEME A VISITOR ARRIVES ON, filed with everything
-                      else a visitor gets. It used to stand two rows from "Your
-                      theme" — two labels carrying the same word, one of them
-                      in the Save diff and one of them saving itself on click,
-                      with nothing on screen to tell them apart. Yours is a tab
-                      away now, and this row keeps the only question it ever
-                      answered: which room a reader with no stored choice
-                      walks into. */}
-                  <Row
-                    label={t("rowDefaultTheme")}
-                    hint={t("hintDefaultTheme")}
-                    env={{ name: "DEFAULT_THEME", value: eff.defaultTheme ?? "", inherits: form.defaultTheme === "" }}
-                    /* THE ROW SAYS WHAT IT DOES, IN A THEME'S NAME.
-                       "Follow my editor theme" is a rule, not an appearance,
-                       and an owner reading it still does not know what their
-                       readers are looking at tonight. This line answers that
-                       in the same breath, and — while the instance is
-                       following — offers the single click that stops it. It
-                       rides `after` rather than being a second child: the row
-                       wires the label onto its ONE control child. */
-                    after={
-                      <VisitorThemeLine
-                        pref={form.defaultTheme === "" ? inh.defaultTheme : form.defaultTheme}
-                        effective={eff.visitorTheme}
-                        onSet={(v) => setForm((f) => (f ? { ...f, defaultTheme: v } : f))}
-                      />
-                    }
-                  >
-                    {/* Grouped, because twenty-one names in one flat list is the
-                        same "which of these is dark?" guess the picker exists
-                        to end. The GROUP names and the theme labels are both
-                        chrome copy — an Arabic reader met "verdigris" and
-                        "porphyry" in Latin script here — while the raw id
-                        stays the option's VALUE and its muted note, because
-                        that is what settings.defaultTheme and DEFAULT_THEME
-                        take and what a reader has to type into a .env. */}
-                    <Select
-                      label={t("rowDefaultTheme")}
-                      groups={themeChoices(inh.defaultTheme)}
-                      {...field("defaultTheme")}
-                    />
-                  </Row>
                   {/* Which shell a visitor lands in is a publishing decision,
                       not a colour one — which is why it sits under Publishing
                       and not under the tab that used to own the word "looks". */}
@@ -3594,6 +3742,76 @@ export default function SettingsModal() {
                       </Consequence>
                     )}
                   </Row>
+                  <div className="s-smodal__sub">{t("groupHome")}</div>
+                  <p className="s-smodal__note">{t("homeNote")}</p>
+                  {homeOff && <p className="s-smodal__offnote">{t("homeBlogOnlyNotice")}</p>}
+                  <Row label={t("rowMode")} hint={t("hintMode")} off={homeOff}>
+                    {homeOff && <Consequence>{t("homeModeAppNote")}</Consequence>}
+                    <SegmentedControl
+                      label={t("rowMode")}
+                      disabled={homeOff}
+                      segments={[
+                        { value: "", label: t("inheritSegment"), note: enumLabel(inh.homeMode) },
+                        { value: "note", label: t("modeNote") },
+                        { value: "dashboard", label: t("modeDashboard") },
+                      ]}
+                      {...field("homeMode")}
+                    />
+                  </Row>
+                  <Row
+                    label={t("rowHomeNote")}
+                    hint={t("hintHomeNote")}
+                    error={errors.homeNote}
+                    env={{ name: "HOME_NOTE", value: eff.home.note ?? "", inherits: form.homeNote.trim() === "" }}
+                  >
+                    <TextInput
+                      placeholder={eff.home.note ?? "Welcome.md"}
+                      dir="ltr"
+                      label={t("rowHomeNote")}
+                      invalid={errors.homeNote !== undefined}
+                      {...field("homeNote")}
+                    />
+                    {/* A front door pointing at a note visitors cannot see
+                        renders a blank homepage and says nothing about it.
+                        Now it says something — and it can only be answered by
+                        the server, which knows the publish flag AND the
+                        language filter this note is about to meet. */}
+                    {impact &&
+                      (impact.home.note === null ? (
+                        <Consequence>{t("homeNoteUnset")}</Consequence>
+                      ) : impact.home.noteVisible ? (
+                        <Consequence>{t("homeNoteOk")}</Consequence>
+                      ) : (
+                        <Consequence level="warn">{t("homeNoteHidden")}</Consequence>
+                      ))}
+                  </Row>
+                  <Row
+                    label={t("rowHomeBanner")}
+                    hint={t("hintHomeBanner")}
+                    error={errors.homeBanner}
+                    off={homeOff}
+                  >
+                    <ImageField
+                      value={form.homeBanner}
+                      placeholder={t("phVaultImageOrUrl")}
+                      invalid={errors.homeBanner !== undefined}
+                      disabled={homeOff}
+                      onChange={(v) => setForm((f) => (f ? { ...f, homeBanner: v } : f))}
+                      onOpenPicker={() => setPicker("homeBanner")}
+                    />
+                  </Row>
+                </section>
+                )}
+
+                {/* ── Collections ─────────────────────────────────────────
+                    How the public site GROUPS notes: where categories come from,
+                    the owner's hand-made collections, and the library shelf. These
+                    ten rows were the back half of Publishing, which at twenty-one
+                    rows was the tab nobody scrolled to the end of; and they are a
+                    different question from "what may a visitor see" — that tab
+                    decides the door, this one decides the shelves behind it. */}
+                {tab === "collections" && (
+                <section data-section="collections">
                   {/* ── CUSTOM PUBLIC FOLDERS ───────────────────────────
                       ONE option with sub-options, the Backup tab's idiom: a
                       master switch on its own row, then everything it governs
@@ -3732,64 +3950,6 @@ export default function SettingsModal() {
                       disabled={libraryOff}
                       value={form.libraryHome === "on"}
                       onChange={(on) => setForm((f) => (f ? { ...f, libraryHome: on ? "on" : "off" } : f))}
-                    />
-                  </Row>
-                  <div className="s-smodal__sub">{t("groupHome")}</div>
-                  <p className="s-smodal__note">{t("homeNote")}</p>
-                  {homeOff && <p className="s-smodal__offnote">{t("homeBlogOnlyNotice")}</p>}
-                  <Row label={t("rowMode")} hint={t("hintMode")} off={homeOff}>
-                    {homeOff && <Consequence>{t("homeModeAppNote")}</Consequence>}
-                    <SegmentedControl
-                      label={t("rowMode")}
-                      disabled={homeOff}
-                      segments={[
-                        { value: "", label: t("inheritSegment"), note: enumLabel(inh.homeMode) },
-                        { value: "note", label: t("modeNote") },
-                        { value: "dashboard", label: t("modeDashboard") },
-                      ]}
-                      {...field("homeMode")}
-                    />
-                  </Row>
-                  <Row
-                    label={t("rowHomeNote")}
-                    hint={t("hintHomeNote")}
-                    error={errors.homeNote}
-                    env={{ name: "HOME_NOTE", value: eff.home.note ?? "", inherits: form.homeNote.trim() === "" }}
-                  >
-                    <TextInput
-                      placeholder={eff.home.note ?? "Welcome.md"}
-                      dir="ltr"
-                      label={t("rowHomeNote")}
-                      invalid={errors.homeNote !== undefined}
-                      {...field("homeNote")}
-                    />
-                    {/* A front door pointing at a note visitors cannot see
-                        renders a blank homepage and says nothing about it.
-                        Now it says something — and it can only be answered by
-                        the server, which knows the publish flag AND the
-                        language filter this note is about to meet. */}
-                    {impact &&
-                      (impact.home.note === null ? (
-                        <Consequence>{t("homeNoteUnset")}</Consequence>
-                      ) : impact.home.noteVisible ? (
-                        <Consequence>{t("homeNoteOk")}</Consequence>
-                      ) : (
-                        <Consequence level="warn">{t("homeNoteHidden")}</Consequence>
-                      ))}
-                  </Row>
-                  <Row
-                    label={t("rowHomeBanner")}
-                    hint={t("hintHomeBanner")}
-                    error={errors.homeBanner}
-                    off={homeOff}
-                  >
-                    <ImageField
-                      value={form.homeBanner}
-                      placeholder={t("phVaultImageOrUrl")}
-                      invalid={errors.homeBanner !== undefined}
-                      disabled={homeOff}
-                      onChange={(v) => setForm((f) => (f ? { ...f, homeBanner: v } : f))}
-                      onOpenPicker={() => setPicker("homeBanner")}
                     />
                   </Row>
                 </section>
@@ -4015,138 +4175,6 @@ export default function SettingsModal() {
                       {...field("pdfSearch")}
                     />
                   </Row>
-                </section>
-                )}
-
-                {tab === "typography" && (
-                <section data-section="typography">
-                  {/* The specimen leads the tab and STAYS on screen while a
-                      picker is open: it is stuck to the top of the scroller,
-                      and every picker below opens downward into the space
-                      under its own trigger. Choosing a face is a
-                      compare-and-adjust loop — the control and its effect have
-                      to be in one frame, and a popover that covers the effect
-                      is the same bug as no preview at all. */}
-                  <div className="s-smodal__specwrap" data-popclear>
-                    <div className="s-smodal__speclabelrow">
-                      <span className="s-smodal__speccaption">{t("fontPreview")}</span>
-                      <span className="s-smodal__spechint">{t("fontPreviewNote")}</span>
-                      <button
-                        type="button"
-                        className="s-btn"
-                        onClick={() =>
-                          setForm((f) =>
-                            f
-                              ? {
-                                  ...f,
-                                  fontProse: SYSTEM_FONT,
-                                  fontUi: SYSTEM_FONT,
-                                  fontMono: SYSTEM_FONT,
-                                  fontArabic: SYSTEM_FONT,
-                                  fontSizeAdjust: "",
-                                }
-                              : f,
-                          )
-                        }
-                      >
-                        {t("fontReset")}
-                      </button>
-                    </div>
-                    <FontSpecimens />
-                  </div>
-
-                  <Row label={t("rowFontProse")} hint={t("hintFontProse")}>
-                    <FontPicker
-                      slot="text"
-                      label={t("rowFontProse")}
-                      value={form.fontProse}
-                      catalog={loaded?.fontCatalog ?? []}
-                      custom={customFonts}
-                      onChange={(id) => setForm((f) => (f ? { ...f, fontProse: id } : f))}
-                    />
-                  </Row>
-                  <Row label={t("rowFontUi")} hint={t("hintFontUi")}>
-                    <FontPicker
-                      slot="text"
-                      label={t("rowFontUi")}
-                      value={form.fontUi}
-                      catalog={loaded?.fontCatalog ?? []}
-                      custom={customFonts}
-                      onChange={(id) => setForm((f) => (f ? { ...f, fontUi: id } : f))}
-                    />
-                  </Row>
-                  <Row label={t("rowFontMono")} hint={t("hintFontMono")}>
-                    <FontPicker
-                      slot="mono"
-                      label={t("rowFontMono")}
-                      value={form.fontMono}
-                      catalog={loaded?.fontCatalog ?? []}
-                      custom={customFonts}
-                      onChange={(id) => setForm((f) => (f ? { ...f, fontMono: id } : f))}
-                    />
-                  </Row>
-                  {/* The Arabic slot is not a fourth Latin slot: it is one face
-                      that answers for Arabic letters INSIDE the three above,
-                      per character. Its own sub-heading says so before the
-                      hint has to. */}
-                  <div className="s-smodal__sub">{t("fontArabicHead")}</div>
-                  <p className="s-smodal__note">{t("fontArabicHeadNote")}</p>
-                  <Row label={t("rowFontArabic")} hint={t("hintFontArabic")}>
-                    <FontPicker
-                      slot="arabic"
-                      label={t("rowFontArabic")}
-                      value={form.fontArabic}
-                      catalog={loaded?.fontCatalog ?? []}
-                      custom={customFonts}
-                      onChange={(id) => setForm((f) => (f ? { ...f, fontArabic: id } : f))}
-                    />
-                  </Row>
-                  {/* The dial only exists while there IS an Arabic face to
-                      match, and it is the one number in the panel a reader
-                      arrives at by eye: it is set against the specimen two
-                      rows up, which is why it lives here and not in a
-                      config file. */}
-                  {form.fontArabic !== SYSTEM_FONT && (
-                    <Row
-                      label={t("rowSizeAdjust")}
-                      hint={t("hintSizeAdjust")}
-                      error={errors.fontSizeAdjust}
-                    >
-                      <NumberInput
-                        label={t("rowSizeAdjust")}
-                        unit="%"
-                        min={SIZE_ADJUST_MIN}
-                        max={SIZE_ADJUST_MAX}
-                        step={2}
-                        placeholder={t("sizeAdjustAuto")}
-                        invalid={errors.fontSizeAdjust !== undefined}
-                        {...field("fontSizeAdjust")}
-                      />
-                    </Row>
-                  )}
-
-                  {/* Uploading is the answer to the question the catalog
-                      cannot answer: the face an operator already owns. */}
-                  <div className="s-smodal__sub">{t("fontCustomHead")}</div>
-                  <p className="s-smodal__note">{t("fontCustomNote")}</p>
-                  <CustomFonts
-                    fonts={customFonts}
-                    busy={fontBusy}
-                    usedBy={(id) =>
-                      (
-                        [
-                          [form.fontProse, "rowFontProse"],
-                          [form.fontUi, "rowFontUi"],
-                          [form.fontMono, "rowFontMono"],
-                          [form.fontArabic, "rowFontArabic"],
-                        ] as [string, I18nKey][]
-                      )
-                        .filter(([value]) => value === id)
-                        .map(([, key]) => t(key))
-                    }
-                    onUpload={uploadCustomFont}
-                    onDelete={removeCustomFont}
-                  />
                 </section>
                 )}
 

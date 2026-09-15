@@ -1,8 +1,8 @@
-// Software updates, without a framework.
+// Software updates, without a framework — and without a will of their own.
 //
 // The desktop app learns about a new release the same way a reader would —
-// GitHub's releases API — and, when it is running as an AppImage, applies it
-// the same way `writeNote` replaces a note: download beside the current file,
+// GitHub's releases API — and, when the reader asks for it, applies it the
+// same way `writeNote` replaces a note: download beside the current file,
 // fsync, rename over, relaunch. One HTTPS request every few hours and one
 // atomic rename is the entire mechanism, and that is the argument for not
 // shipping electron-updater to do it: the framework would be the largest
@@ -10,18 +10,28 @@
 // already performs on every autosave.
 //
 // WHAT IT PROMISES, precisely:
-//   · The check is quiet. No dialog, no dock bounce — a toast in the app's own
-//     voice when a release is genuinely newer, and silence otherwise. Checked
-//     at launch and every six hours, so an app that is never restarted still
-//     hears about releases ("if we didn't restart it between releases").
-//   · The download is background and VERIFIED by size before it replaces
-//     anything; a truncated download can never become the installed app.
+//   · NOTHING IS DOWNLOADED OR INSTALLED WITHOUT BEING ASKED. Until 3.15 a
+//     newer release was fetched in the background the moment the check found
+//     it, and a friend's Windows machine pulled 190 MB it had not asked for
+//     ("def shouldn't be the case"). Now a check only LOOKS. A newer release
+//     becomes the status bar's "3.x available" pill; clicking it (or the menu
+//     item) downloads; "Restart to update" applies. Two clicks, both the
+//     reader's — electron/updatePolicy.ts holds the rule and its test.
+//   · The check is quiet. No dialog, no dock bounce — the pill, and one toast
+//     per version per launch. Checked at launch and every six hours, so an app
+//     that is never restarted still hears about releases; the six-hour timer
+//     finding the same release again says nothing more.
+//   · It can be turned OFF. `updates: "off"` in desktop.json (Settings → This
+//     device → Software updates) stops the timer asking at all. The menu's
+//     "Check for updates…" still works by hand, because off is about not being
+//     interrupted, not about being refused an answer.
+//   · A download the reader asked for is VERIFIED by size and by the release's
+//     checksum file before it replaces anything; a truncated download can
+//     never become the installed app.
 //   · The swap is atomic and the old file's mode survives — the same four
-//     rules server/vault.ts documents, one directory over.
-//   · THE WINDOWS BUILD UPDATES ITSELF TOO (3.4.0): the release's NSIS
-//     installer is downloaded, verified against the release's SHA256SUMS file,
-//     and on "Restart now" run silently (`/S --force-run`, the flags the
-//     installer honours) while the app quits; the installer relaunches it.
+//     rules server/vault.ts documents, one directory over. The Windows build
+//     runs the release's NSIS installer silently (`/S --force-run`) while the
+//     app quits; the installer relaunches it.
 //   · A build that is neither (the deb, the pacman package, a dev checkout)
 //     cannot replace itself in place, so "update" there opens the release
 //     page instead of pretending.
@@ -36,6 +46,8 @@ import { createReadStream, createWriteStream, promises as fs } from "node:fs";
 import { get } from "node:https";
 import type { IncomingMessage } from "node:http";
 import path from "node:path";
+import { loadPrefs, savePrefs } from "./store.ts";
+import { decideUpdate, newer, type UpdatesPref } from "./updatePolicy.ts";
 
 const REPO = "ZahakJ/astrolabe";
 /** The repository's name before the rename. GitHub redirects the old name,
@@ -58,29 +70,55 @@ export interface UpdateState {
    *  release named one — the status bar draws a bar from the two. */
   received?: number;
   total?: number;
+  /** With "available": whether this build can take the release itself (an
+   *  AppImage, a Windows install) — the pill offers "Download" — or only open
+   *  the release page (a deb, a pacman package, a dev checkout). */
+  installable?: boolean;
 }
 
 type Listener = (state: UpdateState) => void;
-let notify: Listener = () => {};
+let listener: Listener = () => {};
 export function onUpdateState(fn: Listener): void {
-  notify = fn;
+  listener = fn;
+}
+function notify(state: UpdateState): void {
+  lastState = state;
+  listener(state);
 }
 
 let timer: NodeJS.Timeout | null = null;
 let busy = false;
 /** The downloaded, verified AppImage waiting for a relaunch, if any. */
 let staged: { file: string; version: string } | null = null;
+/** The newer release the last check found — what "Download" fetches — so the
+ *  click does not have to ask GitHub again for something it was just told. */
+let found: { tag: string; assets: Asset[] } | null = null;
+/** The version this launch has already said "available" about. The timer
+ *  finding it again every six hours is not news, and a reminder that repeats
+ *  is the "annoying reminder" the preference exists to switch off. */
+let reminded: string | null = null;
+/** What the renderer last heard, so a window opened later can draw the pill
+ *  without a fresh check and without a second toast (main.ts hands it over
+ *  in `hello`). */
+let lastState: UpdateState | null = null;
 
-/** `1.6.0` vs `1.7.0`, numerically per part — enough for this repo's own tags,
- *  which is the only versioning this has to understand. */
-function newer(remote: string, local: string): boolean {
-  const a = remote.replace(/^v/, "").split(".").map(Number);
-  const b = local.replace(/^v/, "").split(".").map(Number);
-  for (let i = 0; i < Math.max(a.length, b.length); i += 1) {
-    const d = (a[i] ?? 0) - (b[i] ?? 0);
-    if (d !== 0) return d > 0;
-  }
-  return false;
+export function currentUpdateState(): UpdateState | null {
+  return lastState;
+}
+
+/** The reader's preference, read from desktop.json each time so a change
+ *  made in the settings panel reaches the next tick without a restart. */
+export function updatesPref(): UpdatesPref {
+  return loadPrefs().updates;
+}
+
+/** Store the preference. Switching it ON runs one quiet check straight away:
+ *  "tell me about updates" should not mean "in up to six hours". */
+export function setUpdatesPref(pref: UpdatesPref): void {
+  const prefs = loadPrefs();
+  if (prefs.updates === pref) return;
+  savePrefs({ ...prefs, updates: pref });
+  if (pref === "notify") void checkForUpdates(false);
 }
 
 function fetchJson(url: string): Promise<unknown> {
@@ -220,8 +258,18 @@ interface Asset {
   browser_download_url?: string;
 }
 
+/** Look, and only look.
+ *
+ *  Asks the releases endpoint and, when a newer release exists, says so —
+ *  once per version per launch from the timer, every time from the menu. It
+ *  never fetches an asset: `decideUpdate` answers `download: false` for every
+ *  situation, and the byte-moving half lives in `downloadUpdate`, which only a
+ *  click reaches. */
 export async function checkForUpdates(manual = false): Promise<void> {
   if (busy) return;
+  const current = app.getVersion();
+  const pref = updatesPref();
+  if (!decideUpdate({ pref, manual, current, latest: null, reminded }).check) return;
   busy = true;
   try {
     if (staged !== null) {
@@ -231,28 +279,61 @@ export async function checkForUpdates(manual = false): Promise<void> {
     }
     const release = (await fetchJson(API_LATEST).catch(() => fetchJson(LEGACY_API_LATEST))) as { tag_name?: string; assets?: Asset[] };
     const tag = typeof release.tag_name === "string" ? release.tag_name : "";
-    if (!tag || !newer(tag, app.getVersion())) {
+    const decision = decideUpdate({ pref, manual, current, latest: tag || null, reminded });
+    if (!tag || !newer(tag, current)) {
       // The timer stays silent about good news; the MENU says it out loud,
       // because a person who asked deserves an answer either way.
-      if (manual) notify({ phase: "current", version: app.getVersion() });
+      if (manual) notify({ phase: "current", version: current });
       return;
     }
-    const kind = installKind();
-    if (kind === null) {
-      // Not self-replaceable: say a release exists and open the page on
-      // request. Pretending otherwise is how updaters break packages that a
-      // package manager owns.
-      notify({ phase: "available", version: tag });
-      return;
+    found = { tag, assets: release.assets ?? [] };
+    if (!decision.remind) return;
+    reminded = tag;
+    notify({ phase: "available", version: tag, installable: assetFor(found.assets) !== null });
+  } catch (err) {
+    console.error("astrolabe: update check failed", err);
+    if (manual) notify({ phase: "failed", version: current });
+  } finally {
+    busy = false;
+  }
+}
+
+/** The release asset this build can install, or null when the build cannot
+ *  replace itself or the release carries nothing for it. */
+function assetFor(assets: Asset[]): (Asset & { name: string; browser_download_url: string }) | null {
+  const kind = installKind();
+  if (kind === null) return null;
+  for (const a of assets) {
+    if (typeof a.name !== "string" || typeof a.browser_download_url !== "string") continue;
+    if (kind === "appimage" ? a.name.endsWith(".AppImage") : /\.exe$/i.test(a.name)) {
+      return { ...a, name: a.name, browser_download_url: a.browser_download_url };
     }
-    const assets = release.assets ?? [];
-    const asset = assets.find(
-      (a) => typeof a.name === "string" && (kind === "appimage" ? a.name.endsWith(".AppImage") : /\.exe$/i.test(a.name)),
-    );
-    if (!asset?.browser_download_url || typeof asset.name !== "string") {
-      notify({ phase: "available", version: tag });
-      return;
-    }
+  }
+  return null;
+}
+
+/** Fetch the release the last check found — the reader's first click.
+ *
+ *  Verified twice before it is called ready: the byte count against the
+ *  asset's declared size, and the digest against the release's SHA256SUMS
+ *  line when it carries one. A build that cannot replace itself (or a release
+ *  with no asset for it) opens the release page instead, which is the answer
+ *  the pill's own label already gave. */
+export async function downloadUpdate(): Promise<void> {
+  if (busy) return;
+  if (staged !== null) {
+    notify({ phase: "ready", version: staged.version });
+    return;
+  }
+  const kind = installKind();
+  const asset = found === null ? null : assetFor(found.assets);
+  if (found === null || kind === null || asset === null) {
+    void shell.openExternal(RELEASES_PAGE);
+    return;
+  }
+  const { tag, assets } = found;
+  busy = true;
+  try {
     const total = typeof asset.size === "number" && asset.size > 0 ? asset.size : undefined;
     notify({ phase: "downloading", version: tag, received: 0, total });
     // Progress every 200 ms, not every chunk: the renderer redraws a bar per
@@ -300,8 +381,11 @@ export async function checkForUpdates(manual = false): Promise<void> {
       throw err;
     }
   } catch (err) {
-    console.error("astrolabe: update check failed", err);
-    if (manual) notify({ phase: "failed", version: app.getVersion() });
+    console.error("astrolabe: update download failed", err);
+    // A download the reader asked for is always answered, unlike the timer's
+    // check — and the release stays `found`, so the pill's next click can try
+    // again rather than waiting for the next tick to rediscover it.
+    notify({ phase: "failed", version: tag });
   } finally {
     busy = false;
   }
@@ -379,6 +463,9 @@ export function openReleasePage(): void {
   void shell.openExternal(RELEASES_PAGE);
 }
 
+/** Start the six-hour timer. The timer always runs; whether a tick ASKS is
+ *  the preference's decision, read afresh each time (`checkForUpdates`), so
+ *  turning updates off and on again needs no restart. */
 export function installUpdater(): void {
   if (timer !== null) return;
   void checkForUpdates(false);

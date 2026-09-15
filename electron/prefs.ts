@@ -31,6 +31,7 @@
  *  default, and the reader running `npm start` in a terminal beside this app is
  *  the normal case, not a conflict to arbitrate. */
 import path from "node:path";
+import { parseUpdatesPref, type UpdatesPref } from "./updatePolicy.ts";
 
 export const PORT_MIN = 6820;
 export const PORT_MAX = 6899;
@@ -73,9 +74,13 @@ export interface Prefs {
   vaults: VaultPref[];
   /** Whether the spellchecker is on. A device preference, like the rest. */
   spellcheck: boolean;
+  /** Whether the app checks for releases and says so (`notify`, the default)
+   *  or stays silent (`off`). Never more than that: what a check may do is
+   *  decided in electron/updatePolicy.ts, and downloading is not on the list. */
+  updates: UpdatesPref;
 }
 
-export const EMPTY_PREFS: Prefs = { vaults: [], spellcheck: true };
+export const EMPTY_PREFS: Prefs = { vaults: [], spellcheck: true, updates: "notify" };
 
 const MIN_WINDOW = 480;
 /** Larger than any display anyone has, small enough that a corrupt number
@@ -132,7 +137,7 @@ export function parsePrefs(raw: unknown): Prefs {
     });
   }
   vaults.sort((a, b) => b.lastOpened - a.lastOpened);
-  return { vaults, spellcheck: raw.spellcheck !== false };
+  return { vaults, spellcheck: raw.spellcheck !== false, updates: parseUpdatesPref(raw.updates) };
 }
 
 /** FNV-1a over the vault path. Not a security hash — a spreader. It exists so
