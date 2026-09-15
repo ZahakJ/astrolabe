@@ -123,8 +123,9 @@ target differs from its source by marks alone) and the line detector. What only 
 prove is the editor's half: the correction is a *second* transaction, dispatched off a microtask
 after the one that typed the space, and it has to land as its own undo step with the space left
 standing. So the gate writes a note, types into it with a real keyboard, and checks each
-promise the docs make: `tres ` → `très `, `coeur ` → `cœur `, Enter as a boundary, an English
-line with one French word left alone, a code fence never touched, one `Ctrl Z` giving `tres `
+promise the docs make: `tres ` → `très `, `coeur ` → `cœur `, Enter and a stepped-over `)` as
+boundaries, a line corrected whole when it becomes French, an English line with one French word
+left alone (and an all-caps `UN`, and a Spanish line), a code fence never touched, one `Ctrl Z` giving `tres `
 back and the same word not corrected again, the device switch off and on, `lang="fr"` on the
 French line and nothing on the English one, the narrow no-break space before `?`, `...` → `…`
 on a French line only, and a correction in vim's insert mode. Needs `CHROMIUM` and, against a

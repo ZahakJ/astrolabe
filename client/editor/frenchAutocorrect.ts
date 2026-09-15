@@ -6,11 +6,15 @@
 // file is when to ask, and how to write the answer into the document so that
 // it behaves like something the writer can trust:
 //
-//   · WHEN: at a word boundary — the space, the comma, the Enter — after a
-//     word, on a line that reads as French (or in a note whose frontmatter
-//     says `lang: fr`). Not while a word is still being typed, because the
-//     word is not finished, and not in an English line with one French word
-//     in it, because that writer did not ask.
+//   · WHEN: at a word boundary — the space, the comma, the Enter, the closing
+//     bracket (typed, or stepped over when closeBrackets had already put it
+//     there) — after a word, on a line that reads as French (or in a note
+//     whose frontmatter says `lang: fr`). Not while a word is still being
+//     typed, because the word is not finished, and not in an English line
+//     with one French word in it, because that writer did not ask. And at
+//     the boundary where a line BECOMES French — its second `je` or `les` —
+//     the words already on it are corrected too, as one step: the line's
+//     first word was finished before the line had earned it.
 //   · WHERE NOT: code fences, inline code, a link's address, a wikilink's
 //     target, the frontmatter, math, a `\command`, anything in a URL. Those
 //     are not prose in any language and a corrected identifier is a broken
@@ -34,7 +38,7 @@ import { syntaxTree } from "@codemirror/language";
 import { Transaction, type ChangeSpec, type EditorState, type Extension } from "@codemirror/state";
 import { ViewPlugin, type EditorView, type ViewUpdate } from "@codemirror/view";
 import type { SyntaxNode } from "@lezer/common";
-import { BOUNDARIES, frenchCorrection, looksFrench, noteIsFrench, typographyFix, wordFix } from "../../shared/french.ts";
+import { BOUNDARIES, frenchCorrection, lineFixes, looksFrench, noteIsFrench, typographyFix, wordFix } from "../../shared/french.ts";
 import { frontmatterText } from "../../shared/textLayout.ts";
 import { frenchAutocorrectEnabled } from "../frenchPref.ts";
 
@@ -119,15 +123,18 @@ const DECLINED_MAX = 32;
 function plan(view: EditorView, tr: Transaction, declined: readonly Declined[]): Plan | null {
   if (!frenchAutocorrectEnabled() || !vimInserting(view)) return null;
   // One typed insertion, at one caret. A paste, a completion, a multi-cursor
-  // edit and an IME composition all arrive as something else.
+  // edit and an IME composition all arrive as something else. The one
+  // replacement that counts is closeBrackets stepping over the `)` or `"`
+  // it had already inserted: that arrives as the character replacing
+  // itself, and it is how a word in brackets or quotes gets finished.
   let count = 0;
   let at = -1;
   let inserted = "";
   tr.changes.iterChanges((fromA, toA, fromB, _toB, text) => {
     count += 1;
-    // A replacement (typing over a selection) is not a boundary after a word.
-    at = fromA === toA ? fromB : -1;
     inserted = text.toString();
+    const stepOver = toA > fromA && tr.startState.doc.sliceString(fromA, toA) === inserted;
+    at = fromA === toA || stepOver ? fromB : -1;
   });
   if (count !== 1 || at < 0) return null;
   const newline = inserted.startsWith("\n");
@@ -138,28 +145,38 @@ function plan(view: EditorView, tr: Transaction, declined: readonly Declined[]):
   const line = state.doc.lineAt(at);
   const before = line.text.slice(0, at - line.from);
   if (before === "") return null;
-  const french = noteIsFrench(frontmatterText(state.doc.sliceString(0, FRONTMATTER_SCAN))) || looksFrench(line.text);
-  if (!french) return null;
+  const noteFrench = noteIsFrench(frontmatterText(state.doc.sliceString(0, FRONTMATTER_SCAN)));
+  if (!noteFrench && !looksFrench(line.text)) return null;
 
   const changes: ChangeSpec[] = [];
   const expect: Plan["expect"] = [];
-  const word = wordFix(before);
-  if (word !== null) {
-    const from = at + word.from;
-    const refused = declined.some((d) => d.pos === from && d.word === word.word);
-    if (!refused && isProse(state, at, line.number, before)) {
-      changes.push({ from, to: at, insert: word.insert });
-      expect.push({ from, to: at, text: word.word });
+  const consider = (from: number, to: number, insert: string, word: string | undefined): void => {
+    if (word !== undefined && declined.some((d) => d.pos === from && d.word === word)) return;
+    if (!isProse(state, to, line.number, state.doc.sliceString(line.from, to))) return;
+    changes.push({ from, to, insert });
+    expect.push({ from, to, text: state.doc.sliceString(from, to) });
+  };
+
+  // The word just finished is what made the line French: the whole line,
+  // its earlier words included. Measured against the line WITHOUT that word
+  // rather than against the previous keystroke, because the `n` of `bien`
+  // tipped the line and the space after it is the first boundary since. (A
+  // note that says `lang: fr` never tips — every line of it was French from
+  // its first letter.)
+  if (!noteFrench) {
+    let start = before.length;
+    while (start > 0 && /\p{L}/u.test(before.charAt(start - 1))) start -= 1;
+    if (start < before.length && !looksFrench(before.slice(0, start) + line.text.slice(before.length))) {
+      for (const fix of lineFixes(line.text)) consider(line.from + fix.from, line.from + fix.to, fix.insert, fix.word);
+      return changes.length === 0 ? null : { changes, expect };
     }
   }
+
+  const word = wordFix(before);
+  if (word !== null) consider(at + word.from, at, word.insert, word.word);
   if (!newline) {
     const typo = typographyFix(before, typed);
-    if (typo !== null && isProse(state, at, line.number, before)) {
-      const from = at + typo.from;
-      const to = at + typo.to;
-      changes.push({ from, to, insert: typo.insert });
-      expect.push({ from, to, text: state.doc.sliceString(from, to) });
-    }
+    if (typo !== null) consider(at + typo.from, at + typo.to, typo.insert, undefined);
   }
   return changes.length === 0 ? null : { changes, expect };
 }

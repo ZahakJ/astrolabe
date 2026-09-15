@@ -16,6 +16,7 @@ import {
   NBSP,
   frenchCorrection,
   frenchScore,
+  lineFixes,
   looksFrench,
   noteIsFrench,
   typographyFix,
@@ -32,9 +33,22 @@ const REAL_WORDS = [
   "mat", "pale", "male", "aine", "cru", "jeune", "hale", "bailler", "chasse", "tache",
 ];
 
+/** Sources with two everyday readings — `cree` is `crée` as often as `créé`,
+ *  `reserve` is `réserve` or `réservé` — which a table that never guesses
+ *  cannot hold either. */
+const TWO_WAYS = [
+  "cree", "enonce", "prefere", "resume", "reserve", "controle", "regle", "celebre", "age", "equipe", "diplome",
+  "reve", "depense", "echange", "melange", "prete", "epouse", "lache", "fete", "revolte", "epice", "reforme",
+  "coute", "equilibre",
+];
+
 describe("the correction table", () => {
   it("has no source that is a real French word", () => {
     for (const w of REAL_WORDS) assert.equal(FRENCH_TABLE[w], undefined, `${w} must not be a source`);
+  });
+
+  it("has no source that reads two ways", () => {
+    for (const w of TWO_WAYS) assert.equal(FRENCH_TABLE[w], undefined, `${w} must not be a source`);
   });
 
   it("has no duplicate sources", () => {
@@ -140,6 +154,29 @@ describe("looksFrench", () => {
     assert.ok(!looksFrench("Zoë's fiancé opened a crêperie"));
   });
 
+  it("does not count a word in capitals", () => {
+    // `UN`, `LA`, `EST`, `ET` are an organisation, a city, a time zone and
+    // a studio; an English meeting note carrying two of them was French.
+    assert.equal(frenchScore("Meeting at 5pm EST with the UN about the hotel"), 0);
+    assert.ok(!looksFrench("LA and the UN"));
+    // A capital at the head of a sentence still counts.
+    assert.equal(frenchScore("Je suis"), 2);
+    assert.ok(looksFrench("Il est"));
+  });
+
+  it("refuses the Romance languages that share its function words, and Latin", () => {
+    // `la`, `de`, `un`, `que`, `il`, `les` are Spanish, Italian, Portuguese
+    // and Catalan too; one word French does not use settles the line.
+    assert.ok(!looksFrench("la casa de mi madre es un hotel"));
+    assert.ok(!looksFrench("il libro e la casa dei nonni"));
+    assert.ok(!looksFrench("a casa da minha mãe não é um hotel"));
+    assert.ok(!looksFrench("els amics de la casa"));
+    assert.ok(!looksFrench("Deus est qui non est, ergo sunt"));
+    // …but `tu es` is French, and `con` and `dos` are French words too.
+    assert.ok(looksFrench("tu es la seule"));
+    assert.ok(looksFrench("le con et le dos"));
+  });
+
   it("refuses Arabic, Hebrew and CJK lines whatever they also carry", () => {
     assert.ok(!looksFrench("الحمد لله je suis très content"));
     assert.ok(!looksFrench("שלום et bonjour à tous"));
@@ -195,6 +232,27 @@ describe("wordFix", () => {
     for (const c of [" ", ".", ",", "?", ")", "»", "-", "*"]) assert.ok(BOUNDARIES.has(c), c);
     assert.ok(!BOUNDARIES.has("_"));
     assert.ok(!BOUNDARIES.has("/"));
+  });
+});
+
+describe("lineFixes", () => {
+  it("corrects a whole line at once, words and typography, in order", () => {
+    const line = "Tres bien, je dis « tres » et alors... vraiment ?";
+    assert.deepEqual(lineFixes(line), [
+      { from: 0, to: 4, insert: "Très", word: "Tres" },
+      { from: 19, to: 20, insert: NBSP },
+      { from: 20, to: 24, insert: "très", word: "tres" },
+      { from: 24, to: 25, insert: NBSP },
+      { from: 35, to: 38, insert: "…" },
+      { from: 47, to: 48, insert: NARROW_NBSP },
+    ]);
+  });
+
+  it("keeps the per-word rules", () => {
+    const fixes = lineFixes("\\etat #etat 3etat etat_x etat2 https://x.y/etat www.etat - : etat");
+    assert.deepEqual(fixes, [{ from: 61, to: 65, insert: "état", word: "etat" }]);
+    assert.deepEqual(lineFixes("Je suis très content"), []);
+    assert.deepEqual(lineFixes(""), []);
   });
 });
 
