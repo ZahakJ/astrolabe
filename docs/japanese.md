@@ -33,6 +33,8 @@ Select a word with a kanji in it, right-click (or press `Shift F10`), open **Ins
 
 `Enter` inserts, `Esc` cancels, `Tab` walks the fields, chips and buttons without leaving the box. The command palette (`Ctrl/Cmd P`) has the same box as **Add furigana to selection**. The row is offered only when the selection actually contains a kanji.
 
+To change a reading that is already there, select any part of the span — its word, its reading or a brace — and choose **Furigana…** again: the box opens on the whole span with its own readings in the fields, in the shape it was written in, and `Enter` replaces it rather than nesting a second span inside the first.
+
 Which reading comes first: in a compound of two or more kanji (学校, 日本) the *on'yomi* leads, because that is how compounds are usually read; for a single kanji the *kun'yomi* leads, and when kana follow it the reading whose okurigana those kana continue goes to the very front — 食 before べる is offered た, before う it is offered く.
 
 ## The automatic mode

@@ -101,6 +101,20 @@ export function findFurigana(text: string): FuriganaSpan[] {
   return out;
 }
 
+/** The span of `text` that a selection `[from, to)` touches, or null. A
+ *  selection that lands inside a span — its base, its reading, one of its
+ *  braces — is an intent to EDIT that span, not to open a second one inside
+ *  it: a popover that wrapped the base of `{漢字|かんじ}` again would write
+ *  `{{漢字|かんじ}|かんじ}`, and the innermost-wins rule above would then
+ *  show the outer braces as text. The editor's door (client/editor/
+ *  furigana.ts) widens the selection to what this returns. */
+export function furiganaSpanAt(text: string, from: number, to: number): FuriganaSpan | null {
+  for (const span of findFurigana(text)) {
+    if (from < span.end && to > span.start) return span;
+  }
+  return null;
+}
+
 /** The brace form of a base and its readings — the one spelling every
  *  surface writes, so a note never carries two. */
 export function serialiseFurigana(base: string, readings: string[]): string {

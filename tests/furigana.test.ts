@@ -5,7 +5,14 @@
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { findFurigana, hasKanji, rubySegments, serialiseFurigana, stripFurigana } from "../shared/furigana.ts";
+import {
+  findFurigana,
+  furiganaSpanAt,
+  hasKanji,
+  rubySegments,
+  serialiseFurigana,
+  stripFurigana,
+} from "../shared/furigana.ts";
 import {
   autoFurigana,
   kanjiRuns,
@@ -56,6 +63,24 @@ describe("findFurigana()", () => {
   it("finds several on one line, in order", () => {
     const spans = findFurigana("{日本|にほん}の{漢字|かんじ}");
     assert.deepEqual(spans.map((s) => s.base), ["日本", "漢字"]);
+  });
+});
+
+describe("furiganaSpanAt()", () => {
+  const text = "これは{漢字|かんじ}のテストです。";
+  it("hands a selection inside a span the whole span, so a second visit edits it", () => {
+    // 漢 alone, the reading, the closing brace: all the one span.
+    for (const [from, to] of [[4, 5], [7, 10], [10, 11], [3, 11]]) {
+      const span = furiganaSpanAt(text, from, to);
+      assert.equal(span?.start, 3);
+      assert.equal(span?.end, 11);
+      assert.deepEqual(span?.readings, ["かんじ"]);
+    }
+  });
+  it("answers null beside a span and on a line without one", () => {
+    assert.equal(furiganaSpanAt(text, 0, 3), null);
+    assert.equal(furiganaSpanAt(text, 11, 14), null);
+    assert.equal(furiganaSpanAt("漢字のテスト", 0, 2), null);
   });
 });
 

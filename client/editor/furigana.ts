@@ -19,7 +19,7 @@
 
 import { EditorSelection } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
-import { hasKanji } from "../../shared/furigana.ts";
+import { furiganaSpanAt, hasKanji } from "../../shared/furigana.ts";
 import { autoFurigana, type ReadingsTable } from "../../shared/furiganaReadings.ts";
 import { countPhrase, t, tf } from "../i18n.ts";
 import { toast } from "../toast.ts";
@@ -34,19 +34,40 @@ export function loadReadings(): Promise<ReadingsTable> {
   return tablePromise;
 }
 
+/** What the popover opens on: the range it will replace, the base it shows,
+ *  and — when the selection touched a span that is already there — that
+ *  span's readings, which the fields open on instead of the suggestions. */
+export interface FuriganaTarget {
+  from: number;
+  to: number;
+  base: string;
+  readings: string[] | null;
+}
+
 /** The main selection as a furigana base, or null when it cannot be one:
  *  empty, across lines, no kanji in it, or carrying a character the syntax
  *  itself uses (a brace or a bar would make the span unreadable). The
- *  selection's own leading and trailing whitespace stays outside the span. */
-export function furiganaBase(view: EditorView): { from: number; to: number; base: string } | null {
+ *  selection's own leading and trailing whitespace stays outside the span.
+ *
+ *  A selection INSIDE a span that is already there — the caret's line shows
+ *  the source, so its base is as selectable as any word — is that span,
+ *  whole, with its readings: the second visit corrects the reading rather
+ *  than nesting a new span in the old one (shared/furigana.ts::
+ *  furiganaSpanAt says what that would have written). */
+export function furiganaBase(view: EditorView): FuriganaTarget | null {
   const sel = view.state.selection.main;
   if (sel.empty) return null;
+  const line = view.state.doc.lineAt(sel.from);
+  if (sel.to > line.to) return null;
+  const span = furiganaSpanAt(line.text, sel.from - line.from, sel.to - line.from);
+  if (span !== null) {
+    return { from: line.from + span.start, to: line.from + span.end, base: span.base, readings: span.readings };
+  }
   const raw = view.state.sliceDoc(sel.from, sel.to);
-  if (raw.includes("\n")) return null;
   const lead = raw.length - raw.trimStart().length;
   const base = raw.trim();
   if (base === "" || !hasKanji(base) || /[{}|\\]/.test(base)) return null;
-  return { from: sel.from + lead, to: sel.from + lead + base.length, base };
+  return { from: sel.from + lead, to: sel.from + lead + base.length, base, readings: null };
 }
 
 /** Whether the menu row and the palette rows should be offered at all. */
