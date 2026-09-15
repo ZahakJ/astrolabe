@@ -41,6 +41,18 @@ describe("spellcheckLang", () => {
     assert.equal(spellcheckLang('Ghazali opens with الحمد لله and never returns'), "ar");
   });
 
+  it("names French — the one Latin line that disagrees with the document", () => {
+    // Two French function words make the line French (shared/french.ts),
+    // so the words the editor corrects are checked by the dictionary that
+    // knows them. One French word inside an English line does not.
+    assert.equal(spellcheckLang("Je suis très content"), "fr");
+    assert.equal(spellcheckLang("This is tres chic"), null);
+    // The note's own `lang: fr` makes every Latin line French…
+    assert.equal(spellcheckLang("Bonjour", true), "fr");
+    // …and never outranks the script: an Arabic line in a French note is Arabic.
+    assert.equal(spellcheckLang("الحمد لله", true), "ar");
+  });
+
   it("prefers Hebrew over Arabic when both are present", () => {
     // Not a real sentence — a deterministic answer for a line that has both,
     // asserted so the precedence cannot drift silently.

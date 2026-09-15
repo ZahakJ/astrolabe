@@ -116,6 +116,20 @@ borders are counted and margins are not — put the air on a wrapper's padding, 
 transparent border with `background-clip: padding-box`, never in a margin. The gate restores the
 instance language and deletes its fixture however the run ends.
 
+### `npm run check-french` — the auto-correction gate
+
+`tests/french.test.ts` proves the table (no source is a real French word, no duplicates, every
+target differs from its source by marks alone) and the line detector. What only a browser can
+prove is the editor's half: the correction is a *second* transaction, dispatched off a microtask
+after the one that typed the space, and it has to land as its own undo step with the space left
+standing. So the gate writes a note, types into it with a real keyboard, and checks each
+promise the docs make: `tres ` → `très `, `coeur ` → `cœur `, Enter as a boundary, an English
+line with one French word left alone, a code fence never touched, one `Ctrl Z` giving `tres `
+back and the same word not corrected again, the device switch off and on, `lang="fr"` on the
+French line and nothing on the English one, the narrow no-break space before `?`, `...` → `…`
+on a French line only, and a correction in vim's insert mode. Needs `CHROMIUM` and, against a
+password-protected instance, `ASTROLABE_PASSWORD`; deletes its fixture however the run ends.
+
 ### `npm run check-layouts` — the keyboard-layout gate
 
 `KeyboardEvent.key` is the character the *keyboard layout* produced. The shell used to compare
@@ -271,7 +285,7 @@ right-to-left mirror.
    things later.
 3. **Run the gates your change touches.** Theme tokens mean `check-contrast`; any user-visible
    string means `check-i18n`; the outline or note-rewriting code means `check-sections`; the
-   editor means `check-caret`; the designer means `check-board` / `check-preview` /
+   editor means `check-caret` (and `check-french` for anything that touches typing); the designer means `check-board` / `check-preview` /
    `check-design`; and **anything that reads a keystroke means `check-keymap` and
    `check-layouts`, plus `tests/shortcuts.test.ts`** — is the binding unique, and can a non-Latin
    keyboard reach it?

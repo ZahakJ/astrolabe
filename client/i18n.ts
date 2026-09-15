@@ -4081,6 +4081,14 @@ const DICT = {
     en: "Numbers sections in the reading view; a note can override it.",
     ar: "يرقّم الأقسام في عرض القراءة، وللملاحظة أن تتجاوزه.",
   },
+  // The French switch: what it corrects, in one breath, and the one fact a
+  // person needs before trusting a thing that edits their words — that a
+  // single undo takes each correction back.
+  rowFrenchAutocorrect: { en: "Auto-correct French", ar: "تصحيح الفرنسية تلقائيًا" },
+  hintFrenchAutocorrect: {
+    en: "On lines written in French: missing accents (tres → très, coeur → cœur), the space before ; : ! ? and inside « », and … for three dots. Ctrl/Cmd Z undoes one correction.",
+    ar: "في السطور المكتوبة بالفرنسية: الحركات الناقصة (⁦tres → très, coeur → cœur⁩)، والمسافة قبل ⁦; : ! ?⁩ وداخل ⁦« »⁩، و… بدل ثلاث نقاط. و⁦Ctrl/Cmd Z⁩ يتراجع عن تصحيح واحد.",
+  },
 
   // ── Settings → tab names that had none ──────────────────────────────────
   tabLanguage: { en: "Language & dates", ar: "اللغة والتواريخ" },

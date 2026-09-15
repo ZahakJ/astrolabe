@@ -41,6 +41,7 @@ import { noteLayoutExtension } from "./noteLayout.ts";
 import { editorTheme, astrolabeHighlighting } from "./theme.ts";
 import { livePreview } from "./livePreview.ts";
 import { markdownTables } from "./tables.ts";
+import { frenchAutocorrect } from "./frenchAutocorrect.ts";
 import { pointerSelection } from "./pointer.ts";
 import { searchPhrases } from "./searchPhrases.ts";
 import { formatKeymap } from "./commands.ts";
@@ -218,6 +219,10 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
             // GFM tables: widget when the caret is out, source when it is
             // in, cell keys, prettify-on-exit — tables.ts owns all of it.
             markdownTables(),
+            // French, corrected at the word boundary on lines that read as
+            // French — its own undo step, nothing shown. Markdown only: a
+            // `.tex` note is markup end to end, and `\etat` is a command.
+            frenchAutocorrect(),
           ]),
       // Caret placement resolved through the DOM rather than CodeMirror's
       // `posAtCoords`, which mis-maps every row carrying a replaced inline
