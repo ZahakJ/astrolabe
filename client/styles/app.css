@@ -7578,3 +7578,27 @@ html[dir="rtl"] .s-statusbar__spacer {
     display: none;
   }
 }
+
+/* ------------------------------------------------- Japanese & furigana -- */
+/* THE TEST THIS RULE WAS WRITTEN AGAINST: a line with no Japanese must not
+   move by a pixel. `lang="ja"` is stamped per line by client/editor/bidi.ts
+   and per block by client/reading/render.ts (both from shared/script.ts),
+   on Japanese lines only, so an English or Arabic paragraph matches nothing
+   here. Measured, not assumed: a note with an English, an Arabic and a
+   Japanese paragraph was rendered with the feature off and on, every
+   .cm-line and every reading-view <p> was asked for its height and its
+   computed font family, and the English and Arabic answers were identical.
+
+   The face: the serif and UI stacks carry no CJK font, so kana and kanji
+   fell through to the platform's last resort. `--font-ja` (tokens.css) is
+   consumed here and in the furigana popover. The editor's heading rule and
+   the reading view's are more specific than a bare attribute, hence the two
+   longer selectors — a Japanese heading takes the face too. The ruby itself
+   (`{漢字|かんじ}`, shared/furigana.ts) is dressed where it is drawn:
+   reading/reading.css for the page and the site, styles/preview.css for the
+   editor — neither sheet is in the first paint of a vault without one. */
+[lang="ja"],
+.s-editor .cm-line[lang="ja"],
+.s-rv .s-rv-h[lang="ja"] {
+  font-family: var(--font-ja);
+}

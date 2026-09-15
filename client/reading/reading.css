@@ -52,6 +52,28 @@
   margin: 0 0 0.9em;
 }
 
+/* Furigana — `{漢字|かんじ}` (shared/furigana.ts) and a hand-written <ruby>
+   alike. The reading sits over the base, centred, at half the base size —
+   the proportion every printed book uses — in the Japanese face and muted
+   ink. A line WITH ruby grows taller to make room; that is correct, the
+   reading needs the room. A line without one matches nothing here, which is
+   the condition the feature shipped under. The <rp> parentheses stay hidden
+   on screen (the browser's own default) and come back in a plain-text copy
+   and to a screen reader: 漢字(かんじ). The editor's copy of this rule is
+   styles/preview.css. */
+.s-rv ruby {
+  ruby-position: over;
+  ruby-align: center;
+}
+
+.s-rv rt {
+  font-family: var(--font-ja);
+  font-size: 0.5em;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
 .s-rv .s-rv-h {
   font-family: var(--font-serif);
   font-weight: 700;

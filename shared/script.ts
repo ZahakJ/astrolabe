@@ -21,6 +21,14 @@ const ARABIC_RE = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\
  *  sentence built only from shared letters reads as Arabic — and still the
  *  difference between the right dictionary and a wall of red. */
 const PERSIAN_RE = /[\u067e\u0686\u0698\u06af\u06a9\u06cc]/;
+/** Hiragana, katakana (half-width too) and the CJK ideographs. Han alone is
+ *  also Chinese; kana is not, and in this vault a line of bare Han is far
+ *  likelier Japanese — the cost of the guess is one font stack and a
+ *  spellchecker that is told to stand down (no browser ships a Japanese
+ *  dictionary), never a wrong dictionary. shared/furigana.ts keeps the same
+ *  ranges for the kanji it annotates. */
+const JAPANESE_RE = /[\u3040-\u30ff\u4e00-\u9fff\uff66-\uff9f]/g;
+const LATIN_RE = /[A-Za-z\u00c0-\u024f]/g;
 
 /** A BCP-47 language tag for `text`, or null when the script does not narrow it
  *  and the surrounding document's own language should stand.
@@ -60,5 +68,15 @@ export function spellcheckKnown(lang: string): boolean {
 export function spellcheckLang(text: string): string | null {
   if (HEBREW_RE.test(text)) return "he";
   if (ARABIC_RE.test(text)) return PERSIAN_RE.test(text) ? "fa" : "ar";
+  // After the RTL scripts: a line that carries both is an Arabic line quoting
+  // a Japanese word, and the RTL answer is the one its direction depends on.
+  // And BY MAJORITY against Latin, unlike the two above, because `lang="ja"`
+  // changes a line's FACE (`[lang="ja"]` in app.css) where "ar" changes only
+  // its dictionary: an English sentence quoting one kanji must keep its own
+  // type for the English, so a line is Japanese when its Japanese characters
+  // outnumber its Latin letters. Ties go to Japanese — a kanji and a letter
+  // on one line is likelier a Japanese note naming a Latin thing.
+  const ja = text.match(JAPANESE_RE)?.length ?? 0;
+  if (ja > 0 && ja >= (text.match(LATIN_RE)?.length ?? 0)) return "ja";
   return null;
 }
