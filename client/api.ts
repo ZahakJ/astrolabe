@@ -765,9 +765,10 @@ export function reviewCard(path: string, line: number, grade: Grade, today: stri
 // ── Constellations (CONSTELLATIONS-SPEC.md; client/stars/*) ─────────────────
 
 /** Every constellation on the shelf, the implicit "Everything else" last
- *  (admin only). */
-export function getConstellations(): Promise<ConstellationMeta[]> {
-  return request<ConstellationMeta[]>("/api/constellations");
+ *  (admin only). `today` is the CLIENT's day — due is a local-calendar
+ *  question and the server's clock may sit in another zone. */
+export function getConstellations(today: string): Promise<ConstellationMeta[]> {
+  return request<ConstellationMeta[]>(`/api/constellations?today=${encodeURIComponent(today)}`);
 }
 
 /** The stars of one constellation, or of one section of it, for a session.

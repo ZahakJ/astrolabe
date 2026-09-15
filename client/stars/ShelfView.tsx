@@ -76,8 +76,12 @@ function ShelfCard({
   onOpen: () => void;
 }) {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
-  const series = useMemo(() => retentionSeries(log, today, 30, meta.path), [log, today, meta.path]);
-  const kept = useMemo(() => retention(log, today, 30, meta.path), [log, today, meta.path]);
+  // The log names the NOTE a star sits in. For a constellation that is its
+  // path; for the implicit one it is any note that is not a constellation,
+  // so the caller hands this card a log already narrowed to those.
+  const own = meta.implicit ? null : meta.path;
+  const series = useMemo(() => retentionSeries(log, today, 30, own), [log, today, own]);
+  const kept = useMemo(() => retention(log, today, 30, own), [log, today, own]);
   const sections = meta.sections.filter((s) => s.total > 0);
   const openSections = (e: { currentTarget: HTMLElement; detail?: number }): void => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -96,7 +100,7 @@ function ShelfCard({
         </span>
         <div className="s-shelf__cardtext">
           <h2 className="s-shelf__cardtitle" dir="auto">
-            {meta.implicit ? st("starsEverything") : meta.title}
+            {meta.implicit ? t("starsEverything") : meta.title}
           </h2>
           {meta.implicit ? (
             <p className="s-shelf__cardsub">{st("starsEverythingHint")}</p>
@@ -170,7 +174,7 @@ export default function ShelfView() {
   const [asked, setAsked] = useState<StarsAsk | null>(null);
 
   const load = useCallback((): void => {
-    getConstellations()
+    getConstellations(isoDate(new Date()))
       .then((list) => {
         setAll(list);
         setFailed(false);
@@ -235,6 +239,12 @@ export default function ShelfView() {
     return [...list.filter((m) => !m.implicit), ...list.filter((m) => m.implicit && m.counts.total > 0)];
   }, [all]);
   const dueTotal = useMemo(() => sorted.reduce((n, m) => n + m.counts.due, 0), [sorted]);
+  // The implicit constellation's grades are the log entries on notes that
+  // are not constellations — its statistics must not count Hiragana's.
+  const restLog = useMemo(() => {
+    const named = new Set(sorted.filter((m) => !m.implicit).map((m) => m.path));
+    return log.filter((e) => !named.has(e.path));
+  }, [log, sorted]);
   const streak = useMemo(() => streakOf(studyDays(log), today), [log, today]);
   const dateLine = siteDate(`${today}T12:00:00`, locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
@@ -278,7 +288,7 @@ export default function ShelfView() {
             <ShelfCard
               key={meta.path}
               meta={meta}
-              log={log}
+              log={meta.implicit ? restLog : log}
               today={today}
               onStudy={(section) => study(meta, section)}
               onStats={() => setStats(meta)}
@@ -297,7 +307,7 @@ export default function ShelfView() {
           }}
         />
       )}
-      {stats && <StatsDrawer meta={stats} log={log} today={today} onClose={() => setStats(null)} />}
+      {stats && <StatsDrawer meta={stats} log={stats.implicit ? restLog : log} today={today} onClose={() => setStats(null)} />}
     </div>
   );
 }

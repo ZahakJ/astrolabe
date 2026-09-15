@@ -31,7 +31,10 @@ export const STARS_COPY = {
     en: "A constellation is a note; its stars are lines in it. Each one comes back on the schedule the note keeps.",
     ar: "الكوكبة ملاحظة، ونجومها أسطر فيها. يعود كل نجم على الجدول الذي تحفظه الملاحظة.",
   },
-  starsDueToday: { en: "{n} due today", ar: "{n} مستحقة اليوم" },
+  // Arabic puts the count LAST: "نجم واحد" is masculine, "٣ نجوم" takes a
+  // feminine adjective, and a sentence that ends in the count agrees with
+  // nothing.
+  starsDueToday: { en: "{n} due today", ar: "المستحق اليوم: {n}" },
   starsNothingDue: { en: "Nothing due today", ar: "لا شيء مستحق اليوم" },
   starsStreak: { en: "{days} in a row", ar: "{days} على التوالي" },
   starsStudy: { en: "Study", ar: "ادرس" },
@@ -41,7 +44,6 @@ export const STARS_COPY = {
   starsNewLabel: { en: "new", ar: "جديد" },
   starsTotalLabel: { en: "total", ar: "الكل" },
   starsPercent: { en: "{n}%", ar: "{n}٪" },
-  starsEverything: { en: "Everything else", ar: "كل ما سواها" },
   starsEverythingHint: { en: "Cards outside any constellation, by folder", ar: "بطاقات خارج أي كوكبة، بحسب المجلد" },
   starsStats: { en: "Statistics", ar: "الإحصاءات" },
   starsStatsFor: { en: "Statistics for {title}", ar: "إحصاءات {title}" },
@@ -85,6 +87,10 @@ export const STARS_COPY = {
   starsKeysHint: { en: "Space shows the answer · 1–4 grade", ar: "المسافة تُظهر الإجابة · ١–٤ للتقييم" },
   starsDone: { en: "Session complete", ar: "اكتملت الجلسة" },
   starsDoneHint: { en: "Nothing left for today in this constellation.", ar: "لم يبقَ شيء لليوم في هذه الكوكبة." },
+  // What "Skip" left behind — a skipped star is put aside for the session,
+  // not for the day, and Study more walks it. The count ends the sentence
+  // for the same reason as starsDueToday.
+  starsDoneLeft: { en: "Still due today: {n}. Study more to walk them.", ar: "ما زال مستحقًا اليوم: {n}. «ادرس المزيد» يعود إليها." },
   starsStatGraded: { en: "Graded", ar: "قُيِّمت" },
   starsStatRetention: { en: "Retention", ar: "الاستبقاء" },
   starsStatTime: { en: "Time", ar: "الوقت" },
@@ -136,7 +142,7 @@ export const STARS_COPY = {
   starsColExtra: { en: "Extra", ar: "إضافة" },
   starsColNone: { en: "None", ar: "بلا" },
   starsColumnN: { en: "Column {n}", ar: "العمود {n}" },
-  starsHeaderRow: { en: "The first row is a header", ar: "الصف الأول عنوان" },
+  starsHeaderRow: { en: "The first row is a header", ar: "الصف الأول عناوين الأعمدة" },
   starsRowsFound: { en: "{n} in the file", ar: "{n} في الملف" },
   starsCreate: { en: "Create", ar: "أنشئ" },
   starsImportGo: { en: "Import", ar: "استورد" },

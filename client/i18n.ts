@@ -4584,10 +4584,15 @@ const DICT = {
   cmdStudyDue: { en: "Study due cards", ar: "ادرس النجوم المستحقة" },
   cmdStudyDueHint: { en: "the first constellation with stars due", ar: "أول كوكبة فيها نجوم مستحقة" },
   starsNew: { en: "New constellation…", ar: "كوكبة جديدة…" },
+  // The implicit constellation — every card outside a constellation note —
+  // has no note to be named after, so its session tab wears this.
+  starsEverything: { en: "Everything else", ar: "كل ما سواها" },
   cmdNewConstellationHint: { en: "a note of front::back lines", ar: "ملاحظة من أسطر وجه::ظهر" },
   cmdImportDeck: { en: "Import an Anki deck…", ar: "استيراد مجموعة Anki…" },
   cmdImportDeckHint: { en: ".apkg, .csv or .tsv", ar: "ملف .apkg أو .csv أو .tsv" },
-  routinesStarsDue: { en: "{n} due", ar: "{n} مستحقة" },
+  // "{n}" is a countPhrase ("3 stars" / "٣ نجوم"); the Arabic ends in it so
+  // no adjective has to agree with a count that changes gender at one.
+  routinesStarsDue: { en: "{n} due", ar: "المستحق اليوم: {n}" },
   addFlashcard: { en: "Make a flashcard", ar: "اصنع بطاقة" },
   // ── Offline reading (client/offline.ts, client/sw.ts, docs/offline.md) ──
   rowOffline: { en: "Offline reading", ar: "القراءة دون اتصال" },
