@@ -57,9 +57,16 @@ import { anchorLine } from "../../shared/anchors.ts";
 import { caretHome } from "../editor/caretHome.ts";
 import { INSERT_TEMPLATE_EVENT, type InsertTemplateDetail } from "../templateActions.ts";
 import { openSearchPanel } from "@codemirror/search";
-import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT, STRIP_TASHKEEL_EVENT } from "../editor/bufferBridge.ts";
+import {
+  COPY_BLOCK_LINK_EVENT,
+  FIND_IN_NOTE_EVENT,
+  FURIGANA_EVENT,
+  STRIP_TASHKEEL_EVENT,
+  type FuriganaMode,
+} from "../editor/bufferBridge.ts";
 import { copyBlockLink } from "../editor/blockLink.ts";
 import { stripTashkeelNote } from "../editor/harakat.ts";
+import { autoFuriganaSelection, openFuriganaPopover } from "../editor/furigana.ts";
 import { applyTemplate, splitFrontmatter } from "../templates.ts";
 
 /** The caret each note was last seen at, so a REMOUNT does not throw it away.
@@ -506,10 +513,27 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
       stripTashkeelNote(view);
     };
     window.addEventListener(STRIP_TASHKEEL_EVENT, onStrip);
+    // The two furigana rows: the same one-editor resolution, because both
+    // act on THIS pane's selection (editor/furigana.ts).
+    const onFurigana = (e: Event): void => {
+      const view = viewRef.current;
+      if (!view) return;
+      if (paneId !== null) {
+        const ws = useStore.getState().workspace;
+        const focused = paneAt(ws, ws.focus);
+        const target = focused !== null && surfaceOf(focused) === "edit" ? ws.focus : ws.noteFocus;
+        if (paneId !== target) return;
+      }
+      const mode = (e as CustomEvent<FuriganaMode>).detail;
+      if (mode === "auto") void autoFuriganaSelection(view);
+      else void openFuriganaPopover(view);
+    };
+    window.addEventListener(FURIGANA_EVENT, onFurigana);
     return () => {
       window.removeEventListener(FIND_IN_NOTE_EVENT, onFind);
       window.removeEventListener(COPY_BLOCK_LINK_EVENT, onBlockLink);
       window.removeEventListener(STRIP_TASHKEEL_EVENT, onStrip);
+      window.removeEventListener(FURIGANA_EVENT, onFurigana);
     };
   }, [paneId, path]);
 

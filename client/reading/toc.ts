@@ -2,6 +2,7 @@
 // reads, so the outline's idea of what is code and the anchor table's cannot
 // drift. See that file for what a marker-blind toggle cost.
 import { closesFence, fenceOpener, sourceLines, type Fence } from "../../shared/fences.ts";
+import { stripFurigana } from "../../shared/furigana.ts";
 import { stripAlignMarker } from "../../shared/blockAlign.ts";
 import { isTexPath } from "../../shared/noteFormat.ts";
 import { inlineText as texInlineText, parseTex } from "../../shared/tex.ts";
@@ -42,7 +43,9 @@ export class Slugger {
 
 /** Strip inline markdown from heading text for display + slugging. */
 export function stripInline(text: string): string {
-  return text
+  // `{漢字|かんじ}` is the word 漢字 with a reading over it; the outline, the
+  // slug and a search hit want the word.
+  return stripFurigana(text)
     .replace(/!\[\[([^[\]]+?)\]\]/g, "$1")
     .replace(/\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]/g, (_m, t: string, a?: string) =>
       (a ?? t).trim(),

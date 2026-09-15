@@ -13,6 +13,18 @@
 // from Latin letters is a different problem with a much worse failure mode, and
 // the answer there — inherit the instance's own language — is already correct
 // for the overwhelming majority of lines.
+//
+// FRENCH IS THE ONE EXCEPTION, and it is a narrow one. The owner writes French
+// and asked for it to be corrected as typed (shared/french.ts), and a line the
+// editor is prepared to CORRECT as French had better be spellchecked as French
+// too — otherwise every word it has just fixed is underlined in red by the
+// English dictionary. So a Latin line is French when shared/french.ts's
+// `looksFrench` says so (two French function words, whole words, or the note's
+// own `lang: fr`), and inherits the instance language otherwise. The failure
+// mode above is contained by the same threshold that contains the corrections:
+// an English line with one French word in it is not French.
+
+import { looksFrench } from "./frenchLine.ts";
 
 const HEBREW_RE = /[\u0590-\u05ff\ufb1d-\ufb4f]/;
 const ARABIC_RE = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]/;
@@ -21,6 +33,14 @@ const ARABIC_RE = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\
  *  sentence built only from shared letters reads as Arabic — and still the
  *  difference between the right dictionary and a wall of red. */
 const PERSIAN_RE = /[\u067e\u0686\u0698\u06af\u06a9\u06cc]/;
+/** Hiragana, katakana (half-width too) and the CJK ideographs. Han alone is
+ *  also Chinese; kana is not, and in this vault a line of bare Han is far
+ *  likelier Japanese — the cost of the guess is one font stack and a
+ *  spellchecker that is told to stand down (no browser ships a Japanese
+ *  dictionary), never a wrong dictionary. shared/furigana.ts keeps the same
+ *  ranges for the kanji it annotates. */
+const JAPANESE_RE = /[\u3040-\u30ff\u4e00-\u9fff\uff66-\uff9f]/g;
+const LATIN_RE = /[A-Za-z\u00c0-\u024f]/g;
 
 /** A BCP-47 language tag for `text`, or null when the script does not narrow it
  *  and the surrounding document's own language should stand.
@@ -57,8 +77,22 @@ export function spellcheckKnown(lang: string): boolean {
   return available.has("*") || available.has(lang);
 }
 
-export function spellcheckLang(text: string): string | null {
+/** @param noteFrench the note said `lang: fr` in its frontmatter, so every
+ *  Latin line is French without the per-line test (the caller reads it once
+ *  per note — shared/french.ts's `noteIsFrench`). */
+export function spellcheckLang(text: string, noteFrench = false): string | null {
   if (HEBREW_RE.test(text)) return "he";
   if (ARABIC_RE.test(text)) return PERSIAN_RE.test(text) ? "fa" : "ar";
+  // After the RTL scripts: a line that carries both is an Arabic line quoting
+  // a Japanese word, and the RTL answer is the one its direction depends on.
+  // And BY MAJORITY against Latin, unlike the two above, because `lang="ja"`
+  // changes a line's FACE (`[lang="ja"]` in app.css) where "ar" changes only
+  // its dictionary: an English sentence quoting one kanji must keep its own
+  // type for the English, so a line is Japanese when its Japanese characters
+  // outnumber its Latin letters. Ties go to Japanese — a kanji and a letter
+  // on one line is likelier a Japanese note naming a Latin thing.
+  const ja = text.match(JAPANESE_RE)?.length ?? 0;
+  if (ja > 0 && ja >= (text.match(LATIN_RE)?.length ?? 0)) return "ja";
+  if (noteFrench || looksFrench(text)) return "fr";
   return null;
 }

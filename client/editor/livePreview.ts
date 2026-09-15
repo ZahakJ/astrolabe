@@ -67,6 +67,7 @@ import { tasksBlockDeco, tasksFenceSpan } from "./tasksFence.ts";
 import { tasksFenceKind } from "../../shared/tasks.ts";
 import { sanitizeHtml, sanitizeStyle } from "../reading/rawHtml.ts";
 import { isNotePath } from "../../shared/noteFormat.ts";
+import { findFurigana, rubySegments } from "../../shared/furigana.ts";
 
 /** Vault path of the note this editor shows (embeds resolve against it). */
 export const notePathFacet = Facet.define<string, string>({
@@ -145,6 +146,45 @@ class RuleWidget extends WidgetType {
     el.className = this.ornamental ? "cm-s-hr-rule cm-s-hr-rule--orn" : "cm-s-hr-rule";
     el.setAttribute("aria-hidden", "true");
     return el;
+  }
+}
+
+/** `{漢字|かんじ}` drawn as the `<ruby>` the reading view draws (render.ts
+ *  ::rubyHtml, from the same shared/furigana.ts segments), so the editor and
+ *  the page cannot show two different readings of one span. A replacing
+ *  widget, not a mark: the reading has to sit OVER the base, which only a
+ *  real ruby box can do, and the caret landing beside it turns the line
+ *  active and brings the source back, like every other live-preview element.
+ *  The `<rp>` parentheses are there for the plain-text copy of a selection
+ *  that crosses the widget and for a screen reader — both read 漢字(かんじ). */
+class RubyWidget extends WidgetType {
+  constructor(
+    readonly base: string,
+    readonly readings: string[],
+  ) {
+    super();
+  }
+  override eq(other: RubyWidget): boolean {
+    return other.base === this.base && other.readings.join("|") === this.readings.join("|");
+  }
+  toDOM(): HTMLElement {
+    const ruby = document.createElement("ruby");
+    ruby.className = "cm-s-ruby";
+    for (const seg of rubySegments(this.base, this.readings)) {
+      ruby.appendChild(document.createTextNode(seg.text));
+      if (seg.rt === null) continue;
+      const open = document.createElement("rp");
+      open.textContent = "(";
+      const rt = document.createElement("rt");
+      rt.textContent = seg.rt;
+      const close = document.createElement("rp");
+      close.textContent = ")";
+      ruby.append(open, rt, close);
+    }
+    return ruby;
+  }
+  override ignoreEvent(): boolean {
+    return false; // a click puts the caret at the span's source
   }
 }
 
@@ -719,6 +759,26 @@ function buildDecorations(view: EditorView): DecorationSet {
           mark(innerFrom, innerTo, linkClass);
         }
         hide(innerTo, end); // ]]
+      }
+
+      // {漢字|かんじ} furigana (shared/furigana.ts). Off the caret the span
+      // is the ruby; on its line the braces and bars read as syntax and the
+      // readings in muted ink, so a reading can be corrected by hand.
+      for (const span of findFurigana(text)) {
+        const start = line.from + span.start;
+        const end = line.from + span.end;
+        if (blocked(start, end)) continue;
+        if (lineIsActive) {
+          const baseEnd = start + 1 + span.base.length;
+          mark(start, start + 1, "cm-s-syntax");
+          mark(baseEnd, end - 1, "cm-s-furigana-src");
+          mark(end - 1, end, "cm-s-syntax");
+        } else {
+          decos.push(
+            Decoration.replace({ widget: new RubyWidget(span.base, span.readings) }).range(start, end),
+          );
+        }
+        claimed.push({ from: start, to: end });
       }
 
       // ==highlights==

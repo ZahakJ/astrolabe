@@ -3866,6 +3866,60 @@ off, contained none of those three things.
   underlining every identifier in it in red is how a reader learns to turn spelling off entirely.
   The same `sourceLines()` set that already refuses those lines an alignment refuses them a
   dictionary.
+- **French is the one Latin exception, and it is bounded by the same rule that bounds the
+  corrections.** `spellcheckLang()` answers `fr` for a line `shared/french.ts::looksFrench`
+  accepts — two French function words as whole words, or the note's own `lang: fr` — because a
+  line the editor is prepared to CORRECT as French (the contract below) must be checked by the
+  dictionary that knows the words it just wrote, not underlined by the English one for each of
+  them. It is still not a language detector: one French word in an English line is an English
+  line, an Arabic line is Arabic whatever the note says, and `electron/spellcheck.ts` lists `fr`
+  beside `he`/`fa`/`ar` so the attribute is not inert on the desktop.
+
+### French, corrected as you type (shared/french.ts, client/editor/frenchAutocorrect.ts)
+
+The owner: *"add auto-correction to French — don't want full French support, just auto correction
+if I write in French"*. So it is a TABLE and a THRESHOLD, not a dictionary and not a grammar, and
+the contract is what it refuses:
+
+- **The table never guesses.** Every source is a spelling that is not a French word without its
+  mark (`tres`, `etre`, `hopital`, `coeur`); a word that exists both ways (`a/à`, `ou/où`,
+  `la/là`, `sur/sûr`, `du/dû`, `cote`, `tache`, `mur`, `pres`, `gene`, `peche`, `foret`,
+  `eleve`) is not in it and must never be added — and neither is a source whose accents could
+  land two ways (`cree` → `crée`/`créé`, `resume`, `prefere`, `enonce`, `reserve`, `controle`,
+  `regle`, `age`, `equipe`, `reve`, `fete`…: the noun and its everyday participle).
+  `tests/french.test.ts` asserts both exclusions by name, that no source is duplicated, and
+  that every target differs from its source by marks alone. A wrong correction costs the
+  reader's trust in the editor; a missed one costs nothing.
+- **Only a line that reads as French, only at a word boundary, only in prose.** Two French
+  function words (or `lang: fr` in the frontmatter) make the line French; `This is tres chic`
+  is left alone — an English writer did not ask. A word in capitals never counts (`UN`, `LA`,
+  `EST` made an English meeting note French), and one Spanish, Italian, Portuguese, Catalan or
+  Latin function word French does not use (`el`, `del`, `una`, `di`, `não`, `ergo`…) settles the
+  line the other way, because those languages share `la`, `de`, `un`, `que`, `il`. A boundary is
+  a typed space, punctuation, Enter, or a closing bracket or quote — including the one
+  closeBrackets had already placed and the writer steps over, which arrives as the character
+  replacing itself. At the boundary whose word TIPS the line into French (measured against the
+  line without that word, not against the previous keystroke — the `n` of `bien` tips it and the
+  space after is the first boundary since), the whole line is corrected in one step, earlier
+  words and typography included: `shared/french.ts::lineFixes`. Code fences, inline code (by
+  backtick parity, so an unclosed span counts), a link's `URL`, a wikilink's target, the
+  frontmatter, `$math$` and `$$` blocks, a `\command` and anything after `https://` on the line
+  are never touched. Vim: insert mode only.
+- **Each correction is its own undo step and is dispatched as a SECOND transaction**
+  (`userEvent: "input.autocorrect"`, `isolateHistory("full")`), off a microtask after the one
+  that typed the boundary, re-checking the document before it writes. One Ctrl+Z after `très `
+  gives `tres ` back with the space standing, and the plugin remembers that refusal for that
+  word at that position (mapped through later edits) and does not correct it again. Nothing is
+  shown: no toast, no underline — the corrected word is the feedback.
+- **The typography rides on the same switch and the same threshold**: a typed space before
+  `; : ! ?` becomes U+202F (only after a word or closing bracket, never after a list marker or
+  a table pipe), the space inside `« »` becomes U+00A0, and `...` becomes `…` — on French lines
+  only, so an English `And then...` keeps its dots.
+- **One device row, on by default, travelling.** Settings → This device → *Auto-correct
+  French*, `astrolabe.frenchAutocorrect`, in `prefsSync`'s `TRAVELS`; the extension reads the
+  key at the boundary rather than caching it, so a value pulled in from another device takes
+  effect without a reload. The gate is `node scripts/check-french.mjs`, which types every
+  promise above into a real editor.
 
 ## Blog surface (the public shell's own furniture)
 
