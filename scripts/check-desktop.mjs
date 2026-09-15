@@ -383,6 +383,34 @@ if (/const DICT\s*=\s*\{/.test(read("electron/menuStrings.ts"))) {
 }
 
 
+// THE APPSTREAM FILE. The deb and the pacman package carry
+// desktop/appstream/*.metainfo.xml (stamped into desktop/build/ by
+// scripts/stamp-metainfo.mjs, mapped by electron-builder.yml) so a software
+// centre shows a name, an author, a licence and a version instead of
+// "Unknown" and "Loading…". Its id must be the appId, its launchable the
+// desktop file, and it must validate when appstreamcli is on the machine.
+{
+  const metainfo = read("desktop/appstream/dev.astrolabe.desktop.metainfo.xml");
+  const yml = read("desktop/electron-builder.yml");
+  const appId = /^appId:\s*(\S+)/m.exec(yml)?.[1];
+  const desktopName = /desktopName:\s*(\S+)/.exec(yml)?.[1];
+  if (!metainfo.includes(`<id>${appId}</id>`)) errs.push(`APPSTREAM  the metainfo id is not the appId ${appId}`);
+  if (!metainfo.includes(`<launchable type="desktop-id">${desktopName}</launchable>`)) errs.push(`APPSTREAM  the launchable is not ${desktopName}`);
+  if (!metainfo.includes("<project_license>MIT</project_license>") || !/^\s*license:\s*MIT/m.test(yml)) errs.push("APPSTREAM  the licence is not stated as MIT in both the metainfo and electron-builder.yml");
+  if (!yml.includes("build/dev.astrolabe.desktop.metainfo.xml=/usr/share/metainfo/")) errs.push("APPSTREAM  electron-builder.yml no longer maps the metainfo into the packages");
+  if (!/stamp-metainfo\.mjs/.test(read("desktop/package.json"))) errs.push("APPSTREAM  desktop/package.json's build:preload no longer stamps the metainfo");
+  const { spawnSync } = await import("node:child_process");
+  const which = spawnSync("sh", ["-c", "command -v appstreamcli"], { encoding: "utf8" });
+  if (which.status === 0) {
+    const stamp = spawnSync(process.execPath, [path.join(root, "scripts", "stamp-metainfo.mjs")], { encoding: "utf8" });
+    const v = spawnSync("appstreamcli", ["validate", "--no-net", path.join(root, "desktop", "build", "dev.astrolabe.desktop.metainfo.xml")], { encoding: "utf8" });
+    if (stamp.status !== 0 || v.status !== 0) errs.push(`APPSTREAM  validation failed:\n${(stamp.stderr + v.stdout + v.stderr).trim()}`);
+    else notes.push("ok    appstream metainfo validates");
+  } else {
+    notes.push("note  appstreamcli not installed — metainfo checked by shape only");
+  }
+}
+
 console.log(notes.map((n) => `  ${n}`).join("\n"));
 if (errs.length) {
   console.log(`\nFAIL: ${errs.length}\n\n${errs.join("\n\n")}`);

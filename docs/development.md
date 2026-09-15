@@ -214,6 +214,16 @@ the two things Chrome builds a PDF's bookmark outline and its link annotations f
 an Arabic note prints as a right-to-left page from an English instance. It writes two fixture
 notes through the API and deletes them on the way out. See [Printing & PDF](printing.md).
 
+### `npm run check-deck` — every what's-new slide, measured
+
+`CHROMIUM=/usr/bin/chromium npm run check-deck -- http://127.0.0.1:6801 <admin password>`. The
+what's-new deck is drawings and live demos, and a drawing can look right in the language it was
+drawn in and run off its frame in the other. This opens every release's deck in English and then
+Arabic, freezes the loop at the point where every part has arrived, and fails if any text leaves
+the frame, sits outside the chip it belongs to, overlaps another, is Arabic set right-to-left
+inside a drawing, or is an Arabic sentence inside a drawing (prose belongs in a DOM demo). Run it
+before every release that adds a slide.
+
 ### `npm run check-presets` — the preset catalog
 
 Unique slug ids, a bilingual name and blurb with real Arabic, a known family, at least one preset

@@ -1,6 +1,7 @@
 // Typography: a curated webfont catalog, self-hosted.
 //
-// Astrolabe ships zero webfonts and visitors never touch an external host — but
+// Astrolabe fetches zero webfonts for a visitor (it SHIPS one, Noto Naskh Arabic,
+// from its own dist — client/styles/tokens.css) and visitors never touch an external host — but
 // an instance may CHOOSE faces from the catalog below, and the server then
 // fetches them ONCE (Google Fonts, admin-triggered, at PATCH /api/settings
 // time) into ASTROLABE_DATA/fonts/catalog/<id>/ and serves them from there

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metadata for the Linux packages (deb, pacman). Without it a
+     software centre shows the package as "Unknown author", "Licence:
+     Unknown" and "Version: Loading…" with a name guessed from the file
+     name, which is how a reader met the 3.15.0 .deb in KDE Discover. The id
+     is the appId; the launchable is the .desktop file electron-builder
+     writes (desktopName). Installed to /usr/share/metainfo by the fpm
+     mapping in electron-builder.yml. -->
+<component type="desktop-application">
+  <id>dev.astrolabe.desktop</id>
+  <name>Astrolabe</name>
+  <name xml:lang="ar">أسطرلاب</name>
+  <summary>A reading room for your Markdown notes</summary>
+  <summary xml:lang="ar">غرفة قراءة لملاحظاتك بصيغة Markdown</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="io.github.zahakj"><name>ZahakJ</name></developer>
+  <description>
+    <p>Astrolabe is an instrument for people who read seriously and write from what they read. It runs over an ordinary folder of Markdown files and reads everything it knows from those files: a live-preview editor with wikilinks and backlinks, a graph, a search that understands Arabic letter forms, a PDF reader that cites your highlights into notes, trackers and orbits for the days, flashcards, and typography that sets Arabic and Latin on one line.</p>
+    <p xml:lang="ar">أسطرلاب أداة لمن يقرأ بجدية ويكتب مما يقرأ. يعمل فوق مجلد عادي من ملفات Markdown ويقرأ كل ما يعرفه من تلك الملفات: محرر بمعاينة حية وروابط ويكي وروابط خلفية، ومخطط، وبحث يفهم أشكال الحروف العربية، وقارئ PDF يقتبس تظليلاتك في ملاحظات، ومتتبعات ومدارات للأيام، وبطاقات تعليمية، وطباعة تضع العربية واللاتينية في سطر واحد.</p>
+  </description>
+  <launchable type="desktop-id">astrolabe.desktop</launchable>
+  <url type="homepage">https://zahakj.github.io/astrolabe/</url>
+  <url type="bugtracker">https://github.com/ZahakJ/astrolabe/issues</url>
+  <url type="help">https://zahakj.github.io/astrolabe/site/en/</url>
+  <categories><category>Office</category><category>Utility</category></categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="__VERSION__" date="__DATE__"/>
+  </releases>
+</component>

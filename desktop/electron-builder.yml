@@ -39,6 +39,10 @@ extraMetadata:
   # the root package.json (see the header). Both are true values, not filler:
   # the project site the README links, and the identity every commit carries.
   homepage: https://zahakj.github.io/astrolabe/
+  # dpkg's License field and fpm's --license read package.json's `license`;
+  # the root file carries none, so the .deb said "License: unknown" beside
+  # the MIT text at the top of the repository.
+  license: MIT
   author:
     name: ZahakJ
     email: 77855241+ZahakJ@users.noreply.github.com
@@ -103,6 +107,16 @@ win:
 linux:
   icon: icons/icon.png
   category: Office
+  # What a software centre prints. The packages carried no description, no
+  # licence and no AppStream file, so KDE Discover showed the 3.15.0 .deb as
+  # "astrolabe_3, Unknown author, Licence: Unknown, Version: Loading…". The
+  # metainfo file (desktop/appstream/, stamped with the version into
+  # desktop/build/ by scripts/stamp-metainfo.mjs before a build) is what the
+  # centre reads.
+  description: A reading room for your Markdown notes — a live-preview editor with wikilinks and backlinks, a graph, Arabic-aware search, a citing PDF reader, trackers, orbits and flashcards.
+  synopsis: A reading room for your Markdown notes
+  vendor: ZahakJ
+  maintainer: ZahakJ <77855241+ZahakJ@users.noreply.github.com>
   # pacman beside the two: the owner's own machine runs Arch, and handing an
   # Arch user a .deb is handing them an archive to unpack by hand.
   target: [AppImage, deb, pacman]
@@ -112,3 +126,17 @@ linux:
   # build log asks for exactly this; the name itself sits in extraMetadata,
   # which is the package.json field the log means.
   syncDesktopName: true
+
+# The AppStream file rides into both native packages through fpm's
+# `source=destination` mapping (an extra positional argument is a file to
+# add). The AppImage carries it inside as usual; a software centre does not
+# read an AppImage anyway.
+deb:
+  fpm:
+    - build/dev.astrolabe.desktop.metainfo.xml=/usr/share/metainfo/dev.astrolabe.desktop.metainfo.xml
+  # dpkg's own fields, so `apt show` and the .deb's control file say what
+  # Discover says.
+  priority: optional
+pacman:
+  fpm:
+    - build/dev.astrolabe.desktop.metainfo.xml=/usr/share/metainfo/dev.astrolabe.desktop.metainfo.xml

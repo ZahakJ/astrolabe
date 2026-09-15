@@ -1,3 +1,30 @@
+/* THE ONE FACE THE APP CARRIES: Noto Naskh Arabic (SIL Open Font License,
+   client/public/fonts/LICENSE-OFL.txt), regular and bold, Arabic range only.
+   Every stack below names it, and on a machine that has it installed the
+   `local()` source wins and nothing is fetched. On a machine that does not —
+   a fresh Linux install, a Windows box without the language pack — Arabic
+   fell to whatever fontconfig found ("all the naskh fonts don't work", from
+   a reader who had just installed the .deb), and this is what answers. The
+   unicode-range keeps it out of every Latin glyph, so an English instance
+   pays for it only when an Arabic word appears; it is served from the app's
+   own dist like every other asset, and the offline worker keeps it. */
+@font-face {
+  font-family: "Noto Naskh Arabic";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local("Noto Naskh Arabic"), local("NotoNaskhArabic-Regular"), url("/fonts/NotoNaskhArabic-Regular.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+2010-2011;
+}
+@font-face {
+  font-family: "Noto Naskh Arabic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local("Noto Naskh Arabic Bold"), local("NotoNaskhArabic-Bold"), url("/fonts/NotoNaskhArabic-Bold.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+2010-2011;
+}
+
 /* Astrolabe — design tokens. TWENTY-TWO themes: the default (no data-theme attr)
    is "github-dark" — sky blue on neutral greys, the same values the
    [data-theme="github-dark"] block below carries, so the first paint IS the
@@ -296,9 +323,9 @@
      Arabic block redefining the *-system holders and never --font-serif
      itself, or its higher specificity would out-rank both that stylesheet and
      a custom.css override. */
-  --font-ui-system: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+  --font-ui-system: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Naskh Arabic",
     "Noto Sans Arabic", "Geeza Pro", "Droid Arabic Kufi", Tahoma, sans-serif;
-  --font-serif-system: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman",
+  --font-serif-system: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", "Noto Naskh Arabic",
     "Noto Naskh Arabic", Amiri, "Scheherazade New", "Traditional Arabic", serif;
   --font-mono-system: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --font-ui: var(--font-ui-system);

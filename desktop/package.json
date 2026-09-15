@@ -5,7 +5,7 @@
   "description": "The Astrolabe desktop app: an Electron shell that supervises a real server/index.ts per vault.",
   "scripts": {
     "start": "npm run build:preload && electron ../electron/main.ts",
-    "build:preload": "tsc -p tsconfig.preload.json",
+    "build:preload": "tsc -p tsconfig.preload.json && node ../scripts/stamp-metainfo.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "probe": "node probe.mjs",
     "dist": "npm run build:preload && electron-builder --config electron-builder.yml"
