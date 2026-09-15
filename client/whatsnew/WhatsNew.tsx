@@ -19,7 +19,10 @@ import { markWhatsNewSeen, setWhatsNewEnabled, whatsNewEnabled } from "./door.ts
 import { RELEASES, type Lang, type Slide, type Visual } from "./releaseNotes.ts";
 import "../styles/whatsnew.css";
 
-const DOCS_BASE = "https://zahakj.github.io/vellum/site";
+// The manual moved with the repository: zahakj.github.io/astrolabe. The old
+// vellum address 404s, and every "Read more in the manual" since 3.11.0
+// went there.
+const DOCS_BASE = "https://zahakj.github.io/astrolabe/site";
 
 interface Card {
   version: string;
