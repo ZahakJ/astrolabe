@@ -21,6 +21,7 @@ import { countPhrase, localeNum, t } from "../i18n.ts";
 import { st, stf } from "./copy.ts";
 import { toast } from "../toast.ts";
 import { delimiterOf, guessColumns, parseDelimited, stripAnkiHeader } from "./csv.ts";
+import { cardsOfText } from "./lines.ts";
 
 const KINDS: Array<{ value: ConstellationKind; label: "starsKindBasic" | "starsKindReversed" | "starsKindBoth" | "starsKindTyped" | "starsKindClozeOnly" }> = [
   { value: "basic", label: "starsKindBasic" },
@@ -29,20 +30,6 @@ const KINDS: Array<{ value: ConstellationKind; label: "starsKindBasic" | "starsK
   { value: "typed", label: "starsKindTyped" },
   { value: "cloze-only", label: "starsKindClozeOnly" },
 ];
-
-/** `front::back` and `front::back::extra` lines, one card each. A line
- *  without `::` is not a card and is not counted. */
-export function cardsOfText(text: string): NewCard[] {
-  const out: NewCard[] = [];
-  for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
-    if (line === "" || !line.includes("::")) continue;
-    const parts = line.split("::").map((p) => p.trim());
-    if (parts.length < 2 || parts[0] === "" || parts[1] === "") continue;
-    out.push({ front: parts[0], back: parts[1], extra: parts.length > 2 && parts.slice(2).join("::") !== "" ? parts.slice(2).join("::") : null });
-  }
-  return out;
-}
 
 function cleanTitle(s: string): string {
   return s.trim().replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();

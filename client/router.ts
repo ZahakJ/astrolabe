@@ -187,7 +187,8 @@ function setTitle(openPath: string | null, view: string): void {
   } else if (view === "editor" && starsTabActive(useStore.getState().workspace) !== null) {
     // A session is titled by the note it studies; the shelf by the page.
     const at = starsTabActive(useStore.getState().workspace);
-    document.title = `${at?.path ? stripBidiControls(noteTitleOf(at.path)) : t("stars")} · ${base}`;
+    const name = at?.path ? (isNotePath(at.path) ? stripBidiControls(noteTitleOf(at.path)) : t("starsEverything")) : t("stars");
+    document.title = `${name} · ${base}`;
   } else if (book !== null) {
     document.title =
       book.kind === "library"

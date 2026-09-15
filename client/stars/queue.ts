@@ -10,18 +10,30 @@
 // STARS ARE KEYED BY THEIR TEXT, NOT THEIR LINE. The first grade on a
 // `?` block or a cloze writes a comment LINE into the note and every star
 // below it moves down one; a queue keyed by line would lose its place on the
-// re-read that follows. The front (with its direction and kind) is stable
-// until the reader edits it — and an edited star is a new star. `refresh()`
-// swaps in the re-read stars under the same keys and the walk goes on.
+// re-read that follows. The note, the direction, the kind and the two faces
+// are stable until the reader edits them — and an edited star is a new
+// star. Two stars that share all of that (`dog::chien` under one heading,
+// `dog::perro` under the next; the same phrase highlighted in two notes of
+// the implicit constellation) are told apart by their ORDER in the note,
+// which a comment line does not change either. `refresh()` swaps in the
+// re-read stars under the same keys and the walk goes on.
 
 import type { ConstellationMeta, Star, Step } from "../../shared/constellations.ts";
 import { DEFAULT_NEW_PER_DAY, DEFAULT_STEPS } from "../../shared/constellations.ts";
-import type { Grade, Schedule } from "../../shared/srs.ts";
+import { isDue, type Grade, type Schedule } from "../../shared/srs.ts";
 import { bury, grade as applyGrade, pick, preview, remaining, startSession, type Pick, type Preview, type SessionState } from "../../shared/srsSession.ts";
 import { appendLog, countNew, dropLastLog, newIntroduced } from "./log.ts";
 
-export function keyOf(s: Star): string {
-  return `${s.dir}#${s.kind}#${s.front}`;
+/** Session keys for a list of stars in document order: the same list on
+ *  a later read yields the same keys, whatever the line numbers did. */
+export function keysOf(stars: readonly Star[]): string[] {
+  const seen = new Map<string, number>();
+  return stars.map((s) => {
+    const base = `${s.path}#${s.dir}#${s.kind}#${s.front}#${s.back}`;
+    const n = seen.get(base) ?? 0;
+    seen.set(base, n + 1);
+    return n === 0 ? base : `${base}#${n}`;
+  });
 }
 
 /** What the view needs to know about the constellation a session is over.
@@ -52,6 +64,9 @@ interface Undo {
 }
 
 export interface Graded {
+  /** The session key — `starOf(key)` is the star AS THE LAST READ HAS IT,
+   *  which is the line a write must name once an earlier write moved it. */
+  key: string;
   star: Star;
   pick: Pick;
   grade: Grade;
@@ -84,13 +99,15 @@ export class StarQueue {
   /** Stars with their session key in place of the vault id — the machine
    *  never sees a line number. */
   private keyed(stars: Star[]): Star[] {
-    return stars.map((s) => ({ ...s, id: keyOf(s) }));
+    const keys = keysOf(stars);
+    return stars.map((s, i) => ({ ...s, id: keys[i] }));
   }
 
   /** A re-read of the note: faces and schedules refresh under the same
    *  keys; the order the reader is walking stays theirs. */
   refresh(stars: Star[]): void {
-    this.stars = new Map(stars.map((s) => [keyOf(s), s]));
+    const keys = keysOf(stars);
+    this.stars = new Map(stars.map((s, i) => [keys[i], s]));
   }
 
   starOf(key: string): Star | null {
@@ -147,7 +164,7 @@ export class StarQueue {
     this.current = null;
     if (countedNew) countNew(this.head.path, this.today, 1);
     appendLog({ path: star.path, line: star.line, grade: g, ts: now });
-    return { star, pick: p, grade: g, write: result.write };
+    return { key: p.id, star, pick: p, grade: g, write: result.write };
   }
 
   /** Put the current star aside for this session. */
@@ -165,7 +182,7 @@ export class StarQueue {
   /** Take back the last grade: the queue returns to where it was, the log
    *  forgets the grade, and the caller is told what schedule to put back in
    *  the note (nothing, when the grade only moved a step). */
-  undoLast(): { star: Star; wrote: boolean; grade: Grade; restore: Schedule | null } | null {
+  undoLast(): { key: string; star: Star; wrote: boolean; grade: Grade; restore: Schedule | null } | null {
     const u = this.undo;
     if (u === null) return null;
     const star = this.stars.get(u.key);
@@ -175,7 +192,7 @@ export class StarQueue {
     this.undo = null;
     if (u.countedNew) countNew(this.head.path, this.today, -1);
     dropLastLog(star.path, star.line);
-    return { star, wrote: u.wrote, grade: u.grade, restore: u.before };
+    return { key: u.key, star, wrote: u.wrote, grade: u.grade, restore: u.before };
   }
 
   /** Progress: stars finished this session against the walk's length.
@@ -188,12 +205,19 @@ export class StarQueue {
     return { done: finished.size, total: finished.size + left };
   }
 
+  /** `dueLeft` counts what is still due today after this walk: the reviews
+   *  not reached, and the due ones the reader skipped — a skipped star is
+   *  put aside for the session, not for the day. */
   summary(now = Date.now()): { graded: number; kept: number; again: Star[]; seconds: number; dueLeft: number } {
     const g = this.state.graded;
     const againKeys = new Set(g.filter((x) => x.grade === "again").map((x) => x.id));
     const again = [...againKeys].map((k) => this.stars.get(k)).filter((s): s is Star => s !== undefined);
     const kept = g.filter((x) => x.grade === "good" || x.grade === "easy").length;
-    return { graded: g.length, kept, again, seconds: Math.round((now - this.startedAt) / 1000), dueLeft: this.state.reviews.length };
+    const skippedDue = this.state.buried.filter((k) => {
+      const s = this.stars.get(k);
+      return s !== undefined && s.schedule !== null && isDue(s.schedule, this.today);
+    }).length;
+    return { graded: g.length, kept, again, seconds: Math.round((now - this.startedAt) / 1000), dueLeft: this.state.reviews.length + skippedDue };
   }
 
   /** Keys of stars currently in a learning step — for the states chart. */

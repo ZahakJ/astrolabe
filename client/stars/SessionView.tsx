@@ -8,8 +8,14 @@
 // `POST /api/star/review`, which writes the plugin's comment into the note;
 // a grade that only moves the star between learning steps writes nothing,
 // because the note has no line for "ten minutes from now" and does not
-// need one. The vault event that follows a write re-reads the stars WITHOUT
-// resetting the reader's place (the queue keys by text, not line).
+// need one. Writes go one at a time, and each one is followed by a re-read
+// of the stars before the next is sent: the first grade on a cloze or a
+// `?` block puts a comment LINE into the note, and a reader who grades the
+// next star before that re-read would name a line that has just moved down
+// (the server answers 409 and the grade is lost). The re-read does not
+// reset the reader's place — the queue keys by text, not line — and the
+// vault event that follows a write triggers the same re-read for a write
+// made elsewhere.
 //
 // Keys, the Review page's: Space or Enter turns the card and, once turned,
 // grades it Good; 1–4 are the four grades. A typed constellation puts an
@@ -81,15 +87,38 @@ export default function SessionView({ path, section }: { path: string; section: 
   const page = useRef<HTMLDivElement | null>(null);
   const input = useRef<HTMLInputElement | null>(null);
   const bump = useCallback((): void => setTick((n) => n + 1), []);
+  /** The writes, in order; each waits for the one before it and its re-read. */
+  const writes = useRef<Promise<void>>(Promise.resolve());
 
   const loadStars = useCallback((): Promise<Star[]> => getStars(path, section), [path, section]);
 
+  /** Re-read the stars under the queue's keys. Quiet on failure: the view
+   *  keeps what it has, and the next vault event tries again. */
+  const reread = useCallback(
+    (q: StarQueue | null): Promise<void> =>
+      loadStars()
+        .then((s) => {
+          setStars(s);
+          q?.refresh(s);
+          bump();
+        })
+        .catch(() => {}),
+    [loadStars, bump],
+  );
+  const enqueueWrite = useCallback((job: () => Promise<void>): void => {
+    writes.current = writes.current.then(job, job);
+  }, []);
+
   useEffect(() => {
     let alive = true;
-    Promise.all([getConstellations(), loadStars()])
-      .then(([list, s]) => {
-        if (!alive) return;
+    // The shelf first: a path that is not on it is not a constellation
+    // (a plain note's address, a deleted one), and that is told apart from
+    // a request that failed — the stars route would 404 either way.
+    getConstellations(today)
+      .then(async (list) => {
         const m = list.find((c) => c.path === path) ?? null;
+        const s = m === null ? [] : await loadStars();
+        if (!alive) return;
         setMeta(m ?? "gone");
         setStars(s);
         setFailed(false);
@@ -98,7 +127,7 @@ export default function SessionView({ path, section }: { path: string; section: 
     return () => {
       alive = false;
     };
-  }, [path, loadStars]);
+  }, [path, loadStars]); // eslint-disable-line react-hooks/exhaustive-deps -- `today` is read once, at open
 
   // The queue is built ONCE, from the first read; later reads refresh the
   // stars under it.
@@ -111,22 +140,14 @@ export default function SessionView({ path, section }: { path: string; section: 
     let timer: ReturnType<typeof setTimeout> | null = null;
     const onVault = (): void => {
       if (timer) clearTimeout(timer);
-      timer = setTimeout(() => {
-        loadStars()
-          .then((s) => {
-            setStars(s);
-            queue?.refresh(s);
-            bump();
-          })
-          .catch(() => {});
-      }, 250);
+      timer = setTimeout(() => void reread(queue), 250);
     };
     window.addEventListener(VAULT_EVENT, onVault);
     return () => {
       window.removeEventListener(VAULT_EVENT, onVault);
       if (timer) clearTimeout(timer);
     };
-  }, [loadStars, queue, bump]);
+  }, [reread, queue]);
 
   // `tick` is what makes the queue's mutations visible; the memo reads it.
   const current = useMemo(() => (queue ? queue.next() : null), [queue, tick]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -140,37 +161,54 @@ export default function SessionView({ path, section }: { path: string; section: 
   }, []);
 
   const grade = useCallback(
-    async (g: Grade): Promise<void> => {
+    (g: Grade): void => {
       if (!queue) return;
       const done = queue.grade(g);
       reset();
       bump();
-      if (!done) return;
-      if (done.write !== null) {
+      if (!done || done.write === null) return;
+      enqueueWrite(async () => {
+        // The star as the LAST read has it: its line, not the line it had
+        // when the reader first saw it.
+        const star = queue.starOf(done.key) ?? done.star;
         try {
-          await reviewStar(done.star.path, done.star.line, done.star.dir, g, today);
+          await reviewStar(star.path, star.line, star.dir, g, today);
         } catch {
           toast(st("starsSaveFailed"), "error");
+          return;
         }
-      }
+        await reread(queue);
+      });
     },
-    [queue, reset, bump, today],
+    [queue, reset, bump, today, enqueueWrite, reread],
   );
 
-  const undo = useCallback(async (): Promise<void> => {
+  const undo = useCallback((): void => {
     if (!queue) return;
     const back = queue.undoLast();
     reset();
     bump();
     if (!back || !back.wrote) return;
-    try {
-      // The grade rides along for a server that predates `restore`: the
-      // worst case is then a re-grade, never a lost star.
-      await reviewStar(back.star.path, back.star.line, back.star.dir, back.grade, today, back.restore);
-    } catch {
-      toast(st("starsUndoFailed"), "error");
-    }
-  }, [queue, reset, bump, today]);
+    enqueueWrite(async () => {
+      const star = queue.starOf(back.key) ?? back.star;
+      try {
+        // `restore` is the schedule the star had before the grade; the
+        // server writes it back verbatim (null strips a first grade's
+        // comment). The grade rides along for a server that predates
+        // `restore`, and such a server answers with a RE-GRADE — the
+        // reader is told the note kept the grade rather than shown a
+        // queue that disagrees with it.
+        const res = await reviewStar(star.path, star.line, star.dir, back.grade, today, back.restore);
+        const got = res.schedule;
+        const same = back.restore === null ? got === null : got !== null && got.due === back.restore.due && got.interval === back.restore.interval && got.ease === back.restore.ease;
+        if (!same) toast(st("starsUndoFailed"), "error");
+      } catch {
+        toast(st("starsUndoFailed"), "error");
+        return;
+      }
+      await reread(queue);
+    });
+  }, [queue, reset, bump, today, enqueueWrite, reread]);
 
   const skip = useCallback((): void => {
     queue?.skip();
@@ -218,15 +256,30 @@ export default function SessionView({ path, section }: { path: string; section: 
       if (e.key === "Enter" || (e.key === " " && !inInput)) {
         e.preventDefault();
         if (!revealed) reveal();
-        else void grade("good");
+        else grade("good");
       } else if (/^[1-4]$/.test(e.key) && revealed && !inInput) {
         e.preventDefault();
-        void grade(GRADES[Number(e.key) - 1]);
+        grade(GRADES[Number(e.key) - 1]);
       }
     };
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
   }, [current, revealed, grade, reveal]);
+
+  // The end of a session, once per walk. When an orbit slot names this
+  // constellation and nothing is due here any more, the Orbits integration
+  // ticks that slot for today — the one call to client/routines' helper
+  // (`tickSlotForConstellation(path)`, CONSTELLATIONS-SPEC.md, "Orbits
+  // integration") belongs in this effect once that export lands; it is an
+  // effect and not part of the render because a tick is a write.
+  const ended = useRef<StarQueue | null>(null);
+  useEffect(() => {
+    if (!queue || current !== null || stars === null || ended.current === queue) return;
+    ended.current = queue;
+    const summary = queue.summary();
+    if (queue.ahead || summary.graded === 0 || summary.dueLeft > 0) return;
+    // INTEGRATION: void tickSlotForConstellation(path);
+  }, [queue, current, stars, path]);
 
   // Focus: the page for its keys, the input when the star wants typing.
   useEffect(() => {
@@ -235,7 +288,7 @@ export default function SessionView({ path, section }: { path: string; section: 
     else if (!page.current?.contains(document.activeElement)) page.current?.focus({ preventScroll: true });
   }, [current, typedKind, revealed]);
 
-  const title = meta !== null && meta !== "gone" ? (meta.implicit ? st("starsEverything") : meta.title) : "";
+  const title = meta !== null && meta !== "gone" ? (meta.implicit ? t("starsEverything") : meta.title) : "";
   const icon = meta !== null && meta !== "gone" ? meta.icon : null;
   const progress = queue ? queue.progress() : { done: 0, total: 0 };
   const crumbSection = section ?? current?.star.section ?? null;
@@ -255,10 +308,7 @@ export default function SessionView({ path, section }: { path: string; section: 
   } else if (!queue || !stars) {
     body = <div className="s-session__card s-session__card--loading" aria-busy="true" />;
   } else if (current === null) {
-    // The session is over. When an orbit slot names this constellation and
-    // nothing is due here any more, the Orbits integration ticks that slot
-    // for today — one call to client/routines' helper, made here once that
-    // export lands (CONSTELLATIONS-SPEC.md, "Orbits integration").
+    // The session is over (the effect above has told the orbits).
     const summary = queue.summary();
     if (stars.length === 0) {
       body = (
@@ -277,7 +327,7 @@ export default function SessionView({ path, section }: { path: string; section: 
       body = (
         <section className="s-session__summary" data-testid="session-summary" aria-live="polite">
           <h2 className="s-session__summaryhead">{st("starsDone")}</h2>
-          <p className="s-session__summarylead">{st("starsDoneHint")}</p>
+          <p className="s-session__summarylead">{summary.dueLeft > 0 ? stf("starsDoneLeft", { n: countPhrase(summary.dueLeft, "stars") }) : st("starsDoneHint")}</p>
           {summary.graded > 0 && (
             <dl className="s-session__stats">
               <div className="s-session__stat">
@@ -309,7 +359,7 @@ export default function SessionView({ path, section }: { path: string; section: 
             </div>
           )}
           <div className="s-session__summaryactions">
-            {summary.graded > 0 ? (
+            {summary.graded > 0 || summary.dueLeft > 0 ? (
               <button type="button" className="s-btn s-btn--accent" onClick={studyMore}>
                 {st("starsStudyMore")}
               </button>
@@ -341,7 +391,7 @@ export default function SessionView({ path, section }: { path: string; section: 
             <button type="button" className="s-session__action" onClick={skip} title={st("starsSkipTitle")}>
               {st("starsSkip")}
             </button>
-            <button type="button" className="s-session__action" onClick={() => void undo()} disabled={!queue.canUndo()} title={st("starsUndoTitle")}>
+            <button type="button" className="s-session__action" onClick={undo} disabled={!queue.canUndo()} title={st("starsUndoTitle")}>
               {st("starsUndo")}
             </button>
           </div>
@@ -403,7 +453,7 @@ export default function SessionView({ path, section }: { path: string; section: 
         {revealed && previews && (
           <div className="s-session__grades" role="group" aria-label={st("starsStudy")}>
             {GRADES.map((g, i) => (
-              <button key={g} type="button" className={`s-btn s-session__grade s-session__grade--${g}`} onClick={() => void grade(g)} data-testid={`grade-${g}`}>
+              <button key={g} type="button" className={`s-btn s-session__grade s-session__grade--${g}`} onClick={() => grade(g)} data-testid={`grade-${g}`}>
                 <span className="s-session__gradekey" aria-hidden="true">
                   {localeNum(i + 1)}
                 </span>

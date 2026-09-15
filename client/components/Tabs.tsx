@@ -27,7 +27,7 @@ import {
   type Workspace,
 } from "../workspace.ts";
 import { stripBidiControls } from "../../shared/bidi.ts";
-import { noteLabelOf } from "../../shared/noteFormat.ts";
+import { isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
 
 /** Tab label: the basename, with bidi controls out. A filename carrying an
  *  RLO reorders its own label ("Bidi<U+202E>Attack Note" → "BidietoN kcattA"),
@@ -38,9 +38,11 @@ function titleOf(path: string): string {
   if (isRoutinesTab(path)) return t("routines");
   // The shelf is named; a session over a constellation wears the note's
   // own name, so the strip reads "Hiragana" beside "Hiragana" the note.
+  // The implicit constellation is not a note and is named for what it is.
   if (isStarsTab(path)) {
     const studied = starsPathOf(path);
     if (studied === null) return t("stars");
+    if (!isNotePath(studied)) return t("starsEverything");
     path = studied;
   }
   const base = path.slice(path.lastIndexOf("/") + 1);

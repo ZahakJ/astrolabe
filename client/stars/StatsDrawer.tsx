@@ -51,7 +51,7 @@ export default function StatsDrawer({ meta, log, today, onClose }: { meta: Const
   const total = Math.max(1, states.new + states.learning + states.young + states.mature);
   const hard = useMemo(() => hardest(log, meta.implicit ? null : meta.path, 10), [log, meta]);
   const byLine = useMemo(() => new Map((stars ?? []).map((s) => [`${s.path}#${s.line}`, s])), [stars]);
-  const title = meta.implicit ? st("starsEverything") : meta.title;
+  const title = meta.implicit ? t("starsEverything") : meta.title;
 
   return (
     <div className="s-palette-overlay" onMouseDown={onClose}>

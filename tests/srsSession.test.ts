@@ -4,7 +4,23 @@ import type { Star } from "../shared/constellations.ts";
 import { forecast, grade, pick, preview, startSession, statesOf, streakOf } from "../shared/srsSession.ts";
 import { STARS_COPY } from "../client/stars/copy.ts";
 import { delimiterOf, parseDelimited, stripAnkiHeader } from "../client/stars/csv.ts";
+import { cardsOfText } from "../client/stars/lines.ts";
+import { hardest, newIntroduced, readLog, retention, retentionSeries } from "../client/stars/log.ts";
+import { headOf, keysOf, StarQueue } from "../client/stars/queue.ts";
 import { diffAnswer, normaliseAnswer } from "../client/stars/typed.ts";
+
+// A fake localStorage for the queue's daily counter and the device's log
+// (client/stars/log.ts reads it lazily; node's own wants a flag and warns
+// without it).
+const store = new Map<string, string>();
+Object.defineProperty(globalThis, "localStorage", {
+  configurable: true,
+  value: {
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => void store.set(k, String(v)),
+    removeItem: (k: string) => void store.delete(k),
+  },
+});
 
 // The surface's copy travels in its own chunk (client/stars/copy.ts), which
 // check-i18n does not walk — so this is that table's parity gate, with the
@@ -164,5 +180,141 @@ describe("the CSV reader", () => {
   });
   it("skips Anki's #-header lines", () => {
     assert.equal(stripAnkiHeader("#separator:tab\n#html:true\nfront\tback\n"), "front\tback\n");
+  });
+});
+
+// ── The client's queue over the machine (client/stars/queue.ts) ─────────────
+
+function twin(line: number, front: string, back: string, dir: "fwd" | "rev" = "fwd", schedule: Star["schedule"] = null): Star {
+  return { id: `n.md#${line}#${dir}`, path: "n.md", line, end: line, dir, kind: "qa", front, back, extra: null, section: null, tags: [], schedule };
+}
+const HEAD = { path: "n.md", steps: [1, 10], newPerDay: 10 };
+
+describe("the session keys", () => {
+  it("tell two stars with the same faces apart by their order, and survive a shifted line", () => {
+    const first = [twin(3, "dog", "chien"), twin(4, "cat", "chat"), twin(9, "dog", "chien"), twin(3, "chien", "dog", "rev")];
+    const keys = keysOf(first);
+    assert.equal(new Set(keys).size, 4, "four distinct keys");
+    // A comment line written after the cat moves the second dog down one.
+    const later = [twin(3, "dog", "chien"), twin(4, "cat", "chat"), twin(10, "dog", "chien"), twin(3, "chien", "dog", "rev")];
+    assert.deepEqual(keysOf(later), keys);
+  });
+
+  it("the queue shows both twins and writes each grade to its own line", () => {
+    store.clear();
+    const stars = [twin(3, "dog", "chien"), twin(9, "dog", "perro")];
+    const q = new StarQueue(HEAD, stars, TODAY, false, NOW);
+    const a = q.grade("easy", NOW)!;
+    const b = q.grade("easy", NOW)!;
+    assert.deepEqual([a.star.line, b.star.line], [3, 9]);
+    assert.notEqual(a.key, b.key);
+    assert.equal(q.next(NOW), null);
+    assert.equal(newIntroduced("n.md", TODAY), 2);
+  });
+
+  it("a re-read after a write keeps the reader's place and hands the write the moved line", () => {
+    store.clear();
+    const stars = [twin(5, "a", "1"), twin(7, "b", "2"), twin(9, "c", "3")];
+    const q = new StarQueue(HEAD, stars, TODAY, false, NOW);
+    const first = q.grade("easy", NOW)!;
+    assert.equal(first.star.line, 5);
+    // The write put a comment line under `a`; every star below moved.
+    q.refresh([twin(5, "a", "1", "fwd", first.write), twin(8, "b", "2"), twin(10, "c", "3")]);
+    const next = q.next(NOW)!;
+    assert.equal(next.star.front, "b");
+    assert.equal(next.star.line, 8);
+    const second = q.grade("easy", NOW)!;
+    assert.equal(q.starOf(second.key)?.line, 8);
+    // A star that vanished between reads is dropped, not shown blank.
+    q.refresh([twin(5, "a", "1", "fwd", first.write), twin(8, "b", "2", "fwd", second.write)]);
+    assert.equal(q.next(NOW), null);
+  });
+
+  it("undo gives back the schedule, the counter and the log entry; skip leaves a due star due", () => {
+    store.clear();
+    const due = { due: "2026-09-10", interval: 3, ease: 2500 };
+    const stars = [twin(3, "x", "1", "fwd", due), twin(4, "y", "2", "fwd", due), twin(5, "z", "3")];
+    const q = new StarQueue(HEAD, stars, TODAY, false, NOW);
+    const g = q.grade("again", NOW)!;
+    assert.equal(g.star.front, "x");
+    assert.deepEqual(g.write, { due: "2026-09-16", interval: 1, ease: 2300 });
+    assert.equal(readLog().length, 1);
+    const back = q.undoLast()!;
+    assert.equal(back.wrote, true);
+    assert.deepEqual(back.restore, due);
+    assert.equal(readLog().length, 0);
+    assert.equal(q.next(NOW)!.star.front, "x", "the undone star is back in front");
+    q.grade("good", NOW);
+    assert.equal(q.next(NOW)!.star.front, "y");
+    q.skip();
+    const z = q.grade("easy", NOW)!;
+    assert.equal(z.star.front, "z");
+    assert.equal(newIntroduced("n.md", TODAY), 1);
+    assert.equal(q.next(NOW), null);
+    const s = q.summary(NOW + 65_000);
+    assert.equal(s.graded, 2);
+    assert.equal(s.dueLeft, 1, "the skipped y is still due today");
+    assert.equal(s.seconds, 65);
+    assert.equal(q.canUndo(), true);
+    q.undoLast();
+    assert.equal(newIntroduced("n.md", TODAY), 0, "undoing a new star's grade gives the day its allowance back");
+  });
+
+  it("reads the fence's steps and limit from the shelf row, defaults otherwise", () => {
+    const row = { path: "n.md", title: "n", icon: null, kind: "basic" as const, tags: [], implicit: false, counts: { total: 0, new: 0, due: 0 }, sections: [] };
+    assert.deepEqual(headOf(row), { path: "n.md", steps: [1, 10], newPerDay: 10 });
+    assert.deepEqual(headOf({ ...row, steps: [2, 20, 60], newPerDay: 0 }), { path: "n.md", steps: [2, 20, 60], newPerDay: 0 });
+  });
+});
+
+describe("the device's log", () => {
+  it("narrows retention and the hardest list to one note, and buckets the series by local day", () => {
+    const at = (day: string, h = 12): number => new Date(`${day}T${String(h).padStart(2, "0")}:00:00`).getTime();
+    const log = [
+      { path: "a.md", line: 1, grade: "again" as const, ts: at("2026-09-15") },
+      { path: "a.md", line: 1, grade: "good" as const, ts: at("2026-09-15") },
+      { path: "a.md", line: 2, grade: "again" as const, ts: at("2026-09-14", 23) },
+      { path: "b.md", line: 1, grade: "easy" as const, ts: at("2026-09-01") },
+      { path: "b.md", line: 1, grade: "easy" as const, ts: at("2026-07-01") },
+    ];
+    assert.equal(retention(log, TODAY, 30, "a.md"), 1 / 3);
+    assert.equal(retention(log, TODAY, 30, "b.md"), 1, "July is outside the window");
+    assert.equal(retention(log, TODAY, 30, "c.md"), null);
+    const series = retentionSeries(log, TODAY, 30, "a.md");
+    assert.equal(series.length, 30);
+    assert.equal(series[29], 0.5);
+    assert.equal(series[28], 0, "eleven at night is still that day");
+    assert.deepEqual(hardest(log, "a.md").map((r) => [r.line, r.again]), [[1, 1], [2, 1]]);
+    assert.deepEqual(hardest(log, "b.md"), []);
+  });
+});
+
+describe("the modal's card lines", () => {
+  it("reads two and three segments, the plugin's :::, CRLF, and skips what is not a card", () => {
+    const cards = cardsOfText("to eat::食べる::taberu\r\nto drink:::飲む\r\nnot a card\r\n::nothing\r\nfront::\r\nあ：a\r\n  spaced :: out :: \r\n");
+    assert.deepEqual(cards, [
+      { front: "to eat", back: "食べる", extra: "taberu" },
+      { front: "to drink", back: "飲む", extra: null },
+      { front: "spaced", back: "out", extra: null },
+    ]);
+  });
+});
+
+describe("the CSV reader, harder", () => {
+  it("survives a BOM, CRLF, a semicolon file and a newline inside quotes", () => {
+    const text = '﻿front;back\r\n"a;b";"line one\nline two"\r\n\r\nc;d\r\n';
+    assert.equal(delimiterOf(text), ";");
+    assert.deepEqual(parseDelimited(text, ";"), [["front", "back"], ["a;b", "line one\nline two"], ["c", "d"]]);
+  });
+});
+
+describe("a typed answer, harder", () => {
+  it("folds width and case for kana and romaji, and reads an empty answer as all missed", () => {
+    assert.equal(normaliseAnswer("ｶﾀｶﾅ"), normaliseAnswer("カタカナ"));
+    assert.equal(normaliseAnswer("ＫＡ "), "ka");
+    assert.equal(diffAnswer("か", "か").ok, true);
+    const empty = diffAnswer("", "ka");
+    assert.equal(empty.ok, false);
+    assert.deepEqual(empty.ops, [{ kind: "add", text: "ka" }]);
   });
 });
