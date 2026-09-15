@@ -44,10 +44,14 @@ const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
 
 /** The desktop app's version chip, which is the updater's face (the owner:
  *  "a self-contained updater with an update bar status and all that"). At
- *  rest it is the build and a click checks; while a release downloads it is
- *  a bar with the percentage; once the download is on disk and verified it
- *  is **Restart now**; a build a package manager owns gets a link to the
- *  release instead. The updater itself is electron/update.ts. */
+ *  rest it is the build and a click checks; when a newer release exists it
+ *  reads **3.x available** and a click DOWNLOADS it — the first of the two
+ *  clicks an update takes, because nothing is fetched on the app's own
+ *  initiative any more (electron/updatePolicy.ts); while the release
+ *  downloads it is a bar with the percentage; once the download is on disk
+ *  and verified it is **Restart to update**, the second click. A build a
+ *  package manager owns gets a link to the release instead of a download.
+ *  The updater itself is electron/update.ts. */
 function UpdateChip() {
   const update = useStore((s) => s.desktopUpdate);
   const phase = update?.phase ?? "";
@@ -82,14 +86,24 @@ function UpdateChip() {
     );
   }
   if (phase === "available") {
+    const version = update?.version ?? "";
+    // `installable` is the desktop's word on whether this build can take the
+    // release itself; a deb or a pacman package cannot, and there the chip is
+    // honest about opening the page. An older bridge without `updateDownload`
+    // falls through to `updateApply`, which opens the page too.
+    const installable = update?.installable === true;
     return (
       <button
         type="button"
-        className="s-statusbar__btn s-statusbar__version"
-        onClick={() => void desktop()?.updateApply()}
-        title={tf("updateAvailable", { version: update?.version ?? "" })}
+        className="s-statusbar__btn s-statusbar__version s-statusbar__version--available"
+        onClick={() => {
+          const bridge = desktop();
+          if (bridge?.updateDownload) void bridge.updateDownload();
+          else void bridge?.updateApply();
+        }}
+        title={installable ? tf("updateChipAvailableTitle", { version }) : tf("updateAvailable", { version })}
       >
-        {update?.version ?? APP_VERSION} ↗
+        {installable ? tf("updateChipAvailable", { version }) : `${version} ↗`}
       </button>
     );
   }
@@ -940,7 +954,7 @@ export default function StatusBar() {
         // ROW — not in the top cluster, which is for the things clicked
         // often (the owner: "I would move it to the bottom status bar; the
         // top one is cluttered"). On the desktop app the chip is the updater
-        // (client/desktop): check, a bar while downloading, Restart now. In a
+        // (client/desktop): check, "3.x available", a bar while downloading, Restart to update. In a
         // browser it opens the release page, since a hosted instance updates
         // when its server does.
         <span className="s-statusbar__group">

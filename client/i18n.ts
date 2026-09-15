@@ -102,7 +102,7 @@ const DICT = {
   libraryPopRemove: { en: "Take off the shelf", ar: "أزل من الرف" },
   libraryPopAdd: { en: "Put on the shelf", ar: "ضع على الرف" },
   libraryPopHint: { en: "Every published note inside becomes a lesson; subfolders are its chapters or lectures.", ar: "كل ملاحظة منشورة داخله تصبح درسًا، والمجلدات الفرعية فصوله أو محاضراته." },
-  libraryAdded: { en: "On the shelf. Blurb, cover and source are under Settings → Library.", ar: "أُضيف إلى الرف. النبذة والغلاف والمصدر في الإعدادات ← المكتبة." },
+  libraryAdded: { en: "On the shelf. Blurb, cover and source are under Settings → Collections.", ar: "أُضيف إلى الرف. النبذة والغلاف والمصدر في الإعدادات ← المجموعات." },
   libraryAddedOn: { en: "On the shelf, and the library is now open to readers.", ar: "أُضيف إلى الرف، والمكتبة الآن مفتوحة للقرّاء." },
   libraryRemoved: { en: "Taken off the shelf", ar: "أُزيل من الرف" },
   libraryFailed: { en: "Saving the library failed", ar: "فشل حفظ المكتبة" },
@@ -980,7 +980,7 @@ const DICT = {
   topicsModeFoldersNote: { en: "the vault's own order", ar: "ترتيب الخزانة نفسه" },
   topicsModeFoldersNotice: { en: "Every published note takes its parent folder as its category, with the folder's name and tree mark. Describe a folder with a folder note: a note named like the folder, or index.md inside it, carrying description:, icon:, title: or hidden: true.", ar: "كل ملاحظة منشورة تأخذ مجلدها الأب فئةً لها، باسم المجلد وعلامته في الشجرة. صِف المجلد بملاحظة مجلد: ملاحظة باسم المجلد أو index.md بداخله، تحمل description: وicon: وtitle: أو hidden: true." },
   collectionsMenu: { en: "Collections…", ar: "المجموعات…" },
-  collectionsNone: { en: "No collections yet. Right-click a folder and publish it as one, or add one under Settings → Publishing.", ar: "لا مجموعات بعد. انقر بالزر الأيمن على مجلد وانشره كمجموعة، أو أضف واحدة من الإعدادات ← النشر." },
+  collectionsNone: { en: "No collections yet. Right-click a folder and publish it as one, or add one under Settings → Collections.", ar: "لا مجموعات بعد. انقر بالزر الأيمن على مجلد وانشره كمجموعة، أو أضف واحدة من الإعدادات ← المجموعات." },
   collectionsWholeFolder: { en: "Whole folder", ar: "المجلد كله" },
   collectionsFailed: { en: "Saving the collection failed", ar: "فشل حفظ المجموعة" },
   collectionPopOpen: { en: "Open on the site", ar: "افتح على الموقع" },
@@ -1128,18 +1128,20 @@ const DICT = {
   },
 
   // ── Settings tabs ────────────────────────────────────────────────────────
-  // One name and one sentence each: a rail of seven category nouns tells a
+  // One name and one sentence each: a rail of eight category nouns tells a
   // reader where things are, never what they decide.
-  tabIdentity: {
-    en: "Identity",
-    ar: "الهوية",
+  tabSite: { en: "Site", ar: "الموقع" },
+  introSite: {
+    en: "The site's name and marks, the theme visitors land on, and the type it is set in.",
+    ar: "اسم الموقع وعلاماته، والسمة التي يصل إليها الزوار، والخطوط التي يُنضَّد بها.",
   },
   tabPublishing: { en: "Publishing & comments", ar: "النشر والتعليقات" },
-  tabAbout: { en: "About", ar: "حول" },
-  introIdentity: {
-    en: "What the site is called and the marks it wears — name, tagline, footer, logo, favicon.",
-    ar: "ما يُسمّى به الموقع والعلامات التي يحملها: الاسم وسطر التعريف والتذييل والشعار والأيقونة.",
+  tabCollections: { en: "Collections", ar: "المجموعات" },
+  introCollections: {
+    en: "How the public site groups notes — topics, your own collections, and the library shelf.",
+    ar: "كيف يجمع الموقع العام الملاحظات: الموضوعات، ومجموعاتك، ورفّ المكتبة.",
   },
+  tabAbout: { en: "About", ar: "حول" },
   introPublishing: {
     en: "What visitors may see, and what the front door shows them.",
     ar: "ما يُسمح للزوار برؤيته، وما تعرضه عليهم الصفحة الأولى.",
@@ -1439,8 +1441,8 @@ const DICT = {
   // words, and a reader who has asked their system for less motion gets none
   // of it. Naming the three airs would date the moment a fourth ships.
   hintAmbient: {
-    en: "A slow, faint atmosphere behind the site name — drifting stars, a phosphor shimmer or rising gold dust, depending on the theme. Purely decorative, behind the text, and off entirely for readers who prefer reduced motion.",
-    ar: "أجواء بطيئة خافتة خلف اسم الموقع — نجوم سابحة أو وميض فوسفوري أو غبار ذهبي صاعد، بحسب السمة. زخرفة محضة خلف النص، وتُلغى تمامًا لمن يفضّل تقليل الحركة.",
+    en: "A slow, faint atmosphere behind the site name; off for readers who prefer reduced motion.",
+    ar: "جوٌّ خافت بطيء خلف اسم الموقع؛ يتوقف لمن يفضّلون تقليل الحركة.",
   },
   phVaultImageOrUrl: {
     en: "vault image path or https:// URL",
@@ -2012,8 +2014,8 @@ const DICT = {
   blogAuthorSites: { en: "More from the author", ar: "المزيد من أعمال الكاتب" },
   rowAuthorSites: { en: "Your other sites", ar: "مواقعك الأخرى" },
   hintAuthorSites: {
-    en: "Shown to blog visitors as cards under your writings. One per line: a link, then an optional | Title. Each site's own cover image and description are fetched automatically.",
-    ar: "تظهر لزوار المدونة كبطاقات أسفل كتاباتك. سطر لكل موقع: رابط ثم | عنوان اختياري. تُجلب صورة الغلاف والوصف من الموقع نفسه تلقائيًا.",
+    en: "Cards under your writings for blog visitors. One per line: a link, then an optional | Title.",
+    ar: "بطاقات تحت كتاباتك لزوار المدونة. واحد في كل سطر: رابط ثم | عنوان اختياري.",
   },
   phAuthorSites: { en: "https://photos.example.com | My photography", ar: "https://photos.example.com | تصويري" },
   errAuthorSite: { en: "Not a valid site line: {url}", ar: "سطر موقع غير صالح: {url}" },
@@ -2795,8 +2797,8 @@ const DICT = {
   templatesDetectedHint: { en: "Found automatically: {folder}", ar: "اكتُشف تلقائيًا: {folder}" },
   drawingsFolderLabel: { en: "Drawings folder", ar: "مجلد الرسومات" },
   drawingsFolderHint: {
-    en: "Where the pencil at the top of the sidebar starts a new drawing. Empty means the vault root; a folder's own menu still puts one inside it.",
-    ar: "هنا يفتح قلمُ الرصاص في أعلى الشريط الجانبي رسمةً جديدة. اتركه فارغًا فيكون جذر الخزانة؛ أما قائمة المجلد نفسه فتظلّ تضع الرسمة داخله.",
+    en: "Where the sidebar's pencil starts a new drawing. Empty means the vault root.",
+    ar: "حيث يبدأ قلم الشريط الجانبي رسمة جديدة. والفراغ يعني جذر الخزانة.",
   },
   defaultTemplateLabel: { en: "Template for new notes", ar: "قالب الملاحظات الجديدة" },
   defaultTemplateHint: {
@@ -3372,8 +3374,8 @@ const DICT = {
   designHeadingFamily: { en: "Heading face", ar: "خط العناوين" },
   designBodyFamily: { en: "Body face", ar: "خط النص" },
   designFamilyHint: {
-    en: "Which of the instance's three stacks — pick the faces themselves in Settings → Typography.",
-    ar: "أيُّ مجموعات الخطوط الثلاث في هذه النسخة — أما الخطوط نفسها فاخترها من الإعدادات ← الطباعة.",
+    en: "Which of the instance's three stacks — pick the faces themselves in Settings → Site.",
+    ar: "أي مجموعات الخطوط الثلاث في هذه النسخة — واختر الخطوط نفسها من الإعدادات ← الموقع.",
   },
   designSerif: { en: "Serif", ar: "مذيّل" },
   designSans: { en: "Sans", ar: "غير مذيّل" },
@@ -3488,8 +3490,8 @@ const DICT = {
   designStickyHeader: { en: "The header", ar: "الترويسة" },
   designShowLogo: { en: "Logo", ar: "الشعار" },
   designShowLogoHint: {
-    en: "Uses the logo set in Settings → Site identity.",
-    ar: "يستخدم الشعار المضبوط في الإعدادات ← هوية الموقع.",
+    en: "Uses the logo set in Settings → Site.",
+    ar: "يستخدم الشعار المضبوط في الإعدادات ← الموقع.",
   },
   designShowName: { en: "Site name", ar: "اسم الموقع" },
   designShowTagline: { en: "Tagline", ar: "الوصف" },
@@ -4017,31 +4019,45 @@ const DICT = {
     en: "Preferences kept in this browser; each one saves itself on click.",
     ar: "تفضيلات يحتفظ بها هذا المتصفح، ونقرةٌ واحدة تكفي لحفظ كلٍّ منها.",
   },
-  groupEditing: { en: "Editing", ar: "التحرير" },
+  groupEditing: { en: "Reading & writing", ar: "القراءة والكتابة" },
+  groupThisBrowser: { en: "This browser", ar: "هذا المتصفح" },
+  // The desktop-only group: rows that exist because there is an app around
+  // the page — its name, its icon, its launcher entry, its updates.
+  groupThisApp: { en: "This app", ar: "هذا التطبيق" },
+  rowUpdates: { en: "Software updates", ar: "تحديثات البرنامج" },
+  hintUpdates: {
+    en: "It only tells you; nothing is downloaded or installed until you ask.",
+    ar: "يخبرك فقط؛ ولا يُنزَّل شيء ولا يُثبَّت حتى تطلبه أنت.",
+  },
+  updatesNotify: { en: "Tell me", ar: "أخبرني" },
+  updatesOff: { en: "Off", ar: "إيقاف" },
   rowVimKeys: { en: "Vim keys", ar: "مفاتيح Vim" },
   rowRelativeLines: { en: "Relative line numbers", ar: "أرقام الأسطر النسبية" },
-  hintRelativeLines: { en: "With vim keys on, the margin counts lines outward from the caret — 7j and 3k read straight off it — and shows the caret's own line number.", ar: "مع مفاتيح Vim، يعدّ الهامش الأسطر بعيدًا عن المؤشر (7j و3k تُقرأ منه مباشرة) ويعرض رقم سطر المؤشر نفسه." },
+  hintRelativeLines: {
+    en: "With vim keys, the margin counts lines out from the caret, so 7j reads straight off it.",
+    ar: "مع مفاتيح Vim يعدّ الهامش الأسطر بعيدًا عن المؤشر، فتُقرأ 7j منه مباشرة.",
+  },
   hintVimKeys: {
     en: "Modal editing: Normal, Insert and Visual keys in the editor.",
     ar: "تحرير بالأوضاع: مفاتيح Normal وInsert وVisual في المحرر.",
   },
   rowAppName: { en: "This app's name", ar: "اسم هذا التطبيق" },
   hintAppName: {
-    en: "What the tray, the window icon's tooltip, the About box and a launcher entry call the app on this computer. The site's own name is under Site. An update never changes this.",
-    ar: "الاسم الذي يحمله التطبيق على هذا الحاسوب: في صينية النظام، وتلميح أيقونة النافذة، ومربع «حول»، ومدخل المشغّل. اسم الموقع نفسه تحت «الموقع». والتحديث لا يمسّ هذا أبدًا.",
+    en: "What the tray, the window and a launcher entry call the app here. An update never changes it.",
+    ar: "ما تسمّي به الصينيةُ والنافذةُ ومدخلُ المشغّل هذا التطبيقَ هنا. والتحديث لا يغيّره أبدًا.",
   },
   rowAppIcon: { en: "This app's icon", ar: "أيقونة هذا التطبيق" },
   hintAppIcon: {
-    en: "A square PNG (or an .ico on Windows). It is copied beside the app's settings, so the original can go anywhere afterwards. Windows already open keep their icon until reopened.",
-    ar: "صورة PNG مربعة (أو ‎.ico على ويندوز). تُنسخ بجانب إعدادات التطبيق فيمكن أن يذهب الأصل حيث شاء بعدها. والنوافذ المفتوحة تحتفظ بأيقونتها حتى تُفتح من جديد.",
+    en: "A square PNG, or an .ico on Windows, copied beside the app's settings. Open windows keep theirs until reopened.",
+    ar: "صورة PNG مربعة، أو ‎.ico على ويندوز، تُنسخ بجانب إعدادات التطبيق. والنوافذ المفتوحة تحتفظ بأيقونتها حتى تُفتح من جديد.",
   },
   appIconChoose: { en: "Choose an image…", ar: "اختر صورة…" },
   appBrandReset: { en: "Back to Astrolabe", ar: "العودة إلى أسطرلاب" },
   rowAppLauncher: { en: "Add to the applications menu", ar: "أضف إلى قائمة التطبيقات" },
   rowAppLauncherWin: { en: "Add to the Start Menu", ar: "أضف إلى قائمة ابدأ" },
   hintAppLauncher: {
-    en: "A launcher entry in the name and icon above, pointing at this very file, wherever you keep it. Run it again after changing either. On Windows a shortcut's icon must be an .ico; with a PNG it keeps the app's own.",
-    ar: "مدخل مشغّل بالاسم والأيقونة أعلاه، يشير إلى هذا الملف بعينه أينما وضعته. كرّر الخطوة إن غيّرت أحدهما. وعلى ويندوز لا بدّ أن تكون أيقونة الاختصار ‎.ico؛ ومع PNG يبقى على أيقونة التطبيق نفسه.",
+    en: "A launcher entry in the name and icon above, pointing at this file. Run it again after changing either.",
+    ar: "مدخل مشغّل بالاسم والأيقونة أعلاه يشير إلى هذا الملف. أعد تشغيله بعد تغيير أيّ منهما.",
   },
   appLauncherInstall: { en: "Write the launcher entry", ar: "اكتب مدخل المشغّل" },
   appLauncherInstallWin: { en: "Create the shortcut", ar: "أنشئ الاختصار" },
@@ -4050,8 +4066,8 @@ const DICT = {
   appLauncherFailed: { en: "Could not write the launcher entry.", ar: "تعذّرت كتابة مدخل المشغّل." },
   rowPrefsSync: { en: "Settings travel with the vault", ar: "الإعدادات تسافر مع الخزانة" },
   hintPrefsSync: {
-    en: "Theme, languages, editor width and the other settings on this tab are kept in the vault, so every device over it — the desktop on each machine, the phone — shares them. Off keeps this device's own.",
-    ar: "السمة واللغات وعرض المحرر وسائر إعدادات هذه اللوحة تُحفظ في الخزانة، فتتقاسمها كل الأجهزة التي تفتحها: سطح المكتب على كل حاسوب، والهاتف. وإيقافه يُبقي لهذا الجهاز إعداداته وحده.",
+    en: "Kept in the vault, so every device over it shares them. Off keeps this device's own.",
+    ar: "تُحفظ في الخزانة فتتشاركها كل الأجهزة عليها. والإيقاف يُبقي إعدادات هذا الجهاز له وحده.",
   },
   checkForUpdates: { en: "Check for updates…", ar: "التحقق من التحديثات…" },
   versionTitle: { en: "Astrolabe {v} — the releases page", ar: "أسطرلاب {v}، صفحة الإصدارات" },
@@ -4220,21 +4236,29 @@ const DICT = {
 
   // ── Software updates (desktop) ───────────────────────────────────────────
   // Toasts, never dialogs: a release is good news arriving at a random moment,
-  // and good news does not get to interrupt a sentence.
+  // and good news does not get to interrupt a sentence. And two clicks, both
+  // the reader's: "Download" fetches, "Restart to update" applies, and no
+  // sentence here promises anything happening on its own.
   menuCheckUpdates: { en: "Check for updates…", ar: "التحقق من التحديثات…" },
   updateReady: {
-    en: "Astrolabe {version} is ready",
-    ar: "‏أسطرلاب {version} جاهز",
+    en: "Astrolabe {version} is downloaded and verified",
+    ar: "‏نُزّل أسطرلاب {version} وتُحقّق منه",
   },
-  updateRestart: { en: "Restart now", ar: "إعادة التشغيل الآن" },
+  updateRestart: { en: "Restart to update", ar: "أعد التشغيل للتحديث" },
   updateAvailable: {
     en: "Astrolabe {version} is out",
     ar: "صدر أسطرلاب {version}",
   },
+  updateDownload: { en: "Download {version}", ar: "تنزيل {version}" },
+  updateChipAvailable: { en: "{version} available", ar: "‏{version} متاح" },
+  updateChipAvailableTitle: {
+    en: "Astrolabe {version} is out. Click to download it; nothing is installed until you restart.",
+    ar: "صدر أسطرلاب {version}. انقر لتنزيله؛ ولا يُثبَّت شيء حتى تعيد التشغيل.",
+  },
   updateView: { en: "See the release", ar: "عرض الإصدار" },
   updateDownloading: {
-    en: "Downloading Astrolabe {version} in the background…",
-    ar: "يجري تنزيل أسطرلاب {version} في الخلفية…",
+    en: "Downloading Astrolabe {version}…",
+    ar: "يجري تنزيل أسطرلاب {version}…",
   },
   updateCurrent: { en: "You are on the latest release.", ar: "أنت على أحدث إصدار." },
   updateChipDownloading: { en: "Downloading {version}: {pct}%", ar: "يجري تنزيل {version}: {pct}٪" },
@@ -4242,6 +4266,10 @@ const DICT = {
   updateFailed: {
     en: "Could not check for updates — will try again later.",
     ar: "تعذّر التحقق من التحديثات — ستُعاد المحاولة لاحقًا.",
+  },
+  updateDownloadFailed: {
+    en: "The download did not complete. Click “{version} available” to try again.",
+    ar: "لم يكتمل التنزيل. انقر «{version} متاح» للمحاولة مرة أخرى.",
   },
 
   // ── Panes ────────────────────────────────────────────────────────────────
@@ -4571,7 +4599,10 @@ const DICT = {
   addFlashcard: { en: "Make a flashcard", ar: "اصنع بطاقة" },
   // ── Offline reading (client/offline.ts, client/sw.ts, docs/offline.md) ──
   rowOffline: { en: "Offline reading", ar: "القراءة دون اتصال" },
-  hintOffline: { en: "Keep a copy of what you read on this device, so the notes you opened are still there without a network. Cleared when you sign out.", ar: "احتفظ بنسخة مما تقرؤه على هذا الجهاز، فتبقى الملاحظات التي فتحتها موجودة بلا شبكة. تُمسح عند تسجيل الخروج." },
+  hintOffline: {
+    en: "Keeps the notes you opened readable without a network. Cleared when you sign out.",
+    ar: "يُبقي الملاحظات التي فتحتها مقروءة بلا شبكة. ويُمحى عند تسجيل الخروج.",
+  },
   offlineClear: { en: "Clear offline copy", ar: "امسح النسخة دون اتصال" },
   offlineCleared: { en: "Offline copy cleared", ar: "مُسحت النسخة دون اتصال" },
   offlineStrip: { en: "Offline", ar: "دون اتصال" },

@@ -95,7 +95,7 @@ internet behind any HTTPS reverse proxy pointed at `localhost:6801` — see
 
 ## Make it yours
 
-The desktop app answers to whatever name and icon you give it. **Settings → Device → This app**
+The desktop app answers to whatever name and icon you give it. **Settings → This device → This app**
 sets both on your computer — the tray, the window icon, the About box and a launcher entry in
 your name — and an update never takes them back. To bake your name and icon into the executable
 itself:

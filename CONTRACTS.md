@@ -1710,9 +1710,34 @@ overruled.
 
 ## Settings panel (SettingsModal)
 
-**EIGHT TABS, and the first one is not about the site at all:** This device /
-Identity / Language & dates / Publishing / Vault / Typography / Backup /
-About. It was six, and the six were the wrong cut — not because a tab was
+**THE TAB MAP (3.15):** This device · Site · Language & dates · Publishing &
+comments · Collections · Vault · Backup & sync · About. Eight, as before, but
+re-cut: the previous eight ran Identity five rows, Typography five, Publishing
+twenty-one, and a rail is a promise about where things are that a tab nobody
+scrolls to the end of breaks. *Site* is Identity + the default theme (from
+Publishing) + Typography, because all three answer "what does my site look
+like"; the typography specimen keeps its sticky perch inside a
+`[data-section="typography"]` wrapper that is its containing block, so the
+identity rows scroll past it (and `Select` now honours `[data-popclear]` only
+when the block is ABOVE the trigger — the default-theme list opens with the
+specimen still below it). *Collections* is the back half of Publishing —
+categories-from, hand-made collections, the library shelf — because "how the
+public site groups notes" is a different question from "what may a visitor
+see". *This device* is the same rows in four groups (the look, Reading &
+writing, This browser, This app) instead of one list with the desktop's
+rename wedged between vim keys and the what's-new switch; *This app* renders
+only where the bridge exists and holds **Software updates** (below). Row
+counts now: 17 (+1 desktop) · 11 · 11 · 10 · 10 · 14 · 9. No key, default or
+behaviour moved with a row; `settingsIndex.ts` carries the new map, so search
+and `openSettingsAt` land wherever a row went, and `searchSettings` drops the
+three desktop-only rows (`DESKTOP_ONLY_ROWS`) from a browser's results rather
+than scrolling to nothing. Nine hints over the fourteen-word rule were cut to
+size in the same pass (prefs sync, ambient, app name/icon/launcher, author
+sites, relative lines, drawings folder, offline).
+
+**The eight before that, and why the first one is not about the site at all:**
+This device / Identity / Language & dates / Publishing / Vault / Typography /
+Backup / About. It was six, and the six were the wrong cut — not because a tab was
 thin (that was the last round's complaint, and merging Appearance away fixed
 it) but because ONE FORM held two kinds of row. Your theme, your editor
 language and the sidebar's edge are `localStorage` preferences that commit on
@@ -5783,20 +5808,45 @@ because a bad vault-wide edit is unrecoverable.
   hunting "the version before I broke it" thinks); beyond it, `siteDate()`, so a Hijri instance
   dates its own history in Hijri.
 
-## Desktop updates, without a framework (electron/update.ts)
+## Desktop updates, without a framework — and without a will of their own (electron/update.ts, electron/updatePolicy.ts)
 
-The app asks GitHub's releases API at launch and every six hours (`installUpdater`), the new repo
+**NOTHING IS DOWNLOADED OR INSTALLED WITHOUT BEING ASKED (3.15).** A friend's Windows build
+pulled a release in the background ("def shouldn't be the case"), which the header of update.ts
+had described as a feature. The policy is now a pure function, `decideUpdate({pref, manual,
+current, latest, reminded}) → {check, remind, download}` in `electron/updatePolicy.ts`, and
+`tests/updatePolicy.test.ts` asserts `download: false` for every combination it can enumerate.
+The flow is two clicks, both the reader's: a check (launch, every six hours, or the menu) only
+LOOKS and, when a newer release exists, sends `available` (with `installable`) — the status bar's
+chip becomes **3.x available** and a toast offers **Download 3.x**, ONCE per version per launch
+(`reminded` in update.ts; a manual check repeats it, since a person who asked deserves an answer);
+the click calls `updateDownload` (`TO_MAIN.updateDownload`), the only path that fetches bytes,
+verified by size and by the release's `SHA256SUMS` line as before; `ready` makes the chip
+**Restart to update**, and `updateApply` swaps/spawns as it always did. A failed download is
+`failed` after `downloading`, which the renderer turns into its own sentence while keeping the
+chip on **3.x available** — the way back is the same click as the way in, not the build number
+under a "could not check" title — and `found` is kept so that click retries at once; the
+updater remembers the offer, not the stumble, as what `hello` hands a later window. **The preference** `updates: "notify" | "off"` lives in
+`desktop.json` beside the window bounds (`electron/prefs.ts`, parsed by `parseUpdatesPref`;
+anything but the literal "off" is notify), is read fresh on every tick so a change needs no
+restart, and is exposed as `updatesPrefGet`/`updatesPrefSet` — Settings → This device → This app
+→ **Software updates** (*Tell me* / *Off*), desktop only. *Off* stops the timer asking at all; the
+menu item still works by hand. Turning it back on runs one quiet check straight away. `hello`
+carries `update` (the updater's last word) so a window opened after the check draws the pill
+without a second toast.
+
+**The mechanism underneath** is unchanged. The app asks GitHub's releases API, the new repo
 first and the old one when that fails. `installKind()` decides what a newer release can become:
 **appimage** (`$APPIMAGE` set) downloads the `.AppImage` beside the running file, checks the byte
 count and the release's `SHA256SUMS-*.txt` line for it, `chmod`s it to the running file's mode and
-on "Restart now" renames it over the running file and relaunches; **windows** (`win32` and
+on "Restart to update" renames it over the running file and relaunches; **windows** (`win32` and
 `app.isPackaged`, 3.4.0) downloads the NSIS `.exe` under `<userData>/updates/`, checks size and
-checksum the same way, and on "Restart now" spawns it detached with `/S --force-run --updated`
-(the flags electron-builder's installer honours: silent, relaunch when done) and quits; **null**
-(deb, pacman, a dev checkout) only says a release exists and opens the release page. The renderer
-hears `phase` changes (`current` | `available` | `downloading` | `ready` | `failed`) through the
-IPC bridge and shows the toast; the menu's "Check for updates…" runs the same path with
-`manual = true`, which is the only difference between silence and "you are current". **The Android
+checksum the same way, and on "Restart to update" spawns it detached with `/S --force-run
+--updated` (the flags electron-builder's installer honours: silent, relaunch when done) and quits;
+**null** (deb, pacman, a dev checkout) only says a release exists (`installable: false`, the chip
+reads `3.x ↗`) and opens the release page. The renderer hears `phase` changes (`current` |
+`available` | `downloading` | `ready` | `failed`) through the IPC bridge and shows the toast; the
+menu's "Check for updates…" runs the same path with `manual = true`, which is the only difference
+between silence and "you are current". **The Android
 shell** (mobile/, `UpdateCheck.java`, 3.4.0) asks the same endpoint once per launch on a thread,
 compares `tag_name` with `BuildConfig.VERSION_NAME`, and offers the first `.apk` asset in an
 AlertDialog (Update → `ACTION_VIEW` on the asset URL, the browser downloads and the package

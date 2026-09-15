@@ -89,7 +89,7 @@ Topics are what your notes say about *themselves*. **Public folders** (collectio
 say about a group of them: your own collections — Games, Reading, Field notes — declared once in
 Settings and joined by the notes that belong in them.
 
-Turn them on in **Settings → Publishing & comments → Custom public folders**. Each folder gets a
+Turn them on in **Settings → Collections → Custom public folders**. Each folder gets a
 title, an address (the `/folder/<slug>` URL), one mark from the same closed glyph set the vault
 tree uses, and an optional line of description. Up to twelve, in whatever order you arrange them —
 that order is the order readers meet them.
