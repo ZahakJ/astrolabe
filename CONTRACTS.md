@@ -9678,6 +9678,25 @@ positioned against it stays put. Verified against the packaged Windows exe under
 over `--remote-debugging-port` with Playwright (`scratchpad/win/`): the recipe for any future
 "does it work on Windows" question. The designer's door lives at the foot of the shell.
 
+**The one shipped face.** `client/public/fonts/NotoNaskhArabic-{Regular,Bold}.woff2` (OFL, licence
+beside them) with `@font-face` in tokens.css: `local()` first, Arabic `unicode-range` only, named at
+the end of every Latin stack too. A fresh Linux .deb rendered Arabic in DejaVu; this is the answer,
+and it costs an English instance nothing until an Arabic glyph appears. `server/fonts.ts`'s "zero
+webfonts" is now "zero *fetched* webfonts".
+
+**The deck gate (`scripts/check-deck.mjs`).** Every release's slides, both languages, loop frozen
+at the arrived state, measured on screen: nothing out of frame, out of its chip, overlapping, no
+Arabic set RTL inside an SVG, no Arabic sentence inside an SVG (prose is a DOM demo). It exists
+because the 3.15.0 manual slide put its Arabic column outside the frame and nobody had looked at
+every slide in Arabic. The keyframes animate `translate`/`scale`, never `transform`, because the
+SVG `transform` attribute is the same property and the 3.12.0 drawings collapsed when it was.
+
+**The Linux packages' metadata.** `desktop/appstream/dev.astrolabe.desktop.metainfo.xml` (stamped
+into `desktop/build/` by `scripts/stamp-metainfo.mjs`, mapped by the deb and pacman `fpm` entries
+— relative to `desktop/`, where every build runs) and `license: MIT` in extraMetadata, so a software
+centre shows a name, an author, a licence and a version. `check-desktop` validates it with
+appstreamcli when present.
+
 ## Tests (`npm test`) — the release gate
 
 `node --test` over `tests/*.test.ts`. No new dependencies, no test framework, no fixtures on disk

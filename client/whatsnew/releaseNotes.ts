@@ -297,6 +297,30 @@ function harakatDemo(host: HTMLElement, lang: Lang): void {
   host.replaceChildren(wrap);
 }
 
+
+// ── 3.15.0: the manual, two pages side by side ─────────────────────────────
+// DOM, not SVG, for the reason the ayah slide is DOM: Arabic prose needs a
+// real right-to-left line, and the stage forces every drawing left-to-right.
+// RULE FOR EVERY FUTURE SLIDE: an Arabic sentence never goes into an SVG
+// <text>; a single Arabic word anchored at its start is fine, a line is not.
+function manualDemo(host: HTMLElement, lang: Lang): void {
+  void lang; // both pages show regardless: the point is the pair
+  const wrap = el("div", "s-wn-manual");
+  const en = el("div", "s-wn-manual__page");
+  en.dir = "ltr";
+  en.appendChild(el("h4", "s-wn-manual__h", "Orbits"));
+  en.appendChild(el("p", "s-wn-manual__p", "An orbit is something you come back to every day: a walk, the prayers, a page of reading."));
+  en.appendChild(el("p", "s-wn-manual__p", "You write the plan once. Each day you tick what you did, and the note keeps the record."));
+  const ar = el("div", "s-wn-manual__page s-wn-manual__page--ar");
+  ar.dir = "rtl";
+  ar.appendChild(el("h4", "s-wn-manual__h", "المدارات"));
+  ar.appendChild(el("p", "s-wn-manual__p", "المدار شيء تعود إليه كل يوم: مشية، أو الصلوات، أو صفحة قراءة."));
+  ar.appendChild(el("p", "s-wn-manual__p", "تكتب الخطة مرة واحدة، وكل يوم تعلّم على ما فعلت، والملاحظة تحفظ السجل."));
+  wrap.appendChild(en);
+  wrap.appendChild(ar);
+  host.replaceChildren(wrap);
+}
+
 // ── The registry ────────────────────────────────────────────────────────────
 
 export const RELEASES: Release[] = [
@@ -317,7 +341,7 @@ export const RELEASES: Release[] = [
   <g><circle cx="80" cy="110" r="46" fill="none" stroke="var(--border)" stroke-dasharray="3 4"/><circle cx="80" cy="110" r="14" fill="var(--accent)" opacity="0.25"/><circle cx="80" cy="110" r="6" fill="var(--accent)"/></g>
   <circle class="wa-pulse" cx="126" cy="110" r="5" fill="var(--accent)"/>
   <text x="150" y="52" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "NEW ORBIT", "مدار جديد")}</text>
-  <g><rect x="150" y="62" width="380" height="40" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="166" y="88" font-size="20">🚶</text><text x="196" y="87" fill="var(--text)" font-family="Georgia, serif" font-size="15">${L(lang, "Daily exercise", "رياضة يومية")}</text><text x="520" y="87" text-anchor="end" fill="var(--text-faint)" font-size="11">${L(lang, "6 / week", "6 في الأسبوع")}</text></g>
+  <g><rect x="150" y="62" width="380" height="40" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="166" y="88" font-size="20">🚶</text><text x="196" y="87" fill="var(--text)" font-family="Georgia, serif" font-size="15">${L(lang, "Daily exercise", "رياضة يومية")}</text><text x="450" y="87" fill="var(--text-faint)" font-size="11">${L(lang, "6 / week", "6 في الأسبوع")}</text></g>
   <text x="150" y="126" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "WHAT TO RECORD EACH DAY", "ما تسجّله كل يوم")}</text>
   <g font-size="12" fill="var(--text)">
     <rect x="150" y="136" width="14" height="14" rx="3" fill="none" stroke="var(--border)"/><text x="172" y="147">${L(lang, "Minutes", "الدقائق")}</text><text x="230" y="147" fill="var(--text-faint)" font-size="11">${L(lang, "a number", "رقم")}</text>
@@ -343,10 +367,10 @@ export const RELEASES: Release[] = [
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <rect x="12" y="160" width="536" height="48" fill="var(--bg-hover)"/><rect x="12" y="150" width="536" height="30" fill="var(--bg-hover)"/>
   <g><text x="30" y="188" fill="var(--text-muted)" font-size="12">${L(lang, "12 notes", "12 ملاحظة")}</text></g>
-  <g><rect x="380" y="170" width="150" height="26" rx="13" fill="var(--bg)" stroke="var(--accent)"/><text x="455" y="187" text-anchor="middle" fill="var(--accent)" font-size="12">${L(lang, "3.15.0 available · Download", "3.15.0 متاح · نزّل")}</text></g>
-  <text class="wa-late" x="455" y="140" text-anchor="middle" fill="var(--text-faint)" font-size="11">${L(lang, "…then: Restart to update", "…ثم: أعد التشغيل للتحديث")}</text>
+  <g><rect x="340" y="170" width="190" height="26" rx="13" fill="var(--bg)" stroke="var(--accent)"/><text x="435" y="187" text-anchor="middle" fill="var(--accent)" font-size="12">${L(lang, "3.15.0 available · Download", "3.15.0 متاح · نزّل")}</text></g>
+  <text class="wa-late" x="435" y="140" text-anchor="middle" fill="var(--text-faint)" font-size="11">${L(lang, "…then: Restart to update", "…ثم: أعد التشغيل للتحديث")}</text>
   <text x="30" y="46" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "SETTINGS · THIS DEVICE", "الإعدادات · هذا الجهاز")}</text>
-  <g><text x="30" y="72" fill="var(--text)" font-size="13">${L(lang, "Software updates", "تحديثات البرنامج")}</text><text x="30" y="90" fill="var(--text-muted)" font-size="11">${L(lang, "Nothing is ever installed without asking.", "لا يُثبَّت شيء أبدًا من دون سؤال.")}</text></g>
+  <g><text x="30" y="72" fill="var(--text)" font-size="13">${L(lang, "Software updates", "تحديثات البرنامج")}</text><text x="30" y="90" fill="var(--text-muted)" font-size="11">${L(lang, "Nothing is ever installed without asking.", "لا يُثبَّت شيء من دون سؤال.")}</text></g>
   <g><rect x="330" y="58" width="100" height="26" rx="13" fill="color-mix(in srgb, var(--accent) 22%, var(--bg))" stroke="var(--accent)"/><text x="380" y="75" text-anchor="middle" fill="var(--text)" font-size="12">${L(lang, "Tell me", "أخبرني")}</text><rect x="434" y="58" width="80" height="26" rx="13" fill="var(--bg)" stroke="var(--border)"/><text x="474" y="75" text-anchor="middle" fill="var(--text-muted)" font-size="12">${L(lang, "Off", "إيقاف")}</text></g>
 </svg>`,
         },
@@ -378,14 +402,7 @@ export const RELEASES: Release[] = [
           en: "Every page of the manual was rewritten for a reader who does not know the terminology: plain words, short sentences, what a thing is for before how it works. The Arabic edition was written as Arabic, not translated, and read back by a second pair of eyes. The interface's Arabic strings got the same pass.",
           ar: "أُعيدت كتابة كل صفحة من الدليل لقارئ لا يعرف المصطلحات: كلمات بسيطة، وجمل قصيرة، وما ينفع الشيء قبل كيف يعمل. وكُتبت النسخة العربية عربيةً لا مترجمة، وراجعتها عين ثانية. ونصوص الواجهة العربية نالت المرور نفسه.",
         },
-        visual: {
-          kind: "svg",
-          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
-  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <g><rect x="30" y="30" width="240" height="160" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="46" y="56" fill="var(--text)" font-family="Georgia, serif" font-size="15">Orbits</text><g fill="var(--text-muted)" font-size="11"><text x="46" y="80">An orbit is something you come</text><text x="46" y="96">back to every day: a walk, the</text><text x="46" y="112">prayers, a page of reading.</text><text x="46" y="136">You write the plan once. Each</text><text x="46" y="152">day you tick what you did, and</text><text x="46" y="168">the note keeps the record.</text></g></g>
-  <g><rect x="290" y="30" width="240" height="160" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="514" y="56" text-anchor="end" fill="var(--text)" font-family="'Noto Naskh Arabic', 'Scheherazade New', serif" font-size="16" direction="rtl">المدارات</text><g fill="var(--text-muted)" font-family="'Noto Naskh Arabic', 'Scheherazade New', serif" font-size="13" text-anchor="end" direction="rtl"><text x="514" y="82">المدار شيء تعود إليه كل يوم:</text><text x="514" y="102">مشية، أو الصلوات، أو صفحة قراءة.</text><text x="514" y="130">تكتب الخطة مرة واحدة، وكل يوم</text><text x="514" y="150">تعلّم على ما فعلت، والملاحظة</text><text x="514" y="170">تحفظ السجل.</text></g></g>
-</svg>`,
-        },
+        visual: { kind: "demo", mount: manualDemo },
         docs: "orbits",
       },
     ],
@@ -408,14 +425,14 @@ export const RELEASES: Release[] = [
               : ["In the beginning was the word,", "then the margin,", "counting from where you are:", "seven lines down,", "three up,", "and the rest is arithmetic", "with no guessing in it.", "This line, now.", "And after it the count", "starts again."];
             const caret = 7;
             const rows = lines.map((text, i) => {
-              const y = 44 + i * 18;
+              const y = 40 + i * 17;
               const n = i === caret ? String(i + 1) : String(Math.abs(i - caret));
               const cls = i === caret ? "wa-pulse" : "";
               const numFill = i === caret ? "var(--accent)" : "var(--text-faint)";
               const textFill = i === caret ? "var(--text)" : "var(--text-muted)";
               return `<g><text class="${cls}" x="70" y="${y}" text-anchor="end" font-family="ui-monospace, monospace" font-size="11" fill="${numFill}"${i === caret ? ' font-weight="600"' : ""}>${n}</text><text x="92" y="${y}" font-family="Georgia, serif" font-size="12.5" fill="${textFill}">${text}</text></g>`;
             }).join("");
-            const cy = 44 + caret * 18;
+            const cy = 40 + caret * 17;
             return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <rect x="86" y="${cy - 13}" width="6" height="16" fill="var(--accent)" opacity="0.7"/>
@@ -507,7 +524,7 @@ export const RELEASES: Release[] = [
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
   <text x="30" y="46" fill="var(--text)" font-family="Georgia, serif" font-size="16">${L(lang, "The Muqaddima", "المقدمة")}</text>
   <rect x="30" y="60" width="320" height="8" rx="4" fill="var(--bg-hover)"/><rect class="wa-grow" x="30" y="60" width="128" height="8" rx="4" fill="var(--accent)"/>
-  <text x="30" y="88" fill="var(--text-muted)" font-size="12">100 / 300 ${L(lang, "pages", "صفحة")} · <tspan fill="var(--accent)">20 ${L(lang, "pages a day — done by 24 September", "صفحة في اليوم؛ ينتهي في 24 سبتمبر")}</tspan></text>
+  <text x="30" y="88" fill="var(--text-muted)" font-size="12">100 / 300 ${L(lang, "pages", "صفحة")} · <tspan fill="var(--accent)">20 ${L(lang, "pages a day — done by 24 September", "في اليوم · ينتهي 24 سبتمبر")}</tspan></text>
   <rect x="30" y="112" width="500" height="80" rx="10" fill="var(--bg)" stroke="var(--border)"/>
   <text x="46" y="136" fill="var(--accent)" font-size="11" letter-spacing="1">${L(lang, "TODAY", "اليوم")}</text>
   <rect x="46" y="150" width="16" height="16" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path class="wa-draw" d="M50 158l4 4 7-8" fill="none" stroke="var(--accent)" stroke-width="2"/>
@@ -555,12 +572,12 @@ export const RELEASES: Release[] = [
   <g class="wa-drop"><rect x="12" y="12" width="536" height="34" rx="12" fill="var(--bg-hover)"/><rect x="12" y="34" width="536" height="12" fill="var(--bg-hover)"/>
   <g transform="translate(30 22)" fill="none" stroke="var(--text-muted)" stroke-width="1.6" stroke-linecap="round"><path d="M1 6a5 5 0 0 1 9 0"/><path d="M3.2 8.4a2.6 2.6 0 0 1 4.6 0"/><circle cx="5.5" cy="11" r=".8"/><path class="wa-draw" d="M0 0l11 11"/></g>
   <text x="50" y="34" fill="var(--text)" font-weight="600" font-size="12">${L(lang, "Offline", "دون اتصال")}</text>
-  <text x="104" y="34" fill="var(--text-muted)" font-size="12">${L(lang, "Reading this device's copy. Edits are kept and saved when the network is back.", "تقرأ نسخة هذا الجهاز. تُحفظ التعديلات وتُرسل عند عودة الشبكة.")}</text></g>
+  <text x="104" y="34" fill="var(--text-muted)" font-size="12">${L(lang, "Reading this device's copy. Edits are kept and saved when the network is back.", "تقرأ نسخة هذا الجهاز؛ تعديلاتك محفوظة.")}</text></g>
   <rect x="30" y="62" width="130" height="130" rx="8" fill="var(--bg)" stroke="var(--border)"/>
   <g fill="var(--text-muted)" font-size="12"><text x="42" y="86">${L(lang, "Journal", "اليوميات")}</text><text x="42" y="108" fill="var(--text)">${L(lang, "The Muqaddima", "المقدمة")}</text><text x="42" y="130">${L(lang, "Reading list", "قائمة القراءة")}</text><text x="42" y="152">${L(lang, "Routines", "الروتين")}</text></g>
   <text x="180" y="90" fill="var(--text)" font-family="Georgia, serif" font-size="18">${L(lang, "The Muqaddima", "المقدمة")}</text>
   <g fill="var(--text-muted)" font-size="12"><text x="180" y="116">${L(lang, "Ibn Khaldun opens with the errors of", "يفتتح ابن خلدون بأخطاء المؤرخين")}</text><text x="180" y="134">${L(lang, "historians, and the causes of them —", "وأسبابها، ثم يمضي إلى علم العمران")}</text><text x="180" y="152">${L(lang, "and then to the science of civilisation.", "الذي يؤسسه.")}</text></g>
-  <text x="180" y="184" fill="var(--text-faint)" font-size="11">${L(lang, "✓ read this morning · kept on this device", "✓ قُرئت صباح اليوم · محفوظة على هذا الجهاز")}</text>
+  <text x="180" y="184" fill="var(--text-faint)" font-size="11">${L(lang, "✓ read this morning · kept on this device", "✓ محفوظة على هذا الجهاز")}</text>
 </svg>`,
         },
         docs: "offline",
