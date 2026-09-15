@@ -1,36 +1,36 @@
 # Offline reading
 
-*The notes you opened are still there when the network is not.*
+*The notes you have already opened stay readable when the network is gone.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
 ---
 
-Astrolabe is one process on one machine and the browser is a window onto it. Offline reading is the window remembering what it last showed: a service worker keeps a copy of the app and of every note you read, and when the network is gone — a train, a flight, the server rebooting — the same address opens the same note from the copy on the device.
+Astrolabe is one program running on one machine, and your browser is a window onto it. Normally every note you open is fetched from that machine. Offline reading means the window remembers what it last showed you. A small helper inside the browser, called a **service worker**, keeps a copy of the app and of every note you read. When the network disappears (on a train, on a flight, while the server reboots), the same address still opens the same note, from the copy on your device.
 
 ## What is kept
 
-- **The app itself** — the shell and its built chunks, so the page opens at all without a server.
-- **What you read** — each note you opened, the tree, its backlinks and the session, refreshed on every successful read. What is on the device is what you last read online, not a mirror of the vault: a note you never opened is not there.
-- **Nothing else.** Search, PDFs, attachments, the graph, every write: these go to the server or nowhere. Offline, search answers empty and a PDF does not open.
+- **The app itself.** The page and the code it runs on, so the app can open at all when there is no server to talk to.
+- **What you read.** Every note you opened, plus the note tree, the note's backlinks and your session. The copy is refreshed each time a note loads successfully. It is a copy of what you last read while online, not a mirror of the whole vault: a note you never opened is not on the device.
+- **Nothing else.** Search, PDFs, attachments, the graph, and anything you save all need the server. Offline, a search returns nothing and a PDF does not open.
 
-The copy is per device and per browser, and it belongs to the session. It is kept only for an admin session with the switch on; signing out deletes it, and a visitor of a published site never gets one.
+The copy belongs to one device, one browser and one signed-in session. It is kept only while you are signed in as the admin with the switch on. Signing out deletes it, and a visitor to a published site never gets a copy at all.
 
 ## Editing offline
 
-The editor stays open. An edit made offline is kept in the tab and the save is retried until the network is back, exactly as it is when the server is briefly down — the status bar says *still trying* and your text is where you left it. Do not close the tab before the save lands; the copy on the device is what was **read**, not what was **written**.
+The editor does not lock. If you edit a note while offline, the change stays in the tab and the app keeps trying to save it until the network comes back, exactly as it does when the server is down for a moment. The status bar says *still trying* and your text stays where you left it. Do not close the tab before the save goes through: the copy on the device is what you **read**, not what you **wrote**.
 
 ## The strip
 
-While the browser reports no network, a grey strip above the panes says **Offline** and reminds you that edits will be saved when it returns. It goes when the network does.
+While the browser reports that it has no network, a grey strip appears above the panes. It says **Offline** and reminds you that your edits will be saved when the network returns. It disappears as soon as the network does.
 
 ## Settings
 
-**Settings → This device → Offline reading** turns the copy on or off for this device (on by default). **Clear offline copy** deletes it now — a shared machine, or a vault you would rather not leave behind. The row is absent in the desktop app: its server runs on the same machine, and there is nothing to be offline from.
+**Settings → This device → Offline reading** turns the copy on or off for this device. It is on by default. **Clear offline copy** deletes the copy right now, which is useful on a shared machine, or for a vault you would rather not leave behind. The desktop app has no such row: its server runs on the same machine as the app, so there is nothing to be offline from.
 
 ## How it works
 
-The worker is `sw.js` at the site root, served with `Cache-Control: no-cache` so a new build is noticed on the next visit. Its policy is `shared/offlinePolicy.ts`: the shell and the note reads are *network first, cache fallback*; built assets, whose names are content hashes, are *cache first*; everything else bypasses the worker. Each build keeps its own cache and deletes the previous one when it takes over. Service workers need HTTPS, or `localhost`; on a plain `http://` LAN address the switch has no effect and the site behaves as it always did.
+The service worker is the file `sw.js` at the root of the site. It is served with `Cache-Control: no-cache`, so the browser notices a new build on the next visit. The rules it follows live in `shared/offlinePolicy.ts`. The page and the note reads are *network first, cache second*: the worker tries the server, and falls back to the copy. The built code files, whose names contain a fingerprint of their contents, are *cache first*: once fetched they never change. Everything else goes straight to the server. Each build keeps its own cache and deletes the previous build's cache when it takes over. Browsers only allow service workers over HTTPS or on `localhost`; on a plain `http://` address on a local network the switch does nothing, and the site behaves as it always did.
 
 ## Related
 
