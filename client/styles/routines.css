@@ -64,6 +64,13 @@
      the empty second column auto-fill kept open for a card that did not
      exist is gone (the owner: "the right half seems completely blank"). */
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  /* Each card is as tall as its own content and no taller. The default
+     (stretch) sized both cards in a row to the taller one, so opening the
+     week's plan on one card grew its neighbour's box (the owner: "opening
+     more info on the left card expands the right card in weird ways"). A
+     card grid where cards expand on their own is the idiom; the leftover
+     height sits under the shorter card, not inside it. */
+  align-items: start;
   gap: 18px;
   max-inline-size: 1240px;
   margin: 24px auto 0;

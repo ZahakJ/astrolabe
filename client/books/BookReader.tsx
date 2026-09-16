@@ -345,6 +345,20 @@ export default function BookReader({ path, citation = null, active = true, onLan
 
   const windowed = useMemo(() => new Set(renderWindow(spreadIndex, spreads.length)), [spreadIndex, spreads.length]);
 
+  // ZOOM PAINTS TWICE: the display scale moves at once and the bitmaps are
+  // stretched to it by CSS, and only when the hand has rested for a moment
+  // are the pages rasterised again at the new scale. Rasterising five
+  // retina pages on the main thread costs 200–300 ms each, and doing it on
+  // EVERY step of a Ctrl+wheel or a held `=` was the lag the owner felt
+  // ("reading books can be quite laggy"); scrolling itself was already
+  // free. A slightly soft page for 160 ms is the price, and nobody sees it.
+  const [renderScale, setRenderScale] = useState(scale);
+  useEffect(() => {
+    if (renderScale === scale) return;
+    const id = window.setTimeout(() => setRenderScale(scale), 160);
+    return () => window.clearTimeout(id);
+  }, [scale, renderScale]);
+
   // Measure the pages in the window so their slots stop guessing. `asked`
   // is a ref rather than a dependency: measuring writes `sizes`, and a `sizes`
   // dependency would re-enter this effect once per measured page.
@@ -542,6 +556,24 @@ export default function BookReader({ path, citation = null, active = true, onLan
     },
     [scale, update],
   );
+
+  // Ctrl+wheel and a trackpad pinch (which Chromium reports as a ctrl-wheel)
+  // zoom the page under the pointer, not the app. Registered by hand with
+  // `passive: false` because React's onWheel is passive and cannot stop the
+  // browser's own zoom; a wheel without the modifier is left alone. The
+  // factor follows the delta so a pinch is smooth and a notch is a step.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent): void => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      const factor = Math.exp(-Math.max(-120, Math.min(120, e.deltaY)) * 0.0025);
+      zoomBy(factor);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [zoomBy]);
 
   const cycleInvert = useCallback(() => {
     const order: BookInvert[] = ["off", "night", "flip"];
@@ -1069,6 +1101,16 @@ export default function BookReader({ path, citation = null, active = true, onLan
         return;
       }
       if (e.ctrlKey || e.metaKey || e.altKey) {
+        // Ctrl/Cmd with = − 0 zoom THE PAGE, not the app: a reader who
+        // reaches for the browser's zoom keys over a book means the book,
+        // and the browser's own handler would scale the whole shell. The
+        // bare keys below do the same; these just take the reflex too.
+        if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "=" || e.key === "+" || e.key === "-" || e.key === "0")) {
+          e.preventDefault();
+          if (e.key === "0") update({ fit: "width" });
+          else zoomBy(e.key === "-" ? 1 / 1.15 : 1.15);
+          return;
+        }
         // Ctrl+D / Ctrl+U — half a screen, the one modified pair zathura has.
         if ((e.ctrlKey || e.metaKey) && !e.altKey) {
           const key = shortcutKey(e);
@@ -1375,7 +1417,7 @@ export default function BookReader({ path, citation = null, active = true, onLan
                         key={page}
                         doc={doc}
                         page={page}
-                        scale={scale}
+                        scale={renderScale}
                         rotation={state.rotation}
                         invert={state.invert}
                         paper={paper}
@@ -1383,6 +1425,7 @@ export default function BookReader({ path, citation = null, active = true, onLan
                         height={sizeOf(page).h * scale}
                         marks={highlights.filter((h) => h.page === page)}
                         pulseRects={pulse !== null && pulse.page === page ? pulse.rects : EMPTY_RECTS}
+                        deferred={spread.index !== spreadIndex}
                       />
                     ))
                   : spread.pages.map((page) => (
@@ -1562,6 +1605,9 @@ interface SlotProps {
   height: number;
   marks: BookHighlight[];
   pulseRects: BookRect[];
+  /** A neighbour of the spread being read: its rasterisation waits a beat
+   *  longer, so the page under the eye sharpens first. */
+  deferred: boolean;
 }
 
 function PageSlot({
@@ -1575,15 +1621,24 @@ function PageSlot({
   height,
   marks,
   pulseRects,
+  deferred,
 }: SlotProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+
+  /** The CSS size the last rasterisation was made for; the stretch below is
+   *  the ratio of the slot's current size to it. */
+  const rendered = useRef<{ w: number; h: number } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const controller = new AbortController();
-    void renderPage({
+    // The spread under the eye paints now; a neighbour that already has a
+    // bitmap (stretched by the effect below) waits 400 ms more, so five
+    // retina rasterisations never land in the same frame after a zoom.
+    const wait = deferred && rendered.current ? 400 : 0;
+    const timer = window.setTimeout(() => void renderPage({
       doc,
       pageNumber: page,
       scale,
@@ -1593,13 +1648,38 @@ function PageSlot({
       textLayer: textRef.current,
       paper,
       signal: controller.signal,
+    }).then((r) => {
+      rendered.current = { w: r.cssWidth, h: r.cssHeight };
+      if (textRef.current) textRef.current.style.transform = "";
     }).catch(() => {
       // Cancelled (the reader scrolled on) or unrenderable. Either way the
       // slot keeps its reserved space and the scroll position is undisturbed,
       // which matters more than an error nobody can act on.
-    });
-    return () => controller.abort();
+    }), wait);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+    // `deferred` is deliberately not a dependency: a spread becoming the
+    // current one must not re-rasterise a page that is already sharp.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc, page, scale, rotation, invert, paper]);
+
+  // Between a zoom and its settled rasterisation the slot is already at the
+  // new size: the bitmap is stretched to fill it and the text layer scaled
+  // with it, so the page moves with the hand and only sharpens later.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const last = rendered.current;
+    if (!canvas || !last || last.w === 0) return;
+    canvas.style.width = `${Math.round(width)}px`;
+    canvas.style.height = `${Math.round(height)}px`;
+    const ratio = width / last.w;
+    if (textRef.current) {
+      textRef.current.style.transformOrigin = "0 0";
+      textRef.current.style.transform = Math.abs(ratio - 1) < 0.001 ? "" : `scale(${ratio})`;
+    }
+  }, [width, height]);
 
   return (
     <div className="s-book__page" style={{ inlineSize: `${width}px`, blockSize: `${height}px` }} data-page={page}>

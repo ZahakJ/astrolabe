@@ -883,7 +883,9 @@ const AUDIENCES = [
   // 3.16.0: 1046.5 kB actual → 1047 after the French/furigana merge (above).
   // 3.16.0 release: 1047.8 kB actual → 1048 (the merge above).
   // 3.16.1: 1049.1 kB actual → 1050 (the row above).
-  { name: "anonymous blog reader", keys: blog, budget: 1050 * 1024 },
+  // 3.16.3: 1050.6 kB actual → 1051 — the sigil card's pushed-forward rows
+  // and the reading renderer's share of them.
+  { name: "anonymous blog reader", keys: blog, budget: 1051 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1013,7 +1015,8 @@ const AUDIENCES = [
   // 3.16.0: 1491.4 kB actual → 1492 after the French/furigana merge (above).
   // 3.16.0 release: 1493.4 kB actual → 1494 (the merge above).
   // 3.16.1: 1494.6 kB actual → 1495 (the row above).
-  { name: "admin first paint", keys: app, budget: 1495 * 1024 },
+  // 3.16.3: 1496.1 kB actual → 1497 (the rows above, plus client/morph.ts).
+  { name: "admin first paint", keys: app, budget: 1497 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

@@ -12,6 +12,7 @@
 // event, because a box ticked in the editor is still this page's business.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { morph } from "../morph.ts";
 import SiteMark from "../components/SiteMark.tsx";
 import type { RoutineMeta } from "../../shared/types.ts";
 import { dayStatus, isoDate, type EntryPatch } from "../../shared/routine.ts";
@@ -67,11 +68,19 @@ function RoutineCard({
         { label: t("routinesDelete"), onClick: onDelete },
       ],
     });
-    el.replaceChildren(card);
     // A slot that wikilinks a deck gets its "N due · Study" chip
     // (client/routines/orbits.ts) — after the draw, on the drawn card.
     decorateDeckTasks(card, meta, today);
-    return () => el.replaceChildren();
+    // A card that already stands is patched, not replaced: a tick moves one
+    // checkbox and a number, the banner does not reload, the folded plan
+    // stays as the reader left it (client/morph.ts).
+    const standing = el.firstElementChild;
+    if (standing && standing.className === card.className) morph(standing, card);
+    else el.replaceChildren(card);
+    return () => {
+      // Torn down only when the card leaves for good, not between ticks.
+      if (!el.isConnected) el.replaceChildren();
+    };
   }, [meta, today, onLog, onOpen, onEdit, onDelete]);
   return <div ref={host} className="s-routines__card" />;
 }
@@ -178,7 +187,13 @@ export default function RoutinesView() {
     };
   }, [load]);
 
-  const live = useMemo(() => (all ?? []).filter((m) => !m.template), [all]);
+  // In a STABLE order — by title, in the site's language — not the server's
+  // newest-touched-first: every tick writes the note, and a card that jumped
+  // to the front each time its box was ticked was the "flash" the owner saw.
+  const live = useMemo(
+    () => (all ?? []).filter((m) => !m.template).sort((a, b) => a.plan.title.localeCompare(b.plan.title, locale) || a.path.localeCompare(b.path)),
+    [all, locale],
+  );
   const templates = useMemo(() => (all ?? []).filter((m) => m.template), [all]);
   const complete = useMemo(
     () => live.filter((m) => dayStatus(m.plan, m.entries.find((e) => e.date === today) ?? null, today, today) === "complete").length,

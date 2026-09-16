@@ -2610,7 +2610,7 @@ api.post("/routine", async (c) => {
   if (entry && typeof entry.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
     const list = (v: unknown): string[] | undefined =>
       Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").map((x) => x.slice(0, 200)).slice(0, 100) : undefined;
-    const patch: EntryPatch = { date: entry.date, done: list(entry.done), skipped: list(entry.skipped) };
+    const patch: EntryPatch = { date: entry.date, done: list(entry.done), skipped: list(entry.skipped), deferred: list(entry.deferred) };
     if (entry.values && typeof entry.values === "object") {
       patch.values = {};
       for (const [k, v] of Object.entries(entry.values as Record<string, unknown>)) {
