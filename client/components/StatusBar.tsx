@@ -25,7 +25,7 @@ import { openThemePicker } from "./ThemePicker.tsx";
 import { openDesigner } from "./design/openDesigner.ts";
 import { ContextMenu, type MenuAnchor, type MenuRow } from "./ContextMenu.tsx";
 import { noteLabelOf, stripNoteExt } from "../../shared/noteFormat.ts";
-import { dailyNoteLabel } from "../daily.ts";
+import { periodLabel } from "../daily.ts";
 import {
   DOC_STATS_EVENT,
   requestDocStats,
@@ -376,17 +376,20 @@ export default function StatusBar() {
   }, [openPath, isDirty, reloadTick, siteDir, siteAlign]);
 
   // Visitors browse a flat curated collection — never leak folder structure.
-  // A DAILY NOTE KEEPS ITS ISO FILENAME AND SHOWS THE INSTANCE'S CALENDAR.
-  // `daily/2026-08-16.md` is still `daily/2026-08-16.md` on disk, in every
-  // wikilink and in every sort — but on a Hijri instance the bar names it
-  // «٢ صفر ١٤٤٨ هـ», which is the date its writer was actually living in.
-  // Null in gregorian mode, where the filename already IS that date.
-  const leaf = openPath ? (dailyNoteLabel(openPath) ?? noteLabelOf(openPath)) : "";
+  const leaf = openPath ? noteLabelOf(openPath) : "";
   const crumbs = openPath
     ? admin
       ? [...stripNoteExt(openPath).split("/").slice(0, -1), leaf]
       : [leaf]
     : [];
+  // A PERIODIC NOTE KEEPS ITS ISO FILENAME AND SAYS ITS PERIOD IN THE
+  // INSTANCE'S CALENDAR. `daily/2026-08-16.md` is still that on disk, in
+  // every wikilink and in every sort — and beside it the bar says
+  // «Sunday, 16 August 2026», or on a Hijri instance «٢ صفر ١٤٤٨ هـ», the
+  // date its writer was actually living in; a weekly note gets its week and
+  // span, a monthly its month, a yearly its year. Re-read on every render:
+  // the language and the calendar both change under this bar.
+  const period = openPath ? periodLabel(openPath) : null;
 
   // THE PHONE'S OVERFLOW MENU. Below 640px the cluster kept every control and
   // scrolled sideways with no scrollbar, right-aligned — so its first two
@@ -753,6 +756,14 @@ export default function StatusBar() {
           <span className="s-statusbar__crumb s-statusbar__crumb--leaf" dir="auto">
             {crumbs[crumbs.length - 1]}
           </span>
+          {period !== null && (
+            <span className="s-statusbar__period" data-testid="status-period">
+              <span className="s-statusbar__crumb-sep" aria-hidden="true">
+                ·
+              </span>
+              <span className="s-statusbar__crumb s-statusbar__periodtext">{period}</span>
+            </span>
+          )}
         </span>
       ) : (
         <span className="s-statusbar__crumbs s-statusbar__crumb">{t("noNoteOpen")}</span>

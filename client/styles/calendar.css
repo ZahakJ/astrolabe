@@ -1,0 +1,220 @@
+/* Astrolabe — the month grid (client/components/CalendarGrid.tsx). Its own
+   file, loaded with the grid's chunk: the sidebar mounts the grid lazily
+   when its Calendar section is open, the Sigils page with its own chunk.
+   Tokens only; logical properties; a table, so RTL mirrors the columns on
+   its own and the first day of the week sits at the inline start. */
+
+.s-cal {
+  display: grid;
+  gap: 4px;
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  container-type: inline-size;
+}
+
+/* ── The bar: ‹ month › ─────────────────────────────────────────────────── */
+.s-cal__bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.s-cal__nav,
+.s-cal__title {
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.s-cal__nav {
+  flex: none;
+  inline-size: 26px;
+  block-size: 26px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1.143rem;
+  line-height: 1;
+}
+
+.s-cal__nav:hover,
+.s-cal__title:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+/* The chevrons are glyphs, and a glyph that points left says "previous"
+   only in a script that reads leftward-is-back. Under RTL the DOM order
+   already puts the previous button at the inline start (the right); the
+   glyph is flipped so it points the way it goes. */
+[dir="rtl"] .s-cal__chev {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
+.s-cal__title {
+  flex: 1;
+  min-inline-size: 0;
+  padding: 3px 6px;
+  font-size: 0.857rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── The table ──────────────────────────────────────────────────────────── */
+.s-cal__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.s-cal__wd {
+  padding: 2px 0 4px;
+  font-size: 0.714rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.s-cal__cell {
+  padding: 1px;
+  text-align: center;
+}
+
+.s-cal__day {
+  position: relative;
+  inline-size: 100%;
+  aspect-ratio: 1;
+  max-block-size: 44px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.857rem;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.s-cal__day:hover {
+  background: var(--bg-hover);
+}
+
+.s-cal__day:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+/* Neighbouring months' days complete the rows and are there to be
+   clicked, but they are not this page's. */
+.s-cal__day--out {
+  color: var(--text-faint);
+}
+
+/* Today is RINGED, not filled: the fill is what the marks under the number
+   need to read against, and a ring says "here" without shouting. */
+.s-cal__day.is-today {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.s-cal__num {
+  align-self: end;
+  line-height: 1;
+}
+
+/* The other calendar's day, small in the inline-end top corner — only on
+   an instance that already prints both (CalendarGrid.tsx gridCalendars). */
+.s-cal__alt {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-end: 3px;
+  font-size: 0.571rem;
+  line-height: 1;
+  color: var(--text-faint);
+}
+
+/* The marks row: a dot for the day's note, a second for a sigil logged.
+   Always laid out (an empty row keeps the numbers on one baseline across
+   the grid), filled only when there is something to say. */
+.s-cal__marks {
+  display: flex;
+  gap: 3px;
+  block-size: 6px;
+  align-items: center;
+  margin-block-end: 3px;
+}
+
+.s-cal__dot {
+  inline-size: 4px;
+  block-size: 4px;
+  border-radius: 50%;
+}
+
+.s-cal__dot--note {
+  background: var(--accent);
+}
+
+.s-cal__dot--log {
+  background: var(--text-muted);
+}
+
+/* ── The sidebar's section ─────────────────────────────────────────────── */
+.s-calsec {
+  flex: none;
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.s-calsec .s-cal__day {
+  max-block-size: 36px;
+  font-size: 0.786rem;
+}
+
+/* ── The Sigils page's ───────────────────────────────────────────────────── */
+/* The section keeps the page's measure; the CARD is the grid's own width,
+   at the inline start with the heading, so a 1240px row does not draw a
+   border around 800px of nothing. */
+.s-routines__cal {
+  max-inline-size: 1240px;
+  margin: 20px auto 0;
+}
+
+.s-routines__cal .s-cal {
+  max-inline-size: 440px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+/* On a phone the sidebar's section is the calendar; the page keeps its
+   width for the checklists (the brief: "Phone: the sidebar section only"). */
+@media (max-width: 700px) {
+  .s-routines__cal {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .s-cal__day {
+    max-block-size: 44px;
+  }
+  .s-cal__nav {
+    inline-size: 32px;
+    block-size: 32px;
+  }
+}

@@ -50,6 +50,10 @@ export interface TemplateSettings {
   dailyTemplate: string | null;
   weeklyFormat: string | null;
   weeklyTemplate: string | null;
+  monthlyFormat: string | null;
+  monthlyTemplate: string | null;
+  yearlyFormat: string | null;
+  yearlyTemplate: string | null;
   locale: string;
   calendar: DateCalendar;
   lang: "en" | "ar";
@@ -72,6 +76,10 @@ export async function templateSettings(): Promise<TemplateSettings> {
         dailyTemplate: res.effective.dailyTemplate,
         weeklyFormat: res.effective.weeklyFormat,
         weeklyTemplate: res.effective.weeklyTemplate,
+        monthlyFormat: res.effective.monthlyFormat,
+        monthlyTemplate: res.effective.monthlyTemplate,
+        yearlyFormat: res.effective.yearlyFormat,
+        yearlyTemplate: res.effective.yearlyTemplate,
         locale: res.effective.blogLocale,
         calendar: res.effective.dateCalendar,
         lang: res.effective.language,

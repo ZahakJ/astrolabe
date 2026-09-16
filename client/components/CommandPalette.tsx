@@ -208,6 +208,18 @@ const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
+    id: "monthly-note",
+    label: () => t("cmdMonthlyNote"),
+    hint: () => t("cmdPeriodicHint"),
+    available: ({ admin }) => admin,
+  },
+  {
+    id: "yearly-note",
+    label: () => t("cmdYearlyNote"),
+    hint: () => t("cmdPeriodicHint"),
+    available: ({ admin }) => admin,
+  },
+  {
     // A door to a note you did not choose: the vault re-read at random,
     // which is how a well-cited note from two years ago gets read again.
     id: "random-note",
@@ -1080,6 +1092,12 @@ export default function CommandPalette() {
           break;
         case "weekly-note":
           void openPeriodicNote("week", 0);
+          break;
+        case "monthly-note":
+          void openPeriodicNote("month", 0);
+          break;
+        case "yearly-note":
+          void openPeriodicNote("year", 0);
           break;
         case "random-note": {
           const all = collectNotes(store.tree).map((n) => n.path).filter((p) => p !== store.openPath);

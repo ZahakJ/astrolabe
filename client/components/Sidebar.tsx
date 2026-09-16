@@ -11,7 +11,7 @@ import type {
   MouseEvent as ReactMouseEvent,
 } from "react";
 import type { AttachmentKind, SearchHit, SearchMatch, TagCount, TreeNode } from "../../shared/types.ts";
-import { getGraph, getTags, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
+import { getGraph, getRoutines, getTags, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
 import {
   dragFileCount,
   dragHasFiles,
@@ -202,6 +202,56 @@ function loadTagsCollapsed(): boolean {
   } catch {
     return false;
   }
+}
+
+// The Calendar section (client/components/CalendarGrid.tsx), between the
+// tree and the tag shelf, folded the same way the shelf is. Open by default:
+// a month is a small thing and the day's note is the most-opened note in a
+// journalling vault. The grid itself is a lazy chunk, so a collapsed section
+// costs the admin's first paint nothing but this header.
+const CALENDAR_COLLAPSED_KEY = "astrolabe.calendar-collapsed";
+function loadCalendarCollapsed(): boolean {
+  try {
+    return localStorage.getItem(CALENDAR_COLLAPSED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+const CalendarGrid = lazySurface(() => import("./CalendarGrid.tsx"));
+
+/** The days a sigil logged something, for the grid's second mark. The
+ *  Sigils page holds every log already; the sidebar asks once when its
+ *  section is open and again, a beat after the last save, when the vault
+ *  changes — admin only, because the route is. */
+function useLoggedDays(active: boolean): ReadonlySet<string> {
+  const [days, setDays] = useState<ReadonlySet<string>>(() => new Set());
+  useEffect(() => {
+    if (!active) return;
+    let alive = true;
+    const read = (): void => {
+      getRoutines()
+        .then((list) => {
+          if (!alive) return;
+          const out = new Set<string>();
+          for (const meta of list) for (const e of meta.entries) out.add(e.date);
+          setDays(out);
+        })
+        .catch(() => {});
+    };
+    read();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onVault = (): void => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(read, 600);
+    };
+    window.addEventListener("astrolabe:vault", onVault);
+    return () => {
+      alive = false;
+      window.removeEventListener("astrolabe:vault", onVault);
+      if (timer) clearTimeout(timer);
+    };
+  }, [active]);
+  return days;
 }
 
 function parentOf(path: string): string {
@@ -672,6 +722,10 @@ export default function Sidebar() {
   const matchQueryRef = useRef("");
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [tags, setTags] = useState<TagCount[]>([]);
+  const [calendarCollapsed, setCalendarCollapsed] = useState(loadCalendarCollapsed);
+  // Only a session with a tree has days to mark, and only an admin has the
+  // route; a visitor's grid still dots the published daily notes.
+  const loggedDays = useLoggedDays(admin && !calendarCollapsed && tree !== null);
   const [tagsCollapsed, setTagsCollapsed] = useState(loadTagsCollapsed);
   const [tagsHeight, setTagsHeight] = useState<number | null>(loadTagsHeight);
   // THE SHELF'S TOP EDGE IS A GRIP (the owner: "should def be able to expand
@@ -2143,6 +2197,41 @@ export default function Sidebar() {
               (server/seed.ts — this is the offer that replaced it). */}
           {tree !== null && (tree.children?.length ?? 0) === 0 && <TreeEmpty />}
         </nav>
+      )}
+
+      {/* THE CALENDAR, under the tree: the month you are in, a dot on every
+          day that has a note, today ringed, a click opening the day's note
+          through the daily-note command's own door. Folded like the tag
+          shelf, remembered like it, and a lazy chunk behind the fold. Not
+          during search: the results pane is the sidebar then. */}
+      {tree !== null && hits === null && !(admin && replacing) && (
+        <section className={`s-calsec${calendarCollapsed ? " s-calsec--collapsed" : ""}`} aria-label={t("calendar")} data-testid="calendar-section">
+          <button
+            type="button"
+            className="s-tags__toggle"
+            onClick={() => {
+              const next = !calendarCollapsed;
+              setCalendarCollapsed(next);
+              try {
+                localStorage.setItem(CALENDAR_COLLAPSED_KEY, String(next));
+              } catch {
+                // storage unavailable — collapse still works for this session
+              }
+            }}
+            aria-expanded={!calendarCollapsed}
+            title={calendarCollapsed ? t("showCalendar") : t("hideCalendar")}
+          >
+            <span className={`s-tree__chevron${calendarCollapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">
+              ›
+            </span>
+            <span className="s-tags__title">{t("calendar")}</span>
+          </button>
+          {!calendarCollapsed && (
+            <Suspense fallback={null}>
+              <CalendarGrid logged={loggedDays} />
+            </Suspense>
+          )}
+        </section>
       )}
 
       {tags.length > 0 && (

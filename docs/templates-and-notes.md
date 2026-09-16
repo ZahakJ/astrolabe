@@ -105,28 +105,64 @@ ever made from it.
 Astrolabe: `Ctrl/Cmd N`, the sidebar's `+`, the tree menu. It is off by default: new notes are born
 empty, as they always were.
 
-## Daily and weekly notes
+## Periodic notes
 
-A daily note is one note per day, named after the date. `Ctrl/Cmd Alt D` (or *Open today's daily
-note* in the palette) opens today's, creating it if it is not there yet. Where it lives and what it
-is called are settings, in Settings → Vault under *Daily & weekly notes*:
+A periodic note is one note per period, named after it: a day, a week, a month or a year.
+`Ctrl/Cmd Alt D` (or *Open today's daily note* in the palette) opens today's, creating it if it is
+not there yet; **This week's note**, **This month's note** and **This year's note** do the same
+for their periods. Where they live and what they are called are settings, in Settings → Vault
+under *Periodic notes* — one folder the four kinds share, and a name and a template for each:
 
-| Setting | Default | Notes |
-| --- | --- | --- |
-| Daily notes folder | `daily` | Empty for the vault root. |
-| Daily note name | `YYYY-MM-DD` | Tokens `YYYY`, `MM`, `DD`, `[literals]`, and `/` for subfolders: `YYYY/YYYY-MM-DD` files each year in its own folder. Always Gregorian and Western digits — a file name is an address, and the Hijri date is printed beside it in the sidebar on a Hijri instance. |
-| Daily note template | *(the template for new notes)* | Applied when the day's note is created. |
-| Weekly note name | `YYYY-[W]ww` | `ww` is the ISO week; the note lives in the daily folder. Type `off` to turn weekly notes off. |
-| Weekly note template | *(none)* | Applied when the week's note is created. |
+| Kind | Default name | Default template | Notes |
+| --- | --- | --- | --- |
+| Day | `YYYY-MM-DD` | *(the template for new notes)* | Cannot be turned off. |
+| Week | `YYYY-[W]ww` | *(none)* | `ww` is the ISO week; the note is named by the ISO week-year. |
+| Month | `YYYY-MM` | *(none)* | A month's name may not carry a day token. |
+| Year | `YYYY` | *(none)* | A year's name may carry nothing finer than the year. |
 
-The palette also has **Yesterday's note**, **Tomorrow's note** and **This week's note**. When the
-open note is itself a daily note, yesterday and tomorrow are counted from *that* day, so a journal
-can be read backwards one day at a time. A vault that already keeps `Journal/2026/2026-09-13.md`
-keeps working: set the folder to `Journal` and the name to `YYYY/YYYY-MM-DD`.
+Names take the tokens `YYYY`, `MM`, `DD`, `ww`, `[literals]`, and `/` for subfolders:
+`YYYY/YYYY-MM-DD` files each year in its own folder. They are always Gregorian and in Western
+digits — a file name is an address — and the period is printed beside the name in the status bar
+in the site's own calendar (below). The *format is the declaration*: a name with a day token makes
+a daily note, one with a month token and no day a monthly note, one with only the year a yearly
+note. Type `off` in a name to turn that kind off; the daily notes folder may be empty for the vault
+root. A template is applied when that period's note is first created. A vault that already keeps
+`Journal/2026/2026-09-13.md` keeps working: set the folder to `Journal` and the daily name to
+`YYYY/YYYY-MM-DD`.
+
+The palette also has **Yesterday's note** and **Tomorrow's note**. When the open note is itself a
+periodic note, the walk starts from *it* — yesterday and tomorrow from an open daily note, so a
+journal can be read backwards one day at a time; this month's note from the month that day falls
+in. Never the other way round: *This week's note* from an open yearly note is this week, not the
+year's first.
+
+**The period, in the status bar.** A periodic note keeps its ISO file name and, beside it in the
+status bar, says what that name means in the site's calendar: `2026-09-15` reads *Tuesday, 15
+September 2026*, and on a Hijri instance the Hijri date; `2026-W38` reads *Week 38 · 14–20
+September 2026*; `2026-09` reads *September 2026*; `2026` reads *2026*. On a Hijri or dual-calendar
+instance a Gregorian month or year is not a Hijri one, so it is named as the span of days it
+covers rather than by a month name that would be wrong.
 
 **On this day.** Under the backlinks, the right panel lists what you wrote, published or finished on
 this day in earlier years: a strip that reads your archive back to you, drawn from the notes' own
 dates and the trackers' `finished:` lines, with nothing stored. The Sigils page opens with the same.
+
+### The calendar
+
+Under the tree in the sidebar, a **Calendar** section draws the month you are in, seven days wide,
+in the site's calendar: a Gregorian month on a Gregorian instance, a Hijri (Umm al-Qura) month on
+a Hijri one, and on an instance that prints both dates the leading calendar's month with the other
+calendar's day number small in each cell's corner. The week starts on the site language's first day
+— Monday in English, Saturday in Arabic. A dot marks every day that has a daily note; a second,
+fainter dot marks a day a [sigil](sigils.md) logged something; today is ringed. Clicking a day
+opens its note, creating it through the same door as `Ctrl/Cmd Alt D` (template and all); `‹` and
+`›` turn the month; the month's name brings you back to today's. The section folds like the tag
+shelf and remembers it. The same grid sits at the top of the [Sigils page](sigils.md#the-sigils-page)
+on a desktop; on a phone the sidebar's section is the calendar.
+
+The grid is one tab stop. Inside it, `←` `→` walk the days (mirrored under Arabic), `↑` `↓` the
+weeks, `Home` `End` the ends of the row, `PageUp` `PageDown` the months, and `Enter` opens the
+day. Walking off the edge of a month turns the page.
 
 ## Sections: fold, extract, move
 

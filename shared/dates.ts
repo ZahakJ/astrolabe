@@ -133,9 +133,77 @@ export function formatCalendarDate(
   const primary = one(hijriFirst);
   const secondary = one(!hijriFirst);
   if (secondary === "" || secondary === primary) return primary;
-  // Each half is its own isolate: a Latin run beside an Arabic one must not
-  // reorder the bar (or the brackets) against the line's base direction.
+  return joinBoth(primary, secondary, style);
+}
+
+/** The two halves of a `both` rendering put together. Each half is its own
+ *  isolate: a Latin run beside an Arabic one must not reorder the bar (or
+ *  the brackets) against the line's base direction. */
+function joinBoth(primary: string, secondary: string, style: DateBothStyle): string {
   if (style.separator === "parens") return `${primary} ${FSI}(${secondary})${PDI}`;
   const sep = style.separator === "dot" ? " · " : " | ";
   return `${FSI}${primary}${PDI}${sep}${FSI}${secondary}${PDI}`;
+}
+
+/** A span of days in one calendar — "14–20 September 2026", «١ – ٧ صفر
+ *  ١٤٤٨ هـ» — through `Intl`'s own range formatter, which knows which parts
+ *  the two ends share and prints them once. Falls the same way `formatOne`
+ *  falls (plain Gregorian, then `en`), and a runtime without `formatRange`
+ *  prints the two dates with a dash between, which is the answer in full
+ *  rather than the answer in short. */
+function formatRangeOne(
+  from: Date,
+  to: Date,
+  locale: string,
+  options: Intl.DateTimeFormatOptions,
+  hijri: boolean,
+): string {
+  const attempt = (loc: string, opts: Intl.DateTimeFormatOptions): string => {
+    const f = new Intl.DateTimeFormat(loc, opts);
+    if (typeof f.formatRange !== "function") return `${f.format(from)} – ${f.format(to)}`;
+    return f.formatRange(from, to);
+  };
+  const opts: Intl.DateTimeFormatOptions = {
+    ...options,
+    ...localeDigits(locale),
+    ...(hijri ? { calendar: HIJRI_CALENDAR } : {}),
+  };
+  try {
+    return attempt(locale, opts);
+  } catch {
+    try {
+      return attempt(locale, { ...options, ...localeDigits(locale) });
+    } catch {
+      return attempt("en", options);
+    }
+  }
+}
+
+/** `formatCalendarDate` for a span of days: the period a weekly, monthly or
+ *  yearly note names, in the instance's calendar. A Gregorian month is not
+ *  a Hijri month, so on a Hijri instance the month note `2026-09` is named
+ *  as the span it actually covers («١٨ ربيع الأول – ١٨ ربيع الآخر ١٤٤٨»)
+ *  rather than as a month name that would be a lie. */
+export function formatCalendarRange(
+  from: Date,
+  to: Date,
+  locale: string,
+  calendar: DateCalendar,
+  lang: "en" | "ar",
+  options: Intl.DateTimeFormatOptions,
+  style: DateBothStyle = DEFAULT_DATE_BOTH_STYLE,
+): string {
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return "";
+  if (calendar === "gregorian") return formatRangeOne(from, to, locale, options, false);
+  if (calendar === "hijri") return formatRangeOne(from, to, locale, options, true);
+  const hijriFirst = style.order === "auto" ? lang === "ar" : style.order === "hijri-first";
+  const gregorianEra = lang === "ar" ? " م" : "";
+  const one = (hijri: boolean): string => {
+    const text = formatRangeOne(from, to, locale, options, hijri);
+    return text === "" || hijri ? text : `${text}${gregorianEra}`;
+  };
+  const primary = one(hijriFirst);
+  const secondary = one(!hijriFirst);
+  if (secondary === "" || secondary === primary) return primary;
+  return joinBoth(primary, secondary, style);
 }

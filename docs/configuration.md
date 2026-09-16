@@ -108,7 +108,11 @@ what it decides. The first tab is yours; the rest are the site's and share one *
   folders, your own hand-made **collections** and where they sit, and the **library** shelf. See
   [Blog mode](blog-mode.md#custom-public-folders) and [The library](library.md).
 - **Vault** — where this instance writes things: the templates folder and the template for new
-  notes, daily and weekly notes, the drawings folder, **where new attachments are written** (see
+  notes, the [periodic notes](templates-and-notes.md#periodic-notes) (one row: the folder the
+  four kinds share, and a name and a template each for the day, the week, the month and the
+  year), the drawings folder, **Open on launch** (where the app opens — where you left off, the
+  Sigils page, the Orbits shelf, today's note, or a note of your choosing — on top of the restored
+  session, and never over a pasted link), **where new attachments are written** (see
   [Attachments](#attachments)), the tags folder, note versions and PDF search.
 - **Backup & sync** — commit the vault and push it to a private git remote you own, manually or
   on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
@@ -223,6 +227,13 @@ above.
 | `templatesFolder` | vault-relative folder | auto-detected (`Templates`, `_templates`, `قوالب`), else none |
 | `drawingsFolder` | vault-relative folder the sidebar's pencil starts a drawing in | none — the vault root |
 | `defaultTemplate` | vault-relative note applied to every new note | none |
+| `dailyFolder` | vault-relative folder the periodic notes live in; `""` for the vault root | `daily` |
+| `dailyFormat` | a period format naming the year, month and day (`YYYY`, `MM`, `DD`, `[literals]`, `/`) | `YYYY-MM-DD` |
+| `weeklyFormat` | a period format naming the year and the ISO week (`ww`); `""` turns weekly notes off | `YYYY-[W]ww` |
+| `monthlyFormat` | a period format naming the year and the month and nothing finer; `""` turns monthly notes off | `YYYY-MM` |
+| `yearlyFormat` | a period format naming the year and nothing finer; `""` turns yearly notes off | `YYYY` |
+| `dailyTemplate` / `weeklyTemplate` / `monthlyTemplate` / `yearlyTemplate` | vault-relative note applied when that period's note is created | none (the day falls back to `defaultTemplate`) |
+| `launch` | `resume` · `sigils` · `orbits` · `today` · a vault-relative note — what the admin's shell opens on top of the restored session (see [Periodic notes](templates-and-notes.md#periodic-notes)). **No env counterpart** | `resume` |
 | `dateCalendar` | `gregorian` · `hijri` · `both` | `gregorian` |
 | `dateOrder` | `auto` · `hijri-first` · `gregorian-first` — which calendar leads in `both` | `auto` (by the site language) |
 | `dateSeparator` | `bar` · `dot` · `parens` — what stands between the two in `both` | `bar` |
