@@ -7540,6 +7540,17 @@ html[dir="rtl"] .s-statusbar__spacer {
   font-size: 0.786rem;
 }
 
+/* ── The template's questions (components/TemplateValuesSheet.tsx) ─────
+   The label is the template AUTHOR's text ("Attendees", «الحاضرون»), not a
+   chrome caption, so it keeps its own case and tracking rather than the
+   form's small-caps label dress. */
+.s-tplvalues__label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.857rem;
+  color: var(--text);
+}
+
 /* ── Named layouts (client/components/LayoutPicker.tsx) ───────────────── */
 .s-layouts__list {
   list-style: none;

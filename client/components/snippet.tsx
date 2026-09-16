@@ -41,6 +41,14 @@ export function snippetIsEmpty(snippet: string): boolean {
   return text.replace(/[\s…·—–-]+/g, "") === "";
 }
 
+/** The snippet as plain prose — marks dropped, escapes undone, syntax
+ *  stripped — for a surface built with textContent rather than JSX (the tag
+ *  pill's hover card, client/tagPreview.ts). Same three rules as the React
+ *  renderer below, so the two cannot show different words. */
+export function snippetText(snippet: string): string {
+  return stripMdSyntax(unescapeHtml(snippet.replace(/<\/?mark>/g, ""))).replace(/\s+/g, " ").trim();
+}
+
 export function renderSnippet(snippet: string): ReactNode {
   const parts = snippet.split(/<mark>(.*?)<\/mark>/g);
   return parts.map((part, i) =>

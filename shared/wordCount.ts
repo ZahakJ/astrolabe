@@ -102,10 +102,26 @@ function wordSegmenter(locale: string): Intl.Segmenter | null {
   return segmenter;
 }
 
+/** The Arabic marks that ride on a letter rather than standing beside it:
+ *  the harakat and tanwin (U+064B–U+065F), the superscript alef (U+0670),
+ *  the small marks used in pointed texts (U+06D6–U+06ED), and the tatweel
+ *  (U+0640) — a stretch, not a mark, but it splits nothing either.
+ *
+ *  A LETTER WITH ITS HARAKAT IS ONE GRAPHEME, and the count has to say so
+ *  whichever engine is doing the segmenting. ICU's word breaker treats these
+ *  as extenders and gets it right; the whitespace fallback below does not
+ *  care; but a stray mark left standing on its own (a shadda after a space,
+ *  a tatweel a copy-paste left behind) can read as a "word" to either, and
+ *  a pointed word and its bare spelling must never count differently — the
+ *  same word is the same word whether or not the writer vowelled it. So the
+ *  marks are folded out before anything is counted, the way the search fold
+ *  (shared/fold.ts) drops them before anything is matched. */
+const ARABIC_MARKS_RE = /[ـً-ٰٟۖ-ۭ]/g;
+
 /** Words in ALREADY-PLAIN text. `locale` only tunes the segmentation; the
  *  result is not language-specific enough to be worth threading further. */
 export function countWords(plain: string, locale = "en"): number {
-  const text = plain.trim();
+  const text = plain.replace(ARABIC_MARKS_RE, "").trim();
   if (text === "") return 0;
   const seg = wordSegmenter(locale);
   if (seg === null) {

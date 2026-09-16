@@ -108,8 +108,9 @@ what it decides. The first tab is yours; the rest are the site's and share one *
   folders, your own hand-made **collections** and where they sit, and the **library** shelf. See
   [Blog mode](blog-mode.md#custom-public-folders) and [The library](library.md).
 - **Vault** — where this instance writes things: the templates folder and the template for new
-  notes, daily and weekly notes, the drawings folder, **where new attachments are written** (see
-  [Attachments](#attachments)), the tags folder, note versions and PDF search.
+  notes, daily and weekly notes, the unique note's folder and name, the drawings folder, **where
+  new attachments are written** (see [Attachments](#attachments)), the tags folder, note versions
+  and PDF search.
 - **Backup & sync** — commit the vault and push it to a private git remote you own, manually or
   on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
 - **About** — the version, the Node version, the vault's counts, and the absolute paths of the
@@ -223,6 +224,8 @@ above.
 | `templatesFolder` | vault-relative folder | auto-detected (`Templates`, `_templates`, `قوالب`), else none |
 | `drawingsFolder` | vault-relative folder the sidebar's pencil starts a drawing in | none — the vault root |
 | `defaultTemplate` | vault-relative note applied to every new note | none |
+| `uniqueFolder` | vault-relative folder the palette's *New unique note* files into (see [Unique notes](templates-and-notes.md#unique-notes)) | none — the vault root |
+| `uniqueFormat` | the unique note's name: the daily tokens plus `HH`, `mm`, `ss`; must name the year and something finer than a day | `YYYYMMDDHHmm` |
 | `dateCalendar` | `gregorian` · `hijri` · `both` | `gregorian` |
 | `dateOrder` | `auto` · `hijri-first` · `gregorian-first` — which calendar leads in `both` | `auto` (by the site language) |
 | `dateSeparator` | `bar` · `dot` · `parens` — what stands between the two in `both` | `bar` |

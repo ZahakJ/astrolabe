@@ -171,6 +171,8 @@ interface Form {
   dailyTemplate: string;
   weeklyFormat: string;
   weeklyTemplate: string;
+  uniqueFolder: string;
+  uniqueFormat: string;
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
   // no env counterpart, so "inherit" is meaningless here — every control shows
@@ -297,6 +299,8 @@ function formFrom(s: SettingsResponse): Form {
     dailyTemplate: s.dailyTemplate ?? "",
     weeklyFormat: s.weeklyFormat ?? "",
     weeklyTemplate: s.weeklyTemplate ?? "",
+    uniqueFolder: s.uniqueFolder ?? "",
+    uniqueFormat: s.uniqueFormat ?? "",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
     syncBranch: s.effective.gitSync.branch,
@@ -1306,7 +1310,9 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       | "dailyFormat"
       | "dailyTemplate"
       | "weeklyFormat"
-      | "weeklyTemplate",
+      | "weeklyTemplate"
+      | "uniqueFolder"
+      | "uniqueFormat",
   ): void => {
     const value = f[key].trim();
     if (value !== initial[key].trim()) patch[key] = value === "" ? null : value;
@@ -1327,6 +1333,8 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   str("dailyTemplate");
   str("weeklyFormat");
   str("weeklyTemplate");
+  str("uniqueFolder");
+  str("uniqueFormat");
   if (f.language !== initial.language) {
     patch.language = f.language === "en" || f.language === "ar" ? f.language : null;
   }
@@ -4076,6 +4084,17 @@ export default function SettingsModal() {
                   </Row>
                   <Row label={t("weeklyTemplateLabel")} hint={t("weeklyTemplateHint")}>
                     <TextInput placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Weekly.md` : "Templates/Weekly.md"} dir="ltr" label={t("weeklyTemplateLabel")} {...field("weeklyTemplate")} />
+                  </Row>
+                  {/* THE UNIQUE NOTE (client/uniqueNote.ts): the palette's
+                      "New unique note" stamps a name from the minute and
+                      asks nothing. Beside the periodic rows because it is
+                      the same idea — a note named by when — with a finer
+                      clock; the placeholders are what is in force. */}
+                  <Row label={t("uniqueFolderLabel")} hint={t("uniqueFolderHint")}>
+                    <TextInput placeholder={eff.uniqueFolder || t("vaultRoot")} dir="ltr" label={t("uniqueFolderLabel")} {...field("uniqueFolder")} />
+                  </Row>
+                  <Row label={t("uniqueFormatLabel")} hint={t("uniqueFormatHint")}>
+                    <TextInput placeholder={eff.uniqueFormat} dir="ltr" label={t("uniqueFormatLabel")} {...field("uniqueFormat")} />
                   </Row>
                   {/* Where the sidebar's pencil files a drawing (the owner:
                       "create the drawing in a specified space in settings or

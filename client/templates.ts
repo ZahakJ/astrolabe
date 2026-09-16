@@ -6,9 +6,9 @@
 // {{date}}, {{time}}, {{title}}, and the `{{date:FORMAT}}` / `{{time:FORMAT}}`
 // forms with moment-style format tokens. Nothing here invents a syntax where
 // one already exists, and an UNKNOWN placeholder is left exactly as written —
-// `{{cursor}}`, `{{VALUE:x}}`, a Templater expression — because blanking a
-// token this product does not implement destroys text the author typed and
-// hides the fact that the template is doing something we did not do.
+// a Templater expression, a stray `{{` — because blanking a token this product
+// does not implement destroys text the author typed and hides the fact that
+// the template is doing something we did not do.
 //
 // TWO ADDITIONS, both because this product has a Hijri calendar setting that
 // Obsidian does not: {{hdate}} and {{date:hijri}} render the Umm al-Qura date
@@ -16,6 +16,19 @@
 // never print two different calendars). {{Title}} is the title in Title Case —
 // the one placeholder Obsidian's core plugin lacks and every template in the
 // wild reaches for.
+//
+// TWO MORE, borrowed from the plugins a migrated vault's templates were
+// written against, because leaving them "exactly as written" was honest and
+// useless — the token sat in the new note and the writer deleted it by hand:
+//   · `{{cursor}}` (Templater's tp.file.cursor, spelled the way every
+//     template in the wild spells it): after the insert the caret lands
+//     there and the token is gone. `applyTemplate` reports the offset; the
+//     editor and the create commands honour it.
+//   · `{{prompt:Label}}` / `{{VALUE:Label}}` (Templater's prompt, QuickAdd's
+//     VALUE): a small sheet asks for each distinct label once, in the order
+//     the template names them, before anything is inserted. Escape cancels
+//     the whole insertion — a template half-filled is worse than none.
+//     `templatePrompts` lists the labels; `fillPrompts` writes the answers.
 //
 // FRONTMATTER HYGIENE is the other half of this module, and it is a fix, not a
 // feature. A template whose frontmatter carries `id:` handed the SAME id to
@@ -50,6 +63,9 @@ export interface TemplateSettings {
   dailyTemplate: string | null;
   weeklyFormat: string | null;
   weeklyTemplate: string | null;
+  /** The unique note (client/uniqueNote.ts): folder ("" = root) and format. */
+  uniqueFolder: string;
+  uniqueFormat: string;
   locale: string;
   calendar: DateCalendar;
   lang: "en" | "ar";
@@ -72,6 +88,8 @@ export async function templateSettings(): Promise<TemplateSettings> {
         dailyTemplate: res.effective.dailyTemplate,
         weeklyFormat: res.effective.weeklyFormat,
         weeklyTemplate: res.effective.weeklyTemplate,
+        uniqueFolder: res.effective.uniqueFolder,
+        uniqueFormat: res.effective.uniqueFormat,
         locale: res.effective.blogLocale,
         calendar: res.effective.dateCalendar,
         lang: res.effective.language,
@@ -143,6 +161,41 @@ export function applyPlaceholders(text: string, vars: TemplateVars): string {
     }
   });
 }
+
+/** The two spellings of "ask me": Templater's `{{prompt:…}}` and QuickAdd's
+ *  `{{VALUE:…}}`. Case-insensitive on the NAME (the wild writes `{{value:x}}`
+ *  too); the label is kept as typed, trimmed, because it is what the sheet
+ *  prints. A bare `{{VALUE}}` is a label of "" — asked once, under a generic
+ *  caption the sheet supplies. */
+const PROMPT_NAME = /^(?:prompt|value)$/i;
+
+/** The labels a template asks for, each once, in order of first appearance.
+ *  Empty when the template asks nothing — the common case, and the one that
+ *  must cost no sheet and no round trip. */
+export function templatePrompts(text: string): string[] {
+  const out: string[] = [];
+  for (const m of text.matchAll(PLACEHOLDER_RE)) {
+    if (!PROMPT_NAME.test(m[1])) continue;
+    const label = (m[2] ?? "").trim();
+    if (!out.includes(label)) out.push(label);
+  }
+  return out;
+}
+
+/** The answers written in. A label with no answer stays as written — the
+ *  sheet always answers every label it showed, so this only ever applies to
+ *  a caller that filled a subset on purpose. */
+export function fillPrompts(text: string, answers: ReadonlyMap<string, string>): string {
+  return text.replace(PLACEHOLDER_RE, (whole, rawName: string, rawArg?: string) => {
+    if (!PROMPT_NAME.test(rawName)) return whole as string;
+    const answer = answers.get((rawArg ?? "").trim());
+    return answer === undefined ? (whole as string) : answer;
+  });
+}
+
+/** `{{cursor}}`, in any case, with the whitespace the placeholder grammar
+ *  allows inside the braces. */
+const CURSOR_RE = /\{\{\s*cursor\s*\}\}/gi;
 
 /** Title Case that leaves already-capitalized words alone ("iOS notes" →
  *  "iOS Notes", never "Ios Notes") and skips the small words English does. */
@@ -534,6 +587,12 @@ export interface AppliedTemplate {
   insert: string;
   /** The note's new full content, when the caller is replacing a whole file. */
   content: string;
+  /** Where the caret should land INSIDE `insert` — the offset of the first
+   *  `{{cursor}}`, every one of which has been removed — or null when the
+   *  template named no such place and the caret goes after the insert, as it
+   *  always did. For a whole-file write the document offset is
+   *  `content.length + caret`. */
+  caret: number | null;
 }
 
 /** Apply `templateSrc` to a note whose current content is `targetSrc`.
@@ -557,13 +616,26 @@ export function applyTemplate(
   // it. Nothing was lost, and the whole file was in the next diff.
   const nl = dominantNewline(targetSrc);
   const target = splitFrontmatter(targetSrc); // splitFrontmatter already tolerates CRLF
-  const insert = toNewline(template.body, nl);
+  const { text: insert, caret } = takeCursor(toNewline(template.body, nl));
   if (template.yaml === null) {
-    return { insert, content: targetSrc };
+    return { insert, content: targetSrc, caret };
   }
   const merged = mergeFrontmatter(target.yaml, template.yaml);
   const block = merged.trim() === "" ? "" : toNewline(`---\n${merged}\n---\n`, nl);
-  return { insert, content: `${block}${target.body}` };
+  return { insert, content: `${block}${target.body}`, caret };
+}
+
+/** Strip every `{{cursor}}` out of `text` and say where the FIRST one stood.
+ *  Measured on the text AFTER the line endings are settled, so the offset is
+ *  an offset into what actually lands in the document. Only the body is
+ *  searched: a `{{cursor}}` inside frontmatter would be a caret parked in
+ *  the properties card, which is the one place caretHome.ts exists to keep
+ *  it out of. */
+function takeCursor(text: string): { text: string; caret: number | null } {
+  const first = text.search(CURSOR_RE);
+  if (first === -1) return { text, caret: null };
+  CURSOR_RE.lastIndex = 0;
+  return { text: text.replace(CURSOR_RE, ""), caret: first };
 }
 
 /** The line ending a note is written in — the MAJORITY one, so a note with a

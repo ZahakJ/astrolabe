@@ -38,8 +38,11 @@ import { collectNotes } from "../editor/links.ts";
 import { readWarmth, toggleWarmth } from "../eyeComfort.ts";
 import { openWhatsNew } from "../whatsnew/door.ts";
 import { isNoteBookmarked, toggleBookmark } from "../bookmarks.ts";
-import { putLayout } from "../api.ts";
+import { getLayouts, putLayout } from "../api.ts";
+import { restoreLayout } from "../layouts.ts";
 import { serializeWorkspace } from "../workspace.ts";
+import { createUniqueNote, loadUnique, uniqueNotePath } from "../uniqueNote.ts";
+import { foldTerm } from "../../shared/fold.ts";
 import { openExportDialog } from "../export/door.ts";
 import { installRecents, recentNotes } from "../recents.ts";
 import { getNote } from "../api.ts";
@@ -187,6 +190,15 @@ const COMMANDS: Command[] = [
     id: "daily-note",
     label: () => t("cmdDailyNote"),
     hint: () => dailyNotePath(),
+    available: ({ admin }) => admin,
+  },
+  {
+    // A note named by the minute and asked nothing (client/uniqueNote.ts):
+    // the door for an idea that has no title yet. The hint is the name it
+    // would take right now, the way the daily row's hint is its path.
+    id: "new-unique-note",
+    label: () => t("cmdNewUniqueNote"),
+    hint: () => uniqueNotePath(),
     available: ({ admin }) => admin,
   },
   {
@@ -763,7 +775,9 @@ type Item =
   | { kind: "recent"; path: string }
   | { kind: "tab"; path: string }
   | { kind: "note"; hit: SearchHit }
-  | { kind: "heading"; anchor: NoteAnchor; indices: number[] };
+  | { kind: "heading"; anchor: NoteAnchor; indices: number[] }
+  /** The quick switcher's last row: make the note the query names. */
+  | { kind: "create"; name: string; path: string };
 
 const SECTION_KEY: Record<Item["kind"], I18nKey> = {
   recent: "paletteRecent",
@@ -771,7 +785,30 @@ const SECTION_KEY: Record<Item["kind"], I18nKey> = {
   tab: "paletteOpenTabs",
   note: "paletteNotes",
   heading: "paletteHeadings",
+  create: "paletteCreate",
 };
+
+/** Where "Create «query»" puts the note: beside the open note, or exactly
+ *  where a typed path says — the `[[` popup's rule (editor/autocomplete.ts
+ *  createDestination), spelled here for the palette. */
+function createPath(name: string, openPath: string | null): string {
+  const named = ensureMd(name);
+  if (name.includes("/") || openPath === null) return named;
+  const folder = folderOf(openPath);
+  return folder === "" ? named : `${folder}/${named}`;
+}
+
+/** One "Load layout: <name>" command per saved layout. Built per palette-open
+ *  from the server's list, not at import: layouts are saved and deleted at
+ *  runtime, and a table built once would offer yesterday's names. */
+function layoutCommands(names: string[]): Command[] {
+  return names.map((name) => ({
+    id: `layout:${name}`,
+    label: () => tf("cmdLoadLayout", { name }),
+    hint: () => t("cmdLoadLayoutHint"),
+    available: ({ admin }) => admin,
+  }));
+}
 
 function IconFile() {
   return (
@@ -829,6 +866,9 @@ export default function CommandPalette() {
   /** The open note's anchors (headings + LaTeX \labels), fetched lazily the
    *  first time the query enters heading mode ("@…"); null = not loaded. */
   const [anchors, setAnchors] = useState<NoteAnchor[] | null>(null);
+  /** The saved layouts' names, fetched once per palette-open (admin only),
+   *  so "Ctrl/Cmd P → Research" restores the arrangement called Research. */
+  const [layouts, setLayouts] = useState<string[]>([]);
   /** True from the moment the query changes until THAT query's results are in
    *  `hits` (covers the debounce window too). While true, the note rows on
    *  screen belong to an older query and Enter must not open them. */
@@ -882,6 +922,15 @@ export default function CommandPalette() {
       lastPointRef.current = null;
       // Focus after the modal renders.
       requestAnimationFrame(() => inputRef.current?.focus());
+      // The rows that depend on the instance: one layout command per saved
+      // name, and the unique note's hint from the settings in force. Both
+      // arrive a moment after the list is up; neither is worth waiting for.
+      if (s.admin) {
+        getLayouts()
+          .then((r) => setLayouts(r.layouts.map((l) => l.name)))
+          .catch(() => setLayouts([]));
+        void loadUnique();
+      } else setLayouts([]);
     }
   }, [paletteOpen]);
 
@@ -999,7 +1048,7 @@ export default function CommandPalette() {
       reading,
       panes,
     };
-    const available = COMMANDS.filter((c) => c.available(ctx));
+    const available = [...COMMANDS, ...layoutCommands(layouts)].filter((c) => c.available(ctx));
     if (!q) {
       // Empty palette: the notes you were just in FIRST — that is the jump a
       // writer opens Ctrl+P for — then the commands, then whatever open tabs
@@ -1034,12 +1083,24 @@ export default function CommandPalette() {
     // server's relevance order untouched on both sides of it.
     const cut = commandCut(q, hits.map((hit) => hit.title), matchedCommands[0]?.score ?? -Infinity);
     const noteItem = (hit: SearchHit): Item => ({ kind: "note", hit });
+    // THE QUICK SWITCHER'S LAST ROW. When no note is CALLED what was typed,
+    // the list ends with "Create «query»" — Obsidian's quick switcher
+    // habit, and the one gesture that turns "I looked for it and it is not
+    // there" into the note, without leaving the field. Last, never first:
+    // Enter must keep landing on the best match while there is one. Gated
+    // on an exact (folded) title miss rather than on an empty list, because
+    // a vault with "Meeting notes" still has no note called "Meeting notes
+    // 2", and that is the note the writer is about to want.
+    const folded = foldTerm(q);
+    const named = hits.some((hit) => foldTerm(hit.title) === folded);
+    const create: Item[] = admin && !named && !q.includes("#") ? [{ kind: "create", name: q, path: createPath(q, openPath) }] : [];
     return [
       ...hits.slice(0, cut).map(noteItem),
       ...matchedCommands.map<Item>(({ command, indices }) => ({ kind: "command", command, indices })),
       ...hits.slice(cut).map(noteItem),
+      ...create,
     ];
-  }, [mode.type, query, openPath, admin, authProtected, openPublished, preview, reading, panes, openTabs, hits, headingMode, anchors, recent]);
+  }, [mode.type, query, openPath, admin, authProtected, openPublished, preview, reading, panes, openTabs, hits, headingMode, anchors, recent, layouts]);
 
   // Keep selection in bounds as results change.
   useEffect(() => {
@@ -1071,7 +1132,15 @@ export default function CommandPalette() {
         requestAnimationFrame(() => inputRef.current?.select());
         return;
       }
+      if (command.id.startsWith("layout:")) {
+        void restoreLayout(command.id.slice("layout:".length));
+        close();
+        return;
+      }
       switch (command.id) {
+        case "new-unique-note":
+          void createUniqueNote();
+          break;
         case "yesterday-note":
           void openPeriodicNote("day", -1);
           break;
@@ -1409,6 +1478,13 @@ export default function CommandPalette() {
         close();
         return;
       }
+      if (item.kind === "create") {
+        // The store's createNote: the default template, the tree reload,
+        // the open — the note is born exactly as a Ctrl/Cmd N note is.
+        void useStore.getState().createNote(item.path);
+        close();
+        return;
+      }
       const path = item.kind === "note" ? item.hit.path : item.path;
       useStore.getState().openNote(path);
       close();
@@ -1449,7 +1525,10 @@ export default function CommandPalette() {
         // belong to an older query, so Enter registers intent and fires when
         // THIS query's results land. Commands/tabs are matched synchronously
         // against the current query and stay safe to run immediately.
-        if (inFlight && (!item || item.kind === "note")) {
+        // The create row waits as well: it exists only because no note is
+        // called what was typed, and that is a fact the in-flight search
+        // has not confirmed yet.
+        if (inFlight && (!item || item.kind === "note" || item.kind === "create")) {
           pendingEnterRef.current = true;
           return;
         }
@@ -1565,7 +1644,9 @@ export default function CommandPalette() {
                       ? `tab:${item.path}`
                       : item.kind === "heading"
                         ? `head:${item.anchor.id}`
-                        : `note:${item.hit.path}`;
+                        : item.kind === "create"
+                          ? `create:${item.path}`
+                          : `note:${item.hit.path}`;
               const heading =
                 items[i - 1]?.kind !== item.kind ? (
                   <div className="s-palette-section" role="presentation">
@@ -1650,6 +1731,18 @@ export default function CommandPalette() {
                             {item.anchor.id}
                           </span>
                         )}
+                      </>
+                    )}
+                    {item.kind === "create" && (
+                      <>
+                        <span className="s-palette-item-title" dir="auto">
+                          {tf("linkCreateNote", { name: item.name })}
+                        </span>
+                        {/* Where the file will LAND, spelled out — the
+                            `[[` popup's courtesy, kept here. */}
+                        <span className="s-palette-item-path" dir="auto">
+                          {tf("promptCreates", { path: item.path })}
+                        </span>
                       </>
                     )}
                     {item.kind === "note" && (

@@ -1465,6 +1465,35 @@ export default function Sidebar() {
       return new Set();
     }
   });
+  // Hover previews over the pills (client/tagPreview.ts): rest on a tag and
+  // the three notes that carry it most float beside it. The same engine as
+  // the hit rows above, by dynamic import for the same first-paint reason;
+  // installed on the list, which mounts and unmounts with the collapse, and
+  // re-installed on a language flip because the card's count line is t()
+  // text. The shelf's counts are read through a ref so a tag list that
+  // reloads under a standing card is not a reason to re-install.
+  const tagListRef = useRef<HTMLDivElement | null>(null);
+  const tagCountsRef = useRef<TagCount[]>([]);
+  tagCountsRef.current = tags;
+  useEffect(() => {
+    if (tagsCollapsed || tags.length === 0) return;
+    let dispose: (() => void) | null = null;
+    let dead = false;
+    void import("../tagPreview.ts").then((m) => {
+      if (dead || !tagListRef.current) return;
+      dispose = m.installTagPreviews(tagListRef.current, tagListRef.current, (tag) => {
+        // A branch row ("zettel", with children) counts its whole subtree;
+        // the flat list carries only the leaf tags, so a branch reads null
+        // and the card shows its three without a total.
+        const hit = tagCountsRef.current.find((entry) => entry.tag === tag);
+        return hit ? hit.count : null;
+      });
+    });
+    return () => {
+      dead = true;
+      dispose?.();
+    };
+  }, [tagsCollapsed, tags.length === 0, lang]);
   const toggleBranch = useCallback((tag: string): void => {
     setOpenTags((prev) => {
       const next = new Set(prev);
@@ -2222,6 +2251,7 @@ export default function Sidebar() {
             role="listbox"
             aria-label={t("tags")}
             onKeyDown={onTagsKeyDown}
+            ref={tagListRef}
           >
             {tagRows.map(({ node, depth }) => {
               const tag = node.tag;

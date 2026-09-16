@@ -1037,6 +1037,10 @@ export interface SettingsData {
   dailyTemplate?: string;
   weeklyFormat?: string;
   weeklyTemplate?: string;
+  /** The unique note (client/uniqueNote.ts): its folder (absent → the vault
+   *  root) and name format (absent → `YYYYMMDDHHmm`). */
+  uniqueFolder?: string;
+  uniqueFormat?: string;
   /** Git backup & sync (off by default). The token, when one is used, is NOT
    *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
@@ -1217,6 +1221,10 @@ export interface EffectiveSettings {
   dailyTemplate: string | null;
   weeklyFormat: string | null;
   weeklyTemplate: string | null;
+  /** The unique note, resolved: "" for the vault root, and the format in
+   *  force (the default when unset). */
+  uniqueFolder: string;
+  uniqueFormat: string;
   home: Required<Pick<HomeSettings, "mode">> & Omit<HomeSettings, "mode">;
   /** Public folders with every default filled in — what the settings editor
    *  prefills from, so an unset key and an explicitly-default one look the
@@ -1314,6 +1322,10 @@ export interface SettingsPatch {
   /** Weekly format; null clears back to the default, "off" disables. */
   weeklyFormat?: string | null;
   weeklyTemplate?: string | null;
+  /** The unique note's folder (null or "" → the vault root) and name format
+   *  (null or "" → `YYYYMMDDHHmm`). */
+  uniqueFolder?: string | null;
+  uniqueFormat?: string | null;
   /** Template for new notes; null (or "") turns the default back off. */
   defaultTemplate?: string | null;
   /** Git sync configuration; null clears the whole key. */

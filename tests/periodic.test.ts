@@ -2,7 +2,7 @@
 // reads it back.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { formatPeriod, isWeeklyFormat, isoWeek, parsePeriod, periodicDateOf, periodicPath } from "../shared/periodic.ts";
+import { formatPeriod, freePath, isWeeklyFormat, isoWeek, parsePeriod, periodicDateOf, periodicPath } from "../shared/periodic.ts";
 
 const sun = new Date(2026, 8, 13, 12); // Sunday 13 September 2026
 
@@ -21,6 +21,24 @@ describe("a period format", () => {
     assert.equal(formatPeriod("YYYY-[W]ww", monday), "2026-W01");
     assert.equal(parsePeriod("YYYY-[W]ww", "2026-W01")?.getDate(), 29);
     assert.equal(formatPeriod("[YYYY]-YYYY", monday), "YYYY-2025");
+  });
+  it("names a minute for the unique note, and reads the day back out of it", () => {
+    const at = new Date(2026, 8, 13, 7, 5, 9);
+    assert.equal(formatPeriod("YYYYMMDDHHmm", at), "202609130705");
+    assert.equal(formatPeriod("YYYY-MM-DD HH[h]mm[m]ss", at), "2026-09-13 07h05m09");
+    // `mm` is the minute and `MM` the month: the two never trade places.
+    assert.equal(formatPeriod("MM/mm", at), "09/05");
+    // A name that carries the minute still names its day.
+    assert.equal(parsePeriod("YYYYMMDDHHmm", "202609130705")?.getDate(), 13);
+    assert.equal(parsePeriod("YYYYMMDDHHmm", "2026091307"), null);
+  });
+  it("finds the next free spelling of a stamped name", () => {
+    const taken = new Set(["202609130705.md", "202609130705 2.md", "zettel/202609130705.md"]);
+    assert.equal(freePath("202609130706.md", taken), "202609130706.md");
+    assert.equal(freePath("202609130705.md", taken), "202609130705 3.md");
+    assert.equal(freePath("zettel/202609130705.md", taken), "zettel/202609130705 2.md");
+    // A dot in a FOLDER is not an extension.
+    assert.equal(freePath("v1.0/note", new Set(["v1.0/note"])), "v1.0/note 2");
   });
   it("reads a name back, rejecting what does not fit", () => {
     assert.equal(parsePeriod("YYYY-MM-DD", "2026-09-13")?.getDate(), 13);
