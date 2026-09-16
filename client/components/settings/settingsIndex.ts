@@ -92,6 +92,8 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "vault", label: "hadithFolderLabel", hint: "hadithFolderHint" },
   { tab: "vault", label: "defaultTemplateLabel", hint: "defaultTemplateHint" },
   { tab: "vault", label: "periodicRowLabel", hint: "periodicRowHint" },
+  { tab: "vault", label: "uniqueFolderLabel", hint: "uniqueFolderHint" },
+  { tab: "vault", label: "uniqueFormatLabel", hint: "uniqueFormatHint" },
   { tab: "vault", label: "drawingsFolderLabel", hint: "drawingsFolderHint" },
   { tab: "vault", label: "rowLaunch", hint: "hintLaunch" },
   { tab: "vault", label: "rowLaunchNote", hint: "hintLaunchNote" },

@@ -305,6 +305,11 @@ export interface State {
   /** Heading to scroll to once the next opened note finishes loading
    *  ([[Note#Heading]] navigation); consumed by Editor / ReadingView. */
   pendingHeading: string | null;
+  /** Where the caret should land when `path` next mounts in an editor — a
+   *  template's `{{cursor}}` (client/templates.ts), queued by the command
+   *  that wrote the note before it opened it. Consumed once by Editor.tsx;
+   *  a different note mounting leaves it standing for the one it names. */
+  pendingCaret: { path: string; offset: number } | null;
 
   // ------------------------------------------------------------------ auth
   /** This session may mutate the vault (server said so via /api/me). */
@@ -677,6 +682,8 @@ export interface State {
   bumpReload(): void;
   /** Queue (or clear) a heading for the next opened note to scroll to. */
   setPendingHeading(h: string | null): void;
+  /** Queue (or clear) a caret offset for a note about to open. */
+  setPendingCaret(c: { path: string; offset: number } | null): void;
 }
 
 /** The stored theme, at BOOT — before the custom-theme registry has been
@@ -1375,6 +1382,7 @@ export const useStore = create<State>()((set, get) => {
     backlinks: [],
     reloadTick: 0,
     pendingHeading: null,
+    pendingCaret: null,
 
     admin: true,
     authReady: false,
@@ -2607,6 +2615,7 @@ export const useStore = create<State>()((set, get) => {
     bumpReload: () => set((s) => ({ reloadTick: s.reloadTick + 1 })),
 
     setPendingHeading: (pendingHeading) => set({ pendingHeading }),
+    setPendingCaret: (pendingCaret) => set({ pendingCaret }),
   };
 });
 

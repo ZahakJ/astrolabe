@@ -9,7 +9,7 @@
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
 // templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
 // weeklyFormat, weeklyTemplate, monthlyFormat, monthlyTemplate, yearlyFormat, yearlyTemplate,
-// launch, dateCalendar, textDirection, textAlign,
+// uniqueFolder, uniqueFormat, launch, dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
 // Unknown keys in the file are preserved verbatim on every write so external
@@ -17,7 +17,7 @@
 // PATCH are a 400 (strict allowlist).
 
 import { chmodSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
-import { DAILY_FOLDER_DEFAULT, DAILY_FORMAT_DEFAULT, MONTHLY_FORMAT_DEFAULT, WEEKLY_FORMAT_DEFAULT, YEARLY_FORMAT_DEFAULT, type PeriodKind } from "../shared/periodic.ts";
+import { DAILY_FOLDER_DEFAULT, DAILY_FORMAT_DEFAULT, MONTHLY_FORMAT_DEFAULT, UNIQUE_FORMAT_DEFAULT, WEEKLY_FORMAT_DEFAULT, YEARLY_FORMAT_DEFAULT, type PeriodKind } from "../shared/periodic.ts";
 import { DEFAULT_LAUNCH, isLaunchDoor, parseLaunch } from "../shared/launch.ts";
 import path from "node:path";
 import { isNotePath } from "../shared/noteFormat.ts";
@@ -498,7 +498,7 @@ export function getSettings(): SettingsData {
   if (typeof raw.defaultTemplate === "string" && raw.defaultTemplate.trim() !== "") {
     out.defaultTemplate = raw.defaultTemplate.trim();
   }
-  for (const key of ["dailyFolder", "dailyFormat", "dailyTemplate", "weeklyFormat", "weeklyTemplate", "monthlyFormat", "monthlyTemplate", "yearlyFormat", "yearlyTemplate"] as const) {
+  for (const key of ["dailyFolder", "dailyFormat", "dailyTemplate", "weeklyFormat", "weeklyTemplate", "monthlyFormat", "monthlyTemplate", "yearlyFormat", "yearlyTemplate", "uniqueFolder", "uniqueFormat"] as const) {
     const v = raw[key];
     // The weekly, monthly and yearly formats keep an EMPTY string: it means
     // "that kind of note is off".
@@ -702,6 +702,8 @@ export function effectiveSettings(): EffectiveSettings {
     yearlyFormat: offableFormat(s.yearlyFormat, YEARLY_FORMAT_DEFAULT),
     yearlyTemplate: periodicTemplate(s.yearlyTemplate),
     launch: s.launch ?? DEFAULT_LAUNCH,
+    uniqueFolder: uniqueFolder(),
+    uniqueFormat: s.uniqueFormat ?? UNIQUE_FORMAT_DEFAULT,
     home: {
       mode: s.home?.mode ?? "note",
       ...(s.home?.note ?? envHomeNote() ? { note: s.home?.note ?? envHomeNote() ?? undefined } : {}),
@@ -954,6 +956,22 @@ function offableFormat(stored: string | undefined, fallback: string): string | n
   return stored === undefined ? fallback : stored === "" ? null : stored;
 }
 
+/** Where "New unique note" files its notes: the vault root unless a folder
+ *  is set — the daily folder's rule, with the root as the default instead of
+ *  `daily`, because a Zettelkasten-style stamp is a name for a note that has
+ *  no home yet. */
+export function uniqueFolder(): string {
+  const stored = getSettings().uniqueFolder;
+  if (stored === undefined || stored === "" || stored === "/") return "";
+  try {
+    const rel = normalizeRel(stored);
+    safeAbs(rel);
+    return rel;
+  } catch {
+    return "";
+  }
+}
+
 function periodicTemplate(stored: string | undefined): string | null {
   if (!stored) return null;
   try {
@@ -1030,6 +1048,20 @@ function periodFormat(v: string, key: string, kind: PeriodKind): string | null {
       if (hasMonth || hasDay || hasWeek) throw new VaultError(400, `Settings key "${key}" must name the year (YYYY) and nothing finer`);
       break;
   }
+  return clean;
+}
+
+/** The unique note's name: the daily format's characters and its year, and
+ *  at least one token finer than the day (the hour, the minute, the second)
+ *  — a "unique" name that repeats every day is a collision waiting for the
+ *  second idea of the morning. Clearing it returns the default. */
+function uniqueFormat(v: string, key: string): string | null {
+  const clean = cleanValue(v, key);
+  if (clean === null || clean === "") return null;
+  if (/[\\:*?"<>|]/.test(clean) || clean.includes("..")) throw new VaultError(400, `Settings key "${key}" holds characters a file name cannot`);
+  const bare = clean.replace(/\[[^\]]*\]/g, "");
+  if (!/YYYY|YY/.test(bare)) throw new VaultError(400, `Settings key "${key}" must name the year (YYYY)`);
+  if (!/HH|mm|ss/.test(bare)) throw new VaultError(400, `Settings key "${key}" must name the hour, minute or second (HH, mm, ss) so two notes a day apart never share a name`);
   return clean;
 }
 
@@ -1308,6 +1340,17 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     if (!isNotePath(rel)) throw new VaultError(400, 'Settings key "launch" must be resume, sigils, orbits, today, or a note path (.md, .tex or .latex)');
     return rel;
   }),
+  // The unique note (client/uniqueNote.ts): a folder on the daily folder's
+  // terms, and a name format that must be finer than a day.
+  uniqueFolder: stringKey("uniqueFolder", (v) => {
+    const clean = cleanValue(v, "uniqueFolder");
+    if (clean === null) return null;
+    const rel = vaultRel(clean, "uniqueFolder");
+    if (rel === "") return null; // the root is the default, and null IS the default
+    if (isNotePath(rel)) throw new VaultError(400, 'Settings key "uniqueFolder" must be a folder, not a note');
+    return rel;
+  }),
+  uniqueFormat: stringKey("uniqueFormat", (v) => uniqueFormat(v, "uniqueFormat")),
   defaultTemplate: stringKey("defaultTemplate", (v) => {
     const clean = cleanValue(v, "defaultTemplate");
     if (clean === null) return null;

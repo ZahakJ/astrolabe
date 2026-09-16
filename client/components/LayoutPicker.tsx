@@ -5,12 +5,15 @@
 import { useEffect, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { useDialog } from "../a11y.ts";
-import { deleteLayout, getLayout, getLayouts } from "../api.ts";
+import { deleteLayout, getLayouts } from "../api.ts";
 import { relativeDate } from "../dates.ts";
 import { t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
-import { parseWorkspace } from "../workspace.ts";
+import { restoreLayout } from "../layouts.ts";
+// The Media form's frame (.s-mediaform*): this picker is its own lazy chunk
+// and drew unframed on a session that had not opened the Media page yet.
+import "../styles/media.css";
 
 function Picker({ onClose }: { onClose: () => void }) {
   const [rows, setRows] = useState<{ name: string; at: number }[] | null>(null);
@@ -25,16 +28,8 @@ function Picker({ onClose }: { onClose: () => void }) {
   useEffect(load, []);
 
   const restore = async (name: string): Promise<void> => {
-    try {
-      const { workspace } = await getLayout(name);
-      const ws = parseWorkspace(workspace);
-      if (!ws) throw new Error("bad layout");
-      useStore.getState().applyWorkspace(ws);
-      toast(tf("layoutRestored", { name }));
-      onClose();
-    } catch {
-      toast(t("layoutFailed"), "error");
-    }
+    // The palette's "Load layout: …" rows make the same call (client/layouts.ts).
+    if (await restoreLayout(name)) onClose();
   };
   const remove = async (name: string): Promise<void> => {
     try {

@@ -80,8 +80,10 @@ be taken.)
 | `{{date:FORMAT}}` / `{{time:FORMAT}}` | moment-style tokens: `YYYY MM DD HH mm ss`, `MMMM`/`MMM` month names, `dddd`/`ddd` weekdays, `A`/`a`, and `[literal text]` in brackets. Named formats too: `{{date:long}}`, `full`, `medium`, `short` |
 | `{{title}}` / `{{Title}}` | the new note's filename, as typed and in Title Case |
 | `{{hdate}}` / `{{date:hijri}}` | the Umm al-Qura Hijri date |
+| `{{cursor}}` | nothing — the token is removed and **the caret lands there** once the template is in, whether it was inserted into the open note or a new note was made from it. The first one counts when there are several |
+| `{{prompt:Label}}` / `{{VALUE:Label}}` | **an answer you type**. Before anything is inserted a small sheet asks for each distinct label once, in the order the template names them; a label used twice is asked once and filled twice. Enter inserts, `Esc` cancels the whole insertion — nothing is written, not even the frontmatter. A bare `{{VALUE}}` is asked under a generic caption. Both spellings are the ones Templater and QuickAdd users already have in their vaults |
 
-Anything else is **left exactly as written**: `{{cursor}}`, a Templater expression, a stray `{{`.
+Anything else is **left exactly as written**: a Templater expression, a stray `{{`.
 Blanking a token Astrolabe does not implement would destroy text you typed and hide the fact that
 the template expects something we do not do.
 
@@ -164,6 +166,20 @@ the section only when a daily note is published, dotted with the published days.
 The grid is one tab stop. Inside it, `←` `→` walk the days (mirrored under Arabic), `↑` `↓` the
 weeks, `Home` `End` the ends of the row, `PageUp` `PageDown` the months, and `Enter` opens the
 day. Walking off the edge of a month turns the page.
+
+## Unique notes
+
+A unique note is a note named after the minute it was made — `202609151042` — the Zettelkasten
+stamp, for the idea that has no title yet and must not wait for one. **New unique note** in the
+palette makes it and opens it with the caret in the body, asking nothing; the template for new
+notes applies as it does to any new note (and a `{{cursor}}` in it is honoured). Two ideas in one
+minute do happen: the second takes the next free name (`202609151042 2`). Where it lives and what
+it is called are settings, in Settings → Vault beside the daily rows:
+
+| Setting | Default | Notes |
+| --- | --- | --- |
+| Unique notes folder | *(the vault root)* | Any folder; `zettel`, say. |
+| Unique note name | `YYYYMMDDHHmm` | The daily tokens plus `HH`, `mm` and `ss`; `[literals]` and `/` work as they do for the daily name. The format must be finer than a day — a "unique" name that repeats every morning is a collision waiting to happen — so at least one of `HH`, `mm`, `ss` is required. |
 
 ## Sections: fold, extract, move
 

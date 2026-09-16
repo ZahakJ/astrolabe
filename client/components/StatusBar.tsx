@@ -31,7 +31,11 @@ import {
   requestDocStats,
   type DocStats,
 } from "../editor/bufferBridge.ts";
-import { readingMinutes } from "../../shared/wordCount.ts";
+// The fetched fallback counts through the SAME function the live buffer
+// counts through (client/editor/buffers.ts): the old whitespace split here
+// disagreed with it by every heading marker and code fence in the note, so
+// the number moved the moment the first keystroke landed.
+import { countNoteWords, readingMinutes } from "../../shared/wordCount.ts";
 import { isHardWrapped, layoutBadge, noteLayout, type NoteLayout } from "../textLayout.ts";
 // The pill/tooltip/strip table moved out to its own module when this file
 // became lazy — App renders the zen strip from the same table and must be able
@@ -138,11 +142,6 @@ function useDrawerShell(): boolean {
     return () => mq.removeEventListener("change", onChange);
   }, []);
   return drawer;
-}
-
-function countWords(text: string): number {
-  const words = text.trim().split(/\s+/);
-  return words[0] === "" ? 0 : words.length;
 }
 
 /** One switch in the mode cluster. `on` is not a shade of grey: it fills with
@@ -356,7 +355,7 @@ export default function StatusBar() {
     getNote(openPath)
       .then((note) => {
         if (!cancelled) {
-          setCounts({ words: countWords(note.content), chars: note.content.length });
+          setCounts({ words: countNoteWords(note.content), chars: note.content.length });
           setLayout(noteLayout(note.content));
           setHardWrapped(isHardWrapped(note.content));
           // Single source for the open note's publish state: its frontmatter.
@@ -796,8 +795,13 @@ export default function StatusBar() {
             // so the author and the reader cannot be told different things.
             <span className="s-statusbar__counts">
               {live && live.selWords !== null ? (
+                // "12 of 840 words": the selection AGAINST the note, because
+                // a writer trimming a paragraph is asking how much of the
+                // piece it is, and the old "12 words · selected" made them
+                // deselect to find out. The unit rides on the total, so the
+                // Arabic agreement is the total's ("١٢ من ٨٤٠ كلمة").
                 <>
-                  {countPhrase(live.selWords, "words")}
+                  {tf("statusWordsOf", { sel: localeNum(live.selWords), total: countPhrase(live.words, "words") })}
                   <MetaSep />
                   {countPhrase(live.selChars ?? 0, "chars")}
                   <MetaSep />
