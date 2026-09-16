@@ -133,6 +133,10 @@ Reading left to right, separated by ` | `:
   the weekday itself when the day was a single line (`sunday`);
 - `skipped:` names what you passed on **on purpose** — the day still counts as missed, but the log
   remembers why;
+- `deferred:` names what you **pushed to tomorrow**: not done, not given up. The task keeps
+  showing on the following days under *Owed from earlier days* until you tick it or skip it, and
+  the tick is written onto the day it was owed to, so that day is the one that gets the credit
+  (and its streak heals). A pushed task is remembered for a week;
 - anything whose name is one of your fields sets that field;
 - whatever is left is the day's **note**.
 
@@ -149,7 +153,9 @@ published site, inside a transclusion — always the same card:
   one.
 - **Today**: the date, the day's checklist (every-day items first, then the day's parts with what
   each asks), the fields, and a one-line note. In the editor, ticking a box rewrites the log as
-  **one undo step**. Hover a task for *skip*. A part whose text links a study deck with a wikilink
+  **one undo step**. Hover a task for *skip* and *tomorrow →*: skip is "not at all", tomorrow is
+  "not today" — the task moves under *Owed from earlier days* on the next day's card and stays
+  there until you answer it. A part whose text links a study deck with a wikilink
   — `review: [[Orbits/Hiragana]]` — shows the deck by name and wears a small chip, *12 due ·
   Study*, that opens the session; when a session leaves nothing due, the part is ticked for you
   (see [Orbits](orbits.md)).

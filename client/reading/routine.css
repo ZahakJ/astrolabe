@@ -7,6 +7,12 @@
 
 .s-rv-routine {
   display: grid;
+  /* Two cards share a row on the Sigils page and the row stretches both to
+     the taller one; a grid's rows then swallow the leftover height and a
+     short card's header floated to its middle beside its neighbour's at the
+     top (the owner: "the banner and stuff higher than the card to the
+     right"). Rows pack at the start; the space stays at the foot. */
+  align-content: start;
   gap: 14px;
   margin-block: 1.2em;
   padding: 16px;
@@ -665,4 +671,33 @@
     inline-size: 32px;
     block-size: 32px;
   }
+}
+
+/* Pushed forward: the task dims like a skipped one but keeps its box —
+   "not today" is not "never" — and the tasks owed from earlier days stand
+   under today's list with the day they came from beside the key. */
+.s-rv-routine__task.is-deferred .s-rv-routine__taskwords {
+  opacity: 0.55;
+}
+.s-rv-routine__push.is-on {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.s-rv-routine__carried {
+  margin-block-start: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+.s-rv-routine__carriedhead {
+  font-size: 0.714rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-block-end: 6px;
+}
+.s-rv-routine__carriedfrom {
+  font-size: 0.786rem;
+  color: var(--text-faint);
+  margin-inline-start: 6px;
 }
