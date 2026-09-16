@@ -96,6 +96,8 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "vault", label: "dailyTemplateLabel", hint: "dailyTemplateHint" },
   { tab: "vault", label: "weeklyFormatLabel", hint: "weeklyFormatHint" },
   { tab: "vault", label: "weeklyTemplateLabel", hint: "weeklyTemplateHint" },
+  { tab: "vault", label: "captureInboxLabel", hint: "captureInboxHint" },
+  { tab: "vault", label: "clipperLabel", hint: "clipperHint" },
   { tab: "vault", label: "drawingsFolderLabel", hint: "drawingsFolderHint" },
   { tab: "vault", label: "rowAttachmentLocation", hint: "hintAttachmentLocation" },
   { tab: "vault", label: "rowAttachmentFolder" },

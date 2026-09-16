@@ -720,6 +720,22 @@ export function getOnThisDay(iso: string): Promise<OnThisDayHit[]> {
 export function getTasks(): Promise<TaskMeta[]> {
   return request<TaskMeta[]>("/api/tasks");
 }
+/** One line under `## Captured` in `path` — today's note when null — stamped
+ *  `time` (the reader's own clock, `HH:MM`). Resolves with the note written
+ *  to; the server creates it when it is not there (docs/capture.md). */
+export function captureLine(text: string, path: string | null, time: string): Promise<{ ok: true; path: string }> {
+  return request<{ ok: true; path: string }>("/api/capture", json("POST", { text, path: path ?? "", time }), true);
+}
+
+/** The clipper's token — made on first ask, kept in ASTROLABE_DATA (never
+ *  the vault) — and the button that replaces it. Admin only. */
+export function getClipToken(): Promise<{ token: string }> {
+  return request<{ token: string }>("/api/clip/token", undefined, true);
+}
+export function rotateClipToken(): Promise<{ token: string }> {
+  return request<{ token: string }>("/api/clip/token/rotate", { method: "POST" }, true);
+}
+
 export function toggleTask(path: string, line: number, done: boolean, today: string): Promise<{ ok: true }> {
   return request<{ ok: true }>("/api/task", json("POST", { path, line, done, today }));
 }

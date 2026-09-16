@@ -50,6 +50,8 @@ export interface TemplateSettings {
   dailyTemplate: string | null;
   weeklyFormat: string | null;
   weeklyTemplate: string | null;
+  /** The note pinned as the capture inbox (docs/capture.md), or null. */
+  captureInbox: string | null;
   locale: string;
   calendar: DateCalendar;
   lang: "en" | "ar";
@@ -72,6 +74,7 @@ export async function templateSettings(): Promise<TemplateSettings> {
         dailyTemplate: res.effective.dailyTemplate,
         weeklyFormat: res.effective.weeklyFormat,
         weeklyTemplate: res.effective.weeklyTemplate,
+        captureInbox: res.effective.captureInbox,
         locale: res.effective.blogLocale,
         calendar: res.effective.dateCalendar,
         lang: res.effective.language,

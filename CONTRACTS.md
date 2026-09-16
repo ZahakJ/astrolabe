@@ -100,6 +100,10 @@ that is the pre-existing pattern, and the door is now open.
 - `POST /api/note` body `{ path: string }` → `NoteData` (create empty; 409 if exists)
 - `GET  /api/seed` → `{ available: boolean, guide: string }` (admin-only, 404 to a visitor; `available` is true only when `vault-seed/` exists AND the vault holds no markdown)
 - `POST /api/seed` → `{ guide: string }` — copy the starter notes in, 409 `code: "seedNotEmpty"` if the vault filled up in between. **Boot seeds only a vault directory that DID NOT EXIST**; an existing-but-empty directory is the reader's and is offered the seed from the empty state instead of being written into unasked (server/seed.ts).
+- `POST /api/capture` body `{ text, path?, time? }` → `{ ok: true, path }` (admin-only) — append `- HH:MM text` under `## Captured` in `path` (today's daily note when absent, by the instance's folder and format), creating the note bare when it is not there. See "Capture" (3.16.x).
+- `POST /api/clip` body JSON `{ url?, title?, html?, selection?, text?, token? }` or a FORM (the share target) → `{ kind: "clipped" | "captured", path }`, or a 303 to the note for a form. **Above the auth guard**: answers to an admin session OR the clip token (`token` field / `Authorization: Bearer`); CORS `*` on its answers; 40 wrong tokens per address per quarter hour → 429. With an address, a note under `Clips/`; without, a line under `## Captured` today.
+- `GET  /api/clip/token` → `{ token }` (admin-only; made on first ask) · `POST /api/clip/token/rotate` → `{ token }` (the old one stops working at once).
+- `GET  /manifest.webmanifest` (NOT under /api; open) → the web app manifest, generated from settings: name, `theme_color`/`background_color` from the default theme's swatch, the configured favicon plus `/manifest-icon.svg`, and the `share_target` that POSTs `title`/`text`/`url` as a form to `/api/clip`.
 - `POST /api/rename` body `{ path, toPath }` → `{ ok: true }` (also rewrites `[[wikilinks]]` in other notes that pointed at the old name)
 - `POST /api/alias` body `{ path, alias }` → `{ ok: true, path, alias }` (admin-only; merges one name into the note's `aliases:`, preserving every other byte — the write behind "keep the old title" after a rename)
 - `DELETE /api/note?path=&permanent=<bool>` → `{ ok: true, trashPath?: string }` (default MOVES to `.trash/`; see "Note deletion")
@@ -9675,6 +9679,57 @@ shell's `s-app--notice` row (renamed from `s-app--preview`, shared with the prev
 reads that OR `navigator.onLine`, seeded from `servingOfflineNow()` for a listener that mounts
 after `/api/me` came back. Edits offline are the editor's retry's business, not the worker's.
 
+## 3.16.x — Capture: the quick-capture sheet, the clipper, the installable site
+
+**The text arithmetic (`shared/capture.ts`).** `appendCaptured(content, text, time)` puts `- HH:MM
+text` at the end of the `## Captured` section (a `##`/`#` heading ends it; a `###` under it does
+not), or opens the section at the end of the note; a multi-line thought hangs under its bullet; the
+note's own line endings are kept. `clipFileName` is `noteFileName`'s rule (the filesystem's set plus
+`[`, `]`, `#`) with control characters and a 120-char cap; `clipNote` writes `source:` (always
+double-quoted, `yamlQuote`) and `clipped:` frontmatter, the title as H1, the body. `splitSharedText`
+finds the one address a phone put in `text`. The heading is `## Captured` in every language: it is
+an address in the note, not chrome.
+
+**The converter (`shared/htmlToMarkdown.ts`).** Own tokenizer, own tree, no dependency (the server
+has no build and takes no packages). Renders the dozen tags an article is made of and DROPS
+everything else (script, style, forms, media, svg, `<head>`); `contentRoot` picks `<article>`,
+then `<main>`, then `<body>`; links and images are made absolute against the page (a `<base href>`
+wins), and only `http(s)` survive. Prose is escaped conservatively: `* _ \ [ ] <` inline
+(intra-word `_` left alone), and `# > - + 1.` only at a line's start. `<br>` is a two-space hard
+break, which is why trailing whitespace is trimmed at the document's end only.
+
+**The clipper (`server/clip.ts`).** `POST /api/clip` is mounted ABOVE the guard and decides for
+itself: an admin session, or a token kept in `ASTROLABE_DATA/clip-token` (0600, 192 random bits,
+made on first ask, replaced by rotate). The bookmarklet (`bookmarklet()` in shared/capture.ts —
+one `javascript:` URL, every string JSON-encoded in) sends the selection as HTML or the whole page
+as `text/plain` so no preflight happens, reads the answer through `Access-Control-Allow-Origin: *`
+(safe: the request carries the token and never a cookie — SameSite=Lax), and falls back to a form
+POST into a new tab when the page's CSP refuses the fetch — a form is answered with a 303 to the
+note. A FORM body is what the share target sends too, from the browser the reader signed in with,
+so that path rides the cookie. Names under `Clips/` never overwrite (` (2)`, ` (3)`…).
+
+**The sheet (`client/capture.ts`, `client/components/CaptureSheet.tsx`).** Ctrl/Cmd+Shift+D (Shift
+beside the daily note's Alt; the plain key is the editor's), the palette row `quick-capture`, store
+flag `captureOpen`, lazy and mount-gated like the shortcuts sheet, in `modalUp`. The order of
+operations is the contract: today's note is made through `ensurePeriodicNote` (client/daily.ts —
+`openPeriodicNote` is now that plus `openNote`) so the daily template lands; the target's buffer is
+FLUSHED (`flushBufferPath`) before the server appends, because the append's precondition is the
+file's mtime; and the buffer then ADOPTS the result explicitly (`adoptExternalChange`), because
+the SSE echo arrives inside `SELF_SAVE_WINDOW_MS` of the flush and the shell would read it as our
+own save. The reading view gets `bumpReload`. The inbox is `settings.captureInbox` (validated like
+a template note; `effective.captureInbox`; rides `templateSettings()`), Settings → Vault → Capture.
+Phone: the sheet is a bottom sheet with 44px targets under 700px.
+
+**The manifest (`shared/manifest.ts`, `server/manifest.ts`).** `/manifest.webmanifest` and
+`/manifest-icon.svg` are open routes on `app` (beside the favicon), generated per request: the
+site name (`shortName` cuts at a word), lang/dir, the default theme's swatch read out of
+`client/styles/tokens.css` (`themeSwatch`; a custom theme's own `--bg`/`--accent` over its base;
+`DEFAULT_SWATCH` when unreadable) as both colours, the raster favicon when there is one, the mark
+on a plate as an SVG `any maskable` icon, and the `share_target`. The shell's `<head>` carries
+`<link rel="manifest">` and `<meta name="theme-color">` through `injectHead`'s new `extra` tags.
+The offline policy classifies both paths as `note` (network-first, kept), never `asset`: they wear
+an asset's extension but change with settings.
+
 ## 3.14.0 — relative line numbers, the deck in motion, the Routines row <!-- lineage -->
 
 **Relative line numbers (`client/editor/relativeLines.ts`).** A custom `gutter()`, not
@@ -9911,6 +9966,18 @@ What the suite covers, and why each file exists:
   gate and a green suite can never disagree. Its companion is `tests/shortcuts.test.ts`: this file
   asks whether a binding is UNIQUE, that one asks whether a keyboard typing no Latin letters can
   reach it. A new binding needs both.
+- `tests/capture.test.ts` — `appendCaptured` (a new section, an existing one, a `###` inside it, an
+  empty one, CRLF, a multi-line thought), `clipFileName`, `clipNote`'s exact bytes, `yamlQuote`,
+  `splitSharedText`, the manifest's fields and `share_target`, `themeSwatch` against a tokens.css
+  fragment, and that the bookmarklet is one line whose every string is quoted and whose source
+  parses.
+- `tests/clip.test.ts` — the clipper's writes against a throwaway vault: a page under `Clips/` with its
+  source, never overwriting (` (2)`, ` (3)`), the title from the page then the host, the
+  `javascript:` refusal, a thought captured into today's note, `captureLine` into a named or a
+  missing note, and the token (made on first ask, 0600 in the data directory, retired by rotation).
+- `tests/htmlToMarkdown.test.ts` — the converter: each tag it keeps, each it drops, `<article>` over
+  `<main>` over `<body>`, absolute links and the `javascript:` refusal, list nesting and `start`,
+  fences that grow past inner backticks, the escape set, entities, and that rubbish never throws.
 - `tests/anchors.test.ts` — `[[Note#Anchor]]` against both anchor resolvers (editor by heading
   TEXT, reading view by SLUG), plus `Slugger` collisions and unicode.
 - `tests/sections.test.ts` — the partition invariant: cutting a note at its heading line numbers

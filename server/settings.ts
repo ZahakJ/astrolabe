@@ -8,7 +8,7 @@
 // language, languageFilter, languageToggle, excludeTags, commentsEnabled, shareButtons, pdfSearch,
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
 // templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
-// weeklyFormat, weeklyTemplate, dateCalendar, textDirection, textAlign,
+// weeklyFormat, weeklyTemplate, captureInbox, dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
 // Unknown keys in the file are preserved verbatim on every write so external
@@ -496,7 +496,7 @@ export function getSettings(): SettingsData {
   if (typeof raw.defaultTemplate === "string" && raw.defaultTemplate.trim() !== "") {
     out.defaultTemplate = raw.defaultTemplate.trim();
   }
-  for (const key of ["dailyFolder", "dailyFormat", "dailyTemplate", "weeklyFormat", "weeklyTemplate"] as const) {
+  for (const key of ["dailyFolder", "dailyFormat", "dailyTemplate", "weeklyFormat", "weeklyTemplate", "captureInbox"] as const) {
     const v = raw[key];
     // The weekly format keeps an EMPTY string: it means "weekly notes off".
     if (typeof v === "string" && (v.trim() !== "" || key === "weeklyFormat")) out[key] = v.trim();
@@ -692,6 +692,10 @@ export function effectiveSettings(): EffectiveSettings {
     dailyTemplate: periodicTemplate(s.dailyTemplate),
     weeklyFormat: s.weeklyFormat === undefined ? WEEKLY_FORMAT_DEFAULT : s.weeklyFormat === "" ? null : s.weeklyFormat,
     weeklyTemplate: periodicTemplate(s.weeklyTemplate),
+    // The capture inbox is a note path on the daily template's terms: a
+    // stored value that no longer names a note inside the vault reads as
+    // unset, so the sheet offers today's note alone rather than a dead door.
+    captureInbox: periodicTemplate(s.captureInbox),
     home: {
       mode: s.home?.mode ?? "note",
       ...(s.home?.note ?? envHomeNote() ? { note: s.home?.note ?? envHomeNote() ?? undefined } : {}),
@@ -1251,6 +1255,10 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
   weeklyFormat: stringKey("weeklyFormat", (v) => periodFormat(v, "weeklyFormat", true)),
   dailyTemplate: stringKey("dailyTemplate", (v) => templateNote(v, "dailyTemplate")),
   weeklyTemplate: stringKey("weeklyTemplate", (v) => templateNote(v, "weeklyTemplate")),
+  // The second target of the quick-capture sheet (docs/capture.md): a note
+  // pinned as the inbox. Validated like a template — a note path in the
+  // vault, or nothing.
+  captureInbox: stringKey("captureInbox", (v) => templateNote(v, "captureInbox")),
   defaultTemplate: stringKey("defaultTemplate", (v) => {
     const clean = cleanValue(v, "defaultTemplate");
     if (clean === null) return null;

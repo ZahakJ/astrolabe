@@ -88,10 +88,21 @@ export function dailyNoteLabel(path: string): string | null {
   return siteDate(date, useStore.getState().blogLocale, { dateStyle: "long" });
 }
 
-/** Open (or create) the periodic note for `kind`, `offset` periods from
- *  the reference date — today, unless the open note is itself a periodic
- *  note, in which case yesterday/tomorrow walk FROM it. */
-export async function openPeriodicNote(kind: PeriodKind = "day", offset = 0): Promise<void> {
+export interface EnsuredNote {
+  path: string;
+  /** True when this call made the file. */
+  created: boolean;
+}
+
+/** The periodic note for `kind`, `offset` periods from the reference date
+ *  — today, unless the open note is itself a periodic note, in which case
+ *  yesterday/tomorrow walk FROM it — CREATED when it is not there, with its
+ *  template, and its path handed back. Null when there is nothing to open
+ *  (weekly notes off, a visitor, a failed create); the reason has already
+ *  been toasted. The two doors below share this so that "today's note" means
+ *  the same file, with the same template, whether it is being opened or
+ *  written into from the capture sheet (client/capture.ts). */
+export async function ensurePeriodicNote(kind: PeriodKind = "day", offset = 0): Promise<EnsuredNote | null> {
   await loadPeriodic();
   const store = useStore.getState();
   const from = (store.openPath && dailyNoteDate(store.openPath)) || new Date();
@@ -101,13 +112,13 @@ export async function openPeriodicNote(kind: PeriodKind = "day", offset = 0): Pr
   const path = kind === "day" ? dailyNotePath(date) : weeklyNotePath(date);
   if (path === null) {
     toast(t("weeklyNotesOff"));
-    return;
+    return null;
   }
   const template = kind === "day" ? cached.dailyTemplate : cached.weeklyTemplate;
   const exists = collectNotes(store.tree).some((n) => n.path === path);
   if (!exists && !store.admin) {
     toast(t("noDailyNote"));
-    return;
+    return null;
   }
   if (!exists) {
     try {
@@ -120,17 +131,27 @@ export async function openPeriodicNote(kind: PeriodKind = "day", offset = 0): Pr
       // guarded and would swallow the 409 this function falls through on.
       await applyDefaultTemplate(path, template);
       await store.loadTree();
-      if (store.readingMode) store.setReadingMode(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (!/exists/i.test(message)) {
         console.error(`astrolabe: creating periodic note ${path} failed`, err);
         toast(t("dailyNoteFailed"));
-        return;
+        return null;
       }
     }
   }
-  store.openNote(path);
+  return { path, created: !exists };
+}
+
+/** Open (or create) the periodic note for `kind`, `offset` periods away. */
+export async function openPeriodicNote(kind: PeriodKind = "day", offset = 0): Promise<void> {
+  const ensured = await ensurePeriodicNote(kind, offset);
+  if (ensured === null) return;
+  const store = useStore.getState();
+  // A note that was just made opens in the editor, whatever mode the pane
+  // was in: there is nothing to read in it yet.
+  if (ensured.created && store.readingMode) store.setReadingMode(false);
+  store.openNote(ensured.path);
 }
 
 /** Open today's daily note, creating it first if it doesn't exist yet. */

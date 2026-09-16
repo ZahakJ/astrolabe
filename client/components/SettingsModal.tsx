@@ -97,6 +97,7 @@ import { NumberInput, SegmentedControl, TextInput, Toggle, type Segment } from "
 import { PathInput } from "./controls/PathInput.tsx";
 import { isSelectOpen, Select, type SelectGroup } from "./controls/Select.tsx";
 import DeviceTab from "./settings/DeviceTab.tsx";
+import { ClipperControl } from "./settings/ClipperControl.tsx";
 import { desktop } from "../desktop/bridge.ts";
 import { DECLARABLE, SPELL_DICTS_EVENT, browserDictionaries, setBrowserDictionaries, type Declarable } from "../spellDicts.ts";
 import { Row } from "./settings/Row.tsx";
@@ -171,6 +172,8 @@ interface Form {
   dailyTemplate: string;
   weeklyFormat: string;
   weeklyTemplate: string;
+  /** The quick-capture sheet's inbox note (docs/capture.md); empty = none. */
+  captureInbox: string;
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
   // no env counterpart, so "inherit" is meaningless here — every control shows
@@ -297,6 +300,7 @@ function formFrom(s: SettingsResponse): Form {
     dailyTemplate: s.dailyTemplate ?? "",
     weeklyFormat: s.weeklyFormat ?? "",
     weeklyTemplate: s.weeklyTemplate ?? "",
+    captureInbox: s.captureInbox ?? "",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
     syncBranch: s.effective.gitSync.branch,
@@ -1306,7 +1310,8 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       | "dailyFormat"
       | "dailyTemplate"
       | "weeklyFormat"
-      | "weeklyTemplate",
+      | "weeklyTemplate"
+      | "captureInbox",
   ): void => {
     const value = f[key].trim();
     if (value !== initial[key].trim()) patch[key] = value === "" ? null : value;
@@ -1327,6 +1332,7 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   str("dailyTemplate");
   str("weeklyFormat");
   str("weeklyTemplate");
+  str("captureInbox");
   if (f.language !== initial.language) {
     patch.language = f.language === "en" || f.language === "ar" ? f.language : null;
   }
@@ -4076,6 +4082,21 @@ export default function SettingsModal() {
                   </Row>
                   <Row label={t("weeklyTemplateLabel")} hint={t("weeklyTemplateHint")}>
                     <TextInput placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Weekly.md` : "Templates/Weekly.md"} dir="ltr" label={t("weeklyTemplateLabel")} {...field("weeklyTemplate")} />
+                  </Row>
+                  {/* CAPTURE (docs/capture.md): the two doors into the vault
+                      that do not start from a note. The inbox is the
+                      quick-capture sheet's second target, a note on the
+                      daily template's terms; the clipper is a bookmarklet
+                      and the token inside it, which lives in the data
+                      directory and never in the vault. Both are questions
+                      about where this instance PUTS things, like every row
+                      above. */}
+                  <div className="s-smodal__sub">{t("captureSection")}</div>
+                  <Row label={t("captureInboxLabel")} hint={t("captureInboxHint")}>
+                    <TextInput placeholder="Inbox.md" dir="ltr" label={t("captureInboxLabel")} {...field("captureInbox")} />
+                  </Row>
+                  <Row label={t("clipperLabel")} hint={t("clipperHint")}>
+                    <ClipperControl siteName={eff.siteName} />
                   </Row>
                   {/* Where the sidebar's pencil files a drawing (the owner:
                       "create the drawing in a specified space in settings or

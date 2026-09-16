@@ -33,6 +33,7 @@ const SECTIONS = [
       { slug: "publishing", file: "publishing.md", title: { en: "Publishing & access", ar: "النشر والوصول" } },
       { slug: "backup-and-sync", file: "backup-and-sync.md", title: { en: "Backup & sync", ar: "النسخ الاحتياطي والمزامنة" } },
       { slug: "offline", file: "offline.md", title: { en: "Offline reading", ar: "القراءة دون اتصال" } },
+      { slug: "capture", file: "capture.md", title: { en: "Capture", ar: "الالتقاط" } },
       { slug: "export", file: "export.md", title: { en: "Export", ar: "التصدير" } },
       { slug: "desktop", file: "desktop.md", title: { en: "The desktop app", ar: "تطبيق سطح المكتب" } },
     ],

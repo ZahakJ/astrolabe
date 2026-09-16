@@ -16,6 +16,7 @@ import { startGitSyncTimer, syncAtLaunch } from "./gitSync.ts";
 import { startConfigMirror } from "./configMirror.ts";
 import { languageScope } from "./language.ts";
 import { bootPayload, injectBoot } from "./boot.ts";
+import { manifestHeadTags, manifestRoutes } from "./manifest.ts";
 import { injectPreloads, preloadTags } from "./preload.ts";
 import { faviconPath, migrateSettings, noteVersionsEnabled } from "./settings.ts";
 import { dataDir, initSite, publicLayout, legacyRedirectTarget } from "./site.ts";
@@ -233,6 +234,11 @@ app.get("/robots.txt", (c) => {
   });
 });
 
+// The web app manifest and its icon (server/manifest.ts, docs/capture.md):
+// what makes the site installable on a phone and puts it in the share
+// sheet. Open like the favicon below, for the same reason.
+app.route("/", manifestRoutes);
+
 // Favicon: settings.favicon (an uploaded vault image) served at the classic
 // path with its real content type; without one (or when the file vanished),
 // the built-in glyph — same one the shell inlines — so the route always
@@ -289,7 +295,7 @@ if (existsSync(distDir)) {
     const shell = served === "app" ? "app" : served;
     return c.html(
       injectBoot(
-        injectPreloads(injectHead(html, requestOrigin(c), pathname), preloadTags(distDir, shell)),
+        injectPreloads(injectHead(html, requestOrigin(c), pathname, manifestHeadTags()), preloadTags(distDir, shell)),
         bootPayload(c),
       ),
     );

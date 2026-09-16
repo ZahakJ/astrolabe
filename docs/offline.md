@@ -10,7 +10,7 @@ Astrolabe is one program running on one machine, and your browser is a window on
 
 ## What is kept
 
-- **The app itself.** The page and the code it runs on, so the app can open at all when there is no server to talk to.
+- **The app itself.** The page and the code it runs on, so the app can open at all when there is no server to talk to — and the [web app manifest](capture.md#from-a-phone) an installed copy opens from, kept network-first because it is generated from your settings rather than built.
 - **What you read.** Every note you opened, plus the note tree, the note's backlinks and your session. The copy is refreshed each time a note loads successfully. It is a copy of what you last read while online, not a mirror of the whole vault: a note you never opened is not on the device.
 - **Nothing else.** Search, PDFs, attachments, the graph, and anything you save all need the server. Offline, a search returns nothing and a PDF does not open.
 
