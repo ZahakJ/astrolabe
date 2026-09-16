@@ -748,6 +748,10 @@ authRoutes.get("/me", (c) => {
   const noteAlign = textAlign();
   if (noteAlign !== "start") me.textAlign = noteAlign;
   if (!emptyPropsCard()) me.emptyPropsCard = false;
+  // What the shell opens on top of the restored session (shared/launch.ts).
+  // Admin only — it may be a vault path — and only when it is not the
+  // default, so a default instance's payload is byte-for-byte what it was.
+  if (admin && settings.launch !== undefined) me.launch = settings.launch;
   me.version = VERSION;
   // The vault tree's per-folder glyphs. OUTSIDE the public-layout gate below:
   // this describes the SIDEBAR, which an admin has in blog and designed mode

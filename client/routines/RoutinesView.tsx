@@ -27,6 +27,9 @@ import { parseTasksFence, shift } from "../../shared/tasks.ts";
 import { RoutineForm } from "./RoutineForm.tsx";
 import { decorateDeckTasks } from "./orbits.ts";
 import { OnThisDayList, useOnThisDay } from "../components/OnThisDayPanel.tsx";
+import CalendarGrid from "../components/CalendarGrid.tsx";
+import { collectNotes } from "../editor/links.ts";
+import { recentNotes } from "../recents.ts";
 import "../styles/routines.css";
 
 export const VAULT_EVENT = "astrolabe:vault";
@@ -110,7 +113,7 @@ function DueTasks({ today }: { today: string }) {
  *  cards belong. The count is the shelf's own (`counts.due`, summed), so the
  *  two pages never disagree: the old cards route counted a never-seen card
  *  as due, and this line said "1 due" over a shelf that said nothing was. */
-function CardsDue({ today }: { today: string }) {
+function CardsDue({ today, onCount }: { today: string; onCount: (n: number) => void }) {
   const [due, setDue] = useState(0);
   const openOrbits = useStore((s) => s.openOrbits);
   useEffect(() => {
@@ -118,7 +121,10 @@ function CardsDue({ today }: { today: string }) {
     const read = (): void => {
       getDecks(today)
         .then((list) => {
-          if (alive) setDue(list.reduce((n, m) => n + m.counts.due, 0));
+          if (!alive) return;
+          const n = list.reduce((sum, m) => sum + m.counts.due, 0);
+          setDue(n);
+          onCount(n);
         })
         .catch(() => {});
     };
@@ -134,7 +140,7 @@ function CardsDue({ today }: { today: string }) {
       window.removeEventListener(VAULT_EVENT, onVault);
       if (timer) clearTimeout(timer);
     };
-  }, [today]);
+  }, [today, onCount]);
   if (due === 0) return null;
   return (
     <section className="s-routines__cards" data-testid="routines-cards-due">
@@ -142,6 +148,48 @@ function CardsDue({ today }: { today: string }) {
       <button type="button" className="s-btn s-btn--accent" onClick={() => openOrbits(null)}>
         {t("orbits")}
       </button>
+    </section>
+  );
+}
+
+/** How many recently-read notes the row offers: a hand's worth. */
+const RECENTS_SHOWN = 6;
+
+/** RECENTLY READ, at the top of the page when nothing is due there: a day
+ *  with no checklist asking and no cards waiting is a day to pick up where
+ *  you were, and the palette's own memory (client/recents.ts, frecency,
+ *  pruned against the live tree) is the list of where that was. */
+function RecentlyRead() {
+  const tree = useStore((s) => s.tree);
+  const openNote = useStore((s) => s.openNote);
+  const setView = useStore((s) => s.setView);
+  const rows = useMemo(() => {
+    if (tree === null) return [];
+    const titles = new Map(collectNotes(tree).map((n) => [n.path, n.title]));
+    return recentNotes(tree, { limit: RECENTS_SHOWN }).map((path) => ({ path, title: titles.get(path) ?? path }));
+  }, [tree]);
+  if (rows.length === 0) return null;
+  return (
+    <section className="s-routines__recent" aria-label={t("recentlyRead")} data-testid="routines-recent">
+      <h2 className="s-routines__otdhead">{t("recentlyRead")}</h2>
+      <ul className="s-routines__recentlist">
+        {rows.map((r) => (
+          <li key={r.path}>
+            <button
+              type="button"
+              className="s-routines__recentnote"
+              dir="auto"
+              title={r.path}
+              onClick={() => {
+                openNote(r.path);
+                setView("editor");
+              }}
+            >
+              {r.title}
+            </button>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -185,6 +233,17 @@ export default function RoutinesView() {
     [live, today],
   );
   const asked = useMemo(() => live.filter((m) => dayStatus(m.plan, null, today, today) !== "rest").length, [live, today]);
+  // Every day any sigil logged, for the calendar's second mark — the page
+  // holds every log already, so the grid costs it no request.
+  const logged = useMemo(() => {
+    const out = new Set<string>();
+    for (const m of live) for (const e of m.entries) out.add(e.date);
+    return out;
+  }, [live]);
+  const [cardsDue, setCardsDue] = useState(0);
+  // "Nothing due" is a fact about the whole page: no sigil asks today and
+  // no card waits. Only then does the recents row take the top.
+  const nothingDue = all !== null && asked === 0 && cardsDue === 0;
 
   const log = useCallback(
     async (meta: RoutineMeta, patch: EntryPatch): Promise<void> => {
@@ -230,13 +289,21 @@ export default function RoutinesView() {
           {t("routinesAdd")}
         </button>
       </header>
+      {nothingDue && <RecentlyRead />}
+      {/* The month, the same grid the sidebar draws (CalendarGrid.tsx): a dot
+          per day that has a note, a second per day a sigil logged — those
+          come from this page's own reads. Not on a phone (calendar.css):
+          there the sidebar's section is the calendar. */}
+      <section className="s-routines__cal" aria-label={t("calendar")}>
+        <CalendarGrid logged={logged} />
+      </section>
       {onThisDay.length > 0 && (
         <section className="s-routines__otd" aria-label={t("onThisDay")}>
           <h2 className="s-routines__otdhead">{t("onThisDay")}</h2>
           <OnThisDayList rows={onThisDay} />
         </section>
       )}
-      <CardsDue today={today} />
+      <CardsDue today={today} onCount={setCardsDue} />
       <section className="s-routines__due" aria-label={t("routinesTasksHead")}>
         <DueTasks today={today} />
       </section>

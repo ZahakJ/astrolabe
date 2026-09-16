@@ -615,3 +615,41 @@
   inline-size: 200px;
   padding-inline-end: 118px;
 }
+
+/* Recently read, at the top when nothing is due (RoutinesView.tsx
+   RecentlyRead): the on-this-day card's dress, a row of note titles. */
+.s-routines__recent {
+  max-inline-size: 1240px;
+  margin: 20px auto 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+.s-routines__recentlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+.s-routines__recentnote {
+  max-inline-size: 100%;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.857rem;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.s-routines__recentnote:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}

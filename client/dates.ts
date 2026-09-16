@@ -24,6 +24,7 @@ import {
   DEFAULT_DATE_CALENDAR,
   dateNamesLocale,
   formatCalendarDate,
+  formatCalendarRange,
   isDateCalendar,
   isDateOrder,
   isDateSeparator,
@@ -68,6 +69,15 @@ export function siteDate(
   const date = value instanceof Date ? value : new Date(value);
   const lang = getLang();
   return formatCalendarDate(date, dateNamesLocale(locale, lang), calendar, lang, options, bothStyle);
+}
+
+/** A span of days under the instance's calendar — the week, month or year a
+ *  periodic note names (client/daily.ts `periodLabel`). Same door as
+ *  `siteDate`, for the same reason: a range printed by its own formatter
+ *  would be the fifth calendar on this client. */
+export function siteDateRange(from: Date, to: Date, locale: string, options: Intl.DateTimeFormatOptions): string {
+  const lang = getLang();
+  return formatCalendarRange(from, to, dateNamesLocale(locale, lang), calendar, lang, options, bothStyle);
 }
 
 /** How recent a moment has to be to be told as a DISTANCE rather than a date.

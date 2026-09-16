@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { siteDate } from "../client/dates.ts";
 import { setLang } from "../client/i18n.ts";
-import { dateNamesLocale, formatCalendarDate } from "../shared/dates.ts";
+import { dateNamesLocale, formatCalendarDate, formatCalendarRange } from "../shared/dates.ts";
 
 const ISO = "2026-01-09T00:00:00.000Z";
 const LONG_UTC: Intl.DateTimeFormatOptions = { dateStyle: "long", timeZone: "UTC" };
@@ -79,5 +79,28 @@ describe("English chrome does not print Arabic month names", () => {
     const text = siteDate(ISO, "ar", LONG_UTC);
     assert.match(text, /2026/);
     assert.doesNotMatch(text, /[٠-٩]/);
+  });
+});
+
+// A span of days (formatCalendarRange): the week, month or year a periodic
+// note names, in the instance's calendar.
+describe("formatCalendarRange", () => {
+  const from = new Date(2026, 8, 14, 12);
+  const to = new Date(2026, 8, 20, 12);
+  const span: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
+  it("prints a Gregorian span with the shared parts once", () => {
+    const en = formatCalendarRange(from, to, "en-GB", "gregorian", "en", span);
+    assert.match(en, /14.*20 September 2026/);
+    assert.doesNotMatch(en, /September.*September/);
+    assert.match(formatCalendarRange(from, to, "en", "gregorian", "en", span), /September 14.*20, 2026/);
+  });
+  it("prints a Hijri span, and both halves on a both instance", () => {
+    const hijri = formatCalendarRange(from, to, "en", "hijri", "en", span);
+    assert.match(hijri, /AH/);
+    const both = formatCalendarRange(from, to, "ar", "both", "ar", span);
+    assert.match(both, /هـ.*\|.*سبتمبر.*م/);
+  });
+  it("returns nothing for an invalid end", () => {
+    assert.equal(formatCalendarRange(from, new Date(NaN), "en", "gregorian", "en", span), "");
   });
 });
