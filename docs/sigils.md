@@ -153,7 +153,10 @@ published site, inside a transclusion — always the same card:
   one.
 - **Today**: the date, the day's checklist (every-day items first, then the day's parts with what
   each asks), the fields, and a one-line note. In the editor, ticking a box rewrites the log as
-  **one undo step**. Hover a task for *skip* and *tomorrow →*: skip is "not at all", tomorrow is
+  **one undo step**. **Any past day can be visited**: click a day on the week strip or a cell
+  of the heatmap and the box redraws for that day — its checklist as it was ticked, its
+  fields, its note — and you can change it there (a tick writes into that day's line); *← Today*
+  brings the card back. Hover a task for *skip* and *tomorrow →*: skip is "not at all", tomorrow is
   "not today" — the task moves under *Owed from earlier days* on the next day's card and stays
   there until you answer it. A part whose text links a study deck with a wikilink
   — `review: [[Orbits/Hiragana]]` — shows the deck by name and wears a small chip, *12 due ·

@@ -60,6 +60,13 @@ export interface RoutineHooks {
   onResize?: () => void;
   /** The page's own doors, drawn in the card's corner when given. */
   actions?: { label: string; onClick: () => void }[];
+  /** The day the card SHOWS instead of today — a heatmap cell or a week-strip
+   *  day the reader clicked (the owner: "click on calendar boxes and visit an
+   *  old day, change it or just look at the notes"). The page keeps it and
+   *  hands it back through `onView`; a surface with no `onView` keeps it
+   *  itself. */
+  view?: string | null;
+  onView?: (iso: string | null) => void;
 }
 
 const KIND_LABEL: Record<RoutineKind, I18nKey> = {
@@ -197,8 +204,31 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
   }
   card.appendChild(head);
 
-  // ── Today ──
-  card.appendChild(renderDay(plan, entryOf(today), today, today, locale, interactive ? hooks.onLog : undefined));
+  // ── Today, or the day the reader chose ──
+  // Any day on the card can be visited: the day box redraws for it with its
+  // own checklist, fields and note, editable where the card is editable
+  // (a tick writes into THAT day's line), and a "Today" link comes back.
+  const viewed = hooks.view && hooks.view !== today ? hooks.view : null;
+  const dayBox = renderDay(plan, entryOf(viewed ?? today), viewed ?? today, today, locale, interactive ? hooks.onLog : undefined);
+  const visit = (iso: string | null): void => {
+    if (hooks.onView) hooks.onView(iso);
+    else {
+      // No page to keep the choice (the reading view): redraw in place.
+      const fresh = renderDay(plan, entryOf(iso ?? today), iso ?? today, today, locale, undefined);
+      wireBack(fresh, iso);
+      card.querySelector(".s-rv-routine__today")?.replaceWith(fresh);
+    }
+  };
+  const wireBack = (box: HTMLElement, iso: string | null): void => {
+    if (iso === null) return;
+    box.dataset.visiting = "yes";
+    const back = el("button", "s-rv-routine__backtoday", t("routineBackToday"));
+    back.type = "button";
+    back.addEventListener("click", () => visit(null));
+    box.querySelector(".s-rv-routine__todayhead")?.appendChild(back);
+  };
+  wireBack(dayBox, viewed);
+  card.appendChild(dayBox);
 
   // ── Owed from earlier days: tasks pushed forward and not yet answered ──
   const carried = carriedTasks(plan, entries, today);
@@ -252,9 +282,12 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
   for (let i = 0; i < 7; i++) {
     const iso = shiftDate(start, i);
     const status = dayStatus(plan, entryOf(iso), iso, today);
-    const cell = el("div", `s-rv-routine__day s-rv-routine__day--${status}${iso === today ? " is-today" : ""}`);
+    const cell = el("button", `s-rv-routine__day s-rv-routine__day--${status}${iso === today ? " is-today" : ""}${iso === viewed ? " is-viewed" : ""}`);
+    cell.type = "button";
     cell.setAttribute("role", "listitem");
     cell.title = `${dayLabel(iso, locale)} — ${t(STATUS_LABEL[status])}`;
+    if (iso <= today) cell.addEventListener("click", () => visit(iso === today ? null : iso));
+    else cell.disabled = true;
     cell.appendChild(el("span", "s-rv-routine__dayname", t(WEEKDAY_LABEL[weekdayOfDate(iso)])));
     cell.appendChild(el("span", "s-rv-routine__daydot"));
     cell.appendChild(el("span", "s-rv-routine__daynum", shortDay(iso, locale)));
@@ -264,7 +297,7 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
 
   // ── Heatmap: twelve weeks, oldest at the top ──
   const heat = el("div", "s-rv-routine__heat");
-  heat.setAttribute("role", "img");
+  heat.setAttribute("role", "group");
   heat.setAttribute("aria-label", tf("routineHeatAria", { done: localeNum(stats.month.done) }));
   const order = weekOrder(lang);
   const legend = el("div", "s-rv-routine__heatdays");
@@ -273,10 +306,15 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
   const grid = el("div", "s-rv-routine__heatgrid");
   for (const row of stats.heat) {
     for (const cell of row) {
-      const c = el("span", `s-rv-routine__cell s-rv-routine__cell--${cell.status}${cell.date === today ? " is-today" : ""}`);
+      const c = el("button", `s-rv-routine__cell s-rv-routine__cell--${cell.status}${cell.date === today ? " is-today" : ""}${cell.date === viewed ? " is-viewed" : ""}`);
+      c.type = "button";
       c.style.setProperty("--ratio", String(cell.ratio));
       c.title = `${dayLabel(cell.date, locale)} — ${t(STATUS_LABEL[cell.status])}`;
-      if (cell.date > today) c.classList.add("is-future");
+      c.setAttribute("aria-label", c.title);
+      if (cell.date > today) {
+        c.classList.add("is-future");
+        c.disabled = true;
+      } else c.addEventListener("click", () => visit(cell.date === today ? null : cell.date));
       grid.appendChild(c);
     }
   }
@@ -347,7 +385,7 @@ function renderDay(
   const status = dayStatus(plan, entry, iso, today);
   box.dataset.status = status;
   const head = el("div", "s-rv-routine__todayhead");
-  head.appendChild(el("span", "s-rv-routine__todaylabel", iso === today ? t("routineToday") : ""));
+  head.appendChild(el("span", "s-rv-routine__todaylabel", iso === today ? t("routineToday") : t("routineVisiting")));
   head.appendChild(el("span", "s-rv-routine__todaydate", dayLabel(iso, locale)));
   head.appendChild(el("span", `s-rv-routine__status s-rv-routine__status--${status}`, t(STATUS_LABEL[status])));
   box.appendChild(head);
