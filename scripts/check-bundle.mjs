@@ -694,6 +694,12 @@ const AUDIENCES = [
   // the sidenote layout and its sheet, the timeline renderer, the mermaid
   // chunk and pdf.js's page painter are all behind `import()` and are
   // asserted split or forbidden below.
+  // Vault views: 768.3 kB actual → 769 — the dictionary for the properties
+  // shelf, the graph's groups by query and Nearby (~2.7 kB en+ar), the
+  // bookmark grammar's heading and search rows (shared/bookmarks.ts, the
+  // rows component) and three api.ts doors. The shelf and the Nearby list
+  // themselves ride their own chunks with their own stylesheets
+  // (props.css, nearby.css) and are asserted absent from the blog closure.
   { name: "entry (everyone)", keys: entry, budget: 774 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
@@ -928,6 +934,8 @@ const AUDIENCES = [
   // mermaid host in render.ts (their bodies are lazy), and the audio, page
   // and diagram rules in reading.css. The sidenote sheet is NOT here: it
   // rides reading/sidenotes.css with the reading view's chunk alone.
+  // Vault views: 1052.1 kB actual → 1053 (the entry growth above; nothing
+  // of the four features is in the blog closure but the dictionary).
   { name: "anonymous blog reader", keys: blog, budget: 1058 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
@@ -1079,6 +1087,9 @@ const AUDIENCES = [
   // editor's footnote hop, and the page card (reading/pdfPage.ts), which
   // the live preview's widget imports directly — the live preview has been
   // in this closure since the outline's section menu reached into it.
+  // Vault views: 1498.6 kB actual → 1499 — the entry growth above plus the
+  // two Suspense mounts (Sidebar, BacklinksPanel); the shelf, the Nearby
+  // list and the graph's query rows are lazy.
   { name: "admin first paint", keys: app, budget: 1511 * 1024 },
 ];
 

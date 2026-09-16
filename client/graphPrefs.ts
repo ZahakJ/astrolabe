@@ -13,7 +13,7 @@
 
 import type { GraphNode } from "../shared/types.ts";
 
-export type ColorBy = "none" | "folder" | "tag";
+export type ColorBy = "none" | "folder" | "tag" | "query";
 
 export interface GraphForces {
   /** Pairwise push, as a multiple of the shipped constant (0.4 … 2.5). */
@@ -61,9 +61,22 @@ export interface GraphPrefs {
    *  on commas and spaces when the graph is coloured, so typing into the
    *  field never fights a parser. */
   tagGroups: TagGathering[];
+  /** Under the query colouring, the search-box queries whose notes share a
+   *  colour: `tag:physics before:2026` is a group the way a folder is. Up
+   *  to QUERY_GROUPS_MAX rows; `color` null means the slot's place on the
+   *  theme's accent scale (accentScale). The server answers each query
+   *  (GET /api/query/paths) and the first query that names a note wins it. */
+  queryGroups: QueryGroup[];
 }
 
 export type TagPick = "common" | "first";
+
+export interface QueryGroup {
+  query: string;
+  color: string | null;
+}
+
+export const QUERY_GROUPS_MAX = 6;
 
 export interface TagGathering {
   name: string;
@@ -79,8 +92,8 @@ export function defaultGraphPrefs(): GraphPrefs {
   return {
     colorBy: "folder",
     folderDepth: 1,
-    groupColors: { none: {}, folder: {}, tag: {} },
-    hiddenGroups: { none: [], folder: [], tag: [] },
+    groupColors: { none: {}, folder: {}, tag: {}, query: {} },
+    hiddenGroups: { none: [], folder: [], tag: [], query: [] },
     hideOrphans: false,
     minLinks: 0,
     forces: { ...DEFAULT_FORCES },
@@ -88,6 +101,7 @@ export function defaultGraphPrefs(): GraphPrefs {
     panelOpen: false,
     tagPick: "common",
     tagGroups: [],
+    queryGroups: [],
   };
 }
 
@@ -105,7 +119,7 @@ export function normalizeGraphPrefs(raw: unknown): GraphPrefs {
   const d = defaultGraphPrefs();
   if (!raw || typeof raw !== "object") return d;
   const r = raw as Record<string, unknown>;
-  const colorBy: ColorBy = r.colorBy === "none" || r.colorBy === "tag" || r.colorBy === "folder" ? r.colorBy : d.colorBy;
+  const colorBy: ColorBy = r.colorBy === "none" || r.colorBy === "tag" || r.colorBy === "folder" || r.colorBy === "query" ? r.colorBy : d.colorBy;
   const colors = (value: unknown): Record<string, string> => {
     const out: Record<string, string> = {};
     if (value && typeof value === "object") {
@@ -124,8 +138,8 @@ export function normalizeGraphPrefs(raw: unknown): GraphPrefs {
   return {
     colorBy,
     folderDepth: r.folderDepth === 2 ? 2 : 1,
-    groupColors: { none: colors(gc.none), folder: colors(gc.folder), tag: colors(gc.tag) },
-    hiddenGroups: { none: names(hg.none), folder: names(hg.folder), tag: names(hg.tag) },
+    groupColors: { none: colors(gc.none), folder: colors(gc.folder), tag: colors(gc.tag), query: colors(gc.query) },
+    hiddenGroups: { none: names(hg.none), folder: names(hg.folder), tag: names(hg.tag), query: names(hg.query) },
     hideOrphans: r.hideOrphans === true,
     minLinks: Math.round(clamp(r.minLinks, 0, 50, 0)),
     forces: {
@@ -149,6 +163,15 @@ export function normalizeGraphPrefs(raw: unknown): GraphPrefs {
             tags: typeof g.tags === "string" ? g.tags.slice(0, 2000) : "",
           }))
           .slice(0, 60)
+      : [],
+    queryGroups: Array.isArray(r.queryGroups)
+      ? r.queryGroups
+          .filter((g): g is Record<string, unknown> => !!g && typeof g === "object")
+          .map((g) => ({
+            query: typeof g.query === "string" ? g.query.slice(0, 500) : "",
+            color: typeof g.color === "string" && HEX.test(g.color) ? g.color.toLowerCase() : null,
+          }))
+          .slice(0, QUERY_GROUPS_MAX)
       : [],
   };
 }
@@ -178,6 +201,10 @@ export function saveGraphPrefs(prefs: GraphPrefs): void {
 export const ROOT_GROUP = "/";
 /** The group for a note with no tag under `colorBy: "tag"`. */
 export const UNTAGGED_GROUP = "#";
+/** The group for a note no query names under `colorBy: "query"`. A query
+ *  cannot be a lone `?`: the parser reads it as a word, and a word finds
+ *  notes, so the sentinel never collides with a real group's name. */
+export const UNMATCHED_GROUP = "?";
 
 /** The folder a path sits in, cut to `depth` segments: `a/b/c/note.md` is
  *  `a` at depth 1 and `a/b` at depth 2. A note at the root is ROOT_GROUP. */
@@ -223,15 +250,53 @@ export interface TagGrouping {
   gatherings: readonly TagGathering[];
 }
 
+/** What the server answered for each query, keyed by the query's text as
+ *  the reader typed it. A query with no entry has not been answered yet and
+ *  names nothing until it is. */
+export type QueryMatches = ReadonlyMap<string, ReadonlySet<string>>;
+
+export interface QueryGrouping {
+  groups: readonly QueryGroup[];
+  matches: QueryMatches;
+}
+
+/** The rows' queries in the reader's order, trimmed, blanks and repeats
+ *  gone — the order is a precedence (the first query that names a note
+ *  wins it), so it is the one thing this must not reshuffle. */
+export function queryOrder(groups: readonly QueryGroup[]): string[] {
+  const out: string[] = [];
+  for (const g of groups) {
+    const q = g.query.trim();
+    if (q !== "" && !out.includes(q)) out.push(q);
+  }
+  return out;
+}
+
 export function groupNodes(
   nodes: readonly GraphNode[],
   colorBy: ColorBy,
   folderDepth: 1 | 2,
   tagging: TagGrouping = { pick: "common", gatherings: [] },
+  querying: QueryGrouping = { groups: [], matches: new Map() },
 ): { groups: GraphGroup[]; of: Map<string, string> } {
   const of = new Map<string, string>();
   const counts = new Map<string, number>();
   if (colorBy === "none") return { groups: [], of };
+  if (colorBy === "query") {
+    // The legend keeps the rows' order rather than sorting by size, so it
+    // reads as the rows do and the precedence stays visible. A query that
+    // names nothing is still a group, with a zero: the reader typed it and
+    // should see that it found nothing, not that it vanished.
+    const ordered = queryOrder(querying.groups);
+    for (const q of ordered) counts.set(q, 0);
+    for (const n of nodes) {
+      const group = ordered.find((q) => querying.matches.get(q)?.has(n.id)) ?? UNMATCHED_GROUP;
+      of.set(n.id, group);
+      counts.set(group, (counts.get(group) ?? 0) + 1);
+    }
+    const groups = [...counts.entries()].map(([name, count]) => ({ name, count }));
+    return { groups, of };
+  }
   if (colorBy === "tag") {
     const gathered = tagGatherings(tagging.gatherings);
     // A note's tags with every gathered one replaced by its gathering, in
@@ -354,7 +419,60 @@ export function groupColor(
 ): string {
   const set = overrides[name];
   if (set) return set;
-  if (name === ROOT_GROUP || name === UNTAGGED_GROUP) return neutral;
+  if (name === ROOT_GROUP || name === UNTAGGED_GROUP || name === UNMATCHED_GROUP) return neutral;
   const palette = graphPalette(dark);
   return index < palette.length ? palette[index] : hashedColor(name, dark);
+}
+
+// ── The accent scale ─────────────────────────────────────────────────────────
+
+/** `#rrggbb` → [h 0…360, s 0…1, l 0…1]; null for anything else. */
+function hexHsl(hex: string): [number, number, number] | null {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex.trim());
+  if (!m) return null;
+  const r = parseInt(m[1], 16) / 255;
+  const g = parseInt(m[2], 16) / 255;
+  const b = parseInt(m[3], 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (d === 0) return [0, 0, l];
+  const s = d / (1 - Math.abs(2 * l - 1));
+  let h: number;
+  if (max === r) h = ((g - b) / d) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  h *= 60;
+  if (h < 0) h += 360;
+  return [h, s, l];
+}
+
+/** `count` colours that belong to the theme: the accent itself first, then
+ *  the same saturation and lightness walked around the hue wheel in equal
+ *  steps, so a query group is painted in the theme's own key rather than
+ *  from the twelve-colour palette the folders use. A grey accent (a
+ *  monochrome theme) has no hue to walk, so it takes a modest saturation
+ *  and walks that; an accent that is not a hex colour falls back to the
+ *  palette. Only a swatch the reader has not set reads from here. */
+export function accentScale(accent: string, count: number, dark: boolean): string[] {
+  const hsl = hexHsl(accent);
+  if (hsl === null) return graphPalette(dark).slice(0, count);
+  const [h, s0, l0] = hsl;
+  const s = s0 < 0.15 ? (dark ? 0.45 : 0.5) : s0;
+  const l = Math.min(0.72, Math.max(0.3, l0));
+  const out: string[] = [];
+  for (let i = 0; i < count; i++) out.push(hslHex((h + (360 * i) / count) % 360, s, l));
+  return out;
+}
+
+/** The colour a query row wears: its own when set, else its slot on the
+ *  accent scale, so six rows are six hues of the theme. */
+export function queryGroupColor(groups: readonly QueryGroup[], query: string, accent: string, dark: boolean): string {
+  const scale = accentScale(accent, QUERY_GROUPS_MAX, dark);
+  const ordered = queryOrder(groups);
+  const row = groups.find((g) => g.query.trim() === query);
+  if (row?.color) return row.color;
+  const slot = ordered.indexOf(query);
+  return scale[slot < 0 ? 0 : slot % scale.length];
 }

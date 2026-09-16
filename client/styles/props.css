@@ -1,0 +1,129 @@
+/* ── The properties shelf (client/components/PropsShelf.tsx) ──────────────
+ * Under the tags, the same header (.s-tags__toggle is reused) over rows
+ * rather than pills: a key is a name with values to open, so it reads as a
+ * small tree, the way nested tags do. Capped like the tag shelf, with its
+ * own scroll, so a vault with forty keys does not push the footer off. */
+.s-propshelf {
+  flex: none;
+  max-height: 22vh;
+  overflow-y: auto;
+  padding: 8px 12px 8px;
+  border-top: 1px solid var(--border);
+}
+.s-propshelf--collapsed {
+  overflow: hidden;
+}
+.s-propshelf .s-tags__toggle {
+  margin-bottom: 4px;
+}
+.s-propshelf--collapsed .s-tags__toggle {
+  margin-bottom: 0;
+}
+.s-propshelf__list,
+.s-propshelf__values {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.s-propshelf__values {
+  padding-inline-start: 18px;
+  margin-block-end: 4px;
+}
+.s-propshelf__row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.s-propshelf__branch {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 16px;
+  block-size: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.s-propshelf__branch:hover {
+  color: var(--text);
+}
+/* The GLYPH turns toward the values it opens, not the button: a rotated
+   44px button (the phone's row height) swung its box over the key's name.
+   Closed, nothing is done to it: U+203A is a bidi-mirrored character, so
+   an RTL shell already draws it as ‹, pointing into the row. Open, it is
+   turned a quarter toward the values — and in RTL the OTHER quarter, since
+   the mirrored glyph turned clockwise would point up. */
+.s-propshelf__chev {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.s-propshelf__branch--open .s-propshelf__chev {
+  transform: rotate(90deg);
+}
+[dir="rtl"] .s-propshelf__branch--open .s-propshelf__chev {
+  transform: rotate(-90deg);
+}
+.s-propshelf__key,
+.s-propshelf__value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-inline-size: 0;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  text-align: start;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.s-propshelf__value {
+  font-size: 0.786rem;
+  padding-block: 1px;
+}
+.s-propshelf__key:hover,
+.s-propshelf__value:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.s-propshelf__key--active,
+.s-propshelf__value--active {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.s-propshelf__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.s-propshelf__count {
+  margin-inline-start: auto;
+  flex: none;
+  font-size: 0.714rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.s-propshelf__more {
+  position: static;
+}
+
+
+/* A finger's row, the same 44px the tree rows and tag pills take on a phone
+   (app.css, the coarse-pointer block) and for the same reason. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-propshelf__key,
+  .s-propshelf__value,
+  .s-propshelf__branch {
+    min-height: 44px;
+  }
+}

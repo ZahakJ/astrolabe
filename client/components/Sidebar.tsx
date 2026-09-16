@@ -159,6 +159,10 @@ function placeMenu(el: HTMLElement | null, x: number, y: number, fromKeyboard: b
 const FolderIconPicker = lazySurface(() => import("./FolderIconPicker.tsx"));
 const LibraryFolderPopover = lazySurface(() => import("./LibraryFolderPopover.tsx"));
 const CollectionsPopover = lazySurface(() => import("./CollectionsPopover.tsx"));
+// The properties shelf is the owner's and starts under the tags, so it
+// rides its own chunk with its own stylesheet: a visitor never fetches it,
+// and the admin first paint does not carry a list nobody has scrolled to.
+const PropsShelf = lazySurface(() => import("./PropsShelf.tsx"));
 
 // The two v1.8 search surfaces, mount-gated for the same reason and split for
 // one more: the replace panel carries the dry-run list, its own stylesheet and
@@ -1379,7 +1383,13 @@ export default function Sidebar() {
       const container = treeRef.current;
       if (!container) return;
       // A rename input inside a row owns its own keys (it stops propagation),
-      // so anything arriving here is the tree's.
+      // so anything arriving here is the tree's — EXCEPT a button that sits
+      // in the tree without being a tree row: a bookmark row (BookmarksRows)
+      // or the bookmarks shelf's own header. Those are real buttons with
+      // their own click, and Enter on one must press IT, not the tree's
+      // cursor row somewhere below. Arrows still walk the tree from there.
+      const target = e.target as HTMLElement;
+      if ((e.key === "Enter" || e.key === " ") && target !== container && target.closest(".s-tree__item") === null) return;
       const rows = visibleRows(container);
       if (rows.length === 0) return;
       const at = Math.max(
@@ -1864,6 +1874,11 @@ export default function Sidebar() {
           aria-label={t("searchTitle")}
           title={t("searchTitle")}
           value={query}
+          // The field follows its text, not the chrome: an operator query
+          // (`prop:status="in progress"`, which the properties shelf and a
+          // search bookmark put here) is Latin, and in an RTL box its
+          // closing quote was drawn at the far end of the line.
+          dir="auto"
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Escape" && query) {
@@ -2455,6 +2470,16 @@ export default function Sidebar() {
             </button>
           )}
         </div>
+      )}
+
+      {/* The properties shelf, under the tags: every frontmatter key with a
+          count, a click a `prop:` search (PropsShelf.tsx). The owner's
+          surface — a visitor's sidebar is a reading room's, and "date: 12"
+          tells a reader nothing they came for. */}
+      {admin && (
+        <Suspense fallback={null}>
+          <PropsShelf query={query} setQuery={setQuery} />
+        </Suspense>
       )}
 
       {/* The footer counts what is actually in the vault — notes AND the files

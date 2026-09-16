@@ -10,12 +10,12 @@ import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import MiniSearch from "minisearch";
-import type { AliasEntry, Backlink, CardMeta, ExportScope, GraphData, GraphEdge, LibraryKind, LibraryPathRef, Mention, OnThisDayHit, PageMeta, PostMeta, PublicFolderRef, QueryHit, RoutineMeta, SearchHit, SearchMatch, TagCount, TaskMeta, TrackerMeta, VaultEvent } from "../shared/types.ts";
+import type { AliasEntry, Backlink, CardMeta, ExportScope, GraphData, GraphEdge, LibraryKind, LibraryPathRef, Mention, OnThisDayHit, PageMeta, PostMeta, PropCount, PublicFolderRef, QueryHit, RoutineMeta, SearchHit, SearchMatch, TagCount, TaskMeta, TrackerMeta, VaultEvent } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
 import { findAnyMatches, foldQuery, foldTerm, findMatches } from "../shared/fold.ts";
-import { parseSearchQuery, searchScope, type QueryFilter } from "../shared/searchQuery.ts";
+import { parseSearchQuery, searchScope, type ParsedQuery, type QueryFilter } from "../shared/searchQuery.ts";
 import { markHtml, snippetOf, windowAround } from "./snippet.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
 import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
@@ -313,6 +313,10 @@ let allowedAttachmentsCache: Set<string> | null = null; // null = recompute
 // did. Same lifecycle, same invalidation — see invalidateDerived().
 let attachmentRefsCache: Map<string, Set<string>> | null = null;
 
+/** How many times the index has changed under the Nearby corpus
+ *  (server/nearby.ts): bumped in invalidateDerived, read by nearbySources. */
+let nearbyRev = 0;
+
 /** Every cache derived from the shape of the index goes stale together: any
  *  mutation that changes a note's links, a note's existence or an attachment's
  *  existence changes all of these answers, and resolution itself shifts as
@@ -331,6 +335,39 @@ function invalidateDerived(): void {
   attachmentRefsCache = null;
   templatesFolderMemo = null;
   hadithFolderMemo = null;
+  // The Nearby corpus (server/nearby.ts) weighs every note against the
+  // vault's term frequencies, so one changed note moves every score a little
+  // — its document frequencies are dropped here, at the index's own
+  // mutations, for the reason the memos above are: a drop on the event would
+  // be refilled from the pre-event index. Per-note term counts survive; they
+  // are keyed by mtime and only the changed note re-tokenizes.
+  nearbyRev++;
+}
+
+/** What server/nearby.ts reads: every indexed note as a title, a tag list
+ *  and its prose — the same stripped, snippet-capped body search snippets
+ *  are cut from (flatBody), computed once per record and read lazily so a
+ *  vault whose owner never opens the panel never pays for it. */
+export function nearbySources(): { rev: number; notes: NearbySource[] } {
+  const out: NearbySource[] = [];
+  for (const record of notes.values()) {
+    out.push({
+      path: record.path,
+      title: record.title,
+      mtimeMs: record.mtimeMs,
+      tags: record.tags,
+      prose: () => flatBody(record),
+    });
+  }
+  return { rev: nearbyRev, notes: out };
+}
+
+export interface NearbySource {
+  path: string;
+  title: string;
+  mtimeMs: number;
+  tags: readonly string[];
+  prose: () => string;
 }
 
 // Attachments (non-md files): known paths + lowercased basename (with
@@ -3381,6 +3418,39 @@ export function onThisDay(iso: string): OnThisDayHit[] {
   return out.sort((a, b) => b.year - a.year || a.path.localeCompare(b.path)).slice(0, 40);
 }
 
+/** Every visible record a parsed query names — operators compiled against the
+ *  record tables, words asked of minisearch, in minisearch's order when there
+ *  are words and the index's order when there are none. The selection half of
+ *  a ```query fence, shared with the paths-only door below so the two cannot
+ *  disagree about what a query means. */
+function queryRecords(parsed: ParsedQuery, publishedOnly: boolean, lang: FilterLang, opts: SearchOptions): NoteRecord[] {
+  const keep = compileFilters(parsed.filters, publishedOnly, lang, opts);
+  const bare = parsed.text.trim();
+  const visible = (record: NoteRecord): boolean => !(publishedOnly && (!record.published || languageHidden(record, lang)));
+  const records: NoteRecord[] = [];
+  if (bare === "") {
+    for (const record of notes.values()) if (visible(record) && (keep === null || keep(record))) records.push(record);
+  } else {
+    const q = opts.expandTerms?.(bare) ?? bare;
+    for (const hit of mini.search(q)) {
+      const record = notes.get(hit.id as string);
+      if (!record || !visible(record)) continue;
+      if (keep !== null && !keep(record)) continue;
+      records.push(record);
+    }
+  }
+  return records;
+}
+
+/** The paths a query names, uncapped — what the graph colours a group by. An
+ *  empty query names nothing: a group with no query yet must not paint the
+ *  whole vault its colour. */
+export function queryPaths(query: string, publishedOnly: boolean, lang: FilterLang, opts: SearchOptions = {}): string[] {
+  const parsed = parseSearchQuery(query);
+  if (parsed.text.trim() === "" && parsed.filters.length === 0) return [];
+  return queryRecords(parsed, publishedOnly, lang, opts).map((record) => record.path);
+}
+
 export function queryNotes(
   query: string,
   publishedOnly: boolean,
@@ -3390,23 +3460,8 @@ export function queryNotes(
   opts: SearchOptions = {},
 ): QueryHit[] {
   const parsed = parseSearchQuery(query);
-  const keep = compileFilters(parsed.filters, publishedOnly, lang, opts);
   const bare = parsed.text.trim();
-  const visible = (record: NoteRecord): boolean => !(publishedOnly && (!record.published || languageHidden(record, lang)));
-  let records: NoteRecord[];
-  if (bare === "") {
-    records = [];
-    for (const record of notes.values()) if (visible(record) && (keep === null || keep(record))) records.push(record);
-  } else {
-    const q = opts.expandTerms?.(bare) ?? bare;
-    records = [];
-    for (const hit of mini.search(q)) {
-      const record = notes.get(hit.id as string);
-      if (!record || !visible(record)) continue;
-      if (keep !== null && !keep(record)) continue;
-      records.push(record);
-    }
-  }
+  const records = queryRecords(parsed, publishedOnly, lang, opts);
   const dir = sort.dir === "asc" ? 1 : -1;
   if (sort.key !== "relevance" || bare === "") {
     const key = sort.key === "relevance" ? "date" : sort.key;
@@ -3887,6 +3942,61 @@ export function tags(publishedOnly: boolean, lang: FilterLang): TagCount[] {
   return [...counts]
     .map(([tag, count]) => ({ tag, count }))
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+}
+
+/** How many distinct values a key lists in the properties shelf. Twenty is
+ *  the shelf's own cap, applied here so the wire never carries a `title:`
+ *  key's thousand one-off values. */
+const PROP_VALUES_MAX = 20;
+
+/** Keys the properties shelf does NOT list, because each has a shelf or a
+ *  surface of its own and listing it twice would be the same list with a
+ *  different heading: the tags shelf sits just above this one. */
+const PROP_KEYS_HIDDEN = new Set(["tags", "tag"]);
+
+/** Every frontmatter key the index knows, with a count and its top values —
+ *  the properties shelf (client/components/PropsShelf.tsx). Same scope
+ *  ladder as tags(): a visitor sees the keys of published notes only, and a
+ *  language-filtered note contributes nothing. Values are counted per LIST
+ *  ITEM, split on the ", " scalarProps joined them with, so a click on a
+ *  value builds the `prop:key=value` that finds exactly the notes it
+ *  counted. */
+export function props(publishedOnly: boolean, lang: FilterLang): PropCount[] {
+  // Values are keyed by the folded, lowercased form the `prop:` filter
+  // compares by, so "Reading" and "reading" are one value; the spelling
+  // shown is the first one seen.
+  const keys = new Map<string, { count: number; values: Map<string, { shown: string; count: number }> }>();
+  for (const record of notes.values()) {
+    if (publishedOnly && !record.published) continue;
+    if (publishedOnly && languageHidden(record, lang)) continue;
+    for (const [key, value] of Object.entries(record.props)) {
+      if (PROP_KEYS_HIDDEN.has(key)) continue;
+      let entry = keys.get(key);
+      if (!entry) keys.set(key, (entry = { count: 0, values: new Map() }));
+      entry.count++;
+      const seen = new Set<string>();
+      for (const part of value.split(/,\s*/)) {
+        const item = part.trim();
+        if (item === "") continue;
+        const fold = foldTerm(item.toLowerCase());
+        if (fold === "" || seen.has(fold)) continue;
+        seen.add(fold);
+        const slot = entry.values.get(fold);
+        if (slot) slot.count++;
+        else entry.values.set(fold, { shown: item, count: 1 });
+      }
+    }
+  }
+  return [...keys]
+    .map(([key, { count, values }]) => ({
+      key,
+      count,
+      values: [...values.values()]
+        .map(({ shown, count: n }) => ({ value: shown, count: n }))
+        .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value))
+        .slice(0, PROP_VALUES_MAX),
+    }))
+    .sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
 }
 
 // -------------------------------------------------------- tag page labels
