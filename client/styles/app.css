@@ -2898,6 +2898,26 @@ select:focus,
   font-size: 0.786rem;
 }
 
+/* THE PERIOD, after the leaf: what a periodic note's name means, in the
+   site's calendar (client/daily.ts periodLabel). It gives before the leaf
+   does — the filename is the address, the period is the gloss — and it is
+   the first thing to go when the bar is squeezed, since the tooltip on the
+   trail still carries the path and the note itself carries the date. */
+.s-statusbar__period {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 8 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.s-statusbar__periodtext {
+  min-width: 0;
+}
+
 .s-statusbar__spacer {
   flex: 1;
 }

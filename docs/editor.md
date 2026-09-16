@@ -270,7 +270,7 @@ turns it off.
 - **Reorganize by dragging**, with every link repaired. See
   [Reorganizing](templates-and-notes.md#reorganizing-by-dragging).
 - **Daily notes.** `Ctrl/Cmd Alt D` opens today's note, creating it if needed
-  (`daily/YYYY-MM-DD.md` unless [configured otherwise](templates-and-notes.md#daily-and-weekly-notes)).
+  (`daily/YYYY-MM-DD.md` unless [configured otherwise](templates-and-notes.md#periodic-notes)).
 - **A shell that gets out of the way.** Collapse either side pane (`Ctrl/Cmd Alt B`,
   `Ctrl/Cmd Alt Shift B`) down to a slim reopen handle, or go **zen** (`Ctrl/Cmd Shift Z`): the
   sidebar, the panel, the tabs and the status bar step aside and the prose sits centred on a wide

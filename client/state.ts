@@ -5,7 +5,8 @@
 // (bumped when the open note changed on disk, so the Editor remounts).
 
 import { create } from "zustand";
-import type { AuthorSiteCard, Backlink, HomeSettings, PublicFolderCard, PublicThemeInfo, PublishedCounts, TreeNode } from "../shared/types.ts";
+import type { AuthorSiteCard, Backlink, HomeSettings, LaunchSetting, PublicFolderCard, PublicThemeInfo, PublishedCounts, TreeNode } from "../shared/types.ts";
+import { DEFAULT_LAUNCH, parseLaunch } from "../shared/launch.ts";
 import * as api from "./api.ts";
 import { clearBrokenEmbeds } from "./editor/embeds.ts";
 import { collectNotes, resolveLink, setAliasTable } from "./editor/links.ts";
@@ -316,6 +317,9 @@ export interface State {
   publicReads: boolean;
   /** Note path/name opened for fresh visitors (HOME_NOTE). */
   homeNote: string | null;
+  /** settings.launch — what the admin's shell opens on top of the restored
+   *  session (shared/launch.ts). Admin sessions only; "resume" otherwise. */
+  launch: LaunchSetting;
   /** The author's other sites, enriched server-side; blog home renders them. */
   authorSites: AuthorSiteCard[];
   /** settings.publicFolders — the owner's own collections, as cards the blog
@@ -1239,9 +1243,39 @@ export const useStore = create<State>()((set, get) => {
   clearStoredPreview();
   api.setPreviewVisitor(false);
 
+  /** OPEN ON LAUNCH (shared/launch.ts), on top of whatever `enterVault`
+   *  restored. Admin only — the doors are the admin's tools and a note
+   *  path is a vault path — and never over a deep link, which the router
+   *  applies right after bootstrap and which outranks everything else here.
+   *  The session is restored FIRST, so the door opens as one more tab in
+   *  front of the reader's own and nothing they had open is lost to it. */
+  const openLaunchDoor = (): void => {
+    const s = get();
+    const launch = s.launch;
+    if (!s.admin || launch === "resume") return;
+    if (location.pathname !== "/" && location.pathname !== "/graph") return;
+    if (launch === "sigils") s.setView("routines");
+    else if (launch === "orbits") s.openOrbits(null);
+    else if (launch === "today") {
+      // Dynamic, not static: client/daily.ts imports this store, and the
+      // store must not grow a load-time dependency on a feature module.
+      void import("./daily.ts").then((m) => m.openDailyNote());
+    } else {
+      const path = resolveLink(launch, s.tree);
+      if (path) s.openNote(path);
+      else console.warn(`astrolabe: launch note "${launch}" not found in the vault`);
+    }
+  };
+
   /** Load the tree, then restore last session's tabs — or open the home note
-   *  for fresh visitors (no tabs remembered in localStorage). */
+   *  for fresh visitors (no tabs remembered in localStorage) — and then the
+   *  launch door, if the owner set one. */
   const enterVault = async (): Promise<void> => {
+    await restoreSession();
+    openLaunchDoor();
+  };
+
+  const restoreSession = async (): Promise<void> => {
     await get().loadTree();
     const tree = get().tree;
     const existing = new Set(collectNotes(tree).map((n) => n.path));
@@ -1347,6 +1381,7 @@ export const useStore = create<State>()((set, get) => {
     authProtected: false,
     publicReads: true,
     homeNote: null,
+    launch: DEFAULT_LAUNCH,
     authorSites: [],
     publicFolders: NO_PUBLIC_FOLDERS,
     publicFoldersHome: false,
@@ -1614,6 +1649,7 @@ export const useStore = create<State>()((set, get) => {
           publicReads: me.public,
           authProtected: me.protected ?? false,
           homeNote: me.homeNote ?? null,
+          launch: parseLaunch(me.launch) ?? DEFAULT_LAUNCH,
           authorSites: me.authorSites ?? [],
           // One shared empty array when the feature is off (the overwhelming
           // majority), for the reason NO_FOLDER_ICONS gives one line up: the

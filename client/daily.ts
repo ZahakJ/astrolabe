@@ -1,112 +1,217 @@
-// PERIODIC NOTES: today's note, this week's note, and the days around them.
+// PERIODIC NOTES: today's note, this week's, this month's, this year's, and
+// the periods around them.
 //
 // The daily note was `daily/YYYY-MM-DD.md` and nothing else. Now the folder,
-// the format and the template are settings (Settings → Vault → Templates),
-// a weekly note exists on the same terms, and the palette walks to
-// yesterday's and tomorrow's. The FILENAME stays what the format says — ISO
-// by default, Gregorian and Western digits always (shared/periodic.ts) —
-// because a filename is an address; the Hijri date is printed beside it.
+// the formats and the templates are settings (Settings → Vault → Periodic
+// notes), the week, the month and the year exist on the same terms, and the
+// palette walks to yesterday's and tomorrow's. The FILENAME stays what the
+// format says — ISO by default, Gregorian and Western digits always
+// (shared/periodic.ts) — because a filename is an address; the period is
+// printed beside it in the site's calendar (`periodLabel`, the status bar's
+// crumb, and the month grid in the sidebar).
 //
 // Settings arrive asynchronously (one /api/settings fetch, cached by
 // client/templates.ts). The synchronous readers below (the palette's hint,
-// the sidebar's Hijri label) use the defaults until the first fetch lands
-// and the cache is primed, which every door through here does first.
+// the status bar's crumb, the calendar's dots) use the defaults until the
+// first fetch lands and the cache is primed, which every door through here
+// does first. The surfaces that DRAW from the cache (the grid, the crumb)
+// subscribe to it through `usePeriodic`, because the owner can move the
+// daily folder in Settings and the month that was dotted a second ago must
+// be dotted by the new address, not the old one, without a reload.
 
 import { createNote } from "./api.ts";
-import { getDateCalendar, siteDate } from "./dates.ts";
+import { getDateCalendar, siteDate, siteDateRange } from "./dates.ts";
 import { collectNotes } from "./editor/links.ts";
-import { t } from "./i18n.ts";
+import { localeNum, t, tf, type I18nKey } from "./i18n.ts";
 import {
   DAILY_FOLDER_DEFAULT,
   DAILY_FORMAT_DEFAULT,
+  MONTHLY_FORMAT_DEFAULT,
+  PERIOD_KINDS,
   WEEKLY_FORMAT_DEFAULT,
+  YEARLY_FORMAT_DEFAULT,
+  isoWeek,
+  periodEnd,
+  periodStart,
   periodicDateOf,
   periodicPath,
-  weekMonday,
+  shiftPeriod,
+  type PeriodKind,
 } from "../shared/periodic.ts";
+import { useSyncExternalStore } from "react";
 import { useStore } from "./state.ts";
 import { applyDefaultTemplate } from "./templateActions.ts";
 import { templateSettings } from "./templates.ts";
 import { toast } from "./toast.ts";
 
-export type PeriodKind = "day" | "week";
+export type { PeriodKind } from "../shared/periodic.ts";
 
-interface Periodic {
+export interface Periodic {
   folder: string;
-  dailyFormat: string;
-  dailyTemplate: string | null;
-  weeklyFormat: string | null;
-  weeklyTemplate: string | null;
+  /** The format per kind; null when that kind is off. The day is never off. */
+  formats: Record<PeriodKind, string | null>;
+  templates: Record<PeriodKind, string | null>;
 }
 
-let cached: Periodic = { folder: DAILY_FOLDER_DEFAULT, dailyFormat: DAILY_FORMAT_DEFAULT, dailyTemplate: null, weeklyFormat: WEEKLY_FORMAT_DEFAULT, weeklyTemplate: null };
+let cached: Periodic = {
+  folder: DAILY_FOLDER_DEFAULT,
+  formats: { day: DAILY_FORMAT_DEFAULT, week: WEEKLY_FORMAT_DEFAULT, month: MONTHLY_FORMAT_DEFAULT, year: YEARLY_FORMAT_DEFAULT },
+  templates: { day: null, week: null, month: null, year: null },
+};
 
-/** Prime the cache from the instance's settings; safe to call often. */
+/** A version counter for `useSyncExternalStore`, on client/tagLabels.ts's
+ *  argument: the snapshot is compared by identity, and a number that moves
+ *  when the cache is replaced is the cheap, stable thing to hand it. */
+let version = 0;
+const listeners = new Set<() => void>();
+function subscribe(cb: () => void): () => void {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function periodicVersion(): number {
+  return version;
+}
+
+/** Prime the cache from the instance's settings; safe to call often. Every
+ *  subscriber re-renders when the answer CHANGED — a save that touched
+ *  nothing periodic wakes nobody. */
 export async function loadPeriodic(): Promise<Periodic> {
+  // The settings route is the admin's; a visitor (whose grid opens only
+  // published days) keeps the defaults rather than asking for a 404 a click.
+  if (!useStore.getState().admin) return cached;
   try {
     const s = await templateSettings();
-    cached = {
+    const next: Periodic = {
       folder: s.dailyFolder ?? DAILY_FOLDER_DEFAULT,
-      dailyFormat: s.dailyFormat ?? DAILY_FORMAT_DEFAULT,
-      dailyTemplate: s.dailyTemplate,
-      weeklyFormat: s.weeklyFormat,
-      weeklyTemplate: s.weeklyTemplate,
+      formats: { day: s.dailyFormat ?? DAILY_FORMAT_DEFAULT, week: s.weeklyFormat, month: s.monthlyFormat, year: s.yearlyFormat },
+      templates: { day: s.dailyTemplate, week: s.weeklyTemplate, month: s.monthlyTemplate, year: s.yearlyTemplate },
     };
+    if (JSON.stringify(next) !== JSON.stringify(cached)) {
+      cached = next;
+      version += 1;
+      for (const cb of listeners) cb();
+    }
   } catch {
     // settings unreachable: the defaults stand, as they always did
   }
   return cached;
 }
 
+/** React's door onto the cache: the version, as a dependency for whatever
+ *  a component derives from `periodicSettings()` — the grid's dots, the
+ *  status bar's crumb. */
+export function usePeriodic(): number {
+  return useSyncExternalStore(subscribe, periodicVersion, periodicVersion);
+}
+
+/** The settings in force (the defaults until `loadPeriodic` lands). */
+export function periodicSettings(): Periodic {
+  return cached;
+}
+
+/** The note's path for the period of `kind` that `date` falls in, or null
+ *  when that kind is off. */
+export function periodicNotePath(kind: PeriodKind, date = new Date()): string | null {
+  const format = cached.formats[kind];
+  if (!format) return null;
+  return periodicPath(cached.folder, format, periodStart(kind, date));
+}
+
 /** The daily note's path for `date`, in local time. */
 export function dailyNotePath(date = new Date()): string {
-  return periodicPath(cached.folder, cached.dailyFormat, date);
+  return periodicNotePath("day", date) ?? periodicPath(cached.folder, DAILY_FORMAT_DEFAULT, date);
 }
 
-/** This week's note, or null when weekly notes are off (an empty format). */
-export function weeklyNotePath(date = new Date()): string | null {
-  if (!cached.weeklyFormat) return null;
-  return periodicPath(cached.folder, cached.weeklyFormat, weekMonday(date));
+export interface PeriodRef {
+  kind: PeriodKind;
+  /** The period's first day at local noon. Local, not UTC midnight: the
+   *  filename was built from LOCAL date parts, so reading it back as UTC
+   *  would shift the day for every reader off Greenwich — which for a Hijri
+   *  rendering is a different month name, not a rounding error. */
+  start: Date;
 }
 
-/** The date a daily (or weekly) note path names, or null. Local noon, not
- *  UTC midnight: the filename was built from LOCAL date parts, so reading it
- *  back as UTC would shift the day for every reader off Greenwich — which
- *  for a Hijri rendering is a different month name, not a rounding error. */
-export function dailyNoteDate(path: string): Date | null {
-  return periodicDateOf(cached.folder, cached.dailyFormat, path) ?? (cached.weeklyFormat ? periodicDateOf(cached.folder, cached.weeklyFormat, path) : null);
+/** The period a note path names, or null for anything that is not a
+ *  periodic note. The four formats are anchored patterns that cannot match
+ *  one another's names, so the first hit is the only hit. */
+export function periodOf(path: string): PeriodRef | null {
+  for (const kind of PERIOD_KINDS) {
+    const format = cached.formats[kind];
+    if (!format) continue;
+    const start = periodicDateOf(cached.folder, format, path);
+    if (start) return { kind, start };
+  }
+  return null;
 }
 
-/** What a daily note is CALLED on screen when the instance prints another
- *  calendar — "٢ صفر ١٤٤٨ هـ" for `daily/2026-08-16.md`. Null in gregorian
- *  mode, deliberately: there the filename already IS the date the reader
- *  asked for. Null for anything that is not a periodic note. */
-export function dailyNoteLabel(path: string): string | null {
-  if (getDateCalendar() === "gregorian") return null;
-  const date = dailyNoteDate(path);
-  if (!date) return null;
-  return siteDate(date, useStore.getState().blogLocale, { dateStyle: "long" });
+/** Every day that has a daily note, from the tree: ISO → path. Cheap —
+ *  `periodicDateOf` checks the folder prefix before it runs the pattern,
+ *  so a vault of ten thousand notes costs ten thousand string compares. */
+export function dailyNotesByDay(tree: Parameters<typeof collectNotes>[0]): Map<string, string> {
+  const out = new Map<string, string>();
+  const format = cached.formats.day ?? DAILY_FORMAT_DEFAULT;
+  for (const n of collectNotes(tree)) {
+    const d = periodicDateOf(cached.folder, format, n.path);
+    if (d) out.set(isoOf(d), n.path);
+  }
+  return out;
 }
 
-/** Open (or create) the periodic note for `kind`, `offset` periods from
- *  the reference date — today, unless the open note is itself a periodic
- *  note, in which case yesterday/tomorrow walk FROM it. */
-export async function openPeriodicNote(kind: PeriodKind = "day", offset = 0): Promise<void> {
+function isoOf(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** What a periodic note's PERIOD is called on screen, in the site's
+ *  calendar: «Tuesday, 15 September 2026», «Week 38 · 14–20 September
+ *  2026», «September 2026», «2026». On a Hijri (or both) instance a
+ *  Gregorian month or year is not a Hijri one, so it is named as the span
+ *  of days it covers — the honest name, in the calendar the reader lives
+ *  in. Null for anything that is not a periodic note. */
+export function periodLabel(path: string): string | null {
+  const ref = periodOf(path);
+  if (!ref) return null;
+  const locale = useStore.getState().blogLocale;
+  const end = periodEnd(ref.kind, ref.start);
+  const span: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
+  switch (ref.kind) {
+    case "day":
+      return siteDate(ref.start, locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    case "week":
+      return tf("periodWeekLabel", { n: localeNum(isoWeek(ref.start).week), range: siteDateRange(ref.start, end, locale, span) });
+    case "month":
+      return getDateCalendar() === "gregorian" ? siteDate(ref.start, locale, { month: "long", year: "numeric" }) : siteDateRange(ref.start, end, locale, span);
+    case "year":
+      return getDateCalendar() === "gregorian" ? siteDate(ref.start, locale, { year: "numeric" }) : siteDateRange(ref.start, end, locale, span);
+  }
+}
+
+const OFF_TOAST: Record<PeriodKind, I18nKey> = {
+  day: "noDailyNote",
+  week: "weeklyNotesOff",
+  month: "monthlyNotesOff",
+  year: "yearlyNotesOff",
+};
+
+/** Open (or create) the note for the period of `kind` that `date` falls
+ *  in. THE ONE DOOR: the palette, the calendar's cells and the launch
+ *  setting all come through here, so a note created from a click on the
+ *  grid is templated exactly as one created by Ctrl/Cmd Alt D. */
+export async function openPeriodicNoteAt(kind: PeriodKind, date: Date): Promise<void> {
   await loadPeriodic();
   const store = useStore.getState();
-  const from = (store.openPath && dailyNoteDate(store.openPath)) || new Date();
-  const date = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 12);
-  if (kind === "day") date.setDate(date.getDate() + offset);
-  else date.setDate(date.getDate() + offset * 7);
-  const path = kind === "day" ? dailyNotePath(date) : weeklyNotePath(date);
+  const path = periodicNotePath(kind, date);
   if (path === null) {
-    toast(t("weeklyNotesOff"));
+    toast(t(OFF_TOAST[kind]));
     return;
   }
-  const template = kind === "day" ? cached.dailyTemplate : cached.weeklyTemplate;
+  const template = cached.templates[kind];
   const exists = collectNotes(store.tree).some((n) => n.path === path);
+  // The toasts name TODAY only when today is what was asked for: a visitor
+  // clicking last Tuesday on the grid, or the palette's month, must not be
+  // told about "today's daily note".
+  const isToday = kind === "day" && isoOf(periodStart("day", date)) === isoOf(new Date());
   if (!exists && !store.admin) {
-    toast(t("noDailyNote"));
+    toast(t(isToday ? "noDailyNote" : "noPeriodicNote"));
     return;
   }
   if (!exists) {
@@ -125,7 +230,7 @@ export async function openPeriodicNote(kind: PeriodKind = "day", offset = 0): Pr
       const message = err instanceof Error ? err.message : "";
       if (!/exists/i.test(message)) {
         console.error(`astrolabe: creating periodic note ${path} failed`, err);
-        toast(t("dailyNoteFailed"));
+        toast(t(isToday ? "dailyNoteFailed" : "periodicNoteFailed"));
         return;
       }
     }
@@ -133,7 +238,28 @@ export async function openPeriodicNote(kind: PeriodKind = "day", offset = 0): Pr
   store.openNote(path);
 }
 
-/** Open today's daily note, creating it first if it doesn't exist yet. */
+/** Finer periods first: a note of one kind anchors a walk to any kind at
+ *  least as coarse as itself, and never the other way. */
+const GRAIN: Record<PeriodKind, number> = { day: 0, week: 1, month: 2, year: 3 };
+
+/** Open (or create) the periodic note for `kind`, `offset` periods from
+ *  the reference date — today, unless the open note is itself a periodic
+ *  note of a kind at least as fine as `kind`, in which case the walk starts
+ *  FROM it: yesterday and tomorrow from an open daily note (a journal read
+ *  backwards one day at a time), this month from the day it holds. Not the
+ *  reverse — "this week" from an open yearly note is not the year's first
+ *  week, it is this week. */
+export async function openPeriodicNote(kind: PeriodKind = "day", offset = 0): Promise<void> {
+  await loadPeriodic();
+  const store = useStore.getState();
+  const open = store.openPath ? periodOf(store.openPath) : null;
+  const from = open !== null && GRAIN[open.kind] <= GRAIN[kind] ? open.start : new Date();
+  await openPeriodicNoteAt(kind, shiftPeriod(kind, periodStart(kind, from), offset));
+}
+
+/** Open today's daily note, creating it first if it doesn't exist yet.
+ *  TODAY'S, whatever is open: "today" is not a relative word, and a reader
+ *  in last week's note pressing Ctrl/Cmd Alt D means the day they are in. */
 export function openDailyNote(): Promise<void> {
-  return openPeriodicNote("day", 0);
+  return openPeriodicNoteAt("day", new Date());
 }

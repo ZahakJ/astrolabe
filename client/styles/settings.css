@@ -975,3 +975,79 @@
   flex-wrap: wrap;
   gap: 6px 14px;
 }
+
+/* ── Periodic notes: one row, a table inside it ────────────────────────────
+   The folder above, then the four kinds down the side with a name and a
+   template across (settings/PeriodicForm.tsx). Column headers are the
+   table's own, small and muted like a hint, because the row's label has
+   already said what the whole thing is. On a phone the three columns
+   become one card per kind: the kind as a heading, the two fields under. */
+.s-periodic {
+  display: grid;
+  gap: 10px;
+  max-width: 40rem;
+}
+
+.s-periodic__folder {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.s-periodic__folderlabel {
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.s-periodic__grid {
+  display: grid;
+  gap: 6px;
+}
+
+.s-periodic__head,
+.s-periodic__row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.s-periodic__col,
+.s-periodic__kind {
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+.s-periodic__col {
+  padding-inline-start: 2px;
+}
+
+.s-periodic__kind {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* PathInput is a field with a list under it; the cell is the positioning
+   context so the list opens over the row below, not inside it. */
+.s-periodic__row > [role="cell"] {
+  position: relative;
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .s-periodic__head {
+    display: none;
+  }
+  .s-periodic__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding-block: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .s-periodic__folder {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}

@@ -358,6 +358,53 @@ describe("per-key validators", () => {
     patchSettings({ attachments: { folder: "media/uploads\n" } });
     assert.equal(getSettings().attachments?.folder, "media/uploads");
   });
+
+  // PERIODIC FORMATS ARE CHECKED AGAINST THEIR KIND. A monthly name carrying
+  // a day token would make a daily note under the monthly key; a yearly one
+  // carrying a month would make a monthly. The format is the declaration
+  // (shared/periodic.ts periodKindOf), so the declaration is what is checked.
+  it("checks a monthly and a yearly format against their kind", () => {
+    patchSettings({ monthlyFormat: "YYYY/[M]MM", yearlyFormat: "[Year] YYYY" });
+    assert.equal(getSettings().monthlyFormat, "YYYY/[M]MM");
+    assert.equal(getSettings().yearlyFormat, "[Year] YYYY");
+    assert.match(refuse({ monthlyFormat: "YYYY-MM-DD" }), /nothing finer/);
+    assert.match(refuse({ monthlyFormat: "YYYY" }), /must name the month/);
+    assert.match(refuse({ yearlyFormat: "YYYY-MM" }), /nothing finer/);
+    assert.match(refuse({ yearlyFormat: "MM" }), /must name the year/);
+  });
+
+  it("turns a monthly or yearly kind off with 'off', and reads null back", () => {
+    patchSettings({ monthlyFormat: "off", yearlyFormat: "none" });
+    assert.equal(getSettings().monthlyFormat, "");
+    assert.equal(effectiveSettings().monthlyFormat, null);
+    assert.equal(effectiveSettings().yearlyFormat, null);
+    patchSettings({ monthlyFormat: null, yearlyFormat: null });
+    assert.equal(effectiveSettings().monthlyFormat, "YYYY-MM");
+    assert.equal(effectiveSettings().yearlyFormat, "YYYY");
+  });
+
+  it("stores the monthly and yearly templates as note paths", () => {
+    patchSettings({ monthlyTemplate: "Templates/Monthly.md", yearlyTemplate: "Templates/Yearly.md" });
+    assert.equal(effectiveSettings().monthlyTemplate, "Templates/Monthly.md");
+    assert.equal(effectiveSettings().yearlyTemplate, "Templates/Yearly.md");
+    assert.match(refuse({ monthlyTemplate: "Templates" }), /note path/);
+  });
+
+  // OPEN ON LAUNCH: four doors or a note path; the default door is stored
+  // as its absence so a default instance's file is byte-for-byte what it was.
+  it("stores a launch door, a launch note, and nothing for the default", () => {
+    patchSettings({ launch: "sigils" });
+    assert.equal(getSettings().launch, "sigils");
+    assert.equal(effectiveSettings().launch, "sigils");
+    patchSettings({ launch: "Home.md" });
+    assert.equal(getSettings().launch, "Home.md");
+    patchSettings({ launch: "resume" });
+    assert.equal(getSettings().launch, undefined);
+    assert.equal(effectiveSettings().launch, "resume");
+    assert.match(refuse({ launch: "attachments" }), /resume, sigils, orbits, today, or a note path/);
+    assert.match(refuse({ launch: "/etc/passwd.md" }), /inside the vault/);
+    assert.match(refuse({ launch: "../x.md" }), /not a valid vault path/);
+  });
 });
 
 // A folder's glyph is stored as `folderIcons[<folder path>] = <icon>`, which
