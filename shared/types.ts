@@ -697,6 +697,10 @@ export interface MeData {
    *  grounds as folderIcons above: it is a vault path, and moving is admin. */
   /** settings.emptyPropsCard, sent only when the owner turned it OFF. */
   emptyPropsCard?: false;
+  /** ADMIN SESSIONS ONLY, and only when it is not the default: what the
+   *  shell opens on top of the restored session (shared/launch.ts). A note
+   *  path is a vault path, which is why a visitor never receives it. */
+  launch?: LaunchSetting;
   /** The server's package version, so a tab that outlived a deploy can tell
    *  (client/state.ts noticeNewBuild). */
   version?: string;
@@ -922,6 +926,12 @@ export interface HomeSettings {
   banner?: string;
 }
 
+/** Where the admin's shell opens on launch (settings.launch). The four named
+ *  doors, or a vault-relative note path — any other string IS a path
+ *  (shared/launch.ts tells them apart). */
+export type LaunchDoor = "resume" | "sigils" | "orbits" | "today";
+export type LaunchSetting = LaunchDoor | (string & {});
+
 export interface SettingsData {
   /** Instance branding (overrides SITE_NAME). ≤ 80 chars. */
   siteName?: string;
@@ -1037,6 +1047,17 @@ export interface SettingsData {
   dailyTemplate?: string;
   weeklyFormat?: string;
   weeklyTemplate?: string;
+  /** The monthly (`YYYY-MM`) and yearly (`YYYY`) notes, on the weekly note's
+   *  terms: a format (an empty string turns the kind off) and a template. */
+  monthlyFormat?: string;
+  monthlyTemplate?: string;
+  yearlyFormat?: string;
+  yearlyTemplate?: string;
+  /** What the admin's shell opens on: the restored session (absent, or
+   *  `resume`), the Sigils page, the Orbits shelf, today's note, or a note by
+   *  vault path. A site fact, like the home note: the vault says what its
+   *  day starts with, whichever device it is opened from. */
+  launch?: LaunchSetting;
   /** Git backup & sync (off by default). The token, when one is used, is NOT
    *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
@@ -1217,6 +1238,12 @@ export interface EffectiveSettings {
   dailyTemplate: string | null;
   weeklyFormat: string | null;
   weeklyTemplate: string | null;
+  monthlyFormat: string | null;
+  monthlyTemplate: string | null;
+  yearlyFormat: string | null;
+  yearlyTemplate: string | null;
+  /** What the shell opens on; `resume` when unset. */
+  launch: LaunchSetting;
   home: Required<Pick<HomeSettings, "mode">> & Omit<HomeSettings, "mode">;
   /** Public folders with every default filled in — what the settings editor
    *  prefills from, so an unset key and an explicitly-default one look the
@@ -1314,6 +1341,13 @@ export interface SettingsPatch {
   /** Weekly format; null clears back to the default, "off" disables. */
   weeklyFormat?: string | null;
   weeklyTemplate?: string | null;
+  /** Monthly and yearly formats, on the weekly one's terms. */
+  monthlyFormat?: string | null;
+  monthlyTemplate?: string | null;
+  yearlyFormat?: string | null;
+  yearlyTemplate?: string | null;
+  /** A launch door or a note path; null (or "resume") restores the default. */
+  launch?: string | null;
   /** Template for new notes; null (or "") turns the default back off. */
   defaultTemplate?: string | null;
   /** Git sync configuration; null clears the whole key. */

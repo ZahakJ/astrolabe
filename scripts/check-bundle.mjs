@@ -662,7 +662,18 @@ const AUDIENCES = [
   // the French/furigana dictionary meeting in one entry at integration.
   // 3.16.1: 765.3 kB actual → 766 — the browser-dictionaries row (its
   // bilingual hint, the four labels, client/spellDicts.ts at startup).
-  { name: "entry (everyone)", keys: entry, budget: 766 * 1024 },
+  // 3.16.2: 772.7 kB actual → 773 — CALENDAR AND PERIODIC NOTES. ~3.1 kB is
+  // the dictionary (the calendar's labels, the four period kinds, the
+  // launch row, the periodic-notes note); the rest is the status bar's
+  // period crumb (client/daily.ts periodLabel + shared/dates.ts
+  // formatCalendarRange, first paint because the bar is), the month and
+  // year kinds in shared/periodic.ts, and the launch door in the store.
+  // The month grid itself (shared/calendar.ts, CalendarGrid.tsx and its
+  // sheet) is a lazy chunk behind the sidebar's fold and the Sigils page.
+  // 3.16.2 review: 773.4 kB actual → 774 — the periodic cache became a
+  // subscribable (client/daily.ts usePeriodic, so a moved daily folder
+  // re-dots the month without a reload) and two period-agnostic toasts.
+  { name: "entry (everyone)", keys: entry, budget: 774 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -883,7 +894,10 @@ const AUDIENCES = [
   // 3.16.0: 1046.5 kB actual → 1047 after the French/furigana merge (above).
   // 3.16.0 release: 1047.8 kB actual → 1048 (the merge above).
   // 3.16.1: 1049.1 kB actual → 1050 (the row above).
-  { name: "anonymous blog reader", keys: blog, budget: 1050 * 1024 },
+  // 3.16.2: 1056.4 kB actual → 1057 — the entry growth above (calendar and
+  // periodic notes); the blog shell itself did not move.
+  // 3.16.2 review: 1057.1 kB actual → 1058 (the entry line above).
+  { name: "anonymous blog reader", keys: blog, budget: 1058 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1013,7 +1027,13 @@ const AUDIENCES = [
   // 3.16.0: 1491.4 kB actual → 1492 after the French/furigana merge (above).
   // 3.16.0 release: 1493.4 kB actual → 1494 (the merge above).
   // 3.16.1: 1494.6 kB actual → 1495 (the row above).
-  { name: "admin first paint", keys: app, budget: 1495 * 1024 },
+  // 3.16.2: 1503.6 kB actual → 1504 — the entry growth above, plus the
+  // sidebar's Calendar section (its fold, and the one fetch that marks the
+  // days a sigil logged) and the palette's two period rows. The grid is a
+  // lazy chunk; the periodic sub-form rides the settings chunk.
+  // 3.16.2 review: 1504.4 kB actual → 1505 (the entry line above, plus the
+  // sidebar's visitor rule: no month for a visitor with no published day).
+  { name: "admin first paint", keys: app, budget: 1505 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

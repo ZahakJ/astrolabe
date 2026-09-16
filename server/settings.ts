@@ -8,7 +8,8 @@
 // language, languageFilter, languageToggle, excludeTags, commentsEnabled, shareButtons, pdfSearch,
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
 // templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
-// weeklyFormat, weeklyTemplate, dateCalendar, textDirection, textAlign,
+// weeklyFormat, weeklyTemplate, monthlyFormat, monthlyTemplate, yearlyFormat, yearlyTemplate,
+// launch, dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
 // Unknown keys in the file are preserved verbatim on every write so external
@@ -16,7 +17,8 @@
 // PATCH are a 400 (strict allowlist).
 
 import { chmodSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
-import { DAILY_FOLDER_DEFAULT, DAILY_FORMAT_DEFAULT, WEEKLY_FORMAT_DEFAULT } from "../shared/periodic.ts";
+import { DAILY_FOLDER_DEFAULT, DAILY_FORMAT_DEFAULT, MONTHLY_FORMAT_DEFAULT, WEEKLY_FORMAT_DEFAULT, YEARLY_FORMAT_DEFAULT, type PeriodKind } from "../shared/periodic.ts";
+import { DEFAULT_LAUNCH, isLaunchDoor, parseLaunch } from "../shared/launch.ts";
 import path from "node:path";
 import { isNotePath } from "../shared/noteFormat.ts";
 import {
@@ -496,11 +498,14 @@ export function getSettings(): SettingsData {
   if (typeof raw.defaultTemplate === "string" && raw.defaultTemplate.trim() !== "") {
     out.defaultTemplate = raw.defaultTemplate.trim();
   }
-  for (const key of ["dailyFolder", "dailyFormat", "dailyTemplate", "weeklyFormat", "weeklyTemplate"] as const) {
+  for (const key of ["dailyFolder", "dailyFormat", "dailyTemplate", "weeklyFormat", "weeklyTemplate", "monthlyFormat", "monthlyTemplate", "yearlyFormat", "yearlyTemplate"] as const) {
     const v = raw[key];
-    // The weekly format keeps an EMPTY string: it means "weekly notes off".
-    if (typeof v === "string" && (v.trim() !== "" || key === "weeklyFormat")) out[key] = v.trim();
+    // The weekly, monthly and yearly formats keep an EMPTY string: it means
+    // "that kind of note is off".
+    if (typeof v === "string" && (v.trim() !== "" || OFFABLE_FORMATS.has(key))) out[key] = v.trim();
   }
+  const launch = parseLaunch(raw.launch);
+  if (launch !== null && launch !== DEFAULT_LAUNCH) out.launch = launch;
   const home = raw.home;
   if (typeof home === "object" && home !== null && !Array.isArray(home)) {
     const h = home as Record<string, unknown>;
@@ -690,8 +695,13 @@ export function effectiveSettings(): EffectiveSettings {
     dailyFolder: dailyFolder(),
     dailyFormat: s.dailyFormat ?? DAILY_FORMAT_DEFAULT,
     dailyTemplate: periodicTemplate(s.dailyTemplate),
-    weeklyFormat: s.weeklyFormat === undefined ? WEEKLY_FORMAT_DEFAULT : s.weeklyFormat === "" ? null : s.weeklyFormat,
+    weeklyFormat: offableFormat(s.weeklyFormat, WEEKLY_FORMAT_DEFAULT),
     weeklyTemplate: periodicTemplate(s.weeklyTemplate),
+    monthlyFormat: offableFormat(s.monthlyFormat, MONTHLY_FORMAT_DEFAULT),
+    monthlyTemplate: periodicTemplate(s.monthlyTemplate),
+    yearlyFormat: offableFormat(s.yearlyFormat, YEARLY_FORMAT_DEFAULT),
+    yearlyTemplate: periodicTemplate(s.yearlyTemplate),
+    launch: s.launch ?? DEFAULT_LAUNCH,
     home: {
       mode: s.home?.mode ?? "note",
       ...(s.home?.note ?? envHomeNote() ? { note: s.home?.note ?? envHomeNote() ?? undefined } : {}),
@@ -934,6 +944,16 @@ export function dailyFolder(): string {
   }
 }
 
+/** The format keys that may hold an empty string meaning "off". The daily
+ *  format is not one: there is no daily-notes-off, only a different name. */
+const OFFABLE_FORMATS: ReadonlySet<string> = new Set(["weeklyFormat", "monthlyFormat", "yearlyFormat"]);
+
+/** A weekly/monthly/yearly format in force: the default when unset, null
+ *  when the owner turned that kind off (stored as ""). */
+function offableFormat(stored: string | undefined, fallback: string): string | null {
+  return stored === undefined ? fallback : stored === "" ? null : stored;
+}
+
 function periodicTemplate(stored: string | undefined): string | null {
   if (!stored) return null;
   try {
@@ -978,16 +998,37 @@ type PatchHandler = (raw: Record<string, unknown>, value: unknown) => void;
 /** A period format must name a year and, for a day, a month and a day, or
  *  a week for the weekly one; `[literals]` and `/` are fine. The weekly
  *  format alone may be "off" (stored as ""), which turns weekly notes off. */
-function periodFormat(v: string, key: string, weekly: boolean): string | null {
+/** A period format, checked against the KIND of note it is for: every
+ *  kind names the year; a day names the month and the day; a week names
+ *  the week; a month names the month and nothing finer; a year names
+ *  nothing finer than itself. A monthly format carrying `DD` would name a
+ *  day, and the note it made would read back as a daily note — the format
+ *  is the declaration (shared/periodic.ts), so the declaration is checked.
+ *  The three optional kinds accept `off` and store "" for it. */
+function periodFormat(v: string, key: string, kind: PeriodKind): string | null {
   const clean = cleanValue(v, key);
   if (clean === null) return null;
-  if (weekly && /^(off|none|-)$/i.test(clean)) return "";
+  if (kind !== "day" && /^(off|none|-)$/i.test(clean)) return "";
   if (clean === "") return null;
   if (/[\\:*?"<>|]/.test(clean) || clean.includes("..")) throw new VaultError(400, `Settings key "${key}" holds characters a file name cannot`);
   const bare = clean.replace(/\[[^\]]*\]/g, "");
   if (!/YYYY|YY/.test(bare)) throw new VaultError(400, `Settings key "${key}" must name the year (YYYY)`);
-  if (weekly ? !/ww|WW|w/.test(bare) : !(/MM|M/.test(bare) && /DD|D/.test(bare))) {
-    throw new VaultError(400, weekly ? `Settings key "${key}" must name the week (ww)` : `Settings key "${key}" must name the month and the day (MM, DD)`);
+  const hasWeek = /ww|WW|w/.test(bare);
+  const hasMonth = /MM|M/.test(bare);
+  const hasDay = /DD|D/.test(bare);
+  switch (kind) {
+    case "day":
+      if (!hasMonth || !hasDay) throw new VaultError(400, `Settings key "${key}" must name the month and the day (MM, DD)`);
+      break;
+    case "week":
+      if (!hasWeek) throw new VaultError(400, `Settings key "${key}" must name the week (ww)`);
+      break;
+    case "month":
+      if (!hasMonth || hasDay || hasWeek) throw new VaultError(400, `Settings key "${key}" must name the month (MM) and nothing finer`);
+      break;
+    case "year":
+      if (hasMonth || hasDay || hasWeek) throw new VaultError(400, `Settings key "${key}" must name the year (YYYY) and nothing finer`);
+      break;
   }
   return clean;
 }
@@ -1247,10 +1288,26 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     // "" is the vault root and is stored as such: null would mean "default".
     return rel;
   }),
-  dailyFormat: stringKey("dailyFormat", (v) => periodFormat(v, "dailyFormat", false)),
-  weeklyFormat: stringKey("weeklyFormat", (v) => periodFormat(v, "weeklyFormat", true)),
+  dailyFormat: stringKey("dailyFormat", (v) => periodFormat(v, "dailyFormat", "day")),
+  weeklyFormat: stringKey("weeklyFormat", (v) => periodFormat(v, "weeklyFormat", "week")),
+  monthlyFormat: stringKey("monthlyFormat", (v) => periodFormat(v, "monthlyFormat", "month")),
+  yearlyFormat: stringKey("yearlyFormat", (v) => periodFormat(v, "yearlyFormat", "year")),
   dailyTemplate: stringKey("dailyTemplate", (v) => templateNote(v, "dailyTemplate")),
   weeklyTemplate: stringKey("weeklyTemplate", (v) => templateNote(v, "weeklyTemplate")),
+  monthlyTemplate: stringKey("monthlyTemplate", (v) => templateNote(v, "monthlyTemplate")),
+  yearlyTemplate: stringKey("yearlyTemplate", (v) => templateNote(v, "yearlyTemplate")),
+  // OPEN ON LAUNCH (shared/launch.ts): one of the four doors, or a note
+  // path — checked as a path, not for existence, on the home note's terms
+  // (a note renamed later is a warning at boot, not a settings error).
+  // `resume` is the default and is stored as its absence.
+  launch: stringKey("launch", (v) => {
+    const clean = cleanValue(v, "launch");
+    if (clean === null || clean === DEFAULT_LAUNCH) return null;
+    if (isLaunchDoor(clean)) return clean;
+    const rel = vaultRel(clean, "launch");
+    if (!isNotePath(rel)) throw new VaultError(400, 'Settings key "launch" must be resume, sigils, orbits, today, or a note path (.md, .tex or .latex)');
+    return rel;
+  }),
   defaultTemplate: stringKey("defaultTemplate", (v) => {
     const clean = cleanValue(v, "defaultTemplate");
     if (clean === null) return null;

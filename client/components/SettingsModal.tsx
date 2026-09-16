@@ -84,6 +84,7 @@ import "../styles/librarypaths.css";
 const FolderIconPicker = lazySurface(() => import("./FolderIconPicker.tsx"));
 import { useBannerSrc } from "./BannerImg.tsx";
 import { refreshTemplateSettings } from "../templates.ts";
+import { loadPeriodic } from "../daily.ts";
 import { clearFontFaces, faceStack, loadFontFaces } from "../fontFaces.ts";
 import { countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { FONT_UPLOAD_MAX_MB, UPLOAD_MAX_MB } from "../../shared/limits.ts";
@@ -97,6 +98,8 @@ import { NumberInput, SegmentedControl, TextInput, Toggle, type Segment } from "
 import { PathInput } from "./controls/PathInput.tsx";
 import { isSelectOpen, Select, type SelectGroup } from "./controls/Select.tsx";
 import DeviceTab from "./settings/DeviceTab.tsx";
+import { PeriodicForm } from "./settings/PeriodicForm.tsx";
+import { DEFAULT_LAUNCH, isLaunchDoor } from "../../shared/launch.ts";
 import { desktop } from "../desktop/bridge.ts";
 import { DECLARABLE, SPELL_DICTS_EVENT, browserDictionaries, setBrowserDictionaries, type Declarable } from "../spellDicts.ts";
 import { Row } from "./settings/Row.tsx";
@@ -171,6 +174,15 @@ interface Form {
   dailyTemplate: string;
   weeklyFormat: string;
   weeklyTemplate: string;
+  monthlyFormat: string;
+  monthlyTemplate: string;
+  yearlyFormat: string;
+  yearlyTemplate: string;
+  // ── Open on launch (shared/launch.ts) ────────────────────────────────────
+  // A door, or "note" with the path in `launchNote`: the select and the
+  // path field are two controls over one stored key.
+  launch: string;
+  launchNote: string;
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
   // no env counterpart, so "inherit" is meaningless here — every control shows
@@ -297,6 +309,12 @@ function formFrom(s: SettingsResponse): Form {
     dailyTemplate: s.dailyTemplate ?? "",
     weeklyFormat: s.weeklyFormat ?? "",
     weeklyTemplate: s.weeklyTemplate ?? "",
+    monthlyFormat: s.monthlyFormat ?? "",
+    monthlyTemplate: s.monthlyTemplate ?? "",
+    yearlyFormat: s.yearlyFormat ?? "",
+    yearlyTemplate: s.yearlyTemplate ?? "",
+    launch: s.launch === undefined ? DEFAULT_LAUNCH : isLaunchDoor(s.launch) ? s.launch : "note",
+    launchNote: s.launch !== undefined && !isLaunchDoor(s.launch) ? s.launch : "",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
     syncBranch: s.effective.gitSync.branch,
@@ -1306,11 +1324,23 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       | "dailyFormat"
       | "dailyTemplate"
       | "weeklyFormat"
-      | "weeklyTemplate",
+      | "weeklyTemplate"
+      | "monthlyFormat"
+      | "monthlyTemplate"
+      | "yearlyFormat"
+      | "yearlyTemplate",
   ): void => {
     const value = f[key].trim();
     if (value !== initial[key].trim()) patch[key] = value === "" ? null : value;
   };
+  // The launch key is one stored value behind two controls: the door, or
+  // the note's path when the door is "note". An empty path under "note" is
+  // no choice yet, and clears the key rather than storing a blank.
+  const launchOf = (form: Form): string | null => {
+    const door = form.launch === "note" ? form.launchNote.trim() : form.launch;
+    return door === "" || door === DEFAULT_LAUNCH ? null : door;
+  };
+  if (launchOf(f) !== launchOf(initial)) patch.launch = launchOf(f);
   str("siteName");
   str("tagline");
   str("footer");
@@ -1327,6 +1357,10 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   str("dailyTemplate");
   str("weeklyFormat");
   str("weeklyTemplate");
+  str("monthlyFormat");
+  str("monthlyTemplate");
+  str("yearlyFormat");
+  str("yearlyTemplate");
   if (f.language !== initial.language) {
     patch.language = f.language === "en" || f.language === "ar" ? f.language : null;
   }
@@ -2908,6 +2942,10 @@ export default function SettingsModal() {
         // (they open on a keystroke and must not wait on a round trip); this
         // save may have just moved either one.
         refreshTemplateSettings();
+        // The periodic-note cache (client/daily.ts) re-reads through that
+        // fresh fetch, so the sidebar's month and the status bar's crumb
+        // follow a moved daily folder or a renamed format without a reload.
+        void loadPeriodic();
         // Everything the shell renders from /api/me follows live: wordmark,
         // logo, layout, theme default, favicon link.
         await useStore.getState().loadMe();
@@ -4057,26 +4095,26 @@ export default function SettingsModal() {
                       {...field("defaultTemplate")}
                     />
                   </Row>
-                  {/* PERIODIC NOTES (shared/periodic.ts): the daily note's
-                      folder, format and template, and the weekly note's. The
-                      placeholders are what is in force, as the templates
-                      folder's is. */}
+                  {/* PERIODIC NOTES (shared/periodic.ts): the folder the
+                      four kinds share, and a name and a template for the
+                      day, the week, the month and the year. ONE row with a
+                      sub-form (settings/PeriodicForm.tsx) rather than nine:
+                      the tab holds eighteen rows and nine of them asking
+                      the same two questions is a table. The placeholders
+                      are what is in force, as the templates folder's is. */}
                   <div className="s-smodal__sub">{t("periodicSection")}</div>
-                  <Row label={t("dailyFolderLabel")} hint={t("dailyFolderHint")}>
-                    <TextInput placeholder={eff.dailyFolder || "/"} dir="ltr" label={t("dailyFolderLabel")} {...field("dailyFolder")} />
+                  <Row label={t("periodicRowLabel")} hint={t("periodicRowHint")} wide>
+                    <PeriodicForm
+                      form={form}
+                      inForce={{
+                        dailyFolder: eff.dailyFolder,
+                        templatesFolder: eff.templatesFolder,
+                        formats: { day: eff.dailyFormat, week: eff.weeklyFormat, month: eff.monthlyFormat, year: eff.yearlyFormat },
+                      }}
+                      onChange={(key, value) => setForm((f) => (f ? { ...f, [key]: value } : f))}
+                    />
                   </Row>
-                  <Row label={t("dailyFormatLabel")} hint={t("dailyFormatHint")}>
-                    <TextInput placeholder={eff.dailyFormat} dir="ltr" label={t("dailyFormatLabel")} {...field("dailyFormat")} />
-                  </Row>
-                  <Row label={t("dailyTemplateLabel")} hint={t("dailyTemplateHint")}>
-                    <TextInput placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Daily.md` : "Templates/Daily.md"} dir="ltr" label={t("dailyTemplateLabel")} {...field("dailyTemplate")} />
-                  </Row>
-                  <Row label={t("weeklyFormatLabel")} hint={t("weeklyFormatHint")}>
-                    <TextInput placeholder={eff.weeklyFormat ?? t("off")} dir="ltr" label={t("weeklyFormatLabel")} {...field("weeklyFormat")} />
-                  </Row>
-                  <Row label={t("weeklyTemplateLabel")} hint={t("weeklyTemplateHint")}>
-                    <TextInput placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Weekly.md` : "Templates/Weekly.md"} dir="ltr" label={t("weeklyTemplateLabel")} {...field("weeklyTemplate")} />
-                  </Row>
+                  <p className="s-smodal__note">{t("periodicFormatNote")}</p>
                   {/* Where the sidebar's pencil files a drawing (the owner:
                       "create the drawing in a specified space in settings or
                       by default the root directory"). Beside the other two
@@ -4089,6 +4127,31 @@ export default function SettingsModal() {
                       {...field("drawingsFolder")}
                     />
                   </Row>
+                  {/* OPEN ON LAUNCH (shared/launch.ts). Here rather than under
+                      This device because it is a fact about the vault, on the
+                      home note's precedent: what the day starts with follows
+                      the vault to the next machine. The session is restored
+                      underneath whichever door is chosen. */}
+                  <div className="s-smodal__sub">{t("launchSection")}</div>
+                  <Row label={t("rowLaunch")} hint={t("hintLaunch")}>
+                    <Select
+                      label={t("rowLaunch")}
+                      value={form.launch}
+                      onChange={(v) => setForm((f) => (f ? { ...f, launch: v } : f))}
+                      options={[
+                        { value: "resume", label: t("launchResume") },
+                        { value: "sigils", label: t("launchSigils") },
+                        { value: "orbits", label: t("launchOrbits") },
+                        { value: "today", label: t("launchToday") },
+                        { value: "note", label: t("launchNote") },
+                      ]}
+                    />
+                  </Row>
+                  {form.launch === "note" && (
+                    <Row label={t("rowLaunchNote")} hint={t("hintLaunchNote")}>
+                      <PathInput kind="note" placeholder="Home.md" label={t("rowLaunchNote")} {...field("launchNote")} />
+                    </Row>
+                  )}
 
                   {/* Obsidian's "Default location for new attachments", named
                       the same way so a migrating vault owner finds what they
