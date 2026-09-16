@@ -3,6 +3,10 @@ import { describe, it } from "node:test";
 import {
   ROOT_GROUP,
   UNTAGGED_GROUP,
+  UNMATCHED_GROUP,
+  accentScale,
+  queryGroupColor,
+  queryOrder,
   defaultGraphPrefs,
   folderOf,
   groupColor,
@@ -112,5 +116,57 @@ describe("tag gatherings", () => {
       { name: "x", tags: "a b" },
       { name: "", tags: "" },
     ]);
+  });
+});
+
+describe("graph groups by query", () => {
+  const nodes = [
+    { id: "Physics/a.md", title: "a", links: 1, tags: ["physics"] },
+    { id: "Physics/b.md", title: "b", links: 1, tags: ["physics", "draft"] },
+    { id: "Kitchen/c.md", title: "c", links: 1, tags: ["recipes"] },
+    { id: "loose.md", title: "loose", links: 0, tags: [] },
+  ];
+  const matches = new Map<string, Set<string>>([
+    ["tag:physics", new Set(["Physics/a.md", "Physics/b.md"])],
+    ["tag:draft", new Set(["Physics/b.md"])],
+    ["tag:recipes", new Set(["Kitchen/c.md"])],
+  ]);
+  it("the first query that names a note wins it; the rest is one neutral bucket, in the rows' order", () => {
+    const { groups, of } = groupNodes(nodes, "query", 1, undefined, {
+      groups: [{ query: "tag:draft ", color: null }, { query: "tag:physics", color: null }, { query: "", color: null }, { query: "tag:nothing", color: null }],
+      matches,
+    });
+    assert.equal(of.get("Physics/b.md"), "tag:draft");
+    assert.equal(of.get("Physics/a.md"), "tag:physics");
+    assert.equal(of.get("Kitchen/c.md"), UNMATCHED_GROUP);
+    assert.deepEqual(groups.map((g) => [g.name, g.count]), [["tag:draft", 1], ["tag:physics", 1], ["tag:nothing", 0], [UNMATCHED_GROUP, 2]]);
+  });
+  it("a query the server has not answered names nothing yet", () => {
+    const { of } = groupNodes(nodes, "query", 1, undefined, { groups: [{ query: "tag:physics", color: null }], matches: new Map() });
+    assert.equal(of.get("Physics/a.md"), UNMATCHED_GROUP);
+  });
+  it("keeps the rows' order and drops blanks and repeats", () => {
+    assert.deepEqual(queryOrder([{ query: " b ", color: null }, { query: "", color: null }, { query: "a", color: null }, { query: "b", color: null }]), ["b", "a"]);
+  });
+  it("the accent scale walks the theme's hue; a set colour wins; the unmatched bucket is neutral", () => {
+    const scale = accentScale("#58a6ff", 6, true);
+    assert.equal(scale.length, 6);
+    assert.equal(new Set(scale).size, 6);
+    assert.ok(scale.every((c) => /^#[0-9a-f]{6}$/.test(c)));
+    // Grey has no hue: still six distinct colours. Not a hex: the palette.
+    assert.equal(new Set(accentScale("#808080", 6, false)).size, 6);
+    assert.deepEqual(accentScale("gold", 3, true), graphPalette(true).slice(0, 3));
+    const groups = [{ query: "tag:a", color: null }, { query: "tag:b", color: "#123456" }];
+    assert.equal(queryGroupColor(groups, "tag:a", "#58a6ff", true), scale[0]);
+    assert.equal(queryGroupColor(groups, "tag:b", "#58a6ff", true), "#123456");
+    assert.equal(groupColor(UNMATCHED_GROUP, 0, {}, true, "#ccc"), "#ccc");
+  });
+  it("survives a stored preferences object with junk query rows, capped at six", () => {
+    const prefs = normalizeGraphPrefs({ colorBy: "query", queryGroups: [{ query: "tag:x", color: "#ABCDEF" }, { query: 4, color: "red" }, null, ...Array(8).fill({ query: "q", color: null })] });
+    assert.equal(prefs.colorBy, "query");
+    assert.equal(prefs.queryGroups.length, 6);
+    assert.deepEqual(prefs.queryGroups[0], { query: "tag:x", color: "#abcdef" });
+    assert.deepEqual(prefs.queryGroups[1], { query: "", color: null });
+    assert.deepEqual(prefs.hiddenGroups.query, []);
   });
 });

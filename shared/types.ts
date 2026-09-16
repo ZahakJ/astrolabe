@@ -191,6 +191,31 @@ export interface SearchMatch { line: number; text: string }
 
 export interface TagCount { tag: string; count: number }
 
+/** `GET /api/props` — one frontmatter key the index knows, how many notes
+ *  carry it, and its most common distinct values (a list value counts once
+ *  per item, the way `prop:key=value` matches one item of a list). Scoped
+ *  exactly as /api/tags is, for the same reason: a key seen only on notes a
+ *  visitor cannot open is an existence leak. */
+export interface PropCount {
+  key: string;
+  count: number;
+  values: { value: string; count: number }[];
+}
+
+/** `GET /api/nearby?path=` — a note that reads like the open one, by the
+ *  TF-IDF cosine over the folded terms and tags the index already holds
+ *  (shared/nearby.ts), with the two terms that tie them. Admin only: the
+ *  scoring reads every note's body. */
+export interface NearbyHit {
+  path: string;
+  title: string;
+  /** Cosine similarity, 0 … 1. */
+  score: number;
+  /** The one or two terms that contributed most to the score, as folded
+   *  (a tag keeps its `#`). */
+  terms: string[];
+}
+
 /** `GET /api/export` — what the archive holds. `note` and `folder` take a
  *  vault path as `target`, `tag` a tag name, `vault` nothing. */
 export type ExportScope = "note" | "folder" | "tag" | "vault";

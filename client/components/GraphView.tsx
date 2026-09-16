@@ -15,15 +15,21 @@ import { Toggle } from "./controls/Fields.tsx";
 import {
   DEFAULT_DISPLAY,
   DEFAULT_FORCES,
+  QUERY_GROUPS_MAX,
   ROOT_GROUP,
+  UNMATCHED_GROUP,
   UNTAGGED_GROUP,
+  accentScale,
   defaultGraphPrefs,
   groupColor,
   groupNodes,
   loadGraphPrefs,
+  queryGroupColor,
+  queryOrder,
   saveGraphPrefs,
   type ColorBy,
-  type GraphPrefs, type TagGathering } from "../graphPrefs.ts";
+  type GraphPrefs, type QueryGroup, type QueryMatches, type TagGathering } from "../graphPrefs.ts";
+import { queryPaths } from "../api.ts";
 
 // ---------------------------------------------------------------------------
 // Simulation tuning. Forces are scaled by a cooling factor ("alpha") so the
@@ -1376,18 +1382,76 @@ export default function GraphView() {
     return () => mo.disconnect();
   }, []);
 
+  // ── Groups by query ───────────────────────────────────────────────────────
+  // The server answers each query row with the paths it names
+  // (GET /api/query/paths — every operator the search box knows, no cap).
+  // Asked only while the query colouring is on, a third of a second after
+  // the last keystroke, and every answer is kept by its query text so a row
+  // retyped to something it said before repaints at once. An answer that
+  // arrives for a query no row asks for any more is dropped, not applied.
+  const [queryMatches, setQueryMatches] = useState<QueryMatches>(() => new Map());
+  useEffect(() => {
+    if (prefs.colorBy !== "query") return;
+    const wanted = queryOrder(prefs.queryGroups);
+    const missing = wanted.filter((q) => !queryMatches.has(q));
+    if (missing.length === 0) return;
+    const ctl = new AbortController();
+    const timer = window.setTimeout(() => {
+      for (const q of missing) {
+        queryPaths(q, ctl.signal)
+          .then((paths) => {
+            if (ctl.signal.aborted) return;
+            setQueryMatches((prev) => new Map(prev).set(q, new Set(paths)));
+          })
+          .catch(() => {
+            // a query the server refused names nothing, and stays unasked
+            // so the next edit asks again
+          });
+      }
+    }, 350);
+    return () => {
+      window.clearTimeout(timer);
+      ctl.abort();
+    };
+  }, [prefs.colorBy, prefs.queryGroups, queryMatches]);
+
   const grouped = useMemo(
-    () => groupNodes(data?.nodes ?? [], prefs.colorBy, prefs.folderDepth, { pick: prefs.tagPick, gatherings: prefs.tagGroups }),
-    [data, prefs.colorBy, prefs.folderDepth, prefs.tagPick, prefs.tagGroups],
+    () =>
+      groupNodes(
+        data?.nodes ?? [],
+        prefs.colorBy,
+        prefs.folderDepth,
+        { pick: prefs.tagPick, gatherings: prefs.tagGroups },
+        { groups: prefs.queryGroups, matches: queryMatches },
+      ),
+    [data, prefs.colorBy, prefs.folderDepth, prefs.tagPick, prefs.tagGroups, prefs.queryGroups, queryMatches],
   );
   const neutral = useMemo(() => readThemeColors().accent, [dark]);
-  /** Group name → colour, in legend order. */
+  // Under the query colouring the first slot of the accent scale IS the
+  // accent, so "everything else" cannot also be the accent or the first
+  // group and the rest would be one colour. The unmatched notes recede into
+  // the theme's faint ink instead — which is what "no query names this"
+  // should look like beside the notes a query lit.
+  const faint = useMemo(() => readThemeColors().faint, [dark]);
+  /** Group name → colour, in legend order. A query group's colour is the
+   *  row's own (or its slot on the theme's accent scale), never the
+   *  folder palette: the swatch on the row and the disc on the canvas must
+   *  be one colour. */
   const groupColors = useMemo(() => {
     const overrides = prefs.groupColors[prefs.colorBy];
     const map = new Map<string, string>();
-    grouped.groups.forEach((g, i) => map.set(g.name, groupColor(g.name, i, overrides, dark, neutral)));
+    grouped.groups.forEach((g, i) =>
+      map.set(
+        g.name,
+        prefs.colorBy === "query"
+          ? g.name === UNMATCHED_GROUP
+            ? (overrides[g.name] ?? faint)
+            : queryGroupColor(prefs.queryGroups, g.name, neutral, dark)
+          : groupColor(g.name, i, overrides, dark, neutral),
+      ),
+    );
     return map;
-  }, [grouped, prefs.groupColors, prefs.colorBy, dark, neutral]);
+  }, [grouped, prefs.groupColors, prefs.colorBy, prefs.queryGroups, dark, neutral, faint]);
   const [shownCount, setShownCount] = useState<number | null>(null);
 
   /** The layout is seeded from scratch by `setData`, so a refresh would fling
@@ -1467,15 +1531,23 @@ export default function GraphView() {
   );
   const setGroupColor = useCallback(
     (name: string, hex: string) => {
-      setPrefs((p) => ({
-        ...p,
-        groupColors: { ...p.groupColors, [p.colorBy]: { ...p.groupColors[p.colorBy], [name]: hex } },
-      }));
+      setPrefs((p) => {
+        // A query group's colour lives on its row, so it survives the row
+        // being retyped and moves with it; the legend's swatch and the row's
+        // swatch write the same field.
+        if (p.colorBy === "query" && name !== UNMATCHED_GROUP) {
+          return { ...p, queryGroups: p.queryGroups.map((g) => (g.query.trim() === name ? { ...g, color: hex } : g)) };
+        }
+        return {
+          ...p,
+          groupColors: { ...p.groupColors, [p.colorBy]: { ...p.groupColors[p.colorBy], [name]: hex } },
+        };
+      });
     },
     [setPrefs],
   );
   const groupLabel = (name: string): string =>
-    name === ROOT_GROUP ? t("graphGroupRoot") : name === UNTAGGED_GROUP ? t("graphGroupUntagged") : name;
+    name === ROOT_GROUP ? t("graphGroupRoot") : name === UNTAGGED_GROUP ? t("graphGroupUntagged") : name === UNMATCHED_GROUP ? t("graphGroupUnmatched") : name;
 
   // The graph view is the one surface where a failed /api/graph leaves an
   // empty screen rather than a missing garnish, so it is the one that says so.
@@ -1731,6 +1803,8 @@ export default function GraphView() {
           groupLabel={groupLabel}
           onToggleGroup={toggleGroup}
           onGroupColor={setGroupColor}
+          accent={neutral}
+          dark={dark}
         />
       )}
       <div className="s-graph__controls">
@@ -1806,6 +1880,10 @@ interface GraphPanelProps {
   groupLabel(name: string): string;
   onToggleGroup(name: string): void;
   onGroupColor(name: string, hex: string): void;
+  /** The theme's accent and whether it is a dark room: what a query row's
+   *  default swatch is drawn from (graphPrefs.ts accentScale). */
+  accent: string;
+  dark: boolean;
 }
 
 /**
@@ -1826,6 +1904,8 @@ function GraphPanel({
   groupLabel,
   onToggleGroup,
   onGroupColor,
+  accent,
+  dark,
 }: GraphPanelProps) {
   // Escape closes the panel — and only the panel. Capture phase, so the
   // graph's own Escape (which drops the keyboard cursor) and the view's
@@ -1934,6 +2014,8 @@ function GraphPanel({
   const hidden = new Set(prefs.hiddenGroups[prefs.colorBy]);
   const setGathering = (i: number, patch: Partial<TagGathering>) =>
     setPrefs((p) => ({ ...p, tagGroups: p.tagGroups.map((g, n) => (n === i ? { ...g, ...patch } : g)) }));
+  const setQueryGroup = (i: number, patch: Partial<QueryGroup>) =>
+    setPrefs((p) => ({ ...p, queryGroups: p.queryGroups.map((g, n) => (n === i ? { ...g, ...patch } : g)) }));
   const colorChoice = (value: ColorBy, label: string) => (
     <button
       type="button"
@@ -2035,6 +2117,7 @@ function GraphPanel({
         <div className="s-graph__segs" role="group" aria-label={t("graphColorBy")}>
           {colorChoice("folder", t("graphColorFolder"))}
           {colorChoice("tag", t("graphColorTag"))}
+          {colorChoice("query", t("graphColorQuery"))}
           {colorChoice("none", t("graphColorNone"))}
         </div>
         {prefs.colorBy === "folder" && (
@@ -2129,6 +2212,67 @@ function GraphPanel({
               ))}
             </div>
           </>
+        )}
+        {prefs.colorBy === "query" && (
+          /* Groups by query: up to six search-box queries, each a colour.
+             The swatch on the row is the same field the legend's swatch
+             edits; the query is free text, asked of the server a beat after
+             the last keystroke, never parsed here. */
+          <div className="s-graph__gather s-graph__queries">
+            <div className="s-graph__gather-head">
+              <span>{t("graphGroupByQuery")}</span>
+              {prefs.queryGroups.length < QUERY_GROUPS_MAX && (
+                <button
+                  type="button"
+                  className="s-graph__gather-add"
+                  onClick={() => setPrefs((p) => ({ ...p, queryGroups: [...p.queryGroups, { query: "", color: null }].slice(0, QUERY_GROUPS_MAX) }))}
+                >
+                  {t("graphQueryAdd")}
+                </button>
+              )}
+            </div>
+            <p className="s-graph__hint">{t("graphQueryHint")}</p>
+            {prefs.queryGroups.map((g, i) => {
+              const name = g.query.trim();
+              // A blank row has no group yet; it still shows the colour it
+              // will paint with, its slot on the scale.
+              const color = g.color ?? (name === "" ? accentScale(accent, QUERY_GROUPS_MAX, dark)[i % QUERY_GROUPS_MAX] : queryGroupColor(prefs.queryGroups, name, accent, dark));
+              return (
+                <div className="s-graph__gather-row s-graph__query-row" key={i}>
+                  <input
+                    type="color"
+                    className="s-graph__swatch"
+                    value={/^#[0-9a-f]{6}$/i.test(color) ? color : "#888888"}
+                    aria-label={tf("graphQueryColor", { query: name || localeNum(i + 1) })}
+                    onChange={(e) => setQueryGroup(i, { color: e.target.value })}
+                  />
+                  <input
+                    className="s-graph__gather-tags"
+                    value={g.query}
+                    dir="auto"
+                    placeholder={t("graphQueryPlaceholder")}
+                    aria-label={t("graphQueryField")}
+                    spellCheck={false}
+                    onChange={(e) => setQueryGroup(i, { query: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    className="s-graph__gather-del"
+                    title={t("graphQueryRemove")}
+                    aria-label={t("graphQueryRemove")}
+                    onClick={() => setPrefs((p) => ({ ...p, queryGroups: p.queryGroups.filter((_, n) => n !== i) }))}
+                  >
+                    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+                      <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
+            {prefs.queryGroups.length > 0 && groups.every((g) => g.name === UNMATCHED_GROUP || g.count === 0) && (
+              <p className="s-graph__hint">{t("graphQueryNone")}</p>
+            )}
+          </div>
         )}
         {groups.length > 0 && (
           <ul className="s-graph__legend">

@@ -11,15 +11,18 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { findAnyMatches, findMatches, foldKeep, foldTerm } from "../shared/fold.ts";
-import { parseSearchQuery, SEARCH_OPERATORS, searchScope } from "../shared/searchQuery.ts";
+import { parseSearchQuery, propQuery, SEARCH_OPERATORS, searchScope } from "../shared/searchQuery.ts";
 import { applyBulk, clearUndoBundles, undoBulk } from "../server/bulkRewrite.ts";
 import {
   initIndexer,
+  props,
+  queryPaths,
   replaceCandidates,
   search,
   searchMatches,
   searchTerms,
 } from "../server/indexer.ts";
+import { nearbyNotes } from "../server/nearby.ts";
 import {
   makeBodyTest,
   previewReplace,
@@ -291,6 +294,61 @@ describe("search: the operators, against real notes", () => {
     // `is:page` matches Ledger, which is not published — an anonymous caller
     // must not be able to enumerate it through the operator layer.
     assert.deepEqual(search("is:page", true, null), []);
+  });
+});
+
+describe("the properties shelf: propQuery and /api/props", () => {
+  it("builds the token the parser reads back, quoting a value with a space", () => {
+    assert.equal(propQuery("status"), "prop:status");
+    assert.equal(propQuery("status", "reading"), "prop:status=reading");
+    assert.equal(propQuery("status", 'in "progress"'), 'prop:status="in progress"');
+    const parsed = parseSearchQuery(propQuery("status", "in progress"));
+    assert.deepEqual([parsed.filters[0].key, parsed.filters[0].value, parsed.text], ["status", "in progress", ""]);
+  });
+
+  it("lists every key with a count and its values, tags left to their own shelf", () => {
+    const rows = props(false, null);
+    const keys = rows.map((r) => r.key);
+    assert.ok(!keys.includes("tags"), keys.join(","));
+    const date = rows.find((r) => r.key === "date");
+    assert.ok(date);
+    assert.equal(date.count, 3);
+    assert.equal(date.values.length, 3);
+    // A list value counts once per item, the way `prop:key=value` matches.
+    const publish = rows.find((r) => r.key === "publish");
+    assert.deepEqual(publish?.values, [{ value: "true", count: 1 }]);
+    // The keys with the most notes come first.
+    assert.equal(keys[0], "date");
+  });
+
+  it("a visitor's shelf is the published notes' shelf", () => {
+    const rows = props(true, null);
+    assert.deepEqual(
+      rows.map((r) => r.key).sort(),
+      ["date", "publish"],
+    );
+  });
+
+  it("queryPaths answers a query with every path and nothing for no query", () => {
+    assert.deepEqual(queryPaths("tag:recipes", false, null).sort(), ["Recipes/Dal.md", "Recipes/Soup.md"]);
+    assert.deepEqual(queryPaths("cumin", false, null).sort(), ["Notes/Quiet.md", "Recipes/Dal.md", "Recipes/Soup.md"]);
+    assert.deepEqual(queryPaths("", false, null), []);
+    assert.deepEqual(queryPaths("   ", false, null), []);
+    assert.deepEqual(queryPaths("is:page", true, null), []);
+  });
+});
+
+describe("nearby: the corpus around shared/nearby.ts", () => {
+  it("finds the other recipe from cumin and the shared tag, naming both", () => {
+    const hits = nearbyNotes("Recipes/Dal.md");
+    assert.ok(hits.length > 0);
+    assert.equal(hits[0].path, "Recipes/Soup.md");
+    assert.ok(hits[0].terms.includes("#recipes") || hits[0].terms.includes("cumin"), hits[0].terms.join(","));
+    assert.ok(hits.every((h) => h.path !== "Recipes/Dal.md"));
+  });
+
+  it("an unknown path is nobody's neighbour", () => {
+    assert.deepEqual(nearbyNotes("Nowhere.md"), []);
   });
 });
 
