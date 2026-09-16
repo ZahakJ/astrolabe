@@ -45,6 +45,8 @@ function RoutineCard({
   onOpen,
   onEdit,
   onDelete,
+  view,
+  onView,
 }: {
   meta: RoutineMeta;
   today: string;
@@ -52,6 +54,8 @@ function RoutineCard({
   onOpen: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  view: string | null;
+  onView: (iso: string | null) => void;
 }) {
   const host = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -66,6 +70,8 @@ function RoutineCard({
       today,
       onLog,
       onOpen,
+      view,
+      onView,
       actions: [
         { label: t("routinesEdit"), onClick: onEdit },
         { label: t("routinesDelete"), onClick: onDelete },
@@ -84,7 +90,7 @@ function RoutineCard({
       // Torn down only when the card leaves for good, not between ticks.
       if (!el.isConnected) el.replaceChildren();
     };
-  }, [meta, today, onLog, onOpen, onEdit, onDelete]);
+  }, [meta, today, onLog, onOpen, onEdit, onDelete, view, onView]);
   return <div ref={host} className="s-routines__card" />;
 }
 
@@ -338,6 +344,9 @@ export default function RoutinesView() {
   const columns = useColumns(gridRef);
   const keys = useMemo(() => live.map((m) => `${m.path}::${m.index}`), [live]);
   const placed = useMasonry(keys, columns, gridRef);
+  // The day each card is showing instead of today, by card; a click on a
+  // heatmap cell or week day sets it, "← Today" clears it.
+  const [views, setViews] = useState<Record<string, string | null>>({});
   const complete = useMemo(
     () => live.filter((m) => dayStatus(m.plan, m.entries.find((e) => e.date === today) ?? null, today, today) === "complete").length,
     [live, today],
@@ -443,6 +452,8 @@ export default function RoutinesView() {
                       onOpen={() => open(meta)}
                       onEdit={() => setForm({ open: true, editing: meta })}
                       onDelete={() => remove(meta)}
+                      view={views[`${meta.path}::${meta.index}`] ?? null}
+                      onView={(iso) => setViews((v) => ({ ...v, [`${meta.path}::${meta.index}`]: iso }))}
                     />
                   </div>
                 ))}

@@ -701,3 +701,42 @@
   color: var(--text-faint);
   margin-inline-start: 6px;
 }
+
+/* Any past day on the card can be visited: the heatmap's cells and the
+   week strip's days are buttons, the visited one marked, and the day box
+   carries a way back. Future days stay inert. */
+.s-rv-routine__cell,
+.s-rv-routine__day {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.s-rv-routine__cell:disabled,
+.s-rv-routine__day:disabled {
+  cursor: default;
+}
+.s-rv-routine__cell:not(:disabled):hover {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+.s-rv-routine__cell.is-viewed,
+.s-rv-routine__day.is-viewed {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.s-rv-routine__backtoday {
+  margin-inline-start: auto;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.s-rv-routine__today[data-visiting="yes"] {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}

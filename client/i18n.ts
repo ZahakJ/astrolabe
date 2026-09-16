@@ -4759,6 +4759,8 @@ const DICT = {
   routineLastMonth: { en: "last 30 days", ar: "آخر 30 يومًا" },
   routineMonthTitle: { en: "{done} of {of} planned days complete in the last thirty", ar: "{done} من {of} أيام مخططة مكتملة في آخر ثلاثين يومًا" },
   routineToday: { en: "Today", ar: "اليوم" },
+  routineVisiting: { en: "Visiting", ar: "زيارة" },
+  routineBackToday: { en: "← Today", ar: "→ اليوم" },
   routineRestDay: { en: "Nothing planned — a rest day.", ar: "لا شيء مخطط، يوم راحة." },
   routineSkip: { en: "skip", ar: "تخطٍّ" },
   routineSkipped: { en: "skipped", ar: "تُخطّي" },
