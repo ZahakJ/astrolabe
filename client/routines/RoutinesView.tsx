@@ -241,9 +241,11 @@ export default function RoutinesView() {
     return out;
   }, [live]);
   const [cardsDue, setCardsDue] = useState(0);
-  // "Nothing due" is a fact about the whole page: no sigil asks today and
-  // no card waits. Only then does the recents row take the top.
-  const nothingDue = all !== null && asked === 0 && cardsDue === 0;
+  // "Nothing due" is a fact about the whole page: no sigil asks today (or
+  // every one that asked has been ticked — a finished checklist owes the
+  // day nothing) and no card waits. Only then does the recents row take
+  // the top.
+  const nothingDue = all !== null && complete >= asked && cardsDue === 0;
 
   const log = useCallback(
     async (meta: RoutineMeta, patch: EntryPatch): Promise<void> => {

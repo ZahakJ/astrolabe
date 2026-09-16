@@ -670,7 +670,10 @@ const AUDIENCES = [
   // year kinds in shared/periodic.ts, and the launch door in the store.
   // The month grid itself (shared/calendar.ts, CalendarGrid.tsx and its
   // sheet) is a lazy chunk behind the sidebar's fold and the Sigils page.
-  { name: "entry (everyone)", keys: entry, budget: 773 * 1024 },
+  // 3.16.2 review: 773.4 kB actual → 774 — the periodic cache became a
+  // subscribable (client/daily.ts usePeriodic, so a moved daily folder
+  // re-dots the month without a reload) and two period-agnostic toasts.
+  { name: "entry (everyone)", keys: entry, budget: 774 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -893,7 +896,8 @@ const AUDIENCES = [
   // 3.16.1: 1049.1 kB actual → 1050 (the row above).
   // 3.16.2: 1056.4 kB actual → 1057 — the entry growth above (calendar and
   // periodic notes); the blog shell itself did not move.
-  { name: "anonymous blog reader", keys: blog, budget: 1057 * 1024 },
+  // 3.16.2 review: 1057.1 kB actual → 1058 (the entry line above).
+  { name: "anonymous blog reader", keys: blog, budget: 1058 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1027,7 +1031,9 @@ const AUDIENCES = [
   // sidebar's Calendar section (its fold, and the one fetch that marks the
   // days a sigil logged) and the palette's two period rows. The grid is a
   // lazy chunk; the periodic sub-form rides the settings chunk.
-  { name: "admin first paint", keys: app, budget: 1504 * 1024 },
+  // 3.16.2 review: 1504.4 kB actual → 1505 (the entry line above, plus the
+  // sidebar's visitor rule: no month for a visitor with no published day).
+  { name: "admin first paint", keys: app, budget: 1505 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

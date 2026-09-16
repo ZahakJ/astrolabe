@@ -84,6 +84,7 @@ import "../styles/librarypaths.css";
 const FolderIconPicker = lazySurface(() => import("./FolderIconPicker.tsx"));
 import { useBannerSrc } from "./BannerImg.tsx";
 import { refreshTemplateSettings } from "../templates.ts";
+import { loadPeriodic } from "../daily.ts";
 import { clearFontFaces, faceStack, loadFontFaces } from "../fontFaces.ts";
 import { countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { FONT_UPLOAD_MAX_MB, UPLOAD_MAX_MB } from "../../shared/limits.ts";
@@ -2941,6 +2942,10 @@ export default function SettingsModal() {
         // (they open on a keystroke and must not wait on a round trip); this
         // save may have just moved either one.
         refreshTemplateSettings();
+        // The periodic-note cache (client/daily.ts) re-reads through that
+        // fresh fetch, so the sidebar's month and the status bar's crumb
+        // follow a moved daily folder or a renamed format without a reload.
+        void loadPeriodic();
         // Everything the shell renders from /api/me follows live: wordmark,
         // logo, layout, theme default, favicon link.
         await useStore.getState().loadMe();

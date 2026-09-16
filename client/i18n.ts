@@ -1583,6 +1583,10 @@ const DICT = {
     ar: "لا توجد ملاحظة لليوم — سجل الدخول لإنشائها",
   },
   dailyNoteFailed: { en: "Could not create today's daily note", ar: "تعذر إنشاء ملاحظة اليوم" },
+  // The same two, for a day that is not today and for the week, the month
+  // and the year (client/daily.ts openPeriodicNoteAt).
+  noPeriodicNote: { en: "No note for that period yet — sign in to create it", ar: "لا توجد ملاحظة لتلك الفترة بعد — سجل الدخول لإنشائها" },
+  periodicNoteFailed: { en: "Could not create the note for that period", ar: "تعذر إنشاء ملاحظة تلك الفترة" },
   saveFailed: { en: "Failed to save {path}", ar: "فشل حفظ {path}" },
   // The two write failures that are the DISK's news, not Astrolabe's. Both used
   // to reach the reader as the generic sentence above, which sends them

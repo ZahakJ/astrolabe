@@ -25,7 +25,7 @@ import { openThemePicker } from "./ThemePicker.tsx";
 import { openDesigner } from "./design/openDesigner.ts";
 import { ContextMenu, type MenuAnchor, type MenuRow } from "./ContextMenu.tsx";
 import { noteLabelOf, stripNoteExt } from "../../shared/noteFormat.ts";
-import { periodLabel } from "../daily.ts";
+import { periodLabel, usePeriodic } from "../daily.ts";
 import {
   DOC_STATS_EVENT,
   requestDocStats,
@@ -388,7 +388,9 @@ export default function StatusBar() {
   // «Sunday, 16 August 2026», or on a Hijri instance «٢ صفر ١٤٤٨ هـ», the
   // date its writer was actually living in; a weekly note gets its week and
   // span, a monthly its month, a yearly its year. Re-read on every render:
-  // the language and the calendar both change under this bar.
+  // the language and the calendar both change under this bar, and so do the
+  // periodic settings (`usePeriodic` wakes the bar when the folder moves).
+  usePeriodic();
   const period = openPath ? periodLabel(openPath) : null;
 
   // THE PHONE'S OVERFLOW MENU. Below 640px the cluster kept every control and
