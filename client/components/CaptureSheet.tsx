@@ -63,12 +63,25 @@ export default function CaptureSheet() {
     };
   }, []);
 
+  const sheetRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
         close();
+      } else if (e.key === "Tab") {
+        // Tab stays inside the sheet, like the confirm dialog's (Confirm.tsx):
+        // an aria-modal layer that lets focus walk out behind it strands a
+        // keyboard reader in a note they cannot see. The ring is read at the
+        // keystroke, because the segmented pair is there only when an inbox
+        // is pinned and the send button is disabled until there is text.
+        const ring = [...(sheetRef.current?.querySelectorAll<HTMLElement>("textarea, button:not(:disabled):not([tabindex='-1']), [tabindex='0']") ?? [])];
+        if (ring.length === 0) return;
+        e.preventDefault();
+        const at = ring.indexOf(document.activeElement as HTMLElement);
+        const step = e.shiftKey ? -1 : 1;
+        ring[(Math.max(0, at) + step + ring.length) % ring.length].focus();
       }
     };
     // Capture phase, ahead of the shell's own Escape handling (App.tsx).
@@ -117,6 +130,7 @@ export default function CaptureSheet() {
   return (
     <div className="s-capture-overlay" onMouseDown={close}>
       <div
+        ref={sheetRef}
         className="s-capture"
         role="dialog"
         aria-modal="true"

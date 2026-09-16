@@ -90,6 +90,21 @@ describe("htmlToMarkdown", () => {
     assert.equal(htmlTitle("<p>none</p>"), null);
   });
 
+  it("closes an unclosed row when the next one opens, so every row of an old-style table survives", () => {
+    assert.equal(
+      htmlToMarkdown("<table><tr><td>a<td>b<tr><td>c<td>d</table>"),
+      "| a | b |\n| --- | --- |\n| c | d |",
+    );
+    assert.equal(htmlToMarkdown("<ul><li>one<ul><li>inner<li>inner2</ul><li>two</ul>"), "- one\n  - inner\n  - inner2\n- two");
+  });
+
+  it("caps the depth a crafted page can nest, and keeps the words", () => {
+    const deep = `${"<div>".repeat(50_000)}deep${"</div>".repeat(50_000)}`;
+    assert.equal(htmlToMarkdown(deep), "deep");
+    const open = `${"<span>".repeat(50_000)}still here`;
+    assert.equal(htmlToMarkdown(open), "still here");
+  });
+
   it("never throws on rubbish", () => {
     for (const junk of ["<", "<<>>", "</p></div>", "<p", "<a href='x", "<pre>", "<ul><ol></li>", "\u0000"]) {
       assert.doesNotThrow(() => md(junk), junk);

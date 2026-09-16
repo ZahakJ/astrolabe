@@ -41,6 +41,14 @@ const DROP = new Set([
  *  a `<` in a script is a `<`, not a tag. */
 const RAW_TEXT = new Set(["script", "style", "textarea", "title"]);
 
+/** How deep the tree may go. A real page is a few dozen elements deep; a
+ *  crafted one can open fifty thousand `<div>`s and never close them, and
+ *  every walker in this file recurses, so past this depth an open tag is
+ *  still recorded as its parent's child but no longer pushed — its own
+ *  children become its siblings. The words survive; the nesting, which
+ *  nobody can read at that depth anyway, does not. */
+const MAX_DEPTH = 256;
+
 /** Elements that never take children. */
 const VOID = new Set([
   "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source",
@@ -171,15 +179,20 @@ export function parseHtml(html: string): ElementNode {
     // Optional end tags: `<p>` closes an open `<p>`, `<li>` an open `<li>`.
     const closes = CLOSES[name];
     if (closes) {
+      // Pop to the OUTERMOST of a run of closable elements: a `<tr>` after an
+      // unclosed `<td>` closes the cell AND the row above it, else the new
+      // row nests inside the old one and the table walker never sees it.
+      let found = -1;
       for (let k = stack.length - 1; k > 0; k--) {
         if (closes.has(stack[k].name)) {
-          stack.length = k;
-          break;
+          found = k;
+          continue;
         }
         // Only look through inline wrappers: a `<p>` inside a `<blockquote>`
         // inside a `<p>` is the browser's problem, not this one's.
         if (BLOCK.has(stack[k].name)) break;
       }
+      if (found !== -1) stack.length = found;
     }
     const el: ElementNode = { type: "el", name, attrs: parseAttrs(tag[3] ?? ""), children: [] };
     top().children.push(el);
@@ -193,7 +206,7 @@ export function parseHtml(html: string): ElementNode {
       i += m ? rawEnd + m[0].length : rawEnd;
       continue;
     }
-    if (VOID.has(name) || selfClosed) continue;
+    if (VOID.has(name) || selfClosed || stack.length >= MAX_DEPTH) continue;
     stack.push(el);
   }
   return root;

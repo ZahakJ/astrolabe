@@ -91,6 +91,20 @@ describe("captureLine", () => {
     assert.equal(made, "New/Place.md");
     assert.equal(readFileSync(path.join(root, "New/Place.md"), "utf8"), "## Captured\n\n- 09:00 first\n");
   });
+
+  it("lands every one of a burst of captures and clips: the writes are serialised", async () => {
+    // Six sheets at once into one note. Without the queue each read the same
+    // file, each appended to what it read, and the last write won — five
+    // lines gone with a 200 for each of them.
+    await Promise.all([1, 2, 3, 4, 5, 6].map((n) => captureLine("Burst.md", `line ${n}`, "10:00")));
+    const lines = readFileSync(path.join(root, "Burst.md"), "utf8").split("\n").filter((l) => l.startsWith("- 10:00 line "));
+    assert.equal(lines.length, 6);
+    // Four clips of one title at once: four notes, not one overwritten thrice.
+    const outs = await Promise.all(
+      [1, 2, 3, 4].map((n) => performClip({ url: "https://ex.org/burst", title: "Burst clip", html: `<p>${n}</p>`, selection: null, text: null })),
+    );
+    assert.deepEqual(new Set(outs.map((o) => o.path)).size, 4);
+  });
 });
 
 describe("the token", () => {

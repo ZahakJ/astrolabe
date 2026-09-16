@@ -95,17 +95,21 @@ export interface EnsuredNote {
 }
 
 /** The periodic note for `kind`, `offset` periods from the reference date
- *  — today, unless the open note is itself a periodic note, in which case
- *  yesterday/tomorrow walk FROM it — CREATED when it is not there, with its
- *  template, and its path handed back. Null when there is nothing to open
- *  (weekly notes off, a visitor, a failed create); the reason has already
- *  been toasted. The two doors below share this so that "today's note" means
- *  the same file, with the same template, whether it is being opened or
- *  written into from the capture sheet (client/capture.ts). */
-export async function ensurePeriodicNote(kind: PeriodKind = "day", offset = 0): Promise<EnsuredNote | null> {
+ *  — `from` when the caller names one; else today, unless the open note is
+ *  itself a periodic note, in which case yesterday/tomorrow walk FROM it —
+ *  CREATED when it is not there, with its template, and its path handed
+ *  back. Null when there is nothing to open (weekly notes off, a visitor, a
+ *  failed create); the reason has already been toasted. The two doors below
+ *  share this so that "today's note" means the same file, with the same
+ *  template, whether it is being opened or written into from the capture
+ *  sheet (client/capture.ts) — which passes `from` explicitly, because a
+ *  line captured while last month's note is open belongs to TODAY, not to
+ *  the day being read; walking from the open note is the yesterday/tomorrow
+ *  commands' idea, and only theirs. */
+export async function ensurePeriodicNote(kind: PeriodKind = "day", offset = 0, from?: Date): Promise<EnsuredNote | null> {
   await loadPeriodic();
   const store = useStore.getState();
-  const from = (store.openPath && dailyNoteDate(store.openPath)) || new Date();
+  from ??= (store.openPath && dailyNoteDate(store.openPath)) || new Date();
   const date = new Date(from.getFullYear(), from.getMonth(), from.getDate(), 12);
   if (kind === "day") date.setDate(date.getDate() + offset);
   else date.setDate(date.getDate() + offset * 7);

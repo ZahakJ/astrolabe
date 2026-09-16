@@ -56,7 +56,11 @@ export async function capture(text: string, target: CaptureTarget): Promise<stri
     if (!inbox) throw new Error("no inbox");
     path = inbox;
   } else {
-    const ensured = await ensurePeriodicNote("day", 0);
+    // From TODAY, explicitly: the daily door otherwise walks from the open
+    // note when that note is itself a daily note, and a line captured while
+    // reading last month's page would land on last month — while the sheet
+    // says "Today's note".
+    const ensured = await ensurePeriodicNote("day", 0, new Date());
     if (ensured === null) return null;
     path = ensured.path;
   }

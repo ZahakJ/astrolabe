@@ -25,7 +25,7 @@ The note you were in stays where it was, with your caret in it; a toast names th
 
 **The inbox.** Sometimes the day's note is the wrong home: a line that belongs to a project, a reading list, a running list of questions. Pin a note as the **capture inbox** in Settings → Vault → Capture inbox, and the sheet grows a second choice: *Today's note* or *Inbox*. The line lands under `## Captured` in whichever you pick, in the same shape.
 
-On a phone the sheet sits at the bottom of the screen, where a thumb already is, and the field and both buttons are tall enough to hit. The shortcut is not the only way in: the palette row works from the sidebar on a phone too.
+On a phone the sheet sits at the bottom of the screen, where a thumb already is, and the field and both buttons are tall enough to hit. The shortcut is not the only way in: on a phone, **Quick capture** is the first row under the **⋯** in the top bar.
 
 The time stamp uses your device's clock and Western digits, like the daily note's own filename: it is an address inside the note, not prose, and it should sort the same way in every language.
 
@@ -69,6 +69,8 @@ The bookmarklet sends the page to your site directly from the page you are on. S
 The site is installable. On a phone, open it in the browser and choose **Add to Home Screen** (Chrome offers it on its own; Safari has it under Share). The installed app opens full-screen, carries the site's name and the colours of its default theme, and, on Android, appears in the phone's **share sheet**.
 
 Share a page from any app to it and the page is clipped into `Clips/`, exactly as the bookmarklet would have done it; the app then opens on the new note. Share a sentence — a thought, a line from a message — and it is appended under `## Captured` in today's note. A share that carries both words and an address is a page with the words as its body.
+
+If the browser you share from is not signed in to the site, the share lands on a page that says so, with the way in; sign in there once and share again.
 
 Two honest limits. A share arrives with the page's address and title but not its contents, so a shared page is filed as its title and address, ready for you to add to; the bookmarklet, which runs *on* the page, gets the whole article. And a daily note the share sheet has to create (because you had not opened today's yet) starts bare — the template is applied by the app when it makes the note, and the share sheet reaches the vault without the app. Open today's note once in the morning and neither limit applies.
 

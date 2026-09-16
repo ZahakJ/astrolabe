@@ -400,6 +400,11 @@ export default function StatusBar() {
   const moreRows: MenuRow[] = [
     ...(admin
       ? [
+          // Quick capture (docs/capture.md) leads the phone's tools: on a
+          // phone there is no chord and no palette, and a sheet built for a
+          // thumb needs a door a thumb can reach.
+          { label: t("cmdQuickCapture"), onSelect: () => useStore.getState().setCaptureOpen(true) },
+          { label: null },
           { label: t("media"), onSelect: toggleMedia },
           { label: t("orbits"), onSelect: toggleOrbits },
           { label: t("routines"), onSelect: toggleRoutines },

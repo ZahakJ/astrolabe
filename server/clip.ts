@@ -33,7 +33,7 @@ import { notePathToUrl } from "./blog.ts";
 import { invalidateGraph } from "./graphCache.ts";
 import { indexFile } from "./indexer.ts";
 import { dailyFolder, getSettings } from "./settings.ts";
-import { dataDir } from "./site.ts";
+import { dataDir, siteLanguage, siteName } from "./site.ts";
 import { invalidateTree } from "./treeCache.ts";
 import { emitEvent, noteExists, readNote, suppressWatcherEcho, VaultError, writeNote } from "./vault.ts";
 
@@ -108,6 +108,21 @@ function tooManyMisses(ip: string): boolean {
 
 // ── The writes ──────────────────────────────────────────────────────────────
 
+// ONE WRITE AT A TIME. Two captures in the same instant — six sheets on six
+// devices, a double-tapped bookmarklet, the share sheet and a script — each
+// read the note, each append to what they read, and the last write wins over
+// the rest: five lines lost, five 200s for them. The mtime precondition on
+// writeNote does not catch it, because every read saw the same file. So
+// every write this file makes waits for the one before it; the queue is per
+// process, which is the whole world for a vault (server/vault.ts holds the
+// same assumption).
+let queue: Promise<unknown> = Promise.resolve();
+function serial<T>(work: () => Promise<T>): Promise<T> {
+  const next = queue.then(work, work);
+  queue = next.catch(() => undefined);
+  return next;
+}
+
 /** `YYYY-MM-DD` and `HH:MM` on the server's own clock. The client passes its
  *  own when it has one (the sheet); a phone's share sheet does not. */
 function localDate(now = new Date()): string {
@@ -130,7 +145,11 @@ export function dailyNotePathToday(): string {
 
 /** Append `text` under `## Captured` in `target` (today's note when null),
  *  creating the note when it is not there. Resolves to the note's path. */
-export async function captureLine(target: string | null, text: string, time: string | null): Promise<string> {
+export function captureLine(target: string | null, text: string, time: string | null): Promise<string> {
+  return serial(() => captureLineNow(target, text, time));
+}
+
+async function captureLineNow(target: string | null, text: string, time: string | null): Promise<string> {
   const clean = stripBidiControls(text).replace(/\r\n?/g, "\n").trim();
   if (clean === "") throw new VaultError(400, "Nothing to capture", "captureEmpty");
   if (clean.length > 20_000) throw new VaultError(413, "That is a note, not a line", "captureTooLong");
@@ -176,12 +195,16 @@ export interface ClipOutcome {
 /** Decide what a clip request is and write it. A request with an address
  *  (in `url`, or inside the shared `text`) is a page and becomes a note under
  *  Clips/; one without is a thought and goes under `## Captured` today. */
-export async function performClip(req: ClipRequest): Promise<ClipOutcome> {
+export function performClip(req: ClipRequest): Promise<ClipOutcome> {
+  return serial(() => performClipNow(req));
+}
+
+async function performClipNow(req: ClipRequest): Promise<ClipOutcome> {
   const shared = req.text ? splitSharedText(req.text) : { url: null, rest: "" };
   const url = req.url?.trim() || shared.url;
   if (!url) {
     const thought = [req.selection?.trim(), shared.rest].filter((s): s is string => !!s).join("\n");
-    return { kind: "captured", path: await captureLine(null, thought, null) };
+    return { kind: "captured", path: await captureLineNow(null, thought, null) };
   }
   if (!isClippableUrl(url)) throw new VaultError(400, "Not a web address", "clipBadUrl");
   const html = req.html && req.html.trim() !== "" ? req.html : null;
@@ -223,8 +246,6 @@ const CORS = {
 clipRoutes.options("/clip", (c) => c.body(null, 204, CORS));
 
 clipRoutes.post("/clip", async (c) => {
-  invalidateTree();
-  invalidateGraph();
   const type = c.req.header("content-type") ?? "";
   const asForm = /application\/x-www-form-urlencoded|multipart\/form-data/i.test(type);
   let fields: Record<string, unknown>;
@@ -249,7 +270,16 @@ clipRoutes.post("/clip", async (c) => {
     allowed = tokenMatches(given);
     if (!allowed) missed(ip);
   }
-  if (!allowed) return c.json({ error: "Admin session or clip token required" }, 401, CORS);
+  if (!allowed) {
+    // A form is a phone's share sheet, and what it shows the reader is this
+    // answer: a sentence in the site's language with the way in, not JSON.
+    if (asForm) return c.html(refusedSharePage(), 401);
+    return c.json({ error: "Admin session or clip token required" }, 401, CORS);
+  }
+  // Only now: an anonymous caller must not be able to drop the caches
+  // (the guarded routes get this from the middleware below the guard).
+  invalidateTree();
+  invalidateGraph();
   const outcome = await performClip({
     url: str(fields.url),
     title: str(fields.title),
@@ -264,6 +294,27 @@ clipRoutes.post("/clip", async (c) => {
   if (asForm) return c.redirect(notePathToUrl(outcome.path), 303);
   return c.json(outcome, 200, CORS);
 });
+
+/** The page a share sheet lands on when the browser it runs in holds no
+ *  session: the site's language, one sentence, the front door. The words
+ *  live here and not in client/i18n.ts because no client is involved — the
+ *  phone navigated straight to the API. */
+function refusedSharePage(): string {
+  const ar = siteLanguage() === "ar";
+  const name = siteName();
+  const title = ar ? `سجّل الدخول إلى ${name} أولًا` : `Sign in to ${name} first`;
+  const body = ar
+    ? "لم تصل المشاركة: هذا المتصفح ليس مسجّلًا للدخول. افتح الموقع، سجّل الدخول، ثم شارك مرة أخرى."
+    : "The share did not land: this browser is not signed in. Open the site, sign in, then share again.";
+  const link = ar ? "افتح الموقع" : "Open the site";
+  const esc = (s: string): string => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  return (
+    `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><head><meta charset="utf-8">` +
+    `<meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(title)}</title>` +
+    `<style>body{font-family:system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1.25rem;line-height:1.5}</style></head>` +
+    `<body><h1>${esc(title)}</h1><p>${esc(body)}</p><p><a href="/">${esc(link)}</a></p></body></html>`
+  );
+}
 
 /** Admin-only, mounted after the guard: the token the Settings tab prints
  *  into the bookmarklet, and the button that replaces it. */

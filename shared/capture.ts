@@ -68,10 +68,13 @@ export function clipFileName(title: string, fallback = "Clip"): string {
     .replace(/[\u0000-\u001f\u007f]/g, " ")
     .replace(/[\\/:*?"<>|[\]#]/g, " ")
     .replace(/\s+/g, " ")
-    .trim()
-    .replace(/^\.+|\.+$/g, "")
+    // Dots and spaces at either end, together: "../../etc" arrives as
+    // ".. .. etc" once its slashes are spaces, and a name that still begins
+    // with a dot is a dotfile the tree, the index and the watcher all
+    // refuse to see — a clip nobody could find.
+    .replace(/^[.\s]+|[.\s]+$/g, "")
     .slice(0, 120)
-    .trim();
+    .replace(/[.\s]+$/g, "");
   return `${base || fallback}.md`;
 }
 
