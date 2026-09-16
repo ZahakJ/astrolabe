@@ -51,6 +51,11 @@ describe("clips", () => {
     assert.equal(clipFileName("...dots..."), "dots.md");
     assert.equal(clipFileName("x".repeat(200)).length, 123);
     assert.equal(clipFileName("ctl\u0000char"), "ctl char.md");
+    // A title that would spell a dotfile once its slashes are spaces: the
+    // tree never lists a name that begins with a dot, so the clip must not.
+    assert.equal(clipFileName("../../etc/passwd"), "etc passwd.md");
+    assert.equal(clipFileName(". . hidden ."), "hidden.md");
+    assert.equal(clipFileName(`${"a".repeat(119)} .`), `${"a".repeat(119)}.md`);
   });
 
   it("writes the source and the day as frontmatter, the title as the heading", () => {

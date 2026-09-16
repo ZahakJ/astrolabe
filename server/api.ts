@@ -2236,7 +2236,7 @@ api.post("/capture", async (c) => {
   const body = await jsonBody(c);
   const text = requiredString(body, "text");
   const target = typeof body.path === "string" && body.path !== "" ? assertNotePath(body.path) : null;
-  const time = typeof body.time === "string" && /^\d{2}:\d{2}$/.test(body.time) ? body.time : null;
+  const time = typeof body.time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(body.time) ? body.time : null;
   const path = await captureLine(target, text, time);
   return c.json({ ok: true, path });
 });

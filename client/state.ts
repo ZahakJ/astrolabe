@@ -520,7 +520,7 @@ export interface State {
   settingsOpen: boolean;
   setSettingsOpen(b: boolean): void;
   /** The quick-capture sheet (client/components/CaptureSheet.tsx): open
-   *  from anywhere by Ctrl/Cmd+Shift+D, the palette, or the sidebar. */
+   *  from anywhere by Ctrl/Cmd+Shift+D, the palette, or the phone's ⋯ menu. */
   captureOpen: boolean;
   setCaptureOpen(b: boolean): void;
   /** THE ROW A SURFACE ELSEWHERE IN THE APP IS POINTING AT — a settings row's
