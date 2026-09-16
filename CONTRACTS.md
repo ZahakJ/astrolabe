@@ -100,7 +100,7 @@ that is the pre-existing pattern, and the door is now open.
 - `POST /api/note` body `{ path: string }` → `NoteData` (create empty; 409 if exists)
 - `GET  /api/seed` → `{ available: boolean, guide: string }` (admin-only, 404 to a visitor; `available` is true only when `vault-seed/` exists AND the vault holds no markdown)
 - `POST /api/seed` → `{ guide: string }` — copy the starter notes in, 409 `code: "seedNotEmpty"` if the vault filled up in between. **Boot seeds only a vault directory that DID NOT EXIST**; an existing-but-empty directory is the reader's and is offered the seed from the empty state instead of being written into unasked (server/seed.ts).
-- `POST /api/capture` body `{ text, path?, time? }` → `{ ok: true, path }` (admin-only) — append `- HH:MM text` under `## Captured` in `path` (today's daily note when absent, by the instance's folder and format), creating the note bare when it is not there. See "Capture" (3.16.x).
+- `POST /api/capture` body `{ text, path?, time? }` → `{ ok: true, path }` (admin-only) — append `- HH:MM text` under `## Captured` in `path` (today's daily note when absent, by the instance's folder and format), creating the note bare when it is not there. See "Capture" (3.17.0).
 - `POST /api/clip` body JSON `{ url?, title?, html?, selection?, text?, token? }` or a FORM (the share target) → `{ kind: "clipped" | "captured", path }`, or a 303 to the note for a form (a form the caller may not send gets a 401 HTML page in the site's language, not JSON — it is a phone's share sheet looking at it). **Above the auth guard**: answers to an admin session OR the clip token (`token` field / `Authorization: Bearer`); CORS `*` on its answers; 40 wrong tokens per address per quarter hour → 429. With an address, a note under `Clips/`; without, a line under `## Captured` today. Every write the clipper and `/api/capture` make is serialised through one in-process queue: a burst of captures into one note lands every line, and a burst of clips of one title lands as many notes.
 - `GET  /api/clip/token` → `{ token }` (admin-only; made on first ask) · `POST /api/clip/token/rotate` → `{ token }` (the old one stops working at once).
 - `GET  /manifest.webmanifest` (NOT under /api; open) → the web app manifest, generated from settings: name, `theme_color`/`background_color` from the default theme's swatch, the configured favicon plus `/manifest-icon.svg`, and the `share_target` that POSTs `title`/`text`/`url` as a form to `/api/clip`.
@@ -138,6 +138,9 @@ that is the pre-existing pattern, and the door is now open.
   (`server/graphCache.ts`); `/api/tree` is memoized the same way (`server/treeCache.ts`).
 - `GET  /api/backlinks?path=` → `Backlink[]`
 - `GET  /api/tags` → `TagCount[]` (from `#tag` inline + frontmatter `tags:`)
+- `GET  /api/props` → `PropCount[]` — every frontmatter key with its count and its twenty commonest values (per list item, folded like `prop:`), scoped like `/api/tags`; `tags` itself is left out (it has the shelf above). See "3.17.0 — Four views of the vault".
+- `GET  /api/nearby?path=` → `NearbyHit[]` (admin-only, 401 to a visitor: the scoring reads every note's body) — the ten notes that read most like `path`, with the two terms that tie each (server/nearby.ts over shared/nearby.ts; an unknown path answers `[]`).
+- `GET  /api/query/paths?q=` → `string[]` — the paths a query names, uncapped, scoped like `/api/search`; an empty query names nothing. What the graph paints its groups by.
 - `GET  /api/trackers` → `TrackerMeta[]` — every ```` ```tracker ```` fence this session may see, newest-touched first (the shelf a ```` ```tracker-board ```` draws). Scoped EXACTLY like `/api/posts`: a visitor gets published notes only with the language filter applied, an admin gets the whole vault, and templates are out of both. Covers are resolved server-side, per session, so the board spends no `/api/resolve` per card and a visitor is never handed a path they may not fetch. See "Trackers".
 - A tracker fence may carry `folder:` (a vault folder, no `..`); `TrackerMeta` carries it as `folder`
   with `folderNotes` (notes under it, live) and `folderNote` (the folder's own note or index.md), admin
@@ -9679,7 +9682,77 @@ shell's `s-app--notice` row (renamed from `s-app--preview`, shared with the prev
 reads that OR `navigator.onLine`, seeded from `servingOfflineNow()` for a listener that mounts
 after `/api/me` came back. Edits offline are the editor's retry's business, not the worker's.
 
-## 3.16.x — Capture: the quick-capture sheet, the clipper, the installable site
+## 3.17.0 — The month, the margin, the week: the other five groups
+
+**Periodic notes grow the month and the year (`shared/periodic.ts`, `client/daily.ts`).** The
+format IS the declaration: a week token makes a week, a day token a day, a month token with no day
+a month (`YYYY-MM`), the year alone a year (`YYYY`); `periodKindOf`, `periodStart`, `periodEnd`,
+`shiftPeriod` are the arithmetic, and a name reads back to its period's FIRST day at local noon.
+Settings: `monthlyFormat`/`monthlyTemplate`, `yearlyFormat`/`yearlyTemplate` beside the weekly
+pair ("" is off; `periodFormat` checks a format against its KIND, so a monthly name may not carry
+`DD`), `uniqueFolder`/`uniqueFormat` (the Zettelkasten stamp, `YYYYMMDDHHmm`; must be finer than a
+day; `freePath` takes ` 2`, ` 3`… for two ideas in one minute), and `launch` (`shared/launch.ts`:
+`resume` — stored as its absence — `sigils`, `orbits`, `today`, or a note path; `/api/me` carries it
+to the admin only, and `openLaunchDoor` in the store opens it ON TOP of the restored session, never
+over a deep link). THE ONE DOOR is `ensurePeriodicNoteAt(kind, date)` → `{ path, created } | null`
+(creates through `createNote` + the period's template, toasts its own refusals) with
+`openPeriodicNoteAt` on top of it; `openPeriodicNote(kind, offset)` walks from an open periodic note
+of a kind at least as fine, `openDailyNote()` is always TODAY. `periodOf(path)` names a path's
+period, `periodLabel` says it in the site's calendar (the status bar's crumb), and `dailyNoteLabel`
+is the short calendar-aware date the capture sheet's select and toast want.
+
+**The month grid (`shared/calendar.ts`, `client/components/CalendarGrid.tsx`).** `monthCells(date,
+calendar, order)` — Gregorian from `Date`, Hijri from Intl's Umm al-Qura tables, never a hand-rolled
+month — rows of seven from the site language's first day (`weekOrder`). Dots come from the tree
+(`dailyNotesByDay`: a string compare per note, nothing stored) and from the sigil logs the caller
+hands in; the grid is ONE tab stop (arrows walk, mirrored under RTL; Home/End the row; PageUp/Down
+the month) and a click goes through `openPeriodicNoteAt`. The sidebar draws it for an admin, and
+for a visitor only when a daily note is published; the Sigils page draws it at its top.
+
+**The editor conveniences.** `{{cursor}}` and `{{prompt:Label}}`/`{{VALUE:Label}}` in
+`client/templates.ts` (`templatePrompts`, `fillPrompts`, `takeCursor`; the sheet is
+`components/TemplateValuesSheet.tsx`, Esc cancels the whole insertion). `@` at a word start opens
+`client/editor/dateMention.ts` over `shared/naturalDate.ts` — bilingual in ONE table, bare numerals
+refused, a Hijri month NAME makes a Hijri date whatever the site prints — and inserts
+`[[<daily path>|<weekday or long date>]]`. The palette's `Create "…"` row, `Load layout: <name>`
+rows (`client/layouts.ts`) and `New unique note` (`client/uniqueNote.ts`). `countWords` takes a
+selection (`shared/wordCount.ts`); `client/tagPreview.ts` is the hover card over `/api/search?q=tag:`.
+
+**The reading surfaces.** `shared/footnotes.ts` (`footnotesOf`, `stackSidenotes`) feeds
+`components/FootnotesPanel.tsx` (under the outline; `client/footnoteNav.ts` is the hop event) and
+`reading/sidenotes.ts` (the reading view only; on at a pane of `SIDENOTE_MIN_COLUMN` 1180px with a
+180px margin, off on paper — print.css restores the foot). `shared/mediaEmbeds.ts` decides
+`![[Book.pdf#page=42]]` (`pdfpage`, drawn by `reading/pdfPage.ts` through the lazy `books/pageImage.ts`)
+and `![[lecture.mp3]]` (`audio`, `reading/audio.ts`; `[[…#t=1:23]]` seeks the player on the page).
+`as: timeline` in a ```` ```query ```` fence (`shared/timeline.ts`, `by:` a date key) and
+```` ```mermaid ```` (`reading/mermaid.ts`, imported only when a fence is met; `securityLevel:
+"strict"`, themed from the live tokens, redrawn on a theme flip; check-bundle forbids it from every
+first paint).
+
+**Four views of the vault.** `Bookmarks.md` rows: `- [[Note]]`, `- [[Note#Heading]]` (§) and
+`` - `query` `` (⌕) — `shared/bookmarks.ts`; Ctrl/Cmd+Shift+B keeps or removes the whole-note line
+only. The properties shelf (`components/PropsShelf.tsx` over `/api/props`; a click runs
+`prop:key` or `prop:key=value`, quoted when needed). Graph groups by query (`client/graphPrefs.ts`
+`ColorBy "query"`, `QueryGroup` rows up to `QUERY_GROUPS_MAX`, first match wins, painted from `/api/query/paths`). Nearby
+(`shared/nearby.ts`: TF-IDF cosine over the index's folded terms, tags weighted up, no stop list;
+`server/nearby.ts` caches per-note term counts by mtime and the weighed corpus per index revision
+`nearbyRev`; `components/NearbyPanel.tsx` under the backlinks, admin only).
+
+**Reading sessions.** `shared/readingSession.ts` is the quiet clock (starts on the first turn,
+three minutes idle stops it, a page left under `DWELL_MS` was not read); `client/books/session.ts`
+logs a sitting into the book's tracker — found by `file:` then by title among `kind: book` — as one
+`sessions:` line (`shared/tracker.ts` `appendTrackerSession`/`parseSessions`, readable in
+either language, hand-written lines count) and moves `progress:` when the tracker counts pages;
+`routines/books.ts` ticks the sigil slot that links the tracker or the PDF (the `book:` task only
+when the sitting covered the pace); the toast's Undo takes back exactly what was written, from the
+note as it is THEN. The stash (`localStorage`, per book) resumes a sitting within half an hour and
+logs an older one for its own day. `TrackerMeta` carries `file` (null to a visitor) and `sessions`.
+`Highlights → note` (`client/books/highlightsNote.ts`, `shared/highlightsNote.ts`) writes between
+`<!-- astrolabe:highlights -->` markers. The weekly review (`shared/weekReview.ts`,
+`client/review/ReviewWeekView.tsx`, `/review-week`, a lazy chunk) computes everything on open and
+stores nothing; `client/print.ts` `setPrintable` lets it own Ctrl+P while it is on screen.
+
+## 3.17.0 — Capture: the quick-capture sheet, the clipper, the installable site
 
 **The text arithmetic (`shared/capture.ts`).** `appendCaptured(content, text, time)` puts `- HH:MM
 text` at the end of the `## Captured` section (a `##`/`#` heading ends it; a `###` under it does
@@ -9711,8 +9784,10 @@ so that path rides the cookie. Names under `Clips/` never overwrite (` (2)`, ` (
 **The sheet (`client/capture.ts`, `client/components/CaptureSheet.tsx`).** Ctrl/Cmd+Shift+D (Shift
 beside the daily note's Alt; the plain key is the editor's), the palette row `quick-capture`, store
 flag `captureOpen`, lazy and mount-gated like the shortcuts sheet, in `modalUp`. The order of
-operations is the contract: today's note is made through `ensurePeriodicNote` (client/daily.ts —
-`openPeriodicNote` is now that plus `openNote`) so the daily template lands; the target's buffer is
+operations is the contract: today's note is made through `ensurePeriodicNoteAt("day", new Date())`
+(client/daily.ts — `openPeriodicNoteAt` is that plus `openNote`; by DATE, not by the palette's walk
+from an open daily note, so a line captured over last month's page lands on today) so the daily
+template lands; the target's buffer is
 FLUSHED (`flushBufferPath`) before the server appends, because the append's precondition is the
 file's mtime; and the buffer then ADOPTS the result explicitly (`adoptExternalChange`), because
 the SSE echo arrives inside `SELF_SAVE_WINDOW_MS` of the flush and the shell would read it as our

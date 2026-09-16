@@ -475,9 +475,13 @@ export const RELEASES: Release[] = [
       {
         // ── The reading surfaces ─────────────────────────────────────────
         title: { en: "Footnotes in the margin, a page, a sound, a timeline, a diagram", ar: "حواشٍ في الهامش، وصفحة، وصوت، وخط زمني، ومخطط" },
+        // The two `![[…]]` tokens carry a WORD JOINER (U+2060) between the
+        // bang and the brackets: a line may break between "!" and "[[", and
+        // at the dialog's width it did, in both languages — a lone "!" at
+        // one line's end and "[[Book.pdf#page=42]]" opening the next.
         body: {
-          en: "The outline pane lists every footnote, and a wide reading column sets each one in the margin beside the line that cites it. ![[Book.pdf#page=42]] draws that page in the note, ![[lecture.mp3]] is a small player, as: timeline lays a query's notes under year headings, and a ```mermaid fence is a diagram — in the editor, the reading view and on your site.",
-          ar: "تعرض لوحة المحتويات كل الحواشي، وفي عمود قراءة واسع تجلس كل حاشية في الهامش بجانب السطر الذي يحيل إليها. ويرسم ![[Book.pdf#page=42]] تلك الصفحة في موضع التضمين، و![[lecture.mp3]] مشغّل صغير و#t=1:23 رابط إلى لحظة، وas: timeline يصفّ ملاحظات الاستعلام على خط تحت عناوين السنوات، وسياج ```mermaid يُعرض مخططًا؛ في المحرر وعرض القراءة وعلى موقعك.",
+          en: "The outline pane lists every footnote, and a wide reading column sets each one in the margin beside the line that cites it. !⁠[[Book.pdf#page=42]] draws that page in the note, !⁠[[lecture.mp3]] is a small player, as: timeline lays a query's notes under year headings, and a ```mermaid fence is a diagram — in the editor, the reading view and on your site.",
+          ar: "تعرض لوحة المحتويات كل الحواشي، وفي عمود قراءة واسع تجلس كل حاشية في الهامش بجانب السطر الذي يحيل إليها. ويرسم !⁠[[Book.pdf#page=42]] تلك الصفحة في موضع التضمين، و!⁠[[lecture.mp3]] مشغّل صغير و#t=1:23 رابط إلى لحظة، وas: timeline يصفّ ملاحظات الاستعلام على خط تحت عناوين السنوات، وسياج ```mermaid يُعرض مخططًا؛ في المحرر وعرض القراءة وعلى موقعك.",
         },
         visual: {
           kind: "svg",
