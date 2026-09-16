@@ -110,6 +110,10 @@ made to be read — and edited — by a person:</p>
 the weekday itself when the day was a single line (<code>sunday</code>);</li>
 <li><code>skipped:</code> names what you passed on <strong>on purpose</strong> — the day still counts as missed, but the log
 remembers why;</li>
+<li><code>deferred:</code> names what you <strong>pushed to tomorrow</strong>: not done, not given up. The task keeps
+showing on the following days under <em>Owed from earlier days</em> until you tick it or skip it, and
+the tick is written onto the day it was owed to, so that day is the one that gets the credit
+(and its streak heals). A pushed task is remembered for a week;</li>
 <li>anything whose name is one of your fields sets that field;</li>
 <li>whatever is left is the day&#39;s <strong>note</strong>.</li>
 </ul>
@@ -124,7 +128,9 @@ published site, inside a transclusion — always the same card:</p>
 one.</li>
 <li><strong>Today</strong>: the date, the day&#39;s checklist (every-day items first, then the day&#39;s parts with what
 each asks), the fields, and a one-line note. In the editor, ticking a box rewrites the log as
-<strong>one undo step</strong>. Hover a task for <em>skip</em>. A part whose text links a study deck with a wikilink
+<strong>one undo step</strong>. Hover a task for <em>skip</em> and <em>tomorrow →</em>: skip is &quot;not at all&quot;, tomorrow is
+&quot;not today&quot; — the task moves under <em>Owed from earlier days</em> on the next day&#39;s card and stays
+there until you answer it. A part whose text links a study deck with a wikilink
 — <code>review: [[Orbits/Hiragana]]</code> — shows the deck by name and wears a small chip, <em>12 due ·
 Study</em>, that opens the session; when a session leaves nothing due, the part is ticked for you
 (see <a href="../orbits/">Orbits</a>).</li>

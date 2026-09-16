@@ -49,7 +49,7 @@ describe("books this week", () => {
 describe("sigils this week", () => {
   it("counts each sigil's complete days against its target and carries the streak", () => {
     const plan = parseRoutine("title: Walk\nitems: walk\ntarget: 5\n")!;
-    const entries = ["2026-09-13", "2026-09-14", "2026-09-15"].map((date) => ({ date, done: ["walk"], skipped: [], values: {}, note: null }));
+    const entries = ["2026-09-13", "2026-09-14", "2026-09-15"].map((date) => ({ date, done: ["walk"], skipped: [], deferred: [], values: {}, note: null }));
     const [row] = sigilsThisWeek([{ path: "Sigils/Walk.md", index: 0, plan, entries }], "2026-09-15", "en");
     assert.deepEqual([row.title, row.done, row.of, row.streak], ["Walk", 2, 5, 3]);
   });

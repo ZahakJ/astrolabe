@@ -926,6 +926,8 @@ const AUDIENCES = [
   // 3.16.0: 1046.5 kB actual → 1047 after the French/furigana merge (above).
   // 3.16.0 release: 1047.8 kB actual → 1048 (the merge above).
   // 3.16.1: 1049.1 kB actual → 1050 (the row above).
+  // 3.16.3: 1050.6 kB actual → 1051 — the sigil card's pushed-forward rows
+  // and the reading renderer's share of them.
   // 3.17.0: 1086.0 kB actual → 1087 — the six branches' entry bytes above
   // (1049.1 kB before them), plus what a published page can show and so
   // must carry: the reading surfaces' player builder (reading/audio.ts)
@@ -939,7 +941,9 @@ const AUDIENCES = [
   // calendar, the vault views and capture added nothing here beyond the
   // dictionary; the sidenote sheet rides reading/sidenotes.css with the
   // reading view's chunk alone.
-  { name: "anonymous blog reader", keys: blog, budget: 1087 * 1024 },
+  // 3.17.0 + 3.16.3: 1087.4 kB actual → 1088 — the sigil card's
+  // pushed-forward rows (main's 3.16.3, above) landing on the six branches.
+  { name: "anonymous blog reader", keys: blog, budget: 1088 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1069,6 +1073,7 @@ const AUDIENCES = [
   // 3.16.0: 1491.4 kB actual → 1492 after the French/furigana merge (above).
   // 3.16.0 release: 1493.4 kB actual → 1494 (the merge above).
   // 3.16.1: 1494.6 kB actual → 1495 (the row above).
+  // 3.16.3: 1496.1 kB actual → 1497 (the rows above, plus client/morph.ts).
   // 3.17.0: 1543.6 kB actual → 1545 — the blog closure's bytes above
   // (1494.6 kB before the six branches), plus the admin's own share of
   // each: the sidebar's Calendar section (its fold, the one fetch that

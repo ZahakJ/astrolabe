@@ -212,6 +212,12 @@ export interface RoutineEntry {
   date: string;
   done: string[];
   skipped: string[];
+  /** Tasks PUSHED FORWARD from this day: not done, not given up — they keep
+   *  showing on the days after until ticked (which writes them into this
+   *  day's `done`, so the day it was owed to is the day that gets credit) or
+   *  skipped. The owner: "a task skipped today, or part of one, moves to
+   *  tomorrow". Written as `deferred: evening`. */
+  deferred: string[];
   /** Field key (as declared) → value as written. */
   values: Record<string, string>;
   note: string | null;
@@ -499,7 +505,7 @@ export function parseLogLine(raw: string, fields: RoutineField[]): RoutineEntry 
   const line = foldDigits(raw);
   const m = DATE_RE.exec(line);
   if (!m) return null;
-  const entry: RoutineEntry = { date: m[1], done: [], skipped: [], values: {}, note: null };
+  const entry: RoutineEntry = { date: m[1], done: [], skipped: [], deferred: [], values: {}, note: null };
   const rest = line.slice(m[0].length);
   const segments = rest.split("|").map((s) => s.trim()).filter((s) => s !== "");
   const notes: string[] = [];
@@ -513,6 +519,10 @@ export function parseLogLine(raw: string, fields: RoutineField[]): RoutineEntry 
     }
     if (key === "skipped" || key === "skip" || key === "تخطيت" || key === "تجاوزت") {
       for (const k of splitList(value)) if (!entry.skipped.some((d) => sameKey(d, k))) entry.skipped.push(k);
+      continue;
+    }
+    if (key === "deferred" || key === "defer" || key === "pushed" || key === "أُجّل" || key === "أجل" || key === "مؤجل") {
+      for (const k of splitList(value)) if (!entry.deferred.some((d) => sameKey(d, k))) entry.deferred.push(k);
       continue;
     }
     // A DECLARED field wins over the note keyword: a plan that keeps a
@@ -541,6 +551,7 @@ export function formatLogLine(entry: RoutineEntry, fields: RoutineField[]): stri
   const parts: string[] = [entry.date];
   if (entry.done.length > 0) parts.push(`done: ${entry.done.join(", ")}`);
   if (entry.skipped.length > 0) parts.push(`skipped: ${entry.skipped.join(", ")}`);
+  if (entry.deferred.length > 0) parts.push(`deferred: ${entry.deferred.join(", ")}`);
   const seen = new Set<string>();
   for (const f of fields) {
     const v = entry.values[f.key];
@@ -562,16 +573,18 @@ export interface EntryPatch {
   date: string;
   done?: string[];
   skipped?: string[];
+  deferred?: string[];
   values?: Record<string, string | null>;
   note?: string | null;
 }
 
 export function mergeEntry(existing: RoutineEntry | null, patch: EntryPatch): RoutineEntry {
-  const base: RoutineEntry = existing ?? { date: patch.date, done: [], skipped: [], values: {}, note: null };
+  const base: RoutineEntry = existing ?? { date: patch.date, done: [], skipped: [], deferred: [], values: {}, note: null };
   const next: RoutineEntry = {
     date: patch.date,
     done: patch.done !== undefined ? [...patch.done] : [...base.done],
     skipped: patch.skipped !== undefined ? [...patch.skipped] : [...base.skipped],
+    deferred: patch.deferred !== undefined ? [...patch.deferred] : [...base.deferred],
     values: { ...base.values },
     note: patch.note !== undefined ? (patch.note === null || patch.note.trim() === "" ? null : patch.note.trim()) : base.note,
   };
@@ -581,12 +594,14 @@ export function mergeEntry(existing: RoutineEntry | null, patch: EntryPatch): Ro
   }
   // A task cannot be both ticked and skipped.
   next.skipped = next.skipped.filter((s) => !next.done.some((d) => sameKey(d, s)));
+  // …nor pushed forward once it is done or given up.
+  next.deferred = next.deferred.filter((s) => !next.done.some((d) => sameKey(d, s)) && !next.skipped.some((d) => sameKey(d, s)));
   return next;
 }
 
 /** True when an entry says nothing at all — its line can be dropped. */
 export function entryIsEmpty(entry: RoutineEntry): boolean {
-  return entry.done.length === 0 && entry.skipped.length === 0 && Object.keys(entry.values).length === 0 && entry.note === null;
+  return entry.done.length === 0 && entry.skipped.length === 0 && entry.deferred.length === 0 && Object.keys(entry.values).length === 0 && entry.note === null;
 }
 
 /** `body` (a ```routine-log fence body) with `entry`'s line replaced, or
@@ -1018,3 +1033,33 @@ export function routineNotePath(title: string, lang: "en" | "ar" | undefined, ex
   return `${routinesRootFor(lang, existing)}/${routineFileName(title)}.md`;
 }
 
+/** Tasks pushed forward from earlier days that are still owed on `today`:
+ *  every `deferred` key of an entry dated before today (within a week) that
+ *  its own day has not since ticked or skipped. Newest day first, so the
+ *  card reads "from yesterday" before "from Tuesday". */
+export interface CarriedTask {
+  /** The day it was owed to — the entry a tick writes into. */
+  from: string;
+  task: RoutineTask;
+}
+
+function shiftDays(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+export function carriedTasks(plan: RoutinePlan, entries: RoutineEntry[], today: string): CarriedTask[] {
+  const out: CarriedTask[] = [];
+  const floor = shiftDays(today, -7);
+  for (const e of [...entries].sort((a, b) => b.date.localeCompare(a.date))) {
+    if (e.date >= today || e.date < floor || e.deferred.length === 0) continue;
+    const tasks = tasksFor(plan, e.date);
+    for (const key of e.deferred) {
+      if (e.done.some((d) => sameKey(d, key)) || e.skipped.some((d) => sameKey(d, key))) continue;
+      const task = tasks.find((t) => sameKey(t.key, key)) ?? { key, text: null, slot: null };
+      out.push({ from: e.date, task });
+    }
+  }
+  return out;
+}

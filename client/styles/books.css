@@ -336,6 +336,13 @@
   align-items: flex-start;
   justify-content: center;
   inline-size: 100%;
+  /* Every spread has its height set inline, so the browser can be told
+     the truth: a spread's layout and paint never reach outside its box,
+     and an off-screen spread need not be laid out at all. Without this a
+     zoom step re-laid the whole 670-spread column on every wheel notch —
+     the profile put most of a Ctrl+wheel's time in layout, not in pdf.js. */
+  contain: layout style paint;
+  content-visibility: auto;
 }
 
 .s-book__page {

@@ -26,6 +26,7 @@ import {
   upsertLogLine,
   weekStart,
   weekdayOfDate,
+  carriedTasks,
 } from "../shared/routine.ts";
 import { ROUTINE_PRESETS } from "../shared/routinePresets.ts";
 
@@ -101,16 +102,16 @@ describe("a routine log", () => {
     assert.equal(e.values.minutes, "45");
   });
   it("writes a line in reading order and softens bars in a note", () => {
-    const line = formatLogLine({ date: "2026-09-13", done: ["morning"], skipped: ["evening"], values: { weight: "84", minutes: "60" }, note: "a | b" }, fields);
+    const line = formatLogLine({ date: "2026-09-13", done: ["morning"], skipped: ["evening"], deferred: [], values: { weight: "84", minutes: "60" }, note: "a | b" }, fields);
     assert.equal(line, "2026-09-13 | done: morning | skipped: evening | minutes: 60 | weight: 84 | a / b");
   });
   it("upserts one line and leaves every other byte, CRLF included", () => {
     const body = "2026-09-11 | done: morning\r\n2026-09-13 | minutes: 30\r\n";
-    const next = upsertLogLine(body, { date: "2026-09-12", done: ["morning"], skipped: [], values: {}, note: null }, fields);
+    const next = upsertLogLine(body, { date: "2026-09-12", done: ["morning"], skipped: [], deferred: [], values: {}, note: null }, fields);
     assert.equal(next, "2026-09-11 | done: morning\r\n2026-09-12 | done: morning\r\n2026-09-13 | minutes: 30\r\n");
-    const replaced = upsertLogLine(next, { date: "2026-09-13", done: [], skipped: [], values: { minutes: "45" }, note: null }, fields);
+    const replaced = upsertLogLine(next, { date: "2026-09-13", done: [], skipped: [], deferred: [], values: { minutes: "45" }, note: null }, fields);
     assert.equal(replaced, "2026-09-11 | done: morning\r\n2026-09-12 | done: morning\r\n2026-09-13 | minutes: 45\r\n");
-    const removed = upsertLogLine(replaced, { date: "2026-09-12", done: [], skipped: [], values: {}, note: null }, fields);
+    const removed = upsertLogLine(replaced, { date: "2026-09-12", done: [], skipped: [], deferred: [], values: {}, note: null }, fields);
     assert.equal(removed, "2026-09-11 | done: morning\r\n2026-09-13 | minutes: 45\r\n");
   });
   it("merges a patch: lists replace, values set or clear, done wins over skipped", () => {
@@ -136,7 +137,7 @@ describe("weeks and days", () => {
   it("judges a day: complete, partial, missed, rest, none", () => {
     const plan = parseRoutine(PLAN)!;
     const today = "2026-09-14"; // a Monday
-    const full = { date: today, done: ["morning", "Evening"], skipped: [], values: {}, note: null };
+    const full = { date: today, done: ["morning", "Evening"], skipped: [], deferred: [], values: {}, note: null };
     assert.equal(dayStatus(plan, full, today, today), "complete");
     assert.equal(dayStatus(plan, { ...full, done: ["morning"] }, today, today), "partial");
     assert.equal(dayStatus(plan, null, today, today), "none");
@@ -311,5 +312,38 @@ tuesday:
     assert.equal(routinesRootFor("en", ["Orbits"]), "Sigils");
     assert.equal(routinesRootFor("ar", ["مدارات"]), "سجل");
     assert.ok(routineNoteContent(draftOf(parseRoutine(OWNER)!)).startsWith('---\ntitle: "Daily exercise"\n---\n\n```sigil\n'));
+  });
+});
+
+describe("pushed forward (3.16.3)", () => {
+  const PLAN = `title: Walks
+slots: morning, evening
+monday:
+  morning: walk
+  evening: stretch
+tuesday:
+  morning: walk
+  evening: stretch`;
+  it("reads and writes deferred tasks and drops one once it is done or skipped", () => {
+    const plan = parseRoutine(PLAN)!;
+    const [e] = parseRoutineLog("2026-09-14 | done: morning | deferred: evening", plan.fields);
+    assert.deepEqual(e.deferred, ["evening"]);
+    assert.equal(formatLogLine(e, plan.fields), "2026-09-14 | done: morning | deferred: evening");
+    const done = mergeEntry(e, { date: e.date, done: [...e.done, "evening"] });
+    assert.deepEqual(done.deferred, [], "ticking the owed task takes it off the pushed list");
+    assert.equal(dayStatus(plan, done, "2026-09-14", "2026-09-16"), "complete", "the day it was owed to gets the credit");
+    const gaveUp = mergeEntry(e, { date: e.date, skipped: ["evening"] });
+    assert.deepEqual(gaveUp.deferred, []);
+  });
+  it("carries a pushed task onto the following days until it is answered", () => {
+    const plan = parseRoutine(PLAN)!;
+    const entries = parseRoutineLog("2026-09-14 | done: morning | deferred: evening\n2026-09-15 | done: morning, evening", plan.fields);
+    const carried = carriedTasks(plan, entries, "2026-09-16");
+    assert.equal(carried.length, 1);
+    assert.equal(carried[0].from, "2026-09-14");
+    assert.equal(carried[0].task.key, "evening");
+    assert.equal(carried[0].task.text, "stretch");
+    assert.equal(carriedTasks(plan, entries, "2026-09-14").length, 0, "not on the day itself");
+    assert.equal(carriedTasks(plan, entries, "2026-09-30").length, 0, "a week is the horizon");
   });
 });
