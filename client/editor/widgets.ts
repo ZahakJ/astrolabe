@@ -36,6 +36,8 @@ import {
   resolveAttachment,
   resolveRelative,
 } from "./embeds.ts";
+import { audioPlayer } from "../reading/audio.ts";
+import { pdfPageEmbed } from "../reading/pdfPage.ts";
 export type { EmbedParts } from "./embeds.ts";
 export { brokenEmbed, fileUrl, parseEmbed, resolveAttachment, resolveRelative };
 
@@ -304,6 +306,58 @@ export class FileCardWidget extends WidgetType {
     return a;
   }
   // default ignoreEvent() → true: the browser handles the <a> click itself
+}
+
+// ── Sound: `![[lecture.mp3]]` as a player ───────────────────────────────────
+
+export class AudioWidget extends WidgetType {
+  constructor(readonly name: string) {
+    super();
+  }
+  override eq(other: AudioWidget): boolean {
+    return other.name === this.name;
+  }
+  toDOM(): HTMLElement {
+    // The same player the reading view and the site draw (reading/audio.ts): one
+    // builder, one look. `cm-s-embed-audio` only sets its line-box.
+    const wrap = document.createElement("span");
+    wrap.className = "cm-s-embed-audio";
+    wrap.appendChild(audioPlayer(this.name));
+    return wrap;
+  }
+  // The controls are the browser's; a click on them is not a caret move.
+  override ignoreEvent(): boolean {
+    return true;
+  }
+}
+
+// ── A page of a book: `![[Book.pdf#page=42]]` as a picture ──────────────────
+
+export class PdfPageWidget extends WidgetType {
+  constructor(
+    readonly name: string,
+    readonly page: number,
+    readonly width: number | null,
+  ) {
+    super();
+  }
+  override eq(other: PdfPageWidget): boolean {
+    return other.name === this.name && other.page === this.page && other.width === this.width;
+  }
+  toDOM(view: EditorView): HTMLElement {
+    const wrap = document.createElement("span");
+    wrap.className = "cm-s-embed-image cm-s-embed-pdfpage";
+    // The reading renderer's card (reading/pdfPage.ts): a paper-shaped slot
+    // until the picture lands, then the picture — and the editor is told
+    // the height changed, as it is for every image (ImageWidget above).
+    wrap.appendChild(pdfPageEmbed(this.name, this.page, this.width, { onResize: () => view.requestMeasure() }));
+    return wrap;
+  }
+  override ignoreEvent(e: Event): boolean {
+    // The caption opens the reader; the picture itself is the editor's.
+    const target = e.target;
+    return target instanceof Element && target.closest(".s-rv-pdfpage__caption") !== null;
+  }
 }
 
 // ── Note transclusion card ──────────────────────────────────────────────────

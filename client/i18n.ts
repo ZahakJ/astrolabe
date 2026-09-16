@@ -4867,6 +4867,23 @@ const DICT = {
   queryColTags: { en: "Tags", ar: "الوسوم" },
   queryColExcerpt: { en: "Excerpt", ar: "مقتطف" },
   queryColPath: { en: "Path", ar: "المسار" },
+  // The timeline view (shared/timeline.ts): rows the fence's `by:` date
+  // cannot place gather under this heading rather than vanish.
+  timelineUndated: { en: "Undated", ar: "بلا تاريخ" },
+  // ── Footnotes (client/components/FootnotesPanel.tsx, reading/sidenotes.ts) ──
+  footnotes: { en: "Footnotes", ar: "الحواشي" },
+  showFootnotes: { en: "Show footnotes", ar: "إظهار الحواشي" },
+  hideFootnotes: { en: "Hide footnotes", ar: "إخفاء الحواشي" },
+  footnoteGoRef: { en: "Go to the reference in the text", ar: "الانتقال إلى موضع الإحالة في النص" },
+  footnoteGoDef: { en: "Go to the definition", ar: "الانتقال إلى نص الحاشية" },
+  footnoteUndefined: { en: "(no definition yet)", ar: "(لا نص لها بعد)" },
+  // ── A page of a book (client/reading/pdfPage.ts) ──
+  pdfPageCaption: { en: "{book}, p. {page}", ar: "{book}، ص {page}" },
+  pdfPageOpen: { en: "Open the book at page {page}", ar: "فتح الكتاب على الصفحة {page}" },
+  pdfPageAlt: { en: "Page {page} of {book}", ar: "الصفحة {page} من {book}" },
+  // ── Diagrams (client/reading/mermaid.ts) ──
+  mermaidDiagram: { en: "Diagram", ar: "مخطط" },
+  mermaidInvalid: { en: "This diagram could not be drawn; its source is shown instead.", ar: "تعذّر رسم هذا المخطط؛ يُعرض مصدره بدلًا منه." },
   // ── Block references (shared/blockId.ts) ──
   cmdCopyBlockLink: { en: "Copy link to this block", ar: "نسخ رابط هذه الفقرة" },
   cmdCopyBlockLinkHint: { en: "[[Note#^id]] — mints an id on the caret's paragraph or list item", ar: "[[Note#^id]] — يسكّ معرّفًا لفقرة المؤشر أو بند القائمة" },

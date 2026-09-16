@@ -55,6 +55,8 @@ import { languageChanged } from "../editor/langEffect.ts";
 import { noteLayoutChanged } from "../editor/noteLayout.ts";
 import { findHeadingLine } from "../editor/links.ts";
 import { anchorLine } from "../../shared/anchors.ts";
+import { footnotesOf } from "../../shared/footnotes.ts";
+import { GOTO_FOOTNOTE_EVENT, type GotoFootnote } from "../footnoteNav.ts";
 import { caretHome } from "../editor/caretHome.ts";
 import { INSERT_TEMPLATE_EVENT, type InsertTemplateDetail } from "../templateActions.ts";
 import { openSearchPanel } from "@codemirror/search";
@@ -471,6 +473,34 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
     window.addEventListener("astrolabe:goto-heading", onGoto);
     return () => window.removeEventListener("astrolabe:goto-heading", onGoto);
   }, []);
+
+  // The Footnotes section's clicks: the caret lands ON the `[^n]` in the
+  // prose, or just after the `[^n]:` at the foot — by LABEL, read off this
+  // editor's own document (shared/footnotes.ts), never by a line number the
+  // pane computed from a copy that may be a save behind.
+  useEffect(() => {
+    const onGoto = (ev: Event): void => {
+      const view = viewRef.current;
+      const detail = (ev as CustomEvent<GotoFootnote>).detail;
+      if (!view || !detail || detail.path !== path) return;
+      const note = footnotesOf(view.state.doc.toString()).find((n) => n.label === detail.label);
+      if (!note) return;
+      let pos: number | null = null;
+      if (detail.end === "ref" && note.refs.length > 0) {
+        pos = view.state.doc.line(note.refs[0].line).from + note.refs[0].col;
+      } else if (detail.end === "def" && note.defLine !== null) {
+        pos = view.state.doc.line(note.defLine).from + `[^${note.label}]:`.length;
+      }
+      if (pos === null || pos > view.state.doc.length) return;
+      view.dispatch({
+        selection: { anchor: pos },
+        effects: EditorView.scrollIntoView(pos, { y: "center" }),
+      });
+      view.focus();
+    };
+    window.addEventListener(GOTO_FOOTNOTE_EVENT, onGoto);
+    return () => window.removeEventListener(GOTO_FOOTNOTE_EVENT, onGoto);
+  }, [path]);
 
   // "Find in note" from the palette (v1.8 audit, F19). CodeMirror's own search
   // panel, opened by the same call `Ctrl/Cmd F` makes — one implementation, so

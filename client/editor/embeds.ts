@@ -4,6 +4,7 @@
 
 import { withPreview } from "../api.ts";
 import { drawingSvgPath, isDrawingPath } from "../../shared/noteFormat.ts";
+import { isAudioName, pdfPageOf } from "../../shared/mediaEmbeds.ts";
 import { clearBannerCache } from "../banner.ts";
 import { t } from "../i18n.ts";
 import { Lru } from "../lru.ts";
@@ -15,7 +16,11 @@ export interface EmbedParts {
   target: string; // file/note name, may include a path and #heading
   alias: string | null;
   width: number | null; // parsed from a numeric alias like |300
-  kind: "image" | "file" | "note" | "drawing";
+  /** "audio" is a sound the browser plays inline (shared/mediaEmbeds.ts);
+   *  "pdfpage" is ONE page of a book drawn as a picture — `![[Book.pdf#page=42]]`
+   *  — and `page` says which. A PDF with no page is still a "file" card. */
+  kind: "image" | "file" | "note" | "drawing" | "audio" | "pdfpage";
+  page: number | null;
   /** The `#…` suffix, kept rather than only stripped. A transclusion that
    *  names an anchor pulls in JUST that block — `![[Paper#eq:fourier]]` is one
    *  equation, rendered by KaTeX, inside a markdown note — and the anchor may
@@ -38,14 +43,19 @@ export function parseEmbed(inner: string): EmbedParts {
   // A drawing before an image: `.excalidraw.svg` is the PICTURE of one and
   // renders as an image, but `![[sketch.excalidraw]]` names the drawing
   // itself, whose picture is looked up beside it (drawingSvgName).
+  const page = pdfPageOf(target, anchor);
   const kind = isDrawingPath(target)
     ? "drawing"
     : IMAGE_EXT.test(target)
       ? "image"
-      : ATTACHMENT_EXT.test(target)
-        ? "file"
-        : "note";
-  return { target, alias, width, kind, anchor };
+      : page !== null
+        ? "pdfpage"
+        : isAudioName(target)
+          ? "audio"
+          : ATTACHMENT_EXT.test(target)
+            ? "file"
+            : "note";
+  return { target, alias, width, kind, anchor, page };
 }
 
 /** The attachment name a drawing embed shows: the svg exported beside the

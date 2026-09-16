@@ -1,5 +1,5 @@
-// THE QUERY FENCE, DRAWN — a list, a table or a grid of cards over the rows
-// `GET /api/query` answers. Loaded on demand like the tracker board; inert
+// THE QUERY FENCE, DRAWN — a list, a table, a grid of cards or a timeline
+// over the rows `GET /api/query` answers. Loaded on demand like the tracker board; inert
 // like it (rows are wikilinks by class, so the reading root's ONE delegated
 // click handler navigates). One renderer for the reading view, the blog, a
 // transclusion and the editor's block widget.
@@ -8,6 +8,7 @@ import "./query.css";
 import type { QueryHit } from "../../shared/types.ts";
 import type { QuerySpec } from "../../shared/queryFence.ts";
 import { queryNotes } from "../api.ts";
+import { groupRuns, timelineOrder } from "../../shared/timeline.ts";
 import { siteDate } from "../dates.ts";
 import { autoDir, localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
@@ -77,6 +78,11 @@ export function renderQueryFence(spec: QuerySpec, hooks: QueryHooks): HTMLElemen
         hooks.onResize?.();
         return;
       }
+      if (spec.as === "timeline") {
+        body.appendChild(timeline(spec, hits, locale));
+        hooks.onResize?.();
+        return;
+      }
       if (spec.as === "table") {
         const wrap = el("div", "s-rv-query__tablewrap");
         const table = el("table", "s-rv-query__table");
@@ -137,4 +143,54 @@ export function renderQueryFence(spec: QuerySpec, hooks: QueryHooks): HTMLElemen
       hooks.onResize?.();
     });
   return box;
+}
+
+/** THE TIMELINE: rows on a vertical rule, a dot each, under year headings.
+ *  The date is the fence's `by:` (shared/timeline.ts orders the rows and
+ *  says which have one); the year and the day are printed by `siteDate`,
+ *  so a site set to the Hijri calendar heads its years ١٤٤٧ and ١٤٤٨ and a
+ *  Gregorian one 2025 and 2026, from the same rows. Rows the timeline cannot
+ *  place gather at the end under their own quiet heading rather than
+ *  vanish: a fence is a report, and a report that drops rows is wrong. */
+function timeline(spec: QuerySpec, hits: QueryHit[], locale: string): HTMLElement {
+  const wrap = el("div", "s-rv-timeline");
+  const ordered = timelineOrder(hits, spec.by, spec.sort.dir);
+  const yearOf = (ms: number | null): string | null => (ms === null ? null : siteDate(ms, locale, { year: "numeric", timeZone: "UTC" }));
+  for (const group of groupRuns(ordered, (r) => yearOf(r.ms))) {
+    const section = el("section", "s-rv-timeline__year");
+    const head = el("h4", "s-rv-timeline__yearhead", group.key ?? t("timelineUndated"));
+    head.dir = "auto";
+    section.appendChild(head);
+    const list = el("ol", "s-rv-timeline__list");
+    for (const { row: hit, ms } of group.rows) {
+      const item = el("li", "s-rv-timeline__row");
+      item.dir = autoDir(hit.title);
+      const when = el("span", "s-rv-timeline__when", ms === null ? "" : siteDate(ms, locale, { month: "short", day: "numeric", timeZone: "UTC" }));
+      when.dir = "auto";
+      item.appendChild(when);
+      const bodyEl = el("div", "s-rv-timeline__body");
+      bodyEl.appendChild(noteLink(hit, "s-rv-query__title"));
+      const meta: string[] = [];
+      for (const col of spec.show) {
+        if (col === "title") continue;
+        const cell = cellOf(hit, col, locale);
+        if (cell.text === "") continue;
+        if (col === "excerpt") {
+          const p = el("p", "s-rv-query__excerpt", cell.text);
+          p.dir = autoDir(cell.text);
+          bodyEl.appendChild(p);
+        } else meta.push(BUILT_IN.has(col) ? cell.text : `${col}: ${cell.text}`);
+      }
+      if (meta.length > 0) {
+        const m = el("span", "s-rv-query__meta", meta.join(" · "));
+        m.dir = "auto";
+        bodyEl.appendChild(m);
+      }
+      item.appendChild(bodyEl);
+      list.appendChild(item);
+    }
+    section.appendChild(list);
+    wrap.appendChild(section);
+  }
+  return wrap;
 }
