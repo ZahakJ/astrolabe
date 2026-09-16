@@ -15,6 +15,7 @@ import { localeNum, t } from "../i18n.ts";
 import { lazySurface } from "../lazySurface.tsx";
 import TocPanel from "../reading/TocPanel.tsx";
 import { hasPanelPreference, useStore } from "../state.ts";
+import FootnotesPanel from "./FootnotesPanel.tsx";
 import LocalGraph from "./LocalGraph.tsx";
 import TrackerPanel from "./TrackerPanel.tsx";
 import MentionsPanel from "./MentionsPanel.tsx";
@@ -156,6 +157,10 @@ export default function BacklinksPanel() {
             against the aside, stays put (app.css, .s-panel__scroll). */}
         <div className="s-panel__scroll">
         <TocPanel />
+        {/* Under the outline, before the graph: the note's footnotes are part
+            of its shape, and a reader who came to the pane for the outline is
+            the reader who wants them beside it. */}
+        <FootnotesPanel />
         <LocalGraph />
         <TrackerPanel />
         {/* Its own boundary, and a null fallback: the section is a collapsed

@@ -817,6 +817,135 @@ span.s-rv-math-live {
   text-decoration: none;
 }
 
+/* ── Sound (client/editor/embeds.ts audioPlayer) ─────────────────────────
+   A native player in a quiet card, the file's name under it. The browser
+   draws the controls; `color-scheme` tells it which of its two skins fits
+   the room, since the tokens cannot reach inside them. */
+.s-rv-audio {
+  display: inline-grid;
+  gap: 4px;
+  inline-size: min(100%, 420px);
+  margin-block: 0.35em;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  vertical-align: middle;
+}
+
+.s-rv-audio__player {
+  display: block;
+  inline-size: 100%;
+  block-size: 36px;
+  color-scheme: light dark;
+  border-radius: 999px;
+}
+
+.s-rv-audio__name {
+  font-family: var(--font-ui);
+  font-size: 0.75em;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* A moment in a sound — `[[lecture.mp3#t=1:23]]` — wears the citation's
+   colour, not a note link's: it opens nothing, it seeks. */
+.s-rv-audiolink {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── A page of a book (client/reading/pdfPage.ts) ─────────────────────────
+   Paper-shaped until the picture lands (so the column does not jump), then
+   the page, bordered like any picture; the caption under it is the door to
+   the reader. */
+.s-rv-pdfpage {
+  text-align: center;
+}
+
+.s-rv-pdfpage__slot {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  margin-inline: auto;
+}
+
+.s-rv-pdfpage__slot--pending {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.s-rv-pdfpage__img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  margin-inline: auto;
+}
+
+.s-rv-pdfpage__slot[style*="width"] {
+  inline-size: auto;
+}
+
+.s-rv-pdfpage__caption {
+  margin-block-start: 0.5em;
+  font-family: var(--font-ui);
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+.s-rv-pdfpage__open {
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.s-rv-pdfpage__open:hover {
+  text-decoration: underline;
+}
+
+/* ── Diagrams (client/reading/mermaid.ts) ─────────────────────────────────
+   The source shows until the diagram is drawn; a diagram that will not
+   parse keeps its source, marked faintly at the edge so the author knows
+   it is the source they are looking at and not a slow render. */
+.s-rv-mermaid {
+  margin-block: 1.2em;
+  text-align: center;
+  overflow-x: auto;
+}
+
+/* A diagram is drawn in mermaid's own left-to-right coordinates whatever the
+   chrome's direction, so the svg is pinned LTR — under an Arabic shell the
+   labels came out "?Wide" — and each label then resolves its own direction
+   from its own first letter, so an Arabic label still reads as Arabic. */
+.s-rv-mermaid svg {
+  max-inline-size: 100%;
+  block-size: auto;
+  direction: ltr;
+}
+
+.s-rv-mermaid svg :is(text, tspan, span, p, div) {
+  unicode-bidi: plaintext;
+}
+
+/* The source, while pending or forever when it will not parse, reads as
+   code: from its own start, never centred with the picture it stands for. */
+.s-rv-mermaid__src {
+  text-align: start;
+}
+
+.s-rv-mermaid--pending .s-rv-mermaid__src {
+  opacity: 0.7;
+}
+
+.s-rv-mermaid--error {
+  border-inline-start: 3px solid var(--danger);
+  padding-inline-start: 10px;
+}
+
+.s-rv-mermaid--error .s-rv-mermaid__src {
+  margin: 0;
+}
+
 /* ── Note banner hero (frontmatter `banner:`) ──────────────────────────── */
 
 .s-rv-banner {

@@ -34,6 +34,9 @@ import {
   resolveAttachment,
   resolveRelative,
 } from "../editor/embeds.ts";
+import { audioPlayer, seekAudio } from "./audio.ts";
+import { formatTime, isAudioName, parseTimeAnchor } from "../../shared/mediaEmbeds.ts";
+import type { PdfPageHooks } from "./pdfPage.ts";
 import {
   CALLOUT_TITLE_RE,
   calloutGroup,
@@ -279,6 +282,17 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
         `<img class="${cls}" data-embed-name="${esc(name)}" data-drawing="${embed.kind === "drawing" ? esc(embed.target) : ""}" alt="${esc(embed.target)}"${w}>`,
       );
     }
+    // A sound or a page mid-paragraph: a stand-in that renderNote's
+    // hydration pass swaps for the real thing, as it does for images —
+    // these are built as elements (they hold live references), not as HTML.
+    if (embed.kind === "audio") {
+      return keep(`<span class="s-rv-embed-chip" data-audio-embed="${esc(embed.target)}">${esc(embed.target)}</span>`);
+    }
+    if (embed.kind === "pdfpage" && embed.page !== null) {
+      return keep(
+        `<span class="s-rv-embed-chip" data-pdfpage-embed="${esc(embed.target)}" data-page="${embed.page}"${embed.width ? ` data-width="${embed.width}"` : ""}>${esc(embed.target)}</span>`,
+      );
+    }
     return keep(`<span class="s-rv-embed-chip">${esc(embed.target)}</span>`);
   });
 
@@ -312,6 +326,17 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
       return keep(
         `<a class="s-rv-wikilink s-rv-cite" data-book="${esc(target)}" data-anchor="${esc(heading ?? "")}"` +
           ` data-cite-note="${esc(ctx.notePath)}" role="link" tabindex="0">${esc(shown)}</a>`,
+      );
+    }
+    // A MOMENT IN A SOUND: `[[lecture.mp3#t=1:23]]` seeks the player for that
+    // sound on this surface (shared/mediaEmbeds.ts says what `t=` may be),
+    // and shows the time when it has no alias. Like the citation above, it
+    // is a wikilink to the parser and not a note to the resolver.
+    const seek = heading === null || !isAudioName(target) ? null : parseTimeAnchor(heading);
+    if (seek !== null) {
+      const shown = alias ?? `${target} › ${formatTime(seek)}`;
+      return keep(
+        `<a class="s-rv-wikilink s-rv-audiolink" data-audio="${esc(target)}" data-seek="${seek}" role="link" tabindex="0">${esc(shown)}</a>`,
       );
     }
     const resolved = target ? resolveLink(target, ctx.tree) : null;
@@ -779,6 +804,12 @@ function renderEmbedBlock(inner: string, ctx: Ctx): HTMLElement {
     return fig;
   }
   if (embed.kind === "file") return fileCard(embed.target);
+  // `![[lecture.mp3]]`: a player, not a card (reading/audio.ts).
+  if (embed.kind === "audio") return audioPlayer(embed.target);
+  // `![[Book.pdf#page=42]]`: the page as a picture (reading/pdfPage.ts).
+  if (embed.kind === "pdfpage" && embed.page !== null) {
+    return pdfPageBlock(embed.target, embed.page, embed.width, { onResize: ctx.onResize });
+  }
   if (ctx.depth >= 1) {
     // Depth limit: embeds inside an embedded note read as link chips.
     const chip = document.createElement("div");
@@ -1163,6 +1194,48 @@ export function renderQueryBlock(spec: QuerySpec, opts: RenderOptions, hooks: Pa
   return host;
 }
 
+/** `![[Book.pdf#page=42]]`: a paper-shaped host at once, the card from
+ *  reading/pdfPage.ts in it when that module lands. The card's builder is
+ *  behind an `import()` for the anonymous reader's sake — most notes cite
+ *  no page, and the module that draws one carries the caption, the door to
+ *  the reader and the resolver — while the editor's widget, which is never
+ *  a first paint, imports it directly. Either way it is the same card. */
+function pdfPageBlock(target: string, page: number, width: number | null, hooks: PdfPageHooks): HTMLElement {
+  const host = document.createElement("figure");
+  host.className = "s-rv-figure s-rv-pdfpage";
+  const slot = document.createElement("span");
+  slot.className = "s-rv-pdfpage__slot s-rv-pdfpage__slot--pending";
+  if (width) slot.style.width = `${width}px`;
+  slot.style.aspectRatio = "1 / 1.414";
+  host.appendChild(slot);
+  void import("./pdfPage.ts").then((mod) => {
+    if (host.isConnected) host.replaceWith(mod.pdfPageEmbed(target, page, width, hooks));
+  });
+  return host;
+}
+
+/** A ```mermaid fence: the source on screen at once, inside a host the
+ *  diagram replaces when the mermaid chunk (reading/mermaid.ts — a megabyte,
+ *  and nobody's first paint) has drawn it. An unparseable diagram keeps its
+ *  source, faintly marked, which is the rule every fence here follows. The
+ *  editor's widget takes this same door. */
+export function renderMermaidBlock(src: string, hooks: { onResize?: () => void } = {}): HTMLElement {
+  const host = document.createElement("div");
+  host.className = "s-rv-mermaid s-rv-mermaid--pending";
+  const pre = document.createElement("pre");
+  pre.className = "s-rv-pre s-rv-mermaid__src";
+  const code = document.createElement("code");
+  code.textContent = src;
+  pre.appendChild(code);
+  host.appendChild(pre);
+  if (src.trim() === "") return host;
+  void import("./mermaid.ts")
+    .then((mod) => mod.renderMermaidInto(host, src))
+    .catch(() => host.classList.remove("s-rv-mermaid--pending"))
+    .then(() => hooks.onResize?.());
+  return host;
+}
+
 /** A tasks fence's host, filled when the chunk and the rows arrive. */
 export function renderTasksBlock(spec: TasksSpec, opts: RenderOptions, hooks: Partial<TasksHooks> = {}): HTMLElement {
   const host = document.createElement("div");
@@ -1238,6 +1311,11 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       // the editor widget and the Orbits page pass `live`.
       if (lang === "tasks") {
         root.appendChild(renderTasksBlock(parseTasksFence(buf.join("\n"), isoDate(new Date())), ctx));
+        continue;
+      }
+      // ```mermaid — a diagram, drawn by the lazy mermaid chunk.
+      if (lang.toLowerCase() === "mermaid") {
+        root.appendChild(renderMermaidBlock(buf.join("\n"), { onResize: ctx.onResize }));
         continue;
       }
       if ((lang === "sigil-log" || lang === "orbit-log" || lang === "routine-log") && ctx.lastRoutine && !ctx.routineLogged) {
@@ -1736,6 +1814,18 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
     }
   }
 
+  // …and the sounds and pages that stood in a paragraph as chips.
+  for (const chip of root.querySelectorAll<HTMLElement>("[data-audio-embed]")) {
+    chip.replaceWith(audioPlayer(chip.dataset.audioEmbed ?? ""));
+  }
+  for (const chip of root.querySelectorAll<HTMLElement>("[data-pdfpage-embed]")) {
+    const page = Number(chip.dataset.page);
+    const width = chip.dataset.width ? Number(chip.dataset.width) : null;
+    if (Number.isFinite(page) && page > 0) {
+      chip.replaceWith(pdfPageBlock(chip.dataset.pdfpageEmbed ?? "", page, width, { onResize: ctx.onResize }));
+    }
+  }
+
   // Swap any pending math for rendered KaTeX once the lazy module lands.
   hydrateMath(root);
 }
@@ -1753,6 +1843,12 @@ export function onRootClick(ev: MouseEvent): void {
   const wl = target.closest<HTMLElement>(".s-rv-wikilink");
   if (wl) {
     ev.preventDefault();
+    // A moment in a sound: seek the player on this surface, or open the
+    // file at that moment when there is none (reading/audio.ts).
+    if (wl.dataset.audio !== undefined) {
+      seekAudio(wl.dataset.audio, Number(wl.dataset.seek ?? "0") || 0, scope);
+      return;
+    }
     // A citation into a book. The opener is loaded on the click rather than
     // imported here: this module renders the blog's articles as well as the
     // vault's, and a reader of one published essay must not download the book
@@ -1817,6 +1913,17 @@ export function onRootClick(ev: MouseEvent): void {
   const ref = target.closest<HTMLElement>("[data-fn]");
   if (ref?.dataset.fn) {
     ev.preventDefault();
+    // When the note is set with SIDENOTES (reading/sidenotes.ts) the
+    // definition is already beside the line and the foot is hidden; the
+    // hop then only lights the note in the margin so the eye finds it.
+    const side = scope.querySelector<HTMLElement>(`#sn-${CSS.escape(ref.dataset.fn)}`);
+    if (side !== null && side.offsetParent !== null) {
+      side.scrollIntoView({ behavior: scrollBehavior(), block: "nearest" });
+      side.classList.remove("s-rv-sidenote--lit");
+      void side.offsetWidth; // restart the animation
+      side.classList.add("s-rv-sidenote--lit");
+      return;
+    }
     scope
       .querySelector(`#fn-${CSS.escape(ref.dataset.fn)}`)
       ?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });

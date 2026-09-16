@@ -662,7 +662,16 @@ const AUDIENCES = [
   // the French/furigana dictionary meeting in one entry at integration.
   // 3.16.1: 765.3 kB actual → 766 — the browser-dictionaries row (its
   // bilingual hint, the four labels, client/spellDicts.ts at startup).
-  { name: "entry (everyone)", keys: entry, budget: 766 * 1024 },
+  // READING SURFACES (768.3 kB actual → 769): fourteen dictionary rows (the
+  // Footnotes section's six, the page card's three, the timeline's one, the
+  // diagram's two), shared/mediaEmbeds.ts (which `parseEmbed` in
+  // editor/embeds.ts — a module the store imports for its cache door — now
+  // asks about sounds and pages), and client/footnoteNav.ts, the pane's
+  // wire. The player (reading/audio.ts), the page card (reading/pdfPage.ts),
+  // the sidenote layout and its sheet, the timeline renderer, the mermaid
+  // chunk and pdf.js's page painter are all behind `import()` and are
+  // asserted split or forbidden below.
+  { name: "entry (everyone)", keys: entry, budget: 769 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -883,7 +892,13 @@ const AUDIENCES = [
   // 3.16.0: 1046.5 kB actual → 1047 after the French/furigana merge (above).
   // 3.16.0 release: 1047.8 kB actual → 1048 (the merge above).
   // 3.16.1: 1049.1 kB actual → 1050 (the row above).
-  { name: "anonymous blog reader", keys: blog, budget: 1050 * 1024 },
+  // READING SURFACES (1057.4 kB actual → 1058): the entry's rows above, plus
+  // what a published page can show and so must carry — the player builder
+  // (reading/audio.ts) and the audio-link seek, the page-card host and the
+  // mermaid host in render.ts (their bodies are lazy), and the audio, page
+  // and diagram rules in reading.css. The sidenote sheet is NOT here: it
+  // rides reading/sidenotes.css with the reading view's chunk alone.
+  { name: "anonymous blog reader", keys: blog, budget: 1058 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1013,7 +1028,13 @@ const AUDIENCES = [
   // 3.16.0: 1491.4 kB actual → 1492 after the French/furigana merge (above).
   // 3.16.0 release: 1493.4 kB actual → 1494 (the merge above).
   // 3.16.1: 1494.6 kB actual → 1495 (the row above).
-  { name: "admin first paint", keys: app, budget: 1495 * 1024 },
+  // READING SURFACES (1510.5 kB actual → 1511): the blog closure's bytes
+  // above, plus the outline pane's Footnotes section (components/
+  // FootnotesPanel.tsx, shared/footnotes.ts, its rows in app.css), the
+  // editor's footnote hop, and the page card (reading/pdfPage.ts), which
+  // the live preview's widget imports directly — the live preview has been
+  // in this closure since the outline's section menu reached into it.
+  { name: "admin first paint", keys: app, budget: 1511 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1079,6 +1100,14 @@ const FORBIDDEN = [
   // The popover (components/FuriganaPopover.tsx) is behind the same door.
   { label: "the kanji readings table", test: (k) => /data\/kanjiReadings\.json$/.test(k) },
   { label: "the furigana popover", test: (k) => /components\/FuriganaPopover\.tsx$/.test(k) },
+  // Mermaid: a megabyte of diagram grammars for the ```mermaid fence, reached
+  // only through render.ts's `import("./mermaid.ts")`. Two patterns for the
+  // two ways back in — the library, and the one module that imports it.
+  // (Excalidraw's own mermaid door lives inside its forbidden chunk.)
+  { label: "mermaid", test: (k) => /node_modules\/mermaid\//.test(k) || /reading\/mermaid\.ts$/.test(k) },
+  // The page painter behind `![[Book.pdf#page=42]]`: it imports pdf.js, and
+  // is reached only through reading/pdfPage.ts's `import()`.
+  { label: "the book page painter", test: (k) => /books\/pageImage\.ts$/.test(k) },
 ];
 
 // ── surfaces that must remain separately loadable ───────────────────────────
@@ -1119,6 +1148,11 @@ const MUST_SPLIT = [
   // behind render.ts's `import("./ayah.ts")`. Asserted split AND forbidden
   // from every first paint above — a boundary this large is asserted twice.
   "reading/ayah.ts",
+  // The diagram chunk (mermaid, behind render.ts's fence branch) and the
+  // page painter (pdf.js, behind the page card): asserted split AND
+  // forbidden above, on the verse chunk's argument.
+  "reading/mermaid.ts",
+  "books/pageImage.ts",
 ];
 
 let failed = false;
