@@ -19,6 +19,8 @@ function meta(over: Partial<TrackerMeta>): TrackerMeta {
     step: 1,
     pace: null,
     due: null,
+    file: null,
+    sessions: [],
     folderNotes: 0,
     folderNote: null,
     folderRecent: [],

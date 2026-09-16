@@ -418,3 +418,59 @@ describe("the pace (3.13.0)", () => {
     assert.equal(paceProjection(parseTracker("title: x\nprogress: 300/300\npace: 5\n")!, "2026-09-14"), null);
   });
 });
+
+describe("reading sessions (3.17.0)", () => {
+  it("reads a sessions: block leniently, in either language and either order", async () => {
+    const { parseTracker, parseSessionLine } = await import("../shared/tracker.ts");
+    const t = parseTracker("title: Muqaddimah\nkind: book\nprogress: 139/500\nfile: [[Books/Muqaddimah.pdf]]\nsessions: |\n  2026-09-14 | 100–112 | 12 pages | 20 min\n  ٢٠٢٦-٠٩-١٥ | ٤١ د | ٢٧ صفحة | 112-139\n  not a session\n")!;
+    assert.equal(t.file, "Books/Muqaddimah.pdf");
+    assert.deepEqual(t.sessions, [
+      { date: "2026-09-14", from: 100, to: 112, pages: 12, minutes: 20 },
+      { date: "2026-09-15", from: 112, to: 139, pages: 27, minutes: 41 },
+    ]);
+    // A time after the date is allowed; a bare number is pages.
+    assert.deepEqual(parseSessionLine("2026-09-15 20:14 | 30"), { date: "2026-09-15", from: null, to: null, pages: 30, minutes: 0 });
+    assert.equal(parseSessionLine("Sep 15 | 30 pages"), null);
+    assert.equal(parseTracker("title: x\nfile: ../../etc/passwd\n")?.file, null);
+  });
+  it("appends a line to the block, creates the block under the fields, and takes the last line back", async () => {
+    const { appendTrackerSession, dropLastTrackerSession, formatSessionLine, parseTracker } = await import("../shared/tracker.ts");
+    const s1 = { date: "2026-09-14", from: 100, to: 112, pages: 12, minutes: 20 };
+    const s2 = { date: "2026-09-15", from: 112, to: 139, pages: 27, minutes: 41 };
+    assert.equal(formatSessionLine(s2), "2026-09-15 | 112–139 | 27 pages | 41 min");
+    const body = "title: Muqaddimah\nprogress: 100/500\nnotes: |\n  Ibn Khaldun.\n";
+    const once = appendTrackerSession(body, s1);
+    // Before the prose, after the counts — the fixed order every other field keeps.
+    assert.equal(once, "title: Muqaddimah\nprogress: 100/500\nsessions: |\n  2026-09-14 | 100–112 | 12 pages | 20 min\nnotes: |\n  Ibn Khaldun.\n");
+    const twice = appendTrackerSession(once, s2);
+    assert.deepEqual(parseTracker(twice)?.sessions, [s1, s2]);
+    assert.equal(dropLastTrackerSession(twice), once);
+    // The block goes with its last line: an undone first session leaves no trace.
+    assert.equal(dropLastTrackerSession(once), body);
+    assert.equal(dropLastTrackerSession(body), body);
+    // A bare title stays the title: the block lands under it, not above it.
+    const bare = appendTrackerSession("Muqaddimah\nprogress: 1/2\n", s1);
+    assert.equal(parseTracker(bare)?.title, "Muqaddimah");
+    assert.ok(bare.startsWith("Muqaddimah\nprogress: 1/2\nsessions: |\n"));
+    // CRLF survives.
+    const crlf = appendTrackerSession("title: A\r\nprogress: 1/9\r\n", s1);
+    assert.equal(crlf, "title: A\r\nprogress: 1/9\r\nsessions: |\r\n  2026-09-14 | 100–112 | 12 pages | 20 min\r\n");
+  });
+  it("reads the speed off the last five timed sessions and says how long is left", async () => {
+    const { readingSpeed, minutesLeft, parseTracker, trackerCountsPages, SPEED_SESSIONS } = await import("../shared/tracker.ts");
+    const s = (pages: number, minutes: number) => ({ date: "2026-09-01", from: null, to: null, pages, minutes });
+    assert.equal(readingSpeed([]), null);
+    assert.equal(readingSpeed([s(10, 0)]), null);
+    // A ratio of sums: the long sitting outweighs the short one.
+    assert.equal(readingSpeed([s(2, 1), s(30, 30)]), 32 / 31);
+    // Only the last five count.
+    const many = [s(100, 1), ...Array.from({ length: SPEED_SESSIONS }, () => s(10, 10))];
+    assert.equal(readingSpeed(many), 1);
+    const t = parseTracker("title: M\nkind: book\nprogress: 200/500\nsessions: |\n  2026-09-14 | 30 pages | 20 min\n")!;
+    assert.equal(trackerCountsPages(t), true);
+    assert.equal(minutesLeft(t), 200); // 300 pages at 1.5 a minute
+    assert.equal(trackerCountsPages(parseTracker("title: M\nkind: book\nunit: chapters\n")!), false);
+    assert.equal(minutesLeft(parseTracker("title: M\nunit: chapters\nprogress: 1/9\nsessions: |\n  2026-09-14 | 30 pages | 20 min\n")!), null);
+    assert.equal(minutesLeft(parseTracker("title: M\nkind: book\nprogress: 500/500\nsessions: |\n  2026-09-14 | 30 pages | 20 min\n")!), null);
+  });
+});

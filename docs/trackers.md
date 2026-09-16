@@ -38,6 +38,8 @@ notes: |
 | `pace` | a number | Units a day you mean to move — `pace: 20`. With a total, the card says the day you will be done. A [sigil](sigils.md) that names this work reads the day's pages from it. |
 | `due` | a date | The day you mean to be done by. With a total and no pace, the card says the pace that gets there. |
 | `folder` | a vault folder | Where your own notes on this work live (`1 - Source Material/Books/The Linux Memory Manager`). The rendered card names it; the Media page counts the notes in it and opens it. A [library path](library.md) on the same folder wears this tracker's cover. |
+| `file` | the PDF this work is — `Books/Muqaddimah.pdf`, or just `Muqaddimah.pdf`; `[[…]]` is fine | How the [reader](books.md#reading-sessions) finds this tracker when a sitting ends. Without it the reader matches on the title, so this line is for when two editions share one, or the fence's title and the file's differ. |
+| `sessions` | a value over several lines, one sitting per line — see [Reading sessions](#reading-sessions) | Written by the reader; readable and editable by you. |
 | `unit` | any word | Yours, printed as you wrote it, except that a unit the chrome already knows, in either language (`chapters`, `صفحات`, `hours`, `episodes`…), is agreed and translated like a default one. Leave it out and the kind's own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised. |
 | `status` | `planned` `active` `done` `paused` `dropped` | Plus the words people actually type: `reading`, `playing`, `watching`, `in-progress`, `started`, `finished`, `on hold`, `dnf`, `backlog`… Left out, it is derived from the progress. |
 | `rating` | `8/10`, `4/5`, `★★★★`, `4` | A bare number is out of five up to five, out of ten above it. |
@@ -49,6 +51,32 @@ That is deliberate: content that cannot be parsed should read as its own source 
 into an empty card, which is the rule `$$ math $$` already follows.
 
 A note may hold as many trackers as you like.
+
+## Reading sessions
+
+When you close a book in the [PDF reader](books.md#reading-sessions), the sitting is written into the
+book's tracker as one line of a `sessions:` block:
+
+```tracker
+title: Muqaddimah
+kind: book
+progress: 139/500
+file: Books/Muqaddimah.pdf
+sessions: |
+  2026-09-14 | 100–112 | 12 pages | 20 min
+  2026-09-15 | 112–139 | 27 pages | 41 min
+```
+
+Reading left to right, separated by ` | `: the date, the first and last page of the sitting, the
+pages finished, and the minutes the clock counted. The line is yours as much as the app's: write one
+by hand and it counts; delete one and it never happened. The pieces may come in any order and in
+either language (`٢٧ صفحة | ٤١ د`), the range may be missing, and a line that does not open with a
+date is not a session. When the tracker counts pages, the `progress:` line moves by the pages read
+at the same time.
+
+From the last five timed sittings the card reads the book's own speed and says *about 1.6 pages a
+minute here — 4 h 20 left*, under the pace projection when there is one. The [weekly
+review](sigils.md#the-weekly-review) adds the lines up by book.
 
 ## Nudging the bar
 

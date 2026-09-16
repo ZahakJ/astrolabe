@@ -700,6 +700,16 @@ const AUDIENCES = [
   // rows component) and three api.ts doors. The shelf and the Nearby list
   // themselves ride their own chunks with their own stylesheets
   // (props.css, nearby.css) and are asserted absent from the blog closure.
+  // 3.17.0: 771.9 kB actual → 773 — READING SESSIONS, HIGHLIGHTS → NOTE and
+  // THE WEEKLY REVIEW. Almost all of it is the dictionary again: the
+  // session toasts, the card's "pages a minute here" line, the highlights
+  // action, and the review page's headings and empty states, in two
+  // languages, shipped whole by `t()`. The rest is the review tab's
+  // sentinel and route (workspace, state, router, tabs, the palette row)
+  // and formatDuration in client/trackerUnits.ts. The clock, the session
+  // log, the fence's session parser, the highlights writer and the review
+  // page itself are lazy — the books chunk and the review chunk — and the
+  // entry carries none of their code.
   { name: "entry (everyone)", keys: entry, budget: 774 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
@@ -936,7 +946,12 @@ const AUDIENCES = [
   // rides reading/sidenotes.css with the reading view's chunk alone.
   // Vault views: 1052.1 kB actual → 1053 (the entry growth above; nothing
   // of the four features is in the blog closure but the dictionary).
-  { name: "anonymous blog reader", keys: blog, budget: 1058 * 1024 },
+  // 3.17.0: 1058.2 kB actual → 1060 — the entry growth above (the
+  // dictionary), plus the reading renderer's speed line on the tracker
+  // card, which reads the fence's `sessions:` block (shared/tracker.ts
+  // parses it before the card paints, so the parser rides the reading
+  // closure — ~1.5 kB).
+  { name: "anonymous blog reader", keys: blog, budget: 1060 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1090,6 +1105,10 @@ const AUDIENCES = [
   // Vault views: 1498.6 kB actual → 1499 — the entry growth above plus the
   // two Suspense mounts (Sidebar, BacklinksPanel); the shelf, the Nearby
   // list and the graph's query rows are lazy.
+  // 3.17.0: 1504.0 kB actual → 1506 — the blog closure's bytes above, plus
+  // the palette's "Review the week" row and the Sigils page's last-weekday
+  // line. The review page, the session clock and the highlights writer are
+  // lazy and asserted absent below.
   { name: "admin first paint", keys: app, budget: 1511 * 1024 },
 ];
 
@@ -1191,6 +1210,9 @@ const MUST_SPLIT = [
   "routines/RoutinesView.tsx",
   // Orbits (the shelf and the session, one chunk), on the same terms.
   "orbits/OrbitsSurface.tsx",
+  // The weekly review, on the same terms: a tab behind the palette and
+  // the Sigils page's last-weekday line, with its own stylesheet.
+  "review/ReviewWeekView.tsx",
   // The "What's new" deck: slides, live demos and prose for every release,
   // behind a door (whatsnew/door.ts) that is a version compare and nothing else.
   "whatsnew/WhatsNew.tsx",

@@ -82,7 +82,7 @@ and `:h` is help, never highlight:
 `:212` · `:+3` / `:-3` · `:40%` · `:page` · `:quit` (`:q`) · `:library` (`:lib`) · `:zoom 150`
 (`:z`; bare `:zoom` is 100 %) · `:zen` · `:fit width|page|height` · `:rotate [90|180|270]` ·
 `:dual on|off|toggle` · `:invert off|night|flip` · `:rtl` / `:ltr` · `:mark <c>` · `:jump <c>` ·
-`:search <text>` · `:outline` · `:forget` · `:help` · `:highlight` · `:ink [1-6]` · `:cite` ·
+`:search <text>` · `:outline` · `:forget` · `:end` · `:help` · `:highlight` · `:ink [1-6]` · `:cite` ·
 `:note` · `:annotations`
 
 Numbers are read in Latin, Arabic-Indic and Persian digits alike: `:٢١٢` is page 212.
@@ -119,6 +119,64 @@ content, and a toast **offers** to repair the link in the note; it never rewrite
 
 `e` attaches a note to a highlight; `A` lists every marked passage in the book; the shelf's search
 finds them across the vault.
+
+## Reading sessions
+
+The reader keeps a quiet clock over your page turns. It starts on the first turn, counts the time
+between turns, and stops counting once three minutes pass without one — a page nobody has turned in
+three minutes is a page nobody is reading. The status line shows the minutes while the clock runs
+and *Paused* once it stops; nothing is shown before the first turn. Pages are counted when you turn
+**away** from them, and a page flipped past in under a few seconds is not counted, so a scroll
+through a chapter to find your place does not log the chapter.
+
+Close the book (`q`, the ✕, the tab's own close), press **End session** in the title bar, or type
+`:end`, and the sitting is logged:
+
+> Read 27 pages in 41 min — logged to *Muqaddimah* · **Undo**
+
+It goes into the book's [tracker](trackers.md) note, and nowhere else: one line in the fence's
+`sessions:` block, and the progress moved by the pages read when the tracker counts pages (a bar
+kept in chapters, or a bare percentage, is yours to move; at the end of a book the bar stops at the
+total and Undo takes back only what it moved). The
+tracker is found by its `file:` line when one names this PDF, and by its title otherwise (the
+PDF's own title, else its file name, against `kind: book` trackers). A book with no tracker gets a
+toast that says so and offers **Track it**, which writes a `Media/Books/<title>.md` note the way
+the Media page would, with `file:` pointing at this PDF and the session already in it. **Undo**
+takes the line and the nudge back out of the note as it is then.
+
+If a [sigil](sigils.md) slot today links the tracker note or the PDF (`evening: 20 pages of
+[[Muqaddimah]]`), or the plan's `book:` line names the tracker, the slot is ticked for you — the
+`book:` task only when the sitting covered the day's pace. Undo unticks it.
+
+From the sessions, the tracker card reads the book's own speed over its last five sittings and says
+*about 1.6 pages a minute here — 4 h 20 left*. "Here" because it is this book's pace: a dense
+commentary and a novel are not read at one speed.
+
+Flipping to the note beside the book and back is the middle of a sitting, not its end: the clock
+is stashed in the browser between turns and resumes when the same book comes back within half an
+hour. A tab closed mid-sitting is logged the next time that book opens, for the day it happened,
+with the same toast and Undo — and a sigil slot it ticks is that day's, not the day you reopened
+the book.
+
+## Highlights → note
+
+On the shelf, every card has **Highlights → note**. It writes one note beside the PDF —
+`Books/Muqaddimah.pdf` gets `Books/Muqaddimah — Highlights.md` — with a heading per chapter from the
+PDF's own outline when it has one (the shallowest level with at least two entries), else one list,
+and every marked passage as the same `> [!quote]` block a citation writes, its link opening the book
+at the page and pulsing the passage. A margin note follows its passage as ordinary prose.
+
+The block sits between two markers:
+
+```
+<!-- astrolabe:highlights -->
+…
+<!-- /astrolabe:highlights -->
+```
+
+Run the action again and only what sits between the markers is rewritten; anything you wrote above,
+below, or between them stays. A note with no markers (one you made by hand) gets the block appended,
+never overwritten. The toast offers **Open**.
 
 ## Search inside a book
 

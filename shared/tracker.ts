@@ -100,6 +100,35 @@ export interface Tracker {
    *  Material/Books/The Linux Memory Manager"). The card counts them and
    *  opens the folder; the tracker itself never reads them. Null when absent. */
   folder: string | null;
+  /** `file:` — the PDF this work IS, as a vault path ("Books/Muqaddimah.pdf")
+   *  or a bare file name; `[[…]]` unwrapped like a cover. The reader looks a
+   *  book's tracker up by this before it falls back to the title, so a
+   *  session read in the PDF lands in the right note even when the fence's
+   *  title and the file's /Title disagree. Null when absent. */
+  file: string | null;
+  /** `sessions:` — the reading sessions the PDF reader logged here, oldest
+   *  first, one line each (see TrackerSession). Empty when none. */
+  sessions: TrackerSession[];
+}
+
+/** One sitting with the book, as the reader logged it into the fence:
+ *
+ *      sessions: |
+ *        2026-09-15 | 112–139 | 27 pages | 41 min
+ *
+ *  The date, the first and last page of the sitting, the pages finished and
+ *  the minutes the timer counted. The line is the note's, so it is read
+ *  leniently: the pages and the minutes may come in either order, in either
+ *  language ("٢٧ صفحة | ٤١ د"), the range may be missing, and a line that
+ *  carries no date is not a session. */
+export interface TrackerSession {
+  /** ISO `YYYY-MM-DD` — the reader's own day. */
+  date: string;
+  from: number | null;
+  to: number | null;
+  /** Pages finished — every page turned away from, not the span. */
+  pages: number;
+  minutes: number;
 }
 
 /** What a ```tracker-board fence asks for. Every field optional: an empty
@@ -444,6 +473,9 @@ export function parseTracker(body: string): Tracker | null {
   const due = /^\d{4}-\d{2}-\d{2}/.test(dueRaw) ? dueRaw.slice(0, 10) : null;
   const season = fields.get("season")?.trim();
   const folder = fields.get("folder")?.trim().replace(/^\/+|\/+$/g, "");
+  const fileRaw = fields.get("file")?.trim() ?? "";
+  const file = fileRaw === "" ? null : (parseCover(fileRaw) ?? "").replace(/^\/+/, "");
+  const sessions = parseSessions(fields.get("sessions") ?? "");
   const stepRaw = Number(foldDigits(fields.get("step") ?? "").trim());
   const step = Number.isFinite(stepRaw) && stepRaw > 0 ? stepRaw : defaultTrackerStep(unit === undefined || unit === "" ? null : unit, kindKey);
   const notes = fields.get("notes");
@@ -463,6 +495,8 @@ export function parseTracker(body: string): Tracker | null {
     finished: finished === undefined || finished === "" ? null : finished,
     season: season === undefined || season === "" ? null : season,
     folder: folder === undefined || folder === "" || folder.includes("..") ? null : folder,
+    file: file === null || file === "" || file.includes("..") ? null : file,
+    sessions,
     step,
     pace,
     due,
@@ -488,6 +522,130 @@ export function paceProjection(tracker: Pick<Tracker, "done" | "total" | "pace" 
     return { kind: "needs", pace: Math.ceil(remaining / daysLeft), date: tracker.due };
   }
   return null;
+}
+
+// ── Reading sessions ────────────────────────────────────────────────────────
+//
+// The PDF reader keeps a quiet timer while a book is open and, when the
+// sitting ends, writes ONE LINE into the tracker's `sessions:` block. The
+// note is the state, exactly as it is for the progress line: there is no
+// sessions store anywhere, a line typed by hand is a session, and a line
+// deleted by hand never happened. The speed the card quotes ("about 1.6
+// pages a minute here") is these lines and nothing else.
+
+/** The words a session line may count pages and minutes in. Both languages,
+ *  because the line lives in the reader's own note and is read back from
+ *  whatever they wrote in it. */
+const PAGE_WORDS = ["page", "pages", "p", "pp", "صفحة", "صفحات", "ص"];
+const MINUTE_WORDS = ["min", "mins", "minute", "minutes", "m", "دقيقة", "دقائق", "د"];
+
+/** One session line → a session, or null when the line carries no date. A
+ *  segment `112–139` (any dash) is the page range; `27 pages` and `41 min`
+ *  are read by their unit word in either order; a bare number with no word
+ *  counts as pages, since that is what a hand-written line most likely
+ *  means. Everything unrecognised is ignored. */
+export function parseSessionLine(raw: string): TrackerSession | null {
+  const text = foldDigits(raw).trim();
+  const m = /^(\d{4}-\d{2}-\d{2})(?:[ T]\d{1,2}:\d{2})?\s*(?:\||$)/.exec(text);
+  if (!m) return null;
+  const session: TrackerSession = { date: m[1], from: null, to: null, pages: 0, minutes: 0 };
+  const rest = text.slice(m[0].length);
+  for (const seg of rest.split("|").map((s) => s.trim()).filter((s) => s !== "")) {
+    const range = /^(?:pp?\.?\s*)?(\d+)\s*[-–—]\s*(\d+)$/i.exec(seg);
+    if (range) {
+      session.from = Number(range[1]);
+      session.to = Number(range[2]);
+      continue;
+    }
+    const count = /^(\d+(?:[.,]\d+)?)\s*([^\d\s].*)?$/.exec(seg);
+    if (!count) continue;
+    const n = num(count[1]) ?? 0;
+    const word = (count[2] ?? "").trim().toLowerCase().replace(/\.$/, "");
+    if (MINUTE_WORDS.includes(word)) session.minutes = n;
+    else if (word === "" || PAGE_WORDS.includes(word)) session.pages = n;
+  }
+  return session;
+}
+
+/** Every session in a `sessions:` block, in the order written. */
+export function parseSessions(block: string): TrackerSession[] {
+  const out: TrackerSession[] = [];
+  for (const line of sourceLines(block)) {
+    const s = parseSessionLine(line);
+    if (s) out.push(s);
+  }
+  return out;
+}
+
+/** The line the reader writes: `2026-09-15 | 112–139 | 27 pages | 41 min`.
+ *  ASCII digits and English unit words on purpose — the same choice the
+ *  sigil log makes with `done:` — so a note reads the same on an English
+ *  and an Arabic instance, and the parser above reads either back. */
+export function formatSessionLine(session: TrackerSession): string {
+  const parts = [session.date];
+  if (session.from !== null && session.to !== null) parts.push(`${session.from}–${session.to}`);
+  parts.push(`${Math.round(session.pages)} pages`);
+  parts.push(`${Math.round(session.minutes)} min`);
+  return parts.join(" | ");
+}
+
+/** The fence body with one more session line at the end of its `sessions:`
+ *  block — the block created when the fence has none. Every other line of
+ *  the body survives byte for byte (setTrackerFields' discipline). */
+export function appendTrackerSession(body: string, session: TrackerSession): string {
+  const fields = parseFields(body);
+  const existing = (fields.get("sessions") ?? "").replace(/\s+$/, "");
+  const line = formatSessionLine(session);
+  return setTrackerFields(body, { sessions: existing === "" ? line : `${existing}\n${line}` });
+}
+
+/** The fence body with the LAST session line removed — the Undo on the
+ *  reader's toast. Unchanged when there is no block or it is empty; the
+ *  block itself goes when its last line does, so an undone first session
+ *  leaves the fence exactly as it found it. */
+export function dropLastTrackerSession(body: string): string {
+  const fields = parseFields(body);
+  const existing = (fields.get("sessions") ?? "").replace(/\s+$/, "");
+  if (existing === "") return body;
+  const lines = existing.split("\n");
+  lines.pop();
+  return setTrackerFields(body, { sessions: lines.length === 0 ? null : lines.join("\n") });
+}
+
+/** How many sessions the speed is read from. Five: enough to smooth one
+ *  distracted evening, few enough that a reader who sped up last month is
+ *  told about this month. */
+export const SPEED_SESSIONS = 5;
+
+/** Pages a minute over the last `SPEED_SESSIONS` sessions that counted
+ *  both pages and minutes — or null when nothing was timed. A ratio of
+ *  sums, not a mean of ratios: a two-minute sitting must not weigh as much
+ *  as an hour's. */
+export function readingSpeed(sessions: readonly TrackerSession[]): number | null {
+  const timed = sessions.filter((s) => s.minutes > 0 && s.pages > 0).slice(-SPEED_SESSIONS);
+  const minutes = timed.reduce((n, s) => n + s.minutes, 0);
+  const pages = timed.reduce((n, s) => n + s.pages, 0);
+  return minutes > 0 && pages > 0 ? pages / minutes : null;
+}
+
+/** Whether the tracker's count is in PAGES — the only unit a reading
+ *  session can honestly move. The author's word in either language, or the
+ *  book kind's default when they wrote none. */
+export function trackerCountsPages(tracker: Pick<Tracker, "unit" | "kindKey">): boolean {
+  const word = (tracker.unit ?? "").trim().toLowerCase();
+  if (word !== "") return ["page", "pages", "صفحة", "صفحات"].includes(word);
+  return tracker.kindKey === "book";
+}
+
+/** Minutes left at the tracker's own speed, or null: no speed yet, no total,
+ *  not in pages, or already done. "4 h 20 left" on the card is this. */
+export function minutesLeft(tracker: Pick<Tracker, "done" | "total" | "unit" | "kindKey" | "sessions">): number | null {
+  if (!trackerCountsPages(tracker) || tracker.done === null || tracker.total === null) return null;
+  const speed = readingSpeed(tracker.sessions);
+  if (speed === null) return null;
+  const remaining = tracker.total - tracker.done;
+  if (remaining <= 0) return null;
+  return Math.round(remaining / speed);
 }
 
 /** The nudge a unit deserves when the author names none. Pages and minutes
@@ -661,10 +819,15 @@ export interface TrackerFields {
   finished?: string | null;
   pace?: string | null;
   due?: string | null;
+  file?: string | null;
+  /** The whole sessions block, one line per sitting — written as a block
+   *  scalar like `notes`. Callers append a sitting through
+   *  `appendTrackerSession` rather than setting this directly. */
+  sessions?: string | null;
   notes?: string | null;
 }
 
-const FIELD_ORDER = ["title", "kind", "season", "cover", "progress", "unit", "step", "pace", "due", "status", "rating", "started", "finished", "folder", "notes"] as const;
+const FIELD_ORDER = ["title", "kind", "season", "cover", "progress", "unit", "step", "pace", "due", "status", "rating", "started", "finished", "folder", "file", "sessions", "notes"] as const;
 type FieldKey = (typeof FIELD_ORDER)[number];
 
 /** The lines of `body`, each with its own terminator, so what comes back is
@@ -689,14 +852,20 @@ function blockExtent(lines: string[], i: number): number {
   return j - i - 1;
 }
 
+/** The keys written as block scalars: the prose, and the session log — one
+ *  line per sitting is a block, not a value. */
+function isBlockKey(key: string): boolean {
+  return key === "notes" || key === "sessions";
+}
+
 function renderField(key: string, value: string, eol: string): string {
-  if (key === "notes") {
+  if (isBlockKey(key)) {
     const block = value
       .replace(/\r?\n/g, "\n")
       .split("\n")
       .map((l) => (l === "" ? "" : `  ${l}`))
       .join(eol);
-    return `notes: |${eol}${block}${eol}`;
+    return `${key}: |${eol}${block}${eol}`;
   }
   return `${key}: ${value}${eol}`;
 }
@@ -726,7 +895,7 @@ export function setTrackerFields(body: string, fields: TrackerFields): string {
       i--;
       continue;
     }
-    if (key === "notes" || isBlock) {
+    if (isBlockKey(key) || isBlock) {
       lines.splice(i, 1 + extent, `${m[1]}${renderField(key, value, lineEol || eol)}`);
       continue;
     }
@@ -739,6 +908,14 @@ export function setTrackerFields(body: string, fields: TrackerFields): string {
   const additions = [...pending.entries()].filter((e): e is [FieldKey, string] => e[1] !== null);
   if (additions.length > 0) {
     let at = lines.findIndex((l) => FIELD_RE.exec(splitEol(l)[0])?.[2].toLowerCase() === "title");
+    if (at < 0) {
+      // A BARE title (`\`\`\`tracker` + `Elden Ring`) is a line, not a key,
+      // and the additions go under it: a block written above it would
+      // become the title the parser reads, since a bare title is "the first
+      // line that is not a field".
+      const bare = lines.findIndex((l) => splitEol(l)[0].trim() !== "");
+      at = bare >= 0 && !FIELD_RE.test(splitEol(lines[bare])[0]) ? bare : -1;
+    }
     at = at >= 0 ? at + 1 : 0;
     for (const [key, value] of additions) {
       const order = FIELD_ORDER.indexOf(key);
