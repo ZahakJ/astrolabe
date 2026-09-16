@@ -124,9 +124,11 @@
 }
 
 /* Today is RINGED, not filled: the fill is what the marks under the number
-   need to read against, and a ring says "here" without shouting. */
+   need to read against, and a ring says "here" without shouting. The ring
+   goes round the NUMBER, not the cell — a cell-wide ring ran along the
+   bottom edge where the marks sit and touched the dots (the owner: "the
+   circle around the current day kinda touches the dots"). */
 .s-cal__day.is-today {
-  border-color: var(--accent);
   color: var(--accent);
   font-weight: 600;
 }
@@ -134,6 +136,18 @@
 .s-cal__num {
   align-self: end;
   line-height: 1;
+  /* A fixed round box, ringed only on today, so every number sits on the
+     same baseline whether or not it wears the ring. */
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+}
+
+.s-cal__day.is-today .s-cal__num {
+  border-color: var(--accent);
 }
 
 /* The other calendar's day, small in the inline-end top corner — only on
@@ -155,7 +169,8 @@
   gap: 3px;
   block-size: 6px;
   align-items: center;
-  margin-block-end: 3px;
+  /* Air above the dots, so today's ring never touches them. */
+  margin-block: 3px;
 }
 
 .s-cal__dot {
@@ -182,6 +197,11 @@
 .s-calsec .s-cal__day {
   max-block-size: 36px;
   font-size: 0.786rem;
+}
+
+.s-calsec .s-cal__num {
+  inline-size: 19px;
+  block-size: 19px;
 }
 
 /* ── The Sigils page's ───────────────────────────────────────────────────── */
