@@ -44,10 +44,18 @@ const DIGITS_RE = /^\p{N}+$/u;
  *  other; length is the rule that needs no dictionary),
  *  and cut to the TERMS_PER_NOTE most frequent. Insertion order breaks
  *  ties, so the word the author used first wins a tie at the cut. */
-export function countTerms(text: string, tags: readonly string[] = [], title = ""): Map<string, number> {
+export function countTerms(text: string, tags: readonly string[] = [], title = "", spellings?: Map<string, string>): Map<string, number> {
   const counts = new Map<string, number>();
   const bump = (term: string, by: number): void => {
     counts.set(term, (counts.get(term) ?? 0) + by);
+  };
+  // The folded term is the KEY, never what a reader is shown: «المقدمه» is
+  // how the index spells «المقدمة» and "resume" how it spells "résumé", and
+  // a chip that says either is a misspelling to the person who wrote the
+  // note. The caller's map takes the first spelling the author used, case
+  // aside, so the panel can say the word the way the vault says it.
+  const spell = (term: string, raw: string): void => {
+    if (spellings !== undefined && !spellings.has(term)) spellings.set(term, raw);
   };
   const words = (source: string, by: number): void => {
     let seen = 0;
@@ -57,18 +65,24 @@ export function countTerms(text: string, tags: readonly string[] = [], title = "
       const term = foldTerm(raw);
       if (term.length < 3 || DIGITS_RE.test(term)) continue;
       bump(term, by);
+      spell(term, raw.toLocaleLowerCase());
     }
   };
   words(text, 1);
   words(title, TITLE_WEIGHT);
   for (const tag of tags) {
-    const key = foldTerm(tag.trim().replace(/^#/, ""));
+    const raw = tag.trim().replace(/^#/, "");
+    const key = foldTerm(raw);
     if (key === "") continue;
     bump(`#${key}`, TAG_WEIGHT);
+    spell(`#${key}`, `#${raw}`);
     // A nested tag is also its parent: `#book/history` ties to `#book/fiction`
     // through `#book`, more weakly than two notes that share the leaf.
     const slash = key.indexOf("/");
-    if (slash > 0) bump(`#${key.slice(0, slash)}`, TAG_WEIGHT / 2);
+    if (slash > 0) {
+      bump(`#${key.slice(0, slash)}`, TAG_WEIGHT / 2);
+      spell(`#${key.slice(0, slash)}`, `#${raw.slice(0, raw.indexOf("/"))}`);
+    }
   }
   if (counts.size <= TERMS_PER_NOTE) return counts;
   return new Map([...counts].sort((a, b) => b[1] - a[1]).slice(0, TERMS_PER_NOTE));
@@ -80,6 +94,9 @@ export function countTerms(text: string, tags: readonly string[] = [], title = "
 export class TermTable {
   private readonly ids = new Map<string, number>();
   readonly names: string[] = [];
+  /** What a term is SHOWN as, by id: the first author's spelling of it
+   *  (countTerms' spellings), else the folded name. Sparse. */
+  private readonly shown: string[] = [];
   idOf(term: string): number {
     let id = this.ids.get(term);
     if (id === undefined) {
@@ -88,6 +105,15 @@ export class TermTable {
       this.names.push(term);
     }
     return id;
+  }
+  /** Keep a spelling for a term, the first one offered winning: a vocabulary
+   *  is spelled once, by whoever used the word first. */
+  spell(term: string, raw: string): void {
+    const id = this.idOf(term);
+    if (this.shown[id] === undefined && raw !== term) this.shown[id] = raw;
+  }
+  shownOf(id: number): string {
+    return this.shown[id] ?? this.names[id];
   }
   get size(): number {
     return this.names.length;
@@ -100,8 +126,14 @@ export interface TermVector {
   counts: Float32Array;
 }
 
-export function internTerms(counts: ReadonlyMap<string, number>, table: TermTable): TermVector {
+export function internTerms(counts: ReadonlyMap<string, number>, table: TermTable, spellings?: ReadonlyMap<string, string>): TermVector {
   const pairs = [...counts].map(([term, n]) => [table.idOf(term), n] as const).sort((a, b) => a[0] - b[0]);
+  if (spellings !== undefined) {
+    for (const term of counts.keys()) {
+      const raw = spellings.get(term);
+      if (raw !== undefined) table.spell(term, raw);
+    }
+  }
   return { ids: Uint32Array.from(pairs, (p) => p[0]), counts: Float32Array.from(pairs, (p) => p[1]) };
 }
 
@@ -196,7 +228,7 @@ export function nearest(
   for (const c of candidates) {
     const sim = similarity(target, c.vector);
     if (sim.score < minScore) continue;
-    hits.push({ path: c.path, title: c.title, score: sim.score, terms: sim.top.map((id) => table.names[id]) });
+    hits.push({ path: c.path, title: c.title, score: sim.score, terms: sim.top.map((id) => table.shownOf(id)) });
   }
   hits.sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));
   return hits.slice(0, limit);

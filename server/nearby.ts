@@ -30,7 +30,10 @@ function corpus(): { vectors: Map<string, WeightedVector>; titles: Map<string, s
     live.add(note.path);
     const have = terms.get(note.path);
     if (have !== undefined && have.mtimeMs === note.mtimeMs) continue;
-    terms.set(note.path, { mtimeMs: note.mtimeMs, vector: internTerms(countTerms(note.prose(), note.tags, note.title), table) });
+    // The author's spellings ride along so the panel's chips say «المقدمة»
+    // and "résumé", not the folded keys the scoring runs on.
+    const spellings = new Map<string, string>();
+    terms.set(note.path, { mtimeMs: note.mtimeMs, vector: internTerms(countTerms(note.prose(), note.tags, note.title, spellings), table, spellings) });
   }
   // A deleted or moved note leaves the table; its term ids stay interned,
   // which is a vocabulary's price and not a leak that grows with edits.
