@@ -135,7 +135,9 @@ Close the book (`q`, the ✕, the tab's own close), press **End session** in the
 > Read 27 pages in 41 min — logged to *Muqaddimah* · **Undo**
 
 It goes into the book's [tracker](trackers.md) note, and nowhere else: one line in the fence's
-`sessions:` block, and the progress moved by the pages read when the tracker counts pages. The
+`sessions:` block, and the progress moved by the pages read when the tracker counts pages (a bar
+kept in chapters, or a bare percentage, is yours to move; at the end of a book the bar stops at the
+total and Undo takes back only what it moved). The
 tracker is found by its `file:` line when one names this PDF, and by its title otherwise (the
 PDF's own title, else its file name, against `kind: book` trackers). A book with no tracker gets a
 toast that says so and offers **Track it**, which writes a `Media/Books/<title>.md` note the way
@@ -153,7 +155,8 @@ commentary and a novel are not read at one speed.
 Flipping to the note beside the book and back is the middle of a sitting, not its end: the clock
 is stashed in the browser between turns and resumes when the same book comes back within half an
 hour. A tab closed mid-sitting is logged the next time that book opens, for the day it happened,
-with the same toast and Undo.
+with the same toast and Undo — and a sigil slot it ticks is that day's, not the day you reopened
+the book.
 
 ## Highlights → note
 

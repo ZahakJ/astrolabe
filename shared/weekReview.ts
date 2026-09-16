@@ -208,27 +208,28 @@ export interface ReviewNote {
 }
 
 export interface NotesWeek {
-  /** Notes whose date falls in the week, newest first. */
+  /** Notes whose date falls in the week, newest first — the first `limit`
+   *  of them; `createdTotal` is how many there were, so a week of forty
+   *  notes reads "and 28 more" under the twelve rather than as twelve. */
   created: ReviewNote[];
+  createdTotal: number;
   /** Notes touched in the week that were not created in it, most edited
    *  first — by the version count when the store has one, by the last
    *  write otherwise. */
   edited: (ReviewNote & { edits: number })[];
+  editedTotal: number;
 }
 
 /** `edits` is path → versions written this week, for the notes the caller
  *  asked the version store about; a note not in the map counts its one
  *  known write. */
 export function notesThisWeek(notes: readonly ReviewNote[], week: WeekRange, edits: ReadonlyMap<string, number>, limit = 12): NotesWeek {
-  const created = notes
-    .filter((n) => n.dateMs > 0 && inWeek(localDay(n.dateMs), week))
-    .sort((a, b) => b.dateMs - a.dateMs)
-    .slice(0, limit);
-  const createdSet = new Set(created.map((n) => n.path));
-  const edited = notes
+  const createdAll = notes.filter((n) => n.dateMs > 0 && inWeek(localDay(n.dateMs), week)).sort((a, b) => b.dateMs - a.dateMs);
+  const created = createdAll.slice(0, limit);
+  const createdSet = new Set(createdAll.map((n) => n.path));
+  const editedAll = notes
     .filter((n) => !createdSet.has(n.path) && n.mtimeMs > 0 && inWeek(localDay(n.mtimeMs), week))
     .map((n) => ({ ...n, edits: Math.max(1, edits.get(n.path) ?? 1) }))
-    .sort((a, b) => b.edits - a.edits || b.mtimeMs - a.mtimeMs)
-    .slice(0, limit);
-  return { created, edited };
+    .sort((a, b) => b.edits - a.edits || b.mtimeMs - a.mtimeMs);
+  return { created, createdTotal: createdAll.length, edited: editedAll.slice(0, limit), editedTotal: editedAll.length };
 }

@@ -4431,6 +4431,7 @@ const DICT = {
   bookKeyCommand: { en: "Command line", ar: "سطر الأوامر" },
   bookKeyLibrary: { en: "Back to the library", ar: "العودة إلى المكتبة" },
   bookKeyClose: { en: "Close the book", ar: "إغلاق الكتاب" },
+  bookKeyEndSession: { en: "End the reading session and log it to the book's tracker", ar: "إنهاء جلسة القراءة وتسجيلها في متتبِّع الكتاب" },
   bookKeyHelp: { en: "This list", ar: "هذه القائمة" },
   // ── Trackers (```tracker, ```tracker-board) ──────────────────────────────
   // A card in a note is CONTENT, but everything around the author's own words
@@ -4830,6 +4831,7 @@ const DICT = {
   reviewNotesCreated: { en: "Written this week", ar: "كُتبت هذا الأسبوع" },
   reviewNotesEdited: { en: "Most edited", ar: "الأكثر تعديلًا" },
   reviewNotesNone: { en: "No notes written this week.", ar: "لم تُكتب ملاحظات هذا الأسبوع." },
+  reviewMore: { en: "and {count} more", ar: "و{count} أخرى" },
   reviewLoading: { en: "Adding the week up…", ar: "يُحسب الأسبوع…" },
   reviewFailed: { en: "The week could not be read.", ar: "تعذّرت قراءة الأسبوع." },
   reviewNotStored: { en: "Nothing on this page is stored. It is computed from your notes, your trackers, your sigil logs and this device's Orbits log, each time it opens.", ar: "لا يُخزَّن شيء في هذه الصفحة؛ تُحسب من ملاحظاتك ومتتبِّعاتك وسجلّات سِجلّاتك وسجلّ المدارات على هذا الجهاز في كل مرة تُفتح." },

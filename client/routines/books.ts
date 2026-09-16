@@ -18,7 +18,7 @@
 // Nothing here is state: the tick is the log line the checkbox writes, and
 // the way back (the toast's Undo) is the same route with yesterday's list.
 
-import { isoDate, tasksFor, type RoutineTask } from "../../shared/routine.ts";
+import { tasksFor, type RoutineTask } from "../../shared/routine.ts";
 import { stripNoteExt } from "../../shared/noteFormat.ts";
 import type { RoutineMeta } from "../../shared/types.ts";
 import { getRoutines, updateRoutine } from "../api.ts";
@@ -35,6 +35,12 @@ export interface BookSessionFacts {
   pages: number;
   /** The tracker's `pace:` — the day's ask for a `book:` task. */
   pace: number | null;
+  /** The day the sitting happened — today for a session ended in the
+   *  reader, an earlier day for one a closed tab left behind and the next
+   *  open logged. The tick goes on THAT day's row: a sitting read on
+   *  Tuesday is Tuesday's slot, and ticking Wednesday's for it would seal a
+   *  day nobody read on. */
+  date: string;
 }
 
 function sameKey(a: string, b: string): boolean {
@@ -71,7 +77,7 @@ function taskIsBook(task: RoutineTask, facts: BookSessionFacts): boolean {
  *  what the reader is looking at, and the log line is the fact that
  *  matters. */
 export async function tickSlotsForBook(facts: BookSessionFacts): Promise<{ ticked: number; revert: () => Promise<void> }> {
-  const today = isoDate(new Date());
+  const today = facts.date;
   const nothing = { ticked: 0, revert: async () => undefined };
   let routines: RoutineMeta[];
   try {
