@@ -1091,8 +1091,10 @@ export default function CommandPalette() {
     // on an exact (folded) title miss rather than on an empty list, because
     // a vault with "Meeting notes" still has no note called "Meeting notes
     // 2", and that is the note the writer is about to want.
+    // An alias counts as a name: a note with `aliases: [Start here]` IS
+    // called "Start here", and the row that made it would make a twin.
     const folded = foldTerm(q);
-    const named = hits.some((hit) => foldTerm(hit.title) === folded);
+    const named = hits.some((hit) => foldTerm(hit.title) === folded || (hit.alias !== undefined && foldTerm(hit.alias) === folded));
     const create: Item[] = admin && !named && !q.includes("#") ? [{ kind: "create", name: q, path: createPath(q, openPath) }] : [];
     return [
       ...hits.slice(0, cut).map(noteItem),

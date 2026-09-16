@@ -1467,30 +1467,57 @@ export default function Sidebar() {
   });
   // Hover previews over the pills (client/tagPreview.ts): rest on a tag and
   // the three notes that carry it most float beside it. The same engine as
-  // the hit rows above, by dynamic import for the same first-paint reason;
-  // installed on the list, which mounts and unmounts with the collapse, and
-  // re-installed on a language flip because the card's count line is t()
-  // text. The shelf's counts are read through a ref so a tag list that
-  // reloads under a standing card is not a reason to re-install.
+  // the hit rows above, by dynamic import for the same first-paint reason —
+  // and fetched on the FIRST pointer or focus to reach the list, not on
+  // mount: the shelf is on screen in every session, admin and visitor
+  // alike, and a chunk pulled at boot for a card most sessions never open is
+  // a boot cost, however small. Installed on the list, which mounts and
+  // unmounts with the collapse, and re-installed on a language flip because
+  // the card's count line is t() text. The shelf's counts are read through a
+  // ref so a tag list that reloads under a standing card is not a reason to
+  // re-install.
   const tagListRef = useRef<HTMLDivElement | null>(null);
   const tagCountsRef = useRef<TagCount[]>([]);
   tagCountsRef.current = tags;
   useEffect(() => {
-    if (tagsCollapsed || tags.length === 0) return;
+    const list = tagListRef.current;
+    if (tagsCollapsed || tags.length === 0 || !list) return;
     let dispose: (() => void) | null = null;
     let dead = false;
-    void import("../tagPreview.ts").then((m) => {
-      if (dead || !tagListRef.current) return;
-      dispose = m.installTagPreviews(tagListRef.current, tagListRef.current, (tag) => {
-        // A branch row ("zettel", with children) counts its whole subtree;
-        // the flat list carries only the leaf tags, so a branch reads null
-        // and the card shows its three without a total.
-        const hit = tagCountsRef.current.find((entry) => entry.tag === tag);
-        return hit ? hit.count : null;
+    let asked = false;
+    const arm = (first: Event): void => {
+      if (asked) return;
+      asked = true;
+      list.removeEventListener("pointerover", arm);
+      list.removeEventListener("focusin", arm);
+      void import("../tagPreview.ts").then((m) => {
+        if (dead || !tagListRef.current) return;
+        dispose = m.installTagPreviews(tagListRef.current, tagListRef.current, (tag) => {
+          // A branch row ("zettel", with children) counts its whole subtree;
+          // the flat list carries only the leaf tags, so a branch reads null
+          // and the card shows its three without a total.
+          const hit = tagCountsRef.current.find((entry) => entry.tag === tag);
+          return hit ? hit.count : null;
+        });
+        // The event that fetched the engine happened before the engine was
+        // listening. Say it again, so the pill the pointer is already on (or
+        // the one the keyboard already reached) opens its card now rather
+        // than on the next move.
+        const target = first.target;
+        if (!(target instanceof HTMLElement) || !list.contains(target)) return;
+        if (first.type === "focusin" && document.activeElement === target) {
+          target.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+        } else if (first.type === "pointerover" && target.matches(":hover")) {
+          target.dispatchEvent(new PointerEvent("pointerover", { bubbles: true, pointerType: "mouse" }));
+        }
       });
-    });
+    };
+    list.addEventListener("pointerover", arm);
+    list.addEventListener("focusin", arm);
     return () => {
       dead = true;
+      list.removeEventListener("pointerover", arm);
+      list.removeEventListener("focusin", arm);
       dispose?.();
     };
   }, [tagsCollapsed, tags.length === 0, lang]);

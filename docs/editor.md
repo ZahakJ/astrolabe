@@ -84,8 +84,8 @@ those four words freely.
   ` ``` ` suggests languages as you type.
 - **Hover previews.** Rest the pointer on a `[[wikilink]]` and a floating card shows the opening of
   the target note, rendered (`[[Note#Heading]]` previews from that heading). Footnote references
-  preview their definition. Rest on a **tag pill in the sidebar** and the card lists the three notes
-  that carry the tag most — title, folder and a line of each — with the tag's full count under
+  preview their definition. Rest on a **tag pill in the sidebar** and the card lists the three newest
+  notes that carry the tag — title, folder and a line of each — with the tag's full count under
   them, so a count becomes a glance before it becomes a click.
 - **Section surgery.** Fold a heading, extract it into a new note, or drag it in the outline to move
   the whole subtree. See [Sections](templates-and-notes.md#sections-fold-extract-move).

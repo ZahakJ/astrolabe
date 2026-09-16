@@ -91,6 +91,10 @@ describe("Arabic phrases", () => {
     assert.equal(day("بعد أسبوعين", "ar"), "2026-09-29");
     assert.equal(day("قبل أسبوع", "ar"), "2026-09-08");
     assert.equal(day("قبل ٤ أيام", "ar"), "2026-09-11");
+    // The broken plural «أسابيع» is weeks too — it once read as days,
+    // because only the sound plural's first letters were tested.
+    assert.equal(day("قبل ٣ أسابيع", "ar"), "2026-08-25");
+    assert.equal(day("بعد ٣ اسابيع", "ar"), "2026-10-06");
   });
 
   it("reads a day with a month name — Gregorian, Levantine, or Hijri", () => {

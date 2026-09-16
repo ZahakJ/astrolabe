@@ -1033,7 +1033,12 @@ const AUDIENCES = [
   // above, plus the sidebar's hover installer for the tag shelf (~0.4 kB;
   // the card itself is a dynamic import) and the status bar's selection
   // phrase. The palette's new rows are in the palette's own chunk.
-  { name: "admin first paint", keys: app, budget: 1499 * 1024 },
+  // 3.17.0 review: 1498.6 kB actual → 1499.1 kB, budget 1500 — the tag
+  // shelf's hover installer now waits for the first pointer or focus on the
+  // list and re-asks the pill it found there (Sidebar.tsx, ~0.5 kB), which
+  // takes the tagPreview chunk and its stylesheet (~6 kB) OFF every boot;
+  // a net saving for the session, paid for here.
+  { name: "admin first paint", keys: app, budget: 1500 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
