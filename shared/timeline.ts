@@ -5,8 +5,10 @@
 // line by ONE of those, and when that one is a frontmatter key (`by: read`)
 // the value is whatever the author typed: `2026-03-04`, `2026/03/04`,
 // `2026-03`, `2026`, `4 March 2026`, with Eastern Arabic digits or without.
-// Reading those is this module's whole job; the client only groups what
-// comes back into years, in the site's calendar, which is Intl's job.
+// Reading those, and turning every kind of date into ONE kind — a calendar
+// day at UTC midnight (`localDayUtc`) — is this module's whole job; the
+// client only groups what comes back into years, in the site's calendar,
+// which is Intl's job.
 
 import type { QuerySpec } from "./queryFence.ts";
 
@@ -56,11 +58,36 @@ function utcDay(y: number, m: number, d: number): number | null {
   return back.getUTCMonth() === m - 1 && back.getUTCDate() === d ? ms : null;
 }
 
-/** The moment a row sits at on the timeline, per the fence's `by:`. Null
- *  when the row has no such date — it then goes to the undated tail. */
+/** An INSTANT (a file's mtime, a birthtime) as the UTC midnight of its LOCAL
+ *  calendar day. Every value the timeline hands back is a day at UTC
+ *  midnight, so the renderer can print all of them with `timeZone: "UTC"`
+ *  and a frontmatter `2026-03-04` never slips a day west of Greenwich —
+ *  but a note saved at 22:00 in California is a note of THAT evening, not
+ *  of the next UTC morning, so a moment is read in local time first, the
+ *  way the on-this-day panel reads a birthtime (server/indexer.ts). */
+export function localDayUtc(instantMs: number): number {
+  const at = new Date(instantMs);
+  return Date.UTC(at.getFullYear(), at.getMonth(), at.getDate());
+}
+
+/** The frontmatter keys the indexer reads a note's own date from, in its
+ *  order (server/indexer.ts dateMs). */
+const OWN_DATE_KEYS = ["date", "created", "published"] as const;
+
+/** The day a row sits at on the timeline, per the fence's `by:`, as UTC
+ *  midnight. Null when the row has no such date — it then goes to the
+ *  undated tail. `created` is the note's own date: the frontmatter day when
+ *  the note names one (a calendar day, read as such), else the birthtime
+ *  the server fell back to, which is a moment and is read in local time. */
 export function timelineMs<T extends Datable>(row: T, by: QuerySpec["by"]): number | null {
-  if (by === "created") return row.dateMs > 0 ? row.dateMs : null;
-  if (by === "modified") return row.mtimeMs > 0 ? row.mtimeMs : null;
+  if (by === "created") {
+    for (const key of OWN_DATE_KEYS) {
+      const own = parseTimelineDate(row.props[key]);
+      if (own !== null) return own;
+    }
+    return row.dateMs > 0 ? localDayUtc(row.dateMs) : null;
+  }
+  if (by === "modified") return row.mtimeMs > 0 ? localDayUtc(row.mtimeMs) : null;
   return parseTimelineDate(row.props[by.prop]);
 }
 
