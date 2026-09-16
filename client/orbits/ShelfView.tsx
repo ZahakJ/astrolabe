@@ -117,7 +117,9 @@ function ShelfCard({
       </header>
       <p className="s-shelf__counts">
         <span className={`s-shelf__stat${meta.counts.due > 0 ? " s-shelf__stat--due" : ""}`}>
-          <b>{localeNum(meta.counts.due)}</b> {st("orbitsDueLabel")}
+          {/* "1 orbit due" / "3 orbits due" — the unit agrees with the number
+              in both languages (countPhrase), so no bare "orbits" after a 1. */}
+          <b>{countPhrase(meta.counts.due, "orbits")}</b> {st("orbitsDueLabel")}
         </span>
         <span className="s-shelf__stat">
           <b>{localeNum(meta.counts.new)}</b> {st("orbitsNewLabel")}
@@ -255,7 +257,7 @@ export default function ShelfView() {
           <p className="s-orbits__date">{dateLine}</p>
           <h1 className="s-orbits__h1">{t("orbits")}</h1>
           <p className="s-orbits__lead">
-            {all === null ? st("orbitsLead") : dueTotal === 0 ? st("orbitsNothingDue") : stf("orbitsDueToday", { n: countPhrase(dueTotal, "cards") })}
+            {all === null ? st("orbitsLead") : dueTotal === 0 ? st("orbitsNothingDue") : stf("orbitsDueToday", { n: countPhrase(dueTotal, "orbits") })}
             {streak > 0 ? ` · ${stf("orbitsStreak", { days: countPhrase(streak, "days") })}` : ""}
           </p>
         </div>

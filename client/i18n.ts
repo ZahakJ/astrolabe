@@ -4604,8 +4604,8 @@ const DICT = {
   orbitsTitle: { en: "Open Orbits", ar: "فتح المدارات" },
   cmdOpenOrbits: { en: "Open Orbits", ar: "فتح المدارات" },
   cmdOpenOrbitsHint: { en: "view · spaced repetition: your decks and what is due", ar: "عرض · التكرار المتباعد: مجموعاتك وما استُحق منها" },
-  cmdStudyDue: { en: "Study due cards", ar: "ادرس البطاقات المستحقة" },
-  cmdStudyDueHint: { en: "the first deck with cards due", ar: "أول مجموعة فيها بطاقات مستحقة" },
+  cmdStudyDue: { en: "Study due orbits", ar: "ادرس المدارات المستحقة" },
+  cmdStudyDueHint: { en: "the first deck with orbits due", ar: "أول مجموعة فيها مدارات مستحقة" },
   orbitsNewDeck: { en: "New deck…", ar: "مجموعة جديدة…" },
   // The implicit deck — every card outside a deck note — has no note to be
   // named after, so its session tab wears this.
@@ -4616,11 +4616,11 @@ const DICT = {
   // The line on the Sigils page: "{n}" is a countPhrase ("3 cards" /
   // "٣ بطاقات"); the Arabic ends in it so no adjective has to agree with a
   // count that changes gender at one.
-  routinesOrbitsDue: { en: "{n} due in Orbits", ar: "المستحق في المدارات: {n}" },
+  routinesOrbitsDue: { en: "{n} due", ar: "المستحق: {n}" },
   addFlashcard: { en: "Make a card", ar: "اصنع بطاقة" },
   // ── Orbits on a sigil card (client/routines/orbits.ts): the chip a slot
   // wears when its text wikilinks a deck note ──
-  orbitsChipDue: { en: "{n} due", ar: "{n} مستحقة" },
+  orbitsChipDue: { en: "{n} due", ar: "المستحق: {n}" },
   orbitsChipStudy: { en: "Study", ar: "ادرس" },
   orbitsChipStudyTitle: { en: "Study {title}", ar: "ادرس {title}" },
   // ── Offline reading (client/offline.ts, client/sw.ts, docs/offline.md) ──
@@ -5149,7 +5149,8 @@ export type CountUnit =
   | "lessons"
   | "tasks"
   | "days"
-  | "cards";
+  | "cards"
+  | "orbits";
 
 const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: string; few: string; many: string } }> = {
   // What a bulk tab-close is about to FLUSH. It is a count with a consequence
@@ -5222,6 +5223,9 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   days: { en: ["day", "days"], ar: { one: "يوم واحد", two: "يومان", few: "أيام", many: "يومًا" } },
   // The decks count their cards: "3 cards due", "١٠ بطاقات".
   cards: { en: ["card", "cards"], ar: { one: "بطاقة واحدة", two: "بطاقتان", few: "بطاقات", many: "بطاقة" } },
+  // …but what is DUE is counted in orbits: a card coming back around is an
+  // orbit closing, and the owner wanted the page to say so ("one orbit due").
+  orbits: { en: ["orbit", "orbits"], ar: { one: "مدار واحد", two: "مداران", few: "مدارات", many: "مدارًا" } },
 };
 
 /** "3 notes" / "3 ملاحظات" — a number with its correctly-agreed unit. */

@@ -332,7 +332,7 @@ export default function SessionView({ path, section }: { path: string; section: 
       body = (
         <section className="s-session__summary" data-testid="session-summary" aria-live="polite">
           <h2 className="s-session__summaryhead">{st("orbitsDone")}</h2>
-          <p className="s-session__summarylead">{summary.dueLeft > 0 ? stf("orbitsDoneLeft", { n: countPhrase(summary.dueLeft, "cards") }) : st("orbitsDoneHint")}</p>
+          <p className="s-session__summarylead">{summary.dueLeft > 0 ? stf("orbitsDoneLeft", { n: countPhrase(summary.dueLeft, "orbits") }) : st("orbitsDoneHint")}</p>
           {summary.graded > 0 && (
             <dl className="s-session__stats">
               <div className="s-session__stat">

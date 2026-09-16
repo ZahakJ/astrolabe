@@ -36,12 +36,14 @@ export const ORBITS_COPY = {
   // adjective to agree with a count that changes at one, and a sentence
   // that ends in the count agrees with nothing.
   orbitsDueToday: { en: "{n} due today", ar: "المستحق اليوم: {n}" },
-  orbitsNothingDue: { en: "Nothing due today", ar: "لا شيء مستحق اليوم" },
+  orbitsNothingDue: { en: "No orbits due today", ar: "لا مدارات مستحقة اليوم" },
   orbitsStreak: { en: "{days} in a row", ar: "{days} على التوالي" },
   orbitsStudy: { en: "Study", ar: "ادرس" },
   orbitsStudySection: { en: "Study section", ar: "ادرس قسمًا" },
   orbitsSectionRow: { en: "{name} · {due} due", ar: "{name} · {due} مستحق" },
-  orbitsDueLabel: { en: "due", ar: "مستحق" },
+  // The deck card counts what is due in ORBITS (the count unit in i18n.ts):
+  // "3 orbits due", "0 orbits due".
+  orbitsDueLabel: { en: "due", ar: "مستحقة" },
   orbitsNewLabel: { en: "new", ar: "جديد" },
   orbitsTotalLabel: { en: "total", ar: "الكل" },
   orbitsPercent: { en: "{n}%", ar: "{n}٪" },
