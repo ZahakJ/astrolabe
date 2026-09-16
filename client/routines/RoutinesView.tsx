@@ -138,7 +138,7 @@ function CardsDue({ today }: { today: string }) {
   if (due === 0) return null;
   return (
     <section className="s-routines__cards" data-testid="routines-cards-due">
-      <span className="s-routines__cardstext">{tf("routinesOrbitsDue", { n: countPhrase(due, "cards") })}</span>
+      <span className="s-routines__cardstext">{tf("routinesOrbitsDue", { n: countPhrase(due, "orbits") })}</span>
       <button type="button" className="s-btn s-btn--accent" onClick={() => openOrbits(null)}>
         {t("orbits")}
       </button>

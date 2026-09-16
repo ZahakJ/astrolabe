@@ -21,7 +21,7 @@ import { stripNoteExt } from "../../shared/noteFormat.ts";
 import type { RoutineMeta, TreeNode } from "../../shared/types.ts";
 import { getRoutines, updateRoutine, withPreview } from "../api.ts";
 import { parseWikilink, resolveLink, WIKILINK_RE } from "../editor/links.ts";
-import { localeNum, t, tf } from "../i18n.ts";
+import { localeNum, t, tf, countPhrase } from "../i18n.ts";
 import { useStore } from "../state.ts";
 
 /** One wikilink in a task's text, resolved to a vault path when the tree
@@ -206,7 +206,7 @@ export function decorateDeckTasks(card: HTMLElement, meta: RoutineMeta, today: s
         }
         const n = document.createElement("span");
         n.className = "s-orbits-chip__n";
-        n.textContent = tf("orbitsChipDue", { n: localeNum(c.counts.due) });
+        n.textContent = tf("orbitsChipDue", { n: countPhrase(c.counts.due, "orbits") });
         a.appendChild(n);
         a.appendChild(document.createTextNode(` · ${t("orbitsChipStudy")}`));
         a.addEventListener("click", (ev) => {

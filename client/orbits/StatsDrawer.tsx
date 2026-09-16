@@ -82,7 +82,7 @@ export default function StatsDrawer({ meta, log, today, onClose }: { meta: DeckM
             <div className="s-statsdrawer__forecast" role="img" aria-label={st("orbitsForecast30")}>
               {bars.map((n, i) => {
                 const day = shiftDay(today, i);
-                const label = stf("orbitsForecastBar", { n: countPhrase(n, "cards"), date: siteDate(`${day}T12:00:00`, locale, { day: "numeric", month: "short" }) });
+                const label = stf("orbitsForecastBar", { n: countPhrase(n, "orbits"), date: siteDate(`${day}T12:00:00`, locale, { day: "numeric", month: "short" }) });
                 return (
                   <span key={day} className={`s-statsdrawer__bar${i === 0 ? " s-statsdrawer__bar--today" : ""}`} title={label}>
                     <span className="s-statsdrawer__fill" style={{ blockSize: `${Math.round((n / peak) * 100)}%` }} />
