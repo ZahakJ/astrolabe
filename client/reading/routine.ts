@@ -18,6 +18,7 @@ import "./routine.css";
 import type { FolderIcon } from "../../shared/folderIcons.ts";
 import { FOLDER_ICON_HAND_PATHS } from "../../shared/folderIconsHand.ts";
 import {
+  carriedTasks,
   dayStatus,
   isoDate,
   routineStats,
@@ -199,6 +200,50 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
   // ── Today ──
   card.appendChild(renderDay(plan, entryOf(today), today, today, locale, interactive ? hooks.onLog : undefined));
 
+  // ── Owed from earlier days: tasks pushed forward and not yet answered ──
+  const carried = carriedTasks(plan, entries, today);
+  if (carried.length > 0) {
+    const box = el("div", "s-rv-routine__carried");
+    box.appendChild(el("div", "s-rv-routine__carriedhead", t("routineCarriedHead")));
+    const list = el("ul", "s-rv-routine__tasks");
+    for (const { from, task } of carried) {
+      const li = el("li", "s-rv-routine__task is-carried");
+      const label = el("label", "s-rv-routine__tasklabel");
+      const box2 = el("input", "s-rv-routine__check");
+      box2.type = "checkbox";
+      box2.disabled = !interactive;
+      box2.setAttribute("aria-label", `${task.key}: ${task.text ?? ""} (${dayLabel(from, locale)})`);
+      const onLog = interactive ? hooks.onLog : undefined;
+      if (onLog) {
+        box2.addEventListener("change", () => {
+          // The tick lands on the day it was owed to.
+          const owed = entryOf(from);
+          onLog({ date: from, done: [...(owed?.done ?? []).filter((d) => !sameKey(d, task.key)), task.key] });
+        });
+      }
+      label.appendChild(box2);
+      const words = el("span", "s-rv-routine__taskwords");
+      words.appendChild(el("span", "s-rv-routine__taskkey", task.key));
+      words.appendChild(el("span", "s-rv-routine__carriedfrom", tf("routineCarriedFrom", { day: dayLabel(from, locale) })));
+      if (task.text) words.appendChild(el("span", "s-rv-routine__tasktext", task.text));
+      label.appendChild(words);
+      li.appendChild(label);
+      if (onLog) {
+        const skip = el("button", "s-rv-routine__skip", t("routineSkip"));
+        skip.type = "button";
+        skip.title = t("routineSkipTitle");
+        skip.addEventListener("click", () => {
+          const owed = entryOf(from);
+          onLog({ date: from, skipped: [...(owed?.skipped ?? []), task.key] });
+        });
+        li.appendChild(skip);
+      }
+      list.appendChild(li);
+    }
+    box.appendChild(list);
+    card.appendChild(box);
+  }
+
   // ── Week strip and heatmap: one row when the card is wide (routine.css) ──
   const lower = el("div", "s-rv-routine__lower");
   const strip = el("div", "s-rv-routine__week");
@@ -310,6 +355,7 @@ function renderDay(
   const tasks = tasksFor(plan, iso);
   const done = entry?.done ?? [];
   const skipped = entry?.skipped ?? [];
+  const deferred = entry?.deferred ?? [];
   if (tasks.length === 0) {
     box.appendChild(el("p", "s-rv-routine__rest", t("routineRestDay")));
   } else {
@@ -360,6 +406,8 @@ function renderDay(
           .catch(() => {});
       }
       li.appendChild(label);
+      const isDeferred = deferred.some((d) => sameKey(d, task.key));
+      if (isDeferred) li.classList.add("is-deferred");
       if (onLog && !isDone) {
         const skip = el("button", `s-rv-routine__skip${isSkipped ? " is-on" : ""}`, isSkipped ? t("routineSkipped") : t("routineSkip"));
         skip.type = "button";
@@ -369,6 +417,22 @@ function renderDay(
           onLog({ date: iso, skipped: next });
         });
         li.appendChild(skip);
+        // PUSH TO TOMORROW — the third answer beside done and skipped: not
+        // today, not never. The task keeps showing on the days after until
+        // it is ticked, and the tick lands on THIS day's line, so the day it
+        // was owed to is the day that gets the credit (shared/routine.ts,
+        // carriedTasks). Only today's tasks can be pushed: yesterday is
+        // already history.
+        if (iso === today) {
+          const push = el("button", `s-rv-routine__skip s-rv-routine__push${isDeferred ? " is-on" : ""}`, isDeferred ? t("routinePushed") : t("routinePush"));
+          push.type = "button";
+          push.title = t("routinePushTitle");
+          push.addEventListener("click", () => {
+            const next = isDeferred ? deferred.filter((d) => !sameKey(d, task.key)) : [...deferred, task.key];
+            onLog({ date: iso, deferred: next });
+          });
+          li.appendChild(push);
+        }
       }
       list.appendChild(li);
     }
