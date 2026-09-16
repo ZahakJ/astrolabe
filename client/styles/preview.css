@@ -50,6 +50,29 @@
   font-size: 0.85em;
 }
 
+/* A page of a book (`![[Book.pdf#page=42]]`, widgets.ts PdfPageWidget): the
+   reading renderer's figure inside the image widget's line box, spanning
+   the line so its caption centres under it. The figure's own margin is the
+   reading view's; the editor's line spacing is enough. */
+.s-editor .cm-s-embed-pdfpage {
+  width: 100%;
+  line-height: 1.4;
+}
+.s-editor .cm-s-embed-pdfpage .s-rv-pdfpage {
+  margin: 0.2em 0;
+}
+
+/* A sound (`![[lecture.mp3]]`, widgets.ts AudioWidget): the player from
+   client/editor/embeds.ts on its own line, at the reading view's size. */
+.s-editor .cm-s-embed-audio {
+  display: inline-block;
+  /* A widget's line box shrinks to fit; the player inside sizes itself
+     against this box, so the box has to be told how wide to be. */
+  width: min(100%, 420px);
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
 /* ── The picture's own tools (client/editor/widgets.ts imageTools) ─────────
    A handle on the trailing corner to drag the width, three alignment buttons
    over the top corner; both appear under the pointer and write the source. */

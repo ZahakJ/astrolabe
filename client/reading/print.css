@@ -419,6 +419,15 @@
   }
 
   /* ── Footnotes: at the end, and looking like it ───────────────────────── */
+  /* The screen may have set them in the margin (reading/sidenotes.ts); paper
+     has no margin to spare, so the margin copy goes and the foot comes back,
+     whatever class the cloned column still wears. */
+  .s-rv-sidenotes {
+    display: none !important;
+  }
+  .s-rv--sidenotes > .s-rv-footnotes {
+    display: block !important;
+  }
   .s-rv-footnotes {
     break-inside: auto;
     margin-top: 2.4em !important;

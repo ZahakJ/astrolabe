@@ -4,9 +4,9 @@
 // tagged X with status Y, as a table, sorted by date". The search box here
 // already speaks the operators (shared/searchQuery.ts); a ```query fence
 // carries the same operators plus how to draw the answer, and renders as a
-// list, a table or a grid of cards — in the editor, the reading view and on
-// the blog, scoped to the reader like every search. Obsidian renders the
-// same fence language, so the note stays readable there.
+// list, a table, a grid of cards or a timeline — in the editor, the reading
+// view and on the blog, scoped to the reader like every search. Obsidian
+// renders the same fence language, so the note stays readable there.
 //
 //     ```query
 //     tag:reading prop:status=reading -tag:draft
@@ -16,10 +16,16 @@
 //     as: table
 //     ```
 //
-// Every line that is not one of the four keys is part of the query. Pure,
+// Every line that is not one of the five keys is part of the query. Pure,
 // tested under node.
+//
+// THE TIMELINE (`as: timeline`) lays the rows on a vertical line by a date:
+// `by: created` (the note's own date, the default), `by: modified`, or
+// `by: <prop>` for any frontmatter key holding a date (`by: read`, `by:
+// published`). Newest first unless `sort: … asc` says otherwise; the year
+// headings are drawn by the client in the site's calendar.
 
-export type QueryView = "list" | "table" | "cards";
+export type QueryView = "list" | "table" | "cards" | "timeline";
 export type QuerySortKey = "date" | "modified" | "title" | "path" | "relevance";
 
 export interface QuerySpec {
@@ -30,6 +36,9 @@ export interface QuerySpec {
   sort: { key: QuerySortKey; dir: "asc" | "desc" };
   limit: number;
   as: QueryView;
+  /** The timeline's date: a note's own date, its mtime, or a frontmatter
+   *  key (lowercased). Read for every view, meaningful for the timeline. */
+  by: "created" | "modified" | { prop: string };
 }
 
 export const QUERY_LIMIT_DEFAULT = 100;
@@ -47,6 +56,14 @@ const VIEWS: Record<string, QueryView> = {
   list: "list", "قائمة": "list",
   table: "table", "جدول": "table",
   cards: "cards", card: "cards", grid: "cards", "بطاقات": "cards",
+  timeline: "timeline", "خط": "timeline", "زمني": "timeline", "خط-زمني": "timeline",
+};
+
+/** `by:` spellings that mean the two dates every note has; anything else
+ *  names a frontmatter key. */
+const BY_BUILT_IN: Record<string, "created" | "modified"> = {
+  created: "created", date: "created", "تاريخ": "created", "إنشاء": "created",
+  modified: "modified", mtime: "modified", updated: "modified", "تعديل": "modified",
 };
 
 function splitList(raw: string): string[] {
@@ -55,7 +72,7 @@ function splitList(raw: string): string[] {
 
 export function parseQueryFence(body: string): QuerySpec {
   const words: string[] = [];
-  const spec: QuerySpec = { q: "", show: [], sort: { key: "date", dir: "desc" }, limit: QUERY_LIMIT_DEFAULT, as: "list" };
+  const spec: QuerySpec = { q: "", show: [], sort: { key: "date", dir: "desc" }, limit: QUERY_LIMIT_DEFAULT, as: "list", by: "created" };
   for (const raw of body.split(/\r?\n/)) {
     const line = raw.trim();
     if (line === "" || line.startsWith("//") || line.startsWith("#")) continue;
@@ -88,10 +105,20 @@ export function parseQueryFence(body: string): QuerySpec {
         continue;
       }
     }
+    if ((key === "by" || key === "بحسب") && value !== "") {
+      const name = value.toLowerCase();
+      spec.by = BY_BUILT_IN[name] ?? { prop: name };
+      continue;
+    }
     // Anything else — `tag:x`, words, `prop:status=reading` — is the query.
     words.push(line);
   }
   spec.q = words.join(" ").trim();
+  // A timeline's date is its `by:` — and when that names a frontmatter key,
+  // the server cannot sort by it (it sorts by the note's own date), so the
+  // client orders the rows itself and the sort key here only carries the
+  // direction. Its default columns are the title and the excerpt.
+  if (spec.as === "timeline" && spec.by === "modified") spec.sort = { key: "modified", dir: spec.sort.dir };
   if (spec.show.length === 0) spec.show = spec.as === "table" ? ["title", "date", "tags"] : ["title", "excerpt"];
   return spec;
 }
