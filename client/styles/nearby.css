@@ -1,0 +1,40 @@
+/* ── Nearby (client/components/NearbyPanel.tsx) ───────────────────────────
+ * The backlinks' third list: the same card, a score in the badge's place,
+ * and under the title the two terms that tie the notes, drawn as the small
+ * chips the search box's operators wear so a `#tag` and a word read alike. */
+.s-nearby__row .s-backlink-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.s-nearby__row .s-backlink-title > bdi {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.s-nearby__score {
+  margin-inline-start: auto;
+  padding-inline-start: 8px;
+  flex: none;
+  color: var(--text-faint);
+  font-family: var(--font-ui);
+  font-size: 0.714rem;
+  font-variant-numeric: tabular-nums;
+}
+.s-nearby__terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0 0;
+  padding-inline: 8px;
+}
+.s-nearby__term {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.714rem;
+  line-height: 1.6;
+}
+

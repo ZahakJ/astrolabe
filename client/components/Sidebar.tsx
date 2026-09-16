@@ -158,6 +158,10 @@ function placeMenu(el: HTMLElement | null, x: number, y: number, fromKeyboard: b
 const FolderIconPicker = lazySurface(() => import("./FolderIconPicker.tsx"));
 const LibraryFolderPopover = lazySurface(() => import("./LibraryFolderPopover.tsx"));
 const CollectionsPopover = lazySurface(() => import("./CollectionsPopover.tsx"));
+// The properties shelf is the owner's and starts under the tags, so it
+// rides its own chunk with its own stylesheet: a visitor never fetches it,
+// and the admin first paint does not carry a list nobody has scrolled to.
+const PropsShelf = lazySurface(() => import("./PropsShelf.tsx"));
 
 // The two v1.8 search surfaces, mount-gated for the same reason and split for
 // one more: the replace panel carries the dry-run list, its own stylesheet and
@@ -2301,6 +2305,16 @@ export default function Sidebar() {
             </button>
           )}
         </div>
+      )}
+
+      {/* The properties shelf, under the tags: every frontmatter key with a
+          count, a click a `prop:` search (PropsShelf.tsx). The owner's
+          surface — a visitor's sidebar is a reading room's, and "date: 12"
+          tells a reader nothing they came for. */}
+      {admin && (
+        <Suspense fallback={null}>
+          <PropsShelf query={query} setQuery={setQuery} />
+        </Suspense>
       )}
 
       {/* The footer counts what is actually in the vault — notes AND the files

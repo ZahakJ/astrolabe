@@ -28,6 +28,10 @@ import OnThisDayPanel from "./OnThisDayPanel.tsx";
 // `lazy()` so a redeploy that rotates the chunk hash mid-session gets the
 // reload card instead of blanking the panel.
 const HistoryPanel = lazySurface(() => import("./HistoryPanel.tsx"));
+// Nearby is lazy for the same reason: it is the owner's, it carries its own
+// stylesheet, and a visitor's first paint must not fetch a list the server
+// would refuse them anyway.
+const NearbyPanel = lazySurface(() => import("./NearbyPanel.tsx"));
 
 const WIKILINK_SPLIT_RE =
   /(!?\[\[[^\]|#]+(?:#[^\]|]*)?(?:\|[^\]]*)?\]\])/g;
@@ -234,6 +238,9 @@ export default function BacklinksPanel() {
             ))
           )}
         </div>
+        <Suspense fallback={null}>
+          <NearbyPanel />
+        </Suspense>
         <MentionsPanel />
         <OnThisDayPanel />
         </div>
