@@ -110,6 +110,7 @@ import { invalidateTree, treeBody } from "./treeCache.ts";
 import { activeDesignFontRefs } from "./designs.ts";
 import { designRoutes } from "./designRoutes.ts";
 import { bookRoutes } from "./bookRoutes.ts";
+import { captureLine, clipAdminRoutes, clipRoutes } from "./clip.ts";
 import { deckImportRoutes } from "./deckImportRoutes.ts";
 import { searchPages } from "./pdfText.ts";
 import { prefsRoutes } from "./prefs.ts";
@@ -503,6 +504,13 @@ api.get("/fonts/:file", async (c) => {
     "Content-Length": String(stat.size),
   });
 });
+
+// The clipper (server/clip.ts) sits ABOVE the guard on purpose: a
+// bookmarklet on somebody else's page has no cookie to show, so `POST
+// /api/clip` checks its own token (or the admin session, when there is one)
+// and nothing else is reachable through it — its OPTIONS answers a CORS
+// preflight and its POST is the whole surface.
+api.route("/", clipRoutes);
 
 api.use("*", authGuard);
 
@@ -2216,6 +2224,25 @@ api.get("/onthisday", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
   return c.json(onThisDay(c.req.query("date") ?? ""));
 });
+
+// ── Capture ─────────────────────────────────────────────────────────────
+// The quick-capture sheet's append (docs/capture.md): one line under
+// `## Captured` in `path` — today's note when `path` is absent — stamped
+// with the caller's `time` (`HH:MM`, the reader's clock; the server's when
+// missing). The client creates today's note through its own daily-note door
+// first, so the template lands; this route then only ever appends.
+api.post("/capture", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const body = await jsonBody(c);
+  const text = requiredString(body, "text");
+  const target = typeof body.path === "string" && body.path !== "" ? assertNotePath(body.path) : null;
+  const time = typeof body.time === "string" && /^\d{2}:\d{2}$/.test(body.time) ? body.time : null;
+  const path = await captureLine(target, text, time);
+  return c.json({ ok: true, path });
+});
+
+// The clip token, for the Settings tab (admin-only; server/clip.ts).
+api.route("/", clipAdminRoutes);
 
 api.get("/tasks", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");

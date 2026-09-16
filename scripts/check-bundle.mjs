@@ -662,7 +662,14 @@ const AUDIENCES = [
   // the French/furigana dictionary meeting in one entry at integration.
   // 3.16.1: 765.3 kB actual → 766 — the browser-dictionaries row (its
   // bilingual hint, the four labels, client/spellDicts.ts at startup).
-  { name: "entry (everyone)", keys: entry, budget: 766 * 1024 },
+  // 3.16.x capture: 770.2 kB actual → 771 — the capture and clipper
+  // dictionary keys (the sheet's words, two settings rows, the bookmarklet's
+  // two alerts, en+ar), the Ctrl/Cmd+Shift+D branch in App.tsx, the
+  // `captureOpen` flag and three fetchers. The sheet itself, its stylesheet
+  // (client/styles/capture.css) and the flow (client/capture.ts) are a lazy
+  // chunk mount-gated on the flag; the converter and the manifest are
+  // server-side and never in any bundle.
+  { name: "entry (everyone)", keys: entry, budget: 771 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -883,7 +890,9 @@ const AUDIENCES = [
   // 3.16.0: 1046.5 kB actual → 1047 after the French/furigana merge (above).
   // 3.16.0 release: 1047.8 kB actual → 1048 (the merge above).
   // 3.16.1: 1049.1 kB actual → 1050 (the row above).
-  { name: "anonymous blog reader", keys: blog, budget: 1050 * 1024 },
+  // 3.16.x capture: 1054.0 kB actual → 1055 (the entry's growth above; the
+  // blog shell itself gained nothing).
+  { name: "anonymous blog reader", keys: blog, budget: 1055 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1013,7 +1022,10 @@ const AUDIENCES = [
   // 3.16.0: 1491.4 kB actual → 1492 after the French/furigana merge (above).
   // 3.16.0 release: 1493.4 kB actual → 1494 (the merge above).
   // 3.16.1: 1494.6 kB actual → 1495 (the row above).
-  { name: "admin first paint", keys: app, budget: 1495 * 1024 },
+  // 3.16.x capture: 1499.4 kB actual → 1500 (the entry's growth above; the
+  // shell surfaces gained nothing — the palette and shortcuts rows ride
+  // their own lazy chunks).
+  { name: "admin first paint", keys: app, budget: 1500 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

@@ -17,6 +17,8 @@
 //           would with the server down, and the editor's own retry keeps the
 //           text until the network is back.
 
+import { MANIFEST_ICON_PATH, MANIFEST_PATH } from "./manifest.ts";
+
 export type OfflineRoute = "shell" | "asset" | "note" | "bypass";
 
 /** The reads worth keeping. `/api/me` is here so a cached shell can still
@@ -30,6 +32,14 @@ const ASSET_EXT = /\.(js|mjs|css|woff2?|ttf|otf|wasm|svg|png|ico|webmanifest)$/;
 export function classify(method: string, pathname: string): OfflineRoute {
   if (method.toUpperCase() !== "GET") return "bypass";
   if (pathname === "/sw.js") return "bypass";
+  // The manifest (shared/manifest.ts) wears the asset extension but is not
+  // one: it is generated from the site's settings on every request, so its
+  // name never changes when its contents do. Cache-first would pin the name
+  // and colours the site had the day it was installed; network-first keeps
+  // it current and still answers when the network is gone, which is what an
+  // installed app opening offline needs from it. Its icon is drawn in the
+  // same colours and answers on the same terms.
+  if (pathname === MANIFEST_PATH || pathname === MANIFEST_ICON_PATH) return "note";
   if (NOTE_READS.has(pathname)) return "note";
   if (pathname.startsWith("/api/")) return "bypass";
   if (ASSET_PREFIXES.some((p) => pathname.startsWith(p)) || ASSET_EXT.test(pathname)) return "asset";

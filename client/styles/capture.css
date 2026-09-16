@@ -1,0 +1,172 @@
+/* QUICK CAPTURE — the sheet's own stylesheet (components/CaptureSheet.tsx).
+   Imported by the component, not the shell, so it travels with the lazy
+   chunk: the sheet is opened by a keystroke a reader may never press, and
+   a first paint should not carry its rules (trash.css is the precedent). */
+
+/* The sheet Ctrl/Cmd+Shift+D opens (components/CaptureSheet.tsx). It sits
+   BELOW the confirm host (500) like every other full-viewport layer, and
+   above the drawer (400): it is opened from anywhere, including from a phone
+   with the sidebar drawer out. Small on purpose — a field and two buttons —
+   because it is the thing you use INSTEAD of opening a note. */
+.s-capture-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 450;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 18vh;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  animation: s-fade-in 0.12s ease;
+}
+
+.s-capture {
+  width: min(480px, calc(100vw - 32px));
+  padding: 18px 20px 16px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  animation: s-palette-in 0.14s ease;
+}
+
+.s-capture__title {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-size: 1.071rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.s-capture__field {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.s-capture__field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.s-capture__field::placeholder {
+  color: var(--text-faint);
+}
+
+.s-capture__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.s-capture__where {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+.s-capture__target {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-capture__hint {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.s-capture__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.s-capture__cancel,
+.s-capture__send {
+  font: inherit;
+  font-size: 0.929rem;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, filter 0.15s ease;
+}
+
+.s-capture__cancel {
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.s-capture__cancel:hover {
+  color: var(--text);
+  background: var(--button-hover-bg);
+}
+
+.s-capture__send {
+  color: var(--button-accent-text);
+  background: var(--button-accent-bg);
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.s-capture__send:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.s-capture__send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* THUMB-SIZED ON A PHONE. The sheet drops to the bottom edge, where the
+   thumb already is, spans the width, and every target is 44px tall — the
+   field for the thought, the two buttons for the decision. The top padding
+   that centres it on a desktop would put it under the keyboard here. */
+@media (max-width: 700px) {
+  .s-capture-overlay {
+    align-items: flex-end;
+    padding-top: 0;
+  }
+
+  .s-capture {
+    width: 100vw;
+    border-radius: 14px 14px 0 0;
+    border-bottom: none;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    animation: none;
+  }
+
+  .s-capture__field {
+    min-height: 44px;
+    font-size: 1.071rem;
+  }
+
+  .s-capture__cancel,
+  .s-capture__send {
+    min-height: 44px;
+    padding-inline: 18px;
+    flex: 1;
+  }
+}

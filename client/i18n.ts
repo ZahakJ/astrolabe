@@ -5040,6 +5040,41 @@ const DICT = {
     en: "Notes here with collection: and number: in their frontmatter answer > [!hadith] callouts. Empty means the folder is detected (\"hadith\", \"Corpus/hadith\", \"أحاديث\").",
     ar: "الملاحظات هنا التي تحمل collection: وnumber: في مقدمتها تجيب تنبيهات > [!hadith]. فارغ يعني اكتشاف المجلد تلقائيًا («hadith»، «Corpus/hadith»، «أحاديث»).",
   },
+  // ── Capture (docs/capture.md) ────────────────────────────────────────────
+  // The quick-capture sheet, its palette row, the two Settings rows, and the
+  // words the bookmarklet says on somebody else's page.
+  cmdQuickCapture: { en: "Quick capture", ar: "التقاط سريع" },
+  cmdQuickCaptureHint: { en: "A line into today's note, without leaving this one", ar: "سطر إلى ملاحظة اليوم دون مغادرة هذه" },
+  captureTitle: { en: "Quick capture", ar: "التقاط سريع" },
+  capturePlaceholder: { en: "A thought, a task, a line… Enter to capture", ar: "خاطرة أو مهمة أو سطر… اضغط Enter للالتقاط" },
+  captureWhere: { en: "Into", ar: "إلى" },
+  captureTargetDaily: { en: "Today's note ({name})", ar: "ملاحظة اليوم ({name})" },
+  captureTargetInbox: { en: "Inbox ({name})", ar: "صندوق الوارد ({name})" },
+  captureTargetInboxBare: { en: "Inbox", ar: "صندوق الوارد" },
+  captureNoInboxHint: { en: "Pin a second target in Settings → Vault → Capture inbox.", ar: "ثبّت وجهة ثانية في الإعدادات ← الخزانة ← صندوق الالتقاط." },
+  captureSend: { en: "Capture", ar: "التقط" },
+  capturedTo: { en: "Captured to {name}", ar: "التُقط في {name}" },
+  captureOpenNote: { en: "Open", ar: "فتح" },
+  captureFailed: { en: "Could not capture that", ar: "تعذّر الالتقاط" },
+  captureSection: { en: "Capture", ar: "الالتقاط" },
+  captureInboxLabel: { en: "Capture inbox", ar: "صندوق الالتقاط" },
+  captureInboxHint: {
+    en: "A note the quick-capture sheet (Ctrl/Cmd Shift D) can drop lines into instead of today's note. A vault-relative note path; empty means today's note only.",
+    ar: "ملاحظة تستطيع ورقة الالتقاط السريع (Ctrl/Cmd Shift D) أن تضع فيها السطور بدل ملاحظة اليوم. مسار ملاحظة نسبي في الخزانة؛ فارغ يعني ملاحظة اليوم وحدها.",
+  },
+  clipperLabel: { en: "Clipper", ar: "القصّاصة" },
+  clipperHint: {
+    en: "Drag the button to your browser's bookmarks bar. On any page, click it to save the page — or just what you have selected — as a note under Clips/. The token inside it lives in the data directory, never in the vault; Renew replaces it and retires every copy handed out.",
+    ar: "اسحب الزر إلى شريط المفضلة في متصفحك. وفي أي صفحة، انقره لتحفظ الصفحة، أو ما حدّدته منها فقط، ملاحظةً في المجلد Clips/. والرمز الذي بداخله يعيش في مجلد البيانات لا في الخزانة؛ والتجديد يستبدله ويُبطل كل نسخة سبق أن أُعطيت.",
+  },
+  clipperLink: { en: "Clip to {site}", ar: "قصّ إلى {site}" },
+  clipperDragTitle: { en: "Drag me to the bookmarks bar", ar: "اسحبني إلى شريط المفضلة" },
+  clipperRenew: { en: "Renew token", ar: "تجديد الرمز" },
+  clipperRenewed: { en: "Token renewed — drag the new button to your bookmarks bar", ar: "جُدِّد الرمز؛ اسحب الزر الجديد إلى شريط المفضلة" },
+  clipperRenewFailed: { en: "Could not renew the token", ar: "تعذّر تجديد الرمز" },
+  clipperUnavailable: { en: "The clipper is not available on this instance", ar: "القصّاصة غير متاحة في هذه النسخة" },
+  clipperClipped: { en: "Clipped: {path}", ar: "قُصّ: {path}" },
+  clipperFailed: { en: "Clip failed", ar: "فشل القصّ" },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;
