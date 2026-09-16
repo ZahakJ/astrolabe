@@ -9,7 +9,7 @@ import { t, tf } from "./i18n.ts";
 import { noteTitleOf } from "../shared/noteFormat.ts";
 import { promptNotePath } from "./prompts.ts";
 import { useStore } from "./state.ts";
-import { applyTemplate, templateSettings, type TemplateVars } from "./templates.ts";
+import { applyTemplate, fillPrompts, templatePrompts, templateSettings, type TemplateVars } from "./templates.ts";
 import { toast } from "./toast.ts";
 
 /** The event the mounted editor answers: "put this template in, at the
@@ -18,7 +18,9 @@ import { toast } from "./toast.ts";
  *  only the view knows where the caret is. */
 export interface InsertTemplateDetail {
   /** The template file's raw text, placeholders NOT yet filled (the editor
-   *  fills them against the note it is actually holding). */
+   *  fills them against the note it is actually holding) — except the
+   *  PROMPTS, which are answered before this is dispatched: the sheet is a
+   *  question to the writer, and the editor is not the one asking. */
   source: string;
   vars: TemplateVars;
   /** Set to true by the editor that handles it — see waitForEditor(). */
@@ -39,6 +41,30 @@ async function varsFor(title: string): Promise<TemplateVars> {
   };
 }
 
+/** The template's questions, asked. `{{prompt:Label}}` / `{{VALUE:Label}}`
+ *  (client/templates.ts) open one sheet with a field per distinct label, in
+ *  the template's own order; the answers are written in and the filled text
+ *  comes back. Null means the writer pressed Escape, and the caller does
+ *  NOTHING — not the frontmatter, not the body: a template half-applied is
+ *  the worse outcome. A template that asks nothing costs no sheet and no
+ *  chunk: the component is loaded only when there is a question to put. */
+async function answerPrompts(source: string): Promise<string | null> {
+  const labels = templatePrompts(source);
+  if (labels.length === 0) return source;
+  const { askTemplateValues } = await import("./components/TemplateValuesSheet.tsx");
+  const answers = await askTemplateValues(labels);
+  if (answers === null) return null;
+  return fillPrompts(source, answers);
+}
+
+/** Queue the caret for a note about to open, when the template said where.
+ *  Nothing queued for a template without `{{cursor}}`: the editor's own home
+ *  rule (editor/caretHome.ts) is the right answer there, as it always was. */
+function queueCaret(path: string, applied: { content: string; caret: number | null }): void {
+  if (applied.caret === null) return;
+  useStore.getState().setPendingCaret({ path, offset: applied.content.length + applied.caret });
+}
+
 /** "Insert template…" — pick one, then drop its body at the caret and fold its
  *  frontmatter into the note's own block. */
 export async function insertTemplateCommand(): Promise<void> {
@@ -49,17 +75,20 @@ export async function insertTemplateCommand(): Promise<void> {
   if (!chosen) return;
   try {
     const [template, vars] = await Promise.all([getNote(chosen), varsFor(noteTitleOf(path))]);
+    const source = await answerPrompts(template.content);
+    if (source === null) return;
     // Reading view has no caret and no editor. Switch first — an "insert at
     // the cursor" command that silently does nothing because the reader is in
     // reading mode is the invisible-failure this codebase keeps hunting.
     if (useStore.getState().readingMode) useStore.getState().setReadingMode(false);
-    const delivered = await deliverToEditor(template.content, vars);
+    const delivered = await deliverToEditor(source, vars);
     if (delivered) return;
     // No editor came up (the note failed to open, the tab changed under us):
     // fall back to the file itself rather than dropping the reader's request.
     const note = await getNote(path);
-    const applied = applyTemplate(template.content, note.content, vars);
+    const applied = applyTemplate(source, note.content, vars);
     await putNote(path, `${applied.content}${applied.insert}`);
+    queueCaret(path, applied);
     useStore.getState().bumpReload();
     toast(tf("templateInserted", { name: noteTitleOf(chosen) }));
   } catch (err) {
@@ -107,12 +136,17 @@ export async function newNoteFromTemplateCommand(dir = ""): Promise<void> {
   if (!chosen) return;
   try {
     const [template, vars] = await Promise.all([getNote(chosen), varsFor(title)]);
+    // The questions come BEFORE the file exists: Escape here means no note,
+    // not an empty one the writer then has to find and delete.
+    const source = await answerPrompts(template.content);
+    if (source === null) return;
     // A fresh note has no frontmatter of its own, so the merge is the
     // template's block with its identity keys re-minted (client/templates.ts).
-    const applied = applyTemplate(template.content, "", vars);
+    const applied = applyTemplate(source, "", vars);
     await createNote(path);
     await putNote(path, `${applied.content}${applied.insert}`);
     await useStore.getState().loadTree();
+    queueCaret(path, applied);
     useStore.getState().openNote(path);
     if (useStore.getState().readingMode) useStore.getState().setReadingMode(false);
   } catch (err) {
@@ -140,10 +174,16 @@ export async function applyDefaultTemplate(path: string, templatePath: string | 
       getNote(chosen),
       varsFor(noteTitleOf(path)),
     ]);
-    const applied = applyTemplate(template.content, "", vars);
+    // A default template that asks questions asks them on every new note —
+    // that is what putting a prompt in the default template means. Escape
+    // leaves the note as it was born: empty.
+    const source = await answerPrompts(template.content);
+    if (source === null) return;
+    const applied = applyTemplate(source, "", vars);
     const content = `${applied.content}${applied.insert}`;
     if (content.trim() === "") return;
     await putNote(path, content);
+    queueCaret(path, applied);
     useStore.getState().bumpReload();
   } catch (err) {
     // A missing/renamed default template must not break note creation — the

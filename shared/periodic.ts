@@ -25,8 +25,19 @@ export const YEARLY_FORMAT_DEFAULT = "YYYY";
 
 export type PeriodKind = "day" | "week" | "month" | "year";
 export const PERIOD_KINDS: readonly PeriodKind[] = ["day", "week", "month", "year"];
+/** The UNIQUE note (client/uniqueNote.ts): a note named after the minute it
+ *  was made, Zettelkasten-style, so two ideas an hour apart never collide and
+ *  a name is never asked for. Obsidian's default shape, for the same reason
+ *  the daily one is: a migrating vault already has a folder of these. Root
+ *  folder by default — a `uniqueFolder` setting moves them. */
+export const UNIQUE_FORMAT_DEFAULT = "YYYYMMDDHHmm";
 
-const TOKEN_RE = /\[([^\]]*)\]|YYYY|YY|MM|M|DD|D|ww|WW|w/g;
+/** The time tokens (`HH`, `mm`, `ss`) exist for the unique note's sake and
+ *  are read BACK as nothing: a daily note is a day, and a name that carries
+ *  the minute still names the day it was written. Lowercase `mm` is the
+ *  minute and uppercase `MM` the month, as in moment — the regex is
+ *  case-sensitive, so the two never trade places. */
+const TOKEN_RE = /\[([^\]]*)\]|YYYY|YY|MM|M|DD|D|ww|WW|w|HH|mm|ss/g;
 
 /** ISO-8601 week: the year the week belongs to and its number (1–53). */
 export function isoWeek(date: Date): { year: number; week: number } {
@@ -75,6 +86,9 @@ export function formatPeriod(format: string, date: Date): string {
       case "ww":
       case "WW": return pad(week, 2);
       case "w": return String(week);
+      case "HH": return pad(date.getHours(), 2);
+      case "mm": return pad(date.getMinutes(), 2);
+      case "ss": return pad(date.getSeconds(), 2);
       default: return tok;
     }
   });
@@ -96,7 +110,7 @@ export function parsePeriod(format: string, name: string): Date | null {
       continue;
     }
     order.push(tok);
-    re += tok === "YYYY" ? "(\\d{4})" : tok === "YY" || tok === "MM" || tok === "DD" || tok === "ww" || tok === "WW" ? "(\\d{2})" : "(\\d{1,2})";
+    re += tok === "YYYY" ? "(\\d{4})" : tok === "YY" || tok === "MM" || tok === "DD" || tok === "ww" || tok === "WW" || tok === "HH" || tok === "mm" || tok === "ss" ? "(\\d{2})" : "(\\d{1,2})";
   }
   re += escape(format.slice(last)) + "$";
   const hit = new RegExp(re).exec(name);
@@ -111,6 +125,7 @@ export function parsePeriod(format: string, name: string): Date | null {
     else if (tok === "YY") year = 2000 + n;
     else if (tok === "MM" || tok === "M") month = n;
     else if (tok === "DD" || tok === "D") day = n;
+    else if (tok === "HH" || tok === "mm" || tok === "ss") return; // the minute is not a date
     else week = n;
   });
   if (year === null) return null;
@@ -197,4 +212,22 @@ export function periodicDateOf(folder: string, format: string, path: string): Da
   if (!path.startsWith(prefix)) return null;
   const rest = path.slice(prefix.length).replace(/\.(md|tex|latex)$/i, "");
   return parsePeriod(format, rest);
+}
+
+/** The first free spelling of `path` against `taken`: itself, else
+ *  `name 2.md`, `name 3.md`… Two unique notes in one minute do happen, and
+ *  the second must not fail with "exists" — the whole point of the stamp is
+ *  that a name is never a question. */
+export function freePath(path: string, taken: ReadonlySet<string>): string {
+  if (!taken.has(path)) return path;
+  const slash = path.lastIndexOf("/");
+  const dot = path.lastIndexOf(".");
+  const hasExt = dot > slash + 1;
+  const stem = hasExt ? path.slice(0, dot) : path;
+  const ext = hasExt ? path.slice(dot) : "";
+  for (let n = 2; n < 1000; n++) {
+    const candidate = `${stem} ${n}${ext}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+  return `${stem} ${Date.now()}${ext}`; // a thousand notes a minute: not a case
 }

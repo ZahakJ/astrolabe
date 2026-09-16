@@ -677,6 +677,7 @@ const DICT = {
   paletteCommands: { en: "Commands", ar: "أوامر" },
   paletteOpenTabs: { en: "Open tabs", ar: "التبويبات المفتوحة" },
   paletteNotes: { en: "Notes", ar: "ملاحظات" },
+  paletteCreate: { en: "New", ar: "جديد" },
   paletteNoMatches: { en: "No matches", ar: "لا نتائج" },
   // The second line of the no-matches block: the rescue, not the report. A
   // reader who typed something the vault does not have is the reader most
@@ -2791,6 +2792,15 @@ const DICT = {
     en: "The default template could not be applied — the note is empty",
     ar: "تعذّر تطبيق القالب الافتراضي — الملاحظة فارغة",
   },
+  // The prompt sheet (TemplateValuesSheet.tsx): a template's
+  // {{prompt:Label}} / {{VALUE:Label}} questions, asked once each.
+  templateValuesTitle: { en: "The template asks", ar: "القالب يسأل" },
+  templateValuesUnnamed: { en: "Value", ar: "قيمة" },
+  templateValuesHint: {
+    en: "Each answer replaces its placeholder. Enter inserts; Escape inserts nothing.",
+    ar: "كل إجابة تحلّ محل موضعها في القالب. Enter يُدرج، وEscape لا يُدرج شيئًا.",
+  },
+  templateValuesInsert: { en: "Insert", ar: "إدراج" },
   // Settings rows.
   templatesSection: { en: "Templates", ar: "القوالب" },
   templatesFolderLabel: { en: "Templates folder", ar: "مجلد القوالب" },
@@ -4007,6 +4017,8 @@ const DICT = {
   // Arabic wants too, which is why it is a suffix in both and not a prefix
   // hardcoded in JSX.
   statusSelected: { en: "selected", ar: "محدد" },
+  // "{sel}" is a bare number, "{total}" a countPhrase ("840 words" / "٨٤٠ كلمة").
+  statusWordsOf: { en: "{sel} of {total}", ar: "{sel} من {total}" },
   statusCarets: { en: "{n} carets", ar: "{n} مؤشرات" },
 
   // ── The sentence: multi-cursor, comments ─────────────────────────────────
@@ -4800,6 +4812,8 @@ const DICT = {
   cmdSaveLayoutHint: { en: "Panes, tabs and splits under a name — shared with the desktop app", ar: "اللوحات والتبويبات والتقسيمات باسم؛ مشتركة مع تطبيق سطح المكتب" },
   cmdRestoreLayout: { en: "Restore a layout…", ar: "استرجع تخطيطًا…" },
   cmdRestoreLayoutHint: { en: "Swap the whole arrangement for a saved one", ar: "استبدل الترتيب كله بتخطيط محفوظ" },
+  cmdLoadLayout: { en: "Load layout: {name}", ar: "تحميل التخطيط: {name}" },
+  cmdLoadLayoutHint: { en: "Restore this saved arrangement", ar: "استرجاع هذا الترتيب المحفوظ" },
   layoutSaved: { en: "Layout “{name}” saved", ar: "حُفظ التخطيط «{name}»" },
   layoutRestored: { en: "Layout “{name}” restored", ar: "استُرجع التخطيط «{name}»" },
   layoutDeleted: { en: "Layout “{name}” deleted", ar: "حُذف التخطيط «{name}»" },
@@ -4855,6 +4869,11 @@ const DICT = {
   dailyTemplateLabel: { en: "Daily note template", ar: "قالب الملاحظة اليومية" },
   weeklyFormatLabel: { en: "Weekly note name", ar: "اسم الملاحظة الأسبوعية" },
   weeklyTemplateLabel: { en: "Weekly note template", ar: "قالب الملاحظة الأسبوعية" },
+  uniqueFolderLabel: { en: "Unique notes folder", ar: "مجلد الملاحظات الفريدة" },
+  uniqueFolderHint: { en: "Where “New unique note” files a note named by the minute. Empty for the vault root.", ar: "حيث تودع «ملاحظة فريدة جديدة» ملاحظةً تُسمّى بالدقيقة. فارغ لجذر الخزانة." },
+  uniqueFormatLabel: { en: "Unique note name", ar: "اسم الملاحظة الفريدة" },
+  uniqueFormatHint: { en: "The daily tokens plus HH, mm and ss — YYYYMMDDHHmm by default. Must be finer than a day.", ar: "رموز اليوميات مع HH وmm وss؛ الافتراضي YYYYMMDDHHmm. يجب أن يكون أدق من اليوم." },
+  cmdNewUniqueNote: { en: "New unique note", ar: "ملاحظة فريدة جديدة" },
   cmdYesterdayNote: { en: "Yesterday's note", ar: "ملاحظة الأمس" },
   cmdTomorrowNote: { en: "Tomorrow's note", ar: "ملاحظة الغد" },
   cmdWeeklyNote: { en: "This week's note", ar: "ملاحظة هذا الأسبوع" },

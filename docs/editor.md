@@ -53,9 +53,10 @@ those four words freely.
   own switch in the status bar. It works the same on a `.tex` note, whose properties live in a
   `%---` comment block.
 - **Templates.** `{{date}}`, `{{time}}`, `{{title}}` and `{{date:FORMAT}}` in the syntax other tools
-  share, plus `{{hdate}}` for the Hijri date. Insert a template at the cursor or start a new note
-  from one; the picker previews the filled-in result before you commit. See
-  [Templates](templates-and-notes.md#templates).
+  share, plus `{{hdate}}` for the Hijri date, `{{cursor}}` for where the caret should land, and
+  `{{prompt:Label}}` for a question the template asks before it is inserted. Insert a template at
+  the cursor or start a new note from one; the picker previews the filled-in result before you
+  commit. See [Templates](templates-and-notes.md#templates).
 - **Paste or drop attachments.** An image on your clipboard, or any accepted file dragged from a
   file manager (PDF, audio and video too), uploads and lands as `![[name.png]]` at the cursor. An
   "Uploading…" placeholder holds the spot while the file is on its way. Where a paste or a drop into
@@ -67,11 +68,25 @@ those four words freely.
 - **Slash commands.** Type `/` at the start of a line for a menu of things to insert, filtered as
   you type: a callout, a code fence (with a language search), a table skeleton, a task list, a math
   block, a divider, today's date, a link to today's daily note.
+- **Dates by name.** Type `@` at the start of a word and a small list offers *today*, *tomorrow*,
+  *yesterday*, *next week* and the seven coming weekdays; keep typing and it reads what you wrote:
+  `@in 3 days`, `@next thursday`, `@15 september`, `@sep 15 2027`, `@2 weeks ago` — or, in
+  Arabic, `@غدًا`, `@الخميس القادم`, `@بعد ٣ أيام`, `@١٥ سبتمبر`. Each row shows the day it means in the
+  site's calendar, and Enter puts a link to **that day's daily note** where the `@` was, worded as
+  a reader would say it: `[[daily/2026-09-16|Wednesday]]` for a day within the week,
+  `[[daily/2027-12-15|December 15, 2027]]` for one further off. The folder and name follow your
+  [daily-note settings](templates-and-notes.md#daily-and-weekly-notes). A month name decides the
+  calendar: `@15 ramadan` and `@١٥ رمضان` are Hijri days whatever the site is set to. Bare numerals
+  (`15/9`) are refused on purpose — they read differently on every continent. The list opens only
+  at the start of a word and never inside code, so `me@example.com` and a `@` in a fence are left
+  alone.
 - **Callout and fence autocomplete.** `> [!` suggests every callout type with its icon and colour;
   ` ``` ` suggests languages as you type.
 - **Hover previews.** Rest the pointer on a `[[wikilink]]` and a floating card shows the opening of
   the target note, rendered (`[[Note#Heading]]` previews from that heading). Footnote references
-  preview their definition.
+  preview their definition. Rest on a **tag pill in the sidebar** and the card lists the three newest
+  notes that carry the tag — title, folder and a line of each — with the tag's full count under
+  them, so a count becomes a glance before it becomes a click.
 - **Section surgery.** Fold a heading, extract it into a new note, or drag it in the outline to move
   the whole subtree. See [Sections](templates-and-notes.md#sections-fold-extract-move).
 - **Auto-numbered headings.** Off by default. The outline's `1.` button turns numbering on for the
@@ -291,6 +306,12 @@ turns it off.
   depending on which matched better. (Typing `sort` used to put *Design your site* over the whole
   vault.) Start the query with `@` or `#` to jump to a heading (or a LaTeX `\label`) inside the note
   you are reading instead.
+  It is a **quick switcher** too. When no note is called what you typed, the list ends with
+  **Create “…”**: Enter makes the note, in the folder of the note you are in (or exactly where a
+  typed path says), and opens it. Every [saved layout](workspace.md) is a row — **Load layout:
+  Research** — so `Ctrl/Cmd P`, the layout's name, Enter restores an arrangement without a picker.
+  And **New unique note** makes a note named by the minute (`202609151042`) and asks nothing; see
+  [Unique notes](templates-and-notes.md#unique-notes).
 - **Live vault watching.** Edit a file in any other editor and the app updates within about a
   tenth of a second.
 
@@ -377,7 +398,11 @@ first. `Esc` from any field in that panel closes it.
 ## The bar and the top cluster
 
 The bar under the note says where you are, how long the note is, whether it is published and which
-mode you are in. It ends with the version you are on: the [updater](desktop.md#updates) on the
+mode you are in. While text is selected the count reads **12 of 840 words**, the selection against
+the whole, so trimming a paragraph to length never means deselecting to see the total. The count is
+one rule for the author and the blog's *N min read* alike: frontmatter, fences and markup are not
+words, and an Arabic letter with its harakat is one letter, so a pointed «الْحَمْدُ» counts exactly as
+«الحمد» does. It ends with the version you are on: the [updater](desktop.md#updates) on the
 desktop app, the releases page in a browser. The shell's own controls sit at the top, after the tabs: the
 panes, zen, the graph, the site designer, settings, the theme, and signing out.
 

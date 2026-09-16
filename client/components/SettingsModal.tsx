@@ -183,6 +183,8 @@ interface Form {
   // path field are two controls over one stored key.
   launch: string;
   launchNote: string;
+  uniqueFolder: string;
+  uniqueFormat: string;
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
   // no env counterpart, so "inherit" is meaningless here — every control shows
@@ -315,6 +317,8 @@ function formFrom(s: SettingsResponse): Form {
     yearlyTemplate: s.yearlyTemplate ?? "",
     launch: s.launch === undefined ? DEFAULT_LAUNCH : isLaunchDoor(s.launch) ? s.launch : "note",
     launchNote: s.launch !== undefined && !isLaunchDoor(s.launch) ? s.launch : "",
+    uniqueFolder: s.uniqueFolder ?? "",
+    uniqueFormat: s.uniqueFormat ?? "",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
     syncBranch: s.effective.gitSync.branch,
@@ -1328,7 +1332,9 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       | "monthlyFormat"
       | "monthlyTemplate"
       | "yearlyFormat"
-      | "yearlyTemplate",
+      | "yearlyTemplate"
+      | "uniqueFolder"
+      | "uniqueFormat",
   ): void => {
     const value = f[key].trim();
     if (value !== initial[key].trim()) patch[key] = value === "" ? null : value;
@@ -1361,6 +1367,8 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   str("monthlyTemplate");
   str("yearlyFormat");
   str("yearlyTemplate");
+  str("uniqueFolder");
+  str("uniqueFormat");
   if (f.language !== initial.language) {
     patch.language = f.language === "en" || f.language === "ar" ? f.language : null;
   }
@@ -4115,6 +4123,17 @@ export default function SettingsModal() {
                     />
                   </Row>
                   <p className="s-smodal__note">{t("periodicFormatNote")}</p>
+                  {/* THE UNIQUE NOTE (client/uniqueNote.ts): the palette's
+                      "New unique note" stamps a name from the minute and
+                      asks nothing. Beside the periodic rows because it is
+                      the same idea — a note named by when — with a finer
+                      clock; the placeholders are what is in force. */}
+                  <Row label={t("uniqueFolderLabel")} hint={t("uniqueFolderHint")}>
+                    <TextInput placeholder={eff.uniqueFolder || t("vaultRoot")} dir="ltr" label={t("uniqueFolderLabel")} {...field("uniqueFolder")} />
+                  </Row>
+                  <Row label={t("uniqueFormatLabel")} hint={t("uniqueFormatHint")}>
+                    <TextInput placeholder={eff.uniqueFormat} dir="ltr" label={t("uniqueFormatLabel")} {...field("uniqueFormat")} />
+                  </Row>
                   {/* Where the sidebar's pencil files a drawing (the owner:
                       "create the drawing in a specified space in settings or
                       by default the root directory"). Beside the other two

@@ -110,10 +110,11 @@ what it decides. The first tab is yours; the rest are the site's and share one *
 - **Vault** — where this instance writes things: the templates folder and the template for new
   notes, the [periodic notes](templates-and-notes.md#periodic-notes) (one row: the folder the
   four kinds share, and a name and a template each for the day, the week, the month and the
-  year), the drawings folder, **Open on launch** (where the app opens — where you left off, the
-  Sigils page, the Orbits shelf, today's note, or a note of your choosing — on top of the restored
-  session, and never over a pasted link), **where new attachments are written** (see
-  [Attachments](#attachments)), the tags folder, note versions and PDF search.
+  year), the [unique note](templates-and-notes.md#unique-notes)'s folder and name, the drawings
+  folder, **Open on launch** (where the app opens — where you left off, the Sigils page, the Orbits
+  shelf, today's note, or a note of your choosing — on top of the restored session, and never over
+  a pasted link), **where new attachments are written** (see [Attachments](#attachments)), the
+  tags folder, note versions and PDF search.
 - **Backup & sync** — commit the vault and push it to a private git remote you own, manually or
   on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
 - **About** — the version, the Node version, the vault's counts, and the absolute paths of the
@@ -234,6 +235,8 @@ above.
 | `yearlyFormat` | a period format naming the year and nothing finer; `""` turns yearly notes off | `YYYY` |
 | `dailyTemplate` / `weeklyTemplate` / `monthlyTemplate` / `yearlyTemplate` | vault-relative note applied when that period's note is created | none (the day falls back to `defaultTemplate`) |
 | `launch` | `resume` · `sigils` · `orbits` · `today` · a vault-relative note — what the admin's shell opens on top of the restored session (see [Periodic notes](templates-and-notes.md#periodic-notes)). **No env counterpart** | `resume` |
+| `uniqueFolder` | vault-relative folder the palette's *New unique note* files into (see [Unique notes](templates-and-notes.md#unique-notes)) | none — the vault root |
+| `uniqueFormat` | the unique note's name: the daily tokens plus `HH`, `mm`, `ss`; must name the year and something finer than a day | `YYYYMMDDHHmm` |
 | `dateCalendar` | `gregorian` · `hijri` · `both` | `gregorian` |
 | `dateOrder` | `auto` · `hijri-first` · `gregorian-first` — which calendar leads in `both` | `auto` (by the site language) |
 | `dateSeparator` | `bar` · `dot` · `parens` — what stands between the two in `both` | `bar` |
