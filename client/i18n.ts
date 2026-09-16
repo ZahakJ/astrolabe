@@ -4775,6 +4775,64 @@ const DICT = {
   mediaFormDue: { en: "Finish by", ar: "الانتهاء في" },
   routineReadTask: { en: "{n} {unit} of {title}", ar: "{n} {unit} من {title}" },
   routineReadKey: { en: "Read", ar: "اقرأ" },
+  // ── Reading sessions (shared/readingSession.ts, client/books/session.ts) ──
+  // "{pages}" arrives as countPhrase(n, "pages") and "{time}" as
+  // formatDuration(), so the number agrees in Arabic and the hours read as
+  // hours; "{note}" is the tracker note's title.
+  bookSessionLogged: { en: "Read {pages} in {time} — logged to {note}", ar: "قرأتَ {pages} في {time}؛ سُجِّلت في {note}" },
+  bookSessionNoTracker: { en: "Read {pages} in {time} — no tracker names this book", ar: "قرأتَ {pages} في {time}؛ لا متتبِّع يذكر هذا الكتاب" },
+  bookSessionTrackIt: { en: "Track it", ar: "تتبَّعه" },
+  bookSessionTracked: { en: "Tracking {title} in {path}", ar: "يُتابَع {title} في {path}" },
+  bookSessionFailed: { en: "The session could not be logged", ar: "تعذّر تسجيل الجلسة" },
+  bookSessionUndone: { en: "Session taken back", ar: "أُلغيت الجلسة" },
+  bookSessionEnd: { en: "End session", ar: "إنهاء الجلسة" },
+  bookSessionEndTitle: { en: "Log the pages read so far and start afresh", ar: "سجِّل الصفحات المقروءة حتى الآن وابدأ من جديد" },
+  bookSessionTimer: { en: "Reading {time}", ar: "قراءة {time}" },
+  bookSessionPaused: { en: "Paused", ar: "متوقفة" },
+  bookSessionNone: { en: "No session to end — turn a page first", ar: "لا جلسة لإنهائها؛ اقلب صفحة أولًا" },
+  trackerSpeedLeft: { en: "about {speed} pages a minute here — {left} left", ar: "نحو {speed} صفحة في الدقيقة هنا؛ بقي {left}" },
+  durationHours: { en: "{h} h {m}", ar: "{h} س {m}" },
+  durationHoursOnly: { en: "{h} h", ar: "{h} س" },
+  durationMinutes: { en: "{m} min", ar: "{m} د" },
+  // ── Highlights → note (shared/highlightsNote.ts) ──
+  bookHighlightsToNote: { en: "Highlights → note", ar: "الاقتباسات ← ملاحظة" },
+  bookHighlightsToNoteTitle: { en: "Write every marked passage into a note beside the PDF, a heading per chapter", ar: "اكتب كل مقطع معلَّم في ملاحظة بجوار الملف، بعنوان لكل فصل" },
+  bookHighlightsNone: { en: "Nothing marked in this book yet", ar: "لم يُعلَّم شيء في هذا الكتاب بعد" },
+  bookHighlightsWritten: { en: "{count} written to {note}", ar: "كُتب {count} في {note}" },
+  bookHighlightsOpen: { en: "Open", ar: "افتح" },
+  bookHighlightsFailed: { en: "The highlights note could not be written", ar: "تعذّرت كتابة ملاحظة الاقتباسات" },
+  bookHighlightsLead: { en: "Every passage marked in [[{book}]]. What sits between the two markers is rewritten each time you run Highlights → note; anything outside them is yours.", ar: "كل مقطع معلَّم في [[{book}]]. ما بين العلامتين يُعاد كتابته في كل مرة تشغّل فيها «الاقتباسات ← ملاحظة»؛ وما خارجهما لك." },
+  bookHighlightsNoteSuffix: { en: "Highlights", ar: "اقتباسات" },
+  // ── The weekly review (shared/weekReview.ts, client/review/) ──
+  reviewWeek: { en: "The week in review", ar: "مراجعة الأسبوع" },
+  cmdReviewWeek: { en: "Review the week", ar: "راجع الأسبوع" },
+  cmdReviewWeekHint: { en: "Pages, sigils, cards and notes — this week, on one printable page", ar: "الصفحات والسِّجلّات والبطاقات والملاحظات؛ هذا الأسبوع في صفحة واحدة تُطبع" },
+  routinesReviewWeek: { en: "The week ends today.", ar: "ينتهي الأسبوع اليوم." },
+  reviewWeekOf: { en: "{start} to {end}", ar: "من {start} إلى {end}" },
+  reviewPrint: { en: "Print", ar: "اطبع" },
+  reviewPrev: { en: "Previous week", ar: "الأسبوع السابق" },
+  reviewNext: { en: "Next week", ar: "الأسبوع التالي" },
+  reviewThisWeek: { en: "This week", ar: "هذا الأسبوع" },
+  reviewBooks: { en: "Reading", ar: "القراءة" },
+  reviewBooksNone: { en: "No sessions this week. A session is logged when you close a book in the reader.", ar: "لا جلسات هذا الأسبوع. تُسجَّل الجلسة عند إغلاق كتاب في القارئ." },
+  reviewBookRow: { en: "{pages} in {time}, {sessions}", ar: "{pages} في {time}، {sessions}" },
+  reviewBookSpeed: { en: "{speed} a minute", ar: "{speed} في الدقيقة" },
+  reviewTotals: { en: "{pages} in {time} in all", ar: "{pages} في {time} إجمالًا" },
+  reviewTrackers: { en: "Where each work stands", ar: "أين يقف كل عمل" },
+  reviewTrackersNone: { en: "No active trackers.", ar: "لا متتبِّعات نشطة." },
+  reviewTimeLeft: { en: "{left} left at your pace", ar: "بقي {left} بوتيرتك" },
+  reviewSigilRow: { en: "{done} of {of} days · streak {streak}", ar: "{done} من {of} أيام · سلسلة {streak}" },
+  reviewSigilsNone: { en: "No sigils yet.", ar: "لا سِجلّات بعد." },
+  reviewOrbitsRow: { en: "{graded} graded on {days}, {retention}% kept", ar: "{graded} قُيِّمت في {days}؛ {retention}٪ محفوظة" },
+  reviewOrbitsDeck: { en: "{graded}, {retention}% kept", ar: "{graded}؛ {retention}٪ محفوظة" },
+  reviewOrbitsNone: { en: "No cards graded on this device this week.", ar: "لم تُقيَّم بطاقات على هذا الجهاز هذا الأسبوع." },
+  reviewOrbitsDevice: { en: "From this device's own log; grades given elsewhere are not counted here.", ar: "من سجلّ هذا الجهاز؛ التقييمات على أجهزة أخرى لا تُحسب هنا." },
+  reviewNotesCreated: { en: "Written this week", ar: "كُتبت هذا الأسبوع" },
+  reviewNotesEdited: { en: "Most edited", ar: "الأكثر تعديلًا" },
+  reviewNotesNone: { en: "No notes written this week.", ar: "لم تُكتب ملاحظات هذا الأسبوع." },
+  reviewLoading: { en: "Adding the week up…", ar: "يُحسب الأسبوع…" },
+  reviewFailed: { en: "The week could not be read.", ar: "تعذّرت قراءة الأسبوع." },
+  reviewNotStored: { en: "Nothing on this page is stored. It is computed from your notes, your trackers, your sigil logs and this device's Orbits log, each time it opens.", ar: "لا يُخزَّن شيء في هذه الصفحة؛ تُحسب من ملاحظاتك ومتتبِّعاتك وسجلّات سِجلّاتك وسجلّ المدارات على هذا الجهاز في كل مرة تُفتح." },
   routineFormBook: { en: "A book you are tracking", ar: "كتاب تتابعه" },
   routineFormBookHint: { en: "The tracker's title. The day gains \"Read N pages of it\" at the tracker's pace, and a tick moves the tracker.", ar: "عنوان المتتبِّع. يكتسب اليوم «اقرأ N صفحة منه» بوتيرة المتتبِّع، والتعليم يحرّك المتتبِّع." },
   // ── Tags pane, bookmarks, layouts (3.13.0) ──
@@ -5150,7 +5208,12 @@ export type CountUnit =
   | "tasks"
   | "days"
   | "cards"
-  | "orbits";
+  | "orbits"
+  // The reader's own counts: passages marked in a book, sittings with it,
+  // and the versions the store kept of a note — the weekly review's units.
+  | "highlights"
+  | "sessions"
+  | "versions";
 
 const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: string; few: string; many: string } }> = {
   // What a bulk tab-close is about to FLUSH. It is a count with a consequence
@@ -5226,6 +5289,9 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   // …but what is DUE is counted in orbits: a card coming back around is an
   // orbit closing, and the owner wanted the page to say so ("one orbit due").
   orbits: { en: ["orbit", "orbits"], ar: { one: "مدار واحد", two: "مداران", few: "مدارات", many: "مدارًا" } },
+  highlights: { en: ["highlight", "highlights"], ar: { one: "اقتباس واحد", two: "اقتباسان", few: "اقتباسات", many: "اقتباسًا" } },
+  sessions: { en: ["session", "sessions"], ar: { one: "جلسة واحدة", two: "جلستان", few: "جلسات", many: "جلسة" } },
+  versions: { en: ["save", "saves"], ar: { one: "حفظة واحدة", two: "حفظتان", few: "حفظات", many: "حفظة" } },
 };
 
 /** "3 notes" / "3 ملاحظات" — a number with its correctly-agreed unit. */

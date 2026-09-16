@@ -56,6 +56,8 @@ export type BookCommand =
   | { kind: "note" }
   /** `:annotations` — the list of marked passages (`A`). */
   | { kind: "annotations" }
+  /** `:end` — log the reading session so far (the "End session" button). */
+  | { kind: "end" }
   /** Parsed fine, means nothing — the reader gets their own word back in the
    *  message, because "unknown command" without the word is a shrug. */
   | { kind: "unknown"; word: string };
@@ -92,6 +94,9 @@ const NAMES: { full: string; short: string }[] = [
   { full: "cite", short: "c" },
   { full: "note", short: "no" },
   { full: "annotations", short: "an" },
+  // Whole word only: it writes a line into a note, and a reader who typed
+  // `:e` meaning something else must not have a session logged for it.
+  { full: "end", short: "end" },
 ];
 
 /** Resolve a typed word to a command name. A word matches when it is at least
@@ -168,6 +173,8 @@ export function parseCommand(line: string): BookCommand | null {
       return { kind: "outline" };
     case "forget":
       return { kind: "forget" };
+    case "end":
+      return { kind: "end" };
     case "help":
       return { kind: "help" };
     case "highlight":

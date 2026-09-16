@@ -212,6 +212,57 @@
   white-space: nowrap;
 }
 
+/* A card's ACTION, under the card and outside its button (a button cannot
+   hold a button). Quiet until the card is hovered or anything in it has
+   focus — the shelf is a wall of books, not a wall of controls — and
+   always shown where nothing hovers, because a finger cannot. */
+.s-shelf__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.s-shelf__cardact {
+  align-self: start;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 3px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.s-shelf__item:hover .s-shelf__cardact,
+.s-shelf__item:focus-within .s-shelf__cardact {
+  opacity: 1;
+}
+
+.s-shelf__cardact:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.s-shelf__cardact:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (hover: none) {
+  .s-shelf__cardact {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-shelf__cardact {
+    transition: none;
+  }
+}
+
 /* ── The reader ────────────────────────────────────────────────────────── */
 
 .s-book {
@@ -443,6 +494,22 @@
 .s-book__act:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
+}
+
+/* "End session": a word, not a glyph — there is no glyph for it that a
+   reader would not have to learn, and it is the one title-bar action that
+   writes a line into a note. Small type, so the title keeps the bar. */
+.s-book__act--end {
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  padding-inline: 10px;
+}
+
+/* The sitting's minutes on the status line, dimmed once the clock has
+   paused: a paused timer still says how long, but no longer claims that
+   reading is happening. */
+.s-book__session[data-running="off"] {
+  color: var(--text-faint);
 }
 
 /* ── The command and search lines ──────────────────────────────────────── */

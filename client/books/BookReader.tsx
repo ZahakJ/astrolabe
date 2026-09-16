@@ -48,12 +48,20 @@ import {
   type BookState,
 } from "../../shared/bookAnchor.ts";
 import type { BookOpenResponse } from "../../shared/types.ts";
+import type { OutlineEntry } from "../../shared/highlightsNote.ts";
+import { clockMinutes, clockRunning, openClock, summarizeClock, turnClock, type SessionClock } from "../../shared/readingSession.ts";
+import { localDay } from "../../shared/weekReview.ts";
 import { scrollBehavior } from "../a11y.ts";
 import { localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { shortcutKey } from "../keys.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
+import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
+import { formatDuration } from "../trackerUnits.ts";
+import { panesInOrder } from "../workspace.ts";
 import { actionToast } from "../undoToast.ts";
+import { readOutline } from "./outline.ts";
+import { clearStash, logSession, readStash, writeStash } from "./session.ts";
 import {
   beaconBookState,
   deleteHighlight,
@@ -99,6 +107,13 @@ const CHROME_MS = 2200;
  *  of reading rather than a chapter. */
 const SAVE_MS = 900;
 
+/** How long a stashed session waits to be RESUMED rather than logged. A
+ *  reader who flipped to their note for twenty minutes and came back is in
+ *  the same sitting (the clock's own three-minute rule keeps the gap
+ *  honest); one who closed the laptop and reopened the book at breakfast is
+ *  not, and the old sitting is logged for the day it happened. */
+const RESUME_MS = 30 * 60_000;
+
 /** Hits collected before the background scan stops. A reader searching a
  *  900-page book for "the" does not want 40,000 of anything. */
 const SEARCH_MAX = 500;
@@ -112,16 +127,9 @@ type Overlay = "none" | "command" | "search" | "outline" | "goto" | "help" | "ci
  *  for the same span instead of breathing. */
 const PULSE_MS = 2400;
 
-/** What `doc.getOutline()` hands back. Named rather than written inline at the
- *  use site: a nested generic inside a .tsx line reads to `check-i18n`'s
- *  bare-English scan as `>…text…<`, i.e. as untranslated copy in JSX. */
-type OutlineItems = Awaited<ReturnType<PdfDocument["getOutline"]>>;
-
-interface OutlineRow {
-  title: string;
-  page: number;
-  depth: number;
-}
+/** One entry of the book's contents — the outline walk is client/books/
+ *  outline.ts, shared with the shelf's "Highlights → note". */
+type OutlineRow = OutlineEntry;
 
 interface Hit {
   page: number;
@@ -222,9 +230,22 @@ export default function BookReader({ path, citation = null, active = true, onLan
    *  the PREVIOUS keystroke left, not what the last render did. */
   const pending = useRef<{ digits: string; op: "g" | "m" | "'" | null }>({ digits: "", op: null });
 
+  // ── The session clock ─────────────────────────────────────────────────────
+  // A quiet timer over the page turns (shared/readingSession.ts): null until
+  // the book is restored to its page, then a value swapped on every turn
+  // and stashed for the tab that closes without saying so. Where a finished
+  // sitting goes is client/books/session.ts's business.
+  const clock = useRef<SessionClock | null>(null);
+  const entryRef = useRef<BookOpenResponse | null>(null);
+  /** Bumped on every turn and every half minute, so the status line's
+   *  minute count and the "End session" button follow the clock without
+   *  the clock itself living in state. */
+  const [clockTick, setClockTick] = useState(0);
+
   stateRef.current = state;
   highlightsRef.current = highlights;
   inkRef.current = ink;
+  entryRef.current = entry;
 
   // ── Open ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -248,6 +269,18 @@ export default function BookReader({ path, citation = null, active = true, onLan
         if (!live) return;
         setEntry(opened);
         keyRef.current = opened.key;
+        // A sitting the last tab left behind: resumed when it is recent —
+        // the reader flipped to a note and came back — and logged for its
+        // own day otherwise, with the toast and the Undo it would have had.
+        const stashed = readStash(opened.key);
+        if (stashed !== null && Date.now() - stashed.lastTurnAt > RESUME_MS) {
+          clearStash(opened.key);
+          const summary = summarizeClock(stashed, Date.now());
+          if (summary) void logSession(opened, summary, localDay(stashed.lastTurnAt));
+          clock.current = null;
+        } else {
+          clock.current = stashed;
+        }
         const restored = opened.state ?? { ...DEFAULT_BOOK_STATE, path: opened.path };
         setState(restored);
         setSpreadIndex(spreadOfPage(restored.page, restored.dual));
@@ -435,7 +468,59 @@ export default function BookReader({ path, citation = null, active = true, onLan
     restoredRef.current = true;
     reanchor();
     scrollRef.current?.focus({ preventScroll: true });
-  }, [doc, spreads.length, view.height, state.page, state.dual, state.offset, reanchor]);
+    // The clock opens on the page the book opened at — unless a resumed
+    // stash already holds the sitting.
+    if (clock.current === null) clock.current = openClock(spreads[spreadOfPage(state.page, state.dual)]?.pages ?? [state.page], Date.now());
+  }, [doc, spreads.length, view.height, state.page, state.dual, state.offset, reanchor, spreads]);
+
+  // Every page turn — a scroll across a page boundary, a `J`, a `:212`, a
+  // jump from the contents — is one turn of the clock. Declared after the
+  // restore above so the first render after it sees the same pages and is
+  // no turn at all.
+  useEffect(() => {
+    if (!restoredRef.current || clock.current === null) return;
+    const pages = spreads[spreadOfPage(state.page, state.dual)]?.pages ?? [state.page];
+    const next = turnClock(clock.current, pages, Date.now());
+    if (next === clock.current) return;
+    clock.current = next;
+    if (keyRef.current) writeStash(keyRef.current, next);
+    setClockTick((n) => n + 1);
+  }, [state.page, state.dual, spreads]);
+
+  // The minute count on the status line, kept honest between turns.
+  useEffect(() => {
+    const id = window.setInterval(() => setClockTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  /** End the sitting: log what the clock counted (client/books/session.ts)
+   *  and start a fresh clock on the pages in view. `quiet` skips the
+   *  "nothing to end" toast — the unmount below has no reader to tell. */
+  const endSession = useCallback((quiet = false): void => {
+    const c = clock.current;
+    const opened = entryRef.current;
+    const now = Date.now();
+    const summary = c === null ? null : summarizeClock(c, now);
+    if (keyRef.current) clearStash(keyRef.current);
+    clock.current = c === null ? null : openClock(c.showing, now);
+    setClockTick((n) => n + 1);
+    if (summary && opened) void logSession(opened, summary);
+    else if (!quiet) toast(t("bookSessionNone"));
+  }, []);
+
+  // CLOSING THE BOOK ENDS THE SITTING; leaving its tab open does not. The
+  // reader is unmounted both when the tab is closed (`q`, the ✕, the tab
+  // strip) and when another tab in the pane comes to the front — and a flip
+  // to the note beside the book is the middle of a sitting, not its end.
+  // The workspace says which: a tab still open anywhere keeps its stash and
+  // resumes on the way back.
+  useEffect(
+    () => () => {
+      const open = panesInOrder(useStore.getState().workspace).some((p) => p.tabs.some((tab) => tab.path === path));
+      if (!open) endSession(true);
+    },
+    [path, endSession],
+  );
 
   // A zoom, a rotation or the dual-page toggle changes every page's height, so
   // the browser's own scrollTop now points at a different part of the book.
@@ -831,28 +916,7 @@ export default function BookReader({ path, citation = null, active = true, onLan
   const loadOutline = useCallback(async () => {
     if (!doc || outline !== null) return;
     try {
-      const raw = await doc.getOutline();
-      const rows: OutlineRow[] = [];
-      const walk = async (items: OutlineItems, depth: number): Promise<void> => {
-        for (const item of items ?? []) {
-          let page = 0;
-          try {
-            // A destination is either an explicit array (whose first element is
-            // a page reference) or a NAME that has to be looked up first. Both
-            // shapes are common in the wild and a reader that handles only the
-            // first has no contents page for half the books in a vault.
-            const dest = typeof item.dest === "string" ? await doc.getDestination(item.dest) : item.dest;
-            const ref = Array.isArray(dest) ? dest[0] : null;
-            if (ref) page = (await doc.getPageIndex(ref)) + 1;
-          } catch {
-            page = 0;
-          }
-          rows.push({ title: item.title, page, depth });
-          if (item.items?.length) await walk(item.items, depth + 1);
-        }
-      };
-      await walk(raw, 0);
-      setOutline(rows);
+      setOutline(await readOutline(doc));
     } catch {
       setOutline([]);
     }
@@ -963,6 +1027,9 @@ export default function BookReader({ path, citation = null, active = true, onLan
         case "library":
           onLibrary();
           break;
+        case "end":
+          endSession();
+          break;
         case "outline":
           void loadOutline();
           setOverlay("outline");
@@ -1047,6 +1114,7 @@ export default function BookReader({ path, citation = null, active = true, onLan
       beginCite,
       noteHere,
       onZen,
+      endSession,
     ],
   );
 
@@ -1337,6 +1405,18 @@ export default function BookReader({ path, citation = null, active = true, onLan
 
   const title = state.title || entry?.name.replace(/\.pdf$/i, "") || "";
 
+  // What the chrome says about the sitting: nothing before the first turn,
+  // the minutes while it runs, "paused" once three minutes pass without a
+  // turn. Read off the clock on every render — `clockTick` exists to cause
+  // one — and not memoised, because this sits past the early return above.
+  const sessionState = ((): { running: boolean; minutes: number } | null => {
+    void clockTick; // the render this tick asked for is this one
+    const c = clock.current;
+    if (c === null || c.startedAt === null) return null;
+    const now = Date.now();
+    return { running: clockRunning(c, now), minutes: clockMinutes(c, now) };
+  })();
+
   return (
     <div
       className="s-book"
@@ -1415,6 +1495,13 @@ export default function BookReader({ path, citation = null, active = true, onLan
             <span aria-hidden="true">{zen ? "⤡" : "⤢"}</span>
           </button>
         )}
+        {sessionState !== null && (
+          // Only while a sitting is on the clock: a button that could log
+          // nothing is a button that would say "no session" to a click.
+          <button type="button" className="s-book__act s-book__act--end" onClick={() => endSession()} title={t("bookSessionEndTitle")}>
+            {t("bookSessionEnd")}
+          </button>
+        )}
         <button type="button" className="s-book__act" onClick={onLibrary} aria-label={t("bookLibrary")}>
           <span aria-hidden="true">☰</span>
         </button>
@@ -1440,6 +1527,11 @@ export default function BookReader({ path, citation = null, active = true, onLan
         <span>{tf("bookZoomPct", { percent: localeNum(Math.round(scale * 100)) })}</span>
         {hits.length > 0 && (
           <span>{tf("bookMatchOf", { index: localeNum(hitAt + 1), total: localeNum(hits.length) })}</span>
+        )}
+        {sessionState !== null && (
+          <span className="s-book__session" data-running={sessionState.running ? "on" : "off"}>
+            {sessionState.running ? tf("bookSessionTimer", { time: formatDuration(sessionState.minutes) }) : t("bookSessionPaused")}
+          </span>
         )}
         {/* The ink in force. A chrome-free reader still has to answer "which
             colour will `h` use", and a swatch answers it without a toolbar. */}
@@ -2147,7 +2239,9 @@ function overlaps(a: BookRect, b: BookRect): boolean {
  *  instance's own numerals — an Arabic instance prints ٤٢ everywhere else and
  *  a citation that suddenly says 42 reads as somebody else's software. */
 function citeLabel(title: string, page: number): string {
-  return tf("bookCiteLabel", { name: title.replace(/\.pdf$/i, ""), page: localeNum(page) });
+  // `{title}`, as the dictionary spells it: the label was passing `name`,
+  // and every citation since 3.12 has read "{title}, p. 42" in the note.
+  return tf("bookCiteLabel", { title: title.replace(/\.pdf$/i, ""), page: localeNum(page) });
 }
 
 /** A live theme token, resolved from the document. Never a literal: the night

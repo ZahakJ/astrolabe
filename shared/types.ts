@@ -6,7 +6,7 @@ import type { Task } from "./tasks.ts";
 import type { Card } from "./flashcards.ts";
 import type { BookHighlight, BookState } from "./bookAnchor.ts";
 import type { FolderIcon, FolderMark } from "./folderIcons.ts";
-import type { TrackerRating, TrackerStatus } from "./tracker.ts";
+import type { TrackerRating, TrackerSession, TrackerStatus } from "./tracker.ts";
 
 export interface TreeNode {
   name: string;          // file or folder basename, e.g. "Ideas.md" or "projects"
@@ -852,6 +852,13 @@ export interface TrackerMeta {
   /** `pace:` units a day and `due:` date, for the projection (3.13.0). */
   pace: number | null;
   due: string | null;
+  /** `file:` — the PDF this work is, a vault path or a bare name; how the
+   *  reader finds a book's tracker. Admin only, like `folder`: a visitor's
+   *  shelf never names a file of the vault. */
+  file: string | null;
+  /** The reading sessions logged into the fence (shared/tracker.ts
+   *  TrackerSession), oldest first. The weekly review's pages and hours. */
+  sessions: TrackerSession[];
   /** How many notes live under `folder`, and the folder's own note (a note
    *  named like it, or index.md) when there is one — the card's door. */
   folderNotes: number;

@@ -27,7 +27,7 @@ import { useStore } from "../state.ts";
 /** One wikilink in a task's text, resolved to a vault path when the tree
  *  knows the note. `label` is what the card shows in place of the brackets:
  *  the alias if one was written, else the last segment of the target. */
-interface TaskLink {
+export interface TaskLink {
   raw: string;
   path: string | null;
   label: string;
@@ -38,7 +38,7 @@ function samePath(a: string, b: string): boolean {
 }
 
 /** The wikilinks in a task (its text, or its key for a bare every-day item). */
-function linksOf(task: RoutineTask, tree: TreeNode | null): TaskLink[] {
+export function linksOf(task: RoutineTask, tree: TreeNode | null): TaskLink[] {
   const text = task.text ?? task.key;
   const out: TaskLink[] = [];
   for (const m of text.matchAll(WIKILINK_RE)) {

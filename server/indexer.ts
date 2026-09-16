@@ -2967,6 +2967,11 @@ export function trackers(visitor: boolean, lang: FilterLang): TrackerMeta[] {
         step: tracker.step,
         pace: tracker.pace,
         due: tracker.due,
+        // A file name is a fact about the vault's layout, scrubbed for a
+        // visitor as `folder` is; the sessions are the note's own lines and
+        // travel with it.
+        file: visitor ? null : tracker.file,
+        sessions: tracker.sessions,
         title: tracker.title,
         noteTitle: record.title,
         kind: tracker.kind,

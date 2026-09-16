@@ -29,7 +29,9 @@ import type { FolderIcon } from "../../shared/folderIcons.ts";
 import { FOLDER_ICON_HAND_PATHS } from "../../shared/folderIconsHand.ts";
 import {
   foldKind,
+  minutesLeft,
   paceProjection,
+  readingSpeed,
   type BoardFilter,
   type Tracker,
   type TrackerKind,
@@ -39,7 +41,7 @@ import type { TrackerMeta } from "../../shared/types.ts";
 import { getTrackers } from "../api.ts";
 import { siteDate } from "../dates.ts";
 import { autoDir, countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
-import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
+import { formatDuration, KIND_UNIT, unitKey } from "../trackerUnits.ts";
 export { KIND_UNIT, unitKey } from "../trackerUnits.ts";
 import { Lru } from "../lru.ts";
 import { useStore } from "../state.ts";
@@ -346,6 +348,16 @@ export function renderTrackerCard(tracker: Tracker, hooks: TrackerHooks): HTMLEl
     const unitWord = known ? countPhrase(10, known).replace(/^[\d٠-٩٬,.\s]+/, "") : tracker.unit ?? (kind ? countPhrase(10, KIND_UNIT[kind]).replace(/^[\d٠-٩٬,.\s]+/, "") : "");
     const perDay = `${localeNum(projection.pace)} ${unitWord}`.trim();
     dates.push(tf(projection.kind === "done-by" ? "trackerPaceDoneBy" : "trackerPaceNeeded", { pace: perDay, date: dateText(projection.date) }));
+  }
+  // The book's OWN speed, off the sessions the reader logged into the fence
+  // (shared/tracker.ts readingSpeed): "about 1.6 pages a minute here — 4 h
+  // 20 left". "Here" because it is this book's pace and not the reader's in
+  // general; a dense commentary and a novel are not read at one speed. Only
+  // a tracker that counts pages and has been timed says it.
+  const left = minutesLeft(tracker);
+  const speed = readingSpeed(tracker.sessions);
+  if (left !== null && speed !== null) {
+    dates.push(tf("trackerSpeedLeft", { speed: localeNum(Math.round(speed * 10) / 10), left: formatDuration(left) }));
   }
   for (const text of dates) meta.appendChild(el("span", "s-rv-tracker__date", text));
   // The folder of the work's own notes, by its last name: the reader knows
