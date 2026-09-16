@@ -33,6 +33,14 @@ describe("countTerms", () => {
     assert.equal(c.has("2024"), false);
     assert.equal(c.get("and"), 1);
   });
+  it("hands back the author's first spelling of each folded term, case aside", () => {
+    const spellings = new Map<string, string>();
+    countTerms("«الْمُقَدِّمَة» then «المقدمة»; a Résumé and a resume.", ["#Book/History"], "", spellings);
+    assert.equal(spellings.get("المقدمه"), "الْمُقَدِّمَة");
+    assert.equal(spellings.get("resume"), "résumé");
+    assert.equal(spellings.get("#book/history"), "#Book/History");
+    assert.equal(spellings.get("#book"), "#Book");
+  });
   it("weighs tags and titles more than a word, and a nested tag as its parent too", () => {
     const c = countTerms("plain words", ["#Book/History"], "Words of History");
     assert.equal(c.get("#book/history"), 4);
@@ -47,6 +55,36 @@ describe("countTerms", () => {
     assert.equal([...c.keys()][0], "word330");
     assert.equal(c.has("word0"), true);
     assert.equal(c.has("word349"), false);
+  });
+});
+
+describe("TermTable", () => {
+  it("shows a term by its kept spelling and falls back to the folded name", () => {
+    const table = new TermTable();
+    const spellings = new Map<string, string>();
+    const counts = countTerms("الْمُقَدِّمَة résumé plain", [], "", spellings);
+    internTerms(counts, table, spellings);
+    assert.equal(table.shownOf(table.idOf("المقدمه")), "الْمُقَدِّمَة");
+    assert.equal(table.shownOf(table.idOf("resume")), "résumé");
+    assert.equal(table.shownOf(table.idOf("plain")), "plain");
+    // The first spelling offered wins; a later note cannot respell the word.
+    table.spell("resume", "RESUME");
+    assert.equal(table.shownOf(table.idOf("resume")), "résumé");
+  });
+  it("nearest names the ties by their spelling", () => {
+    const table = new TermTable();
+    const docs = { a: "الْمُقَدِّمَة العصبية كتاب", b: "المقدمة العصبية دولة", c: "خبز وماء" };
+    const vectors = new Map(
+      Object.entries(docs).map(([p, text]) => {
+        const spellings = new Map<string, string>();
+        return [p, internTerms(countTerms(text, [], "", spellings), table, spellings)];
+      }),
+    );
+    const df = documentFrequency(vectors.values(), table.size);
+    const weighed = new Map([...vectors].map(([p, v]) => [p, weigh(v, df, vectors.size)]));
+    const hits = nearest(weighed.get("a")!, [{ path: "b", title: "b", vector: weighed.get("b")! }, { path: "c", title: "c", vector: weighed.get("c")! }], table);
+    assert.equal(hits[0].path, "b");
+    assert.deepEqual([...hits[0].terms].sort(), ["العصبية", "الْمُقَدِّمَة"].sort());
   });
 });
 

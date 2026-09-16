@@ -1321,7 +1321,13 @@ export default function Sidebar() {
       const container = treeRef.current;
       if (!container) return;
       // A rename input inside a row owns its own keys (it stops propagation),
-      // so anything arriving here is the tree's.
+      // so anything arriving here is the tree's — EXCEPT a button that sits
+      // in the tree without being a tree row: a bookmark row (BookmarksRows)
+      // or the bookmarks shelf's own header. Those are real buttons with
+      // their own click, and Enter on one must press IT, not the tree's
+      // cursor row somewhere below. Arrows still walk the tree from there.
+      const target = e.target as HTMLElement;
+      if ((e.key === "Enter" || e.key === " ") && target !== container && target.closest(".s-tree__item") === null) return;
       const rows = visibleRows(container);
       if (rows.length === 0) return;
       const at = Math.max(
@@ -1750,6 +1756,11 @@ export default function Sidebar() {
           aria-label={t("searchTitle")}
           title={t("searchTitle")}
           value={query}
+          // The field follows its text, not the chrome: an operator query
+          // (`prop:status="in progress"`, which the properties shelf and a
+          // search bookmark put here) is Latin, and in an RTL box its
+          // closing quote was drawn at the far end of the line.
+          dir="auto"
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Escape" && query) {

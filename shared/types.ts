@@ -211,8 +211,8 @@ export interface NearbyHit {
   title: string;
   /** Cosine similarity, 0 … 1. */
   score: number;
-  /** The one or two terms that contributed most to the score, as folded
-   *  (a tag keeps its `#`). */
+  /** The one or two terms that contributed most to the score, spelled as
+   *  the author first wrote them, case aside (a tag keeps its `#`). */
   terms: string[];
 }
 

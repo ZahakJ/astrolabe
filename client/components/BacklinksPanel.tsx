@@ -127,6 +127,10 @@ export default function BacklinksPanel() {
   const collapsed = useStore((s) => s.panelCollapsed);
   const setCollapsed = useStore((s) => s.setPanelCollapsed);
   const zen = useStore((s) => s.zen);
+  // Nearby is the owner's (the server answers a visitor with a 401), so the
+  // chunk is not even asked for on a visitor's page: a lazy import mounted
+  // unconditionally still fetches its script and stylesheet to render null.
+  const admin = useStore((s) => s.admin);
   // A deliberate open/close wins over the responsive auto-collapse. "Deliberate"
   // is exactly "persisted": every real toggle (this header button, the reopen
   // handle, Ctrl/Cmd+Alt+Shift+B, the palette) writes the flag, and the auto-
@@ -238,9 +242,11 @@ export default function BacklinksPanel() {
             ))
           )}
         </div>
-        <Suspense fallback={null}>
-          <NearbyPanel />
-        </Suspense>
+        {admin && (
+          <Suspense fallback={null}>
+            <NearbyPanel />
+          </Suspense>
+        )}
         <MentionsPanel />
         <OnThisDayPanel />
         </div>
