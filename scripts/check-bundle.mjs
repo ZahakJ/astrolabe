@@ -662,62 +662,50 @@ const AUDIENCES = [
   // the French/furigana dictionary meeting in one entry at integration.
   // 3.16.1: 765.3 kB actual → 766 — the browser-dictionaries row (its
   // bilingual hint, the four labels, client/spellDicts.ts at startup).
-  // 3.16.2: 772.7 kB actual → 773 — CALENDAR AND PERIODIC NOTES. ~3.1 kB is
-  // the dictionary (the calendar's labels, the four period kinds, the
-  // launch row, the periodic-notes note); the rest is the status bar's
-  // period crumb (client/daily.ts periodLabel + shared/dates.ts
-  // formatCalendarRange, first paint because the bar is), the month and
-  // year kinds in shared/periodic.ts, and the launch door in the store.
-  // The month grid itself (shared/calendar.ts, CalendarGrid.tsx and its
-  // sheet) is a lazy chunk behind the sidebar's fold and the Sigils page.
-  // 3.16.2 review: 773.4 kB actual → 774 — the periodic cache became a
-  // subscribable (client/daily.ts usePeriodic, so a moved daily folder
-  // re-dots the month without a reload) and two period-agnostic toasts.
-  // 3.17.0: 765.3 kB actual → 768.5 kB, budget 769 — the editor
-  // conveniences. In the entry by construction: the template prompt scan
-  // and the `{{cursor}}` offset (client/templates.ts, ~0.6 kB — state.ts
-  // imports templateActions for the default template, so the scan that
-  // decides whether a sheet is owed is on the boot path; the sheet itself is
-  // a lazy chunk), the periodic formatter's HH/mm/ss tokens and the
-  // free-name rule for the unique note (shared/periodic.ts, ~0.4 kB), the
-  // store's pendingCaret (~0.1 kB), and the dictionary's rows for the sheet,
-  // the unique note's two settings, the palette's create and layout rows
-  // and the "12 of 840 words" phrase (~1.6 kB, bilingual). The natural-date
-  // parser rides the editor chunk; the tag card, its stylesheet and the
-  // sheet are their own chunks.
-  // READING SURFACES (768.3 kB actual → 769): fourteen dictionary rows (the
-  // Footnotes section's six, the page card's three, the timeline's one, the
-  // diagram's two), shared/mediaEmbeds.ts (which `parseEmbed` in
-  // editor/embeds.ts — a module the store imports for its cache door — now
-  // asks about sounds and pages), and client/footnoteNav.ts, the pane's
-  // wire. The player (reading/audio.ts), the page card (reading/pdfPage.ts),
-  // the sidenote layout and its sheet, the timeline renderer, the mermaid
-  // chunk and pdf.js's page painter are all behind `import()` and are
-  // asserted split or forbidden below.
-  // Vault views: 768.3 kB actual → 769 — the dictionary for the properties
-  // shelf, the graph's groups by query and Nearby (~2.7 kB en+ar), the
-  // bookmark grammar's heading and search rows (shared/bookmarks.ts, the
-  // rows component) and three api.ts doors. The shelf and the Nearby list
-  // themselves ride their own chunks with their own stylesheets
-  // (props.css, nearby.css) and are asserted absent from the blog closure.
-  // 3.17.0: 771.9 kB actual → 773 — READING SESSIONS, HIGHLIGHTS → NOTE and
-  // THE WEEKLY REVIEW. Almost all of it is the dictionary again: the
-  // session toasts, the card's "pages a minute here" line, the highlights
-  // action, and the review page's headings and empty states, in two
-  // languages, shipped whole by `t()`. The rest is the review tab's
-  // sentinel and route (workspace, state, router, tabs, the palette row)
-  // and formatDuration in client/trackerUnits.ts. The clock, the session
-  // log, the fence's session parser, the highlights writer and the review
-  // page itself are lazy — the books chunk and the review chunk — and the
-  // entry carries none of their code.
-  // 3.16.x capture: 770.2 kB actual → 771 — the capture and clipper
-  // dictionary keys (the sheet's words, two settings rows, the bookmarklet's
-  // two alerts, en+ar), the Ctrl/Cmd+Shift+D branch in App.tsx, the
-  // `captureOpen` flag and three fetchers. The sheet itself, its stylesheet
-  // (client/styles/capture.css) and the flow (client/capture.ts) are a lazy
-  // chunk mount-gated on the flag; the converter and the manifest are
-  // server-side and never in any bundle.
-  { name: "entry (everyone)", keys: entry, budget: 774 * 1024 },
+  // 3.17.0: 794.0 kB actual → 795 — SIX BRANCHES MET IN ONE ENTRY, and the
+  // sum is the sum of their parts (765.3 kB before any of them):
+  //  · calendar and periodic notes, +8.1 kB: the dictionary (the calendar's
+  //    labels, the four period kinds, the launch row, the periodic-notes
+  //    note), the status bar's period crumb (client/daily.ts periodLabel +
+  //    shared/dates.ts formatCalendarRange — first paint because the bar
+  //    is), the month and year kinds in shared/periodic.ts, the launch door
+  //    in the store, and the periodic cache as a subscribable (usePeriodic).
+  //    The month grid (shared/calendar.ts, CalendarGrid.tsx, its sheet) is a
+  //    lazy chunk behind the sidebar's fold and the Sigils page.
+  //  · the editor conveniences, +3.2 kB: the template prompt scan and the
+  //    `{{cursor}}` offset (client/templates.ts — state.ts imports
+  //    templateActions for the default template, so the scan that decides
+  //    whether a sheet is owed is on the boot path; the sheet is lazy), the
+  //    periodic formatter's HH/mm/ss tokens and the unique note's free-name
+  //    rule (shared/periodic.ts), the store's pendingCaret, and the
+  //    dictionary's rows for the sheet, the unique note's two settings, the
+  //    palette's create and layout rows and "12 of 840 words". The
+  //    natural-date parser rides the editor chunk; the tag card, its
+  //    stylesheet and the sheet are their own chunks.
+  //  · the reading surfaces, +3.0 kB: fourteen dictionary rows (Footnotes,
+  //    the page card, the timeline, the diagram), shared/mediaEmbeds.ts
+  //    (parseEmbed in editor/embeds.ts — a module the store imports for its
+  //    cache door — now asks about sounds and pages) and client/
+  //    footnoteNav.ts. The player, the page card, the sidenote layout, the
+  //    timeline renderer, the mermaid chunk and pdf.js's page painter are
+  //    behind `import()` and asserted split or forbidden below.
+  //  · the vault views, +3.0 kB: the dictionary for the properties shelf,
+  //    the graph's groups by query and Nearby, the bookmark grammar's
+  //    heading and search rows (shared/bookmarks.ts) and three api.ts doors.
+  //    The shelf and the Nearby list ride their own chunks and stylesheets.
+  //  · reading sessions, highlights → note and the weekly review, +6.6 kB:
+  //    almost all dictionary (the session toasts, the "pages a minute here"
+  //    line, the highlights action, the review page's headings and empty
+  //    states), plus the review tab's sentinel and route and formatDuration
+  //    in client/trackerUnits.ts. The clock, the session log, the fence's
+  //    session parser, the highlights writer and the review page are lazy.
+  //  · capture, +4.9 kB: the capture and clipper dictionary keys, the
+  //    Ctrl/Cmd Shift D branch in App.tsx, the `captureOpen` flag and three
+  //    fetchers. The sheet, its stylesheet and the flow are a lazy chunk
+  //    mount-gated on the flag; the converter and the manifest are
+  //    server-side.
+  // Five of the six are mostly dictionary, which is the debt named below.
+  { name: "entry (everyone)", keys: entry, budget: 795 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -938,29 +926,20 @@ const AUDIENCES = [
   // 3.16.0: 1046.5 kB actual → 1047 after the French/furigana merge (above).
   // 3.16.0 release: 1047.8 kB actual → 1048 (the merge above).
   // 3.16.1: 1049.1 kB actual → 1050 (the row above).
-  // 3.16.2: 1056.4 kB actual → 1057 — the entry growth above (calendar and
-  // periodic notes); the blog shell itself did not move.
-  // 3.16.2 review: 1057.1 kB actual → 1058 (the entry line above).
-  // 3.17.0: 1049.1 kB actual → 1052.4 kB, budget 1053 — the entry's bytes
-  // above, and the snippet's plain-text reading (snippet.tsx, ~0.1 kB). The
-  // tag card's rules were kept OUT of hovercard.css for this line's sake
-  // (client/styles/tagpreview.css rides the tagPreview chunk).
-  // READING SURFACES (1057.4 kB actual → 1058): the entry's rows above, plus
-  // what a published page can show and so must carry — the player builder
-  // (reading/audio.ts) and the audio-link seek, the page-card host and the
-  // mermaid host in render.ts (their bodies are lazy), and the audio, page
-  // and diagram rules in reading.css. The sidenote sheet is NOT here: it
-  // rides reading/sidenotes.css with the reading view's chunk alone.
-  // Vault views: 1052.1 kB actual → 1053 (the entry growth above; nothing
-  // of the four features is in the blog closure but the dictionary).
-  // 3.17.0: 1058.2 kB actual → 1060 — the entry growth above (the
-  // dictionary), plus the reading renderer's speed line on the tracker
-  // card, which reads the fence's `sessions:` block (shared/tracker.ts
-  // parses it before the card paints, so the parser rides the reading
-  // closure — ~1.5 kB).
-  // 3.16.x capture: 1054.0 kB actual → 1055 (the entry's growth above; the
-  // blog shell itself gained nothing).
-  { name: "anonymous blog reader", keys: blog, budget: 1060 * 1024 },
+  // 3.17.0: 1086.0 kB actual → 1087 — the six branches' entry bytes above
+  // (1049.1 kB before them), plus what a published page can show and so
+  // must carry: the reading surfaces' player builder (reading/audio.ts)
+  // and audio-link seek, the page-card host and the mermaid host in
+  // render.ts (their bodies are lazy) and the audio, page and diagram rules
+  // in reading.css (+5.3 kB over the entry's share); the tracker card's
+  // speed line, which reads the fence's `sessions:` block (shared/
+  // tracker.ts parses it before the card paints, ~1.5 kB); and the editor
+  // branch's plain-text snippet reading (snippet.tsx, ~0.1 kB — the tag
+  // card's rules were kept OUT of hovercard.css for this line's sake). The
+  // calendar, the vault views and capture added nothing here beyond the
+  // dictionary; the sidenote sheet rides reading/sidenotes.css with the
+  // reading view's chunk alone.
+  { name: "anonymous blog reader", keys: blog, budget: 1087 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1090,38 +1069,25 @@ const AUDIENCES = [
   // 3.16.0: 1491.4 kB actual → 1492 after the French/furigana merge (above).
   // 3.16.0 release: 1493.4 kB actual → 1494 (the merge above).
   // 3.16.1: 1494.6 kB actual → 1495 (the row above).
-  // 3.16.2: 1503.6 kB actual → 1504 — the entry growth above, plus the
-  // sidebar's Calendar section (its fold, and the one fetch that marks the
-  // days a sigil logged) and the palette's two period rows. The grid is a
-  // lazy chunk; the periodic sub-form rides the settings chunk.
-  // 3.16.2 review: 1504.4 kB actual → 1505 (the entry line above, plus the
-  // sidebar's visitor rule: no month for a visitor with no published day).
-  // 3.17.0: 1494.6 kB actual → 1498.4 kB, budget 1499 — the entry's bytes
-  // above, plus the sidebar's hover installer for the tag shelf (~0.4 kB;
-  // the card itself is a dynamic import) and the status bar's selection
-  // phrase. The palette's new rows are in the palette's own chunk.
-  // 3.17.0 review: 1498.6 kB actual → 1499.1 kB, budget 1500 — the tag
-  // shelf's hover installer now waits for the first pointer or focus on the
-  // list and re-asks the pill it found there (Sidebar.tsx, ~0.5 kB), which
-  // takes the tagPreview chunk and its stylesheet (~6 kB) OFF every boot;
-  // a net saving for the session, paid for here.
-  // READING SURFACES (1510.5 kB actual → 1511): the blog closure's bytes
-  // above, plus the outline pane's Footnotes section (components/
-  // FootnotesPanel.tsx, shared/footnotes.ts, its rows in app.css), the
-  // editor's footnote hop, and the page card (reading/pdfPage.ts), which
-  // the live preview's widget imports directly — the live preview has been
-  // in this closure since the outline's section menu reached into it.
-  // Vault views: 1498.6 kB actual → 1499 — the entry growth above plus the
-  // two Suspense mounts (Sidebar, BacklinksPanel); the shelf, the Nearby
-  // list and the graph's query rows are lazy.
-  // 3.17.0: 1504.0 kB actual → 1506 — the blog closure's bytes above, plus
-  // the palette's "Review the week" row and the Sigils page's last-weekday
-  // line. The review page, the session clock and the highlights writer are
-  // lazy and asserted absent below.
-  // 3.16.x capture: 1499.4 kB actual → 1500 (the entry's growth above; the
-  // shell surfaces gained nothing — the palette and shortcuts rows ride
-  // their own lazy chunks).
-  { name: "admin first paint", keys: app, budget: 1511 * 1024 },
+  // 3.17.0: 1543.6 kB actual → 1545 — the blog closure's bytes above
+  // (1494.6 kB before the six branches), plus the admin's own share of
+  // each: the sidebar's Calendar section (its fold, the one fetch that
+  // marks the days a sigil logged, and the visitor rule) and the palette's
+  // two period rows (calendar, ~1.8 kB); the tag shelf's hover installer,
+  // which waits for the first pointer or focus on the list and takes the
+  // tagPreview chunk and its stylesheet off every boot, and the status
+  // bar's selection phrase (editor, ~1.2 kB); the outline pane's Footnotes
+  // section (FootnotesPanel.tsx, shared/footnotes.ts, its rows in app.css),
+  // the editor's footnote hop and the page card, which the live preview's
+  // widget imports directly (reading surfaces, ~7.6 kB); the two Suspense
+  // mounts for the properties shelf and Nearby (vault views, ~1 kB); the
+  // palette's "Review the week" row and the Sigils page's last-weekday line
+  // (sessions, ~0.3 kB); and nothing from capture — its palette and
+  // shortcut rows ride their own lazy chunks. The grid, the periodic
+  // sub-form, the tag card, the shelf, the Nearby list, the graph's query
+  // rows, the review page, the session clock, the highlights writer and
+  // the capture sheet are all lazy and asserted absent below.
+  { name: "admin first paint", keys: app, budget: 1545 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

@@ -370,6 +370,304 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.17.0",
+    title: { en: "The month, the margin, the week, and a line from anywhere", ar: "الشهر والهامش والأسبوع، وسطر من أي مكان" },
+    slides: [
+      {
+        // ── Calendar & periodic notes ────────────────────────────────────
+        title: { en: "The month in the sidebar", ar: "الشهر في الشريط الجانبي" },
+        body: {
+          en: "A Calendar section under the tree draws the month in the site's own calendar — a dot on every day with a note, today ringed, a click opens the day's note. Periodic notes gain the month and the year, the status bar says what a period's name means, and Settings → Vault chooses what the app opens on: where you left off, the Sigils page or a note of yours.",
+          ar: "قسم التقويم تحت الشجرة يرسم الشهر بتقويم الموقع نفسه: نقطة على كل يوم له ملاحظة، ونقطة أخفت حيث سجّل سِجِلّ شيئًا، واليوم محاط بحلقة، والنقر يفتح ملاحظة اليوم أو ينشئها. وتكسب الملاحظات الدورية الشهر والسنة، ويقول شريط الحالة ما يعنيه اسم الفترة، وتختار الإعدادات ← الخزانة ما يفتحه التطبيق أولًا: حيث توقفت، أو صفحة السِّجِلّ، أو ملاحظة اليوم، أو ملاحظة من اختيارك.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => {
+            // September 2026 starts on a Tuesday; the week starts on Monday
+            // (an English site) — the drawing is one month, not a calendar.
+            const cells: string[] = [];
+            const noted = new Set([2, 3, 7, 9, 10, 14, 15]);
+            const logged = new Set([3, 8, 9, 12, 14, 15]);
+            for (let d = 1; d <= 30; d++) {
+              const col = (d + 0) % 7; // day 1 in column 1 (Tuesday)
+              const row = Math.floor((d + 0) / 7);
+              const cx = 44 + col * 27 + 9;
+              const cy = 66 + row * 26;
+              cells.push(`<text x="${cx}" y="${cy}" text-anchor="middle" fill="var(--text${d === 15 ? "" : "-muted"})" font-size="9"${d === 15 ? ' font-weight="600"' : ""}>${d}</text>`);
+              if (d === 15) cells.push(`<circle class="wa-pulse" style="--i:2" cx="${cx}" cy="${cy - 3}" r="9" fill="none" stroke="var(--accent)" stroke-width="1.3"/>`);
+              if (noted.has(d)) cells.push(`<circle cx="${cx - (logged.has(d) ? 3 : 0)}" cy="${cy + 6}" r="1.6" fill="var(--accent)"/>`);
+              if (logged.has(d)) cells.push(`<circle cx="${cx + (noted.has(d) ? 3 : 0)}" cy="${cy + 6}" r="1.6" fill="var(--callout-success)" opacity="0.7"/>`);
+            }
+            return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0"><rect x="30" y="28" width="218" height="172" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="44" y="46" fill="var(--text-muted)" font-size="12">‹</text>
+    <text x="139" y="46" text-anchor="middle" fill="var(--text)" font-family="Georgia, serif" font-size="12">${L(lang, "September 2026", "سبتمبر 2026")}</text>
+    <text x="230" y="46" fill="var(--text-muted)" font-size="12">›</text>
+    ${cells.join("")}
+  </g>
+  <g class="wa" style="--i:1" font-size="10">
+    <text x="274" y="42" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "PERIODIC NOTES", "الملاحظات الدورية")}</text>
+    <text x="274" y="62" fill="var(--text-muted)">${L(lang, "Day", "اليوم")}</text><text x="340" y="62" fill="var(--text)" font-family="ui-monospace, monospace">YYYY-MM-DD</text>
+    <text x="274" y="80" fill="var(--text-muted)">${L(lang, "Week", "الأسبوع")}</text><text x="340" y="80" fill="var(--text)" font-family="ui-monospace, monospace">YYYY-[W]ww</text>
+    <text x="274" y="98" fill="var(--text-muted)">${L(lang, "Month", "الشهر")}</text><text x="340" y="98" fill="var(--text)" font-family="ui-monospace, monospace">YYYY-MM</text>
+    <text x="274" y="116" fill="var(--text-muted)">${L(lang, "Year", "السنة")}</text><text x="340" y="116" fill="var(--text)" font-family="ui-monospace, monospace">YYYY</text>
+  </g>
+  <g class="wa-late" style="--i:2"><rect x="262" y="132" width="270" height="24" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="272" y="148" fill="var(--text-muted)" font-family="ui-monospace, monospace" font-size="10">2026-W38</text>
+    <text x="336" y="148" fill="var(--text)" font-size="10">${L(lang, "Week 38 · 14–20 September 2026", "الأسبوع 38 · 14–20 سبتمبر 2026")}</text>
+  </g>
+  <g class="wa-late" style="--i:3" font-size="10">
+    <text x="274" y="182" fill="var(--text-muted)">${L(lang, "Open on launch", "افتح عند التشغيل")}</text>
+    <rect x="392" y="168" width="130" height="22" rx="6" fill="var(--bg)" stroke="var(--accent)"/><text x="402" y="183" fill="var(--accent)">${L(lang, "Today's note", "ملاحظة اليوم")}</text><text x="510" y="183" fill="var(--text-faint)" font-size="9">▾</text>
+  </g>
+</svg>`;
+          },
+        },
+        docs: "templates-and-notes",
+      },
+      {
+        // ── The editor conveniences ──────────────────────────────────────
+        title: { en: "A template can ask, and @ names a day", ar: "القالب يسأل، و@ تسمّي يومًا" },
+        body: {
+          en: "{{prompt:Label}} opens one small sheet before a template is written, and {{cursor}} is where the caret lands. Type @ at the start of a word — tomorrow, next thursday, 15 september — and Enter links that day's note. The palette creates the note it cannot find, the status bar reads “12 of 840 words” while text is selected, and a tag pill previews its notes.",
+          ar: "يفتح {{prompt:Label}} ورقةً صغيرة قبل أن يُكتب القالب، ويحطّ المؤشر حيث كان {{cursor}}. اكتب @ في أول كلمة: غدًا، الخميس القادم، ١٥ سبتمبر، أو بالإنجليزية، فيضع Enter رابطًا إلى ملاحظة ذلك اليوم. وتصنع اللوحة الملاحظة التي لا تجدها وتحمّل تخطيطًا باسمه، ويقرأ شريط الحالة «١٢ من ٨٤٠ كلمة» ما دام النص محددًا، والوقوف على وسم يعرض أحدث ثلاث ملاحظات تحمله.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g font-family="Georgia, serif" font-size="13" class="wa" style="--i:0">
+    <text x="${lang === "ar" ? 104 : 36}" y="150" fill="var(--text-muted)">${L(lang, "Notes:", "ملاحظات:\u200F")}</text>
+    <rect class="wa-blink" x="${lang === "ar" ? 98 : 88}" y="139" width="1.5" height="14" fill="var(--accent)"/>
+    <text x="${lang === "ar" ? 36 : 100}" y="150" fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="10">{{cursor}}</text>
+  </g>
+  <g class="wa" style="--i:1"><rect x="30" y="30" width="220" height="96" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="44" y="50" fill="var(--text)" font-size="12" font-weight="600">${L(lang, "Insert template", "إدراج القالب")}</text>
+    <text x="44" y="72" fill="var(--text-muted)" font-size="10">${L(lang, "Author", "المؤلف")}</text>
+    <rect x="110" y="60" width="126" height="18" rx="5" fill="var(--bg-raised)" stroke="var(--border)"/><text x="116" y="73" fill="var(--text)" font-size="10">Ibn Khaldun</text>
+    <text x="44" y="96" fill="var(--text-muted)" font-size="10">${L(lang, "Topic", "الموضوع")}</text>
+    <rect x="110" y="84" width="126" height="18" rx="5" fill="var(--bg-raised)" stroke="var(--accent)"/><rect class="wa-blink" x="116" y="88" width="1.5" height="10" fill="var(--accent)"/>
+    <g class="wa-press" style="--i:3"><rect x="176" y="106" width="60" height="16" rx="8" fill="var(--bg)" stroke="var(--accent)"/><text x="206" y="118" text-anchor="middle" fill="var(--accent)" font-size="10">${L(lang, "Insert", "إدراج")}</text></g>
+  </g>
+  <g class="wa" style="--i:1">
+    <text x="284" y="52" fill="var(--text)" font-family="Georgia, serif" font-size="14">${L(lang, "Meeting", "اجتماع")}</text>
+    <text x="350" y="52" fill="var(--accent)" font-family="Georgia, serif" font-size="14">@tom</text>
+    <rect class="wa-blink" x="386" y="40" width="1.5" height="15" fill="var(--accent)"/>
+  </g>
+  <g class="wa-late" style="--i:2"><rect x="284" y="62" width="240" height="70" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="288" y="66" width="232" height="20" rx="5" fill="color-mix(in srgb, var(--accent) 14%, var(--bg))"/>
+    <text x="296" y="80" fill="var(--text)" font-size="10">${L(lang, "tomorrow", "غدًا")}</text><text x="380" y="80" fill="var(--text-muted)" font-size="10">${L(lang, "Wed 16 Sep 2026", "الأربعاء 16 سبتمبر")}</text>
+    <text x="296" y="102" fill="var(--text)" font-size="10">${L(lang, "today", "اليوم")}</text><text x="380" y="102" fill="var(--text-muted)" font-size="10">${L(lang, "Tue 15 Sep 2026", "الثلاثاء 15 سبتمبر")}</text>
+    <text x="296" y="124" fill="var(--text)" font-size="10">${L(lang, "next thursday", "الخميس القادم")}</text><text x="380" y="124" fill="var(--text-muted)" font-size="10">${L(lang, "Thu 17 Sep 2026", "الخميس 17 سبتمبر")}</text>
+  </g>
+  <g class="wa-late" style="--i:4"><text x="284" y="152" fill="var(--text-faint)" font-size="10">↵</text><text x="300" y="152" fill="var(--text)" font-family="ui-monospace, monospace" font-size="10">[[2026-09-16|${L(lang, "tomorrow", "غدًا")}]]</text></g>
+  <rect x="12" y="172" width="536" height="36" fill="var(--bg-hover)"/>
+  <g class="wa-late" style="--i:3" font-size="10">
+    <rect x="30" y="180" width="164" height="18" rx="4" fill="color-mix(in srgb, var(--accent) 22%, var(--bg))"/>
+    <text x="36" y="193" fill="var(--text)" font-family="Georgia, serif" font-size="11">${L(lang, "the sentence being trimmed", "الجملة التي تُقصّ")}</text>
+    <text x="420" y="193" fill="var(--text-muted)">${L(lang, "12 of 840 words", "\u200F12 من 840 كلمة")}</text>
+  </g>
+</svg>`,
+        },
+        docs: "editor",
+      },
+      {
+        // ── The reading surfaces ─────────────────────────────────────────
+        title: { en: "Footnotes in the margin, a page, a sound, a timeline, a diagram", ar: "حواشٍ في الهامش، وصفحة، وصوت، وخط زمني، ومخطط" },
+        body: {
+          en: "The outline pane lists every footnote, and a wide reading column sets each one in the margin beside the line that cites it. ![[Book.pdf#page=42]] draws that page in the note, ![[lecture.mp3]] is a small player, as: timeline lays a query's notes under year headings, and a ```mermaid fence is a diagram — in the editor, the reading view and on your site.",
+          ar: "تعرض لوحة المحتويات كل الحواشي، وفي عمود قراءة واسع تجلس كل حاشية في الهامش بجانب السطر الذي يحيل إليها. ويرسم ![[Book.pdf#page=42]] تلك الصفحة في موضع التضمين، و![[lecture.mp3]] مشغّل صغير و#t=1:23 رابط إلى لحظة، وas: timeline يصفّ ملاحظات الاستعلام على خط تحت عناوين السنوات، وسياج ```mermaid يُعرض مخططًا؛ في المحرر وعرض القراءة وعلى موقعك.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0">
+    <g fill="var(--text-faint)" opacity="0.55">
+      <rect x="36" y="34" width="160" height="4" rx="2"/><rect x="36" y="46" width="176" height="4" rx="2"/><rect x="36" y="58" width="150" height="4" rx="2"/>
+      <rect x="36" y="128" width="170" height="4" rx="2"/><rect x="36" y="140" width="184" height="4" rx="2"/><rect x="36" y="152" width="120" height="4" rx="2"/>
+    </g>
+    <text x="196" y="38" fill="var(--accent)" font-size="8">1</text>
+    <text x="212" y="50" fill="var(--accent)" font-size="8">2</text>
+    <g class="wa-late" style="--i:1">
+      <text x="236" y="40" fill="var(--text-muted)" font-family="Georgia, serif" font-size="9"><tspan fill="var(--accent)">${L(lang, "1", "١")}</tspan> ${L(lang, "Ibn Khaldun, II.3", "ابن خلدون، ٢/٣")}</text>
+      <text x="236" y="58" fill="var(--text-muted)" font-family="Georgia, serif" font-size="9"><tspan fill="var(--accent)">${L(lang, "2", "٢")}</tspan> ${L(lang, "see p. 42", "انظر ص 42")}</text>
+    </g>
+    <rect x="68" y="70" width="80" height="44" rx="3" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text-faint)" opacity="0.5"><rect x="76" y="78" width="60" height="2.5" rx="1"/><rect x="76" y="85" width="64" height="2.5" rx="1"/><rect x="76" y="92" width="52" height="2.5" rx="1"/><rect x="76" y="99" width="62" height="2.5" rx="1"/></g>
+    <text x="108" y="123" text-anchor="middle" fill="var(--text-faint)" font-size="8">${L(lang, "Book, p. 42", "Book، ص 42")}</text>
+  </g>
+  <g class="wa" style="--i:1"><rect x="330" y="30" width="200" height="36" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <path d="M344 40l10 8-10 8z" fill="var(--accent)"/>
+    <rect x="364" y="46" width="130" height="4" rx="2" fill="var(--bg-hover)"/><rect class="wa-grow" style="--i:2" x="364" y="46" width="52" height="4" rx="2" fill="var(--accent)"/>
+    <text x="504" y="51" fill="var(--text-muted)" font-size="9">1:23</text>
+  </g>
+  <g class="wa" style="--i:2" font-size="9">
+    <rect x="330" y="82" width="52" height="22" rx="6" fill="var(--bg)" stroke="var(--accent)"/><text x="356" y="96" text-anchor="middle" fill="var(--text)">${L(lang, "read", "اقرأ")}</text>
+    <path d="M382 93h20" stroke="var(--border)" stroke-width="1.5"/><path d="M398 89l6 4-6 4" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+    <path d="M430 82l24 11-24 11-24-11z" fill="var(--bg)" stroke="var(--accent)"/><text x="430" y="96" text-anchor="middle" fill="var(--text)">${L(lang, "note?", "ملاحظة؟")}</text>
+    <path d="M454 93h20" stroke="var(--border)" stroke-width="1.5"/><path d="M470 89l6 4-6 4" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+    <rect x="478" y="82" width="52" height="22" rx="6" fill="var(--bg)" stroke="var(--accent)"/><text x="504" y="96" text-anchor="middle" fill="var(--text)">${L(lang, "write", "اكتب")}</text>
+  </g>
+  <g class="wa-late" style="--i:3" font-size="9">
+    <text x="330" y="128" fill="var(--text)" font-family="Georgia, serif" font-size="11">2026</text>
+    <path d="M336 134v62" stroke="var(--border)" stroke-width="1.5"/>
+    <circle cx="336" cy="146" r="3" fill="var(--accent)"/><text x="348" y="149" fill="var(--text-muted)">${L(lang, "12 Sep", "\u200F12 سبتمبر")}</text><text x="400" y="149" fill="var(--text)">${L(lang, "On asabiyya", "في العصبية")}</text>
+    <circle cx="336" cy="168" r="3" fill="var(--accent)"/><text x="348" y="171" fill="var(--text-muted)">${L(lang, "3 Sep", "\u200F3 سبتمبر")}</text><text x="400" y="171" fill="var(--text)">${L(lang, "The desert and the town", "البادية والحاضرة")}</text>
+    <circle cx="336" cy="190" r="3" fill="var(--accent)"/><text x="348" y="193" fill="var(--text-muted)">${L(lang, "1 Sep", "\u200F1 سبتمبر")}</text><text x="400" y="193" fill="var(--text)">${L(lang, "Reading plan", "خطة القراءة")}</text>
+  </g>
+  <g class="wa-late" style="--i:2" font-size="8" fill="var(--text-faint)">
+    <text x="36" y="180">${L(lang, "footnotes in the margin", "الحواشي في الهامش")}</text>
+    <text x="36" y="194" font-family="ui-monospace, monospace">![[Book.pdf#page=42]]</text>
+  </g>
+</svg>`,
+        },
+        docs: "editor",
+      },
+      {
+        // ── Four views of the vault ──────────────────────────────────────
+        title: { en: "Four views of the vault", ar: "أربع نوافذ على الخزانة" },
+        body: {
+          en: "Bookmarks.md takes a heading inside a note and a saved search in a code span, marked § and ⌕ beside the ★. Under the tags, a Properties shelf lists every frontmatter key with its count and values. The graph's legend colours notes by query. Under the backlinks, Nearby: the ten notes that read most like the open one — no model, nothing leaves the vault.",
+          ar: "تقبل ملاحظة المفضلة عنوانًا داخل ملاحظة وبحثًا محفوظًا في مقطع كود، بالعلامتين § و⌕ بجانب ★. وتحت الوسوم رفّ الخصائص: كل مفتاح في المقدمات مع عدده وأشيع قيمه. ويلوّن مفتاح المخطط الملاحظات بستة استعلامات على الأكثر. وتحت الروابط الراجعة «بالجوار»: الملاحظات العشر الأقرب قراءةً إلى المفتوحة، بالكلمات والوسوم النادرة المشتركة؛ من غير نموذج، ولا يغادر شيء الخزانة.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0" font-size="10">
+    <text x="30" y="36" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "BOOKMARKS", "المفضلة")}</text>
+    <text x="30" y="56" fill="var(--accent)">★</text><text x="46" y="56" fill="var(--text)">${L(lang, "Reading list", "قائمة القراءة")}</text>
+    <text x="30" y="76" fill="var(--accent)">§</text><text x="46" y="76" fill="var(--text)">${L(lang, "Muqaddimah › Asabiyya", "المقدمة › العصبية")}</text>
+    <text x="30" y="96" fill="var(--accent)">⌕</text><text x="46" y="96" fill="var(--text)" font-family="ui-monospace, monospace" font-size="9">tag:physics before:2026</text>
+  </g>
+  <g class="wa" style="--i:1" font-size="10">
+    <text x="30" y="128" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "NEARBY", "بالجوار")}</text>
+    <text x="30" y="148" fill="var(--text)">${L(lang, "The desert and the town", "البادية والحاضرة")}</text><text x="190" y="148" fill="var(--text-muted)" font-size="9">62%</text>
+    <rect x="30" y="156" width="46" height="14" rx="7" fill="var(--bg)" stroke="var(--border)"/><text x="53" y="166" text-anchor="middle" fill="var(--text-muted)" font-size="8">#history</text>
+    <rect x="82" y="156" width="46" height="14" rx="7" fill="var(--bg)" stroke="var(--border)"/><text x="105" y="166" text-anchor="middle" fill="var(--text-muted)" font-size="8">${L(lang, "dynasty", "الدولة")}</text>
+    <text x="30" y="190" fill="var(--text)">${L(lang, "On asabiyya", "في العصبية")}</text><text x="190" y="190" fill="var(--text-muted)" font-size="9">48%</text>
+  </g>
+  <g class="wa" style="--i:2" font-size="10">
+    <rect x="232" y="26" width="150" height="20" rx="6" fill="var(--bg)" stroke="var(--accent)"/><text x="240" y="40" fill="var(--text)" font-family="ui-monospace, monospace" font-size="8">prop:status="in progress"</text>
+    <text x="232" y="66" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "PROPERTIES", "الخصائص")}</text>
+    <text x="232" y="86" fill="var(--text)">status</text><text x="360" y="86" fill="var(--text-faint)" font-size="9">41</text>
+    <g class="wa-late" style="--i:3">
+      <rect x="240" y="94" width="130" height="16" rx="4" fill="color-mix(in srgb, var(--accent) 14%, var(--bg))"/><text x="246" y="106" fill="var(--text)" font-size="9">in progress</text><text x="360" y="106" fill="var(--text-faint)" font-size="9">9</text>
+      <text x="246" y="124" fill="var(--text-muted)" font-size="9">done</text><text x="360" y="124" fill="var(--text-faint)" font-size="9">22</text>
+    </g>
+    <text x="232" y="146" fill="var(--text)">author</text><text x="360" y="146" fill="var(--text-faint)" font-size="9">17</text>
+    <text x="232" y="166" fill="var(--text)">year</text><text x="360" y="166" fill="var(--text-faint)" font-size="9">12</text>
+  </g>
+  <g class="wa" style="--i:3">
+    <g stroke="var(--border)" stroke-width="1"><path d="M430 60l22 18"/><path d="M452 78l-14 26"/><path d="M452 78l30-10"/><path d="M482 68l18 22"/><path d="M438 104l30 12"/><path d="M500 90l-32 26"/><path d="M430 60l-12 30"/></g>
+    <circle cx="430" cy="60" r="5" fill="var(--accent)"/><circle cx="452" cy="78" r="6" fill="var(--accent)"/><circle cx="438" cy="104" r="4" fill="var(--accent)"/>
+    <circle cx="482" cy="68" r="5" fill="var(--callout-success)"/><circle cx="500" cy="90" r="5" fill="var(--callout-success)"/>
+    <circle cx="468" cy="116" r="4" fill="var(--text-faint)"/><circle cx="418" cy="90" r="3.5" fill="var(--text-faint)"/><circle cx="514" cy="112" r="3.5" fill="var(--text-faint)"/>
+  </g>
+  <g class="wa-late" style="--i:4" font-size="9">
+    <text x="404" y="146" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "QUERY", "الاستعلام")}</text>
+    <rect x="404" y="156" width="9" height="9" rx="2" fill="var(--accent)"/><text x="418" y="164" fill="var(--text)" font-family="ui-monospace, monospace" font-size="8">tag:history</text><text x="500" y="164" fill="var(--text-faint)">3</text>
+    <rect x="404" y="172" width="9" height="9" rx="2" fill="var(--callout-success)"/><text x="418" y="180" fill="var(--text)" font-family="ui-monospace, monospace" font-size="8">prop:year=2026</text><text x="500" y="180" fill="var(--text-faint)">2</text>
+    <rect x="404" y="188" width="9" height="9" rx="2" fill="var(--text-faint)"/><text x="418" y="196" fill="var(--text-muted)">${L(lang, "No query", "بلا استعلام")}</text><text x="500" y="196" fill="var(--text-faint)">3</text>
+  </g>
+</svg>`,
+        },
+        docs: "editor",
+      },
+      {
+        // ── Reading sessions, highlights → note, the weekly review ───────
+        title: { en: "A sitting logged, and the week added up", ar: "جلسة تُسجَّل، والأسبوع مجموعًا" },
+        body: {
+          en: "The reader keeps a quiet clock over your page turns; End session (or :end) writes “Read 27 pages in 41 min” into the book's tracker note, moves its progress and ticks the sigil that names the book. Highlights → note writes your marked passages as quotes under the book's chapters. Review the week is one printable page of pages, hours, sigils, cards and notes.",
+          ar: "يُبقي القارئ ساعة هادئة على قلب صفحاتك؛ وإنهاء الجلسة (أو :end) يكتب «قرأتَ 27 صفحة في 41 د» في ملاحظة متتبع الكتاب ويحرّك التقدم ويعلّم السِّجِلّ الذي يسمّي الكتاب، والتراجع يعيد كل شيء. و«الاقتباسات ← ملاحظة» في الرف يكتب مقاطعك المعلَّمة اقتباساتٍ تحت فصول الكتاب نفسه. و«راجع الأسبوع» صفحة واحدة تُطبع: الصفحات والساعات والسِّجِلّات والبطاقات والملاحظات.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0"><rect x="36" y="28" width="120" height="146" rx="3" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text-faint)" opacity="0.5">${Array.from({ length: 11 }, (_, i) => `<rect x="48" y="${42 + i * 11}" width="${i % 4 === 3 ? 60 : 96}" height="3" rx="1.5"/>`).join("")}</g>
+    <rect x="36" y="174" width="120" height="16" fill="var(--bg-hover)"/>
+    <circle class="wa-pulse" style="--i:1" cx="46" cy="182" r="2.5" fill="var(--accent)"/><text x="54" y="185" fill="var(--text-muted)" font-size="8">${L(lang, "Reading 12 min", "قراءة 12 د")}</text>
+    <text x="128" y="185" fill="var(--text-faint)" font-size="8">p. 139</text>
+  </g>
+  <g class="wa-late" style="--i:1" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><path d="M166 100h36"/><path d="M196 94l8 6-8 6"/></g>
+  <g class="wa-late" style="--i:2">
+    <text x="222" y="44" fill="var(--text)" font-family="Georgia, serif" font-size="13">${L(lang, "Muqaddimah", "المقدمة")}</text>
+    <text x="222" y="60" fill="var(--text-faint)" font-size="9">${L(lang, "139 of 1,180 pages", "\u200F139 من 1180 صفحة")}</text>
+    <rect x="222" y="66" width="200" height="5" rx="2.5" fill="var(--bg-hover)"/><rect class="wa-grow" style="--i:3" x="222" y="66" width="24" height="5" rx="2.5" fill="var(--accent)"/>
+    <rect x="222" y="80" width="304" height="44" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="232" y="96" fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="9">2026-09-14 | 88–111 | 23 pages | 35 min</text>
+    <text class="wa-late" style="--i:3" x="232" y="114" fill="var(--text)" font-family="ui-monospace, monospace" font-size="9">2026-09-15 | 112–139 | 27 pages | 41 min</text>
+  </g>
+  <text class="wa-late" style="--i:4" x="222" y="146" fill="var(--text-muted)" font-size="10">${L(lang, "about 1.6 pages a minute here — 4 h 20 left", "نحو 1.6 صفحة/د هنا · بقي 4 س 20")}</text>
+  <g class="wa-late" style="--i:4">
+    <rect x="386" y="156" width="140" height="42" rx="3" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="396" y="170" fill="var(--text-faint)" font-size="7" letter-spacing="1">${L(lang, "14–20 SEPTEMBER 2026", "\u200F14–20 سبتمبر 2026")}</text>
+    <text x="396" y="182" fill="var(--text)" font-family="Georgia, serif" font-size="9">${L(lang, "The week", "الأسبوع")}</text>
+    <rect x="396" y="188" width="120" height="2" fill="var(--bg-hover)"/><rect x="396" y="188" width="72" height="2" fill="var(--callout-warning)"/>
+    <rect x="396" y="193" width="120" height="2" fill="var(--bg-hover)"/><rect x="396" y="193" width="40" height="2" fill="var(--callout-warning)"/>
+  </g>
+  <g class="wa-late" style="--i:5" font-size="9">
+    <rect x="222" y="160" width="130" height="18" rx="9" fill="var(--bg)" stroke="var(--accent)"/><text x="287" y="172" text-anchor="middle" fill="var(--accent)">${L(lang, "Highlights → note", "الاقتباسات ← ملاحظة")}</text>
+  </g>
+</svg>`,
+        },
+        docs: "books",
+      },
+      {
+        // ── Capture ──────────────────────────────────────────────────────
+        title: { en: "A line from anywhere, a page from the browser, a share from the phone", ar: "سطر من أي مكان، وصفحة من المتصفح، ومشاركة من الهاتف" },
+        body: {
+          en: "Press Ctrl/Cmd Shift D anywhere, type a line, press Enter, and it lands under ## Captured in today's note, stamped with the time, without leaving the note you are in. Drag the Clip to … button from Settings → Vault to your bookmarks bar and any page becomes a note under Clips/. The site is installable, and on Android it is in the share sheet.",
+          ar: "اضغط Ctrl/Cmd Shift D في أي مكان واكتب سطرًا واضغط Enter فيحطّ تحت ## Captured في ملاحظة اليوم مختومًا بالوقت، من غير أن تغادر الملاحظة التي أنت فيها. واسحب زر «قصّ إلى …» من الإعدادات ← الخزانة إلى شريط المفضلة فتصير أي صفحة، أو ما حدّدته منها، ملاحظةً في المجلد Clips/. وصار الموقع قابلًا للتثبيت، وعلى أندرويد يظهر في قائمة المشاركة.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g fill="var(--text-faint)" opacity="0.35">${Array.from({ length: 6 }, (_, i) => `<rect x="34" y="${34 + i * 12}" width="${[150, 164, 140, 158, 120, 166][i]}" height="4" rx="2"/>`).join("")}</g>
+  <g class="wa-drop" style="--i:0"><rect x="42" y="46" width="150" height="46" rx="8" fill="var(--bg)" stroke="var(--accent)"/>
+    <text x="52" y="61" fill="var(--text-faint)" font-size="8">${L(lang, "Quick capture", "التقاط سريع")}</text>
+    <text x="52" y="80" fill="var(--text)" font-family="Georgia, serif" font-size="11">${L(lang, "Return the library book", "أعد كتاب المكتبة")}</text>
+    <rect class="wa-blink" x="178" y="70" width="1.5" height="12" fill="var(--accent)"/>
+  </g>
+  <g class="wa-late" style="--i:2" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"><path d="M117 96v44"/><path d="M111 134l6 7 6-7"/></g>
+  <g class="wa-late" style="--i:3" font-size="9">
+    <text x="34" y="162" fill="var(--text-muted)" font-family="ui-monospace, monospace">## Captured</text>
+    <text x="34" y="180" fill="var(--text)" font-family="ui-monospace, monospace">${L(lang, "", "\u200F")}- 14:32 ${L(lang, "Return the library book", "أعد كتاب المكتبة")}</text>
+    <text x="34" y="196" fill="var(--text-faint)" font-size="8">2026-09-15.md</text>
+  </g>
+  <g class="wa" style="--i:1"><rect x="220" y="30" width="150" height="100" rx="6" fill="var(--bg)" stroke="var(--border)"/><rect x="220" y="30" width="150" height="14" rx="6" fill="var(--bg-hover)"/>
+    <circle cx="229" cy="37" r="2" fill="var(--text-faint)"/><circle cx="236" cy="37" r="2" fill="var(--text-faint)"/><circle cx="243" cy="37" r="2" fill="var(--text-faint)"/>
+    <g fill="var(--text-faint)" opacity="0.4"><rect x="230" y="54" width="80" height="3" rx="1.5"/><rect x="230" y="62" width="120" height="3" rx="1.5"/><rect x="230" y="70" width="100" height="3" rx="1.5"/><rect x="230" y="104" width="110" height="3" rx="1.5"/><rect x="230" y="112" width="60" height="3" rx="1.5"/></g>
+    <text x="356" y="76" fill="var(--accent)" font-size="12">✂</text>
+    <rect class="wa-draw" style="--i:2" x="226" y="78" width="138" height="20" rx="3" fill="color-mix(in srgb, var(--accent) 12%, var(--bg))" stroke="var(--accent)" stroke-dasharray="3 2"/>
+  </g>
+  <g class="wa-late" style="--i:3"><path d="M296 134v14" fill="none" stroke="var(--accent)" stroke-width="1.5"/><path d="M290 142l6 7 6-7" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+    <rect x="238" y="166" width="108" height="30" rx="3" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="246" y="178" fill="var(--text)" font-size="9">Clips/</text><text x="280" y="178" fill="var(--text-muted)" font-size="9">${L(lang, "An essay.md", "Essay.md")}</text>
+    <text x="246" y="190" fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="7">source: https://…</text>
+  </g>
+  <g class="wa" style="--i:2"><rect x="420" y="26" width="104" height="172" rx="14" fill="var(--bg)" stroke="var(--border)"/><rect x="450" y="32" width="44" height="4" rx="2" fill="var(--bg-hover)"/>
+    <g font-size="8" fill="var(--text-faint)"><rect x="432" y="48" width="18" height="18" rx="5" fill="var(--bg-hover)"/><rect x="456" y="48" width="18" height="18" rx="5" fill="var(--bg-hover)"/><rect x="480" y="48" width="18" height="18" rx="5" fill="var(--bg-hover)"/></g>
+    <g class="wa-pulse" style="--i:3"><rect x="432" y="72" width="18" height="18" rx="5" fill="var(--accent)"/><path d="M441 76l1.6 3.4 3.7.4-2.8 2.5.8 3.7-3.3-1.9-3.3 1.9.8-3.7-2.8-2.5 3.7-.4z" fill="var(--bg)"/></g>
+    <text x="432" y="100" fill="var(--text-faint)" font-size="7">${L(lang, "My notes", "ملاحظاتي")}</text>
+    <g class="wa-drop" style="--i:4"><rect x="420" y="118" width="104" height="80" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+      <text x="432" y="134" fill="var(--text-muted)" font-size="8">${L(lang, "Share to", "مشاركة إلى")}</text>
+      <rect x="432" y="142" width="22" height="22" rx="6" fill="var(--bg-hover)"/><rect x="461" y="142" width="22" height="22" rx="6" fill="var(--accent)"/><rect x="490" y="142" width="22" height="22" rx="6" fill="var(--bg-hover)"/>
+      <text x="472" y="180" text-anchor="middle" fill="var(--accent)" font-size="7">${L(lang, "My notes", "ملاحظاتي")}</text>
+    </g>
+  </g>
+</svg>`,
+        },
+        docs: "capture",
+      },
+    ],
+  },
+  {
     version: "3.16.0",
     title: { en: "Orbits, Sigils, French and furigana", ar: "المدارات والسِّجِلّ والفرنسية والفوريغانا" },
     slides: [
