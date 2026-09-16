@@ -15,7 +15,9 @@ import { toast } from "../toast.ts";
 import { numberRendered, useHeadingNumberTick } from "./headingNumbers.ts";
 import { noteAnchors } from "../../shared/anchors.ts";
 import { flashElement, takePendingLine } from "../landing.ts";
+import { GOTO_FOOTNOTE_EVENT, type GotoFootnote } from "../footnoteNav.ts";
 import { renderNoteContent } from "./renderNote.ts";
+import { installSidenotes } from "./sidenotes.ts";
 import { liveNoteText } from "../editor/bufferBridge.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 // Side-effect import — see the twin in components/Editor.tsx: `beforeprint`
@@ -88,6 +90,9 @@ export default function ReadingView({ path }: { path: string }) {
   // mapping a SOURCE line to a rendered element needs the note's own anchor
   // table, and the goto handler runs outside the load effect's closure.
   const contentRef = useRef<string | null>(null);
+  // The sidenote layer's uninstaller (reading/sidenotes.ts): one per
+  // rendered column, torn down before the next render and on unmount.
+  const sidenotesRef = useRef<(() => void) | null>(null);
   const tree = useStore((s) => s.tree);
   const isDirty = useStore((s) => !!s.dirty[path]);
   // The rendered body carries t() chrome (properties card, transclusion cards,
@@ -136,6 +141,10 @@ export default function ReadingView({ path }: { path: string }) {
         numberRendered(el, note.content);
         contentRef.current = note.content;
         bodyRef.current?.replaceChildren(el);
+        // Footnotes into the margin, when the column is wide enough to have
+        // one. A no-op for a note without footnotes.
+        sidenotesRef.current?.();
+        sidenotesRef.current = installSidenotes(host, el);
         // [[Note#Heading]] navigation: land on the requested heading.
         const pending = useStore.getState().pendingHeading;
         if (pending !== null) {
@@ -205,6 +214,8 @@ export default function ReadingView({ path }: { path: string }) {
     return () => {
       disposed = true;
       scrollPositions.set(path, host.scrollTop);
+      sidenotesRef.current?.();
+      sidenotesRef.current = null;
     };
     // The site's note-layout defaults are dependencies for the same reason
     // `language` is: they are half of what `applyNoteLayoutTo` resolves, and a
@@ -274,6 +285,28 @@ export default function ReadingView({ path }: { path: string }) {
     window.addEventListener("astrolabe:goto-heading", onGoto);
     return () => window.removeEventListener("astrolabe:goto-heading", onGoto);
   }, []);
+
+  // The Footnotes section's clicks: the superscript in the prose, or the
+  // definition — in the margin when the note is set with sidenotes, at the
+  // foot otherwise. The flash is the same mark a landed-on line wears.
+  useEffect(() => {
+    const onGoto = (ev: Event): void => {
+      const host = hostRef.current;
+      const detail = (ev as CustomEvent<GotoFootnote>).detail;
+      if (!host || !detail || detail.path !== path) return;
+      const id = detail.end === "ref" ? `fnref-${detail.label}` : `fn-${detail.label}`;
+      let el = host.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+      if (detail.end === "def") {
+        const side = host.querySelector<HTMLElement>(`#${CSS.escape(`sn-${detail.label}`)}`);
+        if (side !== null && side.offsetParent !== null) el = side;
+      }
+      if (!el) return;
+      el.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
+      flashElement(el.closest<HTMLElement>(".s-rv-sidenote, li, p, .s-rv-h") ?? el);
+    };
+    window.addEventListener(GOTO_FOOTNOTE_EVENT, onGoto);
+    return () => window.removeEventListener(GOTO_FOOTNOTE_EVENT, onGoto);
+  }, [path]);
 
   return (
     // The prose column is its own scroll container, and a scroll container

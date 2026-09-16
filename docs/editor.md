@@ -187,15 +187,36 @@ turns it off.
   the same braces; Obsidian shows them as text.
 - **Note transclusions.** `![[Note]]` renders the target note as a full card (callouts, math and
   code highlighting included), with an "Open note" button when the excerpt is longer than the card.
-- **PDF and attachment cards.** `![[file.pdf]]` (also mp4, mp3, zip, …) becomes a card that opens
+- **PDF and attachment cards.** `![[file.pdf]]` (also mp4, zip, …) becomes a card that opens
   the file in a new tab.
+- **A page of a book.** `![[Book.pdf#page=42]]` draws that page as a picture where the embed
+  stands — in the editor (a paper-shaped placeholder until it is rendered), the reading view and
+  on your site when the book is published — with "Book, p. 42" under it. Click the caption to open
+  the [reader](books.md) on that page; a visitor's click opens the file there. `|300` sets the
+  width like an image's.
+- **Sound.** `![[lecture.mp3]]` (also ogg, m4a, wav) is a small player instead of a file card,
+  everywhere the note is read. `[[lecture.mp3#t=1:23]]` is a link to a moment: clicking it seeks
+  the player on the same page to 1:23 and plays, or opens the file at that moment when no player
+  is on the page. `t=83`, `t=1:23` and `t=1:02:03` all work; give it an alias (`|the argument`)
+  or it shows the time.
+- **Diagrams.** A ` ```mermaid ` fence renders as a diagram in the editor, the reading view and on
+  your site — flowcharts, sequence diagrams, Gantt charts, everything Mermaid draws — in the
+  colours of whatever theme is on screen, redrawn when the theme changes. The renderer arrives
+  only for a note that carries a fence, and it fetches nothing. A diagram that will not parse keeps
+  its source, marked at the edge.
 - **Callouts.** `> [!note]`, `[!tip]`, `[!warning]`, `[!danger]` and friends: tinted, iconed, and
   foldable with `-`.
 - **Math.** `$inline$` and `$$block$$`, rendered by KaTeX.
 - **Code highlighting.** Fenced blocks are highlighted for all common languages, in colours that
   match the theme.
 - **Highlights, comments, footnotes.** `==mark==`, `%%hidden comment%%`, and `[^1]` superscript
-  references that jump to their definitions.
+  references that jump to their definitions — and back: in the editor, clicking the `[^1]:` at the
+  foot puts the caret on the reference; in the reading view the ↩ does the same.
+- **Sidenotes.** In the reading view, when the reading column is 1180px or wider and has a margin
+  to spare, each footnote is set in the outer margin beside the line that cites it — a small serif
+  numeral, then the note — and the list at the foot is hidden. Two notes that would collide stack
+  downward. Narrower than that, on the site, in a transclusion card and on paper, footnotes stay at
+  the foot as before. A note without footnotes is untouched.
 - **Reading view.** `Ctrl/Cmd E` flips the note to a fully rendered, read-only page (tables
   included). It resolves links exactly the way the editor does.
 
@@ -209,6 +230,11 @@ turns it off.
 - **Backlinks panel.** Every note shows which notes link to it, with the sentence that does.
 - **Outline (table of contents) panel.** The open note's headings, following your scroll position;
   click one to jump to it.
+- **Footnotes panel.** Under the outline, when the open note has footnotes: every `[^n]` with what
+  it says. Click a row to land on the reference in the text (the caret goes there in the editor;
+  the reading view scrolls to the superscript); the small arrow at the row's end lands on the
+  definition instead — at the foot, or in the margin when the note is set with sidenotes. The
+  section remembers whether you folded it.
 - **Graph view.** A map of your notes as dots, with a line for every link; the dots push apart and
   the links pull them together until the map settles, so linked notes end up beside each other by
   themselves. Drag the dots, hover to light up a note's neighbours, click to open.
@@ -320,7 +346,7 @@ turns it off.
 ## Live queries
 
 A ` ```query ` fence is a list of notes that answers a search, drawn live wherever the note is
-read: the editor, the reading view, the blog. It takes the search box's operators and four keys:
+read: the editor, the reading view, the blog. It takes the search box's operators and five keys:
 
 ```query
 tag:reading prop:status=reading -tag:draft
@@ -335,7 +361,22 @@ as: table
 | `show` | columns: `title`, `date`, `modified`, `tags`, `excerpt`, `path`, or any frontmatter key (`status`, `author`) |
 | `sort` | `date`, `modified`, `title`, `path`, `relevance`, each with `asc` or `desc` |
 | `limit` | at most this many rows (500 at most) |
-| `as` | `list` (title and excerpt), `table`, or `cards` |
+| `as` | `list` (title and excerpt), `table`, `cards`, or `timeline` |
+| `by` | the timeline's date: `created` (the note's own date, the default), `modified`, or any frontmatter key holding a date (`by: read`) |
+
+**The timeline** lays the rows on a vertical line under year headings, newest first (`sort: date
+asc` for oldest first), each with its day; the years and the days are printed in the site's
+calendar, so a Hijri instance heads its years ١٤٤٧ and ١٤٤٨. With `by: read` the date is read off
+each note's `read:` property — `2026-03-04`, `2026/03/04`, `2026-03`, `2026` and `4 March 2026`
+all count — and notes whose property is missing or not a date gather at the end under *Undated*
+rather than disappear.
+
+```query
+tag:book
+as: timeline
+by: finished
+show: title, author
+```
 
 Every other line is the query. `prop:status=reading` is an operator that came with this feature:
 search by any frontmatter property. `prop:author` alone means "has one", and `-prop:draft` excludes.

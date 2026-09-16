@@ -42,13 +42,18 @@ import { propsEditor } from "./propsEdit.ts";
 import { parseAlignMarker } from "../../shared/blockAlign.ts";
 import { parseBlockId } from "../../shared/blockId.ts";
 import {
+  AudioWidget,
   FileCardWidget,
   ImageWidget,
+  PdfPageWidget,
   TransclusionWidget,
   parseEmbed,
   resolveRelative,
 } from "./widgets.ts";
 import { drawingSvgName } from "./embeds.ts";
+import { seekAudio } from "../reading/audio.ts";
+import { isAudioName, parseTimeAnchor } from "../../shared/mediaEmbeds.ts";
+import { mermaidBlockDeco, mermaidFenceSpan } from "./mermaidFence.ts";
 import {
   calloutFoldDecos,
   calloutFoldField,
@@ -68,6 +73,7 @@ import { tasksFenceKind } from "../../shared/tasks.ts";
 import { sanitizeHtml, sanitizeStyle } from "../reading/rawHtml.ts";
 import { isNotePath } from "../../shared/noteFormat.ts";
 import { findFurigana, rubySegments } from "../../shared/furigana.ts";
+import { footnotesOf } from "../../shared/footnotes.ts";
 
 /** Vault path of the note this editor shows (embeds resolve against it). */
 export const notePathFacet = Facet.define<string, string>({
@@ -683,6 +689,12 @@ function buildDecorations(view: EditorView): DecorationSet {
           widget = new ImageWidget(drawingSvgName(embed.target), null, embed.width);
         } else if (embed.kind === "file") {
           widget = new FileCardWidget(embed.target);
+        } else if (embed.kind === "audio") {
+          // `![[lecture.mp3]]`: the player (reading/audio.ts).
+          widget = new AudioWidget(embed.target);
+        } else if (embed.kind === "pdfpage" && embed.page !== null) {
+          // `![[Book.pdf#page=42]]`: the page as a picture (reading/pdfPage.ts).
+          widget = new PdfPageWidget(embed.target, embed.page, embed.width);
         } else {
           widget = new TransclusionWidget(
             embed.target,
@@ -726,13 +738,19 @@ function buildDecorations(view: EditorView): DecorationSet {
         // class is what gives a citation its own colour.
         const cite = heading === null ? null : parseBookAnchor(heading);
         const isCitation = cite !== null && /\.pdf$/i.test(target);
+        // A moment in a sound (`[[lecture.mp3#t=1:23]]`, shared/mediaEmbeds.ts)
+        // is a wikilink the note resolver knows nothing about, like a
+        // citation; it wears the citation's colour rather than a broken one.
+        const isMoment = heading !== null && isAudioName(target) && parseTimeAnchor(heading) !== null;
         const linkClass = isCitation
           ? findPdfPath(tree, target) !== null
             ? "cm-s-wikilink cm-s-cite"
             : "cm-s-wikilink cm-s-cite cm-s-wikilink--broken"
-          : resolveLink(target, tree) !== null
-            ? "cm-s-wikilink"
-            : "cm-s-wikilink cm-s-wikilink--broken";
+          : isMoment
+            ? "cm-s-wikilink cm-s-cite"
+            : resolveLink(target, tree) !== null
+              ? "cm-s-wikilink"
+              : "cm-s-wikilink cm-s-wikilink--broken";
         if (lineIsActive) {
           mark(start, end, linkClass);
           continue;
@@ -842,7 +860,7 @@ function toggleTask(view: EditorView, pos: number): boolean {
   return true;
 }
 
-function openWikilink(inner: string, notePath: string): void {
+function openWikilink(inner: string, notePath: string, scope: ParentNode | null = null): void {
   const { target, heading } = parseWikilink(inner);
   const store = useStore.getState();
 
@@ -853,6 +871,14 @@ function openWikilink(inner: string, notePath: string): void {
   const cite = heading === null ? null : parseBookAnchor(heading);
   if (cite !== null && /\.pdf$/i.test(target)) {
     openBookCitation(target, cite, store.tree, notePath);
+    return;
+  }
+
+  // A moment in a sound: seek the player on this surface, else open the
+  // file there (reading/audio.ts).
+  const seek = heading === null || !isAudioName(target) ? null : parseTimeAnchor(heading);
+  if (seek !== null) {
+    seekAudio(target, seek, scope ?? document);
     return;
   }
 
@@ -902,6 +928,18 @@ function urlAt(state: EditorState, pos: number): string | null {
     }
   }
   return null;
+}
+
+/** Jump back to the first `[^label]` the prose cites, from its definition.
+ *  Read through shared/footnotes.ts so a `[^label]` inside a code fence is
+ *  not mistaken for the citation. */
+function jumpToFootnoteRef(view: EditorView, label: string): boolean {
+  const note = footnotesOf(view.state.doc.toString()).find((n) => n.label === label);
+  const ref = note?.refs[0];
+  if (!ref) return false;
+  const pos = view.state.doc.line(ref.line).from + ref.col;
+  view.dispatch({ selection: { anchor: pos }, scrollIntoView: true });
+  return true;
 }
 
 /** Jump to the `[^label]:` definition line for a footnote label. */
@@ -1027,19 +1065,21 @@ function handleMousedown(event: MouseEvent, view: EditorView): boolean {
     const end = start + m[0].length;
     if (pos >= start && pos < end) {
       event.preventDefault();
-      openWikilink(m[1], view.state.facet(notePathFacet));
+      openWikilink(m[1], view.state.facet(notePathFacet), view.dom);
       return true;
     }
   }
 
-  // Footnote superscripts jump to their definition.
+  // Footnote superscripts jump to their definition — and the definition's
+  // own `[^n]:` marker jumps back to the first place the prose cites it.
   FOOTNOTE_RE.lastIndex = 0;
   for (let m = FOOTNOTE_RE.exec(text); m; m = FOOTNOTE_RE.exec(text)) {
     const start = line.from + m.index;
     const end = start + m[0].length;
     const isDef = m.index === 0 && text[m[0].length] === ":";
-    if (!isDef && pos >= start && pos < end) {
-      if (jumpToFootnoteDef(view, m[1])) {
+    if (pos >= start && pos < end) {
+      const jumped = isDef ? jumpToFootnoteRef(view, m[1]) : jumpToFootnoteDef(view, m[1]);
+      if (jumped) {
         event.preventDefault();
         return true;
       }
@@ -1359,6 +1399,12 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
       const tspan = tasksFenceSpan(state, firstLine, lastLine);
       if (tspan) {
         decos.push(tasksBlockDeco(state, tspan, notePath));
+        return false;
+      }
+      // ```mermaid: the diagram off the caret, the source on it.
+      const mspan = mermaidFenceSpan(state, firstLine, lastLine);
+      if (mspan) {
+        decos.push(mermaidBlockDeco(state, mspan));
         return false;
       }
       if (/^\s*(```|~~~)/.test(open.text)) {

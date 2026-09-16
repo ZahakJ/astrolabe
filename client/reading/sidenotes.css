@@ -1,0 +1,95 @@
+/* SIDENOTES (client/reading/sidenotes.ts) — imported by that module and so
+   carried by the reading view's chunk alone: the site and the editor never
+   set notes in the margin, and the anonymous reader's first paint is not
+   charged for a layout it cannot see (scripts/check-bundle.mjs). The print
+   half stays in print.css beside the foot it restores.
+
+   The footnotes set in the margin beside the line that cites them, when the
+   reading column is 1180px or wider and has a margin to set them in. The
+   layer is positioned against the column, so the column is its containing
+   block; each note is placed by script (top) and takes the OUTER margin of
+   its citing line — the right of an English paragraph, the left of an
+   Arabic one — which is why the two side rules are physical: the side is
+   chosen from the text's direction, not the chrome's. The foot is hidden
+   while the margin shows, and print.css turns both back (paper has no
+   margin to spare, and the print gate asserts the foot is last). */
+.s-reading__content {
+  position: relative;
+}
+
+.s-rv-sidenotes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.s-rv-sidenotes[hidden] {
+  display: none;
+}
+
+.s-rv--sidenotes > .s-rv-footnotes {
+  display: none;
+}
+
+.s-rv-sidenote {
+  position: absolute;
+  inline-size: var(--sidenote-width, 200px);
+  pointer-events: auto;
+  font-size: 0.85em;
+  line-height: 1.45;
+  color: var(--text-muted);
+  overflow-wrap: break-word;
+}
+
+.s-rv-sidenote--right {
+  left: calc(100% + var(--sidenote-gap, 28px));
+}
+
+.s-rv-sidenote--left {
+  right: calc(100% + var(--sidenote-gap, 28px));
+}
+
+/* The numeral: small, in the app's serif, the marker's colour, and a link
+   back to the reference — the same hop the ↩ at the foot makes. */
+.s-rv-sidenote__num {
+  font-family: var(--font-serif);
+  font-size: 0.85em;
+  vertical-align: super;
+  line-height: 0;
+  margin-inline-end: 0.35em;
+  color: var(--footnote-marker);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.s-rv-sidenote__num:hover {
+  text-decoration: underline;
+}
+
+/* Lit by a hop from the reference, so the eye finds it in the margin. */
+.s-rv-sidenote--lit {
+  animation: s-rv-sidenote-lit 1.2s ease-out;
+}
+
+@keyframes s-rv-sidenote-lit {
+  0%, 40% { color: var(--text); }
+  100% { color: var(--text-muted); }
+}
+
+/* The notes fade in once placed; a reader who asked for less motion gets
+   them at once, and no animation on the hop either. */
+.s-rv-sidenotes:not([hidden]) .s-rv-sidenote {
+  animation: s-rv-sidenote-in 0.25s ease-out;
+}
+
+@keyframes s-rv-sidenote-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-rv-sidenotes:not([hidden]) .s-rv-sidenote,
+  .s-rv-sidenote--lit {
+    animation: none;
+  }
+}
