@@ -339,6 +339,14 @@ const COMMANDS: Command[] = [
     hint: () => t("cmdOpenRoutinesHint"),
     available: ({ admin }) => admin,
   },
+  // The week added up (client/review/): pages and hours by book, the
+  // trackers' outlook, the sigils, the cards graded, the notes written.
+  {
+    id: "review-week",
+    label: () => t("cmdReviewWeek"),
+    hint: () => t("cmdReviewWeekHint"),
+    available: ({ admin }) => admin,
+  },
   // ORBITS' FOUR DOORS: the shelf, the day's due cards (the
   // shelf's first Study button, from anywhere), and the two makers, which
   // open the shelf with its modal already up. The last two are reached by
@@ -1207,6 +1215,9 @@ export default function CommandPalette() {
           break;
         case "open-routines":
           store.toggleRoutines();
+          break;
+        case "review-week":
+          store.setView("review-week");
           break;
         case "open-orbits":
           store.toggleOrbits();

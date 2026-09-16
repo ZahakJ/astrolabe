@@ -76,7 +76,7 @@ the first line on its own.
 | a weekday | `monday: 60 min walk` — or `monday:` on its own with the parts indented under it | What that day asks. Weekdays are understood in English and Arabic, long or short (`mon`, `الاثنين`). A day with nothing under it is a **rest day**: it never counts against you. |
 | `fields` | things to record, with commas between them — see [What to record each day](#what-to-record-each-day) | The small inputs on the card: a number, a rating, a line of text. |
 | `target` | a number of days — `6/week`, or just `6` | How many days a week you are aiming for. The card counts against it: *3 of 6 this week*. Without it, the card counts the days the plan actually asks something of. |
-| `book` | the title of a book you are [tracking](trackers.md) — `[[…]]` is fine | Adds **Read N pages of it** to every day, N being the tracker's pace. Ticking it moves the tracker forward; unticking moves it back. |
+| `book` | the title of a book you are [tracking](trackers.md) — `[[…]]` is fine | Adds **Read N pages of it** to every day, N being the tracker's pace. Ticking it moves the tracker forward; unticking moves it back. A sitting in the [PDF reader](books.md#reading-sessions) that covers the pace ticks it for you; so does one in a book any slot's text links with `[[…]]`. |
 | `notes` | `notes: \|` and then lines indented under it | Anything you want to remember about this sigil — why you started, the rules you set yourself. Shown under the card. |
 
 A block with **no title and no plan at all** stays a plain code block, so a half-typed sigil reads as
@@ -185,6 +185,30 @@ every change to the vault, so a box ticked in the editor shows here at once.
 Each card has **Edit** (the form, filled in), **Delete** (the note goes to the trash through the
 same dialog the tree uses), and its name opens the note. One sigil spans the whole row, with the
 week strip beside the twelve-week grid; two share a row; more wrap in pairs.
+
+## The weekly review
+
+**Review the week** in the command palette — and, on the site's last weekday (Sunday on an English
+instance, Friday on an Arabic one), a line on the Sigils page — opens the week added up, on one
+page set in the serif, at `/review-week`:
+
+- **Reading**: pages and hours by book this week, from the sittings the [PDF
+  reader](books.md#reading-sessions) logged into each [tracker](trackers.md#reading-sessions), with
+  the book's own speed.
+- **Where each work stands**: every active tracker's count and bar, the day it is projected to
+  finish at its pace (or the pace its due date asks for), and the hours left at its reading speed.
+- **Sigils**: each sigil's complete days against its target, and its streak — the same numbers the
+  card shows.
+- **Orbits**: cards graded and the share kept, by deck, from this device's own log.
+- **Notes**: the notes written this week, and the notes most edited — by the number of versions the
+  store kept when [note history](backup-and-sync.md) is on, by the last write otherwise.
+
+Every row is a door to its note. The arrows walk to earlier weeks. **Print** puts the sheet on paper
+(so does the browser's own print while the review is in the focused pane), without the bar.
+
+Nothing on the page is stored. It is computed, each time it opens, from your notes, your trackers'
+`sessions:` lines, your sigil logs and the Orbits log this browser keeps — a review that kept a
+ledger of its own would be a second truth about the sigils, and the note is the only one.
 
 ## New sigil — the form
 

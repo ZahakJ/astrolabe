@@ -37,7 +37,7 @@ export type PaneMode = "edit" | "reading" | "graph" | "library";
  *  invariant has to be policed at the component boundary: a `.pdf` tab renders
  *  the reader whatever the mode says, which is exactly what makes Ctrl/Cmd+E a
  *  harmless no-op on a book instead of a mode the pane cannot honour. */
-export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "orbits" | "library" | "empty";
+export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "orbits" | "review-week" | "library" | "empty";
 
 /** Where in a book an open should land. There is ONE spelling of "where in a
  *  book" in this product — shared/bookAnchor.ts owns it, the citation wikilink
@@ -183,10 +183,17 @@ export function orbitsTabFor(deckPath: string | null, section: string | null = n
   if (deckPath === null || deckPath === "") return ORBITS_TAB;
   return `${ORBITS_TAB}/${deckPath}${section ? `#${section}` : ""}`;
 }
+/** The weekly review — the week added up from the notes, the trackers, the
+ *  sigil logs and the device's Orbits log, on one printable page. A tab on
+ *  the Sigils page's terms, with `/review-week` for an address. */
+export const REVIEW_WEEK_TAB = "~review-week";
+export function isReviewWeekTab(path: string): boolean {
+  return path === REVIEW_WEEK_TAB;
+}
 /** A tab that names no file: the graph or the Media page. Never "the open
  *  note", never pruned against the tree, titled by the chrome. */
 export function isVirtualTab(path: string): boolean {
-  return isGraphTab(path) || isMediaTab(path) || isRoutinesTab(path) || isOrbitsTab(path);
+  return isGraphTab(path) || isMediaTab(path) || isRoutinesTab(path) || isOrbitsTab(path) || isReviewWeekTab(path);
 }
 
 export function isTabbablePath(path: string): boolean {
@@ -246,6 +253,7 @@ export function surfaceOf(p: Pane): PaneSurface {
   if (tab !== null && isMediaTab(tab.path)) return "media";
   if (tab !== null && isRoutinesTab(tab.path)) return "routines";
   if (tab !== null && isOrbitsTab(tab.path)) return "orbits";
+  if (tab !== null && isReviewWeekTab(tab.path)) return "review-week";
   if (tab !== null && isBookPath(tab.path)) return "book";
   // A drawing has one surface: the canvas is the editor AND the reading view,
   // and a pane mode of "reading" over it would be a grey box.

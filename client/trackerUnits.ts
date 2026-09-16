@@ -1,6 +1,6 @@
 // The units a tracker counts in, on their own so the right panel (entry
 // bundle) can agree a count without pulling the reading renderer with it.
-import type { CountUnit } from "./i18n.ts";
+import { localeNum, tf, type CountUnit } from "./i18n.ts";
 import type { TrackerKind } from "../shared/tracker.ts";
 
 /** What each kind is counted in when the author names no `unit:`. These are
@@ -35,4 +35,18 @@ const UNIT_WORDS: Record<string, CountUnit> = {
 export function unitKey(word: string | null): CountUnit | null {
   if (word === null) return null;
   return UNIT_WORDS[word.trim().toLowerCase()] ?? null;
+}
+
+/** Minutes as a span a reader says aloud: "41 min", "4 h 20", "2 h" — the
+ *  reading-session toast, the card's "4 h 20 left" and the weekly review
+ *  all speak it. Digits follow the site's numerals like every count. */
+export function formatDuration(minutes: number): string {
+  const total = Math.max(0, Math.round(minutes));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (h === 0) return tf("durationMinutes", { m: localeNum(m) });
+  if (m === 0) return tf("durationHoursOnly", { h: localeNum(h) });
+  // "4 h 05", the zero in the site's own digits: a bare "4 h 5" reads as
+  // four hours and five of something.
+  return tf("durationHours", { h: localeNum(h), m: m < 10 ? `${localeNum(0)}${localeNum(m)}` : localeNum(m) });
 }

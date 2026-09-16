@@ -24,6 +24,7 @@ import { shortcutKey } from "../keys.ts";
 import { formatSize } from "../components/AttachmentViewer.tsx";
 import { getAllHighlights, getBooks } from "./api.ts";
 import { cachedCover, requestCover, type Cover } from "./covers.ts";
+import { writeHighlightsNote } from "./highlightsNote.ts";
 import { foldQuery } from "./search.ts";
 
 /** The name a book is filed under when the file itself offers nothing: its
@@ -90,7 +91,9 @@ function BookCard({ entry, onOpen }: CardProps) {
 
   const meta = [folderOf(entry.path), formatSize(entry.size)].filter(Boolean).join(" · ");
 
+  // The card is one control; its action sits beside it, not inside it.
   return (
+    <div className="s-shelf__item">
     <button
       ref={ref}
       type="button"
@@ -132,6 +135,20 @@ function BookCard({ entry, onOpen }: CardProps) {
         {pages > 0 ? `${tf("bookPages", { count: localeNum(pages) })} · ${meta}` : meta}
       </span>
     </button>
+    {/* Every marked passage into a note beside the PDF (client/books/
+        highlightsNote.ts). Offered on every card rather than only on books
+        with marks: the shelf does not know which have any until it asks,
+        and a book with none answers with a toast that says so. */}
+    <button
+      type="button"
+      className="s-shelf__cardact"
+      title={t("bookHighlightsToNoteTitle")}
+      aria-label={`${t("bookHighlightsToNote")}: ${title}`}
+      onClick={() => void writeHighlightsNote(entry)}
+    >
+      {t("bookHighlightsToNote")}
+    </button>
+    </div>
   );
 }
 

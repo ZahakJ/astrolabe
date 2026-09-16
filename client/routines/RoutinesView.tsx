@@ -14,10 +14,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SiteMark from "../components/SiteMark.tsx";
 import type { RoutineMeta } from "../../shared/types.ts";
-import { dayStatus, isoDate, type EntryPatch } from "../../shared/routine.ts";
+import { dayStatus, isoDate, weekOrder, weekdayOfDate, type EntryPatch } from "../../shared/routine.ts";
 import { getDecks, getRoutines, updateRoutine } from "../api.ts";
 import { siteDate } from "../dates.ts";
-import { countPhrase, localeNum, t, tf } from "../i18n.ts";
+import { countPhrase, getLang, localeNum, t, tf } from "../i18n.ts";
 import { confirmDeleteNote } from "../components/deleteFlow.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
@@ -146,6 +146,25 @@ function CardsDue({ today }: { today: string }) {
   );
 }
 
+/** On the site's last weekday — Sunday for an English instance, Friday for
+ *  an Arabic one — a line offering the weekly review, where the week's
+ *  sigils, pages, cards and notes are added up. Nothing on the other six
+ *  days: the page is the morning's checklist, and the review is a door the
+ *  palette holds every day of the week. */
+function ReviewWeekRow({ today }: { today: string }) {
+  const setView = useStore((s) => s.setView);
+  // The chrome's language, as the card reckons its week (renderRoutineCard).
+  if (weekdayOfDate(today) !== weekOrder(getLang())[6]) return null;
+  return (
+    <section className="s-routines__cards" data-testid="routines-review-week">
+      <span className="s-routines__cardstext">{t("routinesReviewWeek")}</span>
+      <button type="button" className="s-btn s-btn--accent" onClick={() => setView("review-week")}>
+        {t("cmdReviewWeek")}
+      </button>
+    </section>
+  );
+}
+
 export default function RoutinesView() {
   const [all, setAll] = useState<RoutineMeta[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -237,6 +256,7 @@ export default function RoutinesView() {
         </section>
       )}
       <CardsDue today={today} />
+      <ReviewWeekRow today={today} />
       <section className="s-routines__due" aria-label={t("routinesTasksHead")}>
         <DueTasks today={today} />
       </section>
