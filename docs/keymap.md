@@ -32,6 +32,7 @@ is what refuses two rows claiming one keystroke; see [Development](development.m
 | `Ctrl/Cmd G` | Open the graph tab, or close it |
 | `Ctrl/Cmd N` | New note |
 | `Ctrl/Cmd Alt D` | Open today's daily note (folder and name format in Settings → Vault; `daily/YYYY-MM-DD.md` by default) |
+| `Ctrl/Cmd Shift D` | [Quick capture](capture.md) — a line into today's note (or the inbox) without leaving the one you are in; Shift beside the daily note's Alt, because they are one idea with two verbs |
 | `Ctrl/Cmd Shift P` | Publish / unpublish the open note |
 | `Ctrl/Cmd Alt P` | [Print the open note, or export it to PDF](printing.md) — Alt because `Ctrl/Cmd P` is the palette |
 | `Ctrl/Cmd Shift B` | Bookmark the open note, or take the bookmark off (`Bookmarks.md`) |

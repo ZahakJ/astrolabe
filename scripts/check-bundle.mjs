@@ -710,6 +710,13 @@ const AUDIENCES = [
   // log, the fence's session parser, the highlights writer and the review
   // page itself are lazy — the books chunk and the review chunk — and the
   // entry carries none of their code.
+  // 3.16.x capture: 770.2 kB actual → 771 — the capture and clipper
+  // dictionary keys (the sheet's words, two settings rows, the bookmarklet's
+  // two alerts, en+ar), the Ctrl/Cmd+Shift+D branch in App.tsx, the
+  // `captureOpen` flag and three fetchers. The sheet itself, its stylesheet
+  // (client/styles/capture.css) and the flow (client/capture.ts) are a lazy
+  // chunk mount-gated on the flag; the converter and the manifest are
+  // server-side and never in any bundle.
   { name: "entry (everyone)", keys: entry, budget: 774 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
@@ -951,6 +958,8 @@ const AUDIENCES = [
   // card, which reads the fence's `sessions:` block (shared/tracker.ts
   // parses it before the card paints, so the parser rides the reading
   // closure — ~1.5 kB).
+  // 3.16.x capture: 1054.0 kB actual → 1055 (the entry's growth above; the
+  // blog shell itself gained nothing).
   { name: "anonymous blog reader", keys: blog, budget: 1060 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
@@ -1109,6 +1118,9 @@ const AUDIENCES = [
   // the palette's "Review the week" row and the Sigils page's last-weekday
   // line. The review page, the session clock and the highlights writer are
   // lazy and asserted absent below.
+  // 3.16.x capture: 1499.4 kB actual → 1500 (the entry's growth above; the
+  // shell surfaces gained nothing — the palette and shortcuts rows ride
+  // their own lazy chunks).
   { name: "admin first paint", keys: app, budget: 1511 * 1024 },
 ];
 

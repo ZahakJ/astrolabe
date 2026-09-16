@@ -270,7 +270,7 @@ export const HEAD_PLACEHOLDER = "<!--astrolabe:head-->";
  *  published note gets that note's meta; anything else — "/", unpublished,
  *  unknown — gets the generic site meta (no existence leak). Callers that must
  *  not reveal reads (PUBLIC=false without a session) pass "/" as pathname. */
-export function injectHead(html: string, origin: string, pathname: string): string {
+export function injectHead(html: string, origin: string, pathname: string, extra: string[] = []): string {
   // Crawler-facing and session-less: it speaks for the SITE, so it takes the
   // site scope rather than a reader's. Under "follow" that is the site
   // language — the honest default for a request with no reader behind it.
@@ -301,6 +301,9 @@ export function injectHead(html: string, origin: string, pathname: string): stri
     `<meta property="og:site_name" content="${xmlEscape(name)}" />`,
     `<link rel="canonical" href="${xmlEscape(canonical)}" />`,
     `<link rel="alternate" type="application/rss+xml" title="${xmlEscape(name)}" href="/feed.xml" />`,
+    // Whatever the caller adds — the manifest link and the theme colour
+    // (server/manifest.ts), which are the shell's business, not the feed's.
+    ...extra,
   );
   let out = html
     .replace(/<title>[^<]*<\/title>/, `<title>${xmlEscape(title)}</title>`)

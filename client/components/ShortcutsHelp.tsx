@@ -142,6 +142,15 @@ const GROUPS: Group[] = [
       // which had been dead since it shipped, swallowed here in the capture
       // phase. A once-a-day verb does not outrank a per-minute one.
       { label: "cmdDailyNote", keys: ["Ctrl/Cmd", "Alt", "D"], admin: true, run: () => void openDailyNote() },
+      // Shift beside the daily note's Alt: one idea, two verbs — open
+      // today's note, or drop a line into it without going there.
+      {
+        label: "cmdQuickCapture",
+        keys: ["Ctrl/Cmd", "Shift", "D"],
+        admin: true,
+        shell: "app",
+        run: () => useStore.getState().setCaptureOpen(true),
+      },
       { label: "cmdBookmarkNote", keys: ["Ctrl/Cmd", "Shift", "B"], admin: true },
       { label: "newNote", keys: ["Ctrl/Cmd", "N"], admin: true },
       // Templates wear Alt because Ctrl/Cmd+T and +Shift+T belong to the

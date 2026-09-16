@@ -144,6 +144,20 @@ export function periodOf(path: string): PeriodRef | null {
   return null;
 }
 
+/** What a daily note is CALLED, briefly, when the instance prints another
+ *  calendar — «٢ صفر ١٤٤٨ هـ» for `daily/2026-08-16.md`. Null in gregorian
+ *  mode, deliberately: there the filename already IS the date; and null for
+ *  anything that is not a daily note. The capture sheet's word for today's
+ *  note (components/CaptureSheet.tsx): the status bar's `periodLabel` below
+ *  says the whole period, weekday and all, which is a sentence, and a
+ *  select option and a toast are not the place for one. */
+export function dailyNoteLabel(path: string): string | null {
+  if (getDateCalendar() === "gregorian") return null;
+  const ref = periodOf(path);
+  if (!ref || ref.kind !== "day") return null;
+  return siteDate(ref.start, useStore.getState().blogLocale, { dateStyle: "long" });
+}
+
 /** Every day that has a daily note, from the tree: ISO → path. Cheap —
  *  `periodicDateOf` checks the folder prefix before it runs the pattern,
  *  so a vault of ten thousand notes costs ten thousand string compares. */
@@ -192,17 +206,28 @@ const OFF_TOAST: Record<PeriodKind, I18nKey> = {
   year: "yearlyNotesOff",
 };
 
-/** Open (or create) the note for the period of `kind` that `date` falls
- *  in. THE ONE DOOR: the palette, the calendar's cells and the launch
- *  setting all come through here, so a note created from a click on the
- *  grid is templated exactly as one created by Ctrl/Cmd Alt D. */
-export async function openPeriodicNoteAt(kind: PeriodKind, date: Date): Promise<void> {
+export interface EnsuredNote {
+  path: string;
+  /** True when this call made the file. */
+  created: boolean;
+}
+
+/** The note for the period of `kind` that `date` falls in, CREATED when it
+ *  is not there — with its template — and its path handed back. Null when
+ *  there is nothing to hand back (that kind of note is off, a visitor
+ *  asking for a note that does not exist, a failed create); the reason has
+ *  already been toasted. THE ONE DOOR: the palette, the calendar's cells,
+ *  the launch setting and the capture sheet (client/capture.ts, which
+ *  writes into today's note without opening it) all come through here, so
+ *  a note created from a click on the grid or from a captured line is
+ *  templated exactly as one created by Ctrl/Cmd Alt D. */
+export async function ensurePeriodicNoteAt(kind: PeriodKind, date: Date): Promise<EnsuredNote | null> {
   await loadPeriodic();
   const store = useStore.getState();
   const path = periodicNotePath(kind, date);
   if (path === null) {
     toast(t(OFF_TOAST[kind]));
-    return;
+    return null;
   }
   const template = cached.templates[kind];
   const exists = collectNotes(store.tree).some((n) => n.path === path);
@@ -212,7 +237,7 @@ export async function openPeriodicNoteAt(kind: PeriodKind, date: Date): Promise<
   const isToday = kind === "day" && isoOf(periodStart("day", date)) === isoOf(new Date());
   if (!exists && !store.admin) {
     toast(t(isToday ? "noDailyNote" : "noPeriodicNote"));
-    return;
+    return null;
   }
   if (!exists) {
     try {
@@ -225,17 +250,28 @@ export async function openPeriodicNoteAt(kind: PeriodKind, date: Date): Promise<
       // guarded and would swallow the 409 this function falls through on.
       await applyDefaultTemplate(path, template);
       await store.loadTree();
-      if (store.readingMode) store.setReadingMode(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (!/exists/i.test(message)) {
         console.error(`astrolabe: creating periodic note ${path} failed`, err);
         toast(t(isToday ? "dailyNoteFailed" : "periodicNoteFailed"));
-        return;
+        return null;
       }
     }
   }
-  store.openNote(path);
+  return { path, created: !exists };
+}
+
+/** Open (or create) the note for the period of `kind` that `date` falls
+ *  in, through the door above. */
+export async function openPeriodicNoteAt(kind: PeriodKind, date: Date): Promise<void> {
+  const ensured = await ensurePeriodicNoteAt(kind, date);
+  if (ensured === null) return;
+  const store = useStore.getState();
+  // A note that was just made opens in the editor, whatever mode the pane
+  // was in: there is nothing to read in it yet.
+  if (ensured.created && store.readingMode) store.setReadingMode(false);
+  store.openNote(ensured.path);
 }
 
 /** Finer periods first: a note of one kind anchors a walk to any kind at

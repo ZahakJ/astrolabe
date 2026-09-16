@@ -202,6 +202,12 @@ const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
+    id: "quick-capture",
+    label: () => t("cmdQuickCapture"),
+    hint: () => t("cmdQuickCaptureHint"),
+    available: ({ admin }) => admin,
+  },
+  {
     id: "yesterday-note",
     label: () => t("cmdYesterdayNote"),
     hint: () => t("cmdPeriodicHint"),
@@ -1185,6 +1191,9 @@ export default function CommandPalette() {
         }
         case "daily-note":
           void openDailyNote();
+          break;
+        case "quick-capture":
+          store.setCaptureOpen(true);
           break;
         case "new-folder":
           // Root, not the open note's folder: "New folder" from a global

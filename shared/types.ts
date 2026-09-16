@@ -1094,6 +1094,10 @@ export interface SettingsData {
    *  root) and name format (absent → `YYYYMMDDHHmm`). */
   uniqueFolder?: string;
   uniqueFormat?: string;
+  /** The quick-capture sheet's second target (docs/capture.md): a note
+   *  pinned as the inbox, vault-relative. Absent → the sheet offers today's
+   *  note alone. */
+  captureInbox?: string;
   /** Git backup & sync (off by default). The token, when one is used, is NOT
    *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
@@ -1284,6 +1288,8 @@ export interface EffectiveSettings {
    *  force (the default when unset). */
   uniqueFolder: string;
   uniqueFormat: string;
+  /** The capture inbox in force, or null when none is pinned. */
+  captureInbox: string | null;
   home: Required<Pick<HomeSettings, "mode">> & Omit<HomeSettings, "mode">;
   /** Public folders with every default filled in — what the settings editor
    *  prefills from, so an unset key and an explicitly-default one look the
@@ -1392,6 +1398,8 @@ export interface SettingsPatch {
    *  (null or "" → `YYYYMMDDHHmm`). */
   uniqueFolder?: string | null;
   uniqueFormat?: string | null;
+  /** Capture inbox note; null (or "") unpins it. */
+  captureInbox?: string | null;
   /** Template for new notes; null (or "") turns the default back off. */
   defaultTemplate?: string | null;
   /** Git sync configuration; null clears the whole key. */

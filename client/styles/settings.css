@@ -1051,3 +1051,70 @@
     gap: 4px;
   }
 }
+/* THE CLIPPER (settings/ClipperControl.tsx, docs/capture.md). The link IS
+   the product: a bookmarklet only exists by being dragged to the bookmarks
+   bar, so it is drawn as a small labelled tab a hand wants to pick up —
+   accent outline, a grab cursor — beside the plain Renew button. */
+.s-clipper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.s-clipper__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 0.929rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  cursor: grab;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.s-clipper__link:active {
+  cursor: grabbing;
+}
+
+.s-clipper__link[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.s-clipper__glyph {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.s-clipper__renew {
+  font: inherit;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.s-clipper__renew:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--button-hover-bg);
+}
+
+.s-clipper__renew:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.s-clipper__unavailable {
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}

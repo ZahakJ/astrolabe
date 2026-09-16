@@ -10,6 +10,9 @@ describe("offline policy", () => {
     assert.equal(classify("GET", "/assets/index-abc123.js"), "asset");
     assert.equal(classify("GET", "/pdfjs/wasm/openjpeg.wasm"), "asset");
     assert.equal(classify("GET", "/favicon.svg"), "asset");
+    // The manifest is generated from settings: kept, but never pinned.
+    assert.equal(classify("GET", "/manifest.webmanifest"), "note");
+    assert.equal(classify("GET", "/manifest-icon.svg"), "note");
     assert.equal(classify("GET", "/api/note?path=A.md"), "bypass"); // the worker strips the query first
     assert.equal(classify("GET", "/api/note"), "note");
     assert.equal(classify("GET", "/api/tree"), "note");

@@ -70,6 +70,8 @@ export interface TemplateSettings {
   /** The unique note (client/uniqueNote.ts): folder ("" = root) and format. */
   uniqueFolder: string;
   uniqueFormat: string;
+  /** The note pinned as the capture inbox (docs/capture.md), or null. */
+  captureInbox: string | null;
   locale: string;
   calendar: DateCalendar;
   lang: "en" | "ar";
@@ -98,6 +100,7 @@ export async function templateSettings(): Promise<TemplateSettings> {
         yearlyTemplate: res.effective.yearlyTemplate,
         uniqueFolder: res.effective.uniqueFolder,
         uniqueFormat: res.effective.uniqueFormat,
+        captureInbox: res.effective.captureInbox,
         locale: res.effective.blogLocale,
         calendar: res.effective.dateCalendar,
         lang: res.effective.language,

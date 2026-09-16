@@ -529,6 +529,10 @@ export interface State {
   /** Site settings panel (admin; status-bar gear / palette "Site settings"). */
   settingsOpen: boolean;
   setSettingsOpen(b: boolean): void;
+  /** The quick-capture sheet (client/components/CaptureSheet.tsx): open
+   *  from anywhere by Ctrl/Cmd+Shift+D, the palette, or the phone's ⋯ menu. */
+  captureOpen: boolean;
+  setCaptureOpen(b: boolean): void;
   /** THE ROW A SURFACE ELSEWHERE IN THE APP IS POINTING AT — a settings row's
    *  own label key, or null.
    *
@@ -1522,6 +1526,8 @@ export const useStore = create<State>()((set, get) => {
     bannerModalOpen: false,
     settingsOpen: false,
     setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
+    captureOpen: false,
+    setCaptureOpen: (captureOpen) => set({ captureOpen }),
     settingsFocus: null,
     openSettingsAt: (settingsFocus) => set({ settingsOpen: true, settingsFocus }),
     shortcutsOpen: false,
