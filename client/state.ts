@@ -78,6 +78,7 @@ import {
   GRAPH_TAB,
   MEDIA_TAB,
   ROUTINES_TAB,
+  REVIEW_WEEK_TAB,
   ORBITS_TAB,
   orbitsTabFor,
   openInPane,
@@ -608,7 +609,7 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph" | "media" | "routines" | "orbits"): void;
+  setView(v: View | "graph" | "media" | "routines" | "orbits" | "review-week"): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
   /** The Media page, on the same terms as the graph. */
@@ -2246,14 +2247,17 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph" || view === "media" || view === "routines" || view === "orbits") {
-        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : view === "routines" ? ROUTINES_TAB : ORBITS_TAB;
-        set((s) => ({
-          ...s,
-          ...mirrorOf(openInPane(s.workspace, s.workspace.focus, path)),
-          view: "editor",
-          sidebarOpen: false,
-        }));
+      if (view === "graph" || view === "media" || view === "routines" || view === "orbits" || view === "review-week") {
+        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : view === "routines" ? ROUTINES_TAB : view === "review-week" ? REVIEW_WEEK_TAB : ORBITS_TAB;
+        set((s) => {
+          // A pane still showing the shelf answers this the way it answers
+          // a book (openBook above): the page's tab opens AND the mode comes
+          // home to the tabs, or the shelf keeps the screen and the reader
+          // sees a tab they cannot look at.
+          let ws = openInPane(s.workspace, s.workspace.focus, path);
+          if (paneAt(ws, ws.focus)?.mode === "library") ws = setPaneModeIn(ws, ws.focus, "edit");
+          return { ...s, ...mirrorOf(ws), view: "editor", sidebarOpen: false };
+        });
         return;
       }
       set({ view });

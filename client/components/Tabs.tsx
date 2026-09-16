@@ -21,7 +21,7 @@ import {
   closeAllPanes,
   closeOthersIn,
   isGraphTab,
-  isMediaTab, isRoutinesTab, isOrbitsTab, orbitsPathOf,
+  isMediaTab, isRoutinesTab, isOrbitsTab, isReviewWeekTab, orbitsPathOf,
   isVirtualTab,
   paneAt,
   type Workspace,
@@ -36,6 +36,7 @@ function titleOf(path: string): string {
   if (isGraphTab(path)) return t("docTitleGraph");
   if (isMediaTab(path)) return t("media");
   if (isRoutinesTab(path)) return t("routines");
+  if (isReviewWeekTab(path)) return t("reviewWeek");
   // The shelf is named; a session over a deck wears the note's
   // own name, so the strip reads "Hiragana" beside "Hiragana" the note.
   // The implicit deck is not a note and is named for what it is.

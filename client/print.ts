@@ -129,6 +129,30 @@ export function proseDirection(doc: HTMLElement): "ltr" | "rtl" {
   return autoDir(prose?.textContent ?? doc.textContent ?? "");
 }
 
+/** A SURFACE THAT IS A DOCUMENT BUT NOT A NOTE — the weekly review — says
+ *  what it would print while it is on screen, and takes it back when it
+ *  leaves. It comes before the note lookup below: the reader who pressed
+ *  Ctrl+P over the review meant the review, and `openPath` (a note in
+ *  another pane, or nothing) is not what they are looking at. */
+let printable: (() => HTMLElement | null) | null = null;
+
+export function setPrintable(fn: (() => HTMLElement | null) | null): void {
+  printable = fn;
+}
+
+/** Put a surface's own sheet on <body>: the element as it is, titled by
+ *  itself, in the direction it was drawn. */
+function mountSheet(sheet: HTMLElement): void {
+  teardown();
+  const el = document.createElement("article");
+  el.className = "s-print";
+  el.dir = sheet.getAttribute("dir") || proseDirection(sheet);
+  el.appendChild(sheet);
+  document.body.appendChild(el);
+  document.body.dataset.print = "note";
+  host = el;
+}
+
 /** Put a prepared document (or the nothing-to-print line) on <body>. */
 function mount(doc: HTMLElement | null, path: string | null): void {
   teardown();
@@ -189,6 +213,11 @@ function onBeforePrint(): void {
   if (host !== null) return;
   // No app shell means the blog shell, which prints itself.
   if (document.querySelector(".s-app") === null) return;
+  const sheet = printable?.() ?? null;
+  if (sheet !== null) {
+    mountSheet(sheet);
+    return;
+  }
   const path = useStore.getState().openPath;
   const onScreen = onScreenDoc();
   if (onScreen !== null && path !== null) {
@@ -209,8 +238,11 @@ export async function printNote(): Promise<void> {
   const store = useStore.getState();
   const path = store.openPath;
   const onScreen = onScreenDoc();
+  const sheet = printable?.() ?? null;
   try {
-    if (onScreen !== null && path !== null) {
+    if (sheet !== null) {
+      mountSheet(sheet);
+    } else if (onScreen !== null && path !== null) {
       // Already hydrated on screen — nothing to settle.
       mount(onScreen.cloneNode(true) as HTMLElement, path);
     } else if (path !== null) {
