@@ -62,6 +62,22 @@ describe("countWords", () => {
     assert.equal(countWords("الحمد لله رب العالمين"), 4);
   });
 
+  it("counts a pointed Arabic word as one word — a letter with its harakat is one grapheme", () => {
+    // The same phrase, bare and fully vowelled: the count must not move.
+    const bare = "الحمد لله رب العالمين";
+    const pointed = "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ";
+    assert.equal(countWords(pointed), countWords(bare));
+    assert.equal(countWords(pointed), 4);
+    // Tanwin on the last letter, shadda mid-word, a dagger alif: still one
+    // word each, so three.
+    assert.equal(countWords("كتابٌ مُحَمَّدٌ ذَٰلِكَ"), 3);
+    // A tatweel stretch inside a word joins it rather than splitting it.
+    assert.equal(countWords("الـعـربـية جميلة"), 2);
+    // A mark left standing on its own (after a space) is not a word.
+    assert.equal(countWords("كلمة ً أخرى"), 2);
+    assert.equal(countWords("ـ ّ"), 0);
+  });
+
   it("counts CJK, where whitespace splitting says 1", () => {
     // The clearest case for the segmenter: this has no spaces at all.
     assert.ok(countWords("这是一个测试") > 1, "CJK counted as a single word");

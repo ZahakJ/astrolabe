@@ -2,7 +2,8 @@
 // read live from the zustand store's tree, plus every frontmatter ALIAS those
 // notes declare; typing "#" inside the brackets offers the headings of the
 // target note ([[Note#…]] / [[#…]] for the current note). Typing "#" in
-// PROSE offers the vault's existing tags (tagSource below).
+// PROSE offers the vault's existing tags (tagSource below), and "@" at a word
+// start offers a date to link to (dateMention.ts).
 //
 // The note-title list is RANKED, not tree-ordered. Priority is lexicographic:
 // how well the typed text matches the title (exact > prefix > substring >
@@ -20,8 +21,7 @@ import {
 import type { Extension } from "@codemirror/state";
 import type { EditorState } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
-import { syntaxTree } from "@codemirror/language";
-import type { SyntaxNode } from "@lezer/common";
+import { inCodeOrLink } from "./syntaxSite.ts";
 import { createNote, getNote, getTags } from "../api.ts";
 import type { TagCount } from "../../shared/types.ts";
 import { Lru } from "../lru.ts";
@@ -59,6 +59,7 @@ import {
   fenceLanguageSource,
   slashSource,
 } from "./slashMenu.ts";
+import { dateMentionSource } from "./dateMention.ts";
 
 /** Insert `label`, then "]]" unless the brackets are already closed. */
 function applyInner(
@@ -406,20 +407,6 @@ async function cachedTags(): Promise<TagCount[]> {
   return tagCache?.tags ?? [];
 }
 
-/** Is `pos` somewhere prose rules don't apply — code, or a link/URL? A `#`
- *  inside a fence is a comment or a color, inside a URL it is a fragment;
- *  offering tags there would be autocomplete firing on syntax. */
-function inCodeOrLink(state: EditorState, pos: number): boolean {
-  for (
-    let node: SyntaxNode | null = syntaxTree(state).resolveInner(pos, -1);
-    node;
-    node = node.parent
-  ) {
-    if (/Code|URL|Autolink|Link|HTML|Math/.test(node.name)) return true;
-  }
-  return false;
-}
-
 /** The tag shape, kept in step with noteMeta.ts's TAG_RE (first char stricter
  *  than the rest). Only the "rest" half matters here — the popup follows the
  *  `#` the author already typed. */
@@ -517,6 +504,7 @@ export function wikilinkAutocomplete(): Extension {
     override: [
       wikilinkSource,
       tagSource,
+      dateMentionSource,
       ayahRefSource,
       calloutTypeSource,
       fenceLanguageSource,

@@ -248,7 +248,18 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
         // that arrived with its caret already somewhere is one of those.
         const len = view.state.doc.length;
         const remembered = caretMemory.get(path);
-        if (view.state.selection.main.head > 0) {
+        // A template's `{{cursor}}`, queued by the command that wrote the
+        // note before opening it (templateActions.ts). It outranks every
+        // other rule below, because it is the one place the WRITER named —
+        // and it is consumed here, so a later visit to the note gets the
+        // ordinary home again.
+        const queued = useStore.getState().pendingCaret;
+        if (queued !== null && queued.path === path) {
+          useStore.getState().setPendingCaret(null);
+          caretPlaced.add(path);
+          const at = Math.max(0, Math.min(len, queued.offset));
+          view.dispatch({ selection: { anchor: at }, effects: EditorView.scrollIntoView(at, { y: "center" }) });
+        } else if (view.state.selection.main.head > 0) {
           caretPlaced.add(path);
         } else if (remembered !== undefined) {
           // A remount (publish, banner) onto a rebuilt state: put the reader
@@ -431,9 +442,13 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
         return;
       }
       const shift = newBlockLength - bodyStart;
+      // After the insert — or where the template's `{{cursor}}` stood, when
+      // it named a place (client/templates.ts strips the token and reports
+      // the offset).
+      const landing = applied.caret ?? applied.insert.length;
       view.dispatch({
         changes,
-        selection: { anchor: caret + shift + applied.insert.length },
+        selection: { anchor: caret + shift + landing },
         scrollIntoView: true,
       });
       view.focus();

@@ -662,7 +662,19 @@ const AUDIENCES = [
   // the French/furigana dictionary meeting in one entry at integration.
   // 3.16.1: 765.3 kB actual → 766 — the browser-dictionaries row (its
   // bilingual hint, the four labels, client/spellDicts.ts at startup).
-  { name: "entry (everyone)", keys: entry, budget: 766 * 1024 },
+  // 3.17.0: 765.3 kB actual → 768.5 kB, budget 769 — the editor
+  // conveniences. In the entry by construction: the template prompt scan
+  // and the `{{cursor}}` offset (client/templates.ts, ~0.6 kB — state.ts
+  // imports templateActions for the default template, so the scan that
+  // decides whether a sheet is owed is on the boot path; the sheet itself is
+  // a lazy chunk), the periodic formatter's HH/mm/ss tokens and the
+  // free-name rule for the unique note (shared/periodic.ts, ~0.4 kB), the
+  // store's pendingCaret (~0.1 kB), and the dictionary's rows for the sheet,
+  // the unique note's two settings, the palette's create and layout rows
+  // and the "12 of 840 words" phrase (~1.6 kB, bilingual). The natural-date
+  // parser rides the editor chunk; the tag card, its stylesheet and the
+  // sheet are their own chunks.
+  { name: "entry (everyone)", keys: entry, budget: 769 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -883,7 +895,11 @@ const AUDIENCES = [
   // 3.16.0: 1046.5 kB actual → 1047 after the French/furigana merge (above).
   // 3.16.0 release: 1047.8 kB actual → 1048 (the merge above).
   // 3.16.1: 1049.1 kB actual → 1050 (the row above).
-  { name: "anonymous blog reader", keys: blog, budget: 1050 * 1024 },
+  // 3.17.0: 1049.1 kB actual → 1052.4 kB, budget 1053 — the entry's bytes
+  // above, and the snippet's plain-text reading (snippet.tsx, ~0.1 kB). The
+  // tag card's rules were kept OUT of hovercard.css for this line's sake
+  // (client/styles/tagpreview.css rides the tagPreview chunk).
+  { name: "anonymous blog reader", keys: blog, budget: 1053 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1013,7 +1029,11 @@ const AUDIENCES = [
   // 3.16.0: 1491.4 kB actual → 1492 after the French/furigana merge (above).
   // 3.16.0 release: 1493.4 kB actual → 1494 (the merge above).
   // 3.16.1: 1494.6 kB actual → 1495 (the row above).
-  { name: "admin first paint", keys: app, budget: 1495 * 1024 },
+  // 3.17.0: 1494.6 kB actual → 1498.4 kB, budget 1499 — the entry's bytes
+  // above, plus the sidebar's hover installer for the tag shelf (~0.4 kB;
+  // the card itself is a dynamic import) and the status bar's selection
+  // phrase. The palette's new rows are in the palette's own chunk.
+  { name: "admin first paint", keys: app, budget: 1499 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
