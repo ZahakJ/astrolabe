@@ -2200,6 +2200,10 @@ const HELP_ROWS: { keys: string; label: I18nKey }[] = [
   { keys: "z", label: "bookKeyZen" },
   { keys: "l", label: "bookKeyLibrary" },
   { keys: "q", label: "bookKeyClose" },
+  // A command, not a key — listed here because the title-bar button that
+  // does the same only appears once a page has been turned, and the help
+  // sheet is where a reader looks for what the reader can do.
+  { keys: ":end", label: "bookKeyEndSession" },
   { keys: "?", label: "bookKeyHelp" },
 ];
 

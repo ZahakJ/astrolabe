@@ -95,6 +95,11 @@ export async function writeHighlightsNote(entry: BookEntry): Promise<void> {
     return;
   }
   actionToast(tf("bookHighlightsWritten", { count: countPhrase(highlights.length, "highlights"), note: noteTitleOf(path) }), t("bookHighlightsOpen"), () => {
-    useStore.getState().openNote(path);
+    // The action was pressed on the shelf, and a pane still in library mode
+    // would open the tab behind the shelf — a note the reader cannot see.
+    // The shelf closes first, as it does when a book is opened from it.
+    const s = useStore.getState();
+    s.closeLibrary();
+    s.openNote(path);
   });
 }

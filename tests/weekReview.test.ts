@@ -86,5 +86,19 @@ describe("notes this week", () => {
     const out = notesThisWeek(notes, week, new Map([["Old busy.md", 7]]));
     assert.deepEqual(out.created.map((n) => n.path), ["New.md"]);
     assert.deepEqual(out.edited.map((n) => [n.path, n.edits]), [["Old busy.md", 7], ["Old edited.md", 1]]);
+    assert.equal(out.createdTotal, 1);
+    assert.equal(out.editedTotal, 2);
+  });
+
+  it("caps each list at the limit and says how many there were", () => {
+    const week = weekOf("2026-09-15", "en");
+    const notes = Array.from({ length: 20 }, (_, i) => ({ path: `n${i}.md`, title: `n${i}`, dateMs: noon("2026-09-14") + i, mtimeMs: noon("2026-09-14") + i }));
+    const out = notesThisWeek(notes, week, new Map(), 5);
+    assert.equal(out.created.length, 5);
+    assert.equal(out.createdTotal, 20);
+    // Newest first.
+    assert.equal(out.created[0].path, "n19.md");
+    assert.equal(out.edited.length, 0);
+    assert.equal(out.editedTotal, 0);
   });
 });

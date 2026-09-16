@@ -31,7 +31,7 @@ import { mediaNoteContent, mediaNotePath, mediaProgress, MEDIA_ROOTS } from "../
 import { noteTitleOf } from "../../shared/noteFormat.ts";
 import { parseClock, type SessionClock, type SessionSummary } from "../../shared/readingSession.ts";
 import { isoDate } from "../../shared/routine.ts";
-import { appendTrackerSession, dropLastTrackerSession, editTrackerFence, foldKind, formatSessionLine, setTrackerProgress, trackerCountsPages, type TrackerSession } from "../../shared/tracker.ts";
+import { appendTrackerSession, dropLastTrackerSession, editTrackerFence, foldKind, formatSessionLine, parseTracker, setTrackerProgress, trackerCountsPages, type TrackerSession } from "../../shared/tracker.ts";
 import type { BookOpenResponse, TrackerMeta } from "../../shared/types.ts";
 import { getTrackers, putNote } from "../api.ts";
 import { countPhrase, t, tf } from "../i18n.ts";
@@ -120,13 +120,23 @@ export async function logSession(entry: BookOpenResponse, summary: SessionSummar
   }
   let before: string;
   let after: string;
+  // What the bar actually moved by — not the pages read. The two differ
+  // at the end of a book (110/112 plus twenty-seven pages is 112/112, and
+  // an Undo that took twenty-seven back would leave 85/112) and they differ
+  // for a bar that does not count pages at all, which is left alone.
+  let moved = 0;
   try {
     before = await noteContent(meta.path);
     after = editTrackerFence(before, meta.index, (body) => {
       let next = appendTrackerSession(body, session);
       // The bar moves by the pages read only when the bar counts pages: a
-      // tracker kept in chapters is the reader's to move.
-      if (trackerCountsPages({ unit: meta.unit, kindKey: foldKind(meta.kind) })) next = setTrackerProgress(next, summary.pages);
+      // tracker kept in chapters is the reader's to move, and a bare
+      // percentage (`progress: 40%`, `done` unknown) is not pages however
+      // the fence's kind reads.
+      if (meta.done !== null && trackerCountsPages({ unit: meta.unit, kindKey: foldKind(meta.kind) })) {
+        next = setTrackerProgress(next, summary.pages);
+        moved = (parseTracker(next)?.done ?? meta.done) - (parseTracker(body)?.done ?? meta.done);
+      }
       return next;
     });
     if (after !== before) await applyNoteContent(meta.path, after);
@@ -134,7 +144,7 @@ export async function logSession(entry: BookOpenResponse, summary: SessionSummar
     toast(t("bookSessionFailed"), "error");
     return;
   }
-  const tick = await tickSlotsForBook({ trackerPath: meta.path, trackerTitle: meta.title, pdfPath: entry.path, pages: summary.pages, pace: meta.pace });
+  const tick = await tickSlotsForBook({ trackerPath: meta.path, trackerTitle: meta.title, pdfPath: entry.path, pages: summary.pages, pace: meta.pace, date });
   actionToast(tf("bookSessionLogged", { pages, time, note: noteTitleOf(meta.path) }), t("undo"), () => {
     void (async () => {
       try {
@@ -144,7 +154,7 @@ export async function logSession(entry: BookOpenResponse, summary: SessionSummar
         const current = await noteContent(meta.path);
         const reverted = editTrackerFence(current, meta.index, (body) => {
           let next = dropLastTrackerSession(body);
-          if (trackerCountsPages({ unit: meta.unit, kindKey: foldKind(meta.kind) })) next = setTrackerProgress(next, -summary.pages);
+          if (moved !== 0) next = setTrackerProgress(next, -moved);
           return next;
         });
         if (reverted !== current) await applyNoteContent(meta.path, reverted);
@@ -171,7 +181,10 @@ async function trackBook(entry: BookOpenResponse, session: TrackerSession): Prom
     return;
   }
   const pages = entry.state?.pages ?? 0;
-  const at = session.to ?? entry.state?.page ?? 1;
+  // The pages FINISHED: the sitting ended on `to`, which is the page still
+  // open, so the one before it is the last one read. A six-page pamphlet
+  // closed on its last page is not thereby finished.
+  const at = Math.max(0, (session.to ?? entry.state?.page ?? 1) - 1);
   try {
     await putNote(
       path,

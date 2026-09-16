@@ -326,6 +326,9 @@ export default function ReviewWeekView() {
                   ))}
                 </ul>
               )}
+              {data.notes.createdTotal > data.notes.created.length && (
+                <p className="s-review__note">{tf("reviewMore", { count: countPhrase(data.notes.createdTotal - data.notes.created.length, "notes") })}</p>
+              )}
               {data.notes.edited.length > 0 && (
                 <>
                   <h3 className="s-review__h3">{t("reviewNotesEdited")}</h3>
@@ -339,6 +342,9 @@ export default function ReviewWeekView() {
                       </li>
                     ))}
                   </ul>
+                  {data.notes.editedTotal > data.notes.edited.length && (
+                    <p className="s-review__note">{tf("reviewMore", { count: countPhrase(data.notes.editedTotal - data.notes.edited.length, "notes") })}</p>
+                  )}
                 </>
               )}
             </section>
