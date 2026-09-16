@@ -65,7 +65,7 @@ export interface RoutineHooks {
 const KIND_LABEL: Record<RoutineKind, I18nKey> = {
   exercise: "routineKindExercise",
   habit: "routineKindHabit",
-  prayer: "routineKindPrayer",
+  mind: "routineKindMind",
   sleep: "routineKindSleep",
   water: "routineKindWater",
   mood: "routineKindMood",

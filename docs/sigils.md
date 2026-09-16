@@ -16,7 +16,7 @@ register — and a register of your days is exactly what the log below is.
 
 A [tracker](trackers.md) is a card about one thing you are working *through* (a book, a game, a
 course) and how far you have got. A sigil is a card about your *days*. An exercise week, the five
-prayers, sleep, water, a mood journal, twenty pages a night — anything you mean to do again
+a morning sit, sleep, water, a mood journal, twenty pages a night — anything you mean to do again
 tomorrow.
 
 Everything a sigil knows lives in one ordinary note in your vault: the **plan** (what you mean to
@@ -68,7 +68,7 @@ the first line on its own.
 | Line | What you put after the colon | What it does |
 | --- | --- | --- |
 | `title` | a name | What the card is called. |
-| `kind` | `exercise` `habit` `prayer` `sleep` `water` `mood` `reading` `study` — or any word of your own | Picks the small glyph on the card and the suggestions the form offers. Synonyms in both languages are understood (`workout`, `salah`, `رياضة`, `صلاة`…). Your own word is kept as written and gets the ✦ glyph. |
+| `kind` | `exercise` `habit` `mind` `sleep` `water` `mood` `reading` `study` — or any word of your own | Picks the small glyph on the card and the suggestions the form offers. Synonyms in both languages are understood (`workout`, `salah`, `رياضة`…). Your own word is kept as written and gets the ✦ glyph. |
 | `icon` | one emoji or a short symbol — `🚶`, `☪`, `✦` | Drawn in the card's corner instead of the kind's glyph. |
 | `banner` | a picture — a file in the vault (`walk.jpg`, `Media/walk.jpg`) or an `https://` link | Drawn as a strip across the top of the card. It is found the same way a note's banner is: by its full path, then beside the note, then anywhere in the vault by name. |
 | `slots` | words with commas between them — `morning, evening` | The **parts of a day** you plan by. They become the columns of your week. Leave this line out and each day is just one line. |
@@ -233,7 +233,7 @@ ledger of its own would be a second truth about the sigils, and the note is the 
 
 **Start from.** A row of templates. **Custom** starts from nothing and lets you choose each part
 yourself. The built-in ones fill the sheet in: *Exercise* (a whole week of morning walks and evening
-full-body sessions), *Habits*, *Prayers* (the five, every day, with a count of those prayed in
+full-body sessions), *Habits*, *Mindfulness* (a morning sit, a walk without the phone, an evening sit, with minutes and a calm rating
 congregation), *Sleep* (hours, quality, bedtime), *Water*, *Mood* (mood, energy, gratitude),
 *Reading*, *Study* — each in your site's language. Under them, **Your templates**: any note in the
 [templates folder](templates-and-notes.md) that carries a ` ```sigil ` block. A template only

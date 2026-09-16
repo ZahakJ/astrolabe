@@ -19,7 +19,7 @@
 // starts from nothing — the sheet says so.
 //
 // TEMPLATES ARE TWO SHELVES. The built-in presets (the owner's exercise week,
-// prayers, sleep, water, mood, reading, study, habits) and the vault's own:
+// mindfulness, sleep, water, mood, reading, study, habits) and the vault's own:
 // any note in the templates folder that carries a ```sigil fence. "Save as
 // template" writes the draft there, so a sigil drawn up once can seed the
 // next — the owner's ask: "ability to create custom templates".
@@ -65,7 +65,7 @@ import { toast } from "../toast.ts";
 const KIND_LABEL: Record<RoutineKind, I18nKey> = {
   exercise: "routineKindExercise",
   habit: "routineKindHabit",
-  prayer: "routineKindPrayer",
+  mind: "routineKindMind",
   sleep: "routineKindSleep",
   water: "routineKindWater",
   mood: "routineKindMood",
@@ -83,7 +83,7 @@ const WEEKDAY_LABEL: Record<Weekday, I18nKey> = {
   sun: "weekdaySun",
 };
 
-const KINDS: RoutineKind[] = ["exercise", "habit", "prayer", "sleep", "water", "mood", "reading", "study"];
+const KINDS: RoutineKind[] = ["exercise", "habit", "mind", "sleep", "water", "mood", "reading", "study"];
 
 /** The kinds of value a field of the reader's own can hold, with the words
  *  for each. `check` is last: it is the one that is not a number or a line. */
@@ -96,14 +96,19 @@ const FIELD_TYPES: { value: RoutineFieldType; label: I18nKey; hint: I18nKey }[] 
 ];
 
 /** The picker's shelf: forty glyphs that fit the things people keep a sigil for — the
- *  body, the table, the night, the book, the prayer mat, the house. A free
+ *  body, the table, the night, the book, the quiet, the house. A free
  *  field beside it takes anything else. */
+/** A standard shelf: the body, the table, the day, the mind, the hands, the
+ *  home — nothing that names a faith or a flag (the owner: "it's kinda
+ *  targeted"). Anything else is one keystroke away in the field beside it,
+ *  where the system's own emoji picker works. */
 const EMOJI: readonly string[] = [
-  "🏃", "🚶", "🚴", "🏋️", "🧘", "🏊", "⚽", "💪",
-  "🥗", "🍎", "💧", "☕", "🍵", "🥛", "🍽️", "🚭",
-  "🌙", "😴", "☀️", "🌅", "⏰", "🛏️", "🌱", "🌿",
-  "📖", "📚", "✍️", "🎓", "🧠", "💻", "🎯", "⭐",
-  "🕌", "☪", "📿", "🤲", "🕋", "🎵", "🎨", "🧹",
+  "🏃", "🚶", "🚴", "🏋️", "🧘", "🏊", "🧗", "⚽", "🎾",
+  "🥗", "🍎", "💧", "☕", "🍵", "🥛", "🍳", "🚭", "🍫",
+  "🌙", "😴", "☀️", "🌅", "⏰", "🛏️", "🌱", "🌳", "🌊",
+  "📖", "📚", "✍️", "🎓", "🧠", "💻", "🎯", "⭐", "🧩",
+  "🎵", "🎹", "🎸", "🎨", "📷", "🗣️", "🌍", "✈️", "💰",
+  "🧹", "🧺", "🐕", "🌻", "🛠️", "🚗", "💊", "🩺", "❤️",
 ];
 
 function listText(items: string[]): string {

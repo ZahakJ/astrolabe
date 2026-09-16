@@ -222,6 +222,78 @@ function ReviewWeekRow({ today }: { today: string }) {
   );
 }
 
+/** MASONRY, THE HONEST WAY. A row grid made every row as tall as its
+ *  tallest card, so a short card left a hole above the card below it (the
+ *  owner: "a whole gap between the top-left sigil and the one below it").
+ *  CSS columns would close the hole but reflow every card the moment one
+ *  expands, so a folded plan opening on the left would send a card to the
+ *  right. This places cards once: in title order, each into the shortest
+ *  column, by measured height — and moves nothing afterwards unless the
+ *  column count or the set of cards changes. Heights are read from the
+ *  rendered cards through one ResizeObserver; the first paint is a
+ *  round-robin guess that the measurement corrects a frame later. */
+function useMasonry(keys: string[], columns: number, hostRef: React.RefObject<HTMLDivElement | null>): Map<string, number> {
+  const heights = useRef(new Map<string, number>());
+  const [placed, setPlaced] = useState<Map<string, number>>(new Map());
+  const signature = `${columns}|${keys.join("\u0000")}`;
+  const place = useCallback((): void => {
+    const tall = Array.from({ length: columns }, () => 0);
+    const next = new Map<string, number>();
+    keys.forEach((key, i) => {
+      const h = heights.current.get(key);
+      const col = h === undefined ? i % columns : tall.indexOf(Math.min(...tall));
+      next.set(key, col);
+      tall[col] += (h ?? 320) + 18;
+    });
+    setPlaced(next);
+  }, [keys, columns]);
+  useEffect(() => {
+    place();
+  }, [signature, place]);
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    let pending = false;
+    const ro = new ResizeObserver((entries) => {
+      let changed = false;
+      for (const e of entries) {
+        const key = (e.target as HTMLElement).dataset.key;
+        if (!key) continue;
+        const h = e.contentRect.height;
+        if (heights.current.get(key) === undefined) changed = true;
+        heights.current.set(key, h);
+      }
+      // Only a card measured for the FIRST time re-places the set — a card
+      // that merely grew (a fold opened) stays where it is.
+      if (changed && !pending) {
+        pending = true;
+        requestAnimationFrame(() => {
+          pending = false;
+          place();
+        });
+      }
+    });
+    for (const el of host.querySelectorAll<HTMLElement>("[data-key]")) ro.observe(el);
+    return () => ro.disconnect();
+  }, [signature, place, hostRef]);
+  return placed;
+}
+
+/** How many columns the page has room for: a card wants 380px. */
+function useColumns(hostRef: React.RefObject<HTMLDivElement | null>): number {
+  const [columns, setColumns] = useState(1);
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    const measure = (): void => setColumns(Math.max(1, Math.min(3, Math.floor((host.clientWidth + 18) / (380 + 18)))));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(host);
+    return () => ro.disconnect();
+  }, [hostRef]);
+  return columns;
+}
+
 export default function RoutinesView() {
   const [all, setAll] = useState<RoutineMeta[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -262,6 +334,10 @@ export default function RoutinesView() {
     [all, locale],
   );
   const templates = useMemo(() => (all ?? []).filter((m) => m.template), [all]);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const columns = useColumns(gridRef);
+  const keys = useMemo(() => live.map((m) => `${m.path}::${m.index}`), [live]);
+  const placed = useMasonry(keys, columns, gridRef);
   const complete = useMemo(
     () => live.filter((m) => dayStatus(m.plan, m.entries.find((e) => e.date === today) ?? null, today, today) === "complete").length,
     [live, today],
@@ -353,17 +429,24 @@ export default function RoutinesView() {
           <p className="s-routines__emptyhint">{t("routinesEmptyHint")}</p>
         </div>
       ) : (
-        <div className="s-routines__grid">
-          {live.map((meta) => (
-            <RoutineCard
-              key={`${meta.path}::${meta.index}`}
-              meta={meta}
-              today={today}
-              onLog={(patch) => void log(meta, patch)}
-              onOpen={() => open(meta)}
-              onEdit={() => setForm({ open: true, editing: meta })}
-              onDelete={() => remove(meta)}
-            />
+        <div className="s-routines__grid" ref={gridRef} style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+          {Array.from({ length: columns }, (_, col) => (
+            <div className="s-routines__column" key={col}>
+              {live
+                .filter((m) => (placed.get(`${m.path}::${m.index}`) ?? live.indexOf(m) % columns) === col)
+                .map((meta) => (
+                  <div className="s-routines__slot" data-key={`${meta.path}::${meta.index}`} key={`${meta.path}::${meta.index}`}>
+                    <RoutineCard
+                      meta={meta}
+                      today={today}
+                      onLog={(patch) => void log(meta, patch)}
+                      onOpen={() => open(meta)}
+                      onEdit={() => setForm({ open: true, editing: meta })}
+                      onDelete={() => remove(meta)}
+                    />
+                  </div>
+                ))}
+            </div>
           ))}
         </div>
       )}

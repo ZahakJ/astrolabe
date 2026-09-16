@@ -1402,8 +1402,16 @@ select:focus,
   cursor: default;
 }
 
+/* On an empty card the foot is the card's second and last line, appended
+   straight to the card rather than inside the padded body — so it carries
+   the body's own inset itself. Without it "Add property" sat on the card's
+   left edge with its hover pill spilling past the border (the owner: "add
+   property is weird, on hover it touches lots of things around it"). */
 .s-editor .cm-s-props--empty .cm-s-props__foot {
-  padding-top: 0;
+  padding: 0 12px 8px;
+}
+.s-editor .cm-s-props--empty .cm-s-props__addprop {
+  margin-inline-start: 0;
 }
 
 .s-editor .cm-s-props__chevron {

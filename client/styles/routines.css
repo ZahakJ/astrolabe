@@ -63,13 +63,11 @@
   /* auto-FIT, not auto-fill: one routine spans the row, two share it, and
      the empty second column auto-fill kept open for a card that did not
      exist is gone (the owner: "the right half seems completely blank"). */
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
-  /* Each card is as tall as its own content and no taller. The default
-     (stretch) sized both cards in a row to the taller one, so opening the
-     week's plan on one card grew its neighbour's box (the owner: "opening
-     more info on the left card expands the right card in weird ways"). A
-     card grid where cards expand on their own is the idiom; the leftover
-     height sits under the shorter card, not inside it. */
+  /* Columns, not rows: RoutinesView places each card into the shortest
+     column (useMasonry), so a short card never leaves a hole above the one
+     below it and a card that grows moves nothing but itself. The column
+     count is measured from the width (380px per card). */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
   gap: 18px;
   max-inline-size: 1240px;
@@ -659,4 +657,14 @@
 .s-routines__recentnote:hover {
   color: var(--text);
   border-color: var(--accent);
+}
+
+.s-routines__column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-inline-size: 0;
+}
+.s-routines__slot {
+  min-inline-size: 0;
 }
