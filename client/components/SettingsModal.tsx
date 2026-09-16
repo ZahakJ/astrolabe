@@ -97,6 +97,8 @@ import { NumberInput, SegmentedControl, TextInput, Toggle, type Segment } from "
 import { PathInput } from "./controls/PathInput.tsx";
 import { isSelectOpen, Select, type SelectGroup } from "./controls/Select.tsx";
 import DeviceTab from "./settings/DeviceTab.tsx";
+import { desktop } from "../desktop/bridge.ts";
+import { DECLARABLE, SPELL_DICTS_EVENT, browserDictionaries, setBrowserDictionaries, type Declarable } from "../spellDicts.ts";
 import { Row } from "./settings/Row.tsx";
 import { choiceLabel, isTheme, THEME_GROUPS, THEME_LABELS, THEMES, type Theme } from "../themes.ts";
 import { customThemeChoice, isCustomThemeId } from "../../shared/customTheme.ts";
@@ -2590,6 +2592,14 @@ interface Tab {
   intro: I18nKey;
 }
 
+/** Named one by one so the dictionary gate sees every key used. */
+const DICT_LABELS: Record<Declarable, () => string> = {
+  fr: () => t("spellDict_fr"),
+  ar: () => t("spellDict_ar"),
+  he: () => t("spellDict_he"),
+  fa: () => t("spellDict_fa"),
+};
+
 const TABS: Tab[] = [
   { id: "device", key: "tabDevice", intro: "introDevice" },
   { id: "site", key: "tabSite", intro: "introSite" },
@@ -2641,6 +2651,15 @@ export default function SettingsModal() {
   const bodyRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLElement>(null);
   const [tab, setTab] = useState(TABS[0].id);
+  // The browser's declared dictionaries (client/spellDicts.ts): device-local,
+  // drawn under Language & dates because that is where a person looks for a
+  // language, and hidden on the desktop, which asks Electron itself.
+  const [dicts, setDicts] = useState<Declarable[]>(() => browserDictionaries());
+  useEffect(() => {
+    const on = (): void => setDicts(browserDictionaries());
+    window.addEventListener(SPELL_DICTS_EVENT, on);
+    return () => window.removeEventListener(SPELL_DICTS_EVENT, on);
+  }, []);
   /** THE BODY'S SCROLL EDGES ARE A MASK, NOT AN OVERLAY.
    *
    *  Two absolutely-positioned gradient `<span>`s used to sit over the top and
@@ -3377,6 +3396,22 @@ export default function SettingsModal() {
                       {...field("language")}
                     />
                   </Row>
+                  {desktop() === null && (
+                    <Row label={t("rowSpellDicts")} hint={t("hintSpellDicts")}>
+                      <div className="s-smodal__dicts" role="group" aria-label={t("rowSpellDicts")}>
+                        {DECLARABLE.map((code) => (
+                          <Toggle
+                            key={code}
+                            label={DICT_LABELS[code]()}
+                            onLabel={t("on")}
+                            offLabel={t("off")}
+                            value={dicts.includes(code)}
+                            onChange={(on) => setBrowserDictionaries(on ? [...dicts, code] : dicts.filter((d) => d !== code))}
+                          />
+                        ))}
+                      </div>
+                    </Row>
+                  )}
                   <Row
                     label={t("rowDateLocale")}
                     hint={t("hintDateLocale")}

@@ -14,6 +14,7 @@
 // they share a document, which is the point of it being one note.
 
 import { useEffect, useRef, useState } from "react";
+import { SPELL_DICTS_EVENT } from "../spellDicts.ts";
 import { EditorView } from "@codemirror/view";
 import { focusIsClaimed } from "../a11y.ts";
 import { ApiError, isNotPublishedError } from "../api.ts";
@@ -375,6 +376,15 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
   useEffect(() => {
     viewRef.current?.dispatch({ effects: noteLayoutChanged.of(null) });
   }, [siteTextDirection, siteTextAlign]);
+
+  // The reader declared (or withdrew) a browser dictionary: the per-line
+  // spellcheck attribute is part of the same decoration, so the same signal
+  // repaints it — again without touching the undo history.
+  useEffect(() => {
+    const on = (): void => viewRef.current?.dispatch({ effects: noteLayoutChanged.of(null) });
+    window.addEventListener(SPELL_DICTS_EVENT, on);
+    return () => window.removeEventListener(SPELL_DICTS_EVENT, on);
+  }, []);
 
   // "Insert template…" — ONE transaction, so one Ctrl+Z takes the whole thing
   // back out. The frontmatter merge and the body insert are computed together

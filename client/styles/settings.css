@@ -968,3 +968,10 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+
+/* Browser dictionaries: four small toggles in a row that wraps on a phone. */
+.s-smodal__dicts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}

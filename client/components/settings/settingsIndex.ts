@@ -57,6 +57,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "site", label: "rowFontArabic", hint: "hintFontArabic" },
   { tab: "site", label: "rowSizeAdjust", hint: "hintSizeAdjust" },
   { tab: "language", label: "rowLanguage", hint: "hintLanguage", env: "SITE_LANG" },
+  { tab: "language", label: "rowSpellDicts", hint: "hintSpellDicts" },
   { tab: "language", label: "rowDateLocale", hint: "hintDateLocale", env: "BLOG_LOCALE" },
   { tab: "language", label: "rowLanguageFilter", hint: "hintLanguageFilter", env: "LANGUAGE_FILTER" },
   { tab: "language", label: "rowLanguageToggle", hint: "hintLanguageToggle" },
