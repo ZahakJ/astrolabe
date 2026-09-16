@@ -100,6 +100,7 @@ import { isSelectOpen, Select, type SelectGroup } from "./controls/Select.tsx";
 import DeviceTab from "./settings/DeviceTab.tsx";
 import { PeriodicForm } from "./settings/PeriodicForm.tsx";
 import { DEFAULT_LAUNCH, isLaunchDoor } from "../../shared/launch.ts";
+import { ClipperControl } from "./settings/ClipperControl.tsx";
 import { desktop } from "../desktop/bridge.ts";
 import { DECLARABLE, SPELL_DICTS_EVENT, browserDictionaries, setBrowserDictionaries, type Declarable } from "../spellDicts.ts";
 import { Row } from "./settings/Row.tsx";
@@ -185,6 +186,8 @@ interface Form {
   launchNote: string;
   uniqueFolder: string;
   uniqueFormat: string;
+  /** The quick-capture sheet's inbox note (docs/capture.md); empty = none. */
+  captureInbox: string;
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
   // no env counterpart, so "inherit" is meaningless here — every control shows
@@ -319,6 +322,7 @@ function formFrom(s: SettingsResponse): Form {
     launchNote: s.launch !== undefined && !isLaunchDoor(s.launch) ? s.launch : "",
     uniqueFolder: s.uniqueFolder ?? "",
     uniqueFormat: s.uniqueFormat ?? "",
+    captureInbox: s.captureInbox ?? "",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
     syncBranch: s.effective.gitSync.branch,
@@ -1334,7 +1338,8 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       | "yearlyFormat"
       | "yearlyTemplate"
       | "uniqueFolder"
-      | "uniqueFormat",
+      | "uniqueFormat"
+      | "captureInbox",
   ): void => {
     const value = f[key].trim();
     if (value !== initial[key].trim()) patch[key] = value === "" ? null : value;
@@ -1369,6 +1374,7 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   str("yearlyTemplate");
   str("uniqueFolder");
   str("uniqueFormat");
+  str("captureInbox");
   if (f.language !== initial.language) {
     patch.language = f.language === "en" || f.language === "ar" ? f.language : null;
   }
@@ -4133,6 +4139,21 @@ export default function SettingsModal() {
                   </Row>
                   <Row label={t("uniqueFormatLabel")} hint={t("uniqueFormatHint")}>
                     <TextInput placeholder={eff.uniqueFormat} dir="ltr" label={t("uniqueFormatLabel")} {...field("uniqueFormat")} />
+                  </Row>
+                  {/* CAPTURE (docs/capture.md): the two doors into the vault
+                      that do not start from a note. The inbox is the
+                      quick-capture sheet's second target, a note on the
+                      daily template's terms; the clipper is a bookmarklet
+                      and the token inside it, which lives in the data
+                      directory and never in the vault. Both are questions
+                      about where this instance PUTS things, like every row
+                      above. */}
+                  <div className="s-smodal__sub">{t("captureSection")}</div>
+                  <Row label={t("captureInboxLabel")} hint={t("captureInboxHint")}>
+                    <TextInput placeholder="Inbox.md" dir="ltr" label={t("captureInboxLabel")} {...field("captureInbox")} />
+                  </Row>
+                  <Row label={t("clipperLabel")} hint={t("clipperHint")}>
+                    <ClipperControl siteName={eff.siteName} />
                   </Row>
                   {/* Where the sidebar's pencil files a drawing (the owner:
                       "create the drawing in a specified space in settings or

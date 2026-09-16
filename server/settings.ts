@@ -9,7 +9,7 @@
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
 // templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
 // weeklyFormat, weeklyTemplate, monthlyFormat, monthlyTemplate, yearlyFormat, yearlyTemplate,
-// uniqueFolder, uniqueFormat, launch, dateCalendar, textDirection, textAlign,
+// uniqueFolder, uniqueFormat, captureInbox, launch, dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
 // Unknown keys in the file are preserved verbatim on every write so external
@@ -498,7 +498,7 @@ export function getSettings(): SettingsData {
   if (typeof raw.defaultTemplate === "string" && raw.defaultTemplate.trim() !== "") {
     out.defaultTemplate = raw.defaultTemplate.trim();
   }
-  for (const key of ["dailyFolder", "dailyFormat", "dailyTemplate", "weeklyFormat", "weeklyTemplate", "monthlyFormat", "monthlyTemplate", "yearlyFormat", "yearlyTemplate", "uniqueFolder", "uniqueFormat"] as const) {
+  for (const key of ["dailyFolder", "dailyFormat", "dailyTemplate", "weeklyFormat", "weeklyTemplate", "monthlyFormat", "monthlyTemplate", "yearlyFormat", "yearlyTemplate", "uniqueFolder", "uniqueFormat", "captureInbox"] as const) {
     const v = raw[key];
     // The weekly, monthly and yearly formats keep an EMPTY string: it means
     // "that kind of note is off".
@@ -704,6 +704,10 @@ export function effectiveSettings(): EffectiveSettings {
     launch: s.launch ?? DEFAULT_LAUNCH,
     uniqueFolder: uniqueFolder(),
     uniqueFormat: s.uniqueFormat ?? UNIQUE_FORMAT_DEFAULT,
+    // The capture inbox is a note path on the daily template's terms: a
+    // stored value that no longer names a note inside the vault reads as
+    // unset, so the sheet offers today's note alone rather than a dead door.
+    captureInbox: periodicTemplate(s.captureInbox),
     home: {
       mode: s.home?.mode ?? "note",
       ...(s.home?.note ?? envHomeNote() ? { note: s.home?.note ?? envHomeNote() ?? undefined } : {}),
@@ -1351,6 +1355,10 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     return rel;
   }),
   uniqueFormat: stringKey("uniqueFormat", (v) => uniqueFormat(v, "uniqueFormat")),
+  // The second target of the quick-capture sheet (docs/capture.md): a note
+  // pinned as the inbox. Validated like a template — a note path in the
+  // vault, or nothing.
+  captureInbox: stringKey("captureInbox", (v) => templateNote(v, "captureInbox")),
   defaultTemplate: stringKey("defaultTemplate", (v) => {
     const clean = cleanValue(v, "defaultTemplate");
     if (clean === null) return null;

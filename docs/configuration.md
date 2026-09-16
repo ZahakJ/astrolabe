@@ -34,7 +34,7 @@ comment explaining it. The table below is the short version.
 | `PORT` | The port the server listens on (default 6801) |
 | `HOST` | The address the server listens on (default `0.0.0.0`, which means every network interface). If you listen on anything other than the local machine *and* have no password, the server prints a loud warning at startup: anyone who can reach the port is an admin |
 | `ASTROLABE_VAULT` | The vault folder — the folder that holds your notes (default `./vault`). A `--vault <path>` argument on the command line takes precedence over this |
-| `ASTROLABE_DATA` | The server's data folder (default `./data`). It holds `settings.json`, the comments database (SQLite), your `custom.css`, `designs.json`, the git credentials file, and `fonts/` (your own font files, plus the cached catalog in `fonts/catalog/` and uploads in `fonts/custom/`) |
+| `ASTROLABE_DATA` | The server's data folder (default `./data`). It holds `settings.json`, the comments database (SQLite), your `custom.css`, `designs.json`, the git credentials file, the [clipper's token](capture.md#the-clipper) (`clip-token`), and `fonts/` (your own font files, plus the cached catalog in `fonts/catalog/` and uploads in `fonts/custom/`) |
 | `ADMIN_PASSWORD_HASH` | The admin password, stored as an argon2id *hash* — a fingerprint the server can check a password against but cannot turn back into the password. `npm run hash-password` makes one. When it is not set, the app runs in *open local mode*: no password, everyone is an admin |
 | `SESSION_SECRET` | A long random string used to sign login cookies (the small token your browser keeps to prove you are signed in). When it is not set, the server invents a new one at every startup, so every restart signs you out |
 | `PUBLIC` | `false` requires login even to read notes (default: reading is public, editing needs login). **The server refuses to start with `PUBLIC=false` and no `ADMIN_PASSWORD_HASH`** |
@@ -113,8 +113,8 @@ what it decides. The first tab is yours; the rest are the site's and share one *
   year), the [unique note](templates-and-notes.md#unique-notes)'s folder and name, the drawings
   folder, **Open on launch** (where the app opens — where you left off, the Sigils page, the Orbits
   shelf, today's note, or a note of your choosing — on top of the restored session, and never over
-  a pasted link), **where new attachments are written** (see [Attachments](#attachments)), the
-  tags folder, note versions and PDF search.
+  a pasted link), the [capture inbox and the clipper](capture.md), **where new attachments are
+  written** (see [Attachments](#attachments)), the tags folder, note versions and PDF search.
 - **Backup & sync** — commit the vault and push it to a private git remote you own, manually or
   on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
 - **About** — the version, the Node version, the vault's counts, and the absolute paths of the
@@ -237,6 +237,7 @@ above.
 | `launch` | `resume` · `sigils` · `orbits` · `today` · a vault-relative note — what the admin's shell opens on top of the restored session (see [Periodic notes](templates-and-notes.md#periodic-notes)). **No env counterpart** | `resume` |
 | `uniqueFolder` | vault-relative folder the palette's *New unique note* files into (see [Unique notes](templates-and-notes.md#unique-notes)) | none — the vault root |
 | `uniqueFormat` | the unique note's name: the daily tokens plus `HH`, `mm`, `ss`; must name the year and something finer than a day | `YYYYMMDDHHmm` |
+| `captureInbox` | vault-relative note the [quick-capture sheet](capture.md) can drop lines into instead of today's note | none — today's note only |
 | `dateCalendar` | `gregorian` · `hijri` · `both` | `gregorian` |
 | `dateOrder` | `auto` · `hijri-first` · `gregorian-first` — which calendar leads in `both` | `auto` (by the site language) |
 | `dateSeparator` | `bar` · `dot` · `parens` — what stands between the two in `both` | `bar` |

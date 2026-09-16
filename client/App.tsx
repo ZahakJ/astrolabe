@@ -127,6 +127,11 @@ const ModerationPanel = lazySurface(() => import("./components/ModerationPanel.t
 const TrashModal = lazySurface(() => import("./components/TrashModal.tsx"));
 const UnusedAttachmentsModal = lazySurface(() => import("./components/UnusedAttachmentsModal.tsx"));
 const SettingsModal = lazySurface(() => import("./components/SettingsModal.tsx"));
+// The quick-capture sheet (docs/capture.md): a keystroke away from anywhere,
+// so it is mount-gated on its store flag like the shortcuts sheet and lazy
+// for the same reason — a first paint should not carry a dialog it has not
+// been asked for.
+const CaptureSheet = lazySurface(() => import("./components/CaptureSheet.tsx"));
 // The keyboard-shortcut sheet is lazy AND mount-gated on `shortcutsOpen` —
 // which is why it is worth splitting when the other always-mounted hosts are
 // not. It renders in the BLOG branch too, so a static copy put its 389 lines,
@@ -222,6 +227,7 @@ export default function App() {
   const trashOpen = useStore((s) => s.trashOpen);
   const unusedOpen = useStore((s) => s.unusedOpen);
   const settingsOpen = useStore((s) => s.settingsOpen);
+  const captureOpen = useStore((s) => s.captureOpen);
   // Subscribed here (not only inside the sheet) because App now decides
   // whether the sheet is MOUNTED at all — that is what keeps its chunk out of
   // the first paint on both shells.
@@ -652,6 +658,7 @@ export default function App() {
       store.trashOpen ||
       store.unusedOpen ||
       store.settingsOpen ||
+      store.captureOpen ||
       document.querySelector(".s-confirm-overlay, .s-tpick-overlay, .s-att-view") !== null;
 
     /** Put the caret back where the reader left it — the note they came from.
@@ -933,6 +940,17 @@ export default function App() {
         // closes the browser window and is not takeable anywhere.
         e.preventDefault();
         store.closeActiveTab();
+      } else if (key === "d" && e.shiftKey && !e.altKey) {
+        // Ctrl/Cmd+Shift+D — quick capture: a line into today's note without
+        // leaving this one (client/capture.ts). Shift, beside the daily
+        // note's Alt: the two are one idea ("today's note") with two verbs,
+        // and the plain key stays the editor's (multi-cursor). Swallowed
+        // even inside the editor, where CodeMirror binds nothing to it and
+        // the browser's "bookmark all tabs" would otherwise open.
+        if (!store.admin) return;
+        e.preventDefault();
+        e.stopPropagation();
+        store.setCaptureOpen(true);
       } else if (key === "d" && e.altKey) {
         // Ctrl/Cmd+Alt+D — the daily note, moved here off the plain key for
         // the same reason the pane toggles moved to Alt above: the unmodified
@@ -1339,6 +1357,11 @@ export default function App() {
       {settingsOpen && admin && (
         <Surface>
           <SettingsModal />
+        </Surface>
+      )}
+      {captureOpen && admin && (
+        <Surface>
+          <CaptureSheet />
         </Surface>
       )}
       {/* Always mounted (like ConfirmHost): the two template commands await a
