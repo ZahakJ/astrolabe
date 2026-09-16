@@ -7543,8 +7543,11 @@ html[dir="rtl"] .s-statusbar__spacer {
 /* ── The template's questions (components/TemplateValuesSheet.tsx) ─────
    The label is the template AUTHOR's text ("Attendees", «الحاضرون»), not a
    chrome caption, so it keeps its own case and tracking rather than the
-   form's small-caps label dress. */
-.s-tplvalues__label {
+   form's small-caps label dress. Two classes deep on purpose: media.css is
+   the sheet's own lazy stylesheet and lands AFTER this file, so a rule of
+   equal weight here lost to .s-mediaform__label and the labels came up in
+   capitals. */
+.s-tplvalues .s-tplvalues__label {
   text-transform: none;
   letter-spacing: 0;
   font-size: 0.857rem;

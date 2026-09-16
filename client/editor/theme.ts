@@ -179,13 +179,13 @@ export function editorTheme(): Extension {
       padding: "5px 10px",
       lineHeight: "1.45",
       borderRadius: "4px",
-      borderLeft: "2px solid transparent",
+      borderInlineStart: "2px solid transparent",
       color: "var(--text)",
       transition: "background 150ms ease",
     },
     ".cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected]": {
       background: "var(--accent-soft)",
-      borderLeftColor: "var(--accent)",
+      borderInlineStartColor: "var(--accent)",
       color: "var(--text)",
     },
     ".cm-completionLabel": { fontFamily: "var(--font-ui)" },
@@ -197,7 +197,10 @@ export function editorTheme(): Extension {
     ".cm-completionDetail": {
       color: "var(--text-faint)",
       fontStyle: "normal",
-      marginLeft: "0.75em",
+      // Logical, not left: the `@` rows put an Arabic phrase beside an
+      // Arabic date, and a left margin in an RTL popup is a gap on the far
+      // side and none between the two.
+      marginInlineStart: "0.75em",
       fontSize: "0.85em",
     },
 

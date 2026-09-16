@@ -1,4 +1,4 @@
-// A TAG PILL, HOVERED: the three notes that carry it most, in a card beside
+// A TAG PILL, HOVERED: the three newest notes that carry it, in a card beside
 // the pill. The sidebar's tag shelf is a list of counts — "#reading · 41" —
 // and a count is a promise of notes it does not show; clicking narrows the
 // whole tree to find out, which is a commitment for a glance. The card
@@ -10,9 +10,12 @@
 // timers, the same keyboard route (a pill reached by arrow keys and focused
 // opens the same card). What differs is only what the three callbacks say:
 // `resolve` reads the pill's `data-tag`, `title` prints the pill's label,
-// and `render` asks the search index — `#tag` is exactly the query the pill's
-// click runs — for its first three answers, so the card and the click can
-// never disagree about which notes come first.
+// and `render` asks the search index with the `tag:` operator — the exact
+// filter, the notes that CARRY the tag, newest first — for its first three
+// answers. Not the `#tag` text query the pill's click runs: that one is a
+// word search that ranks a note merely TITLED "Physics Reading" above every
+// note tagged #reading, and a card that promised "notes carrying it" and
+// led with one that does not would be a small lie on every hover.
 //
 // Reached by dynamic import from Sidebar.tsx, like the note previews: the
 // hover engine is interaction-time code and stays out of first paint.
@@ -38,7 +41,8 @@ function folderOf(path: string): string {
  *  shelf's own count for a tag — the search answer is capped at fifty, and
  *  the pill already knows the true number. Returns the disposer; the
  *  sidebar re-installs on a language flip because the card's count line
- *  carries t() words. */
+ *  carries t() words. Three notes, newest first — the order `tag:` answers
+ *  in, which is the order a shelf of notes on a topic is worth glancing at. */
 export function installTagPreviews(
   root: HTMLElement,
   scroller: HTMLElement | null,
@@ -47,8 +51,8 @@ export function installTagPreviews(
   return installHoverCards({
     root,
     scroller,
-    // The card's key is the canonical tag with its hash, which is also the
-    // search it runs — one string, three jobs.
+    // The card's key is the canonical tag with its hash — the title as the
+    // pill prints it; the query is built from it below.
     resolve: (el) => {
       const pill = el.closest<HTMLElement>(".s-tag[data-tag]");
       const tag = pill?.dataset.tag;
@@ -58,7 +62,7 @@ export function installTagPreviews(
     render: async (key) => {
       let hits;
       try {
-        hits = await search(key);
+        hits = await search(`tag:${key.slice(1)}`);
       } catch {
         return null; // the index is away: no card, no trace
       }

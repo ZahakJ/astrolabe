@@ -29,8 +29,11 @@ import { inCodeOrLink } from "./syntaxSite.ts";
 /** `@` plus what follows it on the line, up to the caret. The phrase may
  *  carry spaces ("in 3 days") and either script's digits; it stops at a
  *  second `@` or a bracket, which is where a phrase would have stopped
- *  being one. */
-const MENTION_TAIL = /@([^@[\]\n]{0,40})$/u;
+ *  being one. It may not BEGIN with a space: "meet @ the office" is prose
+ *  with an at-sign in it, and a popup that opened on "@ t" (today,
+ *  tomorrow, thursday…) and closed on "@ th" was a flicker on every such
+ *  sentence. A bare `@` still opens, with the standing rows. */
+const MENTION_TAIL = /@(?:[^@[\]\n\s][^@[\]\n]{0,39})?$/u;
 
 /** The link the row inserts, and its alias. */
 function linkFor(row: NaturalDate): string {

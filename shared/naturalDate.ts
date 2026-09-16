@@ -209,15 +209,24 @@ function splitDayMonth(folded: string): { day: number; month: string; year: numb
 /** The Hijri year/month/day of a Gregorian day, by Intl. Null on an ICU
  *  build without the Umm al-Qura tables — then a Hijri phrase simply does not
  *  resolve, which is honest. */
+let hijriFormatter: Intl.DateTimeFormat | undefined;
+
 function hijriParts(d: Date): { year: number; month: number; day: number } | null {
   try {
-    const fmt = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", {
-      calendar: HIJRI_CALENDAR,
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      numberingSystem: "latn",
-    });
+    // Built once and kept: a scan is hundreds of these calls per keystroke,
+    // and constructing an Intl.DateTimeFormat costs more than formatting
+    // with one — the scan with a fresh formatter each time was the whole
+    // budget of a keystroke; with one kept it is a few milliseconds.
+    if (hijriFormatter === undefined) {
+      hijriFormatter = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", {
+        calendar: HIJRI_CALENDAR,
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        numberingSystem: "latn",
+      });
+    }
+    const fmt = hijriFormatter;
     const fields: Record<string, string> = {};
     for (const part of fmt.formatToParts(d)) fields[part.type] = part.value;
     const year = Number.parseInt(fields.year ?? "", 10);
@@ -313,7 +322,10 @@ export function parseNaturalDate(input: string, now: Date, lang: NaturalLang = "
   m = /^(بعد|قبل) (?:(\d{1,3}) )?(يوم|ايام|يومين|اسبوع|اسابيع|اسبوعين)$/.exec(folded);
   if (m) {
     const unit = m[3];
-    const weeks = unit.startsWith("اسب");
+    // Both plurals: «أسبوع/أسبوعين» begin اسب after the fold, «أسابيع» اسا
+    // — the broken plural changes the second letter, and a test on the
+    // first three read "three weeks ago" as three days.
+    const weeks = unit.startsWith("اس");
     let n: number;
     if (m[2] !== undefined) n = Number(m[2]);
     else if (unit === "يومين" || unit === "اسبوعين") n = 2;
