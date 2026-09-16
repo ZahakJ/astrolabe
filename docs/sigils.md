@@ -189,8 +189,8 @@ second, fainter dot every day a sigil logged something, so a month of kept days 
 today is ringed, and a click opens (or creates) that day's note. On a phone the page keeps its
 width for the checklists and the sidebar's section is the calendar.
 
-**Recently read.** When nothing is due — no sigil asks anything of today and no cards wait in
-Orbits — the page opens instead with a row of the notes you were last in, the palette's own
+**Recently read.** When nothing is due — no sigil asks anything of today, or everything asked has
+been ticked, and no cards wait in Orbits — the page opens instead with a row of the notes you were last in, the palette's own
 memory, so a quiet day starts where the last one left off. Each is a door back to the note.
 
 Each card has **Edit** (the form, filled in), **Delete** (the note goes to the trash through the

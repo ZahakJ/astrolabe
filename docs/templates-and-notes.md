@@ -158,7 +158,8 @@ fainter dot marks a day a [sigil](sigils.md) logged something; today is ringed. 
 opens its note, creating it through the same door as `Ctrl/Cmd Alt D` (template and all); `‹` and
 `›` turn the month; the month's name brings you back to today's. The section folds like the tag
 shelf and remembers it. The same grid sits at the top of the [Sigils page](sigils.md#the-sigils-page)
-on a desktop; on a phone the sidebar's section is the calendar.
+on a desktop; on a phone the sidebar's section is the calendar. A visitor to the public site sees
+the section only when a daily note is published, dotted with the published days.
 
 The grid is one tab stop. Inside it, `←` `→` walk the days (mirrored under Arabic), `↑` `↓` the
 weeks, `Home` `End` the ends of the row, `PageUp` `PageDown` the months, and `Enter` opens the

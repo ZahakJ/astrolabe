@@ -28,7 +28,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addMonths, firstOfMonth, monthCells, noon, ymdOf, type GridCalendar, type GridCell } from "../../shared/calendar.ts";
 import { isoDate, weekOrder, type Weekday } from "../../shared/routine.ts";
-import { dailyNotesByDay, openPeriodicNoteAt } from "../daily.ts";
+import { dailyNotesByDay, openPeriodicNoteAt, usePeriodic } from "../daily.ts";
 import { dateNamesLocale } from "../../shared/dates.ts";
 import { getDateBothStyle, getDateCalendar, siteDate, siteDateIn } from "../dates.ts";
 import { localeNum, t, tf, type I18nKey } from "../i18n.ts";
@@ -84,7 +84,10 @@ export default function CalendarGrid({ logged, onOpened }: CalendarGridProps) {
   useEffect(() => setFirst(firstOfMonth(new Date(), primary)), [primary]);
 
   const rows = useMemo(() => monthCells(first, primary, order), [first, primary, order]);
-  const notes = useMemo(() => dailyNotesByDay(tree), [tree]);
+  // Re-read when the tree moves AND when the periodic settings do: the daily
+  // folder can change under this grid from Settings → Vault.
+  const periodic = usePeriodic();
+  const notes = useMemo(() => dailyNotesByDay(tree), [tree, periodic]);
 
   // The single tab stop: today when it is on the page, else the month's
   // first day. Kept across month turns when the reader is walking with the

@@ -11,6 +11,7 @@ import type {
   MouseEvent as ReactMouseEvent,
 } from "react";
 import type { AttachmentKind, SearchHit, SearchMatch, TagCount, TreeNode } from "../../shared/types.ts";
+import { dailyNotesByDay, usePeriodic } from "../daily.ts";
 import { getGraph, getRoutines, getTags, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
 import {
   dragFileCount,
@@ -726,6 +727,13 @@ export default function Sidebar() {
   // Only a session with a tree has days to mark, and only an admin has the
   // route; a visitor's grid still dots the published daily notes.
   const loggedDays = useLoggedDays(admin && !calendarCollapsed && tree !== null);
+  // A VISITOR gets the month only when there is a day in it to open: the
+  // grid's one act is opening the day's note, and a published vault with no
+  // daily note published would hand every click a "sign in" toast. Cheap —
+  // one string compare per note, and only re-read when the tree moves.
+  const periodic = usePeriodic();
+  const hasDailyNotes = useMemo(() => (tree === null ? false : dailyNotesByDay(tree).size > 0), [tree, periodic]);
+  const showCalendar = tree !== null && (admin || hasDailyNotes);
   const [tagsCollapsed, setTagsCollapsed] = useState(loadTagsCollapsed);
   const [tagsHeight, setTagsHeight] = useState<number | null>(loadTagsHeight);
   // THE SHELF'S TOP EDGE IS A GRIP (the owner: "should def be able to expand
@@ -2204,7 +2212,7 @@ export default function Sidebar() {
           through the daily-note command's own door. Folded like the tag
           shelf, remembered like it, and a lazy chunk behind the fold. Not
           during search: the results pane is the sidebar then. */}
-      {tree !== null && hits === null && !(admin && replacing) && (
+      {showCalendar && hits === null && !(admin && replacing) && (
         <section className={`s-calsec${calendarCollapsed ? " s-calsec--collapsed" : ""}`} aria-label={t("calendar")} data-testid="calendar-section">
           <button
             type="button"

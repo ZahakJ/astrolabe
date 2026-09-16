@@ -14,7 +14,10 @@
 // client/templates.ts). The synchronous readers below (the palette's hint,
 // the status bar's crumb, the calendar's dots) use the defaults until the
 // first fetch lands and the cache is primed, which every door through here
-// does first.
+// does first. The surfaces that DRAW from the cache (the grid, the crumb)
+// subscribe to it through `usePeriodic`, because the owner can move the
+// daily folder in Settings and the month that was dotted a second ago must
+// be dotted by the new address, not the old one, without a reload.
 
 import { createNote } from "./api.ts";
 import { getDateCalendar, siteDate, siteDateRange } from "./dates.ts";
@@ -35,6 +38,7 @@ import {
   shiftPeriod,
   type PeriodKind,
 } from "../shared/periodic.ts";
+import { useSyncExternalStore } from "react";
 import { useStore } from "./state.ts";
 import { applyDefaultTemplate } from "./templateActions.ts";
 import { templateSettings } from "./templates.ts";
@@ -55,19 +59,49 @@ let cached: Periodic = {
   templates: { day: null, week: null, month: null, year: null },
 };
 
-/** Prime the cache from the instance's settings; safe to call often. */
+/** A version counter for `useSyncExternalStore`, on client/tagLabels.ts's
+ *  argument: the snapshot is compared by identity, and a number that moves
+ *  when the cache is replaced is the cheap, stable thing to hand it. */
+let version = 0;
+const listeners = new Set<() => void>();
+function subscribe(cb: () => void): () => void {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function periodicVersion(): number {
+  return version;
+}
+
+/** Prime the cache from the instance's settings; safe to call often. Every
+ *  subscriber re-renders when the answer CHANGED — a save that touched
+ *  nothing periodic wakes nobody. */
 export async function loadPeriodic(): Promise<Periodic> {
+  // The settings route is the admin's; a visitor (whose grid opens only
+  // published days) keeps the defaults rather than asking for a 404 a click.
+  if (!useStore.getState().admin) return cached;
   try {
     const s = await templateSettings();
-    cached = {
+    const next: Periodic = {
       folder: s.dailyFolder ?? DAILY_FOLDER_DEFAULT,
       formats: { day: s.dailyFormat ?? DAILY_FORMAT_DEFAULT, week: s.weeklyFormat, month: s.monthlyFormat, year: s.yearlyFormat },
       templates: { day: s.dailyTemplate, week: s.weeklyTemplate, month: s.monthlyTemplate, year: s.yearlyTemplate },
     };
+    if (JSON.stringify(next) !== JSON.stringify(cached)) {
+      cached = next;
+      version += 1;
+      for (const cb of listeners) cb();
+    }
   } catch {
     // settings unreachable: the defaults stand, as they always did
   }
   return cached;
+}
+
+/** React's door onto the cache: the version, as a dependency for whatever
+ *  a component derives from `periodicSettings()` — the grid's dots, the
+ *  status bar's crumb. */
+export function usePeriodic(): number {
+  return useSyncExternalStore(subscribe, periodicVersion, periodicVersion);
 }
 
 /** The settings in force (the defaults until `loadPeriodic` lands). */
@@ -172,8 +206,12 @@ export async function openPeriodicNoteAt(kind: PeriodKind, date: Date): Promise<
   }
   const template = cached.templates[kind];
   const exists = collectNotes(store.tree).some((n) => n.path === path);
+  // The toasts name TODAY only when today is what was asked for: a visitor
+  // clicking last Tuesday on the grid, or the palette's month, must not be
+  // told about "today's daily note".
+  const isToday = kind === "day" && isoOf(periodStart("day", date)) === isoOf(new Date());
   if (!exists && !store.admin) {
-    toast(t("noDailyNote"));
+    toast(t(isToday ? "noDailyNote" : "noPeriodicNote"));
     return;
   }
   if (!exists) {
@@ -192,7 +230,7 @@ export async function openPeriodicNoteAt(kind: PeriodKind, date: Date): Promise<
       const message = err instanceof Error ? err.message : "";
       if (!/exists/i.test(message)) {
         console.error(`astrolabe: creating periodic note ${path} failed`, err);
-        toast(t("dailyNoteFailed"));
+        toast(t(isToday ? "dailyNoteFailed" : "periodicNoteFailed"));
         return;
       }
     }
