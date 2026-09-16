@@ -50,7 +50,6 @@ export function installSidenotes(host: HTMLElement, content: HTMLElement): () =>
     const aside = document.createElement("aside");
     aside.className = "s-rv-sidenote";
     aside.id = `sn-${label}`;
-    aside.dir = "auto";
     const num = document.createElement("a");
     num.className = "s-rv-sidenote__num";
     num.href = `#fnref-${encodeURIComponent(label)}`;
@@ -65,6 +64,10 @@ export function installSidenotes(host: HTMLElement, content: HTMLElement): () =>
     }
     const text = document.createElement("span");
     text.className = "s-rv-sidenote__text";
+    // The note's own words keep their own direction (an English note on an
+    // Arabic line, or the reverse); only the box's side and alignment
+    // follow the line, which the layout below sets.
+    text.dir = "auto";
     for (const node of li.childNodes) {
       if (node instanceof HTMLElement && node.classList.contains("s-rv-fnback")) continue;
       text.appendChild(node.cloneNode(true));
@@ -101,6 +104,12 @@ export function installSidenotes(host: HTMLElement, content: HTMLElement): () =>
       const rtl = getComputedStyle(block).direction === "rtl";
       note.el.classList.toggle("s-rv-sidenote--left", rtl);
       note.el.classList.toggle("s-rv-sidenote--right", !rtl);
+      // The note reads in its line's direction too, so its text hugs the
+      // column from either side: an Arabic note in the left margin starts
+      // at its right edge, against the text it annotates. `dir="auto"`
+      // would read the direction off the numeral, and a Latin label (`[^ar]`)
+      // sent an Arabic note to the far edge of its margin.
+      note.el.dir = rtl ? "rtl" : "ltr";
       // A reference inside a folded callout has no box; the note then sits
       // under the one above it, which the stacking already arranges.
       const want = rect !== null && rect.height > 0 ? rect.top - contentRect.top - 2 : -Infinity;

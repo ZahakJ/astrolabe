@@ -138,7 +138,13 @@ async function draw(host: HTMLElement, src: string): Promise<void> {
     const svg = host.querySelector("svg");
     if (svg) {
       svg.removeAttribute("height");
-      svg.style.maxWidth = "100%";
+      // Mermaid draws at `width="100%"` inside a `max-width` of the
+      // picture's own size, so a three-node chart stays three nodes wide.
+      // Keep that natural width as the cap and add the column's: a `100%`
+      // alone would scale a small diagram up to the column (a two-box
+      // Arabic flowchart came out nine hundred pixels tall).
+      const natural = parseFloat(svg.style.maxWidth) || parseFloat(svg.getAttribute("viewBox")?.split(/\s+/)[2] ?? "");
+      svg.style.maxWidth = Number.isFinite(natural) && natural > 0 ? `min(${Math.ceil(natural)}px, 100%)` : "100%";
       svg.setAttribute("role", "img");
       if (!svg.hasAttribute("aria-label")) svg.setAttribute("aria-label", t("mermaidDiagram"));
     }

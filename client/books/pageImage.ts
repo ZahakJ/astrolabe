@@ -21,7 +21,7 @@ import { closeDocument, openDocument, type PdfDocument } from "./pdfjs.ts";
 /** Pictures already drawn, by path, page and width — a note re-rendered on
  *  every save must not re-decode its pages. ~60 kB each at column width;
  *  64 of them is the working set of a long note, not a library. */
-const pictures = new Lru<string>({ max: 64 });
+const pictures = new Lru<PageImage>({ max: 64 });
 
 /** Open documents, kept a moment after their last use. */
 const open = new Map<string, { doc: Promise<PdfDocument>; timer: ReturnType<typeof setTimeout> | null }>();
@@ -60,13 +60,17 @@ export interface PageImage {
 export async function renderPageImage(path: string, page: number, cssWidth: number): Promise<PageImage> {
   const width = Math.max(64, Math.round(cssWidth));
   const key = `${path}#${page}@${width}`;
+  // A picture already drawn is answered without touching the document: a
+  // note re-rendered on every save would otherwise reopen the book (and
+  // fetch its head again once the hold below has lapsed) for a height it
+  // already knew.
   const cached = pictures.get(key);
+  if (cached !== undefined) return cached;
   const doc = await documentFor(path);
   if (page < 1 || page > doc.numPages) throw new Error(`astrolabe: no page ${page}`);
   const pdfPage = await doc.getPage(page);
   const base = pdfPage.getViewport({ scale: 1 });
   const cssHeight = Math.round((width * base.height) / (base.width || 1));
-  if (cached !== undefined) return { src: cached, cssWidth: width, cssHeight };
   const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, MAX_DPR));
   const scale = clampCanvasScale((width * dpr) / (base.width || 1), base.width, base.height);
   const viewport = pdfPage.getViewport({ scale });
@@ -79,7 +83,7 @@ export async function renderPageImage(path: string, page: number, cssWidth: numb
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   await pdfPage.render({ canvasContext: ctx, viewport, canvas }).promise;
-  const src = canvas.toDataURL("image/jpeg", 0.85);
-  pictures.set(key, src);
-  return { src, cssWidth: width, cssHeight };
+  const picture: PageImage = { src: canvas.toDataURL("image/jpeg", 0.85), cssWidth: width, cssHeight };
+  pictures.set(key, picture);
+  return picture;
 }
