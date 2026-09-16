@@ -73,10 +73,10 @@ export const ROUTINE_PRESETS: RoutinePreset[] = [
     ),
   },
   {
-    id: "prayer",
+    id: "mind",
     draft: preset(
-      { title: "Prayers", kind: "prayer", icon: "🕌", items: ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"], fields: ["in congregation:count", "quran pages:count"], target: 7 },
-      { title: "الصلوات", kind: "صلاة", icon: "🕌", items: ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"], fields: ["في جماعة:count", "صفحات القرآن:count"], target: 7 },
+      { title: "Mindfulness", kind: "mind", icon: "🧘", items: ["Morning sit — 10 minutes", "A walk without the phone", "Evening sit — 10 minutes"], fields: ["minutes:number", "calm:scale:5"], target: 7 },
+      { title: "التأمل", kind: "تأمل", icon: "🧘", items: ["جلسة الصباح: 10 دقائق", "مشية بلا هاتف", "جلسة المساء: 10 دقائق"], fields: ["دقائق:number", "الهدوء:scale:5"], target: 7 },
     ),
   },
   {

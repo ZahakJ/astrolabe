@@ -110,12 +110,12 @@ export function weekOrder(lang: "en" | "ar" = "en"): readonly Weekday[] {
 
 /** The built-in kinds — each one is also a preset the form offers. Anything
  *  else keeps the author's word and gets the ✦ glyph, as tracker kinds do. */
-export type RoutineKind = "exercise" | "habit" | "prayer" | "sleep" | "water" | "mood" | "reading" | "study";
+export type RoutineKind = "exercise" | "habit" | "mind" | "sleep" | "water" | "mood" | "reading" | "study";
 
 export const ROUTINE_KINDS: Record<RoutineKind, FolderIcon> = {
   exercise: "heart",
   habit: "leaf",
-  prayer: "star",
+  mind: "star",
   sleep: "moon",
   water: "flask",
   mood: "sparkle",
@@ -127,7 +127,10 @@ const KIND_WORDS: Record<string, RoutineKind> = {
   exercise: "exercise", workout: "exercise", fitness: "exercise", gym: "exercise", training: "exercise",
   "رياضة": "exercise", "تمرين": "exercise", "تمارين": "exercise",
   habit: "habit", habits: "habit", routine: "habit", "عادة": "habit", "عادات": "habit", "روتين": "habit",
-  prayer: "prayer", prayers: "prayer", salah: "prayer", salat: "prayer", "صلاة": "prayer", "الصلاة": "prayer", "صلوات": "prayer",
+  // A kind the app names: quiet time, a sit, a walk without a phone. A
+  // word it does not know (a practice of any faith or none) stays the
+  // writer's own word on the card, which is the honest label for it.
+  mind: "mind", mindfulness: "mind", meditation: "mind", meditate: "mind", calm: "mind", "تأمل": "mind", "التأمل": "mind", "هدوء": "mind", "يقظة": "mind",
   sleep: "sleep", "نوم": "sleep", "النوم": "sleep",
   water: "water", hydration: "water", "ماء": "water", "الماء": "water", "شرب": "water",
   mood: "mood", journal: "mood", feelings: "mood", "مزاج": "mood", "المزاج": "mood", "يوميات": "mood",
@@ -152,7 +155,7 @@ export type RoutineFieldType = "number" | "count" | "scale" | "text" | "check";
 /** One value kept per day: `minutes:number`, `weight:number:kg`,
  *  `water:count:glasses`, `mood:scale:5`, `soreness:text`, `stretched:check`.
  *  A count is a number that only ever means whole things — glasses, pages,
- *  prayers — so the card's input steps by one and takes no decimal. */
+ *  laps — so the card's input steps by one and takes no decimal. */
 export interface RoutineField {
   /** The key as written, which is also how the log names it. */
   key: string;

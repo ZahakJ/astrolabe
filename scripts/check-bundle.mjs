@@ -1092,7 +1092,9 @@ const AUDIENCES = [
   // sub-form, the tag card, the shelf, the Nearby list, the graph's query
   // rows, the review page, the session clock, the highlights writer and
   // the capture sheet are all lazy and asserted absent below.
-  { name: "admin first paint", keys: app, budget: 1545 * 1024 },
+  // 3.17.2: 1545.1 kB actual → 1546 — the Sigils masonry (two hooks) and the
+  // wider emoji shelf.
+  { name: "admin first paint", keys: app, budget: 1546 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
