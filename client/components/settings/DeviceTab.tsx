@@ -248,6 +248,7 @@ export default function DeviceTab() {
   const toggleRelativeLines = useStore((s) => s.toggleRelativeLines);
   const numbered = useEventPref("astrolabe:heading-numbers", headingNumbersPref);
   const french = useEventPref(FRENCH_AUTOCORRECT_EVENT, frenchAutocorrectEnabled);
+
   const toolbar = useEventPref("astrolabe:seltoolbar", selectionToolbarEnabled);
   const prefsSync = useEventPref("astrolabe:prefs-sync", prefsSyncEnabled);
   const whatsNew = useEventPref(WHATSNEW_EVENT, whatsNewEnabled);

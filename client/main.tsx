@@ -2,6 +2,7 @@
 // any module reads one (see storageMigration.ts). Imports hoist, so this one
 // has to be the first line.
 import "./storageMigration.ts";
+import { applyBrowserDictionaries } from "./spellDicts.ts";
 import { installPrefsSync, pullPrefs } from "./prefsSync.ts";
 import React from "react";
 // Excalidraw reads its font base URL when its chunk EVALUATES, and rollup
@@ -60,6 +61,9 @@ void pullPrefs().finally(() => {
 // headroom and a mouse cannot use any of this. Evaluated once at boot, which
 // is when a device's pointer is settled; the module itself re-checks the
 // drawer breakpoint on every touch, so a rotated tablet is never stale.
+// The reader's declared browser dictionaries, before any line is stamped.
+applyBrowserDictionaries();
+
 if (window.matchMedia("(pointer: coarse)").matches) {
   // Swallowed on purpose: a redeploy that rotates the chunk hash mid-session
   // makes this fetch 404, and a reader who then loses the swipe should lose

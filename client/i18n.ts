@@ -4085,6 +4085,15 @@ const DICT = {
   // person needs before trusting a thing that edits their words — that a
   // single undo takes each correction back.
   rowFrenchAutocorrect: { en: "Auto-correct French", ar: "تصحيح الفرنسية تلقائيًا" },
+  rowSpellDicts: { en: "Browser dictionaries", ar: "قواميس المتصفح" },
+  hintSpellDicts: {
+    en: "Which languages this browser can spellcheck. A French or Arabic line is checked only in a language you tick here — otherwise it is left alone rather than underlined against English. Chrome: Settings → Languages → Spell check.",
+    ar: "اللغات التي يستطيع هذا المتصفح تدقيقها إملائيًا. لا يُدقَّق سطر فرنسي أو عربي إلا بلغة تعلّمها هنا؛ وإلا تُرك كما هو بدل أن يُسطَّر تحته على أنه إنجليزية خاطئة. في كروم: الإعدادات ← اللغات ← التدقيق الإملائي.",
+  },
+  spellDict_fr: { en: "French", ar: "الفرنسية" },
+  spellDict_ar: { en: "Arabic", ar: "العربية" },
+  spellDict_he: { en: "Hebrew", ar: "العبرية" },
+  spellDict_fa: { en: "Persian", ar: "الفارسية" },
   hintFrenchAutocorrect: {
     en: "On lines written in French: missing accents (tres → très, coeur → cœur), the space before ; : ! ? and inside « », and … for three dots. Ctrl/Cmd Z undoes one correction.",
     ar: "في السطور المكتوبة بالفرنسية: الحركات الناقصة (⁦tres → très, coeur → cœur⁩)، والمسافة قبل ⁦; : ! ?⁩ وداخل ⁦« »⁩، و… بدل ثلاث نقاط. و⁦Ctrl/Cmd Z⁩ يتراجع عن تصحيح واحد.",

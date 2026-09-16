@@ -65,7 +65,11 @@ const FRONTMATTER_SCAN = 4000;
 const lineDecos = new Map<string, Decoration>();
 
 function lineDeco(dir: string, lang: string | null, source: boolean): Decoration {
-  const key = `${dir}|${lang ?? ""}|${source ? "s" : ""}`;
+  // Known-ness is in the key: the reader can declare a browser dictionary
+  // mid-session (client/spellDicts.ts), and a cached decoration that baked
+  // in `spellcheck="false"` would keep the line unchecked after they did.
+  const known = lang !== null && spellcheckKnown(lang);
+  const key = `${dir}|${lang ?? ""}|${source ? "s" : ""}|${known ? "k" : ""}`;
   const cached = lineDecos.get(key);
   if (cached) return cached;
   const attributes: Record<string, string> = { dir };
@@ -75,7 +79,7 @@ function lineDeco(dir: string, lang: string | null, source: boolean): Decoration
     // is only invited when a dictionary for that language is known to exist.
     // Without this, a system with no Arabic hunspell (every Chromium) checked
     // Arabic lines against English and underlined the entire vault in red.
-    if (!spellcheckKnown(lang)) attributes.spellcheck = "false";
+    if (!known) attributes.spellcheck = "false";
   }
   // A code fence is not written in any language, and underlining every
   // identifier in it in red is how a reader learns to turn spellcheck off.
