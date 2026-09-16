@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capture · Astrolabe Documentation</title>
+<meta name="description" content="Getting things into the vault without opening a note: a line from anywhere, a page from the browser, a share from the phone.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/capture/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link is-current" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="capture">Capture</h1>
+<p><em>Getting things into the vault without opening a note: a line from anywhere, a page from the browser, a share from the phone.</em></p>
+<hr>
+<p>Most of what ends up in a vault does not start as a note. It starts as a sentence you want to keep before it goes, a page you are reading somewhere else, or something on your phone you would rather have here. Capture is the set of three doors that take those in and file them, so that opening the app is something you do to <em>read</em> what you caught, not something you have to do first.</p>
+<p>All three write ordinary Markdown into ordinary files. Nothing is kept anywhere else: a captured line is a line in a note, a clipped page is a note under <code>Clips/</code>, and the one credential involved (the clipper&#39;s token) lives in the server&#39;s data directory, never in the vault.</p>
+<h2 id="quick-capture"><a class="anchor" href="#quick-capture">Quick capture</a></h2>
+<p>Press <code>Ctrl/Cmd Shift D</code> anywhere in the app, or choose <strong>Quick capture</strong> from the palette. A small sheet opens over whatever you were doing. Type a line and press <code>Enter</code>. The line is appended under a <code>## Captured</code> heading in <strong>today&#39;s daily note</strong>, stamped with the time:</p>
+<pre><code class="language-markdown">## Captured
+
+- 09:15 Ask about the reading room&#39;s opening hours
+- 14:02 &quot;A map with no star is a wheel&quot; — for the essay
+</code></pre>
+<p>The note you were in stays where it was, with your caret in it; a toast names the note the line went to and offers to open it. If today&#39;s note does not exist yet it is created first, through the same door <code>Ctrl/Cmd Alt D</code> uses, so it carries the daily template (Settings → Vault → Templates) exactly as it would have if you had opened it yourself. If the note already has a <code>## Captured</code> section the line joins the end of it; if not, the section is added at the end of the note. <code>Shift Enter</code> makes a second line for a thought that needs two; it is hung under the same bullet.</p>
+<p><strong>The inbox.</strong> Sometimes the day&#39;s note is the wrong home: a line that belongs to a project, a reading list, a running list of questions. Pin a note as the <strong>capture inbox</strong> in Settings → Vault → Capture inbox, and the sheet grows a second choice: <em>Today&#39;s note</em> or <em>Inbox</em>. The line lands under <code>## Captured</code> in whichever you pick, in the same shape.</p>
+<p>On a phone the sheet sits at the bottom of the screen, where a thumb already is, and the field and both buttons are tall enough to hit. The shortcut is not the only way in: on a phone, <strong>Quick capture</strong> is the first row under the <strong>⋯</strong> in the top bar.</p>
+<p>The time stamp uses your device&#39;s clock and Western digits, like the daily note&#39;s own filename: it is an address inside the note, not prose, and it should sort the same way in every language.</p>
+<h2 id="the-clipper"><a class="anchor" href="#the-clipper">The clipper</a></h2>
+<p>The clipper saves a web page — or just the part of it you selected — as a note in your vault, converted to Markdown, with where it came from written in the frontmatter.</p>
+<h3 id="setting-it-up"><a class="anchor" href="#setting-it-up">Setting it up</a></h3>
+<p>Open Settings → Vault → <strong>Clipper</strong> and drag the <strong>Clip to …</strong> button to your browser&#39;s bookmarks bar. That is the whole installation: the button is a <em>bookmarklet</em>, a bookmark whose address is a line of JavaScript, and the token that lets it write to your vault is already inside it. Clicking the button on the settings page itself does nothing on purpose.</p>
+<p><strong>Renew token</strong> makes a new token and retires the old one. Every copy of the bookmarklet you ever dragged out stops working the moment you press it, and the button on the page now carries the new one. Do this if a browser you used is lost, or simply once in a while. The token is kept in the server&#39;s data directory as <code>clip-token</code> (readable only by the user the server runs as) and never enters the vault, so it is never synced, published or committed with your notes.</p>
+<h3 id="using-it"><a class="anchor" href="#using-it">Using it</a></h3>
+<p>On any page, click the bookmarklet. With nothing selected it clips the page; with a selection it clips only that, keeping the selection&#39;s headings, links and formatting rather than its plain text. A small message says where the note went.</p>
+<p>The note is written to <code>Clips/&lt;page title&gt;.md</code>. A second page with the same title becomes <code>&lt;title&gt; (2).md</code>; nothing is ever overwritten. Inside:</p>
+<pre><code class="language-markdown">---
+source: &quot;https://example.org/the-page&quot;
+clipped: 2026-09-15
+---
+
+# The page&#39;s title
+
+The page, as Markdown.
+</code></pre>
+<p>The converter is deliberately conservative. It keeps headings, paragraphs, lists (nested and numbered), links (made absolute, so they still work from your vault), images <strong>by URL</strong> (nothing is downloaded), block quotes, code (inline and fenced, with the language when the page names one), bold, italic, rules and the simplest tables. Scripts, styles, forms, players, navigation and the page&#39;s own furniture are dropped, and a page that marks up its <code>&lt;article&gt;</code> or <code>&lt;main&gt;</code> gives you that and nothing around it. Prose that happens to contain Markdown&#39;s own marks (<code>*</code>, <code>[</code>, a line starting with <code>#</code>) is escaped so it reads as it did on the page. What comes out is a note you can edit, not a copy of the page&#39;s layout.</p>
+<p>The bookmarklet sends the page to your site directly from the page you are on. Some sites forbid that in their security policy; when that happens the bookmarklet falls back to submitting the clip through a new tab, which opens on the note it made. Either way the clip lands.</p>
+<h3 id="from-a-script"><a class="anchor" href="#from-a-script">From a script</a></h3>
+<p><code>POST /api/clip</code> takes JSON <code>{ url, title?, html?, selection?, text? }</code> with the token in a <code>token</code> field or an <code>Authorization: Bearer</code> header, and answers <code>{ kind: &quot;clipped&quot;, path }</code>. Your own signed-in session works too (no token needed). A body with no address at all is treated as a thought and appended to today&#39;s note under <code>## Captured</code> — the same thing the phone&#39;s share sheet does for a shared sentence — answering <code>{ kind: &quot;captured&quot;, path }</code>.</p>
+<h2 id="from-a-phone"><a class="anchor" href="#from-a-phone">From a phone</a></h2>
+<p>The site is installable. On a phone, open it in the browser and choose <strong>Add to Home Screen</strong> (Chrome offers it on its own; Safari has it under Share). The installed app opens full-screen, carries the site&#39;s name and the colours of its default theme, and, on Android, appears in the phone&#39;s <strong>share sheet</strong>.</p>
+<p>Share a page from any app to it and the page is clipped into <code>Clips/</code>, exactly as the bookmarklet would have done it; the app then opens on the new note. Share a sentence — a thought, a line from a message — and it is appended under <code>## Captured</code> in today&#39;s note. A share that carries both words and an address is a page with the words as its body.</p>
+<p>If the browser you share from is not signed in to the site, the share lands on a page that says so, with the way in; sign in there once and share again.</p>
+<p>Two honest limits. A share arrives with the page&#39;s address and title but not its contents, so a shared page is filed as its title and address, ready for you to add to; the bookmarklet, which runs <em>on</em> the page, gets the whole article. And a daily note the share sheet has to create (because you had not opened today&#39;s yet) starts bare — the template is applied by the app when it makes the note, and the share sheet reaches the vault without the app. Open today&#39;s note once in the morning and neither limit applies.</p>
+<p>The manifest itself is at <code>/manifest.webmanifest</code>; it is generated from your settings, so a renamed site or a changed default theme reaches the phone on its next visit, and the <a href="../offline/">offline copy</a> keeps it network-first for the same reason.</p>
+<h2 id="related"><a class="anchor" href="#related">Related</a></h2>
+<ul>
+<li><a href="../templates-and-notes/">Templates, banners &amp; notes</a> — the daily note and its template</li>
+<li><a href="../keymap/">Keymap</a> — <code>Ctrl/Cmd Shift D</code> beside <code>Ctrl/Cmd Alt D</code></li>
+<li><a href="../configuration/">Configuration</a> — <code>captureInbox</code>, and where the data directory is</li>
+<li><a href="../offline/">Offline reading</a> — what the installed app keeps on the device</li>
+</ul>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/capture.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/offline/"><span class="pager__kicker">Previous</span><span class="pager__title">Offline reading</span></a><a class="pager__link pager__link--next" href="../../en/export/"><span class="pager__kicker">Next</span><span class="pager__title">Export</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#quick-capture">Quick capture</a><a class="toc__link toc__link--2" href="#the-clipper">The clipper</a><a class="toc__link toc__link--3" href="#setting-it-up">Setting it up</a><a class="toc__link toc__link--3" href="#using-it">Using it</a><a class="toc__link toc__link--3" href="#from-a-script">From a script</a><a class="toc__link toc__link--2" href="#from-a-phone">From a phone</a><a class="toc__link toc__link--2" href="#related">Related</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

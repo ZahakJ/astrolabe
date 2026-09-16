@@ -243,11 +243,28 @@ const CORS = {
   "Access-Control-Max-Age": "86400",
 };
 
+/** What an anonymous share-sheet form may weigh before its token is seen. */
+const ANONYMOUS_FORM_LIMIT = 256 * 1024;
+
 clipRoutes.options("/clip", (c) => c.body(null, 204, CORS));
 
 clipRoutes.post("/clip", async (c) => {
   const type = c.req.header("content-type") ?? "";
   const asForm = /application\/x-www-form-urlencoded|multipart\/form-data/i.test(type);
+  // BEFORE THE BODY IS READ: an anonymous caller must not make the server
+  // buffer and parse ten megabytes on its way to a 401. A JSON caller can
+  // only authenticate with the session or a bearer header, so with neither
+  // the answer is known already; a form (the phone's share sheet) may carry
+  // its token inside the body, so it is read — but an anonymous form is
+  // capped at a fraction of the general limit, because a share is a title,
+  // a URL and a selection, not a page.
+  const sessionAllowed = !isPublishLimited(c);
+  const bearerHeader = /^Bearer\s+(\S+)$/i.exec(c.req.header("authorization") ?? "")?.[1] ?? null;
+  if (!sessionAllowed && bearerHeader === null) {
+    if (!asForm) return c.json({ error: "Admin session or clip token required" }, 401, CORS);
+    const declared = Number(c.req.header("content-length") ?? "0");
+    if (declared > ANONYMOUS_FORM_LIMIT) return c.html(refusedSharePage(), 413);
+  }
   let fields: Record<string, unknown>;
   try {
     if (asForm) fields = (await c.req.parseBody()) as Record<string, unknown>;
@@ -262,9 +279,8 @@ clipRoutes.post("/clip", async (c) => {
   // Who is asking: the admin's own browser (the share sheet, the app), or
   // a bookmarklet carrying the token. A visitor previewing as one is neither.
   const ip = clientIp(c);
-  const bearer = /^Bearer\s+(\S+)$/i.exec(c.req.header("authorization") ?? "")?.[1] ?? null;
-  const given = str(fields.token) ?? bearer;
-  let allowed = !isPublishLimited(c);
+  const given = str(fields.token) ?? bearerHeader;
+  let allowed = sessionAllowed;
   if (!allowed && given !== null) {
     if (tooManyMisses(ip)) return c.json({ error: "Too many attempts" }, 429, CORS);
     allowed = tokenMatches(given);

@@ -20,7 +20,7 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link is-current" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link is-current" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="panes-tabs-and-windows">Panes, tabs and windows</h1>
@@ -114,6 +114,28 @@ wikilinks, readable in Obsidian, synced with everything else, and editable by ha
 The sidebar draws it as a starred section above the tree. Drag a row onto another to reorder; the
 list lines move in the note and nothing else on the page does. This replaced the per-browser &quot;pin
 to top&quot;, which the phone never saw.</p>
+<p>The note&#39;s grammar is three kinds of list line, and you can write any of them by hand:</p>
+<pre><code class="language-markdown">## Reading
+
+- [[Ledger]]
+- [[Ledger#April|April&#39;s ledger]]
+- `tag:physics before:2026` Older physics
+
+## Kitchen
+
+- [[Bread]]
+</code></pre>
+<ul>
+<li><code>- [[Note]]</code> is a note (★). An alias after <code>|</code> is the label the row shows.</li>
+<li><code>- [[Note#Heading]]</code> is a <strong>heading</strong> inside a note (§): the row opens the note and lands on
+that heading, exactly as the link would if you clicked it in a note.</li>
+<li><code>- `query`</code> is a <strong>saved search</strong> (⌕): an inline code span holding anything the search box
+takes, <a href="../editor/#navigating">operators</a> included. The row runs it in the search box above the
+tree. Any text after the span is the row&#39;s label; without one, the row shows the query itself.</li>
+</ul>
+<p>Headings and prose between the lines are yours and are left where they are; the sidebar lists the
+rows flat, in the note&#39;s order. <code>Ctrl/Cmd Shift B</code> keeps or removes the whole-note line only — a
+heading bookmark into a note is not the note, so it is never taken off by the shortcut.</p>
 <h2 id="named-layouts"><a class="anchor" href="#named-layouts">Named layouts</a></h2>
 <p><strong>Save layout as…</strong> in the palette keeps the current arrangement (panes, tabs, splits, never
 content) under a name (<em>Research</em>, <em>Writing</em>), stored beside the vault so the desktop app and a
@@ -124,6 +146,17 @@ whole arrangement and prunes tabs whose notes have gone since.</p>
 once, with the count of everything under it, and a chevron opens the branch. The small control in
 the shelf&#39;s corner sorts by count or by name; both choices and the open branches are remembered per
 device. A click still filters the tree, a second click clears the filter, and a right-click renames.</p>
+<h2 id="properties-as-a-shelf"><a class="anchor" href="#properties-as-a-shelf">Properties as a shelf</a></h2>
+<p>Under the tags sits <strong>Properties</strong>: every frontmatter key the vault uses, with the count of notes
+that carry it, most-used first. Click a key and the search box runs <code>prop:key</code> — the notes that
+have it at all. The chevron beside a key opens its distinct values, up to the twenty most common,
+each with its own count; click one and the search runs <code>prop:key=value</code> (quoted for you when the
+value has a space in it). A second click on either clears the search. A list value counts once per
+item, so <code>authors: [Ibn Khaldun, Al-Jahiz]</code> shows both names under <code>authors</code>, and &quot;Reading&quot; and
+&quot;reading&quot; are one value, the way the <a href="../editor/#live-queries"><code>prop:</code> operator</a> matches them. The
+<code>tags</code> key is not listed here; it has the shelf above. The shelf is the owner&#39;s: a visitor&#39;s sidebar
+does not draw it, and its counts are scoped like the tags&#39; — a key seen only on unpublished notes
+never reaches a visitor session. The collapse is remembered per browser.</p>
 <h2 id="on-a-phone"><a class="anchor" href="#on-a-phone">On a phone</a></h2>
 <p>The sidebar is a drawer that follows your finger: a horizontal swipe anywhere drags it in, and the
 gesture can be interrupted or reversed; it opens fully once you have dragged far enough, or with a flick. The outline pane
@@ -138,7 +171,7 @@ are not offered, since neither means anything on a phone.</p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/books/"><span class="pager__kicker">Previous</span><span class="pager__title">The PDF reader</span></a><a class="pager__link pager__link--next" href="../../en/printing/"><span class="pager__kicker">Next</span><span class="pager__title">Printing &amp; PDF</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#panes">Panes</a><a class="toc__link toc__link--2" href="#tabs">Tabs</a><a class="toc__link toc__link--2" href="#several-windows-one-vault">Several windows, one vault</a><a class="toc__link toc__link--2" href="#when-the-file-changed-under-you">When the file changed under you</a><a class="toc__link toc__link--2" href="#the-local-graph">The local graph</a><a class="toc__link toc__link--2" href="#the-command-palette-beyond-notes">The command palette, beyond notes</a><a class="toc__link toc__link--2" href="#aliases">Aliases</a><a class="toc__link toc__link--2" href="#the-trash">The trash</a><a class="toc__link toc__link--2" href="#the-tour">The tour</a><a class="toc__link toc__link--2" href="#bookmarks">Bookmarks</a><a class="toc__link toc__link--2" href="#named-layouts">Named layouts</a><a class="toc__link toc__link--2" href="#tags-as-a-tree">Tags as a tree</a><a class="toc__link toc__link--2" href="#on-a-phone">On a phone</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#panes">Panes</a><a class="toc__link toc__link--2" href="#tabs">Tabs</a><a class="toc__link toc__link--2" href="#several-windows-one-vault">Several windows, one vault</a><a class="toc__link toc__link--2" href="#when-the-file-changed-under-you">When the file changed under you</a><a class="toc__link toc__link--2" href="#the-local-graph">The local graph</a><a class="toc__link toc__link--2" href="#the-command-palette-beyond-notes">The command palette, beyond notes</a><a class="toc__link toc__link--2" href="#aliases">Aliases</a><a class="toc__link toc__link--2" href="#the-trash">The trash</a><a class="toc__link toc__link--2" href="#the-tour">The tour</a><a class="toc__link toc__link--2" href="#bookmarks">Bookmarks</a><a class="toc__link toc__link--2" href="#named-layouts">Named layouts</a><a class="toc__link toc__link--2" href="#tags-as-a-tree">Tags as a tree</a><a class="toc__link toc__link--2" href="#properties-as-a-shelf">Properties as a shelf</a><a class="toc__link toc__link--2" href="#on-a-phone">On a phone</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

@@ -20,7 +20,7 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link is-current" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link is-current" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="the-editor-reading-view">The editor &amp; reading view</h1>
@@ -71,9 +71,10 @@ programs write rather than people (<code>id</code>, <code>uuid</code>, <code>dg-
 own switch in the status bar. It works the same on a <code>.tex</code> note, whose properties live in a
 <code>%---</code> comment block.</li>
 <li><strong>Templates.</strong> <code>{{date}}</code>, <code>{{time}}</code>, <code>{{title}}</code> and <code>{{date:FORMAT}}</code> in the syntax other tools
-share, plus <code>{{hdate}}</code> for the Hijri date. Insert a template at the cursor or start a new note
-from one; the picker previews the filled-in result before you commit. See
-<a href="../templates-and-notes/#templates">Templates</a>.</li>
+share, plus <code>{{hdate}}</code> for the Hijri date, <code>{{cursor}}</code> for where the caret should land, and
+<code>{{prompt:Label}}</code> for a question the template asks before it is inserted. Insert a template at
+the cursor or start a new note from one; the picker previews the filled-in result before you
+commit. See <a href="../templates-and-notes/#templates">Templates</a>.</li>
 <li><strong>Paste or drop attachments.</strong> An image on your clipboard, or any accepted file dragged from a
 file manager (PDF, audio and video too), uploads and lands as <code>![[name.png]]</code> at the cursor. An
 &quot;Uploading…&quot; placeholder holds the spot while the file is on its way. Where a paste or a drop into
@@ -85,11 +86,25 @@ reports the drop carries an Undo.</li>
 <li><strong>Slash commands.</strong> Type <code>/</code> at the start of a line for a menu of things to insert, filtered as
 you type: a callout, a code fence (with a language search), a table skeleton, a task list, a math
 block, a divider, today&#39;s date, a link to today&#39;s daily note.</li>
+<li><strong>Dates by name.</strong> Type <code>@</code> at the start of a word and a small list offers <em>today</em>, <em>tomorrow</em>,
+<em>yesterday</em>, <em>next week</em> and the seven coming weekdays; keep typing and it reads what you wrote:
+<code>@in 3 days</code>, <code>@next thursday</code>, <code>@15 september</code>, <code>@sep 15 2027</code>, <code>@2 weeks ago</code> — or, in
+Arabic, <code>@غدًا</code>, <code>@الخميس القادم</code>, <code>@بعد ٣ أيام</code>, <code>@١٥ سبتمبر</code>. Each row shows the day it means in the
+site&#39;s calendar, and Enter puts a link to <strong>that day&#39;s daily note</strong> where the <code>@</code> was, worded as
+a reader would say it: <code>[[daily/2026-09-16|Wednesday]]</code> for a day within the week,
+<code>[[daily/2027-12-15|December 15, 2027]]</code> for one further off. The folder and name follow your
+<a href="../templates-and-notes/#daily-and-weekly-notes">daily-note settings</a>. A month name decides the
+calendar: <code>@15 ramadan</code> and <code>@١٥ رمضان</code> are Hijri days whatever the site is set to. Bare numerals
+(<code>15/9</code>) are refused on purpose — they read differently on every continent. The list opens only
+at the start of a word and never inside code, so <code>me@example.com</code> and a <code>@</code> in a fence are left
+alone.</li>
 <li><strong>Callout and fence autocomplete.</strong> <code>&gt; [!</code> suggests every callout type with its icon and colour;
 <code>```</code> suggests languages as you type.</li>
 <li><strong>Hover previews.</strong> Rest the pointer on a <code>[[wikilink]]</code> and a floating card shows the opening of
 the target note, rendered (<code>[[Note#Heading]]</code> previews from that heading). Footnote references
-preview their definition.</li>
+preview their definition. Rest on a <strong>tag pill in the sidebar</strong> and the card lists the three newest
+notes that carry the tag — title, folder and a line of each — with the tag&#39;s full count under
+them, so a count becomes a glance before it becomes a click.</li>
 <li><strong>Section surgery.</strong> Fold a heading, extract it into a new note, or drag it in the outline to move
 the whole subtree. See <a href="../templates-and-notes/#sections-fold-extract-move">Sections</a>.</li>
 <li><strong>Auto-numbered headings.</strong> Off by default. The outline&#39;s <code>1.</code> button turns numbering on for the
@@ -189,15 +204,36 @@ like other syntax. <code>/center</code>, <code>/right</code> and <code>/left</co
 the same braces; Obsidian shows them as text.</li>
 <li><strong>Note transclusions.</strong> <code>![[Note]]</code> renders the target note as a full card (callouts, math and
 code highlighting included), with an &quot;Open note&quot; button when the excerpt is longer than the card.</li>
-<li><strong>PDF and attachment cards.</strong> <code>![[file.pdf]]</code> (also mp4, mp3, zip, …) becomes a card that opens
+<li><strong>PDF and attachment cards.</strong> <code>![[file.pdf]]</code> (also mp4, zip, …) becomes a card that opens
 the file in a new tab.</li>
+<li><strong>A page of a book.</strong> <code>![[Book.pdf#page=42]]</code> draws that page as a picture where the embed
+stands — in the editor (a paper-shaped placeholder until it is rendered), the reading view and
+on your site when the book is published — with &quot;Book, p. 42&quot; under it. Click the caption to open
+the <a href="../books/">reader</a> on that page; a visitor&#39;s click opens the file there. <code>|300</code> sets the
+width like an image&#39;s.</li>
+<li><strong>Sound.</strong> <code>![[lecture.mp3]]</code> (also ogg, m4a, wav) is a small player instead of a file card,
+everywhere the note is read. <code>[[lecture.mp3#t=1:23]]</code> is a link to a moment: clicking it seeks
+the player on the same page to 1:23 and plays, or opens the file at that moment when no player
+is on the page. <code>t=83</code>, <code>t=1:23</code> and <code>t=1:02:03</code> all work; give it an alias (<code>|the argument</code>)
+or it shows the time.</li>
+<li><strong>Diagrams.</strong> A <code>```mermaid</code> fence renders as a diagram in the editor, the reading view and on
+your site — flowcharts, sequence diagrams, Gantt charts, everything Mermaid draws — in the
+colours of whatever theme is on screen, redrawn when the theme changes. The renderer arrives
+only for a note that carries a fence, and it fetches nothing. A diagram that will not parse keeps
+its source, marked at the edge.</li>
 <li><strong>Callouts.</strong> <code>&gt; [!note]</code>, <code>[!tip]</code>, <code>[!warning]</code>, <code>[!danger]</code> and friends: tinted, iconed, and
 foldable with <code>-</code>.</li>
 <li><strong>Math.</strong> <code>$inline$</code> and <code>$$block$$</code>, rendered by KaTeX.</li>
 <li><strong>Code highlighting.</strong> Fenced blocks are highlighted for all common languages, in colours that
 match the theme.</li>
 <li><strong>Highlights, comments, footnotes.</strong> <code>==mark==</code>, <code>%%hidden comment%%</code>, and <code>[^1]</code> superscript
-references that jump to their definitions.</li>
+references that jump to their definitions — and back: in the editor, clicking the <code>[^1]:</code> at the
+foot puts the caret on the reference; in the reading view the ↩ does the same.</li>
+<li><strong>Sidenotes.</strong> In the reading view, when the reading column is 1180px or wider and has a margin
+to spare, each footnote is set in the outer margin beside the line that cites it — a small serif
+numeral, then the note — and the list at the foot is hidden. Two notes that would collide stack
+downward. Narrower than that, on the site, in a transclusion card and on paper, footnotes stay at
+the foot as before. A note without footnotes is untouched.</li>
 <li><strong>Reading view.</strong> <code>Ctrl/Cmd E</code> flips the note to a fully rendered, read-only page (tables
 included). It resolves links exactly the way the editor does.</li>
 </ul>
@@ -211,18 +247,33 @@ included). It resolves links exactly the way the editor does.</li>
 <li><p><strong>Outline (table of contents) panel.</strong> The open note&#39;s headings, following your scroll position;
 click one to jump to it.</p>
 </li>
+<li><p><strong>Footnotes panel.</strong> Under the outline, when the open note has footnotes: every <code>[^n]</code> with what
+it says. Click a row to land on the reference in the text (the caret goes there in the editor;
+the reading view scrolls to the superscript); the small arrow at the row&#39;s end lands on the
+definition instead — at the foot, or in the margin when the note is set with sidenotes. The
+section remembers whether you folded it.</p>
+</li>
 <li><p><strong>Graph view.</strong> A map of your notes as dots, with a line for every link; the dots push apart and
 the links pull them together until the map settles, so linked notes end up beside each other by
 themselves. Drag the dots, hover to light up a note&#39;s neighbours, click to open.
 It opens as a <a href="../workspace/#panes">tab</a> in the focused pane (<code>Ctrl/Cmd G</code>), so the map and a note
 can sit side by side or flip back and forth. The sliders button opens its settings: colour the
-notes by <strong>folder</strong> (one or two levels deep) or by <strong>tag</strong>, with a legend where each group can be
-recoloured or hidden; a search that lights the matching notes; filters that hide orphans (notes
+notes by <strong>folder</strong> (one or two levels deep), by <strong>tag</strong>, or by <strong>query</strong>, with a legend where
+each group can be recoloured or hidden; a search that lights the matching notes; filters that hide orphans (notes
 with no links) or anything under a minimum number of links; the three forces (spread, link length, pull to centre); dot size, link opacity,
 the zoom level at which labels appear, and a glow. The settings panel itself is yours to place:
 drag it by its title anywhere over the graph, drag its corner to make it as short or as narrow as
 you like, and <em>Reset</em> puts it back. All of this is remembered per browser and never touches the
 vault.</p>
+</li>
+<li><p><strong>Graph groups by query.</strong> <em>Group by query</em> in the colour legend takes up to six rows, each a
+query the search box would take (<code>tag:physics before:2026</code>, <code>path:Journal -is:published</code>,
+<code>linkto:Ledger</code>) beside a colour swatch. Every note a query names is painted its colour; a note
+two queries name belongs to the first row, so the order of the rows is a precedence you can see.
+The legend lists each query with how many notes it painted, and <em>No query</em> gathers the rest in
+the theme&#39;s neutral. The default swatches are six hues walked from the theme&#39;s accent, so the
+groups belong to the theme; set your own on the row or in the legend. Remembered per browser
+with the rest of the graph&#39;s preferences.</p>
 </li>
 <li><p><strong>Full-text search.</strong> Instant; it matches a word from its first letters and forgives a small
 typo, and shows highlighted snippets with the markdown syntax stripped out. It answers to
@@ -282,7 +333,7 @@ carries an Undo.</p>
 <a href="../templates-and-notes/#reorganizing-by-dragging">Reorganizing</a>.</p>
 </li>
 <li><p><strong>Daily notes.</strong> <code>Ctrl/Cmd Alt D</code> opens today&#39;s note, creating it if needed
-(<code>daily/YYYY-MM-DD.md</code> unless <a href="../templates-and-notes/#daily-and-weekly-notes">configured otherwise</a>).</p>
+(<code>daily/YYYY-MM-DD.md</code> unless <a href="../templates-and-notes/#periodic-notes">configured otherwise</a>).</p>
 </li>
 <li><p><strong>A shell that gets out of the way.</strong> Collapse either side pane (<code>Ctrl/Cmd Alt B</code>,
 <code>Ctrl/Cmd Alt Shift B</code>) down to a slim reopen handle, or go <strong>zen</strong> (<code>Ctrl/Cmd Shift Z</code>): the
@@ -306,7 +357,13 @@ the interface is in a language you cannot read. See
 when the query genuinely matches it, at most five of them, and they sit above or below your notes
 depending on which matched better. (Typing <code>sort</code> used to put <em>Design your site</em> over the whole
 vault.) Start the query with <code>@</code> or <code>#</code> to jump to a heading (or a LaTeX <code>\label</code>) inside the note
-you are reading instead.</p>
+you are reading instead.
+It is a <strong>quick switcher</strong> too. When no note is called what you typed, the list ends with
+<strong>Create “…”</strong>: Enter makes the note, in the folder of the note you are in (or exactly where a
+typed path says), and opens it. Every <a href="../workspace/">saved layout</a> is a row — <strong>Load layout:
+Research</strong> — so <code>Ctrl/Cmd P</code>, the layout&#39;s name, Enter restores an arrangement without a picker.
+And <strong>New unique note</strong> makes a note named by the minute (<code>202609151042</code>) and asks nothing; see
+<a href="../templates-and-notes/#unique-notes">Unique notes</a>.</p>
 </li>
 <li><p><strong>Live vault watching.</strong> Edit a file in any other editor and the app updates within about a
 tenth of a second.</p>
@@ -315,14 +372,24 @@ tenth of a second.</p>
 <p><figure><img src="../../../screenshots/palette.png" alt="Command palette" loading="lazy"></figure></p>
 <h2 id="live-queries"><a class="anchor" href="#live-queries">Live queries</a></h2>
 <p>A <code>```query</code> fence is a list of notes that answers a search, drawn live wherever the note is
-read: the editor, the reading view, the blog. It takes the search box&#39;s operators and four keys:</p>
+read: the editor, the reading view, the blog. It takes the search box&#39;s operators and five keys:</p>
 <pre><code class="language-query">tag:reading prop:status=reading -tag:draft
 show: title, date, status, tags
 sort: date desc
 limit: 20
 as: table
 </code></pre>
-<div class="table"><table><thead><tr><th>Key</th><th>Values</th></tr></thead><tbody><tr><td><code>show</code></td><td>columns: <code>title</code>, <code>date</code>, <code>modified</code>, <code>tags</code>, <code>excerpt</code>, <code>path</code>, or any frontmatter key (<code>status</code>, <code>author</code>)</td></tr><tr><td><code>sort</code></td><td><code>date</code>, <code>modified</code>, <code>title</code>, <code>path</code>, <code>relevance</code>, each with <code>asc</code> or <code>desc</code></td></tr><tr><td><code>limit</code></td><td>at most this many rows (500 at most)</td></tr><tr><td><code>as</code></td><td><code>list</code> (title and excerpt), <code>table</code>, or <code>cards</code></td></tr></tbody></table></div><p>Every other line is the query. <code>prop:status=reading</code> is an operator that came with this feature:
+<div class="table"><table><thead><tr><th>Key</th><th>Values</th></tr></thead><tbody><tr><td><code>show</code></td><td>columns: <code>title</code>, <code>date</code>, <code>modified</code>, <code>tags</code>, <code>excerpt</code>, <code>path</code>, or any frontmatter key (<code>status</code>, <code>author</code>)</td></tr><tr><td><code>sort</code></td><td><code>date</code>, <code>modified</code>, <code>title</code>, <code>path</code>, <code>relevance</code>, each with <code>asc</code> or <code>desc</code></td></tr><tr><td><code>limit</code></td><td>at most this many rows (500 at most)</td></tr><tr><td><code>as</code></td><td><code>list</code> (title and excerpt), <code>table</code>, <code>cards</code>, or <code>timeline</code></td></tr><tr><td><code>by</code></td><td>the timeline&#39;s date: <code>created</code> (the note&#39;s own date, the default), <code>modified</code>, or any frontmatter key holding a date (<code>by: read</code>)</td></tr></tbody></table></div><p><strong>The timeline</strong> lays the rows on a vertical line under year headings, newest first (<code>sort: date asc</code> for oldest first), each with its day; the years and the days are printed in the site&#39;s
+calendar, so a Hijri instance heads its years ١٤٤٧ and ١٤٤٨. With <code>by: read</code> the date is read off
+each note&#39;s <code>read:</code> property — <code>2026-03-04</code>, <code>2026/03/04</code>, <code>2026-03</code>, <code>2026</code> and <code>4 March 2026</code>
+all count — and notes whose property is missing or not a date gather at the end under <em>Undated</em>
+rather than disappear.</p>
+<pre><code class="language-query">tag:book
+as: timeline
+by: finished
+show: title, author
+</code></pre>
+<p>Every other line is the query. <code>prop:status=reading</code> is an operator that came with this feature:
 search by any frontmatter property. <code>prop:author</code> alone means &quot;has one&quot;, and <code>-prop:draft</code> excludes.
 The list is scoped to the reader (a visitor&#39;s fence on a published note lists published notes only)
 and it re-reads when the vault changes. Obsidian renders the same fence language, so the note stays
@@ -346,6 +413,18 @@ of its aliases, without linking to it. Whole words only, never inside a link, co
 folded like search, so a pointed Arabic title finds its plain spelling. <strong>Link</strong> wraps those words as
 <code>[[Note]]</code> (or <code>[[Note|the words]]</code> when they are not the title&#39;s own spelling) with one edit to
 that line; <strong>Link all</strong> does every row. This is how small notes get woven into a web.</p>
+<h2 id="nearby"><a class="anchor" href="#nearby">Nearby</a></h2>
+<p>Under the backlinks, <strong>Nearby</strong> lists the ten notes that read most like the open one — without a
+model, without the network, without anything leaving the vault. Two notes are near when they use
+the same <em>uncommon</em> words: every word is weighed by how rare it is across your vault (a word in
+every note weighs nothing, which is why no stop list is needed in any language), tags count as
+words somebody chose and weigh more, and the score is the overlap of the two notes&#39; weighted
+vocabularies (a TF-IDF cosine over the same folded terms the search index holds, so a pointed
+Arabic word and its plain spelling are one term). Each row shows the score as a percentage and the
+<strong>two terms that tie</strong> the notes, so you can see <em>why</em> before you open it; hover a row to preview,
+click to open. The list follows the vault: an edit to any note moves every score a little, and the
+panel re-reads after each change. It is the owner&#39;s panel — a visitor&#39;s site never gets it, since
+the scoring reads every note&#39;s body — and its collapse is remembered per browser.</p>
 <h2 id="block-references"><a class="anchor" href="#block-references">Block references</a></h2>
 <p>You can link to one paragraph or one list item, not only to a whole note. End it with a space and
 an id that starts with <code>^</code>, like <code>…the rule of three. ^rule3</code>, or put <code>^rule3</code> on a line of its own
@@ -369,7 +448,11 @@ matches, line by line, ticked or unticked, replaced in one go with an undo and a
 first. <code>Esc</code> from any field in that panel closes it.</p>
 <h2 id="the-bar-and-the-top-cluster"><a class="anchor" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a></h2>
 <p>The bar under the note says where you are, how long the note is, whether it is published and which
-mode you are in. It ends with the version you are on: the <a href="../desktop/#updates">updater</a> on the
+mode you are in. While text is selected the count reads <strong>12 of 840 words</strong>, the selection against
+the whole, so trimming a paragraph to length never means deselecting to see the total. The count is
+one rule for the author and the blog&#39;s <em>N min read</em> alike: frontmatter, fences and markup are not
+words, and an Arabic letter with its harakat is one letter, so a pointed «الْحَمْدُ» counts exactly as
+«الحمد» does. It ends with the version you are on: the <a href="../desktop/#updates">updater</a> on the
 desktop app, the releases page in a browser. The shell&#39;s own controls sit at the top, after the tabs: the
 panes, zen, the graph, the site designer, settings, the theme, and signing out.</p>
 <h2 id="arranging-the-tree"><a class="anchor" href="#arranging-the-tree">Arranging the tree</a></h2>
@@ -451,7 +534,7 @@ readers who navigate by search.</p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/desktop/"><span class="pager__kicker">Previous</span><span class="pager__title">The desktop app</span></a><a class="pager__link pager__link--next" href="../../en/templates-and-notes/"><span class="pager__kicker">Next</span><span class="pager__title">Templates, banners &amp; notes</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#french-corrected-as-you-type">French, corrected as you type</a><a class="toc__link toc__link--2" href="#rendering">Rendering</a><a class="toc__link toc__link--2" href="#navigating">Navigating</a><a class="toc__link toc__link--2" href="#live-queries">Live queries</a><a class="toc__link toc__link--2" href="#tasks-across-the-vault">Tasks across the vault</a><a class="toc__link toc__link--2" href="#unlinked-mentions">Unlinked mentions</a><a class="toc__link toc__link--2" href="#block-references">Block references</a><a class="toc__link toc__link--2" href="#find-and-replace">Find and replace</a><a class="toc__link toc__link--2" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a><a class="toc__link toc__link--2" href="#arranging-the-tree">Arranging the tree</a><a class="toc__link toc__link--2" href="#the-two-side-panes">The two side panes</a><a class="toc__link toc__link--2" href="#folder-marks">Folder marks</a><a class="toc__link toc__link--2" href="#notes-to-self">Notes to self</a><a class="toc__link toc__link--2" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#french-corrected-as-you-type">French, corrected as you type</a><a class="toc__link toc__link--2" href="#rendering">Rendering</a><a class="toc__link toc__link--2" href="#navigating">Navigating</a><a class="toc__link toc__link--2" href="#live-queries">Live queries</a><a class="toc__link toc__link--2" href="#tasks-across-the-vault">Tasks across the vault</a><a class="toc__link toc__link--2" href="#unlinked-mentions">Unlinked mentions</a><a class="toc__link toc__link--2" href="#nearby">Nearby</a><a class="toc__link toc__link--2" href="#block-references">Block references</a><a class="toc__link toc__link--2" href="#find-and-replace">Find and replace</a><a class="toc__link toc__link--2" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a><a class="toc__link toc__link--2" href="#arranging-the-tree">Arranging the tree</a><a class="toc__link toc__link--2" href="#the-two-side-panes">The two side panes</a><a class="toc__link toc__link--2" href="#folder-marks">Folder marks</a><a class="toc__link toc__link--2" href="#notes-to-self">Notes to self</a><a class="toc__link toc__link--2" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

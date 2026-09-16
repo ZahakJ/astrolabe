@@ -669,6 +669,27 @@ export const RELEASES: Release[] = [
         },
         docs: "capture",
       },
+      {
+        title: { en: "Tomorrow →, and a reader that zooms under the hand", ar: "← غدًا، وقارئ يكبّر تحت اليد" },
+        body: {
+          en: "A task has a third answer beside done and skipped: push it to tomorrow. It waits under \"Owed from earlier days\" until you tick it, and the tick counts for the day it was owed. In the book reader, Ctrl+wheel and Ctrl with = − 0 zoom the page, never the app, and a zoom no longer stutters.",
+          ar: "للمهمة جواب ثالث بجانب «تم» و«تخطٍّ»: أجّلها إلى الغد. تنتظر تحت «مؤجّل من أيام سابقة» حتى تعلّم عليها، وتُحسب العلامة لليوم الذي استُحقت فيه. وفي قارئ الكتب يكبّر Ctrl+العجلة وCtrl مع = − 0 الصفحة لا التطبيق، ولم يعد التكبير يتلعثم.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="32" y="44" fill="var(--text-muted)" font-size="11" letter-spacing="1">${L(lang, "TODAY", "اليوم")}</text>
+  <g><rect x="32" y="56" width="14" height="14" rx="3" fill="none" stroke="var(--accent)"/><path class="wa-draw" d="M35 63l3 3 6-7" fill="none" stroke="var(--accent)" stroke-width="2"/><text x="54" y="67" fill="var(--text)">${L(lang, "Morning", "الصباح")}</text><text x="54" y="83" fill="var(--text-faint)" font-size="11">${L(lang, "60 min walk", "مشي 60 دقيقة")}</text></g>
+  <g><rect x="32" y="98" width="14" height="14" rx="3" fill="none" stroke="var(--border)"/><text x="54" y="109" fill="var(--text)" opacity="0.55">${L(lang, "Evening", "المساء")}</text><text x="54" y="125" fill="var(--text-faint)" font-size="11" opacity="0.55">${L(lang, "Full Body A", "الجسم كامل أ")}</text></g>
+  <g class="wa-press"><rect x="190" y="97" width="78" height="20" rx="10" fill="var(--bg)" stroke="var(--accent)"/><text x="229" y="111" text-anchor="middle" fill="var(--accent)" font-size="11">${L(lang, "tomorrow →", "← غدًا")}</text></g>
+  <g class="wa-late"><rect x="32" y="146" width="236" height="48" rx="8" fill="none" stroke="var(--border)" stroke-dasharray="3 3"/><text x="44" y="162" fill="var(--text-faint)" font-size="10" letter-spacing="1">${L(lang, "OWED FROM EARLIER DAYS", "مؤجّل من أيام سابقة")}</text><rect x="44" y="172" width="12" height="12" rx="3" fill="none" stroke="var(--border)"/><text x="62" y="182" fill="var(--text)" font-size="11">${L(lang, "Evening · from Tuesday", "المساء · من الثلاثاء")}</text></g>
+  <g><rect x="300" y="36" width="228" height="160" rx="8" fill="var(--bg)" stroke="var(--border)"/><rect class="wa-grow" x="336" y="56" width="156" height="120" fill="var(--bg-raised)" stroke="var(--border)"/><g fill="var(--border)"><rect x="352" y="76" width="124" height="4" rx="2"/><rect x="352" y="90" width="110" height="4" rx="2"/><rect x="352" y="104" width="124" height="4" rx="2"/><rect x="352" y="118" width="90" height="4" rx="2"/></g></g>
+  <g class="wa-late"><circle cx="500" cy="164" r="12" fill="var(--bg-raised)" stroke="var(--accent)"/><text x="500" y="168" text-anchor="middle" fill="var(--accent)" font-size="10">Ctrl</text><path d="M500 140v-16M496 128l4-4 4 4" fill="none" stroke="var(--accent)" stroke-width="2"/></g>
+</svg>`,
+        },
+        docs: "sigils",
+      },
     ],
   },
   {
