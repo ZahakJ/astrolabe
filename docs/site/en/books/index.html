@@ -20,7 +20,7 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link is-current" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link is-current" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="the-pdf-reader">The PDF reader</h1>
@@ -61,7 +61,7 @@ and <code>:h</code> is help, never highlight:</p>
 <p><code>:212</code> · <code>:+3</code> / <code>:-3</code> · <code>:40%</code> · <code>:page</code> · <code>:quit</code> (<code>:q</code>) · <code>:library</code> (<code>:lib</code>) · <code>:zoom 150</code>
 (<code>:z</code>; bare <code>:zoom</code> is 100 %) · <code>:zen</code> · <code>:fit width|page|height</code> · <code>:rotate [90|180|270]</code> ·
 <code>:dual on|off|toggle</code> · <code>:invert off|night|flip</code> · <code>:rtl</code> / <code>:ltr</code> · <code>:mark &lt;c&gt;</code> · <code>:jump &lt;c&gt;</code> ·
-<code>:search &lt;text&gt;</code> · <code>:outline</code> · <code>:forget</code> · <code>:help</code> · <code>:highlight</code> · <code>:ink [1-6]</code> · <code>:cite</code> ·
+<code>:search &lt;text&gt;</code> · <code>:outline</code> · <code>:forget</code> · <code>:end</code> · <code>:help</code> · <code>:highlight</code> · <code>:ink [1-6]</code> · <code>:cite</code> ·
 <code>:note</code> · <code>:annotations</code></p>
 <p>Numbers are read in Latin, Arabic-Indic and Persian digits alike: <code>:٢١٢</code> is page 212.</p>
 <h2 id="your-place-is-kept"><a class="anchor" href="#your-place-is-kept">Your place is kept</a></h2>
@@ -90,6 +90,51 @@ the file has since been renamed the link still resolves, by the highlight&#39;s 
 content, and a toast <strong>offers</strong> to repair the link in the note; it never rewrites one on its own.</p>
 <p><code>e</code> attaches a note to a highlight; <code>A</code> lists every marked passage in the book; the shelf&#39;s search
 finds them across the vault.</p>
+<h2 id="reading-sessions"><a class="anchor" href="#reading-sessions">Reading sessions</a></h2>
+<p>The reader keeps a quiet clock over your page turns. It starts on the first turn, counts the time
+between turns, and stops counting once three minutes pass without one — a page nobody has turned in
+three minutes is a page nobody is reading. The status line shows the minutes while the clock runs
+and <em>Paused</em> once it stops; nothing is shown before the first turn. Pages are counted when you turn
+<strong>away</strong> from them, and a page flipped past in under a few seconds is not counted, so a scroll
+through a chapter to find your place does not log the chapter.</p>
+<p>Close the book (<code>q</code>, the ✕, the tab&#39;s own close), press <strong>End session</strong> in the title bar, or type
+<code>:end</code>, and the sitting is logged:</p>
+<blockquote>
+<p>Read 27 pages in 41 min — logged to <em>Muqaddimah</em> · <strong>Undo</strong></p>
+</blockquote>
+<p>It goes into the book&#39;s <a href="../trackers/">tracker</a> note, and nowhere else: one line in the fence&#39;s
+<code>sessions:</code> block, and the progress moved by the pages read when the tracker counts pages (a bar
+kept in chapters, or a bare percentage, is yours to move; at the end of a book the bar stops at the
+total and Undo takes back only what it moved). The
+tracker is found by its <code>file:</code> line when one names this PDF, and by its title otherwise (the
+PDF&#39;s own title, else its file name, against <code>kind: book</code> trackers). A book with no tracker gets a
+toast that says so and offers <strong>Track it</strong>, which writes a <code>Media/Books/&lt;title&gt;.md</code> note the way
+the Media page would, with <code>file:</code> pointing at this PDF and the session already in it. <strong>Undo</strong>
+takes the line and the nudge back out of the note as it is then.</p>
+<p>If a <a href="../sigils/">sigil</a> slot today links the tracker note or the PDF (<code>evening: 20 pages of [[Muqaddimah]]</code>), or the plan&#39;s <code>book:</code> line names the tracker, the slot is ticked for you — the
+<code>book:</code> task only when the sitting covered the day&#39;s pace. Undo unticks it.</p>
+<p>From the sessions, the tracker card reads the book&#39;s own speed over its last five sittings and says
+<em>about 1.6 pages a minute here — 4 h 20 left</em>. &quot;Here&quot; because it is this book&#39;s pace: a dense
+commentary and a novel are not read at one speed.</p>
+<p>Flipping to the note beside the book and back is the middle of a sitting, not its end: the clock
+is stashed in the browser between turns and resumes when the same book comes back within half an
+hour. A tab closed mid-sitting is logged the next time that book opens, for the day it happened,
+with the same toast and Undo — and a sigil slot it ticks is that day&#39;s, not the day you reopened
+the book.</p>
+<h2 id="highlights-note"><a class="anchor" href="#highlights-note">Highlights → note</a></h2>
+<p>On the shelf, every card has <strong>Highlights → note</strong>. It writes one note beside the PDF —
+<code>Books/Muqaddimah.pdf</code> gets <code>Books/Muqaddimah — Highlights.md</code> — with a heading per chapter from the
+PDF&#39;s own outline when it has one (the shallowest level with at least two entries), else one list,
+and every marked passage as the same <code>&gt; [!quote]</code> block a citation writes, its link opening the book
+at the page and pulsing the passage. A margin note follows its passage as ordinary prose.</p>
+<p>The block sits between two markers:</p>
+<pre><code>&lt;!-- astrolabe:highlights --&gt;
+…
+&lt;!-- /astrolabe:highlights --&gt;
+</code></pre>
+<p>Run the action again and only what sits between the markers is rewritten; anything you wrote above,
+below, or between them stays. A note with no markers (one you made by hand) gets the block appended,
+never overwritten. The toast offers <strong>Open</strong>.</p>
 <h2 id="search-inside-a-book"><a class="anchor" href="#search-inside-a-book">Search inside a book</a></h2>
 <p><code>/</code> searches the book&#39;s text from the current page forward and wraps around, so it finds <em>the next
 one of these</em> rather than the first in the volume. <code>n</code> and <code>N</code> step, and the counter reads <em>3 of
@@ -125,7 +170,7 @@ short if long, hidden characters stripped; and it caps marks at 64 per book. Vis
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/drawing/"><span class="pager__kicker">Previous</span><span class="pager__title">Drawings</span></a><a class="pager__link pager__link--next" href="../../en/workspace/"><span class="pager__kicker">Next</span><span class="pager__title">Panes, tabs &amp; windows</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-shelf">The shelf</a><a class="toc__link toc__link--2" href="#reading">Reading</a><a class="toc__link toc__link--2" href="#the-command-line">The command line</a><a class="toc__link toc__link--2" href="#your-place-is-kept">Your place is kept</a><a class="toc__link toc__link--2" href="#highlights-citations-and-margin-notes">Highlights, citations and margin notes</a><a class="toc__link toc__link--2" href="#search-inside-a-book">Search inside a book</a><a class="toc__link toc__link--2" href="#searching-inside-every-book">Searching inside every book</a><a class="toc__link toc__link--2" href="#what-it-does-not-do">What it does not do</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-shelf">The shelf</a><a class="toc__link toc__link--2" href="#reading">Reading</a><a class="toc__link toc__link--2" href="#the-command-line">The command line</a><a class="toc__link toc__link--2" href="#your-place-is-kept">Your place is kept</a><a class="toc__link toc__link--2" href="#highlights-citations-and-margin-notes">Highlights, citations and margin notes</a><a class="toc__link toc__link--2" href="#reading-sessions">Reading sessions</a><a class="toc__link toc__link--2" href="#highlights-note">Highlights → note</a><a class="toc__link toc__link--2" href="#search-inside-a-book">Search inside a book</a><a class="toc__link toc__link--2" href="#searching-inside-every-book">Searching inside every book</a><a class="toc__link toc__link--2" href="#what-it-does-not-do">What it does not do</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

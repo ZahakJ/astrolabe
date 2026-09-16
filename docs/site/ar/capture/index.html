@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الالتقاط · دليل أسطرلاب</title>
+<meta name="description" content="إدخال الأشياء إلى الخزانة دون فتح ملاحظة: سطر من أي مكان، وصفحة من المتصفح، ومشاركة من الهاتف.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
+  <a class="top__brand" href="../../ar/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> <span class="top__docs">دليل</span> أسطرلاب</a>
+  <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../en/capture/" hreflang="en">English</a>
+  <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a><a class="nav__link" href="../../ar/offline/">القراءة دون اتصال</a><a class="nav__link is-current" href="../../ar/capture/">الالتقاط</a><a class="nav__link" href="../../ar/export/">التصدير</a><a class="nav__link" href="../../ar/desktop/">تطبيق سطح المكتب</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/sigils/">السِّجِلّ</a><a class="nav__link" href="../../ar/orbits/">المدارات</a><a class="nav__link" href="../../ar/drawing/">الرسومات</a><a class="nav__link" href="../../ar/books/">قارئ PDF</a><a class="nav__link" href="../../ar/workspace/">اللوحات والتبويبات والنوافذ</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a><a class="nav__link" href="../../ar/japanese/">اليابانية والفوريغانا</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="الالتقاط">الالتقاط</h1>
+<p><em>إدخال الأشياء إلى الخزانة دون فتح ملاحظة: سطر من أي مكان، وصفحة من المتصفح، ومشاركة من الهاتف.</em></p>
+<hr>
+<p>أكثر ما ينتهي به المطاف في الخزانة لا يبدأ ملاحظة. يبدأ جملةً تريد أن تحفظها قبل أن تضيع، أو صفحة تقرؤها في مكان آخر، أو شيئًا على هاتفك تفضّل أن يكون هنا. والالتقاط هو الأبواب الثلاثة التي تُدخل هذه الأشياء وتضعها في مكانها، بحيث يصير فتح التطبيق شيئًا تفعله <em>لتقرأ</em> ما التقطته، لا شيئًا عليك أن تفعله أولًا.</p>
+<p>الأبواب الثلاثة كلها تكتب Markdown عاديًا في ملفات عادية. ولا يُحفظ شيء في مكان آخر: السطر الملتقَط سطر في ملاحظة، والصفحة المقصوصة ملاحظة في المجلد <code>Clips/</code>، وبيانات الاعتماد الوحيدة في الأمر (رمز القصاصة) تعيش في مجلد بيانات الخادم، لا في الخزانة أبدًا.</p>
+<h2 id="الالتقاط-السريع"><a class="anchor" href="#الالتقاط-السريع">الالتقاط السريع</a></h2>
+<p>اضغط <code>Ctrl/Cmd Shift D</code> في أي مكان من التطبيق، أو اختر <strong>التقاط سريع</strong> من لوحة الأوامر. تُفتح ورقة صغيرة فوق ما كنت تفعله. اكتب سطرًا واضغط <code>Enter</code>. يُلحق السطر تحت عنوان <code>## Captured</code> في <strong>ملاحظة اليوم</strong>، مختومًا بالوقت:</p>
+<pre><code class="language-markdown">## Captured
+
+- 09:15 اسأل عن ساعات فتح قاعة القراءة
+- 14:02 «خريطة بلا نجم عجلة» — للمقالة
+</code></pre>
+<p>تبقى الملاحظة التي كنت فيها حيث كانت، ومؤشرك فيها؛ ويسمّي إشعار صغير الملاحظة التي ذهب إليها السطر ويعرض فتحها. وإن لم تكن ملاحظة اليوم موجودة بعد فإنها تُنشأ أولًا، من الباب نفسه الذي يستعمله <code>Ctrl/Cmd Alt D</code>، فتحمل قالب الملاحظة اليومية (الإعدادات ← الخزانة ← القوالب) تمامًا كما لو فتحتها بنفسك. وإن كان في الملاحظة قسم <code>## Captured</code> من قبل انضمّ السطر إلى آخره؛ وإلا أُضيف القسم في آخر الملاحظة. ويصنع <code>Shift Enter</code> سطرًا ثانيًا لخاطرة تحتاج إلى سطرين؛ ويُعلَّق تحت النقطة نفسها.</p>
+<p><strong>صندوق الوارد.</strong> أحيانًا تكون ملاحظة اليوم البيت الخطأ: سطر يخص مشروعًا، أو قائمة قراءة، أو قائمة أسئلة متجددة. ثبّت ملاحظة على أنها <strong>صندوق الالتقاط</strong> في الإعدادات ← الخزانة ← صندوق الالتقاط، فتنبت للورقة وجهة ثانية: <em>ملاحظة اليوم</em> أو <em>صندوق الوارد</em>. ويحطّ السطر تحت <code>## Captured</code> في أيهما اخترت، بالشكل نفسه.</p>
+<p>وعلى الهاتف تجلس الورقة في أسفل الشاشة، حيث الإبهام أصلًا، والحقل والزران كلاهما بطول يُصاب. وليس الاختصار الطريق الوحيد إليها: فعلى الهاتف، <strong>التقاط سريع</strong> هو الصف الأول تحت زر <strong>⋯</strong> في الشريط العلوي.</p>
+<p>ويستعمل ختم الوقت ساعة جهازك والأرقام الغربية، مثل اسم ملف الملاحظة اليومية نفسه: فهو عنوان داخل الملاحظة لا نثر، وينبغي أن يُرتَّب بالطريقة نفسها في كل لغة.</p>
+<h2 id="القصاصة"><a class="anchor" href="#القصاصة">القصاصة</a></h2>
+<p>تحفظ القصاصة صفحة ويب، أو الجزء الذي حدّدته منها فقط، ملاحظةً في خزانتك، محوَّلة إلى Markdown، ومكتوبًا في مقدمتها من أين جاءت.</p>
+<h3 id="الإعداد"><a class="anchor" href="#الإعداد">الإعداد</a></h3>
+<p>افتح الإعدادات ← الخزانة ← <strong>القصاصة</strong> واسحب زر <strong>قصّ إلى …</strong> إلى شريط المفضلة في متصفحك. هذا هو التثبيت كله: الزر <em>أداة إشارة مرجعية</em> (bookmarklet)، أي إشارة مرجعية عنوانها سطر من JavaScript، والرمز الذي يسمح لها بالكتابة في خزانتك بداخلها من قبل. أما النقر على الزر في صفحة الإعدادات نفسها فلا يفعل شيئًا، عمدًا.</p>
+<p>و<strong>تجديد الرمز</strong> يصنع رمزًا جديدًا ويُبطل القديم. فكل نسخة من الأداة سحبتها من قبل تتوقف عن العمل لحظة الضغط عليه، والزر على الصفحة يحمل الآن الرمز الجديد. افعل ذلك إن ضاع متصفح كنت تستعمله، أو بين حين وآخر ببساطة. ويُحفظ الرمز في مجلد بيانات الخادم باسم <code>clip-token</code> (لا يقرؤه إلا المستخدم الذي يعمل الخادم باسمه) ولا يدخل الخزانة أبدًا، فلا يُزامَن ولا يُنشَر ولا يُودَع مع ملاحظاتك.</p>
+<h3 id="الاستعمال"><a class="anchor" href="#الاستعمال">الاستعمال</a></h3>
+<p>في أي صفحة، انقر الأداة. من غير تحديد تقصّ الصفحة؛ ومع تحديد تقصّ ذلك الجزء وحده، محتفظةً بعناوينه وروابطه وتنسيقه بدل نصه المجرد. وتقول رسالة صغيرة أين ذهبت الملاحظة.</p>
+<p>تُكتب الملاحظة في <code>Clips/&lt;عنوان الصفحة&gt;.md</code>. وصفحة ثانية بالعنوان نفسه تصير <code>&lt;العنوان&gt; (2).md</code>؛ ولا يُستبدل شيء أبدًا. وفي داخلها:</p>
+<pre><code class="language-markdown">---
+source: &quot;https://example.org/the-page&quot;
+clipped: 2026-09-15
+---
+
+# عنوان الصفحة
+
+الصفحة، بصيغة Markdown.
+</code></pre>
+<p>والمحوِّل متحفظ عمدًا. يحتفظ بالعناوين والفقرات والقوائم (المتداخلة والمرقّمة) والروابط (وقد جُعلت مطلقة، فتعمل من خزانتك) والصور <strong>بعناوينها</strong> (لا يُنزَّل شيء) والاقتباسات والشيفرة (في السطر وفي أسوار، مع اللغة حين تسمّيها الصفحة) والعريض والمائل والخطوط الفاصلة وأبسط الجداول. أما السكربتات والأنماط والنماذج والمشغّلات وأشرطة التنقل وأثاث الصفحة فتُسقط، والصفحة التي تعلّم <code>&lt;article&gt;</code> أو <code>&lt;main&gt;</code> تعطيك ذلك ولا شيء حوله. والنثر الذي يتّفق أن يحوي علامات Markdown نفسها (<code>*</code> أو <code>[</code> أو سطر يبدأ بـ <code>#</code>) يُهرَّب فيُقرأ كما كان في الصفحة. والناتج ملاحظة تستطيع تحريرها، لا نسخة من تخطيط الصفحة.</p>
+<p>وترسل الأداة الصفحة إلى موقعك مباشرة من الصفحة التي أنت فيها. وبعض المواقع يمنع ذلك في سياسة أمانه؛ فإذا حدث ذلك عادت الأداة إلى إرسال القصاصة عبر تبويب جديد يُفتح على الملاحظة التي صنعتها. وفي الحالين تصل القصاصة.</p>
+<h3 id="من-سكربت"><a class="anchor" href="#من-سكربت">من سكربت</a></h3>
+<p>يأخذ <code>POST /api/clip</code> كائن JSON بالشكل <code>{ url, title?, html?, selection?, text? }</code> مع الرمز في حقل <code>token</code> أو في ترويسة <code>Authorization: Bearer</code>، ويجيب بـ <code>{ kind: &quot;clipped&quot;, path }</code>. وجلسة دخولك أنت تعمل أيضًا (بلا رمز). والجسم الذي لا عنوان فيه أصلًا يُعامل خاطرةً وتُلحق بملاحظة اليوم تحت <code>## Captured</code>، وهو ما تفعله ورقة مشاركة الهاتف بالجملة المشتركة، فيجيب بـ <code>{ kind: &quot;captured&quot;, path }</code>.</p>
+<h2 id="من-الهاتف"><a class="anchor" href="#من-الهاتف">من الهاتف</a></h2>
+<p>الموقع قابل للتثبيت. على الهاتف افتحه في المتصفح واختر <strong>إضافة إلى الشاشة الرئيسية</strong> (يعرضها Chrome من تلقاء نفسه؛ وفي Safari تحت المشاركة). يُفتح التطبيق المثبَّت بملء الشاشة، ويحمل اسم الموقع وألوان سمته الافتراضية، ويظهر على Android في <strong>ورقة المشاركة</strong> في الهاتف.</p>
+<p>شارك صفحة من أي تطبيق إليه فتُقصّ إلى <code>Clips/</code> تمامًا كما كانت الأداة ستفعل؛ ثم يُفتح التطبيق على الملاحظة الجديدة. وشارك جملة، خاطرة أو سطرًا من رسالة، فتُلحق تحت <code>## Captured</code> في ملاحظة اليوم. والمشاركة التي تحمل كلمات وعنوانًا معًا صفحة الكلمات فيها متنها.</p>
+<p>وإن كان المتصفح الذي تشارك منه غير مسجّل الدخول إلى الموقع، تحطّ المشاركة على صفحة تقول ذلك وتدلّ على الطريق؛ سجّل الدخول هناك مرة وشارك من جديد.</p>
+<p>حدّان صادقان. تصل المشاركة بعنوان الصفحة واسمها لا بمحتواها، فالصفحة المشتركة تُودع باسمها وعنوانها جاهزةً لتزيد عليها؛ أما الأداة، التي تعمل <em>على</em> الصفحة، فتأخذ المقال كله. وملاحظة اليوم التي تضطر ورقة المشاركة إلى إنشائها (لأنك لم تفتح ملاحظة اليوم بعد) تبدأ خاوية؛ فالقالب يطبّقه التطبيق حين يصنع الملاحظة، وورقة المشاركة تصل إلى الخزانة من غير التطبيق. افتح ملاحظة اليوم مرة في الصباح ولا ينطبق الحدّان.</p>
+<p>والبيان (manifest) نفسه على <code>/manifest.webmanifest</code>؛ وهو يُولَّد من إعداداتك، فالموقع الذي أعدت تسميته أو السمة الافتراضية التي غيّرتها يصلان إلى الهاتف في زيارته التالية، و<a href="../offline/">النسخة دون اتصال</a> تبقيه على سياسة الشبكة أولًا للسبب نفسه.</p>
+<h2 id="ذات-صلة"><a class="anchor" href="#ذات-صلة">ذات صلة</a></h2>
+<ul>
+<li><a href="../templates-and-notes/">القوالب واللافتات والملاحظات</a>: الملاحظة اليومية وقالبها</li>
+<li><a href="../keymap/">الاختصارات</a>: <code>Ctrl/Cmd Shift D</code> إلى جانب <code>Ctrl/Cmd Alt D</code></li>
+<li><a href="../configuration/">الإعداد</a>: <code>captureInbox</code>، وأين مجلد البيانات</li>
+<li><a href="../offline/">القراءة دون اتصال</a>: ما يحتفظ به التطبيق المثبَّت على الجهاز</li>
+</ul>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/ar/capture.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/offline/"><span class="pager__kicker">السابق</span><span class="pager__title">القراءة دون اتصال</span></a><a class="pager__link pager__link--next" href="../../ar/export/"><span class="pager__kicker">التالي</span><span class="pager__title">التصدير</span></a></nav>
+    <footer class="foot">أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#الالتقاط-السريع">الالتقاط السريع</a><a class="toc__link toc__link--2" href="#القصاصة">القصاصة</a><a class="toc__link toc__link--3" href="#الإعداد">الإعداد</a><a class="toc__link toc__link--3" href="#الاستعمال">الاستعمال</a><a class="toc__link toc__link--3" href="#من-سكربت">من سكربت</a><a class="toc__link toc__link--2" href="#من-الهاتف">من الهاتف</a><a class="toc__link toc__link--2" href="#ذات-صلة">ذات صلة</a></aside>
+</div>
+<script>window.__docs = { lang: "ar", base: "../../", noResults: "لا نتائج" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>
