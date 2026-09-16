@@ -7626,6 +7626,18 @@ html[dir="rtl"] .s-statusbar__spacer {
 .s-bookmarks__star {
   color: var(--accent);
   font-size: 0.786rem;
+  /* The three marks (★ § ⌕) are not the same width; a fixed box keeps the
+     labels in one column whatever mix of rows the note holds. */
+  inline-size: 1em;
+  text-align: center;
+  flex: none;
+}
+/* A saved search with no label of its own reads as a query, not as a note:
+   the mono face the search box's operators wear, so `tag:physics` looks like
+   what it is. A labelled one is prose and keeps the row's face. */
+.s-bookmarks__row--search bdi {
+  font-family: var(--font-mono);
+  font-size: 0.786rem;
 }
 
 /* ── The template's questions (components/TemplateValuesSheet.tsx) ─────

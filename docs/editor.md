@@ -240,13 +240,21 @@ turns it off.
   themselves. Drag the dots, hover to light up a note's neighbours, click to open.
   It opens as a [tab](workspace.md#panes) in the focused pane (`Ctrl/Cmd G`), so the map and a note
   can sit side by side or flip back and forth. The sliders button opens its settings: colour the
-  notes by **folder** (one or two levels deep) or by **tag**, with a legend where each group can be
-  recoloured or hidden; a search that lights the matching notes; filters that hide orphans (notes
+  notes by **folder** (one or two levels deep), by **tag**, or by **query**, with a legend where
+  each group can be recoloured or hidden; a search that lights the matching notes; filters that hide orphans (notes
   with no links) or anything under a minimum number of links; the three forces (spread, link length, pull to centre); dot size, link opacity,
   the zoom level at which labels appear, and a glow. The settings panel itself is yours to place:
   drag it by its title anywhere over the graph, drag its corner to make it as short or as narrow as
   you like, and *Reset* puts it back. All of this is remembered per browser and never touches the
   vault.
+- **Graph groups by query.** *Group by query* in the colour legend takes up to six rows, each a
+  query the search box would take (`tag:physics before:2026`, `path:Journal -is:published`,
+  `linkto:Ledger`) beside a colour swatch. Every note a query names is painted its colour; a note
+  two queries name belongs to the first row, so the order of the rows is a precedence you can see.
+  The legend lists each query with how many notes it painted, and *No query* gathers the rest in
+  the theme's neutral. The default swatches are six hues walked from the theme's accent, so the
+  groups belong to the theme; set your own on the row or in the legend. Remembered per browser
+  with the rest of the graph's preferences.
 - **Full-text search.** Instant; it matches a word from its first letters and forgives a small
   typo, and shows highlighted snippets with the markdown syntax stripped out. It answers to
   [localised tag labels](arabic-and-rtl.md#localised-tag-labels) as well as the canonical ones, and
@@ -410,6 +418,20 @@ of its aliases, without linking to it. Whole words only, never inside a link, co
 folded like search, so a pointed Arabic title finds its plain spelling. **Link** wraps those words as
 `[[Note]]` (or `[[Note|the words]]` when they are not the title's own spelling) with one edit to
 that line; **Link all** does every row. This is how small notes get woven into a web.
+
+## Nearby
+
+Under the backlinks, **Nearby** lists the ten notes that read most like the open one — without a
+model, without the network, without anything leaving the vault. Two notes are near when they use
+the same *uncommon* words: every word is weighed by how rare it is across your vault (a word in
+every note weighs nothing, which is why no stop list is needed in any language), tags count as
+words somebody chose and weigh more, and the score is the overlap of the two notes' weighted
+vocabularies (a TF-IDF cosine over the same folded terms the search index holds, so a pointed
+Arabic word and its plain spelling are one term). Each row shows the score as a percentage and the
+**two terms that tie** the notes, so you can see *why* before you open it; hover a row to preview,
+click to open. The list follows the vault: an edit to any note moves every score a little, and the
+panel re-reads after each change. It is the owner's panel — a visitor's site never gets it, since
+the scoring reads every note's body — and its collapse is remembered per browser.
 
 ## Block references
 

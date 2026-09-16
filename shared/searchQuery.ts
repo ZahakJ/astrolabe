@@ -215,3 +215,13 @@ export function parseSearchQuery(raw: string): ParsedQuery {
   }
   return { text: words.join(" "), filters };
 }
+
+/** The `prop:` token a click on the properties shelf builds, so the shelf
+ *  and the parser cannot disagree about what a value with a space in it
+ *  looks like: quoted, which `tokenize` keeps whole. A quote inside the
+ *  value has no escape in this grammar and is dropped. */
+export function propQuery(key: string, value?: string): string {
+  if (value === undefined) return `prop:${key}`;
+  const clean = value.replace(/"/g, "");
+  return /\s/.test(clean) ? `prop:${key}="${clean}"` : `prop:${key}=${clean}`;
+}

@@ -116,6 +116,31 @@ The sidebar draws it as a starred section above the tree. Drag a row onto anothe
 list lines move in the note and nothing else on the page does. This replaced the per-browser "pin
 to top", which the phone never saw.
 
+The note's grammar is three kinds of list line, and you can write any of them by hand:
+
+```markdown
+## Reading
+
+- [[Ledger]]
+- [[Ledger#April|April's ledger]]
+- `tag:physics before:2026` Older physics
+
+## Kitchen
+
+- [[Bread]]
+```
+
+- `- [[Note]]` is a note (★). An alias after `|` is the label the row shows.
+- `- [[Note#Heading]]` is a **heading** inside a note (§): the row opens the note and lands on
+  that heading, exactly as the link would if you clicked it in a note.
+- `` - `query` `` is a **saved search** (⌕): an inline code span holding anything the search box
+  takes, [operators](editor.md#navigating) included. The row runs it in the search box above the
+  tree. Any text after the span is the row's label; without one, the row shows the query itself.
+
+Headings and prose between the lines are yours and are left where they are; the sidebar lists the
+rows flat, in the note's order. `Ctrl/Cmd Shift B` keeps or removes the whole-note line only — a
+heading bookmark into a note is not the note, so it is never taken off by the shortcut.
+
 ## Named layouts
 
 **Save layout as…** in the palette keeps the current arrangement (panes, tabs, splits, never
@@ -129,6 +154,19 @@ The tag shelf under the tree is a tree of its own: `book/fiction` and `book/hist
 once, with the count of everything under it, and a chevron opens the branch. The small control in
 the shelf's corner sorts by count or by name; both choices and the open branches are remembered per
 device. A click still filters the tree, a second click clears the filter, and a right-click renames.
+
+## Properties as a shelf
+
+Under the tags sits **Properties**: every frontmatter key the vault uses, with the count of notes
+that carry it, most-used first. Click a key and the search box runs `prop:key` — the notes that
+have it at all. The chevron beside a key opens its distinct values, up to the twenty most common,
+each with its own count; click one and the search runs `prop:key=value` (quoted for you when the
+value has a space in it). A second click on either clears the search. A list value counts once per
+item, so `authors: [Ibn Khaldun, Al-Jahiz]` shows both names under `authors`, and "Reading" and
+"reading" are one value, the way the [`prop:` operator](editor.md#live-queries) matches them. The
+`tags` key is not listed here; it has the shelf above. The shelf is the owner's: a visitor's sidebar
+does not draw it, and its counts are scoped like the tags' — a key seen only on unpublished notes
+never reaches a visitor session. The collapse is remembered per browser.
 
 ## On a phone
 

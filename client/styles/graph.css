@@ -168,6 +168,17 @@
   align-items: center;
 }
 
+/* Groups by query: the gathering row's shape with a swatch where the name
+   was — the query is the name. The field keeps the mono face the search
+   box's operators wear, so `tag:physics before:2026` reads as a query. */
+.s-graph__query-row {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.s-graph__query-row .s-graph__gather-tags {
+  font-family: var(--font-mono);
+}
+
 .s-graph__gather-name,
 .s-graph__gather-tags {
   min-inline-size: 0;

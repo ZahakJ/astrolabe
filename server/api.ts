@@ -98,12 +98,13 @@ import {
   resolveLabel,
   search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor, hasNote,
   searchMatches,
-  tags,
+  tags, props, queryPaths,
   trackers, routines, hadithLookup, cards, decks, deckCards,
   visibleNotesUnder,
   whenIndexed,
   wikilinkRegex, collectionRows } from "./indexer.ts";
 import { sendEncoded } from "./compress.ts";
+import { nearbyNotes } from "./nearby.ts";
 import { hadithKey, parseHadithRef } from "../shared/hadithRefs.ts";
 import { graphBody, invalidateGraph, localGraphJson } from "./graphCache.ts";
 import { invalidateTree, treeBody } from "./treeCache.ts";
@@ -2412,6 +2413,21 @@ api.get("/query", (c) => {
   );
 });
 
+// The PATHS a query names, nothing else — for a surface that colours or
+// counts notes rather than listing them (the graph's groups by query). No
+// snippets, no rank tiers, and no fifty-hit cap: a graph that coloured only
+// the first fifty physics notes would be lying about the other hundred.
+// Same scope ladder as /search.
+api.get("/query/paths", (c) => {
+  const limited = isPublishLimited(c);
+  return c.json(
+    queryPaths(c.req.query("q") ?? "", limited, languageScope(c, limited).lang, {
+      canonicalTag,
+      expandTerms: expandTagQuery,
+    }),
+  );
+});
+
 api.get("/search/matches", (c) => {
   const limited = isPublishLimited(c);
   return c.json(
@@ -2457,6 +2473,21 @@ api.get("/backlinks", (c) => {
 api.get("/tags", (c) => {
   const limited = isPublishLimited(c);
   return c.json(tags(limited, languageScope(c, limited).lang));
+});
+
+// Properties: every frontmatter key with a count and its top values, for the
+// shelf under the tags. Scoped like /api/tags, and for the same reason.
+api.get("/props", (c) => {
+  const limited = isPublishLimited(c);
+  return c.json(props(limited, languageScope(c, limited).lang));
+});
+
+// Notes that read like this one, without a model anywhere near them
+// (server/nearby.ts). Admin only: the scoring reads every note's body, and
+// a visitor's "related posts" would be an oracle for unpublished notes.
+api.get("/nearby", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(nearbyNotes(normalizeRel(requiredQuery(c.req.query("path"), "path"))));
 });
 
 // The DISPLAY names of those tags: canonical tag → language → label, merged

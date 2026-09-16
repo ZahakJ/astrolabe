@@ -34,6 +34,8 @@ import type {
   SettingsPatch,
   SettingsResponse,
   TagCount,
+  PropCount,
+  NearbyHit,
   TagLabelsResponse,
   ReplacePreview,
   ReplaceResult,
@@ -633,6 +635,23 @@ export function linkMention(m: Mention, target: string): Promise<{ ok: true; pat
 
 export function getTags(): Promise<TagCount[]> {
   return request<TagCount[]>("/api/tags");
+}
+
+/** Every frontmatter key the index knows, with counts and top values — the
+ *  properties shelf under the tags. Scoped exactly as /api/tags is. */
+export function getProps(): Promise<PropCount[]> {
+  return request<PropCount[]>("/api/props");
+}
+
+/** Notes that read like this one (admin only; server/nearby.ts). */
+export function getNearby(path: string, signal?: AbortSignal): Promise<NearbyHit[]> {
+  return request<NearbyHit[]>(`/api/nearby?path=${encodeURIComponent(path)}`, signal ? { signal } : undefined);
+}
+
+/** The paths a search-box query names, uncapped — what the graph colours a
+ *  group by. Same scoping as search(). */
+export function queryPaths(q: string, signal?: AbortSignal): Promise<string[]> {
+  return request<string[]>(`/api/query/paths?q=${encodeURIComponent(q)}`, signal ? { signal } : undefined);
 }
 
 /** The DISPLAY names of the vault's tags (canonical tag → language → label).

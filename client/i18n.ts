@@ -3909,6 +3909,7 @@ const DICT = {
   graphDepthSecond: { en: "Two levels", ar: "مستويان" },
   graphGroupRoot: { en: "Vault root", ar: "جذر الخزانة" },
   graphGroupUntagged: { en: "Untagged", ar: "بلا وسم" },
+  graphGroupUnmatched: { en: "No query", ar: "بلا استعلام" },
   graphHideGroup: { en: "Hide this group", ar: "إخفاء هذه المجموعة" },
   graphShowGroup: { en: "Show this group", ar: "إظهار هذه المجموعة" },
   graphPickColor: { en: "Colour for {name}", ar: "لون {name}" },
@@ -4808,6 +4809,8 @@ const DICT = {
   bookmarkAdded: { en: "Bookmarked", ar: "أُضيفت إلى المفضلة" },
   bookmarkRemoved: { en: "Bookmark removed", ar: "أُزيلت من المفضلة" },
   bookmarkFailed: { en: "Bookmarks.md could not be written", ar: "تعذّرت كتابة Bookmarks.md" },
+  // A search row (a code span in Bookmarks.md) runs its query in the box.
+  bookmarkRunSearch: { en: "Search: {query}", ar: "بحث: {query}" },
   cmdSaveLayout: { en: "Save layout as…", ar: "احفظ التخطيط باسم…" },
   cmdSaveLayoutHint: { en: "Panes, tabs and splits under a name — shared with the desktop app", ar: "اللوحات والتبويبات والتقسيمات باسم؛ مشتركة مع تطبيق سطح المكتب" },
   cmdRestoreLayout: { en: "Restore a layout…", ar: "استرجع تخطيطًا…" },
@@ -5115,6 +5118,32 @@ const DICT = {
     en: "Notes here with collection: and number: in their frontmatter answer > [!hadith] callouts. Empty means the folder is detected (\"hadith\", \"Corpus/hadith\", \"أحاديث\").",
     ar: "الملاحظات هنا التي تحمل collection: وnumber: في مقدمتها تجيب تنبيهات > [!hadith]. فارغ يعني اكتشاف المجلد تلقائيًا («hadith»، «Corpus/hadith»، «أحاديث»).",
   },
+
+  // ── Vault views: the properties shelf, graph groups by query, Nearby ──
+  propsShelf: { en: "Properties", ar: "الخصائص" },
+  showProps: { en: "Show properties", ar: "إظهار الخصائص" },
+  hideProps: { en: "Hide properties", ar: "إخفاء الخصائص" },
+  propsOpenValues: { en: "Show the values of {key}", ar: "إظهار قيم {key}" },
+  propsCloseValues: { en: "Hide the values of {key}", ar: "إخفاء قيم {key}" },
+  propsSearchKey: { en: "Notes that have {key}", ar: "الملاحظات التي تحمل {key}" },
+  propsClearFilter: { en: "Clear the {key} filter", ar: "مسح تصفية {key}" },
+  // The graph's legend: colour the notes a search-box query names.
+  graphColorQuery: { en: "Query", ar: "استعلام" },
+  graphGroupByQuery: { en: "Group by query", ar: "تجميع بالاستعلام" },
+  graphQueryHint: { en: "Notes a query names take its colour; the first query that names a note wins.", ar: "الملاحظات التي يسمّيها استعلام تأخذ لونه؛ وأول استعلام يسمّي ملاحظة يفوز بها." },
+  graphQueryAdd: { en: "Add a query", ar: "أضف استعلامًا" },
+  graphQueryPlaceholder: { en: "e.g. tag:physics before:2026", ar: "مثلًا tag:physics before:2026" },
+  graphQueryField: { en: "Query", ar: "الاستعلام" },
+  graphQueryRemove: { en: "Remove this query", ar: "حذف هذا الاستعلام" },
+  graphQueryColor: { en: "Colour for the query {query}", ar: "لون الاستعلام {query}" },
+  graphQueryNone: { en: "No query matched a note.", ar: "لم يطابق أي استعلام ملاحظة." },
+  // Nearby: related notes by shared vocabulary, in the outline pane.
+  nearby: { en: "Nearby", ar: "بالجوار" },
+  showNearby: { en: "Show nearby notes", ar: "إظهار الملاحظات المجاورة" },
+  hideNearby: { en: "Hide nearby notes", ar: "إخفاء الملاحظات المجاورة" },
+  nearbyHint: { en: "Notes that use the same uncommon words and tags as this one, with the two that tie them. No model, nothing leaves the vault.", ar: "ملاحظات تستعمل الكلمات والوسوم غير الشائعة نفسها التي تستعملها هذه، مع الاثنتين اللتين تربطانهما. بلا نموذج، ولا يغادر شيء الخزانة." },
+  nearbyNone: { en: "Nothing nearby yet.", ar: "لا شيء بالجوار بعد." },
+  nearbyTerms: { en: "Tied by {terms}", ar: "يربطهما {terms}" },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;
