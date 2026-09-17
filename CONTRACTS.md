@@ -5563,16 +5563,27 @@ trapdoor one level further out.
 
 ## Settings travel with the vault (server/prefs.ts, client/prefsSync.ts)
 
-- The Device-tab preferences (an allowlist in `client/prefsSync.ts`: theme, site-theme, lang,
-  editorLang, vim, editorWidth, editorWidthCustom, headingNumbers, selToolbar, sidebarSide,
-  show-attachments, graph, comment.author) are mirrored to `<vault>/.astrolabe/prefs.json` as a
-  map of localStorage key → `{ v, t }`. Window state (tabs, workspace, pane widths, tags height,
+- The Device-tab preferences (an allowlist in `client/prefsSync.ts`, pinned by
+  `tests/prefs.test.ts`: theme, site-theme, lang, editorLang, vim, editorWidth, editorWidthCustom,
+  headingNumbers, selToolbar, sidebarSide, show-attachments, graph, comment.author, whatsnew,
+  relativeLines, tags-sort, frenchAutocorrect — and, since 3.18.0, the three the owner said yes
+  to: `library` (where each course was left), `properties` (the properties panel's choice) and
+  `reading` (reading mode), by the same argument as a book's page: a position is the reader's,
+  not the machine's) are mirrored to `<vault>/.astrolabe/prefs.json` as a map of localStorage
+  key → `{ v, t }`. Window state (tabs, workspace, pane widths, tags height,
   recents, folds, every `*-collapsed`, window identity) NEVER travels. Adding a key to the
   allowlist is a decision about every device the owner has, not a convenience.
 - Merge is per key, newest `t` wins, ties keep the file's copy, `v: null` is a tombstone. Both
   halves implement the same rule; `tests/prefs.test.ts` pins the server's.
 - The client pulls ONCE, before React mounts (`client/main.tsx`), and writes newer keys into
-  localStorage through the unpatched `Storage.prototype` methods so the pull never pushes. Pushes
+  localStorage through the unpatched `Storage.prototype` methods so the pull never pushes. THE
+  FIRST PAINT SEES THE PULL: the store reads vim, relative lines, reading mode, the sidebar's
+  side, the editor language and the theme from localStorage at import, which is BEFORE the pull
+  resolves (imports hoist), so when the pull changed any key `main.tsx` calls
+  `reloadPrefsFromStorage()` (client/state.ts) before `createRoot` and the store re-reads them.
+  Before 3.18.0 a fresh device painted the old side on its first load and the vault's on its
+  second (measured, maturity brief §4.1). `lastPull()` says when the pull ran and how many keys
+  it applied, for the travel row. Pushes
   come from a patch on `Storage.prototype.setItem/removeItem`, only for `localStorage` and only
   for travelling keys, debounced 1.2 s, flushed with `keepalive` on `pagehide`. A 401/403 marks
   the session denied and stops every further request until the next pull succeeds.
@@ -5588,18 +5599,45 @@ trapdoor one level further out.
 
 ## Instance settings travel with the vault (server/configMirror.ts)
 
-- `settings.json`, `designs.json`, `custom.css` and `fonts/*` are mirrored between
-  `ASTROLABE_DATA` and `<vault>/.astrolabe/` at boot (awaited, before the first read) and every
-  5 s, both ways, newest mtime wins (`pickSource`, pinned by `tests/configMirror.test.ts`), mtime
-  carried on copy so the sides settle. No merge. **FIRST CONTACT: THE VAULT WINS.** The first time
-  this server compares a file (`ASTROLABE_DATA/mirror-state.json` lists the files already met),
-  the vault's copy is taken whatever the mtimes say — a data directory that has never met the
-  vault holds a machine's private defaults, and on 2026-09-07 a desktop's 31-byte settings.json,
-  a day younger than the site's, overwrote the hosted instance's configuration within five
-  seconds. Recovered from the vault's git history; never again by construction. NEVER mirrored: `git-credentials.json`,
-  `comments.db`, `created.json`, `books.json`, `session-epoch`, `author-sites.json`,
-  `workspace.json`. Adding a file to the list is a decision about every machine and about what a
-  git remote will hold.
+- `settings.json`, `designs.json`, `custom.css`, `layouts.json`, `books.json`, `annotations.json`
+  (`FILES`) and every file under `fonts/custom/` (`DIRS`: the uploaded faces with their
+  `index.json`) are mirrored between `ASTROLABE_DATA` and `<vault>/.astrolabe/` at boot (awaited,
+  before the first read) and every 5 s, both ways, newest mtime wins (`pickSource`, pinned by
+  `tests/configMirror.test.ts`), mtime carried on copy so the sides settle. No merge. **FIRST
+  CONTACT: THE VAULT WINS.** The first time this server compares a file against a copy the vault
+  actually holds (`ASTROLABE_DATA/mirror-state.json` lists the files already met, keyed by the
+  vault's realpath — a data directory pointed at another vault is first contact again), the
+  vault's copy is taken whatever the mtimes say — a data directory that has never met the vault
+  holds a machine's private defaults, and on 2026-09-07 a desktop's 31-byte settings.json, a day
+  younger than the site's, overwrote the hosted instance's configuration within five seconds.
+  Recovered from the vault's git history; never again by construction. A file the vault does NOT
+  hold yet does not consume first contact (3.18.0: it used to, and the file's eventual arrival
+  was then decided by clocks — the race the rule exists to prevent). A ledger the modules write
+  at 0600 is set back to 0600 when it arrives from the vault (a git clone lands at 0644).
+- **Fonts, with caps.** `DIRS` was `["fonts"]` from the day the mirror was written, and `fonts/`
+  has held only two directories since 357202c, so no uploaded face ever travelled while three
+  documents said it did (maturity brief §4.1). It is `["fonts/custom"]` since 3.18.0;
+  `fonts/catalog/` NEVER travels — it is re-fetchable, and the receiving side warms it instead
+  (below). A file over `FONT_UPLOAD_MAX_BYTES` (5 MB) is skipped, and once a directory's eligible
+  bytes pass `DIR_TOTAL_MAX_BYTES` (40 MB, `index.json` counted first) the rest are skipped, so a
+  hand-dropped 80 MB face never lands in git history. Every skip and every copy failure is a
+  named `problem` on the pass, never a silent absence.
+- **The receiving side warms its type.** After any pass that imported `settings.json` or
+  `designs.json` from the vault, and once at boot, the catalog faces the slots and the active
+  design name are fetched — `warmFonts()` in server/fonts.ts, the same
+  `catalogSlotIds(fontSlots())` + `designCatalogIds(activeDesignFontRefs(), fontSlots())` the
+  settings PATCH warms, fire-and-forget, logged on failure. Before 3.18.0 a fresh clone reported
+  `ui: "lora"` with zero `@font-face` until someone opened Settings → Site.
+- **Visible.** `GET /api/sync/travel` (admin-only, `isPublishLimited` → 401) reports each
+  travelling item's presence on either side, the last pass (`at`, what moved, `problems`) and
+  how many files have been reconciled; `POST /api/sync/travel` runs one pass plus the warm and
+  answers the same. `Settings → Backup & sync → What travels`
+  (`client/components/settings/TravelRow.tsx`) is the reader: a checklist per item, the last pass
+  time, a **Re-sync now** button, a red line per problem, and one sentence naming what is still
+  redone by hand on a new machine (the git token or SSH key, the admin password, screen warmth).
+- NEVER mirrored: `git-credentials.json`, `comments.db`, `created.json`, `pdftext.json`,
+  `session-epoch`, `author-sites.json`, `workspace.json`, `versions/`, `fonts/catalog/`. Adding a
+  file to the list is a decision about every machine and about what a git remote will hold.
 
 ## Sync at launch (server/gitSync.ts::syncAtLaunch)
 

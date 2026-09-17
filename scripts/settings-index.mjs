@@ -61,9 +61,14 @@ export function settingsRows() {
   // The device tab is a component of its own; everything else is a block.
   const device = read("client/components/settings/DeviceTab.tsx").split("\n");
   rows.push(...rowsIn(device, 0, device.length, "device"));
+  // The travel row is a component of its own, mounted at the end of the sync
+  // tab (`<TravelRow />`), so its label is read from its file and appended to
+  // that tab's rows in the order a reader meets them.
+  const travel = read("client/components/settings/TravelRow.tsx").split("\n");
   for (const { tab, from, to } of tabRanges(modal)) {
     if (tab === "device") continue; // rendered by DeviceTab above
     rows.push(...rowsIn(lines, from, to, tab));
+    if (tab === "sync") rows.push(...rowsIn(travel, 0, travel.length, "sync"));
   }
   return rows;
 }
