@@ -187,5 +187,7 @@ to publish it.
 
 `tracker` is an Astrolabe extension, not an Obsidian feature. Open the same vault in Obsidian and the
 fence goes back to what it is underneath: a labelled code block whose lines are all readable. Nothing is
-converted, nothing is lost, and the note still says everything it said here. See
-[OBSIDIAN-COMPAT.md](../OBSIDIAN-COMPAT.md).
+converted, nothing is lost, and the note still says everything it said here. The same is true of a
+[sigil](sigils.md#in-obsidian); a [drawing](drawing.md#in-obsidian) is the Excalidraw plugin's own file;
+and an [orbit](orbits.md#where-the-schedule-lives) writes its schedule in the Spaced Repetition plugin's
+own format.

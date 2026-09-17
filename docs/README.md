@@ -19,6 +19,7 @@ You can read this manual as a website, with search, a page outline and both lang
 | [Capture](capture.md) | Getting things in without opening a note: `Ctrl/Cmd Shift D` drops a line into today's note from anywhere, a bookmarklet clips a web page into `Clips/` as Markdown, and the installed site takes shares from a phone |
 | [Export](export.md) | Download a note, a folder, a tag or the whole vault as a ZIP with the files it uses, with `[[wikilinks]]` kept or turned into ordinary links; or save any note as a standalone HTML page |
 | [The desktop app](desktop.md) | The app as a native program: the menu bar, several vaults, the reference window, find in page, updates, and links that open straight into a note |
+| [The Android app](mobile.md) | A door onto your own server from a phone: connecting, the share sheet that captures into the vault, updates, and what it deliberately does not do |
 | [Development](development.md) | Running the app in dev mode, the check scripts that guard it, the screenshot tools, and how to contribute a change |
 
 ## Writing
@@ -58,5 +59,4 @@ You can read this manual as a website, with search, a page outline and both lang
 
 - [`DESIGN.md`](../DESIGN.md) — the rules a change is judged against
 - [`CONTRACTS.md`](../CONTRACTS.md) — the promises the code has committed to keeping
-- [`OBSIDIAN-COMPAT.md`](../OBSIDIAN-COMPAT.md) — what carries over from an Obsidian vault, in detail
 - [`.env.example`](../.env.example) — the environment file, with every key explained

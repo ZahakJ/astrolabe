@@ -34,6 +34,11 @@ In dev mode you open port 5801; requests to `/api` are passed through to the ser
 | `node scripts/rebrand.mjs --name … --icon …` | Stamp your own product name and icon on the desktop build before `npm --prefix desktop run dist` ([the desktop app](desktop.md#your-own-name-and-icon)) |
 | `npm run hash-password` | Prompt (no echo, or piped stdin) and print an argon2id hash for `ADMIN_PASSWORD_HASH` |
 | `npm run typecheck` | `tsc --noEmit` — the strict TypeScript gate |
+| `npm test` | The unit suite, `node --test tests/*.test.ts`: the pure logic under `shared/`, `server/` and `client/`, no browser. It is the release gate, and it runs the same code as several of the gates below (`check-keymap`, `check-docs`) from a second door |
+| `npm run build-docs` | Build this manual, both languages, into `docs/site/` |
+| `npm run check-docs` | Every link, anchor, image and settings path in this manual resolves, in both languages (below) |
+| `npm run gen-icons` | Redraw the folder-mark glyph set from its catalog; `npm run check-icons` fails when the drawing is stale |
+| `npm run check-desktop` | The desktop wrapper's own checks, then its `tsc` |
 
 ## The gates
 
@@ -259,6 +264,88 @@ Unique slug ids, a bilingual name and blurb with real Arabic, a known family, at
 per family, and no preset naming a note in somebody's vault. It runs the shared `assertCatalog`
 rather than reimplementing it.
 
+### `npm run check-docs` — the manual
+
+This page and every other one, in both languages. The gate walks every link in `README.md`,
+`docs/*.md` and `docs/ar/*.md` with a Markdown lexer (so link syntax quoted inside backticks is
+left alone) and resolves each against the tree: a relative link must land on a file, an
+`#anchor` must name a heading of the page it points at, and an image must be on disk. Anchors
+resolve through the one slug rule in `scripts/build-docs.mjs`, which is GitHub's — punctuation
+dropped rather than hyphenated, Arabic letters kept — so a link that passes here lands on the
+site and on GitHub both. Every `Settings → Tab → Row` path in the prose is read against the
+panel's own source (the tab table, the group headings and the row index, with labels resolved
+through `client/i18n.ts` in the page's language), and every page in the site's table must exist
+in Arabic with the same heading structure as its English twin. `tests/docs.test.ts` runs the same
+function under `npm test`.
+
+### `npm run check-settings` — the settings index
+
+`client/components/settings/settingsIndex.ts`, which the panel's search reads, is generated from
+the panel's source by `node scripts/gen-settings-index.mjs`; this gate fails when the checked-in
+file and the source disagree, which is the only way they drift. A search that silently stops
+finding a row is worse than no search.
+
+### `npm run check-whatsnew` — the deck
+
+A minor version (`x.Y.0`) must be listed in `client/whatsnew/versions.ts` and have a deck with at
+least one slide in `releaseNotes.ts`, and every slide's title and body must carry both languages.
+A patch inherits its minor's deck. A version bump without a deck fails here, which is the
+reminder.
+
+### `npm run check-a11y` — static accessibility
+
+Holds the line an audit drew, from the source alone: no `outline: none` without a replacement
+focus ring in the same rule, an accessible name on every icon-only control, and the rest of the
+list at the top of the script. Like check-i18n, it exists for the class of regression that is
+invisible in review and invisible in a screenshot.
+
+### `npm run check-bundle` — what each audience downloads
+
+After `npm run build`. The client ships one entry chunk plus a chunk per surface, and the split
+only means something if it holds: one careless import at the top of a file the entry already
+loads brings the whole app shell back into an anonymous reader's first request. The gate measures
+every audience's download against a budget; a budget moves only by the actual overage, with the
+cause written beside it.
+
+### `npm run check-books` — the reader
+
+After `npm run build`. Ten properties of the PDF reader that are invisible in review and
+expensive to discover in production, the first being that the pdf.js worker is a real same-origin
+asset rather than a `blob:` URL — which works under the dev server's absent CSP and dies under
+the real one.
+
+### `npm run check-icons` — the folder marks
+
+`shared/folderIconNames.ts` and `shared/folderIconPaths.ts` are drawn from the catalog by
+`npm run gen-icons`; this is the `--check` form, failing when the drawing is stale.
+
+### `npm run check-signatures` — every signature house
+
+A browser gate that renders every signature house through the real public renderer against an
+isolated fixture API, touching no live vault, settings, saved design or account. `SIGNATURES=a,b`
+narrows it, `THEME=<id>` renders every house in one theme, `SHOTS=1` writes screenshots.
+
+### `npm run check-hovercache` — the hover-card cache
+
+A browser gate proving the LRU bound on hover previews holds in a real session: the cache is
+keyed by note path, so without `CACHE_MAX` an evening of skimming links would retain every note
+skimmed. A bound that is only asserted by a constant is a bound that silently stops being true.
+
+### `npm run check-designer-nav` — the designer's navigation and alignment
+
+A browser gate born of a bug that shipped past every other check, in the owner's own language:
+a preview scaled with a physical `transform-origin` inside a logical layout sits away from its
+box in `[dir="rtl"]`. It measures every designer surface in both directions, and walks the
+designer's navigation.
+
+### `scripts/check-pdfsearch.mjs` — search inside a book
+
+A bare script with no `package.json` entry:
+`CHROMIUM=/usr/bin/chromium node scripts/check-pdfsearch.mjs <url> <password>`. Against a server
+whose vault holds a PDF with a word that appears in no note, it proves the whole loop — the API
+answers with a `kind: "book"` row naming the page, the sidebar draws it, and clicking it opens
+the reader on that page with the word found.
+
 ### `scripts/check-desktop-boot.sh` and `check-desktop-relaunch.sh` — the desktop gates
 
 Both take an AppImage and boot it under Xvfb (a virtual screen) with an isolated config
@@ -271,6 +358,17 @@ exactly the way an applied update does, and passes only when the first process i
 second one started from the same file is running — `app.relaunch()` looked like it worked and
 did not, because Electron's relauncher runs from the mounted image after it is unmounted. Every
 AppImage release runs both before upload.
+
+## The done bar
+
+The sequence a change runs before it is called finished, in this order: `npm run typecheck` ·
+`node scripts/check-i18n.mjs` · `npm test` · `npm run build` and then `npm run check-bundle` ·
+`npm run check-a11y` · `npm run check-contrast` · `npm run check-settings` (with
+`node scripts/gen-settings-index.mjs` first when a row changed) · `npm run check-keymap` when a
+key changed · `npm run check-names` · `npm run check-docs` · `npm run build-docs` ·
+`npm run check-desktop` when `electron/` or `desktop/` changed. Then the browser gates the change
+touches, with `CHROMIUM` and `ASTROLABE_PASSWORD` set, against a scratch server over a scratch
+vault — never the owner's.
 
 ## Screenshot harnesses
 

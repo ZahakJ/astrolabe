@@ -14,7 +14,8 @@
 // (docs/index.html) links here; GitHub Pages serves docs/ at the repo's URL.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, posix, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 
 const root = new URL("../", import.meta.url).pathname;
@@ -23,8 +24,10 @@ const OUT = join(DOCS, "site");
 const REPO = "https://github.com/ZahakJ/astrolabe";
 
 /** The navigation: sections and pages, in reading order, named in both
- *  languages. `file` is the Markdown source under docs/ and docs/ar/. */
-const SECTIONS = [
+ *  languages. `file` is the Markdown source under docs/ and docs/ar/.
+ *  Exported for scripts/check-docs.mjs, which holds every page to having
+ *  both languages and every link to landing somewhere. */
+export const SECTIONS = [
   {
     id: "start",
     title: { en: "Getting started", ar: "البداية" },
@@ -36,6 +39,7 @@ const SECTIONS = [
       { slug: "capture", file: "capture.md", title: { en: "Capture", ar: "الالتقاط" } },
       { slug: "export", file: "export.md", title: { en: "Export", ar: "التصدير" } },
       { slug: "desktop", file: "desktop.md", title: { en: "The desktop app", ar: "تطبيق سطح المكتب" } },
+      { slug: "mobile", file: "mobile.md", title: { en: "The Android app", ar: "تطبيق أندرويد" } },
     ],
   },
   {
@@ -86,7 +90,7 @@ const SECTIONS = [
 // — and the Arabic edition is half of the docs). The builder now refuses:
 // the missing files are named and the exit code fails the build.
 const missingArabic = [];
-const PAGES = SECTIONS.flatMap((s) => s.pages.map((p) => ({ ...p, section: s })));
+export const PAGES = SECTIONS.flatMap((s) => s.pages.map((p) => ({ ...p, section: s })));
 
 // A page that changed its name keeps answering at the old one: a stub at
 // the old slug that refreshes to the new. The what's-new decks of earlier
@@ -98,7 +102,7 @@ const PAGES = SECTIONS.flatMap((s) => s.pages.map((p) => ({ ...p, section: s }))
 // now — so a 3.15 link to "orbits" lands on the study page, which is the
 // one thing a redirect table cannot undo, and the 3.15 slide says so.
 // lineage: "routines" and "flashcards" are redirect sources only.
-const MOVED = { routines: "sigils", flashcards: "orbits" };
+export const MOVED = { routines: "sigils", flashcards: "orbits" };
 
 const UI = {
   en: {
@@ -144,45 +148,83 @@ const UI = {
 };
 
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const slugify = (text) =>
-  text
-    .toLowerCase()
-    .replace(/<[^>]+>/g, "")
-    .replace(/&[a-z]+;/g, "")
-    .replace(/[^\p{L}\p{N}]+/gu, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || "section";
+const NAMED = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+const decodeEntities = (s) =>
+  s
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&([a-z]+);/gi, (m, n) => NAMED[n.toLowerCase()] ?? m);
 
-/** Where a Markdown link points once the page lives at /site/<lang>/<slug>/. */
-function rewriteHref(href, lang) {
+/** A heading's id, THE WAY GITHUB MAKES IT. The sources are what a reader
+ *  opens on GitHub, every page has "Edit this page on GitHub", and a link
+ *  written as `editor.md#note-direction--alignment` has to land in both
+ *  places — so the site does not have a slug rule of its own. GitHub's rule
+ *  (html-pipeline): lowercase the rendered text, drop every character that
+ *  is not a letter, a mark, a digit, a connector, a hyphen or a space, then
+ *  turn spaces into hyphens. Punctuation is DROPPED, not hyphenated, which
+ *  is why "&" leaves two hyphens and "astrolabe.sty" leaves none; Arabic
+ *  letters and their harakat stay, so an Arabic heading gets an Arabic id.
+ *  A repeated id gets `-1`, `-2`, … as GitHub numbers them. */
+export const slugify = (text) =>
+  decodeEntities(text.replace(/<[^>]+>/g, ""))
+    .toLowerCase()
+    .replace(/[^\p{L}\p{M}\p{Nd}\p{Pc}\- ]/gu, "")
+    .replace(/ /g, "-");
+
+/** Every heading of a Markdown source with the id the site (and GitHub)
+ *  gives it, in order: `[{ depth, id, text }]`. The one function both the
+ *  builder and the gate use, so a link the gate blesses is a link the site
+ *  resolves. */
+export function headingIds(markdown) {
+  const seen = new Map();
+  const out = [];
+  marked.use({ gfm: true });
+  for (const token of marked.lexer(markdown)) {
+    if (token.type !== "heading") continue;
+    const html = marked.parser([{ type: "paragraph", tokens: token.tokens, raw: token.raw, text: token.text }]);
+    const text = decodeEntities(html.replace(/<[^>]+>/g, "")).trim();
+    let id = slugify(text);
+    const n = seen.get(id) ?? 0;
+    seen.set(id, n + 1);
+    if (n > 0) id = `${id}-${n}`;
+    out.push({ depth: token.depth, id, text });
+  }
+  return out;
+}
+
+/** Where a Markdown link points once the page lives at /site/<lang>/<slug>/.
+ *  `from` is the source's directory, repo-relative (`docs` or `docs/ar`):
+ *  a link is resolved against it first, so `../README.md` means the manual's
+ *  index from an Arabic page and the repo's README from an English one, as it
+ *  does on GitHub. */
+function rewriteHref(href, lang, page, from = lang === "ar" ? "docs/ar" : "docs") {
   if (/^(https?:|mailto:|#)/.test(href)) return href;
   const [path, hash] = href.split("#");
   const anchor = hash ? `#${hash}` : "";
-  if (path === "" ) return anchor;
-  if (path === "README.md") return `../${anchor}`;
-  if (path === "../README.md") return `${REPO}#readme`;
-  const repoFile = /^\.\.\/([A-Z0-9_.-]+\.md)$/.exec(path);
-  if (repoFile) return `${REPO}/blob/main/${repoFile[1]}${anchor}`;
-  const local = /^([a-z0-9-]+)\.md$/.exec(path);
-  if (local) {
-    const page = PAGES.find((p) => p.file === path);
-    return page ? `../${page.slug}/${anchor}` : `${REPO}/blob/main/docs/${path}${anchor}`;
+  if (path === "") return anchor;
+  const target = posix.normalize(posix.join(from, path));
+  if (target === "docs/README.md") return `../${anchor}`;
+  if (target === "README.md") return `${REPO}#readme`;
+  const docPage = /^docs\/(ar\/)?([a-z0-9-]+\.md)$/.exec(target);
+  if (docPage) {
+    const found = PAGES.find((p) => p.file === docPage[2]);
+    const targetLang = docPage[1] ? "ar" : "en";
+    if (found) return `${targetLang === lang ? "../" : `../../${targetLang}/`}${found.slug}/${anchor}`;
+    return `${REPO}/blob/main/${target}${anchor}`;
   }
-  if (path.startsWith("screenshots/")) return `../../../${path}`;
-  if (path.startsWith("../")) return `${REPO}/blob/main/${path.slice(3)}`;
+  if (target.startsWith("docs/screenshots/")) return `../../../${target.slice(5)}`;
+  if (/\.md$/.test(target) || !target.startsWith("docs/")) return `${REPO}/blob/main/${target}${anchor}`;
   return href;
 }
 
 function render(markdown, lang, page) {
   const headings = [];
-  const seen = new Map();
+  const ids = headingIds(markdown);
+  let at = 0;
   const renderer = {
     heading({ tokens, depth }) {
       const text = this.parser.parseInline(tokens);
-      let id = slugify(text);
-      const n = seen.get(id) ?? 0;
-      seen.set(id, n + 1);
-      if (n > 0) id = `${id}-${n + 1}`;
+      const id = ids[at++]?.id ?? slugify(text);
       if (depth === 2 || depth === 3) headings.push({ depth, id, text: text.replace(/<[^>]+>/g, "") });
       if (depth === 1) return `<h1 id="${id}">${text}</h1>\n`;
       return `<h${depth} id="${id}"><a class="anchor" href="#${id}">${text}</a></h${depth}>\n`;
@@ -290,6 +332,7 @@ function write(file, content) {
   writeFileSync(file, content);
 }
 
+export function build() {
 const summaries = { en: {}, ar: {} };
 const search = { en: [], ar: [] };
 let built = 0;
@@ -345,3 +388,9 @@ if (missingArabic.length > 0) {
   console.error(`build-docs: ${missingArabic.length} page(s) have no Arabic source — write docs/ar/<file> for: ${missingArabic.join(", ")}`);
   process.exit(1);
 }
+}
+
+// Build only when run as a script. scripts/check-docs.mjs and its test twin
+// import the page table and the slug rule from here, and an import that
+// rewrote docs/site would be a gate with a side effect.
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) build();

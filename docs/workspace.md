@@ -2,6 +2,8 @@
 
 *Splitting the note column, what a tab is, several windows over one vault, and the smaller doors: the local graph, the trash, the tour, aliases.*
 
+← [Back to the README](../README.md) · [All docs](README.md)
+
 ---
 
 ## Panes
@@ -79,7 +81,7 @@ most, ranked by how often you visit each, a count that fades with time and is ke
 only, dropped when the note leaves the tree, never shown to a visitor). The same ledger breaks ties in wikilink autocomplete. Rows worth knowing:
 *Reveal note in sidebar*, *Copy link to note*, *Duplicate note* (a copy beside it), *Open this note
 in a new window*, *Focus next pane*, *Switch to* the light or dark twin of your theme, *Snapshot
-now*, *Open trash*, *Take the tour*.
+now*, *Open trash*, *Random note* (somewhere you have not looked in a while), *Take the tour*.
 
 ## Aliases
 
@@ -113,8 +115,9 @@ graph, backup, the phone layout and the keys. It also waits on an empty vault, a
 note** in the palette. The bookmarks are a note, `Bookmarks.md` at the vault root: a Markdown list of
 wikilinks, readable in Obsidian, synced with everything else, and editable by hand whenever you like.
 The sidebar draws it as a starred section above the tree. Drag a row onto another to reorder; the
-list lines move in the note and nothing else on the page does. This replaced the per-browser "pin
-to top", which the phone never saw.
+list lines move in the note and nothing else on the page does. It is a different thing from
+[pin to top](editor.md#arranging-the-tree), a scratch area above the tree that belongs to one
+browser; a bookmark is in the note and travels with it.
 
 The note's grammar is three kinds of list line, and you can write any of them by hand:
 
@@ -144,8 +147,8 @@ heading bookmark into a note is not the note, so it is never taken off by the sh
 ## Named layouts
 
 **Save layout as…** in the palette keeps the current arrangement (panes, tabs, splits, never
-content) under a name (*Research*, *Writing*), stored beside the vault so the desktop app and a
-browser share them. **Restore a layout…** lists them with Restore and Delete; restoring swaps the
+content) under a name (*Research*, *Writing*), stored in the vault's own `.astrolabe/layouts.json` so the
+desktop app and a browser share them ([settings travel with the vault](backup-and-sync.md#settings-travel-with-the-vault)). **Restore a layout…** lists them with Restore and Delete; restoring swaps the
 whole arrangement and prunes tabs whose notes have gone since.
 
 ## Tags as a tree
@@ -179,3 +182,8 @@ The top bar keeps three controls on a phone: the outline switch, the settings ge
 ⋯ opens every other tool as a labelled row: the library, Orbits, Sigils, the designer, visitor
 preview, the graph, themes and sign out. Nothing scrolls off the edge. Zen and the shortcut sheet
 are not offered, since neither means anything on a phone.
+
+**What counts as a phone.** The drawer layout is used below 700px, and below 1000px on a device
+with no fine pointer — no mouse and no trackpad. So a tablet held in the hands gets the drawer,
+while a desktop window narrowed beside a browser keeps its docked, resizable panes down to phone
+width.
