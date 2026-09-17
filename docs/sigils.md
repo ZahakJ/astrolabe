@@ -166,8 +166,8 @@ published site, inside a transclusion — always the same card:
   that is not over yet neither adds nor breaks), **this week** (`3/6`, against your target), and
   the **last 30 days** as a percentage.
 - **The week**: seven dots, today ringed — full for complete, half for partly done, red-rimmed for
-  missed, hollow for a rest day. The week starts on Monday for an English site and on Saturday for
-  an Arabic one.
+  missed, hollow for a rest day. The week starts on Monday when you read the app in English and on Saturday when
+  you read it in Arabic — the interface's language, so your own editor language if you pinned one.
 - **Twelve weeks**: a small grid, one cell per day, coloured by how much of the day you did.
   Hatched cells are rest days; today is ringed.
 - **The week's plan**, folded away under a heading: each day and its parts, today's row lit.
@@ -193,7 +193,7 @@ every change to the vault, so a box ticked in the editor shows here at once.
 
 **The month, at the top.** Under the heading the page draws the month you are in — the same grid
 as the sidebar's [Calendar](templates-and-notes.md#the-calendar), in the site's calendar, the week
-starting on the site language's first day. A dot marks every day that has a daily note and a
+starting on the interface language's first day (Monday in English, Saturday in Arabic). A dot marks every day that has a daily note and a
 second, fainter dot every day a sigil logged something, so a month of kept days reads at a glance;
 today is ringed, and a click opens (or creates) that day's note. On a phone the page keeps its
 width for the checklists and the sidebar's section is the calendar.
@@ -208,8 +208,8 @@ week strip beside the twelve-week grid; two share a row; more wrap in pairs.
 
 ## The weekly review
 
-**Review the week** in the command palette — and, on the site's last weekday (Sunday on an English
-instance, Friday on an Arabic one), a line on the Sigils page — opens the week added up, on one
+**Review the week** in the command palette — and, on the week's last day (Sunday when you read in English,
+Friday in Arabic), a line on the Sigils page — opens the week added up, on one
 page set in the serif, at `/review-week`:
 
 - **Reading**: pages and hours by book this week, from the sittings the [PDF
@@ -276,5 +276,7 @@ in place. The log block behaves the same way.
 ## In Obsidian
 
 `sigil` is an Astrolabe extension. In Obsidian the two blocks are labelled code blocks whose lines
-are all readable — nothing is converted and nothing is lost. See
-[OBSIDIAN-COMPAT.md](../OBSIDIAN-COMPAT.md).
+are all readable — nothing is converted and nothing is lost. A [tracker](trackers.md#in-obsidian) goes
+the same way; a [drawing](drawing.md#in-obsidian) is the Excalidraw plugin's own file; and an
+[orbit](orbits.md#where-the-schedule-lives) writes its schedule in the Spaced Repetition plugin's own
+format.

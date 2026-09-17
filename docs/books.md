@@ -2,6 +2,8 @@
 
 *Every PDF in the vault, read in a viewer that answers to the keyboard, remembers your page, and turns a highlight into a note.*
 
+← [Back to the README](../README.md) · [All docs](README.md)
+
 ---
 
 Click a `.pdf` in the tree and it opens as a **book**: a reader with no permanent toolbar, driven by
@@ -90,7 +92,8 @@ Numbers are read in Latin, Arabic-Indic and Persian digits alike: `:٢١٢` is p
 ## Your place is kept
 
 The reader remembers the page and the position *within* the page, the fit, the zoom, two-page mode,
-rotation, night mode, the direction and your marks, per book, in `ASTROLABE_DATA/books.json`. The
+rotation, night mode, the direction and your marks, per book, in `books.json` — kept in the data directory and mirrored into the vault's `.astrolabe/`
+folder, so every server over the vault opens a book where you left it ([settings travel with the vault](backup-and-sync.md#settings-travel-with-the-vault)). The
 key it is all filed under is a **fingerprint of the file's contents**, never its name or place, so renaming or re-filing a book in Obsidian,
 Syncthing or a terminal loses nothing: page 612 is still page 612, and so are the highlights and the
 citations that point at them. Scrolling is saved a moment after you stop; a zoom or a rotation is

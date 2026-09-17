@@ -75,7 +75,7 @@ those four words freely.
   site's calendar, and Enter puts a link to **that day's daily note** where the `@` was, worded as
   a reader would say it: `[[daily/2026-09-16|Wednesday]]` for a day within the week,
   `[[daily/2027-12-15|December 15, 2027]]` for one further off. The folder and name follow your
-  [daily-note settings](templates-and-notes.md#daily-and-weekly-notes). A month name decides the
+  [daily-note settings](templates-and-notes.md#periodic-notes). A month name decides the
   calendar: `@15 ramadan` and `@١٥ رمضان` are Hijri days whatever the site is set to. Bare numerals
   (`15/9`) are refused on purpose — they read differently on every continent. The list opens only
   at the start of a word and never inside code, so `me@example.com` and a `@` in a fence are left
@@ -326,8 +326,8 @@ turns it off.
   measure. `Esc` (or the faint ✕) brings everything back. Every state is remembered across reloads,
   and **folding a pane never moves the note**: the column stays optically centred in the window
   whichever panes are open, with deliberate air beside a closed pane's reopen handle.
-- **Notes sidebar on either side.** Three states, in the palette and in Settings → Appearance &
-  language: *follow the language* (the default: left in English, right in Arabic, re-evaluated
+- **Notes sidebar on either side.** Three states, in the palette and in Settings → This device →
+  Notes sidebar: *follow the language* (the default: left in English, right in Arabic, re-evaluated
   whenever the language changes), or pin it to the left or right edge for good.
 - **Your editor's language is yours.** Three more states in the same two places: *Editor language:
   follow the site* (the default), *English* or *العربية*. It is a per-browser choice that changes
@@ -526,7 +526,8 @@ on the floating toolbar (or **Annotate** in the right-click menu): the passage t
 and you write what you want to say about it. The words stay marked in both views, editor and
 reading, in their ink with a line under them. Rest the pointer on a mark and the note appears; click
 it to edit the note, change its ink, show or hide it from readers, or delete it. The note file itself
-is never touched. Annotations live beside the vault in `ASTROLABE_DATA/annotations.json`, anchored
+is never touched. Annotations live in `annotations.json` — in the data directory, and mirrored into the vault's
+`.astrolabe/` folder so every server over the vault shows them ([settings travel with the vault](backup-and-sync.md#settings-travel-with-the-vault)) — anchored
 by the passage's own words (with a little context on either side), so they survive the note being
 edited above them, moved, renamed, or rendered in a different typeface. A passage that is gone is
 listed under the prose as no longer in the note.

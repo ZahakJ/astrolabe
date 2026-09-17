@@ -56,7 +56,9 @@ Astrolabe reads and writes the conventions the Markdown world already shares: `[
 and frontmatter `tags:`, properties, highlights, comments, footnotes, daily notes, `{{date}}`
 templates and `.excalidraw` drawings. Nothing is converted or moved, another tool's own config
 folders are ignored, and attachments are served in place, so a vault you keep in Obsidian opens
-here unchanged and keeps working there. ([Details](OBSIDIAN-COMPAT.md).)
+here unchanged and keeps working there. (What each extension looks like from Obsidian's side is
+said where the extension is: [drawings](docs/drawing.md#in-obsidian), [trackers](docs/trackers.md#in-obsidian),
+[sigils](docs/sigils.md#in-obsidian) and [orbits](docs/orbits.md#where-the-schedule-lives).)
 
 ### Publish it
 
@@ -121,16 +123,22 @@ The site's own name and logo are settings too, and they travel with the vault. S
 - **[Trackers](docs/trackers.md)** — a `tracker` fence turns a note into a progress card for a book, a game, a course, with a bar you can nudge; a `tracker-board` fence shelves all of them, the Media page shelves them by kind with a form that writes the note for you, and the shelf knows who is looking
 - **[Sigils](docs/sigils.md)** — a `sigil` fence is a plan by the day (an exercise week with morning and evening columns, the five prayers, sleep, water) and the `sigil-log` the app writes under it is the record; the card shows today's checklist, the streak, the week and a twelve-week heatmap, wears an icon and a banner of your choosing, and the Sigils page asks you every morning, with templates built in and yours saved beside them (older notes spell the fence `orbit` or `routine`, and both still work) <!-- lineage -->
 - **[Orbits](docs/orbits.md)** — spaced repetition that lives in the vault: a deck is a note with a `deck` block and `front::back::extra` lines (typed answers, reversed pairs, a section per lesson), a session has Anki's learning steps and a daily limit of new cards, an Anki `.apkg` or a CSV imports as a note, and a sigil slot that links a deck shows what is due and ticks itself; every `==highlight==`, `> [!quote]` and `Question / ? / Answer` block anywhere is still a card, and every schedule is written into the note as the Obsidian Spaced Repetition plugin's own comment
+- **[Capture](docs/capture.md)** — `Ctrl/Cmd Shift D` drops a line into today's note from anywhere in the app, a bookmarklet clips a web page into `Clips/` as Markdown, and the installed site takes shares from a phone
+- **[The rest of the reading view](docs/editor.md#rendering)** — footnotes in the margin or the pane, a page of a book, a sound, a timeline and a diagram embedded in a note; live `query` and `tasks` fences; block references; a calendar in the sidebar with notes for the day, the week, the month and the year; and [notes to self](docs/editor.md#notes-to-self) on a passage that leave the text alone
+- **[Reading sessions](docs/books.md#reading-sessions)** — a sitting with a book is logged into its tracker, the marks become a note, and **Review the week** adds it all up on one page
 - **[Offline reading](docs/offline.md)** — a service worker keeps the app and every note you read on the device, so the same address opens the same note on a train; only for an admin session, cleared when you sign out, and edits made offline are saved when the network returns
 - **[Publishing](docs/publishing.md)** — one frontmatter flag, a real server-side visitor preview, rate-limited reader comments with built-in moderation
 - **[Blog mode](docs/blog-mode.md)** — masthead, topic nav, dashboard home, hover previews, RSS, sitemap/robots and server-injected SEO meta
-- **[Designed mode](docs/designer.md)** — compose your own homepage from sections, fifty-nine shipped presets, with the stock blog kept as an always-working fallback
+- **[Designed mode](docs/designer.md)** — compose your own homepage from sections, eighty-one shipped presets (twenty-one of them signature houses that open with something drawn in your theme's own colours), with the stock blog kept as an always-working fallback
 - **[The library](docs/library.md)** — books, courses and lecture series as paths a reader walks in order: a folder becomes a shelf entry, its subfolders the chapters, its published notes the lessons
 - **[Forty-six themes](docs/theming.md)** — thirty-two dark, fourteen light, Nord and Dracula and Catppuccin among them, every one gated at WCAG AA, plus a custom-theme builder and `custom.css`
 - **[Real typography](docs/typography.md)** — a self-hosted font catalog and your own uploads, with per-character Arabic that sets correctly inside an English sentence
-- **[Arabic & RTL](docs/arabic-and-rtl.md)** — the whole interface mirrored and translated, an optional visitor `EN`/`ع` switch, a language filter, Hijri dates
-- **[A desktop app](docs/desktop.md)** — AppImage, deb, pacman and a Windows build: a native menu bar in both languages, recent vaults, an always-on-top reference window, find in page, and background updates
-- **[Backup & sync](docs/backup-and-sync.md)** — commit the vault to a private git remote you own, manually or on a timer, fast-forward only
+- **[Arabic & RTL](docs/arabic-and-rtl.md)** — the whole interface mirrored and translated, an optional visitor `EN`/`ع` switch, a language filter, Hijri dates, ayah and hadith callouts
+- **[Japanese & furigana](docs/japanese.md), and French** — `{漢字|かんじ}` readings over kanji, a right-click that suggests them, a face only Japanese lines get; and [French corrected as you type](docs/editor.md#french-corrected-as-you-type), one undo each
+- **[Export](docs/export.md) and [printing](docs/printing.md)** — a note, a folder, a tag or the whole vault as a ZIP with wikilinks kept or converted, any note as a standalone HTML page, and a printed page whose PDF carries real bookmarks and working links
+- **[A desktop app](docs/desktop.md)** — AppImage, deb, pacman and a Windows build: a native menu bar in both languages, recent vaults, an always-on-top reference window, find in page, and updates that only tell you — nothing downloads until you click
+- **[An Android app](docs/mobile.md)** — a door onto your own server: a connection screen, a share sheet that captures into the vault, and nothing of the web client shipped twice
+- **[Backup & sync](docs/backup-and-sync.md)** — commit the vault to a private git remote you own, manually or on a timer, fast-forward only; and the site's settings, layouts, book shelf and notes to self [travel with the vault](docs/backup-and-sync.md#settings-travel-with-the-vault), so a new machine pointed at the folder has everything
 - **[Note history](docs/backup-and-sync.md#note-history-reading-what-the-backup-kept)** — every commit that touched the open note, read any revision as it was, restore one with an Undo behind it, and take a local snapshot before anything you are unsure about
 - **A tour, for all of the above** — fifteen illustrated cards, each with a **Show me** that really opens the thing it describes. It is never shown at you: `Ctrl/Cmd P` → *Take the tour*, a quiet line on the empty vault, or the foot of the `Ctrl/Cmd /` sheet
 - **Zero CDN requests.** No webfonts, no analytics, no telemetry, nothing phoning anywhere
@@ -145,7 +153,11 @@ The site's own name and logo are settings too, and they travel with the vault. S
 | [The editor & reading view](docs/editor.md) | Live preview, rendering, navigation |
 | [Templates, banners & notes](docs/templates-and-notes.md) · [LaTeX notes](docs/latex.md) | Authoring |
 | [Theming](docs/theming.md) · [Typography](docs/typography.md) | The look |
-| [Arabic & RTL](docs/arabic-and-rtl.md) | Language, direction, the filter, Hijri dates, tag labels |
+| [Arabic & RTL](docs/arabic-and-rtl.md) · [Japanese & furigana](docs/japanese.md) | Language, direction, the filter, Hijri dates, tag labels, readings over kanji |
+| [Capture](docs/capture.md) · [Export](docs/export.md) · [Printing & PDF](docs/printing.md) | Getting things in, and out |
+| [Trackers](docs/trackers.md) · [Sigils](docs/sigils.md) · [Orbits](docs/orbits.md) · [The PDF reader](docs/books.md) | Reading, the days, study |
+| [Panes, tabs & windows](docs/workspace.md) · [Drawings](docs/drawing.md) · [Offline reading](docs/offline.md) | The workspace |
+| [The desktop app](docs/desktop.md) · [The Android app](docs/mobile.md) | On your own devices |
 | [Backup & sync](docs/backup-and-sync.md) · [Keymap](docs/keymap.md) · [Development](docs/development.md) | Operating and hacking on it |
 
 Also in the repo: [`DESIGN.md`](DESIGN.md) (the rules a change is judged against),
