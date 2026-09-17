@@ -56,6 +56,21 @@ export interface SettingHit {
   label: string;
 }
 
+/** A WORD-START match, not a substring. `includes` answered "graph" with Text
+ *  direction (para*graph*), "date" with What's new (up*date*), "print" with
+ *  Footer and "publish" with Comments and Paths — junk that outnumbered the
+ *  real hit and taught the reader the search was guessing. A hit now begins a
+ *  word: the start of the text, or after anything that is not a letter or a
+ *  digit (so `SITE_LANG` still answers "lang", and Arabic words after a
+ *  wāw prefix still answer the bare word). An English plural is folded once,
+ *  so "fonts" finds the four rows whose help says "font". */
+function matches(text: string, q: string): boolean {
+  if (text === "") return false;
+  const re = (needle: string) => new RegExp(`(?:^|[^\\p{L}\\p{N}])${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "u");
+  if (re(q).test(text)) return true;
+  return q.length > 3 && q.endsWith("s") && re(q.slice(0, -1)).test(text);
+}
+
 export function searchSettings(query: string, desktop: boolean = IS_DESKTOP): SettingHit[] {
   const q = fold(query.trim());
   if (q === "") return [];
@@ -65,9 +80,9 @@ export function searchSettings(query: string, desktop: boolean = IS_DESKTOP): Se
     const label = t(entry.label);
     const hint = entry.hint === undefined ? "" : t(entry.hint);
     const env = entry.env ?? "";
-    const inLabel = fold(label).includes(q);
-    const inEnv = fold(env).includes(q);
-    const inHint = fold(hint).includes(q);
+    const inLabel = matches(fold(label), q);
+    const inEnv = matches(fold(env), q);
+    const inHint = matches(fold(hint), q);
     if (!inLabel && !inEnv && !inHint) continue;
     // A label match is what the reader meant; a help match is a hint that they
     // are close. Ranking rather than filtering, because the help sentence is

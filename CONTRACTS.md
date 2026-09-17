@@ -1717,6 +1717,58 @@ overruled.
 
 ## Settings panel (SettingsModal)
 
+**SETTINGS IN PLACE (3.18) — the panel keeps its shape and loses its faults.**
+Save STAYS on the seven server tabs, deliberately: a PATCH is atomic
+(`server/settings.ts` rejects a whole patch or applies it), a typography save
+fetches faces before it writes, and the git scheduler reads effective settings
+every minute — a half-typed remote committed after 400ms could be pushed to.
+What changes is that **no exit path discards silently**: Escape, the scrim, the
+× and Close all go through `requestClose()`, which closes a clean form at once
+and asks `confirmModal("Close without saving?" / "Your unsaved changes will be
+discarded." / Discard)` over a dirty one — the designer's own twelve lines
+(`DesignerPanel.tsx`), and the two keys are now `closeUnsavedTitle` /
+`closeUnsavedBody` / `discardChanges`, generic because two panels ask the
+same question. The Esc listener stands down while the question is on screen,
+so Esc there means Cancel. The footer renders only when `tab !== "device"`:
+This device commits on click, and a footer reading "Unsaved changes" over it
+was the two-kinds-of-row confusion drawn once more on the tab built to end it.
+**Row anatomy:** the label column is `minmax(0, 19rem)` and the hint wraps at
+`46ch` (they were 14.45rem and 30ch, and every fourteen-word hint ran to three
+or four lines beside an empty control column); the hint, the footer status,
+About's count labels and the font rows' metadata are `--text-muted`, never
+`--text-faint`, because they are READ (DESIGN.md's rule) — `check-settings`
+holds those four selectors to the muted token, holds every `hint=` key to
+fourteen English words, and opens each file About's documentation list names
+(`docs/*.md`, headings slugged as build-docs slugs them). **Reference text
+lives behind the row's ⓘ** (`Row`'s `more` prop, rendered in the same
+disclosure region as the `.env` line): the hadith frontmatter shape, the
+periodic token grammar, the `{{placeholder}}` list, the clipper's token
+story, the French corrections, the spellcheck instructions. **"Inherit" is
+"Default"** on every three-state segment and select row, still carrying the
+value it resolves to as its note — "Inherit" named a mechanism, "Default"
+names what the reader gets. The three rows with NO environment variable
+behind them (Visitor switch, Share buttons, Ambient masthead;
+`server/settings.ts` inherits constants there) are plain `Toggle`s bound to
+`form.x === "on" || (form.x === "" && inherited.x)`: a "Default" that names
+nothing an operator can set elsewhere is a third state with no meaning. The
+library-path and public-folder switches read ON for VISIBLE (they were bound
+to `hidden`, so a lit switch meant a hidden path). **Search** matches at a
+word start after folding, never as a substring (`searchSettings.ts`), with
+one English plural folded — "graph" no longer answers with Text direction and
+"date" with What's new — and the words readers search for are IN the copy:
+font/typeface, width, dark mode, history, RTL, designer. **The phone gets the
+whole viewport** (`≤720px`: `100vw × 100dvh`, no radius, safe-area padding,
+mirroring `history.css`'s revision view), drops the tab heading repeated under
+the strip, un-sticks the specimen and lets its lines wrap; the strip's long
+fade sits at the trailing edge in both directions (`:dir(rtl)`). **Touch:**
+`controls.css`'s coarse block gives every `.s-ctl-input` 16px of type and
+every toggle, segment button and select 44px. **Focus** lands on the search
+field (the panel itself on a coarse pointer, where a focused field raises the
+keyboard), the last tab is remembered per device (`astrolabe:settings-tab`),
+and `Row` names its control by `aria-labelledby` as well as `htmlFor`, since a
+`SegmentedControl` is a radiogroup `<div>` that `for` cannot reach. Clearing
+the offline copy asks first, like removing a font: it deletes bytes.
+
 **THE TAB MAP (3.15):** This device · Site · Language & dates · Publishing &
 comments · Collections · Vault · Backup & sync · About. Eight, as before, but
 re-cut: the previous eight ran Identity five rows, Typography five, Publishing
@@ -1867,8 +1919,9 @@ instance's language, instead of arriving as an English 400 in a toast.
   keyboard and ignores the mouse is worse than the native select it replaced. Filtering moves the highlight to the first match **without** applying it:
   four keystrokes of "amir" must not be four value changes. Hover never moves the highlight
   without the pointer actually moving (`mousemove`, not `mouseenter`) — the palette's bug.
-- **Three-way rows are SegmentedControls, not selects**: *Inherit* (carrying the value in force as
-  its note) / On / Off, all three visible. A checkbox cannot express "not set", and a list you must
+- **Three-way rows are SegmentedControls, not selects**: *Default* (carrying the value in force as
+  its note; it was *Inherit* until 3.18 — see "Settings in place" above) / On / Off, all three
+  visible — where an environment variable stands behind the row. A checkbox cannot express "not set", and a list you must
   open to learn it holds three items is the wrong shape for three words. **Its HORIZONTAL arrows
   answer the inline direction** — the segments are laid out by it, so in an Arabic panel
   `ArrowRight` walks backward and the reader's finger and the highlight move the same way; ↑↓ are
