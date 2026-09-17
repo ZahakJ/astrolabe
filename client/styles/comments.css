@@ -39,7 +39,7 @@
 .s-marginalia__count {
   font-size: 0.821rem;
   letter-spacing: 0.04em;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* ── Comment cards ─────────────────────────────────────────────────────── */
@@ -79,7 +79,7 @@
 
 .s-comment__time {
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   unicode-bidi: isolate;
 }
 
@@ -317,7 +317,7 @@
 
 .s-moderation__count {
   font-size: 0.821rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-moderation__close {
@@ -422,7 +422,7 @@
 
 .s-modrow__time {
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 

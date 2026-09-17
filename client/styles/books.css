@@ -516,7 +516,7 @@
    paused: a paused timer still says how long, but no longer claims that
    reading is happening. */
 .s-book__session[data-running="off"] {
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* ── The command and search lines ──────────────────────────────────────── */
@@ -640,7 +640,7 @@
 
 .s-book__outline-page {
   flex: none;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -673,7 +673,7 @@
 .s-book__goto-hint {
   margin: 0;
   min-block-size: 1.2em;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
 }
@@ -962,7 +962,7 @@
 }
 
 .s-book__annot-page {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 

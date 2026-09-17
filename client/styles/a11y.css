@@ -47,7 +47,7 @@
 .s-skip:focus-visible,
 .s-skip:focus {
   transform: translateY(0);
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring, var(--accent));
   outline-offset: 2px;
 }
 
@@ -63,7 +63,7 @@
 
 .s-tree__root:focus-visible .s-tree__item--cursor,
 .s-tree__root:focus .s-tree__item--cursor {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring, var(--accent));
   outline-offset: -2px;
   border-radius: 4px;
   background: var(--bg-hover);
@@ -87,7 +87,7 @@
 .s-palette-item:focus-visible,
 .s-localgraph__toggle:focus-visible,
 .s-localgraph__canvas:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring, var(--accent));
   outline-offset: -2px;
   border-radius: 4px;
 }
@@ -113,7 +113,7 @@
 }
 
 .s-tab__main:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring, var(--accent));
   outline-offset: -3px;
   border-radius: 4px;
 }
@@ -147,7 +147,7 @@
 }
 
 .s-bmodal__drop:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring, var(--accent));
   outline-offset: 2px;
 }
 
@@ -255,7 +255,7 @@
 }
 
 .s-localgraph__altitem:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring, var(--accent));
   outline-offset: -2px;
   color: var(--text);
 }
@@ -278,7 +278,7 @@
 }
 
 .s-editor .cm-s-props__trigger:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring, var(--accent));
   outline-offset: 2px;
 }
 

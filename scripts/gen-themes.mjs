@@ -28,7 +28,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TOKENS = path.join(root, "client", "styles", "tokens.css");
 
 /** id, group, grounds, tones, accent, danger, radius, and the eight colours:
- *  red, orange, yellow, green, cyan, blue, purple, pink (pink may repeat). */
+ *  red, orange, yellow, green, cyan, blue, purple, pink (pink may repeat; it is
+ *  kept in the spec for the day something reads it — no token is dealt from it,
+ *  because the base set has no --syn-tag and a room may not define what the
+ *  base does not). */
 export const PRESETS = [
   // ── dark ──────────────────────────────────────────────────────────────
   { id: "github-dark", group: "dark", bg: "#0d1117", raised: "#161b22", hover: "#21262d", border: "#30363d",
@@ -139,7 +142,7 @@ function block(p) {
   // (18 ΔE, shared/contrast.ts). Nudging it would trade the contrast just
   // won, so a palette that fails this is reported and fixed by hand.
   if (deltaE(accent, text) < 18) console.warn(`gen-themes: ${p.id}: accent ${accent} is only ${deltaE(accent, text).toFixed(1)} ΔE from the text`);
-  const [red, orange, yellow, green, cyan, blue, purple, pink] = p.c;
+  const [red, orange, yellow, green, cyan, blue, purple] = p.c;
   // Callouts and syntax are foreground on the page: hold them to 3:1 too.
   const fg = (c) => clear(c, [p.bg], 3, toward);
   return `[data-theme="${p.id}"] {
@@ -189,7 +192,6 @@ function block(p) {
   --syn-type: ${fg(yellow)};
   --syn-prop: ${fg(cyan)};
   --syn-operator: ${muted};
-  --syn-tag: ${fg(pink)};
 }`;
 }
 

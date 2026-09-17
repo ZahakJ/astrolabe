@@ -46,7 +46,7 @@
   font-size: 0.786rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* The search: the palette's field, one size down. It has focus on open. */
@@ -78,7 +78,6 @@
   max-block-size: min(304px, 50vh);
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
   margin-inline: -4px;
   padding-inline: 4px;
 }
@@ -138,7 +137,7 @@
   margin: 0;
   padding: 14px 4px;
   font-size: 0.857rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   text-align: center;
 }
 
@@ -223,5 +222,5 @@
   margin: 6px 0 0;
   font-size: 0.75rem;
   line-height: 1.4;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }

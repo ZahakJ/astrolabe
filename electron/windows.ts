@@ -28,7 +28,7 @@ const DEFAULT_BOUNDS = { width: 1280, height: 860 };
 /** Astrolabe's own ground colour (`--bg` on the default theme), so the window is
  *  the app's colour for the ~200ms before the first paint rather than white —
  *  which on a dark theme is a flash straight into the reader's eyes. */
-const IRON_GALL = "#16130e";
+const DEFAULT_GROUND = "#0d1117";
 
 export interface WindowContext {
   vault: string;
@@ -123,7 +123,7 @@ export function createVaultWindow(ctx: WindowContext, bounds: Bounds | null, rou
     // "the vault is always in the title bar".
     title: ctx.vaultName,
     ...(ctx.icon ? { icon: ctx.icon } : {}),
-    backgroundColor: IRON_GALL,
+    backgroundColor: DEFAULT_GROUND,
     show: false,
     autoHideMenuBar: false,
     webPreferences: webPreferences(ctx.partition),
@@ -158,7 +158,7 @@ export function createReferenceWindow(ctx: WindowContext, route: string): Browse
     minWidth: 360,
     minHeight: 300,
     title: ctx.vaultName,
-    backgroundColor: IRON_GALL,
+    backgroundColor: DEFAULT_GROUND,
     show: false,
     alwaysOnTop: true,
     // Visible over full-screen apps too, on the platforms that distinguish —

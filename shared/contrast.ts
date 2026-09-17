@@ -135,6 +135,7 @@ export const REQUIRED_TOKENS = [
   "--text-faint",
   "--heading",
   "--accent",
+  "--focus-ring",
 ] as const;
 
 /**
@@ -193,6 +194,23 @@ export function checkTheme(tokens: Record<string, string | undefined>): Contrast
     ratioCheck(`faint-${ground}`, "--text-faint", ground, 3);
   }
   ratioCheck("accent---bg", "--accent", "--bg", 4.5);
+  // The accent is also a LINE on the raised ground: the sidebar's active-row
+  // bar, the tab bar's active rule and the pane grip's drag line are all
+  // --accent drawn 2px wide on --bg-raised, which the 4.5:1 text check above
+  // never looks at. A component boundary is held to WCAG 1.4.11's 3:1 — the
+  // same bar the focus ring is held to below, for the same reason. Every
+  // built-in clears it (worst 4.11, solarized-light); the check exists so the
+  // next room, and the custom builder, cannot ship a grip nobody can see.
+  ratioCheck("accent---bg-raised", "--accent", "--bg-raised", 3);
+  // THE FOCUS RING is the one token a keyboard reader cannot do without, and
+  // it was per theme precisely because an accent tuned for type is not always
+  // visible as a ring (sumi) — yet nothing measured it. The ring is drawn
+  // OUTSIDE the control (outline-offset 1px), so it sits on whatever ground
+  // the control stands on: the page, the sidebar, a hovered row. 3:1 on all
+  // three — a ring is a boundary, not text (WCAG 1.4.11).
+  for (const ground of GROUNDS) {
+    ratioCheck(`ring-${ground}`, "--focus-ring", ground, 3);
+  }
   // THE SURFACES. Each pair is text painted on a ground an author can now
   // recolour on its own (tokens.css, "the surface layer"), held to the floor
   // its base pair is held to: body-sized text at 4.5:1, secondary text at 3:1.

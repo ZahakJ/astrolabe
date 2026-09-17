@@ -77,9 +77,28 @@ kbd {
 
 /* ----------------------------------------------------------- scrollbars -- */
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) transparent;
+/* ONE thin bar, two engines, and the two rules must not meet on one element.
+   Chromium (121+) implements the standard `scrollbar-width`/`scrollbar-color`
+   pair, and the moment either is set to anything but `auto` on an element it
+   IGNORES every `::-webkit-scrollbar` rule for that element and draws its own
+   CLASSIC bar instead — opaque track, ~10px, arrow buttons on Windows. The old
+   `* { scrollbar-width: thin }` therefore switched the ::-webkit rules below
+   OFF everywhere, and the tree, the tags and the search results wore a grey
+   Windows-95 rail while this file described an 8px thumb on glass. So the
+   standard pair is served ONLY to engines that do not know the ::-webkit
+   pseudo-element (Firefox), and Chromium gets the styled bar. The two look
+   alike by design: a thin thumb in --scrollbar-thumb on a transparent track.
+
+   THE SAME RULE BINDS EVERY OTHER SHEET: a per-scroller `scrollbar-width:
+   thin` re-enables the classic bar for that one scroller in Chromium and buys
+   Firefox nothing it does not already have from this universal rule. A
+   scroller that must HIDE its bar says `scrollbar-width: none` AND
+   `::-webkit-scrollbar { display: none }` — both engines, one intent. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
 }
 
 *::-webkit-scrollbar {
@@ -551,7 +570,7 @@ select:focus,
   margin: 10px 8px;
   font-size: 0.857rem;
   font-style: italic;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-search-hit {
@@ -1087,9 +1106,16 @@ select:focus,
   overflow-x: auto;
   overflow-y: hidden;
   /* A thin rule, only while there is more row than window; the row is
-     also draggable by wheel and the active tab is scrolled into view. */
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+     also draggable by wheel and the active tab is scrolled into view. The
+     standard pair is Firefox's (see the scrollbars section: on Chromium it
+     would switch the 5px ::-webkit rule below off). */
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .s-tabs__scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
 }
 
 .s-tabs__scroll::-webkit-scrollbar {
@@ -1338,7 +1364,7 @@ select:focus,
   font-size: 0.893rem !important;
   font-weight: 400 !important;
   line-height: 1.7 !important;
-  color: var(--text-faint);
+  color: var(--text-muted);
   border: none !important;
   padding: 0 !important;
 }
@@ -1387,13 +1413,13 @@ select:focus,
   padding: 6px 12px;
   cursor: pointer;
   user-select: none;
-  color: var(--text-faint);
+  color: var(--text-muted);
   border-radius: var(--radius);
   transition: color 0.15s ease;
 }
 
 .s-editor .cm-s-props__head:hover {
-  color: var(--text-muted);
+  color: var(--text);
 }
 
 /* The card on a note with no frontmatter: the head is not a toggle (there
@@ -1468,7 +1494,7 @@ select:focus,
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-editor .cm-s-props__value {
@@ -1492,7 +1518,7 @@ select:focus,
   padding: 1px 9px;
   border-radius: 999px;
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   opacity: 0;
   transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
@@ -1830,7 +1856,7 @@ select:focus,
   gap: 6px;
   padding-inline: 24px;
   padding-bottom: 6vh;
-  color: var(--text-faint);
+  color: var(--text-muted);
   user-select: none;
 }
 
@@ -2145,7 +2171,7 @@ select:focus,
   inset-inline-start: 14px;
   bottom: 12px;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   user-select: none;
   pointer-events: none;
   z-index: 1;
@@ -3125,7 +3151,7 @@ select:focus,
 .s-palette-item-hint {
   margin-inline-start: auto;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3159,7 +3185,7 @@ select:focus,
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-palette-section {
@@ -3734,7 +3760,7 @@ select:focus,
 
 .s-bmodal__drophint {
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-bmodal__pick {
@@ -3925,7 +3951,7 @@ select:focus,
 
 /* Quiet sign-in link at the far right of the status bar. */
 .s-statusbar__signin {
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-statusbar__signin:hover {
@@ -4158,7 +4184,7 @@ select:focus,
   padding: 0 5px;
   border-radius: 999px;
   background: var(--bg-hover);
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   font-variant: normal;
   font-size: 0.714rem;
@@ -4315,7 +4341,7 @@ select:focus,
 .s-trackerpanel__notewhen {
   font-family: var(--font-ui);
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 .s-trackerpanel__folder {
   display: inline-flex;
@@ -4339,7 +4365,7 @@ select:focus,
   padding: 4px 8px;
   font-family: var(--font-ui);
   font-size: 0.857rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -4858,7 +4884,7 @@ select:focus,
   margin-inline-end: auto;
   padding: 4px 0;
   font-size: 0.857rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   text-decoration: underline;
   text-decoration-color: transparent;
   text-underline-offset: 3px;
@@ -5086,7 +5112,7 @@ button.s-title:hover {
   font-size: 0.714rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-muted);
   user-select: none;
   transition: opacity 0.45s ease;
 }
@@ -6132,7 +6158,7 @@ button.s-title:hover {
   font-size: 0.714rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-syncpop__errtext {
@@ -6978,9 +7004,33 @@ button.s-title:hover {
   transition: opacity 120ms ease;
 }
 
+/* The line is drawn on the pane's --bg-raised, and check-contrast now holds
+   --accent to 3:1 there (the non-text bar for a component boundary, WCAG
+   1.4.11) — at FULL opacity, because opacity is invisible to the gate and 0.9
+   over a token at its floor is a way of failing the floor without failing
+   the check (DESIGN.md, "Contrast"). */
 .s-pane-grip:hover::after,
 .s-app--pane-drag .s-pane-grip::after {
-  opacity: 0.9;
+  opacity: 1;
+}
+
+/* A DEVICE THAT CANNOT HOVER NEVER SEES THE LINE ABOVE — Chromium reports
+   `hover: none` for the slate posture (a convertible folded flat, a Windows
+   tablet, an iPad in landscape) and the docked layout used to hide the grips
+   there outright (below). With the grips back, an 8px strip that only lights
+   under a pointer the device does not have is a grip nobody can find, so at
+   rest it wears a 2px --text-faint line: the non-text token, held to 3:1 on
+   --bg-raised in every room, so it is findable in the dimmest one; the drag
+   line above still takes over mid-drag. */
+@media (hover: none) {
+  .s-pane-grip::after {
+    background: var(--text-faint);
+    opacity: 1;
+  }
+
+  .s-app--pane-drag .s-pane-grip::after {
+    background: var(--accent);
+  }
 }
 
 /* Mid-drag: no width transitions (they lag behind the hand), one cursor
@@ -7009,14 +7059,22 @@ button.s-title:hover {
   display: none;
 }
 
-/* No grip on a phone, and no grip on a device with NO fine pointer at all.
-   This used to key on `(pointer: coarse)`, which is the PRIMARY pointer — and
-   Chromium calls the primary pointer coarse on a touchscreen laptop, mouse and
-   trackpad notwithstanding. A Windows reader with a touch display could not
-   resize either pane: the grip was simply not there. `any-pointer: fine` asks
-   the question that matters — is there something that can hit 8px — and the
-   phone (no fine pointer) still gets the buttons instead. */
-@media (max-width: 700px), not all and (any-pointer: fine) {
+/* No grip on a phone. That is the ONLY width-free rule: a grip goes with the
+   docked layout, and whether the panes are docked is DRAWER_QUERY's decision
+   (client/state.ts; the drawer block above already hides the sidebar's grip
+   in the 700–999 band on a device with no fine pointer, and the panel stays
+   docked and resizable there).
+
+   The rule used to add `not all and (any-pointer: fine)` — "no grip on a
+   device with NO fine pointer at all", at every width — on the premise that
+   such a device is a phone or a tablet in a drawer layout. It is not: Chromium
+   on Windows answers {coarse, hover: none} for a HARDWARE SLATE (touch +
+   rotation sensor + slate mode, `pointer_device_win.cc`), and an attached
+   mouse does not change the answer, so a convertible above 999px had a docked
+   sidebar it could resize by nothing (windows-plan defect F). An 8px strip
+   is a fair target for a finger too; the phone's 44px rows never depended on
+   this rule, and a resting line now marks the strip where hover cannot. */
+@media (max-width: 700px) {
   .s-pane-grip {
     display: none;
   }
@@ -7294,7 +7352,7 @@ html[dir="rtl"] .s-statusbar__spacer {
   text-align: center;
   font-variant-numeric: tabular-nums;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-cmsearch__count--none {
@@ -7499,7 +7557,7 @@ html[dir="rtl"] .s-statusbar__spacer {
 }
 .s-fnpanel__text--missing {
   font-style: italic;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 .s-fnpanel__def {
   flex: none;
@@ -7590,7 +7648,7 @@ html[dir="rtl"] .s-statusbar__spacer {
   border: 1px solid transparent;
   border-radius: 4px;
   background: none;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 0.714rem;
   cursor: pointer;
@@ -7615,7 +7673,7 @@ html[dir="rtl"] .s-statusbar__spacer {
 }
 .s-bookmarks__count {
   margin-inline-start: auto;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 .s-bookmarks__row {
@@ -7628,7 +7686,7 @@ html[dir="rtl"] .s-statusbar__spacer {
   opacity: 0.5;
 }
 .s-bookmarks__row--missing {
-  color: var(--text-faint);
+  color: var(--text-muted);
   text-decoration: line-through;
 }
 .s-bookmarks__star {
@@ -7684,7 +7742,7 @@ html[dir="rtl"] .s-statusbar__spacer {
   color: var(--text);
 }
 .s-layouts__when {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: 0.786rem;
   white-space: nowrap;
 }

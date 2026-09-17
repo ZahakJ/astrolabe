@@ -24,7 +24,7 @@
   font-size: 0.786rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-libpop__folder {
@@ -121,7 +121,7 @@
   white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 @media (pointer: coarse) {

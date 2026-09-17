@@ -3,8 +3,13 @@
 //   --text        >= 4.5:1  against --bg, --bg-raised and --bg-hover  (body text)
 //   --text-muted  >= 3:1    against --bg, --bg-raised and --bg-hover  (secondary text)
 //   --accent      >= 4.5:1  against --bg                              (see below)
+//   --accent      >= 3:1    against --bg-raised                       (the grip line, the active bar)
+//   --focus-ring  >= 3:1    against --bg, --bg-raised and --bg-hover  (the keyboard's only cue)
 //   --text-faint  >= 3:1    against --bg and --bg-raised              (UI glyphs)
-// Exits 1 on any failure.
+// And three things that are not ratios: every id in shared/themes.ts has a
+// block and every block has an id; :root carries THEMES[0]'s values hex for
+// hex (the first paint is the default room); every block declares every token
+// :root's theme section declares, and nothing else. Exits 1 on any failure.
 //
 // --bg-hover is a GROUND, not a hover artefact: DESIGN.md paints the sidebar's
 // tag pills and the backlink cards on it at rest, and a tree row is under the
@@ -87,11 +92,84 @@ function parseBlock(body) {
   return vars;
 }
 
-const themes = {};
-for (const m of css.matchAll(/(:root|\[data-theme="([\w-]+)"\])\s*\{([^}]*)\}/g)) {
-  const name = m[2] ?? "iron-gall (default)";
-  themes[name] = parseBlock(m[3]);
+/** Every `--token:` declared in one block, hex or not — what a room DEFINES,
+ *  as opposed to what parseBlock() can measure. */
+function declaredTokens(body) {
+  return new Set([...body.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
 }
+
+const ROOT = ":root (first paint)";
+const themes = {};
+const declared = {};
+for (const m of css.matchAll(/(:root|\[data-theme="([\w-]+)"\])\s*\{([^}]*)\}/g)) {
+  const name = m[2] ?? ROOT;
+  themes[name] = parseBlock(m[3]);
+  declared[name] = declaredTokens(m[3]);
+}
+
+let failures = 0;
+
+// ── The catalogue and the stylesheet are one list ───────────────────────────
+// shared/themes.ts names the rooms both sides validate against; tokens.css
+// paints them. An id with no block is a room the picker offers and the
+// stylesheet answers with the DEFAULT's values — iron-gall shipped exactly
+// that way for a release (a gold swatch marked CURRENT over a blue app), and
+// nothing here said so, because this gate only ever walked the blocks it
+// found. A block with no id is a room nobody can choose.
+const { THEMES, DARK_THEMES, LIGHT_THEMES } = await import("../shared/themes.ts");
+for (const id of THEMES) {
+  if (!themes[id]) {
+    console.error(`${id}: listed in shared/themes.ts but tokens.css has no [data-theme="${id}"] block`);
+    failures++;
+  }
+}
+for (const name of Object.keys(themes)) {
+  if (name !== ROOT && !THEMES.includes(name)) {
+    console.error(`${name}: has a block in tokens.css but is not in shared/themes.ts`);
+    failures++;
+  }
+}
+console.log(`catalogue: ${DARK_THEMES.length} dark + ${LIGHT_THEMES.length} light rooms, every one with a block`);
+
+// ── :root IS the default room ──────────────────────────────────────────────
+// A document with no data-theme attribute (the first paint, an unknown id)
+// resolves against :root, so :root must carry THEMES[0]'s values hex for hex
+// — otherwise the app flashes one room and settles into another.
+const DEFAULT = THEMES[0];
+if (themes[DEFAULT]) {
+  for (const [token, hex] of Object.entries(themes[DEFAULT])) {
+    const rootHex = themes[ROOT][token];
+    if (rootHex && rootHex.toLowerCase() !== hex.toLowerCase()) {
+      console.error(`:root ${token} is ${rootHex} but the default room (${DEFAULT}) says ${hex}`);
+      failures++;
+    }
+  }
+}
+
+// ── Every room defines the whole set ───────────────────────────────────────
+// The per-theme set is what :root's theme section declares, minus the globals
+// no room may touch: the font stacks, the page inks, the pane widths, the
+// type scale and the constant swatch trios. A room missing one does not
+// inherit "the previous block's" value — the cascade falls back to :root,
+// which is the DEFAULT room's value, so a green room that forgot
+// --callout-warning would wear github-dark's orange. And a room that defines
+// a token the base does not is a typo nothing reads.
+const GLOBAL = /^--(font-|book-ink-|swatch-|sidebar-w$|panel-w$|prose-gutter$|font-scale$|prose-scale$)/;
+const THEME_SET = [...declared[ROOT]].filter((t) => !GLOBAL.test(t));
+for (const [name, set] of Object.entries(declared)) {
+  if (name === ROOT) continue;
+  const missing = THEME_SET.filter((t) => !set.has(t));
+  const extra = [...set].filter((t) => !declared[ROOT].has(t));
+  if (missing.length > 0) {
+    console.error(`${name}: missing ${missing.join(", ")} (falls back to the default room's value)`);
+    failures++;
+  }
+  if (extra.length > 0) {
+    console.error(`${name}: defines ${extra.join(", ")}, which the base set does not`);
+    failures++;
+  }
+}
+console.log(`token set: ${THEME_SET.length} per room, complete in every block`);
 
 // THE SURFACE LAYER (tokens.css, `:root, [data-theme] { … }`) is derivations,
 // `--sidebar-bg: var(--bg-raised)`, not hexes, so the block regex above skips
@@ -135,11 +213,14 @@ function label(check) {
   if (check.id === "accent-text") return "accent / text";
   if (check.id.startsWith("surface:")) return `${check.token.slice(2)} / ${check.against.slice(2)}`;
   const ground = { "--bg": "bg", "--bg-raised": "raised", "--bg-hover": "hover" }[check.against];
-  const token = check.token.replace("--text-", "").replace("--text", "text").replace("--accent", "accent");
+  const token = check.token
+    .replace("--text-", "")
+    .replace("--text", "text")
+    .replace("--accent", "accent")
+    .replace("--focus-ring", "ring");
   return `${token} / ${ground}`;
 }
 
-let failures = 0;
 for (const [name, t] of Object.entries(themes)) {
   const missing = REQUIRED_TOKENS.filter((k) => !t[k]);
   if (missing.length > 0) {
@@ -186,9 +267,9 @@ const { SEMANTIC_COLORS, LITERAL_COLORS } = await import("../shared/textColors.t
 
 // The catalogue's own word on which rooms are lit — a list copied here once
 // said "solar" and matched "solarized-dark" by prefix, which checked the
-// light inks against a dark ground and failed the wrong room.
-const { LIGHT_THEMES } = await import("../shared/themes.ts");
-const isLight = (name) => LIGHT_THEMES.some((id) => name === id || name.startsWith(`${id} `));
+// light inks against a dark ground and failed the wrong room. :root is the
+// default room's twin and takes its group.
+const isLight = (name) => LIGHT_THEMES.includes(name === ROOT ? DEFAULT : name);
 
 /** Every ground a note's prose can sit on, per theme. `--bg-raised` counts:
  *  colored text shows up inside hover preview cards and callouts too. */
