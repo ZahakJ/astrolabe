@@ -599,6 +599,22 @@ export async function ensureFontsCached(ids: string[]): Promise<void> {
   }
 }
 
+/** THE WARM PATH: `ensureFontsCached` for callers that are not answering a
+ *  request — the config mirror after settings.json or designs.json arrived
+ *  from the vault, and boot. The PATCH route turns a failed download into a
+ *  502 the panel can show; here there is no panel, so the failure is one
+ *  warning naming the family and the site keeps its system stack until the
+ *  next pass or the next Re-sync. Never rejects. */
+export async function warmFonts(ids: string[]): Promise<void> {
+  for (const id of ids) {
+    try {
+      await ensureFontsCached([id]);
+    } catch (err) {
+      console.warn(`astrolabe: could not warm the ${id} faces:`, err instanceof Error ? err.message : err);
+    }
+  }
+}
+
 // ---------------------------------------------------------------- CSS
 
 /** Arabic script blocks — the ranges the Arabic slot is allowed to answer for.

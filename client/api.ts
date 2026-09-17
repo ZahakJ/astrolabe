@@ -44,6 +44,7 @@ import type {
   TrackerMeta,
   HadithHit,
   TrashEntry,
+  TravelStatus,
   TreeNode,
   UnusedAttachments,
   UploadResult,
@@ -1041,6 +1042,18 @@ export function beaconEditorTheme(theme: string): boolean {
 
 export function getSyncStatus(): Promise<GitSyncStatus> {
   return request<GitSyncStatus>("/api/sync/status", undefined, true);
+}
+
+/** What travels with the vault (server/configMirror.ts): each item's presence
+ *  on either side, the last mirror pass and what it could not copy. */
+export function getTravelStatus(): Promise<TravelStatus> {
+  return request<TravelStatus>("/api/sync/travel", undefined, true);
+}
+
+/** "Re-sync now": one mirror pass plus the font warm, answering the same
+ *  report. On the upload deadline: the warm may be downloading a family. */
+export function resyncTravel(): Promise<TravelStatus> {
+  return request<TravelStatus>("/api/sync/travel", { method: "POST" }, true, UPLOAD_TIMEOUT_MS);
 }
 
 /** Make the vault a git repo and point origin at the configured remote.

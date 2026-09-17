@@ -115,6 +115,7 @@ import { captureLine, clipAdminRoutes, clipRoutes } from "./clip.ts";
 import { deckImportRoutes } from "./deckImportRoutes.ts";
 import { searchPages } from "./pdfText.ts";
 import { prefsRoutes } from "./prefs.ts";
+import { resyncNow, travelStatus } from "./configMirror.ts";
 import { readWorkspaceState, writeWorkspaceState } from "./workspaceState.ts";
 import { cleanName, deleteLayout, getLayout, listLayouts, putLayout } from "./layouts.ts";
 import { staticPagesActive } from "./pages.ts";
@@ -3040,6 +3041,22 @@ function assertCredentialed(): void {
 api.get("/sync/status", async (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
   return c.json(await gitStatus());
+});
+
+// What travels with the vault (server/configMirror.ts): the mirror's own
+// report — each item's presence on either side, the last pass and what it
+// could not copy. Same gate as the status above: the list names the files a
+// remote will hold, and a preview session is a visitor.
+api.get("/sync/travel", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(await travelStatus());
+});
+
+// "Re-sync now": one mirror pass plus the font warm, then the same report.
+api.post("/sync/travel", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  await resyncNow();
+  return c.json(await travelStatus());
 });
 
 api.post("/sync/init", async (c) => {
