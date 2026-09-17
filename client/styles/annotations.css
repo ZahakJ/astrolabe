@@ -181,13 +181,13 @@
 .s-ann-pop__hint {
   margin: 4px 0 0;
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-ann-pop__danger {
   border: 0;
   background: none;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font: inherit;
   font-size: 0.82rem;
   cursor: pointer;
@@ -261,7 +261,7 @@
 
 .s-ann-list__orphan {
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-ann-list__badge {
@@ -331,5 +331,5 @@
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }

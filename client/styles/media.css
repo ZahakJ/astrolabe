@@ -25,7 +25,6 @@
   container-type: inline-size;
   padding: 28px clamp(16px, 4cqi, 48px) 64px;
   background: var(--bg);
-  scrollbar-width: thin;
 }
 
 /* ── Head ──────────────────────────────────────────────────────────────── */
@@ -128,7 +127,7 @@
 .s-media__shelfcount {
   font-family: var(--font-ui);
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   padding-inline-start: 2px;
 }
 
@@ -434,12 +433,12 @@
 .s-media__recentwhen {
   flex: none;
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-media__dates {
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 
@@ -626,7 +625,6 @@
   padding: 16px 18px;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: thin;
 }
 
 .s-mediaform__row {
@@ -646,7 +644,7 @@
 .s-mediaform__hint {
   margin: 0;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-mediaform__pair {
@@ -683,7 +681,7 @@
 }
 .s-mediaform__folder--none {
   font-family: var(--font-ui);
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-style: italic;
 }
 .s-mediaform__unlink {

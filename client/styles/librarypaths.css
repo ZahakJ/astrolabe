@@ -105,7 +105,7 @@
 .s-libpaths__folder--empty .s-libpaths__folder-path {
   font-family: inherit;
   font-size: 0.857rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-libpaths__folder-cta {
@@ -139,7 +139,7 @@
   font-size: 0.714rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-libpaths__more {
@@ -177,7 +177,7 @@
   white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-libpaths__count {
@@ -200,7 +200,7 @@
 
 .s-libpaths__hint {
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* The public-folder row's glyph button: the mark and its name, opening the
@@ -246,7 +246,7 @@
   padding: 2px 4px;
   border: 0;
   background: none;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font: inherit;
   font-size: 0.75rem;
   cursor: pointer;

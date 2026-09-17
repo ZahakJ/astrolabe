@@ -143,7 +143,7 @@
 .s-ctl-select__note {
   flex: none;
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* Geometry, not a glyph: an SVG chevron needs no bidi thought (it points
@@ -312,7 +312,7 @@
 .s-ctl-pop__optnote {
   flex: none;
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* The specimen line under a font option. Roomy: a naskh face has tall
@@ -339,7 +339,7 @@
 .s-ctl-pop__empty {
   padding: 14px 10px;
   font-size: 0.821rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* ── The specimen grid (font picker only) ─────────────────────────────────── */
@@ -542,7 +542,7 @@
 
 .s-ctl-seg__note {
   font-size: 0.679rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* ── Number + unit ────────────────────────────────────────────────────────── */
@@ -591,7 +591,7 @@
   position: absolute;
   inset-inline-end: 10px;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   pointer-events: none;
 }
 
@@ -693,7 +693,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* ── Range ──────────────────────────────────────────────────────────────────

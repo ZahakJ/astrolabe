@@ -39,7 +39,7 @@
   z-index: 3;
   font-family: var(--font-ui);
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   pointer-events: none;
   transition: opacity 200ms ease;
 }

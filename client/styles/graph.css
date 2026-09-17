@@ -28,7 +28,6 @@
   border-radius: 10px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
   font-size: 0.857rem;
-  scrollbar-width: thin;
   /* The corner grip: the panel was as tall as the graph and the owner wanted
      it shorter. The browser writes the dragged size as inline width/height,
      which outranks the pinned bottom edge; GraphView remembers it. */
@@ -157,7 +156,7 @@
 .s-graph__hint {
   margin: 4px 0 0;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-graph__gather-row {

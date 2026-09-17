@@ -392,7 +392,7 @@
 
 .s-dsgr__path {
   margin: 10px 0 0;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 0.74rem;
   word-break: break-all;
@@ -724,7 +724,7 @@
 
 .s-dsgr-note {
   margin: 8px 0 0;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: 0.76rem;
 }
 
@@ -763,7 +763,7 @@
 }
 
 .s-dsgr-row__kind {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: 0.7rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -809,7 +809,7 @@
 }
 
 .s-dsgr-add__label {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -860,7 +860,7 @@
 
 .s-dsgr-pagelist__url {
   margin-inline-start: auto;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 0.74rem;
 }
@@ -892,7 +892,7 @@
 .s-dsgr-slider__ends {
   display: flex;
   justify-content: space-between;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: 0.7rem;
 }
 

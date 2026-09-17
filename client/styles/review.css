@@ -16,7 +16,6 @@
   container-type: inline-size;
   padding: 20px clamp(16px, 4cqi, 48px) 64px;
   background: var(--bg);
-  scrollbar-width: thin;
 }
 
 /* The bar: last week, this week, next week, and Print. Chrome, so the UI
@@ -163,7 +162,7 @@
   margin: 10px 0 0;
   font-family: var(--font-ui);
   font-size: 0.8rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-review__colophon {

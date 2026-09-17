@@ -1113,10 +1113,19 @@ selection). The reopen handles take `reopenDragProps(pane)`: a drag inward of `P
 (40px) reopens; a click still does. No grip on a collapsed pane, in zen, under the phone's
 breakpoint, in the sub-1000px drawer (its width is fixed and `--sidebar-w` is not read there — and
 the drawer block's `width: 100%` rule for the sidebar's children must keep excluding the grip,
-which it once caught and turned into a full-width sheet over the tree), or on a device with NO fine
-pointer: `not all and (any-pointer: fine)`, deliberately not `(pointer: coarse)` — that is the
-PRIMARY pointer, and Chromium reports it coarse on a touchscreen laptop with a mouse attached, which
-is how a Windows reader lost the grips (3.8.2).
+which it once caught and turned into a full-width sheet over the tree). THE POINTER DOES NOT
+DECIDE (3.18.0). The rule used to add `not all and (any-pointer: fine)` — "no grip on a device
+with NO fine pointer at all", at every width — chosen over `(pointer: coarse)` because that is the
+PRIMARY pointer and Chromium reports it coarse on a touchscreen laptop with a mouse attached
+(3.8.2). But the any-pointer form was wrong too: Chromium on Windows answers {coarse, hover: none}
+for a hardware SLATE (touch + rotation sensor + slate mode, `pointer_device_win.cc`) and an
+attached mouse does not change the answer, so a convertible above 999px had a docked sidebar it
+could resize by nothing (windows-plan defect F). Whether the panes are docked is DRAWER_QUERY's
+decision and the grips follow it: the only width-free hide is the phone's `(max-width: 700px)`.
+On a device that cannot hover the strip wears a resting 2px `--text-faint` line (3:1 on
+`--bg-raised` in every room, the non-text bar), since an accent that lights under a pointer the
+device does not have is a grip nobody can find; mid-drag the line is `--accent`, at full opacity,
+and check-contrast holds `--accent` to 3:1 on `--bg-raised` for it.
 
 **The split grips (Workspace.tsx `ColGrip`/`RowGrip`, 3.1.0).** Every `.s-panecol` is `position:
 relative` and carries an 8px `role="separator"` on its inline-end edge when a column follows it
@@ -1483,8 +1492,15 @@ drives `html { font-size }`; ALL chrome is sized in rem so this one token scales
 `--font-prose` (1.161rem ≈ 18px — editor/reading prose), `--selection-bg` + `--focus-ring`
 (the selection wash and the `:focus-visible` ring — per theme, because an accent tuned for type
 is not always visible as a ring), `--graph-node`/`--graph-edge`/`--graph-vignette` (the graph
-canvas). Default (no attr) = iron-gall dark. `data-theme` attr lives on `<html>`. app.css: layout grid, sidebar, tabs, panels,
-palette, scrollbars (thin, themed), `::selection` gold. Class names are BEM-ish plain CSS,
+canvas). Default (no attr) = `THEMES[0]` = github-dark: `:root` carries that room's values hex for
+hex and check-contrast holds the two equal, so the first paint is the default room and an unknown
+id is too. `data-theme` attr lives on `<html>`. app.css: layout grid, sidebar, tabs, panels,
+palette, scrollbars (thin, themed — the standard `scrollbar-width`/`scrollbar-color` pair is served
+ONLY under `@supports not selector(::-webkit-scrollbar)`, i.e. to Firefox, because Chromium 121+
+ignores every `::-webkit-scrollbar` rule on an element where either standard property is set and
+draws a classic ~10px rail instead; no other sheet may declare `scrollbar-width: thin` on a
+scroller, and a scroller that hides its bar says `scrollbar-width: none` AND
+`::-webkit-scrollbar { display: none }`), `::selection` gold. Class names are BEM-ish plain CSS,
 prefix `s-` (e.g. `.s-sidebar`, `.s-tab`, `.s-palette`). Components must use these exact class
 names where they exist in app.css; anything extra styled inline is a bug — put it in app.css.
 
@@ -1508,10 +1524,13 @@ Two stylesheets are linked AFTER app.css (`client/index.html`), and the order is
 and the graph vignette, the `--sw-*` swatch machinery, the picker panel) and `styles/settings.css`
 (the settings surface over app.css's base panel rules).
 
-## The theme library (15 themes)
+## The theme library (46 rooms: 22 hand-made, 24 generated presets)
 
-- **`shared/themes.ts` is the one list.** `THEMES` (21 ids, `THEMES[0]` = `iron-gall` = the
-  product default), `DARK_THEMES`/`LIGHT_THEMES`, `isTheme()`, `themeGroup()`. Both sides
+- **`shared/themes.ts` is the one list.** `THEMES` (46 ids, `THEMES[0]` = `github-dark` = the
+  product default since the preset rooms landed in 3.16 — the commit that made it so moved
+  `:root` to its values and this paragraph said `iron-gall` for two releases; `iron-gall` is the
+  BRAND room, the icon and the manuscript metaphor, and opens the hand-made half of the dark
+  list), `DARK_THEMES`/`LIGHT_THEMES`, `isTheme()`, `themeGroup()`. Both sides
   validate against it: the client's picker/palette/store and the server's `settings.defaultTheme`
   validator plus `DEFAULT_THEME` at startup (`server/site.ts` warns on an unknown name instead of
   passing it through). `client/themes.ts` re-exports it and adds `THEME_GROUPS` (the picker's
@@ -1631,7 +1650,7 @@ choice of their own:
 1. **an active design's own theme** (a design that carries one; nothing else may override it);
 2. **the pinned `settings.defaultTheme` / `DEFAULT_THEME`**;
 3. **follow-the-admin** — `settings.adminTheme`, mirrored from the admin's browser;
-4. **the built-in default** (`THEMES[0]`, iron-gall).
+4. **the built-in default** (`THEMES[0]`, github-dark).
 
 And above all four: **a visitor who has explicitly chosen a theme keeps it.** `client/state.ts`
 applies `me.defaultTheme` only when `localStorage["astrolabe.theme"]` is empty, and never persists
@@ -9983,6 +10002,54 @@ into `desktop/build/` by `scripts/stamp-metainfo.mjs`, mapped by the deb and pac
 — relative to `desktop/`, where every build runs) and `license: MIT` in extraMetadata, so a software
 centre shows a name, an author, a licence and a version. `check-desktop` validates it with
 appstreamcli when present.
+
+## 3.18.0 — theme integrity: the first paint, the ring, the scrollbar, the grips
+
+**Iron-gall has its block back.** The commit that made github-dark the default (3.16) moved
+`:root` to github-dark's values and gave iron-gall — the brand room, the icon, the desktop
+window's pre-paint — no `[data-theme="iron-gall"]` block at all, so choosing it computed
+github-dark's blue while the picker marked a gold card CURRENT. The block is the pre-3.16 `:root`
+verbatim plus the three tokens the base has since gained. The desktop pre-paint colour is now the
+DEFAULT room's ground (`DEFAULT_GROUND` in electron/windows.ts, `#0d1117`), not iron-gall's.
+
+**check-contrast holds the catalogue, not just the blocks it finds** (`scripts/check-contrast.mjs`):
+every id in `shared/themes.ts` has a block and every block has an id; `:root` equals `THEMES[0]`
+hex for hex; every block declares every token `:root`'s theme section declares (the base set minus
+the globals — fonts, page inks, pane widths, type scale — which is 40 tokens: `--radius` and
+`--banner-tint` joined the hand rooms, the generator's unread `--syn-tag` left the presets) and
+nothing the base does not. A room missing a token does not inherit "the previous block's" value;
+the cascade falls back to `:root`, which is the default room's. Two new ratios, both WCAG 1.4.11's
+3:1 for a component boundary: `--focus-ring` against all three grounds (it is the keyboard's only
+cue, and nothing measured it), and `--accent` against `--bg-raised` (it is a 2px line there — the
+active-row bar, the tab rule, the grip). `--focus-ring` is a required token. a11y.css's class-level
+rings read `var(--focus-ring, var(--accent))` so a theme's ring choice reaches the tree, the tabs and
+the palette rows and not only the base `:focus-visible` rule. Every built-in currently sets its
+ring to its accent; the check is for the next room and for the custom builder, which words it
+through the same `checkTheme()`.
+
+**`--text-faint` carries no reading text.** One hundred and eight `color: var(--text-faint)` rules
+naming a thing the reader reads — hints, counts, dates, paths, labels, keycaps, "no results"
+sentences, the props card's keys and its "Set banner…" action — moved to `--text-muted`. What stays
+faint is the token's licence (DESIGN.md): glyphs and chevrons, closes and separators, placeholders
+(`--input-placeholder` is faint by contract), eyebrow group headings (`--panel-heading` is faint by
+contract: the tags title, palette sections, the picker's group heads), machine bookkeeping (the
+props card's `dg-*` rows, line numbers), disabled controls and the designed sites' deliberate
+set-pieces. Not touched, because they are the settings builder's: `settings.css`, the
+`.s-smodal__*`/`.s-about__*` rules in app.css; nor `whatsnew.css`, the deck's.
+
+**The scrollbar is one thin bar in both engines.** See the tokens section above: the standard
+pair is served under `@supports not selector(::-webkit-scrollbar)`, the per-scroller
+`scrollbar-width: thin` declarations that re-enabled Chromium's classic rail (library, routines,
+orbits, graph, review, media, what's-new, the dashboard row, the icon picker, the editor's own
+theme) are gone, and the two scrollers with their own Firefox colour (the hover card's thumb, the
+tab strip's 5px rule) keep it under the same guard. `tests/scrollbars.test.ts` refuses an
+unguarded declaration anywhere under client/styles and in editor/theme.ts. Measured in headless
+Chromium with the harness under `scratchpad/themes-3.18/`: the tree's bar was 10px with the old
+universal rule and is 8px now. Firefox gets the same thin bar it always had.
+
+**The grips follow the layout, not the pointer.** See "The pane grips" above: the only width-free
+hide is the phone's; a device that cannot hover gets a resting `--text-faint` line so the strip
+can be found. `tests/scrollbars.test.ts` also refuses a pointer-only arm on a grip-hiding block.
 
 ## Tests (`npm test`) — the release gate
 

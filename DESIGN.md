@@ -1,7 +1,9 @@
 # Astrolabe design spec — the bar is "people ditch Obsidian for this"
 
 Reference quality: Obsidian's default theme + Linear's polish. Identity: illuminated manuscript —
-iron-gall dark default, parchment light, gold-leaf accent. Everything below is normative.
+iron-gall ink, parchment light, gold-leaf accent — iron-gall is the BRAND room (the icon, the
+metaphor, the first hand-made room in the picker); the room a reader lands in is `THEMES[0]`,
+github-dark, since the preset rooms arrived in 3.16. Everything below is normative.
 
 ## Layout (CSS grid, full viewport, no page scroll)
 
@@ -243,9 +245,13 @@ searching for it is depth nobody meets.
 - All interactive elements: 150ms ease transitions on color/bg/transform. `:focus-visible`: 2px
   --accent ring, radius-matched. Custom scrollbars: 8px, thumb --border hover --text-faint,
   transparent track. ::selection --accent-soft. No layout shift on hover anywhere.
-- **All twenty-one** themes must pass: contrast ≥ 4.5:1 body text, ≥ 3:1 muted, accent ≥ 4.5:1 on its
-  own ground, ≥ 3:1 faint on **both** grounds **and ≥ 18 ΔE from its own body text** (`check-contrast.mjs` walks every block in
-  tokens.css). That last one is not a contrast ratio and cannot be: a theme whose accent is a
+- **Every** theme must pass: contrast ≥ 4.5:1 body text, ≥ 3:1 muted, accent ≥ 4.5:1 on its
+  own ground and ≥ 3:1 on `--bg-raised` (it is a 2px LINE there: the active-row bar, the tab
+  rule, the pane grip), the focus ring ≥ 3:1 on all three grounds (a ring is the keyboard's only
+  cue and a boundary, not text), ≥ 3:1 faint on **both** grounds **and ≥ 18 ΔE from its own body
+  text** (`check-contrast.mjs` walks every block in tokens.css, holds every id in
+  `shared/themes.ts` to a block and every block to the whole token set, and holds `:root` to the
+  default room hex for hex). That last one is not a contrast ratio and cannot be: a theme whose accent is a
   shade of its own type — sumi shipped one — has no accent channel at all, and every argument for
   the lit mode pill collapses with it. `sidereal` is the room that had to be designed AROUND that
   floor rather than checked against it afterwards: starlight and body text are the same pale

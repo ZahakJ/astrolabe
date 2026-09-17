@@ -705,7 +705,11 @@ const AUDIENCES = [
   //    mount-gated on the flag; the converter and the manifest are
   //    server-side.
   // Five of the six are mostly dictionary, which is the debt named below.
-  { name: "entry (everyone)", keys: entry, budget: 795 * 1024 },
+  // 3.18.0: 795.7 kB actual → 796 — iron-gall gets its token block back
+  // (tokens.css; the room had none since the presets landed and computed
+  // github-dark), --radius/--banner-tint on the hand rooms, minus the unread
+  // --syn-tag the generator dealt to every preset.
+  { name: "entry (everyone)", keys: entry, budget: 796 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -943,7 +947,8 @@ const AUDIENCES = [
   // reading view's chunk alone.
   // 3.17.0 + 3.16.3: 1087.4 kB actual → 1088 — the sigil card's
   // pushed-forward rows (main's 3.16.3, above) landing on the six branches.
-  { name: "anonymous blog reader", keys: blog, budget: 1088 * 1024 },
+  // 3.18.0: 1088.6 kB actual → 1089 — the iron-gall block (entry, above).
+  { name: "anonymous blog reader", keys: blog, budget: 1089 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1094,7 +1099,8 @@ const AUDIENCES = [
   // the capture sheet are all lazy and asserted absent below.
   // 3.17.2: 1545.1 kB actual → 1546 — the Sigils masonry (two hooks) and the
   // wider emoji shelf.
-  { name: "admin first paint", keys: app, budget: 1546 * 1024 },
+  // 3.18.0: 1546.3 kB actual → 1547 — the iron-gall block (entry, above).
+  { name: "admin first paint", keys: app, budget: 1547 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

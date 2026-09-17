@@ -294,7 +294,7 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
 }
 
 .s-editor .cm-s-transclude__note {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -443,13 +443,14 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
 }
 
 .s-editor .cm-s-comment {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-style: italic;
 }
 
-/* A block id on the caret's line: faint, monospace, there to be read. */
+/* A block id on the caret's line: monospace, quiet, and THERE TO BE READ — so
+   --text-muted, the text floor, not --text-faint, the glyph one (DESIGN.md). */
 .s-editor .cm-s-blockid {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 0.85em;
 }
@@ -706,7 +707,7 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
 }
 
 .s-editor .cm-s-hovercard--missing .cm-s-hovercard__body {
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-style: italic;
   mask-image: none;
   -webkit-mask-image: none;
