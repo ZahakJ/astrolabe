@@ -14,9 +14,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { morph } from "../morph.ts";
 import SiteMark from "../components/SiteMark.tsx";
-import type { RoutineMeta } from "../../shared/types.ts";
+import type { RoutineMeta, TrackerMeta } from "../../shared/types.ts";
 import { dayStatus, isoDate, weekOrder, weekdayOfDate, type EntryPatch } from "../../shared/routine.ts";
-import { getDecks, getRoutines, updateRoutine } from "../api.ts";
+import { getDecks, getRoutines, getTasks, getTrackers, updateRoutine } from "../api.ts";
 import { siteDate } from "../dates.ts";
 import { countPhrase, getLang, localeNum, t, tf } from "../i18n.ts";
 import { confirmDeleteNote } from "../components/deleteFlow.ts";
@@ -24,11 +24,12 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { renderRoutineCard } from "../reading/routine.ts";
 import { renderMarkdown, renderTasksBlock } from "../reading/render.ts";
-import { parseTasksFence, shift } from "../../shared/tasks.ts";
+import { filterTasks, parseTasksFence, shift } from "../../shared/tasks.ts";
 import { RoutineForm } from "./RoutineForm.tsx";
 import { decorateDeckTasks } from "./orbits.ts";
 import { OnThisDayList, useOnThisDay } from "../components/OnThisDayPanel.tsx";
 import CalendarGrid from "../components/CalendarGrid.tsx";
+import { loggedDaysOf } from "../../shared/calendar.ts";
 import { collectNotes } from "../editor/links.ts";
 import { recentNotes } from "../recents.ts";
 import "../styles/routines.css";
@@ -95,8 +96,10 @@ function RoutineCard({
 }
 
 /** Open tasks due by today, live: the day's dashboard is where a to-do
- *  with a date belongs, next to the routines that carry no dates. */
-function DueTasks({ today }: { today: string }) {
+ *  with a date belongs, next to the routines that carry no dates. The rows
+ *  are fetched HERE and handed to the block, so the page can count them for
+ *  the "N due" line without the block fetching them a second time. */
+function DueTasks({ today, onCount }: { today: string; onCount: (n: number) => void }) {
   const host = useRef<HTMLDivElement | null>(null);
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -116,19 +119,35 @@ function DueTasks({ today }: { today: string }) {
   useEffect(() => {
     const el = host.current;
     if (!el) return;
+    let alive = true;
     const spec = parseTasksFence(`not done\ndue before ${shift(today, 1)}`, today);
-    el.replaceChildren(renderTasksBlock(spec, { notePath: "", tree: useStore.getState().tree }, { live: true }));
-    return () => el.replaceChildren();
-  }, [today, tick]);
+    getTasks()
+      .then((rows) => {
+        if (!alive || !host.current) return;
+        onCount(filterTasks(rows, spec).length);
+        host.current.replaceChildren(renderTasksBlock(spec, { notePath: "", tree: useStore.getState().tree }, { live: true, rows }));
+      })
+      .catch(() => {
+        // The block draws its own failure state from its own fetch.
+        if (alive && host.current) host.current.replaceChildren(renderTasksBlock(spec, { notePath: "", tree: useStore.getState().tree }, { live: true }));
+      });
+    return () => {
+      alive = false;
+      el.replaceChildren();
+    };
+  }, [today, tick, onCount]);
   return <div ref={host} className="s-routines__tasks" />;
 }
 
-/** How many cards are due today across every deck — one line with a door
- *  to the Orbits shelf, because the morning's checklist is where the day's
- *  cards belong. The count is the shelf's own (`counts.due`, summed), so the
- *  two pages never disagree: the old cards route counted a never-seen card
- *  as due, and this line said "1 due" over a shelf that said nothing was. */
-function CardsDue({ today, onCount }: { today: string; onCount: (n: number) => void }) {
+/** How many cards are due today across every deck, and how many tasks —
+ *  one line with a door to the Orbits shelf, because the morning's checklist
+ *  is where the day's cards belong. The card count is the shelf's own
+ *  (`counts.due`, summed), so the two pages never disagree: the old cards
+ *  route counted a never-seen card as due, and this line said "1 due" over
+ *  a shelf that said nothing was. The task count is the "Due by today" list's
+ *  own (DueTasks hands it up), so the line says what the day owes in full
+ *  rather than the cards alone over a list of tasks. */
+function CardsDue({ today, onCount, tasksDue }: { today: string; onCount: (n: number) => void; tasksDue: number }) {
   const [due, setDue] = useState(0);
   const openOrbits = useStore((s) => s.openOrbits);
   useEffect(() => {
@@ -156,13 +175,21 @@ function CardsDue({ today, onCount }: { today: string; onCount: (n: number) => v
       if (timer) clearTimeout(timer);
     };
   }, [today, onCount]);
-  if (due === 0) return null;
+  if (due === 0 && tasksDue === 0) return null;
+  const what =
+    due > 0 && tasksDue > 0
+      ? tf("routinesDueBoth", { cards: countPhrase(due, "orbits"), tasks: countPhrase(tasksDue, "tasks") })
+      : due > 0
+        ? countPhrase(due, "orbits")
+        : countPhrase(tasksDue, "tasks");
   return (
     <section className="s-routines__cards" data-testid="routines-cards-due">
-      <span className="s-routines__cardstext">{tf("routinesOrbitsDue", { n: countPhrase(due, "orbits") })}</span>
-      <button type="button" className="s-btn s-btn--accent" onClick={() => openOrbits(null)}>
-        {t("orbits")}
-      </button>
+      <span className="s-routines__cardstext">{tf("routinesOrbitsDue", { n: what })}</span>
+      {due > 0 && (
+        <button type="button" className="s-btn s-btn--accent" onClick={() => openOrbits(null)}>
+          {t("orbits")}
+        </button>
+      )}
     </section>
   );
 }
@@ -309,6 +336,10 @@ export default function RoutinesView() {
   const locale = useStore((s) => s.blogLocale);
   const today = isoDate(new Date());
 
+  // The trackers ride the same load, for the calendar's marks only (a day a
+  // book was read is a kept day); a shelf that will not load costs nothing
+  // but those marks.
+  const [trackers, setTrackers] = useState<TrackerMeta[]>([]);
   const load = useCallback((): void => {
     getRoutines()
       .then((list) => {
@@ -316,6 +347,9 @@ export default function RoutinesView() {
         setFailed(false);
       })
       .catch(() => setFailed(true));
+    getTrackers()
+      .then(setTrackers)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -352,19 +386,16 @@ export default function RoutinesView() {
     [live, today],
   );
   const asked = useMemo(() => live.filter((m) => dayStatus(m.plan, null, today, today) !== "rest").length, [live, today]);
-  // Every day any sigil logged, for the calendar's second mark — the page
-  // holds every log already, so the grid costs it no request.
-  const logged = useMemo(() => {
-    const out = new Set<string>();
-    for (const m of live) for (const e of m.entries) out.add(e.date);
-    return out;
-  }, [live]);
+  // Every day any sigil logged or a book was read, for the calendar's second
+  // mark — the page holds every log already; the trackers rode the load.
+  const logged = useMemo(() => loggedDaysOf(live, trackers), [live, trackers]);
   const [cardsDue, setCardsDue] = useState(0);
+  const [tasksDue, setTasksDue] = useState(0);
   // "Nothing due" is a fact about the whole page: no sigil asks today (or
   // every one that asked has been ticked — a finished checklist owes the
-  // day nothing) and no card waits. Only then does the recents row take
-  // the top.
-  const nothingDue = all !== null && complete >= asked && cardsDue === 0;
+  // day nothing), no card waits and no task is due. Only then does the
+  // recents row take the top.
+  const nothingDue = all !== null && complete >= asked && cardsDue === 0 && tasksDue === 0;
 
   const log = useCallback(
     async (meta: RoutineMeta, patch: EntryPatch): Promise<void> => {
@@ -424,10 +455,10 @@ export default function RoutinesView() {
           <OnThisDayList rows={onThisDay} />
         </section>
       )}
-      <CardsDue today={today} onCount={setCardsDue} />
+      <CardsDue today={today} onCount={setCardsDue} tasksDue={tasksDue} />
       <ReviewWeekRow today={today} />
       <section className="s-routines__due" aria-label={t("routinesTasksHead")}>
-        <DueTasks today={today} />
+        <DueTasks today={today} onCount={setTasksDue} />
       </section>
       {failed ? (
         <p className="s-routines__empty">{t("routinesFailed")}</p>

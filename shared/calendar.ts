@@ -147,3 +147,20 @@ export function monthCells(date: Date, calendar: GridCalendar, order: readonly W
   }
   return rows;
 }
+
+/** The days the vault kept something on: every sigil's log lines and every
+ *  tracker's reading sessions (`sessions:`, shared/tracker.ts) — the month
+ *  grid's second mark (client/components/CalendarGrid.tsx). Here rather than
+ *  beside the grid because the grid is a lazy chunk and the sidebar, which
+ *  fetches the sets, must not pull it into its first paint. Both callers
+ *  already hold the sigils; the trackers are one more GET of a list the
+ *  indexer keeps in memory, on the same debounce. */
+export function loggedDaysOf(
+  routines: readonly { entries: readonly { date: string }[] }[],
+  trackers: readonly { sessions?: readonly { date: string }[] }[],
+): Set<string> {
+  const out = new Set<string>();
+  for (const m of routines) for (const e of m.entries) out.add(e.date);
+  for (const m of trackers) for (const s of m.sessions ?? []) out.add(s.date);
+  return out;
+}

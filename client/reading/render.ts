@@ -1550,6 +1550,14 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
         if (!top || indent > top.indent) {
           const el = document.createElement(ordered ? "ol" : "ul");
           el.className = "s-rv-list";
+          // The list box follows its first item's script: with the items
+          // `dir="auto"` and the list carrying nothing, an Arabic list in an
+          // English note kept the chrome's direction, and the task box's
+          // negative inline margin swung it 17px outside the column on the
+          // wrong side. Resolved, not `auto` — a `dir="auto"` list would skip
+          // its `dir="auto"` items and resolve from the chrome all the same.
+          const listDir = firstStrongDirection(m[3]);
+          if (listDir !== null) el.dir = listDir;
           if (top) (top.el.lastElementChild ?? top.el).appendChild(el);
           else firstList = el;
           stack.push({ indent, el });
@@ -1614,10 +1622,16 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       // carried `dir="auto"` and the table did not, so it inherited the SHELL:
       // an English table on an Arabic instance came out with its columns
       // reversed — "Column | Another" read "Another | Column" — while each
-      // cell's own text sat the right way round inside it. An Arabic table
-      // still reads right to left, because its own first strong character
-      // says so.
-      table.dir = "auto";
+      // cell's own text sat the right way round inside it. RESOLVED HERE, not
+      // `dir="auto"`: HTML's auto resolution skips descendants that carry
+      // their own `dir`, and every cell does, so an auto table saw no text at
+      // all and fell to the chrome — an Arabic table in an English shell sat
+      // flush left with its first column leftmost. The callout box (above)
+      // learned the same rule first. The header decides; a table with no
+      // strong character (numbers only) inherits the note's direction. The
+      // wrap gets it too, so the table block sits at the column's own start.
+      const tableDir = firstStrongDirection(header.join(" "));
+      if (tableDir !== null) wrap.dir = table.dir = tableDir;
       const alignCls = (j: number): string =>
         aligns[j] ? ` class="s-rv-al-${aligns[j] === "center" ? "c" : "r"}"` : "";
       table.innerHTML =

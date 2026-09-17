@@ -144,7 +144,6 @@ class CalloutTitleWidget extends WidgetType {
       if (this.title !== "") {
         const cite = document.createElement("span");
         cite.className = "cm-s-callout__cite";
-        cite.dir = "auto";
         cite.textContent = this.title;
         bar.appendChild(cite);
       }
@@ -152,9 +151,16 @@ class CalloutTitleWidget extends WidgetType {
       const icon = document.createElement("span");
       icon.className = "cm-s-callout__icon";
       icon.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${calloutIconSvg(this.group)}</svg>`;
+      // NO `dir` ON THE TEXT SPAN. The line itself is `dir="auto"` (bidi.ts),
+      // and HTML's auto resolution skips any descendant that carries its own
+      // `dir` — the `[!type]` token is not in the DOM (this widget stands in
+      // for it), so with the title excluded the line had no strong character
+      // left and fell to the chrome's direction: an Arabic callout's title
+      // line ran left-to-right, barred on the left, over a body barred on
+      // the right. Left bare, the title IS the line's first strong run and
+      // the line resolves from it, as the body lines do from theirs.
       const text = document.createElement("span");
       text.className = "cm-s-callout__text";
-      text.dir = "auto"; // Arabic/Hebrew callout titles order correctly
       text.textContent = this.title;
       bar.append(icon, text);
     }

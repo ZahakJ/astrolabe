@@ -136,6 +136,14 @@ function kindLabel(plan: RoutinePlan): string {
   return plan.kind ?? t("routineKindOwn");
 }
 
+/** An author's own words in the card's chrome: a span that reads in its
+ *  text's direction while the card around it keeps the page's. */
+function run(cls: string, text: string): HTMLElement {
+  const span = el("span", cls, text);
+  span.dir = autoDir(text);
+  return span;
+}
+
 // ── The card ────────────────────────────────────────────────────────────────
 
 export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], hooks: RoutineHooks): HTMLElement {
@@ -147,7 +155,14 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
   const stats = routineStats(plan, entries, today, lang);
 
   const card = el("section", "s-rv-routine");
-  card.dir = autoDir(plan.title || kindLabel(plan));
+  // THE CARD IS CHROME AND FOLLOWS THE PAGE; THE WORDS FOLLOW THEIR SCRIPT.
+  // The card used to take its title's direction whole, so an Arabic-titled
+  // sigil on an English page flipped everything the app draws — the weekday
+  // strip ran Sunday-first from the right, the heatmap's legend and the
+  // action buttons swapped sides — beside cards that did not. Only the runs
+  // the author wrote (the title, a task's key and text, a field's name, the
+  // note) carry `dir`, each from its own first strong character; the
+  // controls, the chips, the strip and the heatmap keep the chrome's order.
   card.dataset.kind = plan.kindKey ?? "own";
 
   // ── Banner ──
@@ -168,8 +183,13 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
     const btn = el("button", "s-rv-routine__title s-rv-routine__title--door", plan.title || t("routineUntitled"));
     btn.type = "button";
     btn.addEventListener("click", hooks.onOpen);
+    if (plan.title) btn.dir = autoDir(plan.title);
     names.appendChild(btn);
-  } else names.appendChild(el("h3", "s-rv-routine__title", plan.title || t("routineUntitled")));
+  } else {
+    const h = el("h3", "s-rv-routine__title", plan.title || t("routineUntitled"));
+    if (plan.title) h.dir = autoDir(plan.title);
+    names.appendChild(h);
+  }
   ident.appendChild(names);
   head.appendChild(ident);
 
@@ -253,9 +273,9 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
       }
       label.appendChild(box2);
       const words = el("span", "s-rv-routine__taskwords");
-      words.appendChild(el("span", "s-rv-routine__taskkey", task.key));
+      words.appendChild(run("s-rv-routine__taskkey", task.key));
       words.appendChild(el("span", "s-rv-routine__carriedfrom", tf("routineCarriedFrom", { day: dayLabel(from, locale) })));
-      if (task.text) words.appendChild(el("span", "s-rv-routine__tasktext", task.text));
+      if (task.text) words.appendChild(run("s-rv-routine__tasktext", task.text));
       label.appendChild(words);
       li.appendChild(label);
       if (onLog) {
@@ -416,8 +436,8 @@ function renderDay(
       }
       label.appendChild(box2);
       const words = el("span", "s-rv-routine__taskwords");
-      words.appendChild(el("span", "s-rv-routine__taskkey", task.book ? t("routineReadKey") : task.key));
-      const textEl = el("span", "s-rv-routine__tasktext", task.text ?? "");
+      words.appendChild(task.book ? el("span", "s-rv-routine__taskkey", t("routineReadKey")) : run("s-rv-routine__taskkey", task.key));
+      const textEl = run("s-rv-routine__tasktext", task.text ?? "");
       if (task.text) words.appendChild(textEl);
       label.appendChild(words);
       if (task.book && task.text) {
@@ -525,7 +545,7 @@ function renderDay(
 
 function renderField(f: RoutineField, value: string, iso: string, onLog: ((patch: EntryPatch) => void) | undefined): HTMLElement {
   const wrap = el("label", `s-rv-routine__field s-rv-routine__field--${f.type}`);
-  const name = el("span", "s-rv-routine__fieldname", f.key);
+  const name = run("s-rv-routine__fieldname", f.key);
   // The name says what the field is called; its title says what it MEANS
   // — the owner's "idk what the focus thingy is" is answered on hover.
   const help = fieldHelp(f);
