@@ -140,8 +140,9 @@
      same baseline whether or not it wears the ring. */
   display: grid;
   place-items: center;
-  inline-size: 22px;
-  block-size: 22px;
+  /* Roomy enough that two digits never touch the ring. */
+  inline-size: 26px;
+  block-size: 26px;
   border-radius: 50%;
   border: 1.5px solid transparent;
 }
@@ -170,7 +171,7 @@
   block-size: 6px;
   align-items: center;
   /* Air above the dots, so today's ring never touches them. */
-  margin-block: 3px;
+  margin-block: 2px;
 }
 
 .s-cal__dot {
@@ -200,8 +201,8 @@
 }
 
 .s-calsec .s-cal__num {
-  inline-size: 19px;
-  block-size: 19px;
+  inline-size: 23px;
+  block-size: 23px;
 }
 
 /* ── The Sigils page's ───────────────────────────────────────────────────── */
