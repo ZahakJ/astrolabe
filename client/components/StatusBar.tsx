@@ -18,7 +18,8 @@ import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
 import { DRAWER_QUERY, useStore } from "../state.ts";
-import { activeTabOf, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, paneAt } from "../workspace.ts";
+import { activeTabOf, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, paneAt, surfaceOf, type PaneSurface } from "../workspace.ts";
+import { titleOf } from "./Tabs.tsx";
 import { choiceGroup, choiceLabel } from "../themes.ts";
 import SyncBadge from "./SyncBadge.tsx";
 import { openThemePicker } from "./ThemePicker.tsx";
@@ -248,6 +249,40 @@ export default function StatusBar() {
     return () => ro.disconnect();
   }, []);
   const openPath = useStore((s) => s.openPath);
+  // THE FRAME NAMES WHAT IS ON SCREEN. `openPath` is a NOTE by contract and
+  // the mirror (state.ts mirrorOf) looks past a book, a drawing or a virtual
+  // tab to the nearest note — right for the outline and the backlinks, which
+  // serve the note a book is being cited into, and wrong for this bar, which
+  // then said "No note open" over the Orbits shelf and kept a word count and
+  // crumbs for a note nobody could see over Sigils. So the crumb, the counts,
+  // the period, the layout chip and the publish toggle answer the FOCUSED
+  // pane's surface: over a note they are the note's; over anything else the
+  // crumb is the surface's name — what the tab strip calls it (Tabs.tsx
+  // titleOf: "Orbits", the deck's note in a session, "Sigils", the book's
+  // title, the drawing's name, the week in review) — and the rest is absent.
+  // The mode pills stay: they are switches (Mode visibility), and Ctrl/Cmd+E
+  // over a book is a deliberate no-op the pill may as well show.
+  const frameSurface = useStore((s): PaneSurface => {
+    const pane = paneAt(s.workspace, s.workspace.focus);
+    return pane === null ? "empty" : surfaceOf(pane);
+  });
+  const framePath = useStore((s): string | null => {
+    const pane = paneAt(s.workspace, s.workspace.focus);
+    const tab = pane === null ? null : activeTabOf(pane);
+    return tab === null ? null : tab.path;
+  });
+  /** The bar is about a note: the focused pane shows one (either mode). */
+  const overNote = frameSurface === "edit" || frameSurface === "reading";
+  const frameLabel: string | null =
+    overNote || frameSurface === "empty"
+      ? null
+      : frameSurface === "library"
+        ? t("libraryTitle")
+        : frameSurface === "graph" && framePath === null
+          ? t("docTitleGraph")
+          : framePath === null
+            ? null
+            : titleOf(framePath);
   const isDirty = useStore((s) => (s.openPath ? !!s.dirty[s.openPath] : false));
   const reloadTick = useStore((s) => s.reloadTick);
   const view = useStore((s) => s.view);
@@ -376,11 +411,14 @@ export default function StatusBar() {
 
   // Visitors browse a flat curated collection — never leak folder structure.
   const leaf = openPath ? noteLabelOf(openPath) : "";
-  const crumbs = openPath
-    ? admin
-      ? [...stripNoteExt(openPath).split("/").slice(0, -1), leaf]
-      : [leaf]
-    : [];
+  const crumbs =
+    openPath && overNote
+      ? admin
+        ? [...stripNoteExt(openPath).split("/").slice(0, -1), leaf]
+        : [leaf]
+      : frameLabel !== null
+        ? [frameLabel]
+        : [];
   // A PERIODIC NOTE KEEPS ITS ISO FILENAME AND SAYS ITS PERIOD IN THE
   // INSTANCE'S CALENDAR. `daily/2026-08-16.md` is still that on disk, in
   // every wikilink and in every sort — and beside it the bar says
@@ -390,7 +428,7 @@ export default function StatusBar() {
   // the language and the calendar both change under this bar, and so do the
   // periodic settings (`usePeriodic` wakes the bar when the folder moves).
   usePeriodic();
-  const period = openPath ? periodLabel(openPath) : null;
+  const period = openPath && overNote ? periodLabel(openPath) : null;
 
   // THE PHONE'S OVERFLOW MENU. Below 640px the cluster kept every control and
   // scrolled sideways with no scrollbar, right-aligned — so its first two
@@ -742,7 +780,7 @@ export default function StatusBar() {
         // separators are ONE ellipsizing run: it thins to `1 - Sourc…`, then
         // to `…`, then to nothing at all, and the note name is the last
         // thing standing.
-        <span className="s-statusbar__crumbs" title={openPath ?? undefined}>
+        <span className="s-statusbar__crumbs" title={overNote ? (openPath ?? undefined) : undefined}>
           {crumbs.length > 1 && (
             <span className="s-statusbar__crumbpath">
               {crumbs.slice(0, -1).map((part, i) => (
@@ -788,9 +826,9 @@ export default function StatusBar() {
           it the only route to the published filter — vanished on an open
           local vault and on every PUBLIC=false instance, while the publish
           TOGGLE stayed, still saying "Published — live for visitors".) */}
-      {(counts || live || (admin && publishedCounts)) && (
+      {((overNote && (counts || live)) || (admin && publishedCounts)) && (
         <span className="s-statusbar__group s-statusbar__ambient">
-          {(live || counts) && (
+          {overNote && (live || counts) && (
             // SELECTION-AWARE. The moment something is selected the bar reports
             // the selection instead of the note, because a writer trimming a
             // paragraph to length is asking about the paragraph. Reading time
@@ -898,7 +936,7 @@ export default function StatusBar() {
       )}
       {/* The publish toggle is an ACT, not ambient trivia, so it is its own
           group and it survives every width down to the phone. */}
-      {admin && openPath && (
+      {admin && openPath && overNote && (
         <span className="s-statusbar__group">
           <button
             type="button"
@@ -930,7 +968,7 @@ export default function StatusBar() {
           prints, so the two surfaces cannot drift. Quiet by construction: it
           is a label, not a switch (the value lives in the note's frontmatter,
           which is where it is changed), so it takes no ModePill treatment. */}
-      {layoutChip && (
+      {overNote && layoutChip && (
         <span
           className="s-statusbar__group s-statusbar__layout"
           title={layoutChip.title}

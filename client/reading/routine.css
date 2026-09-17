@@ -270,6 +270,10 @@
 .s-rv-routine__taskwords {
   display: flex;
   flex-direction: column;
+  /* Each run hugs the column's start beside the box: a key in the other
+     script (its own `dir`, routine.ts) would otherwise stretch across the
+     column and set its words at the far end. */
+  align-items: flex-start;
   min-inline-size: 0;
   line-height: 1.4;
 }

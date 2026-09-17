@@ -31,8 +31,10 @@ import { isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
 
 /** Tab label: the basename, with bidi controls out. A filename carrying an
  *  RLO reorders its own label ("Bidi<U+202E>Attack Note" → "BidietoN kcattA"),
- *  and these labels travel into aria-labels and the document title. */
-function titleOf(path: string): string {
+ *  and these labels travel into aria-labels and the document title. Exported
+ *  for the status bar, whose crumb over a non-note surface says what the
+ *  strip says (StatusBar.tsx), from one function. */
+export function titleOf(path: string): string {
   if (isGraphTab(path)) return t("docTitleGraph");
   if (isMediaTab(path)) return t("media");
   if (isRoutinesTab(path)) return t("routines");

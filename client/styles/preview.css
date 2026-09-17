@@ -348,7 +348,8 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
   --co: var(--callout-note);
   background: color-mix(in srgb, var(--co) 9%, transparent);
   border-inline-start: 3px solid var(--co);
-  padding-inline: 1em 0.8em;
+  /* The reading view's `.s-rv-callout` inset, to the number. */
+  padding-inline: 1em 0.9em;
 }
 
 .s-editor .cm-line.cm-s-callout--note { --co: var(--callout-note); }
@@ -390,9 +391,12 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
   background-clip: padding-box;
 }
 
-/* title bar widget (replaces "> [!type] Title") */
+/* title bar widget (replaces "> [!type] Title"). It carries NO `--co` of its
+   own: the widget sits inside the `.cm-line.cm-s-callout--<type>` that sets
+   the hue, and a reset here painted every title note-blue over a warning's
+   orange bar in every room — the reading view's title (reading.css) is the
+   bar's colour, and so is this one. */
 .s-editor .cm-s-callout__title {
-  --co: var(--callout-note);
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
@@ -491,6 +495,9 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
   cursor: pointer;
   overflow-x: auto;
   overflow-y: hidden;
+  /* A long equation scrolls inside the column rather than widening the
+     whole note (the table widget's rule, tables.css). */
+  contain: inline-size;
 }
 
 .s-editor .cm-s-math-block:hover {
