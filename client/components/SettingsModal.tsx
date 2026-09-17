@@ -898,13 +898,17 @@ function LibraryPathEditor({
                   </span>
                 );
               })()}
+              {/* ON means VISIBLE. Bound to `hidden`, the switch sat OFF
+                  beside the word "Visible" for every path a visitor could
+                  reach — a lit switch is the affirmative state, and the
+                  affirmative thing about a path is that it shows. */}
               <Toggle
-                label={t("libraryPathHidden")}
-                onLabel={t("libraryPathHidden")}
-                offLabel={t("libraryPathVisible")}
-                value={row.hidden === true}
+                label={t("libraryPathVisible")}
+                onLabel={t("libraryPathVisible")}
+                offLabel={t("libraryPathHidden")}
+                value={row.hidden !== true}
                 disabled={disabled}
-                onChange={(on) => set(i, { hidden: on ? true : undefined })}
+                onChange={(on) => set(i, { hidden: on ? undefined : true })}
               />
             </div>
           </div>
@@ -1206,13 +1210,14 @@ function PublicFolderEditor({
                 dir="auto"
                 maxLength={FOLDER_DESC_MAX}
               />
+              {/* ON means VISIBLE — the library paths' rule, same shape. */}
               <Toggle
-                label={t("publicFolderHidden")}
-                onLabel={t("publicFolderHidden")}
-                offLabel={t("publicFolderVisible")}
-                value={row.hidden === true}
+                label={t("publicFolderVisible")}
+                onLabel={t("publicFolderVisible")}
+                offLabel={t("publicFolderHidden")}
+                value={row.hidden !== true}
                 disabled={disabled}
-                onChange={(on) => set(i, { hidden: on ? true : undefined })}
+                onChange={(on) => set(i, { hidden: on ? undefined : true })}
               />
               <button
                 type="button"
@@ -1981,7 +1986,10 @@ function themeChoices(effective: string | null): SelectGroup[] {
       id: "inherit",
       label: "",
       options: [
-        { value: "", label: tf("inheritOption", { value: themeLabel(effective) }) },
+        // "Default", with what it resolves to as the NOTE — never the value
+        // spelled into the label. As "inherit (Follow my editor theme)" the
+        // row read as a twin of the follow row two lines under it.
+        { value: "", label: t("inheritSegment"), note: themeLabel(effective) },
         // The third state, offered as plainly as the rooms themselves: not a
         // theme but a rule, and the one this product now defaults to. It is a
         // STORABLE value rather than merely the absence of one, because an
@@ -2513,18 +2521,21 @@ function useFontPreview(
 // ask from when you are editing the site in a browser tab.
 // ---------------------------------------------------------------------------
 
-/** The README sections this panel's own settings are documented in. Named
- *  rather than linked: the README ships in the repository, not on the running
- *  site, and a link that 404s into the SPA fallback is worse than a name a
- *  reader can search for. */
-const DOC_TOPICS: { key: I18nKey; anchor: string }[] = [
-  { key: "docSiteSettings", anchor: "#settings" },
-  { key: "docTheming", anchor: "#theming" },
-  { key: "docTypography", anchor: "#typography" },
-  { key: "docArabic", anchor: "#arabic--rtl" },
-  { key: "docBlogMode", anchor: "#blog-mode" },
-  { key: "docComments", anchor: "#comments" },
-  { key: "docSync", anchor: "#backup--sync" },
+/** The docs pages this panel's own settings are documented in. Named rather
+ *  than linked: the docs ship in the repository, not on the running site, and
+ *  a link that 404s into the SPA fallback is worse than a name a reader can
+ *  search for. Every file and anchor here is a REAL one — `check-settings`
+ *  opens each file and slugs its headings the way build-docs does — because
+ *  the list once named seven README anchors that had moved to docs/ years
+ *  earlier, and a citation that resolves to nothing is worse than none. */
+const DOC_TOPICS: { key: I18nKey; file: string; anchor?: string }[] = [
+  { key: "docSiteSettings", file: "docs/configuration.md", anchor: "the-settings-panel" },
+  { key: "docTheming", file: "docs/theming.md" },
+  { key: "docTypography", file: "docs/typography.md" },
+  { key: "docArabic", file: "docs/arabic-and-rtl.md" },
+  { key: "docBlogMode", file: "docs/blog-mode.md" },
+  { key: "docComments", file: "docs/publishing.md", anchor: "comments" },
+  { key: "docSync", file: "docs/backup-and-sync.md" },
 ];
 
 function AboutTab({ about }: { about: AboutInfo | null }) {
@@ -2579,10 +2590,11 @@ function AboutTab({ about }: { about: AboutInfo | null }) {
       <p className="s-smodal__note">{t("aboutDocsNote")}</p>
       <ul className="s-about__docs">
         {DOC_TOPICS.map((d) => (
-          <li key={d.anchor} className="s-about__doc">
+          <li key={d.key} className="s-about__doc">
             <span className="s-about__docname">{t(d.key)}</span>
             <code className="s-about__docanchor" dir="ltr">
-              README.md{d.anchor}
+              {d.file}
+              {d.anchor ? `#${d.anchor}` : ""}
             </code>
           </li>
         ))}
@@ -2663,6 +2675,20 @@ const TABS: Tab[] = [
  *  outside the set (hand-edited settings.json) is added rather than lost. */
 const SYNC_INTERVALS = [0, 15, 30, 60, 180, 360, 720, 1440];
 
+/** Where the panel keeps the tab it last showed (per device, like a theme). */
+const TAB_STORAGE = "astrolabe:settings-tab";
+
+function rememberedTab(): string {
+  try {
+    const id = localStorage.getItem(TAB_STORAGE);
+    if (id !== null && TABS.some((s) => s.id === id)) return id;
+  } catch {
+    // Storage can be sealed (private mode, a blocked origin); the first tab is
+    // the right answer then.
+  }
+  return TABS[0].id;
+}
+
 function intervalLabel(minutes: number): string {
   if (minutes === 0) return t("syncIntervalManual");
   if (minutes < 60) return tf("syncIntervalMinutes", { count: localeNum(minutes) });
@@ -2676,7 +2702,10 @@ export default function SettingsModal() {
   const setOpen = useStore((s) => s.setSettingsOpen);
   const settingsFocus = useStore((s) => s.settingsFocus);
   useStore((s) => s.language); // re-render the chrome strings on language change
-  const close = useCallback(() => setOpen(false), [setOpen]);
+  /** The panel is gone. Only `requestClose` below may call this from an exit
+   *  path a reader takes; this is the half that runs once the question of
+   *  unsaved edits has been settled (or never arose). */
+  const closeNow = useCallback(() => setOpen(false), [setOpen]);
 
   const [loaded, setLoaded] = useState<SettingsResponse | null>(null);
   const [initial, setInitial] = useState<Form | null>(null);
@@ -2684,12 +2713,53 @@ export default function SettingsModal() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [picker, setPicker] = useState<"favicon" | "logo" | "homeBanner" | null>(null);
+  // Read by the once-registered Esc listener, so it sees the picker that is
+  // open NOW rather than the one at registration.
+  const pickerRef = useRef(picker);
+  pickerRef.current = picker;
   const panelRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
 
+  /** EVERY EXIT ASKS FIRST WHEN THERE IS SOMETHING TO LOSE. Escape, the
+   *  scrim, the × and Close all reached a bare `setOpen(false)`, so a reader
+   *  who had retyped a remote URL and a branch and then pressed Esc to dismiss
+   *  a font list one keystroke too many lost both, silently — the panel's
+   *  only `confirmModal` guarded font deletion. The designer already had the
+   *  twelve-line answer (`DesignerPanel.tsx` `requestClose`), and this is the
+   *  same one: clean form closes at once; a dirty one gets the question, with
+   *  Discard as the confirm and Cancel returning to the panel. The dirty flag
+   *  is read through a ref because the Esc listener is registered once. */
+  const dirtyRef = useRef(false);
+  const askingRef = useRef(false);
+  const requestClose = useCallback(() => {
+    if (!dirtyRef.current) {
+      closeNow();
+      return;
+    }
+    if (askingRef.current) return;
+    askingRef.current = true;
+    void confirmModal({
+      title: t("closeUnsavedTitle"),
+      body: t("closeUnsavedBody"),
+      confirmLabel: t("discardChanges"),
+    }).then((ok) => {
+      askingRef.current = false;
+      if (ok) closeNow();
+    });
+  }, [closeNow]);
+
   // Trap + restore. Escape stays with the capture-phase handler below, which
-  // has to close the PICKER first when one is stacked on top.
-  useDialog(panelRef);
+  // has to close the PICKER first when one is stacked on top. The trap arms
+  // once the form has loaded, because that is when the search field exists:
+  // armed at mount it landed the first focus on the ✕, the one control in a
+  // settings panel nobody opens it to use. A coarse pointer gets the panel
+  // itself instead — focusing a text field there raises the keyboard over
+  // the tab strip before the reader has chosen a tab.
+  useDialog(panelRef, {
+    active: form !== null,
+    initialFocus: () => (window.matchMedia("(pointer: coarse)").matches ? panelRef.current : searchRef.current),
+  });
 
   /** The operator's uploaded faces. Its own request rather than a field on
    *  the settings payload: it changes on upload and delete, several times per
@@ -2698,7 +2768,11 @@ export default function SettingsModal() {
   const [fontBusy, setFontBusy] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLElement>(null);
-  const [tab, setTab] = useState(TABS[0].id);
+  /** The tab the panel last showed, on this device. A panel that always
+   *  reopens on This device sends a reader who is tuning Backup & sync back
+   *  through the rail on every visit; the tab is the panel's one piece of
+   *  per-device state and it is cheap to keep. */
+  const [tab, setTab] = useState(rememberedTab);
   // The browser's declared dictionaries (client/spellDicts.ts): device-local,
   // drawn under Language & dates because that is where a person looks for a
   // language, and hidden on the desktop, which asks Electron itself.
@@ -2729,6 +2803,11 @@ export default function SettingsModal() {
   const goToTab = useCallback((id: string) => {
     setTab(id);
     if (bodyRef.current) bodyRef.current.scrollTop = 0;
+    try {
+      localStorage.setItem(TAB_STORAGE, id);
+    } catch {
+      // Not remembered, then; the panel still switches.
+    }
   }, []);
 
   /** Bring one row into view and MARK it for a moment. Scrolling to a row
@@ -2828,16 +2907,19 @@ export default function SettingsModal() {
       // back", not "close the settings". Its own listener is registered later
       // than this capture-phase one and would otherwise never run.
       if (isSelectOpen()) return;
+      // The "close without saving?" dialog is on top: its Esc is "cancel",
+      // and it must reach the dialog rather than be swallowed here.
+      if (askingRef.current) return;
       e.stopPropagation();
-      setPicker((p) => {
-        if (p !== null) return null;
-        close();
-        return null;
-      });
+      if (pickerRef.current !== null) {
+        setPicker(null);
+        return;
+      }
+      requestClose();
     };
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [close]);
+  }, [requestClose]);
 
   useFontPreview(
     form?.fontProse ?? SYSTEM_FONT,
@@ -2911,6 +2993,7 @@ export default function SettingsModal() {
     [form, initial],
   );
   const dirty = Object.keys(patch).length > 0;
+  dirtyRef.current = dirty;
   const valid = Object.keys(errors).length === 0;
 
   /** One helper for every control in the panel, because every control in the
@@ -3047,7 +3130,7 @@ export default function SettingsModal() {
   return (
     // The palette's overlay drops its panel at 18vh, which is right for a
     // 400px-tall list and wrong for a panel that wants the whole height.
-    <div className="s-palette-overlay s-smodal-overlay" onMouseDown={close}>
+    <div className="s-palette-overlay s-smodal-overlay" onMouseDown={requestClose}>
       <div
         ref={panelRef}
         className="s-bmodal s-smodal"
@@ -3070,7 +3153,7 @@ export default function SettingsModal() {
           <span className="s-bmodal__title" id={titleId}>
             {t("siteSettings")}
           </span>
-          <button type="button" className="s-bmodal__close" onClick={close} aria-label={t("close")}>
+          <button type="button" className="s-bmodal__close" onClick={requestClose} aria-label={t("close")}>
             ×
           </button>
         </div>
@@ -3088,6 +3171,7 @@ export default function SettingsModal() {
                 every tab, so putting it in one of them would say it searched
                 that one. */}
             <SettingsSearch
+              inputRef={searchRef}
               tabName={(id) => {
                 const found = TABS.find((x) => x.id === id);
                 return found === undefined ? id : t(found.key);
@@ -3140,7 +3224,7 @@ export default function SettingsModal() {
               >
                 {/* Every tab opens the same way: its name, then one sentence
                     saying what it decides. */}
-                <div className="s-smodal__group">{t(TABS.find((s) => s.id === tab)?.key ?? "tabDevice")}</div>
+                <div className="s-smodal__group s-smodal__tabhead">{t(TABS.find((s) => s.id === tab)?.key ?? "tabDevice")}</div>
                 <p className="s-smodal__note">{t(TABS.find((s) => s.id === tab)?.intro ?? "introDevice")}</p>
 
                 {/* "This device" is its own module (settings/DeviceTab.tsx) and
@@ -3449,7 +3533,7 @@ export default function SettingsModal() {
                     />
                   </Row>
                   {desktop() === null && (
-                    <Row label={t("rowSpellDicts")} hint={t("hintSpellDicts")}>
+                    <Row label={t("rowSpellDicts")} hint={t("hintSpellDicts")} more={t("moreSpellDicts")}>
                       <div className="s-smodal__dicts" role="group" aria-label={t("rowSpellDicts")}>
                         {DECLARABLE.map((code) => (
                           <Toggle
@@ -3534,11 +3618,18 @@ export default function SettingsModal() {
                       not move (dates and numerals stay on the site's locale). */}
                   <div className="s-smodal__sub">{t("visitorSwitchHead")}</div>
                   <p className="s-smodal__note">{t("visitorSwitchNote")}</p>
+                  {/* A PLAIN TOGGLE, not a three-way segment: no environment
+                      variable stands behind this row (server/settings.ts
+                      inherits a constant), so "Default" would name nothing an
+                      operator can set elsewhere. The empty stored value reads
+                      as the constant it resolves to, and a flip writes on/off. */}
                   <Row label={t("rowLanguageToggle")} hint={t("hintLanguageToggle")}>
-                    <SegmentedControl
+                    <Toggle
                       label={t("rowLanguageToggle")}
-                      segments={onOffSegments(inh.languageToggle)}
-                      {...field("languageToggle")}
+                      onLabel={t("on")}
+                      offLabel={t("off")}
+                      value={form.languageToggle === "on" || (form.languageToggle === "" && inh.languageToggle)}
+                      onChange={(on) => setForm((f) => (f ? { ...f, languageToggle: on ? "on" : "off" } : f))}
                     />
                   </Row>
                   {(form.languageToggle === "on" || (form.languageToggle === "" && inh.languageToggle)) && (
@@ -3789,11 +3880,15 @@ export default function SettingsModal() {
                       {...field("comments")}
                     />
                   </Row>
+                  {/* No env var behind these two either — plain toggles, on
+                      the visitor-switch row's terms. */}
                   <Row label={t("rowShareButtons")} hint={t("hintShareButtons")}>
-                    <SegmentedControl
+                    <Toggle
                       label={t("rowShareButtons")}
-                      segments={onOffSegments(inh.shareButtons)}
-                      {...field("share")}
+                      onLabel={t("on")}
+                      offLabel={t("off")}
+                      value={form.share === "on" || (form.share === "" && inh.shareButtons)}
+                      onChange={(on) => setForm((f) => (f ? { ...f, share: on ? "on" : "off" } : f))}
                     />
                   </Row>
                   {/* Decoration, and the only row in this panel that is
@@ -3803,10 +3898,12 @@ export default function SettingsModal() {
                       client/styles/ambient.css; this is the master switch and
                       the whole of the feature's configuration. */}
                   <Row label={t("rowAmbient")} hint={t("hintAmbient")}>
-                    <SegmentedControl
+                    <Toggle
                       label={t("rowAmbient")}
-                      segments={onOffSegments(inh.ambient)}
-                      {...field("ambient")}
+                      onLabel={t("on")}
+                      offLabel={t("off")}
+                      value={form.ambient === "on" || (form.ambient === "" && inh.ambient)}
+                      onChange={(on) => setForm((f) => (f ? { ...f, ambient: on ? "on" : "off" } : f))}
                     />
                   </Row>
                   {/* The author's other homes. One per line, because a URL
@@ -4063,7 +4160,6 @@ export default function SettingsModal() {
                       in one place answer each other; a folder filed by its
                       consequence answers nobody. */}
                   <div className="s-smodal__sub">{t("templatesSection")}</div>
-                  <p className="s-smodal__note">{t("templatePlaceholdersHint")}</p>
                   <Row
                     label={t("templatesFolderLabel")}
                     hint={t("templatesFolderHint")}
@@ -4088,7 +4184,7 @@ export default function SettingsModal() {
                       folder's terms — detected when the vault names it, and
                       the detected value printed rather than a blank field
                       beside a feature that is quietly working. */}
-                  <Row label={t("hadithFolderLabel")} hint={t("hadithFolderHint")}>
+                  <Row label={t("hadithFolderLabel")} hint={t("hadithFolderHint")} more={t("moreHadithFolder")}>
                     <TextInput
                       placeholder={eff.hadithFolder ?? "Corpus/hadith"}
                       dir="ltr"
@@ -4101,7 +4197,10 @@ export default function SettingsModal() {
                       {tf("templatesDetectedHint", { folder: eff.hadithFolder })}
                     </p>
                   )}
-                  <Row label={t("defaultTemplateLabel")} hint={t("defaultTemplateHint")}>
+                  {/* The {{placeholder}} grammar rode as a paragraph over the
+                      whole section; it is the template FILE's reference and
+                      sits behind this row's ⓘ now. */}
+                  <Row label={t("defaultTemplateLabel")} hint={t("defaultTemplateHint")} more={t("templatePlaceholdersHint")}>
                     <TextInput
                       placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Note.md` : "Templates/Note.md"}
                       dir="ltr"
@@ -4117,7 +4216,7 @@ export default function SettingsModal() {
                       the same two questions is a table. The placeholders
                       are what is in force, as the templates folder's is. */}
                   <div className="s-smodal__sub">{t("periodicSection")}</div>
-                  <Row label={t("periodicRowLabel")} hint={t("periodicRowHint")} wide>
+                  <Row label={t("periodicRowLabel")} hint={t("periodicRowHint")} more={t("periodicFormatNote")} wide>
                     <PeriodicForm
                       form={form}
                       inForce={{
@@ -4128,7 +4227,6 @@ export default function SettingsModal() {
                       onChange={(key, value) => setForm((f) => (f ? { ...f, [key]: value } : f))}
                     />
                   </Row>
-                  <p className="s-smodal__note">{t("periodicFormatNote")}</p>
                   {/* THE UNIQUE NOTE (client/uniqueNote.ts): the palette's
                       "New unique note" stamps a name from the minute and
                       asks nothing. Beside the periodic rows because it is
@@ -4149,10 +4247,10 @@ export default function SettingsModal() {
                       about where this instance PUTS things, like every row
                       above. */}
                   <div className="s-smodal__sub">{t("captureSection")}</div>
-                  <Row label={t("captureInboxLabel")} hint={t("captureInboxHint")}>
+                  <Row label={t("captureInboxLabel")} hint={t("captureInboxHint")} more={t("moreCaptureInbox")}>
                     <TextInput placeholder="Inbox.md" dir="ltr" label={t("captureInboxLabel")} {...field("captureInbox")} />
                   </Row>
-                  <Row label={t("clipperLabel")} hint={t("clipperHint")}>
+                  <Row label={t("clipperLabel")} hint={t("clipperHint")} more={t("moreClipper")}>
                     <ClipperControl siteName={eff.siteName} />
                   </Row>
                   {/* Where the sidebar's pencil files a drawing (the owner:
@@ -4213,10 +4311,7 @@ export default function SettingsModal() {
                       value={form.attachMode}
                       onChange={(v) => setForm((f) => (f ? { ...f, attachMode: v } : f))}
                       options={[
-                        {
-                          value: "",
-                          label: tf("inheritOption", { value: enumLabel(inh.attachmentsMode) }),
-                        },
+                        { value: "", label: t("inheritSegment"), note: enumLabel(inh.attachmentsMode) },
                         { value: "vault-root", label: t("locVaultRoot") },
                         { value: "same-folder", label: t("locSameFolder") },
                         { value: "subfolder", label: t("locSubfolder") },
@@ -4297,6 +4392,7 @@ export default function SettingsModal() {
                   <Row
                     label={t("rowNoteVersions")}
                     hint={t("hintNoteVersions")}
+                    more={t("moreNoteVersions")}
                     env={{ name: "NOTE_VERSIONS", value: eff.noteVersions ? "on" : "off", inherits: form.noteVersions === "" }}
                   >
                     <SegmentedControl
@@ -4489,6 +4585,13 @@ export default function SettingsModal() {
           </div>
         )}
 
+        {/* The footer belongs to the SERVER tabs. On This device every row
+            commits on click, so a footer reading "Unsaved changes" with a live
+            Save button under it was the panel's two-kinds-of-row confusion
+            drawn one more time, on the one tab built to end it. The edits it
+            speaks for survive the tab switch; the buttons come back with the
+            next tab. */}
+        {tab !== "device" && (
         <div className="s-smodal__foot">
           {/* "Unsaved changes" / "Fix the marked fields" / "Saving…" is the
               panel's only status text — it has to be spoken, not just shown. */}
@@ -4499,7 +4602,7 @@ export default function SettingsModal() {
                 ? t(valid ? "unsavedChanges" : "fixMarkedFields")
                 : ""}
           </span>
-          <button type="button" className="s-btn" onClick={close}>
+          <button type="button" className="s-btn" onClick={requestClose}>
             {t("close")}
           </button>
           <button
@@ -4511,6 +4614,7 @@ export default function SettingsModal() {
             {t("save")}
           </button>
         </div>
+        )}
 
         {picker && (
           <ImagePicker

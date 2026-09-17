@@ -48,9 +48,26 @@ export interface EnvVar {
  *  closing itself out from under a reader who meant to dismiss one list. An
  *  `aria-expanded` button and a region in the flow cost the Esc chain nothing.
  */
-function EnvPanel({ env, id, labelledBy, open }: { env: EnvVar; id: string; labelledBy: string; open: boolean }) {
+function EnvPanel({
+  env,
+  more,
+  id,
+  labelledBy,
+  open,
+}: {
+  env?: EnvVar;
+  /** Reference text that is not the row's one-sentence help — a token
+   *  grammar, a frontmatter shape, where a token lives. It used to be the
+   *  hint itself, forty and fifty words under a label, and a hint nobody
+   *  finishes is one nobody reads; behind the ⓘ it is there for the reader
+   *  who asks and out of the way of the one who does not. */
+  more?: string;
+  id: string;
+  labelledBy: string;
+  open: boolean;
+}) {
   const [copied, setCopied] = useState(false);
-  const line = envLine(env.name, env.value);
+  const line = env ? envLine(env.name, env.value) : "";
   // The env NAME is a literal to be typed into a shell, so it keeps the mono
   // face and its own isolate rather than being interpolated into one text run
   // — which is what tf() would do: correct for direction, unable to style half
@@ -63,7 +80,7 @@ function EnvPanel({ env, id, labelledBy, open }: { env: EnvVar; id: string; labe
   // one says the variable is being ignored and how to hand control back. Both
   // isolate the variable name in its own <bdi> — it is a literal to be typed
   // into a shell, so it stays LTR inside an Arabic sentence.
-  const sentence = env.inherits ? t("envDecidedBy") : t("envOverridden");
+  const sentence = env ? (env.inherits ? t("envDecidedBy") : t("envOverridden")) : "";
   const [before, after = ""] = sentence.split("{env}");
   return (
     // Rendered whether or not it is open, hidden with the attribute: the
@@ -71,31 +88,40 @@ function EnvPanel({ env, id, labelledBy, open }: { env: EnvVar; id: string; labe
     // `hidden` takes the region and its copy button out of the tab order
     // without a second rule saying so.
     <div className="s-smodal__env" id={id} role="region" aria-labelledby={labelledBy} hidden={!open}>
-      <p className="s-smodal__envnote">
-        {before}
-        <bdi className="s-smodal__envname">{env.name}</bdi>
-        {after}
-      </p>
-      <div className="s-smodal__envrow">
-        <code className="s-smodal__envline" dir="ltr">
-          {line}
-        </code>
-        <button
-          type="button"
-          className="s-btn s-smodal__envcopy"
-          onClick={() => {
-            void navigator.clipboard
-              ?.writeText(line)
-              .then(() => setCopied(true))
-              .catch(() => setCopied(false));
-          }}
-        >
-          {/* The label swaps to "Copied" — SyncBadge's idiom. A clipboard
-              write is silent, and a toast for a two-word action is louder
-              than the action. */}
-          {t(copied ? "syncCopied" : "envCopyLine")}
-        </button>
-      </div>
+      {more && (
+        <p className="s-smodal__envnote s-smodal__more" dir="auto">
+          {more}
+        </p>
+      )}
+      {env && (
+        <p className="s-smodal__envnote">
+          {before}
+          <bdi className="s-smodal__envname">{env.name}</bdi>
+          {after}
+        </p>
+      )}
+      {env && (
+        <div className="s-smodal__envrow">
+          <code className="s-smodal__envline" dir="ltr">
+            {line}
+          </code>
+          <button
+            type="button"
+            className="s-btn s-smodal__envcopy"
+            onClick={() => {
+              void navigator.clipboard
+                ?.writeText(line)
+                .then(() => setCopied(true))
+                .catch(() => setCopied(false));
+            }}
+          >
+            {/* The label swaps to "Copied" — SyncBadge's idiom. A clipboard
+                write is silent, and a toast for a two-word action is louder
+                than the action. */}
+            {t(copied ? "syncCopied" : "envCopyLine")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -122,6 +148,7 @@ export function Row({
   wide,
   off,
   env,
+  more,
   after,
   children,
 }: {
@@ -136,6 +163,9 @@ export function Row({
   off?: boolean;
   /** The environment variable this row answers to, behind the ⓘ. */
   env?: EnvVar;
+  /** Reference text behind the same ⓘ — the syntax or grammar the one-line
+   *  hint no longer carries. A row may have either, both, or neither. */
+  more?: string;
   /** A SECOND LINE under the control, in the control column — not a second
    *  control. The row owns exactly one control (the label is wired onto it),
    *  so a row that also has something to SAY about its value says it here:
@@ -158,7 +188,9 @@ export function Row({
   const errorId = `${id}-err`;
   const envBtnId = `${id}-envbtn`;
   const envId = `${id}-env`;
+  const labelTextId = `${id}-label`;
   const [envOpen, setEnvOpen] = useState(false);
+  const disclose = env !== undefined || more !== undefined;
   const described = [hint ? hintId : null, error ? errorId : null]
     .filter(Boolean)
     .join(" ");
@@ -179,6 +211,12 @@ export function Row({
     only !== null && isValidElement(only)
       ? cloneElement(only as ReactElement<Record<string, unknown>>, {
           id,
+          // The NAME, by reference to the label's own words, and not only
+          // through `htmlFor`: a `<label for>` names a labelable element, and
+          // a SegmentedControl is a `role="radiogroup"` <div> that `for`
+          // cannot reach. The ⓘ button sits outside the referenced span so
+          // its own name does not leak into the control's.
+          "aria-labelledby": labelTextId,
           "aria-describedby": described || undefined,
           "aria-invalid": error ? true : undefined,
         })
@@ -192,7 +230,7 @@ export function Row({
     <div className={cls} data-setting={label}>
       <label className="s-smodal__label" htmlFor={id}>
         <span className="s-smodal__labeltext">
-          {label}
+          <span id={labelTextId}>{label}</span>
           {/* The ⓘ sits in the label's own text line, where a footnote mark
               sits — and inside the <label> on purpose: a click on interactive
               content inside a label does NOT forward to the labelled control
@@ -200,15 +238,15 @@ export function Row({
               focus into the field it annotates. Only the BUTTON is in here;
               the region it opens is a block, and a block inside a <label> is
               neither valid nor readable beside a 14rem label column. */}
-          {env && (
+          {disclose && (
             <button
               type="button"
               id={envBtnId}
               className="s-smodal__envbtn"
               aria-expanded={envOpen}
               aria-controls={envId}
-              aria-label={t("envDisclose")}
-              title={t("envDisclose")}
+              aria-label={t(env ? "envDisclose" : "moreDisclose")}
+              title={t(env ? "envDisclose" : "moreDisclose")}
               onClick={() => setEnvOpen((o) => !o)}
             >
               ⓘ
@@ -231,7 +269,7 @@ export function Row({
             {error}
           </span>
         )}
-        {env && <EnvPanel env={env} id={envId} labelledBy={envBtnId} open={envOpen} />}
+        {disclose && <EnvPanel env={env} more={more} id={envId} labelledBy={envBtnId} open={envOpen} />}
       </div>
     </div>
   );

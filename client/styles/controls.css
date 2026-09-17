@@ -171,15 +171,24 @@
   min-height: 42px;
 }
 
-/* …and on a finger it is a TARGET, not a box. 42px was chosen to fit two lines
-   of type and it fits them at 44 just as well; the two pixels are the
-   difference between a control that meets the product's own floor and one that
-   is two short of it, everywhere this trigger appears — the settings panel's
-   four slot pickers and now the designer's three face rows. Measured at 1400
-   with a coarse pointer: 42 before, 44 after. */
+/* …and on a finger EVERY control is a TARGET, not a box. The 44px floor used
+   to reach only the font picker's trigger (42px was chosen to fit two lines
+   of type and fits them at 44 just as well) while the toggles stood at 34,
+   the segments at 30 and the fields at 13.8px of type — which is the size
+   at which iOS zooms the page into the field on focus and leaves it there.
+   Measured with a coarse pointer at 1400 and 390: inputs 16px, toggles,
+   segment buttons and selects 44px, the same block for the settings panel's
+   rows and the designer's. */
 @media (max-width: 700px), (pointer: coarse) {
+  .s-ctl-input,
+  .s-ctl-num__input {
+    font-size: 16px;
+  }
+  .s-ctl-toggle,
+  .s-ctl-seg__btn,
+  .s-ctl-select,
   .s-ctl-select--face {
-    min-height: 44px;
+    min-block-size: 44px;
   }
 }
 

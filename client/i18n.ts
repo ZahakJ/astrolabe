@@ -509,8 +509,8 @@ const DICT = {
   // modifier and kept their shape — same key, Shift picks the second pane.
   rowScreenWarmth: { en: "Screen warmth", ar: "دفء الشاشة" },
   hintScreenWarmth: {
-    en: "An amber sheet over the whole page, like a phone's night light — less blue, easier on the eyes. Per device.",
-    ar: "طبقة كهرمانية فوق الصفحة كلها، مثل الإضاءة الليلية في الهاتف: أزرق أقل وراحة أكبر للعين. لكل جهاز.",
+    en: "An amber sheet over the page, like a phone's night light. Per device.",
+    ar: "طبقة كهرمانية فوق الصفحة، مثل الإضاءة الليلية في الهاتف. لكل جهاز.",
   },
   rowScreenDim: { en: "Dim the screen", ar: "تعتيم الشاشة" },
   hintScreenDim: {
@@ -522,7 +522,10 @@ const DICT = {
   cmdCoolScreen: { en: "Cool the screen", ar: "برّد الشاشة" },
   cmdWarmScreenHint: { en: "Night light: an amber sheet over the page, per device", ar: "إضاءة ليلية: طبقة كهرمانية فوق الصفحة، لكل جهاز" },
   rowEditorWidth: { en: "Writing column", ar: "عرض عمود الكتابة" },
-  hintEditorWidth: { en: "How wide the editor and the reading view set their text. Per device.", ar: "عرض النص في المحرر وفي وضع القراءة. يُحفظ لكل جهاز على حدة." },
+  hintEditorWidth: {
+    en: "The width of the editor's and the reading view's text. Per device.",
+    ar: "عرض النص في المحرر وفي وضع القراءة. يُحفظ لكل جهاز.",
+  },
   editorWidthMeasure: { en: "Reading measure", ar: "قياس القراءة" },
   editorWidthWide: { en: "Wide", ar: "عريض" },
   editorWidthFull: { en: "Full width", ar: "العرض الكامل" },
@@ -924,8 +927,8 @@ const DICT = {
   },
   rowPublicFolders: { en: "Collections", ar: "المجموعات" },
   hintPublicFolders: {
-    en: "Hand-made topics beside the tag topics: a collection is a tag you curate yourself. Off is a take-down: the collections keep their titles and members.",
-    ar: "مواضيع تصنعها بيدك إلى جانب مواضيع الوسوم: المجموعة وسمٌ تنتقي أنت ما فيه. والإيقاف إخفاءٌ لا حذف: تبقى المجموعات بعناوينها وأعضائها.",
+    en: "Hand-made topics beside the tag topics. Off hides them; nothing is deleted.",
+    ar: "مواضيع تصنعها بيدك إلى جانب مواضيع الوسوم. والإيقاف يخفيها ولا يحذف شيئًا.",
   },
   publicFoldersOffNotice: {
     en: "Custom folders are off, so none of them reaches a visitor.",
@@ -933,8 +936,8 @@ const DICT = {
   },
   rowPublicFoldersList: { en: "Your collections", ar: "مجموعاتك" },
   hintPublicFoldersList: {
-    en: "Each one becomes a page at /folder/<slug>. The order here is the order readers see.",
-    ar: "يصير كل مجلد صفحة على /folder/<slug>. والترتيب هنا هو ما يراه القارئ.",
+    en: "Each one becomes a page at /folder/<slug>, in this order.",
+    ar: "يصير كل مجلد صفحة على /folder/<slug>، بهذا الترتيب.",
   },
   publicFoldersFrontmatter: {
     en: "A note joins a folder from its own frontmatter: folders: my-slug (or a list).",
@@ -947,8 +950,8 @@ const DICT = {
   },
   rowPublicFoldersNav: { en: "Show in navigation", ar: "إظهارها في شريط التنقل" },
   hintPublicFoldersNav: {
-    en: "Folder chips lead the topics row, each wearing its own mark. They stay in the bar on a phone; an empty collection gets no chip.",
-    ar: "تتصدر رقاقات المجلدات صف المواضيع، وكلٌّ منها بعلامته. وتبقى في الشريط على الهاتف، ولا رقاقة لمجموعة فارغة.",
+    en: "Folder chips lead the topics row; an empty collection gets no chip.",
+    ar: "تتصدر رقاقات المجلدات صف المواضيع؛ ولا رقاقة لمجموعة فارغة.",
   },
   publicFoldersEmpty: {
     en: "No folders yet. Add one to give your readers a collection of their own.",
@@ -1076,7 +1079,10 @@ const DICT = {
   libraryOffNotice: { en: "The library is off: the paths below are kept but reach no one.", ar: "المكتبة متوقفة: المسارات أدناه محفوظة لكنها لا تصل إلى أحد." },
   rowLibraryTitle: { en: "Name", ar: "الاسم" },
   hintLibraryTitle: { en: "What the door and the page are called. Empty means “Library”.", ar: "اسم الباب والصفحة. الفراغ يعني «المكتبة»." },
-  rowLibraryNav: { en: "Door in the navigation", ar: "باب في التنقل" },
+  rowLibraryNav: {
+    en: "Show in navigation",
+    ar: "إظهار في التنقل",
+  },
   hintLibraryNav: { en: "A Library link beside the topics, on both public shells.", ar: "رابط المكتبة بجانب المواضيع في كلا الواجهتين العامتين." },
   rowLibraryHome: { en: "Shelf on the home page", ar: "الرف في الصفحة الرئيسية" },
   hintLibraryHome: { en: "A band of covers on the blog home. Off keeps the blog quiet.", ar: "شريط أغلفة في الصفحة الرئيسية. الإيقاف يبقي المدونة هادئة." },
@@ -1155,8 +1161,8 @@ const DICT = {
   // ── Appearance ───────────────────────────────────────────────────────────
   rowYourTheme: { en: "Your theme", ar: "سمتك" },
   hintYourTheme: {
-    en: "Only this browser sees it; visitors get the site default.",
-    ar: "لا يراها إلا هذا المتصفح؛ أما الزوار فلهم سمة الموقع الافتراضية.",
+    en: "Only this browser sees it, light or dark mode; visitors get the site default.",
+    ar: "لا يراها إلا هذا المتصفح، فاتحة أو داكنة؛ أما الزوار فلهم سمة الموقع الافتراضية.",
   },
 
   // ── The visitor language switch, said out loud ───────────────────────────
@@ -1191,8 +1197,8 @@ const DICT = {
   aboutTags: { en: "tags", ar: "وسوم" },
   aboutDocs: { en: "Documentation", ar: "التوثيق" },
   aboutDocsNote: {
-    en: "Every setting here is written up in the project README.",
-    ar: "كل إعداد هنا موثّق في ملف ‎README‎ للمشروع.",
+    en: "Every setting here is written up in the project's docs folder.",
+    ar: "كل إعداد هنا موثّق في مجلد ‎docs‎ الخاص بالمشروع.",
   },
   docSiteSettings: { en: "Settings", ar: "الإعدادات" },
   docTheming: { en: "Theming", ar: "السمات" },
@@ -1249,8 +1255,8 @@ const DICT = {
   },
   rowOpenDesigner: { en: "Design the site", ar: "صمّم الموقع" },
   hintOpenDesigner: {
-    en: "Presets, sections, navigation and type for the designed layout.",
-    ar: "قوالب وأقسام وتنقّل وطباعة لتخطيط «مصمَّم».",
+    en: "Open the designer: presets, sections, navigation and type for the designed layout.",
+    ar: "افتح المصمّم: قوالب وأقسام وتنقّل وطباعة للتخطيط «المصمَّم».",
   },
   // TWO LANGUAGE ROWS, AND THE HINTS ARE WHERE THEY STOP BEING CONFUSABLE.
   // One value used to do both jobs, so an owner who wanted to edit in English
@@ -1340,13 +1346,13 @@ const DICT = {
   langEn: { en: "English", ar: "الإنجليزية" },
   rowLanguageToggle: { en: "Visitor switch", ar: "مبدّل الزائر" },
   hintLanguageToggle: {
-    en: "Adds a public EN/ع switch each reader can flip.",
-    ar: "يضيف مبدّل ‎EN/ع‎ عامًا يقلبه كل قارئ لنفسه.",
+    en: "Adds a public English/Arabic switch each reader can flip.",
+    ar: "يضيف مبدّلًا عامًا بين العربية والإنجليزية يقلبه كل قارئ لنفسه.",
   },
   rowDateLocale: { en: "Date locale", ar: "لغة التواريخ" },
   hintDateLocale: {
-    en: "A BCP-47 tag; it formats post dates and RSS.",
-    ar: "وسم ‎BCP-47‎ يضبط صيغة تواريخ المقالات و‎RSS‎.",
+    en: "A language tag such as en-GB; it formats post dates and RSS.",
+    ar: "وسم لغة مثل ‎en-GB‎ يضبط صيغة تواريخ المقالات و‎RSS‎.",
   },
   rowExcludeTags: { en: "Excluded tags", ar: "وسوم مستبعدة" },
   hintExcludeTags: {
@@ -1370,8 +1376,8 @@ const DICT = {
   },
   rowComments: { en: "Comments", ar: "التعليقات" },
   hintComments: {
-    en: "Marginalia a reader can leave under a published note.",
-    ar: "حواشٍ يتركها القارئ أسفل الملاحظة المنشورة.",
+    en: "Notes a reader can leave under a published note.",
+    ar: "تعليقات يتركها القارئ أسفل الملاحظة المنشورة.",
   },
   // The home note is the front door of a blog-mode site, and it can point at
   // a note visitors cannot see — which renders a blank homepage and says
@@ -1442,8 +1448,8 @@ const DICT = {
   // words, and a reader who has asked their system for less motion gets none
   // of it. Naming the three airs would date the moment a fourth ships.
   hintAmbient: {
-    en: "A slow, faint atmosphere behind the site name; off for readers who prefer reduced motion.",
-    ar: "جوٌّ خافت بطيء خلف اسم الموقع؛ يتوقف لمن يفضّلون تقليل الحركة.",
+    en: "A slow, faint atmosphere behind the site name; off under reduced motion.",
+    ar: "جوٌّ خافت بطيء خلف اسم الموقع؛ يتوقف مع تقليل الحركة.",
   },
   phVaultImageOrUrl: {
     en: "vault image path or https:// URL",
@@ -1454,7 +1460,6 @@ const DICT = {
     ar: "مسار صورة في الخزانة (‎ico, png, svg‎…)",
   },
   phExcludeTags: { en: "draft, todo…", ar: "مسودة، قيد الإنجاز…" },
-  inheritOption: { en: "inherit ({value})", ar: "موروث ({value})" },
   // "inherit (en)" was honest about precedence and silent about its source:
   // the owner could read WHICH value was in force and never learn WHERE it
   // came from, or where to change it outside the panel.
@@ -2019,8 +2024,8 @@ const DICT = {
   blogAuthorSites: { en: "More from the author", ar: "المزيد من أعمال الكاتب" },
   rowAuthorSites: { en: "Your other sites", ar: "مواقعك الأخرى" },
   hintAuthorSites: {
-    en: "Cards under your writings for blog visitors. One per line: a link, then an optional | Title.",
-    ar: "بطاقات تحت كتاباتك لزوار المدونة. واحد في كل سطر: رابط ثم | عنوان اختياري.",
+    en: "Cards under your writings; one link per line, then an optional | Title.",
+    ar: "بطاقات تحت كتاباتك؛ رابط في كل سطر، ثم | عنوان اختياري.",
   },
   phAuthorSites: { en: "https://photos.example.com | My photography", ar: "https://photos.example.com | تصويري" },
   errAuthorSite: { en: "Not a valid site line: {url}", ar: "سطر موقع غير صالح: {url}" },
@@ -2104,18 +2109,18 @@ const DICT = {
   },
   rowFontProse: { en: "Reading text", ar: "نص القراءة" },
   hintFontProse: {
-    en: "Sets the reading column and the editor's prose.",
-    ar: "يضبط عمود القراءة ونص المحرر.",
+    en: "The font for reading text and the editor's prose.",
+    ar: "خط نص القراءة ونثر المحرر.",
   },
   rowFontUi: { en: "Interface", ar: "الواجهة" },
   hintFontUi: {
-    en: "Sets the sidebar, the tabs and every panel.",
-    ar: "يضبط الشريط الجانبي والألسنة وكل اللوحات.",
+    en: "The typeface for the sidebar, the tabs and every panel.",
+    ar: "خط الشريط الجانبي والألسنة وكل اللوحات.",
   },
   rowFontMono: { en: "Code", ar: "الشيفرة" },
   hintFontMono: {
-    en: "Sets code blocks and raw markdown.",
-    ar: "يضبط كتل الشيفرة وماركداون الخام.",
+    en: "The font for code blocks and raw markdown.",
+    ar: "خط كتل الشيفرة وماركداون الخام.",
   },
   // The Arabic slot is a different KIND of control from the three above it —
   // one face that answers for Arabic letters inside all of them — so it gets
@@ -2127,7 +2132,7 @@ const DICT = {
   },
   rowFontArabic: { en: "Arabic face", ar: "الخط" },
   hintFontArabic: {
-    en: "One face for the Arabic letters inside all three slots.",
+    en: "One font for the Arabic letters inside all three slots.",
     ar: "خط واحد للحروف العربية داخل الخانات الثلاث.",
   },
   fontSystem: { en: "system (no webfont)", ar: "خط النظام (بلا تنزيل)" },
@@ -2386,7 +2391,10 @@ const DICT = {
   // The middle state of a three-way row: not on, not off, TAKE THE ENV
   // DEFAULT. A checkbox cannot express it, which is why these rows are
   // segmented controls; the segment carries the value in force as its note.
-  inheritSegment: { en: "Inherit", ar: "موروث" },
+  inheritSegment: {
+    en: "Default",
+    ar: "الافتراضي",
+  },
   // The generic filter field inside a select popover (the font picker names
   // its own).
   filterPlaceholder: { en: "Filter…", ar: "تصفية…" },
@@ -2877,14 +2885,14 @@ const DICT = {
   groupNoteLayout: { en: "Note layout", ar: "تخطيط الملاحظات" },
   rowTextDirection: { en: "Text direction", ar: "اتجاه النص" },
   hintTextDirection: {
-    en: "Base direction for note prose; Auto lets each paragraph decide.",
-    ar: "الاتجاه الأساسي لنص الملاحظات؛ و«تلقائي» يترك القرار لكل فقرة.",
+    en: "Base direction (LTR or RTL) for note prose; Auto lets each paragraph decide.",
+    ar: "الاتجاه الأساسي لنص الملاحظات (يمين أو يسار)؛ و«تلقائي» يترك القرار لكل فقرة.",
   },
   rowTextAlign: { en: "Text alignment", ar: "محاذاة النص" },
   rowEmptyPropsCard: { en: "Properties card on empty notes", ar: "بطاقة الخصائص في الملاحظات الفارغة" },
   hintEmptyPropsCard: {
-    en: "A one-line card with Add property and Set banner on notes that have no properties yet.",
-    ar: "بطاقةٌ من سطر واحد، فيها «إضافة خاصية» و«تعيين الغلاف»، تظهر في الملاحظات التي لا خصائص لها بعد.",
+    en: "A one-line card on notes that have no properties yet.",
+    ar: "بطاقة من سطر واحد على الملاحظات التي لا خصائص لها بعد.",
   },
   hintTextAlign: {
     en: "Where lines sit in the column; code and tables never move.",
@@ -3263,16 +3271,22 @@ const DICT = {
   },
   designBrowsePresets: { en: "Browse the presets", ar: "تصفّح القوالب" },
   designAllSaved: { en: "Everything saved", ar: "كل شيء محفوظ" },
-  designDiscard: { en: "Discard", ar: "تجاهل" },
+  discardChanges: {
+    en: "Discard",
+    ar: "تجاهل",
+  },
   designSave: { en: "Save design", ar: "حفظ التصميم" },
   // Leaving the designer with decisions still in the air — Esc, the ×, or a
   // stray click on the backdrop. The question names the loss, because the
   // panel is the one place in the product where a keystroke used to erase an
   // afternoon's work silently.
-  designCloseUnsavedTitle: { en: "Close without saving?", ar: "إغلاق دون حفظ؟" },
-  designCloseUnsavedBody: {
-    en: "Your unsaved design changes will be discarded.",
-    ar: "ستُفقد تغييرات التصميم غير المحفوظة.",
+  closeUnsavedTitle: {
+    en: "Close without saving?",
+    ar: "إغلاق دون حفظ؟",
+  },
+  closeUnsavedBody: {
+    en: "Your unsaved changes will be discarded.",
+    ar: "ستُفقد تغييراتك غير المحفوظة.",
   },
 
   designTabNav: { en: "Navigation", ar: "التنقل" },
@@ -4051,8 +4065,8 @@ const DICT = {
   rowVimKeys: { en: "Vim keys", ar: "مفاتيح Vim" },
   rowRelativeLines: { en: "Relative line numbers", ar: "أرقام الأسطر النسبية" },
   hintRelativeLines: {
-    en: "With vim keys, the margin counts lines out from the caret, so 7j reads straight off it.",
-    ar: "مع مفاتيح Vim يعدّ الهامش الأسطر بعيدًا عن المؤشر، فتُقرأ 7j منه مباشرة.",
+    en: "With vim keys, the margin counts lines out from the caret.",
+    ar: "مع مفاتيح Vim يعدّ الهامش الأسطر بعيدًا عن المؤشر.",
   },
   hintVimKeys: {
     en: "Modal editing: Normal, Insert and Visual keys in the editor.",
@@ -4060,21 +4074,21 @@ const DICT = {
   },
   rowAppName: { en: "This app's name", ar: "اسم هذا التطبيق" },
   hintAppName: {
-    en: "What the tray, the window and a launcher entry call the app here. An update never changes it.",
-    ar: "ما تسمّي به الصينيةُ والنافذةُ ومدخلُ المشغّل هذا التطبيقَ هنا. والتحديث لا يغيّره أبدًا.",
+    en: "What the tray, the window and the launcher call the app here.",
+    ar: "ما تسمّي به الصينيةُ والنافذةُ والمشغّلُ هذا التطبيقَ هنا.",
   },
   rowAppIcon: { en: "This app's icon", ar: "أيقونة هذا التطبيق" },
   hintAppIcon: {
-    en: "A square PNG, or an .ico on Windows, copied beside the app's settings. Open windows keep theirs until reopened.",
-    ar: "صورة PNG مربعة، أو ‎.ico على ويندوز، تُنسخ بجانب إعدادات التطبيق. والنوافذ المفتوحة تحتفظ بأيقونتها حتى تُفتح من جديد.",
+    en: "A square PNG, or an .ico on Windows, kept beside the app's settings.",
+    ar: "صورة PNG مربعة، أو ‎.ico على ويندوز، تُحفظ بجانب إعدادات التطبيق.",
   },
   appIconChoose: { en: "Choose an image…", ar: "اختر صورة…" },
   appBrandReset: { en: "Back to Astrolabe", ar: "العودة إلى أسطرلاب" },
   rowAppLauncher: { en: "Add to the applications menu", ar: "أضف إلى قائمة التطبيقات" },
   rowAppLauncherWin: { en: "Add to the Start Menu", ar: "أضف إلى قائمة ابدأ" },
   hintAppLauncher: {
-    en: "A launcher entry in the name and icon above, pointing at this file. Run it again after changing either.",
-    ar: "مدخل مشغّل بالاسم والأيقونة أعلاه يشير إلى هذا الملف. أعد تشغيله بعد تغيير أيّ منهما.",
+    en: "A launcher entry with the name and icon above; rerun after changing either.",
+    ar: "مدخل مشغّل بالاسم والأيقونة أعلاه؛ أعد تشغيله بعد تغيير أيّ منهما.",
   },
   appLauncherInstall: { en: "Write the launcher entry", ar: "اكتب مدخل المشغّل" },
   appLauncherInstallWin: { en: "Create the shortcut", ar: "أنشئ الاختصار" },
@@ -4083,8 +4097,8 @@ const DICT = {
   appLauncherFailed: { en: "Could not write the launcher entry.", ar: "تعذّرت كتابة مدخل المشغّل." },
   rowPrefsSync: { en: "Settings travel with the vault", ar: "الإعدادات تسافر مع الخزانة" },
   hintPrefsSync: {
-    en: "Kept in the vault, so every device over it shares them. Off keeps this device's own.",
-    ar: "تُحفظ في الخزانة فتتشاركها كل الأجهزة عليها. والإيقاف يُبقي إعدادات هذا الجهاز له وحده.",
+    en: "Kept in the vault, so every device over it shares them.",
+    ar: "تُحفظ في الخزانة فتتشاركها كل الأجهزة عليها.",
   },
   checkForUpdates: { en: "Check for updates…", ar: "التحقق من التحديثات…" },
   versionTitle: { en: "Astrolabe {v} — the releases page", ar: "أسطرلاب {v}، صفحة الإصدارات" },
@@ -4104,14 +4118,22 @@ const DICT = {
   rowFrenchAutocorrect: { en: "Auto-correct French", ar: "تصحيح الفرنسية تلقائيًا" },
   rowSpellDicts: { en: "Browser dictionaries", ar: "قواميس المتصفح" },
   hintSpellDicts: {
-    en: "Which languages this browser can spellcheck. A French or Arabic line is checked only in a language you tick here — otherwise it is left alone rather than underlined against English. Chrome: Settings → Languages → Spell check.",
-    ar: "اللغات التي يستطيع هذا المتصفح تدقيقها إملائيًا. لا يُدقَّق سطر فرنسي أو عربي إلا بلغة تعلّمها هنا؛ وإلا تُرك كما هو بدل أن يُسطَّر تحته على أنه إنجليزية خاطئة. في كروم: الإعدادات ← اللغات ← التدقيق الإملائي.",
+    en: "Which languages this browser spellchecks; an unticked language is left alone.",
+    ar: "اللغات التي يدقّقها هذا المتصفح إملائيًا؛ ولغة غير معلَّمة تُترك كما هي.",
+  },
+  moreSpellDicts: {
+    en: "A French or Arabic line is checked only in a language you tick here — otherwise it is left alone rather than underlined against English. Chrome: Settings → Languages → Spell check.",
+    ar: "لا يُدقَّق سطر فرنسي أو عربي إلا بلغة تعلّمها هنا؛ وإلا تُرك كما هو بدل أن يُسطَّر تحته على أنه إنجليزية خاطئة. في كروم: الإعدادات ← اللغات ← التدقيق الإملائي.",
   },
   spellDict_fr: { en: "French", ar: "الفرنسية" },
   spellDict_ar: { en: "Arabic", ar: "العربية" },
   spellDict_he: { en: "Hebrew", ar: "العبرية" },
   spellDict_fa: { en: "Persian", ar: "الفارسية" },
   hintFrenchAutocorrect: {
+    en: "Fixes missing accents and French spacing as you type; one undo takes it back.",
+    ar: "يصحّح الحركات الناقصة والمسافات الفرنسية أثناء الكتابة؛ وتراجع واحد يعيدها.",
+  },
+  moreFrenchAutocorrect: {
     en: "On lines written in French: missing accents (tres → très, coeur → cœur), the space before ; : ! ? and inside « », and … for three dots. Ctrl/Cmd Z undoes one correction.",
     ar: "في السطور المكتوبة بالفرنسية: الحركات الناقصة (⁦tres → très, coeur → cœur⁩)، والمسافة قبل ⁦; : ! ?⁩ وداخل ⁦« »⁩، و… بدل ثلاث نقاط. و⁦Ctrl/Cmd Z⁩ يتراجع عن تصحيح واحد.",
   },
@@ -4133,6 +4155,18 @@ const DICT = {
   // tf(): the variable name takes the mono face and its own <bdi>, which one
   // text run cannot do. Keep the placeholder in both languages.
   envDisclose: { en: "Environment variable", ar: "متغيّر البيئة" },
+  moreDisclose: {
+    en: "Details",
+    ar: "تفاصيل",
+  },
+  offlineClearTitle: {
+    en: "Clear the offline copy?",
+    ar: "مسح النسخة دون اتصال؟",
+  },
+  offlineClearBody: {
+    en: "The notes kept for reading without a network are removed from this browser.",
+    ar: "تُزال من هذا المتصفح الملاحظات المحفوظة للقراءة دون شبكة.",
+  },
   envDecidedBy: {
     en: "This field is empty, so {env} decides.",
     ar: "هذا الحقل فارغ، فيقرر {env}.",
@@ -4255,8 +4289,8 @@ const DICT = {
   // the third one: an operator reading a deployment script types SITE_LANG and
   // lands on the row it belongs to.
   settingsSearchPlaceholder: {
-    en: "Search settings — name, help or variable",
-    ar: "بحث في الإعدادات — الاسم أو الشرح أو المتغير",
+    en: "Search settings",
+    ar: "بحث في الإعدادات",
   },
   settingsSearchNone: { en: "Nothing matches", ar: "لا شيء يطابق" },
 
@@ -4940,9 +4974,15 @@ const DICT = {
   weeklyFormatLabel: { en: "Weekly note name", ar: "اسم الملاحظة الأسبوعية" },
   weeklyTemplateLabel: { en: "Weekly note template", ar: "قالب الملاحظة الأسبوعية" },
   uniqueFolderLabel: { en: "Unique notes folder", ar: "مجلد الملاحظات الفريدة" },
-  uniqueFolderHint: { en: "Where “New unique note” files a note named by the minute. Empty for the vault root.", ar: "حيث تودع «ملاحظة فريدة جديدة» ملاحظةً تُسمّى بالدقيقة. فارغ لجذر الخزانة." },
+  uniqueFolderHint: {
+    en: "Where “New unique note” files a note named by the minute.",
+    ar: "حيث تودع «ملاحظة فريدة جديدة» ملاحظةً تُسمّى بالدقيقة.",
+  },
   uniqueFormatLabel: { en: "Unique note name", ar: "اسم الملاحظة الفريدة" },
-  uniqueFormatHint: { en: "The daily tokens plus HH, mm and ss — YYYYMMDDHHmm by default. Must be finer than a day.", ar: "رموز اليوميات مع HH وmm وss؛ الافتراضي YYYYMMDDHHmm. يجب أن يكون أدق من اليوم." },
+  uniqueFormatHint: {
+    en: "The daily tokens plus HH, mm and ss; must be finer than a day.",
+    ar: "رموز اليوميات مع HH وmm وss؛ ويجب أن يكون أدق من اليوم.",
+  },
   cmdNewUniqueNote: { en: "New unique note", ar: "ملاحظة فريدة جديدة" },
   cmdYesterdayNote: { en: "Yesterday's note", ar: "ملاحظة الأمس" },
   cmdTomorrowNote: { en: "Tomorrow's note", ar: "ملاحظة الغد" },
@@ -5028,7 +5068,10 @@ const DICT = {
   whatsnewCount: { en: "{n} of {of}", ar: "{n} من {of}" },
   whatsnewManual: { en: "Read more in the manual", ar: "اقرأ المزيد في الدليل" },
   rowWhatsNew: { en: "What's new after an update", ar: "ما الجديد بعد التحديث" },
-  hintWhatsNew: { en: "The first time this device opens a new version, a short walk through its features. Travels with your preferences.", ar: "أول مرة يفتح فيها هذا الجهاز نسخة جديدة، جولة قصيرة في ميزاتها. ينتقل مع تفضيلاتك." },
+  hintWhatsNew: {
+    en: "A short tour of each new version, the first time this device opens it.",
+    ar: "جولة قصيرة في كل نسخة جديدة، أول مرة يفتحها هذا الجهاز.",
+  },
   cmdWhatsNew: { en: "What's new in this version", ar: "ما الجديد في هذه النسخة" },
   cmdOpenMedia: { en: "Open the Media page", ar: "فتح صفحة الوسائط" },
   // ── Note versions ──
@@ -5065,8 +5108,12 @@ const DICT = {
   },
   rowNoteVersions: { en: "Keep note versions", ar: "حفظ نسخ الملاحظات" },
   hintNoteVersions: {
-    en: "Keep what a note said before each save — forty per note, one per five minutes, in the data directory. Needs no git.",
-    ar: "احتفظ بما قالته الملاحظة قبل كل حفظ — أربعون لكل ملاحظة، واحدة كل خمس دقائق، في مجلد البيانات. لا يحتاج git.",
+    en: "Keeps a history of what each note said before a save. Needs no git.",
+    ar: "يحتفظ بسجل ما قالته كل ملاحظة قبل الحفظ. لا يحتاج git.",
+  },
+  moreNoteVersions: {
+    en: "Forty per note, one per five minutes, in the data directory.",
+    ar: "أربعون لكل ملاحظة، واحدة كل خمس دقائق، في مجلد البيانات.",
   },
   // ── PDF search ──
   searchOpIn: { en: "only the shelf's books, or only notes (in:notes)", ar: "كتب الرف وحدها، أو الملاحظات وحدها (in:notes)" },
@@ -5074,8 +5121,8 @@ const DICT = {
   searchHitPage: { en: "p. {n}", ar: "ص {n}" },
   rowPdfSearch: { en: "Search inside books", ar: "البحث داخل الكتب" },
   hintPdfSearch: {
-    en: "Read every PDF on the shelf once so the sidebar search answers from its pages.",
-    ar: "قراءة كل ملف PDF على الرف مرة واحدة ليجيب بحث الشريط الجانبي من صفحاته.",
+    en: "Reads every PDF on the shelf once, so search answers from its pages.",
+    ar: "يقرأ كل ملف PDF على الرف مرة واحدة ليجيب البحث من صفحاته.",
   },
   // ── Export ──
   cmdExport: { en: "Export…", ar: "تصدير…" },
@@ -5182,8 +5229,12 @@ const DICT = {
   hadithOpenSource: { en: "Open the source note", ar: "افتح ملاحظة المصدر" },
   hadithFolderLabel: { en: "Hadith corpus folder", ar: "مجلد الأحاديث" },
   hadithFolderHint: {
-    en: "Notes here with collection: and number: in their frontmatter answer > [!hadith] callouts. Empty means the folder is detected (\"hadith\", \"Corpus/hadith\", \"أحاديث\").",
-    ar: "الملاحظات هنا التي تحمل collection: وnumber: في مقدمتها تجيب تنبيهات > [!hadith]. فارغ يعني اكتشاف المجلد تلقائيًا («hadith»، «Corpus/hadith»، «أحاديث»).",
+    en: "Notes here answer > [!hadith] callouts. Empty means the folder is detected.",
+    ar: "الملاحظات هنا تجيب تنبيهات > [!hadith]. وفارغ يعني اكتشاف المجلد تلقائيًا.",
+  },
+  moreHadithFolder: {
+    en: "Each note carries collection: and number: in its frontmatter. Detected names: \"hadith\", \"Corpus/hadith\", \"أحاديث\".",
+    ar: "تحمل كل ملاحظة collection: وnumber: في مقدمتها. الأسماء المكتشَفة: «hadith»، «Corpus/hadith»، «أحاديث».",
   },
 
   // ── Vault views: the properties shelf, graph groups by query, Nearby ──
@@ -5230,13 +5281,21 @@ const DICT = {
   captureSection: { en: "Capture", ar: "الالتقاط" },
   captureInboxLabel: { en: "Capture inbox", ar: "صندوق الالتقاط" },
   captureInboxHint: {
-    en: "A note the quick-capture sheet (Ctrl/Cmd Shift D) can drop lines into instead of today's note. A vault-relative note path; empty means today's note only.",
-    ar: "ملاحظة تستطيع ورقة الالتقاط السريع (Ctrl/Cmd Shift D) أن تضع فيها السطور بدل ملاحظة اليوم. مسار ملاحظة نسبي في الخزانة؛ فارغ يعني ملاحظة اليوم وحدها.",
+    en: "A note the quick-capture sheet can drop lines into instead of today's note.",
+    ar: "ملاحظة تستطيع ورقة الالتقاط السريع أن تضع فيها السطور بدل ملاحظة اليوم.",
+  },
+  moreCaptureInbox: {
+    en: "Ctrl/Cmd Shift D opens the sheet. A vault-relative note path; empty means today's note only.",
+    ar: "‏Ctrl/Cmd Shift D يفتح الورقة. مسار ملاحظة نسبي في الخزانة؛ وفارغ يعني ملاحظة اليوم وحدها.",
   },
   clipperLabel: { en: "Clipper", ar: "القصّاصة" },
   clipperHint: {
-    en: "Drag the button to your browser's bookmarks bar. On any page, click it to save the page — or just what you have selected — as a note under Clips/. The token inside it lives in the data directory, never in the vault; Renew replaces it and retires every copy handed out.",
-    ar: "اسحب الزر إلى شريط المفضلة في متصفحك. وفي أي صفحة، انقره لتحفظ الصفحة، أو ما حدّدته منها فقط، ملاحظةً في المجلد Clips/. والرمز الذي بداخله يعيش في مجلد البيانات لا في الخزانة؛ والتجديد يستبدله ويُبطل كل نسخة سبق أن أُعطيت.",
+    en: "Drag the button to your bookmarks bar; it saves any page as a note.",
+    ar: "اسحب الزر إلى شريط المفضلة؛ فيحفظ أي صفحة ملاحظةً.",
+  },
+  moreClipper: {
+    en: "On any page, click it to save the page — or just what you have selected — as a note under Clips/. The token inside it lives in the data directory, never in the vault; Renew replaces it and retires every copy handed out.",
+    ar: "في أي صفحة، انقره لتحفظ الصفحة، أو ما حدّدته منها فقط، ملاحظةً في المجلد Clips/. والرمز الذي بداخله يعيش في مجلد البيانات لا في الخزانة؛ والتجديد يستبدله ويُبطل كل نسخة سبق أن أُعطيت.",
   },
   clipperLink: { en: "Clip to {site}", ar: "قصّ إلى {site}" },
   clipperDragTitle: { en: "Drag me to the bookmarks bar", ar: "اسحبني إلى شريط المفضلة" },
