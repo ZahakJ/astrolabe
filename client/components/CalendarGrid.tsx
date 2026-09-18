@@ -1,5 +1,5 @@
-// THE MONTH GRID — the sidebar's Calendar section and the top of the Sigils
-// page, one component.
+// THE MONTH GRID — the sidebar's Calendar section, one component with one
+// home. The Sigils page drew a second copy of it at its top until 3.18.
 //
 // Drawn in the site's calendar (shared/calendar.ts): a Gregorian month on a
 // Gregorian instance, a Hijri month on a Hijri one, and on an instance that
@@ -13,8 +13,9 @@
 // A cell is DOTTED when a daily note exists for that day — read off the
 // tree through the daily folder and format (client/daily.ts), which is a
 // string compare per note and nothing stored — and carries a second mark
-// when a sigil logged that day (the caller hands the set in; the Sigils page
-// already holds every log, the sidebar asks once). Today is ringed. A click
+// when a sigil logged that day (the caller hands the set in; the sidebar
+// asks for the logs once, and only while its section is open and an admin
+// is reading). Today is ringed. A click
 // opens the day's note through the daily-note command's own door, so a note
 // created from the grid is templated exactly as Ctrl/Cmd Alt D would.
 //
@@ -38,7 +39,7 @@ import "../styles/calendar.css";
 export interface CalendarGridProps {
   /** ISO days that carry a sigil log line — the second mark. */
   logged?: ReadonlySet<string>;
-  /** The sidebar's drawer closes itself after a pick; the page does not. */
+  /** The sidebar's drawer closes itself after a pick. */
   onOpened?: () => void;
 }
 

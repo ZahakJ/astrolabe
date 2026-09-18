@@ -1,8 +1,9 @@
 /* Astrolabe — the month grid (client/components/CalendarGrid.tsx). Its own
    file, loaded with the grid's chunk: the sidebar mounts the grid lazily
-   when its Calendar section is open, the Sigils page with its own chunk.
-   Tokens only; logical properties; a table, so RTL mirrors the columns on
-   its own and the first day of the week sits at the inline start. */
+   when its Calendar section is open, and that section is the grid's only
+   caller. Tokens only; logical properties; a table, so RTL mirrors the
+   columns on its own and the first day of the week sits at the inline
+   start. */
 
 .s-cal {
   display: grid;
