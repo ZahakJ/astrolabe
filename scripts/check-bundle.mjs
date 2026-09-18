@@ -705,7 +705,12 @@ const AUDIENCES = [
   //    mount-gated on the flag; the converter and the manifest are
   //    server-side.
   // Five of the six are mostly dictionary, which is the debt named below.
-  { name: "entry (everyone)", keys: entry, budget: 795 * 1024 },
+  // 3.18 settings in place: 795.5 kB actual → 796 — dictionary again: the
+  // reference text that moved from six long hints to `more` keys behind the
+  // row's ⓘ (the hints shrank, the reference grew by its own sentences), the
+  // "Clear the offline copy?" dialog and the ⓘ's second label. The panel
+  // itself stays a lazy chunk.
+  { name: "entry (everyone)", keys: entry, budget: 796 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -943,7 +948,10 @@ const AUDIENCES = [
   // reading view's chunk alone.
   // 3.17.0 + 3.16.3: 1087.4 kB actual → 1088 — the sigil card's
   // pushed-forward rows (main's 3.16.3, above) landing on the six branches.
-  { name: "anonymous blog reader", keys: blog, budget: 1088 * 1024 },
+  // 3.18 settings in place: 1088.3 kB actual → 1089 — the same dictionary
+  // growth as the entry's (the reference text behind the settings ⓘ); the
+  // blog reader carries the dictionary and nothing else of the panel.
+  { name: "anonymous blog reader", keys: blog, budget: 1089 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog

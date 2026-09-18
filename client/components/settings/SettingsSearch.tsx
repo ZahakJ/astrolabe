@@ -15,7 +15,8 @@
 // will not type and the alef family they may spell either way; without that,
 // searching "الغة" for "اللغة" finds nothing and the panel looks broken.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { RefObject } from "react";
 import { t } from "../../i18n.ts";
 import { searchSettings } from "./searchSettings.ts";
 import type { SettingEntry } from "./settingsIndex.ts";
@@ -23,14 +24,17 @@ import type { SettingEntry } from "./settingsIndex.ts";
 export default function SettingsSearch({
   tabName,
   onGo,
+  inputRef,
 }: {
   /** Human name of a tab id, for the result's second line. */
   tabName: (id: string) => string;
   onGo: (entry: SettingEntry, label: string) => void;
+  /** The panel's own handle on the field: it is where the dialog's first
+   *  focus lands, so the reader can start typing the thing they came for. */
+  inputRef?: RefObject<HTMLInputElement>;
 }) {
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
-  const inputRef = useRef<HTMLInputElement | null>(null);
   const hits = useMemo(() => searchSettings(query), [query]);
 
   useEffect(() => setCursor(0), [query]);

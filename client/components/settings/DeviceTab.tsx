@@ -42,6 +42,7 @@ import { Row } from "./Row.tsx";
 import { prefsSyncEnabled, setPrefsSyncEnabled } from "../../prefsSync.ts";
 import { desktop, type DesktopBrand, type DesktopUpdatesPref } from "../../desktop/bridge.ts";
 import { toast } from "../../toast.ts";
+import { confirmModal } from "../Confirm.tsx";
 import { DIM_MAX, EYE_COMFORT_EVENT, WARMTH_MAX, readDim, readWarmth, setDim, setWarmth } from "../../eyeComfort.ts";
 import { WHATSNEW_EVENT, setWhatsNewEnabled, whatsNewEnabled } from "../../whatsnew/door.ts";
 import { OFFLINE_EVENT, clearOfflineCopy, offlineEnabled, offlineSupported, setOfflineEnabled } from "../../offline.ts";
@@ -443,7 +444,7 @@ export default function DeviceTab() {
           carries the two things a person needs before they let an editor
           touch their words: what it changes, and that one undo takes it
           back. */}
-      <Row label={t("rowFrenchAutocorrect")} hint={t("hintFrenchAutocorrect")}>
+      <Row label={t("rowFrenchAutocorrect")} hint={t("hintFrenchAutocorrect")} more={t("moreFrenchAutocorrect")}>
         <Toggle
           label={t("rowFrenchAutocorrect")}
           onLabel={t("on")}
@@ -465,11 +466,20 @@ export default function DeviceTab() {
         <Row label={t("rowOffline")} hint={t("hintOffline")}>
           <div className="s-settings__inline">
             <Toggle value={offline} onChange={setOfflineEnabled} label={t("rowOffline")} onLabel={t("on")} offLabel={t("off")} />
+            {/* Deletes bytes, so it asks — the panel's rule for anything
+                that does (font removal already did). At the trailing edge of
+                the row, an outline button like the other section verbs. */}
             <button
               type="button"
               className="s-btn"
               onClick={() => {
-                void clearOfflineCopy().then(() => toast(t("offlineCleared")));
+                void confirmModal({
+                  title: t("offlineClearTitle"),
+                  body: t("offlineClearBody"),
+                  confirmLabel: t("offlineClear"),
+                }).then((ok) => {
+                  if (ok) void clearOfflineCopy().then(() => toast(t("offlineCleared")));
+                });
               }}
             >
               {t("offlineClear")}
