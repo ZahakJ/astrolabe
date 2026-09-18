@@ -10,10 +10,10 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
 } from "react";
-import type { AttachmentKind, SearchHit, SearchMatch, TagCount, TrackerMeta, TreeNode } from "../../shared/types.ts";
+import type { AttachmentKind, SearchHit, SearchMatch, TagCount, TreeNode } from "../../shared/types.ts";
 import { dailyNotesByDay, usePeriodic } from "../daily.ts";
-import { loggedDaysOf } from "../../shared/calendar.ts";
-import { getGraph, getRoutines, getTags, getTrackers, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
+import { useLoggedDays } from "../loggedDays.ts";
+import { getGraph, getTags, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
 import {
   dragFileCount,
   dragHasFiles,
@@ -224,42 +224,6 @@ function loadCalendarCollapsed(): boolean {
   }
 }
 const CalendarGrid = lazySurface(() => import("./CalendarGrid.tsx"));
-
-/** The days a sigil logged something, for the grid's second mark. The
- *  Sigils page holds every log already; the sidebar asks once when its
- *  section is open and again, a beat after the last save, when the vault
- *  changes — admin only, because the route is. */
-function useLoggedDays(active: boolean): ReadonlySet<string> {
-  const [days, setDays] = useState<ReadonlySet<string>>(() => new Set());
-  useEffect(() => {
-    if (!active) return;
-    let alive = true;
-    const read = (): void => {
-      // The sigils and the trackers together (CalendarGrid.tsx loggedDaysOf):
-      // a day a book was read is a kept day too. A shelf that fails to load
-      // costs the grid only its marks.
-      Promise.all([getRoutines(), getTrackers().catch((): TrackerMeta[] => [])])
-        .then(([routines, trackers]) => {
-          if (!alive) return;
-          setDays(loggedDaysOf(routines, trackers));
-        })
-        .catch(() => {});
-    };
-    read();
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const onVault = (): void => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(read, 600);
-    };
-    window.addEventListener("astrolabe:vault", onVault);
-    return () => {
-      alive = false;
-      window.removeEventListener("astrolabe:vault", onVault);
-      if (timer) clearTimeout(timer);
-    };
-  }, [active]);
-  return days;
-}
 
 function parentOf(path: string): string {
   const i = path.lastIndexOf("/");
