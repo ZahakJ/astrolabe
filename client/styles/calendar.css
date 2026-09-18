@@ -205,30 +205,9 @@
   block-size: 23px;
 }
 
-/* ── The Sigils page's ───────────────────────────────────────────────────── */
-/* The section keeps the page's measure; the CARD is the grid's own width,
-   at the inline start with the heading, so a 1240px row does not draw a
-   border around 800px of nothing. */
-.s-routines__cal {
-  max-inline-size: 1240px;
-  margin: 20px auto 0;
-}
-
-.s-routines__cal .s-cal {
-  max-inline-size: 440px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-}
-
-/* On a phone the sidebar's section is the calendar; the page keeps its
-   width for the checklists (the brief: "Phone: the sidebar section only"). */
-@media (max-width: 700px) {
-  .s-routines__cal {
-    display: none;
-  }
-}
+/* The Sigils page drew this grid at its top until 3.18. It is gone: the
+   sidebar's section is beside that page on a desktop and was already the
+   phone's only copy, so the page's card was the same month drawn twice. */
 
 @media (pointer: coarse) {
   .s-cal__day {
