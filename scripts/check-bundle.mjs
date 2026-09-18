@@ -722,7 +722,8 @@ const AUDIENCES = [
   // dictionary — the row's own two dozen strings ride the settings chunk in
   // their own table (client/components/settings/travelCopy.ts), which is
   // why this is 1.3 kB and not 4.
-  { name: "entry (everyone)", keys: entry, budget: 797 * 1024 },
+    // 3.18.0: five branches of the peak round meeting in one entry.
+{ name: "entry (everyone)", keys: entry, budget: 799 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -966,7 +967,8 @@ const AUDIENCES = [
   // 3.18 settings in place: 1088.3 kB actual → 1089 — the same dictionary
   // growth as the entry's (the reference text behind the settings ⓘ); the
   // blog reader carries the dictionary and nothing else of the panel.
-  { name: "anonymous blog reader", keys: blog, budget: 1089 * 1024 },
+    // 3.18.0: five branches of the peak round meeting in one entry.
+{ name: "anonymous blog reader", keys: blog, budget: 1092 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1124,7 +1126,8 @@ const AUDIENCES = [
   // focused surface's name through Tabs.tsx titleOf), the calendar's
   // tracker marks in the sidebar (one more GET, loggedDaysOf), the resolved
   // list/table direction in render.ts and the editor's logical line inset.
-  { name: "admin first paint", keys: app, budget: 1548 * 1024 },
+    // 3.18.0: five branches of the peak round meeting in one entry.
+{ name: "admin first paint", keys: app, budget: 1552 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

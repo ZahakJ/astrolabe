@@ -20,7 +20,7 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link is-current" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a><a class="nav__link" href="../../en/mobile/">The Android app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link is-current" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="development">Development</h1>
@@ -34,13 +34,13 @@ and reloads it in the browser the moment you save a file.</p>
 <div class="table"><table><thead><tr><th>Port</th><th>What</th><th>When</th></tr></thead><tbody><tr><td>6801</td><td>Hono server (API + built client)</td><td><code>npm start</code> / always</td></tr><tr><td>5801</td><td>Vite dev server (proxies <code>/api</code> → 6801)</td><td><code>npm run dev</code> only</td></tr></tbody></table></div><p>In dev mode you open port 5801; requests to <code>/api</code> are passed through to the server on 6801.
 <code>PORT</code> overrides the server port.</p>
 <h2 id="the-scripts"><a class="anchor" href="#the-scripts">The scripts</a></h2>
-<div class="table"><table><thead><tr><th>Script</th><th>What it does</th></tr></thead><tbody><tr><td><code>npm run dev</code></td><td>API server (Node&#39;s own <code>--watch</code>) and Vite side by side</td></tr><tr><td><code>npm run build</code></td><td>Build the client into <code>dist/</code>. The server needs no build — Node runs the TypeScript directly</td></tr><tr><td><code>npm start</code></td><td>Build, then serve</td></tr><tr><td><code>npm run serve</code></td><td>Serve without rebuilding</td></tr><tr><td><code>node scripts/rebrand.mjs --name … --icon …</code></td><td>Stamp your own product name and icon on the desktop build before <code>npm --prefix desktop run dist</code> (<a href="../desktop/#your-own-name-and-icon">the desktop app</a>)</td></tr><tr><td><code>npm run hash-password</code></td><td>Prompt (no echo, or piped stdin) and print an argon2id hash for <code>ADMIN_PASSWORD_HASH</code></td></tr><tr><td><code>npm run typecheck</code></td><td><code>tsc --noEmit</code> — the strict TypeScript gate</td></tr></tbody></table></div><h2 id="the-gates"><a class="anchor" href="#the-gates">The gates</a></h2>
+<div class="table"><table><thead><tr><th>Script</th><th>What it does</th></tr></thead><tbody><tr><td><code>npm run dev</code></td><td>API server (Node&#39;s own <code>--watch</code>) and Vite side by side</td></tr><tr><td><code>npm run build</code></td><td>Build the client into <code>dist/</code>. The server needs no build — Node runs the TypeScript directly</td></tr><tr><td><code>npm start</code></td><td>Build, then serve</td></tr><tr><td><code>npm run serve</code></td><td>Serve without rebuilding</td></tr><tr><td><code>node scripts/rebrand.mjs --name … --icon …</code></td><td>Stamp your own product name and icon on the desktop build before <code>npm --prefix desktop run dist</code> (<a href="../desktop/#your-own-name-and-icon">the desktop app</a>)</td></tr><tr><td><code>npm run hash-password</code></td><td>Prompt (no echo, or piped stdin) and print an argon2id hash for <code>ADMIN_PASSWORD_HASH</code></td></tr><tr><td><code>npm run typecheck</code></td><td><code>tsc --noEmit</code> — the strict TypeScript gate</td></tr><tr><td><code>npm test</code></td><td>The unit suite, <code>node --test tests/*.test.ts</code>: the pure logic under <code>shared/</code>, <code>server/</code> and <code>client/</code>, no browser. It is the release gate, and it runs the same code as several of the gates below (<code>check-keymap</code>, <code>check-docs</code>) from a second door</td></tr><tr><td><code>npm run build-docs</code></td><td>Build this manual, both languages, into <code>docs/site/</code></td></tr><tr><td><code>npm run check-docs</code></td><td>Every link, anchor, image and settings path in this manual resolves, in both languages (below)</td></tr><tr><td><code>npm run gen-icons</code></td><td>Redraw the folder-mark glyph set from its catalog; <code>npm run check-icons</code> fails when the drawing is stale</td></tr><tr><td><code>npm run check-desktop</code></td><td>The desktop wrapper&#39;s own checks, then its <code>tsc</code></td></tr></tbody></table></div><h2 id="the-gates"><a class="anchor" href="#the-gates">The gates</a></h2>
 <p>A <em>gate</em> is a script that checks one specific promise the product makes, and exits with an error
 when the promise is broken. Each one below exits non-zero on failure. The gates that need no browser
 need no setup at all. The browser gates need a running instance, plus <code>npm i -D playwright</code> and either
 <code>npx playwright install chromium</code> or a system browser via <code>CHROMIUM=/usr/bin/chromium</code>. Those
 that sign in take <code>ASTROLABE_PASSWORD</code> (open local mode needs no password).</p>
-<h3 id="npm-run-check-i18n-the-dictionary"><a class="anchor" href="#npm-run-check-i18n-the-dictionary"><code>npm run check-i18n</code> — the dictionary</a></h3>
+<h3 id="npm-run-check-i18n--the-dictionary"><a class="anchor" href="#npm-run-check-i18n--the-dictionary"><code>npm run check-i18n</code> — the dictionary</a></h3>
 <p>Every string a user can see comes from one dictionary, <code>client/i18n.ts</code>, with an English and an
 Arabic entry per key. This gate fails if any <code>t()</code> key is missing, untranslated or dead (used nowhere), or if
 the English and Arabic sides of an entry disagree about their <code>{placeholders}</code>. It also fails on
@@ -48,7 +48,7 @@ hardcoded English text in JSX <em>and</em> in code that builds DOM elements by h
 from the call sites only: the dictionary file is excluded from the usage scan, because a key
 whose English value happens to be its own name (<code>read: { en: &quot;read&quot; }</code>) would otherwise match
 inside its own definition and report itself as used.</p>
-<h3 id="npm-run-check-names-the-names-gate"><a class="anchor" href="#npm-run-check-names-the-names-gate"><code>npm run check-names</code> — the names gate</a></h3>
+<h3 id="npm-run-check-names--the-names-gate"><a class="anchor" href="#npm-run-check-names--the-names-gate"><code>npm run check-names</code> — the names gate</a></h3>
 <p>Two features were renamed in 3.15 and again in 3.16: the daily routine is <strong>Sigils</strong>, and <strong>Orbits</strong> <!-- lineage -->
 is spaced repetition. A rename that leaves one toast, one hint or one heading saying the old word is
 worse than none, so this gate greps every surface a reader sees — every English and Arabic value in
@@ -60,7 +60,7 @@ which may exist only as redirect sources. A line that has to tell the history (w
 still work, what a release was called at the time) carries the word <code>lineage</code> in a comment on that
 line — <code>&lt;!-- lineage --&gt;</code> in Markdown, <code>// lineage</code> in the deck — and is skipped; a dictionary value
 never gets that exception. Each hit is printed as <code>file:line</code>, and the script exits non-zero.</p>
-<h3 id="npm-run-check-contrast-the-accessibility-gate"><a class="anchor" href="#npm-run-check-contrast-the-accessibility-gate"><code>npm run check-contrast</code> — the accessibility gate</a></h3>
+<h3 id="npm-run-check-contrast--the-accessibility-gate"><a class="anchor" href="#npm-run-check-contrast--the-accessibility-gate"><code>npm run check-contrast</code> — the accessibility gate</a></h3>
 <p>Holds every one of the forty-six themes in <code>client/styles/tokens.css</code> to the WCAG contrast
 rules on the five text tokens: body text, headings and secondary text against all three
 backgrounds (<code>--bg</code>, the raised surfaces, and the hover background the tag pills sit on), the
@@ -79,7 +79,7 @@ needs ≤ 0.183, so <strong>no single colour clears AA on every theme</strong>. 
 against every background in its group. The fixed-ink tier carries one hex for all themes and is
 held to 3:1, WCAG 1.4.11&#39;s non-text floor, which is the most a fixed colour can promise. The gate
 prints both, and checks the stylesheet&#39;s values against the module&#39;s.</p>
-<h3 id="npm-run-check-sections-the-section-surgery-gate"><a class="anchor" href="#npm-run-check-sections-the-section-surgery-gate"><code>npm run check-sections</code> — the section-surgery gate</a></h3>
+<h3 id="npm-run-check-sections--the-section-surgery-gate"><a class="anchor" href="#npm-run-check-sections--the-section-surgery-gate"><code>npm run check-sections</code> — the section-surgery gate</a></h3>
 <p>No browser, no server. Dragging a heading in the outline rewrites the note: a block of lines
 leaves one place and arrives in another, with the moved subtree&#39;s headings re-levelled. That is
 the most destructive operation in the product that is not called &quot;delete&quot;. It runs on a gesture
@@ -94,7 +94,7 @@ own headings, and it may add a blank line at a seam; it may never lose a line an
 duplicate one. It also asserts that a section cannot be dropped inside itself, that a
 zero-distance move changes nothing, and that extraction&#39;s two halves cover the original exactly.
 <code>SEED=…</code> replays a failure, <code>ROUNDS=…</code> sets the sample size.</p>
-<h3 id="npm-run-check-caret-the-click-to-caret-gate"><a class="anchor" href="#npm-run-check-caret-the-click-to-caret-gate"><code>npm run check-caret</code> — the click-to-caret gate</a></h3>
+<h3 id="npm-run-check-caret--the-click-to-caret-gate"><a class="anchor" href="#npm-run-check-caret--the-click-to-caret-gate"><code>npm run check-caret</code> — the click-to-caret gate</a></h3>
 <p>Live preview replaces Markdown source with rendered boxes of a different width <em>and</em> a different
 length — eighteen characters of <code>$7.7\ \text{km/s}$</code> standing under seven glyphs of KaTeX — so
 any pointer-to-document mapping that reasons about geometry instead of about the DOM drifts by
@@ -112,7 +112,7 @@ margin.</strong> CodeMirror measures every line and block widget by its border b
 borders are counted and margins are not — put the air on a wrapper&#39;s padding, or in a
 transparent border with <code>background-clip: padding-box</code>, never in a margin. The gate restores the
 instance language and deletes its fixture however the run ends.</p>
-<h3 id="npm-run-check-french-the-auto-correction-gate"><a class="anchor" href="#npm-run-check-french-the-auto-correction-gate"><code>npm run check-french</code> — the auto-correction gate</a></h3>
+<h3 id="npm-run-check-french--the-auto-correction-gate"><a class="anchor" href="#npm-run-check-french--the-auto-correction-gate"><code>npm run check-french</code> — the auto-correction gate</a></h3>
 <p><code>tests/french.test.ts</code> proves the table (no source is a real French word, no duplicates, every
 target differs from its source by marks alone) and the line detector. What only a browser can
 prove is the editor&#39;s half: the correction is a <em>second</em> transaction, dispatched off a microtask
@@ -125,7 +125,7 @@ back and the same word not corrected again, the device switch off and on, <code>
 French line and nothing on the English one, the narrow no-break space before <code>?</code>, <code>...</code> → <code>…</code>
 on a French line only, and a correction in vim&#39;s insert mode. Needs <code>CHROMIUM</code> and, against a
 password-protected instance, <code>ASTROLABE_PASSWORD</code>; deletes its fixture however the run ends.</p>
-<h3 id="npm-run-check-layouts-the-keyboard-layout-gate"><a class="anchor" href="#npm-run-check-layouts-the-keyboard-layout-gate"><code>npm run check-layouts</code> — the keyboard-layout gate</a></h3>
+<h3 id="npm-run-check-layouts--the-keyboard-layout-gate"><a class="anchor" href="#npm-run-check-layouts--the-keyboard-layout-gate"><code>npm run check-layouts</code> — the keyboard-layout gate</a></h3>
 <p><code>KeyboardEvent.key</code> is the character the <em>keyboard layout</em> produced. The shell used to compare
 it to Latin letters, so on an Arabic keyboard — where the key marked <code>P</code> reports <code>ح</code> — every
 global shortcut in the product was dead, in an app that ships a complete Arabic translation and
@@ -145,7 +145,7 @@ flattens Arabic&#39;s two-code-point lam-alef to an empty <code>key</code>). A b
 sheet and not to that file is a binding untested on every non-Latin keyboard on earth.</p>
 <p><code>node scripts/shoot-layouts.mjs</code> is the companion picture: the <code>Ctrl/Cmd /</code> sheet with the
 layout map stubbed to Arabic and to Russian, which is how the annotated keycaps are reviewed.</p>
-<h3 id="npm-run-check-keymap-the-binding-ledger"><a class="anchor" href="#npm-run-check-keymap-the-binding-ledger"><code>npm run check-keymap</code> — the binding ledger</a></h3>
+<h3 id="npm-run-check-keymap--the-binding-ledger"><a class="anchor" href="#npm-run-check-keymap--the-binding-ledger"><code>npm run check-keymap</code> — the binding ledger</a></h3>
 <p>A colliding shortcut is the quietest bug this product can have. One handler answers the key, the
 other never sees the event, and neither knows the other exists — so it surfaces weeks later as
 &quot;Ctrl+B does nothing&quot;, on one platform, from one reader, with nothing to grep for, because
@@ -166,7 +166,7 @@ copy of it: the gate diffs the chords in the tables between <code>&lt;!-- keymap
 <code>&lt;!-- keymap:end --&gt;</code> against <code>GROUPS</code>, in both directions. Surfaces that carry no keystroke — a
 click, the slash menu, an outline drag — live below the end marker, where the gate leaves them
 alone. <code>tests/keymap.test.ts</code> runs the same code with no files to write.</p>
-<h3 id="npm-run-check-excerpt-the-tag-in-prose-gate"><a class="anchor" href="#npm-run-check-excerpt-the-tag-in-prose-gate"><code>npm run check-excerpt</code> — the tag-in-prose gate</a></h3>
+<h3 id="npm-run-check-excerpt--the-tag-in-prose-gate"><a class="anchor" href="#npm-run-check-excerpt--the-tag-in-prose-gate"><code>npm run check-excerpt</code> — the tag-in-prose gate</a></h3>
 <p><code>DESIGN.md</code>&#39;s hard rule is that a snippet shown outside the editor either STRIPS Markdown or
 RENDERS it. Removing a <code>#</code> and leaving the bare word standing in the sentence is neither, and it
 shipped: a post ending &quot;…it buys the reader a breath. #design #typography&quot; printed on the front
@@ -177,7 +177,7 @@ the post excerpt (<code>/api/posts</code> — blog cards, RSS, <code>og:descript
 direction — that the stripped sentence survives, and that the tags still appear where tags
 belong (<code>post.tags</code>, and the search index still matches them) — so a stripper that passes by
 deleting everything fails too. No browser needed; it deletes its fixtures however the run ends.</p>
-<h3 id="npm-run-check-design-the-error-boundary"><a class="anchor" href="#npm-run-check-design-the-error-boundary"><code>npm run check-design</code> — the error boundary</a></h3>
+<h3 id="npm-run-check-design--the-error-boundary"><a class="anchor" href="#npm-run-check-design--the-error-boundary"><code>npm run check-design</code> — the error boundary</a></h3>
 <p>The gate for the <a href="../designer/">design engine</a>&#39;s one promise that cannot be reviewed by reading
 the code: that a section which breaks does not take the whole page down with it. It breaks a designed site three ways on purpose (a corrupt <code>designs.json</code>, a section
 pointing at a note that is not there, and a section renderer patched to throw and rebuilt) and,
@@ -186,14 +186,14 @@ escaping the boundary) against what the OWNER gets (the designed page, the faili
 named, the revert control present). It also round-trips stock ⇄ designed and asserts the design
 comes back byte-identical. Everything it touched is restored on the way out, including on
 failure: <code>PORT=6801 ASTROLABE_PASSWORD=… npm run check-design</code>.</p>
-<h3 id="npm-run-check-board-the-designer-39-s-section-board"><a class="anchor" href="#npm-run-check-board-the-designer-39-s-section-board"><code>npm run check-board</code> — the designer&#39;s section board</a></h3>
+<h3 id="npm-run-check-board--the-designers-section-board"><a class="anchor" href="#npm-run-check-board--the-designers-section-board"><code>npm run check-board</code> — the designer&#39;s section board</a></h3>
 <p>Three ways to move a row (the ↑/↓ buttons, a pointer drag, and a <code>Space</code>/arrows/<code>Space</code> keyboard
 lift), the drop preview before commit, <code>Esc</code> belonging to the innermost layer, the save-bar
 count, and a <code>Ctrl/Cmd S</code> round trip through the store.</p>
-<h3 id="npm-run-check-preview-the-designer-39-s-live-preview"><a class="anchor" href="#npm-run-check-preview-the-designer-39-s-live-preview"><code>npm run check-preview</code> — the designer&#39;s live preview</a></h3>
+<h3 id="npm-run-check-preview--the-designers-live-preview"><a class="anchor" href="#npm-run-check-preview--the-designers-live-preview"><code>npm run check-preview</code> — the designer&#39;s live preview</a></h3>
 <p>That it is a real iframe under <code>frame-src &#39;none&#39;</code>, that styles and theme reach it (including a
 live theme switch), and that it lays out at 390 / tablet / 1440 device widths.</p>
-<h3 id="npm-run-check-print-the-printed-page"><a class="anchor" href="#npm-run-check-print-the-printed-page"><code>npm run check-print</code> — the printed page</a></h3>
+<h3 id="npm-run-check-print--the-printed-page"><a class="anchor" href="#npm-run-check-print--the-printed-page"><code>npm run check-print</code> — the printed page</a></h3>
 <p><code>PORT=6801 npm run check-print</code>. The only surface nobody looks at while they work: <code>@media print</code>
 rules are invisible to every screenshot harness above, because a browser applies them only when
 a human opens the print dialog. So this drives the app under <code>emulateMedia(&quot;print&quot;)</code> and asserts
@@ -203,7 +203,7 @@ body, that headings stay real <code>h1</code>–<code>h6</code> with ids and int
 the two things Chrome builds a PDF&#39;s bookmark outline and its link annotations from — and that
 an Arabic note prints as a right-to-left page from an English instance. It writes two fixture
 notes through the API and deletes them on the way out. See <a href="../printing/">Printing &amp; PDF</a>.</p>
-<h3 id="npm-run-check-deck-every-what-39-s-new-slide-measured"><a class="anchor" href="#npm-run-check-deck-every-what-39-s-new-slide-measured"><code>npm run check-deck</code> — every what&#39;s-new slide, measured</a></h3>
+<h3 id="npm-run-check-deck--every-whats-new-slide-measured"><a class="anchor" href="#npm-run-check-deck--every-whats-new-slide-measured"><code>npm run check-deck</code> — every what&#39;s-new slide, measured</a></h3>
 <p><code>CHROMIUM=/usr/bin/chromium npm run check-deck -- http://127.0.0.1:6801 &lt;admin password&gt;</code>. The
 what&#39;s-new deck is drawings and live demos, and a drawing can look right in the language it was
 drawn in and run off its frame in the other. This opens every release&#39;s deck in English and then
@@ -211,11 +211,71 @@ Arabic, freezes the loop at the point where every part has arrived, and fails if
 the frame, sits outside the chip it belongs to, overlaps another, is Arabic set right-to-left
 inside a drawing, or is an Arabic sentence inside a drawing (prose belongs in a DOM demo). Run it
 before every release that adds a slide.</p>
-<h3 id="npm-run-check-presets-the-preset-catalog"><a class="anchor" href="#npm-run-check-presets-the-preset-catalog"><code>npm run check-presets</code> — the preset catalog</a></h3>
+<h3 id="npm-run-check-presets--the-preset-catalog"><a class="anchor" href="#npm-run-check-presets--the-preset-catalog"><code>npm run check-presets</code> — the preset catalog</a></h3>
 <p>Unique slug ids, a bilingual name and blurb with real Arabic, a known family, at least one preset
 per family, and no preset naming a note in somebody&#39;s vault. It runs the shared <code>assertCatalog</code>
 rather than reimplementing it.</p>
-<h3 id="scripts-check-desktop-boot-sh-and-check-desktop-relaunch-sh-the-desktop-gates"><a class="anchor" href="#scripts-check-desktop-boot-sh-and-check-desktop-relaunch-sh-the-desktop-gates"><code>scripts/check-desktop-boot.sh</code> and <code>check-desktop-relaunch.sh</code> — the desktop gates</a></h3>
+<h3 id="npm-run-check-docs--the-manual"><a class="anchor" href="#npm-run-check-docs--the-manual"><code>npm run check-docs</code> — the manual</a></h3>
+<p>This page and every other one, in both languages. The gate walks every link in <code>README.md</code>,
+<code>docs/*.md</code> and <code>docs/ar/*.md</code> with a Markdown lexer (so link syntax quoted inside backticks is
+left alone) and resolves each against the tree: a relative link must land on a file, an
+<code>#anchor</code> must name a heading of the page it points at, and an image must be on disk. Anchors
+resolve through the one slug rule in <code>scripts/build-docs.mjs</code>, which is GitHub&#39;s — punctuation
+dropped rather than hyphenated, Arabic letters kept — so a link that passes here lands on the
+site and on GitHub both. Every <code>Settings → Tab → Row</code> path in the prose is read against the
+panel&#39;s own source (the tab table, the group headings and the row index, with labels resolved
+through <code>client/i18n.ts</code> in the page&#39;s language), and every page in the site&#39;s table must exist
+in Arabic with the same heading structure as its English twin. <code>tests/docs.test.ts</code> runs the same
+function under <code>npm test</code>.</p>
+<h3 id="npm-run-check-settings--the-settings-index"><a class="anchor" href="#npm-run-check-settings--the-settings-index"><code>npm run check-settings</code> — the settings index</a></h3>
+<p><code>client/components/settings/settingsIndex.ts</code>, which the panel&#39;s search reads, is generated from
+the panel&#39;s source by <code>node scripts/gen-settings-index.mjs</code>; this gate fails when the checked-in
+file and the source disagree, which is the only way they drift. A search that silently stops
+finding a row is worse than no search.</p>
+<h3 id="npm-run-check-whatsnew--the-deck"><a class="anchor" href="#npm-run-check-whatsnew--the-deck"><code>npm run check-whatsnew</code> — the deck</a></h3>
+<p>A minor version (<code>x.Y.0</code>) must be listed in <code>client/whatsnew/versions.ts</code> and have a deck with at
+least one slide in <code>releaseNotes.ts</code>, and every slide&#39;s title and body must carry both languages.
+A patch inherits its minor&#39;s deck. A version bump without a deck fails here, which is the
+reminder.</p>
+<h3 id="npm-run-check-a11y--static-accessibility"><a class="anchor" href="#npm-run-check-a11y--static-accessibility"><code>npm run check-a11y</code> — static accessibility</a></h3>
+<p>Holds the line an audit drew, from the source alone: no <code>outline: none</code> without a replacement
+focus ring in the same rule, an accessible name on every icon-only control, and the rest of the
+list at the top of the script. Like check-i18n, it exists for the class of regression that is
+invisible in review and invisible in a screenshot.</p>
+<h3 id="npm-run-check-bundle--what-each-audience-downloads"><a class="anchor" href="#npm-run-check-bundle--what-each-audience-downloads"><code>npm run check-bundle</code> — what each audience downloads</a></h3>
+<p>After <code>npm run build</code>. The client ships one entry chunk plus a chunk per surface, and the split
+only means something if it holds: one careless import at the top of a file the entry already
+loads brings the whole app shell back into an anonymous reader&#39;s first request. The gate measures
+every audience&#39;s download against a budget; a budget moves only by the actual overage, with the
+cause written beside it.</p>
+<h3 id="npm-run-check-books--the-reader"><a class="anchor" href="#npm-run-check-books--the-reader"><code>npm run check-books</code> — the reader</a></h3>
+<p>After <code>npm run build</code>. Ten properties of the PDF reader that are invisible in review and
+expensive to discover in production, the first being that the pdf.js worker is a real same-origin
+asset rather than a <code>blob:</code> URL — which works under the dev server&#39;s absent CSP and dies under
+the real one.</p>
+<h3 id="npm-run-check-icons--the-folder-marks"><a class="anchor" href="#npm-run-check-icons--the-folder-marks"><code>npm run check-icons</code> — the folder marks</a></h3>
+<p><code>shared/folderIconNames.ts</code> and <code>shared/folderIconPaths.ts</code> are drawn from the catalog by
+<code>npm run gen-icons</code>; this is the <code>--check</code> form, failing when the drawing is stale.</p>
+<h3 id="npm-run-check-signatures--every-signature-house"><a class="anchor" href="#npm-run-check-signatures--every-signature-house"><code>npm run check-signatures</code> — every signature house</a></h3>
+<p>A browser gate that renders every signature house through the real public renderer against an
+isolated fixture API, touching no live vault, settings, saved design or account. <code>SIGNATURES=a,b</code>
+narrows it, <code>THEME=&lt;id&gt;</code> renders every house in one theme, <code>SHOTS=1</code> writes screenshots.</p>
+<h3 id="npm-run-check-hovercache--the-hover-card-cache"><a class="anchor" href="#npm-run-check-hovercache--the-hover-card-cache"><code>npm run check-hovercache</code> — the hover-card cache</a></h3>
+<p>A browser gate proving the LRU bound on hover previews holds in a real session: the cache is
+keyed by note path, so without <code>CACHE_MAX</code> an evening of skimming links would retain every note
+skimmed. A bound that is only asserted by a constant is a bound that silently stops being true.</p>
+<h3 id="npm-run-check-designer-nav--the-designers-navigation-and-alignment"><a class="anchor" href="#npm-run-check-designer-nav--the-designers-navigation-and-alignment"><code>npm run check-designer-nav</code> — the designer&#39;s navigation and alignment</a></h3>
+<p>A browser gate born of a bug that shipped past every other check, in the owner&#39;s own language:
+a preview scaled with a physical <code>transform-origin</code> inside a logical layout sits away from its
+box in <code>[dir=&quot;rtl&quot;]</code>. It measures every designer surface in both directions, and walks the
+designer&#39;s navigation.</p>
+<h3 id="scriptscheck-pdfsearchmjs--search-inside-a-book"><a class="anchor" href="#scriptscheck-pdfsearchmjs--search-inside-a-book"><code>scripts/check-pdfsearch.mjs</code> — search inside a book</a></h3>
+<p>A bare script with no <code>package.json</code> entry:
+<code>CHROMIUM=/usr/bin/chromium node scripts/check-pdfsearch.mjs &lt;url&gt; &lt;password&gt;</code>. Against a server
+whose vault holds a PDF with a word that appears in no note, it proves the whole loop — the API
+answers with a <code>kind: &quot;book&quot;</code> row naming the page, the sidebar draws it, and clicking it opens
+the reader on that page with the word found.</p>
+<h3 id="scriptscheck-desktop-bootsh-and-check-desktop-relaunchsh--the-desktop-gates"><a class="anchor" href="#scriptscheck-desktop-bootsh-and-check-desktop-relaunchsh--the-desktop-gates"><code>scripts/check-desktop-boot.sh</code> and <code>check-desktop-relaunch.sh</code> — the desktop gates</a></h3>
 <p>Both take an AppImage and boot it under Xvfb (a virtual screen) with an isolated config
 directory, from an empty temp directory (never from the checkout: an app started beside a <code>.env</code>
 links itself to that deployment), over an empty temp vault named by <code>ASTROLABE_VAULT</code>. The
@@ -226,6 +286,15 @@ exactly the way an applied update does, and passes only when the first process i
 second one started from the same file is running — <code>app.relaunch()</code> looked like it worked and
 did not, because Electron&#39;s relauncher runs from the mounted image after it is unmounted. Every
 AppImage release runs both before upload.</p>
+<h2 id="the-done-bar"><a class="anchor" href="#the-done-bar">The done bar</a></h2>
+<p>The sequence a change runs before it is called finished, in this order: <code>npm run typecheck</code> ·
+<code>node scripts/check-i18n.mjs</code> · <code>npm test</code> · <code>npm run build</code> and then <code>npm run check-bundle</code> ·
+<code>npm run check-a11y</code> · <code>npm run check-contrast</code> · <code>npm run check-settings</code> (with
+<code>node scripts/gen-settings-index.mjs</code> first when a row changed) · <code>npm run check-keymap</code> when a
+key changed · <code>npm run check-names</code> · <code>npm run check-docs</code> · <code>npm run build-docs</code> ·
+<code>npm run check-desktop</code> when <code>electron/</code> or <code>desktop/</code> changed. Then the browser gates the change
+touches, with <code>CHROMIUM</code> and <code>ASTROLABE_PASSWORD</code> set, against a scratch server over a scratch
+vault — never the owner&#39;s.</p>
 <h2 id="screenshot-harnesses"><a class="anchor" href="#screenshot-harnesses">Screenshot harnesses</a></h2>
 <p>These are not wired into <code>package.json</code>; run them by hand, for visual review. All take
 <code>CHROMIUM</code>, and most take <code>THEME=parchment</code> and <code>LANGSET=ar</code> to check a theme or the
@@ -254,7 +323,7 @@ patch that changes a rule should move the paragraph that stated it.</li>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/japanese/"><span class="pager__kicker">Previous</span><span class="pager__title">Japanese &amp; furigana</span></a><span></span></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#dev-mode">Dev mode</a><a class="toc__link toc__link--2" href="#the-scripts">The scripts</a><a class="toc__link toc__link--2" href="#the-gates">The gates</a><a class="toc__link toc__link--3" href="#npm-run-check-i18n-the-dictionary">npm run check-i18n — the dictionary</a><a class="toc__link toc__link--3" href="#npm-run-check-names-the-names-gate">npm run check-names — the names gate</a><a class="toc__link toc__link--3" href="#npm-run-check-contrast-the-accessibility-gate">npm run check-contrast — the accessibility gate</a><a class="toc__link toc__link--3" href="#npm-run-check-sections-the-section-surgery-gate">npm run check-sections — the section-surgery gate</a><a class="toc__link toc__link--3" href="#npm-run-check-caret-the-click-to-caret-gate">npm run check-caret — the click-to-caret gate</a><a class="toc__link toc__link--3" href="#npm-run-check-french-the-auto-correction-gate">npm run check-french — the auto-correction gate</a><a class="toc__link toc__link--3" href="#npm-run-check-layouts-the-keyboard-layout-gate">npm run check-layouts — the keyboard-layout gate</a><a class="toc__link toc__link--3" href="#npm-run-check-keymap-the-binding-ledger">npm run check-keymap — the binding ledger</a><a class="toc__link toc__link--3" href="#npm-run-check-excerpt-the-tag-in-prose-gate">npm run check-excerpt — the tag-in-prose gate</a><a class="toc__link toc__link--3" href="#npm-run-check-design-the-error-boundary">npm run check-design — the error boundary</a><a class="toc__link toc__link--3" href="#npm-run-check-board-the-designer-39-s-section-board">npm run check-board — the designer&amp;#39;s section board</a><a class="toc__link toc__link--3" href="#npm-run-check-preview-the-designer-39-s-live-preview">npm run check-preview — the designer&amp;#39;s live preview</a><a class="toc__link toc__link--3" href="#npm-run-check-print-the-printed-page">npm run check-print — the printed page</a><a class="toc__link toc__link--3" href="#npm-run-check-deck-every-what-39-s-new-slide-measured">npm run check-deck — every what&amp;#39;s-new slide, measured</a><a class="toc__link toc__link--3" href="#npm-run-check-presets-the-preset-catalog">npm run check-presets — the preset catalog</a><a class="toc__link toc__link--3" href="#scripts-check-desktop-boot-sh-and-check-desktop-relaunch-sh-the-desktop-gates">scripts/check-desktop-boot.sh and check-desktop-relaunch.sh — the desktop gates</a><a class="toc__link toc__link--2" href="#screenshot-harnesses">Screenshot harnesses</a><a class="toc__link toc__link--2" href="#contributing-a-change">Contributing a change</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#dev-mode">Dev mode</a><a class="toc__link toc__link--2" href="#the-scripts">The scripts</a><a class="toc__link toc__link--2" href="#the-gates">The gates</a><a class="toc__link toc__link--3" href="#npm-run-check-i18n--the-dictionary">npm run check-i18n — the dictionary</a><a class="toc__link toc__link--3" href="#npm-run-check-names--the-names-gate">npm run check-names — the names gate</a><a class="toc__link toc__link--3" href="#npm-run-check-contrast--the-accessibility-gate">npm run check-contrast — the accessibility gate</a><a class="toc__link toc__link--3" href="#npm-run-check-sections--the-section-surgery-gate">npm run check-sections — the section-surgery gate</a><a class="toc__link toc__link--3" href="#npm-run-check-caret--the-click-to-caret-gate">npm run check-caret — the click-to-caret gate</a><a class="toc__link toc__link--3" href="#npm-run-check-french--the-auto-correction-gate">npm run check-french — the auto-correction gate</a><a class="toc__link toc__link--3" href="#npm-run-check-layouts--the-keyboard-layout-gate">npm run check-layouts — the keyboard-layout gate</a><a class="toc__link toc__link--3" href="#npm-run-check-keymap--the-binding-ledger">npm run check-keymap — the binding ledger</a><a class="toc__link toc__link--3" href="#npm-run-check-excerpt--the-tag-in-prose-gate">npm run check-excerpt — the tag-in-prose gate</a><a class="toc__link toc__link--3" href="#npm-run-check-design--the-error-boundary">npm run check-design — the error boundary</a><a class="toc__link toc__link--3" href="#npm-run-check-board--the-designers-section-board">npm run check-board — the designer&amp;#39;s section board</a><a class="toc__link toc__link--3" href="#npm-run-check-preview--the-designers-live-preview">npm run check-preview — the designer&amp;#39;s live preview</a><a class="toc__link toc__link--3" href="#npm-run-check-print--the-printed-page">npm run check-print — the printed page</a><a class="toc__link toc__link--3" href="#npm-run-check-deck--every-whats-new-slide-measured">npm run check-deck — every what&amp;#39;s-new slide, measured</a><a class="toc__link toc__link--3" href="#npm-run-check-presets--the-preset-catalog">npm run check-presets — the preset catalog</a><a class="toc__link toc__link--3" href="#npm-run-check-docs--the-manual">npm run check-docs — the manual</a><a class="toc__link toc__link--3" href="#npm-run-check-settings--the-settings-index">npm run check-settings — the settings index</a><a class="toc__link toc__link--3" href="#npm-run-check-whatsnew--the-deck">npm run check-whatsnew — the deck</a><a class="toc__link toc__link--3" href="#npm-run-check-a11y--static-accessibility">npm run check-a11y — static accessibility</a><a class="toc__link toc__link--3" href="#npm-run-check-bundle--what-each-audience-downloads">npm run check-bundle — what each audience downloads</a><a class="toc__link toc__link--3" href="#npm-run-check-books--the-reader">npm run check-books — the reader</a><a class="toc__link toc__link--3" href="#npm-run-check-icons--the-folder-marks">npm run check-icons — the folder marks</a><a class="toc__link toc__link--3" href="#npm-run-check-signatures--every-signature-house">npm run check-signatures — every signature house</a><a class="toc__link toc__link--3" href="#npm-run-check-hovercache--the-hover-card-cache">npm run check-hovercache — the hover-card cache</a><a class="toc__link toc__link--3" href="#npm-run-check-designer-nav--the-designers-navigation-and-alignment">npm run check-designer-nav — the designer&amp;#39;s navigation and alignment</a><a class="toc__link toc__link--3" href="#scriptscheck-pdfsearchmjs--search-inside-a-book">scripts/check-pdfsearch.mjs — search inside a book</a><a class="toc__link toc__link--3" href="#scriptscheck-desktop-bootsh-and-check-desktop-relaunchsh--the-desktop-gates">scripts/check-desktop-boot.sh and check-desktop-relaunch.sh — the desktop gates</a><a class="toc__link toc__link--2" href="#the-done-bar">The done bar</a><a class="toc__link toc__link--2" href="#screenshot-harnesses">Screenshot harnesses</a><a class="toc__link toc__link--2" href="#contributing-a-change">Contributing a change</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

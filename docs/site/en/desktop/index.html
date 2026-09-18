@@ -20,7 +20,7 @@
   <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
 </header>
 <div class="layout">
-  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link is-current" href="../../en/desktop/">The desktop app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link is-current" href="../../en/desktop/">The desktop app</a><a class="nav__link" href="../../en/mobile/">The Android app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
   <main class="main">
     
     <article class="doc"><h1 id="the-desktop-app">The desktop app</h1>
@@ -56,7 +56,7 @@ browser cannot:</p>
 <p>&quot;Astrolabe&quot; is one person&#39;s name for it. <strong>Settings → This device → This app</strong> lets you call the
 app whatever you like on this computer and give it your own icon. The tray, its tooltip, the
 window icon, the About box and the launcher entry all follow. The site&#39;s own name and logo are a
-separate thing, under <em>Identity</em>, and they title the window and the sidebar. <strong>An update never
+separate thing, on the <strong>Site</strong> tab (Settings → Site), and they title the window and the sidebar. <strong>An update never
 touches either</strong>: the AppImage is replaced at its own path, so a file you renamed keeps its
 name; the Windows installer replaces the program directory and nothing else; and your name and
 icon live beside the app&#39;s settings, which no update writes.</p>
@@ -92,11 +92,13 @@ while typing</em> is in the Edit menu.</p>
 <p><strong>The app never downloads or installs an update on its own.</strong> It only checks — quietly, at
 launch and every six hours — whether a newer release exists. When one does, the status bar says
 so: <strong>3.x available</strong>, in place of the version number that is normally printed at the end of
-the bar. Nothing else happens until you act.</p>
+the bar. Nothing else happens until you act. A release is announced once per version per launch:
+the chip stays until you act, but the toast does not come back when the six-hour check finds the
+same release again. A check you ask for by hand always answers.</p>
 <ol>
 <li>Click <strong>3.x available</strong> to download the release. While it downloads, the chip turns into a
 bar with the percentage.</li>
-<li>When the download is on disk and verified, the chip reads <strong>Restart now</strong>. Click it, and the
+<li>When the download is on disk and verified, the chip reads <strong>Restart to update</strong>. Click it, and the
 app restarts into the new version.</li>
 </ol>
 <p><strong>Help → Check for updates…</strong> always works by hand, and says so when you are already on the
@@ -110,11 +112,8 @@ the new installer silently, and the installer relaunches the app. Both downloads
 against the fingerprint published with the release before anything runs, so a file that arrived
 incomplete or altered never starts. The <strong>deb</strong> and <strong>pacman</strong>
 packages belong to a package manager, so there the chip opens the releases page instead. The
-<strong>Android app</strong> (the APK on the same releases page) checks the same address at launch: when a
-newer APK exists it offers <strong>Update</strong>, the browser downloads it, and Android installs it over
-the current copy — notes, settings and sign-in untouched. <em>Later</em> snoozes the offer for a day.
-Everything on the web side reaches the phone the moment the server deploys; the APK only
-changes when the wrapper itself does.</p>
+<a href="../mobile/#updates">Android app</a> watches the same releases page in its own way, described on its
+page.</p>
 <p>In a browser, the version chip simply opens the releases page, since a hosted instance updates
 when its server does.</p>
 <h2 id="deep-links-and-file-association"><a class="anchor" href="#deep-links-and-file-association">Deep links and file association</a></h2>
@@ -132,12 +131,15 @@ takes the same password the site takes.</p>
 <p>The app&#39;s own configuration is in <code>~/.config/astrolabe</code> (the old <code>vellum</code> directory from before
 the rename is carried in on first launch and then removed). <code>desktop.json</code> there lists the
 vaults, their ports and, for each, the data directory it uses. Each vault&#39;s instance data is in
-the <a href="../configuration/#environment-variables"><code>ASTROLABE_DATA</code></a> that entry names. The Linux build
+the <a href="../configuration/#environment-variables"><code>ASTROLABE_DATA</code></a> that entry names. What is yours
+rather than the machine&#39;s — the site&#39;s settings, the named layouts, the book shelf, your notes to
+self — is also mirrored into the vault&#39;s own <code>.astrolabe/</code> folder, so a second machine over the
+same vault finds it (<a href="../backup-and-sync/#settings-travel-with-the-vault">settings travel with the vault</a>). The Linux build
 is packaged with <code>asar: false</code> deliberately, because the server the app starts reads real files
 from the package.</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/desktop.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
-    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/export/"><span class="pager__kicker">Previous</span><span class="pager__title">Export</span></a><a class="pager__link pager__link--next" href="../../en/editor/"><span class="pager__kicker">Next</span><span class="pager__title">The editor &amp; reading view</span></a></nav>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/export/"><span class="pager__kicker">Previous</span><span class="pager__title">Export</span></a><a class="pager__link pager__link--next" href="../../en/mobile/"><span class="pager__kicker">Next</span><span class="pager__title">The Android app</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
   <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#vaults-and-windows">Vaults and windows</a><a class="toc__link toc__link--2" href="#your-own-name-and-icon">Your own name and icon</a><a class="toc__link toc__link--2" href="#the-reference-window">The reference window</a><a class="toc__link toc__link--2" href="#find-in-page">Find in page</a><a class="toc__link toc__link--2" href="#spelling">Spelling</a><a class="toc__link toc__link--2" href="#updates">Updates</a><a class="toc__link toc__link--2" href="#deep-links-and-file-association">Deep links and file association</a><a class="toc__link toc__link--2" href="#sessions">Sessions</a><a class="toc__link toc__link--2" href="#where-things-live">Where things live</a></aside>
