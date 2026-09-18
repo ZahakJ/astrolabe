@@ -10,8 +10,8 @@
 //                           still lands here)
 //   /orbits/a/B           → a study session over the deck a/B.md
 //   /review-week          → the weekly review
-//   /calendar             → the Calendar page (the month; a section at the
-//                           top of /sigils until 3.18)
+//   /calendar             → the Calendar page: the month, and what each day
+//                           held
 //   /folder/Note          → the note folder/Note.md (".md" stripped, segments
 //                           URL-encoded; matching is case-insensitive)
 //   /folder/Note#Heading  → same note, scrolled to the heading
@@ -51,16 +51,16 @@ function reviewWeekTabActive(ws: Workspace): boolean {
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isReviewWeekTab(tab.path);
 }
-function routinesTabActive(ws: Workspace): boolean {
-  const pane = paneAt(ws, ws.focus);
-  const tab = pane === null ? null : activeTabOf(pane);
-  return tab !== null && isRoutinesTab(tab.path);
-}
 /** …or the Calendar page's. */
 function calendarTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isCalendarTab(tab.path);
+}
+function routinesTabActive(ws: Workspace): boolean {
+  const pane = paneAt(ws, ws.focus);
+  const tab = pane === null ? null : activeTabOf(pane);
+  return tab !== null && isRoutinesTab(tab.path);
 }
 /** …or a Orbits tab: the shelf, or a session over the deck
  *  the returned path names. Null when the focused tab is something else. */
@@ -272,6 +272,8 @@ export function applyUrl(initial = false): boolean {
       store.setView("review-week");
       return true;
     }
+    // The month as a page of its own (3.18): it was a grid at the top of the
+    // Sigils page before, which had no address of its own to keep.
     if (location.pathname === "/calendar") {
       store.setView("calendar");
       return true;

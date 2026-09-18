@@ -1270,8 +1270,9 @@ const MUST_SPLIT = [
   // The weekly review, on the same terms: a tab behind the palette and
   // the Sigils page's last-weekday line, with its own stylesheet.
   "review/ReviewWeekView.tsx",
-  // The Calendar page, on the same terms: the month behind the status
-  // bar's fourth door, with the month grid and calendar.css inside it.
+  // The Calendar page, on the same terms: the month grid, the day pane, the
+  // agenda model and calendarpage.css behind the status bar's door. The
+  // SIDEBAR's small grid keeps its own boundary behind the section's fold.
   "calendar/CalendarView.tsx",
   // The "What's new" deck: slides, live demos and prose for every release,
   // behind a door (whatsnew/door.ts) that is a version compare and nothing else.

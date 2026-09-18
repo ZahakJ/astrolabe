@@ -4973,10 +4973,6 @@ const DICT = {
   // status bar, its row in the palette and the phone's menu, and the page's
   // own lead and legend. The month was a section at the top of the Sigils
   // page until 3.18.
-  calendarTitle: { en: "Open the Calendar", ar: "فتح التقويم" },
-  cmdOpenCalendar: { en: "Open the Calendar", ar: "فتح التقويم" },
-  cmdOpenCalendarHint: { en: "view · the month, the days you wrote and the days you kept", ar: "عرض · الشهر، والأيام التي كتبت فيها والأيام التي حافظت فيها" },
-  calendarLead: { en: "The month you are in. A day opens its note — or makes it.", ar: "الشهر الذي أنت فيه. والنقر على يوم يفتح ملاحظته أو ينشئها." },
   showCalendar: { en: "Show the calendar", ar: "إظهار التقويم" },
   hideCalendar: { en: "Hide the calendar", ar: "إخفاء التقويم" },
   calendarPrevMonth: { en: "Previous month", ar: "الشهر السابق" },
@@ -4985,6 +4981,22 @@ const DICT = {
   calendarTitleAria: { en: "{month} — back to this month", ar: "{month}؛ العودة إلى هذا الشهر" },
   calendarCellNote: { en: "has a note", ar: "له ملاحظة" },
   calendarCellLogged: { en: "a sigil or a reading logged", ar: "سُجِّل فيه سِجِلّ أو قراءة" },
+  // ── The Calendar PAGE (client/calendar/CalendarView.tsx, 3.18) — the
+  // month as a place of its own, which the small grid in the sidebar is not.
+  calendarTitle: { en: "Open the Calendar", ar: "فتح التقويم" },
+  cmdOpenCalendar: { en: "Open the Calendar", ar: "فتح التقويم" },
+  cmdOpenCalendarHint: { en: "view · the month, and what each day held", ar: "عرض · الشهر، وما حَمَله كل يوم" },
+  calendarPageLead: { en: "The month, and what each day held.", ar: "الشهر، وما حَمَله كل يوم." },
+  calendarTodayShort: { en: "Today", ar: "اليوم" },
+  calendarOpenNote: { en: "Open the day's note", ar: "فتح ملاحظة اليوم" },
+  calendarCreateNote: { en: "Create the day's note", ar: "إنشاء ملاحظة اليوم" },
+  calendarSigilDone: { en: "{done} of {of}", ar: "{done} من {of}" },
+  calendarDeckRow: { en: "{graded} · {kept}% kept", ar: "{graded} · {kept}٪ محفوظة" },
+  calendarReading: { en: "Reading", ar: "القراءة" },
+  calendarTrackerRow: { en: "{pages} in {time}", ar: "{pages} في {time}" },
+  calendarDayEmpty: { en: "Nothing on this day yet.", ar: "لا شيء في هذا اليوم بعد." },
+  calendarLoading: { en: "Reading the month…", ar: "تُقرأ أحداث الشهر…" },
+  calendarMore: { en: "+{n} more", ar: "+{n} أخرى" },
   recentlyRead: { en: "Recently read", ar: "قُرئ مؤخرًا" },
   dailyFolderLabel: { en: "Daily notes folder", ar: "مجلد الملاحظات اليومية" },
   dailyFormatLabel: { en: "Daily note name", ar: "اسم الملاحظة اليومية" },

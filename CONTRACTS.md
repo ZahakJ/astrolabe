@@ -9720,6 +9720,40 @@ not on this page.** It was a section at its top until 3.18 (the owner: "kinda we
 the sigils window") and is the Calendar page now; the trackers went with it, because they only ever
 rode this page's load for the grid's second mark.
 
+## The Calendar page (`shared/dayAgenda.ts`, `client/calendar/CalendarView.tsx`, `client/styles/calendarpage.css`)
+
+**The month is a PLACE, not a widget on somebody else's page.** From 3.17 a 440px grid sat at the
+top of the Sigils page; the owner took it off ("I might honestly remove the calendar view from the
+sigil window… kinda weird and useless in the sigils window"), and it is a page of its own from
+3.18. `CALENDAR_TAB = "~calendar"`, `surface === "calendar"`, `setView("calendar")` /
+`toggleCalendar()`, `/calendar` in the router, a lazy chunk pinned by `MUST_SPLIT`, a door in the
+status bar (a wall-calendar leaf, `data-testid="calendar-door"`, beside the seal and the ring;
+admin-only like them, because creating a day's note writes) with a labelled row in the phone's `⋯`
+menu, and `cmdOpenCalendar` in the palette. The SIDEBAR's small grid is untouched and keeps its own
+job; the two share `shared/calendar.ts` and nothing else.
+
+**What a day held is pure and stored nowhere.** `shared/dayAgenda.ts` — no DOM, no fetch, loaded by
+`node --test` (tests/dayAgenda.test.ts) — takes the days of the drawn month, the `dailyNotesByDay`
+map, the vault's sigils, the trackers and the device's Orbits log, and answers
+`Map<iso, DayAgenda>`: the daily note's path, the sigils that LOGGED that day with the status
+`dayStatus` gives them (so the month and the card can never disagree), the decks graded with how
+many were kept, the sittings summed per tracker, and a `count` of all of it. ONE PASS PER MONTH,
+not one per cell: each source is bucketed by day once. `localDay` and `ReviewGrade` are
+shared/weekReview.ts's, because the week and the month must reckon a day the same way. Nothing is
+written — the weekly review's argument, and "the note is the state" allows no second ledger.
+
+**One control per cell; the day pane is where you act.** A cell is ONE button (the number, a dot
+for the day's note, up to four lines of what the day held, then `+N more`) and pressing it SELECTS
+the day; the pane beside the grid — under it below 900px of PANE width, which is a container query,
+so a calendar in half a split behaves like a phone — shows that day in full with every row a door
+to its note, led by "Open the day's note" / "Create the day's note" through `openPeriodicNoteAt`.
+A single click never writes a file; the labelled button does, and a double-click on a cell is the
+shortcut. The grid is ONE tab stop with the sidebar grid's keys (arrows mirrored under RTL,
+Home/End the row, PageUp/PageDown the month, crossing an edge turns the page) and the pane is the
+next stop, so nothing in a cell is reachable only by mouse. The selection is `aria-selected` on the
+one `gridcell` that holds it, never `aria-pressed` on the button inside: a day is not a toggle, and
+saying so forty-two times is all a screen reader would hear.
+
 ## Orbits — spaced repetition (`shared/decks.ts`, `shared/srsSession.ts`, `client/orbits/`, `server/deckImport.ts`)
 
 The vault's own spaced-repetition system, replacing Anki for the owner ("screw Anki… let's make
@@ -9996,18 +10030,8 @@ month — rows of seven from the site language's first day (`weekOrder`). Dots c
 (`dailyNotesByDay`: a string compare per note, nothing stored) and from the sigil logs the caller
 hands in; the grid is ONE tab stop (arrows walk, mirrored under RTL; Home/End the row; PageUp/Down
 the month) and a click goes through `openPeriodicNoteAt`. The sidebar draws it for an admin, and
-for a visitor only when a daily note is published.
-
-**The Calendar page (`client/calendar/CalendarView.tsx`).** `CALENDAR_TAB = "~calendar"`,
-`surface === "calendar"`, `setView("calendar")` / `toggleCalendar()`, `/calendar` in the router, a
-lazy chunk pinned by `MUST_SPLIT`, a door in the status bar beside Sigils and a palette row
-(`open-calendar`) — the Media page's terms exactly. It draws the ONE month grid above, never a
-second one, plus today's date, a door to today's note and a legend that reuses the cells' own
-`calendarCellNote` / `calendarCellLogged` phrases so ink and screen reader say the same thing. The
-marks come from `useLoggedDays` (`client/loggedDays.ts`, lifted out of Sidebar.tsx when the Sigils
-page stopped holding the logs: two surfaces ask, neither holds the answer); it is admin-gated,
-because `/api/routines` and `/api/trackers` are. The page holds no state of its own. Unlike the old
-Sigils section it is NOT hidden on a phone — a reader who opened the door asked for the month.
+for a visitor only when a daily note is published. It is a DATE PICKER and nothing more; the
+Sigils page drew it at its top in 3.17 and does not any more (see *The Calendar page* above).
 
 **The editor conveniences.** `{{cursor}}` and `{{prompt:Label}}`/`{{VALUE:Label}}` in
 `client/templates.ts` (`templatePrompts`, `fillPrompts`, `takeCursor`; the sheet is

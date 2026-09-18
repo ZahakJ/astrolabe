@@ -437,9 +437,14 @@ export default function RoutinesView() {
         </button>
       </header>
       {nothingDue && <RecentlyRead />}
-      {/* No month grid here. The sidebar's Calendar section draws the same
-          grid with the same marks and is on screen beside this page, so the
-          card was a second copy of a calendar the reader already had. */}
+      {/* THE MONTH IS NOT HERE ANY MORE (3.18). A grid of the month sat under
+          this heading from 3.17, and it was the wrong page for it: this one
+          is the morning's checklist, and a month squeezed to 440px could say
+          which days had a note and nothing else about them (the owner: "kinda
+          weird and useless in the sigils window"). It is `/calendar` now —
+          full width, every day's note, sigils, cards and sittings on it —
+          with a door in the status bar beside this page's own. The sidebar's
+          Calendar section is unchanged. */}
       {onThisDay.length > 0 && (
         <section className="s-routines__otd" aria-label={t("onThisDay")}>
           <h2 className="s-routines__otdhead">{t("onThisDay")}</h2>

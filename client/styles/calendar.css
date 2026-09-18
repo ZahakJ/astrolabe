@@ -1,6 +1,7 @@
-/* Astrolabe — the month grid (client/components/CalendarGrid.tsx). Its own
-   file, loaded with the grid's chunk, which the sidebar mounts lazily when
-   its Calendar section is open — the one place the grid mounts (3.18).
+/* Astrolabe — the SIDEBAR's month grid (client/components/CalendarGrid.tsx).
+   Its own file, loaded with the grid's chunk: the sidebar mounts the grid
+   lazily when its Calendar section is open. The Calendar PAGE is a
+   different, bigger drawing with its own sheet (calendarpage.css).
    Tokens only; logical properties; a table, so RTL mirrors the columns on
    its own and the first day of the week sits at the inline start. */
 
@@ -205,10 +206,9 @@
   block-size: 23px;
 }
 
-/* The Sigils page drew a second copy of this grid until 3.18, off the same
-   reads, hidden here under 700px because the sidebar's section was the
-   calendar on a phone anyway. The sidebar's is the only one now, at every
-   width, so nothing in this file is the page's. */
+/* The Sigils page drew this grid at its top in 3.17 and does not any more:
+   the month is its own page (client/styles/calendarpage.css), where a cell
+   has room to say what its day held. */
 
 @media (pointer: coarse) {
   .s-cal__day {
@@ -220,138 +220,3 @@
   }
 }
 
-/* The Calendar page is drawn on a phone — unlike the Sigils section it
-   replaced — so the one button on it is a thumb's target, not a mouse's. */
-@media (max-width: 700px), (pointer: coarse) {
-  .s-calpage__today {
-    min-block-size: 44px;
-    padding-inline: 16px;
-  }
-}
-/* ── The Calendar page (client/calendar/CalendarView.tsx) ────────────────── */
-/* The month had a section at the top of the Sigils page until 3.18; now it
-   has a page, so it is drawn at a page's size rather than squeezed above a
-   column of checklists. The card is still the grid's own width, at the
-   inline start under the heading — a 1240px row must not draw a border
-   around 800px of nothing. Unlike the old section this one SHOWS on a phone:
-   a reader who opened the Calendar door asked for the month. */
-.s-calpage {
-  /* The month's measure: wide enough for seven cells that are not squat,
-     narrow enough that the page is a column and not a horizon. */
-  --calpage-measure: 560px;
-  flex: 1;
-  min-block-size: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  container-type: inline-size;
-  padding: 28px clamp(16px, 4cqi, 48px) 64px;
-  background: var(--bg);
-}
-
-/* ONE COLUMN, ON THE MONTH'S MEASURE. The Sigils page's 1240px row is right
-   for a masonry of cards and wrong here: a page holding one 520px grid under
-   a heading stretched across 1240px put the date at the far start and the
-   button at the far end with the month adrift below them. The heading, the
-   card and the legend share the card's measure and sit together. */
-.s-calpage__head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px 24px;
-  flex-wrap: wrap;
-  max-inline-size: var(--calpage-measure);
-  margin-inline: auto;
-}
-
-.s-calpage__headtext {
-  min-inline-size: 0;
-}
-
-.s-calpage__date {
-  margin: 0;
-  font-size: 0.786rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.s-calpage__h1 {
-  margin: 2px 0 0;
-  font-family: var(--font-serif);
-  font-size: 1.714rem;
-  font-weight: 500;
-  line-height: 1.2;
-  color: var(--text);
-}
-
-.s-calpage__lead {
-  margin: 4px 0 0;
-  font-size: 0.929rem;
-  color: var(--text-muted);
-}
-
-.s-calpage__month {
-  max-inline-size: var(--calpage-measure);
-  margin: 20px auto 0;
-}
-
-.s-calpage__month .s-cal {
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-}
-
-/* The legend sits under the card, on the card's measure. */
-.s-calpage__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 20px;
-  margin: 10px 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.857rem;
-  color: var(--text-muted);
-}
-
-.s-calpage__key {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-/* The grid's own dot is 4px and positioned inside a cell; in the legend it
-   is a standalone swatch and needs to hold its size in a flex row. */
-.s-calpage__key .s-cal__dot {
-  flex: none;
-}
-
-/* Release the measure in a pane narrower than it. The page DECLARES the
-   container (its padding is `cqi`), and an element never matches a container
-   query against itself — so the release is declared on the children that
-   carry the measure, which are inside it. */
-@container (max-width: 560px) {
-  .s-calpage__head,
-  .s-calpage__month {
-    --calpage-measure: none;
-  }
-}
-
-@media (pointer: coarse) {
-  .s-cal__day {
-    max-block-size: 44px;
-  }
-  .s-cal__nav {
-    inline-size: 32px;
-    block-size: 32px;
-  }
-}
-
-/* The Calendar page is drawn on a phone — unlike the Sigils section it
-   replaced — so the one button on it is a thumb's target, not a mouse's. */
-@media (max-width: 700px), (pointer: coarse) {
-  .s-calpage__today {
-    min-block-size: 44px;
-    padding-inline: 16px;
-  }
-}

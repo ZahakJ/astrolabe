@@ -140,9 +140,8 @@ export default function Pane({
         <ReviewWeekView />
       </Suspense>
     ) : surface === "calendar" ? (
-      // The Calendar page: the month, on the Sigils page's terms. It was a
-      // section at the TOP of that page until 3.18 and is a door of its own
-      // now, because the month is not a thing today asks of you.
+      // The Calendar: the month, big, with what every day held — a tab like
+      // the Sigils page, and no longer a grid squeezed into its top.
       <Suspense fallback={<div className="s-calpage" />}>
         <CalendarView />
       </Suspense>
