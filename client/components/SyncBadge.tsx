@@ -65,7 +65,14 @@ export default function SyncBadge() {
     const rtl = document.documentElement.dir === "rtl";
     // Measured, never assumed: the width is a `min()` of a cap and the
     // viewport, and the panel is on screen by the time this runs.
-    const width = popRef.current?.getBoundingClientRect().width ?? 0;
+    //
+    // `offsetWidth`, NOT a bounding rect: the panel arrives on
+    // `s-palette-in`, which is `scale(0.985)` at its first frame, and a
+    // bounding rect reports the TRANSFORMED box. Placing against it read 355
+    // for a 360px panel and hung the trailing edge 5px past the badge it is
+    // anchored to — a placement whose error depended on which frame of an
+    // animation the measurement landed in. Layout width has no frames.
+    const width = popRef.current?.offsetWidth ?? 0;
     const vw = document.documentElement.clientWidth;
     setAnchor({
       bottom: Math.round(window.innerHeight - rect.top + 8),

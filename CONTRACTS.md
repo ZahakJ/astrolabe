@@ -3080,13 +3080,29 @@ The three arguments the numbers settle, each of which had been decided twice:
   and *Sync now*, an action the reader could see and could not press.
 - **A menu gets a ground on touch (299).** The scrim sits one rung below the menu it dims the page
   for, never over it.
+- **A menu is over the pane it was opened from — and in the drawer shell that pane is the DRAWER.**
+  `--z-menu` and `--z-menu-scrim` are the one pair on this ladder that take different values in a
+  different shell: `tokens.css` redefines them to **405 / 404** under `app.css`'s drawer condition
+  (`(max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine)))`), one rung above the
+  drawer and still below the palette, which must stay over both. This is not decoration. The tree's
+  menu, the tag shelf's menu and the sort menu are portalled to `<body>` — correctly, because a
+  menu must not be clipped by a pane that animates its own width — which takes them out of the
+  drawer's stacking context, and at 300 the drawer painted straight over them: measured at 390×844,
+  a long press on a folder built a seventeen-row menu at x 124 and `elementFromPoint` on its first
+  row returned `HEADER.s-sidebar-header`. The reader got a 62px stripe of half-words. Two values
+  for one name is the thing this ladder exists to prevent, so there is exactly one definition site
+  per shell and both live beside the ladder itself; the rule that names them is one sentence, and
+  it is the sentence the `menu 300` rung was already written from.
 
 **A full-viewport sheet also CLOSES what it covers.** Ctrl/Cmd+P is a keystroke, so none of the
 outside-mousedown listeners see it: the sync popover stayed lit over the palette's own backdrop
 (it is two rungs higher now, which makes this required rather than tidy), and a context menu sat
 under the backdrop still pointing at a row, waiting to be uncovered. `ContextMenu` and `SyncBadge`
 watch `paletteOpen` and stand down; the imperative heading menu dismisses on any keydown carrying
-a modifier, since none of its own keys use one.
+a modifier, since none of its own keys use one — **except a modifier pressed alone**, which reports
+`ctrlKey` on its own keydown and is not a keystroke yet: closing there took the menu away from a
+reader still spelling the shortcut, and from anyone whose layout puts AltGr (Ctrl+Alt) on the way
+to a letter.
 
 - Client: `TrashModal.tsx` + `styles/trash.css`, opened by the palette's *Open trash*
   (admin, not in preview) and cleared from the store on logout and on entering visitor preview.
