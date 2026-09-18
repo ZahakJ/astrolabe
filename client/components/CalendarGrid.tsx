@@ -1,5 +1,8 @@
-// THE MONTH GRID — the sidebar's Calendar section and the top of the Sigils
-// page, one component.
+// THE MONTH GRID — the sidebar's Calendar section, and a date picker before
+// it is anything else. It drew the top of the Sigils page as well until
+// 3.18, when the month became a page of its own (client/calendar/) with room
+// to say what a day HELD rather than only that something happened on it.
+// This one stays small, stays in the sidebar, and keeps its one job.
 //
 // Drawn in the site's calendar (shared/calendar.ts): a Gregorian month on a
 // Gregorian instance, a Hijri month on a Hijri one, and on an instance that

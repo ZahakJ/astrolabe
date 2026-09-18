@@ -28,7 +28,6 @@ import { parseTasksFence, shift } from "../../shared/tasks.ts";
 import { RoutineForm } from "./RoutineForm.tsx";
 import { decorateDeckTasks } from "./orbits.ts";
 import { OnThisDayList, useOnThisDay } from "../components/OnThisDayPanel.tsx";
-import CalendarGrid from "../components/CalendarGrid.tsx";
 import { collectNotes } from "../editor/links.ts";
 import { recentNotes } from "../recents.ts";
 import "../styles/routines.css";
@@ -352,13 +351,6 @@ export default function RoutinesView() {
     [live, today],
   );
   const asked = useMemo(() => live.filter((m) => dayStatus(m.plan, null, today, today) !== "rest").length, [live, today]);
-  // Every day any sigil logged, for the calendar's second mark — the page
-  // holds every log already, so the grid costs it no request.
-  const logged = useMemo(() => {
-    const out = new Set<string>();
-    for (const m of live) for (const e of m.entries) out.add(e.date);
-    return out;
-  }, [live]);
   const [cardsDue, setCardsDue] = useState(0);
   // "Nothing due" is a fact about the whole page: no sigil asks today (or
   // every one that asked has been ticked — a finished checklist owes the
@@ -411,13 +403,14 @@ export default function RoutinesView() {
         </button>
       </header>
       {nothingDue && <RecentlyRead />}
-      {/* The month, the same grid the sidebar draws (CalendarGrid.tsx): a dot
-          per day that has a note, a second per day a sigil logged — those
-          come from this page's own reads. Not on a phone (calendar.css):
-          there the sidebar's section is the calendar. */}
-      <section className="s-routines__cal" aria-label={t("calendar")}>
-        <CalendarGrid logged={logged} />
-      </section>
+      {/* THE MONTH IS NOT HERE ANY MORE (3.18). A grid of the month sat under
+          this heading from 3.17, and it was the wrong page for it: this one
+          is the morning's checklist, and a month squeezed to 440px could say
+          which days had a note and nothing else about them (the owner: "kinda
+          weird and useless in the sigils window"). It is `/calendar` now —
+          full width, every day's note, sigils, cards and sittings on it —
+          with a door in the status bar beside this page's own. The sidebar's
+          Calendar section is unchanged. */}
       {onThisDay.length > 0 && (
         <section className="s-routines__otd" aria-label={t("onThisDay")}>
           <h2 className="s-routines__otdhead">{t("onThisDay")}</h2>

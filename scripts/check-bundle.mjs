@@ -705,7 +705,16 @@ const AUDIENCES = [
   //    mount-gated on the flag; the converter and the manifest are
   //    server-side.
   // Five of the six are mostly dictionary, which is the debt named below.
-  { name: "entry (everyone)", keys: entry, budget: 795 * 1024 },
+  // 3.18.0: 796.4 kB actual → 797 — THE CALENDAR AS ITS OWN PAGE, measured
+  // at +1.7 kB over the same tree without it (794.7 kB). Almost all of it is
+  // the dictionary again: fourteen keys in two languages for a page's lead,
+  // its two doors, its three section heads and its rows. The rest is the
+  // wiring a page needs to be a place — `CALENDAR_TAB` and its surface in
+  // client/workspace.ts, `/calendar` in the router, `toggleCalendar` in the
+  // store, the status bar's door and its glyph, and the palette's row. The
+  // PAGE (client/calendar/CalendarView.tsx, shared/dayAgenda.ts and
+  // client/styles/calendarpage.css) is a lazy chunk asserted split below.
+  { name: "entry (everyone)", keys: entry, budget: 797 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -943,7 +952,11 @@ const AUDIENCES = [
   // reading view's chunk alone.
   // 3.17.0 + 3.16.3: 1087.4 kB actual → 1088 — the sigil card's
   // pushed-forward rows (main's 3.16.3, above) landing on the six branches.
-  { name: "anonymous blog reader", keys: blog, budget: 1088 * 1024 },
+  // 3.18.0: 1089.3 kB actual → 1090 — the Calendar page's dictionary block
+  // and its wiring, the same +1.7 kB the entry took (the page is lazy and a
+  // visitor never has a door to it; only the strings and the tab model reach
+  // this reader, because `t()` ships whole).
+  { name: "anonymous blog reader", keys: blog, budget: 1090 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1094,7 +1107,11 @@ const AUDIENCES = [
   // the capture sheet are all lazy and asserted absent below.
   // 3.17.2: 1545.1 kB actual → 1546 — the Sigils masonry (two hooks) and the
   // wider emoji shelf.
-  { name: "admin first paint", keys: app, budget: 1546 * 1024 },
+  // 3.18.0: 1547.6 kB actual → 1548 — the Calendar page's +1.7 kB of
+  // dictionary and wiring, plus the status bar's own door here: the glyph,
+  // the pressed-state selector and the phone menu's row (+0.7 kB, which the
+  // entry and the blog reader do not carry a status bar for).
+  { name: "admin first paint", keys: app, budget: 1548 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1198,6 +1215,10 @@ const MUST_SPLIT = [
   // The weekly review, on the same terms: a tab behind the palette and
   // the Sigils page's last-weekday line, with its own stylesheet.
   "review/ReviewWeekView.tsx",
+  // The Calendar page, on the same terms: the month grid, the day pane, the
+  // agenda model and calendarpage.css behind the status bar's door. The
+  // SIDEBAR's small grid keeps its own boundary behind the section's fold.
+  "calendar/CalendarView.tsx",
   // The "What's new" deck: slides, live demos and prose for every release,
   // behind a door (whatsnew/door.ts) that is a version compare and nothing else.
   "whatsnew/WhatsNew.tsx",
