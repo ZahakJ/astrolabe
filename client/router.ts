@@ -10,6 +10,8 @@
 //                           still lands here)
 //   /orbits/a/B           → a study session over the deck a/B.md
 //   /review-week          → the weekly review
+//   /calendar             → the Calendar page: the month, and what each day
+//                           held
 //   /folder/Note          → the note folder/Note.md (".md" stripped, segments
 //                           URL-encoded; matching is case-insensitive)
 //   /folder/Note#Heading  → same note, scrolled to the heading
@@ -28,7 +30,7 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, isReviewWeekTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, isReviewWeekTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
 
 /** The focused pane is showing the graph tab. */
 function graphTabActive(ws: Workspace): boolean {
@@ -48,6 +50,12 @@ function reviewWeekTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isReviewWeekTab(tab.path);
+}
+/** …or the Calendar page's. */
+function calendarTabActive(ws: Workspace): boolean {
+  const pane = paneAt(ws, ws.focus);
+  const tab = pane === null ? null : activeTabOf(pane);
+  return tab !== null && isCalendarTab(tab.path);
 }
 function routinesTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
@@ -174,6 +182,7 @@ function urlForState(view: string, openPath: string | null, ws: Workspace): stri
   if (view === "editor" && graphTabActive(ws)) return "/graph";
   if (view === "editor" && mediaTabActive(ws)) return "/media";
   if (view === "editor" && routinesTabActive(ws)) return "/sigils";
+  if (view === "editor" && calendarTabActive(ws)) return "/calendar";
   if (view === "editor" && reviewWeekTabActive(ws)) return "/review-week";
   const orbits = view === "editor" ? orbitsTabActive(ws) : null;
   if (orbits !== null) return orbitsUrl(orbits.path, orbits.section);
@@ -195,6 +204,8 @@ function setTitle(openPath: string | null, view: string): void {
     document.title = `${t("media")} · ${base}`;
   } else if (view === "editor" && routinesTabActive(useStore.getState().workspace)) {
     document.title = `${t("routines")} · ${base}`;
+  } else if (view === "editor" && calendarTabActive(useStore.getState().workspace)) {
+    document.title = `${t("calendar")} · ${base}`;
   } else if (view === "editor" && reviewWeekTabActive(useStore.getState().workspace)) {
     document.title = `${t("reviewWeek")} · ${base}`;
   } else if (view === "editor" && orbitsTabActive(useStore.getState().workspace) !== null) {
@@ -257,6 +268,12 @@ export function applyUrl(initial = false): boolean {
       canonicalise("/sigils");
       return true;
     }
+    // The month as a page of its own (3.18): it was a grid at the top of the
+    // Sigils page before, which had no address of its own to keep.
+    if (location.pathname === "/calendar") {
+      store.setView("calendar");
+      return true;
+    }
     if (location.pathname === "/review-week") {
       store.setView("review-week");
       return true;
@@ -312,7 +329,15 @@ export function applyUrl(initial = false): boolean {
       // The cost is the tab arrangement, and it is bounded: this entry only
       // EXISTS if the session began with nothing open, and Forward reopens the
       // note the reader stepped back from.
-      if (store.openPath !== null || graphTabActive(store.workspace) || mediaTabActive(store.workspace) || routinesTabActive(store.workspace) || reviewWeekTabActive(store.workspace) || orbitsTabActive(store.workspace) !== null) {
+      if (
+        store.openPath !== null ||
+        graphTabActive(store.workspace) ||
+        mediaTabActive(store.workspace) ||
+        routinesTabActive(store.workspace) ||
+        reviewWeekTabActive(store.workspace) ||
+        calendarTabActive(store.workspace) ||
+        orbitsTabActive(store.workspace) !== null
+      ) {
         store.closeAllTabs();
       }
       return true;

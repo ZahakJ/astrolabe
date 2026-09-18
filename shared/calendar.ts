@@ -1,7 +1,7 @@
 // A MONTH AS A GRID, in whichever calendar the site prints.
 //
-// The sidebar's Calendar section and the top of the Sigils page draw the
-// same thing: the month you are in, seven columns wide, one cell a day. What
+// The sidebar's Calendar section and the Calendar page draw the same thing:
+// the month you are in, seven columns wide, one cell a day. What
 // varies is the CALENDAR — a site set to Hijri (shared/dates.ts) must get a
 // Hijri month, Muharram to Dhu al-Hijjah, with its own first days and its own
 // 29- or 30-day lengths — and the FIRST COLUMN, which is Monday for an
@@ -152,9 +152,12 @@ export function monthCells(date: Date, calendar: GridCalendar, order: readonly W
  *  tracker's reading sessions (`sessions:`, shared/tracker.ts) — the month
  *  grid's second mark (client/components/CalendarGrid.tsx). Here rather than
  *  beside the grid because the grid is a lazy chunk and the sidebar, which
- *  fetches the sets, must not pull it into its first paint. Both callers
- *  already hold the sigils; the trackers are one more GET of a list the
- *  indexer keeps in memory, on the same debounce. */
+ *  fetches the sets, must not pull it into its first paint. The sidebar's
+ *  Calendar fold is its one caller, through client/loggedDays.ts: two GETs of
+ *  lists the indexer keeps in memory, on one debounce. The Sigils page was a
+ *  second caller until 3.18 took the grid off it, and the Calendar page that
+ *  replaced it does not use this — a cell there names what the day held, which
+ *  is a richer read than a set of dates (shared/dayAgenda.ts). */
 export function loggedDaysOf(
   routines: readonly { entries: readonly { date: string }[] }[],
   trackers: readonly { sessions?: readonly { date: string }[] }[],

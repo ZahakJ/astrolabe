@@ -68,7 +68,11 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 6px 10px;
+  /* 28px rows on a pointer device. At 6px the flat menu measured 650px tall in
+     a 900px viewport and was clamped to y = 8 — a box that no longer sits near
+     the words it acts on. The coarse block at the end of this file overrides
+     to the 44px floor, which is the one place a menu row is a touch target. */
+  padding: 4px 10px;
   border: 0;
   border-radius: 4px;
   background: none;

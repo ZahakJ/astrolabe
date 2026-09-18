@@ -2,7 +2,8 @@
 // ink, the public switch, save and delete. Used over a painted mark by the
 // layer and over an editor selection by EditorAnnotator, which is why it takes
 // a draft and a place rather than a host.
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useDialog } from "../a11y.ts";
 import { INK_COUNT } from "../../shared/bookAnchor.ts";
 import { NOTE_MAX } from "../../shared/textQuote.ts";
 import type { NoteAnnotation } from "../../shared/types.ts";
@@ -28,6 +29,12 @@ export default function AnnotationPopover({
   onClose(): void;
 }) {
   const [draft, setDraft] = useState<NoteAnnotation>(initial);
+  const panelRef = useRef<HTMLDivElement>(null);
+  // This one had NO keyboard exit — not a trap, not a restore, not even an
+  // Escape — over a mark the reader had just made in their own prose. All
+  // three arrive together: Escape closes, Tab stays in, and focus goes back to
+  // the mark that opened it.
+  useDialog(panelRef, { onEscape: onClose });
   const save = useCallback(async () => {
     try {
       await saveAnnotation(path, { ...draft, note: draft.note.slice(0, NOTE_MAX) });
@@ -48,7 +55,14 @@ export default function AnnotationPopover({
     }
   }, [draft.id, path, onClose]);
   return (
-    <div className="s-ann-pop" role="dialog" aria-label={canEdit ? t("annotationTitle") : t("annotationPublicTitle")} style={at}>
+    <div
+      ref={panelRef}
+      className="s-ann-pop"
+      role="dialog"
+      aria-modal="true"
+      aria-label={canEdit ? t("annotationTitle") : t("annotationPublicTitle")}
+      style={at}
+    >
       <div className="s-ann-pop__head">
         <span>{canEdit ? t("annotationTitle") : t("annotationPublicTitle")}</span>
         <button type="button" className="s-ann-pop__close" aria-label={t("annotationClose")} onClick={onClose}>

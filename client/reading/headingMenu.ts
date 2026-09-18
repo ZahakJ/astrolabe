@@ -51,11 +51,15 @@ export function installReadingSections(): void {
       if ((window.getSelection()?.toString() ?? "").trim() !== "") return;
       event.preventDefault();
       const { clientX: x, clientY: y } = event;
+      const fromKeyboard = event.button !== 2;
       void (async () => {
         const content = await noteContent(path);
         const section = sectionsOf(content).find((s) => s.slug === heading.id);
         if (!section) return;
-        openSectionMenu({ path, content, headingLine: section.headingLine, x, y });
+        // `button: 0` on a contextmenu event is Shift+F10 or the Menu key; a
+        // real right-click reports 2. The menu takes focus only in the first
+        // case (sectionMenu's `fromKeyboard`).
+        openSectionMenu({ path, content, headingLine: section.headingLine, x, y, fromKeyboard });
       })();
     },
     true,

@@ -238,7 +238,6 @@ function pagesFor(
   ui: {
     literal: boolean;
     toggleLiteral: () => void;
-    toolbar: boolean;
     /** The selection holds a kanji: the Furigana row is offered. */
     kanji: boolean;
   },
@@ -390,31 +389,31 @@ function pagesFor(
       { kind: "page", label: "selGroupArabic", page: "arabic" },
     ],
   };
-  // Extract the selection into its own note, `[[link]]` left standing — the
-  // selection-shaped sibling of the heading menu's "Extract section"
-  // (composerActions.ts). Markdown only: the stub it leaves is vault syntax.
-  const extract: Group = {
+  // WHAT THE SELECTION BECOMES SOMEWHERE ELSE — extracted into its own note
+  // with a `[[link]]` left standing (the selection-shaped sibling of the
+  // heading menu's "Extract section"), annotated in the margin, or turned into
+  // a card. ONE untitled group, not three: they are one idea, and each rule
+  // between them was 11px of a box the contract caps at 458. Extract is
+  // markdown-only — the stub it leaves is vault syntax — while the other two
+  // work in `.tex` too, because the anchor is the prose.
+  const carryOff: Group = {
     rows: [
-      act("extractSelection", (v) => {
-        void extractSelection(v, v.state.facet(notePathFacet));
-      }),
+      ...(tex
+        ? []
+        : [
+            act("extractSelection", (v) => {
+              void extractSelection(v, v.state.facet(notePathFacet));
+            }),
+          ]),
+      act("annotateSelection", annotateSelection),
+      act("addFlashcard", makeFlashcard),
     ],
   };
-  // A note to self on the selected words (client/annotations/). In both
-  // syntaxes: the anchor is the prose, and a `.tex` note has prose too.
-  const annotate: Group = {
-    rows: [act("annotateSelection", annotateSelection), act("addFlashcard", makeFlashcard)],
-  };
-  // The floating toolbar's switch. An ACTION, not a checkbox: it names the
-  // thing it will do next ("Hide the floating toolbar"), which is the one
-  // phrasing that needs no mark to be read correctly.
-  const toolbar: Group = {
-    rows: [
-      act(ui.toolbar ? "selToolbarHide" : "selToolbarShow", () => {
-        setSelectionToolbarEnabled(!selectionToolbarEnabled());
-      }),
-    ],
-  };
+  // NO "Hide the floating toolbar" ROW. It was a preference living in a menu
+  // of verbs about the selected words — twenty-five rows and 650px of menu,
+  // clamped to y=8 and nowhere near the selection it belongs to. Settings ›
+  // This device owns the switch, and the palette has it too; a menu that also
+  // configures itself is a menu that keeps growing.
   // Alignment, per BLOCK: every paragraph or heading the selection touches
   // takes the marker at the end of its last line (shared/blockAlign.ts), the
   // same one `/center` and a picture's hover buttons write. "None" strips it.
@@ -430,9 +429,7 @@ function pagesFor(
   };
   const back = (title: I18nKey, rows: Row[]): Group[] => [{ title, rows }];
   return {
-    root: tex
-      ? [style, doors, annotate, toolbar]
-      : [style, colour, doors, extract, annotate, toolbar],
+    root: tex ? [style, doors, carryOff] : [style, colour, doors, carryOff],
     structure: [...back("selGroupStructure", structure.rows), caseRows],
     align: [alignRows],
     insert: back("selGroupInsert", insert.rows),
@@ -547,8 +544,6 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
   const hoverTimer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
   const [literal, setLiteral] = useState(literalInk);
-  // Read once per opening: the row that flips it closes the menu behind it.
-  const toolbar = selectionToolbarEnabled();
   // The vocabulary of the note this menu was opened over. One view per menu,
   // and a view's format never changes under it (a `.tex` note gets its own
   // editor state), so the SHAPE is read once; the two switches are the only
@@ -562,10 +557,9 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
           setLiteral(literalInk);
           setSwatch(0);
         },
-        toolbar,
         kanji: selectionHasKanji(view),
       }),
-    [view, literal, toolbar],
+    [view, literal],
   );
   // THE PAGES OPEN BESIDE THE MENU, not in its place (the owner: "they
   // should just open further to the left or right, depending on lang").

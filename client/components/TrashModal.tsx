@@ -14,7 +14,8 @@
 // and it restores to the recorded origin rather than dumping everything at the
 // vault root.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDialog } from "../a11y.ts";
 import type { TrashEntry } from "../../shared/types.ts";
 import { listTrash, purgeTrash } from "../api.ts";
 import { countPhrase, localeDigits, t, tf } from "../i18n.ts";
@@ -101,6 +102,13 @@ export default function TrashModal() {
   useEffect(reload, [reload]);
 
   const close = useCallback(() => setTrashOpen(false), [setTrashOpen]);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // It said `aria-modal="true"` and delivered nothing: thirty Tab presses out
+  // of thirty landed in the app behind it. The promise is kept now — and focus
+  // goes back to whatever opened the browser (the palette row) when it closes.
+  // Escape stays with the listener below, which is already written.
+  useDialog(panelRef);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -197,6 +205,7 @@ export default function TrashModal() {
   return (
     <div className="s-trash-overlay" onMouseDown={close}>
       <div
+        ref={panelRef}
         className="s-trash"
         role="dialog"
         aria-modal="true"

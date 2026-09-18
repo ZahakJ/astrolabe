@@ -25,7 +25,7 @@
  * moves to the other corner with everything else. */
 .s-find {
   position: fixed;
-  z-index: 320;
+  z-index: var(--z-find);
   top: 10px;
   inset-inline-end: 14px;
   display: flex;

@@ -28,7 +28,7 @@
    the leading corner — logical inset so it lands correctly in Arabic. */
 .s-skip {
   position: fixed;
-  z-index: 1000;
+  z-index: var(--z-skip);
   inset-block-start: 8px;
   inset-inline-start: 8px;
   padding: 8px 14px;

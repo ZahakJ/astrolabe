@@ -35,6 +35,7 @@ import { isKanji, serialiseFurigana } from "../../shared/furigana.ts";
 import { kanjiRuns, suggestReadings, type ReadingsTable } from "../../shared/furiganaReadings.ts";
 import { writeFurigana, type FuriganaTarget } from "../editor/furigana.ts";
 import { anchorPopover } from "./anchorPopover.ts";
+import { useDialog } from "../a11y.ts";
 import { t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 
@@ -107,6 +108,12 @@ function FuriganaPopover({ view, target, table, x, y, onClose }: Props) {
     firstInput.current?.select();
   }, [x, y]);
 
+  // The third bespoke Tab ring in this codebase, replaced by the one
+  // primitive CONTRACTS names. `manualFocus`: the layout effect above already
+  // chose the first field, after placement. Escape belongs to `onKeyDown`,
+  // which also puts the caret back in the editor.
+  useDialog(boxRef, { manualFocus: true });
+
   // Mode flips put the caret back in the first field: the fields it had were
   // just replaced by different ones.
   useEffect(() => {
@@ -148,16 +155,9 @@ function FuriganaPopover({ view, target, table, x, y, onClose }: Props) {
       insert();
       return;
     }
-    // Tab stays inside the box: the note under it would take the focus and
-    // the popover would sit there, open and unreachable.
-    if (e.key === "Tab" && boxRef.current) {
-      const items = [...boxRef.current.querySelectorAll<HTMLElement>("input, button:not(:disabled)")];
-      if (items.length === 0) return;
-      const at = items.indexOf(document.activeElement as HTMLElement);
-      const next = e.shiftKey ? (at <= 0 ? items.length - 1 : at - 1) : at >= items.length - 1 ? 0 : at + 1;
-      e.preventDefault();
-      items[next].focus();
-    }
+    // Tab stays inside the box (useDialog above owns that now: the note under
+    // it would take the focus and the popover would sit there, open and
+    // unreachable).
   };
 
   // A kanji the table does not know gets an empty row, not a sentence: the

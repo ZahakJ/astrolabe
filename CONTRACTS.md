@@ -846,15 +846,51 @@ is a menu you cannot aim at.
 different set of tabs in Arabic, exactly as "the left bar" named a different pane before the panes
 were given names.
 
-`ContextMenu.tsx` is the implementation the tree's menu and the outline's should both end up on. The
-two that exist already disagree — only one restores focus, only one dismisses on a `contextmenu`
-elsewhere — and two menus that look alike and behave differently in one app is a bug rather than a
-duplication, because the reader learns one and is then wrong about the other. It owns the placement
-argued out in `Sidebar.tsx` (open toward the reading direction, fold back, fold back again if the
-fold overflows, clamp both axes, measure after mount because a menu's size is its content's), focus
-restoration on **every** close path including activating a row, and dismissal on Escape (capture, and
-stopped, so a menu over a dialog does not close the dialog underneath it), an outside mousedown, a
-`contextmenu` elsewhere, and a resize that invalidates the geometry it just measured.
+`ContextMenu.tsx` **is** the menu, and the tree's two are on it now. It owns the placement argued
+out in `Sidebar.tsx` (open toward the reading direction, fold back, fold back again if the fold
+overflows, clamp both axes, measure after mount because a menu's size is its content's), focus
+restoration on **every** close path including activating a row, and dismissal on Escape (capture,
+and stopped, so a menu over a dialog does not close the dialog underneath it), an outside mousedown,
+a `contextmenu` elsewhere, a resize that invalidates the geometry it just measured, and the command
+palette opening over it. The sidebar's were the second implementation and they disagreed with this
+one exactly where a second implementation always does: the tree's menu never dismissed on a
+`contextmenu` elsewhere or on a resize, and **the sort menu closed on `onMouseLeave` and on nothing
+else** — not Escape, not an outside click, and on a phone, which has no mouseleave, not ever.
+Porting them deleted `placeMenu`, two layout effects, two dismissal effects and nine handlers that
+each called `setMenu(null)` on their own and dropped a keyboard reader on `<body>`.
+
+Three things the port added, and each is a rule rather than a style:
+
+- **`checked?: boolean` makes a row a CHOICE.** It becomes `role="menuitemradio"` with
+  `aria-checked` and a ✓ column, and one row declaring it makes the whole menu one — every row then
+  reserves the column, "Forget my order" included, because a tick that pushes only its own label
+  right turns a scannable column into a ragged one and the chosen row becomes the row that looks
+  out of place. The tick is `aria-hidden`: `aria-checked` is what is read, and a glyph read out as
+  well says the state twice. It exists so the tree's sort menu ports with no second primitive.
+- **Groups are separated, and separators are `{ label: null }` rows.** A folder's menu is sixteen
+  rows; flat, it was a list to read rather than a menu to aim at, and the audit measured exactly
+  zero separators in it. The five groups are: make something here · name and mark this row · publish
+  and export it · arrange it · remove it. No separator is written before the destructive tail —
+  `app.css` draws its own hairline above the first `--danger` row, and two rules for one line is how
+  they come to disagree.
+- **Touch gets a ceiling and a ground.** `min-width: 200px` (at 168 the sort menu wrapped "By name,
+  reversed" onto a second line among rows that were one line each); and on a coarse pointer
+  `max-height: calc(100dvh - 16px)` with `overflow-y: auto`, plus `.s-menu-scrim` one rung below the
+  menu. Sixteen rows at the 44px touch floor is 756px, which floated edge to edge in an 844px phone
+  with no scroll, no visible edge of its own and nothing that read as "outside" — a finger looking
+  for outside landed on a tree row. The scrim carries no click handler: the window mousedown already
+  closes the menu, and two closers is how one of them stops matching the other. No bottom sheet and
+  no drag handle — that would add a gesture owner the drawer-pan rules do not list.
+
+**A pointer-opened menu does not light a row.** `ContextMenu` focuses its first item only when the
+menu was opened from the keyboard, and the imperative heading menu (`sectionMenu.ts`) takes the
+same `fromKeyboard` flag now: it focused its first row unconditionally, so a right-click painted
+the global focus ring on a row nobody chose — and that row is the one Enter would run. A
+`contextmenu` event reports `button: 2` from a mouse and `0` from Shift+F10 or the Menu key; a
+`click` reports `detail: 0` only when no pointer made it. Those two tests are how every opener in
+the product answers the question. The editor's ⋯ affordance answers Enter and Space for the same
+reason: it was bound to `mousedown` alone, and a menu only a mouse can open is the thing the
+keyboard rule forbids.
 
 ## Component contracts
 
@@ -923,6 +959,18 @@ other, and a restored session brings it back. `PaneMode` still lists `"graph"` f
 workspaces, unused by anything that opens the graph now. **The Media page is a tab on the same
 terms** (`MEDIA_TAB = "~media"`, `isMediaTab`, `isVirtualTab` for the pair; `setView("media")`,
 `toggleMedia()`, `mediaOpen()`; the router answers `/media`).
+
+**THE CALENDAR IS A TAB TOO, from 3.18** (`CALENDAR_TAB = "~calendar"`, `isCalendarTab`,
+`surfaceOf` → `"calendar"`; `setView("calendar")`, `toggleCalendar()`, `calendarOpen()`; the router
+answers `/calendar`; `Tabs.tsx` titles it `calendar`; the page is `client/calendar/CalendarView.tsx`,
+a lazy chunk check-bundle pins). It was a card at the top of the Sigils page in 3.17 and the owner
+wanted it out — "kinda weird and useless in the sigils window… maybe just give it its own window
+and icon on the top". So it became a page, with the fourth door in the status bar's admin group
+(a leaf of the month), a palette row and a row in the phone's ⋯ menu. *What the page draws, and why
+it draws its own grid rather than the sidebar's, is settled once under **The Calendar page** below;
+this paragraph is the tab model only. Do not restate the drawing here — an earlier draft of this
+line claimed the page reuses `CalendarGrid.tsx` and that `client/loggedDays.ts` has two callers, and
+both were false by the time it shipped.*
 
 ## The graph view's own settings (client/graphPrefs.ts, GraphView.tsx)
 
@@ -2363,9 +2411,38 @@ against.
   and — the half that keeps getting dropped — returns focus to the control that opened it. Panels
   carry `role="dialog" aria-modal="true"` and `aria-labelledby` pointing at their own title node.
   `Confirm.tsx` keeps its own bespoke trap (it has a three-button ring and Enter semantics).
+  **This is GATED, because saying it was not enough.** An audit of 3.17.3 found 21 of 37
+  `role="dialog"` sites with no trap and no restore, and six of them claiming `aria-modal="true"`
+  over nothing at all — a promise made to assistive technology and broken for everyone. Measured
+  Tab walks: the shortcuts sheet leaked at press 12, the theme picker at 22 going backwards, the
+  trash browser 30 times out of 30, the sync popover 21 — and it stayed open, unblurred, behind
+  the walk. `check-a11y` rule 6 now fails any file containing `role="dialog"` or
+  `aria-modal="true"` that does not call `useDialog(`, unless the file carries an `// a11y-ok:`
+  line saying why. There are exactly **two** such lines and they are the whole list of exceptions:
+  `Confirm.tsx`, for the reason above; and `SearchHelp.tsx`, which is the product's one
+  deliberately NON-modal dialog — the operator card answers a question about the search field
+  beside it while the reader keeps typing into that field, so it takes no focus, claims no
+  modality, and a trap would pull the caret out of the box on their next Tab.
+  **A trap that steals the initial focus is worse than none**, so a surface that already focuses
+  itself passes `manualFocus: true` and keeps its own choice. A surface that does not says where
+  focus goes: `MediaForm` opens on its TITLE field, not on the × that was merely first in the
+  DOM — a sheet that announces itself by its own dismissal is a sheet that reads as a mistake.
+  Escape stays with whatever already owned it (the theme picker's Escape RESTORES the previewed
+  room; the history panel's steps aside for a confirm stacked on it), and `onEscape` is passed
+  only where nothing did.
 - **Motion.** `prefersReducedMotion()` / `scrollBehavior()` are the only way to ask. CSS gets the
   blanket rule in `styles/a11y.css`; anything animated in JS (the two graphs, smooth scrolls) opts
   out itself. Canvas simulations settle without painting the drift rather than freezing mid-layout.
+  **Two durations and one curve**, named in `tokens.css` as `--motion-quick: 120ms` (something
+  ARRIVES or leaves — a menu, a popover, a scrim, the palette's backdrop), `--motion-pane: 180ms`
+  (something RESIZES — the pane collapse DESIGN.md pins at that number) and `--motion-ease: ease`.
+  The shell had already converged on those two numbers; it said so as literals in nine stylesheets,
+  which is how a third number appears, and the overlay family reads the tokens now. **Layout
+  properties are not animated** except by the pane-collapse rule DESIGN.md writes down — width,
+  which is what "a collapsed pane is 0 width" means — and by progress bars, which are one isolated
+  box; everything else moves with `transform` and `opacity`. An audit of 3.17.3 measured zero
+  transitions over 50ms with `prefers-reduced-motion: reduce` on, the palette at 0.01ms: the
+  blanket rule is holding, and it covers anything added under these tokens too.
 - **Keyboard.** No control is pointer-only. Imperative DOM that is "a link" without an `href`
   (`.s-rv-wikilink`, `[data-fn]`) carries `role="link" tabindex="0"` and is activated through
   `activateOnKey`. The sidebar tree is ONE tab stop: `role="tree"` on `.s-tree__root`, rows are
@@ -2986,10 +3063,58 @@ overlay is now **500**, above everything, which is structural rather than cosmet
 layer can spawn a confirm, so anything that can paint over one is a dialog the reader cannot
 answer. **Anything new that covers the viewport goes below 500** — the trash browser takes `420`
 (above the drawer, below the confirm, so its purge dialog stacks on it).
-*Known and deliberately not fixed here:* the command palette (`200`) and the moderation feed
-(`110`) are still under the drawer, so with the drawer open on a phone they are covered the same
-way. That predates this section and belongs to whoever takes the drawer's layering as its own
-change; it is written down so it is not rediscovered as a surprise.
+*That "known and deliberately not fixed" note is now closed, and the whole ladder has names.*
+
+### The stacking ladder (`--z-*`, `client/styles/tokens.css`)
+
+Every rung lives in `:root` with the reason beside it, and **no z-index at or above 300 may be
+written as a literal anywhere in `client/styles`** — `check-a11y` rule 7 fails one that is, unless
+the line (or the line above it) says `z-ok:`. There is one waiver, `.s-preview-strip`, which is a
+sticky ROW inside the flow and not a layer over the viewport. Below 300 is local stacking inside a
+pane and the ladder does not govern it.
+
+    --z-menu-scrim 299 · --z-menu 300 · --z-find 320 · --z-drawer-backdrop 390 · --z-drawer 400
+    --z-palette 410 · --z-panel 420 · --z-toast 430 · --z-popover 440 · --z-capture 450
+    --z-confirm 500 · --z-hovercard 500 · --z-crash 900 · --z-skip 1000 · --z-eye (above all)
+
+The three arguments the numbers settle, each of which had been decided twice:
+
+- **The palette is above the drawer (410 > 400).** `.s-palette-overlay` is not the palette's alone:
+  the theme picker, the shortcuts sheet, the template picker, the layout picker, what's-new, the
+  tour, the theme builder and the new-deck sheet all reuse it, so its number is the number of every
+  full-viewport sheet in the product. At 100 it sat under the phone drawer that opens it —
+  measured, `elementFromPoint` at the palette's own centre returned a tree row — under the sync
+  popover at 120 and under the menus at 300. It is still below the panels it can open (420), the
+  toasts it can raise (430) and the confirm it can ask (500).
+- **An anchored popover's action row outranks a transient (440 > 430).** The toast contract puts a
+  transient over the panel that raised it; `.s-syncpop` is the exception it names, because its
+  buttons are buttons — a long toast ("Bookmark removed") printed straight across *Backup settings*
+  and *Sync now*, an action the reader could see and could not press.
+- **A menu gets a ground on touch (299).** The scrim sits one rung below the menu it dims the page
+  for, never over it.
+- **A menu is over the pane it was opened from — and in the drawer shell that pane is the DRAWER.**
+  `--z-menu` and `--z-menu-scrim` are the one pair on this ladder that take different values in a
+  different shell: `tokens.css` redefines them to **405 / 404** under `app.css`'s drawer condition
+  (`(max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine)))`), one rung above the
+  drawer and still below the palette, which must stay over both. This is not decoration. The tree's
+  menu, the tag shelf's menu and the sort menu are portalled to `<body>` — correctly, because a
+  menu must not be clipped by a pane that animates its own width — which takes them out of the
+  drawer's stacking context, and at 300 the drawer painted straight over them: measured at 390×844,
+  a long press on a folder built a seventeen-row menu at x 124 and `elementFromPoint` on its first
+  row returned `HEADER.s-sidebar-header`. The reader got a 62px stripe of half-words. Two values
+  for one name is the thing this ladder exists to prevent, so there is exactly one definition site
+  per shell and both live beside the ladder itself; the rule that names them is one sentence, and
+  it is the sentence the `menu 300` rung was already written from.
+
+**A full-viewport sheet also CLOSES what it covers.** Ctrl/Cmd+P is a keystroke, so none of the
+outside-mousedown listeners see it: the sync popover stayed lit over the palette's own backdrop
+(it is two rungs higher now, which makes this required rather than tidy), and a context menu sat
+under the backdrop still pointing at a row, waiting to be uncovered. `ContextMenu` and `SyncBadge`
+watch `paletteOpen` and stand down; the imperative heading menu dismisses on any keydown carrying
+a modifier, since none of its own keys use one — **except a modifier pressed alone**, which reports
+`ctrlKey` on its own keydown and is not a keystroke yet: closing there took the menu away from a
+reader still spelling the shortcut, and from anyone whose layout puts AltGr (Ctrl+Alt) on the way
+to a letter.
 
 - Client: `TrashModal.tsx` + `styles/trash.css`, opened by the palette's *Open trash*
   (admin, not in preview) and cleared from the store on logout and on entering visitor preview.
@@ -3577,6 +3702,28 @@ Arabic.
 titles, outline entries, search hits and snippets, backlink titles/contexts, palette rows,
 status-bar crumb segments, moderation rows, and reader comment names/bodies: each picks its own
 direction. Without it, `1 - Source Material` renders as `Source Material - 1` in an RTL shell.
+
+**`dir="auto"` DOES NOT LOOK THROUGH A CHILD THAT CARRIES ITS OWN `dir`.** This is the root cause
+under a whole family of "the Arabic is on the wrong side" reports, and it is worth stating once in
+full because it reads as a browser bug and is not one: the algorithm walks for the first strong
+character *skipping any subtree with its own direction*, so a container whose children are ALL
+`dir="auto"` has nothing left to look at and falls back to the direction of its PARENT — which in
+English chrome is `ltr`, whatever the Arabic inside it says. `dir="auto"` over `dir="auto"` is
+therefore not "auto twice", it is auto over nothing.
+
+The consequences measured on 3.17.3: a `<ul>` with no `dir` over `<li dir="auto">` resolved LTR
+while each item resolved RTL, so an Arabic task item's `margin-inline-start: -1.35em` went the
+wrong way and put its checkbox 17px outside the column; a `<table dir="auto">` over
+`<td dir="auto">` resolved LTR and rendered the Arabic header column order REVERSED; and an
+Arabic callout's title line resolved LTR against an RTL body — two bars on one box — because the
+`[!type]` token is replaced by a widget, leaving the line's own `dir="auto"` with no strong
+character in the DOM at all.
+
+**The rule, and it is the one `reading/render.ts` already documents for the callout box: a
+container resolves its direction from its own text, with `firstStrongDirection(text) ?? "auto"`,
+and never by putting `dir="auto"` over children that carry `dir="auto"`.** Inner spans of an
+editor line never carry `dir` at all. `pinBlocks()` pins only `[dir="auto"]`, so a container that
+has resolved to a real value needs no further plumbing.
 
 **Direction is per content; ALIGNMENT is per chrome.** `dir="auto"` on a full-width block sets
 both, which is wrong for a chrome row: an English outline entry left-aligned itself inside a
@@ -6770,8 +6917,19 @@ seam between them was the defect; this is the rule that closes it.
   a 1440×900 viewport and 341×828 with 1,217px of scroll at 390×844: twenty-one rows, seventeen
   swatches and four lines of body copy, i.e. ~390px of scrolling INSIDE a context menu to reach
   "Remove colour". Nothing was dropped — the palette owns the same commands, and a page a reader
-  opens on purpose costs no height to a reader who does not. Measured after: 273×458 at 1440×900,
-  no internal scroll.
+  opens on purpose costs no height to a reader who does not.
+  **Re-measured, because the box grew back.** The 3.3.1 number (273×458) stopped being true as rows
+  were added, and an audit of 3.17.3 found it at 233×650 in a 900px viewport — clamped to y = 8,
+  which is to say nowhere near the words it acts on. Three cuts, in the repo's own moves: the
+  "Hide the floating toolbar" row is **gone** (Settings › This device and the palette own that
+  preference, and a menu of verbs about the selected words is not where a menu configures itself);
+  Extract, Annotate and Make a card are **one untitled group**, because they are one idea — what
+  the selection becomes somewhere else — and each rule between them cost 11px; and desktop rows are
+  **28px** (`padding: 4px 10px`), with the coarse block's 44px floor untouched, since that is the
+  one place a menu row is a touch target. Measured after, on a markdown note at 1440×900:
+  **233×540, fifteen rows in four groups, no internal scroll** (`scrollHeight === clientHeight`).
+  It is still tall enough to be clamped against a selection low in the viewport; that is a
+  consequence of the vocabulary being complete, and the next cut has to come from the vocabulary.
 - **The colour group is one row.** The two tiers stay (see *Coloured text*) but the reader does not
   adjudicate a WCAG argument at the moment they want a word red: the row is theme-aware by default,
   a *Fixed ink* checkbox switches the same row to the literal inks, the arithmetic lives in each
@@ -9271,6 +9429,15 @@ check-fidelity` (scripts/check-fidelity.mjs) holds the two surfaces to the
 same computed styles on a rich note — tables, callouts, code, math, embeds,
 footnotes, ruby, images with widths — in both chrome languages.
 
+**A HEADING IS `--heading`, IN BOTH SURFACES.** `.cm-s-h1` (client/editor/theme.ts)
+carried a colour of its own — `color-mix(in srgb, var(--accent) 15%, var(--text))`,
+a near-miss of the token — so the same `# Title` was #d1e2f5 in the editor and
+#e6edf3 in the reading view, and `check-fidelity` failed on `en: h1` and `ar: h1`
+from the theme-token restore until 3.18. The h1–h6 rule above it already says
+`var(--heading)`, which is what `.s-rv-h1` says; the size, the padding and the
+hairline under it were the reading view's numbers all along. No heading level in
+either surface names a colour the other does not.
+
 **Live preview follows the reveal-on-caret rule.** Caret outside a top-level
 `Table` node → the block is one `Decoration.replace` block widget
 (`.cm-s-table`, a StateField — block decorations cannot come from a
@@ -9569,9 +9736,57 @@ sends only the plan body. "Save as template" writes the same note into the templ
 due by today (the count the "Due by today" list below it draws, handed up rather than fetched twice);
 its Orbits door shows while cards are due, and "nothing due" — the recents row taking the top —
 means no sigil, no card and no task. A slot that
-wikilinks a deck wears the chip `client/routines/orbits.ts` draws (see Orbits below). The month grid
-at the page's top and in the sidebar marks a day a sigil logged OR a book was read
-(`loggedDaysOf` in shared/calendar.ts: the tracker `sessions:` lines ride the same fetch).
+wikilinks a deck wears the chip `client/routines/orbits.ts` draws (see Orbits below). **The month is
+not on this page.** It was a section at its top until 3.18 (the owner: "kinda weird and useless in
+the sigils window") and is the Calendar page now; the trackers went with it, because they only ever
+rode this page's load for the grid's second mark.
+
+## The Calendar page (`shared/dayAgenda.ts`, `client/calendar/CalendarView.tsx`, `client/styles/calendarpage.css`)
+
+**The month is a PLACE, not a widget on somebody else's page.** From 3.17 a 440px grid sat at the
+top of the Sigils page; the owner took it off ("I might honestly remove the calendar view from the
+sigil window… kinda weird and useless in the sigils window"), and it is a page of its own from
+3.18. `CALENDAR_TAB = "~calendar"`, `surface === "calendar"`, `setView("calendar")` /
+`toggleCalendar()`, `/calendar` in the router, a lazy chunk pinned by `MUST_SPLIT`, a door in the
+status bar (a wall-calendar leaf, `data-testid="calendar-door"`, beside the seal and the ring;
+admin-only like them, because creating a day's note writes) with a labelled row in the phone's `⋯`
+menu, and `cmdOpenCalendar` in the palette. The SIDEBAR's small grid is untouched and keeps its own
+job; the two share `shared/calendar.ts` and nothing else.
+
+**TWO GRIDS, DELIBERATELY — and this replaces "the ONE month grid".** Until 3.18 the rule was that
+`components/CalendarGrid.tsx` draws every month in the product, and the Sigils page's copy was the
+proof it could. It cannot draw this one. `CalendarGrid` is a DATE PICKER: a `<table>` of day
+numbers with up to two dots under each, whose cell is sized to a number and whose whole job is to
+answer "which day", and it is the right thing in a 295px fold. The page's cell is a paragraph — the
+number, a dot for the day's note, up to four named lines and `+N more` — and its selection is
+`aria-selected` on a `gridcell` rather than a pressed button. Widening the picker to carry content
+would have put every one of those decisions behind a prop and made the fold pay for them; so the
+page draws its own, the two share the month arithmetic (`monthCells`, `firstOfMonth`, the calendar
+and week-start resolution) and nothing else, and `client/loggedDays.ts` has exactly ONE caller, the
+sidebar's fold. The duplication this release spent itself removing was *the same drawing in two
+places*; this is two drawings answering two questions, and the shared half is shared.
+
+**What a day held is pure and stored nowhere.** `shared/dayAgenda.ts` — no DOM, no fetch, loaded by
+`node --test` (tests/dayAgenda.test.ts) — takes the days of the drawn month, the `dailyNotesByDay`
+map, the vault's sigils, the trackers and the device's Orbits log, and answers
+`Map<iso, DayAgenda>`: the daily note's path, the sigils that LOGGED that day with the status
+`dayStatus` gives them (so the month and the card can never disagree), the decks graded with how
+many were kept, the sittings summed per tracker, and a `count` of all of it. ONE PASS PER MONTH,
+not one per cell: each source is bucketed by day once. `localDay` and `ReviewGrade` are
+shared/weekReview.ts's, because the week and the month must reckon a day the same way. Nothing is
+written — the weekly review's argument, and "the note is the state" allows no second ledger.
+
+**One control per cell; the day pane is where you act.** A cell is ONE button (the number, a dot
+for the day's note, up to four lines of what the day held, then `+N more`) and pressing it SELECTS
+the day; the pane beside the grid — under it below 900px of PANE width, which is a container query,
+so a calendar in half a split behaves like a phone — shows that day in full with every row a door
+to its note, led by "Open the day's note" / "Create the day's note" through `openPeriodicNoteAt`.
+A single click never writes a file; the labelled button does, and a double-click on a cell is the
+shortcut. The grid is ONE tab stop with the sidebar grid's keys (arrows mirrored under RTL,
+Home/End the row, PageUp/PageDown the month, crossing an edge turns the page) and the pane is the
+next stop, so nothing in a cell is reachable only by mouse. The selection is `aria-selected` on the
+one `gridcell` that holds it, never `aria-pressed` on the button inside: a day is not a toggle, and
+saying so forty-two times is all a screen reader would hear.
 
 ## Orbits — spaced repetition (`shared/decks.ts`, `shared/srsSession.ts`, `client/orbits/`, `server/deckImport.ts`)
 
@@ -9849,7 +10064,8 @@ month — rows of seven from the site language's first day (`weekOrder`). Dots c
 (`dailyNotesByDay`: a string compare per note, nothing stored) and from the sigil logs the caller
 hands in; the grid is ONE tab stop (arrows walk, mirrored under RTL; Home/End the row; PageUp/Down
 the month) and a click goes through `openPeriodicNoteAt`. The sidebar draws it for an admin, and
-for a visitor only when a daily note is published; the Sigils page draws it at its top.
+for a visitor only when a daily note is published. It is a DATE PICKER and nothing more; the
+Sigils page drew it at its top in 3.17 and does not any more (see *The Calendar page* above).
 
 **The editor conveniences.** `{{cursor}}` and `{{prompt:Label}}`/`{{VALUE:Label}}` in
 `client/templates.ts` (`templatePrompts`, `fillPrompts`, `takeCursor`; the sheet is

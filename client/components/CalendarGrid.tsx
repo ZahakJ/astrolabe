@@ -1,11 +1,14 @@
-// THE MONTH GRID — the sidebar's Calendar section and the top of the Sigils
-// page, one component.
+// THE MONTH GRID — the sidebar's Calendar section, and a date picker before
+// it is anything else. It drew the top of the Sigils page as well until
+// 3.18, when the month became a page of its own (client/calendar/) with room
+// to say what a day HELD rather than only that something happened on it.
+// This one stays small, stays in the sidebar, and keeps its one job.
 //
 // Drawn in the site's calendar (shared/calendar.ts): a Gregorian month on a
 // Gregorian instance, a Hijri month on a Hijri one, and on an instance that
 // prints BOTH the leading calendar's month with the other's day number small
 // in each cell's corner — and nowhere else. The first column is the site
-// language's first day (Monday in English, Saturday in Arabic; the Sigils
+// language's first day (Monday in English, Saturday in Arabic; the sigil
 // card's own rule, shared/routine.ts `weekOrder`), the month and day names
 // are Intl's in the chrome language (client/dates.ts), the digits follow the
 // instance's numerals. Nothing here hand-rolls a name.
@@ -14,8 +17,8 @@
 // tree through the daily folder and format (client/daily.ts), which is a
 // string compare per note and nothing stored — and carries a second mark
 // when a sigil logged that day or a book was read (`loggedDaysOf`; the caller
-// hands the set in: the Sigils page already holds every log, the sidebar
-// asks once). Today is ringed. A click
+// hands the set in; the sidebar's fold is the one that does, through
+// client/loggedDays.ts). Today is ringed. A click
 // opens the day's note through the daily-note command's own door, so a note
 // created from the grid is templated exactly as Ctrl/Cmd Alt D would.
 //
@@ -40,7 +43,7 @@ export interface CalendarGridProps {
   /** ISO days that carry a sigil log line or a reading session — the second
    *  mark (`loggedDaysOf`). */
   logged?: ReadonlySet<string>;
-  /** The sidebar's drawer closes itself after a pick; the page does not. */
+  /** The sidebar's drawer closes itself after a pick. */
   onOpened?: () => void;
 }
 
