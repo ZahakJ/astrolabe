@@ -370,6 +370,419 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.18.0",
+    title: { en: "The month takes a door, and every layer knows where it stands", ar: "الشهر يأخذ بابًا، وكل طبقة تعرف مكانها" },
+    slides: [
+      {
+        // ── The calendar's own page ──────────────────────────────────────
+        title: { en: "The month has a page of its own", ar: "صار للشهر صفحة خاصة به" },
+        body: {
+          en: "A small grid used to sit at the top of the Sigils page, where it could say which days had a note and nothing else about them. The month is a place of its own now — /calendar, a leaf in the top bar — drawn full width, with room in every cell to name the sigils you kept, the cards you graded and the pages you read.",
+          ar: "كان شهر صغير يجلس في أعلى صفحة السِّجِلّ، لا يقول إلا أي الأيام له ملاحظة. صار للشهر مكان خاص به: العنوان ‎/calendar‎، وورقة تقويم في الشريط العلوي، مرسومًا بعرض الصفحة، وفي كل خلية متّسع لتسمية السِّجلّات التي حافظت عليها، والبطاقات التي قيّمتها، والصفحات التي قرأتها.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => {
+            // BEFORE: a cramped page with a small month wedged over a list.
+            // AFTER: the month alone on a wide page, its cells carrying lines.
+            const small: string[] = [];
+            for (let d = 1; d <= 28; d++) {
+              const col = d % 7;
+              const row = Math.floor(d / 7);
+              small.push(`<circle cx="${52 + col * 14}" cy="${74 + row * 12}" r="1.5" fill="var(--text-faint)"/>`);
+            }
+            const cells: string[] = [];
+            for (let i = 0; i < 12; i++) {
+              const col = i % 4;
+              const row = Math.floor(i / 4);
+              const x = 300 + col * 58;
+              const y = 58 + row * 46;
+              const today = i === 5;
+              cells.push(`<rect x="${x}" y="${y}" width="54" height="42" rx="4" fill="var(--bg)" stroke="var(--border)"/>`);
+              cells.push(`<text x="${x + 6}" y="${y + 13}" fill="var(--text${today ? "" : "-muted"})" font-size="9"${today ? ' font-weight="600"' : ""}>${18 + i}</text>`);
+              if (today) cells.push(`<circle class="wa-pulse" style="--i:3" cx="${x + 9}" cy="${y + 10}" r="8" fill="none" stroke="var(--accent)" stroke-width="1.2"/>`);
+              // two or three named lines per cell — the point of the page
+              cells.push(`<rect x="${x + 6}" y="${y + 19}" width="${30 + (i % 3) * 6}" height="3" rx="1.5" fill="var(--accent)" opacity="0.55"/>`);
+              cells.push(`<rect x="${x + 6}" y="${y + 26}" width="${22 + (i % 4) * 5}" height="3" rx="1.5" fill="var(--callout-success)" opacity="0.5"/>`);
+              if (i % 2 === 0) cells.push(`<rect x="${x + 6}" y="${y + 33}" width="${18 + (i % 3) * 7}" height="3" rx="1.5" fill="var(--text-faint)" opacity="0.7"/>`);
+            }
+            return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0">
+    <text x="30" y="34" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "BEFORE", "قبل")}</text>
+    <rect x="30" y="42" width="220" height="158" rx="8" fill="var(--bg)" stroke="var(--border)" opacity="0.6"/>
+    <text x="42" y="58" fill="var(--text-muted)" font-family="Georgia, serif" font-size="11" opacity="0.7">${L(lang, "Sigils", "السِّجِلّ")}</text>
+    <rect x="42" y="62" width="104" height="70" rx="5" fill="var(--bg-raised)" stroke="var(--border)" opacity="0.8"/>
+    ${small.join("")}
+    <line x1="42" y1="62" x2="146" y2="132" stroke="var(--text-faint)" stroke-width="1.2" opacity="0.8"/>
+    <rect x="42" y="142" width="196" height="5" rx="2.5" fill="var(--text-faint)" opacity="0.5"/>
+    <rect x="42" y="154" width="170" height="5" rx="2.5" fill="var(--text-faint)" opacity="0.5"/>
+    <rect x="42" y="166" width="186" height="5" rx="2.5" fill="var(--text-faint)" opacity="0.5"/>
+    <rect x="42" y="178" width="120" height="5" rx="2.5" fill="var(--text-faint)" opacity="0.35"/>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <text x="288" y="34" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "NOW", "الآن")}</text>
+    ${cells.join("")}
+  </g>
+  <g class="wa-late" style="--i:4">
+    <line x1="470" y1="46" x2="470" y2="34" stroke="var(--accent)" stroke-width="1"/>
+    <rect x="462" y="22" width="17" height="15" rx="3" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.3"/>
+    <line x1="462" y1="27" x2="479" y2="27" stroke="var(--accent)" stroke-width="1.1"/>
+    <line x1="466" y1="20" x2="466" y2="24" stroke="var(--accent)" stroke-width="1.1"/>
+    <line x1="475" y1="20" x2="475" y2="24" stroke="var(--accent)" stroke-width="1.1"/>
+  </g>
+</svg>`;
+          },
+        },
+        docs: "calendar",
+      },
+      {
+        // ── The day pane ─────────────────────────────────────────────────
+        title: { en: "A day, opened", ar: "يومٌ مفتوحًا" },
+        body: {
+          en: "Click any day and the pane beside the month opens it in full: the day's note, the sigils that logged, the decks you studied and how much stuck, the sittings you read. Every name is a door back to the note it came from, and nothing is written until you press “Create the day's note”.",
+          ar: "انقر أي يوم، فتفتحه اللوحة التي بجانب الشهر كاملًا: ملاحظة اليوم، والسِّجلّات التي سجّلت فيه، والمجموعات التي درستها وكم منها حُفظ، وجلسات القراءة. وكل اسم باب يعود إلى الملاحظة التي جاء منها، ولا يُكتب شيء حتى تضغط «إنشاء ملاحظة اليوم».",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0">
+    <rect x="30" y="52" width="72" height="56" rx="5" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.6"/>
+    <text x="38" y="68" fill="var(--text)" font-size="11" font-weight="600">23</text>
+    <rect x="38" y="76" width="44" height="3.5" rx="1.75" fill="var(--accent)" opacity="0.6"/>
+    <rect x="38" y="85" width="36" height="3.5" rx="1.75" fill="var(--callout-success)" opacity="0.55"/>
+    <rect x="38" y="94" width="40" height="3.5" rx="1.75" fill="var(--text-faint)" opacity="0.7"/>
+  </g>
+  <path class="wa-late" style="--i:1" d="M102 80 C 150 80, 160 46, 208 46" fill="none" stroke="var(--accent)" stroke-width="1.1" stroke-dasharray="3 3" opacity="0.8"/>
+  <g class="wa-late" style="--i:2">
+    <rect x="208" y="30" width="196" height="166" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="220" y="48" fill="var(--text)" font-family="Georgia, serif" font-size="12">${L(lang, "Wed 23 September", "الأربعاء 23 سبتمبر")}</text>
+    <line x1="220" y1="56" x2="392" y2="56" stroke="var(--border)"/>
+    <text x="220" y="74" fill="var(--text-muted)" font-size="9" letter-spacing="0.6">${L(lang, "SIGILS", "السِّجلّات")}</text>
+    <text x="220" y="90" fill="var(--accent)" font-size="10">${L(lang, "Morning walk", "مشي الصباح")}</text>
+    <text x="312" y="90" fill="var(--text-muted)" font-size="10">2 / 2</text>
+    <text x="220" y="108" fill="var(--text-muted)" font-size="9" letter-spacing="0.6">${L(lang, "ORBITS", "المدارات")}</text>
+    <text x="220" y="124" fill="var(--accent)" font-size="10">${L(lang, "Arabic verbs", "الأفعال العربية")}</text>
+    <text x="312" y="124" fill="var(--text-muted)" font-size="10">${L(lang, "31 · 84% kept", "31 · 84٪ محفوظة")}</text>
+    <text x="220" y="142" fill="var(--text-muted)" font-size="9" letter-spacing="0.6">${L(lang, "READING", "القراءة")}</text>
+    <text x="220" y="158" fill="var(--accent)" font-size="10">${L(lang, "The Muqaddimah", "المقدمة")}</text>
+    <text x="312" y="158" fill="var(--text-muted)" font-size="10">${L(lang, "14 pp · 40 min", "14 ص · 40 د")}</text>
+  </g>
+  <g class="wa-late" style="--i:4">
+    <rect x="220" y="170" width="172" height="20" rx="5" fill="var(--bg-raised)" stroke="var(--accent)"/>
+    <rect x="226" y="174" width="12" height="12" rx="2" fill="none" stroke="var(--accent)" stroke-width="1.1"/>
+    <circle cx="235" cy="180" r="1" fill="var(--accent)"/>
+    <text x="246" y="184" fill="var(--accent)" font-size="10">${L(lang, "Create the day's note", "إنشاء ملاحظة اليوم")}</text>
+  </g>
+  <g class="wa-late" style="--i:3" font-size="9" fill="var(--text-faint)">
+    <path d="M404 90 L 444 90" stroke="var(--border)" stroke-width="1" stroke-dasharray="2 3"/>
+    <text x="450" y="93">${L(lang, "its note", "ملاحظته")}</text>
+    <path d="M404 124 L 444 124" stroke="var(--border)" stroke-width="1" stroke-dasharray="2 3"/>
+    <text x="450" y="127">${L(lang, "its deck", "مجموعتها")}</text>
+    <path d="M404 158 L 444 158" stroke="var(--border)" stroke-width="1" stroke-dasharray="2 3"/>
+    <text x="450" y="161">${L(lang, "its tracker", "متتبِّعه")}</text>
+  </g>
+</svg>`,
+        },
+        docs: "calendar",
+      },
+      {
+        // ── The Sigils page gets its top back ────────────────────────────
+        title: { en: "Sigils asks one question again", ar: "صفحة السِّجِلّ تسأل سؤالًا واحدًا من جديد" },
+        body: {
+          en: "With the month gone, the Sigils page opens straight from its heading into the day's cards — what is asked of you, what is due, what you have already kept. It also gave back a read it was only making for the grid's second dot, so the page loads the sigils and nothing else.",
+          ar: "بخروج الشهر، تنتقل صفحة السِّجِلّ من عنوانها إلى بطاقات اليوم مباشرة: ما يُطلب منك، وما استحقّ، وما حافظتَ عليه فعلًا. كما استعادت قراءةً لم تكن تجريها إلا من أجل النقطة الثانية في الشبكة، فصارت تحمّل السجلّات وحدها لا غير.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0">
+    <rect x="176" y="26" width="208" height="46" rx="6" fill="none" stroke="var(--text-faint)" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.7"/>
+    <text x="280" y="53" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the month was here", "كان الشهر هنا")}</text>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <path d="M392 48 L 448 48" stroke="var(--accent)" stroke-width="1.1" stroke-dasharray="3 3"/>
+    <path d="M442 44 L 448 48 L 442 52" fill="none" stroke="var(--accent)" stroke-width="1.1"/>
+    <rect x="456" y="38" width="18" height="17" rx="3" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.3"/>
+    <line x1="456" y1="44" x2="474" y2="44" stroke="var(--accent)" stroke-width="1.1"/>
+    <line x1="461" y1="35" x2="461" y2="40" stroke="var(--accent)" stroke-width="1.1"/>
+    <line x1="469" y1="35" x2="469" y2="40" stroke="var(--accent)" stroke-width="1.1"/>
+  </g>
+  <g class="wa-late" style="--i:1">
+    <text x="176" y="94" fill="var(--text)" font-family="Georgia, serif" font-size="15">${L(lang, "Sigils", "السِّجِلّ")}</text>
+    <text x="176" y="110" fill="var(--text-muted)" font-size="10">${L(lang, "3 of 5 complete today", "3 من 5 مكتمل اليوم")}</text>
+    <rect x="176" y="122" width="208" height="76" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="188" y="140" fill="var(--text)" font-size="10" font-family="Georgia, serif">${L(lang, "Morning walk", "مشي الصباح")}</text>
+    <g stroke="var(--callout-success)" stroke-width="1.4" fill="none">
+      <rect x="188" y="148" width="11" height="11" rx="2.5" stroke="var(--border)"/>
+      <path class="wa-draw" style="--i:3" d="M191 153.5 l2.5 2.5 l4 -5"/>
+      <rect x="188" y="166" width="11" height="11" rx="2.5" stroke="var(--border)"/>
+      <path class="wa-draw" style="--i:4" d="M191 171.5 l2.5 2.5 l4 -5"/>
+    </g>
+    <rect x="206" y="152" width="96" height="4" rx="2" fill="var(--text-faint)" opacity="0.6"/>
+    <rect x="206" y="170" width="120" height="4" rx="2" fill="var(--text-faint)" opacity="0.6"/>
+    <g opacity="0.75">
+      <rect x="188" y="184" width="9" height="7" rx="1.5" fill="var(--callout-success)" opacity="0.7"/>
+      <rect x="201" y="184" width="9" height="7" rx="1.5" fill="var(--callout-success)" opacity="0.7"/>
+      <rect x="214" y="184" width="9" height="7" rx="1.5" fill="var(--text-faint)" opacity="0.5"/>
+      <rect x="227" y="184" width="9" height="7" rx="1.5" fill="var(--callout-success)" opacity="0.7"/>
+      <rect x="240" y="184" width="9" height="7" rx="1.5" fill="var(--callout-success)" opacity="0.7"/>
+      <rect x="253" y="184" width="9" height="7" rx="1.5" fill="var(--text-faint)" opacity="0.3"/>
+      <rect x="266" y="184" width="9" height="7" rx="1.5" fill="var(--text-faint)" opacity="0.3"/>
+    </g>
+  </g>
+</svg>`,
+        },
+        docs: "sigils",
+      },
+      {
+        // ── The stacking ladder ──────────────────────────────────────────
+        title: { en: "Every layer knows where it stands", ar: "كل طبقة تعرف مكانها" },
+        body: {
+          en: "Fourteen rungs that used to be bare numbers in nine stylesheets now have names and reasons, and a gate fails any new one written out. The command palette had been sitting at 100, underneath the phone drawer that opens it; it is at 410 now, above the drawer and below the panels it can raise.",
+          ar: "أربع عشرة درجة كانت أرقامًا مجردة في تسع ملفات أنماط صار لها أسماء وأسباب، وبوابة ترفض أي رقم جديد يُكتب يدويًا. كانت لوحة الأوامر عند 100، أي تحت الدرج الذي يفتحها على الهاتف؛ صارت الآن عند 410، فوق الدرج وتحت اللوحات التي قد ترفعها.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => {
+            const rungs: [string, string, string][] = [
+              ["pane", "اللوح", "1"],
+              ["sticky", "لاصق", "20"],
+              ["drawer", "الدرج", "400"],
+              ["palette", "اللوحة", "410"],
+              ["menu", "القائمة", "420"],
+              ["confirm", "التأكيد", "500"],
+            ];
+            const rows = rungs
+              .map(([en, ar, n], i) => {
+                const y = 182 - i * 27;
+                const hot = en === "palette";
+                return `<g class="wa" style="--i:${i}">
+    <line x1="60" y1="${y}" x2="210" y2="${y}" stroke="var(${hot ? "--accent" : "--border"})" stroke-width="${hot ? 1.8 : 1.2}"/>
+    <text x="220" y="${y + 4}" fill="var(${hot ? "--accent" : "--text-muted"})" font-size="10">${L(lang, en, ar)}</text>
+    <text x="300" y="${y + 4}" fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="9">${n}</text>
+  </g>`;
+              })
+              .join("");
+            return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <line x1="60" y1="28" x2="60" y2="190" stroke="var(--border)" stroke-width="1.2"/>
+  <line x1="210" y1="28" x2="210" y2="190" stroke="var(--border)" stroke-width="1.2"/>
+  ${rows}
+  <g class="wa-late" style="--i:6">
+    <rect x="362" y="34" width="116" height="156" rx="10" fill="var(--bg)" stroke="var(--border)" stroke-width="1.4"/>
+    <rect x="362" y="34" width="68" height="156" rx="10" fill="var(--bg-raised)" stroke="var(--accent)" stroke-width="1.2"/>
+    <text x="396" y="176" text-anchor="middle" fill="var(--text-muted)" font-size="9">${L(lang, "drawer", "الدرج")}</text>
+    <g><rect x="374" y="72" width="92" height="40" rx="6" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.4"/></g>
+    <text x="420" y="96" text-anchor="middle" fill="var(--accent)" font-size="9">${L(lang, "its menu", "قائمته")}</text>
+  </g>
+</svg>`;
+          },
+        },
+      },
+      {
+        // ── Dialogs ──────────────────────────────────────────────────────
+        title: { en: "A dialog that keeps the promise it makes", ar: "نافذة تفي بما تَعِد به" },
+        body: {
+          en: "Twenty-one of the app's thirty-seven dialogs had no focus trap, and six of those announced themselves as modal to a screen reader anyway. They all take the one shared primitive now: Tab stays inside, and closing hands focus back to whatever opened it.",
+          ar: "إحدى وعشرون من نوافذ التطبيق السبع والثلاثين لم يكن فيها حصر للتركيز، وستٌّ منها كانت تعلن أنها نافذة حاجبة للقارئ الآلي رغم ذلك. صارت كلها تستعمل الأداة المشتركة نفسها: يبقى Tab في الداخل، ويعود التركيز عند الإغلاق إلى ما فتحها.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--text)" opacity="0.18"/>
+  <g class="wa" style="--i:0">
+    <rect x="150" y="44" width="260" height="112" rx="10" fill="var(--bg)" stroke="var(--border)" stroke-width="1.4"/>
+    <text x="170" y="70" fill="var(--text)" font-family="Georgia, serif" font-size="13">${L(lang, "Close without saving?", "إغلاق دون حفظ؟")}</text>
+    <rect x="170" y="82" width="200" height="4" rx="2" fill="var(--text-faint)" opacity="0.5"/>
+    <rect x="170" y="92" width="150" height="4" rx="2" fill="var(--text-faint)" opacity="0.5"/>
+    <rect x="228" y="118" width="62" height="22" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/>
+    <text x="259" y="133" text-anchor="middle" fill="var(--text-muted)" font-size="10">${L(lang, "Cancel", "إلغاء")}</text>
+    <rect x="300" y="118" width="70" height="22" rx="6" fill="var(--bg-raised)" stroke="var(--accent)"/>
+    <text x="335" y="133" text-anchor="middle" fill="var(--accent)" font-size="10">${L(lang, "Discard", "تجاهل")}</text>
+  </g>
+  <rect class="wa-late" style="--i:2" x="158" y="52" width="244" height="96" rx="7" fill="none" stroke="var(--accent)" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <g class="wa-late" style="--i:4">
+    <path d="M170 156 C 130 186, 200 196, 246 190" fill="none" stroke="var(--text-faint)" stroke-width="1.1" stroke-dasharray="3 3"/>
+    <path d="M240 186 L 246 190 L 240 194" fill="none" stroke="var(--text-faint)" stroke-width="1.1"/>
+    <rect x="250" y="178" width="84" height="22" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="292" y="193" text-anchor="middle" fill="var(--text-muted)" font-size="10">${L(lang, "what opened it", "ما فتحها")}</text>
+  </g>
+  <text class="wa-late" style="--i:3" x="418" y="100" fill="var(--accent)" font-size="10">${L(lang, "Tab stays inside", "يبقى Tab في الداخل")}</text>
+</svg>`,
+        },
+      },
+      {
+        // ── Menus ────────────────────────────────────────────────────────
+        title: { en: "A menu to aim at, not a list to read", ar: "قائمة تُقصد لا لائحة تُقرأ" },
+        body: {
+          en: "A folder's sixteen rows are five separated groups now, and the sort menu's rows carry a tick in a column reserved on every row. The whole thing closes on Escape and on a click outside — which the old sort menu, which closed only when the mouse left it, never did on a phone at all.",
+          ar: "صفوف المجلد الستة عشر صارت خمس مجموعات مفصولة، وصفوف قائمة الترتيب تحمل علامة في عمود محجوز في كل صف. والقائمة كلها تُغلق بمفتاح Escape وبنقرة في الخارج، وهو ما لم تفعله قائمة الترتيب القديمة قط على الهاتف.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => {
+            const flat = Array.from(
+              { length: 16 },
+              (_, i) => `<rect x="60" y="${44 + i * 9}" width="104" height="4" rx="2" fill="var(--text-faint)" opacity="0.55"/>`,
+            ).join("");
+            return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="48" y="30" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "BEFORE", "قبل")}</text>
+  <g class="wa" style="--i:0" opacity="0.7">
+    <rect x="48" y="36" width="132" height="160" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+    ${flat}
+  </g>
+  <text x="300" y="30" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "NOW", "الآن")}</text>
+  <g class="wa-late" style="--i:2">
+    <rect x="300" y="36" width="168" height="160" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+    <line x1="318" y1="36" x2="318" y2="196" stroke="var(--border)" stroke-width="1"/>
+    ${[0, 1, 2, 3, 4]
+      .map((g) => {
+        const top = 46 + g * 31;
+        const rowsInGroup = g === 0 ? 4 : 3;
+        const rows = Array.from({ length: rowsInGroup }, (_, r) => {
+          const y = top + r * 8;
+          const tick = g === 1 && r === 1;
+          return `<rect x="326" y="${y}" width="${88 - (r % 3) * 10}" height="4" rx="2" fill="var(--text-faint)" opacity="0.6"/>${tick ? `<path class="wa-draw" style="--i:5" d="M306 ${y + 2} l2.5 2.5 l4.5 -5.5" fill="none" stroke="var(--accent)" stroke-width="1.4"/>` : ""}`;
+        }).join("");
+        const rule = g === 4 ? "" : `<line x1="300" y1="${top + rowsInGroup * 8 + 2}" x2="468" y2="${top + rowsInGroup * 8 + 2}" stroke="var(--border)" stroke-width="1"/>`;
+        return rows + rule;
+      })
+      .join("")}
+  </g>
+  <text class="wa-late" style="--i:4" x="482" y="120" fill="var(--accent)" font-size="9">Esc</text>
+</svg>`;
+          },
+        },
+      },
+      {
+        // ── Anchoring ────────────────────────────────────────────────────
+        title: { en: "Nothing is placed off the side of the screen", ar: "لا شيء يُوضع خارج حافة الشاشة" },
+        body: {
+          en: "One clamp now holds both edges of every anchored popover, so the sync panel that used to start 189 pixels off a phone's left edge sits inside it, and the folder-icon picker fits its screen instead of overrunning it — opening on a glyph, not on a search field.",
+          ar: "صار قيدٌ واحد يمسك حافتَي كل نافذة منبثقة مرتكزة، فلوحة المزامنة التي كانت تبدأ على بعد 189 بكسل خارج حافة الهاتف صارت داخله، ومنتقي أيقونة المجلد صار يسع شاشته بدل أن يتجاوزها، ويفتح على رمز لا على حقل بحث.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0" opacity="0.65">
+    <rect x="96" y="30" width="108" height="164" rx="12" fill="var(--bg)" stroke="var(--border)" stroke-width="1.4"/>
+    <rect x="42" y="72" width="136" height="72" rx="7" fill="var(--bg-raised)" stroke="var(--text-faint)" stroke-dasharray="4 3"/>
+    <text x="110" y="112" text-anchor="middle" fill="var(--text-faint)" font-size="9">${L(lang, "189px off", "189 بكسل خارجًا")}</text>
+  </g>
+  <text x="96" y="24" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "BEFORE", "قبل")}</text>
+  <text x="330" y="24" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "NOW", "الآن")}</text>
+  <g class="wa-late" style="--i:2">
+    <rect x="330" y="30" width="108" height="164" rx="12" fill="var(--bg)" stroke="var(--border)" stroke-width="1.4"/>
+    <rect x="338" y="72" width="92" height="72" rx="7" fill="var(--bg-raised)" stroke="var(--accent)" stroke-width="1.3"/>
+    <g font-size="13" fill="var(--text-muted)">
+      <text x="350" y="92">✦</text><text x="372" y="92">✧</text><text x="394" y="92">❋</text>
+      <text x="350" y="116">◆</text><text x="372" y="116">●</text><text x="394" y="116">▲</text>
+    </g>
+  </g>
+  <g class="wa-late" style="--i:4" stroke="var(--accent)" stroke-width="1" font-size="8" fill="var(--accent)">
+    <line x1="330" y1="158" x2="338" y2="158"/>
+    <line x1="430" y1="158" x2="438" y2="158"/>
+    <text x="334" y="172" text-anchor="middle" stroke="none">8</text>
+    <text x="434" y="172" text-anchor="middle" stroke="none">8</text>
+  </g>
+</svg>`,
+        },
+      },
+      {
+        // ── Settings & travel (the 3.18 groundwork) ──────────────────────
+        title: { en: "Settings that never lose an edit, and preferences that travel", ar: "إعدادات لا تضيّع تعديلًا، وتفضيلات تسافر" },
+        body: {
+          en: "No exit from the settings panel discards silently any more: Escape, the scrim, the × and Close all ask before dropping a dirty form. “Inherit” is “Default” now — a name for what you get rather than for the mechanism — and three more preferences travel with the vault.",
+          ar: "لم يعد أي خروج من لوحة الإعدادات يتجاهل تعديلًا في صمت: مفتاح Escape والستارة وعلامة × وزر الإغلاق، كلها تسأل قبل أن تُسقط نموذجًا لم يُحفظ. وصار «الموروث» يُسمّى «الافتراضي»، وصارت ثلاثة تفضيلات أخرى تسافر مع الخزانة.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0">
+    <rect x="30" y="30" width="260" height="164" rx="9" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="44" y="50" fill="var(--text)" font-family="Georgia, serif" font-size="12">${L(lang, "Settings", "الإعدادات")}</text>
+    <line x1="30" y1="58" x2="290" y2="58" stroke="var(--border)"/>
+    <text x="44" y="78" fill="var(--text)" font-size="10">${L(lang, "Daily note format", "صيغة الملاحظة اليومية")}</text>
+    <circle cx="176" cy="74" r="5.5" fill="none" stroke="var(--accent)" stroke-width="1.1"/>
+    <text x="176" y="77.5" text-anchor="middle" fill="var(--accent)" font-size="7">i</text>
+    <text x="44" y="96" fill="var(--text-muted)" font-size="9">${L(lang, "the hint, with room to breathe", "التلميح، وله متّسع")}</text>
+    <text x="44" y="122" fill="var(--text)" font-size="10">${L(lang, "Theme", "السِّمة")}</text>
+    <g><rect x="196" y="66" width="80" height="16" rx="4" fill="var(--bg-raised)" stroke="var(--border)"/></g>
+    <g><rect x="196" y="110" width="80" height="16" rx="4" fill="var(--bg-raised)" stroke="var(--accent)"/>
+    <text x="236" y="122" text-anchor="middle" fill="var(--accent)" font-size="9">${L(lang, "Default", "الافتراضي")}</text></g>
+    <text x="44" y="146" fill="var(--text-muted)" font-size="9">${L(lang, "was “Inherit”", "كان: الموروث")}</text>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <rect x="312" y="52" width="216" height="62" rx="8" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.3"/>
+    <text x="328" y="74" fill="var(--text)" font-family="Georgia, serif" font-size="11">${L(lang, "Close without saving?", "إغلاق دون حفظ؟")}</text>
+    <rect x="386" y="84" width="60" height="18" rx="5" fill="var(--bg-raised)" stroke="var(--border)"/>
+    <text x="416" y="96" text-anchor="middle" fill="var(--text-muted)" font-size="9">${L(lang, "Cancel", "إلغاء")}</text>
+    <rect x="454" y="84" width="60" height="18" rx="5" fill="var(--bg-raised)" stroke="var(--accent)"/>
+    <text x="484" y="96" text-anchor="middle" fill="var(--accent)" font-size="9">${L(lang, "Discard", "تجاهل")}</text>
+  </g>
+  <g class="wa-late" style="--i:4" font-size="9">
+    <text x="312" y="140" fill="var(--text-faint)" letter-spacing="0.8">${L(lang, "TRAVELS WITH THE VAULT", "تسافر مع الخزانة")}</text>
+    <text x="312" y="158" fill="var(--accent)">${L(lang, "where each course was left", "أين تُركت كل دورة")}</text>
+    <text x="312" y="174" fill="var(--accent)">${L(lang, "the properties panel", "لوحة الخصائص")}</text>
+    <text x="312" y="190" fill="var(--accent)">${L(lang, "reading mode", "وضع القراءة")}</text>
+  </g>
+</svg>`,
+        },
+        docs: "configuration",
+      },
+      {
+        // ── The rest of the round ────────────────────────────────────────
+        title: { en: "A hundred small things", ar: "مئة شيء صغير" },
+        body: {
+          en: "A heading is one colour again: the editor drew `# Title` a shade off the reading view's, and both surfaces now say the same token. The manual has a gate of its own, so a link that stops resolving fails the build — and the whole month, page and day pane, stays out of the first paint.",
+          ar: "والعنوان لون واحد من جديد: كان المحرر يرسم `# العنوان` بدرجة تخالف وضع القراءة، وصار السطحان ينطقان بالرمز نفسه. وصار للدليل بوابته الخاصة، فأي رابط يتوقف عن العمل يُسقط البناء، وبقي الشهر كله، صفحةً ولوحةَ يوم، خارج أول رسم.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0">
+    <text x="40" y="44" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "ONE HEADING, ONE COLOUR", "عنوان واحد، لون واحد")}</text>
+    <rect x="40" y="54" width="220" height="54" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="54" y="76" fill="var(--text-faint)" font-family="ui-monospace, monospace" font-size="10">#</text>
+    <text x="68" y="76" fill="var(--heading)" font-family="Georgia, serif" font-size="14">${L(lang, "The Title", "العنوان")}</text>
+    <line x1="54" y1="84" x2="246" y2="84" stroke="var(--border)"/>
+    <text x="54" y="100" fill="var(--text-muted)" font-size="9">${L(lang, "editor", "المحرر")}</text>
+    <text x="150" y="100" fill="var(--text-muted)" font-size="9">${L(lang, "reading", "القراءة")}</text>
+    <circle class="wa-pulse" style="--i:3" cx="130" cy="97" r="4" fill="var(--callout-success)" opacity="0.55"/>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <text x="40" y="136" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "THE MANUAL IS GATED", "الدليل مُحاط ببوابة")}</text>
+    <rect x="40" y="146" width="220" height="48" rx="7" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="54" y="166" fill="var(--accent)" font-size="10">calendar.md</text>
+    <text x="150" y="166" fill="var(--accent)" font-size="10">التقويم.md</text>
+    <text x="54" y="184" fill="var(--text-muted)" font-size="9">${L(lang, "every link resolves", "كل رابط يعمل")}</text>
+    <path class="wa-draw" style="--i:5" d="M232 178 l4 4 l7 -9" fill="none" stroke="var(--callout-success)" stroke-width="1.6"/>
+  </g>
+  <g class="wa-late" style="--i:4">
+    <text x="300" y="44" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "OUT OF THE FIRST PAINT", "خارج أول رسم")}</text>
+    <rect x="300" y="54" width="220" height="140" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="314" y="70" width="192" height="28" rx="5" fill="var(--bg-raised)" stroke="var(--border)"/>
+    <text x="326" y="88" fill="var(--text-muted)" font-size="10">${L(lang, "first paint", "أول رسم")}</text>
+    <rect x="314" y="108" width="192" height="1" fill="var(--border)"/>
+    <rect x="314" y="120" width="192" height="26" rx="5" fill="var(--bg-raised)" stroke="var(--accent)" stroke-dasharray="4 3"/>
+    <text x="326" y="137" fill="var(--accent)" font-size="10">${L(lang, "the Calendar page", "صفحة التقويم")}</text>
+    <rect x="314" y="154" width="192" height="26" rx="5" fill="var(--bg-raised)" stroke="var(--accent)" stroke-dasharray="4 3"/>
+    <text x="326" y="171" fill="var(--accent)" font-size="10">${L(lang, "the day's agenda", "أحداث اليوم")}</text>
+  </g>
+</svg>`,
+        },
+      },
+    ],
+  },
+  {
     version: "3.17.0",
     title: { en: "The month, the margin, the week, and a line from anywhere", ar: "الشهر والهامش والأسبوع، وسطر من أي مكان" },
     slides: [
