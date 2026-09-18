@@ -1420,6 +1420,7 @@ const DICT = {
   },
   // The status bar's standing indicator + its tooltip.
   reachPill: { en: "{visible}/{total} public", ar: "{visible}/{total} عام" },
+  reachPillSplit: { en: "AR {ar} · EN {en} of {total}", ar: "ع {ar} · EN {en} من {total}" },
   reachTitle: {
     en: "{hidden} published notes are hidden from visitors by your settings — click to open Settings.",
     ar: "‏{hidden} ملاحظة منشورة مخفية عن الزوار بسبب إعداداتك — انقر لفتح الإعدادات.",

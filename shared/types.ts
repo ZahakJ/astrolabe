@@ -753,8 +753,16 @@ export interface VisibilityImpact {
   published: number;
   /** Of those, how many a visitor would actually discover under this scope. */
   visible: number;
-  /** Published notes the LANGUAGE filter alone removes. */
+  /** Published notes the LANGUAGE filter removes from EVERY visitor. Under
+   *  `perReader` this is 0 by construction: a note the Arabic reader cannot
+   *  find is exactly the one the English reader gets. */
   hiddenByLanguage: number;
+  /** `"follow"` with the visitor switch on — the one configuration where a
+   *  single `visible` count is a lie. The owner's own site read "5/107 public"
+   *  in the status bar while 102 English notes were reachable by anyone who
+   *  tapped EN; every summary must print the per-reader split (`census`)
+   *  instead of `visible` while this is true. */
+  perReader: boolean;
   /** The mode this answer describes (in force, or the one asked about). */
   languageFilter: LanguageFilterMode;
   /** The language the count was taken at, or null when nothing is filtered.
