@@ -83,6 +83,10 @@ export function editorTheme(): Extension {
       padding: "48px 0 120px",
       caretColor: "var(--editor-caret)",
     },
+    // CodeMirror's base theme insets every line `0 2px 0 6px` — physical, so
+    // an Arabic line started 2px from its own edge and an English one 6px.
+    // The same numbers, on the logical sides.
+    ".cm-line": { paddingInline: "6px 2px" },
     ".cm-cursor, .cm-dropCursor": { borderLeftColor: "var(--editor-caret)" },
     ".cm-selectionBackground, &.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
       { background: "var(--accent-soft)" },
@@ -256,15 +260,22 @@ export function editorTheme(): Extension {
       borderRadius: "4px",
       padding: "0.05em 0.3em",
     },
+    // The reading view's `.s-rv-pre` metrics (reading.css): face, size,
+    // leading and inset. The box around the fence (border, radius, margin)
+    // is the one thing a run of lines cannot draw.
     ".cm-s-codeblock": {
       fontFamily: "var(--font-mono)",
-      fontSize: "0.875em",
+      fontSize: "0.82em",
+      lineHeight: "1.6",
+      paddingInline: "1em",
       color: "var(--codeblock-text)",
       background: "var(--codeblock-bg)",
     },
+    // Logical, because the line carries `dir="auto"`: an Arabic quote is
+    // barred on its right, as the reading view's `.s-rv-quote` is.
     ".cm-s-quote": {
-      borderLeft: "3px solid var(--quote-bar)",
-      paddingLeft: "0.9em",
+      borderInlineStart: "3px solid var(--quote-bar)",
+      paddingInlineStart: "0.9em",
       color: "var(--quote-text)",
       fontStyle: "italic",
     },
@@ -304,7 +315,8 @@ export function editorTheme(): Extension {
       color: "var(--tag-text)",
       background: "var(--tag-bg)",
       borderRadius: "999px",
-      padding: "0.05em 0.5em",
+      padding: "0.05em 0.55em",
+      fontFamily: "var(--font-ui)",
       fontSize: "0.72em",
     },
     ".cm-s-link, .cm-s-url": {

@@ -13,8 +13,9 @@
 // A cell is DOTTED when a daily note exists for that day — read off the
 // tree through the daily folder and format (client/daily.ts), which is a
 // string compare per note and nothing stored — and carries a second mark
-// when a sigil logged that day (the caller hands the set in; the Sigils page
-// already holds every log, the sidebar asks once). Today is ringed. A click
+// when a sigil logged that day or a book was read (`loggedDaysOf`; the caller
+// hands the set in: the Sigils page already holds every log, the sidebar
+// asks once). Today is ringed. A click
 // opens the day's note through the daily-note command's own door, so a note
 // created from the grid is templated exactly as Ctrl/Cmd Alt D would.
 //
@@ -36,7 +37,8 @@ import { useStore } from "../state.ts";
 import "../styles/calendar.css";
 
 export interface CalendarGridProps {
-  /** ISO days that carry a sigil log line — the second mark. */
+  /** ISO days that carry a sigil log line or a reading session — the second
+   *  mark (`loggedDaysOf`). */
   logged?: ReadonlySet<string>;
   /** The sidebar's drawer closes itself after a pick; the page does not. */
   onOpened?: () => void;

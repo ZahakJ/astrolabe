@@ -8,6 +8,33 @@
 
 .cm-s-table {
   padding: 0.15em 0;
+  /* THE CELLS WRAP THE READING VIEW'S WAY, NOT CODEMIRROR'S. The widget sits
+     inside `.cm-content.cm-lineWrapping`, whose `white-space: break-spaces;
+     word-break: break-word; overflow-wrap: anywhere` exist so a line of
+     source can never overflow the editor — and a table cell inherits all
+     three, so a column squeezed by its neighbours broke "Count" into "Coun/t"
+     and "Identifier" into "Ide/ntif/ier" while the reading view kept the
+     word whole and scrolled the wrap instead. Reset exactly the three
+     CodeMirror set, to the values reading.css gives the same table
+     (`overflow-wrap: break-word` on the column, the rest initial), and
+     nothing else: a `th { white-space: nowrap }` here would be a fifth
+     table style, and the gate (scripts/check-fidelity.mjs) compares these
+     cells to the reading view's. */
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  /* The line's own inset (theme.ts `.cm-line`, 6px/2px), so the table's
+     leading edge lines up with the prose beside it as it does in the
+     reading view, where neither has an inset. */
+  padding-inline: 6px 2px;
+  /* AND THE TABLE MUST NOT WIDEN THE NOTE. `.cm-content` is a flex item
+     that will not shrink below its min-content width, and once the cells
+     stopped breaking inside words that width became the wide table's —
+     every line in the note then wrapped at the table's width instead of
+     the column's and ran off a phone's screen. Inline-size containment
+     makes the widget's intrinsic width nothing; it takes the column's, and
+     the wrap scrolls inside it as it does in the reading view. */
+  contain: inline-size;
 }
 
 /* The editor column is narrower than a wide table wants to be. The wrap

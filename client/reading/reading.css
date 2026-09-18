@@ -421,7 +421,11 @@ li.s-rv-task input[type="checkbox"] {
   -webkit-appearance: none;
   width: 15px;
   height: 15px;
-  margin: 0 0.45em 0 0;
+  /* The gap sits between the box and its words on either side of the page:
+     `margin: 0 0.45em 0 0` put it on the right in an Arabic item, where the
+     words are on the left ("مهمة مفتوحة☐"). */
+  margin-block: 0;
+  margin-inline: 0 0.45em;
   padding: 0;
   vertical-align: -0.15em;
   border: 1.5px solid var(--text-faint);
@@ -778,10 +782,20 @@ span.s-rv-math-live {
 
 /* ── Footnotes ─────────────────────────────────────────────────────────── */
 
+/* The reference is sized on the <sup>, explicitly: the browser's own
+   `smaller` under an `a { 0.8em }` came to two thirds of the prose while the
+   editor's `.cm-s-footnote` (preview.css) is 0.72em, and the same note read
+   one pixel smaller in one surface. `line-height: 1` keeps the superscript
+   from tallening its line, as it does there. */
+.s-rv-fnref {
+  font-size: 0.72em;
+  line-height: 1;
+  vertical-align: super;
+}
+
 .s-rv-fnref a {
   color: var(--accent);
   font-family: var(--font-ui);
-  font-size: 0.8em;
   cursor: pointer;
 }
 

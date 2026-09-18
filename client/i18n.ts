@@ -4669,6 +4669,9 @@ const DICT = {
   // "٣ بطاقات"); the Arabic ends in it so no adjective has to agree with a
   // count that changes gender at one.
   routinesOrbitsDue: { en: "{n} due", ar: "المستحق: {n}" },
+  // Both halves of the same line when cards AND tasks are due: each is a
+  // countPhrase already, joined as one noun phrase for `routinesOrbitsDue`.
+  routinesDueBoth: { en: "{cards} and {tasks}", ar: "{cards} و{tasks}" },
   addFlashcard: { en: "Make a card", ar: "اصنع بطاقة" },
   // ── Orbits on a sigil card (client/routines/orbits.ts): the chip a slot
   // wears when its text wikilinks a deck note ──
@@ -4966,7 +4969,7 @@ const DICT = {
   calendarToday: { en: "Back to this month", ar: "العودة إلى هذا الشهر" },
   calendarTitleAria: { en: "{month} — back to this month", ar: "{month}؛ العودة إلى هذا الشهر" },
   calendarCellNote: { en: "has a note", ar: "له ملاحظة" },
-  calendarCellLogged: { en: "a sigil logged", ar: "سُجِّل فيه سِجِلّ" },
+  calendarCellLogged: { en: "a sigil or a reading logged", ar: "سُجِّل فيه سِجِلّ أو قراءة" },
   recentlyRead: { en: "Recently read", ar: "قُرئ مؤخرًا" },
   dailyFolderLabel: { en: "Daily notes folder", ar: "مجلد الملاحظات اليومية" },
   dailyFormatLabel: { en: "Daily note name", ar: "اسم الملاحظة اليومية" },

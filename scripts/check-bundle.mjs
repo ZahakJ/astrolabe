@@ -1108,7 +1108,11 @@ const AUDIENCES = [
   // 3.17.2: 1545.1 kB actual → 1546 — the Sigils masonry (two hooks) and the
   // wider emoji shelf.
   // 3.18.0: 1546.3 kB actual → 1547 — the iron-gall block (entry, above).
-  { name: "admin first paint", keys: app, budget: 1547 * 1024 },
+  // 3.18.0: 1547.5 kB actual → 1548 — the status bar's frame crumb (the
+  // focused surface's name through Tabs.tsx titleOf), the calendar's
+  // tracker marks in the sidebar (one more GET, loggedDaysOf), the resolved
+  // list/table direction in render.ts and the editor's logical line inset.
+  { name: "admin first paint", keys: app, budget: 1548 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

@@ -1325,7 +1325,10 @@ select:focus,
   -webkit-appearance: none;
   width: 15px;
   height: 15px;
-  margin: 0 0.45em 0 0;
+  /* Logical: the gap goes between box and words in an Arabic line too
+     (reading.css `li.s-rv-task input` says the same). */
+  margin-block: 0;
+  margin-inline: 0 0.45em;
   padding: 0;
   vertical-align: -0.15em;
   border: 1.5px solid var(--text-faint);

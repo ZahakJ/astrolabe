@@ -19,6 +19,7 @@
     "check-signatures": "node scripts/check-signatures.mjs",
     "check-contrast": "node scripts/check-contrast.mjs",
     "check-caret": "node scripts/check-caret.mjs",
+    "check-fidelity": "node scripts/check-fidelity.mjs",
     "check-french": "node scripts/check-french.mjs",
     "check-sections": "node scripts/check-sections.mjs",
     "check-excerpt": "node scripts/check-excerpt.mjs",
