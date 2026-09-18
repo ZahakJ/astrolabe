@@ -33,8 +33,10 @@ const STAMPS_KEY = `${STORAGE_PREFIX}prefs-sync`;
 const OFF_KEY = `${STORAGE_PREFIX}prefs-sync-off`;
 
 /** The keys that are preferences, as opposed to window state. Each is a
- *  localStorage key without the product prefix. */
-const TRAVELS = new Set([
+ *  localStorage key without the product prefix. Exported as a list for
+ *  `tests/prefs.test.ts`, which pins it: a key dropped from here stops
+ *  travelling silently, and a key added is a decision about every device. */
+export const TRAVELLING_KEYS = [
   "theme",
   "site-theme",
   "lang",
@@ -56,7 +58,15 @@ const TRAVELS = new Set([
   // Whether your French is corrected as you type is a fact about you, not
   // about the window (client/frenchPref.ts).
   "frenchAutocorrect",
-]);
+  // 3.18.0, the owner's yes: three ledgers that are the reader's by the same
+  // argument as a book's page. Where each course was left (client/library/
+  // libraryData.ts — well under the 64 KB a key may carry), the properties
+  // panel's choice (client/editor/noteMeta.ts), and reading mode (state.ts).
+  "library",
+  "properties",
+  "reading",
+];
+const TRAVELS = new Set(TRAVELLING_KEYS);
 
 interface Entry {
   v: string | null;
@@ -108,11 +118,25 @@ function writeStamps(stamps: Record<string, number>): void {
 }
 
 /** The originals, held before the patch so the module's own writes (the
- *  stamps, an applied remote value) never re-enter the push queue. */
-const raw = {
-  setItem: Storage.prototype.setItem,
-  removeItem: Storage.prototype.removeItem,
-};
+ *  stamps, an applied remote value) never re-enter the push queue. Guarded
+ *  so the allowlist above can be imported by a node test: there is no
+ *  Storage there, and nothing below runs without one. */
+const raw: {
+  setItem: (this: Storage, key: string, value: string) => void;
+  removeItem: (this: Storage, key: string) => void;
+} =
+  typeof Storage === "undefined"
+    ? { setItem: () => {}, removeItem: () => {} }
+    : { setItem: Storage.prototype.setItem, removeItem: Storage.prototype.removeItem };
+
+/** When this window last pulled the vault's copy and how many keys it
+ *  applied — the travel row's readout ("preferences: 14 keys, pulled 4 s
+ *  ago"). Null until a pull has answered. */
+let pulled: { at: number; applied: number; keys: number } | null = null;
+
+export function lastPull(): { at: number; applied: number; keys: number } | null {
+  return pulled;
+}
 
 /** Write what the vault knows and this device does not yet — a newer stamp,
  *  or a key this device never stamped. Returns the keys that changed. */
@@ -217,6 +241,7 @@ export async function pullPrefs(): Promise<string[]> {
     denied = false;
     const body = (await res.json()) as { keys?: PrefMap };
     const changed = applyRemote(body.keys ?? {});
+    pulled = { at: Date.now(), applied: changed.length, keys: Object.keys(body.keys ?? {}).length };
     // Anything this device chose before the sync existed goes up now.
     const fresh = unstampedLocal();
     if (Object.keys(fresh).length > 0) {

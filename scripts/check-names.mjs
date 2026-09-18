@@ -90,6 +90,7 @@ function scanDict(file) {
 }
 scanDict(join(root, "client/i18n.ts"));
 scanDict(join(root, "client/orbits/copy.ts"));
+scanDict(join(root, "client/components/settings/travelCopy.ts"));
 
 // ── 2. Prose: the docs, the README, the seed vault ───────────────────────────
 for (const dir of ["docs", "docs/ar"]) {

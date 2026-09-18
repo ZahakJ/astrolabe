@@ -6090,6 +6090,15 @@ button.s-title:hover {
   background: transparent;
 }
 
+/* A thumb's target: these verbs (Sync now, Initialize, Re-sync now) measured
+   33px on a phone, below the shell's 44px promise. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-smodal__actions .s-btn {
+    min-height: 44px;
+    padding-inline: 14px;
+  }
+}
+
 .s-syncdot {
   flex: none;
   width: 7px;
@@ -6101,6 +6110,34 @@ button.s-title:hover {
 .s-syncdot--ok { background: var(--accent); }
 .s-syncdot--busy { background: var(--accent); animation: s-sync-pulse 1.2s ease-in-out infinite; }
 .s-syncdot--error { background: var(--danger); }
+
+/* What travels (client/components/settings/TravelRow.tsx): the checklist is
+   a list, not a sentence — one glyph and one name per item, hairlines between
+   them (.s-smodal__counts), wrapping at phone width. The glyph carries the
+   state's colour; the name stays the text colour so a row of eight items
+   reads as a list rather than a traffic light. */
+.s-travel__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.s-travel__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.s-travel__glyph {
+  flex: none;
+  font-size: 0.786rem;
+  line-height: 1;
+  color: var(--text-faint);
+}
+
+.s-travel__item--ok .s-travel__glyph { color: var(--accent); }
+.s-travel__item--warn .s-travel__glyph { color: var(--danger); }
 
 /* The badge's detail panel. It replaces a native `title` tooltip: that text is
    the diagnosis, and a tooltip cannot be selected, copied, or reached at all

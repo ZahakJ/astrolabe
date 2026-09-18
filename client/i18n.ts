@@ -2312,6 +2312,15 @@ const DICT = {
     en: "Save these settings before syncing.",
     ar: "احفظ هذه الإعدادات قبل المزامنة.",
   },
+  // ── What travels (client/components/settings/TravelRow.tsx) ─────────────
+  // The row's label and hint only — the settings search index resolves them
+  // before the panel exists. The row's own two dozen strings travel with the
+  // panel's chunk (client/components/settings/travelCopy.ts).
+  rowTravel: { en: "What travels", ar: "ما يسافر" },
+  hintTravel: {
+    en: "Your look, your fonts and your ledgers, kept in the vault's .astrolabe folder for every machine that opens it.",
+    ar: "مظهرك وخطوطك وسجلاتك، محفوظة في مجلد .astrolabe داخل الخزانة لكل جهاز يفتحها.",
+  },
   syncErrorShort: { en: "failed", ar: "فشلت" },
   syncFailed: { en: "Sync failed", ar: "فشلت المزامنة" },
   syncPushed: { en: "Vault committed and pushed", ar: "أُودعت الخزانة ورُفعت" },

@@ -2642,3 +2642,30 @@ useStore.subscribe((s, prev) => {
     persistTabs(s.openTabs, s.openPath);
   }
 });
+
+/** THE FIRST PAINT SEES THE VAULT'S PREFERENCES.
+ *
+ *  Everything above read vim, relative lines, reading mode, the sidebar's
+ *  side, the editor language and the theme from localStorage when this module
+ *  was EVALUATED — and imports hoist, so that is before `pullPrefs()` in
+ *  main.tsx has answered. A fresh device therefore painted its own defaults
+ *  on the first load and the vault's on the second (measured: the sidebar on
+ *  the wrong edge once, then right). main.tsx calls this after the pull and
+ *  before `createRoot`, only when the pull changed a key: the same readers,
+ *  run again, into the store nothing has rendered from yet. `sidebarSide`
+ *  resolves against the boot default the way the initial state did; loadMe()
+ *  settles it against the instance language the same way it always has. */
+export function reloadPrefsFromStorage(): void {
+  const theme = readTheme();
+  if (theme !== useStore.getState().theme) applyTheme(theme);
+  const pref = readSidebarSidePref();
+  useStore.setState({
+    theme,
+    vimMode: readVim(),
+    relativeLines: readRelativeLines(),
+    readingMode: readReading(),
+    sidebarSidePref: pref,
+    sidebarSide: effectiveSide(pref, useStore.getState().language),
+    editorLangPref: readEditorLang(),
+  });
+}
