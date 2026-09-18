@@ -103,7 +103,15 @@ export function MediaForm({
   const [error, setError] = useState<string | null>(null);
   const panelRef = useRef<HTMLFormElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  useDialog(panelRef, { onEscape: onClose });
+  // OPEN ON THE TITLE, not on ×. The first tabbable element in this sheet is
+  // the close button, so a reader who pressed "New" landed on the way out of
+  // the form they had just asked for, and the sheet announced itself by its
+  // dismissal. The title is the first thing anyone types here and the only
+  // field the form cannot be saved without.
+  useDialog(panelRef, {
+    onEscape: onClose,
+    initialFocus: () => panelRef.current?.querySelector<HTMLElement>("#s-mediaform-title"),
+  });
   useEffect(() => setError(null), [draft.title]);
 
   const set = <K extends keyof MediaDraft>(key: K, value: MediaDraft[K]): void =>

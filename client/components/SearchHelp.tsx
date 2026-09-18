@@ -64,6 +64,12 @@ export default function SearchHelp({ onClose }: { onClose: () => void }): React.
   }, [onClose]);
 
   return (
+    // a11y-ok: a NON-modal dialog on purpose, and the one in the product. The
+    // card answers a question about the field beside it and the reader keeps
+    // typing into that field while they read — so it carries no `aria-modal`
+    // and takes no focus, and a trap would pull the caret out of the search
+    // box on the reader's next Tab. It closes on Escape and on any outside
+    // pointerdown (above), which is what a non-modal popover owes.
     <div className="s-searchhelp" ref={box} role="dialog" aria-label={t("searchHelpTitle")}>
       <h2 className="s-searchhelp__title">{t("searchHelpTitle")}</h2>
       <dl className="s-searchhelp__rows">

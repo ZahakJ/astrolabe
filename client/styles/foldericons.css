@@ -20,10 +20,15 @@
 .s-tree-iconpick {
   --cell: 32px;
   position: fixed;
-  z-index: 300;
+  z-index: var(--z-menu);
   display: flex;
   flex-direction: column;
-  inline-size: calc(7 * var(--cell) + 6 * 3px + 20px);
+  /* The grid's own width, CAPPED BY THE VIEWPORT. Seven 44px cells is wider
+     than a 390px phone, and the popover ran to the screen edge with its
+     border, its search field's end and the "No icon" row all cut off. The
+     16px is anchorPopover's 8px keep-out on both sides — one number, so the
+     clamp and the placement cannot disagree. */
+  inline-size: min(calc(7 * var(--cell) + 6 * 3px + 20px), calc(100vw - 16px));
   padding: 8px 10px 6px;
   background: var(--bg-raised);
   border: 1px solid var(--border);
@@ -32,7 +37,7 @@
      raised surface here uses it (.s-menu, .s-modal, .s-skip) because a shadow
      is depth rather than colour and must read the same in every theme. */
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
-  animation: s-pop-in 0.12s ease;
+  animation: s-pop-in var(--motion-quick) var(--motion-ease);
 }
 
 /* The folder being marked, said out loud: the popover can sit far from its
@@ -103,7 +108,13 @@
   gap: 3px;
 }
 
+/* Clear of the sticky shelf name. `scrollIntoView` on the current mark, and
+   the roving focus as the arrows walk up a shelf, were parking cells exactly
+   under the label that floats over them — the glyph the reader is looking for
+   is the one they cannot see. The number is the label's own height (4px + 3px
+   padding on a 0.714rem line). */
 .s-tree-iconpick__cell {
+  scroll-margin-block-start: 26px;
   inline-size: var(--cell);
   block-size: var(--cell);
   padding: 0;
@@ -193,7 +204,7 @@
 @media (pointer: coarse) {
   .s-tree-iconpick {
     --cell: 44px;
-    inline-size: calc(6 * var(--cell) + 5 * 4px + 20px);
+    inline-size: min(calc(6 * var(--cell) + 5 * 4px + 20px), calc(100vw - 16px));
   }
 
   .s-tree-iconpick__grid {

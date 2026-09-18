@@ -242,14 +242,25 @@ class SectionButtonWidget extends WidgetType {
       ev.preventDefault();
       ev.stopPropagation();
       const rect = btn.getBoundingClientRect();
-      openMenuForLine(view, this.linePos, rect.left, rect.bottom + 4);
+      openMenuForLine(view, this.linePos, rect.left, rect.bottom + 4, false);
+    });
+    // Enter / Space on the ⋯ — `detail === 0` is the browser's own mark for a
+    // click that no pointer made. Without this the affordance was mouse-only
+    // (mousedown never fires from a key), and a menu only a mouse can open is
+    // the thing DESIGN.md's keyboard rule forbids.
+    btn.addEventListener("click", (ev) => {
+      if (ev.detail !== 0) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const rect = btn.getBoundingClientRect();
+      openMenuForLine(view, this.linePos, rect.left, rect.bottom + 4, true);
     });
     host.appendChild(btn);
     return host;
   }
 }
 
-function openMenuForLine(view: EditorView, pos: number, x: number, y: number): void {
+function openMenuForLine(view: EditorView, pos: number, x: number, y: number, fromKeyboard: boolean): void {
   const doc = view.state.doc;
   const line = doc.lineAt(Math.min(pos, doc.length));
   const content = doc.toString();
@@ -259,6 +270,7 @@ function openMenuForLine(view: EditorView, pos: number, x: number, y: number): v
     headingLine: line.number - 1,
     x,
     y,
+    fromKeyboard,
     onFoldBelow: (s) => setFoldsBelow(view, s, true),
     onUnfoldBelow: (s) => setFoldsBelow(view, s, false),
     onSelect: (s) => selectSection(view, s),
@@ -403,7 +415,9 @@ export function sectioning(): Extension {
         const line = view.state.doc.lineAt(pos);
         if (!HEADING_LINE_RE.test(line.text)) return false;
         event.preventDefault();
-        openMenuForLine(view, line.from, event.clientX, event.clientY);
+        // Shift+F10 and the Menu key raise `contextmenu` with `button: 0`; a
+        // right-click reports 2. Only the keyboard one takes focus.
+        openMenuForLine(view, line.from, event.clientX, event.clientY, event.button !== 2);
         return true;
       },
     }),
@@ -447,10 +461,11 @@ export function openEditorSectionMenu(
   headingLine: number,
   x: number,
   y: number,
+  fromKeyboard: boolean,
 ): boolean {
   const view = viewsByPath.get(path);
   if (!view || !view.dom.isConnected) return false;
-  openMenuForLine(view, view.state.doc.line(headingLine + 1).from, x, y);
+  openMenuForLine(view, view.state.doc.line(headingLine + 1).from, x, y, fromKeyboard);
   return true;
 }
 

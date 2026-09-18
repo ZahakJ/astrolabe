@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useDialog } from "../a11y.ts";
 import type { AttachmentKind, TreeNode } from "../../shared/types.ts";
 import { getNumerals, localeNum, t } from "../i18n.ts";
 import { metaSepText } from "../metaSep.tsx";
@@ -96,7 +97,6 @@ export default function AttachmentViewer({ items, index, onIndex, onClose }: Pro
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const [failed, setFailed] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
-  const restoreRef = useRef<Element | null>(null);
 
   const step = useCallback(
     (delta: number) => {
@@ -112,16 +112,14 @@ export default function AttachmentViewer({ items, index, onIndex, onClose }: Pro
     setFailed(false);
   }, [item?.path]);
 
-  // Focus the panel so the arrow keys have somewhere to land, and hand focus
-  // back to the tree row when the viewer closes (the same courtesy Confirm
-  // pays; without it the reader's next Tab starts from the top of the page).
-  useEffect(() => {
-    restoreRef.current = document.activeElement;
-    panelRef.current?.focus();
-    return () => {
-      if (restoreRef.current instanceof HTMLElement) restoreRef.current.focus();
-    };
-  }, []);
+  // Focus the panel so the arrow keys have somewhere to land, hand focus back
+  // to the tree row when the viewer closes, and — the half this had written by
+  // hand and the half it had not — keep Tab inside the scrim. It carried
+  // `aria-modal="true"` over no trap at all, which is a promise made to
+  // assistive tech and broken for everyone. `initialFocus` names the panel
+  // itself because the arrows are its main control and they are read there;
+  // Escape and ←/→ stay with the capture listener below.
+  useDialog(panelRef, { initialFocus: () => panelRef.current });
 
   // Neighbors are prefetched so arrowing through a folder of scans does not
   // flash an empty frame between them. Images only — no one wants a video

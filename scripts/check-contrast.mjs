@@ -154,7 +154,12 @@ if (themes[DEFAULT]) {
 // which is the DEFAULT room's value, so a green room that forgot
 // --callout-warning would wear github-dark's orange. And a room that defines
 // a token the base does not is a typo nothing reads.
-const GLOBAL = /^--(font-|book-ink-|swatch-|sidebar-w$|panel-w$|prose-gutter$|font-scale$|prose-scale$)/;
+// `--z-*` and `--motion-*` join the globals for the same reason the pane
+// widths are there: they are the SHELL's structure, not a room's palette. A
+// theme that could re-order the stacking ladder or re-time the menus would be
+// a theme that changes behaviour, and forty-six blocks each repeating the same
+// fourteen z-index rungs is forty-six places for one of them to drift.
+const GLOBAL = /^--(font-|book-ink-|swatch-|z-|motion-|sidebar-w$|panel-w$|prose-gutter$|font-scale$|prose-scale$)/;
 const THEME_SET = [...declared[ROOT]].filter((t) => !GLOBAL.test(t));
 for (const [name, set] of Object.entries(declared)) {
   if (name === ROOT) continue;

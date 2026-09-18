@@ -298,6 +298,11 @@ export default function ConfirmHost() {
     const checked = runCheck(opts, raw);
     return (
       <div className="s-confirm-overlay" onMouseDown={() => settle("cancel")}>
+        {/* a11y-ok: the ONE documented bespoke trap (CONTRACTS, Accessibility).
+            It has a three-button ring with Enter semantics of its own and is
+            mounted imperatively outside the React tree that raises it, which
+            is why it is not on useDialog — every other dialog in the product
+            is, and check-a11y rule 6 holds that. */}
         <div
           className="s-confirm"
           role="dialog"
