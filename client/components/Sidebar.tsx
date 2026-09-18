@@ -10,9 +10,10 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
 } from "react";
-import type { AttachmentKind, SearchHit, SearchMatch, TagCount, TreeNode } from "../../shared/types.ts";
+import type { AttachmentKind, SearchHit, SearchMatch, TagCount, TrackerMeta, TreeNode } from "../../shared/types.ts";
 import { dailyNotesByDay, usePeriodic } from "../daily.ts";
-import { getGraph, getRoutines, getTags, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
+import { loggedDaysOf } from "../../shared/calendar.ts";
+import { getGraph, getRoutines, getTags, getTrackers, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
 import {
   dragFileCount,
   dragHasFiles,
@@ -234,12 +235,13 @@ function useLoggedDays(active: boolean): ReadonlySet<string> {
     if (!active) return;
     let alive = true;
     const read = (): void => {
-      getRoutines()
-        .then((list) => {
+      // The sigils and the trackers together (CalendarGrid.tsx loggedDaysOf):
+      // a day a book was read is a kept day too. A shelf that fails to load
+      // costs the grid only its marks.
+      Promise.all([getRoutines(), getTrackers().catch((): TrackerMeta[] => [])])
+        .then(([routines, trackers]) => {
           if (!alive) return;
-          const out = new Set<string>();
-          for (const meta of list) for (const e of meta.entries) out.add(e.date);
-          setDays(out);
+          setDays(loggedDaysOf(routines, trackers));
         })
         .catch(() => {});
     };

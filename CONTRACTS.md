@@ -1085,6 +1085,15 @@ sight rather than under the buttons, which is the lesser lie until the cluster f
 cluster. Without a host (a bare test) the tools stay in the bar. The owner's screenshot drew the
 line: "the status stuff def belongs to bottom".
 
+**The frame names what is on screen.** `openPath` is a note by contract and the mirror looks past a
+book, a drawing or a virtual tab to the nearest note — right for the outline and the backlinks,
+wrong for the bar, which said "No note open" over the Orbits shelf and kept a word count and crumbs
+for a note nobody could see over Sigils. The crumb, the counts, the period, the layout chip and the
+publish toggle answer the FOCUSED pane's surface (`surfaceOf`): over a note they are the note's;
+over anything else the crumb is the surface's name — what the strip calls it (`titleOf` in
+Tabs.tsx: Orbits, the deck's note in a session, Sigils, the book's title, the drawing's name, the
+week in review, the library) — and the rest is absent. The mode pills stay (they are switches).
+
 ## The status bar in Arabic
 
 `html[dir="rtl"] .s-statusbar__spacer` is 18px, not `flex: 1`: the bar packs at its start (the
@@ -9206,10 +9215,23 @@ Suggested placement: a new section after "Text formatting
 
 One renderer, four surfaces. The reading view, the blog article, the editor's
 transclusion widget and the editor's table widget all draw a table through
-`client/reading/render.ts` (`.s-rv-tablewrap` scrolls, `.s-rv-table` carries
-`dir="auto"` so column order follows the table's own text; alignment colons
-map to `.s-rv-al-c` / `.s-rv-al-r`; `\|` escapes survive; colors are tokens
-check-contrast already holds). The editor never grows a second table renderer.
+`client/reading/render.ts` (`.s-rv-tablewrap` scrolls; the wrap and the
+`.s-rv-table` carry the direction RESOLVED from the header's first strong
+character — `firstStrongDirection`, the callout box's rule — so column order
+follows the table's own text, and a table with no strong character inherits
+the note's; it was `dir="auto"`, which skips the `dir="auto"` cells and so
+resolved from the chrome, leaving an Arabic table in an English shell flush
+left with its first column leftmost; a list box takes its first item's
+direction the same way; alignment colons map to `.s-rv-al-c` / `.s-rv-al-r`;
+`\|` escapes survive; colors are tokens check-contrast already holds). The
+editor never grows a second table renderer, **and its widget wraps the
+reading view's way**: `.cm-s-table` (client/styles/tables.css) resets the
+three properties `.cm-lineWrapping` sets (`white-space`, `word-break`,
+`overflow-wrap`) to the reading column's values, or a squeezed column breaks
+"Count" into "Coun/t" in one surface and not the other. `npm run
+check-fidelity` (scripts/check-fidelity.mjs) holds the two surfaces to the
+same computed styles on a rich note — tables, callouts, code, math, embeds,
+footnotes, ruby, images with widths — in both chrome languages.
 
 **Live preview follows the reveal-on-caret rule.** Caret outside a top-level
 `Table` node → the block is one `Decoration.replace` block widget
@@ -9484,7 +9506,12 @@ the form offers them.
 every-day items first, fields as inputs, a note line, streak / this week / last-30 chips, the
 seven-dot week strip, the twelve-week heatmap, the folded plan table) and the ledger; classes are
 `s-rv-routine*` / `s-rv-routinelog*` in `client/reading/routine.css`, statuses painted from
-`--callout-success` / `--callout-warning` / `--danger`. render.ts's fence branch looks AHEAD for the
+`--callout-success` / `--callout-warning` / `--danger`. **The card is chrome and follows the page;
+the author's words follow their script.** The card carried its title's direction whole, so an
+Arabic-titled sigil on an English page mirrored everything the app draws — the weekday strip, the
+heatmap legend, the action buttons — beside cards that did not; now only the title, a task's key
+and text, a field's name and the note carry `dir` (each from its own first strong character) and
+the controls keep the chrome's order. render.ts's fence branch looks AHEAD for the
 plan's log (`logAfter`) so the card can draw it, and remembers the plan (`ctx.lastRoutine`) so the log
 fence, when its turn comes, knows the fields. The host is the tracker's `.s-rv-tracker-pending` box
 and the editor wrapper is `.cm-s-tracker`; both sheets already state them. Controls appear only when
@@ -9500,8 +9527,13 @@ React and rebuilt on every meta change; the page re-reads on `astrolabe:vault`. 
 draft (`routineFenceBody`, round-trip tested) and writes `Sigils/<Title>.md` (`سجل/` on an Arabic
 instance, an existing `Routines/` root kept) with frontmatter + plan + an EMPTY log fence; an edit
 sends only the plan body. "Save as template" writes the same note into the templates folder. The
-"N due in Orbits" line on the page (`routinesOrbitsDue`) opens the Orbits shelf, and a slot that
-wikilinks a deck wears the chip `client/routines/orbits.ts` draws (see Orbits below).
+"N due" line on the page (`routinesOrbitsDue`) counts the cards due across the decks AND the tasks
+due by today (the count the "Due by today" list below it draws, handed up rather than fetched twice);
+its Orbits door shows while cards are due, and "nothing due" — the recents row taking the top —
+means no sigil, no card and no task. A slot that
+wikilinks a deck wears the chip `client/routines/orbits.ts` draws (see Orbits below). The month grid
+at the page's top and in the sidebar marks a day a sigil logged OR a book was read
+(`loggedDaysOf` in shared/calendar.ts: the tracker `sessions:` lines ride the same fetch).
 
 ## Orbits — spaced repetition (`shared/decks.ts`, `shared/srsSession.ts`, `client/orbits/`, `server/deckImport.ts`)
 
@@ -10124,7 +10156,10 @@ npm run check-whatsnew
 ```
 
 (plus whatever visual gates the repo carries at the time — `check-caret`, `check-sections`,
-`check-excerpt`, `shoot-hover` — which cover what a screenshot has to prove and the tests cannot.)
+`check-excerpt`, `check-fidelity`, `shoot-hover` — which cover what a screenshot has to prove and
+the tests cannot. `check-fidelity` writes one rich note and asserts the editor's live preview and the
+reading view compute the same styles on the same anchors, in both chrome languages, and that no
+table cell breaks inside a word on a phone.)
 
 What the suite covers, and why each file exists:
 
