@@ -642,6 +642,40 @@ export default function BookReader({ path, citation = null, active = true, onLan
     [scale, update],
   );
 
+  // A two-finger pinch on a touchscreen zooms the page: the scroller takes
+  // touch-action pan-x pan-y (books.css) so the browser does not zoom the
+  // shell, and the distance between the fingers drives zoomBy.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let last: number | null = null;
+    const dist = (t: TouchList): number => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const start = (e: TouchEvent): void => {
+      last = e.touches.length === 2 ? dist(e.touches) : null;
+    };
+    const move = (e: TouchEvent): void => {
+      if (e.touches.length !== 2 || last === null) return;
+      e.preventDefault();
+      const d = dist(e.touches);
+      if (Math.abs(d - last) < 6) return;
+      zoomBy(d / last);
+      last = d;
+    };
+    const end = (): void => {
+      last = null;
+    };
+    el.addEventListener("touchstart", start, { passive: true });
+    el.addEventListener("touchmove", move, { passive: false });
+    el.addEventListener("touchend", end);
+    el.addEventListener("touchcancel", end);
+    return () => {
+      el.removeEventListener("touchstart", start);
+      el.removeEventListener("touchmove", move);
+      el.removeEventListener("touchend", end);
+      el.removeEventListener("touchcancel", end);
+    };
+  }, [zoomBy]);
+
   // Ctrl+wheel and a trackpad pinch (which Chromium reports as a ctrl-wheel)
   // zoom the page under the pointer, not the app. Registered by hand with
   // `passive: false` because React's onWheel is passive and cannot stop the
@@ -1545,6 +1579,16 @@ export default function BookReader({ path, citation = null, active = true, onLan
             {t("bookSessionEnd")}
           </button>
         )}
+        {/* Zoom and cite by finger: the keys `+` `-` `c` have no touch twin. */}
+        <button type="button" className="s-book__act s-book__touchzoom" onClick={() => zoomBy(1 / 1.15)} aria-label={t("bookZoomOut")}>
+          −
+        </button>
+        <button type="button" className="s-book__act s-book__touchzoom" onClick={() => zoomBy(1.15)} aria-label={t("bookZoomIn")}>
+          +
+        </button>
+        <button type="button" className="s-book__act s-book__touchzoom" onClick={() => beginCite(false)} aria-label={t("bookCiteAction")}>
+          ❝
+        </button>
         <button type="button" className="s-book__act" onClick={onLibrary} aria-label={t("bookLibrary")}>
           <span aria-hidden="true">☰</span>
         </button>

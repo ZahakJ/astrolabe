@@ -5371,6 +5371,28 @@ button.s-title:hover {
     transition: transform 0.2s ease, visibility 0s;
   }
 
+  /* ONE SCROLL COLUMN. On the desktop the tree flexes and the calendar,
+     tags and properties sections sit under it at their own heights; in a
+     drawer the three of them ate the tree to a 32px slit ("› Attachments"
+     and nothing else — the phone audit's first must). Here the drawer
+     itself scrolls, the tree takes its natural height and the first
+     screen, and the sections follow it. */
+  .s-sidebar {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .s-sidebar .s-tree {
+    flex: none;
+    min-height: auto;
+    overflow: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .s-sidebar .s-tags,
+  .s-sidebar .s-propshelf {
+    max-height: none;
+  }
+
   .s-app--drawer .s-drawer-backdrop {
     display: block;
     position: fixed;
@@ -5435,11 +5457,31 @@ button.s-title:hover {
   .s-panel:not(.s-panel--collapsed) {
     display: flex;
     position: fixed;
-    inset-block: 0 2.1rem;
+    /* The phone status bar is 45px tall, not 2.1rem: the panel's foot sat
+       under it by eleven pixels. */
+    inset-block: 0 45px;
     inset-inline-end: 0;
     width: min(86vw, 360px);
-    z-index: 60;
+    z-index: var(--z-drawer, 400);
     box-shadow: -12px 0 32px rgba(0, 0, 0, 0.35);
+  }
+  /* A drawer has a way out: a scrim behind it that closes it on a tap, and
+     a close at its top (BacklinksPanel.tsx) — the outline switch it opened
+     from is under the drawer and the backlinks header's own toggle is a
+     screen of scrolling away. */
+  .s-panel:not(.s-panel--collapsed) + .s-panel__scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-drawer, 400) - 1);
+    background: rgba(0, 0, 0, 0.35);
+  }
+  .s-panel:not(.s-panel--collapsed) .s-panel__phoneclose {
+    display: inline-flex;
+    align-self: flex-end;
+    margin: 4px 4px 0;
+    min-inline-size: 44px;
+    min-block-size: 44px;
   }
   .s-statusbar .s-statusbar__pane-outline {
     display: inline-flex;
@@ -7902,4 +7944,30 @@ html[dir="rtl"] .s-statusbar__spacer {
 .s-editor .cm-line[lang="ja"],
 .s-rv .s-rv-h[lang="ja"] {
   font-family: var(--font-ja);
+}
+
+/* The outline drawer's scrim and top close exist only on a phone (the
+   rules inside the drawer breakpoint above); everywhere else they are
+   nothing. */
+.s-panel__scrim,
+.s-panel__phoneclose {
+  display: none;
+}
+
+/* A finger keeps the ⋯ at every width: in landscape a phone is wider than
+   the 640px the desktop cluster takes over at, and the menu vanished with
+   the only door to the palette and the capture sheet. */
+@media (pointer: coarse) {
+  .s-statusbar--top .s-statusbar__more {
+    display: inline-flex;
+  }
+}
+
+/* A phone in landscape with the keyboard up leaves ~60px for the note: the
+   tab strip and the bottom bar step aside so three lines of writing remain. */
+@media (pointer: coarse) and (max-height: 420px) {
+  .s-main > .s-tabs,
+  .s-statusbar:not(.s-statusbar--top) {
+    display: none;
+  }
 }

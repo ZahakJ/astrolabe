@@ -446,6 +446,9 @@ export default function StatusBar() {
   // shortcut sheet are not offered: neither means anything on a phone.
   const [more, setMore] = useState<MenuAnchor | null>(null);
   const moreRows: MenuRow[] = [
+    // The palette first: on a phone there is no Ctrl+P, and every command
+    // that lives only in the palette was out of a finger's reach.
+    { label: t("cmdOpenPalette"), onSelect: () => useStore.getState().setPaletteOpen(true) },
     ...(admin
       ? [
           // Quick capture (docs/capture.md) leads the phone's tools: on a
@@ -670,7 +673,7 @@ export default function StatusBar() {
         <button
           type="button"
           className={`s-statusbar__btn s-statusbar__icon s-statusbar__pane-outline${panelCollapsed ? "" : " s-statusbar__btn--on"}`}
-          onClick={() => setPanelCollapsed(!panelCollapsed)}
+          onClick={() => setPanelCollapsed(!panelCollapsed, !window.matchMedia("(max-width: 700px)").matches)}
           title={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
           aria-label={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
           aria-pressed={!panelCollapsed}

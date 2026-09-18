@@ -776,3 +776,54 @@
   margin-inline-start: 8px;
   color: var(--text-faint);
 }
+
+/* THE DECK BY FINGER (the Tour's own phone branch, tour.css). The dots —
+   39 of them at 8px — are a rash on a phone and ran off both edges; the
+   count carries the position in words instead. Back/Next go to the foot's
+   edges at 44px, the close is 44px, the body scrolls inside the card and
+   a swipe turns the page (WhatsNew.tsx). */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-wn {
+    max-height: calc(100dvh - 24px);
+    display: flex;
+    flex-direction: column;
+  }
+  .s-wn__body {
+    flex: 1;
+    min-block-size: 0;
+    overflow-y: auto;
+  }
+  .s-wn__close {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+  .s-wn__foot {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .s-wn__dots {
+    display: none;
+  }
+  .s-wn__count {
+    display: inline;
+    color: var(--text-faint);
+    font-size: 0.786rem;
+  }
+  .s-wn__switch {
+    inline-size: 100%;
+    order: 3;
+  }
+  .s-wn__nav {
+    display: flex;
+    justify-content: space-between;
+    inline-size: 100%;
+    gap: 12px;
+  }
+  .s-wn__nav .s-btn {
+    flex: 1;
+    min-block-size: 44px;
+  }
+}
+.s-wn__count {
+  display: none;
+}
