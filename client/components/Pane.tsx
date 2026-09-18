@@ -22,6 +22,7 @@ const GraphView = lazySurface(() => import("./GraphView.tsx"));
 const MediaView = lazySurface(() => import("../media/MediaView.tsx"));
 const RoutinesView = lazySurface(() => import("../routines/RoutinesView.tsx"));
 const ReviewWeekView = lazySurface(() => import("../review/ReviewWeekView.tsx"));
+const CalendarView = lazySurface(() => import("../calendar/CalendarView.tsx"));
 const OrbitsSurface = lazySurface(() => import("../orbits/OrbitsSurface.tsx"));
 import Tabs from "./Tabs.tsx";
 import { useTabDrag } from "../dragTab.ts";
@@ -137,6 +138,12 @@ export default function Pane({
       // The weekly review: the week added up, a tab like the Sigils page.
       <Suspense fallback={<div className="s-review" />}>
         <ReviewWeekView />
+      </Suspense>
+    ) : surface === "calendar" ? (
+      // The Calendar: the month, big, with what every day held — a tab like
+      // the Sigils page, and no longer a grid squeezed into its top.
+      <Suspense fallback={<div className="s-calpage" />}>
+        <CalendarView />
       </Suspense>
     ) : surface === "orbits" && tab !== null ? (
       // Orbits: the shelf, or a session over one deck —

@@ -74,11 +74,13 @@ import {
   isMediaTab,
   isRoutinesTab,
   isOrbitsTab,
+  isCalendarTab,
   isVirtualTab,
   GRAPH_TAB,
   MEDIA_TAB,
   ROUTINES_TAB,
   REVIEW_WEEK_TAB,
+  CALENDAR_TAB,
   ORBITS_TAB,
   orbitsTabFor,
   openInPane,
@@ -613,7 +615,7 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph" | "media" | "routines" | "orbits" | "review-week"): void;
+  setView(v: View | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar"): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
   /** The Media page, on the same terms as the graph. */
@@ -629,6 +631,9 @@ export interface State {
   /** Open a study session over the deck at `path` — or the shelf,
    *  for null — as a tab in the focused pane. */
   openOrbits(path: string | null, section?: string | null): void;
+  /** The Calendar page, on the same terms as the Media page. */
+  calendarOpen(): boolean;
+  toggleCalendar(): void;
   /** Swap in a whole workspace — a restored named layout. */
   applyWorkspace(ws: Workspace): void;
   /** Toggle the graph tab in the focused pane: open (or focus) it, or, when it
@@ -2253,8 +2258,19 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph" || view === "media" || view === "routines" || view === "orbits" || view === "review-week") {
-        const path = view === "graph" ? GRAPH_TAB : view === "media" ? MEDIA_TAB : view === "routines" ? ROUTINES_TAB : view === "review-week" ? REVIEW_WEEK_TAB : ORBITS_TAB;
+      if (view === "graph" || view === "media" || view === "routines" || view === "orbits" || view === "review-week" || view === "calendar") {
+        const path =
+          view === "graph"
+            ? GRAPH_TAB
+            : view === "media"
+              ? MEDIA_TAB
+              : view === "routines"
+                ? ROUTINES_TAB
+                : view === "review-week"
+                  ? REVIEW_WEEK_TAB
+                  : view === "calendar"
+                    ? CALENDAR_TAB
+                    : ORBITS_TAB;
         set((s) => {
           // A pane still showing the shelf answers this the way it answers
           // a book (openBook above): the page's tab opens AND the mode comes
@@ -2298,6 +2314,17 @@ export const useStore = create<State>()((set, get) => {
       const s = get();
       if (s.routinesOpen()) s.closeTab(ROUTINES_TAB);
       else s.setView("routines");
+    },
+    calendarOpen: () => {
+      const ws = get().workspace;
+      const pane = paneAt(ws, ws.focus);
+      const tab = pane === null ? null : activeTabOf(pane);
+      return tab !== null && isCalendarTab(tab.path);
+    },
+    toggleCalendar: () => {
+      const s = get();
+      if (s.calendarOpen()) s.closeTab(CALENDAR_TAB);
+      else s.setView("calendar");
     },
     orbitsOpen: () => {
       const ws = get().workspace;
