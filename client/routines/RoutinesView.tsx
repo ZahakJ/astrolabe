@@ -341,6 +341,8 @@ export default function RoutinesView() {
   const locale = useStore((s) => s.blogLocale);
   const today = isoDate(new Date());
 
+  // One read: the sigils. The trackers used to ride along for the calendar's
+  // second mark, and left with it in 3.18 — the page never showed a tracker.
   const load = useCallback((): void => {
     getRoutines()
       .then((list) => {

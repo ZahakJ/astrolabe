@@ -1265,6 +1265,9 @@ const MUST_SPLIT = [
   "media/MediaView.tsx",
   // The Sigils page, on the same terms as the Media page.
   "routines/RoutinesView.tsx",
+  // The Calendar page, on the same terms: the month grid and its stylesheet
+  // behind the top bar's fourth door. It left the Sigils page in 3.18.
+  "calendar/CalendarView.tsx",
   // Orbits (the shelf and the session, one chunk), on the same terms.
   "orbits/OrbitsSurface.tsx",
   // The weekly review, on the same terms: a tab behind the palette and

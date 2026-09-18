@@ -581,7 +581,8 @@ export default function StatusBar() {
               month was a small grid at the top of the Sigils page until 3.18,
               where the owner found it "kinda weird and useless"; it is a page
               of its own now, and a page needs a door. Admin-only like its
-              neighbours: a click on a day writes the day's note. */}
+              neighbours: the page reads the sigils, the trackers and the
+              Orbits log, and its day pane can write the day's note. */}
           <button
             type="button"
             className={`s-statusbar__btn s-statusbar__icon${calendarOn ? " s-statusbar__btn--on" : ""}`}

@@ -152,9 +152,12 @@ export function monthCells(date: Date, calendar: GridCalendar, order: readonly W
  *  tracker's reading sessions (`sessions:`, shared/tracker.ts) — the month
  *  grid's second mark (client/components/CalendarGrid.tsx). Here rather than
  *  beside the grid because the grid is a lazy chunk and the sidebar, which
- *  fetches the sets, must not pull it into its first paint. The sidebar is
- *  the one caller since 3.18 (the Sigils page fed a second grid until then):
- *  two GETs of lists the indexer keeps in memory, on one debounce. */
+ *  fetches the sets, must not pull it into its first paint. The sidebar's
+ *  Calendar fold is its one caller, through client/loggedDays.ts: two GETs of
+ *  lists the indexer keeps in memory, on one debounce. The Sigils page was a
+ *  second caller until 3.18 took the grid off it, and the Calendar page that
+ *  replaced it does not use this — a cell there names what the day held, which
+ *  is a richer read than a set of dates (shared/dayAgenda.ts). */
 export function loggedDaysOf(
   routines: readonly { entries: readonly { date: string }[] }[],
   trackers: readonly { sessions?: readonly { date: string }[] }[],
