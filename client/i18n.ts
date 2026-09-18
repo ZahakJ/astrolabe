@@ -2657,8 +2657,6 @@ const DICT = {
   colorMagenta: { en: "Magenta", ar: "أرجواني" },
   colorGrey: { en: "Grey", ar: "رمادي" },
   selToolbarLabel: { en: "Formatting toolbar", ar: "شريط التنسيق" },
-  selToolbarHide: { en: "Hide the floating toolbar", ar: "إخفاء الشريط العائم" },
-  selToolbarShow: { en: "Show the floating toolbar", ar: "إظهار الشريط العائم" },
   cmdSelectionToolbar: { en: "Floating formatting toolbar", ar: "شريط التنسيق العائم" },
   cmdSelectionToolbarHint: {
     en: "Appears over a selection",

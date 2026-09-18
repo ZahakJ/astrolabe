@@ -16,6 +16,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { useDialog } from "../a11y.ts";
+import { clampAxis } from "./anchorPopover.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import {
@@ -42,20 +44,32 @@ export default function SyncBadge() {
   const [anchor, setAnchor] = useState<CSSProperties>({});
   const wrapRef = useRef<HTMLSpanElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
 
   /** The status bar clips its own overflow (long breadcrumbs must not push the
    *  bar around), so the panel is `position: fixed` and pinned to the badge by
    *  hand. Anchored on the reading direction's END edge, which is the side the
-   *  bar's own segments grow from. */
+   *  bar's own segments grow from.
+   *
+   *  BOTH EDGES, through the popovers' own clamp. The old arithmetic held the
+   *  near edge to 8px and said nothing about the far one, so wherever the
+   *  badge sits inland — which on a 390px phone is everywhere, because the
+   *  bar's right cluster is not at the right of the screen — a 358px panel
+   *  anchored to it started at x = −189 and the diagnosis it exists to show
+   *  was off the side of the phone. `clampAxis` is the rule the folder-icon
+   *  picker and the library popover are placed by; one rule, so two popovers
+   *  cannot fold at different distances from the same edge. */
   const place = useCallback(() => {
     const rect = btnRef.current?.getBoundingClientRect();
     if (!rect) return;
     const rtl = document.documentElement.dir === "rtl";
+    // Measured, never assumed: the width is a `min()` of a cap and the
+    // viewport, and the panel is on screen by the time this runs.
+    const width = popRef.current?.getBoundingClientRect().width ?? 0;
+    const vw = document.documentElement.clientWidth;
     setAnchor({
       bottom: Math.round(window.innerHeight - rect.top + 8),
-      ...(rtl
-        ? { left: Math.max(8, Math.round(rect.left)) }
-        : { right: Math.max(8, Math.round(window.innerWidth - rect.right)) }),
+      left: Math.round(clampAxis(rtl ? rect.left : rect.right - width, width, vw)),
     });
   }, []);
 
@@ -77,11 +91,11 @@ export default function SyncBadge() {
    *  a3f19c2" ends with a button, and the button opens this panel, which is
    *  where the rest of the answer already lives. Focus follows it: a reader
    *  who arrived by pressing a button and was left with focus back on the
-   *  vanished toast has been handed nothing. */
+   *  vanished toast has been handed nothing. It lands INSIDE the panel now
+   *  (useDialog below), which is one better than the badge beside it. */
   useEffect(() => {
     const onOpen = (): void => {
       setOpen(true);
-      requestAnimationFrame(() => btnRef.current?.focus());
     };
     window.addEventListener(SYNC_PANEL_EVENT, onOpen);
     return () => window.removeEventListener(SYNC_PANEL_EVENT, onOpen);
@@ -111,6 +125,25 @@ export default function SyncBadge() {
   }, [open, place]);
 
   useEffect(() => setCopied(false), [open]);
+
+  // THE PALETTE CLOSES IT. This panel sits at --z-popover, one rung ABOVE the
+  // toasts and two above the palette, which is right for a toast landing on
+  // its buttons and wrong for a full-viewport sheet: the popover stayed lit
+  // and unblurred over the palette's own backdrop. Ctrl/Cmd+P is a keystroke,
+  // so the outside-mousedown above never sees it.
+  const paletteOpen = useStore((s) => s.paletteOpen);
+  useEffect(() => {
+    if (paletteOpen) setOpen(false);
+  }, [paletteOpen]);
+
+  // A POPOVER THAT STAYED PUT WHILE THE READER WALKED PAST IT. Twenty-one Tab
+  // presses left the panel open, unblurred, and focus somewhere in the app
+  // behind it — and this one holds an error message people are meant to select
+  // and copy. The ring stays inside; closing hands focus back to the badge
+  // when the badge is what opened it, and to nothing when the toast that
+  // opened it has already gone, which is the honest answer. Escape and the
+  // outside mousedown are the listeners above.
+  useDialog(popRef, { active: open });
 
   const status = syncSnapshot();
   // Never shown to a visitor, and never shown on an instance that has not
@@ -178,7 +211,14 @@ export default function SyncBadge() {
         </button>
 
         {open && (
-          <div className="s-syncpop" style={anchor} role="dialog" aria-label={t("syncDetails")}>
+          <div
+            ref={popRef}
+            className="s-syncpop"
+            style={anchor}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("syncDetails")}
+          >
             <div className="s-syncpop__line">
               {status.repo
                 ? tf("syncTipBranch", { branch: status.branch ?? "—", host: status.remoteHost ?? "—" })

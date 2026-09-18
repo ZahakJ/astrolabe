@@ -24,6 +24,7 @@ import { allFolders, canDrop, folderLabel, itemLabel, moveTo, parentDir, type Mo
 import { promptNewFolder } from "../prompts.ts";
 import { attachScrollFade } from "../scrollFade.ts";
 import { useStore } from "../state.ts";
+import { useDialog } from "../a11y.ts";
 
 interface Row {
   /** Vault path of the destination folder ("" = the vault root). */
@@ -83,6 +84,7 @@ function MovePickerPanel({
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const rows = useMemo(() => buildRows(item), [item]);
   // THE ROW'S OWN NAME, not the disk's. The dialog is opened from a tree row
   // reading "Welcome" (and from the palette, on the note whose tab reads
@@ -96,6 +98,11 @@ function MovePickerPanel({
     if (!q) return rows;
     return rows.filter((row) => row.path.toLowerCase().includes(q) || row.name.toLowerCase().includes(q));
   }, [rows, query]);
+
+  // It claimed `aria-modal` and let ten Tab presses out into the tree behind
+  // it. `manualFocus`: the effect below puts focus in the filter field, which
+  // is where this dialog is usable from. Escape is the listener further down.
+  useDialog(panelRef, { manualFocus: true });
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -165,6 +172,7 @@ function MovePickerPanel({
   return (
     <div className="s-confirm-overlay" onMouseDown={() => onDone(null)}>
       <div
+        ref={panelRef}
         className="s-movepick"
         role="dialog"
         aria-modal="true"

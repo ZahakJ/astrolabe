@@ -17,6 +17,7 @@ import { t } from "../i18n.ts";
 import { allFolders, parentDir } from "../move.ts";
 import { attachScrollFade } from "../scrollFade.ts";
 import { useStore } from "../state.ts";
+import { useDialog } from "../a11y.ts";
 import "../styles/move.css";
 
 interface Row {
@@ -37,6 +38,7 @@ function FolderPickerPanel({ options, onDone }: { options: FolderPickOptions; on
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const rows = useMemo<Row[]>(() => {
     const tree = useStore.getState().tree;
     return allFolders(tree).map((path) => ({
@@ -51,6 +53,10 @@ function FolderPickerPanel({ options, onDone }: { options: FolderPickOptions; on
     return rows.filter((row) => row.path.toLowerCase().includes(q));
   }, [rows, query]);
   const [selected, setSelected] = useState(() => Math.max(0, rows.findIndex((r) => r.path === options.current)));
+
+  // The trap `aria-modal="true"` below was promising. `manualFocus`: the
+  // effect already lands in the filter field.
+  useDialog(panelRef, { manualFocus: true });
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -103,6 +109,7 @@ function FolderPickerPanel({ options, onDone }: { options: FolderPickOptions; on
   return (
     <div className="s-confirm-overlay" onMouseDown={() => onDone(null)}>
       <div
+        ref={panelRef}
         className="s-movepick"
         role="dialog"
         aria-modal="true"

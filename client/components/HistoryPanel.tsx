@@ -63,6 +63,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useDialog } from "../a11y.ts";
 import { noteLabelOf } from "../../shared/noteFormat.ts";
 import type {
   NoteHistoryResponse,
@@ -224,6 +225,7 @@ function RevisionModal({
   });
   const [restoring, setRestoring] = useState(false);
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   // The path THIS text lives under: a commit's row carries the path at that
   // revision (a renamed note's old name); a version is keyed by the note's
   // path today.
@@ -274,6 +276,11 @@ function RevisionModal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // `aria-modal="true"` was a claim, not a trap. Escape stays with the
+  // listener above, which knows about the confirm dialog stacked over it —
+  // useDialog's own Escape does not and must not learn.
+  useDialog(panelRef);
 
   /** The Undo every restore offers: a second restore, of the text that was on
    *  screen a moment ago — read buffer-first BEFORE the write, because the
@@ -354,6 +361,7 @@ function RevisionModal({
   return createPortal(
     <div className="s-revision-overlay" onMouseDown={onClose}>
       <div
+        ref={panelRef}
         className="s-revision"
         role="dialog"
         aria-modal="true"

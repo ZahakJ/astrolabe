@@ -846,15 +846,51 @@ is a menu you cannot aim at.
 different set of tabs in Arabic, exactly as "the left bar" named a different pane before the panes
 were given names.
 
-`ContextMenu.tsx` is the implementation the tree's menu and the outline's should both end up on. The
-two that exist already disagree — only one restores focus, only one dismisses on a `contextmenu`
-elsewhere — and two menus that look alike and behave differently in one app is a bug rather than a
-duplication, because the reader learns one and is then wrong about the other. It owns the placement
-argued out in `Sidebar.tsx` (open toward the reading direction, fold back, fold back again if the
-fold overflows, clamp both axes, measure after mount because a menu's size is its content's), focus
-restoration on **every** close path including activating a row, and dismissal on Escape (capture, and
-stopped, so a menu over a dialog does not close the dialog underneath it), an outside mousedown, a
-`contextmenu` elsewhere, and a resize that invalidates the geometry it just measured.
+`ContextMenu.tsx` **is** the menu, and the tree's two are on it now. It owns the placement argued
+out in `Sidebar.tsx` (open toward the reading direction, fold back, fold back again if the fold
+overflows, clamp both axes, measure after mount because a menu's size is its content's), focus
+restoration on **every** close path including activating a row, and dismissal on Escape (capture,
+and stopped, so a menu over a dialog does not close the dialog underneath it), an outside mousedown,
+a `contextmenu` elsewhere, a resize that invalidates the geometry it just measured, and the command
+palette opening over it. The sidebar's were the second implementation and they disagreed with this
+one exactly where a second implementation always does: the tree's menu never dismissed on a
+`contextmenu` elsewhere or on a resize, and **the sort menu closed on `onMouseLeave` and on nothing
+else** — not Escape, not an outside click, and on a phone, which has no mouseleave, not ever.
+Porting them deleted `placeMenu`, two layout effects, two dismissal effects and nine handlers that
+each called `setMenu(null)` on their own and dropped a keyboard reader on `<body>`.
+
+Three things the port added, and each is a rule rather than a style:
+
+- **`checked?: boolean` makes a row a CHOICE.** It becomes `role="menuitemradio"` with
+  `aria-checked` and a ✓ column, and one row declaring it makes the whole menu one — every row then
+  reserves the column, "Forget my order" included, because a tick that pushes only its own label
+  right turns a scannable column into a ragged one and the chosen row becomes the row that looks
+  out of place. The tick is `aria-hidden`: `aria-checked` is what is read, and a glyph read out as
+  well says the state twice. It exists so the tree's sort menu ports with no second primitive.
+- **Groups are separated, and separators are `{ label: null }` rows.** A folder's menu is sixteen
+  rows; flat, it was a list to read rather than a menu to aim at, and the audit measured exactly
+  zero separators in it. The five groups are: make something here · name and mark this row · publish
+  and export it · arrange it · remove it. No separator is written before the destructive tail —
+  `app.css` draws its own hairline above the first `--danger` row, and two rules for one line is how
+  they come to disagree.
+- **Touch gets a ceiling and a ground.** `min-width: 200px` (at 168 the sort menu wrapped "By name,
+  reversed" onto a second line among rows that were one line each); and on a coarse pointer
+  `max-height: calc(100dvh - 16px)` with `overflow-y: auto`, plus `.s-menu-scrim` one rung below the
+  menu. Sixteen rows at the 44px touch floor is 756px, which floated edge to edge in an 844px phone
+  with no scroll, no visible edge of its own and nothing that read as "outside" — a finger looking
+  for outside landed on a tree row. The scrim carries no click handler: the window mousedown already
+  closes the menu, and two closers is how one of them stops matching the other. No bottom sheet and
+  no drag handle — that would add a gesture owner the drawer-pan rules do not list.
+
+**A pointer-opened menu does not light a row.** `ContextMenu` focuses its first item only when the
+menu was opened from the keyboard, and the imperative heading menu (`sectionMenu.ts`) takes the
+same `fromKeyboard` flag now: it focused its first row unconditionally, so a right-click painted
+the global focus ring on a row nobody chose — and that row is the one Enter would run. A
+`contextmenu` event reports `button: 2` from a mouse and `0` from Shift+F10 or the Menu key; a
+`click` reports `detail: 0` only when no pointer made it. Those two tests are how every opener in
+the product answers the question. The editor's ⋯ affordance answers Enter and Space for the same
+reason: it was bound to `mousedown` alone, and a menu only a mouse can open is the thing the
+keyboard rule forbids.
 
 ## Component contracts
 
@@ -2363,9 +2399,38 @@ against.
   and — the half that keeps getting dropped — returns focus to the control that opened it. Panels
   carry `role="dialog" aria-modal="true"` and `aria-labelledby` pointing at their own title node.
   `Confirm.tsx` keeps its own bespoke trap (it has a three-button ring and Enter semantics).
+  **This is GATED, because saying it was not enough.** An audit of 3.17.3 found 21 of 37
+  `role="dialog"` sites with no trap and no restore, and six of them claiming `aria-modal="true"`
+  over nothing at all — a promise made to assistive technology and broken for everyone. Measured
+  Tab walks: the shortcuts sheet leaked at press 12, the theme picker at 22 going backwards, the
+  trash browser 30 times out of 30, the sync popover 21 — and it stayed open, unblurred, behind
+  the walk. `check-a11y` rule 6 now fails any file containing `role="dialog"` or
+  `aria-modal="true"` that does not call `useDialog(`, unless the file carries an `// a11y-ok:`
+  line saying why. There are exactly **two** such lines and they are the whole list of exceptions:
+  `Confirm.tsx`, for the reason above; and `SearchHelp.tsx`, which is the product's one
+  deliberately NON-modal dialog — the operator card answers a question about the search field
+  beside it while the reader keeps typing into that field, so it takes no focus, claims no
+  modality, and a trap would pull the caret out of the box on their next Tab.
+  **A trap that steals the initial focus is worse than none**, so a surface that already focuses
+  itself passes `manualFocus: true` and keeps its own choice. A surface that does not says where
+  focus goes: `MediaForm` opens on its TITLE field, not on the × that was merely first in the
+  DOM — a sheet that announces itself by its own dismissal is a sheet that reads as a mistake.
+  Escape stays with whatever already owned it (the theme picker's Escape RESTORES the previewed
+  room; the history panel's steps aside for a confirm stacked on it), and `onEscape` is passed
+  only where nothing did.
 - **Motion.** `prefersReducedMotion()` / `scrollBehavior()` are the only way to ask. CSS gets the
   blanket rule in `styles/a11y.css`; anything animated in JS (the two graphs, smooth scrolls) opts
   out itself. Canvas simulations settle without painting the drift rather than freezing mid-layout.
+  **Two durations and one curve**, named in `tokens.css` as `--motion-quick: 120ms` (something
+  ARRIVES or leaves — a menu, a popover, a scrim, the palette's backdrop), `--motion-pane: 180ms`
+  (something RESIZES — the pane collapse DESIGN.md pins at that number) and `--motion-ease: ease`.
+  The shell had already converged on those two numbers; it said so as literals in nine stylesheets,
+  which is how a third number appears, and the overlay family reads the tokens now. **Layout
+  properties are not animated** except by the pane-collapse rule DESIGN.md writes down — width,
+  which is what "a collapsed pane is 0 width" means — and by progress bars, which are one isolated
+  box; everything else moves with `transform` and `opacity`. An audit of 3.17.3 measured zero
+  transitions over 50ms with `prefers-reduced-motion: reduce` on, the palette at 0.01ms: the
+  blanket rule is holding, and it covers anything added under these tokens too.
 - **Keyboard.** No control is pointer-only. Imperative DOM that is "a link" without an `href`
   (`.s-rv-wikilink`, `[data-fn]`) carries `role="link" tabindex="0"` and is activated through
   `activateOnKey`. The sidebar tree is ONE tab stop: `role="tree"` on `.s-tree__root`, rows are
@@ -2986,10 +3051,42 @@ overlay is now **500**, above everything, which is structural rather than cosmet
 layer can spawn a confirm, so anything that can paint over one is a dialog the reader cannot
 answer. **Anything new that covers the viewport goes below 500** — the trash browser takes `420`
 (above the drawer, below the confirm, so its purge dialog stacks on it).
-*Known and deliberately not fixed here:* the command palette (`200`) and the moderation feed
-(`110`) are still under the drawer, so with the drawer open on a phone they are covered the same
-way. That predates this section and belongs to whoever takes the drawer's layering as its own
-change; it is written down so it is not rediscovered as a surprise.
+*That "known and deliberately not fixed" note is now closed, and the whole ladder has names.*
+
+### The stacking ladder (`--z-*`, `client/styles/tokens.css`)
+
+Every rung lives in `:root` with the reason beside it, and **no z-index at or above 300 may be
+written as a literal anywhere in `client/styles`** — `check-a11y` rule 7 fails one that is, unless
+the line (or the line above it) says `z-ok:`. There is one waiver, `.s-preview-strip`, which is a
+sticky ROW inside the flow and not a layer over the viewport. Below 300 is local stacking inside a
+pane and the ladder does not govern it.
+
+    --z-menu-scrim 299 · --z-menu 300 · --z-find 320 · --z-drawer-backdrop 390 · --z-drawer 400
+    --z-palette 410 · --z-panel 420 · --z-toast 430 · --z-popover 440 · --z-capture 450
+    --z-confirm 500 · --z-hovercard 500 · --z-crash 900 · --z-skip 1000 · --z-eye (above all)
+
+The three arguments the numbers settle, each of which had been decided twice:
+
+- **The palette is above the drawer (410 > 400).** `.s-palette-overlay` is not the palette's alone:
+  the theme picker, the shortcuts sheet, the template picker, the layout picker, what's-new, the
+  tour, the theme builder and the new-deck sheet all reuse it, so its number is the number of every
+  full-viewport sheet in the product. At 100 it sat under the phone drawer that opens it —
+  measured, `elementFromPoint` at the palette's own centre returned a tree row — under the sync
+  popover at 120 and under the menus at 300. It is still below the panels it can open (420), the
+  toasts it can raise (430) and the confirm it can ask (500).
+- **An anchored popover's action row outranks a transient (440 > 430).** The toast contract puts a
+  transient over the panel that raised it; `.s-syncpop` is the exception it names, because its
+  buttons are buttons — a long toast ("Bookmark removed") printed straight across *Backup settings*
+  and *Sync now*, an action the reader could see and could not press.
+- **A menu gets a ground on touch (299).** The scrim sits one rung below the menu it dims the page
+  for, never over it.
+
+**A full-viewport sheet also CLOSES what it covers.** Ctrl/Cmd+P is a keystroke, so none of the
+outside-mousedown listeners see it: the sync popover stayed lit over the palette's own backdrop
+(it is two rungs higher now, which makes this required rather than tidy), and a context menu sat
+under the backdrop still pointing at a row, waiting to be uncovered. `ContextMenu` and `SyncBadge`
+watch `paletteOpen` and stand down; the imperative heading menu dismisses on any keydown carrying
+a modifier, since none of its own keys use one.
 
 - Client: `TrashModal.tsx` + `styles/trash.css`, opened by the palette's *Open trash*
   (admin, not in preview) and cleared from the store on logout and on entering visitor preview.
@@ -3577,6 +3674,28 @@ Arabic.
 titles, outline entries, search hits and snippets, backlink titles/contexts, palette rows,
 status-bar crumb segments, moderation rows, and reader comment names/bodies: each picks its own
 direction. Without it, `1 - Source Material` renders as `Source Material - 1` in an RTL shell.
+
+**`dir="auto"` DOES NOT LOOK THROUGH A CHILD THAT CARRIES ITS OWN `dir`.** This is the root cause
+under a whole family of "the Arabic is on the wrong side" reports, and it is worth stating once in
+full because it reads as a browser bug and is not one: the algorithm walks for the first strong
+character *skipping any subtree with its own direction*, so a container whose children are ALL
+`dir="auto"` has nothing left to look at and falls back to the direction of its PARENT — which in
+English chrome is `ltr`, whatever the Arabic inside it says. `dir="auto"` over `dir="auto"` is
+therefore not "auto twice", it is auto over nothing.
+
+The consequences measured on 3.17.3: a `<ul>` with no `dir` over `<li dir="auto">` resolved LTR
+while each item resolved RTL, so an Arabic task item's `margin-inline-start: -1.35em` went the
+wrong way and put its checkbox 17px outside the column; a `<table dir="auto">` over
+`<td dir="auto">` resolved LTR and rendered the Arabic header column order REVERSED; and an
+Arabic callout's title line resolved LTR against an RTL body — two bars on one box — because the
+`[!type]` token is replaced by a widget, leaving the line's own `dir="auto"` with no strong
+character in the DOM at all.
+
+**The rule, and it is the one `reading/render.ts` already documents for the callout box: a
+container resolves its direction from its own text, with `firstStrongDirection(text) ?? "auto"`,
+and never by putting `dir="auto"` over children that carry `dir="auto"`.** Inner spans of an
+editor line never carry `dir` at all. `pinBlocks()` pins only `[dir="auto"]`, so a container that
+has resolved to a real value needs no further plumbing.
 
 **Direction is per content; ALIGNMENT is per chrome.** `dir="auto"` on a full-width block sets
 both, which is wrong for a chrome row: an English outline entry left-aligned itself inside a
@@ -6770,8 +6889,19 @@ seam between them was the defect; this is the rule that closes it.
   a 1440×900 viewport and 341×828 with 1,217px of scroll at 390×844: twenty-one rows, seventeen
   swatches and four lines of body copy, i.e. ~390px of scrolling INSIDE a context menu to reach
   "Remove colour". Nothing was dropped — the palette owns the same commands, and a page a reader
-  opens on purpose costs no height to a reader who does not. Measured after: 273×458 at 1440×900,
-  no internal scroll.
+  opens on purpose costs no height to a reader who does not.
+  **Re-measured, because the box grew back.** The 3.3.1 number (273×458) stopped being true as rows
+  were added, and an audit of 3.17.3 found it at 233×650 in a 900px viewport — clamped to y = 8,
+  which is to say nowhere near the words it acts on. Three cuts, in the repo's own moves: the
+  "Hide the floating toolbar" row is **gone** (Settings › This device and the palette own that
+  preference, and a menu of verbs about the selected words is not where a menu configures itself);
+  Extract, Annotate and Make a card are **one untitled group**, because they are one idea — what
+  the selection becomes somewhere else — and each rule between them cost 11px; and desktop rows are
+  **28px** (`padding: 4px 10px`), with the coarse block's 44px floor untouched, since that is the
+  one place a menu row is a touch target. Measured after, on a markdown note at 1440×900:
+  **233×540, fifteen rows in four groups, no internal scroll** (`scrollHeight === clientHeight`).
+  It is still tall enough to be clamped against a selection low in the viewport; that is a
+  consequence of the vocabulary being complete, and the next cut has to come from the vocabulary.
 - **The colour group is one row.** The two tiers stay (see *Coloured text*) but the reader does not
   adjudicate a WCAG argument at the moment they want a word red: the row is theme-aware by default,
   a *Fixed ink* checkbox switches the same row to the literal inks, the arithmetic lives in each

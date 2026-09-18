@@ -52,6 +52,12 @@ export interface SectionMenuOptions {
   onFocus?: (section: Section) => void;
   /** Called after any row that rewrote the note, so a panel can recount. */
   onDone?: () => void;
+  /** Opened from the KEYBOARD (Shift+F10, the Menu key, Enter on the ⋯), so
+   *  focus has to go into the menu — and only then. A pointer-opened menu that
+   *  focuses its first row paints the global focus ring on a row nobody chose,
+   *  which every other menu in this app refuses to do (ContextMenu.tsx does the
+   *  same test); worse, the lit row is the one Enter would run. */
+  fromKeyboard?: boolean;
 }
 
 let openMenu: HTMLElement | null = null;
@@ -139,13 +145,21 @@ export function openSectionMenu(opts: SectionMenuOptions): void {
   menu.style.left = `${Math.max(EDGE, Math.min(left, vw - rect.width - EDGE))}px`;
   menu.style.top = `${Math.max(EDGE, Math.min(top, vh - rect.height - EDGE))}px`;
 
-  menu.querySelector<HTMLElement>(".s-menu__item")?.focus();
+  if (opts.fromKeyboard === true) menu.querySelector<HTMLElement>(".s-menu__item")?.focus();
 
   const onAway = (ev: Event): void => {
     if (ev.target instanceof Node && menu.contains(ev.target)) return;
     dismiss();
   };
   const onKey = (ev: KeyboardEvent): void => {
+    // A COMMAND KEYSTROKE IS NOT FOR THE MENU. Ctrl/Cmd+P raises the palette
+    // over this box and Ctrl/Cmd+E swaps the surface under it; the menu was
+    // left open behind both, pointing at a heading that may no longer be on
+    // screen. None of its own keys carry a modifier, so this cannot eat one.
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) {
+      dismiss();
+      return;
+    }
     if (ev.key === "Escape") {
       ev.stopPropagation();
       dismiss();
