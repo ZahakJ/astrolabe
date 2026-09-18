@@ -731,7 +731,6 @@ const AUDIENCES = [
   // whole, the debt named below). The PAGE — CalendarView.tsx, the month
   // grid, calendar.css — is a lazy chunk asserted split in MUST_SPLIT, and
   // the Sigils page GAVE BACK its `getTrackers` read when the grid left it.
-    // 3.18.0: five branches of the peak round meeting in one entry.
   // 3.18 overlays and stacking: 799.020 kB actual → 800 (actual + ~0.12%).
   // TWENTY BYTES over, and the whole of it is tokens.css and app.css — the
   // first paint by definition, on every surface, nothing here to split. The
@@ -1000,7 +999,6 @@ const AUDIENCES = [
   // 3.18 the Calendar page: 1092.2 kB actual → 1093 — the entry's bytes
   // (above) and nothing of the blog's own: the blog reader carries the
   // dictionary, never the door or the page.
-    // 3.18.0: five branches of the peak round meeting in one entry.
   // 3.18 overlays and stacking: 1092.049 kB actual → 1093 (actual + ~0.09%).
   // The overage is 49 BYTES and every one of them is the stacking ladder: the
   // fourteen `--z-*` declarations in tokens.css plus eighteen `z-index: 300`
@@ -1178,13 +1176,17 @@ const AUDIENCES = [
   // button's markup. The grid stayed lazy; Sidebar.tsx got SMALLER, its
   // `useLoggedDays` having moved to the shared client/loggedDays.ts the
   // page asks through too.
-    // 3.18.0: five branches of the peak round meeting in one entry.
-  // 3.18.0 INTEGRATION: 1551.8 kB actual, UNDER the 1553 the calendar round set
-  // — left where it is rather than tightened, because the deck and the docs
-  // land on top of it. This reader carries the status bar's door, which the
-  // other two have no status bar for; Sidebar.tsx gave back more than that when
-  // `useLoggedDays` moved out to client/loggedDays.ts.
-  { name: "admin first paint", keys: app, budget: 1553 * 1024 },
+  // 3.18.0 INTEGRATION: 1551.8 kB actual — BACK TO 1552, the number 3.17.3
+  // left. The calendar branch measured 1552.7 against its own base and moved
+  // this to 1553; merged, the round comes in UNDER 1552, so there is no
+  // overage to pay for and the budget does not move. (A budget is raised by
+  // the actual overage with the cause beside it, never by the largest number
+  // any branch happened to need on the way here — a rung left loose is a rung
+  // the next round spends without measuring.) This reader carries the status
+  // bar's door, which the other two have no status bar for; Sidebar.tsx gave
+  // back more than that when `useLoggedDays` moved out to
+  // client/loggedDays.ts.
+  { name: "admin first paint", keys: app, budget: 1552 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

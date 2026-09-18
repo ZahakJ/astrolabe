@@ -966,11 +966,11 @@ answers `/calendar`; `Tabs.tsx` titles it `calendar`; the page is `client/calend
 a lazy chunk check-bundle pins). It was a card at the top of the Sigils page in 3.17 and the owner
 wanted it out — "kinda weird and useless in the sigils window… maybe just give it its own window
 and icon on the top". So it became a page, with the fourth door in the status bar's admin group
-(a leaf of the month), a palette row and a row in the phone's ⋯ menu. The GRID is unchanged and
-unduplicated: `components/CalendarGrid.tsx` draws the sidebar's fold and this page both, and the
-read behind its second mark is one hook for both callers (`client/loggedDays.ts`, lifted out of
-Sidebar.tsx). The sidebar's fold stays — it is the glance taken without leaving the note, and the
-page is the room; the page gives the same month bigger cells (`.s-calpage`) and nothing else new.
+(a leaf of the month), a palette row and a row in the phone's ⋯ menu. *What the page draws, and why
+it draws its own grid rather than the sidebar's, is settled once under **The Calendar page** below;
+this paragraph is the tab model only. Do not restate the drawing here — an earlier draft of this
+line claimed the page reuses `CalendarGrid.tsx` and that `client/loggedDays.ts` has two callers, and
+both were false by the time it shipped.*
 
 ## The graph view's own settings (client/graphPrefs.ts, GraphView.tsx)
 
@@ -9752,6 +9752,19 @@ status bar (a wall-calendar leaf, `data-testid="calendar-door"`, beside the seal
 admin-only like them, because creating a day's note writes) with a labelled row in the phone's `⋯`
 menu, and `cmdOpenCalendar` in the palette. The SIDEBAR's small grid is untouched and keeps its own
 job; the two share `shared/calendar.ts` and nothing else.
+
+**TWO GRIDS, DELIBERATELY — and this replaces "the ONE month grid".** Until 3.18 the rule was that
+`components/CalendarGrid.tsx` draws every month in the product, and the Sigils page's copy was the
+proof it could. It cannot draw this one. `CalendarGrid` is a DATE PICKER: a `<table>` of day
+numbers with up to two dots under each, whose cell is sized to a number and whose whole job is to
+answer "which day", and it is the right thing in a 295px fold. The page's cell is a paragraph — the
+number, a dot for the day's note, up to four named lines and `+N more` — and its selection is
+`aria-selected` on a `gridcell` rather than a pressed button. Widening the picker to carry content
+would have put every one of those decisions behind a prop and made the fold pay for them; so the
+page draws its own, the two share the month arithmetic (`monthCells`, `firstOfMonth`, the calendar
+and week-start resolution) and nothing else, and `client/loggedDays.ts` has exactly ONE caller, the
+sidebar's fold. The duplication this release spent itself removing was *the same drawing in two
+places*; this is two drawings answering two questions, and the shared half is shared.
 
 **What a day held is pure and stored nowhere.** `shared/dayAgenda.ts` — no DOM, no fetch, loaded by
 `node --test` (tests/dayAgenda.test.ts) — takes the days of the drawn month, the `dailyNotesByDay`
