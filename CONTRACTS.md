@@ -9849,7 +9849,12 @@ month — rows of seven from the site language's first day (`weekOrder`). Dots c
 (`dailyNotesByDay`: a string compare per note, nothing stored) and from the sigil logs the caller
 hands in; the grid is ONE tab stop (arrows walk, mirrored under RTL; Home/End the row; PageUp/Down
 the month) and a click goes through `openPeriodicNoteAt`. The sidebar draws it for an admin, and
-for a visitor only when a daily note is published; the Sigils page draws it at its top.
+for a visitor only when a daily note is published — and that is the ONLY place it is drawn. The
+Sigils page drew a second copy at its top until 3.18. It was removed because the two were never
+apart: `RoutinesView` is a pane surface, so on a desktop the sidebar's section stands beside it
+with the same grid, the same daily-note dots and the same sigil-log mark, and below 700px the
+page's copy was already `display:none` with the sidebar's section named as the phone's calendar.
+One month grid, one place to look for it; the page keeps its width for the checklists.
 
 **The editor conveniences.** `{{cursor}}` and `{{prompt:Label}}`/`{{VALUE:Label}}` in
 `client/templates.ts` (`templatePrompts`, `fillPrompts`, `takeCursor`; the sheet is
