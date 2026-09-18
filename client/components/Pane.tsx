@@ -134,16 +134,17 @@ export default function Pane({
       <Suspense fallback={<div className="s-routines" />}>
         <RoutinesView />
       </Suspense>
+    ) : surface === "calendar" ? (
+      // The Calendar: the month, the size a month is read at, and the door
+      // into any day's note. A tab like the Media page — it was a card at the
+      // top of the Sigils page until 3.18.
+      <Suspense fallback={<div className="s-calpage" />}>
+        <CalendarView />
+      </Suspense>
     ) : surface === "review-week" ? (
       // The weekly review: the week added up, a tab like the Sigils page.
       <Suspense fallback={<div className="s-review" />}>
         <ReviewWeekView />
-      </Suspense>
-    ) : surface === "calendar" ? (
-      // The Calendar: the month, big, with what every day held — a tab like
-      // the Sigils page, and no longer a grid squeezed into its top.
-      <Suspense fallback={<div className="s-calpage" />}>
-        <CalendarView />
       </Suspense>
     ) : surface === "orbits" && tab !== null ? (
       // Orbits: the shelf, or a session over one deck —

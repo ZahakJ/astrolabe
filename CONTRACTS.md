@@ -960,6 +960,18 @@ workspaces, unused by anything that opens the graph now. **The Media page is a t
 terms** (`MEDIA_TAB = "~media"`, `isMediaTab`, `isVirtualTab` for the pair; `setView("media")`,
 `toggleMedia()`, `mediaOpen()`; the router answers `/media`).
 
+**THE CALENDAR IS A TAB TOO, from 3.18** (`CALENDAR_TAB = "~calendar"`, `isCalendarTab`,
+`surfaceOf` → `"calendar"`; `setView("calendar")`, `toggleCalendar()`, `calendarOpen()`; the router
+answers `/calendar`; `Tabs.tsx` titles it `calendar`; the page is `client/calendar/CalendarView.tsx`,
+a lazy chunk check-bundle pins). It was a card at the top of the Sigils page in 3.17 and the owner
+wanted it out — "kinda weird and useless in the sigils window… maybe just give it its own window
+and icon on the top". So it became a page, with the fourth door in the status bar's admin group
+(a leaf of the month), a palette row and a row in the phone's ⋯ menu. The GRID is unchanged and
+unduplicated: `components/CalendarGrid.tsx` draws the sidebar's fold and this page both, and the
+read behind its second mark is one hook for both callers (`client/loggedDays.ts`, lifted out of
+Sidebar.tsx). The sidebar's fold stays — it is the glance taken without leaving the note, and the
+page is the room; the page gives the same month bigger cells (`.s-calpage`) and nothing else new.
+
 ## The graph view's own settings (client/graphPrefs.ts, GraphView.tsx)
 
 **THE GRAPH OPENED GREY, AND THAT WAS A BUG, NOT A LOOK.** The keyboard route lights the node its
@@ -9416,6 +9428,15 @@ three properties `.cm-lineWrapping` sets (`white-space`, `word-break`,
 check-fidelity` (scripts/check-fidelity.mjs) holds the two surfaces to the
 same computed styles on a rich note — tables, callouts, code, math, embeds,
 footnotes, ruby, images with widths — in both chrome languages.
+
+**A HEADING IS `--heading`, IN BOTH SURFACES.** `.cm-s-h1` (client/editor/theme.ts)
+carried a colour of its own — `color-mix(in srgb, var(--accent) 15%, var(--text))`,
+a near-miss of the token — so the same `# Title` was #d1e2f5 in the editor and
+#e6edf3 in the reading view, and `check-fidelity` failed on `en: h1` and `ar: h1`
+from the theme-token restore until 3.18. The h1–h6 rule above it already says
+`var(--heading)`, which is what `.s-rv-h1` says; the size, the padding and the
+hairline under it were the reading view's numbers all along. No heading level in
+either surface names a colour the other does not.
 
 **Live preview follows the reveal-on-caret rule.** Caret outside a top-level
 `Table` node → the block is one `Decoration.replace` block widget

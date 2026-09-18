@@ -8,7 +8,7 @@
 // Gregorian instance, a Hijri month on a Hijri one, and on an instance that
 // prints BOTH the leading calendar's month with the other's day number small
 // in each cell's corner — and nowhere else. The first column is the site
-// language's first day (Monday in English, Saturday in Arabic; the Sigils
+// language's first day (Monday in English, Saturday in Arabic; the sigil
 // card's own rule, shared/routine.ts `weekOrder`), the month and day names
 // are Intl's in the chrome language (client/dates.ts), the digits follow the
 // instance's numerals. Nothing here hand-rolls a name.
@@ -17,7 +17,7 @@
 // tree through the daily folder and format (client/daily.ts), which is a
 // string compare per note and nothing stored — and carries a second mark
 // when a sigil logged that day or a book was read (`loggedDaysOf`; the caller
-// hands the set in — both callers ask for it through the one hook,
+// hands the set in; the sidebar's fold is the one that does, through
 // client/loggedDays.ts). Today is ringed. A click
 // opens the day's note through the daily-note command's own door, so a note
 // created from the grid is templated exactly as Ctrl/Cmd Alt D would.
