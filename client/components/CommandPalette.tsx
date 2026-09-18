@@ -71,23 +71,29 @@ import { sidebarIsDrawer } from "../state.ts";
 // installRecents guards itself besides.
 installRecents(useStore);
 
+/** A WORD, OR NOTHING. The fuzzy matcher hands back every index it landed on,
+ *  and painting all of them turned "theme" over *Open the Media page* into
+ *  "**the** **Me**dia" — two fragments of two different words, lit as if the
+ *  row had been found by them. A highlight is a claim about WHY this row is
+ *  here, and letters scattered through a phrase cannot carry it: the row is
+ *  still offered (the fuzzy match is why it ranks), just not annotated.
+ *
+ *  So the marks survive one shape only — a single unbroken run that begins a
+ *  word. "media" lights *Media*; "open" lights *Open*; "theme" lights nothing
+ *  and the row reads as plain text, which is the truth. */
 function highlight(text: string, indices: number[]): ReactNode {
   if (indices.length === 0) return text;
-  const set = new Set(indices);
-  const out: ReactNode[] = [];
-  let run = "";
-  let runMarked = set.has(0);
-  for (let i = 0; i < text.length; i++) {
-    const marked = set.has(i);
-    if (marked !== runMarked) {
-      out.push(runMarked ? <mark key={i}>{run}</mark> : run);
-      run = "";
-      runMarked = marked;
-    }
-    run += text[i];
-  }
-  out.push(runMarked ? <mark key="tail">{run}</mark> : run);
-  return out;
+  const from = indices[0];
+  const to = indices[indices.length - 1];
+  const unbroken = to - from + 1 === indices.length && indices.every((n, i) => n === from + i);
+  const before = from === 0 ? "" : text[from - 1];
+  const atWordStart = from === 0 || !/[\p{L}\p{N}]/u.test(before);
+  if (!unbroken || !atWordStart) return text;
+  return [
+    text.slice(0, from),
+    <mark key="hit">{text.slice(from, to + 1)}</mark>,
+    text.slice(to + 1),
+  ];
 }
 
 function titleOf(path: string): string {
@@ -369,6 +375,14 @@ const COMMANDS: Command[] = [
     hint: () => t("cmdOpenRoutinesHint"),
     available: ({ admin }) => admin,
   },
+  // The month, big (client/calendar/): the daily notes, the sigils that
+  // logged, the cards graded and the sittings read, day by day.
+  {
+    id: "open-calendar",
+    label: () => t("cmdOpenCalendar"),
+    hint: () => t("cmdOpenCalendarHint"),
+    available: ({ admin }) => admin,
+  },
   // The week added up (client/review/): pages and hours by book, the
   // trackers' outlook, the sigils, the cards graded, the notes written.
   {
@@ -488,10 +502,12 @@ const COMMANDS: Command[] = [
     hint: () => "Ctrl/Cmd Alt Shift B",
     available: () => true,
   },
-  // The floating formatting toolbar's only way BACK. It defaults on and the
-  // selection menu's last row turns it off, so without this row the switch
-  // would be one-way — the classic trap of a hidden default-on affordance.
-  // Admin only: it acts on the editor, which a read-only session never mounts.
+  // The floating formatting toolbar's switch, and one of the two places it
+  // lives — the other is Settings › This device. It used to have a third home,
+  // a row at the bottom of the selection menu, which is a preference sitting
+  // in a menu of verbs about the selected words and cost that menu a rule and
+  // a row it could not spare. Admin only: it acts on the editor, which a
+  // read-only session never mounts.
   {
     id: "toggle-selection-toolbar",
     label: () => t("cmdSelectionToolbar"),
@@ -1313,6 +1329,9 @@ export default function CommandPalette() {
           break;
         case "open-routines":
           store.toggleRoutines();
+          break;
+        case "open-calendar":
+          store.toggleCalendar();
           break;
         case "review-week":
           store.setView("review-week");

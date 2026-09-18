@@ -28,6 +28,7 @@ import {
   type TemplateSettings,
 } from "../templates.ts";
 import { useStore } from "../state.ts";
+import { useDialog } from "../a11y.ts";
 
 /** How much of a template's body the preview shows. A template is a stencil;
  *  anything longer than this is being read, not glanced at. */
@@ -71,6 +72,7 @@ export default function TemplatePicker() {
     props: TemplateProperty[];
   } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const tree = useStore((s) => s.tree);
   useStore((s) => s.language); // re-render chrome strings on a language switch
 
@@ -183,6 +185,11 @@ export default function TemplatePicker() {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [request, close]);
 
+  // The ring. `manualFocus` — the effect above puts focus in the filter field
+  // on the next frame; Escape is already owned by the capture listener right
+  // above, which is the one that answers wherever focus is.
+  useDialog(panelRef, { active: request !== null, manualFocus: true });
+
   if (!request) return null;
 
   const onKeyDown = (e: ReactKeyboardEvent): void => {
@@ -201,8 +208,10 @@ export default function TemplatePicker() {
   return (
     <div className="s-palette-overlay" onMouseDown={() => close(null)}>
       <div
+        ref={panelRef}
         className="s-bmodal s-tmpl"
         role="dialog"
+        aria-modal="true"
         aria-label={request.title}
         onMouseDown={(e) => e.stopPropagation()}
       >

@@ -10,6 +10,17 @@
 /** Margin the popover keeps from every viewport edge (the menu's number). */
 const EDGE = 8;
 
+/** Hold a box of `size` starting at `start` inside `viewport`, keeping EDGE
+ *  from both sides. Exported because BOTH edges matter and only one of them
+ *  kept getting written: the sync popover clamped the near edge by hand and
+ *  came out 358px wide at x = −189 on a phone, more than half of it off the
+ *  screen. A box wider than the viewport is pinned to the leading margin
+ *  rather than centred on nothing. */
+export function clampAxis(start: number, size: number, viewport: number): number {
+  if (size >= viewport - EDGE * 2) return EDGE;
+  return Math.max(EDGE, Math.min(start, viewport - size - EDGE));
+}
+
 export function anchorPopover(el: HTMLElement, x: number, y: number): void {
   const rtl = getComputedStyle(document.documentElement).direction === "rtl";
   const { width, height } = el.getBoundingClientRect();
@@ -18,10 +29,8 @@ export function anchorPopover(el: HTMLElement, x: number, y: number): void {
   let left = rtl ? x - width : x;
   if (left + width > vw - EDGE) left = x - width;
   if (left < EDGE) left = x;
-  left = Math.max(EDGE, Math.min(left, vw - width - EDGE));
   let top = y;
   if (top + height > vh - EDGE) top = y - height;
-  top = Math.max(EDGE, Math.min(top, vh - height - EDGE));
-  el.style.left = `${Math.round(left)}px`;
-  el.style.top = `${Math.round(top)}px`;
+  el.style.left = `${Math.round(clampAxis(left, width, vw))}px`;
+  el.style.top = `${Math.round(clampAxis(top, height, vh))}px`;
 }

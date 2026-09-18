@@ -31,6 +31,7 @@ import { PathInput } from "./controls/PathInput.tsx";
 import { FOLDER_ICON_GROUPS, folderIconGroupLabel, folderIconLabel } from "../folderIconLabels.ts";
 import { getLang, t, tf } from "../i18n.ts";
 import { anchorPopover } from "./anchorPopover.ts";
+import { useDialog } from "../a11y.ts";
 import FolderGlyph from "./FolderGlyph.tsx";
 // The popover's styles travel with this chunk, not with app.css — see the
 // sheet's own header for why.
@@ -122,11 +123,27 @@ export default function FolderIconPicker({
     const el = ref.current;
     if (!el) return;
     anchorPopover(el, state.x, state.y);
-    inputRef.current?.focus();
+    // NO AUTOFOCUSED TEXT FIELD ON A TOUCH SCREEN. Focusing the search box
+    // raises the on-screen keyboard, which on a 390px phone eats half the
+    // viewport and covers the grid the reader opened the popover to look at —
+    // and they asked for a picture, not for typing. The first cell takes focus
+    // instead, so the ring is still inside and the arrows still work.
+    if (typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches) {
+      const cell =
+        el.querySelector<HTMLElement>(".s-tree-iconpick__cell--on")
+        ?? el.querySelector<HTMLElement>(".s-tree-iconpick__cell");
+      cell?.focus({ preventScroll: true });
+    } else {
+      inputRef.current?.focus();
+    }
     // The current mark, in view: a reader changing "telescope" to something
     // near it should see where they are.
     el.querySelector<HTMLElement>(".s-tree-iconpick__cell--on")?.scrollIntoView({ block: "center" });
   }, [state.x, state.y]);
+
+  // Tab stays in the popover and goes back to the row that opened it. Escape
+  // and the outside mousedown are the listeners below.
+  useDialog(ref, { manualFocus: true });
 
   // Click-out and Escape, exactly as the context menu closes.
   useEffect(() => {
@@ -224,6 +241,7 @@ export default function FolderIconPicker({
       ref={ref}
       className="s-tree-iconpick"
       role="dialog"
+      aria-modal="true"
       aria-label={tf("folderIconFor", { name: state.name })}
       // Physical `left`, like the context menu one line of code away: this is
       // a viewport coordinate the effect above has already resolved for the

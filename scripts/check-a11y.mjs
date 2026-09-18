@@ -19,6 +19,17 @@
 //      a keyboard route (a keydown listener, tabindex, or activateOnKey).
 //   5. The focus-visible baseline still exists in the stylesheets, and the
 //      skip link and sr-only utilities are still defined.
+//   6. A file that renders `role="dialog"` (or claims `aria-modal="true"`)
+//      calls `useDialog(`. An audit found 21 of 37 `role="dialog"` sites with
+//      no trap and no focus restore, six of them promising `aria-modal="true"`
+//      to assistive tech they did not deliver — a promise of modality is
+//      exactly the kind of bug that is invisible in a screenshot.
+//   7. No z-index literal at or above 300 in client/styles: those are the
+//      rungs of the stacking ladder (tokens.css, `--z-*`) and every one of
+//      them is a number the layers fight over. The command palette sat at 100
+//      under a 400 drawer for two releases because nobody could see the ladder
+//      from the rule they were writing. Below 300 is local stacking inside a
+//      pane and is not governed here.
 //
 // Heuristics, deliberately: they are tuned to fire on the shapes this
 // codebase actually writes, and every rule can be silenced on one line with
@@ -218,6 +229,51 @@ for (const f of code) {
       `POINTER ONLY: ${rel(f)}:${line}  <${m[1]} onClick> with no keyboard route (add a role+tabIndex, a key handler, or role="presentation")`,
     );
   }
+}
+
+// ── 6. a dialog is a TRAP, or it is not a dialog ───────────────────────────
+// `role="dialog"` and `aria-modal="true"` are promises: Tab stays inside, and
+// focus goes back to whatever opened it. `client/a11y.ts` keeps the one
+// implementation (CONTRACTS, Accessibility: "Use them; do not re-implement
+// them"), so a file that declares one and never calls it either has no trap at
+// all or has grown a second, divergent one. Per FILE rather than per element:
+// several of these render two sheets from one module, and both take the hook.
+//
+// `[role="dialog"]` inside a string is a SELECTOR — `controls/Select.tsx`
+// looks for the dialog it is inside of — so the attribute is matched only
+// where a `[` does not precede it.
+const DIALOG_ATTR = /(?<!\[)role="dialog"|(?<!\[)aria-modal="true"/;
+for (const f of code) {
+  if (!f.endsWith(".tsx")) continue;
+  const text = readFileSync(f, "utf8");
+  if (!DIALOG_ATTR.test(text)) continue;
+  if (text.includes("useDialog(")) continue;
+  if (OK.test(text)) continue;
+  const line = text.split("\n").findIndex((l) => DIALOG_ATTR.test(l)) + 1;
+  errs.push(
+    `UNTRAPPED DIALOG: ${rel(f)}:${line}  role="dialog"/aria-modal with no useDialog( in the file (or an "a11y-ok:" line saying why)`,
+  );
+}
+
+// ── 7. the stacking ladder is the only source of a high z-index ────────────
+// Every rung lives in tokens.css as `--z-*` with the reason beside it. A bare
+// number at or below 299 is a local stacking context inside a pane and is none
+// of this rule's business; at 300 and above it is a layer over the viewport,
+// and a layer whose number was guessed is how a palette ends up under the
+// drawer that opened it. Waive with `z-ok:` on the line or just above it —
+// `.s-preview-strip` is a sticky ROW in the flow that happens to need 300.
+const Z_OK = /z-ok\b/;
+for (const f of css) {
+  const raw = readFileSync(f, "utf8");
+  const rawLines = raw.split("\n");
+  uncommented(raw).split("\n").forEach((line, i) => {
+    const m = /z-index:\s*(\d+)/.exec(line);
+    if (!m || Number(m[1]) < 300) return;
+    if (Z_OK.test(rawLines[i]) || (i > 0 && Z_OK.test(rawLines[i - 1]))) return;
+    errs.push(
+      `Z LADDER: ${rel(f)}:${i + 1}  z-index ${m[1]} written out — use a --z-* token from tokens.css (or mark the line "z-ok:")`,
+    );
+  });
 }
 
 // ── 5. the baseline itself is still there ──────────────────────────────────

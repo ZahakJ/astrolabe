@@ -28,6 +28,7 @@
 // CONTRACTS.md: rows that light up must DO something.
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useDialog } from "../a11y.ts";
 import { openDailyNote } from "../daily.ts";
 import { insertTemplateCommand, newNoteFromTemplateCommand } from "../templateActions.ts";
 import { t, type I18nKey } from "../i18n.ts";
@@ -373,6 +374,7 @@ export default function ShortcutsHelp({ shell = "app" }: { shell?: Shell }) {
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   // WHAT THE READER'S KEYBOARD ACTUALLY TYPES. Every keystroke below is
   // resolved by physical position when the layout produces no Latin letter
   // (client/keys.ts), so on an Arabic keyboard the palette really is the key
@@ -396,6 +398,13 @@ export default function ShortcutsHelp({ shell = "app" }: { shell?: Shell }) {
       live = false;
     };
   }, [open]);
+
+  // The trap, and the Escape that works wherever focus is. Twelve Tab presses
+  // walked out of this sheet and into the tree behind it; and Escape was
+  // written on the INPUT alone, so a reader who had arrowed down to a row and
+  // pressed Escape got the shell's Escape instead. `manualFocus` — the effect
+  // above already puts focus in the field on the next frame.
+  useDialog(panelRef, { active: open, manualFocus: true, onEscape: () => setOpen(false) });
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -485,8 +494,10 @@ export default function ShortcutsHelp({ shell = "app" }: { shell?: Shell }) {
   return (
     <div className="s-palette-overlay" onMouseDown={() => setOpen(false)}>
       <div
+        ref={panelRef}
         className="s-palette s-shortcuts"
         role="dialog"
+        aria-modal="true"
         aria-label={t("shortcutsTitle")}
         onMouseDown={(e) => e.stopPropagation()}
       >

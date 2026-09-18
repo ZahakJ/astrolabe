@@ -57,6 +57,7 @@ import {
   unsavedPaths,
 } from "./editor/bufferBridge.ts";
 import { dismissToasts, toast } from "./toast.ts";
+import { paneAt, surfaceOf } from "./workspace.ts";
 
 /** Writes made by our own autosave echo back through the watcher; ignore
  *  "changed" events arriving within this window of a local save. */
@@ -263,6 +264,15 @@ export default function App() {
   const quickReturnRef = useRef<HTMLElement | null>(null);
   /** Zen's ✕ has been sitting still long enough to fade out. */
   const [zenIdle, setZenIdle] = useState(false);
+  /** Is the focused pane a BOOK? The reader carries its own ✕ in the same
+   *  corner, at the same size, 5px higher — so in zen over a book there were
+   *  two identical crosses overlapping, and which one a click hit decided
+   *  between "leave zen" and "close the book". The reader's own wins: it is
+   *  the one that belongs to what is on screen, and Esc still leaves zen. */
+  const zenOverBook = useStore((s) => {
+    const pane = paneAt(s.workspace, s.workspace.focus);
+    return pane !== null && surfaceOf(pane) === "book";
+  });
 
   // The grid follows the inline direction, so the sidebar already sits on the
   // reading direction's leading edge (left in English, right in Arabic).
@@ -1296,7 +1306,7 @@ export default function App() {
       <Surface fallback={<footer className="s-statusbar" aria-hidden="true" />}>
         <StatusBar />
       </Surface>
-      {zen && (
+      {zen && !zenOverBook && (
         <div className={`s-zen-exit-wrap${zenIdle ? " s-zen-exit-wrap--idle" : ""}`}>
           {/* The keystroke, spelled out. Esc is the route that always works,
               and a mode with no visible chrome must say so at least once. */}

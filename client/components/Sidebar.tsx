@@ -10,10 +10,10 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
 } from "react";
-import type { AttachmentKind, SearchHit, SearchMatch, TagCount, TrackerMeta, TreeNode } from "../../shared/types.ts";
+import type { AttachmentKind, SearchHit, SearchMatch, TagCount, TreeNode } from "../../shared/types.ts";
 import { dailyNotesByDay, usePeriodic } from "../daily.ts";
-import { loggedDaysOf } from "../../shared/calendar.ts";
-import { getGraph, getRoutines, getTags, getTrackers, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
+import { useLoggedDays } from "../loggedDays.ts";
+import { getGraph, getTags, patchSettings, publishNote, search, searchMatches, seedStatus, seedVault } from "../api.ts";
 import {
   dragFileCount,
   dragHasFiles,
@@ -63,6 +63,7 @@ import AttachmentViewer, { fileUrl, isViewable } from "./AttachmentViewer.tsx";
 // renderer, pdf.js) is behind a dynamic import. See client/books/door.ts.
 import { openBookPage, openBookPath } from "../books/door.ts";
 import { confirmModal, confirmModalEx } from "./Confirm.tsx";
+import { ContextMenu, type MenuAnchor, type MenuRow } from "./ContextMenu.tsx";
 import { moveViaPicker, pickMoveTarget } from "./MovePicker.tsx";
 import {
   confirmDeleteAttachment,
@@ -120,38 +121,6 @@ function loadShowAttachments(): boolean {
   } catch {
     return true;
   }
-}
-
-/** Margin the context menu keeps from every viewport edge. */
-const MENU_EDGE = 8;
-
-/** Put a context menu at the pointer without letting it leave the screen.
- *
- *  The pointer can be anywhere, and with the sidebar on the trailing edge (RTL
- *  by default, or a reader who moved it there) a menu that grows toward the
- *  trailing edge runs straight off the screen taking its last item with it. So
- *  it opens toward the reading direction, folds back when that edge has no
- *  room, and is clamped on both axes. Measured after mount, because a menu's
- *  size is its content's — and shared by the tree's menu and the tag shelf's,
- *  because two placement rules is how one of them ends up wrong. */
-function placeMenu(el: HTMLElement | null, x: number, y: number, fromKeyboard: boolean): void {
-  if (!el) return;
-  const rtl = getComputedStyle(document.documentElement).direction === "rtl";
-  const { width, height } = el.getBoundingClientRect();
-  const vw = document.documentElement.clientWidth;
-  const vh = document.documentElement.clientHeight;
-  let left = rtl ? x - width : x;
-  if (left + width > vw - MENU_EDGE) left = x - width; // fold back
-  if (left < MENU_EDGE) left = x; // …and back again if that overflows
-  left = Math.max(MENU_EDGE, Math.min(left, vw - width - MENU_EDGE));
-  let top = y;
-  if (top + height > vh - MENU_EDGE) top = y - height;
-  top = Math.max(MENU_EDGE, Math.min(top, vh - height - MENU_EDGE));
-  el.style.left = `${Math.round(left)}px`;
-  el.style.top = `${Math.round(top)}px`;
-  // Opened from the keyboard: focus goes into the menu, or it is a menu that
-  // only a mouse can reach.
-  if (fromKeyboard) el.querySelector<HTMLButtonElement>(".s-menu__item")?.focus();
 }
 
 // Mount-gated on `iconPick`, with its own <Suspense> — the App.tsx rule: a
@@ -224,42 +193,6 @@ function loadCalendarCollapsed(): boolean {
   }
 }
 const CalendarGrid = lazySurface(() => import("./CalendarGrid.tsx"));
-
-/** The days a sigil logged something, for the grid's second mark. The
- *  Sigils page holds every log already; the sidebar asks once when its
- *  section is open and again, a beat after the last save, when the vault
- *  changes — admin only, because the route is. */
-function useLoggedDays(active: boolean): ReadonlySet<string> {
-  const [days, setDays] = useState<ReadonlySet<string>>(() => new Set());
-  useEffect(() => {
-    if (!active) return;
-    let alive = true;
-    const read = (): void => {
-      // The sigils and the trackers together (CalendarGrid.tsx loggedDaysOf):
-      // a day a book was read is a kept day too. A shelf that fails to load
-      // costs the grid only its marks.
-      Promise.all([getRoutines(), getTrackers().catch((): TrackerMeta[] => [])])
-        .then(([routines, trackers]) => {
-          if (!alive) return;
-          setDays(loggedDaysOf(routines, trackers));
-        })
-        .catch(() => {});
-    };
-    read();
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const onVault = (): void => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(read, 600);
-    };
-    window.addEventListener("astrolabe:vault", onVault);
-    return () => {
-      alive = false;
-      window.removeEventListener("astrolabe:vault", onVault);
-      if (timer) clearTimeout(timer);
-    };
-  }, [active]);
-  return days;
-}
 
 function parentOf(path: string): string {
   const i = path.lastIndexOf("/");
@@ -813,7 +746,9 @@ export default function Sidebar() {
   }, []);
   const [focus, setFocus] = useState<string | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
-  const [sortOpen, setSortOpen] = useState(false);
+  /** The sort menu's anchor, or null when it is closed — the same shape the
+   *  tree's own menu uses, because both are ContextMenu now. */
+  const [sortAt, setSortAt] = useState<MenuAnchor | null>(null);
   const onSelectToggle = useCallback((path: string | null) => {
     setSelected((prev) => {
       if (path === null) return prev.size === 0 ? prev : new Set();
@@ -1156,29 +1091,6 @@ export default function Sidebar() {
     [visitorGraph],
   );
 
-  // Dismiss the context menu on any outside click or Escape. A menu opened
-  // from the keyboard hands focus back to the tree when it goes — otherwise
-  // Escape drops the reader on <body> and they have to Tab in from the top.
-  useEffect(() => {
-    if (!menu) return;
-    const close = () => {
-      if (menu.fromKeyboard) treeRef.current?.focus();
-      setMenu(null);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopPropagation();
-        close();
-      }
-    };
-    window.addEventListener("mousedown", close);
-    window.addEventListener("keydown", onKey, true);
-    return () => {
-      window.removeEventListener("mousedown", close);
-      window.removeEventListener("keydown", onKey, true);
-    };
-  }, [menu]);
-
   // Pick (or clear) a folder's glyph. The map is REPLACED whole, which is what
   // makes "no icon" possible at all — a merging PATCH could add a key but
   // never remove one, so the cleared folder's mark would come back on the next
@@ -1228,52 +1140,6 @@ export default function Sidebar() {
   // root). Separate from the rows' own count so a row's highlight never leaves
   // the whole pane lit; `rootDropProps` above sets it.
   const [rootDrag, setRootDrag] = useState(0);
-
-  // The context menu opens at the pointer, but the pointer can be anywhere —
-  // and with the sidebar on the trailing edge (RTL by default, or a reader who
-  // moved it there) a menu that grows toward the trailing edge runs straight
-  // off the screen, taking its last item with it. So it opens toward the
-  // reading direction, folds back when that edge has no room, and is clamped
-  // into the viewport on both axes. Measured after mount, because the menu's
-  // size is its content's.
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  useLayoutEffect(() => {
-    if (menu) placeMenu(menuRef.current, menu.x, menu.y, menu.fromKeyboard === true);
-  }, [menu]);
-
-  // The tag shelf's menu, placed by the same rule — one function, so a menu on
-  // an RTL instance cannot open toward the screen edge in one place and away
-  // from it in the other.
-  const tagMenuRef = useRef<HTMLDivElement | null>(null);
-  useLayoutEffect(() => {
-    if (tagMenu) placeMenu(tagMenuRef.current, tagMenu.x, tagMenu.y, tagMenu.fromKeyboard === true);
-  }, [tagMenu]);
-
-  // …and dismissed by the same rule. Focus goes back to the pill it was opened
-  // from, for the reason the tree's does: Escape must not drop a keyboard
-  // reader on <body>.
-  useEffect(() => {
-    if (!tagMenu) return;
-    const close = (): void => {
-      if (tagMenu.fromKeyboard) {
-        document
-          .querySelector<HTMLElement>(`.s-tag[data-tag="${CSS.escape(tagMenu.tag)}"]`)
-          ?.focus();
-      }
-      setTagMenu(null);
-    };
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key !== "Escape") return;
-      e.stopPropagation();
-      close();
-    };
-    window.addEventListener("mousedown", close);
-    window.addEventListener("keydown", onKey, true);
-    return () => {
-      window.removeEventListener("mousedown", close);
-      window.removeEventListener("keydown", onKey, true);
-    };
-  }, [tagMenu]);
 
   const pinnedNodes = useMemo(
     () => treePrefs.pinned.map((p) => findTreeNode(tree, p)).filter((n): n is TreeNode => n !== null),
@@ -1761,6 +1627,240 @@ export default function Sidebar() {
     // the DISPLAY label into each section — a topic renamed in Settings must
     // repaint without a reload.
   }, [admin, flatNotes, noteTags, lang, tagLabelsVersion]);
+
+  /** The tree's context menu, as ROWS rather than as markup.
+   *
+   *  It was thirty-eight lines of `<button role="menuitem">` with nine
+   *  handlers that each called `setMenu(null)` on their own, its own placement
+   *  copy, its own Escape listener and its own focus restore — the second
+   *  implementation of a menu this app already had one of, and the two
+   *  disagreed (only ContextMenu dismissed on a `contextmenu` elsewhere or on
+   *  a resize). ContextMenu.tsx's own header says these should end up on it.
+   *
+   *  The GROUPS are the other half of the port, and they are why a `null` row
+   *  appears four times below: seventeen rows in one flat column is a list to
+   *  read rather than a menu to aim at, and the audit measured exactly zero
+   *  separators in a folder's menu. They are, in order: make something here ·
+   *  name and mark this row · publish and export it · arrange it · remove it.
+   *  The destructive tail keeps the hairline app.css draws for it, so no
+   *  separator is written before Delete. */
+  const menuRows = useMemo<MenuRow[]>(() => {
+    if (!menu) return [];
+    const node = menu.node;
+    const folder = node.type === "folder" || node.path === "";
+    const real = node.path !== "";
+    const realFolder = node.type === "folder" && real;
+    const note = node.type === "file" && !node.attachment;
+    const movable = real && !node.attachment;
+    const fromKeyboard = menu.fromKeyboard === true;
+    const rows: MenuRow[] = [];
+
+    if (folder) {
+      rows.push({ label: t("newNoteHere"), onSelect: () => void promptNewNote(node.path) });
+      rows.push({ label: t("newDrawingHere"), onSelect: () => void promptNewDrawing(node.path) });
+      // The third door into templates, and the one that carries a DESTINATION:
+      // the palette and the keystroke create wherever the reader last was,
+      // while this one creates in the folder under the pointer — which is the
+      // whole reason someone right-clicked a folder.
+      rows.push({ label: t("cmdNewFromTemplate"), onSelect: () => void newNoteFromTemplateCommand(node.path) });
+      rows.push({ label: t("newFolder"), onSelect: () => void promptNewFolder(node.path) });
+    }
+
+    const identity: MenuRow[] = [];
+    // Notes AND FOLDERS, never an attachment, never the vault root. This row
+    // was notes-only because it called the note rename route, which answers
+    // "Not a markdown path" to a folder — while /api/folder/move, which has
+    // always been able to do it and rewrites every wikilink across the
+    // subtree, sat one menu row below under "Move to…". Renaming a folder cost
+    // three operations, one of them semi-destructive. Attachments stay out:
+    // their move endpoints are note routes.
+    if (movable) identity.push({ label: t("rename"), onSelect: () => setRenaming(node.path) });
+    // A folder's own property, edited at the folder — beside Rename, which is
+    // the other verb that belongs to this row rather than to the instance.
+    // Never the vault ROOT: its key would be the empty path, which is not a
+    // folder anything can be keyed by. Notes and attachments never get one
+    // (DESIGN.md's no-icon-clutter rule for files stands; only folders were
+    // exempted).
+    if (realFolder) {
+      identity.push({
+        label: t("folderIcon"),
+        onSelect: () =>
+          setIconPick({
+            path: node.path,
+            name: node.name,
+            current: useStore.getState().folderIcons[node.path] ?? null,
+            x: menu.x,
+            y: menu.y,
+            fromKeyboard,
+          }),
+      });
+      // The shelf, from the folder: a path in the library IS a vault folder,
+      // and the reader is looking at it. Same terms as the icon row above.
+      identity.push({
+        label: t("libraryMenu"),
+        onSelect: () =>
+          setLibPop({
+            path: node.path,
+            name: node.name,
+            unitNames: (node.children ?? []).filter((c) => c.type === "folder").map((c) => c.name),
+            x: menu.x,
+            y: menu.y,
+            fromKeyboard,
+          }),
+      });
+    }
+    // A collection from the folder, on the library's terms. Notes get the
+    // membership popover in the same group.
+    if (collectionsByHand && realFolder) {
+      identity.push({
+        label: t("collectionTopicMenu"),
+        onSelect: () => setColPop({ kind: "folder", path: node.path, name: node.name, x: menu.x, y: menu.y, fromKeyboard }),
+      });
+    }
+    if (collectionsByHand && note) {
+      identity.push({
+        label: t("collectionsMenu"),
+        onSelect: () =>
+          setColPop({ kind: "note", path: node.path, name: node.name.replace(/\.md$/i, ""), x: menu.x, y: menu.y, fromKeyboard }),
+      });
+    }
+    if (identity.length > 0) {
+      if (rows.length > 0) rows.push({ label: null });
+      rows.push(...identity);
+    }
+
+    const outward: MenuRow[] = [];
+    // PUBLISHING IS ITS OWN VERB. The topic row above writes a page whose
+    // members are notes that are already published; this is the row that
+    // publishes them, and the two sit near each other so the difference is
+    // visible at the moment it matters. Folders only, never the vault root —
+    // "publish everything" is not a menu item.
+    if (admin && realFolder) outward.push({ label: t("folderPublishAll"), onSelect: () => void publishFolder(node) });
+    // The folder as a ZIP — the export dialog opened on this folder, with the
+    // rest of its choices still the reader's to make.
+    if (admin && realFolder) {
+      outward.push({ label: t("treeExportFolder"), onSelect: () => openExportDialog({ scope: "folder", folder: node.path }) });
+    }
+    if (outward.length > 0) {
+      if (rows.length > 0) rows.push({ label: null });
+      rows.push(...outward);
+    }
+
+    const arrange: MenuRow[] = [];
+    // The keyboard and touch route to the same operation the drag performs. It
+    // is not a convenience: HTML5 drag does not exist on a touch screen and
+    // cannot be reached from the keyboard at all, so without this row the
+    // tree's ONLY way to move a note is mouse-only. Offered on notes and
+    // folders alike — never on an attachment (the move endpoints are note
+    // routes) and never on the vault root.
+    if (movable) {
+      const many = selected.has(node.path) && selected.size > 1;
+      arrange.push({
+        label: many ? tf("treeMoveMany", { n: localeNum(selected.size) }) : t("moveTo"),
+        onSelect: () => {
+          // A row inside the selection moves the whole selection: one picker,
+          // then one move per item.
+          const items = many ? selectedItems() : [itemOf(node)];
+          if (items.length === 1) {
+            void moveViaPicker(items[0]);
+            return;
+          }
+          void (async () => {
+            const choice = await pickMoveTarget(items[0]);
+            if (choice === null || !("dir" in choice)) return;
+            for (const it of items) if (canDrop(it, choice.dir)) await moveTo(it, choice.dir);
+            onSelectToggle(null);
+          })();
+        },
+      });
+    }
+    // Fold-all, scoped: every folder under this one closes (or opens), the way
+    // the header's button does for the whole vault.
+    if (realFolder) {
+      arrange.push({
+        label: t("treeFoldInside"),
+        onSelect: () => {
+          setFoldersUnder(useStore.getState().tree, node.path, false);
+          setTreeEpoch((n) => n + 1);
+        },
+      });
+      arrange.push({
+        label: t("treeUnfoldInside"),
+        onSelect: () => {
+          setFoldersUnder(useStore.getState().tree, node.path, true);
+          setTreeEpoch((n) => n + 1);
+        },
+      });
+    }
+    // The scratch area and the focus: a row's own arrangement verbs, per
+    // browser, nothing on disk.
+    if (movable) {
+      const many = selected.has(node.path) && selected.size > 1;
+      arrange.push({
+        label: treePrefs.pinned.includes(node.path)
+          ? t("treeUnpin")
+          : many
+            ? tf("treePinMany", { n: localeNum(selected.size) })
+            : t("treePin"),
+        onSelect: () => {
+          const paths = many ? [...selected] : [node.path];
+          const on = !treePrefs.pinned.includes(node.path);
+          setTreePrefs((p) => togglePinned(p, paths, on));
+          if (many) onSelectToggle(null);
+        },
+      });
+      arrange.push({
+        label: focus === node.path ? t("treeFocusAll") : t("treeFocus"),
+        onSelect: () => setFocus(focus === node.path ? null : node.path),
+      });
+    }
+    // A view filter among the mutations, and deliberately so: the reader who
+    // lost their files looks for them by right-clicking the folder that should
+    // hold them.
+    if (attachmentCount > 0) {
+      arrange.push({ label: showAttachments ? t("hideAttachments") : t("showAttachments"), onSelect: toggleAttachments });
+    }
+    if (arrange.length > 0) {
+      if (rows.length > 0) rows.push({ label: null });
+      rows.push(...arrange);
+    }
+
+    // The destructive tail. No separator is pushed before it: app.css draws
+    // its own hairline above the first `--danger` row, and two rules for one
+    // line is how they come to disagree.
+    if (note) rows.push({ label: t("delete"), danger: true, onSelect: () => void confirmDeleteNote(node.path) });
+    // ATTACHMENTS only. The tree has listed a vault's images, PDFs and
+    // recordings since attachments landed and offered no verb on a single one
+    // of them — so the only way to remove a stale upload was to delete the
+    // folder around it, which is exactly the gesture that took a published
+    // essay's four images with it.
+    if (node.type === "file" && node.attachment) {
+      rows.push({ label: t("deleteAttachment"), danger: true, onSelect: () => void confirmDeleteAttachment(node.path) });
+    }
+    // Never on the root row: the vault itself is not deletable (the server
+    // 400s an empty path), and offering it would be a trap.
+    if (realFolder) rows.push({ label: t("deleteFolder"), danger: true, onSelect: () => void confirmDeleteFolder(node.path) });
+
+    return rows;
+  }, [
+    menu,
+    admin,
+    attachmentCount,
+    collectionsByHand,
+    focus,
+    lang,
+    selected,
+    showAttachments,
+    treePrefs.pinned,
+    confirmDeleteAttachment,
+    confirmDeleteFolder,
+    confirmDeleteNote,
+    onSelectToggle,
+    selectedItems,
+    setFocus,
+    setTreePrefs,
+    toggleAttachments,
+  ]);
 
   return (
     // Named by what it holds ("Notes sidebar"), never by the edge it is on:
@@ -2493,50 +2593,65 @@ export default function Sidebar() {
         className={`s-sidebar-foot${admin && attachmentCount > 0 ? " s-sidebar-foot--split" : ""}`}
       >
         <span>{countPhrase(noteCount, "notes")}</span>
-        {/* The sort menu: the server's order, reversed, or the reader's own. */}
+        {/* The sort menu: the server's order, reversed, or the reader's own.
+            It used to be a hand-rolled box that closed on `onMouseLeave` and
+            on nothing else — not Escape, not an outside click, and on a phone,
+            which has no mouseleave at all, not ever. It is the tree's menu now,
+            anchored on the button instead of at a pointer: the rows are
+            CHOICES, so they carry the ✓ column ContextMenu grew for them. */}
         <span className="s-treesort">
           <button
             type="button"
             className={`s-attfilter s-attfilter--${treePrefs.sort === "name" ? "off" : "on"}`}
             aria-haspopup="menu"
-            aria-expanded={sortOpen}
+            aria-expanded={sortAt !== null}
             title={t("treeSort")}
-            onClick={() => setSortOpen((o) => !o)}
+            onClick={(e) => {
+              if (sortAt !== null) {
+                setSortAt(null);
+                return;
+              }
+              const box = e.currentTarget.getBoundingClientRect();
+              const rtl = getComputedStyle(document.documentElement).direction === "rtl";
+              setSortAt({
+                // The menu's own reading-start edge, aligned with the button's:
+                // ContextMenu grows toward the reading direction from the point
+                // it is given, so the point is the button's leading corner.
+                x: Math.round(rtl ? box.right : box.left),
+                y: Math.round(box.top),
+                // `detail === 0` is Enter or Space on the button — a pointer
+                // click always reports at least one. A keyboard opener has to
+                // get focus INTO the menu and back out of it.
+                fromKeyboard: e.detail === 0,
+              });
+            }}
           >
             <span className="s-attfilter__clip" aria-hidden="true">⇅</span>
             <span className="s-attfilter__count">
               {treePrefs.sort === "name" ? t("treeSortName") : treePrefs.sort === "name-desc" ? t("treeSortNameDesc") : t("treeSortManual")}
             </span>
           </button>
-          {sortOpen && (
-            <div className="s-menu s-treesort__menu" role="menu" onMouseLeave={() => setSortOpen(false)}>
-              {(["name", "name-desc", "manual"] as TreeSort[]).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={treePrefs.sort === mode}
-                  className={`s-menu__item${treePrefs.sort === mode ? " s-menu__item--on" : ""}`}
-                  onClick={() => {
-                    setTreePrefs((p) => ({ ...p, sort: mode }));
-                    setSortOpen(false);
-                  }}
-                >
-                  {mode === "name" ? t("treeSortName") : mode === "name-desc" ? t("treeSortNameDesc") : t("treeSortManual")}
-                </button>
-              ))}
-              <button
-                type="button"
-                role="menuitem"
-                className="s-menu__item"
-                onClick={() => {
-                  setTreePrefs((p) => ({ ...p, sort: "name", order: {} }));
-                  setSortOpen(false);
-                }}
-              >
-                {t("treeSortReset")}
-              </button>
-            </div>
+          {sortAt !== null && (
+            <ContextMenu
+              at={sortAt}
+              label={t("treeSort")}
+              onClose={() => setSortAt(null)}
+              rows={[
+                ...(["name", "name-desc", "manual"] as TreeSort[]).map((mode) => ({
+                  label: mode === "name" ? t("treeSortName") : mode === "name-desc" ? t("treeSortNameDesc") : t("treeSortManual"),
+                  checked: treePrefs.sort === mode,
+                  onSelect: () => setTreePrefs((p) => ({ ...p, sort: mode })),
+                })),
+                // Not a choice — it UNDOES one, and every hand-made position
+                // with it. Its own group, and no tick: nothing is ever "on
+                // Reset".
+                { label: null },
+                {
+                  label: t("treeSortReset"),
+                  onSelect: () => setTreePrefs((p) => ({ ...p, sort: "name", order: {} })),
+                },
+              ]}
+            />
           )}
         </span>
         {admin && attachmentCount > 0 && (
@@ -2560,422 +2675,31 @@ export default function Sidebar() {
       </footer>
 
       {menu && (
-        <div
-          ref={menuRef}
-          className="s-menu"
-          role="menu"
-          aria-label={t("rowActions")}
-          style={{ left: menu.x, top: menu.y }}
-          onMouseDown={(e) => e.stopPropagation()}
-          onKeyDown={(e) => {
-            // Arrows walk the items, Tab leaves (a menu is not a tab ring),
-            // Escape is handled by the global listener above.
-            if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "Tab") return;
-            const items = [
-              ...e.currentTarget.querySelectorAll<HTMLButtonElement>(".s-menu__item"),
-            ];
-            if (e.key === "Tab") {
-              treeRef.current?.focus();
-              setMenu(null);
-              return;
-            }
-            e.preventDefault();
-            const at = items.indexOf(document.activeElement as HTMLButtonElement);
-            const step = e.key === "ArrowDown" ? 1 : -1;
-            items[(Math.max(0, at) + step + items.length) % items.length]?.focus();
-          }}
-        >
-          {(menu.node.type === "folder" || menu.node.path === "") && (
-            <>
-              <button
-                type="button"
-                className="s-menu__item"
-                role="menuitem"
-                onClick={() => {
-                  setMenu(null);
-                  void promptNewNote(menu.node.path);
-                }}
-              >
-                {t("newNoteHere")}
-              </button>
-              <button
-                type="button"
-                className="s-menu__item"
-                role="menuitem"
-                onClick={() => {
-                  setMenu(null);
-                  void promptNewDrawing(menu.node.path);
-                }}
-              >
-                {t("newDrawingHere")}
-              </button>
-              {/* The third door into templates, and the one that carries a
-                  DESTINATION: the palette and the keystroke create wherever
-                  the reader last was, while this one creates in the folder
-                  under the pointer — which is the whole reason someone
-                  right-clicked a folder. */}
-              <button
-                type="button"
-                className="s-menu__item"
-                onClick={() => {
-                  const dir = menu.node.path;
-                  setMenu(null);
-                  void newNoteFromTemplateCommand(dir);
-                }}
-              >
-                {t("cmdNewFromTemplate")}
-              </button>
-              <button
-                type="button"
-                className="s-menu__item"
-                role="menuitem"
-                onClick={() => {
-                  setMenu(null);
-                  void promptNewFolder(menu.node.path);
-                }}
-              >
-                {t("newFolder")}
-              </button>
-            </>
-          )}
-          {/* Notes AND FOLDERS, never an attachment, never the vault root.
-              This row was notes-only because it called the note rename route,
-              which answers "Not a markdown path" to a folder — while
-              /api/folder/move, which has always been able to do it and rewrites
-              every wikilink across the subtree, sat one menu row below under
-              "Move to…". Renaming a folder cost three operations, one of them
-              semi-destructive. Attachments stay out: their move endpoints are
-              note routes. */}
-          {menu.node.path !== "" && !menu.node.attachment && (
-            <button
-              type="button"
-              className="s-menu__item"
-                role="menuitem"
-              onClick={() => {
-                setMenu(null);
-                setRenaming(menu.node.path);
-              }}
-            >
-              {t("rename")}
-            </button>
-          )}
-          {/* A folder's own property, edited at the folder — beside Rename,
-              which is the other verb that belongs to this row rather than to
-              the instance. Never the vault ROOT: its key would be the empty
-              path, which is not a folder anything can be keyed by. Notes and
-              attachments never get one (DESIGN.md's no-icon-clutter rule for
-              files stands; only folders were exempted). */}
-          {menu.node.type === "folder" && menu.node.path !== "" && (
-            <button
-              type="button"
-              className="s-menu__item"
-              role="menuitem"
-              onClick={() => {
-                const node = menu.node;
-                const fromKeyboard = menu.fromKeyboard === true;
-                setMenu(null);
-                setIconPick({
-                  path: node.path,
-                  name: node.name,
-                  current: useStore.getState().folderIcons[node.path] ?? null,
-                  x: menu.x,
-                  y: menu.y,
-                  fromKeyboard,
-                });
-              }}
-            >
-              {t("folderIcon")}
-            </button>
-          )}
-          {/* The shelf, from the folder: a path in the library IS a vault
-              folder, and the reader is looking at it. Same terms as the icon
-              row above — folders only, never the root. */}
-          {menu.node.type === "folder" && menu.node.path !== "" && (
-            <button
-              type="button"
-              className="s-menu__item"
-              role="menuitem"
-              onClick={() => {
-                const node = menu.node;
-                const fromKeyboard = menu.fromKeyboard === true;
-                setMenu(null);
-                setLibPop({
-                  path: node.path,
-                  name: node.name,
-                  unitNames: (node.children ?? []).filter((c) => c.type === "folder").map((c) => c.name),
-                  x: menu.x,
-                  y: menu.y,
-                  fromKeyboard,
-                });
-              }}
-            >
-              {t("libraryMenu")}
-            </button>
-          )}
-          {/* A collection from the folder, on the library's terms. Notes get
-              the membership popover below, beside Delete. */}
-          {collectionsByHand && menu.node.type === "folder" && menu.node.path !== "" && (
-            <button
-              type="button"
-              className="s-menu__item"
-              role="menuitem"
-              onClick={() => {
-                const node = menu.node;
-                const fromKeyboard = menu.fromKeyboard === true;
-                setMenu(null);
-                setColPop({ kind: "folder", path: node.path, name: node.name, x: menu.x, y: menu.y, fromKeyboard });
-              }}
-            >
-              {t("collectionTopicMenu")}
-            </button>
-          )}
-          {/* PUBLISHING IS ITS OWN VERB. The topic row above writes a page
-              whose members are notes that are already published; this is the
-              row that publishes them, and the two sit together so the
-              difference is visible at the moment it matters. Folders only,
-              never the vault root — "publish everything" is not a menu item. */}
-          {admin && menu.node.type === "folder" && menu.node.path !== "" && (
-            <button
-              type="button"
-              className="s-menu__item"
-              role="menuitem"
-              onClick={() => {
-                const node = menu.node;
-                setMenu(null);
-                void publishFolder(node);
-              }}
-            >
-              {t("folderPublishAll")}
-            </button>
-          )}
-          {/* The folder as a ZIP — the export dialog opened on this folder,
-              with the rest of its choices still the reader's to make. */}
-          {admin && menu.node.type === "folder" && menu.node.path !== "" && (
-            <button
-              type="button"
-              className="s-menu__item"
-              role="menuitem"
-              onClick={() => {
-                const node = menu.node;
-                setMenu(null);
-                openExportDialog({ scope: "folder", folder: node.path });
-              }}
-            >
-              {t("treeExportFolder")}
-            </button>
-          )}
-          {/* The keyboard and touch route to the same operation the drag
-              performs. It is not a convenience: HTML5 drag does not exist on a
-              touch screen and cannot be reached from the keyboard at all, so
-              without this row the tree's ONLY way to move a note is mouse-only.
-              Offered on notes and folders alike — never on an attachment (the
-              move endpoints are note routes) and never on the vault root. */}
-          {menu.node.path !== "" && !menu.node.attachment && (
-            <button
-              type="button"
-              className="s-menu__item"
-              onClick={() => {
-                const node = menu.node;
-                setMenu(null);
-                // A row inside the selection moves the whole selection: one
-                // picker, then one move per item.
-                const items = selected.has(node.path) && selected.size > 1 ? selectedItems() : [itemOf(node)];
-                if (items.length === 1) {
-                  void moveViaPicker(items[0]);
-                  return;
-                }
-                void (async () => {
-                  const choice = await pickMoveTarget(items[0]);
-                  if (choice === null || !("dir" in choice)) return;
-                  for (const it of items) if (canDrop(it, choice.dir)) await moveTo(it, choice.dir);
-                  onSelectToggle(null);
-                })();
-              }}
-            >
-              {selected.has(menu.node.path) && selected.size > 1 ? tf("treeMoveMany", { n: localeNum(selected.size) }) : t("moveTo")}
-            </button>
-          )}
-          {/* Fold-all, scoped: every folder under this one closes (or opens),
-              the way the header's button does for the whole vault. */}
-          {menu.node.type === "folder" && menu.node.path !== "" && (
-            <>
-              <button
-                type="button"
-                className="s-menu__item"
-                role="menuitem"
-                onClick={() => {
-                  const node = menu.node;
-                  setMenu(null);
-                  setFoldersUnder(useStore.getState().tree, node.path, false);
-                  setTreeEpoch((n) => n + 1);
-                }}
-              >
-                {t("treeFoldInside")}
-              </button>
-              <button
-                type="button"
-                className="s-menu__item"
-                role="menuitem"
-                onClick={() => {
-                  const node = menu.node;
-                  setMenu(null);
-                  setFoldersUnder(useStore.getState().tree, node.path, true);
-                  setTreeEpoch((n) => n + 1);
-                }}
-              >
-                {t("treeUnfoldInside")}
-              </button>
-            </>
-          )}
-          {/* The scratch area and the focus: a row's own arrangement verbs,
-              per browser, nothing on disk. */}
-          {menu.node.path !== "" && !menu.node.attachment && (
-            <button
-              type="button"
-              className="s-menu__item"
-              role="menuitem"
-              onClick={() => {
-                const node = menu.node;
-                const many = selected.has(node.path) && selected.size > 1;
-                const paths = many ? [...selected] : [node.path];
-                const on = !treePrefs.pinned.includes(node.path);
-                setMenu(null);
-                setTreePrefs((p) => togglePinned(p, paths, on));
-                if (many) onSelectToggle(null);
-              }}
-            >
-              {treePrefs.pinned.includes(menu.node.path)
-                ? t("treeUnpin")
-                : selected.has(menu.node.path) && selected.size > 1
-                  ? tf("treePinMany", { n: localeNum(selected.size) })
-                  : t("treePin")}
-            </button>
-          )}
-          {menu.node.path !== "" && !menu.node.attachment && (
-            <button
-              type="button"
-              className="s-menu__item"
-              role="menuitem"
-              onClick={() => {
-                const node = menu.node;
-                setMenu(null);
-                setFocus(focus === node.path ? null : node.path);
-              }}
-            >
-              {focus === menu.node.path ? t("treeFocusAll") : t("treeFocus")}
-            </button>
-          )}
-          {collectionsByHand && menu.node.type === "file" && !menu.node.attachment && (
-            <button
-              type="button"
-              className="s-menu__item"
-              role="menuitem"
-              onClick={() => {
-                const node = menu.node;
-                const fromKeyboard = menu.fromKeyboard === true;
-                setMenu(null);
-                setColPop({ kind: "note", path: node.path, name: node.name.replace(/\.md$/i, ""), x: menu.x, y: menu.y, fromKeyboard });
-              }}
-            >
-              {t("collectionsMenu")}
-            </button>
-          )}
-          {menu.node.type === "file" && !menu.node.attachment && (
-            <button
-              type="button"
-              className="s-menu__item s-menu__item--danger"
-                role="menuitem"
-              onClick={() => {
-                setMenu(null);
-                void confirmDeleteNote(menu.node.path);
-              }}
-            >
-              {t("delete")}
-            </button>
-          )}
-          {/* ATTACHMENTS only. The tree has listed a vault's images, PDFs and
-              recordings since attachments landed and offered no verb on a
-              single one of them — so the only way to remove a stale upload was
-              to delete the folder around it, which is exactly the gesture that
-              took a published essay's four images with it. Its own route
-              (DELETE /api/attachment), its own dialog, and a warning naming
-              the notes that embed it. */}
-          {menu.node.type === "file" && menu.node.attachment && (
-            <button
-              type="button"
-              className="s-menu__item s-menu__item--danger"
-              onClick={() => {
-                setMenu(null);
-                void confirmDeleteAttachment(menu.node.path);
-              }}
-            >
-              {t("deleteAttachment")}
-            </button>
-          )}
-          {/* A view filter among the mutations, and deliberately so: the
-              reader who lost their files looks for them by right-clicking the
-              folder that should hold them. */}
-          {attachmentCount > 0 && (
-            <button
-              type="button"
-              className="s-menu__item"
-              onClick={() => {
-                setMenu(null);
-                toggleAttachments();
-              }}
-            >
-              {showAttachments ? t("hideAttachments") : t("showAttachments")}
-            </button>
-          )}
-          {/* Never on the root row: the vault itself is not deletable (the
-              server 400s an empty path), and offering it would be a trap. */}
-          {menu.node.type === "folder" && menu.node.path !== "" && (
-            <button
-              type="button"
-              className="s-menu__item s-menu__item--danger"
-                role="menuitem"
-              onClick={() => {
-                setMenu(null);
-                void confirmDeleteFolder(menu.node.path);
-              }}
-            >
-              {t("deleteFolder")}
-            </button>
-          )}
-        </div>
+        <ContextMenu
+          at={menu}
+          rows={menuRows}
+          label={t("rowActions")}
+          onClose={() => setMenu(null)}
+        />
       )}
 
       {/* The tag shelf's menu. One verb today, and it is the verb the forum has
           been asking for since 2018: rename (and, onto a name that exists,
-          merge). Same chrome and same placement as the tree's menu above; a
-          separate element because a tag is not a tree node. */}
+          merge). The same component as the tree's, because a menu that looks
+          like another menu and dismisses differently is the bug ContextMenu
+          exists to end — a separate CALL because a tag is not a tree node. */}
       {tagMenu && (
-        <div
-          ref={tagMenuRef}
-          className="s-menu"
-          role="menu"
-          aria-label={t("tagActions")}
-          style={{ left: tagMenu.x, top: tagMenu.y }}
-          onMouseDown={(e) => e.stopPropagation()}
-          onKeyDown={(e) => {
-            if (e.key !== "Tab") return;
-            setTagMenu(null);
-          }}
-        >
-          <button
-            type="button"
-            className="s-menu__item"
-            role="menuitem"
-            onClick={() => {
-              const tag = tagMenu.tag;
-              const known = tags.map((entry) => entry.tag);
-              setTagMenu(null);
-              void promptTagRename(tag, known);
-            }}
-          >
-            {t("renameTag")}
-          </button>
-        </div>
+        <ContextMenu
+          at={tagMenu}
+          rows={[
+            {
+              label: t("renameTag"),
+              onSelect: () => void promptTagRename(tagMenu.tag, tags.map((entry) => entry.tag)),
+            },
+          ]}
+          label={t("tagActions")}
+          onClose={() => setTagMenu(null)}
+        />
       )}
 
       {iconPick && (

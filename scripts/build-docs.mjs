@@ -51,6 +51,7 @@ export const SECTIONS = [
       { slug: "latex", file: "latex.md", title: { en: "LaTeX notes", ar: "ملاحظات LaTeX" } },
       { slug: "trackers", file: "trackers.md", title: { en: "Trackers", ar: "المتتبِّعات" } },
       { slug: "sigils", file: "sigils.md", title: { en: "Sigils", ar: "السِّجِلّ" } },
+      { slug: "calendar", file: "calendar.md", title: { en: "The Calendar", ar: "التقويم" } },
       { slug: "orbits", file: "orbits.md", title: { en: "Orbits", ar: "المدارات" } },
       { slug: "drawing", file: "drawing.md", title: { en: "Drawings", ar: "الرسومات" } },
       { slug: "books", file: "books.md", title: { en: "The PDF reader", ar: "قارئ PDF" } },

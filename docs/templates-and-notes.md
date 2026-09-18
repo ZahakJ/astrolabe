@@ -159,9 +159,12 @@ calendar's day number small in each cell's corner. The week starts on the site l
 fainter dot marks a day a [sigil](sigils.md) logged something; today is ringed. Clicking a day
 opens its note, creating it through the same door as `Ctrl/Cmd Alt D` (template and all); `‹` and
 `›` turn the month; the month's name brings you back to today's. The section folds like the tag
-shelf and remembers it. The same grid sits at the top of the [Sigils page](sigils.md#the-sigils-page)
-on a desktop; on a phone the sidebar's section is the calendar. A visitor to the public site sees
-the section only when a daily note is published, dotted with the published days.
+shelf and remembers it. A visitor to the public site sees the section only when a daily note is
+published, dotted with the published days.
+
+This one is a **date picker**, and it is deliberately small. For the month as something to *read* —
+full width, with each day's note, sigils, cards and reading named inside its cell — open
+[the Calendar](calendar.md) from the calendar leaf in the top bar.
 
 The grid is one tab stop. Inside it, `←` `→` walk the days (mirrored under Arabic), `↑` `↓` the
 weeks, `Home` `End` the ends of the row, `PageUp` `PageDown` the months, and `Enter` opens the

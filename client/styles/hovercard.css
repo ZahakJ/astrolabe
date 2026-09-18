@@ -8,7 +8,7 @@
   position: fixed;
   /* Above the search overlay (100) and the nav (30): the card only ever
      exists under a resting pointer, and any click, scroll or Escape ends it. */
-  z-index: 500;
+  z-index: var(--z-hovercard);
   width: min(28rem, calc(100vw - 24px));
   display: flex;
   flex-direction: column;
@@ -164,7 +164,7 @@
 .s-hovercard-veil {
   position: fixed;
   inset: 0;
-  z-index: 499;
+  z-index: calc(var(--z-hovercard) - 1);
   background: color-mix(in srgb, var(--bg) 46%, transparent);
   -webkit-backdrop-filter: blur(6px) saturate(0.9);
   backdrop-filter: blur(6px) saturate(0.9);

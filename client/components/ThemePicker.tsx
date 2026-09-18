@@ -23,6 +23,7 @@
 // bug wearing a different hat.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDialog } from "../a11y.ts";
 import { createRoot, type Root } from "react-dom/client";
 import { customThemeChoice, type CustomTheme } from "../../shared/customTheme.ts";
 import { applyThemeChoice, getCustomThemes, subscribeCustomThemes } from "../design/customThemes.ts";
@@ -164,6 +165,7 @@ function ThemePicker({ onClose }: { onClose: () => void }) {
   const sizes = useMemo(() => groups.map((g) => g.themes.length), [groups]);
   const [cursor, setCursor] = useState(() => Math.max(0, flat.indexOf(theme)));
   const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   /** Committed themes must not be un-previewed by the unmount cleanup. */
   const committed = useRef(false);
 
@@ -245,6 +247,13 @@ function ThemePicker({ onClose }: { onClose: () => void }) {
   // Focus the list so the panel owns the keyboard even when it was opened by
   // a click, and keep the highlighted row in view.
   useEffect(() => listRef.current?.focus(), []);
+  // …and the ring stays in here. `manualFocus` because the line above already
+  // chose where focus lands; `onEscape` is omitted because the capture-phase
+  // key handler above owns Escape (it RESTORES the previewed theme, which a
+  // plain close cannot do). Measured before: Shift+Tab walked out of the
+  // picker in 22 presses and left the reader in the tree behind a sheet that
+  // said it was modal.
+  useDialog(panelRef, { manualFocus: true });
   useEffect(() => {
     listRef.current
       ?.querySelector<HTMLElement>(`[data-index="${cursor}"]`)
@@ -255,8 +264,10 @@ function ThemePicker({ onClose }: { onClose: () => void }) {
   return (
     <div className="s-palette-overlay s-tpick-overlay" onMouseDown={cancel}>
       <div
+        ref={panelRef}
         className="s-tpick"
         role="dialog"
+        aria-modal="true"
         aria-label={t("themePicker")}
         onMouseDown={(e) => e.stopPropagation()}
       >

@@ -421,6 +421,119 @@
   --syn-type: #d29922;
   --syn-prop: #39c5cf;
   --syn-operator: #8b949e;
+
+  /* ── MOTION: TWO DURATIONS AND ONE CURVE ───────────────────────────────────
+     Every overlay in the shell already agreed on 120ms and every pane on
+     180ms; they just said so as literals, in nine stylesheets, which is how a
+     third number appears. Named here so the next one has somewhere to be.
+
+       quick 120ms   something ARRIVES or leaves: a menu, a popover, a scrim,
+                     the palette's backdrop. Short enough that it reads as
+                     placement rather than as travel.
+       pane  180ms   something RESIZES: the sidebar and the outline pane
+                     collapsing, which DESIGN.md pins at this number.
+       ease          the curve, everywhere. A shell is not a place for five
+                     easing functions; the one exception in the product is the
+                     drawer's finger-follow, which is direct manipulation and
+                     carries its own spring.
+
+     LAYOUT PROPERTIES ARE NOT ANIMATED except by the pane-collapse rule that
+     DESIGN.md writes down (width, which is what "a collapsed pane is 0 width"
+     means) and by progress bars, which are one isolated box. Everything else
+     moves with `transform` and `opacity`. `styles/a11y.css` cuts all of it to
+     nothing under `prefers-reduced-motion: reduce`. */
+  --motion-quick: 120ms;
+  --motion-pane: 180ms;
+  --motion-ease: ease;
+
+  /* ── THE STACKING LADDER ───────────────────────────────────────────────────
+     Every layer that covers part of the viewport takes its number from here,
+     and nothing at or above 300 is written as a literal anywhere in
+     client/styles (check-a11y rule 7 holds that). The rungs were already in
+     the code as bare numbers in nine stylesheets, which is how the command
+     palette came to sit at 100 — under the phone drawer that opened it, under
+     the sync popover, under the menus. A ladder nobody can read is a ladder
+     people guess at.
+
+     The order, and why each rung is where it is:
+
+       menu 300      a context menu is opened FROM a pane and belongs over it.
+       find 320      the desktop shell's find bar — a strip that stays up while
+                     the reader works, so it sits over the chrome and over a
+                     menu, and under everything that covers the viewport.
+       menu-scrim    one below the menu: on a coarse pointer the menu gets a
+                     ground to be dismissed against, and it must not cover the
+                     menu it dims the page for.
+                     (These two are the one pair that MOVES: in the drawer
+                     shell they sit just above the drawer instead, because
+                     that is the pane the menu is opened from. The media
+                     block directly below this one is where, and why.)
+       drawer 400    the phone sidebar (its backdrop one rung below it).
+       palette 410   the command palette and every full-viewport sheet that
+                     reuses `.s-palette-overlay` — theme picker, shortcuts,
+                     templates, what's-new, the tour. ABOVE the drawer,
+                     because the drawer is where a phone reader opens it from.
+       panel 420     trash browser, history, unused attachments: panels that
+                     can raise a confirm, so they stay below 500.
+       toast 430     a transient may cover a panel; that argument is settled
+                     in the toast contract.
+       popover 440   an ANCHORED popover's action row outranks a transient:
+                     "Sync now" is a button, and a toast landing on it is a
+                     button the reader can see and cannot press.
+       capture 450   the capture sheet, raised over everything a reader might
+                     be capturing FROM and dismissed before anything it raises
+                     matters.
+       confirm 500   the top of the product. Every other layer can spawn one,
+                     so anything that paints over a confirm is a question the
+                     reader cannot answer.
+       hovercard 500 a peek, at the confirm's height because the pointer
+                     leaving tears it down and it never sits under a dialog.
+       crash 900     the error boundary: the app is gone, this is what is left.
+       skip 1000     the skip link, reachable from the very first Tab whatever
+                     else is on screen.
+       eye           the warm/dim comfort sheet, over literally everything — a
+                     phone's night light does not spare the dialogs. */
+  --z-menu-scrim: 299;
+  --z-menu: 300;
+  --z-find: 320;
+  --z-drawer-backdrop: 390;
+  --z-drawer: 400;
+  --z-palette: 410;
+  --z-panel: 420;
+  --z-toast: 430;
+  --z-popover: 440;
+  --z-capture: 450;
+  --z-confirm: 500;
+  --z-hovercard: 500;
+  --z-crash: 900;
+  --z-skip: 1000;
+  --z-eye: 2147483647;
+}
+
+/* ── THE SAME TWO RUNGS, IN THE DRAWER SHELL ─────────────────────────────────
+   "A context menu is opened FROM a pane and belongs over it" is the argument
+   the menu's rung is made of — and in the drawer shell the pane it is opened
+   from is the DRAWER, which is `position: fixed` at 400 because it floats over
+   the note. At 300 the menu was therefore behind the surface that raised it:
+   on a 390px phone, a long press on a folder in the tree built a seventeen-row
+   menu at x 124 and painted 320px of drawer over it, so `elementFromPoint` at
+   the menu's own first row returned `HEADER.s-sidebar-header` and what the
+   reader got was a 62px stripe of half-words. The sort menu in the drawer's
+   footer and the tag shelf's menu are the same box and were the same bug; all
+   three are portalled to `<body>`, which is what took them out of the drawer's
+   own stacking context and is otherwise right (a menu must not be clipped by
+   a pane that animates its width).
+
+   So the names do not change and the call sites do not move — the two rungs
+   take the values the drawer shell needs, one rung above it and still below
+   the palette (410), which must stay over both. The condition is `app.css`'s
+   drawer block, character for character: the shell that makes the sidebar an
+   overlay is the shell that owes its menus this. */
+@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
+  :root {
+    --z-menu-scrim: 404;
+    --z-menu: 405;
+  }
 }
 
 /* "iron-gall" — the brand room: iron-gall ink on a warm near-black, ivory

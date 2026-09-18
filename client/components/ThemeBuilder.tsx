@@ -56,6 +56,7 @@ import { useStore } from "../state.ts";
 import { THEME_LABELS } from "../themes.ts";
 import { confirmModal } from "./Confirm.tsx";
 import { toast } from "../toast.ts";
+import { useDialog } from "../a11y.ts";
 import "../styles/themebuilder.css";
 
 /** The `data-custom-theme` value the live preview borrows. It can never
@@ -172,6 +173,7 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
   const [openGroup, setOpenGroup] = useState<TokenGroup>("ground");
   const [filter, setFilter] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   const needle = filter.trim().toLowerCase();
 
   const baseTokens = useMemo(() => readBaseTokens(draft.base), [draft.base]);
@@ -237,6 +239,12 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   }, [close]);
+
+  // The ring, and the way back: this panel is opened FROM the theme picker's
+  // "New theme" button, and without the restore, closing it dropped a keyboard
+  // reader on <body>. Escape belongs to the listener above, which knows a
+  // confirm may be stacked over this.
+  useDialog(panelRef);
 
   const setToken = (name: string, value: string): void => {
     setDraft((d) => ({ ...d, tokens: { ...d.tokens, [name]: value } }));
@@ -394,8 +402,10 @@ function ThemeBuilder({ theme, onClose }: { theme: CustomTheme | null; onClose: 
   return (
     <div className="s-palette-overlay s-tb-overlay" onMouseDown={close}>
       <div
+        ref={panelRef}
         className="s-tb"
         role="dialog"
+        aria-modal="true"
         aria-label={t("tbTitle")}
         onMouseDown={(e) => e.stopPropagation()}
       >
