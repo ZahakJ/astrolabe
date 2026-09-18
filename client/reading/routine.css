@@ -438,6 +438,11 @@
   display: grid;
   justify-items: center;
   gap: 4px;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  border: 0;
+  background: none;
+  appearance: none;
   padding: 6px 2px;
   border-radius: 8px;
   font-size: 0.714rem;
@@ -528,6 +533,16 @@
 }
 
 .s-rv-routine__cell {
+  /* A <button> since 3.17.3, so it takes a button's box back off: no
+     padding, border-box, no minimum — with them each 12px cell measured 26
+     and rode over its neighbour (the owner: "the task boxes overlay each
+     other"). */
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+  appearance: none;
+  line-height: 0;
   inline-size: 12px;
   block-size: 12px;
   border-radius: 3px;
