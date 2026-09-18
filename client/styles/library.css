@@ -244,7 +244,7 @@
   border: 0;
   background: none;
   padding: 2px 4px;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font: inherit;
   font-size: 0.8rem;
   cursor: pointer;
@@ -338,7 +338,7 @@
 
 .s-lib-lesson-row__min {
   font-size: 0.78rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -392,7 +392,7 @@
   margin: 26px 0 0;
   text-align: center;
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 @media (pointer: coarse) {
@@ -439,7 +439,6 @@
   padding: 0 8px 12px;
   max-block-size: 60vh;
   overflow-y: auto;
-  scrollbar-width: thin;
 }
 
 .s-lib-rail__unithead {
@@ -484,7 +483,7 @@
 .s-lib-rail__n {
   font-size: 0.7rem;
   font-variant-numeric: tabular-nums;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-lib-rail__item--here .s-lib-rail__n,

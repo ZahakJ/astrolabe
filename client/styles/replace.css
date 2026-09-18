@@ -121,7 +121,7 @@
   margin: 10px 4px;
   font-size: 0.857rem;
   font-style: italic;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-replace__warn {

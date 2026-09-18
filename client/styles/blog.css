@@ -224,7 +224,7 @@
   max-width: 720px;
   margin: 0 auto;
   padding: 28px 24px 0;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: 0.821rem;
   line-height: 1.5;
 }
@@ -408,7 +408,7 @@
 .s-blog-search__none {
   padding: 10px 12px;
   font-size: 0.929rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-blog-search__hit {
@@ -469,7 +469,7 @@
   padding: 7px 12px;
   border: 1px dashed color-mix(in srgb, var(--border) 85%, transparent);
   border-radius: var(--radius);
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   font-size: 0.857rem;
   opacity: 0.8;
@@ -779,7 +779,7 @@
   flex-wrap: wrap;
   gap: 4px 8px;
   font-size: 0.893rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-blog-meta__date {
@@ -965,7 +965,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--text-faint);
+  color: var(--text-muted);
   margin-inline-end: 4px;
 }
 
@@ -1084,7 +1084,7 @@
 .s-blog-related__date {
   flex-shrink: 0;
   font-size: 0.857rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* Marginalia inherits its own stylesheet; give it air — and the PAGE's column,
@@ -1183,7 +1183,7 @@
   justify-content: center;
   gap: 16px;
   font-size: 0.857rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-blog-footer__link {
@@ -1192,7 +1192,7 @@
   background: none;
   font-family: var(--font-ui);
   font-size: 0.857rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   text-decoration: none;
   cursor: pointer;
   transition: color 150ms ease;
@@ -1205,7 +1205,7 @@
 /* Removable via ASTROLABE_DATA/custom.css: .s-blog-powered { display: none } */
 .s-blog-powered {
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   opacity: 0.8;
 }
 
@@ -1398,7 +1398,7 @@
   align-items: center;
   gap: 5px;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-blog-footer__hint kbd {
@@ -1659,7 +1659,6 @@
   gap: 12px;
   overflow-x: auto;
   padding: 16px 2px 8px;
-  scrollbar-width: thin;
 }
 
 /* "More cards this way": shown by the dashboard only while the row still has
@@ -1728,7 +1727,7 @@
 .s-dash-hot__date {
   flex-shrink: 0;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 @media (max-width: 640px) {

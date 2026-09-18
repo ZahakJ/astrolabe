@@ -70,8 +70,9 @@ export function editorTheme(): Extension {
       fontSize: "calc(var(--font-prose, 1.161rem) * var(--prose-scale, 1))",
       lineHeight: "1.7",
       overflow: "auto",
-      scrollbarWidth: "thin",
-      scrollbarColor: "var(--border) transparent",
+      // No scrollbar-width/-color here: app.css's universal rule already
+      // gives Firefox the thin bar, and on Chromium the pair would switch the
+      // styled ::-webkit bar off and draw a classic rail down the prose.
     },
     // The horizontal gutter lives on the SCROLLER (see app.css): CodeMirror's
     // own selection rects are drawn against the content box, so a padded
@@ -195,7 +196,7 @@ export function editorTheme(): Extension {
       fontWeight: "600",
     },
     ".cm-completionDetail": {
-      color: "var(--text-faint)",
+      color: "var(--text-muted)",
       fontStyle: "normal",
       // Logical, not left: the `@` rows put an Arabic phrase beside an
       // Arabic date, and a left margin in an RTL popup is a gap on the far
@@ -276,7 +277,7 @@ export function editorTheme(): Extension {
     },
     ".cm-s-bullet": { color: "var(--list-bullet)" },
     ".cm-s-task-done": {
-      color: "var(--text-faint)",
+      color: "var(--text-muted)",
       textDecoration: "line-through",
     },
     ".cm-s-wikilink": {

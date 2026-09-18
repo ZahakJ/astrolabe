@@ -135,7 +135,7 @@ export const TOUR_CARDS: TourCard[] = [
   },
   {
     id: "themes",
-    name: { en: "Twenty-one rooms", ar: "إحدى وعشرون غرفة" },
+    name: { en: "Every room", ar: "كل الغرف" },
     blurb: {
       en: "A theme here is a whole room — its own ground, type, accent and thirteen callout hues, each solved against the others, and some of them carry a slow ambient air behind the masthead. Walk them with the arrow keys and the app changes around you as you go.",
       ar: "السمة هنا غرفة كاملة: أرضيتها وخطها ولونها المميز وثلاثة عشر لونًا للتنبيهات، كلٌّ منها مضبوطٌ على الآخر، وبعضها يحمل أجواءً بطيئة خلف ترويسة الموقع. امشِ بينها بمفاتيح الأسهم، والتطبيق يتبدّل حولك وأنت تمشي.",

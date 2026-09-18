@@ -260,7 +260,7 @@ body:has(.s-tpick-host) .s-smodal-overlay {
 .s-tpick__hint {
   flex: 1;
   font-size: 0.71rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-tpick__list {
@@ -415,7 +415,7 @@ body:has(.s-tpick-host) .s-smodal-overlay {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.742rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-tpick__item--on .s-tpick__desc {

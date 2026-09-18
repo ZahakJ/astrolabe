@@ -32,7 +32,7 @@
 .s-hovercard__tagnote-path {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -51,5 +51,5 @@
 .s-hovercard__tagnote-more {
   margin: 10px 0 0;
   font-size: 0.78rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }

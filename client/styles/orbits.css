@@ -22,7 +22,6 @@
   container-type: inline-size;
   padding: 28px clamp(16px, 4cqi, 48px) 64px;
   background: var(--bg);
-  scrollbar-width: thin;
 }
 /* The session takes focus for its keys (Space, 1–4); the ring would frame
    the whole pane, and the card's own controls carry theirs. */
@@ -382,7 +381,7 @@
   inset-inline-end: 0;
   inset-block-start: 8px;
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -431,7 +430,7 @@
 }
 .s-session__early {
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 .s-session__spacer {
   flex: 1;
@@ -547,7 +546,7 @@
   color: var(--callout-warning);
 }
 .s-session__verdictlabel {
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 .s-session__diff {
   font-family: var(--font-serif);
@@ -605,7 +604,7 @@
 }
 .s-session__gradekey {
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 .s-session__gradelabel {
@@ -620,7 +619,7 @@
 .s-session__keys {
   margin: 18px auto 0;
   font-size: 0.786rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   text-align: center;
 }
 
@@ -860,7 +859,7 @@
   color: var(--text);
 }
 .s-statsdrawer__pct {
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 .s-statsdrawer__swatch {
   inline-size: 10px;

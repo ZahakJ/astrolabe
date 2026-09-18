@@ -110,7 +110,7 @@
   margin-inline-start: auto;
   flex: none;
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 .s-propshelf__more {
