@@ -33,6 +33,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useStore } from "../state.ts";
 
 /** Margin the menu keeps from every viewport edge. */
 const MENU_EDGE = 8;
@@ -44,6 +45,11 @@ export interface MenuRow {
   /** Destructive — takes the danger colour and the rule above it. */
   danger?: boolean;
   disabled?: boolean;
+  /** A CHOICE rather than a command: the row becomes `menuitemradio` and gets
+   *  the ✓ column. Present on one row means present on the menu — every row
+   *  then reserves the column, because a tick that shifts its own label is a
+   *  tick nobody can scan down. Omit it entirely on a menu of commands. */
+  checked?: boolean;
 }
 
 export interface MenuAnchor {
@@ -119,52 +125,88 @@ export function ContextMenu(props: {
     };
   }, [close]);
 
+  // …AND THE PALETTE, which none of the listeners above can see: Ctrl/Cmd+P is
+  // a keystroke, so the menu stayed open under the palette's backdrop and was
+  // still sitting there, pointing at a row, when the palette went away. A
+  // full-viewport sheet closes what it covers.
+  const paletteOpen = useStore((s) => s.paletteOpen);
+  useEffect(() => {
+    if (paletteOpen) close();
+  }, [paletteOpen, close]);
+
+  /** A menu of CHOICES (the tree's sort order) rather than of commands. One
+   *  row declaring `checked` makes the whole menu one, so the ✓ column is
+   *  reserved on every row including the plain ones. */
+  const radio = rows.some((row) => row.checked !== undefined);
+
   // Portalled onto <body>: every opener so far is inside a pane that animates
   // its own width and clips its overflow, and a menu must not be trapped in one.
   return createPortal(
-    <div
-      ref={ref}
-      className="s-menu"
-      role="menu"
-      aria-label={label}
-      onMouseDown={(e) => e.stopPropagation()}
-      onKeyDown={(e) => {
-        // Arrows walk the rows; Tab LEAVES, because a menu is not a tab ring.
-        if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "Tab") return;
-        if (e.key === "Tab") {
-          close();
-          return;
-        }
-        e.preventDefault();
-        const items = [...e.currentTarget.querySelectorAll<HTMLButtonElement>(".s-menu__item")];
-        const at2 = items.indexOf(document.activeElement as HTMLButtonElement);
-        const step = e.key === "ArrowDown" ? 1 : -1;
-        items[(Math.max(0, at2) + step + items.length) % items.length]?.focus();
-      }}
-    >
-      {rows.map((row, i) =>
-        row.label === null ? (
-          <div key={`sep${i}`} className="s-menu__sep" role="separator" />
-        ) : (
-          <button
-            key={row.label}
-            type="button"
-            role="menuitem"
-            className={`s-menu__item${row.danger ? " s-menu__item--danger" : ""}`}
-            disabled={row.disabled}
-            onClick={() => {
-              // Close FIRST, so focus is restored before the action runs and
-              // whatever the action focuses wins. The other order is how a
-              // menu hands focus back to a tab it has just closed.
-              close();
-              row.onSelect?.();
-            }}
-          >
-            {row.label}
-          </button>
-        ),
-      )}
-    </div>,
+    <>
+      {/* A GROUND TO DISMISS AGAINST, on coarse pointers only (the stylesheet
+          keeps it display:none everywhere else). A seventeen-row folder menu
+          on a phone floats edge to edge over the tree with no visible edge of
+          its own and nothing that reads as "outside"; a finger looking for
+          outside lands on a tree row. The scrim is not a modal backdrop — it
+          carries no click handler at all, because the window mousedown below
+          already closes the menu and two closers is how one of them stops
+          matching the other. */}
+      <div className="s-menu-scrim" aria-hidden="true" />
+      <div
+        ref={ref}
+        className={`s-menu${radio ? " s-menu--radio" : ""}`}
+        role="menu"
+        aria-label={label}
+        onMouseDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          // Arrows walk the rows; Tab LEAVES, because a menu is not a tab ring.
+          if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "Tab") return;
+          if (e.key === "Tab") {
+            close();
+            return;
+          }
+          e.preventDefault();
+          const items = [...e.currentTarget.querySelectorAll<HTMLButtonElement>(".s-menu__item")];
+          const at2 = items.indexOf(document.activeElement as HTMLButtonElement);
+          const step = e.key === "ArrowDown" ? 1 : -1;
+          items[(Math.max(0, at2) + step + items.length) % items.length]?.focus();
+        }}
+      >
+        {rows.map((row, i) =>
+          row.label === null ? (
+            <div key={`sep${i}`} className="s-menu__sep" role="separator" />
+          ) : (
+            <button
+              key={row.label}
+              type="button"
+              role={row.checked === undefined ? "menuitem" : "menuitemradio"}
+              aria-checked={row.checked}
+              className={`s-menu__item${row.danger ? " s-menu__item--danger" : ""}${
+                row.checked === true ? " s-menu__item--on" : ""
+              }`}
+              disabled={row.disabled}
+              onClick={() => {
+                // Close FIRST, so focus is restored before the action runs and
+                // whatever the action focuses wins. The other order is how a
+                // menu hands focus back to a tab it has just closed.
+                close();
+                row.onSelect?.();
+              }}
+            >
+              {/* The tick is DECORATION: `aria-checked` above is what a screen
+                  reader reads, and a glyph read out as well would say the state
+                  twice. */}
+              {radio && (
+                <span className="s-menu__check" aria-hidden="true">
+                  {row.checked === true ? "✓" : ""}
+                </span>
+              )}
+              {row.label}
+            </button>
+          ),
+        )}
+        </div>
+    </>,
     document.body,
   );
 }

@@ -338,9 +338,17 @@ select:focus,
 }
 
 /* Rows keep their full width while the pane clips to nothing — otherwise
-   every label would reflow to a narrower measure on the way out. The context
-   menu is excluded: it is position:fixed in viewport coordinates. */
-.s-sidebar > *:not(.s-menu):not(.s-pane-grip) {
+   every label would reflow to a narrower measure on the way out.
+
+   THE EXCLUSIONS ARE THE POPOVERS THIS PANE PARENTS. A `position: fixed` child
+   is not a row: its containing block is the VIEWPORT, so `width: 100%` here
+   means "as wide as the screen", and the folder-icon picker came out 390px at
+   x = 8 on a 390px phone with its own border, its search field's end and its
+   "No icon" row all past the edge. That was read as a picker that had never
+   been given a width; it has one (foldericons.css clamps it to the viewport
+   less the popover keep-out), and this rule was overriding it. The library and
+   collections popovers are the same shape and were the same bug. */
+.s-sidebar > *:not(.s-menu, .s-pane-grip, .s-tree-iconpick, .s-libpop) {
   width: var(--sidebar-w);
 }
 
@@ -888,14 +896,18 @@ select:focus,
 
 .s-menu {
   position: fixed;
-  z-index: 300;
-  min-width: 168px;
+  z-index: var(--z-menu);
+  /* 200, not 168: at the old floor the sort menu's "By name, reversed" wrapped
+     onto a second line inside a menu whose other two rows were one line each,
+     and a wrapped row in a column of unwrapped ones reads as a different kind
+     of thing. */
+  min-width: 200px;
   padding: 5px;
   background: var(--menu-bg);
   border: 1px solid var(--modal-border);
   border-radius: calc(var(--radius) + 2px);
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
-  animation: s-pop-in 0.12s ease;
+  animation: s-pop-in var(--motion-quick) var(--motion-ease);
 }
 
 .s-menu__item {
@@ -948,6 +960,57 @@ select:focus,
   height: 1px;
   margin: 5px -5px;
   background: var(--border);
+}
+
+/* A MENU OF CHOICES. The tree's sort order is not a list of commands — one of
+   its rows is already true — so those rows are `menuitemradio` and carry a
+   tick. The column is reserved on every row of such a menu, "Reset" included:
+   a tick that pushes only its own label right turns a scannable column of
+   labels into a ragged one, and the row that is chosen is then the row that
+   looks out of place. */
+.s-menu--radio .s-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.s-menu__check {
+  flex: none;
+  inline-size: 1em;
+  text-align: center;
+  color: var(--accent);
+}
+
+/* Painted only on a coarse pointer (the block below turns it on). Faint on
+   purpose: a menu is not a modal and the row it is about has to stay legible
+   underneath it — this says "the page is waiting", not "the page is gone". */
+.s-menu-scrim {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-menu-scrim);
+  background: rgba(0, 0, 0, 0.32);
+  /* The menu's own arrival, on the same clock — a scrim that lands whole
+     while the box above it is still growing reads as two events. */
+  animation: s-fade-in var(--motion-quick) var(--motion-ease);
+}
+
+/* THE MENU IS A TOUCH SURFACE, and on a phone it is a full-height one: a
+   folder's menu is sixteen rows, which at the 44px touch floor is 756px in an
+   844px viewport, and it floated edge to edge with no scroll and no visible
+   ground of its own. These two properties fix the overflow; the scrim above
+   fixes "where is outside". `dvh`, not `vh`: the value has to answer the
+   viewport the reader actually has, mobile URL bar and all. */
+@media (pointer: coarse) {
+  .s-menu {
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .s-menu-scrim {
+    display: block;
+  }
 }
 
 /* A context menu is a TOUCH surface too — it is the whole door the section
@@ -2991,17 +3054,28 @@ select:focus,
 
 /* -------------------------------------------------------------- palette -- */
 
+/* THE PALETTE RUNG, and it is shared. Eight surfaces reuse this overlay —
+   the palette itself, the theme picker, the shortcuts sheet, the template
+   picker, the layout picker, what's-new, the tour, the theme builder, the new
+   deck sheet — so its number is the number of every full-viewport sheet in
+   the product. It was 100, which put it UNDER the phone drawer (400) that a
+   reader opens it from: Ctrl+P over an open drawer painted the palette behind
+   the tree, and `elementFromPoint` at the palette's own centre returned a tree
+   row. It was also under the sync popover (120) and under the menus (300), so
+   a menu or a popover left open stayed lit and unblurred over the backdrop.
+   410 is above the drawer and below the panels (420) it can open, the toasts
+   (430) it can raise, and the confirm (500) it can ask. */
 .s-palette-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: var(--z-palette);
   display: flex;
   justify-content: center;
   align-items: flex-start;
   padding-top: 18vh;
   background: var(--backdrop);
   backdrop-filter: blur(3px);
-  animation: s-fade-in 0.12s ease;
+  animation: s-fade-in var(--motion-quick) var(--motion-ease);
 }
 
 @keyframes s-fade-in {
@@ -3250,7 +3324,7 @@ select:focus,
      which intercepted the click: an Undo the reader could see and could not
      press. A confirmation may sit under a dialog that is asking a question;
      it may not sit under the surface that raised it. */
-  z-index: 430;
+  z-index: var(--z-toast);
   transform: translateX(-50%);
   /* AN EXPLICIT WIDTH, not shrink-to-fit. A fixed box with `left: 50%` and no
      width takes its available space as "half the viewport", so on a 390px
@@ -3314,7 +3388,7 @@ select:focus,
 .s-crash {
   position: fixed;
   inset: 0;
-  z-index: 900;
+  z-index: var(--z-crash);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4492,6 +4566,8 @@ select:focus,
 .s-preview-strip {
   position: sticky;
   top: 0;
+  /* A sticky row INSIDE the flow, not a layer over the viewport: it is not on
+     the stacking ladder and must not take one of its rungs. z-ok: */
   z-index: 300;
   display: flex;
   align-items: center;
@@ -4809,7 +4885,7 @@ select:focus,
 .s-confirm-overlay {
   position: fixed;
   inset: 0;
-  z-index: 500;
+  z-index: var(--z-confirm);
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -5258,7 +5334,7 @@ button.s-title:hover {
     top: 0;
     bottom: 0;
     inset-inline-start: 0;
-    z-index: 400;
+    z-index: var(--z-drawer);
     width: min(84vw, 320px);
     border-color: var(--border);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
@@ -5281,7 +5357,7 @@ button.s-title:hover {
      the drawer landed on it: nothing to resize, nothing to open. The drawer's
      width is fixed (`min(84vw, 320px)`) and `--sidebar-w` is not read here,
      so a grip has nothing to do in this mode; it goes. */
-  .s-sidebar > *:not(.s-menu):not(.s-pane-grip) {
+  .s-sidebar > *:not(.s-menu, .s-pane-grip, .s-tree-iconpick, .s-libpop) {
     width: 100%;
   }
 
@@ -5299,7 +5375,7 @@ button.s-title:hover {
     display: block;
     position: fixed;
     inset: 0;
-    z-index: 390;
+    z-index: var(--z-drawer-backdrop);
     background: rgba(0, 0, 0, 0.45);
   }
 
@@ -6150,10 +6226,17 @@ button.s-title:hover {
 }
 
 /* FIXED, not absolute: the status bar clips its own overflow, so a panel
-   anchored inside it was invisible. SyncBadge pins it to the button. */
+   anchored inside it was invisible. SyncBadge pins it to the button.
+
+   ABOVE THE TOASTS (430). The panel is a popover with an ACTION ROW — Backup
+   settings, Sync now — and at 120 a long toast ("Bookmark removed", raised
+   from the same corner of the screen) printed straight across both buttons:
+   an action the reader could see and could not press. The toast contract puts
+   transients over the panels that raised them; a popover's own buttons are
+   the exception it names, and 440 is that rung. */
 .s-syncpop {
   position: fixed;
-  z-index: 120;
+  z-index: var(--z-popover);
   width: min(360px, calc(100vw - 32px));
   display: flex;
   flex-direction: column;
@@ -6165,7 +6248,7 @@ button.s-title:hover {
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
   text-align: start;
   cursor: default;
-  animation: s-palette-in 0.12s ease;
+  animation: s-palette-in var(--motion-quick) var(--motion-ease);
 }
 
 .s-syncpop__line {
@@ -7198,18 +7281,16 @@ button.s-title:hover {
   background: var(--bg-hover);
 }
 
-/* The sort menu in the footer. */
+/* The sort button in the footer. Not `position: relative` any more: nothing is
+   positioned against it since the menu became a portalled `.s-menu`. */
 .s-treesort {
-  position: relative;
   display: inline-flex;
 }
 
-.s-treesort__menu {
-  position: absolute;
-  bottom: calc(100% + 4px);
-  inset-inline-start: 0;
-  min-width: 160px;
-}
+/* No `.s-treesort__menu`: the sort menu is a portalled `.s-menu` now, placed
+   by ContextMenu against the button's own box. The absolute box that used to
+   live here is what made a 160px menu wrap "By name, reversed" onto two lines
+   and what kept the whole thing inside the footer's stacking context. */
 
 .s-menu__item--on {
   color: var(--accent);
@@ -7460,7 +7541,7 @@ html[dir="rtl"] .s-statusbar__spacer {
 .s-eye {
   position: fixed;
   inset: 0;
-  z-index: 2147483647;
+  z-index: var(--z-eye);
   pointer-events: none;
 }
 .s-eye__warm,

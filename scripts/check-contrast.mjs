@@ -101,10 +101,16 @@ function declaredTokens(body) {
 const ROOT = ":root (first paint)";
 const themes = {};
 const declared = {};
+// MERGED, not overwritten. A room may be written in more than one block —
+// `:root` now is, because the two menu rungs take different values in the
+// drawer shell and say so in a media query of their own. Assigning here made
+// the LAST block seen the whole room: a two-token override became "the base
+// set", and every one of the 46 rooms was then reported as defining forty
+// tokens the base does not. The cascade unions these blocks; so does this.
 for (const m of css.matchAll(/(:root|\[data-theme="([\w-]+)"\])\s*\{([^}]*)\}/g)) {
   const name = m[2] ?? ROOT;
-  themes[name] = parseBlock(m[3]);
-  declared[name] = declaredTokens(m[3]);
+  themes[name] = { ...themes[name], ...parseBlock(m[3]) };
+  declared[name] = new Set([...(declared[name] ?? []), ...declaredTokens(m[3])]);
 }
 
 let failures = 0;
@@ -154,7 +160,12 @@ if (themes[DEFAULT]) {
 // which is the DEFAULT room's value, so a green room that forgot
 // --callout-warning would wear github-dark's orange. And a room that defines
 // a token the base does not is a typo nothing reads.
-const GLOBAL = /^--(font-|book-ink-|swatch-|sidebar-w$|panel-w$|prose-gutter$|font-scale$|prose-scale$)/;
+// `--z-*` and `--motion-*` join the globals for the same reason the pane
+// widths are there: they are the SHELL's structure, not a room's palette. A
+// theme that could re-order the stacking ladder or re-time the menus would be
+// a theme that changes behaviour, and forty-six blocks each repeating the same
+// fourteen z-index rungs is forty-six places for one of them to drift.
+const GLOBAL = /^--(font-|book-ink-|swatch-|z-|motion-|sidebar-w$|panel-w$|prose-gutter$|font-scale$|prose-scale$)/;
 const THEME_SET = [...declared[ROOT]].filter((t) => !GLOBAL.test(t));
 for (const [name, set] of Object.entries(declared)) {
   if (name === ROOT) continue;

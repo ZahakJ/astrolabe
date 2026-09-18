@@ -385,7 +385,12 @@ export default function TocPanel() {
                   // view, so they exist exactly when one is mounted on this
                   // path. In reading mode the same right-click gets the three
                   // rows that still mean something.
-                  if (openEditorSectionMenu(openPath, section.headingLine, e.clientX, e.clientY)) {
+                  // Shift+F10 and the Menu key raise `contextmenu` too, and
+                  // the browser marks those with `button: 0` (a right-click is
+                  // 2). Only then does the menu take focus — see sectionMenu's
+                  // `fromKeyboard`.
+                  const fromKeyboard = e.button !== 2;
+                  if (openEditorSectionMenu(openPath, section.headingLine, e.clientX, e.clientY, fromKeyboard)) {
                     return;
                   }
                   openSectionMenu({
@@ -394,6 +399,7 @@ export default function TocPanel() {
                     headingLine: section.headingLine,
                     x: e.clientX,
                     y: e.clientY,
+                    fromKeyboard,
                     onDone: () => useStore.getState().bumpReload(),
                   });
                 }}

@@ -171,10 +171,18 @@
 
 /* ---------------------------------------------------------- the viewer -- */
 
+/* THE PANEL RUNG (420), not 110. The viewer covers the whole viewport and can
+   raise a confirm ("Delete this attachment?"), which is the definition of the
+   panel rung the trash browser and the history panel already take. At 110 it
+   was under the phone drawer (400) that opens it — an attachment row IS a tree
+   row, so on a phone the only way in is through the drawer — which is the same
+   bug the command palette had at 100 and is fixed here for the same reason.
+   Below the toasts (430) on purpose: an Undo raised from inside the viewer has
+   to be pressable. */
 .s-att-scrim {
   position: fixed;
   inset: 0;
-  z-index: 110;
+  z-index: var(--z-panel);
   display: flex;
   align-items: center;
   justify-content: center;

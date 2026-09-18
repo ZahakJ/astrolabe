@@ -723,7 +723,18 @@ const AUDIENCES = [
   // their own table (client/components/settings/travelCopy.ts), which is
   // why this is 1.3 kB and not 4.
     // 3.18.0: five branches of the peak round meeting in one entry.
-{ name: "entry (everyone)", keys: entry, budget: 799 * 1024 },
+  // 3.18 overlays and stacking: 799.020 kB actual → 800 (actual + ~0.12%).
+  // TWENTY BYTES over, and the whole of it is tokens.css and app.css — the
+  // first paint by definition, on every surface, nothing here to split. The
+  // fourteen `--z-*` rungs and three `--motion-*` names are the cost of the
+  // stacking ladder and the easing vocabulary having somewhere to live; the
+  // `var(--z-menu)` call sites are longer to say than `300` was, which is the
+  // point of them. It is nearly paid for by what the same round returned to
+  // this number: the `.s-treesort__menu` block and its `position: relative`
+  // wrapper, and the menu markup Sidebar deleted when its two hand-rolled
+  // menus moved onto ContextMenu (Sidebar is a lazy chunk, but its i18n keys
+  // and the `.s-menu` rules are not).
+{ name: "entry (everyone)", keys: entry, budget: 800 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -968,7 +979,18 @@ const AUDIENCES = [
   // growth as the entry's (the reference text behind the settings ⓘ); the
   // blog reader carries the dictionary and nothing else of the panel.
     // 3.18.0: five branches of the peak round meeting in one entry.
-{ name: "anonymous blog reader", keys: blog, budget: 1092 * 1024 },
+  // 3.18 overlays and stacking: 1092.049 kB actual → 1093 (actual + ~0.09%).
+  // The overage is 49 BYTES and every one of them is the stacking ladder: the
+  // fourteen `--z-*` declarations in tokens.css plus eighteen `z-index: 300`
+  // literals in app.css becoming `z-index: var(--z-menu)`, which is longer to
+  // say and is the point — a number you can read is a number that stops being
+  // guessed at. Nothing here is splittable: tokens.css and app.css are the
+  // first paint, on every surface, by definition. It is paid for in the same
+  // round by the two i18n keys the selection menu gave back, the
+  // `.s-treesort__menu` block the sort menu no longer needs, and the menu
+  // markup Sidebar deleted when its two hand-rolled menus moved onto
+  // ContextMenu — which is why fourteen new tokens cost 49 bytes and not 400.
+{ name: "anonymous blog reader", keys: blog, budget: 1093 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
