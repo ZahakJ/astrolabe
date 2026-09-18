@@ -156,7 +156,15 @@ export function openSectionMenu(opts: SectionMenuOptions): void {
     // over this box and Ctrl/Cmd+E swaps the surface under it; the menu was
     // left open behind both, pointing at a heading that may no longer be on
     // screen. None of its own keys carry a modifier, so this cannot eat one.
-    if (ev.ctrlKey || ev.metaKey || ev.altKey) {
+    //
+    // A MODIFIER ON ITS OWN IS NOT A KEYSTROKE YET. `Control` reports
+    // `ctrlKey: true` on its own keydown, so resting a finger on Ctrl — or
+    // reaching for it, or pressing AltGr, which is Ctrl+Alt on most European
+    // and Arabic layouts — closed the menu before any command was asked for.
+    // A menu that vanishes while the reader is still spelling the shortcut is
+    // the menu answering a question nobody finished.
+    const MODIFIER = ev.key === "Control" || ev.key === "Meta" || ev.key === "Alt" || ev.key === "Shift";
+    if (!MODIFIER && (ev.ctrlKey || ev.metaKey || ev.altKey)) {
       dismiss();
       return;
     }

@@ -101,10 +101,16 @@ function declaredTokens(body) {
 const ROOT = ":root (first paint)";
 const themes = {};
 const declared = {};
+// MERGED, not overwritten. A room may be written in more than one block —
+// `:root` now is, because the two menu rungs take different values in the
+// drawer shell and say so in a media query of their own. Assigning here made
+// the LAST block seen the whole room: a two-token override became "the base
+// set", and every one of the 46 rooms was then reported as defining forty
+// tokens the base does not. The cascade unions these blocks; so does this.
 for (const m of css.matchAll(/(:root|\[data-theme="([\w-]+)"\])\s*\{([^}]*)\}/g)) {
   const name = m[2] ?? ROOT;
-  themes[name] = parseBlock(m[3]);
-  declared[name] = declaredTokens(m[3]);
+  themes[name] = { ...themes[name], ...parseBlock(m[3]) };
+  declared[name] = new Set([...(declared[name] ?? []), ...declaredTokens(m[3])]);
 }
 
 let failures = 0;
