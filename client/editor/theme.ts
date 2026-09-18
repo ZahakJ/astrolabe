@@ -226,12 +226,21 @@ export function editorTheme(): Extension {
       lineHeight: "1.3",
       color: "var(--heading)",
     },
+    // NO COLOUR OF ITS OWN. This rule carried
+    // `color-mix(in srgb, var(--accent) 15%, var(--text))`, which is not
+    // `--heading` — so the same `# Title` was #d1e2f5 in the editor and
+    // #e6edf3 in the reading view, and check-fidelity failed on `en: h1`
+    // and `ar: h1` from the theme-token restore onward. The contract is one
+    // renderer, four surfaces: an h1 is the heading colour, and the heading
+    // colour is one token. The size, the padding and the rule under it are
+    // the reading view's numbers already (.s-rv-h1, client/reading/
+    // reading.css); the colour comes from the h1–h6 rule above, as it does
+    // there.
     ".cm-s-h1": {
       fontSize: "1.9em",
       paddingTop: "0.5em",
       paddingBottom: "0.2em",
       borderBottom: "1px solid var(--border)",
-      color: "color-mix(in srgb, var(--accent) 15%, var(--text))",
     },
     ".cm-s-h2": { fontSize: "1.5em", paddingTop: "0.4em" },
     ".cm-s-h3": { fontSize: "1.25em", paddingTop: "0.3em" },
