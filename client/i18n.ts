@@ -4971,6 +4971,14 @@ const DICT = {
   hintLaunchNote: { en: "The note to open first, by its vault path.", ar: "الملاحظة التي تُفتح أولًا، بمسارها في الخزانة." },
   // ── The month grid (client/components/CalendarGrid.tsx) ──
   calendar: { en: "Calendar", ar: "التقويم" },
+  // The Calendar page (client/calendar/CalendarView.tsx): its door in the
+  // status bar, its row in the palette and the phone's menu, and the page's
+  // own lead and legend. The month was a section at the top of the Sigils
+  // page until 3.18.
+  calendarTitle: { en: "Open the Calendar", ar: "فتح التقويم" },
+  cmdOpenCalendar: { en: "Open the Calendar", ar: "فتح التقويم" },
+  cmdOpenCalendarHint: { en: "view · the month, the days you wrote and the days you kept", ar: "عرض · الشهر، والأيام التي كتبت فيها والأيام التي حافظت فيها" },
+  calendarLead: { en: "The month you are in. A day opens its note — or makes it.", ar: "الشهر الذي أنت فيه. والنقر على يوم يفتح ملاحظته أو ينشئها." },
   showCalendar: { en: "Show the calendar", ar: "إظهار التقويم" },
   hideCalendar: { en: "Hide the calendar", ar: "إخفاء التقويم" },
   calendarPrevMonth: { en: "Previous month", ar: "الشهر السابق" },
