@@ -723,6 +723,14 @@ const AUDIENCES = [
   // dictionary — the row's own two dozen strings ride the settings chunk in
   // their own table (client/components/settings/travelCopy.ts), which is
   // why this is 1.3 kB and not 4.
+  // 3.18 the Calendar page: 799.2 kB actual → 800 — the month's own door.
+  // Every byte is shell by construction and none of it is the page: the
+  // status bar's fourth button and its glyph, the phone menu's row, the
+  // `~calendar` sentinel + `/calendar` route + the store's toggle, the
+  // palette row, and the six dictionary rows in two languages (`t()` ships
+  // whole, the debt named below). The PAGE — CalendarView.tsx, the month
+  // grid, calendar.css — is a lazy chunk asserted split in MUST_SPLIT, and
+  // the Sigils page GAVE BACK its `getTrackers` read when the grid left it.
     // 3.18.0: five branches of the peak round meeting in one entry.
   // 3.18 overlays and stacking: 799.020 kB actual → 800 (actual + ~0.12%).
   // TWENTY BYTES over, and the whole of it is tokens.css and app.css — the
@@ -979,6 +987,9 @@ const AUDIENCES = [
   // 3.18 settings in place: 1088.3 kB actual → 1089 — the same dictionary
   // growth as the entry's (the reference text behind the settings ⓘ); the
   // blog reader carries the dictionary and nothing else of the panel.
+  // 3.18 the Calendar page: 1092.2 kB actual → 1093 — the entry's bytes
+  // (above) and nothing of the blog's own: the blog reader carries the
+  // dictionary, never the door or the page.
     // 3.18.0: five branches of the peak round meeting in one entry.
   // 3.18 overlays and stacking: 1092.049 kB actual → 1093 (actual + ~0.09%).
   // The overage is 49 BYTES and every one of them is the stacking ladder: the
@@ -1149,8 +1160,13 @@ const AUDIENCES = [
   // focused surface's name through Tabs.tsx titleOf), the calendar's
   // tracker marks in the sidebar (one more GET, loggedDaysOf), the resolved
   // list/table direction in render.ts and the editor's logical line inset.
+  // 3.18 the Calendar page: 1552.7 kB actual → 1553 — the entry's bytes
+  // (above) plus the status bar's own: one more `useStore` selector and the
+  // button's markup. The grid stayed lazy; Sidebar.tsx got SMALLER, its
+  // `useLoggedDays` having moved to the shared client/loggedDays.ts the
+  // page asks through too.
     // 3.18.0: five branches of the peak round meeting in one entry.
-{ name: "admin first paint", keys: app, budget: 1552 * 1024 },
+{ name: "admin first paint", keys: app, budget: 1553 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1254,6 +1270,9 @@ const MUST_SPLIT = [
   // The weekly review, on the same terms: a tab behind the palette and
   // the Sigils page's last-weekday line, with its own stylesheet.
   "review/ReviewWeekView.tsx",
+  // The Calendar page, on the same terms: the month behind the status
+  // bar's fourth door, with the month grid and calendar.css inside it.
+  "calendar/CalendarView.tsx",
   // The "What's new" deck: slides, live demos and prose for every release,
   // behind a door (whatsnew/door.ts) that is a version compare and nothing else.
   "whatsnew/WhatsNew.tsx",

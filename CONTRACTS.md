@@ -9715,18 +9715,10 @@ sends only the plan body. "Save as template" writes the same note into the templ
 due by today (the count the "Due by today" list below it draws, handed up rather than fetched twice);
 its Orbits door shows while cards are due, and "nothing due" — the recents row taking the top —
 means no sigil, no card and no task. A slot that
-wikilinks a deck wears the chip `client/routines/orbits.ts` draws (see Orbits below).
-
-**THE MONTH GRID IS THE SIDEBAR'S ALONE (3.18).** The page drew a second copy of it: the same
-`CalendarGrid`, fed by the same `loggedDaysOf(routines, trackers)` over the same reads, and
-`calendar.css` hid it under 700px because the sidebar's section was already the calendar on a
-phone — so a desktop drew two identical months at once and a phone drew the sidebar's (the owner:
-"kinda weird and useless in the sigils window"). The page is the day's checklists; a second answer
-to a question the sidebar had answered was competing with them for the top of it. Gone with the
-grid: the page's `trackers` state and the `getTrackers()` that existed only to mark it, so `/sigils`
-no longer asks for the shelf on mount or on every vault change. `loggedDaysOf` (shared/calendar.ts)
-still marks a day a sigil logged OR a book was read — the tracker `sessions:` lines ride the same
-fetch — and the sidebar is now its one caller.
+wikilinks a deck wears the chip `client/routines/orbits.ts` draws (see Orbits below). **The month is
+not on this page.** It was a section at its top until 3.18 (the owner: "kinda weird and useless in
+the sigils window") and is the Calendar page now; the trackers went with it, because they only ever
+rode this page's load for the grid's second mark.
 
 ## Orbits — spaced repetition (`shared/decks.ts`, `shared/srsSession.ts`, `client/orbits/`, `server/deckImport.ts`)
 
@@ -10004,8 +9996,18 @@ month — rows of seven from the site language's first day (`weekOrder`). Dots c
 (`dailyNotesByDay`: a string compare per note, nothing stored) and from the sigil logs the caller
 hands in; the grid is ONE tab stop (arrows walk, mirrored under RTL; Home/End the row; PageUp/Down
 the month) and a click goes through `openPeriodicNoteAt`. The sidebar draws it for an admin, and
-for a visitor only when a daily note is published; the Sigils page drew a second copy at its top
-until 3.18 (see Sigils above).
+for a visitor only when a daily note is published.
+
+**The Calendar page (`client/calendar/CalendarView.tsx`).** `CALENDAR_TAB = "~calendar"`,
+`surface === "calendar"`, `setView("calendar")` / `toggleCalendar()`, `/calendar` in the router, a
+lazy chunk pinned by `MUST_SPLIT`, a door in the status bar beside Sigils and a palette row
+(`open-calendar`) — the Media page's terms exactly. It draws the ONE month grid above, never a
+second one, plus today's date, a door to today's note and a legend that reuses the cells' own
+`calendarCellNote` / `calendarCellLogged` phrases so ink and screen reader say the same thing. The
+marks come from `useLoggedDays` (`client/loggedDays.ts`, lifted out of Sidebar.tsx when the Sigils
+page stopped holding the logs: two surfaces ask, neither holds the answer); it is admin-gated,
+because `/api/routines` and `/api/trackers` are. The page holds no state of its own. Unlike the old
+Sigils section it is NOT hidden on a phone — a reader who opened the door asked for the month.
 
 **The editor conveniences.** `{{cursor}}` and `{{prompt:Label}}`/`{{VALUE:Label}}` in
 `client/templates.ts` (`templatePrompts`, `fillPrompts`, `takeCursor`; the sheet is
