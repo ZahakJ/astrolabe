@@ -31,7 +31,7 @@ import {
   type FilterLang,
 } from "./indexer.ts";
 import { getSettings } from "./settings.ts";
-import { excludedTags, languageFilterMode, publicLayout, siteLanguage } from "./site.ts";
+import { excludedTags, languageFilterMode, languageToggleEnabled, publicLayout, siteLanguage } from "./site.ts";
 import { normalizeRel } from "./vault.ts";
 
 /** A hypothetical configuration to measure. Every field is optional: an absent
@@ -73,6 +73,14 @@ export function visibilityFor(query: VisibilityQuery = {}): VisibilityImpact {
   const fallback = want !== null && published > 0 && wouldBeVisible === 0;
   const lang: FilterLang = fallback ? null : want;
   const visible = fallback ? published : wouldBeVisible;
+  // "follow" with a switch for the reader to state a preference is the one
+  // mode that hides nothing from EVERYONE: the Arabic reader's 5 and the
+  // English reader's 102 are the same 107 notes, each reaching its own
+  // audience. Counting it as "5 visible, 102 hidden" put a permanent warning
+  // in the owner's status bar for a site that was, to every reader who tapped
+  // EN, entirely there. Without the switch there is no reader to follow and
+  // the mode really is a pin to the site language (arabic-and-rtl.md says so).
+  const perReader = mode === "follow" && !fallback && languageToggleEnabled();
 
   const hiddenTags = new Set(
     (query.excludeTags ?? [...excludedTags()]).map((t) => t.trim().replace(/^#/, "").toLowerCase()),
@@ -86,7 +94,8 @@ export function visibilityFor(query: VisibilityQuery = {}): VisibilityImpact {
   return {
     published,
     visible,
-    hiddenByLanguage: published - visible,
+    hiddenByLanguage: perReader ? 0 : published - visible,
+    perReader,
     languageFilter: mode,
     filterLang: lang,
     fallback,

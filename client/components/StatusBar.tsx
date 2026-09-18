@@ -904,7 +904,7 @@ export default function StatusBar() {
             <button
               type="button"
               className={`s-statusbar__btn s-statusbar__reach${
-                visibility.fallback || !visibility.publicReads || visibility.visible * 2 < visibility.published
+                visibility.fallback || !visibility.publicReads || (!visibility.perReader && visibility.visible * 2 < visibility.published)
                   ? " s-statusbar__reach--warn"
                   : ""
               }`}
@@ -919,17 +919,27 @@ export default function StatusBar() {
                   ? t("reachClosedTitle")
                   : visibility.fallback
                     ? t("reachFallbackTitle")
-                    : visibility.visible === visibility.published
+                    : visibility.perReader || visibility.visible === visibility.published
                       ? t("homeNoteHidden")
                       : tf("reachTitle", {
                           hidden: localeNum(visibility.published - visibility.visible),
                         })
               }
             >
-              {tf("reachPill", {
-                visible: localeNum(visibility.visible),
-                total: localeNum(visibility.published),
-              })}
+              {visibility.perReader
+                ? /* Per-reader mode has no single "visible": print both
+                     audiences, so the pill never reads 5/107 for a site
+                     whose English reader finds 102. It only shows while
+                     something ELSE reduces reach (a hidden home note). */
+                  tf("reachPillSplit", {
+                    ar: localeNum(visibility.census.arabic + visibility.census.neutral),
+                    en: localeNum(visibility.census.latin + visibility.census.neutral),
+                    total: localeNum(visibility.published),
+                  })
+                : tf("reachPill", {
+                    visible: localeNum(visibility.visible),
+                    total: localeNum(visibility.published),
+                  })}
             </button>
           )}
         </span>

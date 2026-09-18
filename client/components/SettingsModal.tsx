@@ -1725,6 +1725,19 @@ function VisibilityBanner({ impact }: { impact: VisibilityImpact | null }) {
         total,
       }),
     });
+  } else if (impact.perReader) {
+    // One count per reader population — the same split the filter row
+    // prints, because "5 of 107 discoverable" is what the owner read while
+    // 102 English notes were reachable by anyone who tapped EN.
+    const { census } = impact;
+    lines.push({
+      level: census.arabic === 0 || census.latin === 0 ? "warn" : "plain",
+      text: tf("langFilterFollowSplit", {
+        ar: localeNum(census.arabic + census.neutral),
+        en: localeNum(census.latin + census.neutral),
+        total,
+      }),
+    });
   } else if (visible === published) {
     lines.push({ level: "plain", text: tf("visibilityAll", { total }) });
   } else {
