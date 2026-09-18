@@ -4979,6 +4979,13 @@ const DICT = {
   calendarTitleAria: { en: "{month} — back to this month", ar: "{month}؛ العودة إلى هذا الشهر" },
   calendarCellNote: { en: "has a note", ar: "له ملاحظة" },
   calendarCellLogged: { en: "a sigil or a reading logged", ar: "سُجِّل فيه سِجِلّ أو قراءة" },
+  // ── The Calendar page (client/calendar/CalendarView.tsx, /calendar) ──
+  // The page's door is its own title, in the bar and in the palette both:
+  // one string, because it names one place.
+  calendarTitle: { en: "Open the calendar", ar: "فتح التقويم" },
+  // The dots need no legend: every cell says what its marks mean, in its own
+  // label (`calendarCellNote`, `calendarCellLogged`).
+  calendarLead: { en: "Pick a day to open its note.", ar: "اختر يومًا لفتح ملاحظته." },
   recentlyRead: { en: "Recently read", ar: "قُرئ مؤخرًا" },
   dailyFolderLabel: { en: "Daily notes folder", ar: "مجلد الملاحظات اليومية" },
   dailyFormatLabel: { en: "Daily note name", ar: "اسم الملاحظة اليومية" },

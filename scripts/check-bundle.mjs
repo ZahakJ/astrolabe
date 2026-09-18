@@ -1127,7 +1127,17 @@ const AUDIENCES = [
   // tracker marks in the sidebar (one more GET, loggedDaysOf), the resolved
   // list/table direction in render.ts and the editor's logical line inset.
     // 3.18.0: five branches of the peak round meeting in one entry.
-{ name: "admin first paint", keys: app, budget: 1552 * 1024 },
+  // 3.18.0: 1552.4 kB actual → 1553 — THE CALENDAR LEFT THE SIGILS PAGE and
+  // became a page of its own. What lands in the admin's first paint is the
+  // door: the status bar's fourth glyph and its selector, the palette's row,
+  // the store's `toggleCalendar`/`calendarOpen`, the router's `/calendar`
+  // arm, the tab title, and two dictionary entries in two languages (~0.4 kB
+  // all told — the page's copy was cut to two strings when the six it started
+  // with put the ANONYMOUS reader's entry over its own budget, which is the
+  // gate working). The PAGE is lazy and asserted split above; the month grid it
+  // draws was already its own chunk behind the sidebar's fold, so the second
+  // caller costs nothing but the import.
+{ name: "admin first paint", keys: app, budget: 1553 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1226,6 +1236,9 @@ const MUST_SPLIT = [
   "media/MediaView.tsx",
   // The Sigils page, on the same terms as the Media page.
   "routines/RoutinesView.tsx",
+  // The Calendar page, on the same terms: the month grid and its stylesheet
+  // behind the top bar's fourth door. It left the Sigils page in 3.18.
+  "calendar/CalendarView.tsx",
   // Orbits (the shelf and the session, one chunk), on the same terms.
   "orbits/OrbitsSurface.tsx",
   // The weekly review, on the same terms: a tab behind the palette and

@@ -10,6 +10,8 @@
 //                           still lands here)
 //   /orbits/a/B           → a study session over the deck a/B.md
 //   /review-week          → the weekly review
+//   /calendar             → the Calendar page (the month; 3.18, when it left
+//                           the top of the Sigils page)
 //   /folder/Note          → the note folder/Note.md (".md" stripped, segments
 //                           URL-encoded; matching is case-insensitive)
 //   /folder/Note#Heading  → same note, scrolled to the heading
@@ -28,7 +30,7 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, isReviewWeekTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, isReviewWeekTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
 
 /** The focused pane is showing the graph tab. */
 function graphTabActive(ws: Workspace): boolean {
@@ -53,6 +55,12 @@ function routinesTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isRoutinesTab(tab.path);
+}
+/** …or the Calendar page's. */
+function calendarTabActive(ws: Workspace): boolean {
+  const pane = paneAt(ws, ws.focus);
+  const tab = pane === null ? null : activeTabOf(pane);
+  return tab !== null && isCalendarTab(tab.path);
 }
 /** …or a Orbits tab: the shelf, or a session over the deck
  *  the returned path names. Null when the focused tab is something else. */
@@ -174,6 +182,7 @@ function urlForState(view: string, openPath: string | null, ws: Workspace): stri
   if (view === "editor" && graphTabActive(ws)) return "/graph";
   if (view === "editor" && mediaTabActive(ws)) return "/media";
   if (view === "editor" && routinesTabActive(ws)) return "/sigils";
+  if (view === "editor" && calendarTabActive(ws)) return "/calendar";
   if (view === "editor" && reviewWeekTabActive(ws)) return "/review-week";
   const orbits = view === "editor" ? orbitsTabActive(ws) : null;
   if (orbits !== null) return orbitsUrl(orbits.path, orbits.section);
@@ -195,6 +204,8 @@ function setTitle(openPath: string | null, view: string): void {
     document.title = `${t("media")} · ${base}`;
   } else if (view === "editor" && routinesTabActive(useStore.getState().workspace)) {
     document.title = `${t("routines")} · ${base}`;
+  } else if (view === "editor" && calendarTabActive(useStore.getState().workspace)) {
+    document.title = `${t("calendar")} · ${base}`;
   } else if (view === "editor" && reviewWeekTabActive(useStore.getState().workspace)) {
     document.title = `${t("reviewWeek")} · ${base}`;
   } else if (view === "editor" && orbitsTabActive(useStore.getState().workspace) !== null) {
@@ -255,6 +266,10 @@ export function applyUrl(initial = false): boolean {
     if (location.pathname === "/sigils" || location.pathname === "/routines") { // lineage
       store.setView("routines");
       canonicalise("/sigils");
+      return true;
+    }
+    if (location.pathname === "/calendar") {
+      store.setView("calendar");
       return true;
     }
     if (location.pathname === "/review-week") {

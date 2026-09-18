@@ -1,6 +1,6 @@
 /* Astrolabe — the month grid (client/components/CalendarGrid.tsx). Its own
    file, loaded with the grid's chunk: the sidebar mounts the grid lazily
-   when its Calendar section is open, the Sigils page with its own chunk.
+   when its Calendar section is open, the Calendar page with its own chunk.
    Tokens only; logical properties; a table, so RTL mirrors the columns on
    its own and the first day of the week sits at the inline start. */
 
@@ -205,28 +205,96 @@
   block-size: 23px;
 }
 
-/* ── The Sigils page's ───────────────────────────────────────────────────── */
-/* The section keeps the page's measure; the CARD is the grid's own width,
-   at the inline start with the heading, so a 1240px row does not draw a
-   border around 800px of nothing. */
-.s-routines__cal {
-  max-inline-size: 1240px;
-  margin: 20px auto 0;
+/* ── The Calendar page (client/calendar/CalendarView.tsx) ────────────────── */
+/* The month had a 440px card at the top of the Sigils page until 3.18. It is
+   a page now, and a page of its own can give the month the size a month is
+   read at: the same grid, the same one tab stop, bigger cells. */
+.s-calpage {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  container-type: inline-size;
+  padding: 28px clamp(16px, 4cqi, 48px) 64px;
+  background: var(--bg);
+  font-family: var(--font-ui);
 }
 
-.s-routines__cal .s-cal {
-  max-inline-size: 440px;
-  padding: 12px 14px;
+.s-calpage__head {
+  max-inline-size: 620px;
+  margin-inline: auto;
+}
+
+.s-calpage__date {
+  margin: 0;
+  font-size: 0.786rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-calpage__h1 {
+  margin: 2px 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.714rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.s-calpage__lead {
+  margin: 6px 0 0;
+  max-inline-size: 52ch;
+  font-size: 0.929rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.s-calpage__card {
+  max-inline-size: 620px;
+  margin: 20px auto 0;
+  padding: 16px 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-raised);
 }
 
-/* On a phone the sidebar's section is the calendar; the page keeps its
-   width for the checklists (the brief: "Phone: the sidebar section only"). */
+/* A month with room: the cells grow, and the number's ring grows with them
+   so two digits never touch it (the rule .s-cal__num already keeps). */
+.s-calpage__card .s-cal__day {
+  max-block-size: 72px;
+  font-size: 1rem;
+}
+
+.s-calpage__card .s-cal__num {
+  inline-size: 32px;
+  block-size: 32px;
+}
+
+.s-calpage__card .s-cal__title {
+  font-size: 1rem;
+}
+
 @media (max-width: 700px) {
-  .s-routines__cal {
-    display: none;
+  .s-calpage {
+    padding: 18px 16px 40px;
+  }
+  .s-calpage__card {
+    padding: 12px 10px;
+  }
+  .s-calpage__card .s-cal__day {
+    max-block-size: 56px;
+  }
+}
+
+/* On a thumb, the month turns with a target a thumb can hit. The sidebar's
+   fold keeps its 32px chevrons — there they sit in a column of 26px rows and
+   a 44px button would be the loudest thing in the sidebar — but on the page
+   they are the control, and a control on a phone is 44px. */
+@media (pointer: coarse) {
+  .s-calpage__card .s-cal__nav {
+    inline-size: 44px;
+    block-size: 44px;
   }
 }
 

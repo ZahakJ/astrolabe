@@ -10,6 +10,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  CALENDAR_TAB,
   MAX_COLUMNS,
   MAX_PANES,
   MAX_ROWS,
@@ -26,6 +27,9 @@ import {
   emptyWorkspace,
   fromStoredTabs,
   holdersOf,
+  isCalendarTab,
+  isTabbablePath,
+  isVirtualTab,
   moveTab,
   dropTabSplit,
   openInPane,
@@ -34,6 +38,7 @@ import {
   paneInDirection,
   panesInOrder,
   parseWorkspace,
+  ROUTINES_TAB,
   pruneWorkspace,
   remapWorkspace,
   serializeWorkspace,
@@ -347,6 +352,34 @@ describe("workspace: the vault changes underneath", () => {
     ws = openInPane(ws, ws.focus, "A.md");
     assert.equal(holdersOf(ws, "A.md"), 2);
     assert.equal(holdersOf(ws, "B.md"), 0);
+  });
+});
+
+describe("workspace: the calendar is a tab", () => {
+  it("is virtual, tabbable, and renders the calendar surface", () => {
+    assert.equal(isTabbablePath(CALENDAR_TAB), true);
+    assert.equal(isVirtualTab(CALENDAR_TAB), true);
+    assert.equal(isCalendarTab(CALENDAR_TAB), true);
+    // It is nobody else's sentinel, and no note is it.
+    assert.equal(isCalendarTab(ROUTINES_TAB), false);
+    assert.equal(isCalendarTab("Calendar.md"), false);
+    const ws = soloWorkspace(tabs(CALENDAR_TAB), CALENDAR_TAB);
+    assert.equal(surfaceOf(paneAt(ws, ws.focus)!), "calendar");
+  });
+
+  it("survives a save and a reload, like the Sigils tab beside it", () => {
+    const ws = soloWorkspace(tabs(CALENDAR_TAB, "A.md"), CALENDAR_TAB);
+    const back = parseWorkspace(serializeWorkspace(ws))!;
+    assert.deepEqual(allPaths(back), [CALENDAR_TAB, "A.md"]);
+  });
+
+  it("opens beside a note rather than over it, and closes back onto it", () => {
+    let ws = soloWorkspace(tabs("A.md"), "A.md");
+    ws = openInPane(ws, ws.focus, CALENDAR_TAB);
+    assert.deepEqual(allPaths(ws).sort(), ["A.md", CALENDAR_TAB]);
+    assert.equal(surfaceOf(paneAt(ws, ws.focus)!), "calendar");
+    ws = closeTabIn(ws, ws.focus, CALENDAR_TAB);
+    assert.equal(activeTabOf(paneAt(ws, ws.focus)!)?.path, "A.md");
   });
 });
 
