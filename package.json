@@ -39,6 +39,7 @@
     "check-settings": "node scripts/check-settings.mjs",
     "check-whatsnew": "node scripts/check-whatsnew.mjs",
     "check-names": "node scripts/check-names.mjs",
+    "check-docs": "node scripts/check-docs.mjs",
     "check-icons": "node scripts/gen-folder-icons.mjs --check",
     "gen-icons": "node scripts/gen-folder-icons.mjs",
     "build-docs": "node scripts/build-docs.mjs",

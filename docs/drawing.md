@@ -90,8 +90,11 @@ graph by what it links to, and in a note's backlinks when the drawing names that
 Everything here is the plugin's own format, so the plugin sees a drawing Astrolabe made as one of
 its own. Obsidian's core app (without the plugin) shows a `.excalidraw.md` as a markdown note whose
 scene is folded in a `%%` comment, which is what the plugin's files have always looked like there. A
-plain `.excalidraw` is an attachment to Obsidian, as it always was. See
-[OBSIDIAN-COMPAT.md](../OBSIDIAN-COMPAT.md).
+plain `.excalidraw` is an attachment to Obsidian, as it always was. The other things Astrolabe adds
+to a note behave the same way there: a [tracker](trackers.md#in-obsidian) and a
+[sigil](sigils.md#in-obsidian) go back to being labelled code blocks, and an
+[orbit](orbits.md#where-the-schedule-lives) writes its schedule in the Spaced Repetition plugin's own
+format.
 
 ---
 

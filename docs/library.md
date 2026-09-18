@@ -47,7 +47,7 @@ under *Talks* a series), takes the folder's name as the title, and **Put on the 
 it. The first path switches the library on. Right-click the same folder again and the popover
 says it is on the shelf, opens it, or takes it off.
 
-**Settings → Publishing & comments → The library.** The same rows, with the fields the tree does
+**Settings → Collections → The library.** The same rows, with the fields the tree does
 not ask for. **Add a path** opens the vault's folders to click (type to filter), and each row's folder
 line reopens that chooser; nothing here is typed as a path.
 
