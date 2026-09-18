@@ -375,6 +375,14 @@ const COMMANDS: Command[] = [
     hint: () => t("cmdOpenRoutinesHint"),
     available: ({ admin }) => admin,
   },
+  // The month, on its own page (client/calendar/): the days with a note,
+  // the days something was kept, and a door into any of them.
+  {
+    id: "open-calendar",
+    label: () => t("cmdOpenCalendar"),
+    hint: () => t("cmdOpenCalendarHint"),
+    available: ({ admin }) => admin,
+  },
   // The week added up (client/review/): pages and hours by book, the
   // trackers' outlook, the sigils, the cards graded, the notes written.
   {
@@ -1321,6 +1329,9 @@ export default function CommandPalette() {
           break;
         case "open-routines":
           store.toggleRoutines();
+          break;
+        case "open-calendar":
+          store.toggleCalendar();
           break;
         case "review-week":
           store.setView("review-week");

@@ -32,6 +32,10 @@ import {
   setBookTarget,
   paneAt,
   paneInDirection,
+  isCalendarTab,
+  isTabbablePath,
+  isVirtualTab,
+  CALENDAR_TAB,
   panesInOrder,
   parseWorkspace,
   pruneWorkspace,
@@ -323,6 +327,27 @@ describe("workspace: panes", () => {
     const ws = soloWorkspace(tabs("A.md"), "A.md");
     const out = dropTabSplit(ws, ws.focus, "A.md", ws.focus, "end-inline");
     assert.deepEqual(out, ws);
+  });
+});
+
+describe("the Calendar page is a tab", () => {
+  it("is a virtual tab with a surface of its own", () => {
+    assert.ok(isCalendarTab(CALENDAR_TAB));
+    assert.ok(!isCalendarTab("~sigils"));
+    assert.ok(!isCalendarTab("Calendar.md"));
+    assert.ok(isVirtualTab(CALENDAR_TAB));
+    assert.ok(isTabbablePath(CALENDAR_TAB));
+    const ws = soloWorkspace(tabs(CALENDAR_TAB), CALENDAR_TAB);
+    assert.equal(surfaceOf(paneAt(ws, ws.focus)!), "calendar");
+  });
+
+  it("survives a save and a reload, and the vault never prunes it", () => {
+    const ws = soloWorkspace(tabs("A.md", CALENDAR_TAB), CALENDAR_TAB);
+    const back = parseWorkspace(JSON.parse(JSON.stringify(serializeWorkspace(ws))));
+    assert.ok(back);
+    assert.deepEqual(allPaths(back).sort(), ["A.md", CALENDAR_TAB].sort());
+    // It names no file, so a tree that has never heard of it leaves it alone.
+    assert.deepEqual(allPaths(pruneWorkspace(ws, new Set(["A.md"]))).sort(), ["A.md", CALENDAR_TAB].sort());
   });
 });
 

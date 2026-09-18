@@ -10,6 +10,13 @@
 //
 // Reads `GET /api/routines`; re-reads on the window's `astrolabe:vault`
 // event, because a box ticked in the editor is still this page's business.
+//
+// THE MONTH IS NOT HERE. A month grid sat under this heading until 3.18
+// (the owner: "kinda weird and useless in the sigils window"). This page
+// answers what today asks of you; a month of past days is a different
+// question, and it has its own door and its own page now
+// (client/calendar/CalendarView.tsx). The trackers went with it: they only
+// ever rode this page's load for the grid's second mark.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { morph } from "../morph.ts";

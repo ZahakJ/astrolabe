@@ -1,12 +1,12 @@
 // A MONTH AS A GRID, in whichever calendar the site prints.
 //
-// The sidebar's Calendar section draws it — and it alone, since 3.18 took
-// the Sigils page's second copy away: the month you are in, seven columns
-// wide, one cell a day. What varies is the CALENDAR — a site set to Hijri
-// (shared/dates.ts) must get a Hijri month, Muharram to Dhu al-Hijjah, with
-// its own first days and its own 29- or 30-day lengths — and the FIRST
-// COLUMN, which is Monday for an English reader and Saturday for an Arabic
-// one (shared/routine.ts `weekOrder`, the Sigils page's own rule).
+// The sidebar's Calendar section and the Calendar page draw the
+// same thing: the month you are in, seven columns wide, one cell a day. What
+// varies is the CALENDAR — a site set to Hijri (shared/dates.ts) must get a
+// Hijri month, Muharram to Dhu al-Hijjah, with its own first days and its own
+// 29- or 30-day lengths — and the FIRST COLUMN, which is Monday for an
+// English reader and Saturday for an Arabic one (shared/routine.ts
+// `weekOrder`, the Sigils page's own rule).
 //
 // Nothing here hand-rolls a month table. Gregorian months come from `Date`;
 // Hijri months come from Intl's Umm al-Qura data, one `formatToParts` per
