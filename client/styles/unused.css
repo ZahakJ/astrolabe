@@ -11,7 +11,7 @@
 .s-unused-overlay {
   position: fixed;
   inset: 0;
-  z-index: 420;
+  z-index: var(--z-panel);
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(2px);
   display: flex;

@@ -16,6 +16,7 @@ import { noteTitleOf } from "../../shared/noteFormat.ts";
 import { capture, captureInbox, type CaptureTarget } from "../capture.ts";
 import { dailyNoteLabel, dailyNotePath, loadPeriodic } from "../daily.ts";
 import { t, tf } from "../i18n.ts";
+import { useDialog } from "../a11y.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { actionToast } from "../undoToast.ts";
@@ -64,25 +65,22 @@ export default function CaptureSheet() {
   }, []);
 
   const sheetRef = useRef<HTMLDivElement>(null);
+  // Tab stays inside the sheet: an aria-modal layer that lets focus walk out
+  // behind it strands a keyboard reader in a note they cannot see. This was
+  // written out by hand here — the SECOND bespoke ring in the codebase, where
+  // CONTRACTS allows exactly one (Confirm.tsx, for its three-button Enter
+  // semantics) — and the hand-rolled version read its ring from a selector
+  // that had to be kept in step with the markup. `manualFocus`: the effect
+  // above already puts the caret in the field, which is the whole point of a
+  // capture sheet.
+  useDialog(sheetRef, { manualFocus: true, restoreFocus: false });
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        close();
-      } else if (e.key === "Tab") {
-        // Tab stays inside the sheet, like the confirm dialog's (Confirm.tsx):
-        // an aria-modal layer that lets focus walk out behind it strands a
-        // keyboard reader in a note they cannot see. The ring is read at the
-        // keystroke, because the segmented pair is there only when an inbox
-        // is pinned and the send button is disabled until there is text.
-        const ring = [...(sheetRef.current?.querySelectorAll<HTMLElement>("textarea, button:not(:disabled):not([tabindex='-1']), [tabindex='0']") ?? [])];
-        if (ring.length === 0) return;
-        e.preventDefault();
-        const at = ring.indexOf(document.activeElement as HTMLElement);
-        const step = e.shiftKey ? -1 : 1;
-        ring[(Math.max(0, at) + step + ring.length) % ring.length].focus();
-      }
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopPropagation();
+      close();
     };
     // Capture phase, ahead of the shell's own Escape handling (App.tsx).
     window.addEventListener("keydown", onKey, true);

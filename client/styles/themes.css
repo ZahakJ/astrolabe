@@ -263,6 +263,16 @@ body:has(.s-tpick-host) .s-smodal-overlay {
   color: var(--text-muted);
 }
 
+/* …AND ONLY WHERE THERE IS A KEYBOARD. "↑↓←→ preview · Enter keeps · Esc
+   restores" wrapped to three lines in a 390px header on a device with none of
+   those keys — the taunt DESIGN.md forbids in the empty state, and the rule
+   the selection menu's keycaps already follow. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-tpick__hint {
+    display: none;
+  }
+}
+
 .s-tpick__list {
   overflow-y: auto;
   padding: 6px 10px 12px;

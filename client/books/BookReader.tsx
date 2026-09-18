@@ -51,7 +51,7 @@ import type { BookOpenResponse } from "../../shared/types.ts";
 import type { OutlineEntry } from "../../shared/highlightsNote.ts";
 import { clockMinutes, clockRunning, openClock, summarizeClock, turnClock, type SessionClock } from "../../shared/readingSession.ts";
 import { localDay } from "../../shared/weekReview.ts";
-import { scrollBehavior } from "../a11y.ts";
+import { scrollBehavior, useDialog } from "../a11y.ts";
 import { localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { shortcutKey } from "../keys.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
@@ -2070,10 +2070,19 @@ function CitePanel({
 }) {
   const [quote, setQuote] = useState(cite.quote);
   const [target, setTarget] = useState(cite.target ?? targets[0]?.path ?? "");
+  const sheetRef = useRef<HTMLFormElement>(null);
+  // A sheet over a page of a book, with the reader's own words in it: Tab must
+  // not walk out into the page underneath, and cancelling must put the reader
+  // back where they were marking. `manualFocus` — the fields below choose for
+  // themselves which one opens focused, and which one it is depends on whether
+  // the reader is still picking a destination.
+  useDialog(sheetRef, { manualFocus: true });
   return (
     <form
+      ref={sheetRef}
       className="s-book__sheet"
       role="dialog"
+      aria-modal="true"
       aria-label={t("bookCiteTitle")}
       onSubmit={(e) => {
         e.preventDefault();
@@ -2143,10 +2152,16 @@ function MarginNotePanel({
   onCancel(): void;
 }) {
   const [note, setNote] = useState(mark.note);
+  const sheetRef = useRef<HTMLFormElement>(null);
+  // Same terms as the citation sheet above: the ring stays in, and Cancel
+  // hands the reader back to the passage they marked.
+  useDialog(sheetRef, { manualFocus: true });
   return (
     <form
+      ref={sheetRef}
       className="s-book__sheet"
       role="dialog"
+      aria-modal="true"
       aria-label={t("bookMarginNote")}
       onSubmit={(e) => {
         e.preventDefault();

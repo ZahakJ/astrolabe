@@ -16,7 +16,13 @@
      inline and `inset-block-end: auto` (see .s-graph__panel--moved). */
   top: 12px;
   right: 12px;
-  bottom: 56px;
+  /* CLEAR OF THE ZOOM CLUSTER. At 56px the panel's own box enclosed the four
+     zoom/fit buttons in the corner beneath it — measured, the panel ran to
+     y 812 with "Zoom in" at y 769 inside it — so the instrument the panel
+     floats over had no controls a pointer could reach. 140 = 12 (the bottom
+     margin) + 4×26 (the buttons) + 3×4 (their gaps) + 12 (the gap above
+     them). The height is still derived, and the panel still scrolls. */
+  bottom: 140px;
   z-index: 2;
   inline-size: min(300px, calc(100% - 24px));
   overflow-y: auto;

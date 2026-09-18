@@ -25,6 +25,7 @@ import { getSettings, patchSettings } from "../api.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { toast } from "../toast.ts";
 import { anchorPopover } from "./anchorPopover.ts";
+import { useDialog } from "../a11y.ts";
 import "../styles/libraryfolder.css";
 
 export interface LibraryPopState {
@@ -72,6 +73,14 @@ export default function LibraryFolderPopover({ state, onClose }: { state: Librar
     el.querySelector<HTMLElement>("input, button")?.focus();
   }, [state.x, state.y, shelf]);
 
+
+  // ANCHORED, BUT STILL MODAL WHILE IT IS UP. The layout effect above puts
+  // focus inside (`manualFocus` keeps that the only decision), and this keeps
+  // Tab from walking out into the tree the popover is about — measured at
+  // twenty escapes — and puts focus back on the row that opened it. Escape and
+  // the outside mousedown are the listeners below.
+  useDialog(ref, { manualFocus: true });
+
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) onClose();
@@ -114,6 +123,7 @@ export default function LibraryFolderPopover({ state, onClose }: { state: Librar
       ref={ref}
       className="s-libpop"
       role="dialog"
+      aria-modal="true"
       aria-label={t("libraryTitle")}
       style={{ left: state.x, top: state.y }}
       onMouseDown={(e) => e.stopPropagation()}
