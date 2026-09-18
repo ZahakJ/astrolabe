@@ -205,30 +205,9 @@
   block-size: 23px;
 }
 
-/* ── The Sigils page's ───────────────────────────────────────────────────── */
-/* The section keeps the page's measure; the CARD is the grid's own width,
-   at the inline start with the heading, so a 1240px row does not draw a
-   border around 800px of nothing. */
-.s-routines__cal {
-  max-inline-size: 1240px;
-  margin: 20px auto 0;
-}
-
-.s-routines__cal .s-cal {
-  max-inline-size: 440px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-}
-
-/* On a phone the sidebar's section is the calendar; the page keeps its
-   width for the checklists (the brief: "Phone: the sidebar section only"). */
-@media (max-width: 700px) {
-  .s-routines__cal {
-    display: none;
-  }
-}
+/* The Sigils page drew a second copy of this grid until 3.18; the sidebar's
+   section is the calendar now, on every width, and it marks the trackers as
+   well as the sigils. */
 
 @media (pointer: coarse) {
   .s-cal__day {

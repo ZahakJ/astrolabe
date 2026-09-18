@@ -191,12 +191,10 @@ A tick on this page goes to the note the sigil lives in, by the very same edit t
 make, so the page and the editor never disagree about what the log says. The page re-reads on
 every change to the vault, so a box ticked in the editor shows here at once.
 
-**The month, at the top.** Under the heading the page draws the month you are in — the same grid
-as the sidebar's [Calendar](templates-and-notes.md#the-calendar), in the site's calendar, the week
-starting on the interface language's first day (Monday in English, Saturday in Arabic). A dot marks every day that has a daily note and a
-second, fainter dot every day a sigil logged something, so a month of kept days reads at a glance;
-today is ringed, and a click opens (or creates) that day's note. On a phone the page keeps its
-width for the checklists and the sidebar's section is the calendar.
+**The month lives in the sidebar.** Until 3.18 this page drew its own copy of the month; it now
+leaves the month to the sidebar's [Calendar](templates-and-notes.md#the-calendar), which draws the
+same grid at every width and marks the [trackers](trackers.md) as well as the sigils. The page is
+the day's checklists, and nothing else competes with them for the top of it.
 
 **Recently read.** When nothing is due — no sigil asks anything of today, or everything asked has
 been ticked, and no cards wait in Orbits — the page opens instead with a row of the notes you were last in, the palette's own
