@@ -104,6 +104,7 @@ import { ClipperControl } from "./settings/ClipperControl.tsx";
 import { desktop } from "../desktop/bridge.ts";
 import { DECLARABLE, SPELL_DICTS_EVENT, browserDictionaries, setBrowserDictionaries, type Declarable } from "../spellDicts.ts";
 import { Row } from "./settings/Row.tsx";
+import { TravelRow } from "./settings/TravelRow.tsx";
 import { choiceLabel, isTheme, THEME_GROUPS, THEME_LABELS, THEMES, type Theme } from "../themes.ts";
 import { customThemeChoice, isCustomThemeId } from "../../shared/customTheme.ts";
 import { getCustomThemes } from "../design/customThemes.ts";
@@ -4576,6 +4577,10 @@ export default function SettingsModal() {
                       "Status", and an empty label cell would only reintroduce
                       the grid they do not belong in. */}
                   <SyncActions stale={syncStale} disabled={syncOff} />
+                  {/* What the vault's .astrolabe/ folder holds for the next
+                      machine (server/configMirror.ts) — independent of git
+                      sync, so it is not greyed with the rows above. */}
+                  <TravelRow />
                 </section>
                 )}
 

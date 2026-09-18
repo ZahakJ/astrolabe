@@ -1807,6 +1807,40 @@ export interface GitSyncStatus {
   last: GitSyncResult | null;
 }
 
+// ── What travels with the vault (server/configMirror.ts) ────────────────────
+// The reader for `ASTROLABE_DATA/mirror-state.json` and the last mirror pass:
+// `GET /api/sync/travel` answers it, `Settings → Backup & sync → What travels`
+// draws it. Admin-only like the sync status.
+
+export type TravelItemId = "settings" | "designs" | "customCss" | "fonts" | "layouts" | "books" | "annotations" | "prefs";
+
+export interface TravelItem {
+  id: TravelItemId;
+  /** The instance's working copy exists (for `prefs`, which has no data-side
+   *  copy, this mirrors `inVault`). */
+  inData: boolean;
+  /** The vault's `.astrolabe/` copy exists — the one other machines get. */
+  inVault: boolean;
+  /** `fonts`: uploaded faces in the vault's copy; `prefs`: keys in the file;
+   *  null for the single files. */
+  count: number | null;
+}
+
+export interface TravelProblem {
+  rel: string;
+  reason: "too-large" | "over-total" | "copy-failed";
+  detail: string;
+}
+
+export interface TravelStatus {
+  items: TravelItem[];
+  /** Null before the first pass has finished (it is awaited at boot, so only
+   *  a server without a vault reports null). */
+  lastPass: { at: string; toVault: string[]; toData: string[]; problems: TravelProblem[] } | null;
+  /** Files this server has reconciled with the vault at least once. */
+  reconciled: number;
+}
+
 // ── Note history (git log over one note) ────────────────────────────────────
 // The undo of last resort. Backup & sync already commits the whole vault; this
 // is the READ half — the same repository, asked "what did this note look like

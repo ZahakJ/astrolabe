@@ -335,6 +335,24 @@ instance takes from its `.env` (`SITE_NAME`, `SITE_TAGLINE`, `HOME_NOTE`…) is 
 until it is saved in the settings panel, which writes it into `settings.json` and so into the
 vault.
 
+**Your type travels, and it arrives ready.** Every font you uploaded (`fonts/custom/`, with the
+index that names each face) is copied into `.astrolabe/fonts/custom/` under two caps — a file
+over 5 MB is left behind, and once the folder passes 40 MB the rest is — so a git remote is never
+asked to hold a hand-dropped 80 MB face; the row below names every file that stayed behind and
+why. The catalog families you chose (`fonts/catalog/`) are not copied — they are re-fetchable —
+and instead the receiving machine downloads them itself, at boot and whenever a newer
+`settings.json` or `designs.json` arrives, so a fresh install paints in your faces on its first
+load without anyone opening Settings → Site.
+
+**Settings → Backup & sync → What travels** is the mirror's own report: one glyph per item (the
+site, designs, custom CSS, fonts with their count, layouts, books, annotations, preferences with
+their key count) — ✓ when the vault holds it, ⚠ when this machine holds something the vault does
+not yet, – when there is nothing to carry — then when the last pass ran and how many files have
+been reconciled, a red line for every file a pass could not copy (a cap, a permission), and
+**Re-sync now**, which runs a pass and the font download on demand. Under it, the sentence that
+saves you a search on a new machine: still yours to redo are the git token or SSH key, the admin
+password and screen warmth.
+
 The settings on the **This device** tab — theme, interface and editor language, vim, the writing
 column's width, heading numbers, the formatting toolbar, which side the sidebar hangs on — are
 kept in **one file inside the vault**, `.astrolabe/prefs.json`, and every server over that folder
@@ -360,11 +378,13 @@ set up is there. This is what that means, item by item.
 | Travels with the vault | Stays on the device, and why |
 | --- | --- |
 | The site: name, tagline, logo, language, home note, folders, typography, calendars, sync settings | The git token: a credential is one machine's |
-| The designer's documents and custom themes, `custom.css`, every font you chose or uploaded | Note history (versions): large, and git is its durable copy |
+| The designer's documents and custom themes, `custom.css`, every font you uploaded (up to 5 MB a file, 40 MB in all) — and the catalog families you chose are fetched again on arrival | Note history (versions): large, and git is its durable copy |
 | Named layouts, the book shelf and where each book was left off, notes to self on words | Comments left on the public site: they belong to the site that received them |
-| Your preferences: theme, interface and editor language, vim keys and relative line numbers, editor width, heading numbers, the formatting toolbar, the sidebar's side, the tag sort, the what's-new switch | Screen warmth and dimming: they answer one screen's light |
+| Your preferences: theme, interface and editor language, vim keys and relative line numbers, editor width, heading numbers, the formatting toolbar, the sidebar's side, the tag sort, the what's-new switch, French autocorrect, reading mode, the properties panel, and where each course was left | Screen warmth and dimming: they answer one screen's light |
+| | The git token or SSH key and the admin password: a credential is one machine's |
 | | Offline reading and software updates: one machine's choice about its own disk and network |
 | | Tabs, panes, pane widths, fold state, collapsed sections: this window on this screen |
+| | The font catalog's cached files: re-fetched, never carried |
 
 ## Things worth knowing
 
@@ -394,7 +414,9 @@ set up is there. This is what that means, item by item.
 - If the machine has no git identity configured, commits are made as `Astrolabe
   <astrolabe@localhost>`; set `user.name`/`user.email` in the vault (or globally) to use your own.
 - The API, for anyone scripting it (admin-only): `GET /api/sync/status`, `POST /api/sync/init`,
-  `POST /api/sync/now`, `POST /api/sync/snapshot` (a local commit, no network), plus the two
-  read-only history routes — `GET /api/history?path=` and `GET /api/history/blob?path=&sha=`. The
+  `POST /api/sync/now`, `POST /api/sync/snapshot` (a local commit, no network), `GET
+  /api/sync/travel` (what the vault's `.astrolabe/` holds, the last mirror pass and what it could
+  not copy) and `POST /api/sync/travel` (one mirror pass plus the font download, same answer),
+  plus the two read-only history routes — `GET /api/history?path=` and `GET /api/history/blob?path=&sha=`. The
   blob route wants the path **that revision** lives under, which the listing gives you per row: a
   note that has been renamed lives under its old name in its older commits.

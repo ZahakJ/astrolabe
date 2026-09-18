@@ -13,6 +13,7 @@ import { applyEditorWidth } from "./editorWidth.ts";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import ErrorBoundary from "./ErrorBoundary.tsx";
+import { reloadPrefsFromStorage } from "./state.ts";
 import { installSafetyNet } from "./safety.ts";
 import { applyEyeComfort } from "./eyeComfort.ts";
 
@@ -38,7 +39,22 @@ if (!root) throw new Error("astrolabe: #root element missing");
 // `pullPrefs` never rejects; `finally` is belt and braces — the page paints
 // whatever the vault answered, and a build target without top-level await
 // is the reason this is a callback rather than a line.
-void pullPrefs().finally(() => {
+//
+// THE STORE READ ITS PREFERENCES BEFORE THE PULL. `./App.tsx` above imports
+// client/state.ts, and a module's body runs when it is imported — so vim, the
+// sidebar's side, reading mode, the editor language and the theme were read
+// from localStorage before a byte of /api/prefs had arrived, and a fresh
+// device painted its own defaults once and the vault's from the second load
+// on. When the pull changed anything, the store re-reads those keys now,
+// before anything renders (client/state.ts::reloadPrefsFromStorage).
+void pullPrefs()
+  .then((changed) => {
+    if (changed.length > 0) reloadPrefsFromStorage();
+  })
+  .catch(() => {
+    // a preference is never worth a blank page
+  })
+  .finally(() => {
   // The writing column's width, before the first paint (client/editorWidth.ts).
   applyEditorWidth();
   createRoot(root).render(

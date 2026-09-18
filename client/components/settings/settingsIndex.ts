@@ -113,4 +113,5 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "sync", label: "rowSyncPull", hint: "hintSyncPull" },
   { tab: "sync", label: "rowSyncInterval", hint: "hintSyncInterval" },
   { tab: "sync", label: "rowSyncStatus", hint: "hintSyncStatus" },
+  { tab: "sync", label: "rowTravel", hint: "hintTravel" },
 ];

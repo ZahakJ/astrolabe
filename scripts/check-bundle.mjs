@@ -714,7 +714,15 @@ const AUDIENCES = [
   // row's ⓘ (the hints shrank, the reference grew by its own sentences), the
   // "Clear the offline copy?" dialog and the ⓘ's second label. The panel
   // itself stays a lazy chunk.
-  { name: "entry (everyone)", keys: entry, budget: 796 * 1024 },
+  // 3.18.0: 796.0 kB actual → 797 — "everything travels", +1.3 kB, all of it
+  // boot-path by construction: `reloadPrefsFromStorage` in the store (the
+  // first paint has to see the pulled sidebar side, so it cannot be lazy),
+  // prefsSync's `lastPull` readout and three more travelling keys, two api.ts
+  // doors (`/api/sync/travel`), and the travel row's label and hint in the
+  // dictionary — the row's own two dozen strings ride the settings chunk in
+  // their own table (client/components/settings/travelCopy.ts), which is
+  // why this is 1.3 kB and not 4.
+  { name: "entry (everyone)", keys: entry, budget: 797 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -952,6 +960,8 @@ const AUDIENCES = [
   // reading view's chunk alone.
   // 3.17.0 + 3.16.3: 1087.4 kB actual → 1088 — the sigil card's
   // pushed-forward rows (main's 3.16.3, above) landing on the six branches.
+  // 3.18.0: 1088.8 kB actual → 1089 — the entry's "everything travels" bytes
+  // (above) and nothing of the blog's own.
   // 3.18.0: 1088.6 kB actual → 1089 — the iron-gall block (entry, above).
   // 3.18 settings in place: 1088.3 kB actual → 1089 — the same dictionary
   // growth as the entry's (the reference text behind the settings ⓘ); the
@@ -1107,6 +1117,8 @@ const AUDIENCES = [
   // the capture sheet are all lazy and asserted absent below.
   // 3.17.2: 1545.1 kB actual → 1546 — the Sigils masonry (two hooks) and the
   // wider emoji shelf.
+  // 3.18.0: 1546.4 kB actual → 1547 — the entry's "everything travels" bytes
+  // (above); the travel row itself rides the settings chunk.
   // 3.18.0: 1546.3 kB actual → 1547 — the iron-gall block (entry, above).
   // 3.18.0: 1547.5 kB actual → 1548 — the status bar's frame crumb (the
   // focused surface's name through Tabs.tsx titleOf), the calendar's
