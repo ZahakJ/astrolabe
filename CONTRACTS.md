@@ -9461,7 +9461,9 @@ to its note, led by "Open the day's note" / "Create the day's note" through `ope
 A single click never writes a file; the labelled button does, and a double-click on a cell is the
 shortcut. The grid is ONE tab stop with the sidebar grid's keys (arrows mirrored under RTL,
 Home/End the row, PageUp/PageDown the month, crossing an edge turns the page) and the pane is the
-next stop, so nothing in a cell is reachable only by mouse.
+next stop, so nothing in a cell is reachable only by mouse. The selection is `aria-selected` on the
+one `gridcell` that holds it, never `aria-pressed` on the button inside: a day is not a toggle, and
+saying so forty-two times is all a screen reader would hear.
 
 ## Orbits — spaced repetition (`shared/decks.ts`, `shared/srsSession.ts`, `client/orbits/`, `server/deckImport.ts`)
 
@@ -9740,7 +9742,7 @@ month — rows of seven from the site language's first day (`weekOrder`). Dots c
 hands in; the grid is ONE tab stop (arrows walk, mirrored under RTL; Home/End the row; PageUp/Down
 the month) and a click goes through `openPeriodicNoteAt`. The sidebar draws it for an admin, and
 for a visitor only when a daily note is published. It is a DATE PICKER and nothing more; the
-Sigils page drew it at its top in 3.17 and does not any more (see *The Calendar page* below).
+Sigils page drew it at its top in 3.17 and does not any more (see *The Calendar page* above).
 
 **The editor conveniences.** `{{cursor}}` and `{{prompt:Label}}`/`{{VALUE:Label}}` in
 `client/templates.ts` (`templatePrompts`, `fillPrompts`, `takeCursor`; the sheet is

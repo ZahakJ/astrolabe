@@ -396,6 +396,19 @@
   .s-calpage__daynum {
     justify-content: center;
   }
+  /* THE OTHER CALENDAR'S NUMBER GOES TO THE CORNER, out of the flow, which
+     is where the sidebar's grid has always put it (.s-cal__alt). Beside the
+     26px ring it wants 40px of a cell that is 46px wide with 12px of padding
+     in it, and an instance printing both calendars lost the end of its Hijri
+     day to the cell's `overflow: hidden` at 390px. */
+  .s-calpage__day {
+    position: relative;
+  }
+  .s-calpage__alt {
+    position: absolute;
+    inset-block-start: 3px;
+    inset-inline-end: 4px;
+  }
   .s-calpage__line,
   .s-calpage__more,
   /* One mark, not two: a day with a note already counts as a day that held
@@ -414,12 +427,12 @@
   }
 }
 
-/* Every shell target is ≥44px below 700px or on a coarse pointer; a day is
-   already taller than that on the wide layout. */
+/* Every shell target is ≥44px below 700px or on a coarse pointer. A DAY is
+   not in this list: the container query above has already given it 110px,
+   92px or 56px, and every one of those clears 44 — a `min-block-size: 44px`
+   here would only UNDO them, which is what it did until 3.18, shrinking the
+   month's cells to their text on a touch screen at any width. */
 @media (max-width: 700px), (pointer: coarse) {
-  .s-calpage__day {
-    min-block-size: 44px;
-  }
   .s-calpage__nav {
     inline-size: 44px;
     min-block-size: 44px;

@@ -452,7 +452,13 @@ function Cell({
     .filter(Boolean)
     .join(" ");
   return (
-    <td role="gridcell" className="s-calpage__cell">
+    // SELECTION IS THE GRIDCELL'S, not a pressed button. A day is not a
+    // toggle — nothing about it is on or off — and `aria-pressed` on all
+    // forty-two of them made a reader walking the month hear "toggle button,
+    // not pressed" on every day of it. `aria-selected` is the grid's own
+    // word for the cell the pane is following, and it is set on the one cell
+    // that has it: an unselected day says nothing rather than "not selected".
+    <td role="gridcell" className="s-calpage__cell" aria-selected={cell.iso === cursor ? true : undefined}>
       <button
         type="button"
         className={cls}
@@ -460,7 +466,6 @@ function Cell({
         tabIndex={cell.iso === cursor ? 0 : -1}
         aria-label={label}
         aria-current={isToday ? "date" : undefined}
-        aria-pressed={cell.iso === cursor}
         title={label}
         onClick={() => onSelect(cell.iso)}
         onDoubleClick={() => onOpen(cell.iso)}
