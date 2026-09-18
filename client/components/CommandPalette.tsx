@@ -369,6 +369,14 @@ const COMMANDS: Command[] = [
     hint: () => t("cmdOpenRoutinesHint"),
     available: ({ admin }) => admin,
   },
+  // The month, as a page (client/calendar/CalendarView.tsx). It left the top
+  // of the Sigils page in 3.18 and took a door of its own here and in the bar.
+  {
+    id: "open-calendar",
+    label: () => t("calendarTitle"),
+    hint: () => t("cmdViewHint"),
+    available: ({ admin }) => admin,
+  },
   // The week added up (client/review/): pages and hours by book, the
   // trackers' outlook, the sigils, the cards graded, the notes written.
   {
@@ -1313,6 +1321,9 @@ export default function CommandPalette() {
           break;
         case "open-routines":
           store.toggleRoutines();
+          break;
+        case "open-calendar":
+          store.toggleCalendar();
           break;
         case "review-week":
           store.setView("review-week");

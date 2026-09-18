@@ -924,6 +924,18 @@ workspaces, unused by anything that opens the graph now. **The Media page is a t
 terms** (`MEDIA_TAB = "~media"`, `isMediaTab`, `isVirtualTab` for the pair; `setView("media")`,
 `toggleMedia()`, `mediaOpen()`; the router answers `/media`).
 
+**THE CALENDAR IS A TAB TOO, from 3.18** (`CALENDAR_TAB = "~calendar"`, `isCalendarTab`,
+`surfaceOf` → `"calendar"`; `setView("calendar")`, `toggleCalendar()`, `calendarOpen()`; the router
+answers `/calendar`; `Tabs.tsx` titles it `calendar`; the page is `client/calendar/CalendarView.tsx`,
+a lazy chunk check-bundle pins). It was a card at the top of the Sigils page in 3.17 and the owner
+wanted it out — "kinda weird and useless in the sigils window… maybe just give it its own window
+and icon on the top". So it became a page, with the fourth door in the status bar's admin group
+(a leaf of the month), a palette row and a row in the phone's ⋯ menu. The GRID is unchanged and
+unduplicated: `components/CalendarGrid.tsx` draws the sidebar's fold and this page both, and the
+read behind its second mark is one hook for both callers (`client/loggedDays.ts`, lifted out of
+Sidebar.tsx). The sidebar's fold stays — it is the glance taken without leaving the note, and the
+page is the room; the page gives the same month bigger cells (`.s-calpage`) and nothing else new.
+
 ## The graph view's own settings (client/graphPrefs.ts, GraphView.tsx)
 
 **THE GRAPH OPENED GREY, AND THAT WAS A BUG, NOT A LOOK.** The keyboard route lights the node its
@@ -9570,8 +9582,13 @@ due by today (the count the "Due by today" list below it draws, handed up rather
 its Orbits door shows while cards are due, and "nothing due" — the recents row taking the top —
 means no sigil, no card and no task. A slot that
 wikilinks a deck wears the chip `client/routines/orbits.ts` draws (see Orbits below). The month grid
-at the page's top and in the sidebar marks a day a sigil logged OR a book was read
-(`loggedDaysOf` in shared/calendar.ts: the tracker `sessions:` lines ride the same fetch).
+marks a day a sigil logged OR a book was read (`loggedDaysOf` in shared/calendar.ts), and it is NOT
+on this page: it sat at the top from 3.17 until 3.18, where the owner read it back as "kinda weird
+and useless in the sigils window" and it became a page of its own (`CALENDAR_TAB`, under "The graph
+is a tab" above).
+This page asks what you keep every day; a month asks which day. With the grid went the tracker
+fetch that rode the page's load only for those marks — the Sigils page reads `/api/routines` and
+nothing else now.
 
 ## Orbits — spaced repetition (`shared/decks.ts`, `shared/srsSession.ts`, `client/orbits/`, `server/deckImport.ts`)
 
@@ -9849,7 +9866,8 @@ month — rows of seven from the site language's first day (`weekOrder`). Dots c
 (`dailyNotesByDay`: a string compare per note, nothing stored) and from the sigil logs the caller
 hands in; the grid is ONE tab stop (arrows walk, mirrored under RTL; Home/End the row; PageUp/Down
 the month) and a click goes through `openPeriodicNoteAt`. The sidebar draws it for an admin, and
-for a visitor only when a daily note is published; the Sigils page draws it at its top.
+for a visitor only when a daily note is published; the Sigils page drew it at its top until 3.18,
+when it became the Calendar tab (`CALENDAR_TAB`, above) — same grid, same rules, a page.
 
 **The editor conveniences.** `{{cursor}}` and `{{prompt:Label}}`/`{{VALUE:Label}}` in
 `client/templates.ts` (`templatePrompts`, `fillPrompts`, `takeCursor`; the sheet is
