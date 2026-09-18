@@ -743,7 +743,17 @@ const AUDIENCES = [
   // wrapper, and the menu markup Sidebar deleted when its two hand-rolled
   // menus moved onto ContextMenu (Sidebar is a lazy chunk, but its i18n keys
   // and the `.s-menu` rules are not).
-{ name: "entry (everyone)", keys: entry, budget: 800 * 1024 },
+  // 3.18.0 INTEGRATION: 800.8 kB actual → 801. The peak round's six branches
+  // each measured an overage against its own base; this is the number they add
+  // up to. The +1.8 kB over the overlay round's 799.0 is the Calendar page's,
+  // and every byte of it is shell by construction: the fourteen dictionary rows
+  // in two languages (`t()` ships whole — the debt named below), the status
+  // bar's fourth door and its glyph, the phone menu's row, `~calendar` +
+  // `/calendar` + the store's toggle, and the palette row. The PAGE itself —
+  // CalendarView.tsx, shared/dayAgenda.ts, calendarpage.css — is a lazy chunk
+  // asserted split in MUST_SPLIT, and the Sigils page GAVE BACK its
+  // `getTrackers` read when the grid left it.
+  { name: "entry (everyone)", keys: entry, budget: 801 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1002,7 +1012,10 @@ const AUDIENCES = [
   // `.s-treesort__menu` block the sort menu no longer needs, and the menu
   // markup Sidebar deleted when its two hand-rolled menus moved onto
   // ContextMenu — which is why fourteen new tokens cost 49 bytes and not 400.
-{ name: "anonymous blog reader", keys: blog, budget: 1093 * 1024 },
+  // 3.18.0 INTEGRATION: 1093.9 kB actual → 1094 — the entry's Calendar bytes
+  // (above) and nothing of the page's own. A visitor has no door to it; only
+  // the strings and the tab model reach this reader, because `t()` ships whole.
+  { name: "anonymous blog reader", keys: blog, budget: 1094 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1166,7 +1179,12 @@ const AUDIENCES = [
   // `useLoggedDays` having moved to the shared client/loggedDays.ts the
   // page asks through too.
     // 3.18.0: five branches of the peak round meeting in one entry.
-{ name: "admin first paint", keys: app, budget: 1553 * 1024 },
+  // 3.18.0 INTEGRATION: 1551.8 kB actual, UNDER the 1553 the calendar round set
+  // — left where it is rather than tightened, because the deck and the docs
+  // land on top of it. This reader carries the status bar's door, which the
+  // other two have no status bar for; Sidebar.tsx gave back more than that when
+  // `useLoggedDays` moved out to client/loggedDays.ts.
+  { name: "admin first paint", keys: app, budget: 1553 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1265,9 +1283,6 @@ const MUST_SPLIT = [
   "media/MediaView.tsx",
   // The Sigils page, on the same terms as the Media page.
   "routines/RoutinesView.tsx",
-  // The Calendar page, on the same terms: the month grid and its stylesheet
-  // behind the top bar's fourth door. It left the Sigils page in 3.18.
-  "calendar/CalendarView.tsx",
   // Orbits (the shelf and the session, one chunk), on the same terms.
   "orbits/OrbitsSurface.tsx",
   // The weekly review, on the same terms: a tab behind the palette and
