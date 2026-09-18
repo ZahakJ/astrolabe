@@ -3931,7 +3931,7 @@
   flex-wrap: wrap;
   gap: 16px;
   margin: 0;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: calc(var(--dsg-base) * 0.76);
 }
 

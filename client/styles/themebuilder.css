@@ -349,7 +349,7 @@
 .s-tb__token {
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -399,7 +399,7 @@
 
 .s-tb__nomatch {
   margin: 12px 6px;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-style: italic;
 }
 

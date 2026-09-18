@@ -162,5 +162,5 @@ button.s-backlink-context:hover {
   margin: 2px 6px 4px;
   font-size: 0.786rem;
   font-style: italic;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }

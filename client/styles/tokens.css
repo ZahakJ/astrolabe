@@ -25,12 +25,19 @@
   unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+2010-2011;
 }
 
-/* Astrolabe — design tokens. TWENTY-TWO themes: the default (no data-theme attr)
-   is "github-dark" — sky blue on neutral greys, the same values the
-   [data-theme="github-dark"] block below carries, so the first paint IS the
-   default — and every other room is a [data-theme="…"] block below.
+/* Astrolabe — design tokens. FORTY-SIX rooms, one list (shared/themes.ts):
+   the twenty-two below plus the twenty-four generated preset rooms at the end
+   of this file. THE DEFAULT IS "github-dark" (THEMES[0], since the presets
+   landed): the :root block carries its values verbatim, so a document with no
+   data-theme attribute — the first paint, an unknown id — IS the default, and
+   check-contrast holds :root and the github-dark block to the same hexes.
+   Every other room is a [data-theme="…"] block, iron-gall included: it is the
+   product's identity (the icon, the manuscript metaphor, the picker's first
+   hand-made room) and no longer the room a reader lands in, and for a while
+   it had no block at all — `data-theme="iron-gall"` computed github-dark's
+   blue and the picker marked a gold card CURRENT over a blue app.
 
-     dark   iron-gall  warm near-black ink, ivory text, gold leaf (the default)
+     dark   iron-gall  warm near-black ink, ivory text, gold leaf (the brand room)
             void       true black, cold signal-cyan accent
             lapis      deep lapis-lazuli blue-black, brightened gold leaf
             cinnabar   neutral graphite ground, vermilion type accent
@@ -54,16 +61,23 @@
             mauveine   pale lilac paper, aniline-violet accent
 
    EVERY theme defines the WHOLE set — ground, type, accent, selection, focus
-   ring, graph colors, all thirteen callout hues and all eight syntax colors.
-   None of them inherits another's leftovers: a block that left, say,
-   --callout-warning out would silently wear iron-gall's amber on a green
-   ground. The derived values were solved against each theme's OWN --bg (every
-   callout and syntax color clears 4.8:1 there), which is why no two themes
-   share a hex outside their shared --danger family.
+   ring, banner hue and tint, corner radius, graph colors, all thirteen callout
+   hues and all eight syntax colors: every token :root's theme section defines,
+   except the globals no room may touch (the font stacks, the page inks, the
+   pane widths, the type scale). A block that leaves one out does not inherit
+   "the previous room's" value — the cascade falls back to :root, which is the
+   DEFAULT room's value: a green room that forgot --callout-warning would wear
+   github-dark's orange. check-contrast fails a block that is missing one, and
+   a block that defines one the base does not (a typo is a token nobody reads).
+   The derived values were solved against each theme's OWN --bg (every callout
+   and syntax color clears 4.8:1 there), which is why no two themes share a hex
+   outside their shared --danger family.
 
    Components must consume these variables only — never hard-coded colors.
    Contrast is enforced by `node scripts/check-contrast.mjs` (body >= 4.5:1,
-   muted >= 3:1 against both --bg and --bg-raised) — run it after any edit here. */
+   muted and the focus ring >= 3:1 against every ground, faint >= 3:1 against
+   --bg and --bg-raised, the accent >= 4.5:1 on --bg and >= 3:1 on --bg-raised)
+   — run it after any edit here. */
 
 :root {
   color-scheme: dark;
@@ -213,6 +227,9 @@
   --swatch-rose-pine-dawn-accent: #286983;
   /* ── end of generated preset swatches ── */
 
+  /* github-dark's values, hex for hex — the [data-theme="github-dark"] block
+     at the end of this file is generated from the same spec, and
+     check-contrast fails the build if the two ever drift. */
   --bg: #0d1117;
   --bg-raised: #161b22;
   --bg-hover: #21262d;
@@ -406,6 +423,62 @@
   --syn-operator: #8b949e;
 }
 
+/* "iron-gall" — the brand room: iron-gall ink on a warm near-black, ivory
+   type, gold leaf. It WAS :root until the preset rooms made github-dark the
+   default, and the commit that moved :root did not give it a block of its own,
+   so for a while choosing it painted the app blue while the swatch, the
+   desktop window's pre-paint and DESIGN.md all said gold. These are the values
+   :root carried before that commit, plus the three tokens the base has since
+   gained (--radius, --banner-tint, --banner-hue), so the room is whole. */
+[data-theme="iron-gall"] {
+  color-scheme: dark;
+
+  --bg: #16130e;
+  --bg-raised: #1e1a13;
+  --bg-hover: #29231a;
+  --text: #eae2d0;
+  --text-muted: #a99f89;
+  --text-faint: #6e6656;
+  --heading: #e5d8b7;
+  --accent: #c9a227;
+  --accent-soft: rgba(201, 162, 39, 0.14);
+  --border: #2f2920;
+  --danger: #c4574a;
+  --radius: 6px;
+
+  --selection-bg: rgba(201, 162, 39, 0.24);
+  --focus-ring: #c9a227;
+  --banner-tint: 66%;
+  --banner-hue: 46;
+
+  --graph-node: #c9a227;
+  --graph-edge: #5a5245;
+  --graph-vignette: rgba(9, 8, 6, 0.4);
+
+  --callout-note: #6d9dc5;
+  --callout-info: #6d9dc5;
+  --callout-todo: #6d9dc5;
+  --callout-abstract: #6fb3a8;
+  --callout-tip: #6fb3a8;
+  --callout-success: #7fb069;
+  --callout-question: #d9a05b;
+  --callout-warning: #d9a05b;
+  --callout-failure: #c4574a;
+  --callout-danger: #c4574a;
+  --callout-bug: #c4574a;
+  --callout-example: #a68bc9;
+  --callout-quote: #a99f89;
+
+  --syn-keyword: #c9a227;
+  --syn-string: #9cb46f;
+  --syn-number: #d08b5c;
+  --syn-comment: #6e6656;
+  --syn-func: #8fb4cf;
+  --syn-type: #c98f7e;
+  --syn-prop: #ab9cc9;
+  --syn-operator: #a99f89;
+}
+
 /* "void" — the one theme that is actually BLACK. It used to open at #101014
    under a pale steel-blue accent, which put it 3.8 ΔE from basalt's ground
    and 10.2 ΔE from basalt's accent: two desaturated-blue near-blacks that no
@@ -426,9 +499,11 @@
   --heading: #d0e0e7;
   --accent: #5fc9dd;
   --accent-soft: rgba(95, 201, 221, 0.14);
+  --banner-tint: 66%;
   --banner-hue: 190;
   --border: #1f1f27;
   --danger: #c4574a;
+  --radius: 6px;
 
   --selection-bg: rgba(95, 201, 221, 0.24);
   --focus-ring: #5fc9dd;
@@ -475,9 +550,11 @@
   --heading: #e5e2d8;
   --accent: #d9b23a;
   --accent-soft: rgba(217, 178, 58, 0.15);
+  --banner-tint: 66%;
   --banner-hue: 45;
   --border: #24304b;
   --danger: #d0655a;
+  --radius: 6px;
 
   --selection-bg: rgba(217, 178, 58, 0.24);
   --focus-ring: #d9b23a;
@@ -531,6 +608,7 @@
   --accent-soft: rgba(122, 95, 20, 0.13);
   --border: #d8cbae;
   --danger: #a23a2e;
+  --radius: 6px;
 
   --selection-bg: rgba(122, 95, 20, 0.2);
   --focus-ring: #7a5f14;
@@ -585,6 +663,7 @@
   --accent-soft: rgba(226, 84, 60, 0.14);
   --border: #33333a;
   --danger: #e2543c;
+  --radius: 6px;
 
   --selection-bg: rgba(226, 84, 60, 0.24);
   --focus-ring: #e2543c;
@@ -636,6 +715,7 @@
   --accent-soft: rgba(127, 182, 217, 0.14);
   --border: #2b323c;
   --danger: #e0715f;
+  --radius: 6px;
 
   --selection-bg: rgba(127, 182, 217, 0.24);
   --focus-ring: #7fb6d9;
@@ -686,6 +766,7 @@
   --accent-soft: rgba(95, 191, 164, 0.14);
   --border: #22332f;
   --danger: #e0715f;
+  --radius: 6px;
 
   --selection-bg: rgba(95, 191, 164, 0.24);
   --focus-ring: #5fbfa4;
@@ -736,6 +817,7 @@
   --accent-soft: rgba(217, 138, 166, 0.14);
   --border: #362836;
   --danger: #e0715f;
+  --radius: 6px;
 
   --selection-bg: rgba(217, 138, 166, 0.24);
   --focus-ring: #d98aa6;
@@ -786,6 +868,7 @@
   --accent-soft: rgba(169, 155, 240, 0.14);
   --border: #2a2d3d;
   --danger: #e0715f;
+  --radius: 6px;
 
   --selection-bg: rgba(169, 155, 240, 0.24);
   --focus-ring: #a99bf0;
@@ -843,6 +926,7 @@
   --accent-soft: rgba(242, 176, 98, 0.14);
   --border: #40332a;
   --danger: #df735c;
+  --radius: 6px;
 
   --selection-bg: rgba(242, 176, 98, 0.24);
   --focus-ring: #f2b062;
@@ -903,6 +987,7 @@
   --accent-soft: rgba(107, 127, 232, 0.18);
   --border: #2f2f33;
   --danger: #d9705c;
+  --radius: 6px;
 
   --selection-bg: rgba(107, 127, 232, 0.26);
   --focus-ring: #6b7fe8;
@@ -952,6 +1037,7 @@
   --accent-soft: rgba(157, 196, 106, 0.14);
   --border: #28311f;
   --danger: #e0715f;
+  --radius: 6px;
 
   --selection-bg: rgba(157, 196, 106, 0.24);
   --focus-ring: #9dc46a;
@@ -1002,6 +1088,7 @@
   --accent-soft: rgba(156, 75, 39, 0.13);
   --border: #ded3c0;
   --danger: #b03a2c;
+  --radius: 6px;
 
   --selection-bg: rgba(156, 75, 39, 0.2);
   --focus-ring: #9c4b27;
@@ -1052,6 +1139,7 @@
   --accent-soft: rgba(58, 110, 165, 0.13);
   --border: #d5dae1;
   --danger: #b03a2c;
+  --radius: 6px;
 
   --selection-bg: rgba(58, 110, 165, 0.2);
   --focus-ring: #3a6ea5;
@@ -1107,6 +1195,7 @@
   --accent-soft: rgba(163, 92, 0, 0.13);
   --border: #e3d9c8;
   --danger: #b03a2c;
+  --radius: 6px;
 
   --selection-bg: rgba(163, 92, 0, 0.2);
   --focus-ring: #a35c00;
@@ -1169,6 +1258,7 @@
   --accent-soft: rgba(53, 224, 138, 0.14);
   --border: #17251a;
   --danger: #ff6a5e;
+  --radius: 6px;
 
   --selection-bg: rgba(53, 224, 138, 0.24);
   --focus-ring: #35e08a;
@@ -1227,6 +1317,7 @@
   --accent-soft: rgba(192, 196, 255, 0.14);
   --border: #1e2340;
   --danger: #e8697a;
+  --radius: 6px;
 
   --selection-bg: rgba(192, 196, 255, 0.24);
   --focus-ring: #c0c4ff;
@@ -1281,6 +1372,7 @@
   --accent-soft: rgba(209, 130, 232, 0.14);
   --border: #322044;
   --danger: #e0715f;
+  --radius: 6px;
 
   --selection-bg: rgba(209, 130, 232, 0.24);
   --focus-ring: #d182e8;
@@ -1337,6 +1429,7 @@
   --accent-soft: rgba(227, 179, 65, 0.14);
   --border: #30363d;
   --danger: #f85149;
+  --radius: 6px;
 
   --selection-bg: rgba(227, 179, 65, 0.24);
   --focus-ring: #e3b341;
@@ -1394,6 +1487,7 @@
   --accent-soft: rgba(143, 47, 63, 0.13);
   --border: #d2cab4;
   --danger: #9e2f26;
+  --radius: 6px;
 
   --selection-bg: rgba(143, 47, 63, 0.2);
   --focus-ring: #8f2f3f;
@@ -1447,6 +1541,7 @@
   --accent-soft: rgba(22, 105, 92, 0.13);
   --border: #d5ded9;
   --danger: #a8322a;
+  --radius: 6px;
 
   --selection-bg: rgba(22, 105, 92, 0.2);
   --focus-ring: #16695c;
@@ -1499,6 +1594,7 @@
   --accent-soft: rgba(106, 59, 160, 0.13);
   --border: #dcd6e6;
   --danger: #a8322a;
+  --radius: 6px;
 
   --selection-bg: rgba(106, 59, 160, 0.2);
   --focus-ring: #6a3ba0;
@@ -1736,7 +1832,6 @@
   --syn-type: #d29922;
   --syn-prop: #39c5cf;
   --syn-operator: #8b949e;
-  --syn-tag: #db61a2;
 }
 
 [data-theme="nord"] {
@@ -1786,7 +1881,6 @@
   --syn-type: #ebcb8b;
   --syn-prop: #88c0d0;
   --syn-operator: #d8dee9;
-  --syn-tag: #b48ead;
 }
 
 [data-theme="dracula"] {
@@ -1836,7 +1930,6 @@
   --syn-type: #f1fa8c;
   --syn-prop: #8be9fd;
   --syn-operator: #bfc2cf;
-  --syn-tag: #ff79c6;
 }
 
 [data-theme="one-dark"] {
@@ -1886,7 +1979,6 @@
   --syn-type: #e5c07b;
   --syn-prop: #56b6c2;
   --syn-operator: #9199a6;
-  --syn-tag: #c678dd;
 }
 
 [data-theme="solarized-dark"] {
@@ -1936,7 +2028,6 @@
   --syn-type: #b58900;
   --syn-prop: #2aa198;
   --syn-operator: #839496;
-  --syn-tag: #d33682;
 }
 
 [data-theme="gruvbox-dark"] {
@@ -1986,7 +2077,6 @@
   --syn-type: #fabd2f;
   --syn-prop: #8ec07c;
   --syn-operator: #bdae93;
-  --syn-tag: #d3869b;
 }
 
 [data-theme="catppuccin-mocha"] {
@@ -2036,7 +2126,6 @@
   --syn-type: #f9e2af;
   --syn-prop: #94e2d5;
   --syn-operator: #a6adc8;
-  --syn-tag: #f5c2e7;
 }
 
 [data-theme="tokyo-night"] {
@@ -2086,7 +2175,6 @@
   --syn-type: #e0af68;
   --syn-prop: #7dcfff;
   --syn-operator: #a9b1d6;
-  --syn-tag: #ad8ee6;
 }
 
 [data-theme="monokai"] {
@@ -2136,7 +2224,6 @@
   --syn-type: #e6db74;
   --syn-prop: #66d9ef;
   --syn-operator: #cfcfc2;
-  --syn-tag: #f92672;
 }
 
 [data-theme="material-ocean"] {
@@ -2186,7 +2273,6 @@
   --syn-type: #ffcb6b;
   --syn-prop: #89ddff;
   --syn-operator: #8f93a2;
-  --syn-tag: #f07178;
 }
 
 [data-theme="palenight"] {
@@ -2236,7 +2322,6 @@
   --syn-type: #ffcb6b;
   --syn-prop: #89ddff;
   --syn-operator: #a6accd;
-  --syn-tag: #f07178;
 }
 
 [data-theme="ayu-dark"] {
@@ -2286,7 +2371,6 @@
   --syn-type: #ffb454;
   --syn-prop: #95e6cb;
   --syn-operator: #9b9a94;
-  --syn-tag: #f29668;
 }
 
 [data-theme="ayu-mirage"] {
@@ -2336,7 +2420,6 @@
   --syn-type: #ffd173;
   --syn-prop: #95e6cb;
   --syn-operator: #a3a29b;
-  --syn-tag: #f29e74;
 }
 
 [data-theme="everforest-dark"] {
@@ -2386,7 +2469,6 @@
   --syn-type: #dbbc7f;
   --syn-prop: #83c092;
   --syn-operator: #b5b8a8;
-  --syn-tag: #d699b6;
 }
 
 [data-theme="rose-pine"] {
@@ -2436,7 +2518,6 @@
   --syn-type: #f6c177;
   --syn-prop: #9ccfd8;
   --syn-operator: #908caa;
-  --syn-tag: #ebbcba;
 }
 
 [data-theme="night-owl"] {
@@ -2486,7 +2567,6 @@
   --syn-type: #ecc48d;
   --syn-prop: #7fdbca;
   --syn-operator: #a4b1c7;
-  --syn-tag: #c792ea;
 }
 
 [data-theme="kanagawa"] {
@@ -2536,7 +2616,6 @@
   --syn-type: #c0a36e;
   --syn-prop: #7aa89f;
   --syn-operator: #c8c093;
-  --syn-tag: #d27e99;
 }
 
 [data-theme="github-light"] {
@@ -2586,7 +2665,6 @@
   --syn-type: #9a6700;
   --syn-prop: #1b7c83;
   --syn-operator: #57606a;
-  --syn-tag: #bf3989;
 }
 
 [data-theme="solarized-light"] {
@@ -2636,7 +2714,6 @@
   --syn-type: #aa8100;
   --syn-prop: #27978f;
   --syn-operator: #657b83;
-  --syn-tag: #d33682;
 }
 
 [data-theme="gruvbox-light"] {
@@ -2686,7 +2763,6 @@
   --syn-type: #b57614;
   --syn-prop: #427b58;
   --syn-operator: #504945;
-  --syn-tag: #8f3f71;
 }
 
 [data-theme="catppuccin-latte"] {
@@ -2736,7 +2812,6 @@
   --syn-type: #b97618;
   --syn-prop: #179299;
   --syn-operator: #5c5f77;
-  --syn-tag: #c362a9;
 }
 
 [data-theme="ayu-light"] {
@@ -2786,7 +2861,6 @@
   --syn-type: #bc8839;
   --syn-prop: #3f9f7f;
   --syn-operator: #6b7075;
-  --syn-tag: #e26a6a;
 }
 
 [data-theme="everforest-light"] {
@@ -2836,7 +2910,6 @@
   --syn-type: #b98500;
   --syn-prop: #329d75;
   --syn-operator: #708089;
-  --syn-tag: #d263af;
 }
 
 [data-theme="rose-pine-dawn"] {
@@ -2886,6 +2959,5 @@
   --syn-type: #b77b28;
   --syn-prop: #56949f;
   --syn-operator: #797593;
-  --syn-tag: #be736f;
 }
 /* ── end of generated preset rooms ── */

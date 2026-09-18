@@ -120,7 +120,7 @@
 /* Neighbouring months' days complete the rows and are there to be
    clicked, but they are not this page's. */
 .s-cal__day--out {
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* Today is RINGED, not filled: the fill is what the marks under the number
@@ -159,7 +159,7 @@
   inset-inline-end: 3px;
   font-size: 0.571rem;
   line-height: 1;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* The marks row: a dot for the day's note, a second for a sigil logged.

@@ -124,7 +124,6 @@
 .s-wn-stage--demo {
   place-items: start stretch;
   overflow: auto;
-  scrollbar-width: thin;
 }
 .s-wn-stage .s-rv-routine {
   margin-block: 0;

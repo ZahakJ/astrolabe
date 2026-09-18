@@ -16,7 +16,7 @@
   margin-inline-start: auto;
   padding-inline-start: 8px;
   flex: none;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   font-size: 0.714rem;
   font-variant-numeric: tabular-nums;

@@ -705,6 +705,10 @@ const AUDIENCES = [
   //    mount-gated on the flag; the converter and the manifest are
   //    server-side.
   // Five of the six are mostly dictionary, which is the debt named below.
+  // 3.18.0: 795.7 kB actual → 796 — iron-gall gets its token block back
+  // (tokens.css; the room had none since the presets landed and computed
+  // github-dark), --radius/--banner-tint on the hand rooms, minus the unread
+  // --syn-tag the generator dealt to every preset.
   // 3.18 settings in place: 795.5 kB actual → 796 — dictionary again: the
   // reference text that moved from six long hints to `more` keys behind the
   // row's ⓘ (the hints shrank, the reference grew by its own sentences), the
@@ -948,6 +952,7 @@ const AUDIENCES = [
   // reading view's chunk alone.
   // 3.17.0 + 3.16.3: 1087.4 kB actual → 1088 — the sigil card's
   // pushed-forward rows (main's 3.16.3, above) landing on the six branches.
+  // 3.18.0: 1088.6 kB actual → 1089 — the iron-gall block (entry, above).
   // 3.18 settings in place: 1088.3 kB actual → 1089 — the same dictionary
   // growth as the entry's (the reference text behind the settings ⓘ); the
   // blog reader carries the dictionary and nothing else of the panel.
@@ -1102,7 +1107,8 @@ const AUDIENCES = [
   // the capture sheet are all lazy and asserted absent below.
   // 3.17.2: 1545.1 kB actual → 1546 — the Sigils masonry (two hooks) and the
   // wider emoji shelf.
-  { name: "admin first paint", keys: app, budget: 1546 * 1024 },
+  // 3.18.0: 1546.3 kB actual → 1547 — the iron-gall block (entry, above).
+  { name: "admin first paint", keys: app, budget: 1547 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

@@ -59,8 +59,15 @@
   font-size: 0.94rem;
   /* How far the prose dissolves at an edge that has more past it. */
   --fade: 30px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--text-faint) transparent;
+}
+
+/* Firefox's half of the thumb rule below (app.css, scrollbars: on Chromium
+   the standard pair would switch the ::-webkit rules off). */
+@supports not selector(::-webkit-scrollbar) {
+  .s-hovercard__body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-faint) transparent;
+  }
 }
 
 /* The scroll affordance. Without it the card is a window with invisible
