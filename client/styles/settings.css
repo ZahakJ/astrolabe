@@ -128,7 +128,7 @@
    mechanism rather than the tab, so it steps back down. */
 .s-smodal__note--inherit {
   margin-top: -6px;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* A sub-heading inside a tab (Home page, the Arabic slot, the visitor
@@ -189,8 +189,15 @@
 .s-smodal__row {
   /* Same reason as the rail: a fixed-px label column is a column that holds
      less Arabic than English. minmax(0, …) so it can still give way rather
-     than push the control out of the panel. */
-  grid-template-columns: minmax(0, 14.45rem) minmax(0, 1fr);
+     than push the control out of the panel.
+     19rem, up from 14.45: measured on This device at 1440, the hints under
+     a 224px label wrapped to two, three, four and five lines while ~365px of
+     the control column sat empty beside a 34px toggle — the panel's rhythm
+     was set by its help text. At 19rem (294px) every hint fits in two lines
+     and the control column keeps the 378px the four-way Writing column
+     segment needs on one line; at the brief's 22rem it wrapped "Custom"
+     onto a second row, which reads as a broken control. */
+  grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
   gap: 10px 18px;
   min-height: 46px;
   padding-block: 2px;
@@ -219,9 +226,23 @@
   padding-top: 7px;
 }
 
+/* THE HINT IS READ, SO IT IS --text-muted. app.css set it in --text-faint,
+   which DESIGN.md holds to the 3:1 NON-TEXT bar — measured 3.77:1 on the
+   raised ground in GitHub Dark — for a sentence the reader has to finish to
+   learn what the row does. Muted clears 4.5:1 in every room at the same
+   0.75rem. `check-settings` holds this rule and its three siblings
+   (`.s-smodal__dirty`, `.s-about__countlabel`, `.s-smodal__fontmeta`) to the
+   muted token. 46ch, up from 30: with the 22rem label column the sentence
+   has the room, and a hint at 30ch broke every fourteen-word sentence into
+   three or four lines. */
 .s-smodal__hint {
   line-height: 1.45;
-  max-width: 30ch;
+  max-width: 46ch;
+  color: var(--text-muted);
+}
+
+.s-smodal__dirty {
+  color: var(--text-muted);
 }
 
 /* The control column is a column of CONTROLS, and they all start at its
@@ -302,7 +323,7 @@
 
 .s-about__row {
   display: grid;
-  grid-template-columns: minmax(0, 14.45rem) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
   gap: 18px;
   align-items: baseline;
   padding: 7px 0;
@@ -358,9 +379,11 @@
   color: var(--text);
 }
 
+/* A count's label names a thing the reader reads ("notes", "tags"): muted,
+   not faint — DESIGN.md's rule for anything that is read. */
 .s-about__countlabel {
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .s-about__docs {
@@ -374,7 +397,7 @@
 
 .s-about__doc {
   display: grid;
-  grid-template-columns: minmax(0, 14.45rem) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
   gap: 18px;
   align-items: baseline;
   padding: 6px 0;
@@ -385,10 +408,11 @@
   color: var(--text);
 }
 
+/* A path the reader is meant to search for: read, so muted. */
 .s-about__docanchor {
   font-family: var(--font-mono);
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 
@@ -429,6 +453,15 @@
     mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 28px), transparent);
     -webkit-mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 28px), transparent);
   }
+  /* The long fade belongs at the TRAILING edge, where the strip continues.
+     `to right` put it on the leading edge of an Arabic panel, so the first
+     tab — the selected one, on open — was the one dissolving. Gradients take
+     no logical direction yet; `:dir()` is the direction-aware selector that
+     is not a `[dir]` rule of this file's own. */
+  .s-smodal__rail:dir(rtl) {
+    mask-image: linear-gradient(to left, transparent, #000 12px, #000 calc(100% - 28px), transparent);
+    -webkit-mask-image: linear-gradient(to left, transparent, #000 12px, #000 calc(100% - 28px), transparent);
+  }
   .s-smodal__railbtn {
     scroll-snap-align: start;
   }
@@ -438,7 +471,31 @@
   .s-smodal__railbtn--on {
     border-bottom-color: var(--accent);
   }
+
+  /* THE PHONE GETS THE WHOLE VIEWPORT, the way the history panel's revision
+     view does (history.css). A 358×740 card floating in a 390×844 screen
+     spent 242px of chrome above the first row: a title, a search field and
+     an eight-tab strip inside a box with 16px of blurred page showing on
+     each side, and then the tab's name again as a heading under the strip
+     that had just been tapped. Full-bleed, the heading dropped, and the
+     safe areas honoured as padding, the first row starts ~100px higher. */
+  .s-smodal-overlay {
+    padding: 0;
+  }
+  .s-smodal {
+    width: 100vw;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    border: none;
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .s-smodal__tabhead {
+    display: none;
+  }
 }
+
 
 @media (max-width: 560px) {
   .s-smodal__row,
@@ -489,20 +546,13 @@
      Arabic, where the tashkeel ride high enough to be exactly what survives a
      6px window. The gap is padding now, and padding is painted. */
   background: var(--bg-raised);
-  padding-block: 2px 16px;
-}
-
-/* …and the row that is about to pass under it DISSOLVES rather than meeting a
-   hard edge, which is the same rule the scrollers follow (`.s-scrollfade`).
-   The tail hangs below the sticky block, so it costs the layout nothing. */
-.s-smodal__specwrap::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 100%;
-  height: 14px;
-  background: linear-gradient(to bottom, var(--bg-raised), transparent);
-  pointer-events: none;
+  /* A SOLID tail, not a gradient. The 14px fade that hung below the block
+     was the "gradient laid over content" mistake the body's own scroll edge
+     already retired: at 1440 an orphaned "markdown." from the row passing
+     under it stayed legible through the fade, half-dissolved, which reads
+     as a rendering fault. 24px of painted padding covers what a gradient
+     only tinted. */
+  padding-block: 2px 24px;
 }
 
 /* The sticky specimen overlaps whatever is scrolled under it, and the browser
@@ -529,7 +579,7 @@
 
 .s-smodal__spechint {
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* "Reset fonts" belongs with the preview it resets, at the far end of its
@@ -560,6 +610,27 @@
 /* The join between the two scripts belongs to neither of them. */
 .s-smodal__specgap {
   color: var(--text-faint);
+}
+
+/* The specimen sat sticky over 46% of a 503px phone body, with the Arabic
+   sample ellipsised: on a phone it is a block like any other, and its lines
+   wrap. Declared HERE, after the sticky rules it undoes — the Narrow section
+   above is earlier in the file, and an equal-specificity override has to
+   follow what it overrides. */
+@media (max-width: 720px) {
+  .s-smodal__specwrap {
+    position: static;
+    padding-block: 2px 8px;
+  }
+  .s-smodal__specline {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  [data-section="typography"] .s-smodal__row,
+  [data-section="typography"] .s-smodal__sub {
+    scroll-margin-top: 4px;
+  }
 }
 
 /* ── Typography: the operator's own faces ─────────────────────────────────── */
@@ -611,7 +682,7 @@
   gap: 10px;
   flex: none;
   font-size: 0.714rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 /* A face a slot still names says so, in place of the delete button it does
@@ -765,6 +836,13 @@
   color: var(--text-muted);
 }
 
+/* Reference text behind the ⓘ (a token grammar, a frontmatter shape): a
+   paragraph at reading measure, in the same well as the .env line. */
+.s-smodal__more {
+  max-width: 62ch;
+  overflow-wrap: anywhere;
+}
+
 .s-smodal__envrow {
   display: flex;
   align-items: center;
@@ -862,6 +940,14 @@
 .s-smodal__searchinput:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* The field is `type="search"` for its semantics, not for the browser's own
+   grey ✕ — the sidebar search and the icon picker's filter drop it the same
+   way. Escape clears the field (SettingsSearch.tsx), which is the keyboard
+   half of the same gesture. */
+.s-smodal__searchinput::-webkit-search-cancel-button {
+  -webkit-appearance: none;
 }
 
 /* The results REPLACE nothing — they float over the rail, so the panel's shape
@@ -967,6 +1053,13 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+/* The row's verb sits at the TRAILING edge of the control column, apart
+   from the switch it acts beside — a destructive action pressed up against
+   a toggle is a misclick waiting to happen. */
+.s-settings__inline > .s-btn {
+  margin-inline-start: auto;
 }
 
 /* Browser dictionaries: four small toggles in a row that wraps on a phone. */
@@ -1117,4 +1210,28 @@
 .s-clipper__unavailable {
   font-size: 0.857rem;
   color: var(--text-muted);
+}
+
+/* ── Touch ────────────────────────────────────────────────────────────────── */
+
+/* The product's own floor: on a coarse pointer every field is 16px so iOS
+   does not zoom into it, and every target is 44px. The control set carries
+   its own block (controls.css); these are the panel's own fields and its
+   one small button. LAST in the file on purpose — the rules it overrides are
+   declared above it at equal specificity. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-smodal__searchinput,
+  .s-smodal__textarea {
+    font-size: 16px;
+  }
+  .s-smodal__searchinput {
+    min-block-size: 44px;
+  }
+  /* The ⓘ keeps its place on the label's line (negative block margins eat
+     the growth) but takes the full 44px box under a finger. */
+  .s-smodal__envbtn {
+    width: 44px;
+    height: 44px;
+    margin-block: -11px;
+  }
 }

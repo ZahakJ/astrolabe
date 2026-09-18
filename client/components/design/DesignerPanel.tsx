@@ -675,9 +675,9 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
       return;
     }
     void confirmModal({
-      title: t("designCloseUnsavedTitle"),
-      body: t("designCloseUnsavedBody"),
-      confirmLabel: t("designDiscard"),
+      title: t("closeUnsavedTitle"),
+      body: t("closeUnsavedBody"),
+      confirmLabel: t("discardChanges"),
     }).then((ok) => {
       if (ok) onClose();
     });
@@ -2056,7 +2056,7 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
             }}
             disabled={!dirty || busy}
           >
-            {t("designDiscard")}
+            {t("discardChanges")}
           </button>
           <button type="button" className="s-btn s-btn--accent" onClick={save} disabled={!dirty || busy}>
             {t("designSave")}

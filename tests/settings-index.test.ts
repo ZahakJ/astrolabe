@@ -116,6 +116,32 @@ describe("searching the settings", () => {
     setLang("en");
   });
 
+  it("matches at a WORD START, so 'graph' no longer answers with para-graph", () => {
+    setLang("en");
+    const labels = (q: string) => searchSettings(q, true).map((h) => t(h.entry.label));
+    assert.ok(!labels("graph").includes(t("rowTextDirection")), "'graph' matched inside 'paragraph'");
+    assert.ok(!labels("date").includes(t("rowWhatsNew")), "'date' matched inside 'update'");
+    // …while a word that begins a label or a hint still lands.
+    assert.ok(labels("date").includes(t("rowDateCalendar")));
+  });
+
+  it("finds the rows a reader searches for by the words they use", () => {
+    setLang("en");
+    const labels = (q: string): string[] => searchSettings(q, true).map((h) => h.entry.label);
+    for (const q of ["font", "fonts"]) {
+      for (const row of ["rowFontProse", "rowFontMono", "rowFontArabic"]) {
+        assert.ok(labels(q).includes(row), `"${q}" did not find ${row}`);
+      }
+    }
+    assert.ok(labels("typeface").includes("rowFontUi"), "'typeface' found nothing");
+    assert.ok(labels("width").includes("rowEditorWidth"), "'width' found nothing");
+    assert.ok(labels("dark mode").includes("rowYourTheme"), "'dark mode' found nothing");
+    assert.ok(labels("history").includes("rowNoteVersions"), "'history' found nothing");
+    assert.ok(labels("rtl").includes("rowTextDirection"), "'rtl' found nothing");
+    assert.ok(labels("designer").includes("rowOpenDesigner"), "'designer' found nothing");
+    assert.ok(labels("SITE_LANG").includes("rowLanguage"), "an env name lost its word-start match on the underscore");
+  });
+
   it("folds the alef family — and the fold provably DOES something", () => {
     setLang("ar");
     // The first version of this test compared the two spellings and passed
