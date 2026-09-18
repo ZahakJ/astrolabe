@@ -14,9 +14,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { morph } from "../morph.ts";
 import SiteMark from "../components/SiteMark.tsx";
-import type { RoutineMeta, TrackerMeta } from "../../shared/types.ts";
+import type { RoutineMeta } from "../../shared/types.ts";
 import { dayStatus, isoDate, weekOrder, weekdayOfDate, type EntryPatch } from "../../shared/routine.ts";
-import { getDecks, getRoutines, getTasks, getTrackers, updateRoutine } from "../api.ts";
+import { getDecks, getRoutines, getTasks, updateRoutine } from "../api.ts";
 import { siteDate } from "../dates.ts";
 import { countPhrase, getLang, localeNum, t, tf } from "../i18n.ts";
 import { confirmDeleteNote } from "../components/deleteFlow.ts";
@@ -28,8 +28,6 @@ import { filterTasks, parseTasksFence, shift } from "../../shared/tasks.ts";
 import { RoutineForm } from "./RoutineForm.tsx";
 import { decorateDeckTasks } from "./orbits.ts";
 import { OnThisDayList, useOnThisDay } from "../components/OnThisDayPanel.tsx";
-import CalendarGrid from "../components/CalendarGrid.tsx";
-import { loggedDaysOf } from "../../shared/calendar.ts";
 import { collectNotes } from "../editor/links.ts";
 import { recentNotes } from "../recents.ts";
 import "../styles/routines.css";
@@ -336,10 +334,6 @@ export default function RoutinesView() {
   const locale = useStore((s) => s.blogLocale);
   const today = isoDate(new Date());
 
-  // The trackers ride the same load, for the calendar's marks only (a day a
-  // book was read is a kept day); a shelf that will not load costs nothing
-  // but those marks.
-  const [trackers, setTrackers] = useState<TrackerMeta[]>([]);
   const load = useCallback((): void => {
     getRoutines()
       .then((list) => {
@@ -347,9 +341,6 @@ export default function RoutinesView() {
         setFailed(false);
       })
       .catch(() => setFailed(true));
-    getTrackers()
-      .then(setTrackers)
-      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -386,9 +377,6 @@ export default function RoutinesView() {
     [live, today],
   );
   const asked = useMemo(() => live.filter((m) => dayStatus(m.plan, null, today, today) !== "rest").length, [live, today]);
-  // Every day any sigil logged or a book was read, for the calendar's second
-  // mark — the page holds every log already; the trackers rode the load.
-  const logged = useMemo(() => loggedDaysOf(live, trackers), [live, trackers]);
   const [cardsDue, setCardsDue] = useState(0);
   const [tasksDue, setTasksDue] = useState(0);
   // "Nothing due" is a fact about the whole page: no sigil asks today (or
@@ -442,13 +430,6 @@ export default function RoutinesView() {
         </button>
       </header>
       {nothingDue && <RecentlyRead />}
-      {/* The month, the same grid the sidebar draws (CalendarGrid.tsx): a dot
-          per day that has a note, a second per day a sigil logged — those
-          come from this page's own reads. Not on a phone (calendar.css):
-          there the sidebar's section is the calendar. */}
-      <section className="s-routines__cal" aria-label={t("calendar")}>
-        <CalendarGrid logged={logged} />
-      </section>
       {onThisDay.length > 0 && (
         <section className="s-routines__otd" aria-label={t("onThisDay")}>
           <h2 className="s-routines__otdhead">{t("onThisDay")}</h2>
