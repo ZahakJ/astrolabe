@@ -1,6 +1,6 @@
 /* Astrolabe — the month grid (client/components/CalendarGrid.tsx). Its own
-   file, loaded with the grid's chunk: the sidebar mounts the grid lazily
-   when its Calendar section is open, the Sigils page with its own chunk.
+   file, loaded with the grid's chunk, which the sidebar mounts lazily when
+   its Calendar section is open — the one place the grid mounts (3.18).
    Tokens only; logical properties; a table, so RTL mirrors the columns on
    its own and the first day of the week sits at the inline start. */
 
@@ -205,9 +205,10 @@
   block-size: 23px;
 }
 
-/* The Sigils page drew a second copy of this grid until 3.18; the sidebar's
-   section is the calendar now, on every width, and it marks the trackers as
-   well as the sigils. */
+/* The Sigils page drew a second copy of this grid until 3.18, off the same
+   reads, hidden here under 700px because the sidebar's section was the
+   calendar on a phone anyway. The sidebar's is the only one now, at every
+   width, so nothing in this file is the page's. */
 
 @media (pointer: coarse) {
   .s-cal__day {
