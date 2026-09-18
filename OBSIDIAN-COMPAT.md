@@ -1,5 +1,11 @@
 # Round B/C spec — Obsidian vault compatibility, view/admin modes, scale
 
+> **Historical.** This is the specification the compatibility work was built from, kept as a record
+> of the decisions. What a vault kept in Obsidian gets today is documented in the manual where each
+> feature lives: [the editor](docs/editor.md), [drawings](docs/drawing.md#in-obsidian),
+> [trackers](docs/trackers.md#in-obsidian), [sigils](docs/sigils.md#in-obsidian) and
+> [orbits](docs/orbits.md#where-the-schedule-lives).
+
 Target vault reality: real Obsidian vaults with thousands of notes and heavy media —
 nested folders, attachments (png/jpg/svg/pdf/…) alongside the markdown, and a `.obsidian/`
 config dir (must be ignored everywhere: tree, index, graph, watcher).

@@ -2,6 +2,8 @@
 
 *Astrolabe as a native application: the menu bar, vaults, windows, the reference window, find in page, updates and deep links.*
 
+← [Back to the README](../README.md) · [All docs](README.md)
+
 ---
 
 The [releases page](https://github.com/ZahakJ/astrolabe/releases/latest) carries an AppImage, a
@@ -50,7 +52,7 @@ browser cannot:
 "Astrolabe" is one person's name for it. **Settings → This device → This app** lets you call the
 app whatever you like on this computer and give it your own icon. The tray, its tooltip, the
 window icon, the About box and the launcher entry all follow. The site's own name and logo are a
-separate thing, under *Identity*, and they title the window and the sidebar. **An update never
+separate thing, on the **Site** tab (Settings → Site), and they title the window and the sidebar. **An update never
 touches either**: the AppImage is replaced at its own path, so a file you renamed keeps its
 name; the Windows installer replaces the program directory and nothing else; and your name and
 icon live beside the app's settings, which no update writes.
@@ -99,11 +101,13 @@ while typing* is in the Edit menu.
 **The app never downloads or installs an update on its own.** It only checks — quietly, at
 launch and every six hours — whether a newer release exists. When one does, the status bar says
 so: **3.x available**, in place of the version number that is normally printed at the end of
-the bar. Nothing else happens until you act.
+the bar. Nothing else happens until you act. A release is announced once per version per launch:
+the chip stays until you act, but the toast does not come back when the six-hour check finds the
+same release again. A check you ask for by hand always answers.
 
 1. Click **3.x available** to download the release. While it downloads, the chip turns into a
    bar with the percentage.
-2. When the download is on disk and verified, the chip reads **Restart now**. Click it, and the
+2. When the download is on disk and verified, the chip reads **Restart to update**. Click it, and the
    app restarts into the new version.
 
 **Help → Check for updates…** always works by hand, and says so when you are already on the
@@ -118,11 +122,8 @@ the new installer silently, and the installer relaunches the app. Both downloads
 against the fingerprint published with the release before anything runs, so a file that arrived
 incomplete or altered never starts. The **deb** and **pacman**
 packages belong to a package manager, so there the chip opens the releases page instead. The
-**Android app** (the APK on the same releases page) checks the same address at launch: when a
-newer APK exists it offers **Update**, the browser downloads it, and Android installs it over
-the current copy — notes, settings and sign-in untouched. *Later* snoozes the offer for a day.
-Everything on the web side reaches the phone the moment the server deploys; the APK only
-changes when the wrapper itself does.
+[Android app](mobile.md#updates) watches the same releases page in its own way, described on its
+page.
 
 In a browser, the version chip simply opens the releases page, since a hosted instance updates
 when its server does.
@@ -147,6 +148,9 @@ takes the same password the site takes.
 The app's own configuration is in `~/.config/astrolabe` (the old `vellum` directory from before
 the rename is carried in on first launch and then removed). `desktop.json` there lists the
 vaults, their ports and, for each, the data directory it uses. Each vault's instance data is in
-the [`ASTROLABE_DATA`](configuration.md#environment-variables) that entry names. The Linux build
+the [`ASTROLABE_DATA`](configuration.md#environment-variables) that entry names. What is yours
+rather than the machine's — the site's settings, the named layouts, the book shelf, your notes to
+self — is also mirrored into the vault's own `.astrolabe/` folder, so a second machine over the
+same vault finds it ([settings travel with the vault](backup-and-sync.md#settings-travel-with-the-vault)). The Linux build
 is packaged with `asar: false` deliberately, because the server the app starts reads real files
 from the package.

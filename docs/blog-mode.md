@@ -53,7 +53,7 @@ Under **Folders**, every published note takes its parent folder as its category.
 
 Under **Tags**, you get **collections**. Topics are what your notes say about *themselves*, through their tags. A collection is what *you* say about a group of notes: Games, Reading, Field notes, whatever your site is really about. A collection is a hand-made topic that sits in the navigation beside the automatic ones.
 
-Turn collections on in **Settings → Publishing & comments → Custom public folders**. Each collection has a title, an address (`/folder/<slug>`), one mark from the same set of glyphs the note tree uses, and an optional line of description. You can have up to twelve, in the order you arrange them, and that is the order readers meet them.
+Turn collections on in **Settings → Collections → Custom public folders**. Each collection has a title, an address (`/folder/<slug>`), one mark from the same set of glyphs the note tree uses, and an optional line of description. You can have up to twelve, in the order you arrange them, and that is the order readers meet them.
 
 **A collection is a tag page.** You declare it in the vault, not in Settings: make a note in your tags folder (for example `2 - Tags/games.md`) with `collection: true` in its frontmatter, and, if you like, `icon:`, `description:`, `title:`, `hidden: true` and `folder:` (a vault folder whose published notes all belong to the collection). The tag *is* the collection: every note carrying `#games` is in it, and the collection's chip in the navigation takes the place of the tag's own. Nothing is typed into Settings; the panel simply lists what the vault declared.
 
@@ -91,7 +91,7 @@ Every collection page works either way; the two switches hide doors, not the roo
 
 Collection pages stay out of the sitemap for the same reason topic pages do: each is an index over addresses the sitemap already lists.
 
-> Public folders are a feature of the **ready-made blog**. The [designed site](designer.md) builds its own navigation from the items you give it and ignores this setting; carrying folders into that shell is deferred.
+Collections reach the [designed site](designer.md) as well: its navigation takes them when *Show in navigation* is on, and its home page shelves them when *Show on home page* is.
 
 ## Hover previews
 
@@ -103,7 +103,7 @@ After the reader scrolls about one screen down, a small ✦ appears in the botto
 
 ## Dashboard home
 
-Would you rather have a magazine front page than a note-style home page? Set **Settings → Publishing & comments → Home page → Dashboard**. (The settings key is `home.mode: "dashboard"`; you can also write `{ "home": { "mode": "dashboard" } }` into `ASTROLABE_DATA/settings.json` or send it through `PATCH /api/settings`, and the change is picked up live.) The front page `/` then becomes:
+Would you rather have a magazine front page than a note-style home page? Set **Settings → Publishing & comments → Home page → Mode → Dashboard**. (The settings key is `home.mode: "dashboard"`; you can also write `{ "home": { "mode": "dashboard" } }` into `ASTROLABE_DATA/settings.json` or send it through `PATCH /api/settings`, and the change is picked up live.) The front page `/` then becomes:
 
 - a full-width **hero** (a big opening block at the top of the page): the site name (or logo) and tagline over a banner image (`home.banner`, an https URL or a vault attachment; without one, a gradient generated from the site name);
 - a **grid of cards** for the latest posts, one, two or three columns depending on the width, each card with a banner thumbnail (the same generated fallback), an excerpt and tag chips;

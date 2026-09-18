@@ -34,7 +34,7 @@ comment explaining it. The table below is the short version.
 | `PORT` | The port the server listens on (default 6801) |
 | `HOST` | The address the server listens on (default `0.0.0.0`, which means every network interface). If you listen on anything other than the local machine *and* have no password, the server prints a loud warning at startup: anyone who can reach the port is an admin |
 | `ASTROLABE_VAULT` | The vault folder — the folder that holds your notes (default `./vault`). A `--vault <path>` argument on the command line takes precedence over this |
-| `ASTROLABE_DATA` | The server's data folder (default `./data`). It holds `settings.json`, the comments database (SQLite), your `custom.css`, `designs.json`, the git credentials file, the [clipper's token](capture.md#the-clipper) (`clip-token`), and `fonts/` (your own font files, plus the cached catalog in `fonts/catalog/` and uploads in `fonts/custom/`) |
+| `ASTROLABE_DATA` | The server's data folder (default `./data`). It holds `settings.json`, the comments database (SQLite), your `custom.css`, `designs.json`, the git credentials file, the [clipper's token](capture.md#the-clipper) (`clip-token`), `fonts/` (your own font files, plus the cached catalog in `fonts/catalog/` and uploads in `fonts/custom/`), `versions/` (note history), `author-sites.json`, and the three ledgers that are yours rather than the machine's: `layouts.json`, `books.json` and `annotations.json`. Six of these files — `settings.json`, `designs.json`, `custom.css`, `layouts.json`, `books.json`, `annotations.json` — and the `fonts/` folder are mirrored into `<vault>/.astrolabe/`, a dot-folder Obsidian never lists, so a second server over the same vault starts from them (see [Settings travel with the vault](backup-and-sync.md#settings-travel-with-the-vault)) |
 | `ADMIN_PASSWORD_HASH` | The admin password, stored as an argon2id *hash* — a fingerprint the server can check a password against but cannot turn back into the password. `npm run hash-password` makes one. When it is not set, the app runs in *open local mode*: no password, everyone is an admin |
 | `SESSION_SECRET` | A long random string used to sign login cookies (the small token your browser keeps to prove you are signed in). When it is not set, the server invents a new one at every startup, so every restart signs you out |
 | `PUBLIC` | `false` requires login even to read notes (default: reading is public, editing needs login). **The server refuses to start with `PUBLIC=false` and no `ADMIN_PASSWORD_HASH`** |
@@ -52,12 +52,19 @@ comment explaining it. The table below is the short version.
 | `DEFAULT_THEME` | The theme a visitor sees before choosing one: any of the forty-six built-in themes, `custom:<name>` for one you built (see [Theming](theming.md)), or `follow`. Unset means `follow`: visitors get whichever theme *you* are editing in. Case does not matter; an unknown name is ignored with one line on stderr |
 | `EXCLUDE_TAGS` | Comma-separated tags to hide from the public site's topic lists and tag pills — typically workflow tags like `draft,seedling`. Case does not matter and a leading `#` is fine. The admin's own views are not affected |
 | `PUBLIC_LAYOUT` | What a visitor sees: `blog` for a classic blog layout (see [Blog mode](blog-mode.md)), `designed` for a home page you compose yourself (see [Designer](designer.md)), anything else for `app`, the read-only app (the default) |
-| `SITE_LANG` | The site's language: `en` (default) or `ar`. With `ar` every interface string is Arabic and the whole interface is mirrored right-to-left (see [Arabic & RTL](arabic-and-rtl.md)). The language *you* edit in is a separate choice, per browser: Settings → *Editor language* |
+| `SITE_LANG` | The site's language: `en` (default) or `ar`. With `ar` every interface string is Arabic and the whole interface is mirrored right-to-left (see [Arabic & RTL](arabic-and-rtl.md)). The language *you* edit in is a separate choice, per browser: Settings → This device → *Editor language* |
 | `BLOG_LOCALE` | A language-and-region code (a BCP47 tag like `ar-EG` or `en-GB`) that decides the digits in post dates and the RSS feed's language (default: follows `SITE_LANG`). Month names follow the interface language when the visitor language switch is on |
 | `LANGUAGE_FILTER` | Which published notes the public site shows, by the language they are written in: `off` (default, show all) · `follow` (each reader sees their own language) · `ar` · `en`. The old values `true` and `false` still work — see [Language filter](arabic-and-rtl.md#language-filter) |
 | `ATTACHMENTS_DIR` | The vault folder that uploads from inside the app are saved into (default `Attachments`, or `مرفقات` on an Arabic site; an existing `attachments` folder is kept). It is created when first needed. The **Attachments** setting can send uploads elsewhere entirely — see [Attachments](#attachments) |
 | `BANNER_FALLBACK` | The header image for blog posts that have no `banner:` of their own — `generated` (default: an abstract gradient made from the note's title, always the same for the same title) or `none` |
 | `ASTROLABE_GIT_SSH_COMMAND` | The one `GIT_*` variable Astrolabe passes on to git, unchanged, as `GIT_SSH_COMMAND` — see [Backup & sync](backup-and-sync.md#things-worth-knowing) |
+
+**If you installed this when it was called Vellum.** Every key above still answers to its old
+spelling: `VELLUM_VAULT`, `VELLUM_DATA` and the rest are read when the `ASTROLABE_*` key is not
+set, so a `.env`, a systemd unit or a shell alias written before the rename keeps working. When
+both are set the new spelling wins, and the startup line names the old keys it leaned on, once.
+`/vellum.sty` is still served beside [`/astrolabe.sty`](latex.md#astrolabesty), for papers written
+against the old package name.
 
 **Request size limits.** Every request to the server is capped in size before anything reads
 it, and there is no key for this: 10 MB on any `/api` request, and a much smaller 64 KB on the
@@ -90,7 +97,9 @@ what it decides. The first tab is yours; the rest are the site's and share one *
   yourself, with a live specimen that stays on screen while you choose. See
   [Typography](typography.md).
 - **Language & dates** — the **site language** (English / العربية — what visitors read it in),
-  the date locale, the language filter and the optional **visitor switch**; the **date calendar**
+  the date locale, the language filter and the optional **visitor switch**; the **browser
+  dictionaries** (which languages this browser can spellcheck, so a French or Arabic line is
+  checked as its own language rather than underlined against English); the **date calendar**
   (Gregorian / Hijri / both, with a live specimen of today); the **note layout** pair (text
   direction and alignment for note prose, which any note may override from its own
   frontmatter); the empty properties card; and the **tag labels** table — display names for
@@ -108,7 +117,8 @@ what it decides. The first tab is yours; the rest are the site's and share one *
   folders, your own hand-made **collections** and where they sit, and the **library** shelf. See
   [Blog mode](blog-mode.md#custom-public-folders) and [The library](library.md).
 - **Vault** — where this instance writes things: the templates folder and the template for new
-  notes, the [periodic notes](templates-and-notes.md#periodic-notes) (one row: the folder the
+  notes, the hadith corpus folder (the notes that answer `> [!hadith]` callouts — see
+  [Ayah and hadith callouts](arabic-and-rtl.md#ayah-and-hadith-callouts)), the [periodic notes](templates-and-notes.md#periodic-notes) (one row: the folder the
   four kinds share, and a name and a template each for the day, the week, the month and the
   year), the [unique note](templates-and-notes.md#unique-notes)'s folder and name, the drawings
   folder, **Open on launch** (where the app opens — where you left off, the Sigils page, the Orbits
@@ -211,6 +221,7 @@ above.
 | `language` | `en` · `ar` | `SITE_LANG`, else `en` |
 | `languageFilter` | `off` · `follow` · `ar` · `en` | `LANGUAGE_FILTER`, else `off` |
 | `languageToggle` | boolean — the public `EN`/`ع` switch. **No env counterpart** | `false` |
+| `topics` | `tags` · `folders` — where the public site's categories come from (the Collections tab) | `tags` |
 | `excludeTags` | array of strings, ≤ 200 entries, ≤ 50 chars each | `EXCLUDE_TAGS`, else empty |
 | `commentsEnabled` | boolean | `COMMENTS`, else `false` |
 | `noteVersions` | boolean — keep a version of every note before each save (Vault tab) | `NOTE_VERSIONS`, else `true` |
@@ -223,9 +234,12 @@ above.
 | `home.mode` | `note` · `dashboard` | `note` |
 | `home.note` | vault-relative note (`.md` / `.tex` / `.latex`) | `HOME_NOTE` |
 | `home.banner` | https URL or vault image | none — a generated gradient seeded from the site name |
+| `publicFolders` | `{ enabled, nav, home, folders[] }` — the hand-made [collections](blog-mode.md#custom-public-folders): whether they are on, a door in the navigation, a band on the home page, and up to 12 folders, each with a `slug` (≤ 60), a `title` (≤ 60), a `description` (≤ 200), a mark and an optional `hidden` flag | off; `home: true` |
+| `library` | `{ enabled, nav, home, title, paths[] }` — [the library](library.md): on or off, a door in the navigation (on by default once the library is), a shelf on the home page, a name (≤ 40) and up to 24 paths, each a vault folder with a `title` (≤ 80), a `blurb` (≤ 300) and a kind | off |
 | `attachments.mode` | `vault-root` · `same-folder` · `subfolder` · `specified` | `specified` |
 | `attachments.folder` | vault-relative folder, ≤ 180 chars; read by `subfolder` and `specified` only. No traversal, no absolute path, no dot-folder | `ATTACHMENTS_DIR`, else an existing `attachments`/`Attachments`/`مرفقات`, else `Attachments` (`مرفقات` on an Arabic instance) |
 | `templatesFolder` | vault-relative folder | auto-detected (`Templates`, `_templates`, `قوالب`), else none |
+| `hadithFolder` | vault-relative folder whose notes (with `collection:` and `number:` in their frontmatter) answer `> [!hadith]` callouts | auto-detected (`hadith`, `Corpus/hadith`, `أحاديث`), else none |
 | `drawingsFolder` | vault-relative folder the sidebar's pencil starts a drawing in | none — the vault root |
 | `defaultTemplate` | vault-relative note applied to every new note | none |
 | `dailyFolder` | vault-relative folder the periodic notes live in; `""` for the vault root | `daily` |
@@ -246,6 +260,7 @@ above.
 | `textAlign` | `start` · `left` · `right` · `center` · `justify` | `start` |
 | `tagsFolder` | vault-relative folder holding tag pages | auto-detected, else `tags` |
 | `tagLabels` | `{ tag: { en, ar } }`, ≤ 200 tags — **replaced whole, not merged** | empty |
+| `folderIcons` | `{ \"folder/path\": \"mark\" }`, ≤ 200 folders — the [folder marks](editor.md#folder-marks) the tree draws; a mark not in the catalog is dropped | empty |
 | `fonts.prose` / `.ui` / `.mono` / `.arabic` | a catalog id, `custom:<file>` for an upload, or `system` | `system` |
 | `fonts.arabicSizeAdjust` | integer percent, 50–300 | the catalog face's own measured value, or none |
 | `gitSync.enabled` | boolean | `false` |
