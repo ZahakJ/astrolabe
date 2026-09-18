@@ -9283,6 +9283,15 @@ check-fidelity` (scripts/check-fidelity.mjs) holds the two surfaces to the
 same computed styles on a rich note — tables, callouts, code, math, embeds,
 footnotes, ruby, images with widths — in both chrome languages.
 
+**A HEADING IS `--heading`, IN BOTH SURFACES.** `.cm-s-h1` (client/editor/theme.ts)
+carried a colour of its own — `color-mix(in srgb, var(--accent) 15%, var(--text))`,
+a near-miss of the token — so the same `# Title` was #d1e2f5 in the editor and
+#e6edf3 in the reading view, and `check-fidelity` failed on `en: h1` and `ar: h1`
+from the theme-token restore until 3.18. The h1–h6 rule above it already says
+`var(--heading)`, which is what `.s-rv-h1` says; the size, the padding and the
+hairline under it were the reading view's numbers all along. No heading level in
+either surface names a colour the other does not.
+
 **Live preview follows the reveal-on-caret rule.** Caret outside a top-level
 `Table` node → the block is one `Decoration.replace` block widget
 (`.cm-s-table`, a StateField — block decorations cannot come from a

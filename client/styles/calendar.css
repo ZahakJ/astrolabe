@@ -290,11 +290,17 @@
 /* On a thumb, the month turns with a target a thumb can hit. The sidebar's
    fold keeps its 32px chevrons — there they sit in a column of 26px rows and
    a 44px button would be the loudest thing in the sidebar — but on the page
-   they are the control, and a control on a phone is 44px. */
+   they are the control, and a control on a phone is 44px. The month's NAME
+   is the third control in that bar (it is the button back to this month),
+   and it was left at 29px between two 44px chevrons: the same rule, or the
+   bar keeps a target a thumb misses in the middle of the two it hits. */
 @media (pointer: coarse) {
   .s-calpage__card .s-cal__nav {
     inline-size: 44px;
     block-size: 44px;
+  }
+  .s-calpage__card .s-cal__title {
+    min-block-size: 44px;
   }
 }
 

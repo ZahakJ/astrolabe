@@ -1,11 +1,12 @@
-// THE MONTH GRID — the sidebar's Calendar section and the top of the Sigils
-// page, one component.
+// THE MONTH GRID — the sidebar's Calendar section and the Calendar page,
+// one component. (It drew the top of the Sigils page until 3.18, when the
+// month left that page for one of its own: client/calendar/CalendarView.tsx.)
 //
 // Drawn in the site's calendar (shared/calendar.ts): a Gregorian month on a
 // Gregorian instance, a Hijri month on a Hijri one, and on an instance that
 // prints BOTH the leading calendar's month with the other's day number small
 // in each cell's corner — and nowhere else. The first column is the site
-// language's first day (Monday in English, Saturday in Arabic; the Sigils
+// language's first day (Monday in English, Saturday in Arabic; the sigil
 // card's own rule, shared/routine.ts `weekOrder`), the month and day names
 // are Intl's in the chrome language (client/dates.ts), the digits follow the
 // instance's numerals. Nothing here hand-rolls a name.
@@ -14,8 +15,9 @@
 // tree through the daily folder and format (client/daily.ts), which is a
 // string compare per note and nothing stored — and carries a second mark
 // when a sigil logged that day or a book was read (`loggedDaysOf`; the caller
-// hands the set in: the Sigils page already holds every log, the sidebar
-// asks once). Today is ringed. A click
+// hands the set in, and both callers read it the same way — client/
+// loggedDays.ts, one hook, asked once when the caller turns it on). Today is
+// ringed. A click
 // opens the day's note through the daily-note command's own door, so a note
 // created from the grid is templated exactly as Ctrl/Cmd Alt D would.
 //

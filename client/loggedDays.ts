@@ -12,6 +12,12 @@
 // grid its marks and nothing else. One read when the caller turns it on, and
 // one more a beat after the last save when the vault changes — the burst of
 // autosaves a tick writes is ONE re-read, not one per frame.
+//
+// PER MOUNT, not per app: the fold and the page each keep their own settle
+// timer, so with both open the vault's quiet costs two small GETs instead of
+// one. That is the honest price of a hook, and it is the price the sidebar
+// alone already paid; a module-level cache would buy a GET and sell the
+// guarantee that what a caller mounts is what a caller reads.
 
 import { useEffect, useState } from "react";
 import { loggedDaysOf } from "../shared/calendar.ts";
