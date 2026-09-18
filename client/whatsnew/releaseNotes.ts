@@ -374,6 +374,28 @@ export const RELEASES: Release[] = [
     title: { en: "The month takes a door, and every layer knows where it stands", ar: "الشهر يأخذ بابًا، وكل طبقة تعرف مكانها" },
     slides: [
       {
+        title: { en: "The phone, made whole", ar: "الهاتف، مكتملًا" },
+        body: {
+          en: "The drawer shows the whole vault again. The outline pane is a real drawer with a scrim, a close at its top and Escape, and it starts closed. The ⋯ menu opens the command palette, so every command is a finger away, in landscape too. This deck turns with a swipe, and a zoomed book page pans and pinches.",
+          ar: "يعرض الدرج الخزانة كلها من جديد. ولوحة المخطط درج حقيقي بستارة وزر إغلاق في أعلاها ومفتاح Escape، وتبدأ مغلقة. وقائمة ⋯ تفتح لوحة الأوامر فيكون كل أمر على بُعد إصبع، وفي الوضع الأفقي أيضًا. وهذا العرض يُقلَّب بتمريرة، وصفحة الكتاب المكبَّرة تُسحب وتُقرَّب بإصبعين.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g><rect x="40" y="28" width="110" height="150" rx="14" fill="var(--bg)" stroke="var(--border)"/><rect x="48" y="44" width="70" height="120" rx="6" fill="var(--bg-hover)"/><g fill="var(--text-muted)"><rect x="56" y="56" width="50" height="4" rx="2"/><rect x="56" y="70" width="42" height="4" rx="2"/><rect x="56" y="84" width="54" height="4" rx="2"/><rect x="56" y="98" width="38" height="4" rx="2"/><rect x="56" y="112" width="50" height="4" rx="2"/><rect x="56" y="126" width="46" height="4" rx="2"/><rect x="56" y="140" width="52" height="4" rx="2"/><rect x="56" y="154" width="40" height="4" rx="2"/><rect x="56" y="168" width="48" height="4" rx="2"/></g></g>
+  <text x="95" y="194" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the whole vault", "الخزانة كلها")}</text>
+  <g><rect x="180" y="28" width="110" height="150" rx="14" fill="var(--bg)" stroke="var(--border)"/><rect class="wa-drop" x="230" y="28" width="60" height="150" rx="0" fill="var(--bg-raised)" stroke="var(--border)"/><g class="wa-late"><rect x="262" y="34" width="22" height="22" rx="6" fill="var(--bg-hover)"/><path d="M268 40l10 10M278 40l-10 10" stroke="var(--text-muted)" stroke-width="2"/></g></g>
+  <text x="235" y="194" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "a drawer with a door out", "درج له مخرج")}</text>
+  <g><rect x="320" y="28" width="110" height="150" rx="14" fill="var(--bg)" stroke="var(--border)"/><g class="wa-late"><rect x="330" y="44" width="90" height="60" rx="8" fill="var(--bg-raised)" stroke="var(--accent)"/><text x="375" y="66" text-anchor="middle" fill="var(--text)" font-size="10">${L(lang, "⋯", "⋯")}</text><text x="375" y="86" text-anchor="middle" fill="var(--accent)" font-size="10">${L(lang, "Command palette", "لوحة الأوامر")}</text></g></g>
+  <text x="375" y="194" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "every command, by finger", "كل أمر، بإصبع")}</text>
+  <g><rect x="460" y="28" width="76" height="150" rx="14" fill="var(--bg)" stroke="var(--border)"/><rect class="wa-grow" x="466" y="52" width="64" height="86" fill="var(--bg-raised)" stroke="var(--border)"/><g class="wa-pulse"><circle cx="486" cy="120" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="510" cy="96" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/></g></g>
+  <text x="498" y="194" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "pinch, pan", "قرّب واسحب")}</text>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+      {
         // ── The calendar's own page ──────────────────────────────────────
         title: { en: "The month has a page of its own", ar: "صار للشهر صفحة خاصة به" },
         body: {

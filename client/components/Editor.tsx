@@ -390,6 +390,23 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
     viewRef.current?.dispatch({ effects: noteLayoutChanged.of(null) });
   }, [siteTextDirection, siteTextAlign]);
 
+  // THE KEYBOARD CASE. On a phone the on-screen keyboard shrinks the visual
+  // viewport, and the caret's line was left under the status bar until the
+  // next keystroke scrolled it. When the viewport resizes with the editor
+  // focused, the caret is brought back into view with the bar's height as
+  // its margin.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const on = (): void => {
+      const view = viewRef.current;
+      if (!view || !view.hasFocus) return;
+      view.dispatch({ effects: EditorView.scrollIntoView(view.state.selection.main.head, { y: "nearest", yMargin: 72 }) });
+    };
+    vv.addEventListener("resize", on);
+    return () => vv.removeEventListener("resize", on);
+  }, []);
+
   // The reader declared (or withdrew) a browser dictionary: the per-line
   // spellcheck attribute is part of the same decoration, so the same signal
   // repaints it — again without touching the undo history.

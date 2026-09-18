@@ -323,7 +323,8 @@
 .s-book__doc {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* SAFE: a spread wider than the column starts at its edge and scrolls. */
+  align-items: safe center;
   padding-block: 24px 96px;
 }
 
@@ -334,8 +335,14 @@
   display: flex;
   gap: 24px;
   align-items: flex-start;
-  justify-content: center;
-  inline-size: 100%;
+  /* SAFE centring and a box that grows with its page: a page wider than the
+     scroller starts at its edge and scrolls, instead of centring with its
+     two ends cut off and unreachable (a zoomed page on a phone lost 82px
+     each side). The spread's paint containment clips what leaves its box,
+     so the box must be as wide as the page. */
+  justify-content: safe center;
+  min-inline-size: 100%;
+  inline-size: max-content;
   /* Every spread has its height set inline, so the browser can be told
      the truth: a spread's layout and paint never reach outside its box,
      and an off-screen spread need not be laid out at all. Without this a
@@ -1075,4 +1082,24 @@
   grid-column: 2;
   color: var(--text-muted);
   font-size: 0.78rem;
+}
+
+/* Touch: the chrome's targets are a finger's size, the page pans, and a
+   pinch zooms the page (BookReader.tsx handles the two fingers; the
+   browser is told not to). */
+@media (pointer: coarse) {
+  .s-book__scroll {
+    touch-action: pan-x pan-y;
+  }
+  .s-book__act,
+  .s-book__status-page {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+  .s-book .s-book__touchzoom {
+    display: inline-flex;
+  }
+}
+.s-book__touchzoom {
+  display: none;
 }

@@ -111,6 +111,24 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
     return out;
   }, [cards]);
   const [index, setIndex] = useState(0);
+  /** The x where a touch began, for the swipe that turns a page. */
+  const swipe = useRef<number | null>(null);
+  const onSwipeStart = (e: React.TouchEvent): void => {
+    swipe.current = e.touches[0]?.clientX ?? null;
+  };
+  const onSwipeEnd = (e: React.TouchEvent): void => {
+    const from = swipe.current;
+    swipe.current = null;
+    const to = e.changedTouches[0]?.clientX;
+    if (from === null || to === undefined || Math.abs(to - from) < 48) return;
+    // A swipe toward the start of the reading direction goes forward.
+    const rtl = getComputedStyle(document.documentElement).direction === "rtl";
+    // Sign arithmetic rather than a ternary of comparisons: the dictionary
+    // gate reads `> … <` as a text node.
+    const forward = (rtl ? 1 : -1) * Math.sign(to - from) > 0;
+    if (forward && !last) go(1);
+    else if (!forward && !first) go(-1);
+  };
   const [dir, setDir] = useState<1 | -1>(1);
   const [enabled, setEnabled] = useState(whatsNewEnabled);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -165,7 +183,13 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
             ×
           </button>
         </header>
-        <div className="s-wn__body" key={index} data-dir={dir}>
+        <div
+          className="s-wn__body"
+          key={index}
+          data-dir={dir}
+          onTouchStart={onSwipeStart}
+          onTouchEnd={onSwipeEnd}
+        >
           <VisualStage visual={card.slide.visual} lang={lang} />
           <div className="s-wn__text">
             <h2 className="s-wn__title" dir="auto">{card.slide.title[lang]}</h2>
@@ -213,6 +237,7 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
             ))}
           </div>
           <div className="s-wn__nav">
+            <span className="s-wn__count">{tf("whatsnewCount", { n: localeNum(index + 1), of: localeNum(cards.length) })}</span>
             <button type="button" className="s-btn" disabled={first} onClick={() => go(-1)}>
               {t("whatsnewBack")}
             </button>

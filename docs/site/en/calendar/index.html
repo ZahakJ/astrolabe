@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Calendar · Astrolabe Documentation</title>
+<meta name="description" content="The month as a page of its own: every day's note, the sigils you kept, the cards you graded and the pages you read, laid out where you can see a month at a glance.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/calendar/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a><a class="nav__link" href="../../en/mobile/">The Android app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link is-current" href="../../en/calendar/">The Calendar</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The PDF reader</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="the-calendar">The Calendar</h1>
+<p><em>The month as a page of its own: every day&#39;s note, the sigils you kept, the cards you graded and the pages you read, laid out where you can see a month at a glance.</em></p>
+<hr>
+<p>There is a small month in the sidebar, under the tree — that one is a <strong>date picker</strong>, and it is
+covered with the rest of the <a href="../templates-and-notes/#the-calendar">periodic notes</a>. This page is
+the other thing a calendar is for: looking <em>back</em>. It draws the month full width, gives each day a
+cell with room to write in, and fills those cells with what the day actually held.</p>
+<p><strong>Open it</strong> from the calendar leaf in the top bar, beside the seal (Sigils) and the ring (Orbits) —
+on a phone it is a row in the <code>⋯</code> menu — or type <strong>Open the Calendar</strong> in the command palette
+(<code>Ctrl/Cmd P</code>). It opens as a tab in the pane you are in, like the graph or the Sigils page, so you
+can keep a note open beside it. Its address is <code>/calendar</code>, which a bookmark can hold.</p>
+<h2 id="what-a-days-cell-says"><a class="anchor" href="#what-a-days-cell-says">What a day&#39;s cell says</a></h2>
+<p>A cell carries the day&#39;s number and, under it, what that day held:</p>
+<ul>
+<li><strong>A dot beside the number</strong> when the day has a <a href="../templates-and-notes/#periodic-notes">daily note</a>.
+(A dot rather than a line: your daily note is named after its own date, and a cell printing
+<em>2026-09-15</em> under a <strong>15</strong> has spent a line saying nothing.)</li>
+<li><strong>Each <a href="../sigils/">sigil</a> that logged something that day</strong>, by name.</li>
+<li><strong>The cards you graded</strong> in <a href="../orbits/">Orbits</a> that day — <em>3 cards</em> — read from this device&#39;s
+own log.</li>
+<li><strong>Each book or work you read</strong>, from the sittings in its <a href="../trackers/">tracker</a>.</li>
+</ul>
+<p>Four lines fit; a busier day says <em>+2 more</em> under them and the day pane has the rest. Today is
+ringed. Days from the months either side fill out the first and last rows, in a quieter ink, and
+are there to be clicked like any other.</p>
+<h2 id="the-day-pane"><a class="anchor" href="#the-day-pane">The day pane</a></h2>
+<p>Click a day — or walk to it with the arrow keys — and the pane beside the month (under it on a
+narrow pane or a phone) opens on that day in full:</p>
+<ul>
+<li><strong>Open the day&#39;s note</strong>, or <strong>Create the day&#39;s note</strong> when there is none. Creating goes through
+the same door as <code>Ctrl/Cmd Alt D</code>, so the note is made in your daily folder, with its template,
+exactly as it would be from the palette. Nothing is written until you press that button — a
+calendar that made a file every time you glanced at a day would fill your vault with empty days.
+(Double-clicking a cell is the same door, for when you would rather not travel.)</li>
+<li><strong>Sigils</strong> — each one that logged that day, with how much of the day it asked for was done
+(<em>2 of 2</em>) coloured the way the card colours it, and the line of prose you wrote in the log.</li>
+<li><strong>Orbits</strong> — the decks you studied, how many cards and how many you kept. From this device&#39;s own
+log; grades given on another device are not counted here.</li>
+<li><strong>Reading</strong> — the pages and the time from each tracker&#39;s sittings.</li>
+</ul>
+<p>Every name in the pane is a door to the note it came from.</p>
+<h2 id="moving-around"><a class="anchor" href="#moving-around">Moving around</a></h2>
+<p><code>‹</code> and <code>›</code> turn the month, <strong>Today</strong> comes back to this one, and the month is drawn in the site&#39;s
+calendar: a Gregorian month on a Gregorian instance, a Hijri (Umm al-Qura) month on a Hijri one,
+and on an instance that prints both dates the leading calendar&#39;s month with the other calendar&#39;s
+day number small beside each day. The week starts on the site language&#39;s first day — Monday in
+English, Saturday in Arabic.</p>
+<p>The month is <strong>one tab stop</strong>. Inside it:</p>
+<div class="table"><table><thead><tr><th>Key</th><th>Does</th></tr></thead><tbody><tr><td><code>←</code> <code>→</code></td><td>the day before / after (mirrored in Arabic, where the cell to the left is tomorrow)</td></tr><tr><td><code>↑</code> <code>↓</code></td><td>the same weekday, a week back / on</td></tr><tr><td><code>Home</code> <code>End</code></td><td>the ends of the row</td></tr><tr><td><code>PageUp</code> <code>PageDown</code></td><td>the month before / after</td></tr><tr><td><code>Enter</code> <code>Space</code></td><td>select the day — the pane follows</td></tr></tbody></table></div><p>Walking off the edge of a month turns the page and keeps your place. <code>Tab</code> leaves the month for the
+day pane, where every door is an ordinary button.</p>
+<h2 id="nothing-is-stored"><a class="anchor" href="#nothing-is-stored">Nothing is stored</a></h2>
+<p>The page keeps no ledger of its own. Every cell is read, each time you open it, from what your
+vault and your device already hold: the notes in your daily folder, the log fences inside your
+sigil notes, the <code>sessions:</code> lines inside your trackers, and the Orbits log in this browser. Delete
+a line from a note and the day forgets it; write one by hand and the day remembers. The note is the
+state, here as everywhere else.</p>
+<blockquote>
+<p>Until 3.17 a small month sat at the top of the <a href="../sigils/#the-sigils-page">Sigils page</a>. It is
+here now, where it has room: that page is a morning checklist, and a month squeezed into its
+corner could say which days had a note and nothing else about them.</p>
+</blockquote>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/calendar.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/sigils/"><span class="pager__kicker">Previous</span><span class="pager__title">Sigils</span></a><a class="pager__link pager__link--next" href="../../en/orbits/"><span class="pager__kicker">Next</span><span class="pager__title">Orbits</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#what-a-days-cell-says">What a day&amp;#39;s cell says</a><a class="toc__link toc__link--2" href="#the-day-pane">The day pane</a><a class="toc__link toc__link--2" href="#moving-around">Moving around</a><a class="toc__link toc__link--2" href="#nothing-is-stored">Nothing is stored</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

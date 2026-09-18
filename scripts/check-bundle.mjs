@@ -752,7 +752,8 @@ const AUDIENCES = [
   // CalendarView.tsx, shared/dayAgenda.ts, calendarpage.css — is a lazy chunk
   // asserted split in MUST_SPLIT, and the Sigils page GAVE BACK its
   // `getTrackers` read when the grid left it.
-  { name: "entry (everyone)", keys: entry, budget: 801 * 1024 },
+    // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
+{ name: "entry (everyone)", keys: entry, budget: 802 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1013,7 +1014,8 @@ const AUDIENCES = [
   // 3.18.0 INTEGRATION: 1093.9 kB actual → 1094 — the entry's Calendar bytes
   // (above) and nothing of the page's own. A visitor has no door to it; only
   // the strings and the tab model reach this reader, because `t()` ships whole.
-  { name: "anonymous blog reader", keys: blog, budget: 1094 * 1024 },
+    // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
+{ name: "anonymous blog reader", keys: blog, budget: 1095 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1186,7 +1188,7 @@ const AUDIENCES = [
   // bar's door, which the other two have no status bar for; Sidebar.tsx gave
   // back more than that when `useLoggedDays` moved out to
   // client/loggedDays.ts.
-  { name: "admin first paint", keys: app, budget: 1552 * 1024 },
+  { name: "admin first paint", keys: app, budget: 1554 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
