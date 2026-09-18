@@ -1,0 +1,451 @@
+/* Astrolabe — the Calendar page (client/calendar/CalendarView.tsx). Its own
+   file, loaded with the page's lazy chunk; the sidebar's small grid keeps
+   its own sheet (calendar.css) and is untouched by any rule here.
+
+   The Media page's rules apply: the page scrolls down, never sideways;
+   tokens only; logical properties, so Arabic mirrors with no second code
+   path — the table does the columns, and the day pane swaps sides by
+   sitting after the grid in the DOM.
+
+   The whole page is a container (`container-type: inline-size`), so the
+   layout answers to the PANE's width and not the window's: a calendar in
+   one half of a split is a phone-width calendar, and should behave like
+   one. */
+
+.s-calpage {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  container-type: inline-size;
+  padding: 28px clamp(16px, 4cqi, 48px) 64px;
+  background: var(--bg);
+  /* No `scrollbar-width` here. This page was written before the 3.18 round
+     found what that costs: once Chromium sees the standard pair on an
+     element it drops every `::-webkit-scrollbar` rule for it and draws its
+     own ~10px rail instead of the styled 8px one. app.css already serves
+     the thin pair to Firefox under `@supports not
+     selector(::-webkit-scrollbar)`, and `tests/scrollbars.test.ts` refuses
+     any sheet that re-declares it on a scroller. */
+}
+
+/* ── The head ───────────────────────────────────────────────────────────── */
+.s-calpage__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  max-inline-size: 1600px;
+  margin-inline: auto;
+}
+
+.s-calpage__headtext {
+  min-inline-size: 0;
+}
+
+.s-calpage__today {
+  margin: 0;
+  font-size: 0.786rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-calpage__h1 {
+  margin: 2px 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.714rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.s-calpage__lead {
+  margin: 4px 0 0;
+  font-size: 0.929rem;
+  color: var(--text-muted);
+}
+
+.s-calpage__month-col {
+  min-inline-size: 0;
+}
+
+.s-calpage__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-block-end: 12px;
+}
+
+.s-calpage__nav {
+  inline-size: 34px;
+  padding-inline: 0;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1.143rem;
+  line-height: 1;
+}
+
+/* A glyph that points left says "previous" only in a script that reads
+   leftward-is-back. The DOM order already puts the previous button at the
+   inline start; the glyph is flipped so it points the way it goes. */
+[dir="rtl"] .s-calpage__chev {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
+.s-calpage__month {
+  margin: 0;
+  min-inline-size: 9ch;
+  font-family: var(--font-serif);
+  font-size: 1.143rem;
+  font-weight: 500;
+  color: var(--text);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── The grid and the day pane ──────────────────────────────────────────── */
+.s-calpage__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 24px;
+  max-inline-size: 1600px;
+  margin: 20px auto 0;
+}
+
+.s-calpage__table {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 4px;
+  table-layout: fixed;
+  font-variant-numeric: tabular-nums;
+}
+
+.s-calpage__wd {
+  padding: 0 0 6px;
+  font-size: 0.714rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.s-calpage__cell {
+  padding: 0;
+  vertical-align: top;
+}
+
+.s-calpage__day {
+  inline-size: 100%;
+  min-block-size: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.857rem;
+  text-align: start;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.s-calpage__day:hover {
+  background: var(--bg-hover);
+}
+
+.s-calpage__day:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+/* Neighbouring months' days complete the rows and are there to be clicked,
+   but they are not this page's: no ground, quiet numbers. */
+.s-calpage__day--out {
+  background: none;
+  border-color: transparent;
+  color: var(--text-faint);
+}
+
+.s-calpage__day.is-selected {
+  border-color: var(--accent);
+}
+
+.s-calpage__daynum {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The day's own note, as a dot at the inline end of the number's row — the
+   mark the sidebar's grid uses, for the same reason: in a journalling vault
+   the daily note is titled by its date, and a line under a 15 reading
+   "2026-09-15" has spent itself saying nothing. */
+.s-calpage__notedot {
+  margin-inline-start: auto;
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Today is RINGED, not filled: the ring goes round the NUMBER, so the lines
+   under it read against the cell's own ground. */
+.s-calpage__num {
+  display: grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  line-height: 1;
+  font-weight: 500;
+}
+
+.s-calpage__day.is-today {
+  color: var(--accent);
+}
+
+.s-calpage__day.is-today .s-calpage__num {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* The other calendar's day, small beside the number — only on an instance
+   that already prints both (CalendarView gridCalendars). */
+.s-calpage__alt {
+  font-size: 0.643rem;
+  line-height: 1;
+  color: var(--text-faint);
+}
+
+.s-calpage__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.s-calpage__line,
+.s-calpage__more {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.714rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.s-calpage__more {
+  color: var(--text-faint);
+}
+
+/* A day that held something wears the accent on its first line, which is
+   what makes a kept month readable from across the room. */
+.s-calpage__day.has-items .s-calpage__line:first-child {
+  color: var(--text);
+}
+
+/* ── The day pane ───────────────────────────────────────────────────────── */
+.s-calpage__pane {
+  min-inline-size: 0;
+  padding: 14px 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  position: sticky;
+  inset-block-start: 0;
+}
+
+.s-calpage__paneh {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.071rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.s-calpage__door {
+  margin-block-start: 12px;
+  inline-size: 100%;
+}
+
+.s-calpage__panesec {
+  margin-block-start: 18px;
+}
+
+.s-calpage__paneh3 {
+  margin: 0 0 6px;
+  font-size: 0.714rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.s-calpage__panelist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.s-calpage__panerow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.s-calpage__panelink {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.857rem;
+  color: var(--accent);
+  text-align: start;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.s-calpage__panelink:hover {
+  text-decoration: underline;
+}
+
+.s-calpage__panelink:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.s-calpage__panelink--flat {
+  color: var(--text);
+  cursor: default;
+}
+
+.s-calpage__fact,
+.s-calpage__status,
+.s-calpage__panenote {
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+.s-calpage__panenote {
+  color: var(--text-faint);
+  overflow-wrap: anywhere;
+}
+
+.s-calpage__status--complete {
+  color: var(--callout-success);
+}
+
+.s-calpage__status--partial {
+  color: var(--callout-warning);
+}
+
+.s-calpage__status--missed {
+  color: var(--danger);
+}
+
+.s-calpage__paneempty {
+  margin: 14px 0 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+/* ── Narrow: the pane goes under the grid ───────────────────────────────── */
+/* TWO BREAKPOINTS, because they answer two different questions. The PANE
+   moves under the grid as soon as a 300px column would cost the month its
+   width — which a calendar in one half of a split reaches long before a
+   phone does. The cells keep their lines well past that: a 620px month
+   still gives each day 80px, which is a title's worth. */
+@container (inline-size < 900px) {
+  .s-calpage__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .s-calpage__pane {
+    position: static;
+  }
+  .s-calpage__day {
+    min-block-size: 92px;
+  }
+  /* A door the width of the month is not a door, it is a wall. */
+  .s-calpage__door {
+    inline-size: auto;
+    min-inline-size: 220px;
+  }
+}
+
+@container (inline-size < 560px) {
+  /* A cell at a phone's width has no room for prose: the number and one
+     mark, and the day pane under the grid says the rest. */
+  .s-calpage__day {
+    min-block-size: 56px;
+    align-items: center;
+    gap: 2px;
+  }
+  .s-calpage__daynum {
+    justify-content: center;
+  }
+  /* THE OTHER CALENDAR'S NUMBER GOES TO THE CORNER, out of the flow, which
+     is where the sidebar's grid has always put it (.s-cal__alt). Beside the
+     26px ring it wants 40px of a cell that is 46px wide with 12px of padding
+     in it, and an instance printing both calendars lost the end of its Hijri
+     day to the cell's `overflow: hidden` at 390px. */
+  .s-calpage__day {
+    position: relative;
+  }
+  .s-calpage__alt {
+    position: absolute;
+    inset-block-start: 3px;
+    inset-inline-end: 4px;
+  }
+  .s-calpage__line,
+  .s-calpage__more,
+  /* One mark, not two: a day with a note already counts as a day that held
+     something, and the mark below says so. */
+  .s-calpage__notedot {
+    display: none;
+  }
+  /* …and in their place, one dot: the day held something. */
+  .s-calpage__day.has-items .s-calpage__lines::before {
+    content: "";
+    display: block;
+    inline-size: 5px;
+    block-size: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+}
+
+/* Every shell target is ≥44px below 700px or on a coarse pointer. A DAY is
+   not in this list: the container query above has already given it 110px,
+   92px or 56px, and every one of those clears 44 — a `min-block-size: 44px`
+   here would only UNDO them, which is what it did until 3.18, shrinking the
+   month's cells to their text on a touch screen at any width. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-calpage__nav {
+    inline-size: 44px;
+    min-block-size: 44px;
+  }
+  .s-calpage__todaybtn,
+  .s-calpage__door,
+  .s-calpage__panelink {
+    min-block-size: 44px;
+  }
+}

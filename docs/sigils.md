@@ -191,10 +191,10 @@ A tick on this page goes to the note the sigil lives in, by the very same edit t
 make, so the page and the editor never disagree about what the log says. The page re-reads on
 every change to the vault, so a box ticked in the editor shows here at once.
 
-**The month is not on this page.** It used to be, under the heading. A month of past days is a
-different question from what today asks of you, so it moved out to a page of its own — the
-[Calendar](templates-and-notes.md#the-calendar), the fourth door in the status bar — where it is
-drawn at a size a page can afford. The days a sigil logged are still marked there.
+**The month is elsewhere.** A small month sat under this heading until 3.17. The month has a page
+of its own now — [the Calendar](calendar.md), at `/calendar`, through the calendar leaf in the top
+bar — where a cell has room to name the sigils you kept that day, the cards you graded and the
+pages you read. This page is the morning's checklist, and it keeps its width for the checklists.
 
 **Recently read.** When nothing is due — no sigil asks anything of today, or everything asked has
 been ticked, and no cards wait in Orbits — the page opens instead with a row of the notes you were last in, the palette's own

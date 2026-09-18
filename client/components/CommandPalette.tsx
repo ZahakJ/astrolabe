@@ -375,8 +375,8 @@ const COMMANDS: Command[] = [
     hint: () => t("cmdOpenRoutinesHint"),
     available: ({ admin }) => admin,
   },
-  // The month, on its own page (client/calendar/): the days with a note,
-  // the days something was kept, and a door into any of them.
+  // The month, big (client/calendar/): the daily notes, the sigils that
+  // logged, the cards graded and the sittings read, day by day.
   {
     id: "open-calendar",
     label: () => t("cmdOpenCalendar"),

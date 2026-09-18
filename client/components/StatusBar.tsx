@@ -576,14 +576,12 @@ export default function StatusBar() {
               <path d="M9 12.5l2 2 4-5" />
             </svg>
           </button>
-          {/* THE CALENDAR DOOR, last of the four pages: a leaf of a wall
-              calendar — the block, its two hangers and the ruled head. The
-              month was a section at the top of the Sigils page until 3.18
-              (the owner: "kinda weird and useless in the sigils window");
-              a page of its own needs a door of its own, and this is the
-              glyph the routine page wore in 3.15, free again since Orbits
-              took the ring. Admin-only like its neighbours: a click on a day
-              CREATES that day's note. */}
+          {/* THE CALENDAR'S DOOR, beside the seal: a leaf of a wall calendar
+              — the block, its rule under the head, and the two hangers. The
+              month was a small grid at the top of the Sigils page until 3.18,
+              where the owner found it "kinda weird and useless"; it is a page
+              of its own now, and a page needs a door. Admin-only like its
+              neighbours: a click on a day writes the day's note. */}
           <button
             type="button"
             className={`s-statusbar__btn s-statusbar__icon${calendarOn ? " s-statusbar__btn--on" : ""}`}

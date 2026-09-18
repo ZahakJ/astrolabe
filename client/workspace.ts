@@ -190,12 +190,11 @@ export const REVIEW_WEEK_TAB = "~review-week";
 export function isReviewWeekTab(path: string): boolean {
   return path === REVIEW_WEEK_TAB;
 }
-/** The Calendar page — the month, the days that have a note and the days
- *  something was kept, with an address of its own (`/calendar`). It was a
- *  section at the top of the Sigils page until 3.18 (the owner: "kinda weird
- *  and useless in the sigils window"); the month is not about today's
- *  checklists, so it is its own door and its own tab, and the Sigils page
- *  keeps only what asks something of today. */
+/** THE CALENDAR — the month as a page of its own, big enough to say what
+ *  every day held. It used to be a small grid at the top of the Sigils page,
+ *  which is a morning checklist and not a month (the owner: "kinda weird and
+ *  useless in the sigils window"); the sidebar's Calendar section stays where
+ *  it is. A tab on the Sigils page's terms, with `/calendar` for an address. */
 export const CALENDAR_TAB = "~calendar";
 export function isCalendarTab(path: string): boolean {
   return path === CALENDAR_TAB;
