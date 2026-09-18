@@ -671,7 +671,8 @@ const AUDIENCES = [
   //    is), the month and year kinds in shared/periodic.ts, the launch door
   //    in the store, and the periodic cache as a subscribable (usePeriodic).
   //    The month grid (shared/calendar.ts, CalendarGrid.tsx, its sheet) is a
-  //    lazy chunk behind the sidebar's fold and the Sigils page.
+  //    lazy chunk behind the sidebar's fold (and, until 3.18, behind the
+  //    Sigils page's own copy of the grid).
   //  · the editor conveniences, +3.2 kB: the template prompt scan and the
   //    `{{cursor}}` offset (client/templates.ts — state.ts imports
   //    templateActions for the default template, so the scan that decides

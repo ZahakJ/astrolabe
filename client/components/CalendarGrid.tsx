@@ -1,5 +1,6 @@
-// THE MONTH GRID — the sidebar's Calendar section and the top of the Sigils
-// page, one component.
+// THE MONTH GRID — the sidebar's Calendar section. The Sigils page drew a
+// second copy of it off the same reads until 3.18; one month at a time is
+// the whole of it.
 //
 // Drawn in the site's calendar (shared/calendar.ts): a Gregorian month on a
 // Gregorian instance, a Hijri month on a Hijri one, and on an instance that
@@ -14,10 +15,10 @@
 // tree through the daily folder and format (client/daily.ts), which is a
 // string compare per note and nothing stored — and carries a second mark
 // when a sigil logged that day or a book was read (`loggedDaysOf`; the caller
-// hands the set in: the Sigils page already holds every log, the sidebar
-// asks once). Today is ringed. A click
-// opens the day's note through the daily-note command's own door, so a note
-// created from the grid is templated exactly as Ctrl/Cmd Alt D would.
+// hands the set in, and the sidebar is the caller — it asks once when the
+// section opens and again a beat after the vault changes). Today is ringed.
+// A click opens the day's note through the daily-note command's own door, so
+// a note created from the grid is templated exactly as Ctrl/Cmd Alt D would.
 //
 // ONE TAB STOP for the whole grid, the tag shelf's argument: forty-two
 // buttons would be forty-two stops in a pane the reader tabs THROUGH. The
