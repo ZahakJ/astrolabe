@@ -303,8 +303,13 @@
   flex: none;
 }
 
+/* Release the measure in a pane narrower than it. The page DECLARES the
+   container (its padding is `cqi`), and an element never matches a container
+   query against itself — so the release is declared on the children that
+   carry the measure, which are inside it. */
 @container (max-width: 560px) {
-  .s-calpage {
+  .s-calpage__head,
+  .s-calpage__month {
     --calpage-measure: none;
   }
 }
@@ -316,5 +321,14 @@
   .s-cal__nav {
     inline-size: 32px;
     block-size: 32px;
+  }
+}
+
+/* The Calendar page is drawn on a phone — unlike the Sigils section it
+   replaced — so the one button on it is a thumb's target, not a mouse's. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-calpage__today {
+    min-block-size: 44px;
+    padding-inline: 16px;
   }
 }

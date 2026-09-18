@@ -1,6 +1,6 @@
 // A MONTH AS A GRID, in whichever calendar the site prints.
 //
-// The sidebar's Calendar section and the top of the Sigils page draw the
+// The sidebar's Calendar section and the Calendar page draw the
 // same thing: the month you are in, seven columns wide, one cell a day. What
 // varies is the CALENDAR — a site set to Hijri (shared/dates.ts) must get a
 // Hijri month, Muharram to Dhu al-Hijjah, with its own first days and its own
