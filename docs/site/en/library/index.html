@@ -48,29 +48,52 @@ reading companion writes) first;</li>
 <p>No frontmatter is asked of any note beyond <code>publish: true</code>. A note that is not published is not
 a lesson, and a path with no lesson a visitor may read is not sent to that visitor at all.</p>
 <h2 id="declaring-a-path"><a class="anchor" href="#declaring-a-path">Declaring a path</a></h2>
-<p>There are three ways, and they all end in the same place.</p>
+<p>There are four ways, and they all end in the same place.</p>
+<p><strong>From a shelf root.</strong> Settings → Collections → The library → <strong>Shelf roots</strong>: choose <code>Books</code>
+once, say <em>book</em>, and every folder inside it that holds a published note is a path — titled by its
+name, addressed by its title, covered by its <a href="../trackers/#the-media-page">Media tracker</a> when one
+names it. The next book you publish joins by itself. A root is one sentence about the shape of
+your vault, and it is the answer to twelve rows that all said what the folder&#39;s own name already
+said. Only IMMEDIATE children count: a note sitting directly in <code>Books</code> is still a blog post. Up
+to 8 roots, and no root may sit inside another root or inside a path.</p>
 <p><strong>From the vault.</strong> Put a note named like the folder (or <code>index.md</code>) inside it and write, in its
-frontmatter, <code>library: book</code> (or <code>course</code>, <code>series</code>). The folder is now on the shelf, and it takes
-<code>title:</code>, <code>description:</code>, <code>cover:</code> and <code>source:</code> from the same note when they are there. Nothing
-is typed in Settings; the settings list shows these paths under its rows, and <em>Customise here</em>
-turns one into a row when you want to override something. A row that names the same folder
-wins field by field and takes the rest from the note.</p>
+frontmatter, <code>library: book</code> (or <code>course</code>, <code>series</code>). The folder is now on the shelf even if no
+root is above it. That note is also where a folder&#39;s own facts live, root or no root: <code>title:</code>,
+<code>description:</code>, <code>cover:</code>, <code>source:</code>, <code>slug:</code> and <code>hidden:</code>. Nothing is typed in Settings; the
+settings list shows these paths under its rows, and <em>Customise here</em> turns one into a row when you
+want to override something. A row that names the same folder wins field by field and takes the rest
+from the note.</p>
 <p><strong>From the tree.</strong> Right-click the folder in the sidebar and choose <strong>Library…</strong>. The popover
 guesses the kind from what is inside (<code>L1..L14</code> is a course, <code>Chapter 39..41</code> a book, a folder
 under <em>Talks</em> a series), takes the folder&#39;s name as the title, and <strong>Put on the shelf</strong> saves
 it. The first path switches the library on. Right-click the same folder again and the popover
 says it is on the shelf, opens it, or takes it off.</p>
-<p><strong>Settings → Collections → The library.</strong> The same rows, with the fields the tree does
-not ask for. <strong>Add a path</strong> opens the vault&#39;s folders to click (type to filter), and each row&#39;s folder
-line reopens that chooser; nothing here is typed as a path.</p>
-<div class="table"><table><thead><tr><th>Field</th><th>What it is</th></tr></thead><tbody><tr><td>Kind</td><td>Book, course or series. It decides the cover&#39;s shape and the shelf&#39;s grouping.</td></tr><tr><td>Title</td><td>What the shelf and the door call it.</td></tr><tr><td>Address</td><td>The last part of the URL: <code>/library/&lt;address&gt;</code>. Lowercase letters, digits, hyphens.</td></tr><tr><td>Vault folder</td><td>The folder the path reads, chosen from the tree.</td></tr><tr><td>Blurb, cover, source</td><td>Folded under one line until a row has them. Blurb: one or two sentences under the title.</td></tr><tr><td>Cover</td><td>An image from the vault (start typing and the vault&#39;s images are offered, with thumbnails) or an https URL, written the way a note&#39;s banner is (<code>attachments/cover.jpg</code> or <code>https://…</code>). Without one the site draws a cover from the title. A <a href="../trackers/#the-media-page">Media tracker</a> whose <code>folder:</code> is this path&#39;s folder lends its cover instead, over this field.</td></tr><tr><td>Source link</td><td>Where the material came from: the course page, the publisher. Shown on the path.</td></tr><tr><td>Hidden</td><td>A take-down that loses nothing: the row keeps every field and nobody sees it.</td></tr></tbody></table></div><p>Two placements and a name sit above the rows. <strong>Door in the navigation</strong> is on by default once
+<p><strong>Settings → Collections → The library.</strong> The rows — each one the override of a single folder,
+with the fields the tree does not ask for. <strong>Add a path</strong> opens the vault&#39;s folders to click (type
+to filter), and each row&#39;s folder line reopens that chooser; nothing here is typed as a path. Each
+row is folded to one line until you press it.</p>
+<div class="table"><table><thead><tr><th>Field</th><th>What it is</th></tr></thead><tbody><tr><td>Kind</td><td>Book, course or series. It decides the cover&#39;s shape and the shelf&#39;s grouping.</td></tr><tr><td>Title</td><td>What the shelf and the door call it.</td></tr><tr><td>Address</td><td>The last part of the URL: <code>/library/&lt;address&gt;</code>. Lowercase letters, digits, hyphens.</td></tr><tr><td>Vault folder</td><td>The folder the path reads, chosen from the tree.</td></tr><tr><td>Blurb, cover, source</td><td>Folded under one line until a row has them. Blurb: one or two sentences under the title.</td></tr><tr><td>Cover</td><td>An image from the vault (start typing and the vault&#39;s images are offered, with thumbnails) or an https URL, written the way a note&#39;s banner is (<code>attachments/cover.jpg</code> or <code>https://…</code>). Without one the site draws a cover from the title. A <a href="../trackers/#the-media-page">Media tracker</a> whose <code>folder:</code> is this path&#39;s folder lends its cover instead, over this field.</td></tr><tr><td>Source link</td><td>Where the material came from: the course page, the publisher. Shown on the path.</td></tr><tr><td>Hidden</td><td>A take-down that loses nothing: the row keeps every field and nobody sees it. A folder a root claimed is taken down with <code>hidden: true</code> in its own folder note, or by customising it here.</td></tr></tbody></table></div><p>Two placements and a name sit above the rows. <strong>Door in the navigation</strong> is on by default once
 the library is on: a <em>Library</em> link beside the topics on both public shells. <strong>Shelf on the
 home page</strong> is off by default: a band of covers on the blog home, above the writings. <strong>Name</strong>
 renames the door and the page; empty means &quot;Library&quot;.</p>
 <p>Each card counts the notes inside and how many are published. <strong>The library lists published
 notes only</strong>: a path whose notes are all drafts is a shelf with nothing on it, and the door in
 the navigation stays hidden until some path has a note a reader may open.</p>
-<p>Up to 24 paths. The rows&#39; order is the shelf&#39;s order.</p>
+<p>Up to 24 rows and 8 roots. Rows come first, in their own order; folders from a root follow, by
+title, within their kind. A folder whose title makes no address — an Arabic title, which makes none
+— waits in <em>Needs an address</em> until it has a <code>slug:</code> in its folder note or a row of its own; it is
+not published under a made-up address, and its notes stay on the blog. The same is true of a folder
+whose address a row already holds: a row is a pin and is never displaced.</p>
+<p>Renaming, moving or deleting a folder carries its row and its root along, so a path does not move
+house when a folder does. A row keeps the address it was pinned to; a folder with no row takes the
+address its new title suggests.</p>
+<h3 id="the-offer"><a class="anchor" href="#the-offer">The offer</a></h3>
+<p>When two or more of your rows sit under one folder and that folder is not a root yet, the panel
+asks once: <em>&quot;Books holds 10 of your paths — make it a shelf root?&quot;</em> It lists the rows that say
+nothing the folder does not, and the order the shelf would take if you folded them (the rows you
+keep first, in their order; the folded folders after, by title). Three answers: fold them, keep
+them, or not now. <strong>Nothing folds unless you press it</strong> — folding is a visible reorder, and a
+reorder nobody asked for is not an upgrade.</p>
 <h2 id="what-a-reader-gets"><a class="anchor" href="#what-a-reader-gets">What a reader gets</a></h2>
 <ul>
 <li><strong>The shelf</strong> (<code>/library</code>): courses, books and series in groups, each as a cover, a title, a
@@ -104,7 +127,7 @@ and the progress. <code>npm test</code> covers the rules (<code>tests/library.te
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/designer/"><span class="pager__kicker">Previous</span><span class="pager__title">Designed mode</span></a><a class="pager__link pager__link--next" href="../../en/theming/"><span class="pager__kicker">Next</span><span class="pager__title">Theming</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#a-path-is-a-folder">A path is a folder</a><a class="toc__link toc__link--2" href="#declaring-a-path">Declaring a path</a><a class="toc__link toc__link--2" href="#what-a-reader-gets">What a reader gets</a><a class="toc__link toc__link--2" href="#where-it-lives">Where it lives</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#a-path-is-a-folder">A path is a folder</a><a class="toc__link toc__link--2" href="#declaring-a-path">Declaring a path</a><a class="toc__link toc__link--3" href="#the-offer">The offer</a><a class="toc__link toc__link--2" href="#what-a-reader-gets">What a reader gets</a><a class="toc__link toc__link--2" href="#where-it-lives">Where it lives</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

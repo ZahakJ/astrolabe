@@ -34,7 +34,7 @@ and reloads it in the browser the moment you save a file.</p>
 <div class="table"><table><thead><tr><th>Port</th><th>What</th><th>When</th></tr></thead><tbody><tr><td>6801</td><td>Hono server (API + built client)</td><td><code>npm start</code> / always</td></tr><tr><td>5801</td><td>Vite dev server (proxies <code>/api</code> → 6801)</td><td><code>npm run dev</code> only</td></tr></tbody></table></div><p>In dev mode you open port 5801; requests to <code>/api</code> are passed through to the server on 6801.
 <code>PORT</code> overrides the server port.</p>
 <h2 id="the-scripts"><a class="anchor" href="#the-scripts">The scripts</a></h2>
-<div class="table"><table><thead><tr><th>Script</th><th>What it does</th></tr></thead><tbody><tr><td><code>npm run dev</code></td><td>API server (Node&#39;s own <code>--watch</code>) and Vite side by side</td></tr><tr><td><code>npm run build</code></td><td>Build the client into <code>dist/</code>. The server needs no build — Node runs the TypeScript directly</td></tr><tr><td><code>npm start</code></td><td>Build, then serve</td></tr><tr><td><code>npm run serve</code></td><td>Serve without rebuilding</td></tr><tr><td><code>node scripts/rebrand.mjs --name … --icon …</code></td><td>Stamp your own product name and icon on the desktop build before <code>npm --prefix desktop run dist</code> (<a href="../desktop/#your-own-name-and-icon">the desktop app</a>)</td></tr><tr><td><code>npm run hash-password</code></td><td>Prompt (no echo, or piped stdin) and print an argon2id hash for <code>ADMIN_PASSWORD_HASH</code></td></tr><tr><td><code>npm run typecheck</code></td><td><code>tsc --noEmit</code> — the strict TypeScript gate</td></tr><tr><td><code>npm test</code></td><td>The unit suite, <code>node --test tests/*.test.ts</code>: the pure logic under <code>shared/</code>, <code>server/</code> and <code>client/</code>, no browser. It is the release gate, and it runs the same code as several of the gates below (<code>check-keymap</code>, <code>check-docs</code>) from a second door</td></tr><tr><td><code>npm run build-docs</code></td><td>Build this manual, both languages, into <code>docs/site/</code></td></tr><tr><td><code>npm run check-docs</code></td><td>Every link, anchor, image and settings path in this manual resolves, in both languages (below)</td></tr><tr><td><code>npm run gen-icons</code></td><td>Redraw the folder-mark glyph set from its catalog; <code>npm run check-icons</code> fails when the drawing is stale</td></tr><tr><td><code>npm run check-desktop</code></td><td>The desktop wrapper&#39;s own checks, then its <code>tsc</code></td></tr></tbody></table></div><h2 id="the-gates"><a class="anchor" href="#the-gates">The gates</a></h2>
+<div class="table"><table><thead><tr><th>Script</th><th>What it does</th></tr></thead><tbody><tr><td><code>npm run dev</code></td><td>API server (Node&#39;s own <code>--watch</code>) and Vite side by side</td></tr><tr><td><code>npm run build</code></td><td>Build the client into <code>dist/</code>. The server needs no build — Node runs the TypeScript directly</td></tr><tr><td><code>npm start</code></td><td>Build, then serve</td></tr><tr><td><code>npm run serve</code></td><td>Serve without rebuilding</td></tr><tr><td><code>node scripts/rebrand.mjs --name … --icon …</code></td><td>Stamp your own product name and icon on the desktop build before <code>npm --prefix desktop run dist</code> (<a href="../desktop/#your-own-name-and-icon">the desktop app</a>)</td></tr><tr><td><code>npm run hash-password</code></td><td>Prompt (no echo, or piped stdin) and print an argon2id hash for <code>ADMIN_PASSWORD_HASH</code></td></tr><tr><td><code>npm run typecheck</code></td><td><code>tsc --noEmit</code> — the strict TypeScript gate</td></tr><tr><td><code>npm test</code></td><td>The unit suite, <code>node --test tests/*.test.ts</code>: the pure logic under <code>shared/</code>, <code>server/</code> and <code>client/</code>, no browser. It is the release gate, and it runs the same code as several of the gates below (<code>check-keymap</code>, <code>check-docs</code>) from a second door</td></tr><tr><td><code>npm run build-docs</code></td><td>Build this manual, both languages, into <code>docs/site/</code></td></tr><tr><td><code>npm run check-docs</code></td><td>Every link, anchor, image and settings path in this manual resolves, in both languages (below)</td></tr><tr><td><code>npm run gen-icons</code></td><td>Redraw the folder-mark glyph set from its catalog; <code>npm run check-icons</code> fails when the drawing is stale</td></tr><tr><td><code>npm run check-desktop</code></td><td>The desktop wrapper&#39;s own checks, then its <code>tsc</code></td></tr><tr><td><code>npm run check-windows-layout</code></td><td>The shell at six window widths × three device pixel ratios × three pointer postures (below)</td></tr></tbody></table></div><h2 id="the-gates"><a class="anchor" href="#the-gates">The gates</a></h2>
 <p>A <em>gate</em> is a script that checks one specific promise the product makes, and exits with an error
 when the promise is broken. Each one below exits non-zero on failure. The gates that need no browser
 need no setup at all. The browser gates need a running instance, plus <code>npm i -D playwright</code> and either
@@ -145,6 +145,39 @@ flattens Arabic&#39;s two-code-point lam-alef to an empty <code>key</code>). A b
 sheet and not to that file is a binding untested on every non-Latin keyboard on earth.</p>
 <p><code>node scripts/shoot-layouts.mjs</code> is the companion picture: the <code>Ctrl/Cmd /</code> sheet with the
 layout map stubbed to Arabic and to Russian, which is how the annotated keycaps are reviewed.</p>
+<h3 id="npm-run-check-windows-layout--the-window-gate"><a class="anchor" href="#npm-run-check-windows-layout--the-window-gate"><code>npm run check-windows-layout</code> — the window gate</a></h3>
+<p>Every other browser gate here looks at the app at one or two comfortable widths. The app is not
+used at comfortable widths. A Windows laptop panel is 1366 physical pixels, which is 1093 CSS px
+at 125% scaling and 904 at 150%; half of it under <code>Win+←</code> is 683. Four release rounds of &quot;resizing
+of panels and windows is clunky and weird on Windows&quot; were four separate defects that no gate
+could see, because each of them is a function of the viewport <strong>and</strong> the pointer together — and
+because the one machine none of us has is the one they all happened on.</p>
+<p>So this gate is a ladder rather than a screenshot. It drives the built app at <strong>1366, 1280, 1024,
+900, 700 and 600 CSS px</strong>, each at <strong>device pixel ratio 1, 1.25 and 1.5</strong>, in both directions,
+with the pane widths both empty and seeded to a pair the reader could actually drag them to
+(<code>{560, 560}</code>), under the three pointer postures Chromium really reports on Windows:</p>
+<div class="table"><table><thead><tr><th>posture</th><th>what it is</th><th>what it must give</th></tr></thead><tbody><tr><td><code>mouse</code></td><td>a desktop tower or a plain laptop</td><td>docked panes and grips at every width above 700</td></tr><tr><td><code>slate</code></td><td>a hardware slate — touch, a rotation sensor, the ACPI slate bit. <strong>An attached mouse does not change Chromium&#39;s answer</strong></td><td>the drawer below 1000, docked panes <strong>with grips</strong> above it, 44px rows</td></tr><tr><td><code>touchlaptop</code></td><td>a fine pointer and a finger</td><td>docked panes, grips, <strong>and</strong> 44px rows</td></tr></tbody></table></div><p>The postures are Blink settings on the browser process (<code>--blink-settings=availablePointerTypes=…</code>),
+which is what <code>pointer_device_win.cc</code> itself hands the renderer — not DevTools media emulation,
+which <code>setViewportSize</code> silently drops halfway down a ladder.</p>
+<p>In each cell it asserts that the sidebar is a real grid column (not auto-placed, not an overlay)
+wherever a pointer can hit a strip, that each docked pane has a grip whose 12px hit area is
+<strong>centred on the pane&#39;s own 1px divider</strong> — <code>elementFromPoint</code> at the seam must return the grip —
+that the note column never falls below its 320px floor whatever is stored, that neither pane and
+neither pane&#39;s close button runs off the window, and that the document never scrolls sideways.</p>
+<p>Three rungs after the ladder watch the frames the ladder cannot see, because it waits 300ms after
+each resize and a 0.18s transition is over by then. They ask what the reader actually sees while a
+window is being dragged and while a pane is being folded: the note column still has its 320px
+<strong>one frame</strong> after a resize, the phone&#39;s notes drawer still slides rather than appearing, and the
+reader&#39;s own <code>Ctrl/Cmd Alt B</code> fold is still mid-flight 60ms in. All three failed at some point on
+the same flag — the class that says &quot;this width is not the hand&#39;s doing&quot; — being up when it should
+have been down, or down when it should have been up.</p>
+<p>Needs a running instance, <code>CHROMIUM</code>, and the instance&#39;s password as the second argument.</p>
+<pre><code>npm run check-windows-layout -- http://127.0.0.1:8177 &lt;password&gt;
+</code></pre>
+<p><code>scratchpad/win/run.sh</code> is the other half of this and is not a gate: it launches the packaged
+Windows executable under Wine with <code>--remote-debugging-port=9333</code>, which is the only way to see
+the real Windows renderer&#39;s scrollbars, pointer events and media queries without a Windows
+machine. Run the same assertions over CDP there before a release that touches the shell.</p>
 <h3 id="npm-run-check-keymap--the-binding-ledger"><a class="anchor" href="#npm-run-check-keymap--the-binding-ledger"><code>npm run check-keymap</code> — the binding ledger</a></h3>
 <p>A colliding shortcut is the quietest bug this product can have. One handler answers the key, the
 other never sees the event, and neither knows the other exists — so it surfaces weeks later as
@@ -242,12 +275,55 @@ reminder.</p>
 focus ring in the same rule, an accessible name on every icon-only control, and the rest of the
 list at the top of the script. Like check-i18n, it exists for the class of regression that is
 invisible in review and invisible in a screenshot.</p>
+<h3 id="npm-run-check-phone--the-phones-four-promises"><a class="anchor" href="#npm-run-check-phone--the-phones-four-promises"><code>npm run check-phone</code> — the phone&#39;s four promises</a></h3>
+<p>A browser gate:
+<code>CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=&lt;pw&gt; npm run check-phone -- &lt;url&gt; [outdir]</code>,
+against a scratch server. It opens the ten main surfaces — editor, reading view, graph, media,
+Sigils, calendar, weekly review, Orbits, library and the notes drawer — at 390×844 with a coarse
+pointer and no hover, in English <strong>and</strong> Arabic, and asks four questions of each:</p>
+<ol>
+<li><strong>Nothing overflows sideways.</strong> The document never scrolls horizontally and no element hangs
+past either edge. A strip that declares <code>overflow-x: auto</code> is exempt, and so is everything
+inside it: the tab row, a wide table and the Sigils heat map <em>scroll</em>, which is a design.</li>
+<li><strong>Every shell target is ≥44px</strong> — height always, width too when the control carries no text,
+because an icon button is square or it is nothing. Prose is excluded (a 44px link would set
+the line height of the paragraph around it), a native checkbox is measured by the <code>&lt;label&gt;</code>
+that holds it, and a data picture&#39;s cells are marks rather than controls.</li>
+<li><strong>Every text field is ≥16px</strong>, below which iOS Safari zooms the page into the field on focus
+and leaves it there.</li>
+<li><strong>Nothing covers a target</strong>: <code>elementFromPoint</code> at each target&#39;s centre answers that target.</li>
+</ol>
+<p>It exists because the audit that opened 3.18 found thirty-three defects of exactly these four
+shapes, and every one of them was a number that nothing measured. Arabic is not a translation
+pass here — it is a second layout, and three of those findings existed in Arabic only.</p>
 <h3 id="npm-run-check-bundle--what-each-audience-downloads"><a class="anchor" href="#npm-run-check-bundle--what-each-audience-downloads"><code>npm run check-bundle</code> — what each audience downloads</a></h3>
 <p>After <code>npm run build</code>. The client ships one entry chunk plus a chunk per surface, and the split
 only means something if it holds: one careless import at the top of a file the entry already
 loads brings the whole app shell back into an anonymous reader&#39;s first request. The gate measures
 every audience&#39;s download against a budget; a budget moves only by the actual overage, with the
 cause written beside it.</p>
+<h3 id="npm-run-check-perf--the-performance-gate"><a class="anchor" href="#npm-run-check-perf--the-performance-gate"><code>npm run check-perf</code> — the performance gate</a></h3>
+<p>After <code>npm run build</code>. Every other gate here holds a promise about what the product <em>does</em>;
+this one holds the promise about how it <em>feels</em>, and that promise is the one that decays
+invisibly — no screenshot shows a keystroke arriving a frame later, and nothing at all shows
+on the seed vault, because the vault where it shows is the one with two thousand notes in it.</p>
+<p>So the gate brings its own. <code>scripts/perf-fixture.mjs</code> generates a vault from a fixed seed —
+2,000 notes across 40 folders with frontmatter, wikilinks and tags, a 3,000-line note, a note
+with fifty embeds and a year of daily notes — and <code>check-perf</code> starts its own server over it, on
+its own port, in open local mode. <strong>It never takes a vault path</strong>, and the fixture reads nobody&#39;s
+disk, so neither can be pointed at yours. Set <code>ASTROLABE_SEED_VAULT=&lt;vault&gt;</code> to fold a real book
+and real Sigils and Orbits notes in as well; leave it unset and the gate measures the generated
+vault, which is the same vault on every machine.</p>
+<p>Five budgets over four surfaces, each the <strong>best of several rounds</strong> with the CPU throttled to a quarter speed
+(Lighthouse&#39;s mid-tier multiplier — an unthrottled loopback has no headroom left in which a
+regression could show). Best-of, not average: other work on the machine can only ever make a
+round slower, so the fastest round is the one closest to the cost of the work itself, and a gate
+built on the average is a gate that fails because somebody started a build.</p>
+<div class="table"><table><thead><tr><th>Budget</th><th>What it catches</th></tr></thead><tbody><tr><td><strong>first paint</strong> of the admin app</td><td>a static import that drags a lazy surface back into the shell&#39;s first request</td></tr><tr><td><strong>keypress → paint</strong> in the 3,000-line note, median and p95</td><td>a per-keystroke pass that has quietly become O(document)</td></tr><tr><td><strong>long-task time</strong> over a 40-keystroke burst</td><td>the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of the five, and the one the purge moved most</td></tr><tr><td><strong>reading render</strong> of that note</td><td>the same, for the one operation whose cost is the whole document at once</td></tr></tbody></table></div><p>Typing latency is the browser&#39;s own Event Timing — hardware keydown to the paint that shows the
+letter — not a frame counter, and the caret is put at line ~1,500 first, because typing at line
+1 of a long note measures a short note. Budgets move like <code>check-bundle</code>&#39;s: by the actual
+overage, with the cause written beside them, or <strong>down</strong> when a round earns it. <code>PERF_ROUNDS=1</code>
+is the quick form; <code>PERF_KEEP=1</code> leaves the generated vault behind to look at.</p>
 <h3 id="npm-run-check-books--the-reader"><a class="anchor" href="#npm-run-check-books--the-reader"><code>npm run check-books</code> — the reader</a></h3>
 <p>After <code>npm run build</code>. Ten properties of the PDF reader that are invisible in review and
 expensive to discover in production, the first being that the pdf.js worker is a real same-origin
@@ -286,15 +362,116 @@ exactly the way an applied update does, and passes only when the first process i
 second one started from the same file is running — <code>app.relaunch()</code> looked like it worked and
 did not, because Electron&#39;s relauncher runs from the mounted image after it is unmounted. Every
 AppImage release runs both before upload.</p>
+<h2 id="performance"><a class="anchor" href="#performance">Performance</a></h2>
+<p><em>What was measured, on what, what it cost before and after — and what is still slow and why.</em></p>
+<h3 id="the-fixture"><a class="anchor" href="#the-fixture">The fixture</a></h3>
+<p>Performance here is measured on a vault nobody has, because the two vaults that exist are both
+useless for it: the seed vault is a dozen notes, where everything is instant, and the owner&#39;s is
+private and is never served. <code>scripts/perf-fixture.mjs</code> generates the third one from a fixed
+seed, so that a number taken today is comparable with one taken next month:</p>
+<ul>
+<li><strong>2,000 notes</strong> across 40 folders, each with six frontmatter properties, five <code>[[wikilinks]]</code>
+and three <code>#tags</code> — 110 distinct tags in a tree, and 2,000 nodes for the graph;</li>
+<li>a <strong>3,000-line note</strong> (291,000 characters, 54,000 words) — the editor&#39;s worst honest case;</li>
+<li>a note with <strong>fifty <code>![[embeds]]</code></strong>;</li>
+<li>a <strong>year of daily notes</strong>, so the Calendar page has a month with something in every cell;</li>
+<li>and, only when <code>ASTROLABE_SEED_VAULT</code> names a vault to take them from, a real <strong>665-page PDF</strong>
+and the real <strong>Sigils</strong> and <strong>Orbits</strong> notes — a reader and two shelves with something of their
+own to draw. It is opt-in and it says so in its own output, because a fixture that reached into
+a vault nobody named would be two bad things at once: an unauthenticated scratch server over
+somebody&#39;s private notes, and a budget only one machine could meet. It measurably would have
+been the second — the generated vault carries 110 tags everywhere and 121 on the laptop the
+purge was measured on.</li>
+</ul>
+<p>The sweep below was run with that variable set, so its vault was 2,376 notes rather than the
+2,367 the generator alone writes. The nine notes are noted, not hidden; nothing in the table
+turns on them.</p>
+<p>Every number below was taken through the DevTools protocol against a scratch server over that
+vault, with the CPU throttled to <strong>a quarter speed</strong> — Lighthouse&#39;s mid-tier multiplier. The
+throttle is not pessimism: unthrottled on a loopback socket, every surface here lands inside one
+animation frame and there is no headroom left in which a regression could ever show. Typing is
+the browser&#39;s own Event Timing (hardware keydown → the paint that shows the letter); &quot;before&quot; is
+3.18.0 and &quot;after&quot; is the same tree with the purge applied, measured back to back on one machine.</p>
+<p>One caveat about every millisecond on this page: the machine this was measured on routinely
+carries a load average of 13–17, and throttled numbers move with it. Everything below was taken
+<strong>back to back on the same machine in the same state</strong>, which is what makes a before and an
+after comparable — but the absolute values are a busy laptop&#39;s, not a benchmark rig&#39;s. Where
+load matters to a budget, <code>scripts/check-perf.mjs</code> says so beside that budget.</p>
+<h3 id="the-numbers"><a class="anchor" href="#the-numbers">The numbers</a></h3>
+<div class="table"><table><thead><tr><th></th><th style="text-align:right">Before</th><th style="text-align:right">After</th></tr></thead><tbody><tr><td><strong>Typing, 3,000-line note</strong> — keypress → paint, median</td><td style="text-align:right">32 ms</td><td style="text-align:right"><strong>24 ms</strong></td></tr><tr><td>… p95</td><td style="text-align:right">48 ms</td><td style="text-align:right"><strong>32 ms</strong></td></tr><tr><td>… main-thread long-task time over a 40-key burst</td><td style="text-align:right">571 ms</td><td style="text-align:right"><strong>184 ms</strong></td></tr><tr><td><strong>Typing, 50-embed note</strong> — input handler, median</td><td style="text-align:right">18.0 ms</td><td style="text-align:right"><strong>6.5 ms</strong></td></tr><tr><td><strong>Reading view</strong>, 3,000-line note, render</td><td style="text-align:right">1,673 ms</td><td style="text-align:right"><strong>1,081 ms</strong></td></tr><tr><td><strong>Admin app</strong> — first paint</td><td style="text-align:right">1,008 ms</td><td style="text-align:right"><strong>936 ms</strong></td></tr><tr><td>… JavaScript in the first request (<code>check-bundle</code>)</td><td style="text-align:right">1,551.7 kB</td><td style="text-align:right"><strong>1,048.7 kB</strong></td></tr><tr><td>… time to interactive (end of the last long task)</td><td style="text-align:right">1,638 ms</td><td style="text-align:right">1,516 ms</td></tr><tr><td><strong>Public site</strong> — first paint</td><td style="text-align:right">608 ms</td><td style="text-align:right">548 ms</td></tr><tr><td><strong><code>GET /api/props</code></strong> (the properties shelf)</td><td style="text-align:right">28.3 ms</td><td style="text-align:right"><strong>0.9 ms</strong></td></tr><tr><td><strong><code>GET /api/tags</code></strong></td><td style="text-align:right">1.1 ms</td><td style="text-align:right">0.9 ms</td></tr><tr><td>Sigils page, open</td><td style="text-align:right">2,861 ms</td><td style="text-align:right">2,628 ms</td></tr><tr><td>Calendar page, open</td><td style="text-align:right">2,265 ms</td><td style="text-align:right">2,182 ms</td></tr></tbody></table></div><p>Unchanged, and measured so: the tree opening forty folders at once (974 → 963 ms), the tag
+shelf&#39;s tab flip (39 → 43 ms), search&#39;s per-keystroke paint (16 → 16 ms), a single note&#39;s save
+and re-index on the server (7.0 → 7.7 ms), a 300-file watcher burst reaching the index (353 →
+347 ms), and the indexer&#39;s cold start over 2,376 notes (1,276 → 1,264 ms). Heap after four
+hundred navigations over ten minutes stayed flat both times (−6.2 MB and +1.2 MB after a forced
+collection — a walk of the whole product retains nothing).</p>
+<p><strong>What the purge actually moved</strong>, in the order it was worth moving:</p>
+<ol>
+<li><strong>The whole vault was walked once per wikilink.</strong> <code>resolveLink</code> called <code>collectNotes</code>, which
+flattens the tree and sorts it with <code>localeCompare</code> — so rendering the 3,000-line note walked
+2,376 notes and re-sorted 2,000 of them 176 times, once per link. It is memoized on the tree
+object now (the store replaces it and never mutates it, so identity is an exact stamp), with
+a name table and a path table built once beside it, and the two loops in <code>resolveLink</code> became
+two map lookups. 6.8% of the reading render and 2.8% of every keystroke, gone.</li>
+<li><strong>Every note&#39;s annotations were placed 120 ms after every keystroke — including the notes
+with no annotations.</strong> The painter reduced the whole document to prose with a per-character
+offset map, folded it, and placed nothing: an empty list is truthy, so the guard above it
+never fired. The single largest cost of a keystroke, spent on nothing.</li>
+<li><strong>The status bar re-counted the note on every autosave.</strong> The bar draws the <em>live</em> count the
+buffer publishes; the fetched copy behind it was re-fetched and re-counted every 600 ms of
+typing to fill a field it never draws. It now counts only when there is no live count to
+draw, and the buffer&#39;s own count is memoized on the document.</li>
+<li><strong>The outline pane was in the admin&#39;s first request.</strong> It reaches the section surgery → the
+editor&#39;s sectioning extension → the live-preview decoration engine → the reading renderer →
+KaTeX. One <code>lazySurface</code> boundary took 503 kB and fifteen files out of the first paint.</li>
+<li><strong><code>Intl.DateTimeFormat</code> was constructed per date.</strong> Building a formatter loads ICU data;
+formatting with one is a lookup. The Sigils page draws one date per card plus one per heatmap
+cell, twice over where both calendars are shown — 5.9% of opening the page. Formatters are
+cached by their own arguments now, which is what <code>shared/calendar.ts</code> already did for Hijri.</li>
+<li><strong>The tag and property shelves were recomputed on every request.</strong> <code>props()</code> walks every note
+and splits, trims and case-folds every frontmatter value; nothing memoized it. It is now
+validated against a <code>shelfRevision()</code> the index moves — exactly the bargain
+<code>server/graphCache.ts</code> already strikes — which is the 28.3 ms → 0.9 ms above.</li>
+</ol>
+<h3 id="where-the-time-still-goes"><a class="anchor" href="#where-the-time-still-goes">Where the time still goes</a></h3>
+<p>Measured, and left alone, because the honest answer is that the cost is real:</p>
+<ul>
+<li><strong>The tree holds 2,151 rows in the DOM</strong> with forty folders open, and opening all forty at once
+costs ~960 ms of React reconciliation and DOM creation. Scrolling it is a clean 16.7 ms frame,
+and nobody opens forty folders in one gesture — one folder is a fortieth of that number. The
+list is not virtualised: the rows carry drag-and-drop, a roving tab index, <code>aria-posinset</code> over
+the filtered set and a keyboard walk, and a virtualiser under all four would trade correctness
+for a number no reader produces. The per-folder cap (&quot;Show N more&quot;, 300 rows) is the existing
+answer and it still holds.</li>
+<li><strong>The graph&#39;s layout is 53% of its own time</strong>, in a hand-written Barnes-Hut force simulation
+over typed arrays, with another 17% in <code>drawImage</code>. That is a simulation doing its work, not a
+bug; 2,000 nodes settle in about eight seconds and the canvas is up in two.</li>
+<li><strong>Search is 91% idle.</strong> The ~950 ms from the first keystroke to the first row is the 200 ms
+debounce plus the typing itself plus a 6 ms server round trip; each keystroke paints in 16 ms.
+The debounce is the feature.</li>
+<li><strong>The reading render&#39;s remaining 1,081 ms is mostly layout</strong> — six thousand nodes of prose
+being measured by the browser. The JavaScript above it is now a small fraction.</li>
+<li><strong>Opening a surface for the first time costs its chunk.</strong> The Sigils, Orbits and Calendar pages
+are ~2.2–2.6 s on a cold visit, of which two thirds is fetching and parsing the lazy chunk
+those pages exist inside. That is the split working, not failing.</li>
+</ul>
+<h3 id="offline-measured-properly"><a class="anchor" href="#offline-measured-properly">Offline, measured properly</a></h3>
+<p>The service worker installs and takes control in about <strong>250 ms</strong>, and a short read leaves ~88
+entries in its cache. With the <strong>server stopped</strong> — not with the browser&#39;s offline emulation,
+which intercepts a navigation above the worker and never lets it answer — a navigation to a note
+renders the cached shell in about <strong>5 s</strong> with the &quot;Reading this device&#39;s copy&quot; strip on it. A
+harness that uses the emulation instead reports <code>net::ERR_FAILED</code> and has proved nothing; see
+<a href="../offline/">Offline</a>.</p>
 <h2 id="the-done-bar"><a class="anchor" href="#the-done-bar">The done bar</a></h2>
 <p>The sequence a change runs before it is called finished, in this order: <code>npm run typecheck</code> ·
-<code>node scripts/check-i18n.mjs</code> · <code>npm test</code> · <code>npm run build</code> and then <code>npm run check-bundle</code> ·
+<code>node scripts/check-i18n.mjs</code> · <code>npm test</code> · <code>npm run build</code> and then <code>npm run check-bundle</code> · <code>npm run check-perf</code> (on a quiet machine) ·
 <code>npm run check-a11y</code> · <code>npm run check-contrast</code> · <code>npm run check-settings</code> (with
 <code>node scripts/gen-settings-index.mjs</code> first when a row changed) · <code>npm run check-keymap</code> when a
 key changed · <code>npm run check-names</code> · <code>npm run check-docs</code> · <code>npm run build-docs</code> ·
-<code>npm run check-desktop</code> when <code>electron/</code> or <code>desktop/</code> changed. Then the browser gates the change
-touches, with <code>CHROMIUM</code> and <code>ASTROLABE_PASSWORD</code> set, against a scratch server over a scratch
-vault — never the owner&#39;s.</p>
+<code>npm run check-desktop</code> when <code>electron/</code> or <code>desktop/</code> changed ·
+<code>npm run check-windows-layout</code> when the shell&#39;s layout, the panes or their breakpoints changed.
+Then the browser gates the change touches — <code>npm run check-phone</code> whenever a stylesheet or a
+piece of the shell moved — with <code>CHROMIUM</code> and <code>ASTROLABE_PASSWORD</code> set, against a scratch
+server over a scratch vault — never the owner&#39;s.</p>
 <h2 id="screenshot-harnesses"><a class="anchor" href="#screenshot-harnesses">Screenshot harnesses</a></h2>
 <p>These are not wired into <code>package.json</code>; run them by hand, for visual review. All take
 <code>CHROMIUM</code>, and most take <code>THEME=parchment</code> and <code>LANGSET=ar</code> to check a theme or the
@@ -323,7 +500,7 @@ patch that changes a rule should move the paragraph that stated it.</li>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/japanese/"><span class="pager__kicker">Previous</span><span class="pager__title">Japanese &amp; furigana</span></a><span></span></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#dev-mode">Dev mode</a><a class="toc__link toc__link--2" href="#the-scripts">The scripts</a><a class="toc__link toc__link--2" href="#the-gates">The gates</a><a class="toc__link toc__link--3" href="#npm-run-check-i18n--the-dictionary">npm run check-i18n — the dictionary</a><a class="toc__link toc__link--3" href="#npm-run-check-names--the-names-gate">npm run check-names — the names gate</a><a class="toc__link toc__link--3" href="#npm-run-check-contrast--the-accessibility-gate">npm run check-contrast — the accessibility gate</a><a class="toc__link toc__link--3" href="#npm-run-check-sections--the-section-surgery-gate">npm run check-sections — the section-surgery gate</a><a class="toc__link toc__link--3" href="#npm-run-check-caret--the-click-to-caret-gate">npm run check-caret — the click-to-caret gate</a><a class="toc__link toc__link--3" href="#npm-run-check-french--the-auto-correction-gate">npm run check-french — the auto-correction gate</a><a class="toc__link toc__link--3" href="#npm-run-check-layouts--the-keyboard-layout-gate">npm run check-layouts — the keyboard-layout gate</a><a class="toc__link toc__link--3" href="#npm-run-check-keymap--the-binding-ledger">npm run check-keymap — the binding ledger</a><a class="toc__link toc__link--3" href="#npm-run-check-excerpt--the-tag-in-prose-gate">npm run check-excerpt — the tag-in-prose gate</a><a class="toc__link toc__link--3" href="#npm-run-check-design--the-error-boundary">npm run check-design — the error boundary</a><a class="toc__link toc__link--3" href="#npm-run-check-board--the-designers-section-board">npm run check-board — the designer&amp;#39;s section board</a><a class="toc__link toc__link--3" href="#npm-run-check-preview--the-designers-live-preview">npm run check-preview — the designer&amp;#39;s live preview</a><a class="toc__link toc__link--3" href="#npm-run-check-print--the-printed-page">npm run check-print — the printed page</a><a class="toc__link toc__link--3" href="#npm-run-check-deck--every-whats-new-slide-measured">npm run check-deck — every what&amp;#39;s-new slide, measured</a><a class="toc__link toc__link--3" href="#npm-run-check-presets--the-preset-catalog">npm run check-presets — the preset catalog</a><a class="toc__link toc__link--3" href="#npm-run-check-docs--the-manual">npm run check-docs — the manual</a><a class="toc__link toc__link--3" href="#npm-run-check-settings--the-settings-index">npm run check-settings — the settings index</a><a class="toc__link toc__link--3" href="#npm-run-check-whatsnew--the-deck">npm run check-whatsnew — the deck</a><a class="toc__link toc__link--3" href="#npm-run-check-a11y--static-accessibility">npm run check-a11y — static accessibility</a><a class="toc__link toc__link--3" href="#npm-run-check-bundle--what-each-audience-downloads">npm run check-bundle — what each audience downloads</a><a class="toc__link toc__link--3" href="#npm-run-check-books--the-reader">npm run check-books — the reader</a><a class="toc__link toc__link--3" href="#npm-run-check-icons--the-folder-marks">npm run check-icons — the folder marks</a><a class="toc__link toc__link--3" href="#npm-run-check-signatures--every-signature-house">npm run check-signatures — every signature house</a><a class="toc__link toc__link--3" href="#npm-run-check-hovercache--the-hover-card-cache">npm run check-hovercache — the hover-card cache</a><a class="toc__link toc__link--3" href="#npm-run-check-designer-nav--the-designers-navigation-and-alignment">npm run check-designer-nav — the designer&amp;#39;s navigation and alignment</a><a class="toc__link toc__link--3" href="#scriptscheck-pdfsearchmjs--search-inside-a-book">scripts/check-pdfsearch.mjs — search inside a book</a><a class="toc__link toc__link--3" href="#scriptscheck-desktop-bootsh-and-check-desktop-relaunchsh--the-desktop-gates">scripts/check-desktop-boot.sh and check-desktop-relaunch.sh — the desktop gates</a><a class="toc__link toc__link--2" href="#the-done-bar">The done bar</a><a class="toc__link toc__link--2" href="#screenshot-harnesses">Screenshot harnesses</a><a class="toc__link toc__link--2" href="#contributing-a-change">Contributing a change</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#dev-mode">Dev mode</a><a class="toc__link toc__link--2" href="#the-scripts">The scripts</a><a class="toc__link toc__link--2" href="#the-gates">The gates</a><a class="toc__link toc__link--3" href="#npm-run-check-i18n--the-dictionary">npm run check-i18n — the dictionary</a><a class="toc__link toc__link--3" href="#npm-run-check-names--the-names-gate">npm run check-names — the names gate</a><a class="toc__link toc__link--3" href="#npm-run-check-contrast--the-accessibility-gate">npm run check-contrast — the accessibility gate</a><a class="toc__link toc__link--3" href="#npm-run-check-sections--the-section-surgery-gate">npm run check-sections — the section-surgery gate</a><a class="toc__link toc__link--3" href="#npm-run-check-caret--the-click-to-caret-gate">npm run check-caret — the click-to-caret gate</a><a class="toc__link toc__link--3" href="#npm-run-check-french--the-auto-correction-gate">npm run check-french — the auto-correction gate</a><a class="toc__link toc__link--3" href="#npm-run-check-layouts--the-keyboard-layout-gate">npm run check-layouts — the keyboard-layout gate</a><a class="toc__link toc__link--3" href="#npm-run-check-windows-layout--the-window-gate">npm run check-windows-layout — the window gate</a><a class="toc__link toc__link--3" href="#npm-run-check-keymap--the-binding-ledger">npm run check-keymap — the binding ledger</a><a class="toc__link toc__link--3" href="#npm-run-check-excerpt--the-tag-in-prose-gate">npm run check-excerpt — the tag-in-prose gate</a><a class="toc__link toc__link--3" href="#npm-run-check-design--the-error-boundary">npm run check-design — the error boundary</a><a class="toc__link toc__link--3" href="#npm-run-check-board--the-designers-section-board">npm run check-board — the designer&amp;#39;s section board</a><a class="toc__link toc__link--3" href="#npm-run-check-preview--the-designers-live-preview">npm run check-preview — the designer&amp;#39;s live preview</a><a class="toc__link toc__link--3" href="#npm-run-check-print--the-printed-page">npm run check-print — the printed page</a><a class="toc__link toc__link--3" href="#npm-run-check-deck--every-whats-new-slide-measured">npm run check-deck — every what&amp;#39;s-new slide, measured</a><a class="toc__link toc__link--3" href="#npm-run-check-presets--the-preset-catalog">npm run check-presets — the preset catalog</a><a class="toc__link toc__link--3" href="#npm-run-check-docs--the-manual">npm run check-docs — the manual</a><a class="toc__link toc__link--3" href="#npm-run-check-settings--the-settings-index">npm run check-settings — the settings index</a><a class="toc__link toc__link--3" href="#npm-run-check-whatsnew--the-deck">npm run check-whatsnew — the deck</a><a class="toc__link toc__link--3" href="#npm-run-check-a11y--static-accessibility">npm run check-a11y — static accessibility</a><a class="toc__link toc__link--3" href="#npm-run-check-phone--the-phones-four-promises">npm run check-phone — the phone&amp;#39;s four promises</a><a class="toc__link toc__link--3" href="#npm-run-check-bundle--what-each-audience-downloads">npm run check-bundle — what each audience downloads</a><a class="toc__link toc__link--3" href="#npm-run-check-perf--the-performance-gate">npm run check-perf — the performance gate</a><a class="toc__link toc__link--3" href="#npm-run-check-books--the-reader">npm run check-books — the reader</a><a class="toc__link toc__link--3" href="#npm-run-check-icons--the-folder-marks">npm run check-icons — the folder marks</a><a class="toc__link toc__link--3" href="#npm-run-check-signatures--every-signature-house">npm run check-signatures — every signature house</a><a class="toc__link toc__link--3" href="#npm-run-check-hovercache--the-hover-card-cache">npm run check-hovercache — the hover-card cache</a><a class="toc__link toc__link--3" href="#npm-run-check-designer-nav--the-designers-navigation-and-alignment">npm run check-designer-nav — the designer&amp;#39;s navigation and alignment</a><a class="toc__link toc__link--3" href="#scriptscheck-pdfsearchmjs--search-inside-a-book">scripts/check-pdfsearch.mjs — search inside a book</a><a class="toc__link toc__link--3" href="#scriptscheck-desktop-bootsh-and-check-desktop-relaunchsh--the-desktop-gates">scripts/check-desktop-boot.sh and check-desktop-relaunch.sh — the desktop gates</a><a class="toc__link toc__link--2" href="#performance">Performance</a><a class="toc__link toc__link--3" href="#the-fixture">The fixture</a><a class="toc__link toc__link--3" href="#the-numbers">The numbers</a><a class="toc__link toc__link--3" href="#where-the-time-still-goes">Where the time still goes</a><a class="toc__link toc__link--3" href="#offline-measured-properly">Offline, measured properly</a><a class="toc__link toc__link--2" href="#the-done-bar">The done bar</a><a class="toc__link toc__link--2" href="#screenshot-harnesses">Screenshot harnesses</a><a class="toc__link toc__link--2" href="#contributing-a-change">Contributing a change</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

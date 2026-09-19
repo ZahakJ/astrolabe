@@ -164,14 +164,30 @@ gesture can be interrupted or reversed; it opens fully once you have dragged far
 answers the mirrored swipe. In Arabic the drawer comes from the right by itself, with no second rule. The outline pane is a drawer on a phone too: the outline switch in the status bar
 slides it over the page from the end edge, with backlinks, unlinked mentions and on-this-day inside.</p>
 <p>The top bar keeps three controls on a phone: the outline switch, the settings gear and a <strong>⋯</strong>. The
-⋯ opens every other tool as a labelled row: the library, Orbits, Sigils, the
+⋯ opens every other tool as a labelled row — starting with the command palette, so nothing is
+keyboard-only — then the library, Orbits, Sigils, the
 <a href="../templates-and-notes/#the-calendar">Calendar</a>, the designer, visitor
 preview, the graph, themes and sign out. Nothing scrolls off the edge. Zen and the shortcut sheet
 are not offered, since neither means anything on a phone.</p>
+<p><strong>Closing what is open.</strong> A drawer is a layer, and every layer has three ways out: the ✕ at its
+own top, a tap on the dimmed page behind it, and the hardware back button — which closes the
+topmost drawer, palette or dialog before it goes back a page, and never leaves the app without
+asking. Escape does the same where there is a keyboard.</p>
+<p><strong>Every target is a finger&#39;s width.</strong> Below 700px, or on any device whose pointer is a finger,
+nothing you can tap is smaller than 44 by 44 pixels — tree rows, tag pills, the tab strip, the
+calendar&#39;s days, the Sigils card&#39;s checks, the graph&#39;s zoom controls — and every field you type
+into is set at 16px, below which iOS Safari zooms the page into the field and leaves it there.
+The notch and the home indicator are kept clear, so an instance added to the home screen puts
+nothing under the status bar or the gesture bar. <code>npm run check-phone</code> measures all of this on
+ten surfaces in both languages (<a href="../development/#npm-run-check-phone--the-phones-four-promises">Development</a>).</p>
+<p><strong>Opening a note does not open the keyboard.</strong> On a phone a note opens rendered, with the caret
+left where it was; tap the text to start writing. When the keyboard does come up, the line you
+are typing on is scrolled clear of it.</p>
 <p><strong>What counts as a phone.</strong> The drawer layout is used below 700px, and below 1000px on a device
 with no fine pointer — no mouse and no trackpad. So a tablet held in the hands gets the drawer,
 while a desktop window narrowed beside a browser keeps its docked, resizable panes down to phone
-width.</p>
+width. The 44px floor and the 16px fields follow the <em>pointer</em> rather than the width, so a
+1024px tablet gets them too.</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/workspace.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/books/"><span class="pager__kicker">Previous</span><span class="pager__title">The PDF reader</span></a><a class="pager__link pager__link--next" href="../../en/printing/"><span class="pager__kicker">Next</span><span class="pager__title">Printing &amp; PDF</span></a></nav>

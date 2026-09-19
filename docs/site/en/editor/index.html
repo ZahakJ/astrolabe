@@ -137,6 +137,49 @@ built-in theme, and a fixed-ink palette for when you mean <em>that exact</em> co
 <li><strong>Vim mode</strong> for those who already know that editor&#39;s keys, autosave (600 ms after you stop
 typing, plus <code>Ctrl/Cmd S</code>), and a surface built to be driven from the keyboard.</li>
 </ul>
+<h2 id="tables"><a class="anchor" href="#tables">Tables</a></h2>
+<p>A table in your note is pipes and dashes — that is all it ever is on disk. In the editor it is
+drawn as a table, exactly as the reading view draws it, and <strong>you edit it there</strong>, in the grid,
+without the pipes ever coming back.</p>
+<p><strong>Click a cell and type.</strong> A box opens inside that cell in the cell&#39;s own font, and the column
+holds its width so nothing shuffles under your pointer. What you see in the box is the cell&#39;s
+<em>source</em> — so <code>**bold**</code> is <code>**bold**</code> and a <code>[[wikilink]]</code> is a wikilink, ready to edit as
+markdown, with the rendered version coming back the moment you leave. A <code>|</code> you type is escaped
+for you (<code>\|</code>), so a pipe in a cell never splits the row.</p>
+<p><strong>The keys, once you are in a cell.</strong></p>
+<div class="table"><table><thead><tr><th>Key</th><th>What it does</th></tr></thead><tbody><tr><td><code>Tab</code> / <code>Shift Tab</code></td><td>The next cell, the previous one, with its contents selected so typing replaces them. <code>Tab</code> in the last cell adds a row.</td></tr><tr><td><code>Enter</code></td><td>Down a row, same column. From the last row it leaves the table.</td></tr><tr><td><code>Shift Enter</code></td><td>A line break inside the cell (<code>&lt;br&gt;</code> — the only kind a markdown table can hold).</td></tr><tr><td><code>←</code> <code>→</code></td><td>Move inside the box, and at its edge, to the neighbouring cell. In a right-to-left table they are mirrored, because they follow what you see.</td></tr><tr><td><code>↑</code> <code>↓</code></td><td>The cell above or below.</td></tr><tr><td><code>Esc</code></td><td>Back to the note, caret just after the table. The cell you were in goes back to what it said.</td></tr><tr><td><code>Shift F10</code></td><td>The table menu (below), on the cell you are in.</td></tr></tbody></table></div><p>Nothing is written while you type. A cell is written back when you leave it — <code>Tab</code>, <code>Enter</code>, a
+click elsewhere — as <strong>one change and one undo step</strong>, touching that cell&#39;s characters and no
+others. Every other cell in the file comes out byte for byte as it went in.</p>
+<p><strong>The table menu.</strong> Right-click any cell — or press <code>Shift F10</code>, or, on a touch screen, the <code>⋯</code>
+under the table. It acts on the cell you opened it on:</p>
+<ul>
+<li><strong>Insert row above / below</strong>, <strong>insert column before / after</strong>.</li>
+<li><strong>Delete row</strong>, <strong>delete column</strong>, <strong>duplicate row</strong>, <strong>clear cell</strong>.</li>
+<li><strong>Move row up / down</strong>, <strong>move column left / right</strong>. Left and right are what you see: in an
+Arabic table they are mirrored, and the alignment row moves with its column so a centred column
+stays centred.</li>
+<li><strong>Align column left / centre / right</strong>, with a tick on the one that is true now. Choosing the
+alignment a column already has takes it off again.</li>
+<li><strong>Sort by this column</strong> — A→Z, Z→A, or smallest number first. The header never moves, blanks
+sort last, and <code>١٢</code> is twelve.</li>
+<li><strong>Edit as Markdown</strong> — the drawn table gives way to the pipes, with the caret in the cell you
+were on. To come back, move the caret out of the block; it is drawn again.</li>
+<li><strong>Copy table as Markdown</strong> — the whole table, tidied, on your clipboard.</li>
+</ul>
+<p>Every one of those is a single undo step.</p>
+<p><strong>Big tables stay usable.</strong> A wide table scrolls sideways inside its own block rather than
+stretching the note, and a word in a squeezed column is never broken letter by letter. A table
+taller than the window scrolls inside itself with <strong>its header row pinned to the top</strong>, so the
+column you are typing in still has a name. A two-hundred-row table edits at the same speed as a
+three-row one: committing a cell redraws that cell, not the table.</p>
+<p><strong>Making one.</strong> Type <code>/</code> and pick <em>Table</em> for a 2×2 skeleton at the cursor, or run <strong>Insert
+table…</strong> from <code>Ctrl/Cmd P</code> and sweep the little grid for the size you want (3 × 3 to begin with,
+the header row counted). The palette also carries <strong>Table: insert row above / below</strong>, <strong>insert
+column before / after</strong> and <strong>Table: edit as Markdown</strong>, which act on the table your cursor is in.</p>
+<p><strong>When the pipes are showing</strong> — because you asked for them, or because you moved the caret into
+the block — the older keys still work: <code>Tab</code> and <code>Enter</code> walk cells, <code>Alt ↑ / ↓</code> move a row and
+<code>Alt ← / →</code> move a column. Leave the block and the pipes are lined up for you. See
+<a href="../keymap/#tables">Keymap</a>.</p>
 <h2 id="french-corrected-as-you-type"><a class="anchor" href="#french-corrected-as-you-type">French, corrected as you type</a></h2>
 <p>If you write French, the editor quietly puts the accents back. Type <code>tres</code> and a space and it
 becomes <code>très</code>; <code>coeur</code> becomes <code>cœur</code>, <code>etre</code> becomes <code>être</code>, <code>Ecole</code> becomes <code>École</code>, <code>deja</code>
@@ -535,7 +578,7 @@ readers who navigate by search.</p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/mobile/"><span class="pager__kicker">Previous</span><span class="pager__title">The Android app</span></a><a class="pager__link pager__link--next" href="../../en/templates-and-notes/"><span class="pager__kicker">Next</span><span class="pager__title">Templates, banners &amp; notes</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#french-corrected-as-you-type">French, corrected as you type</a><a class="toc__link toc__link--2" href="#rendering">Rendering</a><a class="toc__link toc__link--2" href="#navigating">Navigating</a><a class="toc__link toc__link--2" href="#live-queries">Live queries</a><a class="toc__link toc__link--2" href="#tasks-across-the-vault">Tasks across the vault</a><a class="toc__link toc__link--2" href="#unlinked-mentions">Unlinked mentions</a><a class="toc__link toc__link--2" href="#nearby">Nearby</a><a class="toc__link toc__link--2" href="#block-references">Block references</a><a class="toc__link toc__link--2" href="#find-and-replace">Find and replace</a><a class="toc__link toc__link--2" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a><a class="toc__link toc__link--2" href="#arranging-the-tree">Arranging the tree</a><a class="toc__link toc__link--2" href="#the-two-side-panes">The two side panes</a><a class="toc__link toc__link--2" href="#folder-marks">Folder marks</a><a class="toc__link toc__link--2" href="#notes-to-self">Notes to self</a><a class="toc__link toc__link--2" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#writing">Writing</a><a class="toc__link toc__link--2" href="#tables">Tables</a><a class="toc__link toc__link--2" href="#french-corrected-as-you-type">French, corrected as you type</a><a class="toc__link toc__link--2" href="#rendering">Rendering</a><a class="toc__link toc__link--2" href="#navigating">Navigating</a><a class="toc__link toc__link--2" href="#live-queries">Live queries</a><a class="toc__link toc__link--2" href="#tasks-across-the-vault">Tasks across the vault</a><a class="toc__link toc__link--2" href="#unlinked-mentions">Unlinked mentions</a><a class="toc__link toc__link--2" href="#nearby">Nearby</a><a class="toc__link toc__link--2" href="#block-references">Block references</a><a class="toc__link toc__link--2" href="#find-and-replace">Find and replace</a><a class="toc__link toc__link--2" href="#the-bar-and-the-top-cluster">The bar and the top cluster</a><a class="toc__link toc__link--2" href="#arranging-the-tree">Arranging the tree</a><a class="toc__link toc__link--2" href="#the-two-side-panes">The two side panes</a><a class="toc__link toc__link--2" href="#folder-marks">Folder marks</a><a class="toc__link toc__link--2" href="#notes-to-self">Notes to self</a><a class="toc__link toc__link--2" href="#modes-you-cannot-sit-in-by-accident">Modes you cannot sit in by accident</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>
