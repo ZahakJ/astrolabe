@@ -796,7 +796,18 @@ const AUDIENCES = [
   // 809.5 kB actual → 810 — the sum of the course sigils' and the table round's bytes, no new cause.
   // 3.19.0 MERGE, phone round: 812.7 kB actual → 813 — the phone round's own lines above
   // (safe-area tokens, the drawers' ✕, the back-button wiring) summed onto the two rounds before it.
-{ name: "entry (everyone)", keys: entry, budget: 813 * 1024 },
+  // 3.19.0 SHELF ROOTS: 815.5 kB actual → 816 (+2.5 kB), and every byte of it is
+  // WORDS. The roots row, the derived list, "Needs an address" and the fold
+  // offer need twenty-one strings in two languages, and `client/i18n.ts` is one
+  // module the entry has always carried whole — a string a visitor never reads
+  // is still a string a visitor downloads. AVOIDED: the discovery itself
+  // (`client/libraryShelf.ts`), the roots editor, the folded cards and the
+  // offer are all inside `components/SettingsModal.tsx`, which is a lazy chunk
+  // nobody fetches until they open the panel; and the server half
+  // (`derivedSlug`, `libraryRootError`, `cleanLibraryRoot` in
+  // `shared/library.ts`) tree-shakes out of every closure below, because the
+  // only client that calls it is that same chunk.
+{ name: "entry (everyone)", keys: entry, budget: 816 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1089,7 +1100,11 @@ const AUDIENCES = [
   // 1107.1 kB actual → 1108 — the sum of the course sigils' and the table round's bytes, no new cause.
   // 3.19.0 MERGE, phone round: 1111.2 kB actual → 1112 — the phone round's own lines above
   // (safe-area tokens, the drawers' ✕, the back-button wiring) summed onto the two rounds before it.
-{ name: "anonymous blog reader", keys: blog, budget: 1112 * 1024 },
+  // 3.19.0 SHELF ROOTS: 1114.6 kB actual → 1115 (+2.6 kB). The entry's words
+  // above and nothing else: this reader gains no code from the round at all —
+  // the shelf they see is built on the server, and `/api/library` answers the
+  // same shape it always did.
+{ name: "anonymous blog reader", keys: blog, budget: 1115 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1291,7 +1306,10 @@ const AUDIENCES = [
   // 1563.5 kB actual → 1564 — the sum of the course sigils' and the table round's bytes, no new cause.
   // 3.19.0 MERGE, phone round: 1567.2 kB actual → 1568 — the phone round's own lines above
   // (safe-area tokens, the drawers' ✕, the back-button wiring) summed onto the two rounds before it.
-  { name: "admin first paint", keys: app, budget: 1568 * 1024 },
+  // 3.19.0 SHELF ROOTS: 1570.1 kB actual → 1571 (+2.1 kB). Again the entry's
+  // words and nothing of the admin's own: the whole feature lives in the
+  // settings chunk and the library popover, and both are lazy.
+  { name: "admin first paint", keys: app, budget: 1571 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

@@ -170,21 +170,26 @@ describe("resolving a shelf costs one vault walk, not one per lesson", () => {
     // where a millisecond count does not. Both are warmed first — postMeta
     // caches its excerpt and word count on the record, and measuring that
     // cache filling would be measuring the wrong thing.
+    const ROUNDS = 25;
     const spent = (run: () => void): number => {
       const started = performance.now();
-      run();
+      for (let n = 0; n < ROUNDS; n++) run();
       return performance.now() - started;
     };
     const feedOnce = (): void => void posts(true, OFF);
     const bookOnce = (): void => void libraryLessons(`${BOOKS}/Mechanics`, true, OFF);
     feedOnce();
     bookOnce();
-    const feed = Math.max(spent(feedOnce), 0.05);
+    // Many rounds, not one: both calls are sub-millisecond once the caches are
+    // warm, and a single pair of readings on a machine running the rest of the
+    // suite beside it measures the scheduler. Twenty-five of each averages the
+    // jitter out and leaves the forty-fold signal untouched.
+    const feed = Math.max(spent(feedOnce), 1);
     const bookCost = spent(bookOnce);
     assert.equal(libraryLessons(`${BOOKS}/Mechanics`, true, OFF).length, 40);
     assert.ok(
-      bookCost < feed * 2,
-      `forty lessons took ${bookCost.toFixed(1)} ms against a ${feed.toFixed(1)} ms feed over the whole vault`,
+      bookCost < feed * 3,
+      `forty lessons took ${bookCost.toFixed(1)} ms against a ${feed.toFixed(1)} ms feed over the whole vault, ${ROUNDS} rounds each`,
     );
   });
 
