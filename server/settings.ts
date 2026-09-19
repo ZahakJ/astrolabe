@@ -43,6 +43,7 @@ import type {
   SettingsData,
   SettingsResponse,
   LibraryPathRef,
+  LibraryRoot,
   LibrarySettings,
 } from "../shared/types.ts";
 // Public folders: the shapes are in types.ts, the RULES are here — one copy,
@@ -63,10 +64,16 @@ import {
 } from "../shared/publicFolders.ts";
 import {
   cleanLibraryPath,
+  cleanLibraryRoot,
+  libraryFolder,
   libraryPathId,
+  libraryRootError,
+  libraryRootNested,
   libraryRowError,
   LIBRARY_PATHS_MAX,
+  LIBRARY_ROOTS_MAX,
   LIBRARY_SITE_TITLE_MAX,
+  type LibraryRootProblem,
   type LibraryRowError,
 } from "../shared/library.ts";
 import { FOLLOW_THEME, THEMES as THEME_IDS } from "../shared/themes.ts";
@@ -1908,6 +1915,68 @@ export function moveFolderIcons(from: string, to: string | null): void {
   const raw = { ...readRaw() };
   if (Object.keys(next).length === 0) delete raw.folderIcons;
   else raw.folderIcons = next;
+  persist(raw);
+}
+
+/** Carry (or retire) a library path's FOLDER when that folder is renamed,
+ *  moved or deleted — `moveFolderIcons` one noun over, and for a worse
+ *  failure than a lost glyph.
+ *
+ *  `settings.library.paths[].folder` and `settings.library.roots[].folder` are
+ *  keyed by path, and /api/folder/move is where a folder's path changes. Until
+ *  this ran, renaming `Books/Calculus` left the row naming a folder the vault
+ *  no longer has: `resolveLibraryPath()` found zero lessons, returned null, and
+ *  the path simply VANISHED from /library — while every published note inside
+ *  it, no longer claimed by any lesson folder, flooded back into the blog home,
+ *  the topics, the feed and the sitemap. A rename in the sidebar published a
+ *  book's forty chapter notes as blog posts.
+ *
+ *  The subtree comes along, as it does for a glyph: a root on `Books` carries
+ *  the rows under it, and a row on `Books/X/Z` is repointed by prefix when
+ *  `Books/X` moves. `to === null` is a delete, and the row or the root goes
+ *  with the folder — the alternative is a settings.json that accumulates a
+ *  path for every folder the vault has ever had.
+ *
+ *  Silent no-op when nothing matches (the overwhelmingly common case): it does
+ *  not touch the file, so it cannot bump an mtime the read cache watches. */
+export function moveLibraryFolders(from: string, to: string | null): void {
+  const stored = getSettings().library;
+  if (!stored) return;
+  const source = libraryFolder(from);
+  if (source === null) return;
+  const prefix = `${source}/`;
+  const target = to === null ? null : libraryFolder(to);
+  let changed = false;
+  /** One folder, moved with its subtree — or null when it goes with a delete. */
+  const next = (folder: string): string | null => {
+    const under = folder === source || folder.startsWith(prefix);
+    if (!under) return folder;
+    changed = true;
+    if (target === null) return null;
+    return folder === source ? target : `${target}/${folder.slice(prefix.length)}`;
+  };
+  const paths: LibraryPathRef[] = [];
+  for (const row of stored.paths ?? []) {
+    const folder = next(row.folder);
+    if (folder !== null) paths.push({ ...row, folder });
+  }
+  const roots: LibraryRoot[] = [];
+  for (const root of stored.roots ?? []) {
+    const folder = next(root.folder);
+    if (folder !== null) roots.push({ ...root, folder });
+  }
+  if (!changed) return;
+  const raw = { ...readRaw() };
+  const lib: Record<string, unknown> =
+    typeof raw.library === "object" && raw.library !== null && !Array.isArray(raw.library)
+      ? { ...(raw.library as Record<string, unknown>) }
+      : {};
+  if (paths.length === 0) delete lib.paths;
+  else lib.paths = paths;
+  if (roots.length === 0) delete lib.roots;
+  else lib.roots = roots;
+  if (Object.keys(lib).length === 0) delete raw.library;
+  else raw.library = lib;
   persist(raw);
 }
 
