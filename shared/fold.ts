@@ -54,8 +54,19 @@ const IGNORABLE = new RegExp(
     "\u200b-\u200f" + // zero-width space/joiners and the bidi marks
     "\u00ad" + //        soft hyphen, left behind by a line break
     "\ufeff" + //        zero-width no-break space
+    "\ufe70-\ufe7f" + // the harakat in PRESENTATION form (a pointed glyph's
+    //                   vowel, as a shaped text layer carries it)
+    "\u0000" + //        NUL — a broken text layer's filler between glyphs
     "]",
 );
+
+/** Arabic PRESENTATION FORMS — the shaped glyphs (initial, medial, final,
+ *  isolated) and the lam-alef ligatures that a PDF's text layer carries when
+ *  its producer wrote glyph codes rather than letters (Chromium's print-to-PDF
+ *  does; so do some older Arabic typesetters). A reader types letters; the
+ *  fold maps each form to its letter through NFKC, and a ligature to the two
+ *  letters it stands for. */
+const PRESENTATION = /[\ufb50-\ufdff\ufe70-\ufeff]/;
 
 /** Letters that are the same letter for the purpose of finding a word. The
  *  Arabic set is the one every Arabic search box in the world folds; a reader
@@ -98,6 +109,17 @@ export function foldChar(ch: string): string {
   if (/\s/.test(ch)) return " ";
   const mapped = FOLD[ch];
   if (mapped !== undefined) return mapped;
+  if (PRESENTATION.test(ch)) {
+    // One form, one letter — or two for a lam-alef ligature. The marks NFKC
+    // pulls out of a pointed form are ignorable and dropped; the letters go
+    // through the same table as typed ones, so ﺃ folds to ا like أ does.
+    let out = "";
+    for (const c of ch.normalize("NFKC")) {
+      if (isIgnorableChar(c)) continue;
+      out += FOLD[c] ?? c;
+    }
+    return out;
+  }
   const lower = baseLetter(ch).toLowerCase();
   // Some lowercase mappings are longer than their input (İ → i + U+0307).
   // Length must be preserved or offsets stop meaning anything, so those keep
@@ -155,7 +177,18 @@ export function foldTerm(term: string): string {
  *  reader does not believe in. */
 export function foldKeep(text: string): string {
   let out = "";
-  for (const ch of text) out += isIgnorableChar(ch) ? ch : foldChar(ch);
+  for (const ch of text) {
+    if (isIgnorableChar(ch)) {
+      out += ch;
+      continue;
+    }
+    const f = foldChar(ch);
+    // Length preserved: a lam-alef ligature folds to two letters and a
+    // presentation-form vowel to none; here they keep the first letter or
+    // themselves, because an index into this string must still be an index
+    // into the input.
+    out += f.length === ch.length ? f : f.length > ch.length ? [...f][0] : ch;
+  }
   return out;
 }
 
@@ -256,9 +289,13 @@ function matchAt(chars: string[], from: number, needle: string[]): number {
       n += 1;
       continue;
     }
-    if (f !== needle[n]) return -1;
+    // A fold is usually one letter; a lam-alef ligature is two, and a
+    // presentation-form vowel none (walked past like an ignorable).
+    for (const fc of [...f]) {
+      if (n >= needle.length || fc !== needle[n]) return -1;
+      n += 1;
+    }
     i += 1;
-    n += 1;
   }
   return i;
 }

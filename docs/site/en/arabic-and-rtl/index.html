@@ -92,6 +92,7 @@ align: justify
 <li><strong>ى → ي</strong>, <strong>ة → ه</strong>, and the Persian <strong>ی → ي</strong>, <strong>ک → ك</strong></li>
 <li><strong>Tatweel</strong> (ـــ), which is a typographic stretch and not a letter</li>
 <li><strong>Zero-width joiners, the bidi marks and the soft hyphen</strong></li>
+<li><strong>Shaped glyphs</strong> (the Arabic presentation forms a PDF&#39;s text layer sometimes carries instead of letters — Chromium&#39;s print-to-PDF writes them): each form is its letter, a lam-alef ligature is its two letters, a shaped vowel is nothing</li>
 <li><strong>Latin accents</strong>, in the same pass and by the same table: <code>resume</code> finds <em>résumé</em>, <code>naive</code> finds <em>naïve</em>, <code>cafe</code> finds <em>café</em></li>
 </ul>
 <p>It is one table (<code>shared/fold.ts</code>), and every matcher in the product consults it: the sidebar search and the lines it quotes under a hit, the <code>[[</code> wikilink completion, the command palette&#39;s note rows, and the PDF reader&#39;s own <code>/</code> search, which is where the table was first written.</p>
