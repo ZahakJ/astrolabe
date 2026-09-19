@@ -1198,6 +1198,17 @@ note keeps `MAIN_MIN` = 320px. It is called from exactly three places — boot, 
 and a rAF-throttled `resize`/`matchMedia` listener (`usePaneLayout()`, called once from App) —
 so the three cannot drift. The listener is the missing piece for "resizing *windows*": a window
 dragged narrow re-clamps with no reload, and widened again gives the pane back.
+**AND THE WINDOW'S OWN RE-CLAMP DOES NOT ANIMATE (3.18.1).** The panes carry `transition:
+width 0.18s`, so writing the clamped widths from the resize listener played that transition on
+every frame of a frame drag: measured at 1440 → 904 with `{560, 560}` stored, `.s-main` was 0px
+wide 30ms in and 274px at 110ms before reaching its 320px floor — the note losing its column on
+every resize, which is the one thing `MAIN_MIN` is for, and the panes visibly chasing the
+window edge. `applyPaneWidthsNow` wraps the write in `s-app--pane-still` on the ROOT (where the
+drag's own class already lives) with a style flush either side, so the new widths are committed
+under `transition: none` and the class comes off having animated nothing. ONLY the resize path
+uses it: boot and every fold re-run the same effect, and a fold is the reader's gesture — the
+flush there committed the collapse before the browser had a width to animate from, which is the
+same fault in the other direction. The double-click reset is the hand too, and keeps its 0.18s.
 `paneStyle` decides whether to write the property at all: nothing stored and room to spare means
 say NOTHING, because `--sidebar-w`'s own `clamp(224px, calc(100vw - 776px), 292px)` is the rule
 that hands the 1000–1068 band its surplus to the reading column and an inline `292px` would
@@ -1496,7 +1507,18 @@ stays on `.s-panel--collapsed`, as it always did.
       `cursor: col-resize !important` app-wide), and identical in RTL and on every OS, because it
       is a question of what is true in that commit rather than of timing. The reader's own toggle
       — the header button, the door, `Ctrl/Cmd Alt Shift B`, the palette — never raises it and
-      keeps the 180ms it belongs to;
+      keeps the 180ms it belongs to.
+      **AND IT COMES BACK DOWN (3.18.1).** `paneStill` only ever went UP, and a window under
+      1360 auto-collapses the panel at BOOT — so on a 1366 laptop the shell wore
+      `s-app--pane-still` for the life of the page. Measured at 1300: `.s-sidebar`, `.s-panel`
+      and `.s-main` all at `transition-duration: 0s` at boot and still 0s after the reader's own
+      `Ctrl/Cmd Alt B`; and on the phone, where the notes drawer slides on that same
+      `.s-sidebar` (`.s-app--pane-still .s-sidebar` beats the drawer's own rule on source
+      order), the drawer stopped moving at all — `transition-property: none`, left −330 → 0 in
+      one frame. So every reader-driven pane gesture LOWERS it in the same `set` that starts its
+      own animation: `setPanelCollapsed`, `setSidebarCollapsed`, `setSidebarOpen`, `setZen`.
+      Still no timer and still no effect — the flag is what is true in the commit, and the
+      commit that hands the reader their animation back is the one that starts it;
     - sidebar: `--sidebar-w: clamp(224px, calc(100vw - 776px), 292px)` — 776 = the 760px box +
       that door + both panes' 1px separators — so between 1000 and 1068 the pane takes exactly
       the surplus and the column sits at its cap; and at ≤999 the sidebar leaves the grid

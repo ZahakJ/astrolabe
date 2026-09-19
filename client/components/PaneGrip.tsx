@@ -35,6 +35,7 @@ import {
   PANE_COLLAPSE_AT,
   PANE_REOPEN_AT,
   applyPaneWidths,
+  applyPaneWidthsNow,
   clampPane,
   dragWidth,
   layoutPanes,
@@ -212,12 +213,20 @@ export function usePaneLayout(): void {
     let frame = 0;
     const apply = (): void => {
       frame = 0;
-      applyPaneWidths(document.documentElement, paneRoom());
+      // WITHOUT THE 0.18s: a width the WINDOW asked for arrives at once. A
+      // pane animating toward a moving window edge is the lag this seam is
+      // about, with `.s-main` passing through 0px on the way down.
+      applyPaneWidthsNow(document.documentElement, paneRoom());
     };
     const schedule = (): void => {
       if (!frame) frame = requestAnimationFrame(apply);
     };
-    apply();
+    // Boot, and every fold and unfold — which run this effect again through
+    // its deps. THROUGH the transition, not around it: a fold is the reader's
+    // own gesture and the 0.18s is part of it, and the still-write above
+    // forces a style flush that would commit the collapse before the browser
+    // ever saw a width to animate from.
+    applyPaneWidths(document.documentElement, paneRoom());
     const drawer = window.matchMedia(DRAWER_QUERY);
     const phone = window.matchMedia(PHONE_QUERY);
     window.addEventListener("resize", schedule);

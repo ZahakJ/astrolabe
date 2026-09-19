@@ -7262,7 +7262,18 @@ button.s-title:hover {
    commit as the collapse (`paneStill`, client/state.ts), so this is a matter
    of what is true in that commit and not of timing: no timer, no resize
    listener, and identical in RTL and on every OS. The reader's own toggle
-   never raises it, and keeps the 180ms it belongs to. */
+   never raises it — and every reader-driven pane gesture LOWERS it in the
+   same commit, so the class cannot outlive the collapse it was raised for.
+   (It did: a window under 1360px auto-collapses the panel at boot, so on a
+   1366 laptop the shell wore this for the life of the page and the reader's
+   own sidebar collapse — and the phone's notes drawer, which slides on the
+   same `.s-sidebar` — snapped instead of moving.)
+
+   The root element wears it too, for the length of one write, when the panes
+   are re-clamped because the WINDOW changed size (`applyPaneWidthsNow`,
+   client/paneWidths.ts): a pane animating toward a moving window edge is the
+   same 180ms in the same wrong place, with `.s-main` passing through 0px on
+   the way down. Either ancestor satisfies the selectors below. */
 .s-app--pane-still .s-sidebar,
 .s-app--pane-still .s-panel,
 .s-app--pane-still .s-main {

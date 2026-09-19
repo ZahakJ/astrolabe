@@ -204,3 +204,30 @@ export function applyPaneWidths(root: HTMLElement, room: PaneRoom): void {
     else root.style.removeProperty(paneVar(pane));
   }
 }
+
+/** The class that says "this width is not the hand's doing", so the panes'
+ *  0.18s does not play. React puts it on `.s-app` for the outline panel's
+ *  automatic collapse (`paneStill`, client/state.ts); this file puts it on the
+ *  root for the length of one write, the way the drag's own class does. */
+export const PANE_STILL = "s-app--pane-still";
+
+/** THE SAME WIDTHS, ARRIVING AT ONCE — which is what a window resize is.
+ *
+ *  A window dragged narrower re-clamps the panes on every frame, and a 0.18s
+ *  width transition chasing a frame drag is precisely the lag this seam exists
+ *  to remove. Measured before this: two 560px panes stored, the window taken
+ *  from 1440 to 904, and `.s-main` was 0px wide 30ms in, 274px at 110ms and
+ *  only reached its 320px floor after about 200ms — the note losing its column
+ *  on every resize, which is the one thing `MAIN_MIN` is for.
+ *
+ *  Two style flushes and no timer: the first commits `transition: none` as the
+ *  current style, the second commits the new widths underneath it, and the
+ *  class comes off having animated nothing. The reader's own double-click
+ *  reset calls `applyPaneWidths` directly and keeps its 0.18s. */
+export function applyPaneWidthsNow(root: HTMLElement, room: PaneRoom): void {
+  root.classList.add(PANE_STILL);
+  void root.offsetWidth;
+  applyPaneWidths(root, room);
+  void root.offsetWidth;
+  root.classList.remove(PANE_STILL);
+}
