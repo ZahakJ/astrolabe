@@ -2342,7 +2342,18 @@ export function isAllowedAttachment(relPath: string): boolean {
   // no file — it would have stayed a 404 until the next vault event.
   if (!attachmentPaths.has(relPath)) return false;
   const settings = getSettings();
-  if (libraryCoverPaths({ enabled: settings.library?.enabled, paths: libraryRefs() }).includes(relPath)) return true;
+  // ON THE SHELF'S TERMS MEANS ON THE SHELF. A path with no published note
+  // under it is not sent to anybody (server/library.ts resolveLibraryPath
+  // returns null on zero lessons), so its cover is art nobody can reach a
+  // page for — and serving it anyway handed an anonymous caller a picture out
+  // of a folder every note of which is a draft. Folder notes make that easy
+  // to do by accident (`library: book` + `cover:` and nothing published yet)
+  // and shelf roots make it the default shape, so the filter is here rather
+  // than in libraryCoverPaths: the rule is about THIS index, not about a
+  // settings shape shared/library.ts can judge on its own.
+  if (libraryCoverPaths({ enabled: settings.library?.enabled, paths: refsWithLessons(libraryRefs()) }).includes(relPath)) {
+    return true;
+  }
   // A folder's or a collection's image mark, on the same live terms.
   if (folderImagePaths(settings.folderIcons).includes(relPath)) return true;
   return collectionRows().some((row) => row.icon === relPath);
@@ -2432,6 +2443,12 @@ export function unreferencedAttachments(): string[] {
       }
     }
   }
+  // UNFILTERED on purpose, where isAllowedAttachment() filters by "has a
+  // published lesson". The agreement the docstring above asks for is
+  // ONE-DIRECTIONAL — nothing the allowlist serves may be called unused — so a
+  // stricter allowlist keeps it. Going the other way would put the cover the
+  // owner chose for a book they have not published yet into a delete list,
+  // which is the very bug this walk exists to prevent.
   for (const cover of libraryCoverPaths({ enabled: settings.library?.enabled, paths: libraryRefs() })) used.add(cover);
   for (const icon of folderImagePaths(settings.folderIcons)) used.add(icon);
   for (const row of collectionRows()) if (typeof row.icon === "string") used.add(row.icon);
@@ -2648,6 +2665,35 @@ export function folderMeta(folder: string): FolderMeta | null {
   return null;
 }
 
+/** Does the vault hold a PUBLISHED note anywhere under this folder? The
+ *  boundary is the slash, like every other folder test on the shelf: `Books/F`
+ *  never answers for `Books/Feynman Lectures`. */
+function hasPublishedUnder(folder: string): boolean {
+  const prefix = folder.endsWith("/") ? folder : `${folder}/`;
+  for (const notePath of publishedSet) {
+    if (notePath.startsWith(prefix)) return true;
+  }
+  return false;
+}
+
+/** The refs a visitor could reach a page for: one published note under the
+ *  folder is the whole test, and it is the same one resolveLibraryPath() makes
+ *  when it returns null. Used by the cover allowlist — see isAllowedAttachment. */
+function refsWithLessons(refs: readonly LibraryPathRef[]): LibraryPathRef[] {
+  return refs.filter((ref) => hasPublishedUnder(ref.folder));
+}
+
+/** A folder note's `source:` is a plain string typed in the vault, and it ends
+ *  up in `href` on the path page. A settings row has been https-only since the
+ *  rule was written (shared/library.ts cleanLibraryPath); the vault's copy was
+ *  not, so `source: javascript:alert(1)` in a folder note rode straight to the
+ *  anchor. One regex, the row's own. */
+function httpSource(raw: string | undefined): string | null {
+  if (typeof raw !== "string") return null;
+  const source = raw.trim();
+  return source !== "" && /^https?:\/\//i.test(source) ? source : null;
+}
+
 /** Every path on the shelf: the settings rows, PLUS the folders whose note
  *  declares `library: book|course|series`. A settings row naming the same
  *  folder wins field by field and fills its blanks from the note (a blurb
@@ -2688,7 +2734,10 @@ export function libraryRefs(): LibraryPathRef[] {
     if (row) {
       if (!row.blurb && meta.description) row.blurb = meta.description;
       if (!row.cover && meta.cover) row.cover = meta.cover;
-      if (!row.source && meta.source) row.source = meta.source;
+      if (!row.source) {
+        const source = httpSource(meta.source);
+        if (source !== null) row.source = source;
+      }
       continue;
     }
     const title = meta.title ?? libraryTitleOf(folder) ?? folder;
@@ -2701,7 +2750,8 @@ export function libraryRefs(): LibraryPathRef[] {
     if (meta.cover) ref.cover = meta.cover;
     const lentCover = lent.get(folder);
     if (lentCover !== undefined) ref.cover = lentCover;
-    if (meta.source) ref.source = meta.source;
+    const source = httpSource(meta.source);
+    if (source !== null) ref.source = source;
     if (meta.hidden) ref.hidden = true;
     rows.push(ref);
   }
@@ -2863,8 +2913,12 @@ export function publicFolderCounts(
  *  each with the words and minutes the post list prints, scoped exactly as
  *  posts() scopes the feed (the language filter for a visitor, templates out).
  *  The ORDER is the caller's (shared/library.ts); this answers what is there.
- *  An admin sees unpublished notes too, marked, so the shelf they are
- *  arranging shows them what a visitor will and will not get. */
+ *  An admin sees unpublished notes too — that is how the shelf they are
+ *  arranging shows them what a visitor will and will not get — and `published`
+ *  says which is which. It is for THIS server only: server/library.ts strips
+ *  it off every lesson before the wire (`LibraryLesson` has no such field), so
+ *  a draft is never MARKED on a page, only present for an admin and absent for
+ *  a visitor. */
 export function libraryLessons(
   folder: string,
   visitor: boolean,
@@ -2874,6 +2928,13 @@ export function libraryLessons(
   const out: { path: string; title: string; words: number; readingMinutes: number; excerpt: string; published: boolean }[] = [];
   const isTemplate = templateMatcher();
   const hidden = excludedTags();
+  // ONCE FOR THE LOOP, like `hidden` and `isTemplate` beside it. postMeta()
+  // defaults this parameter to collectionRowsNow(), which walks the whole
+  // vault; left to default it ran ONCE PER LESSON, so resolving a 40-lesson
+  // book was forty full-vault walks and a five-path shelf was two hundred — on
+  // every anonymous /api/me, which asks for the door. The rows are the same
+  // for every lesson of every path in one request.
+  const rows = collectionRowsNow();
   const source = visitor ? publishedSet : notes.keys();
   for (const notePath of source) {
     if (!notePath.startsWith(prefix)) continue;
@@ -2881,7 +2942,7 @@ export function libraryLessons(
     if (!record) continue;
     if (visitor && languageHidden(record, lang)) continue;
     if (isTemplate(notePath)) continue;
-    const meta = postMeta(record, hidden);
+    const meta = postMeta(record, hidden, rows);
     out.push({
       path: meta.path,
       title: meta.title,

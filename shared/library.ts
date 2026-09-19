@@ -22,10 +22,14 @@
 // cleaner must agree on what a legal row is, or the panel shows a green field
 // beside a 400.
 
-import { folderId, folderSlug } from "./publicFolders.ts";
-import type { LibraryKind, LibraryPathRef, LibraryUnit, LibrarySettings } from "./types.ts";
+import { folderId, folderSlug, suggestSlug } from "./publicFolders.ts";
+import type { LibraryKind, LibraryPathRef, LibraryRoot, LibraryUnit, LibrarySettings } from "./types.ts";
 
 export const LIBRARY_PATHS_MAX = 24;
+/** How many shelf roots a site may declare. Eight, against twenty-four rows,
+ *  because a root is a SENTENCE about the vault's shape ("books live here")
+ *  and a vault with nine of those does not have a shelf, it has a filesystem. */
+export const LIBRARY_ROOTS_MAX = 8;
 export const LIBRARY_TITLE_MAX = 80;
 export const LIBRARY_BLURB_MAX = 300;
 export const LIBRARY_FOLDER_MAX = 300;
@@ -104,6 +108,92 @@ export function cleanLibraryPath(entry: unknown, fallbackId: () => string): Libr
   if (source !== "" && /^https?:\/\//i.test(source)) out.source = source;
   if (row.hidden === true) out.hidden = true;
   return out;
+}
+
+// ── Shelf roots ─────────────────────────────────────────────────────────────
+
+export type LibraryRootProblem = "notObject" | "vault" | "folder" | "kind";
+
+/** Why a root is not a root, or null when it is one. The VAULT ROOT gets its
+ *  own answer rather than falling into "folder": a root on `/` would make
+ *  every top-level folder of the vault a book, which is the one mistake this
+ *  feature makes easy and the panel should name out loud. */
+export function libraryRootError(entry: unknown): LibraryRootProblem | null {
+  if (typeof entry !== "object" || entry === null || Array.isArray(entry)) return "notObject";
+  const row = entry as Record<string, unknown>;
+  if (typeof row.folder === "string" && row.folder.trim().replace(/\\/g, "/").replace(/^\/+|\/+$/g, "") === "") {
+    return "vault";
+  }
+  if (libraryFolder(row.folder) === null) return "folder";
+  if (!isLibraryKind(row.kind)) return "kind";
+  return null;
+}
+
+/** Does this root sit somewhere no root may sit?
+ *
+ *  Against the OTHER ROOTS the test is symmetric — `Books` and `Books/Old`
+ *  together would give one folder two kinds and two parents, and there is no
+ *  answer to "which one wins" that a reader would guess. Against a ROW it is
+ *  one-directional: a root CONTAINING a row's folder is the whole design
+ *  (`Books` over a row on `Books/Calculus`); a root INSIDE one, or equal to
+ *  one, would turn a path's own chapters into paths. */
+export function libraryRootNested(
+  folder: string,
+  roots: readonly string[],
+  rowFolders: readonly string[] = [],
+): boolean {
+  for (const other of roots) {
+    if (other === folder || folder.startsWith(`${other}/`) || other.startsWith(`${folder}/`)) return true;
+  }
+  for (const row of rowFolders) {
+    if (row === folder || folder.startsWith(`${row}/`)) return true;
+  }
+  return false;
+}
+
+/** A stored or posted root, cleaned, or null when it is not one. */
+export function cleanLibraryRoot(entry: unknown, fallbackId: () => string): LibraryRoot | null {
+  if (libraryRootError(entry) !== null) return null;
+  const row = entry as Record<string, unknown>;
+  return {
+    id: typeof row.id === "string" && ID_RE.test(row.id) ? row.id : fallbackId(),
+    folder: libraryFolder(row.folder) as string,
+    kind: row.kind as LibraryKind,
+  };
+}
+
+// ── Addresses ───────────────────────────────────────────────────────────────
+
+/** The address a path WOULD take if nothing claimed it: the folder note's own
+ *  `slug:` when it has one, else the title's suggestion. Null when the title
+ *  makes no address at all — an Arabic title, which on this instance is the
+ *  common case and not an error.
+ *
+ *  Separate from `derivedSlug` because the settings panel needs to tell the
+ *  two failures apart: "your title makes no address" asks for a `slug:` in the
+ *  folder note, "that address is taken" names the path holding it. */
+export function derivedSlugCandidate(title: string, metaSlug?: string): string | null {
+  const pinned = librarySlug(metaSlug);
+  if (pinned !== null) return pinned;
+  const suggested = suggestSlug(title);
+  return suggested === "" ? null : suggested;
+}
+
+/** The address a derived path actually gets, or null when it gets none.
+ *
+ *  WHY NULL AND NOT A COUNTER. The old rule was `suggestSlug(title) || "path"`
+ *  plus `-2`, `-3`… in folder order, and on a vault with three Arabic-titled
+ *  books that produced `/library/path`, `/library/path-2` and `/library/path-3`
+ *  — three addresses that say nothing, assigned by whichever book existed that
+ *  morning, with reader progress keyed to them. A URL the owner would never
+ *  paste is not an address. So a folder whose title makes none, or whose
+ *  address a row already pins, is NOT PUBLISHED: it waits in the settings
+ *  panel under "Needs an address" until it has a `slug:` or a row, and its
+ *  notes stay on the blog exactly as they are today. */
+export function derivedSlug(title: string, metaSlug: string | undefined, taken: ReadonlySet<string>): string | null {
+  const candidate = derivedSlugCandidate(title, metaSlug);
+  if (candidate === null || taken.has(candidate)) return null;
+  return candidate;
 }
 
 /** Editor rows → the wire list: blank rows dropped, every field trimmed. */

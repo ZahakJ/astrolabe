@@ -172,6 +172,7 @@ import {
 import {
   fontSlots,
   moveFolderIcons,
+  moveLibraryFolders,
   patchSettings,
   renameTagLabels,
   restoreTagLabels,
@@ -903,6 +904,12 @@ api.post("/folder/move", async (c) => {
   // AFTER the move, never before — a refusal (into its own descendant, onto
   // an existing name) must not have moved anything, settings included.
   moveFolderIcons(from, to);
+  // A LIBRARY PATH IS A FOLDER, so a folder's path changing is the path's own
+  // address changing. Without this the row kept naming a folder the vault no
+  // longer had: the path vanished from /library and every published note
+  // inside it came back as a blog post. Same ordering argument as the glyph —
+  // after the move, so a refusal moves nothing, settings included.
+  moveLibraryFolders(from, to);
   return c.json(result);
 });
 
@@ -924,6 +931,8 @@ api.delete("/folder", async (c) => {
   // for every folder the vault has ever had, forever, and hits its cap on a
   // vault the owner would describe as small.
   moveFolderIcons(folderPath, null);
+  // The row and the root go with the folder, on the same argument.
+  moveLibraryFolders(folderPath, null);
   await whenIndexed();
   return c.json(result);
 });
