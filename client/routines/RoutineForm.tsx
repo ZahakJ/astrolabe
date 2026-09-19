@@ -38,7 +38,9 @@ import {
   emptyDraft,
   fieldSpec,
   foldRoutineKind,
+  isoDate,
   parseField,
+  parseRoutine,
   routineFenceBody,
   routineFileName,
   routineNoteContent,
@@ -51,10 +53,12 @@ import {
   type RoutineKind,
   type Weekday,
 } from "../../shared/routine.ts";
+import { courseFinish } from "../../shared/course.ts";
 import { ROUTINE_PRESETS } from "../../shared/routinePresets.ts";
 import { UPLOAD_MAX_MB } from "../../shared/limits.ts";
 import type { RoutineMeta } from "../../shared/types.ts";
-import { getLang, localeNum, t, tf, type I18nKey } from "../i18n.ts";
+import { siteDate } from "../dates.ts";
+import { countPhrase, getLang, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { treeHasFolder, treeHasPath } from "../media/mediaModel.ts";
 import { parentDir } from "../move.ts";
 import { KNOWN_FIELDS, fieldFromKnown, knownFieldOf, type KnownField } from "../routineFields.ts";
@@ -215,6 +219,28 @@ export function RoutineForm({
   const removeField = (target: RoutineField): void => setFields((list) => list.filter((f) => f !== target));
   const addField = (): void => setFields((list) => [...list, { key: "", type: "number", unit: null, max: null }]);
   const ownFields = fields.filter((f) => knownFieldOf(f) === null);
+
+  // ── A course ──
+  const course = draft.mode === "course";
+  const toggleDay = (wd: Weekday, on: boolean): void =>
+    setDraft((d) => ({ ...d, daysWritten: true, days: on ? [...d.days, wd] : d.days.filter((x) => x !== wd) }));
+
+  // WHAT THE COURSE WILL SAY, read back from the plan the sheet is about to
+  // WRITE. The count, the units and the finish date all come out of the same
+  // parser and the same projection the card uses, so the sheet can never
+  // promise a shape the note does not hold.
+  const preview = useMemo(() => {
+    if (draft.mode !== "course") return null;
+    const plan = parseRoutine(
+      routineFenceBody({ ...emptyDraft(), title: draft.title.trim() || "—", mode: "course", days: draft.days, daysWritten: draft.daysWritten, capacity: draft.capacity, steps: draft.steps }),
+    );
+    if (plan?.course == null) return null;
+    return {
+      steps: plan.course.steps.length,
+      units: new Set(plan.course.steps.map((s) => s.unit)).size,
+      finish: courseFinish(plan, [], isoDate(new Date())),
+    };
+  }, [draft.mode, draft.title, draft.days, draft.daysWritten, draft.capacity, draft.steps]);
 
   const composed = (): RoutineDraft => ({
     ...draft,
@@ -506,18 +532,60 @@ export function RoutineForm({
             </div>
           </section>
 
-          {/* ── 2 · Days and parts ── */}
+          {/* ── 2 · A week, or a course ── */}
           <section className="s-sigilform__section" aria-labelledby="s-sigilform-s2">
             <header className="s-sigilform__sechead">
               <span className="s-sigilform__secnum" aria-hidden="true">2</span>
-              <h3 className="s-sigilform__sectitle" id="s-sigilform-s2">{t("routineFormSectionDays")}</h3>
+              <h3 className="s-sigilform__sectitle" id="s-sigilform-s2">{course ? t("routineFormSectionCourse") : t("routineFormSectionDays")}</h3>
             </header>
 
-            <label className="s-mediaform__row">
-              <span className="s-mediaform__label">{t("routineFormSlots")}</span>
-              <TextInput value={slotsText} onChange={setSlotsText} placeholder={t("routineFormSlotsPlaceholder")} label={t("routineFormSlots")} maxLength={200} dir="auto" />
-              <p className="s-mediaform__hint">{t("routineFormSlotsHint")}</p>
-            </label>
+            {/* THE MODE IS THE FIRST QUESTION OF THIS SECTION, because every
+                control under it is the answer to it: a week has parts and a
+                table, a course has days, a budget and a list of steps. */}
+            <div className="s-mediaform__row">
+              <span className="s-mediaform__label">{t("routineFormMode")}</span>
+              <SegmentedControl
+                value={draft.mode}
+                onChange={(v) => set("mode", v as RoutineDraft["mode"])}
+                segments={[
+                  { value: "week", label: t("routineFormModeWeek") },
+                  { value: "course", label: t("routineFormModeCourse") },
+                ]}
+                label={t("routineFormMode")}
+              />
+              <p className="s-mediaform__hint">{t("routineFormModeHint")}</p>
+            </div>
+
+            {!course && (
+              <label className="s-mediaform__row">
+                <span className="s-mediaform__label">{t("routineFormSlots")}</span>
+                <TextInput value={slotsText} onChange={setSlotsText} placeholder={t("routineFormSlotsPlaceholder")} label={t("routineFormSlots")} maxLength={200} dir="auto" />
+                <p className="s-mediaform__hint">{t("routineFormSlotsHint")}</p>
+              </label>
+            )}
+
+            {course && (
+              <div className="s-mediaform__row">
+                <span className="s-mediaform__label" id="s-sigilform-days">{t("routineFormDays")}</span>
+                <div className="s-sigilform__days" role="group" aria-labelledby="s-sigilform-days">
+                  {order.map((wd) => (
+                    <label key={wd} className={`s-sigilform__day${draft.days.includes(wd) ? " is-on" : ""}`}>
+                      <input type="checkbox" checked={draft.days.includes(wd)} onChange={(e) => toggleDay(wd, e.target.checked)} />
+                      <span>{t(WEEKDAY_LABEL[wd])}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="s-mediaform__hint">{t("routineFormDaysHint")}</p>
+              </div>
+            )}
+
+            {course && (
+              <label className="s-mediaform__row">
+                <span className="s-mediaform__label">{t("routineFormCapacity")}</span>
+                <TextInput value={draft.capacity} onChange={(v) => set("capacity", v)} placeholder={t("routineFormCapacityPlaceholder")} label={t("routineFormCapacity")} maxLength={200} dir="auto" />
+                <p className="s-mediaform__hint">{t("routineFormCapacityHint")}</p>
+              </label>
+            )}
 
             <label className="s-mediaform__row">
               <span className="s-mediaform__label">{t("routineFormItems")}</span>
@@ -525,41 +593,76 @@ export function RoutineForm({
               <p className="s-mediaform__hint">{t("routineFormItemsHint")}</p>
             </label>
 
-            <div className="s-mediaform__row">
-              <span className="s-mediaform__label">{t("routineFormWeek")}</span>
-              <div className="s-sigilform__weekwrap">
-                <table className="s-sigilform__week">
-                  <thead>
-                    <tr>
-                      <th>{t("routineDay")}</th>
-                      {columns.map((c) => (
-                        <th key={c || "plan"} dir="auto">{c || t("routinePlanTitle")}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {order.map((wd) => (
-                      <tr key={wd}>
-                        <th>{t(WEEKDAY_LABEL[wd])}</th>
+            {course ? (
+              <label className="s-mediaform__row">
+                <span className="s-mediaform__label">{t("routineFormSteps")}</span>
+                <textarea
+                  className="s-ctl s-ctl-input s-sigilform__steps"
+                  rows={12}
+                  value={draft.steps}
+                  dir="auto"
+                  aria-label={t("routineFormSteps")}
+                  onChange={(e) => set("steps", e.target.value)}
+                />
+                {/* The count and the finish date, each its own span so the
+                    middle dot between them is DRAWN (routines.css) rather
+                    than typed — a separator in the copy would sit at the
+                    wrong end of an Arabic line. */}
+                <p className="s-sigilform__stepcount" aria-live="polite">
+                  {preview === null || preview.steps === 0 ? (
+                    <span>{t("routineFormStepsNone")}</span>
+                  ) : (
+                    <>
+                      <span>{tf("routineFormStepsCount", { steps: countPhrase(preview.steps, "steps"), units: countPhrase(preview.units, "units") })}</span>
+                      {preview.finish !== null && (
+                        <span>
+                          {tf("routineFormStepsFinish", {
+                            date: siteDate(`${preview.finish}T12:00:00`, useStore.getState().blogLocale, { day: "numeric", month: "long", year: "numeric" }) || preview.finish,
+                          })}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </p>
+                <p className="s-mediaform__hint">{t("routineFormStepsHint")}</p>
+              </label>
+            ) : (
+              <div className="s-mediaform__row">
+                <span className="s-mediaform__label">{t("routineFormWeek")}</span>
+                <div className="s-sigilform__weekwrap">
+                  <table className="s-sigilform__week">
+                    <thead>
+                      <tr>
+                        <th>{t("routineDay")}</th>
                         {columns.map((c) => (
-                          <td key={c || "plan"}>
-                            <textarea
-                              className="s-sigilform__cell"
-                              rows={2}
-                              value={draft.week[wd][c] ?? ""}
-                              dir="auto"
-                              aria-label={`${t(WEEKDAY_LABEL[wd])} ${c}`}
-                              onChange={(e) => setCell(wd, c, e.target.value)}
-                            />
-                          </td>
+                          <th key={c || "plan"} dir="auto">{c || t("routinePlanTitle")}</th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {order.map((wd) => (
+                        <tr key={wd}>
+                          <th>{t(WEEKDAY_LABEL[wd])}</th>
+                          {columns.map((c) => (
+                            <td key={c || "plan"}>
+                              <textarea
+                                className="s-sigilform__cell"
+                                rows={2}
+                                value={draft.week[wd][c] ?? ""}
+                                dir="auto"
+                                aria-label={`${t(WEEKDAY_LABEL[wd])} ${c}`}
+                                onChange={(e) => setCell(wd, c, e.target.value)}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="s-mediaform__hint">{t("routineFormWeekHint")}</p>
               </div>
-              <p className="s-mediaform__hint">{t("routineFormWeekHint")}</p>
-            </div>
+            )}
           </section>
 
           {/* ── 3 · What to record each day ── */}

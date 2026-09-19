@@ -9687,6 +9687,44 @@ every-day tasks, `fields: name:type[:unit|max]`, `target: n/week`, `notes: |`. W
 words fold in both languages. **A body with neither a title nor a plan parses to null** and the
 fence reads as its own source (the $$-math rule).
 
+**A COURSE IS THE SECOND MODE OF THE SAME FENCE (3.19.0), AND NOTHING IN IT IS DATED.** The owner:
+"there has to be a way to dynamically ask a sigil to keep moving/bumping yesterday's task if not
+done because future tasks depend on it … if it takes me two days instead of one the schedule
+handles it by shifting the task to the second day". `mode: course` turns the plan from a week into
+an ORDERED LIST: `days:` (the weekdays that get steps), `capacity:` (`15 min · sat 45 min · sun 0`
+— a day's budget, `0` a rest day), `items:` (unchanged; the middle dot joins a list as a comma
+does, which is what `[[a]] · [[b]]` wants, and `plan.itemsSep` remembers which the author used so
+the form round-trips it), and `steps: |`, a block scalar of `- step (45 min)` lines under `# unit`
+headings, kept VERBATIM in `course.source` — comments, blank lines and indentation included. The
+CURSOR is the first step neither done nor skipped; every date is PROJECTED by `projectCourse`
+walking forward from today over the allowed days, taking at least one step a day and then as many
+more as the budget holds. A missed day writes nothing: the same call made tomorrow returns the same
+steps one day later, and everything after the cursor shifts. `tasksFor` answers a course with its
+items plus ONE sentinel task (`COURSE_TASK`, NUL-prefixed, never a key a log names) that
+`dayStatus` resolves through `courseDayMet` — a day is complete when the minutes of its ticked
+steps reach its capacity, or, with no capacity, on one step.
+
+**A STEP'S KEY SURVIVES AN INSERT, A REORDER — AND AN EDIT, BECAUSE THE APP STAMPS IT.** A step is
+named by an explicit `[k3]` tag at the end of its line when it has one (a wikilink is not one: the
+character before the bracket must not be a bracket), else by a short FNV-1a of its unit and its
+words, with `-2` for a repeat of the same words under the same heading. A hash does not depend on
+position, so inserting and reordering are free; it DOES depend on the words, so `logEditFor`
+stamps the key into the line the first time a step is ticked or skipped and the plan edit and the
+log edit go out as ONE `{from, to, insert}` — the plan fence always precedes its log, so the span
+from the plan's body to the log's covers both and the bytes between are carried over untouched.
+One undo step, and a step nobody has answered has nothing to lose.
+
+**THE WALK IS A SEPARATE MODULE, AND THAT IS A BUDGET.** `shared/routine.ts` is a STATIC import of
+the entry (render.ts must draw a fence before anything paints), so the course PARSER lives there
+and every reader pays for it. The cursor, the projection, `courseStepsOn` and `courseBands` live in
+`shared/course.ts`, which only the card, the Sigils page, the Calendar page and the form import —
+all four lazy. The Calendar page draws the two halves of one projection: a past day names the steps
+it answered (solid), a day ahead names what the projection puts there (`.s-calpage__line--ahead`,
+faint and italic, and never taking the solid first-line ink), and under the grid `agendaBands`
+lists the unit bands of the months ahead. `client/routines/orbits.ts` drops the sentinel task and
+queries `.s-rv-routine__task:not(.s-rv-routine__step)`, because the card draws a course's steps in
+their own rows ABOVE the items and the nth task must stay the nth row.
+
 **The log is one line per day, read by segments.** `date | done: a, b | skipped: c | <field>: v |
 note`. `parseLogLine` takes the plan's fields so a segment whose key is not a field is prose, not a
 value; the last line for a date wins; Eastern Arabic digits fold. `upsertLogLine` is byte-disciplined

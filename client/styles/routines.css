@@ -429,6 +429,82 @@
   outline-offset: 1px;
 }
 
+/* ── A course: the days it steps on, and the steps themselves ────────────── */
+
+.s-sigilform__days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.s-sigilform__day {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.857rem;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.s-sigilform__day.is-on {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg));
+  color: var(--text);
+}
+.s-sigilform__day input {
+  inline-size: 16px;
+  block-size: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.s-sigilform__day:focus-within {
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 1px;
+}
+
+.s-sigilform__steps {
+  inline-size: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  font-size: 0.857rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* What the steps add up to, under the box and out of the same parser the
+   card reads with — so the sheet never promises a shape the note has not. */
+.s-sigilform__stepcount {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  margin: 0;
+  font-size: 0.786rem;
+  color: var(--accent);
+}
+.s-sigilform__stepcount > * + *::before {
+  content: "·";
+  margin-inline-end: 10px;
+  color: var(--text-faint);
+}
+
+@media (pointer: coarse) {
+  .s-sigilform__day {
+    min-block-size: 44px;
+  }
+  .s-sigilform__day input {
+    inline-size: 20px;
+    block-size: 20px;
+  }
+  .s-sigilform__steps {
+    font-size: 1rem;
+  }
+}
+
 /* ── What to record: one toggle per field, a sentence under each ── */
 
 .s-sigilform__opts {

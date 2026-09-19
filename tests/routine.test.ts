@@ -28,6 +28,15 @@ import {
   weekdayOfDate,
   carriedTasks,
 } from "../shared/routine.ts";
+import {
+  courseBands,
+  courseCursor,
+  courseFinish,
+  courseProgress,
+  courseRemaining,
+  courseStepsOn,
+  projectCourse,
+} from "../shared/course.ts";
 import { ROUTINE_PRESETS } from "../shared/routinePresets.ts";
 
 const PLAN = `title: Weekly exercise
@@ -312,6 +321,221 @@ tuesday:
     assert.equal(routinesRootFor("en", ["Orbits"]), "Sigils");
     assert.equal(routinesRootFor("ar", ["مدارات"]), "سجل");
     assert.ok(routineNoteContent(draftOf(parseRoutine(OWNER)!)).startsWith('---\ntitle: "Daily exercise"\n---\n\n```sigil\n'));
+  });
+});
+
+// ── A course (3.19.0) ───────────────────────────────────────────────────────
+//
+// The second mode of the same fence: an ordered list of steps, nothing in the
+// note dated, every date PROJECTED from the cursor forward. The tests below
+// hold the four things that can quietly go wrong — the note's bytes, a step's
+// name, where the cursor is, and what a missed day does to the schedule.
+
+describe("a course", () => {
+  const COURSE = `title: Japanese
+kind: study
+icon: 🗻
+mode: course
+days: mon, tue, wed, thu, fri, sat
+capacity: 15 min · sat 45 min · sun 0
+items: [[Orbits/Japanese/Hiragana]] · [[Orbits/Japanese/Katakana]]
+steps: |
+  # Kana
+  - Tofugu Learn Hiragana rows あ か さ た (45 min)
+  - rows な は ま や ら わ ん (45 min)
+
+  # Genki I — lesson 1
+  - grammar point 1, then Tae Kim's telling of it (15 min)
+  - grammar point 2 (15 min)
+  - grammar point 3 (15 min)
+notes: |
+  Left hand, on the sheets.
+`;
+  const plan = () => parseRoutine(COURSE)!;
+
+  it("reads the mode, the days, the capacity, the items and the steps", () => {
+    const p = plan();
+    assert.equal(p.mode, "course");
+    assert.ok(p.course);
+    assert.deepEqual(p.course.days, ["mon", "tue", "wed", "thu", "fri", "sat"]);
+    assert.equal(p.course.capacity, 15);
+    assert.deepEqual(p.course.capacityByDay, { sat: 45, sun: 0 });
+    // The middle dot joins a list as a comma does.
+    assert.deepEqual(p.items, ["[[Orbits/Japanese/Hiragana]]", "[[Orbits/Japanese/Katakana]]"]);
+    assert.equal(p.course.steps.length, 5);
+    assert.deepEqual(
+      p.course.steps.map((s) => [s.unit, s.text, s.minutes]),
+      [
+        ["Kana", "Tofugu Learn Hiragana rows あ か さ た", 45],
+        ["Kana", "rows な は ま や ら わ ん", 45],
+        ["Genki I — lesson 1", "grammar point 1, then Tae Kim's telling of it", 15],
+        ["Genki I — lesson 1", "grammar point 2", 15],
+        ["Genki I — lesson 1", "grammar point 3", 15],
+      ],
+    );
+    // A weekly sigil is untouched by any of it.
+    const weekly = parseRoutine(PLAN)!;
+    assert.equal(weekly.mode, "week");
+    assert.equal(weekly.course, null);
+  });
+
+  it("round-trips through the form's draft byte for byte, comments and blank lines and all", () => {
+    const withComment = COURSE.replace("  # Kana\n", "  # Kana\n  # two weeks, no more\n\n");
+    for (const src of [COURSE, withComment]) {
+      const p = parseRoutine(src)!;
+      assert.equal(routineFenceBody(draftOf(p)), src);
+    }
+  });
+
+  it("names a step by its tag, else by a hash that survives an insert and a reorder", () => {
+    const keys = plan().course!.steps.map((s) => s.key);
+    assert.equal(new Set(keys).size, keys.length, "no two steps share a name");
+    assert.ok(keys.every((k) => /^k[0-9a-z]{6}$/.test(k)));
+    // Insert a step at the top and reorder two others: every other key holds.
+    const moved = parseRoutine(
+      COURSE.replace("  - Tofugu Learn Hiragana", "  - a new first step (5 min)\n  - Tofugu Learn Hiragana").replace(
+        "  - grammar point 2 (15 min)\n  - grammar point 3 (15 min)",
+        "  - grammar point 3 (15 min)\n  - grammar point 2 (15 min)",
+      ),
+    )!;
+    for (const key of keys) assert.ok(moved.course!.steps.some((s) => s.key === key), key);
+    // An explicit tag wins, and is what the reader sees in the log.
+    const tagged = parseRoutine(COURSE.replace("  - grammar point 2 (15 min)", "  - grammar point 2 (15 min) [g2]"))!;
+    const g2 = tagged.course!.steps.find((s) => s.text === "grammar point 2")!;
+    assert.equal(g2.key, "g2");
+    assert.equal(g2.tagged, true);
+    assert.equal(g2.minutes, 15);
+    // A wikilink at the end of a step is not a tag.
+    const link = parseRoutine("title: x\nmode: course\nsteps: |\n  - study [[Orbits/Hiragana]]\n")!;
+    assert.equal(link.course!.steps[0].tagged, false);
+    assert.equal(link.course!.steps[0].text, "study [[Orbits/Hiragana]]");
+    // Two steps that say the same words under the same heading are told apart.
+    const twice = parseRoutine("title: x\nmode: course\nsteps: |\n  # U\n  - review\n  - review\n")!;
+    assert.notEqual(twice.course!.steps[0].key, twice.course!.steps[1].key);
+  });
+
+  it("stamps a step's key into the note the first time it is ticked, so the words can change after", () => {
+    const note = "# J\n\n```sigil\n" + COURSE + "```\n";
+    const first = plan().course!.steps[0];
+    const edit = logEditFor(note, 0, { date: "2026-09-21", done: [first.key] })!;
+    const next = applyEdit(note, edit);
+    assert.ok(next.includes(`- Tofugu Learn Hiragana rows あ か さ た (45 min) [${first.key}]`), "the step signs its line");
+    assert.ok(next.includes("```sigil-log\n2026-09-21 | done: " + first.key + "\n```"), "and the log records it");
+    // Every other byte of the plan is where it was.
+    assert.ok(next.includes("capacity: 15 min · sat 45 min · sun 0\n"));
+    assert.ok(next.includes("  # Genki I — lesson 1\n"));
+    // Now rewrite the step's words: the tick stays on it.
+    const edited = next.replace("Tofugu Learn Hiragana rows あ か さ た", "Tofugu — hiragana, the first four rows");
+    const blocks = scanRoutines(edited);
+    assert.equal(blocks[0].plan.course!.steps[0].key, first.key);
+    assert.equal(courseProgress(blocks[0].plan, blocks[0].entries).done, 1);
+    // A second tick on an already-stamped step touches the log alone.
+    const again = applyEdit(edited, logEditFor(edited, 0, { date: "2026-09-22", done: [blocks[0].plan.course!.steps[1].key] })!);
+    assert.equal(again.split("```sigil\n")[1].split("```")[0].includes("[k"), true);
+    assert.equal(scanRoutines(again)[0].entries.length, 2);
+  });
+
+  it("puts the cursor on the first step neither done nor skipped", () => {
+    const p = plan();
+    const keys = p.course!.steps.map((s) => s.key);
+    assert.equal(courseCursor(p, [])!.key, keys[0]);
+    const log = parseRoutineLog(`2026-09-19 | done: ${keys[0]}\n2026-09-20 | skipped: ${keys[1]}\n`, p.fields);
+    assert.equal(courseCursor(p, log)!.key, keys[2], "a skipped step moves the cursor on");
+    assert.deepEqual(courseProgress(p, log), { done: 2, of: 5 });
+    // A step ticked out of turn is simply gone from what is left.
+    const jumped = parseRoutineLog(`2026-09-19 | done: ${keys[3]}\n`, p.fields);
+    assert.deepEqual(courseRemaining(p, jumped).map((s) => s.key), [keys[0], keys[1], keys[2], keys[4]]);
+    assert.equal(courseCursor(p, []) !== null, true);
+    assert.equal(courseCursor(p, parseRoutineLog(keys.map((k, i) => `2026-09-${20 + i} | done: ${k}`).join("\n"), p.fields)), null);
+  });
+
+  it("projects the steps over the allowed days, packing each day by its capacity", () => {
+    const p = plan();
+    const keys = p.course!.steps.map((s) => s.key);
+    // Saturday 2026-09-19: 45 minutes, so one 45-minute step. Sunday is a
+    // rest day (capacity 0). Monday 15 min: one step. …
+    const days = projectCourse(p, [], "2026-09-19");
+    assert.deepEqual(
+      days.map((d) => [d.iso, d.steps.map((s) => s.key)]),
+      [
+        ["2026-09-19", [keys[0]]],
+        ["2026-09-21", [keys[1]]],
+        ["2026-09-22", [keys[2]]],
+        ["2026-09-23", [keys[3]]],
+        ["2026-09-24", [keys[4]]],
+      ],
+    );
+    assert.equal(courseFinish(p, [], "2026-09-19"), "2026-09-24");
+    // Saturday's 45 minutes hold three fifteen-minute steps at once.
+    const short = parseRoutine("title: x\nmode: course\ncapacity: 45 min\nsteps: |\n  - a (15 min)\n  - b (15 min)\n  - c (15 min)\n  - d (15 min)\n")!;
+    assert.deepEqual(projectCourse(short, [], "2026-09-21").map((d) => d.steps.length), [3, 1]);
+    // Without a capacity a day takes exactly one step.
+    const bare = parseRoutine("title: x\nmode: course\nsteps: |\n  - a\n  - b\n")!;
+    assert.deepEqual(projectCourse(bare, [], "2026-09-21").map((d) => [d.iso, d.steps.length]), [["2026-09-21", 1], ["2026-09-22", 1]]);
+  });
+
+  it("shifts everything when a day is missed, and changes nothing in the note to do it", () => {
+    const p = plan();
+    const keys = p.course!.steps.map((s) => s.key);
+    // Saturday's step was done; nothing since. On Monday the rest simply
+    // starts on Monday — the note is the same note.
+    const log = parseRoutineLog(`2026-09-19 | done: ${keys[0]}\n`, p.fields);
+    const onMon = projectCourse(p, log, "2026-09-21").map((d) => d.iso);
+    assert.deepEqual(onMon, ["2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24"]);
+    // Two days missed: the same four steps, two days later, nothing lost.
+    const onWed = projectCourse(p, log, "2026-09-23");
+    assert.deepEqual(onWed.map((d) => d.steps[0].key), [keys[1], keys[2], keys[3], keys[4]]);
+    assert.equal(courseFinish(p, log, "2026-09-23"), "2026-09-26");
+  });
+
+  it("judges a day by its capacity's worth of steps, and calls the rest days rest", () => {
+    const p = plan();
+    const keys = p.course!.steps.map((s) => s.key);
+    const today = "2026-09-24"; // a Thursday
+    // Sunday asks nothing: capacity 0 and not in `days`. The every-day items
+    // still are asked, so the day is not rest — untick them and it is.
+    const noItems = parseRoutine(COURSE.replace(/items:.*\n/, ""))!;
+    assert.equal(dayStatus(noItems, null, "2026-09-20", today), "rest");
+    // A Monday with the day's fifteen minutes done is complete…
+    const items = p.items;
+    const full = { date: "2026-09-21", done: [keys[2], ...items], skipped: [], deferred: [], values: {}, note: null };
+    assert.equal(dayStatus(p, full, "2026-09-21", today), "complete");
+    // …the same Monday with only the items is partial…
+    assert.equal(dayStatus(p, { ...full, done: [...items] }, "2026-09-21", today), "partial");
+    // …and a Monday with nothing at all, behind us, is missed.
+    assert.equal(dayStatus(p, null, "2026-09-21", today), "missed");
+    // Saturday wants forty-five minutes: one fifteen-minute step is not a day.
+    const sat = { date: "2026-09-19", done: [keys[2], ...items], skipped: [], deferred: [], values: {}, note: null };
+    assert.equal(dayStatus(p, sat, "2026-09-19", today), "partial");
+    assert.equal(dayStatus(p, { ...sat, done: [keys[0], ...items] }, "2026-09-19", today), "complete");
+    // A course with no capacity is done on one step.
+    const bare = parseRoutine("title: x\nmode: course\nsteps: |\n  - a\n  - b\n")!;
+    const k = bare.course!.steps[0].key;
+    assert.equal(dayStatus(bare, { date: "2026-09-21", done: [k], skipped: [], deferred: [], values: {}, note: null }, "2026-09-21", today), "complete");
+  });
+
+  it("shows a day the steps it holds and the ones projected onto it, and reads unit bands", () => {
+    const p = plan();
+    const keys = p.course!.steps.map((s) => s.key);
+    const log = parseRoutineLog(`2026-09-19 | done: ${keys[0]}\n`, p.fields);
+    // The day it was done still shows it, so the tick can be taken back.
+    assert.deepEqual(courseStepsOn(p, log, "2026-09-19", "2026-09-21").map((s) => s.key), [keys[0]]);
+    assert.deepEqual(courseStepsOn(p, log, "2026-09-21", "2026-09-21").map((s) => s.key), [keys[1]]);
+    const bands = courseBands(projectCourse(p, [], "2026-09-19"));
+    assert.deepEqual(bands.map((b) => [b.unit, b.start, b.end, b.steps]), [
+      ["Kana", "2026-09-19", "2026-09-21", 2],
+      ["Genki I — lesson 1", "2026-09-22", "2026-09-24", 3],
+    ]);
+  });
+
+  it("leaves the weekly fixtures exactly as they were", () => {
+    // The owner's own sigil, through the same code path, unchanged.
+    const weekly = parseRoutine(PLAN)!;
+    assert.equal(weekly.mode, "week");
+    assert.deepEqual(tasksFor(weekly, "2026-09-14").map((t) => t.key), ["morning", "evening"]);
+    assert.equal(routineFenceBody(draftOf(weekly)), PLAN);
+    const note = `\`\`\`routine\n${PLAN}\`\`\`\n`;
+    assert.equal(applyEdit(note, logEditFor(note, 0, { date: "2026-09-14", done: ["morning"] })!), `\`\`\`routine\n${PLAN}\`\`\`\n\n\`\`\`routine-log\n2026-09-14 | done: morning\n\`\`\`\n`);
   });
 });
 

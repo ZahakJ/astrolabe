@@ -144,6 +144,92 @@ Lines that do not start with a date are ignored, the last line for a date wins, 
 the lines in date order when it writes. Whatever you typed by hand survives to the byte; the app
 only ever replaces the one line it is recording.
 
+## A course
+
+Some things you mean to do are not the same every Monday. A language, an instrument, a textbook:
+they are a *list*, in order, and what matters is not "did I do Tuesday" but "what comes next". Write
+`mode: course` in the plan and a sigil becomes exactly that — an ordered list of **steps**, gathered
+into **units**, that asks you for the next one and nothing else.
+
+```sigil
+title: Japanese
+kind: study
+icon: 🗻
+mode: course
+days: mon, tue, wed, thu, fri, sat
+capacity: 15 min · sat 45 min · sun 0
+items: [[Orbits/Japanese/Hiragana]] · [[Orbits/Japanese/Katakana]]
+steps: |
+  # Kana
+  - Tofugu Learn Hiragana rows あ か さ た (45 min)
+  - rows な は ま や ら わ ん (45 min)
+
+  # Genki I — lesson 1
+  - grammar point 1, then Tae Kim's telling of it (15 min)
+  - grammar point 2 (15 min)
+```
+
+| Line | What you put after the colon | What it does |
+| --- | --- | --- |
+| `mode` | `course` | Makes this sigil a course instead of a week. Write the `steps:` block and it is a course anyway. |
+| `days` | weekdays with commas between them — `mon, tue, wed, thu, fri, sat` | The days that get a step. Every other day is a rest day: nothing is owed and nothing counts against you. Leave the line out and every day gets one. |
+| `capacity` | how long you have — `15 min`, or `15 min · sat 45 min · sun 0` | A day's budget. Name a day to give that day its own; `0` makes it a rest day. Leave it out and each day takes exactly one step. |
+| `items` | the same every-day things a week's sigil takes | Asked every day, beside the steps. Deck chips work here exactly as they do on a week. |
+| `steps` | `steps: \|` and then the lines below it | One step a line, opening with `-`. A line opening with `#` names the **unit** the steps under it belong to. `(45 min)` at the end of a step says how long that step wants. Blank lines and any other line are yours; nothing is thrown away. |
+
+**Nothing in the note is dated.** That is the point. The **cursor** is the first step that is neither
+ticked nor skipped, and every date you see is *projected*, fresh, each time the card is drawn:
+Astrolabe walks forward from today over the days you allowed, filling each one with steps until its
+budget runs out. A step longer than the budget still gets taken — it simply takes the day, and if
+you do not finish it, tomorrow as well.
+
+So a missed day changes nothing in your file. There is no schedule to fall behind. The projection
+is recomputed and **everything after the cursor shifts by a day**, which is what you would have done
+by hand and what you would have got wrong. The owner asked for it in exactly those words: *if it
+takes me two days instead of one the schedule handles it by shifting the task to the second day.*
+
+The card says where you are and where that is heading — **Step 12 of 96 · Genki I — lesson 1 · on
+course to finish 14 March** — and then lists today's steps with a box each. Tick one and the cursor
+moves on. **Skip** moves it on without you: the step is given up, not owed. There is no *tomorrow →*
+on a course, because a course pushes itself. A past day still shows what it held, so a tick taken in
+error can be taken back. Under it all, folded away, **the whole course**: every unit, how much of it
+is answered, and the stretch of days the projection gives what is left.
+
+The log is the same `sigil-log` block a week's sigil keeps, one line per day:
+
+```
+2026-09-19 | done: k3f2a1 | Slow start
+```
+
+**A step's name.** `k3f2a1` is the step's **key**, and the log names keys rather than words so you
+can rewrite a step without losing its tick. A key is one of two things:
+
+- whatever you put in square brackets at the end of the line — `- grammar point 2 (15 min) [g2]`;
+- otherwise a short hash of the step's words and the unit above it.
+
+A hash survives you **inserting** a step anywhere in the list and **reordering** the lines: it does
+not depend on where the step sits, only on what it says. It does not survive you **rewriting the
+words** — so the first time you tick or skip a step, Astrolabe writes its key into the line for you:
+
+```
+- Tofugu Learn Hiragana rows あ か さ た (45 min) [k3f2a1]
+```
+
+From that moment the step has a name of its own and you may rewrite it as freely as you like. The
+tag is written in the same edit as the tick, so it is one undo step, and every other byte of the
+plan — your comments, your blank lines, your indentation — is left where it was. For a step you
+have never answered there is nothing to lose, which is why nothing is stamped until you answer one.
+
+**On the calendar.** [The Calendar page](calendar.md) draws a course twice over. Days already gone
+carry the steps you actually did, solid, on the days you did them. Days ahead carry what the
+projection puts there, faint and in italic, because it has not happened and will move if you fall
+behind. And under the month, **the months ahead** as unit bands — *Japanese · Genki I — lesson 3 ·
+27 Oct – 9 Nov* — so you can see a curriculum laid out in weeks without reading forty cells. All
+three come out of one projection, so they can never disagree.
+
+The streak, the week and the twelve-week grid work as they always did. A day is complete when its
+budget's worth of steps is done — or, with no budget, when its one step is.
+
 ## The card
 
 The plan turns into a card wherever the note is shown — in the editor, in reading view, on your

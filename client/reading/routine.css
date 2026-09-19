@@ -759,3 +759,109 @@
 .s-rv-routine__today[data-visiting="yes"] {
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 }
+
+/* ── A course ──────────────────────────────────────────────────────────────
+   The second mode of a sigil: an ordered list of steps whose dates are
+   projected and never stored. The card says where it has got to and where
+   that is heading, the day lists the steps the projection puts on it, and
+   the fold lists the units with the stretch of days each one is given. */
+
+.s-rv-routine__course {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+.s-rv-routine__coursestep {
+  color: var(--text);
+  font-weight: 500;
+}
+.s-rv-routine__courseunit {
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+/* The separator is an element of the CHROME's own, drawn between the parts
+   (routine.ts) rather than generated on them: the unit beside it is the
+   author's words and carries its own `dir`, and a `::before` on that span
+   would take the author's start edge, not the card's. */
+.s-rv-routine__coursesep {
+  color: var(--text-faint);
+}
+.s-rv-routine__coursefinish {
+  font-style: italic;
+}
+
+.s-rv-routine__coursebudget {
+  margin-inline-start: auto;
+  font-size: 0.714rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+/* …and the status keeps the end of the line when both are there. */
+.s-rv-routine__coursebudget + .s-rv-routine__status {
+  margin-inline-start: 0;
+}
+
+.s-rv-routine__step .s-rv-routine__tasktext {
+  color: var(--text);
+  font-size: 1rem;
+}
+.s-rv-routine__step.is-done .s-rv-routine__tasktext {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--rt-ok) 70%, transparent);
+}
+.s-rv-routine__step.is-skipped .s-rv-routine__tasktext {
+  color: var(--text-faint);
+  text-decoration: line-through;
+}
+.s-rv-routine__stepunit {
+  font-size: 0.714rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.s-rv-routine__stepmin {
+  flex: none;
+  align-self: flex-start;
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.714rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.s-rv-routine__unitlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.s-rv-routine__unit {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  font-size: 0.857rem;
+}
+.s-rv-routine__unitname {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.s-rv-routine__unit.is-done .s-rv-routine__unitname {
+  color: var(--text-muted);
+}
+.s-rv-routine__unitcount {
+  color: var(--text-muted);
+}
+.s-rv-routine__unitdates {
+  margin-inline-start: auto;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
