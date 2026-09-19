@@ -306,6 +306,141 @@ async function ladder({ dpr, posture, rtl, seeded }) {
   await ctx.close();
 }
 
+/** THE WINDOW MOVES; THE PANES DO NOT LAG BEHIND IT.
+ *
+ *  The ladder above waits 300ms after each `setViewportSize`, which is long
+ *  enough for a 0.18s width transition to have finished — so it is blind to
+ *  the frames in between, and that is where the fault was: with {560, 560}
+ *  stored and the window taken 1440 → 904, `.s-main` measured 0px wide 30ms
+ *  in and 274px at 110ms before reaching its 320px floor. The note lost its
+ *  column on every resize, which is the one thing MAIN_MIN is for, and the
+ *  panes visibly chased the window edge. This rung looks at the FIRST frame
+ *  after the resize, which is the frame the reader sees. */
+async function liveResize({ dpr, rtl }) {
+  const browser = await browserFor("mouse");
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 800 }, deviceScaleFactor: dpr });
+  await ctx.addCookies(cookies);
+  const page = await ctx.newPage();
+  await page.addInitScript(
+    (s) => {
+      try {
+        localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+        localStorage.setItem("astrolabe.prefs-sync-off", "1");
+        for (const [k, v] of Object.entries(s)) localStorage.setItem(k, v);
+      } catch {
+        // a context with storage blocked still renders the defaults
+      }
+    },
+    {
+      ...(rtl ? { "astrolabe.editorLang": "ar" } : {}),
+      "astrolabe.paneWidths": JSON.stringify({ sidebar: 560, panel: 560 }),
+      "astrolabe.panelCollapsed": "false",
+    },
+  );
+  await page.goto(`${url}/`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".s-app", { timeout: 20000 });
+  await page.waitForTimeout(900);
+
+  // Down the ladder and back up, sampling the frame after each step rather
+  // than the settled layout.
+  for (const width of [1093, 904, 1093, 1440]) {
+    await page.setViewportSize({ width, height: 800 });
+    const m = await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => {
+      const w = (s) => { const el = document.querySelector(s); return el ? Math.round(el.getBoundingClientRect().width) : null; };
+      done({ inner: innerWidth, main: w(".s-main"), sidebar: w(".s-sidebar"), panel: w(".s-panel") });
+    }))));
+    const where = `live ${width}×${dpr}${rtl ? " rtl" : ""}`;
+    ok(where, m.inner === width, `asked for ${width} CSS px, got ${m.inner}`);
+    ok(where, m.main >= MAIN_MIN - 1, `one frame after the resize the note column is ${m.main}px, floor is ${MAIN_MIN}`);
+    ok(where, m.sidebar + m.panel + m.main <= width + 2, `the panes total ${m.sidebar + m.panel + m.main} in a ${width}px window`);
+  }
+  await ctx.close();
+}
+
+/** AND THE PHONE'S NOTES DRAWER STILL SLIDES. It rides on `.s-sidebar`, the
+ *  same element the "do not animate" class freezes, so a flag raised for the
+ *  outline panel's automatic collapse and never lowered stopped the drawer
+ *  moving at all — measured `transition-property: none`, left −330 → 0 in one
+ *  frame. The gate for windows owns this because it is the same flag. */
+async function phoneDrawer() {
+  const browser = await browserFor("mouse");
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  await ctx.addCookies(cookies);
+  const page = await ctx.newPage();
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+      localStorage.setItem("astrolabe.prefs-sync-off", "1");
+    } catch {
+      // a context with storage blocked still renders the defaults
+    }
+  });
+  await page.goto(`${url}/`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".s-app", { timeout: 20000 });
+  await page.waitForTimeout(900);
+  const where = "phone drawer";
+  const btn = await page.$(".s-drawer-btn");
+  ok(where, btn !== null, "the phone shell should offer a ☰");
+  if (btn) {
+    await btn.tap();
+    await page.waitForTimeout(40);
+    const m = await page.evaluate(() => {
+      const el = document.querySelector(".s-sidebar");
+      const cs = getComputedStyle(el);
+      return { property: cs.transitionProperty, duration: cs.transitionDuration, left: Math.round(el.getBoundingClientRect().left) };
+    });
+    ok(where, m.property.includes("transform"), `the drawer's transition is "${m.property}" — it should slide`);
+    ok(where, m.left < 0, `40ms into the slide the drawer is already fully open at ${m.left}`);
+  }
+  await ctx.close();
+}
+
+/** AND THE READER'S OWN FOLD STILL SLIDES.
+ *
+ *  The two rungs above are both about widths the reader did not ask for. This
+ *  is the other side of the same flag, and it broke twice while this gate was
+ *  being written: once because the automatic collapse's class was never
+ *  lowered, and once because the resize path's style flush ran on the same
+ *  effect as a fold and committed the collapse before the browser had a width
+ *  to animate from. A fold is the reader's gesture; the 0.18s belongs to it.
+ *
+ *  Run at a width BELOW NARROW_QUERY, because that is where the automatic
+ *  collapse has already fired and the flag is up when the reader reaches for
+ *  the fold. */
+async function readerFold({ width }) {
+  const browser = await browserFor("mouse");
+  const ctx = await browser.newContext({ viewport: { width, height: 800 }, deviceScaleFactor: 1 });
+  await ctx.addCookies(cookies);
+  const page = await ctx.newPage();
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+      localStorage.setItem("astrolabe.prefs-sync-off", "1");
+    } catch {
+      // a context with storage blocked still renders the defaults
+    }
+  });
+  await page.goto(`${url}/`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".s-app", { timeout: 20000 });
+  await page.waitForTimeout(900);
+  const where = `fold at ${width}`;
+  const full = await page.evaluate(() => Math.round(document.querySelector(".s-sidebar").getBoundingClientRect().width));
+  await page.keyboard.press("Control+Alt+KeyB");
+  await page.waitForTimeout(60);
+  const mid = await page.evaluate(() => ({
+    w: Math.round(document.querySelector(".s-sidebar").getBoundingClientRect().width),
+    duration: getComputedStyle(document.querySelector(".s-sidebar")).transitionDuration,
+    folded: document.querySelector(".s-app").classList.contains("s-app--nosidebar"),
+  }));
+  ok(where, mid.folded, "Ctrl/Cmd+Alt+B should fold the sidebar");
+  ok(where, !mid.duration.startsWith("0s"), `the fold has no transition to run (duration ${mid.duration})`);
+  ok(where, mid.w > 1 && mid.w < full, `60ms into the fold the sidebar is ${mid.w}px of ${full} — it did not slide`);
+  await page.waitForTimeout(400);
+  const done = await page.evaluate(() => Math.round(document.querySelector(".s-sidebar").getBoundingClientRect().width));
+  ok(where, done <= 1, `the fold settled at ${done}px`);
+  await ctx.close();
+}
+
 // The ladder proper: every width at every ratio, under a mouse, which is the
 // posture the report came from and the one every assertion above is strictest
 // about.
@@ -319,6 +454,12 @@ await ladder({ dpr: 1.5, posture: "mouse", rtl: true, seeded: true });
 // The two Windows postures a laptop can be in.
 await ladder({ dpr: 1.25, posture: "slate", rtl: false, seeded: false });
 await ladder({ dpr: 1.25, posture: "touchlaptop", rtl: false, seeded: false });
+// What the reader sees WHILE the window is being dragged, not after.
+await liveResize({ dpr: 1, rtl: false });
+await liveResize({ dpr: 1.5, rtl: true });
+await readerFold({ width: 1300 });
+await readerFold({ width: 1440 });
+await phoneDrawer();
 
 for (const each of browsers.values()) await each.close();
 

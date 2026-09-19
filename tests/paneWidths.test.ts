@@ -146,6 +146,50 @@ describe("pane widths", () => {
     });
   });
 
+  // A WIDTH THE READER DID NOT ASK FOR DOES NOT ANIMATE — AND THE FLAG THAT
+  // SAYS SO DOES NOT OUTLIVE IT. `paneStill` only ever went up: a window under
+  // NARROW_QUERY auto-collapses the outline panel at boot, so on a 1366 laptop
+  // the shell wore `s-app--pane-still` for the life of the page. Measured at
+  // 1300: `.s-sidebar`, `.s-panel` and `.s-main` all at transition-duration 0s
+  // at boot and still 0s after the reader's own Ctrl/Cmd+Alt+B — and on the
+  // phone, where the notes drawer slides on that same `.s-sidebar`, the drawer
+  // stopped moving at all (`transition-property: none`, left −330 → 0 in one
+  // frame).
+  describe("the still flag comes back down", () => {
+    const state = readFileSync(new URL("../client/state.ts", import.meta.url), "utf8");
+
+    it("is raised only by the viewport's own collapse", () => {
+      assert.match(state, /collapsePanelForViewport: \(panelCollapsed\) => set\(\{ panelCollapsed, paneStill: true \}\)/);
+    });
+
+    // Every setter that moves a pane the reader is touching. Each lowers the
+    // flag in the SAME `set` that starts its own animation, so the class is
+    // gone in the commit the transition needs — no timer, no effect, nothing
+    // that could land a frame late.
+    for (const setter of ["setPanelCollapsed", "setSidebarCollapsed", "setSidebarOpen", "setZen"]) {
+      it(`${setter} lowers it in the same commit`, () => {
+        const at = state.indexOf(`${setter}: (`);
+        assert.ok(at > 0, `${setter} should exist`);
+        const body = state.slice(at, state.indexOf("\n    },", at) + 1);
+        assert.ok(body.includes("paneStill: false"), `${setter} must hand the 0.18s back to the reader`);
+      });
+    }
+  });
+
+  // A width the WINDOW asked for arrives at once. Before this the resize
+  // listener wrote the clamped widths through the panes' own 0.18s: at
+  // 1440 → 904 with {560, 560} stored, `.s-main` measured 0px at 30ms and
+  // 274px at 110ms before reaching its 320px floor — the note losing its
+  // column on every resize, which is the one thing MAIN_MIN is for.
+  it("re-clamps a resized window without the 0.18s", () => {
+    const grip = readFileSync(new URL("../client/components/PaneGrip.tsx", import.meta.url), "utf8");
+    const at = grip.indexOf("const apply = (): void =>");
+    assert.ok(at > 0, "usePaneLayout should still have its rAF-throttled apply");
+    assert.match(grip.slice(at, at + 600), /applyPaneWidthsNow\(document\.documentElement, paneRoom\(\)\)/);
+    // The double-click reset is the hand, and keeps the animation.
+    assert.match(grip, /applyPaneWidths\(document\.documentElement, paneRoom\(\)\)/);
+  });
+
   it("reads stored widths and forgets junk", () => {
     assert.deepEqual(parsePaneWidths('{"sidebar":260,"panel":"x","other":1}'), { sidebar: 260 });
     assert.deepEqual(parsePaneWidths("not json"), {});

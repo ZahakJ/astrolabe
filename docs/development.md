@@ -205,6 +205,15 @@ wherever a pointer can hit a strip, that each docked pane has a grip whose 12px 
 **centred on the pane's own 1px divider** — `elementFromPoint` at the seam must return the grip —
 that the note column never falls below its 320px floor whatever is stored, that neither pane and
 neither pane's close button runs off the window, and that the document never scrolls sideways.
+
+Three rungs after the ladder watch the frames the ladder cannot see, because it waits 300ms after
+each resize and a 0.18s transition is over by then. They ask what the reader actually sees while a
+window is being dragged and while a pane is being folded: the note column still has its 320px
+**one frame** after a resize, the phone's notes drawer still slides rather than appearing, and the
+reader's own `Ctrl/Cmd Alt B` fold is still mid-flight 60ms in. All three failed at some point on
+the same flag — the class that says "this width is not the hand's doing" — being up when it should
+have been down, or down when it should have been up.
+
 Needs a running instance, `CHROMIUM`, and the instance's password as the second argument.
 
     npm run check-windows-layout -- http://127.0.0.1:8177 <password>

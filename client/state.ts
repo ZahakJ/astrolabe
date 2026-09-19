@@ -306,9 +306,15 @@ export interface State {
    *  width transition playing by itself is the "the panel pops open and shut
    *  on its own" half of the Windows report. */
   collapsePanelForViewport(b: boolean): void;
-  /** True for exactly the commit in which a pane's width changed for a reason
-   *  the reader did not give. The stylesheet turns the panes' (and the note
-   *  column's) transitions off while it is up. */
+  /** A pane's width last changed for a reason the reader did not give. The
+   *  stylesheet turns the panes' (and the note column's) transitions off while
+   *  it is up — and EVERY reader-driven pane gesture puts it back down in the
+   *  same `set` that starts its own animation, so the flag cannot outlive the
+   *  thing it was raised for. It used to only ever go up: a window under
+   *  1360px auto-collapses the panel at boot, so on a 1366 laptop the shell
+   *  wore this class for the life of the page and the reader's own sidebar
+   *  collapse — and the phone's notes drawer, which slides on the same
+   *  element — snapped instead of moving. */
   paneStill: boolean;
   /** Zen mode: every piece of chrome steps aside and the prose column centers
    *  (Ctrl/Cmd+Shift+Z; persisted, so a reload stays zen). */
@@ -2479,7 +2485,10 @@ export const useStore = create<State>()((set, get) => {
     },
 
     setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
-    setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+    // The phone's notes drawer slides on `.s-sidebar`, which is the same
+    // element `paneStill` freezes — so the hand that opens it lowers the flag
+    // in the same commit, and the drawer moves instead of appearing.
+    setSidebarOpen: (sidebarOpen) => set({ sidebarOpen, paneStill: false }),
 
     setSidebarSidePref: (sidebarSidePref) => {
       persistFlagValue(SIDE_KEY, sidebarSidePref);
@@ -2489,9 +2498,11 @@ export const useStore = create<State>()((set, get) => {
       set({ sidebarSidePref, sidebarSide: effectiveSide(sidebarSidePref, get().language) });
     },
 
+    // `paneStill: false` for the same reason `setPanelCollapsed` carries it:
+    // this is the reader's own hand on a pane, and the 180ms belongs to it.
     setSidebarCollapsed: (sidebarCollapsed) => {
       persistFlag(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed);
-      set({ sidebarCollapsed });
+      set({ sidebarCollapsed, paneStill: false });
     },
 
     // ONE gesture, whichever shell is on screen. Below the drawer breakpoint
@@ -2523,7 +2534,7 @@ export const useStore = create<State>()((set, get) => {
 
     setZen: (zen) => {
       persistFlag(ZEN_KEY, zen);
-      set({ zen });
+      set({ zen, paneStill: false });
     },
 
     refreshBacklinks: async () => {
