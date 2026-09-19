@@ -1156,7 +1156,13 @@ select:focus,
   align-items: stretch;
   overflow: hidden;
   flex: none;
-  height: 2.5rem;
+  /* The strip GROWS by the notch's inset rather than moving down it, so its
+     own ground fills the band instead of leaving a stripe of page above the
+     tabs. `--safe-top` is 0px on every rectangular screen (see "THE NOTCH AND
+     THE HOME INDICATOR"), so this is the flat 2.5rem it has always been
+     anywhere but a notched phone. */
+  height: calc(2.5rem + var(--safe-top, 0px));
+  padding-block-start: var(--safe-top, 0px);
   background: var(--tabs-bg);
   border-bottom: 1px solid var(--tabs-border);
 }
@@ -1300,6 +1306,29 @@ select:focus,
 
 .s-tab--dirty:hover .s-tab-dirty {
   display: none;
+}
+
+/* A HOVER-REVEALED × ON A SURFACE WITH NO HOVER. An inactive tab's close was
+   `opacity: 0` with its events still live: 44×44 of invisible target that
+   closed a note on a mistaken tap, while the only × a phone reader could see
+   was the active tab's. The rule reads the same either way — the × belongs to
+   the tab you are ON — and here it is said out loud: inactive tabs have no
+   close at all, and a dirty tab keeps showing its dot until it is the active
+   one (the long-press context menu carries "Close" for the rest, which is the
+   touch gesture for "act on that one over there"). */
+@media (hover: none) {
+  .s-tab:not(.s-tab--active) .s-tab-close {
+    display: none;
+  }
+
+  .s-tab--active .s-tab-close {
+    display: inline-flex;
+    opacity: 1;
+  }
+
+  .s-tab--dirty.s-tab--active .s-tab-dirty {
+    display: none;
+  }
 }
 
 /* The center column's content region: hosts Editor / GraphView / empty state. */
@@ -2259,6 +2288,19 @@ select:focus,
   color: var(--text-muted);
   width: 26px;
   height: 26px;
+}
+
+/* A SPECIFICITY THAT OUTRANKED THE TOUCH FLOOR. The rule above is (0,2,0) and
+   the shell's coarse `.s-iconbtn { min-*-size: 44px }` is (0,1,0), so on a
+   phone the graph's four doors — settings, zoom in, zoom out, reset — stayed
+   26×26 in the corner where a thumb already has the least room. The floor is
+   restated at this selector's own weight rather than lowering the desktop
+   rule, because 26px is right for a mouse hovering a canvas. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-graph__controls .s-iconbtn {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 .s-graph__controls .s-iconbtn:hover {
@@ -4010,6 +4052,16 @@ select:focus,
   color: var(--text-muted);
 }
 
+/* The field was already 45px and 16.6px of type — the two buttons under it
+   were 29.6. The first thing a phone reader ever taps in this product is
+   "Sign in", and it was the smallest target on the screen it appears on. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-login__actions .s-btn {
+    min-height: 44px;
+    padding-inline: 18px;
+  }
+}
+
 .s-btn--accent {
   color: var(--button-accent-text);
   background: var(--button-accent-bg);
@@ -5576,6 +5628,59 @@ button.s-title:hover {
   .s-statusbar .s-mode {
     min-height: 44px;
   }
+
+  /* ── The drawer's own chrome, which the first round of this rule missed.
+     The list above fixed what a reader NAVIGATES with — rows, pills, the
+     bar. Everything else in the drawer stayed at its mouse size: the
+     wordmark that toggles "preview as visitor" was 25px tall, the three
+     section headers (Calendar, Tags, Properties) 18px, the tag sort 21px,
+     a search hit 39px. A half-height target inside a full-height drawer is
+     the shape DESIGN.md's sentence forbids, and these are the controls a
+     phone reader reaches for BEFORE the tree. */
+  button.s-title {
+    min-height: 44px;
+  }
+
+  .s-tags__toggle {
+    min-height: 44px;
+    margin-bottom: 2px;
+  }
+
+  .s-tags__sort {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    top: 0;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    padding-inline: 6px;
+  }
+
+  .s-search-hit {
+    min-height: 44px;
+  }
+
+  /* 14.4px in English, 15.3px in Arabic: under 16px iOS Safari zooms the
+     whole page on focus, and the reader then types into a vault that has
+     shifted sideways under the keyboard. The type is bigger only where a
+     finger is the pointer. */
+  .s-search__input {
+    font-size: 16px;
+    min-block-size: 44px;
+  }
+
+  /* The shortcuts sheet: 33px rows, and a definition row that would not wrap
+     so the list scrolled sideways inside a 356px sheet. */
+  .s-shortcuts__row {
+    min-height: 44px;
+    flex-wrap: wrap;
+  }
+
+  /* The tab strip is 44px and its button was 43 — the strip's own 1px border
+     came out of the target rather than out of the strip. */
+  .s-tab__main {
+    min-block-size: 44px;
+  }
 }
 
 /* The drawer toggle is the touch shell's main navigation control — wherever
@@ -5583,17 +5688,149 @@ button.s-title:hover {
    with no fine pointer. */
 @media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
   /* It was 30px. The tab bar grows to match so the button sits inside it
-     rather than hanging over the first tab. */
+     rather than hanging over the first tab. `--safe-top` (see "THE NOTCH AND
+     THE HOME INDICATOR" below) is zero on a rectangular screen, so this reads
+     as the flat 0/45 it was everywhere but a notched phone. */
   .s-drawer-btn {
-    top: 0;
+    top: var(--safe-top, 0px);
     inset-inline-start: 4px;
     width: 44px;
     height: 44px;
   }
 
+  /* 45, not 44: the strip's own hairline is part of its box, so a 44px strip
+     left its tab buttons 43px tall — the same "one pixel short of the
+     promise" the status bar already settled by being 45 with 44px buttons
+     in it. */
   .s-tabs {
-    height: 44px;
+    height: calc(45px + var(--safe-top, 0px));
     padding-inline-start: 52px;
+  }
+
+  /* The drawer is `position: fixed` and escapes the shell's box entirely, so
+     it pads its own two ends rather than inheriting anything. */
+  .s-sidebar {
+    padding-block: var(--safe-top, 0px) var(--safe-bottom, 0px);
+  }
+
+  /* A LABELLED CONTROL UNDER ANOTHER LAYER IS NOT A CONTROL. With the drawer
+     open the ☰ — by then labelled "Close Notes sidebar" — sat at z-index 60
+     under a drawer at 400, so `elementFromPoint` at its centre answered the
+     drawer's own wordmark: the button said close and the tap said "preview as
+     visitor". The ☰ is the OPEN door; the close is the ✕ at the top of the
+     drawer, beside the wordmark, where the outline drawer already put its
+     own. */
+  .s-app--drawer .s-drawer-btn {
+    display: none;
+  }
+
+  .s-app--drawer .s-sidebar__phoneclose {
+    display: inline-flex;
+    flex: none;
+    margin-inline-start: 4px;
+  }
+
+  /* The top cluster goes with it, and for the same reason. A 320px drawer
+     over a 390px screen leaves 70px of the tab row showing, which is where
+     the gear, the outline switch and the ⋯ happen to end: two of the three
+     measured as covered by the drawer's wordmark and the third by the scrim,
+     so a tap that looked aimed at Settings closed the drawer — or, worse,
+     opened "preview as visitor". A layer over the page hides the page's
+     chrome; the drawer's own chrome is what is live while it is up. */
+  .s-app--drawer .s-topactions {
+    display: none;
+  }
+}
+
+
+/* ── THE NOTCH AND THE HOME INDICATOR ──────────────────────────────────────
+   The client served a `display: standalone` manifest and a theme-color and
+   then drew edge to edge as though every phone were a rectangle: installed
+   on an iPhone the 44px top cluster sat under a 47px status bar and the
+   mode pills under the 34px home indicator, and in Chrome Android with
+   gesture navigation the bottom bar did the same. (The Android shell escaped
+   it only because it pads natively — mobile/SystemBarInsets.java.)
+
+   `viewport-fit=cover` in client/index.html is what makes `env()` non-zero at
+   all; these rules are the other half. Two facts, named once, so a bar that
+   moves later does not have to re-derive them:
+
+     --safe-top     the inset above the first row of chrome
+     --safe-bottom  the inset below the last row
+
+   They are `env(..., 0px)` everywhere, so a rectangular screen — every
+   desktop, every laptop, most Androids — computes exactly what it computed
+   before, and nothing here has a breakpoint for that reason. Only the bars
+   that TOUCH an edge carry them: a sheet floating in the middle of the
+   screen is already clear of both. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* The top row of the shell carries `--safe-top`: the tab strip states it in
+   its own rule (far above, so the drawer breakpoint can raise the height
+   without a later declaration taking it back), the drawer toggle that floats
+   in the strip states it in the drawer block, and the tool cluster over the
+   strip's trailing end states it here. */
+.s-topactions {
+  height: calc(2.5rem + var(--safe-top));
+  padding-block-start: var(--safe-top);
+}
+
+/* The bottom row: the status bar's own ground runs under the home indicator
+   and its buttons stand clear of it. */
+.s-statusbar:not(.s-statusbar--top) {
+  padding-block-end: var(--safe-bottom);
+}
+
+/* The outline pane is `position: fixed` too, and so escapes the shell's box
+   the same way the notes drawer does (which pads itself in the drawer block
+   above). */
+@media (max-width: 700px) {
+  .s-panel:not(.s-panel--collapsed) {
+    inset-block: 0 calc(45px + var(--safe-bottom));
+    padding-block-start: var(--safe-top);
+  }
+}
+
+/* Toasts stack above the bottom bar, which has just grown by the inset. */
+.s-toasts {
+  bottom: calc(44px + var(--safe-bottom));
+}
+
+
+/* ── THE OUTLINE DRAWER'S OWN ROWS ─────────────────────────────────────────
+   The panel became a real phone drawer in 3.18.0 and the things INSIDE it
+   stayed desktop-sized: a footnote reference 28px, the mentions header 18px,
+   a local-graph alternative 25px, its section toggle 41. The History section
+   was already 44 and stood out as the one row a thumb could land on. Same
+   trigger and floor as the shell's coarse block above; reading.css carries
+   the outline list itself, which is drawn by the reading bundle. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-fnpanel__ref,
+  .s-mentions__toggle,
+  .s-localgraph__toggle,
+  .s-localgraph__altitem {
+    min-block-size: 44px;
+  }
+
+  .s-mentions__linkall,
+  .s-mentions__link {
+    min-block-size: 44px;
+    padding-inline: 10px;
+  }
+
+  /* The shared sheet header's ✕ (`.s-bmodal__close`: the theme picker, the
+     bookmarks sheet, the template picker). 27×24 — a dialog's only visible
+     way out, at half the size of the rows under it. */
+  .s-bmodal__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    padding: 0;
   }
 }
 
@@ -5613,7 +5850,7 @@ button.s-title:hover {
 
 .s-smodal {
   width: min(920px, calc(100vw - 32px));
-  height: min(860px, calc(100vh - 40px));
+  height: min(860px, calc(100dvh - 40px));
   max-height: none;
   position: relative;
   overflow: hidden;
@@ -6001,7 +6238,7 @@ button.s-title:hover {
 
 @media (max-width: 720px) {
   .s-smodal {
-    height: min(860px, calc(100vh - 24px));
+    height: min(860px, calc(100dvh - 24px));
   }
   /* The rail becomes a scrolling strip across the top: still the whole table
      of contents, without eating a third of a 390px column. */
@@ -6280,6 +6517,17 @@ button.s-title:hover {
   position: fixed;
   z-index: var(--z-popover);
   width: min(360px, calc(100vw - 32px));
+  /* BOTH AXES, not one. The placement clamps left/right (anchorPopover's
+     `clampAxis`, after the round where a 358px panel sat at x=−189 on a
+     phone) and hangs the panel from the badge by its BOTTOM — which is
+     unbounded upwards. A failed push prints git's own words into this panel
+     ("syncGitSaid"), and on a 390×844 screen, where the badge is already
+     near the bottom edge, a four-line error ran the panel's head off the top
+     of the window with nothing to scroll. It scrolls now; `dvh` because
+     Chrome Android's URL bar is part of the 100vh it is not part of. */
+  max-block-size: calc(100dvh - 72px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -7460,11 +7708,13 @@ html[dir="rtl"] .s-statusbar__spacer {
     gap: 2px;
   }
   /* Bigger targets: the cluster is now three buttons, so each can be a
-     finger's worth wide. */
+     finger's worth wide. 40×36 was most of the way there and none of the
+     promise — the shell's floor is 44, and these three are the only doors the
+     top of a phone has. */
   .s-statusbar--top .s-statusbar__phone,
   .s-statusbar--top .s-statusbar__pane-outline {
-    min-inline-size: 40px;
-    min-block-size: 36px;
+    min-inline-size: 44px;
+    min-block-size: 44px;
   }
 }
 
@@ -7948,10 +8198,26 @@ html[dir="rtl"] .s-statusbar__spacer {
 
 /* The outline drawer's scrim and top close exist only on a phone (the
    rules inside the drawer breakpoint above); everywhere else they are
-   nothing. */
+   nothing. The notes drawer's close is the same bargain. */
 .s-panel__scrim,
-.s-panel__phoneclose {
+.s-panel__phoneclose,
+.s-sidebar__phoneclose {
   display: none;
+}
+
+/* THE SAME RULE FOR THE OTHER DRAWER. The outline pane opens from the end
+   edge and covers the cluster it was opened from: measured, the outline
+   switch answered `.s-panel__scroll`, the ⋯ answered the panel's own ✕ and
+   the ☰ answered the scrim. The pane's ✕ and its scrim are the doors while
+   it is up, exactly as for the notes drawer — and the cluster comes back the
+   moment it closes. `:has()` rather than a class on the shell because the
+   pane's open state is already spelled on the pane itself, and one fact with
+   two spellings is the thing that drifts. */
+@media (max-width: 700px) {
+  .s-app:has(.s-panel:not(.s-panel--collapsed)) .s-topactions,
+  .s-app:has(.s-panel:not(.s-panel--collapsed)) .s-drawer-btn {
+    display: none;
+  }
 }
 
 /* A finger keeps the ⋯ at every width: in landscape a phone is wider than

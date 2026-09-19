@@ -979,4 +979,32 @@
   .s-deckform__tab {
     min-block-size: 44px;
   }
+
+  /* The session's own four small controls: Edit, Skip, Undo and the way back
+     out of a session. 28px in the row above a card the reader is holding the
+     phone to read. */
+  .s-session__action,
+  .s-session__crumb--back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+
+  /* A typed card's answer field: 40px tall, and a field the reader types a
+     whole word into is the one place on this page a keyboard comes up. */
+  .s-session__input {
+    min-block-size: 44px;
+  }
+
+  /* THE GRADE KEYS ARE A KEYBOARD LEGEND. "1 Again / 2 Hard / 3 Good /
+     4 Easy" and the line of keystrokes under the row tell a reader with no
+     keyboard what four keys they do not have — the same thing the reading
+     strip's "(Ctrl/Cmd+E)" was doing, and the same answer: the grades are
+     four buttons under a thumb, so the numbers go and the labels stay. */
+  .s-session__gradekey,
+  .s-session__keys {
+    display: none;
+  }
 }

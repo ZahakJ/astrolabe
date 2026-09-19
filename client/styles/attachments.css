@@ -221,7 +221,7 @@
   justify-content: center;
   min-height: 0;
   max-width: min(1200px, calc(100vw - 140px));
-  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
 }
 
 /* Natural size, capped to the viewport: no width/height is set, so a small
@@ -229,7 +229,7 @@
 .s-att-view__img {
   display: block;
   max-width: min(1200px, calc(100vw - 140px));
-  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
   border-radius: var(--radius);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
   background: var(--bg-raised);
@@ -238,7 +238,7 @@
 .s-att-view__video {
   display: block;
   max-width: min(1200px, calc(100vw - 140px));
-  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
   border-radius: var(--radius);
   background: #000;
 }
@@ -489,4 +489,23 @@
 .s-attach-del:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+
+/* A FINGER IN THE SIDEBAR'S FOOT. The paperclip filter — the one control that
+   makes a thousand rows appear or vanish — was a 22px pill at the bottom edge
+   of the drawer, and the delete on an attachment row only existed under a
+   hover that a phone does not have. Same trigger and same floor as the shell's
+   coarse block in app.css. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-attfilter {
+    min-block-size: 44px;
+    padding-inline: 10px;
+  }
+
+  .s-attach-del {
+    opacity: 1;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
 }

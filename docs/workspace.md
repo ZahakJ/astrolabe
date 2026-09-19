@@ -179,12 +179,31 @@ answers the mirrored swipe. In Arabic the drawer comes from the right by itself,
 slides it over the page from the end edge, with backlinks, unlinked mentions and on-this-day inside.
 
 The top bar keeps three controls on a phone: the outline switch, the settings gear and a **⋯**. The
-⋯ opens every other tool as a labelled row: the library, Orbits, Sigils, the
+⋯ opens every other tool as a labelled row — starting with the command palette, so nothing is
+keyboard-only — then the library, Orbits, Sigils, the
 [Calendar](templates-and-notes.md#the-calendar), the designer, visitor
 preview, the graph, themes and sign out. Nothing scrolls off the edge. Zen and the shortcut sheet
 are not offered, since neither means anything on a phone.
 
+**Closing what is open.** A drawer is a layer, and every layer has three ways out: the ✕ at its
+own top, a tap on the dimmed page behind it, and the hardware back button — which closes the
+topmost drawer, palette or dialog before it goes back a page, and never leaves the app without
+asking. Escape does the same where there is a keyboard.
+
+**Every target is a finger's width.** Below 700px, or on any device whose pointer is a finger,
+nothing you can tap is smaller than 44 by 44 pixels — tree rows, tag pills, the tab strip, the
+calendar's days, the Sigils card's checks, the graph's zoom controls — and every field you type
+into is set at 16px, below which iOS Safari zooms the page into the field and leaves it there.
+The notch and the home indicator are kept clear, so an instance added to the home screen puts
+nothing under the status bar or the gesture bar. `npm run check-phone` measures all of this on
+ten surfaces in both languages ([Development](development.md#npm-run-check-phone--the-phones-four-promises)).
+
+**Opening a note does not open the keyboard.** On a phone a note opens rendered, with the caret
+left where it was; tap the text to start writing. When the keyboard does come up, the line you
+are typing on is scrolled clear of it.
+
 **What counts as a phone.** The drawer layout is used below 700px, and below 1000px on a device
 with no fine pointer — no mouse and no trackpad. So a tablet held in the hands gets the drawer,
 while a desktop window narrowed beside a browser keeps its docked, resizable panes down to phone
-width.
+width. The 44px floor and the 16px fields follow the *pointer* rather than the width, so a
+1024px tablet gets them too.

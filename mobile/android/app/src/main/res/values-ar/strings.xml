@@ -4,4 +4,5 @@
      the system share sheet, which is prose about an errand. -->
 <resources>
     <string name="title_activity_share">التقاط إلى أسطرلاب</string>
+    <string name="back_again_to_leave">اضغط رجوع مرة أخرى للخروج من أسطرلاب</string>
 </resources>

@@ -573,12 +573,32 @@
   }
 }
 @media (pointer: coarse) {
+  /* The checkbox stays 18px — a native box blown up is a dinner plate, and
+     the LABEL is what a finger lands on (the same bargain the Sigils card's
+     task rows make in reading/routine.css). It measured 42.7, which is the
+     shell's floor missed by one line-height. */
+  .s-sigilform__optlabel {
+    align-items: center;
+    min-block-size: 44px;
+  }
+
+  /* 42 is 44 missed by two, which is no cheaper to draw. */
   .s-sigilform__emojibtn {
-    min-inline-size: 42px;
+    min-inline-size: 44px;
+    min-block-size: 44px;
   }
   .s-sigilform__optbox {
     inline-size: 22px;
     block-size: 22px;
+  }
+  /* The preset chips are the form's first decision ("what kind of sigil is
+     this?") and were 33px tall; "New sigil" — the page's only way to make
+     one — was 30. */
+  .s-sigilform__preset {
+    min-block-size: 44px;
+  }
+  .s-routines__addbtn {
+    min-block-size: 44px;
   }
 }
 
@@ -666,4 +686,28 @@
 }
 .s-routines__slot {
   min-inline-size: 0;
+}
+
+
+/* A phone's Sigils page: the chips a task carries to its Orbits decks ("12
+   due") are links, and links into another surface are navigation, not prose.
+   At 24px they were the smallest doors on the page. The page's own primary
+   buttons ("Log today", "New sigil") take the floor in the same rule — the
+   shell's `.s-btn` is sized for a pointer and this page raises three of them
+   at once, side by side, in a 390px column. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-orbits-chip {
+    min-block-size: 44px;
+  }
+
+  /* The plan grid's cells: the sigil form's own textarea, outside the shared
+     control set, at 13.3px — the size at which iOS zooms the page into the
+     field on focus. */
+  .s-sigilform__cell {
+    font-size: 16px;
+  }
+
+  .s-routines .s-btn {
+    min-block-size: 44px;
+  }
 }

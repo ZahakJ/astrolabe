@@ -481,6 +481,22 @@ export default function BlogShell() {
             <BlogSearch />
             <LangSwitch />
             <ThemeButton />
+            {/* THE OWNER'S OWN DOOR, on the device the owner reads on. The
+                only Sign in on the public site was in the footer — at y=1048
+                on a 390px phone, which is below the fold of every page and
+                under an RSS link and a colophon. It belongs beside the other
+                three tools, and only where the footer is a scroll away:
+                blog.css shows it on the phone breakpoint and leaves the
+                desktop masthead exactly as it was. */}
+            {authProtected && (
+              <button
+                type="button"
+                className="s-blog-nav__signin"
+                onClick={() => useStore.getState().setLoginOpen(true)}
+              >
+                {t("signIn")}
+              </button>
+            )}
           </div>
         </div>
       </nav>

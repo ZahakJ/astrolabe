@@ -86,6 +86,13 @@ if (window.matchMedia("(pointer: coarse)").matches) {
   // the SWIPE — the ☰ is still there — not get the safety net's crash card
   // from an unhandled rejection over a progressive enhancement.
   void import("./swipe.ts").then((mod) => mod.installSwipe()).catch(() => {});
+  // The hardware back button, which on this device is a layer's way out
+  // before it is a page's (client/backGesture.ts). Same chunk-splitting
+  // bargain and the same swallowed rejection: a reader who loses it still has
+  // Escape, the scrim and every ✕.
+  void import("./backGesture.ts").then((mod) => mod.installBackGesture()).catch(() => {});
+  // …and the field the keyboard just covered (client/softKeyboard.ts).
+  void import("./softKeyboard.ts").then((mod) => mod.installSoftKeyboard()).catch(() => {});
 }
 
 // ── The desktop app ─────────────────────────────────────────────────────────
