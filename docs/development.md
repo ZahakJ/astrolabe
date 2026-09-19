@@ -316,9 +316,11 @@ on the seed vault, because the vault where it shows is the one with two thousand
 
 So the gate brings its own. `scripts/perf-fixture.mjs` generates a vault from a fixed seed —
 2,000 notes across 40 folders with frontmatter, wikilinks and tags, a 3,000-line note, a note
-with fifty embeds, a year of daily notes, and (on the machine that has them) a 665-page PDF and
-the real Sigils and Orbits notes — and `check-perf` starts its own server over it, on its own
-port, in open local mode. **It never takes a vault path**, so it cannot be pointed at yours.
+with fifty embeds and a year of daily notes — and `check-perf` starts its own server over it, on
+its own port, in open local mode. **It never takes a vault path**, and the fixture reads nobody's
+disk, so neither can be pointed at yours. Set `ASTROLABE_SEED_VAULT=<vault>` to fold a real book
+and real Sigils and Orbits notes in as well; leave it unset and the gate measures the generated
+vault, which is the same vault on every machine.
 
 Five budgets over four surfaces, each the **best of several rounds** with the CPU throttled to a quarter speed
 (Lighthouse's mid-tier multiplier — an unthrottled loopback has no headroom left in which a
@@ -403,13 +405,21 @@ private and is never served. `scripts/perf-fixture.mjs` generates the third one 
 seed, so that a number taken today is comparable with one taken next month:
 
 - **2,000 notes** across 40 folders, each with six frontmatter properties, five `[[wikilinks]]`
-  and three `#tags` — 121 distinct tags in a tree, and 2,000 nodes for the graph;
+  and three `#tags` — 110 distinct tags in a tree, and 2,000 nodes for the graph;
 - a **3,000-line note** (291,000 characters, 54,000 words) — the editor's worst honest case;
 - a note with **fifty `![[embeds]]`**;
 - a **year of daily notes**, so the Calendar page has a month with something in every cell;
-- the owner's own **665-page PDF** and the real **Sigils** and **Orbits** notes, when they are on
-  the machine — the fixture is still a fixture without them, and the gate says so rather than
-  inventing a book.
+- and, only when `ASTROLABE_SEED_VAULT` names a vault to take them from, a real **665-page PDF**
+  and the real **Sigils** and **Orbits** notes — a reader and two shelves with something of their
+  own to draw. It is opt-in and it says so in its own output, because a fixture that reached into
+  a vault nobody named would be two bad things at once: an unauthenticated scratch server over
+  somebody's private notes, and a budget only one machine could meet. It measurably would have
+  been the second — the generated vault carries 110 tags everywhere and 121 on the laptop the
+  purge was measured on.
+
+The sweep below was run with that variable set, so its vault was 2,376 notes rather than the
+2,367 the generator alone writes. The nine notes are noted, not hidden; nothing in the table
+turns on them.
 
 Every number below was taken through the DevTools protocol against a scratch server over that
 vault, with the CPU throttled to **a quarter speed** — Lighthouse's mid-tier multiplier. The
