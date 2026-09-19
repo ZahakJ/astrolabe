@@ -313,3 +313,18 @@
     background: CanvasText;
   }
 }
+
+
+/* The skip link is a target like any other once it is on screen, and on a
+   phone it lands beside the notch: 39.6px tall, parked at the top inline
+   corner under a status bar the page now knows the height of. It takes the
+   shell's floor and the safe area with it. (It is reached by Tab, which a
+   phone has when a keyboard is attached — the case the link exists for.) */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-skip {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    inset-block-start: calc(8px + var(--safe-top, 0px));
+  }
+}

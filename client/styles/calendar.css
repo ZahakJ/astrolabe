@@ -197,9 +197,37 @@
   .s-cal__day {
     max-block-size: 44px;
   }
+
+  /* 32 was the shell's floor missed by twelve pixels, in the one place a
+     reader taps a single glyph: ‹ and › move a whole month. */
   .s-cal__nav {
-    inline-size: 32px;
-    block-size: 32px;
+    inline-size: 44px;
+    block-size: 44px;
+  }
+
+  .s-cal__title {
+    min-block-size: 44px;
+  }
+
+  /* THE SIDEBAR'S MONTH, WHICH THE RULE ABOVE COULD NOT REACH. Its own cap
+     (`.s-calsec .s-cal__day`, two classes) outranked the one-class coarse
+     rule, so every day in the drawer stayed 36px — the smallest grid of
+     targets in the product, seven across. Raising the cap is not enough on
+     its own: at a 320px drawer with 12px of side padding and a 1px cell
+     inset a column is 40px wide however tall the button is allowed to be.
+     So the shelf's own padding comes in to 4px and the cell's inset goes,
+     which buys 44.5px a column — the month is the width it always was, the
+     day is a target. */
+  .s-calsec {
+    padding-inline: 4px;
+  }
+
+  .s-cal__cell {
+    padding: 0;
+  }
+
+  .s-calsec .s-cal__day {
+    max-block-size: 44px;
   }
 }
 

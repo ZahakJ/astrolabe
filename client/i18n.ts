@@ -2468,7 +2468,11 @@ const DICT = {
   },
   // The in-workspace strip: one line, part of the layout, never an overlay.
   readingStrip: { en: "Reading — this note is read-only", ar: "قراءة — هذه الملاحظة للقراءة فقط" },
-  readingStripAction: { en: "Edit (Ctrl/Cmd+E)", ar: "تحرير (Ctrl/Cmd+E)" },
+  // The VERB only. The keystroke that used to be inside this string is a
+  // keycap, not prose — it lives beside the call as a literal, the way every
+  // other chord label in the client does (CommandPalette's `hint`) — so that
+  // a phone, which has no Ctrl and no Cmd, can simply not draw it.
+  readingStripAction: { en: "Edit", ar: "تحرير" },
   // Zen takes the status bar to zero height, so in zen the pills are gone and
   // the strip is the only place a mode can live. Reading already had one;
   // ZEN + VIM was a modal editor with no on-screen state at all.

@@ -11,6 +11,11 @@
          ambiguous next to the launcher entry; this names the errand. -->
     <string name="title_activity_share">Capture to Astrolabe</string>
 
+    <!-- Back on the connection screen is the one gesture here that ends the
+         session, and the gesture area is where a thumb rests. The first tap
+         says this; the second leaves. -->
+    <string name="back_again_to_leave">Press back again to leave Astrolabe</string>
+
     <!-- Identifiers the Capacitor CLI reads out of this file. Not user-facing,
          not translatable, and not to be renamed. -->
     <string name="package_name" translatable="false">dev.vellum.mobile</string>

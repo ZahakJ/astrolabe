@@ -199,3 +199,21 @@
     border-block-end: none;
   }
 }
+
+
+/* The weekly review's links are a LIST, not prose: one line each, one note
+   each, in a column a reader taps down. They were 26px. The buttons beside
+   them ("Write it up", "Open the note") were 32. Same floor as the shell,
+   same trigger; the underline the link wears is unchanged, because what
+   grows is the box, not the rule under the words. */
+@media (max-width: 700px), (pointer: coarse) {
+  a.s-review__link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+  }
+
+  .s-review .s-btn {
+    min-block-size: 44px;
+  }
+}

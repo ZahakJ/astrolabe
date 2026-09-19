@@ -25,7 +25,7 @@
 .s-tour {
   position: relative;
   width: min(560px, 100%);
-  max-height: min(640px, calc(100vh - 48px));
+  max-height: min(640px, calc(100dvh - 48px));
   display: flex;
   flex-direction: column;
   background: var(--bg-raised);

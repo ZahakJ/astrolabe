@@ -1100,6 +1100,43 @@
     display: inline-flex;
   }
 }
+
+/* ── THE SHELF'S HEADER, WHICH RAN OFF THE EDGE IN ARABIC ────────────────
+   `.s-shelf__search` is `flex: 1` with a 380px cap, and a flex item's
+   `min-inline-size` defaults to `auto` — its CONTENT width, which for an
+   input is the size attribute's ~20 characters. In English that fitted at
+   390px; in Arabic the placeholder is longer, the item refused to shrink
+   below it, and the row overflowed its own start edge: the field began at
+   x=-69 and the Close button sat at x=-116, entirely off the screen, with
+   nothing to scroll. `min-inline-size: 0` is the one declaration that lets a
+   flex item be narrower than its text, and it is unconditional because a
+   header that can shrink is right at every width. */
+.s-shelf__search {
+  min-inline-size: 0;
+}
+
+/* The shelf on a phone: a 15.5px field (iOS zooms below 16), a 35px Close and
+   a "Continue"/"Open" card action at 26px — the shelf's three controls, all
+   of them short of the shell's floor. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-shelf__search {
+    font-size: 16px;
+    min-block-size: 44px;
+  }
+
+  .s-shelf__close,
+  .s-shelf__cardact {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+
+  /* The bar wraps rather than squeezing the field to nothing once the
+     heading, the field and Close cannot share one 390px line. */
+  .s-shelf__bar {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+}
 .s-book__touchzoom {
   display: none;
 }

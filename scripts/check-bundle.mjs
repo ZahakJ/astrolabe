@@ -753,6 +753,17 @@ const AUDIENCES = [
   // asserted split in MUST_SPLIT, and the Sigils page GAVE BACK its
   // `getTrackers` read when the grid left it.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
+  // 3.18.0 THE PHONE'S SHOULD-HAVES: 801.9 kB → 806. The touch floor
+  // stopped being a promise and became CSS: one coarse-pointer block per
+  // stylesheet raising every shell target to 44px and every field to 16px,
+  // the notch and home-indicator insets (`--safe-top` / `--safe-bottom`, app.css),
+  // and the two drawers hiding the chrome they cover. It is SHELL css and so
+  // it is first-paint css by definition — a 44px rule that arrives in a lazy
+  // chunk is a target that resizes under a finger that is already on it.
+  // Measured against a build of the same tree without the round: +3.1 kB,
+  // which is what this budget moves by and no more. The round's two new
+  // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
+  // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
   // 3.18.x: the shared tags/properties shelf and its tabs.
   // 3.18.x TABLES EDITED IN PLACE: 805.6 kB actual → 806 (actual + ~0.05%),
   // and it is the dictionary debt named below, once more. The round's own
@@ -1045,6 +1056,19 @@ const AUDIENCES = [
   // (above) and nothing of the page's own. A visitor has no door to it; only
   // the strings and the tab model reach this reader, because `t()` ships whole.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
+  // 3.18.0 THE PHONE'S SHOULD-HAVES: 1095.0 kB → 1100. The touch floor
+  // stopped being a promise and became CSS: one coarse-pointer block per
+  // stylesheet raising every shell target to 44px and every field to 16px,
+  // the notch and home-indicator insets (`--safe-top` / `--safe-bottom`, app.css),
+  // and the two drawers hiding the chrome they cover. It is SHELL css and so
+  // it is first-paint css by definition — a 44px rule that arrives in a lazy
+  // chunk is a target that resizes under a finger that is already on it.
+  // Measured against a build of the same tree without the round: +3.9 kB,
+  // which is what this budget moves by and no more. The round's two new
+  // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
+  // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
+  // This reader pays a little more than the entry does: the comment form is
+  // the one thing a VISITOR types into, and it is on this page.
   // 3.18.x: the shared tags/properties shelf and its tabs.
   // 3.18.x TABLES EDITED IN PLACE: 1098.8 kB actual → 1099. The entry's
   // thirty-eight dictionary rows (above), and one thing of this closure's
@@ -1234,6 +1258,19 @@ const AUDIENCES = [
   // bar's door, which the other two have no status bar for; Sidebar.tsx gave
   // back more than that when `useLoggedDays` moved out to
   // client/loggedDays.ts.
+  // 3.18.0 THE PHONE'S SHOULD-HAVES: 1553.7 kB → 1558. The touch floor
+  // stopped being a promise and became CSS: one coarse-pointer block per
+  // stylesheet raising every shell target to 44px and every field to 16px,
+  // the notch and home-indicator insets (`--safe-top` / `--safe-bottom`, app.css),
+  // and the two drawers hiding the chrome they cover. It is SHELL css and so
+  // it is first-paint css by definition — a 44px rule that arrives in a lazy
+  // chunk is a target that resizes under a finger that is already on it.
+  // Measured against a build of the same tree without the round: +3.6 kB,
+  // which is what this budget moves by and no more. The round's two new
+  // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
+  // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
+  // The admin carries the most of it: the drawer's chrome, the outline
+  // drawer's rows, the tab strip and the status bar are this reader's alone.
   // 3.18.x TABLES EDITED IN PLACE: 1555.2 kB actual → 1556. The entry's
   // thirty-eight dictionary rows and `tableActions.ts` (above), plus the
   // palette's six rows and their dispatch arms. The table editor itself is

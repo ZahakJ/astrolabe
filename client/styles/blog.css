@@ -191,6 +191,35 @@
   gap: 2px;
 }
 
+/* The phone's Sign in (BlogShell.tsx). Nothing at a width where the footer's
+   own link is one short scroll away; a labelled control beside the other
+   three tools where it is not. */
+.s-blog-nav__signin {
+  display: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.857rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.s-blog-nav__signin:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .s-blog-nav__signin {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    padding-inline: 14px;
+  }
+}
+
 .s-blog-iconbtn {
   display: inline-flex;
   align-items: center;

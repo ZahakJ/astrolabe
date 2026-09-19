@@ -30,7 +30,7 @@
      a 1280×800 laptop — the smallest screen this surface is designed for —
      with the preview and the controls both on screen at once. */
   width: min(1520px, 100%);
-  height: min(940px, 100vh - 32px);
+  height: min(940px, 100dvh - 32px);
   background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: 10px;

@@ -370,6 +370,36 @@
   .s-moderation__door {
     min-height: 44px;
   }
+
+  /* THE COMMENT FORM IS THE ONE THING A VISITOR TYPES INTO, and it is on the
+     public site, which is where a phone reader arrives. Both fields sat at
+     0.929rem (13px) — under 16px iOS Safari zooms the page into the field on
+     focus and leaves it there, so the article the comment is about slides
+     sideways the moment the reader starts writing. The name field's 240px cap
+     goes on a phone (a capped field beside nothing is a field that looks
+     broken), Post takes the shell's floor, and the moderation rows' two
+     quiet actions come out from under the hover they were hiding behind. */
+  .s-marginalia__name,
+  .s-marginalia__text {
+    font-size: 16px;
+  }
+
+  .s-marginalia__name {
+    max-width: none;
+    min-height: 44px;
+  }
+
+  .s-marginalia__post {
+    min-height: 44px;
+    padding-inline: 20px;
+  }
+
+  .s-comment__delete,
+  .s-comment__hide {
+    opacity: 1;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
 }
 
 .s-moderation__empty code {

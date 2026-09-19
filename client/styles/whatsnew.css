@@ -12,7 +12,7 @@
   /* A fixed height, not a maximum: the deck resized on every slide (560 →
      427 → 811 px) and the Next button jumped under the pointer. The body
      scrolls when a slide is taller. */
-  block-size: min(680px, calc(100vh - 48px));
+  block-size: min(680px, calc(100dvh - 48px));
   display: flex;
   flex-direction: column;
   background: var(--bg-raised);
