@@ -819,7 +819,10 @@ const AUDIENCES = [
   // (`derivedSlug`, `libraryRootError`, `cleanLibraryRoot` in
   // `shared/library.ts`) tree-shakes out of every closure below, because the
   // only client that calls it is that same chunk.
-{ name: "entry (everyone)", keys: entry, budget: 816 * 1024 },
+  // 3.19.0 MERGE, all six rounds on one main: 819.7 kB actual → 820. The perf round's
+  // lowered line was measured alone on 3.18.0; the other five rounds' bytes
+  // (each explained above) sit on top of it now. No new cause.
+{ name: "entry (everyone)", keys: entry, budget: 820 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1120,7 +1123,10 @@ const AUDIENCES = [
   // above and nothing else: this reader gains no code from the round at all —
   // the shelf they see is built on the server, and `/api/library` answers the
   // same shape it always did.
-{ name: "anonymous blog reader", keys: blog, budget: 1115 * 1024 },
+  // 3.19.0 MERGE, all six rounds on one main: 1118.7 kB actual → 1119. The perf round's
+  // lowered line was measured alone on 3.18.0; the other five rounds' bytes
+  // (each explained above) sit on top of it now. No new cause.
+{ name: "anonymous blog reader", keys: blog, budget: 1119 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1338,7 +1344,10 @@ const AUDIENCES = [
   // the reading renderer → KaTeX. All of it was in an admin's first request,
   // to draw a pane that is often collapsed and always empty until a note is
   // open. One `lazySurface` boundary, and the chunk count fell 51 → 36 too.
-  { name: "admin first paint", keys: app, budget: 1050 * 1024 },
+  // 3.19.0 MERGE, all six rounds on one main: 1071.0 kB actual → 1072. The perf round's
+  // lowered line was measured alone on 3.18.0; the other five rounds' bytes
+  // (each explained above) sit on top of it now. No new cause.
+  { name: "admin first paint", keys: app, budget: 1072 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
