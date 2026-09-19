@@ -292,13 +292,30 @@ export function formatTable(src: string): string {
   return [rowText(shape.header), delimText, ...shape.body.map(rowText)].join("\n");
 }
 
-/** Raw segments of a line, padded with single-space cells out to `cols` —
- *  the shared bed for column moves, which must keep every line the same
- *  shape or the swap shears. */
-function rawSegments(line: TableLine, srcBase: number, src: string, cols: number): string[] {
+/** Raw segments of a line, padded out to `cols` — the shared bed for every
+ *  column command, which must keep every line the same shape or the edit
+ *  shears.
+ *
+ *  `fill` is what a padded-on cell holds, and the DELIMITER's is not a space:
+ *  a ragged table (a code span with a pipe in it widens the header past the
+ *  alignment row, and GFM allows it) padded with blanks writes `| |` into the
+ *  delimiter, which is not a delimiter cell — the block stops parsing as a
+ *  table and the very next command refuses on a table the reader can see. */
+function rawSegments(
+  line: TableLine,
+  srcBase: number,
+  src: string,
+  cols: number,
+  fill = " ",
+): string[] {
   const segs = line.cells.map((c) => src.slice(c.from - srcBase, c.to - srcBase));
-  while (segs.length < cols) segs.push(" ");
+  while (segs.length < cols) segs.push(fill);
   return segs;
+}
+
+/** What a padded-on cell holds on this line. */
+function fillFor(line: TableLine, shape: TableShape): string {
+  return line === shape.delimiter ? " --- " : " ";
 }
 
 function joinSegments(segs: string[], line: TableLine): string {
@@ -326,7 +343,7 @@ export function moveTableColumn(
   const target = col + dir;
   if (col < 0 || col >= cols || target < 0 || target >= cols) return null;
   const out = rows.map((line) => {
-    const segs = rawSegments(line, shape.from, src, cols);
+    const segs = rawSegments(line, shape.from, src, cols, fillFor(line, shape));
     [segs[col], segs[target]] = [segs[target], segs[col]];
     return joinSegments(segs, line);
   });
@@ -359,4 +376,281 @@ export function moveTableRow(
  *  restretch it. */
 export function emptyRowText(cols: number): string {
   return "|" + "   |".repeat(Math.max(1, cols));
+}
+
+// ── The commands the table UI runs ──────────────────────────────────────────
+//
+// Everything below is the vocabulary the widget's context menu, its keyboard
+// and the command palette all speak — insert, delete, duplicate, move, align,
+// sort, and the one-cell write that editing in place is made of. They live
+// HERE, in the file with no imports, for the reason the rest of this module
+// does: a command that rewrites a table is string surgery, and string surgery
+// is the half a test can actually pin down (tests/tables.test.ts).
+//
+// TWO INDEX SPACES, AND ONLY ONE OF THEM IS PUBLIC. `moveTableRow` above
+// counts BODY rows, because the header is not a destination for a move. Every
+// command below counts NAVIGABLE rows — 0 is the header, 1 is the first body
+// row — because that is what a caret sitting in a cell knows about itself,
+// and a menu that had to translate would translate wrong once. `rowLine()` is
+// the single place the two meet.
+
+/** Which source LINE a navigable row is: 0 → the header, r ≥ 1 → body row
+ *  r-1, which sits one line further down because the delimiter is line 1. */
+function rowLine(row: number): number {
+  return row === 0 ? 0 : row + 1;
+}
+
+/** How many columns a block has: the widest of the alignment row and every
+ *  row in it. A short row is still a row of this table. */
+export function columnCount(shape: TableShape): number {
+  const rows = [shape.header, shape.delimiter, ...shape.body];
+  return Math.max(shape.aligns.length, ...rows.map((r) => r.cells.length));
+}
+
+/** Navigable row count (the header plus the body). */
+export function rowCount(shape: TableShape): number {
+  return 1 + shape.body.length;
+}
+
+/** Column `col`'s alignment, in the word the menu shows. */
+export function alignName(
+  shape: TableShape,
+  col: number,
+): "left" | "center" | "right" | "none" {
+  const a = shape.aligns[col];
+  if (!a) return "none";
+  if (a.left && a.right) return "center";
+  if (a.right) return "right";
+  if (a.left) return "left";
+  return "none";
+}
+
+/** A cell's text as the FILE holds it, escapes intact; "" outside the table.
+ *  The in-place editor shows this rather than the rendered text, because a
+ *  cell holds markdown: an editor that displayed `**bold**` as bold and then
+ *  wrote it back would eat the author's syntax on the first commit. */
+export function cellText(shape: TableShape, row: number, col: number): string {
+  return navRows(shape)[row]?.cells[col]?.text ?? "";
+}
+
+/** Escape what a cell may not hold raw.
+ *
+ *  A typed `|` becomes `\|`; an already-escaped one is left alone — parity,
+ *  not presence, the same count `pipeEscaped` does, because `\\|` is a
+ *  literal backslash and then a separator and re-escaping it would split one
+ *  cell into two on the next parse. Newlines become spaces: a row IS a line,
+ *  and a cell that wants a break says `<br>`. */
+export function escapeCellText(text: string): string {
+  const flat = text.replace(/[\r\n]+/g, " ");
+  let out = "";
+  for (let i = 0; i < flat.length; i++) {
+    if (flat[i] === "|" && !pipeEscaped(flat, i)) out += "\\";
+    out += flat[i];
+  }
+  return out.trim();
+}
+
+/** One cell's write, as a MINIMAL change: the offsets of the raw segment to
+ *  replace and what to put there, relative to the block's own start (add the
+ *  block's document offset and dispatch). Minimal on purpose — every other
+ *  cell's bytes are then untouched by construction rather than by care, which
+ *  is what makes a committed cell one undo step over one range instead of a
+ *  whole-block rewrite that the history, the widget and `git diff` all have
+ *  to read.
+ *
+ *  A row too short to hold the column is rewritten whole, padded out to the
+ *  table's width: there is no segment to replace until the cell exists. */
+export function cellEdit(
+  src: string,
+  row: number,
+  col: number,
+  text: string,
+): { from: number; to: number; insert: string } | null {
+  const shape = parseTable(src);
+  if (!shape) return null;
+  const line = navRows(shape)[row];
+  if (!line || col < 0 || col >= columnCount(shape)) return null;
+  const body = escapeCellText(text);
+  const cell = line.cells[col];
+  if (cell) return { from: cell.from, to: cell.to, insert: ` ${body} ` };
+  const segs = rawSegments(line, 0, src, col + 1);
+  segs[col] = ` ${body} `;
+  return { from: line.from, to: line.to, insert: joinSegments(segs, line) };
+}
+
+/** Insert an empty row above or below navigable row `row`. Above the header
+ *  is refused: the row above a header is not a row, it is a different table.
+ *  Returns the block and the new row's navigable index. */
+export function insertTableRow(
+  src: string,
+  row: number,
+  where: "above" | "below",
+): { src: string; row: number } | null {
+  const shape = parseTable(src);
+  if (!shape) return null;
+  if (row < 0 || row >= rowCount(shape)) return null;
+  if (row === 0 && where === "above") return null;
+  const at = rowLine(row) + (where === "below" ? 1 : 0) + (row === 0 ? 1 : 0);
+  const lines = src.split("\n");
+  lines.splice(at, 0, emptyRowText(columnCount(shape)));
+  return { src: lines.join("\n"), row: at - 1 };
+}
+
+/** Delete navigable row `row`. The header is refused — a table without its
+ *  header is not a table with one row fewer, it is prose full of pipes. */
+export function deleteTableRow(src: string, row: number): { src: string; row: number } | null {
+  const shape = parseTable(src);
+  if (!shape) return null;
+  if (row <= 0 || row >= rowCount(shape)) return null;
+  const lines = src.split("\n");
+  lines.splice(rowLine(row), 1);
+  return { src: lines.join("\n"), row: Math.min(row, rowCount(shape) - 2) };
+}
+
+/** Copy navigable row `row` directly beneath itself. The header duplicates
+ *  into the FIRST BODY ROW rather than into a second header: a table has one
+ *  header, and a copy of the column names is a genuinely useful first row. */
+export function duplicateTableRow(src: string, row: number): { src: string; row: number } | null {
+  const shape = parseTable(src);
+  if (!shape) return null;
+  if (row < 0 || row >= rowCount(shape)) return null;
+  const lines = src.split("\n");
+  const at = rowLine(row) + (row === 0 ? 2 : 1);
+  lines.splice(at, 0, lines[rowLine(row)]);
+  return { src: lines.join("\n"), row: at - 1 };
+}
+
+/** Insert an empty column beside column `col`, in EVERY line including the
+ *  delimiter — the all-lines-or-nothing rule `moveTableColumn` already
+ *  follows, for the same reason: a column added to the rows but not to the
+ *  alignment row shifts every alignment one place along. */
+export function insertTableColumn(
+  src: string,
+  col: number,
+  where: "before" | "after",
+): { src: string; col: number } | null {
+  const shape = parseTable(src);
+  if (!shape) return null;
+  const cols = columnCount(shape);
+  if (col < 0 || col >= cols) return null;
+  const at = col + (where === "after" ? 1 : 0);
+  const out = [shape.header, shape.delimiter, ...shape.body].map((line) => {
+    const segs = rawSegments(line, 0, src, cols, fillFor(line, shape));
+    segs.splice(at, 0, line === shape.delimiter ? " --- " : "   ");
+    return joinSegments(segs, line);
+  });
+  return { src: out.join("\n"), col: at };
+}
+
+/** Delete column `col` everywhere. The last column is refused: a table with
+ *  no columns has no rows either. */
+export function deleteTableColumn(src: string, col: number): { src: string; col: number } | null {
+  const shape = parseTable(src);
+  if (!shape) return null;
+  const cols = columnCount(shape);
+  if (cols <= 1 || col < 0 || col >= cols) return null;
+  const out = [shape.header, shape.delimiter, ...shape.body].map((line) => {
+    const segs = rawSegments(line, 0, src, cols, fillFor(line, shape));
+    segs.splice(col, 1);
+    return joinSegments(segs, line);
+  });
+  return { src: out.join("\n"), col: Math.min(col, cols - 2) };
+}
+
+/** Set column `col`'s alignment by rewriting ONE delimiter cell, keeping its
+ *  width so the pipes below it do not jump before format-on-exit runs. */
+export function setColumnAlign(
+  src: string,
+  col: number,
+  align: "left" | "center" | "right" | "none",
+): string | null {
+  const shape = parseTable(src);
+  if (!shape) return null;
+  const cell = shape.delimiter.cells[col];
+  if (!cell) return null;
+  const width = Math.max(3, cell.text.length);
+  const dashes = (n: number): string => "-".repeat(Math.max(1, n));
+  const body =
+    align === "center"
+      ? ":" + dashes(width - 2) + ":"
+      : align === "left"
+        ? ":" + dashes(width - 1)
+        : align === "right"
+          ? dashes(width - 1) + ":"
+          : dashes(width);
+  return src.slice(0, cell.trimFrom) + body + src.slice(cell.trimTo);
+}
+
+/** Digits that are digits in another script. A column of ١٢ and ٩٨ is a
+ *  column of numbers, and "sort numerically" has to mean that on an Arabic
+ *  instance or the row is a decoration. */
+function latinDigits(text: string): string {
+  let out = "";
+  for (const ch of text) {
+    const cp = ch.codePointAt(0) ?? 0;
+    if (cp >= 0x0660 && cp <= 0x0669) out += String(cp - 0x0660);
+    else if (cp >= 0x06f0 && cp <= 0x06f9) out += String(cp - 0x06f0);
+    else out += ch;
+  }
+  return out;
+}
+
+/** The number a cell means, or null when it does not mean one. Both grouping
+ *  separators come out, a currency mark or a trailing % is ignored, and a
+ *  cell with no digit in it is not a number however it is punctuated. */
+function cellNumber(text: string): number | null {
+  const cleaned = latinDigits(text)
+    .replace(/[٬,  \s]/g, "")
+    .replace(/[^0-9.+-]/g, "");
+  if (!/\d/.test(cleaned)) return null;
+  const n = Number.parseFloat(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Sort the BODY rows by column `col`. The header and the alignment row never
+ *  move. Stable, so a sort on a second column keeps the first one's order
+ *  inside ties; `numeric` puts the rows holding no number last, because a
+ *  blank is not smaller than 1, it is not a number at all. */
+export function sortTableRows(
+  src: string,
+  col: number,
+  mode: "az" | "za" | "numeric",
+): string | null {
+  const shape = parseTable(src);
+  if (!shape) return null;
+  if (col < 0 || col >= columnCount(shape)) return null;
+  const lines = src.split("\n");
+  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+  const rows = shape.body.map((line, i) => ({
+    text: lines[2 + i],
+    key: line.cells[col]?.text ?? "",
+    at: i,
+  }));
+  rows.sort((a, b) => {
+    let d: number;
+    if (mode === "numeric") {
+      const x = cellNumber(a.key);
+      const y = cellNumber(b.key);
+      if (x === null && y === null) d = 0;
+      else if (x === null) d = 1;
+      else if (y === null) d = -1;
+      else d = x - y;
+    } else {
+      d = collator.compare(a.key, b.key) * (mode === "za" ? -1 : 1);
+    }
+    return d !== 0 ? d : a.at - b.at;
+  });
+  return [lines[0], lines[1], ...rows.map((r) => r.text)].join("\n");
+}
+
+/** A fresh table: `rows` INCLUDING the header — the picker draws a grid and
+ *  the reader counts the squares they drew — and `cols` columns, every cell
+ *  empty so the first thing typed is the author's and not a placeholder they
+ *  have to delete first. */
+export function tableSkeleton(rows: number, cols: number): string {
+  const n = Math.max(1, Math.min(50, Math.floor(cols)));
+  const r = Math.max(1, Math.min(200, Math.floor(rows)));
+  const out = [emptyRowText(n), "|" + " --- |".repeat(n)];
+  for (let i = 1; i < r; i++) out.push(emptyRowText(n));
+  return out.join("\n");
 }

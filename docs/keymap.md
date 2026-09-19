@@ -83,6 +83,16 @@ All five live ONLY while the caret sits inside a table block — outside one, `T
 | `Alt ↑` / `↓` | Move table row |
 | `Alt ←` / `→` | Move table column, alignment row included (visual arrows — flipped in an RTL table) |
 
+**The same three keys, inside a drawn table.** Click a cell of a rendered table and a box opens in
+it; `Tab`, `Shift Tab` and `Enter` mean there exactly what the rows above say they mean, so there
+is one set of table keys and not two. The box adds four of its own that claim no chord outside it:
+`Shift Enter` puts a `<br>` in the cell, `←` and `→` step to the neighbouring cell when the caret
+is already at the box's edge (mirrored in a right-to-left table), `↑` and `↓` move a row, and
+`Esc` puts the caret back in the note just after the table, leaving the cell as it was.
+`Shift F10` in a cell opens the table menu — rows, columns, alignment, sorting, *Edit as Markdown*
+— which a right-click opens too, and which a `⋯` under the table opens on a touch screen. See
+[the editor's Tables section](editor.md#tables).
+
 ## Templates
 
 | Keys | Action |
