@@ -182,7 +182,11 @@ function assertCell(where, m, { posture, seeded }) {
     // The sidebar leaves the grid and becomes an overlay; the ☰ is its door.
     ok(where, m.sidebar.position === "fixed", `sidebar should be an overlay drawer, is ${m.sidebar.position}`);
     ok(where, m.gripSidebar.display === "none", "a drawer has no width to drag");
-    ok(where, m.drawerBtn.display !== "none", "a drawer needs its ☰");
+    // …except while the OUTLINE drawer is up on a phone: it hides the chrome
+    // it covers (app.css "a phone drawer hides the chrome it covers", 3.19.0)
+    // and carries its own ✕, so the ☰ is gone until it closes.
+    if (phone && !m.panelCollapsed) ok(where, m.drawerBtn.display === "none", "an open outline drawer hides the ☰ it covers");
+    else ok(where, m.drawerBtn.display !== "none", "a drawer needs its ☰");
     // The PANEL stays docked and resizable in the 700–999 band; below 700 it
     // is a drawer of its own and goes with the rest.
     if (!phone && !m.panelCollapsed) ok(where, m.gripPanel.display !== "none", "the outline pane stays docked here and keeps its grip");
