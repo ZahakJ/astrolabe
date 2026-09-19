@@ -12,7 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { lazySurface } from "./lazySurface.tsx";
-import { reopenDragProps } from "./components/PaneGrip.tsx";
+import PaneGrip, { reopenDragProps, usePaneLayout } from "./components/PaneGrip.tsx";
 import SiteMark from "./components/SiteMark.tsx";
 import type { PropertyValue, VaultEvent } from "../shared/types.ts";
 import { subscribeEvents } from "./api.ts";
@@ -252,6 +252,7 @@ export default function App() {
   const sidebarSide = useStore((s) => s.sidebarSide);
   const sidebarCollapsed = useStore((s) => s.sidebarCollapsed);
   const panelCollapsed = useStore((s) => s.panelCollapsed);
+  const paneStill = useStore((s) => s.paneStill);
   const zen = useStore((s) => s.zen);
   const locked = useStore((s) => !s.admin && !s.publicReads);
   const lang = useStore((s) => s.language); // re-render the chrome strings on language change
@@ -1001,6 +1002,10 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, []);
 
+  // The panes answer the WINDOW as well as the hand: stored widths applied at
+  // boot and re-clamped on every resize and fold (client/paneWidths.ts).
+  usePaneLayout();
+
   // Until /api/me answers, render nothing — no flash of the wrong mode.
   if (!authReady) return <div className="s-app" />;
 
@@ -1064,6 +1069,10 @@ export default function App() {
     // gutters against what each end of the shell is actually holding), and a
     // sibling's class is not something CSS can ask about.
     panelCollapsed ? "s-app--nopanel" : "",
+    // The pane's width changed for a reason the reader did not give (the
+    // outline panel's responsive auto-collapse). Same commit as the flag
+    // above, so there is no frame in which it is closing WITH its transition.
+    paneStill ? "s-app--pane-still" : "",
     zen ? "s-app--zen" : "",
     // The notice row exists while EITHER strip is up: the preview banner or
     // the offline strip (both components render into grid-area notice).
@@ -1303,6 +1312,14 @@ export default function App() {
       <Surface fallback={<aside className="s-panel" aria-hidden="true" />}>
         <BacklinksPanel />
       </Surface>
+      {/* THE SEAMS. Both grips are the shell's own children, not the panes' —
+          a pane is `overflow: hidden` (that is what makes its collapse a width
+          animation) and a strip that straddles the divider cannot live inside
+          the box it straddles. They sit on `--sidebar-w`/`--panel-w`, so they
+          follow the pane they resize without the pane holding them; the
+          stylesheet hides each one where its pane is not a grid column. */}
+      <PaneGrip pane="sidebar" />
+      <PaneGrip pane="panel" />
       <Surface fallback={<footer className="s-statusbar" aria-hidden="true" />}>
         <StatusBar />
       </Surface>

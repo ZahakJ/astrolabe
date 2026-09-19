@@ -80,7 +80,6 @@ import FolderGlyph from "./FolderGlyph.tsx";
 import type { IconPickState } from "./FolderIconPicker.tsx";
 import type { LibraryPopState } from "./LibraryFolderPopover.tsx";
 import type { CollectionsPopState } from "./CollectionsPopover.tsx";
-import PaneGrip from "./PaneGrip.tsx";
 import {
   PINNED_PARENT,
   findNode as findTreeNode,
@@ -2725,7 +2724,6 @@ export default function Sidebar() {
           onClose={() => setViewer(null)}
         />
       )}
-      <PaneGrip pane="sidebar" />
     </aside>
   );
 }

@@ -754,7 +754,19 @@ const AUDIENCES = [
   // `getTrackers` read when the grid left it.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
   // 3.18.x: the shared tags/properties shelf and its tabs.
-{ name: "entry (everyone)", keys: entry, budget: 803 * 1024 },
+  // 3.18.1 WINDOWS AND DESKTOP RESIZING: 805.3 kB actual → 806. +2.3 kB, and
+  // every byte of it is first paint by construction. `client/paneWidths.ts`
+  // grew `layoutPanes`/`paneStyle` — the one owner of "how wide may these two
+  // panes be, HERE" — and `PaneGrip.tsx` grew `usePaneLayout`, the rAF-throttled
+  // resize listener that is the whole of "resizing *windows*"; both run at
+  // boot, before anything is painted, which is exactly why the old code
+  // re-applied a stored {560, 560} into a 904px window and left the note 0px
+  // wide. The rest is the store's `paneStill` flag, three dictionary rows in
+  // two languages for the zoom chip (`t()` ships whole — the debt named
+  // above), and the two grips App now renders itself. Nothing here can be
+  // lazy: a shell that splits its own layout arithmetic paints the wrong
+  // layout first and corrects it, which is the flicker this round removes.
+{ name: "entry (everyone)", keys: entry, budget: 806 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1017,7 +1029,11 @@ const AUDIENCES = [
   // the strings and the tab model reach this reader, because `t()` ships whole.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
   // 3.18.x: the shared tags/properties shelf and its tabs.
-{ name: "anonymous blog reader", keys: blog, budget: 1096 * 1024 },
+  // 3.18.1 WINDOWS AND DESKTOP RESIZING: 1098.4 kB actual → 1099. The same
+  // +2.3 kB as the entry, arriving here for the same reason — a blog page is
+  // the entry plus its own shell — and no more: the zoom chip lives in the
+  // lazy StatusBar and the desktop bridge is behind the Electron gate.
+{ name: "anonymous blog reader", keys: blog, budget: 1099 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1190,7 +1206,10 @@ const AUDIENCES = [
   // bar's door, which the other two have no status bar for; Sidebar.tsx gave
   // back more than that when `useLoggedDays` moved out to
   // client/loggedDays.ts.
-  { name: "admin first paint", keys: app, budget: 1554 * 1024 },
+  // 3.18.1 WINDOWS AND DESKTOP RESIZING: 1555.1 kB actual → 1556. +1.1 kB,
+  // less than the entry's because the admin paint already carried the pane
+  // machinery; the difference is the grips' own markup and the zoom chip.
+  { name: "admin first paint", keys: app, budget: 1556 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

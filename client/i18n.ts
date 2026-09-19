@@ -4113,6 +4113,10 @@ const DICT = {
     ar: "تُحفظ في الخزانة فتتشاركها كل الأجهزة عليها.",
   },
   checkForUpdates: { en: "Check for updates…", ar: "التحقق من التحديثات…" },
+  // The desktop's zoom, in the status bar. Nothing is drawn at 100%.
+  zoomChip: { en: "{pct}%", ar: "٪{pct}" },
+  zoomChipAria: { en: "App zoom {pct} percent — click for actual size", ar: "تكبير التطبيق {pct} بالمئة — انقر للحجم الفعلي" },
+  zoomResetTitle: { en: "Actual size (Ctrl/Cmd 0)", ar: "الحجم الفعلي (Ctrl/Cmd 0)" },
   versionTitle: { en: "Astrolabe {v} — the releases page", ar: "أسطرلاب {v}، صفحة الإصدارات" },
   versionAria: { en: "Version {v}", ar: "الإصدار {v}" },
   hintSelToolbar: {

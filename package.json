@@ -34,6 +34,7 @@
     "check-hovercache": "node scripts/check-hovercache.mjs",
     "check-designer-nav": "node scripts/check-designer-nav.mjs",
     "check-layouts": "node scripts/check-layouts.mjs",
+    "check-windows-layout": "node scripts/check-windows-layout.mjs",
     "check-keymap": "node scripts/check-keymap.mjs",
     "check-desktop": "node scripts/check-desktop.mjs && npm --prefix desktop run -s typecheck",
     "check-settings": "node scripts/check-settings.mjs",

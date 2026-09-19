@@ -348,7 +348,7 @@ select:focus,
    been given a width; it has one (foldericons.css clamps it to the viewport
    less the popover keep-out), and this rule was overriding it. The library and
    collections popovers are the same shape and were the same bug. */
-.s-sidebar > *:not(.s-menu, .s-pane-grip, .s-tree-iconpick, .s-libpop) {
+.s-sidebar > *:not(.s-menu, .s-tree-iconpick, .s-libpop) {
   width: var(--sidebar-w);
 }
 
@@ -2366,8 +2366,14 @@ select:focus,
 
 .s-panel {
   grid-area: panel;
-  position: relative; /* the grip on its inner edge */
-  width: var(--panel-w);
+  position: relative;
+  /* +1px for the separator, exactly as .s-sidebar does it: with `border-box`
+     the TOKEN is the content width, so `.s-panel-header`/`.s-panel-body` —
+     both pinned to `--panel-w` below — get the whole of it. Without the pixel
+     the two rules disagreed and the panel's content hung 1px past the window
+     edge (measured: body right = 1441 in a 1440 window), and the grip that
+     reads the same token had to be told about the difference. */
+  width: calc(var(--panel-w) + 1px);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -5351,17 +5357,19 @@ button.s-title:hover {
     transition: transform 0.2s ease, visibility 0s linear 0.2s;
   }
 
-  /* The drawer's rows fill its width — but not the grip, which is
-     `position: absolute` and 8px wide by design. Caught by this rule it became
-     a full-width sheet over the tree (z-index 6), and every click and drag on
-     the drawer landed on it: nothing to resize, nothing to open. The drawer's
-     width is fixed (`min(84vw, 320px)`) and `--sidebar-w` is not read here,
-     so a grip has nothing to do in this mode; it goes. */
-  .s-sidebar > *:not(.s-menu, .s-pane-grip, .s-tree-iconpick, .s-libpop) {
+  /* The drawer's rows fill its width. (The grip is no longer one of them —
+     it is a child of the shell — but it once was, and caught by this rule it
+     became a full-width sheet over the tree at z-index 6: every click and
+     drag on the drawer landed on it, with nothing to resize and nothing to
+     open. The exclusions that remain are the popovers this pane parents.) */
+  .s-sidebar > *:not(.s-menu, .s-tree-iconpick, .s-libpop) {
     width: 100%;
   }
 
-  .s-sidebar .s-pane-grip {
+  /* The drawer's width is fixed (`min(84vw, 320px)`) and `--sidebar-w` is not
+     read here, so the sidebar's grip has nothing to point at. The PANEL stays
+     docked and resizable in this band, and keeps its own. */
+  .s-pane-grip--sidebar {
     display: none;
   }
 
@@ -7067,6 +7075,17 @@ button.s-title:hover {
   text-decoration: none;
 }
 
+/* THE DESKTOP'S ZOOM, and only when it is not 100% — the chip is the state
+   and the reset at once. Full opacity and the accent's tint, the same shape
+   the version chip uses for "3.x available": this is a condition the reader
+   should notice, because at 158% on a 1366 laptop the app is in its phone
+   shell and looks broken rather than zoomed. */
+.s-statusbar__zoom {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
 .s-statusbar__version:hover {
   opacity: 1;
 }
@@ -7127,34 +7146,55 @@ button.s-title:hover {
 .s-pane-grip {
   position: absolute;
   top: 0;
-  bottom: 0;
-  width: 8px;
+  /* Clears the status bar, the same way .s-reopen does: the grip is a child
+     of the SHELL now, not of the pane, so it has to stop where the pane row
+     stops rather than inheriting the pane's own box. */
+  bottom: calc(2.1rem + 1px);
+  /* 12px, with the pane's 1px divider down the middle (the ±5.5px insets
+     below). It was 8px pinned INSIDE the pane, which put the strip on the
+     tree's scrollbar and left the hairline the eye aims at — and every pixel
+     past it — answering to nothing: `elementFromPoint` at the seam returned
+     the <aside>, cursor `auto`. Half the reason "resizing panels is clunky". */
+  width: 12px;
   cursor: col-resize;
   z-index: 6;
   touch-action: none;
 }
 
-/* LOGICAL insets, because the panes follow the reading direction: in Arabic
-   the sidebar is on the RIGHT and its inner edge is its left, and a grip at
-   `right: 0` there sat on the window's edge where nothing could take hold
-   (the owner: "I still cannot resize panels in arabic mode"). Inline-end is
-   the sidebar's inner edge in either language; flipped, the other one. */
-.s-sidebar .s-pane-grip {
-  inset-inline-end: 0;
+/* WHERE THE SEAM IS, IN LOGICAL TERMS. The grip cannot be positioned against
+   the pane any more — a pane is `overflow: hidden`, which is what makes its
+   collapse a width animation, and a strip that reaches past the divider would
+   be clipped to nothing on the outside. So each grip is positioned against
+   the SHELL from the pane's own custom property: the pane's box is
+   `var(--pane-w) + 1px`, its divider is that last 1px, and the strip starts
+   5.5px before it.
+
+   Logical, because the panes follow the reading direction: in Arabic the
+   sidebar is on the RIGHT and its inner edge is its left (the owner: "I still
+   cannot resize panels in arabic mode"), and `.s-app--flip` swaps the two
+   panes' ends again on top of that. */
+.s-pane-grip--sidebar {
+  inset-inline-start: calc(var(--sidebar-w) - 5.5px);
 }
 
-.s-app--flip .s-sidebar .s-pane-grip {
-  inset-inline-end: auto;
-  inset-inline-start: 0;
-}
-
-.s-panel .s-pane-grip {
-  inset-inline-start: 0;
-}
-
-.s-app--flip .s-panel .s-pane-grip {
+.s-app--flip .s-pane-grip--sidebar {
   inset-inline-start: auto;
-  inset-inline-end: 0;
+  inset-inline-end: calc(var(--sidebar-w) - 5.5px);
+}
+
+.s-pane-grip--panel {
+  inset-inline-end: calc(var(--panel-w) - 5.5px);
+}
+
+.s-app--flip .s-pane-grip--panel {
+  inset-inline-end: auto;
+  inset-inline-start: calc(var(--panel-w) - 5.5px);
+}
+
+/* The notice row (preview banner / offline strip) pushes every pane down; the
+   grips go with them, exactly as the reopen doors do. */
+.s-app--notice .s-pane-grip {
+  top: var(--preview-h);
 }
 
 .s-pane-grip::after {
@@ -7162,7 +7202,9 @@ button.s-title:hover {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 3px;
+  /* Over the divider itself, not beside it: the strip is 12px, the divider
+     sits at 5.5px from its start, and a 2px line centred on it starts at 5. */
+  left: 5px;
   width: 2px;
   background: var(--accent);
   opacity: 0;
@@ -7211,16 +7253,34 @@ button.s-title:hover {
   transition: none;
 }
 
+/* A WIDTH THE READER DID NOT ASK FOR DOES NOT ANIMATE.
+   The outline panel auto-collapses below `NARROW_QUERY` — a fact about the
+   viewport, not a preference — and that threshold is crossed by a maximise, a
+   Snap, a tiling manager, a monitor unplugged. Animating it played a 180ms
+   slide with the reading column moving ~300px under it every single time,
+   which is a window doing things by itself. The class rides in the SAME React
+   commit as the collapse (`paneStill`, client/state.ts), so this is a matter
+   of what is true in that commit and not of timing: no timer, no resize
+   listener, and identical in RTL and on every OS. The reader's own toggle
+   never raises it, and keeps the 180ms it belongs to. */
+.s-app--pane-still .s-sidebar,
+.s-app--pane-still .s-panel,
+.s-app--pane-still .s-main {
+  transition: none;
+}
+
 /* Being pushed off the edge: the pane dims to say "let go and I close". */
 .s-pane--leaving {
   opacity: 0.45;
 }
 
-/* No grip where there is nothing to drag: a collapsed pane, zen, the phone's
-   drawer, or a finger (the strip is 8px). */
-.s-panel--collapsed .s-pane-grip,
+/* No grip where there is nothing to drag: a collapsed pane (which leaves a
+   14px door instead) or zen. The shell carries both collapse flags —
+   `.s-app--nosidebar` / `.s-app--nopanel` — which is what the grips have to
+   ask now that they are the shell's children and not the panes'. */
+.s-app--nopanel .s-pane-grip--panel,
 .s-app--zen .s-pane-grip,
-.s-sidebar--collapsed .s-pane-grip {
+.s-app--nosidebar .s-pane-grip--sidebar {
   display: none;
 }
 
