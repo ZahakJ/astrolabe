@@ -115,6 +115,17 @@ export async function renderPage(opts: RenderOptions): Promise<PageRender> {
   }
   const targetCtx = plain ? ctx : target.getContext("2d");
   if (!targetCtx) throw new Error("astrolabe: no 2d context for a book page");
+  // THE CANVAS DRAWS LEFT TO RIGHT WHATEVER THE BOOK'S BINDING. pdf.js lays
+  // every glyph out itself and hands the canvas runs of private-use codes in
+  // the order they must paint; `ctx.direction` defaults to "inherit", and an
+  // RTL-bound book's pages sit under `.s-book__doc[dir="rtl"]`, so Chromium
+  // ran the bidi algorithm over those runs and drew an Arabic page as
+  // isolated letters in the wrong places (the owner: "the arabic prints suck
+  // super bad"). Stock pdf.js on an RTL document garbles identically; on an
+  // LTR one it is perfect. Pinned here AND in books.css, because this ctx is
+  // the visible canvas when nothing is composited and a detached one when it is.
+  targetCtx.direction = "ltr";
+  ctx.direction = "ltr";
 
   const task = page.render({ canvasContext: targetCtx, viewport, canvas: target });
   if (signal) signal.addEventListener("abort", () => task.cancel(), { once: true });

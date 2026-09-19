@@ -363,6 +363,10 @@
   display: block;
   inline-size: 100%;
   block-size: 100%;
+  /* Never the book's binding: pdf.js positions every glyph itself, and a
+     canvas that inherits `dir="rtl"` from .s-book__doc bidi-reorders the
+     runs it is handed (render.ts). */
+  direction: ltr;
 }
 
 /* A page not in the render window: the same box, empty. It holds the

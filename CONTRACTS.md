@@ -9031,6 +9031,18 @@ exists to make it readable at night. That single line of judgement is the
 difference between this working and not. `flip` is the plain negative for the
 reader who actually wants one, and skips both the tint and the figure pass.
 
+### The page canvas draws left to right whatever the binding (3.19.2)
+
+An RTL-bound book's pages sit under `.s-book__doc[dir="rtl"]` so the spreads run right to left.
+A `<canvas>`'s 2d context has `direction: "inherit"`, so the visible page canvas inherited that,
+and Chromium ran the bidi algorithm over the strings pdf.js hands it — runs of private-use codes
+already in paint order — and drew every Arabic page as isolated letters in the wrong places.
+Stock pdf.js on an RTL document garbles identically; on an LTR one it is perfect. So render.ts
+pins `direction = "ltr"` on BOTH contexts a page is drawn into (the visible canvas when nothing
+is composited, a detached one when night/invert is on), pageImage.ts does the same for covers,
+and `.s-book__canvas { direction: ltr }` says it in CSS; scripts/check-books.mjs keeps all three.
+The text layer is untouched: pdf.js positions its spans absolutely and sets their own direction.
+
 ### Search folds the way an Arabic reader types
 
 `client/books/search.ts` matches character by character through a fold and
