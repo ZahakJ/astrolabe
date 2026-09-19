@@ -273,6 +273,14 @@ const GROUPS: Group[] = [
       { label: "scTableRowDown", keys: ["Enter"], admin: true },
       { label: "scTableMoveRow", keys: ["Alt", "↑ / ↓"], admin: true },
       { label: "scTableMoveColumn", keys: ["Alt", "← / →"], admin: true },
+      // The two SURFACES the table grew in 3.18. Neither claims a chord of
+      // its own — the box inside a cell answers Tab, Enter, Escape and the
+      // arrows exactly as the rows above describe them, and the menu's own
+      // Shift+F10 lives inside that box rather than in the editor — so both
+      // are `via` rows: a door the sheet has to name and the keymap gate has
+      // nothing to collide.
+      { label: "scTableEditCell", via: "scViaTableCell", admin: true },
+      { label: "scTableMenu", via: "scViaTableMenu", admin: true },
     ],
   },
   {

@@ -1,0 +1,53 @@
+/* The rows × columns grid (client/components/TablePicker.tsx).
+   Its frame is the Media form's (.s-mediaform*, styles/media.css) like every
+   other sheet the palette opens; only the grid itself is new, and it carries
+   no colour tokens.css does not already hold. */
+
+.s-tablepick {
+  max-inline-size: 22rem;
+}
+
+.s-tablepick__grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+  padding: 4px;
+  border-radius: var(--radius);
+}
+
+.s-tablepick__cell {
+  aspect-ratio: 1;
+  min-inline-size: 0;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-raised);
+}
+
+.s-tablepick__cell--on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* The sweep is a HOVER, so a coarse pointer never gets one: on a phone the
+   squares are tapped, and 10 × 10 of them inside a 22rem sheet is a 28px
+   target. The sheet's own Insert button below is the 44px answer, and the
+   grid stays as the picture of what it will insert. */
+@media (pointer: coarse) {
+  .s-tablepick__grid {
+    gap: 4px;
+  }
+}
+
+.s-tablepick__size {
+  margin: 10px 0 0;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.s-tablepick__go {
+  display: block;
+  inline-size: 100%;
+  min-block-size: 44px;
+  margin-block-start: 10px;
+}

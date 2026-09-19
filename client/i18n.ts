@@ -2724,6 +2724,44 @@ const DICT = {
   drawingTakeTheirs: { en: "Use the disk version", ar: "استخدم نسخة القرص" },
   drawingEmbedMissing: { en: "{name}: open the drawing once to draw its picture", ar: "{name}: افتح الرسمة مرة لتُرسم صورتها" },
 
+  // ── Tables, edited in place (client/editor/tables.ts) ────────────────────
+  // The menu on a cell, the box inside one, and the two palette doors. Every
+  // row names what it does to the TABLE, never to "the selection": the reader
+  // right-clicked a cell and the answer has to be about rows and columns.
+  tableMenu: { en: "Table actions", ar: "إجراءات الجدول" },
+  tableCellLabel: { en: "Cell, row {row}, column {col}", ar: "خلية، الصف {row}، العمود {col}" },
+  tableRowAbove: { en: "Insert row above", ar: "إدراج صف فوق" },
+  tableRowBelow: { en: "Insert row below", ar: "إدراج صف تحت" },
+  tableColBefore: { en: "Insert column before", ar: "إدراج عمود قبل" },
+  tableColAfter: { en: "Insert column after", ar: "إدراج عمود بعد" },
+  tableDeleteRow: { en: "Delete row", ar: "حذف الصف" },
+  tableDeleteCol: { en: "Delete column", ar: "حذف العمود" },
+  tableDuplicateRow: { en: "Duplicate row", ar: "تكرار الصف" },
+  tableClearCell: { en: "Clear cell", ar: "تفريغ الخلية" },
+  tableRowUp: { en: "Move row up", ar: "نقل الصف لأعلى" },
+  tableRowDown: { en: "Move row down", ar: "نقل الصف لأسفل" },
+  tableColLeft: { en: "Move column left", ar: "نقل العمود يسارًا" },
+  tableColRight: { en: "Move column right", ar: "نقل العمود يمينًا" },
+  tableAlignStart: { en: "Align column left", ar: "محاذاة العمود يسارًا" },
+  tableAlignCenter: { en: "Align column centre", ar: "توسيط العمود" },
+  tableAlignEnd: { en: "Align column right", ar: "محاذاة العمود يمينًا" },
+  tableSortAz: { en: "Sort by this column, A→Z", ar: "ترتيب حسب هذا العمود، أ→ي" },
+  tableSortZa: { en: "Sort by this column, Z→A", ar: "ترتيب حسب هذا العمود، ي→أ" },
+  tableSortNumeric: { en: "Sort by this column, smallest first", ar: "ترتيب حسب هذا العمود، الأصغر أولًا" },
+  tableEditSource: { en: "Edit as Markdown", ar: "تحرير بصيغة ماركداون" },
+  tableCopyMarkdown: { en: "Copy table as Markdown", ar: "نسخ الجدول بصيغة ماركداون" },
+  tableCopied: { en: "Table copied", ar: "نُسخ الجدول" },
+  tableCopyFailed: { en: "Could not copy — the clipboard refused", ar: "تعذّر النسخ — أبَت الحافظة" },
+  tableNotHere: { en: "Put the cursor in a table first", ar: "ضع المؤشر داخل جدول أولًا" },
+  tableSize: { en: "{rows} rows × {cols} columns", ar: "{rows} صفوف × {cols} أعمدة" },
+  tableSizeLabel: { en: "A table of {rows} rows and {cols} columns", ar: "جدول من {rows} صفوف و{cols} أعمدة" },
+  tableRowsCols: { en: "Rows × columns", ar: "الصفوف × الأعمدة" },
+  tableInsertIt: { en: "Insert table", ar: "إدراج الجدول" },
+  scTableEditCell: { en: "Edit a table cell where it stands", ar: "تحرير خلية الجدول في مكانها" },
+  scViaTableCell: { en: "click a cell", ar: "انقر خلية" },
+  scTableMenu: { en: "Row, column, alignment and sort commands", ar: "أوامر الصفوف والأعمدة والمحاذاة والترتيب" },
+  scViaTableMenu: { en: "right-click a cell (Shift F10)", ar: "انقر خلية بالزر الأيمن (Shift F10)" },
+
   // ── Sectioning (heading menu, outline drag, focus, numbering) ─────────────
   // A heading is a HANDLE on a subtree, and every string here names an action
   // on that subtree rather than on the line the reader clicked.
@@ -2772,6 +2810,17 @@ const DICT = {
   },
 
   // ── Templates ────────────────────────────────────────────────────────────
+  // The palette's table rows. Labelled "Table: …" rather than "Insert row":
+  // the palette is one fuzzy list of two hundred commands, and a row called
+  // "Insert row above" is unfindable by anyone who typed "table".
+  cmdInsertTable: { en: "Insert table…", ar: "إدراج جدول…" },
+  cmdInsertTableHint: { en: "Pick the rows and columns", ar: "اختر الصفوف والأعمدة" },
+  cmdTableRowAbove: { en: "Table: insert row above", ar: "جدول: إدراج صف فوق" },
+  cmdTableRowBelow: { en: "Table: insert row below", ar: "جدول: إدراج صف تحت" },
+  cmdTableColBefore: { en: "Table: insert column before", ar: "جدول: إدراج عمود قبل" },
+  cmdTableColAfter: { en: "Table: insert column after", ar: "جدول: إدراج عمود بعد" },
+  cmdTableEditSource: { en: "Table: edit as Markdown", ar: "جدول: تحرير بصيغة ماركداون" },
+  cmdTableHint: { en: "The table at the cursor", ar: "الجدول عند المؤشر" },
   cmdInsertTemplate: { en: "Insert template…", ar: "إدراج قالب…" },
   cmdNewFromTemplate: { en: "New note from template…", ar: "ملاحظة جديدة من قالب…" },
   templateFilterPlaceholder: { en: "Search templates…", ar: "بحث في القوالب…" },

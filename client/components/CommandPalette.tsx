@@ -22,6 +22,7 @@ import { search } from "../api.ts";
 import { dailyNotePath, openDailyNote, openPeriodicNote } from "../daily.ts";
 import { popOutNote } from "../windows/coherence.ts";
 import { insertTemplateCommand, newNoteFromTemplateCommand } from "../templateActions.ts";
+import { insertTableCommand, tableCommand } from "../tableActions.ts";
 import { localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { isNotePath, noteLabelOf, stripNoteExt } from "../../shared/noteFormat.ts";
 import { confirmModal, confirmModalEx } from "./Confirm.tsx";
@@ -667,6 +668,48 @@ const COMMANDS: Command[] = [
     label: () => t("cmdCopyBlockLink"),
     hint: () => t("cmdCopyBlockLinkHint"),
     available: ({ admin, openPath }) => admin && openPath !== null,
+  },
+  // TABLES. Five rows, and only five: the ones a reader reaches for without
+  // a pointer already on a cell. Everything else a table can be asked —
+  // delete, move, align, sort, duplicate, clear, copy — is on the menu the
+  // widget itself opens, where "this row" and "this column" are the ones
+  // under the finger and need no second way to name them. Editor panes only,
+  // like find-in-note: a reading pane has no caret to be in a table.
+  {
+    id: "insert-table",
+    label: () => t("cmdInsertTable"),
+    hint: () => t("cmdInsertTableHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
+  },
+  {
+    id: "table-row-above",
+    label: () => t("cmdTableRowAbove"),
+    hint: () => t("cmdTableHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
+  },
+  {
+    id: "table-row-below",
+    label: () => t("cmdTableRowBelow"),
+    hint: () => t("cmdTableHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
+  },
+  {
+    id: "table-col-before",
+    label: () => t("cmdTableColBefore"),
+    hint: () => t("cmdTableHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
+  },
+  {
+    id: "table-col-after",
+    label: () => t("cmdTableColAfter"),
+    hint: () => t("cmdTableHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
+  },
+  {
+    id: "table-edit-source",
+    label: () => t("cmdTableEditSource"),
+    hint: () => t("cmdTableHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
   },
   {
     // Every haraka and tatweel out of the open note, as one undo step — the
@@ -1315,6 +1358,24 @@ export default function CommandPalette() {
           if (open !== null) popOutNote(open);
           break;
         }
+        case "insert-table":
+          void insertTableCommand();
+          break;
+        case "table-row-above":
+          tableCommand("rowAbove");
+          break;
+        case "table-row-below":
+          tableCommand("rowBelow");
+          break;
+        case "table-col-before":
+          tableCommand("colBefore");
+          break;
+        case "table-col-after":
+          tableCommand("colAfter");
+          break;
+        case "table-edit-source":
+          tableCommand("editSource");
+          break;
         case "insert-template":
           void insertTemplateCommand();
           break;

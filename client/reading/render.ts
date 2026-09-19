@@ -1968,6 +1968,19 @@ function makeCtx(opts: RenderOptions): Ctx {
   };
 }
 
+/** ONE table cell's inline HTML — the second door into the table branch, and
+ *  the twin of `renderTrackerFence` above.
+ *
+ *  The editor's table widget edits cells in place, and a committed cell is a
+ *  change to ONE cell: redrawing the whole widget for it rebuilds every row
+ *  of a 200-row table on a keystroke the reader already finished. So the
+ *  widget patches the one `<td>` that moved — with THIS, the same
+ *  `renderInline` the table branch calls three lines apart, so a cell drawn
+ *  by the patch and a cell drawn by a full render are the same bytes. */
+export function renderTableCell(text: string, opts: RenderOptions): string {
+  return renderInline(text, makeCtx(opts));
+}
+
 /** Render a whole note to a detached element tree (class "s-rv"). */
 export function renderMarkdown(md: string, opts: RenderOptions): HTMLElement {
   const ctx = makeCtx(opts);
