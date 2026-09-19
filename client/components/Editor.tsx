@@ -68,6 +68,13 @@ import {
   type FuriganaMode,
 } from "../editor/bufferBridge.ts";
 import { copyBlockLink } from "../editor/blockLink.ts";
+import { insertTable, runTableCommand } from "../editor/tables.ts";
+import {
+  INSERT_TABLE_EVENT,
+  TABLE_COMMAND_EVENT,
+  type InsertTableDetail,
+  type TableCommandDetail,
+} from "../tableActions.ts";
 import { stripTashkeelNote } from "../editor/harakat.ts";
 import { autoFuriganaSelection, openFuriganaPopover } from "../editor/furigana.ts";
 import { applyTemplate, splitFrontmatter } from "../templates.ts";
@@ -601,11 +608,38 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
       else void openFuriganaPopover(view);
     };
     window.addEventListener(FURIGANA_EVENT, onFurigana);
+    // The palette's table rows. Same one-editor resolution again: a table
+    // command is about ONE caret, and two mounted editors would both grow a
+    // row — one of them in a note nobody was looking at. `handled` is how
+    // the palette learns there was no table to act on, so it can say so.
+    const mine = (): boolean => {
+      if (paneId === null) return true;
+      const ws = useStore.getState().workspace;
+      const focused = paneAt(ws, ws.focus);
+      const target = focused !== null && surfaceOf(focused) === "edit" ? ws.focus : ws.noteFocus;
+      return paneId === target;
+    };
+    const onTableCmd = (e: Event): void => {
+      const view = viewRef.current;
+      const detail = (e as CustomEvent<TableCommandDetail>).detail;
+      if (!view || !detail || !mine()) return;
+      if (runTableCommand(view, detail.cmd)) detail.handled.value = true;
+    };
+    window.addEventListener(TABLE_COMMAND_EVENT, onTableCmd);
+    const onInsertTable = (e: Event): void => {
+      const view = viewRef.current;
+      const detail = (e as CustomEvent<InsertTableDetail>).detail;
+      if (!view || !detail || !mine()) return;
+      insertTable(view, detail.rows, detail.cols);
+    };
+    window.addEventListener(INSERT_TABLE_EVENT, onInsertTable);
     return () => {
       window.removeEventListener(FIND_IN_NOTE_EVENT, onFind);
       window.removeEventListener(COPY_BLOCK_LINK_EVENT, onBlockLink);
       window.removeEventListener(STRIP_TASHKEEL_EVENT, onStrip);
       window.removeEventListener(FURIGANA_EVENT, onFurigana);
+      window.removeEventListener(TABLE_COMMAND_EVENT, onTableCmd);
+      window.removeEventListener(INSERT_TABLE_EVENT, onInsertTable);
     };
   }, [paneId, path]);
 
