@@ -32,7 +32,8 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { parseWikilink, resolveLink, WIKILINK_RE } from "./links.ts";
 import { parseBookAnchor } from "../../shared/bookAnchor.ts";
-import { findPdfPath, openBookCitation } from "../books/door.ts";
+import { parseEpubAnchor } from "../../shared/epubAnchor.ts";
+import { findBookPath, openBookCitation, openEpubCitation } from "../books/door.ts";
 import { posFromEvent } from "./pointer.ts";
 import { bannerFromYaml } from "../banner.ts";
 import { getLang, t, tf } from "../i18n.ts";
@@ -737,13 +738,19 @@ function buildDecorations(view: EditorView): DecorationSet {
         // not one. The reader's own resolver is asked instead, and the extra
         // class is what gives a citation its own colour.
         const cite = heading === null ? null : parseBookAnchor(heading);
-        const isCitation = cite !== null && /\.pdf$/i.test(target);
+        // The EPUB spelling of the same thing: `[[Book.epub#ch=…&q=…]]`. A
+        // place in a reflowing text is a chapter and some words, not a page
+        // and a rectangle (shared/epubAnchor.ts), so it parses differently —
+        // and then wears exactly the same citation colour, because to the
+        // reader of the note it is the same kind of link.
+        const epubCite = heading === null || !/\.epub$/i.test(target) ? null : parseEpubAnchor(heading);
+        const isCitation = (cite !== null && /\.pdf$/i.test(target)) || epubCite !== null;
         // A moment in a sound (`[[lecture.mp3#t=1:23]]`, shared/mediaEmbeds.ts)
         // is a wikilink the note resolver knows nothing about, like a
         // citation; it wears the citation's colour rather than a broken one.
         const isMoment = heading !== null && isAudioName(target) && parseTimeAnchor(heading) !== null;
         const linkClass = isCitation
-          ? findPdfPath(tree, target) !== null
+          ? findBookPath(tree, target) !== null
             ? "cm-s-wikilink cm-s-cite"
             : "cm-s-wikilink cm-s-cite cm-s-wikilink--broken"
           : isMoment
@@ -873,6 +880,9 @@ function openWikilink(inner: string, notePath: string, scope: ParentNode | null 
     openBookCitation(target, cite, store.tree, notePath);
     return;
   }
+  // And the EPUB's: a chapter and the words to find in it.
+  const place = heading === null || !/\.epub$/i.test(target) ? null : parseEpubAnchor(heading);
+  if (place !== null && openEpubCitation(target, place, store.tree)) return;
 
   // A moment in a sound: seek the player on this surface, else open the
   // file there (reading/audio.ts).

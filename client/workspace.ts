@@ -24,6 +24,7 @@
 // see its comment.
 
 import type { BookAnchor } from "../shared/bookAnchor.ts";
+import type { EpubAnchor } from "../shared/epubAnchor.ts";
 import { isDrawingPath, isNotePath } from "../shared/noteFormat.ts";
 
 export type PaneId = string;
@@ -39,14 +40,22 @@ export type PaneMode = "edit" | "reading" | "graph" | "library";
  *  harmless no-op on a book instead of a mode the pane cannot honour. */
 export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "library" | "empty";
 
-/** Where in a book an open should land. There is ONE spelling of "where in a
- *  book" in this product — shared/bookAnchor.ts owns it, the citation wikilink
- *  carries it, and this model holds the same shape rather than a private
- *  translation of it that every consumer would have to convert. */
-export type BookTarget = BookAnchor;
+/** Where in a book an open should land — carried from the wikilink or the URL
+ *  that asked for it, spent the moment the reader lands.
+ *
+ *  TWO SHAPES, because the two formats disagree about what "where" is. A PDF
+ *  has pages, so it is `shared/bookAnchor.ts`'s `{ page, rect, id }`. An EPUB
+ *  reflows and therefore has none, so it is `shared/epubAnchor.ts`'s
+ *  `{ href, fraction, query }` — a chapter and either how far down it or the
+ *  words to find. The two are told apart by `"href" in target`, at the one
+ *  place that has to (client/components/Pane.tsx); nothing else in the model
+ *  looks inside. Neither is translated into a private shape here: this is the
+ *  same value the citation carries, so a link and a tab agree by construction. */
+export type BookTarget = BookAnchor | EpubAnchor;
 
 export interface TabState {
-  /** A note (`.md`/`.tex`) or a book (`.pdf`). Nothing else opens as a tab. */
+  /** A note (`.md`/`.tex`) or a book (`.pdf`, `.epub`). Nothing else opens as
+   *  a tab. */
   path: string;
   pinned: boolean;
   /** A PREVIEW tab — opened by a single click from search, the palette or a
@@ -111,9 +120,12 @@ export const MAX_COLUMNS = 4;
 export const MAX_ROWS = 3;
 export const MAX_PANES = 8;
 
-/** Books are the one non-note thing that opens as a tab. */
+/** Books are the one non-note thing that opens as a tab. Two formats: a
+ *  `.pdf`, which is a stack of pictures, and a `.epub`, which is markup that
+ *  reflows. Both are books, both open in a reader, and which reader is
+ *  BooksSurface's question rather than this one's. */
 export function isBookPath(path: string): boolean {
-  return /\.pdf$/i.test(path);
+  return /\.(pdf|epub)$/i.test(path);
 }
 
 /** A path that may occupy a tab at all. Anything else — an image, an audio

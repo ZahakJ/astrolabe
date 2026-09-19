@@ -21,6 +21,7 @@
 // looking at rather than the ones they scrolled past. That is the whole reason
 // `request()` returns a cancel function instead of a bare promise.
 
+import { getEpubManifest } from "../epub/api.ts";
 import { Lru } from "../lru.ts";
 import { bookMetadata, closeDocument, openDocument, type PdfDocument } from "./pdfjs.ts";
 
@@ -36,12 +37,19 @@ const COVER_WIDTH = 240;
 const COVER_DPR = 2;
 
 export interface Cover {
-  /** A JPEG data URL. Data, not a blob URL, because a blob URL has to be
-   *  revoked by hand and a shelf that scrolls fast leaks every one it forgets
-   *  — and because `img-src` already allows `data:`. */
+  /** For a PDF: a JPEG data URL. Data, not a blob URL, because a blob URL has
+   *  to be revoked by hand and a shelf that scrolls fast leaks every one it
+   *  forgets — and because `img-src` already allows `data:`.
+   *
+   *  For an EPUB: the item route's URL for the book's own cover image. An
+   *  EPUB does not have to be rendered to have a cover — it HAS one, as a
+   *  file, drawn by whoever designed the book — so there is nothing to
+   *  rasterize, nothing to cache as bytes, and the browser holds it under the
+   *  ETag the route sends. That is the whole EPUB branch of this module. */
   src: string;
   /** What the FILE says about itself, cached with the picture because the two
-   *  come from the same one-shot document open. */
+   *  come from the same one-shot open: pages for a PDF, chapters for an EPUB
+   *  (shared/bookAnchor.ts says why the two share the field). */
   pages: number;
   title: string;
   author: string;
@@ -103,6 +111,23 @@ function pump(): void {
 }
 
 async function run(job: Job): Promise<void> {
+  if (/\.epub$/i.test(job.path)) {
+    try {
+      const shape = await getEpubManifest(job.path);
+      if (job.cancelled) return;
+      const cover: Cover = {
+        src: shape.cover ?? "",
+        pages: shape.spine.length,
+        title: shape.title,
+        author: shape.author,
+      };
+      cache.set(job.key, cover);
+      job.resolve(cover);
+    } catch {
+      if (!job.cancelled) job.resolve(null);
+    }
+    return;
+  }
   let doc: PdfDocument | null = null;
   try {
     doc = await openDocument(job.path);

@@ -60,6 +60,14 @@ import { toast } from "../toast.ts";
 import { formatDuration } from "../trackerUnits.ts";
 import { panesInOrder } from "../workspace.ts";
 import { actionToast } from "../undoToast.ts";
+import {
+  HelpSheet,
+  OutlinePanel,
+  SearchLine,
+  outlinePage,
+  type HelpRow,
+  type OutlineRow as ChromeOutlineRow,
+} from "./chrome.tsx";
 import { readOutline } from "./outline.ts";
 import { clearStash, logSession, readStash, writeStash } from "./session.ts";
 import {
@@ -1207,10 +1215,12 @@ export default function BookReader({ path, citation = null, active = true, onLan
         // reaches for the browser's zoom keys over a book means the book,
         // and the browser's own handler would scale the whole shell. The
         // bare keys below do the same; these just take the reflex too.
-        // shortcutKey, not e.key: on an Arabic or Russian layout the key that
-        // sits where "=" is answers with its own glyph (client/keys.ts).
-        const zk = e.ctrlKey || e.metaKey ? shortcutKey(e) : null;
-        if (zk !== null && !e.altKey && (zk === "=" || zk === "+" || zk === "-" || zk === "0")) {
+        // Through shortcutKey like every other character key in this file —
+        // `e.key` for `=` and `-` is as layout-dependent as `e.key` for `j`,
+        // and check-books says so out loud now that a second reader has the
+        // same chord (client/epub/EpubReader.tsx).
+        const zk = shortcutKey(e);
+        if ((e.ctrlKey || e.metaKey) && !e.altKey && (zk === "=" || zk === "+" || zk === "-" || zk === "0")) {
           e.preventDefault();
           if (zk === "0") update({ fit: "width" });
           else zoomBy(zk === "-" ? 1 / 1.15 : 1.15);
@@ -1659,7 +1669,14 @@ export default function BookReader({ path, citation = null, active = true, onLan
       )}
 
       {overlay === "outline" && (
-        <OutlinePanel rows={outline} onPick={(page) => { setOverlay("none"); goToPage(page, scrollBehavior()); }} onClose={() => setOverlay("none")} />
+        <OutlinePanel
+          rows={outlineRows(outline)}
+          onPick={(index) => {
+            setOverlay("none");
+            goToPage(outline?.[index]?.page || 1, scrollBehavior());
+          }}
+          onClose={() => setOverlay("none")}
+        />
       )}
 
       {overlay === "goto" && (
@@ -1675,7 +1692,7 @@ export default function BookReader({ path, citation = null, active = true, onLan
         />
       )}
 
-      {overlay === "help" && <HelpSheet onClose={() => setOverlay("none")} />}
+      {overlay === "help" && <HelpSheet title={t("bookHelpTitle")} rows={HELP_ROWS} onClose={() => setOverlay("none")} />}
 
       {overlay === "cite" && pendingCite !== null && (
         <CitePanel
@@ -1890,69 +1907,12 @@ function CommandLine({ value, onChange, onSubmit, onCancel }: LineProps) {
   );
 }
 
-function SearchLine({ value, onChange, onSubmit, onCancel }: LineProps) {
-  return (
-    <form
-      className="s-book__line"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(value);
-      }}
-    >
-      <span className="s-book__prompt" aria-hidden="true">
-        /
-      </span>
-      <input
-        className="s-book__input"
-        autoFocus
-        type="search"
-        value={value}
-        dir="auto"
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            e.preventDefault();
-            onCancel();
-          }
-        }}
-        aria-label={t("bookSearchLabel")}
-        placeholder={t("bookSearchPlaceholder")}
-      />
-    </form>
-  );
-}
-
-function OutlinePanel({
-  rows,
-  onPick,
-  onClose,
-}: {
-  rows: OutlineRow[] | null;
-  onPick(page: number): void;
-  onClose(): void;
-}) {
-  return (
-    <aside className="s-book__outline" aria-label={t("bookOutline")}>
-      <header className="s-book__outline-head">
-        <h2>{t("bookOutline")}</h2>
-        <button type="button" className="s-book__act" onClick={onClose} aria-label={t("closeViewer")}>
-          <span aria-hidden="true">✕</span>
-        </button>
-      </header>
-      {rows === null && <p className="s-book__message">{t("bookLoading")}</p>}
-      {rows !== null && rows.length === 0 && <p className="s-book__message">{t("bookNoOutline")}</p>}
-      <ol className="s-book__outline-list">
-        {(rows ?? []).map((row, i) => (
-          <li key={`${row.title}-${i}`} style={{ paddingInlineStart: `${row.depth * 14}px` }}>
-            <button type="button" className="s-book__outline-row" onClick={() => onPick(row.page || 1)} dir="auto">
-              <span className="s-book__outline-title">{row.title}</span>
-              {row.page > 0 && <span className="s-book__outline-page">{localeNum(row.page)}</span>}
-            </button>
-          </li>
-        ))}
-      </ol>
-    </aside>
-  );
+/** The book's contents as the shared panel wants them (client/books/
+ *  chrome.tsx): a label, a depth, and the page printed at the end of the row.
+ *  The panel calls back with an INDEX, which is turned back into a page here
+ *  — the panel is a list and does not know what a row means. */
+function outlineRows(rows: OutlineRow[] | null): ChromeOutlineRow[] | null {
+  return rows === null ? null : rows.map((row) => ({ label: row.title, depth: row.depth, trailing: outlinePage(row.page) }));
 }
 
 /**
@@ -2317,7 +2277,7 @@ function AnnotationsPanel({
 /** The reader's own key sheet. Deliberately local rather than a section of the
  *  app-wide sheet: these keys are live only while a book is open, and a global
  *  list that describes them everywhere is a list that lies most of the time. */
-const HELP_ROWS: { keys: string; label: I18nKey }[] = [
+const HELP_ROWS: HelpRow[] = [
   { keys: "j k", label: "bookKeyScroll" },
   { keys: "J K", label: "bookKeyPageStep" },
   { keys: "Space", label: "bookKeyPage" },
@@ -2348,29 +2308,6 @@ const HELP_ROWS: { keys: string; label: I18nKey }[] = [
   { keys: ":end", label: "bookKeyEndSession" },
   { keys: "?", label: "bookKeyHelp" },
 ];
-
-function HelpSheet({ onClose }: { onClose(): void }) {
-  return (
-    <aside className="s-book__help" aria-label={t("bookHelpTitle")}>
-      <header className="s-book__outline-head">
-        <h2>{t("bookHelpTitle")}</h2>
-        <button type="button" className="s-book__act" onClick={onClose} aria-label={t("closeViewer")}>
-          <span aria-hidden="true">✕</span>
-        </button>
-      </header>
-      <dl className="s-book__help-list">
-        {HELP_ROWS.map((row) => (
-          <div key={`${row.keys}-${row.label}`} className="s-book__help-row">
-            <dt>
-              <kbd>{row.keys}</kbd>
-            </dt>
-            <dd>{t(row.label)}</dd>
-          </div>
-        ))}
-      </dl>
-    </aside>
-  );
-}
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 

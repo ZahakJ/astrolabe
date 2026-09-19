@@ -24,9 +24,10 @@ export interface TreeNode {
 }
 
 /** How an attachment is opened: `image` in the in-app viewer, `audio`/`video`
- *  with an inline player, `pdf` in a new tab (browsers render them), anything
- *  else offered as a download. */
-export type AttachmentKind = "image" | "pdf" | "audio" | "video" | "other";
+ *  with an inline player, `book` in the reader (a `.pdf` or a `.epub` — the
+ *  kind is the ROLE, not the format, because both open in the same place and
+ *  neither opens in the lightbox), anything else offered as a download. */
+export type AttachmentKind = "image" | "book" | "audio" | "video" | "other";
 
 export interface AttachmentInfo {
   kind: AttachmentKind;
@@ -2069,6 +2070,81 @@ export interface BookOpenResponse {
   size: number;
   key: string;
   state: BookState | null;
+}
+
+// ── EPUB (GET /api/books/epub/…) ────────────────────────────────────────────
+//
+// A `.epub` in the vault is a book beside a `.pdf`, and it opens in a reader
+// of its own (client/epub/EpubReader.tsx) because the two formats disagree
+// about what a book IS. A PDF is a stack of pictures with a fixed measure; an
+// EPUB is markup that reflows, which is the entire reason the owner asked for
+// it — Arabic set by the browser, shaped by the browser, at whatever size the
+// reader wants. So there are no pages here and no page numbers: a place is a
+// chapter and a fraction of it (shared/epubAnchor.ts).
+//
+// These routes are gated exactly as /api/file is, and for the same reason: an
+// EPUB is a vault file, and a book in an unpublished folder is the normal
+// case. server/epub.ts does the reading; nothing here unpacks anything.
+
+/** One document of the book's reading order. */
+export interface EpubSpineItem {
+  /** The `idref` from the spine — the book's own name for this item. */
+  id: string;
+  /** Its path inside the archive, e.g. "OEBPS/ch07.xhtml". THE address: a
+   *  place, a citation and the URL hash all name a chapter this way. */
+  href: string;
+  /** What the contents call it, or "" when the contents do not name it. */
+  title: string;
+}
+
+/** One row of the book's own contents, from `nav.xhtml` or `toc.ncx`. */
+export interface EpubTocEntry {
+  label: string;
+  /** The spine item it points into. */
+  href: string;
+  /** The `id` within that item, or "" — a contents entry points at
+   *  `chapter.xhtml#sec3` far more often than at a whole chapter. */
+  fragment: string;
+  children: EpubTocEntry[];
+}
+
+/** GET /api/books/epub/manifest?path= — everything the reader needs before it
+ *  has fetched one word of the book. */
+export interface EpubManifest {
+  path: string;
+  /** From `dc:title` / `dc:creator`; "" when the book says nothing, and the
+   *  reader falls back to the filename rather than printing "Untitled". */
+  title: string;
+  author: string;
+  /** `dc:language`, as written ("ar", "en-GB"). */
+  language: string;
+  /** The spine's `page-progression-direction` where the book states one, the
+   *  language where it does not. Unlike a PDF, an EPUB can simply say. */
+  direction: "ltr" | "rtl";
+  spine: EpubSpineItem[];
+  toc: EpubTocEntry[];
+  /** A URL for the book's own cover image, on the item route, or null when
+   *  the book declares none. A URL rather than an href inside the archive
+   *  because it is going straight into an `<img src>`: an EPUB does not have
+   *  to be RENDERED to have a cover the way a PDF does — it has one, as a
+   *  file, drawn by whoever designed the book. */
+  cover: string | null;
+}
+
+/** One hit from the in-book search. `offset` is into the chapter's TEXT (the
+ *  markup gone), which is the only kind of offset the reader can walk its own
+ *  text nodes to. */
+export interface EpubHit {
+  href: string;
+  title: string;
+  offset: number;
+  snippet: string;
+}
+
+export interface EpubSearchResponse {
+  hits: EpubHit[];
+  /** True when the scan stopped at the cap rather than at the end. */
+  truncated: boolean;
 }
 
 // ── Annotations (GET|PUT|DELETE /api/books/highlights) ──────────────────────

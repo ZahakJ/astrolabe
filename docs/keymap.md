@@ -159,14 +159,21 @@ Every modal, popover and picker in the product answers the same four keys: `Esc`
 move, `Enter` to commit, and type-ahead wherever there is a list. `Esc` always belongs to the
 innermost layer that is open.
 
-## The PDF reader
+## The book reader
 
 The reader has its own sheet (`?` inside a book) and its own grammar, deliberately outside the
 ledger above: `j`/`k` scroll, `J`/`K` page, `gg`/`G`, `p` go to, `o` contents, `/` `n` `N` search,
 `+`/`-` zoom, `a`/`s`/`d` fit width, fit page, two pages, `i` night, `r` rotate, `m<c>`/`'<c>`
 marks, `h` highlight, `c` cite, `e` margin note, `x` unmark, `A` marked passages, `:` command
 line, `z` zen, `q` close, and a count typed before any of them. The whole table, with what each key
-does, is in [The PDF reader](books.md#reading).
+does, is in [The book reader](books.md#reading).
+
+An **EPUB** keeps the keys that still mean something in a text with no pages — `j`/`k`, `Space`,
+`gg`/`G`, `/` `n` `N`, `o`, `z`, `l`, `q`, `?` — and reads the rest differently: `J`/`K` step a
+chapter rather than a page, `+`/`-`/`0` (and `Ctrl`/`Cmd` with them) set the TYPE size rather than
+a zoom, and `c` copies a citation to the selected passage. There is no `a`/`s`/`d`, no `i`, no `r`
+and no `:` line: fitting, rotating and inverting are things you do to a picture of a page, and this
+format has none. See [EPUB](books.md#epub).
 
 ## The tour
 

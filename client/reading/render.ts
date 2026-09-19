@@ -20,6 +20,7 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { parseWikilink, resolveLink } from "../editor/links.ts";
 import { parseBookAnchor } from "../../shared/bookAnchor.ts";
+import { parseEpubAnchor } from "../../shared/epubAnchor.ts";
 import { blockAlignOf, parseAlignMarker, stripAlignMarker } from "../../shared/blockAlign.ts";
 import { BLOCK_ID_RE, isBareBlockId, parseBlockId, stripBlockId } from "../../shared/blockId.ts";
 import {
@@ -317,6 +318,19 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
     // note it was clicked FROM travels on the element, because that is what a
     // repaired link has to be written back into.
     const cite = heading === null ? null : parseBookAnchor(heading);
+    // The EPUB spelling: `[[Book.epub#ch=OEBPS/ch07.xhtml&q=…]]`. Same shape
+    // of link to the reader of the note, a different grammar in the anchor —
+    // an EPUB reflows and so has chapters where a PDF has pages
+    // (shared/epubAnchor.ts).
+    const place = heading === null || !/\.epub$/i.test(target) ? null : parseEpubAnchor(heading);
+    if (place !== null) {
+      const shown = alias ?? target;
+      if (ctx.brokenLinks === "plain") return keep(esc(shown));
+      return keep(
+        `<a class="s-rv-wikilink s-rv-cite" data-book="${esc(target)}" data-anchor="${esc(heading ?? "")}"` +
+          ` data-cite-note="${esc(ctx.notePath)}" role="link" tabindex="0">${esc(shown)}</a>`,
+      );
+    }
     if (cite !== null && /\.pdf$/i.test(target)) {
       const shown = alias ?? `${target} › ${cite.page}`;
       // On a published page a citation is not a link: a visitor has no library
@@ -1871,7 +1885,16 @@ export function onRootClick(ev: MouseEvent): void {
     const anchorText = wl.dataset.anchor;
     if (book !== undefined && anchorText !== undefined) {
       const anchor = parseBookAnchor(anchorText);
+      const place = /\.epub$/i.test(book) ? parseEpubAnchor(anchorText) : null;
       const store = useStore.getState();
+      if (place !== null && store.admin) {
+        void import("../books/door.ts").then((mod) => mod.openEpubCitation(book, place, store.tree));
+        return;
+      }
+      if (place !== null) {
+        toast(tf("linkNotPublished", { name: book }));
+        return;
+      }
       if (anchor !== null && store.admin) {
         const from = wl.dataset.citeNote ?? "";
         void import("../books/door.ts").then((mod) =>

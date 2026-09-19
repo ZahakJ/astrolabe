@@ -481,10 +481,18 @@ async function run(): Promise<void> {
       if (walkWanted) {
         walkWanted = false;
         queued.clear();
+        // PDFs ONLY. The shelf holds EPUBs too now, and this sweep is a
+        // pdf.js text extraction — handing it an EPUB means one failed open
+        // per book, a "3 unreadable" line on every boot, and a store entry
+        // remembering that a book which is perfectly readable could not be
+        // read. An EPUB's text is not extracted and cached at all: it is
+        // markup, and server/epub.ts reads a chapter of it out of the zip in
+        // milliseconds whenever the in-book search asks.
         const { books } = await listBooks();
+        const pdfs = books.filter((book) => isPdfPath(book.path));
         pathByKey.clear();
-        for (const book of books) pathByKey.set(book.key, book.path);
-        targets = books.map((book) => book.path);
+        for (const book of pdfs) pathByKey.set(book.key, book.path);
+        targets = pdfs.map((book) => book.path);
         walked = true;
       } else {
         targets = [...queued];

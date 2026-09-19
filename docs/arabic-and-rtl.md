@@ -119,7 +119,7 @@ What folds:
 - **Shaped glyphs** (the Arabic presentation forms a PDF's text layer sometimes carries instead of letters — Chromium's print-to-PDF writes them): each form is its letter, a lam-alef ligature is its two letters, a shaped vowel is nothing
 - **Latin accents**, in the same pass and by the same table: `resume` finds *résumé*, `naive` finds *naïve*, `cafe` finds *café*
 
-It is one table (`shared/fold.ts`), and every matcher in the product consults it: the sidebar search and the lines it quotes under a hit, the `[[` wikilink completion, the command palette's note rows, and the PDF reader's own `/` search, which is where the table was first written.
+It is one table (`shared/fold.ts`), and every matcher in the product consults it: the sidebar search and the lines it quotes under a hit, the `[[` wikilink completion, the command palette's note rows, the PDF reader's own `/` search — which is where the table was first written — and the EPUB reader's, which runs the same fold on the server over the whole book.
 
 **Replace does not fold**, on purpose. See [Search & replace](editor.md#navigating): finding is a question, and folding widens it kindly, but replacing is a write, and a replace that quietly rewrote «الْمُقَدِّمَة» would strip harakat you never typed and never saw.
 

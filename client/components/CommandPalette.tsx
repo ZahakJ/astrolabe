@@ -370,6 +370,17 @@ const COMMANDS: Command[] = [
     hint: () => t("cmdViewHint"),
     available: ({ admin }) => admin,
   },
+  // The shelf (client/books/): every PDF and every EPUB in the vault, with
+  // where each one was left off. It had no palette row at all until EPUBs
+  // arrived, and the omission mattered more then — a `.pdf` is at least a
+  // recognisable row in the tree, while somebody who has just put an EPUB in
+  // their vault has to be able to ask for "Library" and be taken there.
+  {
+    id: "open-library",
+    label: () => t("bookLibrary"),
+    hint: () => t("cmdOpenLibraryHint"),
+    available: ({ admin }) => admin,
+  },
   {
     id: "open-routines",
     label: () => t("cmdOpenRoutines"),
@@ -1387,6 +1398,9 @@ export default function CommandPalette() {
           break;
         case "open-media":
           store.toggleMedia();
+          break;
+        case "open-library":
+          store.openLibrary();
           break;
         case "open-routines":
           store.toggleRoutines();

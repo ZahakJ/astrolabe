@@ -33,7 +33,14 @@ import { foldQuery } from "./search.ts";
 function displayTitle(entry: BookEntry, cover: Cover | null): string {
   const fromState = entry.state?.title ?? "";
   const fromCover = cover?.title ?? "";
-  return fromState || fromCover || entry.name.replace(/\.pdf$/i, "");
+  return fromState || fromCover || entry.name.replace(/\.(pdf|epub)$/i, "");
+}
+
+/** Books come in two formats now, and the shelf has to say which — not as
+ *  decoration but because the card's own numbers mean different things: a
+ *  PDF's are pages and an EPUB's are chapters. */
+function isEpub(entry: BookEntry): boolean {
+  return /\.epub$/i.test(entry.path);
 }
 
 function displayAuthor(entry: BookEntry, cover: Cover | null): string {
@@ -132,7 +139,9 @@ function BookCard({ entry, onOpen }: CardProps) {
         </span>
       )}
       <span className="s-shelf__meta" dir="auto">
-        {pages > 0 ? `${tf("bookPages", { count: localeNum(pages) })} · ${meta}` : meta}
+        {pages > 0
+          ? `${tf(isEpub(entry) ? "epubChapters" : "bookPages", { count: localeNum(pages) })} · ${meta}`
+          : meta}
       </span>
     </button>
     {/* Every marked passage into a note beside the PDF (client/books/

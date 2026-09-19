@@ -91,6 +91,17 @@ export const STORE_MAX = 5000;
  *  into 400 simultaneous file handles. */
 const HASH_CONCURRENCY = 8;
 
+/** A file on the shelf. Two formats now — `.pdf` and `.epub` — and this
+ *  predicate means "is a book", which is what every caller below actually
+ *  wanted when it said `isPdfPath`. The checks that are genuinely about PDFs
+ *  (server/pdfText.ts extracts a text layer with pdf.js, which has nothing to
+ *  say about an EPUB) kept the narrow one, `isPdfPath`, right below. */
+export function isBookPath(rel: string): boolean {
+  return /\.(pdf|epub)$/i.test(rel);
+}
+
+/** Specifically a PDF. The narrow question, for the callers that are about
+ *  the format rather than about the shelf. */
 export function isPdfPath(rel: string): boolean {
   return /\.pdf$/i.test(rel);
 }
@@ -106,7 +117,7 @@ const keyCache = new Map<string, { size: number; mtimeMs: number; key: string }>
  *  between the tree and the click reports the same thing everywhere. */
 export async function bookKey(rel: string): Promise<string> {
   const relPath = normalizeRel(rel);
-  if (!isPdfPath(relPath)) throw new VaultError(400, `Not a PDF: ${relPath}`);
+  if (!isBookPath(relPath)) throw new VaultError(400, `Not a book: ${relPath}`);
   const abs = safeAbs(relPath);
   let size: number;
   let mtimeMs: number;
@@ -126,7 +137,19 @@ export async function bookKey(rel: string): Promise<string> {
   // The length goes in FIRST and as text, so two files that share a head and a
   // tail but differ in the middle (a page inserted into an otherwise identical
   // print run) cannot collide on length alone.
-  hash.update(`pdf:${size}:`);
+  //
+  // THE FORMAT GOES IN TOO, and it is `pdf:` for a PDF because that is what
+  // every key already in every reader's books.json was hashed with: changing
+  // the prefix would be changing the identity of every book anybody owns, and
+  // what is lost by that is page 612 of something someone has been reading
+  // since March. An EPUB is `epub:` and starts its own space.
+  //
+  // The sample is as distinguishing for an EPUB as the argument above says it
+  // is for a PDF, and for the same structural reason: an EPUB is a zip, its
+  // first bytes are the `mimetype` entry the specification requires to come
+  // first, and its LAST 64 KiB are the central directory and the end record —
+  // i.e. the name, the size and the CRC of every file in the book.
+  hash.update(`${isPdfPath(relPath) ? "pdf" : "epub"}:${size}:`);
   const handle = await open(abs, "r");
   try {
     const head = Buffer.alloc(Math.min(SAMPLE_BYTES, size));
@@ -410,7 +433,7 @@ export async function pathForKey(key: string, names: readonly string[]): Promise
   if (!isBookKey(key)) throw new VaultError(400, "Not a book key");
   for (const name of names) {
     try {
-      if (!isPdfPath(name)) continue;
+      if (!isBookPath(name)) continue;
       if (!statSync(safeAbs(normalizeRel(name))).isFile()) continue;
       if ((await bookKey(name)) === key) return name;
     } catch {
@@ -428,7 +451,8 @@ export interface ShelfResult {
   truncated: boolean;
 }
 
-/** Every PDF in the vault, newest-read first, each with its key and state.
+/** Every book in the vault — `.pdf` and `.epub` alike — newest-read first,
+ *  each with its key and state.
  *
  *  The sort is the shelf's argument for existing: a reader opening the library
  *  is overwhelmingly resuming something, so books with a position come first
@@ -436,11 +460,11 @@ export interface ShelfResult {
  *  — the difference between "your shelf" and "a directory listing". */
 export async function listBooks(): Promise<ShelfResult> {
   const { attachments } = await listVaultFiles();
-  const pdfs = attachments.filter(isPdfPath).sort((a, b) =>
+  const files = attachments.filter(isBookPath).sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: "base" }),
   );
-  const truncated = pdfs.length > BOOKS_MAX;
-  const shortlist = truncated ? pdfs.slice(0, BOOKS_MAX) : pdfs;
+  const truncated = files.length > BOOKS_MAX;
+  const shortlist = truncated ? files.slice(0, BOOKS_MAX) : files;
 
   const entries: BookEntry[] = [];
   let cursor = 0;

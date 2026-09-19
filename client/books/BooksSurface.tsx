@@ -12,6 +12,7 @@
 import { Suspense } from "react";
 import { lazySurface } from "../lazySurface.tsx";
 import type { BookAnchor } from "../../shared/bookAnchor.ts";
+import type { EpubAnchor } from "../../shared/epubAnchor.ts";
 import { t } from "../i18n.ts";
 import "../styles/books.css";
 
@@ -24,6 +25,12 @@ export type BooksRoute =
        *  a note is what opened this. The reader jumps to the page and pulses
        *  the rectangle once. Absent for an ordinary open. */
       anchor?: BookAnchor | null;
+      /** The same thing for an EPUB: a chapter and either a fraction of it or
+       *  the first words of a passage (`#ch=…&at=…`, `#ch=…&q=…`). Two fields
+       *  rather than one union because the two formats answer "where in a
+       *  book" with different nouns — pages against chapters — and a route
+       *  that blurred them would push the branch into every reader. */
+      place?: EpubAnchor | null;
     };
 
 export interface BooksSurfaceProps {
@@ -52,6 +59,20 @@ export interface BooksSurfaceProps {
 // so neither of these two chunks contains it.)
 const BookLibrary = lazySurface(() => import("./BookLibrary.tsx"));
 const BookReader = lazySurface(() => import("./BookReader.tsx"));
+// And the third chunk: the EPUB reader. Split from the PDF one on exactly the
+// argument above — the two formats share the chrome and nothing else, and a
+// reader opening a 300 kB EPUB has no business downloading a page renderer, a
+// canvas compositor and a column detector to do it. Neither chunk contains
+// pdf.js; this one does not even reach the boundary that would.
+const EpubReader = lazySurface(() => import("../epub/EpubReader.tsx"));
+
+/** Which reader a path opens in. The extension, and nothing cleverer: the
+ *  server has already refused anything that is not one of the two, and a
+ *  reader chosen by sniffing bytes would be a reader that cannot be chosen
+ *  until the bytes arrive. */
+function isEpub(path: string): boolean {
+  return /\.epub$/i.test(path);
+}
 
 export default function BooksSurface({ route, onRoute, onExit, active = true, onLanded, zen, onZen }: BooksSurfaceProps) {
   return (
@@ -62,6 +83,18 @@ export default function BooksSurface({ route, onRoute, onExit, active = true, on
             active={active}
             onOpen={(path, anchor) => onRoute({ kind: "book", path, anchor })}
             onClose={onExit}
+          />
+        ) : isEpub(route.path) ? (
+          <EpubReader
+            key={route.path}
+            active={active}
+            path={route.path}
+            place={route.place ?? null}
+            onLanded={onLanded}
+            onClose={onExit}
+            onLibrary={() => onRoute({ kind: "library" })}
+            zen={zen}
+            onZen={onZen}
           />
         ) : (
           <BookReader
