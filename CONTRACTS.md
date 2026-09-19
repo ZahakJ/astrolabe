@@ -1511,6 +1511,13 @@ stays on `.s-panel--collapsed`, as it always did.
   measured 30px on a phone. `.s-ctl`'s own `min-height: 32px` did the same to every field. The
   block moved to the END of the file, which is the only place a floor stated in one property can
   outrank a size stated in the other. Where a coarse block is WRITTEN is part of what it says.
+  Nor is it only media queries, and the round that wrote this paragraph proved it in the file
+  next door: the safe-area rules gave `.s-topactions` a height of `calc(2.5rem + var(--safe-top))`
+  a thousand lines above the cluster's own rule, which says `height: 2.5rem` at the same weight —
+  so the height never grew, only the padding took, and on a notched phone the gear, the outline
+  switch and the ⋯ ended up 22px UNDER the status bar the inset exists to clear. A declaration
+  about a thing belongs in that thing's rule; a new block beside a new comment is where two
+  copies of one fact start disagreeing.
 - **A CONTROL UNDER ANOTHER LAYER IS NOT A CONTROL.** With the notes drawer open, the ☰ — by then
   labelled "Close Notes sidebar" — sat at z-index 60 under a drawer at 400, so a tap at its
   centre reached the drawer's wordmark and ran "preview as visitor"; the top cluster's gear,
