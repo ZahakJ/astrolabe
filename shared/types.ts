@@ -1325,7 +1325,7 @@ export interface EffectiveSettings {
    *  prefills from, so an unset key and an explicitly-default one look the
    *  same to the panel (there is no env counterpart to inherit from). */
   publicFolders: Required<Omit<PublicFoldersSettings, "folders">> & { folders: PublicFolderRef[] };
-  library: { enabled: boolean; nav: boolean; home: boolean; title: string; paths: LibraryPathRef[] };
+  library: { enabled: boolean; nav: boolean; home: boolean; title: string; roots: LibraryRoot[]; paths: LibraryPathRef[] };
   /** Always resolved: the attachment mode in force and the folder it uses. */
   attachments: Required<AttachmentSettings>;
   gitSync: GitSyncEffective;
@@ -1397,6 +1397,7 @@ export interface SettingsPatch {
     nav?: boolean | null;
     home?: boolean | null;
     title?: string | null;
+    roots?: LibraryRoot[] | null;
     paths?: LibraryPathRef[] | null;
   } | null;
   /** Where new attachments go. Either half may be set alone; null clears the

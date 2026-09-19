@@ -1205,12 +1205,13 @@ cover|banner, source, `library: book|course|series` or `true` → book, hidden).
 `record.folderMeta` for those notes and answers `folderMeta(folder)` by probing the candidates.
 Derived categories take title/description/icon/hidden from it before the tree's mark and the
 folder's name; declared collections naming a folder take its description when they have none
-(`withFolderNotes`). `libraryRefs()` is THE shelf: settings rows plus every folder whose note says
-`library:`, a row naming the same folder winning field by field and filling its blanks from the
-note; `lessonFoldersNow()` and the cover allowlist read the merged list, and `LibraryPath.folder`
-is on the wire so the settings editor can list the vault-declared paths under its rows with
-"Customise here" (copies slug/title/kind/folder into a row). Settings stays the place to override
-and to order; the vault is the place to declare.
+(`withFolderNotes`). `libraryRefs()` is THE shelf: settings rows, plus the children a SHELF ROOT
+claims, plus every folder whose note says `library:` — a row naming the same folder winning field by
+field and filling its blanks from the note; `lessonFoldersNow()` and the cover allowlist read the
+merged list, and `LibraryPath.folder` is on the wire so the settings editor can list the derived
+paths under its rows with "Customise here" (copies slug/title/kind/folder into a row). The folder
+note also carries `slug:`, which the library alone reads (3.19). Settings stays the place to
+override and to order; the vault is the place to declare.
 
 **CATEGORIES COME FROM TAGS OR FROM FOLDERS (2.9).** `settings.topics` is `"tags"` (default) or
 `"folders"`; `me.topics` is sent only as `"folders"`; the store's `topicsMode` empties the tag
@@ -1252,6 +1253,41 @@ when it is the first. The settings row has a folder chooser (`pickFolder`) and a
 
 ## The library (shared/library.ts, server/library.ts, client/library/)
 
+**A ROOT SAYS IT ONCE (3.19).** Twelve rows in `settings.library.paths` described twelve folders
+sitting under two parents, and in seven of them every field was what the folder's own name already
+said — with a thirteenth row waiting for the thirteenth book. `settings.library.roots[]` (≤ 8,
+`{id, folder, kind}`) names the PARENT instead: every immediate subfolder of it holding a published
+note is a path of that kind, titled by its name, addressed by its title, covered by its tracker.
+The three layers each do one job and are read in this order — the ROOT ("everything published under
+here is a book"), the FOLDER NOTE (`title`, `description`, `cover`, `source`, `hidden`, `library`,
+`slug`: vault-portable facts about one folder, and the reason a root is not the last word), the ROW
+(the owner's override of one folder, still winning field by field). The schema is a SUPERSET and
+`libraryRefs()` still reads rows first, so an upgraded server with no roots produces a byte-identical
+shelf: nothing is rewritten at boot, and the fold of now-redundant rows is OFFERED in the panel, not
+performed — folding them is a visible reorder (rows keep their own order, a root's children follow
+by title within their kind) and a reorder nobody pressed for is not a migration. A root may not sit
+inside another root, nor inside a row's folder, nor be the vault itself; a root CONTAINING a row's
+folder is the whole design.
+
+**A DERIVED PATH HAS AN ADDRESS OR IT IS NOT PUBLISHED (3.19).** `derivedSlug(title, metaSlug,
+taken)`: the folder note's `slug:` first, then `suggestSlug(title)`, and otherwise NOTHING. A row's
+slug claims first and is never displaced. The old rule was `suggestSlug(title) || "path"` plus a
+`-2`, `-3`… counter assigned in folder order, and on this vault three Arabic-titled books would all
+have landed on `/library/path`, `/library/path-2`, `/library/path-3`, renumbered by whichever book
+existed that morning — with every reader's saved progress keyed to the slug. A URL the owner would
+never paste is not an address, and not publishing is the visitor-safe default: those folders are not
+on the shelf today either, and their notes stay on the blog. The settings panel lists them under
+*Needs an address* with the reason, and `slug:` in the folder note is the answer that needs no row.
+One function, shared, so the panel shows exactly the address the indexer will emit.
+
+**A LIBRARY PATH IS A FOLDER, SO A FOLDER'S RENAME IS THE PATH'S (3.19).** `moveLibraryFolders()`
+in server/settings.ts, called beside `moveFolderIcons()` from `/api/folder/move` and `DELETE
+/api/folder`: prefix-aware over `library.paths[].folder` and `library.roots[].folder`, dropping the
+row or the root on a delete, a silent no-op when nothing matches. Until it ran, renaming a book in
+the sidebar left the row naming a folder the vault no longer had — `resolveLibraryPath()` found zero
+lessons, the path vanished from `/library`, and every published note inside it, claimed by no lesson
+folder, came back as a blog post in the home lists, the topics, the feed and the sitemap.
+
 **A PATH IS A FOLDER, NOT A HUB.** The first design had a hub note with an ordered list of
 wikilinks as the table of contents. The vault said otherwise: a book is `Books/<Book>/<Chapter
 dir>/<concept notes>` and a course is `Lectures/6.824/L1..L14/<notes>`, and a hub exists only where
@@ -1281,7 +1317,14 @@ renders; hidden paths and a disabled library give the notes back to the blog.
 attachments (the allowlist walk in server/indexer.ts) AND for `libraryCoverPaths(settings.library)`
 — the vault-relative covers of the enabled library's visible paths — checked LIVE in
 `isAllowedAttachment()`, because the allowlist cache is dropped only by index mutations and a cover
-set in the panel moves no file. Https covers are not files and are not listed.
+set in the panel moves no file. Https covers are not files and are not listed. **And the path has to
+have a lesson (3.19):** the refs are filtered to those with a published note under the folder, the
+same question `resolveLibraryPath()` answers with null, because `library: book` plus `cover:` in a
+folder note with nothing published handed an anonymous caller a picture out of a folder of drafts
+that no page on the site linked to. `unreferencedAttachments()` stays UNFILTERED: the agreement
+between the two walks is one-directional (nothing the allowlist serves may be called unused), and
+filtering there would offer the owner's cover art for deletion. A folder note's `source:` is judged
+by the row's own https regex for the same reason — it ends up in an `href`.
 
 **THE FIRST /api/me DECLARES THE STORED VISITOR LANGUAGE.** `loadMe()` calls
 `api.setReaderLang(readVisitorLang())` before the boot request when nothing has been declared yet

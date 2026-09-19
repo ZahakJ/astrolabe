@@ -1,7 +1,7 @@
 // Indexer: in-memory search + link-graph index, built once at startup and kept
 // fresh incrementally from vault watcher events.
 
-import { isLibraryLesson, libraryCoverPaths, libraryLessonFolders, libraryTitleOf } from "../shared/library.ts";
+import { derivedSlug, isLibraryLesson, libraryCoverPaths, libraryLessonFolders, libraryTitleOf } from "../shared/library.ts";
 import { effectiveFolders, folderSlug, suggestSlug } from "../shared/publicFolders.ts";
 import { folderImagePaths } from "../shared/folderIcons.ts";
 import { folderMetaOf, folderNoteCandidates, folderOfNote, type FolderMeta } from "../shared/folderNote.ts";
@@ -2694,25 +2694,82 @@ function httpSource(raw: string | undefined): string | null {
   return source !== "" && /^https?:\/\//i.test(source) ? source : null;
 }
 
-/** Every path on the shelf: the settings rows, PLUS the folders whose note
- *  declares `library: book|course|series`. A settings row naming the same
- *  folder wins field by field and fills its blanks from the note (a blurb
- *  written once in the vault, a cover the row never mentioned); a folder
- *  declared only in the vault gets a slug from its title, unique after the
- *  rows' own. Settings' `enabled` still gates the whole shelf. */
+/** The immediate subfolders of `folder` that hold a published note, in vault
+ *  order. This is a shelf ROOT's whole discovery rule: "a folder with
+ *  something published in it" is what a path is, and a prefix scan over
+ *  publishedSet is what `libraryLessons()` already does one level down. */
+function publishedChildrenOf(folder: string): string[] {
+  const prefix = folder.endsWith("/") ? folder : `${folder}/`;
+  const out = new Set<string>();
+  for (const notePath of publishedSet) {
+    if (!notePath.startsWith(prefix)) continue;
+    const rel = notePath.slice(prefix.length);
+    const slash = rel.indexOf("/");
+    // A note sitting directly in the root is not a path — it is a note in a
+    // folder the owner chose to hold books, and it stays a post.
+    if (slash === -1) continue;
+    out.add(prefix + rel.slice(0, slash));
+  }
+  return [...out];
+}
+
+/** Every path on the shelf, in shelf order: the settings rows first, in their
+ *  own order, then the folders a SHELF ROOT claims and the folders whose note
+ *  declares `library: book|course|series`.
+ *
+ *  A ROOT says "everything published under here is a book" once, instead of a
+ *  hand-typed row per folder saying what the folder's own name already says —
+ *  and, unlike a row, it covers the book that has not been written yet. Every
+ *  immediate subfolder of the root that holds a published note is a path of the
+ *  root's kind, titled by its name; the folder note overrides the kind, the
+ *  title, the blurb, the cover, the source, the address and `hidden` for one
+ *  folder, which is why the root is not the last word.
+ *
+ *  A settings row naming the same folder wins field by field and fills its
+ *  blanks from the note (a blurb written once in the vault, a cover the row
+ *  never mentioned) — so adding a root over folders the rows already name
+ *  changes nothing a visitor sees. Settings' `enabled` still gates the whole
+ *  shelf, and a derived path with no address is not emitted at all (see
+ *  `derivedSlug`). */
 export function libraryRefs(): LibraryPathRef[] {
   const lib = getSettings().library;
   const rows = (lib?.paths ?? []).map((row) => ({ ...row }));
   const byFolder = new Map(rows.map((row) => [row.folder, row]));
   const taken = new Set(rows.map((row) => row.slug));
-  const found: { folder: string; meta: FolderMeta }[] = [];
+  // Every folder that could become a path, in the order the shelf will list
+  // them: each root's published children (by title, so a book added next year
+  // lands where its name says and not at the end), then the folders that
+  // declare themselves and live under no root at all.
+  const candidates: { folder: string; kind: LibraryKind; meta: FolderMeta | null }[] = [];
+  const seen = new Set<string>();
+  for (const root of lib?.roots ?? []) {
+    const children = publishedChildrenOf(root.folder).map((folder) => {
+      const meta = folderMeta(folder);
+      return { folder, kind: meta?.library ?? root.kind, meta, title: meta?.title ?? libraryTitleOf(folder) ?? folder };
+    });
+    children.sort(
+      (a, b) =>
+        a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" }) ||
+        a.folder.localeCompare(b.folder),
+    );
+    for (const child of children) {
+      if (seen.has(child.folder)) continue;
+      seen.add(child.folder);
+      candidates.push({ folder: child.folder, kind: child.kind, meta: child.meta });
+    }
+  }
+  const declared: { folder: string; meta: FolderMeta }[] = [];
   for (const record of notes.values()) {
     if (!record.folderMeta?.library) continue;
     const folder = folderOfNote(record.path);
-    if (folder === null) continue;
-    found.push({ folder, meta: record.folderMeta });
+    if (folder === null || seen.has(folder)) continue;
+    declared.push({ folder, meta: record.folderMeta });
   }
-  found.sort((a, b) => a.folder.localeCompare(b.folder));
+  declared.sort((a, b) => a.folder.localeCompare(b.folder));
+  for (const { folder, meta } of declared) {
+    seen.add(folder);
+    candidates.push({ folder, kind: meta.library as LibraryKind, meta });
+  }
   // A Media tracker that names a path's folder LENDS ITS COVER, over the row's
   // and the folder note's: the book the owner tracks and the book a reader
   // opens are one picture. Resolved in admin scope; the ref cover then joins
@@ -2729,30 +2786,45 @@ export function libraryRefs(): LibraryPathRef[] {
     const cover = lent.get(row.folder);
     if (cover !== undefined) row.cover = cover;
   }
-  for (const { folder, meta } of found) {
+  for (const { folder, kind, meta } of candidates) {
     const row = byFolder.get(folder);
     if (row) {
-      if (!row.blurb && meta.description) row.blurb = meta.description;
-      if (!row.cover && meta.cover) row.cover = meta.cover;
-      if (!row.source) {
-        const source = httpSource(meta.source);
-        if (source !== null) row.source = source;
+      // The row is already on the shelf; the folder note only fills its blanks.
+      if (meta) {
+        if (!row.blurb && meta.description) row.blurb = meta.description;
+        if (!row.cover && meta.cover) row.cover = meta.cover;
+        if (!row.source) {
+          const source = httpSource(meta.source);
+          if (source !== null) row.source = source;
+        }
       }
       continue;
     }
-    const title = meta.title ?? libraryTitleOf(folder) ?? folder;
-    const base = suggestSlug(title) || "path";
-    let slug = base;
-    for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
+    const title = meta?.title ?? libraryTitleOf(folder) ?? folder;
+    // NO COUNTER, NO "path". A derived address is the folder note's `slug:` or
+    // the title's own suggestion, and a folder that has neither — an Arabic
+    // title, which on this vault is three books — is not published rather than
+    // being handed `/library/path-3`, an address assigned by whichever book
+    // existed that morning and keyed to by every reader's saved progress. The
+    // settings panel lists it under "Needs an address" with the reason; its
+    // notes stay on the blog, exactly where they are today.
+    const slug = derivedSlug(title, meta?.slug, taken);
+    if (slug === null) continue;
     taken.add(slug);
-    const ref: LibraryPathRef = { id: `l${createHash("sha1").update(folder).digest("hex").slice(0, 12)}`, slug, folder, kind: meta.library as LibraryKind, title };
-    if (meta.description) ref.blurb = meta.description;
-    if (meta.cover) ref.cover = meta.cover;
+    const ref: LibraryPathRef = {
+      id: `l${createHash("sha1").update(folder).digest("hex").slice(0, 12)}`,
+      slug,
+      folder,
+      kind,
+      title,
+    };
+    if (meta?.description) ref.blurb = meta.description;
+    if (meta?.cover) ref.cover = meta.cover;
     const lentCover = lent.get(folder);
     if (lentCover !== undefined) ref.cover = lentCover;
-    const source = httpSource(meta.source);
+    const source = httpSource(meta?.source);
     if (source !== null) ref.source = source;
-    if (meta.hidden) ref.hidden = true;
+    if (meta?.hidden) ref.hidden = true;
     rows.push(ref);
   }
   return rows;
