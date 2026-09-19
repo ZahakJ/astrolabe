@@ -452,6 +452,24 @@ export interface LibraryPathRef {
   hidden?: boolean;
 }
 
+/** A SHELF ROOT: "everything published under here is a book" said once.
+ *
+ *  A row is the override of ONE folder, and twelve books under one parent
+ *  meant twelve hand-typed rows saying nothing the folder's own name did not
+ *  — with a thirteenth waiting for the thirteenth book. A root names the
+ *  PARENT instead: every immediate subfolder of it that holds a published note
+ *  is a path of this kind, titled by its name, addressed by its title. The
+ *  folder note overrides any of that for one folder; a row still overrides
+ *  everything, field by field. */
+export interface LibraryRoot {
+  /** `r` + hex, the same shape a row's id has (`libraryPathId()`). */
+  id: string;
+  /** Vault-relative folder, e.g. `1 - Source Material/Books`. */
+  folder: string;
+  /** What every child is unless its own folder note says otherwise. */
+  kind: LibraryKind;
+}
+
 export interface LibrarySettings {
   /** The master switch. Absent = off. */
   enabled?: boolean;
@@ -464,7 +482,11 @@ export interface LibrarySettings {
   /** What the door and the page are called; absent = the instance's word for
    *  "Library". */
   title?: string;
-  /** The paths, in shelf order. ≤ 24. */
+  /** Shelf roots. ≤ 8. Additive: a library with none behaves exactly as it
+   *  did before they existed. */
+  roots?: LibraryRoot[];
+  /** The paths, in shelf order — each one the override of a single folder.
+   *  ≤ 24. Rows come first on the shelf; a root's children follow, by title. */
   paths?: LibraryPathRef[];
 }
 
@@ -1303,7 +1325,7 @@ export interface EffectiveSettings {
    *  prefills from, so an unset key and an explicitly-default one look the
    *  same to the panel (there is no env counterpart to inherit from). */
   publicFolders: Required<Omit<PublicFoldersSettings, "folders">> & { folders: PublicFolderRef[] };
-  library: { enabled: boolean; nav: boolean; home: boolean; title: string; paths: LibraryPathRef[] };
+  library: { enabled: boolean; nav: boolean; home: boolean; title: string; roots: LibraryRoot[]; paths: LibraryPathRef[] };
   /** Always resolved: the attachment mode in force and the folder it uses. */
   attachments: Required<AttachmentSettings>;
   gitSync: GitSyncEffective;
@@ -1375,6 +1397,7 @@ export interface SettingsPatch {
     nav?: boolean | null;
     home?: boolean | null;
     title?: string | null;
+    roots?: LibraryRoot[] | null;
     paths?: LibraryPathRef[] | null;
   } | null;
   /** Where new attachments go. Either half may be set alone; null clears the

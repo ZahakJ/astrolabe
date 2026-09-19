@@ -39,6 +39,15 @@ import { pickFolder } from "./FolderPicker.tsx";
 import { lazySurface } from "../lazySurface.tsx";
 import { findFolderNode, unitNamesOf } from "../libraryFolders.ts";
 import {
+  addressProblem,
+  leafOf,
+  parentOf,
+  publishedChildFolders,
+  rootOf,
+  rootOffers,
+  type RootOffer,
+} from "../libraryShelf.ts";
+import {
   folderId,
   folderSlug,
   suggestSlug,
@@ -48,8 +57,12 @@ import {
   PUBLIC_FOLDERS_MAX,
 } from "../../shared/publicFolders.ts";
 import {
+  guessLibraryKind,
+  libraryFreshSlug,
   libraryList,
   libraryPathId,
+  libraryRootError,
+  libraryRootNested,
   libraryRowError,
   libraryRowForFolder,
   libraryTitleOf,
@@ -61,8 +74,9 @@ import {
   LIBRARY_SITE_TITLE_MAX,
   LIBRARY_SOURCE_MAX,
   LIBRARY_TITLE_MAX,
+  LIBRARY_ROOTS_MAX,
 } from "../../shared/library.ts";
-import type { LibraryKind, LibraryPath, LibraryPathRef, TreeNode } from "../../shared/types.ts";
+import type { LibraryKind, LibraryPath, LibraryPathRef, LibraryRoot, TreeNode } from "../../shared/types.ts";
 import {
   ApiError,
   deleteCustomFont,
@@ -72,7 +86,7 @@ import {
   listCustomFonts,
   patchSettings,
   uploadAttachment,
-  uploadFont, getLibrary, getCollections } from "../api.ts";
+  uploadFont, getLibrary, getCollections, getTrackers } from "../api.ts";
 import { bannerSrc } from "../banner.ts";
 // The calendar specimen: the panel shows what a choice PRINTS, in this
 // instance's own locale and numerals, before the reader commits to it.
@@ -86,7 +100,7 @@ import { useBannerSrc } from "./BannerImg.tsx";
 import { refreshTemplateSettings } from "../templates.ts";
 import { loadPeriodic } from "../daily.ts";
 import { clearFontFaces, faceStack, loadFontFaces } from "../fontFaces.ts";
-import { countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
+import { countPhrase, getLang, isolate, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { FONT_UPLOAD_MAX_MB, UPLOAD_MAX_MB } from "../../shared/limits.ts";
 import { useStore } from "../state.ts";
 import { attachScrollFade } from "../scrollFade.ts";
@@ -244,6 +258,7 @@ interface Form {
   libraryNav: string;  // "on" | "off"
   libraryHome: string; // "on" | "off"
   libraryTitle: string;
+  libraryRoots: LibraryRoot[];
   libraryRows: LibraryPathRef[];
 }
 
@@ -365,6 +380,7 @@ function formFrom(s: SettingsResponse): Form {
     libraryNav: s.effective.library.nav ? "on" : "off",
     libraryHome: s.effective.library.home ? "on" : "off",
     libraryTitle: s.effective.library.title,
+    libraryRoots: s.effective.library.roots.map((root) => ({ ...root })),
     libraryRows: s.effective.library.paths.map((path) => ({ ...path })),
   };
 }
@@ -613,65 +629,338 @@ function validate(f: Form): Partial<Record<keyof Form, string>> {
     }
   }
   // The library's rows, judged by shared/library.ts so the field and the 400
-  // agree; one message per table, naming the row that broke.
-  const paths = libraryList(f.libraryRows);
-  if (paths.length > LIBRARY_PATHS_MAX) {
-    errors.libraryRows = tf("errLibraryMax", { max: localeNum(LIBRARY_PATHS_MAX) });
-  } else {
-    const seen = new Set<string>();
-    for (const row of paths) {
-      const problem = libraryRowError(row);
-      if (problem === "title") {
-        errors.libraryRows = t("errLibraryTitle");
-        break;
-      }
-      if (problem === "titleLength") {
-        errors.libraryRows = maxChars(LIBRARY_TITLE_MAX);
-        break;
-      }
-      if (problem === "slug") {
-        errors.libraryRows = tf("errLibrarySlug", { slug: row.slug || row.title });
-        break;
-      }
-      if (problem === "folder") {
-        errors.libraryRows = tf("errLibraryFolder", { title: row.title });
-        break;
-      }
-      if (problem === "blurbLength") {
-        errors.libraryRows = maxChars(LIBRARY_BLURB_MAX);
-        break;
-      }
-      if (problem === "sourceLength") {
-        errors.libraryRows = maxChars(LIBRARY_SOURCE_MAX);
-        break;
-      }
-      if (seen.has(row.slug)) {
-        errors.libraryRows = tf("errLibraryDupSlug", { slug: row.slug });
-        break;
-      }
-      seen.add(row.slug);
-    }
-  }
+  // agree. The message does NOT go in the Row's error slot: it goes in the
+  // card that holds the offending field, beside the field, which is what
+  // "Fix the marked fields" in the footer has been promising all along.
+  const rowProblem = libraryRowsProblem(f.libraryRows);
+  if (rowProblem !== null) errors.libraryRows = rowProblem.message;
+  const rootProblem = libraryRootsProblem(f.libraryRoots, f.libraryRows);
+  if (rootProblem !== null) errors.libraryRoots = rootProblem;
   if (f.libraryTitle.trim().length > LIBRARY_SITE_TITLE_MAX) errors.libraryTitle = maxChars(LIBRARY_SITE_TITLE_MAX);
   return errors;
 }
 
-/** THE LIBRARY'S PATHS. One card per path. THE FOLDER IS CHOSEN, NOT TYPED:
- *  a path is a vault folder, so the row's first control is a button that
- *  opens the vault's folders laid out to click (FolderPicker.tsx), and Add
- *  opens the same picker before there is a row at all — the title, address
- *  and kind are then guessed from the folder (`libraryRowForFolder`) and the
- *  reader corrects rather than composes. What IS typed is the shelf's own
- *  prose: title, address, and under "Blurb, cover and source" the three that
- *  most paths never need. The row's three tools (up, down, remove) sit in one
- *  cluster at the card's trailing corner, on their own row at narrow widths,
- *  so no two of them ever overlap a field. */
+/** Which FIELD of which row is wrong, and what to say about it. One at a
+ *  time: the reader fixes one and the next appears, which is how every other
+ *  table on this panel behaves, and a card showing six red messages at once
+ *  teaches nothing about which one to start with. */
+export interface LibraryRowProblem {
+  index: number;
+  field: "title" | "slug" | "folder" | "blurb" | "source";
+  message: string;
+}
+
+function libraryRowsProblem(rows: readonly LibraryPathRef[]): LibraryRowProblem | null {
+  const paths = libraryList(rows);
+  if (paths.length > LIBRARY_PATHS_MAX) {
+    return { index: 0, field: "title", message: tf("errLibraryMax", { max: localeNum(LIBRARY_PATHS_MAX) }) };
+  }
+  const seen = new Set<string>();
+  for (let i = 0; i < paths.length; i++) {
+    const row = paths[i];
+    const problem = libraryRowError(row);
+    if (problem === "title") return { index: i, field: "title", message: t("errLibraryTitle") };
+    if (problem === "titleLength") return { index: i, field: "title", message: maxChars(LIBRARY_TITLE_MAX) };
+    if (problem === "slug") return { index: i, field: "slug", message: tf("errLibrarySlug", { slug: row.slug || row.title }) };
+    if (problem === "folder") return { index: i, field: "folder", message: tf("errLibraryFolder", { title: row.title }) };
+    if (problem === "blurbLength") return { index: i, field: "blurb", message: maxChars(LIBRARY_BLURB_MAX) };
+    if (problem === "sourceLength") return { index: i, field: "source", message: maxChars(LIBRARY_SOURCE_MAX) };
+    if (seen.has(row.slug)) return { index: i, field: "slug", message: tf("errLibraryDupSlug", { slug: row.slug }) };
+    seen.add(row.slug);
+  }
+  return null;
+}
+
+/** The roots, judged by the same three rules the PATCH handler applies. */
+function libraryRootsProblem(roots: readonly LibraryRoot[], rows: readonly LibraryPathRef[]): string | null {
+  if (roots.length > LIBRARY_ROOTS_MAX) return tf("errLibraryRootsMax", { max: localeNum(LIBRARY_ROOTS_MAX) });
+  const rowFolders = rows.map((row) => row.folder);
+  const accepted: string[] = [];
+  for (const root of roots) {
+    const problem = libraryRootError(root);
+    if (problem === "vault") return t("errLibraryRootVault");
+    if (problem !== null) return tf("errLibraryFolder", { title: root.folder });
+    if (libraryRootNested(root.folder, accepted, rowFolders)) return t("errLibraryRootNested");
+    accepted.push(root.folder);
+  }
+  return null;
+}
+
+/** The three kinds, as a mark: a closed book, a lecture screen, a stack. Small
+ *  enough for a 44px summary line, and the only thing on it that does not need
+ *  reading. */
+function kindGlyph(kind: LibraryKind) {
+  const d =
+    kind === "book"
+      ? "M3.5 2.5h7a1.5 1.5 0 0 1 1.5 1.5v9.5H5a1.5 1.5 0 0 1-1.5-1.5z M12 11.5H5a1.5 1.5 0 0 0-1.5 1.5"
+      : kind === "course"
+        ? "M2.5 3.5h11v7.5h-11z M6.5 13.5h3"
+        : "M2.5 5.5h11v8h-11z M4 3.5h8 M5.5 1.5h5";
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" className="s-libpaths__glyph">
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+const kindLabelOf = (kind: LibraryKind): string =>
+  kind === "book" ? t("libraryKindBook") : kind === "course" ? t("libraryKindCourse") : t("libraryKindSeries");
+
+/** A vault path drawn so the LEAF survives. `.s-libpaths__folder-parent`
+ *  ellipsises and the leaf does not, because eight books under one parent are
+ *  eight identical prefixes and eight names that differ — and an end-ellipsis
+ *  on a left-to-right path hides exactly the half that matters. */
+function FolderPath({ folder, empty }: { folder: string; empty?: string }) {
+  if (folder === "") return <span className="s-libpaths__folder-name s-libpaths__folder-name--empty">{empty ?? t("libraryPathNoFolder")}</span>;
+  return (
+    <span className="s-libpaths__folder-name" dir="ltr">
+      <span className="s-libpaths__folder-parent">{parentOf(folder)}</span>
+      <span className="s-libpaths__folder-leaf">{leafOf(folder)}</span>
+    </span>
+  );
+}
+
+/** THE SHELF ROOTS. One line each: a kind, the folder, a cross — and under it
+ *  the consequence, which is the whole point of the control. "Choose Books,
+ *  say book" is a sentence about the vault's shape, and the reader should not
+ *  have to save it to find out which folders it just put on the shelf.
+ *
+ *  The fold OFFER lives here too, because it is an offer to make a root. It
+ *  never folds anything on its own: the rows it would retire are listed with
+ *  the order they would produce, and two buttons say which. */
+function LibraryRootsEditor({
+  roots,
+  rows,
+  disabled,
+  onChange,
+  onRowsChange,
+}: {
+  roots: LibraryRoot[];
+  rows: LibraryPathRef[];
+  disabled: boolean;
+  onChange: (roots: LibraryRoot[]) => void;
+  onRowsChange: (rows: LibraryPathRef[]) => void;
+}) {
+  const publishedPaths = useStore((s) => s.publishedPaths);
+  useEffect(() => {
+    if (publishedPaths === null) void useStore.getState().loadPublished();
+  }, [publishedPaths]);
+  const kindSegments: Segment[] = LIBRARY_KINDS.map((kind) => ({ value: kind, label: kindLabelOf(kind) }));
+
+  const choose = async (i: number | null): Promise<void> => {
+    const folder = await pickFolder({ title: t("libraryPathChooseTitle"), current: i === null ? null : roots[i].folder });
+    if (folder === null) return;
+    if (i === null) onChange([...roots, { id: libraryPathId(), folder, kind: guessLibraryKind(folder, []) }]);
+    else onChange(roots.map((root, n) => (n === i ? { ...root, folder } : root)));
+  };
+
+  // WHICH FOLDERS THIS JUST PUT ON THE SHELF, counted from the tree the panel
+  // already has — the same discovery the indexer does, so the line is not a
+  // promise, it is the answer.
+  const joinLine = (folder: string): string => {
+    const children = publishedChildFolders(folder, publishedPaths);
+    if (children.length === 0) return t("libraryRootNone");
+    // Joined by `Intl.ListFormat` in the instance's language rather than a
+    // hand-typed comma — Arabic separates a list with `،`, and this list is
+    // the one place in the panel where English and Arabic folder names stand
+    // side by side, so each name is bidi-isolated on its own too (tf() isolates
+    // the whole substitution, which is not enough when the substitution IS the
+    // list). Same rule as deleteFlow.ts's referrer phrase.
+    const names = children.map((child) => isolate(libraryTitleOf(child) || child));
+    const list = new Intl.ListFormat(getLang(), { style: "short", type: "unit" }).format(names);
+    return children.length === 1
+      ? tf("libraryRootJoinOne", { list })
+      : tf("libraryRootJoin", { n: localeNum(children.length), list });
+  };
+
+  // ── The offer ────────────────────────────────────────────────────────────
+  // A Media tracker that names a path's folder lends its cover, so a row whose
+  // only remaining word is `cover:` says nothing the shelf would lose. That is
+  // the one thing the panel cannot read off the rows, so it asks — once, and
+  // only when there is an offer to make.
+  const [lent, setLent] = useState<ReadonlySet<string> | null>(null);
+  const maybeOffer = useMemo(() => rootOffers(rows, roots, new Set()), [rows, roots]);
+  useEffect(() => {
+    if (maybeOffer === null || lent !== null) return;
+    let live = true;
+    void getTrackers()
+      // BOTH halves, exactly as the server asks for them: its `lent` map skips
+      // a tracker with no `cover:` (server/indexer.ts libraryRefs), so a
+      // tracker that names the folder and lends nothing lends NOTHING. Taking
+      // the folder alone made a row whose only remaining word was `cover:`
+      // look foldable, and folding it took the book's picture off the shelf.
+      .then(
+        (list) =>
+          live &&
+          setLent(
+            new Set(
+              list
+                .filter((tr) => tr.cover !== null && tr.folder !== null && tr.folder !== "")
+                .map((tr) => tr.folder as string),
+            ),
+          ),
+      )
+      .catch(() => live && setLent(new Set()));
+    return () => {
+      live = false;
+    };
+  }, [maybeOffer, lent]);
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  const offer: RootOffer | null = useMemo(
+    () => (lent === null ? null : rootOffers(rows, roots, lent)),
+    [rows, roots, lent],
+  );
+  const showOffer = offer !== null && offer.parent !== dismissed && roots.length < LIBRARY_ROOTS_MAX;
+
+  /** Make the offered parent a root, optionally retiring the rows it makes
+   *  redundant. Nothing here saves: the panel's own Save does. */
+  const takeOffer = (fold: boolean): void => {
+    if (offer === null) return;
+    onChange([...roots, { id: libraryPathId(), folder: offer.parent, kind: offer.kind }]);
+    if (fold) {
+      const gone = new Set(offer.foldable.map((row) => row.id));
+      onRowsChange(rows.filter((row) => !gone.has(row.id)));
+    }
+    setDismissed(offer.parent);
+  };
+
+  /** The shelf order folding would produce: the rows that stay, in their own
+   *  order, then the folded folders by title. Said out loud because it is the
+   *  one thing folding changes that the reader did not ask for. */
+  const foldedOrder = (): string[] => {
+    if (offer === null) return [];
+    const gone = new Set(offer.foldable.map((row) => row.id));
+    const kept = rows.filter((row) => !gone.has(row.id)).map((row) => row.title);
+    const derived = offer.foldable
+      .map((row) => row.title)
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+    return [...kept, ...derived];
+  };
+
+  return (
+    <div className="s-libroots">
+      {roots.length === 0 ? (
+        <p className="s-libroots__lede">{t("libraryRootsEmpty")}</p>
+      ) : (
+        roots.map((root, i) => (
+          <div className="s-libroots__row" key={root.id}>
+            <div className="s-libroots__head">
+              <SegmentedControl
+                label={t("libraryPathKind")}
+                value={root.kind}
+                disabled={disabled}
+                segments={kindSegments}
+                onChange={(v) => onChange(roots.map((r, n) => (n === i ? { ...r, kind: v as LibraryKind } : r)))}
+              />
+              <button
+                type="button"
+                className="s-libpaths__folder"
+                disabled={disabled}
+                title={t("libraryPathFolder")}
+                onClick={() => void choose(i)}
+              >
+                <FolderPath folder={root.folder} />
+                <span className="s-libpaths__folder-cta">{t("libraryPathChoose")}</span>
+              </button>
+              <button
+                type="button"
+                className="s-pfolders__del"
+                title={t("libraryRootRemove")}
+                aria-label={t("libraryRootRemove")}
+                disabled={disabled}
+                onClick={() => onChange(roots.filter((_, n) => n !== i))}
+              >
+                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+                  <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+            <p className="s-libroots__join" dir="auto">
+              {joinLine(root.folder)}
+            </p>
+          </div>
+        ))
+      )}
+      {showOffer && offer !== null && (
+        <div className="s-libroots__offer">
+          <p className="s-libroots__offertitle" dir="auto">
+            {tf("libraryRootOffer", { parent: leafOf(offer.parent), n: localeNum(offer.rows.length) })}
+          </p>
+          {/* WHAT SAYING YES PUTS ON THE SHELF, before it is said. The offer
+              named only the rows that would fold, and the folders the root
+              claims that have no row yet — the whole point of a root — went
+              on the public shelf unannounced. This is the same consequence
+              line a saved root carries, asked one press earlier. */}
+          <p className="s-libroots__join" dir="auto">
+            {joinLine(offer.parent)}
+          </p>
+          {offer.foldable.length > 0 && (
+            <>
+              <p className="s-libroots__offerbody">
+                {offer.foldable.length === 1
+                  ? t("libraryRootOfferFoldOne")
+                  : tf("libraryRootOfferFold", { n: localeNum(offer.foldable.length) })}
+              </p>
+              <p className="s-libroots__offerorder" dir="auto">
+                {foldedOrder().join(" · ")}
+              </p>
+            </>
+          )}
+          <div className="s-libroots__offeractions">
+            {offer.foldable.length > 0 && (
+              <button type="button" className="s-btn s-btn--accent" disabled={disabled} onClick={() => takeOffer(true)}>
+                {offer.foldable.length === 1
+                  ? t("libraryRootOfferFoldBtnOne")
+                  : tf("libraryRootOfferFoldBtn", { n: localeNum(offer.foldable.length) })}
+              </button>
+            )}
+            <button type="button" className="s-btn" disabled={disabled} onClick={() => takeOffer(false)}>
+              {t("libraryRootOfferKeep")}
+            </button>
+            <button type="button" className="s-pfolders__unlink" onClick={() => setDismissed(offer.parent)}>
+              {t("libraryRootOfferDismiss")}
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="s-libpaths__actions">
+        <button
+          type="button"
+          className="s-pfolders__add"
+          disabled={disabled || roots.length >= LIBRARY_ROOTS_MAX}
+          onClick={() => void choose(null)}
+        >
+          {t("libraryRootAdd")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** THE LIBRARY'S PATHS. One FOLDED card per path, because a row is an
+ *  exception and twelve exceptions open at once is a page of forms. The
+ *  summary is the whole row at a glance — kind, title, leaf folder, how many
+ *  of its notes are published, its tools and its switch — on one 44px line,
+ *  and the fields are behind it.
+ *
+ *  THE FOLDER IS CHOSEN, NOT TYPED: a path is a vault folder, so the row's
+ *  first control is a button that opens the vault's folders to click
+ *  (FolderPicker.tsx), and Add opens the same picker before there is a row at
+ *  all — the title, address and kind are then guessed from the folder
+ *  (`libraryRowForFolder`) and the reader corrects rather than composes.
+ *
+ *  Under the rows: everything ELSE on the shelf — a root's children and the
+ *  folders whose own note declares them — each with the address it answers on
+ *  and one press to turn it into a row. And under THAT, the folders the panel
+ *  expected and the server did not send, with the reason. */
 function LibraryPathEditor({
   rows,
+  roots,
   disabled,
   onChange,
 }: {
   rows: LibraryPathRef[];
+  roots: LibraryRoot[];
   disabled: boolean;
   onChange: (rows: LibraryPathRef[]) => void;
 }) {
@@ -686,15 +975,21 @@ function LibraryPathEditor({
     next.splice(to, 0, row);
     onChange(next);
   };
-  const kindLabel = (kind: LibraryKind): string =>
-    kind === "book" ? t("libraryKindBook") : kind === "course" ? t("libraryKindCourse") : t("libraryKindSeries");
-  const kindSegments: Segment[] = LIBRARY_KINDS.map((kind) => ({ value: kind, label: kindLabel(kind) }));
+  const kindSegments: Segment[] = LIBRARY_KINDS.map((kind) => ({ value: kind, label: kindLabelOf(kind) }));
+  /** Which cards the reader has opened. A card also opens when it is new, and
+   *  when it holds the marked field — an error you must go looking for is an
+   *  error the footer is lying about. */
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
+  const problem = libraryRowsProblem(rows);
+
   /** Choose a folder for row `i`, or for a NEW row when `i` is null. */
   const choose = async (i: number | null): Promise<void> => {
     const folder = await pickFolder({ title: t("libraryPathChooseTitle"), current: i === null ? null : rows[i].folder });
     if (folder === null) return;
     if (i === null) {
-      onChange([...rows, libraryRowForFolder(folder, unitNamesOf(folder), rows)]);
+      const row = libraryRowForFolder(folder, unitNamesOf(folder), rows);
+      setOpened((o) => ({ ...o, [row.id]: true }));
+      onChange([...rows, row]);
       return;
     }
     const row = rows[i];
@@ -725,10 +1020,10 @@ function LibraryPathEditor({
     if (node) walk(node);
     return { notes, published };
   };
-  // The shelf as the server sees it — settings rows AND the folders whose
-  // note declares `library:`. The latter are listed below the rows, so the
-  // owner sees what the vault has put on the shelf, and one press turns any
-  // of them into a row here when they want to override it.
+  // The shelf as the SERVER sees it — the rows, the roots' children and the
+  // folders whose note declares `library:`, with the addresses it actually
+  // emitted. The panel derives the same list to know what is MISSING; it never
+  // guesses at what is present.
   const [shelf, setShelf] = useState<LibraryPath[] | null>(null);
   useEffect(() => {
     let live = true;
@@ -736,8 +1031,24 @@ function LibraryPathEditor({
     return () => {
       live = false;
     };
-  }, [rows.length]);
+  }, [rows.length, roots.length]);
   const fromVault = (shelf ?? []).filter((p) => !rows.some((r) => r.folder === p.folder));
+
+  // Every address already spoken for, and who holds it — so "Needs an address"
+  // can name the path that took the one this folder wanted.
+  const takenBy = new Map<string, string>();
+  for (const row of rows) if (row.slug) takenBy.set(row.slug, row.title);
+  for (const path of shelf ?? []) takenBy.set(path.slug, path.title);
+  const onShelf = new Set((shelf ?? []).map((p) => p.folder));
+  const needsAddress: { folder: string; problem: ReturnType<typeof addressProblem> }[] = [];
+  for (const root of roots) {
+    for (const child of publishedChildFolders(root.folder, publishedPaths)) {
+      if (onShelf.has(child) || rows.some((r) => r.folder === child)) continue;
+      const why = addressProblem(child, takenBy);
+      if (why !== null) needsAddress.push({ folder: child, problem: why });
+    }
+  }
+
   const arrow = (up: boolean) => (
     <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
       <path
@@ -750,193 +1061,318 @@ function LibraryPathEditor({
       />
     </svg>
   );
+  /** A control inside a <summary> must not also open the card: the click that
+   *  presses it would bubble to the disclosure and answer a question nobody
+   *  asked. Stopping it here keeps both keyboard routes intact — Enter on the
+   *  button presses the button, Enter on the summary opens the card. */
+  const notTheSummary = (e: { stopPropagation: () => void }): void => e.stopPropagation();
+
+  const customise = (p: { slug: string; folder: string; kind: LibraryKind; title: string }): void => {
+    const row: LibraryPathRef = { id: libraryPathId(), slug: p.slug, folder: p.folder, kind: p.kind, title: p.title };
+    setOpened((o) => ({ ...o, [row.id]: true }));
+    onChange([...rows, row]);
+  };
+
   return (
     <div className="s-libpaths">
       {rows.length === 0 ? (
         <p className="s-pfolders__empty">{t("libraryPathsEmpty")}</p>
       ) : (
-        rows.map((row, i) => (
-          <div className={`s-libpaths__card${row.hidden ? " s-libpaths__card--hidden" : ""}`} key={row.id}>
-            <div className="s-libpaths__head">
-              <SegmentedControl
-                label={t("libraryPathKind")}
-                value={row.kind}
-                disabled={disabled}
-                segments={kindSegments}
-                onChange={(v) => set(i, { kind: v as LibraryKind })}
-              />
-              <div className="s-libpaths__tools">
-                <button
-                  type="button"
-                  className="s-pfolders__move"
-                  title={t("libraryPathUp")}
-                  aria-label={t("libraryPathUp")}
-                  disabled={disabled || i === 0}
-                  onClick={() => move(i, -1)}
-                >
-                  {arrow(true)}
-                </button>
-                <button
-                  type="button"
-                  className="s-pfolders__move"
-                  title={t("libraryPathDown")}
-                  aria-label={t("libraryPathDown")}
-                  disabled={disabled || i === rows.length - 1}
-                  onClick={() => move(i, 1)}
-                >
-                  {arrow(false)}
-                </button>
-                <button
-                  type="button"
-                  className="s-pfolders__del"
-                  title={t("libraryPathRemove")}
-                  aria-label={t("libraryPathRemove")}
-                  disabled={disabled}
-                  onClick={() => onChange(rows.filter((_, n) => n !== i))}
-                >
-                  <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
-                    <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <button
-              type="button"
-              className={`s-libpaths__folder${row.folder ? "" : " s-libpaths__folder--empty"}`}
-              disabled={disabled}
-              title={t("libraryPathFolder")}
-              onClick={() => void choose(i)}
+        rows.map((row, i) => {
+          const counts = row.folder ? countsOf(row.folder) : null;
+          const mine = problem?.index === i ? problem : null;
+          return (
+            <details
+              className={`s-libpaths__card${row.hidden ? " s-libpaths__card--hidden" : ""}${mine ? " s-libpaths__card--bad" : ""}`}
+              key={row.id}
+              open={opened[row.id] === true || mine !== null}
+              onToggle={(e) => {
+                const el = e.currentTarget as HTMLDetailsElement;
+                // THE MARKED CARD DOES NOT CLOSE. `open` above already says so,
+                // but a <details> is toggled by the browser, not by React, and
+                // React rewrites the attribute only when the value it renders
+                // CHANGES — which it does not, because `mine` was already
+                // forcing it open. So the reader could fold the one place the
+                // message lives away and be left with a disabled Save and a
+                // footer asking them to fix a field nothing marks. Push it back
+                // open; the second toggle this fires records it.
+                if (mine !== null && !el.open) {
+                  el.open = true;
+                  return;
+                }
+                setOpened((o) => ({ ...o, [row.id]: el.open }));
+              }}
             >
-              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
-                <path d="M1.5 12.5v-9h4l1.5 2h7.5v7z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-              </svg>
-              <span className="s-libpaths__folder-path" dir="ltr">
-                {row.folder || t("libraryPathNoFolder")}
-              </span>
-              <span className="s-libpaths__folder-cta">{t("libraryPathChoose")}</span>
-            </button>
-            <div className="s-libpaths__grid">
-              <label className="s-libpaths__field">
-                <span className="s-libpaths__caption">{t("libraryPathTitle")}</span>
-                <TextInput
-                  value={row.title}
-                  onChange={(v) =>
-                    set(i, {
-                      title: v,
-                      ...(row.slug.trim() === "" ? { slug: suggestSlug(v) } : {}),
-                    })
-                  }
-                  placeholder={t("libraryPathTitlePlaceholder")}
-                  label={t("libraryPathTitle")}
+              <summary className="s-libpaths__summary" title={t("libraryCardOpen")}>
+                {kindGlyph(row.kind)}
+                <bdi className="s-libpaths__sumtitle" dir="auto">
+                  {row.title.trim() === "" ? t("libraryPathNoFolder") : row.title}
+                </bdi>
+                {/* The folder, ONLY when it is not the title again. A row
+                    whose title is the folder's own name printed it twice on
+                    one line and spent the width it took truncating the half
+                    that was already there. */}
+                {row.folder !== "" && leafOf(row.folder) !== row.title.trim() && (
+                  <span className="s-libpaths__sumfolder" dir="ltr">
+                    {leafOf(row.folder)}
+                  </span>
+                )}
+                {counts && (
+                  <span className={`s-libpaths__count${counts.notes > 0 && counts.published === 0 ? " s-libpaths__count--none" : ""}`}>
+                    {tf("libraryPathLessons", { published: localeNum(counts.published), notes: localeNum(counts.notes) })}
+                  </span>
+                )}
+                <span className="s-libpaths__tools">
+                  <button
+                    type="button"
+                    className="s-pfolders__move"
+                    title={t("libraryPathUp")}
+                    aria-label={t("libraryPathUp")}
+                    disabled={disabled || i === 0}
+                    onClick={(e) => {
+                      notTheSummary(e);
+                      move(i, -1);
+                    }}
+                  >
+                    {arrow(true)}
+                  </button>
+                  <button
+                    type="button"
+                    className="s-pfolders__move"
+                    title={t("libraryPathDown")}
+                    aria-label={t("libraryPathDown")}
+                    disabled={disabled || i === rows.length - 1}
+                    onClick={(e) => {
+                      notTheSummary(e);
+                      move(i, 1);
+                    }}
+                  >
+                    {arrow(false)}
+                  </button>
+                  <button
+                    type="button"
+                    className="s-pfolders__del"
+                    title={t("libraryPathRemove")}
+                    aria-label={t("libraryPathRemove")}
+                    disabled={disabled}
+                    onClick={(e) => {
+                      notTheSummary(e);
+                      onChange(rows.filter((_, n) => n !== i));
+                    }}
+                  >
+                    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+                      <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                  {/* ON means VISIBLE — a lit switch is the affirmative state,
+                      and the affirmative thing about a path is that it shows. */}
+                  <span
+                    className="s-libpaths__sumswitch"
+                    /* a11y-ok: not an activation — it stops the switch's own
+                       click from also opening the card behind it. The control
+                       is the <button role="switch"> inside. */
+                    onClick={notTheSummary}
+                  >
+                    <Toggle
+                      label={t("libraryPathVisible")}
+                      onLabel={t("libraryPathVisible")}
+                      offLabel={t("libraryPathHidden")}
+                      value={row.hidden !== true}
+                      disabled={disabled}
+                      onChange={(on) => set(i, { hidden: on ? undefined : true })}
+                    />
+                  </span>
+                </span>
+              </summary>
+              <div className="s-libpaths__body">
+                <div className="s-libpaths__head">
+                  <SegmentedControl
+                    label={t("libraryPathKind")}
+                    value={row.kind}
+                    disabled={disabled}
+                    segments={kindSegments}
+                    onChange={(v) => set(i, { kind: v as LibraryKind })}
+                  />
+                  <span className="s-libpaths__url" dir="ltr">
+                    {libraryUrl(row.slug || "…")}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className={`s-libpaths__folder${row.folder ? "" : " s-libpaths__folder--empty"}`}
                   disabled={disabled}
-                  dir="auto"
-                  maxLength={LIBRARY_TITLE_MAX}
-                />
-              </label>
-              <label className="s-libpaths__field">
-                <span className="s-libpaths__caption">{t("libraryPathSlug")}</span>
-                <TextInput
-                  value={row.slug}
-                  onChange={(v) => set(i, { slug: v })}
-                  placeholder={t("libraryPathSlugPlaceholder")}
-                  label={t("libraryPathSlug")}
-                  disabled={disabled}
-                  dir="ltr"
-                  maxLength={FOLDER_SLUG_MAX}
-                />
-              </label>
-            </div>
-            <details className="s-libpaths__more" open={!!(row.blurb || row.cover || row.source)}>
-              <summary>{t("libraryPathDetails")}</summary>
-              <div className="s-libpaths__grid s-libpaths__grid--more">
-                <label className="s-libpaths__field s-libpaths__field--wide">
-                  <span className="s-libpaths__caption">{t("libraryPathBlurb")}</span>
-                  <TextInput
-                    value={row.blurb ?? ""}
-                    onChange={(v) => set(i, { blurb: v })}
-                    placeholder={t("libraryPathBlurbPlaceholder")}
-                    label={t("libraryPathBlurb")}
-                    disabled={disabled}
-                    dir="auto"
-                    maxLength={LIBRARY_BLURB_MAX}
-                  />
-                </label>
-                <label className="s-libpaths__field">
-                  <span className="s-libpaths__caption">{t("libraryPathCover")}</span>
-                  <PathInput
-                    value={row.cover ?? ""}
-                    onChange={(v) => set(i, { cover: v })}
-                    kind="image"
-                    placeholder={t("libraryPathCoverPlaceholder")}
-                    label={t("libraryPathCover")}
-                    disabled={disabled}
-                  />
-                </label>
-                <label className="s-libpaths__field">
-                  <span className="s-libpaths__caption">{t("libraryPathSource")}</span>
-                  <TextInput
-                    value={row.source ?? ""}
-                    onChange={(v) => set(i, { source: v })}
-                    placeholder={t("libraryPathSourcePlaceholder")}
-                    label={t("libraryPathSource")}
-                    disabled={disabled}
-                    dir="ltr"
-                    maxLength={LIBRARY_SOURCE_MAX}
-                  />
-                </label>
+                  title={t("libraryPathFolder")}
+                  aria-invalid={mine?.field === "folder" ? true : undefined}
+                  onClick={() => void choose(i)}
+                >
+                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+                    <path d="M1.5 12.5v-9h4l1.5 2h7.5v7z" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+                  </svg>
+                  <FolderPath folder={row.folder} />
+                  <span className="s-libpaths__folder-cta">{t("libraryPathChoose")}</span>
+                </button>
+                <div className="s-libpaths__grid">
+                  <label className="s-libpaths__field">
+                    <span className="s-libpaths__caption">{t("libraryPathTitle")}</span>
+                    <TextInput
+                      value={row.title}
+                      onChange={(v) =>
+                        set(i, {
+                          title: v,
+                          ...(row.slug.trim() === "" ? { slug: suggestSlug(v) } : {}),
+                        })
+                      }
+                      placeholder={t("libraryPathTitlePlaceholder")}
+                      label={t("libraryPathTitle")}
+                      disabled={disabled}
+                      invalid={mine?.field === "title"}
+                      dir="auto"
+                      maxLength={LIBRARY_TITLE_MAX}
+                    />
+                  </label>
+                  <label className="s-libpaths__field">
+                    <span className="s-libpaths__caption">{t("libraryPathSlug")}</span>
+                    <TextInput
+                      value={row.slug}
+                      onChange={(v) => set(i, { slug: v })}
+                      placeholder={t("libraryPathSlugPlaceholder")}
+                      label={t("libraryPathSlug")}
+                      disabled={disabled}
+                      invalid={mine?.field === "slug"}
+                      dir="ltr"
+                      maxLength={FOLDER_SLUG_MAX}
+                    />
+                  </label>
+                </div>
+                <details className="s-libpaths__more" open={!!(row.blurb || row.cover || row.source) || mine?.field === "blurb" || mine?.field === "source"}>
+                  <summary>{t("libraryPathDetails")}</summary>
+                  <div className="s-libpaths__grid s-libpaths__grid--more">
+                    <label className="s-libpaths__field s-libpaths__field--wide">
+                      <span className="s-libpaths__caption">{t("libraryPathBlurb")}</span>
+                      <TextInput
+                        value={row.blurb ?? ""}
+                        onChange={(v) => set(i, { blurb: v })}
+                        placeholder={t("libraryPathBlurbPlaceholder")}
+                        label={t("libraryPathBlurb")}
+                        disabled={disabled}
+                        invalid={mine?.field === "blurb"}
+                        dir="auto"
+                        maxLength={LIBRARY_BLURB_MAX}
+                      />
+                    </label>
+                    <label className="s-libpaths__field">
+                      <span className="s-libpaths__caption">{t("libraryPathCover")}</span>
+                      <PathInput
+                        value={row.cover ?? ""}
+                        onChange={(v) => set(i, { cover: v })}
+                        kind="image"
+                        placeholder={t("libraryPathCoverPlaceholder")}
+                        label={t("libraryPathCover")}
+                        disabled={disabled}
+                      />
+                    </label>
+                    <label className="s-libpaths__field">
+                      <span className="s-libpaths__caption">{t("libraryPathSource")}</span>
+                      <TextInput
+                        value={row.source ?? ""}
+                        onChange={(v) => set(i, { source: v })}
+                        placeholder={t("libraryPathSourcePlaceholder")}
+                        label={t("libraryPathSource")}
+                        disabled={disabled}
+                        invalid={mine?.field === "source"}
+                        dir="ltr"
+                        maxLength={LIBRARY_SOURCE_MAX}
+                      />
+                    </label>
+                  </div>
+                </details>
+                {mine && (
+                  <p className="s-libpaths__bad" role="alert">
+                    {mine.message}
+                  </p>
+                )}
+                {counts && counts.notes > 0 && counts.published === 0 && (
+                  <p className="s-libpaths__bad">{t("libraryPathNonePublished")}</p>
+                )}
               </div>
             </details>
-            <div className="s-libpaths__foot">
-              <span className="s-libpaths__url" dir="ltr">
-                {libraryUrl(row.slug || "…")}
-              </span>
-              {row.folder && (() => {
-                const c = countsOf(row.folder);
-                return (
-                  <span className={`s-libpaths__count${c.notes > 0 && c.published === 0 ? " s-libpaths__count--none" : ""}`}>
-                    {tf("libraryPathLessons", { published: localeNum(c.published), notes: localeNum(c.notes) })}
-                    {c.notes > 0 && c.published === 0 && <> · {t("libraryPathNonePublished")}</>}
-                  </span>
-                );
-              })()}
-              {/* ON means VISIBLE. Bound to `hidden`, the switch sat OFF
-                  beside the word "Visible" for every path a visitor could
-                  reach — a lit switch is the affirmative state, and the
-                  affirmative thing about a path is that it shows. */}
-              <Toggle
-                label={t("libraryPathVisible")}
-                onLabel={t("libraryPathVisible")}
-                offLabel={t("libraryPathHidden")}
-                value={row.hidden !== true}
-                disabled={disabled}
-                onChange={(on) => set(i, { hidden: on ? undefined : true })}
-              />
-            </div>
-          </div>
-        ))
+          );
+        })
       )}
-      {fromVault.length > 0 && (
+      {(fromVault.length > 0 || needsAddress.length > 0) && (
         <div className="s-libpaths__vault">
-          <span className="s-libpaths__caption">{t("libraryVaultPaths")}</span>
-          {fromVault.map((p) => (
-            <div key={p.id} className="s-libpaths__vaultrow">
-              <span className="s-libpaths__vaulttitle" dir="auto">
-                {p.title}
-              </span>
-              <span className="s-libpaths__url" dir="ltr">
-                {p.folder}
-              </span>
-              <span className="s-libpaths__count">{t("libraryFromFolderNote")}</span>
-              <button
-                type="button"
-                className="s-pfolders__unlink"
-                disabled={disabled || rows.length >= LIBRARY_PATHS_MAX}
-                onClick={() => onChange([...rows, { id: libraryPathId(), slug: p.slug, folder: p.folder, kind: p.kind, title: p.title }])}
-              >
-                {t("libraryCustomise")}
-              </button>
-            </div>
-          ))}
+          {fromVault.length > 0 && (
+            <>
+              <span className="s-libpaths__caption">{t("libraryVaultPaths")}</span>
+              {fromVault.map((p) => {
+                const via = rootOf(p.folder, roots);
+                return (
+                  <div key={p.id} className="s-libpaths__vaultrow">
+                    {kindGlyph(p.kind)}
+                    <bdi className="s-libpaths__vaulttitle" dir="auto">
+                      {p.title}
+                    </bdi>
+                    {leafOf(p.folder) !== p.title && (
+                      <span className="s-libpaths__sumfolder" dir="ltr">
+                        {leafOf(p.folder)}
+                      </span>
+                    )}
+                    <span className="s-libpaths__count">
+                      {via ? tf("libraryViaRoot", { root: leafOf(via.folder) }) : t("libraryFromFolderNote")}
+                    </span>
+                    <span className="s-libpaths__url" dir="ltr">
+                      {libraryUrl(p.slug)}
+                    </span>
+                    <button
+                      type="button"
+                      className="s-pfolders__unlink"
+                      disabled={disabled || rows.length >= LIBRARY_PATHS_MAX}
+                      onClick={() => customise(p)}
+                    >
+                      {t("libraryCustomise")}
+                    </button>
+                  </div>
+                );
+              })}
+            </>
+          )}
+          {needsAddress.length > 0 && (
+            <>
+              <span className="s-libpaths__caption s-libpaths__caption--bad">{t("libraryNeedsAddress")}</span>
+              {needsAddress.map(({ folder, problem: why }) => (
+                <div key={folder} className="s-libpaths__vaultrow">
+                  <bdi className="s-libpaths__vaulttitle" dir="auto">
+                    {libraryTitleOf(folder) || folder}
+                  </bdi>
+                  {leafOf(folder) !== (libraryTitleOf(folder) || folder) && (
+                    <span className="s-libpaths__sumfolder" dir="ltr">
+                      {leafOf(folder)}
+                    </span>
+                  )}
+                  <span className="s-libpaths__count s-libpaths__count--none" dir="auto">
+                    {why?.kind === "taken" ? tf("libraryNeedsAddressTaken", { title: why.by }) : t("libraryNeedsAddressArabic")}
+                  </span>
+                  <button
+                    type="button"
+                    className="s-pfolders__unlink"
+                    disabled={disabled || rows.length >= LIBRARY_PATHS_MAX}
+                    onClick={() => {
+                      const title = libraryTitleOf(folder) || folder;
+                      customise({
+                        slug: libraryFreshSlug(title, rows),
+                        folder,
+                        kind: rootOf(folder, roots)?.kind ?? guessLibraryKind(folder, unitNamesOf(folder)),
+                        title,
+                      });
+                    }}
+                  >
+                    {t("libraryCustomise")}
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
+          <p className="s-libpaths__hint">{t("libraryOrderNote")}</p>
         </div>
       )}
       <div className="s-libpaths__actions">
@@ -948,7 +1384,9 @@ function LibraryPathEditor({
         >
           {t("libraryPathAdd")}
         </button>
-        <span className="s-libpaths__hint">{t("libraryPathsTreeHint")}</span>
+        {/* A keyboard legend on a device with no keyboard is a taunt
+            (DESIGN.md): the tree hint is hidden under `pointer: coarse`. */}
+        <span className="s-libpaths__hint s-libpaths__hint--pointer">{t("libraryPathsTreeHint")}</span>
         <span className="s-libpaths__hint">{t("folderNoteHint")}</span>
       </div>
     </div>
@@ -1538,6 +1976,7 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
     f.libraryNav !== initial.libraryNav ||
     f.libraryHome !== initial.libraryHome ||
     f.libraryTitle.trim() !== initial.libraryTitle.trim() ||
+    JSON.stringify(f.libraryRoots) !== JSON.stringify(initial.libraryRoots) ||
     JSON.stringify(nextPaths) !== JSON.stringify(libraryList(initial.libraryRows))
   ) {
     patch.library = {
@@ -1545,6 +1984,7 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       nav: f.libraryNav === "on",
       home: f.libraryHome === "on",
       title: f.libraryTitle.trim() === "" ? null : f.libraryTitle.trim(),
+      roots: f.libraryRoots.length > 0 ? f.libraryRoots : null,
       paths: nextPaths.length > 0 ? nextPaths : null,
     };
   }
@@ -4133,13 +4573,6 @@ export default function SettingsModal() {
                       maxLength={LIBRARY_SITE_TITLE_MAX}
                     />
                   </Row>
-                  <Row label={t("rowLibraryPaths")} hint={t("hintLibraryPaths")} error={errors.libraryRows} off={libraryOff} wide>
-                    <LibraryPathEditor
-                      rows={form.libraryRows}
-                      disabled={libraryOff}
-                      onChange={(rows) => setForm((f) => (f ? { ...f, libraryRows: rows } : f))}
-                    />
-                  </Row>
                   <Row label={t("rowLibraryNav")} hint={t("hintLibraryNav")} off={libraryOff}>
                     <Toggle
                       label={t("rowLibraryNav")}
@@ -4158,6 +4591,29 @@ export default function SettingsModal() {
                       disabled={libraryOff}
                       value={form.libraryHome === "on"}
                       onChange={(on) => setForm((f) => (f ? { ...f, libraryHome: on ? "on" : "off" } : f))}
+                    />
+                  </Row>
+                  {/* THE ROOTS COME BEFORE THE ROWS. The two placements are
+                      about the door; the roots are about the shelf, and the
+                      rows are the exceptions to the roots — so the general
+                      sentence is read before the twelve special ones. */}
+                  <Row label={t("rowLibraryRoots")} hint={t("hintLibraryRoots")} error={errors.libraryRoots} off={libraryOff} wide>
+                    <LibraryRootsEditor
+                      roots={form.libraryRoots}
+                      rows={form.libraryRows}
+                      disabled={libraryOff}
+                      onChange={(roots) => setForm((f) => (f ? { ...f, libraryRoots: roots } : f))}
+                      onRowsChange={(rows) => setForm((f) => (f ? { ...f, libraryRows: rows } : f))}
+                    />
+                  </Row>
+                  {/* No `error` here on purpose: the message belongs beside the
+                      field that broke, inside its own card (§ validate). */}
+                  <Row label={t("rowLibraryPaths")} hint={t("hintLibraryPaths")} off={libraryOff} wide>
+                    <LibraryPathEditor
+                      rows={form.libraryRows}
+                      roots={form.libraryRoots}
+                      disabled={libraryOff}
+                      onChange={(rows) => setForm((f) => (f ? { ...f, libraryRows: rows } : f))}
                     />
                   </Row>
                 </section>
