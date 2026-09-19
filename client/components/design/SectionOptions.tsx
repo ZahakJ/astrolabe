@@ -33,7 +33,7 @@ const IMAGE_PLACEHOLDER = "https:// or attachments/hero.jpg";
 
 export interface SectionContext {
   /** Every published note, for the note picker. */
-  notes: { title: string; path: string }[];
+  notes: readonly { title: string; path: string }[];
   /** Tags that actually occur, for the topic filter. */
   tags: string[];
   posts: PostMeta[];

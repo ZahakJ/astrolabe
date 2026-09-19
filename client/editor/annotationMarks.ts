@@ -58,10 +58,28 @@ const painter = ViewPlugin.fromClass(
       clearTimeout(this.timer);
       this.timer = window.setTimeout(() => this.compute(), 120);
     }
+    /** True while `marksField` holds something, so the empty case below knows
+     *  whether it owes the view a dispatch or can stay silent. */
+    private painted = false;
     compute(): void {
       const path = this.view.state.facet(notePathFacet);
       const list = peekAnnotations(path);
       if (!list) return;
+      // NO ANNOTATIONS, NO WORK. `placeInSource` reduces the WHOLE document to
+      // prose (a second string the size of the note, plus a per-character
+      // offset map) and folds it, and it did that 120 ms after every keystroke
+      // in every note — including the overwhelming majority that carry no
+      // annotation at all, where the answer is always the empty list. Measured
+      // on the 3,000-line fixture at 4× CPU it was 6.9% of everything the main
+      // thread did while typing: the largest single cost of a keystroke, spent
+      // placing nothing. An empty list is truthy, which is why the guard above
+      // never caught it.
+      if (list.length === 0) {
+        if (!this.painted) return;
+        this.painted = false;
+        this.view.dispatch({ effects: setMarks.of(Decoration.none) });
+        return;
+      }
       const placed = placeInSource(this.view.state.doc.toString(), list);
       const ranges = placed.map(({ from, to, annotation }) =>
         Decoration.mark({
@@ -69,6 +87,7 @@ const painter = ViewPlugin.fromClass(
           attributes: { "data-ann-id": annotation.id },
         }).range(from, to),
       );
+      this.painted = ranges.length > 0;
       this.view.dispatch({ effects: setMarks.of(RangeSet.of(ranges, true)) });
     }
     /** The mark under the pointer, announced once per change. */

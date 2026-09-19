@@ -378,6 +378,40 @@ loads brings the whole app shell back into an anonymous reader's first request. 
 every audience's download against a budget; a budget moves only by the actual overage, with the
 cause written beside it.
 
+### `npm run check-perf` — the performance gate
+
+After `npm run build`. Every other gate here holds a promise about what the product *does*;
+this one holds the promise about how it *feels*, and that promise is the one that decays
+invisibly — no screenshot shows a keystroke arriving a frame later, and nothing at all shows
+on the seed vault, because the vault where it shows is the one with two thousand notes in it.
+
+So the gate brings its own. `scripts/perf-fixture.mjs` generates a vault from a fixed seed —
+2,000 notes across 40 folders with frontmatter, wikilinks and tags, a 3,000-line note, a note
+with fifty embeds and a year of daily notes — and `check-perf` starts its own server over it, on
+its own port, in open local mode. **It never takes a vault path**, and the fixture reads nobody's
+disk, so neither can be pointed at yours. Set `ASTROLABE_SEED_VAULT=<vault>` to fold a real book
+and real Sigils and Orbits notes in as well; leave it unset and the gate measures the generated
+vault, which is the same vault on every machine.
+
+Five budgets over four surfaces, each the **best of several rounds** with the CPU throttled to a quarter speed
+(Lighthouse's mid-tier multiplier — an unthrottled loopback has no headroom left in which a
+regression could show). Best-of, not average: other work on the machine can only ever make a
+round slower, so the fastest round is the one closest to the cost of the work itself, and a gate
+built on the average is a gate that fails because somebody started a build.
+
+| Budget | What it catches |
+| --- | --- |
+| **first paint** of the admin app | a static import that drags a lazy surface back into the shell's first request |
+| **keypress → paint** in the 3,000-line note, median and p95 | a per-keystroke pass that has quietly become O(document) |
+| **long-task time** over a 40-keystroke burst | the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of the five, and the one the purge moved most |
+| **reading render** of that note | the same, for the one operation whose cost is the whole document at once |
+
+Typing latency is the browser's own Event Timing — hardware keydown to the paint that shows the
+letter — not a frame counter, and the caret is put at line ~1,500 first, because typing at line
+1 of a long note measures a short note. Budgets move like `check-bundle`'s: by the actual
+overage, with the cause written beside them, or **down** when a round earns it. `PERF_ROUNDS=1`
+is the quick form; `PERF_KEEP=1` leaves the generated vault behind to look at.
+
 ### `npm run check-books` — the reader
 
 After `npm run build`. Ten properties of the PDF reader that are invisible in review and
@@ -430,10 +464,136 @@ second one started from the same file is running — `app.relaunch()` looked lik
 did not, because Electron's relauncher runs from the mounted image after it is unmounted. Every
 AppImage release runs both before upload.
 
+## Performance
+
+*What was measured, on what, what it cost before and after — and what is still slow and why.*
+
+### The fixture
+
+Performance here is measured on a vault nobody has, because the two vaults that exist are both
+useless for it: the seed vault is a dozen notes, where everything is instant, and the owner's is
+private and is never served. `scripts/perf-fixture.mjs` generates the third one from a fixed
+seed, so that a number taken today is comparable with one taken next month:
+
+- **2,000 notes** across 40 folders, each with six frontmatter properties, five `[[wikilinks]]`
+  and three `#tags` — 110 distinct tags in a tree, and 2,000 nodes for the graph;
+- a **3,000-line note** (291,000 characters, 54,000 words) — the editor's worst honest case;
+- a note with **fifty `![[embeds]]`**;
+- a **year of daily notes**, so the Calendar page has a month with something in every cell;
+- and, only when `ASTROLABE_SEED_VAULT` names a vault to take them from, a real **665-page PDF**
+  and the real **Sigils** and **Orbits** notes — a reader and two shelves with something of their
+  own to draw. It is opt-in and it says so in its own output, because a fixture that reached into
+  a vault nobody named would be two bad things at once: an unauthenticated scratch server over
+  somebody's private notes, and a budget only one machine could meet. It measurably would have
+  been the second — the generated vault carries 110 tags everywhere and 121 on the laptop the
+  purge was measured on.
+
+The sweep below was run with that variable set, so its vault was 2,376 notes rather than the
+2,367 the generator alone writes. The nine notes are noted, not hidden; nothing in the table
+turns on them.
+
+Every number below was taken through the DevTools protocol against a scratch server over that
+vault, with the CPU throttled to **a quarter speed** — Lighthouse's mid-tier multiplier. The
+throttle is not pessimism: unthrottled on a loopback socket, every surface here lands inside one
+animation frame and there is no headroom left in which a regression could ever show. Typing is
+the browser's own Event Timing (hardware keydown → the paint that shows the letter); "before" is
+3.18.0 and "after" is the same tree with the purge applied, measured back to back on one machine.
+
+One caveat about every millisecond on this page: the machine this was measured on routinely
+carries a load average of 13–17, and throttled numbers move with it. Everything below was taken
+**back to back on the same machine in the same state**, which is what makes a before and an
+after comparable — but the absolute values are a busy laptop's, not a benchmark rig's. Where
+load matters to a budget, `scripts/check-perf.mjs` says so beside that budget.
+
+### The numbers
+
+| | Before | After |
+| --- | ---: | ---: |
+| **Typing, 3,000-line note** — keypress → paint, median | 32 ms | **24 ms** |
+| … p95 | 48 ms | **32 ms** |
+| … main-thread long-task time over a 40-key burst | 571 ms | **184 ms** |
+| **Typing, 50-embed note** — input handler, median | 18.0 ms | **6.5 ms** |
+| **Reading view**, 3,000-line note, render | 1,673 ms | **1,081 ms** |
+| **Admin app** — first paint | 1,008 ms | **936 ms** |
+| … JavaScript in the first request (`check-bundle`) | 1,551.7 kB | **1,048.7 kB** |
+| … time to interactive (end of the last long task) | 1,638 ms | 1,516 ms |
+| **Public site** — first paint | 608 ms | 548 ms |
+| **`GET /api/props`** (the properties shelf) | 28.3 ms | **0.9 ms** |
+| **`GET /api/tags`** | 1.1 ms | 0.9 ms |
+| Sigils page, open | 2,861 ms | 2,628 ms |
+| Calendar page, open | 2,265 ms | 2,182 ms |
+
+Unchanged, and measured so: the tree opening forty folders at once (974 → 963 ms), the tag
+shelf's tab flip (39 → 43 ms), search's per-keystroke paint (16 → 16 ms), a single note's save
+and re-index on the server (7.0 → 7.7 ms), a 300-file watcher burst reaching the index (353 →
+347 ms), and the indexer's cold start over 2,376 notes (1,276 → 1,264 ms). Heap after four
+hundred navigations over ten minutes stayed flat both times (−6.2 MB and +1.2 MB after a forced
+collection — a walk of the whole product retains nothing).
+
+**What the purge actually moved**, in the order it was worth moving:
+
+1. **The whole vault was walked once per wikilink.** `resolveLink` called `collectNotes`, which
+   flattens the tree and sorts it with `localeCompare` — so rendering the 3,000-line note walked
+   2,376 notes and re-sorted 2,000 of them 176 times, once per link. It is memoized on the tree
+   object now (the store replaces it and never mutates it, so identity is an exact stamp), with
+   a name table and a path table built once beside it, and the two loops in `resolveLink` became
+   two map lookups. 6.8% of the reading render and 2.8% of every keystroke, gone.
+2. **Every note's annotations were placed 120 ms after every keystroke — including the notes
+   with no annotations.** The painter reduced the whole document to prose with a per-character
+   offset map, folded it, and placed nothing: an empty list is truthy, so the guard above it
+   never fired. The single largest cost of a keystroke, spent on nothing.
+3. **The status bar re-counted the note on every autosave.** The bar draws the *live* count the
+   buffer publishes; the fetched copy behind it was re-fetched and re-counted every 600 ms of
+   typing to fill a field it never draws. It now counts only when there is no live count to
+   draw, and the buffer's own count is memoized on the document.
+4. **The outline pane was in the admin's first request.** It reaches the section surgery → the
+   editor's sectioning extension → the live-preview decoration engine → the reading renderer →
+   KaTeX. One `lazySurface` boundary took 503 kB and fifteen files out of the first paint.
+5. **`Intl.DateTimeFormat` was constructed per date.** Building a formatter loads ICU data;
+   formatting with one is a lookup. The Sigils page draws one date per card plus one per heatmap
+   cell, twice over where both calendars are shown — 5.9% of opening the page. Formatters are
+   cached by their own arguments now, which is what `shared/calendar.ts` already did for Hijri.
+6. **The tag and property shelves were recomputed on every request.** `props()` walks every note
+   and splits, trims and case-folds every frontmatter value; nothing memoized it. It is now
+   validated against a `shelfRevision()` the index moves — exactly the bargain
+   `server/graphCache.ts` already strikes — which is the 28.3 ms → 0.9 ms above.
+
+### Where the time still goes
+
+Measured, and left alone, because the honest answer is that the cost is real:
+
+- **The tree holds 2,151 rows in the DOM** with forty folders open, and opening all forty at once
+  costs ~960 ms of React reconciliation and DOM creation. Scrolling it is a clean 16.7 ms frame,
+  and nobody opens forty folders in one gesture — one folder is a fortieth of that number. The
+  list is not virtualised: the rows carry drag-and-drop, a roving tab index, `aria-posinset` over
+  the filtered set and a keyboard walk, and a virtualiser under all four would trade correctness
+  for a number no reader produces. The per-folder cap ("Show N more", 300 rows) is the existing
+  answer and it still holds.
+- **The graph's layout is 53% of its own time**, in a hand-written Barnes-Hut force simulation
+  over typed arrays, with another 17% in `drawImage`. That is a simulation doing its work, not a
+  bug; 2,000 nodes settle in about eight seconds and the canvas is up in two.
+- **Search is 91% idle.** The ~950 ms from the first keystroke to the first row is the 200 ms
+  debounce plus the typing itself plus a 6 ms server round trip; each keystroke paints in 16 ms.
+  The debounce is the feature.
+- **The reading render's remaining 1,081 ms is mostly layout** — six thousand nodes of prose
+  being measured by the browser. The JavaScript above it is now a small fraction.
+- **Opening a surface for the first time costs its chunk.** The Sigils, Orbits and Calendar pages
+  are ~2.2–2.6 s on a cold visit, of which two thirds is fetching and parsing the lazy chunk
+  those pages exist inside. That is the split working, not failing.
+
+### Offline, measured properly
+
+The service worker installs and takes control in about **250 ms**, and a short read leaves ~88
+entries in its cache. With the **server stopped** — not with the browser's offline emulation,
+which intercepts a navigation above the worker and never lets it answer — a navigation to a note
+renders the cached shell in about **5 s** with the "Reading this device's copy" strip on it. A
+harness that uses the emulation instead reports `net::ERR_FAILED` and has proved nothing; see
+[Offline](offline.md).
+
 ## The done bar
 
 The sequence a change runs before it is called finished, in this order: `npm run typecheck` ·
-`node scripts/check-i18n.mjs` · `npm test` · `npm run build` and then `npm run check-bundle` ·
+`node scripts/check-i18n.mjs` · `npm test` · `npm run build` and then `npm run check-bundle` · `npm run check-perf` (on a quiet machine) ·
 `npm run check-a11y` · `npm run check-contrast` · `npm run check-settings` (with
 `node scripts/gen-settings-index.mjs` first when a row changed) · `npm run check-keymap` when a
 key changed · `npm run check-names` · `npm run check-docs` · `npm run build-docs` ·

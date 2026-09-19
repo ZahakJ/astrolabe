@@ -14,7 +14,8 @@ import {
   labelsOf,
   mergeTagLabels,
 } from "../shared/tagLabels.ts";
-import { tagPageLabels, tags, type FilterLang } from "./indexer.ts";
+import { tagPageLabels, type FilterLang } from "./indexer.ts";
+import { tagShelf } from "./shelfCache.ts";
 import { getSettings, tagsFolder } from "./settings.ts";
 
 export { tagsFolder };
@@ -36,7 +37,7 @@ export function visibleTagLabels(publishedOnly: boolean, lang: FilterLang): TagL
   const map = tagLabelMap();
   if (!publishedOnly) return map;
   const out: TagLabelMap = {};
-  for (const { tag } of tags(true, lang)) {
+  for (const { tag } of tagShelf(true, lang)) {
     const entry = map[tag.toLowerCase()];
     if (entry) out[tag.toLowerCase()] = entry;
   }

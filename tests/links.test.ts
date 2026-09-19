@@ -5,7 +5,7 @@
 
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
-import { resolveLink as clientResolve, parseWikilink, WIKILINK_RE } from "../client/editor/links.ts";
+import { collectNotes, resolveLink as clientResolve, parseWikilink, WIKILINK_RE, type NoteRef } from "../client/editor/links.ts";
 import {
   initIndexer,
   resolveEmbed as resolveEmbedRaw,
@@ -235,5 +235,72 @@ describe("client/server parity", () => {
     assert.equal(clientResolve("Note#Heading", tree), "Note.md");
     assert.equal(clientResolve("Note|alias", tree), "Note.md");
     assert.equal(clientResolve("Note#Heading|alias", tree), "Note.md");
+  });
+});
+
+// ------------------------------------------- the client's index is memoized
+
+// `collectNotes` and `resolveLink` share one table, rebuilt when the TREE
+// OBJECT changes identity (client/editor/links.ts). That is the whole
+// invalidation rule, so it is the whole risk: a memo that outlives its tree
+// would answer a deleted note's path forever, and nothing else in the product
+// would notice until a click 404'd.
+describe("client note index (memoized on the tree)", () => {
+  const treeOf = (paths: string[]): TreeNode => ({
+    name: "",
+    path: "",
+    type: "folder",
+    children: paths.map((p) => ({ name: p.split("/").pop()!, path: p, type: "file" as const })),
+  });
+
+  it("answers the same thing twice for one tree", () => {
+    const t = treeOf(["Alpha.md", "deep/Beta.md"]);
+    assert.equal(clientResolve("Alpha", t), "Alpha.md");
+    assert.equal(clientResolve("Alpha", t), "Alpha.md");
+    assert.equal(clientResolve("deep/Beta", t), "deep/Beta.md");
+    assert.equal(collectNotes(t).length, 2);
+  });
+
+  it("forgets a note the NEXT tree does not have", () => {
+    const before = treeOf(["Gone.md", "Kept.md"]);
+    assert.equal(clientResolve("Gone", before), "Gone.md");
+    const after = treeOf(["Kept.md"]);
+    assert.equal(clientResolve("Gone", after), null, "the old tree's answer survived its tree");
+    assert.equal(clientResolve("Kept", after), "Kept.md");
+  });
+
+  it("sees a note the NEXT tree adds", () => {
+    const before = treeOf(["Kept.md"]);
+    assert.equal(clientResolve("Fresh", before), null);
+    const after = treeOf(["Kept.md", "Fresh.md"]);
+    assert.equal(clientResolve("Fresh", after), "Fresh.md");
+  });
+
+  it("goes back to nothing for a null tree", () => {
+    assert.equal(clientResolve("Kept", treeOf(["Kept.md"])), "Kept.md");
+    assert.equal(clientResolve("Kept", null), null);
+    assert.equal(collectNotes(null).length, 0);
+  });
+
+  it("keeps the shortest-path tie-break the un-memoized loop had", () => {
+    // Two notes named "Dup": the shorter PATH wins, ties broken alphabetically.
+    const t = treeOf(["zzzz/Dup.md", "a/Dup.md", "Dup.md"]);
+    assert.equal(clientResolve("Dup", t), "Dup.md");
+    const deeper = treeOf(["zzzz/Dup.md", "aaaa/Dup.md"]);
+    assert.equal(clientResolve("Dup", deeper), "aaaa/Dup.md");
+  });
+
+  it("hands back a list nobody can sort out from under the next caller", () => {
+    const t = treeOf(["Beta.md", "Alpha.md"]);
+    const first = collectNotes(t);
+    assert.deepEqual(
+      first.map((n) => n.title),
+      ["Alpha", "Beta"],
+    );
+    assert.throws(() => (first as NoteRef[]).sort(() => -1), "the shared list is mutable");
+    assert.deepEqual(
+      collectNotes(t).map((n) => n.title),
+      ["Alpha", "Beta"],
+    );
   });
 });
