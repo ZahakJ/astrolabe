@@ -151,6 +151,18 @@ const SPRING_MS = 600;
 // Tags section collapse (tag-heavy vaults: the pill cloud can eat the tree's
 // room) — persisted like the tree's folder expansion.
 const TAGS_COLLAPSED_KEY = "astrolabe.tags-collapsed";
+/** Which of the shelf's two faces shows: the tags or the properties. ONE
+ *  box under the tree, a tab for each, so neither eats the tree's room (the
+ *  owner: "tags and properties in the same box, toggle between them"). */
+const SHELF_TAB_KEY = "astrolabe.shelf-tab";
+type ShelfTab = "tags" | "props";
+function loadShelfTab(): ShelfTab {
+  try {
+    return localStorage.getItem(SHELF_TAB_KEY) === "props" ? "props" : "tags";
+  } catch {
+    return "tags";
+  }
+}
 /** The shelf's height when the reader has dragged its top edge (px), or null
  *  for the stylesheet's own cap. Per browser, like the pane widths. */
 const TAGS_HEIGHT_KEY = "astrolabe.tags-height";
@@ -655,6 +667,16 @@ export default function Sidebar() {
   const periodic = usePeriodic();
   const hasDailyNotes = useMemo(() => (tree === null ? false : dailyNotesByDay(tree).size > 0), [tree, periodic]);
   const [tagsCollapsed, setTagsCollapsed] = useState(loadTagsCollapsed);
+  const [shelfTab, setShelfTabState] = useState<ShelfTab>(loadShelfTab);
+  const [propCount, setPropCount] = useState(0);
+  const setShelfTab = (tab: ShelfTab): void => {
+    setShelfTabState(tab);
+    try {
+      localStorage.setItem(SHELF_TAB_KEY, tab);
+    } catch {
+      // storage unavailable — the choice lives for this session
+    }
+  };
   const [tagsHeight, setTagsHeight] = useState<number | null>(loadTagsHeight);
   // THE SHELF'S TOP EDGE IS A GRIP (the owner: "should def be able to expand
   // and contract that"). Drag it up for more pills, down for more tree;
@@ -2361,7 +2383,7 @@ export default function Sidebar() {
         </nav>
       )}
 
-      {tags.length > 0 && (
+      {(tags.length > 0 || admin) && (
         <div
           className={`s-tags${tagsCollapsed ? " s-tags--collapsed" : ""}`}
           style={tagsHeight !== null && !tagsCollapsed ? { height: tagsHeight, maxHeight: tagsHeight } : undefined}
@@ -2398,10 +2420,23 @@ export default function Sidebar() {
             >
               ›
             </span>
-            <span className="s-tags__title">{t("tags")}</span>
-            <span className="s-tags__total">{localeNum(tags.length)}</span>
+            <span className="s-tags__title">{shelfTab === "tags" ? t("tags") : t("propsShelf")}</span>
+            <span className="s-tags__total">{localeNum(shelfTab === "tags" ? tags.length : propCount)}</span>
           </button>
-          {!tagsCollapsed && (
+          {/* The shelf's two faces. A tab each, beside the fold: the tags or
+              the properties, never both stacked. Admin only for the second —
+              a visitor's sidebar has no properties to browse. */}
+          {!tagsCollapsed && admin && (
+            <div className="s-shelf__tabs" role="tablist" aria-label={t("tags") + " · " + t("propsShelf")}>
+              <button type="button" role="tab" className={`s-shelf__tab${shelfTab === "tags" ? " is-on" : ""}`} aria-selected={shelfTab === "tags"} onClick={() => setShelfTab("tags")}>
+                {t("tags")}
+              </button>
+              <button type="button" role="tab" className={`s-shelf__tab${shelfTab === "props" ? " is-on" : ""}`} aria-selected={shelfTab === "props"} onClick={() => setShelfTab("props")}>
+                {t("propsShelf")}
+              </button>
+            </div>
+          )}
+          {!tagsCollapsed && shelfTab === "tags" && (
             <button
               type="button"
               className="s-tags__sort"
@@ -2420,7 +2455,7 @@ export default function Sidebar() {
               {tagSort === "count" ? "#↓" : "A→Z"}
             </button>
           )}
-          {!tagsCollapsed && (
+          {!tagsCollapsed && shelfTab === "tags" && (
           /* ONE TAB STOP FOR THE WHOLE TAG SHELF, for the reason the tree
              beside it is one: on the 1,388-note fixture this list is 113
              pills, and 113 plain buttons made the sidebar 120 tab stops —
@@ -2508,7 +2543,7 @@ export default function Sidebar() {
           {/* OUTSIDE the listbox: a control that is not one of the options may
               not sit among them. It is one extra tab stop and it earns it —
               the shelf's whole tail lives behind it. */}
-          {!tagsCollapsed && shownTags.length < tags.length && (
+          {!tagsCollapsed && shelfTab === "tags" && shownTags.length < tags.length && (
             <button
               type="button"
               className="s-tags__more"
@@ -2517,17 +2552,12 @@ export default function Sidebar() {
               {tf("showMoreRows", { count: localeNum(tags.length - shownTags.length) })}
             </button>
           )}
+          {!tagsCollapsed && admin && shelfTab === "props" && (
+            <Suspense fallback={null}>
+              <PropsShelf query={query} setQuery={setQuery} embedded onCount={setPropCount} />
+            </Suspense>
+          )}
         </div>
-      )}
-
-      {/* The properties shelf, under the tags: every frontmatter key with a
-          count, a click a `prop:` search (PropsShelf.tsx). The owner's
-          surface — a visitor's sidebar is a reading room's, and "date: 12"
-          tells a reader nothing they came for. */}
-      {admin && (
-        <Suspense fallback={null}>
-          <PropsShelf query={query} setQuery={setQuery} />
-        </Suspense>
       )}
 
       {/* The footer counts what is actually in the vault — notes AND the files

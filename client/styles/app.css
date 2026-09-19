@@ -7971,3 +7971,37 @@ html[dir="rtl"] .s-statusbar__spacer {
     display: none;
   }
 }
+
+/* The shelf's two tabs: quiet words, the chosen one in ink with a hairline
+   under it; they sit on the row below the fold and take no more than a
+   line. */
+.s-shelf__tabs {
+  display: flex;
+  gap: 14px;
+  margin: -4px 2px 8px;
+}
+.s-shelf__tab {
+  padding: 2px 0 4px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-faint);
+  font: inherit;
+  font-size: 0.786rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.s-shelf__tab.is-on {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+.s-shelf__tab:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+@media (max-width: 700px), (pointer: coarse) {
+  .s-shelf__tab {
+    min-block-size: 44px;
+  }
+}

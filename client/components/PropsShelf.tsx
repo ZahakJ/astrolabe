@@ -35,9 +35,14 @@ function readCollapsed(): boolean {
 interface Props {
   query: string;
   setQuery(q: string): void;
+  /** Drawn inside the sidebar's shared shelf: no header, no fold of its own
+   *  (the shelf's tab switch is the door), and the key count reported up so
+   *  the tab can print it. */
+  embedded?: boolean;
+  onCount?: (n: number) => void;
 }
 
-export default function PropsShelf({ query, setQuery }: Props) {
+export default function PropsShelf({ query, setQuery, embedded = false, onCount }: Props) {
   const tree = useStore((s) => s.tree);
   const [rows, setRows] = useState<PropCount[]>([]);
   const [collapsed, setCollapsed] = useState(readCollapsed);
@@ -47,7 +52,10 @@ export default function PropsShelf({ query, setQuery }: Props) {
   // Track the tree, as the tags do: a save that adds a key is a tree event.
   useEffect(() => {
     getProps()
-      .then(setRows)
+      .then((r) => {
+        setRows(r);
+        onCount?.(r.length);
+      })
       .catch((err: unknown) => {
         console.error("astrolabe: loading properties failed", err);
       });
@@ -74,16 +82,19 @@ export default function PropsShelf({ query, setQuery }: Props) {
   const run = (q: string): void => setQuery(query.trim() === q ? "" : q);
   const shown = all ? rows : rows.slice(0, KEYS_CAP);
 
+  const folded = embedded ? false : collapsed;
   return (
-    <div className={`s-propshelf${collapsed ? " s-propshelf--collapsed" : ""}`}>
-      <button type="button" className="s-tags__toggle" onClick={toggle} aria-expanded={!collapsed} title={collapsed ? t("showProps") : t("hideProps")}>
-        <span className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">
-          ›
-        </span>
-        <span className="s-tags__title">{t("propsShelf")}</span>
-        <span className="s-tags__total">{localeNum(rows.length)}</span>
-      </button>
-      {!collapsed && (
+    <div className={`s-propshelf${folded ? " s-propshelf--collapsed" : ""}${embedded ? " s-propshelf--embedded" : ""}`}>
+      {!embedded && (
+        <button type="button" className="s-tags__toggle" onClick={toggle} aria-expanded={!collapsed} title={collapsed ? t("showProps") : t("hideProps")}>
+          <span className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">
+            ›
+          </span>
+          <span className="s-tags__title">{t("propsShelf")}</span>
+          <span className="s-tags__total">{localeNum(rows.length)}</span>
+        </button>
+      )}
+      {!folded && (
         <ul className="s-propshelf__list" aria-label={t("propsShelf")}>
           {shown.map((row) => {
             const isOpen = open.has(row.key);
@@ -139,7 +150,7 @@ export default function PropsShelf({ query, setQuery }: Props) {
           })}
         </ul>
       )}
-      {!collapsed && shown.length < rows.length && (
+      {!folded && shown.length < rows.length && (
         <button type="button" className="s-tags__more s-propshelf__more" onClick={() => setAll(true)}>
           {tf("showMoreRows", { count: localeNum(rows.length - shown.length) })}
         </button>
