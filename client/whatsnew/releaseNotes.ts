@@ -405,10 +405,10 @@ export const RELEASES: Release[] = [
             }
             return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
   <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <rect x="40" y="70" width="230" height="52" rx="8" fill="var(--bg-hover)" opacity="0.6"/>
-  <rect x="280" y="70" width="240" height="52" rx="8" fill="var(--bg-hover)" opacity="0.6"/>
   <text x="48" y="62" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "UNIT 1", "الوحدة ١")}</text>
   <text x="288" y="62" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "UNIT 2", "الوحدة ٢")}</text>
+  <rect x="40" y="70" width="230" height="52" rx="8" fill="var(--bg-hover)" opacity="0.6"/>
+  <rect x="280" y="70" width="240" height="52" rx="8" fill="var(--bg-hover)" opacity="0.6"/>
   <line x1="60" y1="96" x2="492" y2="96" stroke="var(--border)" stroke-width="1.5"/>
   <g class="wa" style="--i:0">${beads.join("")}</g>
   <g class="wa-late" style="--i:2">
@@ -469,9 +469,8 @@ export const RELEASES: Release[] = [
   </g>
   <g class="wa-late" style="--i:3">
     <rect x="352" y="70" width="170" height="${18 + menu.length * 22}" rx="8" fill="var(--bg)" stroke="var(--border)"/>
-    ${menu.map((m, i) => `<text x="${lang === "ar" ? 510 : 364}" y="${92 + i * 22}" ${lang === "ar" ? 'text-anchor="end"' : ""} fill="var(--text)" font-size="11">${m}</text>`).join("")}
-    <rect x="356" y="${76 + 22 * 0}" width="162" height="20" rx="5" fill="var(--bg-hover)"/>
-    <text x="${lang === "ar" ? 510 : 364}" y="92" ${lang === "ar" ? 'text-anchor="end"' : ""} fill="var(--text)" font-size="11">${menu[0]}</text>
+    <rect x="356" y="76" width="162" height="20" rx="5" fill="var(--bg-hover)"/>
+    ${menu.map((m, i) => `<text x="364" y="${92 + i * 22}" fill="var(--text)" font-size="11">${m}</text>`).join("")}
     <path d="M228 114 q60 -30 124 -34" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 2"/>
   </g>
   <text x="280" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "one cell open; the table stays a table", "خلية واحدة مفتوحة؛ والجدول يبقى جدولًا")}</text>
@@ -520,6 +519,125 @@ export const RELEASES: Release[] = [
 </svg>`,
         },
         docs: "workspace",
+      },
+      {
+        // ── Windows: the panes and the window ────────────────────────────
+        title: { en: "The panes stopped arguing with the window", ar: "كفَّتِ اللوحتان عن منازعة النافذة" },
+        body: {
+          en: "Drag the divider and the pane follows your hand from wherever you took hold — the 12-pixel strip has the hairline down its middle, so the line you aim at is the line that moves. Drag the window instead and the panes give way at once, keeping the note a column to be in; nothing slides, nothing lags, nothing animates a width you did not ask for. On the desktop, Ctrl/Cmd =, − and 0 zoom the app, with the percentage shown in the corner.",
+          ar: "اسحب الفاصل فتتبع اللوحة يدك من حيث أمسكت به — فالشريط عرضه ١٢ نقطة والخيط الشعري في منتصفه تمامًا، والخط الذي تصوّب إليه هو الخط الذي يتحرك. واسحب النافذة بدلًا من ذلك فتتنحّى اللوحتان في الحال، ويبقى للملاحظة عمودٌ تكون فيه؛ لا انزلاق، ولا تأخّر، ولا حركة لعرضٍ لم تطلبه. وعلى سطح المكتب تكبّر ‎Ctrl/Cmd =‎ و‎−‎ و‎0‎ التطبيق، مع ظهور النسبة في الزاوية.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="36" y="30" width="300" height="110" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="36" y="30" width="70" height="110" rx="6" fill="var(--bg-hover)"/>
+    <rect x="266" y="30" width="70" height="110" rx="6" fill="var(--bg-hover)"/>
+    <rect class="wa-grow" x="106" y="30" width="160" height="110" fill="var(--bg)"/>
+    <text x="186" y="90" text-anchor="middle" fill="var(--text-muted)" font-size="10">320</text>
+    <rect class="wa-drop" x="200" y="26" width="140" height="118" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <path d="M330 84 l-18 0 M318 78 l-6 6 6 6" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+  </g>
+  <text x="186" y="160" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the note keeps its column", "الملاحظة تحتفظ بعمودها")}</text>
+  <g class="wa-late" style="--i:2">
+    <rect x="372" y="30" width="150" height="130" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="372" y="30" width="66" height="130" rx="6" fill="var(--bg-hover)"/>
+    <rect x="432" y="30" width="12" height="130" fill="var(--accent)" opacity="0.18"/>
+    <line x1="438" y1="30" x2="438" y2="160" stroke="var(--text-muted)" stroke-width="1"/>
+    <g class="wa-pulse"><path d="M446 92 l4 -8 l3 10 l3 -3 l6 6 l-4 4 l2 2 l-4 4 l-10 -10 z" fill="var(--bg)" stroke="var(--text)" stroke-width="1"/></g>
+    <path d="M452 120 l22 0 M468 114 l6 6 -6 6" fill="none" stroke="var(--accent)" stroke-width="1.4"/>
+  </g>
+  <text x="447" y="180" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "12px, the hairline in the middle", "١٢ نقطة، والخيط في المنتصف")}</text>
+  <text x="280" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the pane moves by the hand's distance, not to its place", "تتحرك بقدر يدك، لا إلى موضعها")}</text>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+      {
+        // ── Library roots ────────────────────────────────────────────────
+        title: { en: "A shelf root, said once", ar: "جذر الرف، يُقال مرة واحدة" },
+        body: {
+          en: "Twelve hand-typed rows described twelve folders sitting under two parents, and the thirteenth book needed a thirteenth row. Name the parent instead — every folder inside it holding a published note is on the shelf, titled by its own name and addressed by its title — and keep a row only for the books whose titles you really did type yourself. Renaming a folder now carries its row along, and a folder whose title makes no address waits in the panel with the reason rather than being handed /library/path-3.",
+          ar: "كان اثنا عشر صفًا مكتوبة بخط اليد تصف اثني عشر مجلدًا تحت مجلدين اثنين، وكان الكتاب الثالث عشر يحتاج إلى صف ثالث عشر. سمِّ المجلد الأب بدلًا من ذلك — فكل مجلد داخله ملاحظة منشورة يصير على الرف، باسمه هو ورابطه من عنوانه — وأبقِ الصف للكتب التي كتبتَ عناوينها بنفسك حقًا. وإعادة تسمية مجلد تحمل صفه معها، والمجلد الذي لا يصنع عنوانه رابطًا ينتظر في اللوحة ومعه السبب، بدل أن يُعطى عنوانًا لا يكتبه أحد.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => {
+            // A folder tab "Books" with a bracket falling onto spines: three
+            // inked with URL tags, one dashed (nothing published), one greyed
+            // with a blank tag; a sixth spine apart under its own label.
+            const spines: string[] = [];
+            const kinds = ["ok", "ok", "dashed", "ok", "grey"];
+            kinds.forEach((k, i) => {
+              const x = 70 + i * 46;
+              if (k === "dashed") spines.push(`<rect x="${x}" y="104" width="30" height="70" rx="3" fill="none" stroke="var(--text-faint)" stroke-width="1.2" stroke-dasharray="3 2"/>`);
+              else spines.push(`<rect x="${x}" y="104" width="30" height="70" rx="3" fill="${k === "grey" ? "var(--bg-hover)" : "var(--accent)"}" opacity="${k === "grey" ? 1 : 0.85 - i * 0.08}"/>`);
+              const tag = k === "ok" ? `<rect x="${x + 3}" y="182" width="24" height="8" rx="2" fill="var(--callout-success)" opacity="0.7"/>` : k === "grey" ? `<rect x="${x + 3}" y="182" width="24" height="8" rx="2" fill="none" stroke="var(--callout-warning, var(--text-faint))" stroke-width="1"/>` : "";
+              spines.push(tag);
+            });
+            return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa" style="--i:0">
+    <path d="M60 34 h40 l8 8 h60 v18 h-108 z" fill="var(--bg-hover)" stroke="var(--border)"/>
+    <text x="70" y="55" fill="var(--text)" font-size="11" font-weight="600">Books</text>
+    <text x="180" y="55" fill="var(--text-muted)" font-size="10">→ book</text>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <path d="M114 62 v14 M114 76 h180 M70 76 v22 M294 76 v22" fill="none" stroke="var(--text-muted)" stroke-width="1"/>
+    <line x1="60" y1="176" x2="300" y2="176" stroke="var(--border)" stroke-width="2"/>
+    ${spines.join("")}
+  </g>
+  <g class="wa-late" style="--i:4">
+    <rect x="380" y="104" width="30" height="70" rx="3" fill="var(--text-muted)" opacity="0.7"/>
+    <line x1="370" y1="176" x2="420" y2="176" stroke="var(--border)" stroke-width="2"/>
+    <rect x="383" y="182" width="24" height="8" rx="2" fill="var(--callout-success)" opacity="0.7"/>
+    <text x="395" y="94" text-anchor="middle" fill="var(--text-faint)" font-size="9">${L(lang, "one row, typed", "صف واحد، مكتوب")}</text>
+  </g>
+  <text x="464" y="130" text-anchor="middle" fill="var(--text-faint)" font-size="9">${L(lang, "dashed: nothing", "متقطّع: لا شيء")}</text>
+  <text x="464" y="142" text-anchor="middle" fill="var(--text-faint)" font-size="9">${L(lang, "published yet", "منشور بعد")}</text>
+  <text x="464" y="162" text-anchor="middle" fill="var(--text-faint)" font-size="9">${L(lang, "grey: needs an", "رمادي: يحتاج")}</text>
+  <text x="464" y="174" text-anchor="middle" fill="var(--text-faint)" font-size="9">${L(lang, "address", "إلى رابط")}</text>
+</svg>`;
+          },
+        },
+        docs: "library",
+      },
+      {
+        // ── The performance purge ────────────────────────────────────────
+        title: { en: "The note stopped waiting for the vault", ar: "الملاحظة لم تعد تنتظر الخزانة" },
+        body: {
+          en: "Typing in a three-thousand-line note used to make the app walk your entire vault once for every link on the page — and then place annotations you had never written. Both are gone: a keystroke paints in 24 ms instead of 32, the main thread sits busy a third as long between letters, and opening that note in reading view is a third faster. The outline pane loads only when it opens, so an admin's first paint is 500 kB lighter. Every number was measured before and after on the same two-thousand-note vault, and a gate now fails the build if any of them slips back.",
+          ar: "كانت الكتابة في ملاحظة من ثلاثة آلاف سطر تجعل التطبيق يمشي على خزانتك كلها مرةً لكل رابط في الصفحة، ثم يضع تعليقاتٍ لم تكتبها قط. ذهب الأمران: صارت ضغطة المفتاح تُرسم في ٢٤ مللي ثانية بدل ٣٢، ويبقى الخيط الرئيس مشغولًا ثُلث ما كان بين الحرف والحرف، وفتحُ تلك الملاحظة في وضع القراءة أسرع بالثلث. ولوحة المخطط لا تُحمَّل إلا حين تُفتح، فصار أول رسم للمدير أخفّ بخمسمئة كيلوبايت. كل رقم قيس قبلُ وبعدُ على الخزانة نفسها ذات الألفي ملاحظة، وبوابةٌ تُفشل البناء اليوم إن تراجع أيٌّ منها.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="40" y="40" width="150" height="130" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text-faint)"><rect x="52" y="56" width="110" height="4" rx="2"/><rect x="52" y="68" width="96" height="4" rx="2"/><rect x="52" y="80" width="118" height="4" rx="2"/><rect x="52" y="92" width="84" height="4" rx="2"/><rect x="52" y="104" width="112" height="4" rx="2"/><rect x="52" y="116" width="70" height="4" rx="2"/></g>
+    <rect class="wa-drop" x="128" y="112" width="26" height="26" rx="5" fill="var(--bg-raised)" stroke="var(--text-muted)"/>
+    <text x="141" y="130" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">k</text>
+    <line class="wa-blink" x1="126" y1="115" x2="126" y2="122" stroke="var(--accent)" stroke-width="1.5"/>
+  </g>
+  <text x="115" y="192" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "3,000 lines, one keystroke", "٣٠٠٠ سطر، ضغطة واحدة")}</text>
+  <g class="wa-late" style="--i:2">
+    <text x="230" y="76" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "BEFORE", "قبل")}</text>
+    <rect x="230" y="82" width="290" height="16" rx="4" fill="var(--text-muted)"/>
+    <text x="515" y="94" text-anchor="end" fill="var(--bg)" font-size="9">571 ms</text>
+  </g>
+  <g class="wa-late" style="--i:4">
+    <text x="230" y="124" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "NOW", "الآن")}</text>
+    <text x="332" y="142" fill="var(--accent)" font-size="9">184 ms</text>
+    <rect class="wa-grow" x="230" y="130" width="94" height="16" rx="4" fill="var(--accent)"/>
+    <line class="wa-blink" x1="340" y1="152" x2="340" y2="164" stroke="var(--accent)" stroke-width="1.5"/>
+  </g>
+  <text x="375" y="192" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "forty keystrokes, busy time", "أربعون ضغطة، زمن الانشغال")}</text>
+</svg>`,
+        },
+        docs: "development",
       },
     ],
   },
