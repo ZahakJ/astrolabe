@@ -32,14 +32,23 @@ a lesson, and a path with no lesson a visitor may read is not sent to that visit
 
 ## Declaring a path
 
-There are three ways, and they all end in the same place.
+There are four ways, and they all end in the same place.
+
+**From a shelf root.** Settings → Collections → The library → **Shelf roots**: choose `Books`
+once, say *book*, and every folder inside it that holds a published note is a path — titled by its
+name, addressed by its title, covered by its [Media tracker](trackers.md#the-media-page) when one
+names it. The next book you publish joins by itself. A root is one sentence about the shape of
+your vault, and it is the answer to twelve rows that all said what the folder's own name already
+said. Only IMMEDIATE children count: a note sitting directly in `Books` is still a blog post. Up
+to 8 roots, and no root may sit inside another root or inside a path.
 
 **From the vault.** Put a note named like the folder (or `index.md`) inside it and write, in its
-frontmatter, `library: book` (or `course`, `series`). The folder is now on the shelf, and it takes
-`title:`, `description:`, `cover:` and `source:` from the same note when they are there. Nothing
-is typed in Settings; the settings list shows these paths under its rows, and *Customise here*
-turns one into a row when you want to override something. A row that names the same folder
-wins field by field and takes the rest from the note.
+frontmatter, `library: book` (or `course`, `series`). The folder is now on the shelf even if no
+root is above it. That note is also where a folder's own facts live, root or no root: `title:`,
+`description:`, `cover:`, `source:`, `slug:` and `hidden:`. Nothing is typed in Settings; the
+settings list shows these paths under its rows, and *Customise here* turns one into a row when you
+want to override something. A row that names the same folder wins field by field and takes the rest
+from the note.
 
 **From the tree.** Right-click the folder in the sidebar and choose **Library…**. The popover
 guesses the kind from what is inside (`L1..L14` is a course, `Chapter 39..41` a book, a folder
@@ -47,9 +56,10 @@ under *Talks* a series), takes the folder's name as the title, and **Put on the 
 it. The first path switches the library on. Right-click the same folder again and the popover
 says it is on the shelf, opens it, or takes it off.
 
-**Settings → Collections → The library.** The same rows, with the fields the tree does
-not ask for. **Add a path** opens the vault's folders to click (type to filter), and each row's folder
-line reopens that chooser; nothing here is typed as a path.
+**Settings → Collections → The library.** The rows — each one the override of a single folder,
+with the fields the tree does not ask for. **Add a path** opens the vault's folders to click (type
+to filter), and each row's folder line reopens that chooser; nothing here is typed as a path. Each
+row is folded to one line until you press it.
 
 | Field | What it is |
 | --- | --- |
@@ -60,7 +70,7 @@ line reopens that chooser; nothing here is typed as a path.
 | Blurb, cover, source | Folded under one line until a row has them. Blurb: one or two sentences under the title. |
 | Cover | An image from the vault (start typing and the vault's images are offered, with thumbnails) or an https URL, written the way a note's banner is (`attachments/cover.jpg` or `https://…`). Without one the site draws a cover from the title. A [Media tracker](trackers.md#the-media-page) whose `folder:` is this path's folder lends its cover instead, over this field. |
 | Source link | Where the material came from: the course page, the publisher. Shown on the path. |
-| Hidden | A take-down that loses nothing: the row keeps every field and nobody sees it. |
+| Hidden | A take-down that loses nothing: the row keeps every field and nobody sees it. A folder a root claimed is taken down with `hidden: true` in its own folder note, or by customising it here. |
 
 Two placements and a name sit above the rows. **Door in the navigation** is on by default once
 the library is on: a *Library* link beside the topics on both public shells. **Shelf on the
@@ -71,7 +81,24 @@ Each card counts the notes inside and how many are published. **The library list
 notes only**: a path whose notes are all drafts is a shelf with nothing on it, and the door in
 the navigation stays hidden until some path has a note a reader may open.
 
-Up to 24 paths. The rows' order is the shelf's order.
+Up to 24 rows and 8 roots. Rows come first, in their own order; folders from a root follow, by
+title, within their kind. A folder whose title makes no address — an Arabic title, which makes none
+— waits in *Needs an address* until it has a `slug:` in its folder note or a row of its own; it is
+not published under a made-up address, and its notes stay on the blog. The same is true of a folder
+whose address a row already holds: a row is a pin and is never displaced.
+
+Renaming, moving or deleting a folder carries its row and its root along, so a path does not move
+house when a folder does. A row keeps the address it was pinned to; a folder with no row takes the
+address its new title suggests.
+
+### The offer
+
+When two or more of your rows sit under one folder and that folder is not a root yet, the panel
+asks once: *"Books holds 10 of your paths — make it a shelf root?"* It lists the rows that say
+nothing the folder does not, and the order the shelf would take if you folded them (the rows you
+keep first, in their order; the folded folders after, by title). Three answers: fold them, keep
+them, or not now. **Nothing folds unless you press it** — folding is a visible reorder, and a
+reorder nobody asked for is not an upgrade.
 
 ## What a reader gets
 
