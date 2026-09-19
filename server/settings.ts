@@ -190,6 +190,13 @@ const LIBRARY_PROBLEMS: Record<LibraryRowError, string> = {
   sourceLength: "has a source that is too long",
 };
 
+const LIBRARY_ROOT_PROBLEMS: Record<LibraryRootProblem, string> = {
+  notObject: "is not an object",
+  vault: "names the vault itself — a root has to be a folder inside it",
+  folder: "names no vault folder",
+  kind: "has a kind that is not book, course or series",
+};
+
 const FOLDER_PROBLEMS: Record<PublicFolderProblem, string> = {
   slug: `needs a slug of lowercase letters, digits and hyphens (≤ ${FOLDER_SLUG_MAX} characters) — it is the /folder/<slug> URL`,
   title: `needs a title (≤ ${FOLDER_TITLE_MAX} characters)`,
@@ -563,6 +570,18 @@ export function getSettings(): SettingsData {
     if (typeof l.title === "string" && l.title.trim() !== "" && l.title.trim().length <= LIBRARY_SITE_TITLE_MAX) {
       lib.title = l.title.trim();
     }
+    if (Array.isArray(l.roots)) {
+      const list: LibraryRoot[] = [];
+      const folders = new Set<string>();
+      for (const entry of l.roots) {
+        if (list.length >= LIBRARY_ROOTS_MAX) break;
+        const root = cleanLibraryRoot(entry, libraryPathId);
+        if (root === null || folders.has(root.folder)) continue;
+        folders.add(root.folder);
+        list.push(root);
+      }
+      if (list.length > 0) lib.roots = list;
+    }
     if (Array.isArray(l.paths)) {
       const list: LibraryPathRef[] = [];
       const seen = new Set<string>();
@@ -736,6 +755,7 @@ export function effectiveSettings(): EffectiveSettings {
       nav: s.library?.nav ?? true,
       home: s.library?.home ?? false,
       title: s.library?.title ?? "",
+      roots: (s.library?.roots ?? []).map((root) => ({ ...root })),
       paths: (s.library?.paths ?? []).map((path) => ({ ...path })),
     },
     // The stored token is never part of this: gitSyncEffective() answers
@@ -1601,7 +1621,7 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
         ? { ...(raw.library as Record<string, unknown>) }
         : {};
     for (const key of Object.keys(p)) {
-      if (key !== "enabled" && key !== "nav" && key !== "home" && key !== "title" && key !== "paths") {
+      if (key !== "enabled" && key !== "nav" && key !== "home" && key !== "title" && key !== "roots" && key !== "paths") {
         throw new VaultError(400, `Unknown settings key: library.${key}`);
       }
     }
@@ -1658,6 +1678,38 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
         }
         if (paths.length === 0) delete current.paths;
         else current.paths = paths;
+      }
+    }
+    // AFTER `paths`, deliberately: a root may not sit inside a row's folder,
+    // and the rows this patch is about to store are the ones to judge against —
+    // not the ones that happened to be there before it.
+    if ("roots" in p) {
+      const list = p.roots;
+      if (list === null) delete current.roots;
+      else if (!Array.isArray(list)) {
+        throw new VaultError(400, 'Settings key "library.roots" must be an array or null');
+      } else {
+        if (list.length > LIBRARY_ROOTS_MAX) {
+          throw new VaultError(400, `Settings key "library.roots" holds too many roots (${LIBRARY_ROOTS_MAX} max)`);
+        }
+        const rowFolders = ((current.paths as LibraryPathRef[] | undefined) ?? []).map((row) => row.folder);
+        const roots: LibraryRoot[] = [];
+        for (const entry of list) {
+          const problem = libraryRootError(entry);
+          if (problem !== null) {
+            throw new VaultError(400, `Settings library root ${LIBRARY_ROOT_PROBLEMS[problem]}`);
+          }
+          const root = cleanLibraryRoot(entry, libraryPathId) as LibraryRoot;
+          if (libraryRootNested(root.folder, roots.map((r) => r.folder), rowFolders)) {
+            throw new VaultError(
+              400,
+              `Settings library root "${root.folder}" sits inside another root or inside a path — one folder cannot have two owners`,
+            );
+          }
+          roots.push(root);
+        }
+        if (roots.length === 0) delete current.roots;
+        else current.roots = roots;
       }
     }
     if (Object.keys(current).length === 0) delete raw.library;
