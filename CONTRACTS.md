@@ -9698,15 +9698,27 @@ is 400 characters along a wrapped line. The owner: *"it's nice to be able to
 insert tables in md format but we should be able to edit them with the nice
 table UI."*
 
-- **A click opens an `<input>` INSIDE that cell**, and the table stays drawn.
-  An input rather than a contenteditable cell for the reason propsEdit.ts
-  reached the same conclusion: the caret, the selection and the IME behaviour
-  of a native text box are the platform's, which is what an Arabic keyboard
-  and a Japanese IME both need, and a contenteditable cell nested in
-  `.cm-content` is a second editable region for CodeMirror's own selection
-  reader to walk into. The cell pins its measured width (`min-inline-size`,
-  `box-sizing: border-box`) for the moment the box stands in for its content,
-  or the column collapses under the reader's pointer.
+- **A click opens a native text box INSIDE that cell**, and the table stays
+  drawn. A native box rather than a contenteditable cell for the reason
+  propsEdit.ts reached the same conclusion: the caret, the selection and the
+  IME behaviour of a native text box are the platform's, which is what an
+  Arabic keyboard and a Japanese IME both need, and a contenteditable cell
+  nested in `.cm-content` is a second editable region for CodeMirror's own
+  selection reader to walk into. The cell pins its measured width
+  (`min-inline-size`, `box-sizing: border-box`) for the moment the box stands
+  in for its content, or the column collapses under the reader's pointer.
+- **THE BOX IS THE CELL, NOT A CONTROL OVER IT (3.19.1).** The first cut was
+  a single-line `<input>` wearing a 2px accent ring; a three-line cell was
+  squeezed onto one scrolling line inside a lit rectangle, and the owner
+  read it as editing something placed over the table ("it squishes it in
+  some rectangle"). It is a `<textarea>` now with nothing of its own —
+  `pre-wrap` so it breaks where the rendered text broke, `field-sizing:
+  content` plus a measured `blockSize` for engines without it so it grows
+  with the text, the cell's font, colour, alignment and line height, no
+  ring — and the one sign that a cell is open is a 2px hairline under its
+  text (`box-shadow`, the focus-ring replacement scripts/check-a11y.mjs
+  requires in the same rule). Enter still moves a row and Shift+Enter still
+  writes `<br>`: a row is a line, so the textarea never holds a newline.
 - **THE CM SELECTION STAYS OUTSIDE THE BLOCK.** The widget's `mousedown`
   calls `preventDefault()` and dispatches NOTHING; only DOM focus moves. A
   caret placed in the block would trip the reveal rule and take the widget
@@ -10276,6 +10288,18 @@ line, so a comment line written by a first grade does not lose the reader's plac
 Study due cards, New deck…, Import an Anki deck…. The status-bar Orbits door is the 3.15 ring glyph
 (`data-testid="orbits-door"`). i18n keys are prefixed `orbits`; the surface's own copy is
 `client/orbits/copy.ts`, gated by tests/srsSession.test.ts.
+
+**The chips survive a tick (3.19.1).** The Sigils page patches a standing card by MORPHING the
+fresh draw into it (client/morph.ts), and a morph carries only what the fresh draw holds — the
+chips arrived a tick later on a card that was never placed, so every checkbox tick blanked the
+counts until a reload (the owner: "all the orbits linked items stop showing how many orbits are
+due"). `decorateDeckTasks` now dresses the card SYNCHRONOUSLY from the shelf's last answer
+(`lastList`) so the morph carries the chips, then asks the shelf again and dresses whichever card
+is live by then (`card` if placed, else the page's `live()` — the standing one). AND A SLOT WITH
+NOTHING DUE TICKS ITSELF when the counts arrive (`tickClearSlots`, the session-end rule applied at
+draw time; only slots whose every deck the shelf lists, one write per card, none when nothing
+changes) — a "review [[Hiragana]]" with no card due sat open asking the owner "what am I supposed
+to check?".
 
 **The sigil link (`client/routines/orbits.ts` — the whole of the Sigils touch).** A slot text or
 every-day item that wikilinks a deck note shows, on the sigil card, the link by its name and a chip

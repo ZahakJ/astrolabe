@@ -69,6 +69,13 @@ function tasksLinking(meta: RoutineMeta, date: string, path: string, tree: TreeN
 // request, not six. A vault event redraws the cards and the cache has lapsed
 // by then, so a session's grades show up as they land.
 let shelf: { at: number; p: Promise<DeckMeta[]> } | null = null;
+/** The last list the shelf answered with, for a SYNCHRONOUS first dressing:
+ *  the Sigils page patches a standing card by morphing the fresh draw into
+ *  it, and a morph carries only what the fresh draw already holds. Chips
+ *  that arrive a tick later landed on a detached card and were lost — every
+ *  checkbox tick blanked the counts until a reload (the owner: "all the
+ *  orbits linked items stop showing how many orbits are due"). */
+let lastList: DeckMeta[] | null = null;
 function decks(fresh = false): Promise<DeckMeta[]> {
   const now = Date.now();
   if (!fresh && shelf && now - shelf.at < 3000) return shelf.p;
@@ -77,7 +84,11 @@ function decks(fresh = false): Promise<DeckMeta[]> {
   // Orbits page reckons it.
   const p = fetch(`/api/orbits?today=${isoDate(new Date())}`, withPreview({ credentials: "same-origin" }))
     .then((res) => (res.ok ? (res.json() as Promise<DeckMeta[]>) : []))
-    .catch(() => [] as DeckMeta[]);
+    .catch(() => [] as DeckMeta[])
+    .then((list) => {
+      lastList = list;
+      return list;
+    });
   shelf = { at: now, p };
   return p;
 }
@@ -147,16 +158,31 @@ export async function tickSlotForDeck(path: string): Promise<number> {
  *  deck, show the link by its name instead of its brackets and add
  *  a chip per deck, "N due · Study", opening the session. The card
  *  is the reading renderer's, rebuilt whole on every change, so this runs
- *  after each draw and holds nothing between draws. */
-export function decorateDeckTasks(card: HTMLElement, meta: RoutineMeta, today: string): void {
+ *  after each draw and holds nothing between draws.
+ *
+ *  Two passes: the chips are drawn at once from the shelf's last answer, so
+ *  a card that is about to be MORPHED into a standing one carries them; then
+ *  the shelf is asked again and the answer dresses whichever card is live by
+ *  then — `card` if it was placed, else `live()`, the page's standing card
+ *  that the morph left in the DOM.
+ *
+ *  AND A SLOT WITH NOTHING DUE TICKS ITSELF. "review [[Hiragana]]" on a day
+ *  the deck has no card due is a task with nothing in it; showing it open
+ *  asked the owner "what am I supposed to check?". The rule the session end
+ *  already follows (`tickSlotForDeck`: a slot is done when none of its decks
+ *  has a card due) is applied when the counts arrive, once — the tick is
+ *  the same log line the checkbox writes, and a ticked slot is not asked
+ *  again. */
+export function decorateDeckTasks(card: HTMLElement, meta: RoutineMeta, today: string, live?: () => Element | null): void {
   const tree = useStore.getState().tree;
   // A COURSE'S STEPS ARE NOT IN THIS LIST. `tasksFor` answers a course with
   // its every-day items and ONE sentinel task standing for "the day's steps";
   // the card draws the steps in their own rows (`s-rv-routine__step`) above
   // the items, so dropping the sentinel keeps the nth task the nth row.
   const tasks = tasksFor(meta.plan, today).filter((task) => task.course !== true);
-  const rows = card.querySelectorAll<HTMLElement>(".s-rv-routine__task:not(.s-rv-routine__step)");
-  const wanted: { row: HTMLElement; links: TaskLink[] }[] = [];
+  const rowsOf = (root: Element) => root.querySelectorAll<HTMLElement>(".s-rv-routine__task:not(.s-rv-routine__step)");
+  const rows = rowsOf(card);
+  const linked: { i: number; task: RoutineTask; links: TaskLink[] }[] = [];
   // The renderer draws tasksFor(plan, today) in order, one <li> each, so the
   // nth row is the nth task.
   tasks.forEach((task, i) => {
@@ -176,12 +202,16 @@ export function decorateDeckTasks(card: HTMLElement, meta: RoutineMeta, today: s
     const check = row.querySelector<HTMLElement>(".s-rv-routine__check");
     const aria = check?.getAttribute("aria-label");
     if (check && aria) check.setAttribute("aria-label", unbracket(aria));
-    wanted.push({ row, links });
+    linked.push({ i, task, links });
   });
-  if (wanted.length === 0) return;
-  void decks().then((list) => {
-    if (!card.isConnected) return;
-    for (const { row, links } of wanted) {
+  if (linked.length === 0) return;
+
+  const dress = (root: Element, list: DeckMeta[]): void => {
+    const rows = rowsOf(root);
+    for (const { i, links } of linked) {
+      const row = rows[i];
+      if (!row) continue;
+      row.querySelector(".s-orbits-chips")?.remove();
       const chips = document.createElement("span");
       chips.className = "s-orbits-chips";
       const seen = new Set<string>();
@@ -226,5 +256,42 @@ export function decorateDeckTasks(card: HTMLElement, meta: RoutineMeta, today: s
       }
       if (chips.childElementCount > 0) row.appendChild(chips);
     }
+  };
+
+  if (lastList) dress(card, lastList);
+  void decks().then((list) => {
+    const target = card.isConnected ? card : (live?.() ?? null);
+    if (target) dress(target, list);
+    void tickClearSlots(meta, today, linked, list);
   });
+}
+
+/** Tick, for `today`, every linked slot of `meta` that is still open while
+ *  none of its decks has a card due — and only slots whose every deck the
+ *  shelf actually lists, so an unreachable shelf ticks nothing. One write
+ *  per card, and none when nothing changes. */
+async function tickClearSlots(
+  meta: RoutineMeta,
+  today: string,
+  linked: { task: RoutineTask; links: TaskLink[] }[],
+  list: DeckMeta[],
+): Promise<void> {
+  if (meta.template || list.length === 0) return;
+  const entry = meta.entries.find((e) => e.date === today) ?? null;
+  let done = entry?.done ?? [];
+  let changed = false;
+  for (const { task, links } of linked) {
+    if (done.some((d) => sameKey(d, task.key))) continue;
+    const decks = links.map((l) => list.find((m) => samePath(m.path, l.path as string)) ?? null);
+    if (decks.some((c) => c === null)) continue;
+    if (decks.some((c) => (c as DeckMeta).counts.due > 0)) continue;
+    done = [...done, task.key];
+    changed = true;
+  }
+  if (!changed) return;
+  try {
+    await updateRoutine(meta.path, meta.index, { date: today, done });
+  } catch {
+    // The card still shows the clear chip; the tick is a convenience.
+  }
 }

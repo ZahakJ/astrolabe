@@ -16,13 +16,19 @@
 // impossible for a 60×12 one: the reader loses the grid they were reading
 // the moment they touch it, and the thing they are then editing is a wall of
 // padded punctuation where the column they wanted is 400 characters along a
-// wrapped line. So a click now opens an <input> INSIDE that cell and leaves
-// the table standing. An <input> rather than a contenteditable cell for the
+// wrapped line. So a click now opens a text box INSIDE that cell and leaves
+// the table standing. A native box rather than a contenteditable cell for the
 // reason propsEdit.ts reached the same conclusion: the caret, selection and
 // IME behaviour of a native text box are the platform's, which is what an
 // Arabic keyboard and a Japanese IME both need, and a contenteditable cell
 // nested in `.cm-content` is a second editable region for CodeMirror's own
-// selection reader to walk into.
+// selection reader to walk into. The box is a <textarea>, not an <input>,
+// and it draws NO box of its own: the first cut was a single-line input with
+// a ring, and a three-line cell squeezed onto one scrolling line inside a lit
+// rectangle is not "editing the cell", it is editing something else placed
+// over it (the owner: "it squishes it in some rectangle"). The textarea
+// wraps exactly where the rendered cell wrapped, grows with the text, and
+// the only signs it is open are the caret and a hairline under the cell.
 //
 // THE NOTE IS STILL THE STATE. Nothing about the table lives anywhere but
 // the markdown: the box holds the cell's own source text (escapes intact),
@@ -352,7 +358,7 @@ interface OpenCell {
   view: EditorView;
   wrap: HTMLElement;
   cell: HTMLElement;
-  input: HTMLInputElement;
+  input: HTMLTextAreaElement;
   /** The cell's rendered children, held while the box stands in for them. */
   saved: ChildNode[];
   row: number;
@@ -426,8 +432,8 @@ function openCell(
   cell.style.boxSizing = "border-box";
   cell.style.minInlineSize = `${Math.round(width)}px`;
 
-  const input = document.createElement("input");
-  input.type = "text";
+  const input = document.createElement("textarea");
+  input.rows = 1;
   input.className = "cm-s-table__input";
   // Note content, so it takes its OWN direction — an Arabic cell in an
   // English table types right to left, the rule every rendered block follows.
@@ -435,6 +441,14 @@ function openCell(
   input.value = text;
   input.setAttribute("aria-label", tf("tableCellLabel", { row: String(row + 1), col: String(col + 1) }));
   input.addEventListener("keydown", cellKeydown);
+  // GROWS WITH THE TEXT. `field-sizing: content` does this in CSS where it
+  // exists (Chromium); the listener is the same answer for the engines that
+  // lack it, and harmless where the property already did the work.
+  const grow = () => {
+    input.style.blockSize = "auto";
+    input.style.blockSize = `${input.scrollHeight}px`;
+  };
+  input.addEventListener("input", grow);
   input.addEventListener("blur", () => {
     // A blur COMMITS (propsEdit.ts's rule, for its reason: typed text
     // survives the gesture that interrupted it). A menu opened from the cell
@@ -450,6 +464,7 @@ function openCell(
   cell.classList.add("cm-s-table__cell--editing");
   open = { view, wrap, cell, input, saved, row, col, original: text };
   lastTouched = { view, wrap, row, col };
+  grow();
   input.focus({ preventScroll: true });
   if (mode === "select") input.select();
   else input.setSelectionRange(text.length, text.length);

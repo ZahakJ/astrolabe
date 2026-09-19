@@ -76,10 +76,17 @@
   z-index: 1;
 }
 
-/* THE BOX A CELL IS EDITED IN (client/editor/tables.ts). It stands exactly
-   where the cell's rendered text stood, in the cell's own font and colour, so
-   the row does not change shape under the reader the moment they click it —
-   the cell pins its width in JS for the same reason. */
+/* THE BOX IS THE CELL. A textarea with nothing of its own: no ring, no
+   ground, no padding, the cell's font, colour, alignment and line height,
+   and `pre-wrap` so it breaks exactly where the rendered text broke — an
+   open cell keeps its rows, its neighbours keep their widths (the cell pins
+   its width in JS for that), and the reader sees the text they clicked with
+   a caret in it. `field-sizing: content` grows it with the text where the
+   engine has the property; tables.ts measures for the ones that do not.
+   The only mark that a cell is open is the hairline under its text,
+   because a box drawn round the box is what the first cut had and it read as
+   a form control dropped over the table ("it squishes it in some
+   rectangle"). */
 .cm-s-table__input {
   display: block;
   inline-size: 100%;
@@ -88,21 +95,25 @@
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 3px;
-  /* TRANSPARENT, so the cell's own ground shows through: a header cell keeps
-     `--table-head-bg` under the box and a body cell keeps the page's. A
-     colour of its own here would be a fifth table colour to hold to AA
-     (scripts/check-contrast.mjs) for no gain the reader can see. */
+  border-radius: 0;
   background: transparent;
   color: inherit;
   font: inherit;
+  line-height: inherit;
   letter-spacing: inherit;
   text-align: inherit;
-  /* The ring IS the outline — no `outline: none` and no second ring to keep
-     in step. Inset, so a cell that is being edited reads as lit rather than
-     as one pixel wider than its neighbours. */
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  resize: none;
+  /* The ring goes; the HAIRLINE under the text is the replacement and the
+     one mark that the cell is open (scripts/check-a11y.mjs wants the
+     replacement in this rule, and so does the reader). */
+  outline: none;
+  box-shadow: inset 0 -2px 0 var(--accent);
+  field-sizing: content;
+  min-block-size: 1lh;
+  caret-color: var(--accent);
 }
 
 /* THE ⋯ A FINGER CAN REACH, and nothing else's business: a right-click is a

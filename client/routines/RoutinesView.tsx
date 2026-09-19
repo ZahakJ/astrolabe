@@ -85,7 +85,7 @@ function RoutineCard({
     });
     // A slot that wikilinks a deck gets its "N due · Study" chip
     // (client/routines/orbits.ts) — after the draw, on the drawn card.
-    decorateDeckTasks(card, meta, today);
+    decorateDeckTasks(card, meta, today, () => el.firstElementChild);
     // A card that already stands is patched, not replaced: a tick moves one
     // checkbox and a number, the banner does not reload, the folded plan
     // stays as the reader left it (client/morph.ts).
