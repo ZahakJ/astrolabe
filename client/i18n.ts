@@ -1149,8 +1149,15 @@ const DICT = {
     en: "{n} rows say nothing the folder does not; folding them reorders the shelf:",
     ar: "{n} صفوف لا تقول شيئًا لا يقوله المجلد؛ وطيّها يعيد ترتيب الرف:",
   },
+  // One row is the common case on a shelf the owner has already tidied, and
+  // "1 rows" is the sort of thing a panel says when nobody read it out loud.
+  libraryRootOfferFoldOne: {
+    en: "One row says nothing the folder does not; folding it reorders the shelf:",
+    ar: "صف واحد لا يقول شيئًا لا يقوله المجلد؛ وطيّه يعيد ترتيب الرف:",
+  },
   libraryRootOfferKeep: { en: "Make it a root, keep the rows", ar: "اجعله جذرًا وأبقِ الصفوف" },
   libraryRootOfferFoldBtn: { en: "Make it a root, fold {n} rows", ar: "اجعله جذرًا واطوِ {n} صفوف" },
+  libraryRootOfferFoldBtnOne: { en: "Make it a root, fold one row", ar: "اجعله جذرًا واطوِ صفًا واحدًا" },
   libraryRootOfferDismiss: { en: "Not now", ar: "ليس الآن" },
   libraryCardOpen: { en: "Open this path's fields", ar: "افتح حقول هذا المسار" },
   errLibraryMax: { en: "At most {max} paths.", ar: "{max} مسارًا على الأكثر." },

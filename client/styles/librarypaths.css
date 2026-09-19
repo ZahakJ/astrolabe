@@ -407,6 +407,23 @@
   color: var(--danger);
 }
 
+/* A text button is still a target. "Customise here" is the only way to act on
+   a folder the vault put on the shelf, and "Not now" is how the fold offer is
+   sent away — and both sat at 22px beside 44px buttons on the same row. The
+   box grows, the text does not: no background, no border, so all that changes
+   is where a thumb may land. After the base rule, because a media query lends
+   no specificity. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-pfolders__unlink {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    min-block-size: 44px;
+    margin-block-start: 0;
+    padding-inline: 6px;
+  }
+}
+
 /* Paths the vault declared through folder notes: listed under the rows. */
 .s-libpaths__vault {
   display: flex;

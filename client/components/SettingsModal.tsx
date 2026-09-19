@@ -100,7 +100,7 @@ import { useBannerSrc } from "./BannerImg.tsx";
 import { refreshTemplateSettings } from "../templates.ts";
 import { loadPeriodic } from "../daily.ts";
 import { clearFontFaces, faceStack, loadFontFaces } from "../fontFaces.ts";
-import { countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
+import { countPhrase, getLang, isolate, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { FONT_UPLOAD_MAX_MB, UPLOAD_MAX_MB } from "../../shared/limits.ts";
 import { useStore } from "../state.ts";
 import { attachScrollFade } from "../scrollFade.ts";
@@ -760,7 +760,14 @@ function LibraryRootsEditor({
   const joinLine = (folder: string): string => {
     const children = publishedChildFolders(folder, publishedPaths);
     if (children.length === 0) return t("libraryRootNone");
-    const list = children.map((child) => libraryTitleOf(child) || child).join("، ".trim() === "" ? ", " : ", ");
+    // Joined by `Intl.ListFormat` in the instance's language rather than a
+    // hand-typed comma — Arabic separates a list with `،`, and this list is
+    // the one place in the panel where English and Arabic folder names stand
+    // side by side, so each name is bidi-isolated on its own too (tf() isolates
+    // the whole substitution, which is not enough when the substitution IS the
+    // list). Same rule as deleteFlow.ts's referrer phrase.
+    const names = children.map((child) => isolate(libraryTitleOf(child) || child));
+    const list = new Intl.ListFormat(getLang(), { style: "short", type: "unit" }).format(names);
     return children.length === 1
       ? tf("libraryRootJoinOne", { list })
       : tf("libraryRootJoin", { n: localeNum(children.length), list });
@@ -777,7 +784,22 @@ function LibraryRootsEditor({
     if (maybeOffer === null || lent !== null) return;
     let live = true;
     void getTrackers()
-      .then((list) => live && setLent(new Set(list.map((tr) => tr.folder).filter((f): f is string => f !== null && f !== ""))))
+      // BOTH halves, exactly as the server asks for them: its `lent` map skips
+      // a tracker with no `cover:` (server/indexer.ts libraryRefs), so a
+      // tracker that names the folder and lends nothing lends NOTHING. Taking
+      // the folder alone made a row whose only remaining word was `cover:`
+      // look foldable, and folding it took the book's picture off the shelf.
+      .then(
+        (list) =>
+          live &&
+          setLent(
+            new Set(
+              list
+                .filter((tr) => tr.cover !== null && tr.folder !== null && tr.folder !== "")
+                .map((tr) => tr.folder as string),
+            ),
+          ),
+      )
       .catch(() => live && setLent(new Set()));
     return () => {
       live = false;
@@ -864,10 +886,20 @@ function LibraryRootsEditor({
           <p className="s-libroots__offertitle" dir="auto">
             {tf("libraryRootOffer", { parent: leafOf(offer.parent), n: localeNum(offer.rows.length) })}
           </p>
+          {/* WHAT SAYING YES PUTS ON THE SHELF, before it is said. The offer
+              named only the rows that would fold, and the folders the root
+              claims that have no row yet — the whole point of a root — went
+              on the public shelf unannounced. This is the same consequence
+              line a saved root carries, asked one press earlier. */}
+          <p className="s-libroots__join" dir="auto">
+            {joinLine(offer.parent)}
+          </p>
           {offer.foldable.length > 0 && (
             <>
               <p className="s-libroots__offerbody">
-                {tf("libraryRootOfferFold", { n: localeNum(offer.foldable.length) })}
+                {offer.foldable.length === 1
+                  ? t("libraryRootOfferFoldOne")
+                  : tf("libraryRootOfferFold", { n: localeNum(offer.foldable.length) })}
               </p>
               <p className="s-libroots__offerorder" dir="auto">
                 {foldedOrder().join(" · ")}
@@ -877,7 +909,9 @@ function LibraryRootsEditor({
           <div className="s-libroots__offeractions">
             {offer.foldable.length > 0 && (
               <button type="button" className="s-btn s-btn--accent" disabled={disabled} onClick={() => takeOffer(true)}>
-                {tf("libraryRootOfferFoldBtn", { n: localeNum(offer.foldable.length) })}
+                {offer.foldable.length === 1
+                  ? t("libraryRootOfferFoldBtnOne")
+                  : tf("libraryRootOfferFoldBtn", { n: localeNum(offer.foldable.length) })}
               </button>
             )}
             <button type="button" className="s-btn" disabled={disabled} onClick={() => takeOffer(false)}>
@@ -1054,6 +1088,18 @@ function LibraryPathEditor({
               open={opened[row.id] === true || mine !== null}
               onToggle={(e) => {
                 const el = e.currentTarget as HTMLDetailsElement;
+                // THE MARKED CARD DOES NOT CLOSE. `open` above already says so,
+                // but a <details> is toggled by the browser, not by React, and
+                // React rewrites the attribute only when the value it renders
+                // CHANGES — which it does not, because `mine` was already
+                // forcing it open. So the reader could fold the one place the
+                // message lives away and be left with a disabled Save and a
+                // footer asking them to fix a field nothing marks. Push it back
+                // open; the second toggle this fires records it.
+                if (mine !== null && !el.open) {
+                  el.open = true;
+                  return;
+                }
                 setOpened((o) => ({ ...o, [row.id]: el.open }));
               }}
             >
