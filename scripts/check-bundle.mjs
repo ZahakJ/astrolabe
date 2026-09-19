@@ -794,7 +794,9 @@ const AUDIENCES = [
   // a step lands, and every one of them is behind a lazy chunk.
   // 3.19.0 MERGE: the two rounds above land together, so their overages add:
   // 809.5 kB actual → 810 — the sum of the course sigils' and the table round's bytes, no new cause.
-{ name: "entry (everyone)", keys: entry, budget: 810 * 1024 },
+  // 3.19.0 MERGE, phone round: 812.7 kB actual → 813 — the phone round's own lines above
+  // (safe-area tokens, the drawers' ✕, the back-button wiring) summed onto the two rounds before it.
+{ name: "entry (everyone)", keys: entry, budget: 813 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1085,7 +1087,9 @@ const AUDIENCES = [
   // arrives as one small module the ENTRY still does not carry.
   // 3.19.0 MERGE: the two rounds above land together, so their overages add:
   // 1107.1 kB actual → 1108 — the sum of the course sigils' and the table round's bytes, no new cause.
-{ name: "anonymous blog reader", keys: blog, budget: 1108 * 1024 },
+  // 3.19.0 MERGE, phone round: 1111.2 kB actual → 1112 — the phone round's own lines above
+  // (safe-area tokens, the drawers' ✕, the back-button wiring) summed onto the two rounds before it.
+{ name: "anonymous blog reader", keys: blog, budget: 1112 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1285,7 +1289,9 @@ const AUDIENCES = [
   // are lazy chunks this first paint does not fetch.
   // 3.19.0 MERGE: the two rounds above land together, so their overages add:
   // 1563.5 kB actual → 1564 — the sum of the course sigils' and the table round's bytes, no new cause.
-  { name: "admin first paint", keys: app, budget: 1564 * 1024 },
+  // 3.19.0 MERGE, phone round: 1567.2 kB actual → 1568 — the phone round's own lines above
+  // (safe-area tokens, the drawers' ✕, the back-button wiring) summed onto the two rounds before it.
+  { name: "admin first paint", keys: app, budget: 1568 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
