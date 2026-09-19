@@ -9,6 +9,7 @@
 //   cover: attachments/cover.jpg                   (also `banner:`)
 //   source: https://…
 //   library: book | course | series                (this folder is a path on the shelf)
+//   slug: feynman-lectures                         (the address it takes on the shelf)
 //   title: A nicer name than the folder's
 //   hidden: true
 //
@@ -20,12 +21,15 @@
 // Categories (settings.topics: folders) read title, description, icon and
 // hidden from here; collections that name the folder fall back to the
 // description; the library takes the whole set, and `library:` DECLARES a
-// path without a settings row at all. Settings rows still win where they say
-// something — the vault is where the facts live, settings is where the owner
-// overrides one. Pure: shared by the indexer and the tests.
+// path without a settings row at all. `slug:` is the library's alone: a path
+// under a shelf root takes the address its TITLE suggests, and a title made of
+// Arabic letters suggests none — so this is the vault-portable way to give one
+// an address without typing a settings row. Settings rows still win where they
+// say something — the vault is where the facts live, settings is where the
+// owner overrides one. Pure: shared by the indexer and the tests.
 
 import { isFolderMark, type FolderMark } from "./folderIcons.ts";
-import { isLibraryKind } from "./library.ts";
+import { isLibraryKind, librarySlug } from "./library.ts";
 import { vaultFolderPath } from "./publicFolders.ts";
 import type { LibraryKind } from "./types.ts";
 
@@ -36,6 +40,9 @@ export interface FolderMeta {
   cover?: string;
   source?: string;
   library?: LibraryKind;
+  /** The shelf address (`/library/<slug>`), when the folder's title does not
+   *  make one or the owner wants a different one. `librarySlug`-shaped. */
+  slug?: string;
   hidden?: boolean;
   /** For a TAG PAGE declaring a collection: the vault folder whose published
    *  notes all belong, beside the ones carrying the tag. */
@@ -83,6 +90,8 @@ export function folderMetaOf(fm: Record<string, unknown>): FolderMeta {
   if (source) out.source = source;
   if (isLibraryKind(fm.library)) out.library = fm.library;
   else if (fm.library === true) out.library = "book";
+  const slug = librarySlug(fm.slug);
+  if (slug !== null) out.slug = slug;
   if (fm.hidden === true) out.hidden = true;
   const folder = vaultFolderPath(fm.folder);
   if (folder !== null) out.folder = folder;

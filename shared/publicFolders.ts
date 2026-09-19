@@ -50,7 +50,10 @@ export function folderSlug(raw: unknown): string | null {
 }
 
 /** A title turned into the slug it suggests — the settings editor's "you typed
- *  a title and left the slug empty" convenience, never applied server-side. A
+ *  a title and left the slug empty" convenience, and, since shelf roots, the
+ *  server's own rule for a DERIVED library address (shared/library.ts
+ *  derivedSlug: the panel shows exactly the address the indexer will emit, so
+ *  the two must be the same function). A
  *  title made entirely of characters the slug set cannot hold (an Arabic
  *  title, which is the common case on this instance) suggests nothing, and the
  *  field stays empty rather than filling with mojibake. */

@@ -2,8 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   cleanLibraryPath,
+  cleanLibraryRoot,
   compareLessons,
   compareUnits,
+  derivedSlug,
+  derivedSlugCandidate,
   guessLibraryKind,
   isLibraryLesson,
   libraryCoverPaths,
@@ -11,6 +14,8 @@ import {
   libraryFreshSlug,
   libraryLessonFolders,
   libraryList,
+  libraryRootError,
+  libraryRootNested,
   libraryRowError,
   libraryRowForFolder,
   libraryTitleOf,
@@ -142,5 +147,58 @@ describe("library covers a visitor may fetch", () => {
     };
     assert.deepEqual(libraryCoverPaths(lib), ["attachments/a.jpg"]);
     assert.deepEqual(libraryCoverPaths({ ...lib, enabled: false }), []);
+  });
+});
+
+describe("shelf roots", () => {
+  it("judges a root the way it judges a row", () => {
+    assert.equal(libraryRootError({ folder: "Books", kind: "book" }), null);
+    assert.equal(libraryRootError(null), "notObject");
+    assert.equal(libraryRootError({ folder: "", kind: "book" }), "vault");
+    assert.equal(libraryRootError({ folder: "/", kind: "book" }), "vault");
+    assert.equal(libraryRootError({ folder: "../etc", kind: "book" }), "folder");
+    assert.equal(libraryRootError({ folder: "Books", kind: "film" }), "kind");
+  });
+
+  it("refuses a root inside a root either way round, and a root inside a row", () => {
+    assert.equal(libraryRootNested("Books", ["Lectures"]), false);
+    assert.equal(libraryRootNested("Books/Old", ["Books"]), true);
+    assert.equal(libraryRootNested("Books", ["Books/Old"]), true);
+    assert.equal(libraryRootNested("Books", ["Books"]), true);
+    // A root CONTAINING a row is the whole design; a root inside one is not.
+    assert.equal(libraryRootNested("Books", [], ["Books/Calculus"]), false);
+    assert.equal(libraryRootNested("Books/Calculus/Part 1", [], ["Books/Calculus"]), true);
+    assert.equal(libraryRootNested("Books/Calculus", [], ["Books/Calculus"]), true);
+  });
+
+  it("cleans a root, keeping a well-formed id and minting one otherwise", () => {
+    assert.deepEqual(cleanLibraryRoot({ id: "r1", folder: " /Books/ ", kind: "course" }, () => "fresh"), {
+      id: "r1",
+      folder: "Books",
+      kind: "course",
+    });
+    assert.equal(cleanLibraryRoot({ folder: "Books", kind: "book" }, () => "fresh")?.id, "fresh");
+    assert.equal(cleanLibraryRoot({ folder: "", kind: "book" }, () => "fresh"), null);
+  });
+});
+
+describe("a derived address", () => {
+  it("prefers the folder note's slug, then the title's suggestion", () => {
+    assert.equal(derivedSlugCandidate("The Fabric of Reality"), "the-fabric-of-reality");
+    assert.equal(derivedSlugCandidate("The Fabric of Reality", "fabric"), "fabric");
+    // A slug the rule refuses is not a slug, so the title still speaks.
+    assert.equal(derivedSlugCandidate("The Fabric of Reality", "Bad Slug!"), "the-fabric-of-reality");
+  });
+
+  it("is nothing at all when the title makes no address", () => {
+    assert.equal(derivedSlugCandidate("التفكير العلمي"), null);
+    assert.equal(derivedSlugCandidate("التفكير العلمي", "scientific-thinking"), "scientific-thinking");
+  });
+
+  it("stands down rather than taking a counter when the address is claimed", () => {
+    const taken = new Set(["calculus", "fabric"]);
+    assert.equal(derivedSlug("Calculus", undefined, taken), null);
+    assert.equal(derivedSlug("The Fabric of Reality", "fabric", taken), null);
+    assert.equal(derivedSlug("Optics", undefined, taken), "optics");
   });
 });

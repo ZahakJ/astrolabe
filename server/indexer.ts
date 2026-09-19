@@ -1,7 +1,7 @@
 // Indexer: in-memory search + link-graph index, built once at startup and kept
 // fresh incrementally from vault watcher events.
 
-import { isLibraryLesson, libraryCoverPaths, libraryLessonFolders, libraryTitleOf } from "../shared/library.ts";
+import { derivedSlug, isLibraryLesson, libraryCoverPaths, libraryLessonFolders, libraryTitleOf } from "../shared/library.ts";
 import { effectiveFolders, folderSlug, suggestSlug } from "../shared/publicFolders.ts";
 import { folderImagePaths } from "../shared/folderIcons.ts";
 import { folderMetaOf, folderNoteCandidates, folderOfNote, type FolderMeta } from "../shared/folderNote.ts";
@@ -2342,7 +2342,18 @@ export function isAllowedAttachment(relPath: string): boolean {
   // no file — it would have stayed a 404 until the next vault event.
   if (!attachmentPaths.has(relPath)) return false;
   const settings = getSettings();
-  if (libraryCoverPaths({ enabled: settings.library?.enabled, paths: libraryRefs() }).includes(relPath)) return true;
+  // ON THE SHELF'S TERMS MEANS ON THE SHELF. A path with no published note
+  // under it is not sent to anybody (server/library.ts resolveLibraryPath
+  // returns null on zero lessons), so its cover is art nobody can reach a
+  // page for — and serving it anyway handed an anonymous caller a picture out
+  // of a folder every note of which is a draft. Folder notes make that easy
+  // to do by accident (`library: book` + `cover:` and nothing published yet)
+  // and shelf roots make it the default shape, so the filter is here rather
+  // than in libraryCoverPaths: the rule is about THIS index, not about a
+  // settings shape shared/library.ts can judge on its own.
+  if (libraryCoverPaths({ enabled: settings.library?.enabled, paths: refsWithLessons(libraryRefs()) }).includes(relPath)) {
+    return true;
+  }
   // A folder's or a collection's image mark, on the same live terms.
   if (folderImagePaths(settings.folderIcons).includes(relPath)) return true;
   return collectionRows().some((row) => row.icon === relPath);
@@ -2432,6 +2443,12 @@ export function unreferencedAttachments(): string[] {
       }
     }
   }
+  // UNFILTERED on purpose, where isAllowedAttachment() filters by "has a
+  // published lesson". The agreement the docstring above asks for is
+  // ONE-DIRECTIONAL — nothing the allowlist serves may be called unused — so a
+  // stricter allowlist keeps it. Going the other way would put the cover the
+  // owner chose for a book they have not published yet into a delete list,
+  // which is the very bug this walk exists to prevent.
   for (const cover of libraryCoverPaths({ enabled: settings.library?.enabled, paths: libraryRefs() })) used.add(cover);
   for (const icon of folderImagePaths(settings.folderIcons)) used.add(icon);
   for (const row of collectionRows()) if (typeof row.icon === "string") used.add(row.icon);
@@ -2648,25 +2665,111 @@ export function folderMeta(folder: string): FolderMeta | null {
   return null;
 }
 
-/** Every path on the shelf: the settings rows, PLUS the folders whose note
- *  declares `library: book|course|series`. A settings row naming the same
- *  folder wins field by field and fills its blanks from the note (a blurb
- *  written once in the vault, a cover the row never mentioned); a folder
- *  declared only in the vault gets a slug from its title, unique after the
- *  rows' own. Settings' `enabled` still gates the whole shelf. */
+/** Does the vault hold a PUBLISHED note anywhere under this folder? The
+ *  boundary is the slash, like every other folder test on the shelf: `Books/F`
+ *  never answers for `Books/Feynman Lectures`. */
+function hasPublishedUnder(folder: string): boolean {
+  const prefix = folder.endsWith("/") ? folder : `${folder}/`;
+  for (const notePath of publishedSet) {
+    if (notePath.startsWith(prefix)) return true;
+  }
+  return false;
+}
+
+/** The refs a visitor could reach a page for: one published note under the
+ *  folder is the whole test, and it is the same one resolveLibraryPath() makes
+ *  when it returns null. Used by the cover allowlist — see isAllowedAttachment. */
+function refsWithLessons(refs: readonly LibraryPathRef[]): LibraryPathRef[] {
+  return refs.filter((ref) => hasPublishedUnder(ref.folder));
+}
+
+/** A folder note's `source:` is a plain string typed in the vault, and it ends
+ *  up in `href` on the path page. A settings row has been https-only since the
+ *  rule was written (shared/library.ts cleanLibraryPath); the vault's copy was
+ *  not, so `source: javascript:alert(1)` in a folder note rode straight to the
+ *  anchor. One regex, the row's own. */
+function httpSource(raw: string | undefined): string | null {
+  if (typeof raw !== "string") return null;
+  const source = raw.trim();
+  return source !== "" && /^https?:\/\//i.test(source) ? source : null;
+}
+
+/** The immediate subfolders of `folder` that hold a published note, in vault
+ *  order. This is a shelf ROOT's whole discovery rule: "a folder with
+ *  something published in it" is what a path is, and a prefix scan over
+ *  publishedSet is what `libraryLessons()` already does one level down. */
+function publishedChildrenOf(folder: string): string[] {
+  const prefix = folder.endsWith("/") ? folder : `${folder}/`;
+  const out = new Set<string>();
+  for (const notePath of publishedSet) {
+    if (!notePath.startsWith(prefix)) continue;
+    const rel = notePath.slice(prefix.length);
+    const slash = rel.indexOf("/");
+    // A note sitting directly in the root is not a path — it is a note in a
+    // folder the owner chose to hold books, and it stays a post.
+    if (slash === -1) continue;
+    out.add(prefix + rel.slice(0, slash));
+  }
+  return [...out];
+}
+
+/** Every path on the shelf, in shelf order: the settings rows first, in their
+ *  own order, then the folders a SHELF ROOT claims and the folders whose note
+ *  declares `library: book|course|series`.
+ *
+ *  A ROOT says "everything published under here is a book" once, instead of a
+ *  hand-typed row per folder saying what the folder's own name already says —
+ *  and, unlike a row, it covers the book that has not been written yet. Every
+ *  immediate subfolder of the root that holds a published note is a path of the
+ *  root's kind, titled by its name; the folder note overrides the kind, the
+ *  title, the blurb, the cover, the source, the address and `hidden` for one
+ *  folder, which is why the root is not the last word.
+ *
+ *  A settings row naming the same folder wins field by field and fills its
+ *  blanks from the note (a blurb written once in the vault, a cover the row
+ *  never mentioned) — so adding a root over folders the rows already name
+ *  changes nothing a visitor sees. Settings' `enabled` still gates the whole
+ *  shelf, and a derived path with no address is not emitted at all (see
+ *  `derivedSlug`). */
 export function libraryRefs(): LibraryPathRef[] {
   const lib = getSettings().library;
   const rows = (lib?.paths ?? []).map((row) => ({ ...row }));
   const byFolder = new Map(rows.map((row) => [row.folder, row]));
   const taken = new Set(rows.map((row) => row.slug));
-  const found: { folder: string; meta: FolderMeta }[] = [];
+  // Every folder that could become a path, in the order the shelf will list
+  // them: each root's published children (by title, so a book added next year
+  // lands where its name says and not at the end), then the folders that
+  // declare themselves and live under no root at all.
+  const candidates: { folder: string; kind: LibraryKind; meta: FolderMeta | null }[] = [];
+  const seen = new Set<string>();
+  for (const root of lib?.roots ?? []) {
+    const children = publishedChildrenOf(root.folder).map((folder) => {
+      const meta = folderMeta(folder);
+      return { folder, kind: meta?.library ?? root.kind, meta, title: meta?.title ?? libraryTitleOf(folder) ?? folder };
+    });
+    children.sort(
+      (a, b) =>
+        a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" }) ||
+        a.folder.localeCompare(b.folder),
+    );
+    for (const child of children) {
+      if (seen.has(child.folder)) continue;
+      seen.add(child.folder);
+      candidates.push({ folder: child.folder, kind: child.kind, meta: child.meta });
+    }
+  }
+  const declared: { folder: string; meta: FolderMeta }[] = [];
   for (const record of notes.values()) {
     if (!record.folderMeta?.library) continue;
     const folder = folderOfNote(record.path);
-    if (folder === null) continue;
-    found.push({ folder, meta: record.folderMeta });
+    if (folder === null || seen.has(folder)) continue;
+    declared.push({ folder, meta: record.folderMeta });
   }
-  found.sort((a, b) => a.folder.localeCompare(b.folder));
+  declared.sort((a, b) => a.folder.localeCompare(b.folder));
+  for (const { folder, meta } of declared) {
+    seen.add(folder);
+    candidates.push({ folder, kind: meta.library as LibraryKind, meta });
+  }
   // A Media tracker that names a path's folder LENDS ITS COVER, over the row's
   // and the folder note's: the book the owner tracks and the book a reader
   // opens are one picture. Resolved in admin scope; the ref cover then joins
@@ -2683,26 +2786,45 @@ export function libraryRefs(): LibraryPathRef[] {
     const cover = lent.get(row.folder);
     if (cover !== undefined) row.cover = cover;
   }
-  for (const { folder, meta } of found) {
+  for (const { folder, kind, meta } of candidates) {
     const row = byFolder.get(folder);
     if (row) {
-      if (!row.blurb && meta.description) row.blurb = meta.description;
-      if (!row.cover && meta.cover) row.cover = meta.cover;
-      if (!row.source && meta.source) row.source = meta.source;
+      // The row is already on the shelf; the folder note only fills its blanks.
+      if (meta) {
+        if (!row.blurb && meta.description) row.blurb = meta.description;
+        if (!row.cover && meta.cover) row.cover = meta.cover;
+        if (!row.source) {
+          const source = httpSource(meta.source);
+          if (source !== null) row.source = source;
+        }
+      }
       continue;
     }
-    const title = meta.title ?? libraryTitleOf(folder) ?? folder;
-    const base = suggestSlug(title) || "path";
-    let slug = base;
-    for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
+    const title = meta?.title ?? libraryTitleOf(folder) ?? folder;
+    // NO COUNTER, NO "path". A derived address is the folder note's `slug:` or
+    // the title's own suggestion, and a folder that has neither — an Arabic
+    // title, which on this vault is three books — is not published rather than
+    // being handed `/library/path-3`, an address assigned by whichever book
+    // existed that morning and keyed to by every reader's saved progress. The
+    // settings panel lists it under "Needs an address" with the reason; its
+    // notes stay on the blog, exactly where they are today.
+    const slug = derivedSlug(title, meta?.slug, taken);
+    if (slug === null) continue;
     taken.add(slug);
-    const ref: LibraryPathRef = { id: `l${createHash("sha1").update(folder).digest("hex").slice(0, 12)}`, slug, folder, kind: meta.library as LibraryKind, title };
-    if (meta.description) ref.blurb = meta.description;
-    if (meta.cover) ref.cover = meta.cover;
+    const ref: LibraryPathRef = {
+      id: `l${createHash("sha1").update(folder).digest("hex").slice(0, 12)}`,
+      slug,
+      folder,
+      kind,
+      title,
+    };
+    if (meta?.description) ref.blurb = meta.description;
+    if (meta?.cover) ref.cover = meta.cover;
     const lentCover = lent.get(folder);
     if (lentCover !== undefined) ref.cover = lentCover;
-    if (meta.source) ref.source = meta.source;
-    if (meta.hidden) ref.hidden = true;
+    const source = httpSource(meta?.source);
+    if (source !== null) ref.source = source;
+    if (meta?.hidden) ref.hidden = true;
     rows.push(ref);
   }
   return rows;
@@ -2863,8 +2985,12 @@ export function publicFolderCounts(
  *  each with the words and minutes the post list prints, scoped exactly as
  *  posts() scopes the feed (the language filter for a visitor, templates out).
  *  The ORDER is the caller's (shared/library.ts); this answers what is there.
- *  An admin sees unpublished notes too, marked, so the shelf they are
- *  arranging shows them what a visitor will and will not get. */
+ *  An admin sees unpublished notes too — that is how the shelf they are
+ *  arranging shows them what a visitor will and will not get — and `published`
+ *  says which is which. It is for THIS server only: server/library.ts strips
+ *  it off every lesson before the wire (`LibraryLesson` has no such field), so
+ *  a draft is never MARKED on a page, only present for an admin and absent for
+ *  a visitor. */
 export function libraryLessons(
   folder: string,
   visitor: boolean,
@@ -2874,6 +3000,13 @@ export function libraryLessons(
   const out: { path: string; title: string; words: number; readingMinutes: number; excerpt: string; published: boolean }[] = [];
   const isTemplate = templateMatcher();
   const hidden = excludedTags();
+  // ONCE FOR THE LOOP, like `hidden` and `isTemplate` beside it. postMeta()
+  // defaults this parameter to collectionRowsNow(), which walks the whole
+  // vault; left to default it ran ONCE PER LESSON, so resolving a 40-lesson
+  // book was forty full-vault walks and a five-path shelf was two hundred — on
+  // every anonymous /api/me, which asks for the door. The rows are the same
+  // for every lesson of every path in one request.
+  const rows = collectionRowsNow();
   const source = visitor ? publishedSet : notes.keys();
   for (const notePath of source) {
     if (!notePath.startsWith(prefix)) continue;
@@ -2881,7 +3014,7 @@ export function libraryLessons(
     if (!record) continue;
     if (visitor && languageHidden(record, lang)) continue;
     if (isTemplate(notePath)) continue;
-    const meta = postMeta(record, hidden);
+    const meta = postMeta(record, hidden, rows);
     out.push({
       path: meta.path,
       title: meta.title,
