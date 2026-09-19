@@ -414,7 +414,7 @@ is the quick form; `PERF_KEEP=1` leaves the generated vault behind to look at.
 
 ### `npm run check-books` — the reader
 
-After `npm run build`. Ten properties of the PDF reader that are invisible in review and
+After `npm run build`. Ten properties of the book reader — both surfaces, the PDF one and the EPUB one — that are invisible in review and
 expensive to discover in production, the first being that the pdf.js worker is a real same-origin
 asset rather than a `blob:` URL — which works under the dev server's absent CSP and dies under
 the real one.

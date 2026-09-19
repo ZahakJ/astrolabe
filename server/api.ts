@@ -112,6 +112,7 @@ import { invalidateTree, treeBody } from "./treeCache.ts";
 import { activeDesignFontRefs } from "./designs.ts";
 import { designRoutes } from "./designRoutes.ts";
 import { bookRoutes } from "./bookRoutes.ts";
+import { epubRoutes } from "./epubRoutes.ts";
 import { captureLine, clipAdminRoutes, clipRoutes } from "./clip.ts";
 import { deckImportRoutes } from "./deckImportRoutes.ts";
 import { searchPages } from "./pdfText.ts";
@@ -2756,6 +2757,14 @@ api.route("/design", designRoutes);
 // shelf is an enumeration of the owner's own directory. The PDF BYTES are not
 // served from here at all — the reader fetches them from /api/file, gated
 // exactly as every embed is. See server/bookRoutes.ts.
+//
+// The EPUB half is mounted FIRST and separately, because it is the one part of
+// the reader that does serve vault bytes (a chapter, a plate, a stylesheet,
+// out of the zip and never onto the disk) and so it wears /api/file's
+// publish gate rather than the shelf's admin-only one. Keeping it in its own
+// file is what stops server/bookRoutes.ts's "no bytes through here" from
+// becoming a sentence that used to be true. See server/epubRoutes.ts.
+api.route("/books/epub", epubRoutes);
 api.route("/books", bookRoutes);
 // ------------------------------------------------------ deck import
 // An Anki .apkg or a CSV/TSV, written as deck notes. Admin-only

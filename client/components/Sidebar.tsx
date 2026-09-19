@@ -479,7 +479,10 @@ function IconImage() {
   );
 }
 
-function IconPdf() {
+/** A book in the tree. One glyph for both formats, because what the marker
+ *  tells the reader is where a click goes — the reader — and a `.pdf` and a
+ *  `.epub` go to the same place. */
+function IconBook() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
@@ -540,8 +543,8 @@ function AttachmentGlyph({ kind }: { kind: AttachmentKind }) {
     <span className="s-tree__glyph">
       {kind === "image" ? (
         <IconImage />
-      ) : kind === "pdf" ? (
-        <IconPdf />
+      ) : kind === "book" ? (
+        <IconBook />
       ) : kind === "audio" ? (
         <IconAudio />
       ) : kind === "video" ? (
@@ -1566,14 +1569,15 @@ export default function Sidebar() {
     [setAttachmentsShown],
   );
 
-  /** A click on an attachment row. A PDF is a BOOK: it opens in the reader
-   *  (client/books/), which remembers the page, gives it zathura's keys and
-   *  puts it on a shelf with the vault's other books. It used to open a
-   *  browser tab, which renders a PDF perfectly well and cannot do any of
-   *  those three things. Everything else opens in the viewer, carrying its
-   *  folder with it so the arrow keys have somewhere to go. */
+  /** A click on an attachment row. A PDF or an EPUB is a BOOK: it opens in the
+   *  reader (client/books/, client/epub/), which remembers the place, gives it
+   *  a keyboard and puts it on a shelf with the vault's other books. A PDF
+   *  used to open a browser tab, which renders one perfectly well and cannot
+   *  do any of those three things; an EPUB opened a DOWNLOAD, which is the
+   *  same failure one step further along. Everything else opens in the viewer,
+   *  carrying its folder with it so the arrow keys have somewhere to go. */
   const openAttachment = useCallback((node: TreeNode, siblings: TreeNode[]) => {
-    if (node.attachment?.kind === "pdf") {
+    if (node.attachment?.kind === "book") {
       openBookPath(node.path);
       return;
     }
