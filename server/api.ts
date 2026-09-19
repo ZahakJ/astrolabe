@@ -98,7 +98,7 @@ import {
   resolveLabel,
   search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor, hasNote,
   searchMatches,
-  tags, props, queryPaths,
+  queryPaths,
   trackers, routines, hadithLookup, cards, decks, deckCards,
   visibleNotesUnder,
   whenIndexed,
@@ -107,6 +107,7 @@ import { sendEncoded } from "./compress.ts";
 import { nearbyNotes } from "./nearby.ts";
 import { hadithKey, parseHadithRef } from "../shared/hadithRefs.ts";
 import { graphBody, invalidateGraph, localGraphJson } from "./graphCache.ts";
+import { propShelf, tagShelf } from "./shelfCache.ts";
 import { invalidateTree, treeBody } from "./treeCache.ts";
 import { activeDesignFontRefs } from "./designs.ts";
 import { designRoutes } from "./designRoutes.ts";
@@ -2500,14 +2501,14 @@ api.get("/backlinks", (c) => {
 // existence leak.
 api.get("/tags", (c) => {
   const limited = isPublishLimited(c);
-  return c.json(tags(limited, languageScope(c, limited).lang));
+  return c.json(tagShelf(limited, languageScope(c, limited).lang));
 });
 
 // Properties: every frontmatter key with a count and its top values, for the
 // shelf under the tags. Scoped like /api/tags, and for the same reason.
 api.get("/props", (c) => {
   const limited = isPublishLimited(c);
-  return c.json(props(limited, languageScope(c, limited).lang));
+  return c.json(propShelf(limited, languageScope(c, limited).lang));
 });
 
 // Notes that read like this one, without a model anywhere near them

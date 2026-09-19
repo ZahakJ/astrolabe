@@ -65,6 +65,43 @@ export function isDateSeparator(value: unknown): value is DateSeparator {
 const FSI = "⁨";
 const PDI = "⁩";
 
+/** THE FORMATTERS ARE KEPT, BECAUSE BUILDING ONE IS THE EXPENSIVE PART.
+ *
+ *  `new Intl.DateTimeFormat(...)` loads and resolves ICU data; `.format()` on
+ *  an existing one is a lookup. Every surface here that prints dates prints
+ *  MANY — the Sigils page draws one per card plus one per heatmap cell, the
+ *  Calendar page one per day of the month, the blog one per card — and each
+ *  one was constructing its own formatter, twice over when the instance shows
+ *  both calendars. Measured at 4× CPU on the perf fixture, that construction
+ *  alone was 5.9% of everything opening the Sigils page did.
+ *
+ *  The cache is keyed by the exact arguments, so two calls that would have
+ *  built identical formatters share one and nothing else does. It is bounded
+ *  because the key space is bounded in practice (a handful of option shapes
+ *  per locale) but a vault is not a closed world — a `date:` format written
+ *  into a note reaches here — and an unbounded map on a module that never
+ *  unloads is a leak waiting for the note that names a thousand formats. */
+const FORMAT_CACHE_MAX = 64;
+const formatters = new Map<string, Intl.DateTimeFormat>();
+
+function formatter(locale: string, opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  // The options object is always built fresh by the callers below, so its
+  // identity says nothing; its CONTENTS are the key. Sorted, so two spreads
+  // that produced the same options in a different order still share.
+  const key = `${locale}\u0000${JSON.stringify(opts, Object.keys(opts).sort())}`;
+  const hit = formatters.get(key);
+  if (hit) return hit;
+  const fresh = new Intl.DateTimeFormat(locale, opts);
+  if (formatters.size >= FORMAT_CACHE_MAX) {
+    // Oldest out. A strict LRU would buy nothing here: the working set of a
+    // page is a few formats and they are all used on every render.
+    const oldest = formatters.keys().next();
+    if (!oldest.done) formatters.delete(oldest.value);
+  }
+  formatters.set(key, fresh);
+  return fresh;
+}
+
 /** Format `date` in one calendar. Falls back to the plain Gregorian rendering
  *  (and then to `en`) rather than throwing at render time — a bad BCP47 tag or
  *  an ICU build with no Umm al-Qura data must not blank a blog card. */
@@ -80,12 +117,12 @@ function formatOne(
     ...(hijri ? { calendar: HIJRI_CALENDAR } : {}),
   };
   try {
-    return new Intl.DateTimeFormat(locale, opts).format(date);
+    return formatter(locale, opts).format(date);
   } catch {
     try {
-      return new Intl.DateTimeFormat(locale, { ...options, ...localeDigits(locale) }).format(date);
+      return formatter(locale, { ...options, ...localeDigits(locale) }).format(date);
     } catch {
-      return new Intl.DateTimeFormat("en", options).format(date);
+      return formatter("en", options).format(date);
     }
   }
 }
@@ -159,7 +196,7 @@ function formatRangeOne(
   hijri: boolean,
 ): string {
   const attempt = (loc: string, opts: Intl.DateTimeFormatOptions): string => {
-    const f = new Intl.DateTimeFormat(loc, opts);
+    const f = formatter(loc, opts);
     if (typeof f.formatRange !== "function") return `${f.format(from)} – ${f.format(to)}`;
     return f.formatRange(from, to);
   };
