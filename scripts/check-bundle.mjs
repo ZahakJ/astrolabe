@@ -754,7 +754,22 @@ const AUDIENCES = [
   // `getTrackers` read when the grid left it.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
   // 3.18.x: the shared tags/properties shelf and its tabs.
-{ name: "entry (everyone)", keys: entry, budget: 803 * 1024 },
+  // 3.19.0 COURSE SIGILS: 806.1 kB actual → 807 (+3.1 kB, actual + ~0.1%).
+  // Two causes, both unavoidable in a first paint, and one that was avoided.
+  // NOT avoided: `client/i18n.ts` gained ~35 keys in two languages for the
+  // course card, the calendar's bands and the form's second mode — the
+  // dictionary lands whole in every first paint (the debt named below), so
+  // strings a visitor never reads are still strings a visitor downloads.
+  // NOT avoided: `shared/routine.ts` gained the course PARSER — `mode:`,
+  // `days:`, `capacity:` and the `steps:` block, with a step's key, its
+  // minutes and its unit. That module is static here on purpose (render.ts
+  // must draw a fence before anything paints), so a note carrying a course
+  // has to be readable at first paint or it renders as its own source.
+  // AVOIDED: the WALK — the cursor, the projection over the allowed days, the
+  // packing by capacity, the unit bands — is `shared/course.ts`, a module the
+  // entry never imports. Only the card, the two pages and the form ask where
+  // a step lands, and every one of them is behind a lazy chunk.
+{ name: "entry (everyone)", keys: entry, budget: 807 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1017,7 +1032,14 @@ const AUDIENCES = [
   // the strings and the tab model reach this reader, because `t()` ships whole.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
   // 3.18.x: the shared tags/properties shelf and its tabs.
-{ name: "anonymous blog reader", keys: blog, budget: 1096 * 1024 },
+  // 3.19.0 COURSE SIGILS: 1103.6 kB actual → 1104 (+7.6 kB). The entry's
+  // bytes above, plus this reader's own share of the same round: the reading
+  // view's sigil card (client/reading/routine.ts + routine.css) is in the blog
+  // closure, because a published note may carry a ```sigil fence and a visitor
+  // must see the card — inert, as every control on it already is. The walk
+  // reaches this reader through that card, and `shared/course.ts` is why it
+  // arrives as one small module the ENTRY still does not carry.
+{ name: "anonymous blog reader", keys: blog, budget: 1104 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1190,7 +1212,12 @@ const AUDIENCES = [
   // bar's door, which the other two have no status bar for; Sidebar.tsx gave
   // back more than that when `useLoggedDays` moved out to
   // client/loggedDays.ts.
-  { name: "admin first paint", keys: app, budget: 1554 * 1024 },
+  // 3.19.0 COURSE SIGILS: 1560.0 kB actual → 1561 (+6.0 kB; the actual is a
+  // few bytes over 1560 · 1024, so the whole kB above it is the budget). The blog
+  // reader's bytes above and nothing of the admin's own: the Sigils page, the
+  // Calendar page and the sigil form all GREW for this round, and all three
+  // are lazy chunks this first paint does not fetch.
+  { name: "admin first paint", keys: app, budget: 1561 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

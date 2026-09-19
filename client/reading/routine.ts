@@ -18,7 +18,9 @@ import "./routine.css";
 import type { FolderIcon } from "../../shared/folderIcons.ts";
 import { FOLDER_ICON_HAND_PATHS } from "../../shared/folderIconsHand.ts";
 import {
+  capacityOn,
   carriedTasks,
+  courseAsks,
   dayStatus,
   isoDate,
   routineStats,
@@ -27,6 +29,7 @@ import {
   weekOrder,
   weekStart,
   weekdayOfDate,
+  type CourseStep,
   type DayStatus,
   type EntryPatch,
   type RoutineEntry,
@@ -35,6 +38,7 @@ import {
   type RoutinePlan,
   type Weekday,
 } from "../../shared/routine.ts";
+import { courseCursor, courseProgress, courseRemaining, courseStepsOn, projectCourse } from "../../shared/course.ts";
 import { siteDate } from "../dates.ts";
 import { getTrackers, updateTracker } from "../api.ts";
 import { bannerSrc, resolveBanner } from "../banner.ts";
@@ -129,6 +133,18 @@ function dayLabel(iso: string, locale: string): string {
 
 function shortDay(iso: string, locale: string): string {
   return siteDate(`${iso}T12:00:00`, locale, { day: "numeric" }) || iso.slice(-2);
+}
+
+/** "14 March" — a date a projection can carry without a weekday in front of
+ *  it, and with a year only when it is not this one. */
+function dateLabel(iso: string, locale: string, today: string): string {
+  const opts: Intl.DateTimeFormatOptions =
+    iso.slice(0, 4) === today.slice(0, 4) ? { day: "numeric", month: "long" } : { day: "numeric", month: "long", year: "numeric" };
+  return siteDate(`${iso}T12:00:00`, locale, opts) || iso;
+}
+
+function bandDate(iso: string, locale: string): string {
+  return siteDate(`${iso}T12:00:00`, locale, { day: "numeric", month: "short" }) || iso;
 }
 
 function kindLabel(plan: RoutinePlan): string {
@@ -228,13 +244,48 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
   // Any day on the card can be visited: the day box redraws for it with its
   // own checklist, fields and note, editable where the card is editable
   // (a tick writes into THAT day's line), and a "Today" link comes back.
+  // ── A course says where it has got to, and where it is going ──
+  // "Step 12 of 96 · Genki I — lesson 1 · on course to finish 14 March". The
+  // finish date is PROJECTED, never stored: it moves on its own every time a
+  // day goes by unanswered, which is the whole point of the mode.
+  if (plan.mode === "course" && plan.course !== null) {
+    const progress = courseProgress(plan, entries);
+    const cursor = courseCursor(plan, entries);
+    const finish = courseFinishOf(plan, entries, today);
+    const line = el("p", "s-rv-routine__course");
+    const at = Math.min(progress.done + 1, progress.of);
+    // THE SEPARATORS ARE ELEMENTS, NOT `::before`. The unit is the author's
+    // own words and carries its own `dir`, so a generated dot on it takes
+    // THAT direction's start edge: "Kana" in an Arabic card put its dot on
+    // the wrong side and both dots piled up together. A dot of the chrome's
+    // own, between the parts, cannot be dragged anywhere by what they say.
+    const part = (node: HTMLElement): void => {
+      if (line.childElementCount > 0) {
+        const sep = el("span", "s-rv-routine__coursesep", "·");
+        sep.setAttribute("aria-hidden", "true");
+        line.appendChild(sep);
+      }
+      line.appendChild(node);
+    };
+    part(el("span", "s-rv-routine__coursestep", tf("sigilCourseWhere", { n: localeNum(at), of: localeNum(progress.of) })));
+    if (cursor && cursor.unit !== "") part(run("s-rv-routine__courseunit", cursor.unit));
+    part(
+      el(
+        "span",
+        "s-rv-routine__coursefinish",
+        finish === null ? t("sigilCourseFinished") : tf("sigilCourseFinish", { date: dateLabel(finish, locale, today) }),
+      ),
+    );
+    card.appendChild(line);
+  }
+
   const viewed = hooks.view && hooks.view !== today ? hooks.view : null;
-  const dayBox = renderDay(plan, entryOf(viewed ?? today), viewed ?? today, today, locale, interactive ? hooks.onLog : undefined);
+  const dayBox = renderDay(plan, entries, entryOf(viewed ?? today), viewed ?? today, today, locale, interactive ? hooks.onLog : undefined);
   const visit = (iso: string | null): void => {
     if (hooks.onView) hooks.onView(iso);
     else {
       // No page to keep the choice (the reading view): redraw in place.
-      const fresh = renderDay(plan, entryOf(iso ?? today), iso ?? today, today, locale, undefined);
+      const fresh = renderDay(plan, entries, entryOf(iso ?? today), iso ?? today, today, locale, undefined);
       wireBack(fresh, iso);
       card.querySelector(".s-rv-routine__today")?.replaceWith(fresh);
     }
@@ -344,7 +395,13 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
 
   // ── The plan ──
   const hasWeek = plan.slots.length > 0 || Object.values(plan.week).some((d) => d.length > 0);
-  if (hasWeek) {
+  if (plan.mode === "course" && plan.course !== null && plan.course.steps.length > 0) {
+    const details = el("details", "s-rv-routine__plan");
+    details.appendChild(el("summary", "s-rv-routine__plansum", t("sigilCoursePlanTitle")));
+    details.appendChild(renderCourseUnits(plan, entries, today, locale));
+    details.addEventListener("toggle", () => hooks.onResize?.());
+    card.appendChild(details);
+  } else if (hasWeek) {
     const details = el("details", "s-rv-routine__plan");
     details.appendChild(el("summary", "s-rv-routine__plansum", t("routinePlanTitle")));
     details.appendChild(renderPlanTable(plan, today, lang));
@@ -395,6 +452,7 @@ function renderBanner(value: string, hooks: RoutineHooks): HTMLElement {
  *  row when it is drawn per day. `onLog` present → controls; absent → text. */
 function renderDay(
   plan: RoutinePlan,
+  entries: RoutineEntry[],
   entry: RoutineEntry | null,
   iso: string,
   today: string,
@@ -410,12 +468,46 @@ function renderDay(
   head.appendChild(el("span", `s-rv-routine__status s-rv-routine__status--${status}`, t(STATUS_LABEL[status])));
   box.appendChild(head);
 
-  const tasks = tasksFor(plan, iso);
   const done = entry?.done ?? [];
   const skipped = entry?.skipped ?? [];
   const deferred = entry?.deferred ?? [];
+
+  // ── The day's steps, for a course ──
+  // They come FIRST and in their own list (`s-rv-routine__step`, not
+  // `__task`): the steps are what the day is about, and the every-day items
+  // below them stay the nth `.s-rv-routine__task` that `tasksFor` names, which
+  // is what lets client/routines/orbits.ts keep matching deck chips to rows.
+  if (plan.mode === "course" && plan.course !== null) {
+    const course = plan.course;
+    const steps = courseStepsOn(plan, entries, iso, today);
+    const asks = courseAsks(course, weekdayOfDate(iso));
+    const budget = capacityOn(course, weekdayOfDate(iso));
+    if (asks && budget !== null && budget > 0) {
+      head.insertBefore(
+        el("span", "s-rv-routine__coursebudget", tf("sigilCourseDayBudget", { n: localeNum(budget) })),
+        head.querySelector(".s-rv-routine__status"),
+      );
+    }
+    if (!asks) {
+      box.appendChild(el("p", "s-rv-routine__rest", t("sigilCourseRest")));
+    } else if (steps.length === 0) {
+      box.appendChild(el("p", "s-rv-routine__rest", courseRemaining(plan, entries).length === 0 ? t("sigilCourseNothing") : t("sigilCourseAhead")));
+    } else {
+      const list = el("ul", "s-rv-routine__tasks");
+      let unit: string | null = null;
+      for (const step of steps) {
+        list.appendChild(renderStep(step, step.unit === unit ? null : step.unit, done, skipped, iso, onLog));
+        unit = step.unit;
+      }
+      box.appendChild(list);
+    }
+  }
+
+  // The every-day items. A course has already spoken for the day above, so
+  // it does not also say "a rest day" when it happens to have no items.
+  const tasks = tasksFor(plan, iso).filter((task) => task.course !== true);
   if (tasks.length === 0) {
-    box.appendChild(el("p", "s-rv-routine__rest", t("routineRestDay")));
+    if (plan.mode !== "course") box.appendChild(el("p", "s-rv-routine__rest", t("routineRestDay")));
   } else {
     const list = el("ul", "s-rv-routine__tasks");
     for (const task of tasks) {
@@ -541,6 +633,104 @@ function renderDay(
     box.appendChild(p);
   }
   return box;
+}
+
+/** The finish date a course is on course for, or null when it is finished.
+ *  A thin wrapper so the card never imports the projection twice. */
+function courseFinishOf(plan: RoutinePlan, entries: RoutineEntry[], today: string): string | null {
+  const days = projectCourse(plan, entries, today);
+  return days.length === 0 ? null : days[days.length - 1].iso;
+}
+
+/** ONE STEP OF A COURSE. Tick it and the cursor moves on; skip it and the
+ *  cursor moves on without it. There is no "push to tomorrow" here — a
+ *  course pushes itself, which is the whole reason it exists. */
+function renderStep(
+  step: CourseStep,
+  unit: string | null,
+  done: string[],
+  skipped: string[],
+  iso: string,
+  onLog: ((patch: EntryPatch) => void) | undefined,
+): HTMLElement {
+  const isDone = done.some((d) => sameKey(d, step.key));
+  const isSkipped = skipped.some((d) => sameKey(d, step.key));
+  const li = el("li", `s-rv-routine__task s-rv-routine__step${isDone ? " is-done" : ""}${isSkipped ? " is-skipped" : ""}`);
+  const label = el("label", "s-rv-routine__tasklabel");
+  const check = el("input", "s-rv-routine__check");
+  check.type = "checkbox";
+  check.checked = isDone;
+  check.disabled = !onLog;
+  check.setAttribute("aria-label", step.unit === "" ? step.text : tf("sigilCourseStepAria", { unit: step.unit, text: step.text }));
+  if (onLog) {
+    check.addEventListener("change", () => {
+      const next = check.checked ? [...done.filter((d) => !sameKey(d, step.key)), step.key] : done.filter((d) => !sameKey(d, step.key));
+      onLog({ date: iso, done: next });
+    });
+  }
+  label.appendChild(check);
+  const words = el("span", "s-rv-routine__taskwords");
+  // The unit is an eyebrow over the first step that belongs to it, not over
+  // every one: a day inside one unit would otherwise say its name four times.
+  if (unit !== null && unit !== "") words.appendChild(run("s-rv-routine__stepunit", unit));
+  words.appendChild(run("s-rv-routine__tasktext", step.text));
+  label.appendChild(words);
+  li.appendChild(label);
+  if (step.minutes !== null) li.appendChild(el("span", "s-rv-routine__stepmin", tf("sigilCourseMinutes", { n: localeNum(step.minutes) })));
+  if (onLog && !isDone) {
+    const skip = el("button", `s-rv-routine__skip${isSkipped ? " is-on" : ""}`, isSkipped ? t("routineSkipped") : t("routineSkip"));
+    skip.type = "button";
+    skip.title = t("routineSkipTitle");
+    skip.addEventListener("click", () => {
+      const next = isSkipped ? skipped.filter((d) => !sameKey(d, step.key)) : [...skipped, step.key];
+      onLog({ date: iso, skipped: next });
+    });
+    li.appendChild(skip);
+  }
+  return li;
+}
+
+/** THE WHOLE COURSE, FOLDED AWAY: a row per unit with how much of it is
+ *  answered and the stretch of days the projection gives what is left —
+ *  "Genki I — lesson 3 · 4 of 12 done · 27 Oct – 9 Nov". */
+function renderCourseUnits(plan: RoutinePlan, entries: RoutineEntry[], today: string, locale: string): HTMLElement {
+  const course = plan.course;
+  const wrap = el("div", "s-rv-routine__units");
+  if (course === null) return wrap;
+  const left = new Set(courseRemaining(plan, entries).map((s) => s.key));
+  const span = new Map<string, { start: string; end: string }>();
+  for (const day of projectCourse(plan, entries, today)) {
+    for (const step of day.steps) {
+      const at = span.get(step.unit);
+      if (at === undefined) span.set(step.unit, { start: day.iso, end: day.iso });
+      else at.end = day.iso;
+    }
+  }
+  const order: string[] = [];
+  const counts = new Map<string, { done: number; of: number }>();
+  for (const step of course.steps) {
+    if (!counts.has(step.unit)) {
+      counts.set(step.unit, { done: 0, of: 0 });
+      order.push(step.unit);
+    }
+    const c = counts.get(step.unit)!;
+    c.of++;
+    if (!left.has(step.key)) c.done++;
+  }
+  const list = el("ul", "s-rv-routine__unitlist");
+  for (const unit of order) {
+    const c = counts.get(unit)!;
+    const row = el("li", `s-rv-routine__unit${c.done === c.of ? " is-done" : ""}`);
+    row.appendChild(unit === "" ? el("span", "s-rv-routine__unitname", t("sigilCourseUnnamed")) : run("s-rv-routine__unitname", unit));
+    row.appendChild(el("span", "s-rv-routine__unitcount", tf("sigilCourseUnitRow", { done: localeNum(c.done), of: localeNum(c.of) })));
+    const at = span.get(unit);
+    if (at !== undefined) {
+      row.appendChild(el("span", "s-rv-routine__unitdates", tf("sigilCourseBand", { start: bandDate(at.start, locale), end: bandDate(at.end, locale) })));
+    }
+    list.appendChild(row);
+  }
+  wrap.appendChild(list);
+  return wrap;
 }
 
 function renderField(f: RoutineField, value: string, iso: string, onLog: ((patch: EntryPatch) => void) | undefined): HTMLElement {

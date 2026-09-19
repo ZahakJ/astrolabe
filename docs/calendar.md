@@ -27,10 +27,18 @@ A cell carries the day's number and, under it, what that day held:
 - **The cards you graded** in [Orbits](orbits.md) that day — *3 cards* — read from this device's
   own log.
 - **Each book or work you read**, from the sittings in its [tracker](trackers.md).
+- **The steps a [course](sigils.md#a-course) is on course to ask of a day ahead**, faint and in
+  italic. They are projected, not recorded: nothing in the note is dated, and if you answer a step
+  late every one after it moves with it, here as on the card. A course's *past* days name the steps
+  you actually did rather than the course itself.
 
 Four lines fit; a busier day says *+2 more* under them and the day pane has the rest. Today is
 ringed. Days from the months either side fill out the first and last rows, in a quieter ink, and
 are there to be clicked like any other.
+
+Under the month, when a course has anything left in it, **the months ahead** as unit bands —
+*Japanese · Genki I — lesson 3 · 27 Oct – 9 Nov* — so a curriculum can be read in weeks rather than
+cell by cell. The bands and the faint cells come out of the same projection and cannot disagree.
 
 ## The day pane
 

@@ -36,7 +36,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addMonths, firstOfMonth, monthCells, noon, ymdOf, type GridCalendar, type GridCell } from "../../shared/calendar.ts";
-import { agendaByDay, emptyAgenda, gradedOn, type DayAgenda } from "../../shared/dayAgenda.ts";
+import { agendaBands, agendaByDay, emptyAgenda, gradedOn, type DayAgenda } from "../../shared/dayAgenda.ts";
 import { EVERYTHING_ELSE } from "../../shared/decks.ts";
 import { dateNamesLocale } from "../../shared/dates.ts";
 import { isNotePath, noteTitleOf } from "../../shared/noteFormat.ts";
@@ -89,6 +89,11 @@ function gridCalendars(lang: "en" | "ar"): { primary: GridCalendar; secondary: G
   const order = getDateBothStyle().order;
   const hijriFirst = order === "auto" ? lang === "ar" : order === "hijri-first";
   return hijriFirst ? { primary: "hijri", secondary: "gregorian" } : { primary: "gregorian", secondary: "hijri" };
+}
+
+/** "27 Oct" — a band's edge, short enough to sit twice on one row. */
+function bandDate(iso: string, locale: string): string {
+  return siteDate(`${iso}T12:00:00`, locale, { day: "numeric", month: "short" }) || iso;
 }
 
 function isRtl(): boolean {
@@ -171,6 +176,11 @@ export default function CalendarView() {
     () => agendaByDay(days, { notes, sigils: sources.routines, trackers: sources.trackers, grades: sources.grades }, today),
     [days, notes, sources, today],
   );
+  // THE MONTHS AHEAD, READ AS STRETCHES. A course's projected steps are one
+  // faint line per cell, which answers "what do I do on the 27th" and not
+  // "when does lesson 3 happen". The band strip under the grid answers the
+  // second question, out of the SAME projection, so the two cannot disagree.
+  const bands = useMemo(() => agendaBands(sources.routines, days, today), [sources.routines, days, today]);
 
   // ── The cursor, which is also the selection ──────────────────────────────
   const inMonth = useMemo(() => rows.flat().filter((c) => c.inMonth), [rows]);
@@ -313,6 +323,23 @@ export default function CalendarView() {
             ))}
           </tbody>
         </table>
+        {bands.length > 0 && (
+          <section className="s-calpage__bands" aria-label={t("sigilCourseBands")} data-testid="calendar-bands">
+            <h3 className="s-calpage__bandsh">{t("sigilCourseBands")}</h3>
+            <ul className="s-calpage__bandlist">
+              {bands.map((b, i) => (
+                <li key={`${b.path}#${b.index}#${i}`} className="s-calpage__band">
+                  <button type="button" className="s-calpage__panelink" dir="auto" onClick={() => openNote(b.path)}>
+                    {b.unit === "" ? b.title : `${b.title} · ${b.unit}`}
+                  </button>
+                  <span className="s-calpage__fact">
+                    {tf("sigilCourseBand", { start: bandDate(b.start, locale), end: bandDate(b.end, locale) })} · {countPhrase(b.steps, "steps")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         </div>
 
         {/* THE DAY PANE. Beside the grid where there is room, under it on a
@@ -346,6 +373,25 @@ export default function CalendarView() {
                   </li>
                 ))}
               </ul>
+            </section>
+          )}
+
+          {selected.projected.length > 0 && (
+            <section className="s-calpage__panesec">
+              <h3 className="s-calpage__paneh3">{t("sigilCourse")}</h3>
+              <ul className="s-calpage__panelist">
+                {selected.projected.map((p, i) => (
+                  <li key={`${p.path}#${p.index}#${i}`} className="s-calpage__panerow s-calpage__panerow--ahead">
+                    <button type="button" className="s-calpage__panelink" dir="auto" onClick={() => openNote(p.path)}>
+                      {p.text}
+                    </button>
+                    <span className="s-calpage__fact" dir="auto">
+                      {p.unit === "" ? p.title : `${p.title} · ${p.unit}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="s-calpage__panenote">{t("sigilCourseProjectedNote")}</p>
             </section>
           )}
 
@@ -425,10 +471,19 @@ function Cell({
   // vault it is titled by its own date, and a cell that prints "2026-09-15"
   // under a 15 has spent a line saying nothing. The lines are for what the
   // day held that the number cannot say.
-  const lines: string[] = [];
-  for (const s of day.sigils) lines.push(s.title);
-  if (graded.graded > 0) lines.push(countPhrase(graded.graded, "cards"));
-  for (const tr of day.trackers) lines.push(tr.title);
+  // A line is either something the day HELD (solid) or something a course is
+  // on course to ask of it (faint): the projection is not a fact about the
+  // day, and drawing it in the same ink as a kept sigil would say it was.
+  const lines: { text: string; ahead?: true }[] = [];
+  for (const s of day.sigils) {
+    // A course's day is named by the step it answered, not by the course:
+    // "Japanese" on twenty cells says nothing the month did not already.
+    if (s.steps.length > 0) for (const step of s.steps) lines.push({ text: step });
+    else lines.push({ text: s.title });
+  }
+  if (graded.graded > 0) lines.push({ text: countPhrase(graded.graded, "cards") });
+  for (const tr of day.trackers) lines.push({ text: tr.title });
+  for (const p of day.projected) lines.push({ text: p.text, ahead: true });
   const shown = lines.slice(0, ROWS_PER_CELL);
   const dayName = siteDate(cell.date, locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   // The whole cell in one sentence, because the rows inside it are not
@@ -439,6 +494,7 @@ function Cell({
     ...day.sigils.map((s) => `${s.title} — ${t(STATUS_LABEL[s.status])}`),
     graded.graded > 0 ? countPhrase(graded.graded, "cards") : null,
     ...day.trackers.map((tr) => tr.title),
+    ...day.projected.map((p) => `${p.text} — ${t("sigilCourseProjected")}`),
   ]
     .filter(Boolean)
     .join(", ");
@@ -477,8 +533,8 @@ function Cell({
         </span>
         <span className="s-calpage__lines" aria-hidden="true">
           {shown.map((line, i) => (
-            <span key={i} className="s-calpage__line" dir="auto">
-              {line}
+            <span key={i} className={line.ahead ? "s-calpage__line s-calpage__line--ahead" : "s-calpage__line"} dir="auto">
+              {line.text}
             </span>
           ))}
           {lines.length > shown.length && <span className="s-calpage__more">{tf("calendarMore", { n: localeNum(lines.length - shown.length) })}</span>}

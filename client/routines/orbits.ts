@@ -57,6 +57,7 @@ export function linksOf(task: RoutineTask, tree: TreeNode | null): TaskLink[] {
 function tasksLinking(meta: RoutineMeta, date: string, path: string, tree: TreeNode | null): { task: RoutineTask; links: TaskLink[] }[] {
   const out: { task: RoutineTask; links: TaskLink[] }[] = [];
   for (const task of tasksFor(meta.plan, date)) {
+    if (task.course === true) continue;
     const links = linksOf(task, tree);
     if (links.some((l) => l.path !== null && samePath(l.path, path))) out.push({ task, links });
   }
@@ -149,8 +150,12 @@ export async function tickSlotForDeck(path: string): Promise<number> {
  *  after each draw and holds nothing between draws. */
 export function decorateDeckTasks(card: HTMLElement, meta: RoutineMeta, today: string): void {
   const tree = useStore.getState().tree;
-  const tasks = tasksFor(meta.plan, today);
-  const rows = card.querySelectorAll<HTMLElement>(".s-rv-routine__task");
+  // A COURSE'S STEPS ARE NOT IN THIS LIST. `tasksFor` answers a course with
+  // its every-day items and ONE sentinel task standing for "the day's steps";
+  // the card draws the steps in their own rows (`s-rv-routine__step`) above
+  // the items, so dropping the sentinel keeps the nth task the nth row.
+  const tasks = tasksFor(meta.plan, today).filter((task) => task.course !== true);
+  const rows = card.querySelectorAll<HTMLElement>(".s-rv-routine__task:not(.s-rv-routine__step)");
   const wanted: { row: HTMLElement; links: TaskLink[] }[] = [];
   // The renderer draws tasksFor(plan, today) in order, one <li> each, so the
   // nth row is the nth task.

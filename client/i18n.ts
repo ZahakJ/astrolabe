@@ -4840,6 +4840,53 @@ const DICT = {
   weekdayFri: { en: "Fri", ar: "جمعة" },
   weekdaySat: { en: "Sat", ar: "سبت" },
   weekdaySun: { en: "Sun", ar: "أحد" },
+  // ── A course: the second mode of a sigil (shared/routine.ts) ──
+  // مسار is the course, خطوة the step, وحدة the unit — the owner's words.
+  sigilCourse: { en: "Course", ar: "مسار" },
+  sigilCourseWhere: { en: "Step {n} of {of}", ar: "الخطوة {n} من {of}" },
+  sigilCourseFinish: { en: "on course to finish {date}", ar: "على المسار للانتهاء في {date}" },
+  sigilCourseFinished: { en: "every step done", ar: "تمّت كل الخطوات" },
+  sigilCourseNothing: { en: "Nothing left on this course.", ar: "لم يبقَ شيء في هذا المسار." },
+  sigilCourseRest: { en: "No step today — a rest day on this course.", ar: "لا خطوة اليوم؛ يوم راحة في هذا المسار." },
+  sigilCourseAhead: { en: "Today's steps are done. The next one waits for tomorrow.", ar: "خطوات اليوم تمّت. التالية تنتظر الغد." },
+  sigilCourseMinutes: { en: "{n} min", ar: "{n} د" },
+  sigilCourseDayBudget: { en: "{n} min today", ar: "{n} د اليوم" },
+  sigilCoursePlanTitle: { en: "The whole course", ar: "المسار كاملًا" },
+  sigilCourseUnitRow: { en: "{done} of {of} done", ar: "{done} من {of} تمّت" },
+  sigilCourseUnnamed: { en: "The steps", ar: "الخطوات" },
+  sigilCourseBands: { en: "The months ahead", ar: "الأشهر القادمة" },
+  sigilCourseBand: { en: "{start} – {end}", ar: "من {start} إلى {end}" },
+  sigilCourseProjected: { en: "projected", ar: "متوقَّع" },
+  sigilCourseProjectedNote: {
+    en: "Nothing here is dated in the note. Answer a step late and every one after it moves with it.",
+    ar: "لا شيء هنا مؤرَّخ في الملاحظة. أجب عن خطوة متأخرًا فتتحرك معها كل خطوة بعدها.",
+  },
+  sigilCourseStepAria: { en: "In {unit}: {text}", ar: "في {unit}: {text}" },
+  // ── The form's course half ──
+  routineFormMode: { en: "What this sigil is", ar: "ما هذا السِّجِلّ" },
+  routineFormModeWeek: { en: "A week", ar: "أسبوع" },
+  routineFormModeCourse: { en: "A course", ar: "مسار" },
+  routineFormModeHint: {
+    en: "A week asks the same things every Monday. A course is an ordered list of steps: it asks for the next one, and the dates move themselves when you fall behind.",
+    ar: "الأسبوع يطلب الأشياء نفسها كل اثنين. المسار قائمة خطوات مرتّبة: يطلب التالية، والتواريخ تتحرك وحدها إذا تأخّرت.",
+  },
+  routineFormDays: { en: "Days that get a step", ar: "الأيام التي تأخذ خطوة" },
+  routineFormDaysHint: { en: "Untick a day and the course steps over it — nothing is owed and nothing counts against you.", ar: "أزل علامة يوم فيتخطّاه المسار؛ لا شيء مستحق ولا شيء يُحسب عليك." },
+  routineFormCapacity: { en: "Time a day", ar: "الوقت في اليوم" },
+  routineFormCapacityPlaceholder: { en: "15 min · sat 45 min · sun 0", ar: "15 د · سبت 45 د · أحد 0" },
+  routineFormCapacityHint: {
+    en: "How long you have. A day takes steps until its time runs out; name a day to give it its own. Leave it empty and each day takes exactly one step.",
+    ar: "كم من الوقت لديك. يأخذ اليوم خطوات حتى ينفد وقته؛ سمِّ يومًا لتعطيه وقته. اتركه فارغًا فيأخذ كل يوم خطوة واحدة.",
+  },
+  routineFormSectionCourse: { en: "The course", ar: "المسار" },
+  routineFormSteps: { en: "The steps", ar: "الخطوات" },
+  routineFormStepsHint: {
+    en: "One step a line, opening with «-». A line opening with «#» names the unit the steps under it belong to. Put the minutes a step wants in brackets at the end: (45 min).",
+    ar: "خطوة في كل سطر تبدأ بـ«-». والسطر الذي يبدأ بـ«#» يسمّي الوحدة التي تتبعها الخطوات تحته. ضع دقائق الخطوة بين قوسين في آخرها: (45 د).",
+  },
+  routineFormStepsCount: { en: "{steps} in {units}", ar: "{steps} في {units}" },
+  routineFormStepsFinish: { en: "starting today, the last step lands on {date}", ar: "ابتداءً من اليوم، تقع الخطوة الأخيرة في {date}" },
+  routineFormStepsNone: { en: "No steps yet.", ar: "لا خطوات بعد." },
   slashRoutine: { en: "Sigil", ar: "سِجِلّ" },
   // ── Reading pace (shared/tracker.ts paceProjection) ──
   trackerPaceDoneBy: { en: "{pace} a day — done by {date}", ar: "{pace} في اليوم؛ ينتهي في {date}" },
@@ -5416,6 +5463,7 @@ export function tf(key: I18nKey, vars: Record<string, string | number>): string 
 
 export type CountUnit =
   | "units"
+  | "steps"
   | "notes"
   | "files"
   | "trashItems"
@@ -5468,6 +5516,8 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   notes: { en: ["note", "notes"], ar: { one: "ملاحظة واحدة", two: "ملاحظتان", few: "ملاحظات", many: "ملاحظة" } },
   // The library counts units (chapters, lectures) beside the lessons above.
   units: { en: ["unit", "units"], ar: { one: "وحدة واحدة", two: "وحدتان", few: "وحدات", many: "وحدة" } },
+  // A course's steps (shared/routine.ts) — the thing a course is a list of.
+  steps: { en: ["step", "steps"], ar: { one: "خطوة واحدة", two: "خطوتان", few: "خطوات", many: "خطوة" } },
   replacements: {
     en: ["replacement", "replacements"],
     ar: { one: "استبدال واحد", two: "استبدالان", few: "استبدالات", many: "استبدالًا" },

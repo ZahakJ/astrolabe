@@ -3,7 +3,7 @@
 // trackers' sittings — and stored nowhere.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { agendaByDay, emptyAgenda, gradedOn, type AgendaSources } from "../shared/dayAgenda.ts";
+import { agendaBands, agendaByDay, emptyAgenda, gradedOn, type AgendaSources } from "../shared/dayAgenda.ts";
 import { parseRoutine, parseRoutineLog } from "../shared/routine.ts";
 import type { ReviewGrade } from "../shared/weekReview.ts";
 
@@ -43,7 +43,7 @@ describe("an empty month", () => {
   });
 
   it("hands back a whole empty day for a caller that asks for one", () => {
-    assert.deepEqual(emptyAgenda("2026-09-15"), { iso: "2026-09-15", note: null, sigils: [], decks: [], trackers: [], count: 0 });
+    assert.deepEqual(emptyAgenda("2026-09-15"), { iso: "2026-09-15", note: null, sigils: [], decks: [], trackers: [], projected: [], count: 0 });
   });
 });
 
@@ -158,6 +158,53 @@ describe("the sittings", () => {
     );
     assert.equal(out.get("2026-09-14")?.trackers.length, 1);
     assert.equal(out.get("2026-09-16")?.trackers.length, 0);
+  });
+});
+
+describe("a course on the month (3.19.0)", () => {
+  const COURSE = `title: Japanese
+mode: course
+days: mon, tue, wed, thu, fri
+steps: |
+  # Kana
+  - hiragana rows
+  - katakana rows
+  # Genki I
+  - lesson 1
+  - lesson 2`;
+  function course(log: string) {
+    const plan = parseRoutine(COURSE);
+    assert.ok(plan !== null);
+    return { path: "Sigils/Japanese.md", index: 0, plan, entries: parseRoutineLog(log, plan.fields) };
+  }
+  // Mon 2026-09-14 … Fri 2026-09-18, with Wednesday as today.
+  const WEEK = ["2026-09-14", "2026-09-15", "2026-09-16", "2026-09-17", "2026-09-18"];
+
+  it("draws the steps a day answered solid and the ones ahead of it faint", () => {
+    const key = course("").plan.course!.steps[0].key;
+    const done = course(`2026-09-14 | done: ${key}`);
+    const out = agendaByDay(WEEK, { ...EMPTY, sigils: [done] }, TODAY);
+    assert.deepEqual(out.get("2026-09-14")!.sigils[0].steps, ["hiragana rows"], "the day it happened");
+    assert.deepEqual(out.get("2026-09-14")!.projected, [], "nothing is projected behind today");
+    // From today (Wednesday) the three that are left take the next three days.
+    assert.deepEqual(
+      WEEK.map((iso) => out.get(iso)!.projected.map((p) => p.text)),
+      [[], [], ["katakana rows"], ["lesson 1"], ["lesson 2"]],
+    );
+    assert.equal(out.get("2026-09-18")!.count, 1, "a projected step is something the day holds");
+  });
+
+  it("reads the months ahead as unit bands", () => {
+    const bands = agendaBands([course("")], WEEK, TODAY);
+    assert.deepEqual(
+      bands.map((b) => [b.title, b.unit, b.start, b.end, b.steps]),
+      [
+        ["Japanese", "Kana", "2026-09-16", "2026-09-17", 2],
+        ["Japanese", "Genki I", "2026-09-18", "2026-09-18", 1],
+      ],
+    );
+    // A weekly sigil has no bands at all.
+    assert.deepEqual(agendaBands([sigil("Sigils/Morning.md", "")], WEEK, TODAY), []);
   });
 });
 

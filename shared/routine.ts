@@ -166,12 +166,71 @@ export interface RoutineField {
   max: number | null;
 }
 
+// ── A course ────────────────────────────────────────────────────────────────
+//
+// THE SECOND MODE OF THE SAME FENCE. A weekly sigil says what MONDAY asks;
+// a course says what comes NEXT. The owner: "there has to be a way to
+// dynamically ask a sigil to keep moving/bumping yesterday's task if not done
+// because future tasks depend on it … if it takes me two days instead of one
+// the schedule handles it by shifting the task to the second day".
+//
+// So a course is an ORDERED LIST OF STEPS grouped in units, and NOTHING IN
+// THE NOTE IS DATED. The cursor is the first step neither done nor skipped;
+// the dates a card or a calendar shows are PROJECTED, each time, by walking
+// forward from today over the allowed days and packing steps by the day's
+// capacity. Miss a day and the note does not change — the projection simply
+// recomputes from the same cursor, and everything after it shifts. That is
+// the whole trick: a schedule that is never written down cannot go stale.
+
+/** One step of a course. */
+export interface CourseStep {
+  /** What the log's `done:` names it: the `[k3]` tag when the note carries
+   *  one, else a short hash of its unit and its words. */
+  key: string;
+  /** True when the NOTE spells the key — the app stamps one in the first
+   *  time a step is ticked, and from then on the words may be rewritten
+   *  without the tick moving. */
+  tagged: boolean;
+  /** The `# heading` above it ("Genki I — lesson 1"); "" before the first. */
+  unit: string;
+  /** The step's words, without its marker, its `(N min)` or its tag. */
+  text: string;
+  /** `(45 min)` → 45; null when the step names no budget. */
+  minutes: number | null;
+  /** Its place in the ordered list, from 0. */
+  index: number;
+  /** The line of the FENCE BODY it was written on, from 0 — what lets a key
+   *  be stamped into the note without reformatting a byte around it. */
+  line: number;
+}
+
+/** The course half of a plan: everything `mode: course` adds. */
+export interface CoursePlan {
+  /** The weekdays that get steps; every other day is a rest day. */
+  days: Weekday[];
+  /** True when the note wrote a `days:` line (so one is written back). */
+  daysWritten: boolean;
+  /** Minutes a day, or null for "one step a day". */
+  capacity: number | null;
+  /** The days that ask for something other than the default. */
+  capacityByDay: Partial<Record<Weekday, number>>;
+  /** The `capacity:` line as written, so an edit round-trips. */
+  capacityText: string;
+  steps: CourseStep[];
+  /** The `steps: |` block verbatim, one line per line, unindented. */
+  source: string;
+}
+
 /** One thing a day's checklist asks for: an every-day item, or a slot of the
  *  weekday's plan. `key` is what the log's `done:` names. */
 export interface RoutineTask {
   /** True for the reading task a `book:` line adds: its text and its nudge
    *  come from the tracker at render time. */
   book?: boolean;
+  /** True for the ONE task a course's day asks: its steps, whatever they
+   *  turn out to be. It is not a key the log ever names — the log names the
+   *  STEPS — so `dayStatus` answers it through `courseDayMet` instead. */
+  course?: boolean;
   key: string;
   /** The plan text for a weekday slot ("60 min brisk walk"); null for a bare
    *  every-day item, whose key is its whole text. */
@@ -193,10 +252,20 @@ export interface RoutinePlan {
    *  resolved the way a note's banner is (client/banner.ts): an https URL,
    *  a vault path, a file beside the note, or a bare filename. */
   banner: string | null;
+  /** `mode:` — "week" (the default: a plan by the weekday) or "course" (an
+   *  ordered list of steps, dated by projection and never in the note). */
+  mode: "week" | "course";
+  /** The course half, or null for a weekly sigil. */
+  course: CoursePlan | null;
   /** The declared columns of the week, in order; may be empty. */
   slots: string[];
   /** Every-day items, in order. */
   items: string[];
+  /** What the `items:` line put BETWEEN them — `", "`, or `" · "` when the
+   *  author used the middle dot (which is what a line of wikilinks wants:
+   *  `[[a]] · [[b]]` reads, `[[a]], [[b]]` does not). Kept so a plan opened
+   *  in the form and saved untouched comes back byte for byte. */
+  itemsSep: string;
   /** The plan per weekday: slot → text, in the order written. A weekday with
    *  no entry is a rest day unless `items` says otherwise. */
   week: Record<Weekday, { slot: string; text: string }[]>;
@@ -237,9 +306,15 @@ export function foldDigits(s: string): string {
 
 const FIELD_RE = /^(\s*)([^\s:][^:]*?)\s*:(.*)$/;
 
+/** A `key: a, b, c` list. The middle dot joins as a comma does: the owner
+ *  writes `items: [[Orbits/Japanese/Hiragana]] · [[…/Katakana]]` and a
+ *  `capacity:` line reads `15 min · sat 45 min`, which is how both read best
+ *  in Obsidian. Nothing a sigil already in the vault writes as a LIST holds a
+ *  middle dot (the ones that do hold it hold it in a slot's TEXT, which never
+ *  comes through here). */
 function splitList(raw: string): string[] {
   return raw
-    .split(/[,،]/)
+    .split(/[,،·•]/)
     .map((s) => s.trim())
     .filter((s) => s !== "");
 }
@@ -291,6 +366,112 @@ function parseTarget(raw: string): number | null {
   return n >= 1 && n <= 7 ? n : null;
 }
 
+// ── Reading a course ────────────────────────────────────────────────────────
+
+/** `45 min`, `1 h`, `٣٠ د`, or a bare `0` → minutes; null for anything else. */
+function parseMinutes(raw: string): number | null {
+  const m = /(\d+(?:\.\d+)?)\s*([A-Za-z؀-ۿ]*)/.exec(foldDigits(raw).trim());
+  if (!m) return null;
+  const n = Number(m[1]);
+  if (!Number.isFinite(n) || n < 0) return null;
+  const word = m[2].toLowerCase();
+  const hours = ["h", "hr", "hrs", "hour", "hours", "س", "ساعة", "ساعات", "ساعه"].includes(word);
+  return Math.round(hours ? n * 60 : n);
+}
+
+/** FNV-1a, six base-36 digits: a step's name when the note gives it none.
+ *  Short enough to read in the log, wide enough that two steps of one course
+ *  do not collide by accident — and when two DO say the same words under the
+ *  same heading, the second takes `-2` (see `courseSteps`). */
+function shortHash(s: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return `k${h.toString(36).padStart(6, "0").slice(-6)}`;
+}
+
+/** An explicit key at the end of a step's line — `[k3]`, `[kana-1]`. A
+ *  wikilink is not one: `[[Hiragana]]` keeps its second bracket, so the
+ *  character before the opener must not be one. */
+const STEP_TAG_RE = /(^|[^[])\[([A-Za-z0-9_-]{1,24})\]\s*$/;
+const STEP_MINUTES_RE = /\s*\(([\d٠-٩]+(?:\.[\d٠-٩]+)?)\s*([A-Za-z؀-ۿ]{1,7})\)\s*$/;
+const STEP_LINE_RE = /^\s*[-*+•]\s+(.*)$/;
+const UNIT_LINE_RE = /^\s*#{1,6}\s+(.*)$/;
+
+/** The steps of a `steps: |` block. `offset` is the fence-body line the
+ *  block's first line sits on, so every step can say where it was written
+ *  and a key can be stamped into that line and nothing else. */
+function courseSteps(lines: string[], offset: number): CourseStep[] {
+  const out: CourseStep[] = [];
+  const seen = new Map<string, number>();
+  let unit = "";
+  for (let i = 0; i < lines.length; i++) {
+    const heading = UNIT_LINE_RE.exec(lines[i]);
+    if (heading) {
+      unit = heading[1].trim();
+      continue;
+    }
+    const step = STEP_LINE_RE.exec(lines[i]);
+    if (!step) continue;
+    let text = step[1].trim();
+    let tagged = false;
+    let key = "";
+    const tag = STEP_TAG_RE.exec(text);
+    if (tag) {
+      tagged = true;
+      key = tag[2];
+      text = text.slice(0, text.length - tag[0].length + tag[1].length).trim();
+    }
+    let minutes: number | null = null;
+    const mins = STEP_MINUTES_RE.exec(text);
+    if (mins) {
+      minutes = parseMinutes(`${mins[1]} ${mins[2]}`);
+      if (minutes !== null) text = text.slice(0, text.length - mins[0].length).trim();
+    }
+    if (text === "" && !tagged) continue;
+    if (!tagged) {
+      const base = shortHash(`${unit}\n${text}`);
+      const nth = (seen.get(base) ?? 0) + 1;
+      seen.set(base, nth);
+      key = nth === 1 ? base : `${base}-${nth}`;
+    }
+    out.push({ key, tagged, unit, text, minutes, index: out.length, line: offset + i });
+  }
+  return out;
+}
+
+/** `capacity: 15 min · sat 45 min · sun 0` → the default and the days that
+ *  ask for something else. */
+function parseCapacity(raw: string): { capacity: number | null; byDay: Partial<Record<Weekday, number>> } {
+  let capacity: number | null = null;
+  const byDay: Partial<Record<Weekday, number>> = {};
+  for (const part of splitList(raw)) {
+    const word = /^\s*(\S+)\s*(.*)$/.exec(part);
+    if (!word) continue;
+    const wd = weekdayOf(word[1]);
+    if (wd !== null) {
+      const n = parseMinutes(word[2]);
+      if (n !== null) byDay[wd] = n;
+      continue;
+    }
+    const n = parseMinutes(part);
+    if (n !== null && capacity === null) capacity = n;
+  }
+  return { capacity, byDay };
+}
+
+/** The minutes `wd` is given: its own budget, else the course's. */
+export function capacityOn(course: CoursePlan, wd: Weekday): number | null {
+  return course.capacityByDay[wd] ?? course.capacity;
+}
+
+/** True when a course asks anything of `wd` at all. */
+export function courseAsks(course: CoursePlan, wd: Weekday): boolean {
+  return course.days.includes(wd) && capacityOn(course, wd) !== 0;
+}
+
 // ── The plan ────────────────────────────────────────────────────────────────
 
 function emptyWeek(): RoutinePlan["week"] {
@@ -308,6 +489,7 @@ export function parseRoutine(body: string): RoutinePlan | null {
   let banner: string | null = null;
   const slots: string[] = [];
   const items: string[] = [];
+  let itemsSep = ", ";
   const week = emptyWeek();
   const fields: RoutineField[] = [];
   let target: number | null = null;
@@ -315,6 +497,13 @@ export function parseRoutine(body: string): RoutinePlan | null {
   let notes: string | null = null;
   let day: Weekday | null = null;
   let anyPlan = false;
+  let mode: "week" | "course" = "week";
+  let days: Weekday[] = [];
+  let daysWritten = false;
+  let capacityText = "";
+  let stepSource: string | null = null;
+  let stepLines: string[] = [];
+  let stepOffset = 0;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -386,6 +575,7 @@ export function parseRoutine(body: string): RoutinePlan | null {
       case "يوميا":
       case "بنود":
         for (const s of splitList(value)) if (!items.includes(s)) items.push(s);
+        if (/[·•]/.test(value)) itemsSep = " · ";
         if (items.length > 0) anyPlan = true;
         break;
       case "fields":
@@ -407,6 +597,46 @@ export function parseRoutine(body: string): RoutinePlan | null {
         book = value.replace(/^\[\[|\]\]$/g, "").split("|")[0].trim() || null;
         if (book) anyPlan = true;
         break;
+      // ── A course: the second mode of this fence ──
+      case "mode":
+      case "نمط":
+      case "وضع":
+        if (["course", "path", "curriculum", "مسار", "منهج"].includes(value.toLowerCase())) mode = "course";
+        break;
+      case "days":
+      case "أيام":
+      case "ايام":
+        for (const word of splitList(value)) {
+          const wd = weekdayOf(word);
+          if (wd !== null && !days.includes(wd)) days.push(wd);
+        }
+        daysWritten = true;
+        break;
+      case "capacity":
+      case "budget":
+      case "سعة":
+      case "ميزانية":
+        capacityText = value;
+        break;
+      case "steps":
+      case "خطوات": {
+        // A block scalar, `notes:`'s rule: every line after it that is blank
+        // or indented belongs to it, verbatim — comments, blank lines and
+        // all, so what the author wrote comes back byte for byte.
+        const buf: string[] = [];
+        let j = i + 1;
+        for (; j < lines.length; j++) {
+          if (lines[j].trim() !== "" && !/^\s/.test(lines[j])) break;
+          buf.push(lines[j].replace(/^ {1,2}/, ""));
+        }
+        stepOffset = i + 1;
+        // Trailing blank lines belong to the fence, not to the block.
+        while (buf.length > 0 && buf[buf.length - 1].trim() === "") buf.pop();
+        i = stepOffset + buf.length - 1;
+        stepLines = buf;
+        stepSource = buf.join("\n");
+        break;
+      }
       case "notes":
       case "ملاحظات":
         if (value === "|" || value === ">" || value === "") {
@@ -425,6 +655,24 @@ export function parseRoutine(body: string): RoutinePlan | null {
         break;
     }
   }
+  // A course, assembled: `mode: course` declares it, and a `steps:` block on
+  // its own is enough — an author who wrote the steps and forgot the mode
+  // line meant a course, and the fence says so plainly enough.
+  let course: CoursePlan | null = null;
+  if (mode === "course" || stepSource !== null) {
+    mode = "course";
+    const cap = parseCapacity(capacityText);
+    course = {
+      days: days.length > 0 ? WEEKDAYS.filter((wd) => days.includes(wd)) : [...WEEKDAYS],
+      daysWritten,
+      capacity: cap.capacity,
+      capacityByDay: cap.byDay,
+      capacityText,
+      steps: courseSteps(stepLines, stepOffset),
+      source: stepSource ?? "",
+    };
+    if (course.steps.length > 0) anyPlan = true;
+  }
   if (title === null && !anyPlan) return null;
   // Slots the week uses but the header never declared still get a column,
   // in the order they first appear, so a plan without `slots:` lays out.
@@ -436,8 +684,11 @@ export function parseRoutine(body: string): RoutinePlan | null {
     icon: routineIcon(kind),
     emoji,
     banner,
+    mode,
+    course,
     slots,
     items,
+    itemsSep,
     week,
     fields,
     target,
@@ -454,12 +705,31 @@ export function tasksFor(plan: RoutinePlan, iso: string): RoutineTask[] {
   if (plan.book !== null) out.push({ key: "read", text: plan.book, slot: null, book: true });
   for (const item of plan.items) out.push({ key: item, text: null, slot: null });
   const wd = weekdayOfDate(iso);
+  // A COURSE HAS NO WEEK. Its every-day items are asked as they always were,
+  // and the steps are ONE task — "the day's steps" — because which steps they
+  // are is a question about the log, and this function is only asked what the
+  // day owes. `COURSE_TASK` is a sentinel, never a key a log names.
+  if (plan.mode === "course" && plan.course !== null) {
+    if (courseAsks(plan.course, wd)) out.push({ key: COURSE_TASK, text: null, slot: null, course: true });
+    return out;
+  }
   for (const s of plan.week[wd]) out.push({ key: s.slot === "" ? wd : s.slot, text: s.text, slot: s.slot === "" ? null : s.slot });
   return out;
 }
 
+/** The key of the one task a course's day asks. NUL-prefixed so nothing a
+ *  reader could type into a plan or a log can ever equal it. */
+export const COURSE_TASK = "\u0000steps";
+
 function sameKey(a: string, b: string): boolean {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
+/** Whether `entry` answers `task` on `iso`: a tick in the log, or — for the
+ *  course task, which the log never names — a day's worth of steps done. */
+function taskDone(plan: RoutinePlan, entry: RoutineEntry | null, task: RoutineTask, iso: string): boolean {
+  if (task.course === true) return courseDayMet(plan, entry, iso);
+  return entry?.done.some((d) => sameKey(d, task.key)) ?? false;
 }
 
 /** How `date` went: every task ticked → complete; some → partial; a day with
@@ -473,7 +743,7 @@ export function dayStatus(plan: RoutinePlan, entry: RoutineEntry | null, iso: st
     if (entry && (Object.keys(entry.values).length > 0 || entry.note !== null || entry.done.length > 0)) return "complete";
     return "rest";
   }
-  const done = tasks.filter((t) => entry?.done.some((d) => sameKey(d, t.key))).length;
+  const done = tasks.filter((t) => taskDone(plan, entry, t, iso)).length;
   if (done === tasks.length) return "complete";
   if (done > 0) return "partial";
   if (iso < today) return "missed";
@@ -484,8 +754,24 @@ export function dayStatus(plan: RoutinePlan, entry: RoutineEntry | null, iso: st
 export function dayRatio(plan: RoutinePlan, entry: RoutineEntry | null, iso: string): number {
   const tasks = tasksFor(plan, iso);
   if (tasks.length === 0) return entry && (entry.done.length > 0 || Object.keys(entry.values).length > 0 || entry.note !== null) ? 1 : 0;
-  const done = tasks.filter((t) => entry?.done.some((d) => sameKey(d, t.key))).length;
+  const done = tasks.filter((t) => taskDone(plan, entry, t, iso)).length;
   return done / tasks.length;
+}
+
+/** Did `iso` do its day's worth? A day with no budget is done on one step;
+ *  a day with one is done when the minutes of what was ticked reach it — and
+ *  a step that names no minutes fills whatever day it was done on, because
+ *  the note gave no other way to measure it. */
+export function courseDayMet(plan: RoutinePlan, entry: RoutineEntry | null, iso: string): boolean {
+  const course = plan.course;
+  if (course === null || entry === null) return false;
+  const byKey = new Map(course.steps.map((s) => [s.key.toLowerCase(), s]));
+  const done = entry.done.map((k) => byKey.get(k.trim().toLowerCase())).filter((s): s is CourseStep => s !== undefined);
+  if (done.length === 0) return false;
+  const cap = capacityOn(course, weekdayOfDate(iso));
+  if (cap === null || cap <= 0) return true;
+  if (done.some((s) => s.minutes === null)) return true;
+  return done.reduce((n, s) => n + (s.minutes ?? 0), 0) >= cap;
 }
 
 // ── The log ─────────────────────────────────────────────────────────────────
@@ -868,6 +1154,32 @@ export interface TextEdit {
  *  day's line replaced or added inside the existing log fence, or a whole
  *  new log fence written right under the plan when the note has none yet.
  *  Null when the note has no such plan, or nothing would change. */
+/** `body` with `[key]` stamped onto the lines those steps were written on,
+ *  and every other byte — CRLF, indentation, comments — left alone. */
+function stampSteps(body: string, steps: readonly CourseStep[]): string {
+  if (steps.length === 0) return body;
+  const byLine = new Map(steps.map((s) => [s.line, s.key]));
+  const parts = body.match(/[^\n]*\n|[^\n]+$/g) ?? [];
+  return parts
+    .map((raw, i) => {
+      const key = byLine.get(i);
+      if (key === undefined) return raw;
+      const eol = /(\r?\n)?$/.exec(raw)?.[1] ?? "";
+      const text = raw.slice(0, raw.length - eol.length);
+      return `${text.replace(/\s+$/, "")} [${key}]${eol}`;
+    })
+    .join("");
+}
+
+/** The steps a patch names that the NOTE does not name yet. Ticking one is
+ *  what freezes its key: until then the key is a hash of its own words, and
+ *  rewriting the words would rewrite the key and lose the tick. */
+function stepsToStamp(plan: RoutinePlan, entry: RoutineEntry): CourseStep[] {
+  if (plan.mode !== "course" || plan.course === null) return [];
+  const named = new Set([...entry.done, ...entry.skipped, ...entry.deferred].map((k) => k.trim().toLowerCase()));
+  return plan.course.steps.filter((s) => !s.tagged && named.has(s.key.toLowerCase()));
+}
+
 export function logEditFor(md: string, index: number, patch: EntryPatch): TextEdit | null {
   const spans = routineFenceSpans(md);
   const plan = spans.find((s) => s.kind === "routine" && s.index === index);
@@ -878,12 +1190,22 @@ export function logEditFor(md: string, index: number, patch: EntryPatch): TextEd
   const existing = log ? parseRoutineLog(log.body, parsed.fields) : [];
   const current = existing.find((e) => e.date === patch.date) ?? null;
   const merged = mergeEntry(current, patch);
+  // A COURSE STEP SIGNS ITS OWN LINE, ONCE. The plan edit and the log edit
+  // go out as ONE change — the plan fence always comes before its log, so
+  // the span from the plan's body to the log's covers both and the bytes
+  // between them are carried over untouched. One dispatch, one undo step.
+  const stamp = stampSteps(plan.body, stepsToStamp(parsed, merged));
+  const withPlan = (edit: TextEdit | null): TextEdit | null => {
+    if (stamp === plan.body) return edit;
+    if (edit === null) return { from: plan.bodyStart, to: plan.bodyEnd, insert: stamp };
+    return { from: plan.bodyStart, to: edit.to, insert: stamp + md.slice(plan.bodyEnd, edit.from) + edit.insert };
+  };
   if (log) {
     const next = upsertLogLine(log.body, merged, parsed.fields);
-    if (next === log.body) return null;
-    return { from: log.bodyStart, to: log.bodyEnd, insert: next };
+    if (next === log.body) return withPlan(null);
+    return withPlan({ from: log.bodyStart, to: log.bodyEnd, insert: next });
   }
-  if (entryIsEmpty(merged)) return null;
+  if (entryIsEmpty(merged)) return withPlan(null);
   const eol = plan.eol;
   const marker = plan.opener.trim().startsWith("~") ? "~~~" : "```";
   const indent = /^\s*/.exec(plan.opener)?.[0] ?? "";
@@ -892,7 +1214,7 @@ export function logEditFor(md: string, index: number, patch: EntryPatch): TextEd
   // then opens on its own line after one added.
   const closed = md.slice(plan.end - eol.length, plan.end) === eol;
   const insert = `${closed ? "" : eol}${eol}${indent}${marker}${logFenceWordFor(plan.opener)}${eol}${indent}${line}${eol}${indent}${marker}${closed ? eol : ""}`;
-  return { from: plan.end, to: plan.end, insert };
+  return withPlan({ from: plan.end, to: plan.end, insert });
 }
 
 /** `md` with `edit` applied. */
@@ -923,15 +1245,27 @@ export interface RoutineDraft {
   slots: string[];
   items: string[];
   week: Record<Weekday, Record<string, string>>;
+  /** What goes between the items — the author's own separator. */
+  itemsSep: string;
   /** Field specs as the plan writes them: `minutes:number`, `mood:scale:5`. */
   fields: string[];
   target: number | null;
   book: string;
   notes: string;
+  /** "week" (the plan above) or "course" (the three below). */
+  mode: "week" | "course";
+  /** The weekdays a course gives steps to. */
+  days: Weekday[];
+  /** True when the `days:` line is written even at all seven. */
+  daysWritten: boolean;
+  /** `capacity:` as typed — `15 min · sat 45 min · sun 0`. */
+  capacity: string;
+  /** The `steps: |` block as typed, one step or heading per line. */
+  steps: string;
 }
 
 export function emptyDraft(): RoutineDraft {
-  return { title: "", kind: "", icon: "", banner: "", slots: [], items: [], week: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} }, fields: [], target: null, book: "", notes: "" };
+  return { title: "", kind: "", icon: "", banner: "", slots: [], items: [], itemsSep: ", ", week: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} }, fields: [], target: null, book: "", notes: "", mode: "week", days: [...WEEKDAYS], daysWritten: false, capacity: "", steps: "" };
 }
 
 export function fieldSpec(f: RoutineField): string {
@@ -951,13 +1285,24 @@ export function draftOf(plan: RoutinePlan): RoutineDraft {
     banner: plan.banner ?? "",
     slots: [...plan.slots],
     items: [...plan.items],
+    itemsSep: plan.itemsSep,
     week,
     fields: plan.fields.map(fieldSpec),
     target: plan.target,
     book: plan.book ?? "",
     notes: plan.notes ?? "",
+    mode: plan.mode,
+    days: plan.course ? [...plan.course.days] : [...WEEKDAYS],
+    daysWritten: plan.course?.daysWritten ?? false,
+    capacity: plan.course?.capacityText ?? "",
+    steps: plan.course?.source ?? "",
   };
 }
+
+/** The short word a `days:` line writes a weekday with. */
+const WEEKDAY_SHORT: Record<Weekday, string> = {
+  mon: "mon", tue: "tue", wed: "wed", thu: "thu", fri: "fri", sat: "sat", sun: "sun",
+};
 
 /** The ```sigil body a draft writes, in the order the docs list the keys. */
 export function routineFenceBody(draft: RoutineDraft): string {
@@ -966,15 +1311,24 @@ export function routineFenceBody(draft: RoutineDraft): string {
   if (draft.kind.trim() !== "") out.push(`kind: ${draft.kind.trim()}`);
   if (draft.icon.trim() !== "") out.push(`icon: ${draft.icon.trim()}`);
   if (draft.banner.trim() !== "") out.push(`banner: ${draft.banner.trim()}`);
+  const course = draft.mode === "course";
+  if (course) {
+    out.push("mode: course");
+    const days = WEEKDAYS.filter((wd) => draft.days.includes(wd));
+    // The line is written when the note wrote one, or when it says something
+    // the default does not: all seven days is what a course means by silence.
+    if (draft.daysWritten || days.length < WEEKDAYS.length) out.push(`days: ${days.map((wd) => WEEKDAY_SHORT[wd]).join(", ")}`);
+    if (draft.capacity.trim() !== "") out.push(`capacity: ${draft.capacity.trim()}`);
+  }
   const slots = draft.slots.map((s) => s.trim()).filter((s) => s !== "");
-  if (slots.length > 0) out.push(`slots: ${slots.join(", ")}`);
+  if (!course && slots.length > 0) out.push(`slots: ${slots.join(", ")}`);
   const items = draft.items.map((s) => s.trim()).filter((s) => s !== "");
-  if (items.length > 0) out.push(`items: ${items.join(", ")}`);
+  if (items.length > 0) out.push(`items: ${items.join(draft.itemsSep)}`);
   const fields = draft.fields.map((s) => s.trim()).filter((s) => s !== "");
   if (fields.length > 0) out.push(`fields: ${fields.join(", ")}`);
   if (draft.target !== null && draft.target >= 1) out.push(`target: ${draft.target}/week`);
   if (draft.book.trim() !== "") out.push(`book: ${draft.book.trim()}`);
-  for (const wd of WEEKDAYS) {
+  for (const wd of course ? [] : WEEKDAYS) {
     const day = draft.week[wd];
     const entries = Object.entries(day).filter(([, v]) => v.trim() !== "");
     if (entries.length === 0) continue;
@@ -990,6 +1344,12 @@ export function routineFenceBody(draft: RoutineDraft): string {
       if (v === undefined || v.trim() === "") continue;
       out.push(`  ${k === "" ? "plan" : k}: ${v.trim()}`);
     }
+  }
+  if (course && draft.steps.replace(/\s+$/, "") !== "") {
+    out.push("steps: |");
+    // Indented two spaces, verbatim otherwise: a blank line inside the block
+    // stays blank rather than growing two spaces of its own.
+    for (const l of draft.steps.replace(/\s+$/, "").split(/\r?\n/)) out.push(l.trim() === "" ? "" : `  ${l}`);
   }
   if (draft.notes.trim() !== "") {
     out.push("notes: |");
