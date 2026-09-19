@@ -16,14 +16,79 @@
   width: 100%;
 }
 
+/* A ROW IS AN EXCEPTION, AND TWELVE EXCEPTIONS OPEN AT ONCE IS A PAGE OF
+   FORMS. The card is a <details>: closed it is one 44px line carrying the
+   whole row (kind, title, leaf folder, published count, tools, switch), and
+   the seven fields are behind it. Twelve rows closed is ~600px; the same
+   twelve open used to be four screens. */
 .s-libpaths__card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 2px);
   background: var(--bg-raised);
+}
+
+.s-libpaths__summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 44px;
+  padding: 4px 10px;
+  border-radius: calc(var(--radius) + 2px);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.s-libpaths__summary::-webkit-details-marker {
+  display: none;
+}
+
+.s-libpaths__summary:hover {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.s-libpaths__summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.s-libpaths__glyph {
+  flex: none;
+  color: var(--accent);
+}
+
+/* The title takes the room; the rest state their size and keep it. */
+.s-libpaths__sumtitle {
+  flex: 1 1 auto;
+  min-inline-size: 4em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.857rem;
+}
+
+.s-libpaths__sumfolder {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.s-libpaths__sumswitch {
+  flex: none;
+  display: inline-flex;
+}
+
+.s-libpaths__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 12px 12px;
 }
 
 /* A hidden path is kept but reaches nobody; the card says so at a glance. */
@@ -31,9 +96,23 @@
   border-style: dashed;
 }
 
+.s-libpaths__card--hidden .s-libpaths__sumtitle,
 .s-libpaths__card--hidden .s-libpaths__folder,
 .s-libpaths__card--hidden .s-libpaths__grid {
   opacity: 0.72;
+}
+
+/* The card holding the marked field. The message sits in the card's own foot,
+   beside the input that carries `invalid` — "Fix the marked fields" in the
+   footer was pointing at a row with nothing marked on it. */
+.s-libpaths__card--bad {
+  border-color: var(--danger);
+}
+
+.s-libpaths__bad {
+  margin: 0;
+  font-size: 0.786rem;
+  color: var(--danger);
 }
 
 /* Kind on the leading side, the three tools in one cluster on the trailing
@@ -88,21 +167,41 @@
   color: var(--accent);
 }
 
-.s-libpaths__folder-path {
+/* A path reads left to right whatever the panel does — and the glyph travels
+   WITH it, inside this wrapper, so under `dir: rtl` the icon does not end up
+   on the far side of the button from the text it belongs to. */
+.s-libpaths__folder-name {
   flex: 1 1 auto;
+  display: flex;
+  align-items: baseline;
   min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.786rem;
-  /* A path reads left to right whatever the panel does, and ellipsises at
-     its END, which is the leaf folder — the part that matters. */
   direction: ltr;
   text-align: left;
 }
 
-.s-libpaths__folder--empty .s-libpaths__folder-path {
+/* THE LEAF IS THE PART THAT MATTERS. Eight books under one parent are eight
+   identical prefixes and eight names that differ, and an end-ellipsis on a
+   left-to-right path hides exactly the half worth reading. So the PARENT
+   ellipsises and the leaf keeps its size. */
+.s-libpaths__folder-parent {
+  /* Shrinks when it must and hugs the leaf when it need not: `1 1 auto` blew
+     the two halves of one path to opposite ends of the button. */
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.s-libpaths__folder-leaf {
+  flex: none;
+  white-space: nowrap;
+}
+
+.s-libpaths__folder-name--empty {
   font-family: inherit;
   font-size: 0.857rem;
   color: var(--text-muted);
@@ -191,6 +290,13 @@
   color: var(--danger);
 }
 
+/* On the summary it is one of six things sharing a line, so it states its
+   size rather than claiming what is left. */
+.s-libpaths__summary .s-libpaths__count {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
 .s-libpaths__actions {
   display: flex;
   align-items: center;
@@ -237,6 +343,51 @@
   .s-pfolders__iconbtn {
     min-block-size: 44px;
   }
+
+  /* At panel width the summary's own line runs out of room before the tools
+     do. The count steps aside first — it is the one thing the open card also
+     says — and the folder next. */
+  .s-libpaths__summary {
+    flex-wrap: wrap;
+    padding-block: 8px;
+  }
+
+  /* The count and the folder share the last line; only the tools, which are
+     44px targets, get a line of their own. Six things do not fit on one 390px
+     row beside a 44px switch, and a summary that hides the published count is
+     a summary that hides the one number a path can be wrong about. */
+  .s-libpaths__summary .s-libpaths__count {
+    order: 5;
+  }
+
+  .s-libpaths__sumfolder {
+    order: 4;
+  }
+
+  .s-libpaths__tools {
+    order: 3;
+    margin-inline-start: auto;
+  }
+
+  /* A root's line wraps the SAME way every time: the kind takes a row, the
+     folder and its cross take the next. Left to the flex algorithm, whether
+     the cross landed beside the folder or under it depended on how long the
+     folder's name happened to be — two roots in one list, wrapped two ways. */
+  .s-libroots__head .s-ctl-seg {
+    flex: 1 1 100%;
+  }
+
+  .s-libroots__head .s-libpaths__folder {
+    flex: 1 1 6em;
+    min-inline-size: 0;
+  }
+}
+
+/* A keyboard legend on a device with no keyboard is a taunt (DESIGN.md). */
+@media (pointer: coarse) {
+  .s-libpaths__hint--pointer {
+    display: none;
+  }
 }
 
 /* The public-folder card's "unlink the folder" text button. */
@@ -271,9 +422,95 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  min-block-size: 32px;
   font-size: 0.857rem;
 }
 
 .s-libpaths__vaulttitle {
   font-weight: 600;
+}
+
+.s-libpaths__caption--bad {
+  color: var(--danger);
+}
+
+/* ── Shelf roots ───────────────────────────────────────────────────────────
+   One sentence about the vault's shape, and under it the consequence: which
+   folders it just put on the shelf. A control whose effect the reader has to
+   save to discover is a control they will not press. */
+.s-libroots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.s-libroots__lede {
+  margin: 0;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+.s-libroots__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--bg-raised);
+}
+
+.s-libroots__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.s-libroots__head .s-ctl-seg {
+  flex: 0 1 auto;
+}
+
+.s-libroots__head .s-libpaths__folder {
+  flex: 1 1 14em;
+  inline-size: auto;
+}
+
+.s-libroots__join {
+  margin: 0;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+/* The offer. It never folds anything on its own — both buttons are a press,
+   and the order the fold would produce is printed before either. */
+.s-libroots__offer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px dashed var(--accent);
+  border-radius: calc(var(--radius) + 2px);
+}
+
+.s-libroots__offertitle {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.857rem;
+}
+
+.s-libroots__offerbody,
+.s-libroots__offerorder {
+  margin: 0;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+.s-libroots__offeractions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-block-start: 2px;
 }

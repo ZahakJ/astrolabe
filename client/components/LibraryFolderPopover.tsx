@@ -10,6 +10,16 @@
 //
 // Anchored, not modal, and placed by the same rule as the icon picker
 // (anchorPopover.ts): one opens from the same menu at the same point.
+//
+// AND IT READS THE MERGED SHELF, not only the settings rows. Since shelf roots
+// (3.19) a folder can be on the shelf without any row naming it — through a
+// root over its parent, or through its own folder note — and asking
+// `settings.library.paths` alone made the popover offer to "put on the shelf"
+// a book already sitting on it, whose address it would then have taken. So it
+// asks /api/library too: a path with no row of its own says where it is and
+// opens, and offers no "take off the shelf" (that is a `hidden:` in the folder
+// note, or Customise in the panel), because deleting a row that does not exist
+// is not a verb.
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
@@ -20,10 +30,12 @@ import {
   libraryRowForFolder,
   libraryUrl,
 } from "../../shared/library.ts";
-import type { LibraryKind, LibraryPathRef } from "../../shared/types.ts";
-import { getSettings, patchSettings } from "../api.ts";
+import type { LibraryKind, LibraryPath, LibraryPathRef } from "../../shared/types.ts";
+import { getLibrary, getSettings, patchSettings } from "../api.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { toast } from "../toast.ts";
+import { actionToast } from "../undoToast.ts";
+import { useStore } from "../state.ts";
 import { anchorPopover } from "./anchorPopover.ts";
 import { useDialog } from "../a11y.ts";
 import "../styles/libraryfolder.css";
@@ -44,18 +56,23 @@ type Shelf = { enabled: boolean; nav: boolean; home: boolean; title: string; pat
 export default function LibraryFolderPopover({ state, onClose }: { state: LibraryPopState; onClose(): void }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [shelf, setShelf] = useState<Shelf | null>(null);
+  const [merged, setMerged] = useState<LibraryPath[]>([]);
   const [draft, setDraft] = useState<LibraryPathRef | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let live = true;
-    void getSettings()
-      .then((s) => {
+    // The shelf as the SERVER answers it rides along, so the addresses the
+    // draft must not collide with are all of them, not just the rows'.
+    void Promise.all([getSettings(), getLibrary().catch(() => [] as LibraryPath[])])
+      .then(([s, paths]) => {
         if (!live) return;
         const l = s.effective.library;
-        const paths = l.paths.map((p) => ({ ...p }));
-        setShelf({ enabled: l.enabled, nav: l.nav, home: l.home, title: l.title, paths });
-        setDraft(libraryRowForFolder(state.path, state.unitNames, paths));
+        const rows = l.paths.map((p) => ({ ...p }));
+        setShelf({ enabled: l.enabled, nav: l.nav, home: l.home, title: l.title, paths: rows });
+        setMerged(paths);
+        const taken = [...rows, ...paths.map((p) => ({ ...p, folder: p.folder }) as LibraryPathRef)];
+        setDraft(libraryRowForFolder(state.path, state.unitNames, taken));
       })
       .catch(() => {
         if (live) toast(t("libraryFailed"), "error");
@@ -101,13 +118,20 @@ export default function LibraryFolderPopover({ state, onClose }: { state: Librar
 
   const folder = libraryFolder(state.path);
   const existing = shelf?.paths.find((p) => libraryFolder(p.folder) === folder) ?? null;
+  // On the shelf with no row of its own: a root's child, or a folder note.
+  const derived = existing === null ? (merged.find((p) => libraryFolder(p.folder) === folder) ?? null) : null;
 
-  const save = async (paths: LibraryPathRef[], enabled: boolean, done: string) => {
+  const save = async (paths: LibraryPathRef[], enabled: boolean, done: string, offerEdit = false) => {
     if (!shelf) return;
     setBusy(true);
     try {
       await patchSettings({ library: { enabled, nav: shelf.nav, home: shelf.home, title: shelf.title, paths } });
-      toast(done);
+      // "On the shelf." and then what? The blurb, the cover and the source are
+      // four clicks away in a panel the reader is not in, and the old toast
+      // just named the path to them ("Settings → Collections") and faded. An
+      // offer they can press is the same sentence with a door in it.
+      if (offerEdit) actionToast(done, t("libraryEditToast"), () => useStore.getState().openSettingsAt("rowLibraryPaths"));
+      else toast(done);
       onClose();
     } catch {
       toast(t("libraryFailed"), "error");
@@ -159,7 +183,21 @@ export default function LibraryFolderPopover({ state, onClose }: { state: Librar
           </div>
         </>
       )}
-      {shelf && !existing && draft && (
+      {shelf && !existing && derived && (
+        <>
+          <p className="s-libpop__on" dir="auto">
+            {tf("libraryPopOnShelf", { title: derived.title })}
+            <span className="s-libpop__kind">{kindLabel(derived.kind)}</span>
+          </p>
+          <p className="s-libpop__hint">{t("libraryFromFolderNote")}</p>
+          <div className="s-libpop__actions">
+            <a className="s-btn" href={libraryUrl(derived.slug)} target="_blank" rel="noreferrer">
+              {t("libraryPopOpen")}
+            </a>
+          </div>
+        </>
+      )}
+      {shelf && !existing && !derived && draft && (
         <>
           <div className="s-libpop__kinds" role="radiogroup" aria-label={t("libraryPathKind")}>
             {LIBRARY_KINDS.map((kind) => (
@@ -217,6 +255,6 @@ export default function LibraryFolderPopover({ state, onClose }: { state: Librar
     // The first path switches the library on: a shelf with a book on it that
     // nobody can reach is a mistake, not a setting.
     const enabled = shelf.enabled || shelf.paths.length === 0;
-    await save([...shelf.paths, row], enabled, enabled && !shelf.enabled ? t("libraryAddedOn") : t("libraryAdded"));
+    await save([...shelf.paths, row], enabled, enabled && !shelf.enabled ? t("libraryAddedOn") : t("libraryAdded"), true);
   }
 }
