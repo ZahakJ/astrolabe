@@ -42,6 +42,8 @@ import {
   forgetVault,
   recentVaults,
   rememberBounds,
+  rememberZoom,
+  stepZoom,
   rememberVault,
   rememberedPort,
   type Bounds,
@@ -648,6 +650,12 @@ function newWindowFor(instance: Instance, route = "/"): BrowserWindow {
   const bounds = loadPrefs().vaults.find((v) => v.path === instance.vault)?.bounds ?? null;
   const win = createVaultWindow(windowContext(instance), bounds, route);
   instance.windows.add(win);
+  // THE FACTOR IS APPLIED, NOT INHERITED. Chromium would restore its own
+  // per-host memory here whatever we do; setting it explicitly from the app's
+  // own record is what makes it a setting rather than a side effect, and the
+  // send is what lets the status bar show it on the first paint. Every
+  // navigation re-applies it, because a reload resets the renderer's factor.
+  win.webContents.on("did-finish-load", () => sendZoom(win, zoomOf(instance.vault)));
   win.on("closed", () => {
     instance.windows.delete(win);
     // The last window on a vault takes the vault's server with it. A server
@@ -767,6 +775,42 @@ function focusedInstance(): Instance | null {
   return null;
 }
 
+// ────────────────────────────────────────────────────────────────────── zoom
+//
+// THE APP OWNS THE FACTOR. Chromium was already remembering it per host inside
+// the vault's partition and re-applying it at every launch, and nothing in
+// Astrolabe read it, showed it or could reset it: five presses of Ctrl+= on a
+// 1366 laptop left the reader permanently in a 689 CSS px viewport — the phone
+// shell, mouse attached — with no clue why and no way back short of finding a
+// keystroke nobody had mentioned. Now the number lives in desktop.json beside
+// the window bounds, every window applies it explicitly, and the renderer is
+// told so the status bar can say it and hand it back with one click.
+
+function zoomOf(vault: string): number {
+  return loadPrefs().vaults.find((v) => v.path === vault)?.zoom ?? 1;
+}
+
+/** The ONE place a window is told its factor — set it and say it together, so
+ *  the status bar cannot be showing a number the renderer is not drawn at. */
+function sendZoom(win: BrowserWindow, factor: number): void {
+  if (win.isDestroyed()) return;
+  win.webContents.setZoomFactor(factor);
+  win.webContents.send(TO_RENDERER.zoom, factor);
+}
+
+/** Apply a factor to every window on the vault, remember it, and say so. */
+function applyZoom(instance: Instance, factor: number): void {
+  savePrefs(rememberZoom(loadPrefs(), instance.vault, factor));
+  const settled = zoomOf(instance.vault);
+  for (const win of instance.windows) sendZoom(win, settled);
+}
+
+/** One press: +1 in, -1 out, 0 back to actual size. */
+function zoomBy(instance: Instance | null, direction: -1 | 0 | 1): void {
+  if (!instance) return;
+  applyZoom(instance, stepZoom(zoomOf(instance.vault), direction));
+}
+
 // ──────────────────────────────────────────────────────────────── the bridge
 //
 // EVERY `ipcMain` handler in the app is in this function, and every one of them
@@ -781,6 +825,10 @@ function registerBridge(): void {
     for (const win of BrowserWindow.getAllWindows()) {
       tell(win, TO_RENDERER.updateState, state);
     }
+  });
+  ipcMain.handle(TO_MAIN.zoomSet, (event, direction: unknown) => {
+    const step = direction === 1 ? 1 : direction === -1 ? -1 : 0;
+    zoomBy(instanceOf(event.sender), step);
   });
   ipcMain.handle(TO_MAIN.brandGet, () => brandInfo());
   ipcMain.handle(TO_MAIN.brandSet, (_event, name: unknown) => {
@@ -984,6 +1032,7 @@ function refreshMenu(): void {
       if (instance) void shell.openPath(instance.vault);
     },
     about: showAbout,
+    zoom: (direction) => zoomBy(focusedInstance(), direction),
     recents,
     spellcheckEnabled: loadPrefs().spellcheck,
     setSpellcheck: (on) => {

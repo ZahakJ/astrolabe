@@ -14,7 +14,7 @@
 import { BrowserWindow, screen, shell } from "electron";
 import path from "node:path";
 import { APP_ROOT } from "./server.ts";
-import { onSomeDisplay, type Bounds } from "./prefs.ts";
+import { MIN_WINDOW, fitToWorkArea, onSomeDisplay, type Bounds } from "./prefs.ts";
 
 /** The compiled preload. It is compiled — not run as TypeScript like the rest
  *  of `electron/` — because `sandbox: true` is not negotiable and a sandboxed
@@ -24,7 +24,7 @@ import { onSomeDisplay, type Bounds } from "./prefs.ts";
  *  ipc.ts, and the reason `check-desktop` counts them by string. */
 const PRELOAD = path.join(APP_ROOT, "desktop", "build", "preload.js");
 
-const DEFAULT_BOUNDS = { width: 1280, height: 860 };
+const DEFAULT_SIZE = { width: 1280, height: 860 };
 /** Astrolabe's own ground colour (`--bg` on the default theme), so the window is
  *  the app's colour for the ~200ms before the first paint rather than white —
  *  which on a dark theme is a flash straight into the reader's eyes. */
@@ -42,10 +42,35 @@ export interface WindowContext {
   onBounds: (bounds: Bounds) => void;
 }
 
-function restore(bounds: Bounds | null): Partial<Electron.BrowserWindowConstructorOptions> {
-  if (!bounds) return DEFAULT_BOUNDS;
-  if (!onSomeDisplay(bounds, screen.getAllDisplays())) return DEFAULT_BOUNDS;
-  return { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height };
+/** The work area of the display a rectangle belongs to — the desk minus the
+ *  taskbar, the dock and the menu bar. `screen` is only available after the
+ *  app is ready, which is the only time this file is called. */
+function deskFor(rect: { x: number; y: number; width: number; height: number } | null): Electron.Rectangle {
+  const display = rect ? screen.getDisplayMatching(rect) : screen.getPrimaryDisplay();
+  return display.workArea;
+}
+
+/** WHAT THE WINDOW OPENS AS, AND WHETHER IT OPENS MAXIMISED.
+ *
+ *  Every rectangle that reaches a BrowserWindow goes through `fitToWorkArea`
+ *  first — the remembered one AND the default. Without it a rectangle saved on
+ *  a large screen re-opened on a small one with its caption buttons off the
+ *  desk (a window the reader cannot move, close or resize), and the 1280×860
+ *  default on a 934×600 DIP desktop opened as a window that exactly filled the
+ *  screen and was not maximised, so the maximise button did nothing visible.
+ *  A default that does not fit means "this desk wants the whole app": the
+ *  window opens MAXIMISED, which is a state the reader can leave. */
+function restore(bounds: Bounds | null): { options: Partial<Electron.BrowserWindowConstructorOptions>; maximize: boolean } {
+  const usable = bounds && onSomeDisplay(bounds, screen.getAllDisplays()) ? bounds : null;
+  const desk = deskFor(usable);
+  if (usable) {
+    const fitted = fitToWorkArea(usable, desk);
+    return { options: fitted, maximize: usable.maximized === true };
+  }
+  const wanted = { x: desk.x + Math.round((desk.width - DEFAULT_SIZE.width) / 2), y: desk.y + Math.round((desk.height - DEFAULT_SIZE.height) / 2), ...DEFAULT_SIZE };
+  const fitted = fitToWorkArea(wanted, desk);
+  const tooSmall = fitted.width < DEFAULT_SIZE.width || fitted.height < DEFAULT_SIZE.height;
+  return { options: fitted, maximize: tooSmall };
 }
 
 function webPreferences(partition: string): Electron.WebPreferences {
@@ -113,10 +138,15 @@ function watchBounds(win: BrowserWindow, onBounds: (bounds: Bounds) => void): vo
 
 /** The main window for a vault. */
 export function createVaultWindow(ctx: WindowContext, bounds: Bounds | null, route = "/"): BrowserWindow {
+  const opened = restore(bounds);
   const win = new BrowserWindow({
-    ...restore(bounds),
-    minWidth: 480,
-    minHeight: 400,
+    ...opened.options,
+    // ONE SOURCE for the floor (electron/prefs.ts): what the window may be is
+    // what the preferences file is willing to write down. They disagreed —
+    // 400 here, 480 there on both axes — and every rectangle in the gap was
+    // handed out by this line and then refused by that one.
+    minWidth: MIN_WINDOW.width,
+    minHeight: MIN_WINDOW.height,
     // The title is the app's, not the document's: `client/` sets
     // `document.title` per note, and Electron would otherwise let a note name
     // overwrite the window title with no vault in it. `title` + this flag mean
@@ -128,12 +158,20 @@ export function createVaultWindow(ctx: WindowContext, bounds: Bounds | null, rou
     autoHideMenuBar: false,
     webPreferences: webPreferences(ctx.partition),
   });
-  if (bounds?.maximized) win.maximize();
+  if (opened.maximize) win.maximize();
   fence(win, ctx.origin);
   watchBounds(win, ctx.onBounds);
   // Painted before shown: a window that appears already holding the vault,
-  // rather than a white rectangle that fills in.
-  win.once("ready-to-show", () => win.show());
+  // rather than a white rectangle that fills in. The geometry is reported
+  // once here as well: a rectangle the display constrained at CREATION (a
+  // default fitted to a small desk) is the rectangle the reader has, and it
+  // should be the one written down — not the one we asked for.
+  win.once("ready-to-show", () => {
+    win.show();
+    if (win.isDestroyed()) return;
+    const b = win.getNormalBounds();
+    ctx.onBounds({ x: b.x, y: b.y, width: b.width, height: b.height, maximized: win.isMaximized() });
+  });
   reportFailures(win, ctx.origin);
   void win.loadURL(ctx.origin + route);
   return win;
@@ -152,9 +190,13 @@ export function createVaultWindow(ctx: WindowContext, bounds: Bounds | null, rou
  * is a reduced mode.
  */
 export function createReferenceWindow(ctx: WindowContext, route: string): BrowserWindow {
+  // Fitted like every other rectangle this file hands out: 720 tall does not
+  // fit a 1366×768 laptop's work area at 125%, and an always-on-top window
+  // whose bottom is off the desk is one the reader cannot resize back.
+  const desk = deskFor(null);
+  const size = fitToWorkArea({ x: desk.x + 40, y: desk.y + 40, width: 520, height: 720 }, desk);
   const win = new BrowserWindow({
-    width: 520,
-    height: 720,
+    ...size,
     minWidth: 360,
     minHeight: 300,
     title: ctx.vaultName,

@@ -376,6 +376,22 @@ menuTs.split("\n").forEach((line, i) => {
     errs.push(`MENU COPY  BARE ENGLISH  electron/menu.ts:${i + 1}  \u201c${match[1]}\u201d`);
   }
 });
+// EVERY TEMPLATE ENTRY MUST HAVE A LABEL, A ROLE OR A TYPE.
+//
+// Electron refuses one that does not — `TypeError: Invalid template for
+// MenuItem` — and the throw lands inside `start()`, after `app.whenReady()`
+// and BEFORE the first window, so the app opens nothing at all and says
+// nothing about why. It is a one-word slip to make: an invisible accelerator
+// row (`{ accelerator: "CmdOrCtrl+num0", visible: false, click }`) looks
+// complete, because nobody will ever read its label. This caught exactly that,
+// on the zoom rows, after the app had stopped booting.
+for (const [i, line] of menuTs.split("\n").entries()) {
+  const entry = line.trim();
+  if (!/^\{.*\baccelerator:/.test(entry)) continue;
+  if (/\b(label|role|type):/.test(entry)) continue;
+  errs.push(`MENU  electron/menu.ts:${i + 1}  a template entry with an accelerator and no label, role or type — Electron refuses it and the app opens no window`);
+}
+
 // menuStrings must stay a re-export: a `DICT = {` reappearing here is the
 // second dictionary coming back.
 if (/const DICT\s*=\s*\{/.test(read("electron/menuStrings.ts"))) {

@@ -51,6 +51,11 @@ export interface MenuHandlers {
    *  except a person who asked deserves an answer either way. */
   checkUpdates: () => void;
   about: () => void;
+  /** Zoom the app: +1 a step in, -1 a step out, 0 back to actual size. The
+   *  app owns the factor (electron/main.ts) — these are not Electron's
+   *  `zoomIn`/`resetZoom` roles any more, because those wrote into Chromium's
+   *  per-host memory where nothing could read them back. */
+  zoom: (direction: -1 | 0 | 1) => void;
   recents: RecentEntry[];
   spellcheckEnabled: boolean;
   setSpellcheck: (on: boolean) => void;
@@ -194,17 +199,32 @@ export function buildMenu(h: MenuHandlers): Menu {
         click: () => h.send("panel"),
       },
       { type: "separator" },
-      { label: m("zoomIn"), role: "zoomIn" },
-      { label: m("zoomOut"), role: "zoomOut" },
-      // Electron's zoomIn role answers only CmdOrCtrl+Plus, which on a US
-      // keyboard is Shift held down, so the Ctrl+= every browser zooms with
-      // did nothing here ("zoom does not work for his notes"). The same roles
-      // again, invisible, on the chords people actually press.
-      { role: "zoomIn", accelerator: "CmdOrCtrl+=", visible: false },
-      { role: "zoomIn", accelerator: "CmdOrCtrl+numadd", visible: false },
-      { role: "zoomOut", accelerator: "CmdOrCtrl+numsub", visible: false },
-      { role: "resetZoom", accelerator: "CmdOrCtrl+num0", visible: false },
-      { label: m("menuActualSize"), role: "resetZoom" },
+      // ZOOM IS THE APP'S, AND THE KEYS BELONG TO THE PAGE.
+      //
+      // These were Electron's `zoomIn`/`zoomOut`/`resetZoom` roles, which write
+      // into Chromium's per-host zoom memory inside the vault's partition —
+      // a number the app could not read, show or reset, and which came back on
+      // every launch (windows-plan defect G). They now go through the app's
+      // own store, which is what puts the factor in the status bar.
+      //
+      // `registerAccelerator: false` is the other half: the chord is DRAWN on
+      // the menu row but not claimed by the main process, so the keystroke
+      // reaches the renderer. That is what lets the book reader keep Ctrl+=,
+      // Ctrl+- and Ctrl+0 for the PAGE it is showing — a reader who reaches
+      // for the zoom keys over a book means the book — while everywhere else
+      // the shell's own handler asks for an app zoom (client/desktop/).
+      { label: m("zoomIn"), accelerator: "CmdOrCtrl+=", registerAccelerator: false, click: () => h.zoom(1) },
+      { label: m("zoomOut"), accelerator: "CmdOrCtrl+-", registerAccelerator: false, click: () => h.zoom(-1) },
+      // The numeric keypad is not a layout question and no page listens for
+      // it, so these stay real accelerators. They carry the same labels as the
+      // rows above even though `visible: false` means nobody reads them:
+      // Electron refuses a template entry with no label, role or type outright
+      // (`Invalid template for MenuItem`), and the throw lands in `start()`
+      // AFTER the window is promised — an app that opens no window at all.
+      { label: m("zoomIn"), accelerator: "CmdOrCtrl+numadd", visible: false, click: () => h.zoom(1) },
+      { label: m("zoomOut"), accelerator: "CmdOrCtrl+numsub", visible: false, click: () => h.zoom(-1) },
+      { label: m("menuActualSize"), accelerator: "CmdOrCtrl+num0", visible: false, click: () => h.zoom(0) },
+      { label: m("menuActualSize"), accelerator: "CmdOrCtrl+0", registerAccelerator: false, click: () => h.zoom(0) },
       { label: m("menuFullScreen"), role: "togglefullscreen" },
       { type: "separator" },
       { label: m("menuReload"), role: "reload" },

@@ -32,6 +32,34 @@ opens on nothing. It waits a few seconds for the usual port before moving on; an
 nothing to restore opens the note you were in most recently, rather than the first name in the
 tree.
 
+**The panes, and the window they are in.** Each side pane — the notes sidebar and the outline
+pane — is resized by the hairline between it and the note: a 12-pixel strip with the divider
+itself down the middle, so the line you aim at is the line that moves, and the pane follows your
+hand from wherever on the strip you took hold. Drag a pane off its edge to fold it; it leaves a
+narrow door you can click or drag back open. Double-click the divider for the width it started
+at. The strip is there whatever the window is pointed at — a mouse, a trackpad, a finger on a
+convertible — because whether a pane can be dragged is a question about the pane, not about the
+pointer, and a laptop folded flat still has panes.
+
+The widths you set are remembered per window; what the window can *grant* is decided fresh every
+time it is resized. Drag the window narrow and the panes give way so the note keeps a column to
+be in; widen it again and they come back to the widths you chose. Below about 700 points wide —
+or on a device with no fine pointer at all below 1000 — the sidebar stops being a column and
+becomes a drawer behind the ☰ button. Above that, on Windows at 125% or 150% scaling and in a
+window snapped to half the screen, the panes stay docked and stay draggable.
+
+**Zoom belongs to the app.** `Ctrl/Cmd =`, `-` and `0` scale the whole interface, and while it is
+anything but 100% the status bar shows the percentage in the corner; clicking it is *actual
+size*, the same as `Ctrl/Cmd 0`. The factor is remembered per vault, so a window opens at the size
+you left it — and because it is written where you can see it, a window that came back smaller
+than you remember is a window you can put right with one click. Over an open book the same three
+keys zoom **the page**, not the app: reaching for the zoom keys over a book means the book.
+
+Windows remember where they were, per vault, and are fitted to the screen they reopen on. A
+window saved on a large monitor and reopened on a laptop is pulled back onto the desk rather than
+left with its title bar off the edge, and a first window on a screen too small for the default
+opens maximised.
+
 Every command the app has is in the menu bar with its keyboard shortcut, in both languages: new
 note, the daily note, save, print, reading view, the graph, zen, the two side panes, the
 palette, search, publish, the shortcut sheet. The desktop app also claims a few shortcuts the

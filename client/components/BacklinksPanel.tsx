@@ -3,7 +3,7 @@
 // edge reopens it. Clicking an entry opens that note AND lands on the mention
 // (client/landing.ts); resting the pointer on a card previews the note.
 
-import PaneGrip, { reopenDragProps } from "./PaneGrip.tsx";
+import { reopenDragProps } from "./PaneGrip.tsx";
 import { Suspense, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type { Backlink } from "../../shared/types.ts";
@@ -129,6 +129,7 @@ export default function BacklinksPanel() {
   // the same flag this header button does, and it persists across reloads.
   const collapsed = useStore((s) => s.panelCollapsed);
   const setCollapsed = useStore((s) => s.setPanelCollapsed);
+  const collapseForViewport = useStore((s) => s.collapsePanelForViewport);
   const zen = useStore((s) => s.zen);
   // Nearby is the owner's (the server answers a visitor with a 401), so the
   // chunk is not even asked for on a visitor's page: a lazy import mounted
@@ -145,7 +146,7 @@ export default function BacklinksPanel() {
   // Escape closes it, as it closes the notes drawer.
   useEffect(() => {
     const phone = window.matchMedia(PHONE_QUERY);
-    if (phone.matches) setCollapsed(true, false);
+    if (phone.matches) collapseForViewport(true);
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === "Escape" && phone.matches && !useStore.getState().panelCollapsed) setCollapsed(true, false);
     };
@@ -153,17 +154,24 @@ export default function BacklinksPanel() {
     return () => window.removeEventListener("keydown", onKey);
   }, [setCollapsed]);
 
+  // A VIEWPORT FACT, AND IT DOES NOT ANIMATE. The threshold is crossed by a
+  // maximise, by a Snap, by a tiling manager and by a monitor being unplugged,
+  // and a 180ms width transition playing by itself — with the reading column
+  // sliding 300px under it — is a window "doing things on its own". The
+  // store's `collapsePanelForViewport` raises `paneStill` in the same commit
+  // as the flag, so the pane is simply THERE or not; the reader's own toggle
+  // keeps the animation, which is the gesture it belongs to.
   useEffect(() => {
     const mq = window.matchMedia(NARROW_QUERY);
     // A narrow window on first paint collapses the panel too, not just a
     // resize into one — but as a viewport fact, never as a stored preference.
-    if (!hasPanelPreference() && mq.matches) setCollapsed(true, false);
+    if (!hasPanelPreference() && mq.matches) collapseForViewport(true);
     const onChange = (e: MediaQueryListEvent) => {
-      if (!hasPanelPreference()) setCollapsed(e.matches, false);
+      if (!hasPanelPreference()) collapseForViewport(e.matches);
     };
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
-  }, [setCollapsed]);
+  }, [collapseForViewport]);
 
   return (
     <>
@@ -279,7 +287,6 @@ export default function BacklinksPanel() {
         <MentionsPanel />
         <OnThisDayPanel />
         </div>
-        <PaneGrip pane="panel" />
       </aside>
       {/* Tap outside closes the phone drawer; nothing on the desktop. */}
       <div className="s-panel__scrim" onClick={() => setCollapsed(true, false)} aria-hidden="true" />
