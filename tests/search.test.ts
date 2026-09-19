@@ -481,3 +481,22 @@ describe("replace: apply, conflict, undo", () => {
     );
   });
 });
+
+describe("presentation forms fold to the letters a reader types", () => {
+  it("finds a shaped text layer by its plain spelling, with real offsets", () => {
+    // What a Chromium-made PDF's text layer carries: shaped glyphs, not letters.
+    const shaped = "\u0627\u0645\u0631\u0624 \ufe8d\ufedf\ufed8\ufef4\ufeb2 — \ufee1\ufeeb";
+    const hits = findMatches(shaped, "القيس");
+    assert.equal(hits.length, 1);
+    assert.equal(shaped.slice(hits[0].start, hits[0].end), "\ufe8d\ufedf\ufed8\ufef4\ufeb2");
+  });
+  it("a lam-alef ligature is the two letters, a shaped vowel is nothing, a NUL is nothing", () => {
+    assert.equal(findMatches("\ufefb \u0628\u064f\u062f\ufe73", "لا").length, 1);
+    assert.equal(findMatches("\u0628\u0000\u062f", "بد").length, 1);
+    assert.equal(foldTerm("\ufefb\ufe73"), "لا");
+  });
+  it("foldKeep keeps its length across a ligature and a shaped vowel", () => {
+    const text = "\ufefb\ufe73\ufeb2";
+    assert.equal(foldKeep(text).length, text.length);
+  });
+});
