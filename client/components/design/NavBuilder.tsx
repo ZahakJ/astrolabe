@@ -35,7 +35,7 @@ export interface NavBuilderProps {
   /** Every note in the vault (admin tree) — a menu may point at a note that
    *  is not published yet; the SITE then simply does not render that item
    *  until it is, and this panel says so. */
-  notes: { title: string; path: string }[];
+  notes: readonly { title: string; path: string }[];
   pages: PageMeta[];
   tags: string[];
   /** Paths the public site can actually reach right now. An item pointing

@@ -31,6 +31,7 @@
 import {
   Annotation,
   EditorState,
+  type Text,
   type Transaction,
   type TransactionSpec,
 } from "@codemirror/state";
@@ -97,10 +98,37 @@ export const bufferWide = Annotation.define<boolean>();
 const STATS_MS = 250;
 const statsTimers = new Map<string, number>();
 
+/** THE DOCUMENT'S OWN COUNTS, MEMOIZED ON THE DOCUMENT.
+ *
+ *  A caret move republishes the stats — it has to, because the bar reports the
+ *  SELECTION's length the moment there is one — and the whole-document half of
+ *  the answer is identical every time the text has not changed. Counting it
+ *  again means materialising the note as one string, stripping frontmatter and
+ *  fences out of it, and walking every word: O(document), for a number that
+ *  did not move. CodeMirror's `Text` is persistent and is replaced on every
+ *  edit, so identity is the exact stamp — the same bargain the note index in
+ *  client/editor/links.ts strikes with the tree. A WEAK map, keyed by the
+ *  document itself: the entry for a document that has been typed past is
+ *  collected with it, so a long evening of editing does not accumulate one
+ *  copy of the note per keystroke.
+ *
+ *  `chars` is `doc.length` and needs no string at all. */
+const docCounts = new WeakMap<Text, { text: string; words: number }>();
+
+function countsOf(doc: Text): { text: string; words: number } {
+  const hit = docCounts.get(doc);
+  if (hit) return hit;
+  const text = doc.toString();
+  const fresh = { text, words: countWords(noteProse(text)) };
+  docCounts.set(doc, fresh);
+  return fresh;
+}
+
 function publishStats(path: string): void {
   const buf = buffers.get(path);
   if (!buf) return;
-  const doc = buf.state.doc.toString();
+  const counted = countsOf(buf.state.doc);
+  const doc = counted.text;
   const sel = buf.state.selection;
   let selText = "";
   for (const range of sel.ranges) {
@@ -108,8 +136,8 @@ function publishStats(path: string): void {
   }
   const detail: DocStats = {
     path,
-    words: countWords(noteProse(doc)),
-    chars: doc.length,
+    words: counted.words,
+    chars: buf.state.doc.length,
     selWords: selText === "" ? null : countWords(noteProse(selText)),
     selChars: selText === "" ? null : selText.length - selText.split("\n").length + 1,
     ranges: sel.ranges.length,

@@ -13,7 +13,6 @@ import { localeNum, t } from "../i18n.ts";
 // landing/hovering is interaction-time code. The reading view's static import
 // of the same module keeps it a single instance.
 import { lazySurface } from "../lazySurface.tsx";
-import TocPanel from "../reading/TocPanel.tsx";
 import { hasPanelPreference, useStore } from "../state.ts";
 import FootnotesPanel from "./FootnotesPanel.tsx";
 import LocalGraph from "./LocalGraph.tsx";
@@ -29,6 +28,18 @@ import OnThisDayPanel from "./OnThisDayPanel.tsx";
 // `lazy()` so a redeploy that rotates the chunk hash mid-session gets the
 // reload card instead of blanking the panel.
 const HistoryPanel = lazySurface(() => import("./HistoryPanel.tsx"));
+// THE OUTLINE IS LAZY TOO, and it is the biggest of the three by far. It
+// reaches the section surgery, which reaches the editor's sectioning
+// extension, which reaches the live-preview decoration engine and the whole
+// reading renderer behind it: 199 kB of JavaScript, measured, in the ADMIN
+// FIRST-PAINT closure — for a pane that starts collapsed on most windows and
+// draws nothing at all until a note is open. It is the shell's largest single
+// piece of "downloaded before anything is on screen, needed later or never",
+// and the lazy boundary is what check-bundle's admin budget was waiting for.
+// `Suspense fallback={null}`, like history below: the outline is a list of
+// headings under a header row, and a skeleton where a heading list is about to
+// be is the only thing in the pane that would flicker.
+const TocPanel = lazySurface(() => import("../reading/TocPanel.tsx"));
 // Nearby is lazy for the same reason: it is the owner's, it carries its own
 // stylesheet, and a visitor's first paint must not fetch a list the server
 // would refuse them anyway.
@@ -188,7 +199,9 @@ export default function BacklinksPanel() {
         >
           ✕
         </button>
-        <TocPanel />
+        <Suspense fallback={null}>
+          <TocPanel />
+        </Suspense>
         {/* Under the outline, before the graph: the note's footnotes are part
             of its shape, and a reader who came to the pane for the outline is
             the reader who wants them beside it. */}

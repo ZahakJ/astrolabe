@@ -94,6 +94,15 @@ export function installSidenotes(host: HTMLElement, content: HTMLElement): () =>
     const width = Math.min(MAX_WIDTH, Math.floor(margin - GAP - 12));
     layer.style.setProperty("--sidenote-width", `${width}px`);
     layer.style.setProperty("--sidenote-gap", `${GAP}px`);
+    // READ, WRITE, READ, per note — and MEASURED, because it looks like the
+    // textbook layout thrash and is not. The writes below only dirty the
+    // absolutely-positioned asides in the sidenote layer, so the `offsetHeight`
+    // that follows them costs the browser two layouts for the whole set, not
+    // one per note: 50 footnotes, 103 forced-layout reads, 2 layouts, 1.2 ms.
+    // Splitting it into three passes was tried and measured at the same two
+    // layouts and the same millisecond, so it was taken out again. A
+    // rearrangement that buys nothing is a rearrangement the next reader has
+    // to understand for nothing.
     const wants: { want: number; height: number }[] = [];
     for (const note of notes) {
       const ref = content.querySelector<HTMLElement>(`#fnref-${CSS.escape(note.label)}`);

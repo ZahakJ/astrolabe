@@ -420,7 +420,7 @@ interface TopicSectionData {
  *  several tags appear under each; untagged ones land in a final "Notes"
  *  section. Sections are ordered by size (ties alphabetical), "Notes" last. */
 function buildTopics(
-  notes: NoteRef[],
+  notes: readonly NoteRef[],
   homePath: string | null,
   tagsByPath: Map<string, string[]>,
 ): TopicSectionData[] {
@@ -1607,7 +1607,9 @@ export default function Sidebar() {
   // "published only" sidebar filter.
   const flatNotes = useMemo(() => {
     if (admin && !publishedFilter) return null;
-    let notes = collectNotes(tree);
+    // A copy, because the home note is pinned into place below and the list
+    // collectNotes hands back is the shared, memoized one.
+    let notes: readonly NoteRef[] = collectNotes(tree);
     if (admin) notes = notes.filter((n) => publishedPaths?.has(n.path));
     const home = homeNote ? resolveLink(homeNote, tree) : null;
     if (home) {
