@@ -189,23 +189,6 @@
   background: var(--text-muted);
 }
 
-/* ── The sidebar's section ─────────────────────────────────────────────── */
-.s-calsec {
-  flex: none;
-  padding: 8px 12px 10px;
-  border-top: 1px solid var(--border);
-}
-
-.s-calsec .s-cal__day {
-  max-block-size: 36px;
-  font-size: 0.786rem;
-}
-
-.s-calsec .s-cal__num {
-  inline-size: 23px;
-  block-size: 23px;
-}
-
 /* The Sigils page drew this grid at its top in 3.17 and does not any more:
    the month is its own page (client/styles/calendarpage.css), where a cell
    has room to say what its day held. */
