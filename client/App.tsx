@@ -724,13 +724,27 @@ export default function App() {
         }
         if (store.paletteOpen || modalUp(store)) return;
         if (e.target instanceof Element && e.target.closest("input, textarea")) return;
-        // 3. Preview is a mode that took the editor away — Esc gives it back.
+        // 3. THE NOTES DRAWER IS A LAYER, SO ESCAPE CLOSES IT. Every other
+        //    overlay in the product answers Esc and this one — the biggest
+        //    of them, covering the page with the whole vault — did not: the
+        //    ladder went straight from the palette to zen and never looked at
+        //    `sidebarOpen`. It sits here, under the modal guard, because a
+        //    dialog raised FROM the drawer (rename, "Move to…") owns the key
+        //    first, and above zen because a reader in zen with the drawer out
+        //    means to dismiss the drawer, not the mode. Only where the pane
+        //    IS a drawer: on a desktop `sidebarOpen` is not what shows it.
+        if (store.sidebarOpen && sidebarIsDrawer()) {
+          e.preventDefault();
+          store.setSidebarOpen(false);
+          return;
+        }
+        // 4. Preview is a mode that took the editor away — Esc gives it back.
         if (store.previewVisitor) {
           e.preventDefault();
           void store.setPreviewVisitor(false);
           return;
         }
-        // 4. Esc leaves zen — never out from under vim, where Esc is sacred,
+        // 5. Esc leaves zen — never out from under vim, where Esc is sacred,
         //    and never out from under a reader panel: a book's contents list
         //    or go-to field closes on Esc, and this listener runs first
         //    (capture), so it has to look before it drops the window out of
@@ -1154,6 +1168,11 @@ export default function App() {
               onClick={() => useStore.getState().setReadingMode(false)}
             >
               {t("readingStripAction")}
+              {/* The keycap is its own element so a coarse pointer can drop
+                  it (reading.css): a phone has no Ctrl and no Cmd. A chord
+                  label is language-neutral and lives beside its call, like
+                  the palette's `hint` rows. */}
+              <span className="s-modebar__key"> (Ctrl/Cmd+E)</span>
             </button>
           </div>
         )}

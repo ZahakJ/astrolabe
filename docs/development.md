@@ -299,6 +299,29 @@ focus ring in the same rule, an accessible name on every icon-only control, and 
 list at the top of the script. Like check-i18n, it exists for the class of regression that is
 invisible in review and invisible in a screenshot.
 
+### `npm run check-phone` — the phone's four promises
+
+A browser gate:
+`CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=<pw> npm run check-phone -- <url> [outdir]`,
+against a scratch server. It opens the ten main surfaces — editor, reading view, graph, media,
+Sigils, calendar, weekly review, Orbits, library and the notes drawer — at 390×844 with a coarse
+pointer and no hover, in English **and** Arabic, and asks four questions of each:
+
+1. **Nothing overflows sideways.** The document never scrolls horizontally and no element hangs
+   past either edge. A strip that declares `overflow-x: auto` is exempt, and so is everything
+   inside it: the tab row, a wide table and the Sigils heat map *scroll*, which is a design.
+2. **Every shell target is ≥44px** — height always, width too when the control carries no text,
+   because an icon button is square or it is nothing. Prose is excluded (a 44px link would set
+   the line height of the paragraph around it), a native checkbox is measured by the `<label>`
+   that holds it, and a data picture's cells are marks rather than controls.
+3. **Every text field is ≥16px**, below which iOS Safari zooms the page into the field on focus
+   and leaves it there.
+4. **Nothing covers a target**: `elementFromPoint` at each target's centre answers that target.
+
+It exists because the audit that opened 3.18 found thirty-three defects of exactly these four
+shapes, and every one of them was a number that nothing measured. Arabic is not a translation
+pass here — it is a second layout, and three of those findings existed in Arabic only.
+
 ### `npm run check-bundle` — what each audience downloads
 
 After `npm run build`. The client ships one entry chunk plus a chunk per surface, and the split
@@ -367,8 +390,9 @@ The sequence a change runs before it is called finished, in this order: `npm run
 `node scripts/gen-settings-index.mjs` first when a row changed) · `npm run check-keymap` when a
 key changed · `npm run check-names` · `npm run check-docs` · `npm run build-docs` ·
 `npm run check-desktop` when `electron/` or `desktop/` changed. Then the browser gates the change
-touches, with `CHROMIUM` and `ASTROLABE_PASSWORD` set, against a scratch server over a scratch
-vault — never the owner's.
+touches — `npm run check-phone` whenever a stylesheet or a piece of the shell moved — with
+`CHROMIUM` and `ASTROLABE_PASSWORD` set, against a scratch server over a scratch vault — never
+the owner's.
 
 ## Screenshot harnesses
 

@@ -27,8 +27,8 @@
    holds still and the tall tabs scroll (which they already did). */
 .s-smodal {
   width: min(940px, calc(100vw - 32px));
-  height: min(740px, calc(100vh - 40px));
-  max-height: calc(100vh - 40px);
+  height: min(740px, calc(100dvh - 40px));
+  max-height: calc(100dvh - 40px);
 }
 
 .s-smodal__cols {
@@ -422,8 +422,8 @@
    it never grows past the window and starts scrolling the page behind it. */
 @media (max-height: 800px) {
   .s-smodal {
-    height: calc(100vh - 32px);
-    max-height: calc(100vh - 32px);
+    height: calc(100dvh - 32px);
+    max-height: calc(100dvh - 32px);
   }
 }
 
@@ -1233,5 +1233,22 @@
     width: 44px;
     height: 44px;
     margin-block: -11px;
+  }
+
+  /* The tab strip's own eight buttons, 34px tall. On a phone this strip IS
+     the panel's navigation — the rail became a scrolling row of tabs across
+     the top and the panel below it shows one tab at a time — so these are
+     the most-pressed targets in Settings and were the shortest. */
+  .s-smodal__railbtn {
+    min-block-size: 44px;
+  }
+
+  /* …and the buttons inside the ROWS, not only the two in the foot. The foot
+     had been lifted and "Clear offline copy" — a button that throws away the
+     offline copy of the vault — was still 29.6px in the middle of a row. A
+     panel whose Save is a target and whose destructive button is not is the
+     wrong way round. */
+  .s-smodal .s-btn {
+    min-block-size: 44px;
   }
 }

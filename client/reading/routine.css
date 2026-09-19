@@ -676,19 +676,61 @@
   .s-rv-routine__note { display: none; }
 }
 
-/* A finger, not a pointer: the boxes and the skip grow to a target. */
+/* A finger, not a pointer: the boxes and the skip grow to a target.
+
+   THE CHECKBOX STAYS 24. A native `<input type="checkbox">` blown up to 44
+   draws a 44px box, and a card of eight tasks would be a column of dinner
+   plates. The 44 belongs to the LABEL around it — `.s-rv-routine__tasklabel`
+   is the flex row a thumb actually lands on, it already carries the whole
+   line, and a checkbox inside a 44px label is a 44px target by every
+   definition that matters (scripts/check-phone.mjs measures it that way).
+   Everything ELSE on this card is chrome and takes the floor: the two
+   day-moving buttons, the card's own Edit/Delete, the title that opens the
+   sigil's note, the plan's disclosure, the way back to today. */
 @media (pointer: coarse) {
   .s-rv-routine__check {
     inline-size: 24px;
     block-size: 24px;
   }
-  .s-rv-routine__skip {
+  .s-rv-routine__tasklabel {
+    align-items: center;
+    min-block-size: 44px;
+  }
+  .s-rv-routine__task {
+    align-items: center;
+  }
+  .s-rv-routine__skip,
+  .s-rv-routine__push {
     opacity: 1;
-    min-block-size: 32px;
+    min-block-size: 44px;
+    min-inline-size: 44px;
   }
   .s-rv-routine__scalebtn {
-    inline-size: 32px;
-    block-size: 32px;
+    inline-size: 44px;
+    block-size: 44px;
+  }
+  .s-rv-routine__action,
+  .s-rv-routine__title--door,
+  .s-rv-routine__backtoday,
+  .s-rv-routine__plansum {
+    min-block-size: 44px;
+  }
+  .s-rv-routine__action,
+  .s-rv-routine__backtoday {
+    display: inline-flex;
+    align-items: center;
+    min-inline-size: 44px;
+    justify-content: center;
+  }
+  .s-rv-routine__plansum {
+    display: flex;
+    align-items: center;
+  }
+  /* 14.4px in English, 15.3px in Arabic — the size at which iOS zooms the
+     page into the field. This is the one field on the page. */
+  .s-rv-routine__note {
+    font-size: 16px;
+    min-block-size: 44px;
   }
 }
 

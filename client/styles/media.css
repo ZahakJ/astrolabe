@@ -520,14 +520,35 @@
 }
 
 @media (max-width: 700px), (pointer: coarse) {
+  /* `flex: none` is the half of this that was missing. The row is a flex
+     container, so the round − and + stepper — a card's only way to move its
+     progress — SHRANK to whatever was left after the labels took their
+     share: measured 10.6px wide inside its 44px height, a sliver the width
+     of the glyph's stroke. The row wraps rather than squeezing, so a card in
+     a 390px column keeps both steppers whole on a second line. */
   .s-media__stepbtn {
+    flex: none;
     inline-size: 44px;
     block-size: 44px;
+  }
+
+  .s-media__actions {
+    flex-wrap: wrap;
+    row-gap: 6px;
   }
 
   .s-media__editbtn,
   .s-media__filter,
   .s-media__addbtn {
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+
+  /* The folder chip under the dates is a DOOR — the card's way into the
+     folder of notes behind the work — and it was 26px, the smallest target
+     on the surface. It sits in flowing text rather than a row of buttons,
+     which is exactly how a target gets missed by a sweep of the rows. */
+  .s-media__folder {
     min-block-size: 44px;
   }
 }
@@ -575,7 +596,7 @@
 
 .s-mediaform {
   inline-size: min(640px, calc(100vw - 32px));
-  max-block-size: min(calc(100vh - 48px), 900px);
+  max-block-size: min(calc(100dvh - 48px), 900px);
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -729,6 +750,10 @@
 }
 
 @media (max-width: 700px), (pointer: coarse) {
+  /* Every button in the form, not only the two in its foot: "Pick a cover…"
+     sits mid-form and was 29.6px, which is the shape this rule exists to
+     stop — a sheet whose Save is a target and whose middle is not. */
+  .s-mediaform .s-btn,
   .s-mediaform__foot .s-btn,
   .s-mediaform__upload {
     min-block-size: 44px;
@@ -736,8 +761,10 @@
 }
 
 @media (pointer: coarse) {
+  /* 36 was a compromise with the header's height and the header can simply
+     be taller: a dialog's only ✕ is not the control to keep small. */
   .s-mediaform__close {
-    min-inline-size: 36px;
-    min-block-size: 36px;
+    min-inline-size: 44px;
+    min-block-size: 44px;
   }
 }

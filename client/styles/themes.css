@@ -231,7 +231,7 @@ body:has(.s-tpick-host) .s-smodal-overlay {
 
 .s-tpick {
   width: min(620px, calc(100vw - 32px));
-  max-height: min(680px, calc(100vh - 64px));
+  max-height: min(680px, calc(100dvh - 64px));
   display: flex;
   flex-direction: column;
   background: var(--bg-raised);
@@ -270,6 +270,15 @@ body:has(.s-tpick-host) .s-smodal-overlay {
 @media (max-width: 700px), (pointer: coarse) {
   .s-tpick__hint {
     display: none;
+  }
+
+  /* The picker's two remaining chrome buttons — "Pin to the bar" in the foot
+     and the sheet's own ✕ — at 25px and 27×24 inside a sheet whose theme rows
+     were already 58. Same floor as everything else a finger reaches for. */
+  .s-tpick__pin {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
   }
 }
 

@@ -43,6 +43,11 @@ public class ShareActivity extends BridgeActivity {
         // its keep.
         SystemBarInsets.apply(this, bridge);
 
+        // The sheet is the shell's own page, so its `--bg` is the room the
+        // reader chose there too; the strips follow it exactly as they do over
+        // the instance.
+        ThemeBars.follow(this, bridge);
+
         started = true;
     }
 

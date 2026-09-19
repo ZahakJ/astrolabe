@@ -331,7 +331,7 @@
 
   .s-revision {
     width: 100vw;
-    max-height: 100vh;
+    max-height: 100dvh;
     margin-top: 0;
     border-radius: 0;
     border: none;

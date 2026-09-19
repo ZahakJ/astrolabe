@@ -61,7 +61,7 @@
 
 .s-tb {
   width: min(720px, calc(100vw - 32px));
-  max-height: min(760px, calc(100vh - 12vh));
+  max-height: min(760px, calc(100dvh - 12vh));
   display: flex;
   flex-direction: column;
   background: var(--bg-raised);
@@ -578,5 +578,13 @@
   .s-tb__tab {
     display: inline-flex;
     align-items: center;
+  }
+
+  /* "New theme…" in the picker's foot — the door to everything in this
+     sheet, and 30px tall. */
+  .s-tpick__new {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }
