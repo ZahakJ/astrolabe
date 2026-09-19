@@ -1486,6 +1486,86 @@ stays on `.s-panel--collapsed`, as it always did.
   status-bar buttons 44 (bar 45), document overflow 0. Before: 28 / 26 / 24 / 17–24 — the round
   that gave the empty state its tap targets had fixed the pane it named and not the surface that
   pane points at.
+- **…AND 44px IS MEASURED, NOT DECLARED** (`scripts/check-phone.mjs`, 3.18.0). The rule above
+  named five selectors and the shell has hundreds. A phone audit found thirty-three places it had
+  never reached — the top cluster at 40×36, the drawer's three section headers at 18, the graph's
+  four canvas controls at 26 (a `.s-graph__controls .s-iconbtn` at specificity (0,2,0) beating the
+  floor's (0,1,0)), the sidebar calendar's days capped at 36 by their own two-class rule, the
+  outline drawer's rows at 25–28, the Sigils card's five actions, the media stepper 10.6px wide
+  because `flex-shrink` was left at 1 inside a row too narrow for it — plus five text fields
+  under 16px and, in Arabic only, a library header that began at x=−69. Every one is a NUMBER, so
+  the answer is a gate rather than another sentence: the ten main surfaces at 390×844 with a
+  coarse pointer, English and Arabic, asserting no horizontal overflow, no shell target under
+  44px, no field under 16px and no target whose centre another layer answers.
+  Three things the gate deliberately does NOT hold to 44: **prose** (a link in a sentence would
+  set the line height of the paragraph around it — DESIGN.md already said so), a native
+  **checkbox or radio** whose `<label>` is itself ≥44 (the label is what a finger lands on; the
+  Sigils card's boxes stay 24px because a 44px native box is a dinner plate), and a **data
+  picture's cells** (the Sigils heat map is a year of a habit in 12px squares, and a 44px cell is
+  not a bigger chart — it is no chart).
+- **A MEDIA QUERY IS NOT A HIGHER RUNG OF THE CASCADE** (`client/styles/controls.css`, 3.18.0).
+  The shared control set's coarse block sat beside the rule whose thought it continued, four
+  hundred lines above `.s-ctl-seg__btn { min-height: 26px }` — and `min-block-size` and
+  `min-height` are the same used value but two declarations, so the later one won and every
+  segment button in the product (the media form's, the sigil form's eight, the settings panel's)
+  measured 30px on a phone. `.s-ctl`'s own `min-height: 32px` did the same to every field. The
+  block moved to the END of the file, which is the only place a floor stated in one property can
+  outrank a size stated in the other. Where a coarse block is WRITTEN is part of what it says.
+- **A CONTROL UNDER ANOTHER LAYER IS NOT A CONTROL.** With the notes drawer open, the ☰ — by then
+  labelled "Close Notes sidebar" — sat at z-index 60 under a drawer at 400, so a tap at its
+  centre reached the drawer's wordmark and ran "preview as visitor"; the top cluster's gear,
+  outline switch and ⋯ were covered the same way by the drawer and, when the outline pane was
+  out, by the pane. So **a phone drawer hides the chrome it covers**: the ☰ and the cluster go
+  while either drawer is up, and each drawer carries its own ✕ at its top
+  (`.s-sidebar__phoneclose`, `.s-panel__phoneclose`) beside the scrim tap, Escape and the
+  back gesture. A labelled control the reader cannot hit is worse than an absent one, because the
+  label promises something the hit-testing does not deliver.
+- **ESCAPE CLOSES THE NOTES DRAWER** (App.tsx's Escape ladder, rung 3). Every other overlay in the
+  product answered Esc and the largest one — the whole vault over the page — did not: the ladder
+  went from the palette straight to zen and never read `sidebarOpen`. It sits under the modal
+  guard (a rename dialog raised FROM the drawer owns the key first) and above zen (a reader in
+  zen with the drawer out means the drawer), and only where the pane IS a drawer.
+- **THE NOTCH AND THE HOME INDICATOR** (`client/index.html`, app.css "THE NOTCH AND THE HOME
+  INDICATOR"). The client served a `display: standalone` manifest and a `theme-color` and then
+  drew edge to edge: installed on an iPhone, the 44px top cluster sat under a 47px status bar and
+  the mode pills under the 34px home indicator. `viewport-fit=cover` is what makes `env()`
+  non-zero at all, and two custom properties — `--safe-top`, `--safe-bottom`, both
+  `env(…, 0px)` — carry it to the bars that TOUCH an edge: the tab strip and the tool cluster
+  grow by the top inset (so their own ground fills the band rather than leaving a stripe of page
+  above it), the status bar and the toasts clear the bottom one, and each phone drawer pads its
+  own two ends because `position: fixed` escapes the shell's box. A rectangular screen computes
+  exactly what it computed before, which is why none of it has a breakpoint.
+  The same meta carries `interactive-widget=resizes-content`, so Chrome Android shrinks the
+  layout viewport for the keyboard the way the Android shell's WebView already does — the two
+  clients had disagreed about where the caret was.
+- **`100dvh`, NEVER `100vh`, ON ANYTHING FULL-HEIGHT.** In Chrome Android with the URL bar showing
+  `100vh` is ~56px taller than the visible area, so a sheet's footer (Settings' Close/Save, the
+  selection menu's last rows) hung below the bottom edge until the reader scrolled. Every
+  height, max-height and block-size in `client/` now reads `dvh`; the only `100vh` left in the
+  tree is one in a comment.
+- **ON A PHONE, OPENING A NOTE DOES NOT OPEN THE KEYBOARD** (`Editor.tsx`, `autofocusOnOpen`).
+  "Open a note" means "write in it" on a mouse and costs nothing; on a finger it costs the bottom
+  half of the screen, and every open — a tree row, a wikilink, the daily note, a tab restored at
+  launch — raised the IME before the reader had said they wanted to write. On a coarse pointer
+  the note opens rendered and the first tap in the text focuses the editor. Nothing else moves:
+  the caret restore, the heading jump and every shortcut are where they were.
+- **THE HARDWARE BACK BUTTON CLOSES THE TOPMOST LAYER FIRST** (`client/backGesture.ts` +
+  `mobile/…/MainActivity.java`). The client pushed one history entry per note and none for the
+  layers it draws over one, so a back gesture with the drawer, the palette or Settings up
+  navigated the note UNDERNEATH and left the layer standing. While a layer is up the client keeps
+  one extra history entry; back pops it, the layer closes, nothing navigates — and closing the
+  layer any other way takes the entry back out, so the stack is never deeper than the reader's
+  own path. WHICH layer closes is decided by dispatching an Escape, because the Escape ladder
+  already encodes that precedence and two behaviours that must agree are written once. The shell
+  keeps the other two rungs: back one page, then — on the connection screen — "press back again
+  to leave", because the front door is a thumb's width from the gesture area.
+- **THE SHELL'S STRIPS FOLLOW THE ROOM** (`mobile/…/ThemeBars.java`). The status bar and the
+  gesture bar were painted `iron_gall` unconditionally, so a parchment reader got a cream page
+  with a black band at each end. The shell reads the page's own `<meta name="theme-color">` (kept
+  on the live theme by `applyThemeChoice` → `syncThemeColour`, falling back to the computed
+  `--bg`) and paints both strips, choosing light or dark glyphs by relative luminance. It POLLS
+  rather than hooking a page load, because the colour changes when the reader changes ROOMS — a
+  click inside a single-page app that no navigation callback fires for.
 - **Zen hides chrome; it does not disable behavior.** Editor shortcuts, `Ctrl/Cmd S`, publish
   and the palette all keep working. `Esc` leaves — unless something else owns Esc (a modal, the
   palette, a text field, or vim inside the editor), which is the same precedence Ctrl+D

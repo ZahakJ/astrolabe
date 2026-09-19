@@ -126,4 +126,12 @@
   .s-propshelf__branch {
     min-height: 44px;
   }
+
+  /* …and the branch needs the OTHER axis too. It was 16px wide inside a 44px
+     row: a target a finger cannot miss vertically and cannot hit at all
+     horizontally. The glyph still turns rather than the button (see above),
+     so widening the box moves nothing the reader can see. */
+  .s-propshelf__branch {
+    min-inline-size: 44px;
+  }
 }

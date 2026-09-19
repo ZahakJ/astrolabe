@@ -160,6 +160,24 @@ setDivergeListener((path) => {
  *  the properties card every time they switched tabs and back. */
 const caretPlaced = new Set<string>();
 
+/** May opening a note put the caret in the editor?
+ *
+ *  On a mouse it always may: "open a note" means "write in it", and a caret
+ *  costs a reader nothing. On a FINGER it costs the bottom half of the
+ *  screen. Every note open — a tree row, a wikilink, a backlink, the daily
+ *  note, a tab restored on launch — focused CodeMirror, and focusing
+ *  CodeMirror raises the on-screen keyboard: the phone reader arrived at
+ *  every note with 300px of keys over it and the top of the note scrolled
+ *  away under the bar, before they had said they wanted to write anything.
+ *  So a coarse pointer opens the note RENDERED, and the first tap in the
+ *  text focuses the editor the way a tap always has. Nothing else changes —
+ *  the keyboard shortcuts, the caret restore and the heading jump are all
+ *  where they were; only the unrequested focus goes. */
+function autofocusOnOpen(): boolean {
+  if (focusIsClaimed()) return false;
+  return !(typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches);
+}
+
 export default function Editor({ path, paneId = null }: { path: string; paneId?: string | null }) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   // Whether THIS window may write this note. Recomputed rather than stored:
@@ -295,7 +313,7 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
                 yMargin: 24,
               }),
             });
-            if (!focusIsClaimed()) view.focus();
+            if (autofocusOnOpen()) view.focus();
             return;
           }
         }
@@ -311,8 +329,9 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
         }
         // Opening a note normally means "I want to write in it", so the caret
         // comes here — unless a chrome widget is mid-keystroke and said the
-        // focus is its (the tab bar arrowing between notes; see a11y.ts).
-        if (!focusIsClaimed()) view.focus();
+        // focus is its (the tab bar arrowing between notes; see a11y.ts), or
+        // the pointer is a finger (see `autofocusOnOpen`).
+        if (autofocusOnOpen()) view.focus();
       })
       .catch((err) => {
         // See ReadingView: a 404 inside visitor preview means "not

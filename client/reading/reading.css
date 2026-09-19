@@ -1398,6 +1398,27 @@ span.s-rv-math-live {
    instead: painted, hit-tested, invisible to the line box. */
 
 @media (max-width: 700px), (pointer: coarse) {
+  /* THE OUTLINE'S ROWS. This block reached the properties card and stopped;
+     the outline list beside it — the thing the phone's outline drawer exists
+     to show — kept 27px rows. The type and the per-level indent do not move;
+     the box a finger has to land in does, and the label centres in it. */
+  .s-toc__item {
+    display: flex;
+    align-items: center;
+    min-block-size: 44px;
+  }
+
+  .s-modebar__action {
+    min-block-size: 44px;
+  }
+
+  /* A keystroke on a surface with no keyboard. The reading strip's Edit
+     button said "Edit (Ctrl/Cmd+E)" to a reader holding a phone; the keycap
+     is in its own element so it can simply go. */
+  .s-modebar__action .s-modebar__key {
+    display: none;
+  }
+
   .s-rv-props__head {
     min-height: 44px;
     padding-block: 0;

@@ -171,27 +171,6 @@
   min-height: 42px;
 }
 
-/* …and on a finger EVERY control is a TARGET, not a box. The 44px floor used
-   to reach only the font picker's trigger (42px was chosen to fit two lines
-   of type and fits them at 44 just as well) while the toggles stood at 34,
-   the segments at 30 and the fields at 13.8px of type — which is the size
-   at which iOS zooms the page into the field on focus and leaves it there.
-   Measured with a coarse pointer at 1400 and 390: inputs 16px, toggles,
-   segment buttons and selects 44px, the same block for the settings panel's
-   rows and the designer's. */
-@media (max-width: 700px), (pointer: coarse) {
-  .s-ctl-input,
-  .s-ctl-num__input {
-    font-size: 16px;
-  }
-  .s-ctl-toggle,
-  .s-ctl-seg__btn,
-  .s-ctl-select,
-  .s-ctl-select--face {
-    min-block-size: 44px;
-  }
-}
-
 /* ── The popover ──────────────────────────────────────────────────────────── */
 
 /* Fixed, on <body>, with top/left/width/max-height computed per open from the
@@ -760,4 +739,47 @@
   outline: 2px solid var(--focus, var(--accent));
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+
+/* …AND ON A FINGER EVERY CONTROL IS A TARGET, NOT A BOX.
+
+   AT THE END OF THE FILE, and that is the whole correction this round makes.
+   The block used to sit up beside `.s-ctl-select--face`, which is where the
+   thought belonged and not where the cascade needed it: `min-block-size` and
+   `min-height` are the same used value in a horizontal writing mode but they
+   are two declarations, so `.s-ctl-seg__btn { min-height: 26px }` four
+   hundred lines BELOW it won at equal specificity and every segment button in
+   the product measured 30px on a phone — the media form's "Kind" row, the
+   sigil form's eight, the settings panel's. `.s-ctl`'s own `min-height: 32px`
+   did the same to every field. Both rules are still right for a mouse; they
+   simply have to be said first. A media query is not a higher rung of the
+   cascade, and writing one as though it were is a mistake that looks
+   correct in the source and is invisible in review.
+
+   Measured with a coarse pointer at 390: inputs 16px of type and 44px of
+   box, toggles, segment buttons, selects and steppers 44px — the same block
+   for the settings panel's rows, the designer's, the media form's and the
+   sigil form's, because they are one control set. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-ctl-input,
+  .s-ctl-num__input,
+  textarea.s-ctl {
+    font-size: 16px;
+  }
+
+  .s-ctl,
+  .s-ctl-input,
+  .s-ctl-toggle,
+  .s-ctl-seg__btn,
+  .s-ctl-select,
+  .s-ctl-select--face {
+    min-height: 44px;
+  }
+
+  /* The number stepper's − and +, which are square by design. */
+  .s-ctl-num__step {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
 }

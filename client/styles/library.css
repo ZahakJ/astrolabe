@@ -521,7 +521,7 @@
 
   .s-lib-rail__body {
     padding: 0;
-    max-block-size: calc(100vh - 120px);
+    max-block-size: calc(100dvh - 120px);
   }
 }
 

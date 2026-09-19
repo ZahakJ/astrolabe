@@ -86,10 +86,38 @@ export function applyThemeChoice(choice: string): void {
   if (custom) {
     root.setAttribute("data-theme", custom.base);
     root.setAttribute("data-custom-theme", custom.id);
+    syncThemeColour();
     return;
   }
   root.setAttribute("data-theme", isTheme(choice) ? choice : baseThemeOf(choice, registry));
   root.removeAttribute("data-custom-theme");
+  syncThemeColour();
+}
+
+/** Keep `<meta name="theme-color">` on the room the reader is actually in.
+ *
+ *  The server stamps that tag once, from the VISITOR theme (server/manifest.ts)
+ *  — the right answer for a first paint and the wrong one from the moment an
+ *  admin picks a different room. It is what an installed instance paints its
+ *  status bar with, what Chrome Android tints its URL bar with, and what the
+ *  Android shell reads to colour the strips above and below the page
+ *  (mobile/…/ThemeBars.java): three surfaces that were all showing the
+ *  DEFAULT theme's ground over a parchment page. `--bg` is read from the live
+ *  root, so a custom theme's own override is included for free.
+ *
+ *  Deliberately after the attributes are written, and only then: reading a
+ *  custom property before the class swap has been committed returns the
+ *  outgoing theme's value. */
+function syncThemeColour(): void {
+  const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+  if (bg === "") return;
+  let tag = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.name = "theme-color";
+    document.head.appendChild(tag);
+  }
+  tag.content = bg;
 }
 
 /**

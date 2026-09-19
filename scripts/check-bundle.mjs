@@ -753,7 +753,18 @@ const AUDIENCES = [
   // asserted split in MUST_SPLIT, and the Sigils page GAVE BACK its
   // `getTrackers` read when the grid left it.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
-{ name: "entry (everyone)", keys: entry, budget: 802 * 1024 },
+  // 3.18.0 THE PHONE'S SHOULD-HAVES: 801.9 kB → 806. The touch floor
+  // stopped being a promise and became CSS: one coarse-pointer block per
+  // stylesheet raising every shell target to 44px and every field to 16px,
+  // the notch and home-indicator insets (`--safe-top` / `--safe-bottom`, app.css),
+  // and the two drawers hiding the chrome they cover. It is SHELL css and so
+  // it is first-paint css by definition — a 44px rule that arrives in a lazy
+  // chunk is a target that resizes under a finger that is already on it.
+  // Measured against a build of the same tree without the round: +3.1 kB,
+  // which is what this budget moves by and no more. The round's two new
+  // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
+  // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
+{ name: "entry (everyone)", keys: entry, budget: 806 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1015,7 +1026,20 @@ const AUDIENCES = [
   // (above) and nothing of the page's own. A visitor has no door to it; only
   // the strings and the tab model reach this reader, because `t()` ships whole.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
-{ name: "anonymous blog reader", keys: blog, budget: 1095 * 1024 },
+  // 3.18.0 THE PHONE'S SHOULD-HAVES: 1095.0 kB → 1100. The touch floor
+  // stopped being a promise and became CSS: one coarse-pointer block per
+  // stylesheet raising every shell target to 44px and every field to 16px,
+  // the notch and home-indicator insets (`--safe-top` / `--safe-bottom`, app.css),
+  // and the two drawers hiding the chrome they cover. It is SHELL css and so
+  // it is first-paint css by definition — a 44px rule that arrives in a lazy
+  // chunk is a target that resizes under a finger that is already on it.
+  // Measured against a build of the same tree without the round: +3.9 kB,
+  // which is what this budget moves by and no more. The round's two new
+  // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
+  // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
+  // This reader pays a little more than the entry does: the comment form is
+  // the one thing a VISITOR types into, and it is on this page.
+{ name: "anonymous blog reader", keys: blog, budget: 1100 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1188,7 +1212,20 @@ const AUDIENCES = [
   // bar's door, which the other two have no status bar for; Sidebar.tsx gave
   // back more than that when `useLoggedDays` moved out to
   // client/loggedDays.ts.
-  { name: "admin first paint", keys: app, budget: 1554 * 1024 },
+  // 3.18.0 THE PHONE'S SHOULD-HAVES: 1553.7 kB → 1558. The touch floor
+  // stopped being a promise and became CSS: one coarse-pointer block per
+  // stylesheet raising every shell target to 44px and every field to 16px,
+  // the notch and home-indicator insets (`--safe-top` / `--safe-bottom`, app.css),
+  // and the two drawers hiding the chrome they cover. It is SHELL css and so
+  // it is first-paint css by definition — a 44px rule that arrives in a lazy
+  // chunk is a target that resizes under a finger that is already on it.
+  // Measured against a build of the same tree without the round: +3.6 kB,
+  // which is what this budget moves by and no more. The round's two new
+  // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
+  // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
+  // The admin carries the most of it: the drawer's chrome, the outline
+  // drawer's rows, the tab strip and the status bar are this reader's alone.
+  { name: "admin first paint", keys: app, budget: 1558 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
