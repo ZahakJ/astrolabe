@@ -430,5 +430,22 @@ for (const rel of sources.filter((f) => f.startsWith("client/books/"))) {
 }
 if (!shim) ok("every t()/tf() in the reader resolves against client/i18n.ts");
 
+// ── The page canvas never inherits the book's binding ──────────────────────
+// pdf.js positions every glyph itself and hands the canvas runs of private-use
+// codes in paint order. `ctx.direction` defaults to "inherit", and an RTL-bound
+// book's pages sit under `.s-book__doc[dir="rtl"]`, so Chromium ran bidi over
+// those runs and drew Arabic pages as isolated letters in the wrong places
+// (3.19.2). Every 2d context a page is rendered into pins "ltr", and so does the
+// canvas's own rule, because the visible canvas is in the RTL subtree.
+{
+  const renderSrc = read("client/books/render.ts");
+  const imageSrc = read("client/books/pageImage.ts");
+  const css = read("client/styles/books.css");
+  if (!/targetCtx\.direction = "ltr"/.test(renderSrc) || !/\bctx\.direction = "ltr"/.test(renderSrc)) fail("render.ts must pin ctx.direction = \"ltr\" on both contexts a page is drawn into — an RTL-bound book's canvas inherits dir=rtl and bidi-reorders pdf.js's glyph runs");
+  else if (!/ctx\.direction = "ltr"/.test(imageSrc)) fail("pageImage.ts must pin ctx.direction = \"ltr\" before rendering a cover");
+  else if (!/\.s-book__canvas \{[^}]*direction: ltr/.test(css)) fail("books.css: .s-book__canvas must carry `direction: ltr`");
+  else ok("the page canvas draws left to right whatever the book's binding");
+}
+
 console.log(failed ? "\nBOOKS GATE FAILED" : "\nBOOKS OK");
 process.exit(failed ? 1 : 0);

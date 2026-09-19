@@ -1207,10 +1207,13 @@ export default function BookReader({ path, citation = null, active = true, onLan
         // reaches for the browser's zoom keys over a book means the book,
         // and the browser's own handler would scale the whole shell. The
         // bare keys below do the same; these just take the reflex too.
-        if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "=" || e.key === "+" || e.key === "-" || e.key === "0")) {
+        // shortcutKey, not e.key: on an Arabic or Russian layout the key that
+        // sits where "=" is answers with its own glyph (client/keys.ts).
+        const zk = e.ctrlKey || e.metaKey ? shortcutKey(e) : null;
+        if (zk !== null && !e.altKey && (zk === "=" || zk === "+" || zk === "-" || zk === "0")) {
           e.preventDefault();
-          if (e.key === "0") update({ fit: "width" });
-          else zoomBy(e.key === "-" ? 1 / 1.15 : 1.15);
+          if (zk === "0") update({ fit: "width" });
+          else zoomBy(zk === "-" ? 1 / 1.15 : 1.15);
           return;
         }
         // Ctrl+D / Ctrl+U — half a screen, the one modified pair zathura has.

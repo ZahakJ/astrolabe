@@ -82,6 +82,7 @@ export async function renderPageImage(path: string, page: number, cssWidth: numb
   // The paper's own white under a transparent page, as covers.ts explains.
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.direction = "ltr"; // render.ts says why: a canvas never inherits a book's binding
   await pdfPage.render({ canvasContext: ctx, viewport, canvas }).promise;
   const picture: PageImage = { src: canvas.toDataURL("image/jpeg", 0.85), cssWidth: width, cssHeight };
   pictures.set(key, picture);
