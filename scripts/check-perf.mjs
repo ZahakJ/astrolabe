@@ -16,7 +16,10 @@
 // 3,000-line note, a note with fifty embeds — and this script starts its own
 // server over it, on its own port, with its own throwaway data directory.
 // Nothing is measured against the owner's vault and nothing can be: the gate
-// never takes a vault path.
+// never takes a vault path, and the fixture reads nobody's disk unless
+// `ASTROLABE_SEED_VAULT` names one. That is also why the numbers below mean
+// the same thing on another machine — a fixture that quietly folded in a real
+// folder would be measuring a folder that grows.
 //
 // WHAT IT MEASURES, and why these three:
 //
@@ -429,10 +432,13 @@ const measured = {
 };
 
 console.log("\ncheck-perf: budgets");
+// Wide enough for the longest label there is, so the column of numbers is a
+// column: a fixed 44 left one row hanging past it.
+const LABEL_W = Math.max(...BUDGETS.map((b) => b.label.length));
 for (const row of BUDGETS) {
   const value = measured[row.id];
   const over = value > row.budget;
-  const line = `${row.label.padEnd(44)} ${String(value.toFixed(0)).padStart(6)} ms  (budget ${row.budget} ms)`;
+  const line = `${row.label.padEnd(LABEL_W)} ${String(value.toFixed(0)).padStart(6)} ms  (budget ${row.budget} ms)`;
   if (over) fail(line);
   else console.log(`  ok    ${line}`);
 }

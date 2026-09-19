@@ -13,14 +13,23 @@
 //     see whether a keystroke costs O(1) or O(document).
 //   • a note with 50 `![[embeds]]`, which is 50 more documents the editor has
 //     to resolve and render inside the one you are typing in.
-//   • the owner's own 665-page PDF, when it is on this machine, so the reader
-//     is measured against a real book rather than a generated one.
-//   • the real `Sigils/` and `Orbits/` notes, when they are on this machine,
-//     so the two shelves have something to draw.
+//
+// AND NOTHING ELSE, unless it is asked for by name. A real book and real
+// `Sigils/` and `Orbits/` notes can be folded in — the reader and the two
+// shelves have more to draw with them — but only when `ASTROLABE_SEED_VAULT`
+// points at a vault to take them from. It used to default to the owner's own,
+// which gave away both halves of the bargain at once: a gate that starts an
+// unauthenticated server would have been starting it over the owner's real
+// notes, and the fixture's numbers would have been a property of one laptop
+// rather than of the fixture. They measurably were — the generated vault
+// carries 110 distinct tags everywhere, and 121 on the machine this was
+// written on, which is not a number anyone else could reproduce.
 //
 // Nothing here reads a network and nothing writes outside the directory it is
 // given. The build is idempotent: a `.perf-fixture` stamp naming the shape
 // means the vault is already the right one, so a second run costs nothing.
+// The stamp covers the SEED MATERIAL TOO — its paths, sizes and mtimes — so a
+// reused vault cannot quietly hold last week's copy of a folder that moved.
 
 import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
@@ -38,10 +47,13 @@ export const LONG_NOTE = "Long note.md";
 export const EMBED_NOTE = "Fifty embeds.md";
 export const BOOK_REL = "Library/Classical Mechanics (Goldstein).pdf";
 
-/** Where the owner's own material is looked for. Absent on any other machine,
- *  and the fixture is still a fixture without it — every timing that needs a
- *  book or a shelf says so rather than inventing one. */
-const SEED_VAULT = process.env.ASTROLABE_SEED_VAULT || path.join(process.env.HOME || "", "Documents/alchemy");
+/** Where real material is taken from, when there is to be any. OPT-IN, with
+ *  no default: a gate that reaches into a vault nobody named is a gate that
+ *  serves somebody's private notes off an unauthenticated port, and a budget
+ *  built over a folder that grows is a budget only one machine can meet. The
+ *  fixture is a fixture without it, and every timing that wanted a book or a
+ *  shelf says so rather than inventing one. */
+const SEED_VAULT = process.env.ASTROLABE_SEED_VAULT || null;
 
 /** A deterministic 32-bit PRNG (mulberry32). `Math.random()` would make every
  *  run measure a different vault, which is the one thing a budget cannot
@@ -66,7 +78,10 @@ const FOLDER_WORDS = [
 
 // A shelf of a dozen tags proves nothing: the tag tree's cost is in the number
 // of DISTINCT tags, and a real vault of this size carries a hundred and more.
-// Sixteen roots × ten leaves, plus the roots themselves, is 176 of them.
+// Sixteen roots and ten leaves under each reach 110 distinct tags here — not
+// the 160 the multiplication promises, because the three slots below are all
+// derived from `i` and so cannot land in every combination. Counted, not
+// multiplied: `/api/tags` over the generated vault answers 110.
 const TAG_ROOTS = [
   "reading", "craft", "field", "ledger", "letters", "optics", "sea", "sky",
   "brass", "charts", "drift", "errata", "glass", "harbour", "index", "journal",
@@ -88,9 +103,12 @@ const PROSE = [
 ];
 
 /** The fixture's own shape, hashed — the stamp that says a rebuild is not
- *  needed. */
-function shapeStamp(withBook, withShelves) {
-  const parts = [FIXTURE_VERSION, FIXTURE_NOTES, FIXTURE_FOLDERS, LONG_NOTE_LINES, EMBED_COUNT, withBook, withShelves];
+ *  needed. `seed` is the signature of whatever real material is being folded
+ *  in, so "the same shape" also means "the same book and the same shelves":
+ *  a stamp that recorded only WHETHER a folder was copied would keep serving
+ *  last month's copy of one that has since been written in. */
+function shapeStamp(seed) {
+  const parts = [FIXTURE_VERSION, FIXTURE_NOTES, FIXTURE_FOLDERS, LONG_NOTE_LINES, EMBED_COUNT, seed];
   return createHash("sha256").update(parts.join(":")).digest("hex").slice(0, 16);
 }
 
@@ -100,6 +118,24 @@ async function exists(p) {
     return true;
   } catch {
     return false;
+  }
+}
+
+/** Every file under `from`, as `relative path · size · mtime` lines — the
+ *  cheapest honest answer to "is this still the same folder?". Stat only: the
+ *  seed material is opt-in and may be a book, and hashing a 30 MB PDF on
+ *  every run to learn what its mtime already says is a rebuild's worth of
+ *  work for nothing. */
+async function signDir(from, prefix, out) {
+  for (const entry of (await fs.readdir(from, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (entry.name.startsWith(".")) continue;
+    const src = path.join(from, entry.name);
+    const rel = `${prefix}/${entry.name}`;
+    if (entry.isDirectory()) await signDir(src, rel, out);
+    else if (entry.isFile()) {
+      const st = await fs.stat(src);
+      out.push(`${rel}·${st.size}·${Math.round(st.mtimeMs)}`);
+    }
   }
 }
 
@@ -232,14 +268,26 @@ function embedNote() {
  * a zero.
  */
 export async function buildFixtureVault(dir, { quiet = false } = {}) {
-  const bookSrc = path.join(SEED_VAULT, BOOK_REL.slice(BOOK_REL.indexOf("/") + 1));
-  const bookFrom = path.join(SEED_VAULT, "Library", path.basename(BOOK_REL));
-  const withBook = (await exists(bookFrom)) ? bookFrom : (await exists(bookSrc)) ? bookSrc : null;
+  // No `ASTROLABE_SEED_VAULT`, no real material and no look at anyone's disk:
+  // the generated vault is the whole fixture, and it is the same one on every
+  // machine.
+  const bookSrc = SEED_VAULT && path.join(SEED_VAULT, BOOK_REL.slice(BOOK_REL.indexOf("/") + 1));
+  const bookFrom = SEED_VAULT && path.join(SEED_VAULT, "Library", path.basename(BOOK_REL));
+  const withBook = !SEED_VAULT ? null : (await exists(bookFrom)) ? bookFrom : (await exists(bookSrc)) ? bookSrc : null;
   const shelves = [];
-  for (const name of ["Sigils", "Orbits"]) {
-    if (await exists(path.join(SEED_VAULT, name))) shelves.push(name);
+  if (SEED_VAULT) {
+    for (const name of ["Sigils", "Orbits"]) {
+      if (await exists(path.join(SEED_VAULT, name))) shelves.push(name);
+    }
   }
-  const stamp = shapeStamp(Boolean(withBook), shelves.join(","));
+  // What was actually copied, not merely whether something was: see shapeStamp.
+  const seed = [];
+  if (withBook) {
+    const st = await fs.stat(withBook);
+    seed.push(`book·${st.size}·${Math.round(st.mtimeMs)}`);
+  }
+  for (const name of shelves) await signDir(path.join(SEED_VAULT, name), name, seed);
+  const stamp = shapeStamp(seed.join("\n"));
   const stampFile = path.join(dir, ".perf-fixture");
   if (await exists(stampFile)) {
     const found = (await fs.readFile(stampFile, "utf8")).trim();
@@ -281,14 +329,16 @@ export async function buildFixtureVault(dir, { quiet = false } = {}) {
     console.log(
       `perf fixture: built ${dir} — ${FIXTURE_NOTES} notes in ${FIXTURE_FOLDERS} folders, ` +
         `a ${LONG_NOTE_LINES}-line note, ${EMBED_COUNT} embeds` +
-        (withBook ? ", the 665-page book" : ", no book (seed vault absent)") +
-        (shelves.length ? `, ${shelves.join(" + ")}` : ""),
+        (withBook ? ", the 665-page book" : SEED_VAULT ? ", no book in the seed vault" : "") +
+        (shelves.length ? `, ${shelves.join(" + ")}` : "") +
+        (SEED_VAULT ? ` (seeded from ${SEED_VAULT})` : " — generated only"),
     );
   }
   return { dir, notes: FIXTURE_NOTES, book: Boolean(withBook), shelves, reused: false };
 }
 
-// Runnable on its own: `node scripts/perf-fixture.mjs <dir>`.
+// Runnable on its own: `node scripts/perf-fixture.mjs <dir>`, with an optional
+// `ASTROLABE_SEED_VAULT=<vault>` to fold a real book and real shelves in.
 if (import.meta.url === `file://${process.argv[1]}`) {
   const dir = process.argv[2];
   if (!dir) {
