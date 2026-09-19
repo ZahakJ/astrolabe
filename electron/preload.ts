@@ -46,6 +46,8 @@ contextBridge.exposeInMainWorld("astrolabeDesktop", {
   onFindResult: (cb: (payload: unknown) => void) => on("astrolabe:find-result", cb),
   onNavigate: (cb: (route: string) => void) => on("astrolabe:navigate", cb),
   onOsTheme: (cb: (dark: boolean) => void) => on("astrolabe:os-theme", cb),
+  /** This window's zoom factor, whenever it changes. */
+  onZoom: (cb: (factor: number) => void) => on("astrolabe:zoom", cb),
   onUpdateState: (cb: (payload: unknown) => void) => on("astrolabe:update-state", cb),
 
   // ── renderer → main ──────────────────────────────────────────────────────
@@ -82,4 +84,6 @@ contextBridge.exposeInMainWorld("astrolabeDesktop", {
   updatesPrefSet: (pref: string) => ipcRenderer.invoke("astrolabe:updates-pref-set", pref),
   /** The chrome language, so the native menu follows the reader. */
   chromeLang: (lang: string) => ipcRenderer.invoke("astrolabe:chrome-lang", lang),
+  /** Zoom the app: +1 a step in, -1 a step out, 0 back to actual size. */
+  zoomSet: (direction: number) => ipcRenderer.invoke("astrolabe:zoom-set", direction),
 });

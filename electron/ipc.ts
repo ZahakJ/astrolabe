@@ -79,6 +79,10 @@ export const TO_MAIN = {
   brandPickIcon: "astrolabe:brand-pick-icon",
   brandInstall: "astrolabe:brand-install",
   brandClear: "astrolabe:brand-clear",
+  /** Set this window's zoom: a step up, a step down, or back to actual size.
+   *  The FACTOR is the app's, not Chromium's per-host memory — see the note on
+   *  `VaultPref.zoom` in electron/prefs.ts. */
+  zoomSet: "astrolabe:zoom-set",
 } as const;
 
 /** Main tells, renderer listens (`webContents.send` ⇄ `ipcRenderer.on`). */
@@ -101,6 +105,11 @@ export const TO_RENDERER = {
   navigate: "astrolabe:navigate",
   /** The OS switched between light and dark. */
   osTheme: "astrolabe:os-theme",
+  /** The window's zoom factor changed — from the View menu, from the keys, or
+   *  because the window just restored the vault's remembered one. The renderer
+   *  says it out loud in the status bar; a factor nobody can see is a factor
+   *  nobody can undo. */
+  zoom: "astrolabe:zoom",
 } as const;
 
 export type ToMainChannel = (typeof TO_MAIN)[keyof typeof TO_MAIN];

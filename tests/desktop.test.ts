@@ -41,7 +41,9 @@ import {
   EMPTY_PREFS,
   MAX_RECENTS,
   PORT_MAX,
+  MIN_WINDOW,
   PORT_MIN,
+  fitToWorkArea,
   forgetVault,
   onSomeDisplay,
   parsePrefs,
@@ -298,6 +300,46 @@ describe("parsePrefs", () => {
     const left = { x: -1400, y: 40, width: 1280, height: 860, maximized: false };
     assert.deepEqual(parsePrefs({ vaults: [{ path: "/v", port: 6820, bounds: left }] }).vaults[0].bounds, left);
   });
+
+  // The gap the Windows report fell into: the window's own minimum was 400
+  // tall, the preferences file's was 480 on both axes, and every Snap quadrant
+  // on a 150% 1080p laptop lands between them.
+  it("keeps every rectangle the window itself is allowed to be", () => {
+    const smallest = { x: 0, y: 0, width: MIN_WINDOW.width, height: MIN_WINDOW.height, maximized: false };
+    assert.deepEqual(parsePrefs({ vaults: [{ path: "/v", port: 6820, bounds: smallest }] }).vaults[0].bounds, smallest);
+    // A Snap quadrant on a 1366×768 laptop at 150%: 455×256 DIP is below the
+    // floor on both axes and is still refused.
+    const tooSmall = { x: 0, y: 0, width: 455, height: 256, maximized: false };
+    assert.equal(parsePrefs({ vaults: [{ path: "/v", port: 6820, bounds: tooSmall }] }).vaults[0].bounds, null);
+  });
+});
+
+describe("fitToWorkArea", () => {
+  const laptop = { x: 0, y: 0, width: 911, height: 512 };
+
+  it("pulls a window that hangs off the desk back onto it", () => {
+    // Saved on a 1920×1080 desktop, re-opened on a scaled 1366 laptop: before
+    // this, the caption buttons, the trailing edge and the bottom corner were
+    // all outside the work area.
+    const fitted = fitToWorkArea({ x: 1200, y: 700, width: 1280, height: 860 }, laptop);
+    assert.deepEqual(fitted, { x: 0, y: 0, width: 911, height: 512 });
+  });
+
+  it("leaves a rectangle that already fits exactly alone", () => {
+    const rect = { x: 40, y: 30, width: 700, height: 400 };
+    assert.deepEqual(fitToWorkArea(rect, laptop), rect);
+  });
+
+  it("respects a work area that does not start at the origin", () => {
+    const desk = { x: 0, y: 32, width: 1440, height: 868 };
+    assert.deepEqual(fitToWorkArea({ x: 0, y: 0, width: 1280, height: 860 }, desk), { x: 0, y: 32, width: 1280, height: 860 });
+  });
+
+  it("never returns a window smaller than the app's own floor while the desk holds it", () => {
+    const fitted = fitToWorkArea({ x: 0, y: 0, width: 100, height: 100 }, laptop);
+    assert.equal(fitted.width, MIN_WINDOW.width);
+    assert.equal(fitted.height, MIN_WINDOW.height);
+  });
 });
 
 describe("the recent list", () => {
@@ -316,6 +358,17 @@ describe("the recent list", () => {
     let prefs = EMPTY_PREFS;
     for (let i = 0; i < MAX_RECENTS + 5; i++) prefs = rememberVault(prefs, `/v/${i}`, 6820 + i, i);
     assert.equal(prefs.vaults.length, MAX_RECENTS);
+  });
+
+  // `maximized` is not a rectangle, so a rectangle we distrust says nothing
+  // about it. Dropping the pair together is how a maximised window came back
+  // at a size it had left two resizes ago.
+  it("keeps the maximised flag even when the normal rectangle is refused", () => {
+    const good = { x: 10, y: 10, width: 900, height: 700, maximized: false };
+    let prefs = rememberBounds(rememberVault(EMPTY_PREFS, "/v/a", 6842, 1), "/v/a", good);
+    prefs = rememberBounds(prefs, "/v/a", { x: 0, y: 0, width: 200, height: 100, maximized: true });
+    assert.equal(prefs.vaults[0].bounds?.maximized, true);
+    assert.equal(prefs.vaults[0].bounds?.width, 900, "the last rectangle we trusted is the one kept");
   });
 
   it("does not invent a vault from a stale window's geometry", () => {

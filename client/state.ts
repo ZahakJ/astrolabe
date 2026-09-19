@@ -298,6 +298,24 @@ export interface State {
    *  set by the panel's own responsive auto-collapse on narrow viewports. */
   panelCollapsed: boolean;
   setPanelCollapsed(b: boolean, persist?: boolean): void;
+  /** The SAME collapse, asked for by the viewport rather than by the reader —
+   *  the responsive auto-collapse at `NARROW_QUERY`, and the phone's "a drawer
+   *  starts closed". It never persists, and it raises `paneStill` in the same
+   *  commit so the pane does not ANIMATE: a window maximised on a 1360px-ish
+   *  screen crosses that threshold on every maximise and restore, and a 180ms
+   *  width transition playing by itself is the "the panel pops open and shut
+   *  on its own" half of the Windows report. */
+  collapsePanelForViewport(b: boolean): void;
+  /** A pane's width last changed for a reason the reader did not give. The
+   *  stylesheet turns the panes' (and the note column's) transitions off while
+   *  it is up — and EVERY reader-driven pane gesture puts it back down in the
+   *  same `set` that starts its own animation, so the flag cannot outlive the
+   *  thing it was raised for. It used to only ever go up: a window under
+   *  1360px auto-collapses the panel at boot, so on a 1366 laptop the shell
+   *  wore this class for the life of the page and the reader's own sidebar
+   *  collapse — and the phone's notes drawer, which slides on the same
+   *  element — snapped instead of moving. */
+  paneStill: boolean;
   /** Zen mode: every piece of chrome steps aside and the prose column centers
    *  (Ctrl/Cmd+Shift+Z; persisted, so a reload stays zen). */
   zen: boolean;
@@ -412,6 +430,14 @@ export interface State {
    *  while downloading, "Restart to update" when staged. Null in a browser
    *  and before the first check. */
   desktopUpdate: { phase: string; version: string; received?: number; total?: number; installable?: boolean } | null;
+  /** THE DESKTOP'S ZOOM FACTOR, so the shell can say it. 1 in a browser and
+   *  until the desktop reports one. A factor nobody can see is a factor nobody
+   *  can undo — Ctrl+= five times on a 1366 laptop leaves a 689px viewport,
+   *  which is the phone shell with a mouse attached, and the reader has no way
+   *  to know the app is not simply broken. The status bar draws a chip
+   *  whenever this is not 1, and the chip is the reset. */
+  desktopZoom: number;
+  setDesktopZoom(factor: number): void;
   /** The desktop app holds this vault's credential itself (client/desktop):
    *  "Sign out" is hidden and a lapsed session is restored, never asked for. */
   desktopOwnsSession: boolean;
@@ -1388,6 +1414,7 @@ export const useStore = create<State>()((set, get) => {
     // No stored choice → the panel starts wherever the viewport wants it
     // (BacklinksPanel's media query), which is collapsed on narrow screens.
     panelCollapsed: readFlag(PANEL_COLLAPSED_KEY) ?? false,
+    paneStill: false,
     zen: readFlag(ZEN_KEY) ?? false,
     backlinks: [],
     reloadTick: 0,
@@ -1496,6 +1523,8 @@ export const useStore = create<State>()((set, get) => {
     },
     loginOpen: false,
     desktopUpdate: null,
+    desktopZoom: 1,
+    setDesktopZoom: (desktopZoom) => set({ desktopZoom }),
     desktopOwnsSession: false,
     desktopBrandIcon: null,
     moderationOpen: false,
@@ -2456,7 +2485,10 @@ export const useStore = create<State>()((set, get) => {
     },
 
     setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
-    setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+    // The phone's notes drawer slides on `.s-sidebar`, which is the same
+    // element `paneStill` freezes — so the hand that opens it lowers the flag
+    // in the same commit, and the drawer moves instead of appearing.
+    setSidebarOpen: (sidebarOpen) => set({ sidebarOpen, paneStill: false }),
 
     setSidebarSidePref: (sidebarSidePref) => {
       persistFlagValue(SIDE_KEY, sidebarSidePref);
@@ -2466,9 +2498,11 @@ export const useStore = create<State>()((set, get) => {
       set({ sidebarSidePref, sidebarSide: effectiveSide(sidebarSidePref, get().language) });
     },
 
+    // `paneStill: false` for the same reason `setPanelCollapsed` carries it:
+    // this is the reader's own hand on a pane, and the 180ms belongs to it.
     setSidebarCollapsed: (sidebarCollapsed) => {
       persistFlag(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed);
-      set({ sidebarCollapsed });
+      set({ sidebarCollapsed, paneStill: false });
     },
 
     // ONE gesture, whichever shell is on screen. Below the drawer breakpoint
@@ -2482,16 +2516,25 @@ export const useStore = create<State>()((set, get) => {
       else s.setSidebarCollapsed(!s.sidebarCollapsed);
     },
 
-    // `persist` is false for the responsive auto-collapse: a narrow window
-    // must not silently become the reader's remembered choice.
+    // `persist` is false for a close the reader asked for but that must not
+    // become a remembered choice — the phone drawer's scrim and its Escape.
+    // A viewport-driven collapse goes through `collapsePanelForViewport`
+    // instead, which also stills the animation.
     setPanelCollapsed: (panelCollapsed, persist = true) => {
       if (persist) persistFlag(PANEL_COLLAPSED_KEY, panelCollapsed);
-      set({ panelCollapsed });
+      set({ panelCollapsed, paneStill: false });
     },
+
+    // AN AUTOMATIC COLLAPSE DOES NOT ANIMATE. `paneStill` rides in the same
+    // `set` as the flag, so React lands both classes in one commit and there
+    // is no frame in which the pane is closing with its transition still on —
+    // no timer, no resize listener, and it is right in RTL and on every OS
+    // because it is not a matter of timing at all.
+    collapsePanelForViewport: (panelCollapsed) => set({ panelCollapsed, paneStill: true }),
 
     setZen: (zen) => {
       persistFlag(ZEN_KEY, zen);
-      set({ zen });
+      set({ zen, paneStill: false });
     },
 
     refreshBacklinks: async () => {

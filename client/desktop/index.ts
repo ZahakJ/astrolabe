@@ -27,15 +27,44 @@ import { openDailyNote } from "../daily.ts";
 import { promptNewNote } from "../prompts.ts";
 import { applyUrl } from "../router.ts";
 import { useStore } from "../state.ts";
-import { GRAPH_TAB } from "../workspace.ts";
+import { GRAPH_TAB, paneAt, surfaceOf } from "../workspace.ts";
 import { choiceGroup, counterpartChoice } from "../themes.ts";
 import { t, tf } from "../i18n.ts";
 import { toast } from "../toast.ts";
 import { actionToast } from "../undoToast.ts";
 import { setSpellcheckAvailable } from "../../shared/script.ts";
-import { desktop, IS_DESKTOP, type DesktopUpdateState } from "./bridge.ts";
+import { desktop, IS_DESKTOP, type DesktopBridge, type DesktopUpdateState } from "./bridge.ts";
 import { closeFindBar, openFindBar, showFindResult } from "./findBar.ts";
 import { openSpellMenu } from "./spellMenu.ts";
+
+/** THE SHELL OWNS Ctrl/Cmd + = − 0 — EXCEPT OVER A BOOK.
+ *
+ *  The View menu draws these chords but does not claim them
+ *  (`registerAccelerator: false`, electron/menu.ts), so the keystroke reaches
+ *  the page, and the page decides. A book reader that is on screen has already
+ *  claimed them for the PAGE it is showing — a reader who reaches for the zoom
+ *  keys over a book means the book — and its own handler runs on the way up,
+ *  so this one stands aside. Everywhere else the app zooms, and says so.
+ *
+ *  Capture phase at the window, like the shell's other reflex keys: nothing
+ *  downstream may swallow a chord the browser would otherwise have taken. */
+function installZoomKeys(bridge: DesktopBridge): void {
+  if (!bridge.zoomSet) return;
+  window.addEventListener(
+    "keydown",
+    (e) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+      const direction = e.key === "=" || e.key === "+" ? 1 : e.key === "-" || e.key === "_" ? -1 : e.key === "0" ? 0 : null;
+      if (direction === null) return;
+      const store = useStore.getState();
+      const pane = paneAt(store.workspace, store.workspace.focus);
+      if (pane !== null && surfaceOf(pane) === "book") return;
+      e.preventDefault();
+      void bridge.zoomSet?.(direction);
+    },
+    true,
+  );
+}
 
 /** Save has no exported door — it lives in the editor's own keymap — so it is
  *  the one verb delivered as the keystroke it already is, aimed at whatever has
@@ -186,6 +215,11 @@ export async function mountDesktop(): Promise<void> {
   bridge.onSpellMenu(openSpellMenu);
   bridge.onFindResult(showFindResult);
   bridge.onOsTheme(followOsTheme);
+  // THE ZOOM, SAID OUT LOUD. Main applies the vault's remembered factor on
+  // every load and reports it here; the status bar draws a chip whenever it is
+  // not 100%, and the chip is the way back.
+  bridge.onZoom?.((factor) => useStore.getState().setDesktopZoom(factor));
+  installZoomKeys(bridge);
   // Updates, said in the app's own voice. Never a dialog: a release is good
   // news arriving at a random moment, and good news does not get to interrupt
   // a sentence. And never on the app's own initiative: "available" offers

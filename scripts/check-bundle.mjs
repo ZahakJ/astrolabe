@@ -765,6 +765,18 @@ const AUDIENCES = [
   // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
   // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
   // 3.18.x: the shared tags/properties shelf and its tabs.
+  // 3.18.1 WINDOWS AND DESKTOP RESIZING: 805.3 kB actual → 806. +2.3 kB, and
+  // every byte of it is first paint by construction. `client/paneWidths.ts`
+  // grew `layoutPanes`/`paneStyle` — the one owner of "how wide may these two
+  // panes be, HERE" — and `PaneGrip.tsx` grew `usePaneLayout`, the rAF-throttled
+  // resize listener that is the whole of "resizing *windows*"; both run at
+  // boot, before anything is painted, which is exactly why the old code
+  // re-applied a stored {560, 560} into a 904px window and left the note 0px
+  // wide. The rest is the store's `paneStill` flag, three dictionary rows in
+  // two languages for the zoom chip (`t()` ships whole — the debt named
+  // above), and the two grips App now renders itself. Nothing here can be
+  // lazy: a shell that splits its own layout arithmetic paints the wrong
+  // layout first and corrects it, which is the flicker this round removes.
   // 3.18.x TABLES EDITED IN PLACE: 805.6 kB actual → 806 (actual + ~0.05%),
   // and it is the dictionary debt named below, once more. The round's own
   // entry bytes are thirty-eight rows in two languages (the cell menu's
@@ -1072,6 +1084,10 @@ const AUDIENCES = [
   // This reader pays a little more than the entry does: the comment form is
   // the one thing a VISITOR types into, and it is on this page.
   // 3.18.x: the shared tags/properties shelf and its tabs.
+  // 3.18.1 WINDOWS AND DESKTOP RESIZING: 1098.4 kB actual → 1099. The same
+  // +2.3 kB as the entry, arriving here for the same reason — a blog page is
+  // the entry plus its own shell — and no more: the zoom chip lives in the
+  // lazy StatusBar and the desktop bridge is behind the Electron gate.
   // 3.18.x TABLES EDITED IN PLACE: 1098.8 kB actual → 1099. The entry's
   // thirty-eight dictionary rows (above), and one thing of this closure's
   // own: `renderTableCell` in reading/render.ts, the second door into the
@@ -1262,6 +1278,9 @@ const AUDIENCES = [
   // bar's door, which the other two have no status bar for; Sidebar.tsx gave
   // back more than that when `useLoggedDays` moved out to
   // client/loggedDays.ts.
+  // 3.18.1 WINDOWS AND DESKTOP RESIZING: 1555.1 kB actual → 1556. +1.1 kB,
+  // less than the entry's because the admin paint already carried the pane
+  // machinery; the difference is the grips' own markup and the zoom chip.
   // 3.18.0 THE PHONE'S SHOULD-HAVES: 1553.7 kB → 1558. The touch floor
   // stopped being a promise and became CSS: one coarse-pointer block per
   // stylesheet raising every shell target to 44px and every field to 16px,
