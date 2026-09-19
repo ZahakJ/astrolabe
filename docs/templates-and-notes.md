@@ -151,24 +151,7 @@ dates and the trackers' `finished:` lines, with nothing stored. The Sigils page 
 
 ### The calendar
 
-Under the tree in the sidebar, a **Calendar** section draws the month you are in, seven days wide,
-in the site's calendar: a Gregorian month on a Gregorian instance, a Hijri (Umm al-Qura) month on
-a Hijri one, and on an instance that prints both dates the leading calendar's month with the other
-calendar's day number small in each cell's corner. The week starts on the site language's first day
-— Monday in English, Saturday in Arabic. A dot marks every day that has a daily note; a second,
-fainter dot marks a day a [sigil](sigils.md) logged something; today is ringed. Clicking a day
-opens its note, creating it through the same door as `Ctrl/Cmd Alt D` (template and all); `‹` and
-`›` turn the month; the month's name brings you back to today's. The section folds like the tag
-shelf and remembers it. A visitor to the public site sees the section only when a daily note is
-published, dotted with the published days.
-
-This one is a **date picker**, and it is deliberately small. For the month as something to *read* —
-full width, with each day's note, sigils, cards and reading named inside its cell — open
-[the Calendar](calendar.md) from the calendar leaf in the top bar.
-
-The grid is one tab stop. Inside it, `←` `→` walk the days (mirrored under Arabic), `↑` `↓` the
-weeks, `Home` `End` the ends of the row, `PageUp` `PageDown` the months, and `Enter` opens the
-day. Walking off the edge of a month turns the page.
+The month lives on its own page: the calendar door in the top bar (or **Open Calendar** in the command palette, and the ⋯ menu on a phone) opens `/calendar`, a full month in the site's calendar where every day lists its note, the sigils logged that day and the cards graded; a click selects the day, and an empty day can create its note from there. The sidebar no longer carries a second copy of the month.
 
 ## Unique notes
 

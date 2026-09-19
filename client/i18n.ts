@@ -4978,8 +4978,6 @@ const DICT = {
   // status bar, its row in the palette and the phone's menu, and the page's
   // own lead and legend. The month was a section at the top of the Sigils
   // page until 3.18.
-  showCalendar: { en: "Show the calendar", ar: "إظهار التقويم" },
-  hideCalendar: { en: "Hide the calendar", ar: "إخفاء التقويم" },
   calendarPrevMonth: { en: "Previous month", ar: "الشهر السابق" },
   calendarNextMonth: { en: "Next month", ar: "الشهر التالي" },
   calendarToday: { en: "Back to this month", ar: "العودة إلى هذا الشهر" },
