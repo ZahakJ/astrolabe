@@ -370,6 +370,40 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.20.0",
+    title: { en: "Books that reflow", ar: "كتبٌ تتدفّق" },
+    slides: [
+      {
+        // ── EPUB in the reader ───────────────────────────────────────────
+        title: { en: "Books that reflow", ar: "كتبٌ تتدفّق" },
+        body: {
+          en: "Arabic set as a PDF is a picture of type: the shaping was decided once by whatever made the file, the measure is frozen, and zooming gives you a bigger picture rather than larger text. So a .epub in your vault is now a book beside a .pdf — same shelf, same place kept, same sitting logged — but set by your own browser in the reading room's own Naskh, at whatever size you ask for. Your place is a chapter and how far down it. Search folds Arabic the way you type it, and c copies a citation that carries the words rather than an offset.",
+          ar: "العربية مصفوفةً في PDF صورةٌ للحروف: قُطعت السطور مرة واحدة، قطعها ما صنع الملف، وتجمّد العرض، والتكبير يعطيك صورة أكبر لا حرفًا أكبر. فصار ملف ‎.epub‎ في خزانتك كتابًا كما ملف ‎.pdf‎ — على الرف نفسه، ومكانك فيه محفوظ، وجلستك فيه مسجَّلة — غير أن متصفحك هو الذي يصفّه، بخط النسخ الذي في هذه الغرفة، وبالحجم الذي تطلبه. ومكانُك فصلٌ ومقدارُ ما نزلتَ فيه. والبحث يطوي العربية كما تكتبها، و‎c‎ ينسخ استشهادًا يحمل الكلمات لا موضعًا رقميًّا.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="40" y="36" width="190" height="140" rx="4" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text-faint)"><rect x="60" y="60" width="150" height="5" rx="2.5"/><rect x="72" y="76" width="138" height="5" rx="2.5"/><rect x="60" y="92" width="150" height="5" rx="2.5"/><rect x="84" y="108" width="126" height="5" rx="2.5"/><rect x="60" y="124" width="150" height="5" rx="2.5"/></g>
+    <g class="wa-pulse"><circle cx="150" cy="100" r="26" fill="var(--bg-raised)" fill-opacity="0.6" stroke="var(--text-muted)" stroke-width="2"/><line x1="169" y1="119" x2="186" y2="136" stroke="var(--text-muted)" stroke-width="4" stroke-linecap="round"/><g fill="var(--text-faint)" opacity="0.5"><rect x="132" y="90" width="10" height="10"/><rect x="146" y="90" width="10" height="10"/><rect x="139" y="104" width="10" height="10"/><rect x="153" y="104" width="10" height="10"/></g></g>
+  </g>
+  <text x="135" y="194" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "a picture of type", "صورة للحروف")}</text>
+  <g class="wa-late" style="--i:2">
+    <rect class="wa-grow" x="300" y="36" width="150" height="140" rx="4" fill="var(--bg)" stroke="var(--accent)" stroke-dasharray="4 3"/>
+    <g fill="var(--text)"><rect x="316" y="60" width="118" height="6" rx="3"/><rect x="330" y="80" width="104" height="6" rx="3"/><rect x="316" y="100" width="118" height="6" rx="3"/><rect x="344" y="120" width="90" height="6" rx="3"/><rect x="316" y="140" width="118" height="6" rx="3"/></g>
+    <rect x="480" y="90" width="30" height="30" rx="8" fill="var(--bg-raised)" stroke="var(--accent)" stroke-width="1.5"/>
+    <path d="M495 98v14M488 105h14" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <text x="400" y="194" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "live type, your size", "حروف حيّة، بحجمك")}</text>
+</svg>`,
+        },
+        docs: "books",
+      },
+    ],
+  },
+  {
     version: "3.19.0",
     title: { en: "A sigil that is a course, and tables you can actually edit", ar: "سِجِلّ يصير مسارًا، وجداول تُحرَّر فعلًا" },
     slides: [
