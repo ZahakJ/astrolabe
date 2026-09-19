@@ -246,7 +246,7 @@ export function isIgnoredRel(rel: string): boolean {
 const ATTACHMENT_KINDS: Record<string, AttachmentKind> = {
   png: "image", jpg: "image", jpeg: "image", gif: "image", webp: "image",
   avif: "image", svg: "image", bmp: "image", ico: "image", tif: "image", tiff: "image",
-  pdf: "pdf",
+  pdf: "book", epub: "book",
   mp3: "audio", m4a: "audio", wav: "audio", ogg: "audio", oga: "audio", flac: "audio", aac: "audio", opus: "audio",
   mp4: "video", webm: "video", mov: "video", mkv: "video", m4v: "video",
 };

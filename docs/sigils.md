@@ -76,7 +76,7 @@ the first line on its own.
 | a weekday | `monday: 60 min walk` — or `monday:` on its own with the parts indented under it | What that day asks. Weekdays are understood in English and Arabic, long or short (`mon`, `الاثنين`). A day with nothing under it is a **rest day**: it never counts against you. |
 | `fields` | things to record, with commas between them — see [What to record each day](#what-to-record-each-day) | The small inputs on the card: a number, a rating, a line of text. |
 | `target` | a number of days — `6/week`, or just `6` | How many days a week you are aiming for. The card counts against it: *3 of 6 this week*. Without it, the card counts the days the plan actually asks something of. |
-| `book` | the title of a book you are [tracking](trackers.md) — `[[…]]` is fine | Adds **Read N pages of it** to every day, N being the tracker's pace. Ticking it moves the tracker forward; unticking moves it back. A sitting in the [PDF reader](books.md#reading-sessions) that covers the pace ticks it for you; so does one in a book any slot's text links with `[[…]]`. |
+| `book` | the title of a book you are [tracking](trackers.md) — `[[…]]` is fine | Adds **Read N pages of it** to every day, N being the tracker's pace. Ticking it moves the tracker forward; unticking moves it back. A sitting in the [book reader](books.md#reading-sessions) that covers the pace ticks it for you; so does one in a book any slot's text links with `[[…]]`. |
 | `notes` | `notes: \|` and then lines indented under it | Anything you want to remember about this sigil — why you started, the rules you set yourself. Shown under the card. |
 
 A block with **no title and no plan at all** stays a plain code block, so a half-typed sigil reads as

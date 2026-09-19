@@ -134,3 +134,122 @@ export function zipIndex(bytes: Uint8Array): Map<string, ZipEntry> {
   for (const entry of listZip(bytes)) map.set(entry.name, entry);
   return map;
 }
+
+// ── The same archive, read a slice at a time ────────────────────────────────
+//
+// Everything above takes the WHOLE archive as bytes, which is right for an
+// Anki deck: it arrives as an upload, it is already in memory, and the
+// importer reads every row of it once. A book is the opposite case on both
+// counts. An EPUB sits in the vault and is opened again and again — one
+// chapter here, one illustration there, forty times in a sitting — and an
+// illustrated volume is tens of megabytes. Reading all of it to answer "give
+// me chapter twelve" is the shape of code that makes a reader wait a second
+// per tap on a phone, and it holds the whole book in the server's heap while
+// it does.
+//
+// So this half reads through a FILE HANDLE at offsets: the tail once (the end
+// record and the central directory), then exactly one entry's compressed bytes
+// per request. Opening a 40 MB book costs ~100 kB of reads; a chapter costs
+// the chapter. NOTHING IS UNPACKED ANYWHERE — there is no temporary directory
+// in this module and there must never be one, because a book in a folder the
+// owner has not published must not leave a copy of itself outside the vault.
+
+import type { FileHandle } from "node:fs/promises";
+
+/** Read at most `length` bytes at `position`. */
+async function readAt(handle: FileHandle, position: number, length: number): Promise<Uint8Array> {
+  const buf = Buffer.alloc(Math.max(0, length));
+  if (buf.length === 0) return buf;
+  const { bytesRead } = await handle.read(buf, 0, buf.length, position);
+  return buf.subarray(0, bytesRead);
+}
+
+/** An open archive: its directory, and a way to pull one entry out of it.
+ *  Holds no bytes of the archive beyond the directory itself. */
+export interface ZipFile {
+  /** name → entry, last wins, exactly as `zipIndex`. */
+  entries: Map<string, ZipEntry>;
+  /** One entry's bytes, inflated. Two positional reads: the local header,
+   *  then the data. */
+  read(entry: ZipEntry): Promise<Uint8Array>;
+}
+
+/**
+ * Read an archive's central directory through a file handle.
+ *
+ * The tail is read in one go — 22 bytes of end record plus at most 64 KiB of
+ * archive comment — and the directory is then read at the offset that record
+ * names. The refusals are `listZip`'s, in the same words: ZIP64 and multi-disk
+ * archives are not read rather than read wrongly.
+ */
+export async function readZipDirectory(handle: FileHandle, size: number): Promise<ZipFile> {
+  const tailLen = Math.min(size, END_SEARCH_MAX);
+  const tail = await readAt(handle, size - tailLen, tailLen);
+  const tailView = new DataView(tail.buffer, tail.byteOffset, tail.byteLength);
+  let endAt = -1;
+  for (let at = tail.length - 22; at >= 0; at--) {
+    if (tailView.getUint32(at, true) === SIG_END) {
+      endAt = at;
+      break;
+    }
+  }
+  if (endAt === -1) throw new ZipError("zip: not a ZIP archive (no end-of-central-directory record)");
+  const count = tailView.getUint16(endAt + 10, true);
+  const dirSize = tailView.getUint32(endAt + 12, true);
+  const dirAt = tailView.getUint32(endAt + 16, true);
+  if (dirAt === 0xffffffff || tailView.getUint16(endAt + 4, true) !== 0) {
+    throw new ZipError("zip: ZIP64 and multi-disk archives are not supported");
+  }
+  if (dirAt + dirSize > size) throw new ZipError("zip: the central directory runs past the end of the file");
+
+  const dir = await readAt(handle, dirAt, dirSize);
+  const view = new DataView(dir.buffer, dir.byteOffset, dir.byteLength);
+  const entries = new Map<string, ZipEntry>();
+  let at = 0;
+  for (let i = 0; i < count; i++) {
+    if (at + 46 > dir.length || view.getUint32(at, true) !== SIG_CENTRAL) {
+      throw new ZipError("zip: a central directory entry is missing its signature");
+    }
+    const flags = view.getUint16(at + 8, true);
+    const method = view.getUint16(at + 10, true);
+    const crc = view.getUint32(at + 16, true);
+    const compressedSize = view.getUint32(at + 20, true);
+    const entrySize = view.getUint32(at + 24, true);
+    const nameLen = view.getUint16(at + 28, true);
+    const extraLen = view.getUint16(at + 30, true);
+    const commentLen = view.getUint16(at + 32, true);
+    const offset = view.getUint32(at + 42, true);
+    if (compressedSize === 0xffffffff || entrySize === 0xffffffff || offset === 0xffffffff) {
+      throw new ZipError("zip: ZIP64 entries are not supported");
+    }
+    const nameBytes = dir.subarray(at + 46, at + 46 + nameLen);
+    const name = (flags & FLAG_UTF8 ? utf8 : cp437).decode(nameBytes);
+    entries.set(name, { name, method, compressedSize, size: entrySize, crc, offset });
+    at += 46 + nameLen + extraLen + commentLen;
+  }
+
+  return { entries, read: (entry) => readZipEntryAt(handle, entry, size) };
+}
+
+/** One entry's bytes through a handle: the local header, then the data, then
+ *  the inflate. Exported on its own because a caller that has CACHED the
+ *  directory (server/epub.ts does — a book is opened again and again) needs
+ *  the read without paying for the walk a second time. */
+export async function readZipEntryAt(handle: FileHandle, entry: ZipEntry, fileSize: number): Promise<Uint8Array> {
+  const header = await readAt(handle, entry.offset, 30);
+  if (header.length < 30) throw new ZipError(`zip: "${entry.name}" has no local header where the directory says`);
+  const hv = new DataView(header.buffer, header.byteOffset, header.byteLength);
+  if (hv.getUint32(0, true) !== SIG_LOCAL) {
+    throw new ZipError(`zip: "${entry.name}" has no local header where the directory says`);
+  }
+  const start = entry.offset + 30 + hv.getUint16(26, true) + hv.getUint16(28, true);
+  if (start + entry.compressedSize > fileSize) throw new ZipError(`zip: "${entry.name}" runs past the end of the file`);
+  const raw = await readAt(handle, start, entry.compressedSize);
+  if (entry.method === METHOD_STORE) return raw;
+  if (entry.method === METHOD_DEFLATE) {
+    const out = inflateRawSync(raw);
+    if (out.length !== entry.size) throw new ZipError(`zip: "${entry.name}" inflated to the wrong size`);
+    return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
+  }
+  throw new ZipError(`zip: "${entry.name}" uses compression method ${entry.method}, which is not supported`);
+}

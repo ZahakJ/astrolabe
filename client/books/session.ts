@@ -46,25 +46,32 @@ import { actionToast } from "../undoToast.ts";
 const STASH_PREFIX = "astrolabe.reading.session.";
 
 /** The name a book goes by when its tracker has to be found by title: the
- *  PDF's own title, else its file name without the extension. */
+ *  book's own title (a PDF's /Title, an EPUB's `dc:title`), else its file
+ *  name without the extension. */
 export function bookTitleOf(entry: Pick<BookOpenResponse, "name" | "state">): string {
-  return (entry.state?.title ?? "").trim() || entry.name.replace(/\.pdf$/i, "");
+  return (entry.state?.title ?? "").trim() || entry.name.replace(BOOK_EXT, "");
 }
 
-function samePdf(file: string, path: string): boolean {
+const BOOK_EXT = /\.(pdf|epub)$/i;
+
+/** Does a tracker's `file:` line name this book? Either format, and with or
+ *  without the extension — somebody writing `file: Muqaddimah` means the book
+ *  on their shelf, and refusing them over four characters is the kind of
+ *  strictness that makes a feature look broken. */
+function sameBook(file: string, path: string): boolean {
   const a = file.toLowerCase().replace(/^\/+/, "");
   const b = path.toLowerCase();
   if (a === b) return true;
   const base = b.split("/").pop() ?? b;
-  return a === base || a.replace(/\.pdf$/, "") === base.replace(/\.pdf$/, "");
+  return a === base || a.replace(BOOK_EXT, "") === base.replace(BOOK_EXT, "");
 }
 
-/** The tracker for this PDF: by `file:` first, then by title among book
+/** The tracker for this book: by `file:` first, then by title among book
  *  trackers (and trackers of no kind, which is what a bare fence is). Null
  *  when nothing on the shelf names it. */
 export async function findBookTracker(entry: Pick<BookOpenResponse, "path" | "name" | "state">, shelf?: TrackerMeta[]): Promise<TrackerMeta | null> {
   const list = shelf ?? (await getTrackers().catch(() => [] as TrackerMeta[]));
-  const byFile = list.find((m) => m.file !== null && samePdf(m.file, entry.path));
+  const byFile = list.find((m) => m.file !== null && sameBook(m.file, entry.path));
   if (byFile) return byFile;
   const title = bookTitleOf(entry).toLowerCase();
   return list.find((m) => m.title.trim().toLowerCase() === title && (foldKind(m.kind) === "book" || m.kind === null)) ?? null;
@@ -144,7 +151,7 @@ export async function logSession(entry: BookOpenResponse, summary: SessionSummar
     toast(t("bookSessionFailed"), "error");
     return;
   }
-  const tick = await tickSlotsForBook({ trackerPath: meta.path, trackerTitle: meta.title, pdfPath: entry.path, pages: summary.pages, pace: meta.pace, date });
+  const tick = await tickSlotsForBook({ trackerPath: meta.path, trackerTitle: meta.title, bookPath: entry.path, pages: summary.pages, pace: meta.pace, date });
   actionToast(tf("bookSessionLogged", { pages, time, note: noteTitleOf(meta.path) }), t("undo"), () => {
     void (async () => {
       try {

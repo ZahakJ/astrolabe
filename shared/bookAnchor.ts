@@ -26,8 +26,15 @@
 // wearing the vault's own syntax: the id resolves to the key, and the key is
 // the bytes.
 //
-// Pure logic, no imports: server/books.ts, the client reader and
-// tests/books.test.ts all run exactly this code.
+// Pure logic: server/books.ts, the client reader and tests/books.test.ts all
+// run exactly this code. Its one import is shared/epubAnchor.ts, which is
+// pure in the same way and which owns the OTHER spelling of "where in a
+// book" — an EPUB has no page numbers, so a place in one is a chapter and a
+// fraction of it. The two files are separate because the two questions are:
+// this one is about a book's identity and a PDF's geometry, and that one is
+// about a format that reflows.
+
+import { cleanEpubHref } from "./epubAnchor.ts";
 
 /** A book key: the lowercase hex sha256 the byte sample hashes to. */
 export const BOOK_KEY_RE = /^[0-9a-f]{64}$/;
@@ -49,11 +56,33 @@ export type BookInvert = "off" | "night" | "flip";
 export type BookRotation = 0 | 90 | 180 | 270;
 
 export interface BookState {
-  /** 1-based page number the reader was on. */
+  /** 1-based page number the reader was on.
+   *
+   *  FOR AN EPUB THIS IS THE CHAPTER'S INDEX, 1-based, and `pages` is the
+   *  number of chapters. That is not a reuse for its own sake: everything the
+   *  shelf, the sitting clock and the tracker do with these two numbers —
+   *  "how far through", "how much was read today", "42%" — is the same
+   *  question for both formats, and giving an EPUB its own pair would have
+   *  meant a second `progressOf`, a second progress bar and a second way of
+   *  counting a sitting, all of which would eventually disagree with the
+   *  first. What an EPUB adds is `chapter` below, because an INDEX is not an
+   *  address: insert a chapter and every index after it moves, while the
+   *  href stays the href. The index is the arithmetic; the href is the place. */
   page: number;
   /** How far into that page, 0..1 — a 900-page atlas at one page per screen
-   *  would otherwise reopen at the top of a page the reader was halfway down. */
+   *  would otherwise reopen at the top of a page the reader was halfway down.
+   *  For an EPUB: how far down the chapter, which is the whole of what
+   *  "where I was" can mean in a text that reflows. */
   offset: number;
+  /** EPUB ONLY: the spine href the reader was in ("OEBPS/ch07.xhtml"), "" for
+   *  a PDF and for a book nobody has opened.
+   *
+   *  THE ADDRESS, where `page` is only the arithmetic. An EPUB has no page
+   *  numbers — the text reflows, so a "page" is a fact about the window and
+   *  not about the book — and the chapter is the coarsest thing in it that is
+   *  genuinely the book's own. shared/epubAnchor.ts is where the format and
+   *  the URL spelling of this live. */
+  chapter: string;
   fit: BookFit;
   /** The scale in force when `fit` is "free" (1 = 100%). */
   zoom: number;
@@ -100,6 +129,7 @@ export interface BookState {
 export const DEFAULT_BOOK_STATE: BookState = {
   page: 1,
   offset: 0,
+  chapter: "",
   fit: "width",
   zoom: 1,
   dual: false,
@@ -202,6 +232,10 @@ export function cleanBookState(input: unknown, prev: BookState = DEFAULT_BOOK_ST
     // send every reader back to page 1.
     page: pages > 0 ? Math.min(page, pages) : page,
     offset: Math.min(1, Math.max(0, num(raw.offset, prev.offset))),
+    // The href through the same door every string in this record goes
+    // through: an EPUB's spine names its own chapters, and a name out of
+    // somebody else's file is bytes off the internet like a /Title is.
+    chapter: raw.chapter === undefined ? prev.chapter : cleanEpubHref(raw.chapter),
     fit: isFit(raw.fit) ? raw.fit : prev.fit,
     zoom: Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, num(raw.zoom, prev.zoom))),
     dual: typeof raw.dual === "boolean" ? raw.dual : prev.dual,

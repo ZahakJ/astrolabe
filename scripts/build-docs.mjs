@@ -54,7 +54,7 @@ export const SECTIONS = [
       { slug: "calendar", file: "calendar.md", title: { en: "The Calendar", ar: "التقويم" } },
       { slug: "orbits", file: "orbits.md", title: { en: "Orbits", ar: "المدارات" } },
       { slug: "drawing", file: "drawing.md", title: { en: "Drawings", ar: "الرسومات" } },
-      { slug: "books", file: "books.md", title: { en: "The PDF reader", ar: "قارئ PDF" } },
+      { slug: "books", file: "books.md", title: { en: "The book reader", ar: "قارئ الكتب" } },
       { slug: "workspace", file: "workspace.md", title: { en: "Panes, tabs & windows", ar: "اللوحات والتبويبات والنوافذ" } },
       { slug: "printing", file: "printing.md", title: { en: "Printing & PDF", ar: "الطباعة وPDF" } },
       { slug: "keymap", file: "keymap.md", title: { en: "Keymap", ar: "اختصارات لوحة المفاتيح" } },

@@ -23,6 +23,7 @@
 // makes a pasted deep link or a refresh land on the right note.
 
 import { stripBidiControls } from "../shared/bidi.ts";
+import { parseEpubAnchor } from "../shared/epubAnchor.ts";
 import type { TreeNode } from "../shared/types.ts";
 import { getNote } from "./api.ts";
 import { booksRouteFor, urlForBooksRoute } from "./books/door.ts";
@@ -187,7 +188,22 @@ function urlForState(view: string, openPath: string | null, ws: Workspace): stri
   const orbits = view === "editor" ? orbitsTabActive(ws) : null;
   if (orbits !== null) return orbitsUrl(orbits.path, orbits.section);
   const book = bookSurfaceOf(ws);
-  if (book !== null) return urlForBooksRoute(book);
+  if (book !== null) {
+    const url = urlForBooksRoute(book);
+    // AN EPUB'S PLACE IN THE BAR BELONGS TO THE READER, NOT TO THIS FUNCTION.
+    // A PDF's URL names the volume and nothing else, because "which page" is
+    // remembered server-side and there is nothing in the bar to keep. An EPUB
+    // carries `#ch=<chapter>&at=<fraction>` — the reader writes it as it
+    // scrolls, so a chapter someone is halfway through is a thing they can
+    // bookmark and send. This router names the volume and must therefore
+    // LEAVE THAT FRAGMENT ALONE: without this the first store change after a
+    // scroll replaced the address with a bare `/book/…` and ate the place.
+    if (book.kind === "book" && typeof location !== "undefined") {
+      const here = location.pathname + location.hash;
+      if (here.startsWith(`${url}#`) && parseEpubAnchor(location.hash) !== null) return here;
+    }
+    return url;
+  }
   return openPath ? notePathToUrl(openPath) : "/";
 }
 
@@ -248,7 +264,7 @@ export function applyUrl(initial = false): boolean {
     const books = booksRouteFor(location.pathname);
     if (books) {
       if (books.kind === "library") store.openLibrary();
-      else store.openBook(books.path, books.anchor ?? null);
+      else store.openBook(books.path, books.place ?? books.anchor ?? null);
       return true;
     }
     if (location.pathname === "/graph") {

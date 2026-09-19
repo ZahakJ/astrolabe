@@ -4547,7 +4547,7 @@ const DICT = {
   bookLibrary: { en: "Library", ar: "المكتبة" },
   bookCloseLibrary: { en: "Close the library", ar: "إغلاق المكتبة" },
   bookShelfSearch: { en: "Search the shelf…", ar: "بحث في المكتبة…" },
-  bookShelfEmpty: { en: "No PDFs in this vault yet. Put a book in it and it appears here.", ar: "لا ملفات PDF في هذه الخزانة بعد. ضع فيها كتابًا يظهر هنا." },
+  bookShelfEmpty: { en: "No books in this vault yet. Put a PDF or an EPUB in it and it appears here.", ar: "لا كتب في هذه الخزانة بعد. ضع فيها ملف PDF أو EPUB يظهر هنا." },
   bookShelfFailed: { en: "The library could not be read.", ar: "تعذّرت قراءة المكتبة." },
   bookShelfTruncated: { en: "Showing the first {count} books in this vault.", ar: "تُعرض أول {count} كتاب في هذه الخزانة." },
   bookProgress: { en: "{percent}% read", ar: "قُرئ {percent}٪" },
@@ -4606,6 +4606,30 @@ const DICT = {
   bookKeyClose: { en: "Close the book", ar: "إغلاق الكتاب" },
   bookKeyEndSession: { en: "End the reading session and log it to the book's tracker", ar: "إنهاء جلسة القراءة وتسجيلها في متتبِّع الكتاب" },
   bookKeyHelp: { en: "This list", ar: "هذه القائمة" },
+  // ── The EPUB reader ──────────────────────────────────────────────────────
+  // A second reading surface, for the format that REFLOWS. Its own keys and
+  // its own words because it has no pages: everything here that looks like a
+  // near-duplicate of a `book*` key above differs in the noun — a chapter
+  // rather than a page, type size rather than zoom — and a shelf that said
+  // "page 4 of 298" about a book with no pages would be lying in the one
+  // place a reader checks.
+  epubOpenFailed: { en: "This EPUB could not be opened.", ar: "تعذّر فتح كتاب EPUB هذا." },
+  epubChapterOf: { en: "Chapter {chapter} of {total}", ar: "الفصل {chapter} من {total}" },
+  epubChapters: { en: "{count} chapters", ar: "{count} فصلًا" },
+  cmdOpenLibraryHint: { en: "Every book in this vault", ar: "كل كتب هذه الخزانة" },
+  epubTypeBigger: { en: "Larger type", ar: "تكبير الخط" },
+  epubTypeSmaller: { en: "Smaller type", ar: "تصغير الخط" },
+  epubTypeReset: { en: "Reset the type size", ar: "إعادة حجم الخط" },
+  epubSearchFailed: { en: "The search could not be run.", ar: "تعذّر إجراء البحث." },
+  epubCiteAction: { en: "Copy citation", ar: "نسخ الاستشهاد" },
+  epubCiteNothing: { en: "Select a passage first.", ar: "اختر مقطعًا أولًا." },
+  epubCiteCopied: { en: "Citation copied.", ar: "نُسخ الاستشهاد." },
+  epubCiteFailed: { en: "The citation could not be copied.", ar: "تعذّر نسخ الاستشهاد." },
+  epubKeyChapter: { en: "Next / previous chapter", ar: "الفصل التالي / السابق" },
+  epubKeyFirstLast: { en: "First chapter / last chapter", ar: "الفصل الأول / الأخير" },
+  epubKeyType: { en: "Larger / smaller type (also Ctrl/Cmd + and −)", ar: "تكبير / تصغير الخط (أو Ctrl/Cmd مع + و−)" },
+  epubKeyTypeReset: { en: "Back to the default type size", ar: "العودة إلى حجم الخط الأصلي" },
+  epubKeyCite: { en: "Copy a citation to the selected passage", ar: "نسخ استشهاد بالمقطع المحدد" },
   // ── Trackers (```tracker, ```tracker-board) ──────────────────────────────
   // A card in a note is CONTENT, but everything around the author's own words
   // — the status chip, the kind, the units, the empty shelf — is chrome, and

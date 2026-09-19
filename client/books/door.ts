@@ -16,6 +16,7 @@
 // of opening the same thing.
 
 import { formatBookAnchor, parseBookAnchor, type BookAnchor } from "../../shared/bookAnchor.ts";
+import { formatEpubAnchor, parseEpubAnchor, type EpubAnchor } from "../../shared/epubAnchor.ts";
 import type { TreeNode } from "../../shared/types.ts";
 import { useStore } from "../state.ts";
 import type { BooksRoute } from "./BooksSurface.tsx";
@@ -58,19 +59,32 @@ export function booksRouteFor(
   // server checks it again (safeAbs); this is so a malformed link never gets
   // as far as a request.
   if (rel === "" || rel.includes("..")) return null;
-  const anchor = parseBookAnchor(hash.replace(/^#/, ""));
+  const fragment = hash.replace(/^#/, "");
   // A hand-typed or shortened URL may omit the extension — note permalinks do
   // (`/folder/Note`, not `/folder/Note.md`), so a reader will expect `/book/
   // Spivak` to work, and it 400'd instead: the open route requires a real
   // `.pdf` path. Appending it here is the same guess `urlToNoteGuess` makes
   // for notes; a wrong guess still fails on the server, but now for a book
-  // that genuinely is not there.
-  return { kind: "book", path: /\.pdf$/i.test(rel) ? rel : `${rel}.pdf`, anchor };
+  // that genuinely is not there. `.epub` is not guessed at: a bare name is
+  // overwhelmingly a PDF in a vault that has both, and guessing twice would
+  // mean a request per format for every mistyped URL.
+  const path = isBookName(rel) ? rel : `${rel}.pdf`;
+  // Two anchor grammars, one per format, and the extension picks. An EPUB has
+  // no page numbers, so `#page=` means nothing in one and `#ch=` means
+  // nothing in the other — shared/epubAnchor.ts carries the argument.
+  if (/\.epub$/i.test(path)) return { kind: "book", path, place: parseEpubAnchor(fragment) };
+  return { kind: "book", path, anchor: parseBookAnchor(fragment) };
+}
+
+/** Does this name already end in a book's extension? */
+function isBookName(name: string): boolean {
+  return /\.(pdf|epub)$/i.test(name);
 }
 
 export function urlForBooksRoute(route: BooksRoute): string {
   if (route.kind === "library") return LIBRARY_PATH;
   const url = BOOK_PREFIX + route.path.split("/").map(encodeURIComponent).join("/");
+  if (route.place) return `${url}#${formatEpubAnchor(route.place)}`;
   return route.anchor ? `${url}#${formatBookAnchor(route.anchor)}` : url;
 }
 
@@ -84,9 +98,9 @@ export function urlForBooksRoute(route: BooksRoute): string {
  * already holds, and the alternative (asking the server) would put a round
  * trip in front of every rendered citation.
  */
-export function findPdfPath(tree: TreeNode | null, name: string): string | null {
+export function findBookPath(tree: TreeNode | null, name: string): string | null {
   const want = name.trim().toLowerCase();
-  if (want === "" || !want.endsWith(".pdf")) return null;
+  if (want === "" || !isBookName(want)) return null;
   const hits: string[] = [];
   const walk = (node: TreeNode): void => {
     if (node.type === "file") {
@@ -117,7 +131,7 @@ export function openBookCitation(
   tree: TreeNode | null,
   notePath: string,
 ): void {
-  const path = findPdfPath(tree, target);
+  const path = findBookPath(tree, target);
   if (path !== null) {
     useStore.getState().openBook(path, anchor);
     return;
@@ -125,8 +139,25 @@ export function openBookCitation(
   void import("./citations.ts").then((mod) => mod.recoverCitation(target, anchor, notePath));
 }
 
+/**
+ * Open the EPUB a citation names, at the chapter and the words it names.
+ *
+ * The recovery path a PDF citation has is NOT here, and the reason is worth
+ * stating: recovery works by looking up a highlight id, and a highlight id is
+ * a rectangle on a page — which is exactly the thing an EPUB does not have
+ * (shared/epubAnchor.ts). A `[[Book.epub#ch=…&q=…]]` whose filename no longer
+ * resolves therefore does what a wikilink to a missing note does: nothing,
+ * visibly. CONTRACTS.md records what a later round would need to do better.
+ */
+export function openEpubCitation(target: string, place: EpubAnchor, tree: TreeNode | null): boolean {
+  const path = findBookPath(tree, target);
+  if (path === null) return false;
+  useStore.getState().openBook(path, place);
+  return true;
+}
 
-/** Open one book by vault path — what a click on a `.pdf` in the tree does. */
+/** Open one book by vault path — what a click on a `.pdf` or a `.epub` in the
+ *  tree does. */
 export function openBookPath(path: string): void {
   useStore.getState().openBook(path, null);
 }

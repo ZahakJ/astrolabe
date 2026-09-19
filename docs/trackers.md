@@ -54,7 +54,7 @@ A note may hold as many trackers as you like.
 
 ## Reading sessions
 
-When you close a book in the [PDF reader](books.md#reading-sessions), the sitting is written into the
+When you close a book in the [book reader](books.md#reading-sessions), the sitting is written into the
 book's tracker as one line of a `sessions:` block:
 
 ```tracker
