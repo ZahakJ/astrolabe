@@ -543,6 +543,14 @@
     min-block-size: 44px;
     min-inline-size: 44px;
   }
+
+  /* The folder chip under the dates is a DOOR — the card's way into the
+     folder of notes behind the work — and it was 26px, the smallest target
+     on the surface. It sits in flowing text rather than a row of buttons,
+     which is exactly how a target gets missed by a sweep of the rows. */
+  .s-media__folder {
+    min-block-size: 44px;
+  }
 }
 
 /* ── Empty ─────────────────────────────────────────────────────────────── */

@@ -5772,11 +5772,14 @@ button.s-title:hover {
    its own rule (far above, so the drawer breakpoint can raise the height
    without a later declaration taking it back), the drawer toggle that floats
    in the strip states it in the drawer block, and the tool cluster over the
-   strip's trailing end states it here. */
-.s-topactions {
-  height: calc(2.5rem + var(--safe-top));
-  padding-block-start: var(--safe-top);
-}
+   strip's trailing end states it IN ITS OWN RULE — see `.s-topactions` near
+   the end of this file. It was stated here first and it did not take: that
+   rule is a thousand lines BELOW this one and sets `height: 2.5rem` at the
+   same weight, so the later declaration won and the cluster kept its flat
+   height while the padding it did inherit collapsed the box — the gear, the
+   outline switch and the ⋯ ended up 22px UNDER the status bar on a notched
+   phone instead of clear of it. The same lesson as controls.css, one file
+   over: where a declaration is written is part of what it says. */
 
 /* The bottom row: the status bar's own ground runs under the home indicator
    and its buttons stand clear of it. */
@@ -7632,7 +7635,15 @@ html[dir="rtl"] .s-statusbar__spacer {
   position: absolute;
   top: 0;
   inset-inline-end: var(--fold-trail, 0px);
-  height: 2.5rem;
+  /* The cluster GROWS by the notch's inset rather than moving down it, the
+     way the tab strip it floats over does ("THE NOTCH AND THE HOME
+     INDICATOR"): the padding pushes its buttons clear of the status bar and
+     the extra height keeps them inside the box, so `align-items: center` has
+     something to centre them in. `--safe-top` is 0px on every rectangular
+     screen, so this is the flat 2.5rem it has always been anywhere but a
+     notched phone. */
+  height: calc(2.5rem + var(--safe-top, 0px));
+  padding-block-start: var(--safe-top, 0px);
   z-index: 5;
   display: flex;
   align-items: center;

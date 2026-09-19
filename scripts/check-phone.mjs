@@ -99,8 +99,18 @@ const MEASURE = String.raw`(() => {
   };
 
   /** Prose, where the 44px floor does not apply: a link in a sentence would
-   *  set the line height of the paragraph around it. */
-  const PROSE = ".cm-content, .s-rv-prose, .s-rv p, .s-rv li, .s-blog-article, .s-marginalia__list";
+   *  set the line height of the paragraph around it.
+   *
+   *  Named by the RENDERER'S OWN classes (.s-rv-p, .s-rv-list, .s-rv-quote),
+   *  not by the container they usually sit in: rendered prose is planted in
+   *  more places than .s-rv, and a wikilink inside a sigil's note — an
+   *  .s-rv-p under .s-rv-routine__notes, with no .s-rv above it — failed
+   *  this gate as a 19px "target". A gate that answers differently for two
+   *  vaults because one of them wrote a link in a note is not a gate; it is
+   *  a property of that vault. */
+  const PROSE =
+    ".cm-content, .s-rv-prose, .s-rv p, .s-rv li, .s-rv-p, .s-rv-list, .s-rv-quote," +
+    " .s-blog-article, .s-marginalia__list";
   /** A data picture, whose cells are marks and not controls. */
   const CHART = ".s-rv-routine__heat, .s-graph__nav, .s-tracker";
 

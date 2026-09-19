@@ -782,4 +782,13 @@
     min-inline-size: 44px;
     min-block-size: 44px;
   }
+
+  /* The slider is the one control here a finger does not tap but DRAGS, and
+     it was the shortest of them: 22px of box around a 4px track and a 15px
+     thumb. The track and the thumb keep their drawing — only the box the
+     finger may start the drag in grows, which is the whole of what 44px
+     means for a control you hold rather than press. */
+  .s-ctl-range {
+    block-size: 44px;
+  }
 }

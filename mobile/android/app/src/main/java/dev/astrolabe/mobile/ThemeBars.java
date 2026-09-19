@@ -9,6 +9,8 @@ import android.webkit.WebView;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
 import com.getcapacitor.Bridge;
 
 /**
@@ -74,6 +76,15 @@ final class ThemeBars {
                 @Override
                 public void run() {
                     if (activity.isFinishing() || activity.isDestroyed()) return;
+                    // Only while the activity is RESUMED. A Handler keeps
+                    // firing in a backgrounded process, and a colour nobody
+                    // can see is not worth a script evaluation every second;
+                    // the timer stays armed so the first frame after the
+                    // reader comes back is already right.
+                    if (!resumed(activity)) {
+                        handler.postDelayed(this, EVERY_MS);
+                        return;
+                    }
                     webView.evaluateJavascript(
                         READ_COLOUR,
                         value -> {
@@ -88,6 +99,12 @@ final class ThemeBars {
                 }
             }
         );
+    }
+
+    /** Is this activity in the foreground? */
+    private static boolean resumed(Activity activity) {
+        if (!(activity instanceof LifecycleOwner)) return true;
+        return ((LifecycleOwner) activity).getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED);
     }
 
     /** Paint the strips and choose the glyph colour that survives on them. */
