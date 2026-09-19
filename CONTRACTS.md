@@ -1157,20 +1157,68 @@ inline, bottom unpinned, max-height in the box) and the position is remembered i
 
 ## The pane grips (client/components/PaneGrip.tsx, client/paneWidths.ts)
 
-Each side pane carries an 8px `role="separator"` strip on its INNER edge (last child of
-`.s-sidebar` / `.s-panel`, both `position: relative`; `.s-app--flip` swaps the edges). A drag with
-pointer capture writes the pane's custom property on `<html>` — `--sidebar-w` (the token in
-tokens.css) or `--panel-w` (new; `.s-panel`, `.s-panel-header`, `.s-panel-body` all read it) —
-clamped to `PANE_MIN..PANE_MAX` (168..560) and remembered in `localStorage["astrolabe.paneWidths"]`
-(`applyPaneWidths()` at the first grip's mount). Dragged under `PANE_COLLAPSE_AT` (112px) the pane
+**THE GRIP STRADDLES THE SEAM, AND IT IS A CHILD OF THE SHELL (3.18.1).** Each side pane is
+resized by a 12px `role="separator"` strip with the pane's own 1px divider DOWN ITS MIDDLE —
+`.s-pane-grip--sidebar` at `inset-inline-start: calc(var(--sidebar-w) - 5.5px)`,
+`.s-pane-grip--panel` at `inset-inline-end: calc(var(--panel-w) - 5.5px)`, both mirrored under
+`.s-app--flip`, both children of `.s-app` and rendered from App.tsx.
+It was an 8px strip pinned INSIDE the pane, and that was two faults in one: it lay exactly on the
+tree's scrollbar, and the hairline the eye actually aims at — the divider — plus every pixel past
+it hit the `<aside>` with cursor `auto`. Measured at 1440: the pane ended at 293, the grip was
+[284, 292), and `elementFromPoint(292)` was the sidebar. That is the "you have to hunt for the
+exact spot" half of the Windows report. It CANNOT live inside the pane: both panes are
+`overflow: hidden` (that is what makes the collapse a width animation), so a strip reaching past
+the divider is clipped to nothing on the outside. Hence the hoist, and hence `.s-panel`'s width
+becoming `calc(var(--panel-w) + 1px)` to match `.s-sidebar`'s stated convention — the TOKEN is
+the content width — so one arithmetic serves both grips and the panel's content stops hanging 1px
+past the window edge.
+A press that lands on a REAL scrollbar (`offsetWidth > clientWidth`, which is Windows' classic
+bars; overlay bars take no room and are not in the way) scrolls that element for the length of
+the drag instead of resizing: the file list must not resize when the reader meant to scroll it.
+A drag with pointer capture writes the pane's custom property on `<html>` — `--sidebar-w` (the
+token in tokens.css) or `--panel-w` (`.s-panel`, `.s-panel-header`, `.s-panel-body` all read it) —
+and remembers it in `localStorage["astrolabe.paneWidths"]`. **THE DRAG IS RELATIVE**: `dragWidth`
+takes the pointer's DELTA from where it took hold and the pane's width at that moment, not
+`pointerX - rect.left`; the absolute form snapped the pane by up to −6px on the first pixel of
+movement, and seeding from the border box (293) rather than `clientWidth` (292) crept it a pixel
+wider on every grab. A grab with no move leaves the stored width byte-identical.
+Dragged under `PANE_COLLAPSE_AT` (112px) the pane
 wears `.s-pane--leaving` and on release COLLAPSES through the store's own setter, its property
 restored to the pre-drag width so it reopens whole. Double-click clears the property and the
-stored width. The root wears `.s-app--pane-drag` mid-drag (transitions off, column cursor, no
+stored width.
+
+**WHAT IS STORED IS THE HABIT; WHAT IS APPLIED IS WHAT FITS (`layoutPanes`, 3.18.1).**
+`clampPane` alone knows 168..560, which is a statement about a pane and not about a screen. One
++450px drag at 904 CSS px gave the grid `561 43 300`; adding a −300px panel drag gave
+`561 0 560` with `.s-main` 0 wide, the panel's header and close toggle off-screen, the toolbar
+drawn over the sidebar header — and it SURVIVED A RELOAD, because boot re-applied the stored pair
+verbatim. `layoutPanes(want, room, dragging?)` is now the single owner: it clamps each pane, then
+takes any shortfall out of the pane that is NOT under the hand first (down to `PANE_MIN`) so the
+note keeps `MAIN_MIN` = 320px. It is called from exactly three places — boot, every drag frame,
+and a rAF-throttled `resize`/`matchMedia` listener (`usePaneLayout()`, called once from App) —
+so the three cannot drift. The listener is the missing piece for "resizing *windows*": a window
+dragged narrow re-clamps with no reload, and widened again gives the pane back.
+**AND THE WINDOW'S OWN RE-CLAMP DOES NOT ANIMATE (3.18.1).** The panes carry `transition:
+width 0.18s`, so writing the clamped widths from the resize listener played that transition on
+every frame of a frame drag: measured at 1440 → 904 with `{560, 560}` stored, `.s-main` was 0px
+wide 30ms in and 274px at 110ms before reaching its 320px floor — the note losing its column on
+every resize, which is the one thing `MAIN_MIN` is for, and the panes visibly chasing the
+window edge. `applyPaneWidthsNow` wraps the write in `s-app--pane-still` on the ROOT (where the
+drag's own class already lives) with a style flush either side, so the new widths are committed
+under `transition: none` and the class comes off having animated nothing. ONLY the resize path
+uses it: boot and every fold re-run the same effect, and a fold is the reader's gesture — the
+flush there committed the collapse before the browser had a width to animate from, which is the
+same fault in the other direction. The double-click reset is the hand too, and keeps its 0.18s.
+`paneStyle` decides whether to write the property at all: nothing stored and room to spare means
+say NOTHING, because `--sidebar-w`'s own `clamp(224px, calc(100vw - 776px), 292px)` is the rule
+that hands the 1000–1068 band its surplus to the reading column and an inline `292px` would
+overwrite it at exactly the widths it was written for. The root wears `.s-app--pane-drag` mid-drag (transitions off, column cursor, no
 selection). The reopen handles take `reopenDragProps(pane)`: a drag inward of `PANE_REOPEN_AT`
 (40px) reopens; a click still does. No grip on a collapsed pane, in zen, under the phone's
-breakpoint, in the sub-1000px drawer (its width is fixed and `--sidebar-w` is not read there — and
-the drawer block's `width: 100%` rule for the sidebar's children must keep excluding the grip,
-which it once caught and turned into a full-width sheet over the tree). THE POINTER DOES NOT
+breakpoint, or — for the SIDEBAR only — in the sub-1000px drawer (its width is fixed and
+`--sidebar-w` is not read there; the panel stays docked and resizable in that band). The collapse
+tests are `.s-app--nosidebar` / `.s-app--nopanel` now, not `.s-sidebar--collapsed` /
+`.s-panel--collapsed`: a grip that is the shell's child cannot ask about a sibling's class. THE POINTER DOES NOT
 DECIDE (3.18.0). The rule used to add `not all and (any-pointer: fine)` — "no grip on a device
 with NO fine pointer at all", at every width — chosen over `(pointer: coarse)` because that is the
 PRIMARY pointer and Chromium reports it coarse on a touchscreen laptop with a mouse attached
@@ -1447,7 +1495,30 @@ stays on `.s-panel--collapsed`, as it always did.
   step to be on the wrong side of:
     - outline pane: 292 + 1 + 301 + 760 = 1354, so `BacklinksPanel`'s `NARROW_QUERY` is
       `(max-width: 1360px)` — it auto-collapses to its 14px door below that (as a viewport fact,
-      never a stored preference; a deliberate open still wins and still persists);
+      never a stored preference; a deliberate open still wins and still persists).
+      **AND AN AUTOMATIC COLLAPSE DOES NOT ANIMATE (3.18.1).** That threshold is crossed by a
+      maximise, by a Snap, by a tiling manager, by a monitor unplugged — `DEFAULT_SIZE`'s own
+      client width is below 1360, so on any display ≥1360 CSS px *every* maximise and restore
+      played the 0.18s width transition with the reading column sliding ~300px under it. That is
+      a window doing things by itself. `collapsePanelForViewport(b)` (client/state.ts) raises
+      `paneStill` in the SAME `set` as the flag, App puts `s-app--pane-still` on the shell in the
+      same commit, and `.s-app--pane-still` turns the transitions off on both panes and on
+      `.s-main`'s padding. No timer, no resize listener, no `s-app--pane-drag` (which would force
+      `cursor: col-resize !important` app-wide), and identical in RTL and on every OS, because it
+      is a question of what is true in that commit rather than of timing. The reader's own toggle
+      — the header button, the door, `Ctrl/Cmd Alt Shift B`, the palette — never raises it and
+      keeps the 180ms it belongs to.
+      **AND IT COMES BACK DOWN (3.18.1).** `paneStill` only ever went UP, and a window under
+      1360 auto-collapses the panel at BOOT — so on a 1366 laptop the shell wore
+      `s-app--pane-still` for the life of the page. Measured at 1300: `.s-sidebar`, `.s-panel`
+      and `.s-main` all at `transition-duration: 0s` at boot and still 0s after the reader's own
+      `Ctrl/Cmd Alt B`; and on the phone, where the notes drawer slides on that same
+      `.s-sidebar` (`.s-app--pane-still .s-sidebar` beats the drawer's own rule on source
+      order), the drawer stopped moving at all — `transition-property: none`, left −330 → 0 in
+      one frame. So every reader-driven pane gesture LOWERS it in the same `set` that starts its
+      own animation: `setPanelCollapsed`, `setSidebarCollapsed`, `setSidebarOpen`, `setZen`.
+      Still no timer and still no effect — the flag is what is true in the commit, and the
+      commit that hands the reader their animation back is the one that starts it;
     - sidebar: `--sidebar-w: clamp(224px, calc(100vw - 776px), 292px)` — 776 = the 760px box +
       that door + both panes' 1px separators — so between 1000 and 1068 the pane takes exactly
       the surplus and the column sits at its cap; and at ≤999 the sidebar leaves the grid
@@ -6447,6 +6518,45 @@ re-hosts the web app is a bigger download of the same thing.
    the displays that still exist (`onSomeDisplay`), because a window restored to
    an unplugged second monitor is an app that "does not start" while running
    perfectly, off the side of the desk.
+   **AND FITTED TO THE DESK IT REOPENS ON (`fitToWorkArea`, 3.18.1).**
+   `onSomeDisplay` is a floor ("can the reader grab it at all"), not an answer: a
+   rectangle saved on 1920×1080 and reopened on a 1366×768 laptop at 150% (a
+   911×512 DIP work area) passed it with the caption buttons, the trailing edge
+   and the bottom corner all off the desk. Size first, then origin, so a window
+   bigger than the desk lands at the desk's own corner rather than hanging off
+   the far one. The DEFAULT goes through it too: 1280×860 on a 934×600 DIP
+   screen used to open a window that filled the screen exactly and was NOT
+   maximised, so the maximise button did nothing visible — a default that does
+   not fit now opens MAXIMISED, which is a state the reader can leave. The
+   geometry is reported once on `ready-to-show`, because a rectangle the display
+   constrained at creation is the rectangle the reader actually has.
+   **ONE FLOOR, ONE EXPORT.** `MIN_WINDOW = {width: 480, height: 400}` lives in
+   prefs.ts and is used by `saneBounds` AND by `createVaultWindow`. They
+   disagreed — 400 tall at the window, 480 on both axes in the file — so every
+   rectangle in the gap (every Snap quadrant and vertical half on a 150% 1080p
+   laptop, and the app's own minimum) was handed out and then refused. And
+   because `saneBounds` rejects the WHOLE record, `maximized` went with the
+   rectangle: `rememberBounds` now keeps the flag even when the rectangle is
+   refused, since a flag is not a rectangle and a rectangle we distrust says
+   nothing about it.
+2b. **The zoom is the app's, not Chromium's (3.18.1).** `Ctrl/Cmd =`, `-` and `0`
+   used to be Electron's `zoomIn`/`zoomOut`/`resetZoom` roles, which write into
+   the per-host zoom memory of the `persist:vault-<hash>` partition under host
+   `127.0.0.1`. Nothing in `electron/` or `client/` read it, showed it or could
+   reset it, and it came back on every launch: five presses on a 1366 laptop at
+   125% left the reader permanently at a 689 CSS px viewport — the phone shell,
+   mouse attached — looking at an app that appeared to be broken. The factor now
+   lives in `desktop.json` beside the window bounds (`VaultPref.zoom`, per vault,
+   because that is what the old behaviour already implied), every window applies
+   it explicitly on `did-finish-load`, and `TO_RENDERER.zoom` tells the renderer
+   so `StatusBar`'s `ZoomChip` can show the percentage — nothing at 100%, since
+   this is a state and not a control — with a click that is *actual size*.
+   The menu rows carry `registerAccelerator: false`: the chord is DRAWN but not
+   claimed, so the keystroke reaches the page, and `client/desktop/` asks for the
+   app zoom from a capture-phase handler that STANDS ASIDE over an open book. The
+   book reader has claimed those three keys for the page it is showing since
+   3.11, and a reader who reaches for the zoom keys over a book means the book.
+   The numeric keypad keeps real accelerators: no page listens for it.
 3. **Native find-in-page** (`Ctrl/Cmd+Shift+F`) — the *rendered document*:
    reading view, outline, backlinks, transclusions. `Ctrl/Cmd+F` remains
    CodeMirror's find over the open note's text. Two verbs, two keys.

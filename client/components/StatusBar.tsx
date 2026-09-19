@@ -57,6 +57,32 @@ const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
  *  and verified it is **Restart to update**, the second click. A build a
  *  package manager owns gets a link to the release instead of a download.
  *  The updater itself is electron/update.ts. */
+/** THE ZOOM, WHERE THE READER CAN SEE IT — and undo it.
+ *
+ *  Nothing at all at 100%, which is where almost every window is: this is a
+ *  state, not a control, and a permanent "100%" would be one more thing in a
+ *  bar the owner already asked to keep quiet. At any other factor it is the
+ *  percentage and a click that sets it back, which is the whole remedy for a
+ *  vault that was silently opening at 158% every morning because Chromium had
+ *  remembered five presses of Ctrl+= under host 127.0.0.1 and nothing in the
+ *  app could read them (windows-plan defect G). */
+function ZoomChip() {
+  const zoom = useStore((s) => s.desktopZoom);
+  const pct = Math.round(zoom * 100);
+  if (pct === 100) return null;
+  return (
+    <button
+      type="button"
+      className="s-statusbar__btn s-statusbar__zoom"
+      onClick={() => void desktop()?.zoomSet?.(0)}
+      title={t("zoomResetTitle")}
+      aria-label={tf("zoomChipAria", { pct: localeNum(pct) })}
+    >
+      {tf("zoomChip", { pct: localeNum(pct) })}
+    </button>
+  );
+}
+
 function UpdateChip() {
   const update = useStore((s) => s.desktopUpdate);
   const phase = update?.phase ?? "";
@@ -1105,6 +1131,7 @@ export default function StatusBar() {
         // browser it opens the release page, since a hosted instance updates
         // when its server does.
         <span className="s-statusbar__group">
+          <ZoomChip />
           {desktop()?.updateCheck !== undefined ? (
             <UpdateChip />
           ) : (

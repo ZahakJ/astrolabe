@@ -39,6 +39,7 @@ In dev mode you open port 5801; requests to `/api` are passed through to the ser
 | `npm run check-docs` | Every link, anchor, image and settings path in this manual resolves, in both languages (below) |
 | `npm run gen-icons` | Redraw the folder-mark glyph set from its catalog; `npm run check-icons` fails when the drawing is stale |
 | `npm run check-desktop` | The desktop wrapper's own checks, then its `tsc` |
+| `npm run check-windows-layout` | The shell at six window widths × three device pixel ratios × three pointer postures (below) |
 
 ## The gates
 
@@ -174,6 +175,53 @@ sheet and not to that file is a binding untested on every non-Latin keyboard on 
 
 `node scripts/shoot-layouts.mjs` is the companion picture: the `Ctrl/Cmd /` sheet with the
 layout map stubbed to Arabic and to Russian, which is how the annotated keycaps are reviewed.
+
+### `npm run check-windows-layout` — the window gate
+
+Every other browser gate here looks at the app at one or two comfortable widths. The app is not
+used at comfortable widths. A Windows laptop panel is 1366 physical pixels, which is 1093 CSS px
+at 125% scaling and 904 at 150%; half of it under `Win+←` is 683. Four release rounds of "resizing
+of panels and windows is clunky and weird on Windows" were four separate defects that no gate
+could see, because each of them is a function of the viewport **and** the pointer together — and
+because the one machine none of us has is the one they all happened on.
+
+So this gate is a ladder rather than a screenshot. It drives the built app at **1366, 1280, 1024,
+900, 700 and 600 CSS px**, each at **device pixel ratio 1, 1.25 and 1.5**, in both directions,
+with the pane widths both empty and seeded to a pair the reader could actually drag them to
+(`{560, 560}`), under the three pointer postures Chromium really reports on Windows:
+
+| posture | what it is | what it must give |
+|---|---|---|
+| `mouse` | a desktop tower or a plain laptop | docked panes and grips at every width above 700 |
+| `slate` | a hardware slate — touch, a rotation sensor, the ACPI slate bit. **An attached mouse does not change Chromium's answer** | the drawer below 1000, docked panes **with grips** above it, 44px rows |
+| `touchlaptop` | a fine pointer and a finger | docked panes, grips, **and** 44px rows |
+
+The postures are Blink settings on the browser process (`--blink-settings=availablePointerTypes=…`),
+which is what `pointer_device_win.cc` itself hands the renderer — not DevTools media emulation,
+which `setViewportSize` silently drops halfway down a ladder.
+
+In each cell it asserts that the sidebar is a real grid column (not auto-placed, not an overlay)
+wherever a pointer can hit a strip, that each docked pane has a grip whose 12px hit area is
+**centred on the pane's own 1px divider** — `elementFromPoint` at the seam must return the grip —
+that the note column never falls below its 320px floor whatever is stored, that neither pane and
+neither pane's close button runs off the window, and that the document never scrolls sideways.
+
+Three rungs after the ladder watch the frames the ladder cannot see, because it waits 300ms after
+each resize and a 0.18s transition is over by then. They ask what the reader actually sees while a
+window is being dragged and while a pane is being folded: the note column still has its 320px
+**one frame** after a resize, the phone's notes drawer still slides rather than appearing, and the
+reader's own `Ctrl/Cmd Alt B` fold is still mid-flight 60ms in. All three failed at some point on
+the same flag — the class that says "this width is not the hand's doing" — being up when it should
+have been down, or down when it should have been up.
+
+Needs a running instance, `CHROMIUM`, and the instance's password as the second argument.
+
+    npm run check-windows-layout -- http://127.0.0.1:8177 <password>
+
+`scratchpad/win/run.sh` is the other half of this and is not a gate: it launches the packaged
+Windows executable under Wine with `--remote-debugging-port=9333`, which is the only way to see
+the real Windows renderer's scrollbars, pointer events and media queries without a Windows
+machine. Run the same assertions over CDP there before a release that touches the shell.
 
 ### `npm run check-keymap` — the binding ledger
 
@@ -389,10 +437,11 @@ The sequence a change runs before it is called finished, in this order: `npm run
 `npm run check-a11y` · `npm run check-contrast` · `npm run check-settings` (with
 `node scripts/gen-settings-index.mjs` first when a row changed) · `npm run check-keymap` when a
 key changed · `npm run check-names` · `npm run check-docs` · `npm run build-docs` ·
-`npm run check-desktop` when `electron/` or `desktop/` changed. Then the browser gates the change
-touches — `npm run check-phone` whenever a stylesheet or a piece of the shell moved — with
-`CHROMIUM` and `ASTROLABE_PASSWORD` set, against a scratch server over a scratch vault — never
-the owner's.
+`npm run check-desktop` when `electron/` or `desktop/` changed ·
+`npm run check-windows-layout` when the shell's layout, the panes or their breakpoints changed.
+Then the browser gates the change touches — `npm run check-phone` whenever a stylesheet or a
+piece of the shell moved — with `CHROMIUM` and `ASTROLABE_PASSWORD` set, against a scratch
+server over a scratch vault — never the owner's.
 
 ## Screenshot harnesses
 

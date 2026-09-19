@@ -66,6 +66,12 @@ export interface DesktopBridge {
   onFindResult(cb: (payload: FindResult) => void): void;
   onNavigate(cb: (route: string) => void): void;
   onOsTheme(cb: (dark: boolean) => void): void;
+  /** This window's zoom factor, whenever it changes. Absent before 3.18.1. */
+  onZoom?(cb: (factor: number) => void): void;
+  /** Zoom the app: +1 a step in, -1 a step out, 0 back to actual size.
+   *  Absent before 3.18.1, where the View menu's own accelerators did it and
+   *  the factor lived in Chromium's per-host memory. */
+  zoomSet?(direction: -1 | 0 | 1): Promise<void>;
   spellReplace(text: string): Promise<void>;
   spellAdd(word: string): Promise<void>;
   updateApply(): Promise<void>;
