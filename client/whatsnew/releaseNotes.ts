@@ -370,6 +370,160 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.19.0",
+    title: { en: "A sigil that is a course, and tables you can actually edit", ar: "سِجِلّ يصير مسارًا، وجداول تُحرَّر فعلًا" },
+    slides: [
+      {
+        // ── Course sigils ────────────────────────────────────────────────
+        title: { en: "A sigil can be a course", ar: "السِّجِلّ يصير مسارًا" },
+        body: {
+          en: "Some things you mean to do are a list, not a week — a language, an instrument, a textbook. Write `mode: course` and a sigil becomes an ordered list of steps in units, asking you only for the next one. Nothing in the note is dated: the dates are projected from where you actually are, so a day you miss costs you a day and nothing else — everything after it simply moves.",
+          ar: "بعض ما تنوي فعله قائمة لا أسبوع: لغةٌ، أو آلةٌ، أو كتابٌ دراسي. اكتب `mode: course` فيصير السِّجِلّ قائمة خطوات مرتّبة في وحدات، لا تطلب منك إلا التالية. ولا شيء في الملاحظة مؤرَّخ: التواريخ متوقَّعة من موضعك الحقيقي، فاليوم الذي يفوتك يكلّفك يومًا واحدًا لا غير، وينزاح كل ما بعده وحده.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => {
+            // A track of numbered beads in two unit bands. Today's bead is
+            // filled; the tail after it is drawn twice — solid where it was
+            // planned, ghosted one bead further along — with a soft arrow
+            // between: the schedule slides, the order never changes.
+            const beads: string[] = [];
+            for (let i = 0; i < 10; i++) {
+              const x = 60 + i * 48;
+              const done = i < 4;
+              const today = i === 4;
+              const fill = done ? "var(--callout-success)" : today ? "var(--accent)" : "var(--bg)";
+              const stroke = done ? "var(--callout-success)" : today ? "var(--accent)" : "var(--border)";
+              beads.push(`<circle cx="${x}" cy="96" r="11" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`);
+              beads.push(`<text x="${x}" y="100" text-anchor="middle" fill="${done || today ? "var(--bg)" : "var(--text-muted)"}" font-size="10" font-weight="600">${i + 1}</text>`);
+            }
+            const ghost: string[] = [];
+            for (let i = 5; i < 10; i++) {
+              const x = 60 + (i + 1) * 48;
+              ghost.push(`<circle cx="${x}" cy="150" r="11" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3 2"/>`);
+              ghost.push(`<text x="${x}" y="154" text-anchor="middle" fill="var(--accent)" font-size="10" font-weight="600">${i + 1}</text>`);
+            }
+            return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="40" y="70" width="230" height="52" rx="8" fill="var(--bg-hover)" opacity="0.6"/>
+  <rect x="280" y="70" width="240" height="52" rx="8" fill="var(--bg-hover)" opacity="0.6"/>
+  <text x="48" y="62" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "UNIT 1", "الوحدة ١")}</text>
+  <text x="288" y="62" fill="var(--text-faint)" font-size="9" letter-spacing="1">${L(lang, "UNIT 2", "الوحدة ٢")}</text>
+  <line x1="60" y1="96" x2="492" y2="96" stroke="var(--border)" stroke-width="1.5"/>
+  <g class="wa" style="--i:0">${beads.join("")}</g>
+  <g class="wa-late" style="--i:2">
+    <line x1="252" y1="70" x2="252" y2="44" stroke="var(--accent)" stroke-width="1.2"/>
+    <text x="252" y="38" text-anchor="middle" fill="var(--accent)" font-size="10" font-weight="600">${L(lang, "today", "اليوم")}</text>
+  </g>
+  <g class="wa-late" style="--i:4">
+    <path d="M300 112 q40 30 46 28" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3 2"/>
+    <path d="M342 134 l6 6 l-8 2" fill="none" stroke="var(--accent)" stroke-width="1.2"/>
+    ${ghost.join("")}
+  </g>
+  <text x="280" y="192" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "a missed day moves the tail, not the order", "اليوم الفائت يزيح الذيل لا الترتيب")}</text>
+</svg>`;
+          },
+        },
+        docs: "sigils",
+      },
+      {
+        // ── Tables edited in place ───────────────────────────────────────
+        title: { en: "Tables you can actually edit", ar: "جداول تُحرَّر فعلًا" },
+        body: {
+          en: "Click a cell in a rendered table and type — the grid stays a grid, and the pipes never come back. Tab, Enter and the arrows walk the cells; right-click for rows, columns, alignment and sorting, each one a single undo. A two-hundred-row table edits as fast as a three-row one, because committing a cell redraws that cell and not the table.",
+          ar: "انقر خلية في جدول معروض واكتب — تبقى الشبكة شبكة، ولا تعود الخطوط العمودية إلى وجهك. و‎Tab‎ و‎Enter‎ والأسهم تمشي في الخلايا؛ والنقر الأيمن يفتح الصفوف والأعمدة والمحاذاة والترتيب، كلٌّ منها خطوة تراجع واحدة. وجدول من مئتي صف يُحرَّر بسرعة جدول من ثلاثة، لأن كتابة الخلية تعيد رسم تلك الخلية لا الجدول.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => {
+            // A three-column table in clean rules; one body cell lit with an
+            // accent-outlined box and a caret; a small menu leafing out of it.
+            const rows: string[] = [];
+            for (let r = 0; r < 5; r++) {
+              const y = 44 + r * 28;
+              rows.push(`<line x1="40" y1="${y + 28}" x2="330" y2="${y + 28}" stroke="var(--border)"/>`);
+              for (let c = 0; c < 3; c++) {
+                const x = 52 + c * 96;
+                if (r === 2 && c === 1) continue;
+                const w = 34 + ((r * 3 + c) % 4) * 10;
+                rows.push(`<rect x="${x}" y="${y + 12}" width="${w}" height="5" rx="2.5" fill="${r === 0 ? "var(--text-muted)" : "var(--text-faint)"}" opacity="${r === 0 ? 1 : 0.7}"/>`);
+              }
+            }
+            const menu = [
+              L(lang, "Insert row below", "إدراج صف تحت"),
+              L(lang, "Delete column", "حذف العمود"),
+              L(lang, "Align centre", "محاذاة للوسط"),
+              L(lang, "Sort A → Z", "ترتيب أ → ي"),
+            ];
+            return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="40" y="44" width="290" height="28" fill="var(--bg-hover)" opacity="0.7"/>
+  <line x1="40" y1="44" x2="330" y2="44" stroke="var(--border)"/>
+  <line x1="136" y1="44" x2="136" y2="184" stroke="var(--border)"/>
+  <line x1="232" y1="44" x2="232" y2="184" stroke="var(--border)"/>
+  ${rows.join("")}
+  <g class="wa-late" style="--i:1">
+    <rect x="140" y="103" width="88" height="22" rx="4" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
+    <rect x="148" y="111" width="30" height="5" rx="2.5" fill="var(--text)"/>
+    <line class="wa-blink" x1="182" y1="108" x2="182" y2="120" stroke="var(--accent)" stroke-width="1.5"/>
+  </g>
+  <g class="wa-late" style="--i:3">
+    <rect x="352" y="70" width="170" height="${18 + menu.length * 22}" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    ${menu.map((m, i) => `<text x="${lang === "ar" ? 510 : 364}" y="${92 + i * 22}" ${lang === "ar" ? 'text-anchor="end"' : ""} fill="var(--text)" font-size="11">${m}</text>`).join("")}
+    <rect x="356" y="${76 + 22 * 0}" width="162" height="20" rx="5" fill="var(--bg-hover)"/>
+    <text x="${lang === "ar" ? 510 : 364}" y="92" ${lang === "ar" ? 'text-anchor="end"' : ""} fill="var(--text)" font-size="11">${menu[0]}</text>
+    <path d="M228 114 q60 -30 124 -34" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 2"/>
+  </g>
+  <text x="280" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "one cell open; the table stays a table", "خلية واحدة مفتوحة؛ والجدول يبقى جدولًا")}</text>
+</svg>`;
+          },
+        },
+        docs: "editor",
+      },
+      {
+        // ── The phone's other promises ───────────────────────────────────
+        title: { en: "Forty-four pixels, the notch, and the back button", ar: "أربع وأربعون بكسلًا، والحزّ، وزر الرجوع" },
+        body: {
+          en: "Every target you tap on a phone is now 44 pixels tall and every field 16 — the section headers, the graph's controls, the theme picker, the settings rail, the media stepper. The tab strip clears the notch and the mode pills clear the gesture bar. Each drawer carries its own ✕, and on Android the back button closes whatever is open before it leaves the page.",
+          ar: "كل هدف تلمسه على الهاتف صار بارتفاع ٤٤ بكسلًا وكل حقل ١٦ — عناوين الأقسام، وأزرار الرسم البياني، ومنتقي السمة، وشريط الإعدادات، وعدّاد الوسائط. وشريط التبويبات يتجنّب الحزّ، وحبوب الأوضاع تتجنّب شريط الإيماءات. ولكل درج زر ✕ خاص به، وعلى أندرويد يغلق زر الرجوع ما هو مفتوح قبل أن يغادر الصفحة.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="70" y="28" width="110" height="150" rx="14" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="70" y="28" width="110" height="14" rx="0" fill="var(--bg-hover)"/>
+    <rect x="110" y="30" width="30" height="8" rx="4" fill="var(--text-faint)"/>
+    <rect class="wa-drop" x="78" y="44" width="94" height="14" rx="4" fill="var(--bg-raised)" stroke="var(--border)"/>
+    <rect x="78" y="160" width="94" height="10" rx="5" fill="var(--bg-hover)"/>
+    <rect x="112" y="172" width="26" height="3" rx="1.5" fill="var(--text-faint)"/>
+  </g>
+  <text x="125" y="194" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "clear of the notch and the bar", "بعيدًا عن الحزّ والشريط")}</text>
+  <g class="wa-late" style="--i:2">
+    <rect x="228" y="28" width="110" height="150" rx="14" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="236" y="48" width="94" height="22" rx="6" fill="var(--bg-hover)"/>
+    <rect x="236" y="76" width="94" height="22" rx="6" fill="var(--bg-hover)"/>
+    <rect class="wa-pulse" x="236" y="104" width="94" height="22" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+    <text x="283" y="119" text-anchor="middle" fill="var(--accent)" font-size="9" font-weight="600">44</text>
+    <rect x="236" y="132" width="94" height="22" rx="6" fill="var(--bg-hover)"/>
+  </g>
+  <text x="283" y="194" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "every target, a thumb wide", "كل هدف بعرض الإبهام")}</text>
+  <g class="wa-late" style="--i:4">
+    <rect x="386" y="28" width="110" height="150" rx="14" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="386" y="28" width="66" height="150" rx="0" fill="var(--bg-raised)" stroke="var(--border)"/>
+    <rect x="426" y="32" width="20" height="20" rx="5" fill="var(--bg-hover)"/>
+    <path d="M431 37l10 10M441 37l-10 10" stroke="var(--text-muted)" stroke-width="2"/>
+    <path class="wa-press" d="M420 162 l-8 6 l8 6" fill="none" stroke="var(--accent)" stroke-width="2"/>
+  </g>
+  <text x="441" y="194" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "back closes what is open", "الرجوع يغلق ما هو مفتوح")}</text>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+    ],
+  },
+  {
     version: "3.18.0",
     title: { en: "The month takes a door, and every layer knows where it stands", ar: "الشهر يأخذ بابًا، وكل طبقة تعرف مكانها" },
     slides: [
