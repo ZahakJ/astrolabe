@@ -247,7 +247,8 @@ published site, inside a transclusion — always the same card:
   there until you answer it. A part whose text links a study deck with a wikilink
   — `review: [[Orbits/Hiragana]]` — shows the deck by name and wears a small chip, *12 due ·
   Study*, that opens the session; when a session leaves nothing due, the part is ticked for you
-  (see [Orbits](orbits.md)).
+  — and so is a part whose decks have nothing due when the card is drawn, so a review with
+  nothing to review never sits open asking what to check (see [Orbits](orbits.md)).
 - **Three numbers**: the **streak** (complete days in a row — rest days do not break it, and a day
   that is not over yet neither adds nor breaks), **this week** (`3/6`, against your target), and
   the **last 30 days** as a percentage.
