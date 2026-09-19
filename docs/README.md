@@ -34,7 +34,7 @@ You can read this manual as a website, with search, a page outline and both lang
 | [The Calendar](calendar.md) | The month as a page of its own: every day's note, the sigils you kept, the cards you graded and the pages you read, with a pane that opens any day in full |
 | [Orbits](orbits.md) | Spaced repetition without a second program: a deck is a note (a `deck` block and `front::back` lines), studied with learning steps and a daily limit, imported from Anki or CSV, and scheduled inside the note itself in the Obsidian plugin's own format |
 | [Drawings](drawing.md) | A drawing canvas (Excalidraw) inside your vault: `.excalidraw` files and the Obsidian plugin's `.excalidraw.md`, an SVG exported beside each one, and `![[sketch.excalidraw]]` to embed it anywhere |
-| [The PDF reader](books.md) | Every PDF in the vault opens as a book: vim keys, a `:` command line, the page you left off on, and highlights that become notes with a citation |
+| [The book reader](books.md) | Every PDF and every EPUB in the vault opens as a book: vim keys, the place you left off in, highlights that become notes with a citation — and, for an EPUB, text your browser sets and reflows at the size you ask for |
 | [Panes, tabs & windows](workspace.md) | Splitting the screen, preview tabs and pinned tabs, several windows on one vault, the local graph, the trash, the tour, and aliases |
 | [Printing & PDF](printing.md) | Putting a note on paper: the print palette, page breaks, PDF bookmarks, and internal links that still work in the PDF |
 | [Keymap](keymap.md) | Every keyboard shortcut, and why the awkward ones are where they are |

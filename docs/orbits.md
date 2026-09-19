@@ -157,7 +157,7 @@ On the sigil's card that slot shows the deck by name and wears a small chip afte
 ## Related
 
 - [Sigils](sigils.md) — the day's page, where due cards appear and where a slot can point at a deck
-- [The PDF reader](books.md) — citations that arrive as quote cards
+- [The book reader](books.md) — citations that arrive as quote cards
 - [The editor & reading view](editor.md) — highlights, callouts and the selection menu
 
 A kanji deck built from [KANJIDIC2](https://www.edrdg.org/kanjidic/kanjd2index.html), as the author's own were, carries the dictionary's meanings and readings, © the Electronic Dictionary Research and Development Group, used under the CC BY-SA 4.0 licence; say so in the note's frontmatter, as they do.

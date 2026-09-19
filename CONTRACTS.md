@@ -9385,6 +9385,187 @@ routes trade in a content key, a page number and four numbers between 0 and 1.
 
 ---
 
+## EPUB in the reader (`client/epub/`, `server/epub.ts`)
+
+The owner's ask was **"the arabic prints suck super bad… can you maybe support
+epub through reader maybe?"**, and the answer is a second reading surface
+rather than a converter. A PDF of Arabic poetry is a PICTURE of type: the
+shaping was decided once by whatever made the file, the measure is frozen with
+it, and zooming gives a bigger picture rather than larger text. An EPUB is
+markup, so the browser shapes it — with the Noto Naskh Arabic this product
+already carries (tokens.css maps the Arabic ranges to it), at the reader's own
+size, at the window's own measure. Converting an EPUB to a PDF to open it in
+the reader we had would have thrown away exactly the thing that was wrong.
+
+### A `.epub` is a book beside a `.pdf`, everywhere
+
+`isBookPath` (`server/books.ts`, `client/workspace.ts`) is the shelf's
+predicate and it names both; `isPdfPath` survives beside it for the callers
+that are about the FORMAT (`server/pdfText.ts` extracts a text layer with
+pdf.js, which has nothing to say about an EPUB). The shelf lists both, the tree
+opens both in the reader (`AttachmentKind` is `"book"` now, not `"pdf"` — the
+kind is the ROLE), `/book/<path>.epub` is an address, a tracker's `file:` names
+either, and a sigil slot that links either ticks on the sitting that read it.
+
+**The key is the same key**: `sha256(format ‖ size ‖ head ‖ tail)`. The format
+goes in front because `pdf:` is what every key already in every reader's
+`books.json` was hashed with, and changing that would change the identity of
+every book anybody owns. The sample is as distinguishing for an EPUB as the
+chapter above argues it is for a PDF, and structurally so: an EPUB's first
+bytes are the `mimetype` entry the specification requires to come first, and
+its last 64 KiB are the central directory — the name, size and CRC of every
+file in the book.
+
+### A place is a CHAPTER and a FRACTION. There are no pages.
+
+`shared/epubAnchor.ts`. A page in a reflowing text is a fact about the WINDOW,
+not about the book: the same volume is 300 screens on a phone and 90 on a
+laptop, so a stored page number would move when the reader rotated the phone.
+A place is `{ href, fraction }` — a spine item's path inside the archive, and
+how far down it — and both survive a type-size change, a rotation and the book
+being opened on another machine.
+
+It is stored in the SAME `BookState` record under the same content key, as
+`page` (the chapter's 1-based index), `offset` (the fraction) and one new
+field, `chapter` (the href). Not a second state shape, and the reason is that
+everything the shelf, the sitting clock and the tracker do with that pair —
+"how far through", "how much was read today", "42 %" — is the same question for
+both formats, and a second pair would have meant a second `progressOf`, a
+second bar and a second way of counting a sitting, all of which eventually
+disagree. The index is the arithmetic; **the href is the address**, because
+inserting a chapter moves every index after it and moves no href.
+
+The URL carries it (`#ch=OEBPS/ch07.xhtml&at=0.42`) the way `#page=` does for a
+PDF, and `client/router.ts` LEAVES THAT FRAGMENT ALONE: it names the volume,
+the reader owns the place, and without that rule the first store change after a
+scroll replaced the address with a bare `/book/…` and ate it.
+
+### The chapter is REBUILT, not filtered
+
+An EPUB is an arbitrary XHTML document from the internet, rendered inside this
+origin — where the session cookie is. So `server/epub.ts` walks the parse tree
+and emits a NEW document from an allowlist of elements and attributes.
+Anything not on the list is never written out, so there is nothing to reason
+about: scripts, forms, iframes, event handlers, `style` attributes and external
+URLs do not survive to be stripped. An `<a>` pointing inside the book becomes
+`data-href`/`data-fragment` with `role="link"` and a `tabindex` (a real `href`
+in a single-page app is a navigation away from it); an `<a>` pointing out of
+the book keeps its words and loses its link entirely. `id`, `class`, `lang` and
+`dir` are kept — the contents land on an `id`, and the publisher's stylesheet
+selects on `class`.
+
+**Nothing is unpacked, ever.** Not to a temp directory, not to ASTROLABE_DATA,
+not beside the book. `server/zip.ts::readZipDirectory` reads the archive
+through a file handle at offsets — the tail once, then one entry per request —
+so a 40 MB illustrated volume costs ~100 kB of reads to open and a chapter
+costs the chapter. A cache of extracted chapters would be a second copy of
+somebody's library living outside the vault, with its own eviction bug and its
+own permissions to get wrong. What IS cached is the PARSE (metadata, spine,
+contents) keyed by path-size-mtime, because that is the one genuinely
+repetitive read in a sitting.
+
+**No new dependency.** `package.json` carried no zip library and no XML parser,
+and adding either — to read a format that is a zip of XML — would have added a
+supply chain to a self-hosted reading room. The zip half already existed
+(`server/zip.ts`, written for the Anki importer) and gained a positional
+reader; the XML half is `server/epubXml.ts`, a hundred lines, because the job
+is elements, attributes, text, CDATA and a doctype to skip.
+
+### The gate is `/api/file`'s gate
+
+`GET /api/books/epub/{manifest,item,search}` live in **`server/epubRoutes.ts`
+and not in `server/bookRoutes.ts`**, because that file's first paragraph
+promises that no vault bytes travel through it and these routes exist to carry
+them. Each one asks the question `/api/file` asks, in the same words —
+`isAllowedAttachment(rel)` and `isPublishLimited(c)`, 404 and not 403 — and
+each answer wears `Content-Security-Policy: sandbox` and `nosniff`, so an
+`image/svg+xml` plate out of somebody's book cannot run in this origin even if
+the sanitizer is one day wrong about something. **A book in an unpublished
+folder is the normal case**: these routes are for the owner reading their own
+library.
+
+### The publisher's CSS is PREFIXED, not shadowed
+
+`shared/epubCss.ts` sanitizes on the way out of the zip (`@import` and
+`@font-face` dropped, `url()` rewritten onto the item route, and the
+declarations that fight the reading room — `font-family`, `color`,
+`background*`, `position` — dropped) and `scopeEpubCss` prefixes every selector
+with `.s-epub__chapter` on the way into the document, `html`/`body`/`:root`
+becoming the prefix itself so a page-level rule is not lost. A selector it
+cannot confine is dropped rather than emitted bare.
+
+**Why not a shadow root**, which would scope it for free: the theme tokens stop
+inheriting (and `--font-serif` is the whole point), a Selection cannot be read
+across the boundary in the ordinary way (and "Copy citation" is a selection),
+`dir` stops inheriting from the reader's root (and an RTL book is the case this
+was built for), and the browser's own find-in-page does not see in. The prefix
+costs none of that and is a pure function of a string — which is why
+`tests/epub.test.ts` asserts the property directly instead of a browser having
+to.
+
+Dropping `font-family` is the ASK, not tidiness: a publisher's embedded face is
+what the owner was escaping. Dropping `color` and `background` is the theme: a
+book that sets ink and paper is unreadable in half the rooms in tokens.css, and
+"the text went invisible when I switched theme" is not a bug anyone can
+diagnose.
+
+### The slot discipline is BookReader's
+
+Every chapter gets a box whose height is measured or estimated (the running
+average of what has been measured), so the scrollbar is honest from the first
+frame; the chapter in view and one either side hold real markup and the rest
+are empty boxes. A 300-chapter book is three chapters of DOM. Search is
+SERVER-side over the zip for the same reason the window exists: the alternative
+is fetching the whole book on every search.
+
+**Search folds the way an Arabic reader types** — `shared/fold.ts`, the same
+table `/` uses inside a PDF and the same one the vault's index uses. A hit's
+`offset` is into the chapter's TEXT (`chapterText`), and the fold DROPS
+characters (harakat, tatweel), so both sides map folded offsets back to real
+ones explicitly rather than assuming the identity; a naive offset lands a few
+words early, which is worse than not flashing at all.
+
+### Citations carry WORDS. Highlights are a later round.
+
+`c` copies `[[Book.epub#ch=<href>&q=<first words>]]`, and the reader honours
+`#ch&q` by finding the words and flashing them. A fraction is a scroll offset
+and a quotation is a sentence: the sentence is what still finds the passage
+after the publisher reissues the file and every offset in it moves.
+
+**Rect-anchored highlights are deliberately NOT built for EPUB.** The PDF
+reader's highlight is four numbers on a page, and an EPUB has neither. What a
+later round would need, written down so it is not rediscovered: a range anchor
+that survives a reissue — in practice the EPUB CFI the specification defines
+(a path through the spine item's element tree plus a character offset), stored
+beside the existing `BookHighlight` rather than inside it, with the same
+"resolve, and say so honestly when it no longer resolves" behaviour the
+citation recovery has; plus a way to PAINT a stored range without inserting
+nodes into the chapter (the CSS Custom Highlight API, which the search already
+uses here), because inserting `<mark>` would reflow the book under the reader
+and change every offset below it. Until then `c` gives a citation to a passage
+and marking one is not offered — a half-built highlight that silently stops
+resolving is worse than none.
+
+`openEpubCitation` also has **no recovery path**, and that is the same fact
+seen from the other end: recovery works by looking up a highlight id, and there
+are no highlight ids here. A `[[Book.epub#ch=…]]` whose filename stops
+resolving does what a wikilink to a missing note does.
+
+### Its own chunk
+
+`client/epub/EpubReader.tsx` is a third lazy chunk under `BooksSurface`
+(`scripts/check-bundle.mjs::MUST_SPLIT` asserts it): somebody reading a 300 kB
+EPUB has no business downloading a page renderer, a canvas compositor and a
+column detector, and somebody reading a PDF has no business downloading a
+stylesheet scoper. What the two DO share is the chrome —
+`client/books/chrome.tsx` holds the search line, the contents panel and the key
+sheet, generically, so a reader who opens both formats meets one interface.
+`npm run check-books` now scans `client/epub/` under every rule it scans
+`client/books/` under: `shortcutKey()` for every character key, tokens and
+logical properties in `client/styles/epub.css`, and no local `t()` shim.
+
+---
+
 ## Lazy surfaces: ONE BOUNDARY EACH (`client/App.tsx`)
 
 Every `React.lazy()` surface in the shell gets its **own** `<Suspense>`. This is a correctness

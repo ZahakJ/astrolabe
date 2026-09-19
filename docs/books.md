@@ -1,6 +1,6 @@
-# The PDF reader
+# The book reader
 
-*Every PDF in the vault, read in a viewer that answers to the keyboard, remembers your page, and turns a highlight into a note.*
+*Every PDF and every EPUB in the vault, read in a viewer that answers to the keyboard, remembers your place, and turns a highlight into a note.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
@@ -216,6 +216,57 @@ server's start-up line says how many books it holds. A scanned book with no text
 exactly as in the reader's own `/`. The [**Search inside books**](configuration.md#settings-keys)
 row in *Settings › Vault* (or `PDF_SEARCH=off`) turns the whole thing off, and stops a pass in
 progress.
+
+## EPUB
+
+A `.epub` in the vault is a book beside a `.pdf`: it is on the same shelf, it opens with the same
+click, its place is kept in the same way, and a sitting in it is logged to the same tracker. What
+is different is what a book IS in that format — and the difference is the reason the feature
+exists.
+
+**A PDF is a picture of type.** The line breaks were decided once, by whatever made the file; the
+measure is frozen; the shaping is frozen with it. For Arabic that is the whole problem: a PDF of
+Arabic poetry is only ever as well set as the tool that made it, and zooming gives you a bigger
+picture rather than larger text. **An EPUB is markup**, so your browser sets it — with the Naskh
+this app already carries, at whatever size you ask for, at whatever measure your window gives.
+Arabic prints that "look wrong" as PDFs usually read correctly here.
+
+So the EPUB reader has no pages, and does not pretend to:
+
+- **A place is a chapter and how far down it.** The status line says *Chapter 7 of 298*, the URL
+  says `#ch=OEBPS/ch07.xhtml&at=0.42`, and both survive you changing the type size, rotating a
+  phone or opening the book on another machine. A page number would not.
+- **The type size is yours.** `+` and `−` (and `Ctrl`/`Cmd` with `+`, `−` and `0`, which the reader
+  takes over from the browser), or the two buttons in the title bar. The percentage in the status
+  line is a button that puts it back. The line length is capped at a comfortable measure however
+  wide the window is.
+- **The book's own contents.** `o` opens them, from the book's `nav.xhtml` or its `toc.ncx`; an
+  entry that points into the middle of a chapter lands there. In a right-to-left book the whole
+  surface mirrors, contents panel included.
+- **`/` searches the whole book**, on the server, through the same
+  [Arabic fold](arabic-and-rtl.md#searching-in-arabic) as everywhere else — so «المقدمة» finds a
+  page printing «الْمُقَدِّمَة». `n` and `N` step; the hit is scrolled to and flashed.
+- **Footnote and cross-reference links work**, within the book. A link that points *out* of the
+  book keeps its words and loses its link: a book is a file from the internet, and it does not get
+  to make requests from inside your vault.
+- **`c` copies a citation** to whatever you have selected —
+  `[[Adonis.epub#ch=OEBPS/ch07.xhtml&q=هذه محاولة أخرى]]` — and clicking that link later opens the
+  book and finds the words. The citation carries the WORDS and not an offset, because a reflowing
+  text has no offsets that survive the publisher reissuing the file.
+
+Chapters are fetched as you scroll (the one you are in and one either side hold the book's markup;
+the rest are empty boxes of the right height), so a 300-chapter volume opens as fast as a short
+one. The book is never unpacked anywhere: the server reads one chapter, one picture or one
+stylesheet at a time out of the archive, and nothing of the book is written outside the vault.
+
+The book's own stylesheet is applied, **scoped to the reader** — its indents, its verse layout and
+its drop caps survive, while the rules that would fight the app (its fonts, its ink and paper, and
+anything that would paint over the interface) are dropped, so a book reads correctly in every
+theme.
+
+What is not here yet: **highlights and margin notes**, which the PDF reader anchors to a rectangle
+on a page — a thing an EPUB does not have. `c` gives you a citation to a passage; marking one is a
+later round.
 
 ## What it does not do
 

@@ -96,11 +96,20 @@ export default function Pane({
           route={
             surface === "library" || tab === null
               ? { kind: "library" }
-              : { kind: "book", path: tab.path, anchor: pane.bookTarget }
+              : // The one place that tells the two anchor shapes apart. A PDF's
+                // target has a `page`, an EPUB's an `href` (client/workspace.ts
+                // ::BookTarget); each reader takes only its own, so neither has
+                // to know the other exists.
+                {
+                  kind: "book",
+                  path: tab.path,
+                  anchor: pane.bookTarget !== null && "page" in pane.bookTarget ? pane.bookTarget : null,
+                  place: pane.bookTarget !== null && "href" in pane.bookTarget ? pane.bookTarget : null,
+                }
           }
           onRoute={(next) => {
             if (next.kind === "library") setPaneMode(id, "library");
-            else openBook(next.path, next.anchor ?? null);
+            else openBook(next.path, next.place ?? next.anchor ?? null);
           }}
           onExit={() => {
             // Leaving the shelf returns the pane to its tabs; closing a book

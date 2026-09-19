@@ -786,4 +786,11 @@
   .s-routines .s-btn {
     min-block-size: 44px;
   }
+
+  /* And the pill that opens the day's note — a door into another surface, on
+     the same terms as the Orbits chip above, and the last control on this
+     page under the floor at 30px. */
+  .s-routines__recentnote {
+    min-block-size: 44px;
+  }
 }

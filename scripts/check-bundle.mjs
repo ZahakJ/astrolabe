@@ -822,7 +822,39 @@ const AUDIENCES = [
   // 3.19.0 MERGE, all six rounds on one main: 819.7 kB actual → 820. The perf round's
   // lowered line was measured alone on 3.18.0; the other five rounds' bytes
   // (each explained above) sit on top of it now. No new cause.
-{ name: "entry (everyone)", keys: entry, budget: 820 * 1024 },
+  // 3.20.0 EPUB IN THE READER: 822.9 kB actual → 823 (+3.2 kB, measured
+  // against a build of the previous commit in the same tree). What landed in
+  // the ENTRY, and why no split takes it off:
+  //
+  //   +~1.9 kB  `client/i18n.ts` — the EPUB reader's twenty-six keys (the
+  //             chapter counter, the type-size controls and their key rows,
+  //             the four citation lines, the search failure, the open
+  //             failure) plus the Library palette row and the reworded empty
+  //             shelf. The dictionary is the one module in this product that
+  //             ships WHOLE to every surface, so a blog reader downloads the
+  //             word for "chapter" too. That is the debt named at length
+  //             below; the by-language split is still the ~32 kB recovery
+  //             that would make this line stop moving, and it is now worth
+  //             ten of this round.
+  //   +~1.0 kB  `shared/epubAnchor.ts` — the place format. It is in the entry
+  //             because `shared/bookAnchor.ts` imports `cleanEpubHref` to
+  //             validate the one new field of `BookState`, and bookAnchor is
+  //             first-paint code by construction: `client/books/door.ts`
+  //             parses book URLs for the router and the sidebar. A book's
+  //             URL has to be parseable before any reader is fetched, which
+  //             is the whole reason that module is where it is.
+  //   +~0.3 kB  `client/books/door.ts` + `client/workspace.ts` + the router —
+  //             the extension test, the second anchor grammar in the URL, and
+  //             the rule that keeps an EPUB's `#ch=` fragment out of the
+  //             router's hands. All three are first-paint by the same
+  //             argument.
+  //
+  // WHAT DID NOT LAND HERE, and deliberately: the reader itself
+  // (`client/epub/EpubReader.tsx`, its stylesheet, the CSS scoper and the
+  // chapter walker) is its own lazy chunk, asserted split in MUST_SPLIT
+  // below; and the whole EPUB server — the zip walk, the XML reader, the
+  // sanitizer and the search — is server code no browser downloads at all.
+{ name: "entry (everyone)", keys: entry, budget: 823 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1126,7 +1158,16 @@ const AUDIENCES = [
   // 3.19.0 MERGE, all six rounds on one main: 1118.7 kB actual → 1119. The perf round's
   // lowered line was measured alone on 3.18.0; the other five rounds' bytes
   // (each explained above) sit on top of it now. No new cause.
-{ name: "anonymous blog reader", keys: blog, budget: 1119 * 1024 },
+  // 3.20.0 EPUB IN THE READER: 1122.4 kB actual → 1123 (+3.7 kB). The entry's
+  // +3.2 kB, itemised on the entry's own line above, plus ~0.5 kB of
+  // `client/reading/render.ts`: a `[[Book.epub#ch=…&q=…]]` in a published note
+  // has to render as the words the owner wrote rather than as a broken link,
+  // and the renderer is in this closure because the blog shell composes it.
+  // The reader itself is not here and cannot be — a visitor has no library to
+  // open, and the citation is deliberately PLAIN TEXT on a published page for
+  // exactly that reason (`brokenLinks: "plain"`, the rule a PDF citation has
+  // followed since 3.12).
+{ name: "anonymous blog reader", keys: blog, budget: 1123 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1347,7 +1388,13 @@ const AUDIENCES = [
   // 3.19.0 MERGE, all six rounds on one main: 1071.0 kB actual → 1072. The perf round's
   // lowered line was measured alone on 3.18.0; the other five rounds' bytes
   // (each explained above) sit on top of it now. No new cause.
-  { name: "admin first paint", keys: app, budget: 1072 * 1024 },
+  // 3.20.0 EPUB IN THE READER: 1074.2 kB actual → 1075 (+3.2 kB) — the entry's
+  // bytes and no others, itemised on the entry's own line above. An admin's
+  // first paint gains NOTHING of the feature itself: the shelf, both readers
+  // and the EPUB reader's stylesheet are lazy chunks behind a click on a book,
+  // and the round's only new palette row is one label in the dictionary that
+  // was already counted in the entry.
+  { name: "admin first paint", keys: app, budget: 1075 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1430,9 +1477,18 @@ const MUST_SPLIT = [
   "components/Sidebar.tsx",
   "components/SettingsModal.tsx",
   "reading/ReadingView.tsx",
-  // The books surface. Its own chunk, and the parent of two more (the shelf
-  // and the reader split from each other inside it) — see BooksSurface.tsx.
+  // The books surface. Its own chunk, and the parent of three more (the
+  // shelf, the PDF reader and the EPUB reader all split from each other
+  // inside it) — see BooksSurface.tsx.
   "books/BooksSurface.tsx",
+  // The EPUB reader. Asserted separately from the surface above because the
+  // two formats share only the chrome: somebody reading a 300 kB EPUB has no
+  // business downloading a page renderer, a canvas compositor and a column
+  // detector to do it, and somebody reading a PDF has no business downloading
+  // a stylesheet scoper. The boundary is one `lazySurface(import())` in
+  // BooksSurface.tsx, which is exactly the kind of line a later refactor
+  // removes by accident.
+  "epub/EpubReader.tsx",
   // The tour. Fifteen folios, fifteen drawings and two languages of prose —
   // ~30 kB of chunk to describe a product to somebody who has not asked yet.
   // Its four doors (the palette, the empty state, the shortcut sheet, and the

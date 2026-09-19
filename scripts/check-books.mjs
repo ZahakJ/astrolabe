@@ -30,9 +30,10 @@
 //    book reader with sixteen bindings must not re-introduce that, and the
 //    shape it re-introduces it in is a bare `e.key === "<letter>"`.
 //
-// 5. THE READER WEARS THE THEME. No hard-coded colour in books.css, and no
-//    physical edge either — this is a full-screen bilingual surface, and
-//    `margin-left` is how a mirrored layout comes apart.
+// 5. THE READER WEARS THE THEME. No hard-coded colour in books.css or in
+//    epub.css, and no physical edge either — these are full-screen bilingual
+//    surfaces, and `margin-left` is how a mirrored layout comes apart. The
+//    EPUB page mirrors twice: once with the interface, once with the binding.
 //
 // 6. THE BUILD ACTUALLY EMITTED ALL OF IT. The worker as an asset, and the
 //    four side-data directories pdf.js fetches by URL (without them a
@@ -199,6 +200,15 @@ const sources = [];
 })("client");
 sources.push("server/books.ts", "server/bookRoutes.ts", "shared/bookAnchor.ts");
 
+/** THE READER'S OWN SOURCE, BOTH SURFACES. There are two now — the PDF reader
+ *  under client/books/ and the EPUB reader under client/epub/ — and every rule
+ *  below that says "the reader" means both. A gate that scanned only the older
+ *  one would have let the newer surface re-introduce exactly the bugs these
+ *  rules exist for: a bare `e.key === "j"` that is dead under an Arabic
+ *  layout, a hard-coded colour that ignores the theme, a local `t()` shim that
+ *  makes a missing key render its own name. */
+const readerFiles = (rel) => rel.startsWith("client/books/") || rel.startsWith("client/epub/");
+
 const importers = sources.filter((rel) => /from\s+"pdfjs-dist/.test(read(rel)));
 if (importers.length === 1 && importers[0] === "client/books/pdfjs.ts") {
   ok("only client/books/pdfjs.ts names pdfjs-dist");
@@ -281,7 +291,7 @@ else ok("the reader resolves its character keys through client/keys.ts");
 // bug: it is false on an Arabic, Russian or Greek keyboard. Named keys
 // (Escape, ArrowDown, PageUp, " ") are layout-independent and are fine.
 const NAMED = /^(Escape|Enter|Tab|Backspace|Delete|Home|End|PageUp|PageDown|Arrow(Up|Down|Left|Right)| )$/;
-for (const rel of sources.filter((f) => f.startsWith("client/books/"))) {
+for (const rel of sources.filter(readerFiles)) {
   const src = code(read(rel));
   for (const m of src.matchAll(/e\.key\s*===\s*"([^"]*)"/g)) {
     if (!NAMED.test(m[1])) {
@@ -298,16 +308,26 @@ for (const rel of sources.filter((f) => f.startsWith("client/books/"))) {
 console.log("\ncheck-books: the reader wears the theme");
 
 const css = read("client/styles/books.css");
-const literals = [...css.matchAll(/#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/g)].map((m) => m[0]);
-if (literals.length > 0) {
-  fail(`client/styles/books.css hard-codes ${literals.length} colour(s) (${[...new Set(literals)].join(", ")}) — tokens only`);
-} else {
-  ok("no hard-coded colours in client/styles/books.css");
-}
-// Physical edges do not mirror. This surface is full-screen and bilingual.
-for (const bad of ["margin-left", "margin-right", "padding-left", "padding-right", "border-left:", "border-right:", "left:", "right:"]) {
-  if (new RegExp(`(^|[\\s{;])${bad.replace(/[:]/g, ":")}`, "m").test(css)) {
-    fail(`client/styles/books.css uses the physical property "${bad}" — the whole surface mirrors for Arabic`);
+// The EPUB reader's page has a stylesheet of its own — the CHROME is books.css's
+// (it reuses those classes rather than copying them), and this is the column of
+// the book's own markup. It answers to exactly the same two rules. A surface
+// that paints a book's paper #ffffff is white in every one of the themes; a
+// surface that says `margin-left` comes apart in an Arabic interface, and this
+// one mirrors TWICE — once with the interface and once with the binding.
+const epubCss = read("client/styles/epub.css");
+const STYLESHEETS = [["client/styles/books.css", css], ["client/styles/epub.css", epubCss]];
+for (const [name, text] of STYLESHEETS) {
+  const literals = [...text.matchAll(/#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/g)].map((m) => m[0]);
+  if (literals.length > 0) {
+    fail(`${name} hard-codes ${literals.length} colour(s) (${[...new Set(literals)].join(", ")}) — tokens only`);
+  } else {
+    ok(`no hard-coded colours in ${name}`);
+  }
+  // Physical edges do not mirror. This surface is full-screen and bilingual.
+  for (const bad of ["margin-left", "margin-right", "padding-left", "padding-right", "border-left:", "border-right:", "left:", "right:"]) {
+    if (new RegExp(`(^|[\\s{;])${bad.replace(/[:]/g, ":")}`, "m").test(text)) {
+      fail(`${name} uses the physical property "${bad}" — the whole surface mirrors for Arabic`);
+    }
   }
 }
 
@@ -377,7 +397,7 @@ if (/assembleSelection\(/.test(readerSrc)) {
 // it returns them in DOM order, which on a two-column page is the interleaved
 // order the PDF wrote — the exact bug columns.ts exists to kill. selection.ts
 // is allowed one use of it, and only as a "is anything selected at all" test.
-for (const rel of sources.filter((f) => f.startsWith("client/books/"))) {
+for (const rel of sources.filter(readerFiles)) {
   const src = code(read(rel));
   for (const m of src.matchAll(/getSelection\(\)[?.\s]*\.?toString\(\)/g)) {
     if (rel !== "client/books/selection.ts") {
@@ -413,7 +433,7 @@ if (/\bputNote\(/.test(citeSrc)) {
 console.log("\ncheck-books: t() comes from the dictionary");
 
 let shim = false;
-for (const rel of sources.filter((f) => f.startsWith("client/books/"))) {
+for (const rel of sources.filter(readerFiles)) {
   const src = read(rel);
   for (const line of src.split("\n")) {
     if (!/^import\s/.test(line.trim())) continue;

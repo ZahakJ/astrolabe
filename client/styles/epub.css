@@ -1,0 +1,197 @@
+/* Astrolabe — the EPUB reader's page.
+
+   The chrome is books.css's: this surface reuses `.s-book`, `.s-book__top`,
+   `.s-book__status`, `.s-book__outline`, `.s-book__help` and `.s-book__line`
+   wholesale, because a reader who opens a PDF and then an EPUB must not meet
+   two interfaces. What is HERE is the part the PDF reader has no equivalent
+   of: a column of the book's own markup, set in the app's reading typography.
+
+   THE WHOLE POINT OF THIS FILE IS THE TYPE. An Arabic PDF is a picture of
+   type — shaped once by whatever made the file, frozen at one measure. Here
+   the browser shapes it, out of the Naskh tokens.css maps the Arabic ranges
+   to, at the measure the window gives and the size the reader asked for. So
+   the rules below are mostly about getting out of the way: a comfortable
+   measure, a generous leading, and the publisher's own CSS left to do the
+   rest (scoped under `.s-epub__chapter`, shared/epubCss.ts).
+
+   Every colour is a token and every edge is logical, like books.css — this
+   surface mirrors for Arabic, and an RTL book mirrors again inside it. */
+
+/* ── The column ────────────────────────────────────────────────────────── */
+
+.s-epub .s-book__scroll {
+  /* The chrome fades out over the text, so the column needs room at the top
+     for a title bar that is about to appear over it. */
+  padding-block: 8px 96px;
+}
+
+.s-epub__doc {
+  /* The reader's own type size, as a multiplier the keyboard moves. Set by
+     the component; declared here so the fallback is sane if it is ever not. */
+  --epub-scale: 1;
+  /* THE MEASURE. 34em of the book's own type is 60–75 characters of Latin and
+     a comparable run of Arabic — the span the eye can return from without
+     losing the line. A book set to the full width of a laptop window is the
+     commonest way a reading surface becomes unreadable, and the one thing
+     every printed book in the room has already solved. */
+  max-inline-size: 34em;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 32px);
+  font-family: var(--font-serif);
+  font-size: calc(var(--font-prose) * var(--epub-scale));
+  line-height: 1.75;
+  color: var(--text);
+  /* The browser's own justification and hyphenation. `auto` hyphenation is
+     what makes a justified measure survive a narrow window, and Arabic is
+     justified by the shaper rather than by spacing — both are the browser's
+     job and both are why this feature exists. */
+  text-align: start;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+/* ── One chapter ───────────────────────────────────────────────────────── */
+
+.s-epub__chapter {
+  display: block;
+  /* The seam between chapters, stated rather than left to the publisher: a
+     book whose stylesheet says nothing would otherwise run two chapters
+     together with no break at all. */
+  padding-block-end: 2.5em;
+}
+
+.s-epub__chapter + .s-epub__chapter {
+  border-block-start: 1px solid var(--border);
+  padding-block-start: 2.5em;
+}
+
+/* A chapter nobody is looking at: an empty box of the right height, so the
+   scrollbar stays honest while the DOM stays three chapters big. Deliberately
+   NOT a shimmer or a spinner — the reader is scrolling past it, and something
+   that animates in the corner of the eye while you read is a defect. */
+.s-epub__pending {
+  display: block;
+  block-size: 100%;
+}
+
+/* ── The book's own elements ───────────────────────────────────────────── */
+/* Floors, not decisions: enough that a book whose stylesheet is missing or
+   minimal still reads, and loose enough that a book with a real stylesheet
+   wins — the publisher's rules are scoped under `.s-epub__chapter`, which is
+   this same specificity, and they come later in the cascade. */
+
+.s-epub__body p {
+  margin-block: 0 0.9em;
+}
+
+.s-epub__body h1,
+.s-epub__body h2,
+.s-epub__body h3,
+.s-epub__body h4,
+.s-epub__body h5,
+.s-epub__body h6 {
+  font-family: var(--font-serif);
+  line-height: 1.35;
+  margin-block: 1.6em 0.6em;
+  color: var(--text);
+}
+
+.s-epub__body h1 {
+  font-size: 1.6em;
+}
+
+.s-epub__body h2 {
+  font-size: 1.35em;
+}
+
+.s-epub__body h3 {
+  font-size: 1.15em;
+}
+
+.s-epub__body blockquote {
+  margin-inline: 1.5em 0;
+  padding-inline-start: 1em;
+  border-inline-start: 2px solid var(--border);
+  color: var(--text-muted);
+}
+
+.s-epub__body img,
+.s-epub__body svg {
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+.s-epub__body table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  margin-block: 1em;
+}
+
+.s-epub__body td,
+.s-epub__body th {
+  border: 1px solid var(--border);
+  padding: 0.4em 0.6em;
+  text-align: start;
+}
+
+.s-epub__body pre {
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.s-epub__body hr {
+  border: 0;
+  border-block-start: 1px solid var(--border);
+  margin-block: 2em;
+}
+
+/* An internal link. It has no `href` — the sanitizer refused to give it one,
+   because a real href in a single-page app is a navigation away from it — so
+   the pointer cursor and the focus ring have to be said out loud, and the
+   element carries role="link" and a tabindex for the keyboard. */
+.s-epub__body [data-href] {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.s-epub__body [data-href]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── The phone ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 700px) {
+  /* The book's name goes; the chapter's stays. At 390px the title bar has the
+     type-size buttons, the citation button, the contents and the close in it,
+     and what is left of a title is four characters and an ellipsis — which is
+     less than the tab strip directly above already says. The chapter is the
+     half that changes as the reader reads. */
+  .s-epub__of,
+  .s-epub__sep {
+    display: none;
+  }
+
+  /* And the bar closes up around them. Six 44px targets and a 14px gap come
+     to 380 of a phone's 390, which leaves the title ten pixels and one
+     character of ellipsis; at 2px there is room for a few words of the
+     chapter, which is the only part of the heading that changes as the
+     reader reads. */
+  .s-epub .s-book__top {
+    gap: 2px;
+  }
+
+  .s-epub__doc {
+    /* A phone has no room for a margin either side of a 34em measure, and
+       the gutter is what stops a line from touching the bezel. */
+    padding-inline: 16px;
+  }
+
+  .s-epub .s-book__scroll {
+    padding-block-end: 120px;
+  }
+}

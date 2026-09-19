@@ -30,8 +30,8 @@ export interface BookSessionFacts {
   /** The tracker note the session was logged to, and the fence's title. */
   trackerPath: string;
   trackerTitle: string;
-  /** The PDF's vault path. */
-  pdfPath: string;
+  /** The book's vault path — a `.pdf` or a `.epub`. */
+  bookPath: string;
   pages: number;
   /** The tracker's `pace:` — the day's ask for a `book:` task. */
   pace: number | null;
@@ -51,11 +51,14 @@ function samePath(a: string, b: string): boolean {
   return stripNoteExt(a).toLowerCase() === stripNoteExt(b).toLowerCase();
 }
 
-/** True when a wikilink's target names the PDF: its whole path, or its
- *  file name, with or without the extension. */
-function namesPdf(target: string, pdfPath: string): boolean {
-  const t = target.trim().toLowerCase().replace(/\.pdf$/, "");
-  const full = pdfPath.toLowerCase().replace(/\.pdf$/, "");
+/** True when a wikilink's target names the BOOK: its whole path, or its file
+ *  name, with or without the extension. Either format — a sigil that says
+ *  "read [[Adonis.epub]]" ticks on the sitting that read it, exactly as one
+ *  naming a PDF does. */
+function namesBook(target: string, bookPath: string): boolean {
+  const ext = /\.(pdf|epub)$/i;
+  const t = target.trim().toLowerCase().replace(ext, "");
+  const full = bookPath.toLowerCase().replace(ext, "");
   return t === full || t === (full.split("/").pop() ?? full);
 }
 
@@ -66,7 +69,7 @@ function taskIsBook(task: RoutineTask, facts: BookSessionFacts): boolean {
   if (linksOf(task, tree).some((l) => l.path !== null && samePath(l.path, facts.trackerPath))) return true;
   const text = task.text ?? task.key;
   for (const m of text.matchAll(WIKILINK_RE)) {
-    if (namesPdf(parseWikilink(m[1]).target, facts.pdfPath)) return true;
+    if (namesBook(parseWikilink(m[1]).target, facts.bookPath)) return true;
   }
   return false;
 }
