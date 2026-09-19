@@ -9441,14 +9441,133 @@ either surface names a colour the other does not.
 **Live preview follows the reveal-on-caret rule.** Caret outside a top-level
 `Table` node → the block is one `Decoration.replace` block widget
 (`.cm-s-table`, a StateField — block decorations cannot come from a
-ViewPlugin), and clicking a rendered cell puts the caret at that cell's
-source content (each cell carries `data-pos`, mapped from the same parse the
-renderer saw). Caret inside → the pipe source, its lines marked
+ViewPlugin). Caret inside → the pipe source, its lines marked
 `.cm-s-table-srcline` and set in `--font-mono`, because the padded pipes
 format-on-exit writes only align in a monospace face. Tables nested in
 blockquotes/callouts or lists stay source in the editor (they still render in
 the reading view and blog): replacing a range that includes `> ` markers
 would fight the callout field for the same lines.
+
+### THE WIDGET IS EDITABLE, AND THE CARET NEVER ENTERS THE BLOCK (3.18)
+
+Until this round a click on a rendered cell dropped the whole block back to
+pipes. That is fine for a 3×3 table and impossible for a 60×12 one: the grid
+the reader was reading disappears on the gesture that asked to change it, and
+what replaces it is a wall of padded punctuation where the column they wanted
+is 400 characters along a wrapped line. The owner: *"it's nice to be able to
+insert tables in md format but we should be able to edit them with the nice
+table UI."*
+
+- **A click opens an `<input>` INSIDE that cell**, and the table stays drawn.
+  An input rather than a contenteditable cell for the reason propsEdit.ts
+  reached the same conclusion: the caret, the selection and the IME behaviour
+  of a native text box are the platform's, which is what an Arabic keyboard
+  and a Japanese IME both need, and a contenteditable cell nested in
+  `.cm-content` is a second editable region for CodeMirror's own selection
+  reader to walk into. The cell pins its measured width (`min-inline-size`,
+  `box-sizing: border-box`) for the moment the box stands in for its content,
+  or the column collapses under the reader's pointer.
+- **THE CM SELECTION STAYS OUTSIDE THE BLOCK.** The widget's `mousedown`
+  calls `preventDefault()` and dispatches NOTHING; only DOM focus moves. A
+  caret placed in the block would trip the reveal rule and take the widget
+  away on the click that asked to edit it — so the box, not the selection, is
+  where the reader is. Positions are asked of the view when they are needed
+  (`posAtDOM(wrap)` → `tableNodeAt`), never cached on the widget: a table that
+  merely slid down a line is `eq` to itself, its DOM is reused with no update
+  call, and anything stored on it is a release behind.
+- **Nothing is written per keystroke.** A cell commits on blur, on Tab, on
+  Enter and before any command: ONE dispatch, `isolateHistory.of("full")`,
+  over that cell's raw segment alone (`cellEdit` in tableModel.ts returns the
+  minimal range). Every other cell comes out byte for byte. A dispatch per
+  character would put a doc change, a decoration rebuild and a widget diff
+  between the key and the glyph.
+- **`updateDOM` redraws the CELL, not the table.** Same note, same shape,
+  same alignment row, only cell text differing → the changed `<td>`s get
+  `renderTableCell()` (render.ts, the second door into the table branch, the
+  twin of `renderTrackerFence`) and the DOM node survives. Anything else
+  falls back to a full draw INTO THE SAME NODE, so the walk, the menu and the
+  touch affordance can all hold a reference to the wrap. Measured on a
+  200-row table: 603 cell nodes, 603 kept, 27 ms for the whole commit.
+- **Keys inside the box stay inside it** (propsEdit.ts's rule, for its
+  reasons): without `stopPropagation` Tab indents the table's line, Enter
+  splits it and Escape reaches the shell and leaves zen mode. Tab/Shift+Tab,
+  Enter and the arrows mean in the box exactly what the scoped keymap's rows
+  say they mean in the source — one set of table keys, not two. `Shift+Enter`
+  writes `<br>`, the only break a GFM cell holds. Escape CANCELS the cell and
+  returns the caret to the note after the block. Arrows at the box's edge are
+  VISUAL and take the TABLE's direction (`wrapRtl`), never the cell's: every
+  cell carries `dir="auto"`, so one Arabic cell in an English table would
+  otherwise reverse the walk for that cell alone.
+- **Format on exit has a second half.** The caret never enters the block, so
+  the ViewPlugin that watches the caret never fires for a table edited in
+  place. `leaveTable` calls `scheduleFormat` explicitly — not through the
+  wrap's `focusout`, because the box was REMOVED while it held focus and a
+  removed element's focusout is the engine's business — and the click-away
+  path goes through `focusout`, where the blur is a real one. Both are no-ops
+  when the other has run.
+- **A menu command is ONE Ctrl+Z, prettified in the same transaction.**
+  `applyBlock` writes `formatTable(src)`. A command that left the block ragged
+  would be followed by a format transaction the moment the reader clicked
+  away, and their first undo would spend itself on the padding instead of the
+  row. The keyboard's own cell commit is deliberately NOT formatted: it is one
+  range by design, and squaring the block off around it would turn the
+  smallest edit in the feature into the largest.
+
+### The menu on a cell (ContextMenu.tsx, through `components/menuPortal.tsx`)
+
+Right-click, `Shift+F10`/`ContextMenu`, or — on a coarse pointer only — a
+44px `⋯` under the table. Eighteen rows in four groups: insert row/column,
+delete/duplicate/clear, move row/column, align (three `checked` rows, which is
+what makes the whole menu reserve the tick column, and the point: the column
+a reader right-clicked says how it is aligned before they choose anything;
+choosing the alignment a column already has takes it off), sort (A→Z, Z→A,
+smallest number first — the header never moves, blanks sort last, `١٢` is
+twelve), then **Edit as Markdown** (the caret into that cell's source, which
+reveals the block; the way back is the way it always was) and **Copy table as
+Markdown**. Left/right on a column move are VISUAL, like Alt+arrow; before/
+after on a column insert are logical.
+
+`menuPortal.tsx` is a DOOR, not a second menu: one throwaway React root on
+`<body>` around the real `ContextMenu`, so placement, the Escape capture, the
+focus restore, the dismissal rules and `{label:null}` separators stay the
+component's. It exists because the widget's DOM is built imperatively inside
+CodeMirror and outlives any render — the third surface to want the box, after
+the tree and the tab bar, and the one that could not simply render it.
+
+### The palette carries five rows, and the widget carries the rest
+
+`client/tableActions.ts` is ~40 lines whose whole job is to carry a command id
+from the palette to whichever editor holds the caret (`handled` comes back, so
+a row with no table under the caret toasts instead of doing nothing visible).
+It exists so CommandPalette.tsx does not `import` editor/tables.ts and pull
+CodeMirror into the admin's first paint — the shape "Find in note" and "Insert
+template…" already take. The rows: **Insert table…**, **Table: insert row
+above / below**, **Table: insert column before / after**, **Table: edit as
+Markdown**. Everything else is on the widget's menu, where "this row" and
+"this column" are the ones under the finger and need no second way to be
+named. `lastTouched` (module-level, cleared when the wrap leaves the DOM) is
+why a palette row still finds the table a reader was editing in place, where
+the caret is deliberately elsewhere; it is attention, not state.
+
+**Insert table… asks.** `components/TablePicker.tsx` is a lazy chunk with a
+10×10 grid, 3×3 by default, ROWS INCLUDING THE HEADER because the reader
+counts the squares they swept. Pointer sweeps, arrows walk (mirrored by the
+reading direction), Enter takes, Escape leaves with nothing inserted. The
+grid is ONE control with one tab stop — a roving tabindex over a hundred
+squares would be a hundred tab stops between this sheet's two real ones. The
+slash menu's `/table` keeps its 2×2 skeleton: it is a key pressed
+mid-sentence, and the cost of a wrong guess there is one Tab.
+
+**Big tables (styles/tables.css, `.cm-s-table` only).** The wrap takes
+`max-block-size: 70vh` and the `thead th` goes `position: sticky` — a table
+taller than the window puts its column names off screen, and the cell you are
+typing into then belongs to a column you can no longer name. The reading view
+is untouched: a reader scrolls the page, not the table. NOT VIRTUALISED, and
+measured rather than assumed: a 200-row table is 603 cells, renders once, and
+opens a box on row 190 in 21 ms; typing in a 60×12 table is p95 17.6 ms
+(one frame), and a commit 27 ms. Virtualising inside a replaced block widget
+would also put a second table renderer in the product, which is the one thing
+this feature may not do.
 
 **The table keymap is scoped, never global.** A `Prec.high` keymap whose
 every command resolves the syntax tree first and returns false unless the
@@ -9491,7 +9610,23 @@ logic without them.
 **Creation.** The slash menu's Table entry inserts a 2×2 skeleton with
 exactly one snippet field selecting the first header cell; from there every
 Tab is the table's (three fields would feed Tab to the snippet walker
-instead of the cell walker).
+instead of the cell walker). The palette's "Insert table…" asks first — see
+the picker above.
+
+**The model carries every command, and the tests are the contract.** Insert /
+delete / duplicate / move row and column, align, sort, `cellEdit`,
+`escapeCellText` and `tableSkeleton` all live in tableModel.ts beside the
+older four, in NAVIGABLE row space (0 is the header, 1 the first body row) —
+`moveTableRow`'s body space is the one exception, because the header is not a
+destination for a move, and `rowLine()` is the single place the two meet. Two
+invariants run through tests/tables.test.ts: the alignment row travels with
+its column on every column command, and bytes nobody touched do not move. One
+bug the tests found and the round fixed: a RAGGED table (an unescaped pipe
+inside a code span widens a row past the alignment row, which GFM allows)
+padded its delimiter with `" "`, writing `| |` into it — not a delimiter
+cell, so the block stopped parsing as a table and the next command refused on
+a table the reader could plainly see. `rawSegments` takes a `fill` now and
+the delimiter's is `" --- "`.
 
 ## Drawings (`shared/drawing.ts`, `client/drawing/`, `PUT /api/drawing-svg`)
 

@@ -119,6 +119,68 @@ those four words freely.
 - **Vim mode** for those who already know that editor's keys, autosave (600 ms after you stop
   typing, plus `Ctrl/Cmd S`), and a surface built to be driven from the keyboard.
 
+## Tables
+
+A table in your note is pipes and dashes — that is all it ever is on disk. In the editor it is
+drawn as a table, exactly as the reading view draws it, and **you edit it there**, in the grid,
+without the pipes ever coming back.
+
+**Click a cell and type.** A box opens inside that cell in the cell's own font, and the column
+holds its width so nothing shuffles under your pointer. What you see in the box is the cell's
+*source* — so `**bold**` is `**bold**` and a `[[wikilink]]` is a wikilink, ready to edit as
+markdown, with the rendered version coming back the moment you leave. A `|` you type is escaped
+for you (`\|`), so a pipe in a cell never splits the row.
+
+**The keys, once you are in a cell.**
+
+| Key | What it does |
+| --- | --- |
+| `Tab` / `Shift Tab` | The next cell, the previous one, with its contents selected so typing replaces them. `Tab` in the last cell adds a row. |
+| `Enter` | Down a row, same column. From the last row it leaves the table. |
+| `Shift Enter` | A line break inside the cell (`<br>` — the only kind a markdown table can hold). |
+| `←` `→` | Move inside the box, and at its edge, to the neighbouring cell. In a right-to-left table they are mirrored, because they follow what you see. |
+| `↑` `↓` | The cell above or below. |
+| `Esc` | Back to the note, caret just after the table. The cell you were in goes back to what it said. |
+| `Shift F10` | The table menu (below), on the cell you are in. |
+
+Nothing is written while you type. A cell is written back when you leave it — `Tab`, `Enter`, a
+click elsewhere — as **one change and one undo step**, touching that cell's characters and no
+others. Every other cell in the file comes out byte for byte as it went in.
+
+**The table menu.** Right-click any cell — or press `Shift F10`, or, on a touch screen, the `⋯`
+under the table. It acts on the cell you opened it on:
+
+- **Insert row above / below**, **insert column before / after**.
+- **Delete row**, **delete column**, **duplicate row**, **clear cell**.
+- **Move row up / down**, **move column left / right**. Left and right are what you see: in an
+  Arabic table they are mirrored, and the alignment row moves with its column so a centred column
+  stays centred.
+- **Align column left / centre / right**, with a tick on the one that is true now. Choosing the
+  alignment a column already has takes it off again.
+- **Sort by this column** — A→Z, Z→A, or smallest number first. The header never moves, blanks
+  sort last, and `١٢` is twelve.
+- **Edit as Markdown** — the drawn table gives way to the pipes, with the caret in the cell you
+  were on. To come back, move the caret out of the block; it is drawn again.
+- **Copy table as Markdown** — the whole table, tidied, on your clipboard.
+
+Every one of those is a single undo step.
+
+**Big tables stay usable.** A wide table scrolls sideways inside its own block rather than
+stretching the note, and a word in a squeezed column is never broken letter by letter. A table
+taller than the window scrolls inside itself with **its header row pinned to the top**, so the
+column you are typing in still has a name. A two-hundred-row table edits at the same speed as a
+three-row one: committing a cell redraws that cell, not the table.
+
+**Making one.** Type `/` and pick *Table* for a 2×2 skeleton at the cursor, or run **Insert
+table…** from `Ctrl/Cmd P` and sweep the little grid for the size you want (3 × 3 to begin with,
+the header row counted). The palette also carries **Table: insert row above / below**, **insert
+column before / after** and **Table: edit as Markdown**, which act on the table your cursor is in.
+
+**When the pipes are showing** — because you asked for them, or because you moved the caret into
+the block — the older keys still work: `Tab` and `Enter` walk cells, `Alt ↑ / ↓` move a row and
+`Alt ← / →` move a column. Leave the block and the pipes are lined up for you. See
+[Keymap](keymap.md#tables).
+
 ## French, corrected as you type
 
 If you write French, the editor quietly puts the accents back. Type `tres` and a space and it

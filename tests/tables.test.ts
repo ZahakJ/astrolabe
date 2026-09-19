@@ -18,15 +18,29 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  alignName,
+  cellEdit,
+  cellText,
   colIndexAt,
+  columnCount,
+  deleteTableColumn,
+  deleteTableRow,
   displayWidth,
+  duplicateTableRow,
   emptyRowText,
+  escapeCellText,
   formatTable,
+  insertTableColumn,
+  insertTableRow,
   moveTableColumn,
   moveTableRow,
   parseTable,
+  rowCount,
   rowIndexAt,
+  setColumnAlign,
+  sortTableRows,
   splitRowCells,
+  tableSkeleton,
 } from "../client/editor/tableModel.ts";
 
 const TABLE = ["| Name | Qty | Price |", "| :--- | :-: | ----: |", "| Apple | 3 | $1.20 |", "| Pear | 12 | $0.90 |"].join("\n");
@@ -221,5 +235,317 @@ describe("emptyRowText", () => {
   it("matches the column count Tab-in-the-last-cell needs", () => {
     assert.equal(splitRowCells(emptyRowText(3)).length, 3);
     assert.equal(splitRowCells(emptyRowText(1)).length, 1);
+  });
+});
+
+// ── The commands the table UI runs ──────────────────────────────────────────
+//
+// Two invariants run through every case below, and they are the ones a
+// reader would notice the loss of before they noticed anything else:
+//
+//   THE ALIGNMENT ROW TRAVELS WITH ITS COLUMN. Insert, delete and move all
+//   rewrite the delimiter in the same pass as the rows. A command that misses
+//   it corrupts silently: the table still parses, it just lies about which
+//   column is centred.
+//
+//   BYTES NOBODY TOUCHED DO NOT MOVE. A cell edit is one range; every other
+//   cell in the block comes out of it identical, escapes and all. That is
+//   what makes the widget able to redraw one `<td>`, and what makes one
+//   committed cell one undo step.
+
+/** Nav-row/column text as a plain grid, for asserting a whole table at once. */
+const grid = (src: string): string[][] => {
+  const shape = parseTable(src)!;
+  const cols = columnCount(shape);
+  return [shape.header, ...shape.body].map((row) =>
+    Array.from({ length: cols }, (_v, j) => row.cells[j]?.text ?? ""),
+  );
+};
+
+describe("escapeCellText", () => {
+  it("escapes a typed pipe and leaves an escaped one alone", () => {
+    assert.equal(escapeCellText("a | b"), "a \\| b");
+    assert.equal(escapeCellText("a \\| b"), "a \\| b");
+    // `\\` is a literal backslash, so the pipe after it is a real separator
+    // and has to be escaped — parity, not presence.
+    assert.equal(escapeCellText("a \\\\| b"), "a \\\\\\| b");
+  });
+
+  it("flattens newlines and trims, because a row is a line", () => {
+    assert.equal(escapeCellText("  one\ntwo  "), "one two");
+    assert.equal(escapeCellText("a<br>b"), "a<br>b");
+  });
+});
+
+describe("cellEdit", () => {
+  it("replaces one cell's raw segment and nothing else", () => {
+    const edit = cellEdit(TABLE, 2, 1, "7")!;
+    const out = TABLE.slice(0, edit.from) + edit.insert + TABLE.slice(edit.to);
+    assert.equal(grid(out)[2][1], "7");
+    // Every OTHER line is byte for byte what it was.
+    const before = TABLE.split("\n");
+    const after = out.split("\n");
+    assert.equal(after[0], before[0]);
+    assert.equal(after[1], before[1]);
+    assert.equal(after[2], before[2]);
+  });
+
+  it("escapes the pipes a typed cell brought with it", () => {
+    const edit = cellEdit(TABLE, 1, 0, "Apple | Pear")!;
+    const out = TABLE.slice(0, edit.from) + edit.insert + TABLE.slice(edit.to);
+    const shape = parseTable(out)!;
+    assert.equal(shape.body[0].cells.length, 3); // still three cells
+    assert.equal(shape.body[0].cells[0].text, "Apple \\| Pear");
+  });
+
+  it("grows a short row rather than refusing the cell", () => {
+    const src = "| a | b |\n| - | - |\n| only |";
+    const edit = cellEdit(src, 1, 1, "second")!;
+    const out = src.slice(0, edit.from) + edit.insert + src.slice(edit.to);
+    assert.deepEqual(grid(out)[1], ["only", "second"]);
+  });
+
+  it("refuses a column the table does not have", () => {
+    assert.equal(cellEdit(TABLE, 0, 9, "x"), null);
+    assert.equal(cellEdit("prose", 0, 0, "x"), null);
+  });
+});
+
+describe("insertTableRow", () => {
+  it("adds an empty row below, keeping the column count", () => {
+    const res = insertTableRow(TABLE, 1, "below")!;
+    assert.equal(res.row, 2);
+    const shape = parseTable(res.src)!;
+    assert.equal(rowCount(shape), 4);
+    assert.deepEqual(grid(res.src)[2], ["", "", ""]);
+    assert.deepEqual(grid(res.src)[3], ["Pear", "12", "$0.90"]);
+  });
+
+  it("adds above a body row and refuses above the header", () => {
+    const res = insertTableRow(TABLE, 1, "above")!;
+    assert.deepEqual(grid(res.src)[1], ["", "", ""]);
+    assert.equal(insertTableRow(TABLE, 0, "above"), null);
+  });
+
+  it("below the header lands in the first body position", () => {
+    const res = insertTableRow(TABLE, 0, "below")!;
+    assert.equal(res.row, 1);
+    assert.deepEqual(grid(res.src)[0], ["Name", "Qty", "Price"]);
+    assert.deepEqual(grid(res.src)[1], ["", "", ""]);
+    // The alignment row is still line 1 and still says what it said.
+    assert.equal(res.src.split("\n")[1], TABLE.split("\n")[1]);
+  });
+});
+
+describe("deleteTableRow / duplicateTableRow", () => {
+  it("deletes a body row and reports where the caret goes", () => {
+    const res = deleteTableRow(TABLE, 1)!;
+    assert.deepEqual(grid(res.src).map((r) => r[0]), ["Name", "Pear"]);
+    assert.equal(res.row, 1);
+  });
+
+  it("clamps to the last row when the last row is what went", () => {
+    const res = deleteTableRow(TABLE, 2)!;
+    assert.equal(res.row, 1);
+    assert.equal(parseTable(res.src)!.body.length, 1);
+  });
+
+  it("refuses the header — a table without one is prose full of pipes", () => {
+    assert.equal(deleteTableRow(TABLE, 0), null);
+  });
+
+  it("duplicates a row directly beneath itself, bytes and all", () => {
+    const res = duplicateTableRow(TABLE, 1)!;
+    assert.equal(res.row, 2);
+    const lines = res.src.split("\n");
+    assert.equal(lines[2], lines[3]);
+    assert.equal(parseTable(res.src)!.body.length, 3);
+  });
+
+  it("duplicates the HEADER into the first body row, not into a second header", () => {
+    const res = duplicateTableRow(TABLE, 0)!;
+    assert.equal(res.row, 1);
+    assert.deepEqual(grid(res.src)[0], ["Name", "Qty", "Price"]);
+    assert.deepEqual(grid(res.src)[1], ["Name", "Qty", "Price"]);
+    assert.equal(res.src.split("\n")[1], TABLE.split("\n")[1]);
+  });
+});
+
+describe("insertTableColumn / deleteTableColumn", () => {
+  it("inserts into the header, the alignment row and every body row", () => {
+    const res = insertTableColumn(TABLE, 1, "before")!;
+    assert.equal(res.col, 1);
+    const shape = parseTable(res.src)!;
+    assert.equal(columnCount(shape), 4);
+    assert.deepEqual(grid(res.src)[0], ["Name", "", "Qty", "Price"]);
+    assert.deepEqual(grid(res.src)[1], ["Apple", "", "3", "$1.20"]);
+    // The alignments that existed kept their columns, and the new one is bare.
+    assert.equal(alignName(shape, 0), "left");
+    assert.equal(alignName(shape, 1), "none");
+    assert.equal(alignName(shape, 2), "center");
+    assert.equal(alignName(shape, 3), "right");
+  });
+
+  it("inserts after the last column", () => {
+    const res = insertTableColumn(TABLE, 2, "after")!;
+    assert.equal(res.col, 3);
+    assert.deepEqual(grid(res.src)[0], ["Name", "Qty", "Price", ""]);
+  });
+
+  it("deletes a column out of every line, alignment included", () => {
+    const res = deleteTableColumn(TABLE, 1)!;
+    assert.equal(res.col, 1);
+    const shape = parseTable(res.src)!;
+    assert.equal(columnCount(shape), 2);
+    assert.deepEqual(grid(res.src)[0], ["Name", "Price"]);
+    assert.equal(alignName(shape, 0), "left");
+    assert.equal(alignName(shape, 1), "right");
+  });
+
+  it("refuses the last column", () => {
+    const one = "| a |\n| - |\n| b |";
+    assert.equal(deleteTableColumn(one, 0), null);
+  });
+
+  it("never rewrites a cell it is only moving past", () => {
+    const src = "| a \\| b | `x` |\n| - | - |\n| c | d |";
+    const res = insertTableColumn(src, 0, "after")!;
+    assert.deepEqual(grid(res.src)[0], ["a \\| b", "", "`x`"]);
+    assert.deepEqual(grid(res.src)[1], ["c", "", "d"]);
+  });
+
+  it("pads a RAGGED table's delimiter with a delimiter, not with a blank", () => {
+    // GFM lets a row carry more cells than the alignment row — an unescaped
+    // pipe inside a code span is one way to get there. Padding the delimiter
+    // with " " would write `| |` into it, which is not a delimiter cell: the
+    // block stops parsing as a table and every later command refuses on a
+    // table the reader can plainly see.
+    const src = "| a | `x|y` |\n| - | - |\n| c | d |";
+    assert.equal(parseTable(src)!.header.cells.length, 3);
+    for (const out of [
+      insertTableColumn(src, 0, "after")!.src,
+      deleteTableColumn(src, 0)!.src,
+      moveTableColumn(src, 0, 1)!.src,
+    ]) {
+      assert.ok(parseTable(out), `still a table: ${JSON.stringify(out)}`);
+    }
+  });
+});
+
+describe("setColumnAlign", () => {
+  it("sets each alignment and keeps the delimiter's width", () => {
+    const before = TABLE.split("\n")[1];
+    for (const [want, re] of [
+      ["left", /^\|.*\| :-+ \|/],
+      ["right", /^\|.*\| -+: \|/],
+      ["center", /^\|.*\| :-+: \|/],
+      ["none", /^\|.*\| -+ \|/],
+    ] as const) {
+      const out = setColumnAlign(TABLE, 1, want)!;
+      const delim = out.split("\n")[1];
+      assert.equal(delim.length, before.length, `${want} changed the width`);
+      assert.match(delim, re);
+      assert.equal(alignName(parseTable(out)!, 1), want === "none" ? "none" : want);
+    }
+  });
+
+  it("leaves the rows alone", () => {
+    const out = setColumnAlign(TABLE, 0, "center")!;
+    const a = TABLE.split("\n");
+    const b = out.split("\n");
+    assert.equal(b[0], a[0]);
+    assert.equal(b[2], a[2]);
+    assert.equal(b[3], a[3]);
+  });
+
+  it("refuses a column the alignment row does not have", () => {
+    assert.equal(setColumnAlign(TABLE, 7, "left"), null);
+  });
+});
+
+describe("sortTableRows", () => {
+  const T = [
+    "| Name | Qty |",
+    "| --- | --- |",
+    "| pear | 12 |",
+    "| Apple | 3 |",
+    "| fig | |",
+  ].join("\n");
+
+  it("sorts A→Z case-insensitively and never moves the header", () => {
+    const out = sortTableRows(T, 0, "az")!;
+    assert.deepEqual(grid(out).map((r) => r[0]), ["Name", "Apple", "fig", "pear"]);
+    assert.equal(out.split("\n")[1], T.split("\n")[1]);
+  });
+
+  it("sorts Z→A", () => {
+    const out = sortTableRows(T, 0, "za")!;
+    assert.deepEqual(grid(out).map((r) => r[0]), ["Name", "pear", "fig", "Apple"]);
+  });
+
+  it("sorts numerically, and a cell with no number in it goes last", () => {
+    const out = sortTableRows(T, 1, "numeric")!;
+    assert.deepEqual(grid(out).map((r) => r[0]), ["Name", "Apple", "pear", "fig"]);
+  });
+
+  it("reads grouped and Arabic-Indic digits as the numbers they are", () => {
+    const src = ["| n |", "| - |", "| 1,204 |", "| ٩٨ |", "| 12 |"].join("\n");
+    const out = sortTableRows(src, 0, "numeric")!;
+    assert.deepEqual(grid(out).map((r) => r[0]), ["n", "12", "٩٨", "1,204"]);
+  });
+
+  it("is stable, so a second sort keeps the first one's order inside ties", () => {
+    const src = ["| k | v |", "| - | - |", "| a | 2 |", "| a | 1 |"].join("\n");
+    const out = sortTableRows(src, 0, "az")!;
+    assert.deepEqual(grid(out)[1], ["a", "2"]);
+    assert.deepEqual(grid(out)[2], ["a", "1"]);
+  });
+
+  it("refuses a column that is not there", () => {
+    assert.equal(sortTableRows(T, 5, "az"), null);
+    assert.equal(sortTableRows("prose", 0, "az"), null);
+  });
+});
+
+describe("tableSkeleton", () => {
+  it("counts the header among the rows the picker drew", () => {
+    const shape = parseTable(tableSkeleton(3, 4))!;
+    assert.equal(rowCount(shape), 3);
+    assert.equal(columnCount(shape), 4);
+    assert.equal(shape.body.length, 2);
+  });
+
+  it("is empty everywhere, and parses as a table", () => {
+    const src = tableSkeleton(2, 2);
+    assert.ok(parseTable(src));
+    for (const row of grid(src)) for (const cell of row) assert.equal(cell, "");
+  });
+
+  it("never produces a table with no row and no column", () => {
+    assert.ok(parseTable(tableSkeleton(0, 0)));
+    assert.equal(columnCount(parseTable(tableSkeleton(0, 0))!), 1);
+  });
+});
+
+describe("cellText / alignName / counts", () => {
+  it("hands back the source spelling, escapes intact", () => {
+    const shape = parseTable("| a \\| b |\n| - |\n| c |")!;
+    assert.equal(cellText(shape, 0, 0), "a \\| b");
+    assert.equal(cellText(shape, 1, 0), "c");
+    assert.equal(cellText(shape, 9, 0), "");
+  });
+
+  it("names every alignment the delimiter can spell", () => {
+    const shape = parseTable("| a | b | c | d |\n| --- | :-- | --: | :-: |\n| 1 | 2 | 3 | 4 |")!;
+    assert.equal(alignName(shape, 0), "none");
+    assert.equal(alignName(shape, 1), "left");
+    assert.equal(alignName(shape, 2), "right");
+    assert.equal(alignName(shape, 3), "center");
+  });
+
+  it("counts a stray extra column in, so a command can square it off", () => {
+    const shape = parseTable("| a | b |\n| - | - |\n| x | y | z |")!;
+    assert.equal(columnCount(shape), 3);
+    assert.equal(rowCount(shape), 2);
   });
 });

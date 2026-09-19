@@ -754,6 +754,18 @@ const AUDIENCES = [
   // `getTrackers` read when the grid left it.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
   // 3.18.x: the shared tags/properties shelf and its tabs.
+  // 3.18.x TABLES EDITED IN PLACE: 805.6 kB actual → 806 (actual + ~0.05%),
+  // and it is the dictionary debt named below, once more. The round's own
+  // entry bytes are thirty-eight rows in two languages (the cell menu's
+  // eighteen commands, the palette's six, the picker's four, four toasts and
+  // labels) plus `client/tableActions.ts` — ~40 lines whose whole job is to
+  // carry a command id from the palette to whichever editor holds the caret,
+  // and which exists precisely so CommandPalette.tsx does not import
+  // `editor/tables.ts` and pull CodeMirror into this number. Everything that
+  // actually does the work is outside it: the widget, its cell box and its
+  // menu are in the editor chunk, and the rows × columns picker with its
+  // stylesheet is a lazy chunk of its own (TablePicker-*.js), reached by
+  // `import()` from the palette row.
   // 3.19.0 COURSE SIGILS: 806.1 kB actual → 807 (+3.1 kB, actual + ~0.1%).
   // Two causes, both unavoidable in a first paint, and one that was avoided.
   // NOT avoided: `client/i18n.ts` gained ~35 keys in two languages for the
@@ -1032,6 +1044,12 @@ const AUDIENCES = [
   // the strings and the tab model reach this reader, because `t()` ships whole.
     // 3.18.0: the phone round (the deck by finger, the panel drawer, touch zoom).
   // 3.18.x: the shared tags/properties shelf and its tabs.
+  // 3.18.x TABLES EDITED IN PLACE: 1098.8 kB actual → 1099. The entry's
+  // thirty-eight dictionary rows (above), and one thing of this closure's
+  // own: `renderTableCell` in reading/render.ts, the second door into the
+  // table branch that lets the editor's widget redraw ONE cell instead of
+  // the table. It is two lines and it ships here because render.ts does; a
+  // visitor never calls it, because a visitor has no cell to edit.
   // 3.19.0 COURSE SIGILS: 1103.6 kB actual → 1104 (+7.6 kB). The entry's
   // bytes above, plus this reader's own share of the same round: the reading
   // view's sigil card (client/reading/routine.ts + routine.css) is in the blog
@@ -1212,6 +1230,13 @@ const AUDIENCES = [
   // bar's door, which the other two have no status bar for; Sidebar.tsx gave
   // back more than that when `useLoggedDays` moved out to
   // client/loggedDays.ts.
+  // 3.18.x TABLES EDITED IN PLACE: 1555.2 kB actual → 1556. The entry's
+  // thirty-eight dictionary rows and `tableActions.ts` (above), plus the
+  // palette's six rows and their dispatch arms. The table editor itself is
+  // in the editor chunk — which is asserted ABSENT from this closure at the
+  // top of this file — and the picker is its own lazy chunk, so what an
+  // admin downloads before their first note appears is the words and the
+  // wire, not the feature.
   // 3.19.0 COURSE SIGILS: 1560.0 kB actual → 1561 (+6.0 kB; the actual is a
   // few bytes over 1560 · 1024, so the whole kB above it is the budget). The blog
   // reader's bytes above and nothing of the admin's own: the Sigils page, the
