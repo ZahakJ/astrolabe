@@ -127,3 +127,13 @@
     min-height: 44px;
   }
 }
+
+/* Inside the shared shelf the properties list is a body, not a box: no
+   border, no padding of its own, the shelf's height and scroll. */
+.s-propshelf--embedded {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  padding: 0;
+  border-top: 0;
+}
