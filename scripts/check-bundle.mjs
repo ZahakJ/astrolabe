@@ -1328,7 +1328,17 @@ const AUDIENCES = [
   // 3.19.0 SHELF ROOTS: 1570.1 kB actual → 1571 (+2.1 kB). Again the entry's
   // words and nothing of the admin's own: the whole feature lives in the
   // settings chunk and the library popover, and both are lazy.
-  { name: "admin first paint", keys: app, budget: 1571 * 1024 },
+  // 3.19 THE PERFORMANCE PURGE: 1048.7 kB actual → 1050, a 503 kB DROP, and
+  // the budget comes down with it. A rung is only a rung if it is where the
+  // floor is: leaving this at 1554 after the outline moved out would hand the
+  // next round half a megabyte to spend without measuring, which is the same
+  // mistake as raising it without a cause. What moved: BacklinksPanel imported
+  // the outline pane STATICALLY, and the outline reaches the section surgery →
+  // the editor's sectioning extension → the live-preview decoration engine →
+  // the reading renderer → KaTeX. All of it was in an admin's first request,
+  // to draw a pane that is often collapsed and always empty until a note is
+  // open. One `lazySurface` boundary, and the chunk count fell 51 → 36 too.
+  { name: "admin first paint", keys: app, budget: 1050 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

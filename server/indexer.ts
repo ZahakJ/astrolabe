@@ -256,6 +256,41 @@ export function graphRevision(): number {
   return graphRev;
 }
 
+// The same bargain, one shelf over. `tags()` and `props()` each walk EVERY
+// note on EVERY request — the sidebar asks for both whenever the tree moves,
+// and `props()` also splits and folds every frontmatter value it finds, which
+// on the 2,376-note perf fixture measured 29 ms per request against a tree
+// read's 1.5 ms. Nothing memoized either one.
+//
+// The graph revision cannot stand in for this: it deliberately ignores
+// `props`, because a note whose `status:` changed draws the same graph and
+// must not cost a rebuild of a 5 MB answer. So the shelves count their own
+// changes, with their own signature.
+let shelfRev = 0;
+
+/** How many shelf-shaped changes the index has applied. Monotonic; the only
+ *  promise is that it CHANGES whenever `tags()` or `props()` would answer
+ *  differently. */
+export function shelfRevision(): number {
+  return shelfRev;
+}
+
+/** Everything about one note the tag and property shelves can see: which tags
+ *  it carries, which frontmatter keys and values it carries, and the two flags
+ *  that decide whether a visitor's shelf counts it at all. */
+function shelfSignature(record: NoteRecord | undefined): string | null {
+  if (record === undefined) return null;
+  const props: string[] = [];
+  for (const [key, value] of Object.entries(record.props)) props.push(`${key}=${value}`);
+  props.sort();
+  return [
+    record.published ? "1" : "0",
+    record.arabic === null ? "?" : record.arabic ? "ar" : "la",
+    record.tags.join(","),
+    props.join(SIG_SEP),
+  ].join(SIG_FIELD);
+}
+
 /** Everything about one note that `graph()` — or the resolution tables it
  *  leans on — can see. Two records with the same signature contribute the same
  *  nodes, the same edges and the same resolution behaviour, so a reindex that
@@ -862,6 +897,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
   // old signature in hand. Typing a paragraph is the common case and it changes
   // none of it.
   const wasGraph = graphSignature(notes.get(relPath));
+  const wasShelf = shelfSignature(notes.get(relPath));
   removeFile(relPath, true);
   // Display title: bidi controls out. A filename may legitimately be Arabic
   // or mixed-script, but an embedded RLO makes "invoice<U+202E>fdp.exe.md"
@@ -943,6 +979,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
   if (record.published) publishedSet.add(relPath);
   invalidateDerived();
   if (graphSignature(record) !== wasGraph) graphRev++;
+  if (shelfSignature(record) !== wasShelf) shelfRev++;
   // Tags are indexed too so "#tag" (and frontmatter-only tags) are findable.
   mini.add({
     path: relPath,
@@ -1195,6 +1232,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     return;
   }
   const wasGraph = graphSignature(notes.get(relPath)); // see applyIndexFile
+  const wasShelf = shelfSignature(notes.get(relPath));
   removeFile(relPath, true);
   const rawTitle = noteTitleOf(relPath);
   // The head is enough for frontmatter in BOTH formats: a `%--- … %---%` block
@@ -1268,6 +1306,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
   if (record.published) publishedSet.add(relPath);
   invalidateDerived();
   if (graphSignature(record) !== wasGraph) graphRev++;
+  if (shelfSignature(record) !== wasShelf) shelfRev++;
   // Say it out loud, once per file: a silently unsearchable note is exactly
   // the kind of state this product must never keep to itself.
   oversized.add(relPath);
@@ -1282,13 +1321,14 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
 /** Forget one note.
  *
  *  `reindexing` says the caller is about to put a record straight back at this
- *  path and will move the graph revision itself, by comparing the old signature
- *  with the new one. Every OTHER caller is a real deletion, and a deletion
- *  always changes the graph. */
+ *  path and will move the graph and shelf revisions itself, by comparing the
+ *  old signatures with the new ones. Every OTHER caller is a real deletion,
+ *  and a deletion always changes both. */
 function removeFile(relPath: string, reindexing = false): void {
   const record = notes.get(relPath);
   if (!record) return;
   if (!reindexing) graphRev++;
+  if (!reindexing) shelfRev++;
   if (!reindexing) forgetCreated(relPath);
   notes.delete(relPath);
   oversized.delete(relPath);

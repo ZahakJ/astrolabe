@@ -11,7 +11,7 @@
 // clicking it leaves that mode; an inactive one stays a calm outline so the
 // bar reads as a row of switches rather than a row of alarms.
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { getNote } from "../api.ts";
 import { countPhrase, localeNum, t, tf } from "../i18n.ts";
@@ -386,8 +386,15 @@ export default function StatusBar() {
   // autosave behind. `counts` remains the answer for a surface with no buffer —
   // the reading view — and as the value before the first keystroke lands.
   const [live, setLive] = useState<DocStats | null>(null);
+  // …and the same value where an effect can read it without becoming a
+  // dependency of it. The note-fetch effect below asks "is there a live
+  // count?" to decide whether to spend one; listing `live` among its deps
+  // would re-run that fetch on every keystroke, which is the opposite.
+  const liveRef = useRef<DocStats | null>(null);
+  liveRef.current = live;
   useEffect(() => {
     setLive(null);
+    liveRef.current = null;
     if (!openPath) return;
     const onStats = (e: Event): void => {
       const detail = (e as CustomEvent<DocStats>).detail;
@@ -422,7 +429,17 @@ export default function StatusBar() {
     getNote(openPath)
       .then((note) => {
         if (!cancelled) {
-          setCounts({ words: countNoteWords(note.content), chars: note.content.length });
+          // COUNT ONLY WHAT WILL BE READ. The live numbers win over `counts`
+          // (see above), and this effect re-runs on every autosave — so on a
+          // note with an open buffer it used to walk every word of a freshly
+          // fetched copy, every 600 ms of typing, to fill a field the bar
+          // never draws. On the 3,000-line fixture that was the largest cost
+          // left on the main thread while typing. The other three reads below
+          // are frontmatter-shaped and cheap, and they have no live twin.
+          const hasLive = liveRef.current !== null;
+          setCounts(
+            hasLive ? null : { words: countNoteWords(note.content), chars: note.content.length },
+          );
           setLayout(noteLayout(note.content));
           setHardWrapped(isHardWrapped(note.content));
           // Single source for the open note's publish state: its frontmatter.
