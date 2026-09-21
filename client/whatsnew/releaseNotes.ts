@@ -370,6 +370,41 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.21.0",
+    title: { en: "One note, two faces", ar: "ملاحظة واحدة بوجهين" },
+    slides: [
+      {
+        // ── Linguistic twins ─────────────────────────────────────────────
+        title: { en: "One note, two faces", ar: "ملاحظة واحدة بوجهين" },
+        body: {
+          en: "Writing the same post in English and in Arabic used to make two notes that knew nothing about each other. Now one line of frontmatter — twin: [[the other note]] — makes them two faces of one note: a pill in the status bar turns the tab over in place, carrying your place in the text, and Back turns it back. On your site a reader who taps ع is taken to the other face of the post they are reading, search engines are told the two addresses are one article, and the pair is a single node on the graph. Still two plain files on disk, and a twin does not have to be a translation — a long version and a short one work the same way.",
+          ar: "كانت كتابة التدوينة نفسها بالإنجليزية والعربية تصنع ملاحظتين لا تعرف إحداهما الأخرى. وقد صار سطر واحد في الترويسة — twin: [[الملاحظة الأخرى]] — يجعلهما وجهين لملاحظة واحدة: شارة في شريط الحالة تقلب التبويب في مكانه وتحمل معك موضعك من النص، وزر الرجوع يقلبه ثانيةً. وفي موقعك يُؤخذ القارئ الذي يضغط ع إلى الوجه الآخر للتدوينة التي بين يديه، وتُخبَر محركات البحث أن العنوانين مقالة واحدة، ويصير الاقتران عقدةً واحدة في المخطط. وهما على القرص ملفان صريحان كما كانا، وليس التوأم ترجمةً بالضرورة: فالنسخة المطوّلة والموجزة تعملان بالطريقة نفسها.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <path d="M60 40 h200 v140 h-200 q-8 0 -8 -8 v-124 q0 -8 8 -8 z" fill="var(--bg)" stroke="var(--border)"/>
+    <path d="M300 40 h200 q8 0 8 8 v124 q0 8 -8 8 h-200 z" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text-faint)"><rect x="76" y="62" width="150" height="5" rx="2.5"/><rect x="76" y="78" width="168" height="5" rx="2.5"/><rect x="76" y="94" width="140" height="5" rx="2.5"/><rect x="76" y="110" width="160" height="5" rx="2.5"/><rect x="76" y="126" width="120" height="5" rx="2.5"/><rect x="76" y="142" width="156" height="5" rx="2.5"/></g>
+    <g fill="var(--text-faint)"><rect x="334" y="62" width="150" height="5" rx="2.5"/><rect x="316" y="78" width="168" height="5" rx="2.5"/><rect x="344" y="94" width="140" height="5" rx="2.5"/><rect x="324" y="110" width="160" height="5" rx="2.5"/><rect x="364" y="126" width="120" height="5" rx="2.5"/><rect x="328" y="142" width="156" height="5" rx="2.5"/></g>
+  </g>
+  <text x="160" y="56" text-anchor="middle" fill="var(--text-muted)" font-size="9" letter-spacing="1">EN</text>
+  <text x="400" y="56" text-anchor="middle" fill="var(--text-muted)" font-size="9" letter-spacing="1">ع</text>
+  <g class="wa-late" style="--i:2">
+    <rect x="262" y="96" width="36" height="28" rx="8" fill="var(--bg-raised)" stroke="var(--accent)" stroke-width="1.5"/>
+    <text x="280" y="115" text-anchor="middle" fill="var(--accent)" font-size="14">⇄</text>
+    <path class="wa-draw" d="M226 96 Q280 84 334 96" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3 2"/>
+  </g>
+  <text x="280" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "two files, one note", "ملفان، ملاحظة واحدة")}</text>
+</svg>`,
+        },
+        docs: "templates-and-notes",
+      },
+    ],
+  },
+  {
     version: "3.20.0",
     title: { en: "Books that reflow", ar: "كتبٌ تتدفّق" },
     slides: [

@@ -127,7 +127,61 @@ palette makes it and opens it with the caret in the body, asking nothing; the te
 notes applies as it does to any new note (and a <code>{{cursor}}</code> in it is honoured). Two ideas in one
 minute do happen: the second takes the next free name (<code>202609151042 2</code>). Where it lives and what
 it is called are settings, in Settings → Vault beside the daily rows:</p>
-<div class="table"><table><thead><tr><th>Setting</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td>Unique notes folder</td><td><em>(the vault root)</em></td><td>Any folder; <code>zettel</code>, say.</td></tr><tr><td>Unique note name</td><td><code>YYYYMMDDHHmm</code></td><td>The daily tokens plus <code>HH</code>, <code>mm</code> and <code>ss</code>; <code>[literals]</code> and <code>/</code> work as they do for the daily name. The format must be finer than a day — a &quot;unique&quot; name that repeats every morning is a collision waiting to happen — so at least one of <code>HH</code>, <code>mm</code>, <code>ss</code> is required.</td></tr></tbody></table></div><h2 id="sections-fold-extract-move"><a class="anchor" href="#sections-fold-extract-move">Sections: fold, extract, move</a></h2>
+<div class="table"><table><thead><tr><th>Setting</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td>Unique notes folder</td><td><em>(the vault root)</em></td><td>Any folder; <code>zettel</code>, say.</td></tr><tr><td>Unique note name</td><td><code>YYYYMMDDHHmm</code></td><td>The daily tokens plus <code>HH</code>, <code>mm</code> and <code>ss</code>; <code>[literals]</code> and <code>/</code> work as they do for the daily name. The format must be finer than a day — a &quot;unique&quot; name that repeats every morning is a collision waiting to happen — so at least one of <code>HH</code>, <code>mm</code>, <code>ss</code> is required.</td></tr></tbody></table></div><h2 id="linguistic-twins"><a class="anchor" href="#linguistic-twins">Linguistic twins</a></h2>
+<p>You write a post twice — once in English, once in Arabic — and you would rather the pair behaved
+like one note you can turn over than like two files that happen to be about the same thing. On disk
+they stay two files, because everything here is plain Markdown and nothing is allowed to stop being
+that. Everywhere else they are two <strong>faces</strong> of one note.</p>
+<p>Say so with one line, in either file&#39;s frontmatter:</p>
+<pre><code class="language-yaml">---
+title: Quantum computers
+publish: true
+twin: [[الحاسوب الكمّي]]
+---
+</code></pre>
+<p>One declaration is enough. The other note knows, without being edited: Astrolabe makes the relation
+symmetric when it indexes the vault. The value is an ordinary wikilink, resolved like any other, so
+an alias or a full path works too, and renaming either file keeps the pair together. A bare
+<code>twin: notes/الحاسوب الكمّي.md</code> is accepted as well. A note has <strong>at most one</strong> twin.</p>
+<p>If both files declare a twin and they disagree — this one names that one, that one names a third —
+each note keeps the twin its own line names, and the pill in the status bar says the pair is
+inconsistent. There is no third place that could decide between two files, so nothing pretends to.</p>
+<p><strong>In the editor.</strong> A note with a twin gets a small pill at the bottom of the window, <code>EN ⇄ ع</code>,
+showing the face you are on and the one a click would bring. Clicking it — or <code>Ctrl/Cmd Alt L</code>, or
+<strong>Switch to twin</strong> in the palette — opens the other face <em>in the same tab</em>: same pane, same place in
+the tab strip, and roughly the same place in the text, since your position is carried across as a
+fraction. Back turns it over again. <strong>Open twin beside</strong> puts the two faces in side-by-side panes,
+which is what translating actually wants. The note tree keeps both files visible — it is a picture
+of your folder and it hides nothing — and marks each of them with a small ⇄ naming the other on
+hover.</p>
+<p><strong>Making the second face.</strong> <strong>Create twin…</strong> in the palette asks for a name (it offers the note&#39;s
+own name with <code>— ar</code> or <code>— en</code> on the end; type over it, an Arabic title is usually better), writes
+the new file beside this one with this note&#39;s frontmatter — minus the <code>id</code>, which belongs to one
+file only — declares the pair on <em>both</em> files, and opens it beside. The words are yours to write;
+nothing is translated for you, and nothing ever will be.</p>
+<p><strong>Is the other side out of date?</strong> When the twin has not been touched since this face was, by more
+than a minute, the pill carries a small dot and its tooltip says when the other side was last
+written. That is a comparison of two timestamps and nothing more — no diffing, no guessing at
+meaning, and nothing happens on its own.</p>
+<p><strong>Two faces in one language.</strong> A twin does not have to be a translation. A long version and a short
+one, a formal draft and a plain-language one, both in English, are the same relation. Give each side
+a name for itself and the pill will use it:</p>
+<pre><code class="language-yaml">---
+face: short
+twin: [[Elden Ring, the long version]]
+---
+</code></pre>
+<p>The pill then reads <code>short ⇄ long</code>. Everything in the editor behaves identically. What changes is the
+<a href="../blog-mode/">public site</a>: the reader-language machinery — the ع/EN switch, the one-post-per-reader
+lists, the <code>hreflang</code> tags — only makes sense when the two faces are in <em>different</em> languages. Two
+English faces are two posts, both listed if both are published, each naming the other under its title.</p>
+<p><strong>On the graph and in backlinks.</strong> For a visitor, a twin pair is <strong>one node</strong> on the graph, labelled
+by the face in their language, carrying every link either face drew: the pair is one idea, and two
+half-connected copies of one essay is a picture of the filesystem, not of the writing. In your own
+graph both files stay, because there the graph is a map of files you can open and rename. The
+backlinks panel of either face shows the links to <em>both</em>, for the same reason — somebody who linked
+the English side linked this piece.</p>
+<h2 id="sections-fold-extract-move"><a class="anchor" href="#sections-fold-extract-move">Sections: fold, extract, move</a></h2>
 <p>A section is a heading and everything under it, up to the next heading of the same level or higher.</p>
 <ul>
 <li><strong>Heading folding.</strong> A chevron sits beside every heading (visible at rest, not on hover, because a
@@ -215,7 +269,7 @@ for a note.</p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/editor/"><span class="pager__kicker">Previous</span><span class="pager__title">The editor &amp; reading view</span></a><a class="pager__link pager__link--next" href="../../en/latex/"><span class="pager__kicker">Next</span><span class="pager__title">LaTeX notes</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#note-banners">Note banners</a><a class="toc__link toc__link--2" href="#templates">Templates</a><a class="toc__link toc__link--2" href="#periodic-notes">Periodic notes</a><a class="toc__link toc__link--3" href="#the-calendar">The calendar</a><a class="toc__link toc__link--2" href="#unique-notes">Unique notes</a><a class="toc__link toc__link--2" href="#sections-fold-extract-move">Sections: fold, extract, move</a><a class="toc__link toc__link--2" href="#attachments">Attachments</a><a class="toc__link toc__link--2" href="#deleting-and-the-trash">Deleting, and the trash</a><a class="toc__link toc__link--2" href="#reorganizing-by-dragging">Reorganizing by dragging</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#note-banners">Note banners</a><a class="toc__link toc__link--2" href="#templates">Templates</a><a class="toc__link toc__link--2" href="#periodic-notes">Periodic notes</a><a class="toc__link toc__link--3" href="#the-calendar">The calendar</a><a class="toc__link toc__link--2" href="#unique-notes">Unique notes</a><a class="toc__link toc__link--2" href="#linguistic-twins">Linguistic twins</a><a class="toc__link toc__link--2" href="#sections-fold-extract-move">Sections: fold, extract, move</a><a class="toc__link toc__link--2" href="#attachments">Attachments</a><a class="toc__link toc__link--2" href="#deleting-and-the-trash">Deleting, and the trash</a><a class="toc__link toc__link--2" href="#reorganizing-by-dragging">Reorganizing by dragging</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>
