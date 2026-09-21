@@ -6676,6 +6676,112 @@ find bar's own `Enter` / `Shift+Enter` already answer.
   `server/*.ts` type-strip and resolve its bare import. All four fail the same
   way, so all four are asked before the window opens.
 
+## Linguistic twins — one note, two faces (`shared/twins.ts`, `server/indexer.ts` `twinOf`, `client/twins.ts`)
+
+**The ask, in the owner's words:** *"I can have the usecase of writing the same blog/note in two
+different languages… instead of just creating another note in the different language we can somehow
+make the 'translated' or linguistic twin of the note be somehow the same note and we can swap
+between them? I am aware that this is weird since in the file-system they must be different
+files… 'we preserve everything globally as a md' vs 'I want it to look nice and clean on my editor
+UI'."* Both halves of that sentence are binding. Two files on disk; one note everywhere else.
+
+**THE NOTE IS THE STATE.** The whole relation is one frontmatter line — `twin: [[Other Note]]`, a
+wikilink resolved like any other, a bare path accepted too. No manifest, no sidecar, no id, nothing
+in `settings.json`, nothing in the data directory. A vault copied to a machine that has never run
+Astrolabe carries its twins with it, and a reader with `cat` can see the whole feature.
+
+**One declaration is enough; the index makes it symmetric.** Two passes in `twins()`: every
+declaration resolved, then every note WITHOUT one takes the one pointed at it. The second pass is
+what lets the author write the line on whichever file they are already in.
+
+**A note's own line wins for that note, and the pair says it disagrees.** Both files declaring, and
+disagreeing, is a real state and there is no third place that could arbitrate between two files. So
+nothing arbitrates: each note keeps the twin its own line names, `TwinLink.inconsistent` is true on
+both sides, and the status-bar pill says so. The alternative — silently preferring one file — makes
+the vault's own state unreadable from the vault, which is the one thing this product does not do.
+
+**At most one twin.** Several notes claiming one note resolve by `pickShortest()`'s rule (fewest
+segments, then shortest, then alphabetical), the same tie-break every other name in the index uses,
+and the pair is marked inconsistent. A list value takes its first item for the same reason.
+
+**A twin is a FACE, not a translation.** Language is the common case, not the definition: a long
+version and a short one, both in English, are the same relation and get the same machinery. A face
+may name itself with `face: short`. What is gated on the languages actually differing
+(`TwinFaceRef.differs`, measured on the server where the detection lives) is exactly the
+reader-language machinery and nothing else — the ع/EN swap, `hreflang`, the sitemap alternates, the
+link-time swap. Two same-language faces are two posts, both listed if both are published, because
+they are two files and saying otherwise would be a lie; each article page names the other instead.
+
+**The editor shows one note with two faces.** The pill in the status bar's note row draws
+`EN ⇄ ع` (or the two `face:` labels, or the two titles — one rung chosen for the whole pair, never
+`EN ⇄ short`). Clicking it, `Ctrl/Cmd Alt L`, and the palette's *Switch to twin* all do one thing:
+`swapTabIn()` replaces the tab's PATH in place — same pane, same index, same pin. Not an open. A
+second tab for the other face would make one note two entries in the strip, which is the shape the
+feature exists to remove. The swap pushes a history entry like any other move, and `client/router.ts`
+makes the step back a swap too, so Back turns the tab over rather than forking it.
+
+**The reader's place travels as a FRACTION** (`client/scrollCarry.ts`). Two translations do not run
+in step, so nothing here pretends to align sentences: a fraction lands the reader in the right
+REGION, which is what a scroll position is for. A carried place beats the target note's own scroll
+memory — they did not open that note, they turned this one over.
+
+**The tree hides nothing.** Both files stay in the tree as the two files they are, each marked with
+a ⇄ that names the other on hover. The tree is a picture of the folder on disk; the first time it
+stops matching is the first time the reader stops trusting it.
+
+**"Create twin…" writes both files.** The new face carries the source's frontmatter minus `id:`
+(a creation stamp belongs to one file) with `twin:` written the other way, and the source gains its
+own `twin:` line — in that order, so an interruption leaves the one-sided case the index already
+resolves symmetrically rather than a source pointing at nothing. No body: the words are the
+author's, and a seeded heading in the wrong language is worse than an empty file. One prompt, for
+the name, because the name IS the choice — it names the file, the tree and every completion, and for
+a same-language pair it is also what the face is called. `face:` is for when it is not.
+
+**A staleness hint, cheap and honest.** `twinIsStale(mine, theirs)` is two mtimes and a minute's
+grace; the pill takes a dot and the tooltip names when the other side was last written. No diffing,
+no automatic anything. A minute, not a second, because saving both faces in one sitting writes them
+seconds apart and a hint that lights every time you type is a hint nobody reads.
+
+**The public site: ONE FACE PER READER, and a door to the other.** Under `languageFilter: "follow"`
+the lists already show each reader their own language, so a bilingual pair is never two posts to one
+reader — that falls out of the existing per-note detection and is pinned by `tests/twins.test.ts`
+rather than implemented again. What was missing was the door: a reader on the English post who taps
+ع used to be left on an address their new language no longer lists. `PostMeta.twin` is filled
+WITHOUT the language filter, deliberately, because the whole value of the field is naming the face
+the reader is not being shown; `LangSwitch` then navigates to it, and only towards the face that is
+in the target language.
+
+**`hreflang` on both faces of both pages**, plus an `x-default` at the site's own language, and
+`<xhtml:link rel="alternate">` rows in the sitemap (whose `xmlns:xhtml` is declared only when
+something uses it, so a vault with no twins gets byte-for-byte the document it always got). Without
+them a crawler meets two pages of one piece and drops one as a duplicate.
+
+**The link-time swap is a pure function, and never runs in the editor.** `readerFace()` in
+`shared/twins.ts`: no reader language → no swap; the linked face already in the reader's language →
+no swap; otherwise the twin, if it is in that language and the reader can reach it. The server
+projects it into a table keyed by link key (`twinSwapTable`), the reading renderer consults that
+table ONLY after ordinary resolution has failed, and the table is empty for an admin scope by
+construction. The author linked what they linked; a wikilink that landed somewhere else while they
+were writing would make the vault unwritable.
+
+**The pair is ONE NODE on the visitor's graph, and both faces' backlinks are one panel.** A graph is
+a picture of ideas, and one essay drawn twice — each copy carrying half the arrows, joined to
+nothing — is a picture of the filesystem instead. The representative is the face in the reader's
+language (deterministic when there is none: shorter path, then alphabetical; a graph whose node ids
+moved between two requests re-lays itself out while you are looking at it). NOT in the admin graph:
+there the graph is a map of FILES you can open, rename and delete, and a node that opened a file you
+were not looking at would be the same lie the other way round. Backlinks union for the same reason
+as the graph merge — somebody who linked the English side linked this piece — with both faces
+excluded from their own panel, since a link from one face to the other is the pair, not a backlink.
+
+**`twinRef` and `face` are in `graphSignature()`.** A twin merges two nodes and unions two backlink
+panels, so a declaration appearing or moving is a graph-shaped change; missing it would let the
+`/api/graph` memo survive a change it must not survive.
+
+**What this does NOT do:** no machine translation, ever. No merging of files. Nothing touching git
+sync semantics. Twins are per note, never per folder — a folder-level pairing would be a second,
+invisible state with no line in any file to read it off.
+
 ## Aliases — a note answers to more than one name
 
 **The README recruits Obsidian vaults, and in one of those a note is linked by a name that is

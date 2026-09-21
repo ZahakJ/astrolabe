@@ -10,8 +10,14 @@
 import { otherLang } from "../langPref.ts";
 import { t } from "../i18n.ts";
 import { useStore } from "../state.ts";
+import { go } from "./nav.ts";
+import { notePathToUrl } from "../router.ts";
+import type { TwinFaceRef } from "../../shared/types.ts";
 
-export default function LangSwitch() {
+/** `swapTo` is the other FACE of the post the reader is on (shared/twins.ts),
+ *  when this post has one in the other language. The shell resolves it,
+ *  because only the shell knows which post is on screen. */
+export default function LangSwitch({ swapTo }: { swapTo?: TwinFaceRef | null }) {
   const enabled = useStore((s) => s.languageToggle);
   const language = useStore((s) => s.language);
   if (!enabled) return null;
@@ -26,7 +32,19 @@ export default function LangSwitch() {
       dir={target === "ar" ? "rtl" : "ltr"}
       title={t("blogSwitchLanguage")}
       aria-label={t("blogSwitchLanguage")}
-      onClick={() => useStore.getState().setVisitorLang(target)}
+      onClick={() => {
+        useStore.getState().setVisitorLang(target);
+        // THE SWITCH IS ABOUT THIS PIECE, NOT ABOUT THE SITE. A reader on an
+        // English post who taps ع means "give me this in Arabic" — and when
+        // the post has an Arabic face, that is a place we can actually take
+        // them. Without this they stayed on an English address the filter had
+        // just stopped serving them, or were dropped at the home page.
+        //
+        // Only towards the face that IS in the target language: a pair of two
+        // English faces is two posts, and turning one into the other would be
+        // the switch answering a question nobody asked.
+        if (swapTo && swapTo.lang === target) go(notePathToUrl(swapTo.path));
+      }}
     >
       {/* The label is its own box so the naskh ain can be nudged up off its
           overshooting baseline without moving the button around it. */}

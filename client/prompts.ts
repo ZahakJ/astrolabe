@@ -61,11 +61,14 @@ function destination(dir: string): string {
  *  `..`/dotfile refusals, the "creates ideas/Untitled.md" line under the
  *  field — is the one above, so a second creation flow cannot drift from the
  *  first. Null when the reader cancelled. */
-export function promptNotePath(dir: string, title: string): Promise<string | null> {
+export function promptNotePath(dir: string, title: string, value = "Untitled.md"): Promise<string | null> {
   return promptModal({
     title,
     body: destination(dir),
-    value: "Untitled.md",
+    // Pre-filled when the caller already knows what the reader would type —
+    // "Create twin…" offers the note's own name with the other language's
+    // suffix, which is a starting point and not a rule (client/twins.ts).
+    value,
     placeholder: "Untitled.md",
     check: (raw) => check(dir, true, raw),
   });

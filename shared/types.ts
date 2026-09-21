@@ -852,6 +852,61 @@ export interface PostMeta {
   /** Comments on this post (COMMENTS=on only; absent otherwise). Visitors
    *  count visible comments only; admin sessions include hidden ones. */
   commentCount?: number;
+  /** The OTHER FACE of this post (shared/twins.ts), when the note declares a
+   *  twin and that twin is published. Absent for almost every post.
+   *
+   *  Filled WITHOUT the language filter, deliberately: the whole point of the
+   *  field is to carry the face the reader is not currently being shown, so
+   *  the ع/EN switch can take them to it instead of to the home page. */
+  twin?: TwinFaceRef;
+}
+
+/** One face of a twinned note, named for a surface that is showing the other.
+ *  `lang` is the indexer's own per-note detection — null when the note holds
+ *  no prose letters and therefore belongs to no language. `face` is the
+ *  note's optional frontmatter `face:` label ("short", "formal", …), which is
+ *  what makes a SAME-LANGUAGE pair nameable. */
+export interface TwinFaceRef {
+  path: string;
+  title: string;
+  face: string | null;
+  lang: "ar" | "en" | null;
+  /** Do the two faces sit in DIFFERENT languages? Measured on the server,
+   *  where the detection lives, because every public-site behaviour about
+   *  twins turns on it: the ع/EN switch, `hreflang`, the sitemap's alternate
+   *  rows. False for a same-language pair, which is two posts naming each
+   *  other and nothing more. */
+  differs: boolean;
+}
+
+/** GET /api/twins — everything the chrome needs to draw twins, in one answer.
+ *
+ *  `pairs` is the ADMIN's table: one row per twinned note (both directions),
+ *  so the tab mark, the tree mark and the status-bar pill are a lookup rather
+ *  than a request per note. `swap` is the VISITOR's: the link-time swap table
+ *  (shared/twins.ts readerFace), keyed by the link key of a face the reader
+ *  cannot see and valued with the path of the face they can. Exactly one of
+ *  the two is ever populated, which is what keeps the swap out of the editor. */
+export interface TwinsResponse {
+  pairs: TwinPair[];
+  swap: Record<string, string>;
+}
+
+/** One twinned note, from the side of the note itself. */
+export interface TwinPair {
+  path: string;
+  mtimeMs: number;
+  face: string | null;
+  lang: "ar" | "en" | null;
+  twin: string;
+  twinTitle: string;
+  twinFace: string | null;
+  twinLang: "ar" | "en" | null;
+  twinMtimeMs: number;
+  /** Both notes declare a twin and the two declarations disagree. Each note
+   *  still keeps the twin ITS OWN line names — there is no third place that
+   *  could arbitrate — and the status bar says the pair is inconsistent. */
+  inconsistent: boolean;
 }
 
 /** A STATIC PAGE: an ordinary published note carrying `page: true` in its

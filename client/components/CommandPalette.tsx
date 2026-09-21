@@ -65,6 +65,7 @@ import { copyNoteLink } from "../sectionActions.ts";
 import { panesInOrder } from "../workspace.ts";
 import { askOrbits } from "../orbits/ask.ts";
 import { sidebarIsDrawer } from "../state.ts";
+import { createTwinFlow, openTwinBeside, switchToTwin } from "../twins.ts";
 
 // The palette owns the recents ledger's install: visits are recorded for the
 // palette's sake, so the palette is the module that switches recording on —
@@ -139,6 +140,11 @@ interface CommandCtx {
   /** How many panes the workspace holds. Closing and walking between panes
    *  are offered only once there is a second one to close or walk to. */
   panes: number;
+  /** The open note already HAS another face (shared/twins.ts). Two rows turn
+   *  on it, in opposite directions: switching and opening beside need a twin,
+   *  and "Create twin…" is offered only while there is none — a note may have
+   *  at most one. */
+  hasTwin: boolean;
 }
 
 interface Command {
@@ -243,6 +249,26 @@ const COMMANDS: Command[] = [
     label: () => t("cmdYearlyNote"),
     hint: () => t("cmdPeriodicHint"),
     available: ({ admin }) => admin,
+  },
+  {
+    // THE OTHER FACE (shared/twins.ts). Three rows, one relation: turn this
+    // tab over, put the two faces side by side, or write the second one.
+    id: "twin-switch",
+    label: () => t("cmdTwinSwitch"),
+    hint: () => t("cmdTwinSwitchHint"),
+    available: ({ hasTwin }) => hasTwin,
+  },
+  {
+    id: "twin-beside",
+    label: () => t("cmdTwinBeside"),
+    hint: () => t("cmdTwinBesideHint"),
+    available: ({ hasTwin }) => hasTwin,
+  },
+  {
+    id: "twin-create",
+    label: () => t("cmdTwinCreate"),
+    hint: () => t("cmdTwinCreateHint"),
+    available: ({ admin, openPath, hasTwin }) => admin && openPath !== null && !hasTwin,
   },
   {
     // A door to a note you did not choose: the vault re-read at random,
@@ -942,6 +968,9 @@ export default function CommandPalette() {
   const preview = useStore((s) => s.previewVisitor);
   const reading = useStore((s) => s.readingMode);
   const panes = useStore((s) => panesInOrder(s.workspace).length);
+  // A boolean, not the table: the palette re-renders on every keystroke and
+  // has no business subscribing to an object identity.
+  const hasTwin = useStore((s) => s.openPath !== null && s.twins[s.openPath] !== undefined);
   useStore((s) => s.theme); // the flip row names the room it lands in
   useStore((s) => s.language); // re-render the chrome strings on language change
   const openPublished = useStore(
@@ -1143,6 +1172,7 @@ export default function CommandPalette() {
       preview,
       reading,
       panes,
+      hasTwin,
     };
     const available = [...COMMANDS, ...layoutCommands(layouts)].filter((c) => c.available(ctx));
     if (!q) {
@@ -1264,6 +1294,15 @@ export default function CommandPalette() {
           break;
         case "quick-capture":
           store.setCaptureOpen(true);
+          break;
+        case "twin-switch":
+          switchToTwin();
+          break;
+        case "twin-beside":
+          openTwinBeside();
+          break;
+        case "twin-create":
+          void createTwinFlow();
           break;
         case "new-folder":
           // Root, not the open note's folder: "New folder" from a global

@@ -4106,6 +4106,16 @@ select:focus,
   user-select: none;
 }
 
+/* The same mark the tab strip wears, on the tree row — the tree keeps BOTH
+   files visible and this only says that a row has another face. */
+.s-tree__twin {
+  margin-inline-start: 6px;
+  font-size: 0.643rem;
+  color: var(--text-muted);
+  vertical-align: 1px;
+  user-select: none;
+}
+
 /* Status-bar publish affordance: ✧ Publish → ✦ Published (gold). */
 .s-statusbar__pub {
   display: inline-flex;
@@ -4127,6 +4137,54 @@ select:focus,
 
 .s-statusbar__pubcount {
   white-space: nowrap;
+}
+
+/* ------------------------------------------------------- the other face -- */
+
+/* THE TWIN PILL: `EN ⇄ ع`, the handle that turns a note over.
+   Logical properties throughout, because the two faces it names are usually
+   one LTR and one RTL and the pill itself has to read correctly inside either
+   chrome. A label is `dir="auto"` in the markup, so an Arabic face keeps its
+   own direction inside a bar that is facing the other way. */
+.s-statusbar__twin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.s-statusbar__twinface {
+  /* The pair's two faces read as one unit, so neither half is emphasised
+     over the other; the arrow between them carries the meaning. */
+  max-inline-size: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s-statusbar__twinarrow {
+  font-size: 0.786rem;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.85;
+}
+
+/* The staleness dot. A dot, not a colour and not a word: the fact is "the
+   other face is older than this one", which is worth noticing and never worth
+   alarming about — nothing is broken and nothing is at risk. The sentence is
+   in the tooltip, where a fact of that size belongs. */
+.s-statusbar__twindot {
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-inline-start: 1px;
+}
+
+/* An inconsistent pair — both files declare a twin and they disagree. Still
+   a working pair (each note keeps the twin its own line names), so this is a
+   note in the margin rather than an error state. */
+.s-statusbar__twin--odd .s-statusbar__twinarrow {
+  color: var(--text-muted);
 }
 
 /* Flat curated collection: the visitor sidebar and the admin's
@@ -6879,6 +6937,15 @@ button.s-title:hover {
   color: var(--accent);
   /* Optical, not geometric: the glyph sits high in its em box. */
   transform: translateY(-1px);
+}
+
+/* A tab whose note has another face (shared/twins.ts). Quieter than the pin:
+   a pin is a promise the reader made, this is a fact about the note. */
+.s-tab-twin {
+  flex: none;
+  font-size: 0.6rem;
+  line-height: 1;
+  color: var(--text-muted);
 }
 
 /* ── Several windows, one vault ──────────────────────────────────────────────

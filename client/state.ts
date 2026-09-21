@@ -5,7 +5,8 @@
 // (bumped when the open note changed on disk, so the Editor remounts).
 
 import { create } from "zustand";
-import type { AuthorSiteCard, Backlink, HomeSettings, LaunchSetting, PublicFolderCard, PublicThemeInfo, PublishedCounts, TreeNode } from "../shared/types.ts";
+import type { AuthorSiteCard, Backlink, HomeSettings, LaunchSetting, PublicFolderCard, PublicThemeInfo, PublishedCounts, TreeNode, TwinPair } from "../shared/types.ts";
+import { setTwinSwapTable } from "./twinSwap.ts";
 import { DEFAULT_LAUNCH, parseLaunch } from "../shared/launch.ts";
 import * as api from "./api.ts";
 import { clearBrokenEmbeds } from "./editor/embeds.ts";
@@ -537,6 +538,12 @@ export interface State {
 
   /** Refresh publishedPaths + counts (admin; no-ops gracefully otherwise). */
   loadPublished(): Promise<void>;
+
+  // ----------------------------------------------------------------- twins
+  /** Every twinned note, keyed by path — both directions, so "does this note
+   *  have another face" is a lookup and never a request (shared/twins.ts).
+   *  Empty for a visitor, who gets the link-time swap table below instead. */
+  twins: Record<string, TwinPair>;
   /** Flip (or set) a note's publish flag via POST /api/publish. */
   togglePublish(path: string, publish?: boolean): Promise<void>;
   setPublishedFilter(b: boolean): void;
@@ -1568,6 +1575,7 @@ export const useStore = create<State>()((set, get) => {
     setShortcutsOpen: (shortcutsOpen) => set({ shortcutsOpen }),
 
     publishedPaths: null,
+    twins: {},
     publishedCounts: null,
     publishedFilter: false,
     openPublished: null,
@@ -1830,7 +1838,7 @@ export const useStore = create<State>()((set, get) => {
       guarded("signing out", async () => {
         await api.logout();
         await get().loadMe();
-        set({ publishedPaths: null, publishedFilter: false, openPublished: null, moderationOpen: false, trashOpen: false, unusedOpen: false });
+        set({ publishedPaths: null, twins: {}, publishedFilter: false, openPublished: null, moderationOpen: false, trashOpen: false, unusedOpen: false });
         const { admin, publicReads } = get();
         if (!admin && !publicReads) {
           // Vault is locked again for this session — drop everything readable.
@@ -2128,14 +2136,30 @@ export const useStore = create<State>()((set, get) => {
         //
         // The alias half fails SOFTLY: it is an enrichment of the tree, not a
         // condition of it, and the last good table is kept rather than cleared.
-        const [tree, aliases] = await Promise.all([
+        // The TWIN TABLE refreshes with them, for the same reason and with
+        // the same softness: it is derived from frontmatter the client cannot
+        // see, every surface that draws a twin mark reads it, and a table one
+        // vault-change out of date would put a pill on a note whose `twin:`
+        // line was just deleted. A visitor's half of the same answer is the
+        // link-time swap table, which the reading renderer consults.
+        const [tree, aliases, twins] = await Promise.all([
           api.getTree(),
           api.getAliases().catch((err: unknown) => {
             console.error("astrolabe: loading the alias table failed", err);
             return null;
           }),
+          api.getTwins().catch((err: unknown) => {
+            console.error("astrolabe: loading the twin table failed", err);
+            return null;
+          }),
         ]);
         if (aliases !== null) setAliasTable(aliases);
+        if (twins !== null) {
+          const byPath: Record<string, TwinPair> = {};
+          for (const pair of twins.pairs) byPath[pair.path] = pair;
+          setTwinSwapTable(twins.swap);
+          set({ twins: byPath });
+        }
         set({ tree });
       }),
 

@@ -188,6 +188,11 @@ export default function BlogArticle({
       .filter((p): p is PostMeta => p !== null);
   }, [graph, posts, path]);
 
+  // The other face, when the pair is in ONE language — the bilingual case is
+  // the masthead switch's, not this line's. The server measured which it is
+  // (TwinFaceRef.differs), so nothing is guessed here.
+  const otherFace = meta?.twin !== undefined && !meta.twin.differs ? meta.twin : null;
+
   // Prev/next by date (posts arrive newest first).
   const index = posts?.findIndex((p) => p.path === path) ?? -1;
   const newer = index > 0 ? posts![index - 1] : null;
@@ -213,6 +218,24 @@ export default function BlogArticle({
             <MetaSep className="s-blog-meta__dot" />
             <span>{countPhrase(meta.readingMinutes, "readMinutes")}</span>
           </div>
+        )}
+        {/* ANOTHER FACE OF THIS NOTE (shared/twins.ts), named where the
+            piece names itself.
+
+            Only for a SAME-LANGUAGE pair. When the two faces are an English
+            post and its Arabic edition, the reader already has a door to the
+            other one — the ع/EN switch in the masthead takes them there, and
+            a second link saying the same thing in the wrong language would be
+            noise. Two English faces have no such door, so this is it: a long
+            version and a short one, a formal draft and a plain one, each
+            naming the other by whatever `face:` label they gave themselves. */}
+        {otherFace && (
+          <p className="s-blog-article__face">
+            {t("blogOtherFace")}{" "}
+            <NavLink url={notePathToUrl(otherFace.path)} dir="auto">
+              {otherFace.face ?? otherFace.title}
+            </NavLink>
+          </p>
         )}
       </header>
 

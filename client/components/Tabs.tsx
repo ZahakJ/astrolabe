@@ -77,6 +77,9 @@ function unsavedNote(paths: string[], dirty: Record<string, boolean>): string | 
  *  which is what makes two panes two independent tab strips. */
 export default function Tabs({ paneId }: { paneId?: string } = {}) {
   const dirty = useStore((s) => s.dirty);
+  // Which open notes have another face — a lookup over the table the store
+  // refreshes with the tree (client/state.ts).
+  const twins = useStore((st) => st.twins);
   const openNote = useStore((s) => s.openNote);
   const closeTab = useStore((s) => s.closeTab);
   const admin = useStore((s) => s.admin);
@@ -385,6 +388,16 @@ export default function Tabs({ paneId }: { paneId?: string } = {}) {
                 <>
                   <span className="s-tab-pin" aria-hidden="true">◆</span>
                   <span className="s-sr-only">{t("tabPinned")}</span>
+                </>
+              )}
+              {/* A note with another face (shared/twins.ts) wears a tiny mark
+                  here, so a reader scanning the strip can see which of their
+                  tabs can be turned over. Decoration; the words underneath
+                  are what a screen reader gets, as with the pin above. */}
+              {twins[path] !== undefined && (
+                <>
+                  <span className="s-tab-twin" aria-hidden="true">⇄</span>
+                  <span className="s-sr-only">{t("twinTabMark")}</span>
                 </>
               )}
               {/* Note-derived text inside chrome: direction per title. */}

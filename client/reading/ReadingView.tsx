@@ -25,6 +25,7 @@ import { applyNoteLayoutTo } from "../textLayout.ts";
 // reaches for the print dialog, not fetched once they have.
 import "../print.ts";
 import "./reading.css";
+import { carriedScrollTop, fractionOfElement, registerScrollSource, takeCarriedScroll } from "../scrollCarry.ts";
 
 /** Scroll positions survive tab switches; module-level so remounts keep them.
  *  Bounded because "every note read this session" is the whole vault on a
@@ -194,8 +195,15 @@ export default function ReadingView({ path }: { path: string }) {
           publishActive(hostRef.current);
           return;
         }
-        const saved = scrollPositions.get(path);
-        if (saved !== undefined) hostRef.current.scrollTop = saved;
+        // A place carried from the other face wins over this note's own
+        // memory — see client/scrollCarry.ts.
+        const carried = takeCarriedScroll(path);
+        if (carried !== null) {
+          hostRef.current.scrollTop = carriedScrollTop(carried, hostRef.current);
+        } else {
+          const saved = scrollPositions.get(path);
+          if (saved !== undefined) hostRef.current.scrollTop = saved;
+        }
         publishActive(hostRef.current);
       })
       .catch((err: unknown) => {
@@ -211,8 +219,10 @@ export default function ReadingView({ path }: { path: string }) {
         console.error(`astrolabe: failed to open ${path} for reading`, err);
         toast(tf("openFailed", { path }), "error");
       });
+    const unregister = registerScrollSource(path, () => fractionOfElement(hostRef.current));
     return () => {
       disposed = true;
+      unregister();
       scrollPositions.set(path, host.scrollTop);
       sidenotesRef.current?.();
       sidenotesRef.current = null;

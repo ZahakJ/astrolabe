@@ -28,6 +28,7 @@ import type {
   PostMeta,
   PublicThemeInfo,
   PublishedPaths,
+  TwinsResponse,
   PublishResult,
   SearchHit,
   SearchMatch,
@@ -1161,6 +1162,21 @@ export function restoreNoteVersion(path: string, at: number): Promise<NoteData> 
 export async function getPublishedPaths(): Promise<Set<string>> {
   const { paths } = await request<PublishedPaths>("/api/published");
   return new Set(paths);
+}
+
+/** The two faces of a note (shared/twins.ts). ONE round trip serves the
+ *  admin's whole table — the tab mark, the tree mark, the status-bar pill —
+ *  or a visitor's link-time swap table; which half is filled depends on who
+ *  is asking (GET /api/twins). Asked once per vault change, like the
+ *  published set, rather than once per note open. */
+export function getTwins(): Promise<TwinsResponse> {
+  return request<TwinsResponse>("/api/twins");
+}
+
+/** "Create twin…": write the other face beside this one and declare the pair
+ *  on BOTH files. Answers with the new note's path. */
+export function createTwin(path: string, toPath: string): Promise<{ path: string }> {
+  return request<{ path: string }>("/api/twin", json("POST", { path, toPath }));
 }
 
 /** Throws with the server's message ("Invalid password", rate limit…) on failure. */

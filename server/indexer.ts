@@ -10,7 +10,7 @@ import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import MiniSearch from "minisearch";
-import type { AliasEntry, Backlink, CardMeta, ExportScope, GraphData, GraphEdge, LibraryKind, LibraryPathRef, Mention, OnThisDayHit, PageMeta, PostMeta, PropCount, PublicFolderRef, QueryHit, RoutineMeta, SearchHit, SearchMatch, TagCount, TaskMeta, TrackerMeta, VaultEvent } from "../shared/types.ts";
+import type { AliasEntry, Backlink, CardMeta, ExportScope, GraphData, GraphEdge, LibraryKind, LibraryPathRef, Mention, OnThisDayHit, PageMeta, PostMeta, PropCount, PublicFolderRef, QueryHit, RoutineMeta, SearchHit, SearchMatch, TagCount, TaskMeta, TrackerMeta, TwinFaceRef, TwinPair, VaultEvent } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
@@ -26,7 +26,8 @@ import { countNoteWords, countWords, readingMinutes } from "../shared/wordCount.
 import { cleanLabelEntry, tagKey, type TagLabelMap } from "../shared/tagLabels.ts";
 import { pageFlag } from "./pages.ts";
 import { publishFlag, readFrontmatter } from "./publish.ts";
-import { parseAliases, parseFolders, readNoteFrontmatter } from "./noteFrontmatter.ts";
+import { parseAliases, parseFace, parseFolders, parseTwin, readNoteFrontmatter } from "./noteFrontmatter.ts";
+import { facesDiffer, faceLang, readerFace, twinSwapKey, type TwinSides } from "../shared/twins.ts";
 import { scanTrackers, type Tracker } from "../shared/tracker.ts";
 import { scanRoutines, type RoutineBlock } from "../shared/routine.ts";
 import { scanTasks, type Task } from "../shared/tasks.ts";
@@ -170,6 +171,14 @@ interface NoteRecord {
    *  says WHICH alias matched, `[[` autocomplete offers them, and removeFile
    *  unregisters them. */
   aliases: string[];
+  /** The OTHER FACE this note DECLARES — frontmatter `twin:`, unwrapped from
+   *  its wikilink but not yet resolved (see `twinOf`, which resolves it and
+   *  makes the relation symmetric). Null for almost every note. */
+  twinRef: string | null;
+  /** This face's own short label — frontmatter `face:`. What lets a pair of
+   *  SAME-LANGUAGE faces ("short"/"long") say which is which; null for the
+   *  ordinary bilingual pair, whose two languages say it already. */
+  face: string | null;
   /** Scalar frontmatter as strings, keys lowercased, lists joined with
    *  ", " — what `prop:status=reading` tests and a ```query table shows.
    *  Kept on the record rather than re-read, like `labels` and `folders`. */
@@ -311,6 +320,11 @@ function graphSignature(record: NoteRecord | undefined): string | null {
     record.tags.join(","),
     record.aliases.join(","),
     record.citekeys.join(","),
+    // A twin MERGES two nodes into one on the visitor graph and unions two
+    // backlink panels, so a declaration appearing or moving changes the graph
+    // — miss it here and the memo survives a change it should not have.
+    record.twinRef ?? "",
+    record.face ?? "",
     record.links.map((link) => link.target).join(SIG_SEP),
     record.xrefs.map((xref) => `${xref.kind}:${xref.key}`).join(SIG_SEP),
     // LABELS only — a heading slug is not in byLabel and no edge is ever drawn
@@ -368,6 +382,7 @@ let nearbyRev = 0;
 function invalidateDerived(): void {
   allowedAttachmentsCache = null;
   attachmentRefsCache = null;
+  twinsCache = null;
   templatesFolderMemo = null;
   hadithFolderMemo = null;
   // The Nearby corpus (server/nearby.ts) weighs every note against the
@@ -966,6 +981,8 @@ async function applyIndexFile(relPath: string): Promise<void> {
     anchors: parts.anchors,
     citekeys: parts.citekeys,
     aliases: parseAliases(fm),
+    twinRef: parseTwin(fm),
+    face: parseFace(fm),
     props: scalarProps(fm),
     excerptSource: parts.firstParagraph,
     flat: null,
@@ -1255,6 +1272,8 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     // The head carried the whole frontmatter block, so an oversized note
     // answers to its aliases exactly as it answers to its title.
     aliases: parseAliases(fm),
+    twinRef: parseTwin(fm),
+    face: parseFace(fm),
     excerptSource: null,
     tags: parseTags("", frontmatter),
     labels: labelsOfFm(fm),
@@ -1685,6 +1704,207 @@ export function aliasEntries(publishedOnly: boolean, lang: FilterLang): AliasEnt
       a.path.length - b.path.length ||
       a.path.localeCompare(b.path),
   );
+}
+
+// ------------------------------------------------------------------ twins
+//
+// TWO FILES, ONE IDEA (shared/twins.ts states the whole model). A note
+// declares its other face with one frontmatter line — `twin: [[Other]]` — and
+// the index does three things with it that no single file could do for
+// itself: it RESOLVES the declaration like any other link, it makes the
+// relation SYMMETRIC so one line is enough, and it notices when the two
+// declarations disagree.
+//
+// Derived and memoized beside the other index-shaped answers: building it
+// walks every record once, and every surface that draws a twin (the pill, the
+// tab mark, the tree mark, the graph merge, the backlinks union, the article
+// head) asks for it on every request.
+
+/** One note's resolved other face. */
+export interface TwinLink {
+  path: string;
+  /** Both notes declare a twin and the declarations disagree — or more than
+   *  one note claims this one. The pair still works (each note keeps the twin
+   *  ITS OWN line names); the chrome says so. */
+  inconsistent: boolean;
+}
+
+let twinsCache: Map<string, TwinLink> | null = null;
+
+/** The whole vault's twin table, built once per index change.
+ *
+ *  TWO PASSES, and the order is the rule:
+ *
+ *   1. Every DECLARATION, resolved. A declaration resolves with the visitor
+ *      filter OFF — a twin is, in the common case, the note the reader's own
+ *      language filter is hiding, so resolving it through that filter would
+ *      make the relation invisible exactly when it matters. Publication is
+ *      gated later, by whoever is asking.
+ *   2. Every note without a declaration of its own takes the one pointed AT
+ *      it. That is what makes a single line enough: the author writes `twin:`
+ *      on the English post and the Arabic one knows.
+ *
+ *  A note's own line always wins for that note (pass 1 is never overwritten),
+ *  because there is no third place that could arbitrate between two files
+ *  that disagree — and a rule that silently preferred one file over the other
+ *  would make the vault's state unreadable from the vault. `inconsistent` is
+ *  how the disagreement reaches the reader instead.
+ *
+ *  AT MOST ONE TWIN. When several notes point at the same one, the shortest
+ *  path wins (pickShortest's rule, the same tie-break every other name in the
+ *  index is settled by) and the pair is marked inconsistent. */
+function twins(): Map<string, TwinLink> {
+  if (twinsCache !== null) return twinsCache;
+  const declared = new Map<string, string>(); // note -> the note its own line names
+  for (const record of notes.values()) {
+    if (record.twinRef === null) continue;
+    const target = resolveLink(record.twinRef, false, null);
+    // A declaration naming nothing, or naming the note itself, is not a pair.
+    if (target === null || target === record.path) continue;
+    declared.set(record.path, target);
+  }
+  const claims = new Map<string, string[]>(); // note -> everyone pointing at it
+  for (const [from, to] of declared) {
+    let list = claims.get(to);
+    if (list === undefined) claims.set(to, (list = []));
+    list.push(from);
+  }
+  const out = new Map<string, TwinLink>();
+  for (const record of notes.values()) {
+    const mine = declared.get(record.path);
+    const pointing = (claims.get(record.path) ?? []).filter((p) => p !== mine);
+    if (mine !== undefined) {
+      const theirs = declared.get(mine);
+      // They declare someone else, or someone ELSE claims me: either way the
+      // vault is saying two things at once.
+      const inconsistent = (theirs !== undefined && theirs !== record.path) || pointing.length > 0;
+      out.set(record.path, { path: mine, inconsistent });
+      continue;
+    }
+    if (pointing.length === 0) continue;
+    const sorted = [...pointing].sort(
+      (a, b) => a.split("/").length - b.split("/").length || a.length - b.length || a.localeCompare(b),
+    );
+    out.set(record.path, { path: sorted[0], inconsistent: sorted.length > 1 });
+  }
+  twinsCache = out;
+  return out;
+}
+
+/** This note's other face, or null. Unfiltered: the caller decides what the
+ *  audience may see. */
+export function twinOf(relPath: string): TwinLink | null {
+  return twins().get(relPath) ?? null;
+}
+
+/** The pair, from one note's side, as the LINK-TIME SWAP sees it
+ *  (shared/twins.ts readerFace). `publishedOnly` scopes reachability the way
+ *  every other visitor surface does. */
+function twinSides(relPath: string, publishedOnly: boolean, lang: FilterLang): TwinSides | null {
+  const record = notes.get(relPath);
+  if (record === undefined) return null;
+  const link = twinOf(relPath);
+  const other = link === null ? undefined : notes.get(link.path);
+  return {
+    self: { path: record.path, arabic: record.arabic, reachable: true },
+    twin:
+      other === undefined
+        ? null
+        : {
+            path: other.path,
+            arabic: other.arabic,
+            reachable: !publishedOnly || isNoteVisibleToVisitor(other.path, lang),
+          },
+  };
+}
+
+/** THE LINK-TIME SWAP TABLE, for one reader.
+ *
+ *  A wikilink is resolved in the CLIENT, against the tree it was served — and
+ *  a visitor's tree is language-scoped, so `[[Quantum Computers]]` written
+ *  inside an Arabic post resolves to nothing at all for an Arabic reader
+ *  while the Arabic face of that very note sits one file away. This table is
+ *  the missing half: link key → the path of the face this reader can read.
+ *
+ *  EMPTY FOR AN ADMIN, by construction — `lang` is null on every admin
+ *  surface and the swap stands down. The author linked what they linked.
+ *
+ *  Keyed under both spellings the resolver accepts (the path and the bare
+ *  basename), because either could be what the author typed. */
+export function twinSwapTable(lang: FilterLang): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (lang === null) return out;
+  for (const [from, link] of twins()) {
+    const sides = twinSides(from, true, lang);
+    const face = readerFace(sides, lang);
+    if (face === null || face === from) continue;
+    // Only worth a row when the link would otherwise land nowhere: the face
+    // the author named is hidden from this reader, the other one is not.
+    if (isNoteVisibleToVisitor(from, lang)) continue;
+    void link;
+    const record = notes.get(from);
+    if (record === undefined) continue;
+    out[twinSwapKey(from)] = face;
+    out[twinSwapKey(path.posix.basename(from))] = face;
+    for (const alias of record.aliases) out[twinSwapKey(alias)] = face;
+  }
+  return out;
+}
+
+/** The wire rows for `GET /api/twins` — one per twinned note, both
+ *  directions, so every surface that draws a mark is a lookup. Admin-only;
+ *  the visitor's half of that route is the swap table above. */
+export function twinPairs(): TwinPair[] {
+  const out: TwinPair[] = [];
+  for (const [from, link] of twins()) {
+    const me = notes.get(from);
+    const other = notes.get(link.path);
+    if (me === undefined || other === undefined) continue;
+    out.push({
+      path: me.path,
+      mtimeMs: me.mtimeMs,
+      face: me.face,
+      lang: faceLang(me.arabic),
+      twin: other.path,
+      twinTitle: other.title,
+      twinFace: other.face,
+      twinLang: faceLang(other.arabic),
+      twinMtimeMs: other.mtimeMs,
+      inconsistent: link.inconsistent,
+    });
+  }
+  return out.sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/** The other face of a POST, for the public site: the switch that takes a
+ *  reader to their own language, the `hreflang` pair, and the "another face
+ *  of this note" line a same-language pair gets instead.
+ *
+ *  Published-gated and NOT language-gated, deliberately: the whole value of
+ *  the field is that it names the face the reader is not being shown. */
+export function twinFaceOf(relPath: string): TwinFaceRef | null {
+  const link = twinOf(relPath);
+  if (link === null || !publishedSet.has(link.path)) return null;
+  const other = notes.get(link.path);
+  if (other === undefined) return null;
+  const me = notes.get(relPath);
+  return {
+    path: other.path,
+    title: other.title,
+    face: other.face,
+    lang: faceLang(other.arabic),
+    differs: me !== undefined && facesDiffer(faceLang(me.arabic), faceLang(other.arabic)),
+  };
+}
+
+/** Do the two faces of this note's pair sit in different languages? The one
+ *  question everything the PUBLIC SITE does about twins hangs off. */
+export function twinLanguagesDiffer(relPath: string): boolean {
+  const me = notes.get(relPath);
+  const link = twinOf(relPath);
+  const other = link === null ? undefined : notes.get(link.path);
+  if (me === undefined || other === undefined) return false;
+  return facesDiffer(faceLang(me.arabic), faceLang(other.arabic));
 }
 
 /** Resolve a link/embed target to a note OR attachment path. Notes win
@@ -2692,6 +2912,10 @@ function postMeta(record: NoteRecord, hidden: ReadonlySet<string>, collectionRow
   if (folders.length > 0) meta.folders = folders;
   const banner = resolveBanner(record);
   if (banner) meta.banner = banner;
+  // The OTHER FACE (shared/twins.ts), when this note has one and it is
+  // published. Unfiltered on purpose — see TwinFaceRef.
+  const twin = twinFaceOf(record.path);
+  if (twin !== null) meta.twin = twin;
   return meta;
 }
 
@@ -3873,6 +4097,41 @@ function aliasReason(
   return hit === undefined ? {} : { alias: stripBidiControls(hit) };
 }
 
+/** THE PAIR IS ONE NODE (visitor graphs only).
+ *
+ *  A twin pair is two files and one idea, and a graph is a picture of ideas:
+ *  drawn as two nodes it is a lie a reader can see — the same essay twice,
+ *  each half carrying half the arrows, joined to nothing. So on the PUBLIC
+ *  graph the pair collapses onto one node, labelled by the face in the
+ *  reader's own language, and every edge either face drew lands on it.
+ *
+ *  Not in the editor. There the graph is a picture of FILES — you open them,
+ *  rename them, delete them from it — and a node that opened a file you were
+ *  not looking at would be the same lie the other way round. The editor says
+ *  the pair out loud instead, in the tab, the tree and the status bar.
+ *
+ *  Which face represents the pair: the reader's language when one of them is
+ *  in it, else the shorter path — deterministic either way, because a graph
+ *  whose node ids moved between two requests is a graph that re-lays itself
+ *  out while you are looking at it. */
+function graphFace(relPath: string, publishedOnly: boolean, lang: FilterLang): string {
+  if (!publishedOnly) return relPath;
+  const link = twinOf(relPath);
+  if (link === null) return relPath;
+  const other = notes.get(link.path);
+  if (other === undefined || !publishedSet.has(other.path) || languageHidden(other, lang)) return relPath;
+  const me = notes.get(relPath);
+  if (me === undefined) return relPath;
+  if (lang !== null) {
+    const wantArabic = lang === "ar";
+    if (me.arabic === wantArabic) return relPath;
+    if (other.arabic === wantArabic) return other.path;
+  }
+  return relPath.length <= other.path.length && relPath.localeCompare(other.path) <= 0
+    ? relPath
+    : other.path;
+}
+
 export function graph(publishedOnly: boolean, lang: FilterLang): GraphData {
   const edgeKeys = new Set<string>();
   const edges: GraphEdge[] = [];
@@ -3880,18 +4139,22 @@ export function graph(publishedOnly: boolean, lang: FilterLang): GraphData {
   // Visitor graphs honor the languageFilter on both endpoints — a filtered
   // note must appear neither as a node nor via an edge.
   const hidden = (record: NoteRecord): boolean => publishedOnly && languageHidden(record, lang);
+  const face = (p: string): string => graphFace(p, publishedOnly, lang);
   for (const record of notes.values()) {
     if (publishedOnly && !record.published) continue;
     if (hidden(record)) continue;
-    const connect = (target: string | null): void => {
-      if (!target || target === record.path) return;
-      const targetRecord = notes.get(target);
+    const from = face(record.path);
+    const connect = (rawTarget: string | null): void => {
+      if (!rawTarget) return;
+      const targetRecord = notes.get(rawTarget);
       if (targetRecord !== undefined && hidden(targetRecord)) return;
-      const key = `${record.path}\0${target}`;
+      const target = face(rawTarget);
+      if (target === from) return; // a link BETWEEN the two faces is one node's loop
+      const key = `${from}\0${target}`;
       if (edgeKeys.has(key)) return;
       edgeKeys.add(key);
-      edges.push({ source: record.path, target });
-      degree.set(record.path, (degree.get(record.path) ?? 0) + 1);
+      edges.push({ source: from, target });
+      degree.set(from, (degree.get(from) ?? 0) + 1);
       degree.set(target, (degree.get(target) ?? 0) + 1);
     };
     for (const link of record.links) connect(resolveLink(link.target, publishedOnly, lang));
@@ -3901,20 +4164,63 @@ export function graph(publishedOnly: boolean, lang: FilterLang): GraphData {
     // and nothing in either document had to be rewritten to say so.
     for (const xref of record.xrefs) connect(resolveXref(xref, publishedOnly, lang));
   }
-  const nodes = [...notes.values()]
-    .filter((record) => (!publishedOnly || record.published) && !hidden(record))
-    .map((record) => ({
-      id: record.path,
-      title: record.title,
-      links: degree.get(record.path) ?? 0,
-      // Visitors group the sidebar by these tags — honor EXCLUDE_TAGS so
-      // workflow/status tags never become published topic headings.
-      tags: publishedOnly ? record.tags.filter((t) => !excludedTags().has(t.toLowerCase())) : record.tags,
-    }));
+  // One node per FACE the reader sees: the other half of a merged pair is
+  // folded away here, and its tags travel with it (the pair is one idea, so
+  // the topics of either face are the idea's topics).
+  const merged = new Map<string, string[]>(); // representative -> tags
+  for (const record of notes.values()) {
+    if (publishedOnly && !record.published) continue;
+    if (hidden(record)) continue;
+    const id = face(record.path);
+    const tags = publishedOnly
+      ? record.tags.filter((t) => !excludedTags().has(t.toLowerCase()))
+      : record.tags;
+    const held = merged.get(id);
+    if (held === undefined) merged.set(id, [...tags]);
+    else for (const tag of tags) if (!held.includes(tag)) held.push(tag);
+  }
+  const nodes = [...merged].map(([id, tags]) => ({
+    id,
+    title: notes.get(id)?.title ?? noteTitleOf(id),
+    links: degree.get(id) ?? 0,
+    // Visitors group the sidebar by these tags — honor EXCLUDE_TAGS so
+    // workflow/status tags never become published topic headings.
+    tags,
+  }));
   return { nodes, edges };
 }
 
+/** WHO POINTS AT THIS NOTE — and at its other face.
+ *
+ *  A twin pair is one idea, so a link to either face is a link to the idea.
+ *  Split across two panels, the Arabic face of a post that four people linked
+ *  in English shows an empty box and reads as unlinked — which is exactly
+ *  backwards, because it is the SAME PIECE. So the panel of either face shows
+ *  both, deduplicated, with the two faces themselves excluded (a link from
+ *  one face to the other is not a backlink, it is the pair).
+ *
+ *  Scoped like everything else: a visitor still sees only the sources their
+ *  own language and the publish flag allow, so the union gives an Arabic
+ *  reader nothing they were not already entitled to. */
 export function backlinks(targetPath: string, publishedOnly: boolean, lang: FilterLang): Backlink[] {
+  const mine = backlinksOne(targetPath, publishedOnly, lang);
+  const link = twinOf(targetPath);
+  if (link === null) return mine;
+  const theirs = backlinksOne(link.path, publishedOnly, lang);
+  if (theirs.length === 0) return mine;
+  const seen = new Set(mine.map((hit) => `${hit.path}\0${hit.line}`));
+  const out = [...mine];
+  for (const hit of theirs) {
+    if (hit.path === targetPath || hit.path === link.path) continue;
+    const key = `${hit.path}\0${hit.line}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(hit);
+  }
+  return out.sort((a, b) => a.path.localeCompare(b.path));
+}
+
+function backlinksOne(targetPath: string, publishedOnly: boolean, lang: FilterLang): Backlink[] {
   const hits: Backlink[] = [];
   // The TARGET has to pass the visitor filter too, not just the sources: a
   // language-hidden note that answered with backlinks confirmed to an

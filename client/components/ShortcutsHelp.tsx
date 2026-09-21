@@ -36,6 +36,7 @@ import { layoutHints, loadLayoutHints } from "../layoutMap.ts";
 import { useStore } from "../state.ts";
 import { openTour } from "../tour.ts";
 import { openThemePicker } from "./ThemePicker.tsx";
+import { switchToTwin } from "../twins.ts";
 
 /** Which shell is mounted around the sheet. */
 export type Shell = "app" | "blog";
@@ -171,6 +172,18 @@ const GROUPS: Group[] = [
         admin: true,
         shell: "app",
         run: () => void newNoteFromTemplateCommand(),
+      },
+      // TURN THE NOTE OVER (shared/twins.ts). L for language, which is what
+      // this key is for nine times out of ten — and Alt, because the pair is
+      // a navigation verb and this is the navigation group. It is a no-op on
+      // a note with no other face, which is most of them: a chord that
+      // announced its own absence would be a chord you stop trusting.
+      {
+        label: "cmdTwinSwitch",
+        keys: ["Ctrl/Cmd", "Alt", "L"],
+        admin: true,
+        shell: "app",
+        run: () => switchToTwin(),
       },
       { label: "scFollowLink", via: "scFollowLinkKey" },
       // The tree carries images and PDFs now, and nothing else on screen says

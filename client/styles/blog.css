@@ -2540,3 +2540,18 @@
     height: 44px;
   }
 }
+
+/* ── Another face of this note ───────────────────────────────────────────────
+   A same-language twin pair — a long version and a short one — naming each
+   other under the article's own title. The bilingual pair has no line here:
+   the ع/EN switch in the masthead is already that door, and a second one
+   saying the same thing in the wrong language would be noise. */
+.s-blog-article__face {
+  margin: 10px 0 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+.s-blog-article__face a {
+  color: var(--accent);
+}

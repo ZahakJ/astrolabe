@@ -10,6 +10,7 @@ import matter from "gray-matter";
 import { isTexPath } from "../shared/noteFormat.ts";
 import { folderSlug } from "../shared/publicFolders.ts";
 import { findTexFrontmatter } from "../shared/tex.ts";
+import { TWIN_KEY, twinLine } from "../shared/twins.ts";
 import { publishFlag, readFrontmatter, setFrontmatterLine, setPublishFlag, yamlQuote } from "./publish.ts";
 
 /** The comment fences a `.tex` frontmatter block is WRITTEN with (reading
@@ -135,6 +136,47 @@ export function parseAliases(fm: Record<string, unknown>): string[] {
   if (text === null) return out;
   for (const part of text.split(",")) push(part);
   return out;
+}
+
+// ----------------------------------------------------------------- twins
+
+/** The OTHER FACE this note declares — frontmatter `twin: [[Other]]`.
+ *
+ *  Re-exported through this module rather than imported from `shared/twins.ts`
+ *  at every call site for the reason the file's header gives: frontmatter is
+ *  the contract, and every key a note can carry is read in one place. The
+ *  rule itself is pure and lives in shared/ so the client and the tests can
+ *  hold it too. */
+export { parseFace, parseTwinRef as parseTwin } from "../shared/twins.ts";
+
+/** THE NEW FACE'S FIRST BYTES — "Create twin…" writing the other file.
+ *
+ *  The frontmatter of the note it is a face of, MINUS two keys, plus one:
+ *
+ *   • `twin:` goes, and is written back pointing the other way. Copying the
+ *     source's own declaration would have the new note declare itself the
+ *     twin of its twin's twin.
+ *   • `id:` goes. It is a creation stamp the template minted for ONE file
+ *     (shared/idStamp.ts, and the post date reads it); two files carrying the
+ *     same stamp would be two notes claiming one moment.
+ *
+ *  Everything else is kept, byte for byte — `publish:`, `tags:`, `banner:`,
+ *  `date:` — because the second face of a published post is a published post,
+ *  and re-deciding any of that would be this function inventing policy.
+ *
+ *  No body: the words are the author's to write, and a seeded heading in the
+ *  wrong language is worse than an empty file. */
+export function twinSeed(relPath: string, src: string, twinTarget: string): string {
+  const region = frontmatterRegion(relPath, src);
+  let head =
+    region === null
+      ? ""
+      : isTexPath(relPath)
+        ? `${TEX_OPEN}\n${region.text}\n${TEX_CLOSE}\n`
+        : `---\n${region.text}\n---\n`;
+  head = setNoteFrontmatterLine(relPath, head, "id", null);
+  head = setNoteFrontmatterLine(relPath, head, TWIN_KEY, twinLine(twinTarget));
+  return head;
 }
 
 // --------------------------------------------------------------- folders

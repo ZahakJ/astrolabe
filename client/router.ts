@@ -101,6 +101,7 @@ function orbitsRouteOf(pathname: string, hash: string): { path: string | null; s
   }
 }
 import { toast } from "./toast.ts";
+import { swapInPlace } from "./twins.ts";
 
 /** True while we are applying a URL to the store (popstate / initial load):
  *  the store subscription must then replace, not push, history entries. */
@@ -379,6 +380,18 @@ function canonicalise(url: string): void {
 function open(store: ReturnType<typeof useStore.getState>, path: string): void {
   const heading = location.hash ? decodeURIComponent(location.hash.slice(1)) : "";
   if (heading) store.setPendingHeading(heading);
+  // BACK OUT OF A FACE TURNS THE TAB BACK. A twin swap keeps the tab and
+  // changes its path (client/twins.ts), and it pushes a history entry like
+  // any other move — so stepping back must be the same gesture in reverse,
+  // not an ordinary open. Opening normally here would leave the reader with
+  // both faces in the strip: one note, two tabs, which is exactly the shape
+  // this feature exists to avoid.
+  const here = store.openPath;
+  if (here !== null && here !== path && store.twins[here]?.twin === path && swapInPlace(here, path)) {
+    const back = notePathToUrl(path) + location.hash;
+    if (currentUrl() !== back) history.replaceState(null, "", back);
+    return;
+  }
   store.openNote(path); // sets view back to "editor" as well
   const canonical = notePathToUrl(path) + location.hash;
   if (currentUrl() !== canonical) history.replaceState(null, "", canonical);
