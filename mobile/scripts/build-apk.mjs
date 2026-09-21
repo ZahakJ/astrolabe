@@ -42,6 +42,11 @@ const env = { ...process.env, JAVA_HOME, ANDROID_HOME, ANDROID_SDK_ROOT: ANDROID
 const run = (cmd, args, cwd) => execFileSync(cmd, args, { cwd, env, stdio: "inherit" });
 
 run("npx", ["--no-install", "vite", "build"], ROOT);
+// …and the pocket vault's half of www/: the web client's own build, the
+// bootstrap and the service worker. It is a separate step because it needs
+// `dist/` from the repository root, and it says so loudly when that is missing
+// rather than shipping an APK with a door that opens onto nothing.
+run("node", [join(HERE, "build-pocket.mjs")], ROOT);
 run("npx", ["--no-install", "cap", "sync", "android"], ROOT);
 
 const task = variant === "release" ? "assembleRelease" : "assembleDebug";

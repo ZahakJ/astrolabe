@@ -203,6 +203,11 @@ label {
 
 input[type="text"],
 input[type="url"],
+/* `search` joined the list with the repository picker (3.22). A type left out
+   of this selector is a field at the browser's own width and the browser's own
+   font size — which on a WebView means the page zooms on focus and never comes
+   back. */
+input[type="search"],
 textarea {
   display: block;
   width: 100%;
@@ -276,7 +281,10 @@ button {
 }
 
 .btn-primary:active {
-  background: #b08f21;
+  /* The room's accent, pressed — not the gold this line kept from the
+     pre-3.21.1 palette, which was the one leftover of iron-gall on a screen
+     that is otherwise entirely the app's default room. */
+  background: #388bfd;
 }
 
 .btn-primary[disabled] {
@@ -502,4 +510,54 @@ button {
   font-size: 12.5px;
   color: var(--text-faint);
   unicode-bidi: isolate;
+}
+
+/* ──────────────────────────────────────────────────────  the pocket vault ── */
+
+/* THE DEVICE CODE. It is read off this screen and typed on another one, by a
+   person holding two devices, so it is the largest thing on the page and it is
+   monospaced: an `l` that could be a `1` costs them the whole attempt. LTR and
+   isolated in both languages — it is a code, not prose — and selectable, which
+   nothing else on these screens is, because copying it is the one thing
+   somebody might want to do with it. */
+.device-code {
+  margin: 8px 0 4px;
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 34px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-align: center;
+  color: var(--text);
+  direction: ltr;
+  unicode-bidi: isolate;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* The lock beside a private repository's name, at the size of the text it
+   sits in rather than the 16px the icon is drawn at. */
+.saved .host svg {
+  inline-size: 12px;
+  block-size: 12px;
+  vertical-align: -1px;
+  margin-inline-end: 2px;
+}
+
+/* A <select> is a field, and a field on a phone is 16px or the browser zooms
+   the page to read it. */
+select {
+  inline-size: 100%;
+  min-block-size: var(--target);
+  padding: 10px 12px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 16px;
+}
+
+select:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
 }

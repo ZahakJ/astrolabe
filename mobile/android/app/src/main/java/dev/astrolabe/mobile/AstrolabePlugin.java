@@ -144,6 +144,60 @@ public class AstrolabePlugin extends Plugin {
         call.resolve();
     }
 
+    /**
+     * OPEN THE POCKET VAULT — the third door.
+     *
+     * The vault the owner cloned from GitHub is served from the app's OWN
+     * origin: the web client's build ships inside the APK and is the page at
+     * `/`, because that client routes on the pathname and served anywhere else
+     * it rewrites its own address on the first paint. So there is no foreign
+     * host to trust and nothing for the navigation gate to decide. What there
+     * IS, is a stale trusted host from the last instance the
+     * owner connected to, and leaving it standing would mean a pocket session
+     * still counted somebody else's server as same-app. So the trust is dropped
+     * on the way in.
+     */
+    @PluginMethod
+    public void openPocket(PluginCall call) {
+        getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY_LAST_SERVER).apply();
+        final String url = getBridge().getLocalUrl() + "/";
+        getActivity().runOnUiThread(() -> getBridge().getWebView().loadUrl(url));
+        call.resolve();
+    }
+
+    /**
+     * ONE GIT REQUEST, PERFORMED NATIVELY.
+     *
+     * github.com's git endpoints ship no CORS headers, which is why every other
+     * call this shell makes goes through the native side too. The body travels
+     * as base64 in both directions because a push's body is a packfile — see
+     * GitTransport for the whole of that argument.
+     *
+     * On its own thread: a clone is minutes of network on a phone, and the main
+     * thread is where the page is painted.
+     */
+    @PluginMethod
+    public void gitRequest(PluginCall call) {
+        final String url = call.getString("url");
+        if (url == null || url.isEmpty()) {
+            call.reject("A url is required");
+            return;
+        }
+        final String method = call.getString("method", "GET");
+        final JSObject headers = call.getObject("headers", new JSObject());
+        final String bodyBase64 = call.getString("bodyBase64");
+        new Thread(() -> {
+            try {
+                call.resolve(JSObject.fromJSONObject(GitTransport.request(url, method, headers, bodyBase64)));
+            } catch (Exception e) {
+                // The message reaches the connection screen as the reason the
+                // clone stopped. It never carries the Authorization header:
+                // GitTransport writes that one through and never reads it back.
+                call.reject(e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+            }
+        }).start();
+    }
+
     /** Dismiss the capture sheet. Only the share activity ever calls it; the
      *  main activity's own exit is the back gesture. */
     @PluginMethod

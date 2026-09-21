@@ -3,6 +3,7 @@ import { t } from "./i18n.ts";
 import { AstrolabeNative } from "./native.ts";
 import { normalizeServerUrl, probe, type MeData } from "./server.ts";
 import { forgetServer, lastServer, loadServers, rememberServer, type SavedServer } from "./store.ts";
+import { readDoor, readRepo } from "./pocket/store.ts";
 
 /**
  * The connection screen: the only screen this app owns.
@@ -14,6 +15,15 @@ import { forgetServer, lastServer, loadServers, rememberServer, type SavedServer
 
 const TRASH = "M2.5 4h11M6.5 4V2.8a.8.8 0 0 1 .8-.8h1.4a.8.8 0 0 1 .8.8V4M4 4l.6 8.4a1 1 0 0 0 1 .93h4.8a1 1 0 0 0 1-.93L12 4";
 
+/** THE THIRD DOOR, LOADED ONLY WHEN IT IS OPENED. It brings isomorphic-git, a
+ *  filesystem and a search index with it — about 380 kB — and the screen this
+ *  app shows first is a text field and a button. A reader who has a server of
+ *  their own never pays for the other kind of vault. */
+async function openPocketDoor(root: HTMLElement, onBack: () => void): Promise<void> {
+  const { mountPocketDoor } = await import("./pocket/door.ts");
+  await mountPocketDoor(root, { onBack });
+}
+
 export interface ConnectOptions {
   /** True when the owner arrived here by backing OUT of a connected instance.
    *  Auto-connect is suppressed, because reconnecting to the thing someone just
@@ -22,6 +32,15 @@ export interface ConnectOptions {
 }
 
 export async function mountConnect(root: HTMLElement, options: ConnectOptions): Promise<void> {
+  // THE REMEMBERED DOOR. From 3.22 there are two: an instance on the owner's
+  // own host, and a vault cloned from GitHub into this app. Whichever was used
+  // last is the one that opens without a tap — and `pick` suppresses both,
+  // because a reader who has just backed OUT of a vault must not be put
+  // straight back into it.
+  if (!options.pick && (await readDoor()) === "pocket" && (await readRepo())) {
+    await openPocketDoor(root, () => void renderForm(root));
+    return;
+  }
   const last = await lastServer();
   if (!options.pick && last) {
     await autoConnect(root, last);
@@ -114,6 +133,18 @@ async function renderForm(root: HTMLElement, options: FormOptions = {}): Promise
 
   const servers = await loadServers();
   if (servers.length > 0) sheet.append(savedList(servers, root));
+
+  // The third door. It sits UNDER the instance form rather than beside it,
+  // because this app is still first of all a door onto a server somebody runs;
+  // the pocket vault is the answer for somebody who runs none.
+  sheet.append(
+    el("button", {
+      class: "btn-link",
+      type: "button",
+      textContent: t.pocketOrGithub,
+      onclick: () => void openPocketDoor(root, () => void renderForm(root, options)),
+    }),
+  );
 
   root.replaceChildren(sheet);
 

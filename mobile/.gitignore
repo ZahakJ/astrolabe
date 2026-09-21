@@ -4,9 +4,16 @@
 
 node_modules/
 
-# The Vite build of the shell. `cap sync` copies it into the APK; nothing reads
-# it from here.
+# The Vite build of the shell, plus the web client's build copied in beside it
+# for the pocket vault (scripts/build-pocket.mjs). `cap sync` copies the whole
+# directory into the APK; nothing reads it from here.
 www/
+
+# THE GITHUB OAUTH APP'S CLIENT ID. Public by design — the device flow has no
+# client secret — but it belongs to whoever built the APK, not to the
+# repository, and a checked-in one would send every fork's sign-in through the
+# release's own app. See README.md, "A vault from GitHub".
+.env
 
 # Gradle's working state and every build output under it.
 android/.gradle/

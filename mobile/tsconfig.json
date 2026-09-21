@@ -1,23 +1,35 @@
 {
   // Standalone, not an `extends` of the repo root. The root tsconfig is tuned
   // for a Node server plus a React client and pulls in `client/`, `server/` and
-  // `shared/`; this package is neither, and resolves its imports from
-  // `mobile/node_modules` (its own Capacitor copy) rather than walking up. The
-  // one thing kept in lockstep with the root is strictness: nothing here is
-  // allowed to be looser than the app it fronts.
+  // `shared/`; this package resolves its imports from `mobile/node_modules`
+  // (its own Capacitor copy) rather than walking up. The one thing kept in
+  // lockstep with the root is strictness: nothing here is allowed to be looser
+  // than the app it fronts.
+  //
+  // WHY `noUncheckedIndexedAccess` AND `exactOptionalPropertyTypes` CAME OFF
+  // (3.22, the pocket vault). The shell stopped being only its own two screens:
+  // `src/pocket/` runs the vault inside the WebView and imports `shared/` — the
+  // same parsers, scanners and wire types the server and the web client use.
+  // TypeScript checks an imported file under the IMPORTING project's options,
+  // so those two flags put 285 errors on 18 files that the repo's own
+  // `npm run typecheck` passes, none of them about this package's code. A
+  // package that renders a second verdict on somebody else's file is not
+  // stricter, it is noisier: the flags would have been switched off one
+  // `?? ""` at a time, in files this package does not own. So the rules are
+  // the repo's rules, exactly, and the difference is written down here rather
+  // than paid for in `shared/`.
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],
+    "resolveJsonModule": true,
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
