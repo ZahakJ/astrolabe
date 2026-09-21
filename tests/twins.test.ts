@@ -21,7 +21,7 @@
 
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
-import { graph, backlinks, initIndexer, posts, twinOf, twinFaceOf, twinPairs, twinSwapTable, twinLanguagesDiffer } from "../server/indexer.ts";
+import { graph, backlinks, initIndexer, posts, twinOf, twinFaceOf, twinPairs, twinSwapTable } from "../server/indexer.ts";
 import { initSite } from "../server/site.ts";
 import { initVault } from "../server/vault.ts";
 import {
@@ -136,8 +136,7 @@ describe("symmetry", () => {
     assert.equal(short?.lang, "en");
     // Two English faces: the public site's language machinery stands down.
     assert.equal(short?.differs, false);
-    assert.equal(twinLanguagesDiffer("Slit short.md"), false);
-    assert.equal(twinLanguagesDiffer("Quantum.md"), true);
+    assert.equal(twinFaceOf("Quantum.md")?.differs, true);
   });
 });
 
