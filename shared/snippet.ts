@@ -9,8 +9,13 @@
 // was escaped before or after the match, would show up as a row that looks
 // subtly wrong beside its neighbours. Moved here rather than exported from the
 // indexer so the page store depends on nothing that holds the note index.
+//
+// It moved again, from server/ to shared/, when a THIRD index appeared: the
+// pocket server (mobile/src/pocket/), which searches a GitHub-backed vault
+// inside a phone's WebView. Same argument, one row further out — the rows it
+// returns land in the same renderer as the other two.
 
-import { findAnyMatches } from "../shared/fold.ts";
+import { findAnyMatches } from "./fold.ts";
 
 /** Characters kept either side of the first match. */
 export const SNIPPET_RADIUS = 80;

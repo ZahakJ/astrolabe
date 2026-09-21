@@ -288,7 +288,7 @@ class FrontmatterWidget extends WidgetType {
     const card = buildPropsCard(this.yaml, {
       prefix: "cm-s-props",
       // A `.tex` note's properties live in a `%---` comment block and are
-      // edited exactly like a markdown note's: server/frontmatterEdit.ts knows
+      // edited exactly like a markdown note's: shared/frontmatterEdit.ts knows
       // both fences, so the card does not have to.
       ...propsEditor(view.state.facet(notePathFacet)),
       makeTag: (value) => {

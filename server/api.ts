@@ -147,7 +147,7 @@ import {
 } from "./headingRepair.ts";
 import { addNoteAlias, setNoteFrontmatterLine, setNotePublishFlag, twinSeed } from "./noteFrontmatter.ts";
 import { TWIN_KEY, twinLine } from "../shared/twins.ts";
-import { frontmatterKeyRefusal, setNoteProperty } from "./frontmatterEdit.ts";
+import { frontmatterKeyRefusal, setNoteProperty } from "../shared/frontmatterEdit.ts";
 import {
   buildDesignFontCss,
   buildFaceListCss,
@@ -1150,7 +1150,7 @@ api.post("/publish", async (c) => {
 //
 // So: arbitrary keys, guarded by SHAPE rather than by name — a single-line
 // identifier, capped, no control characters, nothing that could smuggle a
-// second YAML line into the block (server/frontmatterEdit.ts owns that half,
+// second YAML line into the block (shared/frontmatterEdit.ts owns that half,
 // including the `.tex` comment-block rule that a non-ASCII key would break the
 // whole block) — with one closed set of exceptions:
 //

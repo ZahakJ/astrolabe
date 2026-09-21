@@ -41,7 +41,7 @@
 // `foldTerm` on both sides, which is the same function minisearch's
 // `processTerm` applies to every note — «المقدمة» finds a pointed
 // «الْمُقَدِّمَة» on a page for the same reason it finds one in a note, and a
-// snippet is cut and `<mark>`ed by server/snippet.ts, the code the note hits
+// snippet is cut and `<mark>`ed by shared/snippet.ts, the code the note hits
 // use. Two fold tables that disagreed would be a search that finds a word in
 // a note and not in the book the note quotes it from.
 //
@@ -78,7 +78,7 @@ import type { SearchHit, VaultEvent } from "../shared/types.ts";
 import { bookKey, isPdfPath, listBooks } from "./books.ts";
 import { getSettings } from "./settings.ts";
 import { dataDir } from "./site.ts";
-import { escapeHtml, snippetOf } from "./snippet.ts";
+import { escapeHtml, snippetOf } from "../shared/snippet.ts";
 import { normalizeRel, onEvent, safeAbs, VaultError } from "./vault.ts";
 
 const PDFTEXT_FILE = "pdftext.json";
