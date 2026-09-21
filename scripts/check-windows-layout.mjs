@@ -79,6 +79,14 @@ const POSTURES = {
  *  cell, so a posture that failed to take is a failure and not a pass. */
 const FINE = { mouse: true, slate: false, touchlaptop: true };
 
+/** …and what the breakpoint's OWN question answers in each (3.23.0): is this
+ *  device's primary pointer a finger that cannot hover? A slate says yes and
+ *  gets the drawer under 1000px, exactly as it did under the any-pointer
+ *  form; a touch laptop says no, because the mouse beside the touchscreen
+ *  hovers, and keeps the docked panes defect F is about. Asserted too, so a
+ *  posture cannot half-take. */
+const OWN_POINTER = { mouse: false, slate: true, touchlaptop: false };
+
 const errs = [];
 let checks = 0;
 const fail = (where, message) => errs.push(`${where}: ${message}`);
@@ -153,6 +161,10 @@ function measure() {
     dir: getComputedStyle(document.body).direction,
     flip: app ? app.classList.contains("s-app--flip") : false,
     fine: matchMedia("(any-pointer: fine)").matches,
+    // What the breakpoint itself asks (client/state.ts DRAWER_QUERY, 3.23.0):
+    // the PRIMARY pointer, because `any-pointer: fine` is true of a phone
+    // with a stylus and that phone is not a laptop.
+    ownPointer: matchMedia("(pointer: coarse) and (hover: none)").matches,
     sidebar: box(".s-sidebar"),
     panel: box(".s-panel"),
     main: box(".s-main"),
@@ -174,7 +186,7 @@ function measure() {
 /** One cell of the matrix. */
 function assertCell(where, m, { posture, seeded }) {
   const phone = m.inner <= PHONE_AT;
-  const drawer = phone || (!m.fine && m.inner <= 999);
+  const drawer = phone || (m.ownPointer && m.inner <= 999);
 
   ok(where, m.docScroll <= 0, `the document scrolls sideways by ${m.docScroll}px`);
 
@@ -303,6 +315,10 @@ async function ladder({ dpr, posture, rtl, seeded }) {
     if (m.inner !== width) fail(where, `asked for ${width} CSS px, got ${m.inner}`);
     if (m.fine !== FINE[posture]) {
       fail(where, `the ${posture} posture did not take: (any-pointer: fine) is ${m.fine}`);
+      continue;
+    }
+    if (m.ownPointer !== OWN_POINTER[posture]) {
+      fail(where, `the ${posture} posture did not take: (pointer: coarse) and (hover: none) is ${m.ownPointer}`);
       continue;
     }
     assertCell(where, m, { posture, seeded });
