@@ -1,7 +1,7 @@
 // Where a YAML scalar ends and its `# comment` begins — one implementation.
 //
 // Three places in the product have to answer this question about the same
-// bytes: the frontmatter WRITER (server/frontmatterEdit.ts), which puts the
+// bytes: the frontmatter WRITER (shared/frontmatterEdit.ts), which puts the
 // comment back after rewriting the value; the tag INDEX (server/indexer.ts),
 // which must not file a note under a tag named "alpha # why this one"; and the
 // properties CARD (client/editor/noteMeta.ts), which shows the value and — as
@@ -51,4 +51,16 @@ export function splitYamlComment(value: string): [string, string] {
 /** The scalar with its trailing comment taken off. */
 export function uncomment(value: string): string {
   return splitYamlComment(value)[0];
+}
+
+/** A YAML double-quoted scalar. The one escape set a double-quoted YAML string
+ *  needs — backslash and the quote itself — so any value at all round-trips
+ *  through a parser unchanged. It sits here rather than in server/publish.ts,
+ *  which is where it was written, because the frontmatter WRITER moved to
+ *  shared/ for the phone and a writer cannot quote through a server import.
+ *  (shared/capture.ts has a near-twin that also flattens newlines, because a
+ *  captured line must stay one line; this one is for values the reader typed
+ *  and will read back.) */
+export function yamlQuote(value: string): string {
+  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }

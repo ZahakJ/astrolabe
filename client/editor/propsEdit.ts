@@ -7,7 +7,7 @@
 // card exists to spare the reader, and exactly what people ask Obsidian for.
 // Obsidian shipped an editor and it round-trips YAML through a serializer, so
 // it reformats quote styles, drops comments and reorders keys it did not
-// touch. Astrolabe's writes are byte-surgical (server/frontmatterEdit.ts) and the
+// touch. Astrolabe's writes are byte-surgical (shared/frontmatterEdit.ts) and the
 // property test in tests/frontmatter.test.ts is the promise, not the prose.
 //
 // WHERE THE WRITE GOES, and why not through the buffer. The obvious

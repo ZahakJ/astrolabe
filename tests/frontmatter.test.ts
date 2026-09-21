@@ -16,7 +16,7 @@ import {
   setPublishFlag,
   yamlQuote,
 } from "../server/publish.ts";
-import { frontmatterKeyRefusal, setNoteProperty } from "../server/frontmatterEdit.ts";
+import { frontmatterKeyRefusal, setNoteProperty } from "../shared/frontmatterEdit.ts";
 import type { PropertyValue } from "../shared/types.ts";
 import { readNoteFrontmatter } from "../server/noteFrontmatter.ts";
 import { pick, rng } from "./helpers/vault.ts";
@@ -346,7 +346,7 @@ describe("publish flag", () => {
 // release's story rests on it: "Obsidian's properties editor corrupts YAML
 // round-trips; Astrolabe's frontmatter writer is byte-surgical and
 // property-tested." These are the tests that make that a claim rather than a
-// boast. The five rails are named in server/frontmatterEdit.ts's header; each
+// boast. The five rails are named in shared/frontmatterEdit.ts's header; each
 // one has cases here, and the property test at the bottom asserts the first
 // of them — only the edited key's lines change — over generated notes.
 

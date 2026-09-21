@@ -2,6 +2,11 @@
 // A note is public iff frontmatter `publish` is exactly true or "true".
 
 import matter from "gray-matter";
+// The quoting rule moved to shared/yaml.ts with the frontmatter writer (the
+// phone edits the same YAML and cannot import a server module); re-exported
+// here, which is where the product has always asked for it.
+import { yamlQuote } from "../shared/yaml.ts";
+export { yamlQuote };
 
 /** Read frontmatter data without touching the body. Tolerates bad YAML. */
 export function readFrontmatter(src: string): Record<string, unknown> {
@@ -74,6 +79,4 @@ export function setPublishFlag(src: string, publish: boolean): string {
 }
 
 /** YAML double-quoted scalar for a single-line string value. */
-export function yamlQuote(value: string): string {
-  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
-}
+

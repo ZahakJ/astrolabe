@@ -13,6 +13,11 @@
 // note silently leaves the public site. That failure is the reason this file
 // exists (v1.8 spec K, Obsidian parity #1).
 //
+// It lives in shared/ rather than server/ because the phone's pocket server
+// (mobile/src/pocket/) edits the same frontmatter with no Node under it, and a
+// SECOND byte-surgical YAML writer is the one thing this file exists to make
+// impossible.
+//
 // THE DANGER RAIL, in the order it is enforced below:
 //
 //  1. Only the lines belonging to the edited key are ever rewritten. Every
@@ -35,11 +40,11 @@
 //     Unless comments remain in the block: those are the reader's words and a
 //     property editor does not get to delete them.
 
-import { isTexPath } from "../shared/noteFormat.ts";
-import type { PropertyValue } from "../shared/types.ts";
-import { findTexFrontmatter } from "../shared/tex.ts";
-import { splitYamlComment } from "../shared/yaml.ts";
-import { yamlQuote } from "./publish.ts";
+import { isTexPath } from "./noteFormat.ts";
+import type { PropertyValue } from "./types.ts";
+import { findTexFrontmatter } from "./tex.ts";
+import { splitYamlComment } from "./yaml.ts";
+import { yamlQuote } from "./yaml.ts";
 
 /** A `.tex` note keeps its frontmatter in a `%---` COMMENT block, and the
  *  fences are written the way server/noteFrontmatter.ts writes them. */

@@ -16,12 +16,43 @@ import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
 import { findAnyMatches, foldQuery, foldTerm, findMatches } from "../shared/fold.ts";
 import { parseSearchQuery, searchScope, type ParsedQuery, type QueryFilter } from "../shared/searchQuery.ts";
-import { markHtml, snippetOf, windowAround } from "./snippet.ts";
+import { markHtml, snippetOf, windowAround } from "../shared/snippet.ts";
+// The markdown→prose strip behind snippets, backlink context and excerpts.
+// Moved to shared/ with the rest of the pure index (the phone's pocket server
+// cuts snippets by the same rule; see shared/prose.ts).
+import {
+  FenceSkipper,
+  TABLE_RULE_RE,
+  cleanContextLine,
+  contextProse,
+  expandedContext,
+  isFurnitureLine,
+  proseLine,
+  stripInlineMd,
+  stripLinePrefix,
+  stripMarkdown,
+} from "../shared/prose.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
 import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { drawingIndexText } from "../shared/drawing.ts";
 import { markdownAnchors, type NoteAnchor } from "../shared/anchors.ts";
 import { uncomment } from "../shared/yaml.ts";
+// The pure half of this file, which the pocket server on the phone
+// (mobile/src/pocket/) reads the same vault with. Moved rather than copied:
+// two spellings of "what does [[Folder/Note]] name" is a backlinks panel that
+// loses rows on one of the two, silently.
+import {
+  linkKeys,
+  parseAssets,
+  parseFmDate,
+  parseLinks,
+  parseTags,
+  pickShortest,
+  scalarProps,
+  splitFrontmatter,
+  wikilinkRegex,
+} from "../shared/noteParse.ts";
+export { wikilinkRegex };
 import { countNoteWords, countWords, readingMinutes } from "../shared/wordCount.ts";
 import { cleanLabelEntry, tagKey, type TagLabelMap } from "../shared/tagLabels.ts";
 import { pageFlag } from "./pages.ts";
@@ -542,10 +573,6 @@ function scheduleVacuum(): void {
   vacuumTimer.unref?.();
 }
 
-/** Matches [[Name]], [[Name#heading]], [[Name|alias]], [[Name#heading|alias]]. */
-export function wikilinkRegex(): RegExp {
-  return /\[\[([^[\]|#]+)(#[^[\]|]*)?(\|[^[\]]*)?\]\]/g;
-}
 
 // -------------------------------------------------------- language detection
 
@@ -1415,148 +1442,11 @@ function removeName(title: string, relPath: string): void {
   if (set.size === 0) byName.delete(key);
 }
 
-// ------------------------------------------------------------------- parsing
-
-function splitFrontmatter(content: string): { body: string; frontmatter: string; bodyStartLine: number } {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(content);
-  if (!match) return { body: content, frontmatter: "", bodyStartLine: 0 };
-  // Count what was CUT, not what remains: line N of `body` is line
-  // N + bodyStartLine of the file the editor opens.
-  const cut = match[0].match(/\n/g)?.length ?? 0;
-  return { body: content.slice(match[0].length), frontmatter: match[1], bodyStartLine: cut };
-}
-
-function parseLinks(body: string): NoteRecord["links"] {
-  const links: NoteRecord["links"] = [];
-  const lines = body.split("\n");
-  const re = wikilinkRegex();
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trimEnd();
-    for (let m = re.exec(line); m !== null; m = re.exec(line)) {
-      const target = m[1].trim();
-      if (target) links.push({ target, line: line.trim(), lineIdx: i });
-    }
-    re.lastIndex = 0;
-  }
-  return links;
-}
-
-// `![alt](dest)` — the SAME shape the renderers match (client/reading/render.ts
-// and client/editor/livePreview.ts): the destination runs to the first
-// whitespace or `)`, with an optional quoted title after it. Keeping the three
-// regexes the same shape is the point — the allowlist must cover exactly what
-// the page will ask for, no more.
-const MD_IMAGE_RE = /!\[[^\]]*\]\(([^)\s]+)(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\)/g;
-
-/** Vault-relative destinations of standard-markdown images in `body`, resolved
- *  against the note's own folder — the server-side twin of the client's
- *  `resolveRelative()` (client/editor/embeds.ts), which turns exactly these
- *  strings into `/api/file?path=…`. External schemes are skipped, `.`/`..`
- *  segments are folded, and a path that climbs above the vault root is
- *  dropped rather than clamped. */
-function parseAssets(body: string, relPath: string): string[] {
-  const out: string[] = [];
-  const seen = new Set<string>();
-  const base = relPath.includes("/") ? relPath.slice(0, relPath.lastIndexOf("/")).split("/") : [];
-  MD_IMAGE_RE.lastIndex = 0;
-  for (let m = MD_IMAGE_RE.exec(body); m !== null; m = MD_IMAGE_RE.exec(body)) {
-    const raw = m[1];
-    if (/^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("//") || raw.startsWith("#")) continue;
-    let clean = raw.replace(/^<|>$/g, "").replace(/[?#].*$/, "");
-    try {
-      clean = decodeURIComponent(clean);
-    } catch {
-      // A stray '%' is not an encoding — take the destination literally.
-    }
-    clean = clean.replace(/\\/g, "/");
-    if (!clean) continue;
-    // A leading '/' means the vault root, exactly as resolveRelative() reads it.
-    const parts = clean.startsWith("/") ? [] : [...base];
-    let escaped = false;
-    for (const seg of clean.replace(/^\/+/, "").split("/")) {
-      if (seg === "" || seg === ".") continue;
-      if (seg === "..") {
-        if (parts.length === 0) {
-          escaped = true;
-          break;
-        }
-        parts.pop();
-      } else parts.push(seg);
-    }
-    if (escaped || parts.length === 0) continue;
-    const rel = parts.join("/");
-    if (!seen.has(rel)) {
-      seen.add(rel);
-      out.push(rel);
-    }
-  }
-  return out;
-}
-
-/** Frontmatter date value → epoch ms, or null when absent/unparseable.
- *  gray-matter's YAML parser hands back Date objects for bare dates and
- *  strings for quoted ones — both are honored. */
-function parseFmDate(value: unknown): number | null {
-  if (value instanceof Date) {
-    const ms = value.getTime();
-    return Number.isNaN(ms) ? null : ms;
-  }
-  if (typeof value === "string" && value.trim()) {
-    const ms = Date.parse(value.trim());
-    return Number.isNaN(ms) ? null : ms;
-  }
-  return null;
-}
-
-function parseTags(body: string, frontmatter: string): string[] {
-  const tags = new Set<string>();
-  // Inline #tags: '#' preceded by start/whitespace/'(' and followed by a word char.
-  const inline = /(?:^|[\s(])#([\p{L}\p{N}_][\p{L}\p{N}_/-]*)/gu;
-  for (let m = inline.exec(body); m !== null; m = inline.exec(body)) {
-    tags.add(m[1].toLowerCase());
-  }
-  // Frontmatter `tags:` — inline scalar, [a, b] flow list, or block list.
-  const fmMatch = /^tags:[ \t]*(.*)$/m.exec(frontmatter);
-  if (fmMatch) {
-    // A trailing `# comment` is the author's aside, not part of the tag. The
-    // scan is quote-aware (shared/yaml.ts) because `tags: ["a # b"]` names one
-    // tag with a hash in it — the same verdict the frontmatter writer and the
-    // properties card now reach, so a note cannot be filed under a tag reading
-    // "alpha # why this one" that nothing else in the product agrees exists.
-    const inlineValue = uncomment(fmMatch[1].trim());
-    let values: string[] = [];
-    if (inlineValue.startsWith("[")) {
-      values = inlineValue.replace(/^\[|\]$/g, "").split(",");
-    } else if (inlineValue) {
-      values = inlineValue.split(",");
-    } else {
-      const rest = frontmatter.slice(fmMatch.index + fmMatch[0].length);
-      for (const line of rest.split("\n")) {
-        const item = /^[ \t]*-[ \t]+(.+)$/.exec(line);
-        if (item) values.push(uncomment(item[1].trim()));
-        else if (line.trim()) break;
-      }
-    }
-    for (const value of values) {
-      const tag = value.trim().replace(/^["'#]+|["']+$/g, "").toLowerCase();
-      if (tag) tags.add(tag);
-    }
-  }
-  return [...tags].sort();
-}
+// The parsing that used to sit here is shared/noteParse.ts, imported above:
+// the phone's pocket server reads the same vault and had to read it the same
+// way.
 
 // ------------------------------------------------------------------- queries
-
-/** Shortest-path winner among duplicate basenames: fewest segments, then
- *  shortest string, then alpha — same rule for notes and attachments. */
-function pickShortest(candidates: Set<string>): string {
-  return [...candidates].sort((a, b) => {
-    const depth = a.split("/").length - b.split("/").length;
-    if (depth !== 0) return depth;
-    if (a.length !== b.length) return a.length - b.length;
-    return a.localeCompare(b);
-  })[0];
-}
 
 /** Restrict a candidate set to those `keep` accepts; null when none survive. */
 function filterCandidates(
@@ -1580,25 +1470,6 @@ function filterCandidates(
  *  than the by-design /api/note allowance, which requires the exact path the
  *  caller is trying to learn. Direct access by full path stays allowed — this
  *  changes discovery, not reads. */
-/** The two forms a wikilink target reduces to before any table is consulted:
- *  `key`, the anchor/alias-stripped lowercase name, and `asPath`, that key
- *  normalized as a vault-relative path.
- *
- *  Extracted so resolveLink() and the reverse index cannot drift. A reverse
- *  index keyed even slightly differently from the resolver is a backlinks panel
- *  that quietly loses rows, which is the worst shape a perf fix can take: it
- *  looks right and it is wrong. */
-function linkKeys(target: string): { key: string; asPath: string } {
-  // The extension comes off whatever it is: `[[Paper.tex]]` and `[[Paper]]`
-  // name the same note, exactly as `[[Note.md]]` and `[[Note]]` always did.
-  const key = stripNoteExt(target.split(/[#|]/)[0].trim().toLowerCase());
-  // Path-form targets ([[Folder/Note]]) are matched against the vault-relative
-  // path table, so `./Folder/Note` and `Folder/Note` have to arrive as one
-  // string.
-  const asPath = path.posix.normalize(key.replace(/\\/g, "/")).replace(/^\.?\/+/, "");
-  return { key, asPath };
-}
-
 export function resolveLink(
   name: string,
   publishedOnly: boolean,
@@ -2735,16 +2606,6 @@ const EXCERPT_MAX = 220;
 const EXCERPT_MIN_LETTERS = 30;
 const EXCERPT_MAX_PARAGRAPHS = 40;
 
-/** True for metadata-ish furniture lines common in note templates: a bare
- *  timestamp, or a short "Label:" line whose content is only #tags ("Status:
- *  #draft", "Tags: #a #b"). Once #tags and one short leading label are
- *  removed, no letters remain — real prose always keeps some. */
-function isFurnitureLine(raw: string): boolean {
-  const noTags = raw.trim().replace(/(?:^|[\s(])#[\p{L}\p{N}_][\p{L}\p{N}_/-]*/gu, " ");
-  const rest = noTags.replace(/^[\p{L} ]{1,24}:\s*/u, "");
-  return (rest.match(/\p{L}/gu) ?? []).length === 0;
-}
-
 /** First real paragraph of a note body as prose: headings, images, tables,
  *  fences and math never count; consecutive prose lines are joined
  *  (hard-wrapped sources) until a blank/heading/table/fence ends a paragraph.
@@ -3472,27 +3333,6 @@ export interface SearchOptions {
  *  thousand `resolveLink` calls. A filter naming a note that does not exist
  *  compiles to "match nothing", which is the honest answer — `linkto:Ghost` is
  *  a question with no results, not a question to ignore. */
-/** Frontmatter as a flat string map: strings, numbers, booleans and dates
- *  as written; a list of scalars joined with ", "; anything nested dropped.
- *  Keys are lowercased so `prop:Status=x` and `prop:status=x` agree. */
-function scalarProps(fm: Record<string, unknown>): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [key, value] of Object.entries(fm)) {
-    const k = key.trim().toLowerCase();
-    if (k === "") continue;
-    const scalar = (v: unknown): string | null =>
-      typeof v === "string" ? v.trim() : typeof v === "number" || typeof v === "boolean" ? String(v) : v instanceof Date ? v.toISOString().slice(0, 10) : null;
-    if (Array.isArray(value)) {
-      const items = value.map(scalar).filter((x): x is string => x !== null && x !== "");
-      if (items.length > 0) out[k] = items.join(", ");
-      continue;
-    }
-    const s = scalar(value);
-    if (s !== null && s !== "") out[k] = s.slice(0, 400);
-  }
-  return out;
-}
-
 function compileFilters(
   filters: readonly QueryFilter[],
   publishedOnly: boolean,
@@ -4508,219 +4348,6 @@ export function tagPageLabels(folder: string): TagLabelMap {
   return out;
 }
 
-// ------------------------------------------------------- markdown stripping
-
-/** Remove block-level markers from the start of a line (headings, quotes,
- *  list bullets, checkboxes) so it reads as prose. */
-function stripLinePrefix(line: string): string {
-  return line
-    .replace(/^\s*>\s?/, "")
-    .replace(/^\s{0,3}#{1,6}\s+/, "")
-    .replace(/^\s*(?:[-*+]|\d+[.)])\s+\[[ xX]\]\s*/, "")
-    .replace(/^\s*(?:[-*+]|\d+[.)])\s+/, "");
-}
-
-/** A table's alignment row — `|---|:--:|` — which carries no words at all. */
-const TABLE_RULE_RE = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
-
-/** One source line → prose context: block prefixes and inline marks stripped,
- *  ONE table cell kept, [[wikilinks]] kept for the client to gild.
- *
- *  A TABLE ROW IS NOT A SENTENCE. This used to join every cell of a row with
- *  " · ", so a backlink into a five-column table came back as "Dune · Herbert ·
- *  1965 · ★★★★ · [[Read]]" — an unreadable cell-join in a card whose whole job
- *  is to show the reader the sentence their link sits in. (And the joiner was
- *  a `·` between two runs of text, which is banned everywhere else in this
- *  product for the reason the status bar gives.)
- *
- *  So: pick ONE cell. `needles` — the wikilink being reported, or the search
- *  terms being highlighted — decides which, because the cell the caller is
- *  about is the only cell worth showing; with no needle, or no cell matching
- *  one, the first cell that carries anything wins. The alignment row carries
- *  nothing and comes back empty, which every caller already treats as "no
- *  context here". */
-function cleanContextLine(line: string, needles?: readonly string[]): string {
-  const stripped = stripInlineMd(stripLinePrefix(line));
-  const tidy = (text: string): string => text.replace(/\s{2,}/g, " ").trim();
-  if (!/^\s*\|/.test(stripped)) return tidy(stripped);
-  if (TABLE_RULE_RE.test(stripped)) return "";
-  const cells = stripped
-    .replace(/^\s*\|/, "")
-    .replace(/\|\s*$/, "")
-    .split("|")
-    .map(tidy)
-    .filter((cell) => cell !== "");
-  if (cells.length === 0) return "";
-  if (needles && needles.length > 0) {
-    // Folded, like every other match in this file: an Arabic table whose cells
-    // are pointed must still give up the cell the reader's plain query meant,
-    // rather than falling through to cells[0].
-    const wanted = cells.find((cell) => findAnyMatches(cell, needles, 1).length > 0);
-    if (wanted !== undefined) return wanted;
-  }
-  return cells[0];
-}
-
-/** Letters/digits left once wikilinks and punctuation are removed — how much
- *  actual prose a context line carries beyond the link itself. */
-function contextProse(context: string): string {
-  return context
-    .replace(/\[\[[^[\]]*\]\]/g, " ")
-    .replace(/[^\p{L}\p{N}]+/gu, "");
-}
-
-/** Widen a bare-link line to its surroundings: pull in neighboring non-empty
- *  lines (following first, then preceding) until the context reads like a
- *  sentence or the paragraph runs out. Fence/frontmatter markers bound it. */
-function expandedContext(lines: string[], idx: number, needles?: readonly string[]): string {
-  const isBoundary = (l: string | undefined): boolean =>
-    l === undefined || /^\s*(```|~~~)/.test(l) || /^\s*---\s*$/.test(l);
-  const parts: string[] = [cleanContextLine(lines[idx] ?? "", needles)];
-  let len = parts[0].length;
-  let before = idx - 1;
-  let after = idx + 1;
-  for (let hops = 0; len < 170 && hops < 6; hops++) {
-    let grew = false;
-    if (after < lines.length && !isBoundary(lines[after])) {
-      const t = cleanContextLine(lines[after]);
-      after++;
-      if (t) {
-        parts.push(t);
-        len += t.length + 1;
-        grew = true;
-      }
-    }
-    if (len < 170 && before >= 0 && !isBoundary(lines[before])) {
-      const t = cleanContextLine(lines[before]);
-      before--;
-      if (t) {
-        parts.unshift(t);
-        len += t.length + 1;
-        grew = true;
-      }
-    }
-    const beforeDone = before < 0 || isBoundary(lines[before]);
-    const afterDone = after >= lines.length || isBoundary(lines[after]);
-    if (!grew && beforeDone && afterDone) break;
-  }
-  return parts.join(" ").trim();
-}
-
-/** Remove inline markdown marks (emphasis, code ticks, tag hashes, md links)
- *  while leaving `[[wikilink]]` syntax alone. Image references disappear
- *  entirely — their alt text is caption furniture, and keeping it glued
- *  arbitrary words into snippets ("… Thumbnail Network bridge: …"). */
-function stripInlineMd(text: string): string {
-  return text
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
-    .replace(/(^|[^[])\[([^[\]]+)\]\(([^)]+)\)/g, "$1$2")
-    .replace(/\*\*|__|~~/g, "")
-    .replace(/`+/g, "")
-    // A TAG GOES OUT WHOLE. This used to remove the `#` and leave the word
-    // standing in the sentence, so a post ending "…it buys the reader a
-    // breath. #design #typography" shipped on the front page as "…it buys the
-    // reader a breath. design typography" — a nonsense noun phrase glued to
-    // real prose. DESIGN.md's hard rule is that a snippet STRIPS or RENDERS
-    // `#`; de-hashing a tag into a noun is neither, and plain text has no way
-    // to render one, so it strips. Same token shape isFurnitureLine() uses.
-    .replace(/(^|[\s([{])#[\p{L}\p{N}_][\p{L}\p{N}_/-]*/gu, "$1");
-}
-
-/** Line-skipping state for fenced code and $$ display math blocks — shared by
- *  the full-body stripper and the excerpt builder. skip() returns true when
- *  the line is fence/math/hr furniture that must not reach the prose. */
-class FenceSkipper {
-  // WHICH marker opened the block, and how long its run was — `shared/fences.ts`
-  // for why a toggle is not enough: a ```markdown block showing a `~~~` block
-  // "closed" on the inner marker, and the rest of the code came out as prose in
-  // the excerpt on the front page.
-  private fence: Fence | null = null;
-  private inMath = false;
-  skip(raw: string): boolean {
-    if (this.fence) {
-      if (closesFence(raw, this.fence)) this.fence = null;
-      return true;
-    }
-    const opened = fenceOpener(raw);
-    if (opened) {
-      this.fence = opened;
-      return true;
-    }
-    // $$ display math is raw LaTeX — leave it out entirely.
-    const t = raw.trim();
-    if (!this.inMath && t.startsWith("$$")) {
-      if (!(t.length > 4 && t.endsWith("$$"))) this.inMath = true;
-      return true;
-    }
-    if (this.inMath) {
-      if (t.endsWith("$$")) this.inMath = false;
-      return true;
-    }
-    return /^\s*---\s*$/.test(raw);
-  }
-}
-
-/** One raw markdown line → trimmed prose: block prefix and inline marks
- *  stripped, callout markers and %%comments%% dropped, ![[embeds]] dropped
- *  outright (a filename glued mid-sentence reads as garbage), [[wikilinks]]
- *  reduced to their alias/target label. Fence/math state is the caller's. */
-function proseLine(raw: string): string {
-  return stripInlineMd(stripLinePrefix(raw))
-    // callout title markers ("[!note] Title" after quote stripping)
-    .replace(/^\[!\w+\][+-]?\s*/, "")
-    // inline math: drop the $ delimiters, keep the expression text
-    .replace(/\$([^$\n]+?)\$/g, "$1")
-    // ==highlight== and %%comment%% marks
-    .replace(/==([^=\n]+?)==/g, "$1")
-    .replace(/%%[^%\n]*%%/g, "")
-    // ![[embeds]] first (before the wikilink pass eats their inner
-    // brackets and strands the "!").
-    .replace(/!\[\[[^[\]]*\]\]/g, " ")
-    .replace(
-      wikilinkRegex(),
-      (_m, target: string, _heading?: string, alias?: string) =>
-        (alias ? alias.slice(1) : target).trim(),
-    )
-    .trim();
-}
-
-/** Full markdown → prose strip for search snippets: no fence lines, no
- *  frontmatter-ish separators, wikilinks reduced to their label. Heading
- *  text gets an em-dash tail so it doesn't run into the next sentence.
- *  Furniture lines (bare timestamps, "Status:"/"Tags:" label lines) are
- *  skipped the same way the excerpt builder skips them, so a snippet that
- *  windows the head of a note starts at real prose, not template preamble. */
-function stripMarkdown(body: string): string {
-  const out: string[] = [];
-  const fences = new FenceSkipper();
-  for (const raw of body.split("\n")) {
-    if (fences.skip(raw)) continue;
-    if (isFurnitureLine(raw)) continue;
-    // A TABLE ROW IS FIELDS, NOT A SENTENCE — and it used to reach the reader
-    // with its `|` pipes standing, which is raw markdown syntax in a snippet
-    // (DESIGN.md's hard rule) as well as unreadable. Its alignment row says
-    // nothing at all and goes; the rest reads as the record it is. The
-    // backlink and per-line search surfaces answer the same finding one cell
-    // at a time — see cleanContextLine.
-    if (/^\s*\|/.test(raw)) {
-      if (TABLE_RULE_RE.test(raw)) continue;
-      const cells = raw
-        .replace(/^\s*\|/, "")
-        .replace(/\|\s*$/, "")
-        .split("|")
-        .map((cell) => proseLine(cell))
-        .filter((cell) => cell !== "");
-      if (cells.length > 0) out.push(cells.join(", "));
-      continue;
-    }
-    const isHeading = /^\s{0,3}#{1,6}\s+/.test(raw);
-    const line = proseLine(raw);
-    if (!line) continue;
-    out.push(isHeading ? `${line} —` : line);
-  }
-  return out.join(" ");
-}
-
 // ------------------------------------------------------------------ snippets
 
 const BACKLINK_CONTEXT_MAX = 180;
@@ -4746,7 +4373,7 @@ function flatBody(record: NoteRecord): string {
   return record.flat;
 }
 
-// The window, the escape and the `<mark>` pass live in server/snippet.ts now,
+// The window, the escape and the `<mark>` pass live in shared/snippet.ts now,
 // shared with the page store (server/pdfText.ts): a book page's snippet must
 // be cut by the rule a note's is, because the client draws both with one
 // renderer.

@@ -570,15 +570,6 @@ const DISPLAY_MATH_ENVS = new Set([
   "IEEEeqnarray", "IEEEeqnarray*", "dmath", "dmath*",
 ]);
 
-/** Display-math environments KaTeX understands as an OUTER environment: the
- *  rest are wrapped in `\begin{aligned}`-free plain display math. */
-const KATEX_ENVS = new Set([
-  "align", "align*", "aligned", "alignat", "alignat*", "gather", "gather*",
-  "gathered", "multline", "multline*", "split", "cases", "array", "matrix",
-  "pmatrix", "bmatrix", "vmatrix", "Vmatrix", "Bmatrix", "smallmatrix", "darray",
-  "dcases", "rcases", "equation", "equation*", "CD", "subarray",
-]);
-
 const QUOTE_ENVS = new Set(["quote", "quotation", "verse", "displayquote", "epigraph"]);
 const CENTER_ENVS = new Set(["center", "centering"]);
 const THEOREM_ENVS = new Set([
@@ -1463,7 +1454,7 @@ function parseTableFloat(
   from: number,
   to: number,
   ctx: Ctx,
-  depth: number,
+  _depth: number,
   line: number,
 ): Block {
   const body = code.slice(from, to);

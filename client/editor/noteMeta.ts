@@ -162,7 +162,7 @@ export function parseProps(yaml: string): PropRow[] {
         // hands the WHOLE list back to POST /api/frontmatter — which wrote
         // the reader's own comment into the value, quoted, and lost it as a
         // comment for good. That is the one thing this release promises the
-        // frontmatter writer will never do (server/frontmatterEdit.ts), and
+        // frontmatter writer will never do (shared/frontmatterEdit.ts), and
         // the promise was being broken one layer above it.
         const text = clean(uncomment(item[1].trim()));
         if (text) values.push(text);
