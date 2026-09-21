@@ -5,7 +5,7 @@
   "description": "The Astrolabe Android app: a Capacitor shell whose only job is to find your server and then get out of the way.",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/build-pocket.mjs",
     "sync": "npm run build && cap sync android",
     "typecheck": "tsc --noEmit",
     "icons": "node icons/make-icons.mjs",
@@ -16,10 +16,15 @@
     "@capacitor/android": "8.5.0",
     "@capacitor/core": "8.5.0",
     "@capacitor/preferences": "8.0.1",
-    "@capacitor/splash-screen": "8.0.2"
+    "@capacitor/splash-screen": "8.0.2",
+    "@isomorphic-git/lightning-fs": "^4.9.0",
+    "buffer": "^6.0.3",
+    "isomorphic-git": "^1.42.2",
+    "minisearch": "^7.2.0"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.0",
+    "esbuild": "^0.25.12",
     "typescript": "^5.6.0",
     "vite": "^6.0.0"
   }

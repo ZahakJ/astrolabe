@@ -2984,7 +2984,7 @@ count.
 
 Obsidian's all-time #1 request, and the one this release's story is told against: their editor
 round-trips YAML through a serializer, so it reformats quote styles, drops comments and reorders
-keys nobody touched. Astrolabe's writer is textual. `server/frontmatterEdit.ts` owns the surgery,
+keys nobody touched. Astrolabe's writer is textual. `shared/frontmatterEdit.ts` owns the surgery,
 `client/editor/propsEdit.ts` owns the controls, `tests/frontmatter.test.ts` owns the promise.
 
 - **THE CARD IS EDITABLE IN THE EDITOR AND NOWHERE ELSE.** `buildPropsCard()` (noteMeta.ts) takes
@@ -11126,6 +11126,172 @@ universal rule and is 8px now. Firefox gets the same thin bar it always had.
 hide is the phone's; a device that cannot hover gets a resting `--text-faint` line so the strip
 can be found. `tests/scrollbars.test.ts` also refuses a pointer-only arm on a grip-hiding block.
 
+## 3.22.0 — Pocket: a vault from GitHub on the phone (`mobile/src/pocket/`)
+
+The owner asked: *"can you add ability to open app via github sync? I.e., can login into github and
+select some private project and said project will somehow sync locally on phone?"* — a person with
+no server, wanting their notes. This is phase one of the answer.
+
+### IT IS NOT THE SHAPE THE SHELL REJECTED, AND THE REASON IS THE COMPANY THE CLONE KEEPS
+
+`mobile/README.md` rejected on-device git in so many words. Read the rejection again: every clause
+of it is about a clone **next to a live server** — "the same vault would then have two writers with
+independent histories, one of which spends most of its life asleep in a pocket". The pocket vault
+has no server beside it at all. The repository IS the vault; the phone is one working copy; the
+only other writer is the owner's own laptop through git, which is what git is for and what every
+Obsidian-plus-git user already lives with.
+
+The second rejection stands untouched. Nothing runs a server on the phone: `nodejs-mobile` is still
+years behind `engines.node >= 24`, and nothing here needs it. What runs is a ROUTER in the page.
+
+### THE POCKET SERVER COMPUTES NOTHING OF ITS OWN
+
+`mobile/src/pocket/server.ts` answers the `/api/*` the web client speaks, and every line of parsing,
+folding, scanning, stripping and writing under it comes from `shared/`. Four modules moved out of
+`server/` for it, and the move — not a copy — is the whole point: a vault that disagrees with itself
+about its own contents depending on which machine opened it is the failure this is avoiding.
+
+| Moved | From | Why it is shared now |
+| --- | --- | --- |
+| `shared/noteParse.ts` | `server/indexer.ts` | `splitFrontmatter`, `parseLinks`, `parseAssets`, `parseTags`, `parseFmDate`, `scalarProps`, `linkKeys`, `pickShortest`, `wikilinkRegex`. A reverse index keyed even slightly differently from the resolver is a backlinks panel that loses rows silently — one spelling, or two answers to one question. |
+| `shared/prose.ts` | `server/indexer.ts` | The markdown→prose strip behind snippets, backlink context and `/api/search/matches`. DESIGN.md's rule is that raw markdown never reaches a reader; two strippers is two verdicts on that. |
+| `shared/snippet.ts` | `server/snippet.ts` | Already shared between the note index and the page store; the pocket is the third index answering the same search box, and the client draws all three kinds of row with one renderer. |
+| `shared/frontmatterEdit.ts` | `server/frontmatterEdit.ts` | The byte-surgical YAML writer, whose whole existence is "there is exactly one of these". `yamlQuote` went with it, to `shared/yaml.ts`. |
+
+The server keeps `gray-matter`; the phone reads frontmatter with `mobile/src/pocket/frontmatter.ts`,
+a deliberately small reader of the subset a vault actually holds (scalars, flow lists, block lists,
+one level of nesting). It is not a YAML parser and never claims to be: what it cannot read it drops,
+which is what `readFrontmatter`'s try/catch amounts to on the server, only finer-grained. A key it
+GUESSED at would be a note filed under a tag nobody typed, and that is the worse failure.
+
+### THE CONFLICT CONTRACT: THE PHONE NEVER MERGES PROSE
+
+On a pull that diverges (`mobile/src/pocket/git.ts`, `conflict.ts`): the remote's version of a note
+keeps its NAME, this phone's version is set down beside it as `<Note> (phone).md`, both are
+committed and both are pushed. No three-way merge, no "theirs wins", no silent loss. The pair is
+named in the shell's sync line, and — because a conflict is a FACT ABOUT THE VAULT rather than a
+memory of a session — the count is recovered from the working tree at every open
+(`standingConflicts`), so a phone closed with two pairs standing and reopened cannot say "synced".
+
+Two things that are deliberately NOT conflicts: a note both sides changed to the same bytes (that is
+agreement, and naming it a conflict teaches the owner to ignore the line), and a note only the phone
+touched (it is simply kept). A note the phone DELETED and the remote CHANGED comes back — a delete
+is a weaker statement than an edit, and the edit is the thing that would be lost.
+
+Saves carry the server's own precondition: `baseMtimeMs` in, `409 code:"stale"` out — the same
+refusal, one level down.
+
+### A RECORDED BASE COMMIT, BECAUSE THE CLONE IS SHALLOW
+
+`depth: 1`, `singleBranch: true`. A vault with five years of history is a minute of network nobody
+asked for, and none of it is read until a note's past is opened. A shallow repository has no common
+ancestor to compute, so the pocket RECORDS the remote commit it was last level with (`pocket.base`
+in Preferences) and diffs against that: remote unchanged, remote moved and we did not (fast-forward),
+or both moved (the conflict path). Exact, one string, and it survives an app restart. The cost is
+written down rather than hidden: `/api/history` and `/api/versions` show the commits since the clone,
+which is where this copy's history begins.
+
+### THE FILESYSTEM IS INDEXEDDB, AND THE ARCHITECTURE DECIDED IT BEFORE THE NUMBERS DID
+
+`@isomorphic-git/lightning-fs` over IndexedDB, not `@capacitor/filesystem`. The decisive fact is not
+speed: the pocket server has to be reachable from a SERVICE WORKER, because `<img
+src="/api/file?path=…">` is a browser load that no shim in the page can see — and a service worker
+has no Capacitor bridge, so `@capacitor/filesystem` is unreachable from one by construction.
+
+The numbers agree. Measured in Chromium (desktop; a phone is several times slower) against a
+2,000-note vault, through the shipped code:
+
+| | |
+| --- | --- |
+| clone (git → IndexedDB), 2,000 notes | 770 ms |
+| open: bootstrap → client mounted | 1,308 ms |
+| reopen: read and index every note | 958 ms |
+| `/api/tree` · `/api/graph` · `/api/tags` | 2 ms · 7 ms · 1 ms |
+| `/api/search?q=…` | 19 ms |
+| the same 2,000 reads with the Capacitor bridge's tax (base64 both ways + one hop) | 8,194 ms — a MODEL, not the plugin |
+
+### THE SEAM IS TWO SEAMS, AND `client/` IS NOT MODIFIED
+
+`fetch` is patched in the page (`pocket/boot.ts`) for the seventy typed fetchers in `client/api.ts`:
+no round trip, no dependency on a worker being alive. Everything that is NOT a `fetch` goes through
+`pocket/sw.ts` — `<img src>`, pdf.js's byte ranges, `<audio>`, and `EventSource`, none of which a
+page shim can see. The worker holds no vault (the clone and the native bridge are in the page); it
+asks the page over a MessageChannel, and in the one moment there is no page yet it answers 503,
+which the client retries, rather than an empty body it would render as an empty vault.
+
+It is served at `/sw.js` ON PURPOSE: `client/offline.ts` registers exactly that path for offline
+reading, so on a pocket vault the client's own call installs this worker and there is never a second
+registration to fight with. A pocket vault needs no offline cache — it IS the copy.
+
+**And `/` is the client, not the shell.** The client routes on the PATHNAME (`client/router.ts`), so
+served anywhere else it rewrites its own address on the first paint and a reload lands somewhere
+else. So the client's `index.html` is the page at `/` with its entry module swapped for the
+bootstrap, the shell's two screens moved to `/shell.html`, and the bootstrap decides in its first
+tick which of the three things the APK can show is showing. A launch that is not a pocket vault is
+at `/shell.html` before a byte of the client is imported, behind the splash, so nothing flashes.
+
+### GIT TRANSPORT IS NATIVE, AND IT IS BINARY BOTH WAYS
+
+github.com's smart-HTTP endpoints answer no preflight and send no `Access-Control-Allow-Origin` —
+correctly. The shell has met that wall before (the capture sheet's `CapacitorHttp`), and the answer
+is the same: perform the request natively. `CapacitorHttp` alone is NOT enough, because it moves a
+request body as a STRING and a push's body is a packfile; a packfile through a UTF-8 round trip is
+not a packfile. So `android/…/GitTransport.java` carries base64 in both directions, follows
+redirects by hand (GitHub answers 301 for a renamed repository, and `HttpURLConnection` drops the
+method and the body on one), and never reads the `Authorization` header it writes through. No proxy
+stands between the owner's phone and the owner's repository.
+
+### SIGNING IN IS THE DEVICE FLOW, AND THE TOKEN IS NOT ENCRYPTED AT REST
+
+The web flow needs a client SECRET, and a secret in an APK is a secret published. PKCE needs a
+custom scheme somebody else's app can claim. The device flow needs neither: a code the owner reads
+here and approves on github.com, where they can see what they are authorising. The client id is
+public by design and is a build-time constant from `mobile/.env` (`ASTROLABE_GITHUB_CLIENT_ID`); a
+build without one still runs and the door says what is missing. The scope is `repo` and nothing
+else — the narrowest one that reaches a private repository.
+
+**The token lives in Capacitor Preferences**, i.e. SharedPreferences: a file in the app's private
+data directory, readable by this app's uid and no other on an unrooted device, and NOT encrypted at
+rest. The alternative is `EncryptedSharedPreferences` over the Android keystore, which defends
+against an attacker holding the unlocked device or a root shell, and costs a Java plugin plus a
+failure mode — a keystore entry invalidated when the owner's fingerprint enrolment changes — whose
+symptom is a vault that will not open and cannot say why. What is being protected is a `repo`-scoped
+token the owner revokes in one click from their account page, and revocation is the mitigation that
+matches that risk. Written down so a later round can change it with the argument in hand rather than
+rediscovering it.
+
+### `.trash/` IS THIS DEVICE'S, AND THE REPOSITORY IS TOLD SO
+
+A delete on the phone must reach the laptop as a delete; the copy that can undo it must not. So the
+deleted note's bytes go to `.trash/<percent-encoded path>` and `.trash/` is written into
+`.git/info/exclude` at clone time — the repository's own ignore list, never committed, so the vault's
+`.gitignore` stays the owner's file.
+
+### WHAT IT REFUSES, AND HOW
+
+Publishing, the blog, marginalia, the site designer, the clipper token, uploaded fonts, PDF
+annotations, export, the bulk rewriter, `/api/sync/*`, the book shelf, scripture lookup, the starter
+vault: `501` with a one-line reason NAMING the thing that is missing. `/api/mentions` is the one
+refusal on cost rather than capability and says so — an unlinked-mention scan is the whole vault per
+note open. An empty list would have been a vault that looks broken; a sentence is one a reader can
+act on. `tests/pocketServer.test.ts` asserts each refusal is a 501 with prose in it, not a stub.
+
+Device state — preferences, the workspace, the instance settings — stays on the DEVICE and never
+enters the repository: `state/workspace` is which notes this phone has open, and pushing it would
+mean opening the laptop to find the phone's tabs. What travels between a person's machines is their
+notes. `/api/settings` still answers a COMPLETE `EffectiveSettings`, because the client reads the
+periodic-note formats out of it synchronously at boot and a missing field is not a missing feature —
+it is `format.replace of undefined` inside the command palette, which is what the browser harness
+found.
+
+### `mobile/tsconfig.json` DROPPED TWO FLAGS
+
+`noUncheckedIndexedAccess` and `exactOptionalPropertyTypes` came off. The shell now imports
+`shared/`, and TypeScript checks an imported file under the IMPORTING project's options: those two
+put 285 errors on 18 files that the repo's own `npm run typecheck` passes, none of them about this
+package's code. A package that renders a second verdict on somebody else's file is not stricter, it
+is noisier. The rules are the repo's rules exactly, and the difference is written down in the file.
+
 ## Tests (`npm test`) — the release gate
 
 `node --test` over `tests/*.test.ts`. No new dependencies, no test framework, no fixtures on disk
@@ -11221,6 +11387,20 @@ What the suite covers, and why each file exists:
 - `tests/numerals.test.ts` — one numeral system per instance, checked on a DATE and a COUNT
   together (the `٩ يناير ٢٠٢٦ · 3 دقائق قراءة` regression), the separator/digit confusion rule, the
   calendar tripwire, and tag-label encoding/isolation/direction.
+
+- `tests/pocketServer.test.ts` — the pocket vault's `/api/*`, over an in-memory filesystem
+  (`tests/helpers/memoryFs.ts`): the wire shapes the unmodified web client reads, the tree's order
+  and what it hides, path traversal refused at the boundary, the `baseMtimeMs` precondition and its
+  `409 code:"stale"`, search through `shared/fold.ts` (a pointed Arabic note found by a plain Arabic
+  query), an operator it cannot answer narrowing to NOTHING rather than being ignored, snippets with
+  no raw markdown in them, link resolution and backlinks by the server's own rule, byte ranges on
+  `/api/file`, git as the version history, and that every server-only route answers 501 with a
+  sentence naming what is missing.
+- `tests/pocketSync.test.ts` — the two rules about other people's writing: where a `(phone)` file
+  goes and that it never overwrites last time's, that agreement is not a conflict, that BOTH versions
+  survive, that the standing pairs are recovered from the working tree (a conflict is a fact, not a
+  memory), and the sync line's precedence — a pending push is always louder than a past success, and
+  a conflict is louder still and never ages out.
 
 **Tests named `KNOWN BUG:` assert current, wrong-ish behavior on purpose** — they are the written
 record of a defect nobody has decided to fix yet, and they keep the suite honest instead of green

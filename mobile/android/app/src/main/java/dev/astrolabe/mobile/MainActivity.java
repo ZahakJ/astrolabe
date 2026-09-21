@@ -108,7 +108,12 @@ public class MainActivity extends BridgeActivity {
         // first: the front door is one thumb-width from the gesture area, and
         // leaving is the one thing here that cannot be undone by pressing
         // back again.
-        if (currentUrl == null || currentUrl.startsWith(local)) {
+        //
+        // "Our own screen" is the CONNECTION screen, not merely our own
+        // origin: since 3.22 a pocket vault is the web client served from THIS
+        // origin's root, and a reader three notes into it pressing back must
+        // go back a note rather than be asked whether they meant to leave.
+        if (currentUrl == null || isShellScreen(currentUrl, local)) {
             long now = SystemClock.elapsedRealtime();
             if (armedAt != 0L && now - armedAt <= LEAVE_WINDOW_MS) {
                 armedAt = 0L;
@@ -119,19 +124,35 @@ public class MainActivity extends BridgeActivity {
             return true;
         }
 
-        // Case 2 — the instance has somewhere to go back to that is still the
-        // instance.
+        // Case 2 — the vault has somewhere to go back to that is still the
+        // vault, whether that vault is an instance on its own host or the
+        // pocket clone on ours.
         int index = history.getCurrentIndex();
         if (index > 0) {
             WebHistoryItem previous = history.getItemAtIndex(index - 1);
-            if (previous != null && !previous.getUrl().startsWith(local)) {
+            if (previous != null && !isShellScreen(previous.getUrl(), local)) {
                 webView.goBack();
                 return true;
             }
         }
 
-        // Case 3 — the far end of the instance's own history.
-        webView.loadUrl(local + "/index.html?pick=1");
+        // Case 3 — the far end of the vault's own history.
+        webView.loadUrl(local + "/shell.html?pick=1");
         return true;
+    }
+
+    /** Is this URL one of the SHELL's two screens — the connection screen or
+     *  the capture sheet — rather than a vault? Both live on the app's own
+     *  origin, and since 3.22 so does the pocket vault, which is the page at
+     *  `/`. So this asks about the PATH: `shell.html` is ours, and everything
+     *  else on this origin is somebody's notes. */
+    private static boolean isShellScreen(String url, String local) {
+        if (url == null || local == null || !url.startsWith(local)) return false;
+        String rest = url.substring(local.length());
+        int cut = rest.indexOf('?');
+        if (cut >= 0) rest = rest.substring(0, cut);
+        cut = rest.indexOf('#');
+        if (cut >= 0) rest = rest.substring(0, cut);
+        return rest.equals("/shell.html") || rest.equals("shell.html");
     }
 }
