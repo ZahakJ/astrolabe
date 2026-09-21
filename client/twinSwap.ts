@@ -30,10 +30,3 @@ export function setTwinSwapTable(next: Record<string, string>): void {
 export function twinSwapFor(target: string): string | null {
   return table[twinSwapKey(target)] ?? null;
 }
-
-/** Does this reader have any swap at all? The renderer asks once rather than
- *  keying a string per link on a site that has no twins. */
-export function hasTwinSwap(): boolean {
-  for (const _ in table) return true;
-  return false;
-}

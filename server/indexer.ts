@@ -1897,16 +1897,6 @@ export function twinFaceOf(relPath: string): TwinFaceRef | null {
   };
 }
 
-/** Do the two faces of this note's pair sit in different languages? The one
- *  question everything the PUBLIC SITE does about twins hangs off. */
-export function twinLanguagesDiffer(relPath: string): boolean {
-  const me = notes.get(relPath);
-  const link = twinOf(relPath);
-  const other = link === null ? undefined : notes.get(link.path);
-  if (me === undefined || other === undefined) return false;
-  return facesDiffer(faceLang(me.arabic), faceLang(other.arabic));
-}
-
 /** Resolve a link/embed target to a note OR attachment path. Notes win
  *  (attachment basenames carry an extension, so collisions are rare).
  *  `publishedOnly` sees only visitor-visible notes (resolveLink applies the
