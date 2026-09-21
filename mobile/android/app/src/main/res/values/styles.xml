@@ -14,18 +14,18 @@
          a window frame that followed the phone's light sensor while the page
          inside it did not would be worse than either choice alone. -->
     <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
-        <item name="colorPrimary">@color/gold_leaf</item>
-        <item name="colorPrimaryDark">@color/iron_gall</item>
-        <item name="colorAccent">@color/gold_leaf</item>
-        <item name="android:windowBackground">@color/iron_gall</item>
-        <item name="android:textColor">@color/parchment_ink</item>
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorPrimaryDark">@color/ground</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="android:windowBackground">@color/ground</item>
+        <item name="android:textColor">@color/ink</item>
     </style>
 
     <!-- What BridgeActivity switches to once the bridge is up. -->
     <style name="AppTheme.NoActionBar" parent="AppTheme">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:windowBackground">@color/iron_gall</item>
+        <item name="android:windowBackground">@color/ground</item>
     </style>
 
     <!-- The launch theme, i.e. the splash.
@@ -44,7 +44,7 @@
          fallback path, if the API-31 route throws — and lives in
          res/drawable/splash.xml. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/iron_gall</item>
+        <item name="windowSplashScreenBackground">@color/ground</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_star</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>

@@ -3,8 +3,12 @@
  * ONE ROOM, DELIBERATELY. The web client ships twenty-one themes because a vault
  * is somewhere you live; this is a doorway you pass through, and a doorway that
  * changed colour with the phone's light sensor would be a doorway pretending to
- * be a room. So: iron-gall, always. No `prefers-color-scheme` block, and that
- * is a decision rather than an omission.
+ * be a room. So: the app's DEFAULT room, always — github-dark, the `:root`
+ * block of client/styles/tokens.css and the ground the desktop window paints
+ * (electron/windows.ts DEFAULT_GROUND). It was iron-gall until 3.21.1; the
+ * owner: "make default theme not the disgusting yellow thingy, same as the
+ * desktop app". No `prefers-color-scheme` block, and that is a decision rather
+ * than an omission.
  *
  * The values are lifted verbatim from client/styles/tokens.css `:root` so the
  * connection screen and the vault behind it are the same object. If those move,
@@ -17,18 +21,18 @@
 :root {
   color-scheme: dark;
 
-  --bg: #16130e;
-  --bg-raised: #1e1a13;
-  --bg-hover: #29231a;
-  --text: #eae2d0;
-  --text-muted: #a99f89;
-  --text-faint: #6e6656;
-  --accent: #c9a227;
-  --accent-soft: rgba(201, 162, 39, 0.14);
-  --border: #2f2920;
-  --danger: #c4574a;
-  --focus-ring: #c9a227;
-  --selection-bg: rgba(201, 162, 39, 0.24);
+  --bg: #0d1117;
+  --bg-raised: #161b22;
+  --bg-hover: #21262d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --text-faint: #6e7681;
+  --accent: #58a6ff;
+  --accent-soft: rgba(88, 166, 255, 0.16);
+  --border: #30363d;
+  --danger: #f85149;
+  --focus-ring: #58a6ff;
+  --selection-bg: rgba(88, 166, 255, 0.28);
 
   --radius: 6px;
 
@@ -108,7 +112,7 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(120% 60% at 50% 0%, rgba(201, 162, 39, 0.07), transparent 62%);
+  background: radial-gradient(120% 60% at 50% 0%, rgba(88, 166, 255, 0.07), transparent 62%);
 }
 
 #app {
@@ -264,7 +268,7 @@ button {
 
 .btn-primary {
   background: var(--accent);
-  color: #16130e;
+  color: #0d1117;
   font-weight: 600;
   letter-spacing: 0.01em;
   padding-inline: 20px;

@@ -18,7 +18,7 @@ import com.getcapacitor.Bridge;
  *
  * {@link SystemBarInsets} pads the WebView's container so the status bar and
  * the gesture bar have space of their own, and paints that space
- * {@code R.color.iron_gall} — which was right when iron-gall was the only room
+ * {@code R.color.ground} — which was right when the shell had one room and the vault the same one — a room
  * there was. It is not: a reader on parchment, linen or porcelain got a cream
  * page with a black band at each end, and the {@code <meta name="theme-color">}
  * the instance has been serving all along (server/manifest.ts) was read by
@@ -64,7 +64,7 @@ final class ThemeBars {
         if (webView == null || !(webView.getParent() instanceof View)) return;
         final View container = (View) webView.getParent();
 
-        final int fallback = ContextCompat.getColor(activity, R.color.iron_gall);
+        final int fallback = ContextCompat.getColor(activity, R.color.ground);
         final Handler handler = new Handler(Looper.getMainLooper());
         // Boxed so the lambda can carry state without a field. 1 is "nothing
         // painted yet": every colour this parses is opaque, so its alpha byte
