@@ -23,7 +23,9 @@
 // same reason. The cost to a desktop first paint is the one-line guard.
 
 import "./styles/swipe.css";
+import { t } from "./i18n.ts";
 import { DRAWER_QUERY, useStore } from "./state.ts";
+import { toast } from "./toast.ts";
 
 /** Android's system back gesture owns a strip down each side of the screen,
  *  and iOS's interactive-pop owns the leading one. A pan that starts inside
@@ -83,6 +85,7 @@ interface Pan {
 let start: { x: number; y: number; el: Element } | null = null;
 let pan: Pan | null = null;
 let settleTimer = 0;
+let hintTimer = 0;
 
 /** Which edge a pane sits on, MEASURED rather than derived. The answer is a
  *  function of the document direction, the reader's sidebar-side preference
@@ -220,15 +223,19 @@ function onStart(e: TouchEvent): void {
   // whole promise is "nothing but the words" must not answer a stray drag
   // with a sidebar. Esc and the ✕ are the way out, as they always were.
   if (useStore.getState().zen) return;
-  const t = e.touches[0];
-  const el = t.target as Element | null;
+  const touch = e.touches[0];
+  const el = touch.target as Element | null;
   if (!el?.closest?.(SURFACES)) return;
-  if (t.clientX < EDGE || t.clientX > window.innerWidth - EDGE) return;
+  if (touch.clientX < EDGE || touch.clientX > window.innerWidth - EDGE) return;
   // A live text selection in the editor means the finger is probably on a
   // selection handle, and dragging one is a horizontal gesture that already
   // has an owner. Stealing it would make text un-selectable on a phone.
   if (el.closest(".cm-editor") && !window.getSelection()?.isCollapsed) return;
-  start = { x: t.clientX, y: t.clientY, el };
+  start = { x: touch.clientX, y: touch.clientY, el };
+  // A finger on a pannable surface IS the discovery: the hint is spent here,
+  // before it can be printed four seconds later to explain the gesture the
+  // reader is in the middle of.
+  markHintSeen();
 }
 
 function onMove(e: TouchEvent): void {
@@ -237,18 +244,18 @@ function onMove(e: TouchEvent): void {
     start = null;
     return;
   }
-  const t = e.touches[0];
+  const touch = e.touches[0];
 
   if (pan) {
     const now = e.timeStamp;
     const dt = now - pan.t;
-    if (dt > 0) pan.vx = (t.clientX - pan.x) / dt;
-    pan.x = t.clientX;
+    if (dt > 0) pan.vx = (touch.clientX - pan.x) / dt;
+    pan.x = touch.clientX;
     pan.t = now;
     // Distance in the OPENING direction, as a fraction of the pane's width.
     // Clamped, so an over-drag past either end stops moving the pane and a
     // drag reversed mid-gesture is read as the reversal it is.
-    const moved = (t.clientX - pan.x0) * -pan.side;
+    const moved = (touch.clientX - pan.x0) * -pan.side;
     pan.p = Math.min(1, Math.max(0, (pan.opening ? moved : pan.width + moved) / pan.width));
     // The outline pane is a GRID COLUMN, not an overlay: following the finger
     // would mean re-laying out the centre column — and re-measuring the whole
@@ -263,8 +270,8 @@ function onMove(e: TouchEvent): void {
   }
 
   if (!start) return;
-  const dx = t.clientX - start.x;
-  const dy = t.clientY - start.y;
+  const dx = touch.clientX - start.x;
+  const dy = touch.clientY - start.y;
   // VERTICAL INTENT WINS. Reading is a vertical act and scrolling is the
   // gesture under every finger on every screen; a sideways drawer that
   // sometimes eats a scroll is worse than no drawer. Undecided while both
@@ -287,8 +294,8 @@ function onMove(e: TouchEvent): void {
   // The pan is anchored where the direction was DECIDED, not where the finger
   // landed: anchoring at touchstart would make the drawer jump the slop
   // distance out of the edge on the first painted frame.
-  p.x0 = t.clientX;
-  p.x = t.clientX;
+  p.x0 = touch.clientX;
+  p.x = touch.clientX;
   p.t = e.timeStamp;
   e.preventDefault();
 }
@@ -320,6 +327,61 @@ function release(commitAllowed: boolean): void {
   settleTimer = window.setTimeout(() => clear(p), 220);
 }
 
+/** ONE QUIET LINE, ONCE PER DEVICE — because a gesture nobody is told about
+ *  is a gesture nobody finds, and this one is now the phone's main door to
+ *  the vault: the 14px reopen strip left the touch shell with 3.23.0 and the
+ *  pan is what took its place. A toast, not a modal and not a coach mark: it
+ *  states a fact, it is gone in three seconds, and it never returns. Nothing
+ *  is gated behind reading it.
+ *
+ *  The key is a DEVICE key like the what's-new mark: the gesture is a
+ *  property of the screen in the reader's hand, not of the vault.
+ *
+ *  It waits for the shell to settle (the boot toast, the deck, a restored
+ *  tab) and says nothing at all if the reader got there first — a drawer
+ *  already open, or a pan already committed, means the hint has been
+ *  discovered and printing it would be the product explaining what the reader
+ *  just did. */
+const HINT_KEY = "astrolabe.swipeHintSeen";
+
+/** Spent, in this page's memory: `markHintSeen` is called from `onStart`, and
+ *  a storage write per touch is a storage write per touch. */
+let hintSpent = false;
+
+function hintSeen(): boolean {
+  if (hintSpent) return true;
+  try {
+    return localStorage.getItem(HINT_KEY) !== null;
+  } catch {
+    // No storage (a private window): treat the hint as spent rather than
+    // printing it on every load.
+    return true;
+  }
+}
+
+function markHintSeen(): void {
+  if (hintSpent) return;
+  hintSpent = true;
+  window.clearTimeout(hintTimer);
+  try {
+    localStorage.setItem(HINT_KEY, "1");
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+function maybeHint(): void {
+  if (hintSeen() || !drawerMq.matches) return;
+  const s = useStore.getState();
+  if (s.sidebarOpen || s.zen) return;
+  // Not over a layer the reader is already reading: the palette, Settings,
+  // a modal, the deck. `.s-toasts` sits above them all, and a hint printed
+  // across a dialog is noise.
+  if (document.querySelector(".s-palette-overlay, .s-smodal, .s-bmodal, .s-wn, [role=\"dialog\"]")) return;
+  markHintSeen();
+  toast(t("swipeHint"));
+}
+
 /** Install the gesture layer. Returns its own undo, for symmetry with every
  *  other installer in the client; nothing calls it today. */
 export function installSwipe(): () => void {
@@ -334,7 +396,9 @@ export function installSwipe(): () => void {
   document.addEventListener("touchmove", onMove, move);
   document.addEventListener("touchend", end, opts);
   document.addEventListener("touchcancel", cancel, opts);
+  hintTimer = window.setTimeout(maybeHint, 4000);
   return () => {
+    window.clearTimeout(hintTimer);
     document.removeEventListener("touchstart", onStart, opts);
     document.removeEventListener("touchmove", onMove, move);
     document.removeEventListener("touchend", end, opts);

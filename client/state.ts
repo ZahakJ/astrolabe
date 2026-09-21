@@ -174,9 +174,26 @@ const SIDEBAR_COLLAPSED_KEY = "astrolabe.sidebarCollapsed";
  *  panels/windows not working on Windows". A device with something that can
  *  hit an 8px strip keeps the docked, resizable layout down to the phone
  *  width; only a device with no fine pointer at all gets the drawer early.
+ *
+ *  AND "NO FINE POINTER AT ALL" WAS THE WRONG QUESTION (3.23.0). `any-pointer:
+ *  fine` asks whether ANY pointer on the device is fine, and a stylus is one:
+ *  every Samsung phone with an S Pen — and any phone that has ever been paired
+ *  with a bluetooth mouse — answered yes, so a 720px phone was served the
+ *  DOCKED desktop shell. That is the owner's friend's screenshot: a 224px
+ *  sidebar column, a fourteen-glyph tool cluster overflowing its row and
+ *  painting straight across the wordmark, and a 14px reopen strip floating at
+ *  the edge of a touchscreen. What this breakpoint is actually asking is what
+ *  the device's OWN input is, which is the PRIMARY pointer: `(pointer: coarse)
+ *  and (hover: none)` — a finger, and one that cannot hover. It answers the
+ *  same as the old form for all three Windows postures check-windows-layout
+ *  drives (a mouse: fine, docked; a hardware slate: coarse with no hover, so
+ *  still a drawer under 1000; a touch laptop: a coarse PRIMARY pointer but
+ *  `hover: hover` from the mouse beside it, so still docked — which is defect
+ *  F's whole point), and it stops being fooled by a pen.
+ *
  *  Keep this string and the stylesheet's in step — this is the only copy of
  *  it in the client. */
-export const DRAWER_QUERY = "(max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine)))";
+export const DRAWER_QUERY = "(max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none))";
 
 export function sidebarIsDrawer(): boolean {
   return typeof window !== "undefined" && window.matchMedia(DRAWER_QUERY).matches;

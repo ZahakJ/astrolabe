@@ -498,14 +498,18 @@ export default function StatusBar() {
           ? tf("twinStaleTitle", { title: twin.twinTitle, when: relativeDate(twin.twinMtimeMs, twinLocale, { dateStyle: "medium" }) })
           : tf("twinSwitchTitle", { title: twin.twinTitle });
 
-  // THE PHONE'S OVERFLOW MENU. Below 640px the cluster kept every control and
-  // scrolled sideways with no scrollbar, right-aligned — so its first two
+  // THE PHONE'S OVERFLOW MENU. The cluster used to keep every control and
+  // scroll sideways with no scrollbar, right-aligned — so its first two
   // doors (the library, the Orbits page) sat off-screen to the left with
   // no hint they existed (the owner: "the APK doesn't show everything on
-  // the top bar"). At that width the bar keeps the gear, the outline switch
-  // and a ⋯; everything else is a LABELLED row here, which on a phone reads
-  // better than a strip of thirteen-pixel glyphs anyway. Zen and the
+  // the top bar"). In the phone shell the bar keeps the gear, the outline
+  // switch and a ⋯; everything else is a LABELLED row here, which on a phone
+  // reads better than a strip of thirteen-pixel glyphs anyway. Zen and the
   // shortcut sheet are not offered: neither means anything on a phone.
+  //
+  // It is the door for everything the phone's two bars set down, which is why
+  // vim and the build number are at the end of it: app.css drops them from a
+  // phone's bottom bar and nothing in this product is hidden without a door.
   const [more, setMore] = useState<MenuAnchor | null>(null);
   const moreRows: MenuRow[] = [
     // The palette first: on a phone there is no Ctrl+P, and every command
@@ -526,6 +530,15 @@ export default function StatusBar() {
           { label: t("designTitle"), onSelect: openDesigner },
           { label: t("previewAsVisitor"), onSelect: () => void useStore.getState().setPreviewVisitor(true) },
           { label: null },
+          // VIM, WHICH LEFT THE PHONE'S BAR AND HAD TO LAND SOMEWHERE. It is
+          // a keyboard mode: on the bar it was a 100px pill saying VIM MODE
+          // to a device with no keyboard, and a phone with a bluetooth
+          // keyboard attached still reaches it here. The label carries the
+          // STATE, the way the pill's own tooltip does — a row that reads
+          // "Vim keybindings — on" needs no tick column, and a tick on one
+          // row puts the column on all thirteen.
+          { label: t(vimMode ? "moreVimOn" : "moreVimOff"), onSelect: toggleVim },
+          { label: null },
         ]
       : []),
     { label: t("docTitleGraph"), onSelect: toggleGraph },
@@ -534,6 +547,20 @@ export default function StatusBar() {
     // Inside the Android shell only: the way back to its connection screen
     // (client/androidShell.ts). Last, under a rule: it leaves the vault.
     ...(inAndroidShell() ? [{ label: null }, { label: t("shellChangeServer"), onSelect: returnToShell }] : []),
+    // THE BUILD, WHICH ALSO LEFT THE PHONE'S BAR. A version number is a fact,
+    // not a control, and it was the widest thing in a 412px bar; here it is
+    // the last row and it opens the same release page the chip does. On the
+    // desktop the chip is the UPDATER and stays in the bar, so this row is
+    // the browser's answer only.
+    ...(APP_VERSION !== "" && desktop()?.updateCheck === undefined
+      ? [
+          { label: null },
+          {
+            label: tf("versionTitle", { v: APP_VERSION }),
+            onSelect: () => void window.open(RELEASES_URL, "_blank", "noopener"),
+          },
+        ]
+      : []),
   ];
   const openMore = (e: { currentTarget: HTMLElement; detail?: number }): void => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -1147,6 +1174,7 @@ export default function StatusBar() {
                   meant "the extension is loaded". */}
               <ModePill
                 label={t("modeVim")}
+                extraClass="s-mode--vim"
                 on={vimMode}
                 sub={vimSub ? t(vimSub.pill) : undefined}
                 title={
@@ -1159,7 +1187,7 @@ export default function StatusBar() {
         </span>
       )}
       {admin && (
-        <span className="s-statusbar__group">
+        <span className="s-statusbar__group s-statusbar__designer">
           {/* THE DESIGNER'S OWN DOOR, at the foot of the shell beside the
               build number — NOT in the top cluster, where its glyph (a
               masthead over a column) sat next to the pane switches and read
@@ -1198,7 +1226,7 @@ export default function StatusBar() {
         // (client/desktop): check, "3.x available", a bar while downloading, Restart to update. In a
         // browser it opens the release page, since a hosted instance updates
         // when its server does.
-        <span className="s-statusbar__group">
+        <span className="s-statusbar__group s-statusbar__build">
           <ZoomChip />
           {desktop()?.updateCheck !== undefined ? (
             <UpdateChip />
