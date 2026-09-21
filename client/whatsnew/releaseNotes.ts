@@ -370,6 +370,47 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.22.0",
+    title: { en: "Your vault, in your pocket", ar: "خزانتك، في جيبك" },
+    slides: [
+      {
+        // ── Pocket: a vault from GitHub on the phone ─────────────────────
+        title: { en: "Your vault, in your pocket", ar: "خزانتك، في جيبك" },
+        body: {
+          en: "Astrolabe for Android has a third door. Sign in with GitHub, pick a private repository, and your notes are copied onto the phone and opened in the full reading room — editor, wikilinks, graph, search, Orbits — with no server anywhere and no network needed. Every save is a commit, pushed back to your own repository and nobody else's. And when the same note changed here and on your laptop, the phone does not merge your prose: both versions are kept, side by side, until you decide.",
+          ar: "لأسطرلاب على أندرويد باب ثالث. سجّل الدخول بـ GitHub، واختر مستودعًا خاصًّا، فتُنسخ ملاحظاتك إلى الهاتف وتُفتح في غرفة القراءة كاملةً: المحرّر والوصلات والمخطط والبحث والمدارات، بلا خادم في أيّ مكان وبلا حاجة إلى شبكة. وكلّ حفظ إيداع يُدفع إلى مستودعك أنت لا إلى أحد سواك. وحين تتغيّر الملاحظة نفسها هنا وعلى حاسوبك، لا يدمج الهاتف نثرك: تُحفظ النسختان جنبًا إلى جنب حتى تقرّر أنت.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="60" y="30" width="96" height="164" rx="14" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text-faint)"><rect x="72" y="52" width="60" height="4" rx="2"/><rect x="72" y="64" width="72" height="4" rx="2"/><rect x="72" y="76" width="54" height="4" rx="2"/><rect x="72" y="96" width="66" height="4" rx="2"/><rect x="72" y="108" width="48" height="4" rx="2"/><rect x="72" y="120" width="70" height="4" rx="2"/></g>
+    <rect x="96" y="180" width="24" height="3" rx="1.5" fill="var(--text-faint)"/>
+  </g>
+  <g>
+    <rect x="404" y="70" width="110" height="70" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="392" y="140" width="134" height="8" rx="3" fill="var(--bg-hover)"/>
+    <g fill="var(--text-faint)"><rect x="416" y="84" width="70" height="4" rx="2"/><rect x="416" y="96" width="84" height="4" rx="2"/><rect x="416" y="108" width="60" height="4" rx="2"/></g>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <rect x="256" y="84" width="48" height="40" rx="6" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
+    <path d="M268 84 v-10 a12 12 0 0 1 24 0 v10" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <circle cx="280" cy="104" r="4" fill="var(--accent)"/>
+    <path class="wa-draw" d="M156 100 C200 100 220 96 256 96" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+    <path class="wa-draw" d="M404 108 C370 108 340 112 304 112" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+  </g>
+  <text x="108" y="206" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the phone", "الهاتف")}</text>
+  <text x="280" y="150" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "your repository", "مستودعك")}</text>
+  <text x="459" y="170" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the laptop", "الحاسوب")}</text>
+</svg>`,
+        },
+        docs: "mobile",
+      },
+    ],
+  },
+  {
     version: "3.21.0",
     title: { en: "One note, two faces", ar: "ملاحظة واحدة بوجهين" },
     slides: [
