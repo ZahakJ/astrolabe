@@ -45,6 +45,7 @@ import { vimSubCopy } from "../vimCopy.ts";
 import { switchToTwin, twinIsBehind, twinPillLabels } from "../twins.ts";
 import { relativeDate } from "../dates.ts";
 import { desktop } from "../desktop/bridge.ts";
+import { inAndroidShell, returnToShell } from "../androidShell.ts";
 
 const RELEASES_URL = "https://github.com/ZahakJ/astrolabe/releases/latest";
 const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
@@ -530,6 +531,9 @@ export default function StatusBar() {
     { label: t("docTitleGraph"), onSelect: toggleGraph },
     { label: t("browseThemes"), onSelect: openThemePicker },
     ...(admin && authProtected && !desktopOwnsSession ? [{ label: null }, { label: t("signOut"), onSelect: () => void useStore.getState().logout(), danger: true }] : []),
+    // Inside the Android shell only: the way back to its connection screen
+    // (client/androidShell.ts). Last, under a rule: it leaves the vault.
+    ...(inAndroidShell() ? [{ label: null }, { label: t("shellChangeServer"), onSelect: returnToShell }] : []),
   ];
   const openMore = (e: { currentTarget: HTMLElement; detail?: number }): void => {
     const r = e.currentTarget.getBoundingClientRect();

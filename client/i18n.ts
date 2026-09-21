@@ -4164,6 +4164,7 @@ const DICT = {
 
   // ── Settings → This device ──────────────────────────────────────────────
   tabDevice: { en: "This device", ar: "هذا الجهاز" },
+  shellChangeServer: { en: "Change server or vault…", ar: "غيّر الخادم أو الخزانة…" },
   introDevice: {
     en: "Preferences kept in this browser; each one saves itself on click.",
     ar: "تفضيلات يحتفظ بها هذا المتصفح، ونقرةٌ واحدة تكفي لحفظ كلٍّ منها.",

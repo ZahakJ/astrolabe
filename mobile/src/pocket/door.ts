@@ -134,33 +134,69 @@ function renderOpen(root: HTMLElement, options: PocketDoorOptions, fullName: str
   );
 }
 
-/** Screen one: the code. */
+/** Screen one: two ways in. A token pasted from github.com works in every
+ *  build; the device flow — a code read off this screen and typed on
+ *  github.com — needs an OAuth App id baked into the build, so its button is
+ *  drawn only when there is one. Both end in the same place: a token the git
+ *  transport sends as a password (github.ts gitAuthHeader). The owner:
+ *  "why can't I get the apk and just sync through git by giving it my git
+ *  stuff on phone?" — this is that. */
 async function renderStart(root: HTMLElement, options: PocketDoorOptions): Promise<void> {
-  if (!__GITHUB_CLIENT_ID__) {
-    root.replaceChildren(
-      frame(masthead(t.pocketLede), el("p", { class: "message", textContent: t.pocketNoClientId }), backLink(options)),
-    );
-    return;
-  }
-
   const message = el("p", { class: "message", hidden: true });
   message.setAttribute("role", "status");
   message.setAttribute("aria-live", "polite");
 
-  const start = el("button", { class: "btn-primary", type: "submit", textContent: t.pocketStart });
-  const form = el(
+  // ── A token, pasted ───────────────────────────────────────────────────
+  const tokenLabel = el("label", { class: "label", textContent: t.pocketTokenLabel });
+  tokenLabel.setAttribute("for", "pocket-token");
+  const tokenInput = el("input", { id: "pocket-token", type: "password", autocomplete: "off", spellcheck: false }) as HTMLInputElement;
+  tokenInput.setAttribute("dir", "ltr");
+  tokenInput.setAttribute("autocapitalize", "none");
+  const useToken = el("button", { class: "btn-primary", type: "submit", textContent: t.pocketTokenUse });
+  const tokenForm = el(
     "form",
     {},
-    el("p", { class: "hint", textContent: t.pocketScopeNote }),
-    message,
-    start,
+    tokenLabel,
+    tokenInput,
+    el("p", { class: "hint", textContent: t.pocketTokenHint }),
+    useToken,
   );
-  root.replaceChildren(frame(masthead(t.pocketLede), form, backLink(options)));
 
-  form.onsubmit = (event) => {
+  // ── Or the device flow, when the build carries an app id ──────────────
+  const start = el("button", { class: "btn-quiet", type: "button", textContent: t.pocketStart });
+  const deviceBlock = __GITHUB_CLIENT_ID__
+    ? el("div", { class: "alt" }, el("p", { class: "hint", textContent: t.pocketOr }), el("p", { class: "hint", textContent: t.pocketScopeNote }), start)
+    : el("p", { class: "hint", textContent: t.pocketNoClientId });
+
+  root.replaceChildren(frame(masthead(t.pocketLede), tokenForm, message, deviceBlock, backLink(options)));
+  tokenInput.focus();
+
+  tokenForm.onsubmit = (event) => {
     event.preventDefault();
-    void begin();
+    void useThisToken();
   };
+  start.onclick = () => void begin();
+
+  async function useThisToken(): Promise<void> {
+    const token = tokenInput.value.trim();
+    if (!token) return;
+    useToken.disabled = true;
+    useToken.textContent = t.pocketSigningIn;
+    message.hidden = true;
+    try {
+      // GET /user is the cheapest thing a token can be asked to do, and it
+      // is the difference between "GitHub took it" and "we stored a typo".
+      const user = await whoAmI(http, token);
+      await writeToken(token);
+      await writeUser(user);
+      await renderRepos(root, options, token);
+    } catch (err) {
+      useToken.disabled = false;
+      useToken.textContent = t.pocketTokenUse;
+      message.textContent = `${t.pocketTokenBad} ${String((err as Error).message)}`.trim();
+      message.hidden = false;
+    }
+  }
 
   async function begin(): Promise<void> {
     start.disabled = true;
