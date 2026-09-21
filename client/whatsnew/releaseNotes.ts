@@ -370,6 +370,46 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.23.0",
+    title: { en: "The phone, native", ar: "الهاتف، كما ينبغي" },
+    slides: [
+      {
+        // ── The phone, native ────────────────────────────────────────────
+        title: { en: "The phone, native", ar: "الهاتف، كما ينبغي" },
+        body: {
+          en: "A phone with a pen was being handed the desktop shell — a docked sidebar, fourteen tool glyphs painted across your vault's name, and a 14-pixel tab floating at the edge of a touchscreen. Astrolabe now asks what your device's own pointer is, so a finger gets the phone's shell at every width. The floating tab is gone: swipe the page to bring your notes in, and the outline pane answers the mirrored swipe. The bottom bar carries the note's own controls instead of a desktop status line — vim and the build number moved into ⋯ — and a long site name finally ends in an ellipsis instead of colliding with the tools.",
+          ar: "كان الهاتف الذي معه قلم يُقدَّم له هيكل سطح المكتب: شريط جانبي مرسوّ، وأربعة عشر رمزًا من الأدوات مرسومة فوق اسم خزانتك، وشريط عرضه أربعة عشر بكسلًا معلّق على حافة شاشة لمس. صار أسطرلاب يسأل عن مؤشر جهازك نفسه، فيأخذ الإصبعُ هيكلَ الهاتف عند كل عرض. وذهب الشريط المعلّق: اسحب الصفحة ليأتي دفتر ملاحظاتك، وتستجيب لوحة المحتويات للتمريرة المعكوسة. وصار الشريط السفلي يحمل عناصر الملاحظة لا سطر حالة سطح مكتب — انتقل vim ورقم الإصدار إلى ⋯ — وأخيرًا ينتهي الاسم الطويل بثلاث نقاط بدل أن يصطدم بالأدوات.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="70" y="26" width="150" height="160" rx="14" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="70" y="26" width="48" height="160" rx="0" fill="var(--bg-hover)" opacity="0.8"/>
+    <g fill="var(--text-muted)"><rect x="126" y="36" width="70" height="7" rx="3"/></g>
+    <g fill="var(--text-faint)">${Array.from({ length: 9 }, (_, i) => `<rect x="${124 + i * 10}" y="34" width="7" height="7" rx="1.5"/>`).join("")}</g>
+    <rect x="212" y="90" width="8" height="26" rx="2" fill="var(--bg-raised)" stroke="var(--text-faint)"/>
+    <g fill="var(--text-faint)"><rect x="126" y="60" width="80" height="4" rx="2"/><rect x="126" y="72" width="70" height="4" rx="2"/><rect x="126" y="84" width="84" height="4" rx="2"/></g>
+  </g>
+  <text x="145" y="200" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the desktop, squeezed", "سطح مكتب مضغوط")}</text>
+  <g class="wa-late" style="--i:2">
+    <rect x="330" y="26" width="150" height="160" rx="14" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="344" y="36" width="90" height="7" rx="3" fill="var(--text-muted)"/>
+    <g fill="var(--text-faint)"><rect x="344" y="60" width="122" height="4" rx="2"/><rect x="344" y="72" width="110" height="4" rx="2"/><rect x="344" y="84" width="118" height="4" rx="2"/><rect x="344" y="96" width="90" height="4" rx="2"/></g>
+    <rect class="wa-grow" x="330" y="26" width="58" height="160" rx="0" fill="var(--bg-raised)" stroke="var(--accent)" opacity="0.9"/>
+    <path class="wa-draw" d="M352 120 q40 -30 70 0" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+    <path d="M418 118 l6 4 l-7 3" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <rect x="344" y="164" width="40" height="14" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="392" y="164" width="30" height="14" rx="7" fill="var(--bg-hover)"/>
+  </g>
+  <text x="405" y="200" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "a swipe, and a phone's bar", "تمريرة، وشريط هاتف")}</text>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+    ],
+  },
+  {
     version: "3.22.0",
     title: { en: "Your vault, in your pocket", ar: "خزانتك، في جيبك" },
     slides: [
