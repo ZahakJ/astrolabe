@@ -391,6 +391,32 @@ select:focus,
   white-space: nowrap;
 }
 
+/* …AND THE ELLIPSIS NEEDS AN ELEMENT TO LAND ON (3.23.0). The rule above has
+   been here since the header learned to wrap, and it never once truncated a
+   name: `.s-title` is an INLINE-FLEX box, the site's name was a bare text
+   node inside it, and a bare text node in a flex container is an anonymous
+   flex item — unstyleable, floored at its own min-content width, and immune
+   to the `text-overflow` set on its parent. So the name simply overflowed
+   the box (which clips) or pushed the box wide (which collides). Measured at
+   the shape the owner's friend photographed — a 224px docked sidebar —
+   `Mind-INTJ/Vellum` needed 202px beside a 44px mark and ran under the
+   header's tools. The name is a span now; it shrinks, then ellipsises, and
+   the mark never shrinks with it. The same three lines answer for a long
+   Arabic name («خيمياء — دفتر القراءة»), which is longer still. */
+.s-title__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The mark is a fixed 16px square: it is the brand, not the thing that gives
+   way. Without this it shrank to a sliver before the name lost a letter. */
+.s-title .s-brandmark,
+.s-title__logo {
+  flex: none;
+}
+
 .s-sidebar-actions {
   flex: none;
 }
@@ -2440,6 +2466,12 @@ select:focus,
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+  /* A DRAWER'S SCROLL ENDS AT THE DRAWER (3.23.0). On a phone this pane is a
+     fixed drawer over the note, and scrolling past the end of its list handed
+     the rest of the gesture to the page underneath — the note scrolled behind
+     an open drawer, which no native sheet does. The notes drawer has said
+     `contain` since it became one; this is its twin. */
+  overscroll-behavior: contain;
 }
 
 /* Same collapse mechanics as the sidebar, including the delayed
@@ -2589,6 +2621,28 @@ select:focus,
   inset-inline-start: 0;
   border-inline-start: none;
   border-inline-end: 1px solid var(--border);
+}
+
+/* …AND THE DOOR IS A MOUSE'S DOOR (3.23.0). The owner, about his friend's
+   phone: "one thing I personally hate for example is how floating the panel
+   bars button is.. like maybe we should just support swiping and remove that
+   bs?" — a 14px strip hanging in the middle of a touchscreen's edge, aimed
+   at a pointer that device has not got. On a finger the pane has two better
+   doors already: the pan (client/swipe.ts, which loads behind this very
+   query) and the pane switch in the tool cluster, which is 44px and labelled.
+   So the strip is for the pointer it was drawn for.
+
+   The test is the PRIMARY pointer, not `any-pointer`, and it is the same pair
+   the drawer breakpoint now uses: a touch laptop with a mouse beside it
+   reports a coarse primary pointer and `hover: hover`, and it keeps its door
+   (CONTRACTS.md, "the pane grips": the pointer may not decide alone — this is
+   the reading of it that a stylus cannot fool). Nothing is lost where the
+   strip goes: the pane cluster's switches are on screen at every width above
+   the phone breakpoint, and below it the pane is a drawer with a ☰ and a ✕. */
+@media (pointer: coarse) and (hover: none) {
+  .s-reopen {
+    display: none;
+  }
 }
 
 .s-panel-body {
@@ -5394,12 +5448,16 @@ button.s-title:hover {
   display: none;
 }
 
-/* THE DRAWER BREAKPOINT — three blocks below carry this same list, and
-   state.ts's DRAWER_QUERY mirrors it. Phone width, OR a tablet-sized
-   viewport on a device with no fine pointer. A desktop window at 900px with
-   a mouse keeps its docked, resizable panes: the bare 999px this used to be
-   turned every scaled Windows laptop into a phone (see DRAWER_QUERY). */
-@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
+/* THE DRAWER BREAKPOINT — five blocks below carry this same list, and
+   state.ts's DRAWER_QUERY mirrors it. Phone width, OR a tablet-sized viewport
+   on a device whose OWN pointer is a finger that cannot hover. A desktop
+   window at 900px with a mouse keeps its docked, resizable panes: the bare
+   999px this used to be turned every scaled Windows laptop into a phone (see
+   DRAWER_QUERY). The pointer half used to read `not (any-pointer: fine)`, and
+   a STYLUS is a fine pointer — so a 720px Galaxy with an S Pen was served the
+   docked desktop shell, which is the screenshot this round began with. The
+   primary-pointer pair asks what the device itself is. */
+@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
   /* No sidebar column in the grid — the drawer floats over the content. The
      outline pane keeps its column (and, below 1360, its 14px door) until the
      phone breakpoint takes it. Last word by source order, which is how it
@@ -5631,6 +5689,33 @@ button.s-title:hover {
    phone. Nothing here changes a colour, a font or a border: only the box a
    finger has to land in. */
 @media (max-width: 700px), (pointer: coarse) {
+  /* THE PRESS THE PLATFORM DRAWS, AND THE ONE WE DRAW (3.23.0). Chrome
+     Android paints its own translucent highlight — a pale blue-grey rectangle
+     the size of the element's box — over every tap, and on a dark parchment
+     or iron-gall room that flash is the loudest thing on the screen and the
+     surest tell that this is a web page in a shell rather than an app. It is
+     also the wrong shape: it ignores `border-radius`, so a 44px pill flashed
+     as a square. Off, and replaced by the app's OWN press state, because the
+     answer to a tap must not be nothing: `:hover` is the feedback a mouse
+     gets and a finger never sees one, so the same ground is given to
+     `:active`, which is exactly as long as the finger is down. */
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* A lit control is left alone: the accent fill of an ON mode pill or an ON
+     toggle IS the state, and flashing the hover ground over it would say for
+     a moment that the mode had left. */
+  .s-tree__item:active,
+  .s-tag:active,
+  .s-iconbtn:active,
+  .s-statusbar__btn:not(.s-statusbar__btn--on):active,
+  .s-menu__item:active,
+  .s-tab__main:active,
+  .s-mode:not(.s-mode--on):active {
+    background: var(--bg-hover);
+  }
+
   /* Rows keep their 13px type and their density comes from the label, not
      from the box: the height goes to 44 and the text sits centred in it. */
   .s-tree__item {
@@ -5752,7 +5837,7 @@ button.s-title:hover {
 /* The drawer toggle is the touch shell's main navigation control — wherever
    the drawer exists (DRAWER_QUERY), which is every phone width and a tablet
    with no fine pointer. */
-@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
+@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
   /* It was 30px. The tab bar grows to match so the button sits inside it
      rather than hanging over the first tab. `--safe-top` (see "THE NOTCH AND
      THE HOME INDICATOR" below) is zero on a rectangular screen, so this reads
@@ -5866,6 +5951,20 @@ button.s-title:hover {
 /* Toasts stack above the bottom bar, which has just grown by the inset. */
 .s-toasts {
   bottom: calc(44px + var(--safe-bottom));
+}
+
+/* …AND ON A TOUCH SHELL THE BAR IS 45, NOT 44 (3.23.0). Its own hairline is
+   part of its box — the same pixel the tab strip's rule spells out — so a
+   toast at 44 + inset rested exactly ON the bar's top border: measured at
+   412×915 and at 720×820, en and ar, the toast's bottom edge and the bar's
+   top edge were 1px apart, and "تمت المزامنة الآن" sat across the mode pills
+   in the owner's friend's screenshot. 53 = the bar (45) + a gap (8), so the
+   message reads as a thing ABOVE the bar rather than a thing growing out of
+   it, and the reaching thumb has somewhere to land that is not a toast. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-toasts {
+    bottom: calc(53px + var(--safe-bottom));
+  }
 }
 
 
@@ -6834,7 +6933,7 @@ button.s-title:hover {
 
 /* The drawer slides in from the right in RTL (the sidebar lives there).
    Same breakpoint as the drawer itself (DRAWER_QUERY). */
-@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
+@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
   [dir="rtl"] .s-sidebar,
   [dir="rtl"] .s-app--nosidebar .s-sidebar,
   [dir="rtl"] .s-app--zen .s-sidebar {
@@ -6915,14 +7014,38 @@ button.s-title:hover {
    and the pane cluster was cut through the middle of its four icons. The
    pane toggles are the right thing to drop: at this width the sidebar is a
    drawer with its own ☰ button, the backlinks panel has auto-collapsed, zen
-   is meaningless on a phone, and every one of the four is in the palette. */
-@media (max-width: 640px) {
+   is meaningless on a phone, and every one of the four is in the palette.
+
+   THE PHONE'S BOTTOM BAR IS A PHONE'S (3.23.0), and it is the same condition
+   as the shell it sits under rather than a second width of its own — a 720px
+   phone was reading `Media · Reading · VIM MODE · ⊟ · 3.22.1`, which is a
+   desktop status bar in a place a thumb lands. What a phone's bar carries is
+   what is about the NOTE and can be acted on: publish, the other face, the
+   sync badge, and ONE mode control. What leaves, and where it went:
+     · the VIM pill — vim is a KEYBOARD mode and this device has no keyboard
+       on screen; it is a labelled row in ⋯, which is where a bluetooth
+       keyboard's owner still reaches it;
+     · the build number — it is not a control, and its row in ⋯ opens the
+       same release page the chip did;
+     · the designer's door — already a labelled row in ⋯ ("Design your
+       site"), and two doors to one page is one too many on a 412px bar.
+   Nothing is hidden without a door; every door is ⋯. */
+@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
   /* Scoped to the bar, like every other rule that touches these controls:
      `.s-statusbar .s-statusbar__panes` sets `display: inline-flex` at (0,2,0),
      so a bare `.s-statusbar__panes { display: none }` here would lose to it
      however late it sat in the file — the same specificity trap the pill and
-     sync-badge rules above are scoped against. */
-  .s-statusbar .s-statusbar__panes {
+     sync-badge rules above are scoped against.
+
+     THE OUTLINE SWITCH IS NOT ONE OF THE FOUR (3.23.0). This used to drop the
+     whole cluster, which was true at 640 and false the moment the block began
+     at the drawer breakpoint instead: between 701 and 999 the outline pane is
+     still a docked pane, its 14px reopen door is gone on a finger, and hiding
+     its switch left a pane with NO door at all. The other three go for the
+     reasons above — the sidebar has its ☰ and its pan, zen means nothing on a
+     phone, the shortcut sheet means less — and the switch stays wherever the
+     pane it names exists. */
+  .s-statusbar .s-statusbar__panes > :not(.s-statusbar__pane-outline) {
     display: none;
   }
 
@@ -6943,12 +7066,24 @@ button.s-title:hover {
     border-inline-start: none;
   }
 
+  /* ONE MODE CONTROL. Reading/editing is the switch a reader flips on a
+     phone; VIM is a keyboard mode with a keyboard's audience, and it keeps
+     its row in ⋯ (StatusBar.tsx, `moreRows`) with its state spelled out.
+     Scoped `.s-statusbar .s-mode--vim` at (0,2,0) for the same reason every
+     other rule over these controls is: the base pill rule is (0,2,0) too. */
+  .s-statusbar .s-mode--vim,
+  .s-statusbar .s-statusbar__build,
+  .s-statusbar .s-statusbar__designer {
+    display: none;
+  }
+
   /* The safety net, because a phone can always be narrower than the controls
      that must stay: what does not fit SCROLLS rather than vanishing off a
      hidden overflow. Sign-out was the casualty — there is no other way out of
-     a session on a phone. */
+     a session on a phone. The gap is a THUMB's: 5px between two 44px targets
+     is a 5px miss, and the bar has room for 8 now that three segments left. */
   .s-statusbar {
-    gap: 5px;
+    gap: 8px;
     padding-inline: 8px 6px;
     overflow-x: auto;
     scrollbar-width: none;
@@ -7276,7 +7411,7 @@ button.s-title:hover {
    viewport, because a resize must never rewrite what the reader arranged.
    The same list as the drawer's: with a mouse, two columns in 900px are
    the reader's choice, not the stylesheet's. */
-@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
+@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
   .s-panes {
     display: flex;
     flex-direction: column;
@@ -7906,11 +8041,21 @@ html[dir="rtl"] .s-statusbar__spacer {
    switch (the panel drawer's only door), the gear, and a ⋯ that opens every
    other tool as a labelled row (StatusBar.tsx, `moreRows`). Nothing scrolls.
    The ⋯ itself is display:none above this width — the desktop cluster has
-   every tool in the open. */
+   every tool in the open.
+
+   AND THE TRIM FOLLOWS THE SHELL, NOT A SECOND WIDTH (3.23.0). It was keyed
+   to a bare 640px while the shell around it turns into a phone at the drawer
+   breakpoint, so a 720px phone got the whole desktop cluster: FOURTEEN 44px
+   glyphs in a row 495px wide, which `.s-main--cluster-row` then dropped onto
+   a line of its own where they overflowed the column and painted, at z-index
+   5, straight across the sidebar's wordmark. That is the "ui for his name is
+   like broken" in the owner's friend's screenshot — measured at 720×820:
+   cluster 680px of controls in a 495px row, four of them over the sidebar's
+   header. One condition for one shell. */
 .s-statusbar--top .s-statusbar__more {
   display: none;
 }
-@media (max-width: 640px) {
+@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
   .s-statusbar--top .s-statusbar__btn:not(.s-statusbar__phone):not(.s-statusbar__pane-outline) {
     display: none;
   }
