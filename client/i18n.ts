@@ -336,6 +336,21 @@ const DICT = {
   // settingsSections — not a fresh coinage.
   siteSettings: { en: "Settings", ar: "الإعدادات" },
   moreTools: { en: "More", ar: "المزيد" },
+  // The two rows the phone's bottom bar set down (StatusBar.tsx, app.css's
+  // phone-bar block). The STATE is in the label because a ✓ on one row puts
+  // the tick column on every row of that menu.
+  moreVimOn: { en: "Vim keybindings — on", ar: "اختصارات vim — مُفعَّلة" },
+  moreVimOff: { en: "Vim keybindings — off", ar: "اختصارات vim — متوقفة" },
+  // The phone's one-line swipe hint (client/swipe.ts). Shown once per device,
+  // as a toast, the first time a touch device opens a vault — the gesture is
+  // the phone's navigation and a gesture nobody is told about is a gesture
+  // nobody finds. It names the PANE, not an edge: the pan starts anywhere on
+  // the page (the outer 24px belong to the system's back gesture), and in
+  // Arabic it travels the other way, which is why the words say neither.
+  swipeHint: {
+    en: "Swipe across the page to open your notes.",
+    ar: "اسحب عبر الصفحة لفتح ملاحظاتك.",
+  },
   siteSettingsTitle: {
     en: "Settings — identity, home page, behavior, typography, backup",
     ar: "الإعدادات — الهوية والرئيسية والسلوك والطباعة والنسخ الاحتياطي",

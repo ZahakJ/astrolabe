@@ -26,6 +26,12 @@ github-dark, since the preset rooms arrived in 3.16. Everything below is normati
   `--bg-raised` with the shared 1px border and a `--text-muted` chevron pointing into the
   content; hover fills `--bg-hover` and turns the chevron gold. Always visible while collapsed —
   a pane with no visible way back is a lost pane — and never a hover-reveal.
+  **It is a POINTER's door, and it is not drawn for a finger** (`(pointer: coarse) and
+  (hover: none)`, 3.23.0). Fourteen pixels is a mouse's target; on a touch device the pane has
+  two better doors already — the pan that follows the finger (client/swipe.ts) and the 44px
+  switch in the tool cluster — and a strip floating at the edge of a touchscreen reads as debris
+  (the owner: "how floating the panel bars button is"). The pane still has a visible way back;
+  what changes is which door is the visible one.
 - Which edge the sidebar sits on is a preference (palette: "Move sidebar to the right/left"),
   defaulting to the reading direction's leading edge. All four dir × side combinations must look
   deliberate: separators, indent, active-row bars and every chevron follow.
@@ -74,6 +80,11 @@ github-dark, since the preset rooms arrived in 3.16. Everything below is normati
 - Header: wordmark `✦ Astrolabe` — serif (--font-serif), small-caps feel, gold accent star, 15px,
   letter-spacing 0.08em; right side: "new note" (+) and "new folder" icon buttons (inline SVG,
   16px, --text-muted, hover --accent).
+  **The NAME shrinks and ellipsises; the mark never does** (`.s-title__name`, 3.23.0). A vault
+  may be called anything, the pane is 224px at its narrowest, and a name that collides with the
+  tools is the one thing a wordmark may not do. It has to be its own element to be one: a bare
+  text node in a flex box is an anonymous item, which no rule can address and which will not
+  shrink below its own min-content width.
 - Search input: subtle raised field, 13px, rounded --radius, focus ring in --accent-soft; search
   hits list replaces the tree while active: each hit = title line (serif, 14px) + snippet line
   (12px --text-muted, `<mark>` = gold text, no bg block).

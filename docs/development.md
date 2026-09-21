@@ -347,13 +347,13 @@ focus ring in the same rule, an accessible name on every icon-only control, and 
 list at the top of the script. Like check-i18n, it exists for the class of regression that is
 invisible in review and invisible in a screenshot.
 
-### `npm run check-phone` — the phone's four promises
+### `npm run check-phone` — the phone's six promises
 
 A browser gate:
 `CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=<pw> npm run check-phone -- <url> [outdir]`,
 against a scratch server. It opens the ten main surfaces — editor, reading view, graph, media,
-Sigils, calendar, weekly review, Orbits, library and the notes drawer — at 390×844 with a coarse
-pointer and no hover, in English **and** Arabic, and asks four questions of each:
+Sigils, calendar, weekly review, Orbits, library and the notes drawer — in English **and**
+Arabic, in two postures, and asks six questions of each:
 
 1. **Nothing overflows sideways.** The document never scrolls horizontally and no element hangs
    past either edge. A strip that declares `overflow-x: auto` is exempt, and so is everything
@@ -365,8 +365,18 @@ pointer and no hover, in English **and** Arabic, and asks four questions of each
 3. **Every text field is ≥16px**, below which iOS Safari zooms the page into the field on focus
    and leaves it there.
 4. **Nothing covers a target**: `elementFromPoint` at each target's centre answers that target.
+5. **A long site name stays in its pane.** The name is swapped for a 45-character one, measured
+   and put straight back; it must ellipsise inside the sidebar header rather than run past it.
+6. **No reopen strip on a finger.** The 14px `.s-reopen` door is a pointer's affordance and is
+   not drawn where the pane's doors are the swipe and a 44px switch.
 
-It exists because the audit that opened 3.18 found thirty-three defects of exactly these four
+**The two postures.** `finger` is a Pixel 7 at 390×844. `stylus` is 720×820 at DPR 1.5 with a
+pen — `availablePointerTypes=6, primaryPointerType=2, availableHoverTypes=3, primaryHoverType=1`,
+a blink setting on its own browser, because `hasTouch` makes Chromium report a coarse-only device
+whatever the pointer flags say. It is there because a real phone answered `any-pointer: fine` and
+was served the docked desktop shell, and a gate that only ever measures 390px could not see it.
+
+It exists because the audit that opened 3.18 found thirty-three defects of exactly these
 shapes, and every one of them was a number that nothing measured. Arabic is not a translation
 pass here — it is a second layout, and three of those findings existed in Arabic only.
 

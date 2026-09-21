@@ -178,12 +178,27 @@ gesture can be interrupted or reversed; it opens fully once you have dragged far
 answers the mirrored swipe. In Arabic the drawer comes from the right by itself, with no second rule. The outline pane is a drawer on a phone too: the outline switch in the status bar
 slides it over the page from the end edge, with backlinks, unlinked mentions and on-this-day inside.
 
+The first time you open a vault on a touch device, one quiet line says the swipe is there. It
+appears once per device, it is gone in three seconds, and it never appears at all if you have
+already swiped.
+
 The top bar keeps three controls on a phone: the outline switch, the settings gear and a **⋯**. The
 ⋯ opens every other tool as a labelled row — starting with the command palette, so nothing is
 keyboard-only — then the library, Orbits, Sigils, the
 [Calendar](templates-and-notes.md#the-calendar), the designer, visitor
-preview, the graph, themes and sign out. Nothing scrolls off the edge. Zen and the shortcut sheet
-are not offered, since neither means anything on a phone.
+preview, vim's keybindings, the graph, themes, sign out and the build number. Nothing scrolls off
+the edge. Zen and the shortcut sheet are not offered, since neither means anything on a phone.
+
+**The bottom bar is a phone's, not a desktop's.** It carries what is about the note and can be
+acted on: publish, the other face of a bilingual pair, the backup badge, and ONE mode control —
+reading or editing. Vim is a keyboard mode, so it is a row in ⋯ that says whether it is on; the
+build number is a fact rather than a control, so it is the last row of ⋯ and opens the releases
+page; the designer already had a row there. Everything left in the bar is 44px and spaced for a
+thumb.
+
+**A collapsed pane's 14px reopen strip is a pointer's door.** On a touch device it is not drawn
+at all: the pane opens with the swipe, or with its 44px switch in the top bar. On a mouse — which
+has no swipe — the strip stays exactly where it was.
 
 **Closing what is open.** A drawer is a layer, and every layer has three ways out: the ✕ at its
 own top, a tap on the dimmed page behind it, and the hardware back button — which closes the
@@ -195,15 +210,22 @@ nothing you can tap is smaller than 44 by 44 pixels — tree rows, tag pills, th
 calendar's days, the Sigils card's checks, the graph's zoom controls — and every field you type
 into is set at 16px, below which iOS Safari zooms the page into the field and leaves it there.
 The notch and the home indicator are kept clear, so an instance added to the home screen puts
-nothing under the status bar or the gesture bar. `npm run check-phone` measures all of this on
-ten surfaces in both languages ([Development](development.md#npm-run-check-phone--the-phones-four-promises)).
+nothing under the status bar or the gesture bar. Chrome's own grey tap flash is off and the app
+answers a press with its own; `npm run check-phone` measures all of this on ten surfaces, in both
+languages, on a finger and on a pen
+([Development](development.md#npm-run-check-phone--the-phones-six-promises)).
 
 **Opening a note does not open the keyboard.** On a phone a note opens rendered, with the caret
 left where it was; tap the text to start writing. When the keyboard does come up, the line you
 are typing on is scrolled clear of it.
 
 **What counts as a phone.** The drawer layout is used below 700px, and below 1000px on a device
-with no fine pointer — no mouse and no trackpad. So a tablet held in the hands gets the drawer,
-while a desktop window narrowed beside a browser keeps its docked, resizable panes down to phone
-width. The 44px floor and the 16px fields follow the *pointer* rather than the width, so a
-1024px tablet gets them too.
+whose own pointer is a finger that cannot hover. So a tablet held in the hands gets the drawer,
+while a desktop window narrowed beside a browser — and a laptop with a touchscreen AND a mouse —
+keeps its docked, resizable panes down to phone width. The 44px floor and the 16px fields follow
+the *pointer* rather than the width, so a 1024px tablet gets them too.
+
+That test used to be "no fine pointer anywhere on the device", and a stylus is a fine pointer: a
+phone with a pen — or one that had ever been paired with a bluetooth mouse — was handed the whole
+desktop shell, panes, 14px doors, fourteen-glyph tool cluster and all, on a 720px screen. What is
+asked now is what the device's own input *is*.

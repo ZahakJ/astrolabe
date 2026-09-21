@@ -1525,6 +1525,14 @@ stays on `.s-panel--collapsed`, as it always did.
   revealed), hidden in zen, and hidden wherever that pane is not a grid pane at all: the sidebar
   door goes at ≤999 (the drawer's ☰ button is the door there — two ways back into one pane, one
   of them 14px wide, is one too many), the outline door at ≤700 with the pane itself.
+  **AND THE STRIP IS A POINTER'S DOOR** (3.23.0, `@media (pointer: coarse) and (hover: none)`).
+  Fourteen pixels is a mouse's target, and on a device whose own pointer is a finger the pane
+  already has two better doors — the pan (client/swipe.ts, which loads behind that same test)
+  and the 44px switch in the tool cluster. The owner, looking at his friend's phone: *"one thing
+  I personally hate for example is how floating the panel bars button is.. like maybe we should
+  just support swiping and remove that bs?"* The test is the PRIMARY pointer, not `any-pointer`,
+  for the reason DRAWER_QUERY gives: a stylus is a fine pointer and a touch laptop with a mouse
+  beside it reports `hover: hover` and keeps its strip.
 - **THE READING COLUMN IS MONOTONE IN VIEWPORT WIDTH, AND THE CHROME IS WHAT PAYS FOR IT.**
   Measured before this rule, `.cm-line` with a note open: 1440=648, **1024=319**, 900=480,
   768=348, 640=604, 480=444, 390=354 — the prose was a 45-character ribbon at iPad-landscape
@@ -1611,6 +1619,13 @@ stays on `.s-panel--collapsed`, as it always did.
   the answer is a gate rather than another sentence: the ten main surfaces at 390×844 with a
   coarse pointer, English and Arabic, asserting no horizontal overflow, no shell target under
   44px, no field under 16px and no target whose centre another layer answers.
+  **Six questions and two postures since 3.23.0**: a long site name must ellipsise inside the
+  sidebar header rather than run past it (the gate swaps the name for a 45-character one and puts
+  it straight back — the rule is CSS's, not this vault's), and no `.s-reopen` strip may be drawn
+  on a finger. The second posture is a phone with a PEN — 720×820 at DPR 1.5 with
+  `availablePointerTypes=6, primaryPointerType=2, availableHoverTypes=3, primaryHoverType=1`, a
+  blink setting on its own browser because `hasTouch` overrides the pointer media — since that is
+  the device the shell was wrong on and a gate pinned to 390px could not see it.
   Three things the gate deliberately does NOT hold to 44: **prose** (a link in a sentence would
   set the line height of the paragraph around it — DESIGN.md already said so), a native
   **checkbox or radio** whose `<label>` is itself ≥44 (the label is what a finger lands on; the
@@ -3507,8 +3522,10 @@ carry that, and none of them may be quiet:
   taken in the blog shell; everything else returns before it acts.
 - **The bar's order of sacrifice is written down, it is MONOTONIC, and it ends in a scroll.**
   `.s-statusbar` is `overflow: hidden`, so anything past its width vanishes with no scrollbar and
-  no hint. At ≤1280px the two counts go (as ONE group — `.s-statusbar__ambient`); at ≤640px the
-  pane cluster and the crumb trail go, every group's hairline drops
+  no hint. At ≤1280px the two counts go (as ONE group — `.s-statusbar__ambient`); **in the phone
+  shell** (the drawer breakpoint's own condition since 3.23.0, not a second width of its own —
+  see "THE PHONE'S TWO BARS ARE A PHONE'S") the pane cluster and the crumb trail go, every
+  group's hairline drops
   **and the bar becomes `overflow-x: auto`** (scrollbar hidden), because a phone can always be
   narrower than the controls that must stay — sign-out was falling off that hidden overflow, and
   there is no other way out of a session on a phone. The MODE PILLS never go. Each of those rules
@@ -11470,3 +11487,89 @@ What the suite covers, and why each file exists:
 **Tests named `KNOWN BUG:` assert current, wrong-ish behavior on purpose** — they are the written
 record of a defect nobody has decided to fix yet, and they keep the suite honest instead of green
 by omission. Fixing the bug means rewriting that test, which is the intended workflow.
+
+## 3.23.0 — the phone, native
+
+The owner, over a photograph of a friend's Android screen: *"ui for his name is like broken?? Def
+need to make phone app be more native ngl. It kinda sucks currently. One thing I personally hate
+for example is how floating the panel bars button is.. like maybe we should just support swiping
+and remove that bs?"*
+
+**THE SCREENSHOT WAS NOT A PHONE BUG. IT WAS THE DESKTOP SHELL, ON A PHONE.** Everything in that
+picture follows from one media query answering the wrong question. Measured off the JPEG before a
+line was written — the bottom bar's two borders are 68 image px apart and that bar is 45 CSS px
+tall, so the device is 1080/1.5 = **720 CSS px at DPR 1.5** — and then reproduced at that exact
+shape: a docked 225px sidebar (`--sidebar-w`'s clamp floor, 224 + its border), the outline pane's
+14px reopen strip floating at the screen's edge, a FOURTEEN-glyph tool cluster in a row 495px
+wide, and the desktop status bar reading `الوسائط · قراءة · وضع VIM · ⊟ · 3.22.1`. The wordmark
+was not overflowing anything: the tool cluster was overflowing its column and painting, at
+`z-index: 5`, across the sidebar's header.
+
+- **`any-pointer: fine` IS TRUE OF A PHONE WITH A PEN.** `DRAWER_QUERY` asked "has this device NO
+  fine pointer at all", which was chosen in 3.15.0 to keep a scaled Windows laptop from turning
+  into a phone at 900px (defect F). It is the right instinct and the wrong question: a Samsung
+  with an S Pen — and any phone that has ever been paired with a bluetooth mouse — answers
+  `any-pointer: fine`, so it was handed the docked shell, the resize grips, the 14px doors and the
+  full cluster on a 720px screen. The question this breakpoint is actually asking is what the
+  device's OWN input is, which is the PRIMARY pointer:
+  `(max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none))` — a finger,
+  and one that cannot hover.
+  It answers identically for all three postures `check-windows-layout` drives, which is why the
+  Windows work survives intact: a mouse is fine and hovers (docked); a hardware SLATE is
+  `{coarse, hover: none}` whatever is plugged into it (drawer under 1000, exactly as before); a
+  TOUCH LAPTOP has a coarse primary pointer and `hover: hover` from the mouse beside the screen
+  (docked, with its grips — defect F's whole point). The harness asserts the new pair per posture
+  (`OWN_POINTER`) beside the old `FINE`, so a posture that half-takes is a failure rather than a
+  pass, and `tests/drawerQuery.test.ts` now refuses `any-pointer` in that string entirely.
+- **THE PHONE'S TWO BARS ARE A PHONE'S, AND THEY ANSWER TO THE SHELL RATHER THAN TO A SECOND
+  WIDTH.** The top cluster's trim to three doors and the bottom bar's sacrifice ladder were both
+  keyed to a bare `max-width: 640px` while the shell around them becomes a phone at the drawer
+  breakpoint. At 720 neither fired. Both blocks carry the drawer query now — one condition for
+  one shell — which also moves the trim from 640 to 700 for a narrow desktop window, where the
+  drawer shell already lives.
+  - **The top cluster** keeps the gear, the outline switch and the ⋯ (unchanged rule, newly
+    reaching the devices it was written for). *The outline switch is not one of the four*: the
+    old rule dropped the whole pane cluster, which was true at 640 and false the moment the block
+    began at the drawer breakpoint — between 701 and 999 the outline pane is still a docked pane,
+    its reopen strip is gone on a finger, and hiding its switch would leave a pane with no door
+    at all. The other three go: the sidebar has its ☰ and its pan, zen means nothing on a phone,
+    and the shortcut sheet means less.
+  - **The bottom bar** carries what is about the NOTE and can be acted on: publish, the twin, the
+    sync badge, and ONE mode control (reading/editing). Three things leave, each with a door:
+    the VIM pill (`.s-mode--vim`) — vim is a KEYBOARD mode, and a phone with a bluetooth keyboard
+    still reaches it as a labelled row in ⋯ whose text carries the state, since a ✓ on one row
+    puts the tick column on all thirteen; the build number (`.s-statusbar__build`) — a fact, not
+    a control, and the widest thing in a 412px bar, now the last row of ⋯ opening the same
+    release page; the designer's door (`.s-statusbar__designer`), which already had a row there.
+    The bar's gap goes 5px → 8px: five pixels between two 44px targets is a five-pixel miss.
+- **THE SITE'S NAME NEEDED AN ELEMENT.** `.s-sidebar-header .s-title` has carried
+  `overflow: hidden; text-overflow: ellipsis` since the header learned to wrap, and it never once
+  truncated a name — `.s-title` is an inline-FLEX box and the name was a bare text node inside
+  it, which is an ANONYMOUS flex item: unstyleable, floored at its own min-content width, and
+  immune to a `text-overflow` set on its parent. Measured in a 224px pane with a 45-character
+  name: a 444.7px box hanging 266.7px past the header's edge; after, 168px with 277px of the
+  string ellipsised and 0px past. The name is `.s-title__name`; the brandmark and the logo take
+  `flex: none`, because the brand is not the thing that gives way.
+- **THE TOAST CLEARS THE BAR.** `.s-toasts` sat at `bottom: calc(44px + var(--safe-bottom))` and
+  the touch shell's bar is 45 — its own hairline is part of its box, the same pixel the tab strip
+  spells out — so a toast rested exactly ON the bar's top border (measured 1px apart at 412×915
+  and at 720×820, both languages). 53px on the touch shell: the bar plus an 8px gap.
+- **THE PLATFORM'S TAP FLASH IS OFF AND THE APP ANSWERS THE PRESS ITSELF.**
+  `-webkit-tap-highlight-color: transparent` on the touch shell, because Chrome Android's pale
+  rectangle ignores `border-radius` (a 44px pill flashed square) and is the loudest thing on a
+  dark room's screen. A press must still answer, and `:hover` is feedback a finger never sees, so
+  `:active` takes the hover ground on the tree rows, tag pills, icon buttons, bar buttons, menu
+  rows, tabs and mode pills — excluding the LIT ones, whose accent fill is the state.
+- **ONE QUIET LINE FOR THE GESTURE** (`client/swipe.ts`, `astrolabe.swipeHintSeen`). The strip
+  that left the touch shell was a visible thing; the pan that replaces it is not, and a gesture
+  nobody is told about is a gesture nobody finds. A toast, four seconds after the shell settles,
+  once per DEVICE (the gesture is a property of the screen in the hand, like the what's-new
+  mark), never over a palette/settings/dialog, and spent the moment a finger starts a pan — so a
+  reader who swipes first is never told what they just did. It lives in the swipe chunk, which
+  loads only behind `(pointer: coarse)`: a mouse downloads neither the gesture nor its hint.
+- **What was deliberately LEFT.** The outline pane stays a docked, resizable column between 701
+  and 999 (the panel auto-collapses below 1360 anyway, so reaching it there is a deliberate act
+  and the 44px switch is its door); the crumb trail still leaves the phone's bar, since the tab
+  strip names what is open; the sync badge, publish and twin stay, because each is an act; and
+  the focus ring still lands on a tapped text field, which is a caret's business rather than a
+  hover affordance.

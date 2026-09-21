@@ -41,11 +41,34 @@
 //      under the drawer, so the tap it received went to the wordmark
 //      underneath — and the outline pane that covered Settings and the ⋯.
 //
-// TEN SURFACES × TWO LANGUAGES, at 390×844 with `isMobile` and `hasTouch`, so
-// `(pointer: coarse)` and `(hover: none)` both answer the way they do on a
-// phone. Arabic is not a translation pass: it is a different layout, and
-// three of the audit's findings (the shelf header off the left edge, the tag
-// strip's mask, the status bar's packing) existed in Arabic only.
+//   5. THE SITE'S NAME STAYS IN ITS PANE (3.23.0). A long name — and a vault
+//      may be called anything — must ellipsise inside the sidebar header, not
+//      run past it and under the header's tools. It was an ANONYMOUS flex
+//      item until this round, which is an item CSS cannot address: measured
+//      at 224px of pane, a 45-character name took a 444px box and hung 266px
+//      past the header's edge.
+//   6. NO REOPEN STRIP ON A FINGER (3.23.0). The 14px `.s-reopen` door is a
+//      pointer's affordance; on a touch device the pane's doors are the pan
+//      (client/swipe.ts) and the 44px switch in the tool cluster. The owner,
+//      about his friend's phone: "one thing I personally hate for example is
+//      how floating the panel bars button is".
+//
+// TEN SURFACES × TWO LANGUAGES × TWO POSTURES. The first posture is a phone
+// at 390×844 with `isMobile` and `hasTouch`, so `(pointer: coarse)` and
+// `(hover: none)` both answer the way they do on a phone. Arabic is not a
+// translation pass: it is a different layout, and three of the audit's
+// findings (the shelf header off the left edge, the tag strip's mask, the
+// status bar's packing) existed in Arabic only.
+//
+// THE SECOND POSTURE IS THE ONE THAT WAS MISSING, and it is a real phone
+// somebody owns: 720 CSS px at DPR 1.5 with a STYLUS — a Galaxy with an S Pen,
+// which answers `any-pointer: fine` and was therefore served the whole docked
+// desktop shell, fourteen-glyph tool cluster and all, painted over the
+// sidebar's wordmark. Chromium will not emulate that through the devtools
+// protocol (`hasTouch` overrides the pointer media), so the posture is a
+// BLINK SETTING on its own browser, the way check-windows-layout drives its
+// three Windows postures. A gate that only ever measures 390px is a gate that
+// cannot see the shell being wrong at 720.
 
 import { chromium, devices } from "playwright";
 import { mkdirSync } from "node:fs";
@@ -75,7 +98,7 @@ const MEASURE = String.raw`(() => {
   const de = document.documentElement;
   const vw = de.clientWidth;
   const vh = de.clientHeight;
-  const out = { overflow: [], small: [], fonts: [], covered: [], docScroll: 0 };
+  const out = { overflow: [], small: [], fonts: [], covered: [], reopen: [], wordmark: null, docScroll: 0 };
 
   if (de.scrollWidth > vw + 1) out.docScroll = de.scrollWidth - vw;
 
@@ -176,6 +199,35 @@ const MEASURE = String.raw`(() => {
     }
   }
 
+  // ── 5. the site's name, which may be anything at all
+  //
+  // The rule is a CSS one, so it is tested with a string rather than with
+  // whatever this vault happens to be called: the name is swapped for a long
+  // one, measured, and put straight back. Nothing is written anywhere.
+  const name = document.querySelector(".s-title__name");
+  const header = document.querySelector(".s-sidebar-header");
+  if (name && header) {
+    const was = name.textContent;
+    name.textContent = "Mind-INTJ/Vellum — the alchemical reading room";
+    const rn = name.getBoundingClientRect();
+    const rh = header.getBoundingClientRect();
+    out.wordmark = {
+      past: Math.round(Math.max(0, rn.right - rh.right, rh.left - rn.left)),
+      width: Math.round(rn.width),
+      header: Math.round(rh.width),
+      ellipsised: name.scrollWidth - name.clientWidth,
+    };
+    name.textContent = was;
+  }
+
+  // ── 6. the reopen strip, which belongs to a pointer
+  for (const el of document.querySelectorAll(".s-reopen")) {
+    const cs = getComputedStyle(el);
+    if (cs.display === "none" || cs.visibility === "hidden") continue;
+    const r = el.getBoundingClientRect();
+    if (r.width > 1 && r.height > 1) out.reopen.push([sel(el), Math.round(r.left), Math.round(r.width)]);
+  }
+
   const once = (rows) => {
     const seen = new Set();
     return rows.filter((row) => {
@@ -192,6 +244,27 @@ const MEASURE = String.raw`(() => {
   return out;
 })()`;
 
+/** THE TWO POSTURES (see the header). `finger` is Playwright's own Pixel 7,
+ *  which is a device descriptor and needs no flags. `stylus` cannot be a
+ *  descriptor at all: `hasTouch` makes Chromium report {coarse, hover: none}
+ *  whatever the pointer flags say, so the posture is a blink setting and the
+ *  context asks for neither `isMobile` nor `hasTouch` — the media queries come
+ *  from the renderer instead, which is how the device itself answers them.
+ *  (Blink's bitfields: pointer 2 = coarse, 4 = fine, 6 = both; hover 1 = none,
+ *  2 = hover, 3 = both. A phone with an S Pen is 6/2 and 3/1.) */
+const POSTURES = [
+  {
+    name: "finger",
+    args: [],
+    context: { ...devices["Pixel 7"], viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
+  },
+  {
+    name: "stylus",
+    args: ["--blink-settings=availablePointerTypes=6,primaryPointerType=2,availableHoverTypes=3,primaryHoverType=1"],
+    context: { viewport: { width: 720, height: 820 }, deviceScaleFactor: 1.5, isMobile: false, hasTouch: false },
+  },
+];
+
 const fail = [];
 const pass = [];
 function check(ok, what, detail = "") {
@@ -200,6 +273,7 @@ function check(ok, what, detail = "") {
 }
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM });
+const browsers = [];
 const contexts = [];
 const newContext = async (opts) => {
   const ctx = await browser.newContext(opts);
@@ -252,13 +326,15 @@ try {
   }
   const cookies = await first.cookies();
 
+  for (const posture of POSTURES) {
+  // A posture is a browser flag, so each one is its own browser.
+  const pb = posture.args.length === 0
+    ? browser
+    : await chromium.launch({ executablePath: process.env.CHROMIUM, args: posture.args });
+  if (pb !== browser) browsers.push(pb);
   for (const lang of ["en", "ar"]) {
-    const ctx = await newContext({
-      ...devices["Pixel 7"],
-      viewport: { width: 390, height: 844 },
-      isMobile: true,
-      hasTouch: true,
-    });
+    const ctx = await pb.newContext(posture.context);
+    contexts.push(ctx);
     await ctx.addCookies(cookies);
     // The deck and the sync poller are not what is being measured, and a
     // modal over every surface would measure the modal ten times.
@@ -273,7 +349,7 @@ try {
     }, lang);
 
     const page = await ctx.newPage();
-    console.log(`\n── ${lang} ──────────────────────────────────────────────`);
+    console.log(`\n── ${posture.name} ${lang} ───────────────────────────────`);
 
     for (const [name, path] of SURFACES) {
       const drawer = path.endsWith("drawer=1");
@@ -292,9 +368,9 @@ try {
       }
 
       const r = await page.evaluate(MEASURE);
-      await page.screenshot({ path: `${out}/phone-${lang}-${name}.png` });
+      await page.screenshot({ path: `${out}/phone-${posture.name}-${lang}-${name}.png` });
 
-      const tag = `${lang} ${name}`;
+      const tag = `${posture.name} ${lang} ${name}`;
       check(r.docScroll === 0, `${tag}: the page does not scroll sideways`, `${r.docScroll}px of it`);
       check(
         r.overflow.length === 0,
@@ -316,11 +392,32 @@ try {
         `${tag}: no target is under another layer`,
         r.covered.slice(0, 8).map((c) => `${c[0]} ← ${c[1]}`).join("\n        "),
       );
+      check(
+        r.reopen.length === 0,
+        `${tag}: no reopen strip on a finger`,
+        r.reopen.map((o) => `${o[0]} at x=${o[1]}, ${o[2]}px wide`).join("\n        "),
+      );
+      // Only where the pane is actually on screen: a closed drawer is
+      // `visibility: hidden` and its header measures whatever it likes.
+      if (drawer && r.wordmark) {
+        check(
+          r.wordmark.past === 0,
+          `${tag}: a long site name stays inside the header`,
+          `${r.wordmark.width}px of name in a ${r.wordmark.header}px header, ${r.wordmark.past}px past its edge`,
+        );
+        check(
+          r.wordmark.ellipsised > 0,
+          `${tag}: a long site name ellipsises`,
+          "the name was not truncated at all — the rule has no element to act on",
+        );
+      }
     }
     await page.close();
   }
+  }
 } finally {
   for (const c of contexts) await c.close().catch(() => {});
+  for (const b of browsers) await b.close().catch(() => {});
   await browser.close();
 }
 
