@@ -57,8 +57,22 @@ public class AstrolabePlugin extends Plugin {
      * an app whose server is chosen at run time — which is the same as having no
      * gate at all.
      */
+    /** The path the web client navigates to when the owner asks for the
+     *  connection screen from inside a vault ("Change server or vault…" in
+     *  the ⋯ menu — client/androidShell.ts). It is caught here, on ANY host,
+     *  before the trust check: the instance never sees it, and the shell's
+     *  own screen comes up with `?pick=1` so nothing auto-opens again. Until
+     *  3.22.1 the only way back was the back gesture at the far end of the
+     *  vault's history, which a signed-out instance never reaches. */
+    static final String SETUP_PATH = "/__astrolabe/setup";
+
     @Override
     public Boolean shouldOverrideLoad(Uri url) {
+        if (SETUP_PATH.equals(url.getPath())) {
+            final String local = getBridge().getLocalUrl();
+            getBridge().getWebView().post(() -> getBridge().getWebView().loadUrl(local + "/shell.html?pick=1"));
+            return Boolean.TRUE;
+        }
         String saved = lastServer(getContext());
         if (saved == null) return null;
 

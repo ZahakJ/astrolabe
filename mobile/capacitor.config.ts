@@ -24,6 +24,12 @@ const config: CapacitorConfig = {
     androidScheme: "https",
   },
 
+  // The one word the web client reads to know it is inside this shell:
+  // client/androidShell.ts offers "Change server or vault…" only then, and the
+  // way back it takes — a navigation to /__astrolabe/setup on whatever host —
+  // is caught by AstrolabePlugin.shouldOverrideLoad. Nothing else keys on it.
+  appendUserAgent: "Astrolabe-Android",
+
   android: {
     // The shell talks to ONE host and that host may well be a home server with
     // no certificate. Cleartext is permitted by res/xml/network_security_config

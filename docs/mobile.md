@@ -25,6 +25,10 @@ The app opens one of two doors, and you choose which on its first screen.
 
 Your notes, your theme, your language and everything else are the instance's; the app changes nothing about them. The system bars (the status bar at the top, the gesture bar at the bottom) are kept off the page by the app itself, and the keyboard resizes the page rather than covering it.
 
+## Leaving a vault
+
+Two ways back to the connection screen, from any vault. **⋯ → Change server or vault…** in the bottom bar, which the web client shows only inside this app, takes you there directly — to type another address, pick a remembered one, or open a vault from GitHub. And the back gesture, once it has walked back through everything the vault had to go back to, lands there too. Signing out of an instance does not do it: you are signed out of that site and still looking at it, which is what signing out means; the door is the row above.
+
 ## A vault from GitHub
 
 Choose **or open a vault from GitHub** on the first screen. The app shows a short code; you type it into `github.com/login/device` in any browser — the phone's own, or the laptop you are already signed in on — and approve it there. Nothing asks you for your GitHub password, and the app keeps no secret of its own: this is GitHub's *device flow*, the one designed for a device that cannot safely hold one. It asks for a single permission, **read and write your repositories**, which is the narrowest scope that can reach a private one. You can withdraw it at any time from your GitHub account's applications page.
@@ -47,7 +51,7 @@ Your notes go nowhere but your own repository. The app has no server of its own 
 
 ### Registering the app, if you build it yourself
 
-A build from the repository needs a GitHub OAuth App of your own, because the one in a release is not yours to borrow. Make one on github.com, under your account's **Developer settings → OAuth Apps → New OAuth App**, turn **Enable Device Flow** on, and put its Client ID in `mobile/.env` as `ASTROLABE_GITHUB_CLIENT_ID` before building. There is no client secret; the device flow does not use one. A build without an id still runs — the GitHub door says what is missing instead of failing at the first request.
+**Two ways in.** The plain one works in every build: make a personal access token on github.com (under your profile's **Developer settings**, then **Personal access tokens** — fine-grained, with *Contents: read and write* on the repository that is your vault; or a classic token with the `repo` scope), paste it into the door, and the app checks it with GitHub before keeping it. It stays on the phone and is sent only to github.com, as the password on every git request. The other way is the **Sign in with GitHub** button — a code you read off the phone and type on github.com — which needs a GitHub OAuth App id baked into the build: make one under **Developer settings → OAuth Apps → New OAuth App**, turn **Enable Device Flow** on, and put its Client ID in `mobile/.env` as `ASTROLABE_GITHUB_CLIENT_ID` before building. There is no client secret; the device flow does not use one. A build without an id still has the door: the button is simply not drawn, and the token field is.
 
 ## The share sheet
 

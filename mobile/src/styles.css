@@ -203,6 +203,7 @@ label {
 
 input[type="text"],
 input[type="url"],
+input[type="password"],
 /* `search` joined the list with the repository picker (3.22). A type left out
    of this selector is a field at the browser's own width and the browser's own
    font size — which on a WebView means the page zooms on focus and never comes
@@ -560,4 +561,11 @@ select {
 select:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
+}
+
+/* The device-flow half of the GitHub door, under the token form. */
+.alt {
+  margin-block-start: 20px;
+  display: grid;
+  gap: 8px;
 }
