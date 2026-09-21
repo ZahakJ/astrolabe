@@ -26,7 +26,7 @@
  * against an in-memory FS (tests/pocketServer.test.ts).
  */
 
-import type { EffectiveSettings, MeData, NoteData, NoteRevision, SettingsData, SettingsResponse, TreeNode, VaultEvent } from "../../../shared/types.ts";
+import type { EffectiveSettings, MeData, NoteData, NoteRevision, PocketSyncStatus, SettingsData, SettingsResponse, TreeNode, VaultEvent } from "../../../shared/types.ts";
 import { frontmatterKeyRefusal, setNoteProperty } from "../../../shared/frontmatterEdit.ts";
 import type { PropertyValue } from "../../../shared/types.ts";
 import { isNotePath, noteTitleOf } from "../../../shared/noteFormat.ts";
@@ -94,13 +94,40 @@ export interface PocketGit {
   blobAt(path: string, sha: string): Promise<string | null>;
 }
 
-/** Device state that is NOT the vault: preferences, the workspace, the
- *  instance settings. On a server these live in ASTROLABE_DATA; a pocket vault
- *  has no such directory and putting them in the repository would push a
- *  phone's open tabs to the laptop. They stay on the device. */
+/** Device state that is NOT the vault: preferences and the workspace. On a
+ *  server these live in ASTROLABE_DATA; a pocket vault has no such directory
+ *  and putting them in the repository would push a phone's open tabs to the
+ *  laptop. They stay on the device.
+ *
+ *  The INSTANCE SETTINGS used to live here too, and that was the bug: a site
+ *  name or a calendar chosen on the phone was a fact about the vault, and it
+ *  died on the phone. They live in `.astrolabe/settings.json` now — see
+ *  `VAULT_SETTINGS` below. */
 export interface PocketStore {
   get(key: string): Promise<unknown>;
   set(key: string, value: unknown): Promise<void>;
+}
+
+/**
+ * THE SHELL'S HALF OF A POCKET VAULT, when there is a shell.
+ *
+ * The pull, the push and the phone's memory of which repository this is belong
+ * to `pocket/session.ts` and `pocket/store.ts`; the settings panel needs to SAY
+ * what they are doing and to ask them to do it. It is optional because the
+ * server is also run by `node --test` against an in-memory filesystem, where
+ * there is no network and no Preferences — and a route that cannot be answered
+ * answers a 501 with the reason, like every other thing a pocket cannot do.
+ */
+export interface PocketShell {
+  /** The sync state the shell's own one-line strip is painted from. */
+  syncState(): PocketSyncStatus;
+  /** Pull, then push. Answers the state afterwards. */
+  syncNow(): Promise<PocketSyncStatus>;
+  /** Forget the repository choice and the token — the phone's next launch
+   *  opens the connection screen. The CLONE is not deleted: leaving a vault
+   *  is not a delete, and the same repository re-opened is a fresh clone
+   *  anyway. */
+  leave(): Promise<void>;
 }
 
 export interface PocketDeps {
@@ -110,6 +137,9 @@ export interface PocketDeps {
   index: PocketIndex;
   /** Named in every commit this server makes. */
   repo: { name: string; branch: string };
+  /** The pull, the push and the phone's memory of this repository. Absent
+   *  under `node --test`, and then `/api/pocket/*` refuses with a reason. */
+  shell?: PocketShell;
   now?: () => number;
   /** Told about every write, so the shell's sync line and the client's
    *  EventSource both learn about it. */
@@ -172,6 +202,66 @@ const SERVER_ONLY: Record<string, string> = {
   "/api/hadith": "Scripture lookup reads a corpus the server ships; the pocket carries only your vault.",
   "/api/seed": "The starter vault is copied by a server from its own installation.",
   "/api/theme": "The public site's theme describes visitors, and a pocket vault has none.",
+};
+
+/**
+ * WHERE A POCKET VAULT'S SETTINGS LIVE: IN THE VAULT.
+ *
+ * The same file `server/configMirror.ts` mirrors out of every instance's data
+ * directory, in the same shape, so a site name chosen on the phone is in the
+ * repository within one push and is the laptop's site name the moment it
+ * pulls. The first version of this server kept them in the phone's own
+ * Preferences instead, and the friend who reported the bug was right about
+ * the symptom and half right about the cause: the settings did not travel, and
+ * the git-sync rows on top of them could not be saved AT ALL.
+ *
+ * `.astrolabe/` is a dot-directory: vaultIo.ts hides it from the index and the
+ * tree exactly as the instance's vault.ts never lists it, so the settings file
+ * is not an attachment in anybody's sidebar.
+ */
+const VAULT_SETTINGS = ".astrolabe/settings.json";
+
+/** `/api/pocket/*` with no shell under it — `node --test`, and nothing else. */
+const POCKET_NO_SHELL = "The pull and the push belong to the phone's shell, and this page has none.";
+
+/**
+ * WHAT A POCKET VAULT CANNOT KEEP, AND WHY — one sentence per key.
+ *
+ * Every one of these describes something a pocket vault has not got: a public
+ * address with visitors at it, a data directory holding downloaded faces, a
+ * server-side git to point at a remote, a corpus the installation ships. A
+ * PATCH carrying one is REFUSED with the reason rather than written, because
+ * the alternative is what the friend hit — a Save that says it saved, a panel
+ * that snaps back, and a settings file quietly carrying a lie to the laptop.
+ *
+ * The client hides or greys the same rows (client/components/SettingsModal.tsx,
+ * `pocket`), so in practice nobody meets these refusals; they are here because
+ * the panel is not the only thing that can PATCH, and a rule enforced in one
+ * place only is a rule with a hole in it.
+ */
+const POCKET_CANNOT_KEEP: Record<string, string> = {
+  gitSync: "The vault IS the repository here, and the phone's own sync drives it — see Backup & sync.",
+  gitToken: "The repository's token belongs to the phone, not to the vault: it is never written into the notes.",
+  gitUser: "The repository's account belongs to the phone, not to the vault.",
+  publicLayout: "A pocket vault has no public half, so there is no visitor layout to choose.",
+  languageFilter: "The language filter curates PUBLIC surfaces, and a pocket vault has none.",
+  languageToggle: "The EN/ع switch is offered to visitors, and a pocket vault has none.",
+  topics: "Categories are a shape of the published site, which a pocket vault has not got.",
+  excludeTags: "Excluded tags hide notes from visitors, and a pocket vault has none.",
+  authorSites: "The author's other sites are cards on a public blog, which a pocket vault has not got.",
+  commentsEnabled: "Marginalia are written by visitors to a public site; a pocket vault has none.",
+  shareButtons: "The share row sits under a public article, which a pocket vault has not got.",
+  ambient: "The ambient masthead is the public site's, which a pocket vault has not got.",
+  publicFolders: "Public folders are a shape of the published site, which a pocket vault has not got.",
+  library: "The library shelf is part of the published site, which a pocket vault has not got.",
+  defaultTheme: "The default theme is what VISITORS land on; your own theme is on This device.",
+  adminTheme: "The default theme is what VISITORS land on; your own theme is on This device.",
+  footer: "The footer line is printed on a public site, which a pocket vault has not got.",
+  favicon: "A favicon is served by a site at its own address; the phone shows the app's icon.",
+  fonts: "Catalog faces are downloaded and served by an instance; a pocket vault ships no font directory.",
+  noteVersions: "Every save here is already a commit, so the history is the repository's and never off.",
+  pdfSearch: "Reading the text of every PDF is work an instance does on its own disk.",
+  hadithFolder: "Scripture lookup reads a corpus the server ships; the pocket carries only your vault.",
 };
 
 // ── the router ──────────────────────────────────────────────────────────────
@@ -269,18 +359,43 @@ export function createPocketServer(deps: PocketDeps): {
      * is built here, whole, typed as `SettingsResponse` so the compiler is the
      * thing that notices when the shape grows a field.
      *
-     * The values are the product's own defaults, overlaid with whatever the
-     * owner has changed on this device. A pocket vault has no ASTROLABE_DATA to
-     * inherit from, so `inherited` is the defaults too.
+     * The values are the product's own defaults, overlaid with whatever is
+     * stored IN THE VAULT (`.astrolabe/settings.json` — the same file an
+     * instance mirrors, so the two ends of one repository agree). A pocket
+     * vault has no ASTROLABE_DATA to inherit from, so `inherited` is the
+     * defaults too.
+     *
+     * The keys in `POCKET_CANNOT_KEEP` are answered as the fixed facts they
+     * are, whatever the file says: a repository that has been open on a laptop
+     * carries `commentsEnabled: true` and a `gitSync` block, and a phone that
+     * echoed them back would be describing a site it is not.
      */
+    async function heldSettings(): Promise<Partial<SettingsData>> {
+      const text = await io.readText(VAULT_SETTINGS);
+      if (text === null) return {};
+      try {
+        const parsed: unknown = JSON.parse(text);
+        return typeof parsed === "object" && parsed !== null ? (parsed as Partial<SettingsData>) : {};
+      } catch {
+        // A half-written or hand-mangled file must never be the reason the
+        // vault will not open: the defaults render, and the next save rewrites
+        // it whole.
+        return {};
+      }
+    }
+
     async function pocketSettings(): Promise<SettingsResponse> {
-      const held = (((await store.get("settings")) as Partial<SettingsData>) ?? {});
+      const held = await heldSettings();
       const language = held.language === "ar" ? "ar" : "en";
       const effective: EffectiveSettings = {
         siteName: held.siteName ?? deps.repo.name,
         tagline: held.tagline ?? null,
-        footer: held.footer ?? null,
-        defaultTheme: held.defaultTheme ?? "follow",
+        // The four below are answered as the FIXED facts a pocket vault has,
+        // not from the file: a repository that has been open on a laptop
+        // carries its public site's footer, theme and excluded tags, and a
+        // phone echoing them back would be describing a site it is not.
+        footer: null,
+        defaultTheme: "follow",
         visitorTheme: null,
         publicLayout: "app",
         blogLocale: held.blogLocale ?? language,
@@ -288,12 +403,12 @@ export function createPocketServer(deps: PocketDeps): {
         languageFilter: "off",
         languageToggle: false,
         topics: "tags",
-        excludeTags: held.excludeTags ?? [],
+        excludeTags: [],
         authorSites: [],
         commentsEnabled: false,
         noteVersions: true,
         shareButtons: false,
-        ambient: held.ambient ?? false,
+        ambient: false,
         pdfSearch: false,
         favicon: null,
         logo: held.logo ?? null,
@@ -336,12 +451,9 @@ export function createPocketServer(deps: PocketDeps): {
           tokenSet: true,
           gitUser: null,
         },
-        fonts: {
-          prose: held.fonts?.prose ?? "system",
-          ui: held.fonts?.ui ?? "system",
-          mono: held.fonts?.mono ?? "system",
-          arabic: held.fonts?.arabic ?? "system",
-        },
+        // Catalog faces are downloaded and served by an instance; the phone
+        // ships no font directory, so every slot is the system stack.
+        fonts: { prose: "system", ui: "system", mono: "system", arabic: "system" },
         dateCalendar: held.dateCalendar ?? "gregorian",
         dateOrder: held.dateOrder ?? "auto",
         dateSeparator: held.dateSeparator ?? "bar",
@@ -353,8 +465,17 @@ export function createPocketServer(deps: PocketDeps): {
         tagLabels: held.tagLabels ?? {},
         folderIcons: held.folderIcons ?? {},
       };
+      // The STORED half of the answer, with the keys this vault cannot keep
+      // taken out of it. They are in the file whenever the repository has also
+      // been open on an instance, and the panel prefills its fields from here:
+      // echoing a laptop's comment setting back would put a live-looking
+      // switch on a screen that can do nothing with it.
+      const stored: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(held)) {
+        if (POCKET_CANNOT_KEEP[key] === undefined) stored[key] = value;
+      }
       return {
-        ...(held as SettingsData),
+        ...(stored as SettingsData),
         effective,
         inherited: {
           language,
@@ -481,6 +602,12 @@ export function createPocketServer(deps: PocketDeps): {
           admin: true,
           public: false,
           protected: false,
+          // THE ONE THING THE CLIENT HAS TO KNOW ABOUT WHERE IT IS. Everything
+          // else the pocket refuses, it refuses one route at a time, and the
+          // client meets the refusal only after the reader has already acted.
+          // The settings panel cannot work that way: a Backup & sync tab full
+          // of a server's git rows is wrong BEFORE anything is pressed.
+          pocket: true,
           siteName: deps.repo.name,
           version: pocketVersion(),
           // The vault is a git working tree and nothing else: there is no
@@ -712,14 +839,51 @@ export function createPocketServer(deps: PocketDeps): {
       case "GET /api/settings":
         return json(await pocketSettings());
       case "PATCH /api/settings": {
+        // A SAVE THAT LANDS IN THE REPOSITORY, or a refusal that says why.
+        //
+        // The keys go into `.astrolabe/settings.json` — the same file every
+        // instance mirrors — and the write is committed like a note save, so
+        // the choice is on the laptop as soon as the push is. A key the pocket
+        // cannot keep is refused with its reason and NOTHING is written: a
+        // partial save whose other half was silently dropped is the failure
+        // this whole round is about.
         const body = await bodyJson(request);
-        const held = (((await store.get("settings")) as Record<string, unknown>) ?? {});
+        const refused = Object.keys(body ?? {}).filter((key) => POCKET_CANNOT_KEEP[key] !== undefined);
+        if (refused.length > 0) {
+          const first = refused[0] as string;
+          return json(
+            { error: POCKET_CANNOT_KEEP[first], code: "pocket", fields: refused },
+            501,
+          );
+        }
+        const held = (await heldSettings()) as Record<string, unknown>;
         for (const [key, value] of Object.entries(body ?? {})) {
           if (value === null) delete held[key];
           else held[key] = value;
         }
-        await store.set("settings", held);
+        await io.writeText(VAULT_SETTINGS, `${JSON.stringify(held, null, 2)}\n`);
+        await commit("Astrolabe pocket: settings", [VAULT_SETTINGS]);
         return json(await pocketSettings());
+      }
+
+      // ── the pocket's own sync, which is the shell's ───────────────────────
+      // `/api/sync/*` is a 501 here and stays one: it describes a server
+      // driving git over a vault it can see. This is the other thing — the
+      // phone's own pull and push, and the one line about them the shell
+      // already paints — answered to the settings panel so the reader can SEE
+      // it and ask for it without leaving the vault.
+      case "GET /api/pocket/sync":
+        return deps.shell
+          ? json(deps.shell.syncState() satisfies PocketSyncStatus)
+          : fail(501, POCKET_NO_SHELL, "pocket");
+      case "POST /api/pocket/sync":
+        return deps.shell
+          ? json((await deps.shell.syncNow()) satisfies PocketSyncStatus)
+          : fail(501, POCKET_NO_SHELL, "pocket");
+      case "POST /api/pocket/leave": {
+        if (!deps.shell) return fail(501, POCKET_NO_SHELL, "pocket");
+        await deps.shell.leave();
+        return json({ ok: true });
       }
       case "GET /api/layouts":
         return json({ layouts: ((await store.get("layouts")) as unknown) ?? {} });

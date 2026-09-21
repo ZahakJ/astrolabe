@@ -18,6 +18,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { RefObject } from "react";
 import { t } from "../../i18n.ts";
+import { useStore } from "../../state.ts";
 import { searchSettings } from "./searchSettings.ts";
 import type { SettingEntry } from "./settingsIndex.ts";
 
@@ -35,7 +36,11 @@ export default function SettingsSearch({
 }) {
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
-  const hits = useMemo(() => searchSettings(query), [query]);
+  // A pocket vault has two fewer tabs and its own Backup & sync rows; the
+  // index marks both, and a result must never point at a row this vault does
+  // not draw.
+  const pocket = useStore((s) => s.pocket);
+  const hits = useMemo(() => searchSettings(query, undefined, pocket), [query, pocket]);
 
   useEffect(() => setCursor(0), [query]);
 

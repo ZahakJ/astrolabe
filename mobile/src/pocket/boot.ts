@@ -32,7 +32,18 @@ import { lang, pocketWords } from "../i18n.ts";
 import { createPocketFs, POCKET_DIR } from "./fsFactory.ts";
 import { gitAuthHeader } from "./github.ts";
 import { PocketSession } from "./session.ts";
-import { readBase, readDoor, readRepo, readToken, readUser, writeBase, createPocketStore } from "./store.ts";
+import {
+  createPocketStore,
+  forgetRepo,
+  forgetSignIn,
+  readBase,
+  readDoor,
+  readRepo,
+  readToken,
+  readUser,
+  writeBase,
+  writeDoor,
+} from "./store.ts";
 import { nativeGitHttp } from "./transport.ts";
 import { syncLine, type SyncState } from "./sync.ts";
 import type { PocketRequest } from "./server.ts";
@@ -94,6 +105,16 @@ async function boot(): Promise<void> {
     store: createPocketStore(),
     onSync: paintSyncLine,
     onEvent: tellTheWorker,
+    // "Leave this vault" in Settings → Backup & sync. The three facts that
+    // make this phone open a repository without asking go together: which
+    // repository, the token that reaches it, and the door the shell opens on
+    // launch. The CLONE stays — leaving is not a delete — and the client
+    // navigates to the connection screen itself (client/androidShell.ts).
+    onLeave: async () => {
+      await forgetRepo();
+      await forgetSignIn();
+      await writeDoor("instance");
+    },
   });
   window.__POCKET__ = session;
 

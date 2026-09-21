@@ -26,7 +26,7 @@ import { PocketIndex, isNote } from "../mobile/src/pocket/index.ts";
 import { createPocketServer, type PocketGit, type PocketRequest, type PocketResponse } from "../mobile/src/pocket/server.ts";
 import { createVaultIo, isHiddenPath, safeVaultPath } from "../mobile/src/pocket/vaultIo.ts";
 import { makeMemoryFs, type MemoryFs } from "./helpers/memoryFs.ts";
-import type { Backlink, NoteData, SearchHit, TagCount, TreeNode } from "../shared/types.ts";
+import type { Backlink, NoteData, PocketSyncStatus, SearchHit, SettingsResponse, TagCount, TreeNode } from "../shared/types.ts";
 
 const ROOT = "/vault";
 
@@ -465,5 +465,288 @@ describe("the pocket server — the shelves that are note-based", () => {
     const decks = (await server.json("GET", "/api/orbits?today=2026-02-02")) as { path: string; implicit: boolean }[];
     assert.equal(decks.at(-1)?.path, "*");
     assert.equal(decks.at(-1)?.implicit, true);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+// THE SETTINGS, AND THE VAULT'S OWN SYNC (3.22.2)
+//
+// A friend of the owner installed the APK, opened a vault from GitHub and
+// reported, in Arabic: "the sync settings don't save — whatever I type and
+// press Save, it doesn't save; the sync switch keeps turning itself back off."
+// Two things were wrong at once, and both are pinned below.
+//
+//   1. Settings were kept in the phone's own key-value store, so nothing a
+//      reader chose ever reached the laptop over the same repository. They go
+//      into `.astrolabe/settings.json` now — the file server/configMirror.ts
+//      mirrors for an instance, in the same shape — and are committed like a
+//      note save, so a push carries them.
+//   2. The git-sync rows described a SERVER driving git at a remote, which a
+//      pocket vault has not got. The PATCH refuses those keys with the reason
+//      rather than accepting them and answering a fixed block back.
+// ───────────────────────────────────────────────────────────────────────────
+
+/** One file out of the working tree, by the same rules the server reads it. */
+function vaultFile(fs: MemoryFs, rel: string): Promise<string | null> {
+  return createVaultIo(fs, ROOT).readText(rel);
+}
+
+/** A SECOND server over the SAME filesystem: a phone reopened, or the laptop
+ *  pulling. Its device store is empty, which is the whole point — nothing that
+ *  survives here survived in memory. */
+function reopened(fs: MemoryFs): { json(method: string, url: string, body?: unknown): Promise<unknown>; index: PocketIndex } {
+  const index = new PocketIndex();
+  const server = createPocketServer({
+    io: createVaultIo(fs, ROOT),
+    git: {
+      async commit() {
+        return null;
+      },
+      async history() {
+        return [];
+      },
+      async blobAt() {
+        return null;
+      },
+    },
+    store: {
+      async get() {
+        return null;
+      },
+      async set() {
+        /* a fresh device remembers nothing */
+      },
+    },
+    index,
+    repo: { name: "owner/vault", branch: "main" },
+    now: () => 1_700_000_000_000,
+  });
+  return {
+    async json(method, url, body) {
+      const request: PocketRequest = { method, url, headers: {} };
+      if (body !== undefined) request.body = JSON.stringify(body);
+      return JSON.parse(String((await server.handle(request)).body));
+    },
+    index,
+  };
+}
+
+describe("the pocket server — settings that travel with the vault", () => {
+  it("writes them into the repository and reads them back from a fresh server", async () => {
+    const first = await loaded();
+    const saved = (await first.json("PATCH", "/api/settings", {
+      siteName: "The Canopy",
+      dateCalendar: "hijri",
+      dailyFolder: "journal",
+    })) as SettingsResponse;
+    assert.equal(saved.effective.siteName, "The Canopy");
+    assert.equal(saved.effective.dateCalendar, "hijri");
+
+    // IN THE VAULT, not on the phone: the same file, in the same shape, that
+    // every instance mirrors into `<vault>/.astrolabe/`.
+    const onDisk = await vaultFile(first.fs, ".astrolabe/settings.json");
+    assert.ok(onDisk !== null, "the settings file is in the working tree");
+    assert.deepEqual(JSON.parse(onDisk), {
+      siteName: "The Canopy",
+      dateCalendar: "hijri",
+      dailyFolder: "journal",
+    });
+    // Committed like a note save, so a push carries it to the laptop.
+    assert.ok(first.commits.includes("Astrolabe pocket: settings"));
+
+    // The reload the friend performed. A new server over the same filesystem,
+    // with an empty device store: everything survives, because none of it was
+    // ever on the device.
+    const again = reopened(first.fs);
+    const read = (await again.json("GET", "/api/settings")) as SettingsResponse;
+    assert.equal(read.effective.siteName, "The Canopy");
+    assert.equal(read.effective.dateCalendar, "hijri");
+    assert.equal(read.effective.dailyFolder, "journal");
+  });
+
+  it("clears a key with null and leaves the rest standing", async () => {
+    const server = await loaded();
+    await server.json("PATCH", "/api/settings", { siteName: "The Canopy", tagline: "notes" });
+    const after = (await server.json("PATCH", "/api/settings", { tagline: null })) as SettingsResponse;
+    assert.equal(after.effective.siteName, "The Canopy");
+    assert.equal(after.effective.tagline, null);
+  });
+
+  it("never shows the settings file as part of the vault", async () => {
+    const server = await loaded();
+    await server.json("PATCH", "/api/settings", { siteName: "The Canopy" });
+    const again = reopened(server.fs);
+    const io = createVaultIo(server.fs, ROOT);
+    for (const file of await io.list()) {
+      if (isHiddenPath(file.path)) continue;
+      if (isNote(file.path)) again.index.put(file.path, String(await io.readText(file.path)), file.mtimeMs);
+      else again.index.putAsset(file.path, file.size, file.mtimeMs);
+    }
+    const tree = (await again.json("GET", "/api/tree")) as TreeNode;
+    assert.ok(!(tree.children ?? []).some((n) => n.name === ".astrolabe"));
+  });
+
+  it("refuses the git-sync fields with the reason, and writes nothing at all", async () => {
+    const server = await loaded();
+    // The friend's exact edit: a remote, a branch and the master switch.
+    const answer = await server.call("PATCH", "/api/settings", {
+      gitSync: { enabled: true, remote: "https://example.com/v.git", branch: "main" },
+      siteName: "The Canopy",
+    });
+    assert.equal(answer.status, 501);
+    const body = JSON.parse(String(answer.body)) as { error: string; code: string; fields: string[] };
+    assert.equal(body.code, "pocket");
+    assert.deepEqual(body.fields, ["gitSync"]);
+    assert.match(body.error, /Backup & sync/);
+    // NOTHING was written — not even the legal half of the patch. A save that
+    // lands halfway and says nothing is the reported bug, restated.
+    assert.equal(await vaultFile(server.fs, ".astrolabe/settings.json"), null);
+    const read = (await server.json("GET", "/api/settings")) as SettingsResponse;
+    assert.notEqual(read.effective.siteName, "The Canopy");
+  });
+
+  it("refuses every key that needs an instance behind it, in a sentence", async () => {
+    const server = await loaded();
+    for (const patch of [
+      { gitToken: "ghp_x" },
+      { commentsEnabled: true },
+      { publicLayout: "blog" },
+      { languageFilter: "ar" },
+      { favicon: "Media/icon.png" },
+      { fonts: { prose: "lora" } },
+      { noteVersions: false },
+      { pdfSearch: true },
+    ]) {
+      const answer = await server.call("PATCH", "/api/settings", patch);
+      assert.equal(answer.status, 501, `${Object.keys(patch)[0]} must be refused`);
+      const body = JSON.parse(String(answer.body)) as { error: string };
+      assert.ok(body.error.length > 20, "the refusal is a sentence, not a code");
+    }
+  });
+
+  it("answers a laptop's public-site settings as the facts a phone actually has", async () => {
+    // The repository has been open on an instance, so the file carries a
+    // public site's configuration. The phone must describe ITSELF.
+    const server = await loaded({
+      ...VAULT,
+      "/vault/.astrolabe/settings.json": JSON.stringify({
+        siteName: "The Canopy",
+        commentsEnabled: true,
+        defaultTheme: "cinnabar",
+        footer: "© {year}",
+        fonts: { prose: "lora" },
+      }),
+    });
+    const read = (await server.json("GET", "/api/settings")) as SettingsResponse;
+    assert.equal(read.effective.siteName, "The Canopy", "the vault's name IS the vault's");
+    assert.equal(read.effective.commentsEnabled, false);
+    assert.equal(read.effective.defaultTheme, "follow");
+    assert.equal(read.effective.footer, null);
+    assert.equal(read.effective.fonts.prose, "system");
+    // And the STORED half, which is what prefills the panel's fields.
+    assert.equal(read.commentsEnabled, undefined);
+  });
+});
+
+describe("the pocket server — the vault's own sync", () => {
+  const status: PocketSyncStatus = {
+    repo: "owner/vault",
+    branch: "main",
+    phase: "idle",
+    ahead: 2,
+    syncedAtMs: 1_699_999_000_000,
+    online: true,
+    error: null,
+    conflicts: [{ path: "Welcome.md", phonePath: "Welcome (phone).md" }],
+  };
+
+  /** A server with a shell under it, the way pocket/session.ts builds one. */
+  function withShell(): { call(method: string, url: string): Promise<PocketResponse>; left(): boolean } {
+    const fs = makeMemoryFs(VAULT);
+    let left = false;
+    const server = createPocketServer({
+      io: createVaultIo(fs, ROOT),
+      git: {
+        async commit() {
+          return null;
+        },
+        async history() {
+          return [];
+        },
+        async blobAt() {
+          return null;
+        },
+      },
+      store: {
+        async get() {
+          return null;
+        },
+        async set() {},
+      },
+      index: new PocketIndex(),
+      repo: { name: "owner/vault", branch: "main" },
+      shell: {
+        syncState: () => status,
+        syncNow: async () => ({ ...status, ahead: 0, syncedAtMs: 1_700_000_000_000 }),
+        leave: async () => {
+          left = true;
+        },
+      },
+      now: () => 1_700_000_000_000,
+    });
+    return {
+      call: (method, url) => server.handle({ method, url, headers: {} }),
+      left: () => left,
+    };
+  }
+
+  it("answers the state the shell's own line is painted from", async () => {
+    const { call } = withShell();
+    const answer = await call("GET", "/api/pocket/sync");
+    assert.equal(answer.status, 200);
+    // Every field is load-bearing in the panel: the repository and the branch
+    // name the vault, and the other five decide which of nine sentences the
+    // line is (shared/pocketSync.ts).
+    assert.deepEqual(JSON.parse(String(answer.body)), status);
+  });
+
+  it("pulls and pushes, and answers the state afterwards", async () => {
+    const { call } = withShell();
+    const body = JSON.parse(String((await call("POST", "/api/pocket/sync")).body)) as PocketSyncStatus;
+    assert.equal(body.ahead, 0);
+    assert.equal(body.syncedAtMs, 1_700_000_000_000);
+  });
+
+  it("forgets the vault when asked, and only when asked", async () => {
+    const { call, left } = withShell();
+    assert.equal(left(), false);
+    assert.deepEqual(JSON.parse(String((await call("POST", "/api/pocket/leave")).body)), { ok: true });
+    assert.equal(left(), true);
+  });
+
+  it("refuses with a reason when there is no shell under it", async () => {
+    const server = await loaded();
+    for (const [method, route] of [
+      ["GET", "/api/pocket/sync"],
+      ["POST", "/api/pocket/sync"],
+      ["POST", "/api/pocket/leave"],
+    ] as [string, string][]) {
+      const answer = await server.call(method, route);
+      assert.equal(answer.status, 501);
+      assert.equal((JSON.parse(String(answer.body)) as { code: string }).code, "pocket");
+    }
+  });
+
+  it("still refuses the SERVER's sync routes, which are a different thing", async () => {
+    const server = await loaded();
+    for (const route of ["/api/sync/status", "/api/sync/now", "/api/sync/travel"]) {
+      assert.equal((await server.call("GET", route)).status, 501);
+    }
+  });
+
+  it("tells the client where it is, so the panel can stop offering a server", async () => {
+    const server = await loaded();
+    const me = (await server.json("GET", "/api/me")) as { pocket?: boolean };
+    assert.equal(me.pocket, true);
   });
 });

@@ -20,6 +20,7 @@ const body = rows
       `  { tab: "${r.tab}", label: "${r.label}"` +
       (r.hint ? `, hint: "${r.hint}"` : "") +
       (r.env ? `, env: "${r.env}"` : "") +
+      (r.mode ? `, mode: "${r.mode}"` : "") +
       " },",
   )
   .join("\n");
@@ -52,6 +53,16 @@ export interface SettingEntry {
   /** The environment variable behind the row's ⓘ, when it has one. Searching
    *  \`SITE_LANG\` and landing on the row is the operator's half of this. */
   env?: string;
+  /** WHICH KIND OF VAULT DRAWS THIS ROW, when it is not both. A pocket vault
+   *  (a repository cloned onto a phone — mobile/src/pocket/) has no public
+   *  site and no server-side repository, so Publishing, Collections and the
+   *  whole git-sync tab are \`instance\`; the pocket's own Backup & sync rows
+   *  are \`pocket\`. Read off the panel's own render condition
+   *  (\`{tab === "sync" && !pocket && (\`) by scripts/settings-index.mjs, so
+   *  the index cannot drift from what is drawn. The SEARCH honours it: a hit
+   *  that scrolls to a row this vault does not have is the exact failure the
+   *  index exists to prevent. */
+  mode?: "instance" | "pocket";
 }
 
 export const SETTINGS_INDEX: SettingEntry[] = [

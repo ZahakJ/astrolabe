@@ -11276,13 +11276,74 @@ refusal on cost rather than capability and says so — an unlinked-mention scan 
 note open. An empty list would have been a vault that looks broken; a sentence is one a reader can
 act on. `tests/pocketServer.test.ts` asserts each refusal is a 501 with prose in it, not a stub.
 
-Device state — preferences, the workspace, the instance settings — stays on the DEVICE and never
-enters the repository: `state/workspace` is which notes this phone has open, and pushing it would
-mean opening the laptop to find the phone's tabs. What travels between a person's machines is their
-notes. `/api/settings` still answers a COMPLETE `EffectiveSettings`, because the client reads the
-periodic-note formats out of it synchronously at boot and a missing field is not a missing feature —
-it is `format.replace of undefined` inside the command palette, which is what the browser harness
-found.
+Device state — preferences and the workspace — stays on the DEVICE and never enters the repository:
+`state/workspace` is which notes this phone has open, and pushing it would mean opening the laptop to
+find the phone's tabs. What travels between a person's machines is their notes. `/api/settings` still
+answers a COMPLETE `EffectiveSettings`, because the client reads the periodic-note formats out of it
+synchronously at boot and a missing field is not a missing feature — it is `format.replace of
+undefined` inside the command palette, which is what the browser harness found.
+
+## 3.22.2 — A pocket vault's settings travel with it, and its Backup & sync tab is its own
+
+A friend of the owner installed the APK, opened a vault from GitHub, and reported (translated from
+Arabic): *"the sync settings don't save — whatever I type and press Save, it doesn't save; the sync
+switch keeps turning itself back off."* Two things were wrong at once, and this release is both.
+
+### THE INSTANCE SETTINGS ARE A FACT ABOUT THE VAULT, SO THEY LIVE IN IT
+
+3.22.0 filed them under device state, with the workspace and the preferences, and the sentence above
+used to say so. It was wrong: which notes this phone has open is the phone's; the site's name, its
+calendar, its daily-note folder, its templates and its tag labels are the VAULT's, and a reader who
+chooses one on the phone means it everywhere. `PATCH /api/settings` writes
+`.astrolabe/settings.json` INSIDE the repository — the same path, the same shape,
+`server/configMirror.ts` mirrors out of every instance's data directory — and commits it
+(`Astrolabe pocket: settings`) like a note save. GET reads it. `.astrolabe/` is hidden from the index
+and the tree (`mobile/src/pocket/vaultIo.ts`), exactly as `server/vault.ts` never lists it, so the
+settings file is not an attachment in somebody's sidebar.
+
+### WHAT A POCKET CANNOT KEEP, IT REFUSES — IT DOES NOT SAVE AND FORGET
+
+`POCKET_CANNOT_KEEP` (`mobile/src/pocket/server.ts`) is one sentence per key: the git-sync block and
+its credentials, everything that describes visitors (layout, comments, share buttons, ambient,
+excluded tags, author sites, public folders, the library, the language filter and toggle, the default
+theme, the footer, the favicon), the typography slots (catalog faces are downloaded and served by an
+instance), `noteVersions` (every save here is already a commit), `pdfSearch` and `hadithFolder`. A
+PATCH carrying one is a `501` naming the reason and **nothing is written** — a save that lands
+halfway is the reported bug restated. The same keys are stripped out of the GET's stored half, so a
+repository that has also been open on an instance does not prefill the phone's panel with a site it
+is not.
+
+### THE CLIENT STOPS OFFERING THEM: `me.pocket`
+
+`/api/me` from the pocket carries `pocket: true`; a server never sends it, so absent = false and no
+instance pays a byte. With it, `SettingsModal` drops **Publishing** and **Collections** (both answer
+"what may a visitor see", and there are none), locks the rows above with a `<fieldset disabled>` and
+one sentence per tab saying why, and draws the pocket's own **Backup & sync**: the repository and
+branch, the state line, **Sync now**, the `(phone)` conflict pairs as two links each, and **Leave
+this vault**. `GET|POST /api/pocket/sync` and `POST /api/pocket/leave` are the routes behind it;
+`/api/sync/*` stays a 501, because it means a different thing — a server driving git over a vault it
+can see.
+
+### ONE SYNC LINE, TWO RENDERINGS
+
+The precedence that decides what the vault says about itself (a pending push is always louder than a
+past success; a conflict is louder still and never ages out) moved to `shared/pocketSync.ts`, because
+the shell's strip and the settings panel now both draw it and the web client cannot import out of
+`mobile/`. `mobile/src/pocket/sync.ts` delegates. Two implementations of "is my writing somewhere
+else yet" would eventually disagree, and the quieter one would be believed.
+
+### THE SETTINGS INDEX LEARNED ONE WORD: `mode`
+
+Every row on every tab is still indexed, including the ones only one kind of vault draws. The
+generator reads the mode off the panel's own render condition — `{tab === "publishing" && !pocket &&`
+→ `mode: "instance"`, `{tab === "sync" && pocket &&` → `mode: "pocket"` — so there is no second list
+to keep in step, which is the bargain the whole index strikes with the panel. Rows in a component of
+its own (`TravelRow.tsx`, `PocketSync.tsx`) are appended to the sync tab with their mode named at the
+call site, as the travel row already was. The SEARCH honours it: a hit that scrolls to a row this
+vault does not draw is the exact failure the index exists to prevent. This was chosen over keeping
+the pocket panel outside the row system, because a tab body that is not rows would have left
+"Repository", "State" and "Leave this vault" unfindable by search — a whole tab invisible to the one
+surface that answers "where is the thing that does X".
 
 ### `mobile/tsconfig.json` DROPPED TWO FLAGS
 
@@ -11395,7 +11456,11 @@ What the suite covers, and why each file exists:
   query), an operator it cannot answer narrowing to NOTHING rather than being ignored, snippets with
   no raw markdown in them, link resolution and backlinks by the server's own rule, byte ranges on
   `/api/file`, git as the version history, and that every server-only route answers 501 with a
-  sentence naming what is missing.
+  sentence naming what is missing. Since 3.22.2 it also pins the friend's bug: settings written into
+  `.astrolabe/settings.json` and read back by a SECOND server over the same filesystem with an empty
+  device store, the git-sync keys refused with a reason and nothing written, a laptop's public-site
+  settings answered as the facts a phone actually has, the three `/api/pocket/*` shapes, and
+  `me.pocket`.
 - `tests/pocketSync.test.ts` — the two rules about other people's writing: where a `(phone)` file
   goes and that it never overwrites last time's, that agreement is not a conflict, that BOTH versions
   survive, that the standing pairs are recovered from the working tree (a conflict is a fact, not a

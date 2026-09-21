@@ -19,6 +19,7 @@
  * the rule itself is tested without a network (tests/pocketSync.test.ts).
  */
 
+import { pocketSyncLine, type PocketSyncLine } from "../../../shared/pocketSync.ts";
 import type { ConflictPair } from "./conflict.ts";
 
 export type SyncPhase = "idle" | "pulling" | "pushing";
@@ -98,33 +99,15 @@ function mergePairs(held: ConflictPair[], incoming: ConflictPair[]): ConflictPai
 
 /** What the line SAYS, as a key plus its numbers — the shell turns it into
  *  words through mobile/src/i18n.ts, so the rule is one place and the two
- *  languages are another. */
-export type SyncLine =
-  | { key: "syncing" }
-  | { key: "pushing" }
-  | { key: "conflicts"; count: number }
-  | { key: "toPush"; count: number }
-  | { key: "offline" }
-  | { key: "failed"; message: string }
-  | { key: "syncedAgo"; minutes: number }
-  | { key: "syncedJustNow" }
-  | { key: "never" };
+ *  languages are another.
+ *
+ *  The RULE moved to `shared/pocketSync.ts` in 3.22.2, because the settings
+ *  panel's Backup & sync tab now shows the same line inside the vault and the
+ *  web client cannot import out of `mobile/`. Two implementations of "is my
+ *  writing somewhere else yet" would eventually disagree; this is the one. */
+export type SyncLine = PocketSyncLine;
 
-/** The precedence, in the order it is decided. Conflicts, then work in
- *  flight, then work waiting, then the network, then the last failure, then —
- *  only when nothing else is true — how long ago all was well. */
-export function syncLine(state: SyncState, nowMs: number): SyncLine {
-  if (state.conflicts.length > 0) return { key: "conflicts", count: state.conflicts.length };
-  if (state.phase === "pulling") return { key: "syncing" };
-  if (state.phase === "pushing") return { key: "pushing" };
-  if (state.ahead > 0 && !state.online) return { key: "toPush", count: state.ahead };
-  if (!state.online) return { key: "offline" };
-  if (state.ahead > 0) return { key: "toPush", count: state.ahead };
-  if (state.error !== null) return { key: "failed", message: state.error };
-  if (state.syncedAtMs === null) return { key: "never" };
-  const minutes = Math.floor((nowMs - state.syncedAtMs) / 60_000);
-  return minutes < 1 ? { key: "syncedJustNow" } : { key: "syncedAgo", minutes };
-}
+export const syncLine = (state: SyncState, nowMs: number): SyncLine => pocketSyncLine(state, nowMs);
 
 /** How long a push waits after a save before it goes. Long enough that typing
  *  a paragraph is one push rather than nine; short enough that putting the
