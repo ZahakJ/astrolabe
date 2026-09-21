@@ -96,12 +96,12 @@ final class SystemBarInsets {
         // only thing standing between the owner and a keyboard over their caret.
         WindowCompat.setDecorFitsSystemWindows(window, false);
 
-        // The strips the bars sit on are iron-gall, the same ground as the page,
+        // The strips the bars sit on are the default room's ground, the same as the page,
         // so a letterboxed WebView reads as one dark room rather than as content
         // with two grey bands bolted on. The window background is already this
         // colour (res/values/styles.xml); painting the container too means the
         // strips survive anything that swaps the window background later.
-        container.setBackgroundColor(ContextCompat.getColor(activity, R.color.iron_gall));
+        container.setBackgroundColor(ContextCompat.getColor(activity, R.color.ground));
 
         ViewCompat.setOnApplyWindowInsetsListener(
             container,

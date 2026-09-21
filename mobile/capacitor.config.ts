@@ -32,7 +32,7 @@ const config: CapacitorConfig = {
     // A back gesture that quietly reloaded the page instead of leaving it is
     // the single worst thing a WebView shell does. MainActivity handles back
     // itself; nothing here should second-guess it.
-    backgroundColor: "#16130e",
+    backgroundColor: "#0d1117",
   },
 
   plugins: {
@@ -40,14 +40,14 @@ const config: CapacitorConfig = {
       // Hidden by the shell the moment the connection screen has painted, so
       // the gold star never cuts to a blank frame.
       launchAutoHide: false,
-      backgroundColor: "#16130e",
+      backgroundColor: "#0d1117",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
       splashFullScreen: false,
       splashImmersive: false,
     },
     SystemBars: {
-      // Light glyphs, because every ground this app ever shows is iron-gall.
+      // Light glyphs, because every ground this app ever shows is the default room's (#0d1117).
       style: "DARK",
 
       // The plugin still styles the bars; it no longer decides where the
