@@ -879,7 +879,9 @@ const AUDIENCES = [
   // `settings/PocketSync.tsx` are a lazy chunk behind the ⌘, — and
   // `shared/pocketSync.ts` (the sync line's precedence) rides in that chunk
   // with it, not in the entry.
-{ name: "entry (everyone)", keys: entry, budget: 836 * 1024 },
+  // 3.23.0 MERGE: the pocket settings round and the phone-native round land
+  // together (837.1 kB actual → 838); each was measured alone on its branch. No new cause.
+{ name: "entry (everyone)", keys: entry, budget: 838 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1198,7 +1200,9 @@ const AUDIENCES = [
   // visitor DOES get is the half of the feature that is theirs: the ع/EN
   // switch knowing where the other face lives, the article's "another face"
   // line for a same-language pair, and the link-time swap.
-{ name: "anonymous blog reader", keys: blog, budget: 1134 * 1024 },
+  // 3.23.0 MERGE: the pocket settings round and the phone-native round land
+  // together (1135.0 kB actual → 1136); each was measured alone on its branch. No new cause.
+{ name: "anonymous blog reader", keys: blog, budget: 1136 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1434,7 +1438,9 @@ const AUDIENCES = [
   // entry's dictionary bytes and nothing else — an admin's first paint gains
   // no code from this round, because every line of it is inside the settings
   // panel's own lazy chunk.
-  { name: "admin first paint", keys: app, budget: 1089 * 1024 },
+  // 3.23.0 MERGE: the pocket settings round and the phone-native round land
+  // together (1090.4 kB actual → 1091); each was measured alone on its branch. No new cause.
+  { name: "admin first paint", keys: app, budget: 1091 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
