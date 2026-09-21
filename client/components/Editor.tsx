@@ -78,6 +78,7 @@ import {
 import { stripTashkeelNote } from "../editor/harakat.ts";
 import { autoFuriganaSelection, openFuriganaPopover } from "../editor/furigana.ts";
 import { applyTemplate, splitFrontmatter } from "../templates.ts";
+import { carriedScrollTop, fractionOfElement, registerScrollSource, takeCarriedScroll } from "../scrollCarry.ts";
 
 /** The caret each note was last seen at, so a REMOUNT does not throw it away.
  *
@@ -325,12 +326,17 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
           }
         }
 
-        const savedScroll = scrollPositions.get(path);
-        if (savedScroll !== undefined) {
+        // A PLACE CARRIED FROM THE OTHER FACE wins over this note's own
+        // memory: the reader did not open this note, they turned the one they
+        // were reading over, and where they were in it is the newer fact.
+        const carried = takeCarriedScroll(path);
+        const savedScroll = carried !== null ? null : scrollPositions.get(path);
+        if (carried !== null || savedScroll !== undefined) {
           view.requestMeasure({
             read: () => undefined,
             write: () => {
-              view.scrollDOM.scrollTop = savedScroll;
+              view.scrollDOM.scrollTop =
+                carried !== null ? carriedScrollTop(carried, view.scrollDOM) : savedScroll!;
             },
           });
         }
@@ -361,8 +367,13 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
         toast(tf("openFailed", { path }), "error");
       });
 
+    const unregister = registerScrollSource(path, () =>
+      fractionOfElement(viewRef.current?.scrollDOM ?? null),
+    );
+
     return () => {
       disposed = true;
+      unregister();
       const view = viewRef.current;
       viewRef.current = null;
       if (!view) {

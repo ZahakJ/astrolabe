@@ -128,6 +128,8 @@ Four things for search-engine crawlers and feed readers come with every layout. 
 - **Robots** at `/robots.txt`: `Allow: /`, `Disallow: /api/`, and a `Sitemap:` line pointing at the sitemap above.
 - **SEO meta**: the HTML the server sends carries a `<title>`, a `meta description`, Open Graph tags (`og:type=article` on note pages) and a canonical tag. A note's page gets the note's own title and excerpt; every other page gets the site's general meta.
 
+When a post has a [linguistic twin](templates-and-notes.md#linguistic-twins) in the other language, both article pages carry `<link rel="alternate" hreflang="ar">`, `hreflang="en"` and an `hreflang="x-default"` pointing at the site's own language, and each sitemap entry carries `<xhtml:link rel="alternate">` rows for both faces. That is how a search engine is told that two addresses are one article in two languages rather than a duplicate of each other. A pair whose two faces are in the *same* language gets none of this — there is nothing about language to say — and names its counterpart under the article's title instead.
+
 Absolute URLs in all four are built from `SITE_URL` when it is set, and otherwise from the request's `Host` and `X-Forwarded-*` headers.
 
 Both the feed and the sitemap accept `?lang=ar` or `?lang=en` when [the language filter](arabic-and-rtl.md) is on. A crawler or a feed reader cannot send the header the app's own pages use, so a bilingual site's two halves are two addresses.

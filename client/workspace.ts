@@ -616,6 +616,30 @@ export function commitTab(ws: Workspace, id: PaneId, path: string): Workspace {
   return withTabs(ws, id, tabs, pane.active);
 }
 
+/** TURN THE TAB OVER: `from` becomes `to` IN PLACE.
+ *
+ *  What "switch to the twin" means in a model where a tab is a path. The note
+ *  the reader is looking at has another face (shared/twins.ts), and swapping
+ *  to it must not be an open: a new tab beside the old one would turn one
+ *  note into two entries in the strip, and the whole promise of the feature
+ *  is that the pair is ONE thing. So the tab keeps its index, its pin and its
+ *  ephemerality, and only its path changes.
+ *
+ *  A no-op when `from` is not in this pane. When `to` is ALREADY open in the
+ *  same pane the two tabs would collide, so the swap stands down and the
+ *  caller falls back to focusing the tab that exists — one path, one tab, is
+ *  an invariant the rest of the model leans on. */
+export function swapTabIn(ws: Workspace, id: PaneId, from: string, to: string): Workspace {
+  const pane = paneAt(ws, id);
+  if (pane === null || from === to) return ws;
+  const at = pane.tabs.findIndex((t) => t.path === from);
+  if (at < 0) return ws;
+  const already = pane.tabs.findIndex((t) => t.path === to);
+  if (already >= 0) return focusPane(withTabs(ws, id, pane.tabs, already), id);
+  const tabs = pane.tabs.map((t, i) => (i === at ? { ...t, path: to } : t));
+  return focusPane(withTabs(ws, id, tabs, at), id);
+}
+
 /** Walk `delta` tabs along the strip, wrapping at both ends (v1.8 audit, F12:
  *  the tab bar was reachable only by pointer — every other pane operation had a
  *  chord and the tabs inside them had none).

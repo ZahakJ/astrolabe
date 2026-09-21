@@ -45,6 +45,7 @@ import type {
   TagLabelsResponse,
   TrashEntry,
   TreeNode,
+  TwinsResponse,
   UploadResult,
   VaultEvent,
   XrefResponse,
@@ -100,6 +101,9 @@ import {
   searchMatches,
   queryPaths,
   trackers, routines, hadithLookup, cards, decks, deckCards,
+  twinOf,
+  twinPairs,
+  twinSwapTable,
   visibleNotesUnder,
   whenIndexed,
   wikilinkRegex, collectionRows } from "./indexer.ts";
@@ -141,7 +145,8 @@ import {
   observeWrite,
   rewriteHeadingLinks,
 } from "./headingRepair.ts";
-import { addNoteAlias, setNotePublishFlag } from "./noteFrontmatter.ts";
+import { addNoteAlias, setNoteFrontmatterLine, setNotePublishFlag, twinSeed } from "./noteFrontmatter.ts";
+import { TWIN_KEY, twinLine } from "../shared/twins.ts";
 import { frontmatterKeyRefusal, setNoteProperty } from "./frontmatterEdit.ts";
 import {
   buildDesignFontCss,
@@ -2562,6 +2567,60 @@ api.get("/posts", (c) => {
     for (const post of list) post.commentCount = counts.get(post.path) ?? 0;
   }
   return c.json(list);
+});
+
+// TWINS: the two faces of one note (shared/twins.ts).
+//
+// ONE ROUTE, TWO ANSWERS, and which one you get is which side of the login
+// you are on — because the two questions are different questions.
+//
+//  • The ADMIN asks "which of my notes have another face, and how far behind
+//    is it": `pairs`, one row per twinned note in both directions, so the tab
+//    mark, the tree mark and the status-bar pill are a lookup rather than a
+//    request per note.
+//  • A VISITOR asks nothing at all, and is handed the LINK-TIME SWAP TABLE
+//    instead: the wikilinks in this reader's language scope that would
+//    otherwise land nowhere, each pointing at the face they can actually read.
+//    Empty unless the language filter is doing something, which is what keeps
+//    the swap out of the editor — the author linked what they linked.
+api.get("/twins", (c) => {
+  const limited = isPublishLimited(c);
+  const response: TwinsResponse = limited
+    ? { pairs: [], swap: twinSwapTable(languageScope(c, limited).lang) }
+    : { pairs: twinPairs(), swap: {} };
+  return c.json(response);
+});
+
+// "Create twin…": the other face, beside this one, declared on BOTH files.
+//
+// Two writes and one order, because a crash between them must leave the vault
+// readable either way: the NEW file is written first (carrying its `twin:`
+// already), and only then is the source's own line added. Interrupted after
+// the first, the vault holds a note declaring a twin that does not yet
+// declare it back — which is the one-sided case the index already resolves
+// symmetrically. Interrupted the other way round it would hold a source
+// pointing at nothing.
+api.post("/twin", async (c) => {
+  const body = await jsonBody(c);
+  const from = normalizeRel(requiredString(body, "path"));
+  const to = normalizeRel(requiredString(body, "toPath"));
+  if (from === to) throw new VaultError(400, "A note cannot be its own twin", "twinSelf");
+  const existing = twinOf(from);
+  if (existing !== null) {
+    throw new VaultError(409, `"${from}" already has a twin`, "twinExists");
+  }
+  const source = await readNote(from);
+  await createNote(to); // 409s before a byte moves when the name is taken
+  // Each side names the other by BASENAME, the spelling `[[` completion and
+  // the rename rewriter both speak. Not the display title: that one has bidi
+  // controls stripped for drawing, and a resolution key must be the bytes the
+  // file actually wears.
+  const nameOf = (rel: string): string => stripNoteExt(path.posix.basename(rel));
+  await writeNote(to, twinSeed(from, source.content, nameOf(from)));
+  await writeNote(from, setNoteFrontmatterLine(from, source.content, TWIN_KEY, twinLine(nameOf(to))));
+  await indexFile(to);
+  await indexFile(from);
+  return c.json({ path: to });
 });
 
 // The shelf: every ```tracker fence this session may see (a ```tracker-board

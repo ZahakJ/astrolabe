@@ -3035,6 +3035,10 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
   const isPublished = useStore(
     (s) => node.type === "file" && (s.publishedPaths?.has(node.path) ?? false),
   );
+  // The other face, if this row has one. Same memo discipline as the icon
+  // above: the selector returns ONE entry, never the table, so a note that
+  // gains a twin repaints one row.
+  const twin = useStore((s) => (node.type === "file" ? s.twins[node.path] : undefined));
   const isFolder = node.type === "folder";
   // MEMO DISCIPLINE. The selector returns a STRING or undefined, never the map
   // — 1.4k rows subscribing to an object identity would each re-render on
@@ -3397,6 +3401,21 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
             {isPublished && (
               <span className="s-pubstar" role="img" title={t("published")} aria-label={t("published")}>
                 ✦
+              </span>
+            )}
+            {/* THE TREE HIDES NOTHING. Both faces of a twinned pair stay in
+                the tree as the two files they are — this mark only says that
+                a row HAS another face, and names it on hover. A tree that
+                folded one of the two away would be the first place the
+                vault stopped matching the folder on disk. */}
+            {twin !== undefined && (
+              <span
+                className="s-tree__twin"
+                role="img"
+                title={tf("twinTreeTitle", { title: twin.twinTitle })}
+                aria-label={tf("twinTreeTitle", { title: twin.twinTitle })}
+              >
+                ⇄
               </span>
             )}
           </span>

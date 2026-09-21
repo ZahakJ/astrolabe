@@ -5519,6 +5519,48 @@ const DICT = {
   clipperUnavailable: { en: "The clipper is not available on this instance", ar: "القصّاصة غير متاحة في هذه النسخة" },
   clipperClipped: { en: "Clipped: {path}", ar: "قُصّ: {path}" },
   clipperFailed: { en: "Clip failed", ar: "فشل القصّ" },
+
+  // ── Linguistic twins (shared/twins.ts) ──────────────────────────────────
+  // One note, two faces — usually two languages, sometimes a long version and
+  // a short one. The Arabic here is written as Arabic, not as a gloss of the
+  // English: «الوجه الآخر» is what an Arabic writer would call the other side
+  // of the same piece, and it reads as a thing rather than as a translation
+  // of "twin".
+  cmdTwinSwitch: { en: "Switch to twin", ar: "انتقل إلى الوجه الآخر" },
+  cmdTwinSwitchHint: {
+    en: "The note's other face, in this same tab",
+    ar: "وجه الملاحظة الآخر، في التبويب نفسه",
+  },
+  cmdTwinBeside: { en: "Open twin beside", ar: "افتح الوجه الآخر بجانبها" },
+  cmdTwinBesideHint: {
+    en: "Both faces side by side, for translating",
+    ar: "الوجهان جنبًا إلى جنب، للترجمة",
+  },
+  cmdTwinCreate: { en: "Create twin…", ar: "أنشئ الوجه الآخر…" },
+  cmdTwinCreateHint: {
+    en: "A second file beside this one, the pair declared on both",
+    ar: "ملف ثانٍ بجانب هذا، ويُذكر الاقتران في كليهما",
+  },
+  twinCreateTitle: { en: "Create twin", ar: "إنشاء الوجه الآخر" },
+  twinCreated: { en: "Created {path}", ar: "أُنشئ {path}" },
+  twinCreateFailed: { en: "Could not create the twin", ar: "تعذّر إنشاء الوجه الآخر" },
+  twinAlready: { en: "This note already has a twin", ar: "لهذه الملاحظة وجه آخر بالفعل" },
+  twinBesideFull: {
+    en: "No room for another pane — the twin opened here instead",
+    ar: "لا مكان للوح آخر، ففُتح الوجه الآخر هنا",
+  },
+  twinSwitchTitle: { en: "Switch to {title}", ar: "انتقل إلى {title}" },
+  twinStaleTitle: {
+    en: "{title} has not been touched since {when}",
+    ar: "لم يُمسّ {title} منذ {when}",
+  },
+  twinOddTitle: {
+    en: "This pair disagrees: {title} names a different note as its twin",
+    ar: "الاقتران متضارب: {title} يذكر ملاحظة أخرى وجهًا له",
+  },
+  twinTabMark: { en: "has another face", ar: "له وجه آخر" },
+  twinTreeTitle: { en: "Another face: {title}", ar: "وجه آخر: {title}" },
+  blogOtherFace: { en: "Another face of this note:", ar: "وجه آخر لهذه الملاحظة:" },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;

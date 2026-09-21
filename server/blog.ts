@@ -195,12 +195,25 @@ export function renderSitemap(origin: string, scope: LanguageScope): string {
       "  </url>",
     ].join("\n"),
   );
+  // A twin pair in two languages is ONE article at two addresses, and a
+  // sitemap is where a crawler is told so — `<xhtml:link rel="alternate">`
+  // inside each entry, the sitemaps.org spelling of the `<head>` tags the
+  // article page itself carries. Only the reader's own face is LISTED under a
+  // language scope (the other is curated away, exactly as it is everywhere
+  // else); the alternate row is how the other half stays reachable from here.
+  let alternates = false;
   for (const post of items) {
     const lastmod = w3cDate(post.date);
+    const faces = twinFaces(post, origin).map(
+      (face) =>
+        `    <xhtml:link rel="alternate" hreflang="${face.lang}" href="${xmlEscape(face.href)}"/>`,
+    );
+    if (faces.length > 0) alternates = true;
     urls.push(
       [
         "  <url>",
         `    <loc>${xmlEscape(origin + notePathToUrl(post.path))}</loc>`,
+        ...faces,
         ...(lastmod ? [`    <lastmod>${lastmod}</lastmod>`] : []),
         "  </url>",
       ].join("\n"),
@@ -220,7 +233,11 @@ export function renderSitemap(origin: string, scope: LanguageScope): string {
     ...(all.length > items.length
       ? [`<!-- ${all.length} published notes; newest ${items.length} listed (50,000 URL limit) -->`]
       : []),
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    // The xhtml namespace is declared only when something in the file uses
+    // it: a vault with no twins gets exactly the document it always got.
+    alternates
+      ? '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">'
+      : '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls,
     "</urlset>",
     "",
@@ -262,6 +279,47 @@ export function renderRobots(origin: string, discoverable: boolean): string {
 
 // ------------------------------------------------------------ head injection
 
+/** THE TWO FACES OF ONE POST, as `hreflang`.
+ *
+ *  A twin pair whose faces are in DIFFERENT languages is one article with two
+ *  addresses, and that is precisely the thing `hreflang` was invented to say:
+ *  without it a crawler meets two pages of the same piece, decides one is a
+ *  duplicate of the other, and drops it. Both pages carry BOTH rows — the
+ *  protocol wants the set reflexive, each page naming itself too — plus an
+ *  `x-default` pointing at the site's own language, which is the face a
+ *  reader with no stated preference gets.
+ *
+ *  Only when the languages differ. Two English faces are two pages in one
+ *  language and `hreflang` has nothing to say about which is which; they name
+ *  each other in the article's own chrome instead.
+ *
+ *  The language is the note's detected script, which is what the language
+ *  filter itself runs on — so what a crawler is told and what a reader is
+ *  served cannot disagree. */
+function twinFaces(post: PostMeta, origin: string): { lang: string; href: string }[] {
+  const twin = post.twin;
+  if (twin === undefined || !twin.differs) return [];
+  const mine = twin.lang === "ar" ? "en" : "ar";
+  return [
+    { lang: mine, href: origin + notePathToUrl(post.path) },
+    { lang: twin.lang ?? mine, href: origin + notePathToUrl(twin.path) },
+  ];
+}
+
+/** The `<head>` half: both faces plus the `x-default` a reader with no stated
+ *  preference falls to (the site's own language). */
+function headFaceTags(post: PostMeta | null, origin: string): string[] {
+  const faces = post === null ? [] : twinFaces(post, origin);
+  if (faces.length === 0) return [];
+  const fallback = faces.find((face) => face.lang === siteLanguage()) ?? faces[0];
+  return [
+    ...faces.map(
+      (face) => `<link rel="alternate" hreflang="${face.lang}" href="${xmlEscape(face.href)}" />`,
+    ),
+    `<link rel="alternate" hreflang="x-default" href="${xmlEscape(fallback.href)}" />`,
+  ];
+}
+
 /** Placeholder comment in client/index.html the meta block replaces. */
 export const HEAD_PLACEHOLDER = "<!--astrolabe:head-->";
 
@@ -301,6 +359,18 @@ export function injectHead(html: string, origin: string, pathname: string, extra
     `<meta property="og:site_name" content="${xmlEscape(name)}" />`,
     `<link rel="canonical" href="${xmlEscape(canonical)}" />`,
     `<link rel="alternate" type="application/rss+xml" title="${xmlEscape(name)}" href="/feed.xml" />`,
+    // …and the other face of this piece, when it has one in the other
+    // language: the same article, at its own address.
+    //
+    // Resolved WITHOUT the language scope, unlike everything above it. The
+    // scope here is the SITE's, and on a bilingual site under "follow" that
+    // is one language — so the Arabic face of a post would have been served
+    // with no alternates at all, telling a crawler that half the site's
+    // articles have no other-language edition while the sitemap said they
+    // did. Nothing is leaked by asking wider: `matchPublished` is
+    // published-only at every scope, the pair is declared in plain
+    // frontmatter on both files, and the sitemap already names both.
+    ...headFaceTags(matchPublished(pathname, null), origin),
     // Whatever the caller adds — the manifest link and the theme colour
     // (server/manifest.ts), which are the shell's business, not the feed's.
     ...extra,

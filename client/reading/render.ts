@@ -19,6 +19,7 @@ import { label as tagLabel } from "../tagLabels.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { parseWikilink, resolveLink } from "../editor/links.ts";
+import { twinSwapFor } from "../twinSwap.ts";
 import { parseBookAnchor } from "../../shared/bookAnchor.ts";
 import { parseEpubAnchor } from "../../shared/epubAnchor.ts";
 import { blockAlignOf, parseAlignMarker, stripAlignMarker } from "../../shared/blockAlign.ts";
@@ -353,7 +354,14 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
         `<a class="s-rv-wikilink s-rv-audiolink" data-audio="${esc(target)}" data-seek="${seek}" role="link" tabindex="0">${esc(shown)}</a>`,
       );
     }
-    const resolved = target ? resolveLink(target, ctx.tree) : null;
+    // THE LINK-TIME SWAP (shared/twins.ts). A link the reader's own tree
+    // cannot answer may still have a face they CAN read: `[[Quantum
+    // Computers]]` written in an Arabic post names an English note, and for
+    // an Arabic reader under the language filter the Arabic face of that note
+    // is the honest destination. Only after ordinary resolution has failed,
+    // so a link that lands is never redirected — and never at all in the
+    // editor, where the table is empty by construction (client/twinSwap.ts).
+    const resolved = target ? (resolveLink(target, ctx.tree) ?? twinSwapFor(target)) : null;
     const label =
       alias ?? (heading ? (target ? `${target} › ${heading}` : heading) : target);
     const broken = target !== "" && resolved === null;
@@ -1915,7 +1923,12 @@ export function onRootClick(ev: MouseEvent): void {
       return;
     }
     const store = useStore.getState();
-    const path = resolveLink(name, store.tree);
+    // The same fallback the RENDERER applied when it decided this link was not
+    // broken (the link-time swap, shared/twins.ts). The anchor carries the
+    // author's raw target, so resolution happens twice — and the two had
+    // better agree: a link drawn as live that then reported "not published"
+    // would be the worst of both answers.
+    const path = resolveLink(name, store.tree) ?? twinSwapFor(name);
     if (path) {
       if (heading) store.setPendingHeading(heading);
       store.openNote(path);

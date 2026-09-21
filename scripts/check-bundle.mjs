@@ -854,7 +854,24 @@ const AUDIENCES = [
   // chapter walker) is its own lazy chunk, asserted split in MUST_SPLIT
   // below; and the whole EPUB server — the zip walk, the XML reader, the
   // sanitizer and the search — is server code no browser downloads at all.
-{ name: "entry (everyone)", keys: entry, budget: 823 * 1024 },
+  // 3.21.0 LINGUISTIC TWINS: 831.0 kB actual → 835 (+8.0 kB over 823). Itemised,
+  // because a budget that moves without a cause beside it is not a budget:
+  //   +~4.5 kB  the DICTIONARY's share. Seventeen new keys × two languages,
+  //             and `t()` ships the whole object to every surface — the
+  //             standing debt this line has carried since 3.9, paid again.
+  //   +~1.8 kB  `client/twins.ts` + `shared/twins.ts`: the three gestures and
+  //             the rules behind them. First-paint because the status bar
+  //             draws the pill on the first note the owner opens, and because
+  //             `client/router.ts` needs the swap to make Back work.
+  //   +~0.9 kB  `client/twinSwap.ts` + the renderer's one extra fallback. The
+  //             swap table is how a published wikilink in the reader's wrong
+  //             language stops being a dead link, and the renderer is
+  //             first-paint on both shells.
+  //   +~0.8 kB  the status bar's pill, the tab mark, the tree mark and the
+  //             workspace's `swapTabIn` reducer.
+  // WHAT DID NOT LAND HERE: nothing of the server's resolution (the symmetric
+  // pass, the swap-table build, the graph merge) reaches a browser at all.
+{ name: "entry (everyone)", keys: entry, budget: 835 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1167,7 +1184,13 @@ const AUDIENCES = [
   // open, and the citation is deliberately PLAIN TEXT on a published page for
   // exactly that reason (`brokenLinks: "plain"`, the rule a PDF citation has
   // followed since 3.12).
-{ name: "anonymous blog reader", keys: blog, budget: 1123 * 1024 },
+  // 3.21.0 LINGUISTIC TWINS: 1129.0 kB actual → 1134 (+6.0 kB). The entry's
+  // bytes, itemised on its own line above, minus the share that is admin-only
+  // — a visitor never draws the status-bar pill or the tree mark. What a
+  // visitor DOES get is the half of the feature that is theirs: the ع/EN
+  // switch knowing where the other face lives, the article's "another face"
+  // line for a same-language pair, and the link-time swap.
+{ name: "anonymous blog reader", keys: blog, budget: 1134 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1394,7 +1417,12 @@ const AUDIENCES = [
   // and the EPUB reader's stylesheet are lazy chunks behind a click on a book,
   // and the round's only new palette row is one label in the dictionary that
   // was already counted in the entry.
-  { name: "admin first paint", keys: app, budget: 1075 * 1024 },
+  // 3.21.0 LINGUISTIC TWINS: 1083.6 kB actual → 1088 (+8.6 kB). The entry's
+  // bytes plus the owner's own half: the status-bar pill with its two face
+  // labels and its staleness dot, the tab and tree marks, and the three
+  // palette rows. "Create twin…" itself adds nothing — it reuses the tree's
+  // own name prompt (`client/prompts.ts`), which was already here.
+  { name: "admin first paint", keys: app, budget: 1088 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

@@ -167,6 +167,75 @@ it is called are settings, in Settings → Vault beside the daily rows:
 | Unique notes folder | *(the vault root)* | Any folder; `zettel`, say. |
 | Unique note name | `YYYYMMDDHHmm` | The daily tokens plus `HH`, `mm` and `ss`; `[literals]` and `/` work as they do for the daily name. The format must be finer than a day — a "unique" name that repeats every morning is a collision waiting to happen — so at least one of `HH`, `mm`, `ss` is required. |
 
+## Linguistic twins
+
+You write a post twice — once in English, once in Arabic — and you would rather the pair behaved
+like one note you can turn over than like two files that happen to be about the same thing. On disk
+they stay two files, because everything here is plain Markdown and nothing is allowed to stop being
+that. Everywhere else they are two **faces** of one note.
+
+Say so with one line, in either file's frontmatter:
+
+```yaml
+---
+title: Quantum computers
+publish: true
+twin: [[الحاسوب الكمّي]]
+---
+```
+
+One declaration is enough. The other note knows, without being edited: Astrolabe makes the relation
+symmetric when it indexes the vault. The value is an ordinary wikilink, resolved like any other, so
+an alias or a full path works too, and renaming either file keeps the pair together. A bare
+`twin: notes/الحاسوب الكمّي.md` is accepted as well. A note has **at most one** twin.
+
+If both files declare a twin and they disagree — this one names that one, that one names a third —
+each note keeps the twin its own line names, and the pill in the status bar says the pair is
+inconsistent. There is no third place that could decide between two files, so nothing pretends to.
+
+**In the editor.** A note with a twin gets a small pill at the bottom of the window, `EN ⇄ ع`,
+showing the face you are on and the one a click would bring. Clicking it — or `Ctrl/Cmd Alt L`, or
+**Switch to twin** in the palette — opens the other face *in the same tab*: same pane, same place in
+the tab strip, and roughly the same place in the text, since your position is carried across as a
+fraction. Back turns it over again. **Open twin beside** puts the two faces in side-by-side panes,
+which is what translating actually wants. The note tree keeps both files visible — it is a picture
+of your folder and it hides nothing — and marks each of them with a small ⇄ naming the other on
+hover.
+
+**Making the second face.** **Create twin…** in the palette asks for a name (it offers the note's
+own name with `— ar` or `— en` on the end; type over it, an Arabic title is usually better), writes
+the new file beside this one with this note's frontmatter — minus the `id`, which belongs to one
+file only — declares the pair on *both* files, and opens it beside. The words are yours to write;
+nothing is translated for you, and nothing ever will be.
+
+**Is the other side out of date?** When the twin has not been touched since this face was, by more
+than a minute, the pill carries a small dot and its tooltip says when the other side was last
+written. That is a comparison of two timestamps and nothing more — no diffing, no guessing at
+meaning, and nothing happens on its own.
+
+**Two faces in one language.** A twin does not have to be a translation. A long version and a short
+one, a formal draft and a plain-language one, both in English, are the same relation. Give each side
+a name for itself and the pill will use it:
+
+```yaml
+---
+face: short
+twin: [[Elden Ring, the long version]]
+---
+```
+
+The pill then reads `short ⇄ long`. Everything in the editor behaves identically. What changes is the
+[public site](blog-mode.md): the reader-language machinery — the ع/EN switch, the one-post-per-reader
+lists, the `hreflang` tags — only makes sense when the two faces are in *different* languages. Two
+English faces are two posts, both listed if both are published, each naming the other under its title.
+
+**On the graph and in backlinks.** For a visitor, a twin pair is **one node** on the graph, labelled
+by the face in their language, carrying every link either face drew: the pair is one idea, and two
+half-connected copies of one essay is a picture of the filesystem, not of the writing. In your own
+graph both files stay, because there the graph is a map of files you can open and rename. The
+backlinks panel of either face shows the links to *both*, for the same reason — somebody who linked
+the English side linked this piece.
+
 ## Sections: fold, extract, move
 
 A section is a heading and everything under it, up to the next heading of the same level or higher.

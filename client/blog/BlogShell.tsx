@@ -270,6 +270,16 @@ export default function BlogShell() {
     };
   }, [tree, locked]);
 
+  // The other face of the post on screen, if it has one — what the ع/EN
+  // switch in the masthead will take the reader to. Read from the post list
+  // (the server fills `twin` without applying the language filter, which is
+  // the whole point: the face they are NOT being shown is the one they are
+  // asking for).
+  const openTwin =
+    route.kind === "article" || route.kind === "probe"
+      ? (posts?.find((p) => p.path === route.path)?.twin ?? null)
+      : null;
+
   // A route parsed before the tree was in can be wrong (deep link on a slow
   // boot, login unlocking a locked vault, or a reserved-looking URL that is
   // really a note — /graph with a published graph.md): re-parse on tree
@@ -479,7 +489,7 @@ export default function BlogShell() {
           />
           <div className="s-blog-nav__tools">
             <BlogSearch />
-            <LangSwitch />
+            <LangSwitch swapTo={openTwin} />
             <ThemeButton />
             {/* THE OWNER'S OWN DOOR, on the device the owner reads on. The
                 only Sign in on the public site was in the footer — at y=1048

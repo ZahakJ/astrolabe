@@ -42,6 +42,8 @@ import { isHardWrapped, layoutBadge, noteLayout, type NoteLayout } from "../text
 // became lazy — App renders the zen strip from the same table and must be able
 // to read it without importing (and therefore eagerly loading) the status bar.
 import { vimSubCopy } from "../vimCopy.ts";
+import { switchToTwin, twinIsBehind, twinPillLabels } from "../twins.ts";
+import { relativeDate } from "../dates.ts";
 import { desktop } from "../desktop/bridge.ts";
 
 const RELEASES_URL = "https://github.com/ZahakJ/astrolabe/releases/latest";
@@ -478,6 +480,22 @@ export default function StatusBar() {
   // periodic settings (`usePeriodic` wakes the bar when the folder moves).
   usePeriodic();
   const period = openPath && overNote ? periodLabel(openPath) : null;
+
+  // The open note's other face. A lookup, not a fetch: the table arrives with
+  // the tree (client/state.ts), so switching notes costs nothing here.
+  const twinTable = useStore((s) => s.twins);
+  const twinLocale = useStore((s) => s.blogLocale);
+  const twin = openPath ? (twinTable[openPath] ?? null) : null;
+  const twinFaces = twin ? twinPillLabels(twin) : { here: "", there: "" };
+  const twinStale = twin !== null && twinIsBehind(twin);
+  const twinTitle =
+    twin === null
+      ? ""
+      : twin.inconsistent
+        ? tf("twinOddTitle", { title: twin.twinTitle })
+        : twinStale
+          ? tf("twinStaleTitle", { title: twin.twinTitle, when: relativeDate(twin.twinMtimeMs, twinLocale, { dateStyle: "medium" }) })
+          : tf("twinSwitchTitle", { title: twin.twinTitle });
 
   // THE PHONE'S OVERFLOW MENU. Below 640px the cluster kept every control and
   // scrolled sideways with no scrollbar, right-aligned — so its first two
@@ -1045,6 +1063,35 @@ export default function StatusBar() {
               {openPublished ? "✦" : "✧"}
             </span>
             {t(openPublished ? "published" : "publish")}
+          </button>
+        </span>
+      )}
+      {/* ── The other face ────────────────────────────────────────────────
+          A note with a twin (shared/twins.ts) is one note with two faces, and
+          this is the handle that turns it over: `EN ⇄ ع` on a bilingual pair,
+          the two `face:` labels on a pair that names itself, the two titles
+          otherwise. Beside the publish star rather than up in the shell,
+          because it is a fact about THIS NOTE and the bottom row is where
+          note-level things live.
+
+          The dot is the staleness hint and nothing more: the other face has
+          not been touched since this one was, by more than a minute. No
+          diffing, no automatic anything — two mtimes and a sentence. */}
+      {openPath && overNote && twin !== null && (
+        <span className="s-statusbar__group">
+          <button
+            type="button"
+            className={`s-statusbar__btn s-statusbar__twin${
+              twin.inconsistent ? " s-statusbar__twin--odd" : ""
+            }`}
+            onClick={() => switchToTwin(openPath)}
+            title={twinTitle}
+            aria-label={twinTitle}
+          >
+            <span className="s-statusbar__twinface" dir="auto">{twinFaces.here}</span>
+            <span className="s-statusbar__twinarrow" aria-hidden="true">⇄</span>
+            <span className="s-statusbar__twinface" dir="auto">{twinFaces.there}</span>
+            {twinStale && <span className="s-statusbar__twindot" aria-hidden="true" />}
           </button>
         </span>
       )}
