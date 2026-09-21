@@ -17,7 +17,7 @@
  * out before the laptop is open.
  */
 
-import type { VaultEvent } from "../../../shared/types.ts";
+import type { PocketSyncStatus, VaultEvent } from "../../../shared/types.ts";
 import { PocketIndex } from "./index.ts";
 import { PocketRepo } from "./git.ts";
 import { createPocketServer, type PocketRequest, type PocketResponse } from "./server.ts";
@@ -40,6 +40,12 @@ export interface PocketSessionOptions {
   store: { get(key: string): Promise<unknown>; set(key: string, value: unknown): Promise<void> };
   onSync?: (state: SyncState) => void;
   onEvent?: (event: VaultEvent) => void;
+  /** Forget which repository this phone opens and the token that reaches it,
+   *  so the next launch is the connection screen. Lives in the caller because
+   *  it is Preferences (pocket/store.ts) and a session knows nothing about
+   *  them; absent means the settings panel's "Leave this vault" is refused
+   *  with a reason rather than half-performed. */
+  onLeave?: () => Promise<void>;
   now?: () => number;
 }
 
@@ -83,6 +89,23 @@ export class PocketSession {
       store: options.store,
       index: this.index,
       repo: { name: options.repo.fullName, branch: options.repo.branch },
+      // The settings panel's Backup & sync tab, in a pocket vault, is about
+      // THIS: the same state the shell's strip shows, the same pull and push,
+      // and the door back to the connection screen. `onLeave` is optional, so
+      // a session built without one refuses the door rather than forgetting
+      // half of what makes a vault openable.
+      shell: {
+        syncState: () => this.syncStatus(),
+        syncNow: async () => {
+          await this.pull();
+          await this.push();
+          return this.syncStatus();
+        },
+        leave: async () => {
+          if (!options.onLeave) throw new Error("This phone cannot forget a vault it did not choose");
+          await options.onLeave();
+        },
+      },
       now: this.now,
       onEvent: options.onEvent,
       onCommit: () => {
@@ -98,6 +121,23 @@ export class PocketSession {
 
   syncState(): SyncState {
     return this.state;
+  }
+
+  /** The same state, on the wire, for the settings panel. The shell's strip
+   *  and the panel's line are one truth with two renderings — the rule that
+   *  chooses the words is still `syncLine` in pocket/sync.ts, and the client
+   *  applies it to these numbers. */
+  syncStatus(): PocketSyncStatus {
+    return {
+      repo: this.options.repo.fullName,
+      branch: this.options.repo.branch,
+      phase: this.state.phase,
+      ahead: this.state.ahead,
+      syncedAtMs: this.state.syncedAtMs,
+      online: this.state.online,
+      error: this.state.error,
+      conflicts: this.state.conflicts.map((pair) => ({ path: pair.path, phonePath: pair.phonePath })),
+    };
   }
 
   private dispatch(event: SyncEvent): void {

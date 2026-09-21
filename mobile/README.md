@@ -106,6 +106,7 @@ in the browser) have every other link in your notes.
 | The pocket server | `src/pocket/server.ts` | `/api/*`, answered in the page, over the clone |
 | The seam | `src/pocket/boot.ts`, `src/pocket/sw.ts` | A `fetch` patch for the client's calls; a worker for `<img src="/api/file?…">`, ranges and `EventSource` |
 | The repository | `src/pocket/git.ts` | Shallow clone, fast-forward pull, the conflict rule, push |
+| The sync rule | `../shared/pocketSync.ts` | Which of nine sentences the vault's one line is — shared with the settings panel |
 | `AstrolabePlugin` | `android/…/AstrolabePlugin.java` | The navigation gate, the share Intent, the trusted-host store, one git request |
 | `GitTransport` | `android/…/GitTransport.java` | One HTTP request, binary both ways — github.com ships no CORS and a packfile is not a string |
 | `MainActivity` | `android/…/MainActivity.java` | Back = history back; leaves only from the connection screen |
@@ -155,6 +156,24 @@ as a second layer; because the native layer consumes the insets, those read zero
 and the two can never double up. What is deliberately *not* used is
 `android:windowOptOutEdgeToEdge`, which is deprecated already and ignored from
 API 36 — an escape hatch with an expiry date is a bug scheduled for later.
+
+**Where a pocket vault's settings live, and why it is not the phone.** In
+`.astrolabe/settings.json` inside the repository — the same file, in the same
+shape, that `server/configMirror.ts` mirrors out of every instance's data
+directory. `PATCH /api/settings` writes it and commits it like a note save, so
+a site name or a calendar chosen on the phone is on the laptop as soon as the
+push is, and the laptop's choice is on the phone as soon as it pulls. Round one
+kept them in Capacitor Preferences beside the token, and a friend of the owner
+found what that means: nothing a reader chose ever left the device, and the
+git-sync rows — which describe a *server* pointing at a remote, a thing a
+pocket vault has not got — could not be saved at all. Keys the pocket cannot
+honour are now REFUSED with the reason (`POCKET_CANNOT_KEEP` in
+`src/pocket/server.ts`), and the client stops offering them: `/api/me` carries
+`pocket: true`, Settings drops Publishing and Collections, greys the rows that
+need an instance, and draws the pocket's own Backup & sync tab
+(`client/components/settings/PocketSync.tsx`) over `/api/pocket/sync` and
+`/api/pocket/leave`. The workspace and the preferences stay on the device, as
+they always did: which notes this phone has open is not a fact about the vault.
 
 **Why the capture is an append with a precondition, and why it retries.** The
 sheet reads today's inbox note, adds one timestamped bullet, and PUTs it back

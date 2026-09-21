@@ -17,9 +17,15 @@ import { exists, isMissing, mkdirp, readBytes, readUtf8, walk, type PocketFs } f
 import type { PocketFile, PocketVaultIO } from "./server.ts";
 
 /** Directories the vault does not contain, whatever the filesystem says.
- *  `.git` is the repository, `.obsidian` is another app's settings, and
- *  `.trash` is this device's undo drawer — the tree shows none of them. */
-const HIDDEN = new Set([".git", ".obsidian", ".trash"]);
+ *  `.git` is the repository, `.obsidian` is another app's settings, `.trash`
+ *  is this device's undo drawer and `.astrolabe` is the settings that travel
+ *  WITH the vault (server/configMirror.ts, and the pocket's own
+ *  `PATCH /api/settings`) — the tree shows none of them. The instance draws
+ *  exactly this line: `.astrolabe/` is "never listed, indexed, watched or
+ *  served", and a settings file appearing as an attachment in somebody's
+ *  sidebar would be the phone disagreeing with the laptop about what a vault
+ *  contains. */
+const HIDDEN = new Set([".git", ".obsidian", ".trash", ".astrolabe"]);
 
 export class PocketVaultError extends Error {
   constructor(message: string) {

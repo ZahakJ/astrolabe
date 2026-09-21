@@ -119,6 +119,7 @@ import { desktop } from "../desktop/bridge.ts";
 import { DECLARABLE, SPELL_DICTS_EVENT, browserDictionaries, setBrowserDictionaries, type Declarable } from "../spellDicts.ts";
 import { Row } from "./settings/Row.tsx";
 import { TravelRow } from "./settings/TravelRow.tsx";
+import { PocketSyncPanel } from "./settings/PocketSync.tsx";
 import { choiceLabel, isTheme, THEME_GROUPS, THEME_LABELS, THEMES, type Theme } from "../themes.ts";
 import { customThemeChoice, isCustomThemeId } from "../../shared/customTheme.ts";
 import { getCustomThemes } from "../design/customThemes.ts";
@@ -3124,6 +3125,22 @@ const TABS: Tab[] = [
   { id: "sync", key: "groupSync", intro: "syncNote" },
   { id: "about", key: "tabAbout", intro: "introAbout" },
 ];
+/** THE TWO TABS A POCKET VAULT HAS NOT GOT.
+ *
+ *  Both answer one question — what may a VISITOR see — and a repository cloned
+ *  onto a phone has no visitors, no public address and no route that would
+ *  serve one: the pocket server answers /api/publish, /api/posts, /api/design,
+ *  /api/collections and /api/library with a 501 and the reason. Every row on
+ *  them is refused by `PATCH /api/settings` there too, so drawing the tabs
+ *  would be offering a form whose Save cannot succeed.
+ *
+ *  They stay in TABS and in the settings index — they are real tabs of this
+ *  product, and the index is generated from the source rather than from a
+ *  render. What keeps a SEARCH from landing on them is `mode: "instance"`,
+ *  which scripts/settings-index.mjs reads off their `!pocket` render
+ *  condition. */
+const POCKET_HIDDEN_TABS: ReadonlySet<string> = new Set(["publishing", "collections"]);
+
 /** Automatic-sync periods. A closed set of sentences beats a free number with
  *  a decoder hint under it ("minutes; 0 = manual only"); a stored value from
  *  outside the set (hand-edited settings.json) is added rather than lost. */
@@ -3155,6 +3172,10 @@ function intervalLabel(minutes: number): string {
 export default function SettingsModal() {
   const setOpen = useStore((s) => s.setSettingsOpen);
   const settingsFocus = useStore((s) => s.settingsFocus);
+  /** THIS VAULT IS A CLONE ON A PHONE (/api/me `pocket`). It decides which
+   *  tabs exist, which rows are locked, and which Backup & sync tab is drawn
+   *  — see `visibleTabs` and the two `tab === "sync"` blocks below. */
+  const pocket = useStore((s) => s.pocket);
   useStore((s) => s.language); // re-render the chrome strings on language change
   /** The panel is gone. Only `requestClose` below may call this from an exit
    *  path a reader takes; this is the half that runs once the question of
@@ -3264,6 +3285,23 @@ export default function SettingsModal() {
     }
   }, []);
 
+  /** The tabs this vault actually has. Only a pocket vault differs, and the
+   *  rail, the arrow keys and the heading all read this rather than TABS — a
+   *  rail that skips a tab while ↓ still walks into it is worse than either
+   *  answer on its own. */
+  const visibleTabs = useMemo(
+    () => (pocket ? TABS.filter((s) => !POCKET_HIDDEN_TABS.has(s.id)) : TABS),
+    [pocket],
+  );
+
+  /** The panel remembers the last tab per device, and a phone that opened an
+   *  instance yesterday and a pocket vault today remembers one that is not
+   *  here. The first tab — This device, which every vault has — is the answer,
+   *  and it is taken before a single row renders. */
+  useEffect(() => {
+    if (!visibleTabs.some((s) => s.id === tab)) goToTab(visibleTabs[0].id);
+  }, [visibleTabs, tab, goToTab]);
+
   /** Bring one row into view and MARK it for a moment. Scrolling to a row
    *  without marking it leaves the reader looking at a list and guessing which
    *  one answered. Shared by the panel's own search and by the surfaces
@@ -3296,17 +3334,17 @@ export default function SettingsModal() {
     (e: ReactKeyboardEvent<HTMLElement>) => {
       const keys: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
       const delta = keys[e.key];
-      const at = TABS.findIndex((s) => s.id === tab);
+      const at = visibleTabs.findIndex((s) => s.id === tab);
       let next = -1;
-      if (delta !== undefined) next = Math.max(0, Math.min(TABS.length - 1, at + delta));
+      if (delta !== undefined) next = Math.max(0, Math.min(visibleTabs.length - 1, at + delta));
       else if (e.key === "Home") next = 0;
-      else if (e.key === "End") next = TABS.length - 1;
+      else if (e.key === "End") next = visibleTabs.length - 1;
       if (next < 0 || next === at) return;
       e.preventDefault();
-      goToTab(TABS[next].id);
+      goToTab(visibleTabs[next].id);
       railRef.current?.querySelectorAll("button")[next]?.focus();
     },
-    [goToTab, tab],
+    [goToTab, tab, visibleTabs],
   );
 
   useEffect(() => {
@@ -3645,7 +3683,7 @@ export default function SettingsModal() {
               aria-label={t("settingsSections")}
               onKeyDown={onRailKey}
             >
-              {TABS.map((s) => (
+              {visibleTabs.map((s) => (
                 <button
                   key={s.id}
                   type="button"
@@ -3679,7 +3717,16 @@ export default function SettingsModal() {
                 {/* Every tab opens the same way: its name, then one sentence
                     saying what it decides. */}
                 <div className="s-smodal__group s-smodal__tabhead">{t(TABS.find((s) => s.id === tab)?.key ?? "tabDevice")}</div>
-                <p className="s-smodal__note">{t(TABS.find((s) => s.id === tab)?.intro ?? "introDevice")}</p>
+                {/* The sync tab's sentence is about a SERVER pushing to a remote,
+                    which is not what Backup & sync means on a phone holding
+                    the repository itself. */}
+                <p className="s-smodal__note">
+                  {t(
+                    pocket && tab === "sync"
+                      ? "pocketSyncNote"
+                      : (TABS.find((s) => s.id === tab)?.intro ?? "introDevice"),
+                  )}
+                </p>
 
                 {/* "This device" is its own module (settings/DeviceTab.tsx) and
                     the FIRST tab, because it is the one tab the Save button in
@@ -3702,6 +3749,11 @@ export default function SettingsModal() {
                 {tab === "site" && (
                 <section data-section="site">
                   <p className="s-smodal__note s-smodal__note--inherit">{t("settingsNote")}</p>
+                  {/* WHY THOSE ROWS ARE GREY, said once per tab rather than
+                      fourteen times in fourteen hints — a hint is one sentence
+                      about what a row DOES, and the reason a row is inert here
+                      is the same reason for every one of them. */}
+                  {pocket && <p className="s-smodal__offnote">{t("pocketSiteNotice")}</p>}
                   <Row
                     label={t("rowSiteName")}
                     error={errors.siteName}
@@ -3730,6 +3782,7 @@ export default function SettingsModal() {
                     />
                   </Row>
                   <Row
+                    locked={pocket}
                     label={t("rowFooter")}
                     hint={t("hintFooter")}
                     error={errors.footer}
@@ -3771,6 +3824,7 @@ export default function SettingsModal() {
                     />
                   </Row>
                   <Row
+                    locked={pocket}
                     label={t("rowFavicon")}
                     hint={t("hintFavicon")}
                     error={errors.favicon}
@@ -3791,6 +3845,7 @@ export default function SettingsModal() {
                       only question it ever answered: which room a reader with no
                       stored choice walks into. */}
                   <Row
+                    locked={pocket}
                     label={t("rowDefaultTheme")}
                     hint={t("hintDefaultTheme")}
                     env={{ name: "DEFAULT_THEME", value: eff.defaultTheme ?? "", inherits: form.defaultTheme === "" }}
@@ -3865,7 +3920,7 @@ export default function SettingsModal() {
                     <FontSpecimens />
                   </div>
 
-                  <Row label={t("rowFontProse")} hint={t("hintFontProse")}>
+                  <Row locked={pocket} label={t("rowFontProse")} hint={t("hintFontProse")}>
                     <FontPicker
                       slot="text"
                       label={t("rowFontProse")}
@@ -3875,7 +3930,7 @@ export default function SettingsModal() {
                       onChange={(id) => setForm((f) => (f ? { ...f, fontProse: id } : f))}
                     />
                   </Row>
-                  <Row label={t("rowFontUi")} hint={t("hintFontUi")}>
+                  <Row locked={pocket} label={t("rowFontUi")} hint={t("hintFontUi")}>
                     <FontPicker
                       slot="text"
                       label={t("rowFontUi")}
@@ -3885,7 +3940,7 @@ export default function SettingsModal() {
                       onChange={(id) => setForm((f) => (f ? { ...f, fontUi: id } : f))}
                     />
                   </Row>
-                  <Row label={t("rowFontMono")} hint={t("hintFontMono")}>
+                  <Row locked={pocket} label={t("rowFontMono")} hint={t("hintFontMono")}>
                     <FontPicker
                       slot="mono"
                       label={t("rowFontMono")}
@@ -3901,7 +3956,7 @@ export default function SettingsModal() {
                       hint has to. */}
                   <div className="s-smodal__sub">{t("fontArabicHead")}</div>
                   <p className="s-smodal__note">{t("fontArabicHeadNote")}</p>
-                  <Row label={t("rowFontArabic")} hint={t("hintFontArabic")}>
+                  <Row locked={pocket} label={t("rowFontArabic")} hint={t("hintFontArabic")}>
                     <FontPicker
                       slot="arabic"
                       label={t("rowFontArabic")}
@@ -3918,6 +3973,7 @@ export default function SettingsModal() {
                       config file. */}
                   {form.fontArabic !== SYSTEM_FONT && (
                     <Row
+                      locked={pocket}
                       label={t("rowSizeAdjust")}
                       hint={t("hintSizeAdjust")}
                       error={errors.fontSizeAdjust}
@@ -3936,7 +3992,14 @@ export default function SettingsModal() {
                   )}
 
                   {/* Uploading is the answer to the question the catalog
-                      cannot answer: the face an operator already owns. */}
+                      cannot answer: the face an operator already owns. An
+                      uploaded face is served out of an instance's data
+                      directory, which a pocket vault has not got — the route
+                      is a 501 there — so the whole group goes rather than
+                      standing greyed beside a drop zone that refuses. It is
+                      not a settings ROW and carries nothing for the index. */}
+                  {!pocket && (
+                  <>
                   <div className="s-smodal__sub">{t("fontCustomHead")}</div>
                   <p className="s-smodal__note">{t("fontCustomNote")}</p>
                   <CustomFonts
@@ -3957,6 +4020,8 @@ export default function SettingsModal() {
                     onUpload={uploadCustomFont}
                     onDelete={removeCustomFont}
                   />
+                  </>
+                  )}
                   </div>
                 </section>
                 )}
@@ -3969,6 +4034,7 @@ export default function SettingsModal() {
                       controls move — the operator never has to save to find
                       out. */}
                   <VisibilityBanner impact={impact} />
+                  {pocket && <p className="s-smodal__offnote">{t("pocketLangNotice")}</p>}
                   <Row
                     label={t("rowLanguage")}
                     hint={t("hintLanguage")}
@@ -4024,6 +4090,7 @@ export default function SettingsModal() {
                       this vault's own numbers, exactly what the pending choice
                       would do. */}
                   <Row
+                    locked={pocket}
                     label={t("rowLanguageFilter")}
                     hint={t("hintLanguageFilter")}
                     env={{ name: "LANGUAGE_FILTER", value: eff.languageFilter, inherits: form.languageFilter === "" }}
@@ -4077,7 +4144,7 @@ export default function SettingsModal() {
                       inherits a constant), so "Default" would name nothing an
                       operator can set elsewhere. The empty stored value reads
                       as the constant it resolves to, and a flip writes on/off. */}
-                  <Row label={t("rowLanguageToggle")} hint={t("hintLanguageToggle")}>
+                  <Row locked={pocket} label={t("rowLanguageToggle")} hint={t("hintLanguageToggle")}>
                     <Toggle
                       label={t("rowLanguageToggle")}
                       onLabel={t("on")}
@@ -4237,7 +4304,7 @@ export default function SettingsModal() {
                 </section>
                 )}
 
-                {tab === "publishing" && (
+                {tab === "publishing" && !pocket && (
                 <section data-section="publishing">
                   {/* The standing answer to "how much of my site is public",
                       at the top of both tabs that can change it. It describes
@@ -4458,7 +4525,7 @@ export default function SettingsModal() {
                     rows was the tab nobody scrolled to the end of; and they are a
                     different question from "what may a visitor see" — that tab
                     decides the door, this one decides the shelves behind it. */}
-                {tab === "collections" && (
+                {tab === "collections" && !pocket && (
                 <section data-section="collections">
                   {/* ── CUSTOM PUBLIC FOLDERS ───────────────────────────
                       ONE option with sub-options, the Backup tab's idiom: a
@@ -4629,6 +4696,7 @@ export default function SettingsModal() {
                       comments and share buttons first. Three folder questions
                       in one place answer each other; a folder filed by its
                       consequence answers nobody. */}
+                  {pocket && <p className="s-smodal__offnote">{t("pocketVaultNotice")}</p>}
                   <div className="s-smodal__sub">{t("templatesSection")}</div>
                   <Row
                     label={t("templatesFolderLabel")}
@@ -4654,7 +4722,7 @@ export default function SettingsModal() {
                       folder's terms — detected when the vault names it, and
                       the detected value printed rather than a blank field
                       beside a feature that is quietly working. */}
-                  <Row label={t("hadithFolderLabel")} hint={t("hadithFolderHint")} more={t("moreHadithFolder")}>
+                  <Row locked={pocket} label={t("hadithFolderLabel")} hint={t("hadithFolderHint")} more={t("moreHadithFolder")}>
                     <TextInput
                       placeholder={eff.hadithFolder ?? "Corpus/hadith"}
                       dir="ltr"
@@ -4720,7 +4788,7 @@ export default function SettingsModal() {
                   <Row label={t("captureInboxLabel")} hint={t("captureInboxHint")} more={t("moreCaptureInbox")}>
                     <TextInput placeholder="Inbox.md" dir="ltr" label={t("captureInboxLabel")} {...field("captureInbox")} />
                   </Row>
-                  <Row label={t("clipperLabel")} hint={t("clipperHint")} more={t("moreClipper")}>
+                  <Row locked={pocket} label={t("clipperLabel")} hint={t("clipperHint")} more={t("moreClipper")}>
                     <ClipperControl siteName={eff.siteName} />
                   </Row>
                   {/* Where the sidebar's pencil files a drawing (the owner:
@@ -4860,6 +4928,7 @@ export default function SettingsModal() {
                       row exists to do without. */}
                   <div className="s-smodal__sub">{t("history")}</div>
                   <Row
+                    locked={pocket}
                     label={t("rowNoteVersions")}
                     hint={t("hintNoteVersions")}
                     more={t("moreNoteVersions")}
@@ -4879,6 +4948,7 @@ export default function SettingsModal() {
                       is the row being empty, which a checkbox cannot be. */}
                   <div className="s-smodal__sub">{t("libraryBooks")}</div>
                   <Row
+                    locked={pocket}
                     label={t("rowPdfSearch")}
                     hint={t("hintPdfSearch")}
                     env={{ name: "PDF_SEARCH", value: eff.pdfSearch ? "on" : "off", inherits: form.pdfSearch === "" }}
@@ -4899,7 +4969,7 @@ export default function SettingsModal() {
                     switch is off — six fields and two actions at full contrast
                     and full interactivity, all inert, read as a configured and
                     running backup at a glance. */}
-                {tab === "sync" && (
+                {tab === "sync" && !pocket && (
                 <section data-section="sync">
                   {/* A master switch is a SWITCH: two states, both visible,
                       no list to open to learn there are only two. */}
@@ -5050,6 +5120,18 @@ export default function SettingsModal() {
                       machine (server/configMirror.ts) — independent of git
                       sync, so it is not greyed with the rows above. */}
                   <TravelRow />
+                </section>
+                )}
+
+                {/* THE SAME TAB, FOR A VAULT THAT IS ITSELF THE REPOSITORY.
+                    Everything above describes a server pointing git at a
+                    remote; here the phone IS the clone, so the tab is the
+                    repository it opened, the one line the shell paints over
+                    the vault, a Sync now, the `(phone)` pairs still standing,
+                    and the door back to the connection screen. */}
+                {tab === "sync" && pocket && (
+                <section data-section="sync">
+                  <PocketSyncPanel />
                 </section>
                 )}
 

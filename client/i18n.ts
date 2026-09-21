@@ -2379,6 +2379,90 @@ const DICT = {
     en: "Your look, your fonts and your ledgers, kept in the vault's .astrolabe folder for every machine that opens it.",
     ar: "مظهرك وخطوطك وسجلاتك، محفوظة في مجلد .astrolabe داخل الخزانة لكل جهاز يفتحها.",
   },
+  // ── A pocket vault's own Backup & sync (client/components/settings/
+  //    PocketSync.tsx) ───────────────────────────────────────────────────
+  // Shown INSTEAD of the rows above when /api/me says `pocket`: the vault is
+  // a repository cloned into the Android app and there is no server-side git
+  // to point at a remote. The line's words match the shell's strip
+  // (mobile/src/i18n.ts) because it is the same fact, decided by the same
+  // rule in shared/pocketSync.ts.
+  pocketSyncNote: {
+    en: "This vault is a GitHub repository, cloned onto this phone.",
+    ar: "هذه الخزانة مستودع GitHub، مستنسخ على هذا الهاتف.",
+  },
+  rowPocketRepo: { en: "Repository", ar: "المستودع" },
+  hintPocketRepo: {
+    en: "The repository this phone opened, and its branch.",
+    ar: "المستودع الذي فتحه هذا الهاتف، وفرعه.",
+  },
+  pocketOnBranch: { en: "on {branch}", ar: "على {branch}" },
+  rowPocketState: { en: "State", ar: "الحالة" },
+  hintPocketState: {
+    en: "The same line the app shows over your vault.",
+    ar: "السطر نفسه الذي يعرضه التطبيق فوق خزانتك.",
+  },
+  pocketLineSyncing: { en: "Checking GitHub…", ar: "…نتحقّق من GitHub" },
+  pocketLinePushing: { en: "Sending your changes…", ar: "…نرسل تغييراتك" },
+  pocketLineOffline: {
+    en: "Offline. Your changes are safe on this phone.",
+    ar: "لا اتّصال. تغييراتك محفوظة على هذا الهاتف.",
+  },
+  pocketLineNever: { en: "Not sent yet.", ar: "لم تُرسَل بعد." },
+  pocketLineSyncedJustNow: { en: "Synced just now.", ar: "تمّت المزامنة الآن." },
+  pocketLineFailed: {
+    en: "Could not reach GitHub. Try Sync now.",
+    ar: "تعذّر الوصول إلى GitHub. جرّب «زامن الآن».",
+  },
+  pocketLineConflicts: {
+    en: "{count} notes changed in both places. Both versions are kept.",
+    ar: "{count} من الملاحظات تغيّرت في المكانين. النسختان محفوظتان.",
+  },
+  pocketLineToPush: {
+    en: "{count} changes to send.",
+    ar: "{count} من التغييرات لم تُرسَل.",
+  },
+  pocketLineSyncedAgo: {
+    en: "Synced {count} minutes ago.",
+    ar: "تمّت المزامنة قبل {count} من الدقائق.",
+  },
+  pocketSyncFailed: { en: "Could not sync this vault", ar: "تعذّرت مزامنة هذه الخزانة" },
+  rowPocketConflicts: { en: "Kept side by side", ar: "محفوظ جنبًا إلى جنب" },
+  hintPocketConflicts: {
+    en: "Notes changed here and elsewhere; nothing was merged.",
+    ar: "ملاحظات تغيّرت هنا وفي مكان آخر، ولم يُدمج شيء.",
+  },
+  pocketNoConflicts: { en: "Nothing waiting.", ar: "لا شيء في الانتظار." },
+  pocketConflictRule: {
+    en: "Open both, keep the one you want and delete the other.",
+    ar: "افتح النسختين، أبقِ ما تريد واحذف الأخرى.",
+  },
+  rowPocketLeave: { en: "Leave this vault", ar: "مغادرة هذه الخزانة" },
+  hintPocketLeave: {
+    en: "Forgets the repository and the token; your notes stay.",
+    ar: "ينسى المستودع والرمز، وتبقى ملاحظاتك.",
+  },
+  pocketLeaveAction: { en: "Leave", ar: "غادر" },
+  pocketLeaveTitle: { en: "Leave this vault?", ar: "مغادرة هذه الخزانة؟" },
+  pocketLeaveBody: {
+    en: "This phone will forget which repository to open and the token that reaches it, and go back to the connection screen. Nothing is deleted from GitHub.",
+    ar: "سينسى هذا الهاتف أيّ مستودع يفتح والرمز الذي يصل إليه، ويعود إلى شاشة الاتّصال. لا يُحذف شيء من GitHub.",
+  },
+  pocketLeaveFailed: { en: "Could not leave this vault", ar: "تعذّرت مغادرة هذه الخزانة" },
+  // One sentence per tab naming what a pocket vault cannot keep, shown above
+  // the rows it greys out. A greyed row with no reason is the same silence
+  // this round exists to end.
+  pocketSiteNotice: {
+    en: "A pocket vault has no public site: the marks and faces visitors would see are an instance's.",
+    ar: "الخزانة الجيبية بلا موقع عام: العلامات والخطوط التي يراها الزوّار تخصّ نسخة على خادم.",
+  },
+  pocketLangNotice: {
+    en: "The two rows below curate what VISITORS see, and a pocket vault has none.",
+    ar: "الصفّان أدناه ينظّمان ما يراه الزوّار، والخزانة الجيبية بلا زوّار.",
+  },
+  pocketVaultNotice: {
+    en: "The greyed rows need a server: a corpus on disk, a clipper reachable over the network, versions beside git.",
+    ar: "الصفوف الباهتة تحتاج خادمًا: مصحفًا على القرص، وقاصّة تُبلَغ عبر الشبكة، ونسخًا إلى جانب المستودع.",
+  },
   syncErrorShort: { en: "failed", ar: "فشلت" },
   syncFailed: { en: "Sync failed", ar: "فشلت المزامنة" },
   syncPushed: { en: "Vault committed and pushed", ar: "أُودعت الخزانة ورُفعت" },

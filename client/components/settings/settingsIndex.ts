@@ -24,6 +24,16 @@ export interface SettingEntry {
   /** The environment variable behind the row's ⓘ, when it has one. Searching
    *  `SITE_LANG` and landing on the row is the operator's half of this. */
   env?: string;
+  /** WHICH KIND OF VAULT DRAWS THIS ROW, when it is not both. A pocket vault
+   *  (a repository cloned onto a phone — mobile/src/pocket/) has no public
+   *  site and no server-side repository, so Publishing, Collections and the
+   *  whole git-sync tab are `instance`; the pocket's own Backup & sync rows
+   *  are `pocket`. Read off the panel's own render condition
+   *  (`{tab === "sync" && !pocket && (`) by scripts/settings-index.mjs, so
+   *  the index cannot drift from what is drawn. The SEARCH honours it: a hit
+   *  that scrolls to a row this vault does not have is the exact failure the
+   *  index exists to prevent. */
+  mode?: "instance" | "pocket";
 }
 
 export const SETTINGS_INDEX: SettingEntry[] = [
@@ -68,27 +78,27 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "language", label: "rowTextAlign", hint: "hintTextAlign" },
   { tab: "language", label: "rowEmptyPropsCard", hint: "hintEmptyPropsCard" },
   { tab: "language", label: "tagLabelsRowLabel", hint: "tagLabelsPageWins" },
-  { tab: "publishing", label: "rowPublicLayout", hint: "hintPublicLayout", env: "PUBLIC_LAYOUT" },
-  { tab: "publishing", label: "rowOpenDesigner", hint: "hintOpenDesigner" },
-  { tab: "publishing", label: "rowExcludeTags", hint: "hintExcludeTags", env: "EXCLUDE_TAGS" },
-  { tab: "publishing", label: "rowComments", hint: "hintComments", env: "COMMENTS" },
-  { tab: "publishing", label: "rowShareButtons", hint: "hintShareButtons" },
-  { tab: "publishing", label: "rowAmbient", hint: "hintAmbient" },
-  { tab: "publishing", label: "rowAuthorSites", hint: "hintAuthorSites" },
-  { tab: "publishing", label: "rowMode", hint: "hintMode" },
-  { tab: "publishing", label: "rowHomeNote", hint: "hintHomeNote", env: "HOME_NOTE" },
-  { tab: "publishing", label: "rowHomeBanner", hint: "hintHomeBanner" },
-  { tab: "collections", label: "rowTopicsMode", hint: "hintTopicsMode" },
-  { tab: "collections", label: "rowPublicFolders", hint: "hintPublicFolders" },
-  { tab: "collections", label: "rowPublicFoldersList", hint: "hintPublicFoldersList" },
-  { tab: "collections", label: "rowPublicFoldersHome", hint: "hintPublicFoldersHome" },
-  { tab: "collections", label: "rowPublicFoldersNav", hint: "hintPublicFoldersNav" },
-  { tab: "collections", label: "rowLibrary", hint: "hintLibrary" },
-  { tab: "collections", label: "rowLibraryTitle", hint: "hintLibraryTitle" },
-  { tab: "collections", label: "rowLibraryNav", hint: "hintLibraryNav" },
-  { tab: "collections", label: "rowLibraryHome", hint: "hintLibraryHome" },
-  { tab: "collections", label: "rowLibraryRoots", hint: "hintLibraryRoots" },
-  { tab: "collections", label: "rowLibraryPaths", hint: "hintLibraryPaths" },
+  { tab: "publishing", label: "rowPublicLayout", hint: "hintPublicLayout", env: "PUBLIC_LAYOUT", mode: "instance" },
+  { tab: "publishing", label: "rowOpenDesigner", hint: "hintOpenDesigner", mode: "instance" },
+  { tab: "publishing", label: "rowExcludeTags", hint: "hintExcludeTags", env: "EXCLUDE_TAGS", mode: "instance" },
+  { tab: "publishing", label: "rowComments", hint: "hintComments", env: "COMMENTS", mode: "instance" },
+  { tab: "publishing", label: "rowShareButtons", hint: "hintShareButtons", mode: "instance" },
+  { tab: "publishing", label: "rowAmbient", hint: "hintAmbient", mode: "instance" },
+  { tab: "publishing", label: "rowAuthorSites", hint: "hintAuthorSites", mode: "instance" },
+  { tab: "publishing", label: "rowMode", hint: "hintMode", mode: "instance" },
+  { tab: "publishing", label: "rowHomeNote", hint: "hintHomeNote", env: "HOME_NOTE", mode: "instance" },
+  { tab: "publishing", label: "rowHomeBanner", hint: "hintHomeBanner", mode: "instance" },
+  { tab: "collections", label: "rowTopicsMode", hint: "hintTopicsMode", mode: "instance" },
+  { tab: "collections", label: "rowPublicFolders", hint: "hintPublicFolders", mode: "instance" },
+  { tab: "collections", label: "rowPublicFoldersList", hint: "hintPublicFoldersList", mode: "instance" },
+  { tab: "collections", label: "rowPublicFoldersHome", hint: "hintPublicFoldersHome", mode: "instance" },
+  { tab: "collections", label: "rowPublicFoldersNav", hint: "hintPublicFoldersNav", mode: "instance" },
+  { tab: "collections", label: "rowLibrary", hint: "hintLibrary", mode: "instance" },
+  { tab: "collections", label: "rowLibraryTitle", hint: "hintLibraryTitle", mode: "instance" },
+  { tab: "collections", label: "rowLibraryNav", hint: "hintLibraryNav", mode: "instance" },
+  { tab: "collections", label: "rowLibraryHome", hint: "hintLibraryHome", mode: "instance" },
+  { tab: "collections", label: "rowLibraryRoots", hint: "hintLibraryRoots", mode: "instance" },
+  { tab: "collections", label: "rowLibraryPaths", hint: "hintLibraryPaths", mode: "instance" },
   { tab: "vault", label: "templatesFolderLabel", hint: "templatesFolderHint" },
   { tab: "vault", label: "hadithFolderLabel", hint: "hadithFolderHint" },
   { tab: "vault", label: "defaultTemplateLabel", hint: "defaultTemplateHint" },
@@ -105,14 +115,18 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "vault", label: "rowTagsFolder", hint: "hintTagsFolder" },
   { tab: "vault", label: "rowNoteVersions", hint: "hintNoteVersions", env: "NOTE_VERSIONS" },
   { tab: "vault", label: "rowPdfSearch", hint: "hintPdfSearch", env: "PDF_SEARCH" },
-  { tab: "sync", label: "rowSyncEnabled", hint: "hintSyncEnabled" },
-  { tab: "sync", label: "rowSyncRemote", hint: "hintSyncRemote" },
-  { tab: "sync", label: "rowSyncBranch", hint: "hintSyncBranch" },
-  { tab: "sync", label: "rowSyncAuth", hint: "hintSyncAuth" },
-  { tab: "sync", label: "rowSyncUser", hint: "hintSyncUser" },
-  { tab: "sync", label: "rowSyncToken", hint: "hintSyncToken" },
-  { tab: "sync", label: "rowSyncPull", hint: "hintSyncPull" },
-  { tab: "sync", label: "rowSyncInterval", hint: "hintSyncInterval" },
-  { tab: "sync", label: "rowSyncStatus", hint: "hintSyncStatus" },
-  { tab: "sync", label: "rowTravel", hint: "hintTravel" },
+  { tab: "sync", label: "rowSyncEnabled", hint: "hintSyncEnabled", mode: "instance" },
+  { tab: "sync", label: "rowSyncRemote", hint: "hintSyncRemote", mode: "instance" },
+  { tab: "sync", label: "rowSyncBranch", hint: "hintSyncBranch", mode: "instance" },
+  { tab: "sync", label: "rowSyncAuth", hint: "hintSyncAuth", mode: "instance" },
+  { tab: "sync", label: "rowSyncUser", hint: "hintSyncUser", mode: "instance" },
+  { tab: "sync", label: "rowSyncToken", hint: "hintSyncToken", mode: "instance" },
+  { tab: "sync", label: "rowSyncPull", hint: "hintSyncPull", mode: "instance" },
+  { tab: "sync", label: "rowSyncInterval", hint: "hintSyncInterval", mode: "instance" },
+  { tab: "sync", label: "rowSyncStatus", hint: "hintSyncStatus", mode: "instance" },
+  { tab: "sync", label: "rowTravel", hint: "hintTravel", mode: "instance" },
+  { tab: "sync", label: "rowPocketRepo", hint: "hintPocketRepo", mode: "pocket" },
+  { tab: "sync", label: "rowPocketState", hint: "hintPocketState", mode: "pocket" },
+  { tab: "sync", label: "rowPocketConflicts", hint: "hintPocketConflicts", mode: "pocket" },
+  { tab: "sync", label: "rowPocketLeave", hint: "hintPocketLeave", mode: "pocket" },
 ];

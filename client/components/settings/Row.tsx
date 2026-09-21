@@ -147,6 +147,7 @@ export function Row({
   error,
   wide,
   off,
+  locked,
   env,
   more,
   after,
@@ -161,6 +162,20 @@ export function Row({
   wide?: boolean;
   /** The row is inert because a master switch above it is off. */
   off?: boolean;
+  /** THIS VAULT CANNOT KEEP THIS SETTING AT ALL. Not a master switch that can
+   *  be turned back on: a pocket vault (a repository cloned onto a phone) has
+   *  no public site to give a favicon to and no font directory to download a
+   *  face into, and `PATCH /api/settings` refuses the key with that reason.
+   *
+   *  The row is still DRAWN — the settings search indexes every row the panel
+   *  has, and a hit that scrolls to nothing is the failure that index exists
+   *  to prevent — but its control column becomes a disabled `<fieldset>`,
+   *  which is HTML's own way of taking every input, select and button inside
+   *  it out of the tab order and out of a form's submission. `off` styles it
+   *  and each control repeats `disabled`; this needed to work over controls
+   *  that have no `disabled` prop of their own (the image fields, the font
+   *  pickers, the clipper), so it is done once, here. */
+  locked?: boolean;
   /** The environment variable this row answers to, behind the ⓘ. */
   env?: EnvVar;
   /** Reference text behind the same ⓘ — the syntax or grammar the one-line
@@ -178,7 +193,7 @@ export function Row({
   const cls = [
     "s-smodal__row",
     wide ? "s-smodal__row--wide" : "",
-    off ? "s-smodal__row--off" : "",
+    off || locked ? "s-smodal__row--off" : "",
     error ? "s-smodal__row--invalid" : "",
   ]
     .filter(Boolean)
@@ -259,7 +274,11 @@ export function Row({
           </span>
         )}
       </label>
-      <div className="s-smodal__control">
+      {/* A locked row's control column is a DISABLED FIELDSET rather than a
+          div with a class on it: `pointer-events: none` stops a mouse and
+          nothing else, and a reader tabbing through the panel would still
+          land in a field whose value can never be saved. */}
+      <Controls locked={locked === true}>
         {control}
         {after}
         {/* role="alert" so a validation failure is spoken when it appears,
@@ -270,7 +289,18 @@ export function Row({
           </span>
         )}
         {disclose && <EnvPanel env={env} more={more} id={envId} labelledBy={envBtnId} open={envOpen} />}
-      </div>
+      </Controls>
     </div>
+  );
+}
+
+/** The control column: a plain div, or a disabled `<fieldset>` when the row is
+ *  locked. Same class either way, so one rule in the sheet paints both. */
+function Controls({ locked, children }: { locked: boolean; children: ReactNode }) {
+  if (!locked) return <div className="s-smodal__control">{children}</div>;
+  return (
+    <fieldset className="s-smodal__control s-smodal__control--locked" disabled>
+      {children}
+    </fieldset>
   );
 }

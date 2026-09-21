@@ -871,7 +871,15 @@ const AUDIENCES = [
   //             workspace's `swapTabIn` reducer.
   // WHAT DID NOT LAND HERE: nothing of the server's resolution (the symmetric
   // pass, the swap-table build, the graph merge) reaches a browser at all.
-{ name: "entry (everyone)", keys: entry, budget: 835 * 1024 },
+  // 3.22.2 THE POCKET'S SETTINGS: 835.9 kB actual → 836 (+0.9 kB over 835).
+  // Effectively all dictionary: thirty-odd keys × two languages for the
+  // pocket vault's own Backup & sync tab and the three "a phone cannot keep
+  // this" notices, plus `me.pocket` in the store and one `pocket` field in
+  // `loadMe`. The PANEL itself lands nowhere near here — SettingsModal and
+  // `settings/PocketSync.tsx` are a lazy chunk behind the ⌘, — and
+  // `shared/pocketSync.ts` (the sync line's precedence) rides in that chunk
+  // with it, not in the entry.
+{ name: "entry (everyone)", keys: entry, budget: 836 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1422,7 +1430,11 @@ const AUDIENCES = [
   // labels and its staleness dot, the tab and tree marks, and the three
   // palette rows. "Create twin…" itself adds nothing — it reuses the tree's
   // own name prompt (`client/prompts.ts`), which was already here.
-  { name: "admin first paint", keys: app, budget: 1088 * 1024 },
+  // 3.22.2 THE POCKET'S SETTINGS: 1088.9 kB actual → 1089 (+0.9 kB). The
+  // entry's dictionary bytes and nothing else — an admin's first paint gains
+  // no code from this round, because every line of it is inside the settings
+  // panel's own lazy chunk.
+  { name: "admin first paint", keys: app, budget: 1089 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

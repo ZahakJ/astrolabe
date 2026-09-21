@@ -336,6 +336,13 @@ export interface State {
   // ------------------------------------------------------------------ auth
   /** This session may mutate the vault (server said so via /api/me). */
   admin: boolean;
+  /** THE VAULT IS A CLONE ON THIS PHONE, answered by the pocket server inside
+   *  the Android WebView rather than by an instance (/api/me `pocket`). Absent
+   *  = false everywhere else, which is every browser on earth. What it decides
+   *  is what the settings panel OFFERS: there is no public site to publish to
+   *  here and no server-side repository to point at a remote, and a row that
+   *  cannot be kept must not be drawn as though it can. */
+  pocket: boolean;
   /** /api/me answered — App renders nothing until then to avoid mode flashes. */
   authReady: boolean;
   /** An admin password hash is configured server-side (sign in/out matters). */
@@ -1429,6 +1436,7 @@ export const useStore = create<State>()((set, get) => {
     pendingCaret: null,
 
     admin: true,
+    pocket: false,
     authReady: false,
     authProtected: false,
     publicReads: true,
@@ -1703,6 +1711,7 @@ export const useStore = create<State>()((set, get) => {
           visibility: me.visibility ?? null,
           commentsEnabled: me.comments === true,
           admin: me.admin,
+          pocket: me.pocket === true,
           publicReads: me.public,
           authProtected: me.protected ?? false,
           homeNote: me.homeNote ?? null,

@@ -595,6 +595,14 @@ export interface MeData {
   admin: boolean;      // this session may mutate the vault
   public: boolean;     // reads are open without a session (PUBLIC != false)
   protected: boolean;  // an ADMIN_PASSWORD_HASH is configured (sign in/out is meaningful)
+  /** THIS IS A POCKET VAULT: every answer comes from the phone's own clone of
+   *  the repository (mobile/src/pocket/server.ts) rather than from an
+   *  instance. A server never sends it, so ABSENT = false and no instance pays
+   *  a byte for it. The client needs it because whole panels mean nothing
+   *  here — there is no public site to publish to and no server-side git to
+   *  drive — and a screen that offers a setting it cannot keep is the bug this
+   *  flag exists to end (Settings → Backup & sync). */
+  pocket?: boolean;
   preview?: boolean;   // admin session previewing as visitor (X-Astrolabe-Preview) — payload above is visitor-shaped
   homeNote?: string;   // note opened for fresh visitors (HOME_NOTE)
   published?: PublishedCounts; // publish stats for admin UI copy (admin sessions only)
@@ -1892,6 +1900,36 @@ export interface GitSyncStatus {
   authMode: "ssh" | "token";
   tokenSet: boolean;
   last: GitSyncResult | null;
+}
+
+// ── The pocket vault's own sync (mobile/src/pocket/) ────────────────────────
+// `GET /api/pocket/sync` answers it; `POST /api/pocket/sync` pulls, pushes and
+// answers the new one. It is the SAME state the shell paints its one-line
+// strip from (mobile/src/pocket/sync.ts), and deliberately so: two accounts of
+// whether the writing has left the phone would eventually disagree, and the
+// quieter one would be the one believed.
+
+/** One unresolved pair from a diverged pull: the remote's version under its
+ *  own name, and this phone's set down beside it. Mirrors `ConflictPair` in
+ *  mobile/src/pocket/conflict.ts, which is where the rule itself lives. */
+export interface PocketConflict {
+  path: string;
+  phonePath: string;
+}
+
+export interface PocketSyncStatus {
+  /** "owner/name", as the connection screen chose it. */
+  repo: string;
+  branch: string;
+  phase: "idle" | "pulling" | "pushing";
+  /** Commits made on this phone that the remote has not got. */
+  ahead: number;
+  /** When the last complete pull-and-push finished, epoch ms; null = never. */
+  syncedAtMs: number | null;
+  online: boolean;
+  /** The last failure's sentence, cleared by the next success. */
+  error: string | null;
+  conflicts: PocketConflict[];
 }
 
 // ── What travels with the vault (server/configMirror.ts) ────────────────────

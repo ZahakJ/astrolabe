@@ -25,6 +25,7 @@ import type {
   LibraryPath,
   NoteAnnotation,
   NoteAnnotationsResponse,
+  PocketSyncStatus,
   PostMeta,
   PublicThemeInfo,
   PublishedPaths,
@@ -1055,6 +1056,33 @@ export function getTravelStatus(): Promise<TravelStatus> {
  *  report. On the upload deadline: the warm may be downloading a family. */
 export function resyncTravel(): Promise<TravelStatus> {
   return request<TravelStatus>("/api/sync/travel", { method: "POST" }, true, UPLOAD_TIMEOUT_MS);
+}
+
+// ── The pocket vault's own sync (Android; mobile/src/pocket/server.ts) ──────
+// A pocket vault answers `/api/sync/*` with a 501 and a reason: those routes
+// describe a SERVER driving git over a vault it can see, and there is no
+// server here. These three are the other thing — the phone's own pull and
+// push, and the door back to its connection screen — and they exist only
+// where `me.pocket` is true, which is the only place the panel calls them.
+
+/** The state the shell's one-line strip is painted from. Cheap and local: no
+ *  network, just what the session last did. */
+export function getPocketSync(): Promise<PocketSyncStatus> {
+  return request<PocketSyncStatus>("/api/pocket/sync", undefined, true);
+}
+
+/** Pull, then push, then answer the new state. On the UPLOAD deadline, like
+ *  every other button that waits on somebody's mobile network: a first push of
+ *  a vault of photographs is minutes of honest transfer, and giving up at 30
+ *  seconds would report a failure over a sync that then completed. */
+export function pocketSyncNow(): Promise<PocketSyncStatus> {
+  return request<PocketSyncStatus>("/api/pocket/sync", { method: "POST" }, true, UPLOAD_TIMEOUT_MS);
+}
+
+/** Forget the repository choice and the token. The CLONE stays — leaving a
+ *  vault is not a delete — and the caller navigates to the shell itself. */
+export function pocketLeave(): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/api/pocket/leave", { method: "POST" }, true);
 }
 
 /** Make the vault a git repo and point origin at the configured remote.

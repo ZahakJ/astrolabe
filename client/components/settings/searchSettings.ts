@@ -71,12 +71,26 @@ function matches(text: string, q: string): boolean {
   return q.length > 3 && q.endsWith("s") && re(q.slice(0, -1)).test(text);
 }
 
-export function searchSettings(query: string, desktop: boolean = IS_DESKTOP): SettingHit[] {
+/**
+ * `pocket` is the same fact `/api/me` sends and the panel renders from: this
+ * vault is a repository cloned onto a phone. Rows the index marks
+ * `mode: "instance"` are not drawn there (Publishing, Collections and the
+ * whole server-side git tab), and the `mode: "pocket"` rows are not drawn
+ * anywhere else — so each is dropped from the other's results for exactly the
+ * reason DESKTOP_ONLY_ROWS is: a hit that scrolls to nothing is worse than no
+ * hit at all. The caller passes it; this module imports no store.
+ */
+export function searchSettings(
+  query: string,
+  desktop: boolean = IS_DESKTOP,
+  pocket = false,
+): SettingHit[] {
   const q = fold(query.trim());
   if (q === "") return [];
   const hits: { hit: SettingHit; rank: number }[] = [];
   for (const entry of SETTINGS_INDEX) {
     if (!desktop && DESKTOP_ONLY_ROWS.has(entry.label)) continue;
+    if (entry.mode !== undefined && entry.mode !== (pocket ? "pocket" : "instance")) continue;
     const label = t(entry.label);
     const hint = entry.hint === undefined ? "" : t(entry.hint);
     const env = entry.env ?? "";

@@ -39,6 +39,12 @@ Then pick the repository your notes are in, and a branch. The app copies it into
 
 Opening the app pulls; coming back to it pulls again. Every save is one commit, named after the note. Pushing is held for half a minute, so a paragraph typed in nine saves leaves as one push — and it goes at once when you put the phone down. A small line at the bottom of the screen says which of those is true right now: *3 changes to send*, *Offline. Your changes are safe on this phone.*, *Synced 2 minutes ago.* It never says you are synced while anything is waiting. Tap it to send immediately.
 
+### Settings, and the tab that belongs to the phone
+
+Open **Settings → Backup & sync** in a vault from GitHub and you get the phone's own panel, not a server's: the repository and branch you opened, the same line the app shows over your vault, a **Sync now** button that pulls and then pushes, the pairs of notes kept side by side (below), and **Leave this vault** — which forgets the repository and the token, sends you back to the connection screen, and deletes nothing from GitHub or from this phone.
+
+Everything else you change in Settings is saved **into the vault**, in `.astrolabe/settings.json`, and committed like a note. That is the same file an instance keeps there, so a site name, a calendar, a daily-note folder or a template chosen on the phone is on your laptop the moment it pulls — and a setting chosen on the laptop is on the phone. What a phone cannot keep is not offered: the rows about visitors, uploaded fonts, a favicon, a hadith corpus or the clipper are greyed with the reason above them, and **Publishing** and **Collections** are not there at all.
+
 ### When both sides changed one note
 
 **The phone never merges your prose.** If a note changed here and on your laptop, the version from the repository keeps its name and the phone's version is set down beside it as `<Note> (phone).md`. Both are committed and both are pushed, so the pair is on every machine. The line at the bottom says how many pairs are standing, and it keeps saying it after the app is closed and opened again — until you have read the two and deleted the one you do not want. Nothing is ever merged, and nothing is ever thrown away.

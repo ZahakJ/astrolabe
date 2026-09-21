@@ -6044,6 +6044,18 @@ button.s-title:hover {
   opacity: 0.5;
 }
 
+/* A LOCKED row's control column is a <fieldset disabled> (Row.tsx): HTML's
+   own way of taking every control inside it out of reach, for a setting this
+   vault cannot keep at all — a public site's favicon on a phone holding a
+   clone. The element only has to stop looking like a fieldset; the greying is
+   the `--off` rule above, which the row already wears. */
+.s-smodal__control--locked {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
 /* ONE disabled treatment for both control shapes. With Backup=off the three
    <select>s took the browser's own greying ON TOP of the row's 0.5, while the
    Remote URL and Branch <input>s took only the row's — so the same disabled
@@ -6520,6 +6532,59 @@ button.s-title:hover {
   .s-smodal__actions .s-btn {
     min-height: 44px;
     padding-inline: 14px;
+  }
+}
+
+/* A POCKET VAULT'S CONFLICT PAIRS (client/components/settings/PocketSync.tsx).
+   The phone never merges prose: a note changed in both places keeps the
+   remote's version under its own name and this phone's beside it as
+   "<Note> (phone).md". Each pair is two doors, stacked so a long vault path
+   is never truncated at phone width, and each door is a real target for a
+   thumb rather than a line of text with a click handler. */
+.s-pocketconflicts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.s-pocketconflicts__pair {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  border-inline-start: 2px solid var(--danger);
+  padding-inline-start: 8px;
+}
+
+.s-pocketconflicts .s-linkbtn {
+  display: block;
+  inline-size: 100%;
+  text-align: start;
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.786rem;
+  color: var(--accent);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.s-pocketconflicts .s-linkbtn:hover,
+.s-pocketconflicts .s-linkbtn:focus-visible {
+  text-decoration: underline;
+}
+
+/* A thumb's target, on the shell's own promise — the same rule the section
+   verbs above keep. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-pocketconflicts .s-linkbtn {
+    min-block-size: 44px;
+    display: flex;
+    align-items: center;
   }
 }
 

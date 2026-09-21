@@ -35,11 +35,11 @@ const read = (p) => readFileSync(root + p, "utf8");
 const HINT_MAX_WORDS = 14;
 
 const checked = read("client/components/settings/settingsIndex.ts");
-const parsed = [...checked.matchAll(/\{ tab: "([a-z]+)", label: "([A-Za-z0-9_]+)"(?:, hint: "([A-Za-z0-9_]+)")?(?:, env: "([A-Z0-9_]+)")? \}/g)]
-  .map((m) => ({ tab: m[1], label: m[2], hint: m[3] ?? null, env: m[4] ?? null }));
+const parsed = [...checked.matchAll(/\{ tab: "([a-z]+)", label: "([A-Za-z0-9_]+)"(?:, hint: "([A-Za-z0-9_]+)")?(?:, env: "([A-Z0-9_]+)")?(?:, mode: "([a-z]+)")? \}/g)]
+  .map((m) => ({ tab: m[1], label: m[2], hint: m[3] ?? null, env: m[4] ?? null, mode: m[5] ?? null }));
 
 const fromSource = settingsRows();
-const key = (r) => `${r.tab}/${r.label}/${r.hint ?? ""}/${r.env ?? ""}`;
+const key = (r) => `${r.tab}/${r.label}/${r.hint ?? ""}/${r.env ?? ""}/${r.mode ?? ""}`;
 
 const inFile = new Set(parsed.map(key));
 const inSource = new Set(fromSource.map(key));
@@ -58,7 +58,13 @@ if (fromSource.length < 40) errs.push(`  only ${fromSource.length} rows parsed o
 // ── Hints: fourteen words ───────────────────────────────────────────────────
 // Every key the two panel files hand to `hint=`, including the ones chosen by
 // a ternary (`hint={t(cond ? "a" : "b")}`) that the index parser cannot see.
-const panelSrc = read("client/components/SettingsModal.tsx") + read("client/components/settings/DeviceTab.tsx");
+const panelSrc =
+  read("client/components/SettingsModal.tsx") +
+  read("client/components/settings/DeviceTab.tsx") +
+  // The pocket vault's Backup & sync rows live in their own file, and a hint
+  // that escaped the word count by living one directory away would be the
+  // rule with a hole in it.
+  read("client/components/settings/PocketSync.tsx");
 const hintKeys = new Set();
 for (const m of panelSrc.matchAll(/hint=\{t\(([^)]*)\)\}/g)) {
   for (const k of m[1].matchAll(/"([A-Za-z0-9_]+)"/g)) hintKeys.add(k[1]);
