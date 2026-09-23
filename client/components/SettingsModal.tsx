@@ -115,6 +115,8 @@ import DeviceTab from "./settings/DeviceTab.tsx";
 import { PeriodicForm } from "./settings/PeriodicForm.tsx";
 import { DEFAULT_LAUNCH, isLaunchDoor } from "../../shared/launch.ts";
 import { ClipperControl } from "./settings/ClipperControl.tsx";
+import { modelSize, VoiceEngineNote, voiceModelLabel } from "./settings/VoiceEngineNote.tsx";
+import { isVoiceLanguage, isVoiceModelSetting, VOICE_MODELS } from "../../shared/voice.ts";
 import { desktop } from "../desktop/bridge.ts";
 import { DECLARABLE, SPELL_DICTS_EVENT, browserDictionaries, setBrowserDictionaries, type Declarable } from "../spellDicts.ts";
 import { Row } from "./settings/Row.tsx";
@@ -205,6 +207,10 @@ interface Form {
   uniqueFormat: string;
   /** The quick-capture sheet's inbox note (docs/capture.md); empty = none. */
   captureInbox: string;
+  // ── Voice notes (shared/voice.ts) ────────────────────────────────────────
+  voiceModel: string;     // a model id, or "off"; the default when unset
+  voiceLanguage: string;  // "auto" | "ar" | "en"
+  voiceKeepAudio: string; // "on" | "off"
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
   // no env counterpart, so "inherit" is meaningless here — every control shows
@@ -349,6 +355,9 @@ function formFrom(s: SettingsResponse): Form {
     uniqueFolder: s.uniqueFolder ?? "",
     uniqueFormat: s.uniqueFormat ?? "",
     captureInbox: s.captureInbox ?? "",
+    voiceModel: s.effective.voice.model,
+    voiceLanguage: s.effective.voice.language,
+    voiceKeepAudio: s.effective.voice.keepAudio ? "on" : "off",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
     syncBranch: s.effective.gitSync.branch,
@@ -1896,6 +1905,19 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
       mode: isAttachmentMode(f.attachMode) && f.attachMode !== "specified" ? f.attachMode : null,
       folder: f.attachFolder.trim() === "" ? null : f.attachFolder.trim(),
     };
+  }
+  if (
+    f.voiceModel !== initial.voiceModel ||
+    f.voiceLanguage !== initial.voiceLanguage ||
+    f.voiceKeepAudio !== initial.voiceKeepAudio
+  ) {
+    // Only what moved: the server deletes a sub-key set to its default, so
+    // sending the untouched two would be harmless but would read as a choice.
+    const voice: NonNullable<SettingsPatch["voice"]> = {};
+    if (f.voiceModel !== initial.voiceModel && isVoiceModelSetting(f.voiceModel)) voice.model = f.voiceModel;
+    if (f.voiceLanguage !== initial.voiceLanguage && isVoiceLanguage(f.voiceLanguage)) voice.language = f.voiceLanguage;
+    if (f.voiceKeepAudio !== initial.voiceKeepAudio) voice.keepAudio = f.voiceKeepAudio === "on";
+    if (Object.keys(voice).length > 0) patch.voice = voice;
   }
   if (
     f.homeMode !== initial.homeMode ||
@@ -4351,6 +4373,21 @@ export default function SettingsModal() {
                       {...field("emptyPropsCard")}
                     />
                   </Row>
+                  {/* Which language a voice note is heard in (docs/capture.md
+                      "Voice"). Detect is right for a vault that speaks both;
+                      a pin is right for a speaker whose Arabic the detector
+                      keeps hearing as something else. */}
+                  <Row locked={pocket} label={t("rowVoiceLanguage")} hint={t("hintVoiceLanguage")}>
+                    <SegmentedControl
+                      label={t("rowVoiceLanguage")}
+                      segments={[
+                        { value: "auto", label: t("voiceLangAuto") },
+                        { value: "ar", label: t("langAr") },
+                        { value: "en", label: t("langEn") },
+                      ]}
+                      {...field("voiceLanguage")}
+                    />
+                  </Row>
 
                   {/* ── Tag labels ──────────────────────────────────────────
                       DISPLAY ONLY, and the copy says so before the table does
@@ -4853,6 +4890,33 @@ export default function SettingsModal() {
                   </Row>
                   <Row locked={pocket} label={t("clipperLabel")} hint={t("clipperHint")} more={t("moreClipper")}>
                     <ClipperControl siteName={eff.siteName} />
+                  </Row>
+                  {/* VOICE NOTES (docs/capture.md "Voice"): the model that
+                      turns a recording into words on THIS machine, and
+                      whether the recording stays once they have landed. The
+                      language pin is on the Language tab, with the other
+                      questions about which language a thing is in. A pocket
+                      vault runs no model and keeps every recording, so both
+                      rows are its locked facts. */}
+                  <Row locked={pocket} label={t("rowVoiceModel")} hint={t("hintVoiceModel")} more={t("moreVoiceModel")}>
+                    <Select
+                      label={t("rowVoiceModel")}
+                      options={[
+                        ...VOICE_MODELS.map((m) => ({ value: m.id, label: voiceModelLabel(m.id), note: modelSize(m.bytes) })),
+                        { value: "off", label: t("voiceModelOff") },
+                      ]}
+                      {...field("voiceModel")}
+                    />
+                  </Row>
+                  {!pocket && <VoiceEngineNote model={form.voiceModel} saved={initial?.voiceModel ?? ""} />}
+                  <Row locked={pocket} label={t("rowVoiceKeepAudio")} hint={t("hintVoiceKeepAudio")}>
+                    <Toggle
+                      label={t("rowVoiceKeepAudio")}
+                      onLabel={t("on")}
+                      offLabel={t("off")}
+                      value={form.voiceKeepAudio === "on"}
+                      onChange={(on) => setForm((f) => (f ? { ...f, voiceKeepAudio: on ? "on" : "off" } : f))}
+                    />
                   </Row>
                   {/* Where the sidebar's pencil files a drawing (the owner:
                       "create the drawing in a specified space in settings or

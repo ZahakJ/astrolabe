@@ -3,6 +3,7 @@ import { t } from "./i18n.ts";
 import { AstrolabeNative, type PendingShare } from "./native.ts";
 import { HttpError, normalizeServerUrl, readNote, writeNote } from "./server.ts";
 import { lastServer } from "./store.ts";
+import { mountVoice } from "./voice.ts";
 
 /**
  * The capture sheet: what "Share to Astrolabe" opens.
@@ -142,6 +143,9 @@ export async function mountCapture(root: HTMLElement, share: PendingShare): Prom
         el("p", { class: "lede", textContent: t.captureLede(host) }),
       ),
       form,
+      // The voice note (3.24.0): the other thing a share sheet is for — a
+      // thought said rather than typed, transcribed on the owner's server.
+      mountVoice(base, host, close),
     ),
   );
 

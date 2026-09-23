@@ -523,6 +523,9 @@ export default function StatusBar() {
           { label: t("cmdQuickCapture"), onSelect: () => useStore.getState().setCaptureOpen(true) },
           // Ask the vault (docs/ask.md): the answer panel, a bottom sheet here.
           { label: t("cmdAskVault"), onSelect: () => useStore.getState().setAskOpen(true) },
+          // …and its voice half beside it: on a phone, speaking a note is
+          // the likelier of the two (docs/capture.md "Voice").
+          { label: t("cmdVoiceNote"), onSelect: () => useStore.getState().openVoiceNote() },
           { label: null },
           { label: t("media"), onSelect: toggleMedia },
           { label: t("orbits"), onSelect: toggleOrbits },

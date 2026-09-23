@@ -881,6 +881,14 @@ const AUDIENCES = [
   // with it, not in the entry.
   // 3.23.0 MERGE: the pocket settings round and the phone-native round land
   // together (837.1 kB actual → 838); each was measured alone on its branch. No new cause.
+  // 3.24.0 VOICE NOTES: 840.3 kB actual → 841 (+3.2 kB over 3.23.0's 837.1).
+  // All of it the dictionary and the doors: the palette row, the phone's ⋯
+  // row, the sheet's title and its speak/type switch, the three Settings rows
+  // with their hints and model names, and the store's `captureVoice` flag. The
+  // RECORDER is not here — VoiceRecorder.tsx, client/voice/* and voice.css are
+  // a chunk of their own behind the sheet's microphone — and neither are its
+  // twenty-nine sentences, which were 6.1 kB of entry before they moved into
+  // that chunk (client/voice/copy.ts, on the tour's precedent).
   // 3.24.0 ASK THE VAULT (847.1 kB actual → 848): the dictionary, and nothing else of the
   // round's — ~95 new keys in both languages (the answer panel, meaning search, Related,
   // Suggest links, Settings → Ask) are ~9.5 kB of i18n.ts, which every first paint carries
@@ -1208,6 +1216,8 @@ const AUDIENCES = [
   // line for a same-language pair, and the link-time swap.
   // 3.23.0 MERGE: the pocket settings round and the phone-native round land
   // together (1135.0 kB actual → 1136); each was measured alone on its branch. No new cause.
+  // 3.24.0 VOICE NOTES: 1138.3 kB actual → 1139. The entry's +3.2 kB above,
+  // and nothing of the blog's own: a visitor cannot record a note.
   // 3.24.0 ASK THE VAULT (1145.1 kB actual → 1146): the entry's dictionary bytes, carried
   // through; the blog shell draws no ask door.
 { name: "anonymous blog reader", keys: blog, budget: 1146 * 1024 },
@@ -1448,6 +1458,9 @@ const AUDIENCES = [
   // panel's own lazy chunk.
   // 3.23.0 MERGE: the pocket settings round and the phone-native round land
   // together (1090.4 kB actual → 1091); each was measured alone on its branch. No new cause.
+  // 3.24.0 VOICE NOTES: 1093.7 kB actual → 1094. The entry's dictionary
+  // bytes; an admin's first paint carries none of the recorder, which loads
+  // when the sheet's microphone is pressed.
   // 3.24.0 ASK THE VAULT (1102.1 kB actual → 1103): the entry's +10.0 kB of dictionary, plus
   // ~1.7 kB in chunks the admin already loads — the sidebar's meaning switch, the palette's two
   // rows, the ⋯ row, the store's askOpen and the lazy boundary in App.tsx.
@@ -1586,6 +1599,10 @@ const MUST_SPLIT = [
   // forbidden above, on the verse chunk's argument.
   "reading/mermaid.ts",
   "books/pageImage.ts",
+  // The recorder (3.24.0): MediaRecorder, the meter, the job poller, voice.css
+  // and the recorder's own copy, behind the capture sheet's microphone. The
+  // text sheet is the common case and must not carry the voice half.
+  "components/VoiceRecorder.tsx",
 ];
 
 let failed = false;

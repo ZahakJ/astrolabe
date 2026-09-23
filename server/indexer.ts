@@ -1779,6 +1779,16 @@ export function resolveEmbed(name: string, publishedOnly: boolean, lang: FilterL
   if (asNote) return asNote;
   const key = name.split(/[#|]/)[0].trim().toLowerCase();
   if (!key) return null;
+  // A PATH-FORM target names its file exactly: `![[attachments/Voice/2026-09-23
+  // 1402.webm]]`, which is what a voice note writes (shared/voice.ts) and what
+  // Obsidian writes under "absolute path in vault". The index below is keyed
+  // by BASENAME, so a target with a folder in it matched nothing — the embed
+  // drew the broken ⌀ and the file read as unreferenced to the unused-
+  // attachments sweep. The exact path first, then the basename ladder.
+  if (key.includes("/")) {
+    const exact = attachmentHit(key.replace(/^\/+/, ""));
+    if (exact && (!publishedOnly || allowedAttachments().has(exact))) return exact;
+  }
   let candidates = attachmentsByName.get(key);
   if (!candidates || candidates.size === 0) return null;
   if (publishedOnly) {

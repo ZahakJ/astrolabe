@@ -2,10 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- The only permission this app asks for. It has no camera, no location,
-         no contacts and no storage: everything it can do, it does by talking to
-         one server the owner named. -->
+    <!-- The network, and — since 3.24.0 — the microphone. It has no camera, no
+         location, no contacts and no storage: everything it can do, it does by
+         talking to one server the owner named. RECORD_AUDIO is for voice notes
+         (src/voice.ts and the served client's recorder) and is asked for at
+         run time, the first time a recording starts, by Capacitor's
+         WebChromeClient turning the page's getUserMedia into the platform
+         prompt; MODIFY_AUDIO_SETTINGS lets the WebView apply the echo
+         cancellation and noise suppression the recorder asks for. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <application
         android:allowBackup="true"

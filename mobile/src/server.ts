@@ -185,6 +185,44 @@ export async function writeNote(base: string, path: string, content: string, bas
   if (res.status !== 200) throw new HttpError(res.status);
 }
 
+/** What `POST /api/voice` and `GET /api/voice/:id` answer — the subset of
+ *  shared/voice.ts's VoiceJob this sheet reads. */
+export interface VoiceReply {
+  id: string;
+  status: "queued" | "transcribing" | "done" | "failed" | "kept";
+  notePath?: string;
+  transcript?: string;
+  error?: string;
+}
+
+/** Send one recording (base64) to the server's transcriber. The long read
+ *  timeout is the upload's, not the transcription's: the server answers the
+ *  moment the recording is stored, and the words are polled for after. */
+export async function sendVoice(base: string, audio: string, date: string, time: string): Promise<VoiceReply> {
+  const res = await CapacitorHttp.request({
+    url: `${base}/api/voice`,
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    data: { audio, date, time },
+    connectTimeout: CONNECT_TIMEOUT,
+    readTimeout: 60_000,
+  });
+  if (res.status !== 200 && res.status !== 202) throw new HttpError(res.status);
+  return (typeof res.data === "string" ? JSON.parse(res.data) : res.data) as VoiceReply;
+}
+
+export async function pollVoice(base: string, id: string): Promise<VoiceReply> {
+  const res = await CapacitorHttp.request({
+    url: `${base}/api/voice/${encodeURIComponent(id)}`,
+    method: "GET",
+    headers: { Accept: "application/json" },
+    connectTimeout: CONNECT_TIMEOUT,
+    readTimeout: READ_TIMEOUT,
+  });
+  if (res.status !== 200) throw new HttpError(res.status);
+  return (typeof res.data === "string" ? JSON.parse(res.data) : res.data) as VoiceReply;
+}
+
 export class HttpError extends Error {
   constructor(readonly status: number) {
     super(`HTTP ${status}`);

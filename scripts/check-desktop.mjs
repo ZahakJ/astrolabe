@@ -120,6 +120,13 @@ function specifiers(raw) {
     /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
     /\bimport\s+["']([^"']+)["']/g,
     /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
+    // A module the server FORKS is part of the server graph too: it runs
+    // from the same package, under the same Node, and its imports have to be
+    // there at the same versions. The transcriber (server/voiceWorker.ts,
+    // 3.24.0) is named this way — `new URL("./voiceWorker.ts",
+    // import.meta.url)` — and until this pattern the gate could not see the
+    // three packages only it imports.
+    /\bnew\s+URL\s*\(\s*["'](\.{1,2}\/[^"']+\.ts)["']\s*,\s*import\.meta\.url\s*\)/g,
   ];
   for (const re of patterns) for (const m of src.matchAll(re)) out.push(m[1]);
   // AND IT HAS TO SAY WHAT A SPECIFIER LOOKS LIKE, because the scan is textual
