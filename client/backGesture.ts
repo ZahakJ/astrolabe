@@ -27,18 +27,14 @@
 // Only on a coarse pointer, and loaded as its own chunk from main.tsx: a
 // desktop browser's Back means "the previous page" and nothing here should
 // reach it.
+//
+// The guard itself — the entry, its retraction, and why that retraction
+// waits a microtask (3.23.1: a note tapped in the drawer did not open) — is
+// client/backGuard.ts, apart from the store so tests/backGesture.test.ts can
+// drive it against a browser-shaped history.
 
+import { installBackGuard } from "./backGuard.ts";
 import { useStore } from "./state.ts";
-
-/** Marks the entry this module pushed. */
-const MARK = "astrolabeOverlay";
-
-/** True while our guard entry is the current history entry. */
-let guardUp = false;
-
-/** Set for the one `popstate` our own `history.back()` provokes, so an
- *  Escape-closed layer does not ALSO get an Escape from the pop. */
-let retracting = false;
 
 /** Is any layer this module is responsible for on screen?
  *
@@ -66,58 +62,24 @@ function layerUp(): boolean {
   );
 }
 
-function pushGuard(): void {
-  if (guardUp) return;
-  guardUp = true;
-  history.pushState({ [MARK]: true }, "");
-}
-
-function retractGuard(): void {
-  if (!guardUp) return;
-  guardUp = false;
-  // Only if the entry is still OURS. A reader who opened the drawer and then
-  // opened a note from it has pushed a note entry on top; going back there
-  // would undo the navigation they just asked for, so the guard is simply
-  // abandoned — a stale entry costs one harmless extra back press at worst,
-  // and undoing a reader's navigation costs them the note.
-  if (!(history.state as Record<string, unknown> | null)?.[MARK]) return;
-  retracting = true;
-  history.back();
-}
-
+/** Installed at boot, before App mounts the router, so the guard's popstate
+ *  listener runs first and can swallow a pop the router must not apply. */
 export function installBackGesture(): void {
   if (typeof window === "undefined") return;
-
-  let was = layerUp();
-  if (was) pushGuard();
-
-  useStore.subscribe(() => {
-    const now = layerUp();
-    if (now === was) return;
-    was = now;
-    if (now) pushGuard();
-    else retractGuard();
-  });
-
-  window.addEventListener("popstate", () => {
-    if (retracting) {
-      retracting = false;
-      return;
-    }
-    if (!guardUp) return;
-    guardUp = false;
-    if (!layerUp()) return;
-    // Escape decides WHICH layer, and re-arms the guard if the ladder left
-    // another one standing. The event is dispatched on the active element so
-    // a trapped dialog's own handler sees it exactly as a keypress.
-    const target = document.activeElement ?? document.body;
-    target.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
-    );
-    // After React has committed whatever that closed.
-    setTimeout(() => {
-      was = layerUp();
-      if (was) pushGuard();
-    }, 0);
+  installBackGuard({
+    history: window.history,
+    layerUp,
+    subscribe: (fn) => void useStore.subscribe(fn),
+    onPopState: (fn) => window.addEventListener("popstate", fn),
+    // Dispatched on the active element so a trapped dialog's own handler sees
+    // it exactly as a keypress.
+    escape: () => {
+      const target = document.activeElement ?? document.body;
+      target.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+      );
+    },
+    defer: (fn) => queueMicrotask(fn),
+    later: (fn) => void setTimeout(fn, 0),
   });
 }

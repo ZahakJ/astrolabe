@@ -1823,7 +1823,15 @@ stays on `.s-panel--collapsed`, as it always did.
   one extra history entry; back pops it, the layer closes, nothing navigates — and closing the
   layer any other way takes the entry back out, so the stack is never deeper than the reader's
   own path. WHICH layer closes is decided by dispatching an Escape, because the Escape ladder
-  already encodes that precedence and two behaviours that must agree are written once. The shell
+  already encodes that precedence and two behaviours that must agree are written once. THE
+  RETRACTION WAITS A MICROTASK (`client/backGuard.ts`, 3.23.1): a note tapped in the drawer opens
+  it and closes the drawer in one store update, and the guard — subscribed before the router —
+  called `history.back()` before the router pushed the note; the traversal ran later, landed on
+  the guard entry and the previous note came back. Deferred, the guard sees the note's entry on
+  top and is abandoned; and a pop that still lands ON a guard (a push between `back()` and its
+  traversal) is swallowed and stepped forward. `tests/backGesture.test.ts` drives it against a
+  browser-shaped history; check-phone taps a tree row and requires the address, the title and the
+  active tab to change. The shell
   keeps the other two rungs: back one page, then — on the connection screen — "press back again
   to leave", because the front door is a thumb's width from the gesture area.
 - **THE SHELL'S STRIPS FOLLOW THE ROOM** (`mobile/…/ThemeBars.java`). The status bar and the
