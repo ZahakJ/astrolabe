@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Capture · Astrolabe Documentation</title>
-<meta name="description" content="Getting things into the vault without opening a note: a line from anywhere, a page from the browser, a share from the phone.">
+<meta name="description" content="Getting things into the vault without opening a note: a line from anywhere, a thought said aloud, a page from the browser, a share from the phone.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
@@ -24,7 +24,7 @@
   <main class="main">
     
     <article class="doc"><h1 id="capture">Capture</h1>
-<p><em>Getting things into the vault without opening a note: a line from anywhere, a page from the browser, a share from the phone.</em></p>
+<p><em>Getting things into the vault without opening a note: a line from anywhere, a thought said aloud, a page from the browser, a share from the phone.</em></p>
 <hr>
 <p>Most of what ends up in a vault does not start as a note. It starts as a sentence you want to keep before it goes, a page you are reading somewhere else, or something on your phone you would rather have here. Capture is the set of three doors that take those in and file them, so that opening the app is something you do to <em>read</em> what you caught, not something you have to do first.</p>
 <p>All three write ordinary Markdown into ordinary files. Nothing is kept anywhere else: a captured line is a line in a note, a clipped page is a note under <code>Clips/</code>, and the one credential involved (the clipper&#39;s token) lives in the server&#39;s data directory, never in the vault.</p>
@@ -39,6 +39,29 @@
 <p><strong>The inbox.</strong> Sometimes the day&#39;s note is the wrong home: a line that belongs to a project, a reading list, a running list of questions. Pin a note as the <strong>capture inbox</strong> in Settings → Vault → Capture inbox, and the sheet grows a second choice: <em>Today&#39;s note</em> or <em>Inbox</em>. The line lands under <code>## Captured</code> in whichever you pick, in the same shape.</p>
 <p>On a phone the sheet sits at the bottom of the screen, where a thumb already is, and the field and both buttons are tall enough to hit. The shortcut is not the only way in: on a phone, <strong>Quick capture</strong> is the first row under the <strong>⋯</strong> in the top bar.</p>
 <p>The time stamp uses your device&#39;s clock and Western digits, like the daily note&#39;s own filename: it is an address inside the note, not prose, and it should sort the same way in every language.</p>
+<h2 id="voice"><a class="anchor" href="#voice">Voice</a></h2>
+<p>Some thoughts arrive while your hands are busy. Say them instead: the quick-capture sheet has a microphone, and the words are written into your vault by <strong>your own server</strong>, on the machine it runs on. Nothing is sent to anybody&#39;s cloud — the recording goes from your device to your server, and the transcription happens there.</p>
+<p><strong>Recording.</strong> Choose <strong>Voice note</strong> from the palette, or from the <strong>⋯</strong> on a phone, or press the microphone at the top of the quick-capture sheet. There is one round button, and it does both things people do with a phone:</p>
+<ul>
+<li><strong>Tap</strong> it to start, and tap it again (or press <strong>Send</strong>) when you have finished.</li>
+<li><strong>Hold</strong> it while you talk, and let go to send.</li>
+</ul>
+<p>A level bar moves while it hears you, and the time counts up. <strong>Discard</strong> throws the recording away; nothing is kept. The first time, your browser asks for the microphone. Recording needs the site on <code>https</code> (or on <code>localhost</code>): browsers do not offer a microphone to a plain <code>http</code> address on your network.</p>
+<p><strong>Where the words go.</strong> A short note — up to about eighty words, half a minute of speech — becomes one line in today&#39;s inbox note, <code>Inbox/2026-09-23.md</code>, the same note the phone&#39;s share sheet files into:</p>
+<pre><code class="language-markdown">- 14:02 — Call the dentist about Thursday 🎙
+</code></pre>
+<p>The 🎙 is a link to the recording itself. Anything longer becomes a note of its own, <code>Inbox/Voice — &lt;first words&gt;.md</code>, with a player for the recording at the top and the transcript underneath. Nothing is ever overwritten: a second note with the same first words is <code>(2)</code>.</p>
+<p>The recordings are ordinary attachments, filed by your attachments setting (Settings → Vault → New attachments) in a <code>Voice</code> folder and named by when you spoke: <code>Attachments/Voice/2026-09-23 1402.webm</code>.</p>
+<p><strong>While it transcribes.</strong> The sheet says what is happening: sending, waiting its turn (one recording is transcribed at a time), transcribing, and then the words. You do not have to wait — close the sheet and a message tells you when the note has landed, with a button to open it. The very first note downloads the speech model into the server&#39;s data directory, which takes a minute or two once; the sheet shows how far along it is.</p>
+<p><strong>Settings.</strong> Three rows:</p>
+<ul>
+<li>Settings → Vault → <strong>Voice transcription</strong> chooses the model. The default is whisper&#39;s large turbo model in its compact form (574 MB), which was the most accurate on Arabic of everything tried. The full-precision version (1.6 GB) is there too, and a small compact model (190 MB) for a server with no graphics card. <strong>Off</strong> keeps recordings and links them from the inbox without transcribing them. The line under the row says whether the model has been downloaded and what it last ran on.</li>
+<li>Settings → Vault → <strong>Keep voice recordings</strong>. On by default. Off deletes a recording once its words are safely in the vault. A recording whose transcription failed — or heard nothing — is always kept, whatever this says.</li>
+<li>Settings → Language &amp; dates → <strong>Voice note language</strong>. <strong>Detect</strong> lets each recording be heard for what it is, which suits a vault that speaks both languages. Pin <strong>Arabic</strong> or <strong>English</strong> if the detector keeps mishearing you.</li>
+</ul>
+<p><strong>What runs where.</strong> Transcription is whisper.cpp, run by the server on the machine&#39;s graphics card when it has one (through Vulkan or CUDA; on a Mac, Metal) and on its processor otherwise, which is much slower. The model lives in the data directory, never in the vault, so it is not synced, published or committed. The desktop app is its own server, so on a desktop the words are made on that desktop.</p>
+<p><strong>From the phone app.</strong> The share sheet (&quot;Share to Astrolabe&quot;) has the same round button under the text: say it instead of typing it, and the words land in the same inbox note on your server. A vault opened from GitHub on the phone has no server to transcribe with, so a voice note there is <strong>kept</strong>: the recording is saved into the vault and linked from the day&#39;s inbox, committed and pushed like any other change, and the sheet says the words need an Astrolabe server. It is not transcribed later on its own — play it wherever you open the vault.</p>
+<p>The desktop app asks the system for the microphone the first time; nothing else in the app can use it, and no other site can.</p>
 <h2 id="the-clipper"><a class="anchor" href="#the-clipper">The clipper</a></h2>
 <p>The clipper saves a web page — or just the part of it you selected — as a note in your vault, converted to Markdown, with where it came from written in the frontmatter.</p>
 <h3 id="setting-it-up"><a class="anchor" href="#setting-it-up">Setting it up</a></h3>
@@ -78,7 +101,7 @@ The page, as Markdown.
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/offline/"><span class="pager__kicker">Previous</span><span class="pager__title">Offline reading</span></a><a class="pager__link pager__link--next" href="../../en/export/"><span class="pager__kicker">Next</span><span class="pager__title">Export</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#quick-capture">Quick capture</a><a class="toc__link toc__link--2" href="#the-clipper">The clipper</a><a class="toc__link toc__link--3" href="#setting-it-up">Setting it up</a><a class="toc__link toc__link--3" href="#using-it">Using it</a><a class="toc__link toc__link--3" href="#from-a-script">From a script</a><a class="toc__link toc__link--2" href="#from-a-phone">From a phone</a><a class="toc__link toc__link--2" href="#related">Related</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#quick-capture">Quick capture</a><a class="toc__link toc__link--2" href="#voice">Voice</a><a class="toc__link toc__link--2" href="#the-clipper">The clipper</a><a class="toc__link toc__link--3" href="#setting-it-up">Setting it up</a><a class="toc__link toc__link--3" href="#using-it">Using it</a><a class="toc__link toc__link--3" href="#from-a-script">From a script</a><a class="toc__link toc__link--2" href="#from-a-phone">From a phone</a><a class="toc__link toc__link--2" href="#related">Related</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

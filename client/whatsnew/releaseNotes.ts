@@ -370,6 +370,45 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.25.0",
+    title: { en: "Say it instead", ar: "قُلها بدل أن تكتبها" },
+    slides: [
+      {
+        // ── Voice notes ──────────────────────────────────────────────────
+        title: { en: "Say it instead", ar: "قُلها بدل أن تكتبها" },
+        body: {
+          en: "Hold the round button and talk, on your phone or at your desk. Your own server writes down what you said and files it in today's inbox — short thoughts as a line, longer ones as a note with the recording above them. Arabic and English are told apart on their own; the words are yours in under a second on a GPU, and nothing goes to anyone's cloud.",
+          ar: "اضغط على الزر الدائري وتكلّم، على هاتفك أو على مكتبك. يكتب خادمك أنت ما قلته ويضعه في وارد اليوم — الخاطرة القصيرة سطرًا، والأطول ملاحظةً فوقها التسجيل. والعربية والإنجليزية تُميَّزان من تلقاء نفسيهما؛ والكلمات كلماتك في أقل من ثانية على بطاقة رسوميات، ولا يذهب شيء إلى سحابة أحد.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <circle class="wa-pulse" cx="130" cy="110" r="46" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="130" cy="110" r="34" fill="var(--accent)"/>
+    <rect x="122" y="92" width="16" height="26" rx="8" fill="var(--bg)"/>
+    <path d="M116 110 a14 14 0 0 0 28 0 M130 124 v8 M122 132 h16" fill="none" stroke="var(--bg)" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  <g class="wa-late" style="--i:2" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round">
+    <path d="M190 96 q10 14 0 28"/><path d="M204 86 q18 24 0 48"/><path d="M218 76 q26 34 0 68"/>
+  </g>
+  <g class="wa-late" style="--i:3">
+    <rect x="300" y="42" width="200" height="136" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text-faint)"><rect x="316" y="62" width="120" height="5" rx="2.5"/><rect x="316" y="78" width="150" height="5" rx="2.5"/><rect x="316" y="94" width="100" height="5" rx="2.5"/></g>
+    <circle cx="322" cy="122" r="2.5" fill="var(--accent)"/>
+    <rect class="wa-grow" x="332" y="119" width="140" height="6" rx="3" fill="var(--text)"/>
+    <text x="478" y="126" fill="var(--accent)" font-size="11">🎙</text>
+  </g>
+  <text x="150" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "hold, and talk", "اضغط وتكلّم")}</text>
+  <text x="400" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "today's inbox, in your words", "وارد اليوم، بكلماتك")}</text>
+</svg>`,
+        },
+        docs: "capture",
+      },
+    ],
+  },
+  {
     version: "3.24.0",
     title: { en: "Ask the vault", ar: "اسأل الخزانة" },
     slides: [

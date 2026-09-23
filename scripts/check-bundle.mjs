@@ -895,7 +895,9 @@ const AUDIENCES = [
   // whole (the debt named below). The panel, the meaning results and the two lists are lazy
   // chunks (AskPanel 8.4 kB + 4.5 kB css, SemanticResults 2.1 kB, MeaningPanels inside
   // NearbyPanel's), outside this budget.
-{ name: "entry (everyone)", keys: entry, budget: 848 * 1024 },
+  // 3.25.0 MERGE: ask the vault and voice notes land on one main (850.4 kB actual → 851);
+  // each was measured alone on its branch. No new cause.
+{ name: "entry (everyone)", keys: entry, budget: 851 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1220,7 +1222,9 @@ const AUDIENCES = [
   // and nothing of the blog's own: a visitor cannot record a note.
   // 3.24.0 ASK THE VAULT (1145.1 kB actual → 1146): the entry's dictionary bytes, carried
   // through; the blog shell draws no ask door.
-{ name: "anonymous blog reader", keys: blog, budget: 1146 * 1024 },
+  // 3.25.0 MERGE: ask the vault and voice notes land on one main (1148.4 kB actual → 1149);
+  // each was measured alone on its branch. No new cause.
+{ name: "anonymous blog reader", keys: blog, budget: 1149 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1464,7 +1468,9 @@ const AUDIENCES = [
   // 3.24.0 ASK THE VAULT (1102.1 kB actual → 1103): the entry's +10.0 kB of dictionary, plus
   // ~1.7 kB in chunks the admin already loads — the sidebar's meaning switch, the palette's two
   // rows, the ⋯ row, the store's askOpen and the lazy boundary in App.tsx.
-  { name: "admin first paint", keys: app, budget: 1103 * 1024 },
+  // 3.25.0 MERGE: ask the vault and voice notes land on one main (1105.5 kB actual → 1106);
+  // each was measured alone on its branch. No new cause.
+  { name: "admin first paint", keys: app, budget: 1106 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
