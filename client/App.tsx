@@ -133,6 +133,10 @@ const SettingsModal = lazySurface(() => import("./components/SettingsModal.tsx")
 // for the same reason — a first paint should not carry a dialog it has not
 // been asked for.
 const CaptureSheet = lazySurface(() => import("./components/CaptureSheet.tsx"));
+// The answer panel (docs/ask.md): mount-gated and lazy on the same terms —
+// its chunk carries the NDJSON reader and the citation renderer, and a first
+// paint has asked no question.
+const AskPanel = lazySurface(() => import("./components/AskPanel.tsx"));
 // The keyboard-shortcut sheet is lazy AND mount-gated on `shortcutsOpen` —
 // which is why it is worth splitting when the other always-mounted hosts are
 // not. It renders in the BLOG branch too, so a static copy put its 389 lines,
@@ -229,6 +233,7 @@ export default function App() {
   const unusedOpen = useStore((s) => s.unusedOpen);
   const settingsOpen = useStore((s) => s.settingsOpen);
   const captureOpen = useStore((s) => s.captureOpen);
+  const askOpen = useStore((s) => s.askOpen);
   // Subscribed here (not only inside the sheet) because App now decides
   // whether the sheet is MOUNTED at all — that is what keeps its chunk out of
   // the first paint on both shells.
@@ -670,6 +675,7 @@ export default function App() {
       store.unusedOpen ||
       store.settingsOpen ||
       store.captureOpen ||
+      store.askOpen ||
       document.querySelector(".s-confirm-overlay, .s-tpick-overlay, .s-att-view") !== null;
 
     /** Put the caret back where the reader left it — the note they came from.
@@ -1408,6 +1414,11 @@ export default function App() {
       {captureOpen && admin && (
         <Surface>
           <CaptureSheet />
+        </Surface>
+      )}
+      {askOpen && admin && (
+        <Surface>
+          <AskPanel />
         </Surface>
       )}
       {/* Always mounted (like ConfirmHost): the two template commands await a

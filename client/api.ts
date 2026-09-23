@@ -1263,3 +1263,7 @@ export function subscribeEvents(
   };
   return () => source.close();
 }
+
+/** The one request helper, for a feature module that keeps its fetchers out
+ *  of this file so they ride its own lazy chunk (client/askApi.ts). */
+export { request as apiRequest };

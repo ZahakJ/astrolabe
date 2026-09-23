@@ -1252,3 +1252,26 @@
     min-block-size: 44px;
   }
 }
+
+/* SETTINGS → ASK → STATUS (settings/AskStatusBlock.tsx). Read, so muted and
+   never faint; a line naming something missing takes the danger colour. */
+.s-askstat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.s-askstat__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.s-askstat__line {
+  margin: 0;
+  font-size: 0.857rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.s-askstat__line--bad {
+  color: var(--danger);
+}

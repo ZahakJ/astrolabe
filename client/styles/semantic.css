@@ -1,0 +1,51 @@
+/* MEANING SEARCH — the sidebar box's second mode (components/SemanticResults.tsx).
+   The rows are the search hits' own (app.css .s-search-hit); this adds the
+   score in the badge's place, the heading line under the title, and a third
+   line of passage, because a passage is what the row is FOR. */
+
+.s-semantic__title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.s-semantic__title > bdi {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s-semantic__score {
+  margin-inline-start: auto;
+  padding-inline-start: 8px;
+  flex: none;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.714rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The heading the passage sits under — where the click lands. The accent of
+   the alias line, because it explains the row the same way. */
+.s-semantic__heading {
+  display: block;
+  margin-bottom: 2px;
+  overflow: hidden;
+  font-size: 0.786rem;
+  line-height: 1.4;
+  color: var(--accent);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-semantic__text.s-search-hit__snippet {
+  -webkit-line-clamp: 3;
+}
+
+/* "Ollama is not running…", "Still reading 40 passages…": one quiet line. */
+.s-semantic__line {
+  margin: 4px 9px 8px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}

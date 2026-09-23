@@ -138,6 +138,11 @@ const PropsShelf = lazySurface(() => import("./PropsShelf.tsx"));
 // belongs in a chunk the sidebar downloads to draw a tree.
 const ReplacePanel = lazySurface(() => import("./ReplacePanel.tsx"));
 const SearchHelp = lazySurface(() => import("./SearchHelp.tsx"));
+// The box's second mode, "meaning" (docs/ask.md): results ranked by the
+// embedding index rather than by the words. Its own chunk — an admin who never
+// flips the switch never downloads it.
+const SemanticResults = lazySurface(() => import("./SemanticResults.tsx"));
+const MEANING_KEY = "astrolabe.search-meaning";
 
 // How long a collapsed folder has to be hovered, mid-drag, before it opens —
 // "spring-loaded folders", the thing that makes a deep destination reachable
@@ -603,6 +608,24 @@ export default function Sidebar() {
   const publishedPaths = useStore((s) => s.publishedPaths);
 
   const [query, setQuery] = useState("");
+  /** Search by MEANING instead of by the words (admin; remembered on this
+   *  device only — it is a way of using the box, not a setting). */
+  const [meaning, setMeaningState] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(MEANING_KEY) === "on";
+    } catch {
+      return false;
+    }
+  });
+  const setMeaning = (on: boolean): void => {
+    setMeaningState(on);
+    try {
+      if (on) localStorage.setItem(MEANING_KEY, "on");
+      else localStorage.removeItem(MEANING_KEY);
+    } catch {
+      // storage unavailable
+    }
+  };
   // ESCAPE CLEARS THE FILTER FROM ANYWHERE IN THE SIDEBAR. A tag pill fills
   // the search with `#tag`, and the way out used to be clicking into the
   // field, selecting the text and deleting it (the owner: "shouldn't need to
@@ -993,6 +1016,20 @@ export default function Sidebar() {
     return () => window.removeEventListener("astrolabe:quicksearch", onQuickSearch);
   }, []);
 
+  // The palette's "Search by meaning…": the same reveal, in the other mode.
+  useEffect(() => {
+    const onMeaning = () => {
+      setMeaning(true);
+      if (revealSidebar()) focusWhenShown.current = true;
+      else focusSearch();
+    };
+    window.addEventListener("astrolabe:search-meaning", onMeaning);
+    return () => window.removeEventListener("astrolabe:search-meaning", onMeaning);
+  }, []);
+  // Not while previewing as a visitor: a visitor's box searches the words.
+  const previewing = useStore((s) => s.previewVisitor);
+  const meaningOn = admin && meaning && !previewing;
+
   /** Chevron: fold or unfold one hit's match lines, fetching them once per
    *  query. The list can be empty for a real hit — fuzzy/title/alias matches
    *  have no line that SAYS the words — and the row states that instead of
@@ -1049,7 +1086,9 @@ export default function Sidebar() {
     matchQueryRef.current = q;
     setExpandedHits(new Set());
     setHitMatches(new Map());
-    if (!q) {
+    // In meaning mode the words are not searched at all: SemanticResults
+    // asks the embedding index instead.
+    if (!q || meaningOn) {
       setHits(null);
       return;
     }
@@ -1059,7 +1098,7 @@ export default function Sidebar() {
       });
     }, SEARCH_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [query]);
+  }, [query, meaningOn]);
 
   // Editor wiring: clicking a #tag pill in the editor (inline or in the
   // frontmatter properties card) pushes a search query here.
@@ -2011,11 +2050,11 @@ export default function Sidebar() {
           ref={searchRef}
           className="s-search__input"
           type="search"
-          placeholder={t("searchPlaceholder")}
+          placeholder={t(meaningOn ? "searchMeaningPlaceholder" : "searchPlaceholder")}
           // A placeholder is not a label: it disappears the moment the reader
           // types, and several screen readers never announce it at all.
-          aria-label={t("searchTitle")}
-          title={t("searchTitle")}
+          aria-label={t(meaningOn ? "searchMeaningTitle" : "searchTitle")}
+          title={t(meaningOn ? "searchMeaningTitle" : "searchTitle")}
           value={query}
           // The field follows its text, not the chrome: an operator query
           // (`prop:status="in progress"`, which the properties shelf and a
@@ -2086,6 +2125,30 @@ export default function Sidebar() {
             </svg>
           </button>
         )}
+        {/* EXACT OR MEANING (docs/ask.md). A switch, not a second box: the
+            words stay in the field when the mode flips, so the same query can
+            be asked both ways. The glyph is two overlapping circles — things
+            that are near each other rather than the same. */}
+        {admin && !previewing && (
+          <button
+            type="button"
+            className={`s-iconbtn${meaningOn ? " s-searchbar__on" : ""}`}
+            aria-pressed={meaningOn}
+            title={t(meaningOn ? "searchMeaningOff" : "searchMeaningOn")}
+            aria-label={t("searchMeaningToggle")}
+            onClick={() => {
+              setMeaning(!meaning);
+              setReplacing(false);
+              setHelpOpen(false);
+              searchRef.current?.focus();
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="9" cy="12" r="5.5" />
+              <circle cx="15" cy="12" r="5.5" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {admin && publishedFilter && (
@@ -2106,6 +2169,10 @@ export default function Sidebar() {
       {admin && replacing ? (
         <Suspense fallback={null}>
           <ReplacePanel query={query} onClose={() => setReplacing(false)} />
+        </Suspense>
+      ) : meaningOn && query.trim() !== "" ? (
+        <Suspense fallback={null}>
+          <SemanticResults query={query.trim()} listRef={resultsRef} onKeyDown={onResultsKeyDown} />
         </Suspense>
       ) : hits !== null ? (
         // A results list that swaps in silently is a list a screen-reader user

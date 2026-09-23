@@ -613,6 +613,13 @@ export interface State {
   shortcutsOpen: boolean;
   setShortcutsOpen(b: boolean): void;
 
+  /** The answer panel (client/components/AskPanel.tsx, docs/ask.md): open
+   *  from the palette's "Ask the vault…" and the ⋯ menu. `askQuestion` is a
+   *  question to ask at once (the palette's prompt), consumed on open. */
+  askOpen: boolean;
+  askQuestion: string | null;
+  setAskOpen(open: boolean, question?: string | null): void;
+
   /** Boot: fetch /api/me, then load the vault + restore session/home note. */
   bootstrap(): Promise<void>;
   loadMe(): Promise<void>;
@@ -1598,6 +1605,9 @@ export const useStore = create<State>()((set, get) => {
     openSettingsAt: (settingsFocus) => set({ settingsOpen: true, settingsFocus }),
     shortcutsOpen: false,
     setShortcutsOpen: (shortcutsOpen) => set({ shortcutsOpen }),
+    askOpen: false,
+    askQuestion: null,
+    setAskOpen: (askOpen, question = null) => set({ askOpen, askQuestion: askOpen ? question : null }),
 
     publishedPaths: null,
     twins: {},

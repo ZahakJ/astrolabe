@@ -26,6 +26,7 @@ import { warmAuthorSites } from "./authorSites.ts";
 import { getSettings } from "./settings.ts";
 import { initComments } from "./comments.ts";
 import { initIndexer } from "./indexer.ts";
+import { initAsk } from "./ask.ts";
 import { initPdfText, startPdfText } from "./pdfText.ts";
 import { seedIfNew } from "./seed.ts";
 import { initVault, resolveVaultRoot, startWatcher, statAttachment } from "./vault.ts";
@@ -85,6 +86,10 @@ await initIndexer();
 // arrives mid-pass answers from the books read so far, and a vault without a
 // PDF never loads the engine at all.
 startPdfText();
+// The meaning index (server/ask.ts): opened now, filled in the background
+// from Ollama, kept current by the watcher. Nothing waits on it either, and a
+// machine without Ollama pays one refused connection a minute.
+initAsk();
 // Backup & sync scheduler. Inert unless settings.gitSync is enabled with a
 // remote and a non-zero interval — a fresh instance never touches a network.
 startGitSyncTimer();

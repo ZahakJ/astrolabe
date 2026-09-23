@@ -881,7 +881,13 @@ const AUDIENCES = [
   // with it, not in the entry.
   // 3.23.0 MERGE: the pocket settings round and the phone-native round land
   // together (837.1 kB actual → 838); each was measured alone on its branch. No new cause.
-{ name: "entry (everyone)", keys: entry, budget: 838 * 1024 },
+  // 3.24.0 ASK THE VAULT (847.1 kB actual → 848): the dictionary, and nothing else of the
+  // round's — ~95 new keys in both languages (the answer panel, meaning search, Related,
+  // Suggest links, Settings → Ask) are ~9.5 kB of i18n.ts, which every first paint carries
+  // whole (the debt named below). The panel, the meaning results and the two lists are lazy
+  // chunks (AskPanel 8.4 kB + 4.5 kB css, SemanticResults 2.1 kB, MeaningPanels inside
+  // NearbyPanel's), outside this budget.
+{ name: "entry (everyone)", keys: entry, budget: 848 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1202,7 +1208,9 @@ const AUDIENCES = [
   // line for a same-language pair, and the link-time swap.
   // 3.23.0 MERGE: the pocket settings round and the phone-native round land
   // together (1135.0 kB actual → 1136); each was measured alone on its branch. No new cause.
-{ name: "anonymous blog reader", keys: blog, budget: 1136 * 1024 },
+  // 3.24.0 ASK THE VAULT (1145.1 kB actual → 1146): the entry's dictionary bytes, carried
+  // through; the blog shell draws no ask door.
+{ name: "anonymous blog reader", keys: blog, budget: 1146 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1440,7 +1448,10 @@ const AUDIENCES = [
   // panel's own lazy chunk.
   // 3.23.0 MERGE: the pocket settings round and the phone-native round land
   // together (1090.4 kB actual → 1091); each was measured alone on its branch. No new cause.
-  { name: "admin first paint", keys: app, budget: 1091 * 1024 },
+  // 3.24.0 ASK THE VAULT (1102.1 kB actual → 1103): the entry's +10.0 kB of dictionary, plus
+  // ~1.7 kB in chunks the admin already loads — the sidebar's meaning switch, the palette's two
+  // rows, the ⋯ row, the store's askOpen and the lazy boundary in App.tsx.
+  { name: "admin first paint", keys: app, budget: 1103 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────

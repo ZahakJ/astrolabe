@@ -20,6 +20,7 @@ import { getNearby } from "../api.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import "../styles/nearby.css";
+import { RelatedList, SuggestList } from "./MeaningPanels.tsx";
 
 const COLLAPSED_KEY = "astrolabe.nearby-collapsed";
 const VAULT_EVENT = "astrolabe:vault";
@@ -106,6 +107,7 @@ export default function NearbyPanel() {
   };
 
   return (
+    <>
     <section className="s-nearby" title={t("nearbyHint")}>
       <header className="s-panel-header s-mentions__header">
         <button type="button" className="s-mentions__toggle" onClick={toggle} aria-expanded={!collapsed} title={t(collapsed ? "showNearby" : "hideNearby")}>
@@ -142,5 +144,11 @@ export default function NearbyPanel() {
         </div>
       )}
     </section>
+    {/* The meaning lists (docs/ask.md), under their own headings: what the
+        note is ABOUT, less what Nearby already named, then passages worth
+        linking. Same chunk, so the pane pays one download for all three. */}
+    <RelatedList lexical={rows} />
+    <SuggestList />
+    </>
   );
 }

@@ -1195,6 +1195,9 @@ export interface SettingsData {
   /** Git backup & sync (off by default). The token, when one is used, is NOT
    *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
+  /** Ask the vault (docs/ask.md): which models answer and embed. The
+   *  Anthropic key is NOT here — ASTROLABE_DATA/ask-credentials.json (0600). */
+  ask?: AskSettings;
   /** Typography: catalog ids (or "system") per slot. Chosen faces are cached
    *  under ASTROLABE_DATA/fonts/catalog/ and served from this instance only. */
   fonts?: FontSlotSettings;
@@ -1393,6 +1396,9 @@ export interface EffectiveSettings {
   /** Always resolved: the attachment mode in force and the folder it uses. */
   attachments: Required<AttachmentSettings>;
   gitSync: GitSyncEffective;
+  /** Ask the vault, defaults filled in; says whether a key is stored, never
+   *  the key. */
+  ask: AskEffective;
   /** Typography slots in effect (every slot present, "system" when unset). */
   fonts: FontSlotsEffective;
   /** Localization: the three display settings in force (defaults filled in)
@@ -1512,6 +1518,18 @@ export interface SettingsPatch {
   gitToken?: string | null;
   /** Username the token pairs with (not a secret; stored beside it). */
   gitUser?: string | null;
+  /** Ask the vault; each sub-key null clears it back to its default. */
+  ask?: {
+    provider?: AskProvider | null;
+    chatModel?: string | null;
+    anthropicModel?: string | null;
+    embedModel?: string | null;
+    topK?: number | null;
+  } | null;
+  /** WRITE-ONLY, like gitToken: ASTROLABE_DATA/ask-credentials.json (0600),
+   *  never mirrored into the vault, never read back — GET answers
+   *  `effective.ask.keySet`. null / "" clears it. */
+  anthropicKey?: string | null;
   /** Typography slots; an unknown id (or one the slot does not accept) is a
    *  400, and the server caches the chosen families before it stores them —
    *  a failed download is a 502 and settings.json is left untouched. */
@@ -2285,3 +2303,113 @@ export interface BookLocation {
   names: string[];
   highlight: BookHighlight;
 }
+
+// ── Ask the vault (docs/ask.md) ─────────────────────────────────────────────
+// Meaning search, Related, Suggest links and questions answered from the
+// owner's own notes. Every route is admin-only (401 to a visitor): the index
+// reads every note's body, and an answer is an oracle for unpublished ones.
+
+export type AskProvider = "ollama" | "anthropic";
+
+/** settings.json `ask` — every key optional, a default when absent. */
+export interface AskSettings {
+  /** Who answers questions. Embeddings are ALWAYS local (Ollama). */
+  provider?: AskProvider;
+  /** The Ollama chat model (default qwen3.5:9b). */
+  chatModel?: string;
+  /** The Anthropic model, when provider is anthropic (default claude-sonnet-5). */
+  anthropicModel?: string;
+  /** The Ollama embedding model (default embeddinggemma). */
+  embedModel?: string;
+  /** Passages handed to the model per question, 2…12 (default 6). */
+  topK?: number;
+}
+
+export interface AskEffective {
+  provider: AskProvider;
+  chatModel: string;
+  anthropicModel: string;
+  embedModel: string;
+  topK: number;
+  /** An Anthropic key is stored. The key itself never travels. */
+  keySet: boolean;
+  /** Where Ollama is reached (OLLAMA_HOST, else http://127.0.0.1:11434). */
+  ollamaUrl: string;
+}
+
+/** `GET /api/ask/status` — what every door checks before it offers itself. */
+export interface AskStatus {
+  /** Ollama answered. False: every ask door says so in one line. */
+  ollama: boolean;
+  embedModel: string;
+  /** The embedding model is pulled on this machine. */
+  embedModelReady: boolean;
+  provider: AskProvider;
+  /** The model that will answer a question. */
+  chatModel: string;
+  /** The answering model is available: pulled (Ollama) or a key is stored. */
+  chatReady: boolean;
+  /** Answers leave the machine (the Anthropic provider). */
+  remote: boolean;
+  /** Index progress: notes whose every chunk has a vector, of all notes. */
+  notes: number;
+  indexedNotes: number;
+  chunks: number;
+  /** Chunks waiting for a vector. */
+  pending: number;
+  /** The last failure the indexer met, in English, for the log line. */
+  error: string | null;
+}
+
+/** One meaning-search hit: the best passage of one note. */
+export interface SemanticHit {
+  path: string;
+  title: string;
+  heading: string | null;
+  /** 1-based line to open at: the heading's, else the passage's. */
+  line: number;
+  text: string;
+  score: number;
+}
+
+/** `GET /api/semantic?q=` */
+export interface SemanticResponse {
+  hits: SemanticHit[];
+  /** Chunks not yet embedded — the results may be missing them. */
+  pending: number;
+}
+
+/** `GET /api/semantic/suggest?path=` — a passage elsewhere that reads like
+ *  this note and is not linked with it in either direction. */
+export interface LinkSuggestion extends SemanticHit {
+  /** The wikilink to insert: `[[Note#Heading]]` in the vault's spelling. */
+  link: string;
+}
+
+/** `POST /api/ask` streams NDJSON, one of these per line. */
+export type AskEvent =
+  | { type: "sources"; sources: AskSourceWire[]; model: string; provider: AskProvider; remote: boolean }
+  | { type: "delta"; text: string }
+  | { type: "done"; ms: number; firstTokenMs: number | null }
+  | { type: "error"; code: AskErrorCode };
+
+export interface AskSourceWire {
+  n: number;
+  path: string;
+  title: string;
+  heading: string | null;
+  line: number;
+  text: string;
+  score: number;
+  /** How the vault names the note in a link. */
+  spelling: string;
+}
+
+export type AskErrorCode =
+  | "ollamaDown"
+  | "noEmbedModel"
+  | "noChatModel"
+  | "noKey"
+  | "anthropicFailed"
+  | "chatFailed"
+  | "emptyIndex";

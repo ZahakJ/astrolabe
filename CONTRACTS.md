@@ -140,6 +140,7 @@ that is the pre-existing pattern, and the door is now open.
 - `GET  /api/tags` → `TagCount[]` (from `#tag` inline + frontmatter `tags:`)
 - `GET  /api/props` → `PropCount[]` — every frontmatter key with its count and its twenty commonest values (per list item, folded like `prop:`), scoped like `/api/tags`; `tags` itself is left out (it has the shelf above). See "3.17.0 — Four views of the vault".
 - `GET  /api/nearby?path=` → `NearbyHit[]` (admin-only, 401 to a visitor: the scoring reads every note's body) — the ten notes that read most like `path`, with the two terms that tie each (server/nearby.ts over shared/nearby.ts; an unknown path answers `[]`).
+- `GET  /api/ask/status` → `AskStatus` · `POST /api/ask/reindex` → `AskStatus` · `GET /api/semantic?q=` → `SemanticResponse` · `GET /api/semantic/related?path=` → `SemanticHit[]` · `GET /api/semantic/suggest?path=` → `LinkSuggestion[]` · `POST /api/ask` body `{ question }` → NDJSON stream of `AskEvent` — **all admin-only (401 to a visitor and to the preview header)**; Ollama down or the embedding model missing is a **503 `code: "ollamaDown" | "noEmbedModel"`** (on the stream, an `error` event with an `AskErrorCode`). See "3.24.0 — Ask the vault".
 - `GET  /api/query/paths?q=` → `string[]` — the paths a query names, uncapped, scoped like `/api/search`; an empty query names nothing. What the graph paints its groups by.
 - `GET  /api/trackers` → `TrackerMeta[]` — every ```` ```tracker ```` fence this session may see, newest-touched first (the shelf a ```` ```tracker-board ```` draws). Scoped EXACTLY like `/api/posts`: a visitor gets published notes only with the language filter applied, an admin gets the whole vault, and templates are out of both. Covers are resolved server-side, per session, so the board spends no `/api/resolve` per card and a visitor is never handed a path they may not fetch. See "Trackers".
 - A tracker fence may carry `folder:` (a vault folder, no `..`); `TrackerMeta` carries it as `folder`
@@ -6082,7 +6083,9 @@ trapdoor one level further out.
   time, a **Re-sync now** button, a red line per problem, and one sentence naming what is still
   redone by hand on a new machine (the git token or SSH key, the admin password, screen warmth).
 - NEVER mirrored: `git-credentials.json`, `comments.db`, `created.json`, `pdftext.json`,
-  `session-epoch`, `author-sites.json`, `workspace.json`, `versions/`, `fonts/catalog/`. Adding a
+  `session-epoch`, `author-sites.json`, `workspace.json`, `versions/`, `fonts/catalog/`,
+  `ask-credentials.json` and `embeddings.db` (3.24.0: a key is a device's; the meaning index is a
+  cache every machine rebuilds from its own Ollama). Adding a
   file to the list is a decision about every machine and about what a git remote will hold.
 
 ## Sync at launch (server/gitSync.ts::syncAtLaunch)
@@ -11573,3 +11576,107 @@ was not overflowing anything: the tool cluster was overflowing its column and pa
   strip names what is open; the sync badge, publish and twin stay, because each is an act; and
   the focus ring still lands on a tapped text field, which is a caret's business rather than a
   hover affordance.
+
+## 3.24.0 — Ask the vault (`shared/semantic.ts`, `server/embeddings.ts`, `server/ask.ts`, `server/ollama.ts`, `server/anthropic.ts`, `server/askSettings.ts`)
+
+Meaning search, Related, Suggest links, and questions answered from the notes with citations
+(docs/ask.md). Four doors over one index.
+
+**THE INDEX IS LOCAL, KEYED BY WHAT THE MODEL WAS SHOWN, AND IT IS A CACHE.** A note is cut by
+`chunkNote()` at ATX headings (outside fences) and, inside a long section, at blank-line
+paragraphs, packed to ~300 estimated tokens and never past 400 (a longer paragraph is cut at
+sentence ends, then at a space); short paragraphs merge under one heading and **never across a
+heading**, because the heading is what a citation opens. Each chunk carries its heading (null
+above the first heading and under an H1 that only repeats the note's title), the heading's line
+and its own lines in the whole file (frontmatter included — the editor's numbering), and its UTF-8
+byte span. The model is shown `Title › Heading\n\ntext` (`embedInput`), and the vector is stored in
+`ASTROLABE_DATA/embeddings.db` (node:sqlite, 0600, `WITHOUT ROWID` table keyed `(model, hash)`)
+under the SHA-256 of exactly that string. So an unchanged passage is never embedded twice — not
+across edits elsewhere in its note, not across a restart, not across a switch to another model and
+back — and a renamed heading or note is, correctly, a new vector. Deleting the file costs one pass
+and loses nothing; it never travels (configMirror's NEVER list).
+
+**FED BY THE INDEXER, NEVER BLOCKING IT.** `initAsk()` runs after `initIndexer()` and is not
+awaited. It reads what exists from `nearbySources()` (path, title, mtime), re-cuts only notes whose
+mtime or title moved, and is woken by the vault watcher (`onEvent`) after a 1.5 s settle and a
+`whenIndexed()` — the graphCache lesson: an event fires before the note index has applied it. A
+pass is single-flight (a trigger during a pass books exactly one more), embeds in batches of 16 so a
+query waits for one batch at most, and when Ollama is down or the model missing it records
+`lastError`, leaves the passages pending and retries in a minute. Measured on the 2,367-note perf
+fixture: the indexer's cold start 739 ms with Ollama unreachable, 741 ms with it embedding (the pass
+starts after the boot line); the pass itself 4,565 passages in 55 s on an RTX 4070 SUPER; a warm
+restart embeds nothing. `check-perf` passes unchanged with the pass running behind it.
+
+**COSINE IN-PROCESS, NO VECTOR DATABASE.** Vectors are unit-normalized once, so similarity is a
+dot product; `rankTop()` keeps the k best without sorting everything. Meaning search answers the
+best chunk per note; retrieval for a question takes the top k chunks with at most two per note;
+Related compares note centroids (the re-normalized mean of a note's chunks); Suggest takes the best
+chunk-to-chunk match per other note and **leaves out every note linked in either direction**
+(`notesLinkedFrom` + `notesLinkingTo`). A meaning search on the fixture: ~50 ms request to answer,
+most of it Ollama embedding the question.
+
+**THE EMBEDDING MODEL DEFAULT IS `embeddinggemma`, AND IT WAS MEASURED.** On the 61-note bilingual
+verification vault with 24 paraphrase questions (12 English, 12 Arabic): `all-minilm` put the
+right note first for 9/12 English and **0/12 Arabic**, and found a note's other-language counterpart
+in the top three 0/23 times; `embeddinggemma` 9/12 and 9/12, counterpart 20/23; `bge-m3` 9/12 and
+5/12, 15/23; `paraphrase-multilingual` 3/12 and 8/12, 15/23; `nomic-embed-text` 10/12 and 2/12,
+0/23. The table is in docs/ask.md. `embedPrefixes()` carries the query/document instructions the
+families trained with them need (nomic, embeddinggemma, mxbai, snowflake); every other model is
+shown the text bare.
+
+**AN ANSWER IS GROUNDED ONLY IN THE RETRIEVED PASSAGES, AND SAYS SO WHEN THEY DO NOT ANSWER.**
+`ASK_SYSTEM` is five rules in English (models follow English instructions best; rule 5 makes the
+answer follow the question's language): nothing but the excerpts, a `[n]` after every sentence that
+uses one, a fixed one-sentence refusal in both languages ("The vault says nothing about …" /
+«لا تقول الخزانة شيئًا عن …») when they do not answer, and a plain correction when the question
+assumes something they do not support. Ollama chat runs with `think: false` and temperature 0.2 —
+a reasoning model's minute before the first word is the wrong trade for a side panel. Verified
+with the real `qwen3.5:9b`: a wrong-premise question ("What did Ibn Rushd write about sourdough
+bread?", over a vault holding both subjects) answered with the refusal, in English and in Arabic.
+
+**CITATIONS ARE PARSED, NEVER TRUSTED.** `splitCitations()` reads `[1]`, `[1, 3]`, `[1][2]` and
+Arabic-Indic digits; a number with no passage behind it is dropped and the panel says one was.
+"Copy as note" (`answerMarkdown`) writes `source: ask`, `asked`, `model`, `local` in the
+frontmatter, the question as the H1, every citation as `[[Note#Heading|n]]` in the vault's link
+spelling (`linkSpellingFor`), numbered by first citation, and a Sources list of what was cited —
+through `promptExtractPath`, which prints the path before anything is created. Never silently.
+
+**`/api/ask` STREAMS NDJSON** — `sources` first (with the model, provider and whether it is
+remote), then `delta`s, then `done` with the time to the first token, or one `error` with a stable
+`AskErrorCode`. `application/x-ndjson` is outside the compression middleware's types, so nothing
+buffers it; a cancelled stream aborts the model's request.
+
+**EVERY ROUTE IS ADMIN-ONLY.** The index reads every note's body, published or not; a meaning
+search, a related list or an answer served to a visitor would be an oracle for unpublished notes.
+401 to a visitor and to an admin wearing the preview header, and the client does not draw the
+doors in preview. Nothing reaches the public shell.
+
+**ANTHROPIC IS OPTIONAL, SERVER-SIDE AND SAID OUT LOUD.** `settings.ask.provider: "anthropic"`
+sends the question and its retrieved passages — never the embeddings, which are always local — to
+`POST https://api.anthropic.com/v1/messages` with `stream: true` (`x-api-key`,
+`anthropic-version: 2023-06-01`; `content_block_delta`/`text_delta` read, an `error` event is an
+error), default model `claude-sonnet-5`. Raw HTTP rather than the SDK because the product carries no
+model SDK for its local path either and one optional door does not justify a dependency. The key is
+**write-only** (`PATCH {anthropicKey}`, staged and applied after the whole patch validates, like
+`gitToken`), stored in `ASTROLABE_DATA/ask-credentials.json` at 0600, never mirrored, never read
+back (`effective.ask.keySet` only), scrubbed from any error text. The panel names the model and
+"on this machine" / "sent to Anthropic" before the question is asked and after it is answered.
+
+**OLLAMA DOWN IS A STATE, NOT A FAULT.** Each route answers 503 with `ollamaDown` or
+`noEmbedModel`; each door prints one translated line (`askErrorLine`) and nothing else — the meaning
+results, Related, and the panel say it, Suggest is not drawn — and the exact search is untouched.
+
+**SETTINGS → ASK IS ITS OWN TAB** (7 rows), not rows on Vault (already 14): which models read and
+answer is its own question. `settings.ask` travels with the vault like every instance setting; the
+key does not. The tab is hidden on a pocket vault, whose server has no `/api/ask`.
+
+**THE DOORS.** The sidebar search's third icon button (two overlapping circles, `aria-pressed`)
+flips the box to meaning — the words stay — and is remembered per device
+(`astrolabe.search-meaning`, not travelling); `SemanticResults.tsx` is its lazy chunk. The palette's
+**Ask the vault…** takes the question in prompt mode and opens `AskPanel.tsx` (lazy, mount-gated on
+`askOpen`, in `modalUp`); **Search by meaning…** flips the sidebar. The phone's ⋯ menu carries
+Ask the vault. Related and Suggest links render inside NearbyPanel's lazy chunk
+(`MeaningPanels.tsx`), Related deduped against Nearby's rows; Suggest's Link inserts at the caret
+through `applyToBuffer` (one undoable change, spaced as a word), or appends through
+`applyNoteContent` when no editor holds the note. The answer panel closes itself after Copy as note
+so the toast's Open is not under the scrim.

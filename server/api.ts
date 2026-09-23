@@ -109,6 +109,7 @@ import {
   wikilinkRegex, collectionRows } from "./indexer.ts";
 import { sendEncoded } from "./compress.ts";
 import { nearbyNotes } from "./nearby.ts";
+import { askRoutes } from "./ask.ts";
 import { hadithKey, parseHadithRef } from "../shared/hadithRefs.ts";
 import { graphBody, invalidateGraph, localGraphJson } from "./graphCache.ts";
 import { propShelf, tagShelf } from "./shelfCache.ts";
@@ -2405,6 +2406,10 @@ api.post("/orbits", async (c) => {
   emitEvent({ kind: "created", path: notePath });
   return c.json({ ok: true, path: written.path, cards: scanDeckCards(text, notePath, kind).length });
 });
+
+// Ask the vault: meaning search, related notes, link suggestions and
+// questions answered from the notes (server/ask.ts). Admin-only, every route.
+api.route("/", askRoutes);
 
 api.get("/mentions", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
