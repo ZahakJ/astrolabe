@@ -372,7 +372,13 @@ back to the connection screen to choose the other one.
 ## What this app does not do
 
 No camera, no location, no contacts, no storage, no analytics, no push. Its
-manifest asks for `INTERNET` and nothing else. Pointed at your own server it has
+manifest asks for `INTERNET` and, since 3.24, `RECORD_AUDIO` (with
+`MODIFY_AUDIO_SETTINGS`) for voice notes — asked for at run time, the first
+time a recording starts, by Capacitor's WebChromeClient turning the page's
+`getUserMedia` into the platform prompt. The share sheet records with the web
+client's own `Recorder` (`client/voice/recorder.ts`, imported rather than
+written twice) and sends base64 inside JSON through `CapacitorHttp`, like
+every other call it makes (`src/voice.ts`). Pointed at your own server it has
 no offline mode of its own: the page it shows keeps the web app's offline copy
 (`docs/offline.md`) the way a browser does, and when there is no copy and no
 server, it says so and stops. A vault from GitHub is the other case — it *is*

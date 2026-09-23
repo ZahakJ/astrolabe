@@ -718,3 +718,34 @@ describe("inheritedSettings", () => {
     }
   });
 });
+
+describe("voice notes: settings.voice (3.24.0)", () => {
+  it("defaults to the Arabic-tested model, detection and keeping the audio", () => {
+    patchSettings({ voice: null });
+    assert.equal(getSettings().voice, undefined);
+    assert.deepEqual(effectiveSettings().voice, { model: "large-v3-turbo-q5_0", language: "auto", keepAudio: true });
+  });
+
+  it("merges sub-keys, deletes a value equal to its default, and clears with null", () => {
+    patchSettings({ voice: { language: "ar" } });
+    patchSettings({ voice: { keepAudio: false } });
+    assert.deepEqual(getSettings().voice, { language: "ar", keepAudio: false });
+    patchSettings({ voice: { model: "small-q5_1" } });
+    assert.deepEqual(effectiveSettings().voice, { model: "small-q5_1", language: "ar", keepAudio: false });
+    patchSettings({ voice: { model: "large-v3-turbo-q5_0", language: "auto", keepAudio: true } });
+    assert.equal(getSettings().voice, undefined, "every sub-key back at its default leaves no key at all");
+    patchSettings({ voice: { model: "off" } });
+    assert.equal(effectiveSettings().voice.model, "off");
+    patchSettings({ voice: null });
+    assert.equal(getSettings().voice, undefined);
+  });
+
+  it("refuses an unknown model, language or sub-key, and lands nothing", () => {
+    assert.match(refuse({ voice: { model: "large-v4" } }), /voice\.model/);
+    assert.match(refuse({ voice: { language: "fr" } }), /voice\.language/);
+    assert.match(refuse({ voice: { keepAudio: "yes" } }), /voice\.keepAudio/);
+    assert.match(refuse({ voice: { engine: "onnx" } }), /voice\.engine/);
+    assert.match(refuse({ voice: "on" }), /voice/);
+    assert.equal(getSettings().voice, undefined);
+  });
+});

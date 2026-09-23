@@ -40,6 +40,40 @@
   color: var(--text);
 }
 
+/* The title and, at its end, the switch between the two halves of the sheet
+   (a microphone from the text field, a pencil back from the recorder). */
+.s-capture__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.s-capture__head .s-capture__title {
+  margin: 0;
+}
+
+.s-capture__mode {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.s-capture__mode:hover {
+  color: var(--accent);
+  background: var(--button-hover-bg);
+}
+
 .s-capture__field {
   display: block;
   width: 100%;
@@ -143,8 +177,12 @@
 /* THUMB-SIZED ON A PHONE. The sheet drops to the bottom edge, where the
    thumb already is, spans the width, and every target is 44px tall — the
    field for the thought, the two buttons for the decision. The top padding
-   that centres it on a desktop would put it under the keyboard here. */
-@media (max-width: 700px) {
+   that centres it on a desktop would put it under the keyboard here.
+   And on ANY coarse pointer (3.24.0), at any width: a phone with a pen
+   answers 720px and a finger still holds it, which is the posture
+   check-phone's "stylus" run measured this sheet at — 36px buttons and a
+   15.5px field, the first time the gate opened it. */
+@media (max-width: 700px), (pointer: coarse) {
   .s-capture-overlay {
     align-items: flex-end;
     padding-top: 0;
@@ -158,9 +196,11 @@
     animation: none;
   }
 
+  /* 16px at the least: a phone's browser zooms the page to any field set
+     smaller, and a sheet that zooms on focus is a sheet that jumps. */
   .s-capture__field {
     min-height: 44px;
-    font-size: 1.071rem;
+    font-size: max(16px, 1.071rem);
   }
 
   .s-capture__cancel,
@@ -168,5 +208,14 @@
     min-height: 44px;
     padding-inline: 18px;
     flex: 1;
+  }
+}
+
+/* A finger, at any width: the mode switch is a 44px target like everything
+   else the shell draws for one (DESIGN.md, "every target is ≥44px"). */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-capture__mode {
+    width: 44px;
+    height: 44px;
   }
 }

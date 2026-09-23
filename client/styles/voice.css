@@ -1,0 +1,205 @@
+/* THE RECORDER — the quick-capture sheet's voice half
+   (components/VoiceRecorder.tsx, docs/capture.md "Voice"). Imported by the
+   component, so it rides the recorder's own lazy chunk: a reader who never
+   speaks a note never downloads a rule of it.
+
+   One round button carries the whole gesture — tap to record, hold to talk —
+   so it is the largest thing in the sheet: 72px, the accent's ground, the
+   size a thumb finds without looking. Beside it the evidence that it is
+   listening: a level bar and the elapsed time. Nothing here names a hue: the
+   button is the accent button's two tokens, the meter is the accent, and the
+   error line is the danger ink every other refusal in the app is written in. */
+
+.s-voice {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.s-voice__where {
+  margin: 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-voice__stage {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 0;
+}
+
+.s-voice__mic {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--button-accent-text);
+  background: var(--button-accent-bg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  /* A press is a gesture here, not a scroll or a text selection: the hold
+     must not open the long-press menu or select the label under the thumb. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.s-voice__mic:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.s-voice__mic:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.s-voice__mic:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Recording: a ring that breathes, so "it is listening" reads from across a
+   room. The ring is the accent's own soft token; reduced motion keeps the
+   ring and drops the breathing. */
+.s-voice__mic[aria-pressed="true"] {
+  box-shadow: 0 0 0 6px var(--accent-soft);
+  animation: s-voice-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes s-voice-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+  50% {
+    box-shadow: 0 0 0 10px var(--accent-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-voice__mic[aria-pressed="true"] {
+    animation: none;
+  }
+}
+
+.s-voice__readout {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.s-voice__meter {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* scaleX from the logical start: the bar grows the way the line reads. */
+.s-voice__level {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.066s linear;
+}
+
+[dir="rtl"] .s-voice__level {
+  transform-origin: right center;
+}
+
+.s-voice__time {
+  flex: none;
+  min-width: 3.5em;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.929rem;
+  color: var(--text-muted);
+}
+
+.s-voice__status {
+  margin: 0;
+  min-height: 1.4em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.857rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.s-voice__status--error {
+  color: var(--danger);
+}
+
+.s-voice__spinner {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  animation: s-voice-spin 0.8s linear infinite;
+}
+
+@keyframes s-voice-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-voice__spinner {
+    animation: none;
+  }
+}
+
+/* The words, as they landed. The quote bar is the reading view's, on the
+   logical start edge; long dictation scrolls inside the sheet rather than
+   pushing its buttons off a phone's screen. */
+.s-voice__transcript {
+  margin: 0;
+  max-height: 30vh;
+  overflow-y: auto;
+  padding: 8px 12px;
+  border-inline-start: 3px solid var(--accent);
+  background: var(--bg);
+  border-radius: var(--radius);
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.s-voice__actions {
+  margin-top: 4px;
+}
+
+/* A FINGER'S SHEET: the phone, or any coarse pointer. Every target 44px, the
+   buttons share the width, and the big button gets bigger. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-voice__mic {
+    width: 80px;
+    height: 80px;
+  }
+
+  .s-voice__actions .s-capture__cancel,
+  .s-voice__actions .s-capture__send {
+    min-height: 44px;
+  }
+}

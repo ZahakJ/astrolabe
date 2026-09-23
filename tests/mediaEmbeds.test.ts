@@ -6,7 +6,7 @@ import { formatTime, isAudioName, parseTimeAnchor, pdfDisplayName, pdfPageOf } f
 
 describe("audio embeds", () => {
   it("recognise the four formats a browser plays, case-blind", () => {
-    for (const name of ["lecture.mp3", "Talk.OGG", "voice.m4a", "take 1.wav"]) assert.equal(isAudioName(name), true, name);
+    for (const name of ["lecture.mp3", "Talk.OGG", "voice.m4a", "take 1.wav", "2026-09-23 1402.webm"]) assert.equal(isAudioName(name), true, name);
     for (const name of ["lecture.flac", "clip.mp4", "notes.md", "mp3"]) assert.equal(isAudioName(name), false, name);
   });
   it("read t= anchors in seconds, m:ss, h:mm:ss, decimals and Arabic digits", () => {
