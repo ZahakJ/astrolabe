@@ -293,6 +293,12 @@ async function ladder({ dpr, posture, rtl, seeded }) {
       }
     },
     {
+      // THE LADDER MEASURES THE DESKTOP'S SHELL AT EVERY WIDTH, including the
+      // drawer cells below 700 (and a slate's below 1000), so it runs in the
+      // Classic phone layout — the shell those cells had until 3.25.0 and
+      // still have for a reader who picks it. Which shell a cell gets under
+      // the default (New) layout is the `whichShell` rung below.
+      "astrolabe.phoneLayout": "classic",
       ...(rtl ? { "astrolabe.editorLang": "ar" } : {}),
       // The panel is opened DELIBERATELY for the seeded rows, so the
       // responsive auto-collapse cannot quietly hide the thing under test.
@@ -391,6 +397,8 @@ async function phoneDrawer() {
     try {
       localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
       localStorage.setItem("astrolabe.prefs-sync-off", "1");
+      // The drawer is the Classic phone layout's (3.25.0).
+      localStorage.setItem("astrolabe.phoneLayout", "classic");
     } catch {
       // a context with storage blocked still renders the defaults
     }
@@ -461,6 +469,44 @@ async function readerFold({ width }) {
   await ctx.close();
 }
 
+/** WHICH SHELL, UNDER THE DEFAULT LAYOUT (3.25.0). The phone shell
+ *  (client/phone/) is mounted wherever PHONE_SHELL_QUERY matches — every
+ *  pointer below 700, and a finger that cannot hover at any width — and
+ *  NOWHERE ELSE: the desktop a mouse or a touch laptop gets above 700 must
+ *  not have moved. One context per posture, walked down the ladder, because
+ *  the shell follows a resize without a reload. */
+async function whichShell(posture) {
+  const browser = await browserFor(posture);
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 800 }, deviceScaleFactor: 1.25 });
+  await ctx.addCookies(cookies);
+  const page = await ctx.newPage();
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+      localStorage.setItem("astrolabe.prefs-sync-off", "1");
+    } catch {
+      // a context with storage blocked still renders the defaults
+    }
+  });
+  await page.goto(`${url}/`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".s-app, .s-ph", { timeout: 20000 });
+  await page.waitForTimeout(900);
+  for (const width of WIDTHS) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.waitForTimeout(600);
+    const m = await page.evaluate(() => ({
+      phone: !!document.querySelector(".s-ph"),
+      desktop: !!document.querySelector(".s-app"),
+      docScroll: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    }));
+    const where = `shell ${width} ${posture}`;
+    const wantPhone = width <= PHONE_AT || OWN_POINTER[posture];
+    ok(where, m.phone === wantPhone && m.desktop === !wantPhone, `wanted the ${wantPhone ? "phone" : "desktop"} shell, got ${m.phone ? "phone " : ""}${m.desktop ? "desktop" : ""}`);
+    ok(where, m.docScroll <= 0, `the document scrolls sideways by ${m.docScroll}px`);
+  }
+  await ctx.close();
+}
+
 // The ladder proper: every width at every ratio, under a mouse, which is the
 // posture the report came from and the one every assertion above is strictest
 // about.
@@ -480,6 +526,7 @@ await liveResize({ dpr: 1.5, rtl: true });
 await readerFold({ width: 1300 });
 await readerFold({ width: 1440 });
 await phoneDrawer();
+for (const posture of Object.keys(POSTURES)) await whichShell(posture);
 
 for (const each of browsers.values()) await each.close();
 

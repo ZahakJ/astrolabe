@@ -1,74 +1,58 @@
-// GATE: the phone's four promises, measured on the real app.
+// GATE: the phone shell, driven like a phone — and measured like one.
 //
 //   node scripts/check-phone.mjs [http://localhost:8190] [outdir]
 //   env: CHROMIUM=/usr/bin/chromium
 //        ASTROLABE_PASSWORD=<pw>  — when the instance sets ADMIN_PASSWORD_HASH;
-//                                without an admin session half these surfaces
+//                                without an admin session half these screens
 //                                do not exist and the run refuses loudly
 //                                rather than "passing".
 // Exits 1 on any miss. Run it like check-fidelity / check-a11y.
 //
-// WHY THIS EXISTS. The phone audit that opened 3.18 found thirty-three
-// defects across ten surfaces, and not one of them was invisible — they were
-// a 40px button here, a 14px field there, a header that ran off the left edge
-// in Arabic. Every one would have been caught by measuring, and nothing
-// measured, because the properties involved are ones a screenshot review reads
-// as "fine" and a unit test cannot see at all. So: a browser, a phone-shaped
-// viewport, and four questions asked of every surface.
+// WHY IT WAS REWRITTEN (3.25.0). The gate this replaces measured four
+// properties — 44px targets, 16px fields, nothing sideways, nothing covered —
+// across ten surfaces, two languages and two postures, and it was green on
+// the day the audit found that a tap on a note in the phone's drawer OPENED
+// NOTHING: the back-gesture guard's `history.back()` landed after the router's
+// `pushState` and restored the page the reader had just left. Every property
+// it measured was true of a shell that did not work. So the measurements stay
+// — they still catch what they caught — and beside them the gate now asks the
+// phone shell (client/phone/) the questions a reader asks with their thumb:
 //
-// THE FOUR QUESTIONS (DESIGN.md, "Below 700px, or on ANY coarse pointer";
-// CONTRACTS.md, "THE TOUCH SHELL IS 44px EVERYWHERE"):
+//   · A TREE TAP CHANGES THE URL AND THE TITLE. The P0, as an assertion.
+//   · BACK POPS A SCREEN — the browser's own back, which is the Android back
+//     button and the OS back gesture — and lands on the list it came from.
+//   · BACK CLOSES A SHEET before it pops the screen under it.
+//   · PUBLISH ASKS. The note sheet's Publish raises a question, and saying
+//     no leaves the note unpublished (the audit's harness published a note
+//     by accident through the old shell's one-tap pill).
+//   · A LONG PRESS IS A MENU (an action sheet), not a tap.
+//   · THE SHELL IS THE PHONE'S: no tab strip, no status bar, no pane grip, no
+//     sidebar drawer anywhere in the document.
+//   · A DEEP LINK OPENS ITS NOTE, and back from it comes home to Today
+//     instead of leaving the app.
+//   · CLASSIC IS STILL THERE: `This device → Phone layout: Classic` mounts
+//     the desktop's drawer shell (for one release).
 //
-//   1. NOTHING OVERFLOWS SIDEWAYS. The document never scrolls horizontally,
-//      and no element hangs past either edge of the window. A strip that
-//      declares `overflow-x: auto` is exempt and so is everything inside it —
-//      the tab row, a wide table, a heat map: those SCROLL, which is a
-//      design, not a defect.
+// THE MATRIX. Every screen and sheet is measured and photographed in both
+// languages on four shapes: a Pixel 7 (412×915, a finger); a 720×820 phone at
+// DPR 1.5 with a STYLUS — primary pointer coarse, `any-pointer: fine`, the
+// posture that was once served the desktop shell (a blink setting on its own
+// browser: `hasTouch` would override the pointer media); and a touch tablet in
+// both orientations (820×1180 and 1180×820), where the shell draws two columns
+// and the note sheet slides over from the trailing edge.
+//
+// THE MEASUREMENTS (DESIGN.md, "Below 700px, or on ANY coarse pointer";
+// CONTRACTS.md, "The phone shell"):
+//
+//   1. NOTHING OVERFLOWS SIDEWAYS. A strip that scrolls on purpose
+//      (`overflow-x: auto`: the tag chips, a wide table) is exempt.
 //   2. EVERY SHELL TARGET IS ≥44px. Height always; width too when the control
-//      has no text in it, because an icon button is square or it is nothing.
-//      What is NOT a shell target: prose (a link in a sentence sets the line
-//      height of the paragraph around it — DESIGN.md says so), a native
-//      checkbox or radio inside a label that is itself ≥44px (the label is
-//      what a finger lands on), and a data picture's cells (the Sigils heat
-//      map is a year of a habit in 12px squares; a 44px cell is not a bigger
-//      chart, it is no chart).
-//   3. EVERY TEXT FIELD IS ≥16px. Under 16, iOS Safari zooms the page into
-//      the field on focus and leaves it there, and the reader then types into
-//      a vault that has slid sideways under the keyboard.
-//   4. NOTHING COVERS A TARGET. `elementFromPoint` at each target's centre
-//      answers that target (or something inside it). This is the one that
-//      caught the drawer's own ☰ — labelled "Close Notes sidebar" and painted
-//      under the drawer, so the tap it received went to the wordmark
-//      underneath — and the outline pane that covered Settings and the ⋯.
-//
-//   5. THE SITE'S NAME STAYS IN ITS PANE (3.23.0). A long name — and a vault
-//      may be called anything — must ellipsise inside the sidebar header, not
-//      run past it and under the header's tools. It was an ANONYMOUS flex
-//      item until this round, which is an item CSS cannot address: measured
-//      at 224px of pane, a 45-character name took a 444px box and hung 266px
-//      past the header's edge.
-//   6. NO REOPEN STRIP ON A FINGER (3.23.0). The 14px `.s-reopen` door is a
-//      pointer's affordance; on a touch device the pane's doors are the pan
-//      (client/swipe.ts) and the 44px switch in the tool cluster. The owner,
-//      about his friend's phone: "one thing I personally hate for example is
-//      how floating the panel bars button is".
-//
-// TEN SURFACES × TWO LANGUAGES × TWO POSTURES. The first posture is a phone
-// at 390×844 with `isMobile` and `hasTouch`, so `(pointer: coarse)` and
-// `(hover: none)` both answer the way they do on a phone. Arabic is not a
-// translation pass: it is a different layout, and three of the audit's
-// findings (the shelf header off the left edge, the tag strip's mask, the
-// status bar's packing) existed in Arabic only.
-//
-// THE SECOND POSTURE IS THE ONE THAT WAS MISSING, and it is a real phone
-// somebody owns: 720 CSS px at DPR 1.5 with a STYLUS — a Galaxy with an S Pen,
-// which answers `any-pointer: fine` and was therefore served the whole docked
-// desktop shell, fourteen-glyph tool cluster and all, painted over the
-// sidebar's wordmark. Chromium will not emulate that through the devtools
-// protocol (`hasTouch` overrides the pointer media), so the posture is a
-// BLINK SETTING on its own browser, the way check-windows-layout drives its
-// three Windows postures. A gate that only ever measures 390px is a gate that
-// cannot see the shell being wrong at 720.
+//      has no words in it. Prose, a native checkbox inside a ≥44px label and
+//      a data picture's cells are not shell targets.
+//   3. EVERY TEXT FIELD IS ≥16px (under it iOS zooms into the field).
+//   4. NOTHING COVERS A TARGET — `elementFromPoint` at each target's centre
+//      answers the target itself. Under an open sheet, only the sheet's own
+//      targets are asked (the page under it is inert on purpose).
 
 import { chromium, devices } from "playwright";
 import { mkdirSync } from "node:fs";
@@ -76,38 +60,12 @@ import { mkdirSync } from "node:fs";
 const [url = "http://localhost:8190", out = "shots"] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
 
-/** The ten surfaces, by the path that opens each. `null` means "whatever the
- *  instance opens at", which is the home surface a reader actually lands on. */
-const SURFACES = [
-  ["editor", "/"],
-  ["reading", "/?rv=1"],
-  ["graph", "/graph"],
-  ["media", "/media"],
-  ["sigils", "/sigils"],
-  ["calendar", "/calendar"],
-  ["review-week", "/review-week"],
-  ["orbits", "/orbits"],
-  ["library", "/library"],
-  ["drawer", "/?drawer=1"],
-  // The quick-capture sheet, and its voice half (3.24.0): a bottom sheet on a
-  // phone whose every target is a thumb's, and a recorder whose round button
-  // is the gesture. Opened by the chord (which is language-proof) and, for
-  // the recorder, by the sheet's own speak/type switch.
-  ["capture", "/?capture=1"],
-  ["voice", "/?voice=1"],
-];
-
-/** Everything the four questions are asked with, as one page function. Kept
- *  as a string and `evaluate`d so the whole walk happens in one round trip:
- *  a per-element round trip over ~1,500 nodes × 20 runs is minutes. */
-const MEASURE = String.raw`(() => {
+const MEASURE = String.raw`((scope) => {
   const de = document.documentElement;
   const vw = de.clientWidth;
   const vh = de.clientHeight;
-  const out = { overflow: [], small: [], fonts: [], covered: [], reopen: [], wordmark: null, docScroll: 0 };
-
+  const out = { overflow: [], small: [], fonts: [], covered: [], docScroll: 0 };
   if (de.scrollWidth > vw + 1) out.docScroll = de.scrollWidth - vw;
-
   const sel = (el) => {
     if (!el || !el.tagName) return String(el);
     let s = el.tagName.toLowerCase();
@@ -116,9 +74,6 @@ const MEASURE = String.raw`(() => {
     if (cls) s += "." + cls.split(/\s+/).slice(0, 3).join(".");
     return s;
   };
-
-  /** Does this element sit inside something that scrolls sideways on purpose?
-   *  Its box may then hang outside the window — that is what scrolling IS. */
   const inScroller = (el) => {
     for (let p = el.parentElement; p; p = p.parentElement) {
       const ox = getComputedStyle(p).overflowX;
@@ -126,154 +81,67 @@ const MEASURE = String.raw`(() => {
     }
     return false;
   };
-
-  /** Prose, where the 44px floor does not apply: a link in a sentence would
-   *  set the line height of the paragraph around it.
-   *
-   *  Named by the RENDERER'S OWN classes (.s-rv-p, .s-rv-list, .s-rv-quote),
-   *  not by the container they usually sit in: rendered prose is planted in
-   *  more places than .s-rv, and a wikilink inside a sigil's note — an
-   *  .s-rv-p under .s-rv-routine__notes, with no .s-rv above it — failed
-   *  this gate as a 19px "target". A gate that answers differently for two
-   *  vaults because one of them wrote a link in a note is not a gate; it is
-   *  a property of that vault. */
   const PROSE =
     ".cm-content, .s-rv-prose, .s-rv p, .s-rv li, .s-rv-p, .s-rv-list, .s-rv-quote," +
     " .s-blog-article, .s-marginalia__list";
-  /** A data picture, whose cells are marks and not controls. */
   const CHART = ".s-rv-routine__heat, .s-graph__nav, .s-tracker";
-
-  const els = Array.from(document.querySelectorAll("*"));
-  for (const el of els) {
+  const root = scope ? document.querySelector(scope) : document.body;
+  if (!root) return out;
+  for (const el of root.querySelectorAll("*")) {
     const cs = getComputedStyle(el);
     if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") continue;
+    if (el.closest("[inert]")) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 1 || r.height < 1) continue;
-    // Clipped out of sight (the sr-only utility, the skip link at rest).
+    if (r.bottom < 0 || r.top > vh) continue;
     if (cs.clipPath && cs.clipPath !== "none" && r.width <= 2) continue;
-
-    // ── 1. sideways overflow
-    if ((r.right > vw + 1 || r.left < -1) && !inScroller(el)) {
+    if ((r.right > vw + 1 || r.left < -1) && !inScroller(el) && !el.closest(".s-ph-sheet--side")) {
       out.overflow.push([sel(el), Math.round(r.left), Math.round(r.right)]);
     }
-
     const tag = el.tagName;
     const role = el.getAttribute("role");
     const interactive =
-      tag === "BUTTON" ||
-      (tag === "A" && el.hasAttribute("href")) ||
-      tag === "SUMMARY" ||
-      tag === "SELECT" ||
-      tag === "TEXTAREA" ||
+      tag === "BUTTON" || (tag === "A" && el.hasAttribute("href")) || tag === "SUMMARY" || tag === "SELECT" || tag === "TEXTAREA" ||
       (tag === "INPUT" && el.type !== "hidden") ||
-      ["button", "link", "menuitem", "menuitemcheckbox", "tab", "switch", "option"].includes(role);
-
-    // A MODAL IS OPEN: the shell behind it is not a target, and its buttons
-    // being "under another layer" is what a modal is. Only the modal's own
-    // controls are measured then (the capture sheet and its recorder, 3.24.0).
-    const modal = document.querySelector('[aria-modal="true"]');
-    const behindModal = modal !== null && !modal.contains(el);
-    if (interactive && !behindModal && !el.closest(PROSE) && !el.closest(CHART) && !el.disabled) {
-      // A native checkbox/radio is drawn by the platform at its own size; the
-      // LABEL around it is the target, and the label is measured on its own.
+      ["button", "link", "menuitem", "menuitemcheckbox", "tab", "switch", "option", "checkbox"].includes(role);
+    if (interactive && !el.closest(PROSE) && !el.closest(CHART) && !el.disabled) {
       const boxed = tag === "INPUT" && (el.type === "checkbox" || el.type === "radio");
       const owner = boxed ? el.closest("label") : null;
       const box = owner ? owner.getBoundingClientRect() : r;
-      // Width is required only of a control with no words in it: a tab named
-      // "Ka" is as wide as "Ka" and that is correct.
       const wordy = (el.textContent || "").trim().length > 1;
-      const tooShort = box.height < 43.5;
-      const tooNarrow = !wordy && box.width < 43.5;
-      if (tooShort || tooNarrow) {
-        out.small.push([sel(el), +box.width.toFixed(1), +box.height.toFixed(1)]);
-      }
-
-      // ── 4. covered
+      if (box.height < 43.5 || (!wordy && box.width < 43.5)) out.small.push([sel(el), +box.width.toFixed(1), +box.height.toFixed(1)]);
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height / 2;
       if (cx > 0 && cy > 0 && cx < vw && cy < vh && !inScroller(el)) {
         const hit = document.elementFromPoint(cx, cy);
-        if (hit && hit !== el && !el.contains(hit) && !hit.contains(el)) {
-          out.covered.push([sel(el), sel(hit)]);
-        }
+        if (hit && hit !== el && !el.contains(hit) && !hit.contains(el)) out.covered.push([sel(el), sel(hit)]);
       }
     }
-
-    // ── 3. text fields
     const typed = tag === "INPUT" ? el.type : "";
-    if (
-      tag === "TEXTAREA" ||
-      (tag === "INPUT" && ["text", "search", "number", "email", "password", "url", "tel", ""].includes(typed))
-    ) {
+    if (tag === "TEXTAREA" || (tag === "INPUT" && ["text", "search", "number", "email", "password", "url", "tel", ""].includes(typed))) {
       const fs = parseFloat(cs.fontSize);
       if (fs < 15.95) out.fonts.push([sel(el), +fs.toFixed(2)]);
     }
   }
-
-  // ── 5. the site's name, which may be anything at all
-  //
-  // The rule is a CSS one, so it is tested with a string rather than with
-  // whatever this vault happens to be called: the name is swapped for a long
-  // one, measured, and put straight back. Nothing is written anywhere.
-  const name = document.querySelector(".s-title__name");
-  const header = document.querySelector(".s-sidebar-header");
-  if (name && header) {
-    const was = name.textContent;
-    name.textContent = "Mind-INTJ/Vellum — the alchemical reading room";
-    const rn = name.getBoundingClientRect();
-    const rh = header.getBoundingClientRect();
-    out.wordmark = {
-      past: Math.round(Math.max(0, rn.right - rh.right, rh.left - rn.left)),
-      width: Math.round(rn.width),
-      header: Math.round(rh.width),
-      ellipsised: name.scrollWidth - name.clientWidth,
-    };
-    name.textContent = was;
-  }
-
-  // ── 6. the reopen strip, which belongs to a pointer
-  for (const el of document.querySelectorAll(".s-reopen")) {
-    const cs = getComputedStyle(el);
-    if (cs.display === "none" || cs.visibility === "hidden") continue;
-    const r = el.getBoundingClientRect();
-    if (r.width > 1 && r.height > 1) out.reopen.push([sel(el), Math.round(r.left), Math.round(r.width)]);
-  }
-
-  const once = (rows) => {
-    const seen = new Set();
-    return rows.filter((row) => {
-      const k = JSON.stringify(row);
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
-  };
+  const once = (rows) => [...new Set(rows.map((r) => JSON.stringify(r)))].map((s) => JSON.parse(s));
   out.overflow = once(out.overflow);
   out.small = once(out.small);
   out.fonts = once(out.fonts);
   out.covered = once(out.covered);
   return out;
-})()`;
+})`;
 
-/** THE TWO POSTURES (see the header). `finger` is Playwright's own Pixel 7,
- *  which is a device descriptor and needs no flags. `stylus` cannot be a
- *  descriptor at all: `hasTouch` makes Chromium report {coarse, hover: none}
- *  whatever the pointer flags say, so the posture is a blink setting and the
- *  context asks for neither `isMobile` nor `hasTouch` — the media queries come
- *  from the renderer instead, which is how the device itself answers them.
- *  (Blink's bitfields: pointer 2 = coarse, 4 = fine, 6 = both; hover 1 = none,
- *  2 = hover, 3 = both. A phone with an S Pen is 6/2 and 3/1.) */
-const POSTURES = [
-  {
-    name: "finger",
-    args: [],
-    context: { ...devices["Pixel 7"], viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
-  },
+/** The shapes. `touch` decides whether a press is a tap or a click. */
+const SHAPES = [
+  { name: "phone", touch: true, args: [], context: { ...devices["Pixel 7"], viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true } },
   {
     name: "stylus",
+    touch: false,
     args: ["--blink-settings=availablePointerTypes=6,primaryPointerType=2,availableHoverTypes=3,primaryHoverType=1"],
     context: { viewport: { width: 720, height: 820 }, deviceScaleFactor: 1.5, isMobile: false, hasTouch: false },
   },
+  { name: "tablet", touch: true, tablet: true, args: [], context: { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
+  { name: "tablet-land", touch: true, tablet: true, args: [], context: { viewport: { width: 1180, height: 820 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
 ];
 
 const fail = [];
@@ -284,167 +152,331 @@ function check(ok, what, detail = "") {
 }
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM });
-const browsers = [];
-const contexts = [];
-const newContext = async (opts) => {
-  const ctx = await browser.newContext(opts);
-  contexts.push(ctx);
-  return ctx;
-};
+const browsers = [browser];
 
-try {
-  // ── An admin session, or nothing worth measuring ─────────────────────────
-  const first = await newContext({ viewport: { width: 1440, height: 900 } });
-  const apiPage = await first.newPage();
-  await apiPage.goto(url, { waitUntil: "load" });
+/** Admin cookies, or nothing worth measuring. */
+async function signIn() {
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto(url, { waitUntil: "load" });
   const api = (path, init) =>
-    apiPage.evaluate(
-      async ([p, i]) => {
-        const r = await fetch(p, i ?? undefined);
-        const text = await r.text();
-        let body = text;
-        try {
-          body = JSON.parse(text);
-        } catch {
-          /* text */
-        }
-        return { status: r.status, body };
-      },
-      [path, init ?? null],
-    );
-
+    page.evaluate(async ([p, i]) => {
+      const r = await fetch(p, i ?? undefined);
+      let body = await r.text();
+      try {
+        body = JSON.parse(body);
+      } catch {
+        /* text */
+      }
+      return { status: r.status, body };
+    }, [path, init ?? null]);
   let me = (await api("/api/me")).body;
   if (!me?.admin) {
     const password = process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD ?? "";
     if (!password) {
-      console.error("check-phone: not an admin session and no ASTROLABE_PASSWORD — most surfaces would not mount.");
+      console.error("check-phone: not an admin session and no ASTROLABE_PASSWORD — most screens would not mount.");
       process.exit(1);
     }
-    const res = await api("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
+    const res = await api("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
     if (res.status !== 200) {
       console.error(`check-phone: login failed (${res.status}).`);
       process.exit(1);
     }
     me = (await api("/api/me")).body;
-    if (!me?.admin) {
-      console.error("check-phone: still not an admin after login.");
-      process.exit(1);
+  }
+  if (!me?.admin) {
+    console.error("check-phone: still not an admin after login.");
+    process.exit(1);
+  }
+  // A note and a folder to walk to: the first folder with a note in it.
+  const tree = (await api("/api/tree")).body;
+  let folder = null;
+  let note = null;
+  for (const node of tree.children ?? []) {
+    if (node.type !== "folder") continue;
+    const n = (node.children ?? []).find((c) => c.type === "file" && !c.attachment && /\.md$/.test(c.path));
+    if (n) {
+      folder = node.path;
+      note = n.path;
+      break;
     }
   }
-  const cookies = await first.cookies();
-
-  for (const posture of POSTURES) {
-  // A posture is a browser flag, so each one is its own browser.
-  const pb = posture.args.length === 0
-    ? browser
-    : await chromium.launch({ executablePath: process.env.CHROMIUM, args: posture.args });
-  if (pb !== browser) browsers.push(pb);
-  for (const lang of ["en", "ar"]) {
-    const ctx = await pb.newContext(posture.context);
-    contexts.push(ctx);
-    await ctx.addCookies(cookies);
-    // The deck and the sync poller are not what is being measured, and a
-    // modal over every surface would measure the modal ten times.
-    await ctx.addInitScript((l) => {
-      try {
-        localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
-        localStorage.setItem("astrolabe.prefs-sync-off", "1");
-        localStorage.setItem("astrolabe.editorLang", l);
-      } catch {
-        /* a private window: the defaults are fine */
-      }
-    }, lang);
-
-    const page = await ctx.newPage();
-    console.log(`\n── ${posture.name} ${lang} ───────────────────────────────`);
-
-    for (const [name, path] of SURFACES) {
-      const drawer = path.endsWith("drawer=1");
-      const reading = path.endsWith("rv=1");
-      const sheet = /\?(capture|voice)=1$/.exec(path)?.[1] ?? null;
-      await page.goto(url + path.replace(/\?(drawer|rv|capture|voice)=1$/, ""), { waitUntil: "domcontentloaded" });
-      await page.waitForTimeout(1500);
-      if (drawer) {
-        await page.evaluate(() => {
-          document.querySelector(".s-drawer-btn")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-        });
-        await page.waitForTimeout(500);
-      }
-      if (reading) {
-        await page.keyboard.press("Control+e");
-        await page.waitForTimeout(800);
-      }
-      if (sheet) {
-        await page.keyboard.press("Control+Shift+d");
-        await page.waitForSelector(".s-capture", { timeout: 10000 });
-        if (sheet === "voice") {
-          await page.click(".s-capture__mode");
-          await page.waitForSelector(".s-voice__mic", { timeout: 10000 });
-        }
-        await page.waitForTimeout(400);
-      }
-
-      const r = await page.evaluate(MEASURE);
-      await page.screenshot({ path: `${out}/phone-${posture.name}-${lang}-${name}.png` });
-
-      const tag = `${posture.name} ${lang} ${name}`;
-      check(r.docScroll === 0, `${tag}: the page does not scroll sideways`, `${r.docScroll}px of it`);
-      check(
-        r.overflow.length === 0,
-        `${tag}: nothing hangs past an edge`,
-        r.overflow.slice(0, 6).map((o) => `${o[0]} [${o[1]}…${o[2]}]`).join("\n        "),
-      );
-      check(
-        r.small.length === 0,
-        `${tag}: every shell target is 44px`,
-        r.small.slice(0, 8).map((s) => `${s[0]} ${s[1]}×${s[2]}`).join("\n        "),
-      );
-      check(
-        r.fonts.length === 0,
-        `${tag}: every field is 16px`,
-        r.fonts.slice(0, 8).map((f) => `${f[0]} ${f[1]}px`).join("\n        "),
-      );
-      check(
-        r.covered.length === 0,
-        `${tag}: no target is under another layer`,
-        r.covered.slice(0, 8).map((c) => `${c[0]} ← ${c[1]}`).join("\n        "),
-      );
-      check(
-        r.reopen.length === 0,
-        `${tag}: no reopen strip on a finger`,
-        r.reopen.map((o) => `${o[0]} at x=${o[1]}, ${o[2]}px wide`).join("\n        "),
-      );
-      // Only where the pane is actually on screen: a closed drawer is
-      // `visibility: hidden` and its header measures whatever it likes.
-      if (drawer && r.wordmark) {
-        check(
-          r.wordmark.past === 0,
-          `${tag}: a long site name stays inside the header`,
-          `${r.wordmark.width}px of name in a ${r.wordmark.header}px header, ${r.wordmark.past}px past its edge`,
-        );
-        check(
-          r.wordmark.ellipsised > 0,
-          `${tag}: a long site name ellipsises`,
-          "the name was not truncated at all — the rule has no element to act on",
-        );
-      }
-    }
-    await page.close();
+  const cookies = await ctx.cookies();
+  await ctx.close();
+  if (!folder || !note) {
+    console.error("check-phone: the vault has no folder with a note in it to walk to.");
+    process.exit(1);
   }
-  }
-} finally {
-  for (const c of contexts) await c.close().catch(() => {});
-  for (const b of browsers) await b.close().catch(() => {});
-  await browser.close();
+  return { cookies, folder, note };
 }
 
-console.log(
-  fail.length === 0
-    ? `\ncheck-phone: all green (${pass.length} checks)`
-    : `\ncheck-phone: ${fail.length} failure(s) of ${pass.length + fail.length}`,
-);
+const { cookies, folder, note } = await signIn();
+const notePermalink = "/" + note.replace(/\.md$/, "").split("/").map(encodeURIComponent).join("/");
+
+try {
+  for (const shape of SHAPES) {
+    const pb = shape.args.length === 0 ? browser : await chromium.launch({ executablePath: process.env.CHROMIUM, args: shape.args });
+    if (pb !== browser) browsers.push(pb);
+    for (const lang of ["en", "ar"]) {
+      const ctx = await pb.newContext(shape.context);
+      await ctx.addCookies(cookies);
+      await ctx.addInitScript((l) => {
+        try {
+          localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+          localStorage.setItem("astrolabe.prefs-sync-off", "1");
+          localStorage.setItem("astrolabe.editorLang", l);
+          localStorage.setItem("astrolabe.tourSeen", "1");
+        } catch {
+          /* private window */
+        }
+      }, lang);
+      const page = await ctx.newPage();
+      const errors = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      const tag = (what) => `${shape.name} ${lang}: ${what}`;
+      const press = (loc) => (shape.touch ? loc.first().tap() : loc.first().click());
+      const settle = (ms = 700) => page.waitForTimeout(ms);
+      const state = () =>
+        page.evaluate(() => ({
+          path: location.pathname,
+          title: document.title,
+          screens: [...document.querySelectorAll("[data-screen]")].map((e) => e.getAttribute("data-screen")),
+          depth: history.state?.phone?.depth ?? null,
+          sheets: history.state?.phone?.entry?.sheets ?? [],
+          sheetUp: document.querySelector(".s-ph-sheet--open") !== null,
+        }));
+      let n = 0;
+      const measure = async (name, scope = null) => {
+        n += 1;
+        await settle(250);
+        const r = await page.evaluate(`${MEASURE}(${JSON.stringify(scope)})`);
+        await page.screenshot({ path: `${out}/phone-${shape.name}-${lang}-${String(n).padStart(2, "0")}-${name}.png` });
+        const t = (what) => tag(`${name}: ${what}`);
+        check(r.docScroll === 0, t("the page does not scroll sideways"), `${r.docScroll}px of it`);
+        check(r.overflow.length === 0, t("nothing hangs past an edge"), r.overflow.slice(0, 6).map((o) => `${o[0]} [${o[1]}…${o[2]}]`).join("\n        "));
+        check(r.small.length === 0, t("every target is 44px"), r.small.slice(0, 8).map((s) => `${s[0]} ${s[1]}×${s[2]}`).join("\n        "));
+        check(r.fonts.length === 0, t("every field is 16px"), r.fonts.slice(0, 8).map((f) => `${f[0]} ${f[1]}px`).join("\n        "));
+        check(r.covered.length === 0, t("no target is under another layer"), r.covered.slice(0, 8).map((c) => `${c[0]} ← ${c[1]}`).join("\n        "));
+      };
+      const tab = (id) => press(page.locator(`.s-ph-tab[data-tab="${id}"]`));
+
+      console.log(`\n── ${shape.name} ${lang} ───────────────────────────────`);
+      await page.goto(url + "/", { waitUntil: "domcontentloaded" });
+      await settle(1600);
+
+      // ── the shell is the phone's ──────────────────────────────────────────
+      const chrome = await page.evaluate((tablet) => ({
+        phone: document.querySelector(".s-ph") !== null,
+        desktop: [".s-app", ".s-tabs", ".s-statusbar", ".s-pane-grip", ".s-sidebar", ".s-drawer-btn"].filter((s) => document.querySelector(s) !== null),
+        tablet: document.querySelector(".s-ph--tablet") !== null,
+        tabbar: document.querySelector(tablet ? ".s-ph-rail" : ".s-ph-tabs") !== null,
+      }), !!shape.tablet);
+      check(chrome.phone, tag("the phone shell is mounted"));
+      check(chrome.desktop.length === 0, tag("no desktop chrome in the document"), chrome.desktop.join(", "));
+      check(chrome.tablet === !!shape.tablet, tag(shape.tablet ? "two columns on a tablet" : "one column on a phone"));
+      check(chrome.tabbar, tag(shape.tablet ? "the navigation rail is there" : "the tab bar is there"));
+      await measure("today");
+
+      // ── Notes: a folder, then a note — the P0 as an assertion ─────────────
+      await tab("notes");
+      await settle();
+      await measure("notes");
+      await press(page.locator(`.s-ph-row[data-path="${folder}"]`));
+      await settle();
+      const inFolder = await state();
+      check(inFolder.screens.includes("notes") && (await page.locator(`[data-folder="${folder}"]`).count()) > 0, tag("a folder tap pushes the folder"));
+      await measure("folder");
+      await press(page.locator(`.s-ph-row[data-path="${note}"]`));
+      await settle(1600);
+      const onNote = await state();
+      check(onNote.path === notePermalink, tag("a tree tap changes the URL"), `${inFolder.path} → ${onNote.path}, wanted ${notePermalink}`);
+      check(onNote.title !== inFolder.title && onNote.title.length > 0, tag("a tree tap changes the title"), `${inFolder.title} → ${onNote.title}`);
+      check(onNote.screens.includes("note"), tag("the note screen is up"));
+      if (!shape.tablet) {
+        check((await page.locator(".s-ph-tabs").count()) === 0, tag("the note screen has no tab bar"));
+      }
+      await measure("note");
+
+      // ── the note sheet, and back closing it first ─────────────────────────
+      await press(page.locator(".s-ph-note .s-ph-top__actions button").last());
+      await settle();
+      const sheet = await state();
+      check(sheet.sheets.includes("note") && sheet.depth === onNote.depth + 1, tag("the note sheet takes a history entry"), JSON.stringify(sheet));
+      await measure("sheet-outline", ".s-ph-sheet");
+      for (const seg of ["backlinks", "properties", "actions"]) {
+        await press(page.locator(`.s-ph-seg__btn[data-segment="${seg}"]`));
+        await settle(450);
+        await measure(`sheet-${seg}`, ".s-ph-sheet");
+      }
+      // PUBLISH ASKS — and "no" leaves it private.
+      const publishRow = page.locator('.s-ph-actions__row[data-action="publish"]');
+      if ((await publishRow.count()) > 0) {
+        const before = await page.evaluate(async (p) => ((await (await fetch("/api/published")).json()).paths ?? []).includes(p), note);
+        await press(publishRow);
+        await settle(900);
+        const asked = await page.locator(".s-ph-ask").count();
+        check(asked > 0, tag("publish asks before it publishes"));
+        if (asked > 0) await measure("publish-ask", ".s-ph-ask");
+        await page.goBack();
+        await settle(900);
+        const after = await page.evaluate(async (p) => ((await (await fetch("/api/published")).json()).paths ?? []).includes(p), note);
+        check((await page.locator(".s-ph-ask").count()) === 0, tag("back cancels the question"));
+        check(before === after, tag("a cancelled publish publishes nothing"), `${before} → ${after}`);
+        await press(page.locator(".s-ph-note .s-ph-top__actions button").last());
+        await settle();
+      }
+      const beforeBack = await state();
+      await page.goBack();
+      await settle();
+      const closed = await state();
+      check(beforeBack.sheetUp && !closed.sheetUp && closed.path === notePermalink, tag("back closes the sheet and keeps the note"), JSON.stringify({ before: beforeBack.sheets, after: closed }));
+
+      // ── the keyboard's bar (a finger's editor) ────────────────────────────
+      if (shape.name === "phone") {
+        await page.locator(".s-ph-note .cm-content").first().tap();
+        await settle(700);
+        check((await page.locator(".s-ph-kbbar").count()) > 0, tag("the accessory bar rides the keyboard while writing"));
+        await measure("editing");
+        await press(page.locator('.s-ph-kbbar__key[data-key="hide"]'));
+        await settle(400);
+      }
+      // Reading mode: the icon names the mode the note is IN.
+      const modeBefore = await page.locator(".s-ph-note__mode").getAttribute("data-mode");
+      await press(page.locator(".s-ph-note__mode"));
+      await settle(900);
+      const modeAfter = await page.locator(".s-ph-note__mode").getAttribute("data-mode");
+      check(modeBefore !== modeAfter, tag("the mode icon flips the mode it names"), `${modeBefore} → ${modeAfter}`);
+      await measure("reading");
+      await press(page.locator(".s-ph-note__mode"));
+      await settle(500);
+
+      // ── back pops the screen ──────────────────────────────────────────────
+      await page.goBack();
+      await settle(900);
+      const popped = await state();
+      if (shape.tablet) {
+        check(!popped.screens.includes("note") && popped.screens.includes("notes"), tag("back pops the note off the column"), JSON.stringify(popped));
+      } else {
+        check(popped.screens.includes("notes") && !popped.screens.includes("note"), tag("back pops the note screen to its folder"), JSON.stringify(popped));
+      }
+
+      // ── a long press is a menu ────────────────────────────────────────────
+      await page.locator(`.s-ph-row[data-path="${note}"]`).first().dispatchEvent("contextmenu");
+      await settle(600);
+      check((await page.locator(".s-ph-actions").count()) > 0, tag("a long press raises the row's action sheet"));
+      await measure("row-actions", ".s-ph-sheet");
+      await page.goBack();
+      await settle(600);
+      check((await page.locator(".s-ph-actions").count()) === 0, tag("back closes the action sheet"));
+
+      // ── search, calendar, more ────────────────────────────────────────────
+      await tab("search");
+      await settle(900);
+      check(await page.evaluate(() => document.activeElement?.classList.contains("s-ph-search__field") ?? false), tag("the search field is focused on arrival"));
+      await page.locator(".s-ph-search__field").fill("a");
+      await settle(900);
+      await measure("search");
+      await press(page.locator('.s-ph-search .s-ph-seg__btn[data-segment="commands"]'));
+      await settle(400);
+      await measure("search-commands");
+      await tab("calendar");
+      await settle(1500);
+      await measure("calendar");
+      await press(page.locator(".s-calpage__day").nth(17));
+      await settle(900);
+      check((await state()).sheets.includes("calendar-day"), tag("a calendar day opens as a sheet with an entry"));
+      await measure("calendar-day", ".s-ph-sheet");
+      await page.goBack();
+      await settle(700);
+      check(!(await state()).sheetUp, tag("back closes the day"));
+      await tab("more");
+      await settle(700);
+      await measure("more");
+
+      // ── the legacy screens ────────────────────────────────────────────────
+      for (const [label, surface] of [
+        ["orbits", "~orbits"],
+        ["sigils", "~sigils"],
+        ["library", "~library"],
+        ["graph", "~graph"],
+      ]) {
+        await page.evaluate((s) => {
+          const rows = [...document.querySelectorAll(".s-ph-more .s-ph-row")];
+          const want = { "~orbits": 0, "~sigils": 1, "~library": 2, "~graph": 4 }[s];
+          rows[want]?.click();
+        }, surface);
+        await settle(1800);
+        const s = await state();
+        check(s.screens.includes("surface"), tag(`${label} opens as a screen`), JSON.stringify(s));
+        await measure(label);
+        await page.goBack();
+        await settle(800);
+      }
+      // Settings: a layer with a history entry of its own.
+      await page.evaluate(() => [...document.querySelectorAll(".s-ph-more .s-ph-row")].find((r) => r.textContent?.match(/Settings|الإعدادات|إعدادات/))?.click());
+      await settle(1600);
+      check((await state()).sheets.includes("layer:settings"), tag("settings takes a history entry"));
+      await measure("settings");
+      await page.goBack();
+      await settle(1000);
+      check((await page.locator(".s-smodal").count()) === 0, tag("back closes settings"));
+
+      // ── the capture sheet and its voice half (3.24.0) ─────────────────────
+      // Opened by the chord, which also proves a hardware keyboard to the
+      // phone shell; a layer with a history entry of its own. Only the
+      // sheet's own controls are measured — the page under it is inert.
+      await page.keyboard.press("Control+Shift+d");
+      const captured = await page.waitForSelector(".s-capture", { timeout: 10000 }).then(() => true, () => false);
+      check(captured, tag("the capture chord raises the capture sheet"));
+      if (captured) {
+        check((await state()).sheets.includes("layer:capture"), tag("capture takes a history entry"));
+        await measure("capture", ".s-capture");
+        const voice = page.locator(".s-capture__mode");
+        if ((await voice.count()) > 0) {
+          await voice.first().click();
+          const mic = await page.waitForSelector(".s-voice__mic", { timeout: 10000 }).then(() => true, () => false);
+          check(mic, tag("the capture sheet's voice half opens"));
+          if (mic) await measure("voice", ".s-capture");
+        }
+        await page.goBack();
+        await settle(800);
+        check((await page.locator(".s-capture").count()) === 0, tag("back closes the capture sheet"));
+      }
+
+      // ── a deep link, and back from it ─────────────────────────────────────
+      await page.goto(url + notePermalink, { waitUntil: "domcontentloaded" });
+      await settle(1800);
+      const deep = await state();
+      check(deep.screens.includes("note") && deep.path === notePermalink, tag("a deep link opens its note"), JSON.stringify(deep));
+      await page.goBack();
+      await settle(900);
+      const home = await state();
+      check(home.path === "/" && home.screens.includes("today"), tag("back from a deep link comes home to Today"), JSON.stringify(home));
+
+      check(errors.length === 0, tag("no page errors"), errors.slice(0, 4).join("\n        "));
+      await ctx.close();
+    }
+  }
+
+  // ── Classic, for one release ──────────────────────────────────────────────
+  {
+    const ctx = await browser.newContext(SHAPES[0].context);
+    await ctx.addCookies(cookies);
+    await ctx.addInitScript(() => {
+      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+      localStorage.setItem("astrolabe.prefs-sync-off", "1");
+      localStorage.setItem("astrolabe.phoneLayout", "classic");
+    });
+    const page = await ctx.newPage();
+    await page.goto(url + "/", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1600);
+    const shells = await page.evaluate(() => ({ phone: !!document.querySelector(".s-ph"), desktop: !!document.querySelector(".s-app") }));
+    check(!shells.phone && shells.desktop, "classic: Phone layout → Classic mounts the drawer shell");
+    await ctx.close();
+  }
+} finally {
+  for (const b of browsers) await b.close().catch(() => {});
+}
+
+console.log(fail.length === 0 ? `\ncheck-phone: all green (${pass.length} checks)` : `\ncheck-phone: ${fail.length} failure(s) of ${pass.length + fail.length}`);
 process.exit(fail.length === 0 ? 0 : 1);
