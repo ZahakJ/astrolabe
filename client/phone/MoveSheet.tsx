@@ -13,7 +13,7 @@ import { usePhone } from "./context.ts";
 import { IconFolder, IconPlus } from "./icons.tsx";
 import Sheet from "./Sheet.tsx";
 
-export const MOVE_SHEET = "move";
+import { MOVE_SHEET } from "./sheetIds.ts";
 
 export default function MoveSheet({ leaving }: { leaving: boolean }) {
   const phone = usePhone();

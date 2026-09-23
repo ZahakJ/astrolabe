@@ -200,7 +200,7 @@ The postures are Blink settings on the browser process (`--blink-settings=availa
 which is what `pointer_device_win.cc` itself hands the renderer — not DevTools media emulation,
 which `setViewportSize` silently drops halfway down a ladder.
 
-**Since 3.25.0 the ladder runs in the Classic phone layout**, because its drawer cells measure the
+**Since 3.26.0 the ladder runs in the Classic phone layout**, because its drawer cells measure the
 drawer shell; a last rung, `whichShell`, walks each posture down the widths under the default layout
 and asserts the phone shell below 700 and on a slate at every width, and the desktop — unmoved —
 everywhere else.

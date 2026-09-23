@@ -30,7 +30,7 @@ import { toast } from "../../toast.ts";
 import { actionToast } from "../../undoToast.ts";
 import { orbitsTabFor, ROUTINES_TAB } from "../../workspace.ts";
 import { usePhone } from "../context.ts";
-import { IconCheck, IconChevron, IconFile, IconSend } from "../icons.tsx";
+import { IconCheck, IconChevron, IconFile, IconMic, IconSend } from "../icons.tsx";
 import TopBar from "../TopBar.tsx";
 
 const VAULT_EVENT = "astrolabe:vault";
@@ -92,9 +92,17 @@ function CaptureField() {
         disabled={busy}
         enterKeyHint="send"
       />
-      <button type="submit" className="s-ph-icon s-ph-capture__send" aria-label={t("captureSend")} disabled={busy || text.trim() === ""}>
-        <IconSend />
-      </button>
+      {text.trim() === "" ? (
+        // An empty field offers the other way in: a voice note, through the
+        // capture sheet's own recorder (the palette's "Voice note").
+        <button type="button" className="s-ph-icon s-ph-capture__send" aria-label={t("cmdVoiceNote")} onClick={() => useStore.getState().openVoiceNote()}>
+          <IconMic />
+        </button>
+      ) : (
+        <button type="submit" className="s-ph-icon s-ph-capture__send" aria-label={t("captureSend")} disabled={busy}>
+          <IconSend />
+        </button>
+      )}
     </form>
   );
 }

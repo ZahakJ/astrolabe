@@ -183,7 +183,8 @@ something up in Search, and going back to Notes finds the folder where you left 
 you are already in takes it back to its start.
 
 - **Today** is the home screen: a field at the top that captures a line into today's note (the same
-  capture as [quick capture](capture.md)), today's note itself, every Sigil task due today as a row
+  capture as [quick capture](capture.md); while it is empty its button is a microphone for a voice
+  note), today's note itself, every Sigil task due today as a row
   you tick in place, every Orbits deck with cards due as a row that starts the session, and the last
   notes you were in.
 - **Notes** is the vault, one folder per screen: rows a thumb can hit, each folder with its count and

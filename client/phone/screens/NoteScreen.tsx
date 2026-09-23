@@ -21,10 +21,10 @@ import { t } from "../../i18n.ts";
 import { lazySurface } from "../../lazySurface.tsx";
 import { useStore } from "../../state.ts";
 import { activeTabOf, paneAt, surfaceOf } from "../../workspace.ts";
-import { ACTION_SHEET, type ActionRow } from "../ActionSheet.tsx";
+import type { ActionRow } from "../ActionSheet.tsx";
 import { usePhone } from "../context.ts";
 import { IconDots, IconPencil, IconReader } from "../icons.tsx";
-import { NOTE_SHEET } from "../NoteSheet.tsx";
+import { ACTION_SHEET, NOTE_SHEET } from "../sheetIds.ts";
 import TopBar from "../TopBar.tsx";
 
 const AccessoryBar = lazySurface(() => import("../AccessoryBar.tsx"));

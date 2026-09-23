@@ -295,7 +295,7 @@ async function ladder({ dpr, posture, rtl, seeded }) {
     {
       // THE LADDER MEASURES THE DESKTOP'S SHELL AT EVERY WIDTH, including the
       // drawer cells below 700 (and a slate's below 1000), so it runs in the
-      // Classic phone layout — the shell those cells had until 3.25.0 and
+      // Classic phone layout — the shell those cells had until 3.26.0 and
       // still have for a reader who picks it. Which shell a cell gets under
       // the default (New) layout is the `whichShell` rung below.
       "astrolabe.phoneLayout": "classic",
@@ -397,7 +397,7 @@ async function phoneDrawer() {
     try {
       localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
       localStorage.setItem("astrolabe.prefs-sync-off", "1");
-      // The drawer is the Classic phone layout's (3.25.0).
+      // The drawer is the Classic phone layout's (3.26.0).
       localStorage.setItem("astrolabe.phoneLayout", "classic");
     } catch {
       // a context with storage blocked still renders the defaults
@@ -469,7 +469,7 @@ async function readerFold({ width }) {
   await ctx.close();
 }
 
-/** WHICH SHELL, UNDER THE DEFAULT LAYOUT (3.25.0). The phone shell
+/** WHICH SHELL, UNDER THE DEFAULT LAYOUT (3.26.0). The phone shell
  *  (client/phone/) is mounted wherever PHONE_SHELL_QUERY matches — every
  *  pointer below 700, and a finger that cannot hover at any width — and
  *  NOWHERE ELSE: the desktop a mouse or a touch laptop gets above 700 must

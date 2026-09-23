@@ -8,7 +8,7 @@
 //                                rather than "passing".
 // Exits 1 on any miss. Run it like check-fidelity / check-a11y.
 //
-// WHY IT WAS REWRITTEN (3.25.0). The gate this replaces measured four
+// WHY IT WAS REWRITTEN (3.26.0). The gate this replaces measured four
 // properties — 44px targets, 16px fields, nothing sideways, nothing covered —
 // across ten surfaces, two languages and two postures, and it was green on
 // the day the audit found that a tap on a note in the phone's drawer OPENED

@@ -124,6 +124,11 @@ const blog = closure(keyFor("blog/BlogShell.tsx") ?? "blog/BlogShell.tsx", new S
 // gate reported OK. A budget that can be satisfied by making a surface
 // unfindable is not a budget.
 const app = APP_SHELL_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc), new Set(entry));
+// The phone shell's audience (client/phone/): what a phone downloads before its
+// first screen. Measured on its own so a desktop import that drifts into the
+// phone's closure — or the phone's into a desktop's — is a number that moves.
+const PHONE_ROOTS = ["phone/PhoneShell.tsx", "phone/screens/TodayScreen.tsx"];
+const phone = PHONE_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc), new Set(entry));
 
 // ── the budgets, and why they are the numbers they are ──────────────────────
 //
@@ -331,6 +336,8 @@ const app = APP_SHELL_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc
 // shell, which is the honest price of keeping the mapping in CSS where a theme
 // switch can repaint it live; an admin who never opens the public site pays
 // nothing.
+// 935.3 kB measured at 3.26.0 — 178 kB under the desktop admin's first paint.
+const PHONE_BUDGET = 940 * 1024;
 const AUDIENCES = [
 // RE-BASELINED for NOTE HISTORY (529.4 kB actual → budget 532, actual +
 // ~0.5%). This round is the safety net the rest of the slate stands on — git
@@ -897,7 +904,21 @@ const AUDIENCES = [
   // NearbyPanel's), outside this budget.
   // 3.25.0 MERGE: ask the vault and voice notes land on one main (850.4 kB actual → 851);
   // each was measured alone on its branch. No new cause.
-{ name: "entry (everyone)", keys: entry, budget: 851 * 1024 },
+  // 3.26.0 THE PHONE SHELL: main measured 850.4 kB here; this branch 857.7 kB,
+  // +7.3 kB, measured against a build of main (scratchpad entry diff):
+  //   +~4.1 kB  the dictionary's ~75 keys for the phone shell — its tab bar,
+  //             the note sheet, the accessory keys, Today, More, the publish
+  //             question and the Phone layout row — in both languages, because
+  //             `t()` reads one object on every surface: the by-language split
+  //             named below is still the recovery for this share.
+  //   +~3.2 kB  the SEAM, which has to be first-paint because it decides which
+  //             shell paints: main.tsx's shell chooser (the query, its change
+  //             listener, the Classic key), the store's phone rules
+  //             (`phoneWorkspace`, the persistence refusals, `lastRemap`),
+  //             prefsSync's NEVER_TRAVELS, and Confirm's host registration.
+  //             The phone shell itself — screens, sheets, nav, phone.css — is a
+  //             lazy chunk a desktop never requests (the phone audience below).
+{ name: "entry (everyone)", keys: entry, budget: 858 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1224,7 +1245,22 @@ const AUDIENCES = [
   // through; the blog shell draws no ask door.
   // 3.25.0 MERGE: ask the vault and voice notes land on one main (1148.4 kB actual → 1149);
   // each was measured alone on its branch. No new cause.
-{ name: "anonymous blog reader", keys: blog, budget: 1149 * 1024 },
+  // 3.26.0 THE PHONE SHELL: main measured 1148.4 kB here; this branch 1156.1 kB,
+  // +7.7 kB: the entry's 7.3 below (this closure contains it) and 0.4 of
+  // chunk overhead. Measured against a build of main:
+  //   +~4.1 kB  the dictionary's ~75 keys for the phone shell — its tab bar,
+  //             the note sheet, the accessory keys, Today, More, the publish
+  //             question and the Phone layout row — in both languages, because
+  //             `t()` reads one object on every surface: the by-language split
+  //             named below is still the recovery for this share.
+  //   +~3.2 kB  the SEAM, which has to be first-paint because it decides which
+  //             shell paints: main.tsx's shell chooser (the query, its change
+  //             listener, the Classic key), the store's phone rules
+  //             (`phoneWorkspace`, the persistence refusals, `lastRemap`),
+  //             prefsSync's NEVER_TRAVELS, and Confirm's host registration.
+  //             The phone shell itself — screens, sheets, nav, phone.css — is a
+  //             lazy chunk a desktop never requests (the phone audience below).
+{ name: "anonymous blog reader", keys: blog, budget: 1157 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1470,7 +1506,29 @@ const AUDIENCES = [
   // rows, the ⋯ row, the store's askOpen and the lazy boundary in App.tsx.
   // 3.25.0 MERGE: ask the vault and voice notes land on one main (1105.5 kB actual → 1106);
   // each was measured alone on its branch. No new cause.
-  { name: "admin first paint", keys: app, budget: 1106 * 1024 },
+  // 3.26.0 THE PHONE SHELL: main measured 1105.5 kB here; this branch 1113.4 kB,
+  // +7.9 kB: the entry's 7.3 below, and 0.6 for the pane's surface switch
+  // standing in a chunk of its own (components/PaneSurface.tsx, shared with
+  // the phone shell). Measured against a build of main:
+  //   +~4.1 kB  the dictionary's ~75 keys for the phone shell — its tab bar,
+  //             the note sheet, the accessory keys, Today, More, the publish
+  //             question and the Phone layout row — in both languages, because
+  //             `t()` reads one object on every surface: the by-language split
+  //             named below is still the recovery for this share.
+  //   +~3.2 kB  the SEAM, which has to be first-paint because it decides which
+  //             shell paints: main.tsx's shell chooser (the query, its change
+  //             listener, the Classic key), the store's phone rules
+  //             (`phoneWorkspace`, the persistence refusals, `lastRemap`),
+  //             prefsSync's NEVER_TRAVELS, and Confirm's host registration.
+  //             The phone shell itself — screens, sheets, nav, phone.css — is a
+  //             lazy chunk a desktop never requests (the phone audience below).
+  { name: "admin first paint", keys: app, budget: 1114 * 1024 },
+  // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
+  // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
+  // other screens, the note screen and the editor behind it are each a lazy
+  // boundary, warmed at idle rather than downloaded before the first paint.
+  // Budget = actual + ~0.5%.
+  { name: "phone first paint", keys: phone, budget: PHONE_BUDGET },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1618,6 +1676,18 @@ const fail = (msg) => {
 };
 
 console.log("check-bundle: first-paint budgets\n");
+// THE PHONE NEVER DOWNLOADS THE DESKTOP'S CHROME. The sidebar, the tab strip,
+// the status bar and the pane grid are lazy surfaces of App.tsx; a static
+// import of any of them from client/phone/ (check-shell-seam refuses it at the
+// source) would put them in the phone's first request.
+const DESKTOP_CHROME = /components\/(Sidebar|Tabs|StatusBar|Workspace|BacklinksPanel)\.tsx$/;
+for (const key of phone) {
+  if (DESKTOP_CHROME.test(key) || DESKTOP_CHROME.test(manifest[key]?.src ?? "")) {
+    console.error(`  FAIL  the desktop's chrome is in "phone first paint" via ${key}`);
+    process.exitCode = 1;
+  }
+}
+
 for (const audience of AUDIENCES) {
   const files = filesOf(audience.keys);
   const size = bytes(files);

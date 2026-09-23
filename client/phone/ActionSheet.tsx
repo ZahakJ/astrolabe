@@ -15,7 +15,9 @@ export interface ActionRow {
   note?: string;
 }
 
-export const ACTION_SHEET = "actions";
+import { ACTION_SHEET } from "./sheetIds.ts";
+
+export { ACTION_SHEET };
 
 /** Open the shell's action sheet with these rows. */
 export function useActionSheet(): (title: string, rows: ActionRow[]) => void {

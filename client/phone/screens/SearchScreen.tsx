@@ -45,6 +45,9 @@ const DESKTOP_ONLY = new Set([
   "reveal-in-tree",
   "collapse-folders",
   "expand-folders",
+  // Flips the SIDEBAR's search box into meaning mode; the phone has no
+  // sidebar, and "Ask the vault" is the row that answers here.
+  "search-meaning",
 ]);
 const KEYBOARD_ONLY = new Set(["toggle-vim", "zen-mode", "shortcuts"]);
 

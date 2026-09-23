@@ -1441,7 +1441,7 @@ says, so the fold's open state is measured, not styled. Progress (`astrolabe.lib
 and never sent: read paths, not numbers, so a unit added in the middle shifts nothing. The pages
 are one lazy chunk; only the door, the band and the covers ride with the blog first paint.
 
-## The phone shell (`client/phone/`, `client/shellQuery.ts`, 3.25.0)
+## The phone shell (`client/phone/`, `client/shellQuery.ts`, 3.26.0)
 
 The one contract for Astrolabe on a phone or a mouse-less tablet. The paragraphs elsewhere in this
 file about the notes DRAWER, the ☰, the back-gesture guard and the touch shell's overrides describe
@@ -1711,7 +1711,7 @@ stays on `.s-panel--collapsed`, as it always did.
   Measured after, `.cm-line` at 1600/1440/1366/1360/1359/1280/1200/1100/1024/1000/999/900/820/768/700/699/640/480/390,
   en and ar, defaults only: 648 at every width from 768 up, then 597/546/409/333 — **monotone
   non-decreasing in both languages**, document horizontal overflow 0 at every one.
-- **THE DRAWER SHELL IN THE BULLETS BELOW IS THE CLASSIC PHONE LAYOUT.** *Classic phone layout since 3.25.0 — the default phone contract is [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3250).* The drawer, the ☰, the
+- **THE DRAWER SHELL IN THE BULLETS BELOW IS THE CLASSIC PHONE LAYOUT.** *Classic phone layout since 3.26.0 — the default phone contract is [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260).* The drawer, the ☰, the
   back-gesture guard and the touch shell's overrides hold for `Phone layout: Classic` only.
 - **One gesture per pane, whichever shell is on screen.** `toggleSidebar()` (state.ts) routes to
   `setSidebarOpen` below `DRAWER_QUERY` (`max-width: 999px`, the single copy of that number in
@@ -1738,7 +1738,7 @@ stays on `.s-panel--collapsed`, as it always did.
   status-bar buttons 44 (bar 45), document overflow 0. Before: 28 / 26 / 24 / 17–24 — the round
   that gave the empty state its tap targets had fixed the pane it named and not the surface that
   pane points at.
-- *(3.25.0: check-phone now drives the phone shell; see [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3250).)*
+- *(3.26.0: check-phone now drives the phone shell; see [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260).)*
 - **…AND 44px IS MEASURED, NOT DECLARED** (`scripts/check-phone.mjs`, 3.18.0). The rule above
   named five selectors and the shell has hundreds. A phone audit found thirty-three places it had
   never reached — the top cluster at 40×36, the drawer's three section headers at 18, the graph's
@@ -3414,7 +3414,7 @@ answer. **Anything new that covers the viewport goes below 500** — the trash b
 
 ### The stacking ladder (`--z-*`, `client/styles/tokens.css`)
 
-The phone shell's sheets sit at `--z-panel` and its questions at `--z-confirm` — [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3250).
+The phone shell's sheets sit at `--z-panel` and its questions at `--z-confirm` — [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260).
 
 Every rung lives in `:root` with the reason beside it, and **no z-index at or above 300 may be
 written as a literal anywhere in `client/styles`** — `check-a11y` rule 7 fails one that is, unless
@@ -11632,7 +11632,7 @@ by omission. Fixing the bug means rewriting that test, which is the intended wor
 
 ## 3.23.0 — the phone, native
 
-*Classic phone layout since 3.25.0 — the default phone contract is [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3250).* Everything in this section is about the drawer shell.
+*Classic phone layout since 3.26.0 — the default phone contract is [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260).* Everything in this section is about the drawer shell.
 
 The owner, over a photograph of a friend's Android screen: *"ui for his name is like broken?? Def
 need to make phone app be more native ngl. It kinda sucks currently. One thing I personally hate

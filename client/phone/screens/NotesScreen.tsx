@@ -28,7 +28,7 @@ import { isBookPath } from "../../workspace.ts";
 import { useActionSheet, type ActionRow } from "../ActionSheet.tsx";
 import { usePhone } from "../context.ts";
 import { IconBook, IconChevron, IconFile, IconFolder, IconPlus, IconSort } from "../icons.tsx";
-import { MOVE_SHEET } from "../MoveSheet.tsx";
+import { MOVE_SHEET } from "../sheetIds.ts";
 import { publishWithConfirmation } from "../publish.ts";
 import type { Screen } from "../nav.ts";
 import TopBar from "../TopBar.tsx";
