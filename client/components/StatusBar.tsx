@@ -17,6 +17,7 @@ import { getNote } from "../api.ts";
 import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
+import { confirmModal } from "./Confirm.tsx";
 import { DRAWER_QUERY, PHONE_QUERY, useStore } from "../state.ts";
 import { activeTabOf, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, paneAt, surfaceOf, type PaneSurface } from "../workspace.ts";
 import { titleOf } from "./Tabs.tsx";
@@ -1092,7 +1093,27 @@ export default function StatusBar() {
               openPublished ? " s-statusbar__pub--on" : ""
             }`}
             aria-pressed={openPublished === true}
-            onClick={() => void togglePublish(openPath)}
+            onClick={() => {
+              // CLASSIC ON A FINGER ASKS FIRST (3.26.1). The phone shell's
+              // Publish confirms (client/phone/publish.ts); the Classic layout
+              // it replaces put the same verb one thumb-width from the mode
+              // pill and published on contact. Same question, same words (the
+              // shell seam forbids importing the phone's module here). A mouse
+              // and Ctrl/Cmd+Shift+P still publish in one step.
+              if (!openPublished && window.matchMedia("(pointer: coarse) and (hover: none)").matches) {
+                const name = noteLabelOf(openPath.slice(openPath.lastIndexOf("/") + 1));
+                void confirmModal({
+                  title: tf("phPublishAsk", { name }),
+                  body: t("phPublishBody"),
+                  confirmLabel: t("publish"),
+                  accent: true,
+                }).then((ok) => {
+                  if (ok) void togglePublish(openPath, true);
+                });
+                return;
+              }
+              void togglePublish(openPath);
+            }}
             title={t(openPublished ? "unpublishTitle" : "publishTitle")}
           >
             <span className="s-statusbar__pubstar" aria-hidden="true">
