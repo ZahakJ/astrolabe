@@ -45,6 +45,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "device", label: "rowScreenDim", hint: "hintScreenDim" },
   { tab: "device", label: "rowEditorLanguage", hint: "hintEditorLanguage" },
   { tab: "device", label: "rowSidebarSide", hint: "hintSidebarSide" },
+  { tab: "device", label: "rowPhoneLayout", hint: "hintPhoneLayout" },
   { tab: "device", label: "rowEditorWidth", hint: "hintEditorWidth" },
   { tab: "device", label: "editorWidthCustom" },
   { tab: "device", label: "rowVimKeys", hint: "hintVimKeys" },

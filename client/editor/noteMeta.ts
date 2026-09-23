@@ -3,7 +3,7 @@
 // renderer (first-paint chunk). No CodeMirror imports here.
 
 import { bannerSrc, resolveBanner } from "../banner.ts";
-import { localeNum, t, tf } from "../i18n.ts";
+import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { layoutBadge, siteTextLayout } from "../textLayout.ts";
 import { parseNoteLayout, resolveNoteLayout } from "../../shared/textLayout.ts";
 import { uncomment } from "../../shared/yaml.ts";
@@ -279,7 +279,14 @@ export function buildPropsCard(yaml: string, opts: PropsCardOpts): HTMLElement |
   trigger.setAttribute("role", "button");
   trigger.tabIndex = 0;
   trigger.setAttribute("aria-expanded", String(!collapsed));
-  trigger.append(chevron, label);
+  // THE COUNT, for the phone shell's one-line card ("3 properties ›",
+  // client/phone/phone.css). Hidden here and on the desktop, where the
+  // owner's rule stands: the word alone, never a tally beside it.
+  const count = document.createElement("span");
+  count.className = `${p}__count`;
+  count.hidden = true;
+  count.textContent = countPhrase(rows.length, "properties");
+  trigger.append(chevron, label, count);
   head.append(trigger);
 
   // A NOTE THAT LAYS ITSELF OUT DIFFERENTLY SAYS SO, HERE FIRST.

@@ -33,8 +33,23 @@ describe("the settings index", () => {
     // The 3.15 re-cut exists because Publishing ran to twenty-one rows while
     // Identity and Typography held five each. A tab nobody scrolls to the end
     // of is a tab whose rows may as well not exist; this pins the shape.
+    //
+    // Counted as ONE DEVICE sees the tab: the desktop app's own rows (its
+    // name, icon, launcher, updates) and the phone's layout row (3.25.0) are
+    // drawn on different devices and never share a screen, so a tab carries
+    // the larger of the two groups, not their sum.
+    const DESKTOP_APP = new Set(["rowAppName", "rowAppIcon", "rowAppLauncher", "rowAppLauncherWin", "rowUpdates"]);
+    const PHONE_ONLY = new Set(["rowPhoneLayout"]);
     const counts = new Map<string, number>();
-    for (const e of SETTINGS_INDEX) counts.set(e.tab, (counts.get(e.tab) ?? 0) + 1);
+    const exclusive = new Map<string, { desktop: number; phone: number }>();
+    for (const e of SETTINGS_INDEX) {
+      const x = exclusive.get(e.tab) ?? { desktop: 0, phone: 0 };
+      if (DESKTOP_APP.has(e.label)) x.desktop += 1;
+      else if (PHONE_ONLY.has(e.label)) x.phone += 1;
+      else counts.set(e.tab, (counts.get(e.tab) ?? 0) + 1);
+      exclusive.set(e.tab, x);
+    }
+    for (const [tab, x] of exclusive) counts.set(tab, (counts.get(tab) ?? 0) + Math.max(x.desktop, x.phone));
     for (const [tab, n] of counts) {
       assert.ok(n <= 18, `${tab} carries ${n} rows`);
       assert.ok(n >= 5, `${tab} carries only ${n} rows`);

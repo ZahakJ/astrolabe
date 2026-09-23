@@ -68,6 +68,18 @@ export const TRAVELLING_KEYS = [
 ];
 const TRAVELS = new Set(TRAVELLING_KEYS);
 
+/** KEYS THAT MUST NEVER TRAVEL, whatever the allowlist above comes to say.
+ *  The allowlist is the policy; this is the guard on it, for the few keys
+ *  whose travelling would be a bug on another device rather than a surprise:
+ *  the WORKSPACE and its older tab list (a phone that opened one note would
+ *  hand the desktop a one-note window — the phone shell never writes them at
+ *  all, client/state.ts `workspacePersists`, and this is the second lock on
+ *  the same door), and the phone-layout choice, which is a property of the
+ *  screen in the hand (client/shellQuery.ts). `tests/prefs.test.ts` holds the
+ *  two lists apart. */
+export const NEVER_TRAVELS: readonly string[] = ["workspace", "tabs", "phoneLayout"];
+const NEVER = new Set(NEVER_TRAVELS);
+
 interface Entry {
   v: string | null;
   t: number;
@@ -94,7 +106,9 @@ export function setPrefsSyncEnabled(on: boolean): void {
 }
 
 export function travels(key: string): boolean {
-  return key.startsWith(STORAGE_PREFIX) && TRAVELS.has(key.slice(STORAGE_PREFIX.length));
+  if (!key.startsWith(STORAGE_PREFIX)) return false;
+  const name = key.slice(STORAGE_PREFIX.length);
+  return TRAVELS.has(name) && !NEVER.has(name);
 }
 
 function readStamps(): Record<string, number> {
@@ -171,6 +185,7 @@ function unstampedLocal(): PrefMap {
   const out: PrefMap = {};
   const now = Date.now();
   for (const name of TRAVELS) {
+    if (NEVER.has(name)) continue;
     const k = STORAGE_PREFIX + name;
     if (stamps[k] !== undefined) continue;
     const v = localStorage.getItem(k);

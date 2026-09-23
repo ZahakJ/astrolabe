@@ -126,7 +126,7 @@ function ensureTex(path: string): string {
 // ---------------------------------------------------------------------------
 
 /** What a command needs to know to decide whether it applies right now. */
-interface CommandCtx {
+export interface CommandCtx {
   openPath: string | null;
   admin: boolean;
   authProtected: boolean;
@@ -147,7 +147,7 @@ interface CommandCtx {
   hasTwin: boolean;
 }
 
-interface Command {
+export interface Command {
   id: string;
   // Label and hint are thunks, not strings: COMMANDS is a module-level table
   // built once at import, while the chrome language can change at runtime.
@@ -164,7 +164,7 @@ interface Command {
   available: (ctx: CommandCtx) => boolean;
 }
 
-const COMMANDS: Command[] = [
+export const COMMANDS: Command[] = [
   {
     id: "new-note",
     label: () => t("newNote"),
@@ -981,6 +981,385 @@ interface Mode {
 // Component
 // ---------------------------------------------------------------------------
 
+/** RUN A COMMAND OF THE TABLE, from wherever the reader picked it.
+ *
+ *  The body of the palette's own `runCommand`, lifted out of the component so
+ *  a second surface can offer the same table: the phone shell's Search tab
+ *  lists COMMANDS as rows (client/phone/screens/SearchScreen.tsx) and runs
+ *  them through here, which is what keeps "the palette's commands" one list
+ *  on both shells. Prompt commands and saved layouts are the caller's — the
+ *  palette switches into its prompt mode, the phone asks with a sheet. */
+export function runPaletteCommand(command: Command): void {
+  const store = useStore.getState();
+  switch (command.id) {
+    case "new-unique-note":
+      void createUniqueNote();
+      break;
+    case "yesterday-note":
+      void openPeriodicNote("day", -1);
+      break;
+    case "search-meaning":
+      // The sidebar owns the box; it flips its mode and takes focus.
+      window.dispatchEvent(new CustomEvent("astrolabe:search-meaning"));
+      break;
+    case "tomorrow-note":
+      void openPeriodicNote("day", 1);
+      break;
+    case "weekly-note":
+      void openPeriodicNote("week", 0);
+      break;
+    case "monthly-note":
+      void openPeriodicNote("month", 0);
+      break;
+    case "yearly-note":
+      void openPeriodicNote("year", 0);
+      break;
+    case "random-note": {
+      const all = collectNotes(store.tree).map((n) => n.path).filter((p) => p !== store.openPath);
+      if (all.length > 0) store.openNote(all[Math.floor(Math.random() * all.length)]);
+      break;
+    }
+    case "daily-note":
+      void openDailyNote();
+      break;
+    case "quick-capture":
+      store.setCaptureOpen(true);
+      break;
+    case "voice-note":
+      store.openVoiceNote();
+      break;
+    case "twin-switch":
+      switchToTwin();
+      break;
+    case "twin-beside":
+      openTwinBeside();
+      break;
+    case "twin-create":
+      void createTwinFlow();
+      break;
+    case "new-folder":
+      // Root, not the open note's folder: "New folder" from a global
+      // surface means a folder in the vault, and promptNewFolder's own
+      // field takes a path, so `ideas/2026` is still one keystroke away.
+      void promptNewFolder("");
+      break;
+    case "new-drawing": {
+      // Beside the open note; with none open, the drawings folder (or root).
+      const open = store.openPath;
+      void promptNewDrawing(open === null ? store.drawingsFolder : !open.includes("/") ? "" : open.slice(0, open.lastIndexOf("/")));
+      break;
+    }
+    case "reveal-in-tree": {
+      const open = store.openPath;
+      if (open === null) break;
+      // SHOW THE PANE FIRST. The tree scrolls the row into the middle of a
+      // pane that may be zero-width or off-screen, and "reveal" into a
+      // collapsed sidebar is the same nothing as no command at all. The
+      // dispatch waits a frame so the tree has re-laid-out before it
+      // measures where to scroll.
+      if (sidebarIsDrawer()) store.setSidebarOpen(true);
+      else store.setSidebarCollapsed(false);
+      requestAnimationFrame(() =>
+        window.dispatchEvent(new CustomEvent(TREE_REVEAL_EVENT, { detail: { path: open } })),
+      );
+      break;
+    }
+    case "find-in-note":
+      // A frame later: the palette unmounts on `close()` below and hands
+      // focus back to whatever opened it (useDialog), which would land
+      // squarely on top of the find field we are about to open.
+      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(FIND_IN_NOTE_EVENT)));
+      break;
+    case "split-pane":
+      if (!store.splitFocusedPane("inline")) toast(t("paneCapReached"));
+      break;
+    case "split-pane-down":
+      if (!store.splitFocusedPane("block")) toast(t("paneCapReached"));
+      break;
+    case "close-pane":
+      store.closeFocusedPane();
+      break;
+    case "focus-next-pane": {
+      const order = panesInOrder(store.workspace);
+      const at = order.findIndex((p) => p.id === store.workspace.focus);
+      const next = order[(at + 1) % order.length];
+      if (next) {
+        store.focusPane(next.id);
+        // Put the caret where the eye just went — the same courtesy the
+        // directional pane walk pays (Workspace.tsx), and without it the
+        // reader has focused a pane they then have to click into.
+        requestAnimationFrame(() => {
+          document
+            .querySelector<HTMLElement>(`[data-pane="${next.id}"] .cm-content`)
+            ?.focus();
+        });
+      }
+      break;
+    }
+    case "duplicate-current":
+      if (store.openPath) void duplicateNote(store.openPath);
+      break;
+    case "copy-note-link":
+      if (store.openPath) copyNoteLink(store.openPath);
+      break;
+    case "bookmark-note":
+      if (store.openPath) {
+        const path = store.openPath;
+        toggleBookmark(path)
+          .then((on) => toast(t(on ? "bookmarkAdded" : "bookmarkRemoved")))
+          .catch(() => toast(t("bookmarkFailed"), "error"));
+      }
+      break;
+    case "restore-layout":
+      void import("./LayoutPicker.tsx").then((m) => m.openLayoutPicker());
+      break;
+    case "copy-block-link":
+      // The editor answers (Editor.tsx), after the palette has closed and
+      // focus is back where the caret is — the find-in-note shape.
+      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(COPY_BLOCK_LINK_EVENT)));
+      break;
+    case "print-note":
+      // Dynamic, and it has to be: client/print.ts renders a note through
+      // the markdown renderer, and a static import here would drag the
+      // whole renderer into the palette's chunk — which is in the admin's
+      // first paint. The module is already loaded whenever a document
+      // surface is mounted (it registers the `beforeprint` handler from
+      // there), so this import is normally a resolved promise.
+      void import("../print.ts").then((mod) => mod.printNote());
+      break;
+    case "theme-flip":
+      store.toggleTheme();
+      break;
+    case "collapse-folders":
+      window.dispatchEvent(new CustomEvent("astrolabe:tree-all", { detail: { open: false } }));
+      break;
+    case "expand-folders":
+      window.dispatchEvent(new CustomEvent("astrolabe:tree-all", { detail: { open: true } }));
+      break;
+    case "pop-out": {
+      const open = useStore.getState().openPath;
+      if (open !== null) popOutNote(open);
+      break;
+    }
+    case "insert-table":
+      void insertTableCommand();
+      break;
+    case "table-row-above":
+      tableCommand("rowAbove");
+      break;
+    case "table-row-below":
+      tableCommand("rowBelow");
+      break;
+    case "table-col-before":
+      tableCommand("colBefore");
+      break;
+    case "table-col-after":
+      tableCommand("colAfter");
+      break;
+    case "table-edit-source":
+      tableCommand("editSource");
+      break;
+    case "insert-template":
+      void insertTemplateCommand();
+      break;
+    case "new-from-template":
+      void newNoteFromTemplateCommand();
+      break;
+    case "toggle-graph":
+      store.toggleGraph();
+      break;
+    case "open-media":
+      store.toggleMedia();
+      break;
+    case "open-library":
+      store.openLibrary();
+      break;
+    case "open-routines":
+      store.toggleRoutines();
+      break;
+    case "open-calendar":
+      store.toggleCalendar();
+      break;
+    case "review-week":
+      store.setView("review-week");
+      break;
+    case "open-orbits":
+      store.toggleOrbits();
+      break;
+    case "study-due":
+    case "new-deck":
+    case "import-deck":
+      // The shelf answers: it opens the first due session, or the modal
+      // on the tab asked for. Dispatched after the open so a shelf that
+      // is only now mounting still hears it (it replays the last ask).
+      store.openOrbits(null);
+      askOrbits(command.id === "study-due" ? "study" : command.id === "new-deck" ? "new" : "import");
+      break;
+    case "whats-new":
+      openWhatsNew();
+      break;
+
+    case "export":
+      openExportDialog();
+      break;
+    case "toggle-reading":
+      store.toggleReading();
+      if (store.view !== "editor") store.setView("editor");
+      break;
+    case "toggle-vim":
+      store.toggleVim();
+      break;
+    case "warm-screen":
+      toggleWarmth();
+      break;
+    case "zen-mode":
+      store.setZen(!store.zen);
+      break;
+    case "shortcuts":
+      store.setShortcutsOpen(true);
+      break;
+    case "take-the-tour":
+      openTour();
+      break;
+    case "theme-picker":
+      openThemePicker();
+      break;
+    case "toggle-sidebar":
+      store.toggleSidebar();
+      break;
+    case "toggle-panel":
+      store.setPanelCollapsed(!store.panelCollapsed);
+      break;
+    case "toggle-selection-toolbar":
+      setSelectionToolbarEnabled(!selectionToolbarEnabled());
+      break;
+    case "sidebar-side-auto":
+      store.setSidebarSidePref("auto");
+      break;
+    case "sidebar-side-left":
+      store.setSidebarSidePref("left");
+      break;
+    case "sidebar-side-right":
+      store.setSidebarSidePref("right");
+      break;
+    case "editor-lang-follow":
+      store.setEditorLang(null);
+      break;
+    case "editor-lang-en":
+      store.setEditorLang("en");
+      break;
+    case "editor-lang-ar":
+      store.setEditorLang("ar");
+      break;
+    case "move-current":
+      if (store.openPath) {
+        const path = store.openPath;
+        void moveViaPicker({
+          path,
+          name: path.slice(path.lastIndexOf("/") + 1),
+          isFolder: false,
+        });
+      }
+      break;
+    case "delete-current":
+      // Literally the same call the tree row makes (components/
+      // deleteFlow.ts). A command must not be the harsher gesture merely
+      // because it was reached from the palette, and the only way to
+      // guarantee that forever is for there to be one implementation of
+      // it — two copies of the same dialog is what let the palette hint
+      // say "irreversible" over a move to .trash.
+      if (store.openPath) void confirmDeleteNote(store.openPath);
+      break;
+    case "publish-note":
+      if (store.openPath) void store.togglePublish(store.openPath, true);
+      break;
+    case "unpublish-note":
+      if (store.openPath) void store.togglePublish(store.openPath, false);
+      break;
+    case "set-banner":
+      if (store.openPath) store.setBannerModalOpen(true);
+      break;
+    case "remove-banner":
+      if (store.openPath) void store.setBanner(store.openPath, null);
+      break;
+    case "open-trash":
+      store.setTrashOpen(true);
+      break;
+    case "unused-attachments":
+      store.setUnusedOpen(true);
+      break;
+    case "strip-tashkeel":
+      // The editor answers, a frame after the palette has closed and
+      // handed focus back to the caret — the find-in-note shape.
+      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(STRIP_TASHKEEL_EVENT)));
+      break;
+    case "furigana":
+    case "furigana-auto": {
+      const mode: FuriganaMode = command.id === "furigana" ? "popover" : "auto";
+      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(FURIGANA_EVENT, { detail: mode })));
+      break;
+    }
+    case "moderate-comments":
+      store.setModerationOpen(true);
+      break;
+    case "site-settings":
+      store.setSettingsOpen(true);
+      break;
+    case "design-site":
+      openDesigner();
+      break;
+    case "sync-now":
+      void runSyncNow();
+      break;
+    case "snapshot-now":
+      void runSnapshotNow();
+      break;
+    case "preview-visitor":
+      void store.setPreviewVisitor(true);
+      break;
+    case "exit-preview":
+      void store.setPreviewVisitor(false);
+      break;
+    case "sign-in":
+      store.setLoginOpen(true);
+      break;
+    case "astrolabe-sty":
+      window.open("/api/astrolabe.sty", "_blank", "noopener");
+      break;
+    case "sign-out":
+      void store.logout();
+      break;
+  }
+}
+
+/** The prompt half: what a prompt command does with the text it asked for. */
+export function runPalettePrompt(command: Command, value: string): void {
+  const store = useStore.getState();
+  if (command.id === "new-note" || command.id === "new-tex-note") {
+    const path = command.id === "new-tex-note" ? ensureTex(value) : ensureMd(value);
+    store
+      .createNote(path)
+      .then(() => store.openNote(path))
+      .catch((err: unknown) => {
+        console.error("CommandPalette: create failed", err);
+        toast(t("couldNotCreateNote"));
+      });
+  } else if (command.id === "rename-current" && store.openPath) {
+    store.renameNote(store.openPath, ensureMd(value)).catch((err: unknown) => {
+      console.error("CommandPalette: rename failed", err);
+      toast(t("couldNotRenameNote"));
+    });
+  } else if (command.id === "save-layout") {
+    // The arrangement as the store serialises it — paths and geometry,
+    // never content — under the name just typed (server/layouts.ts).
+    putLayout(value, serializeWorkspace(store.workspace))
+      .then(() => toast(tf("layoutSaved", { name: value })))
+      .catch(() => toast(t("layoutFailed"), "error"));
+  } else if (command.id === "ask-vault") {
+    store.setAskOpen(true, value);
+  }
+}
+
 export default function CommandPalette() {
   const paletteOpen = useStore((s) => s.paletteOpen);
   const setPaletteOpen = useStore((s) => s.setPaletteOpen);
@@ -1275,7 +1654,6 @@ export default function CommandPalette() {
 
   const runCommand = useCallback(
     (command: Command) => {
-      const store = useStore.getState();
       if (command.prompt) {
         setMode({ type: "prompt", command });
         setQuery(command.prompt.initial());
@@ -1288,345 +1666,7 @@ export default function CommandPalette() {
         close();
         return;
       }
-      switch (command.id) {
-        case "new-unique-note":
-          void createUniqueNote();
-          break;
-        case "yesterday-note":
-          void openPeriodicNote("day", -1);
-          break;
-        case "search-meaning":
-          // The sidebar owns the box; it flips its mode and takes focus.
-          window.dispatchEvent(new CustomEvent("astrolabe:search-meaning"));
-          break;
-        case "tomorrow-note":
-          void openPeriodicNote("day", 1);
-          break;
-        case "weekly-note":
-          void openPeriodicNote("week", 0);
-          break;
-        case "monthly-note":
-          void openPeriodicNote("month", 0);
-          break;
-        case "yearly-note":
-          void openPeriodicNote("year", 0);
-          break;
-        case "random-note": {
-          const all = collectNotes(store.tree).map((n) => n.path).filter((p) => p !== store.openPath);
-          if (all.length > 0) store.openNote(all[Math.floor(Math.random() * all.length)]);
-          break;
-        }
-        case "daily-note":
-          void openDailyNote();
-          break;
-        case "quick-capture":
-          store.setCaptureOpen(true);
-          break;
-        case "voice-note":
-          store.openVoiceNote();
-          break;
-        case "twin-switch":
-          switchToTwin();
-          break;
-        case "twin-beside":
-          openTwinBeside();
-          break;
-        case "twin-create":
-          void createTwinFlow();
-          break;
-        case "new-folder":
-          // Root, not the open note's folder: "New folder" from a global
-          // surface means a folder in the vault, and promptNewFolder's own
-          // field takes a path, so `ideas/2026` is still one keystroke away.
-          void promptNewFolder("");
-          break;
-        case "new-drawing": {
-          // Beside the open note; with none open, the drawings folder (or root).
-          const open = store.openPath;
-          void promptNewDrawing(open === null ? store.drawingsFolder : !open.includes("/") ? "" : open.slice(0, open.lastIndexOf("/")));
-          break;
-        }
-        case "reveal-in-tree": {
-          const open = store.openPath;
-          if (open === null) break;
-          // SHOW THE PANE FIRST. The tree scrolls the row into the middle of a
-          // pane that may be zero-width or off-screen, and "reveal" into a
-          // collapsed sidebar is the same nothing as no command at all. The
-          // dispatch waits a frame so the tree has re-laid-out before it
-          // measures where to scroll.
-          if (sidebarIsDrawer()) store.setSidebarOpen(true);
-          else store.setSidebarCollapsed(false);
-          requestAnimationFrame(() =>
-            window.dispatchEvent(new CustomEvent(TREE_REVEAL_EVENT, { detail: { path: open } })),
-          );
-          break;
-        }
-        case "find-in-note":
-          // A frame later: the palette unmounts on `close()` below and hands
-          // focus back to whatever opened it (useDialog), which would land
-          // squarely on top of the find field we are about to open.
-          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(FIND_IN_NOTE_EVENT)));
-          break;
-        case "split-pane":
-          if (!store.splitFocusedPane("inline")) toast(t("paneCapReached"));
-          break;
-        case "split-pane-down":
-          if (!store.splitFocusedPane("block")) toast(t("paneCapReached"));
-          break;
-        case "close-pane":
-          store.closeFocusedPane();
-          break;
-        case "focus-next-pane": {
-          const order = panesInOrder(store.workspace);
-          const at = order.findIndex((p) => p.id === store.workspace.focus);
-          const next = order[(at + 1) % order.length];
-          if (next) {
-            store.focusPane(next.id);
-            // Put the caret where the eye just went — the same courtesy the
-            // directional pane walk pays (Workspace.tsx), and without it the
-            // reader has focused a pane they then have to click into.
-            requestAnimationFrame(() => {
-              document
-                .querySelector<HTMLElement>(`[data-pane="${next.id}"] .cm-content`)
-                ?.focus();
-            });
-          }
-          break;
-        }
-        case "duplicate-current":
-          if (store.openPath) void duplicateNote(store.openPath);
-          break;
-        case "copy-note-link":
-          if (store.openPath) copyNoteLink(store.openPath);
-          break;
-        case "bookmark-note":
-          if (store.openPath) {
-            const path = store.openPath;
-            toggleBookmark(path)
-              .then((on) => toast(t(on ? "bookmarkAdded" : "bookmarkRemoved")))
-              .catch(() => toast(t("bookmarkFailed"), "error"));
-          }
-          break;
-        case "restore-layout":
-          void import("./LayoutPicker.tsx").then((m) => m.openLayoutPicker());
-          break;
-        case "copy-block-link":
-          // The editor answers (Editor.tsx), after the palette has closed and
-          // focus is back where the caret is — the find-in-note shape.
-          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(COPY_BLOCK_LINK_EVENT)));
-          break;
-        case "print-note":
-          // Dynamic, and it has to be: client/print.ts renders a note through
-          // the markdown renderer, and a static import here would drag the
-          // whole renderer into the palette's chunk — which is in the admin's
-          // first paint. The module is already loaded whenever a document
-          // surface is mounted (it registers the `beforeprint` handler from
-          // there), so this import is normally a resolved promise.
-          void import("../print.ts").then((mod) => mod.printNote());
-          break;
-        case "theme-flip":
-          store.toggleTheme();
-          break;
-        case "collapse-folders":
-          window.dispatchEvent(new CustomEvent("astrolabe:tree-all", { detail: { open: false } }));
-          break;
-        case "expand-folders":
-          window.dispatchEvent(new CustomEvent("astrolabe:tree-all", { detail: { open: true } }));
-          break;
-        case "pop-out": {
-          const open = useStore.getState().openPath;
-          if (open !== null) popOutNote(open);
-          break;
-        }
-        case "insert-table":
-          void insertTableCommand();
-          break;
-        case "table-row-above":
-          tableCommand("rowAbove");
-          break;
-        case "table-row-below":
-          tableCommand("rowBelow");
-          break;
-        case "table-col-before":
-          tableCommand("colBefore");
-          break;
-        case "table-col-after":
-          tableCommand("colAfter");
-          break;
-        case "table-edit-source":
-          tableCommand("editSource");
-          break;
-        case "insert-template":
-          void insertTemplateCommand();
-          break;
-        case "new-from-template":
-          void newNoteFromTemplateCommand();
-          break;
-        case "toggle-graph":
-          store.toggleGraph();
-          break;
-        case "open-media":
-          store.toggleMedia();
-          break;
-        case "open-library":
-          store.openLibrary();
-          break;
-        case "open-routines":
-          store.toggleRoutines();
-          break;
-        case "open-calendar":
-          store.toggleCalendar();
-          break;
-        case "review-week":
-          store.setView("review-week");
-          break;
-        case "open-orbits":
-          store.toggleOrbits();
-          break;
-        case "study-due":
-        case "new-deck":
-        case "import-deck":
-          // The shelf answers: it opens the first due session, or the modal
-          // on the tab asked for. Dispatched after the open so a shelf that
-          // is only now mounting still hears it (it replays the last ask).
-          store.openOrbits(null);
-          askOrbits(command.id === "study-due" ? "study" : command.id === "new-deck" ? "new" : "import");
-          break;
-        case "whats-new":
-          openWhatsNew();
-          break;
-
-        case "export":
-          openExportDialog();
-          break;
-        case "toggle-reading":
-          store.toggleReading();
-          if (store.view !== "editor") store.setView("editor");
-          break;
-        case "toggle-vim":
-          store.toggleVim();
-          break;
-        case "warm-screen":
-          toggleWarmth();
-          break;
-        case "zen-mode":
-          store.setZen(!store.zen);
-          break;
-        case "shortcuts":
-          store.setShortcutsOpen(true);
-          break;
-        case "take-the-tour":
-          openTour();
-          break;
-        case "theme-picker":
-          openThemePicker();
-          break;
-        case "toggle-sidebar":
-          store.toggleSidebar();
-          break;
-        case "toggle-panel":
-          store.setPanelCollapsed(!store.panelCollapsed);
-          break;
-        case "toggle-selection-toolbar":
-          setSelectionToolbarEnabled(!selectionToolbarEnabled());
-          break;
-        case "sidebar-side-auto":
-          store.setSidebarSidePref("auto");
-          break;
-        case "sidebar-side-left":
-          store.setSidebarSidePref("left");
-          break;
-        case "sidebar-side-right":
-          store.setSidebarSidePref("right");
-          break;
-        case "editor-lang-follow":
-          store.setEditorLang(null);
-          break;
-        case "editor-lang-en":
-          store.setEditorLang("en");
-          break;
-        case "editor-lang-ar":
-          store.setEditorLang("ar");
-          break;
-        case "move-current":
-          if (store.openPath) {
-            const path = store.openPath;
-            void moveViaPicker({
-              path,
-              name: path.slice(path.lastIndexOf("/") + 1),
-              isFolder: false,
-            });
-          }
-          break;
-        case "delete-current":
-          // Literally the same call the tree row makes (components/
-          // deleteFlow.ts). A command must not be the harsher gesture merely
-          // because it was reached from the palette, and the only way to
-          // guarantee that forever is for there to be one implementation of
-          // it — two copies of the same dialog is what let the palette hint
-          // say "irreversible" over a move to .trash.
-          if (store.openPath) void confirmDeleteNote(store.openPath);
-          break;
-        case "publish-note":
-          if (store.openPath) void store.togglePublish(store.openPath, true);
-          break;
-        case "unpublish-note":
-          if (store.openPath) void store.togglePublish(store.openPath, false);
-          break;
-        case "set-banner":
-          if (store.openPath) store.setBannerModalOpen(true);
-          break;
-        case "remove-banner":
-          if (store.openPath) void store.setBanner(store.openPath, null);
-          break;
-        case "open-trash":
-          store.setTrashOpen(true);
-          break;
-        case "unused-attachments":
-          store.setUnusedOpen(true);
-          break;
-        case "strip-tashkeel":
-          // The editor answers, a frame after the palette has closed and
-          // handed focus back to the caret — the find-in-note shape.
-          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(STRIP_TASHKEEL_EVENT)));
-          break;
-        case "furigana":
-        case "furigana-auto": {
-          const mode: FuriganaMode = command.id === "furigana" ? "popover" : "auto";
-          requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(FURIGANA_EVENT, { detail: mode })));
-          break;
-        }
-        case "moderate-comments":
-          store.setModerationOpen(true);
-          break;
-        case "site-settings":
-          store.setSettingsOpen(true);
-          break;
-        case "design-site":
-          openDesigner();
-          break;
-        case "sync-now":
-          void runSyncNow();
-          break;
-        case "snapshot-now":
-          void runSnapshotNow();
-          break;
-        case "preview-visitor":
-          void store.setPreviewVisitor(true);
-          break;
-        case "exit-preview":
-          void store.setPreviewVisitor(false);
-          break;
-        case "sign-in":
-          store.setLoginOpen(true);
-          break;
-        case "astrolabe-sty":
-          window.open("/api/astrolabe.sty", "_blank", "noopener");
-          break;
-        case "sign-out":
-          void store.logout();
-          break;
-      }
+      runPaletteCommand(command);
       close();
     },
     [close],
@@ -1636,32 +1676,7 @@ export default function CommandPalette() {
     const command = mode.command;
     const value = query.trim();
     if (!command || !value) return;
-    const store = useStore.getState();
-    if (command.id === "new-note" || command.id === "new-tex-note") {
-      const path = command.id === "new-tex-note" ? ensureTex(value) : ensureMd(value);
-      store
-        .createNote(path)
-        .then(() => store.openNote(path))
-        .catch((err: unknown) => {
-          console.error("CommandPalette: create failed", err);
-          toast(t("couldNotCreateNote"));
-        });
-    } else if (command.id === "rename-current" && store.openPath) {
-      store.renameNote(store.openPath, ensureMd(value)).catch((err: unknown) => {
-        console.error("CommandPalette: rename failed", err);
-        toast(t("couldNotRenameNote"));
-      });
-    } else if (command.id === "save-layout") {
-      // The arrangement as the store serialises it — paths and geometry,
-      // never content — under the name just typed (server/layouts.ts).
-      putLayout(value, serializeWorkspace(store.workspace))
-        .then(() => toast(tf("layoutSaved", { name: value })))
-        .catch(() => toast(t("layoutFailed"), "error"));
-    } else if (command.id === "ask-vault") {
-      close();
-      store.setAskOpen(true, value);
-      return;
-    }
+    runPalettePrompt(command, value);
     close();
   }, [mode.command, query, close]);
 

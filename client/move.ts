@@ -323,7 +323,7 @@ async function run(item: MoveItem, toPath: string, undoTo: string | null): Promi
 // carrying, whether it may land, and how to put it back.
 
 /** The conflict dialog's naming rule, shown live under the field. */
-function checkName(item: MoveItem, dir: string, raw: string): PromptCheck {
+export function checkName(item: MoveItem, dir: string, raw: string): PromptCheck {
   const typed = raw.trim().replace(/\\/g, "/");
   if (!typed) return { value: "" };
   if (typed.includes("/")) return { value: "", error: t("moveNameSlash") };
