@@ -170,6 +170,12 @@ npm run dev
 
 تحفظ الخط الذي رسمه التدقيق، من المصدر وحده: لا `outline: none` من غير حلقة تركيز بديلة في القاعدة نفسها، واسم يمكن الوصول إليه لكل عنصر تحكم لا يحمل إلا أيقونة، وسائر القائمة في أعلى السكربت. وهي مثل check-i18n قائمة من أجل صنف التراجعات الذي لا يُرى في المراجعة ولا في لقطة الشاشة.
 
+### `npm run check-cascade`: لا قاعدة للهاتف تبطلها قاعدة بعدها
+
+بلا متصفح ولا خادم. الهاتف وهيكل اللمس كتلُ `@media` مكتوبة فوق قواعد سطح المكتب، ولا تغلب الكتلة إلا إذا جاءت **بعد** ما تعدّله. وقد شُحنت قاعدة للهاتف ميتةً خمس مرات لأن قاعدة للمحدِّد نفسه والخاصية نفسها جاءت بعدها في التسلسل بلا أي شرط: عدّاد الموضع في «ما الجديد» (يظهر للهاتف ثم يُخفى للجميع بعد ثمانية عشر سطرًا)، والتفاف محرّر جذور المكتبة، وثلاثة تصريحات في الإعدادات (يقولها app.css ثم يعيد settings.css قيم سطح المكتب لأنه يُحمَّل بعده)، وزر الترتيب في رفّ الوسوم، وأزرار الربط في الإشارات غير المربوطة. كل ملف يُقرأ صحيحًا وحده، والخاسر لا يُطبَّق أبدًا، فلا يراه فرق التعديلات ولا مراجعة اللقطات.
+
+تقرأ البوابة كل `client/styles/*.css` بترتيب المتصفح: الأوراق التي يربطها `client/index.html` بترتيب ربطها، ثم كل ورقة تستوردها وحدة برمجية (وهذه تأتي دائمًا بعد المربوطة، بترتيب لا يستطيع السكربت معرفته، فلا تُقارَن ورقتان مستوردتان إحداهما بالأخرى). وتفشل عند تصريح داخل كتلة هاتف أو لمس (`@media` تسأل `(pointer: coarse)` أو `(hover: none)` أو `max-width` بألف بكسل فما دون) تعود قاعدةٌ لاحقة بلا `@media` حولها فتضبط خاصيته **للمحدِّد نفسه**. ويُحسب `!important` كما يحسبه التسلسل؛ والخاصية المختصرة تبطل خصائصها المفصّلة، والخاصية المنطقية تقابل توأميها الفيزيائيين (`padding` تبطل `padding-inline`، و`min-height` تبطل `min-block-size`). أما القاعدة اللاحقة تحت تفضيل القارئ — `prefers-reduced-motion` و`forced-colors` — فأضيق من كتلة الهاتف وتغلبها عمدًا، فلا تُعدّ فشلًا. والمحدِّدات المختلفة التي تبلغ العنصر نفسه تقيسها check-phone. ويطبع `--list` كل ما يجده من غير أن يفشل.
+
 ### `npm run check-phone`: هيكل الهاتف تحت الاختبار
 
 بوابة متصفح: `CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=<كلمة المرور> npm run check-phone -- <العنوان> [مجلد اللقطات]`، على خادم تجريبي. تقود هيكل الهاتف (`client/phone/`) كما يقوده إبهام القارئ، بالإنجليزية **والعربية**، على أربعة أشكال، وتصوّر كل شاشة وكل ورقة تمرّ بها.
@@ -299,7 +305,7 @@ npm run dev
 
 ## شريط الإنجاز
 
-التسلسل الذي يمرّ به التغيير قبل أن يُسمّى منجزًا، بهذا الترتيب: `npm run typecheck` · `node scripts/check-i18n.mjs` · `npm test` · `npm run build` ثم `npm run check-bundle` · `npm run check-perf` (على جهاز هادئ) · `npm run check-a11y` · `npm run check-contrast` · `npm run check-settings` (وقبله `node scripts/gen-settings-index.mjs` حين يتغير صف) · `npm run check-keymap` حين يتغير مفتاح · `npm run check-names` · `npm run check-shell-seam` · `npm run check-docs` · `npm run build-docs` · `npm run check-desktop` حين يتغير `electron/` أو `desktop/` · `npm run check-windows-layout` حين يتغير تخطيط القشرة أو اللوحتان أو نقاط انكسارهما. ثم بوابات المتصفح التي يمسّها التغيير — و`npm run check-phone` كلما تحرّكت ورقة أنماط أو قطعة من الهيكل — مع ضبط `CHROMIUM` و`ASTROLABE_PASSWORD`، على خادم تجريبي فوق خزانة تجريبية، لا خزانة المالك أبدًا.
+التسلسل الذي يمرّ به التغيير قبل أن يُسمّى منجزًا، بهذا الترتيب: `npm run typecheck` · `node scripts/check-i18n.mjs` · `npm test` · `npm run build` ثم `npm run check-bundle` · `npm run check-perf` (على جهاز هادئ) · `npm run check-a11y` · `npm run check-contrast` · `npm run check-settings` (وقبله `node scripts/gen-settings-index.mjs` حين يتغير صف) · `npm run check-keymap` حين يتغير مفتاح · `npm run check-names` · `npm run check-shell-seam` · `npm run check-docs` · `npm run build-docs` · `npm run check-desktop` حين يتغير `electron/` أو `desktop/` · `npm run check-windows-layout` حين يتغير تخطيط القشرة أو اللوحتان أو نقاط انكسارهما · `npm run check-cascade` كلما تغيّرت ورقة أنماط. ثم بوابات المتصفح التي يمسّها التغيير — و`npm run check-phone` كلما تحرّكت ورقة أنماط أو قطعة من الهيكل — مع ضبط `CHROMIUM` و`ASTROLABE_PASSWORD`، على خادم تجريبي فوق خزانة تجريبية، لا خزانة المالك أبدًا.
 
 ## أدوات لقطات الشاشة
 

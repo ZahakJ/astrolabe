@@ -5797,14 +5797,14 @@ button.s-title:hover {
     margin-bottom: 2px;
   }
 
+  /* Its `top` and `padding-inline` are in a block after the base rule
+     ("THE SORT BUTTON ON A FINGER", below the tag shelf's own rules). */
   .s-tags__sort {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    top: 0;
     min-inline-size: 44px;
     min-block-size: 44px;
-    padding-inline: 6px;
   }
 
   .s-search-hit {
@@ -5986,7 +5986,6 @@ button.s-title:hover {
   .s-mentions__linkall,
   .s-mentions__link {
     min-block-size: 44px;
-    padding-inline: 10px;
   }
 
   /* The shared sheet header's ✕ (`.s-bmodal__close`: the theme picker, the
@@ -6000,209 +5999,6 @@ button.s-title:hover {
     min-block-size: 44px;
     padding: 0;
   }
-}
-
-/* ── Site settings panel (SettingsModal) ─────────────────────────────────── */
-
-/* Five sections and ~2,700px of content: a 680px box that stopped 160px short
-   of the viewport and then asked for four screens of one flat scroll was the
-   wrong shape for it. The panel is wider (the type specimen is the widest
-   thing in the product's chrome), taller (it uses the height it was leaving
-   empty), and it has a section rail. */
-/* Centered, not dropped at 18vh like the command palette: this panel takes
-   the height it is given rather than hanging from the top of it. */
-.s-smodal-overlay {
-  align-items: center;
-  padding-top: 0;
-}
-
-.s-smodal {
-  width: min(920px, calc(100vw - 32px));
-  height: min(860px, calc(100dvh - 40px));
-  max-height: none;
-  position: relative;
-  overflow: hidden;
-}
-
-/* rail | scrolling content */
-.s-smodal__cols {
-  display: flex;
-  gap: 18px;
-  min-height: 0;
-  flex: 1;
-}
-
-.s-smodal__rail {
-  flex: none;
-  width: 164px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  border-inline-end: 1px solid var(--border);
-  padding-inline-end: 12px;
-  overflow-y: auto;
-}
-
-.s-smodal__railbtn {
-  text-align: start;
-  padding: 7px 10px;
-  border-radius: var(--radius);
-  font-size: 0.821rem;
-  color: var(--text-muted);
-  border-inline-start: 2px solid transparent;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-}
-
-.s-smodal__railbtn:hover {
-  background: var(--bg-hover);
-  color: var(--text);
-}
-
-/* The rail is a position indicator as much as a menu: the section you are
-   reading is the one wearing the gold bar. */
-.s-smodal__railbtn--on {
-  color: var(--accent);
-  background: var(--accent-soft);
-  border-inline-start-color: var(--accent);
-}
-
-/* Positioning context for the two scroll-edge fades. */
-.s-smodal__scroll {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-}
-
-.s-smodal__body {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  overflow-y: auto;
-  min-height: 0;
-  flex: 1;
-  /* Closing air: the last card used to butt straight into the footer hairline. */
-  padding: 2px 4px 20px 0;
-  scroll-behavior: smooth;
-}
-
-.s-smodal__body > section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  scroll-margin-top: 4px;
-}
-
-/* The scroll edges are `.s-scrollfade` on the body itself (see the mask near
-   the top of this file). Two absolutely-positioned gradient overlays used to
-   live here; a gradient laid OVER content only hides what it exactly matches,
-   and it did not — a segmented pill still came through the top edge cut across
-   its middle with its accent border flat-cut. A mask removes the alpha, so the
-   row dissolves and nothing has to be colour-matched. */
-
-.s-smodal__note {
-  margin: 0;
-  font-size: 0.821rem;
-  color: var(--text-faint);
-}
-
-.s-smodal__group {
-  margin-top: 10px;
-  font-size: 0.714rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 5px;
-}
-
-/* A steady vertical beat: hints wrap to two and three lines, so rows ranged
-   from 46 to 70px and the panel had no rhythm down its length. min-height
-   gives every ordinary row the same measure; a row that genuinely needs more
-   (an error, the specimen) still takes it. */
-.s-smodal__row {
-  display: grid;
-  grid-template-columns: 196px 1fr;
-  align-items: start;
-  gap: 12px;
-  min-height: 48px;
-}
-
-/* The widest, most typographic control in the panel spans the panel: label
-   above, control full-bleed under it. */
-.s-smodal__row--wide {
-  grid-template-columns: 1fr;
-  gap: 6px;
-}
-
-/* Inert because a master switch above it is off. Legible, not invisible: a
-   reader must still be able to READ what is configured. */
-.s-smodal__row--off .s-smodal__label,
-.s-smodal__row--off .s-smodal__control {
-  opacity: 0.5;
-}
-
-/* A LOCKED row's control column is a <fieldset disabled> (Row.tsx): HTML's
-   own way of taking every control inside it out of reach, for a setting this
-   vault cannot keep at all — a public site's favicon on a phone holding a
-   clone. The element only has to stop looking like a fieldset; the greying is
-   the `--off` rule above, which the row already wears. */
-.s-smodal__control--locked {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  min-inline-size: 0;
-}
-
-/* ONE disabled treatment for both control shapes. With Backup=off the three
-   <select>s took the browser's own greying ON TOP of the row's 0.5, while the
-   Remote URL and Branch <input>s took only the row's — so the same disabled
-   state wore two different faces in one panel, and Branch's "main" read as a
-   live value. Neutralising the UA's opacity puts the whole dimming decision
-   in the row rule, where it can be consistent. */
-.s-smodal__control .s-bmodal__input:disabled,
-.s-smodal__control .s-smodal__select:disabled {
-  opacity: 1;
-  color: var(--text-muted);
-  -webkit-text-fill-color: var(--text-muted); /* WebKit ignores color here */
-  background: var(--bg-raised);
-  border-color: var(--border);
-  cursor: not-allowed;
-}
-
-.s-smodal__label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-top: 8px;
-  font-size: 0.857rem;
-  color: var(--text);
-}
-
-.s-smodal__row--wide .s-smodal__label {
-  padding-top: 0;
-}
-
-.s-smodal__labeltext {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-/* "This field is EMPTY and inheriting", said by the row rather than by a note
-   at the top of the panel explaining a convention. */
-.s-smodal__badge {
-  font-size: 0.714rem;
-  font-style: italic;
-  color: var(--text-faint);
-  white-space: nowrap;
-}
-
-.s-smodal__hint {
-  font-size: 0.75rem;
-  color: var(--text-faint);
 }
 
 /* "12/22 public" — the standing answer to "how much of what I published can
@@ -6225,237 +6021,8 @@ button.s-title:hover {
   color: var(--callout-warning);
 }
 
-/* A sub-heading INSIDE a group: quieter than the gold group rule, louder than
-   a row label — for a control that is a different kind from the rows above it
-   (the Arabic slot, which acts across all three of them). */
-.s-smodal__sub {
-  margin-top: 4px;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-}
-
-/* The master switch is off — said once, plainly, above the inert controls. */
-.s-smodal__offnote {
-  margin: 0;
-  font-size: 0.786rem;
-  color: var(--text-muted);
-  border-inline-start: 2px solid var(--border);
-  padding-inline-start: 10px;
-}
-
-.s-smodal__control {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.s-smodal__control .s-bmodal__input {
-  width: 100%;
-}
-
-.s-smodal__select {
-  appearance: auto;
-  cursor: pointer;
-}
-
-.s-smodal__error {
-  font-size: 0.75rem;
-  color: var(--danger);
-}
-
-/* Where an inheriting row's value actually comes from. The env NAME is a
-   literal to be typed into a shell or a .env file, so it keeps the mono face
-   and its own LTR run inside an Arabic panel. */
-.s-smodal__from {
-  font-size: 0.714rem;
-  color: var(--text-faint);
-}
-
-.s-smodal__envname {
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-}
-
-.s-smodal__row--invalid .s-bmodal__input {
-  border-color: var(--danger);
-}
-
-.s-smodal__imgfield {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.s-smodal__imgfield .s-bmodal__input {
-  flex: 1;
-}
-
-.s-smodal__imgthumb {
-  flex: none;
-  width: 44px;
-  height: 30px;
-  object-fit: contain;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-}
-
-/* Invalid / unloadable value: a designed ⌀ chip, never the browser's raw
-   broken-image glyph. */
-.s-smodal__imgthumb--missing {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-style: dashed;
-  color: var(--text-faint);
-  font-size: 0.857rem;
-  user-select: none;
-}
-
-.s-smodal__foot {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
-}
-
-.s-smodal__dirty {
-  margin-inline-end: auto;
-  font-size: 0.786rem;
-  color: var(--text-faint);
-}
-
-.s-smodal__row--invalid .s-smodal__error,
-.s-smodal__dirty {
-  transition: color 0.15s ease;
-}
-
-/* Nested picker overlay sits above the settings panel. */
-.s-smodal-picker {
-  z-index: 60;
-}
-
-/* ── Typography specimens (settings → Typography) ────────────────────────────
-   Each row renders in the PREVIEW composite of its slot — the families
-   /api/font-preview.css defines from the picks currently in the form, before
-   anything is saved — and falls back to the matching system stack, so an
-   unpicked slot shows exactly what the site shows today. The two lines are a
-   Latin sentence and a mixed Arabic one: same family, and the Arabic slot
-   still answers for the Arabic letters, which is the whole feature. */
-.s-smodal__specimens {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
-  /* The panel is --bg-raised and the box was --bg with a --border hairline;
-     in parchment those three sit so close together that the container
-     disappeared and the three rows lost their box. An inset ring in the text
-     color holds the edge in every theme without shouting in any of them. */
-  border: 1px solid transparent;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-faint) 45%, transparent);
-  border-radius: var(--radius);
-  background: var(--bg);
-}
-
-.s-smodal__specimen {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.s-smodal__specimen + .s-smodal__specimen {
-  border-top: 1px solid var(--border);
-  padding-top: 6px;
-}
-
-.s-smodal__speclabel {
-  font-family: var(--font-ui);
-  font-size: 0.643rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-faint);
-}
-
-/* A BLOCK in the panel's own direction, holding one inline isolate. Both
-   samples therefore begin at the same edge — an rtl line and an ltr line each
-   aligned to its own edge put the two faces being compared at opposite ends of
-   the box, which is the worst possible geometry for judging them together. */
-.s-smodal__specline {
-  display: block;
-  color: var(--text);
-  /* Roomy on purpose: a compensated naskh face has tall ascenders and deep
-     descenders, and at a tighter measure its tashkeel collided with the Latin
-     line above it. */
-  line-height: 1.7;
-  overflow-wrap: anywhere;
-}
-
-.s-smodal__specimen--prose {
-  font-family: "AstrolabePreviewProse", var(--font-serif-system);
-  font-size: calc(var(--font-prose) * var(--prose-scale) * 0.92);
-}
-
-.s-smodal__specimen--ui {
-  font-family: "AstrolabePreviewUI", var(--font-ui-system);
-  font-size: 0.928rem;
-}
-
-.s-smodal__specimen--mono {
-  font-family: "AstrolabePreviewMono", var(--font-mono-system);
-  font-size: 0.821rem;
-}
-
-.s-smodal__fontfoot {
-  display: flex;
-  justify-content: flex-end;
-}
-
-@media (max-width: 720px) {
-  .s-smodal {
-    height: min(860px, calc(100dvh - 24px));
-  }
-  /* The rail becomes a scrolling strip across the top: still the whole table
-     of contents, without eating a third of a 390px column. */
-  .s-smodal__cols {
-    flex-direction: column;
-    gap: 10px;
-  }
-  .s-smodal__rail {
-    width: auto;
-    flex-direction: row;
-    overflow-x: auto;
-    border-inline-end: none;
-    border-bottom: 1px solid var(--border);
-    padding-inline-end: 0;
-    padding-bottom: 8px;
-  }
-  .s-smodal__railbtn {
-    white-space: nowrap;
-    border-inline-start: none;
-    border-bottom: 2px solid transparent;
-    border-radius: var(--radius) var(--radius) 0 0;
-  }
-  .s-smodal__railbtn--on {
-    border-bottom-color: var(--accent);
-  }
-}
-
-@media (max-width: 560px) {
-  .s-smodal__row {
-    grid-template-columns: 1fr;
-    gap: 4px;
-    min-height: 0;
-  }
-  .s-smodal__label {
-    padding-top: 0;
-  }
-}
+/* The settings panel's own rules (the ones that stood here until 3.23.1) live
+   in settings.css, with the phone blocks that adjust them. */
 
 /* ── Sidebar logo wordmark (settings.logo) ───────────────────────────────── */
 
@@ -8263,6 +7830,15 @@ html[dir="rtl"] .s-statusbar__spacer {
   opacity: 0.5;
   cursor: default;
 }
+/* A 44px link button gets 10px of side padding on a finger — after the base
+   rule's `padding: 2px 8px`, which undid it from the touch block above until
+   3.23.1 (scripts/check-cascade.mjs). */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-mentions__linkall,
+  .s-mentions__link {
+    padding-inline: 10px;
+  }
+}
 .s-mentions__line {
   display: flex;
   align-items: flex-start;
@@ -8428,6 +8004,16 @@ html[dir="rtl"] .s-statusbar__spacer {
 .s-tags__sort:hover {
   color: var(--text);
   border-color: var(--border);
+}
+/* THE SORT BUTTON ON A FINGER. A 44px box starts at the top of the shelf
+   header, not 8px into it, and keeps 6px of side padding. These two lines sat
+   in the touch block near the drawer's rules until 3.23.1, where the base rule
+   above — later in the file — undid both (scripts/check-cascade.mjs). */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-tags__sort {
+    top: 0;
+    padding-inline: 6px;
+  }
 }
 
 /* ── Bookmarks above the tree (client/components/BookmarksRows.tsx) ───── */

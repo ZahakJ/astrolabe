@@ -360,6 +360,29 @@ focus ring in the same rule, an accessible name on every icon-only control, and 
 list at the top of the script. Like check-i18n, it exists for the class of regression that is
 invisible in review and invisible in a screenshot.
 
+### `npm run check-cascade` — no phone rule is undone by a later one
+
+No browser, no server. The phone and the touch shell are `@media` blocks written over the
+desktop's rules, and a block only wins when it comes **after** what it adjusts. Five times a phone
+rule shipped dead because a rule for the same selector and property sat later in the cascade with no
+condition at all: What's-new's position count (shown for a phone, then hidden for everyone eighteen
+lines further down), the library-roots editor's wrapping, three settings declarations (stated in
+app.css, restated for the desktop by settings.css, which loads later), the tag shelf's sort button
+and the unlinked mentions' link buttons. Each file reads correctly on its own; the loser is simply never
+applied, so neither a diff nor a screenshot review can see it.
+
+The gate reads every `client/styles/*.css` in the browser's order — the sheets
+`client/index.html` links, in link order, then every sheet a module imports (those always follow
+the linked ones, in an order the script cannot know, so two imported sheets are never compared).
+It fails on a declaration inside a phone or touch block (an `@media` asking `(pointer: coarse)`,
+`(hover: none)` or a `max-width` of 1000px or less) whose property is set again, for the **same
+selector**, by a later rule with no `@media` around it. `!important` counts the way the cascade
+counts it; a shorthand undoes its longhands and a logical property its physical twins
+(`padding` undoes `padding-inline`, `min-height` undoes `min-block-size`). A later rule under a
+reader's preference — `prefers-reduced-motion`, `forced-colors` — is narrower than the phone block
+and overrides it on purpose, so it is not a failure. Different selectors that reach the same element
+are check-phone's to measure. `--list` prints every finding without failing.
+
 ### `npm run check-phone` — the phone shell, driven
 
 A browser gate:
@@ -627,7 +650,8 @@ The sequence a change runs before it is called finished, in this order: `npm run
 `node scripts/gen-settings-index.mjs` first when a row changed) · `npm run check-keymap` when a
 key changed · `npm run check-names` · `npm run check-shell-seam` · `npm run check-docs` · `npm run build-docs` ·
 `npm run check-desktop` when `electron/` or `desktop/` changed ·
-`npm run check-windows-layout` when the shell's layout, the panes or their breakpoints changed.
+`npm run check-windows-layout` when the shell's layout, the panes or their breakpoints changed ·
+`npm run check-cascade` whenever a stylesheet changed.
 Then the browser gates the change touches — `npm run check-phone` whenever a stylesheet or a
 piece of the shell moved — with `CHROMIUM` and `ASTROLABE_PASSWORD` set, against a scratch
 server over a scratch vault — never the owner's.

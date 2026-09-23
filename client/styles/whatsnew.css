@@ -782,6 +782,12 @@
    count carries the position in words instead. Back/Next go to the foot's
    edges at 44px, the close is 44px, the body scrolls inside the card and
    a swipe turns the page (WhatsNew.tsx). */
+/* The count is the phone's; everywhere else the dots say it. ABOVE the block,
+   not after it: it sat after it until 3.23.1 and hid the phone's count too, so
+   a phone showed neither (scripts/check-cascade.mjs). */
+.s-wn__count {
+  display: none;
+}
 @media (max-width: 700px), (pointer: coarse) {
   .s-wn {
     max-height: calc(100dvh - 24px);
@@ -823,7 +829,4 @@
     flex: 1;
     min-block-size: 44px;
   }
-}
-.s-wn__count {
-  display: none;
 }
