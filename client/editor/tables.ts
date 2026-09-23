@@ -1317,6 +1317,7 @@ export function markdownTables(): Extension {
     // as it was.
     Prec.high(
       keymap.of([
+        // keymap: scTableCells scTableCellsBack scTableRowDown scTableMoveRow scTableMoveColumn
         { key: "Tab", run: nextCell, shift: prevCell },
         { key: "Enter", run: rowDown },
         { key: "Alt-ArrowUp", run: moveRowCmd(-1) },

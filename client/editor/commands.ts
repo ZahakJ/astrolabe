@@ -586,6 +586,7 @@ export function toggleComment(view: EditorView): boolean {
 
 export const formatKeymap: Extension = Prec.high(
   keymap.of([
+    // keymap: scComment scBold scItalic scUnderline scStrikethrough scHighlight
     { key: "Mod-Alt-/", run: toggleComment, preventDefault: true },
     { key: "Mod-b", run: format("bold"), preventDefault: true },
     { key: "Mod-i", run: format("italic"), preventDefault: true },

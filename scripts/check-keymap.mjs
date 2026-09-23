@@ -178,6 +178,68 @@ console.log(
   }
 }
 
+// ── Every row that names a key has a handler that answers it ──────────────
+// Everything above proves the ledger is CONSISTENT — no two rows on one key,
+// the doc a rendering of it. None of it proves a key does anything: a row is
+// a promise, and the handler is somewhere else entirely (the window
+// listener in client/globalKeys.ts, a CodeMirror keymap, a component's own listener). Ctrl/Cmd+Alt+L
+// was on the sheet, in the palette row, in docs/keymap.md and in CONTRACTS
+// for the whole life of the twins — and the window listener had no branch for
+// it (found by the 3.24 audit, fixed in 3.23.1). Nothing could see it,
+// because nothing tied a row to the code that answers it.
+//
+// So the tie is written down where the key is handled: a comment
+// `// keymap: <label> [<label>…]` on the branch, the keymap entry, or the
+// listener that answers the row. A row with keys and no marker fails; a
+// marker naming a label that is no longer a row fails too (it would vouch
+// for nothing). A library keymap (CodeMirror's history, search, fold) is
+// marked where this product installs it — that line IS the handler here.
+{
+  const walk = (dir, out = []) => {
+    for (const name of readdirSync(dir)) {
+      const abs = path.join(dir, name);
+      if (statSync(abs).isDirectory()) walk(abs, out);
+      else if (/\.tsx?$/.test(name)) out.push(abs);
+    }
+    return out;
+  };
+  const MARK = /\/\/\s*keymap:\s*([A-Za-z0-9_ ]+)/;
+  const handled = new Map();
+  for (const dir of ["client", "electron"]) {
+    let files = [];
+    try {
+      files = walk(path.join(ROOT, dir));
+    } catch {
+      continue;
+    }
+    for (const file of files) {
+      if (file.endsWith(path.join("components", "ShortcutsHelp.tsx"))) continue; // the ledger cannot vouch for itself
+      readFileSync(file, "utf8").split("\n").forEach((line, i) => {
+        const m = MARK.exec(line);
+        if (!m) return;
+        for (const label of m[1].trim().split(/\s+/)) {
+          if (!handled.has(label)) handled.set(label, []);
+          handled.get(label).push(`${path.relative(ROOT, file)}:${i + 1}`);
+        }
+      });
+    }
+  }
+  const labels = new Set(rows.map((r) => r.label));
+  for (const row of rows) {
+    if (row.keys === null) continue; // reached through a surface, not a keystroke
+    if (handled.has(row.label)) continue;
+    errs.push(
+      `NO HANDLER  ${row.label}  ${at(row)}  [${row.keys.join(" + ")}] — no \`// keymap: ${row.label}\` anywhere in client/ or electron/.\n` +
+        `  The sheet promises this key. Bind it, and mark the branch that answers it.`,
+    );
+  }
+  for (const [label, where] of handled) {
+    if (labels.has(label)) continue;
+    errs.push(`STALE HANDLER MARK  ${label}  ${where.join(", ")} — names no row in GROUPS`);
+  }
+  console.log(`keymap: ${[...handled.keys()].filter((l) => labels.has(l)).length} rows vouched for by a handler mark`);
+}
+
 if (errs.length) {
   console.log(`FAIL: ${errs.length}\n\n${errs.join("\n\n")}`);
   process.exit(1);

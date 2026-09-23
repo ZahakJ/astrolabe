@@ -428,6 +428,7 @@ export function sectioning(): Extension {
         // are formatting's; Ctrl/Cmd+Arrow is move-line (setup.ts) and Alt+Arrow
         // is CodeMirror's own; Ctrl/Cmd+Shift+[ / ] fold, Ctrl/Cmd+Alt+[ / ]
         // fold all. Ctrl/Cmd+Alt+Arrow was free on every one of them.
+        // keymap: scPrevHeading scNextHeading scFocusSection
         { key: "Mod-Alt-ArrowUp", preventDefault: true, run: (v) => jumpHeading(v, -1) },
         { key: "Mod-Alt-ArrowDown", preventDefault: true, run: (v) => jumpHeading(v, 1) },
         {

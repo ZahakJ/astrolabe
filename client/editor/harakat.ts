@@ -260,5 +260,6 @@ export function openHarakatPalette(view: EditorView): boolean {
 /** The keymap: `Mod-Alt-;` opens the palette. Prec.high like the format
  *  keymap so it beats the defaults, below the vim compartment. */
 export const harakatKeymap: Extension = Prec.high(
+  // keymap: scHarakat
   keymap.of([{ key: "Mod-Alt-;", run: openHarakatPalette, preventDefault: true }]),
 );
