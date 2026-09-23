@@ -128,6 +128,12 @@ export const IconSend = () => (
     <path d="M4 12h14M13 6l6 6-6 6" />
   </Glyph>
 );
+export const IconMic = () => (
+  <Glyph size={20}>
+    <rect x="9" y="3" width="6" height="11" rx="3" />
+    <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" />
+  </Glyph>
+);
 export const IconCheck = () => (
   <Glyph size={18}>
     <path d="m5 12 5 5 9-10" />

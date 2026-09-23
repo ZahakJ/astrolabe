@@ -1126,10 +1126,6 @@
   display: none;
 }
 
-.s-ph-seg--sheet .s-ph-seg__btn {
-  font-size: 14px;
-}
-
 .s-ph-seg__count {
   margin-inline-start: 4px;
   color: var(--accent);
@@ -1141,7 +1137,13 @@
   content: " ‹";
 }
 
+/* Four segments in a 360px slide-over or a 412px sheet: the words wrap to a
+   second line inside the 44px rather than losing their ends. */
 .s-ph-seg--sheet .s-ph-seg__btn {
+  padding: 2px;
   font-size: 13.5px;
-  padding: 0 2px;
+  line-height: 1.15;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
 }

@@ -35,7 +35,7 @@ describe("the settings index", () => {
     // of is a tab whose rows may as well not exist; this pins the shape.
     //
     // Counted as ONE DEVICE sees the tab: the desktop app's own rows (its
-    // name, icon, launcher, updates) and the phone's layout row (3.25.0) are
+    // name, icon, launcher, updates) and the phone's layout row (3.26.0) are
     // drawn on different devices and never share a screen, so a tab carries
     // the larger of the two groups, not their sum.
     const DESKTOP_APP = new Set(["rowAppName", "rowAppIcon", "rowAppLauncher", "rowAppLauncherWin", "rowUpdates"]);

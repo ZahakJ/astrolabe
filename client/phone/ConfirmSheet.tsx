@@ -16,7 +16,7 @@ import { t } from "../i18n.ts";
 import { usePhone } from "./context.ts";
 import Sheet from "./Sheet.tsx";
 
-export const CONFIRM_SHEET = "confirm";
+import { CONFIRM_SHEET } from "./sheetIds.ts";
 
 export default function ConfirmSheetHost() {
   const phone = usePhone();

@@ -5780,7 +5780,7 @@ const DICT = {
   twinTabMark: { en: "has another face", ar: "له وجه آخر" },
   twinTreeTitle: { en: "Another face: {title}", ar: "وجه آخر: {title}" },
   blogOtherFace: { en: "Another face of this note:", ar: "وجه آخر لهذه الملاحظة:" },
-  // ── The phone shell (client/phone/, 3.25.0) ─────────────────────────────
+  // ── The phone shell (client/phone/, 3.26.0) ─────────────────────────────
   phTabToday: { en: "Today", ar: "اليوم" },
   phTabNotes: { en: "Notes", ar: "الملاحظات" },
   phTabSearch: { en: "Search", ar: "بحث" },

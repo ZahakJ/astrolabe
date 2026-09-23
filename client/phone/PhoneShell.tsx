@@ -56,13 +56,12 @@ import {
   surfaceOf,
   type Workspace,
 } from "../workspace.ts";
-import ActionSheet, { ACTION_SHEET } from "./ActionSheet.tsx";
+import ActionSheet from "./ActionSheet.tsx";
+import { ACTION_SHEET, MOVE_SHEET, NOTE_SHEET } from "./sheetIds.ts";
 import ConfirmSheetHost from "./ConfirmSheet.tsx";
 import { PhoneContext, type PhoneApi, type SheetData } from "./context.ts";
 import { hardwareKeyboardSeen, installHardwareKeyboardWatch, subscribeHardwareKeyboard } from "./hardwareKeyboard.ts";
-import MoveSheet, { MOVE_SHEET } from "./MoveSheet.tsx";
 import { createNav, sameScreen, topOf, type Nav, type NavCause, type NavState, type Screen, type TabId } from "./nav.ts";
-import NoteSheet, { NOTE_SHEET } from "./NoteSheet.tsx";
 import TabBar from "./TabBar.tsx";
 import { screenTitle } from "./titles.ts";
 import "./phone.css";
@@ -75,6 +74,11 @@ const MoreScreen = lazySurface(() => import("./screens/MoreScreen.tsx"));
 const TagScreen = lazySurface(() => import("./screens/TagScreen.tsx"));
 const NoteScreen = lazySurface(() => import("./screens/NoteScreen.tsx"));
 const SurfaceScreen = lazySurface(() => import("./screens/SurfaceScreen.tsx"));
+// The note sheet and the move sheet reach the outline, the section surgery,
+// the twins and the move rules: a first paint that has opened no note has no
+// business carrying them (check-bundle's phone audience).
+const NoteSheet = lazySurface(() => import("./NoteSheet.tsx"));
+const MoveSheet = lazySurface(() => import("./MoveSheet.tsx"));
 
 // The store's own modal surfaces, as the desktop mounts them (App.tsx), each
 // behind its flag. On a phone they are LAYERS: each takes a history entry, so
@@ -83,6 +87,7 @@ const CommandPalette = lazySurface(() => import("../components/CommandPalette.ts
 const SettingsModal = lazySurface(() => import("../components/SettingsModal.tsx"));
 const TrashModal = lazySurface(() => import("../components/TrashModal.tsx"));
 const CaptureSheet = lazySurface(() => import("../components/CaptureSheet.tsx"));
+const AskPanel = lazySurface(() => import("../components/AskPanel.tsx"));
 const ShortcutsHelp = lazySurface(() => import("../components/ShortcutsHelp.tsx"));
 const BannerModal = lazySurface(() => import("../components/BannerModal.tsx"));
 const ModerationPanel = lazySurface(() => import("../components/ModerationPanel.tsx"));
@@ -102,6 +107,7 @@ const LAYERS: Layer[] = [
   { id: "trash", up: (s) => s.trashOpen, down: (s) => s.setTrashOpen(false) },
   { id: "palette", up: (s) => s.paletteOpen, down: (s) => s.setPaletteOpen(false) },
   { id: "capture", up: (s) => s.captureOpen, down: (s) => s.setCaptureOpen(false) },
+  { id: "ask", up: (s) => s.askOpen, down: (s) => s.setAskOpen(false) },
   { id: "shortcuts", up: (s) => s.shortcutsOpen, down: (s) => s.setShortcutsOpen(false) },
   { id: "login", up: (s) => s.loginOpen, down: (s) => s.setLoginOpen(false) },
   { id: "banner", up: (s) => s.bannerModalOpen, down: (s) => s.setBannerModalOpen(false) },
@@ -238,6 +244,7 @@ function preloadWhenIdle(): () => void {
     () => import("../reading/toc.ts"),
     () => import("./screens/NotesScreen.tsx"),
     () => import("./screens/SearchScreen.tsx"),
+    () => import("./NoteSheet.tsx"),
   ];
   let id = 0;
   let dead = false;
@@ -276,6 +283,7 @@ export default function PhoneShell() {
     trash: useStore((s) => s.trashOpen),
     palette: useStore((s) => s.paletteOpen),
     capture: useStore((s) => s.captureOpen),
+    ask: useStore((s) => s.askOpen),
     shortcuts: useStore((s) => s.shortcutsOpen),
     login: useStore((s) => s.loginOpen),
     banner: useStore((s) => s.bannerModalOpen),
@@ -611,8 +619,18 @@ export default function PhoneShell() {
           {sheetIds.map((id) => {
             const out = !(st?.sheets ?? []).includes(id);
             if (id === ACTION_SHEET) return <ActionSheet key={id} leaving={out} />;
-            if (id === MOVE_SHEET) return <MoveSheet key={id} leaving={out} />;
-            if (id === NOTE_SHEET) return <NoteSheet key={id} leaving={out} />;
+            if (id === MOVE_SHEET)
+              return (
+                <Suspense key={id} fallback={null}>
+                  <MoveSheet leaving={out} />
+                </Suspense>
+              );
+            if (id === NOTE_SHEET)
+              return (
+                <Suspense key={id} fallback={null}>
+                  <NoteSheet leaving={out} />
+                </Suspense>
+              );
             return null;
           })}
           <ConfirmSheetHost />
@@ -631,6 +649,11 @@ export default function PhoneShell() {
         {layerUp("trash") && admin && (
           <Suspense fallback={null}>
             <TrashModal />
+          </Suspense>
+        )}
+        {layerUp("ask") && admin && (
+          <Suspense fallback={null}>
+            <AskPanel />
           </Suspense>
         )}
         {layerUp("capture") && admin && (

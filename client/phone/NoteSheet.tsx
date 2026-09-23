@@ -24,14 +24,13 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { createTwinFlow, switchToTwin, twinOf, twinPillLabels } from "../twins.ts";
 import { usePhone } from "./context.ts";
-import { MOVE_SHEET } from "./MoveSheet.tsx";
+import { MOVE_SHEET, NOTE_SHEET } from "./sheetIds.ts";
 import { publishWithConfirmation } from "./publish.ts";
 import Sheet from "./Sheet.tsx";
 
 const TocPanel = lazySurface(() => import("../reading/TocPanel.tsx"));
 const HistoryPanel = lazySurface(() => import("../components/HistoryPanel.tsx"));
 
-export const NOTE_SHEET = "note";
 /** What an emptied property field resolves to: remove the key. */
 const CLEAR = "\u0000";
 export type NoteSegment = "outline" | "backlinks" | "properties" | "actions" | "history";
