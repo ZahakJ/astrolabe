@@ -529,7 +529,7 @@
    the palette (410), which must stay over both. The condition is `app.css`'s
    drawer block, character for character: the shell that makes the sidebar an
    overlay is the shell that owes its menus this. */
-@media (max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine))) {
+@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
   :root {
     --z-menu-scrim: 404;
     --z-menu: 405;

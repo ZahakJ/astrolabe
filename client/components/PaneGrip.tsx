@@ -46,11 +46,7 @@ import {
   type Pane,
   type PaneRoom,
 } from "../paneWidths.ts";
-import { DRAWER_QUERY, useStore } from "../state.ts";
-
-/** Where the phone drops both panes out of the grid (app.css keeps the same
- *  number; it is DRAWER_QUERY's own first arm). */
-const PHONE_QUERY = "(max-width: 700px)";
+import { DRAWER_QUERY, PHONE_QUERY, useStore } from "../state.ts";
 
 function collapse(pane: Pane, on: boolean): void {
   const s = useStore.getState();

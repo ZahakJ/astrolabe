@@ -64,7 +64,7 @@ import { duplicateNote } from "../duplicate.ts";
 import { copyNoteLink } from "../sectionActions.ts";
 import { panesInOrder } from "../workspace.ts";
 import { askOrbits } from "../orbits/ask.ts";
-import { sidebarIsDrawer } from "../state.ts";
+import { PHONE_QUERY, sidebarIsDrawer } from "../state.ts";
 import { createTwinFlow, openTwinBeside, switchToTwin } from "../twins.ts";
 
 // The palette owns the recents ledger's install: visits are recorded for the
@@ -1824,7 +1824,7 @@ export default function CommandPalette() {
                 : mode.command?.prompt?.placeholder
               : // A phone's field holds about thirty characters; the long
                 // sentence was cut at "for a headin".
-                window.matchMedia("(max-width: 640px)").matches
+                window.matchMedia(PHONE_QUERY).matches
                 ? t("palettePlaceholderShort")
                 : t("palettePlaceholder")
           }

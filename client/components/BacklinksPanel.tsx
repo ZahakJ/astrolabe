@@ -13,7 +13,7 @@ import { localeNum, t } from "../i18n.ts";
 // landing/hovering is interaction-time code. The reading view's static import
 // of the same module keeps it a single instance.
 import { lazySurface } from "../lazySurface.tsx";
-import { hasPanelPreference, useStore } from "../state.ts";
+import { hasPanelPreference, PHONE_QUERY, useStore } from "../state.ts";
 import FootnotesPanel from "./FootnotesPanel.tsx";
 import LocalGraph from "./LocalGraph.tsx";
 import TrackerPanel from "./TrackerPanel.tsx";
@@ -111,8 +111,6 @@ function groupBacklinks(backlinks: Backlink[]): BacklinkGroup[] {
 // Ctrl/Cmd+Alt+Shift+B) away at any width, and a click IS a preference: it
 // persists, and the auto-collapse never overrides it.
 const NARROW_QUERY = "(max-width: 1360px)";
-/** Where the panel is a drawer (app.css keeps the same number). */
-const PHONE_QUERY = "(max-width: 700px)";
 
 export default function BacklinksPanel() {
   const backlinks = useStore((s) => s.backlinks);
