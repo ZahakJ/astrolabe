@@ -370,6 +370,47 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.26.0",
+    title: { en: "A phone that feels like a phone", ar: "هاتف يشعر أنه هاتف" },
+    slides: [
+      {
+        // ── The phone shell ──────────────────────────────────────────────
+        title: { en: "A phone that feels like a phone", ar: "هاتف يشعر أنه هاتف" },
+        body: {
+          en: "On a phone or a tablet, Astrolabe now has a layout of its own: five doors at the bottom — Today, Notes, Search, Calendar and More — screens you walk into, and sheets that rise from the bottom edge. Today puts the day on one screen: a line to capture, today's note, your Sigils to tick and the cards that are due. A note fills the screen, with the keys you need riding on the keyboard, and everything else — outline, backlinks, properties, publishing — one ⋯ away. The back gesture always does what it says, and on a tablet the list and the note sit side by side.",
+          ar: "على الهاتف واللوح صار لأسطرلاب تخطيطه الخاص: خمسة أبواب في الأسفل — اليوم والملاحظات والبحث والتقويم والمزيد — وشاشات تدخلها، وأوراق تصعد من الحافة السفلى. ويجمع «اليوم» يومك في شاشة واحدة: سطر تلتقطه، وملاحظة اليوم، والسِّجِلّ تؤشّره، والبطاقات المستحقة. والملاحظة تملأ الشاشة، والمفاتيح التي تحتاجها تركب فوق لوحة المفاتيح، وكل ما سواها — المحتويات والروابط الراجعة والخصائص والنشر — على بُعد ⋯ واحدة. وإيماءة الرجوع تفعل دائمًا ما تقول، وعلى اللوح تجلس القائمة والملاحظة جنبًا إلى جنب.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="200" y="22" width="110" height="180" rx="14" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="200" y="22" width="110" height="26" rx="14" fill="var(--bg-hover)"/><rect x="200" y="36" width="110" height="12" fill="var(--bg-hover)"/>
+    <path d="M212 35 l-4 4 l4 4" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>
+    <rect x="224" y="33" width="44" height="6" rx="3" fill="var(--text-muted)"/>
+    <g fill="var(--text-faint)"><rect x="212" y="60" width="86" height="5" rx="2.5"/><rect x="212" y="72" width="70" height="5" rx="2.5"/><rect x="212" y="84" width="80" height="5" rx="2.5"/><rect x="212" y="96" width="60" height="5" rx="2.5"/></g>
+    <g class="wa-late" style="--i:2">
+      <rect x="200" y="112" width="110" height="90" rx="14" fill="var(--bg-raised)" stroke="var(--accent)"/>
+      <rect x="246" y="118" width="18" height="3" rx="1.5" fill="var(--text-faint)"/>
+      <g><rect x="208" y="128" width="94" height="14" rx="7" fill="var(--bg-hover)"/><rect x="209" y="129" width="24" height="12" rx="6" fill="var(--accent-soft)"/></g>
+      <g fill="var(--text-faint)"><rect x="212" y="152" width="70" height="4" rx="2"/><rect x="220" y="164" width="60" height="4" rx="2"/><rect x="220" y="176" width="50" height="4" rx="2"/></g>
+    </g>
+  </g>
+  <g class="wa-late" style="--i:3">
+    <rect x="340" y="150" width="180" height="40" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+    ${[0,1,2,3,4].map((i) => `<rect x="${352 + i * 34}" y="158" width="14" height="14" rx="4" fill="${i === 0 ? "var(--accent)" : "var(--text-faint)"}"/><rect x="${349 + i * 34}" y="178" width="20" height="3" rx="1.5" fill="${i === 0 ? "var(--accent)" : "var(--text-faint)"}"/>`).join("")}
+  </g>
+  <path class="wa-draw" d="M110 110 q-30 -40 0 -80" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/><path d="M106 34 l4 -5 l5 4" fill="none" stroke="var(--accent)" stroke-width="2"/>
+  <text x="110" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "back always goes back", "الرجوع يرجع دائمًا")}</text>
+  <text x="430" y="132" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "five doors", "خمسة أبواب")}</text>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+    ],
+  },
+  {
     version: "3.25.0",
     title: { en: "Say it instead", ar: "قُلها بدل أن تكتبها" },
     slides: [
