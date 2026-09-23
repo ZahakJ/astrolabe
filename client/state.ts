@@ -592,6 +592,11 @@ export interface State {
    *  from anywhere by Ctrl/Cmd+Shift+D, the palette, or the phone's ⋯ menu. */
   captureOpen: boolean;
   setCaptureOpen(b: boolean): void;
+  /** The same sheet, opened on its RECORDER (docs/capture.md "Voice"): the
+   *  palette's "Voice note" and the phone's ⋯ row. Cleared whenever the sheet
+   *  closes, so the next Ctrl/Cmd+Shift+D opens on the text field again. */
+  captureVoice: boolean;
+  openVoiceNote(): void;
   /** THE ROW A SURFACE ELSEWHERE IN THE APP IS POINTING AT — a settings row's
    *  own label key, or null.
    *
@@ -1593,7 +1598,9 @@ export const useStore = create<State>()((set, get) => {
     settingsOpen: false,
     setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
     captureOpen: false,
-    setCaptureOpen: (captureOpen) => set({ captureOpen }),
+    setCaptureOpen: (captureOpen) => set(captureOpen ? { captureOpen } : { captureOpen, captureVoice: false }),
+    captureVoice: false,
+    openVoiceNote: () => set({ captureOpen: true, captureVoice: true }),
     settingsFocus: null,
     openSettingsAt: (settingsFocus) => set({ settingsOpen: true, settingsFocus }),
     shortcutsOpen: false,

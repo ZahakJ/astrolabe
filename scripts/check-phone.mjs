@@ -89,6 +89,12 @@ const SURFACES = [
   ["orbits", "/orbits"],
   ["library", "/library"],
   ["drawer", "/?drawer=1"],
+  // The quick-capture sheet, and its voice half (3.24.0): a bottom sheet on a
+  // phone whose every target is a thumb's, and a recorder whose round button
+  // is the gesture. Opened by the chord (which is language-proof) and, for
+  // the recorder, by the sheet's own speak/type switch.
+  ["capture", "/?capture=1"],
+  ["voice", "/?voice=1"],
 ];
 
 /** Everything the four questions are asked with, as one page function. Kept
@@ -162,7 +168,12 @@ const MEASURE = String.raw`(() => {
       (tag === "INPUT" && el.type !== "hidden") ||
       ["button", "link", "menuitem", "menuitemcheckbox", "tab", "switch", "option"].includes(role);
 
-    if (interactive && !el.closest(PROSE) && !el.closest(CHART) && !el.disabled) {
+    // A MODAL IS OPEN: the shell behind it is not a target, and its buttons
+    // being "under another layer" is what a modal is. Only the modal's own
+    // controls are measured then (the capture sheet and its recorder, 3.24.0).
+    const modal = document.querySelector('[aria-modal="true"]');
+    const behindModal = modal !== null && !modal.contains(el);
+    if (interactive && !behindModal && !el.closest(PROSE) && !el.closest(CHART) && !el.disabled) {
       // A native checkbox/radio is drawn by the platform at its own size; the
       // LABEL around it is the target, and the label is measured on its own.
       const boxed = tag === "INPUT" && (el.type === "checkbox" || el.type === "radio");
@@ -354,7 +365,8 @@ try {
     for (const [name, path] of SURFACES) {
       const drawer = path.endsWith("drawer=1");
       const reading = path.endsWith("rv=1");
-      await page.goto(url + path.replace(/\?(drawer|rv)=1$/, ""), { waitUntil: "domcontentloaded" });
+      const sheet = /\?(capture|voice)=1$/.exec(path)?.[1] ?? null;
+      await page.goto(url + path.replace(/\?(drawer|rv|capture|voice)=1$/, ""), { waitUntil: "domcontentloaded" });
       await page.waitForTimeout(1500);
       if (drawer) {
         await page.evaluate(() => {
@@ -365,6 +377,15 @@ try {
       if (reading) {
         await page.keyboard.press("Control+e");
         await page.waitForTimeout(800);
+      }
+      if (sheet) {
+        await page.keyboard.press("Control+Shift+d");
+        await page.waitForSelector(".s-capture", { timeout: 10000 });
+        if (sheet === "voice") {
+          await page.click(".s-capture__mode");
+          await page.waitForSelector(".s-voice__mic", { timeout: 10000 });
+        }
+        await page.waitForTimeout(400);
       }
 
       const r = await page.evaluate(MEASURE);

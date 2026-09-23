@@ -304,6 +304,7 @@ const DICT = {
   unitBytes: { en: "B", ar: "بايت" },
   unitKB: { en: "KB", ar: "ك.ب" },
   unitMB: { en: "MB", ar: "م.ب" },
+  unitGB: { en: "GB", ar: "ج.ب" },
 
   // ── Tabs ────────────────────────────────────────────────────────────────
   closeTab: { en: "Close {title}", ar: "إغلاق {title}" },
@@ -5592,6 +5593,37 @@ const DICT = {
   capturedTo: { en: "Captured to {name}", ar: "التُقط في {name}" },
   captureOpenNote: { en: "Open", ar: "فتح" },
   captureFailed: { en: "Could not capture that", ar: "تعذّر الالتقاط" },
+  // ── Voice notes (docs/capture.md "Voice", 3.24.0) ────────────────────────
+  // Only the DOORS and the Settings rows: the recorder's own sentences ride
+  // in its lazy chunk (client/voice/copy.ts says why). Arabic: تفريغ is what
+  // a transcriber does to a recording (تفريغ التسجيل), and the rows say so
+  // rather than borrowing "transcription".
+  cmdVoiceNote: { en: "Voice note", ar: "ملاحظة صوتية" },
+  cmdVoiceNoteHint: { en: "Speak; the words land in today's inbox", ar: "تكلّم، فتصل كلماتك إلى وارد اليوم" },
+  voiceTitle: { en: "Voice note", ar: "ملاحظة صوتية" },
+  captureVoiceInstead: { en: "Speak instead", ar: "تكلّم بدلًا من الكتابة" },
+  captureTypeInstead: { en: "Type instead", ar: "اكتب بدلًا من الكلام" },
+  rowVoiceModel: { en: "Voice transcription", ar: "تفريغ الصوت" },
+  hintVoiceModel: { en: "The model that turns voice notes into words, run on this machine.", ar: "النموذج الذي يحوّل الملاحظات الصوتية إلى كلمات، ويعمل على هذا الجهاز." },
+  moreVoiceModel: {
+    en: "whisper.cpp, on the GPU when there is one. The model downloads into the data directory on first use, never into the vault. Off keeps recordings without words.",
+    ar: "‏whisper.cpp، على معالج الرسوميات إن وُجد. يُنزَّل النموذج إلى مجلد البيانات عند أول استعمال، لا إلى الخزانة. وإيقافه يحفظ التسجيلات بلا كلمات.",
+  },
+  voiceModelTurbo: { en: "Large turbo, compact (best for Arabic)", ar: "الكبير السريع، المضغوط (الأفضل للعربية)" },
+  voiceModelTurboFull: { en: "Large turbo, full precision", ar: "الكبير السريع، بالدقة الكاملة" },
+  voiceModelSmall: { en: "Small, compact (for a machine with no GPU)", ar: "الصغير، المضغوط (لجهاز بلا معالج رسوميات)" },
+  voiceModelOff: { en: "Off — keep recordings only", ar: "متوقف — احفظ التسجيلات فقط" },
+  voiceNoteOff: { en: "Recordings are kept and linked from the day's inbox, without words.", ar: "تُحفظ التسجيلات ويُشار إليها من وارد اليوم، بلا كلمات." },
+  voiceNoteFirstUse: { en: "Downloads on first use: {size}, into the data directory.", ar: "يُنزَّل عند أول استعمال: {size}، إلى مجلد البيانات." },
+  voiceNoteFetching: { en: "Downloading the model — {pct}%.", ar: "ينزّل النموذج — {pct}٪." },
+  voiceNoteReady: { en: "Downloaded, and ready.", ar: "نُزّل وهو جاهز." },
+  voiceNoteReadyOn: { en: "Downloaded; last run on {backend}.", ar: "نُزّل؛ وآخر تشغيل على {backend}." },
+  voiceBackendCpu: { en: "the processor", ar: "المعالج" },
+  rowVoiceKeepAudio: { en: "Keep voice recordings", ar: "الاحتفاظ بالتسجيلات الصوتية" },
+  hintVoiceKeepAudio: { en: "Off deletes a recording once its words have landed.", ar: "إيقافه يحذف التسجيل بعد أن تصل كلماته." },
+  rowVoiceLanguage: { en: "Voice note language", ar: "لغة الملاحظات الصوتية" },
+  hintVoiceLanguage: { en: "Pin a language, or let each recording be heard for what it is.", ar: "ثبّت لغة، أو دع كل تسجيل يُسمع على حاله." },
+  voiceLangAuto: { en: "Detect", ar: "اكتشاف" },
   captureSection: { en: "Capture", ar: "الالتقاط" },
   captureInboxLabel: { en: "Capture inbox", ar: "صندوق الالتقاط" },
   captureInboxHint: {

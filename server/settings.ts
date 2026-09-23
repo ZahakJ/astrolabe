@@ -9,7 +9,8 @@
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
 // templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
 // weeklyFormat, weeklyTemplate, monthlyFormat, monthlyTemplate, yearlyFormat, yearlyTemplate,
-// uniqueFolder, uniqueFormat, captureInbox, launch, dateCalendar, textDirection, textAlign,
+// uniqueFolder, uniqueFormat, captureInbox, voice { model, language, keepAudio }, launch,
+// dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
 // Unknown keys in the file are preserved verbatim on every write so external
@@ -28,6 +29,7 @@ import {
   normalizeFolder,
   type FolderProblem,
 } from "../shared/attachments.ts";
+import { isVoiceLanguage, isVoiceModelSetting, VOICE_MODEL_DEFAULT, voiceEffective, VOICE_MODELS, type VoiceSettings } from "../shared/voice.ts";
 import { fetchableSiteUrl, warmAuthorSites } from "./authorSites.ts";
 import type {
   AboutInfo,
@@ -520,6 +522,16 @@ export function getSettings(): SettingsData {
   }
   const launch = parseLaunch(raw.launch);
   if (launch !== null && launch !== DEFAULT_LAUNCH) out.launch = launch;
+  // ── Voice notes ──────────────────────────────────────────────────────────
+  const voice = raw.voice;
+  if (typeof voice === "object" && voice !== null && !Array.isArray(voice)) {
+    const v = voice as Record<string, unknown>;
+    const vs: VoiceSettings = {};
+    if (isVoiceModelSetting(v.model)) vs.model = v.model;
+    if (isVoiceLanguage(v.language)) vs.language = v.language;
+    if (typeof v.keepAudio === "boolean") vs.keepAudio = v.keepAudio;
+    if (Object.keys(vs).length > 0) out.voice = vs;
+  }
   const home = raw.home;
   if (typeof home === "object" && home !== null && !Array.isArray(home)) {
     const h = home as Record<string, unknown>;
@@ -734,6 +746,7 @@ export function effectiveSettings(): EffectiveSettings {
     // stored value that no longer names a note inside the vault reads as
     // unset, so the sheet offers today's note alone rather than a dead door.
     captureInbox: periodicTemplate(s.captureInbox),
+    voice: voiceEffective(s.voice),
     home: {
       mode: s.home?.mode ?? "note",
       ...(s.home?.note ?? envHomeNote() ? { note: s.home?.note ?? envHomeNote() ?? undefined } : {}),
@@ -1466,6 +1479,50 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     }
     if (Object.keys(current).length === 0) delete raw.attachments;
     else raw.attachments = current;
+  },
+  // Voice notes (shared/voice.ts): the `attachments` shape — null deletes the
+  // key, sub-keys merge, an unknown sub-key or value is a 400 naming it, and a
+  // value equal to its default is DELETED rather than pinned.
+  voice: (raw, value) => {
+    if (value === null) {
+      delete raw.voice;
+      return;
+    }
+    if (typeof value !== "object" || Array.isArray(value)) {
+      throw new VaultError(400, 'Settings key "voice" must be an object or null');
+    }
+    const v = value as Record<string, unknown>;
+    const current =
+      typeof raw.voice === "object" && raw.voice !== null && !Array.isArray(raw.voice)
+        ? { ...(raw.voice as Record<string, unknown>) }
+        : {};
+    for (const key of Object.keys(v)) {
+      if (key !== "model" && key !== "language" && key !== "keepAudio") {
+        throw new VaultError(400, `Unknown settings key: voice.${key}`);
+      }
+    }
+    if ("model" in v) {
+      if (v.model === null || v.model === "" || v.model === VOICE_MODEL_DEFAULT) delete current.model;
+      else if (isVoiceModelSetting(v.model)) current.model = v.model;
+      else {
+        throw new VaultError(
+          400,
+          `Settings key "voice.model" must be one of: ${[...VOICE_MODELS.map((m) => m.id), "off"].join(", ")}`,
+        );
+      }
+    }
+    if ("language" in v) {
+      if (v.language === null || v.language === "" || v.language === "auto") delete current.language;
+      else if (isVoiceLanguage(v.language)) current.language = v.language;
+      else throw new VaultError(400, 'Settings key "voice.language" must be one of: auto, ar, en');
+    }
+    if ("keepAudio" in v) {
+      if (v.keepAudio === null || v.keepAudio === true) delete current.keepAudio;
+      else if (v.keepAudio === false) current.keepAudio = false;
+      else throw new VaultError(400, 'Settings key "voice.keepAudio" must be a boolean or null');
+    }
+    if (Object.keys(current).length === 0) delete raw.voice;
+    else raw.voice = current;
   },
   home: (raw, value) => {
     if (value === null) {

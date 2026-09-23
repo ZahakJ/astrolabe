@@ -50,6 +50,7 @@ import {
 } from "./prefs.ts";
 import { APP_ROOT, parseEnvFile, startVaultServer, type VaultServer } from "./server.ts";
 import { enableSpellcheck, replaceMisspelling, spellMenuFor } from "./spellcheck.ts";
+import { fencePermissions } from "./permissions.ts";
 import { dataDirFor, flushPrefs, loadPrefs, partitionFor, savePrefs } from "./store.ts";
 import {
   applyStagedUpdate,
@@ -410,6 +411,9 @@ async function openVaultUnguarded(vault: string, route: string): Promise<void> {
   }
 
   const ses = session.fromPartition(partitionFor(vault));
+  // The microphone for voice notes, for this vault's own origin and for audio
+  // only; every other origin is refused every permission (permissions.ts).
+  fencePermissions(ses, () => instances.get(vault)?.server.origin ?? server.origin);
   let lifetime: number;
   try {
     // AN ENV-LINKED VAULT AUTHENTICATES LIKE ITS DEPLOYMENT. The server is

@@ -7,6 +7,7 @@ import type { Card } from "./flashcards.ts";
 import type { BookHighlight, BookState } from "./bookAnchor.ts";
 import type { FolderIcon, FolderMark } from "./folderIcons.ts";
 import type { TrackerRating, TrackerSession, TrackerStatus } from "./tracker.ts";
+import type { VoiceEffective, VoiceLanguage, VoiceModelSetting, VoiceSettings } from "./voice.ts";
 
 export interface TreeNode {
   name: string;          // file or folder basename, e.g. "Ideas.md" or "projects"
@@ -1192,6 +1193,10 @@ export interface SettingsData {
    *  pinned as the inbox, vault-relative. Absent → the sheet offers today's
    *  note alone. */
   captureInbox?: string;
+  /** Voice notes (shared/voice.ts): the transcription model ("off" keeps
+   *  recordings untranscribed), a pinned language, and whether a recording is
+   *  kept once its words have landed. Absent → large-v3-turbo-q5_0, auto, keep. */
+  voice?: VoiceSettings;
   /** Git backup & sync (off by default). The token, when one is used, is NOT
    *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
@@ -1384,6 +1389,8 @@ export interface EffectiveSettings {
   uniqueFormat: string;
   /** The capture inbox in force, or null when none is pinned. */
   captureInbox: string | null;
+  /** Voice notes, every default filled in. */
+  voice: VoiceEffective;
   home: Required<Pick<HomeSettings, "mode">> & Omit<HomeSettings, "mode">;
   /** Public folders with every default filled in — what the settings editor
    *  prefills from, so an unset key and an explicitly-default one look the
@@ -1495,6 +1502,12 @@ export interface SettingsPatch {
   uniqueFormat?: string | null;
   /** Capture inbox note; null (or "") unpins it. */
   captureInbox?: string | null;
+  /** Voice notes. Sub-keys merge like `attachments`; null clears the key. */
+  voice?: {
+    model?: VoiceModelSetting | null;
+    language?: VoiceLanguage | null;
+    keepAudio?: boolean | null;
+  } | null;
   /** Template for new notes; null (or "") turns the default back off. */
   defaultTemplate?: string | null;
   /** Git sync configuration; null clears the whole key. */

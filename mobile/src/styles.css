@@ -513,6 +513,121 @@ button {
   unicode-bidi: isolate;
 }
 
+/* ────────────────────────────────────────────────────────  voice notes ── */
+
+/* THE SHARE SHEET'S VOICE NOTE (src/voice.ts). Under the text, set off by a
+   hairline: the same sheet, the other way in. The round button is the
+   largest target on the screen — the gesture is tap OR hold, and a thumb has
+   to find it without looking. */
+.voice {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-block-start: 24px;
+  padding-block-start: 20px;
+  border-block-start: 1px solid var(--border);
+}
+
+.voice-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.voice-stage {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.voice-mic {
+  flex: none;
+  inline-size: 80px;
+  block-size: 80px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0d1117;
+  background: var(--accent);
+  border: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.voice-mic:active {
+  transform: scale(0.96);
+}
+
+.voice-mic[disabled] {
+  opacity: 0.5;
+}
+
+.voice-mic[aria-pressed="true"] {
+  box-shadow: 0 0 0 8px var(--accent-soft);
+}
+
+.voice-readout {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.voice-meter {
+  flex: 1;
+  block-size: 8px;
+  border-radius: 4px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.voice-level {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+[dir="rtl"] .voice-level {
+  transform-origin: right center;
+}
+
+.voice-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: 15px;
+  min-inline-size: 3.5em;
+  text-align: end;
+}
+
+.voice-status {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  unicode-bidi: isolate;
+}
+
+.voice-transcript {
+  margin: 0;
+  max-block-size: 30vh;
+  overflow-y: auto;
+  padding: 8px 12px;
+  border-inline-start: 3px solid var(--accent);
+  background: var(--bg-raised);
+  border-radius: var(--radius);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
 /* ──────────────────────────────────────────────────────  the pocket vault ── */
 
 /* THE DEVICE CODE. It is read off this screen and typed on another one, by a

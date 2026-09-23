@@ -1,6 +1,6 @@
 # Capture
 
-*Getting things into the vault without opening a note: a line from anywhere, a page from the browser, a share from the phone.*
+*Getting things into the vault without opening a note: a line from anywhere, a thought said aloud, a page from the browser, a share from the phone.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
@@ -28,6 +28,41 @@ The note you were in stays where it was, with your caret in it; a toast names th
 On a phone the sheet sits at the bottom of the screen, where a thumb already is, and the field and both buttons are tall enough to hit. The shortcut is not the only way in: on a phone, **Quick capture** is the first row under the **⋯** in the top bar.
 
 The time stamp uses your device's clock and Western digits, like the daily note's own filename: it is an address inside the note, not prose, and it should sort the same way in every language.
+
+## Voice
+
+Some thoughts arrive while your hands are busy. Say them instead: the quick-capture sheet has a microphone, and the words are written into your vault by **your own server**, on the machine it runs on. Nothing is sent to anybody's cloud — the recording goes from your device to your server, and the transcription happens there.
+
+**Recording.** Choose **Voice note** from the palette, or from the **⋯** on a phone, or press the microphone at the top of the quick-capture sheet. There is one round button, and it does both things people do with a phone:
+
+- **Tap** it to start, and tap it again (or press **Send**) when you have finished.
+- **Hold** it while you talk, and let go to send.
+
+A level bar moves while it hears you, and the time counts up. **Discard** throws the recording away; nothing is kept. The first time, your browser asks for the microphone. Recording needs the site on `https` (or on `localhost`): browsers do not offer a microphone to a plain `http` address on your network.
+
+**Where the words go.** A short note — up to about eighty words, half a minute of speech — becomes one line in today's inbox note, `Inbox/2026-09-23.md`, the same note the phone's share sheet files into:
+
+```markdown
+- 14:02 — Call the dentist about Thursday 🎙
+```
+
+The 🎙 is a link to the recording itself. Anything longer becomes a note of its own, `Inbox/Voice — <first words>.md`, with a player for the recording at the top and the transcript underneath. Nothing is ever overwritten: a second note with the same first words is `(2)`.
+
+The recordings are ordinary attachments, filed by your attachments setting (Settings → Vault → New attachments) in a `Voice` folder and named by when you spoke: `Attachments/Voice/2026-09-23 1402.webm`.
+
+**While it transcribes.** The sheet says what is happening: sending, waiting its turn (one recording is transcribed at a time), transcribing, and then the words. You do not have to wait — close the sheet and a message tells you when the note has landed, with a button to open it. The very first note downloads the speech model into the server's data directory, which takes a minute or two once; the sheet shows how far along it is.
+
+**Settings.** Three rows:
+
+- Settings → Vault → **Voice transcription** chooses the model. The default is whisper's large turbo model in its compact form (574 MB), which was the most accurate on Arabic of everything tried. The full-precision version (1.6 GB) is there too, and a small compact model (190 MB) for a server with no graphics card. **Off** keeps recordings and links them from the inbox without transcribing them. The line under the row says whether the model has been downloaded and what it last ran on.
+- Settings → Vault → **Keep voice recordings**. On by default. Off deletes a recording once its words are safely in the vault. A recording whose transcription failed — or heard nothing — is always kept, whatever this says.
+- Settings → Language & dates → **Voice note language**. **Detect** lets each recording be heard for what it is, which suits a vault that speaks both languages. Pin **Arabic** or **English** if the detector keeps mishearing you.
+
+**What runs where.** Transcription is whisper.cpp, run by the server on the machine's graphics card when it has one (through Vulkan or CUDA; on a Mac, Metal) and on its processor otherwise, which is much slower. The model lives in the data directory, never in the vault, so it is not synced, published or committed. The desktop app is its own server, so on a desktop the words are made on that desktop.
+
+**From the phone app.** The share sheet ("Share to Astrolabe") has the same round button under the text: say it instead of typing it, and the words land in the same inbox note on your server. A vault opened from GitHub on the phone has no server to transcribe with, so a voice note there is **kept**: the recording is saved into the vault and linked from the day's inbox, committed and pushed like any other change, and the sheet says the words need an Astrolabe server. It is not transcribed later on its own — play it wherever you open the vault.
+
+The desktop app asks the system for the microphone the first time; nothing else in the app can use it, and no other site can.
 
 ## The clipper
 
