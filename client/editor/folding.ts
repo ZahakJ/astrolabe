@@ -181,6 +181,7 @@ export function headingFolds(): Extension {
       placeholderDOM: placeholder,
     }),
     chevrons,
+    // keymap: scFold scFoldAll (Mod-Shift-[ / ], Mod-Alt-[ / ])
     keymap.of(foldKeymap),
   ];
 }

@@ -169,6 +169,7 @@ export default function Workspace({ children }: { children?: ReactNode }) {
   // listener because it needs the rects, and the rects are this element's.
   useEffect(() => {
     if (columns.length === 1 && columns[0].length === 1) return; // nothing to move to
+    // keymap: scFocusPane scFocusPaneSide
     const onKey = (e: KeyboardEvent): void => {
       if (!e.altKey || !e.shiftKey || !(e.ctrlKey || e.metaKey)) return;
       const dir =

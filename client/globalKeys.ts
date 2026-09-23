@@ -27,6 +27,7 @@ import { promptNewNote } from "./prompts.ts";
 import { sidebarIsDrawer, useStore } from "./state.ts";
 import { insertTemplateCommand, newNoteFromTemplateCommand } from "./templateActions.ts";
 import { toast } from "./toast.ts";
+import { switchToTwin } from "./twins.ts";
 
 export interface GlobalKeysOptions {
   /** Answer at all right now? Read per keystroke. Default: always. */
@@ -100,11 +101,13 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
       // this chord was the one in the shell still reading the character
       // (the owner: "all shortcuts must work in both langs").
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && isKey(e, "f") && store.admin) {
+        // keymap: scReplaceVault
         e.preventDefault();
         window.dispatchEvent(new CustomEvent("astrolabe:replace-open"));
         return;
       }
       if (e.key === "Escape") {
+        // keymap: scEscape scEscapeBlog
         // 1. The shortcuts overlay closes first (it is the topmost layer).
         if (store.shortcutsOpen) {
           e.preventDefault();
@@ -187,6 +190,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
       // first handler runs — the same way it kept Ctrl/Cmd+D and Ctrl/Cmd+B
       // dead. Alt is the escape hatch this file already uses for exactly this.
       if (isKey(e, "/") && !e.altKey) {
+        // keymap: scHelp
         e.preventDefault();
         if (!modalUp(store)) {
           store.setPaletteOpen(false);
@@ -250,14 +254,18 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         // Dynamic import for the reason CommandPalette gives at the same call:
         // the module carries the markdown renderer and must not be in a first
         // paint. It is already resolved whenever a document is on screen.
+        // keymap: cmdPrintNote
         e.preventDefault();
         void import("./print.ts").then((mod) => mod.printNote());
       } else if (key === "p" && e.shiftKey) {
         // Ctrl/Cmd+Shift+P: publish toggle (admin, note open) — never the palette.
+        // keymap: cmdPublishNote
         if (store.admin && store.openPath) void store.togglePublish(store.openPath);
       } else if (key === "p") {
+        // keymap: scPalette
         store.setPaletteOpen(!store.paletteOpen);
       } else if (key === "k") {
+        // keymap: scSearch
         // Ctrl/Cmd+K — search everywhere: the sidebar's search box in the
         // app shell, a centered overlay in the blog shell. Whichever shell is
         // mounted owns the event. An open palette hands over to search
@@ -274,14 +282,17 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         if (opts.quickSearch) opts.quickSearch();
         else window.dispatchEvent(new Event("astrolabe:quicksearch"));
       } else if (key === "g") {
+        // keymap: scGraph
         e.preventDefault();
         store.toggleGraph();
       } else if (key === "e") {
+        // keymap: cmdToggleReading
         if (!store.admin) return; // visitors live in reading view
         e.preventDefault();
         store.toggleReading();
         if (store.view !== "editor") store.setView("editor");
       } else if (bKey && e.altKey) {
+        // keymap: cmdTogglePaneNotes cmdTogglePaneOutline
         // THE PANE TOGGLES WEAR ONE MORE MODIFIER THAN THEY USED TO.
         // Ctrl/Cmd+B was the notes sidebar and Ctrl/Cmd+Shift+B the outline
         // pane; Ctrl/Cmd+B is now BOLD, because that is the binding every
@@ -299,6 +310,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         if (e.shiftKey) store.setPanelCollapsed(!store.panelCollapsed);
         else store.toggleSidebar();
       } else if (bKey && e.shiftKey && !e.altKey) {
+        // keymap: cmdBookmarkNote
         // Ctrl/Cmd+Shift+B — bookmark the open note (or take the bookmark
         // off). Plain Ctrl/Cmd+B is bold in the editor; Alt+B is the sidebar.
         if (!store.admin || !store.openPath) return;
@@ -315,6 +327,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         // nothing: a key that folds a pane in one half of the window and bolds
         // a word in the other is a key nobody can describe.
       } else if (key === "z" && e.shiftKey) {
+        // keymap: cmdZen
         // Ctrl/Cmd+Shift+Z — zen. On macOS this is ALSO CodeMirror's only
         // redo binding (redo is Mod-y elsewhere), so the editor keeps Cmd+
         // Shift+Z when the caret is in it — Ctrl+Shift+Z, the palette command
@@ -329,6 +342,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         // pane close and the tab walk are the browser's there.
         return;
       } else if (isKey(e, "\\")) {
+        // keymap: scSplitPane scSplitPaneDown scClosePane
         // `isKey`, not `key ===`: Shift+\ arrives as "|" on a US keyboard, so
         // the stacked split answered only to the harness that sends "\"
         // with Shift held (the owner: "ctrl \ works but ctrl shift \ doesn't").
@@ -346,6 +360,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
           toast(t("paneCapReached"));
         }
       } else if (e.altKey && (e.key === "PageDown" || e.key === "PageUp")) {
+        // keymap: scStepTab
         // THE TAB STRIP GETS A KEYBOARD (v1.8 audit, F12). Every other pane
         // operation had a chord and the tabs inside them had none, so a reader
         // with forty notes open could split, close and walk between panes
@@ -365,11 +380,13 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         e.preventDefault();
         store.stepTab(e.key === "PageDown" ? 1 : -1);
       } else if (key === "w" && e.altKey) {
+        // keymap: scCloseTab
         // Ctrl/Cmd+Alt+W — close the focused pane's active tab. The bare chord
         // closes the browser window and is not takeable anywhere.
         e.preventDefault();
         store.closeActiveTab();
       } else if (key === "d" && e.shiftKey && !e.altKey) {
+        // keymap: cmdQuickCapture
         // Ctrl/Cmd+Shift+D — quick capture: a line into today's note without
         // leaving this one (client/capture.ts). Shift, beside the daily
         // note's Alt: the two are one idea ("today's note") with two verbs,
@@ -381,6 +398,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         e.stopPropagation();
         store.setCaptureOpen(true);
       } else if (key === "d" && e.altKey) {
+        // keymap: cmdDailyNote
         // Ctrl/Cmd+Alt+D — the daily note, moved here off the plain key for
         // the same reason the pane toggles moved to Alt above: the unmodified
         // key belongs to the editor, and a once-a-day verb does not outrank a
@@ -391,12 +409,14 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         e.preventDefault();
         void openDailyNote();
       } else if (key === "n") {
+        // keymap: newNote
         if (!store.admin) return;
         e.preventDefault();
         // Our dialog, not the OS box: prompts.ts owns the naming rule and
         // shows what the typed name becomes (see client/prompts.ts).
         void promptNewNote("");
       } else if (tKey && e.altKey) {
+        // keymap: cmdInsertTemplate cmdNewFromTemplate
         // TEMPLATES WEAR ALT, and it is not a stylistic choice. Ctrl/Cmd+T is
         // the browser's new tab and Ctrl/Cmd+Shift+T reopens a closed one —
         // neither is takeable, and a keystroke that fights the browser is a
@@ -412,6 +432,18 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         e.stopPropagation();
         if (e.shiftKey) void newNoteFromTemplateCommand();
         else if (store.openPath) void insertTemplateCommand();
+      } else if (key === "l" && e.altKey && !e.shiftKey) {
+        // keymap: cmdTwinSwitch
+        // Ctrl/Cmd+Alt+L — turn the note over to its other face
+        // (client/twins.ts). Advertised by the sheet, the palette row and
+        // docs/keymap.md since the twins shipped, and bound nowhere until
+        // 3.23.1: the sheet's row carried a `run` for the palette and the
+        // listener never learned the key. A no-op on a note with no twin,
+        // which is most of them — switchToTwin says nothing then, by design.
+        if (!store.admin) return;
+        e.preventDefault();
+        e.stopPropagation();
+        switchToTwin();
       }
     };
     // Capture phase: run ahead of CodeMirror/vim handlers so a stopPropagation

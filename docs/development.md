@@ -254,6 +254,14 @@ copy of it: the gate diffs the chords in the tables between `<!-- keymap:begin -
 click, the slash menu, an outline drag — live below the end marker, where the gate leaves them
 alone. `tests/keymap.test.ts` runs the same code with no files to write.
 
+The third half is the one a consistent ledger cannot prove: **that the key does something**.
+Every row with `keys` must be vouched for by a comment `// keymap: <label>` on the code that
+answers it — the branch in `client/globalKeys.ts` (the window listener both shells mount), the CodeMirror keymap entry, or a
+component's own listener; a library keymap (history, search, fold) is marked where the editor
+installs it. A row with no mark fails (`NO HANDLER`), and so does a mark naming a label that is no
+longer a row. `Ctrl/Cmd Alt L` (turn a note over to its twin) sat on the sheet, the palette row and
+this manual with no handler at all until 3.23.1, because nothing tied a row to its code.
+
 ### `npm run check-excerpt` — the tag-in-prose gate
 
 `DESIGN.md`'s hard rule is that a snippet shown outside the editor either STRIPS Markdown or

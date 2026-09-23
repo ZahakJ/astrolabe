@@ -142,6 +142,7 @@ export default function AttachmentViewer({ items, index, onIndex, onClose }: Pro
         onClose();
         return;
       }
+      // keymap: scWalkFiles
       if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
       e.preventDefault();
       e.stopPropagation();

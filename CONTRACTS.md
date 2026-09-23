@@ -2642,7 +2642,9 @@ failures happen, and a crash card that must fetch a chunk after the crash is not
 - **A KEYBOARD BINDING EXISTS IN EXACTLY ONE PLACE, AND THAT PLACE IS `GROUPS`.** The table in
   `client/components/ShortcutsHelp.tsx` — the one `Ctrl/Cmd /` prints, in both languages — is the
   ledger; `docs/keymap.md` is a RENDERING of it, and `npm run check-keymap` fails the build when
-  they stop agreeing in either direction. A colliding binding is the quietest bug this product can
+  they stop agreeing in either direction — and (3.23.1) when a row with `keys` has no
+  `// keymap: <label>` mark on the code that answers it, because `Ctrl/Cmd Alt L` was on the
+  sheet, the palette and the manual with no branch in the key listener at all (now `client/globalKeys.ts`). A colliding binding is the quietest bug this product can
   have: one handler answers the key, the other never sees the event, and neither of them knows the
   other exists, so it surfaces weeks later as "Ctrl+B does nothing", on one platform, from one
   reader, with nothing to grep for — because nothing is wrong with either binding. What is wrong is

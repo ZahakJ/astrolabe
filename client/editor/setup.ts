@@ -146,6 +146,7 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
       Prec.high(
         keymap.of([
           {
+            // keymap: scSave
             key: "Mod-s",
             preventDefault: true,
             run: (view) => {
@@ -279,12 +280,15 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
       // The find panel, ours: two rows, pills, a live count (searchPanel.ts).
       search({ createPanel: createSearchPanel, top: true }),
       keymap.of([
+        // keymap: scMoveLine
         { key: "Mod-ArrowUp", run: moveLineUp },
         { key: "Mod-ArrowDown", run: moveLineDown },
         ...closeBracketsKeymap,
         ...completionKeymap,
+        // keymap: scFind scSelectNext (searchKeymap: Mod-f, Mod-d)
         ...searchKeymap,
         ...defaultKeymap,
+        // keymap: scUndo scRedo
         ...historyKeymap,
         indentWithTab,
       ]),
