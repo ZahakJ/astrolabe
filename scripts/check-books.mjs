@@ -230,20 +230,22 @@ for (const line of pdfjsSrc.split("\n")) {
 // The books surface must not be statically reachable from the app shell.
 // door.ts is the one books module in first-paint code (the sidebar, the router
 // and the editors import it), so IT may import nothing of the surface but
-// types; the surface itself is mounted by Pane.tsx through React.lazy, which
+// types; the surface itself is mounted by PaneSurface.tsx through React.lazy, which
 // keeps it the separate chunk check-bundle pins.
 const doorSrc = read("client/books/door.ts");
 for (const line of doorSrc.split("\n")) {
   const m = /^import\s+(?!type\b)[\s\S]*?from\s+"\.\/([A-Za-z]+)\.tsx?"/.exec(line.trim());
   if (m) fail(`client/books/door.ts statically imports ./${m[1]} — it is first-paint code and must use import()`);
 }
-const paneSrc = read("client/components/Pane.tsx");
+// Since 3.26 the surface switch lives in PaneSurface.tsx (both shells mount
+// it); Pane.tsx only frames it. The lazy boundary is asserted where it is.
+const paneSrc = read("client/components/PaneSurface.tsx");
 // `lazySurface()` is React.lazy with the chunk-fetch failure handled
 // (client/lazySurface.tsx) — the same dynamic-import boundary rollup splits on,
 // which is the property this assertion is actually about. Accepting only the
 // bare spelling would have made the v1.8 safety net look like a regression.
 if (/lazy(?:Surface)?\(\(\) => import\("\.\.\/books\/BooksSurface\.tsx"\)\)/.test(paneSrc)) {
-  ok("Pane.tsx reaches the surface through lazySurface(import())");
+  ok("PaneSurface.tsx reaches the surface through lazySurface(import())");
 } else {
   fail("client/components/Pane.tsx must load BooksSurface with lazySurface(() => import()) — a static import puts the reader in first paint");
 }
