@@ -1441,6 +1441,133 @@ says, so the fold's open state is measured, not styled. Progress (`astrolabe.lib
 and never sent: read paths, not numbers, so a unit added in the middle shifts nothing. The pages
 are one lazy chunk; only the door, the band and the covers ride with the blog first paint.
 
+## The phone shell (`client/phone/`, `client/shellQuery.ts`, 3.25.0)
+
+The one contract for Astrolabe on a phone or a mouse-less tablet. The paragraphs elsewhere in this
+file about the notes DRAWER, the ☰, the back-gesture guard and the touch shell's overrides describe
+the **Classic** phone layout, kept for one release behind `This device → Phone layout`; each carries
+a pointer here.
+
+The owner, over the audit that measured the old phone: *"I almost wish to rewrite that whole side
+of the app to be natively designed for the phone and tablet form factor instead of trying to
+retrofit what we have here."* The retrofit had cost 97 phone `@media` blocks, 2,245 lines of
+override CSS, five copies of the drawer query and 125 of 443 commits — and still shipped a P0 (a
+tap on a note in the drawer opened nothing, §"the navigation" below). The phone shell is a new
+FRAME around the existing content parts, not a rewrite of them.
+
+**THE SEAM.** `client/main.tsx` renders `<PhoneShell/>` (a lazy chunk with its own stylesheet)
+instead of `<App/>` wherever `PHONE_SHELL_QUERY` matches and the reader has not chosen Classic
+(`shellFor(matches, readPhoneLayout())`), re-evaluated on the query's `change` and on
+`astrolabe:phone-layout`, so a rotation, a foldable or a window dragged across 700px swaps shells
+with the same note open. The query is the drawer's with its ceiling lifted for a finger:
+`(max-width: 700px), ((pointer: coarse) and (hover: none))` — everything `DRAWER_QUERY` matches
+(held by `tests/phoneShell.test.ts`), plus a tablet in landscape. A device whose primary pointer
+hovers (a tablet with a trackpad, a touch laptop) keeps the desktop above 700px. A blog visitor
+gets the blog shell in either case. Both shells mount the same two hooks — `useShellRuntime()`
+(`client/shellRuntime.ts`: the boot, run once per page; the SSE stream; the unsaved-text guard;
+the wake-up revalidation; the offline worker; the what's-new door; the properties card's two
+window events) and `useGlobalKeys()` (`client/globalKeys.ts`: the whole chord table, moved out of
+App.tsx) — and share `useStore`, `client/api.ts`, `i18n.ts` and the router's URL helpers. The
+phone shell never mounts Tabs, the pane grid, PaneGrip, StatusBar or the Sidebar;
+`npm run check-shell-seam` (and the same rules in `tests/phoneShell.test.ts`) fails the build if
+`client/phone/` imports app.css or any of those, if `client/components/` imports from
+`client/phone/`, or if `phone.css` asks a width question — being mounted is the condition.
+
+**THE STORE, ON A PHONE.** `setPhoneShellMode(true)` (set before the first render and on every
+swap) makes the store collapse every committed workspace through `phoneWorkspace()`
+(`client/workspace.ts`): one pane, the focused pane's active tab, unpinned — REPLACED, never
+appended, whichever of the forty desktop call sites opened it. And the workspace is NEVER
+PERSISTED while the phone shell is mounted: `persistWorkspace` and `persistTabs` return first,
+the desktop's copy beside the vault is not written, and `prefsSync.ts` refuses `workspace`, `tabs`
+and `phoneLayout` outright (`NEVER_TRAVELS`, whatever the allowlist says). Leaving the phone shell
+hands the desktop its own stored arrangement back with the phone's note opened in it. The store
+records the last move (`lastRemap`) so the navigation stack can follow a rename.
+
+**THE NAVIGATION** (`client/phone/nav.ts`, pure, injected history). A stack per bottom tab — Today,
+Notes, Search, Calendar, More — and ONE owner of history. Every screen push is a `pushState`;
+every sheet is one too; each entry carries its whole state
+(`{ phone: { depth, entry: { tab, stack, sheets } } }`), so a pop, a Forward or a reload
+restores what it lands on without inference. Every way back is the browser's own pop (the
+Android back button, the edge swipe). The one asynchronous operation, `history.go()`, is
+SERIALISED: anything asked while a pop is in flight waits for its `popstate`. That is the P0's
+cure by construction — the old shell had two modules each owning half of history (the router's
+pushes, backGesture's guard entry and synthesised Escape) and their order was not theirs to
+choose. Navigating from inside a sheet REPLACES the sheet's entry. Tapping the active tab walks
+back to its root. Back at the base of the run steps down in place rather than leaving the app;
+a deep link starts at Today's base with the linked screen pushed above it. Foreign entries (a
+hash jump, the Orbits chip's `pushState(null)` + popstate) are read through the router's own
+`applyUrl()` and stamped. The router itself is not installed on the phone shell.
+**Store ↔ stack**: a tap pushes a screen and opens its content (`applyScreen`); anything that
+opens content in the store (a wikilink, the palette, the daily note, a calendar day) pushes the
+screen for it; an `applying` flag keeps each from echoing the other. A store surface closing
+under the top screen (a delete) pops it.
+
+**THE BOTTOM BAR** is 56px plus the safe area, five labelled doors. **Today**: a capture field
+(`client/capture.ts`), today's note, every Sigil task due today as a tick-in-place row computed by
+`tasksFor` and written through `POST /api/routine` (optimistic, reverted with a toast on failure),
+course and book tasks as rows to the Sigils page, a row per deck with cards due (starting its
+session), and the last eight notes. **Notes**: one folder per screen, 52px rows with count and
+chevron, pinned rows first, tags as ONE chip row; `+` is a new note in this folder and a long
+press on it offers a folder; sort is an action sheet; a long press on a row is its action sheet
+(rename, move, pin, publish-with-confirmation, delete) through the desktop's own flows.
+**Search**: focused on arrival; Notes | Commands | Tags; Commands is the palette's `COMMANDS`
+table, ranked by `paletteRank.ts` and run through `runPaletteCommand` (lifted out of
+CommandPalette.tsx for this), minus the desktop-only rows and, without a keyboard, the
+keyboard-only ones. **Calendar**: `CalendarView` unchanged, its day pane handed to a sheet
+through `dayHost`. **More**: grouped rows; the Keyboard group only once a hardware keyboard has
+been seen.
+
+**THE NOTE SCREEN.** A 48px top bar (‹, the title — tap for the top —, an icon for the CURRENT
+mode, ⋯) that slides away on scroll-down by `transform` over a note that keeps its own room;
+nothing at the bottom except, while the editor holds the caret and no hardware keyboard is
+attached, the accessory bar (`[[`, `#`, task, bold, heading, undo, redo, hide), pinned to the
+visual viewport by `transform` and refusing focus on pointerdown. The surface is
+`components/PaneSurface.tsx` — the desktop pane's own switch, split out so both shells draw the
+same editor, reading view, book reader, graph, Orbits and Sigils. The fold chevron and the
+heading ⋯ are hidden and the prose gutter drops to 18px; a long press on a heading raises an
+action sheet of the heading's verbs (`client/phone/editorBridge.ts`, which alone imports
+CodeMirror and is reached by `import()`). The properties card collapses to "N properties ›"
+(the card's hidden `__count`) and opens the sheet's Properties; an empty card is not drawn.
+**The note sheet**: Outline (TocPanel; a jump closes the sheet) | Backlinks | Properties
+(editable a row at a time, an emptied value removes the key) | Actions (publish WITH a
+confirmation, the twin, share, move, history, delete).
+
+**SHEETS** (`client/phone/Sheet.tsx`): from the bottom edge; detents half (the 92dvh panel
+translated 42dvh) and full, auto for action sheets; follow-finger drag on the handle and header
+writing `transform` straight to the element, flick or a quarter of the travel to dismiss; a scrim
+by `opacity`; the product's focus trap (`useDialog`); a history entry; `inert` on everything
+underneath. Every `confirmModal`/`promptModal` in the product is answered by
+`ConfirmSheet.tsx` through `registerConfirmHost` — Back is Cancel; `accent: true` marks a
+confirmation that is not a loss (publishing). The store's modal surfaces (Settings, Trash, the
+palette, capture, shortcuts, login, banner, moderation, unused attachments) are LAYERS: raising
+one pushes an entry, its own close retracts it, and Back dispatches Escape to it so it closes
+itself (Settings keeps its unsaved-changes guard; a layer that stays takes its entry back).
+Ladder: sheets at `--z-panel`, questions at `--z-confirm`.
+
+**TABLET** (the phone shell at `TABLET_QUERY`, min-width 768px): a 72px rail, a 320px list column
+(the deepest list of the tab's stack), the note beside it; a note picked in the list REPLACES the
+one beside it; the note sheet is a 360px slide-over from the trailing edge (logical); the Calendar
+root takes both columns.
+
+**HARDWARE KEYBOARD** (`client/phone/hardwareKeyboard.ts`): proven by a chord, a navigation key,
+or a printable key with the visual viewport at its resting height; remembered per device. It
+enables the global keys (Ctrl/Cmd+K opens Search), hides the accessory bar and adds More's
+Keyboard group.
+
+**ROUND 1 SCOPE.** Orbits, Sigils, the Media page, the graph, the weekly review, the shelf and the
+book/EPUB readers open through `SurfaceScreen` — the same surface under a phone top bar, no tab
+strip, no status bar. Their own phone variants, Settings as pushed sections, the reader's own
+chrome and the deletion of Classic (with `swipe.ts`, `backGesture.ts` and the drawer CSS) are
+Round 2.
+
+**WHAT PROVES IT.** `tests/phoneShell.test.ts` (the stack against an asynchronous history double,
+including the P0 reordered; the reducer; the persistence refusals; the keyboard inference; the
+query; the seam). `npm run check-phone` drives the shell in both languages on a phone, a phone
+with a pen and a tablet both ways up — tree tap changes the URL and the title, back pops a screen,
+back closes a sheet, publish asks, a long press is a menu, every target 44px and every field
+16px. `check-windows-layout` runs its ladder in Classic and asserts which shell each posture and
+width gets.
+
 ## Shell layout (sidebar side, collapse, zen)
 
 Four persisted preferences live on the app root as classes: `s-app--flip`, `s-app--nosidebar`,
@@ -1584,6 +1711,8 @@ stays on `.s-panel--collapsed`, as it always did.
   Measured after, `.cm-line` at 1600/1440/1366/1360/1359/1280/1200/1100/1024/1000/999/900/820/768/700/699/640/480/390,
   en and ar, defaults only: 648 at every width from 768 up, then 597/546/409/333 — **monotone
   non-decreasing in both languages**, document horizontal overflow 0 at every one.
+- **THE DRAWER SHELL IN THE BULLETS BELOW IS THE CLASSIC PHONE LAYOUT.** *Classic phone layout since 3.25.0 — the default phone contract is [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3250).* The drawer, the ☰, the
+  back-gesture guard and the touch shell's overrides hold for `Phone layout: Classic` only.
 - **One gesture per pane, whichever shell is on screen.** `toggleSidebar()` (state.ts) routes to
   `setSidebarOpen` below `DRAWER_QUERY` (`max-width: 999px`, the single copy of that number in
   the client) and to `setSidebarCollapsed` above it; `Ctrl/Cmd+Alt+B`, the palette row and the
@@ -1609,6 +1738,7 @@ stays on `.s-panel--collapsed`, as it always did.
   status-bar buttons 44 (bar 45), document overflow 0. Before: 28 / 26 / 24 / 17–24 — the round
   that gave the empty state its tap targets had fixed the pane it named and not the surface that
   pane points at.
+- *(3.25.0: check-phone now drives the phone shell; see [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3250).)*
 - **…AND 44px IS MEASURED, NOT DECLARED** (`scripts/check-phone.mjs`, 3.18.0). The rule above
   named five selectors and the shell has hundreds. A phone audit found thirty-three places it had
   never reached — the top cluster at 40×36, the drawer's three section headers at 18, the graph's
@@ -3283,6 +3413,8 @@ answer. **Anything new that covers the viewport goes below 500** — the trash b
 *That "known and deliberately not fixed" note is now closed, and the whole ladder has names.*
 
 ### The stacking ladder (`--z-*`, `client/styles/tokens.css`)
+
+The phone shell's sheets sit at `--z-panel` and its questions at `--z-confirm` — [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3250).
 
 Every rung lives in `:root` with the reason beside it, and **no z-index at or above 300 may be
 written as a literal anywhere in `client/styles`** — `check-a11y` rule 7 fails one that is, unless
@@ -11499,6 +11631,8 @@ record of a defect nobody has decided to fix yet, and they keep the suite honest
 by omission. Fixing the bug means rewriting that test, which is the intended workflow.
 
 ## 3.23.0 — the phone, native
+
+*Classic phone layout since 3.25.0 — the default phone contract is [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3250).* Everything in this section is about the drawer shell.
 
 The owner, over a photograph of a friend's Android screen: *"ui for his name is like broken?? Def
 need to make phone app be more native ngl. It kinda sucks currently. One thing I personally hate

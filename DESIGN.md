@@ -48,6 +48,13 @@ github-dark, since the preset rooms arrived in 3.16. Everything below is normati
   gutter is `min(56px, 7.37%)` — the shipped 56px wherever the measure is full, proportional
   below it, never stepped. Measured `.cm-line`, en and ar: 648 at every width from 768 up, then
   597 / 546 / 409 / 333 at 700 / 640 / 480 / 390.
+- **A phone gets a shell of its own, not the desktop's folded** (3.25.0, CONTRACTS "The phone
+  shell"). Below 700px, or on a finger that cannot hover at any width, the screen is a stack of
+  screens under a 48px top bar, a 56px bar of five labelled doors (Today, Notes, Search, Calendar,
+  More) or a 72px rail on a tablet, and sheets from the bottom edge — never a tab strip, a status
+  bar, a pane grip or a drawer. Rows are 52px, sheet rows 48, fields 16px; motion is `transform`
+  and `opacity` only; the note screen shows nothing at its foot but the keyboard's accessory bar.
+  The drawer rules below are the Classic layout's, kept for one release.
 - **Below 700px, or on ANY coarse pointer, every target in the shell is ≥44px** — tree rows, tag
   pills, icon buttons, status-bar buttons (and the bar itself), the drawer toggle and the tab bar
   it sits in. The empty state's tap targets were only ever half of that promise.

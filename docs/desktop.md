@@ -43,9 +43,9 @@ pointer, and a laptop folded flat still has panes.
 
 The widths you set are remembered per window; what the window can *grant* is decided fresh every
 time it is resized. Drag the window narrow and the panes give way so the note keeps a column to
-be in; widen it again and they come back to the widths you chose. Below about 700 points wide —
-or on a device with no fine pointer at all below 1000 — the sidebar stops being a column and
-becomes a drawer behind the ☰ button. Above that, on Windows at 125% or 150% scaling and in a
+be in; widen it again and they come back to the widths you chose. Below about 700 points wide the
+window becomes the [phone layout](workspace.md#on-a-phone) — a bar of five doors, screens and
+sheets — with the same note open, and widening it brings the panes back. Above that, on Windows at 125% or 150% scaling and in a
 window snapped to half the screen, the panes stay docked and stay draggable.
 
 **Zoom belongs to the app.** `Ctrl/Cmd =`, `-` and `0` scale the whole interface, and while it is

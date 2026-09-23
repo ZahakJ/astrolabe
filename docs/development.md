@@ -200,6 +200,11 @@ The postures are Blink settings on the browser process (`--blink-settings=availa
 which is what `pointer_device_win.cc` itself hands the renderer — not DevTools media emulation,
 which `setViewportSize` silently drops halfway down a ladder.
 
+**Since 3.25.0 the ladder runs in the Classic phone layout**, because its drawer cells measure the
+drawer shell; a last rung, `whichShell`, walks each posture down the widths under the default layout
+and asserts the phone shell below 700 and on a slate at every width, and the desktop — unmoved —
+everywhere else.
+
 In each cell it asserts that the sidebar is a real grid column (not auto-placed, not an overlay)
 wherever a pointer can hit a strip, that each docked pane has a grip whose 12px hit area is
 **centred on the pane's own 1px divider** — `elementFromPoint` at the seam must return the grip —
@@ -347,38 +352,44 @@ focus ring in the same rule, an accessible name on every icon-only control, and 
 list at the top of the script. Like check-i18n, it exists for the class of regression that is
 invisible in review and invisible in a screenshot.
 
-### `npm run check-phone` — the phone's six promises
+### `npm run check-phone` — the phone shell, driven
 
 A browser gate:
 `CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=<pw> npm run check-phone -- <url> [outdir]`,
-against a scratch server. It opens the ten main surfaces — editor, reading view, graph, media,
-Sigils, calendar, weekly review, Orbits, library and the notes drawer — in English **and**
-Arabic, in two postures, and asks six questions of each:
+against a scratch server. It drives the phone shell (`client/phone/`) the way a reader's thumb
+does, in English **and** Arabic, on four shapes, and photographs every screen and sheet it passes.
 
-1. **Nothing overflows sideways.** The document never scrolls horizontally and no element hangs
-   past either edge. A strip that declares `overflow-x: auto` is exempt, and so is everything
-   inside it: the tab row, a wide table and the Sigils heat map *scroll*, which is a design.
-2. **Every shell target is ≥44px** — height always, width too when the control carries no text,
-   because an icon button is square or it is nothing. Prose is excluded (a 44px link would set
-   the line height of the paragraph around it), a native checkbox is measured by the `<label>`
-   that holds it, and a data picture's cells are marks rather than controls.
-3. **Every text field is ≥16px**, below which iOS Safari zooms the page into the field on focus
-   and leaves it there.
-4. **Nothing covers a target**: `elementFromPoint` at each target's centre answers that target.
-5. **A long site name stays in its pane.** The name is swapped for a 45-character one, measured
-   and put straight back; it must ellipsise inside the sidebar header rather than run past it.
-6. **No reopen strip on a finger.** The 14px `.s-reopen` door is a pointer's affordance and is
-   not drawn where the pane's doors are the swipe and a 44px switch.
+**What it does, as assertions.** A tap on a folder pushes the folder; a tap on a note changes the
+URL and the title (the old gate was green the day a tree tap on a phone opened nothing); the
+note screen has no tab bar; the note sheet takes a history entry and the browser's back closes it
+before it pops the note; Publish asks, and a cancelled publish publishes nothing; the mode icon
+flips the mode it names; back pops the note to its folder; a long press raises the row's action
+sheet and back closes it; Search is focused on arrival; a calendar day opens as a sheet; Orbits,
+Sigils, the library and the graph open as screens; Settings takes an entry and back closes it; a
+deep link opens its note and back from it comes home to Today; no page errors; and, once,
+`Phone layout: Classic` mounts the desktop's drawer shell.
 
-**The two postures.** `finger` is a Pixel 7 at 390×844. `stylus` is 720×820 at DPR 1.5 with a
-pen — `availablePointerTypes=6, primaryPointerType=2, availableHoverTypes=3, primaryHoverType=1`,
-a blink setting on its own browser, because `hasTouch` makes Chromium report a coarse-only device
-whatever the pointer flags say. It is there because a real phone answered `any-pointer: fine` and
-was served the docked desktop shell, and a gate that only ever measures 390px could not see it.
+**What it measures, on every screen and sheet.** Nothing overflows sideways (a strip that
+scrolls on purpose is exempt); every shell target is ≥44px (height always, width too when the
+control carries no text; prose, a checkbox inside a ≥44px label and a data picture's cells are
+not shell targets); every text field is ≥16px, below which iOS Safari zooms into the field; and
+nothing covers a target (`elementFromPoint` at its centre answers the target). Under an open
+sheet only the sheet is asked, because the page under it is inert on purpose.
 
-It exists because the audit that opened 3.18 found thirty-three defects of exactly these
-shapes, and every one of them was a number that nothing measured. Arabic is not a translation
-pass here — it is a second layout, and three of those findings existed in Arabic only.
+**The four shapes.** `phone` is a Pixel 7 at 412×915 with a finger. `stylus` is 720×820 at DPR
+1.5 with a pen — `availablePointerTypes=6, primaryPointerType=2, availableHoverTypes=3,
+primaryHoverType=1`, a blink setting on its own browser, because `hasTouch` makes Chromium report
+a coarse-only device whatever the pointer flags say; it is the posture that was once served the
+desktop shell. `tablet` and `tablet-land` are a touch tablet at 820×1180 and 1180×820, where the
+shell draws its rail, its list column and the note, and the note sheet slides over from the side.
+
+### `npm run check-shell-seam` — two shells, no shared chrome
+
+Static. The phone shell and the desktop shell share the store, the API layer, the dictionary and
+every content surface, and nothing of each other's chrome: `client/phone/` may not import
+`app.css` or the desktop's tab strip, pane grid, grips, status bar or sidebar; `client/components/`
+may not import from `client/phone/`; and `client/phone/phone.css` asks no width question, because
+being mounted is the condition. `tests/phoneShell.test.ts` runs the same rules.
 
 ### `npm run check-bundle` — what each audience downloads
 
@@ -606,7 +617,7 @@ The sequence a change runs before it is called finished, in this order: `npm run
 `node scripts/check-i18n.mjs` · `npm test` · `npm run build` and then `npm run check-bundle` · `npm run check-perf` (on a quiet machine) ·
 `npm run check-a11y` · `npm run check-contrast` · `npm run check-settings` (with
 `node scripts/gen-settings-index.mjs` first when a row changed) · `npm run check-keymap` when a
-key changed · `npm run check-names` · `npm run check-docs` · `npm run build-docs` ·
+key changed · `npm run check-names` · `npm run check-shell-seam` · `npm run check-docs` · `npm run build-docs` ·
 `npm run check-desktop` when `electron/` or `desktop/` changed ·
 `npm run check-windows-layout` when the shell's layout, the panes or their breakpoints changed.
 Then the browser gates the change touches — `npm run check-phone` whenever a stylesheet or a

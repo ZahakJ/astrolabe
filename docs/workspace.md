@@ -173,59 +173,79 @@ never reaches a visitor session. The collapse is remembered per browser.
 
 ## On a phone
 
-The sidebar is a drawer that follows your finger: a horizontal swipe anywhere drags it in, and the
-gesture can be interrupted or reversed; it opens fully once you have dragged far enough, or with a flick. The outline pane
-answers the mirrored swipe. In Arabic the drawer comes from the right by itself, with no second rule. The outline pane is a drawer on a phone too: the outline switch in the status bar
-slides it over the page from the end edge, with backlinks, unlinked mentions and on-this-day inside.
+On a phone, and on a tablet with no mouse, Astrolabe is laid out for the hand rather than for a
+desk. There are no tabs, no panes and no status bar; there are screens, a bar of five doors at the
+bottom, and sheets that rise from the bottom edge.
 
-The first time you open a vault on a touch device, one quiet line says the swipe is there. It
-appears once per device, it is gone in three seconds, and it never appears at all if you have
-already swiped.
+**The five doors.** The bar at the bottom holds **Today**, **Notes**, **Search**, **Calendar** and
+**More**, each with its name under its icon. Each keeps its own place: open a folder in Notes, look
+something up in Search, and going back to Notes finds the folder where you left it. Tapping the door
+you are already in takes it back to its start.
 
-The top bar keeps three controls on a phone: the outline switch, the settings gear and a **⋯**. The
-⋯ opens every other tool as a labelled row — starting with the command palette, so nothing is
-keyboard-only — then the library, Orbits, Sigils, the
-[Calendar](templates-and-notes.md#the-calendar), the designer, visitor
-preview, vim's keybindings, the graph, themes, sign out and the build number. Nothing scrolls off
-the edge. Zen and the shortcut sheet are not offered, since neither means anything on a phone.
+- **Today** is the home screen: a field at the top that captures a line into today's note (the same
+  capture as [quick capture](capture.md)), today's note itself, every Sigil task due today as a row
+  you tick in place, every Orbits deck with cards due as a row that starts the session, and the last
+  notes you were in.
+- **Notes** is the vault, one folder per screen: rows a thumb can hit, each folder with its count and
+  a chevron. The tags sit in one row of chips at the top of the vault; your pinned rows sit above
+  the rest. The **+** in the corner is a new note in the folder you are in (hold it for a new folder),
+  and the arrows beside it change the order.
+- **Search** opens with the keyboard already up. Its three segments are **Notes** (the vault search,
+  and your recent notes while the field is empty), **Commands** (every command the palette has) and
+  **Tags**.
+- **Calendar** is the month. Tapping a day raises that day — its note, its sigils, its cards and its
+  reading — as a sheet.
+- **More** is everything else, in groups: Orbits, Sigils, the library, Media and the graph; Trash,
+  Settings, Backup & sync and the theme; the designer and the visitor preview; the tour, About and
+  sign out.
 
-**The bottom bar is a phone's, not a desktop's.** It carries what is about the note and can be
-acted on: publish, the other face of a bilingual pair, the backup badge, and ONE mode control —
-reading or editing. Vim is a keyboard mode, so it is a row in ⋯ that says whether it is on; the
-build number is a fact rather than a control, so it is the last row of ⋯ and opens the releases
-page; the designer already had a row there. Everything left in the bar is 44px and spaced for a
-thumb.
+**A note fills the screen.** Its bar at the top is the way back, the note's name (tap it to return
+to the top), an icon for the mode the note is **in** — a pencil while you are editing, a book while
+you are reading; tap it to switch — and **⋯**. The bar slides away as you read down and returns the
+moment you scroll up. Nothing sits at the bottom, except while you are typing: then a row of keys
+rides on top of the keyboard with `[[`, `#`, a task box, bold, a heading, undo, redo and a key that
+puts the keyboard away.
 
-**A collapsed pane's 14px reopen strip is a pointer's door.** On a touch device it is not drawn
-at all: the pane opens with the swipe, or with its 44px switch in the top bar. On a mouse — which
-has no swipe — the strip stays exactly where it was.
+**The note's sheet.** ⋯ opens a sheet with four parts: **Outline** (tap a heading to jump there; the
+sheet gets out of the way), **Backlinks**, **Properties** (tap one to change it, or add one) and
+**Actions** — publish, the other face of a bilingual pair, share, move, history and delete. Publishing
+asks first: it is the one action that reaches other people. The properties of a note show above it
+as a single line, *3 properties ›*, which opens the same sheet.
 
-**Closing what is open.** A drawer is a layer, and every layer has three ways out: the ✕ at its
-own top, a tap on the dimmed page behind it, and the hardware back button — which closes the
-topmost drawer, palette or dialog before it goes back a page, and never leaves the app without
-asking. Escape does the same where there is a keyboard.
+**Holding means "more".** Hold a row in Notes to rename it, move it, pin it, publish it or delete
+it. Hold a heading while editing to fold it, fold what is under it, copy a link to it, select it,
+focus on it or move it into a note of its own. (On a phone the fold arrow and the heading's **⋯**
+are gone from the margins, so the text has the whole width.)
 
-**Every target is a finger's width.** Below 700px, or on any device whose pointer is a finger,
-nothing you can tap is smaller than 44 by 44 pixels — tree rows, tag pills, the tab strip, the
-calendar's days, the Sigils card's checks, the graph's zoom controls — and every field you type
-into is set at 16px, below which iOS Safari zooms the page into the field and leaves it there.
-The notch and the home indicator are kept clear, so an instance added to the home screen puts
-nothing under the status bar or the gesture bar. Chrome's own grey tap flash is off and the app
-answers a press with its own; `npm run check-phone` measures all of this on ten surfaces, in both
-languages, on a finger and on a pen
-([Development](development.md#npm-run-check-phone--the-phones-six-promises)).
+**Sheets and the back gesture.** Every sheet rises from the bottom, can be dragged down to close,
+dragged up to see more, or dismissed by tapping the page behind it. The phone's back gesture — the
+Android back button, the edge swipe — closes the sheet first, then goes back one screen, and back
+from the first screen of a link you followed comes home to Today rather than leaving the app.
+Settings, the trash and the other panels answer the back gesture the same way.
 
-**Opening a note does not open the keyboard.** On a phone a note opens rendered, with the caret
-left where it was; tap the text to start writing. When the keyboard does come up, the line you
-are typing on is scrolled clear of it.
+**On a tablet** the same doors stand in a rail down the side, the list you are browsing stays in a
+column beside it, and the note fills the rest; picking another note in the list replaces the one
+beside it. The note's sheet slides in from the side instead of rising, and never narrows the note.
+A tablet with a keyboard and a trackpad gets the desktop layout instead.
 
-**What counts as a phone.** The drawer layout is used below 700px, and below 1000px on a device
-whose own pointer is a finger that cannot hover. So a tablet held in the hands gets the drawer,
-while a desktop window narrowed beside a browser — and a laptop with a touchscreen AND a mouse —
-keeps its docked, resizable panes down to phone width. The 44px floor and the 16px fields follow
-the *pointer* rather than the width, so a 1024px tablet gets them too.
+**With a keyboard.** A bluetooth keyboard is noticed the first time you type on it, and from then on
+the usual shortcuts work — Ctrl/Cmd+K opens Search, Ctrl/Cmd+P the palette — and More gains a
+**Keyboard** group with vim's keybindings, zen and the shortcut sheet.
 
-That test used to be "no fine pointer anywhere on the device", and a stylus is a fine pointer: a
-phone with a pen — or one that had ever been paired with a bluetooth mouse — was handed the whole
-desktop shell, panes, 14px doors, fourteen-glyph tool cluster and all, on a 720px screen. What is
-asked now is what the device's own input *is*.
+**Every target is a finger's width.** Nothing you can tap is smaller than 44 by 44 pixels, and every
+field you type into is set at 16px, below which iOS Safari zooms into the field and leaves it there.
+The notch and the home indicator are kept clear. `npm run check-phone` drives all of this — taps,
+back gestures, sheets, in both languages, on a phone held in the hand, a phone with a pen and a
+tablet both ways up ([Development](development.md#npm-run-check-phone--the-phone-shell-driven)).
+
+**What counts as a phone.** A window narrower than 700px, or any device whose own pointer is a
+finger that cannot hover — which includes a tablet held in the hands, at any width. A laptop with a
+touchscreen *and* a mouse keeps the desktop's panes, and so does a desktop window wider than 700px.
+Turn a tablet, open a foldable or narrow a window past the line and the layout follows at once,
+with the same note open.
+
+**The classic layout, for one release.** Settings → This device → **Phone layout** switches between
+**New** and **Classic**. Classic is the layout this replaces: the notes sidebar as a drawer you swipe
+in from the edge, tabs, the status bar and the top bar's **⋯**. It will be removed in the next
+release. On a phone neither layout ever changes the tabs and panes your desktop keeps: the phone
+does not save its one open note over them.
