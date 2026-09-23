@@ -57,6 +57,10 @@ export interface ConfirmOptions {
    *  on top of; and it is NOT pre-focused, so Enter is not armed to confirm.
    *  See CONTRACTS.md, "Folder deletion". */
   grave?: boolean;
+  /** The action is not a loss at all — publishing, say — so its button wears
+   *  the accent, not the danger colour. The question is asked because the act
+   *  reaches other people, not because it destroys anything. */
+  accent?: boolean;
 }
 
 /** Which way the dialog was left. "extra" only ever comes from `extraLabel`. */
@@ -153,8 +157,31 @@ export function promptModal(opts: PromptOptions): Promise<string | null> {
 }
 
 /** The caller's rule, or the trivial one (trim) when it did not bring a rule. */
-function runCheck(opts: PromptOptions, raw: string): PromptCheck {
+export function runCheck(opts: PromptOptions, raw: string): PromptCheck {
   return opts.check ? opts.check(raw) : { value: raw.trim() };
+}
+
+/** One question waiting for an answer, as a host other than the one below
+ *  receives it. */
+export type ConfirmRequest = Pending;
+
+/** ANOTHER SHELL'S HOST. The phone shell (client/phone/ConfirmSheet.tsx) asks
+ *  the same questions — every `confirmModal` and `promptModal` in the product,
+ *  from the delete flow to "New note" — as a bottom sheet rather than a
+ *  centred dialog. It takes the bridge the same way the dialog below does, so
+ *  the forty call sites never learn that a second host exists. Returns the
+ *  uninstall; `setConfirmOpen` keeps `isConfirmOpen()` truthful for the
+ *  surfaces that ask it before claiming Escape. */
+export function registerConfirmHost(push: (p: ConfirmRequest) => void): () => void {
+  hostPush = push;
+  for (const p of preMountQueue.splice(0)) push(p);
+  return () => {
+    if (hostPush === push) hostPush = null;
+  };
+}
+
+export function setConfirmOpen(open: boolean): void {
+  dialogOpen = open;
 }
 
 export default function ConfirmHost() {
@@ -417,7 +444,7 @@ export default function ConfirmHost() {
           <button
             ref={confirmRef}
             type="button"
-            className={`s-confirm__danger${opts.grave ? " s-confirm__danger--grave" : ""}`}
+            className={opts.accent ? "s-btn s-btn--accent" : `s-confirm__danger${opts.grave ? " s-confirm__danger--grave" : ""}`}
             onClick={() => settle("confirm")}
           >
             {opts.confirmLabel ?? t("delete")}

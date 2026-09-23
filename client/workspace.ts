@@ -417,6 +417,39 @@ export function emptyWorkspace(): Workspace {
   return soloWorkspace([], null);
 }
 
+/** THE PHONE'S WORKSPACE: ONE PANE, ONE TAB, REPLACED — NEVER APPENDED.
+ *
+ *  The phone shell (client/phone/) has no tab strip and no splits: a screen
+ *  shows one thing, and the navigation stack — not a row of tabs — remembers
+ *  where the reader has been. Every store action still opens through the
+ *  desktop's reducers (a wikilink, the palette, a calendar day, the daily
+ *  note), so rather than teach forty call sites a second verb, the store runs
+ *  the result through this: whatever the reducer did, what is left is the
+ *  focused pane's active tab, alone, in the focused pane's mode. The audit
+ *  counted eight tabs after one session on a phone; this is why there are
+ *  never two.
+ *
+ *  Identity-preserving when there is nothing to collapse, so a store
+ *  subscriber comparing `workspace` references sees no change it did not make. */
+export function phoneWorkspace(ws: Workspace): Workspace {
+  const pane = paneAt(ws, ws.focus) ?? panesInOrder(ws)[0] ?? null;
+  if (pane === null) return emptyWorkspace();
+  const here = activeTabOf(pane);
+  const onePane = ws.layout.columns.length === 1 && ws.layout.columns[0].length === 1;
+  const oneTab = pane.tabs.length <= 1;
+  const unpinned = here === null || (!here.pinned && !here.ephemeral);
+  if (onePane && oneTab && unpinned && ws.focus === pane.id && ws.noteFocus === pane.id && pane.follow === null) return ws;
+  const tabs = here === null ? [] : [tab(here.path)];
+  const solo: Pane = { ...pane, tabs, active: tabs.length > 0 ? 0 : -1, follow: null };
+  return {
+    panes: { [pane.id]: solo },
+    layout: { columns: [[pane.id]], colWeights: [1], rowWeights: { [pane.id]: 1 } },
+    focus: pane.id,
+    noteFocus: pane.id,
+    layoutName: null,
+  };
+}
+
 // ── panes ───────────────────────────────────────────────────────────────────
 
 /** Split `from`, optionally carrying a tab into the new pane. Returns null when

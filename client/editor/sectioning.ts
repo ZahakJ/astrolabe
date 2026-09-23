@@ -51,7 +51,7 @@ const viewsByPath = new Map<string, EditorView>();
 /** Fold (or unfold) every section strictly INSIDE `section`. "All below" means
  *  the subheadings this one owns — not the whole document, and not this
  *  heading itself, which would hide the very row the reader clicked on. */
-function setFoldsBelow(view: EditorView, section: Section, fold: boolean): void {
+export function setFoldsBelow(view: EditorView, section: Section, fold: boolean): void {
   const sections = sectionsOf(view.state.doc.toString());
   const effects = [];
   for (const s of sections) {
@@ -105,7 +105,7 @@ function sectionAtCursor(view: EditorView): Section | null {
 
 const focusSaves = new WeakMap<EditorView, { from: number; to: number }[]>();
 
-function enterFocus(view: EditorView, section: Section): boolean {
+export function enterFocus(view: EditorView, section: Section): boolean {
   const sections = sectionsOf(view.state.doc.toString());
   const saved = currentFolds(view);
   const effects = [];
@@ -281,7 +281,7 @@ function openMenuForLine(view: EditorView, pos: number, x: number, y: number, fr
   });
 }
 
-function selectSection(view: EditorView, section: Section): void {
+export function selectSection(view: EditorView, section: Section): void {
   const { from, to } = sectionOffsets(view.state.doc.toString(), section);
   view.dispatch({
     selection: { anchor: from, head: Math.min(to, view.state.doc.length) },

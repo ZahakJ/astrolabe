@@ -13,7 +13,9 @@ import { applyEditorWidth } from "./editorWidth.ts";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import ErrorBoundary from "./ErrorBoundary.tsx";
-import { reloadPrefsFromStorage } from "./state.ts";
+import { reloadPrefsFromStorage, setPhoneShellMode, useStore } from "./state.ts";
+import { lazySurface } from "./lazySurface.tsx";
+import { PHONE_LAYOUT_EVENT, PHONE_SHELL_QUERY, readPhoneLayout, shellFor, type Shell } from "./shellQuery.ts";
 import { installSafetyNet } from "./safety.ts";
 import { applyEyeComfort } from "./eyeComfort.ts";
 
@@ -35,6 +37,57 @@ applyEyeComfort();
 
 const root = document.getElementById("root");
 if (!root) throw new Error("astrolabe: #root element missing");
+
+// ── Which shell ─────────────────────────────────────────────────────────────
+// TWO SHELLS, ONE QUESTION (client/shellQuery.ts). A phone, a tablet with no
+// mouse, or a window narrower than 700px gets the phone shell
+// (client/phone/PhoneShell.tsx) — its own chunk, its own stylesheet, never
+// downloaded by a desktop; everything else gets App.tsx. The question is
+// asked again on every `change` of the query, so a rotation, a foldable
+// opening or a window dragged across 700px swaps the shell under the reader
+// without a reload: both shells read the same store, and the store keeps the
+// note that was open (state.ts `setPhoneShellMode`).
+//
+// A blog visitor is the one exception, in either shell: the public site has
+// its own shell (App.tsx renders it), and a phone reads a blog the way a
+// laptop does.
+const PhoneShell = lazySurface(() => import("./phone/PhoneShell.tsx"));
+
+function currentShell(): Shell {
+  return shellFor(window.matchMedia(PHONE_SHELL_QUERY).matches, readPhoneLayout());
+}
+
+function subscribeShell(cb: () => void): () => void {
+  const mq = window.matchMedia(PHONE_SHELL_QUERY);
+  mq.addEventListener("change", cb);
+  window.addEventListener(PHONE_LAYOUT_EVENT, cb);
+  return () => {
+    mq.removeEventListener("change", cb);
+    window.removeEventListener(PHONE_LAYOUT_EVENT, cb);
+  };
+}
+
+function Root() {
+  const shell = React.useSyncExternalStore(subscribeShell, currentShell, () => "desktop" as Shell);
+  const blogVisitor = useStore((s) => s.authReady && !s.admin && s.publicLayout !== "app");
+  const phone = shell === "phone" && !blogVisitor;
+  // Before any child's effect runs (layout effects precede passive ones), so
+  // the store collapses and stops persisting the workspace before the phone
+  // shell's first boot touches it — and hands the desktop its own layout back
+  // the moment the shell swaps the other way.
+  React.useLayoutEffect(() => setPhoneShellMode(phone), [phone]);
+  return phone ? (
+    <React.Suspense fallback={<div className="s-ph" />}>
+      <PhoneShell />
+    </React.Suspense>
+  ) : (
+    <App />
+  );
+}
+
+// The store is told before the first render, too: bootstrap restores the
+// workspace, and on a phone that restore must already be the phone's.
+setPhoneShellMode(currentShell() === "phone");
 
 // `pullPrefs` never rejects; `finally` is belt and braces — the page paints
 // whatever the vault answered, and a build target without top-level await
@@ -63,7 +116,7 @@ void pullPrefs()
           renders under, so a throw anywhere in the tree becomes a card with a
           reload button instead of an empty <div id="root">. */}
       <ErrorBoundary>
-        <App />
+        <Root />
       </ErrorBoundary>
     </React.StrictMode>,
   );
@@ -81,16 +134,25 @@ void pullPrefs()
 applyBrowserDictionaries();
 
 if (window.matchMedia("(pointer: coarse)").matches) {
-  // Swallowed on purpose: a redeploy that rotates the chunk hash mid-session
-  // makes this fetch 404, and a reader who then loses the swipe should lose
-  // the SWIPE — the ☰ is still there — not get the safety net's crash card
-  // from an unhandled rejection over a progressive enhancement.
-  void import("./swipe.ts").then((mod) => mod.installSwipe()).catch(() => {});
-  // The hardware back button, which on this device is a layer's way out
-  // before it is a page's (client/backGesture.ts). Same chunk-splitting
-  // bargain and the same swallowed rejection: a reader who loses it still has
-  // Escape, the scrim and every ✕.
-  void import("./backGesture.ts").then((mod) => mod.installBackGesture()).catch(() => {});
+  // THE DRAWER'S GESTURES BELONG TO THE CLASSIC SHELL. The phone shell owns
+  // history itself (client/phone/nav.ts: a stack synced to history, every
+  // sheet an entry) and has no drawer to pan, so the drawer's swipe and the
+  // back-gesture guard are loaded only for a reader who chose Classic — the
+  // drawer shell exists nowhere else on a finger (PHONE_SHELL_QUERY contains
+  // DRAWER_QUERY). Switching the layout reloads the page (settings/
+  // DeviceTab.tsx), so these never run beside the phone shell's own history.
+  if (readPhoneLayout() === "classic") {
+    // Swallowed on purpose: a redeploy that rotates the chunk hash mid-session
+    // makes this fetch 404, and a reader who then loses the swipe should lose
+    // the SWIPE — the ☰ is still there — not get the safety net's crash card
+    // from an unhandled rejection over a progressive enhancement.
+    void import("./swipe.ts").then((mod) => mod.installSwipe()).catch(() => {});
+    // The hardware back button, which on this device is a layer's way out
+    // before it is a page's (client/backGesture.ts). Same chunk-splitting
+    // bargain and the same swallowed rejection: a reader who loses it still has
+    // Escape, the scrim and every ✕.
+    void import("./backGesture.ts").then((mod) => mod.installBackGesture()).catch(() => {});
+  }
   // …and the field the keyboard just covered (client/softKeyboard.ts).
   void import("./softKeyboard.ts").then((mod) => mod.installSoftKeyboard()).catch(() => {});
 }

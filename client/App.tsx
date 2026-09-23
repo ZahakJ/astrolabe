@@ -1,12 +1,14 @@
-// App shell: layout grid (sidebar | main | backlinks, status bar below),
-// global keyboard shortcuts, and the single SSE subscription that keeps the
-// tree, backlinks, and externally-changed open notes fresh.
+// The DESKTOP shell: layout grid (sidebar | main | backlinks, status bar
+// below). What keeps the vault fresh underneath (the SSE subscription, the
+// boot, the unsaved-text guard) is client/shellRuntime.ts and the global keys
+// are client/globalKeys.ts — both shared with the phone shell
+// (client/phone/PhoneShell.tsx), which client/main.tsx mounts instead of this
+// one on phones and tablets.
 
 import {
   Suspense,
   useEffect,
   useMemo,
-  useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
@@ -14,12 +16,7 @@ import {
 import { lazySurface } from "./lazySurface.tsx";
 import PaneGrip, { reopenDragProps, usePaneLayout } from "./components/PaneGrip.tsx";
 import SiteMark from "./components/SiteMark.tsx";
-import type { PropertyValue, VaultEvent } from "../shared/types.ts";
-import { subscribeEvents } from "./api.ts";
-import { coalesce } from "./coalesce.ts";
-import { clearBrokenEmbeds } from "./editor/embeds.ts";
 import { collectNotes } from "./editor/links.ts";
-import { invalidateVaultGraph } from "./graphCache.ts";
 import ConfirmHost from "./components/Confirm.tsx";
 import LoginModal from "./components/LoginModal.tsx";
 import PreviewBanner from "./components/PreviewBanner.tsx";
@@ -37,45 +34,21 @@ import { vimSubCopy } from "./vimCopy.ts";
 import DesignStatus from "./design/DesignStatus.tsx";
 
 import TemplatePicker from "./components/TemplatePicker.tsx";
-import { loadPeriodic, openDailyNote } from "./daily.ts";
-import { bookmarksChanged, toggleBookmark } from "./bookmarks.ts";
-import { BOOKMARKS_PATH } from "../shared/bookmarks.ts";
-import { t, tf } from "./i18n.ts";
-import { isKey, shortcutKey } from "./keys.ts";
+import { t } from "./i18n.ts";
 import { promptNewNote } from "./prompts.ts";
-import { insertTemplateCommand, newNoteFromTemplateCommand } from "./templateActions.ts";
 import { applyUrl, installRouter, syncUrl } from "./router.ts";
+import { useShellRuntime } from "./shellRuntime.ts";
+import { useGlobalKeys } from "./globalKeys.ts";
 import { openTour, subscribeTourSeen, tourSeen } from "./tour.ts";
-import { maybeOpenWhatsNew } from "./whatsnew/door.ts";
-import { syncOfflineWorker, useOffline } from "./offline.ts";
+import { useOffline } from "./offline.ts";
 import OfflineStrip from "./components/OfflineStrip.tsx";
-import { recentSelfWrite, sidebarIsDrawer, useStore } from "./state.ts";
-import {
-  adoptExternalChange,
-  flushAllBuffers,
-  revalidateBuffers,
-  unsavedPaths,
-} from "./editor/bufferBridge.ts";
-import { dismissToasts, toast } from "./toast.ts";
+import { sidebarIsDrawer, useStore } from "./state.ts";
+import { toast } from "./toast.ts";
 import { paneAt, surfaceOf } from "./workspace.ts";
-
-/** Writes made by our own autosave echo back through the watcher; ignore
- *  "changed" events arriving within this window of a local save. */
-const SELF_SAVE_WINDOW_MS = 1500;
-/** The floor between two wake-up revalidations. An alt-tab raises `focus` and
- *  `visibilitychange` within a frame of each other, and a reader flicking
- *  between two windows raises them again a second later; the probe is cheap
- *  but it is not free, and nothing about a vault changes twice in two seconds
- *  that the SSE stream is not already carrying. */
-const WAKE_THROTTLE_MS = 2000;
 
 /** How long zen's ✕ lingers before fading out (any mouse move brings it back). */
 const ZEN_HINT_MS = 2000;
 
-/** Trailing window for whole-vault refreshes driven by the SSE stream. Above
- *  the watcher's own 100ms debounce, so a burst arrives as one wave, and far
- *  below the threshold at which a tree feels stale. */
-const SSE_COALESCE_MS = 250;
 
 // macOS binds Ctrl+B to emacs-style "char left" inside CodeMirror, and this
 // file used to carry an IS_MAC test so the editor could keep it. The test is
@@ -248,9 +221,6 @@ export default function App() {
   );
   const admin = useStore((s) => s.admin);
   const offline = useOffline();
-  // Only the SSE effect below reads this, and only to reconnect the stream
-  // when the reader's language changes (see the comment there).
-  const language = useStore((s) => s.language);
   const authReady = useStore((s) => s.authReady);
   const publicLayout = useStore((s) => s.publicLayout);
   const sidebarOpen = useStore((s) => s.sidebarOpen);
@@ -264,10 +234,6 @@ export default function App() {
   const tree = useStore((s) => s.tree);
   /** Recently opened notes, for the phone's empty state (see readRecent). */
   const [recent, setRecent] = useState<string[]>(readRecent);
-  const lastSaveRef = useRef(0);
-  /** Where the caret was when Ctrl/Cmd+K threw focus into the search box —
-   *  Esc puts it back there (see returnToNote in the keyboard effect). */
-  const quickReturnRef = useRef<HTMLElement | null>(null);
   /** Zen's ✕ has been sitting still long enough to fade out. */
   const [zenIdle, setZenIdle] = useState(false);
   /** Is the focused pane a BOOK? The reader carries its own ✕ in the same
@@ -294,62 +260,12 @@ export default function App() {
   // router, no app keybindings, the blog shortcut sheet) is the same answer.
   const blogVisitor = authReady && !admin && publicLayout !== "app";
 
-  // Boot: /api/me, then tree + session restore / home note.
-  useEffect(() => {
-    void useStore.getState().bootstrap();
-  }, []);
-
-  // Several windows of one vault, behaving like one application: the theme and
-  // the language follow each other, a saved note re-bases its peers' write
-  // precondition, a sign-out is a barrier rather than an event, and exactly one
-  // window at a time holds the pen on any given note.
-  // DYNAMICALLY, because none of it is needed in the first frame. The bus, the
-  // lease and the peer census answer a question — "is another window editing
-  // this note" — that cannot arise until a note is open, and a static import
-  // put four modules into the entry chunk that every anonymous blog reader then
-  // downloaded to coordinate windows they do not have. `check-bundle` is what
-  // noticed.
-  useEffect(() => {
-    let stop: (() => void) | null = null;
-    let dead = false;
-    void import("./windows/coherence.ts").then((m) => {
-      if (dead) return;
-      stop = m.installWindowCoherence();
-    });
-    return () => {
-      dead = true;
-      stop?.();
-    };
-  }, []);
-
-  // CLOSING THE TAB WITH UNSAVED TEXT IN IT.
-  //
-  // There was no `beforeunload` anywhere in the client, and `putNote` is a
-  // plain fetch: closing a tab mid-sentence warned about nothing and saved
-  // nothing. The loss is one sentence at a time, which is exactly why it
-  // erodes trust instead of getting reported — nobody files a bug about a
-  // paragraph they are not certain they wrote.
-  //
-  // Two halves, and the order matters. The BEACON goes first and
-  // unconditionally, because it is the half that actually saves the work: a
-  // `fetch` started here dies with the document, while `sendBeacon` is the one
-  // transport the platform promises to deliver afterwards. Only then is the
-  // browser's own "leave site?" dialog raised, and only when something was
-  // still unsaved after the attempt — a confirmation prompt in front of a
-  // reader whose work is already on its way is a prompt that teaches them to
-  // click through prompts.
-  useEffect(() => {
-    const onBeforeUnload = (e: BeforeUnloadEvent): void => {
-      flushAllBuffers();
-      if (unsavedPaths().length === 0) return;
-      e.preventDefault();
-      // Every modern browser prints its own wording and ignores ours, but the
-      // assignment is still what marks the event as needing the dialog.
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, []);
+  // Everything that keeps the vault honest under either shell — the boot, the
+  // live event stream, the unsaved-text guard (client/shellRuntime.ts) — and
+  // the keyboard, which belongs to the window rather than to a layout
+  // (client/globalKeys.ts). The phone shell mounts the same two hooks.
+  useShellRuntime();
+  useGlobalKeys();
 
   // Once the vault is in, the router takes over the address bar: a pasted
   // deep link outranks the restored session and the home note, and
@@ -373,17 +289,6 @@ export default function App() {
     }
     return cleanup;
   }, [authReady, blogVisitor]);
-
-  // Track when the Editor finishes a save (dirty true -> false), so SSE
-  // "changed" echoes of our own writes can be told apart from external edits.
-  useEffect(
-    () =>
-      useStore.subscribe((state, prev) => {
-        const p = state.openPath;
-        if (p && prev.dirty[p] && !state.dirty[p]) lastSaveRef.current = Date.now();
-      }),
-    [],
-  );
 
   // Remember which notes this reader was in. Subscribed rather than driven off
   // the `openPath` render value, so the list is written once per real change
@@ -428,180 +333,6 @@ export default function App() {
   const seen = useSyncExternalStore(subscribeTourSeen, tourSeen, tourSeen);
   const nudgeTour = !seen;
 
-  // WHAT'S NEW, once per update: the first time this device opens a new
-  // minor version as an admin in the editor shell, the release's deck
-  // (client/whatsnew/) walks its features. A visitor never sees it — the
-  // deck is about the tools, and the tools are the admin's. Settled once
-  // the session is known, so a blog visitor's shell never even imports it.
-  useEffect(() => {
-    if (!authReady || !admin || blogVisitor) return;
-    // The periodic-note settings (folder, formats) prime once here, so the
-    // palette's synchronous hint and the sidebar's Hijri label read the
-    // instance's answer rather than the defaults.
-    void loadPeriodic();
-    const timer = window.setTimeout(maybeOpenWhatsNew, 900);
-    return () => window.clearTimeout(timer);
-  }, [authReady, admin, blogVisitor]);
-
-  // OFFLINE READING (client/offline.ts): the worker follows the session —
-  // registered for an admin with the switch on, unregistered and its copy
-  // deleted the moment the session ends. Re-run on the switch's own event
-  // so the settings row acts at once.
-  useEffect(() => {
-    if (!authReady) return;
-    void syncOfflineWorker(admin);
-    const again = (): void => void syncOfflineWorker(admin);
-    window.addEventListener("astrolabe:offline", again);
-    return () => window.removeEventListener("astrolabe:offline", again);
-  }, [authReady, admin]);
-
-  // Navigating to another note dismisses lingering PLAIN toasts — a message
-  // about the previous interaction must not overlay unrelated content. An
-  // action toast is deliberately spared (client/toast.ts): deleting the open
-  // note is exactly the gesture that changes `openPath`, and the Undo it
-  // offers cannot dismiss itself in the same frame it appears.
-  useEffect(() => {
-    dismissToasts();
-  }, [openPath]);
-
-  // SSE: keep tree + backlinks fresh; reload the open note on external change.
-  // Re-subscribed whenever `admin` flips: the server filters the stream by the
-  // session it saw AT CONNECTION TIME, so a stream opened before login keeps
-  // visitor filtering (publish toggles would arrive as bogus "deleted" events)
-  // and a stream opened as admin would keep leaking unpublished paths after
-  // logout. A fresh EventSource carries the current cookie.
-  //
-  // `language` is in the dependency list for exactly the same reason, one
-  // dimension over: under `settings.languageFilter: "follow"` the stream is
-  // scoped to the reader's language at connection time (EventSource cannot
-  // send a header, so it went out as ?lang=), and a reader who flips the EN/ع
-  // switch would otherwise keep a stream describing the collection they left —
-  // announcing edits to notes their new language hides, and silent about the
-  // ones it reveals. Cheap: one reconnect per deliberate language change.
-  useEffect(() => {
-    // Whole-vault refreshes are COALESCED; per-event bookkeeping below is not.
-    // One changed file and sixty changed files leave the tree, the backlinks,
-    // the tag list and the publish marks in the same place, so a burst pays
-    // for one round of each instead of sixty (client/coalesce.ts spells out
-    // the numbers this replaced).
-    const refreshVault = coalesce(() => {
-      const store = useStore.getState();
-      void store.loadTree();
-      void store.refreshBacklinks();
-      // Keep publish marks + "N published" fresh (external edits can flip
-      // frontmatter flags too).
-      if (store.admin) void store.loadPublished();
-    }, SSE_COALESCE_MS);
-
-    const onEvent = (ev: VaultEvent) => {
-      const store = useStore.getState();
-      refreshVault();
-      // Surfaces that draw a QUERY over the vault rather than one note (the
-      // Media page's shelves) listen for this and re-ask; they are lazy
-      // chunks, so they cannot be called from here by name.
-      window.dispatchEvent(new Event("astrolabe:vault"));
-      // TOO MUCH CHANGED TO NARRATE. The server stops sending one frame per
-      // file above ~25 in 200ms (a `git pull`, a folder restore, an Obsidian
-      // sync) and sends this instead; the honest answer is the one a dropped
-      // stream gets — re-read everything this client is holding, since we were
-      // not told which of it moved.
-      if (ev.kind === "bulk") {
-        invalidateVaultGraph();
-        clearBrokenEmbeds();
-        void revalidateBuffers();
-        return;
-      }
-      // The link graph is the most expensive of the lot and has its own
-      // debounce and its own shared cache, so it is invalidated rather than
-      // refetched here.
-      invalidateVaultGraph();
-
-      // New/renamed files may satisfy embeds that 404'd earlier.
-      if (ev.kind === "created" || ev.kind === "renamed") clearBrokenEmbeds();
-      // Bookmarks.md edited anywhere (by hand, in Obsidian, on the phone):
-      // the sidebar's rows re-read it.
-      if (ev.path === BOOKMARKS_PATH || ev.toPath === BOOKMARKS_PATH) bookmarksChanged();
-
-      if (ev.kind === "renamed" && ev.toPath) {
-        store.remapPath(ev.path, ev.toPath);
-      } else if (ev.kind === "deleted" && store.openTabs.includes(ev.path)) {
-        store.closeTab(ev.path);
-      } else if (ev.kind === "changed" && (ev.path === store.openPath || store.openTabs.includes(ev.path))) {
-        // Not only the focused note: a task ticked in a fence, or a mention
-        // linked from the panel, rewrites a note that may be open in ANOTHER
-        // pane, and a clean buffer left stale there 409s on its next save.
-        // A publish toggle rewrites the file too; its echo is handled by
-        // togglePublish's own bumpReload, not the external-change path.
-        // Two ways to recognise our own write, and the FIRST is the one
-        // that catches an autosave: every writer claims the path before it
-        // sends the request, because the echo overtakes the response by a
-        // couple of milliseconds (state.ts::markSelfWrite). The dirty→clean
-        // stamp stays as the belt to that braces — it still answers for a
-        // write some future path forgets to claim.
-        const selfSave =
-          recentSelfWrite(ev.path, SELF_SAVE_WINDOW_MS) ||
-          Date.now() - lastSaveRef.current < SELF_SAVE_WINDOW_MS;
-        if (!selfSave) {
-          if (store.dirty[ev.path]) {
-            toast(tf("changedOnDisk", { path: ev.path }));
-          } else {
-            // Adopt the new text INTO the open buffer rather than remounting
-            // the editor. The remount used to be the whole mechanism, and with
-            // the buffer registry it became the wrong one: an unmount releases
-            // the buffer and a remount re-fetches it, so the note would come
-            // back correct and the reader's undo history would be gone — on an
-            // event they did not cause. Adoption goes through the document as
-            // an ordinary transaction, so the external change is itself
-            // undoable. The remount stays as the fallback for the surface that
-            // has no buffer: the reading view.
-            void adoptExternalChange(ev.path).then((adopted) => {
-              if (!adopted) store.bumpReload();
-            });
-          }
-        }
-      }
-    };
-    // A STREAM THAT DROPPED AND CAME BACK IS A GAP IN WHAT WE KNOW. EventSource
-    // reconnects on its own and replays nothing, so every "changed" sent while
-    // it was away is gone — and the buffers here still describe files that may
-    // have moved on. Re-ask, before the reader types into one of them.
-    return subscribeEvents(onEvent, () => void revalidateBuffers());
-  }, [admin, language]);
-
-  // WAKING UP: the window was hidden and is visible again.
-  //
-  // The incident this exists for: one vault, TWO SERVERS — the desktop app's
-  // child server beside a systemd instance behind the web admin. A note was
-  // published from the web; the desktop app had been running for days with
-  // that note's buffer loaded from before the publish. Each server's watcher
-  // announces to its OWN subscribers, so the frame that would have refreshed
-  // the desktop buffer went to a stream that had long since dropped. The write
-  // precondition still refuses the stale save — nothing is lost — but the
-  // client had no way to LEARN it was stale until it tried to write, which is
-  // the worst moment to find out.
-  //
-  // `visibilitychange` is the event that actually fires when a laptop lid
-  // opens or a backgrounded tab is picked up again; `focus` catches the case
-  // where the window never went hidden and the reader simply came back to it
-  // from another app. Both are throttled together — they fire in quick
-  // succession on a single alt-tab, and this must not become a poll.
-  useEffect(() => {
-    let last = 0;
-    const wake = (): void => {
-      if (document.visibilityState !== "visible") return;
-      const now = Date.now();
-      if (now - last < WAKE_THROTTLE_MS) return;
-      last = now;
-      void revalidateBuffers();
-    };
-    document.addEventListener("visibilitychange", wake);
-    window.addEventListener("focus", wake);
-    return () => {
-      document.removeEventListener("visibilitychange", wake);
-      window.removeEventListener("focus", wake);
-    };
-  }, []);
-
   // Zen's only visible chrome is a faint ✕. It shows on entry (so the way out
   // is never a secret), fades after a beat, and any mouse movement brings it
   // back — the pointer is the one input that means "I am looking for a
@@ -623,404 +354,6 @@ export default function App() {
       window.removeEventListener("mousemove", onMove);
     };
   }, [zen]);
-
-  // "Set banner…" requests from the editor's properties-card action.
-  useEffect(() => {
-    const onSetBanner = (): void => {
-      const store = useStore.getState();
-      if (store.admin && store.openPath) store.setBannerModalOpen(true);
-    };
-    window.addEventListener("astrolabe:set-banner", onSetBanner);
-    return () => window.removeEventListener("astrolabe:set-banner", onSetBanner);
-  }, []);
-
-  // The properties card writes one property (v1.8, Obsidian parity #1). The
-  // card is raw DOM inside a CodeMirror widget and knows nothing about the
-  // store, so it asks the shell the same way the "Set banner…" button beside
-  // it does — but it names its own NOTE in the event, because a split puts two
-  // cards on screen and the one that was clicked is not always the focused
-  // pane's. `admin` is re-checked here rather than trusted from the DOM: this
-  // is the shell's gate, and the editor is only one of the things that can
-  // dispatch a window event.
-  useEffect(() => {
-    const onProperty = (ev: Event): void => {
-      const detail = (ev as CustomEvent<{ path?: unknown; key?: unknown; value?: unknown }>).detail;
-      const store = useStore.getState();
-      if (!store.admin) return;
-      const path = typeof detail?.path === "string" ? detail.path : store.openPath;
-      const key = typeof detail?.key === "string" ? detail.key.trim() : "";
-      if (path === null || key === "") return;
-      void store.setProperty(path, key, (detail?.value ?? null) as PropertyValue | null);
-    };
-    window.addEventListener("astrolabe:property", onProperty);
-    return () => window.removeEventListener("astrolabe:property", onProperty);
-  }, []);
-
-  // Global keyboard shortcuts.
-  useEffect(() => {
-    /** Is the caret inside the CodeMirror editor right now? */
-    const inEditor = (target: EventTarget | null): boolean =>
-      target instanceof Element && target.closest(".cm-editor") !== null;
-
-    /** Something modal is on screen and owns the keyboard. The DOM half covers
-     *  the layers that are not store flags — the confirm dialog, the theme
-     *  picker and the attachment viewer — all of which close on Esc
-     *  themselves, and none of which may have Esc taken out from under them by
-     *  zen or by leaving preview. */
-    const modalUp = (store: ReturnType<typeof useStore.getState>): boolean =>
-      store.loginOpen ||
-      store.bannerModalOpen ||
-      store.moderationOpen ||
-      store.trashOpen ||
-      store.unusedOpen ||
-      store.settingsOpen ||
-      store.captureOpen ||
-      store.askOpen ||
-      document.querySelector(".s-confirm-overlay, .s-tpick-overlay, .s-att-view") !== null;
-
-    /** Put the caret back where the reader left it — the note they came from.
-     *  Ctrl/Cmd+K throws focus into a search box on the other side of the
-     *  screen; Esc has to be a way BACK, not just a way out, or the next
-     *  keystroke lands in a field nobody is looking at. */
-    const returnToNote = (preferred: HTMLElement | null): void => {
-      if (preferred?.isConnected) {
-        preferred.focus();
-        return;
-      }
-      const editor = document.querySelector<HTMLElement>(".s-view .cm-content");
-      if (editor) {
-        editor.focus();
-        return;
-      }
-      // Reading view has nothing focusable — at least take the keyboard out
-      // of the search field so typing does not disappear into it.
-      const active = document.activeElement;
-      if (active instanceof HTMLElement) active.blur();
-    };
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      const store = useStore.getState();
-      // Ctrl/Cmd+Shift+F: search and replace across the vault (the sidebar's
-      // own panel). Before Escape, before everything: it is a chord nothing
-      // else in the shell claims, and it must beat the browser's.
-      // `isKey`, never `e.key`: on an Arabic layout the F key sends "ب" and
-      // this chord was the one in the shell still reading the character
-      // (the owner: "all shortcuts must work in both langs").
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && isKey(e, "f") && store.admin) {
-        e.preventDefault();
-        window.dispatchEvent(new CustomEvent("astrolabe:replace-open"));
-        return;
-      }
-      if (e.key === "Escape") {
-        // 1. The shortcuts overlay closes first (it is the topmost layer).
-        if (store.shortcutsOpen) {
-          e.preventDefault();
-          store.setShortcutsOpen(false);
-          return;
-        }
-        // 2. Ctrl/Cmd+K parked the caret in the sidebar search: Esc returns it
-        //    to the note. (The Sidebar's own Esc still clears the query — this
-        //    runs in the capture phase and moves focus, nothing else.)
-        const inSearch =
-          e.target instanceof Element && e.target.closest(".s-search") !== null;
-        if (inSearch) {
-          const back = quickReturnRef.current;
-          quickReturnRef.current = null;
-          window.setTimeout(() => returnToNote(back), 0);
-          return;
-        }
-        if (store.paletteOpen || modalUp(store)) return;
-        if (e.target instanceof Element && e.target.closest("input, textarea")) return;
-        // 3. THE NOTES DRAWER IS A LAYER, SO ESCAPE CLOSES IT. Every other
-        //    overlay in the product answers Esc and this one — the biggest
-        //    of them, covering the page with the whole vault — did not: the
-        //    ladder went straight from the palette to zen and never looked at
-        //    `sidebarOpen`. It sits here, under the modal guard, because a
-        //    dialog raised FROM the drawer (rename, "Move to…") owns the key
-        //    first, and above zen because a reader in zen with the drawer out
-        //    means to dismiss the drawer, not the mode. Only where the pane
-        //    IS a drawer: on a desktop `sidebarOpen` is not what shows it.
-        if (store.sidebarOpen && sidebarIsDrawer()) {
-          e.preventDefault();
-          store.setSidebarOpen(false);
-          return;
-        }
-        // 4. Preview is a mode that took the editor away — Esc gives it back.
-        if (store.previewVisitor) {
-          e.preventDefault();
-          void store.setPreviewVisitor(false);
-          return;
-        }
-        // 5. Esc leaves zen — never out from under vim, where Esc is sacred,
-        //    and never out from under a reader panel: a book's contents list
-        //    or go-to field closes on Esc, and this listener runs first
-        //    (capture), so it has to look before it drops the window out of
-        //    zen on the same keystroke.
-        if (store.zen) {
-          if (store.vimMode && inEditor(e.target)) return;
-          if (document.querySelector('.s-book[data-overlay]:not([data-overlay="none"])')) return;
-          e.preventDefault();
-          store.setZen(false);
-        }
-        return;
-      }
-      if (!(e.metaKey || e.ctrlKey)) return;
-      // NOT `e.key.toLowerCase()`. `e.key` is what the LAYOUT produced, and on
-      // the owner's Arabic keyboard the physical P key produces "ح" — so every
-      // line below was false and every shortcut in this listener was dead for
-      // him (and for Russian, Greek, Hebrew, Persian…). `shortcutKey` takes the
-      // layout's answer when it has a Latin one and the PHYSICAL key when it
-      // does not; client/keys.ts carries the whole argument, including why
-      // physical must not simply win (Dvorak) and why AltGr returns null
-      // (Ctrl+Alt is how half of Europe types). One consequence worth naming:
-      // the two `e.altKey && e.code === "KeyB"` special cases that used to live
-      // here are GONE — macOS Option+B ("∫") is not a Latin character, so it
-      // falls to the physical key on the general path now, and the AltGraph
-      // guards the pane toggles carried are the resolver's job for every
-      // binding rather than two of them.
-      const key = shortcutKey(e) ?? "";
-      const bKey = key === "b";
-      const tKey = key === "t";
-      // Ctrl/Cmd+/ — the list of every binding, including this one. Handled
-      // ahead of the modal guard so it opens (and closes) from anywhere. `?` is
-      // Shift+/ on a US keyboard and the sheet answers to both; on a layout
-      // that puts / elsewhere (German Shift+7, Dvorak's `[` position) the
-      // layout's own "/" is what arrives, and on Arabic the physical Slash key
-      // (which types "ظ") resolves to "/". `isKey` is what folds "?" into "/",
-      // so this is the one binding that does not read `key` directly.
-      // …but NOT Ctrl/Cmd+Alt+/, which is the editor's comment toggle. Without
-      // this exclusion the sheet swallowed it in the capture phase, and a
-      // capture-phase preventDefault ends CodeMirror's pipeline before its
-      // first handler runs — the same way it kept Ctrl/Cmd+D and Ctrl/Cmd+B
-      // dead. Alt is the escape hatch this file already uses for exactly this.
-      if (isKey(e, "/") && !e.altKey) {
-        e.preventDefault();
-        if (!modalUp(store)) {
-          store.setPaletteOpen(false);
-          store.setShortcutsOpen(!store.shortcutsOpen);
-        }
-        return;
-      }
-      // Which shell this keystroke is landing in. The blog mounts no palette,
-      // no graph, no panes and no zen — so every binding below except
-      // Ctrl/Cmd+K (its search overlay answers that one) belongs to the
-      // BROWSER there, and taking it would be theft: an anonymous reader lost
-      // the print dialog and Firefox's bookmarks sidebar to two commands that
-      // do not exist on the page. Same predicate as the blogVisitor render
-      // branch below, read from the store because this listener never re-binds.
-      const blogShell =
-        store.authReady && !store.admin && store.publicLayout !== "app";
-      // Ctrl/Cmd+P and +K are ALWAYS ours IN THE APP SHELL — swallowed before
-      // any early return so the browser's print dialog / address-bar search
-      // can never fire, modal open or not, and regardless of what CM does
-      // downstream.
-      //
-      // +B IS THE EXCEPTION, AND preventDefault IS WHY. CodeMirror's whole
-      // keydown pipeline begins `if (event.defaultPrevented) break` — so a
-      // capture-phase preventDefault here does not merely stop the browser,
-      // it stops the EDITOR, and Ctrl/Cmd+B is now the editor's (bold). It
-      // was swallowed unconditionally while it folded a pane, and left that
-      // way it made the new binding silently dead: measured, Ctrl+I bolded
-      // nothing and Ctrl+B did nothing at all. So outside the editor it still
-      // dies here — Firefox's bookmarks sidebar (Ctrl+B) and Chrome's bookmark
-      // bar (Ctrl+Shift+B) must never open over the app — and inside it, the
-      // formatting keymap's own `preventDefault: true` does the same job one
-      // layer down, where it can also let vim's Ctrl+B through.
-      if (key === "k" || (!blogShell && key === "p")) e.preventDefault();
-      if (bKey && !blogShell && !inEditor(e.target)) e.preventDefault();
-      // +D IS THE SAME EXCEPTION, FOR THE SAME REASON. Ctrl/Cmd+D is the
-      // EDITOR's — `searchKeymap`'s selectNextOccurrence, and vim's half-page
-      // scroll ahead of it — so it may only die out here, where it would
-      // otherwise be Chrome's and Firefox's "bookmark this page". Swallowing
-      // it unconditionally is precisely what kept multi-cursor dead: this
-      // listener has held the key for the daily note since it shipped, and a
-      // capture-phase preventDefault ends CodeMirror's pipeline before its
-      // first handler runs. The daily note now wears Alt, below.
-      if (key === "d" && !e.altKey && !blogShell && !inEditor(e.target)) e.preventDefault();
-      // A modal dialog owns the keyboard: app-level shortcuts firing behind
-      // the login/banner/moderation/confirm overlays would steal focus (e.g.
-      // Ctrl+K focusing the sidebar search under the modal) or stack modals.
-      if (modalUp(store) || store.shortcutsOpen) return;
-      // Ctrl/Cmd+K is the blog reader's one command; the rest act on chrome
-      // that is not on their page.
-      if (blogShell && key !== "k") return;
-      if (key === "p" && e.altKey) {
-        // Ctrl/Cmd+Alt+P — print / export PDF. THE OBVIOUS CHORD WAS ALREADY
-        // SPENT, twice: Ctrl/Cmd+P is the palette and Ctrl/Cmd+Shift+P
-        // publishes, and neither of those is worth moving so that printing can
-        // have the key browsers hand it. So printing wears Alt, like the daily
-        // note and the pane toggles, and both of the alternatives are honest:
-        // the palette row prints the chord, and inside the BLOG shell nothing
-        // is swallowed at all — a visitor's Ctrl/Cmd+P is the browser's, and
-        // reading/print.css is what makes it produce the right pages.
-        //
-        // Dynamic import for the reason CommandPalette gives at the same call:
-        // the module carries the markdown renderer and must not be in a first
-        // paint. It is already resolved whenever a document is on screen.
-        e.preventDefault();
-        void import("./print.ts").then((mod) => mod.printNote());
-      } else if (key === "p" && e.shiftKey) {
-        // Ctrl/Cmd+Shift+P: publish toggle (admin, note open) — never the palette.
-        if (store.admin && store.openPath) void store.togglePublish(store.openPath);
-      } else if (key === "p") {
-        store.setPaletteOpen(!store.paletteOpen);
-      } else if (key === "k") {
-        // Ctrl/Cmd+K — search everywhere: the sidebar's search box in the
-        // app shell, a centered overlay in the blog shell. Whichever shell is
-        // mounted owns the event. An open palette hands over to search
-        // instead of fighting it for focus.
-        e.preventDefault();
-        if (store.paletteOpen) store.setPaletteOpen(false);
-        // Remember the note we are leaving so Esc can hand it back. A second
-        // press while the search box already has focus must not overwrite it
-        // with the search box itself.
-        const from = document.activeElement;
-        if (from instanceof HTMLElement && from.closest(".s-search") === null) {
-          quickReturnRef.current = from;
-        }
-        window.dispatchEvent(new Event("astrolabe:quicksearch"));
-      } else if (key === "g") {
-        e.preventDefault();
-        store.toggleGraph();
-      } else if (key === "e") {
-        if (!store.admin) return; // visitors live in reading view
-        e.preventDefault();
-        store.toggleReading();
-        if (store.view !== "editor") store.setView("editor");
-      } else if (bKey && e.altKey) {
-        // THE PANE TOGGLES WEAR ONE MORE MODIFIER THAN THEY USED TO.
-        // Ctrl/Cmd+B was the notes sidebar and Ctrl/Cmd+Shift+B the outline
-        // pane; Ctrl/Cmd+B is now BOLD, because that is the binding every
-        // reader arrives with and formatting wins inside the editor
-        // (client/editor/commands.ts). The pair kept its shape — one key,
-        // Shift picks the second pane — and moved out to Alt, so the only
-        // thing to re-learn is "add Alt". The status-bar tooltips, the two
-        // palette rows and the Ctrl/Cmd+/ sheet all print the new numbers.
-        // AltGraph is excluded — on several European layouts Right-Alt reports
-        // ctrl+alt, and a reader typing a bracket must not fold a pane — but
-        // the exclusion is no longer spelled here: `shortcutKey` returns null
-        // for AltGr, for THIS binding and every other one.
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.shiftKey) store.setPanelCollapsed(!store.panelCollapsed);
-        else store.toggleSidebar();
-      } else if (bKey && e.shiftKey && !e.altKey) {
-        // Ctrl/Cmd+Shift+B — bookmark the open note (or take the bookmark
-        // off). Plain Ctrl/Cmd+B is bold in the editor; Alt+B is the sidebar.
-        if (!store.admin || !store.openPath) return;
-        e.preventDefault();
-        const path = store.openPath;
-        toggleBookmark(path)
-          .then((on) => toast(t(on ? "bookmarkAdded" : "bookmarkRemoved")))
-          .catch(() => toast(t("bookmarkFailed"), "error"));
-      } else if (bKey) {
-        // Plain Ctrl/Cmd+B (and +Shift+B) are swallowed above — Firefox's
-        // bookmarks sidebar and Chrome's bookmark bar must never open over the
-        // app — and then handed on: inside the editor CodeMirror's formatting
-        // keymap answers them, and outside it nothing does. Deliberately
-        // nothing: a key that folds a pane in one half of the window and bolds
-        // a word in the other is a key nobody can describe.
-      } else if (key === "z" && e.shiftKey) {
-        // Ctrl/Cmd+Shift+Z — zen. On macOS this is ALSO CodeMirror's only
-        // redo binding (redo is Mod-y elsewhere), so the editor keeps Cmd+
-        // Shift+Z when the caret is in it — Ctrl+Shift+Z, the palette command
-        // and the ✕ all still enter zen there. stopPropagation everywhere
-        // else: CM must never redo and toggle zen off the same keystroke.
-        if (e.metaKey && inEditor(e.target)) return;
-        e.preventDefault();
-        e.stopPropagation();
-        store.setZen(!store.zen);
-      } else if (isKey(e, "\\")) {
-        // `isKey`, not `key ===`: Shift+\ arrives as "|" on a US keyboard, so
-        // the stacked split answered only to the harness that sends "\"
-        // with Shift held (the owner: "ctrl \ works but ctrl shift \ doesn't").
-        // Ctrl/Cmd+\ splits along the INLINE axis, +Shift stacks instead, and
-        // +Alt closes the pane. One key, one mental model: "another one of
-        // these", with Shift choosing the direction — the same shape the pane
-        // toggles use. A split that would breach the cap says so by name
-        // rather than appearing to do nothing, which is how a keystroke gets
-        // reported as broken.
-        if (!store.admin) return;
-        e.preventDefault();
-        if (e.altKey) {
-          store.closeFocusedPane();
-        } else if (!store.splitFocusedPane(e.shiftKey ? "block" : "inline")) {
-          toast(t("paneCapReached"));
-        }
-      } else if (e.altKey && (e.key === "PageDown" || e.key === "PageUp")) {
-        // THE TAB STRIP GETS A KEYBOARD (v1.8 audit, F12). Every other pane
-        // operation had a chord and the tabs inside them had none, so a reader
-        // with forty notes open could split, close and walk between panes
-        // without a mouse and then had to reach for one to change tab.
-        //
-        // WHY THESE KEYS. The three chords the whole world uses for tabs —
-        // Ctrl+Tab, Ctrl+PageUp/PageDown, Ctrl+W — all belong to the browser,
-        // and a keystroke that fights the browser is a keystroke that loses.
-        // Two of them can be worn one modifier over, which is the escape hatch
-        // this file already takes for the templates and the pane toggles; the
-        // third cannot, because Alt+Tab belongs to the window manager. So the
-        // page keys carry the walk and W carries the close, and the muscle
-        // memory transfers with one extra finger.
-        //
-        // NOT arrows: Ctrl+Alt+←/→ is GNOME's workspace switcher and macOS
-        // Chrome's own tab switcher, and neither hands it back.
-        e.preventDefault();
-        store.stepTab(e.key === "PageDown" ? 1 : -1);
-      } else if (key === "w" && e.altKey) {
-        // Ctrl/Cmd+Alt+W — close the focused pane's active tab. The bare chord
-        // closes the browser window and is not takeable anywhere.
-        e.preventDefault();
-        store.closeActiveTab();
-      } else if (key === "d" && e.shiftKey && !e.altKey) {
-        // Ctrl/Cmd+Shift+D — quick capture: a line into today's note without
-        // leaving this one (client/capture.ts). Shift, beside the daily
-        // note's Alt: the two are one idea ("today's note") with two verbs,
-        // and the plain key stays the editor's (multi-cursor). Swallowed
-        // even inside the editor, where CodeMirror binds nothing to it and
-        // the browser's "bookmark all tabs" would otherwise open.
-        if (!store.admin) return;
-        e.preventDefault();
-        e.stopPropagation();
-        store.setCaptureOpen(true);
-      } else if (key === "d" && e.altKey) {
-        // Ctrl/Cmd+Alt+D — the daily note, moved here off the plain key for
-        // the same reason the pane toggles moved to Alt above: the unmodified
-        // key belongs to the editor, and a once-a-day verb does not outrank a
-        // per-minute one. It kept its letter, so the only thing to re-learn is
-        // "add Alt". The vim guard that used to sit here is gone with the
-        // collision: vim's Ctrl-D now reaches vim by simply not being taken.
-        if (!store.admin) return; // daily note may create a file
-        e.preventDefault();
-        void openDailyNote();
-      } else if (key === "n") {
-        if (!store.admin) return;
-        e.preventDefault();
-        // Our dialog, not the OS box: prompts.ts owns the naming rule and
-        // shows what the typed name becomes (see client/prompts.ts).
-        void promptNewNote("");
-      } else if (tKey && e.altKey) {
-        // TEMPLATES WEAR ALT, and it is not a stylistic choice. Ctrl/Cmd+T is
-        // the browser's new tab and Ctrl/Cmd+Shift+T reopens a closed one —
-        // neither is takeable, and a keystroke that fights the browser is a
-        // keystroke that loses. Alt is the same escape hatch the pane toggles
-        // took when Ctrl/Cmd+B became bold, and the pair keeps that shape:
-        // one key, Shift picks the second command. AltGraph is excluded for
-        // the same reason it is there (European layouts report Right-Alt as
-        // ctrl+alt) — `shortcutKey` does that for every binding now, so the
-        // guard is not repeated here. A desktop that eats Ctrl+Alt+T at the WM
-        // layer still leaves the palette and the tree's folder menu.
-        if (!store.admin) return;
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.shiftKey) void newNoteFromTemplateCommand();
-        else if (store.openPath) void insertTemplateCommand();
-      }
-    };
-    // Capture phase: run ahead of CodeMirror/vim handlers so a stopPropagation
-    // downstream can never let Ctrl+P fall through to the browser.
-    window.addEventListener("keydown", onKeyDown, true);
-    return () => window.removeEventListener("keydown", onKeyDown, true);
-  }, []);
 
   // The panes answer the WINDOW as well as the hand: stored widths applied at
   // boot and re-clamped on every resize and fold (client/paneWidths.ts).

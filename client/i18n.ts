@@ -5780,6 +5780,83 @@ const DICT = {
   twinTabMark: { en: "has another face", ar: "له وجه آخر" },
   twinTreeTitle: { en: "Another face: {title}", ar: "وجه آخر: {title}" },
   blogOtherFace: { en: "Another face of this note:", ar: "وجه آخر لهذه الملاحظة:" },
+  // ── The phone shell (client/phone/, 3.25.0) ─────────────────────────────
+  phTabToday: { en: "Today", ar: "اليوم" },
+  phTabNotes: { en: "Notes", ar: "الملاحظات" },
+  phTabSearch: { en: "Search", ar: "بحث" },
+  phTabMore: { en: "More", ar: "المزيد" },
+  phTabsLabel: { en: "Sections", ar: "الأقسام" },
+  phBack: { en: "Back", ar: "رجوع" },
+  phTodayNote: { en: "Today’s note", ar: "ملاحظة اليوم" },
+  phOpenIt: { en: "Open", ar: "افتحها" },
+  phCreateIt: { en: "Start it", ar: "ابدأها" },
+  phCardsDue: { en: "{n} due", ar: "مستحقّ: {n}" },
+  phSigilSteps: { en: "Today’s steps", ar: "خطوات اليوم" },
+  phSigilRead: { en: "Read: {book}", ar: "اقرأ: {book}" },
+  phPinned: { en: "Pinned", ar: "المثبّتة" },
+  phAllNotes: { en: "All notes", ar: "كل الملاحظات" },
+  phFolderEmpty: { en: "Nothing in this folder yet.", ar: "لا شيء في هذا المجلد بعد." },
+  phFolderGone: { en: "This folder is no longer in the vault.", ar: "لم يعد هذا المجلد في الخزانة." },
+  phSort: { en: "Sort", ar: "الترتيب" },
+  phSortAZ: { en: "By name, A to Z", ar: "بالاسم، تصاعديًا" },
+  phSortZA: { en: "By name, Z to A", ar: "بالاسم، تنازليًا" },
+  phSortManual: { en: "My own order", ar: "ترتيبي الخاص" },
+  phCurrent: { en: "Current", ar: "الحالي" },
+  phCreate: { en: "Create", ar: "إنشاء" },
+  phUnpublish: { en: "Unpublish", ar: "إلغاء النشر" },
+  phPublishAsk: { en: "Publish “{name}”?", ar: "نشر “{name}”؟" },
+  phPublishBody: {
+    en: "It becomes readable by anyone with the site’s address.",
+    ar: "ستصبح مقروءة لكل من يعرف عنوان الموقع.",
+  },
+  phUnpublishAsk: { en: "Unpublish “{name}”?", ar: "إلغاء نشر “{name}”؟" },
+  phUnpublishBody: {
+    en: "Visitors will no longer find it; the note stays in your vault.",
+    ar: "لن يجدها الزوار بعد الآن، وتبقى الملاحظة في خزانتك.",
+  },
+  phPrivate: { en: "Private", ar: "خاصة" },
+  phSearchCommands: { en: "Find a command…", ar: "ابحث عن أمر…" },
+  phSearchTags: { en: "Find a tag…", ar: "ابحث عن وسم…" },
+  phRun: { en: "Go", ar: "تنفيذ" },
+  phRooms: { en: "Rooms", ar: "الغرف" },
+  phVault: { en: "Vault", ar: "الخزانة" },
+  phSite: { en: "Site", ar: "الموقع" },
+  phSession: { en: "Session", ar: "الجلسة" },
+  phKeyboard: { en: "Keyboard", ar: "لوحة المفاتيح" },
+  phBackupSync: { en: "Backup & sync", ar: "النسخ والمزامنة" },
+  phPreviewVisitor: { en: "Preview as a visitor", ar: "معاينة كزائر" },
+  phZen: { en: "Zen", ar: "وضع التركيز" },
+  phTour: { en: "Take the tour", ar: "جولة في التطبيق" },
+  phModeReading: { en: "Reading — tap to edit", ar: "قراءة — المس للتحرير" },
+  phModeEditing: { en: "Editing — tap to read", ar: "تحرير — المس للقراءة" },
+  phNoteSheet: { en: "Note", ar: "الملاحظة" },
+  phActions: { en: "Actions", ar: "إجراءات" },
+  phShare: { en: "Share", ar: "مشاركة" },
+  phLinkCopied: { en: "Link copied", ar: "نُسخ الرابط" },
+  phTwinSwap: { en: "Switch to the other face ({there})", ar: "انتقل إلى الوجه الآخر ({there})" },
+  phTwinCreate: { en: "Create a twin", ar: "إنشاء وجه آخر" },
+  phNoProps: { en: "No properties yet.", ar: "لا خصائص بعد." },
+  phPropKey: { en: "Name of the property", ar: "اسم الخاصية" },
+  phPropClear: { en: "Saving an empty value removes this property.", ar: "حفظ قيمة فارغة يحذف هذه الخاصية." },
+  phSave: { en: "Save", ar: "حفظ" },
+  phNext: { en: "Next", ar: "التالي" },
+  phKeyBar: { en: "Writing keys", ar: "مفاتيح الكتابة" },
+  phKeyLink: { en: "Link to a note", ar: "رابط إلى ملاحظة" },
+  phKeyTag: { en: "Tag", ar: "وسم" },
+  phKeyTask: { en: "Task", ar: "مهمة" },
+  phKeyBold: { en: "Bold", ar: "عريض" },
+  phKeyHeading: { en: "Heading", ar: "عنوان" },
+  phKeyUndo: { en: "Undo", ar: "تراجع" },
+  phKeyRedo: { en: "Redo", ar: "إعادة" },
+  phKeyHide: { en: "Hide the keyboard", ar: "إخفاء لوحة المفاتيح" },
+  rowPhoneLayout: { en: "Phone layout", ar: "تخطيط الهاتف" },
+  hintPhoneLayout: {
+    en: "The phone-first shell, or the drawer layout it replaces. Reloads the page.",
+    ar: "واجهة الهاتف الجديدة، أو تخطيط الدرج الذي تحل محله. يعيد تحميل الصفحة.",
+  },
+
+  phoneLayoutNew: { en: "New", ar: "الجديد" },
+  phoneLayoutClassic: { en: "Classic", ar: "الكلاسيكي" },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;
@@ -5896,6 +5973,8 @@ export type CountUnit =
   // and the versions the store kept of a note — the weekly review's units.
   | "highlights"
   | "sessions"
+  // The phone's one-line properties card: "3 properties ›".
+  | "properties"
   | "versions";
 
 const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: string; few: string; many: string } }> = {
@@ -5912,6 +5991,7 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   // The library counts units (chapters, lectures) beside the lessons above.
   units: { en: ["unit", "units"], ar: { one: "وحدة واحدة", two: "وحدتان", few: "وحدات", many: "وحدة" } },
   // A course's steps (shared/routine.ts) — the thing a course is a list of.
+  properties: { en: ["property", "properties"], ar: { one: "خاصية واحدة", two: "خاصيتان", few: "خصائص", many: "خاصية" } },
   steps: { en: ["step", "steps"], ar: { one: "خطوة واحدة", two: "خطوتان", few: "خطوات", many: "خطوة" } },
   replacements: {
     en: ["replacement", "replacements"],

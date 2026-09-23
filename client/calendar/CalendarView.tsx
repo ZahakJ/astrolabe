@@ -34,7 +34,7 @@
 // the visual left of this one is tomorrow there. The pane that follows is
 // the second stop and holds every link.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { addMonths, firstOfMonth, monthCells, noon, ymdOf, type GridCalendar, type GridCell } from "../../shared/calendar.ts";
 import { agendaBands, agendaByDay, emptyAgenda, gradedOn, type DayAgenda } from "../../shared/dayAgenda.ts";
 import { EVERYTHING_ELSE } from "../../shared/decks.ts";
@@ -117,7 +117,14 @@ interface Sources {
 
 const NO_SOURCES: Sources = { routines: [], trackers: [], grades: [] };
 
-export default function CalendarView() {
+/** How a shell draws the day pane when it does not sit beside the grid. The
+ *  phone shell passes one: the pane becomes a sheet raised by a tap on a day
+ *  (client/phone/screens/CalendarScreen.tsx), because a 412px screen has no
+ *  "beside" and "under the month" is a scroll away from the finger that
+ *  chose the day. Absent, the pane is laid out as it always was. */
+export type DayPaneHost = (pane: ReactNode, label: string, close: () => void) => ReactNode;
+
+export default function CalendarView({ dayHost }: { dayHost?: DayPaneHost }) {
   const tree = useStore((s) => s.tree);
   const lang = useStore((s) => s.language);
   const locale = useStore((s) => s.blogLocale);
@@ -185,6 +192,12 @@ export default function CalendarView() {
   // ── The cursor, which is also the selection ──────────────────────────────
   const inMonth = useMemo(() => rows.flat().filter((c) => c.inMonth), [rows]);
   const [cursor, setCursor] = useState(today);
+  /** The day pane's sheet is up (only with a `dayHost`). */
+  const [dayOpen, setDayOpen] = useState(false);
+  const pick = useCallback((iso: string): void => {
+    setCursor(iso);
+    if (dayHost) setDayOpen(true);
+  }, [dayHost]);
   const pendingFocus = useRef<string | null>(null);
   const gridRef = useRef<HTMLTableElement | null>(null);
   useEffect(() => {
@@ -315,7 +328,7 @@ export default function CalendarView() {
                     cursor={cursor}
                     secondary={secondary}
                     locale={locale}
-                    onSelect={setCursor}
+                    onSelect={pick}
                     onOpen={openDay}
                   />
                 ))}
@@ -345,6 +358,8 @@ export default function CalendarView() {
         {/* THE DAY PANE. Beside the grid where there is room, under it on a
             phone (calendarpage.css) — one place, one DOM, so nothing is
             written twice and nothing is hidden from a reader who tabs. */}
+        {(() => {
+          const pane = (
         <aside className="s-calpage__pane" aria-label={selectedLong} data-testid="calendar-day">
           <h2 className="s-calpage__paneh">{selectedLong}</h2>
           {selected.note === null ? (
@@ -436,6 +451,10 @@ export default function CalendarView() {
 
           {selected.count === 0 && <p className="s-calpage__paneempty">{loaded ? t("calendarDayEmpty") : t("calendarLoading")}</p>}
         </aside>
+          );
+          if (!dayHost) return pane;
+          return dayOpen ? dayHost(pane, selectedLong, () => setDayOpen(false)) : null;
+        })()}
       </div>
     </div>
   );

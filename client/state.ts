@@ -85,6 +85,7 @@ import {
   ORBITS_TAB,
   orbitsTabFor,
   openInPane,
+  phoneWorkspace,
   resizeCols as resizeColsIn,
   resizeRows as resizeRowsIn,
   paneAt,
@@ -757,6 +758,11 @@ export interface State {
   setDirty(path: string, dirty: boolean): void;
   /** Rewrite a path (or folder prefix) across tabs/openPath/dirty after a rename. */
   remapPath(path: string, toPath: string): void;
+  /** The last path (note or folder) that moved, as `remapPath` applied it —
+   *  so a surface that remembers paths OUTSIDE the workspace (the phone's
+   *  navigation stack, client/phone/nav.ts) can follow a rename instead of
+   *  mistaking it for the reader opening a different note. */
+  lastRemap: { from: string; to: string } | null;
   /** Signal that the open note's on-disk content changed externally. */
   bumpReload(): void;
   /** Queue (or clear) a heading for the next opened note to scroll to. */
@@ -1050,6 +1056,7 @@ function readStoredTabs(): StoredTabs | null {
 }
 
 function persistTabs(tabs: string[], open: string | null): void {
+  if (!workspacePersists()) return;
   try {
     localStorage.setItem(TABS_KEY, JSON.stringify({ tabs, open }));
   } catch {
@@ -1057,10 +1064,59 @@ function persistTabs(tabs: string[], open: string | null): void {
   }
 }
 
+/** THE PHONE SHELL IS MOUNTED (client/phone/PhoneShell.tsx). Two things
+ *  follow, both enforced here rather than in the shell so that no call site
+ *  can forget them:
+ *
+ *    1. every workspace the store commits is collapsed to one pane holding one
+ *       tab (`mirrorOf` → `phoneWorkspace`), because the phone has no strip to
+ *       show a second tab in and no grips to show a second pane;
+ *    2. the workspace is NEVER PERSISTED — not to `astrolabe.workspace`, not to
+ *       `astrolabe.tabs`, not to the desktop's copy beside the vault. The
+ *       desktop's arrangement (four panes, eleven tabs, a pinned book) is the
+ *       reader's, and a phone that opened one note must not overwrite it with
+ *       "one note". prefsSync.ts refuses the key as well (NEVER_TRAVELS), so
+ *       it cannot leave through the preferences either.
+ *
+ *  Set before the first render by client/main.tsx and flipped when a resize or
+ *  a rotation swaps shells. */
+let phoneShell = false;
+
+export function phoneShellMode(): boolean {
+  return phoneShell;
+}
+
+/** Enter or leave the phone shell's rules. Leaving hands the desktop its own
+ *  stored arrangement back — the phone never wrote over it — with whatever
+ *  note the phone was on opened in the focused pane. */
+export function setPhoneShellMode(on: boolean): void {
+  if (phoneShell === on) return;
+  phoneShell = on;
+  const s = useStore.getState();
+  if (on) {
+    useStore.setState(mirrorOf(s.workspace));
+    return;
+  }
+  const here = s.openPath;
+  const stored = s.authReady ? readStoredWorkspace() : null;
+  if (stored !== null) {
+    const existing = new Set(collectNotes(s.tree).map((n) => n.path));
+    useStore.setState(mirrorOf(pruneWorkspace(stored, existing)));
+    if (here !== null) useStore.getState().openNote(here);
+  }
+}
+
+/** The persistence rule the phone shell is held to, as a function a test can
+ *  call: nothing about the workspace is written while the phone is mounted. */
+export function workspacePersists(): boolean {
+  return !phoneShell;
+}
+
 let workspaceBackupTimer: ReturnType<typeof setTimeout> | null = null;
 let launchSyncAsked = false;
 
 function persistWorkspace(ws: Workspace): void {
+  if (!workspacePersists()) return;
   const stored = serializeWorkspace(ws);
   try {
     localStorage.setItem(WORKSPACE_KEY, JSON.stringify(stored));
@@ -1105,8 +1161,11 @@ function readStoredWorkspace(): Workspace | null {
  *  it were a permalink. A book pane can hold the keyboard; it cannot be "the
  *  open note". */
 function mirrorOf(
-  ws: Workspace,
+  wsIn: Workspace,
 ): Pick<State, "workspace" | "openTabs" | "openPath" | "readingMode"> {
+  // THE PHONE SHELL'S ONE RULE, applied where every open ends up: one pane,
+  // one tab, replaced (client/workspace.ts phoneWorkspace).
+  const ws = phoneShell ? phoneWorkspace(wsIn) : wsIn;
   const pane = paneAt(ws, ws.focus);
   const openTabs = pane === null ? [] : pane.tabs.map((t) => t.path);
   // The focused pane's mode, mirrored for the ~dozen readers that ask "is the
@@ -1436,6 +1495,7 @@ export const useStore = create<State>()((set, get) => {
   return {
     tree: null,
     workspace: emptyWorkspace(),
+    lastRemap: null,
     openPath: null,
     openTabs: [],
     dirty: {},
@@ -2751,7 +2811,7 @@ export const useStore = create<State>()((set, get) => {
         remapBufferPath(path, toPath);
         const dirty: Record<string, boolean> = {};
         for (const [p, d] of Object.entries(s.dirty)) dirty[remap(p, path, toPath)] = d;
-        return { ...mirrorOf(remapWorkspace(s.workspace, path, toPath)), dirty };
+        return { ...mirrorOf(remapWorkspace(s.workspace, path, toPath)), dirty, lastRemap: { from: path, to: toPath } };
       }),
 
     bumpReload: () => set((s) => ({ reloadTick: s.reloadTick + 1 })),
@@ -2766,6 +2826,8 @@ export const useStore = create<State>()((set, get) => {
 // so a slow boot never clobbers the stored tabs with the empty initial state.
 useStore.subscribe((s, prev) => {
   if (!s.authReady) return;
+  // The phone shell keeps its one-note workspace to itself (see phoneShell).
+  if (!workspacePersists()) return;
   if (s.workspace !== prev.workspace) persistWorkspace(s.workspace);
   if (s.openTabs !== prev.openTabs || s.openPath !== prev.openPath) {
     // `astrolabe.tabs` is still written, and deliberately: it costs a few bytes

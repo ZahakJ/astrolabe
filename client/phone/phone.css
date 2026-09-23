@@ -1,0 +1,1147 @@
+/* THE PHONE SHELL'S STYLESHEET (client/phone/).
+
+   Loaded with the shell's own chunk and NOWHERE ELSE: a desktop never
+   downloads it, and nothing in it asks how wide the window is. There is no
+   `@media (max-width…)` in this file on purpose — being MOUNTED is the
+   condition (client/shellQuery.ts decides), and the tablet's two columns are
+   a class the shell sets, not a breakpoint the stylesheet guesses. The
+   desktop's phone overrides in app.css (the drawer, the 44px pass) keep
+   styling the Classic shell and the surfaces this one reuses; this file
+   styles only what the phone shell draws — every selector here is under
+   `.s-ph`, `.s-ph-*` or the document mark `.s-ph-doc`.
+
+   Motion is `transform` and `opacity` only (the sheet, the top bar, a
+   screen arriving), so nothing here asks the page for layout per frame.
+   Every target is 44px or more; list rows are 52, sheet rows 48, the tab bar
+   56 plus the home indicator. Logical properties throughout: Arabic mirrors
+   with no second rule except where a GLYPH points (back, chevron). */
+
+/* ── the frame ───────────────────────────────────────────────────────────── */
+
+.s-ph {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+
+.s-ph__app {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.s-ph--tablet .s-ph__app {
+  flex-direction: row;
+}
+
+.s-ph__main {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  position: relative;
+}
+
+.s-ph-stage {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+
+.s-ph-screen {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--bg);
+}
+
+.s-ph-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 24px;
+}
+
+/* A screen arriving: in from the reading direction on a push, from the other
+   side on a pop, a cross-fade on a tab. 200ms and transform-only. */
+@keyframes s-ph-in {
+  from {
+    transform: translate3d(calc(28px * var(--ph-dir, 1)), 0, 0);
+    opacity: 0.4;
+  }
+}
+@keyframes s-ph-back {
+  from {
+    transform: translate3d(calc(-28px * var(--ph-dir, 1)), 0, 0);
+    opacity: 0.4;
+  }
+}
+@keyframes s-ph-fade {
+  from {
+    opacity: 0.3;
+  }
+}
+.s-ph-stage--push {
+  animation: s-ph-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.s-ph-stage--pop {
+  animation: s-ph-back 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.s-ph-stage--tab {
+  animation: s-ph-fade 140ms ease-out;
+}
+.s-ph[dir="rtl"] {
+  --ph-dir: -1;
+}
+
+/* ── the top bar ─────────────────────────────────────────────────────────── */
+
+.s-ph-top {
+  flex: none;
+  box-sizing: border-box;
+  height: calc(48px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 3;
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.s-ph-top--hidden {
+  transform: translate3d(0, -100%, 0);
+}
+
+.s-ph-top__gap {
+  flex: none;
+  width: 12px;
+}
+
+.s-ph-top__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font: 600 17px/1.2 var(--font-ui);
+  color: var(--heading, var(--text));
+  text-align: start;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s-ph-top__title--button {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.s-ph-top__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+
+.s-ph-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.s-ph-icon:active,
+.s-ph-row:active,
+.s-ph-tab:active,
+.s-ph-chip:active,
+.s-ph-card:active,
+.s-ph-actions__row:active {
+  background: var(--bg-hover);
+}
+
+.s-ph-icon:disabled {
+  color: var(--text-faint);
+}
+
+/* A glyph that POINTS follows the reading direction. */
+.s-ph[dir="rtl"] .s-ph-top__back svg,
+.s-ph[dir="rtl"] .s-ph-row__chev svg {
+  transform: scaleX(-1);
+}
+
+/* ── the tab bar and the rail ────────────────────────────────────────────── */
+
+.s-ph-tabs {
+  flex: none;
+  display: flex;
+  box-sizing: border-box;
+  height: calc(56px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+
+.s-ph-tab {
+  flex: 1;
+  min-width: 44px;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: 500 12px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.s-ph-tab__icon {
+  display: flex;
+}
+
+.s-ph-tab--on {
+  color: var(--accent);
+}
+
+.s-ph-rail {
+  flex: none;
+  width: 72px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: calc(8px + env(safe-area-inset-top)) 0 env(safe-area-inset-bottom);
+  border-inline-end: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+
+.s-ph-rail .s-ph-tab {
+  flex: none;
+  min-height: 64px;
+}
+
+/* ── the tablet's two columns ────────────────────────────────────────────── */
+
+.s-ph-cols {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.s-ph-cols__list {
+  flex: none;
+  width: 320px;
+  display: flex;
+  border-inline-end: 1px solid var(--border);
+}
+
+.s-ph-cols--wide .s-ph-cols__list {
+  flex: 1;
+  width: auto;
+  border-inline-end: 0;
+}
+
+.s-ph-cols__detail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  position: relative;
+}
+
+.s-ph-cols__empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: var(--text-faint);
+  opacity: 0.5;
+}
+
+/* ── lists ───────────────────────────────────────────────────────────────── */
+
+.s-ph-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.s-ph-row {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: none;
+  color: var(--text);
+  font: 16px/1.3 var(--font-ui);
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-ph-row:disabled {
+  cursor: default;
+}
+
+.s-ph-row__glyph {
+  flex: none;
+  display: flex;
+  color: var(--text-muted);
+}
+
+.s-ph-row__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-ph-row__count {
+  flex: none;
+  color: var(--text-faint);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.s-ph-row__count--due {
+  color: var(--accent);
+}
+
+.s-ph-row__note {
+  flex: none;
+  max-width: 45%;
+  color: var(--text-muted);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s-ph-row__chev {
+  flex: none;
+  display: flex;
+  color: var(--text-faint);
+}
+
+.s-ph-row--danger {
+  color: var(--danger);
+}
+
+.s-ph-row--pinned .s-ph-row__glyph {
+  color: var(--accent);
+}
+
+.s-ph-row--add .s-ph-row__name {
+  color: var(--accent);
+}
+
+.s-ph-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin: 22px 16px 6px;
+  font: 600 13px/1.2 var(--font-ui);
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.s-ph-head__count {
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-faint);
+}
+
+.s-ph-group .s-ph-list--grouped {
+  margin: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--bg-raised);
+}
+
+.s-ph-group .s-ph-list--grouped li:last-child .s-ph-row {
+  border-bottom: 0;
+}
+
+.s-ph-empty {
+  margin: 0;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.s-ph-foot {
+  margin: 0;
+  padding: 16px;
+  color: var(--text-faint);
+  font-size: 13px;
+  text-align: center;
+}
+
+.s-ph-loading {
+  flex: 1;
+}
+
+/* The tag chips at the root of Notes: ONE row that scrolls, not half the
+   screen (the old drawer gave its tag shelf the whole lower half). */
+.s-ph-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 16px 4px;
+  scrollbar-width: none;
+}
+
+.s-ph-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.s-ph-chip {
+  flex: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--bg-raised);
+  color: var(--text);
+  font: 15px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.s-ph-chip__n {
+  color: var(--text-faint);
+  font-size: 13px;
+}
+
+/* Search results and two-line rows. */
+.s-ph-hit {
+  align-items: flex-start;
+  padding-block: 10px;
+}
+
+.s-ph-hit .s-ph-row__glyph {
+  padding-top: 1px;
+}
+
+.s-ph-hit__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.s-ph-hit__snippet {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.s-ph-hit__snippet mark {
+  background: var(--accent-soft);
+  color: inherit;
+  border-radius: 2px;
+}
+
+/* ── fields, segments, buttons ───────────────────────────────────────────── */
+
+/* 16px, always: under it iOS zooms the page into the field and leaves it. */
+.s-ph-field {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-raised);
+  color: var(--text);
+  font: 16px/1.3 var(--font-ui);
+}
+
+.s-ph-field:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.s-ph-field--filter {
+  margin: 4px 16px 8px;
+  width: calc(100% - 32px);
+}
+
+.s-ph-search__bar {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 16px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.s-ph-seg {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--bg-hover);
+}
+
+.s-ph-seg__btn {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-muted);
+  font: 500 15px/1.1 var(--font-ui);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.s-ph-seg__btn--on {
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.18);
+}
+
+.s-ph-btn {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font: 600 16px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.s-ph-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.s-ph-btn--accent {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.s-ph-btn--danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.s-ph-btn--grave {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: var(--bg);
+}
+
+.s-ph-btn--quiet {
+  border-color: transparent;
+  color: var(--text-muted);
+}
+
+/* ── today ───────────────────────────────────────────────────────────────── */
+
+.s-ph-today__date {
+  margin: 14px 16px 4px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.s-ph-capture {
+  display: flex;
+  gap: 6px;
+  margin: 8px 16px 4px;
+}
+
+.s-ph-capture__field {
+  flex: 1;
+}
+
+.s-ph-capture__send {
+  color: var(--accent);
+}
+
+.s-ph-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: calc(100% - 32px);
+  min-height: 72px;
+  margin: 12px 16px 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-raised);
+  color: var(--text);
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-ph-card__kicker {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.s-ph-card__title {
+  font: 600 19px/1.25 var(--font-serif, var(--font-ui));
+  color: var(--heading, var(--text));
+}
+
+.s-ph-card__meta {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.s-ph-task__box {
+  flex: none;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--text-faint);
+  border-radius: 7px;
+  color: var(--bg);
+}
+
+.s-ph-task--done .s-ph-task__box {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.s-ph-task--done .s-ph-row__name {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.s-ph-task__sigil {
+  flex: none;
+  width: 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ── the note screen ─────────────────────────────────────────────────────── */
+
+/* The bar floats over the note so that sliding it away is a transform and
+   not a reflow; the note keeps its own room for it at the top. */
+.s-ph-note .s-ph-top {
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+}
+
+.s-ph-view {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* The gutters come back: the fold chevron and the heading's ⋯ moved to a
+     long press, so the prose does not have to leave room for them. */
+  --prose-gutter: 18px;
+}
+
+.s-ph-note .s-ph-view {
+  padding-top: calc(48px + env(safe-area-inset-top));
+}
+
+.s-ph-note .s-editor .cm-content,
+.s-ph-note .s-reading__content {
+  padding-block: 16px 96px;
+}
+
+.s-ph .s-editor .cm-s-foldbtn,
+.s-ph .s-editor .cm-s-sectbtn {
+  display: none;
+}
+
+.s-ph .s-editor .cm-line:has(.cm-s-foldbtn),
+.s-ph .s-editor .cm-line:has(.cm-s-sectbtn) {
+  padding-inline-start: 0;
+  padding-inline-end: 0;
+}
+
+/* PROPERTIES, one line: "3 properties ›" (the card's own count), which opens
+   the sheet's Properties segment. An empty card is not drawn at all. */
+.s-ph .cm-s-props--empty,
+.s-ph .s-rv-props--empty {
+  display: none;
+}
+
+.s-ph .cm-s-props--collapsed .cm-s-props__label,
+.s-ph .cm-s-props--collapsed .cm-s-props__chevron,
+.s-ph .cm-s-props--collapsed .cm-s-props__headtags,
+.s-ph .cm-s-props--collapsed .cm-s-props__action,
+.s-ph .s-rv-props--collapsed .s-rv-props__label,
+.s-ph .s-rv-props--collapsed .s-rv-props__chevron,
+.s-ph .s-rv-props--collapsed .s-rv-props__headtags {
+  display: none;
+}
+
+.s-ph .cm-s-props--collapsed .cm-s-props__count[hidden],
+.s-ph .s-rv-props--collapsed .s-rv-props__count[hidden] {
+  display: inline;
+}
+
+.s-ph .cm-s-props__count::after,
+.s-ph .s-rv-props__count::after {
+  content: " ›";
+}
+
+.s-ph .cm-s-props--collapsed .cm-s-props__head,
+.s-ph .s-rv-props--collapsed .s-rv-props__head {
+  min-height: 44px;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+/* The keyboard's accessory bar: the one thing at the bottom while writing,
+   carried up on the keyboard by a transform (AccessoryBar.tsx). */
+.s-ph-kbbar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  box-sizing: border-box;
+  height: 48px;
+  padding-inline: 4px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+
+.s-ph-kbbar__key {
+  flex: 1;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 600 17px/1 var(--font-mono, var(--font-ui));
+  cursor: pointer;
+}
+
+.s-ph-kbbar__key:active {
+  background: var(--bg-hover);
+}
+
+/* ── legacy screens ──────────────────────────────────────────────────────── */
+
+.s-ph-legacy__body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ── sheets ──────────────────────────────────────────────────────────────── */
+
+.s-ph-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-panel);
+  pointer-events: none;
+}
+
+.s-ph-sheet.s-ph-ask {
+  z-index: var(--z-confirm);
+}
+
+.s-ph-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.45);
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events: auto;
+}
+
+.s-ph-sheet--open .s-ph-sheet__scrim {
+  opacity: 1;
+}
+
+.s-ph-sheet--leaving .s-ph-sheet__scrim {
+  pointer-events: none;
+}
+
+.s-ph-sheet__panel {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: 16px 16px 0 0;
+  background: var(--bg-raised);
+  color: var(--text);
+  box-shadow: 0 -8px 32px rgb(0 0 0 / 0.3);
+  transform: translate3d(0, 100%, 0);
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: auto;
+}
+
+/* Focus lands on the panel itself when a sheet opens; a keyboard reader
+   sees where it went. */
+.s-ph-sheet__panel:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.s-ph-sheet--half .s-ph-sheet__panel,
+.s-ph-sheet--full .s-ph-sheet__panel {
+  height: 92dvh;
+}
+
+.s-ph-sheet--open.s-ph-sheet--auto .s-ph-sheet__panel,
+.s-ph-sheet--open.s-ph-sheet--full .s-ph-sheet__panel {
+  transform: none;
+}
+
+/* Half: the same 92% panel, 42% of the screen further down. The body keeps
+   that much room at its end so the last row can still be scrolled into the
+   half that shows. */
+.s-ph-sheet--open.s-ph-sheet--half .s-ph-sheet__panel {
+  transform: translate3d(0, 42dvh, 0);
+}
+
+.s-ph-sheet--half .s-ph-sheet__body {
+  padding-bottom: 42dvh;
+}
+
+.s-ph-sheet--leaving .s-ph-sheet__panel {
+  transform: translate3d(0, 100%, 0);
+}
+
+/* The tablet's slide-over from the trailing edge: 360px that never narrow
+   the note. */
+.s-ph-sheet--side .s-ph-sheet__panel {
+  inset-block: 0;
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  width: 360px;
+  height: auto;
+  max-height: none;
+  border-radius: 0;
+  box-shadow: 0 0 32px rgb(0 0 0 / 0.3);
+  transform: translate3d(100%, 0, 0);
+}
+
+.s-ph[dir="rtl"] .s-ph-sheet--side .s-ph-sheet__panel,
+[dir="rtl"] .s-ph-sheet--side .s-ph-sheet__panel {
+  transform: translate3d(-100%, 0, 0);
+}
+
+.s-ph-sheet--side.s-ph-sheet--open .s-ph-sheet__panel,
+.s-ph[dir="rtl"] .s-ph-sheet--side.s-ph-sheet--open .s-ph-sheet__panel {
+  transform: none;
+}
+
+.s-ph-sheet--side .s-ph-sheet__grab {
+  padding-top: calc(12px + env(safe-area-inset-top));
+}
+
+.s-ph-sheet__grab {
+  flex: none;
+  padding: 6px 16px 10px;
+  touch-action: none;
+}
+
+.s-ph-sheet__handle {
+  width: 40px;
+  height: 5px;
+  margin: 2px auto 10px;
+  border-radius: 3px;
+  background: var(--text-faint);
+}
+
+.s-ph-sheet__title {
+  margin: 0 0 4px;
+  font: 600 17px/1.3 var(--font-ui);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-ph-sheet__sub {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.s-ph-sheet__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.s-ph-actions {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 8px;
+}
+
+.s-ph-actions__row {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 16px/1.3 var(--font-ui);
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-ph-actions__note {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.s-ph-actions__row--danger {
+  color: var(--danger);
+}
+
+.s-ph-actions__row--cancel {
+  justify-content: center;
+  margin-top: 6px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* A question: the confirm and the prompt, from the bottom edge. */
+.s-ph-ask__body,
+.s-ph-ask__warn {
+  margin: 0 20px 12px;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.s-ph-ask__warn {
+  color: var(--danger);
+}
+
+.s-ph-ask__form {
+  padding: 0 16px;
+}
+
+.s-ph-ask__note {
+  min-height: 20px;
+  margin: 6px 4px 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.s-ph-ask__note--bad {
+  color: var(--danger);
+}
+
+.s-ph-ask__buttons {
+  display: flex;
+  gap: 10px;
+  padding: 0 0 12px;
+}
+
+.s-ph-ask__buttons > * {
+  flex: 1;
+}
+
+.s-ph-ask__buttons--stack {
+  flex-direction: column;
+  padding: 4px 16px 14px;
+}
+
+/* The note sheet's segments sit in its grab region. */
+.s-ph-seg--sheet {
+  margin: 0 0 2px;
+}
+
+.s-ph-notesheet__body {
+  padding: 4px 0;
+}
+
+.s-ph-toc,
+.s-ph-history {
+  padding: 0 8px;
+}
+
+.s-ph-backlink {
+  border-bottom: 1px solid var(--border);
+}
+
+.s-ph-backlink .s-ph-backlink__title {
+  border-bottom: 0;
+  font-weight: 600;
+}
+
+.s-ph-backlink__line {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 16px 10px 52px;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: 14px/1.45 var(--font-ui);
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-ph-prop {
+  justify-content: space-between;
+}
+
+.s-ph-prop__key {
+  flex: none;
+  max-width: 40%;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-ph-prop__value {
+  flex: 1;
+  min-width: 0;
+  text-align: end;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-ph-calday {
+  padding: 0 8px;
+}
+
+/* ── the locked vault ────────────────────────────────────────────────────── */
+
+.s-ph-locked {
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+.s-ph-locked__title {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 17px;
+}
+
+/* ── zen, and the toasts' footing ────────────────────────────────────────── */
+
+.s-ph--zen .s-ph-top {
+  transform: translate3d(0, -100%, 0);
+}
+
+.s-ph-doc .s-toasts {
+  bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+.s-ph-doc:has(.s-ph--tabs) .s-toasts {
+  bottom: calc(68px + env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-ph-stage--push,
+  .s-ph-stage--pop,
+  .s-ph-stage--tab {
+    animation: none;
+  }
+  .s-ph-top,
+  .s-ph-sheet__panel,
+  .s-ph-sheet__scrim {
+    transition: none;
+  }
+}
+
+/* The Calendar screen's own bar names the page; the page's heading and lead
+   under it would say "Calendar" twice. The date line stays. */
+.s-ph-calendar .s-calpage__h1,
+.s-ph-calendar .s-calpage__lead {
+  display: none;
+}
+
+.s-ph-seg--sheet .s-ph-seg__btn {
+  font-size: 14px;
+}
+
+.s-ph-seg__count {
+  margin-inline-start: 4px;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.s-ph[dir="rtl"] .cm-s-props__count::after,
+.s-ph[dir="rtl"] .s-rv-props__count::after {
+  content: " ‹";
+}
+
+.s-ph-seg--sheet .s-ph-seg__btn {
+  font-size: 13.5px;
+  padding: 0 2px;
+}
