@@ -370,6 +370,43 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.24.0",
+    title: { en: "Ask the vault", ar: "اسأل الخزانة" },
+    slides: [
+      {
+        // ── Ask the vault ────────────────────────────────────────────────
+        title: { en: "Ask the vault", ar: "اسأل الخزانة" },
+        body: {
+          en: "Your notes now answer to what they mean, not only the words they use: flip the search box to meaning and an Arabic question finds the English note that answers it. Under Nearby, Related shows what the open note is about, and Suggest links offers passages worth a [[link]]. Ask a question from the palette and a model on your own machine answers from your notes alone, citing every passage. When your notes say nothing, it says so — and nothing leaves the machine unless you choose Anthropic.",
+          ar: "صارت ملاحظاتك تستجيب لما تعنيه لا لكلماتها فقط: حوّل مربع البحث إلى المعنى فيجد السؤالُ العربي الملاحظةَ الإنجليزية التي تجيب عنه. وتحت «بالجوار» تعرض «ذات صلة» ما تتناوله الملاحظة المفتوحة، وتقترح «روابط مقترحة» مقاطع تستحق رابطًا. واطرح سؤالًا من لوحة الأوامر فيجيب نموذج على جهازك من ملاحظاتك وحدها، مستشهدًا بكل مقطع. وحين لا تقول ملاحظاتك شيئًا يقول ذلك، ولا يغادر شيء جهازك ما لم تختر Anthropic.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="52" y="40" width="230" height="140" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text-faint)"><rect x="70" y="62" width="150" height="5" rx="2.5"/><rect x="70" y="78" width="190" height="5" rx="2.5"/><rect x="70" y="94" width="120" height="5" rx="2.5"/><rect x="70" y="118" width="180" height="5" rx="2.5"/><rect x="70" y="134" width="160" height="5" rx="2.5"/><rect x="70" y="150" width="140" height="5" rx="2.5"/></g>
+    <rect class="wa-pulse" x="66" y="114" width="190" height="13" rx="3" fill="var(--accent-soft)"/>
+    <circle cx="262" cy="120" r="7" fill="var(--accent)"/><text x="262" y="124" text-anchor="middle" fill="var(--bg)" font-size="9" font-weight="700">1</text>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <circle cx="380" cy="86" r="26" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <circle cx="412" cy="86" r="26" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <path class="wa-draw" d="M262 120 C300 120 330 100 368 92" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3 2"/>
+    <rect x="336" y="130" width="140" height="44" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <g fill="var(--text)"><rect x="348" y="142" width="100" height="5" rx="2.5"/><rect x="348" y="156" width="70" height="5" rx="2.5"/></g>
+    <circle cx="462" cy="146" r="6" fill="var(--accent)"/><text x="462" y="149" text-anchor="middle" fill="var(--bg)" font-size="8" font-weight="700">1</text>
+  </g>
+  <text x="167" y="198" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "your notes, cited", "ملاحظاتك، مستشهَدًا بها")}</text>
+  <text x="406" y="198" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "meaning, on your machine", "المعنى، على جهازك")}</text>
+</svg>`,
+        },
+        docs: "ask",
+      },
+    ],
+  },
+  {
     version: "3.23.0",
     title: { en: "The phone, native", ar: "الهاتف، كما ينبغي" },
     slides: [
