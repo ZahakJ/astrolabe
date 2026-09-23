@@ -182,14 +182,17 @@ describe("resolveEmbed", () => {
     assert.equal(resolveEmbed("missing.png"), null);
   });
 
-  it("KNOWN BUG: a path-form embed target does not resolve", () => {
-    // Notes accept "[[folder/Note]]" (resolveLink checks byPathLower first),
-    // attachments do not — attachmentsByName is keyed by basename only. So
-    // "![[attachments/deep/img.png]]", which Obsidian resolves and which is
-    // the ONLY way to disambiguate two images with the same filename, renders
-    // as a broken embed here.
-    assert.equal(resolveEmbed("attachments/deep/img.png"), null);
-    assert.equal(resolveEmbed("img.png"), "attachments/img.png", "…and the basename wins instead");
+  it("a path-form embed target resolves to exactly that file (fixed in 3.24.0)", () => {
+    // It was a KNOWN BUG until voice notes needed it: attachmentsByName is
+    // keyed by basename only, so "![[attachments/deep/img.png]]" — which
+    // Obsidian resolves, and which is the ONLY way to disambiguate two images
+    // with the same filename — drew a broken embed, and a voice note's
+    // `[[attachments/Voice/… .webm#t=0|🎙]]` read as an unreferenced file.
+    // resolveEmbed now asks for the exact path (case-insensitively) first.
+    assert.equal(resolveEmbed("attachments/deep/img.png"), "attachments/deep/img.png");
+    assert.equal(resolveEmbed("ATTACHMENTS/Deep/IMG.png"), "attachments/deep/img.png");
+    assert.equal(resolveEmbed("attachments/deep/img.png#t=0|alias"), "attachments/deep/img.png");
+    assert.equal(resolveEmbed("img.png"), "attachments/img.png", "…and the bare basename still takes the shortest path");
   });
 
   it("prefers a note over an attachment", () => {

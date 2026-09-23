@@ -1,6 +1,7 @@
 // Typed client for the Astrolabe HTTP API. Every fetcher mirrors an endpoint
 // in CONTRACTS.md and returns the shared wire types.
 
+import type { VoiceEngineState, VoiceJob, VoiceLanguage } from "../shared/voice.ts";
 import type {
   AliasEntry,
   AliasesResponse,
@@ -747,6 +748,30 @@ export function getTasks(): Promise<TaskMeta[]> {
  *  to; the server creates it when it is not there (docs/capture.md). */
 export function captureLine(text: string, path: string | null, time: string): Promise<{ ok: true; path: string }> {
   return request<{ ok: true; path: string }>("/api/capture", json("POST", { text, path: path ?? "", time }), true);
+}
+
+// ── Voice notes (server/voice.ts, docs/capture.md "Voice") ─────────────────
+
+/** One recording, as base64 inside JSON rather than multipart: the pocket
+ *  vault's router (mobile/src/pocket/server.ts) reads a text body and has no
+ *  multipart parser, and the Android shell's native bridge moves strings — so
+ *  one shape serves all three callers. A third larger on the wire; a minute
+ *  of speech is a quarter of a megabyte either way. */
+export function sendVoiceNote(audio: string, date: string, time: string, language?: VoiceLanguage): Promise<VoiceJob> {
+  return request<VoiceJob>(
+    "/api/voice",
+    json("POST", { audio, date, time, ...(language ? { language } : {}) }),
+    true,
+    UPLOAD_TIMEOUT_MS,
+  );
+}
+
+export function voiceJob(id: string): Promise<VoiceJob> {
+  return request<VoiceJob>(`/api/voice/${encodeURIComponent(id)}`, undefined, true);
+}
+
+export function voiceEngine(): Promise<VoiceEngineState> {
+  return request<VoiceEngineState>("/api/voice/engine", undefined, true);
 }
 
 /** The clipper's token — made on first ask, kept in ASTROLABE_DATA (never

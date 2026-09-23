@@ -521,6 +521,9 @@ export default function StatusBar() {
           // phone there is no chord and no palette, and a sheet built for a
           // thumb needs a door a thumb can reach.
           { label: t("cmdQuickCapture"), onSelect: () => useStore.getState().setCaptureOpen(true) },
+          // …and its voice half beside it: on a phone, speaking a note is
+          // the likelier of the two (docs/capture.md "Voice").
+          { label: t("cmdVoiceNote"), onSelect: () => useStore.getState().openVoiceNote() },
           { label: null },
           { label: t("media"), onSelect: toggleMedia },
           { label: t("orbits"), onSelect: toggleOrbits },

@@ -14,8 +14,15 @@ import { parseBookAnchor } from "./bookAnchor.ts";
 
 /** The sounds a browser plays without help. `flac` is left as a file card:
  *  Safari will not play it inline, and a player that shows controls and
- *  then refuses is worse than a card that opens the file. */
-const AUDIO_EXT = /\.(mp3|ogg|m4a|wav)$/i;
+ *  then refuses is worse than a card that opens the file.
+ *
+ *  `webm` joined in 3.24.0 with voice notes (shared/voice.ts): it is what a
+ *  browser's MediaRecorder writes, so it is what every recording spoken into
+ *  this app is, and the long voice note embeds its recording above the words.
+ *  A WebM that is a VIDEO still plays its sound in an <audio> player — which
+ *  is more than the file card it used to get, since the app has no video
+ *  player to lose. */
+const AUDIO_EXT = /\.(mp3|ogg|m4a|wav|webm)$/i;
 
 export function isAudioName(name: string): boolean {
   return AUDIO_EXT.test(name.trim());

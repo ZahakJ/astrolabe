@@ -81,7 +81,7 @@ Quiet by design: nothing is shown when the app is current, and a release you dis
 
 ## What it does not do
 
-No camera, no location, no contacts, no storage, no analytics, no push notifications. Its manifest asks for network access and nothing else. Pointed at your own server it has no offline mode of its own: the page it shows keeps the web app's [offline copy](offline.md) the way a browser does, and when there is no copy and no server it says so and stops. A vault from GitHub is the other case entirely — it *is* the copy, and it opens with no network at all.
+No camera, no location, no contacts, no storage, no analytics, no push notifications. Its manifest asks for network access and — since 3.24, for [voice notes](capture.md#voice) — the microphone, which Android asks you about the first time you record and never before. Pointed at your own server it has no offline mode of its own: the page it shows keeps the web app's [offline copy](offline.md) the way a browser does, and when there is no copy and no server it says so and stops. A vault from GitHub is the other case entirely — it *is* the copy, and it opens with no network at all.
 
 ## Installing it
 

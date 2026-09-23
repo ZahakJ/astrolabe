@@ -44,6 +44,18 @@ import { toggleTaskLine } from "../../../shared/tasks.ts";
 import { restoreCardSchedule, writeCardSchedule } from "../../../shared/decks.ts";
 import { review, type Grade, type Schedule } from "../../../shared/srs.ts";
 import { PocketIndex, contentTypeFor, isNote } from "./index.ts";
+import {
+  appendBullet,
+  isVoiceDate,
+  isVoiceTime,
+  planVoiceNote,
+  sniffRecording,
+  voiceAudioDir,
+  voiceAudioPath,
+  voiceStamp,
+  VOICE_MAX_BYTES,
+  type VoiceJob,
+} from "../../../shared/voice.ts";
 
 // ── what a request and an answer are ────────────────────────────────────────
 
@@ -168,6 +180,27 @@ export function fail(status: number, error: string, code?: string): PocketRespon
  * second instance to sync with. A 501 with the reason in it is the difference
  * between "Astrolabe cannot do this here" and "Astrolabe is broken".
  */
+/**
+ * WHY A POCKET KEEPS A VOICE NOTE AND DOES NOT TRANSCRIBE IT (3.24.0).
+ *
+ * Transcription is a model of half a gigabyte run on the owner's own machine
+ * (server/voiceEngine.ts); a phone running a WebView is not that machine, and
+ * a model downloaded into IndexedDB would be half a gigabyte of somebody's
+ * phone spent on a feature the laptop already has. So `POST /api/voice` here
+ * does the half it CAN do — the recording is written into the vault and linked
+ * from the day's inbox, committed and pushed like any save — and the words are
+ * the half it refuses, by name: the job answers `kept` with the code "pocket",
+ * and asking after it (or after the engine) is a 501 with this sentence.
+ *
+ * It is NOT transcribed later when the repository is opened on an instance.
+ * An instance that rewrote bullets in a note the owner last touched on a phone,
+ * unasked, would be a server editing prose behind its owner's back — the one
+ * thing the conflict rule below exists to refuse. The recording is linked, and
+ * the owner can play it anywhere.
+ */
+const POCKET_NO_TRANSCRIBER =
+  "Transcription runs on an Astrolabe server's own machine; a pocket vault keeps the recording and links it from the day's inbox.";
+
 const SERVER_ONLY: Record<string, string> = {
   "/api/publish": "Publishing needs a server with a public address; a pocket vault has no visitors.",
   "/api/published": "Publishing needs a server with a public address; a pocket vault has no visitors.",
@@ -202,6 +235,7 @@ const SERVER_ONLY: Record<string, string> = {
   "/api/hadith": "Scripture lookup reads a corpus the server ships; the pocket carries only your vault.",
   "/api/seed": "The starter vault is copied by a server from its own installation.",
   "/api/theme": "The public site's theme describes visitors, and a pocket vault has none.",
+  "/api/voice/engine": POCKET_NO_TRANSCRIBER,
 };
 
 /**
@@ -262,6 +296,7 @@ const POCKET_CANNOT_KEEP: Record<string, string> = {
   noteVersions: "Every save here is already a commit, so the history is the repository's and never off.",
   pdfSearch: "Reading the text of every PDF is work an instance does on its own disk.",
   hadithFolder: "Scripture lookup reads a corpus the server ships; the pocket carries only your vault.",
+  voice: "Transcription runs on an instance's own machine; a pocket vault keeps every recording and runs no model.",
 };
 
 // ── the router ──────────────────────────────────────────────────────────────
@@ -329,7 +364,8 @@ export function createPocketServer(deps: PocketDeps): {
 
     const refusal = SERVER_ONLY[route] ?? (route.startsWith("/api/design/") ? SERVER_ONLY["/api/design"] : undefined)
       ?? (route.startsWith("/api/books/") ? SERVER_ONLY["/api/books"] : undefined)
-      ?? (route.startsWith("/api/comments/") ? SERVER_ONLY["/api/comments"] : undefined);
+      ?? (route.startsWith("/api/comments/") ? SERVER_ONLY["/api/comments"] : undefined)
+      ?? (route.startsWith("/api/voice/") ? POCKET_NO_TRANSCRIBER : undefined);
     if (refusal !== undefined) return fail(501, refusal, "pocket");
 
     // ── the handlers that needed a name ─────────────────────────────────────
@@ -431,6 +467,9 @@ export function createPocketServer(deps: PocketDeps): {
         uniqueFolder: held.uniqueFolder ?? "",
         uniqueFormat: held.uniqueFormat ?? UNIQUE_FORMAT_DEFAULT,
         captureInbox: held.captureInbox ?? null,
+        // A pocket runs no model and keeps every recording: the fixed facts,
+        // not the file (a laptop's choice of model describes the laptop).
+        voice: { model: "off", language: "auto", keepAudio: true },
         home: { mode: "note", ...(held.home ?? {}) },
         publicFolders: { enabled: false, home: false, nav: false, folders: [] },
         library: { enabled: false, nav: false, home: false, title: "", roots: [], paths: [] },
@@ -950,6 +989,53 @@ export function createPocketServer(deps: PocketDeps): {
         if (bytes === null) return fail(404, `Not found: ${path}`);
         return serveBytes(bytes, contentTypeFor(path), request.headers?.range ?? request.headers?.Range);
       }
+      case "POST /api/voice": {
+        // The web client sends a recording as base64 inside JSON (and the
+        // Android shell's share sheet does too), which is the one body this
+        // router reads without a multipart parser.
+        const body = await bodyJson(request);
+        const b64 = typeof body?.audio === "string" ? body.audio : "";
+        if (b64 === "") return fail(400, 'Field "audio" (the recording, base64) is required', "voiceEmpty");
+        let bytes: Uint8Array;
+        try {
+          bytes = Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
+        } catch {
+          return fail(400, 'Field "audio" is not base64', "voiceEmpty");
+        }
+        if (bytes.length > VOICE_MAX_BYTES) return fail(413, "Recording too large", "voiceTooLarge");
+        const ext = sniffRecording(bytes);
+        if (ext === null) return fail(415, "Not a recording this vault reads (WebM, Ogg or WAV)", "voiceFormat");
+        const date = isVoiceDate(body?.date) ? body.date : isoToday(now());
+        const at = new Date(now());
+        const time = isVoiceTime(body?.time)
+          ? body.time
+          : `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`;
+        // The pocket's own attachment setting, read the way its settings
+        // answer (vault-root unless the vault says otherwise). Every
+        // recording is kept: with no words to show for it, it is all there is.
+        const held = await heldSettings();
+        const dir = voiceAudioDir({ mode: held.attachments?.mode ?? "vault-root", folder: held.attachments?.folder ?? "attachments" });
+        let audio = "";
+        for (let n = 1; n < 1000 && audio === ""; n++) {
+          const candidate = voiceAudioPath(dir, voiceStamp(date, time), ext, n);
+          if (!(await io.stat(candidate))) audio = candidate;
+        }
+        if (audio === "") return fail(409, "No free name for the recording", "voiceNoFreeName");
+        const audioMtime = await io.writeBytes(audio, bytes);
+        index.putAsset(audio, bytes.length, audioMtime);
+        emit({ kind: "created", path: audio });
+        const plan = planVoiceNote({ transcript: null, audioPath: audio, date, time });
+        if (plan.kind !== "bullet") return fail(500, "A recording with no words is always a bullet");
+        const existing = await readNote(plan.path);
+        const next = appendBullet(existing?.content ?? "", plan.bullet);
+        const noteMtime = await io.writeText(plan.path, next);
+        index.put(plan.path, next, noteMtime);
+        emit({ kind: existing ? "changed" : "created", path: plan.path });
+        await commit("Astrolabe pocket: voice note", [audio, plan.path]);
+        const job: VoiceJob = { id: "", status: "kept", audio, notePath: plan.path, kind: "bullet", error: "pocket" };
+        return json(job);
+      }
+
       case "POST /api/upload":
         return fail(
           501,

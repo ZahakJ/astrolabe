@@ -11478,6 +11478,13 @@ What the suite covers, and why each file exists:
   device store, the git-sync keys refused with a reason and nothing written, a laptop's public-site
   settings answered as the facts a phone actually has, the three `/api/pocket/*` shapes, and
   `me.pocket`.
+- `tests/voice.test.ts` — voice notes (3.24.0) with the engine faked: the note-writing rule (≤ 80
+  words a bullet in `Inbox/<day>.md`, 81 a note of its own, the link-only and words-only bullets),
+  the recording and long-note filename schemes against every attachment mode, whisper's furniture
+  removed, the queue (FIFO, one at a time, a failed transcription still landing the link, "keep the
+  audio" off deleting only AFTER words land, silence keeping the recording), the landing over a
+  throwaway vault (after the phone's own lines, never overwriting a long note, a linked recording
+  never swept as unused), the resampler's low-pass, and the recorder's own copy.
 - `tests/pocketSync.test.ts` — the two rules about other people's writing: where a `(phone)` file
   goes and that it never overwrites last time's, that agreement is not a conflict, that BOTH versions
   survive, that the standing pairs are recovered from the working tree (a conflict is a fact, not a
@@ -11573,3 +11580,208 @@ was not overflowing anything: the tool cluster was overflowing its column and pa
   strip names what is open; the sync badge, publish and twin stay, because each is an act; and
   the focus ring still lands on a tapped text field, which is a caret's business rather than a
   hover affordance.
+
+## 3.24.0 — Voice notes: spoken on a phone or a desk, transcribed on the owner's machine
+
+The recorder is a half of the quick-capture sheet; the words are made by the owner's own server;
+the recording and the words land in the vault. `shared/voice.ts` (every rule, pure),
+`server/voice.ts` (the door and the writes), `server/voiceQueue.ts` (one at a time),
+`server/voiceEngine.ts` + `server/voiceWorker.ts` + `server/voiceAudio.ts` (the model, the child,
+the decode), `client/voice/*` + `client/components/VoiceRecorder.tsx` (the recorder, lazy),
+`mobile/src/voice.ts` (the share sheet's), `electron/permissions.ts` (the microphone fence).
+
+### THE ENGINE IS WHISPER.CPP, AND THE NUMBERS CHOSE IT
+
+The brief allowed two engines that install as npm dependencies of this repo with nothing global
+and no Python: whisper.cpp through a prebuilt N-API binding (`@fugood/whisper.node` — CPU, Vulkan
+and CUDA builds, no compiler at install), and ONNX whisper in Node (`@huggingface/transformers`,
+onnxruntime-node, CPU). Both were measured on the same two clips — 60 seconds of Arabic and 60 of
+English, the same passage in both, synthesized by Meta's MMS-TTS (VITS, through transformers.js;
+`espeak-ng`'s Arabic turned out to be unintelligible to EVERY model, detected as English or Latin
+and scored ~100% WER, so it could not rank anything) — decoded from WebM/Opus exactly as a browser
+records, on the owner's machine (RTX 4070 SUPER 12 GB shared with a running Ollama holding 7.7 GB,
+16 cores, load average ~20 from other work during the runs). Error rates are word / character,
+after folding harakat, the alef family, tatweel and punctuation:
+
+| engine | model (download) | runs on | Arabic WER / CER | English WER / CER | 60 s of Arabic / English |
+| --- | --- | --- | --- | --- | --- |
+| **whisper.cpp** | **large-v3-turbo-q5_0 (574 MB)** | **Vulkan** | **11.4% / 4.9%** | **4.6% / 2.8%** | **0.51 s / 0.52 s** |
+| whisper.cpp | large-v3-turbo f16 (1.62 GB) | Vulkan | 17.1% / 6.7% | 5.2% / 3.6% | 0.77 s / 0.59 s |
+| whisper.cpp | small f16 (488 MB) | Vulkan | 21.4% / 5.4% | 8.5% / 3.5% | 0.52 s / 0.51 s |
+| whisper.cpp | small | the prebuilt CPU build | — | — | did not finish in 240 s |
+| ONNX (transformers.js) | whisper-large-v3-turbo q8 (1.1 GB) | CPU | 30.0% / 15.3% | 2.6% / 1.3% | 30.5 s / 35.9 s |
+| ONNX (transformers.js) | whisper-small q8 (241 MB) | CPU | 45.7% / 29.3% | 28.8% / 26.5% | 15.1 s / 13.0 s |
+
+Arabic first, speed second, and whisper.cpp wins both by a distance. Two findings decided it as
+much as the table did:
+
+- **The ONNX pipeline cannot auto-detect.** Given no language, transformers.js logs "defaulting
+  to English" and runs the English decoder over Arabic speech — which whisper answers with an
+  English TRANSLATION (the Arabic clip came back as "The morning of the book was over before the
+  door was opened…"). A setting that defaults to "detect" cannot sit on an engine that cannot.
+  whisper.cpp detected `ar` and `en` correctly on both clips.
+- **The quantised turbo beat its own full-precision file** on Arabic (11.4% against 17.1%, the
+  f16 file drifting into a repetition loop near the end) at a third of the download. It is the
+  default; the f16 file and `small-q5_1` (190 MB) are the two alternatives offered.
+
+**The GPU path is Vulkan here, and that is the portable one.** The CUDA prebuilt links the CUDA 12
+runtime and this machine carries CUDA 13, so it refuses to load; the package's own loader answers
+a refused build by silently falling back to the CPU build and caching THAT as the module, so the
+worker (`server/voiceWorker.ts`) asks each build whether it loads BEFORE handing it to the loader,
+in the order CUDA, Vulkan, CPU (`ASTROLABE_WHISPER_GPU=off` pins the CPU). Vulkan runs on any
+vendor's current driver, integrated GPUs included. **The CPU build is a floor, not a plan:** the
+prebuilt runs one thread without the SIMD paths, and one encoder pass of `small` did not finish in
+90 s. A server with no GPU should use `small-q5_1` and expect minutes, or set the model to Off.
+
+### THE MODEL IS DATA, NOT CODE
+
+Fetched on first use from huggingface.co/ggerganov/whisper.cpp into
+`ASTROLABE_DATA/models/whisper/` — the data directory, never the vault (which is synced, published
+and committed) and never the repository — as a `.part` file renamed only when its size matches the
+catalogue's exact byte count (`VOICE_MODELS` in shared/voice.ts: 574,041,195 / 1,624,555,275 /
+190,085,487). One download per model however many recordings wait on it; `GET /api/voice/engine`
+reports its progress and the sheet prints it ("Fetching the speech model the first time — 40%").
+
+### THE TRANSCRIBER IS A CHILD PROCESS
+
+A native addon that faults takes its process with it; in the server's process that is every open
+session and every save. So `server/voiceEngine.ts` forks `server/voiceWorker.ts` (the same Node,
+the server's own flags — Electron's Node with `ELECTRON_RUN_AS_NODE` in the desktop app), sends it
+the recording's bytes over advanced-serialization IPC, and ends it after five idle minutes, which
+gives the model's half-gigabyte of VRAM back to a card the owner may be sharing. whisper.cpp's forty
+lines of stderr per model load are kept (the last forty) and printed only if the child dies badly.
+A job that does not come back in twenty minutes kills the child and fails with `timeout`.
+`scripts/check-desktop.mjs` learned to follow `new URL("./x.ts", import.meta.url)` — a forked
+module is in the server graph, and its three packages must be desktop dependencies at the same
+specs, which the gate could not see before.
+
+**Decoding is WASM, not ffmpeg.** `@audio/decode-webm` (Chromium, Electron and the Android WebView
+record WebM/Opus) and `@audio/decode-opus` (Firefox records Ogg/Opus) are libopus compiled to WASM;
+WAV is read by hand. The container is sniffed from the bytes (`sniffRecording`), never the name.
+The 48 kHz input is low-passed (a 33-tap Hann-windowed sinc) and read at 16 kHz, evaluated only at
+the input positions the output reads. Safari's MP4/AAC is refused with `voiceFormat` (415).
+
+### THE ORDER OF OPERATIONS NEVER LOSES THE RECORDING
+
+1. `POST /api/voice` (admin; multipart `audio`, or JSON `{ audio: base64, date, time, language? }`
+   — the web client and the Android shell both send JSON, because the pocket's router and the
+   native bridge move strings) sniffs, then WRITES THE RECORDING INTO THE VAULT at once:
+   `voiceAudioDir(attachmentLocation())` — the attachment setting asked as though the upload
+   happened in `Inbox/`, plus `Voice/` (so the default "specified" mode gives
+   `<attachments>/Voice/`) — named `YYYY-MM-DD HHMM.<ext>` by the DEVICE's clock, ` (2)` on a
+   collision, written `wx` so two racing recordings cannot overwrite. From here a crash, a restart or
+   a model that will not load leaves a recording the owner can find.
+2. The job joins the FIFO queue (`createVoiceQueue`): one transcription at a time, because two
+   models filling one GPU is the second one failing for memory the first was about to return. The
+   route answers `202` with the job; the sheet POLLS `GET /api/voice/:id` once a second. Not
+   `/api/events`: a vault event means "a file changed" to every subscriber in the app, and "the
+   model is thinking" is not a file. The note itself does arrive over the stream, as every write
+   does. Jobs live in memory (the last 64 finished are kept): a restart forgets the job and not the
+   recording.
+3. The words land by `planVoiceNote`: **≤ 80 words** (about thirty seconds of speech) → one bullet
+   appended to `Inbox/YYYY-MM-DD.md` — the phone share sheet's own note and shape,
+   `- HH:MM — words [[<recording>#t=0|🎙]]` — with the share sheet's precondition: read, add, write
+   with the read's mtime, and on a `409` read and add again, ONCE (an append is the rare write where
+   that is safe: the line was in neither version). **> 80 words** → its own note,
+   `Inbox/Voice — <first six words>.md` (the clipper's filename rule, sentence punctuation dropped,
+   ` (2)` on a collision), the recording embedded as `![[<recording>]]` above the transcript, no H1.
+   whisper's furniture (`[BLANK_AUDIO]`, `[Music]`, `(applause)`) is not speech and is removed
+   (`tidyTranscript`).
+4. **"Keep the audio" off deletes the recording only after words have landed.** A failed
+   transcription, or one that heard nothing, keeps the recording and links it whatever the setting
+   says — then the recording is all there is. The job answers `failed` (with a code) or `done` with
+   `error: "silence"`, and the sheet says where the recording is.
+
+**The link is a MOMENT link, `#t=0`.** A bare `[[…webm]]` is a wikilink the note resolver cannot
+answer, drawn broken; a moment link (shared/mediaEmbeds.ts) is drawn live, seeks a player on the page
+or opens the recording at its start. `webm` joined `isAudioName` for the same feature: it is what
+every recording made in this app is, and the long note's embed draws a player (a WebM that is a
+video still plays its sound — more than the file card it got before; there is no video player to
+lose).
+
+**A path-form attachment target now resolves (`resolveEmbed`, server/indexer.ts).** The index was
+keyed by basename only, so `![[Attachments/Voice/2026-09-23 1402.webm]]` drew the broken ⌀ and the
+recording read as UNREFERENCED to the unused-attachments sweep — a voice note's recording offered for
+deletion. This was a standing `KNOWN BUG:` test in `tests/links.test.ts`; the exact path
+(case-insensitively) is now asked first and the basename ladder after, and the test is rewritten as
+the fixed behaviour. The pocket's resolver already did this.
+
+### THE SETTINGS: `voice { model, language, keepAudio }`
+
+One settings.json key, the `attachments` shape (null clears it, sub-keys merge, a value equal to
+its default is deleted, an unknown sub-key or value is a 400 naming it). Defaults:
+`large-v3-turbo-q5_0`, `auto`, `true`; `effective.voice` always carries all three. Rows: Settings →
+Vault → **Voice transcription** (a Select with each model's download size, and Off) with a live line
+under it from `GET /api/voice/engine` (not downloaded / downloading N% / downloaded, last run on
+Vulkan), and **Keep voice recordings** (a Toggle); Settings → Language & dates → **Voice note
+language** (Detect / Arabic / English). **The ≤18-rows rule decided the split:** Vault held 16, so
+two voice rows bring it to exactly 18 and the language pin — a question about which language a thing
+is in — sits on the Language tab (12 → 13). A third Vault row would have been 19.
+
+### THE SHEET, THE DOORS, THE COPY
+
+The quick-capture sheet's title row carries a switch (a microphone from the text field, a pencil
+back); the palette's **Voice note** and the phone's ⋯ row open it on the recorder (`captureVoice`
+in the store, cleared whenever the sheet closes). **One round button does both gestures**: a TAP
+starts a recording that runs until tapped again or Send; a HOLD (≥450 ms, measured from a press that
+started a LIVE recording — a release during the first-use permission prompt is a tap) talks while
+held and sends on release. Pointer capture on the press, `touch-action: none`, no callout. A level
+bar (AnalyserNode RMS, −50…−10 dBFS, eased) and the elapsed time in the instance's numerals, LTR.
+Discard releases the microphone and keeps nothing. Then: sending → waiting its turn (N ahead) →
+fetching the model (%) → transcribing → the words, in a quoted block, with **Open** and **Record
+another**. Closing the sheet mid-job keeps following it; the landing is a toast with the note's name
+and an Open. 72px button (80px on a finger), 44px targets on a phone or any coarse pointer, the text
+field `max(16px, …)` on a phone. The ring breathes while recording and is still under
+`prefers-reduced-motion`.
+
+**The recorder is its own chunk** (`VoiceRecorder.tsx`, asserted split by check-bundle), and **its
+twenty-nine sentences travel with it** (`client/voice/copy.ts`, the tour's precedent, gated for
+both halves and matching placeholders in `tests/voice.test.ts`): they were 6.1 kB of entry chunk in
+the dictionary, for a sheet most sessions never open. Only the doors and the Settings rows are in
+the DICT. Entry cost of the feature: +3.2 kB.
+
+### THE PHONE, THE DESKTOP, THE POCKET
+
+- **The Android shell's share sheet** (`mobile/src/voice.ts`) has the same round button under the
+  text, built with the shell's DOM helper around the web client's own `Recorder` (imported, not
+  rewritten), sending base64 JSON through `CapacitorHttp` and polling the job. `RECORD_AUDIO` and
+  `MODIFY_AUDIO_SETTINGS` are in the manifest; Capacitor's WebChromeClient turns the page's
+  `getUserMedia` into the runtime prompt the first time. The served client's ⋯ row is the other
+  door and needs nothing of the shell. An instance reached over plain `http://` on a LAN is not a
+  secure context: the WebView offers no microphone there, and the sheet says so rather than
+  showing a dead button.
+- **The desktop** (`electron/permissions.ts`): Electron grants every permission to every page when
+  a session has no handler, which was never a decision. Now the vault's own origin keeps every
+  permission it had, a `media` request from it is granted for AUDIO only (no camera), and every
+  other origin is refused everything; the origin is asked per request because a respawned server
+  may move ports. macOS asks through `askForMediaAccess` with `NSMicrophoneUsageDescription` in the
+  package. The desktop package leaves out the 189 MB CUDA build (it needs a runtime a package cannot
+  ship) and the addon's C++ sources.
+- **The pocket keeps the recording and refuses the words, by name.** `POST /api/voice` in
+  `mobile/src/pocket/server.ts` writes the recording (the pocket's attachment setting, `Voice/`),
+  appends the link-only bullet to the day's inbox and commits both as `Astrolabe pocket: voice
+  note`, answering `{ status: "kept", error: "pocket" }`; `GET /api/voice/*` is a 501 with the
+  sentence. A phone WebView is not the owner's machine, and half a gigabyte of model in IndexedDB is
+  a phone's storage spent on a feature the laptop already has. **It is not transcribed later** when
+  the repository is opened on an instance: a server rewriting bullets in a note last touched on a
+  phone, unasked, is prose edited behind its owner's back — the thing the conflict rule refuses.
+  The `voice` settings key is in `POCKET_CANNOT_KEEP`; `effective.voice` answers the pocket's facts
+  (`off`, `auto`, kept).
+
+**Verified** (`scratchpad/voice-3.24/verify.mjs` in the worktree, headless Chromium with
+`--use-fake-device-for-media-stream --use-file-for-fake-audio-capture=<wav>` against a scratch server
+running the real engine): English tapped for 7 s → one bullet in `Inbox/2026-09-23.md` 1.8 s after
+Send, words exact; English for 64 s → `Inbox/Voice — This morning I walked to the.md`, the player
+above 167 words; Arabic chrome, Arabic speech for 14 s → an Arabic bullet in 0.8 s with the
+sheet mirrored; the phone at 412×915 in both languages by HOLD-to-talk, every target 44px (the mic
+80px), no sideways overflow. The DESKTOP app, launched from `electron/main.ts` under Playwright
+over a scratch vault and config home: `getUserMedia({ video })` refused, `{ audio }` granted, the
+model downloaded on first use into that vault's data directory, and a tapped note landed. The
+SHARE SHEET (the real `mobile/src/capture.ts` + `voice.ts`, mounted in Chromium at 412×915 with
+CapacitorHttp's web fallback): held, released, the words in the inbox in both languages.
+`check-phone` gained two surfaces, the capture sheet and its recorder, measured behind an open
+modal only on the modal's own controls — and on its first run it caught the TEXT sheet under a
+coarse pointer wider than 700px (the S Pen posture) at 36px buttons and a 15.5px field, because
+its phone block asked for width alone; it now asks `(max-width: 700px), (pointer: coarse)`. Tests: `tests/voice.test.ts` (the rule, the names, the queue with a
+fake engine, the landing over a throwaway vault, the resampler, the copy), `tests/pocketServer.test.ts`
+(the kept note, the 501s, the settings), `tests/links.test.ts` (the path-form embed).

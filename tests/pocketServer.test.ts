@@ -374,6 +374,55 @@ describe("the pocket server — attachments", () => {
   });
 });
 
+describe("the pocket server — a voice note is kept, not transcribed (3.24.0)", () => {
+  // A 16-byte WebM header is enough: the pocket sniffs the container and
+  // writes the bytes, it never decodes them.
+  const webm = Buffer.from([0x1a, 0x45, 0xdf, 0xa3, 0x9f, 0x42, 0x86, 0x81, 0x01, 0x42, 0xf7, 0x81, 0x01, 0x42, 0xf2, 0x81]).toString("base64");
+
+  it("writes the recording into the vault and links it from the day's inbox, in one commit", async () => {
+    const server = await loaded();
+    const answer = await server.call("POST", "/api/voice", { audio: webm, date: "2026-09-23", time: "14:02" });
+    assert.equal(answer.status, 200);
+    const job = JSON.parse(String(answer.body)) as { status: string; audio: string; notePath: string; error: string };
+    assert.equal(job.status, "kept");
+    assert.equal(job.error, "pocket");
+    // The pocket's own attachment setting: vault-root, then Voice/.
+    assert.equal(job.audio, "Voice/2026-09-23 1402.webm");
+    assert.equal(job.notePath, "Inbox/2026-09-23.md");
+    const note = (await server.json("GET", "/api/note?path=Inbox/2026-09-23.md")) as NoteData;
+    assert.equal(note.content, "- 14:02 — [[Voice/2026-09-23 1402.webm#t=0|🎙]]\n");
+    const file = await server.call("GET", "/api/file?path=Voice/2026-09-23 1402.webm");
+    assert.equal(file.status, 200);
+    assert.equal(server.commits.at(-1), "Astrolabe pocket: voice note");
+    // A second one in the same minute is (2), and joins the same note.
+    const again = JSON.parse(String((await server.call("POST", "/api/voice", { audio: webm, date: "2026-09-23", time: "14:02" })).body)) as { audio: string };
+    assert.equal(again.audio, "Voice/2026-09-23 1402 (2).webm");
+    const both = (await server.json("GET", "/api/note?path=Inbox/2026-09-23.md")) as NoteData;
+    assert.equal(both.content.split("\n").filter(Boolean).length, 2);
+  });
+
+  it("refuses what is not a recording, and the transcript half is a 501 with the reason", async () => {
+    const server = await loaded();
+    const bad = await server.call("POST", "/api/voice", { audio: Buffer.from("hello").toString("base64") });
+    assert.equal(bad.status, 415);
+    for (const route of ["/api/voice/engine", "/api/voice/some-job"]) {
+      const answer = await server.call("GET", route);
+      assert.equal(answer.status, 501);
+      const body = JSON.parse(String(answer.body)) as { error: string; code: string };
+      assert.equal(body.code, "pocket");
+      assert.match(body.error, /server/);
+    }
+  });
+
+  it("answers the voice settings as a pocket's facts, and refuses to store a model", async () => {
+    const server = await loaded();
+    const settings = (await server.json("GET", "/api/settings")) as SettingsResponse;
+    assert.deepEqual(settings.effective.voice, { model: "off", language: "auto", keepAudio: true });
+    const answer = await server.call("PATCH", "/api/settings", { voice: { model: "small-q5_1" } });
+    assert.equal(answer.status, 501);
+  });
+});
+
 describe("the pocket server — git is the version history", () => {
   it("lists a note's past and can read one version back", async () => {
     const server = await loaded();

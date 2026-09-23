@@ -881,7 +881,15 @@ const AUDIENCES = [
   // with it, not in the entry.
   // 3.23.0 MERGE: the pocket settings round and the phone-native round land
   // together (837.1 kB actual → 838); each was measured alone on its branch. No new cause.
-{ name: "entry (everyone)", keys: entry, budget: 838 * 1024 },
+  // 3.24.0 VOICE NOTES: 840.3 kB actual → 841 (+3.2 kB over 3.23.0's 837.1).
+  // All of it the dictionary and the doors: the palette row, the phone's ⋯
+  // row, the sheet's title and its speak/type switch, the three Settings rows
+  // with their hints and model names, and the store's `captureVoice` flag. The
+  // RECORDER is not here — VoiceRecorder.tsx, client/voice/* and voice.css are
+  // a chunk of their own behind the sheet's microphone — and neither are its
+  // twenty-nine sentences, which were 6.1 kB of entry before they moved into
+  // that chunk (client/voice/copy.ts, on the tour's precedent).
+{ name: "entry (everyone)", keys: entry, budget: 841 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1202,7 +1210,9 @@ const AUDIENCES = [
   // line for a same-language pair, and the link-time swap.
   // 3.23.0 MERGE: the pocket settings round and the phone-native round land
   // together (1135.0 kB actual → 1136); each was measured alone on its branch. No new cause.
-{ name: "anonymous blog reader", keys: blog, budget: 1136 * 1024 },
+  // 3.24.0 VOICE NOTES: 1138.3 kB actual → 1139. The entry's +3.2 kB above,
+  // and nothing of the blog's own: a visitor cannot record a note.
+{ name: "anonymous blog reader", keys: blog, budget: 1139 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1440,7 +1450,10 @@ const AUDIENCES = [
   // panel's own lazy chunk.
   // 3.23.0 MERGE: the pocket settings round and the phone-native round land
   // together (1090.4 kB actual → 1091); each was measured alone on its branch. No new cause.
-  { name: "admin first paint", keys: app, budget: 1091 * 1024 },
+  // 3.24.0 VOICE NOTES: 1093.7 kB actual → 1094. The entry's dictionary
+  // bytes; an admin's first paint carries none of the recorder, which loads
+  // when the sheet's microphone is pressed.
+  { name: "admin first paint", keys: app, budget: 1094 * 1024 },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1575,6 +1588,10 @@ const MUST_SPLIT = [
   // forbidden above, on the verse chunk's argument.
   "reading/mermaid.ts",
   "books/pageImage.ts",
+  // The recorder (3.24.0): MediaRecorder, the meter, the job poller, voice.css
+  // and the recorder's own copy, behind the capture sheet's microphone. The
+  // text sheet is the common case and must not carry the voice half.
+  "components/VoiceRecorder.tsx",
 ];
 
 let failed = false;

@@ -221,6 +221,13 @@ const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
+    // The same sheet, opened on its recorder (docs/capture.md "Voice").
+    id: "voice-note",
+    label: () => t("cmdVoiceNote"),
+    hint: () => t("cmdVoiceNoteHint"),
+    available: ({ admin }) => admin,
+  },
+  {
     id: "yesterday-note",
     label: () => t("cmdYesterdayNote"),
     hint: () => t("cmdPeriodicHint"),
@@ -1294,6 +1301,9 @@ export default function CommandPalette() {
           break;
         case "quick-capture":
           store.setCaptureOpen(true);
+          break;
+        case "voice-note":
+          store.openVoiceNote();
           break;
         case "twin-switch":
           switchToTwin();
