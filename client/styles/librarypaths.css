@@ -369,18 +369,6 @@
     margin-inline-start: auto;
   }
 
-  /* A root's line wraps the SAME way every time: the kind takes a row, the
-     folder and its cross take the next. Left to the flex algorithm, whether
-     the cross landed beside the folder or under it depended on how long the
-     folder's name happened to be — two roots in one list, wrapped two ways. */
-  .s-libroots__head .s-ctl-seg {
-    flex: 1 1 100%;
-  }
-
-  .s-libroots__head .s-libpaths__folder {
-    flex: 1 1 6em;
-    min-inline-size: 0;
-  }
 }
 
 /* A keyboard legend on a device with no keyboard is a taunt (DESIGN.md). */
@@ -492,6 +480,23 @@
 .s-libroots__head .s-libpaths__folder {
   flex: 1 1 14em;
   inline-size: auto;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  /* A root's line wraps the SAME way every time: the kind takes a row, the
+     folder and its cross take the next. Left to the flex algorithm, whether
+     the cross landed beside the folder or under it depended on how long the
+     folder's name happened to be — two roots in one list, wrapped two ways.
+     AFTER the two rules above, which it adjusts: it sat in the phone block
+     further up until 3.23.1, where they undid it (scripts/check-cascade.mjs). */
+  .s-libroots__head .s-ctl-seg {
+    flex: 1 1 100%;
+  }
+
+  .s-libroots__head .s-libpaths__folder {
+    flex: 1 1 6em;
+    min-inline-size: 0;
+  }
 }
 
 .s-libroots__join {

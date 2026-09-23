@@ -30,6 +30,7 @@
     "check-deck": "node scripts/check-deck.mjs",
     "check-a11y": "node scripts/check-a11y.mjs",
     "check-phone": "node scripts/check-phone.mjs",
+    "check-cascade": "node scripts/check-cascade.mjs",
     "check-bundle": "node scripts/check-bundle.mjs",
     "check-perf": "node scripts/check-perf.mjs",
     "check-books": "node scripts/check-books.mjs",

@@ -1778,6 +1778,14 @@ stays on `.s-panel--collapsed`, as it always did.
   switch and the ⋯ ended up 22px UNDER the status bar the inset exists to clear. A declaration
   about a thing belongs in that thing's rule; a new block beside a new comment is where two
   copies of one fact start disagreeing.
+  **And it is a gate since 3.23.1** (`scripts/check-cascade.mjs`), because the paragraph did not
+  stop it: What's-new's count, the library-roots wrapping, three settings declarations (app.css's
+  phone blocks, beaten by settings.css loading later — the panel's base moved into settings.css,
+  its phone rules after it), the tag shelf's sort button and the unlinked-mentions buttons were all
+  dead the same way. It reads every stylesheet in the browser's order and fails when a declaration
+  in a phone/touch block is set again for the same selector by a later rule with no `@media`
+  (shorthands, longhands and logical/physical twins counted as one property; a later
+  `prefers-reduced-motion` or `forced-colors` rule is narrower, and allowed).
 - **A CONTROL UNDER ANOTHER LAYER IS NOT A CONTROL.** With the notes drawer open, the ☰ — by then
   labelled "Close Notes sidebar" — sat at z-index 60 under a drawer at 400, so a tap at its
   centre reached the drawer's wordmark and ran "preview as visitor"; the top cluster's gear,
