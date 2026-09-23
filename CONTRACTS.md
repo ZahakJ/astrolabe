@@ -3452,7 +3452,9 @@ The three arguments the numbers settle, each of which had been decided twice:
 - **A menu is over the pane it was opened from — and in the drawer shell that pane is the DRAWER.**
   `--z-menu` and `--z-menu-scrim` are the one pair on this ladder that take different values in a
   different shell: `tokens.css` redefines them to **405 / 404** under `app.css`'s drawer condition
-  (`(max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine)))`), one rung above the
+  (`DRAWER_QUERY`, character for character — tests/drawerQuery.test.ts reads every stylesheet
+  since 3.23.1, when this one was found still asking `not (any-pointer: fine)` and a 701–999px pen
+  phone painted the drawer over its menus), one rung above the
   drawer and still below the palette, which must stay over both. This is not decoration. The tree's
   menu, the tag shelf's menu and the sort menu are portalled to `<body>` — correctly, because a
   menu must not be clipped by a pane that animates its own width — which takes them out of the
@@ -11672,7 +11674,11 @@ was not overflowing anything: the tool cluster was overflowing its column and pa
   TOUCH LAPTOP has a coarse primary pointer and `hover: hover` from the mouse beside the screen
   (docked, with its grips — defect F's whole point). The harness asserts the new pair per posture
   (`OWN_POINTER`) beside the old `FINE`, so a posture that half-takes is a failure rather than a
-  pass, and `tests/drawerQuery.test.ts` now refuses `any-pointer` in that string entirely.
+  pass, and `tests/drawerQuery.test.ts` now refuses `any-pointer` in that string entirely — and,
+  since 3.23.1, in EVERY stylesheet: it read only app.css, so tokens.css kept the old condition and
+  swipe.css a bare 999px. Any `@media` naming 999px must be `DRAWER_QUERY` exactly, and no client
+  source may spell `(max-width: 700px)` (or the 640 CommandPalette used for the same phone) —
+  `PHONE_QUERY`, the query's first arm, is exported beside it and imported.
 - **THE PHONE'S TWO BARS ARE A PHONE'S, AND THEY ANSWER TO THE SHELL RATHER THAN TO A SECOND
   WIDTH.** The top cluster's trim to three doors and the bottom bar's sacrifice ladder were both
   keyed to a bare `max-width: 640px` while the shell around them becomes a phone at the drawer

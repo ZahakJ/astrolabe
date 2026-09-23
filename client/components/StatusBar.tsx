@@ -17,7 +17,7 @@ import { getNote } from "../api.ts";
 import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
-import { DRAWER_QUERY, useStore } from "../state.ts";
+import { DRAWER_QUERY, PHONE_QUERY, useStore } from "../state.ts";
 import { activeTabOf, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, paneAt, surfaceOf, type PaneSurface } from "../workspace.ts";
 import { titleOf } from "./Tabs.tsx";
 import { choiceGroup, choiceLabel } from "../themes.ts";
@@ -770,7 +770,7 @@ export default function StatusBar() {
         <button
           type="button"
           className={`s-statusbar__btn s-statusbar__icon s-statusbar__pane-outline${panelCollapsed ? "" : " s-statusbar__btn--on"}`}
-          onClick={() => setPanelCollapsed(!panelCollapsed, !window.matchMedia("(max-width: 700px)").matches)}
+          onClick={() => setPanelCollapsed(!panelCollapsed, !window.matchMedia(PHONE_QUERY).matches)}
           title={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
           aria-label={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
           aria-pressed={!panelCollapsed}

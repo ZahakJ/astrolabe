@@ -196,6 +196,15 @@ const SIDEBAR_COLLAPSED_KEY = "astrolabe.sidebarCollapsed";
  *  it in the client. */
 export const DRAWER_QUERY = "(max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none))";
 
+/** The phone WIDTH: DRAWER_QUERY's first arm, on its own. Below it BOTH panes
+ *  leave the grid — the outline pane is a drawer too, not a docked column —
+ *  and a phone's field holds about thirty characters. It was five string
+ *  literals in five files (backGesture, StatusBar, PaneGrip, BacklinksPanel,
+ *  and a 640 in CommandPalette that meant the same thing); one of them
+ *  drifting is a pane that is a drawer to the stylesheet and a column to the
+ *  code. tests/drawerQuery.test.ts holds every client file to importing it. */
+export const PHONE_QUERY = "(max-width: 700px)";
+
 export function sidebarIsDrawer(): boolean {
   return typeof window !== "undefined" && window.matchMedia(DRAWER_QUERY).matches;
 }

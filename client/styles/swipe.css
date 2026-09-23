@@ -4,7 +4,7 @@
  * half. Same breakpoint as the drawer's own — app.css owns the number 999 and
  * this file only ever agrees with it. */
 
-@media (max-width: 999px) {
+@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
   /* A CLOSED drawer is `visibility: hidden` (app.css says why at length), and
      a hidden pane cannot be dragged into view. For the length of the gesture
      it is paintable and its transform belongs to the module, which sets it

@@ -34,7 +34,7 @@
 // drive it against a browser-shaped history.
 
 import { installBackGuard } from "./backGuard.ts";
-import { useStore } from "./state.ts";
+import { PHONE_QUERY, useStore } from "./state.ts";
 
 /** Is any layer this module is responsible for on screen?
  *
@@ -58,7 +58,7 @@ function layerUp(): boolean {
     s.bannerModalOpen ||
     // The outline pane is a drawer below 700px and a grid column above it;
     // only the drawer is a layer over the page.
-    (!s.panelCollapsed && window.matchMedia("(max-width: 700px)").matches)
+    (!s.panelCollapsed && window.matchMedia(PHONE_QUERY).matches)
   );
 }
 
