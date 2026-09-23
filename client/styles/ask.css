@@ -1,0 +1,319 @@
+/* ASK THE VAULT — the answer panel's own stylesheet (components/AskPanel.tsx),
+   imported by the component so it travels with the lazy chunk (capture.css
+   is the precedent). The Related / Suggest lists and the meaning results are
+   in nearby.css and semantic.css, with their own components. */
+
+.s-ask-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-capture);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10vh;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  animation: s-fade-in 0.12s ease;
+}
+
+.s-ask {
+  display: flex;
+  flex-direction: column;
+  width: min(680px, calc(100vw - 32px));
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 16px 20px 16px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  animation: s-palette-in 0.14s ease;
+}
+
+.s-ask__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.s-ask__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.071rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.s-ask__form {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.s-ask__field {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  resize: none;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.s-ask__field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.s-ask__field::placeholder {
+  color: var(--text-faint);
+}
+
+.s-ask__send,
+.s-ask__primary,
+.s-ask__secondary {
+  font: inherit;
+  font-size: 0.929rem;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, filter 0.15s ease;
+}
+
+.s-ask__send,
+.s-ask__primary {
+  color: var(--button-accent-text);
+  background: var(--button-accent-bg);
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.s-ask__send:hover:not(:disabled),
+.s-ask__primary:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.s-ask__secondary {
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.s-ask__secondary:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--button-hover-bg);
+}
+
+.s-ask__send:disabled,
+.s-ask__primary:disabled,
+.s-ask__secondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Where the question goes — read before asking, so muted and never faint. */
+.s-ask__where,
+.s-ask__model,
+.s-ask__note {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.s-ask__result {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.s-ask__q {
+  margin: 0 0 8px;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.s-ask__wait {
+  margin: 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.s-ask__answer {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.s-ask__answer p {
+  margin: 0 0 0.7em;
+  white-space: pre-wrap;
+}
+
+/* A citation is a superscript-sized gold chip that is a real button: it
+   opens the note at the heading the passage sits under. */
+.s-ask__cite {
+  display: inline-block;
+  min-width: 1.35em;
+  margin-inline: 1px;
+  padding: 0 4px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 0.714rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+  vertical-align: 0.35em;
+  cursor: pointer;
+}
+
+.s-ask__cite:hover,
+.s-ask__cite:focus-visible {
+  background: var(--accent);
+  color: var(--button-accent-text);
+}
+
+.s-ask__error {
+  margin: 8px 0 0;
+  color: var(--danger);
+  font-size: 0.929rem;
+}
+
+.s-ask__srchead {
+  margin: 14px 0 6px;
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-ask__sources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.s-ask__source {
+  padding: 4px 0 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.s-ask__source:last-child {
+  border-bottom: none;
+}
+
+.s-ask__srcopen {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.893rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-ask__srcopen:hover {
+  background: var(--bg-hover);
+}
+
+.s-ask__srcnum {
+  flex: none;
+  min-width: 1.4em;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-ask__source--cited .s-ask__srcnum {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.s-ask__srctitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-ask__srctext {
+  margin: 2px 0 0;
+  padding-inline-start: calc(1.4em + 12px);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.s-ask__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* Thumb-sized wherever the pointer is a finger… */
+@media (pointer: coarse) {
+  .s-ask__send,
+  .s-ask__primary,
+  .s-ask__secondary,
+  .s-ask__srcopen,
+  .s-ask__close {
+    min-height: 44px;
+  }
+
+  .s-ask__cite {
+    min-width: 28px;
+    min-height: 24px;
+  }
+}
+
+/* …and a bottom sheet on a phone, where the thumb already is. */
+@media (max-width: 700px) {
+  .s-ask-overlay {
+    align-items: flex-end;
+    padding-top: 0;
+  }
+
+  .s-ask {
+    width: 100vw;
+    max-height: 92dvh;
+    border-radius: 14px 14px 0 0;
+    border-bottom: none;
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    animation: none;
+  }
+
+  .s-ask__form {
+    flex-direction: column;
+  }
+
+  .s-ask__field {
+    font-size: 1.071rem;
+    min-height: 44px;
+  }
+
+  .s-ask__actions > button {
+    flex: 1;
+  }
+}

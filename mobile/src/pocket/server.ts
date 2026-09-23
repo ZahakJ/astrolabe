@@ -451,6 +451,18 @@ export function createPocketServer(deps: PocketDeps): {
           tokenSet: true,
           gitUser: null,
         },
+        // Ask the vault needs Ollama on a computer; a pocket vault has none,
+        // and its /api/ask routes do not exist, so every door says so. The
+        // shape is answered so the settings panel renders.
+        ask: {
+          provider: "ollama",
+          chatModel: "qwen3.5:9b",
+          anthropicModel: "claude-sonnet-5",
+          embedModel: "embeddinggemma",
+          topK: 6,
+          keySet: false,
+          ollamaUrl: "",
+        },
         // Catalog faces are downloaded and served by an instance; the phone
         // ships no font directory, so every slot is the system stack.
         fonts: { prose: "system", ui: "system", mono: "system", arabic: "system" },

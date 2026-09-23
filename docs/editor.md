@@ -495,6 +495,11 @@ click to open. The list follows the vault: an edit to any note moves every score
 panel re-reads after each change. It is the owner's panel — a visitor's site never gets it, since
 the scoring reads every note's body — and its collapse is remembered per browser.
 
+Under Nearby, two more lists answer the same question by *meaning* rather than by shared words:
+**Related**, the notes about the same things (in either language), and **Suggest links**, passages
+elsewhere worth linking from the note you are writing. Both need Ollama on your machine; see
+[Ask the vault](ask.md#related).
+
 ## Block references
 
 You can link to one paragraph or one list item, not only to a whole note. End it with a space and

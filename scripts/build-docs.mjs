@@ -55,6 +55,7 @@ export const SECTIONS = [
       { slug: "orbits", file: "orbits.md", title: { en: "Orbits", ar: "المدارات" } },
       { slug: "drawing", file: "drawing.md", title: { en: "Drawings", ar: "الرسومات" } },
       { slug: "books", file: "books.md", title: { en: "The book reader", ar: "قارئ الكتب" } },
+      { slug: "ask", file: "ask.md", title: { en: "Ask the vault", ar: "اسأل الخزانة" } },
       { slug: "workspace", file: "workspace.md", title: { en: "Panes, tabs & windows", ar: "اللوحات والتبويبات والنوافذ" } },
       { slug: "printing", file: "printing.md", title: { en: "Printing & PDF", ar: "الطباعة وPDF" } },
       { slug: "keymap", file: "keymap.md", title: { en: "Keymap", ar: "اختصارات لوحة المفاتيح" } },

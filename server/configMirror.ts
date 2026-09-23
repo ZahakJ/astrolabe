@@ -50,7 +50,9 @@
 // times the indexer rebuilds), pdftext.json (a cache), versions/ (note
 // history — large, and git sync is the durable copy), session-epoch (a
 // session is a server's), fonts/catalog/ (re-fetchable) and the author-sites
-// cache (rebuilt anywhere).
+// cache (rebuilt anywhere). Since 3.24.0 also ask-credentials.json (the
+// Anthropic key is a device's, like the git token) and embeddings.db (the
+// meaning index — a cache, re-read on any machine from its own Ollama).
 
 import fs from "node:fs/promises";
 import path from "node:path";

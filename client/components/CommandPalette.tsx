@@ -221,6 +221,22 @@ const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
+    // Ask the vault (docs/ask.md): the question is typed right here and the
+    // answer panel opens asking it. Admin-only, like every ask route.
+    id: "ask-vault",
+    label: () => t("cmdAskVault"),
+    hint: () => t("cmdAskVaultHint"),
+    prompt: { placeholder: "", initial: () => "" },
+    available: ({ admin, preview }) => admin && !preview,
+  },
+  {
+    // The sidebar search in its "meaning" mode, focused.
+    id: "search-meaning",
+    label: () => t("cmdSearchMeaning"),
+    hint: () => t("cmdSearchMeaningHint"),
+    available: ({ admin, preview }) => admin && !preview,
+  },
+  {
     id: "yesterday-note",
     label: () => t("cmdYesterdayNote"),
     hint: () => t("cmdPeriodicHint"),
@@ -1272,6 +1288,10 @@ export default function CommandPalette() {
         case "yesterday-note":
           void openPeriodicNote("day", -1);
           break;
+        case "search-meaning":
+          // The sidebar owns the box; it flips its mode and takes focus.
+          window.dispatchEvent(new CustomEvent("astrolabe:search-meaning"));
+          break;
         case "tomorrow-note":
           void openPeriodicNote("day", 1);
           break;
@@ -1627,6 +1647,10 @@ export default function CommandPalette() {
       putLayout(value, serializeWorkspace(store.workspace))
         .then(() => toast(tf("layoutSaved", { name: value })))
         .catch(() => toast(t("layoutFailed"), "error"));
+    } else if (command.id === "ask-vault") {
+      close();
+      store.setAskOpen(true, value);
+      return;
     }
     close();
   }, [mode.command, query, close]);
@@ -1770,7 +1794,9 @@ export default function CommandPalette() {
           value={query}
           placeholder={
             isPrompt
-              ? mode.command?.prompt?.placeholder
+              ? mode.command?.id === "ask-vault"
+                ? t("askPlaceholder")
+                : mode.command?.prompt?.placeholder
               : // A phone's field holds about thirty characters; the long
                 // sentence was cut at "for a headin".
                 window.matchMedia("(max-width: 640px)").matches

@@ -521,6 +521,8 @@ export default function StatusBar() {
           // phone there is no chord and no palette, and a sheet built for a
           // thumb needs a door a thumb can reach.
           { label: t("cmdQuickCapture"), onSelect: () => useStore.getState().setCaptureOpen(true) },
+          // Ask the vault (docs/ask.md): the answer panel, a bottom sheet here.
+          { label: t("cmdAskVault"), onSelect: () => useStore.getState().setAskOpen(true) },
           { label: null },
           { label: t("media"), onSelect: toggleMedia },
           { label: t("orbits"), onSelect: toggleOrbits },

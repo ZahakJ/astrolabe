@@ -28,6 +28,19 @@
   margin: 2px 0 0;
   padding-inline: 8px;
 }
+/* ── Related and Suggest links (client/components/MeaningPanels.tsx) ───────
+ * Related wears Nearby's row exactly — title, score — because it answers the
+ * same question another way. Suggest wears the unlinked-mentions row: the
+ * passage under the title, the Link button at the line's end; the heading the
+ * link will name follows the title in the accent, the alias line's voice. */
+.s-suggest__heading {
+  color: var(--accent);
+  font-size: 0.857em;
+}
+.s-suggest__text {
+  margin: 0;
+  padding: 0;
+}
 .s-nearby__term {
   padding: 0 6px;
   border-radius: 999px;

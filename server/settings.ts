@@ -128,6 +128,16 @@ import {
   setGitToken,
   setGitUser,
 } from "./gitSync.ts";
+// Ask the vault: the same circular-and-inert pair, and the same write-only
+// secret (the Anthropic key, in ASTROLABE_DATA/ask-credentials.json).
+import {
+  applyStagedAskKey,
+  askEffective,
+  cleanAskPatch,
+  discardStagedAskKey,
+  readAskSettings,
+  stageAnthropicKey,
+} from "./askSettings.ts";
 import {
   attachmentLocation,
   blogLocale,
@@ -599,6 +609,8 @@ export function getSettings(): SettingsData {
   // Backup & sync (gitSync.ts validates; malformed values drop on read).
   const gitSync = readGitSyncSettings(raw.gitSync);
   if (gitSync) out.gitSync = gitSync;
+  const ask = readAskSettings(raw.ask);
+  if (ask) out.ask = ask;
   // Typography (fonts.ts validates; an unknown/wrongly-slotted id reads back
   // as "system" rather than throwing — reads never fail).
   if (raw.fonts !== undefined) {
@@ -761,6 +773,8 @@ export function effectiveSettings(): EffectiveSettings {
     // The stored token is never part of this: gitSyncEffective() answers
     // `tokenSet` (and the non-secret username) and nothing more.
     gitSync: gitSyncEffective(),
+    // Likewise `keySet`, never the Anthropic key.
+    ask: askEffective(),
     fonts: fontSlots(),
     // Localization. `tagLabels` is the STORED map only — the tag pages' own
     // labels are merged in by server/tagLabels.ts at read time and must never
@@ -1726,6 +1740,14 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
   // token — only `effective.gitSync.tokenSet`.
   gitToken: (_raw, value) => setGitToken(value),
   gitUser: (_raw, value) => setGitUser(value),
+  // ── Ask the vault (server/askSettings.ts) ────────────────────────────────
+  ask: (raw, value) => {
+    const next = cleanAskPatch(value, raw.ask);
+    if (next === null) delete raw.ask;
+    else raw.ask = next;
+  },
+  // WRITE-ONLY, and not into settings.json: ASTROLABE_DATA/ask-credentials.json.
+  anthropicKey: (_raw, value) => stageAnthropicKey(value),
   // Typography. The ids are re-validated here (strict allowlist — an unknown
   // id or one the slot does not accept is a 400) even though the route
   // already validated them to download the faces: this handler is the only
@@ -2101,6 +2123,7 @@ export function patchSettings(patch: Record<string, unknown>): SettingsResponse 
   // accepted — a patch that 400s later must not have changed the credential.
   // Anything a previous failed patch staged is dropped here.
   discardStagedGitCredentials();
+  discardStagedAskKey();
   const own = (key: string): boolean => Object.prototype.hasOwnProperty.call(PATCH_HANDLERS, key);
   for (const key of Object.keys(patch)) {
     // Own-property check, NOT `in`: inherited Object.prototype names
@@ -2114,6 +2137,7 @@ export function patchSettings(patch: Record<string, unknown>): SettingsResponse 
   }
   persist(raw);
   applyStagedGitCredentials();
+  applyStagedAskKey();
   return settingsResponse();
 }
 

@@ -129,4 +129,11 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "sync", label: "rowPocketState", hint: "hintPocketState", mode: "pocket" },
   { tab: "sync", label: "rowPocketConflicts", hint: "hintPocketConflicts", mode: "pocket" },
   { tab: "sync", label: "rowPocketLeave", hint: "hintPocketLeave", mode: "pocket" },
+  { tab: "ask", label: "rowAskProvider", hint: "hintAskProvider", mode: "instance" },
+  { tab: "ask", label: "rowAskChatModel", hint: "hintAskChatModel", mode: "instance" },
+  { tab: "ask", label: "rowAskAnthropicModel", hint: "hintAskAnthropicModel", mode: "instance" },
+  { tab: "ask", label: "rowAskKey", hint: "hintAskKey", mode: "instance" },
+  { tab: "ask", label: "rowAskEmbedModel", hint: "hintAskEmbedModel", mode: "instance" },
+  { tab: "ask", label: "rowAskTopK", hint: "hintAskTopK", mode: "instance" },
+  { tab: "ask", label: "rowAskStatus", hint: "hintAskStatus", mode: "instance" },
 ];

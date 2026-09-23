@@ -2428,6 +2428,20 @@ export function notesLinkingTo(noteRel: string): string[] {
   return out.sort();
 }
 
+/** The notes `noteRel` links to — its resolved outgoing wikilinks, admin
+ *  scope. "Suggest links" (server/embeddings.ts) leaves these out: a passage
+ *  the note already links to is not a suggestion. */
+export function notesLinkedFrom(noteRel: string): string[] {
+  const record = notes.get(noteRel);
+  if (record === undefined) return [];
+  const out = new Set<string>();
+  for (const link of record.links) {
+    const target = resolveLink(link.target, false, null);
+    if (target !== null && target !== noteRel) out.add(target);
+  }
+  return [...out].sort();
+}
+
 /** Every note carrying `tag` OR a tag nested under it, sorted.
  *
  *  The candidate list for a tag rename, and deliberately WIDER than what the

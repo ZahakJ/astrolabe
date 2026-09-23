@@ -44,6 +44,7 @@ comment explaining it. The table below is the short version.
 | `COMMENTS` | `on` (also `true`, `1`, `yes`) lets readers leave comments under published notes (default off) |
 | `NOTE_VERSIONS` | `off` (also `false`, `0`, `no`) stops the app keeping a copy of every note before each save in `ASTROLABE_DATA/versions/` (default on) — see [Versions, before and beside git](backup-and-sync.md#versions-before-and-beside-git) |
 | `PDF_SEARCH` | `off` (also `false`, `0`, `no`) stops the sidebar search from reading the text of the PDFs on your shelf (default on; see [Searching inside every book](books.md#searching-inside-every-book)) |
+| `OLLAMA_HOST` | Where [Ask the vault](ask.md) finds Ollama — the same variable Ollama itself reads (default `http://127.0.0.1:11434`) |
 | `SITE_NAME` | The site's name, shown in the sidebar, in page titles and on the login dialog (default `Astrolabe`) |
 | `SITE_TAGLINE` | A short line under the site name, in blog mode |
 | `SITE_FOOTER` | The footer line in blog mode. `{year}` and `{siteName}` are filled in (default `© {year} {siteName}`) |
@@ -229,6 +230,7 @@ above.
 | `authorSites` | array of `{ url }` (https); each site's title and preview image are fetched once (from its OpenGraph tags) and cached in `ASTROLABE_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
 | `ambient` | boolean — a slow decorative atmosphere behind the public masthead, drawn per theme (see [Theming](theming.md#the-ambient-masthead)) | `false` |
 | `pdfSearch` | boolean — the sidebar search reads the pages of every PDF on the shelf (see [Searching inside every book](books.md#searching-inside-every-book)) | `PDF_SEARCH`, else `true` |
+| `ask` | `{ provider, chatModel, anthropicModel, embedModel, topK }` — [Ask the vault](ask.md): who answers (`ollama` · `anthropic`), the model names, and how many passages an answer reads (2–12). The Anthropic key is **not** here: it is write-only and lives in `ASTROLABE_DATA/ask-credentials.json`, which never travels | `ollama`, `qwen3.5:9b`, `claude-sonnet-5`, `embeddinggemma`, `6` |
 | `favicon` | vault-relative image (`.ico .png .svg .jpg .jpeg .gif .webp .avif`) | none |
 | `logo` | https URL or vault-relative image | none |
 | `home.mode` | `note` · `dashboard` | `note` |

@@ -119,6 +119,7 @@ import { desktop } from "../desktop/bridge.ts";
 import { DECLARABLE, SPELL_DICTS_EVENT, browserDictionaries, setBrowserDictionaries, type Declarable } from "../spellDicts.ts";
 import { Row } from "./settings/Row.tsx";
 import { TravelRow } from "./settings/TravelRow.tsx";
+import { AskStatusBlock } from "./settings/AskStatusBlock.tsx";
 import { PocketSyncPanel } from "./settings/PocketSync.tsx";
 import { choiceLabel, isTheme, THEME_GROUPS, THEME_LABELS, THEMES, type Theme } from "../themes.ts";
 import { customThemeChoice, isCustomThemeId } from "../../shared/customTheme.ts";
@@ -216,6 +217,14 @@ interface Form {
   syncInterval: string;  // whole minutes; "0" = manual only
   syncUser: string;      // username the token pairs with
   syncToken: string;     // WRITE-ONLY: never prefilled, never read back
+  // ── Ask the vault (docs/ask.md) ──────────────────────────────────────────
+  // Prefilled from `effective`, like sync: no env counterpart but OLLAMA_HOST.
+  askProvider: string;       // "ollama" | "anthropic"
+  askChatModel: string;
+  askAnthropicModel: string;
+  askEmbedModel: string;
+  askTopK: string;
+  askKey: string;            // WRITE-ONLY, like syncToken
   // ── Typography (fonts) ───────────────────────────────────────────────────
   // Catalog id or SYSTEM_FONT. Like sync, these prefill from `effective`: a
   // webfont choice has no env counterpart, so "inherit" would mean nothing.
@@ -351,6 +360,13 @@ function formFrom(s: SettingsResponse): Form {
     // does), so this field always starts empty — typing into it REPLACES the
     // stored value, and leaving it empty leaves that value alone.
     syncToken: "",
+    askProvider: s.effective.ask.provider,
+    askChatModel: s.effective.ask.chatModel,
+    askAnthropicModel: s.effective.ask.anthropicModel,
+    askEmbedModel: s.effective.ask.embedModel,
+    askTopK: String(s.effective.ask.topK),
+    // The key never comes back, exactly like the git token.
+    askKey: "",
     fontProse: s.effective.fonts?.prose ?? SYSTEM_FONT,
     fontUi: s.effective.fonts?.ui ?? SYSTEM_FONT,
     fontMono: s.effective.fonts?.mono ?? SYSTEM_FONT,
@@ -576,6 +592,15 @@ function validate(f: Form): Partial<Record<keyof Form, string>> {
   if (interval !== "" && !/^\d{1,4}$/.test(interval)) errors.syncInterval = t("errInterval");
   else if (Number(interval || "0") > 1440) errors.syncInterval = t("errInterval");
   if (/\s/.test(f.syncToken)) errors.syncToken = t("errTokenSpaces");
+  if (/\s/.test(f.askKey)) errors.askKey = t("errTokenSpaces");
+  for (const key of ["askChatModel", "askAnthropicModel", "askEmbedModel"] as const) {
+    const v = f[key].trim();
+    if (v !== "" && (!/^[A-Za-z0-9][\w.\-/:]*$/.test(v) || v.includes("..") || v.length > 120)) errors[key] = t("errAskModel");
+  }
+  const topK = f.askTopK.trim();
+  if (topK !== "" && (!/^\d{1,2}$/.test(topK) || Number(topK) < 2 || Number(topK) > 12)) {
+    errors.askTopK = tf("errAskTopK", { min: localeNum(2), max: localeNum(12) });
+  }
   const adjust = f.fontSizeAdjust.trim();
   if (adjust !== "") {
     const n = Number(adjust);
@@ -1904,6 +1929,18 @@ function buildPatch(initial: Form, f: Form): SettingsPatch {
   if (f.syncUser.trim() !== initial.syncUser.trim()) {
     patch.gitUser = f.syncUser.trim() === "" ? null : f.syncUser.trim();
   }
+  // ── Ask the vault ────────────────────────────────────────────────────────
+  // An emptied model field means "the default", which the server stores as
+  // nothing at all.
+  const ask: NonNullable<SettingsPatch["ask"]> = {};
+  if (f.askProvider !== initial.askProvider) ask.provider = f.askProvider === "anthropic" ? "anthropic" : "ollama";
+  if (f.askChatModel.trim() !== initial.askChatModel.trim()) ask.chatModel = f.askChatModel.trim() || null;
+  if (f.askAnthropicModel.trim() !== initial.askAnthropicModel.trim()) ask.anthropicModel = f.askAnthropicModel.trim() || null;
+  if (f.askEmbedModel.trim() !== initial.askEmbedModel.trim()) ask.embedModel = f.askEmbedModel.trim() || null;
+  if (f.askTopK.trim() !== initial.askTopK.trim()) ask.topK = f.askTopK.trim() === "" ? null : Number(f.askTopK.trim());
+  if (Object.keys(ask).length > 0) patch.ask = ask;
+  // Write-only, like the git token: empty leaves the stored key alone.
+  if (f.askKey !== "") patch.anthropicKey = f.askKey;
   // ── Typography ───────────────────────────────────────────────────────────
   // All four slots travel together: the server needs the whole set to know
   // which families to have on disk before it writes the file.
@@ -3123,6 +3160,9 @@ const TABS: Tab[] = [
   { id: "collections", key: "tabCollections", intro: "introCollections" },
   { id: "vault", key: "tabVault", intro: "introVault" },
   { id: "sync", key: "groupSync", intro: "syncNote" },
+  // Its own tab rather than rows on Vault (14 rows already): which models
+  // read the notes and answer about them is its own question (docs/ask.md).
+  { id: "ask", key: "tabAsk", intro: "introAsk" },
   { id: "about", key: "tabAbout", intro: "introAbout" },
 ];
 /** THE TWO TABS A POCKET VAULT HAS NOT GOT.
@@ -3139,7 +3179,11 @@ const TABS: Tab[] = [
  *  render. What keeps a SEARCH from landing on them is `mode: "instance"`,
  *  which scripts/settings-index.mjs reads off their `!pocket` render
  *  condition. */
-const POCKET_HIDDEN_TABS: ReadonlySet<string> = new Set(["publishing", "collections"]);
+/** A model id, not copy: machine text, like the branch field's "main". */
+const ANTHROPIC_MODEL_PLACEHOLDER = "claude-sonnet-5";
+const POCKET_HIDDEN_TABS: ReadonlySet<string> = new Set(["publishing", "collections", "ask"]);
+// (Ask joined them in 3.24: it needs Ollama on a computer, and a phone's
+// pocket server has no /api/ask to point one at.)
 
 /** Automatic-sync periods. A closed set of sentences beats a free number with
  *  a decoder hint under it ("minutes; 0 = manual only"); a stored value from
@@ -3569,6 +3613,25 @@ export default function SettingsModal() {
       .catch((err: unknown) => {
         console.error("astrolabe: clearing the git token failed", err);
         toast(err instanceof Error ? err.message : t("settingsSaveFailed"));
+      })
+      .finally(() => setSaving(false));
+  }, [saving]);
+
+  /** The Anthropic key's Clear: the git token's, for the same reason. */
+  const clearAskKey = useCallback(() => {
+    if (saving) return;
+    setSaving(true);
+    patchSettings({ anthropicKey: null })
+      .then((s) => {
+        const f = formFrom(s);
+        setLoaded(s);
+        setInitial(f);
+        setForm((prev) => (prev ? { ...prev, askKey: "" } : f));
+        toast(t("askKeyCleared"));
+      })
+      .catch((err: unknown) => {
+        console.error("astrolabe: clearing the Anthropic key failed", err);
+        toast(t("settingsSaveFailed"));
       })
       .finally(() => setSaving(false));
   }, [saving]);
@@ -5132,6 +5195,84 @@ export default function SettingsModal() {
                 {tab === "sync" && pocket && (
                 <section data-section="sync">
                   <PocketSyncPanel />
+                </section>
+                )}
+
+                {/* ASK THE VAULT (docs/ask.md). The embedding model is always
+                    local; only the ANSWERING model may be sent off the
+                    machine, and the provider row's segment says which. */}
+                {tab === "ask" && !pocket && (
+                <section data-section="ask">
+                  <Row label={t("rowAskProvider")} hint={t("hintAskProvider")}>
+                    <SegmentedControl
+                      label={t("rowAskProvider")}
+                      segments={[
+                        { value: "ollama", label: t("askProviderLocal") },
+                        { value: "anthropic", label: t("askProviderAnthropic") },
+                      ]}
+                      {...field("askProvider")}
+                    />
+                  </Row>
+                  <Row label={t("rowAskChatModel")} hint={t("hintAskChatModel")} error={errors.askChatModel}>
+                    <TextInput
+                      placeholder="qwen3.5:9b"
+                      dir="ltr"
+                      autoComplete="off"
+                      label={t("rowAskChatModel")}
+                      invalid={errors.askChatModel !== undefined}
+                      {...field("askChatModel")}
+                    />
+                  </Row>
+                  <Row label={t("rowAskAnthropicModel")} hint={t("hintAskAnthropicModel")} error={errors.askAnthropicModel}>
+                    <TextInput
+                      placeholder={ANTHROPIC_MODEL_PLACEHOLDER}
+                      dir="ltr"
+                      autoComplete="off"
+                      label={t("rowAskAnthropicModel")}
+                      invalid={errors.askAnthropicModel !== undefined}
+                      {...field("askAnthropicModel")}
+                    />
+                  </Row>
+                  <Row label={t("rowAskKey")} hint={t("hintAskKey")} error={errors.askKey}>
+                    <div className="s-smodal__tokenfield">
+                      <TextInput
+                        type="password"
+                        placeholder={t(eff.ask.keySet ? "phTokenStored" : "phAskKeyNew")}
+                        dir="ltr"
+                        autoComplete="new-password"
+                        label={t("rowAskKey")}
+                        invalid={errors.askKey !== undefined}
+                        {...field("askKey")}
+                      />
+                      <button type="button" className="s-btn" disabled={!eff.ask.keySet || saving} onClick={clearAskKey}>
+                        {t("askClearKey")}
+                      </button>
+                    </div>
+                    <span className="s-smodal__hint">{t(eff.ask.keySet ? "askKeySetYes" : "askKeySetNo")}</span>
+                  </Row>
+                  <Row label={t("rowAskEmbedModel")} hint={t("hintAskEmbedModel")} error={errors.askEmbedModel}>
+                    <TextInput
+                      placeholder="embeddinggemma"
+                      dir="ltr"
+                      autoComplete="off"
+                      label={t("rowAskEmbedModel")}
+                      invalid={errors.askEmbedModel !== undefined}
+                      {...field("askEmbedModel")}
+                    />
+                  </Row>
+                  <Row label={t("rowAskTopK")} hint={t("hintAskTopK")} error={errors.askTopK}>
+                    <NumberInput
+                      label={t("rowAskTopK")}
+                      unit={t("askTopKUnit")}
+                      min={2}
+                      max={12}
+                      invalid={errors.askTopK !== undefined}
+                      {...field("askTopK")}
+                    />
+                  </Row>
+                  <Row label={t("rowAskStatus")} hint={t("hintAskStatus")}>
+                    <AskStatusBlock />
+                  </Row>
                 </section>
                 )}
 
