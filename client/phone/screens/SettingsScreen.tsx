@@ -35,6 +35,9 @@ export default function SettingsScreen({ onBack }: { onBack?: () => void }) {
   const sections = useMemo(() => (pocket ? TABS.filter((s) => !POCKET_HIDDEN_TABS.has(s.id)) : TABS), [pocket]);
   const hits = useMemo(() => (query.trim() === "" ? [] : searchSettings(query, undefined, pocket)), [query, pocket]);
   const open = (section: string): void => phone.open({ kind: "settings", section });
+  // On a tablet the section open beside this list is lit in it.
+  const top = phone.state.stacks[phone.state.tab].at(-1);
+  const current = top?.kind === "settings" && top.section !== "" ? top.section : null;
 
   // A row asked for from elsewhere: open its section; the section marks it.
   useEffect(() => {
@@ -97,7 +100,13 @@ export default function SettingsScreen({ onBack }: { onBack?: () => void }) {
           <ul className="s-ph-list" aria-label={t("settingsSections")}>
             {sections.map((s) => (
               <li key={s.id}>
-                <button type="button" className="s-ph-row s-ph-hit" data-section={s.id} onClick={() => open(s.id)}>
+                <button
+                  type="button"
+                  className={`s-ph-row s-ph-hit${current === s.id ? " s-ph-row--on" : ""}`}
+                  data-section={s.id}
+                  aria-current={current === s.id ? "page" : undefined}
+                  onClick={() => open(s.id)}
+                >
                   <span className="s-ph-hit__text">
                     <span className="s-ph-row__name">{t(s.key)}</span>
                     <span className="s-ph-hit__snippet">{t(pocket && s.id === "sync" ? "pocketSyncNote" : s.intro)}</span>

@@ -82,11 +82,19 @@ export default function SigilScreen({ path, index, onBack }: { path: string; ind
       });
   }, []);
 
+  // The author's notes go through the markdown pipeline once per text, not
+  // once per tick: a tick changes the log, never the plan's notes.
+  const notesSrc = meta && meta !== "gone" ? meta.plan.notes : null;
+  const notesPath = meta && meta !== "gone" ? meta.path : "";
+  const notesHtml = useMemo(
+    () => (notesSrc ? renderMarkdown(notesSrc, { notePath: notesPath, tree: useStore.getState().tree }).innerHTML : undefined),
+    [notesSrc, notesPath],
+  );
+
   // The card, drawn by the renderer and patched in place on every change.
   useEffect(() => {
     const el = host.current;
     if (!el || meta === null || meta === "gone") return;
-    const notesHtml = meta.plan.notes ? renderMarkdown(meta.plan.notes, { notePath: meta.path, tree: useStore.getState().tree }).innerHTML : undefined;
     const card = renderRoutineCard(meta.plan, meta.entries, {
       notePath: meta.path,
       notesHtml,
@@ -100,7 +108,7 @@ export default function SigilScreen({ path, index, onBack }: { path: string; ind
     const standing = el.firstElementChild;
     if (standing && standing.className === card.className) morph(standing, card);
     else el.replaceChildren(card);
-  }, [meta, today, admin, log, view]);
+  }, [meta, today, admin, log, view, notesHtml]);
 
   const templates = useMemo(() => (all ?? []).filter((m) => m.template), [all]);
   const title = meta && meta !== "gone" ? meta.plan.title || t("routineUntitled") : "";

@@ -337,7 +337,17 @@ const phone = PHONE_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc),
 // switch can repaint it live; an admin who never opens the public site pays
 // nothing.
 // 935.3 kB measured at 3.26.0 — 178 kB under the desktop admin's first paint.
-const PHONE_BUDGET = 940 * 1024;
+// 3.27.0 ROUND 2 OF THE PHONE SHELL: 943.9 kB, +8.5 kB against a build of
+// 3.26.1 (scratchpad/phone-r2/phonefiles.mjs, file by file). The entry under
+// it FELL 6.7 kB (the Classic deletion, below), and the shell's own chunks
+// rose 15.2: PhoneShell.js +9.0 kB — the fourteen new screens and sheets are
+// each a lazy boundary, and each boundary is an import stub with its preload
+// list in this chunk, plus the navigation's leave guard, scroll memory and
+// `popTo`, the settings interception and the overlay subscription — and
+// phone.css +3.4 kB, the new screens' rules (one stylesheet, being mounted is
+// its condition). The screens themselves, the tab bodies, the readers' bar and
+// the forms are all outside it. Budget = actual + ~0.4%.
+const PHONE_BUDGET = 948 * 1024;
 const AUDIENCES = [
 // RE-BASELINED for NOTE HISTORY (529.4 kB actual → budget 532, actual +
 // ~0.5%). This round is the safety net the rest of the slate stands on — git
@@ -771,6 +781,8 @@ const AUDIENCES = [
   // which is what this budget moves by and no more. The round's two new
   // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
   // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
+  // (backGesture.ts and swipe.ts were deleted with the Classic phone layout in
+  // 3.27.0; softKeyboard.ts is still loaded that way.)
   // 3.18.x: the shared tags/properties shelf and its tabs.
   // 3.18.1 WINDOWS AND DESKTOP RESIZING: 805.3 kB actual → 806. +2.3 kB, and
   // every byte of it is first paint by construction. `client/paneWidths.ts`
@@ -918,7 +930,14 @@ const AUDIENCES = [
   //             prefsSync's NEVER_TRAVELS, and Confirm's host registration.
   //             The phone shell itself — screens, sheets, nav, phone.css — is a
   //             lazy chunk a desktop never requests (the phone audience below).
-{ name: "entry (everyone)", keys: entry, budget: 858 * 1024 },
+  // 3.27.0 THE CLASSIC PHONE LAYOUT, DELETED: 857.8 → 851.1 kB, −6.7 kB
+  // measured against a build of 3.26.1 — app.css's drawer and phone-width
+  // blocks the desktop shell can no longer reach (−5.5 kB of CSS; the phone
+  // shell is mounted wherever they could apply), the store's drawer state and
+  // queries, main.tsx's Classic switch and gesture loader, the settings row,
+  // and the drawer's dictionary keys (the Round 2 keys that replaced them are
+  // in this number too). The budget comes down by the saving: 858 → 852.
+{ name: "entry (everyone)", keys: entry, budget: 852 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1191,6 +1210,8 @@ const AUDIENCES = [
   // which is what this budget moves by and no more. The round's two new
   // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
   // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
+  // (backGesture.ts and swipe.ts were deleted with the Classic phone layout in
+  // 3.27.0; softKeyboard.ts is still loaded that way.)
   // This reader pays a little more than the entry does: the comment form is
   // the one thing a VISITOR types into, and it is on this page.
   // 3.18.x: the shared tags/properties shelf and its tabs.
@@ -1260,7 +1281,9 @@ const AUDIENCES = [
   //             prefsSync's NEVER_TRAVELS, and Confirm's host registration.
   //             The phone shell itself — screens, sheets, nav, phone.css — is a
   //             lazy chunk a desktop never requests (the phone audience below).
-{ name: "anonymous blog reader", keys: blog, budget: 1157 * 1024 },
+  // 3.27.0: the entry's −6.7 kB, and nothing else: 1156.1 → 1149.5. Budget
+  // lowered by the saving, 1157 → 1151.
+{ name: "anonymous blog reader", keys: blog, budget: 1151 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1447,6 +1470,8 @@ const AUDIENCES = [
   // which is what this budget moves by and no more. The round's two new
   // modules (backGesture.ts, softKeyboard.ts) cost this reader nothing: both
   // are `import()`ed behind `(pointer: coarse)` from main.tsx, beside swipe.ts.
+  // (backGesture.ts and swipe.ts were deleted with the Classic phone layout in
+  // 3.27.0; softKeyboard.ts is still loaded that way.)
   // The admin carries the most of it: the drawer's chrome, the outline
   // drawer's rows, the tab strip and the status bar are this reader's alone.
   // 3.18.x TABLES EDITED IN PLACE: 1555.2 kB actual → 1556. The entry's
@@ -1522,7 +1547,10 @@ const AUDIENCES = [
   //             prefsSync's NEVER_TRAVELS, and Confirm's host registration.
   //             The phone shell itself — screens, sheets, nav, phone.css — is a
   //             lazy chunk a desktop never requests (the phone audience below).
-  { name: "admin first paint", keys: app, budget: 1114 * 1024 },
+  // 3.27.0: the entry's −6.7 kB and the drawer chrome out of the shell's
+  // components (App's ☰ and scrim, the sidebar's and panel's phone closes,
+  // StatusBar's drawer listener): 1113.8 → 1106.5. Budget lowered, 1114 → 1108.
+  { name: "admin first paint", keys: app, budget: 1108 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy
