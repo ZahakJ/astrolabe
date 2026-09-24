@@ -7,7 +7,6 @@ import { envRead } from "../shared/envName.ts";
 import { watch, type FSWatcher } from "chokidar";
 import type {
   AttachmentInfo,
-  AttachmentKind,
   NoteData,
   TrashEntry,
   TreeNode,
@@ -16,6 +15,8 @@ import type {
 } from "../shared/types.ts";
 import { isNotePath, noteExtOf } from "../shared/noteFormat.ts";
 import { captureVersion, dropVersions, dropVersionsUnder, moveVersions } from "./versions.ts";
+import { attachmentKindOf } from "../shared/attachments.ts";
+import { compareTreeNodes } from "../shared/tree.ts";
 
 export class VaultError extends Error {
   status: number;
@@ -243,14 +244,6 @@ export function isIgnoredRel(rel: string): boolean {
 /** Extension → attachment kind. Anything not listed is "other" (offered as a
  *  download); the list is deliberately the same family the /api/file MIME
  *  table serves, so what the tree promises is what the viewer can open. */
-const ATTACHMENT_KINDS: Record<string, AttachmentKind> = {
-  png: "image", jpg: "image", jpeg: "image", gif: "image", webp: "image",
-  avif: "image", svg: "image", bmp: "image", ico: "image", tif: "image", tiff: "image",
-  pdf: "book", epub: "book",
-  mp3: "audio", m4a: "audio", wav: "audio", ogg: "audio", oga: "audio", flac: "audio", aac: "audio", opus: "audio",
-  mp4: "video", webm: "video", mov: "video", mkv: "video", m4v: "video",
-};
-
 /** The extension of a vault-relative path, lowercase and without the dot
  *  ("" when the basename carries none). */
 export function fileExt(rel: string): string {
@@ -262,7 +255,7 @@ export function fileExt(rel: string): string {
 /** What a non-markdown file IS, for the tree marker and the viewer. */
 export function attachmentInfo(rel: string, size: number): AttachmentInfo {
   const ext = fileExt(rel);
-  return { kind: ATTACHMENT_KINDS[ext] ?? "other", ext, size };
+  return { kind: attachmentKindOf(rel), ext, size };
 }
 
 /** The full vault tree (ADMIN surface): folders, notes, and — new — every
@@ -320,18 +313,14 @@ export async function buildTree(): Promise<TreeNode> {
         attachment: attachmentInfo(a.path, sizes[i]),
       });
     });
-    // Folders, then notes, then attachments; alphabetical within each band.
-    nodes.sort((a, b) => rank(a) - rank(b) ||
-      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+    // Folders, then notes, then attachments; alphabetical within each band
+    // (shared/tree.ts — the pocket sorts its tree with the same comparison).
+    nodes.sort(compareTreeNodes);
     return nodes;
   }
   return { name: path.basename(vaultRoot), path: "", type: "folder", children: await walk("") };
 }
 
-function rank(node: TreeNode): number {
-  if (node.type === "folder") return 0;
-  return node.attachment ? 2 : 1;
-}
 
 /** One walk over the whole vault (ignore rules applied) listing notes and
  *  attachments separately — used by the indexer at boot so it never walks twice. */

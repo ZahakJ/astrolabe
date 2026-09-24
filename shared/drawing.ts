@@ -14,6 +14,7 @@
 
 // lz-string ships CommonJS only; a named import fails under Node.
 import lz from "lz-string";
+import { FRONTMATTER_RE } from "./noteParse.ts";
 const { compressToBase64, decompressFromBase64 } = lz;
 
 export type DrawingFormat = "json" | "plugin";
@@ -101,9 +102,9 @@ export function parseDrawing(rel: string, content: string): Drawing | null {
 function parsePlugin(content: string): Drawing | null {
   let frontmatter: string | null = null;
   let body = content;
-  const fm = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(content);
+  const fm = FRONTMATTER_RE.exec(content);
   if (fm) {
-    frontmatter = fm[1];
+    frontmatter = fm[1] ?? "";
     body = content.slice(fm[0].length);
   }
   // The plugin's fence: ```json (plain) or ```compressed-json (LZ, base64,

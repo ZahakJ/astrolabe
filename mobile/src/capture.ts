@@ -4,6 +4,7 @@ import { AstrolabeNative, type PendingShare } from "./native.ts";
 import { HttpError, normalizeServerUrl, readNote, writeNote } from "./server.ts";
 import { lastServer } from "./store.ts";
 import { mountVoice } from "./voice.ts";
+import { localIsoDay } from "../../shared/dates.ts";
 
 /**
  * The capture sheet: what "Share to Astrolabe" opens.
@@ -35,8 +36,7 @@ function pad(n: number): string {
  *  any case a filename is not prose. `toISOString` would be the wrong day for
  *  anyone capturing after their local midnight. */
 function today(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  return localIsoDay();
 }
 
 function nowHm(): string {

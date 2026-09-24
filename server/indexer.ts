@@ -33,7 +33,16 @@ import {
   stripMarkdown,
 } from "../shared/prose.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
-import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
+import {
+  drawingSvgPath,
+  isDrawingPath,
+  isNotePath,
+  isTexPath,
+  noteCandidates,
+  noteTitleOf,
+  stripNoteExt,
+  noteLabelOf,
+} from "../shared/noteFormat.ts";
 import { drawingIndexText } from "../shared/drawing.ts";
 import { markdownAnchors, type NoteAnchor } from "../shared/anchors.ts";
 import { uncomment } from "../shared/yaml.ts";
@@ -50,6 +59,7 @@ import {
   pickShortest,
   scalarProps,
   splitFrontmatter,
+  bannerOf,
   wikilinkRegex,
 } from "../shared/noteParse.ts";
 export { wikilinkRegex };
@@ -73,6 +83,8 @@ import { getSettings, hadithFolder, settingsAssetPaths, tagsFolder, templatesFol
 import { collectionLabel, hadithKeyOfFrontmatter, splitHadith } from "../shared/hadithRefs.ts";
 import type { HadithHit } from "../shared/types.ts";
 import { listFolderFiles, listVaultFiles, onEvent, readNote, safeAbs } from "./vault.ts";
+import { isHeadingLine } from "../shared/headings.ts";
+import { isImagePath } from "../shared/attachments.ts";
 
 interface NoteRecord {
   path: string;
@@ -990,7 +1002,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
-    banner: typeof fm.banner === "string" && fm.banner.trim() ? fm.banner.trim() : null,
+    banner: bannerOf(fm),
     dateMs:
       parseFmDate(fm.date) ??
       parseFmDate(fm.created) ??
@@ -1063,18 +1075,19 @@ interface NoteParts {
 
 function markdownParts(relPath: string, content: string): NoteParts {
   const { body, frontmatter, bodyStartLine } = splitFrontmatter(content);
+  const fm = readFrontmatter(content);
   return {
     body,
     bodyStartLine,
     frontmatter,
     tagSource: body,
-    fm: readFrontmatter(content),
+    fm,
     links: parseLinks(body),
     xrefs: [],
     assets: parseAssets(body, relPath),
     prose: null,
     anchors: markdownAnchors(content),
-    citekeys: citekeyOf(readFrontmatter(content)),
+    citekeys: citekeyOf(fm),
     firstParagraph: null,
   };
 }
@@ -1326,7 +1339,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
-    banner: typeof fm.banner === "string" && fm.banner.trim() ? fm.banner.trim() : null,
+    banner: bannerOf(fm),
     dateMs:
       parseFmDate(fm.date) ??
       parseFmDate(fm.created) ??
@@ -2548,11 +2561,9 @@ export function publishedCounts(): { notes: number; total: number } {
 
 // --------------------------------------------------------------- attachments
 
-const IMAGE_EXT_RE = /\.(png|jpe?g|webp|gif|svg|avif|bmp|ico)$/i;
-
 /** All indexed image attachments, sorted — the admin banner picker's list. */
 export function listImageAttachments(): string[] {
-  return [...attachmentPaths].filter((p) => IMAGE_EXT_RE.test(p)).sort((a, b) => a.localeCompare(b));
+  return [...attachmentPaths].filter((p) => isImagePath(p)).sort((a, b) => a.localeCompare(b));
 }
 
 /** Every attachment NO note points at — the complement of `attachmentRefs()`
@@ -2618,7 +2629,9 @@ export function registerAttachment(relPath: string): void {
 /** A note's display title (sanitized, as every other surface shows it), or
  *  its basename when the note is not indexed. */
 export function noteTitle(relPath: string): string {
-  return notes.get(relPath)?.title ?? path.posix.basename(relPath, ".md");
+  // Not indexed: the FILE surfaces' name (shared/noteFormat.ts noteLabelOf) —
+  // `.md` off, `.tex` and `.latex` kept, as the tree shows it.
+  return notes.get(relPath)?.title ?? noteLabelOf(relPath);
 }
 
 // --------------------------------------------------------------------- posts
@@ -2658,7 +2671,7 @@ function firstParagraph(body: string): string {
   for (const raw of body.split("\n")) {
     const boundary =
       fences.skip(raw) ||
-      /^\s{0,3}#{1,6}\s+/.test(raw) ||
+      isHeadingLine(raw) ||
       /^\s*\|/.test(raw) ||
       !raw.trim() ||
       isFurnitureLine(raw);

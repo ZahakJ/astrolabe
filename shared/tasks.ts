@@ -14,6 +14,7 @@
 
 import { closesFence, fenceOpener, sourceLines } from "./fences.ts";
 import { weekMonday } from "./periodic.ts";
+import { localIsoDay } from "./dates.ts";
 
 export type TaskPriority = "highest" | "high" | "medium" | "low" | "lowest" | null;
 
@@ -157,7 +158,7 @@ export function parseTasksFence(body: string, today: string): TasksSpec {
   const week = (iso: string): [string, string] => {
     const d = new Date(`${iso}T12:00:00Z`);
     const monday = weekMonday(d);
-    const from = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
+    const from = localIsoDay(monday);
     return [from, shift(from, 6)];
   };
   for (const raw of body.split(/\r?\n/)) {

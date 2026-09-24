@@ -1,7 +1,6 @@
 // Wikilink parsing + resolution against the vault tree held in the zustand store.
 
-import { stripAlignMarker } from "../../shared/blockAlign.ts";
-import { closesFence, fenceOpener, sourceLines, type Fence } from "../../shared/fences.ts";
+import { headingSlug, headingTitle, scanHeadings } from "../../shared/headings.ts";
 import type { AliasEntry, TreeNode } from "../../shared/types.ts";
 import { isNotePath, noteCandidates, stripNoteExt } from "../../shared/noteFormat.ts";
 
@@ -189,50 +188,29 @@ export function resolveLink(target: string, tree: TreeNode | null): string | nul
   return aliasPaths.get(name) ?? null;
 }
 
-/** All ATX heading texts in a note, in order, skipping fenced code. The fence
- *  scan is `shared/fences.ts` — the same one the outline and the anchor table
- *  read, because a heading this file cannot see is a `[[Note#Heading]]` the
- *  autocomplete will not offer, and one it sees inside a code block is one it
- *  offers and the reading view never lands on. */
+/** All heading titles in a note, in order — what `[[Note#` offers. The scan
+ *  is shared/headings.ts's, the same one the outline, the anchor table and
+ *  the reading view's ids read: outside the frontmatter (a YAML `# comment`
+ *  is not a heading), outside code fences, CommonMark's indent, and the title
+ *  the reading view shows — so every offer is a heading the link can land on
+ *  in either view. */
 export function extractHeadings(content: string): string[] {
-  const out: string[] = [];
-  let fence: Fence | null = null;
-  for (const line of sourceLines(content)) {
-    if (fence) {
-      if (closesFence(line, fence)) fence = null;
-      continue;
-    }
-    const opened = fenceOpener(line);
-    if (opened) {
-      fence = opened;
-      continue;
-    }
-    const m = /^\s{0,3}#{1,6}\s+(.+?)\s*$/.exec(line);
-    // `# Title {.center}` is titled "Title" (shared/blockAlign.ts).
-    if (m) out.push(stripAlignMarker(m[1]));
-  }
-  return out;
+  return scanHeadings(content).map((h) => h.title);
 }
 
-/** 1-based line number of the heading whose text matches (case-insensitive). */
+/** 1-based line number of the heading `heading` names, case-insensitive: by
+ *  its title (what the completion offers and the reading view shows), by its
+ *  slug id (what the reading view's anchors are), or by its raw source (what
+ *  a link typed before the two agreed may still say). First match wins, as
+ *  the anchor table's does. */
 export function findHeadingLine(content: string, heading: string): number | null {
   const want = heading.trim().toLowerCase();
   if (!want) return null;
-  let fence: Fence | null = null;
-  let n = 0;
-  for (const line of sourceLines(content)) {
-    n++;
-    if (fence) {
-      if (closesFence(line, fence)) fence = null;
-      continue;
-    }
-    const opened = fenceOpener(line);
-    if (opened) {
-      fence = opened;
-      continue;
-    }
-    const m = /^\s{0,3}#{1,6}\s+(.+?)\s*$/.exec(line);
-    if (m && m[1].trim().toLowerCase() === want) return n;
-  }
-  return null;
+  const slug = headingSlug(headingTitle(heading));
+  const all = scanHeadings(content);
+  const hit =
+    all.find((h) => h.title.toLowerCase() === want) ??
+    all.find((h) => h.id === slug) ??
+    all.find((h) => h.raw.trim().toLowerCase() === want);
+  return hit?.line ?? null;
 }

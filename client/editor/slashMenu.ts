@@ -25,11 +25,15 @@ import { createDrawingBeside } from "../drawing/createBeside.ts";
 import { useStore } from "../state.ts";
 import { t, type I18nKey } from "../i18n.ts";
 import { CALLOUT_TYPES, calloutGroup, calloutIconSvg } from "./calloutDefs.ts";
+import { localIsoDay } from "../../shared/dates.ts";
 
 // ── Slash menu ──────────────────────────────────────────────────────────────
 
 function isoToday(): string {
-  return dailyNotePath().replace(/^daily\/|\.md$/g, "");
+  // The local day itself — not the daily note's path with its folder and
+  // extension shaved off, which answered garbage for a daily folder not
+  // called `daily/`.
+  return localIsoDay();
 }
 
 /** Insert plain text, cursor at `text.length - back`. */

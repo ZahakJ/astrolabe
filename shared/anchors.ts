@@ -15,29 +15,12 @@
 // that pulls the wrong span.
 import { isBareBlockId, parseBlockId, stripBlockId } from "./blockId.ts";
 import { closesFence, fenceOpener, sourceLines, type Fence } from "./fences.ts";
+import { bodyStartLine, headingOf, headingTitle, stripHeadingInline } from "./headings.ts";
 import { isTexPath } from "./noteFormat.ts";
 import { findAnchor, parseTex, slugAnchor, type NoteAnchor } from "./tex.ts";
 
 export type { NoteAnchor } from "./tex.ts";
 export { findAnchor, slugAnchor } from "./tex.ts";
-
-const HEADING_RE = /^(#{1,6})\s+(.*)$/;
-
-/** Inline markdown removed from a heading, for display and for slugging. Kept
- *  in step with client/reading/toc.ts's stripInline — that one feeds the TOC,
- *  this one feeds the anchor table, and an anchor whose id disagrees with the
- *  element id the reading view assigns is an anchor that silently misses. */
-function stripInline(text: string): string {
-  return text
-    .replace(/!\[\[([^[\]]+?)\]\]/g, "$1")
-    .replace(/\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]/g, (_m, t: string, a?: string) => (a ?? t).trim())
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/`([^`]*)`/g, "$1")
-    .replace(/\*\*|__|~~|==/g, "")
-    .replace(/(^|\s)[*_]|[*_](\s|$)/g, "$1$2")
-    .replace(/\s+#+\s*$/, "")
-    .trim();
-}
 
 /** Every addressable place in a markdown note: its headings. Slugs collide the
  *  same way the reading view's do (`intro`, `intro-1`, …), because they are
@@ -46,18 +29,8 @@ export function markdownAnchors(md: string): NoteAnchor[] {
   const out: NoteAnchor[] = [];
   const seen = new Map<string, number>();
   const lines = sourceLines(md);
-  let start = 0;
-  if (lines[0]?.trim() === "---") {
-    for (let j = 1; j < lines.length; j++) {
-      const t = lines[j].trim();
-      if (t === "---" || t === "...") {
-        start = j + 1;
-        break;
-      }
-    }
-  }
   let fence: Fence | null = null;
-  for (let i = start; i < lines.length; i++) {
+  for (let i = bodyStartLine(md); i < lines.length; i++) {
     const line = lines[i];
     if (fence) {
       if (closesFence(line, fence)) fence = null;
@@ -68,9 +41,11 @@ export function markdownAnchors(md: string): NoteAnchor[] {
       fence = opened;
       continue;
     }
-    const m = HEADING_RE.exec(line);
-    if (m) {
-      const text = stripInline(m[2]);
+    // shared/headings.ts: the reading view's heading, title and slug — the
+    // id this table files is the id the element carries.
+    const heading = headingOf(line);
+    if (heading) {
+      const text = headingTitle(heading.raw);
       const base = slugAnchor(text);
       const n = seen.get(base) ?? 0;
       seen.set(base, n + 1);
@@ -89,7 +64,7 @@ export function markdownAnchors(md: string): NoteAnchor[] {
     if (block && !seen.has(`^${block.id.toLowerCase()}`)) {
       seen.set(`^${block.id.toLowerCase()}`, 1);
       const own = isBareBlockId(line) ? (lines[i - 1] ?? "") : line;
-      const title = stripInline(stripBlockId(own).replace(/^\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s*)?/, "")).trim();
+      const title = stripHeadingInline(stripBlockId(own).replace(/^\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s*)?/, "")).trim();
       out.push({ id: `^${block.id}`, kind: "block", title: title.length > 80 ? `${title.slice(0, 79)}…` : title, line: i + 1 });
     }
   }

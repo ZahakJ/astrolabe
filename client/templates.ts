@@ -45,6 +45,7 @@ import { getNumerals } from "./i18n.ts";
 import { formatCalendarDate, HIJRI_CALENDAR, type DateCalendar } from "../shared/dates.ts";
 import { toNumerals } from "../shared/numerals.ts";
 import { noteTitleOf } from "../shared/noteFormat.ts";
+import { FRONTMATTER_RE } from "../shared/noteParse.ts";
 
 // ── Settings ────────────────────────────────────────────────────────────────
 
@@ -426,12 +427,13 @@ export interface SplitNote {
   body: string;
 }
 
-/** Split a leading `---` frontmatter block off a markdown note. Tolerates CRLF
- *  and a `...` terminator, like every other frontmatter reader here. */
+/** Split a leading `---` frontmatter block off a markdown note — the one
+ *  fence rule (shared/noteParse.ts FRONTMATTER_RE), in the shape the merge
+ *  below wants: the YAML or null, and the body. */
 export function splitFrontmatter(src: string): SplitNote {
-  const m = /^---\r?\n([\s\S]*?)\r?\n(?:---|\.\.\.)[ \t]*(?:\r?\n|$)/.exec(src);
+  const m = FRONTMATTER_RE.exec(src);
   if (!m) return { yaml: null, body: src };
-  return { yaml: m[1], body: src.slice(m[0].length) };
+  return { yaml: m[1] ?? "", body: src.slice(m[0].length) };
 }
 
 /** One frontmatter entry, kept as RAW LINES. Values are not parsed and not

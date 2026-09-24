@@ -8,8 +8,8 @@ import { isAudioName, pdfPageOf } from "../../shared/mediaEmbeds.ts";
 import { clearBannerCache } from "../banner.ts";
 import { t } from "../i18n.ts";
 import { Lru } from "../lru.ts";
+import { isImagePath } from "../../shared/attachments.ts";
 
-const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i;
 const ATTACHMENT_EXT = /\.(pdf|mp4|webm|mp3|ogg|wav|flac|zip|canvas|json|csv|txt)$/i;
 
 export interface EmbedParts {
@@ -46,7 +46,7 @@ export function parseEmbed(inner: string): EmbedParts {
   const page = pdfPageOf(target, anchor);
   const kind = isDrawingPath(target)
     ? "drawing"
-    : IMAGE_EXT.test(target)
+    : isImagePath(target)
       ? "image"
       : page !== null
         ? "pdfpage"

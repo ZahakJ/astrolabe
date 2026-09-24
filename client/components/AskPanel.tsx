@@ -27,6 +27,7 @@ import { localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { actionToast } from "../undoToast.ts";
+import { localIsoDay } from "../../shared/dates.ts";
 import "../styles/ask.css";
 
 interface Session {
@@ -60,8 +61,7 @@ function seconds(ms: number): string {
 }
 
 function today(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return localIsoDay();
 }
 
 export default function AskPanel() {

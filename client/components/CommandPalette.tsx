@@ -24,7 +24,7 @@ import { popOutNote } from "../windows/coherence.ts";
 import { insertTemplateCommand, newNoteFromTemplateCommand } from "../templateActions.ts";
 import { insertTableCommand, tableCommand } from "../tableActions.ts";
 import { localeNum, t, tf, type I18nKey } from "../i18n.ts";
-import { isNotePath, noteLabelOf, stripNoteExt } from "../../shared/noteFormat.ts";
+import { ensureMd, ensureTex, isNotePath, noteLabelOf, stripNoteExt } from "../../shared/noteFormat.ts";
 import { confirmModal, confirmModalEx } from "./Confirm.tsx";
 import { moveViaPicker } from "./MovePicker.tsx";
 import { confirmDeleteNote } from "./deleteFlow.ts";
@@ -109,17 +109,6 @@ function folderOf(path: string): string {
   return cut === -1 ? "" : path.slice(0, cut);
 }
 
-/** A typed name → a note path. An extension the reader supplied is KEPT —
- *  typing "Paper.tex" must create a LaTeX note, not "Paper.tex.md" — and
- *  anything else gets `.md`, which is what "new note" has always meant. */
-function ensureMd(path: string): string {
-  return isNotePath(path) ? path : `${path}.md`;
-}
-
-/** The same, defaulting to LaTeX: the "New LaTeX note" command's ending. */
-function ensureTex(path: string): string {
-  return isNotePath(path) ? path : `${path}.tex`;
-}
 
 // ---------------------------------------------------------------------------
 // Items

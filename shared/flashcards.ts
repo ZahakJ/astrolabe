@@ -28,6 +28,7 @@
 
 import { closesFence, fenceOpener, sourceLines } from "./fences.ts";
 import { EASE_START, formatSrComments, hasSrComment, parseSrComments, shiftDay, type Schedule } from "./srs.ts";
+import { headingOf, isHeadingLine } from "./headings.ts";
 
 export type CardKind = "qa" | "cloze" | "quote";
 
@@ -54,7 +55,6 @@ export interface Card {
 }
 
 const CLOZE_RE = /==([^=\n]{1,200})==/g;
-const HEADING_RE = /^\s{0,3}#{1,6}\s/;
 /** The front of an inline card is one line's worth, not a paragraph. */
 const FRONT_MAX = 400;
 /** The comment at the end of an inline card's own line. */
@@ -84,7 +84,7 @@ export function scanCards(md: string): Card[] {
       fence = opened;
       continue;
     }
-    if (HEADING_RE.test(line)) {
+    if (isHeadingLine(line)) {
       section = headingText(line);
       continue;
     }
@@ -123,7 +123,7 @@ export function scanCards(md: string): Card[] {
       }
       // The question may be several lines above the `?`, back to a blank.
       let s = i;
-      while (s > 0 && lines[s - 1].trim() !== "" && !HEADING_RE.test(lines[s - 1]) && !hasSrComment(lines[s - 1])) s--;
+      while (s > 0 && lines[s - 1].trim() !== "" && !isHeadingLine(lines[s - 1]) && !hasSrComment(lines[s - 1])) s--;
       const question = lines.slice(s, i + 1).join("\n").trim();
       if (question !== "" && answer.length > 0) {
         out.push(single("qa", s + 1, j, question, answer.join("\n").trim(), scheduleAfter(lines, j), section));
@@ -162,7 +162,7 @@ export function scanCards(md: string): Card[] {
     // A paragraph with ==highlights==: one cloze card per paragraph.
     const paraStart = i;
     let j = i;
-    while (j < lines.length && lines[j].trim() !== "" && !/^\s*>/.test(lines[j]) && !HEADING_RE.test(lines[j]) && !hasSrComment(lines[j]) && !fenceOpener(lines[j])) j++;
+    while (j < lines.length && lines[j].trim() !== "" && !/^\s*>/.test(lines[j]) && !isHeadingLine(lines[j]) && !hasSrComment(lines[j]) && !fenceOpener(lines[j])) j++;
     const para = lines.slice(paraStart, j).join("\n");
     const marks = [...para.matchAll(CLOZE_RE)].map((m) => m[1]);
     if (marks.length > 0) {
@@ -180,7 +180,7 @@ function single(kind: CardKind, line: number, end: number, front: string, back: 
 
 /** `# Heading ##` → "Heading". */
 function headingText(line: string): string {
-  return line.replace(/^\s{0,3}#{1,6}\s+/, "").replace(/\s+#+\s*$/, "").trim();
+  return (headingOf(line)?.raw ?? line).replace(/\s+#+\s*$/, "").trim();
 }
 
 interface InlineCard {

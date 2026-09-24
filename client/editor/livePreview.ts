@@ -75,6 +75,7 @@ import { sanitizeHtml, sanitizeStyle } from "../reading/rawHtml.ts";
 import { isNotePath } from "../../shared/noteFormat.ts";
 import { findFurigana, rubySegments } from "../../shared/furigana.ts";
 import { footnotesOf } from "../../shared/footnotes.ts";
+import { isHeadingLine } from "../../shared/headings.ts";
 
 /** Vault path of the note this editor shows (embeds resolve against it). */
 export const notePathFacet = Facet.define<string, string>({
@@ -595,7 +596,7 @@ function buildDecorations(view: EditorView): DecorationSet {
         // Not on a heading: `# Title ^h1` is heading text (the anchor table
         // skips it), and hiding it here would show the reader one thing and
         // the reading view another.
-        const own = /^\s{0,3}#{1,6}\s/.test(text) ? null : parseBlockId(text);
+        const own = isHeadingLine(text) ? null : parseBlockId(text);
         if (own) {
           const start = line.from + own.start;
           const end = line.to;

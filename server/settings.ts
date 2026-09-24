@@ -172,6 +172,7 @@ import {
   tags,
 } from "./indexer.ts";
 import { getVaultRoot, normalizeRel, safeAbs, VaultError } from "./vault.ts";
+import { isImagePath } from "../shared/attachments.ts";
 
 const SETTINGS_FILE = "settings.json";
 const VALUE_MAX = 500; // same budget as a frontmatter banner value
@@ -251,7 +252,6 @@ function isStoredThemePref(value: string): boolean {
 
 /** Vault-image extensions a favicon/logo may carry (what /api/upload can
  *  produce, plus .ico for hand-placed favicons). */
-const IMAGE_EXT = /\.(ico|png|svg|jpe?g|gif|webp|avif)$/i;
 
 // mtime-checked cache: external edits to settings.json (hand edits, another
 // process) are picked up without a restart, but the common case is one cheap
@@ -318,10 +318,10 @@ function cleanVaultImage(value: string, key: string): string | null {
   } catch {
     throw new VaultError(400, `Settings value "${key}" is not a valid vault path`);
   }
-  if (rel === "" || !IMAGE_EXT.test(rel)) {
+  if (rel === "" || !isImagePath(rel)) {
     throw new VaultError(
       400,
-      `Settings value "${key}" must be a vault image path (ico, png, svg, jpeg, gif, webp)`,
+      `Settings value "${key}" must be a vault image path (ico, png, svg, jpeg, gif, webp, avif, bmp)`,
     );
   }
   return rel;

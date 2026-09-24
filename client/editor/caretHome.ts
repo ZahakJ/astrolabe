@@ -27,12 +27,13 @@
 
 import { isTexPath } from "../../shared/noteFormat.ts";
 import { findTexFrontmatter } from "../../shared/tex.ts";
+import { FRONTMATTER_RE } from "../../shared/noteParse.ts";
+import { isHeadingLine } from "../../shared/headings.ts";
 
 /** Offset just past a leading frontmatter block, or 0 when there is none. */
 export function afterFrontmatter(path: string, content: string): number {
   if (isTexPath(path)) return findTexFrontmatter(content)?.end ?? 0;
-  if (!/^---\r?\n/.test(content)) return 0;
-  const m = /^---\r?\n[\s\S]*?\r?\n(?:---|\.\.\.)(?:\r?\n|$)/.exec(content);
+  const m = FRONTMATTER_RE.exec(content);
   return m ? m[0].length : 0;
 }
 
@@ -48,7 +49,7 @@ export function caretHome(path: string, content: string): number {
     const line = content.slice(at, end);
     if (line.trim() !== "") {
       // An ATX heading opens most notes: park at the end of its text.
-      if (/^\s{0,3}#{1,6}\s/.test(line)) return end;
+      if (isHeadingLine(line)) return end;
       // A fence opens a note that IS a card (a Media item is frontmatter and
       // one ```tracker block): a caret on the fence line unfolds the card into
       // its source, and a caret on the empty line after the closing fence is

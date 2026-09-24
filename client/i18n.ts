@@ -1560,8 +1560,8 @@ const DICT = {
   errHttpsOrVault: { en: "must be an https:// URL or a vault image path", ar: "يجب أن يكون رابط ‎https://‎ أو مسار صورة داخل الخزانة" },
   errDotDot: { en: "path may not contain ..", ar: "لا يجوز أن يحتوي المسار على .." },
   errImageExt: {
-    en: "must be an image (ico, png, svg, jpeg, gif, webp, avif)",
-    ar: "يجب أن يكون صورة (‎ico, png, svg, jpeg, gif, webp, avif‎)",
+    en: "must be an image (ico, png, svg, jpeg, gif, webp, avif, bmp)",
+    ar: "يجب أن يكون صورة (‎ico, png, svg, jpeg, gif, webp, avif, bmp‎)",
   },
 
   // ── Preview banner ──────────────────────────────────────────────────────

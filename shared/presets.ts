@@ -58,6 +58,7 @@ import {
 } from "./design.ts";
 import { stockChrome, type DesignChrome } from "./designChrome.ts";
 import { catalogEntry } from "./fontCatalog.ts";
+import { foldTerm } from "./fold.ts";
 
 // ── The type ────────────────────────────────────────────────────────────────
 
@@ -283,18 +284,12 @@ export interface PresetQuery {
   text: string;
 }
 
-/** Fold to something two languages can be compared in: lowercased, Arabic
- *  diacritics and tatweel dropped, alef forms unified. Not a search engine —
- *  it is the difference between "أثر" finding "الأثر" and not. */
+/** Fold to something two languages can be compared in — shared/fold.ts's
+ *  `foldTerm`, the table every search box uses: lowercased, Arabic diacritics
+ *  and tatweel dropped, alef forms unified. It is the difference between
+ *  "أثر" finding "الأثر" and not. */
 function fold(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u034f\u0640\u064b-\u0652]/g, "")
-    .replace(/[\u0623\u0625\u0622]/g, "\u0627")
-    .replace(/\u0629/g, "\u0647")
-    .replace(/[\u0649\u064a]/g, "\u064a")
-    .trim();
+  return foldTerm(value).trim();
 }
 
 /** Does this preset answer the query? Name and blurb are matched in BOTH

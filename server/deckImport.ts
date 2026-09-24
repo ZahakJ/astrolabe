@@ -50,6 +50,7 @@ import { registerAttachment, indexFile } from "./indexer.ts";
 import { dataDir, uploadDirFor } from "./site.ts";
 import { emitEvent, normalizeRel, safeAbs, VaultError, writeNote } from "./vault.ts";
 import { readZipEntry, zipIndex, ZipError, type ZipEntry } from "./zip.ts";
+import { localIsoDay } from "../shared/dates.ts";
 
 // ───────────────────────────────────────────────────────────── the shapes
 
@@ -523,9 +524,7 @@ export function ankiSchedule(card: { type: number; queue: number; due: number; o
 }
 
 function localIso(ms: number): string {
-  const d = new Date(ms);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return localIsoDay(ms);
 }
 
 interface AnkiNoteType {

@@ -96,7 +96,7 @@ import {
 import type { FolderMark } from "../../shared/folderIcons.ts";
 import { toast } from "../toast.ts";
 import "../styles/move.css";
-import { isDrawingPath, isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
+import { ensureMd, isDrawingPath, isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
 
 const SEARCH_DEBOUNCE_MS = 200;
 
@@ -199,9 +199,6 @@ function parentOf(path: string): string {
   return i === -1 ? "" : path.slice(0, i);
 }
 
-function ensureMd(name: string): string {
-  return isNotePath(name) ? name : `${name}.md`;
-}
 
 interface MenuState {
   x: number;

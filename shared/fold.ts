@@ -47,7 +47,10 @@ export interface Match {
 const IGNORABLE = new RegExp(
   "[" +
     "\u0300-\u036f" + // combining diacritical marks (Latin, Greek, Cyrillic)
-    "\u064b-\u0655" + // Arabic harakat, shadda, sukun, maddah, hamza above/below
+    "\u064b-\u065f" + // Arabic harakat, shadda, sukun, maddah, hamza above/below,
+    //                   and the rarer marks after them (subscript alef, the
+    //                   inverted damma, noon ghunna, wavy hamza below) — the
+    //                   whole combining block, as the word count strips it
     "\u0670" + //        superscript alef
     "\u06d6-\u06ed" + // Quranic annotation and pause marks
     "\u0640" + //        tatweel — a typographic stretch, not a letter
@@ -130,6 +133,16 @@ export function foldChar(ch: string): string {
 
 export function isIgnorableChar(ch: string): boolean {
   return IGNORABLE.test(ch);
+}
+
+/** `text` with every ignorable character removed and nothing else touched —
+ *  no case fold, no letter families. For a caller that must not see a mark
+ *  as a character of its own (shared/wordCount.ts: a stray shadda after a
+ *  space is not a word) but must not change the words either. */
+export function stripIgnorables(text: string): string {
+  let out = "";
+  for (const ch of text) if (!IGNORABLE.test(ch)) out += ch;
+  return out;
 }
 
 /** The query, folded and with its whitespace collapsed. Empty when the query
