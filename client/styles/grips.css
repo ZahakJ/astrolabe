@@ -1,0 +1,262 @@
+/* THE GRIPS: the split grips between panes and the pane grips on the side
+   panes' inner edges. Linked right AFTER app.css (client/index.html): these
+   rules came after every app.css rule they meet, and still do. Moved out of
+   app.css unchanged. */
+
+/* ── The split grips (client/components/Workspace.tsx) ────────────────────
+   An 8px strip over the 1px gap: on a column's inline-end edge, between it
+   and the next column, and across a column at the seam of its two panes. The
+   accent line shows under the pointer and while dragging, exactly as the side
+   panes' grips do; the rest of the time the seam is the hairline it was. */
+.s-split-grip {
+  position: absolute;
+  z-index: 6;
+  touch-action: none;
+}
+
+.s-split-grip--col {
+  top: 0;
+  bottom: 0;
+  inset-inline-end: -4px;
+  width: 8px;
+  cursor: col-resize;
+}
+
+.s-split-grip--row {
+  inset-inline: 0;
+  height: 8px;
+  cursor: row-resize;
+}
+
+.s-split-grip::after {
+  content: "";
+  position: absolute;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.s-split-grip--col::after {
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 2px;
+}
+
+.s-split-grip--row::after {
+  left: 0;
+  right: 0;
+  top: 3px;
+  height: 2px;
+}
+
+.s-split-grip:hover::after,
+.s-app--split-drag .s-split-grip::after {
+  opacity: 0.9;
+}
+
+.s-app--split-drag,
+.s-app--split-drag * {
+  user-select: none;
+}
+
+.s-app--split-drag-x,
+.s-app--split-drag-x * {
+  cursor: col-resize !important;
+}
+
+.s-app--split-drag-y,
+.s-app--split-drag-y * {
+  cursor: row-resize !important;
+}
+
+/* A drag over an iframe or a canvas (the graph, a PDF) would lose the
+   pointer to it; pointer capture on the grip keeps the events, and this keeps
+   the cursor honest over surfaces that set their own. */
+.s-app--split-drag .s-pane {
+  pointer-events: none;
+}
+
+.s-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+  position: relative;
+}
+
+/* WHICH PANE HAS THE KEYBOARD, said quietly. A ring around the whole pane
+   would draw a box on screen at all times; this is a 2px accent rule on the
+   pane's leading edge, which is the same vocabulary the reading mode already
+   uses for "this column is in a mode" — and it mirrors for free. */
+.s-pane--focused::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 4;
+}
+
+
+/* ── The pane grips (client/components/PaneGrip.tsx) ─────────────────────
+   An 8px strip on each pane's INNER edge: drag to resize, drag off the
+   window edge to collapse, double-click to reset. A 2px accent line appears
+   under the pointer and while dragging; the rest of the time it is invisible,
+   because the edge is already a hairline and two lines are a fence. */
+.s-pane-grip {
+  position: absolute;
+  top: 0;
+  /* Clears the status bar, the same way .s-reopen does: the grip is a child
+     of the SHELL now, not of the pane, so it has to stop where the pane row
+     stops rather than inheriting the pane's own box. */
+  bottom: calc(2.1rem + 1px);
+  /* 12px, with the pane's 1px divider down the middle (the ±5.5px insets
+     below). It was 8px pinned INSIDE the pane, which put the strip on the
+     tree's scrollbar and left the hairline the eye aims at — and every pixel
+     past it — answering to nothing: `elementFromPoint` at the seam returned
+     the <aside>, cursor `auto`. Half the reason "resizing panels is clunky". */
+  width: 12px;
+  cursor: col-resize;
+  z-index: 6;
+  touch-action: none;
+}
+
+/* WHERE THE SEAM IS, IN LOGICAL TERMS. The grip cannot be positioned against
+   the pane any more — a pane is `overflow: hidden`, which is what makes its
+   collapse a width animation, and a strip that reaches past the divider would
+   be clipped to nothing on the outside. So each grip is positioned against
+   the SHELL from the pane's own custom property: the pane's box is
+   `var(--pane-w) + 1px`, its divider is that last 1px, and the strip starts
+   5.5px before it.
+
+   Logical, because the panes follow the reading direction: in Arabic the
+   sidebar is on the RIGHT and its inner edge is its left (the owner: "I still
+   cannot resize panels in arabic mode"), and `.s-app--flip` swaps the two
+   panes' ends again on top of that. */
+.s-pane-grip--sidebar {
+  inset-inline-start: calc(var(--sidebar-w) - 5.5px);
+}
+
+.s-app--flip .s-pane-grip--sidebar {
+  inset-inline-start: auto;
+  inset-inline-end: calc(var(--sidebar-w) - 5.5px);
+}
+
+.s-pane-grip--panel {
+  inset-inline-end: calc(var(--panel-w) - 5.5px);
+}
+
+.s-app--flip .s-pane-grip--panel {
+  inset-inline-end: auto;
+  inset-inline-start: calc(var(--panel-w) - 5.5px);
+}
+
+/* The notice row (preview banner / offline strip) pushes every pane down; the
+   grips go with them, exactly as the reopen doors do. */
+.s-app--notice .s-pane-grip {
+  top: var(--preview-h);
+}
+
+.s-pane-grip::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* Over the divider itself, not beside it: the strip is 12px, the divider
+     sits at 5.5px from its start, and a 2px line centred on it starts at 5. */
+  left: 5px;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+/* The line is drawn on the pane's --bg-raised, and check-contrast now holds
+   --accent to 3:1 there (the non-text bar for a component boundary, WCAG
+   1.4.11) — at FULL opacity, because opacity is invisible to the gate and 0.9
+   over a token at its floor is a way of failing the floor without failing
+   the check (DESIGN.md, "Contrast"). */
+.s-pane-grip:hover::after,
+.s-app--pane-drag .s-pane-grip::after {
+  opacity: 1;
+}
+
+/* A DEVICE THAT CANNOT HOVER NEVER SEES THE LINE ABOVE — Chromium reports
+   `hover: none` for the slate posture (a convertible folded flat, a Windows
+   tablet, an iPad in landscape) and the docked layout used to hide the grips
+   there outright (below). With the grips back, an 8px strip that only lights
+   under a pointer the device does not have is a grip nobody can find, so at
+   rest it wears a 2px --text-faint line: the non-text token, held to 3:1 on
+   --bg-raised in every room, so it is findable in the dimmest one; the drag
+   line above still takes over mid-drag. */
+@media (hover: none) {
+  .s-pane-grip::after {
+    background: var(--text-faint);
+    opacity: 1;
+  }
+
+  .s-app--pane-drag .s-pane-grip::after {
+    background: var(--accent);
+  }
+}
+
+/* Mid-drag: no width transitions (they lag behind the hand), one cursor
+   everywhere, and no text selection under the pointer. */
+.s-app--pane-drag,
+.s-app--pane-drag * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+.s-app--pane-drag .s-sidebar,
+.s-app--pane-drag .s-panel {
+  transition: none;
+}
+
+/* A WIDTH THE READER DID NOT ASK FOR DOES NOT ANIMATE.
+   The outline panel auto-collapses below `NARROW_QUERY` — a fact about the
+   viewport, not a preference — and that threshold is crossed by a maximise, a
+   Snap, a tiling manager, a monitor unplugged. Animating it played a 180ms
+   slide with the reading column moving ~300px under it every single time,
+   which is a window doing things by itself. The class rides in the SAME React
+   commit as the collapse (`paneStill`, client/state.ts), so this is a matter
+   of what is true in that commit and not of timing: no timer, no resize
+   listener, and identical in RTL and on every OS. The reader's own toggle
+   never raises it — and every reader-driven pane gesture LOWERS it in the
+   same commit, so the class cannot outlive the collapse it was raised for.
+   (It did: a window under 1360px auto-collapses the panel at boot, so on a
+   1366 laptop the shell wore this for the life of the page and the reader's
+   own sidebar collapse — and the phone's notes drawer, which slides on the
+   same `.s-sidebar` — snapped instead of moving.)
+
+   The root element wears it too, for the length of one write, when the panes
+   are re-clamped because the WINDOW changed size (`applyPaneWidthsNow`,
+   client/paneWidths.ts): a pane animating toward a moving window edge is the
+   same 180ms in the same wrong place, with `.s-main` passing through 0px on
+   the way down. Either ancestor satisfies the selectors below. */
+.s-app--pane-still .s-sidebar,
+.s-app--pane-still .s-panel,
+.s-app--pane-still .s-main {
+  transition: none;
+}
+
+/* Being pushed off the edge: the pane dims to say "let go and I close". */
+.s-pane--leaving {
+  opacity: 0.45;
+}
+
+/* No grip where there is nothing to drag: a collapsed pane (which leaves a
+   14px door instead) or zen. The shell carries both collapse flags —
+   `.s-app--nosidebar` / `.s-app--nopanel` — which is what the grips have to
+   ask now that they are the shell's children and not the panes'. */
+.s-app--nopanel .s-pane-grip--panel,
+.s-app--zen .s-pane-grip,
+.s-app--nosidebar .s-pane-grip--sidebar {
+  display: none;
+}

@@ -1,0 +1,240 @@
+/* THE NOTES TREE: its rows, the reader's arrangement (sort, pinned, focus)
+   and the bookmarks above it. Linked before app.css (client/index.html): these
+   rules sat above every rule that overrides them — the phone and touch blocks
+   included — and they still do. Moved out of app.css unchanged. */
+
+/* ----------------------------------------------------------------- tree -- */
+
+.s-tree {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px 8px 30px;
+  /* The pinned Tags section sits right below: fade the scrolled tree out
+     instead of slicing the last visible row mid-glyph at the boundary. */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+}
+
+.s-tree__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 1.8rem;
+  padding-inline-end: 8px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.929rem;
+  white-space: nowrap;
+  overflow: clip;
+  overflow-clip-margin: 3px; /* the label's descenders, see .s-tree__label */
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.s-tree__item:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-text);
+}
+
+.s-tree__item--folder {
+  color: var(--sidebar-text);
+  font-weight: 500;
+}
+
+.s-tree__item--active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-text);
+  box-shadow: inset 2px 0 0 var(--sidebar-active-bar);
+}
+
+.s-tree__chevron {
+  flex: none;
+  width: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: 0.857rem;
+  line-height: 1;
+  transform: translateY(-0.5px);
+  transition: transform 0.15s ease;
+}
+
+.s-tree__chevron--open {
+  transform: rotate(90deg);
+}
+
+/* Files have no chevron: nudge them so names line up with folder names. */
+.s-tree__item--file .s-tree__label {
+  padding-inline-start: 16px;
+}
+
+/* ARABIC DESCENDERS ARE NOT CLIPPED. `overflow: hidden` on an ellipsis
+   label cuts at the line box, and an Arabic face's ح, م and ج reach below
+   it — a friend saw every one of them "eaten" in the tree. `clip` with a
+   clip margin keeps the ellipsis (the text-overflow rule still applies) and
+   lets the ink spill a few pixels past the box on every side; the label
+   also takes the row's full height so the box is the row. Same treatment
+   for every ellipsis label a note name can reach. */
+.s-tree__label {
+  overflow: clip;
+  overflow-clip-margin: 5px;
+  text-overflow: ellipsis;
+  line-height: 1.8rem;
+}
+
+.s-tree__rename {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.929rem;
+  padding: 1px 6px;
+  height: 22px;
+  border-color: var(--accent);
+}
+
+
+/* ── The tree's arrangement (client/treeOrder.ts) ─────────────────────── */
+
+/* A row in the Ctrl/Cmd-click selection. */
+.s-tree__item--selected {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* A sibling about to land before or after this row: a 2px accent rule on
+   the edge it will cross, with a dot at the start. */
+.s-tree__item--insert-before::before,
+.s-tree__item--insert-after::before {
+  content: "";
+  position: absolute;
+  inset-inline: 6px 4px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.s-tree__item--insert-before::before {
+  top: -1px;
+}
+
+.s-tree__item--insert-after::before {
+  bottom: -1px;
+}
+
+/* The scratch area above the vault. */
+.s-tree__pinned {
+  margin-block-end: 6px;
+  padding-block-end: 6px;
+  border-block-end: 1px dashed var(--border);
+}
+
+.s-tree__pinned-head,
+.s-tree__focus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px 4px 10px;
+  font-size: 0.714rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.s-tree__focus {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  margin: 2px 6px 6px;
+}
+
+.s-tree__pinned-clear,
+.s-tree__focus-clear {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.s-tree__pinned-clear:hover,
+.s-tree__focus-clear:hover {
+  background: var(--bg-hover);
+}
+
+/* The sort button in the footer. Not `position: relative` any more: nothing is
+   positioned against it since the menu became a portalled `.s-menu`. */
+.s-treesort {
+  display: inline-flex;
+}
+
+/* No `.s-treesort__menu`: the sort menu is a portalled `.s-menu` now, placed
+   by ContextMenu against the button's own box. The absolute box that used to
+   live here is what made a 160px menu wrap "By name, reversed" onto two lines
+   and what kept the whole thing inside the footer's stacking context. */
+
+.s-menu__item--on {
+  color: var(--accent);
+}
+
+
+
+/* ── Bookmarks above the tree (client/components/BookmarksRows.tsx) ───── */
+.s-bookmarks__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  inline-size: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+.s-bookmarks__count {
+  margin-inline-start: auto;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.s-bookmarks__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.s-bookmarks__row.is-dragging {
+  opacity: 0.5;
+}
+.s-bookmarks__row--missing {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+.s-bookmarks__star {
+  color: var(--accent);
+  font-size: 0.786rem;
+  /* The three marks (★ § ⌕) are not the same width; a fixed box keeps the
+     labels in one column whatever mix of rows the note holds. */
+  inline-size: 1em;
+  text-align: center;
+  flex: none;
+}
+/* A saved search with no label of its own reads as a query, not as a note:
+   the mono face the search box's operators wear, so `tag:physics` looks like
+   what it is. A labelled one is prose and keeps the row's face. */
+.s-bookmarks__row--search bdi {
+  font-family: var(--font-mono);
+  font-size: 0.786rem;
+}
