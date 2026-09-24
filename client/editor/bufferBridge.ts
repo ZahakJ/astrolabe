@@ -47,6 +47,10 @@ export const STRIP_TASHKEEL_EVENT = "astrolabe:strip-tashkeel";
  *  over its selection, or writes the automatic readings straight in
  *  (editor/furigana.ts). `detail` is the mode. Same door, same reason. */
 export const FURIGANA_EVENT = "astrolabe:furigana";
+/** The palette's "Embed a file…": the mounted editor writes `![[]]` at the
+ *  caret and opens the popup whose head shows the three embed spellings
+ *  (editor/autocomplete.ts). Same door, same reason. */
+export const INSERT_EMBED_EVENT = "astrolabe:insert-embed";
 export type FuriganaMode = "popover" | "auto";
 
 export interface DocStats {

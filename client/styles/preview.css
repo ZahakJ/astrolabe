@@ -1105,3 +1105,45 @@ html[dir="rtl"] .s-editor .cm-s-embed-handle {
 .s-editor .cm-s-furigana-src {
   color: var(--text-muted);
 }
+
+/* ── The `![[` popup's cheat sheet (autocomplete.ts embedHelpHeader) ────── */
+/* The three spellings of an embed, above the vault's files: the syntax in
+   the code face, what it does in the chrome's own words. */
+
+.s-editor completion-section:has(.cm-s-embed-help) {
+  display: block;
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.s-editor .cm-s-embed-help {
+  display: grid;
+  gap: 3px;
+  padding: 8px 12px 9px;
+  font: 12px/1.45 var(--font-ui);
+  color: var(--text-muted);
+  white-space: normal;
+  max-width: 26rem;
+}
+
+.s-editor .cm-s-embed-help__title {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.s-editor .cm-s-embed-help__form {
+  display: flex;
+  gap: 0.6em;
+  align-items: baseline;
+}
+
+.s-editor .cm-s-embed-help__form code {
+  font: 11.5px var(--font-mono);
+  color: var(--text);
+  unicode-bidi: isolate;
+}
+
+.s-editor .cm-s-embed-help__what {
+  margin-top: 2px;
+  color: var(--text-faint);
+}

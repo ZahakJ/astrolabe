@@ -216,6 +216,34 @@ function slashItems(): SlashItem[] {
       },
     },
     {
+      // THE THREE WAYS TO EMBED A FILE, taught where the writer is already
+      // looking. The first opens the `![[` popup, whose head repeats all
+      // three and lists what can be embedded (autocomplete.ts); the other two
+      // are the skeletons themselves. The label carries the words people
+      // search by — image, pdf — since the matcher sees it; the matcher also
+      // docks a point per character of label, which the boosts outweigh so the
+      // plain embed comes first.
+      label: "Embed a file image pdf",
+      displayLabel: "slashEmbed",
+      detail: "![[name.png]]",
+      boost: 30,
+      apply: snippetThenComplete("![[${}]]"),
+    },
+    {
+      label: "Embed sized width",
+      displayLabel: "slashEmbedSized",
+      detail: "![[name.png|300]]",
+      boost: 20,
+      apply: snippet("![[${name.png}|${300}]]"),
+    },
+    {
+      label: "Image by path markdown",
+      displayLabel: "slashEmbedPath",
+      detail: "![alt](attachments/name.png)",
+      boost: 10,
+      apply: snippet("![${alt}](${attachments/name.png})"),
+    },
+    {
       label: "Divider",
       displayLabel: "slashDivider",
       detail: "---",
