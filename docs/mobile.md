@@ -51,7 +51,7 @@ Everything else you change in Settings is saved **into the vault**, in `.astrola
 
 ### What a GitHub vault does not do
 
-It has no public half, so it cannot publish, and it has no blog, no visitors, no [marginalia](publishing.md), no site designer and no [clipper](capture.md#the-clipper) token. It has no data directory on a disk, so uploaded fonts and PDF annotations are not there. It has no second instance to sync with, because it *is* the sync. Each of those says so when you reach it, in a sentence naming what is missing, rather than failing quietly. A note's past comes from the repository — the commits made since the copy was taken, which is where this copy's history begins.
+It has no public half, so it cannot publish, and it has no blog, no visitors, no [marginalia](publishing.md), no site designer and no [clipper](capture.md#the-clipper) token. It has no data directory on a disk, so uploaded fonts and PDF annotations are not there. It has no second instance to sync with, because it *is* the sync. Each of those says so when you reach it, in a sentence naming what is missing and in the language you read the app in, rather than failing quietly. A note's past comes from the repository — the commits made since the copy was taken, which is where this copy's history begins.
 
 Your notes go nowhere but your own repository. The app has no server of its own and no account with anybody.
 

@@ -839,6 +839,12 @@ vault: `501` with a one-line reason NAMING the thing that is missing. `/api/ment
 refusal on cost rather than capability and says so — an unlinked-mention scan is the whole vault per
 note open. An empty list would have been a vault that looks broken; a sentence is one a reader can
 act on. `tests/pocketServer.test.ts` asserts each refusal is a 501 with prose in it, not a stub.
+The prose is the shell dictionary's (`mobile/src/i18n.ts`), in the reader's language: `SERVER_ONLY`
+and `POCKET_CANNOT_KEEP` map a route or a key to a dictionary KEY, and the router speaks it in the
+client's `<html lang>` when it answers (contracts/i18n.md, "The pocket speaks the reader's
+language"; `tests/pocketWords.test.ts`). A path `vaultIo.ts` refuses — empty, a NUL, `..`, `.git/` —
+is a `PocketVaultError` carrying a key, answered as a `400` in the same language, where it used to
+escape the router as a thrown English error and reject the client's `fetch`.
 
 Device state — preferences and the workspace — stays on the DEVICE and never enters the repository:
 `state/workspace` is which notes this phone has open, and pushing it would mean opening the laptop to
