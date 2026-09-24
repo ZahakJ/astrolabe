@@ -14,6 +14,7 @@ import { THEMES } from "../themes.ts";
 import { THEME_KEY, themeKey } from "./persistence.ts";
 import { emptyWorkspace, openInPane, pruneWorkspace, type Workspace } from "../workspace.ts";
 import { actionToast } from "../undoToast.ts";
+import { buildPair, decideBuildNotice } from "../../shared/buildNotice.ts";
 import * as api from "../api.ts";
 import { applyLanguage, applyTheme, ensureCustomCss, ensureFavicon, ensureSiteFonts } from "./dom.ts";
 import { chromeLang, readEditorLang, readVisitorLang } from "../langPref.ts";
@@ -40,11 +41,69 @@ let launchSyncAsked = false;
 /** The reader language the preview borrowed (see setPreviewVisitor), and
  *  the one to put back on exit. */
 let newBuildNoticed = false;
+const RELOADED_FOR_KEY = "astrolabe.reloadedForBuild";
+const STALE_TOLD_KEY = "astrolabe.staleBuildTold";
+function readMemory(store: "session" | "local", key: string): string | null {
+  try {
+    return (store === "session" ? sessionStorage : localStorage).getItem(key);
+  } catch {
+    return null;
+  }
+}
+function writeMemory(store: "session" | "local", key: string, value: string | null): void {
+  try {
+    const s = store === "session" ? sessionStorage : localStorage;
+    if (value === null) s.removeItem(key);
+    else s.setItem(key, value);
+  } catch {
+    // Private mode: the notice is then per load, which is what it was.
+  }
+}
+/** Reload for a new build — after asking the service worker (when there is
+ *  one) to fetch the new worker and letting it take over, so the reload is
+ *  served by the new shell rather than the copy the old worker kept. */
+async function reloadForNewBuild(): Promise<void> {
+  try {
+    const reg = await navigator.serviceWorker?.getRegistration();
+    if (reg) {
+      await reg.update();
+      const w = reg.installing ?? reg.waiting;
+      if (w) {
+        await new Promise<void>((resolve) => {
+          const timer = setTimeout(resolve, 5000);
+          w.addEventListener("statechange", () => {
+            if (w.state === "activated" || w.state === "redundant") {
+              clearTimeout(timer);
+              resolve();
+            }
+          });
+        });
+      }
+    }
+  } catch {
+    // No worker, or an origin that refuses one: a plain reload it is.
+  }
+  location.reload();
+}
 function noticeNewBuild(serverVersion: unknown): void {
   const mine = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
-  if (newBuildNoticed || mine === "" || typeof serverVersion !== "string" || serverVersion === mine) return;
+  if (newBuildNoticed) return;
+  const notice = decideBuildNotice(serverVersion, mine, readMemory("session", RELOADED_FOR_KEY), readMemory("local", STALE_TOLD_KEY));
+  if (notice === null) return;
   newBuildNoticed = true;
-  actionToast(tf("newBuildOnServer", { version: serverVersion }), t("crashReload"), () => location.reload());
+  const pair = buildPair(notice.server, notice.build);
+  if (notice.kind === "stale") {
+    // The reload brought the same build back: the server's files are older
+    // than its version. Said once per pair per device, with nothing to press.
+    writeMemory("session", RELOADED_FOR_KEY, null);
+    writeMemory("local", STALE_TOLD_KEY, pair);
+    toast(tf("staleBuildOnServer", { server: notice.server, build: notice.build }), "info", { keep: true });
+    return;
+  }
+  actionToast(tf("newBuildOnServer", { version: notice.server }), t("crashReload"), () => {
+    writeMemory("session", RELOADED_FOR_KEY, pair);
+    void reloadForNewBuild();
+  });
 }
 
 let previewLangBefore: string | null = null;

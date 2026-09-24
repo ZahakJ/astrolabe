@@ -39,6 +39,16 @@ in the panel overrides the same key in <code>.env</code>. If you clear the field
 value takes over again. A few keys are the exception: the security-sensitive ones (the password,
 the session secret, the port, and so on) live in <code>.env</code> only, and the panel never shows or
 changes them.</p>
+<h2 id="updating-a-server-you-run-yourself"><a class="anchor" href="#updating-a-server-you-run-yourself">Updating a server you run yourself</a></h2>
+<p>The server reads its version from <code>package.json</code>, and the client carries the version it was
+built with. After <code>git pull</code>, run <code>npm run build</code> and restart: the pull moves the version, the
+build moves the files. If an open tab outlives a deploy it says <em>Astrolabe X is now on the server;
+reload to catch up</em>, once. If a reload brings the same old build back — the files were never
+rebuilt, or a service worker is still handing out the old shell — the app says so instead, once
+per version, and stops asking: <em>the server says it is Astrolabe X but serves the Y build</em>. That
+line means exactly one thing: run <code>npm run build</code> (or reinstall the package) on the machine that
+runs the server. The desktop app and the Android app ship their own build with their own server,
+so they never show it.</p>
 <h2 id="environment-variables"><a class="anchor" href="#environment-variables">Environment variables</a></h2>
 <p>An <em>environment variable</em> is a named value the server reads when it starts. You can set it in
 <code>.env</code> or in the shell that starts the server; either way it reaches the same place.</p>
@@ -201,7 +211,7 @@ real password.</li>
     <nav class="pager"><span></span><a class="pager__link pager__link--next" href="../../en/publishing/"><span class="pager__kicker">Next</span><span class="pager__title">Publishing &amp; access</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#environment-variables">Environment variables</a><a class="toc__link toc__link--2" href="#the-settings-panel">The Settings panel</a><a class="toc__link toc__link--3" href="#attachments">Attachments</a><a class="toc__link toc__link--2" href="#settings-keys">Settings keys</a><a class="toc__link toc__link--2" href="#the-settings-api">The settings API</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#updating-a-server-you-run-yourself">Updating a server you run yourself</a><a class="toc__link toc__link--2" href="#environment-variables">Environment variables</a><a class="toc__link toc__link--2" href="#the-settings-panel">The Settings panel</a><a class="toc__link toc__link--3" href="#attachments">Attachments</a><a class="toc__link toc__link--2" href="#settings-keys">Settings keys</a><a class="toc__link toc__link--2" href="#the-settings-api">The settings API</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>
