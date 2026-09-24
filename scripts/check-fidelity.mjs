@@ -514,6 +514,75 @@ try {
     check(arabicShown, "ar first paint: the Arabic chrome is on screen", `${seen.length} strings seen`);
     await page.close();
   }
+
+  // ── The way back: the status bar's chrome-language key ─────────────────
+  // The key names the OTHER language in its own script; a click flips the
+  // chrome (<html lang/dir>, the dictionary, the preference) without taking
+  // the caret out of the note, and a second click comes home. Then the
+  // chord does the same, and the palette finds the row in either language.
+  // The switch awaits its dictionary chunk, so these waits are for the chunk.
+  {
+    const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
+    await ctx.addCookies(cookies);
+    const page = await ctx.newPage();
+    await openNote(page, "en");
+    const key = page.locator('.s-statusbar:not(.s-statusbar--top) [data-testid="chrome-lang"]');
+    const html = () => page.evaluate(() => ({ lang: document.documentElement.lang, dir: document.documentElement.dir, pref: localStorage.getItem("astrolabe.editorLang"), bar: document.querySelector("footer.s-statusbar")?.getAttribute("aria-label") ?? "" }));
+    const caret = () =>
+      page.evaluate(([v]) => {
+        const view = eval(v);
+        return { focused: document.activeElement?.closest(".cm-editor") !== null, head: view ? view.state.selection.main.head : -1, path: location.pathname };
+      }, [VIEW]);
+    console.log("");
+    check((await key.count()) === 1, "lang key: on the status bar, once");
+    if ((await key.count()) === 1) {
+      await page.locator(".cm-content").first().focus();
+      const before = await caret();
+      check((await key.textContent())?.trim() === "ع", "lang key: an English chrome shows ع", (await key.textContent()) ?? "");
+      check((await key.getAttribute("title")) === "Switch to Arabic · التبديل إلى العربية", "lang key: its title is in both languages", (await key.getAttribute("title")) ?? "");
+      await key.click();
+      await page.waitForFunction(() => document.documentElement.lang === "ar", null, { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(500);
+      const ar = await html();
+      check(ar.lang === "ar" && ar.dir === "rtl", "lang key: a click turns the chrome Arabic and right-to-left", JSON.stringify(ar));
+      check(ar.bar === arDict.statusBarAria, "lang key: the chrome reads the Arabic dictionary", ar.bar);
+      const siteLang = me?.language === "ar" ? "ar" : "en";
+      check(ar.pref === (siteLang === "ar" ? null : "ar"), "lang key: it writes the editor-language preference", `${ar.pref} on a ${siteLang} site`);
+      check((await key.textContent())?.trim() === "EN", "lang key: an Arabic chrome shows EN", (await key.textContent()) ?? "");
+      const during = await caret();
+      check(during.focused && during.head === before.head && during.path === before.path, "lang key: the caret and the note stay put", `${JSON.stringify(before)} → ${JSON.stringify(during)}`);
+      await page.screenshot({ path: `${out}/fidelity-langkey-ar.png` });
+      await key.click();
+      await page.waitForFunction(() => document.documentElement.lang === "en", null, { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(500);
+      const en = await html();
+      check(en.lang === "en" && en.dir !== "rtl" && en.bar === enDict.statusBarAria, "lang key: a second click comes home", JSON.stringify(en));
+      check(en.pref === (siteLang === "en" ? null : "en"), "lang key: …to follow-the-site when that is the site's own, not a pin", `${en.pref} on a ${siteLang} site`);
+      await page.screenshot({ path: `${out}/fidelity-langkey-en.png` });
+
+      // The chord, from inside the editor.
+      await page.locator(".cm-content").first().focus();
+      await page.keyboard.press("Control+Alt+Shift+KeyL");
+      await page.waitForFunction(() => document.documentElement.lang === "ar", null, { timeout: 10000 }).catch(() => {});
+      check((await html()).lang === "ar", "lang chord: Ctrl+Alt+Shift+L switches the chrome", JSON.stringify(await html()));
+      await page.keyboard.press("Control+Alt+Shift+KeyL");
+      await page.waitForFunction(() => document.documentElement.lang === "en", null, { timeout: 10000 }).catch(() => {});
+      check((await html()).lang === "en", "lang chord: …and back", JSON.stringify(await html()));
+
+      // The palette row, found by either language's name in either script.
+      for (const q of ["arabic", "عربي", "english", "إنجليزي"]) {
+        await page.keyboard.press("Control+KeyP");
+        await page.waitForSelector(".s-palette input", { timeout: 5000 }).catch(() => {});
+        await page.keyboard.type(q);
+        await page.waitForTimeout(400);
+        const rows = await page.evaluate(() => [...document.querySelectorAll(".s-palette [role=option]")].map((r) => r.textContent ?? ""));
+        check(rows.some((r) => r.includes("التبديل إلى العربية")), `lang palette: "${q}" finds the row`, rows.slice(0, 6).join(" | "));
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(200);
+      }
+    }
+    await page.close();
+  }
 } finally {
   await cleanup();
   for (const c of contexts) await c.close().catch(() => {});
