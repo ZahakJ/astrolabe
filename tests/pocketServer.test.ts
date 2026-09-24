@@ -499,6 +499,9 @@ describe("the pocket server — what it cannot do, it says", () => {
     ["POST", "/api/replace"],
     ["GET", "/api/feeds"],
     ["POST", "/api/feeds/keep"],
+    ["GET", "/api/webmentions"],
+    ["GET", "/api/webmentions/status"],
+    ["POST", "/api/webmentions/1/verify"],
     ["POST", "/api/import/preview"],
   ];
   for (const [method, route] of cases) {
@@ -741,6 +744,8 @@ describe("the pocket server — settings that travel with the vault", () => {
       { noteVersions: false },
       { pdfSearch: true },
       { feeds: { fetch: true } },
+      { webmentions: { accept: true } },
+      { fediverse: { enabled: true } },
     ]) {
       const answer = await server.call("PATCH", "/api/settings", patch);
       assert.equal(answer.status, 501, `${Object.keys(patch)[0]} must be refused`);

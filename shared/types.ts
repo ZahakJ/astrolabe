@@ -7,6 +7,7 @@ import type { Card } from "./cards.ts";
 import type { BookHighlight, BookState } from "./bookAnchor.ts";
 import type { FolderIcon, FolderMark } from "./folderIcons.ts";
 import type { TrackerRating, TrackerSession, TrackerStatus } from "./tracker.ts";
+import type { InteractionKind, MentionType } from "./mentions.ts";
 import type { VoiceEffective, VoiceLanguage, VoiceModelSetting, VoiceSettings } from "./voice.ts";
 
 /** The stored feeds key (settings.json `feeds`). */
@@ -19,6 +20,31 @@ export interface FeedsSettings {
 export interface FeedsEffective {
   fetch: boolean;
   note: string;
+}
+
+/** The stored webmentions key (settings.json `webmentions`, docs/webmentions.md). */
+export interface WebmentionsSettings {
+  accept?: boolean;
+  send?: boolean;
+}
+
+/** The webmentions key in force: both off unless set. */
+export interface WebmentionsEffective {
+  accept: boolean;
+  send: boolean;
+}
+
+/** The stored fediverse key (settings.json `fediverse`, docs/webmentions.md). */
+export interface FediverseSettings {
+  enabled?: boolean;
+  handle?: string;
+}
+
+/** The fediverse key in force: off unless set; the handle the site answers
+ *  to as `@handle@host` (derived from the site name when unset). */
+export interface FediverseEffective {
+  enabled: boolean;
+  handle: string;
 }
 
 export interface TreeNode {
@@ -1241,6 +1267,12 @@ export interface SettingsData {
    *  the feeds the list names (off unless set — network access is opt-in),
    *  and the note the list lives in (`Feeds.md` when absent). */
   feeds?: FeedsSettings;
+  /** Webmentions (docs/webmentions.md): accept them into moderation, send
+   *  them on publish. Both off unless set — each is network access. */
+  webmentions?: WebmentionsSettings;
+  /** The fediverse (docs/webmentions.md): a single-user ActivityPub actor
+   *  for the blog. Off unless set; `handle` is the name before the @. */
+  fediverse?: FediverseSettings;
   /** Git backup & sync (off by default). The token, when one is used, is NOT
    *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
@@ -1440,6 +1472,10 @@ export interface EffectiveSettings {
   voice: VoiceEffective;
   /** Feeds, every default filled in. */
   feeds: FeedsEffective;
+  /** Webmentions, every default filled in. */
+  webmentions: WebmentionsEffective;
+  /** The fediverse, every default filled in. */
+  fediverse: FediverseEffective;
   home: Required<Pick<HomeSettings, "mode">> & Omit<HomeSettings, "mode">;
   /** Public folders with every default filled in — what the settings editor
    *  prefills from, so an unset key and an explicitly-default one look the
@@ -1561,6 +1597,16 @@ export interface SettingsPatch {
     keepAudio?: boolean | null;
   } | null;
   /** Feeds. Sub-keys merge like `voice`; null clears the key. */
+  /** Webmentions. Sub-keys merge like `feeds`; null clears the key. */
+  webmentions?: {
+    accept?: boolean | null;
+    send?: boolean | null;
+  } | null;
+  /** The fediverse. Sub-keys merge like `feeds`; null clears the key. */
+  fediverse?: {
+    enabled?: boolean | null;
+    handle?: string | null;
+  } | null;
   feeds?: {
     fetch?: boolean | null;
     note?: string | null;
@@ -1896,6 +1942,14 @@ export interface CommentData {
   body: string;       // plain text, ≤2000 chars
   createdMs: number;
   hidden?: boolean;   // admin responses only; hidden comments never reach visitors
+  // What another site said (docs/webmentions.md) — absent on a visitor's
+  // comment. `kind` is the channel, `type` the gesture.
+  kind?: InteractionKind;
+  type?: MentionType;
+  source?: string;    // the page (webmention) or the actor (fediverse) it came from
+  url?: string;       // the entry's own permalink, when it has one
+  photo?: string;     // the author's picture
+  authorUrl?: string; // the author's home
 }
 
 // ── Backup & sync (git) ─────────────────────────────────────────────────────
@@ -2477,3 +2531,39 @@ export type AskErrorCode =
   | "anthropicFailed"
   | "chatFailed"
   | "emptyIndex";
+
+// ── Webmentions and the fediverse (docs/webmentions.md) ─────────────────────
+
+/** Where one sent webmention stands. `queued` is waiting its turn; `sent`
+ *  had a 2xx from the other site's endpoint; `noEndpoint` means the page
+ *  linked to advertises none (nothing to send, not a failure); `failed` is a
+ *  refusal or the last of three retries; `skipped` is a page that stopped
+ *  being public while its sends waited. */
+export type SentMentionStatus = "queued" | "sent" | "noEndpoint" | "failed" | "skipped";
+
+export interface SentMention {
+  source: string;
+  target: string;
+  notePath: string;
+  status: SentMentionStatus;
+  code: number | null;
+  detail: string | null;
+  sentMs: number;
+}
+
+/** GET /api/webmentions/status (admin) — the Publishing tab's panels. */
+export interface FederationStatus {
+  /** The address other sites know this one by; null until SITE_URL is set or
+   *  a request has shown it. */
+  origin: string | null;
+  /** True when that address is SITE_URL (stable), false when it was
+   *  remembered from a request. */
+  originFixed: boolean;
+  /** The newest sent webmentions (the Sent panel). */
+  sent: SentMention[];
+  /** `@handle@host`, when there is an address to put after the @. */
+  address: string | null;
+  followers: number;
+  /** Deliveries waiting for their turn or a retry. */
+  deliveriesQueued: number;
+}

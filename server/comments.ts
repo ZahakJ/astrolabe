@@ -8,6 +8,8 @@ import path from "node:path";
 import { envRead } from "../shared/envName.ts";
 import { DatabaseSync } from "node:sqlite";
 import type { CommentData } from "../shared/types.ts";
+import { stripBidiControls } from "../shared/bidi.ts";
+import type { InteractionKind, MentionType } from "../shared/mentions.ts";
 import { getSettings } from "./settings.ts";
 
 const RATE_WINDOW_MS = 60_000;
@@ -56,6 +58,24 @@ function openDb(): void {
       opened.exec("ALTER TABLE comments ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0");
       console.log("astrolabe: comments db migrated — added hidden column");
     }
+    // Migration (webmentions and the fediverse, docs/webmentions.md): the
+    // same table holds what other sites said about a note. `kind` is the
+    // channel (a visitor's form, a webmention, an ActivityPub activity),
+    // `type` the gesture (like, repost, reply, mention), `source` the page or
+    // actor it came from, `ref` the remote id a later Delete or Undo names.
+    // Every existing row is a visitor's comment, which is the default.
+    for (const [name, decl] of [
+      ["kind", "TEXT NOT NULL DEFAULT 'comment'"],
+      ["type", "TEXT"],
+      ["source", "TEXT"],
+      ["url", "TEXT"],
+      ["photo", "TEXT"],
+      ["authorUrl", "TEXT"],
+      ["ref", "TEXT"],
+    ] as const) {
+      if (!cols.some((col) => col.name === name)) opened.exec(`ALTER TABLE comments ADD COLUMN ${name} ${decl}`);
+    }
+    opened.exec("CREATE INDEX IF NOT EXISTS idx_comments_ref ON comments (ref)");
     db = opened;
     console.log(`astrolabe: comments enabled — ${file}`);
   } catch (err) {
@@ -71,6 +91,31 @@ function openDb(): void {
 /** COMMENTS alone — what the comments row's "Inherit" would land on. */
 export function envCommentsEnabled(): boolean {
   return envOn;
+}
+
+/** Is the store wanted for what OTHER SITES say — webmentions accepted, or
+ *  the fediverse switch on? Those land in this table (and in moderation)
+ *  whether or not the visitor comment form is on: the switch that consents
+ *  to one is not the switch for the other. */
+export function interactionsWanted(): boolean {
+  const s = getSettings();
+  return s.webmentions?.accept === true || s.fediverse?.enabled === true;
+}
+
+/** The moderation surfaces' gate: the store is open for ANY of its
+ *  channels. Opens the db lazily, like the form's switch does. */
+export function moderationEnabled(): boolean {
+  if (commentsEnabled()) return true;
+  if (!interactionsWanted()) return false;
+  if (db === null) openDb();
+  return db !== null;
+}
+
+/** Open the store for a webmention or an activity to land in, whatever the
+ *  comment form's switch says. False when it cannot open. */
+export function ensureInteractionsStore(): boolean {
+  if (db === null) openDb();
+  return db !== null;
 }
 
 /** Live merge: settings.commentsEnabled when set, else COMMENTS. Turning the
@@ -89,20 +134,42 @@ interface CommentRow {
   body: string;
   createdMs: number;
   hidden: number;
+  kind: string;
+  type: string | null;
+  source: string | null;
+  url: string | null;
+  photo: string | null;
+  authorUrl: string | null;
 }
 
+const COLUMNS = "id, notePath, author, body, createdMs, hidden, kind, type, source, url, photo, authorUrl";
+
 function toComment(r: CommentRow, moderator: boolean): CommentData {
-  const { hidden, ...rest } = r;
+  const { hidden, kind, type, source, url, photo, authorUrl, ...rest } = r;
+  const out: CommentData = { ...rest };
+  // A visitor's comment keeps exactly the shape it always had; what came
+  // from another site says where.
+  if (kind !== "comment") {
+    out.kind = kind as InteractionKind;
+    if (type) out.type = type as MentionType;
+    if (source) out.source = source;
+    if (url) out.url = url;
+    if (photo) out.photo = photo;
+    if (authorUrl) out.authorUrl = authorUrl;
+  }
   // Visitors never learn a hidden flag exists; moderators always get it.
-  return moderator ? { ...rest, hidden: hidden === 1 } : { ...rest };
+  if (moderator) out.hidden = hidden === 1;
+  return out;
 }
 
 /** All comments for a note, oldest first. The stored IP never leaves the
  *  server. Moderators see hidden comments (flagged); visitors never do. */
 export function listComments(notePath: string, moderator = false): CommentData[] {
   if (!db) return [];
-  const sql = `SELECT id, notePath, author, body, createdMs, hidden FROM comments
-    WHERE notePath = ?${moderator ? "" : " AND hidden = 0"} ORDER BY createdMs, id`;
+  // The form's comments only: what other sites said is the Mentions
+  // section's (listInteractions), so nothing is shown twice.
+  const sql = `SELECT ${COLUMNS} FROM comments
+    WHERE notePath = ? AND kind = 'comment'${moderator ? "" : " AND hidden = 0"} ORDER BY createdMs, id`;
   const rows = db.prepare(sql).all(notePath) as unknown as CommentRow[];
   return rows.map((r) => toComment(r, moderator));
 }
@@ -114,7 +181,7 @@ export function commentCounts(includeHidden: boolean): Map<string, number> {
   if (!db) return out;
   const rows = db
     .prepare(
-      `SELECT notePath, COUNT(*) AS n FROM comments${includeHidden ? "" : " WHERE hidden = 0"} GROUP BY notePath`,
+      `SELECT notePath, COUNT(*) AS n FROM comments WHERE kind = 'comment'${includeHidden ? "" : " AND hidden = 0"} GROUP BY notePath`,
     )
     .all() as unknown as { notePath: string; n: number | bigint }[];
   for (const row of rows) out.set(row.notePath, Number(row.n));
@@ -126,7 +193,7 @@ export function listAllComments(limit: number): CommentData[] {
   if (!db) return [];
   const rows = db
     .prepare(
-      "SELECT id, notePath, author, body, createdMs, hidden FROM comments ORDER BY createdMs DESC, id DESC LIMIT ?",
+      `SELECT ${COLUMNS} FROM comments ORDER BY createdMs DESC, id DESC LIMIT ?`,
     )
     .all(limit) as unknown as CommentRow[];
   return rows.map((r) => toComment(r, true));
@@ -145,6 +212,97 @@ export function addComment(notePath: string, author: string, body: string, ip: s
     .prepare("INSERT INTO comments (notePath, author, body, createdMs, ip) VALUES (?, ?, ?, ?, ?)")
     .run(notePath, author, body, createdMs, ip);
   return { id: Number(result.lastInsertRowid), notePath, author, body, createdMs };
+}
+
+/** What other sites said about one note — webmentions and fediverse
+ *  activities, oldest first. Visitors see the approved ones only. */
+export function listInteractions(notePath: string, moderator = false): CommentData[] {
+  if (!db) return [];
+  const sql = `SELECT ${COLUMNS} FROM comments
+    WHERE notePath = ? AND kind <> 'comment'${moderator ? "" : " AND hidden = 0"} ORDER BY createdMs, id`;
+  const rows = db.prepare(sql).all(notePath) as unknown as CommentRow[];
+  return rows.map((r) => toComment(r, moderator));
+}
+
+/** One row as the moderator sees it (re-verify reads its source). */
+export function getComment(id: number): CommentData | null {
+  if (!db) return null;
+  const row = db.prepare(`SELECT ${COLUMNS} FROM comments WHERE id = ?`).get(id) as unknown as CommentRow | undefined;
+  return row ? toComment(row, true) : null;
+}
+
+export interface InteractionInput {
+  notePath: string;
+  kind: Exclude<InteractionKind, "comment">;
+  type: MentionType;
+  author: string;
+  body: string;
+  source: string;
+  url?: string | null;
+  photo?: string | null;
+  authorUrl?: string | null;
+  /** The remote id a later Delete or Undo will name. */
+  ref?: string | null;
+  /** Filed hidden, i.e. awaiting moderation. */
+  hidden: boolean;
+  createdMs?: number;
+}
+
+/** File what another site said. Author and body are capped and stripped of
+ *  bidi controls on the comment form's own terms (server/api.ts). */
+export function addInteraction(input: InteractionInput): CommentData {
+  if (!db) throw new Error("comments store closed");
+  const author = stripBidiControls(input.author).trim().slice(0, AUTHOR_MAX) || "Anonymous";
+  const body = stripBidiControls(input.body).trim().slice(0, BODY_MAX);
+  const createdMs = input.createdMs ?? Date.now();
+  const result = db
+    .prepare(
+      "INSERT INTO comments (notePath, author, body, createdMs, ip, hidden, kind, type, source, url, photo, authorUrl, ref) VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?)",
+    )
+    .run(
+      input.notePath,
+      author,
+      body,
+      createdMs,
+      input.hidden ? 1 : 0,
+      input.kind,
+      input.type,
+      input.source,
+      input.url ?? null,
+      input.photo ?? null,
+      input.authorUrl ?? null,
+      input.ref ?? null,
+    );
+  return getComment(Number(result.lastInsertRowid))!;
+}
+
+/** Rewrite what a mention says (a re-verified source that changed), keeping
+ *  its moderation state. */
+export function updateInteraction(
+  id: number,
+  input: Pick<InteractionInput, "type" | "author" | "body" | "url" | "photo" | "authorUrl">,
+): boolean {
+  if (!db) return false;
+  return (
+    db
+      .prepare("UPDATE comments SET author = ?, body = ?, type = ?, url = ?, photo = ?, authorUrl = ? WHERE id = ?")
+      .run(
+        stripBidiControls(input.author).trim().slice(0, AUTHOR_MAX) || "Anonymous",
+        stripBidiControls(input.body).trim().slice(0, BODY_MAX),
+        input.type,
+        input.url ?? null,
+        input.photo ?? null,
+        input.authorUrl ?? null,
+        id,
+      ).changes > 0
+  );
+}
+
+/** Remove every row filed under one remote id by one source (a Delete, an
+ *  Undo — only the actor that made a thing may take it back). */
+export function removeByRef(ref: string, source: string): number {
+  if (!db) return 0;
+  return Number(db.prepare("DELETE FROM comments WHERE ref = ? AND source = ?").run(ref, source).changes);
 }
 
 /** True when a row was actually deleted. */

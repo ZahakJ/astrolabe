@@ -217,6 +217,11 @@ const POCKET_NO_IMPORT = "Importing a Notion, Evernote or Obsidian export runs o
 
 const POCKET_NO_FEEDS = "Feeds are fetched by an Astrolabe server on its own schedule; a pocket vault reads the notes you kept.";
 
+/** Webmentions and the fediverse (docs/webmentions.md) are other sites
+ *  talking to a public address, and a pocket vault has none: nobody can
+ *  mention a page it does not serve, or follow an actor it cannot answer for. */
+const POCKET_NO_FEDERATION = "Webmentions and the fediverse talk to a site at its public address; a pocket vault has no visitors to be mentioned by.";
+
 const POCKET_NO_TRANSCRIBER =
   "Transcription runs on an Astrolabe server's own machine; a pocket vault keeps the recording and links it from the day's inbox.";
 
@@ -317,6 +322,8 @@ const POCKET_CANNOT_KEEP: Record<string, string> = {
   hadithFolder: "Scripture lookup reads a corpus the server ships; the pocket carries only your vault.",
   voice: "Transcription runs on an instance's own machine; a pocket vault keeps every recording and runs no model.",
   feeds: "Feeds are fetched by an Astrolabe server on its own schedule; a pocket vault reads the notes you kept.",
+  webmentions: "Webmentions are sent and received by a site at its public address; a pocket vault has none.",
+  fediverse: "The fediverse follows a site at its public address; a pocket vault has none.",
 };
 
 // ── the router ──────────────────────────────────────────────────────────────
@@ -387,6 +394,7 @@ export function createPocketServer(deps: PocketDeps): {
       ?? (route.startsWith("/api/comments/") ? SERVER_ONLY["/api/comments"] : undefined)
       ?? (route.startsWith("/api/voice/") ? POCKET_NO_TRANSCRIBER : undefined)
       ?? (route === "/api/feeds" || route.startsWith("/api/feeds/") ? POCKET_NO_FEEDS : undefined)
+      ?? (route === "/api/webmentions" || route.startsWith("/api/webmentions/") ? POCKET_NO_FEDERATION : undefined)
       ?? (route.startsWith("/api/import/") ? POCKET_NO_IMPORT : undefined);
     if (refusal !== undefined) return fail(501, refusal, "pocket");
 
@@ -503,6 +511,9 @@ export function createPocketServer(deps: PocketDeps): {
         // Feeds are fetched by an instance on its own schedule; a pocket
         // fetches nothing. The list's note is still the vault's own.
         feeds: { fetch: false, note: held.feeds?.note ?? "Feeds.md" },
+        // Nobody can mention or follow a site with no public address.
+        webmentions: { accept: false, send: false },
+        fediverse: { enabled: false, handle: held.fediverse?.handle ?? "blog" },
         home: { mode: "note", ...(held.home ?? {}) },
         publicFolders: { enabled: false, home: false, nav: false, folders: [] },
         library: { enabled: false, nav: false, home: false, title: "", roots: [], paths: [] },
