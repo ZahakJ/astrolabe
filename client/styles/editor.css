@@ -1,0 +1,830 @@
+/* THE EDITOR: CodeMirror's frame, the properties card, the banner, the empty
+   pane, the measure and the in-note find panel. Linked before app.css
+   (client/index.html) for the reason tree.css gives. Moved out of app.css
+   unchanged. */
+
+/* --------------------------------------------------------------- editor -- */
+
+.s-editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--editor-bg);
+}
+
+.s-editor .cm-editor {
+  flex: 1;
+  min-height: 0;
+}
+
+/* A text editor's focus indicator is its caret, not a box drawn around the
+   whole prose column — CodeMirror keeps the caret and the selection, which is
+   what "focused" means here. */
+.s-editor .cm-editor.cm-focused {
+  outline: none; /* a11y-ok: the caret is the indicator */
+}
+
+/* Manuscript prose: serif body text, generous measure. */
+.s-editor .cm-scroller {
+  font-family: var(--font-serif);
+  font-size: calc(var(--font-prose, 1.161rem) * var(--prose-scale, 1));
+  line-height: 1.7;
+}
+
+/* THE GUTTER IS THE SCROLLER'S, NOT THE CONTENT'S.
+   CodeMirror draws a multi-line selection as absolutely positioned rects whose
+   left/right edges are `contentDOM.getBoundingClientRect()` plus the FIRST
+   `.cm-line`'s own padding (drawSelection's `leftSide`/`rightSide`) — the
+   content box's PADDING is invisible to it. With the 56px gutter on
+   `.cm-content`, every wrapped and continuation row of a selection started
+   ~56px left of the text and ran ~56px past its right edge: a ragged gold L
+   hanging in the margin under the most-used gesture in the editor, and in
+   Arabic it overshot both ends at once.
+   Moving the gutter onto the scroller changes no geometry — the measure is
+   648px at every width the column is at its cap, exactly as before, and the
+   percentage in --prose-gutter resolves against the same box — but the
+   content box now ENDS where the text ends, so the rects do too. The
+   alternative (padding on `.cm-line`) collides with callouts and quotes,
+   which own that padding to place their own bars. */
+.s-editor .cm-scroller {
+  padding-inline: var(--prose-gutter);
+}
+
+.s-editor .cm-content {
+  max-width: var(--editor-measure, 648px); /* 760 − 2 × 56: the same box, measured to the text */
+  margin: 0 auto;
+  padding: 48px 0 120px;
+  caret-color: var(--accent);
+}
+
+/* VIM'S RELATIVE LINE NUMBERS (editor/relativeLines.ts) sit AGAINST the
+   text, not at the scroller's far edge: the gutter takes the leading auto
+   margin and the content keeps the trailing one, so the pair is centred as
+   one block and the numbers read as the margin of the paragraph they count.
+   CodeMirror's own gutter chrome (a pale ground, a hairline) goes; the
+   column is the page's colour and the numbers are the only ink. */
+.s-editor .cm-editor.s-relnum-on .cm-gutters {
+  margin-inline-start: auto;
+  background: transparent;
+  border: 0;
+}
+.s-editor .cm-editor.s-relnum-on .cm-content {
+  margin-inline-start: 0;
+}
+
+/* Task checkboxes: 15px rounded square, gold when done. */
+.s-editor input.cm-s-task {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  /* Logical: the gap goes between box and words in an Arabic line too
+     (reading.css `li.s-rv-task input` says the same). */
+  margin-block: 0;
+  margin-inline: 0 0.45em;
+  padding: 0;
+  vertical-align: -0.15em;
+  border: 1.5px solid var(--text-faint);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.s-editor input.cm-s-task:hover {
+  border-color: var(--accent);
+}
+
+.s-editor input.cm-s-task:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.s-editor input.cm-s-task:checked::after {
+  content: "";
+  position: absolute;
+  left: 3.5px;
+  top: 0.5px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--bg);
+  border-width: 0 2px 2px 0;
+  transform: rotate(43deg);
+}
+
+/* YAML frontmatter: quiet mono block, whatever markdown thinks it parsed.
+   (Shown raw only while the cursor is inside the block.) */
+.s-editor .cm-line.cm-s-frontmatter {
+  font-family: var(--font-mono) !important;
+  font-size: 0.893rem !important;
+  font-weight: 400 !important;
+  line-height: 1.7 !important;
+  color: var(--text-muted);
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* Frontmatter rendered as a properties card when the cursor is elsewhere.
+   Collapsed (the default) it is a slim single row — chevron, "Properties · N",
+   tags inline; the header click expands it. Body clicks still enter the YAML. */
+/* The block widget's outer box. All of the frontmatter block's vertical air
+   lives here as padding, never as a margin on the card or the banner:
+   CodeMirror measures a block widget by its root's BORDER box, so margins are
+   height the editor cannot see, and every position below one resolves a line
+   too low — which is what broke double-click word selection (see
+   editor/livePreview.ts FrontmatterWidget.toDOM). */
+.s-editor .cm-s-fmblock {
+  padding-bottom: 20px;
+}
+
+.s-editor .cm-s-props {
+  /* THE CARD MAY NOT WIDEN THE COLUMN. CodeMirror sizes `.cm-content` to the
+     widest thing in it, and a block widget is a thing in it: a note whose
+     frontmatter carries eight tags measured 343px of card inside a 333px
+     column at 390 — ten pixels of horizontal scroll on the ONE surface
+     DESIGN.md says may never have any ("Never let any panel's content overflow
+     the viewport horizontally"), and the phone rule that holds the collapsed
+     header to one line (F36, further down this file) made it 421. Inline-size
+     containment answers both at the root: the card's width comes from the
+     column, and its contents arrange themselves inside that — which is what a
+     card is. */
+  contain: inline-size;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  font-family: var(--font-ui);
+  font-size: 0.893rem;
+  line-height: 1.6;
+  cursor: text;
+}
+
+.s-editor .cm-s-props__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-muted);
+  border-radius: var(--radius);
+  transition: color 0.15s ease;
+}
+
+.s-editor .cm-s-props__head:hover {
+  color: var(--text);
+}
+
+/* The card on a note with no frontmatter: the head is not a toggle (there
+   is nothing to open), the add line sits right under it. */
+.s-editor .cm-s-props--empty .cm-s-props__head {
+  cursor: default;
+}
+
+/* On an empty card the foot is the card's second and last line, appended
+   straight to the card rather than inside the padded body — so it carries
+   the body's own inset itself. Without it "Add property" sat on the card's
+   left edge with its hover pill spilling past the border (the owner: "add
+   property is weird, on hover it touches lots of things around it"). */
+.s-editor .cm-s-props--empty .cm-s-props__foot {
+  padding: 0 12px 8px;
+}
+.s-editor .cm-s-props--empty .cm-s-props__addprop {
+  margin-inline-start: 0;
+}
+
+.s-editor .cm-s-props__chevron {
+  display: inline-flex;
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+}
+
+.s-editor .cm-s-props--collapsed .cm-s-props__chevron {
+  transform: none;
+}
+
+.s-editor .cm-s-props__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.s-editor .cm-s-props__headtags {
+  display: none;
+}
+
+.s-editor .cm-s-props--collapsed .cm-s-props__headtags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.s-editor .cm-s-props__body {
+  padding: 2px 14px 10px;
+}
+
+.s-editor .cm-s-props--collapsed .cm-s-props__body {
+  display: none;
+}
+
+.s-editor .cm-s-props__row--machine .cm-s-props__key,
+.s-editor .cm-s-props__row--machine .cm-s-props__value {
+  color: var(--text-faint);
+}
+
+.s-editor .cm-s-props__row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 2px 0;
+}
+
+.s-editor .cm-s-props__key {
+  flex: none;
+  min-width: 64px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.s-editor .cm-s-props__value {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.s-editor .cm-s-props__tag {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 0.786rem;
+}
+
+/* "Set banner…" header action: quiet until the header is hovered. */
+.s-editor .cm-s-props__action {
+  margin-inline-start: auto;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.s-editor .cm-s-props__head:hover .cm-s-props__action,
+.s-editor .cm-s-props__action:focus-visible {
+  opacity: 1;
+}
+
+.s-editor .cm-s-props__action:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ── The card, editable in place (v1.8, Obsidian parity #1) ────────────────
+   Every control below is drawn INSIDE a CodeMirror block widget, so it
+   inherits the card's font and the editor's own rem, and it is painted with
+   the card's tokens rather than the form defaults a browser would supply.
+   The rule for all of them is that the card must not CHANGE SIZE when a
+   control appears: a properties card that grows by two pixels on hover moves
+   the reader's first sentence, and DESIGN.md's "no layout shift on hover
+   anywhere" is about exactly this kind of chrome. */
+
+.s-editor .cm-s-props__row {
+  position: relative;
+}
+
+/* A scalar value: a button shaped like the text it replaced, so the row reads
+   identically until the pointer is on it. The negative inline margin puts the
+   padded hit area back where the plain text sat. */
+.s-editor .cm-s-props__edit {
+  padding: 0 4px;
+  margin-inline-start: -4px;
+  border-radius: 4px;
+  color: inherit;
+  text-align: start;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.s-editor .cm-s-props__edit:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+/* An empty property is still a property — it says so rather than showing a
+   blank the reader cannot aim at. --text-muted, never --text-faint: this is
+   a WORD to be read, and the token's bar is 3:1 non-text. */
+.s-editor .cm-s-props__edit--empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.s-editor .cm-s-props__input {
+  min-width: 10ch;
+  max-width: 100%;
+  padding: 0 4px;
+  border: 1px solid var(--accent-soft);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+.s-editor .cm-s-props__input--key {
+  max-width: 14ch;
+}
+
+.s-editor .cm-s-props__input--chip {
+  min-width: 7ch;
+}
+
+.s-editor .cm-s-props__bool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* The word beside the box is the FILE's token (`true` / `false`), not a
+   translated label: a reader comparing the card with `git diff` has to see
+   the same characters in both. */
+.s-editor .cm-s-props__check {
+  inline-size: 14px;
+  block-size: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.s-editor .cm-s-props__chip,
+.s-editor .cm-s-props__adder {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.s-editor .cm-s-props__chipx,
+.s-editor .cm-s-props__addvalue,
+.s-editor .cm-s-props__del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  flex: none;
+  /* The shared button reset ships `padding: 4px 10px`, and these three are
+     SQUARES sized by their own rule: 20px of inherited inline padding inside a
+     16px border box leaves the glyph exactly zero pixels to draw in, which is
+     how the chip × shipped invisible on the desktop and correct on the phone
+     (where the 44px rule below left it room). Measured, not guessed. */
+  padding: 0;
+  inline-size: 16px;
+  block-size: 16px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  transition: color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.s-editor .cm-s-props__chipx:hover,
+.s-editor .cm-s-props__del:hover {
+  color: var(--danger);
+  background: var(--bg-hover);
+}
+
+.s-editor .cm-s-props__addvalue {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.s-editor .cm-s-props__addvalue:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* The row's own delete is quiet until the row is under the pointer — the tab
+   bar's × idiom, and the coarse block below drops the fade for the reason
+   that one does: there is no hover on a phone. */
+.s-editor .cm-s-props__del {
+  margin-inline-start: auto;
+  flex: none;
+  opacity: 0;
+}
+
+.s-editor .cm-s-props__row:hover .cm-s-props__del,
+.s-editor .cm-s-props__del:focus-visible {
+  opacity: 1;
+}
+
+.s-editor .cm-s-props__foot {
+  display: flex;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.s-editor .cm-s-props__addprop {
+  padding: 3px 10px;
+  margin-inline-start: -10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.s-editor .cm-s-props__addprop:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.s-editor .cm-s-props__form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.s-editor .cm-s-props__pair {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* A placeholder in the chrome's language sits at the chrome's start, not
+   at the left of an LTR box (the owner: the Arabic example text was on the
+   wrong side); a typed value takes its own direction. */
+.s-editor .cm-s-props__input:placeholder-shown {
+  direction: inherit;
+  text-align: start;
+}
+
+/* The keys the app knows, under the name box (propsEdit.ts openAddForm). */
+.s-editor .cm-s-props__keylist {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-raised);
+  padding: 4px;
+}
+
+.s-editor .cm-s-props__keyrow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-editor .cm-s-props__keyrow code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  direction: ltr;
+}
+
+.s-editor .cm-s-props__keyrow:hover,
+.s-editor .cm-s-props__keyrow--lit {
+  background: var(--bg-hover, var(--bg));
+}
+
+.s-editor .cm-s-props__keyhint {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+/* Note banner hero above the properties card (frontmatter `banner:`). */
+/* Padding, not margin — same height-map rule as .cm-s-fmblock above. The
+   banner wrapper carries no background of its own, so padding reads exactly
+   as the old margin did. */
+.s-editor .cm-s-banner {
+  margin: 0;
+  padding: 2px 0 12px;
+}
+
+.s-editor .cm-s-banner__img {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid var(--border);
+}
+
+/* A `banner:` that names nothing — ADMIN SURFACES ONLY (the reading view's
+   copy of this lives in reading/reading.css; a visitor gets no furniture at
+   all). The hero used to delete itself on a load error, which made a typo and
+   "no banner" render identically; this is the dashed language the broken-embed
+   placeholder already speaks, plus the value that failed and the button that
+   fixes it. Everything here is --text-muted or better at full opacity: the
+   name of a file is text a reader has to READ. */
+.s-editor .cm-s-banner__missing,
+.s-rv-banner__missing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px dashed color-mix(in srgb, var(--danger) 45%, var(--border));
+  border-radius: calc(var(--radius) + 2px);
+  background: var(--bg-raised);
+  font-family: var(--font-ui);
+  font-size: 0.813rem;
+  color: var(--text-muted);
+}
+
+.s-editor .cm-s-banner__missingicon,
+.s-rv-banner__missingicon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--danger) 65%, var(--text-muted));
+}
+
+/* A FILENAME IS TEXT A READER MUST READ — so it gets a line, not a column.
+   `min-width: 0` plus `overflow-wrap: anywhere` let this value take the whole
+   shortfall of a 390px row: the label, the value and the Set banner… button
+   all compete on one flex line, and the only one allowed to shrink went to
+   24px wide and broke ONE GLYPH PER LINE — "kyo / to- / cov / er. / png",
+   stretching the card to 130px (260 at 2×). The row already wraps; it just had
+   no reason to. A floor in characters gives it one, so the button drops to the
+   next line and the name keeps a readable measure. `anywhere` stays, for the
+   pathological 80-character filename that still has to fit somewhere. */
+.s-editor .cm-s-banner__missingname,
+.s-rv-banner__missingname {
+  flex: 1 1 auto;
+  min-width: 14ch;
+  font-family: var(--font-mono);
+  font-size: 0.786rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.s-editor .cm-s-banner__missingaction,
+.s-rv-banner__missingaction {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.s-editor .cm-s-banner__missingaction:hover,
+.s-rv-banner__missingaction:hover {
+  color: var(--accent);
+  border-color: var(--accent-soft);
+  background: var(--accent-soft);
+}
+
+/* Empty state shown when no note is open.
+   The inline padding is load-bearing, not decoration: this pane centres its
+   children, and a centred child WIDER than its box overflows equally at both
+   ends — so the keymap grid, which wanted exactly 390px on a 390px screen,
+   put its first chip at x=0 with no gutter at all and hung the same amount
+   off the trailing edge. A gutter here is what makes "it does not fit" show
+   up as a wrap instead of as a silent clip. */
+.s-empty {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-inline: 24px;
+  padding-bottom: 6vh;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+/* No opacity over --text-faint. The token already sits at its 3:1 floor, and
+   DESIGN.md is explicit that a fade over a token at its floor is a way of
+   failing the floor without failing the gate (0.7 of parchment's faint is
+   1.75:1). It is a UI glyph, so the token is the whole budget. */
+.s-empty__logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  display: block;
+}
+
+.s-empty__glyph {
+  font-size: 3.143rem;
+  line-height: 1;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.s-empty__title {
+  margin: 0 0 22px;
+  font-family: var(--font-serif);
+  font-size: 1.286rem;
+  color: var(--text-muted);
+}
+
+/* Two columns of kbd chips, and neither column may wrap. `auto auto` let a
+   long label ("keyboard shortcuts", «اختصارات لوحة المفاتيح») break inside its
+   own cell, which makes that grid ROW taller than its neighbours and throws
+   the whole legend out of alignment — the chips stop reading as a table. The
+   tracks are max-content and the labels are nowrap, so the grid is either
+   right or visibly too wide; the rule below is what stops it ever being too
+   wide. --text-muted, not --text-faint: these are labels naming a thing, and
+   DESIGN.md holds those to 4.5:1. */
+.s-empty__keys {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  justify-content: center;
+  gap: 10px 28px;
+  max-width: 100%;
+  font-size: 0.893rem;
+  color: var(--text-muted);
+}
+
+/* The centre column is the window minus a 280px sidebar and a 300px panel and
+   this pane's own 24px gutters, so at 1024px it offers 396px to a legend that
+   measures 400 in English and 423 in Arabic — measured, not guessed, and the
+   Arabic one is what sets the threshold. One column below 1100: taller, but
+   never overhanging its gutter and never crooked. */
+@media (max-width: 1100px) {
+  .s-empty__keys {
+    grid-template-columns: max-content;
+  }
+}
+
+.s-empty__key {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.s-empty__key kbd {
+  min-width: 52px;
+  text-align: center;
+}
+
+
+/* ── The editor's measure (client/editorWidth.ts) ─────────────────────────
+   `data-editor-width` on <html>: absent = the reading measure above, "wide"
+   = 960px, "full" = the pane less a gutter. The reading view's column takes
+   the same value where it sets one. */
+html[data-editor-width="wide"] {
+  --editor-measure: 960px;
+}
+
+html[data-editor-width="full"] {
+  --editor-measure: none;
+}
+
+html[data-editor-width="full"] .s-editor .cm-scroller {
+  padding-inline: clamp(20px, 3vw, 40px);
+}
+
+/* A custom width sets `--editor-measure` inline on <html> (editorWidth.ts);
+   the data attribute only marks the mode. */
+
+/* THE STATUS BAR IN ARABIC packs at its start — the right edge, beside the
+   notes sidebar — instead of throwing the tools to the far left of a wide
+   window with a gap the width of the page between them and the breadcrumb.
+   The spacer is what did the throwing; in RTL it is a breath, not a spring. */
+html[dir="rtl"] .s-statusbar__spacer {
+  flex: 0 0 18px;
+}
+
+
+/* An image mark (shared/folderIcons.ts FolderImage): the glyph's slot, the
+   owner's own picture in it. */
+.s-folder-mark--img {
+  display: inline-block;
+  object-fit: contain;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+
+
+/* ── The in-note find panel (client/editor/searchPanel.ts) ─────────────── */
+.s-cmsearch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px 10px;
+  font-size: 0.857rem;
+}
+
+.s-cmsearch__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.s-cmsearch__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 10px;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  unicode-bidi: plaintext;
+}
+
+.s-cmsearch__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.s-cmsearch__input--bad {
+  border-color: var(--danger);
+}
+
+.s-cmsearch__input--replace {
+  max-width: 60%;
+}
+
+.s-cmsearch__count {
+  min-width: 3.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+.s-cmsearch__count--none {
+  color: var(--danger);
+}
+
+.s-cmsearch__btn,
+.s-cmsearch__opt {
+  flex: none;
+  inline-size: 28px;
+  block-size: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.786rem;
+  cursor: pointer;
+}
+
+.s-cmsearch__word {
+  inline-size: auto;
+  padding-inline: 10px;
+}
+
+.s-cmsearch__btn:hover,
+.s-cmsearch__opt:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.s-cmsearch__opts {
+  display: inline-flex;
+  gap: 2px;
+  margin-inline-start: 4px;
+}
+
+.s-cmsearch__opt {
+  font-family: var(--font-mono);
+}
+
+.s-cmsearch__opt--on {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.s-cmsearch__close {
+  margin-inline-start: 4px;
+  border-color: transparent;
+}

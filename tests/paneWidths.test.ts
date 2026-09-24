@@ -48,7 +48,11 @@ describe("pane widths", () => {
   // middle of the hit area. A stylesheet that drifts from GRIP_HIT is a grip
   // that is no longer centred on anything, which is the defect it exists for.
   describe("the strip the divider sits in the middle of", () => {
-    const css = readFileSync(new URL("../client/styles/app.css", import.meta.url), "utf8");
+    // app.css and, since the sweep split it, the grips' own sheet — read in
+    // the order index.html links them.
+    const css =
+      readFileSync(new URL("../client/styles/app.css", import.meta.url), "utf8") +
+      readFileSync(new URL("../client/styles/grips.css", import.meta.url), "utf8");
     const inset = GRIP_HIT / 2 - 0.5;
 
     it("is the same 12px in the stylesheet", () => {

@@ -1,0 +1,80 @@
+/* THE RESET, the focus ring and the page's first rules — the top of what was
+   app.css, linked FIRST (client/index.html) so every sheet after it keeps the
+   cascade position it had inside app.css. Moved out of app.css unchanged. */
+
+/* Astrolabe — application chrome.
+   A candlelit manuscript room: calm density, 1px borders, gold-leaf accents.
+   All colors come from tokens.css. Class prefix: s- (BEM-ish plain CSS). */
+
+/* ---------------------------------------------------------------- reset -- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  /* clip, not hidden: the app grid owns all scrolling. `hidden` still lets
+     programmatic scrollIntoView / find-in-page shove the whole document up
+     (black void under the status bar); `clip` forbids scrolling entirely. */
+  overflow: clip;
+}
+
+/* The whole app is sized in rem so one token scales it: tokens.css sets
+   --font-base (15.5px default); custom.css may override it. */
+html {
+  font-size: calc(var(--font-base, 15.5px) * var(--font-scale, 1));
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Search highlight: gold text, no background block. */
+mark {
+  background: transparent;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+kbd {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--text-muted);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
