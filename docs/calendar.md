@@ -90,3 +90,9 @@ state, here as everywhere else.
 > Until 3.17 a small month sat at the top of the [Sigils page](sigils.md#the-sigils-page). It is
 > here now, where it has room: that page is a morning checklist, and a month squeezed into its
 > corner could say which days had a note and nothing else about them.
+
+## The same days, read another way
+
+[The Timeline](timeline.md) is every day the vault holds as one list, newest first, with the notes
+written on each day as well — the **The Timeline** button in the page's header opens it. And
+[Today](today.md) is the one day in front of you, with what it asks for.

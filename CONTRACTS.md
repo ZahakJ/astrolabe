@@ -1507,10 +1507,15 @@ screen for it; an `applying` flag keeps each from echoing the other. A store sur
 under the top screen (a delete) pops it.
 
 **THE BOTTOM BAR** is 56px plus the safe area, five labelled doors. **Today**: a capture field
-(`client/capture.ts`), today's note, every Sigil task due today as a tick-in-place row computed by
-`tasksFor` and written through `POST /api/routine` (optimistic, reverted with a toast on failure),
-course and book tasks as rows to the Sigils page, a row per deck with cards due (starting its
-session), and the last eight notes. **Notes**: one folder per screen, 52px rows with count and
+(`client/capture.ts`; the mic only when `micSupport()` and the vault keeps recordings), today's
+note, the evening question from 18:00, every Sigil task due today as a tick-in-place row computed
+by `tasksFor` and written through `POST /api/routine` (optimistic, reverted with a toast on
+failure), course and book tasks as rows to the Sigils page, a row per deck with cards due (starting
+its session), the tasks due and overdue ticked through `POST /api/task`, on this day with excerpts,
+and the last eight notes. Since 3.28 the screen owns none of that: it draws `client/today/`'s
+model and hooks, the same data layer the desktop's `~today` page draws (see the 3.28 addendum).
+`~today` in the store is the Today TAB here (`screenOfWorkspace` answers `"today"`), as `~calendar`
+is the Calendar tab; `~timeline` is a pushed screen (More, and the Calendar's `⋯`). **Notes**: one folder per screen, 52px rows with count and
 chevron, pinned rows first, tags as ONE chip row; `+` is a new note in this folder and a long
 press on it offers a folder; sort is an action sheet; a long press on a row is its action sheet
 (rename, move, pin, publish-with-confirmation, delete) through the desktop's own flows.
@@ -10642,6 +10647,12 @@ not on this page.** It was a section at its top until 3.18 (the owner: "kinda we
 the sigils window") and is the Calendar page now; the trackers went with it, because they only ever
 rode this page's load for the grid's second mark.
 
+**Today ticks through the card's edit (3.28).** Both shells' Today (`client/today/model.ts`
+`sigilRows` / `toggledSigil`) list `tasksFor(plan, today)` for every non-template sigil and send
+the day's whole `done` list through `POST /api/routine`, exactly the card's dispatch; course and
+book tasks open the card instead. The year in review counts ticks from `DaySigil.done` and reads the
+best streak with `dayStatus`, rest days transparent — the card's streak rule over a year.
+
 ## The Calendar page (`shared/dayAgenda.ts`, `client/calendar/CalendarView.tsx`, `client/styles/calendarpage.css`)
 
 **The month is a PLACE, not a widget on somebody else's page.** From 3.17 a 440px grid sat at the
@@ -10688,6 +10699,13 @@ Home/End the row, PageUp/PageDown the month, crossing an edge turns the page) an
 next stop, so nothing in a cell is reachable only by mouse. The selection is `aria-selected` on the
 one `gridcell` that holds it, never `aria-pressed` on the button inside: a day is not a toggle, and
 saying so forty-two times is all a screen reader would hear.
+
+**The Timeline reads the same aggregation (3.28).** `agendaByDay` gained the notes written,
+published and caught on a day (`AgendaSources.written`, from `GET /api/timeline`), the daily note's
+excerpt, `agendaDays` (every day with anything, newest first) and `{ project: false }` for a
+reader of what happened. The Calendar passes none of them and draws what it drew. The page's head
+carries a door to `~timeline` (`timelineDoor`, false on the phone, whose Calendar keeps it in its
+top bar's `⋯`).
 
 ## Orbits — spaced repetition (`shared/decks.ts`, `shared/srsSession.ts`, `client/orbits/`, `server/deckImport.ts`)
 
@@ -10793,6 +10811,10 @@ order, one `<li>` each.
 `MOVED` (the 3.13 deck slide links it), as `routines/` does for `sigils/`. Kanji data in the owner's
 example decks is KANJIDIC2 (EDRDG, CC BY-SA 4.0), attributed in the notes' frontmatter and in the
 docs.
+
+**Today's decks (3.28)** are the shelf's own counts (`GET /api/orbits?today=`, `counts.due > 0`);
+Study is `openOrbits(deck.path)` on the desktop and `orbitsTabFor(deck.path)` on the phone. The
+year in review's "cards reviewed" is this device's Orbits log, and says so.
 
 ## What's new after an update (`client/whatsnew/`)
 
@@ -12059,3 +12081,66 @@ coarse pointer wider than 700px (the S Pen posture) at 36px buttons and a 15.5px
 its phone block asked for width alone; it now asks `(max-width: 700px), (pointer: coarse)`. Tests: `tests/voice.test.ts` (the rule, the names, the queue with a
 fake engine, the landing over a throwaway vault, the resampler, the copy), `tests/pocketServer.test.ts`
 (the kept note, the 501s, the settings), `tests/links.test.ts` (the path-form embed).
+
+## 3.28 — Today on the desktop, the Timeline, the year in review
+
+Self-contained: `client/today/`, `client/timeline/`, `shared/noteDays.ts`, `shared/reflection.ts`,
+`shared/yearReview.ts`, `GET /api/timeline`, and `shared/dayAgenda.ts`'s note half.
+
+**ONE DATA LAYER, TWO CHROMES.** `client/today/model.ts` (pure: `sigilRows`, `toggledSigil`,
+`dueTasks` = the Sigils page's `not done / due before tomorrow` fence, `decksDue`,
+`reflectionState`) and `client/today/hooks.ts` (`useToday`, `useCaptureLine`, `useVoiceReady`) are
+the only place Today reads or writes. `client/today/TodayView.tsx` (the `~today` pane surface,
+`/today`) and `client/phone/screens/TodayScreen.tsx` are chrome over them; `check-shell-seam` keeps
+the chromes apart. `useVaultTick` moved to `client/vaultTick.ts` for this. Writes go only through
+existing doors: `POST /api/routine` (the card's edit), `POST /api/task` (`toggleTaskLine`),
+`client/capture.ts`, and for the reflection the daily door (`ensurePeriodicNoteAt`) then
+`sectionActions.applyNoteContent` (the open editor's buffer as one undoable transaction, else the
+API) — reached by `import()` so the phone's first paint does not carry the outline's section code.
+
+**THE DAY'S NOTE IS RENDERED, NEVER EDITED, ON TODAY** (`renderNoteContent`, read-only, capped
+height); "Open" / "Start it" is `openDailyNote()`. A second editor for one file is two autosaves.
+
+**THE EVENING QUESTION** (`shared/reflection.ts`): from 18:00 local (`EVENING_HOUR`) until the day's
+note has text under `## Reflection`; the answer is appended at the END of an existing section (a
+template's empty one included) — NEVER a second heading — else a new section at the end. Headings in
+fences are not headings; the note's line endings are kept. The heading is English in every
+language (an address, like `## Captured`).
+
+**A NOTE'S DAY** (`shared/noteDays.ts` `dayOfNote`, server and pocket alike): a daily note's own
+date (the instance's `dailyFolder`/`dailyFormat`), else the first of `date` / `created` /
+`published` that spells `YYYY-MM-DD`, else the LOCAL day of the indexer's instant (id stamp,
+created ledger). On-this-day uses it and carries `excerpt` (the post list's cut, `postBasics`,
+cached on the record; HTML comments stripped). `capturedLines` counts stamped items under
+`## Captured` and every stamped item in `Inbox/YYYY-MM-DD.md`; `voiceMarks` counts `|🎙]]` links
+and a long transcript's own note.
+
+**THE TIMELINE** (`~timeline`, `/timeline`): `GET /api/timeline` → `TimelineNote[]` (admin; the
+pocket answers it from its index). The client hands notes, sigils, trackers, the Orbits log and
+the daily map to `agendaDays` + `agendaByDay(…, { project: false })` — NO second aggregation — and
+`client/timeline/model.ts` reads the answer out as items (kinds: note, daily, sigil, session,
+voice, capture, published), filters (kind set, top folder, tag), rows (month → day → item) and a
+layout. VIRTUAL LIST: `ROW_HEIGHT` (52/32/60) is pinned in `timeline.css`; tops are a prefix sum,
+`visibleRange` a binary search, only the viewport ± 400px is mounted (tests: 10,000 days → < 40
+rows). The desktop keeps the months in a rail (hidden in a pane under 560px); the phone raises
+them as a RoutedSheet from its top bar. Month headings are Gregorian (the grouping is by ISO
+month), their names in the chrome's language (`dateNamesLocale`).
+
+**YEAR IN REVIEW** (palette "Year in review…", the Timeline's header, the phone Calendar's `⋯`):
+`promptModal` for the year (years with data listed; January suggests last year), then
+`yearNumbers` over `agendaByDay` for every day of the year up to today, `yearReviewBlock` between
+`<!-- astrolabe:year-review -->` and `<!-- /astrolabe:year-review -->`, `mergeYearReview` rewriting
+ONLY that block, into `Reviews/<year>.md`, opened after. Words come from the dictionary at write
+time with the FSI/PDI isolates stripped (they are noise in a file). Deterministic: the fixture test
+pins the bytes.
+
+**DOORS AND KEYS.** Today: the status bar's first door (`data-testid="today-door"`), the palette
+(`open-today`), `Ctrl/Cmd Alt Shift D` (`cmdOpenToday`, checked before capture's Shift and the
+daily note's Alt), and launch door `"today-page"` on Settings → Vault → Open on launch — a door on
+the existing setting, not a new Device row: This device and Vault each already carry 18 rows, and
+two settings deciding what a launch opens would need a rule for which wins. Timeline: the palette
+(`open-timeline`), the Calendar page's door, the phone's More and Calendar `⋯`.
+
+**BUDGETS.** Entry +7.3 kB (dictionary, surface table, router, chord), phone first paint +20.4 kB
+(the entry, `today/hooks`, `shared/tasks.ts`, TodayScreen's sections); both pages are lazy chunks
+asserted in MUST_SPLIT.

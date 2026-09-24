@@ -39,6 +39,10 @@
 //     Cancel; the tag picker writes the tag into the note; a list comes back
 //     scrolled where it was left. (Classic, the drawer shell kept for one
 //     release, was deleted with this round; so was its pass here.)
+//   · 3.28 — TODAY'S NEW ROWS AND THE TIMELINE: a task due ticked on Today
+//     is written into its note; on this day opens its note; the Timeline is
+//     a screen under More whose rows open notes, whose months are a sheet
+//     with an entry that Back closes; the Calendar's ⋯ offers the Timeline.
 //
 // THE MATRIX. Every screen and sheet is measured and photographed in both
 // languages on four shapes: a Pixel 7 (412×915, a finger); a 720×820 phone at
@@ -283,6 +287,29 @@ try {
       check(chrome.tablet === !!shape.tablet, tag(shape.tablet ? "two columns on a tablet" : "one column on a phone"));
       check(chrome.tabbar, tag(shape.tablet ? "the navigation rail is there" : "the tab bar is there"));
       await measure("today");
+
+      // ── Today's rows (3.28): a task due ticks into its note ───────────────
+      const taskRow = page.locator('.s-ph-today [data-today="tasks"] [data-task]');
+      if ((await taskRow.count()) > 0) {
+        const id = await taskRow.first().getAttribute("data-task");
+        const [taskPath, taskLine] = [id.slice(0, id.lastIndexOf("#")), Number(id.slice(id.lastIndexOf("#") + 1))];
+        await press(taskRow);
+        await settle(1500);
+        const ticked = await page.evaluate(async ([p, l]) => {
+          const content = (await (await fetch(`/api/note?path=${encodeURIComponent(p)}`)).json()).content ?? "";
+          return /\[x\]/i.test(content.split("\n")[l - 1] ?? "");
+        }, [taskPath, taskLine]);
+        check(ticked, tag("a task due ticked on Today is written into its note"), `${taskPath}:${taskLine}`);
+      }
+      const otd = page.locator('.s-ph-today [data-today="onthisday"] .s-ph-row');
+      if ((await otd.count()) > 0) {
+        await press(otd);
+        await settle(1400);
+        check((await state()).screens.includes("note"), tag("on this day opens its note"));
+        await page.goBack();
+        await settle(900);
+        check((await state()).screens.includes("today"), tag("back from it comes home to Today"));
+      }
 
       // ── Notes: a folder, then a note — the P0 as an assertion ─────────────
       await tab("notes");
@@ -538,6 +565,43 @@ try {
           await back();
         }
         await back();
+      }
+
+      // THE TIMELINE (3.28): a screen under More; its months are a sheet.
+      if (await moreRow(/^(Timeline|الخط الزمني)/)) {
+        check((await state()).screens.includes("timeline") && (await state()).path === "/timeline", tag("the Timeline is a screen with its address"));
+        await page.waitForSelector(".s-tl__item", { timeout: 8000 }).catch(() => {});
+        check((await page.locator(".s-tl__item").count()) > 0, tag("the Timeline lists the vault by date"));
+        await measure("timeline");
+        const monthsBtn = page.locator('.s-ph-timeline [data-action="months"]');
+        if ((await monthsBtn.count()) > 0) {
+          await press(monthsBtn);
+          await settle(800);
+          check((await state()).sheets.includes("timeline-months"), tag("the Timeline's months are a sheet with an entry"));
+          await measure("timeline-months", ".s-ph-sheet");
+          const last = page.locator(".s-ph-sheet [data-month]").last();
+          await press(last);
+          await settle(900);
+          const jumped = await page.evaluate(() => document.querySelector(".s-ph-timeline .s-tl__scroll")?.scrollTop ?? 0);
+          check(!(await state()).sheetUp && jumped > 0, tag("a month in the sheet jumps the list there"), `scrollTop ${jumped}`);
+        }
+        await press(page.locator(".s-tl__item"));
+        await settle(1400);
+        const opened = await state();
+        check(opened.screens.includes("note") || opened.screens.includes("sigil"), tag("a Timeline row opens what it names"), JSON.stringify(opened.screens));
+        await back(900);
+        check((await state()).screens.includes("timeline"), tag("back from a row lands on the Timeline"));
+        await back();
+      }
+      // …and the Calendar's ⋯ offers it.
+      await tab("calendar");
+      await settle(1200);
+      const calMore = page.locator('.s-ph-calendar [data-action="more"]');
+      if ((await calMore.count()) > 0) {
+        await press(calMore);
+        await settle(700);
+        check((await page.locator(".s-ph-actions__row", { hasText: /Timeline|الخط الزمني/ }).count()) > 0, tag("the Calendar's ⋯ offers the Timeline"));
+        await back(700);
       }
 
       // AN OVERLAY ON <body> TAKES AN ENTRY: the theme picker, closed by Back.
