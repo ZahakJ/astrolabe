@@ -25,7 +25,7 @@
 // Budgets are raw (uncompressed) bytes: they measure what the build produced,
 // independently of how a given deployment negotiates encoding.
 
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -1757,6 +1757,22 @@ else console.log(`  ok    editor chunk                       ${manifest[editorKe
     fail(`dist/sw.js is missing or built for another version — run npm run build, not vite build alone`);
   } else {
     console.log(`  ok    sw.js carries version ${pkgVersion}`);
+  }
+}
+
+// ONE KaTeX (3.26.1). mermaid pinned its own katex (0.16.x) beside ours
+// (0.18.x), so dist carried two 261 kB `katex-*.js` chunks and a reader who
+// met a diagram with a formula and a formula in prose downloaded both. The
+// override in package.json (`"mermaid": { "katex": "$katex" }`) makes mermaid
+// resolve ours. No first-paint budget moves — both chunks were lazy — so the
+// saving is held here, as a count: a second copy is a failure, whatever its
+// size, the day a dependency pins its own again.
+{
+  const copies = readdirSync(path.join(dist, "assets")).filter((f) => /^katex-[\w-]+\.js$/.test(f));
+  if (copies.length > 1) {
+    fail(`KaTeX ships ${copies.length} times (${copies.join(", ")}) — a dependency pinned its own; see "overrides" in package.json`);
+  } else {
+    console.log(`  ok    KaTeX ships once (${copies[0] ?? "not built"})`);
   }
 }
 
