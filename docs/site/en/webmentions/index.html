@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Webmentions &amp; the fediverse · Astrolabe Documentation</title>
+<meta name="description" content="Other sites telling yours they linked to a post, your posts telling the sites they link to, and the blog as one account that Mastodon and its neighbours can follow. Three switches, all off until you turn them on.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/webmentions/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/feeds/">Feeds</a><a class="nav__link" href="../../en/import/">Import</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a><a class="nav__link" href="../../en/mobile/">The Android app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/today/">Today</a><a class="nav__link" href="../../en/calendar/">The Calendar</a><a class="nav__link" href="../../en/timeline/">The Timeline</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The book reader</a><a class="nav__link" href="../../en/ask/">Ask the vault</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a><a class="nav__link is-current" href="../../en/webmentions/">Webmentions &amp; the fediverse</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="webmentions--the-fediverse">Webmentions &amp; the fediverse</h1>
+<p><em>Other sites telling yours they linked to a post, your posts telling the sites they link to, and the blog as one account that Mastodon and its neighbours can follow. Three switches, all off until you turn them on.</em></p>
+<hr>
+<p>A published post can be part of a conversation that happens elsewhere: someone writes a reply on their own blog, likes it from Mastodon, or links to it in a weekly roundup. Astrolabe can hear about those, keep the ones you approve under the post, and tell other sites when your posts talk about them. It does this with two open standards: <strong>webmentions</strong> (a site POSTs &quot;my page links to yours&quot; to an address yours advertises) and <strong>ActivityPub</strong> (the protocol Mastodon, Pixelfed and the rest of the fediverse speak).</p>
+<p>Each part is network access, so each is its own switch in <strong>Settings → Publishing &amp; comments</strong>, and a new instance has all three <strong>off</strong>:</p>
+<div class="table"><table><thead><tr><th>Row</th><th>What it does while on</th></tr></thead><tbody><tr><td><strong>Accept webmentions</strong></td><td>Every public page advertises <code>/webmention</code>; mentions sent there are checked and wait in moderation.</td></tr><tr><td><strong>Send webmentions</strong></td><td>Publishing a post (or republishing one that changed) tells every other site it links to.</td></tr><tr><td><strong>Fediverse</strong></td><td>The blog is one ActivityPub account: people can find it, follow it, like, boost and reply.</td></tr><tr><td><strong>Fediverse name</strong></td><td>The name before the <code>@</code> in the account&#39;s address.</td></tr></tbody></table></div><p>Set <code>SITE_URL</code> (see <a href="../configuration/">Configuration</a>). Other servers remember your site by its address, and the fediverse account <em>is</em> its address: without <code>SITE_URL</code> the server uses the address you last opened Settings → Publishing &amp; comments at, which is fine on a laptop and fragile behind a proxy. The rows say so when it matters.</p>
+<h2 id="what-counts-as-public"><a class="anchor" href="#what-counts-as-public">What counts as public</a></h2>
+<p>Everything this page describes talks to other servers about your posts, so all of it follows one rule. A post may be mentioned, may send a mention, may appear in the fediverse outbox, and may be delivered to followers only when <strong>all</strong> of these hold:</p>
+<ul>
+<li>the site is readable by visitors (not <code>PUBLIC=false</code>, see <a href="../publishing/">Publishing &amp; access</a>);</li>
+<li>the note is published (<code>publish: true</code>);</li>
+<li>it is <strong>listed</strong>: in the posts your RSS feed is made of. A template, a lesson of a <a href="../library/">library</a> path and a designed site&#39;s static page have addresses but are not listed, so they are left out;</li>
+<li>the <a href="../arabic-and-rtl/">language filter</a> does not hide it <strong>as the site speaks with no particular reader</strong>, which is the site&#39;s own language. With the filter on &quot;follow&quot; and the reader switch on, the other language&#39;s posts are visible to readers who choose that language, but a follower&#39;s timeline has no reader to choose; those posts stay home.</li>
+</ul>
+<p>A post that stops meeting the rule (you unpublish it, move it into a template folder, or change the filter) is deleted from followers&#39; timelines within a minute, sends nothing more, and cannot be the target of a new mention. This is tested for each kind of hidden note, for every door this feature has.</p>
+<h2 id="receiving-webmentions"><a class="anchor" href="#receiving-webmentions">Receiving webmentions</a></h2>
+<p>With <strong>Accept webmentions</strong> on, every page carries <code>&lt;link rel=&quot;webmention&quot; href=&quot;…/webmention&quot;&gt;</code> in its head and the same address in a <code>Link:</code> header. A site that links to one of your posts can then POST <code>source</code> (its page) and <code>target</code> (your post) to that address, form-encoded, the way the <a href="https://www.w3.org/TR/webmention/" target="_blank" rel="noreferrer">W3C recommendation</a> says.</p>
+<p>What happens next:</p>
+<ol>
+<li><strong>The target is checked at once.</strong> It must be a public post of this site (the rule above). A target on a host the site used to have (<code>LEGACY_HOSTS</code>) counts as the post it now redirects to. Anything else is refused with a 400, and nothing is fetched.</li>
+<li><strong>The rest waits its turn.</strong> Accepted mentions go into a queue (<code>ASTROLABE_DATA/webmentions.db</code>) and are handled one at a time. A second mention of the same pair while the first is waiting replaces it.</li>
+<li><strong>The source is fetched, carefully.</strong> Only public internet addresses are fetched: loopback, private networks, link-local and the like are refused <em>at the connection</em>, so a name that resolves somewhere private is refused too. At most a megabyte, ten seconds, three redirects. A source that fails for a reason that might pass (a timeout, a 5xx) is tried three more times, waiting longer each time.</li>
+<li><strong>It must really link to your post.</strong> A link in the page (<code>&lt;a href&gt;</code>, an image, a citation) counts; the address written out as words does not.</li>
+<li><strong>It is read as microformats2.</strong> The first <code>h-entry</code> gives the author (an <code>h-card</code> with name, photo and home page), the text (<code>e-content</code>, shortened to plain text), and the kind: <code>u-like-of</code> your post is a <strong>like</strong>, <code>u-repost-of</code> a <strong>repost</strong>, <code>u-in-reply-to</code> a <strong>reply</strong>, anything else a <strong>mention</strong>. A page with no <code>h-entry</code> is a mention named by its title.</li>
+<li><strong>It waits for you.</strong> The mention is filed with your <a href="../publishing/#comments">comments</a>, hidden, and appears in <strong>Moderate comments</strong> with its kind and where it came from. Nothing shows under the post until you unhide it.</li>
+</ol>
+<p>A source that later stops linking to your post, or answers &quot;gone&quot;, has its mention <strong>withdrawn</strong>: when the site sends the mention again, or when you press <strong>Verify again</strong> on the row in the moderation panel, which fetches the source there and then.</p>
+<p>The endpoint allows 20 mentions a minute from one address and 500 waiting in the queue; past that it answers 429.</p>
+<h2 id="sending-webmentions"><a class="anchor" href="#sending-webmentions">Sending webmentions</a></h2>
+<p>With <strong>Send webmentions</strong> on, publishing a post, or saving a published post so that it changes, sends a webmention for each link in it to another site. The links are the ones a reader sees as links: <code>[text](https://…)</code>, <code>&lt;https://…&gt;</code>, a bare <code>https://…</code> and a raw <code>&lt;a href&gt;</code>. <code>[[Wikilinks]]</code> are your vault&#39;s own and are never sent; neither are pictures or anything inside code.</p>
+<p>For each link the server fetches the page, finds its endpoint (the <code>Link:</code> header first, then the first <code>&lt;link&gt;</code> or <code>&lt;a&gt;</code> with <code>rel=&quot;webmention&quot;</code>), and posts <code>source=&lt;your post&#39;s address&gt;&amp;target=&lt;the link&gt;</code>. It remembers what it sent with a fingerprint of your post, so:</p>
+<ul>
+<li>saving a post that did not change sends nothing again;</li>
+<li>a post that changed sends again, including to a link you <strong>removed</strong>, so that site learns it is gone;</li>
+<li>a page that advertises no endpoint is noted, not retried.</li>
+</ul>
+<p>The last fifty sends, with how each went (sent, no endpoint, failed, waiting), are the <strong>Sent</strong> list under the row. Nothing is ever sent from a page that is not public, and never to your own site.</p>
+<p>Turning the switch on for the first time sends nothing for the posts you already have: it takes note of them, and sends from the next publish on.</p>
+<h2 id="the-fediverse"><a class="anchor" href="#the-fediverse">The fediverse</a></h2>
+<p>With <strong>Fediverse</strong> on, the blog is one account: <code>@name@your.host</code>, where the name is <strong>Fediverse name</strong> (by default your site&#39;s name in plain letters: &quot;Kitāb al-Ḥikma&quot; becomes <code>kitab_al_hikma</code>). Searching for that address on Mastodon finds it, because the site now answers:</p>
+<ul>
+<li><strong>WebFinger</strong> at <code>/.well-known/webfinger</code>, which turns the address into the account;</li>
+<li><strong>NodeInfo</strong> at <code>/.well-known/nodeinfo</code>, which says what software this is;</li>
+<li>the <strong>account</strong> itself at <code>/actor</code>: your site name, tagline, logo and home banner, and a public key. The private half is generated once into <code>ASTROLABE_DATA/activitypub-key.pem</code> (readable only by the server) and never leaves the machine; every request the server makes to another server is signed with it, and every activity it accepts must be signed by the account it claims to come from;</li>
+<li>an <strong>outbox</strong> with your public posts, newest first. A short post arrives as a whole note in a timeline; a longer one as an article with its title, the start of the text and a link. Each carries its language, its tags and its banner.</li>
+</ul>
+<p>Opening a post&#39;s own address from Mastodon&#39;s search shows the post, too: the same address answers the fediverse with the post and a browser with the page.</p>
+<p><strong>Followers</strong> are accepted at once and kept in <code>ASTROLABE_DATA/activitypub.db</code>. From then on, publishing a post delivers it to them, changing a published post sends the change, and unpublishing it deletes it from their timelines. Deliveries go to each server&#39;s shared inbox when it has one (a thousand followers on one server are one request), one at a time, with three retries. A server whose inbox is gone for good takes its followers with it. The followers&#39; count is under the row; the list itself is never published.</p>
+<p>What comes back:</p>
+<ul>
+<li><strong>likes</strong> and <strong>boosts</strong> of a post appear under it at once, as faces;</li>
+<li><strong>replies</strong> to a post are filed with your comments and wait in moderation, like a webmention;</li>
+<li>an <strong>undo</strong> removes the like or boost, and a <strong>delete</strong> removes the reply. Only the account that sent something can take it back.</li>
+</ul>
+<h2 id="under-the-post"><a class="anchor" href="#under-the-post">Under the post</a></h2>
+<p>A published post with approved mentions grows a small <strong>Mentions</strong> section under its comments: likes and reposts as rows of faces (each links to the person&#39;s own site), replies and mentions as entries with where they were written. A post with none shows nothing at all. The section is the same in blog mode, in the app&#39;s reading view and on a phone.</p>
+<h2 id="what-stays-on-the-machine"><a class="anchor" href="#what-stays-on-the-machine">What stays on the machine</a></h2>
+<p><code>webmentions.db</code>, <code>activitypub.db</code> and <code>activitypub-key.pem</code> live in the server&#39;s data directory, <strong>never in the vault</strong>, and are never copied into it by <a href="../backup-and-sync/">Backup &amp; sync</a>: they are this server&#39;s conversations with other servers, and a private key in a git history is a private key published. Approved mentions live with your comments in <code>comments.db</code>.</p>
+<p>A <a href="../mobile/">pocket vault</a> has no public address, so none of this exists there: it has no Publishing tab, and the routes answer that they need a server.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/webmentions.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/library/"><span class="pager__kicker">Previous</span><span class="pager__title">The library</span></a><a class="pager__link pager__link--next" href="../../en/theming/"><span class="pager__kicker">Next</span><span class="pager__title">Theming</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#what-counts-as-public">What counts as public</a><a class="toc__link toc__link--2" href="#receiving-webmentions">Receiving webmentions</a><a class="toc__link toc__link--2" href="#sending-webmentions">Sending webmentions</a><a class="toc__link toc__link--2" href="#the-fediverse">The fediverse</a><a class="toc__link toc__link--2" href="#under-the-post">Under the post</a><a class="toc__link toc__link--2" href="#what-stays-on-the-machine">What stays on the machine</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>
