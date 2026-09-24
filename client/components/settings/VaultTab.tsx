@@ -10,6 +10,7 @@ import { PathInput } from "../controls/PathInput.tsx";
 import { Select } from "../controls/Select.tsx";
 import { PeriodicForm } from "./PeriodicForm.tsx";
 import { ClipperControl } from "./ClipperControl.tsx";
+import { FeedsFields, UniqueNoteFields } from "./PairControls.tsx";
 import { modelSize, VoiceEngineNote, voiceModelLabel } from "./VoiceEngineNote.tsx";
 import { VOICE_MODELS } from "../../../shared/voice.ts";
 import { Row } from "./Row.tsx";
@@ -101,11 +102,11 @@ export default function VaultTab() {
           asks nothing. Beside the periodic rows because it is
           the same idea — a note named by when — with a finer
           clock; the placeholders are what is in force. */}
-      <Row label={t("uniqueFolderLabel")} hint={t("uniqueFolderHint")}>
-        <TextInput placeholder={eff.uniqueFolder || t("vaultRoot")} dir="ltr" label={t("uniqueFolderLabel")} {...field("uniqueFolder")} />
-      </Row>
-      <Row label={t("uniqueFormatLabel")} hint={t("uniqueFormatHint")}>
-        <TextInput placeholder={eff.uniqueFormat} dir="ltr" label={t("uniqueFormatLabel")} {...field("uniqueFormat")} />
+      {/* One row, two fields (3.28): the folder and the name are one
+          question — where does a minute-named note go, and what is it
+          called — and the tab holds eighteen rows; Feeds took the second. */}
+      <Row label={t("uniqueRowLabel")} hint={t("uniqueFolderHint")} more={t("uniqueFormatHint")} wide>
+        <UniqueNoteFields folder={field("uniqueFolder")} format={field("uniqueFormat")} folderInForce={eff.uniqueFolder} formatInForce={eff.uniqueFormat} vaultRoot={t("vaultRoot")} />
       </Row>
       {/* CAPTURE (docs/capture.md): the two doors into the vault
           that do not start from a note. The inbox is the
@@ -122,6 +123,19 @@ export default function VaultTab() {
       <Row locked={pocket} label={t("clipperLabel")} hint={t("clipperHint")} more={t("moreClipper")}>
         <ClipperControl siteName={eff.siteName} />
       </Row>
+      {/* FEEDS (docs/feeds.md): the list of other people's feeds lives in
+          a note; this row is the consent. Off, the server asks no feed for
+          anything — network access is the owner's to switch on, and the
+          row says so in its own words. A pocket fetches nothing. */}
+      <Row locked={pocket} label={t("rowFeeds")} hint={t("hintFeeds")} more={t("moreFeeds")} wide>
+        <FeedsFields
+          fetch={form.feedsFetch === "on"}
+          onFetch={(on) => setForm((f) => (f ? { ...f, feedsFetch: on ? "on" : "off" } : f))}
+          note={field("feedsNote")}
+          noteInForce={eff.feeds.note}
+        />
+      </Row>
+      {!pocket && <p className="s-smodal__note">{t(form.feedsFetch === "on" ? "feedsRowOn" : "feedsRowOff")}</p>}
       {/* VOICE NOTES (docs/capture.md "Voice"): the model that
           turns a recording into words on THIS machine, and
           whether the recording stays once they have landed. The

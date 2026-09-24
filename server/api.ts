@@ -111,6 +111,7 @@ import {
 import { sendEncoded } from "./compress.ts";
 import { nearbyNotes } from "./nearby.ts";
 import { askRoutes } from "./ask.ts";
+import { feedRoutes } from "./feedRoutes.ts";
 import { hadithKey, parseHadithRef } from "../shared/hadithRefs.ts";
 import { graphBody, invalidateGraph, localGraphJson } from "./graphCache.ts";
 import { propShelf, tagShelf } from "./shelfCache.ts";
@@ -2422,6 +2423,11 @@ api.post("/orbits", async (c) => {
 // Ask the vault: meaning search, related notes, link suggestions and
 // questions answered from the notes (server/ask.ts). Admin-only, every route.
 api.route("/", askRoutes);
+
+// Feeds and read-later (server/feeds.ts, docs/feeds.md): the owner's list of
+// other people's feeds, read and kept. Admin-only, every route — the GETs
+// too. Not the blog's own /rss.xml, which is outbound and lives in blog.ts.
+api.route("/", feedRoutes);
 
 api.get("/mentions", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");

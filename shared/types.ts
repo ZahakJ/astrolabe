@@ -9,6 +9,18 @@ import type { FolderIcon, FolderMark } from "./folderIcons.ts";
 import type { TrackerRating, TrackerSession, TrackerStatus } from "./tracker.ts";
 import type { VoiceEffective, VoiceLanguage, VoiceModelSetting, VoiceSettings } from "./voice.ts";
 
+/** The stored feeds key (settings.json `feeds`). */
+export interface FeedsSettings {
+  fetch?: boolean;
+  note?: string;
+}
+
+/** The feeds key in force. */
+export interface FeedsEffective {
+  fetch: boolean;
+  note: string;
+}
+
 export interface TreeNode {
   name: string;          // file or folder basename, e.g. "Ideas.md" or "projects"
   path: string;          // vault-relative POSIX path, e.g. "projects/Ideas.md"; "" for root
@@ -1197,6 +1209,10 @@ export interface SettingsData {
    *  recordings untranscribed), a pinned language, and whether a recording is
    *  kept once its words have landed. Absent → large-v3-turbo-q5_0, auto, keep. */
   voice?: VoiceSettings;
+  /** Feeds (shared/feeds.ts, docs/feeds.md): whether the server may fetch
+   *  the feeds the list names (off unless set — network access is opt-in),
+   *  and the note the list lives in (`Feeds.md` when absent). */
+  feeds?: FeedsSettings;
   /** Git backup & sync (off by default). The token, when one is used, is NOT
    *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
@@ -1394,6 +1410,8 @@ export interface EffectiveSettings {
   captureInbox: string | null;
   /** Voice notes, every default filled in. */
   voice: VoiceEffective;
+  /** Feeds, every default filled in. */
+  feeds: FeedsEffective;
   home: Required<Pick<HomeSettings, "mode">> & Omit<HomeSettings, "mode">;
   /** Public folders with every default filled in — what the settings editor
    *  prefills from, so an unset key and an explicitly-default one look the
@@ -1513,6 +1531,11 @@ export interface SettingsPatch {
     model?: VoiceModelSetting | null;
     language?: VoiceLanguage | null;
     keepAudio?: boolean | null;
+  } | null;
+  /** Feeds. Sub-keys merge like `voice`; null clears the key. */
+  feeds?: {
+    fetch?: boolean | null;
+    note?: string | null;
   } | null;
   /** Template for new notes; null (or "") turns the default back off. */
   defaultTemplate?: string | null;

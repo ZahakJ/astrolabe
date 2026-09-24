@@ -62,6 +62,8 @@ import {
   isMediaTab,
   isOrbitsTab,
   isReviewWeekTab,
+  isFeedsTab,
+  FEEDS_TAB,
   isRoutinesTab,
   MEDIA_TAB,
   orbitsSessionOf,
@@ -104,6 +106,8 @@ const TrackerScreen = lazySurface(() => import("./screens/TrackerScreen.tsx"));
 const LibraryScreen = lazySurface(() => import("./screens/LibraryScreen.tsx"));
 const ReaderScreen = lazySurface(() => import("./screens/ReaderScreen.tsx"));
 const ReviewScreen = lazySurface(() => import("./screens/ReviewScreen.tsx"));
+const FeedsScreen = lazySurface(() => import("./screens/FeedsScreen.tsx"));
+const FeedItemScreen = lazySurface(() => import("./screens/FeedItemScreen.tsx"));
 const TagPickerSheet = lazySurface(() => import("./TagPickerSheet.tsx"));
 const ListSheet = lazySurface(() => import("./ListSheet.tsx"));
 // The note sheet and the move sheet reach the outline, the section surgery,
@@ -198,6 +202,7 @@ export function urlForScreen(screen: Screen, tab: TabId): string | null {
       if (isMediaTab(s)) return "/media";
       if (isRoutinesTab(s)) return "/sigils";
       if (isReviewWeekTab(s)) return "/review-week";
+      if (isFeedsTab(s)) return "/feeds";
       if (isOrbitsTab(s)) {
         const session = orbitsSessionOf(s);
         return orbitsUrl(session?.path ?? null, session?.section ?? null);
@@ -212,6 +217,8 @@ export function urlForScreen(screen: Screen, tab: TabId): string | null {
       return "/sigils";
     case "tracker":
       return "/media";
+    case "feed-item":
+      return "/feeds";
     case "settings":
       // Settings has no address of its own on either shell; the bar keeps
       // whatever it showed, as a list does.
@@ -242,6 +249,14 @@ function applyScreen(screen: Screen): void {
     else s.setView(screen.kind === "sigil" ? "routines" : "media");
     return;
   }
+  if (screen.kind === "feed-item") {
+    // The reader over Feeds keeps the store on the Feeds tab, as a tracker
+    // keeps it on Media.
+    if (here === FEEDS_TAB && !library) return;
+    if (library) s.closeLibrary();
+    s.setView("feeds");
+    return;
+  }
   if (screen.kind !== "surface") return;
   const tab = screen.tab;
   if (tab === "~library") {
@@ -254,6 +269,7 @@ function applyScreen(screen: Screen): void {
   else if (isMediaTab(tab)) s.setView("media");
   else if (isRoutinesTab(tab)) s.setView("routines");
   else if (isReviewWeekTab(tab)) s.setView("review-week");
+  else if (isFeedsTab(tab)) s.setView("feeds");
   else if (isOrbitsTab(tab)) {
     const session = orbitsSessionOf(tab);
     s.openOrbits(session?.path ?? null, session?.section ?? null);
@@ -689,6 +705,7 @@ export default function PhoneShell() {
         if (tab === "~library") return <LibraryScreen onBack={onBack} />;
         if (isBookPath(tab)) return <ReaderScreen key={tab} tab={tab} onBack={back} />;
         if (isReviewWeekTab(tab)) return <ReviewScreen onBack={back} />;
+        if (isFeedsTab(tab)) return <FeedsScreen onBack={onBack} />;
         return <SurfaceScreen key={tab} tab={tab} onBack={back} />;
       }
       case "settings":
@@ -699,6 +716,8 @@ export default function PhoneShell() {
         return <SigilScreen key={`${screen.path}#${screen.index}`} path={screen.path} index={screen.index} onBack={back} />;
       case "tracker":
         return <TrackerScreen key={`${screen.path}#${screen.index}`} path={screen.path} index={screen.index} onBack={back} />;
+      case "feed-item":
+        return <FeedItemScreen key={`${screen.feed}\u0000${screen.guid}`} feed={screen.feed} guid={screen.guid} onBack={back} />;
     }
   };
 

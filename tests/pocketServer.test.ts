@@ -497,6 +497,8 @@ describe("the pocket server — what it cannot do, it says", () => {
     ["GET", "/api/design/active"],
     ["GET", "/api/export"],
     ["POST", "/api/replace"],
+    ["GET", "/api/feeds"],
+    ["POST", "/api/feeds/keep"],
   ];
   for (const [method, route] of cases) {
     it(`${method} ${route} is a 501 with a reason in it`, async () => {
@@ -714,6 +716,7 @@ describe("the pocket server — settings that travel with the vault", () => {
       { fonts: { prose: "lora" } },
       { noteVersions: false },
       { pdfSearch: true },
+      { feeds: { fetch: true } },
     ]) {
       const answer = await server.call("PATCH", "/api/settings", patch);
       assert.equal(answer.status, 501, `${Object.keys(patch)[0]} must be refused`);

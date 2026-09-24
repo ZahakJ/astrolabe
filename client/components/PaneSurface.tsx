@@ -17,6 +17,7 @@ const MediaView = lazySurface(() => import("../media/MediaView.tsx"));
 const RoutinesView = lazySurface(() => import("../routines/RoutinesView.tsx"));
 const ReviewWeekView = lazySurface(() => import("../review/ReviewWeekView.tsx"));
 const CalendarView = lazySurface(() => import("../calendar/CalendarView.tsx"));
+const FeedsView = lazySurface(() => import("../feeds/FeedsView.tsx"));
 const OrbitsSurface = lazySurface(() => import("../orbits/OrbitsSurface.tsx"));
 const Editor = lazySurface(() => import("./Editor.tsx"));
 const ReadingView = lazySurface(() => import("../reading/ReadingView.tsx"));
@@ -115,6 +116,12 @@ export default function PaneSurface({ id, children }: { id: string; children?: R
       // top of the Sigils page until 3.18.
       <Suspense fallback={<div className="s-calpage" />}>
         <CalendarView />
+      </Suspense>
+    ) : surface === "feeds" ? (
+      // Feeds: the reading list's unread items and a reader beside them
+      // (docs/feeds.md), a tab like the Calendar.
+      <Suspense fallback={<div className="s-feeds" />}>
+        <FeedsView />
       </Suspense>
     ) : surface === "review-week" ? (
       // The weekly review: the week added up, a tab like the Sigils page.

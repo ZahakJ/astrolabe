@@ -27,6 +27,7 @@ import { getSettings } from "./settings.ts";
 import { initComments } from "./comments.ts";
 import { initIndexer } from "./indexer.ts";
 import { initAsk } from "./ask.ts";
+import { initFeeds } from "./feeds.ts";
 import { initPdfText, startPdfText } from "./pdfText.ts";
 import { seedIfNew } from "./seed.ts";
 import { initVault, resolveVaultRoot, startWatcher, statAttachment } from "./vault.ts";
@@ -90,6 +91,9 @@ startPdfText();
 // from Ollama, kept current by the watcher. Nothing waits on it either, and a
 // machine without Ollama pays one refused connection a minute.
 initAsk();
+// Feeds (docs/feeds.md): the list is read now; nothing is fetched unless
+// Settings → Vault → Feeds says so, and then on git sync's cadence.
+initFeeds();
 // Backup & sync scheduler. Inert unless settings.gitSync is enabled with a
 // remote and a non-zero interval — a fresh instance never touches a network.
 startGitSyncTimer();

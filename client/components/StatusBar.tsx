@@ -308,6 +308,8 @@ export default function StatusBar() {
     const tab = pane === null ? null : activeTabOf(pane);
     return tab !== null && isRoutinesTab(tab.path);
   });
+  const toggleFeeds = useStore((s) => s.toggleFeeds);
+  const feedsOn = useStore((s) => s.feedsOpen());
   const toggleCalendar = useStore((s) => s.toggleCalendar);
   const calendarOn = useStore((s) => {
     const pane = paneAt(s.workspace, s.workspace.focus);
@@ -510,6 +512,7 @@ export default function StatusBar() {
           { label: t("orbits"), onSelect: toggleOrbits },
           { label: t("routines"), onSelect: toggleRoutines },
           { label: t("calendar"), onSelect: toggleCalendar },
+          { label: t("feeds"), onSelect: toggleFeeds },
           { label: null },
           { label: t("designTitle"), onSelect: openDesigner },
           { label: t("previewAsVisitor"), onSelect: () => void useStore.getState().setPreviewVisitor(true) },
@@ -684,6 +687,35 @@ export default function StatusBar() {
             >
               <rect x="3" y="5" width="18" height="16" rx="2" />
               <path d="M3 10h18M8 3v4M16 3v4" />
+            </svg>
+          </button>
+          {/* THE FEEDS DOOR, beside the calendar: the two arcs and the dot
+              every reader already knows as "a feed". Inbound — the list of
+              other people's writing the owner reads (docs/feeds.md); the
+              blog's own outbound feed has no door here. Admin-only: Keep
+              writes into the vault. */}
+          <button
+            type="button"
+            className={`s-statusbar__btn s-statusbar__icon${feedsOn ? " s-statusbar__btn--on" : ""}`}
+            aria-pressed={feedsOn}
+            onClick={toggleFeeds}
+            title={t("feedsTitle")}
+            aria-label={t("feeds")}
+            data-testid="feeds-door"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16" />
+              <circle cx="5" cy="19" r="1.4" fill="currentColor" stroke="none" />
             </svg>
           </button>
           <button

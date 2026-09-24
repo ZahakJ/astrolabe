@@ -26,6 +26,7 @@ import { Hono } from "hono";
 import type { Context } from "hono";
 import { appendCaptured, CLIPS_FOLDER, clipFileName, clipNote, isClippableUrl, splitSharedText } from "../shared/capture.ts";
 import { htmlTitle, htmlToMarkdown } from "../shared/htmlToMarkdown.ts";
+import { keptNote } from "../shared/feeds.ts";
 import { DAILY_FORMAT_DEFAULT, periodicPath } from "../shared/periodic.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { clientIp, isPublishLimited } from "./auth.ts";
@@ -164,13 +165,15 @@ async function captureLineNow(target: string | null, text: string, time: string 
   return written.path;
 }
 
-/** A free name under Clips/: the title's, or the title's with ` (2)`, ` (3)`…
- *  A clip never overwrites — two pages with one title are two notes. */
-async function freeClipPath(title: string, fallback: string): Promise<string> {
+/** A free name in `folder` (Clips/ for a clip, the feed's folder for a kept
+ *  article): the title's, or the title's with ` (2)`, ` (3)`… A clip never
+ *  overwrites — two pages with one title are two notes. */
+async function freeClipPath(title: string, fallback: string, folder: string = CLIPS_FOLDER): Promise<string> {
   const file = clipFileName(title, fallback);
   const stem = file.slice(0, -3);
+  const dir = folder === "" ? "" : `${folder}/`;
   for (let n = 1; n < 1000; n++) {
-    const rel = `${CLIPS_FOLDER}/${n === 1 ? stem : `${stem} (${n})`}.md`;
+    const rel = `${dir}${n === 1 ? stem : `${stem} (${n})`}.md`;
     if (!(await noteExists(rel))) return rel;
   }
   throw new VaultError(409, "A thousand clips with that title already", "clipNoFreeName");
@@ -221,6 +224,44 @@ async function performClipNow(req: ClipRequest): Promise<ClipOutcome> {
   emitEvent({ kind: "created", path: written.path });
   await indexFile(written.path);
   return { kind: "clipped", path: written.path };
+}
+
+// ── Keep: a feed's article, through the clipper's own door ──────────────────
+
+export interface KeepRequest {
+  /** Vault-relative folder the note is filed in (the feed's `→ Folder`). */
+  folder: string;
+  title: string;
+  /** The article's address. */
+  url: string | null;
+  /** The article as HTML — the page, or what the feed carried. */
+  html: string | null;
+  /** What relative links in `html` resolve against. */
+  baseUrl: string | null;
+  /** The feed's name, for the `feed:` line. */
+  feed: string;
+  /** `YYYY-MM-DD` the feed dated it, or null. */
+  published: string | null;
+  tags: readonly string[];
+}
+
+/** Write a kept feed article as a note: the clip's converter
+ *  (`htmlToMarkdown`), the clip's naming (never overwrites), the clip's queue
+ *  (one write at a time), and the feed's facts in the frontmatter
+ *  (shared/feeds.ts `keptNote`). Resolves to the note's path. */
+export function performKeep(req: KeepRequest): Promise<string> {
+  return serial(async () => {
+    const host = req.url && isClippableUrl(req.url) ? new URL(req.url).hostname : "Article";
+    const title = stripBidiControls(req.title).replace(/\s+/g, " ").trim() || host;
+    const body = req.html && req.html.trim() !== "" ? htmlToMarkdown(req.html, { baseUrl: req.baseUrl ?? req.url }) : "";
+    const rel = await freeClipPath(title, host, req.folder);
+    const content = keptNote({ title, url: req.url, feed: req.feed, published: req.published, kept: localDate(), tags: req.tags, body });
+    suppressWatcherEcho(rel);
+    const written = await writeNote(rel, content);
+    emitEvent({ kind: "created", path: written.path });
+    await indexFile(written.path);
+    return written.path;
+  });
 }
 
 // ── The routes ──────────────────────────────────────────────────────────────

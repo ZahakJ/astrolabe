@@ -201,6 +201,14 @@ export function fail(status: number, error: string, code?: string): PocketRespon
  * thing the conflict rule below exists to refuse. The recording is linked, and
  * the owner can play it anywhere.
  */
+/**
+ * WHY A POCKET READS NO FEEDS (docs/feeds.md). A round of feeds is a server
+ * asking other servers on a timer, and a phone WebView is asleep most of the
+ * hour; the read flags live in the instance's own data directory, not in the
+ * vault. What the owner KEPT is notes, and those are here like any note.
+ */
+const POCKET_NO_FEEDS = "Feeds are fetched by an Astrolabe server on its own schedule; a pocket vault reads the notes you kept.";
+
 const POCKET_NO_TRANSCRIBER =
   "Transcription runs on an Astrolabe server's own machine; a pocket vault keeps the recording and links it from the day's inbox.";
 
@@ -300,6 +308,7 @@ const POCKET_CANNOT_KEEP: Record<string, string> = {
   pdfSearch: "Reading the text of every PDF is work an instance does on its own disk.",
   hadithFolder: "Scripture lookup reads a corpus the server ships; the pocket carries only your vault.",
   voice: "Transcription runs on an instance's own machine; a pocket vault keeps every recording and runs no model.",
+  feeds: "Feeds are fetched by an Astrolabe server on its own schedule; a pocket vault reads the notes you kept.",
 };
 
 // ── the router ──────────────────────────────────────────────────────────────
@@ -368,7 +377,8 @@ export function createPocketServer(deps: PocketDeps): {
     const refusal = SERVER_ONLY[route] ?? (route.startsWith("/api/design/") ? SERVER_ONLY["/api/design"] : undefined)
       ?? (route.startsWith("/api/books/") ? SERVER_ONLY["/api/books"] : undefined)
       ?? (route.startsWith("/api/comments/") ? SERVER_ONLY["/api/comments"] : undefined)
-      ?? (route.startsWith("/api/voice/") ? POCKET_NO_TRANSCRIBER : undefined);
+      ?? (route.startsWith("/api/voice/") ? POCKET_NO_TRANSCRIBER : undefined)
+      ?? (route === "/api/feeds" || route.startsWith("/api/feeds/") ? POCKET_NO_FEEDS : undefined);
     if (refusal !== undefined) return fail(501, refusal, "pocket");
 
     // ── the handlers that needed a name ─────────────────────────────────────
@@ -473,6 +483,9 @@ export function createPocketServer(deps: PocketDeps): {
         // A pocket runs no model and keeps every recording: the fixed facts,
         // not the file (a laptop's choice of model describes the laptop).
         voice: { model: "off", language: "auto", keepAudio: true },
+        // Feeds are fetched by an instance on its own schedule; a pocket
+        // fetches nothing. The list's note is still the vault's own.
+        feeds: { fetch: false, note: held.feeds?.note ?? "Feeds.md" },
         home: { mode: "note", ...(held.home ?? {}) },
         publicFolders: { enabled: false, home: false, nav: false, folders: [] },
         library: { enabled: false, nav: false, home: false, title: "", roots: [], paths: [] },

@@ -16,17 +16,17 @@
 // quotes, code (inline and fenced), bold, italic, rules, and the simplest
 // tables. Nothing else earns a mark.
 
-interface ElementNode {
+export interface ElementNode {
   type: "el";
   name: string;
   attrs: Record<string, string>;
   children: Node[];
 }
-interface TextNode {
+export interface TextNode {
   type: "text";
   text: string;
 }
-type Node = ElementNode | TextNode;
+export type Node = ElementNode | TextNode;
 
 /** Content-free by construction: nothing under these is prose. `<head>` is
  *  here so a whole document renders as its body alone (the title is asked

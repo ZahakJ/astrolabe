@@ -53,6 +53,8 @@
 // cache (rebuilt anywhere). Since 3.24.0 also ask-credentials.json (the
 // Anthropic key is a device's, like the git token) and embeddings.db (the
 // meaning index — a cache, re-read on any machine from its own Ollama).
+// Since 3.28 also feeds.db (what this server fetched and what its reader
+// marked read — a machine's, and never the vault's; kept articles are notes).
 
 import fs from "node:fs/promises";
 import path from "node:path";
