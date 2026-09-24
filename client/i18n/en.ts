@@ -1865,6 +1865,7 @@ const en = {
   scViaPalette: "Command palette",
   scViaStatusBar: "Status bar",
   scHelp: "This list",
+  scChromeLang: "Interface language: English ⇄ العربية",
   // Shown only when the reader's keyboard types none of the Latin letters on
   // this sheet — an Arabic, Persian, Russian, Greek or Hebrew layout. The
   // letters name a POSITION there, and beside each one the sheet prints what

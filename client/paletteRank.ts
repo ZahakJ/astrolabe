@@ -154,11 +154,11 @@ export interface RankedCommand<T> {
 export function rankCommands<T>(
   query: string,
   commands: readonly T[],
-  textOf: (command: T) => { label: string; hint?: string },
+  textOf: (command: T) => { label: string; hint?: string; aliases?: readonly string[] },
 ): RankedCommand<T>[] {
   const out: RankedCommand<T>[] = [];
   for (const command of commands) {
-    const { label, hint } = textOf(command);
+    const { label, hint, aliases } = textOf(command);
     const onLabel = fuzzyMatch(query, label);
     if (onLabel !== null) {
       const score = normalize(onLabel.score, query.length);
@@ -167,11 +167,20 @@ export function rankCommands<T>(
         continue;
       }
     }
-    const onHint = hint === undefined ? null : fuzzyMatch(query, hint);
-    if (onHint !== null) {
-      const score = normalize(onHint.score, query.length);
-      if (score >= COMMAND_FLOOR) out.push({ command, indices: [], score: score - HINT_PENALTY });
+    // The hint, then the ALIASES: words the row answers to without drawing
+    // them — each matched on its own (one run-on haystack would let a query
+    // stitch itself together across two words) and ranked as a hint hit is,
+    // under every label hit. The one row that carries them is the chrome
+    // language's way back, which has to be found by the name of the language
+    // a reader wants AND the one they are stuck in, in either script.
+    let best: number | null = null;
+    for (const hay of hint === undefined ? (aliases ?? []) : [hint, ...(aliases ?? [])]) {
+      const hit = fuzzyMatch(query, hay);
+      if (hit === null) continue;
+      const score = normalize(hit.score, query.length);
+      if (score >= COMMAND_FLOOR && (best === null || score > best)) best = score;
     }
+    if (best !== null) out.push({ command, indices: [], score: best - HINT_PENALTY });
   }
   out.sort((a, b) => b.score - a.score);
   return out.slice(0, MAX_COMMAND_ROWS);

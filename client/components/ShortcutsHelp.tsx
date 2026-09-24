@@ -321,6 +321,16 @@ const GROUPS: Group[] = [
         run: () => useStore.getState().setZen(true),
       },
       { label: "cmdToggleVim", via: "scViaStatusBar", admin: true, run: () => useStore.getState().toggleVim() },
+      // THE WAY BACK: the chrome's language, from anywhere (the status bar's
+      // key is the other door). The twin's chord plus Shift — L for language
+      // in both — and live in both shells: a tablet with a keyboard is where
+      // a mistaken switch is likeliest to strand someone.
+      {
+        label: "scChromeLang",
+        keys: ["Ctrl/Cmd", "Alt", "Shift", "L"],
+        admin: true,
+        run: () => useStore.getState().toggleChromeLang(),
+      },
       {
         label: "previewAsVisitor",
         via: "scViaStatusBar",

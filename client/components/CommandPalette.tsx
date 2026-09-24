@@ -376,6 +376,7 @@ export default function CommandPalette() {
     const matchedCommands = rankCommands(q, available, (command) => ({
       label: command.label(),
       hint: command.hint?.(),
+      aliases: command.aliases?.(),
     }));
     // WHERE THE BLOCK LANDS among the notes. `commandCut` counts the leading
     // note rows that outrank the best command; the notes themselves keep the
