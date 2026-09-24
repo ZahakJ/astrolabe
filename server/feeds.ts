@@ -32,7 +32,7 @@
 // `==highlight==` in it is a card in Orbits' implicit deck, because the
 // indexer reads every note's cards and a kept article is a note.
 //
-// SEPARATE FROM THE BLOG'S RSS. `/rss.xml` (server/blog.ts) is what this site
+// SEPARATE FROM THE BLOG'S RSS. `/feed.xml` (server/blog.ts) is what this site
 // publishes; nothing here reads or writes it.
 
 import path from "node:path";

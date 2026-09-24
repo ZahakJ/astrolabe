@@ -176,6 +176,19 @@ a zoom, and `c` copies a citation to the selected passage. There is no `a`/`s`/`
 and no `:` line: fitting, rotating and inverting are things you do to a picture of a page, and this
 format has none. See [EPUB](books.md#epub).
 
+## Feeds
+
+The [Feeds](feeds.md) page answers four keys of its own while focus is inside it, outside the
+ledger for the book reader's reason: they are a surface's grammar, not the shell's, and a
+letter pressed anywhere else still types a letter. They are matched by the key's position, so
+they work on an Arabic layout too.
+
+| Keys | Action |
+| ---- | ------ |
+| `j` / `k` | The next / previous article |
+| `o` | Open the original page in a new tab |
+| `e` | Mark read, and go on to the next |
+
 ## The tour
 
 A deck of illustrated cards, one feature each, with a **Show me** that really opens the thing it
