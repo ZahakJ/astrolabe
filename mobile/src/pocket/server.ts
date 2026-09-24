@@ -820,6 +820,12 @@ export function createPocketServer(deps: PocketDeps): {
         return fail(501, "Unlinked mentions scan the whole vault per note; the pocket does not run that on a phone.", "pocket");
       case "GET /api/tasks":
         return json(index.tasks());
+      // Today's "On this day" and the Timeline's notes (docs/today.md,
+      // docs/timeline.md): the server's rules over the phone's own index.
+      case "GET /api/onthisday":
+        return json(index.onThisDay(q.get("date") ?? ""));
+      case "GET /api/timeline":
+        return json(index.timeline());
       case "GET /api/trackers":
         return json(index.trackers());
       case "GET /api/routines":
