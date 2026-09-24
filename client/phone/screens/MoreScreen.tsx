@@ -14,6 +14,7 @@ import { t } from "../../i18n.ts";
 import { useStore } from "../../state.ts";
 import { choiceLabel } from "../../themes.ts";
 import { openTour } from "../../tour.ts";
+import { inAndroidShell, returnToShell } from "../../androidShell.ts";
 import { GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, REVIEW_WEEK_TAB, ROUTINES_TAB } from "../../workspace.ts";
 import { usePhone } from "../context.ts";
 import { IconChevron } from "../icons.tsx";
@@ -96,6 +97,11 @@ export default function MoreScreen() {
         )}
         <Group title={t("phSession")}>
           <Item label={t("phTour")} onClick={openTour} />
+          {/* Inside the Android app, the door back to its connection screen —
+              the desktop keeps it in the status bar's ⋯, which this shell
+              does not draw; without it the only way out was walking back
+              through every screen. */}
+          {inAndroidShell() && <Item label={t("shellChangeServer")} onClick={returnToShell} />}
           <Item label={t("tabAbout")} note={APP_VERSION ? <bdi dir="ltr">{APP_VERSION}</bdi> : undefined} onClick={() => (admin ? settings("about")() : undefined)} chevron={admin} />
           {admin ? (
             <Item label={t("signOut")} chevron={false} danger onClick={() => void store().logout()} />

@@ -89,13 +89,17 @@ export function useSettingsForm() {
   );
 
   const reloadCustomFonts = useCallback(() => {
+    // A pocket vault keeps no uploaded faces (they live in an instance's data
+    // directory; its server answers the route 501), and the group that shows
+    // them is not drawn there — so it is not asked for.
+    if (pocket) return;
     listCustomFonts()
       .then(setCustomFonts)
       // A vault with no uploads answers [], so a failure here is a real one —
       // and still not worth a toast on open: the section renders empty and
       // the upload path reports its own errors.
       .catch((err: unknown) => console.error("astrolabe: listing uploaded fonts failed", err));
-  }, []);
+  }, [pocket]);
 
   useEffect(() => reloadCustomFonts(), [reloadCustomFonts]);
 

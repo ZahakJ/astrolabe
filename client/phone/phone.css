@@ -1418,3 +1418,21 @@
     transition: none;
   }
 }
+
+/* The settings rows' own small buttons (Reset fonts, Pick…, "Pin this" under
+   the visitor theme) are a finger's size in a section: settings.css lifts
+   them inside the dialog (`.s-smodal .s-btn`), and a section is not one. */
+.s-ph-settings .s-btn,
+.s-ph-settings .s-smodal__visitorspin {
+  min-block-size: 44px;
+}
+
+.s-ph-settings .s-smodal__visitorspin {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The row whose detail is open beside the list (a tablet's two columns). */
+.s-ph-row--on {
+  background: var(--bg-hover);
+}
