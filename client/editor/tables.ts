@@ -101,6 +101,7 @@ import {
   rowIndexAt,
   setColumnAlign,
   sortTableRows,
+  sourceTableCommand,
   splitRowCells,
   tableSkeleton,
   type TableCell,
@@ -1237,39 +1238,17 @@ export function runTableCommand(view: EditorView, cmd: PaletteTableCmd): boolean
 
   // The caret is in the source: there is no widget to talk to, so the same
   // model command runs against the block under the caret and the caret lands
-  // in the cell the command made.
+  // in the cell the command made (tableModel.ts `sourceTableCommand`).
   const { ctx } = target;
-  const head = view.state.selection.main.head;
-  const row = rowIndexAt(ctx.shape, head) ?? 0;
-  const col = colIndexAt(navRows(ctx.shape)[row], head);
   if (cmd === "editSource") {
     view.focus();
     return true; // the caret is already in it — this row is the way IN
   }
-  let src: string;
-  let landRow = row;
-  let landCol = col;
-  if (cmd === "rowAbove" || cmd === "rowBelow") {
-    const res = insertTableRow(ctx.src, row, cmd === "rowAbove" ? "above" : "below");
-    if (!res) return false;
-    src = res.src;
-    landRow = res.row;
-    landCol = 0;
-  } else {
-    const res = insertTableColumn(ctx.src, col, cmd === "colBefore" ? "before" : "after");
-    if (!res) return false;
-    src = res.src;
-    landCol = res.col;
-  }
-  // Prettified in the same transaction, for the reason applyBlock is: the
-  // caret is IN the source here, so a ragged block is not only an extra undo
-  // step, it is what the reader is looking at.
-  src = formatTable(src);
-  const next = parseTable(src, ctx.blockFrom);
-  const landing = next ? navRows(next)[landRow]?.cells[landCol]?.trimFrom : undefined;
+  const edit = sourceTableCommand(ctx.src, ctx.blockFrom, view.state.selection.main.head, cmd);
+  if (!edit) return false;
   view.dispatch({
-    changes: { from: ctx.blockFrom, to: ctx.blockTo, insert: src },
-    selection: { anchor: landing ?? ctx.blockFrom },
+    changes: { from: ctx.blockFrom, to: ctx.blockTo, insert: edit.src },
+    selection: { anchor: edit.anchor },
     annotations: isolateHistory.of("full"),
     scrollIntoView: true,
     userEvent: "input.table",

@@ -15,6 +15,7 @@
 
 import { exists, isMissing, mkdirp, readBytes, readUtf8, walk, type PocketFs } from "./fs.ts";
 import type { PocketFile, PocketVaultIO } from "./server.ts";
+import { wordsIn, type Copy } from "../i18n.ts";
 
 /** Directories the vault does not contain, whatever the filesystem says.
  *  `.git` is the repository, `.obsidian` is another app's settings, `.trash`
@@ -27,10 +28,26 @@ import type { PocketFile, PocketVaultIO } from "./server.ts";
  *  contains. */
 const HIDDEN = new Set([".git", ".obsidian", ".trash", ".astrolabe"]);
 
+/** A path the pocket will not touch. It carries a dictionary KEY (and the
+ *  path, where the sentence names it), not a sentence: the server answers it
+ *  as a 400 in the reader's language (server.ts `handle`). `message` is the
+ *  English, for a log line. */
+export type VaultRefusal = "vaultPathRequired" | "vaultPathNotPath" | "vaultPathLeaves" | "vaultPathRepository";
+
 export class PocketVaultError extends Error {
-  constructor(message: string) {
-    super(message);
+  readonly key: VaultRefusal;
+  readonly path: string;
+  constructor(key: VaultRefusal, path = "") {
+    super("");
     this.name = "PocketVaultError";
+    this.key = key;
+    this.path = path;
+    this.message = this.say(wordsIn("en"));
+  }
+
+  /** The refusal in the words of one language. */
+  say(words: Copy): string {
+    return this.key === "vaultPathLeaves" ? words.vaultPathLeaves(this.path) : words[this.key];
   }
 }
 
@@ -38,15 +55,15 @@ export class PocketVaultError extends Error {
  *  are server/vault.ts's, kept deliberately boring. */
 export function safeVaultPath(raw: string): string {
   const path = raw.replace(/\\/g, "/").replace(/^\/+/, "");
-  if (!path) throw new PocketVaultError("A path is required");
-  if (path.includes("\u0000")) throw new PocketVaultError("That path is not a path");
+  if (!path) throw new PocketVaultError("vaultPathRequired");
+  if (path.includes("\u0000")) throw new PocketVaultError("vaultPathNotPath");
   for (const segment of path.split("/")) {
     if (segment === "" || segment === "." || segment === "..") {
-      throw new PocketVaultError(`That path leaves the vault: ${raw}`);
+      throw new PocketVaultError("vaultPathLeaves", raw);
     }
   }
   if (path === ".git" || path.startsWith(".git/")) {
-    throw new PocketVaultError("The repository is not part of the vault");
+    throw new PocketVaultError("vaultPathRepository");
   }
   return path;
 }

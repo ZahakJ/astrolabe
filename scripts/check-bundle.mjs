@@ -1031,6 +1031,13 @@ const AUDIENCES = [
   // language); the rest is the seam, `api.renameAttachment` and the move's
   // rename toast. The menu, the grip and the phone sheet are lazy. 750 → 752.
 { name: "entry (everyone)", keys: withLanguage(entry), budget: 754 * 1024 },
+  // THE AUDIT'S LEFTOVERS: 768,771 → 769,042 bytes, +271, measured against a
+  // build of 3.30.2 (d3b5398) with only client/ reverted. All of it is the
+  // entry stylesheet's RTL glyph rules: the tree's chevron (every panel
+  // header borrows it), the tag tree's branch and the status bar's crumb
+  // separator pinned `direction: ltr; unicode-bidi: isolate` and flipped by
+  // hand under [dir="rtl"] (tests/rtlGlyphs.test.ts). It crossed 751.0 by
+  // 18 bytes. Budget 751 → 752.
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1387,7 +1394,10 @@ const AUDIENCES = [
   // file embed stamped with its source and every top-level block with its
   // lines (render.ts), which the reading view's drag and its block-precise
   // line landing read. 1051 → 1054.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1056 * 1024 },
+  // 3.31.1: the leftovers' +271 bytes of RTL glyph rules on top of 3.31.0: 1056.0 exactly. Budget 1057.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1057 * 1024 },
+  // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
+  // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog

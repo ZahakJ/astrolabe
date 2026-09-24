@@ -143,12 +143,15 @@ async function boot(): Promise<void> {
  * Everything else — the client's own chunks, its fonts, pdf.js's data files —
  * goes to the real fetch, which reaches the APK's own assets.
  */
-function installFetchShim(session: PocketSession): void {
-  const real = window.fetch.bind(window);
-  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+export function installFetchShim(
+  session: Pick<PocketSession, "handle">,
+  target: { fetch: typeof fetch; location: { href: string; origin: string } } = window,
+): void {
+  const real = target.fetch.bind(target);
+  target.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    const absolute = new URL(url, location.href);
-    if (absolute.origin !== location.origin || !absolute.pathname.startsWith("/api/")) {
+    const absolute = new URL(url, target.location.href);
+    if (absolute.origin !== target.location.origin || !absolute.pathname.startsWith("/api/")) {
       return real(input as RequestInfo, init);
     }
     const request: PocketRequest = {
@@ -184,8 +187,12 @@ async function bodyOf(init: RequestInit | undefined, input: RequestInfo | URL): 
 }
 
 /** The worker's questions, answered from the same server the shim uses. */
-function answerTheWorker(session: PocketSession): void {
-  navigator.serviceWorker?.addEventListener("message", (event) => {
+export function answerTheWorker(
+  session: Pick<PocketSession, "handle">,
+  container: Pick<EventTarget, "addEventListener"> | undefined = navigator.serviceWorker,
+): void {
+  container?.addEventListener("message", (raw) => {
+    const event = raw as MessageEvent;
     const data = event.data as { pocket?: string; request?: PocketRequest } | undefined;
     const port = event.ports[0];
     if (data?.pocket !== "request" || !data.request || !port) return;
@@ -282,7 +289,7 @@ function makeSyncNode(): HTMLElement {
   return node;
 }
 
-function syncText(line: ReturnType<typeof syncLine>): string {
+export function syncText(line: ReturnType<typeof syncLine>): string {
   // The words live in the shell's dictionary (mobile/src/i18n.ts), in both
   // languages; the RULE that chose this line lives in pocket/sync.ts.
   switch (line.key) {
@@ -299,4 +306,6 @@ function syncText(line: ReturnType<typeof syncLine>): string {
   }
 }
 
-void boot();
+// Loaded by `node --test` too (tests/pocketBoot.test.ts), where there is no
+// page to boot: the pieces above are tested on their own.
+if (typeof document !== "undefined") void boot();
