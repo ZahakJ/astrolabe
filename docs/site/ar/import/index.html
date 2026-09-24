@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الاستيراد · دليل أسطرلاب</title>
+<meta name="description" content="إدخال مساحة عمل من نوشن، أو دفتر من إيفرنوت، أو خزانة من أوبسيديان: معاينة قبل أن يُكتب أي شيء، وتراجع بعده.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
+  <a class="top__brand" href="../../ar/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> <span class="top__docs">دليل</span> أسطرلاب</a>
+  <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../en/import/" hreflang="en">English</a>
+  <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a><a class="nav__link" href="../../ar/offline/">القراءة دون اتصال</a><a class="nav__link" href="../../ar/capture/">الالتقاط</a><a class="nav__link" href="../../ar/feeds/">الخلاصات</a><a class="nav__link is-current" href="../../ar/import/">الاستيراد</a><a class="nav__link" href="../../ar/export/">التصدير</a><a class="nav__link" href="../../ar/desktop/">تطبيق سطح المكتب</a><a class="nav__link" href="../../ar/mobile/">تطبيق أندرويد</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/sigils/">السِّجِلّ</a><a class="nav__link" href="../../ar/calendar/">التقويم</a><a class="nav__link" href="../../ar/orbits/">المدارات</a><a class="nav__link" href="../../ar/drawing/">الرسومات</a><a class="nav__link" href="../../ar/books/">قارئ الكتب</a><a class="nav__link" href="../../ar/ask/">اسأل الخزانة</a><a class="nav__link" href="../../ar/workspace/">اللوحات والتبويبات والنوافذ</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a><a class="nav__link" href="../../ar/japanese/">اليابانية والفوريغانا</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="الاستيراد">الاستيراد</h1>
+<p><em>إدخال مساحة عمل من نوشن، أو دفتر من إيفرنوت، أو خزانة من أوبسيديان: معاينة قبل أن يُكتب أي شيء، وتراجع بعده.</em></p>
+<hr>
+<p>يحوّل معالج الاستيراد تصدير تطبيق آخر إلى ملاحظات في هذه الخزانة. يريك ما هو مقبل عليه — كم ملاحظة، وأي الأسماء مأخوذة من قبل وماذا تصير، وأي الروابط يعيد كتابتها — ولا يكتب شيئًا حتى تأذن. وبعد أن يكتب، يعيده زر واحد.</p>
+<h2 id="فتحه"><a class="anchor" href="#فتحه">فتحه</a></h2>
+<ul>
+<li>لوحة الأوامر: <strong>استيراد ملاحظات…</strong></li>
+<li>⋯ أي مجلد (أو النقر الأيمن) في الشريط الجانبي: <strong>استورد ملاحظات هنا…</strong>، فيملأ ذلك المجلد وجهةً.</li>
+<li>على الهاتف: <strong>المزيد ← استيراد ملاحظات</strong>.</li>
+</ul>
+<p>وليس صفًا في الإعدادات: بل يذكر تبويب الخزانة أين هذه الأبواب.</p>
+<h2 id="المصادر-الثلاثة"><a class="anchor" href="#المصادر-الثلاثة">المصادر الثلاثة</a></h2>
+<p><strong>نوشن.</strong> من إعدادات نوشن نفسه، في <em>Export</em>، اختر <strong>Markdown &amp; CSV</strong> (أو <strong>HTML</strong>) مع تضمين الصفحات الفرعية، وأعطِ المعالج ملف <code>.zip</code> الذي يسلّمك إياه نوشن. (والتصدير الكبير جدًا الذي يقسمه نوشن إلى <code>Part-1.zip</code> و<code>Part-2.zip</code>… داخل ملف مضغوط واحد يُقرأ واحدًا.)</p>
+<ul>
+<li>يُزال المعرّف ذو الاثنين والثلاثين حرفًا الذي يضعه نوشن على اسم كل صفحة ومجلد: <code>Reading list 0f8e2b…</code> تصير <code>Reading list</code>.</li>
+<li>خصائص الصفحة — الأسطر تحت عنوان صف قاعدة البيانات في تصدير Markdown، وجدول الخصائص في تصدير HTML — تصير ترويسة. <code>Tags</code> تصير <code>tags:</code>، و<code>Created</code> تصير <code>created:</code>، وتاريخ نوشن (<code>September 20, 2026</code>) يصير <code>2026-09-20</code>، وكل خاصية أخرى تبقى باسمها.</li>
+<li>قاعدة البيانات تصير ملاحظة باسمها تحمل جدولها، والعمود الأول مربوط بملاحظات الصفوف. وصفحة الصف التي لا أسطر خصائص لها تأخذ خلايا صفها من قاعدة البيانات.</li>
+<li>الروابط بين الصفحات تصير <code>[[روابط داخلية]]</code> بالأسماء النهائية للصفحات؛ وروابط الويب تبقى كما هي.</li>
+</ul>
+<p><strong>إيفرنوت.</strong> صدّر دفترًا ملفَّ <code>.enex</code> (<em>⋯ الدفتر ← تصدير الدفتر</em>) وأعطِ المعالج ذلك الملف.</p>
+<ul>
+<li>تُسمّى كل ملاحظة بعنوانها. وتمر كلماتها بالمحوّل نفسه الذي تستعمله <a href="../capture/#القصاصة">القصاصة</a>.</li>
+<li>وسومها تصير <code>tags:</code>، ويوم إنشائها <code>created:</code>، ويوم تعديلها اللاحق <code>updated:</code>، وعنوان القصاصة من الويب <code>source:</code>.</li>
+<li>كل صورة أو ملف تضمّنه يصير مرفقًا، مضمّنًا حيث كان (<code>![[map.png]]</code>). والمهمة تصير مهمة Markdown.</li>
+</ul>
+<p><strong>أوبسيديان.</strong> أعطِ المعالج مجلد الخزانة، مضغوطًا أو مختارًا كمجلد (<strong>اختر مجلدًا…</strong>).</p>
+<ul>
+<li>تأتي الملاحظات كما هي، في مجلداتها: الترويسة والأسماء البديلة والوسوم وكل خاصية تبقى بايتًا ببايت، ومعها <code>[[الروابط الداخلية]]</code> كلها.</li>
+<li>استثناء واحد: يعلّم Obsidian Publish الملاحظة عامة بـ<code>publish: true</code>، والمفتاح نفسه ينشر الملاحظة هنا. فيزيل المعالج ذلك السطر، وتقول المعاينة كم سطرًا أزال.</li>
+<li><code>.obsidian/</code> (إعدادات التطبيق نفسه) و<code>.trash/</code> والملفات التي ليست ملاحظات ولا مرفقات تبقى خلفه، مذكورة.</li>
+</ul>
+<h2 id="المعاينة"><a class="anchor" href="#المعاينة">المعاينة</a></h2>
+<p>اختر المصدر والتصدير والمجلد الذي تستورد إليه (<code>Imported</code> ما لم تغيّره؛ والفارغ جذر الخزانة)، ثم <strong>معاينة</strong>. لا يُكتب شيء بعد. وتخبرك المعاينة:</p>
+<ul>
+<li>كم ملاحظة ومرفقًا، والمجلد الذي تذهب إليه؛</li>
+<li>كم رابطًا أعاد كتابته؛</li>
+<li>أين تذهب المرفقات: المجلد الذي يسمّيه إعداد المرفقات (الإعدادات ← الخزانة ← المرفقات الجديدة)، كما تذهب صورة ملصوقة؛</li>
+<li>الترويسة التي كتبها أو أبقاها: الخصائص، والوسوم، وتواريخ الإنشاء، والأسماء البديلة، وأي <code>publish:</code> أزاله؛</li>
+<li><strong>كل اسم مأخوذ من قبل</strong>، وما تصير إليه الملاحظة بدلًا منه. لا يُكتب فوق شيء أبدًا: الملاحظة التي في الخزانة اسمها من قبل، أو التي يحملها التصدير مرتين، تصير <code>Name 2</code>، وتتبعها الروابط التي كانت تشير إليها؛</li>
+<li>أين تقع الملاحظات الأولى، وما الذي تُرك.</li>
+</ul>
+<p>تنتقل المرفقات إلى مجلد المرفقات؛ ويُعاد تسمية <code>![[التضمينات]]</code> حيث اضطر ملف إلى اسم جديد، ويُعاد حل مسارات الصور والروابط بصيغة Markdown من المجلد الجديد للملاحظة إلى البيت الجديد للملف، بالطريقة نفسها التي يعيد بها سحب مجلد في الشريط الجانبي كتابتها.</p>
+<h2 id="الاستيراد-والتراجع"><a class="anchor" href="#الاستيراد-والتراجع">الاستيراد والتراجع</a></h2>
+<p><strong>استورد</strong> يكتب الخطة ويعرض تقدّمها وهو يمضي. وحين ينتهي، <strong>تراجع عن الاستيراد</strong> ينقل كل ملف كتبه إلى المهملات ويزيل المجلدات التي أنشأها، <strong>إلا إن كنت حرّرت ملفًا بعده</strong>: فالملف المحرَّر يبقى مكانه ويُذكر، لأن تراجعًا يرمي عملك اللاحق أسوأ من لا تراجع. وتحفظ المهملات ما نقله التراجع (انظر <a href="../backup-and-sync/">النسخ الاحتياطي والمزامنة</a> للمهملات وتاريخ الملاحظات).</p>
+<p>ويحفظ الخادم التراجع يومًا واحدًا، وإعادة التشغيل تنساه؛ وبعد ذلك فالمهملات وتاريخ git هما طريق العودة.</p>
+<p><strong>لا يُنشر شيء مستورد.</strong> لا تصل ملاحظة بـ<code>publish: true</code>؛ فكل ملاحظة مستوردة خاصة حتى تنشرها بنفسك (انظر <a href="../publishing/">النشر والوصول</a>).</p>
+<h2 id="الحدود"><a class="anchor" href="#الحدود">الحدود</a></h2>
+<p>يصل التصدير إلى 256 ميغابايت، ويحمل حتى 20,000 ملف، ولا يتجاوز غيغابايتًا بعد فكّه. و<a href="../mobile/">خزانة الجيب</a> لا تستورد: ففك التصدير وتحويله عمل لقرص الخادم نفسه. استورد على التثبيت، وتصل الملاحظات إلى خزانة الجيب في مزامنتها التالية.</p>
+<h2 id="صفحات-ذات-صلة"><a class="anchor" href="#صفحات-ذات-صلة">صفحات ذات صلة</a></h2>
+<ul>
+<li><a href="../capture/">الالتقاط</a>: القصاصة، التي يستعمل محوّلَها استيرادُ إيفرنوت واستيراد HTML من نوشن</li>
+<li><a href="../feeds/">الخلاصات</a>: الطريق الآخر الذي تصل به المقالات إلى الخزانة</li>
+<li><a href="../orbits/#الاستيراد">المدارات</a>: استيراد مجموعات Anki، معالج آخر لشيء آخر</li>
+</ul>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/ar/import.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/feeds/"><span class="pager__kicker">السابق</span><span class="pager__title">الخلاصات</span></a><a class="pager__link pager__link--next" href="../../ar/export/"><span class="pager__kicker">التالي</span><span class="pager__title">التصدير</span></a></nav>
+    <footer class="foot">أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#فتحه">فتحه</a><a class="toc__link toc__link--2" href="#المصادر-الثلاثة">المصادر الثلاثة</a><a class="toc__link toc__link--2" href="#المعاينة">المعاينة</a><a class="toc__link toc__link--2" href="#الاستيراد-والتراجع">الاستيراد والتراجع</a><a class="toc__link toc__link--2" href="#الحدود">الحدود</a><a class="toc__link toc__link--2" href="#صفحات-ذات-صلة">صفحات ذات صلة</a></aside>
+</div>
+<script>window.__docs = { lang: "ar", base: "../../", noResults: "لا نتائج" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

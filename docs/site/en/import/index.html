@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Import · Astrolabe Documentation</title>
+<meta name="description" content="Bringing a Notion workspace, an Evernote notebook or an Obsidian vault in: previewed before anything is written, and undoable after.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/import/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/feeds/">Feeds</a><a class="nav__link is-current" href="../../en/import/">Import</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a><a class="nav__link" href="../../en/mobile/">The Android app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/calendar/">The Calendar</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The book reader</a><a class="nav__link" href="../../en/ask/">Ask the vault</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="import">Import</h1>
+<p><em>Bringing a Notion workspace, an Evernote notebook or an Obsidian vault in: previewed before anything is written, and undoable after.</em></p>
+<hr>
+<p>The import wizard turns another app&#39;s export into notes in this vault. It shows you what it is about to do — how many notes, which names were already taken and what they become, which links it rewrites — and writes nothing until you say so. After it writes, one button takes it back.</p>
+<h2 id="opening-it"><a class="anchor" href="#opening-it">Opening it</a></h2>
+<ul>
+<li>The palette: <strong>Import notes…</strong></li>
+<li>A folder&#39;s <strong>⋯</strong> (or right-click) in the sidebar: <strong>Import notes here…</strong>, which fills in that folder as the target.</li>
+<li>On a phone: <strong>More → Import notes</strong>.</li>
+</ul>
+<p>It is not a row in Settings: the Vault tab says where these doors are instead.</p>
+<h2 id="the-three-sources"><a class="anchor" href="#the-three-sources">The three sources</a></h2>
+<p><strong>Notion.</strong> In Notion&#39;s own settings, under <em>Export</em>, choose <strong>Markdown &amp; CSV</strong> (or <strong>HTML</strong>) with sub-pages included, and give the wizard the <code>.zip</code> Notion hands you. (A very large export that Notion splits into <code>Part-1.zip</code>, <code>Part-2.zip</code>… inside one zip is read as one.)</p>
+<ul>
+<li>The 32-character id Notion puts on every page and folder name is taken off: <code>Reading list 0f8e2b…</code> is <code>Reading list</code>.</li>
+<li>A page&#39;s properties — the lines under a database row&#39;s title in the Markdown export, the property table in the HTML one — become frontmatter. <code>Tags</code> becomes <code>tags:</code>, <code>Created</code> becomes <code>created:</code>, a Notion date (<code>September 20, 2026</code>) becomes <code>2026-09-20</code>, and every other property keeps its own name.</li>
+<li>A database becomes a note of its own name holding its table, with the first column linked to the row notes. A row page that has no property lines of its own takes its row&#39;s cells from the database.</li>
+<li>Links between pages become <code>[[wikilinks]]</code> by the pages&#39; final names; links to the web stay as they are.</li>
+</ul>
+<p><strong>Evernote.</strong> Export a notebook as an <code>.enex</code> file (<em>a notebook&#39;s ⋯ → Export notebook</em>) and give the wizard that file.</p>
+<ul>
+<li>Each note is named by its title. Its words go through the same converter the <a href="../capture/#the-clipper">web clipper</a> uses.</li>
+<li>Its tags become <code>tags:</code>, its creation day <code>created:</code>, a later edit day <code>updated:</code>, and a web clip&#39;s address <code>source:</code>.</li>
+<li>Every image or file it embeds becomes an attachment, embedded where it stood (<code>![[map.png]]</code>). A to-do becomes a Markdown task.</li>
+</ul>
+<p><strong>Obsidian.</strong> Give the wizard the vault&#39;s folder, either zipped or picked as a folder (<strong>Choose a folder…</strong>).</p>
+<ul>
+<li>Notes come over as they are, in their folders: frontmatter, aliases, tags and every property kept byte for byte, <code>[[wikilinks]]</code> and all.</li>
+<li>One exception: Obsidian Publish marks a note public with <code>publish: true</code>, and the same key publishes a note here. The wizard takes that line out, and the preview says how many it took out.</li>
+<li><code>.obsidian/</code> (the app&#39;s own settings), <code>.trash/</code> and files that are neither notes nor attachments stay behind, listed.</li>
+</ul>
+<h2 id="the-preview"><a class="anchor" href="#the-preview">The preview</a></h2>
+<p>Choose the source, the export and the folder to import into (<code>Imported</code> unless you change it; empty is the vault root), then <strong>Preview</strong>. Nothing is written yet. The preview tells you:</p>
+<ul>
+<li>how many notes and attachments, and the folder they go into;</li>
+<li>how many links it rewrote;</li>
+<li>where the attachments go: the folder your attachment setting names (Settings → Vault → New attachments), as a pasted image would;</li>
+<li>the frontmatter it wrote or kept: properties, tags, created dates, aliases, and any <code>publish:</code> taken off;</li>
+<li><strong>every name already taken</strong>, and what the note becomes instead. Nothing is ever overwritten: a note whose name the vault already has, or that the export holds twice, becomes <code>Name 2</code>, and the links that pointed at it follow it;</li>
+<li>where the first notes land, and what was left behind.</li>
+</ul>
+<p>Attachments move into the attachments folder; <code>![[embeds]]</code> are renamed where a file had to take a new name, and Markdown image and link paths are re-resolved from the note&#39;s new folder to the file&#39;s new home, the same way a folder drag in the sidebar rewrites them.</p>
+<h2 id="import-and-undo"><a class="anchor" href="#import-and-undo">Import, and undo</a></h2>
+<p><strong>Import</strong> writes the plan and shows its progress as it goes. When it is done, <strong>Undo the import</strong> moves every file it wrote to the trash and removes the folders it made, <strong>unless you have edited a file since</strong>: an edited file is left where it is and listed, because an undo that threw away your later work would be worse than no undo. The trash keeps what the undo moved (see <a href="../backup-and-sync/">Backup &amp; sync</a> for the trash and note history).</p>
+<p>The undo is kept by the server for a day, and a restart forgets it; after that, the trash and your git history are the way back.</p>
+<p><strong>Nothing imported is published.</strong> No note arrives with <code>publish: true</code>; every imported note is private until you publish it yourself (see <a href="../publishing/">Publishing &amp; access</a>).</p>
+<h2 id="limits"><a class="anchor" href="#limits">Limits</a></h2>
+<p>An export may be up to 256 MB, hold up to 20,000 files, and unpack to at most a gigabyte. A <a href="../mobile/">pocket vault</a> does not import: unpacking and converting an export is work for a server&#39;s own disk. Import on the instance, and the pocket has the notes on its next sync.</p>
+<h2 id="related"><a class="anchor" href="#related">Related</a></h2>
+<ul>
+<li><a href="../capture/">Capture</a> — the clipper, whose converter the Evernote and Notion HTML imports use</li>
+<li><a href="../feeds/">Feeds</a> — the other way articles arrive in the vault</li>
+<li><a href="../orbits/#importing">Orbits</a> — importing Anki decks, a different wizard for a different thing</li>
+</ul>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/import.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/feeds/"><span class="pager__kicker">Previous</span><span class="pager__title">Feeds</span></a><a class="pager__link pager__link--next" href="../../en/export/"><span class="pager__kicker">Next</span><span class="pager__title">Export</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#opening-it">Opening it</a><a class="toc__link toc__link--2" href="#the-three-sources">The three sources</a><a class="toc__link toc__link--2" href="#the-preview">The preview</a><a class="toc__link toc__link--2" href="#import-and-undo">Import, and undo</a><a class="toc__link toc__link--2" href="#limits">Limits</a><a class="toc__link toc__link--2" href="#related">Related</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>
