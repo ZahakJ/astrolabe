@@ -244,3 +244,46 @@ export function rewriteForMove(
     moved,
   );
 }
+
+// ------------------------------------------------------- attachment renames
+
+/** Rewrite, in ONE note, every reference to an attachment that was renamed
+ *  where it stands (`media/old.png` → `media/new.png`).
+ *
+ *  A note's rename is a title change and a note's move is a folder change;
+ *  an attachment's rename is the third case, and neither pass above covers it:
+ *  a basename-form `![[old.png]]` resolves by NAME, so a rename (unlike a move)
+ *  does break it. Three spellings are rewritten:
+ *   - `![[old.png|300]]` / `[[old.png]]` by basename — only when `resolves`
+ *     says that spelling meant THIS file (two folders can each hold an
+ *     `old.png`, and the other one's embeds are not ours to touch);
+ *   - `![[media/old.png]]` by vault path, kept a path;
+ *   - `![alt](media/old.png)` markdown destinations, via the same resolver
+ *     a move uses.
+ *  Anchors (`#page=42`), widths and aliases ride along unchanged. */
+export function rewriteAttachmentRename(
+  content: string,
+  notePath: string,
+  from: string,
+  to: string,
+  resolves: (target: string) => boolean,
+): string {
+  const oldBase = from.slice(from.lastIndexOf("/") + 1).toLowerCase();
+  const newBase = to.slice(to.lastIndexOf("/") + 1);
+  const oldPath = from.toLowerCase();
+  const withLinks = content.replace(
+    wikilinkRegex(),
+    (whole: string, target: string, heading?: string, alias?: string) => {
+      const raw = target.trim();
+      const key = raw.replace(/\\/g, "/").replace(/^\.?\/+/, "").toLowerCase();
+      let next: string | null = null;
+      if (key.includes("/")) {
+        if (key === oldPath) next = to;
+      } else if (key === oldBase && resolves(raw)) {
+        next = newBase;
+      }
+      return next === null ? whole : `[[${next}${heading ?? ""}${alias ?? ""}]]`;
+    },
+  );
+  return rewriteDestinations(withLinks, dirOf(notePath), dirOf(notePath), new Map([[from, to]]));
+}

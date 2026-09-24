@@ -19,7 +19,7 @@ import { countPhrase, t, tf } from "./i18n.ts";
 import { useStore } from "./state.ts";
 import { toast } from "./toast.ts";
 import { actionToast } from "./undoToast.ts";
-import { noteLabelOf } from "../shared/noteFormat.ts";
+import { isNotePath, noteLabelOf } from "../shared/noteFormat.ts";
 import type { TreeNode } from "../shared/types.ts";
 
 /** What is being moved. `name` is the basename as it sits on disk (a note keeps
@@ -255,9 +255,12 @@ function moveErrorMessage(err: unknown, name: string): string {
 }
 
 function apply(item: MoveItem, toPath: string): Promise<unknown> {
-  return item.isFolder
-    ? api.moveFolder(item.path, toPath)
-    : api.renameNote(item.path, toPath);
+  if (item.isFolder) return api.moveFolder(item.path, toPath);
+  // A picture or a PDF has its own route: the note route refuses anything
+  // that is not a note, and an attachment's rename has embeds to rewrite
+  // rather than wikilinks.
+  if (!isNotePath(item.path)) return api.renameAttachment(item.path, toPath);
+  return api.renameNote(item.path, toPath);
 }
 
 /** Do the move and tell the reader — including how to take it back.

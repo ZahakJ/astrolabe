@@ -628,6 +628,14 @@ function handleEvent(event: VaultEvent): void {
           if (event.toPath) await reindexFolderMove(event.path, event.toPath);
           break;
         }
+        // An ATTACHMENT renamed where it stands (vault.renameAttachment) is
+        // an attachment at both ends: its basename index moves with it, or the
+        // embeds rewritten to the new name would resolve to nothing.
+        if (!isNote) {
+          removeAttachment(event.path);
+          if (event.toPath) addAttachment(event.toPath);
+          break;
+        }
         removeFile(event.path);
         if (event.toPath) await applyIndexFile(event.toPath);
         break;

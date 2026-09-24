@@ -42,6 +42,7 @@ that is the pre-existing pattern, and the door is now open.
 - `GET  /api/webmentions?path=` → `CommentData[]` — what other sites said about a published note (visitors: approved ones, federable notes only; `[]` when there is nothing, 404 only for an unpublished note). `GET /api/webmentions/status` (admin) → `FederationStatus` (the Sent list, the address, the follower count). `POST /api/webmentions/:id/verify` (admin) → `{ outcome }`. `/api/comments/all`, `PATCH` and `DELETE /api/comments/:id` gate on `moderationEnabled()` (comments on, or webmentions accepted, or the fediverse on), since moderation covers all three.
 - `GET  /manifest.webmanifest` (NOT under /api; open) → the web app manifest, generated from settings: name, `theme_color`/`background_color` from the default theme's swatch, the configured favicon plus `/manifest-icon.svg`, and the `share_target` that POSTs `title`/`text`/`url` as a form to `/api/clip`.
 - `POST /api/rename` body `{ path, toPath }` → `{ ok: true }` (also rewrites `[[wikilinks]]` in other notes that pointed at the old name)
+- `POST /api/attachment/rename` body `{ path, toPath }` → `{ ok: true, rewritten }` — rename an ATTACHMENT (never a note: 400) and rewrite every note that embeds it (`notesReferencing`): basename `![[old.png|300]]` / `[[old.png]]` only where that spelling resolved to THIS file before the rename, path-form `![[media/old.png]]` kept a path, relative `![](…)` destinations re-resolved (`moveLinks.rewriteAttachmentRename`); widths and `#page=` anchors ride along. 404 missing, 409 taken; the pocket answers 501. The tree's Rename on an attachment row and an embed's "Rename…" both land here through `move.ts renameTo`.
 - `POST /api/alias` body `{ path, alias }` → `{ ok: true, path, alias }` (admin-only; merges one name into the note's `aliases:`, preserving every other byte — the write behind "keep the old title" after a rename)
 - `DELETE /api/note?path=&permanent=<bool>` → `{ ok: true, trashPath?: string }` (default MOVES to `.trash/`; see "Note deletion")
 - `DELETE /api/attachment?path=&permanent=<bool>` → `{ ok: true, trashPath?: string }` (non-`.md` only; same two speeds — see "Attachment deletion")
@@ -592,8 +593,8 @@ ends becomes a per-note `renamed`; anything hidden at its new address leaves as 
   save landing after the move would recreate the old path as a ghost. A failure toasts the
   server's CODE translated, never `err.message`.
 - **Attachments are not individually draggable**: `/api/rename` and `/api/folder/move` are note and
-  folder routes, so an image travels only inside a folder that moves. The row menu follows the same
-  rule the Rename row already did.
+  folder routes, so an image travels only inside a folder that moves. They can be RENAMED where they
+  stand (`/api/attachment/rename`, which rewrites their embeds); Move to… stays off their rows.
 
 ### Files dragged in from the desktop
 
@@ -846,9 +847,10 @@ what carries the escalation, and it is safety, not styling: the danger button is
 and the button is **not pre-focused** — a `grave` dialog opens on Cancel and answers Enter only
 from the danger button itself. Saying "permanently" twice does nothing if both dialogs are
 pixel-identical gold-outlined buttons that Enter confirms; the one that erases 1,214 notes from
-disk must never be one stray keypress away. `Rename` is offered on NOTE rows only — `/api/rename`
-is a note route and 400s on a folder or an attachment — so every menu holds only actions that
-work. The DELETE verb, by contrast, is now offered on all three kinds, each pointing at its own
+disk must never be one stray keypress away. `Rename` is offered on every row that has a route for
+it — a note (`/api/rename`), a folder (`/api/folder/move`) and an attachment
+(`/api/attachment/rename`, extension kept when the reader types a bare name) — so every menu holds
+only actions that work. The DELETE verb, by contrast, is now offered on all three kinds, each pointing at its own
 route: *Delete* on a note, *Delete file* on an attachment (see "Attachment deletion"), *Delete
 folder* on a folder, never on the root row.
 
