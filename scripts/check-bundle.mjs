@@ -1635,7 +1635,10 @@ const FORBIDDEN = [
   // build that shipped the panel, which is a rule that gets deleted rather
   // than obeyed. The colour helpers the two share live apart precisely so
   // LocalGraph can be reached without dragging the simulation behind it.
-  { label: "the graph engine", test: (k) => /components\/GraphView\.tsx$/.test(k) },
+  // The engine itself (createSim) lives in client/graph/sim.ts since the
+  // sweep's split, reached only through GraphView; a shared chunk keyed by it
+  // in a first paint is the same leak by a second door.
+  { label: "the graph engine", test: (k) => /components\/GraphView\.tsx$/.test(k) || /graph\/sim\.ts$/.test(k) },
   { label: "CodeMirror core", test: (k) => /@codemirror\/(view|state|language)\//.test(k) },
   { label: "a CodeMirror language grammar", test: (k) => /@lezer\/|@codemirror\/(lang-|legacy-modes)/.test(k) },
   // pdf.js is the heaviest dependency in the tree by a wide margin — ~1.1 MB
