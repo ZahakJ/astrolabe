@@ -6,3 +6,7 @@ export const ACTION_SHEET = "actions";
 export const MOVE_SHEET = "move";
 export const NOTE_SHEET = "note";
 export const CONFIRM_SHEET = "confirm";
+/** The tag picker (./TagPickerSheet.tsx): a note's tags, or every tag to browse. */
+export const TAG_SHEET = "tags";
+/** A list to pick from (./ListSheet.tsx): a book's contents. */
+export const LIST_SHEET = "list";

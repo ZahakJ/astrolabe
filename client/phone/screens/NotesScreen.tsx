@@ -8,18 +8,27 @@
 // the reader's pinned rows first and the vault's tags as one chip row, not
 // half the screen.
 //
+// A folder's pictures, recordings and films come after its notes as a FILES
+// section — the first sixty, then a count — and a tap opens the desktop's
+// attachment viewer, which on a phone takes a history entry like every other
+// layer (client/overlays.ts), so Back closes it. The chip row ends in "All
+// tags", which opens the tag picker (../TagPickerSheet.tsx) to browse them
+// all. And a folder comes back scrolled to where it was left (nav.ts).
+//
 // A long press on a row is its menu (rename, move, pin, publish, delete) as
 // an action sheet — the same verbs the desktop's row menu offers, through the
 // same flows (client/move.ts, components/deleteFlow.ts), so a rename on the
 // phone rewrites the same wikilinks and offers the same undo.
 
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { TagCount, TreeNode } from "../../../shared/types.ts";
 import { isDrawingPath, isNotePath, noteLabelOf } from "../../../shared/noteFormat.ts";
 import { getTags } from "../../api.ts";
+import { isViewable } from "../../components/AttachmentViewer.tsx";
+import { lazySurface } from "../../lazySurface.tsx";
 import { confirmDeleteFolder, confirmDeleteNote } from "../../components/deleteFlow.ts";
 import { promptModal } from "../../components/Confirm.tsx";
-import { countPhrase, localeNum, t } from "../../i18n.ts";
+import { countPhrase, localeNum, t, tf } from "../../i18n.ts";
 import { checkName, itemOf, parentDir, renameTo } from "../../move.ts";
 import { promptNewFolder, promptNewNote } from "../../prompts.ts";
 import { useStore } from "../../state.ts";
@@ -27,12 +36,18 @@ import { findNode, orderChildren, readTreeOrder, togglePinned, writeTreeOrder, t
 import { isBookPath } from "../../workspace.ts";
 import { useActionSheet, type ActionRow } from "../ActionSheet.tsx";
 import { usePhone } from "../context.ts";
-import { IconBook, IconChevron, IconFile, IconFolder, IconPlus, IconSort } from "../icons.tsx";
-import { MOVE_SHEET } from "../sheetIds.ts";
+import { IconBook, IconChevron, IconFile, IconFolder, IconImage, IconPlus, IconSort } from "../icons.tsx";
+import { MOVE_SHEET, TAG_SHEET } from "../sheetIds.ts";
+import { useScrollMemory } from "../useScrollMemory.ts";
 import { publishWithConfirmation } from "../publish.ts";
 import type { Screen } from "../nav.ts";
 import TopBar from "../TopBar.tsx";
 import { useLongPress } from "../useLongPress.ts";
+
+const AttachmentViewer = lazySurface(() => import("../../components/AttachmentViewer.tsx"));
+
+/** A folder's files, shown after its notes: this many, then a count. */
+const FILES_SHOWN = 60;
 
 /** What a row opens: a folder pushes a list, a note or a book a screen. */
 export function screenForNode(node: TreeNode): Screen | null {
@@ -182,6 +197,9 @@ export default function NotesScreen({ path, onBack }: { path: string; onBack?: (
   }, [path, tree]);
 
   const listRef = useRef<HTMLDivElement | null>(null);
+  useScrollMemory(listRef);
+  const files = useMemo(() => (node?.children ?? []).filter((c) => c.type === "file" && isViewable(c)), [node]);
+  const [viewer, setViewer] = useState<number | null>(null);
   const open = (n: TreeNode): void => {
     const screen = screenForNode(n);
     if (screen) phone.open(screen);
@@ -240,6 +258,9 @@ export default function NotesScreen({ path, onBack }: { path: string; onBack?: (
                 <span className="s-ph-chip__n">{localeNum(tag.count)}</span>
               </button>
             ))}
+            <button type="button" role="listitem" className="s-ph-chip s-ph-chip--all" data-chip="all-tags" onClick={() => phone.openSheet(TAG_SHEET, { mode: "browse" })}>
+              {t("phAllTags")}
+            </button>
           </div>
         )}
         {pinnedNodes.length > 0 && (
@@ -264,10 +285,38 @@ export default function NotesScreen({ path, onBack }: { path: string; onBack?: (
                 <Row key={n.path} node={n} onOpen={open} onMenu={menu} />
               ))}
             </ul>
+            {files.length > 0 && (
+              <section aria-label={t("phFiles")}>
+                <h2 className="s-ph-head">
+                  {t("phFiles")}
+                  <span className="s-ph-head__count">{localeNum(files.length)}</span>
+                </h2>
+                <ul className="s-ph-list">
+                  {files.slice(0, FILES_SHOWN).map((f, i) => (
+                    <li key={f.path}>
+                      <button type="button" className="s-ph-row" data-path={f.path} onClick={() => setViewer(i)}>
+                        <span className="s-ph-row__glyph" aria-hidden="true">
+                          <IconImage />
+                        </span>
+                        <bdi className="s-ph-row__name" dir="auto">
+                          {f.name}
+                        </bdi>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {files.length > FILES_SHOWN && <p className="s-ph-foot">{tf("phMoreFiles", { n: localeNum(files.length - FILES_SHOWN) })}</p>}
+              </section>
+            )}
             <p className="s-ph-foot">{countPhrase(countNotes(node), "notes")}</p>
           </>
         )}
       </div>
+      {viewer !== null && files[viewer] && (
+        <Suspense fallback={null}>
+          <AttachmentViewer items={files} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} />
+        </Suspense>
+      )}
     </div>
   );
 }

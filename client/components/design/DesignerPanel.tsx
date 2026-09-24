@@ -115,6 +115,7 @@ import { usePreviewBuild } from "../../design/previewContent.tsx";
 import PresetGallery, { closePresetDetail, isPresetDetailOpen, loadPresets } from "./PresetGallery.tsx";
 import { presetExport, type Preset } from "../../../shared/presets.ts";
 import type { PostMeta } from "../../../shared/types.ts";
+import { announceOverlay } from "../../overlays.ts";
 
 type Tab = "designs" | "presets" | "sections" | "nav" | "pages" | "type" | "chrome" | "file";
 
@@ -2078,6 +2079,8 @@ export function isDesignerOpen(): boolean {
 
 export function closeDesigner(): void {
   if (!root || !host) return;
+  leaveOverlay?.();
+  leaveOverlay = null;
   const [r, h] = [root, host];
   root = null;
   host = null;
@@ -2089,8 +2092,13 @@ export function closeDesigner(): void {
   }, 0);
 }
 
+/** The phone shell's handle on this layer (client/overlays.ts). Back is the
+ *  panel's own Escape, so a design with unsaved edits asks before it goes. */
+let leaveOverlay: (() => void) | null = null;
+
 export function openDesigner(): void {
   if (host) return;
+  leaveOverlay = announceOverlay("designer", () => window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })));
   host = document.createElement("div");
   host.className = "s-dsgr-host";
   document.body.appendChild(host);

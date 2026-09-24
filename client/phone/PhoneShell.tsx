@@ -22,6 +22,16 @@
 //     and never persisted (state.ts `setPhoneShellMode`), so a desktop's
 //     eleven tabs survive a morning on the phone.
 //
+// ROUND 2 (3.27.0): EVERY SURFACE HAS A PHONE SHAPE. Orbits, Sigils and the
+// Media page are lists that push a detail (./screens/OrbitsScreen.tsx and its
+// siblings), a study session and a book take the whole glass with chrome of
+// their own, Settings is a list of sections each pushed as a screen with its
+// own Save, and only the graph and a drawing are still drawn by the pane's
+// switch under a top bar (./screens/SurfaceScreen.tsx). Every layer that
+// mounts itself on <body> — the theme picker, the designer, the what's-new
+// deck, the tour, the attachment viewer — announces itself
+// (client/overlays.ts) and takes a history entry, so Back closes it.
+//
 // THE STORE AND THE STACK ARE KEPT IN STEP IN BOTH DIRECTIONS, and neither
 // direction is allowed to echo. A tap on a row pushes a screen and opens its
 // content in the store; a wikilink, a palette command, a calendar day or the
@@ -38,6 +48,8 @@ import { useOffline } from "../offline.ts";
 import OfflineStrip from "../components/OfflineStrip.tsx";
 import PreviewBanner from "../components/PreviewBanner.tsx";
 import TemplatePicker from "../components/TemplatePicker.tsx";
+import { confirmModal } from "../components/Confirm.tsx";
+import { overlaysUp, subscribeOverlays, type Overlay } from "../overlays.ts";
 import { applyUrl, notePathToUrl, orbitsUrl } from "../router.ts";
 import { urlForBooksRoute } from "../books/door.ts";
 import { useShellRuntime } from "../shellRuntime.ts";
@@ -51,17 +63,21 @@ import {
   isOrbitsTab,
   isReviewWeekTab,
   isRoutinesTab,
+  MEDIA_TAB,
   orbitsSessionOf,
+  ORBITS_TAB,
   paneAt,
+  ROUTINES_TAB,
   surfaceOf,
   type Workspace,
 } from "../workspace.ts";
 import ActionSheet from "./ActionSheet.tsx";
-import { ACTION_SHEET, MOVE_SHEET, NOTE_SHEET } from "./sheetIds.ts";
+import { ACTION_SHEET, LIST_SHEET, MOVE_SHEET, NOTE_SHEET, TAG_SHEET } from "./sheetIds.ts";
 import ConfirmSheetHost from "./ConfirmSheet.tsx";
-import { PhoneContext, type PhoneApi, type SheetData } from "./context.ts";
+import { PhoneContext, type LeaveGuard, type OpenHow, type PhoneApi, type SheetData } from "./context.ts";
+import { contentOf, isDetail, isFull, isList } from "./kinds.ts";
 import { hardwareKeyboardSeen, installHardwareKeyboardWatch, subscribeHardwareKeyboard } from "./hardwareKeyboard.ts";
-import { createNav, sameScreen, topOf, type Nav, type NavCause, type NavState, type Screen, type TabId } from "./nav.ts";
+import { createNav, sameScreen, screenKey, topOf, type Nav, type NavCause, type NavState, type Screen, type TabId } from "./nav.ts";
 import TabBar from "./TabBar.tsx";
 import { screenTitle } from "./titles.ts";
 import "./phone.css";
@@ -74,6 +90,22 @@ const MoreScreen = lazySurface(() => import("./screens/MoreScreen.tsx"));
 const TagScreen = lazySurface(() => import("./screens/TagScreen.tsx"));
 const NoteScreen = lazySurface(() => import("./screens/NoteScreen.tsx"));
 const SurfaceScreen = lazySurface(() => import("./screens/SurfaceScreen.tsx"));
+// Round 2's own screens. Each its own chunk: a reader who never opens the
+// decks never downloads them, and none of them is in the first paint.
+const SettingsScreen = lazySurface(() => import("./screens/SettingsScreen.tsx"));
+const SettingsSectionScreen = lazySurface(() => import("./screens/SettingsSectionScreen.tsx"));
+const OrbitsScreen = lazySurface(() => import("./screens/OrbitsScreen.tsx"));
+const DeckScreen = lazySurface(() => import("./screens/DeckScreen.tsx"));
+const SessionScreen = lazySurface(() => import("./screens/SessionScreen.tsx"));
+const SigilsScreen = lazySurface(() => import("./screens/SigilsScreen.tsx"));
+const SigilScreen = lazySurface(() => import("./screens/SigilScreen.tsx"));
+const MediaScreen = lazySurface(() => import("./screens/MediaScreen.tsx"));
+const TrackerScreen = lazySurface(() => import("./screens/TrackerScreen.tsx"));
+const LibraryScreen = lazySurface(() => import("./screens/LibraryScreen.tsx"));
+const ReaderScreen = lazySurface(() => import("./screens/ReaderScreen.tsx"));
+const ReviewScreen = lazySurface(() => import("./screens/ReviewScreen.tsx"));
+const TagPickerSheet = lazySurface(() => import("./TagPickerSheet.tsx"));
+const ListSheet = lazySurface(() => import("./ListSheet.tsx"));
 // The note sheet and the move sheet reach the outline, the section surgery,
 // the twins and the move rules: a first paint that has opened no note has no
 // business carrying them (check-bundle's phone audience).
@@ -82,9 +114,10 @@ const MoveSheet = lazySurface(() => import("./MoveSheet.tsx"));
 
 // The store's own modal surfaces, as the desktop mounts them (App.tsx), each
 // behind its flag. On a phone they are LAYERS: each takes a history entry, so
-// Back closes it the way its own ✕ does.
+// Back closes it the way its own ✕ does. Settings is not among them any more:
+// on a phone it is a list of pushed screens (./screens/SettingsScreen.tsx),
+// and `settingsOpen` rising is answered by pushing it.
 const CommandPalette = lazySurface(() => import("../components/CommandPalette.tsx"));
-const SettingsModal = lazySurface(() => import("../components/SettingsModal.tsx"));
 const TrashModal = lazySurface(() => import("../components/TrashModal.tsx"));
 const CaptureSheet = lazySurface(() => import("../components/CaptureSheet.tsx"));
 const AskPanel = lazySurface(() => import("../components/AskPanel.tsx"));
@@ -103,7 +136,6 @@ interface Layer {
 }
 
 const LAYERS: Layer[] = [
-  { id: "settings", up: (s) => s.settingsOpen, down: (s) => s.setSettingsOpen(false) },
   { id: "trash", up: (s) => s.trashOpen, down: (s) => s.setTrashOpen(false) },
   { id: "palette", up: (s) => s.paletteOpen, down: (s) => s.setPaletteOpen(false) },
   { id: "capture", up: (s) => s.captureOpen, down: (s) => s.setCaptureOpen(false) },
@@ -115,9 +147,10 @@ const LAYERS: Layer[] = [
   { id: "unused", up: (s) => s.unusedOpen, down: (s) => s.setUnusedOpen(false) },
 ];
 const layerSheet = (id: string): string => `layer:${id}`;
+const overlaySheet = (id: string): string => `overlay:${id}`;
 
 /** Sheets this shell draws itself, which need their data to draw. */
-const DATA_SHEETS = new Set([ACTION_SHEET, MOVE_SHEET]);
+const DATA_SHEETS = new Set([ACTION_SHEET, MOVE_SHEET, TAG_SHEET, LIST_SHEET]);
 /** How long a leaving sheet stays mounted for its exit. */
 const LEAVE_MS = 240;
 
@@ -151,10 +184,6 @@ function contentKey(ws: Workspace): string {
   return activeTabOf(pane)?.path ?? "";
 }
 
-function isDetail(s: Screen): boolean {
-  return s.kind === "note" || s.kind === "surface";
-}
-
 /** The address a screen shows. Lists have none of their own; a note, a book
  *  and every surface keep the permalink the desktop gives them. */
 export function urlForScreen(screen: Screen, tab: TabId): string | null {
@@ -177,6 +206,16 @@ export function urlForScreen(screen: Screen, tab: TabId): string | null {
     }
     case "root":
       return tab === "calendar" ? "/calendar" : "/";
+    case "deck":
+      return orbitsUrl(null, null);
+    case "sigil":
+      return "/sigils";
+    case "tracker":
+      return "/media";
+    case "settings":
+      // Settings has no address of its own on either shell; the bar keeps
+      // whatever it showed, as a list does.
+      return null;
     default:
       return "/";
   }
@@ -191,6 +230,16 @@ function applyScreen(screen: Screen): void {
   if (screen.kind === "note") {
     if (library) s.closeLibrary();
     if (here !== screen.path || library) s.openNote(screen.path);
+    return;
+  }
+  if (screen.kind === "deck" || screen.kind === "sigil" || screen.kind === "tracker") {
+    // A detail over one of the three pages keeps the store on that page, so
+    // what the store says is showing and what is on the glass agree.
+    const page = screen.kind === "deck" ? ORBITS_TAB : screen.kind === "sigil" ? ROUTINES_TAB : MEDIA_TAB;
+    if (here === page && !library) return;
+    if (library) s.closeLibrary();
+    if (screen.kind === "deck") s.openOrbits(null);
+    else s.setView(screen.kind === "sigil" ? "routines" : "media");
     return;
   }
   if (screen.kind !== "surface") return;
@@ -279,7 +328,6 @@ export default function PhoneShell() {
   const previewVisitor = useStore((s) => s.previewVisitor);
   const offline = useOffline();
   const flags = {
-    settings: useStore((s) => s.settingsOpen),
     trash: useStore((s) => s.trashOpen),
     palette: useStore((s) => s.paletteOpen),
     capture: useStore((s) => s.captureOpen),
@@ -300,6 +348,12 @@ export default function PhoneShell() {
   const applying = useRef(false);
   const shownLayers = useRef(new Set<string>());
   const navRef = useRef<Nav | null>(null);
+  /** The one screen that may refuse to be left (a Settings section with
+   *  unsaved edits), and whether a question about it is already on screen. */
+  const guardRef = useRef<(LeaveGuard & { key: string; released: boolean }) | null>(null);
+  const asking = useRef(false);
+  /** Layers on <body> that took an entry (client/overlays.ts). */
+  const shownOverlays = useRef(new Map<string, Overlay>());
   const prevSheets = useRef<string[]>([]);
   const appRef = useRef<HTMLDivElement | null>(null);
 
@@ -309,6 +363,27 @@ export default function PhoneShell() {
       history: window.history,
       urlFor: urlForScreen,
       onChange: (st, why) => onNavChangeRef.current(st, why),
+      // The list a push leaves: the stage's scroller on a phone, the list
+      // column's on a tablet (where the list stays mounted anyway).
+      scrollOf: () => document.querySelector<HTMLElement>(".s-ph-stage .s-ph-scroll")?.scrollTop ?? null,
+      canLeave: (from, to) => {
+        const g = guardRef.current;
+        if (g === null || g.released || !g.dirty()) return true;
+        if (screenKey(topOf(from)) !== g.key) return true;
+        return screenKey(topOf(to)) === g.key && from.tab === to.tab;
+      },
+      onBlocked: (proceed) => {
+        const g = guardRef.current;
+        if (g === null || asking.current) return;
+        asking.current = true;
+        void confirmModal({ title: t("closeUnsavedTitle"), body: t("closeUnsavedBody"), confirmLabel: t("discardChanges") }).then((ok) => {
+          asking.current = false;
+          if (!ok) return;
+          g.released = true;
+          g.discard();
+          proceed();
+        });
+      },
     });
   }
   const nav = navRef.current;
@@ -340,9 +415,22 @@ export default function PhoneShell() {
     // A data sheet restored by Forward, with nothing to draw: step over it.
     const inner = st.sheets[st.sheets.length - 1];
     if (inner !== undefined && DATA_SHEETS.has(inner) && !sheetData.current.has(inner)) nav.closeSheet(inner);
+    // An overlay whose entry went (Back): close it the way its own ✕ does.
+    // One that stays up (the designer asking about an unsaved design) takes
+    // its entry back.
+    for (const [id, overlay] of [...shownOverlays.current]) {
+      if (st.sheets.includes(overlaySheet(id))) continue;
+      shownOverlays.current.delete(id);
+      overlay.close();
+      window.setTimeout(() => {
+        if (overlaysUp().some((o) => o === overlay) && !nav.state().sheets.includes(overlaySheet(id))) {
+          shownOverlays.current.set(id, overlay);
+          nav.openSheet(overlaySheet(id));
+        }
+      }, 60);
+    }
     // A layer whose entry went (Back): let it close ITSELF, the way its own
-    // Escape does — Settings asks before discarding an edit, and a layer that
-    // decides to stay takes its entry back.
+    // Escape does, and close it outright if it is still up after that.
     const s = useStore.getState();
     for (const layer of LAYERS) {
       const id = layerSheet(layer.id);
@@ -357,25 +445,25 @@ export default function PhoneShell() {
       window.setTimeout(() => {
         const now = useStore.getState();
         if (!layer.up(now)) return;
-        // Still up after its own Escape: a question is being asked, or the
-        // layer ignores Escape. Close the ones that do not guard anything;
-        // give a guarding one (Settings) its entry back.
-        if (layer.id === "settings") nav.openSheet(id);
-        else layer.down(now);
+        // Still up after its own Escape: the layer ignores Escape. Close it.
+        layer.down(now);
       }, 60);
     }
   };
 
   // ── the api every screen reaches ─────────────────────────────────────────
   const api = useMemo<PhoneApi>(() => {
-    const open = (screen: Screen): void => {
+    const open = (screen: Screen, how: OpenHow = "auto"): void => {
       const st = nav.state();
       if (st.sheets.length > 0) {
         nav.navigateFromSheet(screen);
         return;
       }
       const top = topOf(st);
-      if (tablet && isDetail(screen) && isDetail(top)) nav.replaceTop(screen);
+      // On a tablet a detail picked from the list REPLACES the detail beside
+      // it — unless it is a step deeper into it (a deck's session, a
+      // section's row), which is asked for with `push`.
+      if (how === "auto" && tablet && isDetail(screen) && isDetail(top) && !isFull(screen)) nav.replaceTop(screen);
       else nav.push(screen);
     };
     return {
@@ -391,6 +479,13 @@ export default function PhoneShell() {
       },
       closeSheet: (id) => nav.closeSheet(id),
       sheetData: (id) => sheetData.current.get(id),
+      setGuard: (key, guard) => {
+        if (guard === null) {
+          if (guardRef.current?.key === key) guardRef.current = null;
+          return;
+        }
+        guardRef.current = { ...guard, key, released: false };
+      },
     };
   }, [nav, navState, tablet, keyboard]);
   const apiRef = useRef(api);
@@ -441,6 +536,16 @@ export default function PhoneShell() {
         nav.remap(s.lastRemap.from, s.lastRemap.to);
         return;
       }
+      // SETTINGS IS A SCREEN HERE. Forty call sites raise the desktop's
+      // dialog (`setSettingsOpen`, `openSettingsAt`); on a phone that flag is
+      // answered by pushing the Settings list — which carries the row asked
+      // for (`settingsFocus`) on to its section — and lowered at once.
+      if (s.settingsOpen && !prev.settingsOpen) {
+        useStore.setState({ settingsOpen: false });
+        const top = topOf(nav.state());
+        if (!(top.kind === "settings" && top.section === "" && s.settingsFocus === null)) apiRef.current.open({ kind: "settings", section: "" }, "push");
+        return;
+      }
       // Layers first: a flag that rose takes an entry; one that fell by its
       // own ✕ gives its entry back.
       for (const layer of LAYERS) {
@@ -466,6 +571,20 @@ export default function PhoneShell() {
         return;
       }
       if (sameScreen(top, target)) return;
+      // A surface that closed ITSELF back to a page the stack already holds
+      // (a session's "back to the shelf" reopens the decks): go back down to
+      // the screen showing that page — the deck it was started from — rather
+      // than pushing a second copy of the page on top.
+      const want = target.kind === "surface" ? target.tab : target.kind === "note" ? target.path : null;
+      if (want !== null) {
+        const stack = nav.state().stacks[nav.state().tab];
+        for (let i = stack.length - 2; i >= 0; i -= 1) {
+          if (contentOf(stack[i]) === want) {
+            if (nav.popTo(stack[i])) return;
+            break;
+          }
+        }
+      }
       apiRef.current.open(target);
     });
     // Installed once the stack has started; `navState` flips from null once.
@@ -491,6 +610,26 @@ export default function PhoneShell() {
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [nav]);
+
+  // ── layers on <body> → the stack (client/overlays.ts) ────────────────────
+  useEffect(() => {
+    if (navState === null) return;
+    return subscribeOverlays((up) => {
+      const ids = new Set(up.map((o) => o.id));
+      for (const o of up) {
+        if (shownOverlays.current.get(o.id) === o) continue;
+        shownOverlays.current.set(o.id, o);
+        nav.openSheet(overlaySheet(o.id));
+      }
+      for (const id of [...shownOverlays.current.keys()]) {
+        if (ids.has(id)) continue;
+        // Closed by its own hand: give its entry back.
+        shownOverlays.current.delete(id);
+        if (nav.state().sheets.includes(overlaySheet(id))) nav.closeSheet(overlaySheet(id));
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navState === null, nav]);
 
   // ── the keyboard ─────────────────────────────────────────────────────────
   useEffect(() => installHardwareKeyboardWatch(), []);
@@ -519,8 +658,8 @@ export default function PhoneShell() {
   const top = stack[stack.length - 1];
   const back = (): void => nav.back();
 
-  const render = (screen: Screen, withBack: boolean): ReactNode => {
-    const onBack = withBack ? back : undefined;
+  const render = (screen: Screen, withBack: boolean, backOverride?: () => void): ReactNode => {
+    const onBack = backOverride ?? (withBack ? back : undefined);
     switch (screen.kind) {
       case "root":
         switch (screen.tab) {
@@ -542,8 +681,24 @@ export default function PhoneShell() {
         return <TagScreen key={screen.tag} tag={screen.tag} onBack={back} />;
       case "note":
         return <NoteScreen key={screen.path} path={screen.path} onBack={back} />;
-      case "surface":
-        return <SurfaceScreen key={screen.tab} tab={screen.tab} onBack={back} />;
+      case "surface": {
+        const tab = screen.tab;
+        if (isOrbitsTab(tab)) return orbitsSessionOf(tab) === null ? <OrbitsScreen onBack={onBack} /> : <SessionScreen key={tab} tab={tab} onBack={back} />;
+        if (isRoutinesTab(tab)) return <SigilsScreen onBack={onBack} />;
+        if (isMediaTab(tab)) return <MediaScreen onBack={onBack} />;
+        if (tab === "~library") return <LibraryScreen onBack={onBack} />;
+        if (isBookPath(tab)) return <ReaderScreen key={tab} tab={tab} onBack={back} />;
+        if (isReviewWeekTab(tab)) return <ReviewScreen onBack={back} />;
+        return <SurfaceScreen key={tab} tab={tab} onBack={back} />;
+      }
+      case "settings":
+        return screen.section === "" ? <SettingsScreen onBack={onBack} /> : <SettingsSectionScreen key={screen.section} section={screen.section} onBack={back} />;
+      case "deck":
+        return <DeckScreen key={screen.path} path={screen.path} onBack={back} />;
+      case "sigil":
+        return <SigilScreen key={`${screen.path}#${screen.index}`} path={screen.path} index={screen.index} onBack={back} />;
+      case "tracker":
+        return <TrackerScreen key={`${screen.path}#${screen.index}`} path={screen.path} index={screen.index} onBack={back} />;
     }
   };
 
@@ -562,16 +717,28 @@ export default function PhoneShell() {
     body = <Loading />;
   } else if (tablet) {
     // Two columns: the deepest list of this tab's stack, and what it opened.
+    // A full screen (a session, a book) takes both.
     let listAt = stack.length - 1;
     while (listAt > 0 && isDetail(stack[listAt])) listAt -= 1;
     const list = stack[listAt];
     const detail = isDetail(top) ? top : null;
-    const wide = list.kind === "root" && list.tab === "calendar" && detail === null;
+    const full = detail !== null && isFull(detail);
+    const wide = full || (list.kind === "root" && list.tab === "calendar" && detail === null);
+    // The list keeps its ‹ while a note is open beside it: the way back up
+    // the tree is the list's, not the note's (the note's own ‹ closes the
+    // note). Its Back pops to the list's parent, whatever is open beside it.
+    const listBack = listAt > 0 ? () => nav.popTo(stack[listAt - 1]) || nav.back() : undefined;
     body = (
-      <div className={`s-ph-cols${wide ? " s-ph-cols--wide" : ""}`}>
+      <div className={`s-ph-cols${wide ? " s-ph-cols--wide" : ""}${full ? " s-ph-cols--full" : ""}`}>
+        {full ? (
+          <div className="s-ph-cols__detail">
+            <Suspense fallback={<Loading />}>{render(detail, true)}</Suspense>
+          </div>
+        ) : (
         <div className="s-ph-cols__list">
-          <Suspense fallback={<Loading />}>{render(list, listAt > 0 && detail === null)}</Suspense>
+          <Suspense fallback={<Loading />}>{render(list, false, listBack)}</Suspense>
         </div>
+        )}
         {!wide && (
           <div className="s-ph-cols__detail">
             {detail ? (
@@ -595,7 +762,7 @@ export default function PhoneShell() {
     );
   }
 
-  const barShown = !tablet && !!top && !isDetail(top) && !zen && !locked;
+  const barShown = !tablet && !!top && isList(top) && !zen && !locked;
   const sheetIds = [...(st?.sheets ?? []), ...leaving.filter((id) => !(st?.sheets ?? []).includes(id))];
   const layerUp = (id: keyof typeof flags): boolean => flags[id];
 
@@ -631,6 +798,18 @@ export default function PhoneShell() {
                   <NoteSheet leaving={out} />
                 </Suspense>
               );
+            if (id === TAG_SHEET)
+              return (
+                <Suspense key={id} fallback={null}>
+                  <TagPickerSheet leaving={out} />
+                </Suspense>
+              );
+            if (id === LIST_SHEET)
+              return (
+                <Suspense key={id} fallback={null}>
+                  <ListSheet leaving={out} />
+                </Suspense>
+              );
             return null;
           })}
           <ConfirmSheetHost />
@@ -639,11 +818,6 @@ export default function PhoneShell() {
         {layerUp("palette") && (
           <Suspense fallback={null}>
             <CommandPalette />
-          </Suspense>
-        )}
-        {layerUp("settings") && admin && (
-          <Suspense fallback={null}>
-            <SettingsModal />
           </Suspense>
         )}
         {layerUp("trash") && admin && (

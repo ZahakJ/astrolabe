@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDialog } from "../a11y.ts";
+import { announceOverlay } from "../overlays.ts";
 import type { AttachmentKind, TreeNode } from "../../shared/types.ts";
 import { getNumerals, localeNum, t } from "../i18n.ts";
 import { metaSepText } from "../metaSep.tsx";
@@ -120,6 +121,12 @@ export default function AttachmentViewer({ items, index, onIndex, onClose }: Pro
   // itself because the arrows are its main control and they are read there;
   // Escape and ←/→ stay with the capture listener below.
   useDialog(panelRef, { initialFocus: () => panelRef.current });
+
+  // A layer on <body>, so it says so (client/overlays.ts): on a phone Back
+  // closes it the way its ✕ does, instead of walking past it.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => announceOverlay("attachment", () => closeRef.current()), []);
 
   // Neighbors are prefetched so arrowing through a folder of scans does not
   // flash an empty frame between them. Images only — no one wants a video

@@ -52,7 +52,8 @@ import type { BookOpenResponse, EpubHit, EpubManifest } from "../../shared/types
 import { localDay } from "../../shared/weekReview.ts";
 import { scrollBehavior } from "../a11y.ts";
 import { beaconBookState, openBookByPath, saveBookState } from "../books/api.ts";
-import { HelpSheet, OutlinePanel, SearchLine, type HelpRow, type OutlineRow } from "../books/chrome.tsx";
+import { HelpSheet, OutlinePanel, PhoneBar, PhoneZoom, SearchLine, type HelpRow, type OutlineRow, type PhoneReaderHost } from "../books/chrome.tsx";
+import { announceOverlay } from "../overlays.ts";
 import { clearStash, logSession, readStash, writeStash } from "../books/session.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { shortcutKey } from "../keys.ts";
@@ -148,6 +149,9 @@ interface Props {
   onLibrary(): void;
   zen?: boolean;
   onZen?(): void;
+  /** On a phone: one bar of the reader's own, a chapter scrubber, and the
+   *  verbs in the phone's action sheet (client/books/chrome.tsx PhoneBar). */
+  phone?: PhoneReaderHost;
 }
 
 /** The contents, flattened for the shared panel: one row per entry, its
@@ -167,7 +171,7 @@ function flattenToc(rows: EpubManifest["toc"], depth = 0, out: FlatToc[] = []): 
   return out;
 }
 
-export default function EpubReader({ path, place = null, active = true, onLanded, onClose, onLibrary, zen = false, onZen }: Props) {
+export default function EpubReader({ path, place = null, active = true, onLanded, onClose, onLibrary, zen = false, onZen, phone }: Props) {
   const [entry, setEntry] = useState<BookOpenResponse | null>(null);
   const [manifest, setManifest] = useState<EpubManifest | null>(null);
   const [failed, setFailed] = useState(false);
@@ -215,6 +219,13 @@ export default function EpubReader({ path, place = null, active = true, onLanded
    *  field a PDF's scale lives in, because it is the same reader preference
    *  wearing the format's own units. */
   const scale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, state.zoom || 1));
+
+  // A panel over the page (search, contents, keys) is a layer: on a phone
+  // Back closes it before it closes the book (client/overlays.ts).
+  useEffect(() => {
+    if (overlay === "none") return;
+    return announceOverlay(`book-${overlay}`, () => setOverlay("none"));
+  }, [overlay]);
 
   // ── Open ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -883,8 +894,17 @@ export default function EpubReader({ path, place = null, active = true, onLanded
   const outlineRows: OutlineRow[] | null =
     manifest === null ? null : toc.map((row) => ({ label: row.label, depth: row.depth, current: row.href === state.chapter }));
 
+  /** A contents row, taken: the chapter, then the heading inside it. */
+  const pickRow = (at: number): void => {
+    const row = toc[at];
+    if (!row) return;
+    void goToPlace({ href: row.href, fraction: 0, query: null }).then(() => {
+      if (row.fragment !== "") scrollToFragment(boxes.current.get(row.href) ?? null, row.fragment, scrollRef.current);
+    });
+  };
+
   return (
-    <div className="s-book s-epub" onMouseMove={wake} data-chrome={chromeShown ? "on" : "off"} data-overlay={overlay}>
+    <div className="s-book s-epub" onMouseMove={wake} data-chrome={chromeShown ? "on" : "off"} data-overlay={overlay} data-phone={phone ? "on" : undefined}>
       {/* The publisher's own stylesheet, every selector confined to a chapter
           box (client/epub/scope.ts). It is a real <style> rather than inline
           attributes because a book's CSS is a cascade and inline styles are
@@ -955,6 +975,38 @@ export default function EpubReader({ path, place = null, active = true, onLanded
         </div>
       </div>
 
+      {phone ? (
+        <>
+          <PhoneBar
+            title={chapterTitle || title}
+            at={index + 1}
+            total={spine.length}
+            unit={(chapter, total) => tf("epubChapterOf", { chapter: localeNum(chapter), total: localeNum(total) })}
+            onBack={phone.onBack}
+            onScrub={(chapter) => {
+              const item = spine[chapter - 1];
+              if (item) void goToPlace({ href: item.href, fraction: 0, query: null });
+            }}
+            onMenu={() =>
+              phone.menu(title, [
+                {
+                  label: t("bookOutline"),
+                  onSelect: () => {
+                    if (outlineRows === null || outlineRows.length === 0) toast(t("bookNoOutline"));
+                    else phone.outline(t("bookOutline"), outlineRows, pickRow);
+                  },
+                },
+                { label: t("bookSearchLabel"), onSelect: () => setOverlay("search") },
+                { label: t("epubCiteAction"), onSelect: copyCitation },
+                { label: t("epubTypeReset"), note: tf("bookZoomPct", { percent: localeNum(Math.round(scale * 100)) }), onSelect: () => setScale(1) },
+                ...(sessionState !== null ? [{ label: t("bookSessionEnd"), note: sessionState.running ? formatDuration(sessionState.minutes) : t("bookSessionPaused"), onSelect: () => endSession() }] : []),
+              ])
+            }
+          />
+          <PhoneZoom onOut={() => setScale(scale / 1.15)} onIn={() => setScale(scale * 1.15)} outLabel={t("epubTypeSmaller")} inLabel={t("epubTypeBigger")} />
+        </>
+      ) : (
+      <>
       <header className="s-book__top">
         {/* The book and the chapter it is open at. TWO SPANS, because a phone
             is 390px wide and an ellipsis takes the END of a string: one span
@@ -1034,6 +1086,8 @@ export default function EpubReader({ path, place = null, active = true, onLanded
           </span>
         )}
       </footer>
+      </>
+      )}
 
       {overlay === "search" && (
         <SearchLine
@@ -1052,11 +1106,7 @@ export default function EpubReader({ path, place = null, active = true, onLanded
           rows={outlineRows}
           onPick={(at) => {
             setOverlay("none");
-            const row = toc[at];
-            if (!row) return;
-            void goToPlace({ href: row.href, fraction: 0, query: null }).then(() => {
-              if (row.fragment !== "") scrollToFragment(boxes.current.get(row.href) ?? null, row.fragment, scrollRef.current);
-            });
+            pickRow(at);
           }}
           onClose={() => setOverlay("none")}
         />
