@@ -902,6 +902,29 @@ export default function StatusBar() {
     </>
   );
 
+  /** The bottom bar's Publish (the Classic layout's, on a phone). */
+  const publishFromBar = (path: string): void => {
+    // CLASSIC ON A FINGER ASKS FIRST (3.26.1). The phone shell's
+    // Publish confirms (client/phone/publish.ts); the Classic layout
+    // it replaces put the same verb one thumb-width from the mode
+    // pill and published on contact. Same question, same words (the
+    // shell seam forbids importing the phone's module here). A mouse
+    // and Ctrl/Cmd+Shift+P still publish in one step.
+    if (!openPublished && window.matchMedia("(pointer: coarse) and (hover: none)").matches) {
+      const name = noteLabelOf(path.slice(path.lastIndexOf("/") + 1));
+      void confirmModal({
+        title: tf("phPublishAsk", { name }),
+        body: t("phPublishBody"),
+        confirmLabel: t("publish"),
+        accent: true,
+      }).then((ok) => {
+        if (ok) void togglePublish(path, true);
+      });
+      return;
+    }
+    void togglePublish(path);
+  };
+
   return (
     // A named landmark, because this <footer> is not a site footer: it is the
     // app's status strip, and "contentinfo" with no name says nothing.
@@ -1093,30 +1116,10 @@ export default function StatusBar() {
               openPublished ? " s-statusbar__pub--on" : ""
             }`}
             aria-pressed={openPublished === true}
-            onClick={() => {
-              // CLASSIC ON A FINGER ASKS FIRST (3.26.1). The phone shell's
-              // Publish confirms (client/phone/publish.ts); the Classic layout
-              // it replaces put the same verb one thumb-width from the mode
-              // pill and published on contact. Same question, same words (the
-              // shell seam forbids importing the phone's module here). A mouse
-              // and Ctrl/Cmd+Shift+P still publish in one step.
-              if (!openPublished && window.matchMedia("(pointer: coarse) and (hover: none)").matches) {
-                const name = noteLabelOf(openPath.slice(openPath.lastIndexOf("/") + 1));
-                void confirmModal({
-                  title: tf("phPublishAsk", { name }),
-                  body: t("phPublishBody"),
-                  confirmLabel: t("publish"),
-                  accent: true,
-                }).then((ok) => {
-                  if (ok) void togglePublish(openPath, true);
-                });
-                return;
-              }
-              void togglePublish(openPath);
-            }}
+            onClick={() => publishFromBar(openPath)}
             // A title is a HOVER affordance. On a finger Chrome raises it on
-            // the tap and leaves it standing ("Unpublished" stuck over the
-            // bar in the 3.24 audit); the button's own words name it.
+            // the tap and leaves it standing (Unpublished, stuck over the
+            // bar in the 3.24 audit); the words on the button name it.
             title={window.matchMedia("(hover: hover)").matches ? t(openPublished ? "unpublishTitle" : "publishTitle") : undefined}
           >
             <span className="s-statusbar__pubstar" aria-hidden="true">
