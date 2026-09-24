@@ -5,7 +5,7 @@
 // client/components/CommandPalette.tsx unchanged; that module re-exports all
 // of it, so every importer reads the same names from the same place.
 
-import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT, FURIGANA_EVENT, STRIP_TASHKEEL_EVENT, type FuriganaMode } from "../../editor/bufferBridge.ts";
+import { COPY_BLOCK_LINK_EVENT, FIND_IN_NOTE_EVENT, FURIGANA_EVENT, INSERT_EMBED_EVENT, STRIP_TASHKEEL_EVENT, type FuriganaMode } from "../../editor/bufferBridge.ts";
 import { TREE_REVEAL_EVENT } from "../Sidebar.tsx";
 import { useStore, type Theme } from "../../state.ts";
 import { askOrbits } from "../../orbits/ask.ts";
@@ -688,6 +688,15 @@ export const COMMANDS: Command[] = [
     hint: () => t("cmdInsertTableHint"),
     available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
   },
+  // THE EMBED SYNTAX, where people look for commands. The hint IS the lesson
+  // (the three spellings); the row writes `![[` at the caret and opens the
+  // popup that lists the vault's files under the same three lines.
+  {
+    id: "insert-embed",
+    label: () => t("cmdInsertEmbed"),
+    hint: () => t("cmdInsertEmbedHint"),
+    available: ({ admin, openPath, reading }) => admin && openPath !== null && !reading,
+  },
   {
     id: "table-row-above",
     label: () => t("cmdTableRowAbove"),
@@ -1035,6 +1044,10 @@ export function runPaletteCommand(command: Command): void {
     }
     case "insert-table":
       void insertTableCommand();
+      break;
+    case "insert-embed":
+      // A frame later, like find-in-note: the palette hands focus back first.
+      requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(INSERT_EMBED_EVENT)));
       break;
     case "table-row-above":
       tableCommand("rowAbove");
