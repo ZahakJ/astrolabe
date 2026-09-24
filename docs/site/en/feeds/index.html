@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feeds · Astrolabe Documentation</title>
+<meta name="description" content="Other people's writing, read here: a list of feeds kept in a note, fetched only when you say so, and the articles worth keeping written into the vault.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/feeds/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link is-current" href="../../en/feeds/">Feeds</a><a class="nav__link" href="../../en/import/">Import</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a><a class="nav__link" href="../../en/mobile/">The Android app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/calendar/">The Calendar</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The book reader</a><a class="nav__link" href="../../en/ask/">Ask the vault</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="feeds">Feeds</h1>
+<p><em>Other people&#39;s writing, read here: a list of feeds kept in a note, fetched only when you say so, and the articles worth keeping written into the vault.</em></p>
+<hr>
+<p>Feeds is the reading side of RSS. You keep a list of the blogs, journals and newsletters you follow; the server asks them for new articles on a schedule; the <strong>Feeds</strong> page lists what is unread, grouped by feed, with a reader beside it; and <strong>Keep</strong> turns an article you want into a note of your own.</p>
+<p>It is <strong>not</strong> the blog&#39;s RSS. The feed your own site publishes (<code>/feed.xml</code>, see <a href="../blog-mode/">Blog mode</a>) is the site speaking outward; Feeds is you listening. The two share nothing but a file format.</p>
+<h2 id="the-list-is-a-note"><a class="anchor" href="#the-list-is-a-note">The list is a note</a></h2>
+<p>The feeds you follow live in a note, <code>Feeds.md</code> at the vault root unless Settings → Vault → Feeds names another. Inside it, a <code>feeds</code> code block holds one address per line:</p>
+<pre><code class="language-markdown"># Feeds
+
+```feeds
+#reading
+https://example.org/feed.xml → Reading/Essays
+#essays #long-form
+https://another.example/rss
+https://a-blog.example/
+// a line starting with two slashes is a comment
+```
+</code></pre>
+<ul>
+<li><strong>An address per line.</strong> RSS 2.0, Atom and JSON Feed are all read. A blog&#39;s front page works too: the server reads the page&#39;s <code>&lt;link rel=&quot;alternate&quot;&gt;</code> and follows the feed it names, the way a browser&#39;s feed button does.</li>
+<li><strong><code>→ Folder</code></strong> (or <code>-&gt;</code>) after an address says where an article kept from that feed is filed. Without it, kept articles go to <code>Reading/</code>.</li>
+<li><strong>A line of <code>#tags</code></strong> adds those tags to the feed above it. A tag line before the first address applies to every feed in the block.</li>
+<li>The first mention of an address wins; a second is listed as a problem, not merged. A line that is not an address, a folder that cannot be used, a tag line with no feed above it: each is shown at the top of the Feeds page with its line number, and the rest of the list still works.</li>
+</ul>
+<p>Because the list is a note, it syncs, keeps its history and can be annotated like any note: write around the block as much as you like; only the block is read. If the note does not exist yet, the Feeds page offers to start it with an empty block.</p>
+<h2 id="fetching-is-yours-to-switch-on"><a class="anchor" href="#fetching-is-yours-to-switch-on">Fetching is yours to switch on</a></h2>
+<p>A new instance fetches <strong>nothing</strong>. Turn on <strong>Fetch feeds</strong> in Settings → Vault → Feeds, and the server starts asking. Turned off, no feed is asked for anything: the Feeds page still lists what was already fetched, and says why nothing new arrives.</p>
+<p>With fetching on, the server asks every feed in the list:</p>
+<ul>
+<li><strong>on git sync&#39;s schedule</strong> when <a href="../backup-and-sync/">Backup &amp; sync</a> runs on a timer (one interval for everything this instance does over the network), and <strong>every hour</strong> when it does not;</li>
+<li><strong>at once</strong> for a feed you have just added to the list;</li>
+<li><strong>whenever you press Check now</strong> on the Feeds page.</li>
+</ul>
+<p>It asks politely: each request carries the feed&#39;s last <code>ETag</code> and <code>Last-Modified</code>, so an unchanged feed costs a &quot;not modified&quot; answer and no bytes. A feed that fails (a timeout, a 404, a page that names no feed) is shown with the reason, and asked again next time.</p>
+<p>What was fetched, and which articles you have read, is kept in the server&#39;s data directory (<code>feeds.db</code>), <strong>never in the vault</strong>. A hundred articles an hour from somebody else&#39;s blog would be noise in your notes and your git history, and &quot;I read this&quot; is a fact about you on this machine. It does not travel with the vault (see <a href="../backup-and-sync/">Backup &amp; sync</a>); deleting it loses the read marks and nothing else.</p>
+<h2 id="reading"><a class="anchor" href="#reading">Reading</a></h2>
+<p>Open <strong>Feeds</strong> from the palette, from the feed icon beside the calendar at the top of the window, or at <code>/feeds</code>. Unread articles are listed by feed, newest first; pick one and it opens in the reader beside the list.</p>
+<p>The article is shown as the feed carried it, cleaned first: scripts, styles, forms and embedded frames are taken out, links open in a new tab, and images load only as you scroll to them, from their own site, sending no referrer. When the feed carries only a summary, the reader says so.</p>
+<div class="table"><table><thead><tr><th>Keys</th><th>Action</th></tr></thead><tbody><tr><td><code>j</code> / <code>k</code></td><td>The next / previous article</td></tr><tr><td><code>o</code></td><td>Open the original page in a new tab</td></tr><tr><td><code>e</code></td><td>Mark read, and go on to the next</td></tr></tbody></table></div><p>Marking an article read does not pull it out from under you: it dims in place, and is gone the next time the page loads. <strong>Mark unread</strong> puts it back.</p>
+<h2 id="keep"><a class="anchor" href="#keep">Keep</a></h2>
+<p><strong>Keep</strong> writes the article into the vault as a note, through the same converter the <a href="../capture/#the-clipper">web clipper</a> uses:</p>
+<ul>
+<li>when the feed carried the whole article, that is what is kept;</li>
+<li>when it carried only a teaser and fetching is on, the page itself is fetched and its article (not its menus and footer) is kept;</li>
+<li>when fetching is off, what the feed carried is kept.</li>
+</ul>
+<p>The note is named by the article&#39;s title, in the feed&#39;s folder (<code>Reading/</code> unless the list says otherwise); a second article with the same title becomes <code>Title (2)</code>. Its frontmatter says where it came from:</p>
+<pre><code class="language-markdown">---
+source: &quot;https://example.org/essays/marginalia&quot;
+feed: &quot;The Marginal Reader&quot;
+published: 2026-09-18
+kept: 2026-09-24
+tags: [reading, essays]
+---
+
+# Marginalia, Briefly
+</code></pre>
+<p><strong>Nothing kept is published.</strong> The note has no <code>publish:</code> key; it is private until you publish it yourself (see <a href="../publishing/">Publishing &amp; access</a>).</p>
+<p>From then on it is a note like any other: link to it, tag it, and highlight in it — a <code>==highlight==</code> you make in a kept article is a card in <a href="../orbits/">Orbits</a>&#39; implicit deck, like a highlight anywhere in the vault.</p>
+<h2 id="on-the-phone-and-in-the-pocket"><a class="anchor" href="#on-the-phone-and-in-the-pocket">On the phone and in the pocket</a></h2>
+<p>On a phone, <strong>Feeds</strong> is a row under <strong>More</strong>. The list is one row per article under its feed&#39;s name; tap one to read it, and <strong>Keep</strong>, <strong>Mark read</strong> and <strong>Open the original</strong> are in its <strong>⋯</strong> sheet. Back returns to the list.</p>
+<p>A <a href="../mobile/">pocket vault</a> fetches no feeds: a round of feeds is a server asking other servers on a timer, and the read marks live in that server&#39;s data directory. The notes you kept are notes, and a pocket vault has them like any others.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/feeds.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/capture/"><span class="pager__kicker">Previous</span><span class="pager__title">Capture</span></a><a class="pager__link pager__link--next" href="../../en/import/"><span class="pager__kicker">Next</span><span class="pager__title">Import</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#the-list-is-a-note">The list is a note</a><a class="toc__link toc__link--2" href="#fetching-is-yours-to-switch-on">Fetching is yours to switch on</a><a class="toc__link toc__link--2" href="#reading">Reading</a><a class="toc__link toc__link--2" href="#keep">Keep</a><a class="toc__link toc__link--2" href="#on-the-phone-and-in-the-pocket">On the phone and in the pocket</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

@@ -370,6 +370,45 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.28.0",
+    title: { en: "Feeds, and a way in", ar: "الخلاصات، وباب للدخول" },
+    slides: [
+      {
+        // ── Feeds and read-later, and the import wizard ───────────────────
+        title: { en: "Feeds, and a way in", ar: "الخلاصات، وباب للدخول" },
+        body: {
+          en: "Keep a list of the feeds you follow in a note, switch fetching on in Settings, and read what's new on its own page. Keep turns an article into a private note, with where it came from written at the top. The import wizard brings a Notion, Evernote or Obsidian export into a folder, shows you everything it will do first, and takes it all back with one button.",
+          ar: "احفظ قائمة الخلاصات التي تتابعها في ملاحظة، وشغّل الجلب من الإعدادات، واقرأ الجديد في صفحته الخاصة. و«احتفظ» تجعل المقالة ملاحظة خاصة، مكتوبًا في أعلاها من أين جاءت. ويُدخل معالج الاستيراد تصدير نوشن أو إيفرنوت أو أوبسيديان إلى مجلد، ويريك كل ما سيفعله أولًا، ويعيده كله بزر واحد.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round">
+    <path class="wa-draw" d="M40 40 a24 24 0 0 1 24 24"/><path class="wa-draw" d="M40 52 a12 12 0 0 1 12 12"/><circle cx="42" cy="62" r="2" fill="var(--accent)"/>
+    <path class="wa-draw" style="--i:1" d="M40 96 a24 24 0 0 1 24 24"/><path class="wa-draw" style="--i:1" d="M40 108 a12 12 0 0 1 12 12"/><circle cx="42" cy="118" r="2" fill="var(--accent)"/>
+  </g>
+  ${[0,1,2].map((i) => `<rect class="wa-drop" style="--i:${i+1}" x="${86 + i*10}" y="${44 + i*22}" width="70" height="16" rx="3" fill="var(--bg)" stroke="var(--border)"/>`).join("")}
+  <rect x="120" y="120" width="110" height="70" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+  <line x1="175" y1="122" x2="175" y2="188" stroke="var(--border)"/>
+  <rect class="wa-late" style="--i:3" x="132" y="132" width="34" height="12" rx="3" fill="var(--accent)"/>
+  <text class="wa-late" style="--i:3" x="149" y="141" text-anchor="middle" fill="var(--bg)" font-size="8" font-weight="700">${L(lang, "kept", "محفوظ")}</text>
+  <g fill="var(--text-faint)"><rect x="184" y="132" width="36" height="4" rx="2"/><rect x="184" y="142" width="30" height="4" rx="2"/><rect x="184" y="152" width="34" height="4" rx="2"/></g>
+  ${["N","E","O"].map((c,i) => `<rect x="${300 + i*56}" y="40" width="44" height="30" rx="5" fill="var(--bg)" stroke="var(--border)"/><text x="${322 + i*56}" y="60" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="700">${c}</text>`).join("")}
+  <path d="M322 70 L406 110 M378 70 L406 110 M434 70 L406 110" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="360" y="110" width="92" height="10" rx="2" fill="var(--bg-hover)" stroke="var(--border)"/>
+  <path class="wa-grow" style="--i:2" d="M372 140 h60 v36 h-60 z M372 140 v-6 h22 l6 6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+  <path class="wa-late" style="--i:4" d="M470 176 a28 28 0 0 0 0 -50" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="2 3"/>
+  <path class="wa-late" style="--i:4" d="M470 126 l-6 -5 M470 126 l6 -5" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>
+  <text x="120" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "feeds, kept", "خلاصات، محفوظة")}</text>
+  <text x="440" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "an export, in, and back", "تصدير يدخل ويعود")}</text>
+</svg>`,
+        },
+        docs: "feeds",
+      },
+    ],
+  },
+  {
     version: "3.27.0",
     title: { en: "The phone, finished", ar: "الهاتف، مكتملًا" },
     slides: [
