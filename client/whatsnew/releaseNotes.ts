@@ -370,6 +370,39 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.31.0",
+    title: { en: "Pick up an embed", ar: "التقط ما ضمّنته" },
+    slides: [
+      {
+        // ── Embeds you can pick up ─────────────────────────────────────────
+        title: { en: "Pick up an embed", ar: "التقط ما ضمّنته" },
+        body: {
+          en: "Pictures, file cards, PDF pages and drawings in a note can now be dragged — up or down the note, into a note beside it, or out onto your desktop as the file itself. Right-click one, or hold it on a phone, for one menu: copy the image, its link, its Markdown or its path; open it, find it in Files, save it, rename it everywhere it is embedded, or take it out of the note. Type /embed or ![[ to see the three ways to write one.",
+          ar: "الصور وبطاقات الملفات وصفحات PDF والرسومات في الملاحظة صارت تُسحب — صعودًا ونزولًا في الملاحظة، أو إلى ملاحظة بجانبها، أو خارجًا إلى سطح المكتب ملفًّا حقيقيًّا. انقرها بالزر الأيمن، أو أمسكها على الهاتف، لقائمة واحدة: انسخ الصورة أو رابطها أو صيغتها أو مسارها؛ افتحها، أو اعثر عليها في الملفات، أو احفظها، أو أعد تسميتها حيثما ضُمّنت، أو أزلها من الملاحظة. واكتب ‎/embed‎ أو ‎![[‎ لترى الصيغ الثلاث.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="40" y="30" width="250" height="170" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+  <g fill="var(--text-faint)"><rect x="54" y="44" width="200" height="5" rx="2"/><rect x="54" y="56" width="180" height="5" rx="2"/><rect x="54" y="68" width="210" height="5" rx="2"/></g>
+  <g class="wa-grow"><rect x="60" y="86" width="90" height="56" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/><circle cx="82" cy="106" r="8" fill="var(--accent)" opacity="0.6"/><path d="M64 138 l26 -22 l18 14 l14 -10 l26 18 z" fill="var(--accent)" opacity="0.5"/></g>
+  <path class="wa-draw" style="--i:1" d="M150 114 C 200 120, 220 150, 200 172" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <line class="wa-blink" style="--i:2" x1="54" y1="172" x2="276" y2="172" stroke="var(--accent)" stroke-width="2"/>
+  <g fill="var(--text-faint)"><rect x="54" y="154" width="190" height="5" rx="2"/><rect x="54" y="184" width="170" height="5" rx="2"/></g>
+  <g class="wa-late" style="--i:2">
+    <rect x="330" y="60" width="180" height="104" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    ${[L(lang, "Copy image", "انسخ الصورة"), L(lang, "Copy link", "انسخ الرابط"), L(lang, "Open", "افتح"), L(lang, "Rename…", "أعد التسمية…")].map((row, i) => `<text x="342" y="${82 + i * 22}" fill="var(--text)" font-size="11">${row}</text>`).join("")}
+    <rect x="336" y="${68}" width="168" height="18" rx="4" fill="var(--bg-hover)" opacity="0.7"/>
+  </g>
+  <text x="165" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "lifted, and landed", "التُقطت، وحطّت")}</text>
+</svg>`,
+        },
+        docs: "editor",
+      },
+    ],
+  },
+  {
     version: "3.30.0",
     title: { en: "Other sites, heard", ar: "مواقع أخرى تُسمَع" },
     slides: [

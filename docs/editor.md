@@ -232,16 +232,56 @@ turns it off.
   that is Settings → Languages → Spell check), and from then on a French line gets the red
   underline under its misspellings and none under its correct words.
 
+## Embeds
+
+An embed puts a file into a note: the picture itself, a card for a PDF or a zip, one page of a
+book, a player for a recording, a drawing, or another note. Paste or drop a file into the editor
+and the embed is written for you (it uploads to your
+[attachment folder](configuration.md#attachments)); to write one by hand, type `/embed` for the
+three forms, or `![[` and pick the file — the list opens on your vault's files, with the forms
+above it. The palette's **Embed a file…** does the same from the keyboard.
+
+| You write | What appears |
+| --- | --- |
+| `![[name.png]]` | The picture, at its own size up to the column's width. |
+| `![[name.png\|300]]` | The picture, 300 pixels wide and centred. |
+| `![alt](attachments/name.png)` | The picture, by path — standard Markdown, relative to the note. `alt` is what a screen reader says. |
+| `![[file.pdf]]` | A card for the file; click it to open the PDF in the [reader](books.md). |
+| `![[Book.pdf#page=42]]` | Page 42 of the book, drawn as a picture, with "Book, p. 42" under it. `\|300` sets its width. |
+| `![[lecture.mp3]]` | A small player (also ogg, m4a, wav and webm). |
+| `![[clip.mp4]]`, `![[bundle.zip]]` | A card for the file (video, zip, csv, txt and the rest). |
+| `![[sketch.excalidraw]]` | The [drawing](drawing.md), as the picture it saves beside itself. |
+| `![[Note]]`, `![[Note#Heading]]`, `![[Note#^block]]` | The note, one section of it, or one paragraph, as a card. |
+
+Every embed but a note's can be **picked up**:
+
+- **Drag it.** Within its note, the embed's line moves to where you let go — its width, its page and
+  its `{.center}` go with it, and one undo puts it back. Into a note in another pane, the same
+  `![[…]]` is written there (a second reference to the one file, never a copy of it). Out of the app
+  — onto the desktop, a file manager, a mail — the drag carries the file itself in Chrome, Edge and
+  the desktop app, and its link everywhere else; in the desktop app hold **Alt** as you drag to hand
+  the real file on disk to the other program. In the reading view the drop lands between blocks, and
+  a line shows where.
+- **Right-click it** (or press **Shift+F10** or the Menu key with the caret on its source, or tab to
+  a picture in the reading view): **Copy image** puts the picture on the clipboard (a drawn page
+  copies the page); **Copy link** the file's address; **Copy as Markdown** the embed exactly as
+  written, `|300` and all; **Copy path** its place in the vault. **Open** shows the picture in the
+  viewer, the PDF in the reader, the drawing in its canvas. **Go to page** (a drawn page only) opens
+  the reader there. **Reveal in Files** finds its row in the sidebar; **Save as…** downloads it;
+  **Rename…** renames the file and rewrites every note that embeds it; **Remove embed** takes the
+  line out of this note and leaves the file where it is. A row that cannot work is not there — no
+  clipboard, no copy rows; a visitor sees only Copy link, Open and Save as….
+- **On a phone, hold it.** The same rows come up as a sheet, with **Move…** in place of the drag: the
+  top of the note, under any heading, or the end.
+
+A picture's own tools are on it when you **hover**: drag the handle on its corner to resize it (the
+`|300` is written for you; double-click the handle to return to the picture's own size), and three
+buttons align it left, centre or right by writing `{.left}`, `{.center}` or `{.right}` at the end of
+its line. Clicking a picture does not swap it for its source and jump the view: the picture stays,
+with the source editable beside it. A broken embed gets a dashed placeholder.
+
 ## Rendering
 
-- **Image embeds.** `![[image.png]]`, `![[image.png|300]]` and the standard `![alt](path)` all
-  render inline from your vault's attachments. A picture given a width sits centred in the column,
-  in an Arabic note as in an English one; a broken embed gets a dashed placeholder. **Hover a
-  picture** for its tools: drag the handle on its corner to resize it (the `|300` is written for
-  you; double-click the handle to return to the picture's own size), and three buttons align it
-  left, centre or right by writing `{.left}`, `{.center}` or `{.right}` at the end of its line.
-  Clicking a picture does not swap it for its source and jump the view: the picture stays, with the
-  source editable beside it.
 - **Align a line.** End any paragraph, heading or image line with `{.center}`, `{.right}`, `{.left}`
   or `{.justify}` and that block sits there, overriding the note's own `align:`. The marker hides
   like other syntax. `/center`, `/right` and `/left` in the slash menu write it for you, and so does
@@ -249,15 +289,12 @@ turns it off.
   the same braces; Obsidian shows them as text.
 - **Note transclusions.** `![[Note]]` renders the target note as a full card (callouts, math and
   code highlighting included), with an "Open note" button when the excerpt is longer than the card.
-- **PDF and attachment cards.** `![[file.pdf]]` (also mp4, zip, …) becomes a card that opens
-  the file in a new tab.
-- **A page of a book.** `![[Book.pdf#page=42]]` draws that page as a picture where the embed
-  stands — in the editor (a paper-shaped placeholder until it is rendered), the reading view and
-  on your site when the book is published — with "Book, p. 42" under it. Click the caption to open
-  the [reader](books.md) on that page; a visitor's click opens the file there. `|300` sets the
-  width like an image's.
-- **Sound.** `![[lecture.mp3]]` (also ogg, m4a, wav) is a small player instead of a file card,
-  everywhere the note is read. `[[lecture.mp3#t=1:23]]` is a link to a moment: clicking it seeks
+- **A page of a book.** `![[Book.pdf#page=42]]` draws that page where the embed stands — in the
+  editor (a paper-shaped placeholder until it is rendered), the reading view and on your site when
+  the book is published. Click the caption to open the [reader](books.md) on that page; a visitor's
+  click opens the file there.
+- **Sound.** `![[lecture.mp3]]` is a player everywhere the note is read.
+  `[[lecture.mp3#t=1:23]]` is a link to a moment: clicking it seeks
   the player on the same page to 1:23 and plays, or opens the file at that moment when no player
   is on the page. `t=83`, `t=1:23` and `t=1:02:03` all work; give it an alias (`|the argument`)
   or it shows the time.

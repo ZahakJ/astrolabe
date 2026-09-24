@@ -164,6 +164,13 @@ interface Ctx extends RenderOptions {
    *  taken a log, so a second log fence reads as its own source. */
   lastRoutine?: RoutinePlan | null;
   routineLogged?: boolean;
+  /** The open note's TOP-LEVEL lines and, per index, the source line it came
+   *  from — set only for the note itself (depth 0), so every top-level block
+   *  can say which lines of the file it is (`data-src-start` / `-end`). An
+   *  embed dragged in the reading view lands at a block boundary, and that is
+   *  the only question this map answers. */
+  topLines?: string[];
+  lineMap?: number[];
 }
 
 // ── Escaping helpers ────────────────────────────────────────────────────────
@@ -274,8 +281,12 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
 
   // ![[embeds]] — inline images; other kinds read as quiet chips inline
   // (block-level embeds are handled before paragraphs form).
-  s = s.replace(/!\[\[([^[\]]+?)\]\]/g, (_m, inner: string) => {
+  s = s.replace(/!\[\[([^[\]]+?)\]\]/g, (m, inner: string) => {
     const embed = parseEmbed(unesc(inner));
+    // The embed's own source rides on what draws it (`data-embed-src`), so
+    // the reading view's drag and menu (client/embedPickup.ts) act on the
+    // text exactly as written. `m` is already escaped for an attribute.
+    const src = ` data-embed-src="${m}"`;
     if (embed.kind === "image" || embed.kind === "drawing") {
       const w = embed.width ? ` style="width:${embed.width}px"` : "";
       // A drawing inline is its exported picture, an image like any other;
@@ -283,29 +294,29 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
       const name = embed.kind === "drawing" ? drawingSvgName(embed.target) : embed.target;
       const cls = embed.kind === "drawing" ? "s-rv-img s-rv-drawing" : "s-rv-img";
       return keep(
-        `<img class="${cls}" data-embed-name="${esc(name)}" data-drawing="${embed.kind === "drawing" ? esc(embed.target) : ""}" alt="${esc(embed.target)}"${w}>`,
+        `<img class="${cls}" data-embed-name="${esc(name)}" data-drawing="${embed.kind === "drawing" ? esc(embed.target) : ""}" alt="${esc(embed.target)}"${w}${src}>`,
       );
     }
     // A sound or a page mid-paragraph: a stand-in that renderNote's
     // hydration pass swaps for the real thing, as it does for images —
     // these are built as elements (they hold live references), not as HTML.
     if (embed.kind === "audio") {
-      return keep(`<span class="s-rv-embed-chip" data-audio-embed="${esc(embed.target)}">${esc(embed.target)}</span>`);
+      return keep(`<span class="s-rv-embed-chip" data-audio-embed="${esc(embed.target)}"${src}>${esc(embed.target)}</span>`);
     }
     if (embed.kind === "pdfpage" && embed.page !== null) {
       return keep(
-        `<span class="s-rv-embed-chip" data-pdfpage-embed="${esc(embed.target)}" data-page="${embed.page}"${embed.width ? ` data-width="${embed.width}"` : ""}>${esc(embed.target)}</span>`,
+        `<span class="s-rv-embed-chip" data-pdfpage-embed="${esc(embed.target)}" data-page="${embed.page}"${embed.width ? ` data-width="${embed.width}"` : ""}${src}>${esc(embed.target)}</span>`,
       );
     }
-    return keep(`<span class="s-rv-embed-chip">${esc(embed.target)}</span>`);
+    return keep(`<span class="s-rv-embed-chip"${embed.kind === "file" ? src : ""}>${esc(embed.target)}</span>`);
   });
 
   // ![alt](src) images (vault-relative resolved against the note dir).
   s = s.replace(
     /!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^)]*&quot;)?\)/g,
-    (_m, alt: string, src: string) => {
+    (m, alt: string, src: string) => {
       const url = resolveRelative(unesc(src), ctx.notePath);
-      return keep(`<img class="s-rv-img" src="${esc(url)}" alt="${alt}">`);
+      return keep(`<img class="s-rv-img" src="${esc(url)}" alt="${alt}" data-embed-src="${m}">`);
     },
   );
 
@@ -596,6 +607,7 @@ export function attachDrawingSrc(img: HTMLImageElement, target: string, width: n
           return;
         }
         svg.classList.add("s-rv-img", "s-rv-drawing");
+        if (img.dataset.embedSrc) svg.dataset.embedSrc = img.dataset.embedSrc;
         svg.setAttribute("role", "img");
         svg.setAttribute("aria-label", target);
         if (width) {
@@ -801,6 +813,15 @@ function transclusion(target: string, ctx: Ctx, anchor: string | null = null): H
 }
 
 function renderEmbedBlock(inner: string, ctx: Ctx): HTMLElement {
+  const el = renderEmbedBlockOf(inner, ctx);
+  // The source as written, for the reading view's drag and menu — on every
+  // kind that is a FILE (a transcluded note is words, and keeps its words'
+  // own right-click).
+  if (parseEmbed(inner).kind !== "note") el.dataset.embedSrc = `![[${inner}]]`;
+  return el;
+}
+
+function renderEmbedBlockOf(inner: string, ctx: Ctx): HTMLElement {
   const embed = parseEmbed(inner);
   if (embed.kind === "image") {
     const fig = document.createElement("figure");
@@ -1234,7 +1255,12 @@ function pdfPageBlock(target: string, page: number, width: number | null, hooks:
   slot.style.aspectRatio = "1 / 1.414";
   host.appendChild(slot);
   void import("./pdfPage.ts").then((mod) => {
-    if (host.isConnected) host.replaceWith(mod.pdfPageEmbed(target, page, width, hooks));
+    if (!host.isConnected) return;
+    const card = mod.pdfPageEmbed(target, page, width, hooks);
+    // What the stand-in was told about itself, the card keeps: its source
+    // and the lines of the file it stands for.
+    Object.assign(card.dataset, host.dataset);
+    host.replaceWith(card);
   });
   return host;
 }
@@ -1277,8 +1303,28 @@ export function renderTasksBlock(spec: TasksSpec, opts: RenderOptions, hooks: Pa
 // ── Block renderer ──────────────────────────────────────────────────────────
 
 function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
+  // The top level of the open note stamps each block with its source lines
+  // (see `Ctx.lineMap`): whatever one pass of the loop appended came from
+  // lines `start` up to the next pass's `i`. Nested calls (a callout's body,
+  // a list item) stamp nothing — their outer block already says where it is.
+  const map = lines === ctx.topLines ? ctx.lineMap : undefined;
+  let mark = root.childElementCount;
+  let start = 0;
+  const stamp = (end: number): void => {
+    if (map === undefined) return;
+    let last = end - 1;
+    while (last > start && lines[last].trim() === "") last--;
+    for (let k = mark; k < root.children.length; k++) {
+      const el = root.children[k] as HTMLElement;
+      el.dataset.srcStart = String(map[start] ?? start);
+      el.dataset.srcEnd = String(map[last] ?? last);
+    }
+    mark = root.childElementCount;
+  };
   let i = 0;
   while (i < lines.length) {
+    stamp(i);
+    start = i;
     const line = lines[i];
     const t = line.trim();
 
@@ -1731,32 +1777,40 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
     markJapanese(p, para.join("\n"));
     root.appendChild(p);
   }
+  stamp(i);
 }
 
 // ── Note-level rendering ────────────────────────────────────────────────────
 
-function withoutSrComments(lines: string[]): string[] {
+/** `origin`, when given, is filled with the index in `lines` each kept line
+ *  came from — a dropped comment line would otherwise shift every block
+ *  after it off its source line. */
+function withoutSrComments(lines: string[], origin?: number[]): string[] {
   const out: string[] = [];
   let fence: ReturnType<typeof routineOpener> = null;
-  for (const line of lines) {
+  lines.forEach((line, i) => {
+    const push = (text: string): void => {
+      out.push(text);
+      origin?.push(i);
+    };
     if (fence) {
       if (routineCloses(line, fence)) fence = null;
-      out.push(line);
-      continue;
+      push(line);
+      return;
     }
     const opened = routineOpener(line);
     if (opened) {
       fence = opened;
-      out.push(line);
-      continue;
+      push(line);
+      return;
     }
     if (!SR_COMMENT_RE.test(line)) {
-      out.push(line);
-      continue;
+      push(line);
+      return;
     }
     const bare = line.replace(SR_COMMENT_RE, "");
-    if (bare.trim() !== "") out.push(bare.replace(/\s+$/, ""));
-  }
+    if (bare.trim() !== "") push(bare.replace(/\s+$/, ""));
+  });
   return out;
 }
 
@@ -1796,7 +1850,12 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
   // is the note's own record, not its prose: a line that is only the comment
   // goes, and one at the end of an inline `Q::A` line is trimmed off. Inside
   // a code fence it is shown as written, like everything else there.
-  lines = withoutSrComments(lines);
+  const origin: number[] = [];
+  lines = withoutSrComments(lines, origin);
+  if (ctx.depth === 0) {
+    ctx.topLines = lines;
+    ctx.lineMap = origin.map((i) => i + front.bodyStartLine);
+  }
 
   renderBlocks(lines, ctx, root);
 
@@ -1849,13 +1908,17 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
 
   // …and the sounds and pages that stood in a paragraph as chips.
   for (const chip of root.querySelectorAll<HTMLElement>("[data-audio-embed]")) {
-    chip.replaceWith(audioPlayer(chip.dataset.audioEmbed ?? ""));
+    const player = audioPlayer(chip.dataset.audioEmbed ?? "");
+    if (chip.dataset.embedSrc) player.dataset.embedSrc = chip.dataset.embedSrc;
+    chip.replaceWith(player);
   }
   for (const chip of root.querySelectorAll<HTMLElement>("[data-pdfpage-embed]")) {
     const page = Number(chip.dataset.page);
     const width = chip.dataset.width ? Number(chip.dataset.width) : null;
     if (Number.isFinite(page) && page > 0) {
-      chip.replaceWith(pdfPageBlock(chip.dataset.pdfpageEmbed ?? "", page, width, { onResize: ctx.onResize }));
+      const block = pdfPageBlock(chip.dataset.pdfpageEmbed ?? "", page, width, { onResize: ctx.onResize });
+      if (chip.dataset.embedSrc) block.dataset.embedSrc = chip.dataset.embedSrc;
+      chip.replaceWith(block);
     }
   }
 

@@ -4,12 +4,12 @@
 
 import { Hono } from "hono";
 import type { NoteData } from "../shared/types.ts";
-import { backlinks, indexFile, notesAffectedByFolderMove, whenIndexed, wikilinkRegex } from "./indexer.ts";
-import { dirOf, rewriteDestinations, rewriteForMove } from "./moveLinks.ts";
+import { backlinks, indexFile, notesAffectedByFolderMove, notesReferencing, resolveEmbed, whenIndexed, wikilinkRegex } from "./indexer.ts";
+import { dirOf, rewriteAttachmentRename, rewriteDestinations, rewriteForMove } from "./moveLinks.ts";
 import { isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
 import { jsonBody, requiredString } from "./requestBody.ts";
 import { moveAnnotations } from "./annotations.ts";
-import { moveFolder, normalizeRel, readNote, renameNote, suppressWatcherEcho, writeNote } from "./vault.ts";
+import { moveFolder, normalizeRel, readNote, renameAttachment, renameNote, suppressWatcherEcho, writeNote } from "./vault.ts";
 
 export const renameRoutes = new Hono();
 
@@ -23,6 +23,65 @@ renameRoutes.post("/rename", async (c) => {
   moveAnnotations(from, to);
   return c.json({ ok: true });
 });
+
+/** Rename an ATTACHMENT where it stands, and every note that embedded it
+ *  with it. What the tree's Rename and an embed's "Rename…" call for a
+ *  picture, a PDF or a recording; `/rename` stays the note route. Answers how
+ *  many notes were rewritten, so the toast can say so. */
+renameRoutes.post("/attachment/rename", async (c) => {
+  const body = await jsonBody(c);
+  const from = normalizeRel(requiredString(body, "path"));
+  const to = normalizeRel(requiredString(body, "toPath"));
+  const rewritten = await renameAttachmentWithLinks(from, to);
+  return c.json({ ok: true, rewritten });
+});
+
+/** The order is the note rename's: ask who refers to the file while the index
+ *  still resolves the OLD name — and decide, per basename spelling, whether
+ *  that spelling meant this file — then rename, then rewrite and reindex. */
+async function renameAttachmentWithLinks(from: string, to: string): Promise<number> {
+  const referrers = notesReferencing(from);
+  const readable = new Set<string>();
+  const meant = new Map<string, boolean>();
+  const resolves = (target: string): boolean => {
+    const key = target.toLowerCase();
+    let hit = meant.get(key);
+    if (hit === undefined) {
+      hit = resolveEmbed(target, false, null) === from;
+      meant.set(key, hit);
+    }
+    return hit;
+  };
+  // Every answer `resolves` will be asked for is settled HERE, before the
+  // rename: afterwards the old name resolves to nothing at all.
+  for (const ref of referrers) {
+    try {
+      const note = await readNote(ref);
+      rewriteAttachmentRename(note.content, ref, from, to, resolves);
+      readable.add(ref);
+    } catch {
+      // unreadable now; skipped below as well
+    }
+  }
+  await renameAttachment(from, to);
+  let rewritten = 0;
+  for (const ref of readable) {
+    try {
+      const note: NoteData = await readNote(ref);
+      const next = rewriteAttachmentRename(note.content, ref, from, to, resolves);
+      if (next === note.content) continue;
+      // Unconditional, for the reason the note rename gives below: the file
+      // has already moved, and a refusal would leave its embeds dangling.
+      await writeNote(ref, next, undefined, "rename");
+      await indexFile(ref);
+      rewritten++;
+    } catch (err) {
+      console.error(`rename: failed to rewrite embeds in ${ref}:`, err);
+    }
+  }
+  await whenIndexed();
+  return rewritten;
+}
 
 // ----------------------------------------------------- rename + link rewrite
 

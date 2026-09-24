@@ -128,6 +128,32 @@ sits flush against a run of Eastern Arabic digits. Measured on an Arabic instanc
   attachment caption, a `title` attribute). There the Arabic case takes `،`, which is the
   punctuation the language already uses for this and is not a digit in any face.
 
+## Embeds you can pick up in the reading view (client/embedPickup.ts, render.ts)
+
+The editor half and the shared arithmetic are in [editor.md](editor.md), "Embeds you can pick up";
+this is what the reading view adds.
+
+- **Every file embed carries its source.** The renderer stamps `data-embed-src` — the embed EXACTLY
+  as written, `![[x.png|300]]` or `![alt](path)` — on what draws it: the block figure, the inline
+  `<img>`, the file card, the audio player, the drawn page. Async replacements carry it over (a
+  drawing's live `<svg>`, the pdfPage card that replaces its stand-in: `Object.assign(dataset)`).
+  Note transclusions carry none, and embeds INSIDE a transclusion card belong to that note and are
+  skipped.
+- **Top-level blocks carry their lines.** At depth 0, `renderBlocks` stamps each element one pass of
+  its loop appended with `data-src-start` / `data-src-end` (0-based lines of the FILE: the
+  frontmatter offset and the `<!--SR:…-->` lines `withoutSrComments` drops are mapped back through
+  `Ctx.lineMap`). A drop lands at the boundary of the block under the pointer (top half: before its
+  first line; bottom half: after its last), shown by a fixed `.s-embed-dropline` the width of that
+  block in the editor's drop-cursor colour; the move is found in the file by the embed's text within
+  its block's lines. The same map makes a line landing block-precise (editor.md, "Landing on the
+  line").
+- **Delegated, installed once** from ReadingView.tsx on `.s-reading[data-note-path]` (the blog's
+  article has no `data-note-path` and keeps the browser's own behaviour): `pointerdown` makes the
+  embed draggable for a pointer, `dragstart` lifts it, `dragover` / `drop` land it (admin only),
+  `contextmenu` opens the menu — standing down when text is selected, since the browser's menu copies
+  a selection better. Pictures get a tab stop (`focusableEmbeds`) so Shift+F10 has something to open
+  the menu on; a link-shaped embed already has one.
+
 ## Print & PDF (`client/reading/print.css`, `client/print.ts`, gated by `npm run check-print`)
 
 Obsidian's third most-demanded feature, and this product shipped with **zero** `@media print` rules

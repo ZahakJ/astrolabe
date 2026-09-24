@@ -14,6 +14,8 @@ import { startCompletion } from "@codemirror/autocomplete";
 import { foldable, foldEffect, foldedRanges, unfoldEffect } from "@codemirror/language";
 import { format, insertPair, toggleLinePrefix } from "../editor/commands.ts";
 import { notePathFacet } from "../editor/livePreview.ts";
+import { EMBED_WIDGET_SEL, embedAtWidget } from "../editor/embedGrip.ts";
+import type { EmbedMenuTarget } from "../embedMenu.ts";
 import { enterFocus, selectSection, setFoldsBelow } from "../editor/sectioning.ts";
 import { copySectionLink, copySectionMarkdown, extractSection, noteContent } from "../sectionActions.ts";
 import { sectionAtHeading, sectionsOf } from "../sections.ts";
@@ -25,6 +27,19 @@ export type AccessoryAction = "link" | "tag" | "task" | "bold" | "heading" | "un
 export function viewIn(root: Element | null): EditorView | null {
   const dom = root?.querySelector<HTMLElement>(".cm-editor");
   return dom ? EditorView.findFromDOM(dom) : null;
+}
+
+/** The embed a held finger is on in the editor, as the embed menu takes it
+ *  (client/phone/embedSheet.ts). Null off an embed. */
+export function embedTargetAt(root: Element | null, target: EventTarget | null, note: string): EmbedMenuTarget | null {
+  const view = viewIn(root);
+  if (!view || !(target instanceof Element)) return null;
+  if (target.closest(".cm-s-embed-tools, .cm-s-embed-handle, .cm-s-transclude")) return null;
+  const el = target.closest<HTMLElement>(EMBED_WIDGET_SEL);
+  if (!el) return null;
+  const span = embedAtWidget(view, el);
+  if (!span) return null;
+  return { note, source: span.source, el, surface: "editor", view, span: { from: span.from, to: span.to }, lines: null };
 }
 
 const HEADING = /^(\s{0,3})(#{1,6})\s/;

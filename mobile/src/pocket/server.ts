@@ -251,6 +251,7 @@ const SERVER_ONLY: Record<string, string> = {
   "/api/export": "An export is a ZIP built on a server; on a phone the vault is already a git clone.",
   "/api/orbits/import": "Importing a deck reads an uploaded .apkg on a server's disk.",
   "/api/tags/rename": "The bulk rewriter runs over the whole vault on a server, with an undo log behind it.",
+  "/api/attachment/rename": "Renaming a file rewrites every note that embeds it, from the index a server keeps; the pocket does not keep that index.",
   "/api/replace": "The bulk rewriter runs over the whole vault on a server, with an undo log behind it.",
   "/api/bulk/undo": "The bulk rewriter runs over the whole vault on a server, with an undo log behind it.",
   "/api/links/heading-repair": "The bulk rewriter runs over the whole vault on a server, with an undo log behind it.",

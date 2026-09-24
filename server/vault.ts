@@ -716,6 +716,36 @@ export function assertAttachment(rel: string): string {
   return normalized;
 }
 
+/** Rename ONE attachment where it stands — the picture a note embeds, the
+ *  PDF on a shelf. The file only: the caller (server/renameRoutes.ts) rewrites
+ *  the notes that embed it. Same refusals as a note rename: a missing source
+ *  is a 404, a taken destination a 409, and a destination that is a NOTE path
+ *  is refused, because "renaming" a picture into a note is not a rename. */
+export async function renameAttachment(rel: string, toRel: string): Promise<void> {
+  const fromPath = assertAttachment(rel);
+  const toPath = assertAttachment(toRel);
+  const fromAbs = safeAbs(fromPath);
+  const toAbs = safeAbs(toPath);
+  let stat;
+  try {
+    stat = await fs.lstat(fromAbs);
+  } catch {
+    throw new VaultError(404, `File not found: ${fromPath}`);
+  }
+  if (!stat.isFile()) throw new VaultError(404, `File not found: ${fromPath}`);
+  // Case-only renames (`Photo.PNG` → `photo.png`) are the same file on a
+  // case-insensitive disk; `exists` would call them a collision.
+  if (fromAbs.toLowerCase() !== toAbs.toLowerCase() && (await exists(toAbs))) {
+    throw new VaultError(409, `Target already exists: ${toPath}`);
+  }
+  await fs.mkdir(path.dirname(toAbs), { recursive: true });
+  suppress(fromPath);
+  suppress(toPath);
+  await fs.rename(fromAbs, toAbs);
+  await moveVersions(fromPath, toPath);
+  emit({ kind: "renamed", path: fromPath, toPath });
+}
+
 /** Delete ONE attachment, at the same two speeds as a note and a folder.
  *
  *  There used to be no way to delete one at all: the tree listed a vault's

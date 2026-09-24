@@ -23,7 +23,7 @@ import type { EditorState } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { inCodeOrLink } from "./syntaxSite.ts";
 import { createNote, getNote, getTags } from "../api.ts";
-import type { TagCount } from "../../shared/types.ts";
+import type { TagCount, TreeNode } from "../../shared/types.ts";
 import { Lru } from "../lru.ts";
 import { useStore } from "../state.ts";
 import { installRecents, recentScores } from "../recents.ts";
@@ -51,7 +51,7 @@ import { noteAnchors } from "../../shared/anchors.ts";
 import { foldTerm } from "../../shared/fold.ts";
 import { isNotePath, stripNoteExt } from "../../shared/noteFormat.ts";
 import { notePathFacet } from "./livePreview.ts";
-import { getLang, t, tf } from "../i18n.ts";
+import { getLang, t, tf, type I18nKey } from "../i18n.ts";
 import { matchSurahs } from "../../shared/quranRefs.ts";
 import {
   calloutIconRender,
@@ -243,6 +243,63 @@ function applyCreate(typed: string, dest: string) {
 
 // ── The [[ source ──────────────────────────────────────────────────────────
 
+/** The cheat sheet at the head of the `![[` popup's Files section: the three
+ *  spellings of an embed, and what can be embedded at all. Literal syntax in
+ *  <code> (never translated), the words around it in the chrome language. */
+function embedHelpHeader(): HTMLElement {
+  const box = document.createElement("div");
+  box.className = "cm-s-embed-help";
+  const title = document.createElement("div");
+  title.className = "cm-s-embed-help__title";
+  title.textContent = t("embedHelpTitle");
+  box.appendChild(title);
+  const forms: [string, I18nKey][] = [
+    ["![[name.png]]", "embedHelpPlain"],
+    ["![[name.png|300]]", "embedHelpWidth"],
+    ["![alt](attachments/name.png)", "embedHelpPath"],
+  ];
+  for (const [code, key] of forms) {
+    const row = document.createElement("div");
+    row.className = "cm-s-embed-help__form";
+    const c = document.createElement("code");
+    c.dir = "ltr";
+    c.textContent = code;
+    const words = document.createElement("span");
+    words.textContent = t(key);
+    row.append(c, words);
+    box.appendChild(row);
+  }
+  const what = document.createElement("div");
+  what.className = "cm-s-embed-help__what";
+  what.textContent = t("embedHelpWhat");
+  box.appendChild(what);
+  return box;
+}
+
+/** Every attachment in the vault that matches `typed`, ranked by the same
+ *  tiers as the note titles, as `![[` completions. */
+function attachmentOptions(typed: string): Completion[] {
+  const tree = useStore.getState().tree;
+  const found: { name: string; path: string; tier: number }[] = [];
+  const walk = (node: TreeNode): void => {
+    if (node.type === "file" && node.attachment) {
+      const tier = typed === "" ? TIER_SUBSEQUENCE : matchTier(typed, node.name.toLowerCase());
+      if (tier > 0) found.push({ name: node.name, path: node.path, tier });
+    }
+    for (const child of node.children ?? []) walk(child);
+  };
+  if (tree) walk(tree);
+  found.sort((a, b) => b.tier - a.tier || a.name.localeCompare(b.name));
+  const section = { name: t("embedSectionFiles"), header: embedHelpHeader, rank: 0 };
+  return found.slice(0, 200).map((f) => ({
+    label: f.name,
+    detail: f.path.includes("/") ? f.path.slice(0, f.path.lastIndexOf("/")) : undefined,
+    type: "text",
+    section,
+    apply: applyInner,
+  }));
+}
+
 async function wikilinkSource(
   context: CompletionContext,
 ): Promise<CompletionResult | null> {
@@ -376,6 +433,17 @@ async function wikilinkSource(
       type: "keyword",
       apply: applyCreate(typedName, dest),
     });
+  }
+
+  // `![[` IS AN EMBED, and an embed is most often a FILE: the vault's
+  // pictures, PDFs, sounds and drawings come first, under a header that shows
+  // the three ways to write one (the owner: "I think in md files you can also
+  // simply import the picture with some syntax"). Notes follow, as the
+  // transclusions they are — the Create row with them.
+  if (match.from > 0 && context.state.sliceDoc(match.from - 1, match.from) === "!") {
+    const notesSection = { name: t("embedSectionNotes"), rank: 1 };
+    for (const option of options) option.section = notesSection;
+    options.unshift(...attachmentOptions(typed));
   }
 
   if (options.length === 0) return null;

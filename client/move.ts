@@ -9,8 +9,9 @@
 // identically for all three.
 //
 // The API split is the server's, not the reader's: a NOTE moves through
-// /api/rename (a move IS a rename to another folder) and a FOLDER through
-// /api/folder/move. `apply()` is the only function that knows which.
+// /api/rename (a move IS a rename to another folder), a FOLDER through
+// /api/folder/move, and an ATTACHMENT's rename through /api/attachment/rename.
+// `apply()` is the only function that knows which.
 
 import * as api from "./api.ts";
 import { ApiError } from "./api.ts";
@@ -19,7 +20,7 @@ import { countPhrase, t, tf } from "./i18n.ts";
 import { useStore } from "./state.ts";
 import { toast } from "./toast.ts";
 import { actionToast } from "./undoToast.ts";
-import { noteLabelOf } from "../shared/noteFormat.ts";
+import { isNotePath, noteLabelOf } from "../shared/noteFormat.ts";
 import type { TreeNode } from "../shared/types.ts";
 
 /** What is being moved. `name` is the basename as it sits on disk (a note keeps
@@ -255,9 +256,12 @@ function moveErrorMessage(err: unknown, name: string): string {
 }
 
 function apply(item: MoveItem, toPath: string): Promise<unknown> {
-  return item.isFolder
-    ? api.moveFolder(item.path, toPath)
-    : api.renameNote(item.path, toPath);
+  if (item.isFolder) return api.moveFolder(item.path, toPath);
+  // A picture or a PDF has its own route: the note route refuses anything
+  // that is not a note, and an attachment's rename has embeds to rewrite
+  // rather than wikilinks.
+  if (!isNotePath(item.path)) return api.renameAttachment(item.path, toPath);
+  return api.renameNote(item.path, toPath);
 }
 
 /** Do the move and tell the reader — including how to take it back.
@@ -299,11 +303,15 @@ async function run(item: MoveItem, toPath: string, undoTo: string | null): Promi
   actionToast(
     // The LANDED name, not the name it set off with: when a collision made the
     // reader rename it, "Moved “Notes.md”" would name a file that is not there.
-    tf("movedToast", {
-      name: landedName,
-      from: folderLabel(parentDir(item.path)),
-      to: folderLabel(parentDir(toPath)),
-    }),
+    // A rename in place is not a move: "Moved from Media to Media" said
+    // nothing about what happened.
+    parentDir(item.path) === parentDir(toPath)
+      ? tf("renamedToast", { from: itemLabel(item), name: landedName })
+      : tf("movedToast", {
+          name: landedName,
+          from: folderLabel(parentDir(item.path)),
+          to: folderLabel(parentDir(toPath)),
+        }),
     t("undo"),
     () => {
       void run({ path: toPath, name: landedName, isFolder: item.isFolder }, undoTo, null);

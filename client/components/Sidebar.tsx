@@ -52,7 +52,7 @@ import { ensureMd } from "../../shared/noteFormat.ts";
 import { IconClip, IconCollapseAll, IconDrawing, IconNewFolder, IconNewNote } from "./tree/icons.tsx";
 import { useTreeCursor, type MenuState } from "./tree/useTreeCursor.ts";
 import { PubRow, TopicSection, TreeChildren } from "./tree/TreeRow.tsx";
-import { TREE_ALL_EVENT, buildTopics, countAttachments, countNotes, setFoldersUnder } from "./tree/expansion.ts";
+import { TREE_ALL_EVENT, TREE_REVEAL_EVENT, buildTopics, countAttachments, countNotes, setFoldersUnder } from "./tree/expansion.ts";
 import { TagShelf, useTagShelf, type TagMenuState } from "./TagShelf.tsx";
 export { TREE_ALL_EVENT, TREE_REVEAL_EVENT } from "./tree/expansion.ts";
 
@@ -603,6 +603,14 @@ export default function Sidebar() {
     // remap-before-reload ordering and the undo toast that the drag has had all
     // along. `ensureMd` still puts the extension back on a note: a reader
     // typing a new title should not have to remember it.
+    // An ATTACHMENT keeps its own extension instead: typing "diagram" over
+    // "figure 3.png" means "diagram.png", never "diagram.md".
+    if (node.attachment) {
+      const dot = node.name.lastIndexOf(".");
+      const ext = dot > 0 ? node.name.slice(dot) : "";
+      void renameTo(itemOf(node), ext && !name.toLowerCase().endsWith(ext.toLowerCase()) ? `${name}${ext}` : name);
+      return;
+    }
     void renameTo(itemOf(node), node.type === "file" ? ensureMd(name) : name);
   }, []);
 
@@ -667,6 +675,16 @@ export default function Sidebar() {
     () => setAttachmentsShown(true),
     [setAttachmentsShown],
   );
+
+  // An embed's "Reveal in Files" names an ATTACHMENT, and a row the filter
+  // hides cannot be revealed: the filter lifts first (client/embedMenu.ts).
+  useEffect(() => {
+    const onReveal = (e: Event): void => {
+      if ((e as CustomEvent<{ attachment?: boolean }>).detail?.attachment === true) showAllAttachments();
+    };
+    window.addEventListener(TREE_REVEAL_EVENT, onReveal, true);
+    return () => window.removeEventListener(TREE_REVEAL_EVENT, onReveal, true);
+  }, [showAllAttachments]);
 
   /** A click on an attachment row. A PDF or an EPUB is a BOOK: it opens in the
    *  reader (client/books/, client/epub/), which remembers the place, gives it
@@ -779,9 +797,13 @@ export default function Sidebar() {
     // "Not a markdown path" to a folder — while /api/folder/move, which has
     // always been able to do it and rewrites every wikilink across the
     // subtree, sat one menu row below under "Move to…". Renaming a folder cost
-    // three operations, one of them semi-destructive. Attachments stay out:
-    // their move endpoints are note routes.
-    if (movable) identity.push({ label: t("rename"), onSelect: () => setRenaming(node.path) });
+    // three operations, one of them semi-destructive. Attachments joined when
+    // they got a route of their own (/api/attachment/rename), which rewrites
+    // every note that embeds the file — the same Rename an embed's own menu
+    // offers.
+    if (movable || (real && node.type === "file" && node.attachment)) {
+      identity.push({ label: t("rename"), onSelect: () => setRenaming(node.path) });
+    }
     // A folder's own property, edited at the folder — beside Rename, which is
     // the other verb that belongs to this row rather than to the instance.
     // Never the vault ROOT: its key would be the empty path, which is not a
