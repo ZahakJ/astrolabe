@@ -19,7 +19,7 @@ import { bootPayload, injectBoot } from "./boot.ts";
 import { manifestHeadTags, manifestRoutes } from "./manifest.ts";
 import { injectPreloads, preloadTags } from "./preload.ts";
 import { faviconPath, migrateSettings, noteVersionsEnabled } from "./settings.ts";
-import { dataDir, initSite, publicLayout, legacyRedirectTarget } from "./site.ts";
+import { dataDir, initSite, publicLayout, legacyRedirectTarget, siteLanguage } from "./site.ts";
 import { initVersions } from "./versions.ts";
 import { reportEnvFallbacks } from "../shared/envName.ts";
 import { warmAuthorSites } from "./authorSites.ts";
@@ -302,10 +302,12 @@ if (existsSync(distDir)) {
     // breath, for the same reason and to the same sessions.
     const served = isPublishLimited(c) ? servedLayout() : "app";
     const shell = served === "app" ? "app" : served;
+    const boot = bootPayload(c);
+    const lang = boot?.lang === "ar" || boot?.lang === "en" ? boot.lang : siteLanguage();
     return c.html(
       injectBoot(
-        injectPreloads(injectHead(html, requestOrigin(c), pathname, manifestHeadTags()), preloadTags(distDir, shell)),
-        bootPayload(c),
+        injectPreloads(injectHead(html, requestOrigin(c), pathname, manifestHeadTags()), preloadTags(distDir, shell, lang)),
+        boot,
       ),
     );
   };

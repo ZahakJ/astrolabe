@@ -1,13 +1,13 @@
 // THE TRAVEL ROW'S OWN COPY — both languages, in the settings chunk.
 //
-// WHY HERE AND NOT IN client/i18n.ts. The DICT is entry-chunk code: every
-// string in it is downloaded by every reader on first paint, the anonymous
+// WHY HERE AND NOT IN client/i18n.ts. The dictionary is first-paint code:
+// every string in it (in the reader's language) comes before the first paint, the anonymous
 // visitor reading one article included. This row sits behind an admin door
 // in a lazily loaded panel, so its two dozen strings travel with that chunk,
 // the way Orbits' do (client/orbits/copy.ts) and the tour deck's do. Only the
-// ROW'S OWN label and hint stay in the DICT (`rowTravel`, `hintTravel`),
+// ROW'S OWN label and hint stay in the dictionary (`rowTravel`, `hintTravel`),
 // because the settings search index resolves them before the panel exists.
-// Gated like the DICT: tests/prefs.test.ts walks this table for an empty
+// Gated like the dictionary: tests/prefs.test.ts walks this table for an empty
 // half, an untranslated half, or placeholders that differ.
 //
 // `tv()` and `tvf()` are `t()` and `tf()` over this table, spelled apart so

@@ -4,7 +4,7 @@
 // still matches) and by the generator that writes it. It is a SOURCE parse, not
 // an import: the panel is React with store closures in it, and a gate that
 // needs a browser is a gate nobody runs — the same reason check-i18n reads the
-// DICT block as text.
+// dictionary files as text.
 
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

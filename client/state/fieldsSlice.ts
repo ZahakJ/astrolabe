@@ -3,6 +3,7 @@
 // initializers run in the order they always did. Moved out of client/state.ts
 // unchanged.
 
+import { whenDictionary } from "../i18n.ts";
 import { DEFAULT_DATE_CALENDAR } from "../../shared/dates.ts";
 import { DEFAULT_LAUNCH } from "../../shared/launch.ts";
 import { DEFAULT_TEXT_ALIGN, DEFAULT_TEXT_DIRECTION } from "../../shared/textLayout.ts";
@@ -99,25 +100,31 @@ export function fieldsSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
       // Numerals stay one system per instance (localeDigits). Month names
       // follow this chrome language inside siteDate() — English chrome must
       // not print "أغسطس".
-      applyLanguage(lang, get().blogLocale);
-      // Same rule as loadMe: an "auto" side follows the direction LIVE, so a
-      // visitor flipping the EN/ع switch moves the notes sidebar with it.
-      set({ language: lang, sidebarSide: effectiveSide(get().sidebarSidePref, lang) });
-      // Under `languageFilter: "follow"` the switch is not cosmetic: the
-      // reader has just changed WHICH NOTES EXIST for them, so everything
-      // derived from the published collection has to be refetched. Without
-      // this the chrome flipped to Arabic and went on listing the English
-      // posts — the exact chrome/content disagreement the mode exists to end.
-      // /api/me comes first because it carries the fallback flag for the new
-      // language; the SSE stream is torn down and resubscribed by the same
-      // reloadTick the tree listens on.
-      if (get().languageFilter === "follow") {
-        void (async () => {
-          await get().loadMe();
-          await get().loadTree();
-          get().bumpReload();
-        })();
-      }
+      // THE SWITCH WAITS FOR ITS STRINGS (client/i18n.ts, whenDictionary):
+      // the other language is a chunk of its own, and flipping `language`
+      // before it lands would redraw the chrome in the language being left,
+      // or in key names. Synchronous when it is already here.
+      whenDictionary(lang, () => {
+        applyLanguage(lang, get().blogLocale);
+        // Same rule as loadMe: an "auto" side follows the direction LIVE, so a
+        // visitor flipping the EN/ع switch moves the notes sidebar with it.
+        set({ language: lang, sidebarSide: effectiveSide(get().sidebarSidePref, lang) });
+        // Under `languageFilter: "follow"` the switch is not cosmetic: the
+        // reader has just changed WHICH NOTES EXIST for them, so everything
+        // derived from the published collection has to be refetched. Without
+        // this the chrome flipped to Arabic and went on listing the English
+        // posts — the exact chrome/content disagreement the mode exists to end.
+        // /api/me comes first because it carries the fallback flag for the new
+        // language; the SSE stream is torn down and resubscribed by the same
+        // reloadTick the tree listens on.
+        if (get().languageFilter === "follow") {
+          void (async () => {
+            await get().loadMe();
+            await get().loadTree();
+            get().bumpReload();
+          })();
+        }
+      });
     },
     // The editor's own language, and deliberately the SHORTER of the two
     // routines beside it. Nothing about the vault changes: not the API
@@ -142,13 +149,16 @@ export function fieldsSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
       // first, so components re-rendering off `language` already read the new
       // strings. blogLocale is untouched for the same reason it is there —
       // dates and numerals are one system per INSTANCE.
-      applyLanguage(next, get().blogLocale);
-      // An "auto" sidebar side follows the direction LIVE, exactly as it does
-      // for the visitor switch and for a settings-side language change.
-      set({
-        language: next,
-        editorLangPref: lang,
-        sidebarSide: effectiveSide(get().sidebarSidePref, next),
+      // …once its strings are here (whenDictionary, as the visitor switch).
+      whenDictionary(next, () => {
+        applyLanguage(next, get().blogLocale);
+        // An "auto" sidebar side follows the direction LIVE, exactly as it does
+        // for the visitor switch and for a settings-side language change.
+        set({
+          language: next,
+          editorLangPref: lang,
+          sidebarSide: effectiveSide(get().sidebarSidePref, next),
+      });
       });
     },
     loginOpen: false,

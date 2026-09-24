@@ -5,7 +5,8 @@
 import { DEFAULT_DATE_CALENDAR, isDateCalendar, type DateCalendar } from "../../shared/dates.ts";
 import { DEFAULT_LAUNCH, parseLaunch } from "../../shared/launch.ts";
 import { DEFAULT_TEXT_ALIGN, DEFAULT_TEXT_DIRECTION, isTextAlign, isTextDirection, type TextAlign, type TextDirection } from "../../shared/textLayout.ts";
-import { t, tf, type Lang } from "../i18n.ts";
+import { loadDictionary, t, tf, type Lang } from "../i18n.ts";
+import { boot } from "../boot.ts";
 import { NO_FOLDER_ICONS, NO_PUBLIC_FOLDERS, effectiveSide, guarded, noteTitle, waitForClean } from "./helpers.ts";
 import type { State } from "./types.ts";
 import type { StoreCtx, StoreGet, StoreSet } from "./sliceTypes.ts";
@@ -55,6 +56,13 @@ export function sessionSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
   const { enterVault } = ctx;
   return {
     bootstrap: async () => {
+      // THE DICTIONARY THIS PAGE WILL PROBABLY SPEAK, fetched beside /api/me
+      // rather than after it: the language this browser last asked for, or
+      // the one the served page was scoped to. With neither, the server's
+      // preload hint already names the site language's chunk (server/
+      // preload.ts), and loadMe awaits whichever it resolves either way.
+      const guess = readEditorLang() ?? readVisitorLang() ?? (boot.lang === "ar" || boot.lang === "en" ? boot.lang : null);
+      if (guess !== null) void loadDictionary(guess).catch(() => {});
       await get().loadMe();
       const { admin, publicReads } = get();
       if (!admin && !publicReads) {
@@ -140,6 +148,12 @@ export function sessionSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
         // dependent branch on the client that would be wrong for exactly one
         // request each time the mode changed.
         api.setReaderLang(language);
+        // The chrome speaks the new language only once its strings are here:
+        // nothing has drawn a t() string before this first answer, and after
+        // it a settings save that changes the language waits the same way.
+        // A chunk that cannot be fetched is not a reason to lose the rest of
+        // /api/me — t() falls back to whatever is installed.
+        await loadDictionary(language).catch(() => {});
         const locale = me.blogLocale?.trim() || "en";
         // The calendar and the note-layout pair are pushed into their plain
         // modules BEFORE the store commit, exactly as applyLanguage pushes the

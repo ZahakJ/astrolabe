@@ -6,7 +6,7 @@
 // "File / Edit / View" over a fully mirrored Arabic window would have been the
 // largest untranslated surface in the product. Two copies were kept in step by
 // a gate. That was scaffolding, and its own header said so: the end state is
-// these keys living in `DICT`, `check-i18n` walking `electron/` as well as
+// these keys living in the dictionary (client/i18n/), `check-i18n` walking `electron/` as well as
 // `client/`, and this file becoming a re-export. All three have now happened.
 //
 // What survives here is the part that is genuinely the MENU's and not the
@@ -18,6 +18,10 @@
 // `client/i18n.ts` imports cleanly under plain Node — it touches no DOM at
 // module scope — which is what makes the re-export possible at all.
 
+// Both languages installed at once: the menu is main-process state, and a
+// page's one-dictionary-at-a-time loading (client/i18n.ts) has no chunk to
+// fetch here. both.ts installs the two files directly.
+import "../client/i18n/both.ts";
 import { getLang, setLang, t, tf, type I18nKey } from "../client/i18n.ts";
 
 export type MenuKey = I18nKey;

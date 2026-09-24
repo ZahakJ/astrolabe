@@ -339,7 +339,7 @@ describe("landing in a vault", () => {
 });
 
 describe("the recorder's own copy (client/voice/copy.ts)", () => {
-  // check-i18n walks only the DICT; the recorder's sentences travel in its
+  // check-i18n walks only the dictionary; the recorder's sentences travel in its
   // lazy chunk, so the parity the gate would have checked is checked here.
   for (const [key, text] of Object.entries(VOICE_COPY)) {
     it(`${key} has both halves, the same placeholders, and Arabic in the Arabic`, () => {
