@@ -51,6 +51,7 @@ You can read this manual as a website, with search, a page outline and both lang
 | [Blog mode](blog-mode.md) | The ready-made blog for visitors: the site title at the top, a row of topics, a magazine-style home page, an RSS feed, a sitemap, and search-engine tags |
 | [Designed mode](designer.md) | Build your own home page out of sections; ready-made designs, your own navigation menu, and static pages such as About |
 | [The library](library.md) | Books, courses and lecture series presented as a path a reader walks through in order |
+| [Webmentions & the fediverse](webmentions.md) | Other sites' replies, likes and mentions of your posts, kept under them once you approve; your posts telling the sites they link to; and the blog as one account Mastodon can follow. Three switches, all off until you turn them on |
 
 ## Look & language
 

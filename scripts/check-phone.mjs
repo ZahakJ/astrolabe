@@ -795,7 +795,66 @@ try {
         const saved = await page.evaluate(async () => (await (await fetch("/api/settings")).json()).effective?.tagline);
         check(saved === value, tag("a Settings section saves"), `tagline is ${JSON.stringify(saved)}`);
         await back();
+        // WEBMENTIONS AND THE FEDIVERSE (docs/webmentions.md): the three
+        // switches and the handle are rows of the Publishing section on a
+        // phone too, each with its own label, and the section is measured
+        // with them in it.
+        const publishing = page.locator('.s-ph-row[data-section="publishing"]');
+        if ((await publishing.count()) > 0) {
+          await press(publishing);
+          await page.waitForSelector("[data-screen='settings-section'] .s-smodal__row", { timeout: 10000 }).catch(() => {});
+          await settle(900);
+          const rows = await page.evaluate(() =>
+            [...document.querySelectorAll("[data-screen='settings-section'] .s-smodal__row")].map((r) => r.textContent ?? ""),
+          );
+          const want = lang === "ar"
+            ? ["استقبال إشارات الويب", "إرسال إشارات الويب", "الفيديفيرس", "الاسم في الفيديفيرس"]
+            : ["Accept webmentions", "Send webmentions", "Fediverse", "Fediverse name"];
+          check(want.every((w) => rows.some((r) => r.includes(w))), tag("Publishing holds the webmention and fediverse rows"), want.filter((w) => !rows.some((r) => r.includes(w))).join(", "));
+          check(rows.length <= 18, tag("Publishing stays at eighteen rows or fewer"), `${rows.length} rows`);
+          await page.evaluate(() => {
+            const r = [...document.querySelectorAll("[data-screen='settings-section'] .s-smodal__row")].find((x) => /webmention|إشارات الويب/.test(x.textContent ?? ""));
+            r?.scrollIntoView({ block: "start" });
+          });
+          await measure("settings-publishing");
+          await back();
+        }
         await back();
+      }
+
+      // THE PUBLIC MENTIONS SECTION (docs/webmentions.md), when this instance
+      // has any: a published note with approved mentions shows them under its
+      // comments, as faces and as entries, and the section is measured. The
+      // gate files none itself — a mention arrives only from a public address,
+      // and this run has none — so an instance without mentions skips it.
+      const mentioned = await page.evaluate(async () => {
+        const paths = ((await (await fetch("/api/published")).json()).paths ?? []).slice(0, 40);
+        for (const p of paths) {
+          const list = await (await fetch(`/api/webmentions?path=${encodeURIComponent(p)}`)).json().catch(() => []);
+          if (Array.isArray(list) && list.some((m) => m.hidden !== true)) return p;
+        }
+        return null;
+      });
+      if (mentioned) {
+        const vctx = await pb.newContext(shape.context);
+        const visitor = await vctx.newPage();
+        await visitor.goto(url + "/" + mentioned.replace(/\.md$/, "").split("/").map(encodeURIComponent).join("/"), { waitUntil: "domcontentloaded" });
+        const shown = await visitor.waitForSelector(".s-mentions", { timeout: 10000 }).then(() => true, () => false);
+        check(shown, tag("a published note's approved mentions show under it, for a visitor"), mentioned);
+        if (shown) {
+          await visitor.locator(".s-mentions").first().scrollIntoViewIfNeeded();
+          const faces = await visitor.locator(".s-mentions__face").count();
+          const entries = await visitor.locator(".s-mentions__entry").count();
+          check(faces + entries > 0, tag("the Mentions section has faces or entries in it"), `${faces} faces, ${entries} entries`);
+          const small = await visitor.evaluate(() =>
+            [...document.querySelectorAll(".s-mentions__face a, .s-mentions__face > span")]
+              .map((el) => el.getBoundingClientRect())
+              .filter((r) => r.width < 43.5 || r.height < 43.5).length,
+          );
+          check(small === 0, tag("every face in Mentions is a 44px target"), `${small} small`);
+          await visitor.screenshot({ path: `${out}/phone-${shape.name}-${lang}-mentions.png` });
+        }
+        await vctx.close();
       }
 
       // THE TAG PICKER WRITES A TAG, from the note sheet's Properties.
