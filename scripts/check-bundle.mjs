@@ -1659,7 +1659,9 @@ const FORBIDDEN = [
   { label: "pdf.js", test: (k) => /node_modules\/pdfjs-dist\//.test(k) },
   {
     label: "the book reader",
-    test: (k) => /books\/(BooksSurface|BookReader|BookLibrary|render|covers|pdfjs)\.tsx?$/.test(k),
+    // ReaderPanels and pdfHighlight are BookReader's own parts since the
+    // sweep's split, reached only through it.
+    test: (k) => /books\/(BooksSurface|BookReader|ReaderPanels|pdfHighlight|BookLibrary|render|covers|pdfjs)\.tsx?$/.test(k),
   },
   // Excalidraw is the other whole editor in the tree, and it exists for one
   // surface too. It is reached only through two `import()`s — the pane's lazy
