@@ -41,6 +41,27 @@ In dev mode you open port 5801; requests to `/api` are passed through to the ser
 | `npm run check-desktop` | The desktop wrapper's own checks, then its `tsc` |
 | `npm run check-windows-layout` | The desktop shell at five window widths × three device pixel ratios × its pointer postures, and which shell each width gets (below) |
 
+## Where the code lives
+
+The client is `client/` (React; the desktop shell is `App.tsx`, the phone shell `client/phone/`),
+the server `server/` (Node and Hono), the logic both use `shared/`, the Android shell `mobile/`,
+the desktop wrapper `electron/` and `desktop/`, the gates `scripts/`, the suite `tests/`. The
+modules that grew largest are cut into parts along their own seams, and each kept its name and
+every export, so an import of it reads what it always did (`tests/splits.test.ts` holds each
+family to that):
+
+| Module | Its parts |
+| --- | --- |
+| `server/indexer.ts` — the index's store, building, the event queue | `server/indexer/`: `language`, `resolve`, `folders`, `publish`, `posts`, `queries` |
+| `server/api.ts` — middleware, the auth guard, notes and folders, search, the mounts | `server/*Routes.ts`, one router per group (trash, tags, replace, files, comments, Orbits, settings, sync, versions, the event stream, rename), mounted where its routes stood; `server/requestBody.ts` |
+| `client/state.ts` — the store | `client/state/`: the types, the document writes, local storage, the helpers, the theme's mirror, and five slices (fields, session, workspace, preferences, notes) |
+| `client/components/Sidebar.tsx` | `client/components/tree/` (expansion, icons, the row, the keyboard cursor) and `TagShelf.tsx` |
+| `client/components/CommandPalette.tsx` | `client/components/palette/commands.ts` — the command table both shells run |
+| `client/components/GraphView.tsx` | `client/graph/sim.ts` — the simulation and the canvas |
+| `client/books/BookReader.tsx` | `ReaderPanels.tsx` (the overlays) and `pdfHighlight.ts` (the search hit) |
+| `client/styles/app.css` | `reset.css`, `tree.css`, `editor.css` and `publish.css` linked before it, `grips.css` after — in `client/index.html`, where the order is the cascade |
+| `client/i18n.ts` — `t()` and the loader | `client/i18n/en.ts` (the key list) and `client/i18n/ar.ts`, one chunk per language |
+
 ## The gates
 
 A *gate* is a script that checks one specific promise the product makes, and exits with an error
@@ -51,8 +72,9 @@ that sign in take `ASTROLABE_PASSWORD` (open local mode needs no password).
 
 ### `npm run check-i18n` — the dictionary
 
-Every string a user can see comes from one dictionary, `client/i18n.ts`, with an English and an
-Arabic entry per key. This gate fails if any `t()` key is missing, untranslated or dead (used nowhere), or if
+Every string a user can see comes from one dictionary, in two files: `client/i18n/en.ts`, which
+is the key list, and `client/i18n/ar.ts`, held to it by type, so a key in one and not the other
+does not compile. A page fetches only the language it speaks. This gate fails if any `t()` key is missing, untranslated or dead (used nowhere), or if
 the English and Arabic sides of an entry disagree about their `{placeholders}`. It also fails on
 hardcoded English text in JSX *and* in code that builds DOM elements by hand. "Dead" is counted
 from the call sites only: the dictionary file is excluded from the usage scan, because a key
@@ -75,7 +97,7 @@ error bodies its service worker answers with.
 Two features were renamed in 3.15 and again in 3.16: the daily routine is **Sigils**, and **Orbits** <!-- lineage -->
 is spaced repetition. A rename that leaves one toast, one hint or one heading saying the old word is
 worse than none, so this gate greps every surface a reader sees — every English and Arabic value in
-`client/i18n.ts` and in `client/orbits/copy.ts`, every page of this manual in both languages, the
+`client/i18n/en.ts`, `client/i18n/ar.ts` and `client/orbits/copy.ts`, every page of this manual in both languages, the
 README, the seed vault, the what's-new deck and the headings of `CONTRACTS.md` and every `contracts/*.md` — for the words
 that may not appear there any more (the old word for a sigil, the study page's working name, and "flash card",
 which is "card" now; and their Arabic), and `client/` and `server/` for the old page addresses,
@@ -457,7 +479,9 @@ After `npm run build`. The client ships one entry chunk plus a chunk per surface
 only means something if it holds: one careless import at the top of a file the entry already
 loads brings the whole app shell back into an anonymous reader's first request. The gate measures
 every audience's download against a budget; a budget moves only by the actual overage, with the
-cause written beside it.
+cause written beside it. The dictionary is two chunks, one per language, and neither is in the
+entry: each audience is measured with one language in it, the larger, since a page downloads the
+one it speaks.
 
 ### `npm run check-perf` — the performance gate
 

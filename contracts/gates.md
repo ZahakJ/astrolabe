@@ -17,7 +17,7 @@ after a build. Each script's own header says why it exists; the line below is wh
 | `check-a11y.mjs` | Static accessibility rules over the client's source and CSS: no focus ring removed without a replacement, every icon-only control named, `aria-hidden` never on something focusable, and no literal `z-index` at or above 300 outside the `--z-*` ladder (a `z-ok:` comment is the one waiver). |
 | `check-board.mjs` | The designer's section board in a browser: a row moves three ways (buttons, pointer, keyboard lift), the drop is shown before it happens, and Esc belongs to the innermost layer. |
 | `check-books.mjs` | Ten source properties of the book reader, after a build: the pdf.js worker is a real same-origin asset (no `blob:` under the CSP), the engine has one door, and the rest listed in its header. |
-| `check-bundle.mjs` | What each audience downloads, read from `dist/.vite/manifest.json`: a visitor's first request carries no admin surface, every lazy surface stays lazy, and per-audience byte budgets hold; a budget moves only by a measured overage with its cause beside it. |
+| `check-bundle.mjs` | What each audience downloads, read from `dist/.vite/manifest.json`: a visitor's first request carries no admin surface, every lazy surface stays lazy (the two dictionaries among them), and per-audience byte budgets hold — each audience measured with ONE language, the larger, since a page fetches the one it speaks; `sw.js` names both dictionaries; a budget moves only by a measured overage (or saving) with its cause beside it. |
 | `check-caret.mjs` | Pointer → document accuracy in the live-preview editor, in a browser: caret placement, hover, mod-click, selection and the double-click word land on the character under the pointer. |
 | `check-cascade.mjs` | No phone or touch declaration (an `@media` asking `pointer: coarse`, `hover: none` or a `max-width` ≤ 1000px) is undone by a later unconditional rule for the same selector and property, across every stylesheet in load order. |
 | `check-contrast.mjs` | WCAG ratios for every theme's tokens (text 4.5:1, muted and faint 3:1, accent, focus ring); every theme id has a block and every block an id; `:root` carries `THEMES[0]`'s values; every block declares every token. |
@@ -28,10 +28,10 @@ after a build. Each script's own header says why it exists; the line below is wh
 | `check-desktop-relaunch.sh` | The packed AppImage restarts itself the way an applied update does, and comes back. |
 | `check-docs.mjs` | The manual: every link lands in both languages, every "Settings → …" path names a tab and a row that exist, every image is on disk, every Arabic page has its English twin's headings. |
 | `check-excerpt.mjs` | No note hands a reader a de-hashed tag as prose: snippets strip a tag whole or render it. |
-| `check-fidelity.mjs` | The editor's live preview and the reading view draw the same pixels for the same markdown. |
+| `check-fidelity.mjs` | The editor's live preview and the reading view draw the same pixels for the same markdown; and an Arabic first paint whose dictionary chunk is held back never shows an English chrome string or a key name. |
 | `check-french.mjs` | French auto-correction, typed into a real editor: each promised case, one undo step, the mixed-line rule. |
 | `check-hovercache.mjs` | The hover-card cache's LRU bound holds over a real session of hovers. |
-| `check-i18n.mjs` | The dictionary: every key used is defined in English and Arabic (Arabic in Arabic), placeholders match, no key is dead; no bare English in JSX or a DOM sink, read on the TypeScript syntax tree (`scripts/i18nScan.mjs`); and the Android shell's own dictionary, its builders and its service worker's error bodies. |
+| `check-i18n.mjs` | The dictionary (`client/i18n/en.ts` and `ar.ts`, read as text by `scripts/dictionary.mjs`): every key used is defined in English and Arabic (Arabic in Arabic), placeholders match, no key is dead; no bare English in JSX or a DOM sink, read on the TypeScript syntax tree (`scripts/i18nScan.mjs`); and the Android shell's own dictionary, its builders and its service worker's error bodies. |
 | `check-keymap.mjs` | No two rows of the keymap ledger claim one keystroke in one place, every advertised chord has a handler, and `docs/keymap.md` is a rendering of the ledger. |
 | `check-layouts.mjs` | Dev harness: every documented shortcut still fires when the system keyboard is Arabic, Russian, Greek or Hebrew. |
 | `check-names.mjs` | No routine, constellation or flashcard on a reader-facing surface (dictionary values, docs, README, seed vault, package blurbs, the what's-new deck, the headings of `contracts/*.md`), and the old page addresses only as marked redirects. |
@@ -169,6 +169,18 @@ What the suite covers, and why each file exists:
   survive, that the standing pairs are recovered from the working tree (a conflict is a fact, not a
   memory), and the sync line's precedence — a pending push is always louder than a past success, and
   a conflict is louder still and never ages out.
+
+- `tests/splits.test.ts` — the large modules cut in the 3.29 sweep ([core.md](core.md), "Where
+  the code lives"), one block per family, over the import graph read off the syntax tree
+  (`tests/helpers/importGraph.ts`): every name any importer asks the kept module for is still
+  exported, no part exports a name its family does not take, and nothing outside the family
+  imports a part.
+- `tests/i18nSplit.test.ts` — the dictionary by language: the two files hold the same keys in
+  the same order, every value in both, parity declared as a type, the gates' text reader agrees
+  with the modules, only the loader and `both.ts` reach the files; and the runtime — nothing
+  spoken before a language is installed (the key, never an invented string), a switch applied at
+  once when its strings are here, one that waits for them, and one superseded while waiting that
+  never lands.
 
 **Tests named `KNOWN BUG:` assert current, wrong-ish behavior on purpose** — they are the written
 record of a defect nobody has decided to fix yet, and they keep the suite honest instead of green
