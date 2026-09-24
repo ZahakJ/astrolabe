@@ -54,6 +54,7 @@
 // (the reading view still renders them): replacing a range that includes
 // `> ` markers would fight the callout field for the same lines.
 
+import { estimateTable, knownHeight, noteColumnWidth, trackHeight } from "./widgetHeight.ts";
 import { EditorSelection, Prec, RangeSet, StateField, Transaction, type EditorState, type Extension, type Range } from "@codemirror/state";
 import {
   Decoration,
@@ -233,11 +234,20 @@ class TableWidget extends WidgetType {
     wrap.replaceChildren(rendered, touchAffordance(view, wrap));
   }
 
+  /** What this table measured last time, else a guess from its rows
+   *  (client/editor/widgetHeight.ts): a block the height map takes for one
+   *  line is what made a long note grow under a fling. */
+  override get estimatedHeight(): number {
+    return knownHeight(`table:${this.notePath}:${this.src}`) ?? estimateTable(this.src);
+  }
+
   toDOM(view: EditorView): HTMLElement {
     const wrap = document.createElement("div");
     wrap.className = "cm-s-table";
     this.draw(wrap, view);
     wireWidget(view, wrap);
+    noteColumnWidth(view.contentDOM.clientWidth);
+    trackHeight(`table:${this.notePath}:${this.src}`, wrap);
     return wrap;
   }
 
