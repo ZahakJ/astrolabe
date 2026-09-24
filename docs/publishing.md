@@ -173,6 +173,11 @@ read or written on notes with `publish: true`; for any other path the API answer
 missing note would, so unpublished paths stay unguessable. With `PUBLIC=false` (a fully private
 vault), visitors can neither read nor post comments at all.
 
+Other sites can join the conversation too. With **Accept webmentions** or **Fediverse** on
+(Settings → Publishing & comments), replies, likes and mentions written elsewhere arrive in the
+same moderation panel, marked with where they came from, and the ones you approve appear under
+the comments in a small **Mentions** section. See [Webmentions & the fediverse](webmentions.md).
+
 ## The three public shells
 
 A *shell* is the frame a visitor sees around your notes. There are three, chosen with

@@ -72,6 +72,7 @@ export const SECTIONS = [
       { slug: "blog-mode", file: "blog-mode.md", title: { en: "Blog mode", ar: "وضع المدونة" } },
       { slug: "designer", file: "designer.md", title: { en: "Designed mode", ar: "وضع التصميم" } },
       { slug: "library", file: "library.md", title: { en: "The library", ar: "المكتبة" } },
+      { slug: "webmentions", file: "webmentions.md", title: { en: "Webmentions & the fediverse", ar: "إشارات الويب والفيديفيرس" } },
     ],
   },
   {

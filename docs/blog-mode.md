@@ -117,7 +117,7 @@ The home rows are read by the `blog` and `designed` layouts and by nothing else.
 
 ![Blog article with comments](screenshots/blog-article.png)
 
-Each article ends with share links (Settings → Publishing & comments can turn the row off), links to the previous and next posts, a "Related" list (published notes that link to this one or that it links to), and [comments](publishing.md#comments). The footer carries a quiet RSS link, a sign-in link and a tiny "powered by Astrolabe" credit. To hide the credit, put `.s-blog-powered { display: none }` in your [`custom.css`](theming.md#restyle-it).
+Each article ends with share links (Settings → Publishing & comments can turn the row off), links to the previous and next posts, a "Related" list (published notes that link to this one or that it links to), and [comments](publishing.md#comments), followed, when other sites have replied, liked or mentioned it and you approved them, by a small **Mentions** section ([Webmentions & the fediverse](webmentions.md)). The footer carries a quiet RSS link, a sign-in link and a tiny "powered by Astrolabe" credit. To hide the credit, put `.s-blog-powered { display: none }` in your [`custom.css`](theming.md#restyle-it).
 
 ## RSS, sitemap and SEO
 

@@ -367,7 +367,11 @@ const phone = PHONE_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc),
 // were each measured against 3.27.0 and merged one after the other, so the
 // entry carries BOTH overages: 851.1 + 13.8 + 7.3 = 872.3 kB (blog 1170.7,
 // admin 1129.2, phone 979.9). Budgets = the summed actual, rounded up.
-const PHONE_BUDGET = 981 * 1024;
+// WEBMENTIONS AND THE FEDIVERSE, measured against a build of 3.29.1 (b4abe8d):
+// 980.6 → 988.1 kB, +7.5 — the entry's +7.4 (the
+// dictionary: the Publishing rows, their notes, the moderation chips, the
+// Sent statuses) and nothing else. Budget 981 → 989.
+const PHONE_BUDGET = 989 * 1024;
 const AUDIENCES = [
 // RE-BASELINED for NOTE HISTORY (529.4 kB actual → budget 532, actual +
 // ~0.5%). This round is the safety net the rest of the slate stands on — git
@@ -977,7 +981,13 @@ const AUDIENCES = [
   // shell needs: the api.ts calls, `FEEDS_TAB` and its router/view arms, the
   // store's `importFolder`. The surfaces themselves (FeedsView, the phone's
   // two screens, ImportDialog) are lazy chunks. Budget = actual, rounded up.
-{ name: "entry (everyone)", keys: entry, budget: 873 * 1024 },
+  // WEBMENTIONS AND THE FEDIVERSE, measured against a build of 3.29.1 (b4abe8d):
+// 872.4 → 879.8 kB, +7.4 — the DICTIONARY and
+  // nothing else: 41 keys and four count units in both languages (three of them
+  // the rows' ⓘ paragraphs). The surfaces are lazy: the Publishing panels live
+  // in the settings chunk, the moderation bits in the panel's, the Mentions
+  // section in a chunk loaded only when a post has mentions. Budget 873 → 880.
+{ name: "entry (everyone)", keys: entry, budget: 880 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1327,7 +1337,12 @@ const AUDIENCES = [
   // else — no blog chunk changed: 1149.5 → 1156.8. Budget 1151 → 1157.
   // 3.28: the entry's +13.8 kB (Feeds' and the import wizard's dictionary,
   // above) and nothing else: 1149.5 → 1163.3. Budget 1151 → 1164.
-{ name: "anonymous blog reader", keys: blog, budget: 1172 * 1024 },
+  // WEBMENTIONS AND THE FEDIVERSE, measured against a build of 3.29.1 (b4abe8d):
+// 1171.5 → 1180.8 kB, +9.3 — the entry's +7.4 and
+  // +1.9 for MentionsSection + mentionsApi (the one request an article makes;
+  // the section itself and mentions.css are a chunk of their own, loaded only
+  // when there is something to show). Budget 1172 → 1181.
+{ name: "anonymous blog reader", keys: blog, budget: 1181 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1604,7 +1619,10 @@ const AUDIENCES = [
 // (+2.9 kB, the paragraph below) lands on top of the summed 1129.2 → 1132.0;
 // the blog reader +0.8 for the same reason: 1170.7 → 1171.5. Budgets =
 // actual, rounded up.
-  { name: "admin first paint", keys: app, budget: 1133 * 1024 },
+  // WEBMENTIONS AND THE FEDIVERSE, measured against a build of 3.29.1 (b4abe8d):
+// 1132.0 → 1139.4 kB, +7.4 — the entry's, and
+  // nothing else. Budget 1133 → 1140.
+  { name: "admin first paint", keys: app, budget: 1140 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy
