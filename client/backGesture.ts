@@ -29,7 +29,7 @@
 // reach it.
 //
 // The guard itself — the entry, its retraction, and why that retraction
-// waits a microtask (3.23.1: a note tapped in the drawer did not open) — is
+// waits a microtask (3.26.1: a note tapped in the drawer did not open) — is
 // client/backGuard.ts, apart from the store so tests/backGesture.test.ts can
 // drive it against a browser-shaped history.
 

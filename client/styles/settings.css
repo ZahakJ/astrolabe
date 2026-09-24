@@ -1,7 +1,7 @@
 /* Astrolabe — the settings surface.
    Linked after app.css (client/index.html). The panel's base — a rail beside
    one long scrolling form, as app.css first built it — opens this file (it
-   moved here in 3.23.1), and the rules after it turn that panel into EIGHT
+   moved here in 3.26.1), and the rules after it turn that panel into EIGHT
    TABS. What changed, and why:
 
      · the rail is sticky and reads as navigation (it switches the panel, it no
@@ -16,7 +16,7 @@
    Everything is logical-property clean: the panel mirrors under dir="rtl"
    with no [dir] rule of its own. */
 
-/* ── The panel's base (moved from app.css, 3.23.1) ─────────────────────────
+/* ── The panel's base (moved from app.css, 3.26.1) ─────────────────────────
    These rules were app.css's, and this sheet restated a third of them — which
    is how app.css's own phone blocks for the panel came to be dead: settings.css
    loads later, so its desktop `gap: 22px`, `min-height: 46px` and
@@ -833,7 +833,7 @@
 
 /* ── Narrow viewports ────────────────────────────────────────────────────── */
 
-/* The two breakpoints are the base's (app.css's, before 3.23.1), deliberately: at ≤720px it turns the rail
+/* The two breakpoints are the base's (app.css's, before 3.26.1), deliberately: at ≤720px it turns the rail
    into a scrolling strip across the top and at ≤560px it stacks the rows, and a
    third breakpoint of my own would only produce a band where half of each
    layout applies. */
@@ -932,7 +932,7 @@
 
   /* One column has no label to align with a control beside it: no 46px row
      floor and no 7px nudge (app.css said so first; this sheet's desktop rules
-     came later and kept both on every phone until 3.23.1). */
+     came later and kept both on every phone until 3.26.1). */
   .s-smodal__row {
     min-height: 0;
   }

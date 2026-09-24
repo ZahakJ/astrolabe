@@ -6021,7 +6021,7 @@ button.s-title:hover {
   color: var(--callout-warning);
 }
 
-/* The settings panel's own rules (the ones that stood here until 3.23.1) live
+/* The settings panel's own rules (the ones that stood here until 3.26.1) live
    in settings.css, with the phone blocks that adjust them. */
 
 /* ── Sidebar logo wordmark (settings.logo) ───────────────────────────────── */
@@ -7832,7 +7832,7 @@ html[dir="rtl"] .s-statusbar__spacer {
 }
 /* A 44px link button gets 10px of side padding on a finger — after the base
    rule's `padding: 2px 8px`, which undid it from the touch block above until
-   3.23.1 (scripts/check-cascade.mjs). */
+   3.26.1 (scripts/check-cascade.mjs). */
 @media (max-width: 700px), (pointer: coarse) {
   .s-mentions__linkall,
   .s-mentions__link {
@@ -8007,7 +8007,7 @@ html[dir="rtl"] .s-statusbar__spacer {
 }
 /* THE SORT BUTTON ON A FINGER. A 44px box starts at the top of the shelf
    header, not 8px into it, and keeps 6px of side padding. These two lines sat
-   in the touch block near the drawer's rules until 3.23.1, where the base rule
+   in the touch block near the drawer's rules until 3.26.1, where the base rule
    above — later in the file — undid both (scripts/check-cascade.mjs). */
 @media (max-width: 700px), (pointer: coarse) {
   .s-tags__sort {

@@ -488,7 +488,7 @@
      the cross landed beside the folder or under it depended on how long the
      folder's name happened to be — two roots in one list, wrapped two ways.
      AFTER the two rules above, which it adjusts: it sat in the phone block
-     further up until 3.23.1, where they undid it (scripts/check-cascade.mjs). */
+     further up until 3.26.1, where they undid it (scripts/check-cascade.mjs). */
   .s-libroots__head .s-ctl-seg {
     flex: 1 1 100%;
   }

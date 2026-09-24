@@ -260,7 +260,7 @@ answers it — the branch in `client/globalKeys.ts` (the window listener both sh
 component's own listener; a library keymap (history, search, fold) is marked where the editor
 installs it. A row with no mark fails (`NO HANDLER`), and so does a mark naming a label that is no
 longer a row. `Ctrl/Cmd Alt L` (turn a note over to its twin) sat on the sheet, the palette row and
-this manual with no handler at all until 3.23.1, because nothing tied a row to its code.
+this manual with no handler at all until 3.26.1, because nothing tied a row to its code.
 
 ### `npm run check-excerpt` — the tag-in-prose gate
 
