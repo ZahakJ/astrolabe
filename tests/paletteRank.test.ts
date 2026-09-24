@@ -20,6 +20,7 @@ import {
   normalize,
   rankCommands,
 } from "../client/paletteRank.ts";
+import { CHROME_LANG_ALIASES, chromeLangSwitch } from "../client/chromeLangSwitch.ts";
 
 /** The normalized score of `query` against `text` — what the floor is compared
  *  to — or null when there is no subsequence at all. */
@@ -211,5 +212,43 @@ describe("paletteRank: where the command block lands", () => {
       titles.slice(0, cut).every((tt) => noteScore("sort", tt) > COMMAND_FLOOR + 1),
       "every note before the cut outranks the best command",
     );
+  });
+});
+
+// THE WAY BACK is found in either language, whichever way it points: a reader
+// stuck in the wrong chrome types the name of the language they want, or the
+// one they are stuck in, in the script they have. The rows around it are the
+// real neighbours that share its words (the three editor-language rows).
+describe("the chrome-language row", () => {
+  type LangRow = { id: string; label: string; hint?: string; aliases?: readonly string[] };
+  const table = (lang: "en" | "ar"): LangRow[] => [
+    { id: "chrome-lang-toggle", label: chromeLangSwitch(lang).row, hint: "Ctrl/Cmd Alt Shift L", aliases: CHROME_LANG_ALIASES },
+    ...(lang === "en"
+      ? [
+          { id: "editor-lang-en", label: "Editor language: English", hint: "this browser" },
+          { id: "editor-lang-ar", label: "Editor language: العربية", hint: "this browser" },
+          { id: "toggle-graph", label: "Toggle graph", hint: "view" },
+        ]
+      : [
+          { id: "editor-lang-en", label: "لغة المحرّر: الإنجليزية", hint: "هذا المتصفح" },
+          { id: "editor-lang-ar", label: "لغة المحرّر: العربية", hint: "هذا المتصفح" },
+          { id: "toggle-graph", label: "عرض المخطط", hint: "عرض" },
+        ]),
+  ];
+  for (const lang of ["en", "ar"] as const) {
+    for (const query of ["arabic", "عربي", "english", "إنجليزي"]) {
+      it(`${lang} chrome: "${query}" finds it`, () => {
+        const ranked = rankCommands(query, table(lang), (r) => ({ label: r.label, hint: r.hint, aliases: r.aliases }));
+        assert.ok(ranked.some((r) => r.command.id === "chrome-lang-toggle"), ranked.map((r) => r.command.id).join(", "));
+      });
+    }
+  }
+  it("an alias hit ranks under a label hit, like a hint hit", () => {
+    const ranked = rankCommands("english", table("en"), (r) => ({ label: r.label, hint: r.hint, aliases: r.aliases }));
+    assert.equal(ranked[0].command.id, "editor-lang-en");
+  });
+  it("an alias the query does not spell is no match", () => {
+    const ranked = rankCommands("graph", table("en"), (r) => ({ label: r.label, hint: r.hint, aliases: r.aliases }));
+    assert.ok(!ranked.some((r) => r.command.id === "chrome-lang-toggle"));
   });
 });

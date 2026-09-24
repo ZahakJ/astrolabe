@@ -35,6 +35,7 @@ import { readWarmth, toggleWarmth } from "../../eyeComfort.ts";
 import { runSnapshotNow, runSyncNow, syncSnapshot } from "../../sync.ts";
 import { selectionToolbarEnabled, setSelectionToolbarEnabled } from "../SelectionMenu.tsx";
 import { t, tf } from "../../i18n.ts";
+import { CHROME_LANG_ALIASES, chromeLangSwitch } from "../../chromeLangSwitch.ts";
 import { toast } from "../../toast.ts";
 
 // ---------------------------------------------------------------------------
@@ -73,6 +74,8 @@ export interface Command {
   hint?: () => string;
   /** Commands that need a text argument switch the palette into prompt mode. */
   prompt?: { placeholder: string; initial: () => string };
+  /** Words the row also answers to, never drawn (client/paletteRank.ts). */
+  aliases?: () => readonly string[];
   /** Shows a color-dot glyph instead of the ⌘ icon. A thunk, not a value:
    *  the one row that carries it previews the theme that is ON right now,
    *  and the table is built once at import. */
@@ -558,6 +561,20 @@ export const COMMANDS: Command[] = [
       useStore.getState().editorLangPref === pref ? t("cmdEditorLangCurrentHint") : t("cmdEditorLangHint"),
     available: ({ admin }) => admin,
   })),
+  // THE WAY BACK (chromeLangSwitch.ts): one row that flips the
+  // chrome to the other language, labelled in THAT language first — "التبديل
+  // إلى العربية · Switch to Arabic" from English, "Switch to English ·
+  // التبديل إلى الإنجليزية" from Arabic — so the reader who cannot read the
+  // chrome finds their own words, and answering to both languages' names in
+  // both scripts whichever way it points. The three rows above stay: they
+  // are the preference's full enumeration; this is the one-keystroke turn.
+  {
+    id: "chrome-lang-toggle",
+    label: () => chromeLangSwitch(useStore.getState().language).row,
+    hint: () => "Ctrl/Cmd Alt Shift L",
+    aliases: () => CHROME_LANG_ALIASES,
+    available: ({ admin }) => admin,
+  },
   {
     id: "shortcuts",
     label: () => t("shortcutsTitle"),
@@ -1147,6 +1164,9 @@ export function runPaletteCommand(command: Command): void {
       break;
     case "sidebar-side-right":
       store.setSidebarSidePref("right");
+      break;
+    case "chrome-lang-toggle":
+      store.toggleChromeLang();
       break;
     case "editor-lang-follow":
       store.setEditorLang(null);
