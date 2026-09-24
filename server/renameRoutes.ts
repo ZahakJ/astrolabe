@@ -39,9 +39,9 @@ renameRoutes.post("/attachment/rename", async (c) => {
 /** The order is the note rename's: ask who refers to the file while the index
  *  still resolves the OLD name — and decide, per basename spelling, whether
  *  that spelling meant this file — then rename, then rewrite and reindex. */
-export async function renameAttachmentWithLinks(from: string, to: string): Promise<number> {
+async function renameAttachmentWithLinks(from: string, to: string): Promise<number> {
   const referrers = notesReferencing(from);
-  const before = new Map<string, string>();
+  const readable = new Set<string>();
   const meant = new Map<string, boolean>();
   const resolves = (target: string): boolean => {
     const key = target.toLowerCase();
@@ -57,14 +57,15 @@ export async function renameAttachmentWithLinks(from: string, to: string): Promi
   for (const ref of referrers) {
     try {
       const note = await readNote(ref);
-      before.set(ref, rewriteAttachmentRename(note.content, ref, from, to, resolves));
+      rewriteAttachmentRename(note.content, ref, from, to, resolves);
+      readable.add(ref);
     } catch {
       // unreadable now; skipped below as well
     }
   }
   await renameAttachment(from, to);
   let rewritten = 0;
-  for (const ref of before.keys()) {
+  for (const ref of readable) {
     try {
       const note: NoteData = await readNote(ref);
       const next = rewriteAttachmentRename(note.content, ref, from, to, resolves);

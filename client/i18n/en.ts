@@ -1901,6 +1901,7 @@ const en = {
   // The toast. It names BOTH ends, because the whole risk of a drag is landing
   // somewhere you were not looking.
   movedToast: "Moved “{name}” from {from} to {to}",
+  renamedToast: "Renamed “{from}” to “{name}”",
   moveUndoneToast: "Move undone — “{name}” is back in {folder}",
   undo: "Undo",
   // Refusals. The server names a code for each; the generic line is the

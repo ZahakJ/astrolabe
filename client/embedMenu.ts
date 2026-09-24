@@ -25,7 +25,7 @@ import { isNotePath } from "../shared/noteFormat.ts";
 import type { MenuAnchor, MenuRow } from "./components/ContextMenu.tsx";
 import { openMenuPortal } from "./components/menuPortal.tsx";
 import { promptModal } from "./components/Confirm.tsx";
-import { TREE_REVEAL_EVENT } from "./components/tree/expansion.ts";
+import { TREE_REVEAL_EVENT } from "./components/Sidebar.tsx";
 import { embedInfoOf, embedPathOf, type EmbedInfo } from "./embedPickup.ts";
 import { fileUrl } from "./editor/embeds.ts";
 import { resolveLink } from "./editor/links.ts";
