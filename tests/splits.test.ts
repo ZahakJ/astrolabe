@@ -66,3 +66,9 @@ describe("client/components/GraphView.tsx, its engine moved to client/graph/sim.
     assertMove("client/components/GraphView.tsx", ["client/graph/sim.ts"]);
   });
 });
+
+describe("client/components/CommandPalette.tsx, its command table moved to palette/commands.ts", () => {
+  it("still hands both shells the one COMMANDS list and the two runners", () => {
+    assertMove("client/components/CommandPalette.tsx", ["client/components/palette/commands.ts"]);
+  });
+});
