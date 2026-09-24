@@ -1604,7 +1604,13 @@ const AUDIENCES = [
 // (+2.9 kB, the paragraph below) lands on top of the summed 1129.2 → 1132.0;
 // the blog reader +0.8 for the same reason: 1170.7 → 1171.5. Budgets =
 // actual, rounded up.
-  { name: "admin first paint", keys: app, budget: 1133 * 1024 },
+  // THE SWEEP, PART 2 — THE SIDEBAR SPLIT: 1132.0 → 1133.1, +1.1 kB, all of
+  // it in the Sidebar chunk (62,870 → 63,966 B). The move itself is free —
+  // rollup hoists the new modules into the same chunk — but the tree cursor
+  // and the tag shelf now hand their state across a function boundary BY
+  // NAME (a hook's return object, TagShelf's props), and a property name is
+  // the one thing a minifier cannot shorten. Budget 1133 → 1134.
+  { name: "admin first paint", keys: app, budget: 1134 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy
