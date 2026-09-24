@@ -36,12 +36,17 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 
 /** Bumped whenever the generated shape changes, so a stale vault is rebuilt. */
-export const FIXTURE_VERSION = 3;
+export const FIXTURE_VERSION = 4;
 
 export const FIXTURE_NOTES = 2000;
 export const FIXTURE_FOLDERS = 40;
 export const LONG_NOTE_LINES = 3000;
 export const EMBED_COUNT = 50;
+
+/** Generated sigils, each with most of a year of log under it, in their own
+ *  folder (not `Sigils/`, which a seed vault may fill). */
+export const FIXTURE_SIGILS = 12;
+export const SIGIL_FOLDER = "Practice";
 
 export const LONG_NOTE = "Long note.md";
 export const EMBED_NOTE = "Fifty embeds.md";
@@ -254,6 +259,49 @@ function dailyNotes() {
   return out;
 }
 
+/** A dozen sigils with a log line for most days of 2026 up to September, so
+ *  the Sigils page draws twelve full cards (streaks, heatmaps, the week) and
+ *  the Calendar page has bands and ticks on every day — an empty shelf costs
+ *  nothing to draw, and a timing taken on it would be a timing of the wrong
+ *  page. The same shape the New sigil form writes (docs/sigils.md). */
+const SIGIL_KINDS = ["exercise", "study", "reading", "practice"];
+const SIGIL_ICONS = ["🚶", "🗻", "📖", "🎹", "🧘", "✍️"];
+function sigilNotes() {
+  const out = [];
+  const start = Date.UTC(2026, 0, 1);
+  for (let s = 0; s < FIXTURE_SIGILS; s++) {
+    const title = `Practice ${s + 1}`;
+    const lines = [
+      "```sigil",
+      `title: ${title}`,
+      `kind: ${SIGIL_KINDS[s % SIGIL_KINDS.length]}`,
+      `icon: ${SIGIL_ICONS[s % SIGIL_ICONS.length]}`,
+      "slots: morning, evening",
+      `target: ${4 + (s % 3)}/week`,
+      "monday:",
+      `  morning: ${PROSE[s % PROSE.length].slice(0, 40)}`,
+      "  evening: twenty minutes",
+      "wednesday:",
+      "  morning: the long session",
+      "saturday:",
+      "  morning: the week's review",
+      "```",
+      "",
+      "```sigil-log",
+    ];
+    for (let d = 0; d < 262; d++) {
+      // Most days, not every day: misses are what a streak and a heatmap draw.
+      if ((d * (s + 3)) % 7 === 0) continue;
+      const day = new Date(start + d * 86400000).toISOString().slice(0, 10);
+      const done = d % 3 === 0 ? "morning" : "morning, evening";
+      lines.push(`${day} | done: ${done}${d % 11 === 0 ? " | " + PROSE[(d + s) % PROSE.length].slice(0, 30) : ""}`);
+    }
+    lines.push("```", "");
+    out.push([`${SIGIL_FOLDER}/${title}.md`, lines.join("\n")]);
+  }
+  return out;
+}
+
 function embedNote() {
   const lines = ["---", 'title: "Fifty embeds"', "tags: [ledger/review]", "---", "", "# Fifty embeds", ""];
   for (let i = 0; i < EMBED_COUNT; i++) {
@@ -317,6 +365,8 @@ export async function buildFixtureVault(dir, { quiet = false } = {}) {
   await fs.writeFile(path.join(dir, EMBED_NOTE), embedNote(), "utf8");
   await fs.mkdir(path.join(dir, "daily"), { recursive: true });
   for (const [rel, body] of dailyNotes()) await fs.writeFile(path.join(dir, rel), body, "utf8");
+  await fs.mkdir(path.join(dir, SIGIL_FOLDER), { recursive: true });
+  for (const [rel, body] of sigilNotes()) await fs.writeFile(path.join(dir, rel), body, "utf8");
 
   if (withBook) {
     await fs.mkdir(path.join(dir, "Library"), { recursive: true });
@@ -328,7 +378,7 @@ export async function buildFixtureVault(dir, { quiet = false } = {}) {
   if (!quiet) {
     console.log(
       `perf fixture: built ${dir} — ${FIXTURE_NOTES} notes in ${FIXTURE_FOLDERS} folders, ` +
-        `a ${LONG_NOTE_LINES}-line note, ${EMBED_COUNT} embeds` +
+        `a ${LONG_NOTE_LINES}-line note, ${EMBED_COUNT} embeds, ${FIXTURE_SIGILS} sigils` +
         (withBook ? ", the 665-page book" : SEED_VAULT ? ", no book in the seed vault" : "") +
         (shelves.length ? `, ${shelves.join(" + ")}` : "") +
         (SEED_VAULT ? ` (seeded from ${SEED_VAULT})` : " — generated only"),
