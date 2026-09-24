@@ -48,6 +48,7 @@
 
 import { closesFence, fenceOpener, sourceLines } from "./fences.ts";
 import type { FolderIcon } from "./folderIcons.ts";
+import { localIsoDay } from "./dates.ts";
 
 // ── Days of the week ────────────────────────────────────────────────────────
 
@@ -79,10 +80,7 @@ export function weekdayOfDate(iso: string): Weekday {
 /** A local calendar date as `YYYY-MM-DD` — the log's key. Local, like the
  *  daily note's path (client/daily.ts): a day is where the reader is. */
 export function isoDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return localIsoDay(d);
 }
 
 /** `iso` moved by `days`, in UTC arithmetic (no DST surprises). */

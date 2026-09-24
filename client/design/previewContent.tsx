@@ -48,10 +48,6 @@ import { t } from "../i18n.ts";
  *  confused for a real note by anything reading `post.path`. */
 export const SAMPLE_PREFIX = "__astrolabe-sample__/";
 
-export function isSamplePost(post: PostMeta): boolean {
-  return post.path.startsWith(SAMPLE_PREFIX);
-}
-
 export interface PreviewContent {
   /** What every list, grid and topics section reads. The instance's own posts
    *  first, in their own order, padded with samples only if there are not

@@ -255,8 +255,3 @@ export const SURFACE_PAIRS: readonly [string, string, number][] = [
   ["--card-text", "--card-bg", 4.5],
 ];
 
-/** The failures only — what a builder shows as warnings, and what a gate
- *  counts. */
-export function failedChecks(tokens: Record<string, string | undefined>): ContrastCheck[] {
-  return checkTheme(tokens).filter((c) => !c.pass);
-}

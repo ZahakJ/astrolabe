@@ -24,11 +24,11 @@
 //     through the same resolver wikilinks use, which only ever answers with
 //     vault paths.
 
-import { getAnchors, getNote, lookupXref } from "../api.ts";
+import { getNote, lookupXref } from "../api.ts";
 import { getKatex, loadKatex } from "../katex.ts";
 import { t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
-import { isTexPath, noteTitleOf } from "../../shared/noteFormat.ts";
+import { noteTitleOf } from "../../shared/noteFormat.ts";
 import { findAnchor, parseTex, type Block, type Inline, type NoteAnchor, type TexDocument } from "../../shared/tex.ts";
 import { resolveLink } from "../editor/links.ts";
 import {
@@ -1029,21 +1029,3 @@ export function texPreviewSource(content: string, anchor: string | null, maxChar
   return src.slice(0, cut > maxChars / 3 ? cut : maxChars);
 }
 
-/** The anchors of a `.tex` note, for callers that hold its source (the outline
- *  panel, the hover preview, wikilink autocomplete). */
-export function texAnchors(src: string): NoteAnchor[] {
-  return parseTex(src).anchors;
-}
-
-/** Fetch a note's anchor table from the server. Used where the CONTENT is not
- *  at hand — the client cannot parse a note it has not downloaded. */
-export async function fetchAnchors(path: string): Promise<NoteAnchor[]> {
-  try {
-    return await getAnchors(path);
-  } catch {
-    return [];
-  }
-}
-
-/** True when this note is LaTeX — re-exported so callers need one import. */
-export const isTexNote = isTexPath;

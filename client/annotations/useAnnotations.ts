@@ -36,12 +36,6 @@ function load(path: string, force = false): Promise<void> {
   return p;
 }
 
-/** Forget a note's list (a rename, a session change). */
-export function invalidateAnnotations(path?: string): void {
-  if (path === undefined) cache.clear();
-  else cache.delete(path);
-}
-
 /** The list as cached right now (null before the first load), without
  *  subscribing — for code outside React, such as the editor's mark painter. */
 export function peekAnnotations(path: string): NoteAnnotation[] | null {

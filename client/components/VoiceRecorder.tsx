@@ -21,6 +21,7 @@ import { voiceInboxPath } from "../../shared/voice.ts";
 import { followJob, landedName, sendRecording, type Follow } from "../voice/jobs.ts";
 import { micSupport, MicError, Recorder, type MicProblem } from "../voice/recorder.ts";
 import "../styles/voice.css";
+import { localIsoDay } from "../../shared/dates.ts";
 
 type Phase = "idle" | "starting" | "recording" | "sending" | "following" | "result" | "error";
 
@@ -42,9 +43,7 @@ function clock(seconds: number): string {
 }
 
 function today(): string {
-  const now = new Date();
-  const p = (n: number): string => String(n).padStart(2, "0");
-  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+  return localIsoDay();
 }
 
 export default function VoiceRecorder({ onClose }: { onClose: () => void }) {

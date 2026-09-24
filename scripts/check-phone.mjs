@@ -186,7 +186,7 @@ async function signIn() {
     }, [path, init ?? null]);
   let me = (await api("/api/me")).body;
   if (!me?.admin) {
-    const password = process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD ?? "";
+    const password = process.env.ASTROLABE_PASSWORD ?? "";
     if (!password) {
       console.error("check-phone: not an admin session and no ASTROLABE_PASSWORD — most screens would not mount.");
       process.exit(1);
@@ -402,9 +402,29 @@ try {
       const sheet = await state();
       check(sheet.sheets.includes("note") && sheet.depth === onNote.depth + 1, tag("the note sheet takes a history entry"), JSON.stringify(sheet));
       await measure("sheet-outline", ".s-ph-sheet");
+      // THE OUTLINE AND THE BACKLINKS ARE MEASURED WITH ROWS IN THEM. The
+      // 3.23 audit found the outline's backlink rows 35px tall because the
+      // gate never opened that pane; a 44px check over an empty pane passes
+      // the same way. So when the note HAS headings and backlinks (asked of
+      // the server, not assumed), the pane must show them as rows, and the
+      // measurement above and below is of those rows.
+      const facts = await page.evaluate(async (p) => {
+        const noteBody = await (await fetch(`/api/note?path=${encodeURIComponent(p)}`)).json();
+        const links = await (await fetch(`/api/backlinks?path=${encodeURIComponent(p)}`)).json();
+        const headings = String(noteBody.content ?? "").split("\n").filter((l) => /^ {0,3}#{1,6}[ \t]+\S/.test(l)).length;
+        return { headings, backlinks: Array.isArray(links) ? links.length : 0 };
+      }, note);
+      if (facts.headings > 0) {
+        const rows = await page.locator(".s-ph-sheet .s-ph-toc button, .s-ph-sheet .s-ph-toc a").count();
+        check(rows > 0, tag("the outline pane lists the note's headings as targets"), `${facts.headings} headings, ${rows} rows`);
+      }
       for (const seg of ["backlinks", "properties", "actions"]) {
         await press(page.locator(`.s-ph-seg__btn[data-segment="${seg}"]`));
         await settle(450);
+        if (seg === "backlinks" && facts.backlinks > 0) {
+          const rows = await page.locator(".s-ph-sheet .s-ph-backlink__line").count();
+          check(rows > 0, tag("the backlinks pane lists its lines as targets"), `${facts.backlinks} backlinks, ${rows} rows`);
+        }
         await measure(`sheet-${seg}`, ".s-ph-sheet");
       }
       // PUBLISH ASKS — and "no" leaves it private.

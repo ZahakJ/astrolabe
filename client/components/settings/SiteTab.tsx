@@ -44,7 +44,7 @@ export default function SiteTab() {
         env={{ name: "SITE_TAGLINE", value: eff.tagline ?? "", inherits: form.tagline.trim() === "" }}
       >
         <TextInput
-          placeholder={eff.tagline ?? "Notes from the canopy…"}
+          placeholder={eff.tagline ?? t("taglinePlaceholder")}
           maxLength={161}
           label={t("rowTagline")}
           invalid={errors.tagline !== undefined}

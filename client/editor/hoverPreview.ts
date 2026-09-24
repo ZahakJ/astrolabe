@@ -52,9 +52,11 @@ import { renderNoteContent } from "../reading/renderNote.ts";
 import { texPreviewSource } from "../reading/texRender.ts";
 import { isTexPath, noteTitleOf, stripNoteExt } from "../../shared/noteFormat.ts";
 import { unescapeTex } from "../../shared/tex.ts";
-import { findHeadingLine, parseWikilink, resolveLink, WIKILINK_RE } from "./links.ts";
+import { parseWikilink, resolveLink, WIKILINK_RE } from "./links.ts";
+import { findHeadingLine } from "../../shared/headings.ts";
 import { notePathFacet } from "./livePreview.ts";
 import { posFromEvent, posFromPoint } from "./pointer.ts";
+import { FRONTMATTER_RE } from "../../shared/noteParse.ts";
 
 const FOOTNOTE_RE = /\[\^([^\]\s]+)\]/g;
 
@@ -83,7 +85,7 @@ async function noteContent(path: string): Promise<string | null> {
 
 /** Strip frontmatter, optionally start at a heading, cap the excerpt. */
 function excerpt(content: string, heading: string | null, title?: string): string {
-  let body = content.replace(/^---\r?\n[\s\S]*?\r?\n(?:---|\.\.\.)(?:\r?\n|$)/, "");
+  let body = content.replace(FRONTMATTER_RE, "");
   if (heading && heading.startsWith("^")) {
     // A block reference: the card shows THAT block and nothing else. Anchors
     // count full-file lines, so the block is found in `content`, not `body`.

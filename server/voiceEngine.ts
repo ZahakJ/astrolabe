@@ -201,7 +201,3 @@ export async function transcribeInChild(
   return { text: reply.text ?? "", language: reply.language ?? null };
 }
 
-/** For a clean shutdown and for tests. */
-export function stopTranscriber(): void {
-  stopChild();
-}

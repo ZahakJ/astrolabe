@@ -52,11 +52,11 @@ import { attachmentLocation } from "./site.ts";
 import { downloading, engineBackend, modelOnDisk, transcribeInChild } from "./voiceEngine.ts";
 import { createVoiceQueue, type Landing, type VoiceQueue, type VoiceWork } from "./voiceQueue.ts";
 import { emitEvent, noteExists, readNote, safeAbs, suppressWatcherEcho, VaultError, writeNote } from "./vault.ts";
+import { localIsoDay } from "../shared/dates.ts";
 
 /** The server's clock, for a caller that sent none. */
 function localDate(now = new Date()): string {
-  const p = (n: number): string => String(n).padStart(2, "0");
-  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+  return localIsoDay(now);
 }
 function localTime(now = new Date()): string {
   const p = (n: number): string => String(n).padStart(2, "0");

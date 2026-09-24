@@ -1272,6 +1272,10 @@ const DICT = {
     en: "Sits under the site name in the masthead.",
     ar: "يظهر تحت اسم الموقع في الترويسة.",
   },
+  taglinePlaceholder: {
+    en: "Notes from the canopy…",
+    ar: "ملاحظات من تحت الظلّة…",
+  },
   rowFooter: { en: "Footer", ar: "التذييل" },
   hintFooter: {
     en: "Every page prints this; {year} and {siteName} are substituted.",
@@ -1560,8 +1564,8 @@ const DICT = {
   errHttpsOrVault: { en: "must be an https:// URL or a vault image path", ar: "يجب أن يكون رابط ‎https://‎ أو مسار صورة داخل الخزانة" },
   errDotDot: { en: "path may not contain ..", ar: "لا يجوز أن يحتوي المسار على .." },
   errImageExt: {
-    en: "must be an image (ico, png, svg, jpeg, gif, webp, avif)",
-    ar: "يجب أن يكون صورة (‎ico, png, svg, jpeg, gif, webp, avif‎)",
+    en: "must be an image (ico, png, svg, jpeg, gif, webp, avif, bmp)",
+    ar: "يجب أن يكون صورة (‎ico, png, svg, jpeg, gif, webp, avif, bmp‎)",
   },
 
   // ── Preview banner ──────────────────────────────────────────────────────

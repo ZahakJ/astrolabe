@@ -31,6 +31,7 @@
 //    `book` is the OPEN book because a closed one reads as `archive` at 14px.
 
 import { FOLDER_ICON_NAMES } from "./folderIconNames.ts";
+import { isImagePath, type ImageExtension } from "./fileKinds.ts";
 
 /** The set, in picker order — generated from shared/folderIconCatalog.ts by
  *  scripts/gen-folder-icons.mjs: the twenty hand-drawn originals first (their
@@ -47,13 +48,11 @@ export const FOLDER_ICONS: readonly FolderIcon[] = FOLDER_ICON_NAMES;
  *  `..`, and anything else is a 400 at the door. The renderer draws the
  *  glyph from its paths and the image from /api/file, which serves it to a
  *  visitor on the covers' terms (server/indexer.ts isAllowedAttachment). */
-export type FolderImage = `${string}.${"svg" | "png" | "webp" | "gif" | "jpg" | "jpeg"}`;
+export type FolderImage = `${string}.${ImageExtension}`;
 export type FolderMark = FolderIcon | FolderImage;
 
-const IMAGE_RE = /\.(?:svg|png|webp|gif|jpe?g)$/i;
-
 export function isFolderImage(value: unknown): value is FolderImage {
-  if (typeof value !== "string" || value.length > 400 || !IMAGE_RE.test(value)) return false;
+  if (typeof value !== "string" || value.length > 400 || !isImagePath(value)) return false;
   if (value.startsWith("/") || value.includes("\\") || /^[A-Za-z]:/.test(value)) return false;
   return !value.split("/").some((part) => part === "" || part === "." || part === "..");
 }

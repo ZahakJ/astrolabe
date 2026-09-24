@@ -55,19 +55,22 @@
 }
 /* The GLYPH turns toward the values it opens, not the button: a rotated
    44px button (the phone's row height) swung its box over the key's name.
-   Closed, nothing is done to it: U+203A is a bidi-mirrored character, so
-   an RTL shell already draws it as ‹, pointing into the row. Open, it is
-   turned a quarter toward the values — and in RTL the OTHER quarter, since
-   the mirrored glyph turned clockwise would point up. */
+   U+203A is Bidi_Mirrored, and whether an RTL line mirrors it depends on the
+   font it comes from (orbits.css, .s-session__chev), so it is pinned
+   left-to-right and turned by hand: closed, flipped under RTL to point into
+   the row; open, a quarter turn down in both directions. */
 .s-propshelf__chev {
   display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
   transition: transform 0.15s ease;
 }
-.s-propshelf__branch--open .s-propshelf__chev {
-  transform: rotate(90deg);
+[dir="rtl"] .s-propshelf__chev {
+  transform: scaleX(-1);
 }
+.s-propshelf__branch--open .s-propshelf__chev,
 [dir="rtl"] .s-propshelf__branch--open .s-propshelf__chev {
-  transform: rotate(-90deg);
+  transform: rotate(90deg);
 }
 .s-propshelf__key,
 .s-propshelf__value {

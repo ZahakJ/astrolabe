@@ -127,7 +127,7 @@ describe("book state", () => {
     assert.equal(state.marks.a, 12);
     assert.ok(isMarkName("ب"), "an Arabic letter is a mark name like any other");
     assert.ok(!isMarkName("ab"));
-    assert.ok(!isMarkName(""));
+    assert.ok(!isMarkName("\u0007"));
   });
 
   it("caps the number of marks a hand-edited file can carry", () => {

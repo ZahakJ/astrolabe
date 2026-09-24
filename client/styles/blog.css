@@ -1362,6 +1362,13 @@
   }
 }
 
+/* The public page's LAYOUT collapses at 640. The blog is not the app shell —
+   no rail, no tab bar — and its grids are sized by its own measure: the
+   Latest grid goes two-up at 660 (min-width, below), so a 700 collapse here
+   would fold the masthead and the cards while that grid is still two across.
+   Its TOUCH rules (44px targets, the sign-in pill) ask the shell's question,
+   `(max-width: 700px), (pointer: coarse)`, like the app. So, deliberately,
+   not the shell's 700. */
 @media (max-width: 640px) {
   .s-blog-mast {
     padding: 30px 16px 20px;
@@ -1759,6 +1766,7 @@
   color: var(--text-muted);
 }
 
+/* not the shell's 700: the public layout's own 640 (see the note above .s-blog-mast's phone rule). */
 @media (max-width: 640px) {
   .s-dash-hero {
     height: clamp(220px, 34vh, 300px);
@@ -1896,6 +1904,7 @@
   }
 }
 
+/* not the shell's 700: the public layout's own 640 (see the note above .s-blog-mast's phone rule). */
 @media (max-width: 640px) {
   .s-btt {
     --btt-inset: 6px;
@@ -2105,6 +2114,7 @@
     transition: none;
   }
 }
+/* not the shell's 700: the public layout's own 640 (see the note above .s-blog-mast's phone rule). */
 @media (max-width: 640px) {
   .s-blog-sites__grid {
     grid-template-columns: 1fr;
@@ -2263,6 +2273,7 @@
    door. Four collections then cost ~230px instead of 586, and the writings
    are on the first screen with them. Still one tap target per card, still
    well over the floor. */
+/* not the shell's 700: the public layout's own 640 (see the note above .s-blog-mast's phone rule). */
 @media (max-width: 640px) {
   .s-blog-folders__grid {
     grid-template-columns: repeat(2, 1fr);

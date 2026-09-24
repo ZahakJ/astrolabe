@@ -113,7 +113,7 @@
   font-size: 0.929rem;
 }
 
-/* The flashcards line: a count and a door to the Review page. */
+/* The cards line: a count and a door to Orbits. */
 .s-routines__cards {
   display: flex;
   align-items: center;

@@ -11,6 +11,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { extractHeadings } from "../client/reading/toc.ts";
+import { isHeadingLine } from "../shared/headings.ts";
 import { pick, rng } from "./helpers/vault.ts";
 
 interface Section {
@@ -202,7 +203,7 @@ describe("property: the partition is exact for any document", () => {
       assert.equal(total, md.split("\n").length);
       // 3. Every section after the preamble starts with its own heading line.
       for (const section of sections.slice(1)) {
-        assert.match(section.lines[0], /^#{1,6}\s/, `section "${section.title}" lost its heading`);
+        assert.ok(isHeadingLine(section.lines[0]), `section "${section.title}" lost its heading`);
       }
       // 4. Line numbers are strictly increasing.
       const lineNumbers = extractHeadings(md).map((h) => h.line);

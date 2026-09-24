@@ -21,6 +21,7 @@ import { actionToast } from "../undoToast.ts";
 import { stripNoteExt } from "../../shared/noteFormat.ts";
 import type { VoiceEngineState, VoiceJob } from "../../shared/voice.ts";
 import { blobToBase64, type Recording } from "./recorder.ts";
+import { localIsoDay } from "../../shared/dates.ts";
 
 const POLL_MS = 1000;
 /** A job not heard from in this long is given up on by the SHEET (the server
@@ -28,8 +29,7 @@ const POLL_MS = 1000;
 const GIVE_UP_MS = 30 * 60 * 1000;
 
 function localDate(now = new Date()): string {
-  const p = (n: number): string => String(n).padStart(2, "0");
-  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+  return localIsoDay(now);
 }
 
 /** Send one recording, stamped with THIS device's day and minute — the

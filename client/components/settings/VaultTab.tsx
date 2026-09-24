@@ -38,7 +38,8 @@ export default function VaultTab() {
           // The placeholder is the DETECTED folder when there is
           // one: an empty field beside a working feature has to
           // say what is in force, or the reader clears a folder
-          // they never set and cannot tell what changed.
+          // they never set and cannot tell what changed. "Templates" is
+          // not copy: it is the folder's literal default name on disk.
           placeholder={eff.templatesFolder ?? "Templates"}
           dir="ltr"
           label={t("templatesFolderLabel")}

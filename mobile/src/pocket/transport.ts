@@ -90,29 +90,3 @@ export const nativeGitHttp: GitHttpClient = {
   },
 };
 
-/** The harness's transport: plain `fetch`, for a repository on loopback that
- *  answers CORS. Never reached on a phone — GitHub would refuse it, which is
- *  the whole reason the other one exists. */
-export const fetchGitHttp: GitHttpClient = {
-  async request(request: GitHttpRequest): Promise<GitHttpResponse> {
-    const method = request.method ?? "GET";
-    const body = await collect(request.body);
-    const response = await fetch(request.url, {
-      method,
-      headers: request.headers ?? {},
-      ...(body === null ? {} : { body: body as BodyInit }),
-    });
-    const headers: Record<string, string> = {};
-    response.headers.forEach((value, name) => {
-      headers[name.toLowerCase()] = value;
-    });
-    return {
-      url: request.url,
-      method,
-      statusCode: response.status,
-      statusMessage: response.statusText,
-      headers,
-      body: one(new Uint8Array(await response.arrayBuffer())),
-    };
-  },
-};

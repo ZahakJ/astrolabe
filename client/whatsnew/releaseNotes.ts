@@ -2460,6 +2460,3 @@ export const RELEASES: Release[] = [
   },
 ];
 
-export function releaseFor(version: string): Release | undefined {
-  return RELEASES.find((r) => r.version === version);
-}

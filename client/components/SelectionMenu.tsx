@@ -189,8 +189,8 @@ function annotateSelection(v: EditorView): void {
  *  reader marks the passage worth remembering, then writes what should call
  *  it up), so a `Question\n?\nAnswer` block goes in after the block the
  *  selection sits in, with the caret on the empty question line. The
- *  Review page finds it on the next index (shared/flashcards.ts). */
-function makeFlashcard(v: EditorView): void {
+ *  Orbits shelf finds it on the next index (shared/cards.ts). */
+function makeCard(v: EditorView): void {
   const { from, to } = v.state.selection.main;
   if (from === to) return;
   const doc = v.state.doc;
@@ -406,7 +406,7 @@ function pagesFor(
             }),
           ]),
       act("annotateSelection", annotateSelection),
-      act("addFlashcard", makeFlashcard),
+      act("addFlashcard", makeCard),
     ],
   };
   // NO "Hide the floating toolbar" ROW. It was a preference living in a menu

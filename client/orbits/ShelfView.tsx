@@ -1,7 +1,7 @@
 // THE SHELF. Every deck in the vault as a card — its icon, its
 // tags, what is due, a month of retention as a small line — with the
 // implicit "Everything else" (the cards outside any deck note,
-// by folder) last, the way the Review page used to list the whole vault.
+// by folder) last, the way Orbits' first page ("Review", before 3.16) listed the whole vault.
 //
 // Reads `GET /api/orbits`; re-read on the vault event, because a
 // session in the next tab writes schedules into the notes and the counts

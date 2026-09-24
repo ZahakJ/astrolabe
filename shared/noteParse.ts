@@ -27,9 +27,21 @@ export function wikilinkRegex(): RegExp {
   return /\[\[([^[\]|#]+)(#[^[\]|]*)?(\|[^[\]]*)?\]\]/g;
 }
 
+/** THE ONE FRONTMATTER FENCE. A block opens with `---` on the first line and
+ *  closes at the first line that is `---` or `...` (YAML's own end-of-document
+ *  marker, which Pandoc and Jekyll vaults use), trailing blanks allowed, CRLF
+ *  or LF. It was three rules: this file's was strict (`---` only), the
+ *  template merger and the outline accepted `...`, and the server's
+ *  gray-matter threw on it — so a note closed with `...` had its properties
+ *  read by the outline, its body indexed WITH the block in it, and its tags
+ *  lost. Every reader of the block now asks this. An EMPTY block (`---` then
+ *  `---`) is a block too, as the reading view always drew it: `$1` is then
+ *  undefined. */
+export const FRONTMATTER_RE = /^---[ \t]*\r?\n(?:([\s\S]*?)\r?\n)?(?:---|\.\.\.)[ \t]*(?:\r?\n|$)/;
+
 /** The `---` block off the top, and the count of lines it occupied. */
 export function splitFrontmatter(content: string): { body: string; frontmatter: string; bodyStartLine: number } {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(content);
+  const match = FRONTMATTER_RE.exec(content);
   if (!match) return { body: content, frontmatter: "", bodyStartLine: 0 };
   // Count what was CUT, not what remains: line N of `body` is line
   // N + bodyStartLine of the file the editor opens.
@@ -227,4 +239,79 @@ export function pickShortest(candidates: Set<string> | readonly string[]): strin
     if (a.length !== b.length) return a.length - b.length;
     return a.localeCompare(b);
   })[0]) as string;
+}
+
+// ── Frontmatter fields both indexes read ────────────────────────────────────
+
+/** The other names a note answers to — frontmatter `aliases:`.
+ *
+ *  The README invites the reader to point Astrolabe at an existing Obsidian
+ *  vault, and in one of those a note is routinely linked by a name that is not
+ *  its filename. Three spellings reach this function from real vaults, because
+ *  YAML gives three different values for what an author reads as one list:
+ *
+ *    aliases: [ML, machine-learning]   → an array
+ *    aliases:                          → an array (block list)
+ *      - ML
+ *    aliases: ML, machine-learning     → the STRING "ML, machine-learning"
+ *    aliases: ML                       → the STRING "ML"
+ *
+ *  A scalar is split on commas; a LIST ITEM never is. That asymmetry is the
+ *  whole rule: `aliases: [Smith, John]` is already two items to YAML, so an
+ *  author who means one alias containing a comma writes `["Smith, John"]` —
+ *  splitting items too would turn every quoted bibliographic alias into two
+ *  wrong ones, and there would be no way left to spell the right one.
+ *
+ *  `alias:` (singular) is read as well: Obsidian accepted it for years and
+ *  vaults still carry it, and a note whose only alias is silently ignored is
+ *  exactly the first-hour disappointment this feature exists to remove.
+ *
+ *  Duplicates collapse case-insensitively, first spelling kept — the table
+ *  this feeds is keyed lowercased, so the second one could only ever be a
+ *  second Set entry for the same note.
+ *
+ *  Shared since the pocket kept its own copy that neither deduplicated nor
+ *  refused a Date: `aliases: 2024-01-01` was a name on the phone and nothing
+ *  on the server. */
+export function parseAliases(fm: Record<string, unknown>): string[] {
+  const raw = fm.aliases ?? fm.alias;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const push = (value: string): void => {
+    const alias = value.trim();
+    if (!alias || seen.has(alias.toLowerCase())) return;
+    seen.add(alias.toLowerCase());
+    out.push(alias);
+  };
+  // A bare number is a legitimate alias ("2024" on a year note) and YAML hands
+  // it over as a number, not a string; anything else — a nested map, a date, a
+  // boolean — is not a name and is dropped rather than stringified into one.
+  const scalar = (value: unknown): string | null => {
+    if (typeof value === "string") return value;
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+    return null;
+  };
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      const text = scalar(item);
+      if (text !== null) push(text);
+    }
+    return out;
+  }
+  const text = scalar(raw);
+  if (text === null) return out;
+  for (const part of text.split(",")) push(part);
+  return out;
+}
+
+/** A note's banner, as written: frontmatter `banner:`, trimmed, or null.
+ *
+ *  `banner:` and nothing else. The pocket once read `banner ?? cover ?? image`,
+ *  so a note carrying a tracker's `cover:` wore it as a banner on the phone and
+ *  not on the server; `cover:` belongs to trackers and folder notes
+ *  (shared/folderNote.ts), `image:` to nobody. Resolution — which attachment
+ *  the value names — is the server's ladder (indexer.ts resolveImageRef). */
+export function bannerOf(fm: Record<string, unknown>): string | null {
+  const raw = fm.banner;
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }

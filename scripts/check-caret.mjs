@@ -224,7 +224,7 @@ try {
   // — it must say so rather than pass.
   let me = (await api("/api/me")).body;
   if (!me.admin) {
-    const password = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) ?? "";
+    const password = process.env.ASTROLABE_PASSWORD ?? "";
     if (!password) {
       console.error(
         "check-caret: not an admin session. This gate drives the EDITOR; run it\n" +

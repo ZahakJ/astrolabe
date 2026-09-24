@@ -25,6 +25,7 @@
 // the server's indexer and the pocket's index both build the wire rows with
 // it (`GET /api/timeline`), and tests/noteDays.test.ts pins every rule.
 
+import { localIsoDay } from "./dates.ts";
 import { periodicDateOf } from "./periodic.ts";
 import { RECORDING_MARK, VOICE_INBOX } from "./voice.ts";
 
@@ -36,9 +37,7 @@ const DAY_RE = /^(\d{4})-(\d{2})-(\d{2})/;
 
 /** `YYYY-MM-DD` of an instant, in LOCAL time. */
 export function localIso(ms: number): string {
-  const d = new Date(ms);
-  const p = (n: number): string => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return localIsoDay(ms);
 }
 
 /** The calendar day a note belongs to: the first frontmatter date (in the

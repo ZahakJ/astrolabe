@@ -833,11 +833,12 @@
 
 /* ── Narrow viewports ────────────────────────────────────────────────────── */
 
-/* The two breakpoints are the base's (app.css's, before 3.26.1), deliberately: at ≤720px it turns the rail
-   into a scrolling strip across the top and at ≤560px it stacks the rows, and a
-   third breakpoint of my own would only produce a band where half of each
-   layout applies. */
-@media (max-width: 720px) {
+/* Two breakpoints, deliberately: at ≤700px (the shell's phone width,
+   client/shellQuery.ts — it was 720 once, a band where the desktop
+   shell drew a phone's settings) it turns the rail into a scrolling strip
+   across the top, and at ≤560px it stacks the rows. A third breakpoint of my
+   own would only produce a band where half of each layout applies. */
+@media (max-width: 700px) {
   /* The rail becomes a scrolling strip across the top: still the whole table
      of contents, without eating a third of a 390px column. (These were
      app.css's phone rules, dead since this sheet restated the desktop values
@@ -1052,7 +1053,7 @@
    wrap. Declared HERE, after the sticky rules it undoes — the Narrow section
    above is earlier in the file, and an equal-specificity override has to
    follow what it overrides. */
-@media (max-width: 720px) {
+@media (max-width: 700px) {
   .s-smodal__specwrap {
     position: static;
     padding-block: 2px 8px;
@@ -1332,7 +1333,7 @@
    becomes inside it. This lives HERE, not in the Narrow section above, because
    the 12.25rem it undoes is declared later in the file than that section — an
    equal-specificity override has to follow what it overrides. */
-@media (max-width: 720px) {
+@media (max-width: 700px) {
   .s-smodal__railwrap {
     width: auto;
   }

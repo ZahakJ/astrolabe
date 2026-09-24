@@ -3,7 +3,7 @@
 // The owner's decks live in Anki, and "screw Anki" is only a plan if the
 // decks come along. This module turns an Anki deck into one of Orbits'
 // decks: one Markdown note per Anki deck, its cards as the
-// lines shared/flashcards.ts already reads, its schedules as the Spaced
+// lines shared/cards.ts already reads, its schedules as the Spaced
 // Repetition plugin's comment — so an imported deck is indistinguishable
 // from one written by hand, and NOTHING about it lives outside the note.
 //
@@ -44,12 +44,13 @@ import { randomBytes } from "node:crypto";
 import path from "node:path";
 import { extensionOf, ATTACHMENT_TYPES } from "../shared/attachments.ts";
 import { cardLineOf, DEFAULT_FOLDER, serialiseDeck, type DeckKind, type NewCard } from "../shared/decks.ts";
-import { scanCards } from "../shared/flashcards.ts";
+import { scanCards } from "../shared/cards.ts";
 import { EASE_MIN, EASE_START, type Schedule } from "../shared/srs.ts";
 import { registerAttachment, indexFile } from "./indexer.ts";
 import { dataDir, uploadDirFor } from "./site.ts";
 import { emitEvent, normalizeRel, safeAbs, VaultError, writeNote } from "./vault.ts";
 import { readZipEntry, zipIndex, ZipError, type ZipEntry } from "./zip.ts";
+import { localIsoDay } from "../shared/dates.ts";
 
 // ───────────────────────────────────────────────────────────── the shapes
 
@@ -102,7 +103,7 @@ export class Skips {
   }
 }
 
-/** The inline card regex in shared/flashcards.ts takes at most 400
+/** The inline card regex in shared/cards.ts takes at most 400
  *  characters before the `::`; a longer front is not a card there. */
 const FRONT_MAX = 400;
 
@@ -199,7 +200,7 @@ export function clozeLine(text: string, ord: number): string {
 }
 
 /** The highlight the vault reads is `==…==` with no `=` inside and at most
- *  200 characters (shared/flashcards.ts, and the reading view's <mark>
+ *  200 characters (shared/cards.ts, and the reading view's <mark>
  *  agrees), so a deletion like `{{c1::E = mc²}}` cannot be a highlight.
  *  Rather than lose the card it becomes a plain `front::back`: the text
  *  with the deletion blanked the way the scanner blanks one, and the
@@ -523,9 +524,7 @@ export function ankiSchedule(card: { type: number; queue: number; due: number; o
 }
 
 function localIso(ms: number): string {
-  const d = new Date(ms);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return localIsoDay(ms);
 }
 
 interface AnkiNoteType {

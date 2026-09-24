@@ -38,9 +38,12 @@ export const TATWEEL = "ـ";
 
 /** The marks `stripTashkeel` removes: the harakat block U+064B–U+0652 (tanwin,
  *  the short vowels, shadda, sukun), the superscript alef U+0670, and the
- *  tatweel U+0640. Exactly the set the fold table folds — a search that finds
- *  a note through these marks and a strip that leaves one of them behind
- *  would be two opinions about what a diacritic is. */
+ *  tatweel U+0640. A SUBSET of what the search fold ignores
+ *  (shared/fold.ts), on purpose: this is an EDIT to the writer's text, not a
+ *  way of matching it, so the Qur'anic pause marks, the hamza and maddah
+ *  marks and the zero-width joiners the fold looks straight through stay
+ *  where the writer put them. Everything this removes, the fold ignores —
+ *  a search never depends on a mark this leaves behind. */
 const TASHKEEL_RE = /[ً-ْٰـ]/g;
 
 /** An Arabic LETTER — something a haraka can sit on. The main block minus

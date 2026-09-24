@@ -200,7 +200,7 @@ export function staticAssets(distDir: string): MiddlewareHandler {
     const type = typeFor(abs);
     const encoding = pickEncoding(c.req.header("accept-encoding"), type, stat.size);
     // Size + mtime in the key is what makes a rebuild invalidate the cache.
-    const key = `${abs} ${stat.size} ${stat.mtimeMs} ${encoding ?? "id"}`;
+    const key = `${abs}\u0000${stat.size}\u0000${stat.mtimeMs}\u0000${encoding ?? "id"}`;
 
     let entry = cache.get(key);
     if (entry) {
@@ -248,7 +248,3 @@ export function staticAssets(distDir: string): MiddlewareHandler {
   };
 }
 
-/** Bytes currently held by the compressed-asset cache — for diagnostics. */
-export function assetCacheBytes(): number {
-  return cachedBytes;
-}

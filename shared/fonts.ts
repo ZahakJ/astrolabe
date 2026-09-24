@@ -12,14 +12,6 @@ export function optionFamily(id: string): string {
   return `AstrolabeOpt-${id.replace(/[^A-Za-z0-9-]+/g, "-")}`;
 }
 
-/** Uploaded faces are named `custom:<file>` wherever a catalog id can appear
- *  (settings.fonts, the picker, /api/font-faces.css). */
-export const CUSTOM_FONT_PREFIX = "custom:";
-
-export function isCustomFontId(id: string): boolean {
-  return id.startsWith(CUSTOM_FONT_PREFIX);
-}
-
 /** The "no webfont" choice — the built-in system stacks. The server's own
  *  name for it is `SYSTEM` (shared/fontCatalog.ts); this copy is the client's,
  *  here rather than in the picker component so the settings form

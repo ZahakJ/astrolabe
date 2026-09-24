@@ -21,6 +21,17 @@
 
 import { localeDigits } from "./numerals.ts";
 
+/** THE LOCAL DAY, `YYYY-MM-DD`, in Western digits — the key of a daily note, a
+ *  Sigil's log line, an Orbits review, a capture's filename. Local because a
+ *  day is where the reader is: `toISOString()` is the wrong day for anyone
+ *  past their UTC midnight. There were eight hand-rolled copies of this line
+ *  (client, server, pocket, the Android shell); there is one. */
+export function localIsoDay(at: Date | number = new Date()): string {
+  const d = typeof at === "number" ? new Date(at) : at;
+  const p = (n: number): string => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 /** Which calendar human-facing dates are rendered in.
  *  - `gregorian` (default) — unchanged behaviour.
  *  - `hijri` — Umm al-Qura only.

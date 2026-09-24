@@ -53,7 +53,7 @@ import {
 import { attachVimStatus, detachVimStatus } from "../editor/vimStatus.ts";
 import { languageChanged } from "../editor/langEffect.ts";
 import { noteLayoutChanged } from "../editor/noteLayout.ts";
-import { findHeadingLine } from "../editor/links.ts";
+import { findHeadingLine } from "../../shared/headings.ts";
 import { anchorLine } from "../../shared/anchors.ts";
 import { footnotesOf } from "../../shared/footnotes.ts";
 import { GOTO_FOOTNOTE_EVENT, type GotoFootnote } from "../footnoteNav.ts";

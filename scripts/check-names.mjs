@@ -12,7 +12,7 @@
 // docs/ar/*.md; README.md; vault-seed/**; the packages' own descriptions
 // (the AppStream metainfo, electron-builder.yml, the package.json files);
 // the what's-new deck (client/whatsnew/releaseNotes.ts); and the section
-// headings of CONTRACTS.md. WHAT IS LOOKED FOR: the words nothing a reader sees may say
+// headings of CONTRACTS.md and every contracts/*.md. WHAT IS LOOKED FOR: the words nothing a reader sees may say
 // any more — routine, constellation, flashcard (say "card") — and their
 // Arabic (الروتين, الكوكبات, بطاقات تعليمية). Then client/ and server/
 // source for the old ADDRESSES "/constellations" and "/routines", which
@@ -126,9 +126,10 @@ for (const rel of ["desktop/appstream/dev.astrolabe.desktop.metainfo.xml", "desk
   scanLines(file, lines, { allowLineage: true });
 }
 
-// ── 4. CONTRACTS.md headings ────────────────────────────────────────────────
-{
-  const file = join(root, "CONTRACTS.md");
+// ── 4. The contracts' headings ──────────────────────────────────────────────
+// CONTRACTS.md is the map; the contracts themselves are contracts/*.md, one
+// file per area, and every heading in every one of them is read.
+for (const file of [join(root, "CONTRACTS.md"), ...readdirSync(join(root, "contracts")).filter((n) => n.endsWith(".md")).map((n) => join(root, "contracts", n))]) {
   const lines = readFileSync(file, "utf8").split("\n");
   lines.forEach((text, i) => {
     if (!/^#{1,6}\s/.test(text)) return;

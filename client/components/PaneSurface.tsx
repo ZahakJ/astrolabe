@@ -106,7 +106,7 @@ export default function PaneSurface({ id, children }: { id: string; children?: R
       <Suspense fallback={<div className="s-media" />}>
         <MediaView />
       </Suspense>
-    ) : surface === "routines" ? (
+    ) : surface === "sigils" ? (
       // The Sigils page: today's checklists, every sigil in the vault,
       // a tab like the Media page.
       <Suspense fallback={<div className="s-routines" />}>

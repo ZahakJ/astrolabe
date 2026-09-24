@@ -15,6 +15,7 @@
 // each block takes its own direction from its first strong character and
 // starts at that direction's leading edge.
 
+import { FRONTMATTER_RE } from "./noteParse.ts";
 export type TextDirection = "auto" | "ltr" | "rtl";
 export type TextAlign = "start" | "left" | "right" | "center" | "justify";
 
@@ -56,8 +57,8 @@ export interface NoteLayout {
  *  importing the whole TeX reader into the client's first paint. */
 export function frontmatterText(content: string): string {
   const src = content.replace(/\r\n/g, "\n");
-  const md = /^---\n([\s\S]*?)\n(?:---|\.\.\.)(?:\n|$)/.exec(src);
-  if (md) return md[1];
+  const md = FRONTMATTER_RE.exec(src);
+  if (md) return md[1] ?? "";
   const tex = /^%---\n([\s\S]*?)\n%---%?(?:\n|$)/.exec(src);
   if (tex) return tex[1].replace(/^[ \t]*%[ \t]?/gm, "");
   return "";

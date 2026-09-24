@@ -19,7 +19,6 @@ const en = {
   connectingTo: (host: string) => `Connecting to ${host}…`,
   chooseAnother: "Choose another server",
   savedTitle: "Saved servers",
-  forget: "Forget",
   forgetOne: (host: string) => `Forget ${host}`,
   signInNote: "This vault asks for a password. You will be asked for it there.",
 
@@ -33,7 +32,6 @@ const en = {
 
   captureTitle: "Capture",
   captureLede: (host: string) => `To ${host}`,
-  captureNoteLabel: "Note",
   captureBody: "Text",
   captureSave: "Save to inbox",
   captureSaving: "Saving…",
@@ -67,7 +65,6 @@ const en = {
   voiceMicFailed: "The microphone could not be opened.",
 
   // ── The pocket vault: a repository from GitHub, opened on the phone ───────
-  pocketTitle: "A vault from GitHub",
   pocketLede: "No server of your own? Open a private repository instead.",
   pocketStart: "Sign in with GitHub",
   pocketSigningIn: "Asking GitHub…",
@@ -99,6 +96,10 @@ const en = {
   pocketOrGithub: "or open a vault from GitHub",
   pocketStartOver: "Start again",
   pocketAnotherRepo: "Choose another repository",
+  // The service worker's two answers when the page that holds the vault is
+  // not there to ask (src/pocket/sw.ts): the client shows them as errors.
+  pocketNotOpenYet: "The pocket vault is not open yet. It will be in a moment.",
+  pocketNoAnswer: "The pocket vault did not answer. Try again.",
 
   // The one line the vault ever says about itself. Never optimistic: see
   // src/pocket/sync.ts for the order these are decided in.
@@ -126,7 +127,6 @@ const ar: Copy = {
   connectingTo: (host: string) => `…جارٍ الاتّصال بـ ${host}`,
   chooseAnother: "اختر خادمًا آخر",
   savedTitle: "الخوادم المحفوظة",
-  forget: "انسَ",
   forgetOne: (host: string) => `انسَ ${host}`,
   signInNote: "هذه الخزانة تطلب كلمة مرور. ستُسأل عنها هناك.",
 
@@ -140,7 +140,6 @@ const ar: Copy = {
 
   captureTitle: "التقاط",
   captureLede: (host: string) => `إلى ${host}`,
-  captureNoteLabel: "ملاحظة",
   captureBody: "النص",
   captureSave: "احفظ في الوارد",
   captureSaving: "…جارٍ الحفظ",
@@ -174,7 +173,6 @@ const ar: Copy = {
   voiceMicFailed: "تعذّر فتح الميكروفون.",
 
   // ── الخزانة في الجيب: مستودع من GitHub يُفتح على الهاتف ───────────────────
-  pocketTitle: "خزانة من GitHub",
   pocketLede: "لا خادم لك؟ افتح مستودعًا خاصًّا بدلًا من ذلك.",
   pocketStart: "سجّل الدخول بـ GitHub",
   pocketSigningIn: "…نسأل GitHub",
@@ -206,6 +204,8 @@ const ar: Copy = {
   pocketOrGithub: "أو افتح خزانة من GitHub",
   pocketStartOver: "ابدأ من جديد",
   pocketAnotherRepo: "اختر مستودعًا آخر",
+  pocketNotOpenYet: "لم تُفتح الخزانة في الجيب بعد. ستُفتح بعد لحظة.",
+  pocketNoAnswer: "لم تُجب الخزانة في الجيب. حاول مرّة أخرى.",
 
   syncing: "…نتحقّق من GitHub",
   pushing: "…نرسل تغييراتك",

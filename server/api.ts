@@ -10,6 +10,7 @@ import { streamSSE } from "hono/streaming";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import {
   ATTACHMENT_TYPES,
+  contentTypeFor,
   extensionOf,
   normalizeFolder,
  uploadDestination } from "../shared/attachments.ts";
@@ -233,6 +234,7 @@ import {
   suppressWatcherEcho,
   writeNote,
 } from "./vault.ts";
+import { parseByteRange } from "../shared/byteRange.ts";
 
 export const api = new Hono();
 
@@ -1730,59 +1732,10 @@ api.get("/vellum.sty", (c) => {
 
 // ------------------------------------------------------- attachment serving
 
-const MIME_TYPES: Record<string, string> = {
-  png: "image/png",
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  gif: "image/gif",
-  webp: "image/webp",
-  avif: "image/avif",
-  svg: "image/svg+xml",
-  ico: "image/x-icon",
-  bmp: "image/bmp",
-  tif: "image/tiff",
-  tiff: "image/tiff",
-  pdf: "application/pdf",
-  mp4: "video/mp4",
-  webm: "video/webm",
-  mov: "video/quicktime",
-  mkv: "video/x-matroska",
-  mp3: "audio/mpeg",
-  m4a: "audio/mp4",
-  wav: "audio/wav",
-  ogg: "audio/ogg",
-  flac: "audio/flac",
-  txt: "text/plain; charset=utf-8",
-  csv: "text/csv; charset=utf-8",
-  json: "application/json",
-  canvas: "application/json",
-};
-
-export function contentTypeFor(relPath: string): string {
-  const ext = relPath.slice(relPath.lastIndexOf(".") + 1).toLowerCase();
-  return MIME_TYPES[ext] ?? "application/octet-stream";
-}
-
-/** Parse a single `bytes=a-b` Range header against a file size, or null. */
-function parseRange(header: string | undefined, size: number): { start: number; end: number } | null {
-  if (!header || size === 0) return null;
-  const m = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
-  if (!m || (m[1] === "" && m[2] === "")) return null;
-  let start: number;
-  let end: number;
-  if (m[1] === "") {
-    // suffix range: last N bytes
-    const suffix = Number(m[2]);
-    if (suffix === 0) return null;
-    start = Math.max(0, size - suffix);
-    end = size - 1;
-  } else {
-    start = Number(m[1]);
-    end = m[2] === "" ? size - 1 : Math.min(Number(m[2]), size - 1);
-  }
-  if (start > end || start >= size) return null;
-  return { start, end };
-}
+// The served-type table is shared/attachments.ts's (MIME_TYPES), which the
+// pocket's /api/file reads too. Re-exported: server/index.ts and manifest.ts
+// have always asked this module for it.
+export { contentTypeFor };
 
 api.get("/file", async (c) => {
   const relQuery = requiredQuery(c.req.query("path"), "path");
@@ -1831,11 +1784,12 @@ api.get("/file", async (c) => {
     return c.body(null, 304, { "ETag": etag });
   }
 
-  const rangeHeader = c.req.header("range");
-  const range = parseRange(rangeHeader, file.size);
-  if (rangeHeader && !range && /^bytes=/.test(rangeHeader.trim())) {
+  // shared/byteRange.ts — the pocket's /api/file asks the same parser.
+  const asked = parseByteRange(c.req.header("range"), file.size);
+  if (asked === "unsatisfiable") {
     return c.body(null, 416, { "Content-Range": `bytes */${file.size}` });
   }
+  const range = asked;
 
   const start = range?.start ?? 0;
   const end = range?.end ?? file.size - 1;
@@ -2330,7 +2284,7 @@ api.post("/task", async (c) => {
 // writes the next schedule into the note as the Spaced Repetition plugin's
 // own comment, so a vault reviewed in Obsidian and here is one vault. Admin
 // only — the guard above 401s a visitor's POST, and the lists are refused
-// below. `GET /api/cards` and `POST /api/card/review` are the Review page's
+// below. `GET /api/cards` and `POST /api/card/review` are the Orbits session's
 // older names for the implicit deck and a front→back grade; they
 // stay so an open tab from before the shelf keeps working.
 api.get("/cards", (c) => {

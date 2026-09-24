@@ -46,6 +46,7 @@ import { promises as fs } from "node:fs";
 import type { ReplaceLine, ReplacePreview, ReplacePreviewFile } from "../shared/types.ts";
 import { VaultError, safeAbs } from "./vault.ts";
 import type { BulkTransform } from "./bulkRewrite.ts";
+import { FRONTMATTER_RE } from "../shared/noteParse.ts";
 
 /** Longest find/replace strings accepted. A needle longer than this is a
  *  paste accident, and a catastrophic regex is easier to write short. */
@@ -167,7 +168,7 @@ export function makeBodyTest(spec: ReplaceSpec): (body: string) => boolean {
  *  its lines from `startLine`, so a preview row's number is the number the
  *  editor's own goto machinery uses. */
 function bodyStart(content: string): { at: number; startLine: number } {
-  const match = /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/.exec(content);
+  const match = FRONTMATTER_RE.exec(content);
   if (!match) return { at: 0, startLine: 1 };
   const head = match[0];
   return { at: head.length, startLine: head.split("\n").length };

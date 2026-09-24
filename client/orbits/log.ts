@@ -10,6 +10,7 @@
 
 import type { Grade } from "../../shared/srs.ts";
 import { shiftDay } from "./stats.ts";
+import { localIsoDay } from "../../shared/dates.ts";
 
 export const LOG_KEY = "astrolabe.orbits.log";
 const LOG_CAP = 5000;
@@ -75,9 +76,7 @@ export function dropLastLog(path: string, line: number): void {
 
 /** ISO day of a timestamp, in the reader's own zone — the day they studied. */
 export function dayOf(ts: number): string {
-  const d = new Date(ts);
-  const p = (n: number): string => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return localIsoDay(ts);
 }
 
 /** Grades good or easy over all grades in the last `days` days, or null

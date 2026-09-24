@@ -2,6 +2,7 @@ import { el } from "./dom.ts";
 import { t } from "./i18n.ts";
 import { HttpError, pollVoice, sendVoice, type VoiceReply } from "./server.ts";
 import { blobToBase64, micSupport, Recorder, MicError, type MicProblem } from "../../client/voice/recorder.ts";
+import { localIsoDay } from "../../shared/dates.ts";
 
 /**
  * THE SHARE SHEET'S VOICE NOTE (3.24.0, docs/capture.md "Voice").
@@ -131,7 +132,7 @@ export function mountVoice(base: string, host: string, onDone: () => void): HTML
       say(t.voiceTapOrHold);
       return;
     }
-    const date = `${spokenAt.getFullYear()}-${pad(spokenAt.getMonth() + 1)}-${pad(spokenAt.getDate())}`;
+    const date = localIsoDay(spokenAt);
     const hm = `${pad(spokenAt.getHours())}:${pad(spokenAt.getMinutes())}`;
     let job: VoiceReply;
     try {

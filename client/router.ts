@@ -34,7 +34,7 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, isCalendarTab, isFeedsTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, isReviewWeekTab, isTimelineTab, isTodayTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isCalendarTab, isFeedsTab, isGraphTab, isMediaTab, isSigilsTab, isOrbitsTab, isReviewWeekTab, isTimelineTab, isTodayTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
 
 /** The focused pane is showing the graph tab. */
 function graphTabActive(ws: Workspace): boolean {
@@ -78,10 +78,10 @@ function timelineTabActive(ws: Workspace): boolean {
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isTimelineTab(tab.path);
 }
-function routinesTabActive(ws: Workspace): boolean {
+function sigilsTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
-  return tab !== null && isRoutinesTab(tab.path);
+  return tab !== null && isSigilsTab(tab.path);
 }
 /** …or a Orbits tab: the shelf, or a session over the deck
  *  the returned path names. Null when the focused tab is something else. */
@@ -203,7 +203,7 @@ function bookSurfaceOf(ws: Workspace): { kind: "library" } | { kind: "book"; pat
 function urlForState(view: string, openPath: string | null, ws: Workspace): string {
   if (view === "editor" && graphTabActive(ws)) return "/graph";
   if (view === "editor" && mediaTabActive(ws)) return "/media";
-  if (view === "editor" && routinesTabActive(ws)) return "/sigils";
+  if (view === "editor" && sigilsTabActive(ws)) return "/sigils";
   if (view === "editor" && calendarTabActive(ws)) return "/calendar";
   if (view === "editor" && todayTabActive(ws)) return "/today";
   if (view === "editor" && timelineTabActive(ws)) return "/timeline";
@@ -242,7 +242,7 @@ function setTitle(openPath: string | null, view: string): void {
     document.title = `${t("docTitleGraph")} · ${base}`;
   } else if (view === "editor" && mediaTabActive(useStore.getState().workspace)) {
     document.title = `${t("media")} · ${base}`;
-  } else if (view === "editor" && routinesTabActive(useStore.getState().workspace)) {
+  } else if (view === "editor" && sigilsTabActive(useStore.getState().workspace)) {
     document.title = `${t("routines")} · ${base}`;
   } else if (view === "editor" && calendarTabActive(useStore.getState().workspace)) {
     document.title = `${t("calendar")} · ${base}`;
@@ -310,7 +310,7 @@ export function applyUrl(initial = false): boolean {
     // bookmark still opens it, and the bar then shows `/sigils`.
     // lineage: /routines is a redirect source only.
     if (location.pathname === "/sigils" || location.pathname === "/routines") { // lineage
-      store.setView("routines");
+      store.setView("sigils");
       canonicalise("/sigils");
       return true;
     }
@@ -392,7 +392,7 @@ export function applyUrl(initial = false): boolean {
         store.openPath !== null ||
         graphTabActive(store.workspace) ||
         mediaTabActive(store.workspace) ||
-        routinesTabActive(store.workspace) ||
+        sigilsTabActive(store.workspace) ||
         reviewWeekTabActive(store.workspace) ||
         calendarTabActive(store.workspace) ||
         feedsTabActive(store.workspace) ||

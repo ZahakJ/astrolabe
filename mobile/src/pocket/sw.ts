@@ -26,7 +26,12 @@
  * registration installs THIS worker — so the client's own call does the
  * claiming and there is no second registration to fight with. A pocket vault
  * needs no offline cache: it IS the copy.
+ *
+ * ITS WORDS ARE THE SHELL'S (src/i18n.ts): a worker has a `navigator` too, so
+ * the two sentences it can say reach an Arabic phone in Arabic.
  */
+
+import { t } from "../i18n.ts";
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -149,7 +154,7 @@ async function askThePage(request: Request): Promise<Response> {
   const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
   const page = all[0];
   if (!page) {
-    return new Response(JSON.stringify({ error: "The pocket vault is not open yet", code: "booting" }), {
+    return new Response(JSON.stringify({ error: t.pocketNotOpenYet, code: "booting" }), {
       status: 503,
       headers: { "Content-Type": "application/json" },
     });
@@ -167,7 +172,7 @@ async function askThePage(request: Request): Promise<Response> {
     body: ArrayBuffer | string | null;
   }>((resolve, reject) => {
     const channel = new MessageChannel();
-    const timer = setTimeout(() => reject(new Error("The pocket vault did not answer")), 30_000);
+    const timer = setTimeout(() => reject(new Error(t.pocketNoAnswer)), 30_000);
     channel.port1.onmessage = (message) => {
       clearTimeout(timer);
       resolve(message.data);

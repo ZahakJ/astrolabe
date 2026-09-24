@@ -75,12 +75,12 @@ import {
   isCalendarTab,
   isFeedsTab,
   isMediaTab,
-  isRoutinesTab,
+  isSigilsTab,
   isOrbitsTab,
   isVirtualTab,
   GRAPH_TAB,
   MEDIA_TAB,
-  ROUTINES_TAB,
+  SIGILS_TAB,
   REVIEW_WEEK_TAB,
   FEEDS_TAB,
   CALENDAR_TAB,
@@ -671,8 +671,8 @@ export interface State {
   mediaOpen(): boolean;
   toggleMedia(): void;
   /** The Orbits page, on the same terms. */
-  routinesOpen(): boolean;
-  toggleRoutines(): void;
+  sigilsOpen(): boolean;
+  toggleSigils(): void;
   /** The Calendar page, on the same terms: the month with its own door. */
   calendarOpen(): boolean;
   toggleCalendar(): void;
@@ -1368,11 +1368,11 @@ async function guarded(
 
 /** The pages a pane can show that are not a note, by the name `setView`
  *  takes, and the virtual tab each one opens (client/workspace.ts). */
-export type SurfaceView = "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "feeds" | "today" | "timeline";
+export type SurfaceView = "graph" | "media" | "sigils" | "orbits" | "review-week" | "calendar" | "feeds" | "today" | "timeline";
 const SURFACE_TABS: Record<SurfaceView, string> = {
   graph: GRAPH_TAB,
   media: MEDIA_TAB,
-  routines: ROUTINES_TAB,
+  sigils: SIGILS_TAB,
   orbits: ORBITS_TAB,
   "review-week": REVIEW_WEEK_TAB,
   calendar: CALENDAR_TAB,
@@ -1402,7 +1402,7 @@ export const useStore = create<State>()((set, get) => {
     const launch = s.launch;
     if (!s.admin || launch === "resume") return;
     if (location.pathname !== "/" && location.pathname !== "/graph") return;
-    if (launch === "sigils") s.setView("routines");
+    if (launch === "sigils") s.setView("sigils");
     else if (launch === "today-page") s.setView("today");
     else if (launch === "orbits") s.openOrbits(null);
     else if (launch === "today") {
@@ -2454,16 +2454,16 @@ export const useStore = create<State>()((set, get) => {
       set((s) => ({ ...s, ...mirrorOf(pruned) }));
       persistWorkspace(pruned);
     },
-    routinesOpen: () => {
+    sigilsOpen: () => {
       const ws = get().workspace;
       const pane = paneAt(ws, ws.focus);
       const tab = pane === null ? null : activeTabOf(pane);
-      return tab !== null && isRoutinesTab(tab.path);
+      return tab !== null && isSigilsTab(tab.path);
     },
-    toggleRoutines: () => {
+    toggleSigils: () => {
       const s = get();
-      if (s.routinesOpen()) s.closeTab(ROUTINES_TAB);
-      else s.setView("routines");
+      if (s.sigilsOpen()) s.closeTab(SIGILS_TAB);
+      else s.setView("sigils");
     },
     calendarOpen: () => {
       const ws = get().workspace;

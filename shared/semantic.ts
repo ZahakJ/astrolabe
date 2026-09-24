@@ -21,6 +21,7 @@ import { closesFence, fenceOpener, type Fence } from "./fences.ts";
 import { stripMarkdown } from "./prose.ts";
 import { splitFrontmatter } from "./noteParse.ts";
 import { foldTerm } from "./fold.ts";
+import { headingOf } from "./headings.ts";
 
 // ── Chunking ──────────────────────────────────────────────────────────────
 
@@ -83,7 +84,6 @@ export function utf8Length(text: string): number {
   return n;
 }
 
-const HEADING_RE = /^ {0,3}(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$/;
 
 /** A run of source text: [from, to) in UTF-16 offsets of the whole file. */
 interface Span {
@@ -134,10 +134,10 @@ function sectionsOf(source: string, bodyOffset: number): Section[] {
       extend(lineFrom, lineTo);
       continue;
     }
-    const h = HEADING_RE.exec(line);
-    if (h) {
+    const h = headingOf(line);
+    if (h && h.raw.trim() !== "") {
       close();
-      sections.push({ heading: headingText(h[2]), headingOffset: lineFrom, paragraphs: [] });
+      sections.push({ heading: headingText(h.raw.replace(/[ \t]*#*[ \t]*$/, "")), headingOffset: lineFrom, paragraphs: [] });
       continue;
     }
     if (line.trim() === "") {
