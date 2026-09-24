@@ -60,3 +60,9 @@ describe("client/components/Sidebar.tsx, split into tree/*, TagShelf and the cur
     ]);
   });
 });
+
+describe("client/components/GraphView.tsx, its engine moved to client/graph/sim.ts", () => {
+  it("keeps GraphView's exports; only GraphView reaches the engine", () => {
+    assertMove("client/components/GraphView.tsx", ["client/graph/sim.ts"]);
+  });
+});
