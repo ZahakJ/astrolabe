@@ -68,25 +68,41 @@ async function* one(bytes: Uint8Array): AsyncIterableIterator<Uint8Array> {
   yield bytes;
 }
 
-/** The shell's transport: every byte through the native plugin. */
-export const nativeGitHttp: GitHttpClient = {
-  async request(request: GitHttpRequest): Promise<GitHttpResponse> {
-    const method = request.method ?? "GET";
-    const body = await collect(request.body);
-    const answer = await AstrolabeNative.gitRequest({
-      url: request.url,
-      method,
-      headers: request.headers ?? {},
-      ...(body === null ? {} : { bodyBase64: toBase64(body) }),
-    });
-    return {
-      url: request.url,
-      method,
-      statusCode: answer.status,
-      statusMessage: answer.statusText,
-      headers: answer.headers,
-      body: one(fromBase64(answer.bodyBase64)),
-    };
-  },
-};
+/** What the transport asks of the native side — `AstrolabeNative.gitRequest`,
+ *  named so a test can stand in for the plugin. */
+export interface GitBridge {
+  gitRequest(options: {
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    bodyBase64?: string;
+  }): Promise<{ status: number; statusText: string; headers: Record<string, string>; bodyBase64: string }>;
+}
 
+/** isomorphic-git's `http` over one bridge: the body gathered and sent as
+ *  base64, the answer's base64 handed back as one chunk. */
+export function createGitHttp(bridge: GitBridge): GitHttpClient {
+  return {
+    async request(request: GitHttpRequest): Promise<GitHttpResponse> {
+      const method = request.method ?? "GET";
+      const body = await collect(request.body);
+      const answer = await bridge.gitRequest({
+        url: request.url,
+        method,
+        headers: request.headers ?? {},
+        ...(body === null ? {} : { bodyBase64: toBase64(body) }),
+      });
+      return {
+        url: request.url,
+        method,
+        statusCode: answer.status,
+        statusMessage: answer.statusText,
+        headers: answer.headers,
+        body: one(fromBase64(answer.bodyBase64)),
+      };
+    },
+  };
+}
+
+/** The shell's transport: every byte through the native plugin. */
+export const nativeGitHttp: GitHttpClient = createGitHttp(AstrolabeNative);

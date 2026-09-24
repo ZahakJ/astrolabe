@@ -137,6 +137,7 @@ export class PocketRepo {
 
   async commit(message: string, paths: string[]): Promise<string | null> {
     let staged = 0;
+    let tracked: Set<string> | undefined;
     for (const path of new Set(paths)) {
       if (path.startsWith(".trash/")) continue;
       try {
@@ -145,13 +146,13 @@ export class PocketRepo {
       } catch {
         // The file is gone — a delete or a rename's old half. `remove` stages
         // exactly that, and a path that was never tracked simply has nothing
-        // to stage, which is not a failure either.
-        try {
-          await git.remove({ ...this.common, filepath: path });
-          staged++;
-        } catch {
-          // Untracked and absent: nothing to say about it.
-        }
+        // to stage, which is not a failure either. isomorphic-git's `remove`
+        // does not throw for an untracked path, so tracking is asked first:
+        // counting it staged made an EMPTY commit (tests/pocketGit.test.ts).
+        tracked ??= new Set(await git.listFiles({ ...this.common }));
+        if (!tracked.has(path)) continue;
+        await git.remove({ ...this.common, filepath: path });
+        staged++;
       }
     }
     if (staged === 0) return null;
