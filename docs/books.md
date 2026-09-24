@@ -268,6 +268,10 @@ What is not here yet: **highlights and margin notes**, which the PDF reader anch
 on a page — a thing an EPUB does not have. `c` gives you a citation to a passage; marking one is a
 later round.
 
+## On a phone
+
+On a phone ([the phone layout](workspace.md#on-a-phone)) the library is a list — every book with its author or folder and how far in you are, the ones you have been reading first — and a book opens on the whole screen with **one bar of its own**: the way back, the title, a slider that moves through the pages of a PDF or the chapters of an EPUB and jumps when you let it go, and **⋯**. Under **⋯** are the contents (as a sheet: tap a chapter to go there), search, go to a page, night mode, quote the selection into a note, the marked passages, fit to the width, and ending the reading session. A PDF opens at the width of the screen; pinch to zoom, or use the **−** and **+** at the corner (for an EPUB they change the size of the type). The back gesture closes the search line, the contents or any panel before it closes the book.
+
 ## What it does not do
 
 It never publishes. Both the shelf and the reader are admin surfaces over the owner's vault; a PDF

@@ -85,8 +85,7 @@ file is untouched. A `.tex` note carries the same flag in [its own comment block
 publishes the same way.
 
 On a phone or tablet, publishing asks first — from the phone layout's note sheet and from a
-long press on a note, and, in the *Classic* phone layout, from the **Publish** button in the bottom
-bar — because a thumb misses by a button's width and publishing is the one action that reaches
+long press on a note — because a thumb misses by a button's width and publishing is the one action that reaches
 strangers. A mouse and `Ctrl/Cmd Shift P` publish in one step.
 
 Everything a visitor can see follows from that flag. The tree, search, the graph, backlinks, the
