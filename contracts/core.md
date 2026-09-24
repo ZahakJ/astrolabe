@@ -73,6 +73,25 @@ back-to-top, the empty states. The tagline is "Your notes, charted." («ملاح
 - Dev: vite on **5801** proxies `/api` → 6801. Prod: server statically serves `dist/`.
 - SPA fallback: non-`/api` GETs serve `dist/index.html` when dist exists.
 
+## Where the code lives (the large modules, split in the 3.29 sweep)
+
+A module that grew past a few thousand lines was cut along its own seams into files of
+its own, and kept its name and every export, so no importer changed (`tests/splits.test.ts`
+holds each family to that over the import graph: every name an importer asks for is still
+exported, no part exports what its family does not take, nothing outside reaches a part).
+
+| Module (kept) | Its parts |
+| --- | --- |
+| `server/indexer.ts` — the store, building, the event queue | `server/indexer/{language,resolve,folders,publish,posts,queries}.ts` |
+| `server/api.ts` — middleware, the auth guard, notes and folders, discovery, the mounts | `server/{trash,tag,replace,file,comment,deck,settings,sync,version,event,rename}Routes.ts`, each a Hono router mounted where its routes stood; `server/requestBody.ts`, the readers they share |
+| `client/components/Sidebar.tsx` — the component | `client/components/tree/{expansion.ts,icons.tsx,TreeRow.tsx,useTreeCursor.ts}`, `client/components/TagShelf.tsx` |
+| `client/components/GraphView.tsx` — the React half | `client/graph/sim.ts`, the engine |
+| `client/components/CommandPalette.tsx` — the component | `client/components/palette/commands.ts`: `COMMANDS` and the two runners, the one list both shells run |
+| `client/books/BookReader.tsx` — the reader | `client/books/ReaderPanels.tsx`, `client/books/pdfHighlight.ts` |
+| `client/state.ts` — `useStore`, the phone-shell rule, our own writes | `client/state/{types,dom,persistence,helpers,themeMirror,sliceTypes}.ts` and five slices spread in order (`fieldsSlice`, `sessionSlice`, `workspaceSlice`, `prefsSlice`, `notesSlice`) |
+| `client/styles/app.css` | `reset.css`, `tree.css`, `editor.css`, `publish.css` linked before it and `grips.css` after (client/index.html; the order is the cascade) |
+| `client/i18n.ts` — `t()`, the loader | `client/i18n/en.ts`, `client/i18n/ar.ts` (see [i18n.md](i18n.md)) |
+
 ## Conventions
 
 - No default exports except React components. No `any` unless unavoidable. Small files > clever files.
@@ -219,7 +238,7 @@ failures happen, and a crash card that must fetch a chunk after the crash is not
   able to spell "desktop only" BEFORE the desktop exists, or the first collision between the two
   runtimes is discovered after it ships. The gate parses `GROUPS` out of the source TEXT and never
   imports it (the rows carry React and store closures; a gate that needs a browser is a gate nobody
-  runs), the same way `check-i18n.mjs` reads the DICT block. A row resolves to a **chord** —
+  runs), the same way `check-i18n.mjs` reads the dictionary files. A row resolves to a **chord** —
   modifiers in one canonical order (`Ctrl/Cmd`, `Alt`, `Shift`), one key token, `↑ / ↓` for a pair —
   and a **scope**, which is the shell (`app` / `blog`) and the runtime (browser / desktop) and
   deliberately NOT `admin`: an admin session sees the visitor's rows plus its own, so `admin` never

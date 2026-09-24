@@ -163,7 +163,13 @@ more than one name".
   loops that asked `isTemplateNote()` per published post hoist the lookup out (`templateMatcher()`).
   So does `excludedTags()`, which `postMeta()` called once per post. Measured on a 3k-note vault:
   `GET /api/posts` p50 **30.2 ms → 5.4 ms**, eight concurrent anonymous GETs **187 ms → 23 ms**.
-- `server/api.ts` — `export const api: Hono` implementing routes above.
+- `server/api.ts` — `export const api: Hono` implementing routes above: the middleware, the auth
+  guard, the note and folder routes and discovery itself, and the mounts of the route groups
+  that live in files of their own (`server/*Routes.ts` — trash, tags, replace, files, comments,
+  Orbits, settings, sync, versions, the SSE stream, rename; each mounted where its routes
+  stood, so the route table is the one it was). `server/indexer.ts` keeps the index's store and
+  re-exports the queries that live in `server/indexer/` ([core.md](core.md), "Where the code
+  lives").
 - `server/seed.ts` — the starter vault and the single rule about when it may be written: a directory
   that did not exist is seeded at boot; one that exists is the reader's, and is OFFERED the seed
   (`/api/seed`) rather than written into.
@@ -1078,7 +1084,7 @@ so an upgrade changes nothing until an admin says otherwise — which is why `PA
   `custom.css` keep their dedicated locations.
 
 **Every type the vault can hold, sniffed by bytes.** `sniffAttachmentType(buf, hint)` in
-`server/api.ts` decides the stored extension from magic numbers — images, PDF, audio, video —
+`server/fileRoutes.ts` decides the stored extension from magic numbers — images, PDF, audio, video —
 and the `hint` (the uploader's own extension) only ever picks between aliases the bytes cannot
 distinguish (`jpg`/`jpeg`, `ogg`/`oga`/`opus`, `mp4`/`m4v`). The raw-MPEG-frame test for a
 tagless mp3 is `0xFF 0xEx`, two weak bytes, so it is checked LAST, after every format with a

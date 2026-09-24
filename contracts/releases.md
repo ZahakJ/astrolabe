@@ -31,3 +31,7 @@ Where each release's contract now lives is named beside it. Before 3.10 the hist
 - **3.28.0** — feeds, and a way in: a feeds list in a note, fetched only by consent, kept through the clipper's door; the import wizard for Notion, Evernote and Obsidian ([features.md](features.md)).
 - **3.29.0** — today, and the days: Today as a desktop page on one shared data layer, the evening reflection, the Timeline, the year in review ([features.md](features.md), [shell.md](shell.md)).
 - **3.29.1** — the sweep, part 1: the contracts split into `contracts/`; one phone width in every stylesheet; the rules the phone and the server shared by copy moved into `shared/` with a parity test; Sigils by their own name in the code; the copy scan on the syntax tree, the Android shell's words held to parity, the RTL chevrons mirrored once whatever the font; budgets for the Sigils and Calendar pages ([gates.md](gates.md)).
+
+## Unreleased
+
+- The sweep, part 2: the large modules split along their seams with every export kept, and the dictionary split by language out of the entry chunk ([core.md](core.md), "Where the code lives"; [i18n.md](i18n.md)).
