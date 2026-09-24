@@ -44,6 +44,20 @@ function scrollerOf(root: HTMLElement | null): HTMLElement | null {
   return inner instanceof HTMLElement ? inner : root;
 }
 
+/** A reading-view embed as the embed menu takes it: its source, and the
+ *  lines of the top-level block it sits in. */
+function readingTarget(path: string, el: HTMLElement) {
+  const block = el.closest<HTMLElement>("[data-src-start]");
+  return {
+    note: path,
+    source: el.dataset.embedSrc ?? "",
+    el,
+    surface: "reading" as const,
+    span: null,
+    lines: block ? ([Number(block.dataset.srcStart), Number(block.dataset.srcEnd)] as [number, number]) : null,
+  };
+}
+
 export default function NoteScreen({ path, onBack }: { path: string; onBack: () => void }) {
   const phone = usePhone();
   const admin = useStore((s) => s.admin);
@@ -166,6 +180,82 @@ export default function NoteScreen({ path, onBack }: { path: string; onBack: () 
       root.removeEventListener("contextmenu", onContext);
     };
   }, [editing, surface, admin, path, phone]);
+
+  // ── an embed's menu, on a long press ─────────────────────────────────────
+  // A picture, a card, a drawn page or a drawing held still is the embed
+  // menu as a sheet (../embedSheet.ts) — the desktop's right-click, and
+  // "Move…" where a pointer would drag. Visitors too (they get Copy link,
+  // Open, Save as), so this is not behind `admin` like the heading's.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || (surface !== "edit" && surface !== "reading")) return;
+    let timer = 0;
+    let start: { x: number; y: number } | null = null;
+    const cancel = (): void => {
+      window.clearTimeout(timer);
+      start = null;
+    };
+    const readingEmbed = (target: EventTarget | null): HTMLElement | null => {
+      if (!(target instanceof Element)) return null;
+      const el = target.closest<HTMLElement>(".s-reading [data-embed-src]");
+      return el && !el.closest(".s-rv-transclude") ? el : null;
+    };
+    const editorEmbed = (target: EventTarget | null): boolean =>
+      target instanceof Element && target.closest(".cm-s-embed-image, .cm-s-embed-file, .cm-s-embed-pdfpage, .cm-s-embed-audio") !== null;
+    const isEmbed = (target: EventTarget | null): boolean => (editing ? editorEmbed(target) : readingEmbed(target) !== null);
+    // One press opens one sheet: the hold's timer and the `contextmenu`
+    // Android raises for the same press both land here, first one wins.
+    let fired = false;
+    const open = (target: EventTarget | null): void => {
+      if (fired) return;
+      fired = true;
+      const inReading = editing ? null : readingEmbed(target);
+      void (async () => {
+        const [sheet, found] = await Promise.all([
+          import("../embedSheet.ts"),
+          editing
+            ? import("../editorBridge.ts").then((b) => b.embedTargetAt(root, target, path))
+            : Promise.resolve(inReading ? readingTarget(path, inReading) : null),
+        ]);
+        if (found) await sheet.openEmbedSheet(phone, found);
+      })();
+    };
+    const onDown = (e: PointerEvent): void => {
+      fired = false;
+      const target = e.target;
+      if (!isEmbed(target)) return;
+      start = { x: e.clientX, y: e.clientY };
+      timer = window.setTimeout(() => {
+        start = null;
+        open(target);
+      }, HOLD_MS);
+    };
+    const onMove = (e: PointerEvent): void => {
+      if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) cancel();
+    };
+    // The platform's own callout on a held picture ("download image") would
+    // open over the sheet: the press is answered here instead.
+    const onContext = (e: MouseEvent): void => {
+      if (!isEmbed(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      cancel();
+      open(e.target);
+    };
+    root.addEventListener("pointerdown", onDown);
+    root.addEventListener("pointermove", onMove);
+    root.addEventListener("pointerup", cancel);
+    root.addEventListener("pointercancel", cancel);
+    root.addEventListener("contextmenu", onContext, true);
+    return () => {
+      cancel();
+      root.removeEventListener("pointerdown", onDown);
+      root.removeEventListener("pointermove", onMove);
+      root.removeEventListener("pointerup", cancel);
+      root.removeEventListener("pointercancel", cancel);
+      root.removeEventListener("contextmenu", onContext, true);
+    };
+  }, [editing, surface, path, phone]);
 
   // ── PROPERTIES, one line ─────────────────────────────────────────────────
   // The card at the top of every note collapses to "N properties ›" here

@@ -27,6 +27,11 @@ import { applyNoteLayoutTo } from "../textLayout.ts";
 import "../print.ts";
 import "./reading.css";
 import { carriedScrollTop, fractionOfElement, registerScrollSource, takeCarriedScroll } from "../scrollCarry.ts";
+import { focusableEmbeds, installEmbedPickup } from "../embedPickup.ts";
+
+// Pictures, cards and pages in a reading view drag and answer a right-click
+// (client/embedPickup.ts). Delegated on the document, installed once.
+installEmbedPickup();
 
 /** Scroll positions survive tab switches; module-level so remounts keep them.
  *  Bounded because "every note read this session" is the whole vault on a
@@ -141,6 +146,7 @@ export default function ReadingView({ path }: { path: string }) {
           el.appendChild(hint);
         }
         numberRendered(el, note.content);
+        focusableEmbeds(el);
         contentRef.current = note.content;
         bodyRef.current?.replaceChildren(el);
         // Footnotes into the margin, when the column is wide enough to have
@@ -326,6 +332,9 @@ export default function ReadingView({ path }: { path: string }) {
     // stop is the fix, and it needs a name so the stop is not a mystery.
     <div
       className="s-reading"
+      // Which note this column is, for a drag that lands in it and for the
+      // embed menu (client/embedPickup.ts).
+      data-note-path={path}
       ref={hostRef}
       tabIndex={0}
       role="region"

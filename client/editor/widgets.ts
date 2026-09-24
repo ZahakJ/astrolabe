@@ -133,10 +133,15 @@ export class ImageWidget extends WidgetType {
     return wrap;
   }
   override ignoreEvent(e: Event): boolean {
-    // The tools are the widget's own; a click on the picture itself still
-    // lands in the editor and moves the caret next to the embed.
+    // The tools are the widget's own.
     const target = e.target;
-    return target instanceof Element && target.closest(".cm-s-embed-tools, .cm-s-embed-handle") !== null;
+    if (target instanceof Element && target.closest(".cm-s-embed-tools, .cm-s-embed-handle") !== null) return true;
+    // THE PICTURE DRAGS (editor/embedGrip.ts). CodeMirror answers a press
+    // outside the selection by preventing it, which is also what stops a
+    // native drag from ever starting — so the press goes to the browser, and
+    // the click that follows a press that did not drag is answered by the
+    // grip: it puts the caret after the embed, as a click always did.
+    return e.type === "mousedown" || e.type.startsWith("drag");
   }
 }
 
@@ -362,9 +367,11 @@ export class PdfPageWidget extends WidgetType {
     return wrap;
   }
   override ignoreEvent(e: Event): boolean {
-    // The caption opens the reader; the picture itself is the editor's.
+    // The caption opens the reader; the picture itself is the editor's —
+    // except the press that may start a drag (see ImageWidget).
     const target = e.target;
-    return target instanceof Element && target.closest(".s-rv-pdfpage__caption") !== null;
+    if (target instanceof Element && target.closest(".s-rv-pdfpage__caption") !== null) return true;
+    return e.type === "mousedown" || e.type.startsWith("drag");
   }
 }
 

@@ -52,7 +52,7 @@ import { ensureMd } from "../../shared/noteFormat.ts";
 import { IconClip, IconCollapseAll, IconDrawing, IconNewFolder, IconNewNote } from "./tree/icons.tsx";
 import { useTreeCursor, type MenuState } from "./tree/useTreeCursor.ts";
 import { PubRow, TopicSection, TreeChildren } from "./tree/TreeRow.tsx";
-import { TREE_ALL_EVENT, buildTopics, countAttachments, countNotes, setFoldersUnder } from "./tree/expansion.ts";
+import { TREE_ALL_EVENT, TREE_REVEAL_EVENT, buildTopics, countAttachments, countNotes, setFoldersUnder } from "./tree/expansion.ts";
 import { TagShelf, useTagShelf, type TagMenuState } from "./TagShelf.tsx";
 export { TREE_ALL_EVENT, TREE_REVEAL_EVENT } from "./tree/expansion.ts";
 
@@ -675,6 +675,16 @@ export default function Sidebar() {
     () => setAttachmentsShown(true),
     [setAttachmentsShown],
   );
+
+  // An embed's "Reveal in Files" names an ATTACHMENT, and a row the filter
+  // hides cannot be revealed: the filter lifts first (client/embedMenu.ts).
+  useEffect(() => {
+    const onReveal = (e: Event): void => {
+      if ((e as CustomEvent<{ attachment?: boolean }>).detail?.attachment === true) showAllAttachments();
+    };
+    window.addEventListener(TREE_REVEAL_EVENT, onReveal, true);
+    return () => window.removeEventListener(TREE_REVEAL_EVENT, onReveal, true);
+  }, [showAllAttachments]);
 
   /** A click on an attachment row. A PDF or an EPUB is a BOOK: it opens in the
    *  reader (client/books/, client/epub/), which remembers the place, gives it
