@@ -1086,9 +1086,10 @@ line after it was read as document structure.
 - **The anchor table had to agree with it.** `shared/anchors.ts` generates the ids
   `[[Note#anchor]]`, transclusion and the hover previews resolve against, and the reading view
   assigns its heading ids from `toc.ts`. Two scanners with two answers is an anchor that silently
-  misses, so both now read `shared/fences.ts`. The `[[Note#` completion list and the editor's
-  heading jump (`headingTitles` and `findHeadingLine`, in `shared/headings.ts` — kept out of
-  `client/editor/links.ts` because that module is in the entry chunk) and `server/indexer.ts`'s `FenceSkipper` (excerpts, snippets,
+  misses, so both now read `shared/fences.ts`. The `[[Note#` completion list (the anchor
+  table's ids, `client/editor/autocomplete.ts`) and the editor's heading jump (`findHeadingLine`,
+  in `shared/headings.ts` — kept out of `client/editor/links.ts` because that module is in the
+  entry chunk) and `server/indexer.ts`'s `FenceSkipper` (excerpts, snippets,
   backlink context) read it too — a note is one document and cannot have two opinions about
   where its code is.
 - **And about what a heading is.** `shared/headings.ts` is the one answer: CommonMark's ATX

@@ -354,13 +354,21 @@
   color: var(--text-faint);
 }
 /* The chevrons point along the reading direction: a breadcrumb in Arabic
-   walks to the left. ‹ and › are Bidi_Mirrored characters, so an RTL line
-   ALREADY draws each as its mirror image — the `scaleX(-1)` that used to sit
-   here flipped them a second time, and the Arabic breadcrumb pointed right,
-   back at where it came from. The characters do the work; nothing here may
-   transform them. */
+   walks to the left. ‹ and › are Bidi_Mirrored, so WHETHER an RTL line draws
+   them mirrored depends on the font the glyph comes from — isolated in a
+   default sans it is mirrored; in the app's Arabic stack (Noto Sans Arabic
+   first) it is not — and a hand flip on top of a mirror that sometimes
+   happens is a chevron that sometimes points backwards. So the glyph is
+   pinned LEFT-TO-RIGHT (never mirrored, whatever the font) and flipped by
+   hand under RTL: one mirror, always. tests/rtlGlyphs.test.ts holds every
+   such glyph to the pair. */
 .s-session__chev {
   display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+[dir="rtl"] .s-session__chev {
+  transform: scaleX(-1);
 }
 
 .s-session__progress {

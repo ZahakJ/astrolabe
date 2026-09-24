@@ -183,5 +183,5 @@ resolve, aliases, tags, banner, backlinks, search, the tree's order), `tests/hea
 `/api/file` routes), `tests/fileTypes.test.ts` (one served-type table, one image test, one tree
 order, one local day, and a scan for stray copies), `tests/breakpoints.test.ts` (one phone width),
 `tests/i18nScan.test.ts` (the copy scan beside the line scan it replaced), `tests/rtlGlyphs.test.ts`
-(no hand flip on a Bidi_Mirrored glyph) and `tests/sourceText.test.ts` (no literal control
+(a Bidi_Mirrored glyph flipped by hand is pinned left-to-right first) and `tests/sourceText.test.ts` (no literal control
 character in a source file).

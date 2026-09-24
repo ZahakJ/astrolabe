@@ -88,9 +88,17 @@
   line-height: 1;
 }
 
-/* ‹ and › are Bidi_Mirrored: an RTL line already draws them pointing the way
-   they go, and the previous button already sits at the inline start. No
-   transform — one here flipped them a second time (see calendar.css). */
+/* The previous button sits at the inline start; its ‹ is pinned
+   left-to-right and flipped under RTL so it points the way it goes, one
+   mirror whatever the font (calendar.css says why). */
+.s-calpage__chev {
+  display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+[dir="rtl"] .s-calpage__chev {
+  transform: scaleX(-1);
+}
 
 .s-calpage__month {
   margin: 0;

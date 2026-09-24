@@ -10,7 +10,10 @@
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { findHeadingLine, headingTitles as editorHeadings } from "../shared/headings.ts";
+import { findHeadingLine, scanHeadings } from "../shared/headings.ts";
+
+/** The headings the editor sees, by title (shared/headings.ts's scan). */
+const editorHeadings = (md: string): string[] => scanHeadings(md).map((h) => h.title);
 import { extractHeadings, Slugger, stripInline } from "../client/reading/toc.ts";
 
 /** What the reading view would scroll to for `anchor`: the heading whose slug
