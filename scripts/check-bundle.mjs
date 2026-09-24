@@ -130,6 +130,18 @@ const app = APP_SHELL_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc
 const PHONE_ROOTS = ["phone/PhoneShell.tsx", "phone/screens/TodayScreen.tsx"];
 const phone = PHONE_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc), new Set(entry));
 
+// ── one language in every first paint (the 3.29 sweep's split) ──────────────
+// The dictionary is two lazy chunks, client/i18n/en.ts and client/i18n/ar.ts,
+// and no page paints a word before one of them lands (client/i18n.ts). So the
+// honest first paint is the closure above PLUS one language — and a budget
+// has to hold for either, so each audience is measured with the LARGER one
+// (Arabic: two bytes a letter). `entry` itself stays the static closure: the
+// MUST_SPLIT rows below assert both dictionaries are NOT in it.
+const DICTIONARY_KEYS = ["i18n/en.ts", "i18n/ar.ts"].map((src) => keyFor(src)).filter(Boolean);
+const dictionaryBytes = (key) => bytes(filesOf(closure(key)));
+const LANGUAGE_KEY = DICTIONARY_KEYS.reduce((a, b) => (dictionaryBytes(b) > dictionaryBytes(a) ? b : a), DICTIONARY_KEYS[0]);
+const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(keys)) : keys);
+
 // ── the budgets, and why they are the numbers they are ──────────────────────
 //
 // These were first set at 260 / 420 / 420 kB, measured against an app that had
@@ -367,11 +379,16 @@ const phone = PHONE_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc),
 // were each measured against 3.27.0 and merged one after the other, so the
 // entry carries BOTH overages: 851.1 + 13.8 + 7.3 = 872.3 kB (blog 1170.7,
 // admin 1129.2, phone 979.9). Budgets = the summed actual, rounded up.
-// WEBMENTIONS AND THE FEDIVERSE, measured against a build of 3.29.1 (b4abe8d):
-// 980.6 → 988.1 kB, +7.5 — the entry's +7.4 (the
-// dictionary: the Publishing rows, their notes, the moderation chips, the
-// Sent statuses) and nothing else. Budget 981 → 989.
-const PHONE_BUDGET = 989 * 1024;
+// THE DICTIONARY SPLIT (see the entry's budget): 980.8 → 852.8 kB with the
+// larger language counted in, −128.0 kB. Budget 981 → 853.
+// 3.30.1: THE SWEEP MERGED OVER 3.30.0 (webmentions and the fediverse). The
+// sweep's numbers were measured before that round landed; its 41 keys and
+// four count units now sit in the language chunks (the larger, Arabic, is
+// what every audience counts) and its shell bits in the entry: entry 744.6 →
+// 749.5 (+4.9), blog 1043.7 → 1050.5 (+6.8: the entry's and MentionsSection +
+// mentionsApi), admin 1005.3 → 1010.2 (+4.9), phone 852.8 → 857.8 (+5.0).
+// Budgets = actual, rounded up.
+const PHONE_BUDGET = 858 * 1024;
 const AUDIENCES = [
 // RE-BASELINED for NOTE HISTORY (529.4 kB actual → budget 532, actual +
 // ~0.5%). This round is the safety net the rest of the slate stands on — git
@@ -981,13 +998,15 @@ const AUDIENCES = [
   // shell needs: the api.ts calls, `FEEDS_TAB` and its router/view arms, the
   // store's `importFolder`. The surfaces themselves (FeedsView, the phone's
   // two screens, ImportDialog) are lazy chunks. Budget = actual, rounded up.
-  // WEBMENTIONS AND THE FEDIVERSE, measured against a build of 3.29.1 (b4abe8d):
-// 872.4 → 879.8 kB, +7.4 — the DICTIONARY and
-  // nothing else: 41 keys and four count units in both languages (three of them
-  // the rows' ⓘ paragraphs). The surfaces are lazy: the Publishing panels live
-  // in the settings chunk, the moderation bits in the panel's, the Mentions
-  // section in a chunk loaded only when a post has mentions. Budget 873 → 880.
-{ name: "entry (everyone)", keys: entry, budget: 880 * 1024 },
+  // THE SWEEP, PART 2 — THE DICTIONARY SPLIT BY LANGUAGE, the recovery the
+  // paragraphs below kept naming. Measured against the parent build: the
+  // static entry went 872.6 → 537.9 kB (both languages out of it, −334.7 kB),
+  // and a first paint now fetches ONE language — English 153.7 kB, Arabic
+  // 206.7 kB — so this audience (like the three below) is measured with the
+  // larger: 537.9 + 206.7 = 744.6 kB, down 128.0 kB. An English reader's
+  // real first paint is 691.6 kB, down 181.0. Budget lowered by the saving:
+  // 873 → 745.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 750 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1337,12 +1356,9 @@ const AUDIENCES = [
   // else — no blog chunk changed: 1149.5 → 1156.8. Budget 1151 → 1157.
   // 3.28: the entry's +13.8 kB (Feeds' and the import wizard's dictionary,
   // above) and nothing else: 1149.5 → 1163.3. Budget 1151 → 1164.
-  // WEBMENTIONS AND THE FEDIVERSE, measured against a build of 3.29.1 (b4abe8d):
-// 1171.5 → 1180.8 kB, +9.3 — the entry's +7.4 and
-  // +1.9 for MentionsSection + mentionsApi (the one request an article makes;
-  // the section itself and mentions.css are a chunk of their own, loaded only
-  // when there is something to show). Budget 1172 → 1181.
-{ name: "anonymous blog reader", keys: blog, budget: 1181 * 1024 },
+  // THE DICTIONARY SPLIT (see the entry's budget): 1171.8 → 1043.7 kB with
+  // the larger language counted in, −128.1 kB. Budget 1172 → 1044.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1051 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1619,16 +1635,21 @@ const AUDIENCES = [
 // (+2.9 kB, the paragraph below) lands on top of the summed 1129.2 → 1132.0;
 // the blog reader +0.8 for the same reason: 1170.7 → 1171.5. Budgets =
 // actual, rounded up.
-  // WEBMENTIONS AND THE FEDIVERSE, measured against a build of 3.29.1 (b4abe8d):
-// 1132.0 → 1139.4 kB, +7.4 — the entry's, and
-  // nothing else. Budget 1133 → 1140.
-  { name: "admin first paint", keys: app, budget: 1140 * 1024 },
+  // THE SWEEP, PART 2 — THE SIDEBAR SPLIT: 1132.0 → 1133.1, +1.1 kB, all of
+  // it in the Sidebar chunk (62,870 → 63,966 B). The move itself is free —
+  // rollup hoists the new modules into the same chunk — but the tree cursor
+  // and the tag shelf now hand their state across a function boundary BY
+  // NAME (a hook's return object, TagShelf's props), and a property name is
+  // the one thing a minifier cannot shorten. Budget 1133 → 1134.
+  // THE DICTIONARY SPLIT (see the entry's budget): 1133.4 → 1005.3 kB with
+  // the larger language counted in, −128.1 kB. Budget 1134 → 1006.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1011 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy
   // boundary, warmed at idle rather than downloaded before the first paint.
   // Budget = actual + ~0.5%.
-  { name: "phone first paint", keys: phone, budget: PHONE_BUDGET },
+  { name: "phone first paint", keys: withLanguage(phone), budget: PHONE_BUDGET },
 ];
 
 // ── things that must never be in a first paint ──────────────────────────────
@@ -1647,7 +1668,10 @@ const FORBIDDEN = [
   // build that shipped the panel, which is a rule that gets deleted rather
   // than obeyed. The colour helpers the two share live apart precisely so
   // LocalGraph can be reached without dragging the simulation behind it.
-  { label: "the graph engine", test: (k) => /components\/GraphView\.tsx$/.test(k) },
+  // The engine itself (createSim) lives in client/graph/sim.ts since the
+  // sweep's split, reached only through GraphView; a shared chunk keyed by it
+  // in a first paint is the same leak by a second door.
+  { label: "the graph engine", test: (k) => /components\/GraphView\.tsx$/.test(k) || /graph\/sim\.ts$/.test(k) },
   { label: "CodeMirror core", test: (k) => /@codemirror\/(view|state|language)\//.test(k) },
   { label: "a CodeMirror language grammar", test: (k) => /@lezer\/|@codemirror\/(lang-|legacy-modes)/.test(k) },
   // pdf.js is the heaviest dependency in the tree by a wide margin — ~1.1 MB
@@ -1668,7 +1692,9 @@ const FORBIDDEN = [
   { label: "pdf.js", test: (k) => /node_modules\/pdfjs-dist\//.test(k) },
   {
     label: "the book reader",
-    test: (k) => /books\/(BooksSurface|BookReader|BookLibrary|render|covers|pdfjs)\.tsx?$/.test(k),
+    // ReaderPanels and pdfHighlight are BookReader's own parts since the
+    // sweep's split, reached only through it.
+    test: (k) => /books\/(BooksSurface|BookReader|ReaderPanels|pdfHighlight|BookLibrary|render|covers|pdfjs)\.tsx?$/.test(k),
   },
   // Excalidraw is the other whole editor in the tree, and it exists for one
   // surface too. It is reached only through two `import()`s — the pane's lazy
@@ -1702,6 +1728,9 @@ const FORBIDDEN = [
   // The page painter behind `![[Book.pdf#page=42]]`: it imports pdf.js, and
   // is reached only through reading/pdfPage.ts's `import()`.
   { label: "the book page painter", test: (k) => /books\/pageImage\.ts$/.test(k) },
+  // The Node-side installer of BOTH dictionaries (the tests, the desktop's
+  // menu). In a page it would put the second language back in a first paint.
+  { label: "both dictionaries at once", test: (k) => /i18n\/both\.ts$/.test(k) },
 ];
 
 // ── surfaces that must remain separately loadable ───────────────────────────
@@ -1771,6 +1800,11 @@ const MUST_SPLIT = [
   // and the recorder's own copy, behind the capture sheet's microphone. The
   // text sheet is the common case and must not carry the voice half.
   "components/VoiceRecorder.tsx",
+  // The two dictionaries (3.29 sweep): one language per page, fetched, never
+  // bundled — an English reader must not download the Arabic, nor an Arabic
+  // one the English. The audiences above count the larger one in.
+  "i18n/en.ts",
+  "i18n/ar.ts",
 ];
 
 let failed = false;
@@ -1861,6 +1895,13 @@ else console.log(`  ok    editor chunk                       ${manifest[editorKe
     fail(`dist/sw.js is missing or built for another version — run npm run build, not vite build alone`);
   } else {
     console.log(`  ok    sw.js carries version ${pkgVersion}`);
+  }
+  // …and both dictionaries, which it takes at install so a language switch
+  // works offline (client/sw.ts): the page itself only ever fetched one.
+  for (const key of DICTIONARY_KEYS) {
+    const file = manifest[key]?.file;
+    if (!file || !swSrc.includes(`/${file}`)) fail(`dist/sw.js does not precache the ${key} chunk (${file ?? "missing"})`);
+    else console.log(`  ok    sw.js precaches ${file}`);
   }
 }
 

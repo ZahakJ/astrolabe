@@ -1,7 +1,7 @@
 // THE DECK — fifteen folios, one feature each.
 //
-// WHY THE COPY LIVES HERE AND NOT IN client/i18n.ts. The DICT is entry-chunk
-// code: every string in it is downloaded by every reader on first paint,
+// WHY THE COPY LIVES HERE AND NOT IN client/i18n.ts. The dictionary is first-paint
+// code: every string in it (in the reader's language) is downloaded before the first paint,
 // including the anonymous visitor reading one article. Fifteen names and
 // fifteen two-sentence blurbs in two languages measure ~9 kB raw — more than
 // four times the whole entry budget's remaining headroom (check-bundle.mjs:
@@ -13,9 +13,9 @@
 // written out there): both languages are required, they are resolved through
 // the same `getLang()` every other localized surface reads, and the pair is
 // gated — `tests/tour.test.ts` is this table's `assertPreset()`, because
-// `check-i18n` only walks the DICT and would not notice an empty `ar`.
+// `check-i18n` only walks the dictionary and would not notice an empty `ar`.
 //
-// Only the DOOR's strings are in the DICT, and they have to be: the palette
+// Only the DOOR's strings are in the dictionary, and they have to be: the palette
 // row, the empty state's line and the shortcut sheet's footer are all painted
 // before this module exists.
 //

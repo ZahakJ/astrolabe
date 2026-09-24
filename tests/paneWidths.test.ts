@@ -48,7 +48,11 @@ describe("pane widths", () => {
   // middle of the hit area. A stylesheet that drifts from GRIP_HIT is a grip
   // that is no longer centred on anything, which is the defect it exists for.
   describe("the strip the divider sits in the middle of", () => {
-    const css = readFileSync(new URL("../client/styles/app.css", import.meta.url), "utf8");
+    // app.css and, since the sweep split it, the grips' own sheet — read in
+    // the order index.html links them.
+    const css =
+      readFileSync(new URL("../client/styles/app.css", import.meta.url), "utf8") +
+      readFileSync(new URL("../client/styles/grips.css", import.meta.url), "utf8");
     const inset = GRIP_HIT / 2 - 0.5;
 
     it("is the same 12px in the stylesheet", () => {
@@ -156,7 +160,9 @@ describe("pane widths", () => {
   // stopped moving at all (`transition-property: none`, left −330 → 0 in one
   // frame).
   describe("the still flag comes back down", () => {
-    const state = readFileSync(new URL("../client/state.ts", import.meta.url), "utf8");
+    // The pane setters are the store's preferences slice since the sweep split
+    // client/state.ts (client/state/prefsSlice.ts); the rule is the same.
+    const state = readFileSync(new URL("../client/state/prefsSlice.ts", import.meta.url), "utf8");
 
     it("is raised only by the viewport's own collapse", () => {
       assert.match(state, /collapsePanelForViewport: \(panelCollapsed\) => set\(\{ panelCollapsed, paneStill: true \}\)/);

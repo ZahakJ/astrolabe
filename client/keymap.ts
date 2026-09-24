@@ -393,7 +393,7 @@ export interface ParsedLedger {
  *  Source text, and not an import: the table's rows carry `run:` closures over
  *  the zustand store and the theme picker, so importing it drags React and the
  *  whole app into a script whose entire point is that it runs in a second with
- *  no browser. check-i18n.mjs reads the DICT block the same way. */
+ *  no browser. check-i18n.mjs reads the dictionary files the same way. */
 export function parseGroups(src: string): ParsedLedger {
   const errors: string[] = [];
   const rows: LedgerRow[] = [];

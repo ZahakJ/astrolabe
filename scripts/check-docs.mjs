@@ -37,6 +37,7 @@ import { marked } from "marked";
 import { PAGES, headingIds } from "./build-docs.mjs";
 import { SETTINGS_INDEX } from "../client/components/settings/settingsIndex.ts";
 import { tabSources } from "./settings-index.mjs";
+import { readDictionary } from "./dictionary.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(join(root, p), "utf8");
@@ -44,12 +45,8 @@ const read = (p) => readFileSync(join(root, p), "utf8");
 // ── The dictionary, the tabs, the groups ────────────────────────────────────
 
 function dictionary() {
-  const src = read("client/i18n.ts");
-  const re = /^\s*([A-Za-z0-9_]+):\s*\{\s*\n?\s*en:\s*"((?:[^"\\]|\\.)*)",\s*\n?\s*ar:\s*"((?:[^"\\]|\\.)*)",?\s*\n?\s*\}/gm;
-  const d = new Map();
-  let m;
-  while ((m = re.exec(src))) d.set(m[1], { en: m[2], ar: m[3] });
-  return d;
+  // client/i18n/en.ts and ar.ts, read as text (scripts/dictionary.mjs).
+  return readDictionary(root);
 }
 
 /** The panel's tabs (`TABS` in settings/tabs.ts) and, per tab, the group

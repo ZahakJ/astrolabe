@@ -108,10 +108,10 @@ function rootKey(m: Manifest, root: string): string | null {
  * language grammars stay unhinted on purpose: they are loaded by an action,
  * not by a page, and preloading them here would quietly undo the split.
  */
-export function preloadTags(distDir: string, shell: "blog" | "designed" | "app"): string {
+export function preloadTags(distDir: string, shell: "blog" | "designed" | "app", lang?: "en" | "ar"): string {
   const m = load(distDir);
   if (!m) return "";
-  const roots =
+  const shellRoots =
     shell === "blog"
       ? ["blog/BlogShell.tsx"]
       : shell === "designed"
@@ -122,6 +122,14 @@ export function preloadTags(distDir: string, shell: "blog" | "designed" | "app")
           "components/StatusBar.tsx",
           "components/BacklinksPanel.tsx",
         ];
+  // THE PAGE'S LANGUAGE, too (the 3.29 sweep's dictionary split). The strings
+  // are a lazy chunk per language (client/i18n/en.ts, ar.ts) and the client
+  // cannot know which one it needs until /api/me answers — but the server
+  // knows the language this page will most likely speak, so the chunk comes
+  // down beside the entry and /api/me's answer finds it already here. Wrong
+  // (an admin who reads in the other language): one unused preload, and the
+  // client fetches the right one itself.
+  const roots = lang ? [...shellRoots, `i18n/${lang}.ts`] : shellRoots;
   const keys = new Set<string>();
   for (const root of roots) {
     const key = rootKey(m, root);

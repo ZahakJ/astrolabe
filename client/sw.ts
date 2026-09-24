@@ -13,6 +13,9 @@
 import { SHELL_KEY, cacheName, cacheable, classify, isOurCache } from "../shared/offlinePolicy.ts";
 
 declare const __APP_VERSION__: string;
+/** Both languages' dictionary chunks (scripts/build-sw.mjs reads their hashed
+ *  names off vite's manifest). */
+declare const __DICTIONARY_CHUNKS__: string[];
 
 interface ExtendableEventLike extends Event {
   waitUntil(p: Promise<unknown>): void;
@@ -95,7 +98,23 @@ async function cacheFirst(request: Request): Promise<Response> {
 scope.addEventListener("install", (e) => {
   // Take over on the next fetch rather than the next tab: the reader who
   // just turned the setting on should be covered before they leave.
-  e.waitUntil(scope.skipWaiting());
+  // BOTH DICTIONARIES come down now, not when first asked for: the page
+  // fetches one language at a time (client/i18n.ts), so the one this reader
+  // has never switched to would otherwise be missing exactly when the
+  // network is. A dictionary that fails to arrive is not a failed install.
+  e.waitUntil(
+    Promise.all([
+      scope.skipWaiting(),
+      ...__DICTIONARY_CHUNKS__.map(async (file) => {
+        const url = new URL(file, scope.location.origin).href;
+        try {
+          if (!(await hit(url))) await put(url, await fetch(url));
+        } catch {
+          // offline at install, or a build without the chunk: fetched on use
+        }
+      }),
+    ]),
+  );
 });
 
 scope.addEventListener("activate", (e) => {

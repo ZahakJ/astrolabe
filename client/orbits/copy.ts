@@ -2,17 +2,17 @@
 // the New deck form, in both languages. Orbits is the spaced-repetition
 // page; inside it a DECK (مجموعة) is a note and a CARD (بطاقة) a line.
 //
-// WHY HERE AND NOT IN client/i18n.ts. The DICT is entry-chunk code: every
-// string in it is downloaded by every reader on first paint, the anonymous
+// WHY HERE AND NOT IN client/i18n.ts. The dictionary is first-paint code:
+// every string in it (in the reader's language) comes before the first paint, the anonymous
 // visitor reading one article included. This surface has a hundred-odd
 // strings and sits behind an admin door, so its copy travels with its own
 // lazy chunk — exactly as the tour deck's does (client/components/
 // tourCards.ts) and the presets' names do (shared/presets.ts). Both halves
 // are required, resolved through the same `getLang()` every other surface
 // reads, and gated: tests/srsSession.test.ts walks this table the way
-// check-i18n walks the DICT, so an empty `ar` or a placeholder that differs
+// check-i18n walks the dictionary, so an empty `ar` or a placeholder that differs
 // between the halves fails the build. Only the DOORS' strings stay in the
-// DICT (the status bar, the tab, the palette rows), because they are
+// dictionary (the status bar, the tab, the palette rows), because they are
 // painted before this module exists.
 //
 // `st()` and `stf()` are `t()` and `tf()` over this table, spelled apart so

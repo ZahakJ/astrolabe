@@ -33,9 +33,9 @@ import DesignedSite from '/@fs/${root}/client/design/DesignedSite.tsx';
 import DesignCanvas from '/@fs/${root}/client/design/DesignCanvas.tsx';
 import {buildPreviewContent} from '/@fs/${root}/client/design/previewContent.tsx';
 import {useStore} from '/@fs/${root}/client/state.ts';
-import {setLang} from '/@fs/${root}/client/i18n.ts';
+import {loadDictionary,setLang} from '/@fs/${root}/client/i18n.ts';
 const boot=JSON.parse(document.getElementById('astrolabe-boot').textContent);
-const ar=boot.lang==='ar'; setLang(boot.lang);
+const ar=boot.lang==='ar'; await loadDictionary(boot.lang); setLang(boot.lang);
 const query=new URLSearchParams(location.search);
 const posts=${JSON.stringify(posts)};
 if(query.has('tex')) posts[0].path='sample.tex';
@@ -60,7 +60,7 @@ const server = await createServer({configFile:false,root:path.join(root,'client'
       const preset=PRESETS.find(p=>p.id===url.searchParams.get('id'))??signatures[0];
       const lang=url.searchParams.has('ar')?'ar':'en'; const design=presetDesignDoc(preset,lang); const theme=process.env.THEME||design.theme; // THEME=tallow shoots every house in one room, for pictures that must not change theme between them
       res.setHeader('Content-Type','text/html');
-      const html='<!doctype html><html lang="'+lang+'" dir="'+(lang==='ar'?'rtl':'ltr')+'" data-theme="'+theme+'"><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles/tokens.css"><link rel="stylesheet" href="/styles/app.css"></head><body><script type="application/json" id="astrolabe-boot">'+JSON.stringify({layout:'designed',lang,theme:theme,design})+'</script><div id="root"></div><script type="module" src="/@fs/'+source+'"></script></body></html>';
+      const html='<!doctype html><html lang="'+lang+'" dir="'+(lang==='ar'?'rtl':'ltr')+'" data-theme="'+theme+'"><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles/tokens.css"><link rel="stylesheet" href="/styles/reset.css"><link rel="stylesheet" href="/styles/tree.css"><link rel="stylesheet" href="/styles/editor.css"><link rel="stylesheet" href="/styles/publish.css"><link rel="stylesheet" href="/styles/app.css"><link rel="stylesheet" href="/styles/grips.css"></head><body><script type="application/json" id="astrolabe-boot">'+JSON.stringify({layout:'designed',lang,theme:theme,design})+'</script><div id="root"></div><script type="module" src="/@fs/'+source+'"></script></body></html>';
       server.transformIndexHtml(url.pathname,html).then(out=>res.end(out)); return;
     }
     next();

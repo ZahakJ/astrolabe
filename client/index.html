@@ -19,7 +19,18 @@
     <!--astrolabe:head-->
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%20width%3D%2264%22%20height%3D%2264%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2222%22%20fill%3D%22%230d1117%22%2F%3E%3Cg%20transform%3D%22translate(12%2012)%20scale(0.76)%22%20fill%3D%22none%22%20stroke%3D%22%23e3b341%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%229%22%20r%3D%225%22%20stroke-width%3D%222.6%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2255%22%20r%3D%2240%22%20stroke-width%3D%224%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2255%22%20r%3D%2228%22%20stroke-width%3D%221.6%22%2F%3E%3Cpath%20d%3D%22M75.28%2033.79%20L24.72%2076.21%22%20stroke-width%3D%222.8%22%2F%3E%3Cpath%20d%3D%22M77.08%2035.93%20L80.64%2029.29%20L73.48%2031.64%20Z%20M22.92%2074.07%20L19.36%2080.71%20L26.52%2078.36%20Z%22%20fill%3D%22%23e3b341%22%20stroke%3D%22none%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2255%22%20r%3D%222.52%22%20fill%3D%22%23e3b341%22%20stroke%3D%22none%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E" />
     <link rel="stylesheet" href="/styles/tokens.css" />
+    <!-- app.css and the five sheets cut from it (3.29 sweep). The order IS the
+         cascade: reset first (it was app.css's top), then the tree, the editor
+         and publishing, whose rules sat above every app.css rule that restates
+         them (the phone and touch blocks included), then app.css, then the
+         grips, whose rules sat below every rule they meet. Moving a link
+         reorders rules — prove it with check-cascade and check-fidelity. -->
+    <link rel="stylesheet" href="/styles/reset.css" />
+    <link rel="stylesheet" href="/styles/tree.css" />
+    <link rel="stylesheet" href="/styles/editor.css" />
+    <link rel="stylesheet" href="/styles/publish.css" />
     <link rel="stylesheet" href="/styles/app.css" />
+    <link rel="stylesheet" href="/styles/grips.css" />
     <!-- After app.css on purpose: the theme library retunes a handful of rules
          app.css states in terms of --accent (selection, focus ring, the graph
          vignette) into per-theme tokens, and the settings sheet is the
