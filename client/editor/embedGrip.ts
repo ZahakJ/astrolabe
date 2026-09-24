@@ -20,14 +20,13 @@
 // OS file) see it.
 
 import { ViewPlugin, type EditorView } from "@codemirror/view";
-import { embedSpanNear } from "../../shared/embedActions.ts";
+import { embedSpanNear, landEmbed } from "../../shared/embedActions.ts";
 import {
   beginEmbedDrag,
   dragCarriesEmbed,
   embedInfoOf,
   embedPathOf,
   endEmbedDrag,
-  landEmbed,
   liftedEmbed,
 } from "../embedPickup.ts";
 import { useStore } from "../state.ts";

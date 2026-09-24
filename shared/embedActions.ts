@@ -272,6 +272,43 @@ export function applyChanges(doc: string, changes: readonly TextChange[]): strin
   return out;
 }
 
+// ── landing a lifted embed ──────────────────────────────────────────────────
+
+/** An embed in flight: the note it was lifted from, its exact source, and
+ *  where it sat — document offsets when the editor lifted it, the lines of
+ *  its block when the reading view did. */
+export interface LiftedEmbed {
+  note: string;
+  source: string;
+  span: { from: number; to: number } | null;
+  lines: [number, number] | null;
+}
+
+/** Where the lifted embed is in `content` now: the editor's span while it
+ *  still holds the same text, the block's lines otherwise, the whole note as
+ *  a last resort. */
+export function locateLifted(content: string, p: LiftedEmbed): { from: number; to: number } | null {
+  if (p.span !== null && content.slice(p.span.from, p.span.to) === p.source) return p.span;
+  if (p.lines !== null) {
+    const hit = findEmbedInLines(content, p.source, p.lines[0], p.lines[1]);
+    if (hit) return hit;
+  }
+  const at = content.indexOf(p.source);
+  return at === -1 ? null : { from: at, to: at + p.source.length };
+}
+
+/** The edit that lands `p` at `spot` in the note `target` holding `content`:
+ *  a MOVE within the note it came from, an insertion of the same reference
+ *  (re-based) anywhere else. Null when the drop changes nothing. The editor
+ *  dispatches the changes; the reading view applies them to the text. */
+export function landEmbed(content: string, target: string, p: LiftedEmbed, spot: DropSpot): EmbedEdit | null {
+  if (p.note === target) {
+    const span = locateLifted(content, p);
+    return span === null ? null : moveEmbedEdit(content, span, spot);
+  }
+  return insertEmbedEdit(content, spot, rebaseEmbedSource(p.source, p.note, target));
+}
+
 // ── references across notes ─────────────────────────────────────────────────
 
 function dirOf(path: string): string {

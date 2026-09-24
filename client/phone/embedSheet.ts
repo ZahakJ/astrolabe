@@ -11,10 +11,9 @@
 // (shared/embedActions.ts). Lazy: imported on the first hold.
 
 import type { OutlineRow } from "../books/chrome.tsx";
-import { applyChanges, type DropSpot } from "../../shared/embedActions.ts";
+import { applyChanges, landEmbed, type DropSpot } from "../../shared/embedActions.ts";
 import { splitFrontmatter } from "../../shared/noteParse.ts";
 import { embedVerbs, type EmbedMenuTarget } from "../embedMenu.ts";
-import { landEmbed } from "../embedPickup.ts";
 import { t, tf } from "../i18n.ts";
 import { applyNoteContent, noteContent } from "../sectionActions.ts";
 import { sectionsOf } from "../sections.ts";
