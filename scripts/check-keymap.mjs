@@ -185,7 +185,7 @@ console.log(
 // listener in client/globalKeys.ts, a CodeMirror keymap, a component's own listener). Ctrl/Cmd+Alt+L
 // was on the sheet, in the palette row, in docs/keymap.md and in CONTRACTS
 // for the whole life of the twins — and the window listener had no branch for
-// it (found by the 3.24 audit, fixed in 3.23.1). Nothing could see it,
+// it (found by the 3.24 audit, fixed in 3.26.1). Nothing could see it,
 // because nothing tied a row to the code that answers it.
 //
 // So the tie is written down where the key is handled: a comment

@@ -4,7 +4,7 @@
 // and the offset is taken when the traversal runs, not when `back()` is
 // called — without importing the whole store (tests/backGesture.test.ts).
 //
-// THE ORDERING BUG THIS SHAPE EXISTS FOR (3.23.1). Tapping a note in the phone
+// THE ORDERING BUG THIS SHAPE EXISTS FOR (3.26.1). Tapping a note in the phone
 // drawer is ONE store update: `openNote` opens the note and closes the drawer
 // in the same `set()`. Two subscribers answer it — this guard ("no layer is up
 // any more: take the entry back out") and the router ("the note changed: push

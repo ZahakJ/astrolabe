@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { createStore } from "zustand/vanilla";
 import { installBackGuard, MARK, type GuardPop } from "../client/backGuard.ts";
 
-// THE PHONE'S BACK GUARD AGAINST THE ROUTER (3.23.1).
+// THE PHONE'S BACK GUARD AGAINST THE ROUTER (3.26.1).
 //
 // A note tapped in the phone drawer did not open. `openNote` opens the note
 // and closes the drawer in ONE store update; the guard (installed first, at

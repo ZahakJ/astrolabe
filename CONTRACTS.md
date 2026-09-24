@@ -1778,7 +1778,7 @@ stays on `.s-panel--collapsed`, as it always did.
   switch and the ⋯ ended up 22px UNDER the status bar the inset exists to clear. A declaration
   about a thing belongs in that thing's rule; a new block beside a new comment is where two
   copies of one fact start disagreeing.
-  **And it is a gate since 3.23.1** (`scripts/check-cascade.mjs`), because the paragraph did not
+  **And it is a gate since 3.26.1** (`scripts/check-cascade.mjs`), because the paragraph did not
   stop it: What's-new's count, the library-roots wrapping, three settings declarations (app.css's
   phone blocks, beaten by settings.css loading later — the panel's base moved into settings.css,
   its phone rules after it), the tag shelf's sort button and the unlinked-mentions buttons were all
@@ -1832,7 +1832,7 @@ stays on `.s-panel--collapsed`, as it always did.
   layer any other way takes the entry back out, so the stack is never deeper than the reader's
   own path. WHICH layer closes is decided by dispatching an Escape, because the Escape ladder
   already encodes that precedence and two behaviours that must agree are written once. THE
-  RETRACTION WAITS A MICROTASK (`client/backGuard.ts`, 3.23.1): a note tapped in the drawer opens
+  RETRACTION WAITS A MICROTASK (`client/backGuard.ts`, 3.26.1): a note tapped in the drawer opens
   it and closes the drawer in one store update, and the guard — subscribed before the router —
   called `history.back()` before the router pushed the note; the traversal ran later, landed on
   the guard entry and the previous note came back. Deferred, the guard sees the note's entry on
@@ -2650,7 +2650,7 @@ failures happen, and a crash card that must fetch a chunk after the crash is not
 - **A KEYBOARD BINDING EXISTS IN EXACTLY ONE PLACE, AND THAT PLACE IS `GROUPS`.** The table in
   `client/components/ShortcutsHelp.tsx` — the one `Ctrl/Cmd /` prints, in both languages — is the
   ledger; `docs/keymap.md` is a RENDERING of it, and `npm run check-keymap` fails the build when
-  they stop agreeing in either direction — and (3.23.1) when a row with `keys` has no
+  they stop agreeing in either direction — and (3.26.1) when a row with `keys` has no
   `// keymap: <label>` mark on the code that answers it, because `Ctrl/Cmd Alt L` was on the
   sheet, the palette and the manual with no branch in the key listener at all (now `client/globalKeys.ts`). A colliding binding is the quietest bug this product can
   have: one handler answers the key, the other never sees the event, and neither of them knows the
@@ -3463,7 +3463,7 @@ The three arguments the numbers settle, each of which had been decided twice:
   `--z-menu` and `--z-menu-scrim` are the one pair on this ladder that take different values in a
   different shell: `tokens.css` redefines them to **405 / 404** under `app.css`'s drawer condition
   (`DRAWER_QUERY`, character for character — tests/drawerQuery.test.ts reads every stylesheet
-  since 3.23.1, when this one was found still asking `not (any-pointer: fine)` and a 701–999px pen
+  since 3.26.1, when this one was found still asking `not (any-pointer: fine)` and a 701–999px pen
   phone painted the drawer over its menus), one rung above the
   drawer and still below the palette, which must stay over both. This is not decoration. The tree's
   menu, the tag shelf's menu and the sort menu are portalled to `<body>` — correctly, because a
@@ -11685,7 +11685,7 @@ was not overflowing anything: the tool cluster was overflowing its column and pa
   (docked, with its grips — defect F's whole point). The harness asserts the new pair per posture
   (`OWN_POINTER`) beside the old `FINE`, so a posture that half-takes is a failure rather than a
   pass, and `tests/drawerQuery.test.ts` now refuses `any-pointer` in that string entirely — and,
-  since 3.23.1, in EVERY stylesheet: it read only app.css, so tokens.css kept the old condition and
+  since 3.26.1, in EVERY stylesheet: it read only app.css, so tokens.css kept the old condition and
   swipe.css a bare 999px. Any `@media` naming 999px must be `DRAWER_QUERY` exactly, and no client
   source may spell `(max-width: 700px)` (or the 640 CommandPalette used for the same phone) —
   `PHONE_QUERY`, the query's first arm, is exported beside it and imported.

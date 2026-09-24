@@ -437,7 +437,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         // Ctrl/Cmd+Alt+L — turn the note over to its other face
         // (client/twins.ts). Advertised by the sheet, the palette row and
         // docs/keymap.md since the twins shipped, and bound nowhere until
-        // 3.23.1: the sheet's row carried a `run` for the palette and the
+        // 3.26.1: the sheet's row carried a `run` for the palette and the
         // listener never learned the key. A no-op on a note with no twin,
         // which is most of them — switchToTwin says nothing then, by design.
         if (!store.admin) return;
