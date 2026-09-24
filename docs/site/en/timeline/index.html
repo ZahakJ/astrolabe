@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Timeline · Astrolabe Documentation</title>
+<meta name="description" content="The vault by date, newest first: every note on the day it was written, every daily note, sigil tick, reading sitting, voice note, captured line and publication — and, once a year, a note that adds the year up.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/timeline/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/feeds/">Feeds</a><a class="nav__link" href="../../en/import/">Import</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a><a class="nav__link" href="../../en/mobile/">The Android app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/today/">Today</a><a class="nav__link" href="../../en/calendar/">The Calendar</a><a class="nav__link is-current" href="../../en/timeline/">The Timeline</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The book reader</a><a class="nav__link" href="../../en/ask/">Ask the vault</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="the-timeline">The Timeline</h1>
+<p><em>The vault by date, newest first: every note on the day it was written, every daily note, sigil tick, reading sitting, voice note, captured line and publication — and, once a year, a note that adds the year up.</em></p>
+<hr>
+<p>The <a href="../calendar/">Calendar</a> reads one month. The Timeline reads all of them at once, as one list
+you scroll back through: a month heading, then each day that held anything, then one row per thing
+the day held.</p>
+<p><strong>Open it</strong> by typing <strong>Open the Timeline</strong> in the command palette, from the <strong>The Timeline</strong> button
+on the Calendar page, or at <code>/timeline</code>. On a phone it is a row under <strong>More</strong>, and in the Calendar
+tab&#39;s <code>⋯</code>. It opens as a tab like the Calendar and <a href="../today/">Today</a>.</p>
+<h2 id="what-a-row-is"><a class="anchor" href="#what-a-row-is">What a row is</a></h2>
+<p>Every row has an icon for its kind, a title and one line under it:</p>
+<div class="table"><table><thead><tr><th>Kind</th><th>What it is</th><th>The line under it</th></tr></thead><tbody><tr><td><strong>Notes</strong></td><td>A note, on the day it belongs to</td><td>its opening sentence</td></tr><tr><td><strong>Daily notes</strong></td><td>The day&#39;s own <a href="../templates-and-notes/#periodic-notes">daily note</a></td><td>its opening sentence</td></tr><tr><td><strong>Sigils</strong></td><td>A <a href="../sigils/">sigil</a> that logged that day</td><td>the day&#39;s note in the log, or <em>2 of 3</em></td></tr><tr><td><strong>Reading</strong></td><td>Sittings with a book, from its <a href="../trackers/">tracker</a>&#39;s <code>sessions:</code></td><td>pages and time</td></tr><tr><td><strong>Voice</strong></td><td>A long <a href="../capture/#voice">voice note</a> (its own note), or recordings linked from the day&#39;s inbox</td><td>its opening, or how many recordings</td></tr><tr><td><strong>Captured</strong></td><td>Lines <a href="../capture/">captured</a> into the day&#39;s note or inbox</td><td>how many lines</td></tr><tr><td><strong>Published</strong></td><td>A published note whose <code>published:</code> names a later day than the one it was written</td><td>its opening sentence</td></tr></tbody></table></div><p><strong>The day a note belongs to</strong> is its daily-note date when it is a daily note (a note for the 24th
+written on the 30th is still the 24th&#39;s); else its frontmatter <code>date:</code>, <code>created:</code> or <code>published:</code>
+when one spells a day; else the day this instance first saw the file — which a vault that is a git
+repository reads back from the commit that added it, so a note edited today does not move to today.</p>
+<p>Press a row to open its note. Nothing here is stored: the list is read, each time, from the same
+places the Calendar reads — the daily folder, the sigil logs, the trackers&#39; sittings — plus each
+note&#39;s own date. Delete the line and the day forgets it.</p>
+<h2 id="filters-and-the-months"><a class="anchor" href="#filters-and-the-months">Filters and the months</a></h2>
+<p>The chips above the list filter it: press <strong>Notes</strong>, <strong>Sigils</strong> or any other kind to keep only those
+(press more than one to keep several), and pick a folder or a tag from the two menus beside them.
+<strong>Clear the filters</strong> appears once any is on. Each chip carries its count.</p>
+<p>On a desktop, the <strong>Months</strong> rail beside the list names every month with how many rows it holds;
+press one to jump there, and the rail marks the month you are reading as you scroll. On a phone the
+same list is a sheet, raised by the calendar button in the top bar.</p>
+<p>The list stays quick however many years your vault holds: only the rows on screen (and a screen&#39;s
+worth either side) are ever drawn.</p>
+<h2 id="year-in-review"><a class="anchor" href="#year-in-review">Year in review</a></h2>
+<p><strong>Year in review…</strong> — in the palette, on the Timeline&#39;s header, and in the phone Calendar&#39;s <code>⋯</code> —
+asks which year (the vault&#39;s years are listed; in January it suggests the year that just ended) and
+writes <code>Reviews/&lt;year&gt;.md</code>:</p>
+<ul>
+<li><strong>At a glance</strong>: notes begun that year, and the words written in them and in the daily notes;
+days with a daily note; sigil ticks; cards reviewed (from <a href="../orbits/">Orbits</a>&#39; log on this device);
+pages read and in how many sittings; books finished.</li>
+<li><strong>Months</strong>: a table of the twelve months — notes, daily notes, sigil ticks, cards, pages.</li>
+<li><strong>Sigils</strong>: each sigil&#39;s ticks and its best streak that year, counted the way its card counts a
+streak (days it asks nothing of do not break it).</li>
+<li><strong>Books finished</strong>, with the date and your rating, each a link to its tracker&#39;s note.</li>
+<li><strong>Most linked</strong>: the notes that year&#39;s writing linked to most.</li>
+</ul>
+<p>Everything the command writes sits between two markers:</p>
+<pre><code class="language-markdown">&lt;!-- astrolabe:year-review --&gt;
+…
+&lt;!-- /astrolabe:year-review --&gt;
+</code></pre>
+<p>Write whatever you like around them. Running the command again for the same year rewrites <strong>only</strong>
+what is between the markers, so your own lines about the year stay. The note is written in the
+language the app is showing when you run it.</p>
+<p>See also: <a href="../today/">Today</a> for the day in front of you, and <a href="../calendar/">the Calendar</a> for a
+month at a glance.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/timeline.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/calendar/"><span class="pager__kicker">Previous</span><span class="pager__title">The Calendar</span></a><a class="pager__link pager__link--next" href="../../en/orbits/"><span class="pager__kicker">Next</span><span class="pager__title">Orbits</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#what-a-row-is">What a row is</a><a class="toc__link toc__link--2" href="#filters-and-the-months">Filters and the months</a><a class="toc__link toc__link--2" href="#year-in-review">Year in review</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

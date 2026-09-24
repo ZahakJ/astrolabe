@@ -18,7 +18,7 @@ import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
 import { useStore } from "../state.ts";
-import { activeTabOf, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, paneAt, surfaceOf, type PaneSurface } from "../workspace.ts";
+import { activeTabOf, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, isTodayTab, paneAt, surfaceOf, type PaneSurface } from "../workspace.ts";
 import { titleOf } from "./Tabs.tsx";
 import { choiceGroup, choiceLabel } from "../themes.ts";
 import SyncBadge from "./SyncBadge.tsx";
@@ -310,6 +310,12 @@ export default function StatusBar() {
   });
   const toggleFeeds = useStore((s) => s.toggleFeeds);
   const feedsOn = useStore((s) => s.feedsOpen());
+  const toggleToday = useStore((s) => s.toggleToday);
+  const todayOn = useStore((s) => {
+    const pane = paneAt(s.workspace, s.workspace.focus);
+    const tab = pane === null ? null : activeTabOf(pane);
+    return tab !== null && isTodayTab(tab.path);
+  });
   const toggleCalendar = useStore((s) => s.toggleCalendar);
   const calendarOn = useStore((s) => {
     const pane = paneAt(s.workspace, s.workspace.focus);
@@ -508,6 +514,7 @@ export default function StatusBar() {
           // the likelier of the two (docs/capture.md "Voice").
           { label: t("cmdVoiceNote"), onSelect: () => useStore.getState().openVoiceNote() },
           { label: null },
+          { label: t("todayPage"), onSelect: toggleToday },
           { label: t("media"), onSelect: toggleMedia },
           { label: t("orbits"), onSelect: toggleOrbits },
           { label: t("routines"), onSelect: toggleRoutines },
@@ -571,6 +578,34 @@ export default function StatusBar() {
           on its far side is a rule separating a group from empty space. */}
       {admin && (
         <span className="s-statusbar__group">
+          {/* TODAY'S DOOR, first of the doors out of the note (3.28): a sun
+              half over the horizon — the day, as it starts. Admin-only like
+              its neighbours: the page ticks sigils and tasks and writes the
+              evening's reflection into the day's note. */}
+          <button
+            type="button"
+            className={`s-statusbar__btn s-statusbar__icon${todayOn ? " s-statusbar__btn--on" : ""}`}
+            aria-pressed={todayOn}
+            onClick={toggleToday}
+            title={t("todayDoorTitle")}
+            aria-label={t("todayPage")}
+            data-testid="today-door"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 18h18M7 18a5 5 0 0 1 10 0" />
+              <path d="M12 6v3M5.6 9.6l2 2M18.4 9.6l-2 2" />
+            </svg>
+          </button>
           {/* THE MEDIA PAGE'S DOOR. A toggle like the graph's, admin-only
               because the page writes: it sits with the gear and the designer
               — the cluster of doors OUT of the note — and its glyph is a

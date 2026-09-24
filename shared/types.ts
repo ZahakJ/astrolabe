@@ -199,6 +199,34 @@ export interface OnThisDayHit {
   kind: "written" | "finished";
   /** The tracker's title for a "finished" hit; the note's for "written". */
   what: string;
+  /** The note's opening, plain text (the post excerpt's cut, ~220 chars) —
+   *  what Today prints under the title so a year-old note says what it was
+   *  before it is opened. Empty for a note with no prose. */
+  excerpt: string;
+}
+
+// GET /api/timeline → TimelineNote[]: every note in the vault with the day
+// it belongs to (shared/noteDays.ts `noteDayOf` — the frontmatter day, else
+// the local day of the created ledger's instant, server/created.ts) and what
+// the Timeline and the year in review read off it. Admin only; templates
+// skipped. The DAYS are placed by shared/dayAgenda.ts, the calendar's own
+// aggregation — this is only the note half of its sources.
+export interface TimelineNote {
+  path: string;
+  title: string;
+  /** `YYYY-MM-DD`, or null for a note with no date at all. */
+  day: string | null;
+  /** The day a `published:` frontmatter names, when the note is published
+   *  and the key spells a day. */
+  publishedDay: string | null;
+  published: boolean;
+  excerpt: string;
+  tags: string[];
+  words: number;
+  /** Stamped lines caught into the note (shared/noteDays.ts capturedLines). */
+  captured: number;
+  /** Recordings it links (shared/noteDays.ts voiceMarks). */
+  voice: number;
 }
 
 export interface SearchMatch { line: number; text: string }
@@ -1068,7 +1096,7 @@ export interface HomeSettings {
 /** Where the admin's shell opens on launch (settings.launch). The four named
  *  doors, or a vault-relative note path — any other string IS a path
  *  (shared/launch.ts tells them apart). */
-export type LaunchDoor = "resume" | "sigils" | "orbits" | "today";
+export type LaunchDoor = "resume" | "sigils" | "orbits" | "today" | "today-page";
 export type LaunchSetting = LaunchDoor | (string & {});
 
 export interface SettingsData {

@@ -193,6 +193,7 @@ export default function VaultTab() {
             { value: "resume", label: t("launchResume") },
             { value: "sigils", label: t("launchSigils") },
             { value: "orbits", label: t("launchOrbits") },
+            { value: "today-page", label: t("launchTodayPage") },
             { value: "today", label: t("launchToday") },
             { value: "note", label: t("launchNote") },
           ]}

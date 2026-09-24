@@ -281,3 +281,10 @@ touchscreen *and* a mouse keeps the desktop's panes, and so does a desktop windo
 Turn a tablet, open a foldable or narrow a window past the line and the layout follows at once,
 with the same note open. The phone never changes the tabs and panes your desktop keeps: it does not
 save its one open note over them.
+
+## Pages that are tabs
+
+Besides notes, books and drawings, a pane can hold pages that name no file: the graph, the
+[Sigils page](sigils.md), [Orbits](orbits.md), the Media page, [the Calendar](calendar.md),
+[Today](today.md) and [the Timeline](timeline.md). Each opens as a tab in the pane you are in, has an
+address of its own (`/today`, `/timeline`, …) and sits beside whatever else is open.

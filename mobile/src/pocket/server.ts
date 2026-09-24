@@ -31,6 +31,7 @@ import { frontmatterKeyRefusal, setNoteProperty } from "../../../shared/frontmat
 import type { PropertyValue } from "../../../shared/types.ts";
 import { isNotePath, noteTitleOf } from "../../../shared/noteFormat.ts";
 import { appendCaptured } from "../../../shared/capture.ts";
+import type { DailyRule } from "../../../shared/noteDays.ts";
 import { stripBidiControls } from "../../../shared/bidi.ts";
 import {
   DAILY_FOLDER_DEFAULT,
@@ -424,6 +425,14 @@ export function createPocketServer(deps: PocketDeps): {
      * carries `commentsEnabled: true` and a `gitSync` block, and a phone that
      * echoed them back would be describing a site it is not.
      */
+    /** Where this vault's daily notes live and how they are named — its
+     *  `.astrolabe/settings.json`, the instance's rule on a phone. */
+    async function dailyRule(): Promise<DailyRule> {
+      const held = await heldSettings();
+      const folder = held.dailyFolder ?? DAILY_FOLDER_DEFAULT;
+      return { folder: folder === "/" ? "" : folder, format: held.dailyFormat ?? DAILY_FORMAT_DEFAULT };
+    }
+
     async function heldSettings(): Promise<Partial<SettingsData>> {
       const text = await io.readText(VAULT_SETTINGS);
       if (text === null) return {};
@@ -838,6 +847,12 @@ export function createPocketServer(deps: PocketDeps): {
         return fail(501, "Unlinked mentions scan the whole vault per note; the pocket does not run that on a phone.", "pocket");
       case "GET /api/tasks":
         return json(index.tasks());
+      // Today's "On this day" and the Timeline's notes (docs/today.md,
+      // docs/timeline.md): the server's rules over the phone's own index.
+      case "GET /api/onthisday":
+        return json(index.onThisDay(q.get("date") ?? "", await dailyRule()));
+      case "GET /api/timeline":
+        return json(index.timeline(await dailyRule()));
       case "GET /api/trackers":
         return json(index.trackers());
       case "GET /api/routines":

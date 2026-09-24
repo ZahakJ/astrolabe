@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Today · Astrolabe Documentation</title>
+<meta name="description" content="One page for what the day asks of you: a line to capture, today's note, the sigils due, the cards due, the tasks whose date has come, what you wrote on this day in earlier years — and, in the evening, one question.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/today/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/feeds/">Feeds</a><a class="nav__link" href="../../en/import/">Import</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a><a class="nav__link" href="../../en/mobile/">The Android app</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link is-current" href="../../en/today/">Today</a><a class="nav__link" href="../../en/calendar/">The Calendar</a><a class="nav__link" href="../../en/timeline/">The Timeline</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The book reader</a><a class="nav__link" href="../../en/ask/">Ask the vault</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="today">Today</h1>
+<p><em>One page for what the day asks of you: a line to capture, today&#39;s note, the sigils due, the cards due, the tasks whose date has come, what you wrote on this day in earlier years — and, in the evening, one question.</em></p>
+<hr>
+<p>Today gathers what four pages already keep — the <a href="../templates-and-notes/#periodic-notes">daily note</a>,
+the <a href="../sigils/">Sigils page</a>&#39;s checklist, the <a href="../orbits/">Orbits</a> shelf&#39;s due counts and your
+<a href="../editor/">tasks</a> — so a morning starts in one place. It stores nothing of its own: every row is
+read from your notes, and every tick is written back into them through the same door the page it
+came from uses.</p>
+<p><strong>Open it</strong> from the first door in the top bar (a sun half over the horizon), with
+<code>Ctrl/Cmd Alt Shift D</code>, or by typing <strong>Open Today</strong> in the command palette. It opens as a tab in the
+pane you are in, like the <a href="../calendar/">Calendar</a>, and its address is <code>/today</code>. On a phone it is the
+first tab of the bottom bar and the screen the app opens on. To open it every time Astrolabe starts,
+choose <strong>The Today page</strong> under Settings → Vault → Open on launch (the session you left is restored
+underneath it).</p>
+<p>The chord is the third verb of one idea: <code>Ctrl/Cmd Alt D</code> opens today&#39;s note, <code>Ctrl/Cmd Shift D</code>
+drops a line into it without leaving where you are, and both modifiers together open the page that
+holds it — see the <a href="../keymap/">keymap</a>.</p>
+<h2 id="what-is-on-the-page-top-to-bottom"><a class="anchor" href="#what-is-on-the-page-top-to-bottom">What is on the page, top to bottom</a></h2>
+<ul>
+<li><strong>The capture line.</strong> Type and press Enter: the line lands under <code>## Captured</code> in today&#39;s note,
+stamped with the time, exactly as the <a href="../capture/">capture sheet</a> files it (the note is created
+from its template first if it is not there yet). When this device can record and your vault keeps
+recordings, a microphone beside it opens the <a href="../capture/#voice">voice note</a> recorder.</li>
+<li><strong>Today&#39;s note, rendered.</strong> The note is drawn read-only, as the reading view draws it, with an
+<strong>Open</strong> button that puts it in a pane where you can edit it — or <strong>Start it</strong> when today has no
+note yet. A dashboard with a second editor inside it would be two editors for one file racing each
+other&#39;s saves; this is one editor, one button away.</li>
+<li><strong>Sigils.</strong> Every task a sigil asks of today, ticked in place. A tick is the Sigil card&#39;s own edit, so
+the log line it writes is the one the card would have written. A course&#39;s day and a book&#39;s pages are answered on the card, where the steps and the page count are: those
+rows open the Sigils page.</li>
+<li><strong>Orbits.</strong> Each deck with cards due today, with its count and <strong>Study</strong>, which starts the
+session.</li>
+<li><strong>Tasks due.</strong> Every open task whose <code>📅</code> date is today or has passed, overdue ones first and
+marked in red — the same list the Sigils page&#39;s <em>Due by today</em> shows. Ticking one writes the box in
+its note (<code>[x]</code> and a <code>✅</code> date), and the row stays struck through until the page next reads the
+vault.</li>
+<li><strong>On this day.</strong> Notes written on this month-day in earlier years, with how long ago and their
+opening lines, and trackers finished on it. A note&#39;s day is its daily-note date when it is one, else
+its <code>date:</code> (or <code>created:</code>, <code>published:</code>), else the day Astrolabe first saw the file.</li>
+<li><strong>Recently read.</strong> The notes you were last in.</li>
+</ul>
+<p>When no sigil, card or task is due, the page says so in one line rather than showing three empty
+headings.</p>
+<h2 id="the-evening-question"><a class="anchor" href="#the-evening-question">The evening question</a></h2>
+<p>From six in the evening, a line appears under today&#39;s note: <strong>How did the day go?</strong> Write a line or
+two and press Enter (or <strong>Keep it</strong>). The answer goes into today&#39;s note under a <code>## Reflection</code>
+heading:</p>
+<pre><code class="language-markdown">## Reflection
+
+Slow start; the chapter on cities finally moved.
+</code></pre>
+<ul>
+<li>If your daily template already has an empty <code>## Reflection</code> section, the answer goes into it —
+<strong>there is never a second heading</strong>. A second answer the same evening joins the first under the
+same heading.</li>
+<li>If today&#39;s note is open in an editor, the text is written through that editor, so <code>Ctrl/Cmd Z</code>
+takes it back.</li>
+<li>Once the section has something in it, Today shows it back to you as <em>The day, in your words</em> — the
+next morning too, until the day turns.</li>
+</ul>
+<p>The heading is English in every language on purpose, like <code>## Captured</code>: it is an address inside
+the note that a template, a query or a search can find, not a label for the eye.</p>
+<h2 id="on-a-phone"><a class="anchor" href="#on-a-phone">On a phone</a></h2>
+<p>The phone&#39;s Today is the same page in the phone&#39;s own shape: the capture field, a card for today&#39;s
+note (it opens the note rather than rendering it — a phone screen is one thing at a time), then the
+same sections in the same order, with the evening question after the note card. Both shells read
+from one source, so a tick on the laptop is on the phone the next time the vault moves.</p>
+<p>See also: <a href="../timeline/">the Timeline</a>, which reads every day the vault holds, and
+<a href="../calendar/">the Calendar</a>, which reads one month.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/today.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/sigils/"><span class="pager__kicker">Previous</span><span class="pager__title">Sigils</span></a><a class="pager__link pager__link--next" href="../../en/calendar/"><span class="pager__kicker">Next</span><span class="pager__title">The Calendar</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#what-is-on-the-page-top-to-bottom">What is on the page, top to bottom</a><a class="toc__link toc__link--2" href="#the-evening-question">The evening question</a><a class="toc__link toc__link--2" href="#on-a-phone">On a phone</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

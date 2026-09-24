@@ -3,7 +3,7 @@
 // trackers' sittings — and stored nowhere.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { agendaBands, agendaByDay, emptyAgenda, gradedOn, type AgendaSources } from "../shared/dayAgenda.ts";
+import { agendaBands, agendaByDay, agendaDays, emptyAgenda, gradedOn, type AgendaNoteSource, type AgendaSources } from "../shared/dayAgenda.ts";
 import { parseRoutine, parseRoutineLog } from "../shared/routine.ts";
 import type { ReviewGrade } from "../shared/weekReview.ts";
 
@@ -43,7 +43,7 @@ describe("an empty month", () => {
   });
 
   it("hands back a whole empty day for a caller that asks for one", () => {
-    assert.deepEqual(emptyAgenda("2026-09-15"), { iso: "2026-09-15", note: null, sigils: [], decks: [], trackers: [], projected: [], count: 0 });
+    assert.deepEqual(emptyAgenda("2026-09-15"), { iso: "2026-09-15", note: null, sigils: [], decks: [], trackers: [], projected: [], written: [], published: [], caught: [], noteExcerpt: null, count: 0 });
   });
 });
 
@@ -223,5 +223,69 @@ describe("the count a cell shows", () => {
     );
     assert.equal(out.get("2026-09-15")?.count, 4);
     assert.equal(out.get("2026-09-14")?.count, 0);
+  });
+});
+
+// ── The Timeline's half (3.28): the notes written, published and caught ─────
+
+function written(path: string, day: string | null, extra: Partial<AgendaNoteSource> = {}): AgendaNoteSource {
+  const title = path.slice(path.lastIndexOf("/") + 1).replace(/\.md$/, "");
+  return { path, title, day, publishedDay: null, published: false, excerpt: `${title} begins`, tags: [], captured: 0, voice: 0, ...extra };
+}
+
+describe("the notes a day held", () => {
+  const daily = new Map([["2026-09-15", "Daily/2026-09-15.md"]]);
+  const notes = [
+    written("Essays/On reading.md", "2026-09-14", { tags: ["reading"] }),
+    written("Daily/2026-09-15.md", "2026-09-15", { captured: 3, voice: 1, excerpt: "A quiet day" }),
+    written("Inbox/2026-09-16.md", "2026-09-16", { captured: 2, voice: 2 }),
+    written("Inbox/Voice — the long walk home.md", "2026-09-16", { voice: 1 }),
+    written("Posts/Launch.md", "2026-09-14", { published: true, publishedDay: "2026-09-16" }),
+    written("Undated.md", null),
+  ];
+  const out = agendaByDay(DAYS, { ...EMPTY, notes: daily, written: notes }, TODAY, { project: false });
+
+  it("puts a note on the day it belongs to, and never the day's own note", () => {
+    // Title order: "Launch" before "On reading".
+    assert.deepEqual(out.get("2026-09-14")?.written.map((n) => n.path), ["Posts/Launch.md", "Essays/On reading.md"]);
+    assert.deepEqual(out.get("2026-09-15")?.written, []);
+    assert.equal(out.get("2026-09-15")?.noteExcerpt, "A quiet day");
+  });
+
+  it("calls a long transcript's note a voice note", () => {
+    assert.deepEqual(out.get("2026-09-16")?.written.map((n) => [n.path, n.kind]), [["Inbox/Voice — the long walk home.md", "voice"]]);
+  });
+
+  it("puts what was caught on the day of the note it was caught into", () => {
+    assert.deepEqual(out.get("2026-09-15")?.caught, [{ path: "Daily/2026-09-15.md", title: "2026-09-15", lines: 3, voice: 1 }]);
+    assert.deepEqual(out.get("2026-09-16")?.caught, [{ path: "Inbox/2026-09-16.md", title: "2026-09-16", lines: 2, voice: 2 }]);
+  });
+
+  it("lists a note again on the day it was published, when that is another day", () => {
+    assert.deepEqual(out.get("2026-09-16")?.published.map((n) => n.path), ["Posts/Launch.md"]);
+    assert.ok(out.get("2026-09-14")?.written.find((n) => n.path === "Posts/Launch.md")?.published);
+  });
+
+  it("counts every one of them in the day's count", () => {
+    // 14th: two notes. 15th: the daily note and its catch. 16th: a voice note, a catch, a publication.
+    assert.deepEqual(DAYS.map((d) => out.get(d)?.count), [2, 2, 3]);
+  });
+
+  it("names every day the sources hold anything on, newest first, and nothing ahead of today", () => {
+    const days = agendaDays(
+      { notes: daily, sigils: [sigil("Morning.md", "2026-09-13 | done: water")], trackers: [{ path: "B.md", index: 0, title: "B", sessions: [{ date: "2026-09-12", from: null, to: null, pages: 4, minutes: 10 }] }], grades: [grade("D.md", "2026-09-11", "good")], written: [...notes, written("Future.md", "2026-10-01")] },
+      TODAY,
+    );
+    assert.deepEqual(days, ["2026-09-16", "2026-09-15", "2026-09-14", "2026-09-13", "2026-09-12", "2026-09-11"]);
+  });
+
+  it("leaves a course's projection off when asked to read only what happened", () => {
+    const course = parseRoutine("title: Genki\nmode: course\ndays: mon, tue, wed, thu, fri\nsteps: |\n  - vocab\n  - grammar");
+    assert.ok(course !== null);
+    const src = { ...EMPTY, sigils: [{ path: "G.md", index: 0, plan: course, entries: [] }] };
+    const withProjection = agendaByDay(["2026-09-16", "2026-09-17"], src, TODAY);
+    const without = agendaByDay(["2026-09-16", "2026-09-17"], src, TODAY, { project: false });
+    assert.equal([...without.values()].reduce((n, d) => n + d.projected.length, 0), 0);
+    assert.ok([...withProjection.values()].reduce((n, d) => n + d.projected.length, 0) > 0);
   });
 });

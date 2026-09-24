@@ -32,6 +32,7 @@ is what refuses two rows claiming one keystroke; see [Development](development.m
 | `Ctrl/Cmd G` | Open the graph tab, or close it |
 | `Ctrl/Cmd N` | New note |
 | `Ctrl/Cmd Alt D` | Open today's daily note (folder and name format in Settings → Vault; `daily/YYYY-MM-DD.md` by default) |
+| `Ctrl/Cmd Alt Shift D` | Open [Today](today.md) — the day's note, the sigils, cards and tasks due, and on this day, on one page; the third verb of the same idea |
 | `Ctrl/Cmd Shift D` | [Quick capture](capture.md) — a line into today's note (or the inbox) without leaving the one you are in; Shift beside the daily note's Alt, because they are one idea with two verbs |
 | `Ctrl/Cmd Alt L` | Switch to the note's [linguistic twin](templates-and-notes.md#linguistic-twins) — its other face, in the same tab; L for language |
 | `Ctrl/Cmd Shift P` | Publish / unpublish the open note |

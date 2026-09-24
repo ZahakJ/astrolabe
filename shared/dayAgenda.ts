@@ -8,7 +8,12 @@
 //     never disagree);
 //   - the cards graded that day and how many were kept, from the Orbits log
 //     the device keeps in localStorage (client/orbits/log.ts hands it in);
-//   - the reading sittings logged into the trackers' `sessions:` lines.
+//   - the reading sittings logged into the trackers' `sessions:` lines;
+//   - (3.28, for the Timeline and the year in review) the notes WRITTEN that
+//     day by the day they belong to (shared/noteDays.ts — the frontmatter's
+//     day, else the created ledger's), the ones PUBLISHED that day, and the
+//     lines captured or spoken into the day's own note or inbox. The
+//     Calendar does not pass these and pays nothing for them.
 //
 // The same argument shared/weekReview.ts makes for the week: a calendar that
 // kept its own ledger would be a second truth about the sigils and the
@@ -31,6 +36,7 @@ import {
   type RoutineEntry,
   type RoutinePlan,
 } from "./routine.ts";
+import { inboxDayOf, isVoiceNotePath } from "./noteDays.ts";
 import type { TrackerSession } from "./tracker.ts";
 import { localDay, type ReviewGrade } from "./weekReview.ts";
 
@@ -50,6 +56,19 @@ export interface AgendaTrackerSource {
   sessions: readonly TrackerSession[];
 }
 
+/** The slice of a `TimelineNote` (GET /api/timeline) the agenda reads. */
+export interface AgendaNoteSource {
+  path: string;
+  title: string;
+  day: string | null;
+  publishedDay: string | null;
+  published: boolean;
+  excerpt: string;
+  tags: readonly string[];
+  captured: number;
+  voice: number;
+}
+
 export interface AgendaSources {
   /** ISO day → the daily note's path (client/daily.ts `dailyNotesByDay`). */
   notes: ReadonlyMap<string, string>;
@@ -57,6 +76,29 @@ export interface AgendaSources {
   trackers: readonly AgendaTrackerSource[];
   /** The device's Orbits log, unfiltered; bucketed here by local day. */
   grades: readonly ReviewGrade[];
+  /** Every note with its day (the Timeline's sources). Absent on the
+   *  Calendar, which reads a month and not the vault's writing. */
+  written?: readonly AgendaNoteSource[];
+}
+
+/** A note on the day it was written — or, for `published`, went out. */
+export interface DayNote {
+  path: string;
+  title: string;
+  excerpt: string;
+  tags: readonly string[];
+  /** A long transcript's own note (`Inbox/Voice — …`) is a voice note. */
+  kind: "note" | "voice";
+  published: boolean;
+}
+
+/** What was caught into the day's own note or inbox on that day: stamped
+ *  lines under `## Captured`, and recordings linked. */
+export interface DayCatch {
+  path: string;
+  title: string;
+  lines: number;
+  voice: number;
 }
 
 export interface DaySigil {
@@ -128,6 +170,16 @@ export interface DayAgenda {
   /** What a course is on course to ask of this day — today and after, never
    *  behind. Drawn faint: it has not happened. */
   projected: DayProjection[];
+  /** Notes written that day (never the day's own daily note or inbox note,
+   *  which are the day rather than something in it). */
+  written: DayNote[];
+  /** Notes whose `published:` names this day, when it is not the day they
+   *  were written (that one is a `written` row with `published: true`). */
+  published: DayNote[];
+  /** Lines and recordings caught into the day's note or inbox. */
+  caught: DayCatch[];
+  /** The day's own note's opening, when the Timeline's sources carry it. */
+  noteExcerpt: string | null;
   /** Everything the day holds, the note counted as one — what a cell shows
    *  when it has no room for the rows themselves. */
   count: number;
@@ -135,7 +187,13 @@ export interface DayAgenda {
 
 /** An empty day, so a caller never has to test for null. */
 export function emptyAgenda(iso: string): DayAgenda {
-  return { iso, note: null, sigils: [], decks: [], trackers: [], projected: [], count: 0 };
+  return { iso, note: null, sigils: [], decks: [], trackers: [], projected: [], written: [], published: [], caught: [], noteExcerpt: null, count: 0 };
+}
+
+export interface AgendaOptions {
+  /** Walk a course's steps onto the days ahead (the Calendar). The Timeline
+   *  reads what happened and passes false. Default true. */
+  project?: boolean;
 }
 
 function compare(a: string, b: string): number {
@@ -145,7 +203,7 @@ function compare(a: string, b: string): number {
 /** Every day in `days` (ISO, in any order), with what it held. `today`
  *  decides only what a sigil's status is called — a day with no ticks is
  *  `missed` behind and `none` ahead — exactly as the card reckons it. */
-export function agendaByDay(days: readonly string[], sources: AgendaSources, today: string): Map<string, DayAgenda> {
+export function agendaByDay(days: readonly string[], sources: AgendaSources, today: string, opts: AgendaOptions = {}): Map<string, DayAgenda> {
   const wanted = new Set(days);
   const out = new Map<string, DayAgenda>();
   for (const iso of wanted) out.set(iso, emptyAgenda(iso));
@@ -182,6 +240,7 @@ export function agendaByDay(days: readonly string[], sources: AgendaSources, tod
       });
     }
     // …and what it is on course to ask of the days ahead.
+    if (opts.project === false) continue;
     if (sigil.plan.mode !== "course" || sigil.plan.course === null || horizon < today) continue;
     for (const projected of projectCourse(sigil.plan, sigil.entries, today, horizon)) {
       const day = out.get(projected.iso);
@@ -224,12 +283,72 @@ export function agendaByDay(days: readonly string[], sources: AgendaSources, tod
     for (const [iso, row] of byDay) out.get(iso)?.trackers.push(row);
   }
 
+  if (sources.written !== undefined) placeWritten(out, sources.written, sources.notes);
+
   for (const day of out.values()) {
     day.sigils.sort((a, b) => compare(a.title, b.title) || compare(a.path, b.path) || a.index - b.index);
     day.trackers.sort((a, b) => b.pages - a.pages || b.minutes - a.minutes || compare(a.title, b.title));
-    day.count = (day.note === null ? 0 : 1) + day.sigils.length + day.decks.length + day.trackers.length + day.projected.length;
+    day.count =
+      (day.note === null ? 0 : 1) + day.sigils.length + day.decks.length + day.trackers.length + day.projected.length +
+      day.written.length + day.published.length + day.caught.length;
   }
   return out;
+}
+
+/** The note half of a day: what was written on it, what went out on it, and
+ *  what was caught into its own note. A daily note is the DAY, not a note
+ *  written on it, so it never appears as `written`; the same goes for an
+ *  inbox note named for a day (`Inbox/2026-09-23.md`). */
+function placeWritten(out: Map<string, DayAgenda>, written: readonly AgendaNoteSource[], daily: ReadonlyMap<string, string>): void {
+  const dayOfDaily = new Map<string, string>();
+  for (const [iso, path] of daily) dayOfDaily.set(path, iso);
+  for (const n of written) {
+    const own = dayOfDaily.get(n.path) ?? null;
+    const inbox = own === null ? inboxDayOf(n.path) : null;
+    if (own !== null) {
+      const day = out.get(own);
+      if (day !== undefined && n.excerpt !== "") day.noteExcerpt = n.excerpt;
+    }
+    const catchDay = own ?? inbox;
+    if (catchDay !== null && (n.captured > 0 || n.voice > 0)) {
+      out.get(catchDay)?.caught.push({ path: n.path, title: n.title, lines: n.captured, voice: n.voice });
+    }
+    if (own === null && inbox === null && n.day !== null) {
+      out.get(n.day)?.written.push(noteRow(n));
+    }
+    if (n.published && n.publishedDay !== null && n.publishedDay !== n.day) {
+      out.get(n.publishedDay)?.published.push(noteRow(n));
+    }
+  }
+  for (const day of out.values()) {
+    day.written.sort((a, b) => compare(a.title, b.title) || compare(a.path, b.path));
+    day.published.sort((a, b) => compare(a.title, b.title) || compare(a.path, b.path));
+    day.caught.sort((a, b) => compare(a.path, b.path));
+  }
+}
+
+function noteRow(n: AgendaNoteSource): DayNote {
+  return { path: n.path, title: n.title, excerpt: n.excerpt, tags: n.tags, kind: isVoiceNotePath(n.path) ? "voice" : "note", published: n.published };
+}
+
+/** Every day the sources hold anything on, newest first — the Timeline's
+ *  `days`, handed straight back to `agendaByDay`. Nothing ahead of `today`:
+ *  a timeline is what happened. */
+export function agendaDays(sources: AgendaSources, today: string): string[] {
+  const days = new Set<string>();
+  const add = (iso: string | null | undefined): void => {
+    if (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso) && iso <= today) days.add(iso);
+  };
+  for (const iso of sources.notes.keys()) add(iso);
+  for (const sigil of sources.sigils) for (const entry of sigil.entries) add(entry.date);
+  for (const tracker of sources.trackers) for (const session of tracker.sessions) add(session.date);
+  for (const grade of sources.grades) add(localDay(grade.ts));
+  for (const n of sources.written ?? []) {
+    add(n.day);
+    if (n.published) add(n.publishedDay);
+    add(inboxDayOf(n.path));
+  }
+  return [...days].sort((a, b) => compare(b, a));
 }
 
 /** The unit bands of every course across `days` — the months ahead, read as

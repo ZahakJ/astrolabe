@@ -347,12 +347,27 @@ const phone = PHONE_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc),
 // phone.css +3.4 kB, the new screens' rules (one stylesheet, being mounted is
 // its condition). The screens themselves, the tab bodies, the readers' bar and
 // the forms are all outside it. Budget = actual + ~0.4%.
+// 3.28 TODAY'S DATA LAYER, SHARED: 943.9 → 964.3 kB, +20.4. The entry's
+// +7.3 (the dictionary, above), and the home screen's own reads, which are
+// the point of the round: client/today/hooks.ts +5.9 kB (the one data layer
+// both shells' Today draw from), shared/tasks.ts +4.1 kB (tasks due are the
+// Sigils page's own fence, parsed and filtered by the same module rather than
+// a second copy of its rules), and TodayScreen's three new sections. Two
+// imports were measured and moved off the first paint rather than paid for:
+// the section door (sectionActions + the outline's toc, 35 kB) is `import()`ed
+// when an evening's answer is sent, and the microphone check is its own
+// 0.2 kB module (client/voice/micSupport.ts) instead of the recorder's 5 kB.
+// Budget = actual + ~0.1%.
 // 3.28 FEEDS AND IMPORT: 943.9 → 959.5 kB, +15.6 — the entry's +13.8 (the
 // dictionary) and +1.8 in the shell's chunk: three new lazy boundaries
 // (FeedsScreen, FeedItemScreen, ImportDialog as a layer), the `feed-item`
 // screen kind through nav/kinds/titles/urls, and phone.css's Feeds rules.
 // Budget 948 → 960.
-const PHONE_BUDGET = 960 * 1024;
+// 3.28 + 3.29 TOGETHER: the two rounds above (Feeds/Import, Today/Timeline)
+// were each measured against 3.27.0 and merged one after the other, so the
+// entry carries BOTH overages: 851.1 + 13.8 + 7.3 = 872.3 kB (blog 1170.7,
+// admin 1129.2, phone 979.9). Budgets = the summed actual, rounded up.
+const PHONE_BUDGET = 981 * 1024;
 const AUDIENCES = [
 // RE-BASELINED for NOTE HISTORY (529.4 kB actual → budget 532, actual +
 // ~0.5%). This round is the safety net the rest of the slate stands on — git
@@ -942,6 +957,17 @@ const AUDIENCES = [
   // queries, main.tsx's Classic switch and gesture loader, the settings row,
   // and the drawer's dictionary keys (the Round 2 keys that replaced them are
   // in this number too). The budget comes down by the saving: 858 → 852.
+  // 3.28 TODAY AND THE TIMELINE: 851.1 → 858.4 kB, +7.3 kB. Almost all of it
+  // is the dictionary again — Today's rows and the evening's question, the
+  // Timeline's kinds, chips and months, the year in review's whole note
+  // vocabulary (it is written in the chrome's language, so every heading and
+  // count sentence is a key), five count units — in two languages, because
+  // `t()` ships whole. The rest is shell by construction: the store's surface
+  // table (`SURFACE_TABS`, `toggleToday`), the router's `/today` and
+  // `/timeline`, the tab strip's two titles, the chord's branch in
+  // globalKeys. Both pages, their models, hooks and stylesheets are lazy
+  // chunks (`today/TodayView.tsx`, `timeline/TimelineView.tsx` in MUST_SPLIT).
+  // Budget moved by the overage: 852 → 859.
   // 3.28 FEEDS AND THE IMPORT WIZARD: 851.1 → 864.9 kB, +13.8 kB, measured
   // against a build of 3.27.0 (f7e18f9). The DICTIONARY is nearly all of it:
   // 102 new keys in both languages (Feeds' surface, its Vault row and notes,
@@ -951,7 +977,7 @@ const AUDIENCES = [
   // shell needs: the api.ts calls, `FEEDS_TAB` and its router/view arms, the
   // store's `importFolder`. The surfaces themselves (FeedsView, the phone's
   // two screens, ImportDialog) are lazy chunks. Budget = actual, rounded up.
-{ name: "entry (everyone)", keys: entry, budget: 865 * 1024 },
+{ name: "entry (everyone)", keys: entry, budget: 873 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1297,9 +1323,11 @@ const AUDIENCES = [
   //             lazy chunk a desktop never requests (the phone audience below).
   // 3.27.0: the entry's −6.7 kB, and nothing else: 1156.1 → 1149.5. Budget
   // lowered by the saving, 1157 → 1151.
+  // 3.28: the entry's +7.3 kB (Today and the Timeline, above) and nothing
+  // else — no blog chunk changed: 1149.5 → 1156.8. Budget 1151 → 1157.
   // 3.28: the entry's +13.8 kB (Feeds' and the import wizard's dictionary,
   // above) and nothing else: 1149.5 → 1163.3. Budget 1151 → 1164.
-{ name: "anonymous blog reader", keys: blog, budget: 1164 * 1024 },
+{ name: "anonymous blog reader", keys: blog, budget: 1171 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1566,11 +1594,13 @@ const AUDIENCES = [
   // 3.27.0: the entry's −6.7 kB and the drawer chrome out of the shell's
   // components (App's ☰ and scrim, the sidebar's and panel's phone closes,
   // StatusBar's drawer listener): 1113.8 → 1106.5. Budget lowered, 1114 → 1108.
+  // 3.28: 1106.5 → 1114.6, the entry's +7.3 kB and the status bar's Today
+  // door (its glyph, the toggle, the ⋯ row). Budget 1108 → 1115.
   // 3.28: 1106.5 → 1121.1, +14.6 kB — the entry's +13.8 (the dictionary)
   // and +0.8 in the shell: the Feeds door beside the calendar and its ⋯ row,
   // the tab title, the palette's two rows, the folder menu's "Import notes
   // here…", App's lazy ImportDialog boundary. Budget 1108 → 1122.
-  { name: "admin first paint", keys: app, budget: 1122 * 1024 },
+  { name: "admin first paint", keys: app, budget: 1130 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy
@@ -1693,6 +1723,10 @@ const MUST_SPLIT = [
   // agenda model and calendarpage.css behind the status bar's door. The
   // SIDEBAR's small grid keeps its own boundary behind the section's fold.
   "calendar/CalendarView.tsx",
+  // Today and the Timeline (3.28), on the same terms: each page, its model,
+  // its reads and its stylesheet behind the palette and the status bar's door.
+  "today/TodayView.tsx",
+  "timeline/TimelineView.tsx",
   // The "What's new" deck: slides, live demos and prose for every release,
   // behind a door (whatsnew/door.ts) that is a version compare and nothing else.
   "whatsnew/WhatsNew.tsx",

@@ -452,6 +452,29 @@ export const COMMANDS: Command[] = [
     hint: () => t("cmdOpenFeedsHint"),
     available: ({ admin }) => admin,
   },
+  // Today (client/today/): the day's note, the sigils and cards and tasks
+  // due, on this day, the notes last read — one page (3.28).
+  {
+    id: "open-today",
+    label: () => t("cmdOpenToday"),
+    hint: () => t("cmdOpenTodayHint"),
+    available: ({ admin }) => admin,
+  },
+  // The Timeline (client/timeline/): the vault by date, newest first.
+  {
+    id: "open-timeline",
+    label: () => t("cmdOpenTimeline"),
+    hint: () => t("cmdOpenTimelineHint"),
+    available: ({ admin }) => admin,
+  },
+  // The year added up into `Reviews/<year>.md` (shared/yearReview.ts). The
+  // ellipsis is the question it asks first: which year.
+  {
+    id: "year-review",
+    label: () => t("cmdYearReview"),
+    hint: () => t("cmdYearReviewHint"),
+    available: ({ admin }) => admin,
+  },
   // The week added up (client/review/): pages and hours by book, the
   // trackers' outlook, the sigils, the cards graded, the notes written.
   {
@@ -1194,6 +1217,17 @@ export function runPaletteCommand(command: Command): void {
       break;
     case "open-calendar":
       store.toggleCalendar();
+      break;
+    case "open-today":
+      store.setView("today");
+      break;
+    case "open-timeline":
+      store.setView("timeline");
+      break;
+    case "year-review":
+      // Lazy: the generator and its reads are the Timeline chunk's, and a
+      // palette that never writes a review never downloads them.
+      void import("../timeline/yearReviewCommand.ts").then((m) => m.yearReviewCommand());
       break;
     case "review-week":
       store.setView("review-week");
