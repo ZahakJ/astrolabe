@@ -747,6 +747,24 @@ or both moved (the conflict path). Exact, one string, and it survives an app res
 written down rather than hidden: `/api/history` and `/api/versions` show the commits since the clone,
 which is where this copy's history begins.
 
+A commit stages what is there and removes what is TRACKED and gone; a path that was never tracked
+and is not there is nothing to commit. (isomorphic-git's `remove` does not throw for an untracked
+path, and counting it as staged made an empty commit — found by the test below.)
+
+**Verified offline.** `tests/pocketGit.test.ts` runs the shipped `PocketRepo` over the in-memory
+filesystem against a bare repository in a temporary directory, answered by `git http-backend` run as
+a child process (`tests/helpers/gitBackend.ts`: no socket, no network, no repository but the test's
+own, git's user and system configuration shut out); a working clone of the same bare repository
+plays the laptop. It pins the shallow single-branch clone, `.trash/` in `info/exclude`, the token in
+a header and never in `.git/config`, commit/push/pull in all three cases, the `(phone)` pair, a push
+refused because the remote moved, and a note's past. `tests/pocketSession.test.ts` holds the sync
+loop to the same remote (one repository turn at a time, offline versus refused, the lifecycle
+hooks); `tests/pocketGithub.test.ts` the device flow's states and token validation against a fake
+`http`; `tests/pocketStore.test.ts` Preferences (its web implementation over a stand-in
+`localStorage`) and the transport over a fake native bridge (`createGitHttp`);
+`tests/pocketBoot.test.ts` the fetch shim, the answer to the service worker and the sync line's
+words (`boot()` itself starts only where there is a `document`).
+
 ### THE FILESYSTEM IS INDEXEDDB, AND THE ARCHITECTURE DECIDED IT BEFORE THE NUMBERS DID
 
 `@isomorphic-git/lightning-fs` over IndexedDB, not `@capacitor/filesystem`. The decisive fact is not
@@ -839,6 +857,12 @@ vault: `501` with a one-line reason NAMING the thing that is missing. `/api/ment
 refusal on cost rather than capability and says so — an unlinked-mention scan is the whole vault per
 note open. An empty list would have been a vault that looks broken; a sentence is one a reader can
 act on. `tests/pocketServer.test.ts` asserts each refusal is a 501 with prose in it, not a stub.
+The prose is the shell dictionary's (`mobile/src/i18n.ts`), in the reader's language: `SERVER_ONLY`
+and `POCKET_CANNOT_KEEP` map a route or a key to a dictionary KEY, and the router speaks it in the
+client's `<html lang>` when it answers (contracts/i18n.md, "The pocket speaks the reader's
+language"; `tests/pocketWords.test.ts`). A path `vaultIo.ts` refuses — empty, a NUL, `..`, `.git/` —
+is a `PocketVaultError` carrying a key, answered as a `400` in the same language, where it used to
+escape the router as a thrown English error and reject the client's `fetch`.
 
 Device state — preferences and the workspace — stays on the DEVICE and never enters the repository:
 `state/workspace` is which notes this phone has open, and pushing it would mean opening the laptop to

@@ -51,8 +51,15 @@
   box-shadow: inset 2px 0 0 var(--sidebar-active-bar);
 }
 
+/* U+203A is Bidi_Mirrored, and whether an RTL line mirrors it depends on the
+   font it comes from (orbits.css, .s-session__chev), so the glyph is pinned
+   left-to-right and turned by hand in the RTL block at the end of app.css:
+   closed, flipped to point into the row; open, a quarter turn down in both
+   directions. */
 .s-tree__chevron {
   flex: none;
+  direction: ltr;
+  unicode-bidi: isolate;
   width: 11px;
   display: inline-flex;
   align-items: center;

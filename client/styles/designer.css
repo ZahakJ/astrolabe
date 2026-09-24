@@ -225,8 +225,16 @@
 }
 
 .s-dsgr__crumbsep {
+  /* U+203A, pinned left-to-right and flipped by hand: one mirror, whatever
+     the font (tests/rtlGlyphs.test.ts) */
+  display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
   flex: 0 0 auto;
   color: var(--text-faint);
+}
+[dir="rtl"] .s-dsgr__crumbsep {
+  transform: scaleX(-1);
 }
 
 /* THE THREE COLUMNS, and the ratio is an argument. The controls need a fixed
