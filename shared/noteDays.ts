@@ -3,7 +3,9 @@
 // "On this day" and the year in review (shared/yearReview.ts) all read the
 // vault by date, and every one of them needs the same three answers:
 //
-//   1. THE NOTE'S OWN DAY. A frontmatter `date:` / `created:` / `published:`
+//   1. THE NOTE'S OWN DAY. A daily note is FOR a day, and that day is its
+//      own whenever its file was made (`daily/2025-09-24.md` written a week
+//      late is still the 24th's). Otherwise a frontmatter `date:` / `created:` / `published:`
 //      that spells `YYYY-MM-DD` is a calendar day and names itself; any other
 //      date the indexer holds (an `id` stamp, the created ledger of
 //      server/created.ts) is an INSTANT, and is read in local time — a note
@@ -23,6 +25,7 @@
 // the server's indexer and the pocket's index both build the wire rows with
 // it (`GET /api/timeline`), and tests/noteDays.test.ts pins every rule.
 
+import { periodicDateOf } from "./periodic.ts";
 import { RECORDING_MARK, VOICE_INBOX } from "./voice.ts";
 
 /** The frontmatter keys a note's own date is read from, in the indexer's
@@ -52,6 +55,26 @@ export function noteDayOf(props: Readonly<Record<string, string>>, dateMs: numbe
     break;
   }
   return dateMs > 0 ? localIso(dateMs) : null;
+}
+
+/** Where the instance keeps its daily notes and how it names them — the
+ *  settings' `dailyFolder` and `dailyFormat` (shared/periodic.ts). */
+export interface DailyRule {
+  folder: string;
+  format: string;
+}
+
+/** The day a daily note is FOR, when `path` is one under `rule`. */
+export function dailyDayOf(path: string, rule: DailyRule | null): string | null {
+  if (rule === null) return null;
+  const d = periodicDateOf(rule.folder, rule.format, path);
+  return d === null ? null : localIso(d.getTime());
+}
+
+/** A note's day with the daily rule first: the day a daily note is for, else
+ *  `noteDayOf`. The one entry the server and the pocket call. */
+export function dayOfNote(path: string, props: Readonly<Record<string, string>>, dateMs: number, rule: DailyRule | null): string | null {
+  return dailyDayOf(path, rule) ?? noteDayOf(props, dateMs);
 }
 
 /** The day a `published:` frontmatter names, when it names one — the day a

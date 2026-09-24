@@ -144,6 +144,15 @@ const GROUPS: Group[] = [
       // which had been dead since it shipped, swallowed here in the capture
       // phase. A once-a-day verb does not outrank a per-minute one.
       { label: "cmdDailyNote", keys: ["Ctrl/Cmd", "Alt", "D"], admin: true, run: () => void openDailyNote() },
+      // Today, the page (3.28): the day's note among what the day asks for.
+      // Alt AND Shift — the daily note's Alt and capture's Shift together,
+      // the third verb of one idea ("today"), and no key of its own to learn.
+      {
+        label: "cmdOpenToday",
+        keys: ["Ctrl/Cmd", "Alt", "Shift", "D"],
+        admin: true,
+        run: () => useStore.getState().setView("today"),
+      },
       // Shift beside the daily note's Alt: one idea, two verbs — open
       // today's note, or drop a line into it without going there.
       {

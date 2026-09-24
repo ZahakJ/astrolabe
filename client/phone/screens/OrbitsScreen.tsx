@@ -21,7 +21,7 @@ import { IconChevron, IconPlus } from "../icons.tsx";
 import RoutedLayer from "../RoutedLayer.tsx";
 import TopBar from "../TopBar.tsx";
 import { useScrollMemory } from "../useScrollMemory.ts";
-import { useVaultTick } from "../useVaultTick.ts";
+import { useVaultTick } from "../../vaultTick.ts";
 import "../../styles/orbits.css";
 
 const NewDeckModal = lazySurface(() => import("../../orbits/NewDeckModal.tsx"));

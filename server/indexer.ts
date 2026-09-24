@@ -14,7 +14,8 @@ import type { AliasEntry, Backlink, CardMeta, ExportScope, GraphData, GraphEdge,
 import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
-import { capturedLines, noteDayOf, publishedDayOf, voiceMarks } from "../shared/noteDays.ts";
+import { capturedLines, dayOfNote, publishedDayOf, voiceMarks, type DailyRule } from "../shared/noteDays.ts";
+import { DAILY_FORMAT_DEFAULT } from "../shared/periodic.ts";
 import { findAnyMatches, foldQuery, foldTerm, findMatches } from "../shared/fold.ts";
 import { parseSearchQuery, searchScope, type ParsedQuery, type QueryFilter } from "../shared/searchQuery.ts";
 import { markHtml, snippetOf, windowAround } from "../shared/snippet.ts";
@@ -70,7 +71,7 @@ import { readTexNote } from "./texNote.ts";
 import { blogLocale, excludedTags } from "./site.ts";
 // Cyclic with this module (settings.ts → site.ts → here) and inert: every
 // call below happens at request time, never while either module is loading.
-import { getSettings, hadithFolder, settingsAssetPaths, tagsFolder, templatesFolder } from "./settings.ts";
+import { dailyFolder, getSettings, hadithFolder, settingsAssetPaths, tagsFolder, templatesFolder } from "./settings.ts";
 import { collectionLabel, hadithKeyOfFrontmatter, splitHadith } from "../shared/hadithRefs.ts";
 import type { HadithHit } from "../shared/types.ts";
 import { listFolderFiles, listVaultFiles, onEvent, readNote, safeAbs } from "./vault.ts";
@@ -2684,6 +2685,11 @@ function firstParagraph(body: string): string {
 function excerptOf(body: string): string {
   return cutExcerpt(
     firstParagraph(body)
+      // An HTML comment is not prose: a card's `<!--SR:…-->` schedule, a
+      // hidden note to self. The Timeline listed a deck by its schedules.
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim()
       .replace(/(^|[\s([{])\*([^*\n]+)\*(?=[\s)\]}.,;:!?…]|$)/g, "$1$2")
       .replace(/(^|[\s([{])_([^_\n]+)_(?=[\s)\]}.,;:!?…]|$)/g, "$1$2"),
   );
@@ -3657,14 +3663,16 @@ export function onThisDay(iso: string): OnThisDayHit[] {
   const year = Number(m[1]);
   const monthDay = `${m[2]}-${m[3]}`;
   const isTemplate = templateMatcher();
+  const rule = dailyRule();
   const out: OnThisDayHit[] = [];
   for (const record of notes.values()) {
     if (isTemplate(record.path)) continue;
-    // A frontmatter `date: 2024-09-13` is a calendar day and names itself; a
-    // created instant (the ledger, server/created.ts) is a local moment and
-    // is read in local time — the UTC getters put a UTC+3 midnight note on
-    // the previous day. shared/noteDays.ts holds the rule for every reader.
-    const day = noteDayOf(record.props, record.dateMs);
+    // A daily note is its own day's; a frontmatter `date: 2024-09-13` is a
+    // calendar day and names itself; a created instant (the ledger,
+    // server/created.ts) is a local moment and is read in local time — the
+    // UTC getters put a UTC+3 midnight note on the previous day.
+    // shared/noteDays.ts holds the rule for every reader.
+    const day = dayOfNote(record.path, record.props, record.dateMs, rule);
     if (day !== null && day.slice(5) === monthDay && Number(day.slice(0, 4)) < year) {
       out.push({ path: record.path, title: record.title, year: Number(day.slice(0, 4)), kind: "written", what: record.title, excerpt: postBasics(record).excerpt });
     }
@@ -3679,12 +3687,18 @@ export function onThisDay(iso: string): OnThisDayHit[] {
   return out.sort((a, b) => b.year - a.year || a.path.localeCompare(b.path)).slice(0, 40);
 }
 
+/** The instance's daily-note rule, read once per walk. */
+function dailyRule(): DailyRule {
+  return { folder: dailyFolder(), format: getSettings().dailyFormat ?? DAILY_FORMAT_DEFAULT };
+}
+
 /** Every note with its day and what the Timeline reads off it — the note
  *  half of shared/dayAgenda.ts's sources (`GET /api/timeline`). Templates
  *  skipped as everywhere. The excerpt and the words are the post list's own
  *  (`postBasics`), cached on the record, so a second call costs a walk. */
 export function timelineNotes(): TimelineNote[] {
   const isTemplate = templateMatcher();
+  const rule = dailyRule();
   const out: TimelineNote[] = [];
   for (const record of notes.values()) {
     if (isTemplate(record.path)) continue;
@@ -3692,7 +3706,7 @@ export function timelineNotes(): TimelineNote[] {
     out.push({
       path: record.path,
       title: record.title,
-      day: noteDayOf(record.props, record.dateMs),
+      day: dayOfNote(record.path, record.props, record.dateMs, rule),
       publishedDay: record.published ? publishedDayOf(record.props) : null,
       published: record.published,
       excerpt: basics.excerpt,

@@ -371,6 +371,18 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         // closes the browser window and is not takeable anywhere.
         e.preventDefault();
         store.closeActiveTab();
+      } else if (key === "d" && e.shiftKey && e.altKey) {
+        // keymap: cmdOpenToday
+        // Ctrl/Cmd+Alt+Shift+D — the Today page (client/today/): the daily
+        // note's Alt and capture's Shift together, the same idea's third
+        // verb. Checked BEFORE the two below, each of which would otherwise
+        // take it for its own (neither asks about the other modifier). On a
+        // phone with a keyboard it lands on the Today tab (PhoneShell maps
+        // `~today` to it).
+        if (!store.admin) return;
+        e.preventDefault();
+        e.stopPropagation();
+        store.setView("today");
       } else if (key === "d" && e.shiftKey && !e.altKey) {
         // keymap: cmdQuickCapture
         // Ctrl/Cmd+Shift+D — quick capture: a line into today's note without
