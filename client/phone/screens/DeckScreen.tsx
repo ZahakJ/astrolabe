@@ -22,7 +22,7 @@ import { useActionSheet } from "../ActionSheet.tsx";
 import { usePhone } from "../context.ts";
 import { IconChevron, IconDots } from "../icons.tsx";
 import TopBar from "../TopBar.tsx";
-import { useVaultTick } from "../useVaultTick.ts";
+import { useVaultTick } from "../../vaultTick.ts";
 import { deckTitle } from "./OrbitsScreen.tsx";
 
 export default function DeckScreen({ path, onBack }: { path: string; onBack: () => void }) {

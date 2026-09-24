@@ -84,7 +84,7 @@ const FIXTURE: YearReviewInput = {
   ]),
   sigils: [{ path: "Sigils/Morning.md", index: 0, plan: PLAN, entries: parseRoutineLog(LOG, PLAN.fields) }],
   trackers: [
-    { path: "Books/Dune.md", title: "Dune", kind: "book", finished: "2025-03-04", rating: { value: 4, max: 5 }, sessions: [{ date: "2025-02-10", pages: 40, minutes: 50 }, { date: "2025-03-01", pages: 60, minutes: 70 }] },
+    { path: "Books/Dune.md", title: "Dune", kind: "book", finished: "2025-03-04", rating: { value: 4, max: 5 }, sessions: [{ date: "2025-02-10", from: null, to: null, pages: 40, minutes: 50 }, { date: "2025-03-01", from: null, to: null, pages: 60, minutes: 70 }] },
     { path: "Games/Elden.md", title: "Elden Ring", kind: "game", finished: "2025-04-01", rating: null, sessions: [] },
     { path: "Books/Old.md", title: "Old", kind: "book", finished: "2024-04-01", rating: null, sessions: [] },
   ],

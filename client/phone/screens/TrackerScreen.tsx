@@ -16,7 +16,7 @@ import { openTrackerFolder } from "../../trackerFolder.ts";
 import { usePhone } from "../context.ts";
 import RoutedLayer from "../RoutedLayer.tsx";
 import TopBar from "../TopBar.tsx";
-import { useVaultTick } from "../useVaultTick.ts";
+import { useVaultTick } from "../../vaultTick.ts";
 import "../../styles/media.css";
 
 

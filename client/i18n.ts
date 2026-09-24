@@ -5861,6 +5861,77 @@ const DICT = {
   bookNightFigures: { en: "Figures kept", ar: "الصور على حالها" },
   bookNightAll: { en: "Everything inverted", ar: "كل شيء معكوس" },
 
+  // Today on the desktop, and the rows the phone's Today gained with it
+  // (3.28, client/today/, docs/today.md).
+  todayPage: { en: "Today", ar: "اليوم" },
+  todayDoorTitle: { en: "Today — the day’s note and what the day asks", ar: "اليوم: ملاحظة اليوم وما يطلبه اليوم" },
+  cmdOpenToday: { en: "Open Today", ar: "افتح صفحة اليوم" },
+  cmdOpenTodayHint: { en: "view · the day’s note, sigils, cards and tasks due, on this day", ar: "عرض · ملاحظة اليوم والسِّجِلّ والبطاقات والمهام المستحقة وما كان في مثل هذا اليوم" },
+  launchTodayPage: { en: "The Today page", ar: "صفحة اليوم" },
+  todayTasksDue: { en: "Tasks due", ar: "مهام مستحقة" },
+  todayOverdue: { en: "overdue since {date}", ar: "متأخرة منذ {date}" },
+  todayTaskFailed: { en: "The task could not be ticked.", ar: "تعذّر تعليم المهمة." },
+  todayNothingAsked: { en: "Nothing is due today: no sigil, no card, no task.", ar: "لا شيء مستحق اليوم: لا سِجِلّ ولا بطاقة ولا مهمة." },
+  todayNoDaily: { en: "There is no note for today yet.", ar: "لا ملاحظة لليوم بعد." },
+  todayDailyEmpty: { en: "Today’s note is empty.", ar: "ملاحظة اليوم فارغة." },
+  todayReflectAsk: { en: "How did the day go?", ar: "كيف كان اليوم؟" },
+  todayReflectPlaceholder: { en: "A line or two for today’s note…", ar: "سطر أو سطران لملاحظة اليوم…" },
+  todayReflectSave: { en: "Keep it", ar: "احفظه" },
+  todayReflected: { en: "The day, in your words", ar: "اليوم بكلماتك" },
+  todayReflectFailed: { en: "The reflection could not be written into today’s note.", ar: "تعذّرت كتابة التأمّل في ملاحظة اليوم." },
+  // The Timeline and the year in review (3.28, client/timeline/,
+  // shared/yearReview.ts, docs/timeline.md).
+  timeline: { en: "Timeline", ar: "الخط الزمني" },
+  cmdOpenTimeline: { en: "Open the Timeline", ar: "افتح الخط الزمني" },
+  cmdOpenTimelineHint: { en: "view · the vault by date, newest first", ar: "عرض · الخزانة بحسب التاريخ، الأحدث أولًا" },
+  timelineEmpty: { en: "Nothing here: no day holds anything this filter keeps.", ar: "لا شيء هنا: لا يوم يحمل شيئًا يُبقيه هذا المرشِّح." },
+  timelineLoading: { en: "Reading the vault by date…", ar: "قراءة الخزانة بحسب التاريخ…" },
+  timelineKindNote: { en: "Notes", ar: "ملاحظات" },
+  timelineKindDaily: { en: "Daily notes", ar: "ملاحظات يومية" },
+  timelineKindSigil: { en: "Sigils", ar: "السِّجِلّ" },
+  timelineKindSession: { en: "Reading", ar: "القراءة" },
+  timelineKindVoice: { en: "Voice", ar: "الصوت" },
+  timelineKindCapture: { en: "Captured", ar: "الملتقَط" },
+  timelineKindPublished: { en: "Published", ar: "المنشور" },
+  timelineFilters: { en: "Filter the Timeline", ar: "رشِّح الخط الزمني" },
+  timelineAllFolders: { en: "Every folder", ar: "كل المجلدات" },
+  timelineAllTags: { en: "Every tag", ar: "كل الوسوم" },
+  timelineClear: { en: "Clear the filters", ar: "امسح المرشِّحات" },
+  timelineMonths: { en: "Months", ar: "الأشهر" },
+  timelineJump: { en: "Jump to a month", ar: "انتقل إلى شهر" },
+  timelineSigilDone: { en: "{done} of {of}", ar: "{done} من {of}" },
+  timelineCaught: { en: "{n} captured", ar: "الملتقَط: {n}" },
+  timelineFromCalendar: { en: "The Timeline", ar: "الخط الزمني" },
+  cmdYearReview: { en: "Year in review…", ar: "حصاد السنة…" },
+  cmdYearReviewHint: { en: "write · the year added up into Reviews/<year>.md", ar: "كتابة · السنة مجموعةً في Reviews/<year>.md" },
+  yearReviewAsk: { en: "Which year?", ar: "أيّ سنة؟" },
+  yearReviewBody: { en: "Written to Reviews/<year>.md; a second run rewrites only the generated block. The vault holds: {years}.", ar: "تُكتب في Reviews/<year>.md؛ والتشغيل الثاني يعيد كتابة الكتلة المولَّدة وحدها. في الخزانة: {years}." },
+  yearReviewConfirm: { en: "Write the review", ar: "اكتب الحصاد" },
+  yearReviewBadYear: { en: "A year, in four digits.", ar: "سنة من أربعة أرقام." },
+  yearReviewWritten: { en: "The year in review is in {path}.", ar: "حصاد السنة في {path}." },
+  yearReviewFailed: { en: "The year in review could not be written.", ar: "تعذّرت كتابة حصاد السنة." },
+  yearReviewLead: { en: "{year} in review", ar: "حصاد {year}" },
+  yearReviewGlance: { en: "At a glance", ar: "بنظرة" },
+  yearReviewNotes: { en: "{notes} begun; {words} written in them and the daily notes", ar: "ملاحظات بُدئت: {notes}؛ والمكتوب فيها وفي اليوميات: {words}" },
+  yearReviewDaily: { en: "{days} with a daily note", ar: "أيام فيها ملاحظة يومية: {days}" },
+  yearReviewTicks: { en: "{ticks} on the sigils", ar: "علامات على السِّجِلّ: {ticks}" },
+  yearReviewCards: { en: "{cards} reviewed on this device", ar: "بطاقات رُوجعت على هذا الجهاز: {cards}" },
+  yearReviewPages: { en: "{pages} read in {sittings}", ar: "صفحات مقروءة: {pages}، في {sittings}" },
+  yearReviewBooks: { en: "{books} finished", ar: "كتب أُنهيت: {books}" },
+  yearReviewMonths: { en: "Months", ar: "الأشهر" },
+  yearReviewColMonth: { en: "Month", ar: "الشهر" },
+  yearReviewColNotes: { en: "Notes", ar: "الملاحظات" },
+  yearReviewColDaily: { en: "Daily notes", ar: "اليوميات" },
+  yearReviewColTicks: { en: "Sigil ticks", ar: "علامات السِّجِلّ" },
+  yearReviewColCards: { en: "Cards", ar: "البطاقات" },
+  yearReviewColPages: { en: "Pages", ar: "الصفحات" },
+  yearReviewSigils: { en: "Sigils", ar: "السِّجِلّ" },
+  yearReviewSigilLine: { en: "{ticks} · best streak {streak}", ar: "{ticks} · أطول سلسلة: {streak}" },
+  yearReviewBooksHead: { en: "Books finished", ar: "كتب أُنهيت" },
+  yearReviewFinishedOn: { en: "finished {date}", ar: "أُنهي في {date}" },
+  yearReviewLinked: { en: "Most linked", ar: "الأكثر ربطًا" },
+  yearReviewNone: { en: "Nothing this year.", ar: "لا شيء هذه السنة." },
+
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;
@@ -5979,7 +6050,15 @@ export type CountUnit =
   | "sessions"
   // The phone's one-line properties card: "3 properties ›".
   | "properties"
-  | "versions";
+  | "versions"
+  // The Timeline and the year in review (3.28): lines captured into a day's
+  // note, recordings linked from it, sigil ticks, books finished, and the
+  // sittings with a book.
+  | "lines"
+  | "recordings"
+  | "ticks"
+  | "books"
+  | "sittings";
 
 const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: string; few: string; many: string } }> = {
   // What a bulk tab-close is about to FLUSH. It is a count with a consequence
@@ -6061,6 +6140,11 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   highlights: { en: ["highlight", "highlights"], ar: { one: "اقتباس واحد", two: "اقتباسان", few: "اقتباسات", many: "اقتباسًا" } },
   sessions: { en: ["session", "sessions"], ar: { one: "جلسة واحدة", two: "جلستان", few: "جلسات", many: "جلسة" } },
   versions: { en: ["save", "saves"], ar: { one: "حفظة واحدة", two: "حفظتان", few: "حفظات", many: "حفظة" } },
+  lines: { en: ["line", "lines"], ar: { one: "سطر واحد", two: "سطران", few: "أسطر", many: "سطرًا" } },
+  recordings: { en: ["recording", "recordings"], ar: { one: "تسجيل واحد", two: "تسجيلان", few: "تسجيلات", many: "تسجيلًا" } },
+  ticks: { en: ["tick", "ticks"], ar: { one: "علامة واحدة", two: "علامتان", few: "علامات", many: "علامة" } },
+  books: { en: ["book", "books"], ar: { one: "كتاب واحد", two: "كتابان", few: "كتب", many: "كتابًا" } },
+  sittings: { en: ["sitting", "sittings"], ar: { one: "جلسة واحدة", two: "جلستان", few: "جلسات", many: "جلسة" } },
 };
 
 /** "3 notes" / "3 ملاحظات" — a number with its correctly-agreed unit. */

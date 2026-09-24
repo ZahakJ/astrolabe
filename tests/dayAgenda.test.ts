@@ -273,7 +273,7 @@ describe("the notes a day held", () => {
 
   it("names every day the sources hold anything on, newest first, and nothing ahead of today", () => {
     const days = agendaDays(
-      { notes: daily, sigils: [sigil("Morning.md", "2026-09-13 | done: water")], trackers: [{ path: "B.md", index: 0, title: "B", sessions: [{ date: "2026-09-12", pages: 4, minutes: 10 }] }], grades: [grade("D.md", "2026-09-11", "good")], written: [...notes, written("Future.md", "2026-10-01")] },
+      { notes: daily, sigils: [sigil("Morning.md", "2026-09-13 | done: water")], trackers: [{ path: "B.md", index: 0, title: "B", sessions: [{ date: "2026-09-12", from: null, to: null, pages: 4, minutes: 10 }] }], grades: [grade("D.md", "2026-09-11", "good")], written: [...notes, written("Future.md", "2026-10-01")] },
       TODAY,
     );
     assert.deepEqual(days, ["2026-09-16", "2026-09-15", "2026-09-14", "2026-09-13", "2026-09-12", "2026-09-11"]);

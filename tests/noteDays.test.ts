@@ -3,7 +3,7 @@
 // review's one reading of the vault by date.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { capturedLines, inboxDayOf, isVoiceNotePath, localIso, noteDayOf, publishedDayOf, voiceMarks } from "../shared/noteDays.ts";
+import { capturedLines, dailyDayOf, dayOfNote, inboxDayOf, isVoiceNotePath, localIso, noteDayOf, publishedDayOf, voiceMarks } from "../shared/noteDays.ts";
 
 describe("the day a note belongs to", () => {
   it("is the frontmatter's day when it spells one, in the indexer's key order", () => {
@@ -26,6 +26,15 @@ describe("the day a note belongs to", () => {
 
   it("is null for a note with no date at all", () => {
     assert.equal(noteDayOf({}, 0), null);
+  });
+
+  it("is the day a daily note is FOR, whenever its file was made", () => {
+    const rule = { folder: "daily", format: "YYYY-MM-DD" };
+    const madeLate = new Date(2026, 8, 30, 9).getTime();
+    assert.equal(dailyDayOf("daily/2025-09-24.md", rule), "2025-09-24");
+    assert.equal(dayOfNote("daily/2025-09-24.md", {}, madeLate, rule), "2025-09-24");
+    assert.equal(dayOfNote("Essays/x.md", { date: "2024-01-02" }, madeLate, rule), "2024-01-02");
+    assert.equal(dayOfNote("daily/2025-09-24.md", {}, madeLate, null), "2026-09-30", "no rule: the instant");
   });
 
   it("knows the day a note went out, only when `published:` spells one", () => {

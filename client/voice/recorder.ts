@@ -12,8 +12,9 @@
 // jumps with every sample reads as noise, and one that lags reads as broken.
 
 import { VOICE_MAX_SECONDS } from "../../shared/voice.ts";
+import { micSupport, type MicProblem } from "./micSupport.ts";
 
-export type MicProblem = "insecure" | "unsupported" | "denied" | "nomic" | "failed";
+export { micSupport, type MicProblem };
 
 export class MicError extends Error {
   readonly problem: MicProblem;
@@ -24,16 +25,6 @@ export class MicError extends Error {
 }
 
 const TYPES = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/webm"];
-
-/** Can this page record at all? `navigator.mediaDevices` does not EXIST on
- *  an insecure origin (a home server reached as http://192.168…), which is
- *  worth saying as that rather than as "no microphone". */
-export function micSupport(): MicProblem | null {
-  if (typeof window === "undefined") return "unsupported";
-  if (!window.isSecureContext) return "insecure";
-  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") return "unsupported";
-  return null;
-}
 
 export interface Recording {
   blob: Blob;

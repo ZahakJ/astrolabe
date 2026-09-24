@@ -667,6 +667,63 @@
   color: var(--text-muted);
 }
 
+/* Today's three rows since 3.28: a task past its date says so in the danger
+   ink; on this day leads with how long ago; the evening's answer is prose. */
+.s-ph-today__overdue {
+  color: var(--danger);
+}
+
+.s-ph-today__ago {
+  flex: none;
+  min-width: 56px;
+  padding-top: 2px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.s-ph-today__reflection {
+  margin: 4px 16px 8px;
+  font: 16px/1.5 var(--font-serif, var(--font-ui));
+  white-space: pre-wrap;
+}
+
+/* ── the timeline (3.28) ─────────────────────────────────────────────────── */
+
+/* The list and the chips are client/timeline/'s, drawn by timeline.css at
+   the desktop's size; here they are sized for a thumb. The chips are one
+   strip that scrolls sideways on purpose, as the Notes screen's tags are. */
+.s-ph-timeline__chips {
+  padding: 8px 16px 0;
+}
+
+.s-ph-timeline .s-tl__chips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 0 0 6px;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.s-ph-timeline .s-tl__chip {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+
+.s-ph-timeline .s-tl__scroll {
+  padding: 0 12px;
+}
+
+.s-ph-timeline .s-tl__title {
+  font-size: 16px;
+}
+
+.s-ph-timeline .s-tl__excerpt {
+  font-size: 14px;
+}
+
 /* ── the note screen ─────────────────────────────────────────────────────── */
 
 /* The bar floats over the note so that sliding it away is a transform and

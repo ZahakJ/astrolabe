@@ -1,0 +1,274 @@
+/* Astrolabe — Today on the desktop (client/today/TodayView.tsx). Loaded with
+   the page's lazy chunk. One column at reading width down the middle of the
+   pane, the weekly review's measure (review.css): headings in the serif, a
+   hairline between sections, rows a hand's height. Tokens only; logical
+   properties; the page scrolls down, never sideways. */
+
+.s-today {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  container-type: inline-size;
+  padding: 24px clamp(16px, 4cqi, 48px) 64px;
+  background: var(--bg);
+}
+
+.s-today__sheet {
+  max-inline-size: 700px;
+  margin-inline: auto;
+  color: var(--text);
+}
+
+.s-today__head {
+  margin-block-end: 16px;
+}
+
+.s-today__date {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-today__h1 {
+  margin: 2px 0 0;
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--heading);
+}
+
+.s-today__capture {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-block: 4px 12px;
+}
+
+.s-today__field {
+  flex: 1;
+  min-inline-size: 0;
+  block-size: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--input-text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.s-today__field::placeholder {
+  color: var(--input-placeholder);
+}
+
+.s-today__field:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.s-today__mic {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 34px;
+  block-size: 34px;
+  padding: 0;
+  border: 1px solid var(--border);
+}
+
+.s-today__section {
+  padding-block: 16px 6px;
+  border-block-start: 1px solid var(--border);
+}
+
+.s-today__h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--heading);
+}
+
+.s-today__count {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-today__dailyhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-block-end: 6px;
+}
+
+.s-today__dailyname {
+  flex: 1;
+  min-inline-size: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-today__open {
+  border: 1px solid var(--border);
+}
+
+/* The day's note, drawn by the reading view's renderer: its own `.s-rv`
+   rules carry the prose; this only frames it and caps a long day's note so
+   the rest of the page stays within reach — "Open" is where it is read in
+   full. */
+.s-today__render {
+  max-block-size: 420px;
+  overflow-y: auto;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-raised);
+}
+
+.s-today__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.s-today__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  min-block-size: 34px;
+  padding-block: 3px;
+}
+
+.s-today__row + .s-today__row {
+  border-block-start: 1px solid var(--border);
+}
+
+.s-today__row--stack {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  padding-block: 6px;
+}
+
+.s-today__row--stack .s-today__excerpt {
+  grid-column: 2;
+}
+
+.s-today__row--done .s-today__check bdi {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.s-today__check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-inline-size: 0;
+  cursor: pointer;
+}
+
+.s-today__check input {
+  inline-size: 16px;
+  block-size: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  flex: none;
+}
+
+.s-today__glyph {
+  inline-size: 18px;
+  text-align: center;
+  flex: none;
+}
+
+.s-today__name {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.s-today__meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.s-today__overdue {
+  color: var(--danger);
+}
+
+.s-today__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-today__link:hover {
+  text-decoration: underline;
+}
+
+.s-today__link:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.s-today__link--quiet {
+  color: var(--text-muted);
+}
+
+.s-today__ago {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.s-today__excerpt {
+  display: block;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.s-today__list--recent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.s-today__reflection {
+  margin: 0;
+  font-family: var(--font-serif);
+  white-space: pre-wrap;
+}
+
+.s-today__empty {
+  margin: 4px 0 8px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.s-today__quiet {
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--border);
+}

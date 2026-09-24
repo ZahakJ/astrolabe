@@ -18,6 +18,8 @@ const RoutinesView = lazySurface(() => import("../routines/RoutinesView.tsx"));
 const ReviewWeekView = lazySurface(() => import("../review/ReviewWeekView.tsx"));
 const CalendarView = lazySurface(() => import("../calendar/CalendarView.tsx"));
 const OrbitsSurface = lazySurface(() => import("../orbits/OrbitsSurface.tsx"));
+const TodayView = lazySurface(() => import("../today/TodayView.tsx"));
+const TimelineView = lazySurface(() => import("../timeline/TimelineView.tsx"));
 const Editor = lazySurface(() => import("./Editor.tsx"));
 const ReadingView = lazySurface(() => import("../reading/ReadingView.tsx"));
 // The books surface keeps its own chunk boundary (scripts/check-bundle.mjs
@@ -115,6 +117,17 @@ export default function PaneSurface({ id, children }: { id: string; children?: R
       // top of the Sigils page until 3.18.
       <Suspense fallback={<div className="s-calpage" />}>
         <CalendarView />
+      </Suspense>
+    ) : surface === "today" ? (
+      // Today (3.28): the day's note, the sigils, the cards and the tasks the
+      // day asks for, on one page — the phone's home tab, as a tab here.
+      <Suspense fallback={<div className="s-today" />}>
+        <TodayView />
+      </Suspense>
+    ) : surface === "timeline" ? (
+      // The Timeline (3.28): the vault by date, newest first.
+      <Suspense fallback={<div className="s-timeline" />}>
+        <TimelineView />
       </Suspense>
     ) : surface === "review-week" ? (
       // The weekly review: the week added up, a tab like the Sigils page.

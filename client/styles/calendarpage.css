@@ -44,6 +44,11 @@
   min-inline-size: 0;
 }
 
+/* The door to the Timeline (3.28): the same days as one list. */
+.s-calpage__timeline {
+  border: 1px solid var(--border);
+}
+
 .s-calpage__today {
   margin: 0;
   font-size: 0.786rem;

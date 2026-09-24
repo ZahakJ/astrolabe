@@ -42,7 +42,7 @@ import { DEFAULT_NEW_PER_DAY, DEFAULT_STEPS, EVERYTHING_ELSE, deckCardsOf, deckO
 import { scanCards, type Card } from "../../../shared/flashcards.ts";
 import { findAnyMatches, foldQuery, foldTerm } from "../../../shared/fold.ts";
 import { idStampMs } from "../../../shared/idStamp.ts";
-import { capturedLines, noteDayOf, publishedDayOf, voiceMarks } from "../../../shared/noteDays.ts";
+import { capturedLines, dayOfNote, publishedDayOf, voiceMarks, type DailyRule } from "../../../shared/noteDays.ts";
 import { countNoteWords } from "../../../shared/wordCount.ts";
 import {
   linkKeys,
@@ -623,7 +623,7 @@ export class PocketIndex {
    *  prose cut on a word near 220 characters (the server's post excerpt is
    *  the richer cut; a phone holding a clone keeps no post cache). */
   private excerpt(record: PocketNote): string {
-    const flat = this.flat(record);
+    const flat = this.flat(record).replace(/<!--[\s\S]*?-->/g, "").replace(/\s+/g, " ").trim();
     if (flat.length <= 220) return flat;
     const cut = flat.slice(0, 221);
     const space = cut.lastIndexOf(" ");
@@ -632,14 +632,14 @@ export class PocketIndex {
 
   /** `GET /api/timeline`, as server/indexer.ts `timelineNotes` answers it. A
    *  pocket has no created ledger, so an undated note's day is its mtime's. */
-  timeline(): TimelineNote[] {
+  timeline(rule: DailyRule | null = null): TimelineNote[] {
     const out: TimelineNote[] = [];
     for (const record of this.notes.values()) {
       const published = record.fm.publish === true || record.fm.publish === "true";
       out.push({
         path: record.path,
         title: record.title,
-        day: noteDayOf(record.props, record.dateMs),
+        day: dayOfNote(record.path, record.props, record.dateMs, rule),
         publishedDay: published ? publishedDayOf(record.props) : null,
         published,
         excerpt: this.excerpt(record),
@@ -653,14 +653,14 @@ export class PocketIndex {
   }
 
   /** `GET /api/onthisday`, the server's rule (server/indexer.ts `onThisDay`). */
-  onThisDay(iso: string): OnThisDayHit[] {
+  onThisDay(iso: string, rule: DailyRule | null = null): OnThisDayHit[] {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
     if (!m) return [];
     const year = Number(m[1]);
     const monthDay = `${m[2]}-${m[3]}`;
     const out: OnThisDayHit[] = [];
     for (const record of this.notes.values()) {
-      const day = noteDayOf(record.props, record.dateMs);
+      const day = dayOfNote(record.path, record.props, record.dateMs, rule);
       if (day !== null && day.slice(5) === monthDay && Number(day.slice(0, 4)) < year) {
         out.push({ path: record.path, title: record.title, year: Number(day.slice(0, 4)), kind: "written", what: record.title, excerpt: this.excerpt(record) });
       }

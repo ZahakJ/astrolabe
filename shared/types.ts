@@ -1084,7 +1084,7 @@ export interface HomeSettings {
 /** Where the admin's shell opens on launch (settings.launch). The four named
  *  doors, or a vault-relative note path — any other string IS a path
  *  (shared/launch.ts tells them apart). */
-export type LaunchDoor = "resume" | "sigils" | "orbits" | "today";
+export type LaunchDoor = "resume" | "sigils" | "orbits" | "today" | "today-page";
 export type LaunchSetting = LaunchDoor | (string & {});
 
 export interface SettingsData {
