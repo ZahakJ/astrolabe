@@ -12,28 +12,45 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(root + p, "utf8");
 
-/** `{ tab === "identity" && (` … opens a tab's block; the next one closes it.
+/** The tab switch (client/components/settings/TabBody.tsx): one line per tab
+ *  body, `{tab === "site" && <SiteTab />}`, in the order a reader meets them.
  *
- *  A block may also say WHICH KIND OF VAULT it is drawn in. Since 3.22.2 the
+ *  A line may also say WHICH KIND OF VAULT it is drawn in. Since 3.22.2 the
  *  panel has two Backup & sync tabs and two fewer tabs on a phone: a pocket
  *  vault is a repository cloned onto a device, with no public site to publish
  *  to and no server-side repository to point at a remote, so `{tab ===
- *  "publishing" && !pocket && (` and `{tab === "sync" && pocket && (` are both
- *  real render conditions in the source. The mode is read off that condition
- *  rather than out of a second list somebody has to remember to update — the
- *  same bargain the whole index strikes with the panel. A row with no mode is
- *  drawn in both kinds of vault, which is nearly all of them. */
-function tabRanges(src) {
-  const lines = src.split("\n");
-  const marks = [];
-  lines.forEach((line, i) => {
+ *  "publishing" && !pocket && <PublishingTab />}` and `{tab === "sync" &&
+ *  pocket && …<PocketSyncPanel />…}` are both real render conditions in the
+ *  source. The mode is read off that condition rather than out of a second
+ *  list somebody has to remember to update — the same bargain the whole index
+ *  strikes with the panel. A row with no mode is drawn in both kinds of vault,
+ *  which is nearly all of them.
+ *
+ *  SINCE 3.27.0 EACH BODY IS A FILE (the panel was 5,190 lines and the phone
+ *  shell hosts the same bodies as pushed screens), so a line names the
+ *  COMPONENT and the rows are read out of that component's file. */
+const SETTINGS_DIR = "client/components/settings/";
+/** A component a tab line renders → the file its rows are written in. */
+const FILE_OF = { PocketSyncPanel: "PocketSync.tsx" };
+/** Row-bearing components a tab body mounts inside itself, appended after
+ *  the body's own rows in the order a reader meets them. The travel row is
+ *  mounted at the end of the sync tab (`<TravelRow />`); it reports what an
+ *  instance's data directory has mirrored into the vault. */
+const NESTED = { SyncTab: ["TravelRow"] };
+
+/** Every tab body the switch renders: its tab, its mode and its files. */
+export function tabSources() {
+  const out = [];
+  for (const line of read(SETTINGS_DIR + "TabBody.tsx").split("\n")) {
     const m = /\{tab === "([a-z]+)" &&(?: (!?)pocket &&)?/.exec(line);
-    if (m) marks.push({ tab: m[1], mode: m[2] === undefined ? null : m[2] === "!" ? "instance" : "pocket", from: i });
-  });
-  return marks.map((m, i) => ({
-    ...m,
-    to: i + 1 < marks.length ? marks[i + 1].from : lines.length,
-  }));
+    if (!m) continue;
+    const mode = m[2] === undefined ? null : m[2] === "!" ? "instance" : "pocket";
+    const comp = /<([A-Z][A-Za-z]+)/.exec(line.slice(m.index + m[0].length))?.[1];
+    if (!comp) throw new Error(`settings-index: no component on the ${m[1]} line of TabBody.tsx`);
+    const files = [FILE_OF[comp] ?? `${comp}.tsx`, ...(NESTED[comp] ?? []).map((c) => FILE_OF[c] ?? `${c}.tsx`)];
+    out.push({ tab: m[1], mode, files: files.map((f) => SETTINGS_DIR + f) });
+  }
+  return out;
 }
 
 function rowsIn(lines, from, to, tab, mode = null) {
@@ -63,29 +80,13 @@ function rowsIn(lines, from, to, tab, mode = null) {
   return out;
 }
 
-/** Every row the panel renders, in the order a reader meets it. */
+/** Every row the panel renders, in the order a reader meets them. */
 export function settingsRows() {
-  const modal = read("client/components/SettingsModal.tsx");
-  const lines = modal.split("\n");
   const rows = [];
-  // The device tab is a component of its own; everything else is a block.
-  const device = read("client/components/settings/DeviceTab.tsx").split("\n");
-  rows.push(...rowsIn(device, 0, device.length, "device"));
-  // The travel row is a component of its own, mounted at the end of the sync
-  // tab (`<TravelRow />`), so its label is read from its file and appended to
-  // that tab's rows in the order a reader meets them. It is INSTANCE-ONLY: it
-  // reports what an instance's data directory has mirrored into the vault,
-  // and a pocket vault has no data directory to mirror from.
-  const travel = read("client/components/settings/TravelRow.tsx").split("\n");
-  // The pocket vault's own Backup & sync tab, likewise its own file, appended
-  // to the same tab and marked pocket-only.
-  const pocketSync = read("client/components/settings/PocketSync.tsx").split("\n");
-  for (const { tab, mode, from, to } of tabRanges(modal)) {
-    if (tab === "device") continue; // rendered by DeviceTab above
-    rows.push(...rowsIn(lines, from, to, tab, mode));
-    if (tab === "sync" && mode !== "pocket") {
-      rows.push(...rowsIn(travel, 0, travel.length, "sync", "instance"));
-      rows.push(...rowsIn(pocketSync, 0, pocketSync.length, "sync", "pocket"));
+  for (const { tab, mode, files } of tabSources()) {
+    for (const file of files) {
+      const lines = read(file).split("\n");
+      rows.push(...rowsIn(lines, 0, lines.length, tab, mode));
     }
   }
   return rows;

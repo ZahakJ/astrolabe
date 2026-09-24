@@ -19,3 +19,9 @@ export const CUSTOM_FONT_PREFIX = "custom:";
 export function isCustomFontId(id: string): boolean {
   return id.startsWith(CUSTOM_FONT_PREFIX);
 }
+
+/** The "no webfont" choice — the built-in system stacks. The server's own
+ *  name for it is `SYSTEM` (shared/fontCatalog.ts); this copy is the client's,
+ *  here rather than in the picker component so the settings form
+ *  (client/components/settings/form.ts) can be tested without React. */
+export const SYSTEM_FONT = "system";
