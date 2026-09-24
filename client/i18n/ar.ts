@@ -1450,6 +1450,7 @@ const ar = {
   moveLands: "سيستقر في {path}",
   moveCurrently: "موجود حاليًا في {folder}",
   movedToast: "نُقل “{name}” من {from} إلى {to}",
+  renamedToast: "أُعيدت تسمية “{from}” إلى “{name}”",
   moveUndoneToast: "أُلغي النقل — عاد “{name}” إلى {folder}",
   undo: "تراجع",
   moveFailed: "تعذّر نقل “{name}”.",

@@ -9,8 +9,9 @@
 // identically for all three.
 //
 // The API split is the server's, not the reader's: a NOTE moves through
-// /api/rename (a move IS a rename to another folder) and a FOLDER through
-// /api/folder/move. `apply()` is the only function that knows which.
+// /api/rename (a move IS a rename to another folder), a FOLDER through
+// /api/folder/move, and an ATTACHMENT's rename through /api/attachment/rename.
+// `apply()` is the only function that knows which.
 
 import * as api from "./api.ts";
 import { ApiError } from "./api.ts";
@@ -302,11 +303,15 @@ async function run(item: MoveItem, toPath: string, undoTo: string | null): Promi
   actionToast(
     // The LANDED name, not the name it set off with: when a collision made the
     // reader rename it, "Moved “Notes.md”" would name a file that is not there.
-    tf("movedToast", {
-      name: landedName,
-      from: folderLabel(parentDir(item.path)),
-      to: folderLabel(parentDir(toPath)),
-    }),
+    // A rename in place is not a move: "Moved from Media to Media" said
+    // nothing about what happened.
+    parentDir(item.path) === parentDir(toPath)
+      ? tf("renamedToast", { from: itemLabel(item), name: landedName })
+      : tf("movedToast", {
+          name: landedName,
+          from: folderLabel(parentDir(item.path)),
+          to: folderLabel(parentDir(toPath)),
+        }),
     t("undo"),
     () => {
       void run({ path: toPath, name: landedName, isFolder: item.isFolder }, undoTo, null);

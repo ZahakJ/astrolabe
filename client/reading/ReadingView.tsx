@@ -38,21 +38,29 @@ installEmbedPickup();
  *  long day — 256 is far more history than a reader ever walks back through. */
 const scrollPositions = new Lru<number>({ max: 256 });
 
-/** The rendered element a source line lands on: the nearest heading
- *  at-or-above the line, found through the note's own anchor table
- *  (shared/anchors.ts — the same table `[[Note#anchor]]` resolves against, so
- *  the two kinds of landing cannot disagree about where a section starts).
- *  Null when no preceding anchor renders an element — the caller falls back
- *  to the note top. Section-level precision is the honest ceiling here: this
- *  renderer keeps no per-block source map (CONTRACTS — "Landing on a line").
- *  Lives HERE and not in client/landing.ts because the anchor table drags the
- *  TeX parser with it, and the reading chunk already carries both. */
+/** The rendered element a source line (1-based) lands on. A markdown note's
+ *  top-level blocks carry the lines they came from (`data-src-start` /
+ *  `-end`, render.ts — the map an embed's drag lands by), so the landing is
+ *  the BLOCK that holds the line, or the last block above it when the line is
+ *  blank. A LaTeX note carries no such map: there it is the nearest heading
+ *  at-or-above the line, through the note's own anchor table
+ *  (shared/anchors.ts — the same table `[[Note#anchor]]` resolves against).
+ *  Null when neither finds an element — the caller falls back to the note
+ *  top. Lives HERE and not in client/landing.ts because the anchor table
+ *  drags the TeX parser with it, and the reading chunk already carries both. */
 function readingLineTarget(
   host: HTMLElement,
   path: string,
   content: string,
   line: number,
 ): HTMLElement | null {
+  let block: HTMLElement | null = null;
+  for (const el of host.querySelectorAll<HTMLElement>(".s-reading__content > [data-src-start]")) {
+    if (Number(el.dataset.srcStart) > line - 1) break;
+    block = el;
+    if (Number(el.dataset.srcEnd) >= line - 1) break;
+  }
+  if (block !== null) return block;
   const anchors = noteAnchors(path, content).filter((a) => a.line <= line);
   // Walk backward: the nearest anchor may be one the renderer assigns no id
   // to (a LaTeX label inside a paragraph) — the section above it still lands.
