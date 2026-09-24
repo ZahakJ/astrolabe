@@ -1114,7 +1114,10 @@ export default function StatusBar() {
               }
               void togglePublish(openPath);
             }}
-            title={t(openPublished ? "unpublishTitle" : "publishTitle")}
+            // A title is a HOVER affordance. On a finger Chrome raises it on
+            // the tap and leaves it standing ("Unpublished" stuck over the
+            // bar in the 3.24 audit); the button's own words name it.
+            title={window.matchMedia("(hover: hover)").matches ? t(openPublished ? "unpublishTitle" : "publishTitle") : undefined}
           >
             <span className="s-statusbar__pubstar" aria-hidden="true">
               {openPublished ? "✦" : "✧"}

@@ -4144,8 +4144,11 @@ export default function SettingsModal() {
                           <Toggle
                             key={code}
                             label={DICT_LABELS[code]()}
-                            onLabel={t("on")}
-                            offLabel={t("off")}
+                            // The language's NAME is on screen, not only in the
+                            // aria-label: four toggles reading "Off" were four
+                            // controls nobody could tell apart (3.24 audit).
+                            onLabel={tf("spellDictToggle", { lang: DICT_LABELS[code](), state: t("on") })}
+                            offLabel={tf("spellDictToggle", { lang: DICT_LABELS[code](), state: t("off") })}
                             value={dicts.includes(code)}
                             onChange={(on) => setBrowserDictionaries(on ? [...dicts, code] : dicts.filter((d) => d !== code))}
                           />
