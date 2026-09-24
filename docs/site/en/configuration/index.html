@@ -168,6 +168,7 @@ three-way rows (<em>inherit</em> / on / off) show all three states at once; numb
 inside the field. The reason: a native <code>&lt;select&gt;</code> opens a window drawn by the operating system,
 which no theme can style and no panel can keep inside its bounds — exactly what a font list of
 twenty-seven faces must not do.</p>
+<p><strong>On a phone</strong> (<a href="../workspace/#on-a-phone">the phone layout</a>) the panel is a list of its sections — More → <strong>Settings</strong> — with the same search above it, and each section is a screen of its own showing the same rows. As soon as a section holds a change, a bar rises from the bottom with <strong>Discard</strong> and <strong>Save</strong>; leaving the section any other way with changes unsaved asks first. <strong>This device</strong> has no bar: it saves each choice as you make it.</p>
 <h2 id="settings-keys"><a class="anchor" href="#settings-keys">Settings keys</a></h2>
 <p>These are the keys <code>ASTROLABE_DATA/settings.json</code> can hold. The panel writes them, and so does
 <code>PATCH /api/settings</code>. Any key that is absent falls back to its <code>.env</code> default from the table
