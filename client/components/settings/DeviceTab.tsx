@@ -47,7 +47,6 @@ import { DIM_MAX, EYE_COMFORT_EVENT, WARMTH_MAX, readDim, readWarmth, setDim, se
 import { WHATSNEW_EVENT, setWhatsNewEnabled, whatsNewEnabled } from "../../whatsnew/door.ts";
 import { OFFLINE_EVENT, clearOfflineCopy, offlineEnabled, offlineSupported, setOfflineEnabled } from "../../offline.ts";
 import { FRENCH_AUTOCORRECT_EVENT, frenchAutocorrectEnabled, setFrenchAutocorrectEnabled } from "../../frenchPref.ts";
-import { phoneShellDevice, readPhoneLayout, setPhoneLayout } from "../../shellQuery.ts";
 
 /** A localStorage preference that is NOT in the store, kept live the way its
  *  own module already publishes it: a window event. Both of these have a
@@ -361,32 +360,6 @@ export default function DeviceTab() {
           ]}
         />
       </Row>
-
-      {/* THE PHONE'S SHELL, FOR ONE RELEASE (client/shellQuery.ts). Drawn only
-          on a device that gets the phone shell at all — a desktop asked this
-          question could answer it and see nothing change. New is the default;
-          Classic keeps the drawer layout for a reader who needs a week with it.
-          It reloads, because the two shells own history differently (the
-          phone's stack, the drawer's back-gesture guard) and must never run
-          one after the other in the same page. */}
-      {phoneShellDevice() && (
-        <Row label={t("rowPhoneLayout")} hint={t("hintPhoneLayout")}>
-          <SegmentedControl
-            label={t("rowPhoneLayout")}
-            value={readPhoneLayout()}
-            onChange={(v) => {
-              const next = v === "classic" ? "classic" : "new";
-              if (next === readPhoneLayout()) return;
-              setPhoneLayout(next);
-              location.reload();
-            }}
-            segments={[
-              { value: "new", label: t("phoneLayoutNew") },
-              { value: "classic", label: t("phoneLayoutClassic") },
-            ]}
-          />
-        </Row>
-      )}
 
       {/* THE LABEL IS THE STATE. A two-state preference is a Toggle and its
           label says what being ON does — never "Vim: on/off", which asks the

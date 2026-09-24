@@ -30,8 +30,15 @@
 //     sidebar drawer anywhere in the document.
 //   · A DEEP LINK OPENS ITS NOTE, and back from it comes home to Today
 //     instead of leaving the app.
-//   · CLASSIC IS STILL THERE: `This device → Phone layout: Classic` mounts
-//     the desktop's drawer shell (for one release).
+//   · ROUND 2 (3.27.0) — EVERY SURFACE IS A SCREEN, and each is asked what a
+//     thumb asks of it: Study starts the session full screen; a Sigil tick
+//     answers at once and the server has it; a book wears one bar of its
+//     own and its scrubber moves the page; ⋯ is an action sheet Back closes;
+//     the theme picker (a layer on <body>) takes a history entry; a Settings
+//     section saves, and Back with an edit asks first and keeps the edit on
+//     Cancel; the tag picker writes the tag into the note; a list comes back
+//     scrolled where it was left. (Classic, the drawer shell kept for one
+//     release, was deleted with this round; so was its pass here.)
 //
 // THE MATRIX. Every screen and sheet is measured and photographed in both
 // languages on four shapes: a Pixel 7 (412×915, a finger); a 720×820 phone at
@@ -393,33 +400,270 @@ try {
       await settle(700);
       await measure("more");
 
-      // ── the legacy screens ────────────────────────────────────────────────
-      for (const [label, surface] of [
-        ["orbits", "~orbits"],
-        ["sigils", "~sigils"],
-        ["library", "~library"],
-        ["graph", "~graph"],
-      ]) {
-        await page.evaluate((s) => {
-          const rows = [...document.querySelectorAll(".s-ph-more .s-ph-row")];
-          const want = { "~orbits": 0, "~sigils": 1, "~library": 2, "~graph": 4 }[s];
-          rows[want]?.click();
-        }, surface);
-        await settle(1800);
-        const s = await state();
-        check(s.screens.includes("surface"), tag(`${label} opens as a screen`), JSON.stringify(s));
-        await measure(label);
+      // ── Round 2's screens (3.27.0) ────────────────────────────────────────
+      // Each of them is a screen of its own now — measured, photographed, and
+      // asked the question a thumb asks of it.
+      const moreRow = async (re) => {
+        await tab("more");
+        await settle(600);
+        const hit = await page.evaluate((src) => {
+          const rx = new RegExp(src);
+          const row = [...document.querySelectorAll(".s-ph-more .s-ph-row")].find((r) => rx.test(r.textContent ?? ""));
+          if (!row) return false;
+          row.setAttribute("data-check-phone", "row");
+          return true;
+        }, re.source);
+        if (hit) {
+          await press(page.locator('[data-check-phone="row"]'));
+          await page.evaluate(() => document.querySelector('[data-check-phone="row"]')?.removeAttribute("data-check-phone"));
+        }
+        await settle(1400);
+        return hit;
+      };
+      const back = async (ms = 800) => {
         await page.goBack();
-        await settle(800);
+        await settle(ms);
+      };
+
+      // ORBITS: the decks, a deck, and Study starts the session.
+      if (await moreRow(/^(Orbits|المدارات)/)) {
+        check((await state()).screens.includes("orbits"), tag("Orbits opens its list of decks"));
+        await measure("orbits");
+        const deck = page.locator(".s-ph-row[data-deck]");
+        if ((await deck.count()) > 0) {
+          await press(deck);
+          await settle(1200);
+          check((await state()).screens.includes("deck"), tag("a deck row opens the deck"));
+          await measure("deck");
+          await press(page.locator('[data-action="study"]'));
+          const studying = await page.waitForSelector('[data-testid="orbits-session"]', { timeout: 10000 }).then(() => true, () => false);
+          await settle(900);
+          const s = await state();
+          check(studying && s.screens.includes("session") && /^\/orbits\/./.test(decodeURIComponent(s.path)), tag("Study starts the session, full screen"), JSON.stringify(s));
+          if (shape.tablet) check((await page.locator(".s-ph-cols--full").count()) > 0, tag("the session takes both columns"));
+          await measure("session");
+          await back();
+          check((await state()).screens.includes("deck"), tag("back from the session lands on the deck"));
+          await back();
+        }
+        await back();
       }
-      // Settings: a layer with a history entry of its own.
-      await page.evaluate(() => [...document.querySelectorAll(".s-ph-more .s-ph-row")].find((r) => r.textContent?.match(/Settings|الإعدادات|إعدادات/))?.click());
-      await settle(1600);
-      check((await state()).sheets.includes("layer:settings"), tag("settings takes a history entry"));
-      await measure("settings");
-      await page.goBack();
-      await settle(1000);
-      check((await page.locator(".s-smodal").count()) === 0, tag("back closes settings"));
+
+      // SIGILS: the list, a sigil, and a tick that persists.
+      if (await moreRow(/^(Sigils|السِّجِلّ)/)) {
+        check((await state()).screens.includes("sigils"), tag("Sigils opens its list"));
+        await measure("sigils");
+        const row = page.locator(".s-ph-row[data-sigil]");
+        if ((await row.count()) > 0) {
+          await press(row);
+          await settle(1400);
+          check((await state()).screens.includes("sigil"), tag("a sigil row opens the sigil"));
+          await measure("sigil");
+          const box = page.locator(".s-ph-sigil__card .s-rv-routine__today input.s-rv-routine__check:not([disabled])").first();
+          if ((await box.count()) > 0) {
+            const before = await box.isChecked();
+            await box.click();
+            await settle(1500);
+            const after = await box.isChecked();
+            const path = await page.locator("[data-screen='sigil']").getAttribute("data-path");
+            const saved = await page.evaluate(async (p) => {
+              const list = await (await fetch("/api/routines")).json();
+              const d = new Date();
+              const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+              const meta = list.find((m) => m.path === p);
+              return (meta?.entries ?? []).find((e) => e.date === today)?.done.length ?? 0;
+            }, path);
+            check(after !== before && (after ? saved > 0 : true), tag("a sigil tick answers at once and persists"), `checked ${before} → ${after}, server has ${saved} done today`);
+          }
+          await back();
+        }
+        await back();
+      }
+
+      // MEDIA: the shelves, a tracker.
+      if (await moreRow(/^(Media|الوسائط)/)) {
+        check((await state()).screens.includes("media"), tag("Media opens its shelves"));
+        await measure("media");
+        const row = page.locator(".s-ph-row[data-tracker]");
+        if ((await row.count()) > 0) {
+          await press(row);
+          await settle(1200);
+          check((await state()).screens.includes("tracker"), tag("a tracker row opens its card"));
+          await measure("tracker");
+          await back();
+        }
+        await back();
+      }
+
+      // THE LIBRARY AND A BOOK: the reader's own bar, and its scrubber moves.
+      if (await moreRow(/^(Library|المكتبة)/)) {
+        await measure("library");
+        const pdf = page.locator('.s-ph-row[data-path$=".pdf"]');
+        const long = page.locator('.s-ph-row[data-path*="Long"]');
+        const book = (await long.count()) > 0 ? long : pdf;
+        if ((await book.count()) > 0) {
+          await press(book);
+          await page.waitForSelector(".s-book__phonebar", { timeout: 15000 }).catch(() => {});
+          await settle(2200);
+          const chrome = await page.evaluate(() => ({
+            bar: document.querySelectorAll(".s-book__phonebar").length,
+            desktopBar: document.querySelectorAll(".s-book__top, .s-book__status").length,
+            phoneTop: document.querySelectorAll(".s-ph-top, .s-ph-tabs").length,
+            barH: Math.round(document.querySelector(".s-book__phonebar")?.getBoundingClientRect().height ?? 0),
+          }));
+          check(chrome.bar === 1 && chrome.desktopBar === 0 && chrome.phoneTop === 0, tag("a book wears one bar of its own and nothing else"), JSON.stringify(chrome));
+          await measure("reader");
+          const scrub = page.locator(".s-book__scrub");
+          if ((await scrub.count()) > 0) {
+            const before = await page.evaluate(() => document.querySelector(".s-book__scroll")?.scrollTop ?? 0);
+            // Wherever the book was left, to the other half of it.
+            await scrub.evaluate((el) => {
+              const input = el;
+              const max = Number(input.max);
+              input.value = String(Number(input.value) > max / 2 ? 2 : Math.max(2, max - 1));
+              input.dispatchEvent(new Event("input", { bubbles: true }));
+              input.dispatchEvent(new Event("change", { bubbles: true }));
+            });
+            await settle(1500);
+            const after = await page.evaluate(() => document.querySelector(".s-book__scroll")?.scrollTop ?? 0);
+            check(Math.abs(after - before) > 100, tag("the reader's scrubber moves through the book"), `${before} → ${after}`);
+          }
+          // ⋯ is the phone's action sheet, and Back closes it.
+          await press(page.locator(".s-book__phonebar .s-book__phonebtn").last());
+          await settle(700);
+          check((await page.locator(".s-ph-actions").count()) > 0, tag("the reader's ⋯ is an action sheet"));
+          await measure("reader-menu", ".s-ph-sheet");
+          await back(700);
+          check((await page.locator(".s-ph-actions").count()) === 0 && (await state()).screens.includes("reader"), tag("back closes the reader's sheet and keeps the book"));
+          await back();
+        }
+        await back();
+      }
+
+      // AN OVERLAY ON <body> TAKES AN ENTRY: the theme picker, closed by Back.
+      await tab("more");
+      await settle(600);
+      const themeRow = await page.evaluate(() => {
+        const row = [...document.querySelectorAll(".s-ph-more .s-ph-row")].find((r) => /Theme|السمة|المظهر/.test(r.textContent ?? ""));
+        row?.setAttribute("data-check-phone", "theme");
+        return !!row;
+      });
+      if (themeRow) {
+        await press(page.locator('[data-check-phone="theme"]'));
+        await settle(900);
+        const up = await state();
+        check((await page.locator(".s-tpick-overlay").count()) > 0 && up.sheets.includes("overlay:theme-picker"), tag("the theme picker takes a history entry"), JSON.stringify(up));
+        await back(700);
+        check((await page.locator(".s-tpick-overlay").count()) === 0 && (await state()).screens.includes("more"), tag("back closes the theme picker and stays on More"));
+      }
+
+      // SETTINGS: a list of sections; a section saves, and asks before Back
+      // throws an edit away.
+      if (await moreRow(/^(Settings|الإعدادات)$/)) {
+        check((await state()).screens.includes("settings"), tag("Settings is a list of sections"));
+        await measure("settings");
+        await press(page.locator('.s-ph-row[data-section="site"]'));
+        await page.waitForSelector("[data-screen='settings-section'] .s-smodal__row", { timeout: 10000 }).catch(() => {});
+        await settle(900);
+        check((await state()).screens.includes("settings-section"), tag("a section is a screen"));
+        await measure("settings-site");
+        const tagline = page.locator('[data-screen="settings-section"] [data-setting] input').nth(1);
+        const value = `check-phone ${shape.name} ${lang} ${Date.now() % 100000}`;
+        await tagline.fill(value);
+        await settle(500);
+        check(await page.evaluate(() => document.querySelector(".s-ph-settings--dirty") !== null), tag("an edit raises the save bar"));
+        await measure("settings-dirty");
+        await page.goBack();
+        await settle(900);
+        const asked = await page.locator(".s-ph-ask").count();
+        check(asked > 0 && (await state()).screens.includes("settings-section"), tag("back with an edit asks, and the section stays"));
+        if (asked > 0) {
+          await back(900);
+          check((await page.locator(".s-ph-ask").count()) === 0 && (await tagline.inputValue()) === value, tag("cancelling keeps the edit"));
+        }
+        await press(page.locator('.s-ph-savebar [data-action="save"]'));
+        await settle(1600);
+        const saved = await page.evaluate(async () => (await (await fetch("/api/settings")).json()).effective?.tagline);
+        check(saved === value, tag("a Settings section saves"), `tagline is ${JSON.stringify(saved)}`);
+        await back();
+        await back();
+      }
+
+      // THE TAG PICKER WRITES A TAG, from the note sheet's Properties.
+      await page.goto(url + notePermalink, { waitUntil: "domcontentloaded" });
+      await settle(1800);
+      await press(page.locator(".s-ph-note .s-ph-top__actions button").last());
+      await settle(700);
+      await press(page.locator('.s-ph-seg__btn[data-segment="properties"]'));
+      await settle(900);
+      const tagsRow = page.locator('.s-ph-prop[data-prop="tags"], .s-ph-prop[data-prop="Tags"]');
+      if ((await tagsRow.count()) > 0) {
+        await press(tagsRow);
+        await settle(900);
+        check((await state()).sheets.includes("tags"), tag("the tag picker is a sheet over the note sheet"));
+        await measure("tag-picker", ".s-ph-tagsheet");
+        const fresh = `cp${shape.name.replace(/[^a-z]/g, "")}${lang}${Date.now() % 100000}`;
+        await page.locator(".s-ph-tagsheet__field").fill(fresh);
+        await settle(400);
+        await press(page.locator(".s-ph-tagsheet__add"));
+        await settle(1500);
+        const written = await page.evaluate(async (p) => (await (await fetch(`/api/note?path=${encodeURIComponent(p)}`)).json()).content ?? "", note);
+        check(new RegExp(`tags:[^\\n]*${fresh}|\\n\\s*-\\s*${fresh}`).test(written), tag("the tag picker writes the tag into the note"), written.slice(0, 160));
+        await back(700);
+        check(!(await state()).sheets.includes("tags"), tag("back closes the tag picker"));
+      }
+      // Off the note sheet, then off the note (a deep link: back is Today).
+      if ((await state()).sheetUp) await back(700);
+      if ((await state()).screens.includes("note")) await back(900);
+
+      // A LIST COMES BACK WHERE IT WAS LEFT.
+      await tab("notes");
+      await settle(700);
+      const busiest = await page.evaluate(() => {
+        const rows = [...document.querySelectorAll(".s-ph-row[data-path]")];
+        let best = null;
+        let most = 0;
+        for (const r of rows) {
+          const n = Number(r.querySelector(".s-ph-row__count")?.textContent?.replace(/[^0-9٠-٩]/g, "").replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d)) ?? 0);
+          if (n > most) {
+            most = n;
+            best = r.getAttribute("data-path");
+          }
+        }
+        return best;
+      });
+      if (busiest) {
+        await press(page.locator(`.s-ph-row[data-path="${busiest}"]`));
+        await settle(900);
+        const scroller = shape.tablet ? ".s-ph-cols__list .s-ph-scroll" : ".s-ph-stage .s-ph-scroll";
+        const y = await page.evaluate((sel) => {
+          const el = document.querySelector(sel);
+          if (!el) return 0;
+          el.scrollTop = Math.min(260, el.scrollHeight - el.clientHeight);
+          return el.scrollTop;
+        }, scroller);
+        await settle(300);
+        if (y > 40 && !shape.tablet) {
+          const target = await page.evaluate((sel) => {
+            const el = document.querySelector(sel);
+            const r = el.getBoundingClientRect();
+            const row = [...el.querySelectorAll(".s-ph-row[data-path]")].find((x) => {
+              const b = x.getBoundingClientRect();
+              return b.top > r.top + 10 && b.bottom < r.bottom - 10 && /\.md$/.test(x.getAttribute("data-path") ?? "");
+            });
+            row?.setAttribute("data-check-phone", "deep");
+            return !!row;
+          }, scroller);
+          if (target) {
+            await press(page.locator('[data-check-phone="deep"]'));
+            await settle(1500);
+            await back(1200);
+            const again = await page.evaluate((sel) => document.querySelector(sel)?.scrollTop ?? 0, scroller);
+            check(Math.abs(again - y) < 4, tag("back returns a list to where it was scrolled"), `${y} → ${again}`);
+          }
+        }
+        await back(600);
+      }
 
       // ── the capture sheet and its voice half (3.24.0) ─────────────────────
       // Opened by the chord, which also proves a hardware keyboard to the
@@ -458,74 +702,6 @@ try {
     }
   }
 
-  // ── Classic, for one release ──────────────────────────────────────────────
-  {
-    const ctx = await browser.newContext(SHAPES[0].context);
-    await ctx.addCookies(cookies);
-    await ctx.addInitScript(() => {
-      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
-      localStorage.setItem("astrolabe.prefs-sync-off", "1");
-      localStorage.setItem("astrolabe.phoneLayout", "classic");
-    });
-    const page = await ctx.newPage();
-    await page.goto(url + "/", { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1600);
-    const shells = await page.evaluate(() => ({ phone: !!document.querySelector(".s-ph"), desktop: !!document.querySelector(".s-app") }));
-    check(!shells.phone && shells.desktop, "classic: Phone layout → Classic mounts the drawer shell");
-
-    // THE P0, IN THE SHELL IT HAPPENED IN (3.26.1). Classic still loads the
-    // back-gesture guard, and its retraction raced the router: a note tapped
-    // in the drawer did not open (client/backGuard.ts). Tap one, and require
-    // the address, the title and the active tab to name it, drawer closed.
-    const where = () =>
-      page.evaluate(() => ({
-        path: decodeURIComponent(location.pathname),
-        title: document.title,
-        tab: document.querySelector(".s-tab--active")?.textContent?.trim() ?? "",
-        drawer: document.querySelector(".s-app--drawer") !== null,
-      }));
-    const before = await where();
-    await page.tap(".s-drawer-btn");
-    await page.waitForTimeout(600);
-    const name = await page.evaluate(() => {
-      const row = [...document.querySelectorAll(".s-sidebar .s-tree__item[data-tree-path]")].find(
-        (r) => /\.md$/i.test(r.dataset.treePath ?? "") && r.getAttribute("aria-selected") !== "true" && r.getBoundingClientRect().height > 0,
-      );
-      if (!row) return null;
-      row.setAttribute("data-check-phone", "tap");
-      return row.dataset.treePath.split("/").pop().replace(/\.md$/i, "");
-    });
-    if (name === null) {
-      check(false, "classic: a note tapped in the drawer opens", "the drawer showed no note row to tap");
-    } else {
-      await page.tap('[data-check-phone="tap"]');
-      await page.waitForTimeout(2000);
-      const after = await where();
-      const miss = [];
-      if (after.path === before.path || !after.path.includes(name)) miss.push(`address ${before.path} → ${after.path}`);
-      if (!after.title.includes(name)) miss.push(`title "${after.title}"`);
-      if (!after.tab.includes(name)) miss.push(`active tab "${after.tab}"`);
-      if (after.drawer) miss.push("the drawer is still out");
-      check(miss.length === 0, "classic: a note tapped in the drawer opens", `tapped "${name}": ${miss.join("; ")}`);
-
-      // …and Classic's one-tap Publish in the bottom bar asks first.
-      const target = await page.evaluate(async () => {
-        const { paths } = await (await fetch("/api/published")).json();
-        const p = decodeURIComponent(location.pathname).slice(1);
-        return paths.some((x) => x.replace(/\.md$/i, "") === p) ? null : p;
-      });
-      if (target !== null && (await page.locator(".s-statusbar__pub").count()) > 0) {
-        await page.tap(".s-statusbar__pub");
-        await page.waitForTimeout(600);
-        const asked = await page.locator(".s-confirm").isVisible().catch(() => false);
-        if (asked) await page.tap(".s-confirm__cancel");
-        await page.waitForTimeout(700);
-        const live = await page.evaluate(async (p) => ((await (await fetch("/api/published")).json()).paths ?? []).some((x) => x.replace(/\.md$/i, "") === p), target);
-        check(asked && !live, "classic: the bottom bar's Publish asks, and a cancel publishes nothing", `asked=${asked} published=${live}`);
-      }
-    }
-    await ctx.close();
-  }
 } finally {
   for (const b of browsers) await b.close().catch(() => {});
 }

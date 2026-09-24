@@ -74,10 +74,10 @@ const TRAVELS = new Set(TRAVELLING_KEYS);
  *  the WORKSPACE and its older tab list (a phone that opened one note would
  *  hand the desktop a one-note window — the phone shell never writes them at
  *  all, client/state.ts `workspacePersists`, and this is the second lock on
- *  the same door), and the phone-layout choice, which is a property of the
- *  screen in the hand (client/shellQuery.ts). `tests/prefs.test.ts` holds the
+ *  the same door). (The Classic phone layout's choice was the third key here
+ *  until the layout itself went, in 3.27.0.) `tests/prefs.test.ts` holds the
  *  two lists apart. */
-export const NEVER_TRAVELS: readonly string[] = ["workspace", "tabs", "phoneLayout"];
+export const NEVER_TRAVELS: readonly string[] = ["workspace", "tabs"];
 const NEVER = new Set(NEVER_TRAVELS);
 
 interface Entry {

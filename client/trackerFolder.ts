@@ -6,7 +6,7 @@
 // keeps). One function, so the two never drift.
 import type { TrackerMeta } from "../shared/types.ts";
 import { TREE_REVEAL_EVENT } from "./components/Sidebar.tsx";
-import { sidebarIsDrawer, useStore } from "./state.ts";
+import { useStore } from "./state.ts";
 
 export function openTrackerFolder(meta: TrackerMeta): void {
   if (meta.folder === null) return;
@@ -16,8 +16,7 @@ export function openTrackerFolder(meta: TrackerMeta): void {
     store.setView("editor");
     return;
   }
-  if (sidebarIsDrawer()) store.setSidebarOpen(true);
-  else store.setSidebarCollapsed(false);
+  store.setSidebarCollapsed(false);
   const path = meta.folder;
   requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(TREE_REVEAL_EVENT, { detail: { path } })));
 }
