@@ -1710,3 +1710,18 @@
 .s-askstat__line--bad {
   color: var(--danger);
 }
+
+/* Two controls answering one row's question side by side (Vault → Unique
+   notes: folder and name; Vault → Feeds: the switch and the list's note).
+   They wrap under each other when the row is narrow. */
+.s-smodal__pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.s-smodal__pair > * {
+  flex: 1 1 180px;
+  min-inline-size: 0;
+}

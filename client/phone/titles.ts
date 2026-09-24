@@ -4,7 +4,7 @@
 
 import { noteLabelOf } from "../../shared/noteFormat.ts";
 import { t, type I18nKey } from "../i18n.ts";
-import { isBookPath, isGraphTab, isMediaTab, isOrbitsTab, isReviewWeekTab, isRoutinesTab, orbitsSessionOf } from "../workspace.ts";
+import { isBookPath, isFeedsTab, isGraphTab, isMediaTab, isOrbitsTab, isReviewWeekTab, isRoutinesTab, orbitsSessionOf } from "../workspace.ts";
 import type { Screen, TabId } from "./nav.ts";
 import { TABS } from "../components/settings/tabs.ts";
 
@@ -28,6 +28,7 @@ export function surfaceTitle(tab: string): { title: string; user: boolean } {
   if (isMediaTab(tab)) return { title: t("media"), user: false };
   if (isRoutinesTab(tab)) return { title: t("routines"), user: false };
   if (isReviewWeekTab(tab)) return { title: t("reviewWeek"), user: false };
+  if (isFeedsTab(tab)) return { title: t("feeds"), user: false };
   if (isOrbitsTab(tab)) {
     const session = orbitsSessionOf(tab);
     if (session === null) return { title: t("orbits"), user: false };
@@ -55,6 +56,8 @@ export function screenTitle(screen: Screen): string {
     case "sigil":
     case "tracker":
       return noteLabelOf(base(screen.path));
+    case "feed-item":
+      return t("feeds");
   }
 }
 

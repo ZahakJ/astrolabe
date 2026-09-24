@@ -2,6 +2,7 @@
 // in CONTRACTS.md and returns the shared wire types.
 
 import type { VoiceEngineState, VoiceJob, VoiceLanguage } from "../shared/voice.ts";
+import type { FeedItemFull, FeedsState } from "../shared/feeds.ts";
 import type {
   AliasEntry,
   AliasesResponse,
@@ -882,6 +883,34 @@ export function importDecks(file: File, folder: string): Promise<ImportOutcome> 
   form.append("folder", folder);
   // No Content-Type header: the browser sets the multipart boundary itself.
   return request<ImportOutcome>("/api/orbits/import", { method: "POST", body: form }, false, UPLOAD_TIMEOUT_MS);
+}
+
+// ── Feeds (server/feedRoutes.ts, docs/feeds.md) ─────────────────────────────
+
+export function getFeeds(): Promise<FeedsState> {
+  return request<FeedsState>("/api/feeds");
+}
+
+export function getFeedItem(feed: string, guid: string): Promise<FeedItemFull> {
+  return request<FeedItemFull>(`/api/feeds/item?feed=${encodeURIComponent(feed)}&guid=${encodeURIComponent(guid)}`);
+}
+
+export function markFeedItemRead(feed: string, guid: string, read: boolean): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/api/feeds/read", json("POST", { feed, guid, read }));
+}
+
+export function markFeedRead(feed: string | null): Promise<{ read: number }> {
+  return request<{ read: number }>("/api/feeds/read-all", json("POST", feed === null ? {} : { feed }));
+}
+
+/** Keep one item as a note. Slow on purpose when the page is fetched. */
+export function keepFeedItem(feed: string, guid: string): Promise<{ path: string; fetched: boolean; already: boolean }> {
+  return request<{ path: string; fetched: boolean; already: boolean }>("/api/feeds/keep", json("POST", { feed, guid }), false, UPLOAD_TIMEOUT_MS);
+}
+
+/** A round now; the answer is the state after it. */
+export function refreshFeeds(): Promise<FeedsState> {
+  return request<FeedsState>("/api/feeds/refresh", json("POST", {}), false, UPLOAD_TIMEOUT_MS);
 }
 
 export function getRoutines(): Promise<RoutineMeta[]> {

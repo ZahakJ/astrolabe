@@ -50,7 +50,7 @@ export type Screen =
   | { kind: "tag"; tag: string }
   /** A surface the store opens as a workspace tab: `~orbits` (the decks),
    *  `~orbits/<deck>` (a session), `~sigils`, `~media`, `~graph`,
-   *  `~review-week`, a book, a drawing, or `~library`. Each has a phone
+   *  `~review-week`, `~feeds`, a book, a drawing, or `~library`. Each has a phone
    *  screen of its own except the graph and a drawing, which are still drawn
    *  by the pane's surface switch under a top bar (SurfaceScreen). */
   | { kind: "surface"; tab: string }
@@ -61,7 +61,10 @@ export type Screen =
   /** One sigil — the `index`th ```sigil fence in `path` — with today first. */
   | { kind: "sigil"; path: string; index: number }
   /** One tracker — the `index`th ```tracker fence in `path` — as its card. */
-  | { kind: "tracker"; path: string; index: number };
+  | { kind: "tracker"; path: string; index: number }
+  /** One feed item in the reader (docs/feeds.md): the feed's address and the
+   *  item's id, the store's own key for it. */
+  | { kind: "feed-item"; feed: string; guid: string };
 
 export interface NavEntry {
   tab: TabId;
@@ -139,6 +142,8 @@ export function screenKey(s: Screen): string {
       return `sigil:${s.path}#${s.index}`;
     case "tracker":
       return `tracker:${s.path}#${s.index}`;
+    case "feed-item":
+      return `feed-item:${s.feed}\u0000${s.guid}`;
   }
 }
 
@@ -175,6 +180,8 @@ function isScreen(v: unknown): v is Screen {
     case "sigil":
     case "tracker":
       return typeof s.path === "string" && typeof s.index === "number" && Number.isInteger(s.index) && s.index >= 0;
+    case "feed-item":
+      return typeof s.feed === "string" && typeof s.guid === "string";
     default:
       return false;
   }

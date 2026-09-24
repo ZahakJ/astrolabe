@@ -444,6 +444,14 @@ export const COMMANDS: Command[] = [
     hint: () => t("cmdOpenCalendarHint"),
     available: ({ admin }) => admin,
   },
+  // Feeds (client/feeds/, docs/feeds.md): the reading list's unread items
+  // and a reader. Not the blog's outbound RSS — the other direction.
+  {
+    id: "open-feeds",
+    label: () => t("feeds"),
+    hint: () => t("cmdOpenFeedsHint"),
+    available: ({ admin }) => admin,
+  },
   // The week added up (client/review/): pages and hours by book, the
   // trackers' outlook, the sigils, the cards graded, the notes written.
   {
@@ -1181,6 +1189,9 @@ export function runPaletteCommand(command: Command): void {
       break;
     case "review-week":
       store.setView("review-week");
+      break;
+    case "open-feeds":
+      store.toggleFeeds();
       break;
     case "open-orbits":
       store.toggleOrbits();

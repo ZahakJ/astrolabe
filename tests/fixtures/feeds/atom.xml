@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:base="https://atlas.example/">
+  <title>Atlas of Small Things</title>
+  <link href="https://atlas.example/" rel="alternate" type="text/html" />
+  <link href="https://atlas.example/atom.xml" rel="self" />
+  <id>tag:atlas.example,2026:feed</id>
+  <updated>2026-09-21T10:00:00Z</updated>
+  <author><name>Maryam al-Ijliya</name></author>
+  <entry>
+    <title type="html">The Astrolabe&#8217;s Rete</title>
+    <link rel="alternate" type="text/html" href="posts/rete" />
+    <id>tag:atlas.example,2026:rete</id>
+    <published>2026-09-21T09:00:00Z</published>
+    <updated>2026-09-21T10:00:00Z</updated>
+    <summary type="text">The rete is the pierced plate that turns over the plate.</summary>
+    <content type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+        <p>The <em>rete</em> is the pierced plate that turns over the tympan. Its pointers are stars.</p>
+        <p><img src="img/rete.png" alt="The rete" /></p>
+      </div>
+    </content>
+  </entry>
+  <entry>
+    <title>Alidade</title>
+    <link href="https://atlas.example/posts/alidade" />
+    <id>tag:atlas.example,2026:alidade</id>
+    <updated>2026-09-19T08:00:00Z</updated>
+    <content type="html">&lt;p&gt;The sighting rule on the back.&lt;/p&gt;</content>
+  </entry>
+</feed>

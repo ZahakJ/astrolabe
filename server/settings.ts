@@ -9,7 +9,7 @@
 // ambient, favicon, logo, home { mode, note, banner }, attachments { mode, folder },
 // templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
 // weeklyFormat, weeklyTemplate, monthlyFormat, monthlyTemplate, yearlyFormat, yearlyTemplate,
-// uniqueFolder, uniqueFormat, captureInbox, voice { model, language, keepAudio }, launch,
+// uniqueFolder, uniqueFormat, captureInbox, voice { model, language, keepAudio }, feeds { fetch, note }, launch,
 // dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
@@ -31,11 +31,14 @@ import {
 } from "../shared/attachments.ts";
 import { isVoiceLanguage, isVoiceModelSetting, VOICE_MODEL_DEFAULT, voiceEffective, VOICE_MODELS, type VoiceSettings } from "../shared/voice.ts";
 import { fetchableSiteUrl, warmAuthorSites } from "./authorSites.ts";
+import { FEEDS_NOTE_DEFAULT } from "../shared/feeds.ts";
 import type {
   AboutInfo,
   AuthorSiteRef,
   AttachmentSettings,
   EffectiveSettings,
+  FeedsEffective,
+  FeedsSettings,
   InheritedSettings,
   FontSlotsEffective,
   HomeSettings,
@@ -542,6 +545,15 @@ export function getSettings(): SettingsData {
     if (typeof v.keepAudio === "boolean") vs.keepAudio = v.keepAudio;
     if (Object.keys(vs).length > 0) out.voice = vs;
   }
+  // ── Feeds ────────────────────────────────────────────────────────────────
+  const feeds = raw.feeds;
+  if (typeof feeds === "object" && feeds !== null && !Array.isArray(feeds)) {
+    const f = feeds as Record<string, unknown>;
+    const fs: FeedsSettings = {};
+    if (typeof f.fetch === "boolean") fs.fetch = f.fetch;
+    if (typeof f.note === "string" && f.note.trim() !== "" && isNotePath(f.note.trim())) fs.note = f.note.trim();
+    if (Object.keys(fs).length > 0) out.feeds = fs;
+  }
   const home = raw.home;
   if (typeof home === "object" && home !== null && !Array.isArray(home)) {
     const h = home as Record<string, unknown>;
@@ -759,6 +771,8 @@ export function effectiveSettings(): EffectiveSettings {
     // unset, so the sheet offers today's note alone rather than a dead door.
     captureInbox: periodicTemplate(s.captureInbox),
     voice: voiceEffective(s.voice),
+    // Feeds are fetched only when the owner says so: off unless set.
+    feeds: feedsEffective(),
     home: {
       mode: s.home?.mode ?? "note",
       ...(s.home?.note ?? envHomeNote() ? { note: s.home?.note ?? envHomeNote() ?? undefined } : {}),
@@ -1018,6 +1032,13 @@ function offableFormat(stored: string | undefined, fallback: string): string | n
  *  is set — the daily folder's rule, with the root as the default instead of
  *  `daily`, because a Zettelkasten-style stamp is a name for a note that has
  *  no home yet. */
+/** The feeds key in force (shared/feeds.ts): fetching off unless set, the
+ *  list in `Feeds.md` unless another note is named. */
+export function feedsEffective(): FeedsEffective {
+  const f = getSettings().feeds;
+  return { fetch: f?.fetch === true, note: f?.note ?? FEEDS_NOTE_DEFAULT };
+}
+
 export function uniqueFolder(): string {
   const stored = getSettings().uniqueFolder;
   if (stored === undefined || stored === "" || stored === "/") return "";
@@ -1537,6 +1558,42 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     }
     if (Object.keys(current).length === 0) delete raw.voice;
     else raw.voice = current;
+  },
+  // Feeds (shared/feeds.ts): the `voice` shape. `fetch` false is the
+  // default and is stored as its absence; `note` is a note path in the vault,
+  // and the default `Feeds.md` is its absence too.
+  feeds: (raw, value) => {
+    if (value === null) {
+      delete raw.feeds;
+      return;
+    }
+    if (typeof value !== "object" || Array.isArray(value)) {
+      throw new VaultError(400, 'Settings key "feeds" must be an object or null');
+    }
+    const v = value as Record<string, unknown>;
+    const current =
+      typeof raw.feeds === "object" && raw.feeds !== null && !Array.isArray(raw.feeds)
+        ? { ...(raw.feeds as Record<string, unknown>) }
+        : {};
+    for (const key of Object.keys(v)) {
+      if (key !== "fetch" && key !== "note") throw new VaultError(400, `Unknown settings key: feeds.${key}`);
+    }
+    if ("fetch" in v) {
+      if (v.fetch === null || v.fetch === false) delete current.fetch;
+      else if (v.fetch === true) current.fetch = true;
+      else throw new VaultError(400, 'Settings key "feeds.fetch" must be a boolean or null');
+    }
+    if ("note" in v) {
+      if (v.note === null || v.note === "") delete current.note;
+      else if (typeof v.note !== "string") throw new VaultError(400, 'Settings key "feeds.note" must be a string or null');
+      else {
+        const rel = templateNote(v.note, "feeds.note");
+        if (rel === null || rel === FEEDS_NOTE_DEFAULT) delete current.note;
+        else current.note = rel;
+      }
+    }
+    if (Object.keys(current).length === 0) delete raw.feeds;
+    else raw.feeds = current;
   },
   home: (raw, value) => {
     if (value === null) {

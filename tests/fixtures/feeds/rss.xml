@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>The Marginal Reader</title>
+    <link>https://marginal.example/</link>
+    <atom:link href="https://marginal.example/rss.xml" rel="self" type="application/rss+xml" />
+    <description>Essays on reading slowly.</description>
+    <item>
+      <title>On Keeping a Commonplace Book</title>
+      <link>/essays/commonplace</link>
+      <guid isPermaLink="false">marginal-2026-09-20-commonplace</guid>
+      <pubDate>Sun, 20 Sep 2026 08:30:00 +0000</pubDate>
+      <dc:creator>Ibn Muqla</dc:creator>
+      <description>A short teaser about commonplace books.</description>
+      <content:encoded><![CDATA[<p>A commonplace book is a <strong>reader's</strong> memory, written down in the reader's own hand. It is not a diary and it is not a notebook of plans: it is where the passages that stopped you go, so that you can find them again when you need them, and so that they can find each other when you do not.</p>
+<p>The oldest ones we have are arranged by heading — <em>Of Friendship</em>, <em>Of Time</em>, <em>Of the Soul</em> — and a passage copied under one heading is a claim about what it means. That claim is the reader's contribution. The passage belongs to somebody else; the heading is yours.</p>
+<p>Keep the book near the chair you read in. Copy by hand when you can: the hand is slower than the eye, and the slowness is where the passage goes in. Mark where it came from — the page, the edition — because a passage without a source is a rumour.</p>
+<p>Read it back. A commonplace book that is only ever written in is a filing cabinet; one that is read is a conversation between everything you have read, arranged by what you thought it was about at the time you read it.</p>
+<script>alert("no")</script>
+<p><a href="javascript:alert(1)">a bad link</a> and <a href="/about" onclick="steal()">a good one</a>.</p>
+<img src="/img/page.jpg" alt="A page" onerror="steal()">]]></content:encoded>
+    </item>
+    <item>
+      <title>Marginalia, Briefly</title>
+      <link>https://marginal.example/essays/marginalia</link>
+      <guid>https://marginal.example/essays/marginalia</guid>
+      <pubDate>Fri, 18 Sep 2026 12:00:00 GMT</pubDate>
+      <description><![CDATA[<p>What the margin is for — a teaser. <a href="/essays/marginalia">Read on</a>.</p>]]></description>
+    </item>
+    <item>
+      <title>An Undated Note</title>
+      <link>https://marginal.example/notes/undated</link>
+      <description>No date, no guid: the link is the id.</description>
+    </item>
+  </channel>
+</rss>

@@ -73,6 +73,7 @@ import {
   isDrawingPath,
   isGraphTab,
   isCalendarTab,
+  isFeedsTab,
   isMediaTab,
   isRoutinesTab,
   isOrbitsTab,
@@ -81,6 +82,7 @@ import {
   MEDIA_TAB,
   ROUTINES_TAB,
   REVIEW_WEEK_TAB,
+  FEEDS_TAB,
   CALENDAR_TAB,
   ORBITS_TAB,
   orbitsTabFor,
@@ -653,7 +655,7 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar"): void;
+  setView(v: View | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "feeds"): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
   /** The Media page, on the same terms as the graph. */
@@ -665,6 +667,9 @@ export interface State {
   /** The Calendar page, on the same terms: the month with its own door. */
   calendarOpen(): boolean;
   toggleCalendar(): void;
+  /** Feeds (docs/feeds.md): the tab in front of the focused pane, and its door. */
+  feedsOpen(): boolean;
+  toggleFeeds(): void;
   /** The Orbits shelf, on the same terms; a session over one
    *  deck is its own tab beside it (`openOrbits`). */
   orbitsOpen(): boolean;
@@ -2379,13 +2384,14 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph" || view === "media" || view === "routines" || view === "orbits" || view === "review-week" || view === "calendar") {
+      if (view === "graph" || view === "media" || view === "routines" || view === "orbits" || view === "review-week" || view === "calendar" || view === "feeds") {
         const path =
           view === "graph" ? GRAPH_TAB
           : view === "media" ? MEDIA_TAB
           : view === "routines" ? ROUTINES_TAB
           : view === "review-week" ? REVIEW_WEEK_TAB
           : view === "calendar" ? CALENDAR_TAB
+          : view === "feeds" ? FEEDS_TAB
           : ORBITS_TAB;
         set((s) => {
           // A pane still showing the shelf answers this the way it answers
@@ -2441,6 +2447,17 @@ export const useStore = create<State>()((set, get) => {
       const s = get();
       if (s.calendarOpen()) s.closeTab(CALENDAR_TAB);
       else s.setView("calendar");
+    },
+    feedsOpen: () => {
+      const ws = get().workspace;
+      const pane = paneAt(ws, ws.focus);
+      const tab = pane === null ? null : activeTabOf(pane);
+      return tab !== null && isFeedsTab(tab.path);
+    },
+    toggleFeeds: () => {
+      const s = get();
+      if (s.feedsOpen()) s.closeTab(FEEDS_TAB);
+      else s.setView("feeds");
     },
     orbitsOpen: () => {
       const ws = get().workspace;

@@ -1,0 +1,274 @@
+/* Astrolabe — Feeds (client/feeds/FeedsView.tsx; the phone's two screens
+   borrow the reader's prose rules). Its own file, loaded with the surface's
+   lazy chunk. Two columns: the unread items, grouped by feed, and the reader.
+   The page answers to the PANE's width (a container), so a Feeds tab in one
+   half of a split stacks its reader under its list like a narrow window
+   would. Tokens only; logical properties, so Arabic mirrors with no second
+   code path; the list and the reader each scroll down, never sideways. */
+
+.s-feeds {
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+  background: var(--bg);
+  outline: none;
+}
+
+.s-feeds__bar {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 18px clamp(16px, 3cqi, 32px) 12px;
+  border-block-end: 1px solid var(--border);
+}
+
+.s-feeds__name {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.s-feeds__status {
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+.s-feeds__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+
+.s-feeds__tools .s-btn,
+.s-feeds__actions .s-btn {
+  border: 1px solid var(--border);
+}
+
+.s-feeds__problems {
+  margin: 0;
+  padding: 8px clamp(16px, 3cqi, 32px) 8px calc(clamp(16px, 3cqi, 32px) + 1.2em);
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  border-block-end: 1px solid var(--border);
+}
+
+.s-feeds__cols {
+  flex: 1;
+  min-block-size: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+}
+
+@container (max-width: 720px) {
+  .s-feeds__cols {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 40%) minmax(0, 1fr);
+  }
+  .s-feeds__list {
+    border-inline-end: none;
+    border-block-end: 1px solid var(--border);
+  }
+}
+
+.s-feeds__list {
+  min-block-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-inline-end: 1px solid var(--border);
+  padding-block: 8px 32px;
+}
+
+.s-feeds__group + .s-feeds__group {
+  margin-block-start: 10px;
+}
+
+.s-feeds__feed {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 16px 4px;
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-feeds__count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.s-feeds__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.s-feeds__row {
+  display: grid;
+  gap: 2px;
+  inline-size: 100%;
+  padding: 8px 16px;
+  border: none;
+  border-inline-start: 3px solid transparent;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-feeds__row:hover {
+  background: var(--bg-hover);
+}
+
+.s-feeds__row:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.s-feeds__row[aria-current="true"] {
+  border-inline-start-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.s-feeds__rowtitle {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.s-feeds__row--read .s-feeds__rowtitle {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.s-feeds__rowmeta {
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+.s-feeds__excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.857rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.s-feeds__reader {
+  min-block-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px clamp(16px, 4cqi, 48px) 64px;
+}
+
+.s-feeds__empty {
+  margin: 16px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.s-feeds__empty .s-btn {
+  margin-block-start: 8px;
+}
+
+.s-feeds__hint {
+  text-align: center;
+  margin-block-start: 20vh;
+}
+
+.s-feeds__article {
+  max-inline-size: 680px;
+  margin-inline: auto;
+}
+
+.s-feeds__byline {
+  margin: 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+.s-feeds__title {
+  margin: 4px 0 12px;
+  font-family: var(--font-serif);
+  font-size: 1.714rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.s-feeds__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.s-feeds__note {
+  margin: 10px 0 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+/* ── The article ───────────────────────────────────────────────────────────
+   Somebody else's HTML, sanitised (shared/feedHtml.ts), set in the reading
+   face at a reading measure. Nothing in it may push the column sideways:
+   images and tables are held to the measure, code scrolls inside itself. */
+.s-feeds__prose {
+  margin-block-start: 20px;
+  font-family: var(--font-serif);
+  font-size: 1.071rem;
+  line-height: 1.65;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.s-feeds__prose img {
+  max-inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--radius);
+}
+
+.s-feeds__prose a {
+  color: var(--accent);
+}
+
+.s-feeds__prose blockquote {
+  margin-inline: 0;
+  padding-inline-start: 14px;
+  border-inline-start: 3px solid var(--border);
+  color: var(--text-muted);
+}
+
+.s-feeds__prose pre {
+  overflow-x: auto;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  font-family: var(--font-mono);
+  font-size: 0.857rem;
+}
+
+.s-feeds__prose table {
+  display: block;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.s-feeds__prose th,
+.s-feeds__prose td {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+}

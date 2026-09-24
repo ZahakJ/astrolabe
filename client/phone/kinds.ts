@@ -17,11 +17,11 @@
 // the stack going back down to the screen that shows it, rather than by a
 // second copy of that screen pushed on top.
 
-import { isBookPath, isMediaTab, isOrbitsTab, isRoutinesTab, MEDIA_TAB, orbitsSessionOf, ORBITS_TAB, ROUTINES_TAB } from "../workspace.ts";
+import { FEEDS_TAB, isBookPath, isFeedsTab, isMediaTab, isOrbitsTab, isRoutinesTab, MEDIA_TAB, orbitsSessionOf, ORBITS_TAB, ROUTINES_TAB } from "../workspace.ts";
 import type { Screen } from "./nav.ts";
 
 const LIST_SURFACES = (tab: string): boolean =>
-  tab === "~library" || isRoutinesTab(tab) || isMediaTab(tab) || (isOrbitsTab(tab) && orbitsSessionOf(tab) === null);
+  tab === "~library" || isRoutinesTab(tab) || isMediaTab(tab) || isFeedsTab(tab) || (isOrbitsTab(tab) && orbitsSessionOf(tab) === null);
 
 export function isList(s: Screen): boolean {
   switch (s.kind) {
@@ -60,6 +60,8 @@ export function contentOf(s: Screen): string | null {
       return ROUTINES_TAB;
     case "tracker":
       return MEDIA_TAB;
+    case "feed-item":
+      return FEEDS_TAB;
     default:
       return null;
   }

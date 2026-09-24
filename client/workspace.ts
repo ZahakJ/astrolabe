@@ -38,7 +38,7 @@ export type PaneMode = "edit" | "reading" | "graph" | "library";
  *  invariant has to be policed at the component boundary: a `.pdf` tab renders
  *  the reader whatever the mode says, which is exactly what makes Ctrl/Cmd+E a
  *  harmless no-op on a book instead of a mode the pane cannot honour. */
-export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "library" | "empty";
+export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "feeds" | "library" | "empty";
 
 /** Where in a book an open should land — carried from the wikilink or the URL
  *  that asked for it, spent the moment the reader lands.
@@ -211,10 +211,17 @@ export const CALENDAR_TAB = "~calendar";
 export function isCalendarTab(path: string): boolean {
   return path === CALENDAR_TAB;
 }
+/** FEEDS — the reading list's unread items and a reader (docs/feeds.md), a
+ *  tab on the Calendar's terms with `/feeds` for an address. Inbound: the
+ *  blog's own outbound RSS is a different thing and has no tab. */
+export const FEEDS_TAB = "~feeds";
+export function isFeedsTab(path: string): boolean {
+  return path === FEEDS_TAB;
+}
 /** A tab that names no file: the graph or the Media page. Never "the open
  *  note", never pruned against the tree, titled by the chrome. */
 export function isVirtualTab(path: string): boolean {
-  return isGraphTab(path) || isMediaTab(path) || isRoutinesTab(path) || isOrbitsTab(path) || isReviewWeekTab(path) || isCalendarTab(path);
+  return isGraphTab(path) || isMediaTab(path) || isRoutinesTab(path) || isOrbitsTab(path) || isReviewWeekTab(path) || isCalendarTab(path) || isFeedsTab(path);
 }
 
 export function isTabbablePath(path: string): boolean {
@@ -276,6 +283,7 @@ export function surfaceOf(p: Pane): PaneSurface {
   if (tab !== null && isOrbitsTab(tab.path)) return "orbits";
   if (tab !== null && isReviewWeekTab(tab.path)) return "review-week";
   if (tab !== null && isCalendarTab(tab.path)) return "calendar";
+  if (tab !== null && isFeedsTab(tab.path)) return "feeds";
   if (tab !== null && isBookPath(tab.path)) return "book";
   // A drawing has one surface: the canvas is the editor AND the reading view,
   // and a pane mode of "reading" over it would be a grey box.

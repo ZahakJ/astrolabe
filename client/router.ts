@@ -12,6 +12,7 @@
 //   /review-week          → the weekly review
 //   /calendar             → the Calendar page: the month, and what each day
 //                           held
+//   /feeds                → Feeds: the reading list's unread items
 //   /folder/Note          → the note folder/Note.md (".md" stripped, segments
 //                           URL-encoded; matching is case-insensitive)
 //   /folder/Note#Heading  → same note, scrolled to the heading
@@ -31,7 +32,7 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, isReviewWeekTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isCalendarTab, isFeedsTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, isReviewWeekTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
 
 /** The focused pane is showing the graph tab. */
 function graphTabActive(ws: Workspace): boolean {
@@ -51,6 +52,12 @@ function reviewWeekTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isReviewWeekTab(tab.path);
+}
+/** …or the Feeds page's. */
+function feedsTabActive(ws: Workspace): boolean {
+  const pane = paneAt(ws, ws.focus);
+  const tab = pane === null ? null : activeTabOf(pane);
+  return tab !== null && isFeedsTab(tab.path);
 }
 /** …or the Calendar page's. */
 function calendarTabActive(ws: Workspace): boolean {
@@ -186,6 +193,7 @@ function urlForState(view: string, openPath: string | null, ws: Workspace): stri
   if (view === "editor" && routinesTabActive(ws)) return "/sigils";
   if (view === "editor" && calendarTabActive(ws)) return "/calendar";
   if (view === "editor" && reviewWeekTabActive(ws)) return "/review-week";
+  if (view === "editor" && feedsTabActive(ws)) return "/feeds";
   const orbits = view === "editor" ? orbitsTabActive(ws) : null;
   if (orbits !== null) return orbitsUrl(orbits.path, orbits.section);
   const book = bookSurfaceOf(ws);
@@ -225,6 +233,8 @@ function setTitle(openPath: string | null, view: string): void {
     document.title = `${t("calendar")} · ${base}`;
   } else if (view === "editor" && reviewWeekTabActive(useStore.getState().workspace)) {
     document.title = `${t("reviewWeek")} · ${base}`;
+  } else if (view === "editor" && feedsTabActive(useStore.getState().workspace)) {
+    document.title = `${t("feeds")} · ${base}`;
   } else if (view === "editor" && orbitsTabActive(useStore.getState().workspace) !== null) {
     // A session is titled by the note it studies; the shelf by the page.
     const at = orbitsTabActive(useStore.getState().workspace);
@@ -293,6 +303,10 @@ export function applyUrl(initial = false): boolean {
     }
     if (location.pathname === "/review-week") {
       store.setView("review-week");
+      return true;
+    }
+    if (location.pathname === "/feeds") {
+      store.setView("feeds");
       return true;
     }
     // `/review` was the shelf's address until 3.16; a bookmark still opens

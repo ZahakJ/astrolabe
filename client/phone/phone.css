@@ -1436,3 +1436,47 @@
 .s-ph-row--on {
   background: var(--bg-hover);
 }
+
+/* ── Feeds (FeedsScreen, FeedItemScreen; docs/feeds.md) ─────────────────── */
+.s-ph-feeds__status {
+  padding-block: 10px 0;
+}
+
+.s-ph-feeds__problems {
+  margin: 8px 16px 0;
+  padding-inline-start: 1.2em;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.s-ph-feeds__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+}
+
+/* A row read this visit stays where it was, quieter. */
+.s-ph-row--read .s-ph-row__name {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.s-ph-feeditem__article {
+  padding: 16px 16px 48px;
+}
+
+.s-ph-feeditem__byline {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.s-ph-feeditem__title {
+  margin: 4px 0 8px;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--text);
+}

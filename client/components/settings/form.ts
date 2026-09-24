@@ -83,6 +83,9 @@ export interface Form {
   voiceModel: string;     // a model id, or "off"; the default when unset
   voiceLanguage: string;  // "auto" | "ar" | "en"
   voiceKeepAudio: string; // "on" | "off"
+  // ── Feeds (shared/feeds.ts) ──────────────────────────────────────────────
+  feedsFetch: string;     // "on" | "off" — off unless the owner says so
+  feedsNote: string;      // the list's note; "" is the default Feeds.md
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
   // no env counterpart, so "inherit" is meaningless here — every control shows
@@ -230,6 +233,8 @@ export function formFrom(s: SettingsResponse): Form {
     voiceModel: s.effective.voice.model,
     voiceLanguage: s.effective.voice.language,
     voiceKeepAudio: s.effective.voice.keepAudio ? "on" : "off",
+    feedsFetch: s.effective.feeds.fetch ? "on" : "off",
+    feedsNote: s.feeds?.note ?? "",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
     syncBranch: s.effective.gitSync.branch,
@@ -720,6 +725,12 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
     if (f.voiceLanguage !== initial.voiceLanguage && isVoiceLanguage(f.voiceLanguage)) voice.language = f.voiceLanguage;
     if (f.voiceKeepAudio !== initial.voiceKeepAudio) voice.keepAudio = f.voiceKeepAudio === "on";
     if (Object.keys(voice).length > 0) patch.voice = voice;
+  }
+  if (f.feedsFetch !== initial.feedsFetch || f.feedsNote.trim() !== initial.feedsNote.trim()) {
+    const feeds: NonNullable<SettingsPatch["feeds"]> = {};
+    if (f.feedsFetch !== initial.feedsFetch) feeds.fetch = f.feedsFetch === "on";
+    if (f.feedsNote.trim() !== initial.feedsNote.trim()) feeds.note = f.feedsNote.trim() === "" ? null : f.feedsNote.trim();
+    patch.feeds = feeds;
   }
   if (
     f.homeMode !== initial.homeMode ||

@@ -1,0 +1,23 @@
+{
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "دفتر القراءة",
+  "home_page_url": "https://daftar.example/",
+  "feed_url": "https://daftar.example/feed.json",
+  "language": "ar",
+  "items": [
+    {
+      "id": "2026-09-22-ibn-hazm",
+      "url": "https://daftar.example/posts/ibn-hazm",
+      "title": "طوق الحمامة",
+      "content_html": "<p>قرأتُ اليوم بابًا من <strong>طوق الحمامة</strong>.</p>",
+      "date_published": "2026-09-22T18:00:00+03:00",
+      "authors": [{ "name": "القارئ" }]
+    },
+    {
+      "id": 42,
+      "title": "Plain text item",
+      "content_text": "First paragraph.\n\nSecond paragraph with <angle> brackets.",
+      "date_modified": "2026-09-10T00:00:00Z"
+    }
+  ]
+}
