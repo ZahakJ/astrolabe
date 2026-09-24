@@ -643,6 +643,46 @@ export function sortTableRows(
   return [lines[0], lines[1], ...rows.map((r) => r.text)].join("\n");
 }
 
+/**
+ * A palette row run with the caret IN the table's source (no widget drawn to
+ * talk to): the row or column is added beside the cell the caret sits in, the
+ * block is prettified in the same edit — the reader is looking at the pipes,
+ * so a ragged block is what they would see — and the caret lands in the cell
+ * the command made. `src` is the block, `blockFrom` its offset in the
+ * document, `head` the caret's document offset. `null` when the command does
+ * not apply there (a row above the header).
+ */
+export function sourceTableCommand(
+  src: string,
+  blockFrom: number,
+  head: number,
+  cmd: "rowAbove" | "rowBelow" | "colBefore" | "colAfter",
+): { src: string; anchor: number } | null {
+  const shape = parseTable(src, blockFrom);
+  if (!shape) return null;
+  const row = rowIndexAt(shape, head) ?? 0;
+  const col = colIndexAt(navRows(shape)[row], head);
+  let out: string;
+  let landRow = row;
+  let landCol = col;
+  if (cmd === "rowAbove" || cmd === "rowBelow") {
+    const res = insertTableRow(src, row, cmd === "rowAbove" ? "above" : "below");
+    if (!res) return null;
+    out = res.src;
+    landRow = res.row;
+    landCol = 0;
+  } else {
+    const res = insertTableColumn(src, col, cmd === "colBefore" ? "before" : "after");
+    if (!res) return null;
+    out = res.src;
+    landCol = res.col;
+  }
+  out = formatTable(out);
+  const next = parseTable(out, blockFrom);
+  const landing = next ? navRows(next)[landRow]?.cells[landCol]?.trimFrom : undefined;
+  return { src: out, anchor: landing ?? blockFrom };
+}
+
 /** A fresh table: `rows` INCLUDING the header — the picker draws a grid and
  *  the reader counts the squares they drew — and `cols` columns, every cell
  *  empty so the first thing typed is the author's and not a placeholder they
