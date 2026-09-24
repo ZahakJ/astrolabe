@@ -6,6 +6,7 @@ import { noteLabelOf } from "../../shared/noteFormat.ts";
 import { t, type I18nKey } from "../i18n.ts";
 import { isBookPath, isGraphTab, isMediaTab, isOrbitsTab, isReviewWeekTab, isRoutinesTab, orbitsSessionOf } from "../workspace.ts";
 import type { Screen, TabId } from "./nav.ts";
+import { TABS } from "../components/settings/tabs.ts";
 
 export const TAB_LABEL: Record<TabId, I18nKey> = {
   today: "phTabToday",
@@ -48,5 +49,17 @@ export function screenTitle(screen: Screen): string {
       return `#${screen.tag}`;
     case "surface":
       return surfaceTitle(screen.tab).title;
+    case "settings":
+      return settingsTitle(screen.section);
+    case "deck":
+    case "sigil":
+    case "tracker":
+      return noteLabelOf(base(screen.path));
   }
+}
+
+/** Settings, or one of its sections by the name the rail gives it. */
+export function settingsTitle(section: string): string {
+  const tab = TABS.find((s) => s.id === section);
+  return tab ? t(tab.key) : t("siteSettings");
 }

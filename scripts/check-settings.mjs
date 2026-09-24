@@ -28,7 +28,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { settingsRows } from "./settings-index.mjs";
+import { settingsRows, tabSources } from "./settings-index.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(root + p, "utf8");
@@ -58,13 +58,19 @@ if (fromSource.length < 40) errs.push(`  only ${fromSource.length} rows parsed o
 // ── Hints: fourteen words ───────────────────────────────────────────────────
 // Every key the two panel files hand to `hint=`, including the ones chosen by
 // a ternary (`hint={t(cond ? "a" : "b")}`) that the index parser cannot see.
-const panelSrc =
-  read("client/components/SettingsModal.tsx") +
-  read("client/components/settings/DeviceTab.tsx") +
-  // The pocket vault's Backup & sync rows live in their own file, and a hint
-  // that escaped the word count by living one directory away would be the
-  // rule with a hole in it.
-  read("client/components/settings/PocketSync.tsx");
+// Since 3.27.0 the panel is a host and its tabs are files
+// (client/components/settings/<Tab>Tab.tsx, chosen by TabBody.tsx): every file
+// the index reads rows from is a file whose hints count, plus the dialog and
+// About (whose DOC_TOPICS list is checked below).
+const panelSrc = [
+  ...new Set([
+    "client/components/SettingsModal.tsx",
+    "client/components/settings/AboutTab.tsx",
+    ...tabSources().map((s) => s.files[0]),
+  ]),
+]
+  .map(read)
+  .join("\n");
 const hintKeys = new Set();
 for (const m of panelSrc.matchAll(/hint=\{t\(([^)]*)\)\}/g)) {
   for (const k of m[1].matchAll(/"([A-Za-z0-9_]+)"/g)) hintKeys.add(k[1]);

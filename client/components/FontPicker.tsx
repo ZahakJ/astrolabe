@@ -27,7 +27,8 @@ import { t } from "../i18n.ts";
 import { Select, type SelectGroup, type SelectOption } from "./controls/Select.tsx";
 
 /** The "no webfont" choice — the built-in system stacks (server SYSTEM). */
-export const SYSTEM_FONT = "system";
+export { SYSTEM_FONT } from "../../shared/fonts.ts";
+import { SYSTEM_FONT } from "../../shared/fonts.ts";
 
 // Specimens, deliberately NOT in i18n.ts, for the reason the panel's big
 // specimen block gives: a Latin sample must stay Latin in an Arabic UI and an

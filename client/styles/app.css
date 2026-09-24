@@ -2623,28 +2623,6 @@ select:focus,
   border-inline-end: 1px solid var(--border);
 }
 
-/* …AND THE DOOR IS A MOUSE'S DOOR (3.23.0). The owner, about his friend's
-   phone: "one thing I personally hate for example is how floating the panel
-   bars button is.. like maybe we should just support swiping and remove that
-   bs?" — a 14px strip hanging in the middle of a touchscreen's edge, aimed
-   at a pointer that device has not got. On a finger the pane has two better
-   doors already: the pan (client/swipe.ts, which loads behind this very
-   query) and the pane switch in the tool cluster, which is 44px and labelled.
-   So the strip is for the pointer it was drawn for.
-
-   The test is the PRIMARY pointer, not `any-pointer`, and it is the same pair
-   the drawer breakpoint now uses: a touch laptop with a mouse beside it
-   reports a coarse primary pointer and `hover: hover`, and it keeps its door
-   (CONTRACTS.md, "the pane grips": the pointer may not decide alone — this is
-   the reading of it that a stylus cannot fool). Nothing is lost where the
-   strip goes: the pane cluster's switches are on screen at every width above
-   the phone breakpoint, and below it the pane is a drawer with a ☰ and a ✕. */
-@media (pointer: coarse) and (hover: none) {
-  .s-reopen {
-    display: none;
-  }
-}
-
 .s-panel-body {
   flex: 1;
   min-height: 120px;
@@ -5301,11 +5279,6 @@ button.s-title:hover {
   transition: width 0.18s ease, border-color 0.18s ease, visibility 0s linear 0.18s;
 }
 
-/* The drawer toggle is mobile chrome, and zen is chrome-less everywhere. */
-.s-app--zen .s-drawer-btn {
-  display: none;
-}
-
 /* A generous measure and a lot of air above it: nothing else is on screen to
    set the margin, so the column has to set its own. The extra class beats
    reading.css's own .s-app--visitor rule at equal specificity-by-order. */
@@ -5416,7 +5389,7 @@ button.s-title:hover {
   display: none;
 }
 
-/* -------------------------------------------- narrow shell (≤999px) -- */
+/* ------------------------------------------------------ narrow shell -- */
 /* THE COLUMN IS THE PRODUCT; THE PANES SPEND WHAT IS LEFT.
    Measured before this rule: `.cm-line` was 648px at 1440, 319px at 1024,
    480px at 900, 348px at 768, 604px at 640 and 354px at 390 — the reading
@@ -5433,239 +5406,15 @@ button.s-title:hover {
      • outline pane needs 292 + 1 + 301 + 760 = 1354 → it auto-collapses to
        its 14px door below 1360 (BacklinksPanel's own media query),
      • sidebar needs 760 + 14 (that door) + 1 = 775 of headroom → it takes
-       `100vw - 775px` (tokens.css) and, below 1000px, stops taking grid space
-       at all and becomes the overlay drawer the phone already used.
-   The drawer is what makes the bottom of the ladder monotone too: an overlay
-   pane cannot shrink the column, so opening the tree at 900px costs nothing,
-   where the 292px pane used to cost 40% of the measure.
+       `100vw - 775px` (tokens.css), down to its 224px floor.
+   Below 700px, and on a finger at any width, this shell is not mounted at
+   all: the phone shell is (client/shellQuery.ts). The overlay drawer that
+   used to hold the tree there went with the Classic phone layout in 3.27.0.
 
-   The ≤700 block below is what is genuinely PHONE-specific: no outline pane
-   and no door for it, and one grid column. App renders the drawer chrome at
-   every width; it is display:none above this breakpoint. */
-
-.s-drawer-btn,
-.s-drawer-backdrop {
-  display: none;
-}
-
-/* THE DRAWER BREAKPOINT — five blocks below carry this same list, and
-   state.ts's DRAWER_QUERY mirrors it. Phone width, OR a tablet-sized viewport
-   on a device whose OWN pointer is a finger that cannot hover. A desktop
-   window at 900px with a mouse keeps its docked, resizable panes: the bare
-   999px this used to be turned every scaled Windows laptop into a phone (see
-   DRAWER_QUERY). The pointer half used to read `not (any-pointer: fine)`, and
-   a STYLUS is a fine pointer — so a 720px Galaxy with an S Pen was served the
-   docked desktop shell, which is the screenshot this round began with. The
-   primary-pointer pair asks what the device itself is. */
-@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
-  /* No sidebar column in the grid — the drawer floats over the content. The
-     outline pane keeps its column (and, below 1360, its 14px door) until the
-     phone breakpoint takes it. Last word by source order, which is how it
-     beats .s-app--nosidebar at equal specificity. */
-  .s-app {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "main   panel"
-      "status status";
-    --fold-sidebar: 0px;
-  }
-
-  .s-app--flip {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      "panel  main"
-      "status status";
-  }
-
-  .s-app--notice {
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      "notice notice"
-      "main   panel"
-      "status status";
-  }
-
-  .s-app--notice.s-app--flip {
-    grid-template-areas:
-      "notice notice"
-      "panel  main"
-      "status status";
-  }
-
-  /* An overlay drawer has a ☰ button, not an edge door: two ways back into
-     the same pane, one of them 14px wide, is one too many. */
-  .s-reopen--sidebar {
-    display: none;
-  }
-
-  /* Sidebar → overlay drawer (slides in from the left). The desktop collapse
-     does not apply here: the drawer IS the collapsed state, and its rows fill
-     whatever width the phone gives them. */
-  .s-sidebar,
-  .s-app--nosidebar .s-sidebar,
-  .s-app--zen .s-sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    inset-inline-start: 0;
-    z-index: var(--z-drawer);
-    width: min(84vw, 320px);
-    border-color: var(--border);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-    transform: translateX(-103%);
-    /* A CLOSED drawer is off-screen, not merely out of sight: `visibility:
-       hidden` is what takes its ~130 focusables (the whole tree, every tag
-       pill, the search field) out of the tab order and out of the
-       accessibility tree. Without it the first Tab on a phone lands on a
-       wordmark at x=-314 and a screen-reader user swipes the entire vault
-       before reaching the page. This is the same rule the desktop-collapsed
-       sidebar and the backlinks pane already use; the delay keeps the panel
-       paintable for the length of its own slide-out. */
-    visibility: hidden;
-    transition: transform 0.2s ease, visibility 0s linear 0.2s;
-  }
-
-  /* The drawer's rows fill its width. (The grip is no longer one of them —
-     it is a child of the shell — but it once was, and caught by this rule it
-     became a full-width sheet over the tree at z-index 6: every click and
-     drag on the drawer landed on it, with nothing to resize and nothing to
-     open. The exclusions that remain are the popovers this pane parents.) */
-  .s-sidebar > *:not(.s-menu, .s-tree-iconpick, .s-libpop) {
-    width: 100%;
-  }
-
-  /* The drawer's width is fixed (`min(84vw, 320px)`) and `--sidebar-w` is not
-     read here, so the sidebar's grip has nothing to point at. The PANEL stays
-     docked and resizable in this band, and keeps its own. */
-  .s-pane-grip--sidebar {
-    display: none;
-  }
-
-  .s-app--drawer .s-sidebar {
-    transform: none;
-    visibility: visible;
-    transition: transform 0.2s ease, visibility 0s;
-  }
-
-  /* ONE SCROLL COLUMN. On the desktop the tree flexes and the calendar,
-     tags and properties sections sit under it at their own heights; in a
-     drawer the three of them ate the tree to a 32px slit ("› Attachments"
-     and nothing else — the phone audit's first must). Here the drawer
-     itself scrolls, the tree takes its natural height and the first
-     screen, and the sections follow it. */
-  .s-sidebar {
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-  .s-sidebar .s-tree {
-    flex: none;
-    min-height: auto;
-    overflow: visible;
-    mask-image: none;
-    -webkit-mask-image: none;
-  }
-  .s-sidebar .s-tags,
-  .s-sidebar .s-propshelf {
-    max-height: none;
-  }
-
-  .s-app--drawer .s-drawer-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: var(--z-drawer-backdrop);
-    background: rgba(0, 0, 0, 0.45);
-  }
-
-  .s-drawer-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 5px;
-    inset-inline-start: 8px;
-    z-index: 60;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    border-radius: 6px;
-    background: var(--bg-raised);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-  }
-
-  .s-drawer-btn:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: var(--bg-raised);
-  }
-
-  /* Tab bar clears the floating toggle. */
-  .s-tabs {
-    padding-inline-start: 44px;
-  }
-}
+   The ≤700 block below styles the reading surfaces the phone shell shares
+   (the editor's and the reading view's vertical air). */
 
 @media (max-width: 700px) {
-  /* …and with no outline pane there is no outline switch. The pane cluster
-     itself only leaves at 640, so between 641 and 700 this button was a
-     control that did nothing — the same defect the sidebar switch had at 900
-     until it learned about the drawer. */
-  .s-statusbar .s-statusbar__pane-outline {
-    display: none;
-  }
-
-  /* Phone: one column, no outline pane at all. */
-  .s-app,
-  .s-app--flip {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "main"
-      "status";
-    --fold-gutter: 0px;
-  }
-
-  /* A phone has no room for a third column, and a 13px edge handle is no
-     affordance there. The panel is a DRAWER instead: hidden until the status
-     bar's outline switch opens it, then over the page from the end edge,
-     the way the notes sidebar already slides in below 1000px. The reopen
-     handle stays gone; the switch is the door. */
-  .s-panel:not(.s-panel--collapsed) {
-    display: flex;
-    position: fixed;
-    /* The phone status bar is 45px tall, not 2.1rem: the panel's foot sat
-       under it by eleven pixels. */
-    inset-block: 0 45px;
-    inset-inline-end: 0;
-    width: min(86vw, 360px);
-    z-index: var(--z-drawer, 400);
-    box-shadow: -12px 0 32px rgba(0, 0, 0, 0.35);
-  }
-  /* A drawer has a way out: a scrim behind it that closes it on a tap, and
-     a close at its top (BacklinksPanel.tsx) — the outline switch it opened
-     from is under the drawer and the backlinks header's own toggle is a
-     screen of scrolling away. */
-  .s-panel:not(.s-panel--collapsed) + .s-panel__scrim {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: calc(var(--z-drawer, 400) - 1);
-    background: rgba(0, 0, 0, 0.35);
-  }
-  .s-panel:not(.s-panel--collapsed) .s-panel__phoneclose {
-    display: inline-flex;
-    align-self: flex-end;
-    margin: 4px 4px 0;
-    min-inline-size: 44px;
-    min-block-size: 44px;
-  }
-  .s-statusbar .s-statusbar__pane-outline {
-    display: inline-flex;
-  }
-  .s-panel--collapsed,
-  .s-reopen {
-    display: none;
-  }
 
   /* Vertical air only. The side gutters are --prose-gutter at every width now
      (tokens.css): a fixed 18px here made the phone's measure LARGER than the
@@ -5834,65 +5583,6 @@ button.s-title:hover {
   }
 }
 
-/* The drawer toggle is the touch shell's main navigation control — wherever
-   the drawer exists (DRAWER_QUERY), which is every phone width and a tablet
-   with no fine pointer. */
-@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
-  /* It was 30px. The tab bar grows to match so the button sits inside it
-     rather than hanging over the first tab. `--safe-top` (see "THE NOTCH AND
-     THE HOME INDICATOR" below) is zero on a rectangular screen, so this reads
-     as the flat 0/45 it was everywhere but a notched phone. */
-  .s-drawer-btn {
-    top: var(--safe-top, 0px);
-    inset-inline-start: 4px;
-    width: 44px;
-    height: 44px;
-  }
-
-  /* 45, not 44: the strip's own hairline is part of its box, so a 44px strip
-     left its tab buttons 43px tall — the same "one pixel short of the
-     promise" the status bar already settled by being 45 with 44px buttons
-     in it. */
-  .s-tabs {
-    height: calc(45px + var(--safe-top, 0px));
-    padding-inline-start: 52px;
-  }
-
-  /* The drawer is `position: fixed` and escapes the shell's box entirely, so
-     it pads its own two ends rather than inheriting anything. */
-  .s-sidebar {
-    padding-block: var(--safe-top, 0px) var(--safe-bottom, 0px);
-  }
-
-  /* A LABELLED CONTROL UNDER ANOTHER LAYER IS NOT A CONTROL. With the drawer
-     open the ☰ — by then labelled "Close Notes sidebar" — sat at z-index 60
-     under a drawer at 400, so `elementFromPoint` at its centre answered the
-     drawer's own wordmark: the button said close and the tap said "preview as
-     visitor". The ☰ is the OPEN door; the close is the ✕ at the top of the
-     drawer, beside the wordmark, where the outline drawer already put its
-     own. */
-  .s-app--drawer .s-drawer-btn {
-    display: none;
-  }
-
-  .s-app--drawer .s-sidebar__phoneclose {
-    display: inline-flex;
-    flex: none;
-    margin-inline-start: 4px;
-  }
-
-  /* The top cluster goes with it, and for the same reason. A 320px drawer
-     over a 390px screen leaves 70px of the tab row showing, which is where
-     the gear, the outline switch and the ⋯ happen to end: two of the three
-     measured as covered by the drawer's wordmark and the third by the scrim,
-     so a tap that looked aimed at Settings closed the drawer — or, worse,
-     opened "preview as visitor". A layer over the page hides the page's
-     chrome; the drawer's own chrome is what is live while it is up. */
-  .s-app--drawer .s-topactions {
-    display: none;
-  }
-}
-
 
 /* ── THE NOTCH AND THE HOME INDICATOR ──────────────────────────────────────
    The client served a `display: standalone` manifest and a theme-color and
@@ -5936,16 +5626,6 @@ button.s-title:hover {
    and its buttons stand clear of it. */
 .s-statusbar:not(.s-statusbar--top) {
   padding-block-end: var(--safe-bottom);
-}
-
-/* The outline pane is `position: fixed` too, and so escapes the shell's box
-   the same way the notes drawer does (which pads itself in the drawer block
-   above). */
-@media (max-width: 700px) {
-  .s-panel:not(.s-panel--collapsed) {
-    inset-block: 0 calc(45px + var(--safe-bottom));
-    padding-block-start: var(--safe-top);
-  }
 }
 
 /* Toasts stack above the bottom bar, which has just grown by the inset. */
@@ -6498,20 +6178,6 @@ button.s-title:hover {
   transform: none;
 }
 
-/* The drawer slides in from the right in RTL (the sidebar lives there).
-   Same breakpoint as the drawer itself (DRAWER_QUERY). */
-@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
-  [dir="rtl"] .s-sidebar,
-  [dir="rtl"] .s-app--nosidebar .s-sidebar,
-  [dir="rtl"] .s-app--zen .s-sidebar {
-    transform: translateX(103%);
-  }
-
-  [dir="rtl"] .s-app--drawer .s-sidebar {
-    transform: none;
-  }
-}
-
 /* ------------------------------------------------- narrow-screen modes -- */
 
 /* The bar has a fixed budget and `overflow: hidden`, so something has to go
@@ -6574,102 +6240,7 @@ button.s-title:hover {
   }
 }
 
-/* The second half of that sacrifice, which the paragraph above promised and
-   nobody wrote: below ~640px the bar still wanted 627px of controls, so it
-   quietly CLIPPED its trailing edge — the theme button, the graph button and
-   the whole sign-out control were off-screen with no scrollbar and no hint,
-   and the pane cluster was cut through the middle of its four icons. The
-   pane toggles are the right thing to drop: at this width the sidebar is a
-   drawer with its own ☰ button, the backlinks panel has auto-collapsed, zen
-   is meaningless on a phone, and every one of the four is in the palette.
-
-   THE PHONE'S BOTTOM BAR IS A PHONE'S (3.23.0), and it is the same condition
-   as the shell it sits under rather than a second width of its own — a 720px
-   phone was reading `Media · Reading · VIM MODE · ⊟ · 3.22.1`, which is a
-   desktop status bar in a place a thumb lands. What a phone's bar carries is
-   what is about the NOTE and can be acted on: publish, the other face, the
-   sync badge, and ONE mode control. What leaves, and where it went:
-     · the VIM pill — vim is a KEYBOARD mode and this device has no keyboard
-       on screen; it is a labelled row in ⋯, which is where a bluetooth
-       keyboard's owner still reaches it;
-     · the build number — it is not a control, and its row in ⋯ opens the
-       same release page the chip did;
-     · the designer's door — already a labelled row in ⋯ ("Design your
-       site"), and two doors to one page is one too many on a 412px bar.
-   Nothing is hidden without a door; every door is ⋯. */
-@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
-  /* Scoped to the bar, like every other rule that touches these controls:
-     `.s-statusbar .s-statusbar__panes` sets `display: inline-flex` at (0,2,0),
-     so a bare `.s-statusbar__panes { display: none }` here would lose to it
-     however late it sat in the file — the same specificity trap the pill and
-     sync-badge rules above are scoped against.
-
-     THE OUTLINE SWITCH IS NOT ONE OF THE FOUR (3.23.0). This used to drop the
-     whole cluster, which was true at 640 and false the moment the block began
-     at the drawer breakpoint instead: between 701 and 999 the outline pane is
-     still a docked pane, its 14px reopen door is gone on a finger, and hiding
-     its switch left a pane with NO door at all. The other three go for the
-     reasons above — the sidebar has its ☰ and its pan, zen means nothing on a
-     phone, the shortcut sheet means less — and the switch stays wherever the
-     pane it names exists. */
-  .s-statusbar .s-statusbar__panes > :not(.s-statusbar__pane-outline) {
-    display: none;
-  }
-
-  /* The crumb trail has already shrunk to an ellipsis by here. */
-  .s-statusbar .s-statusbar__crumbs {
-    display: none;
-  }
-
-  /* With the pane cluster gone the remaining groups are neighbours anyway,
-     and a phone bar has no room to spend on rules. Every segment the group
-     rule marks has to be listed, or the mode pills and the sync badge keep
-     a hairline the rest of the bar has dropped. */
-  .s-statusbar .s-statusbar__group,
-  .s-statusbar .s-modes,
-  .s-statusbar .s-syncwrap {
-    margin-inline-start: 2px;
-    padding-inline-start: 0;
-    border-inline-start: none;
-  }
-
-  /* ONE MODE CONTROL. Reading/editing is the switch a reader flips on a
-     phone; VIM is a keyboard mode with a keyboard's audience, and it keeps
-     its row in ⋯ (StatusBar.tsx, `moreRows`) with its state spelled out.
-     Scoped `.s-statusbar .s-mode--vim` at (0,2,0) for the same reason every
-     other rule over these controls is: the base pill rule is (0,2,0) too. */
-  .s-statusbar .s-mode--vim,
-  .s-statusbar .s-statusbar__build,
-  .s-statusbar .s-statusbar__designer {
-    display: none;
-  }
-
-  /* The safety net, because a phone can always be narrower than the controls
-     that must stay: what does not fit SCROLLS rather than vanishing off a
-     hidden overflow. Sign-out was the casualty — there is no other way out of
-     a session on a phone. The gap is a THUMB's: 5px between two 44px targets
-     is a 5px miss, and the bar has room for 8 now that three segments left. */
-  .s-statusbar {
-    gap: 8px;
-    padding-inline: 8px 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .s-statusbar::-webkit-scrollbar {
-    display: none;
-  }
-}
-
 @media (max-width: 700px) {
-  .s-app--notice,
-  .s-app--notice.s-app--flip {
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      "notice"
-      "main"
-      "status";
-  }
 
   /* The hint is the first thing to go: the mode name and the way out are
      what the strip exists for. */
@@ -6969,23 +6540,6 @@ button.s-title:hover {
    which is still right for a solo pane and wrong for a split one. */
 .s-pane:has(.s-graph) {
   padding-inline: 0;
-}
-
-/* BELOW THE DRAWER BREAKPOINT THE INLINE AXIS FOLDS. There is no room for two
-   measures side by side — the reading column's whole argument is its width —
-   so every column but the focused one is hidden rather than squeezed. The
-   LAYOUT is untouched: it stays in the store and comes back on a wider
-   viewport, because a resize must never rewrite what the reader arranged.
-   The same list as the drawer's: with a mouse, two columns in 900px are
-   the reader's choice, not the stylesheet's. */
-@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
-  .s-panes {
-    display: flex;
-    flex-direction: column;
-  }
-  .s-panes > .s-panecol:not(:has(.s-pane--focused)) {
-    display: none;
-  }
 }
 
 /* The conflict strip: the lease strip's shape with two actions. The first
@@ -7380,27 +6934,6 @@ button.s-title:hover {
   display: none;
 }
 
-/* No grip on a phone. That is the ONLY width-free rule: a grip goes with the
-   docked layout, and whether the panes are docked is DRAWER_QUERY's decision
-   (client/state.ts; the drawer block above already hides the sidebar's grip
-   in the 700–999 band on a device with no fine pointer, and the panel stays
-   docked and resizable there).
-
-   The rule used to add `not all and (any-pointer: fine)` — "no grip on a
-   device with NO fine pointer at all", at every width — on the premise that
-   such a device is a phone or a tablet in a drawer layout. It is not: Chromium
-   on Windows answers {coarse, hover: none} for a HARDWARE SLATE (touch +
-   rotation sensor + slate mode, `pointer_device_win.cc`), and an attached
-   mouse does not change the answer, so a convertible above 999px had a docked
-   sidebar it could resize by nothing (windows-plan defect F). An 8px strip
-   is a fair target for a finger too; the phone's 44px rows never depended on
-   this rule, and a resting line now marks the strip where hover cannot. */
-@media (max-width: 700px) {
-  .s-pane-grip {
-    display: none;
-  }
-}
-
 
 /* ── The tree's arrangement (client/treeOrder.ts) ─────────────────────── */
 
@@ -7621,27 +7154,6 @@ html[dir="rtl"] .s-statusbar__spacer {
    header. One condition for one shell. */
 .s-statusbar--top .s-statusbar__more {
   display: none;
-}
-@media (max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none)) {
-  .s-statusbar--top .s-statusbar__btn:not(.s-statusbar__phone):not(.s-statusbar__pane-outline) {
-    display: none;
-  }
-  .s-statusbar--top .s-statusbar__more {
-    display: inline-flex;
-  }
-  .s-statusbar.s-statusbar--top {
-    overflow: visible;
-    gap: 2px;
-  }
-  /* Bigger targets: the cluster is now three buttons, so each can be a
-     finger's worth wide. 40×36 was most of the way there and none of the
-     promise — the shell's floor is 44, and these three are the only doors the
-     top of a phone has. */
-  .s-statusbar--top .s-statusbar__phone,
-  .s-statusbar--top .s-statusbar__pane-outline {
-    min-inline-size: 44px;
-    min-block-size: 44px;
-  }
 }
 
 
@@ -8105,18 +7617,6 @@ html[dir="rtl"] .s-statusbar__spacer {
   white-space: nowrap;
 }
 
-/* Phone: the pane cluster leaves at 640px, but the outline switch is the
-   panel drawer's only door there (see the 700px rule on .s-panel), so it
-   alone stays, at the specificity the cluster's own rule set. */
-@media (max-width: 700px) {
-  .s-statusbar .s-statusbar__panes {
-    display: inline-flex;
-  }
-  .s-statusbar .s-statusbar__panes > :not(.s-statusbar__pane-outline) {
-    display: none;
-  }
-}
-
 /* ------------------------------------------------- Japanese & furigana -- */
 /* THE TEST THIS RULE WAS WRITTEN AGAINST: a line with no Japanese must not
    move by a pixel. `lang="ja"` is stamped per line by client/editor/bidi.ts
@@ -8139,30 +7639,6 @@ html[dir="rtl"] .s-statusbar__spacer {
 .s-editor .cm-line[lang="ja"],
 .s-rv .s-rv-h[lang="ja"] {
   font-family: var(--font-ja);
-}
-
-/* The outline drawer's scrim and top close exist only on a phone (the
-   rules inside the drawer breakpoint above); everywhere else they are
-   nothing. The notes drawer's close is the same bargain. */
-.s-panel__scrim,
-.s-panel__phoneclose,
-.s-sidebar__phoneclose {
-  display: none;
-}
-
-/* THE SAME RULE FOR THE OTHER DRAWER. The outline pane opens from the end
-   edge and covers the cluster it was opened from: measured, the outline
-   switch answered `.s-panel__scroll`, the ⋯ answered the panel's own ✕ and
-   the ☰ answered the scrim. The pane's ✕ and its scrim are the doors while
-   it is up, exactly as for the notes drawer — and the cluster comes back the
-   moment it closes. `:has()` rather than a class on the shell because the
-   pane's open state is already spelled on the pane itself, and one fact with
-   two spellings is the thing that drifts. */
-@media (max-width: 700px) {
-  .s-app:has(.s-panel:not(.s-panel--collapsed)) .s-topactions,
-  .s-app:has(.s-panel:not(.s-panel--collapsed)) .s-drawer-btn {
-    display: none;
-  }
 }
 
 /* A finger keeps the ⋯ at every width: in landscape a phone is wider than

@@ -42,7 +42,7 @@ import { useGlobalKeys } from "./globalKeys.ts";
 import { openTour, subscribeTourSeen, tourSeen } from "./tour.ts";
 import { useOffline } from "./offline.ts";
 import OfflineStrip from "./components/OfflineStrip.tsx";
-import { sidebarIsDrawer, useStore } from "./state.ts";
+import { useStore } from "./state.ts";
 import { toast } from "./toast.ts";
 import { paneAt, surfaceOf } from "./workspace.ts";
 
@@ -166,18 +166,9 @@ function readRecent(): string[] {
 }
 
 /** Where Ctrl/Cmd+K goes, reached by tapping instead. The sidebar owns the
- *  search box and reveals itself when it is COLLAPSED — but on a phone that
- *  pane is a fixed drawer whose visibility is `sidebarOpen`, not
- *  `sidebarCollapsed`, so a bare dispatch would focus a field parked off the
- *  screen edge and swallow every keystroke after it. Open the drawer first and
- *  dispatch on the next frame, once React has committed the class that slides
- *  it in. */
+ *  search box and reveals itself when it is collapsed; the dispatch waits a
+ *  frame so it lands after whatever commit asked for it. */
 function openQuickSearch(): void {
-  const store = useStore.getState();
-  // Same breakpoint as the drawer's own (state.ts owns the number): the
-  // sidebar stops being a grid pane at 999px, not at 700, so quick search has
-  // to open the drawer at every width where the search box lives inside it.
-  if (sidebarIsDrawer()) store.setSidebarOpen(true);
   requestAnimationFrame(() => window.dispatchEvent(new Event("astrolabe:quicksearch")));
 }
 
@@ -223,7 +214,6 @@ export default function App() {
   const offline = useOffline();
   const authReady = useStore((s) => s.authReady);
   const publicLayout = useStore((s) => s.publicLayout);
-  const sidebarOpen = useStore((s) => s.sidebarOpen);
   const sidebarSide = useStore((s) => s.sidebarSide);
   const sidebarCollapsed = useStore((s) => s.sidebarCollapsed);
   const panelCollapsed = useStore((s) => s.panelCollapsed);
@@ -414,7 +404,6 @@ export default function App() {
   const shellClass = [
     "s-app",
     admin ? "" : "s-app--visitor",
-    sidebarOpen ? "s-app--drawer" : "",
     flipped ? "s-app--flip" : "",
     sidebarCollapsed ? "s-app--nosidebar" : "",
     // The panel's own collapse lives on .s-panel--collapsed and always has —
@@ -454,13 +443,6 @@ export default function App() {
       <Surface fallback={<aside className="s-sidebar" aria-hidden="true" />}>
         <Sidebar />
       </Surface>
-      {/* Mobile drawer chrome: backdrop dismisses; the toggle floats over the
-          main column. Both are display:none above the narrow breakpoint. */}
-      <div
-        className="s-drawer-backdrop"
-        onClick={() => useStore.getState().setSidebarOpen(false)}
-        aria-hidden="true"
-      />
       {/* Slim reopen handle for a collapsed sidebar — a hairline strip on the
           sidebar's own edge, so the bar always leaves a door where it stood.
           (In zen there is no door: Esc and the ✕ are the way out.) */}
@@ -482,17 +464,6 @@ export default function App() {
           href="#…"> moves the caret to the target only if the target is
           focusable, otherwise the next Tab starts from the top again. */}
       <main className="s-main" id="s-main" tabIndex={-1} aria-label={t("mainContent")}>
-        <button
-          type="button"
-          className="s-drawer-btn"
-          aria-label={t(sidebarOpen ? "closeSidebar" : "openSidebar")}
-          title={t(sidebarOpen ? "closeSidebar" : "openSidebar")}
-          onClick={() => useStore.getState().setSidebarOpen(!sidebarOpen)}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
         {/* The shell's tools, top and trailing: StatusBar portals them here
             (see its note). An empty div until it does. */}
         <div id="s-topactions" className="s-topactions" />

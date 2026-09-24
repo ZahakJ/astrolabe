@@ -1226,8 +1226,9 @@ PRIMARY pointer and Chromium reports it coarse on a touchscreen laptop with a mo
 (3.8.2). But the any-pointer form was wrong too: Chromium on Windows answers {coarse, hover: none}
 for a hardware SLATE (touch + rotation sensor + slate mode, `pointer_device_win.cc`) and an
 attached mouse does not change the answer, so a convertible above 999px had a docked sidebar it
-could resize by nothing (windows-plan defect F). Whether the panes are docked is DRAWER_QUERY's
-decision and the grips follow it: the only width-free hide is the phone's `(max-width: 700px)`.
+could resize by nothing (windows-plan defect F). Since 3.27.0 the panes are docked wherever the
+desktop shell is mounted at all — below 700px, or on a finger that cannot hover, the phone shell
+is (client/shellQuery.ts) — so the grips have no drawer width to hide at.
 On a device that cannot hover the strip wears a resting 2px `--text-faint` line (3:1 on
 `--bg-raised` in every room, the non-text bar), since an accent that lights under a pointer the
 device does not have is a grip nobody can find; mid-drag the line is `--accent`, at full opacity,
@@ -1441,12 +1442,13 @@ says, so the fold's open state is measured, not styled. Progress (`astrolabe.lib
 and never sent: read paths, not numbers, so a unit added in the middle shifts nothing. The pages
 are one lazy chunk; only the door, the band and the covers ride with the blog first paint.
 
-## The phone shell (`client/phone/`, `client/shellQuery.ts`, 3.26.0)
+## The phone shell (`client/phone/`, `client/shellQuery.ts`, 3.26.0; finished in 3.27.0)
 
-The one contract for Astrolabe on a phone or a mouse-less tablet. The paragraphs elsewhere in this
-file about the notes DRAWER, the ☰, the back-gesture guard and the touch shell's overrides describe
-the **Classic** phone layout, kept for one release behind `This device → Phone layout`; each carries
-a pointer here.
+The one contract for Astrolabe on a phone or a mouse-less tablet. There is no other: the Classic
+drawer layout it replaced — the notes DRAWER, the ☰, the drawer's pan (`swipe.ts`) and the
+back-gesture guard (`backGesture.ts`, `backGuard.ts`) — was kept for one release behind
+`This device → Phone layout` and deleted in 3.27.0, with its CSS, its tests and its gates. The
+history sections further down that describe the drawer (3.15.0, 3.23.0) are marked as superseded.
 
 The owner, over the audit that measured the old phone: *"I almost wish to rewrite that whole side
 of the app to be natively designed for the phone and tablet form factor instead of trying to
@@ -1456,13 +1458,15 @@ tap on a note in the drawer opened nothing, §"the navigation" below). The phone
 FRAME around the existing content parts, not a rewrite of them.
 
 **THE SEAM.** `client/main.tsx` renders `<PhoneShell/>` (a lazy chunk with its own stylesheet)
-instead of `<App/>` wherever `PHONE_SHELL_QUERY` matches and the reader has not chosen Classic
-(`shellFor(matches, readPhoneLayout())`), re-evaluated on the query's `change` and on
-`astrolabe:phone-layout`, so a rotation, a foldable or a window dragged across 700px swaps shells
-with the same note open. The query is the drawer's with its ceiling lifted for a finger:
-`(max-width: 700px), ((pointer: coarse) and (hover: none))` — everything `DRAWER_QUERY` matches
-(held by `tests/phoneShell.test.ts`), plus a tablet in landscape. A device whose primary pointer
-hovers (a tablet with a trackpad, a touch laptop) keeps the desktop above 700px. A blog visitor
+instead of `<App/>` wherever `PHONE_SHELL_QUERY` matches (`shellFor(matches)`), re-evaluated on the
+query's `change`, so a rotation, a foldable or a window dragged across 700px swaps shells with the
+same note open. The query — `(max-width: 700px), ((pointer: coarse) and (hover: none))` — is the
+ONE copy of the phone question in the client (`tests/drawerQuery.test.ts` refuses any other
+spelling, any 999px band and any `any-pointer`). A device whose primary pointer hovers (a tablet
+with a trackpad, a touch laptop) keeps the desktop above 700px, and the desktop shell is therefore
+never mounted where the query matches: the drawer that used to fold its panes below 1000px on a
+finger had no device left to open on, and went. A desktop window between 700 and 999px on a mouse
+keeps its docked, resizable panes, as it always did. A blog visitor
 gets the blog shell in either case. Both shells mount the same two hooks — `useShellRuntime()`
 (`client/shellRuntime.ts`: the boot, run once per page; the SSE stream; the unsaved-text guard;
 the wake-up revalidation; the offline worker; the what's-new door; the properties card's two
@@ -1478,8 +1482,8 @@ swap) makes the store collapse every committed workspace through `phoneWorkspace
 (`client/workspace.ts`): one pane, the focused pane's active tab, unpinned — REPLACED, never
 appended, whichever of the forty desktop call sites opened it. And the workspace is NEVER
 PERSISTED while the phone shell is mounted: `persistWorkspace` and `persistTabs` return first,
-the desktop's copy beside the vault is not written, and `prefsSync.ts` refuses `workspace`, `tabs`
-and `phoneLayout` outright (`NEVER_TRAVELS`, whatever the allowlist says). Leaving the phone shell
+the desktop's copy beside the vault is not written, and `prefsSync.ts` refuses `workspace` and `tabs`
+outright (`NEVER_TRAVELS`, whatever the allowlist says). Leaving the phone shell
 hands the desktop its own stored arrangement back with the phone's note opened in it. The store
 records the last move (`lastRemap`) so the navigation stack can follow a rename.
 
@@ -1554,19 +1558,70 @@ or a printable key with the visual viewport at its resting height; remembered pe
 enables the global keys (Ctrl/Cmd+K opens Search), hides the accessory bar and adds More's
 Keyboard group.
 
-**ROUND 1 SCOPE.** Orbits, Sigils, the Media page, the graph, the weekly review, the shelf and the
-book/EPUB readers open through `SurfaceScreen` — the same surface under a phone top bar, no tab
-strip, no status bar. Their own phone variants, Settings as pushed sections, the reader's own
-chrome and the deletion of Classic (with `swipe.ts`, `backGesture.ts` and the drawer CSS) are
-Round 2.
+**EVERY SURFACE HAS A SCREEN (3.27.0).** `kinds.ts` sorts screens: a LIST keeps the tab bar and is
+what a tablet's list column shows (the roots, a folder, a tag, Settings, the decks, the sigils, the
+media shelves, the bookshelf); a DETAIL hides the tab bar and takes the column beside the list; a
+FULL detail (a study session, a book) takes the whole glass on a tablet too. `SurfaceScreen` — the
+pane's switch under a top bar — is left for the graph and a drawing only.
+- **Orbits**: `OrbitsScreen` (decks as 52px rows with due counts) → `DeckScreen` (due / new /
+  total, Study, the sections, the month's retention) → `SessionScreen`, the desktop's
+  `SessionView` unchanged and full screen. A surface that closes itself back to a page the stack
+  already holds (the session's "back to the shelf") is met by `nav.popTo` to the highest screen
+  whose `contentOf` is that page — the deck — never by a second copy pushed on top.
+- **Sigils**: `SigilsScreen` (a row per sigil with today's standing) → `SigilScreen`, the reading
+  renderer's card with `layout: "phone"` (today's checklist, the week strip and heat map, then the
+  figures; a course's units and projected dates open; the card's own doors move to ⋯). A tick is
+  merged locally with `mergeEntry` and written through `POST /api/routine`; a failure restores.
+- **Media**: `MediaScreen` (shelves of rows, a status chip row) → `TrackerScreen`, the page's own
+  `MediaCard`. **Library**: `LibraryScreen`, a list. **Weekly review**: `ReviewScreen`.
+- **The readers** (`ReaderScreen`) draw no phone chrome: `BookReader`/`EpubReader` take a
+  `phone` host (`books/chrome.tsx PhoneReaderHost`) and draw ONE 44px bar of their own
+  (`PhoneBar`: back, title, a page/chapter scrubber that jumps on the range's `change`, ⋯) and
+  the −/+ pair (`PhoneZoom`); ⋯'s verbs go to the phone's action sheet, the contents to
+  `ListSheet`. A PDF opens at `fit: "width"` locally, not saved. The readers import nothing from
+  `client/phone/`.
+- **Settings** is `SettingsScreen` (the sections, the search) → `SettingsSectionScreen`, which
+  draws `components/settings/TabBody.tsx` from `useSettingsForm` — the dialog's own bodies and
+  form. `settingsOpen` rising is answered by pushing the list (and lowering the flag);
+  `settingsFocus` is carried to its section, which reveals the row. THE GUARD: a section with
+  edits registers `setGuard(screenKey, { dirty, discard })`; `nav.ts` asks `canLeave(from, to)`
+  before every move and on every pop — a pop the browser already made is undone by pushing the
+  entry straight back, so the form is never unmounted — and `onBlocked(proceed)` asks "Close
+  without saving?" through the confirm sheet; Discard releases the guard, resets the form and
+  proceeds. A section's save bar rises by `transform`. This device has no bar and no guard.
+- **Scroll memory**: a push stamps the leaving list's `scrollTop` into the entry it leaves
+  (`scrollOf`), and a pop hands it back as `NavState.scroll`; `useScrollMemory` re-applies it
+  as a late-arriving list grows (≤1.2s, never after the reader touches it).
+- **Layers on `<body>`** (`client/overlays.ts`): the theme picker, the designer, the what's-new
+  deck, the tour, the attachment viewer and the readers' panels `announceOverlay(id, close)`;
+  the shell gives each a history entry (`overlay:<id>`), Back calls `close` (the designer's is its
+  own Escape, so it asks about an unsaved design and, staying, takes its entry back), and a close
+  by the layer's own hand gives the entry back. The desktop does not subscribe.
+- **Layers a screen raises** (`RoutedLayer`, `RoutedSheet`) draw into the shell's sheet host,
+  because the shell makes everything under a sheet `inert` — the calendar's day sheet, drawn
+  inside its screen, was inert with it in 3.26.0.
+- **Sheets**: the tag picker (`TagPickerSheet`: a note's tags written through
+  `POST /api/frontmatter` a tap at a time, or every tag to browse from Notes' "All tags" chip);
+  a heading held in the READING view raises the editor's action sheet minus its editor-only rows
+  (`readingHeading.ts`); a folder lists its viewable files, opened in the attachment viewer; the
+  tablet's list column keeps its ‹ while a detail is open (`popTo` the list's parent).
+- **The pocket answers `POST /api/capture`** (`mobile/src/pocket/server.ts`): `appendCaptured` in
+  the note named, else the day's inbox `Inbox/YYYY-MM-DD.md` (where the share sheet and a kept
+  voice note already go), refused 409 when the file moved under the index, committed like a save.
+  Today's capture field shows in a pocket vault.
 
 **WHAT PROVES IT.** `tests/phoneShell.test.ts` (the stack against an asynchronous history double,
-including the P0 reordered; the reducer; the persistence refusals; the keyboard inference; the
-query; the seam). `npm run check-phone` drives the shell in both languages on a phone, a phone
-with a pen and a tablet both ways up — tree tap changes the URL and the title, back pops a screen,
-back closes a sheet, publish asks, a long press is a menu, every target 44px and every field
-16px. `check-windows-layout` runs its ladder in Classic and asserts which shell each posture and
-width gets.
+including the P0 reordered, the leave guard on a push and on a pop, scroll memory, `popTo`; the
+reducer; the persistence refusals; the keyboard inference; the query; the seam),
+`tests/settingsForm.test.ts` (the split form's round trip), `tests/pocketServer.test.ts` (capture),
+`tests/drawerQuery.test.ts` (one phone question, no drawer left). `npm run check-phone` drives the
+shell in both languages on a phone, a phone with a pen and a tablet both ways up — tree tap
+changes the URL and the title, back pops a screen, back closes a sheet, publish asks, a long press
+is a menu; Study starts the session full screen, a sigil tick persists, a book wears one bar and
+its scrubber moves the page, the theme picker takes an entry Back closes, a Settings section asks
+before Back discards and saves, the tag picker writes the tag, a list comes back scrolled; every
+target 44px and every field 16px. `check-windows-layout` runs its ladder on the desktop's own
+widths (720 and up) and asserts which shell each posture and width gets.
 
 ## Shell layout (sidebar side, collapse, zen)
 
@@ -1650,17 +1705,9 @@ stays on `.s-panel--collapsed`, as it always did.
   skew of **287px** before.
 - **A collapsed pane leaves a door.** `.s-reopen--sidebar` / `.s-reopen--panel` are 14px
   full-height strips on the respective edges — always visible while collapsed (not hover-
-  revealed), hidden in zen, and hidden wherever that pane is not a grid pane at all: the sidebar
-  door goes at ≤999 (the drawer's ☰ button is the door there — two ways back into one pane, one
-  of them 14px wide, is one too many), the outline door at ≤700 with the pane itself.
-  **AND THE STRIP IS A POINTER'S DOOR** (3.23.0, `@media (pointer: coarse) and (hover: none)`).
-  Fourteen pixels is a mouse's target, and on a device whose own pointer is a finger the pane
-  already has two better doors — the pan (client/swipe.ts, which loads behind that same test)
-  and the 44px switch in the tool cluster. The owner, looking at his friend's phone: *"one thing
-  I personally hate for example is how floating the panel bars button is.. like maybe we should
-  just support swiping and remove that bs?"* The test is the PRIMARY pointer, not `any-pointer`,
-  for the reason DRAWER_QUERY gives: a stylus is a fine pointer and a touch laptop with a mouse
-  beside it reports `hover: hover` and keeps its strip.
+  revealed), and hidden in zen. (3.23.0 also hid it on a finger that cannot hover, where the drawer
+  had a pan and a ☰; since 3.27.0 such a device gets the phone shell, and a touch laptop — a
+  coarse primary pointer beside a mouse that hovers — keeps its strip.)
 - **THE READING COLUMN IS MONOTONE IN VIEWPORT WIDTH, AND THE CHROME IS WHAT PAYS FOR IT.**
   Measured before this rule, `.cm-line` with a note open: 1440=648, **1024=319**, 900=480,
   768=348, 640=604, 480=444, 390=354 — the prose was a 45-character ribbon at iPad-landscape
@@ -1700,9 +1747,9 @@ stays on `.s-panel--collapsed`, as it always did.
       commit that hands the reader their animation back is the one that starts it;
     - sidebar: `--sidebar-w: clamp(224px, calc(100vw - 776px), 292px)` — 776 = the 760px box +
       that door + both panes' 1px separators — so between 1000 and 1068 the pane takes exactly
-      the surplus and the column sits at its cap; and at ≤999 the sidebar leaves the grid
-      entirely and becomes the overlay drawer the phone already used, so opening it costs the
-      column nothing at all;
+      the surplus and the column sits at its cap, and below it the pane holds its 224px floor
+      (the overlay drawer that took it out of the grid on a finger below 1000 went with the
+      Classic phone layout in 3.27.0: that device gets the phone shell);
     - gutters: `--prose-gutter: min(56px, 7.37%)` (7.368% × 760 = 56) on the editor, the reading
       view and the visitor column, `min(64px, 8%)` on zen's 800px box. Exactly the shipped 56px
       wherever the measure is full, proportional below it, and CONTINUOUS — a stepped gutter
@@ -1711,24 +1758,9 @@ stays on `.s-panel--collapsed`, as it always did.
   Measured after, `.cm-line` at 1600/1440/1366/1360/1359/1280/1200/1100/1024/1000/999/900/820/768/700/699/640/480/390,
   en and ar, defaults only: 648 at every width from 768 up, then 597/546/409/333 — **monotone
   non-decreasing in both languages**, document horizontal overflow 0 at every one.
-- **THE DRAWER SHELL IN THE BULLETS BELOW IS THE CLASSIC PHONE LAYOUT.** *Classic phone layout since 3.26.0 — the default phone contract is [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260).* The drawer, the ☰, the
-  back-gesture guard and the touch shell's overrides hold for `Phone layout: Classic` only.
-- **One gesture per pane, whichever shell is on screen.** `toggleSidebar()` (state.ts) routes to
-  `setSidebarOpen` below `DRAWER_QUERY` (`max-width: 999px`, the single copy of that number in
-  the client) and to `setSidebarCollapsed` above it; `Ctrl/Cmd+Alt+B`, the palette row and the
-  status-bar switch all go through it, and the switch reports `sidebarOpen` in drawer mode
-  (tracked with a live `matchMedia` listener, because a resize crosses the breakpoint without
-  touching the store). Without this the sidebar switch was a control that did nothing at 900px.
-  Same reason `.s-statusbar__pane-outline` is hidden at ≤700: the pane it toggles is
-  `display: none` there, while the pane cluster itself only leaves at 640.
-- **A CLOSED DRAWER IS OUT OF THE TAB ORDER, NOT MERELY OFF-SCREEN.** The drawer rule carries
-  `visibility: hidden` with `transition: … visibility 0s linear 0.2s` (visible, undelayed, while
-  open) — the same delayed-visibility pattern the desktop collapse and the outline pane already
-  use. Measured before: at 390 the closed drawer was `matrix(1,0,0,1,-329.6,0)` with
-  `visibility: visible`, no `inert`, no `aria-hidden`; the FIRST Tab landed on the wordmark at
-  x=-314 and 119 of 137 focusables sat outside the viewport, so a screen-reader user swiped all
-  1,388 tree rows and 113 tag pills before reaching the page. After: `visibility: hidden`, and
-  the first Tab lands on the ☰ button (x=4 in English, x=342 in Arabic).
+- **One gesture per pane.** `toggleSidebar()` (state.ts) folds the sidebar; `Ctrl/Cmd+Alt+B`, the
+  palette row and the status-bar switch all go through it. (It routed to a drawer's
+  `setSidebarOpen` below the drawer breakpoint until 3.27.0, when the drawer went.)
 - **THE TOUCH SHELL IS 44px EVERYWHERE, NOT ONLY IN THE EMPTY STATE.** `@media (max-width: 700px),
   (pointer: coarse)` — the same trigger as the empty state's keymap swap, because a tablet is
   1024px wide and still has no mouse — gives `.s-tree__item`, `.s-tag`, `.s-iconbtn`, the
@@ -1738,7 +1770,7 @@ stays on `.s-panel--collapsed`, as it always did.
   status-bar buttons 44 (bar 45), document overflow 0. Before: 28 / 26 / 24 / 17–24 — the round
   that gave the empty state its tap targets had fixed the pane it named and not the surface that
   pane points at.
-- *(3.26.0: check-phone now drives the phone shell; see [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260).)*
+- *(3.26.0: check-phone now drives the phone shell; see [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260-finished-in-3270).)*
 - **…AND 44px IS MEASURED, NOT DECLARED** (`scripts/check-phone.mjs`, 3.18.0). The rule above
   named five selectors and the shell has hundreds. A phone audit found thirty-three places it had
   never reached — the top cluster at 40×36, the drawer's three section headers at 18, the graph's
@@ -1786,20 +1818,6 @@ stays on `.s-panel--collapsed`, as it always did.
   in a phone/touch block is set again for the same selector by a later rule with no `@media`
   (shorthands, longhands and logical/physical twins counted as one property; a later
   `prefers-reduced-motion` or `forced-colors` rule is narrower, and allowed).
-- **A CONTROL UNDER ANOTHER LAYER IS NOT A CONTROL.** With the notes drawer open, the ☰ — by then
-  labelled "Close Notes sidebar" — sat at z-index 60 under a drawer at 400, so a tap at its
-  centre reached the drawer's wordmark and ran "preview as visitor"; the top cluster's gear,
-  outline switch and ⋯ were covered the same way by the drawer and, when the outline pane was
-  out, by the pane. So **a phone drawer hides the chrome it covers**: the ☰ and the cluster go
-  while either drawer is up, and each drawer carries its own ✕ at its top
-  (`.s-sidebar__phoneclose`, `.s-panel__phoneclose`) beside the scrim tap, Escape and the
-  back gesture. A labelled control the reader cannot hit is worse than an absent one, because the
-  label promises something the hit-testing does not deliver.
-- **ESCAPE CLOSES THE NOTES DRAWER** (App.tsx's Escape ladder, rung 3). Every other overlay in the
-  product answered Esc and the largest one — the whole vault over the page — did not: the ladder
-  went from the palette straight to zen and never read `sidebarOpen`. It sits under the modal
-  guard (a rename dialog raised FROM the drawer owns the key first) and above zen (a reader in
-  zen with the drawer out means the drawer), and only where the pane IS a drawer.
 - **THE NOTCH AND THE HOME INDICATOR** (`client/index.html`, app.css "THE NOTCH AND THE HOME
   INDICATOR"). The client served a `display: standalone` manifest and a `theme-color` and then
   drew edge to edge: installed on an iPhone, the 44px top cluster sat under a 47px status bar and
@@ -1824,24 +1842,13 @@ stays on `.s-panel--collapsed`, as it always did.
   launch — raised the IME before the reader had said they wanted to write. On a coarse pointer
   the note opens rendered and the first tap in the text focuses the editor. Nothing else moves:
   the caret restore, the heading jump and every shortcut are where they were.
-- **THE HARDWARE BACK BUTTON CLOSES THE TOPMOST LAYER FIRST** (`client/backGesture.ts` +
-  `mobile/…/MainActivity.java`). The client pushed one history entry per note and none for the
-  layers it draws over one, so a back gesture with the drawer, the palette or Settings up
-  navigated the note UNDERNEATH and left the layer standing. While a layer is up the client keeps
-  one extra history entry; back pops it, the layer closes, nothing navigates — and closing the
-  layer any other way takes the entry back out, so the stack is never deeper than the reader's
-  own path. WHICH layer closes is decided by dispatching an Escape, because the Escape ladder
-  already encodes that precedence and two behaviours that must agree are written once. THE
-  RETRACTION WAITS A MICROTASK (`client/backGuard.ts`, 3.26.1): a note tapped in the drawer opens
-  it and closes the drawer in one store update, and the guard — subscribed before the router —
-  called `history.back()` before the router pushed the note; the traversal ran later, landed on
-  the guard entry and the previous note came back. Deferred, the guard sees the note's entry on
-  top and is abandoned; and a pop that still lands ON a guard (a push between `back()` and its
-  traversal) is swallowed and stepped forward. `tests/backGesture.test.ts` drives it against a
-  browser-shaped history; check-phone taps a tree row and requires the address, the title and the
-  active tab to change. The shell
-  keeps the other two rungs: back one page, then — on the connection screen — "press back again
-  to leave", because the front door is a thumb's width from the gesture area.
+- **THE HARDWARE BACK BUTTON CLOSES THE TOPMOST LAYER FIRST** (`mobile/…/MainActivity.java` +
+  the phone shell's navigation, `client/phone/nav.ts`). A back is the browser's own pop, and every
+  sheet, layer and overlay holds an entry of its own, so a back closes the topmost first and
+  navigates nothing under it. (The Classic layout's guard entry and synthesised Escape —
+  `backGesture.ts`, `backGuard.ts` — went with it in 3.27.0; see The phone shell.) The shell keeps
+  the other two rungs: back one page, then — on the connection screen — "press back again to
+  leave", because the front door is a thumb's width from the gesture area.
 - **THE SHELL'S STRIPS FOLLOW THE ROOM** (`mobile/…/ThemeBars.java`). The status bar and the
   gesture bar were painted `iron_gall` unconditionally, so a parchment reader got a cream page
   with a black band at each end. The shell reads the page's own `<meta name="theme-color">` (kept
@@ -2155,6 +2162,20 @@ overruled.
   theme this instance no longer has.
 
 ## Settings panel (SettingsModal)
+
+**ONE FORM, TWO HOSTS (3.27.0).** `SettingsModal.tsx` is the DIALOG only — the rail, the search above
+it, the footer, the image picker, the exits that ask — and nothing it draws is a row. The form and
+its rules are `components/settings/form.ts` (`Form`, `formFrom`, `validate`, `buildPatch`); the
+form's life (load, custom fonts, the font preview, Save, the two credential Clears, the visibility
+preview) is `settings/useSettingsForm.ts`; each tab's rows are `settings/<Tab>Tab.tsx`, reading the
+loaded form through `settings/context.ts` (mounted only once the settings have arrived, so `form`,
+`eff` and `inh` are never null in a tab); and ONE switch, `settings/TabBody.tsx`, turns a tab id into
+its body for both the dialog and the phone shell's Settings section screens. The switch's
+`{tab === "…" && [!]pocket && <XTab />}` lines ARE the index's source: `scripts/settings-index.mjs`
+reads each line's mode and the rows out of the file of the component it names (plus the travel row
+the sync tab mounts), and regenerated the index byte-identical across the split. `TABS` lives in
+`settings/tabs.ts` (check-docs reads it there). Split with no change to a row, a hint, a request or
+a toast; `tests/settingsForm.test.ts` holds the round trip.
 
 **SETTINGS IN PLACE (3.18) — the panel keeps its shape and loses its faults.**
 Save STAYS on the seven server tabs, deliberately: a PATCH is atomic
@@ -3432,7 +3453,7 @@ answer. **Anything new that covers the viewport goes below 500** — the trash b
 
 ### The stacking ladder (`--z-*`, `client/styles/tokens.css`)
 
-The phone shell's sheets sit at `--z-panel` and its questions at `--z-confirm` — [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260).
+The phone shell's sheets sit at `--z-panel` and its questions at `--z-confirm` — [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260-finished-in-3270).
 
 Every rung lives in `:root` with the reason beside it, and **no z-index at or above 300 may be
 written as a literal anywhere in `client/styles`** — `check-a11y` rule 7 fails one that is, unless
@@ -3459,21 +3480,6 @@ The three arguments the numbers settle, each of which had been decided twice:
   and *Sync now*, an action the reader could see and could not press.
 - **A menu gets a ground on touch (299).** The scrim sits one rung below the menu it dims the page
   for, never over it.
-- **A menu is over the pane it was opened from — and in the drawer shell that pane is the DRAWER.**
-  `--z-menu` and `--z-menu-scrim` are the one pair on this ladder that take different values in a
-  different shell: `tokens.css` redefines them to **405 / 404** under `app.css`'s drawer condition
-  (`DRAWER_QUERY`, character for character — tests/drawerQuery.test.ts reads every stylesheet
-  since 3.26.1, when this one was found still asking `not (any-pointer: fine)` and a 701–999px pen
-  phone painted the drawer over its menus), one rung above the
-  drawer and still below the palette, which must stay over both. This is not decoration. The tree's
-  menu, the tag shelf's menu and the sort menu are portalled to `<body>` — correctly, because a
-  menu must not be clipped by a pane that animates its own width — which takes them out of the
-  drawer's stacking context, and at 300 the drawer painted straight over them: measured at 390×844,
-  a long press on a folder built a seventeen-row menu at x 124 and `elementFromPoint` on its first
-  row returned `HEADER.s-sidebar-header`. The reader got a 62px stripe of half-words. Two values
-  for one name is the thing this ladder exists to prevent, so there is exactly one definition site
-  per shell and both live beside the ladder itself; the rule that names them is one sentence, and
-  it is the sentence the `menu 300` rung was already written from.
 
 **A full-viewport sheet also CLOSES what it covers.** Ctrl/Cmd+P is a keystroke, so none of the
 outside-mousedown listeners see it: the sync popover stayed lit over the palette's own backdrop
@@ -3854,10 +3860,9 @@ The empty-state rules carried no media query and no pointer query at all.
   has no `Ctrl` key. No resize listener, no first-paint flash, nothing for JS to get wrong.
 - `.s-empty__touch` offers what the legend was only NAMING: the recent notes, then New note
   (admin), Search notes and Graph view. Every target is ≥44px tall. *Search notes* goes through
-  `openQuickSearch()`, which opens the mobile DRAWER before dispatching `astrolabe:quicksearch` —
-  `Sidebar.revealSidebar()` un-collapses and un-zens, but the phone's pane is a fixed drawer
-  governed by `sidebarOpen`, so a bare dispatch focuses a field parked off the screen edge and
-  eats every keystroke after it. The dispatch waits one frame for the class to commit.
+  `openQuickSearch()`, which dispatches `astrolabe:quicksearch` a frame later;
+  `Sidebar.revealSidebar()` un-collapses and un-zens. (It opened a phone drawer first until
+  3.27.0; a phone gets the phone shell's Search now.)
 - **Recent notes live in App, not in the store** — `localStorage["astrolabe.recent"]`, ≤12 paths,
   written by a `useStore.subscribe` on real `openPath` changes (not by a render value, which
   would reorder the list on any unrelated re-render), five shown. Nothing else remembers this:
@@ -11220,6 +11225,9 @@ vault holding legacy ```` ```routine ```` notes in `Routines/` beside new ones):
 
 ## 3.15.0 — the docked layout keeps its grips on a desktop window
 
+*Superseded in 3.27.0: the drawer and `DRAWER_QUERY` were deleted with the Classic phone layout; see
+[The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260-finished-in-3270).*
+
 **The drawer breakpoint (`DRAWER_QUERY` in client/state.ts, four `@media` blocks in app.css).**
 `(max-width: 700px), ((max-width: 999px) and (not (any-pointer: fine)))` — phone width, or a
 tablet-sized viewport on a device with no fine pointer. It was a bare 999px, which turned a scaled
@@ -11652,7 +11660,9 @@ by omission. Fixing the bug means rewriting that test, which is the intended wor
 
 ## 3.23.0 — the phone, native
 
-*Classic phone layout since 3.26.0 — the default phone contract is [The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260).* Everything in this section is about the drawer shell.
+*Superseded: this section is about the drawer shell, the Classic phone layout from 3.26.0, deleted
+in 3.27.0 with `swipe.ts`, `backGesture.ts` and the drawer CSS. The phone contract is
+[The phone shell](#the-phone-shell-clientphone-clientshellqueryts-3260-finished-in-3270).*
 
 The owner, over a photograph of a friend's Android screen: *"ui for his name is like broken?? Def
 need to make phone app be more native ngl. It kinda sucks currently. One thing I personally hate

@@ -31,6 +31,7 @@ import { t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { choiceBase, choiceLabel, isTheme, THEME_GROUPS, THEME_LABELS, THEMES, type Theme } from "../themes.ts";
 import { openThemeBuilder } from "./ThemeBuilder.tsx";
+import { announceOverlay } from "../overlays.ts";
 
 /** Two columns. ←/→ move by one across the whole list; ↑/↓ move by a ROW —
  *  which is not the same as moving by COLS, because each group is its own
@@ -433,6 +434,8 @@ export function isThemePickerOpen(): boolean {
 
 export function closeThemePicker(): void {
   if (!root || !host) return;
+  leaveOverlay?.();
+  leaveOverlay = null;
   const [r, h] = [root, host];
   root = null;
   host = null;
@@ -444,8 +447,13 @@ export function closeThemePicker(): void {
   }, 0);
 }
 
+/** The phone shell's handle on this layer (client/overlays.ts): Back closes
+ *  it the way the scrim does, restoring the theme it opened on. */
+let leaveOverlay: (() => void) | null = null;
+
 export function openThemePicker(): void {
   if (host) return;
+  leaveOverlay = announceOverlay("theme-picker", closeThemePicker);
   host = document.createElement("div");
   host.className = "s-tpick-host";
   document.body.appendChild(host);

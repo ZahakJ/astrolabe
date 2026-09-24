@@ -161,53 +161,17 @@ const PREVIEW_KEY = "astrolabe.preview";
 const SIDE_KEY = "astrolabe.sidebarSide";
 const SIDEBAR_COLLAPSED_KEY = "astrolabe.sidebarCollapsed";
 
-/** The drawer breakpoint, mirrored from app.css (three `@media` blocks carry
- *  the same list). At and below it the sidebar leaves the grid and becomes
- *  an overlay drawer and split columns fold to the focused one; the
- *  sidebar's visibility is then `sidebarOpen`, not `sidebarCollapsed`.
- *
- *  It USED to be a bare `(max-width: 999px)`, chosen so the reading column
- *  kept its full measure on a tablet. But a Windows laptop at 150% scaling
- *  is 1280 CSS px wide maximised and ~900 side by side with a browser, and
- *  at 900 the desktop app turned into a phone: the sidebar SLID in from the
- *  edge instead of sitting there, no pane had a grip, and a split folded to
- *  one column — the owner's friend, four releases running: "resizing of
- *  panels/windows not working on Windows". A device with something that can
- *  hit an 8px strip keeps the docked, resizable layout down to the phone
- *  width; only a device with no fine pointer at all gets the drawer early.
- *
- *  AND "NO FINE POINTER AT ALL" WAS THE WRONG QUESTION (3.23.0). `any-pointer:
- *  fine` asks whether ANY pointer on the device is fine, and a stylus is one:
- *  every Samsung phone with an S Pen — and any phone that has ever been paired
- *  with a bluetooth mouse — answered yes, so a 720px phone was served the
- *  DOCKED desktop shell. That is the owner's friend's screenshot: a 224px
- *  sidebar column, a fourteen-glyph tool cluster overflowing its row and
- *  painting straight across the wordmark, and a 14px reopen strip floating at
- *  the edge of a touchscreen. What this breakpoint is actually asking is what
- *  the device's OWN input is, which is the PRIMARY pointer: `(pointer: coarse)
- *  and (hover: none)` — a finger, and one that cannot hover. It answers the
- *  same as the old form for all three Windows postures check-windows-layout
- *  drives (a mouse: fine, docked; a hardware slate: coarse with no hover, so
- *  still a drawer under 1000; a touch laptop: a coarse PRIMARY pointer but
- *  `hover: hover` from the mouse beside it, so still docked — which is defect
- *  F's whole point), and it stops being fooled by a pen.
- *
- *  Keep this string and the stylesheet's in step — this is the only copy of
- *  it in the client. */
-export const DRAWER_QUERY = "(max-width: 700px), ((max-width: 999px) and (pointer: coarse) and (hover: none))";
-
-/** The phone WIDTH: DRAWER_QUERY's first arm, on its own. Below it BOTH panes
- *  leave the grid — the outline pane is a drawer too, not a docked column —
- *  and a phone's field holds about thirty characters. It was five string
- *  literals in five files (backGesture, StatusBar, PaneGrip, BacklinksPanel,
- *  and a 640 in CommandPalette that meant the same thing); one of them
- *  drifting is a pane that is a drawer to the stylesheet and a column to the
- *  code. tests/drawerQuery.test.ts holds every client file to importing it. */
-export const PHONE_QUERY = "(max-width: 700px)";
-
-export function sidebarIsDrawer(): boolean {
-  return typeof window !== "undefined" && window.matchMedia(DRAWER_QUERY).matches;
-}
+/* NO DRAWER BREAKPOINT HERE ANY MORE (3.27.0). This file held DRAWER_QUERY —
+ * "≤700px, or ≤999px on a finger that cannot hover" — and PHONE_QUERY, its
+ * first arm, and below them the desktop shell folded its sidebar into an
+ * overlay drawer and its outline pane into a second one. Both arms are
+ * inside PHONE_SHELL_QUERY (client/shellQuery.ts), and since the Classic
+ * phone layout was deleted the desktop shell is never mounted where that
+ * query matches — so the drawer had no device left to open on. The one
+ * question left, "is this a phone", is the shell's, and shellQuery.ts owns
+ * it. A desktop window between 700 and 999px on a mouse keeps its docked,
+ * resizable panes, exactly as it did (the drawer's second arm never took a
+ * mouse). */
 const PANEL_COLLAPSED_KEY = "astrolabe.panelCollapsed";
 const ZEN_KEY = "astrolabe.zen";
 
@@ -298,10 +262,6 @@ export interface State {
   /** Ctrl/Cmd+E: render the open note read-only instead of editing. */
   readingMode: boolean;
   paletteOpen: boolean;
-  /** Mobile drawer: the sidebar overlays the content below the narrow
-   *  breakpoint; opening a note closes it. Inert on wide viewports. */
-  sidebarOpen: boolean;
-  setSidebarOpen(b: boolean): void;
 
   // ------------------------------------------------------------- shell layout
   /** The reader's stored choice: "auto" (the default — follow the language),
@@ -318,9 +278,8 @@ export interface State {
   /** Sidebar collapsed to its slim reopen handle (Ctrl/Cmd+Alt+B; persisted). */
   sidebarCollapsed: boolean;
   setSidebarCollapsed(b: boolean): void;
-  /** Show/hide the notes sidebar, whichever shell is on screen (pane above the
-   *  drawer breakpoint, overlay drawer below it). Every door — Ctrl/Cmd+Alt+B, the
-   *  palette command, the status-bar switch — goes through this. */
+  /** Show/hide the notes sidebar. Every door — Ctrl/Cmd+Alt+B, the palette
+   *  command, the status-bar switch — goes through this. */
   toggleSidebar(): void;
   /** Backlinks/outline panel collapsed (Ctrl/Cmd+Alt+Shift+B; persisted). Also
    *  set by the panel's own responsive auto-collapse on narrow viewports. */
@@ -1517,7 +1476,6 @@ export const useStore = create<State>()((set, get) => {
     vimSubMode: null,
     readingMode: readReading(),
     paletteOpen: false,
-    sidebarOpen: false,
     // Both are settled again in loadMe() once the instance language is known;
     // until then "auto" resolves against the boot default (en → left).
     sidebarSidePref: readSidebarSidePref(),
@@ -2305,7 +2263,7 @@ export const useStore = create<State>()((set, get) => {
         // the tabs.
         let ws = openInPane(s.workspace, s.workspace.focus, path, target === null ? {} : { book: target });
         if (paneAt(ws, ws.focus)?.mode === "library") ws = setPaneModeIn(ws, ws.focus, "edit");
-        return { ...s, ...mirrorOf(ws), sidebarOpen: false };
+        return { ...s, ...mirrorOf(ws) };
       }),
 
     clearBookTarget: (paneId) =>
@@ -2316,7 +2274,6 @@ export const useStore = create<State>()((set, get) => {
         ...s,
         ...mirrorOf(setPaneModeIn(s.workspace, s.workspace.focus, "library")),
         view: "editor",
-        sidebarOpen: false,
       })),
 
     closeLibrary: () =>
@@ -2337,7 +2294,6 @@ export const useStore = create<State>()((set, get) => {
         // unless the published set already knows the answer.
         openPublished: s.openPath === path ? s.openPublished : s.publishedPaths?.has(path) ?? null,
         // Mobile drawer: picking a note dismisses the overlay sidebar.
-        sidebarOpen: false,
       }));
       void get().refreshBacklinks();
     },
@@ -2438,7 +2394,7 @@ export const useStore = create<State>()((set, get) => {
           // sees a tab they cannot look at.
           let ws = openInPane(s.workspace, s.workspace.focus, path);
           if (paneAt(ws, ws.focus)?.mode === "library") ws = setPaneModeIn(ws, ws.focus, "edit");
-          return { ...s, ...mirrorOf(ws), view: "editor", sidebarOpen: false };
+          return { ...s, ...mirrorOf(ws), view: "editor" };
         });
         return;
       }
@@ -2507,7 +2463,6 @@ export const useStore = create<State>()((set, get) => {
         ...s,
         ...mirrorOf(openInPane(s.workspace, s.workspace.focus, orbitsTabFor(path, section))),
         view: "editor",
-        sidebarOpen: false,
       }));
     },
     graphOpen: () => {
@@ -2621,10 +2576,6 @@ export const useStore = create<State>()((set, get) => {
     },
 
     setPaletteOpen: (paletteOpen) => set({ paletteOpen }),
-    // The phone's notes drawer slides on `.s-sidebar`, which is the same
-    // element `paneStill` freezes — so the hand that opens it lowers the flag
-    // in the same commit, and the drawer moves instead of appearing.
-    setSidebarOpen: (sidebarOpen) => set({ sidebarOpen, paneStill: false }),
 
     setSidebarSidePref: (sidebarSidePref) => {
       persistFlagValue(SIDE_KEY, sidebarSidePref);
@@ -2641,21 +2592,14 @@ export const useStore = create<State>()((set, get) => {
       set({ sidebarCollapsed, paneStill: false });
     },
 
-    // ONE gesture, whichever shell is on screen. Below the drawer breakpoint
-    // the sidebar is an overlay driven by `sidebarOpen`, and `sidebarCollapsed`
-    // has nothing on screen to act on — so Ctrl/Cmd+Alt+B, the palette row and the
-    // status-bar switch all went dead at 900px, which is exactly the "a
-    // control that does nothing" failure this product keeps hunting.
     toggleSidebar: () => {
       const s = get();
-      if (sidebarIsDrawer()) s.setSidebarOpen(!s.sidebarOpen);
-      else s.setSidebarCollapsed(!s.sidebarCollapsed);
+      s.setSidebarCollapsed(!s.sidebarCollapsed);
     },
 
-    // `persist` is false for a close the reader asked for but that must not
-    // become a remembered choice — the phone drawer's scrim and its Escape.
-    // A viewport-driven collapse goes through `collapsePanelForViewport`
-    // instead, which also stills the animation.
+    // `persist` is false for a close that must not become a remembered
+    // choice. A viewport-driven collapse goes through
+    // `collapsePanelForViewport` instead, which also stills the animation.
     setPanelCollapsed: (panelCollapsed, persist = true) => {
       if (persist) persistFlag(PANEL_COLLAPSED_KEY, panelCollapsed);
       set({ panelCollapsed, paneStill: false });

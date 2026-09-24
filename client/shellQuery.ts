@@ -7,20 +7,19 @@
 // Exactly one is mounted. This module is the whole decision, kept free of the
 // store and of the DOM so a node test can hold it.
 //
-// THE QUERY IS THE DRAWER'S, WITH ITS CEILING LIFTED FOR A FINGER. The drawer
-// breakpoint (client/state.ts DRAWER_QUERY) asks "≤700px, or ≤999px on a
-// coarse primary pointer that cannot hover". The phone shell asks the same two
-// questions and drops the 999 on the second: a tablet in landscape is 1180px
-// wide and is still a slab of glass with no mouse, and the two-column tablet
-// layout exists for exactly that device. Everything DRAWER_QUERY matches, this
-// matches (tests/shellQuery.test.ts holds the containment), so no device that
-// had the phone's drawer gets the desktop's panes back. A tablet with a
-// trackpad reports `hover: hover` and keeps the desktop shell — its pointer can
-// aim at a 12px grip, and its owner chose a keyboard.
+// ONE QUESTION, ONE CONSTANT. "≤700px, or a coarse primary pointer that
+// cannot hover": a phone, a tablet with no mouse in either orientation (the
+// two-column tablet layout exists for exactly that device), or a window
+// dragged narrow. It began as the desktop's drawer breakpoint with its 999px
+// ceiling lifted for a finger; since 3.27.0 the drawer is gone and this is the
+// only copy of the question in the client (tests/drawerQuery.test.ts holds
+// every file to it). A tablet with a trackpad reports `hover: hover` and keeps
+// the desktop shell — its pointer can aim at a 12px grip, and its owner chose
+// a keyboard.
 
-/** The phone shell is mounted wherever this matches (and the reader has not
- *  picked Classic — see `shellFor`). Re-evaluated on `change`, so a rotation,
- *  a foldable opening or a window dragged narrow switches shells cleanly. */
+/** The phone shell is mounted wherever this matches. Re-evaluated on
+ *  `change`, so a rotation, a foldable opening or a window dragged narrow
+ *  switches shells cleanly. */
 export const PHONE_SHELL_QUERY = "(max-width: 700px), ((pointer: coarse) and (hover: none))";
 
 /** Inside the phone shell: wide enough for the navigation rail, a list column
@@ -34,43 +33,12 @@ export const PHONE_SHELL_QUERY = "(max-width: 700px), ((pointer: coarse) and (ho
  *  in landscape gets two. */
 export const TABLET_QUERY = "(min-width: 768px)";
 
-/** This device's own choice, for one release: the new phone shell, or the
- *  classic drawer shell it replaces. A property of the SCREEN IN THE HAND, so
- *  it never travels to the vault (client/prefsSync.ts NEVER_TRAVELS). */
-export const PHONE_LAYOUT_KEY = "astrolabe.phoneLayout";
-export type PhoneLayout = "new" | "classic";
-/** Raised on `window` when the choice changes, so the mount can follow it
- *  without a reload. */
-export const PHONE_LAYOUT_EVENT = "astrolabe:phone-layout";
-
 export type Shell = "phone" | "desktop";
 
-/** The whole decision: the device asks for a phone and the reader has not
- *  asked for the classic shell. */
-export function shellFor(phoneQueryMatches: boolean, layout: PhoneLayout): Shell {
-  return phoneQueryMatches && layout !== "classic" ? "phone" : "desktop";
-}
-
-export function readPhoneLayout(): PhoneLayout {
-  try {
-    return localStorage.getItem(PHONE_LAYOUT_KEY) === "classic" ? "classic" : "new";
-  } catch {
-    return "new";
-  }
-}
-
-export function setPhoneLayout(layout: PhoneLayout): void {
-  try {
-    if (layout === "classic") localStorage.setItem(PHONE_LAYOUT_KEY, "classic");
-    else localStorage.removeItem(PHONE_LAYOUT_KEY);
-  } catch {
-    // storage unavailable: the choice lasts this page
-  }
-  window.dispatchEvent(new Event(PHONE_LAYOUT_EVENT));
-}
-
-/** Would this device get the phone shell if the reader asked for it? The
- *  settings row that offers the choice is drawn only where it means something. */
-export function phoneShellDevice(): boolean {
-  return typeof window !== "undefined" && window.matchMedia(PHONE_SHELL_QUERY).matches;
+/** The whole decision. It took a second argument for one release (3.26.x):
+ *  the reader's `Phone layout: Classic`, which kept the drawer shell on a
+ *  phone. Classic was deleted in 3.27.0 with the drawer, its pan and its
+ *  back-gesture guard; the question is the device's alone again. */
+export function shellFor(phoneQueryMatches: boolean): Shell {
+  return phoneQueryMatches ? "phone" : "desktop";
 }

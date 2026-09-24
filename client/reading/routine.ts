@@ -71,6 +71,14 @@ export interface RoutineHooks {
    *  itself. */
   view?: string | null;
   onView?: (iso: string | null) => void;
+  /** THE PHONE'S ORDER (client/phone/screens/SigilScreen.tsx, 3.27.0). The
+   *  card reads stats first because on a wide page they sit beside the
+   *  title; on a phone that put today's ticks 470px down (the audit). Here
+   *  the day comes first — the checklist, then the week strip and the heat
+   *  map — and the streak and month figures follow them; a course's plan,
+   *  where its projected dates are, is drawn open. The page's own doors
+   *  (`actions`) belong to the screen's ⋯ there, not to the card. */
+  layout?: "page" | "phone";
 }
 
 const KIND_LABEL: Record<RoutineKind, I18nKey> = {
@@ -227,8 +235,9 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
     month.title = tf("routineMonthTitle", { done: localeNum(stats.month.done), of: localeNum(stats.month.of) });
     chips.appendChild(month);
   }
-  head.appendChild(chips);
-  if (hooks.actions && hooks.actions.length > 0) {
+  const phone = hooks.layout === "phone";
+  if (!phone) head.appendChild(chips);
+  if (hooks.actions && hooks.actions.length > 0 && !phone) {
     const actions = el("div", "s-rv-routine__actions");
     for (const a of hooks.actions) {
       const b = el("button", "s-rv-routine__action", a.label);
@@ -392,11 +401,16 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
   heat.appendChild(grid);
   lower.appendChild(heat);
   card.appendChild(lower);
+  if (phone) card.appendChild(chips);
 
   // ── The plan ──
   const hasWeek = plan.slots.length > 0 || Object.values(plan.week).some((d) => d.length > 0);
   if (plan.mode === "course" && plan.course !== null && plan.course.steps.length > 0) {
     const details = el("details", "s-rv-routine__plan");
+    // Open on a phone: the units and the dates the projection gives them
+    // are the course's second question after "what today", and a fold is
+    // one tap more than a phone should ask for it.
+    if (phone) details.open = true;
     details.appendChild(el("summary", "s-rv-routine__plansum", t("sigilCoursePlanTitle")));
     details.appendChild(renderCourseUnits(plan, entries, today, locale));
     details.addEventListener("toggle", () => hooks.onResize?.());

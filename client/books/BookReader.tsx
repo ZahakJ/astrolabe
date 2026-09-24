@@ -60,13 +60,17 @@ import { toast } from "../toast.ts";
 import { formatDuration } from "../trackerUnits.ts";
 import { panesInOrder } from "../workspace.ts";
 import { actionToast } from "../undoToast.ts";
+import { announceOverlay } from "../overlays.ts";
 import {
   HelpSheet,
   OutlinePanel,
+  PhoneBar,
+  PhoneZoom,
   SearchLine,
   outlinePage,
   type HelpRow,
   type OutlineRow as ChromeOutlineRow,
+  type PhoneReaderHost,
 } from "./chrome.tsx";
 import { readOutline } from "./outline.ts";
 import { clearStash, logSession, readStash, writeStash } from "./session.ts";
@@ -169,6 +173,11 @@ interface Props {
    *  around to answer. */
   zen?: boolean;
   onZen?(): void;
+  /** On a phone (client/phone/screens/ReaderScreen.tsx): the reader wears
+   *  ONE bar of its own — back, title, a page scrubber, ⋯ — and its verbs go
+   *  to the phone's action sheet (client/books/chrome.tsx PhoneBar). The
+   *  desktop's bar, its status line and its panels' ✕ stay the desktop's. */
+  phone?: PhoneReaderHost;
 }
 
 /** A citation the reader has assembled and not yet written. Held rather than
@@ -186,7 +195,10 @@ interface PendingCite {
   picking: boolean;
 }
 
-export default function BookReader({ path, citation = null, active = true, onLanded, onClose, onLibrary, zen = false, onZen }: Props) {
+export default function BookReader({ path, citation = null, active = true, onLanded, onClose, onLibrary, zen = false, onZen, phone }: Props) {
+  /** Read by the open effect, which runs per book rather than per render. */
+  const onPhone = useRef(phone !== undefined);
+  onPhone.current = phone !== undefined;
   const [entry, setEntry] = useState<BookOpenResponse | null>(null);
   const [doc, setDoc] = useState<PdfDocument | null>(null);
   const [failed, setFailed] = useState(false);
@@ -290,7 +302,12 @@ export default function BookReader({ path, citation = null, active = true, onLan
           clock.current = stashed;
         }
         const restored = opened.state ?? { ...DEFAULT_BOOK_STATE, path: opened.path };
-        setState(restored);
+        // A PHONE OPENS A BOOK AT ITS WIDTH. The state is shared with every
+        // device that reads this book, and a zoom chosen at a desk (the audit
+        // measured a book opening at 84% on a 412px screen) is a zoom for a
+        // desk. Not saved: the desk keeps its own until a pinch here says
+        // otherwise.
+        setState(onPhone.current ? { ...restored, fit: "width" } : restored);
         setSpreadIndex(spreadOfPage(restored.page, restored.dual));
 
         const pdf = await openDocument(opened.path, { signal: controller.signal });
@@ -996,6 +1013,32 @@ export default function BookReader({ path, citation = null, active = true, onLan
     }
   }, [doc, outline]);
 
+  // A panel over the page (search, go-to, the marked passages, a quotation
+  // being written) is a layer: on a phone Back closes it before it closes the
+  // book (client/overlays.ts; the desktop does not listen).
+  useEffect(() => {
+    if (overlay === "none") return;
+    return announceOverlay(`book-${overlay}`, () => setOverlay("none"));
+  }, [overlay]);
+
+  /** The phone asked for the contents before they were read: show them when
+   *  they arrive. */
+  const [outlineWanted, setOutlineWanted] = useState(false);
+  useEffect(() => {
+    if (!outlineWanted || outline === null || !phone) return;
+    setOutlineWanted(false);
+    if (outline.length === 0) {
+      toast(t("bookNoOutline"));
+      return;
+    }
+    phone.outline(
+      t("bookOutline"),
+      outline.map((row) => ({ label: row.title, depth: row.depth, trailing: outlinePage(row.page), current: false })),
+      (index) => goToPage(outline[index]?.page || 1, scrollBehavior()),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outlineWanted, outline, phone]);
+
   // ── Search ────────────────────────────────────────────────────────────────
   /** Bumped per search; a scan that is no longer the newest stops publishing.
    *  The scan is page-by-page and awaits between pages, so a SLOWER earlier
@@ -1514,6 +1557,7 @@ export default function BookReader({ path, citation = null, active = true, onLan
       // The shell's Esc reads this: while a panel is open, Esc closes the
       // panel and must not also drop the window out of zen (client/App.tsx).
       data-overlay={overlay}
+      data-phone={phone ? "on" : undefined}
     >
       <div
         className="s-book__scroll"
@@ -1569,6 +1613,45 @@ export default function BookReader({ path, citation = null, active = true, onLan
         </div>
       </div>
 
+      {phone ? (
+        <>
+          <PhoneBar
+            title={title}
+            at={state.page}
+            total={state.pages}
+            unit={(page, total) => tf("bookPageOf", { page: localeNum(page), total: localeNum(total) })}
+            onBack={phone.onBack}
+            onScrub={(page) => goToPage(page, "auto")}
+            onMenu={() => {
+              const night = state.invert === "off" ? t("off") : state.invert === "night" ? t("bookNightFigures") : t("bookNightAll");
+              phone.menu(title, [
+                {
+                  label: t("bookOutline"),
+                  onSelect: () => {
+                    setOutlineWanted(true);
+                    void loadOutline();
+                  },
+                },
+                { label: t("bookSearchLabel"), onSelect: () => setOverlay("search") },
+                {
+                  label: t("bookGotoTitle"),
+                  onSelect: () => {
+                    void loadOutline();
+                    setOverlay("goto");
+                  },
+                },
+                { label: t("bookKeyInvert"), note: night, onSelect: cycleInvert },
+                { label: t("bookCiteAction"), onSelect: () => beginCite(false) },
+                { label: t("bookAnnotations"), onSelect: () => setOverlay("annotations") },
+                { label: t("bookFitWidth"), onSelect: () => update({ fit: "width" }) },
+                ...(sessionState !== null ? [{ label: t("bookSessionEnd"), note: sessionState.running ? formatDuration(sessionState.minutes) : t("bookSessionPaused"), onSelect: () => endSession() }] : []),
+              ]);
+            }}
+          />
+          <PhoneZoom onOut={() => zoomBy(1 / 1.15)} onIn={() => zoomBy(1.15)} outLabel={t("bookZoomOut")} inLabel={t("bookZoomIn")} />
+        </>
+      ) : (
+      <>
       <header className="s-book__top">
         <span className="s-book__title" dir="auto">
           {title}
@@ -1642,6 +1725,8 @@ export default function BookReader({ path, citation = null, active = true, onLan
           aria-label={tf("bookInkSet", { ink: localeNum(ink) })}
         />
       </footer>
+      </>
+      )}
 
       {overlay === "command" && (
         <CommandLine

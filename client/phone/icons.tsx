@@ -139,3 +139,28 @@ export const IconCheck = () => (
     <path d="m5 12 5 5 9-10" />
   </Glyph>
 );
+export const IconList = () => (
+  <Glyph>
+    <path d="M9 6h11M9 12h11M9 18h11" />
+    <circle cx="4.5" cy="6" r="1" />
+    <circle cx="4.5" cy="12" r="1" />
+    <circle cx="4.5" cy="18" r="1" />
+  </Glyph>
+);
+export const IconMoon = () => (
+  <Glyph>
+    <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+  </Glyph>
+);
+export const IconQuote = () => (
+  <Glyph>
+    <path d="M9 7H5v6h4v-2.5M9 7v6c0 2.5-1.5 4-4 4.5M19 7h-4v6h4v-2.5M19 7v6c0 2.5-1.5 4-4 4.5" />
+  </Glyph>
+);
+export const IconImage = () => (
+  <Glyph>
+    <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+    <circle cx="9" cy="10" r="1.6" />
+    <path d="m4 18 5.5-5.5 4 4 2.5-2.5 4 4" />
+  </Glyph>
+);

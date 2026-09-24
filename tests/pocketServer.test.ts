@@ -23,7 +23,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { PocketIndex, isNote } from "../mobile/src/pocket/index.ts";
-import { createPocketServer, type PocketGit, type PocketRequest, type PocketResponse } from "../mobile/src/pocket/server.ts";
+import { createPocketServer, isoToday, type PocketGit, type PocketRequest, type PocketResponse } from "../mobile/src/pocket/server.ts";
 import { createVaultIo, isHiddenPath, safeVaultPath } from "../mobile/src/pocket/vaultIo.ts";
 import { makeMemoryFs, type MemoryFs } from "./helpers/memoryFs.ts";
 import type { Backlink, NoteData, PocketSyncStatus, SearchHit, SettingsResponse, TagCount, TreeNode } from "../shared/types.ts";
@@ -420,6 +420,55 @@ describe("the pocket server — a voice note is kept, not transcribed (3.24.0)",
     assert.deepEqual(settings.effective.voice, { model: "off", language: "auto", keepAudio: true });
     const answer = await server.call("PATCH", "/api/settings", { voice: { model: "small-q5_1" } });
     assert.equal(answer.status, 501);
+  });
+});
+
+describe("the pocket server — a captured line (3.27.0)", () => {
+  // Today's capture field on the phone shell asks the pocket what it asks an
+  // instance: `POST /api/capture`, one line under `## Captured`, the same
+  // bytes shared/capture.ts writes on the server, and the same refusal of a
+  // note that moved under the index.
+  it("appends under ## Captured in the note named, and commits it like a save", async () => {
+    const server = await loaded();
+    const answer = await server.call("POST", "/api/capture", { text: "call the binder", path: "Welcome.md", time: "09:15" });
+    assert.equal(answer.status, 200);
+    assert.deepEqual(JSON.parse(String(answer.body)), { ok: true, path: "Welcome.md" });
+    const note = (await server.json("GET", "/api/note?path=Welcome.md")) as NoteData;
+    assert.match(note.content, /\n## Captured\n\n- 09:15 call the binder\n$/);
+    assert.equal(server.commits.at(-1), "Astrolabe pocket: Welcome");
+    // A second line joins the same section.
+    await server.call("POST", "/api/capture", { text: "and the framer", path: "Welcome.md", time: "09:20" });
+    const again = (await server.json("GET", "/api/note?path=Welcome.md")) as NoteData;
+    assert.match(again.content, /- 09:15 call the binder\n- 09:20 and the framer\n$/);
+  });
+
+  it("writes the day's inbox — where the share sheet and a kept voice note go — when no note is named", async () => {
+    const server = await loaded();
+    const answer = await server.call("POST", "/api/capture", { text: "a thought", time: "22:40" });
+    assert.equal(answer.status, 200);
+    const { path } = JSON.parse(String(answer.body)) as { path: string };
+    assert.equal(path, `Inbox/${isoToday(1_700_000_000_000)}.md`);
+    const note = (await server.json("GET", `/api/note?path=${encodeURIComponent(path)}`)) as NoteData;
+    assert.equal(note.content, "## Captured\n\n- 22:40 a thought\n");
+    // …and the tree has it at once: the index took the write.
+    const tree = JSON.stringify(await server.json("GET", "/api/tree"));
+    assert.ok(tree.includes(path));
+  });
+
+  it("refuses an empty line, a path that is not a note, and a note that moved under the index", async () => {
+    const server = await loaded();
+    const empty = await server.call("POST", "/api/capture", { text: "   " });
+    assert.equal(empty.status, 400);
+    assert.equal(JSON.parse(String(empty.body)).code, "captureEmpty");
+    assert.equal((await server.call("POST", "/api/capture", { text: "x", path: "Media/diagram.png" })).status, 400);
+    // A sync pull rewrote the file behind the index's back.
+    server.fs.tick();
+    await server.fs.promises.writeFile(`${ROOT}/Welcome.md`, "from the laptop\n", "utf8");
+    const stale = await server.call("POST", "/api/capture", { text: "lost?", path: "Welcome.md", time: "10:00" });
+    assert.equal(stale.status, 409);
+    assert.equal(JSON.parse(String(stale.body)).code, "stale");
+    const text = await server.fs.promises.readFile(`${ROOT}/Welcome.md`, "utf8");
+    assert.equal(text, "from the laptop\n");
   });
 });
 

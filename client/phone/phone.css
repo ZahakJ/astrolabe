@@ -1147,3 +1147,292 @@
   overflow-wrap: anywhere;
   text-overflow: clip;
 }
+
+/* ── Round 2 (3.27.0): every surface's own phone shape ─────────────────────── */
+
+/* A tablet's full screen (a session, a book): the list column steps aside. */
+.s-ph-cols--full .s-ph-cols__detail {
+  flex: 1;
+}
+
+.s-ph-chip--on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.s-ph-chip--all {
+  color: var(--accent);
+}
+
+.s-ph-row--done .s-ph-row__name {
+  color: var(--text-muted);
+}
+
+.s-ph-row__done {
+  flex: none;
+  display: flex;
+  color: var(--accent);
+}
+
+.s-ph-head__glyph {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.s-ph-btn--wide {
+  width: 100%;
+}
+
+/* ── Settings: a list of sections, a section a screen ── */
+
+.s-ph-search__bar--flat {
+  border-bottom: 0;
+  padding-bottom: 4px;
+}
+
+/* A section's rows are ONE column whatever the glass: the label, the
+   control under it, the hint under that. The dialog's two columns are a
+   desk's; on a tablet the section sits in a 480px column beside the list,
+   and the viewport's width is not the column's. */
+.s-ph-settings__body {
+  padding: 4px 16px 120px;
+}
+
+.s-ph-settings__intro {
+  margin: 12px 0 4px;
+}
+
+.s-ph-settings .s-smodal__row,
+.s-ph-settings .s-about__row,
+.s-ph-settings .s-about__doc {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-height: 0;
+  padding-block: 12px;
+}
+
+.s-ph-settings .s-smodal__label {
+  padding-top: 0;
+}
+
+.s-ph-settings .s-smodal__hint,
+.s-ph-settings .s-smodal__control {
+  max-width: none;
+}
+
+.s-ph-settings .s-smodal__specwrap {
+  position: static;
+  padding-block: 2px 8px;
+}
+
+.s-ph-settings .s-smodal__specline {
+  white-space: normal;
+}
+
+.s-ph-settings .s-smodal__tabhead {
+  display: none;
+}
+
+/* The save bar: always in the tree, below the glass while there is nothing
+   to save, risen by a transform when there is. */
+.s-ph-savebar {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 4;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--bg-raised);
+  box-shadow: 0 -6px 20px rgb(0 0 0 / 0.14);
+  transform: translate3d(0, 110%, 0);
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.s-ph-settings--dirty .s-ph-savebar {
+  transform: none;
+}
+
+.s-ph-savebar__status {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-ph-savebar .s-ph-btn {
+  flex: none;
+}
+
+/* ── Orbits: a deck ── */
+
+.s-ph-deck__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 16px 8px;
+}
+
+.s-ph-deck__icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.s-ph-deck__hint,
+.s-ph-deck__line {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.s-ph-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+}
+
+.s-ph-figure {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 4px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-raised);
+}
+
+.s-ph-figure dt {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.s-ph-figure dd {
+  margin: 0;
+  font: 600 26px/1.1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-ph-figure--lit dd {
+  color: var(--accent);
+}
+
+/* ── Orbits: the session, full screen ── */
+
+.s-ph-session__body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Sigils: one card, today first ── */
+
+.s-ph-sigil__card {
+  padding: 12px 12px 24px;
+}
+
+.s-ph-sigil__card .s-rv-routine {
+  margin: 0;
+}
+
+/* ── Media ── */
+
+.s-ph-cover {
+  flex: none;
+  box-sizing: border-box;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--bg-hover);
+}
+
+.s-ph-cover--glyph {
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+}
+
+.s-ph-tracker__card {
+  display: block;
+  padding: 16px;
+  container-type: normal;
+}
+
+.s-ph-tracker__card .s-media__card {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* ── A book: the reader's own chrome, and nothing of ours ── */
+
+.s-ph-reader__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── The contents sheet and the tag picker ── */
+
+.s-ph-listsheet__row--lit {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.s-ph-tagsheet__field {
+  margin-top: 6px;
+}
+
+.s-ph-tagsheet__row {
+  justify-content: flex-start;
+}
+
+.s-ph-tagsheet__row .s-ph-actions__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.s-ph-tagsheet__row--on .s-ph-task__box {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.s-ph-tagsheet__add .s-ph-actions__label {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-ph-savebar {
+    transition: none;
+  }
+}
+
+/* The settings rows' own small buttons (Reset fonts, Pick…, "Pin this" under
+   the visitor theme) are a finger's size in a section: settings.css lifts
+   them inside the dialog (`.s-smodal .s-btn`), and a section is not one. */
+.s-ph-settings .s-btn,
+.s-ph-settings .s-smodal__visitorspin {
+  min-block-size: 44px;
+}
+
+.s-ph-settings .s-smodal__visitorspin {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The row whose detail is open beside the list (a tablet's two columns). */
+.s-ph-row--on {
+  background: var(--bg-hover);
+}

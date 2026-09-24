@@ -30,6 +30,8 @@ import type { EffectiveSettings, MeData, NoteData, NoteRevision, PocketSyncStatu
 import { frontmatterKeyRefusal, setNoteProperty } from "../../../shared/frontmatterEdit.ts";
 import type { PropertyValue } from "../../../shared/types.ts";
 import { isNotePath, noteTitleOf } from "../../../shared/noteFormat.ts";
+import { appendCaptured } from "../../../shared/capture.ts";
+import { stripBidiControls } from "../../../shared/bidi.ts";
 import {
   DAILY_FOLDER_DEFAULT,
   DAILY_FORMAT_DEFAULT,
@@ -52,6 +54,7 @@ import {
   sniffRecording,
   voiceAudioDir,
   voiceAudioPath,
+  voiceInboxPath,
   voiceStamp,
   VOICE_MAX_BYTES,
   type VoiceJob,
@@ -1046,6 +1049,42 @@ export function createPocketServer(deps: PocketDeps): {
         await commit("Astrolabe pocket: voice note", [audio, plan.path]);
         const job: VoiceJob = { id: "", status: "kept", audio, notePath: plan.path, kind: "bullet", error: "pocket" };
         return json(job);
+      }
+
+      // ── capture (3.27.0) ──────────────────────────────────────────────────
+      // Today's capture field, answered here as server/api.ts answers it: one
+      // line under `## Captured` (shared/capture.ts appendCaptured — the same
+      // bytes the server writes), stamped with the caller's `HH:MM`, in the
+      // note the caller names — the client names today's daily note, made
+      // through its own door with its template, or the pinned capture inbox
+      // — and, when it names none, in the day's inbox `Inbox/YYYY-MM-DD.md`:
+      // the note a pocket already files the share sheet's captures and its
+      // kept voice notes under (mobile/src/capture.ts, shared/voice.ts), so a
+      // line with no address lands where every other nameless line on this
+      // phone does. The same precondition as every other write here:
+      // a note that moved on disk since the index last read it (a sync pull
+      // landed in between) is refused with 409, not appended over. One commit
+      // per line, like a save.
+      case "POST /api/capture": {
+        const body = await bodyJson(request);
+        const raw = typeof body?.text === "string" ? body.text : "";
+        const text = stripBidiControls(raw).replace(/\r\n?/g, "\n").trim();
+        if (text === "") return fail(400, "Nothing to capture", "captureEmpty");
+        if (text.length > 20_000) return fail(413, "That is a note, not a line", "captureTooLong");
+        const named = typeof body?.path === "string" && body.path !== "" ? body.path : null;
+        if (named !== null && !isNotePath(named)) return fail(400, `Not a note path: ${named}`);
+        const time = typeof body?.time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(body.time) ? body.time : null;
+        const at = new Date(now());
+        const path = named ?? voiceInboxPath(isoToday(now()));
+        const current = await readNote(path);
+        if (current) {
+          const stale = assertFresh(path, current.mtimeMs);
+          if (stale) return stale;
+        }
+        const stamp = time ?? `${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")}`;
+        const next = appendCaptured(current?.content ?? "", text, stamp);
+        await saveNote(path, next, current ? "changed" : "created");
+        return json({ ok: true, path });
       }
 
       case "POST /api/upload":

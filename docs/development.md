@@ -39,7 +39,7 @@ In dev mode you open port 5801; requests to `/api` are passed through to the ser
 | `npm run check-docs` | Every link, anchor, image and settings path in this manual resolves, in both languages (below) |
 | `npm run gen-icons` | Redraw the folder-mark glyph set from its catalog; `npm run check-icons` fails when the drawing is stale |
 | `npm run check-desktop` | The desktop wrapper's own checks, then its `tsc` |
-| `npm run check-windows-layout` | The shell at six window widths × three device pixel ratios × three pointer postures (below) |
+| `npm run check-windows-layout` | The desktop shell at five window widths × three device pixel ratios × its pointer postures, and which shell each width gets (below) |
 
 ## The gates
 
@@ -186,24 +186,25 @@ could see, because each of them is a function of the viewport **and** the pointe
 because the one machine none of us has is the one they all happened on.
 
 So this gate is a ladder rather than a screenshot. It drives the built app at **1366, 1280, 1024,
-900, 700 and 600 CSS px**, each at **device pixel ratio 1, 1.25 and 1.5**, in both directions,
+900 and 720 CSS px** — the desktop shell's own widths — each at **device pixel ratio 1, 1.25 and
+1.5**, in both directions,
 with the pane widths both empty and seeded to a pair the reader could actually drag them to
 (`{560, 560}`), under the three pointer postures Chromium really reports on Windows:
 
 | posture | what it is | what it must give |
 |---|---|---|
 | `mouse` | a desktop tower or a plain laptop | docked panes and grips at every width above 700 |
-| `slate` | a hardware slate — touch, a rotation sensor, the ACPI slate bit. **An attached mouse does not change Chromium's answer** | the drawer below 1000, docked panes **with grips** above it, 44px rows |
+| `slate` | a hardware slate — touch, a rotation sensor, the ACPI slate bit. **An attached mouse does not change Chromium's answer** | the phone shell, at every width |
 | `touchlaptop` | a fine pointer and a finger | docked panes, grips, **and** 44px rows |
 
 The postures are Blink settings on the browser process (`--blink-settings=availablePointerTypes=…`),
 which is what `pointer_device_win.cc` itself hands the renderer — not DevTools media emulation,
 which `setViewportSize` silently drops halfway down a ladder.
 
-**Since 3.26.0 the ladder runs in the Classic phone layout**, because its drawer cells measure the
-drawer shell; a last rung, `whichShell`, walks each posture down the widths under the default layout
-and asserts the phone shell below 700 and on a slate at every width, and the desktop — unmoved —
-everywhere else.
+**Which shell.** A last rung, `whichShell`, walks each posture down the widths (700 and 600 too) and
+asserts the phone shell below 700 and on a slate at every width, and the desktop — unmoved —
+everywhere else. (Until 3.27.0 the ladder ran in the Classic phone layout, to measure its drawer
+cells; the drawer went with it, so every cell the desktop is mounted in is docked and says so.)
 
 In each cell it asserts that the sidebar is a real grid column (not auto-placed, not an overlay)
 wherever a pointer can hit a strip, that each docked pane has a grip whose 12px hit area is
@@ -214,8 +215,8 @@ neither pane's close button runs off the window, and that the document never scr
 Three rungs after the ladder watch the frames the ladder cannot see, because it waits 300ms after
 each resize and a 0.18s transition is over by then. They ask what the reader actually sees while a
 window is being dragged and while a pane is being folded: the note column still has its 320px
-**one frame** after a resize, the phone's notes drawer still slides rather than appearing, and the
-reader's own `Ctrl/Cmd Alt B` fold is still mid-flight 60ms in. All three failed at some point on
+**one frame** after a resize (at two ratios and in both directions), and the reader's own
+`Ctrl/Cmd Alt B` fold is still mid-flight 60ms in, at two widths. Each failed at some point on
 the same flag — the class that says "this width is not the hand's doing" — being up when it should
 have been down, or down when it should have been up.
 
@@ -395,10 +396,18 @@ URL and the title (the old gate was green the day a tree tap on a phone opened n
 note screen has no tab bar; the note sheet takes a history entry and the browser's back closes it
 before it pops the note; Publish asks, and a cancelled publish publishes nothing; the mode icon
 flips the mode it names; back pops the note to its folder; a long press raises the row's action
-sheet and back closes it; Search is focused on arrival; a calendar day opens as a sheet; Orbits,
-Sigils, the library and the graph open as screens; Settings takes an entry and back closes it; a
-deep link opens its note and back from it comes home to Today; no page errors; and, once,
-`Phone layout: Classic` mounts the desktop's drawer shell — and, in it, a note tapped in the drawer opens (address, title and active tab; the back-gesture guard still lives there) and the bottom bar's Publish asks before it publishes.
+sheet and back closes it; Search is focused on arrival; a calendar day opens as a sheet; a deep
+link opens its note and back from it comes home to Today; no page errors. And, since 3.27.0, each
+of Round 2's screens is asked what a thumb asks of it: Orbits lists its decks, a deck opens, and
+**Study starts the session full screen** (on a tablet it takes both columns) and back lands on the
+deck; Sigils lists its sigils, a sigil opens and **a tick answers at once and the server has it**;
+Media lists its shelves and a tracker opens its card; **a book wears one bar of its own** (no
+desktop bar, no phone top bar) and **its scrubber moves the page**; the reader's ⋯ is an action
+sheet and **back closes it** and keeps the book; the theme picker (a layer on `<body>`) takes a
+history entry and back closes it; Settings is a list, a section is a screen, an edit raises the
+save bar, **back with an edit asks** and Cancel keeps the edit, and **Save writes it**; the tag
+picker opens over the note sheet and **writes the tag into the note**; and **a folder comes back
+scrolled where it was left**.
 
 **What it measures, on every screen and sheet.** Nothing overflows sideways (a strip that
 scrolls on purpose is exempt); every shell target is ≥44px (height always, width too when the
