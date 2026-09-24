@@ -88,8 +88,8 @@ webmentionPublic.post(
   bodyLimit({ maxSize: 8 * 1024, onError: (c) => c.text("Request body too large", 413) }),
   async (c) => {
     if (!webmentionsEffective().accept) return c.text("Not found", 404);
-    const origin = requestOrigin(c);
-    rememberOrigin(origin);
+    // Not remembered: an anonymous caller writes its own forwarded host.
+    const origin = publicOrigin() ?? requestOrigin(c);
     if (rateLimited(clientIp(c))) return c.text("Slow down — try again in a minute", 429);
     const type = c.req.header("content-type") ?? "";
     if (!/application\/x-www-form-urlencoded|multipart\/form-data/i.test(type)) {
@@ -118,6 +118,8 @@ function adminOnly(c: Context): void {
 
 webmentionApi.get("/webmentions/status", (c) => {
   adminOnly(c);
+  // The owner's own session is the one request whose address is trusted
+  // enough to remember when SITE_URL is unset.
   rememberOrigin(requestOrigin(c));
   // Opening the panel is a good moment to catch a switch just turned on.
   void reconcile();
@@ -134,14 +136,19 @@ webmentionApi.get("/webmentions/status", (c) => {
 });
 
 webmentionApi.get("/webmentions", (c) => {
-  if (!moderationEnabled()) throw new VaultError(404, "Not found");
   const raw = c.req.query("path") ?? "";
   if (raw === "") throw new VaultError(400, 'Query parameter "path" is required');
   const notePath = normalizeRel(raw);
   const limited = isPublishLimited(c);
-  // A visitor reads what other sites said only about a page this site talks
-  // to other sites about; the admin reads any published note's.
-  if (limited ? !isFederable(notePath) : !isNotePublished(notePath)) throw new VaultError(404, `Note not found: ${notePath}`);
+  // The comments route's gate: a note a visitor could not read is a 404,
+  // whatever this feature's switches say.
+  if (!isNotePublished(notePath)) throw new VaultError(404, `Note not found: ${notePath}`);
+  // An EMPTY answer, not a 404, for a published note with nothing to show —
+  // the feature off, or a page this site does not talk to other sites about
+  // (a visitor reads mentions of federable pages only). The Mentions section
+  // asks on every article it draws; a 404 there would be a red line in the
+  // console of every instance that never turned the feature on.
+  if (!moderationEnabled() || (limited && !isFederable(notePath))) return c.json([]);
   return c.json(listInteractions(notePath, !limited));
 });
 

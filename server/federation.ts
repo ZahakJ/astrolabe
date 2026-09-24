@@ -59,14 +59,15 @@ export function isFederable(notePath: string): boolean {
 let rememberedOrigin: string | null = null;
 
 /** The origin other sites know this one by: SITE_URL when set (the only
- *  stable answer, and the one the docs ask for), else the last origin a
- *  request to this site arrived at — which is what a background job that
- *  has no request of its own must go on. Null until either exists. */
+ *  stable answer, and the one the docs ask for), else the origin the owner
+ *  last opened Settings → Publishing at — which is what a background job
+ *  that has no request of its own must go on. Null until either exists. */
 export function publicOrigin(): string | null {
   return siteUrl() ?? rememberedOrigin;
 }
 
-/** Record the origin a request arrived at (the routes call this). */
+/** Record the origin an ADMIN request arrived at (the Publishing status
+ *  route) — never an anonymous one, whose forwarded host is its own. */
 export function rememberOrigin(origin: string): void {
   if (siteUrl() !== null) return;
   const clean = normalizeUrl(origin);

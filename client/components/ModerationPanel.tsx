@@ -14,6 +14,7 @@ import { confirmModal } from "./Confirm.tsx";
 import { authorName, deleteComment, IconEyeSlash, setCommentHidden } from "./Marginalia.tsx";
 import "../styles/comments.css";
 import { stripNoteExt } from "../../shared/noteFormat.ts";
+import { InteractionMeta, VerifyAgain } from "../mentions/ModerationBits.tsx";
 
 const FEED_LIMIT = 100;
 
@@ -207,6 +208,7 @@ export default function ModerationPanel() {
                   <span className="s-modrow__author" dir="auto">{authorName(cm.author)}</span>
                   <span className="s-modrow__time">{shortDate(cm.createdMs)}</span>
                   {cm.hidden && <span className="s-comment__chip">{t("hiddenChip")}</span>}
+                  <InteractionMeta cm={cm} />
                   <button
                     type="button"
                     className="s-modrow__note" dir="auto"
@@ -219,6 +221,11 @@ export default function ModerationPanel() {
                 <div className="s-modrow__body">
                   <span className="s-modrow__snippet" dir="auto">{snippetOf(cm.body)}</span>
                   <span className="s-modrow__tools">
+                    <VerifyAgain
+                      cm={cm}
+                      onGone={() => setFeed((f) => (f.state === "ready" ? { state: "ready", comments: f.comments.filter((c) => c.id !== cm.id) } : f))}
+                      onUpdated={() => void fetchFeed().then((next) => setFeed(next)).catch(() => {})}
+                    />
                     <button
                       type="button"
                       className={`s-comment__hide${cm.hidden ? " s-comment__hide--on" : ""}`}

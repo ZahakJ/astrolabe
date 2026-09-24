@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { scrollBehavior } from "../a11y.ts";
 import { getNote, isNotPublishedError } from "../api.ts";
 import Marginalia from "../components/Marginalia.tsx";
+import Mentions from "../mentions/MentionsSection.tsx";
 import AnnotationLayer from "../annotations/AnnotationLayer.tsx";
 import { t, tf } from "../i18n.ts";
 import { Lru } from "../lru.ts";
@@ -341,6 +342,7 @@ export default function ReadingView({ path }: { path: string }) {
           and writes, a visitor previewing sees only the public ones. */}
       <AnnotationLayer path={path} host={annHost} canEdit={admin} scope="r" />
       <Marginalia path={path} />
+      <Mentions path={path} />
     </div>
   );
 }
