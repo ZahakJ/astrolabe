@@ -970,6 +970,65 @@ try {
     }
   }
 
+  // ── an embed held is its menu, as a sheet (client/phone/embedSheet.ts) ────
+  // A picture in a note, held (Android's `contextmenu` for the press), raises
+  // the embed menu as an action sheet — Copy as Markdown and Move… among its
+  // rows — and Move… lists where it can go.
+  {
+    const png = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAADElEQVR4nGP4z8DAAAAACAABiqEfDgAAAABJRU5ErkJggg==";
+    const ctx = await browser.newContext(SHAPES[0].context);
+    await ctx.addCookies(cookies);
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: "load" });
+    const pngPath = await page.evaluate(async (b64) => {
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const form = new FormData();
+      form.append("file", new File([bytes], "check-phone-embed.png", { type: "image/png" }), "check-phone-embed.png");
+      const r = await fetch("/api/upload", { method: "POST", body: form });
+      return r.ok ? (await r.json()).path : null;
+    }, png);
+    const EMBED_NOTE = "check-phone-embed.md";
+    const name = pngPath ? pngPath.slice(pngPath.lastIndexOf("/") + 1) : "check-phone-embed.png";
+    await adminApi([[`/api/note?path=${encodeURIComponent(EMBED_NOTE)}`, J("PUT", { content: `# Held\n\nBefore.\n\n![[${name}|120]]\n\n## Later\n\nAfter.\n` })]]);
+    try {
+      for (const lang of ["en", "ar"]) {
+        await page.evaluate((l) => {
+          localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+          localStorage.setItem("astrolabe.prefs-sync-off", "1");
+          localStorage.setItem("astrolabe.editorLang", l);
+        }, lang);
+        await page.goto(`${url}/${encodeURIComponent(EMBED_NOTE.replace(/\.md$/, ""))}`, { waitUntil: "load" });
+        const pic = page.locator(".s-ph-note .cm-s-embed-image img, .s-ph-note .s-reading [data-embed-src] img, .s-ph-note .s-reading img[data-embed-src]").first();
+        const shown = await pic.waitFor({ timeout: 20000 }).then(() => true, () => false);
+        check(shown, `phone ${lang}: the held note draws its picture`);
+        if (!shown) continue;
+        await pic.dispatchEvent("contextmenu");
+        await page.waitForTimeout(900);
+        const rows = await page.locator(".s-ph-actions__label").allTextContents();
+        const md = lang === "en" ? "Copy as Markdown" : "نسخ بصيغة ماركداون";
+        const move = lang === "en" ? "Move…" : "نقل…";
+        check(rows.includes(md) && rows.includes(move), `phone ${lang}: holding a picture raises the embed sheet`, rows.join(" | "));
+        await page.screenshot({ path: `${out}/phone-${lang}-embed-sheet.png` });
+        const moveRow = page.locator(".s-ph-actions__row", { hasText: move });
+        if ((await moveRow.count()) > 0) {
+          await moveRow.first().click();
+          await page.waitForTimeout(800);
+          const spots = await page.locator(".s-ph-listsheet__row").count();
+          check(spots >= 3, `phone ${lang}: Move… lists the top, the headings and the end`, `${spots} rows`);
+          await page.screenshot({ path: `${out}/phone-${lang}-embed-move.png` });
+          await page.goBack();
+          await page.waitForTimeout(600);
+        }
+      }
+    } finally {
+      await adminApi([
+        [`/api/note?path=${encodeURIComponent(EMBED_NOTE)}&permanent=1`, { method: "DELETE" }],
+        ...(pngPath ? [[`/api/attachment?path=${encodeURIComponent(pngPath)}&permanent=true`, { method: "DELETE" }]] : []),
+      ]).catch(() => {});
+      await ctx.close();
+    }
+  }
+
 } finally {
   // The owner's feeds setting back as it was, the run's list note gone.
   await adminApi([
