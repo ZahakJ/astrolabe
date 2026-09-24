@@ -12123,7 +12123,9 @@ voice, capture, published), filters (kind set, top folder, tag), rows (month →
 layout. VIRTUAL LIST: `ROW_HEIGHT` (52/32/60) is pinned in `timeline.css`; tops are a prefix sum,
 `visibleRange` a binary search, only the viewport ± 400px is mounted (tests: 10,000 days → < 40
 rows). The desktop keeps the months in a rail (hidden in a pane under 560px); the phone raises
-them as a RoutedSheet from its top bar. Month headings are Gregorian (the grouping is by ISO
+them as a RoutedSheet from its top bar. On a phone the Timeline is a LIST screen (client/phone/kinds.ts):
+it keeps the tab bar, and on a tablet it holds the list column while the note a row opened sits
+beside it. Month headings are Gregorian (the grouping is by ISO
 month), their names in the chrome's language (`dateNamesLocale`).
 
 **YEAR IN REVIEW** (palette "Year in review…", the Timeline's header, the phone Calendar's `⋯`):
