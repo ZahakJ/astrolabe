@@ -36,6 +36,7 @@ import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import { PAGES, headingIds } from "./build-docs.mjs";
 import { SETTINGS_INDEX } from "../client/components/settings/settingsIndex.ts";
+import { tabSources } from "./settings-index.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(join(root, p), "utf8");
@@ -51,25 +52,21 @@ function dictionary() {
   return d;
 }
 
-/** The panel's tabs (`TABS` in SettingsModal.tsx) and, per tab, the group
- *  headings it renders (`s-smodal__sub`) — the same source parse
- *  scripts/settings-index.mjs does for rows. */
+/** The panel's tabs (`TABS` in settings/tabs.ts) and, per tab, the group
+ *  headings it renders (`s-smodal__sub`) — read out of each tab body's file
+ *  through the same switch scripts/settings-index.mjs reads for rows. */
 function panel(dict) {
-  const modal = read("client/components/SettingsModal.tsx");
-  const tabsSrc = /const TABS: Tab\[\] = \[([\s\S]*?)\];/.exec(modal)?.[1] ?? "";
+  const tabsFile = read("client/components/settings/tabs.ts");
+  const tabsSrc = /const TABS: Tab\[\] = \[([\s\S]*?)\];/.exec(tabsFile)?.[1] ?? "";
   const tabs = [...tabsSrc.matchAll(/id: "(\w+)", key: "(\w+)"/g)].map((m) => ({ id: m[1], label: dict.get(m[2]) }));
   const groups = new Map(tabs.map((t) => [t.id, []]));
-  const lines = modal.split("\n");
-  let tab = null;
-  for (const line of lines) {
-    const open = /\{tab === "([a-z]+)" &&/.exec(line);
-    if (open) tab = open[1];
-    const sub = /s-smodal__sub"?>\{t\("(\w+)"\)\}/.exec(line);
-    if (sub && tab && groups.has(tab)) groups.get(tab).push(dict.get(sub[1]));
-  }
-  for (const line of read("client/components/settings/DeviceTab.tsx").split("\n")) {
-    const sub = /s-smodal__sub"?>\{t\("(\w+)"\)\}/.exec(line);
-    if (sub) groups.get("device").push(dict.get(sub[1]));
+  for (const { tab, files } of tabSources()) {
+    for (const file of files) {
+      for (const line of read(file).split("\n")) {
+        const sub = /s-smodal__sub"?>\{t\("(\w+)"\)\}/.exec(line);
+        if (sub && groups.has(tab)) groups.get(tab).push(dict.get(sub[1]));
+      }
+    }
   }
   const rows = new Map(tabs.map((t) => [t.id, []]));
   for (const r of SETTINGS_INDEX) rows.get(r.tab)?.push(dict.get(r.label));
