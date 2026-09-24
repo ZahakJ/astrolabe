@@ -88,7 +88,11 @@ CommandPalette.tsx for this), minus the desktop-only rows and, without a keyboar
 keyboard-only ones. **Calendar**: `CalendarView` unchanged, its day pane handed to a sheet
 through `dayHost`. **More**: grouped rows; the Keyboard group only once a hardware keyboard has
 been seen. Rooms gained **Feeds** (`~feeds`) and Vault gained **Import notes** (the import
-dialog as a store layer, `importFolder`) in 3.28.
+dialog as a store layer, `importFolder`) in 3.28. **More's and Settings' top bars carry the
+chrome-language key** (`client/phone/LangPill.tsx`, admin only, a 44px target around a bordered
+`ع` / `EN`) before any list, and the note sheet's Actions carry the same switch as a row written in
+both languages (`data-action="chrome-lang"`): the way back from a language the reader cannot read
+(contracts/i18n.md, "The way back is always on screen").
 
 **THE NOTE SCREEN.** A 48px top bar (‹, the title — tap for the top —, an icon for the CURRENT
 mode, ⋯) that slides away on scroll-down by `transform` over a note that keeps its own room;
@@ -1074,6 +1078,14 @@ publish toggle answer the FOCUSED pane's surface (`surfaceOf`): over a note they
 over anything else the crumb is the surface's name — what the strip calls it (`titleOf` in
 Tabs.tsx: Orbits, the deck's note in a session, Sigils, the book's title, the drawing's name, the
 week in review, the library) — and the rest is absent. The mode pills stay (they are switches).
+
+**The chrome-language key sits after the mode pills** (`.s-statusbar__lang`,
+`data-testid="chrome-lang"`, admin only): its own group at the far end of the bar, a bordered key
+with a globe and the OTHER language's name in its own script (`ع` / `EN`). It is in the bottom bar
+rather than the portalled top cluster because it must survive every width the bar does, and it is
+shaped unlike the twin pill (`EN ⇄ ع`, bare text, about the NOTE) so the two are never confused.
+Its mousedown is held — switching the chrome never takes focus or the caret from the editor. The
+rule and its other four faces are in contracts/i18n.md ("The way back is always on screen").
 
 ## Mode visibility (status bar, workspace, preview)
 
