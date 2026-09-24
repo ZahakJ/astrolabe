@@ -29,3 +29,22 @@ describe("server/indexer.ts, split into server/indexer/*", () => {
     ]);
   });
 });
+
+describe("server/api.ts, its routes split into server/*Routes.ts", () => {
+  it("mounts every route file; nothing else reaches one, and api.ts exports what it did", () => {
+    assertMove("server/api.ts", [
+      "server/requestBody.ts",
+      "server/trashRoutes.ts",
+      "server/tagRoutes.ts",
+      "server/replaceRoutes.ts",
+      "server/fileRoutes.ts",
+      "server/commentRoutes.ts",
+      "server/deckRoutes.ts",
+      "server/settingsRoutes.ts",
+      "server/syncRoutes.ts",
+      "server/versionRoutes.ts",
+      "server/eventRoutes.ts",
+      "server/renameRoutes.ts",
+    ]);
+  });
+});
