@@ -107,6 +107,20 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         window.dispatchEvent(new CustomEvent("astrolabe:replace-open"));
         return;
       }
+      // Ctrl/Cmd+Alt+Shift+L: THE WAY BACK — the chrome's language, flipped
+      // to the other one (chromeLangSwitch.ts). The twin's chord
+      // with Shift: L for language, and Shift because this is the bigger
+      // turn (everything around the note, not the note). Before everything,
+      // modals included, for the reason the whole feature exists: the reader
+      // pressing it cannot read the dialog that is open. `isKey`, so an
+      // Arabic layout's م key answers it too.
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.shiftKey && isKey(e, "l") && store.admin) {
+        // keymap: scChromeLang
+        e.preventDefault();
+        e.stopPropagation();
+        store.toggleChromeLang();
+        return;
+      }
       if (e.key === "Escape") {
         // keymap: scEscape scEscapeBlog
         // 1. The shortcuts overlay closes first (it is the topmost layer).

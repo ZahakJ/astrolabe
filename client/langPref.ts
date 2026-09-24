@@ -105,3 +105,15 @@ export function chromeLang(session: {
 export function otherLang(lang: Lang): Lang {
   return lang === "ar" ? "en" : "ar";
 }
+
+/** THE WAY BACK's one decision — the editor-language PREFERENCE a press of
+ *  the always-visible switch writes, from the chrome on screen (its label is
+ *  client/chromeLangSwitch.ts):
+ *  the other language, landing on "follow the site" (null) when that is the
+ *  site's own — the same rule the public switch uses for a signed-in owner
+ *  (fieldsSlice setVisitorLang), so two presses always come home to the
+ *  default rather than leaving a pin behind. */
+export function chromeLangPref(current: Lang, siteLang: Lang): Lang | null {
+  const target = otherLang(current);
+  return target === siteLang ? null : target;
+}

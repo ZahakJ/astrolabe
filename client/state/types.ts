@@ -229,6 +229,12 @@ export interface State {
    *  preference — it commits on click, never reaches the server, and changes
    *  nothing about what visitors are served. */
   setEditorLang(lang: Lang | null): void;
+  /** THE WAY BACK (chromeLangSwitch.ts): flip this admin's chrome to
+   *  the OTHER language — the pill on the status bar, the phone's More and
+   *  Settings headers and note sheet, Ctrl/Cmd+Alt+Shift+L and the palette
+   *  row all call this one action. The same preference setEditorLang writes,
+   *  landing on "follow the site" when that is where the press points. */
+  toggleChromeLang(): void;
   loginOpen: boolean;
   /** The desktop updater's last word (client/desktop): the status bar's
    *  version chip draws it — "3.x available" with a download behind it, a bar

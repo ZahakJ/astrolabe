@@ -2279,6 +2279,38 @@ select:focus,
   color: var(--accent);
 }
 
+/* THE WAY BACK: the chrome-language key (StatusBar.tsx, langPref.ts).
+   Shaped unlike its two neighbours on purpose — the twin pill is bare text
+   with an arrow (a NOTE's other face), the mode pills are round uppercase
+   words (states) — so this is a small bordered KEY with a globe and one
+   glyph: the language a press goes to, in its own script. Scoped to the bar
+   for the same (0,1,1) reason as the rules above. */
+.s-statusbar .s-statusbar__lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+}
+
+.s-statusbar .s-statusbar__lang:hover {
+  border-color: var(--text-faint);
+}
+
+/* The naskh ain sits on a taller line than two Latin capitals; a size up and
+   no tracking keeps the key the same height in both chromes. */
+.s-statusbar .s-statusbar__lang[lang="ar"] .s-statusbar__langglyph {
+  font-size: 0.93rem;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
 /* -------------------------------------------------------------- palette -- */
 
 /* THE PALETTE RUNG, and it is shared. Eight surfaces reuse this overlay —

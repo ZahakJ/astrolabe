@@ -1428,6 +1428,7 @@ const ar = {
   scViaPalette: "لوحة الأوامر",
   scViaStatusBar: "شريط الحالة",
   scHelp: "هذه القائمة",
+  scChromeLang: "لغة الواجهة: العربية ⇄ English",
   scLayoutNote: "لوحة مفاتيحك لا تكتب هذه الحروف. الاختصار يتبع موضع المفتاح — الحرف المطبوع عليه — وبجانبه ما يكتبه ذلك المفتاح فعلًا عندك.",
 
   // ── Moving things (drag in the tree, "Move to…", undo) ────────────────────

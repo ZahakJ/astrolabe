@@ -46,6 +46,7 @@ import { switchToTwin, twinIsBehind, twinPillLabels } from "../twins.ts";
 import { relativeDate } from "../dates.ts";
 import { desktop } from "../desktop/bridge.ts";
 import { inAndroidShell, returnToShell } from "../androidShell.ts";
+import { chromeLangSwitch } from "../chromeLangSwitch.ts";
 
 const RELEASES_URL = "https://github.com/ZahakJ/astrolabe/releases/latest";
 const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
@@ -365,7 +366,8 @@ export default function StatusBar() {
   // fact worth a glance rather than permanent furniture.
   const visibility = useStore((s) => s.visibility);
   const setSettingsOpen = useStore((s) => s.setSettingsOpen);
-  useStore((s) => s.language); // re-render the chrome strings on language change
+  const language = useStore((s) => s.language); // re-render the chrome strings on language change
+  const langSwitch = chromeLangSwitch(language);
 
   const vimSub = vimMode ? vimSubCopy(vimSubMode) : null;
 
@@ -1238,6 +1240,40 @@ export default function StatusBar() {
               />
             </>
           )}
+        </span>
+      )}
+      {/* ── The way back: the CHROME's language ───────────────────────────
+          Not the twin pill. `EN ⇄ ع` above turns a NOTE over to its other
+          face; this switches the words and the direction of everything around
+          it. So it wears a different shape (a bordered key with a globe, not
+          bare text with an arrow), lives at the other end of the bar beside
+          the mode switches, and is labelled with the language it goes TO in
+          that language's own script — `ع` from English, `EN` from Arabic — so
+          a reader who cannot read the chrome still finds their own language
+          on it (chromeLangSwitch.ts). Both sentences in the tooltip,
+          because only one dictionary is ever on the page. The mousedown is
+          held so the editor keeps its focus and its caret: switching the
+          chrome must not move the reader in the note. */}
+      {admin && (
+        <span className="s-statusbar__group s-statusbar__langgroup">
+          <button
+            type="button"
+            className="s-statusbar__btn s-statusbar__lang"
+            data-testid="chrome-lang"
+            lang={langSwitch.target}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => useStore.getState().toggleChromeLang()}
+            title={langSwitch.title}
+            aria-label={langSwitch.title}
+          >
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+            </svg>
+            <span className="s-statusbar__langglyph" dir={langSwitch.target === "ar" ? "rtl" : "ltr"} aria-hidden="true">
+              {langSwitch.glyph}
+            </span>
+          </button>
         </span>
       )}
       {admin && (
