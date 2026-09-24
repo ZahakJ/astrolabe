@@ -178,6 +178,20 @@ export function scanDom(source, fileName = "x.ts", { shell = false } = {}) {
       if (name !== null && (DOM_PROPS.has(name) || name === "error")) take(node.initializer, name);
     } else if (shell && ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "el") {
       for (const child of node.arguments.slice(2)) take(child, "el child");
+    } else if (
+      shell &&
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === "fail" &&
+      node.arguments[0] &&
+      ts.isNumericLiteral(node.arguments[0]) &&
+      node.arguments[0].text === "501"
+    ) {
+      // The pocket's refusals (pocket/server.ts): a 501 is read by the
+      // reader, so its reason is a dictionary key spoken in their language.
+      take(node.arguments[1], "501 reason");
+    } else if (shell && ts.isNewExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "PocketVaultError") {
+      for (const arg of node.arguments ?? []) take(arg, "vault refusal");
     }
     ts.forEachChild(node, visit);
   };

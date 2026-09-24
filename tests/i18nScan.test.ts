@@ -81,6 +81,16 @@ describe("the DOM copy scan", () => {
       `el("p", { textContent: t.connect }, t.connectLede);`,
     ].join("\n");
     assert.deepEqual(scanDom(shell, "x.ts", { shell: true }).map((f) => f.text), ["Connect now", "Nothing was shared", "The pocket vault is not open yet"]);
+    // The pocket's 501 reasons and its path refusals are keys, spoken in the
+    // reader's language; a sentence typed in their place is English.
+    const pocket = [
+      `return fail(501, "Uploading needs a server", "pocket");`,
+      `return fail(501, speak("refuseUpload"), "pocket");`,
+      `return fail(404, "Not found");`,
+      `throw new PocketVaultError("That path is not a path");`,
+      `throw new PocketVaultError("vaultPathNotPath");`,
+    ].join("\n");
+    assert.deepEqual(scanDom(pocket, "x.ts", { shell: true }).map((f) => f.text), ["Uploading needs a server", "That path is not a path"]);
     // The client's object literals are data (release notes, tables), not DOM.
     assert.deepEqual(scanDom(`const row = { title: "Some title" };`), []);
   });

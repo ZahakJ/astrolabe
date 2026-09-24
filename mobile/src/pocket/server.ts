@@ -63,6 +63,8 @@ import {
   type VoiceJob,
 } from "../../../shared/voice.ts";
 import { localIsoDay } from "../../../shared/dates.ts";
+import { lang as phoneLang, wordsIn, type Lang, type Sentence } from "../i18n.ts";
+import { PocketVaultError } from "./vaultIo.ts";
 
 // ── what a request and an answer are ────────────────────────────────────────
 
@@ -165,6 +167,8 @@ export interface PocketDeps {
   onEvent?: (event: VaultEvent) => void;
   /** Told when a note was committed, so the pusher can debounce. */
   onCommit?: () => void;
+  /** The language a refusal is written in. Defaults to `readerLang()`. */
+  lang?: () => Lang;
 }
 
 // ── answers ─────────────────────────────────────────────────────────────────
@@ -212,53 +216,57 @@ export function fail(status: number, error: string, code?: string): PocketRespon
  * vault. What the owner KEPT is notes, and those are here like any note.
  */
 /** An export is unpacked, converted and planned on a server's own disk
- *  (server/import/); a phone opens the vault that import produced. */
-const POCKET_NO_IMPORT = "Importing a Notion, Evernote or Obsidian export runs on an Astrolabe server's own disk; a pocket vault opens the notes it made.";
+ *  (server/import/); a phone opens the vault that import produced.
+ *
+ *  Every refusal below is a KEY into the shell's dictionary
+ *  (mobile/src/i18n.ts), not a sentence: the answer is written in the
+ *  reader's language at the moment it is sent (`speak` in the router), and
+ *  check-i18n holds the English and the Arabic to each other. */
+const POCKET_NO_IMPORT: Sentence = "refuseImport";
 
-const POCKET_NO_FEEDS = "Feeds are fetched by an Astrolabe server on its own schedule; a pocket vault reads the notes you kept.";
+const POCKET_NO_FEEDS: Sentence = "refuseFeeds";
 
 /** Webmentions and the fediverse (docs/webmentions.md) are other sites
  *  talking to a public address, and a pocket vault has none: nobody can
  *  mention a page it does not serve, or follow an actor it cannot answer for. */
-const POCKET_NO_FEDERATION = "Webmentions and the fediverse talk to a site at its public address; a pocket vault has no visitors to be mentioned by.";
+const POCKET_NO_FEDERATION: Sentence = "refuseFederation";
 
-const POCKET_NO_TRANSCRIBER =
-  "Transcription runs on an Astrolabe server's own machine; a pocket vault keeps the recording and links it from the day's inbox.";
+const POCKET_NO_TRANSCRIBER: Sentence = "refuseTranscriber";
 
-const SERVER_ONLY: Record<string, string> = {
-  "/api/publish": "Publishing needs a server with a public address; a pocket vault has no visitors.",
-  "/api/published": "Publishing needs a server with a public address; a pocket vault has no visitors.",
-  "/api/posts": "The blog is the public half of an instance, and a pocket vault has no public half.",
-  "/api/comments": "Marginalia are written by visitors to a public site; a pocket vault has none.",
-  "/api/comments/all": "Marginalia are written by visitors to a public site; a pocket vault has none.",
-  "/api/visibility": "There is nothing to be visible to: a pocket vault is read by its owner alone.",
-  "/api/collections": "Public folders are a shape of the published site, which a pocket vault has not got.",
-  "/api/library": "The library shelf is part of the published site, which a pocket vault has not got.",
-  "/api/clip/token": "The clipper's token authorises a browser to write to a server over the network.",
-  "/api/clip/token/rotate": "The clipper's token authorises a browser to write to a server over the network.",
-  "/api/fonts/upload": "Uploaded fonts are served from the instance's data directory, which lives on a server.",
-  "/api/fonts/custom": "Uploaded fonts are served from the instance's data directory, which lives on a server.",
-  "/api/sync/status": "There is no server-side git to ask about: the pocket vault IS the repository, and its state is the shell's own sync line.",
-  "/api/sync/now": "There is no server-side git to drive: in a pocket vault the pull and the push belong to the shell, not to the client.",
-  "/api/sync/init": "There is no server-side git to set up: a pocket vault is a clone of the repository you already chose.",
-  "/api/sync/launch": "There is no server-side git to drive: in a pocket vault the pull and the push belong to the shell, not to the client.",
-  "/api/sync/snapshot": "Every save in a pocket vault is already a commit in the repository, so there is no snapshot left to take.",
-  "/api/sync/travel": "Travel copies an instance's data directory; a pocket vault has no data directory.",
-  "/api/design": "The site designer composes a public site, which a pocket vault has not got.",
-  "/api/design/active": "The site designer composes a public site, which a pocket vault has not got.",
-  "/api/design/docs": "The site designer composes a public site, which a pocket vault has not got.",
-  "/api/design/themes": "The site designer composes a public site, which a pocket vault has not got.",
-  "/api/export": "An export is a ZIP built on a server; on a phone the vault is already a git clone.",
-  "/api/orbits/import": "Importing a deck reads an uploaded .apkg on a server's disk.",
-  "/api/tags/rename": "The bulk rewriter runs over the whole vault on a server, with an undo log behind it.",
-  "/api/replace": "The bulk rewriter runs over the whole vault on a server, with an undo log behind it.",
-  "/api/bulk/undo": "The bulk rewriter runs over the whole vault on a server, with an undo log behind it.",
-  "/api/links/heading-repair": "The bulk rewriter runs over the whole vault on a server, with an undo log behind it.",
-  "/api/annotations": "PDF annotations are kept in the instance's data directory, which lives on a server.",
-  "/api/books": "The book shelf reads PDFs page by page on a server; a pocket vault opens a book file directly.",
-  "/api/hadith": "Scripture lookup reads a corpus the server ships; the pocket carries only your vault.",
-  "/api/seed": "The starter vault is copied by a server from its own installation.",
-  "/api/theme": "The public site's theme describes visitors, and a pocket vault has none.",
+const SERVER_ONLY: Record<string, Sentence> = {
+  "/api/publish": "refusePublish",
+  "/api/published": "refusePublish",
+  "/api/posts": "refuseBlog",
+  "/api/comments": "refuseMarginalia",
+  "/api/comments/all": "refuseMarginalia",
+  "/api/visibility": "refuseVisibility",
+  "/api/collections": "refusePublicFolders",
+  "/api/library": "refuseLibrary",
+  "/api/clip/token": "refuseClipToken",
+  "/api/clip/token/rotate": "refuseClipToken",
+  "/api/fonts/upload": "refuseFontUpload",
+  "/api/fonts/custom": "refuseFontUpload",
+  "/api/sync/status": "refuseSyncStatus",
+  "/api/sync/now": "refuseSyncDrive",
+  "/api/sync/init": "refuseSyncInit",
+  "/api/sync/launch": "refuseSyncDrive",
+  "/api/sync/snapshot": "refuseSnapshot",
+  "/api/sync/travel": "refuseTravel",
+  "/api/design": "refuseDesigner",
+  "/api/design/active": "refuseDesigner",
+  "/api/design/docs": "refuseDesigner",
+  "/api/design/themes": "refuseDesigner",
+  "/api/export": "refuseExport",
+  "/api/orbits/import": "refuseDeckImport",
+  "/api/tags/rename": "refuseBulk",
+  "/api/replace": "refuseBulk",
+  "/api/bulk/undo": "refuseBulk",
+  "/api/links/heading-repair": "refuseBulk",
+  "/api/annotations": "refuseAnnotations",
+  "/api/books": "refuseBooks",
+  "/api/hadith": "refuseScripture",
+  "/api/seed": "refuseSeed",
+  "/api/theme": "refuseSiteTheme",
   "/api/voice/engine": POCKET_NO_TRANSCRIBER,
 };
 
@@ -280,7 +288,7 @@ const SERVER_ONLY: Record<string, string> = {
 const VAULT_SETTINGS = ".astrolabe/settings.json";
 
 /** `/api/pocket/*` with no shell under it — `node --test`, and nothing else. */
-const POCKET_NO_SHELL = "The pull and the push belong to the phone's shell, and this page has none.";
+const POCKET_NO_SHELL: Sentence = "refuseNoShell";
 
 /**
  * WHAT A POCKET VAULT CANNOT KEEP, AND WHY — one sentence per key.
@@ -297,34 +305,51 @@ const POCKET_NO_SHELL = "The pull and the push belong to the phone's shell, and 
  * the panel is not the only thing that can PATCH, and a rule enforced in one
  * place only is a rule with a hole in it.
  */
-const POCKET_CANNOT_KEEP: Record<string, string> = {
-  gitSync: "The vault IS the repository here, and the phone's own sync drives it — see Backup & sync.",
-  gitToken: "The repository's token belongs to the phone, not to the vault: it is never written into the notes.",
-  gitUser: "The repository's account belongs to the phone, not to the vault.",
-  publicLayout: "A pocket vault has no public half, so there is no visitor layout to choose.",
-  languageFilter: "The language filter curates PUBLIC surfaces, and a pocket vault has none.",
-  languageToggle: "The EN/ع switch is offered to visitors, and a pocket vault has none.",
-  topics: "Categories are a shape of the published site, which a pocket vault has not got.",
-  excludeTags: "Excluded tags hide notes from visitors, and a pocket vault has none.",
-  authorSites: "The author's other sites are cards on a public blog, which a pocket vault has not got.",
-  commentsEnabled: "Marginalia are written by visitors to a public site; a pocket vault has none.",
-  shareButtons: "The share row sits under a public article, which a pocket vault has not got.",
-  ambient: "The ambient masthead is the public site's, which a pocket vault has not got.",
-  publicFolders: "Public folders are a shape of the published site, which a pocket vault has not got.",
-  library: "The library shelf is part of the published site, which a pocket vault has not got.",
-  defaultTheme: "The default theme is what VISITORS land on; your own theme is on This device.",
-  adminTheme: "The default theme is what VISITORS land on; your own theme is on This device.",
-  footer: "The footer line is printed on a public site, which a pocket vault has not got.",
-  favicon: "A favicon is served by a site at its own address; the phone shows the app's icon.",
-  fonts: "Catalog faces are downloaded and served by an instance; a pocket vault ships no font directory.",
-  noteVersions: "Every save here is already a commit, so the history is the repository's and never off.",
-  pdfSearch: "Reading the text of every PDF is work an instance does on its own disk.",
-  hadithFolder: "Scripture lookup reads a corpus the server ships; the pocket carries only your vault.",
-  voice: "Transcription runs on an instance's own machine; a pocket vault keeps every recording and runs no model.",
-  feeds: "Feeds are fetched by an Astrolabe server on its own schedule; a pocket vault reads the notes you kept.",
-  webmentions: "Webmentions are sent and received by a site at its public address; a pocket vault has none.",
-  fediverse: "The fediverse follows a site at its public address; a pocket vault has none.",
+const POCKET_CANNOT_KEEP: Record<string, Sentence> = {
+  gitSync: "keepGitSync",
+  gitToken: "keepGitToken",
+  gitUser: "keepGitUser",
+  publicLayout: "keepPublicLayout",
+  languageFilter: "keepLanguageFilter",
+  languageToggle: "keepLanguageToggle",
+  topics: "keepTopics",
+  excludeTags: "keepExcludeTags",
+  authorSites: "keepAuthorSites",
+  commentsEnabled: "refuseMarginalia",
+  shareButtons: "keepShareButtons",
+  ambient: "keepAmbient",
+  publicFolders: "refusePublicFolders",
+  library: "refuseLibrary",
+  defaultTheme: "keepDefaultTheme",
+  adminTheme: "keepDefaultTheme",
+  footer: "keepFooter",
+  favicon: "keepFavicon",
+  fonts: "keepFonts",
+  noteVersions: "keepNoteVersions",
+  pdfSearch: "keepPdfSearch",
+  hadithFolder: "refuseScripture",
+  voice: "keepVoice",
+  feeds: "refuseFeeds",
+  webmentions: "keepWebmentions",
+  fediverse: "keepFediverse",
 };
+
+/**
+ * THE READER'S LANGUAGE, which is the client's and not the phone's.
+ *
+ * The client lives in this same page and writes its chrome language onto
+ * `<html lang>` (client/state/dom.ts `applyLanguage`); a reader who chose
+ * Arabic on an English phone reads Arabic refusals. Before the client has
+ * booted, and under `node --test` where there is no document, it is the
+ * shell's own pick from the phone's languages.
+ */
+export function readerLang(): Lang {
+  const doc = (globalThis as { document?: { documentElement?: { lang?: string } } }).document;
+  const tag = doc?.documentElement?.lang?.toLowerCase() ?? "";
+  if (tag.startsWith("ar")) return "ar";
+  if (tag.startsWith("en")) return "en";
+  return phoneLang;
+}
 
 // ── the router ──────────────────────────────────────────────────────────────
 
@@ -335,6 +360,10 @@ export function createPocketServer(deps: PocketDeps): {
   const { io, git, store, index } = deps;
 
   const emit = (event: VaultEvent): void => deps.onEvent?.(event);
+
+  /** A refusal, in the reader's language at the moment it is sent. */
+  const speak = (key: Sentence): string => wordsIn((deps.lang ?? readerLang)())[key];
+  const refuse = (key: Sentence): PocketResponse => fail(501, speak(key), "pocket");
 
   /** One commit per save, named so a `git log` on the laptop reads as a list
    *  of what the phone did. */
@@ -383,7 +412,19 @@ export function createPocketServer(deps: PocketDeps): {
     }
   }
 
+  /** A path the vault refuses (vaultIo.ts `safeVaultPath`) is the caller's
+   *  mistake, answered as a 400 in the reader's language — the server's own
+   *  `safeAbs` refusal — rather than a rejected fetch with English in it. */
   async function handle(request: PocketRequest): Promise<PocketResponse> {
+    try {
+      return await route(request);
+    } catch (err) {
+      if (err instanceof PocketVaultError) return fail(400, err.say(wordsIn((deps.lang ?? readerLang)())));
+      throw err;
+    }
+  }
+
+  async function route(request: PocketRequest): Promise<PocketResponse> {
     const url = new URL(request.url, "https://localhost");
     const route = url.pathname;
     const q = url.searchParams;
@@ -396,7 +437,7 @@ export function createPocketServer(deps: PocketDeps): {
       ?? (route === "/api/feeds" || route.startsWith("/api/feeds/") ? POCKET_NO_FEEDS : undefined)
       ?? (route === "/api/webmentions" || route.startsWith("/api/webmentions/") ? POCKET_NO_FEDERATION : undefined)
       ?? (route.startsWith("/api/import/") ? POCKET_NO_IMPORT : undefined);
-    if (refusal !== undefined) return fail(501, refusal, "pocket");
+    if (refusal !== undefined) return refuse(refusal);
 
     // ── the handlers that needed a name ─────────────────────────────────────
 
@@ -713,7 +754,7 @@ export function createPocketServer(deps: PocketDeps): {
       }
       case "POST /api/login":
       case "POST /api/logout":
-        return fail(501, "A pocket vault is opened by its owner's phone; there is nobody else to sign in as.", "pocket");
+        return refuse("refuseSignIn");
 
       // ── the tree and the notes ────────────────────────────────────────────
       case "GET /api/tree":
@@ -858,7 +899,7 @@ export function createPocketServer(deps: PocketDeps): {
         // one read the pocket refuses on cost rather than on capability, and
         // it says so rather than answering an empty list that reads as "this
         // note is mentioned nowhere".
-        return fail(501, "Unlinked mentions scan the whole vault per note; the pocket does not run that on a phone.", "pocket");
+        return refuse("refuseMentions");
       case "GET /api/tasks":
         return json(index.tasks());
       // Today's "On this day" and the Timeline's notes (docs/today.md,
@@ -953,7 +994,7 @@ export function createPocketServer(deps: PocketDeps): {
         if (refused.length > 0) {
           const first = refused[0] as string;
           return json(
-            { error: POCKET_CANNOT_KEEP[first], code: "pocket", fields: refused },
+            { error: speak(POCKET_CANNOT_KEEP[first] as Sentence), code: "pocket", fields: refused },
             501,
           );
         }
@@ -976,13 +1017,13 @@ export function createPocketServer(deps: PocketDeps): {
       case "GET /api/pocket/sync":
         return deps.shell
           ? json(deps.shell.syncState() satisfies PocketSyncStatus)
-          : fail(501, POCKET_NO_SHELL, "pocket");
+          : refuse(POCKET_NO_SHELL);
       case "POST /api/pocket/sync":
         return deps.shell
           ? json((await deps.shell.syncNow()) satisfies PocketSyncStatus)
-          : fail(501, POCKET_NO_SHELL, "pocket");
+          : refuse(POCKET_NO_SHELL);
       case "POST /api/pocket/leave": {
-        if (!deps.shell) return fail(501, POCKET_NO_SHELL, "pocket");
+        if (!deps.shell) return refuse(POCKET_NO_SHELL);
         await deps.shell.leave();
         return json({ ok: true });
       }
@@ -1135,11 +1176,7 @@ export function createPocketServer(deps: PocketDeps): {
       }
 
       case "POST /api/upload":
-        return fail(
-          501,
-          "Uploading needs a multipart parser and a place to put bytes; the pocket takes attachments through the repository instead.",
-          "pocket",
-        );
+        return refuse("refuseUpload");
 
       // ── the trash ─────────────────────────────────────────────────────────
       case "GET /api/trash": {

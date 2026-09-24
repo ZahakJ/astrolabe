@@ -112,9 +112,72 @@ const en = {
   syncConflicts: (n: number) => `${n} note${n === 1 ? "" : "s"} changed in both places. Both versions are kept.`,
   syncToPush: (n: number) => `${n} change${n === 1 ? "" : "s"} to send. Tap to send now.`,
   syncedAgo: (n: number) => `Synced ${n} minute${n === 1 ? "" : "s"} ago.`,
+
+  // ── What a pocket vault refuses, and why (src/pocket/server.ts) ───────────
+  // A 501 code:"pocket" carries one of these as its `error`, in the reader's
+  // language (the client's <html lang>), and the client shows it as it came.
+  refusePublish: "Publishing needs a server with a public address; a pocket vault has no visitors.",
+  refuseBlog: "The blog is the public half of an instance, and a pocket vault has no public half.",
+  refuseMarginalia: "Marginalia are written by visitors to a public site; a pocket vault has none.",
+  refuseVisibility: "There is nothing to be visible to: a pocket vault is read by its owner alone.",
+  refusePublicFolders: "Public folders are a shape of the published site, which a pocket vault has not got.",
+  refuseLibrary: "The library shelf is part of the published site, which a pocket vault has not got.",
+  refuseClipToken: "The clipper's token authorises a browser to write to a server over the network.",
+  refuseFontUpload: "Uploaded fonts are served from the instance's data directory, which lives on a server.",
+  refuseSyncStatus: "There is no server-side git to ask about: the pocket vault IS the repository, and its state is the shell's own sync line.",
+  refuseSyncDrive: "There is no server-side git to drive: in a pocket vault the pull and the push belong to the shell, not to the client.",
+  refuseSyncInit: "There is no server-side git to set up: a pocket vault is a clone of the repository you already chose.",
+  refuseSnapshot: "Every save in a pocket vault is already a commit in the repository, so there is no snapshot left to take.",
+  refuseTravel: "Travel copies an instance's data directory; a pocket vault has no data directory.",
+  refuseDesigner: "The site designer composes a public site, which a pocket vault has not got.",
+  refuseExport: "An export is a ZIP built on a server; on a phone the vault is already a git clone.",
+  refuseDeckImport: "Importing a deck reads an uploaded .apkg on a server's disk.",
+  refuseBulk: "The bulk rewriter runs over the whole vault on a server, with an undo log behind it.",
+  refuseAnnotations: "PDF annotations are kept in the instance's data directory, which lives on a server.",
+  refuseBooks: "The book shelf reads PDFs page by page on a server; a pocket vault opens a book file directly.",
+  refuseScripture: "Scripture lookup reads a corpus the server ships; the pocket carries only your vault.",
+  refuseSeed: "The starter vault is copied by a server from its own installation.",
+  refuseSiteTheme: "The public site's theme describes visitors, and a pocket vault has none.",
+  refuseTranscriber: "Transcription runs on an Astrolabe server's own machine; a pocket vault keeps the recording and links it from the day's inbox.",
+  refuseFeeds: "Feeds are fetched by an Astrolabe server on its own schedule; a pocket vault reads the notes you kept.",
+  refuseFederation: "Webmentions and the fediverse talk to a site at its public address; a pocket vault has no visitors to be mentioned by.",
+  refuseImport: "Importing a Notion, Evernote or Obsidian export runs on an Astrolabe server's own disk; a pocket vault opens the notes it made.",
+  refuseNoShell: "The pull and the push belong to the phone's shell, and this page has none.",
+  refuseSignIn: "A pocket vault is opened by its owner's phone; there is nobody else to sign in as.",
+  refuseMentions: "Unlinked mentions scan the whole vault per note; the pocket does not run that on a phone.",
+  refuseUpload: "Uploading needs a multipart parser and a place to put bytes; the pocket takes attachments through the repository instead.",
+
+  // The settings a pocket vault cannot keep: a PATCH carrying one is a 501
+  // with the first one's reason, and nothing is written.
+  keepGitSync: "The vault IS the repository here, and the phone's own sync drives it — see Backup & sync.",
+  keepGitToken: "The repository's token belongs to the phone, not to the vault: it is never written into the notes.",
+  keepGitUser: "The repository's account belongs to the phone, not to the vault.",
+  keepPublicLayout: "A pocket vault has no public half, so there is no visitor layout to choose.",
+  keepLanguageFilter: "The language filter curates PUBLIC surfaces, and a pocket vault has none.",
+  keepLanguageToggle: "The EN/ع switch is offered to visitors, and a pocket vault has none.",
+  keepTopics: "Categories are a shape of the published site, which a pocket vault has not got.",
+  keepExcludeTags: "Excluded tags hide notes from visitors, and a pocket vault has none.",
+  keepAuthorSites: "The author's other sites are cards on a public blog, which a pocket vault has not got.",
+  keepShareButtons: "The share row sits under a public article, which a pocket vault has not got.",
+  keepAmbient: "The ambient masthead is the public site's, which a pocket vault has not got.",
+  keepDefaultTheme: "The default theme is what VISITORS land on; your own theme is on This device.",
+  keepFooter: "The footer line is printed on a public site, which a pocket vault has not got.",
+  keepFavicon: "A favicon is served by a site at its own address; the phone shows the app's icon.",
+  keepFonts: "Catalog faces are downloaded and served by an instance; a pocket vault ships no font directory.",
+  keepNoteVersions: "Every save here is already a commit, so the history is the repository's and never off.",
+  keepPdfSearch: "Reading the text of every PDF is work an instance does on its own disk.",
+  keepVoice: "Transcription runs on an instance's own machine; a pocket vault keeps every recording and runs no model.",
+  keepWebmentions: "Webmentions are sent and received by a site at its public address; a pocket vault has none.",
+  keepFediverse: "The fediverse follows a site at its public address; a pocket vault has none.",
+
+  // A path the pocket will not touch (src/pocket/vaultIo.ts): a 400.
+  vaultPathRequired: "A path is required.",
+  vaultPathNotPath: "That path is not a path.",
+  vaultPathLeaves: (path: string) => `That path leaves the vault: ${path}`,
+  vaultPathRepository: "The repository is not part of the vault.",
 };
 
-type Copy = typeof en;
+export type Copy = typeof en;
 
 const ar: Copy = {
   wordmark: "أسطرلاب",
@@ -216,6 +279,64 @@ const ar: Copy = {
   syncConflicts: (n: number) => `${n} من الملاحظات تغيّرت في المكانين. النسختان محفوظتان.`,
   syncToPush: (n: number) => `${n} من التغييرات لم تُرسَل. انقر للإرسال الآن.`,
   syncedAgo: (n: number) => `تمّت المزامنة قبل ${n} من الدقائق.`,
+
+  // ── ما ترفضه الخزانة في الجيب، ولماذا ─────────────────────────────────────
+  refusePublish: "النشر يحتاج إلى خادم له عنوان عامّ؛ والخزانة في الجيب لا زوّار لها.",
+  refuseBlog: "المدوّنة هي النصف العامّ من الخادم، والخزانة في الجيب لا نصف عامًّا لها.",
+  refuseMarginalia: "الحواشي يكتبها زوّار موقع عامّ؛ والخزانة في الجيب لا زوّار لها.",
+  refuseVisibility: "لا أحد تظهر له: الخزانة في الجيب لا يقرؤها إلا صاحبها.",
+  refusePublicFolders: "المجلّدات العامّة هيئةٌ من هيئات الموقع المنشور، والخزانة في الجيب لا موقع لها.",
+  refuseLibrary: "رفّ المكتبة جزء من الموقع المنشور، والخزانة في الجيب لا موقع لها.",
+  refuseClipToken: "رمز القصّاصة يأذن لمتصفّح بأن يكتب إلى خادم عبر الشبكة.",
+  refuseFontUpload: "الخطوط المرفوعة تُقدَّم من مجلّد بيانات الخادم، وهو على خادم.",
+  refuseSyncStatus: "لا git على خادم لتسأله: الخزانة في الجيب هي المستودع نفسه، وحالها سطر المزامنة في التطبيق.",
+  refuseSyncDrive: "لا git على خادم لتديره: في الخزانة في الجيب السحب والدفع للتطبيق، لا للواجهة.",
+  refuseSyncInit: "لا git على خادم لتهيّئه: الخزانة في الجيب نسخة من المستودع الذي اخترته.",
+  refuseSnapshot: "كلّ حفظ في الخزانة في الجيب إيداعٌ في المستودع أصلًا، فلا لقطة بقيت لتؤخذ.",
+  refuseTravel: "النقل ينسخ مجلّد بيانات الخادم؛ والخزانة في الجيب لا مجلّد بيانات لها.",
+  refuseDesigner: "مصمّم الموقع يؤلّف موقعًا عامًّا، والخزانة في الجيب لا موقع لها.",
+  refuseExport: "التصدير ملفّ ZIP يُبنى على خادم؛ وعلى الهاتف الخزانة نسخة git أصلًا.",
+  refuseDeckImport: "استيراد رزمة يقرأ ملفّ apkg مرفوعًا إلى قرص خادم.",
+  refuseBulk: "المحرِّر الجماعيّ يمرّ على الخزانة كلّها على خادم، ومن ورائه سجلّ للتراجع.",
+  refuseAnnotations: "تعليقات PDF تُحفظ في مجلّد بيانات الخادم، وهو على خادم.",
+  refuseBooks: "رفّ الكتب يقرأ ملفّات PDF صفحةً صفحة على خادم؛ والخزانة في الجيب تفتح ملفّ الكتاب مباشرة.",
+  refuseScripture: "البحث في النصوص يقرأ مدوّنة يحملها الخادم؛ والجيب لا يحمل إلا خزانتك.",
+  refuseSeed: "خزانة البداية ينسخها خادم من تثبيته هو.",
+  refuseSiteTheme: "سمة الموقع العامّ تخصّ الزوّار، والخزانة في الجيب لا زوّار لها.",
+  refuseTranscriber: "التفريغ يعمل على جهاز خادم أسطرلاب نفسه؛ والخزانة في الجيب تحفظ التسجيل وتربطه من وارد اليوم.",
+  refuseFeeds: "الخلاصات يجلبها خادم أسطرلاب في مواعيده؛ والخزانة في الجيب تقرأ الملاحظات التي احتفظت بها.",
+  refuseFederation: "الإشارات والفيديفيرس تخاطب موقعًا على عنوانه العامّ؛ والخزانة في الجيب لا زوّار لها يُشار إليها منهم.",
+  refuseImport: "استيراد تصدير من Notion أو Evernote أو Obsidian يعمل على قرص خادم أسطرلاب؛ والخزانة في الجيب تفتح الملاحظات التي صنعها.",
+  refuseNoShell: "السحب والدفع لتطبيق الهاتف، وهذه الصفحة لا تطبيق لها.",
+  refuseSignIn: "الخزانة في الجيب يفتحها هاتف صاحبها؛ فلا أحد غيره ليُسجَّل الدخول باسمه.",
+  refuseMentions: "الإشارات غير المربوطة تمسح الخزانة كلّها لكلّ ملاحظة؛ والجيب لا يفعل ذلك على هاتف.",
+  refuseUpload: "الرفع يحتاج إلى محلّل للأجزاء ومكان للبايتات؛ والجيب يأخذ المرفقات عبر المستودع بدلًا من ذلك.",
+
+  keepGitSync: "الخزانة هنا هي المستودع، ومزامنة الهاتف هي التي تديره — انظر النسخ الاحتياطي والمزامنة.",
+  keepGitToken: "رمز المستودع للهاتف لا للخزانة: لا يُكتب في الملاحظات أبدًا.",
+  keepGitUser: "حساب المستودع للهاتف لا للخزانة.",
+  keepPublicLayout: "الخزانة في الجيب لا نصف عامًّا لها، فلا تخطيط للزوّار لتختاره.",
+  keepLanguageFilter: "مرشّح اللغة ينتقي الواجهات العامّة، والخزانة في الجيب لا واجهات عامّة لها.",
+  keepLanguageToggle: "مفتاح EN/ع يُعرض على الزوّار، والخزانة في الجيب لا زوّار لها.",
+  keepTopics: "الأبواب هيئةٌ من هيئات الموقع المنشور، والخزانة في الجيب لا موقع لها.",
+  keepExcludeTags: "الوسوم المستبعدة تخفي ملاحظات عن الزوّار، والخزانة في الجيب لا زوّار لها.",
+  keepAuthorSites: "مواقع المؤلّف الأخرى بطاقات في مدوّنة عامّة، والخزانة في الجيب لا مدوّنة لها.",
+  keepShareButtons: "صفّ المشاركة يقع تحت مقالة عامّة، والخزانة في الجيب لا مقالات عامّة لها.",
+  keepAmbient: "الترويسة المحيطة للموقع العامّ، والخزانة في الجيب لا موقع لها.",
+  keepDefaultTheme: "السمة الافتراضية هي ما يراه الزوّار أوّلًا؛ وسمتك أنت في هذا الجهاز.",
+  keepFooter: "سطر التذييل يُطبع على موقع عامّ، والخزانة في الجيب لا موقع لها.",
+  keepFavicon: "أيقونة الموقع يقدّمها موقع على عنوانه؛ والهاتف يعرض أيقونة التطبيق.",
+  keepFonts: "خطوط الفهرس ينزّلها الخادم ويقدّمها؛ والخزانة في الجيب لا مجلّد خطوط فيها.",
+  keepNoteVersions: "كلّ حفظ هنا إيداعٌ أصلًا، فالسجلّ سجلّ المستودع ولا يُطفأ.",
+  keepPdfSearch: "قراءة نصّ كلّ ملفّ PDF عملٌ يؤدّيه الخادم على قرصه.",
+  keepVoice: "التفريغ يعمل على جهاز الخادم نفسه؛ والخزانة في الجيب تحفظ كلّ تسجيل ولا تشغّل نموذجًا.",
+  keepWebmentions: "الإشارات يرسلها ويستقبلها موقع على عنوانه العامّ؛ والخزانة في الجيب لا عنوان لها.",
+  keepFediverse: "الفيديفيرس يتابع موقعًا على عنوانه العامّ؛ والخزانة في الجيب لا عنوان لها.",
+
+  vaultPathRequired: "المسار مطلوب.",
+  vaultPathNotPath: "هذا المسار ليس مسارًا.",
+  vaultPathLeaves: (path: string) => `هذا المسار يخرج من الخزانة: ${path}`,
+  vaultPathRepository: "المستودع ليس جزءًا من الخزانة.",
 };
 
 /** The phone's language, narrowed to the two the app has words for. */
@@ -230,6 +351,17 @@ export function pickLang(): Lang {
 export const lang: Lang = pickLang();
 export const dir: "ltr" | "rtl" = lang === "ar" ? "rtl" : "ltr";
 export const t: Copy = lang === "ar" ? ar : en;
+
+/** The words in a language asked for by name, not the phone's: the pocket
+ *  server answers in the CLIENT's chrome language (its `<html lang>`), which
+ *  the reader chose and which need not be the phone's. */
+export function wordsIn(language: Lang): Copy {
+  return language === "ar" ? ar : en;
+}
+
+/** A dictionary key whose value is a plain sentence — what a pocket refusal
+ *  names. */
+export type Sentence = { [K in keyof Copy]: Copy[K] extends string ? K : never }[keyof Copy];
 
 /** The sync line's words, as a function so the pocket page can ask for them
  *  after `lang` has settled — the page boots before the client does, and the
