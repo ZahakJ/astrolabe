@@ -117,3 +117,5 @@ The manifest itself is at `/manifest.webmanifest`; it is generated from your set
 - [Keymap](keymap.md) — `Ctrl/Cmd Shift D` beside `Ctrl/Cmd Alt D`
 - [Configuration](configuration.md) — `captureInbox`, and where the data directory is
 - [Offline reading](offline.md) — what the installed app keeps on the device
+- [Feeds](feeds.md) — articles from the feeds you follow, kept through the clipper's own converter
+- [Import](import.md) — a whole Notion, Evernote or Obsidian export at once

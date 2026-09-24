@@ -62,7 +62,10 @@
 //      targets are asked (the page under it is inert on purpose).
 
 import { chromium, devices } from "playwright";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { createServer } from "node:http";
+import path from "node:path";
+import { zipSync } from "../shared/zip.ts";
 
 const [url = "http://localhost:8190", out = "shots"] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
@@ -90,7 +93,7 @@ const MEASURE = String.raw`((scope) => {
   };
   const PROSE =
     ".cm-content, .s-rv-prose, .s-rv p, .s-rv li, .s-rv-p, .s-rv-list, .s-rv-quote," +
-    " .s-blog-article, .s-marginalia__list";
+    " .s-blog-article, .s-marginalia__list, .s-feeds__prose";
   const CHART = ".s-rv-routine__heat, .s-graph__nav, .s-tracker";
   const root = scope ? document.querySelector(scope) : document.body;
   if (!root) return out;
@@ -219,6 +222,68 @@ async function signIn() {
 
 const { cookies, folder, note } = await signIn();
 const notePermalink = "/" + note.replace(/\.md$/, "").split("/").map(encodeURIComponent).join("/");
+
+// ── FEEDS AND IMPORT (3.28): a feed of our own, and an export to import ────
+// Nothing here fetches the internet: this process serves the feed fixtures
+// (tests/fixtures/feeds) on 127.0.0.1 with their hosts rewritten to itself,
+// points the instance at a list note of its own for the run (the owner's
+// Feeds.md and fetch setting are put back afterwards), and zips the Notion
+// fixture export in memory for the import wizard.
+const FIXTURES = new URL("../tests/fixtures/", import.meta.url).pathname;
+const feedServer = createServer((req, res) => {
+  const origin = `http://127.0.0.1:${feedServer.address().port}`;
+  const read = (n) => readFileSync(path.join(FIXTURES, "feeds", n), "utf8").replaceAll("https://marginal.example", origin);
+  if (req.url === "/rss.xml") return res.writeHead(200, { "Content-Type": "application/rss+xml; charset=utf-8" }).end(read("rss.xml"));
+  if (req.url === "/essays/marginalia") return res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" }).end(read("article.html"));
+  res.writeHead(404).end();
+});
+await new Promise((r) => feedServer.listen(0, "127.0.0.1", r));
+const FEED_URL = `http://127.0.0.1:${feedServer.address().port}/rss.xml`;
+const FEED_NOTE = "check-phone-feeds.md";
+function treeFiles(root, prefix = "") {
+  const out = [];
+  for (const n of readdirSync(path.join(root, prefix))) {
+    const rel = prefix ? `${prefix}/${n}` : n;
+    if (statSync(path.join(root, rel)).isDirectory()) out.push(...treeFiles(root, rel));
+    else out.push({ name: rel, data: new Uint8Array(readFileSync(path.join(root, rel))) });
+  }
+  return out;
+}
+const NOTION_ZIP = Buffer.from(zipSync(treeFiles(path.join(FIXTURES, "import", "notion"))));
+const IMPORT_FOLDER = "check-phone-import";
+
+/** One admin fetch, from a throwaway page that carries the session. */
+async function adminApi(calls) {
+  const ctx = await browser.newContext();
+  await ctx.addCookies(cookies);
+  const page = await ctx.newPage();
+  await page.goto(url, { waitUntil: "load" });
+  const out = await page.evaluate(async (list) => {
+    const answers = [];
+    for (const [p, init] of list) {
+      const r = await fetch(p, init ?? undefined);
+      let body = await r.text();
+      try {
+        body = JSON.parse(body);
+      } catch {
+        /* text */
+      }
+      answers.push({ status: r.status, body });
+    }
+    return answers;
+  }, calls);
+  await ctx.close();
+  return out;
+}
+const J = (method, body) => ({ method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+const [settingsBefore] = await adminApi([["/api/settings"]]);
+const feedsBefore = settingsBefore.body?.feeds ?? null;
+await adminApi([
+  ["/api/settings", J("PATCH", { feeds: { fetch: true, note: FEED_NOTE } })],
+  [`/api/note?path=${encodeURIComponent(FEED_NOTE)}`, J("PUT", { content: `# check-phone\n\n\`\`\`feeds\n${FEED_URL} → check-phone-kept\n\`\`\`\n` })],
+]);
+const [round] = await adminApi([["/api/feeds/refresh", J("POST", {})]]);
+check(round.status === 200 && (round.body.items ?? []).length > 0, "a round of feeds reads the local fixture feed", JSON.stringify(round.body).slice(0, 200));
 
 try {
   for (const shape of SHAPES) {
@@ -495,6 +560,66 @@ try {
         await back();
       }
 
+      // FEEDS (3.28): the list, an item, Keep from its ⋯ sheet — and the note
+      // is there. The kept note is removed and the item marked unread again,
+      // so the next shape keeps it afresh.
+      if (await moreRow(/^(Feeds|الخلاصات)/)) {
+        check((await state()).screens.includes("feeds"), tag("Feeds opens its list"));
+        await settle(900);
+        await measure("feeds");
+        const row = page.locator(".s-ph-row[data-feed-item]");
+        check((await row.count()) > 0, tag("the local feed's items are listed"));
+        if ((await row.count()) > 0) {
+          const guid = await row.first().getAttribute("data-feed-item");
+          await press(row);
+          await settle(1400);
+          check((await state()).screens.includes("feed-item"), tag("an item opens as a screen"));
+          await measure("feed-item");
+          await press(page.locator('[data-action="feed-more"]'));
+          await settle(700);
+          check((await page.locator(".s-ph-actions").count()) > 0, tag("the item's ⋯ is an action sheet"));
+          await measure("feed-sheet", ".s-ph-sheet");
+          await press(page.locator(".s-ph-actions__row").first());
+          await settle(2500);
+          const kept = await page.evaluate(async ([f, g]) => (await (await fetch(`/api/feeds/item?feed=${encodeURIComponent(f)}&guid=${encodeURIComponent(g)}`)).json()).kept, [FEED_URL, guid]);
+          const there = kept ? await page.evaluate(async (p) => (await fetch(`/api/note?path=${encodeURIComponent(p)}`)).status, kept) : 0;
+          check(typeof kept === "string" && kept.startsWith("check-phone-kept/") && there === 200, tag("Keep writes the article into the feed's folder"), `kept ${kept} (${there})`);
+          if (kept) {
+            await page.evaluate(async ([p, f, g]) => {
+              await fetch(`/api/note?path=${encodeURIComponent(p)}&permanent=1`, { method: "DELETE" });
+              await fetch("/api/feeds/read", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ feed: f, guid: g, read: false }) });
+            }, [kept, FEED_URL, guid]);
+          }
+          await back();
+          check((await state()).screens.includes("feeds"), tag("back from an item lands on Feeds"));
+        }
+        await back();
+      } else check(false, tag("More has a Feeds row"));
+
+      // IMPORT (3.28): the wizard from More — a Notion export previewed,
+      // imported and undone, and Back closes the dialog like a sheet.
+      if (await moreRow(/^(Import notes|استيراد ملاحظات)/)) {
+        await page.waitForSelector("[data-testid=import-dialog]", { timeout: 5000 }).catch(() => {});
+        check((await state()).sheets.includes("layer:import"), tag("the import wizard takes a history entry"));
+        await measure("import", "[data-testid=import-dialog]");
+        await page.locator("[data-testid=import-file]").setInputFiles({ name: "notion-export.zip", mimeType: "application/zip", buffer: NOTION_ZIP });
+        await page.locator("[data-testid=import-dialog] input:not([type=file])").first().fill(IMPORT_FOLDER);
+        await press(page.locator("[data-testid=import-preview]"));
+        await page.waitForSelector("[data-testid=import-summary]", { timeout: 15000 }).catch(() => {});
+        check((await page.locator("[data-testid=import-summary]").count()) > 0, tag("the import previews the export"));
+        await measure("import-preview", "[data-testid=import-dialog]");
+        await press(page.locator("[data-testid=import-commit]"));
+        await page.waitForSelector("[data-testid=import-done]", { timeout: 15000 }).catch(() => {});
+        const has = () => page.evaluate(async (f) => ((await (await fetch("/api/tree")).json()).children ?? []).some((c) => c.path === f), IMPORT_FOLDER);
+        check((await page.locator("[data-testid=import-done]").count()) > 0 && (await has()), tag("the import writes the notes"));
+        await press(page.locator("[data-testid=import-undo]"));
+        await page.waitForSelector("[data-testid=import-undone]", { timeout: 15000 }).catch(() => {});
+        await settle(600);
+        check((await page.locator("[data-testid=import-undone]").count()) > 0 && !(await has()), tag("undo takes the import back"));
+        await back(700);
+        check((await page.locator("[data-testid=import-dialog]").count()) === 0, tag("back closes the import wizard"));
+      } else check(false, tag("More has an Import notes row"));
+
       // THE LIBRARY AND A BOOK: the reader's own bar, and its scrubber moves.
       if (await moreRow(/^(Library|المكتبة)/)) {
         await measure("library");
@@ -703,6 +828,15 @@ try {
   }
 
 } finally {
+  // The owner's feeds setting back as it was, the run's list note gone.
+  await adminApi([
+    ["/api/settings", J("PATCH", { feeds: feedsBefore ? { fetch: feedsBefore.fetch ?? null, note: feedsBefore.note ?? null } : null })],
+    [`/api/note?path=${encodeURIComponent(FEED_NOTE)}&permanent=1`, { method: "DELETE" }],
+    // The folder the run's keeps went into (each kept note was removed as it
+    // was checked, so it is empty by now).
+    ["/api/folder?path=check-phone-kept&permanent=1", { method: "DELETE" }],
+  ]).catch(() => {});
+  feedServer.close();
   for (const b of browsers) await b.close().catch(() => {});
 }
 

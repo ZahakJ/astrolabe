@@ -2,7 +2,7 @@
 // (docs/feeds.md).
 //
 // INBOUND, NOT OUTBOUND. The blog publishes its own RSS (server/blog.ts,
-// `/rss.xml`) — that is the site speaking. This is the other direction: the
+// `/feed.xml`) — that is the site speaking. This is the other direction: the
 // owner's list of other people's feeds, fetched by the server on the owner's
 // say-so, read in the Feeds surface, and the articles worth keeping written
 // into the vault as notes. The two never share a word in the copy.

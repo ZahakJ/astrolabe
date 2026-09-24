@@ -347,7 +347,12 @@ const phone = PHONE_ROOTS.reduce((acc, key) => closure(keyFor(key) ?? key, acc),
 // phone.css +3.4 kB, the new screens' rules (one stylesheet, being mounted is
 // its condition). The screens themselves, the tab bodies, the readers' bar and
 // the forms are all outside it. Budget = actual + ~0.4%.
-const PHONE_BUDGET = 948 * 1024;
+// 3.28 FEEDS AND IMPORT: 943.9 → 959.5 kB, +15.6 — the entry's +13.8 (the
+// dictionary) and +1.8 in the shell's chunk: three new lazy boundaries
+// (FeedsScreen, FeedItemScreen, ImportDialog as a layer), the `feed-item`
+// screen kind through nav/kinds/titles/urls, and phone.css's Feeds rules.
+// Budget 948 → 960.
+const PHONE_BUDGET = 960 * 1024;
 const AUDIENCES = [
 // RE-BASELINED for NOTE HISTORY (529.4 kB actual → budget 532, actual +
 // ~0.5%). This round is the safety net the rest of the slate stands on — git
@@ -937,7 +942,16 @@ const AUDIENCES = [
   // queries, main.tsx's Classic switch and gesture loader, the settings row,
   // and the drawer's dictionary keys (the Round 2 keys that replaced them are
   // in this number too). The budget comes down by the saving: 858 → 852.
-{ name: "entry (everyone)", keys: entry, budget: 852 * 1024 },
+  // 3.28 FEEDS AND THE IMPORT WIZARD: 851.1 → 864.9 kB, +13.8 kB, measured
+  // against a build of 3.27.0 (f7e18f9). The DICTIONARY is nearly all of it:
+  // 102 new keys in both languages (Feeds' surface, its Vault row and notes,
+  // the wizard's three steps; 13.8 kB of source, Arabic at two bytes a
+  // letter) — `t()` reads one object everywhere, and the by-language split
+  // named below is still the recovery. The rest (~1 kB) is the seam every
+  // shell needs: the api.ts calls, `FEEDS_TAB` and its router/view arms, the
+  // store's `importFolder`. The surfaces themselves (FeedsView, the phone's
+  // two screens, ImportDialog) are lazy chunks. Budget = actual, rounded up.
+{ name: "entry (everyone)", keys: entry, budget: 865 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1283,7 +1297,9 @@ const AUDIENCES = [
   //             lazy chunk a desktop never requests (the phone audience below).
   // 3.27.0: the entry's −6.7 kB, and nothing else: 1156.1 → 1149.5. Budget
   // lowered by the saving, 1157 → 1151.
-{ name: "anonymous blog reader", keys: blog, budget: 1151 * 1024 },
+  // 3.28: the entry's +13.8 kB (Feeds' and the import wizard's dictionary,
+  // above) and nothing else: 1149.5 → 1163.3. Budget 1151 → 1164.
+{ name: "anonymous blog reader", keys: blog, budget: 1164 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1550,7 +1566,11 @@ const AUDIENCES = [
   // 3.27.0: the entry's −6.7 kB and the drawer chrome out of the shell's
   // components (App's ☰ and scrim, the sidebar's and panel's phone closes,
   // StatusBar's drawer listener): 1113.8 → 1106.5. Budget lowered, 1114 → 1108.
-  { name: "admin first paint", keys: app, budget: 1108 * 1024 },
+  // 3.28: 1106.5 → 1121.1, +14.6 kB — the entry's +13.8 (the dictionary)
+  // and +0.8 in the shell: the Feeds door beside the calendar and its ⋯ row,
+  // the tab title, the palette's two rows, the folder menu's "Import notes
+  // here…", App's lazy ImportDialog boundary. Budget 1108 → 1122.
+  { name: "admin first paint", keys: app, budget: 1122 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy

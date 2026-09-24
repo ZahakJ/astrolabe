@@ -105,6 +105,10 @@ One frontmatter key *widens* rather than narrows: `folders:` names the
 you define on the blog, beside the topics its tags create. It does not affect whether the note
 is published, and it does nothing until you declare a folder with that address in Settings.
 
+Nothing arrives published from outside. An article kept from [Feeds](feeds.md) and a note
+brought in by the [import wizard](import.md) carry no `publish: true` — the importer takes
+Obsidian Publish's out — so they are private until you publish them yourself.
+
 ## Preview as visitor
 
 While signed in, you can see the site exactly as a visitor would, at any time: click the eye

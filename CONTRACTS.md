@@ -1519,7 +1519,8 @@ table, ranked by `paletteRank.ts` and run through `runPaletteCommand` (lifted ou
 CommandPalette.tsx for this), minus the desktop-only rows and, without a keyboard, the
 keyboard-only ones. **Calendar**: `CalendarView` unchanged, its day pane handed to a sheet
 through `dayHost`. **More**: grouped rows; the Keyboard group only once a hardware keyboard has
-been seen.
+been seen. Rooms gained **Feeds** (`~feeds`) and Vault gained **Import notes** (the import
+dialog as a store layer, `importFolder`) in 3.28.
 
 **THE NOTE SCREEN.** A 48px top bar (‹, the title — tap for the top —, an icon for the CURRENT
 mode, ⋯) that slides away on scroll-down by `transform` over a note that keeps its own room;
@@ -1563,6 +1564,10 @@ what a tablet's list column shows (the roots, a folder, a tag, Settings, the dec
 media shelves, the bookshelf); a DETAIL hides the tab bar and takes the column beside the list; a
 FULL detail (a study session, a book) takes the whole glass on a tablet too. `SurfaceScreen` — the
 pane's switch under a top bar — is left for the graph and a drawing only.
+- **Feeds** (3.28): `FeedsScreen` (a LIST: unread articles as rows under their feed) →
+  `FeedItemScreen`, the screen kind `{ kind: "feed-item", feed, guid }` (a DETAIL whose
+  `contentOf` is `~feeds`), the sanitised article with Keep / Mark read / Open the original in its
+  ⋯ action sheet. Both read `client/feeds/useFeeds.ts`, the desktop's model.
 - **Orbits**: `OrbitsScreen` (decks as 52px rows with due counts) → `DeckScreen` (due / new /
   total, Study, the sections, the month's retention) → `SessionScreen`, the desktop's
   `SessionView` unchanged and full screen. A surface that closes itself back to a page the stack
@@ -6242,7 +6247,8 @@ trapdoor one level further out.
 - NEVER mirrored: `git-credentials.json`, `comments.db`, `created.json`, `pdftext.json`,
   `session-epoch`, `author-sites.json`, `workspace.json`, `versions/`, `fonts/catalog/`,
   `ask-credentials.json` and `embeddings.db` (3.24.0: a key is a device's; the meaning index is a
-  cache every machine rebuilds from its own Ollama). Adding a
+  cache every machine rebuilds from its own Ollama), and `feeds.db` (3.28: what this server fetched
+  and what its reader marked read; kept articles are notes and travel as notes). Adding a
   file to the list is a decision about every machine and about what a git remote will hold.
 
 ## Sync at launch (server/gitSync.ts::syncAtLaunch)
@@ -10961,7 +10967,8 @@ a month (`YYYY-MM`), the year alone a year (`YYYY`); `periodKindOf`, `periodStar
 Settings: `monthlyFormat`/`monthlyTemplate`, `yearlyFormat`/`yearlyTemplate` beside the weekly
 pair ("" is off; `periodFormat` checks a format against its KIND, so a monthly name may not carry
 `DD`), `uniqueFolder`/`uniqueFormat` (the Zettelkasten stamp, `YYYYMMDDHHmm`; must be finer than a
-day; `freePath` takes ` 2`, ` 3`… for two ideas in one minute), and `launch` (`shared/launch.ts`:
+day; `freePath` takes ` 2`, ` 3`… for two ideas in one minute — ONE Vault row since 3.28,
+"Unique notes", its two fields in `settings/PairControls.tsx` so the index counts the row once), and `launch` (`shared/launch.ts`:
 `resume` — stored as its absence — `sigils`, `orbits`, `today`, or a note path; `/api/me` carries it
 to the admin only, and `openLaunchDoor` in the store opens it ON TOP of the restored session, never
 over a deep link). THE ONE DOOR is `ensurePeriodicNoteAt(kind, date)` → `{ path, created } | null`
@@ -11051,6 +11058,9 @@ as `text/plain` so no preflight happens, reads the answer through `Access-Contro
 POST into a new tab when the page's CSP refuses the fetch — a form is answered with a 303 to the
 note. A FORM body is what the share target sends too, from the browser the reader signed in with,
 so that path rides the cookie. Names under `Clips/` never overwrite (` (2)`, ` (3)`…).
+`performKeep` (3.28) is the same door for a kept FEED article: the same `serial` queue, the same
+`htmlToMarkdown`, `freeClipPath` with the feed's folder instead of `Clips/`, and `keptNote`
+(shared/feeds.ts) for frontmatter `source`/`feed`/`published`/`kept`/`tags` — no `publish:`.
 
 **The sheet (`client/capture.ts`, `client/components/CaptureSheet.tsx`).** Ctrl/Cmd+Shift+D (Shift
 beside the daily note's Alt; the plain key is the editor's), the palette row `quick-capture`, store
@@ -11487,7 +11497,8 @@ settings file is not an attachment in somebody's sidebar.
 its credentials, everything that describes visitors (layout, comments, share buttons, ambient,
 excluded tags, author sites, public folders, the library, the language filter and toggle, the default
 theme, the footer, the favicon), the typography slots (catalog faces are downloaded and served by an
-instance), `noteVersions` (every save here is already a commit), `pdfSearch` and `hadithFolder`. A
+instance), `noteVersions` (every save here is already a commit), `pdfSearch`, `hadithFolder`, `voice`
+and `feeds` (3.28: a pocket fetches nothing; `/api/feeds*` and `/api/import/*` are 501s). A
 PATCH carrying one is a `501` naming the reason and **nothing is written** — a save that lands
 halfway is the reported bug restated. The same keys are stripped out of the GET's stored half, so a
 repository that has also been open on an instance does not prefill the phone's panel with a site it
@@ -12059,3 +12070,31 @@ coarse pointer wider than 700px (the S Pen posture) at 36px buttons and a 15.5px
 its phone block asked for width alone; it now asks `(max-width: 700px), (pointer: coarse)`. Tests: `tests/voice.test.ts` (the rule, the names, the queue with a
 fake engine, the landing over a throwaway vault, the resampler, the copy), `tests/pocketServer.test.ts`
 (the kept note, the 501s, the settings), `tests/links.test.ts` (the path-form embed).
+
+## Feeds and read-later, and the import wizard (3.28)
+
+*Self-contained: `shared/feeds.ts`, `shared/feedHtml.ts`, `server/feedParse.ts`, `server/feedStore.ts`, `server/feeds.ts`, `server/feedRoutes.ts`, `client/feeds/`, `client/phone/screens/Feed*.tsx`; `shared/importPlan.ts`, `server/import/*`, `server/importRoutes.ts`, `client/import/`. Docs: `docs/feeds.md`, `docs/import.md` and their Arabic twins.*
+
+### FEEDS: THE LIST IS A NOTE, THE CONSENT IS A SETTING
+
+- **The list.** `feedsEffective().note` (settings `feeds.note`, default `Feeds.md`) holds one or more ` ```feeds ` fences; `parseFeedList` reads them: an http(s) address per line, `→ Folder`/`-> Folder` (default `Reading`, `folderError`-checked), `#tag` lines applying to the feed above (or, before the first address, to every feed of the block), `//` comments, first mention wins, at most `FEEDS_MAX` (200). Problems (`notAnAddress`, `duplicate`, `badFolder`, `tooMany`, `tagBeforeNothing`) carry the line and are shown, never thrown. The server re-reads the note when the watcher names it (after `whenIndexed`) and asks the newly added feeds at once when fetching is on.
+- **The consent.** `feeds.fetch` (default false, stored only when true). While false NOTHING is fetched: no round, no Keep page fetch, `POST /api/feeds/refresh` is 409 `feedsOff`. The Vault tab's **Feeds** row (switch + list note, `PairControls.tsx`) says so under itself. The tab stays at eighteen rows because Unique notes' two rows became one.
+- **The cadence.** `feedsCadenceMinutes(gitSyncEffective())`: sync's `intervalMinutes` when sync is enabled with a remote and a non-zero interval, else 60. A 60 s unref'd tick; single-flight `runRound`, three feeds at a time; `If-None-Match`/`If-Modified-Since` from the stored validators; 20 s timeout, 8 MB cap, charset from `Content-Type`. An HTML answer is not a feed: `discoverFeeds` (`<link rel=alternate type=rss/atom/feed+json>`) is followed once and remembered as `resolved`. Opening the surface with fetching on and no round yet starts the first round.
+- **The store.** `ASTROLABE_DATA/feeds.db` (node:sqlite, 0600): `feeds(url, resolved, title, site, etag, modified, checked, error)` and `items(feed, guid, url, title, author, published, content, summary, seen, read, kept)` keyed by (feed, guid). An item's guid is the feed's id, else its link, else a hash of title+date+summary. Read items past `KEEP_PER_FEED` (300) are pruned; unread never. Never in the vault; never mirrored.
+- **Formats.** RSS 2.0 (and RDF items), Atom (text/html/xhtml constructs, `xml:base`), JSON Feed 1.x. `content:encoded` over `description`; Atom `content` over `summary`; `content_html` over `content_text`.
+- **Reading.** `openItem` sends `sanitizeFeedHtml` output — an allowlist over `parseHtml`: listed tags only, script/style/iframe/forms/media dropped WITH their contents, attributes per tag, `href`/`src` resolved http(s) only, SVG images refused, links `target=_blank rel="noopener noreferrer nofollow"`, images `loading=lazy decoding=async referrerpolicy=no-referrer`, all text escaped. The client injects it as it is. `summaryOnly` is prose under `FULL_ARTICLE_MIN` (900) letters.
+- **Keep.** `keepItem` → `performKeep` (server/clip.ts; see the capture section). A teaser with fetching on fetches the item's page (`contentRoot` picks its article); otherwise the feed's own words. The item is marked read and `kept`; a second Keep of a still-present note answers `already`. No `publish:` key, ever.
+- **The surfaces.** Desktop: the `~feeds` tab (`FEEDS_TAB`, `/feeds`, `setView("feeds")`, `toggleFeeds`), a door beside the calendar in the top cluster, the palette row `open-feeds`, the status ⋯ row. Two columns (a container query at 720px stacks them). `j`/`k`/`o`/`e` answered by the surface's own `onKeyDown` through `isKey` (physical position), outside the ledger like the book reader's grammar and rendered in docs/keymap.md "Feeds". A read item dims in place until the next load. Phone: More → Feeds (`FeedsScreen`, a LIST) → the `feed-item` screen with the ⋯ sheet. Pocket: `/api/feeds*` is a 501 with the sentence; `feeds` is in `POCKET_CANNOT_KEEP`; `effective.feeds` answers `{ fetch: false, note }`.
+- **Wire.** `GET /api/feeds` → `FeedsState`; `GET /api/feeds/item?feed&guid` → `FeedItemFull`; `POST /api/feeds/read {feed, guid, read}`; `POST /api/feeds/read-all {feed?}`; `POST /api/feeds/keep {feed, guid}` → `{path, fetched, already}`; `POST /api/feeds/refresh`. Every route admin-only, GETs included.
+
+### IMPORT: PREVIEW WRITES NOTHING, COMMIT STREAMS, UNDO TRASHES
+
+- **Converters** (`server/import/{notion,evernote,obsidian}.ts`) answer in export terms (`SourceNote`: export path, export dir, wanted relative path, title, body, fields — or null to keep the note's own frontmatter; `SourceAttachment`; skips with reasons; frontmatter stats). Notion: ids stripped (`stripNotionId`), property lines (`notionProperties`) and HTML property tables to fields, Notion dates to ISO, a database CSV to a table note linking its rows, rows without property lines given the CSV's cells, `_all.csv` preferred. Evernote: `.enex` via `parseXml`; resources by MD5 to attachments, `en-media` embedded where it stood, `en-todo` to tasks; tags/created/updated/source-url to fields. Obsidian: notes verbatim except `publish:` removed (`setFrontmatterLine`); dotted paths, `.obsidian/`, `.trash/` and non-attachment files skipped.
+- **Unpacking.** `unzipExport` (server/zip.ts; one nested level of zips; 20,000 entries; 1 GB unpacked) and `dropCommonRoot`; a folder upload sends `files` + `paths` (webkitRelativePath) side by side; `..` refused. Body cap `NOTES_IMPORT_MAX_BYTES` (256 MB) on `/api/import/preview` only.
+- **The plan** (`server/import/plan.ts`). Notes: `resolveTargets` under the folder (case-insensitive; `exists` in the vault or `duplicate` in the export → `Name 2.md`…; never overwrites). Attachments: `uploadDirFor(folder)`, the same resolution. Links: `linksToWikilinks` turns Markdown links to other imported notes into `[[final name|label]]`; `renameEmbeds` renames embeds of renamed attachments and notes (path-form attachment embeds become the name alone); `rewriteWikilinkPaths` + `rewriteDestinations` (server/moveLinks.ts) re-resolve path-form wikilinks and Markdown destinations from the export folder to the note's vault folder with a MoveMap of export path → vault path. Plans live 30 min, at most four.
+- **Commit.** `POST /api/import/commit {planId}` → `application/x-ndjson`: `{type:"progress", done, total, path}` per file (attachments first, `wx`), then `{type:"done", undoId, notes, attachments}`, or `{type:"error"}`. A path taken since the preview stops the commit (409 `importTaken`); what was written stays undoable.
+- **Undo** (bulkRewrite's contract; deckImport.ts has no undo token to copy): `POST /api/import/undo {undoId}` moves each written file to `.trash/` via `deleteNote`/`deleteAttachment` unless its mtime moved (then `kept`), and `rmdir`s the folders the import created, deepest first, when empty. Bundles live 24 h in memory.
+- **Nothing is published**: no converter writes `publish:`; `normaliseFields` drops one; the Obsidian converter removes Publish's. `tests/import.test.ts` asserts `isNotePublished` false for every note of all three.
+- **Doors.** Palette `import-notes`, the sidebar folder/root menu row `treeImportHere` (fills the folder), phone More → Import notes; the store's `importFolder` (null = closed) raises `ImportDialog` in both shells (a phone LAYER, so Back closes it). Not a Settings row — the Vault tab names the doors in a note (`importDoorsNote`). Pocket: `/api/import/*` is a 501.
+
+**Verified**: `tests/feeds.test.ts` (23: the list grammar, the kept note, the sanitiser, the three formats and discovery, a round against a local `node:http` server with ETag 304s, Keep from the feed and from the page, Keep with fetching off asking nobody, a highlight in a kept note in the implicit deck, nothing in the vault but kept notes), `tests/import.test.ts` (12: the pure half, each converter against the hand-written exports in `tests/fixtures/import/`, preview → commit → undo for each with collisions, attachments renamed and links rewritten, an edited file surviving undo, no note public), `tests/pocketServer.test.ts` (the 501s and the refused `feeds` key). `check-phone` opens Feeds, keeps an item from a local feed served by a fixture server, and runs a Notion-fixture import and its undo.

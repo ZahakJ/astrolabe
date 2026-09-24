@@ -13,7 +13,6 @@
   flex-direction: column;
   container-type: inline-size;
   background: var(--bg);
-  outline: none;
 }
 
 .s-feeds__bar {

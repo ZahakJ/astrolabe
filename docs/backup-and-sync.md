@@ -385,6 +385,7 @@ set up is there. This is what that means, item by item.
 | | Offline reading and software updates: one machine's choice about its own disk and network |
 | | Tabs, panes, pane widths, fold state, collapsed sections: this window on this screen |
 | | The font catalog's cached files: re-fetched, never carried |
+| | What [Feeds](feeds.md) fetched and which articles you read (`feeds.db`): one reader on one machine — the articles you kept are notes, and travel |
 
 ## Things worth knowing
 
