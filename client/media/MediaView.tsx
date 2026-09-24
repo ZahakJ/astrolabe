@@ -39,7 +39,7 @@ import "../styles/media.css";
  *  this page's business. */
 export const VAULT_EVENT = "astrolabe:vault";
 
-const SHELF_LABEL: Record<Shelf, I18nKey> = {
+export const SHELF_LABEL: Record<Shelf, I18nKey> = {
   show: "mediaSectionShow",
   game: "mediaSectionGame",
   book: "mediaSectionBook",
@@ -50,7 +50,7 @@ const SHELF_LABEL: Record<Shelf, I18nKey> = {
   other: "mediaSectionOther",
 };
 
-const SHELF_ICON: Record<Shelf, string> = {
+export const SHELF_ICON: Record<Shelf, string> = {
   show: "film",
   game: "gamepad",
   book: "book",
@@ -61,7 +61,7 @@ const SHELF_ICON: Record<Shelf, string> = {
   other: "sparkle",
 };
 
-const STATUS_LABEL: Record<TrackerStatus, I18nKey> = {
+export const STATUS_LABEL: Record<TrackerStatus, I18nKey> = {
   planned: "trackerStatusPlanned",
   active: "trackerStatusActive",
   done: "trackerStatusDone",
@@ -77,7 +77,7 @@ function dateText(raw: string, locale: string): string {
 
 /** "62 / 130 hours", "12 hours so far", or nothing. The unit is the author's
  *  own word when they gave one, else the kind's — localized and inflected. */
-function countText(meta: TrackerMeta): string | null {
+export function countText(meta: TrackerMeta): string | null {
   if (meta.done === null) return null;
   const kind: TrackerKind | null = foldKind(meta.kind);
   const known = unitKey(meta.unit);
@@ -94,8 +94,10 @@ function countText(meta: TrackerMeta): string | null {
 }
 
 // ── One card ────────────────────────────────────────────────────────────────
+// Exported: the phone's tracker screen (client/phone/screens/TrackerScreen.tsx)
+// is this card, alone on the glass.
 
-function MediaCard({
+export function MediaCard({
   meta,
   locale,
   onOpen,

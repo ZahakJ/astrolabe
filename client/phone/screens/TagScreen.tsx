@@ -2,7 +2,7 @@
 // destination. The vault search answers it (`tag:x`, shared/searchQuery.ts),
 // so what a tag lists here is what the desktop's search lists for it.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { SearchHit } from "../../../shared/types.ts";
 import { search } from "../../api.ts";
 import { t } from "../../i18n.ts";
@@ -10,12 +10,15 @@ import { useStore } from "../../state.ts";
 import { usePhone } from "../context.ts";
 import { IconFile } from "../icons.tsx";
 import TopBar from "../TopBar.tsx";
+import { useScrollMemory } from "../useScrollMemory.ts";
 
 export default function TagScreen({ tag, onBack }: { tag: string; onBack: () => void }) {
   const phone = usePhone();
   useStore((s) => s.language);
   const tree = useStore((s) => s.tree);
   const [hits, setHits] = useState<SearchHit[] | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  useScrollMemory(scrollRef);
   useEffect(() => {
     const ctl = new AbortController();
     search(`tag:${tag}`, ctl.signal)
@@ -28,7 +31,7 @@ export default function TagScreen({ tag, onBack }: { tag: string; onBack: () => 
   return (
     <div className="s-ph-screen" data-screen="tag">
       <TopBar title={`#${tag}`} userTitle onBack={onBack} />
-      <div className="s-ph-scroll">
+      <div className="s-ph-scroll" ref={scrollRef}>
         {hits === null ? (
           <p className="s-ph-empty">{t("loading")}</p>
         ) : hits.length === 0 ? (

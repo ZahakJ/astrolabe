@@ -1144,3 +1144,112 @@
 .s-book__touchzoom {
   display: none;
 }
+
+/* ── The phone's one bar (client/books/chrome.tsx PhoneBar, 3.27.0) ────────
+   On a phone the reader draws ONE 44px bar and nothing else: back, the
+   title, a scrubber, ⋯. It sits in the reader's own column (`order: -1`, so
+   the scroller below it simply starts lower and no page offset moves), it
+   does not fade with the desktop's chrome, and the page takes every pixel
+   under it. The zoom pair floats at the trailing corner over the page — a
+   finger's size, clear of the home indicator. Being on a phone is the
+   reader's `data-phone`, never a width. */
+.s-book__phonebar {
+  order: -1;
+  flex: none;
+  box-sizing: border-box;
+  height: calc(44px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-raised);
+  border-block-end: 1px solid var(--border);
+  color: var(--text);
+  z-index: 2;
+}
+
+.s-book__phonebtn {
+  flex: none;
+  inline-size: 44px;
+  block-size: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: none;
+  color: var(--text);
+  font: 600 22px/1 var(--font-ui);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.s-book__phonebtn:active {
+  background: var(--bg-hover);
+}
+
+.s-book__phonebtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* The back glyph points the way the reading direction goes back. */
+[dir="rtl"] .s-book__phoneback svg {
+  transform: scaleX(-1);
+}
+
+.s-book__phonetitle {
+  flex: 1 1 30%;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 600 15px/1.2 var(--font-serif, var(--font-ui));
+}
+
+/* The scrubber: a range as tall as a finger, its track a hairline and its
+   thumb a disc — the look of a phone's own media scrubber. */
+.s-book__scrub {
+  flex: 1 1 40%;
+  min-inline-size: 64px;
+  block-size: 44px;
+  margin: 0;
+  background: none;
+  accent-color: var(--accent);
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.s-book__scrubat {
+  flex: none;
+  min-inline-size: 3.5em;
+  color: var(--text-muted);
+  font: 13px/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.s-book__phonezoom {
+  position: absolute;
+  inset-inline-end: 12px;
+  inset-block-end: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 2;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--bg-raised) 92%, transparent);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.18);
+}
+
+/* A phone's page sits right under its bar and runs to the glass's edge. */
+.s-book[data-phone] .s-book__doc {
+  padding-block: 8px 88px;
+}
+
+/* The search line and the go-to panel rise above the home indicator. */
+.s-book[data-phone] .s-book__line {
+  inset-block-end: env(safe-area-inset-bottom, 0px);
+}

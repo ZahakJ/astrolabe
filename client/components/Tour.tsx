@@ -63,6 +63,7 @@ import {
 } from "./tourCards.ts";
 import type { TreeNode } from "../../shared/types.ts";
 import "../styles/tour.css";
+import { announceOverlay } from "../overlays.ts";
 
 /** Where the deck left off, by card id. */
 const AT_KEY = "astrolabe.tour-at";
@@ -480,6 +481,8 @@ let root: Root | null = null;
 
 export function closeTour(): void {
   if (!root || !host) return;
+  leaveOverlay?.();
+  leaveOverlay = null;
   const [r, h] = [root, host];
   root = null;
   host = null;
@@ -491,8 +494,13 @@ export function closeTour(): void {
   }, 0);
 }
 
+/** The phone shell's handle on this layer (client/overlays.ts): Back closes
+ *  the deck the way its ✕ does. */
+let leaveOverlay: (() => void) | null = null;
+
 export function openTour(): void {
   if (host) return;
+  leaveOverlay = announceOverlay("tour", closeTour);
   host = document.createElement("div");
   host.className = "s-tour-host";
   document.body.appendChild(host);

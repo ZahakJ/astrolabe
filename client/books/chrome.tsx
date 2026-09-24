@@ -17,6 +17,7 @@
 // which it is talking to, and that is the point — it is a list, and the two
 // readers are what know what a row means.
 
+import { useEffect, useRef, useState } from "react";
 import { localeNum, t, type I18nKey } from "../i18n.ts";
 
 // ── The line at the bottom ──────────────────────────────────────────────────
@@ -155,5 +156,135 @@ export function HelpSheet({ title, rows, onClose }: { title: string; rows: reado
         ))}
       </dl>
     </aside>
+  );
+}
+
+// ── The phone's chrome ──────────────────────────────────────────────────────
+//
+// ON A PHONE THE READER WEARS ONE BAR (3.27.0). The audit found three chrome
+// layers over a book on a 412px screen: the app's tab strip, this reader's
+// seven-glyph bar with the title cut to "Sa…", and the status bar with its
+// READING pill — and the page at 84% under all of it. The phone shell now
+// draws no app chrome over a book at all (client/phone/screens/
+// ReaderScreen.tsx), and the reader draws ONE 44px bar: the way back, the
+// title, a scrubber through the pages (a PDF) or the chapters (an EPUB), and
+// ⋯ — whose verbs (contents, search, night, cite, the sitting) the phone
+// shows as its own action sheet, with the contents as a sheet of their own.
+// The page takes everything under the bar. Zoom stays under the fingers
+// (pinch) and on two touch buttons at the trailing corner.
+
+/** What the phone shell lends a reader: its way back, its action sheet and
+ *  its list sheet. The reader decides what goes in them; the shell decides
+ *  how they look. Nothing in the books chunk imports the phone shell. */
+export interface PhoneReaderHost {
+  onBack(): void;
+  /** The ⋯ verbs, as the phone's action sheet. */
+  menu(title: string, rows: { label: string; note?: string; onSelect(): void }[]): void;
+  /** The book's contents, as a sheet; a pick is an index into `rows`. */
+  outline(title: string, rows: OutlineRow[], pick: (index: number) => void): void;
+}
+
+function BackGlyph() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  );
+}
+
+function DotsGlyph() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <circle cx="5" cy="12" r="1.8" />
+      <circle cx="12" cy="12" r="1.8" />
+      <circle cx="19" cy="12" r="1.8" />
+    </svg>
+  );
+}
+
+/** The reader's one bar on a phone. `at`/`total` are pages or chapters; the
+ *  scrubber moves the number under the thumb as it slides and jumps only on
+ *  release, so a drag across a 600-page book is one render per frame of a
+ *  label, not six hundred page loads. */
+export function PhoneBar({
+  title,
+  at,
+  total,
+  unit,
+  onBack,
+  onScrub,
+  onMenu,
+}: {
+  title: string;
+  at: number;
+  total: number;
+  /** How the scrubber names a position to a screen reader: "Page 12 of 340". */
+  unit: (at: number, total: number) => string;
+  onBack(): void;
+  onScrub(to: number): void;
+  onMenu(): void;
+}) {
+  const [drag, setDrag] = useState<number | null>(null);
+  const ref = useRef<HTMLInputElement | null>(null);
+  const commit = useRef(onScrub);
+  commit.current = onScrub;
+  // The native `change` fires once, on release (or per key press): that is
+  // the jump. React's onChange is the INPUT event and moves only the label.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const done = (): void => {
+      const to = Number(el.value);
+      setDrag(null);
+      if (Number.isFinite(to)) commit.current(to);
+    };
+    el.addEventListener("change", done);
+    return () => el.removeEventListener("change", done);
+  }, [total]);
+  const max = Math.max(1, total);
+  const shown = Math.min(max, Math.max(1, drag ?? at));
+  return (
+    <header className="s-book__phonebar">
+      <button type="button" className="s-book__phonebtn s-book__phoneback" onClick={onBack} aria-label={t("phBack")}>
+        <BackGlyph />
+      </button>
+      <span className="s-book__phonetitle" dir="auto">
+        {title}
+      </span>
+      {total > 1 && (
+        <input
+          ref={ref}
+          className="s-book__scrub"
+          type="range"
+          min={1}
+          max={max}
+          step={1}
+          value={shown}
+          onChange={(e) => setDrag(Number(e.target.value))}
+          aria-label={t("bookScrub")}
+          aria-valuetext={unit(shown, max)}
+        />
+      )}
+      <span className="s-book__scrubat" aria-hidden="true">
+        {localeNum(shown)}/{localeNum(max)}
+      </span>
+      <button type="button" className="s-book__phonebtn" onClick={onMenu} aria-label={t("phMore")} aria-haspopup="menu">
+        <DotsGlyph />
+      </button>
+    </header>
+  );
+}
+
+/** Zoom (a PDF) or type size (an EPUB) by finger, at the trailing corner. */
+export function PhoneZoom({ onOut, onIn, outLabel, inLabel }: { onOut(): void; onIn(): void; outLabel: string; inLabel: string }) {
+  return (
+    <div className="s-book__phonezoom" role="group" aria-label={t("bookZoomGroup")}>
+      <button type="button" className="s-book__phonebtn" onClick={onOut} aria-label={outLabel}>
+        −
+      </button>
+      <button type="button" className="s-book__phonebtn" onClick={onIn} aria-label={inLabel}>
+        +
+      </button>
+    </div>
   );
 }

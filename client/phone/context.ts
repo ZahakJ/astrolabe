@@ -15,6 +15,18 @@ export interface SheetData {
   [key: string]: unknown;
 }
 
+/** How `open` places a screen: `auto` lets a tablet REPLACE the detail
+ *  beside the list; `push` always stacks (a step deeper into what is open). */
+export type OpenHow = "auto" | "push";
+
+/** A screen that may refuse to be left: a Settings section holding edits. */
+export interface LeaveGuard {
+  /** Are there edits a move would lose? Read at the moment of the move. */
+  dirty(): boolean;
+  /** Put the edits back: the reader chose to leave without them. */
+  discard(): void;
+}
+
 export interface PhoneApi {
   nav: Nav;
   state: NavState;
@@ -25,11 +37,15 @@ export interface PhoneApi {
   /** Open a screen. On a tablet, a note picked from the list column REPLACES
    *  the note beside it rather than stacking — the list is the navigation
    *  there, and forty notes read in a row are not forty steps back. */
-  open(screen: Screen): void;
+  open(screen: Screen, how?: OpenHow): void;
   openOn(tab: TabId, screen: Screen): void;
   openSheet(id: string, data?: SheetData): void;
   closeSheet(id?: string): void;
   sheetData(id: string): SheetData | undefined;
+  /** Register (or with null, drop) the guard for the screen keyed `key`
+   *  (nav.ts `screenKey`): while it is dirty, every move off that screen —
+   *  Back, a tab, a push — asks before discarding. */
+  setGuard(key: string, guard: LeaveGuard | null): void;
 }
 
 export const PhoneContext = createContext<PhoneApi | null>(null);

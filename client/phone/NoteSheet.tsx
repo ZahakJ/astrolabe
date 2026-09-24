@@ -9,7 +9,7 @@
 // drag up takes it to 90%. On a tablet it is a 360px slide-over from the
 // trailing edge that never narrows the note.
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { Backlink } from "../../shared/types.ts";
 import { noteLabelOf } from "../../shared/noteFormat.ts";
 import { splitFrontmatter } from "../../shared/noteParse.ts";
@@ -24,7 +24,7 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { createTwinFlow, switchToTwin, twinOf, twinPillLabels } from "../twins.ts";
 import { usePhone } from "./context.ts";
-import { MOVE_SHEET, NOTE_SHEET } from "./sheetIds.ts";
+import { MOVE_SHEET, NOTE_SHEET, TAG_SHEET } from "./sheetIds.ts";
 import { publishWithConfirmation } from "./publish.ts";
 import Sheet from "./Sheet.tsx";
 
@@ -87,6 +87,7 @@ function Backlinks({ path }: { path: string }) {
 }
 
 function Properties({ path }: { path: string }) {
+  const phone = usePhone();
   const admin = useStore((s) => s.admin);
   const reload = useStore((s) => s.reloadTick);
   const [rows, setRows] = useState<PropRow[] | null>(null);
@@ -100,7 +101,21 @@ function Properties({ path }: { path: string }) {
       live = false;
     };
   }, [path, reload, tick]);
+  // The note's tags are a PICK from the vault's tags, not a line of text to
+  // retype: the tag picker (./TagPickerSheet.tsx), over this sheet.
+  const tags = (): void => phone.openSheet(TAG_SHEET, { mode: "note", path });
+  // Back from the picker: read the note again, the tags may have moved.
+  const picking = phone.state.sheets.includes(TAG_SHEET);
+  const wasPicking = useRef(false);
+  useEffect(() => {
+    if (wasPicking.current && !picking) setTick((n) => n + 1);
+    wasPicking.current = picking;
+  }, [picking]);
   const edit = async (key: string, current: PropRow | null): Promise<void> => {
+    if (key.toLowerCase() === "tags") {
+      tags();
+      return;
+    }
     // An emptied field on an existing property removes it, and says so under
     // the field before the reader commits to it.
     const value = await promptModal({
@@ -126,9 +141,17 @@ function Properties({ path }: { path: string }) {
     <>
       {rows.length === 0 && <p className="s-ph-empty">{t("phNoProps")}</p>}
       <ul className="s-ph-list s-ph-props" aria-label={t("properties")}>
+        {admin && !rows.some((row) => row.key.toLowerCase() === "tags") && (
+          <li>
+            <button type="button" className="s-ph-row s-ph-prop" data-prop="tags" onClick={tags}>
+              <span className="s-ph-prop__key">{t("tags")}</span>
+              <span className="s-ph-prop__value">{t("phTagsAdd")}</span>
+            </button>
+          </li>
+        )}
         {rows.map((row) => (
           <li key={row.key}>
-            <button type="button" className="s-ph-row s-ph-prop" disabled={!admin} onClick={() => void edit(row.key, row)}>
+            <button type="button" className="s-ph-row s-ph-prop" data-prop={row.key} disabled={!admin} onClick={() => void edit(row.key, row)}>
               <bdi className="s-ph-prop__key" dir="auto">{row.key}</bdi>
               <bdi className="s-ph-prop__value" dir="auto">{row.values.join(", ")}</bdi>
             </button>
