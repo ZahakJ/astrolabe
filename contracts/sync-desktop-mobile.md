@@ -747,6 +747,24 @@ or both moved (the conflict path). Exact, one string, and it survives an app res
 written down rather than hidden: `/api/history` and `/api/versions` show the commits since the clone,
 which is where this copy's history begins.
 
+A commit stages what is there and removes what is TRACKED and gone; a path that was never tracked
+and is not there is nothing to commit. (isomorphic-git's `remove` does not throw for an untracked
+path, and counting it as staged made an empty commit — found by the test below.)
+
+**Verified offline.** `tests/pocketGit.test.ts` runs the shipped `PocketRepo` over the in-memory
+filesystem against a bare repository in a temporary directory, answered by `git http-backend` run as
+a child process (`tests/helpers/gitBackend.ts`: no socket, no network, no repository but the test's
+own, git's user and system configuration shut out); a working clone of the same bare repository
+plays the laptop. It pins the shallow single-branch clone, `.trash/` in `info/exclude`, the token in
+a header and never in `.git/config`, commit/push/pull in all three cases, the `(phone)` pair, a push
+refused because the remote moved, and a note's past. `tests/pocketSession.test.ts` holds the sync
+loop to the same remote (one repository turn at a time, offline versus refused, the lifecycle
+hooks); `tests/pocketGithub.test.ts` the device flow's states and token validation against a fake
+`http`; `tests/pocketStore.test.ts` Preferences (its web implementation over a stand-in
+`localStorage`) and the transport over a fake native bridge (`createGitHttp`);
+`tests/pocketBoot.test.ts` the fetch shim, the answer to the service worker and the sync line's
+words (`boot()` itself starts only where there is a `document`).
+
 ### THE FILESYSTEM IS INDEXEDDB, AND THE ARCHITECTURE DECIDED IT BEFORE THE NUMBERS DID
 
 `@isomorphic-git/lightning-fs` over IndexedDB, not `@capacitor/filesystem`. The decisive fact is not
