@@ -370,6 +370,41 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.30.0",
+    title: { en: "Other sites, heard", ar: "مواقع أخرى تُسمَع" },
+    slides: [
+      {
+        // ── Webmentions, and the blog as one fediverse actor ──────────────
+        title: { en: "Other sites, heard", ar: "مواقع أخرى تُسمَع" },
+        body: {
+          en: "Your posts can now join conversations that happen elsewhere. Replies, likes and mentions from other blogs arrive in moderation, and the ones you approve appear under the post. Publishing tells the sites a post links to, and the blog can be followed from Mastodon as one account. Three switches in Settings → Publishing, all off until you turn them on, and nothing private ever leaves.",
+          ar: "صارت تدويناتك تنضم إلى أحاديث تجري في أماكن أخرى. تصل الردود والإعجابات والإشارات من المدونات الأخرى إلى الإشراف، وما توافق عليه يظهر تحت التدوينة. والنشر يخبر المواقع التي تربط إليها التدوينة، ويمكن متابعة المدونة من ماستودون حسابًا واحدًا. ثلاثة مفاتيح في الإعدادات ← النشر، كلها متوقفة حتى تشغّلها، ولا يغادر شيء خاص أبدًا.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="40" y="40" width="110" height="140" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+  <g fill="var(--text-faint)"><rect x="52" y="54" width="70" height="7" rx="3" fill="var(--text-muted)"/><rect x="52" y="72" width="86" height="4" rx="2"/><rect x="52" y="82" width="80" height="4" rx="2"/><rect x="52" y="92" width="84" height="4" rx="2"/><rect x="52" y="102" width="60" height="4" rx="2"/></g>
+  <g fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round">
+    <path class="wa-draw" d="M150 70 C 230 60, 300 50, 380 46"/>
+    <path class="wa-draw" style="--i:1" d="M150 100 C 230 110, 300 120, 380 130"/>
+    <path class="wa-draw" style="--i:2" d="M150 130 C 200 150, 240 165, 280 172"/>
+  </g>
+  <g class="wa-late" style="--i:2"><path d="M392 38 l10 -10 l10 10 v14 h-20 z" fill="var(--bg)" stroke="var(--text-muted)" stroke-width="1.5"/><rect x="384" y="40" width="16" height="12" rx="2" fill="var(--accent)"/><path d="M384 40 l8 6 l8 -6" fill="none" stroke="var(--bg)" stroke-width="1.5"/></g>
+  <g class="wa-late" style="--i:3"><path d="M392 122 l10 -10 l10 10 v14 h-20 z" fill="var(--bg)" stroke="var(--text-muted)" stroke-width="1.5"/><path class="wa-pulse" d="M383 132 c -3 -4 1 -8 4 -5 c 3 -3 7 1 4 5 l -4 4 z" fill="var(--accent)"/></g>
+  <g class="wa-late" style="--i:4" fill="var(--accent)"><circle cx="470" cy="70" r="2"/><circle cx="486" cy="60" r="2"/><circle cx="500" cy="72" r="2"/><circle cx="512" cy="88" r="2"/><circle cx="478" cy="92" r="2"/><circle cx="494" cy="104" r="2"/></g>
+  <g class="wa-late" style="--i:4" fill="none" stroke="var(--accent)" stroke-width="1" opacity="0.6"><path d="M470 70 L486 60 L500 72 L512 88 M486 60 L478 92 L494 104 L512 88"/></g>
+  <g class="wa-late" style="--i:3"><rect x="282" y="160" width="26" height="30" rx="3" fill="var(--bg-hover)" stroke="var(--text-muted)" stroke-width="1.5"/><circle cx="302" cy="176" r="1.5" fill="var(--text-muted)"/><line x1="268" y1="166" x2="280" y2="178" stroke="var(--danger)" stroke-width="2"/></g>
+  <text x="95" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "your post", "تدوينتك")}</text>
+  <text x="440" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "other sites, and the fediverse", "مواقع أخرى، والفدرالية")}</text>
+</svg>`,
+        },
+        docs: "webmentions",
+      },
+    ],
+  },
+  {
     version: "3.29.0",
     title: { en: "Today, and the days", ar: "اليوم، والأيام" },
     slides: [
