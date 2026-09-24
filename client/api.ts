@@ -387,6 +387,12 @@ export function renameNote(path: string, toPath: string): Promise<{ ok: true }> 
   return request<{ ok: true }>("/api/rename", json("POST", { path, toPath }));
 }
 
+/** Rename an attachment where it stands; the notes that embed it are
+ *  rewritten on the server, and the answer says how many. */
+export function renameAttachment(path: string, toPath: string): Promise<{ ok: true; rewritten: number }> {
+  return request<{ ok: true; rewritten: number }>("/api/attachment/rename", json("POST", { path, toPath }));
+}
+
 /** Delete ONE note. Same two speeds as `deleteFolder`, because a note is not
  *  a cheaper thing to lose than a folder: the default MOVES it to the vault's
  *  `.trash/` (the answer carries where it landed), `permanent` erases it. */
