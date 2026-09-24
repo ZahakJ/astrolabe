@@ -11,6 +11,7 @@ import { openDesigner } from "../design/openDesigner.ts";
 import { ImageField } from "./ImageField.tsx";
 import { Consequence, VisibilityBanner } from "./Visibility.tsx";
 import { splitSites, splitTags, enumLabel } from "./form.ts";
+import { FediverseNote, SentPanel } from "../../mentions/PublishingPanels.tsx";
 
 export default function PublishingTab() {
   const { form, setForm, setPicker, errors, field, onOffSegments, eff, inh, impact, homeOff } = useSettings();
@@ -109,6 +110,58 @@ export default function PublishingTab() {
           label={t("rowComments")}
           segments={onOffSegments(inh.commentsEnabled)}
           {...field("comments")}
+        />
+      </Row>
+      {/* WEBMENTIONS AND THE FEDIVERSE (docs/webmentions.md): three
+          switches, each network access the owner consents to on its own,
+          all off on a new instance. What they have done is said UNDER each
+          switch (the rows' `after` line) rather than in rows of their own:
+          the Sent list and the follower count are answers about a switch,
+          and this tab holds eighteen rows at most. */}
+      <Row label={t("rowWebmentionsAccept")} hint={t("hintWebmentionsAccept")} more={t("moreWebmentionsAccept")}>
+        <Toggle
+          label={t("rowWebmentionsAccept")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={form.wmAccept === "on"}
+          onChange={(on) => setForm((f) => (f ? { ...f, wmAccept: on ? "on" : "off" } : f))}
+        />
+      </Row>
+      <Row
+        label={t("rowWebmentionsSend")}
+        hint={t("hintWebmentionsSend")}
+        more={t("moreWebmentionsSend")}
+        after={<SentPanel on={form.wmSend === "on"} />}
+      >
+        <Toggle
+          label={t("rowWebmentionsSend")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={form.wmSend === "on"}
+          onChange={(on) => setForm((f) => (f ? { ...f, wmSend: on ? "on" : "off" } : f))}
+        />
+      </Row>
+      <Row
+        label={t("rowFediverse")}
+        hint={t("hintFediverse")}
+        more={t("moreFediverse")}
+        after={<FediverseNote on={form.fediEnabled === "on"} />}
+      >
+        <Toggle
+          label={t("rowFediverse")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={form.fediEnabled === "on"}
+          onChange={(on) => setForm((f) => (f ? { ...f, fediEnabled: on ? "on" : "off" } : f))}
+        />
+      </Row>
+      <Row label={t("rowFediverseHandle")} hint={t("hintFediverseHandle")} error={errors.fediHandle} off={form.fediEnabled !== "on"}>
+        <TextInput
+          placeholder={eff.fediverse.handle}
+          dir="ltr"
+          label={t("rowFediverseHandle")}
+          invalid={errors.fediHandle !== undefined}
+          {...field("fediHandle")}
         />
       </Row>
       {/* No env var behind these two either — plain toggles, on

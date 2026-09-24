@@ -38,7 +38,7 @@ import {
   webfinger,
 } from "./activitypub.ts";
 import { requestOrigin } from "./blog.ts";
-import { pathForUrl, publicOrigin, rememberOrigin } from "./federation.ts";
+import { pathForUrl, publicOrigin } from "./federation.ts";
 import { RetryLater } from "./jobQueue.ts";
 import { FetchRefused } from "./safeFetch.ts";
 import { fediverseEffective } from "./settings.ts";
@@ -49,12 +49,12 @@ function on(): boolean {
   return fediverseEffective().enabled;
 }
 
-/** The site's address as other servers know it (SITE_URL, else this
- *  request's), remembered for the background deliveries. */
+/** The site's address as other servers know it: SITE_URL, else the one the
+ *  owner's own session remembered, else this request's. An anonymous
+ *  request never REMEMBERS its address — X-Forwarded-Host is the caller's to
+ *  write, and the remembered origin is what background deliveries sign as. */
 function originOf(c: Context): string {
-  const seen = requestOrigin(c);
-  rememberOrigin(seen);
-  return publicOrigin() ?? seen;
+  return publicOrigin() ?? requestOrigin(c);
 }
 
 function wantsActivity(c: Context): boolean {

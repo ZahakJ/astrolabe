@@ -12,6 +12,7 @@ import { useNoteNeighborhood } from "../graphCache.ts";
 import { countPhrase, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import Marginalia from "../components/Marginalia.tsx";
+import Mentions from "../mentions/MentionsSection.tsx";
 import AnnotationsMount from "../annotations/AnnotationsMount.tsx";
 import { renderNoteContent } from "../reading/renderNote.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
@@ -376,6 +377,7 @@ export default function BlogArticle({
         )}
 
         <Marginalia path={path} />
+        <Mentions path={path} />
       </footer>
     </article>
   );

@@ -17,6 +17,7 @@ import { SYSTEM_FONT } from "../../../shared/fonts.ts";
 import { DEFAULT_LAUNCH, isLaunchDoor } from "../../../shared/launch.ts";
 import { isVoiceLanguage, isVoiceModelSetting } from "../../../shared/voice.ts";
 import { isNotePath } from "../../../shared/noteFormat.ts";
+import { isFediverseHandle } from "../../../shared/fediverse.ts";
 import { isImagePath } from "../../../shared/fileKinds.ts";
 
 export interface Form {
@@ -87,6 +88,11 @@ export interface Form {
   // ── Feeds (shared/feeds.ts) ──────────────────────────────────────────────
   feedsFetch: string;     // "on" | "off" — off unless the owner says so
   feedsNote: string;      // the list's note; "" is the default Feeds.md
+  // ── Webmentions and the fediverse (docs/webmentions.md) ──────────────────
+  wmAccept: string;       // "on" | "off" — off unless the owner says so
+  wmSend: string;         // "on" | "off"
+  fediEnabled: string;    // "on" | "off"
+  fediHandle: string;     // "" is the handle derived from the site name
   // ── Backup & sync (gitSync) ──────────────────────────────────────────────
   // These prefill from `effective` rather than from the stored keys: sync has
   // no env counterpart, so "inherit" is meaningless here — every control shows
@@ -236,6 +242,10 @@ export function formFrom(s: SettingsResponse): Form {
     voiceKeepAudio: s.effective.voice.keepAudio ? "on" : "off",
     feedsFetch: s.effective.feeds.fetch ? "on" : "off",
     feedsNote: s.feeds?.note ?? "",
+    wmAccept: s.effective.webmentions.accept ? "on" : "off",
+    wmSend: s.effective.webmentions.send ? "on" : "off",
+    fediEnabled: s.effective.fediverse.enabled ? "on" : "off",
+    fediHandle: s.fediverse?.handle ?? "",
     syncEnabled: s.effective.gitSync.enabled ? "on" : "off",
     syncRemote: s.effective.gitSync.remote ?? "",
     syncBranch: s.effective.gitSync.branch,
@@ -424,6 +434,8 @@ export function validate(f: Form): Partial<Record<keyof Form, string>> {
   );
   if (badSite !== undefined) errors.authorSites = tf("errAuthorSite", { url: badSite.url });
   if (splitSites(f.authorSites).length > 6) errors.authorSites = t("errAuthorSitesMax");
+  const handle = f.fediHandle.trim().toLowerCase();
+  if (handle !== "" && !isFediverseHandle(handle)) errors.fediHandle = t("errFediHandle");
   const badTag = splitTags(f.excludeTags).find((tag) => tag.length > 50 || !TAG_RE.test(tag));
   if (badTag !== undefined) errors.excludeTags = tf("errNotSimpleTag", { tag: badTag });
   if (f.homeNote.trim() !== "" && !isNotePath(f.homeNote.trim())) {
@@ -723,6 +735,18 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
     if (f.voiceLanguage !== initial.voiceLanguage && isVoiceLanguage(f.voiceLanguage)) voice.language = f.voiceLanguage;
     if (f.voiceKeepAudio !== initial.voiceKeepAudio) voice.keepAudio = f.voiceKeepAudio === "on";
     if (Object.keys(voice).length > 0) patch.voice = voice;
+  }
+  if (f.wmAccept !== initial.wmAccept || f.wmSend !== initial.wmSend) {
+    const wm: NonNullable<SettingsPatch["webmentions"]> = {};
+    if (f.wmAccept !== initial.wmAccept) wm.accept = f.wmAccept === "on";
+    if (f.wmSend !== initial.wmSend) wm.send = f.wmSend === "on";
+    patch.webmentions = wm;
+  }
+  if (f.fediEnabled !== initial.fediEnabled || f.fediHandle.trim() !== initial.fediHandle.trim()) {
+    const fedi: NonNullable<SettingsPatch["fediverse"]> = {};
+    if (f.fediEnabled !== initial.fediEnabled) fedi.enabled = f.fediEnabled === "on";
+    if (f.fediHandle.trim() !== initial.fediHandle.trim()) fedi.handle = f.fediHandle.trim() === "" ? null : f.fediHandle.trim().toLowerCase();
+    patch.fediverse = fedi;
   }
   if (f.feedsFetch !== initial.feedsFetch || f.feedsNote.trim() !== initial.feedsNote.trim()) {
     const feeds: NonNullable<SettingsPatch["feeds"]> = {};

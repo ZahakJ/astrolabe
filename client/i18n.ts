@@ -6056,6 +6056,56 @@ const DICT = {
   yearReviewLinked: { en: "Most linked", ar: "الأكثر ربطًا" },
   yearReviewNone: { en: "Nothing this year.", ar: "لا شيء هذه السنة." },
 
+  // Webmentions and the fediverse (docs/webmentions.md).
+  rowWebmentionsAccept: { en: "Accept webmentions", ar: "استقبال إشارات الويب" },
+  hintWebmentionsAccept: { en: "Other sites can tell yours they linked to a post; each awaits your approval.", ar: "تستطيع مواقع أخرى إخبار موقعك بأنها ربطت إلى تدوينة، وكل إشارة تنتظر موافقتك." },
+  moreWebmentionsAccept: {
+    en: "On, every public page advertises an endpoint at /webmention. A site that links to one of your posts can POST its address there; this server fetches that page (public addresses only, a megabyte, ten seconds), checks it really links to your post, and files it in moderation as a like, a repost, a reply or a mention. Nothing appears on the post until you approve it. A page that stops linking is withdrawn when it is verified again.",
+    ar: "عند التشغيل تُعلن كل صفحة عامة عن نقطة استقبال في ‎/webmention‎. يستطيع موقع ربط إلى إحدى تدويناتك أن يرسل عنوانه إليها، فيجلب هذا الخادم تلك الصفحة (العناوين العامة وحدها، ميغابايت واحد، عشر ثوانٍ)، ويتحقق من أنها تربط إلى تدوينتك فعلًا، ويضعها في الإشراف إعجابًا أو إعادة نشر أو ردًّا أو إشارة. لا يظهر شيء تحت التدوينة حتى توافق عليه. والصفحة التي تكفّ عن الربط تُسحب إشارتها عند التحقق منها مجددًا.",
+  },
+  rowWebmentionsSend: { en: "Send webmentions", ar: "إرسال إشارات الويب" },
+  hintWebmentionsSend: { en: "When you publish, tell the sites a post links to.", ar: "حين تنشر، أخبر المواقع التي تربط إليها التدوينة." },
+  moreWebmentionsSend: {
+    en: "On, publishing a post, or republishing one that changed, sends a webmention to every other site its text links to that advertises an endpoint. A page that did not change sends nothing again. Only public posts send: never a draft, a template, a library lesson or a post the language filter hides.",
+    ar: "عند التشغيل يرسل نشرُ تدوينة، أو إعادة نشر تدوينة تغيّرت، إشارةَ ويب إلى كل موقع آخر يربط إليه نصها ويُعلن عن نقطة استقبال. والصفحة التي لم تتغير لا ترسل شيئًا مرة أخرى. ولا ترسل إلا التدوينات العامة: لا مسودة ولا قالب ولا درس مكتبة ولا تدوينة يخفيها مرشّح اللغة.",
+  },
+  rowFediverse: { en: "Fediverse", ar: "الفيديفيرس" },
+  hintFediverse: { en: "Let Mastodon and its neighbours follow the blog, like, boost and reply.", ar: "دع ماستودون وجيرانه يتابعون المدونة ويُعجبون ويُعيدون النشر ويردّون." },
+  moreFediverse: {
+    en: "On, the blog is one ActivityPub account that people find by its address. Followers are accepted at once; each new post is delivered to them, an edited one is updated, and an unpublished one is deleted from their timelines. Likes and boosts appear under the post; replies wait in moderation. Set SITE_URL so the address never changes.",
+    ar: "عند التشغيل تصبح المدونة حسابًا واحدًا على ActivityPub يجده الناس بعنوانه. يُقبل المتابعون فورًا؛ وتُسلَّم إليهم كل تدوينة جديدة، وتُحدَّث المعدّلة، وتُحذف من خطوطهم الزمنية التدوينة التي أُلغي نشرها. تظهر الإعجابات وإعادات النشر تحت التدوينة، وتنتظر الردود في الإشراف. اضبط SITE_URL كي لا يتغير العنوان أبدًا.",
+  },
+  rowFediverseHandle: { en: "Fediverse name", ar: "الاسم في الفيديفيرس" },
+  hintFediverseHandle: { en: "The name before the @ that people search for.", ar: "الاسم الذي يسبق @ ويبحث عنه الناس." },
+  errFediHandle: { en: "Letters, digits and underscores only, at most 30.", ar: "حروف لاتينية وأرقام وشرطة سفلية فقط، ثلاثون على الأكثر." },
+  sentQueued: { en: "Waiting", ar: "في الانتظار" },
+  sentSent: { en: "Sent", ar: "أُرسلت" },
+  sentNoEndpoint: { en: "No endpoint", ar: "بلا نقطة استقبال" },
+  sentFailed: { en: "Failed", ar: "أخفقت" },
+  sentSkipped: { en: "Not public", ar: "ليست عامة" },
+  sentNone: { en: "Nothing sent yet: the next post you publish with links to other sites will.", ar: "لم يُرسل شيء بعد: ستُرسل التدوينة التالية التي تنشرها بروابط إلى مواقع أخرى." },
+  sentOff: { en: "Off: publishing tells no other site anything.", ar: "متوقف: لا يُخبر النشرُ أي موقع آخر بشيء." },
+  sentShow: { en: "Sent: {count}", ar: "المُرسَل: {count}" },
+  federationNoOrigin: { en: "This server does not know its public address yet: set SITE_URL, or open these settings once at that address.", ar: "لا يعرف هذا الخادم عنوانه العام بعد: اضبط SITE_URL، أو افتح هذه الإعدادات مرة من ذلك العنوان." },
+  federationOriginGuessed: { en: "The address was taken from your browser; set SITE_URL to keep it fixed.", ar: "أُخذ العنوان من متصفحك؛ اضبط SITE_URL ليبقى ثابتًا." },
+  fediverseOffNote: { en: "Off: no server can find, follow or read the blog as an account.", ar: "متوقف: لا يستطيع أي خادم أن يجد المدونة أو يتابعها أو يقرأها حسابًا." },
+  fediverseOnNote: { en: "People find the blog as {address}; {followers} so far.", ar: "يجد الناس المدونة باسم {address}؛ وحتى الآن: {followers}." },
+  mentionsTitle: { en: "Mentions", ar: "الإشارات" },
+  mentionReplied: { en: "Reply", ar: "رد" },
+  mentionMentioned: { en: "Mention", ar: "إشارة" },
+  mentionKindWebmention: { en: "Webmention", ar: "إشارة ويب" },
+  mentionKindFediverse: { en: "Fediverse", ar: "الفيديفيرس" },
+  mentionTypeLike: { en: "Like", ar: "إعجاب" },
+  mentionTypeRepost: { en: "Repost", ar: "إعادة نشر" },
+  mentionTypeReply: { en: "Reply", ar: "رد" },
+  mentionTypeMention: { en: "Mention", ar: "إشارة" },
+  mentionVerifyAgain: { en: "Verify again", ar: "تحقّق مجددًا" },
+  mentionVerifying: { en: "Verifying…", ar: "جارٍ التحقق…" },
+  mentionVerifiedToast: { en: "The source still links here.", ar: "ما زال المصدر يربط إلى هنا." },
+  mentionWithdrawnToast: { en: "The source no longer links here: the mention was withdrawn.", ar: "لم يعد المصدر يربط إلى هنا: سُحبت الإشارة." },
+  mentionUnreachableToast: { en: "The source could not be reached; the mention stays as it was.", ar: "تعذّر الوصول إلى المصدر؛ تبقى الإشارة كما هي." },
+  mentionVerifyFailed: { en: "Could not verify the mention.", ar: "تعذّر التحقق من الإشارة." },
+
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;
@@ -6182,7 +6232,12 @@ export type CountUnit =
   | "recordings"
   | "ticks"
   | "books"
-  | "sittings";
+  | "sittings"
+  // Webmentions and the fediverse (docs/webmentions.md).
+  | "likes"
+  | "reposts"
+  | "followers"
+  | "mentions";
 
 const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: string; few: string; many: string } }> = {
   // What a bulk tab-close is about to FLUSH. It is a count with a consequence
@@ -6269,6 +6324,10 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   ticks: { en: ["tick", "ticks"], ar: { one: "علامة واحدة", two: "علامتان", few: "علامات", many: "علامة" } },
   books: { en: ["book", "books"], ar: { one: "كتاب واحد", two: "كتابان", few: "كتب", many: "كتابًا" } },
   sittings: { en: ["sitting", "sittings"], ar: { one: "جلسة واحدة", two: "جلستان", few: "جلسات", many: "جلسة" } },
+  likes: { en: ["like", "likes"], ar: { one: "إعجاب واحد", two: "إعجابان", few: "إعجابات", many: "إعجابًا" } },
+  reposts: { en: ["repost", "reposts"], ar: { one: "إعادة نشر واحدة", two: "إعادتا نشر", few: "إعادات نشر", many: "إعادة نشر" } },
+  followers: { en: ["follower", "followers"], ar: { one: "متابع واحد", two: "متابعان", few: "متابعين", many: "متابعًا" } },
+  mentions: { en: ["mention", "mentions"], ar: { one: "إشارة واحدة", two: "إشارتان", few: "إشارات", many: "إشارة" } },
 };
 
 /** "3 notes" / "3 ملاحظات" — a number with its correctly-agreed unit. */
