@@ -12,6 +12,7 @@ import {
   findEmbedInLines,
   insertEmbedEdit,
   isStandaloneEmbed,
+  landEmbed,
   moveEmbedEdit,
   rebaseEmbedSource,
   removeEmbedEdit,
@@ -155,6 +156,26 @@ describe("dropping an embed into another note", () => {
     assert.equal(rebaseEmbedSource("![x](../media/my%20pic.png)", "notes/n.md", "m.md"), "![x](media/my%20pic.png)");
     assert.equal(rebaseEmbedSource("![x](https://e.org/a.png)", "a/n.md", "m.md"), "![x](https://e.org/a.png)");
     assert.equal(rebaseEmbedSource("![x](/media/a.png)", "a/n.md", "m.md"), "![x](/media/a.png)");
+  });
+});
+
+describe("landing a lifted embed", () => {
+  it("moves within the note it came from, found by the reading view's block lines", () => {
+    const d = "# T\n\n![[a.png]]\n\nText.\n";
+    const edit = landEmbed(d, "n.md", { note: "n.md", source: "![[a.png]]", span: null, lines: [2, 2] }, { line: 4, after: true });
+    assert.ok(edit);
+    assert.equal(applyChanges(d, edit.changes), "# T\n\nText.\n\n![[a.png]]\n");
+  });
+
+  it("finds a stale editor span by the text, and inserts into another note re-based", () => {
+    const d = "x\n\n![a](m/a.png)\n";
+    const stale = landEmbed(d, "n/n.md", { note: "n/n.md", source: "![a](m/a.png)", span: { from: 0, to: 3 }, lines: null }, { pos: 0 });
+    assert.ok(stale);
+    assert.equal(applyChanges(d, stale.changes), "![a](m/a.png)\n\nx\n");
+    const other = "Other note.";
+    const ins = landEmbed(other, "o.md", { note: "n/n.md", source: "![a](m/a.png)", span: null, lines: null }, { pos: other.length });
+    assert.ok(ins);
+    assert.equal(applyChanges(other, ins.changes), "Other note.\n\n![a](n/m/a.png)");
   });
 });
 

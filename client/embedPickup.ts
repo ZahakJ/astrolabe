@@ -21,34 +21,18 @@
 // half is client/editor/embedGrip.ts; the reading view's half is below. The
 // arithmetic of both is shared/embedActions.ts.
 
-import {
-  applyChanges,
-  embedFileUrl,
-  findEmbedInLines,
-  insertEmbedEdit,
-  moveEmbedEdit,
-  rebaseEmbedSource,
-  type DropSpot,
-  type EmbedEdit,
-  type EmbedKind,
-} from "../shared/embedActions.ts";
+// Types only: the arithmetic (shared/embedActions.ts) is fetched at the drop,
+// so the reading view's first paint carries the listeners and nothing else.
+import type { DropSpot, EmbedKind, LiftedEmbed } from "../shared/embedActions.ts";
 import { drawingSvgName, parseEmbed, resolveAttachment } from "./editor/embeds.ts";
 import { applyNoteContent, noteContent } from "./sectionActions.ts";
 import { useStore } from "./state.ts";
 
 export const EMBED_MIME = "application/x-astrolabe-embed";
 
-/** What is being carried. */
-export interface EmbedPayload {
-  /** The note it was lifted from. */
-  note: string;
-  /** Its source, exactly as written. */
-  source: string;
-  /** Where it sits in the note, when the editor lifted it (document offsets). */
-  span: { from: number; to: number } | null;
-  /** The lines of the block it sits in, when the reading view lifted it. */
-  lines: [number, number] | null;
-  /** The vault path of the file, when known at lift time. */
+/** What is being carried: the embed as the arithmetic knows it, and the
+ *  vault path of its file when that was known at lift time. */
+export interface EmbedPayload extends LiftedEmbed {
   path: string | null;
 }
 
@@ -165,7 +149,7 @@ export function beginEmbedDrag(ev: DragEvent, payload: EmbedPayload, ghost: Elem
   dt.effectAllowed = "copyMove";
   dt.setData(EMBED_MIME, JSON.stringify(payload));
   if (payload.path !== null) {
-    const url = embedFileUrl(location.origin, payload.path);
+    const url = `${location.origin}/api/file?path=${encodeURIComponent(payload.path)}`;
     const name = payload.path.slice(payload.path.lastIndexOf("/") + 1);
     dt.setData("DownloadURL", `${mimeOf(payload.path)}:${name}:${url}`);
     dt.setData("text/uri-list", url);
@@ -187,34 +171,6 @@ export function beginEmbedDrag(ev: DragEvent, payload: EmbedPayload, ghost: Elem
 export function endEmbedDrag(): void {
   current = null;
   hideDropLine();
-}
-
-// ── landing a drop on a note by its content ─────────────────────────────────
-
-/** Where the lifted embed is in `content` right now: the editor's span when
- *  it still holds the same text, the block's lines otherwise, the whole note
- *  as a last resort. */
-export function locateLifted(content: string, p: EmbedPayload): { from: number; to: number } | null {
-  if (p.span !== null && content.slice(p.span.from, p.span.to) === p.source) return p.span;
-  if (p.lines !== null) {
-    const hit = findEmbedInLines(content, p.source, p.lines[0], p.lines[1]);
-    if (hit) return hit;
-  }
-  const at = content.indexOf(p.source);
-  return at === -1 ? null : { from: at, to: at + p.source.length };
-}
-
-/** The edit that lands `p` at `spot` in `target`, or null when the drop
- *  changes nothing: a MOVE within the note it came from, an insertion of the
- *  same reference anywhere else. The same function answers for both
- *  surfaces; the editor dispatches the changes, the reading view applies
- *  them to the note's text. */
-export function landEmbed(content: string, target: string, p: EmbedPayload, spot: DropSpot): EmbedEdit | null {
-  if (p.note === target) {
-    const span = locateLifted(content, p);
-    return span === null ? null : moveEmbedEdit(content, span, spot);
-  }
-  return insertEmbedEdit(content, spot, rebaseEmbedSource(p.source, p.note, target));
 }
 
 // ── the reading view's half ─────────────────────────────────────────────────
@@ -362,7 +318,7 @@ export function installEmbedPickup(): void {
     if (!target || !at) return;
     ev.preventDefault();
     void (async () => {
-      const content = await noteContent(target);
+      const [{ applyChanges, landEmbed }, content] = await Promise.all([import("../shared/embedActions.ts"), noteContent(target)]);
       const edit = landEmbed(content, target, payload, at.spot);
       if (edit !== null) await applyNoteContent(target, applyChanges(content, edit.changes));
     })();
