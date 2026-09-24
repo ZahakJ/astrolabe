@@ -2,7 +2,8 @@
 // every one before it draws it.
 //
 //   · A LIST is a place you pick from: the five roots, a folder, a tag, the
-//     decks, the sigils, the shelf of trackers, the bookshelf, Settings. It
+//     decks, the sigils, the shelf of trackers, the bookshelf, the Timeline
+//     (3.28: a list of days whose rows open notes), Settings. It
 //     keeps the tab bar under it on a phone, and on a tablet it is what the
 //     list column shows.
 //   · A DETAIL is what a list opened: a note, a deck, a sigil, a tracker, a
@@ -17,11 +18,11 @@
 // the stack going back down to the screen that shows it, rather than by a
 // second copy of that screen pushed on top.
 
-import { isBookPath, isMediaTab, isOrbitsTab, isRoutinesTab, MEDIA_TAB, orbitsSessionOf, ORBITS_TAB, ROUTINES_TAB } from "../workspace.ts";
+import { isBookPath, isMediaTab, isOrbitsTab, isRoutinesTab, isTimelineTab, MEDIA_TAB, orbitsSessionOf, ORBITS_TAB, ROUTINES_TAB } from "../workspace.ts";
 import type { Screen } from "./nav.ts";
 
 const LIST_SURFACES = (tab: string): boolean =>
-  tab === "~library" || isRoutinesTab(tab) || isMediaTab(tab) || (isOrbitsTab(tab) && orbitsSessionOf(tab) === null);
+  tab === "~library" || isRoutinesTab(tab) || isTimelineTab(tab) || isMediaTab(tab) || (isOrbitsTab(tab) && orbitsSessionOf(tab) === null);
 
 export function isList(s: Screen): boolean {
   switch (s.kind) {
