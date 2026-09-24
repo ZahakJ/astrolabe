@@ -472,6 +472,58 @@ try {
     await page.waitForTimeout(1600);
     const shells = await page.evaluate(() => ({ phone: !!document.querySelector(".s-ph"), desktop: !!document.querySelector(".s-app") }));
     check(!shells.phone && shells.desktop, "classic: Phone layout → Classic mounts the drawer shell");
+
+    // THE P0, IN THE SHELL IT HAPPENED IN (3.26.1). Classic still loads the
+    // back-gesture guard, and its retraction raced the router: a note tapped
+    // in the drawer did not open (client/backGuard.ts). Tap one, and require
+    // the address, the title and the active tab to name it, drawer closed.
+    const where = () =>
+      page.evaluate(() => ({
+        path: decodeURIComponent(location.pathname),
+        title: document.title,
+        tab: document.querySelector(".s-tab--active")?.textContent?.trim() ?? "",
+        drawer: document.querySelector(".s-app--drawer") !== null,
+      }));
+    const before = await where();
+    await page.tap(".s-drawer-btn");
+    await page.waitForTimeout(600);
+    const name = await page.evaluate(() => {
+      const row = [...document.querySelectorAll(".s-sidebar .s-tree__item[data-tree-path]")].find(
+        (r) => /\.md$/i.test(r.dataset.treePath ?? "") && r.getAttribute("aria-selected") !== "true" && r.getBoundingClientRect().height > 0,
+      );
+      if (!row) return null;
+      row.setAttribute("data-check-phone", "tap");
+      return row.dataset.treePath.split("/").pop().replace(/\.md$/i, "");
+    });
+    if (name === null) {
+      check(false, "classic: a note tapped in the drawer opens", "the drawer showed no note row to tap");
+    } else {
+      await page.tap('[data-check-phone="tap"]');
+      await page.waitForTimeout(2000);
+      const after = await where();
+      const miss = [];
+      if (after.path === before.path || !after.path.includes(name)) miss.push(`address ${before.path} → ${after.path}`);
+      if (!after.title.includes(name)) miss.push(`title "${after.title}"`);
+      if (!after.tab.includes(name)) miss.push(`active tab "${after.tab}"`);
+      if (after.drawer) miss.push("the drawer is still out");
+      check(miss.length === 0, "classic: a note tapped in the drawer opens", `tapped "${name}": ${miss.join("; ")}`);
+
+      // …and Classic's one-tap Publish in the bottom bar asks first.
+      const target = await page.evaluate(async () => {
+        const { paths } = await (await fetch("/api/published")).json();
+        const p = decodeURIComponent(location.pathname).slice(1);
+        return paths.some((x) => x.replace(/\.md$/i, "") === p) ? null : p;
+      });
+      if (target !== null && (await page.locator(".s-statusbar__pub").count()) > 0) {
+        await page.tap(".s-statusbar__pub");
+        await page.waitForTimeout(600);
+        const asked = await page.locator(".s-confirm").isVisible().catch(() => false);
+        if (asked) await page.tap(".s-confirm__cancel");
+        await page.waitForTimeout(700);
+        const live = await page.evaluate(async (p) => ((await (await fetch("/api/published")).json()).paths ?? []).some((x) => x.replace(/\.md$/i, "") === p), target);
+        check(asked && !live, "classic: the bottom bar's Publish asks, and a cancel publishes nothing", `asked=${asked} published=${live}`);
+      }
+    }
     await ctx.close();
   }
 } finally {
