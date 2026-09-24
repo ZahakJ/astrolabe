@@ -72,3 +72,9 @@ describe("client/components/CommandPalette.tsx, its command table moved to palet
     assertMove("client/components/CommandPalette.tsx", ["client/components/palette/commands.ts"]);
   });
 });
+
+describe("client/books/BookReader.tsx, its panels and search highlight moved out", () => {
+  it("keeps the reader's default export; only the reader reaches ReaderPanels and pdfHighlight", () => {
+    assertMove("client/books/BookReader.tsx", ["client/books/ReaderPanels.tsx", "client/books/pdfHighlight.ts"]);
+  });
+});
