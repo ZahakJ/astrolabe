@@ -55,6 +55,9 @@
 // meaning index — a cache, re-read on any machine from its own Ollama).
 // Since 3.28 also feeds.db (what this server fetched and what its reader
 // marked read — a machine's, and never the vault's; kept articles are notes).
+// And webmentions.db, activitypub.db and activitypub-key.pem (docs/webmentions.md):
+// a site's conversations with other servers, its followers, and the private key
+// its fediverse identity signs with — a key in a git history is a key published.
 
 import fs from "node:fs/promises";
 import path from "node:path";

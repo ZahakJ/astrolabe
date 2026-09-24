@@ -28,6 +28,11 @@ import { initComments } from "./comments.ts";
 import { initIndexer } from "./indexer.ts";
 import { initAsk } from "./ask.ts";
 import { initFeeds } from "./feeds.ts";
+import { initFederation } from "./federation.ts";
+import { initWebmentions } from "./webmentions.ts";
+import { initActivityPub } from "./activitypub.ts";
+import { webmentionHeadTags, webmentionLinkHeader, webmentionPublic } from "./webmentionRoutes.ts";
+import { activitypubPublic } from "./activitypubRoutes.ts";
 import { initPdfText, startPdfText } from "./pdfText.ts";
 import { seedIfNew } from "./seed.ts";
 import { initVault, resolveVaultRoot, startWatcher, statAttachment } from "./vault.ts";
@@ -94,6 +99,12 @@ initAsk();
 // Feeds (docs/feeds.md): the list is read now; nothing is fetched unless
 // Settings → Vault → Feeds says so, and then on git sync's cadence.
 initFeeds();
+// Webmentions and the fediverse (docs/webmentions.md): both switches off by
+// default; the reconcile takes a baseline the first time one is on, and
+// after that acts on publish, republish and unpublish.
+initWebmentions();
+initActivityPub();
+initFederation();
 // Backup & sync scheduler. Inert unless settings.gitSync is enabled with a
 // remote and a non-zero interval — a fresh instance never touches a network.
 startGitSyncTimer();
@@ -197,6 +208,11 @@ app.use("*", async (c, next) => {
 app.use("*", compressDynamic());
 app.route("/api", api);
 app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
+// The addresses other sites talk to (docs/webmentions.md): the webmention
+// endpoint, and WebFinger, NodeInfo and the ActivityPub actor. Each answers
+// only while its switch in Settings → Publishing is on.
+app.route("/", webmentionPublic);
+app.route("/", activitypubPublic);
 
 // RSS feed of published notes. Independent of dist (it is server-rendered),
 // but gated exactly like API reads: PUBLIC=false keeps it behind login.
@@ -302,9 +318,14 @@ if (existsSync(distDir)) {
     // breath, for the same reason and to the same sessions.
     const served = isPublishLimited(c) ? servedLayout() : "app";
     const shell = served === "app" ? "app" : served;
+    // Accepting webmentions is advertised on every page, in the head and
+    // as a Link header (W3C Webmention §3.1.2 lets a sender use either).
+    const origin = requestOrigin(c);
+    const wmLink = webmentionLinkHeader(origin);
+    if (wmLink !== null) c.header("Link", wmLink);
     return c.html(
       injectBoot(
-        injectPreloads(injectHead(html, requestOrigin(c), pathname, manifestHeadTags()), preloadTags(distDir, shell)),
+        injectPreloads(injectHead(html, origin, pathname, [...manifestHeadTags(), ...webmentionHeadTags(origin)]), preloadTags(distDir, shell)),
         bootPayload(c),
       ),
     );

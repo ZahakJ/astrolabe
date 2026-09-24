@@ -66,6 +66,7 @@ import {
   commentCounts,
   commentRateLimited,
   commentsEnabled,
+  moderationEnabled,
   listAllComments,
   listComments,
   phantomComment,
@@ -113,6 +114,7 @@ import { sendEncoded } from "./compress.ts";
 import { nearbyNotes } from "./nearby.ts";
 import { askRoutes } from "./ask.ts";
 import { feedRoutes } from "./feedRoutes.ts";
+import { webmentionApi } from "./webmentionRoutes.ts";
 import { importRoutes } from "./importRoutes.ts";
 import { hadithKey, parseHadithRef } from "../shared/hadithRefs.ts";
 import { graphBody, invalidateGraph, localGraphJson } from "./graphCache.ts";
@@ -2068,7 +2070,9 @@ function commentNotePath(rel: string): string {
 // visitors (and admin-as-visitor preview) get the same 404 a missing route
 // would give. Must be admin-gated explicitly: the auth guard passes GETs.
 api.get("/comments/all", (c) => {
-  assertCommentsEnabled();
+  // Moderation covers what other sites said too (webmentions, the
+  // fediverse), which arrive whether or not the visitor form is on.
+  if (!moderationEnabled()) throw new VaultError(404, "Not found");
   if (isPublishLimited(c)) throw new VaultError(404, "Not found");
   const raw = c.req.query("limit");
   let limit = 100;
@@ -2141,7 +2145,7 @@ api.post("/comments", async (c) => {
 // a hidden comment stays in the db (evidence, reversibility) but vanishes from
 // every visitor-facing response.
 api.patch("/comments/:id", async (c) => {
-  assertCommentsEnabled();
+  if (!moderationEnabled()) throw new VaultError(404, "Not found");
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id < 1) throw new VaultError(400, "Invalid comment id");
   const payload = await jsonBody(c);
@@ -2154,7 +2158,7 @@ api.patch("/comments/:id", async (c) => {
 
 // Admin-only via the auth guard (mutation on a non-exempt path).
 api.delete("/comments/:id", (c) => {
-  assertCommentsEnabled();
+  if (!moderationEnabled()) throw new VaultError(404, "Not found");
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id < 1) throw new VaultError(400, "Invalid comment id");
   if (!removeComment(id)) throw new VaultError(404, "Comment not found");
@@ -2398,6 +2402,9 @@ api.route("/", askRoutes);
 // other people's feeds, read and kept. Admin-only, every route — the GETs
 // too. Not the blog's own /rss.xml, which is outbound and lives in blog.ts.
 api.route("/", feedRoutes);
+
+// Webmentions and the fediverse (server/webmentionRoutes.ts, docs/webmentions.md).
+api.route("/", webmentionApi);
 
 // The import wizard (server/importRoutes.ts, docs/import.md): Notion, Evernote
 // and Obsidian exports, previewed, committed, undone. Admin-only.

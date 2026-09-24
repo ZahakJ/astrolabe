@@ -10,6 +10,7 @@
 // templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
 // weeklyFormat, weeklyTemplate, monthlyFormat, monthlyTemplate, yearlyFormat, yearlyTemplate,
 // uniqueFolder, uniqueFormat, captureInbox, voice { model, language, keepAudio }, feeds { fetch, note }, launch,
+// webmentions { accept, send }, fediverse { enabled, handle },
 // dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
@@ -32,6 +33,7 @@ import {
 import { isVoiceLanguage, isVoiceModelSetting, VOICE_MODEL_DEFAULT, voiceEffective, VOICE_MODELS, type VoiceSettings } from "../shared/voice.ts";
 import { fetchableSiteUrl, warmAuthorSites } from "./authorSites.ts";
 import { FEEDS_NOTE_DEFAULT } from "../shared/feeds.ts";
+import { defaultFediverseHandle, isFediverseHandle } from "../shared/fediverse.ts";
 import type {
   AboutInfo,
   AuthorSiteRef,
@@ -39,6 +41,10 @@ import type {
   EffectiveSettings,
   FeedsEffective,
   FeedsSettings,
+  FediverseEffective,
+  FediverseSettings,
+  WebmentionsEffective,
+  WebmentionsSettings,
   InheritedSettings,
   FontSlotsEffective,
   HomeSettings,
@@ -554,6 +560,23 @@ export function getSettings(): SettingsData {
     if (typeof f.note === "string" && f.note.trim() !== "" && isNotePath(f.note.trim())) fs.note = f.note.trim();
     if (Object.keys(fs).length > 0) out.feeds = fs;
   }
+  // ── Webmentions and the fediverse ────────────────────────────────────────
+  const wm = raw.webmentions;
+  if (typeof wm === "object" && wm !== null && !Array.isArray(wm)) {
+    const w = wm as Record<string, unknown>;
+    const ws: WebmentionsSettings = {};
+    if (typeof w.accept === "boolean") ws.accept = w.accept;
+    if (typeof w.send === "boolean") ws.send = w.send;
+    if (Object.keys(ws).length > 0) out.webmentions = ws;
+  }
+  const fedi = raw.fediverse;
+  if (typeof fedi === "object" && fedi !== null && !Array.isArray(fedi)) {
+    const f = fedi as Record<string, unknown>;
+    const fs: FediverseSettings = {};
+    if (typeof f.enabled === "boolean") fs.enabled = f.enabled;
+    if (typeof f.handle === "string" && isFediverseHandle(f.handle)) fs.handle = f.handle;
+    if (Object.keys(fs).length > 0) out.fediverse = fs;
+  }
   const home = raw.home;
   if (typeof home === "object" && home !== null && !Array.isArray(home)) {
     const h = home as Record<string, unknown>;
@@ -773,6 +796,10 @@ export function effectiveSettings(): EffectiveSettings {
     voice: voiceEffective(s.voice),
     // Feeds are fetched only when the owner says so: off unless set.
     feeds: feedsEffective(),
+    // Webmentions and the fediverse: network access both ways, so off
+    // unless the owner says so (docs/webmentions.md).
+    webmentions: webmentionsEffective(),
+    fediverse: fediverseEffective(),
     home: {
       mode: s.home?.mode ?? "note",
       ...(s.home?.note ?? envHomeNote() ? { note: s.home?.note ?? envHomeNote() ?? undefined } : {}),
@@ -1037,6 +1064,19 @@ function offableFormat(stored: string | undefined, fallback: string): string | n
 export function feedsEffective(): FeedsEffective {
   const f = getSettings().feeds;
   return { fetch: f?.fetch === true, note: f?.note ?? FEEDS_NOTE_DEFAULT };
+}
+
+/** The webmentions key in force: accepting and sending both off unless set. */
+export function webmentionsEffective(): WebmentionsEffective {
+  const w = getSettings().webmentions;
+  return { accept: w?.accept === true, send: w?.send === true };
+}
+
+/** The fediverse key in force: off unless set; the handle the owner chose,
+ *  else the site name folded to a handle (shared/fediverse.ts). */
+export function fediverseEffective(): FediverseEffective {
+  const f = getSettings().fediverse;
+  return { enabled: f?.enabled === true, handle: f?.handle ?? defaultFediverseHandle(siteName()) };
 }
 
 export function uniqueFolder(): string {
@@ -1594,6 +1634,64 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     }
     if (Object.keys(current).length === 0) delete raw.feeds;
     else raw.feeds = current;
+  },
+  // Webmentions (docs/webmentions.md): the `feeds` shape. Each switch's
+  // default is off and is stored as its absence.
+  webmentions: (raw, value) => {
+    if (value === null) {
+      delete raw.webmentions;
+      return;
+    }
+    if (typeof value !== "object" || Array.isArray(value)) {
+      throw new VaultError(400, 'Settings key "webmentions" must be an object or null');
+    }
+    const v = value as Record<string, unknown>;
+    const current =
+      typeof raw.webmentions === "object" && raw.webmentions !== null && !Array.isArray(raw.webmentions)
+        ? { ...(raw.webmentions as Record<string, unknown>) }
+        : {};
+    for (const key of Object.keys(v)) {
+      if (key !== "accept" && key !== "send") throw new VaultError(400, `Unknown settings key: webmentions.${key}`);
+      const flag = v[key];
+      if (flag === null || flag === false) delete current[key];
+      else if (flag === true) current[key] = true;
+      else throw new VaultError(400, `Settings key "webmentions.${key}" must be a boolean or null`);
+    }
+    if (Object.keys(current).length === 0) delete raw.webmentions;
+    else raw.webmentions = current;
+  },
+  // The fediverse (docs/webmentions.md): `enabled` off by default and stored
+  // as its absence; `handle` must be shared/fediverse.ts's alphabet, and the
+  // derived default is its absence too.
+  fediverse: (raw, value) => {
+    if (value === null) {
+      delete raw.fediverse;
+      return;
+    }
+    if (typeof value !== "object" || Array.isArray(value)) {
+      throw new VaultError(400, 'Settings key "fediverse" must be an object or null');
+    }
+    const v = value as Record<string, unknown>;
+    const current =
+      typeof raw.fediverse === "object" && raw.fediverse !== null && !Array.isArray(raw.fediverse)
+        ? { ...(raw.fediverse as Record<string, unknown>) }
+        : {};
+    for (const key of Object.keys(v)) {
+      if (key !== "enabled" && key !== "handle") throw new VaultError(400, `Unknown settings key: fediverse.${key}`);
+    }
+    if ("enabled" in v) {
+      if (v.enabled === null || v.enabled === false) delete current.enabled;
+      else if (v.enabled === true) current.enabled = true;
+      else throw new VaultError(400, 'Settings key "fediverse.enabled" must be a boolean or null');
+    }
+    if ("handle" in v) {
+      if (v.handle === null || v.handle === "") delete current.handle;
+      else if (typeof v.handle !== "string" || !isFediverseHandle(v.handle.trim().toLowerCase())) {
+        throw new VaultError(400, 'Settings key "fediverse.handle" must be 1–30 letters, digits or underscores', "badHandle");
+      } else current.handle = v.handle.trim().toLowerCase();
+    }
+    if (Object.keys(current).length === 0) delete raw.fediverse;
+    else raw.fediverse = current;
   },
   home: (raw, value) => {
     if (value === null) {
