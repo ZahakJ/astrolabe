@@ -136,6 +136,9 @@ export default function VaultTab() {
         />
       </Row>
       {!pocket && <p className="s-smodal__note">{t(form.feedsFetch === "on" ? "feedsRowOn" : "feedsRowOff")}</p>}
+      {/* The import wizard is not a row: the tab holds eighteen. Its doors
+          are named here instead (docs/import.md). */}
+      {!pocket && <p className="s-smodal__note">{t("importDoorsNote")}</p>}
       {/* VOICE NOTES (docs/capture.md "Voice"): the model that
           turns a recording into words on THIS machine, and
           whether the recording stays once they have landed. The

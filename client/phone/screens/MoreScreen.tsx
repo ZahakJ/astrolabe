@@ -78,6 +78,7 @@ export default function MoreScreen() {
         {admin && (
           <Group title={t("phVault")}>
             <Item label={t("trashBrowser")} onClick={() => store().setTrashOpen(true)} />
+            {!pocket && <Item label={t("cmdImportNotes")} onClick={() => store().openImport()} />}
             <Item label={t("siteSettings")} onClick={settings("")} />
             <Item label={t("phBackupSync")} onClick={settings("sync")} />
             <Item label={t("themePicker")} note={<bdi>{choiceLabel(theme)}</bdi>} onClick={openThemePicker} />

@@ -842,6 +842,14 @@ export const COMMANDS: Command[] = [
     hint: () => t("cmdOpenTrashHint"),
     available: ({ admin, preview }) => admin && !preview,
   },
+  // The import wizard (client/import/, docs/import.md): Notion, Evernote and
+  // Obsidian exports into a folder, previewed first and undoable after.
+  {
+    id: "import-notes",
+    label: () => t("cmdImportNotes"),
+    hint: () => t("cmdImportNotesHint"),
+    available: ({ admin, preview }) => admin && !preview,
+  },
   {
     // The files no note points at (UnusedAttachmentsModal.tsx): the other
     // half of the delete previews. Those say what a delete would BREAK; this
@@ -1294,6 +1302,9 @@ export function runPaletteCommand(command: Command): void {
       break;
     case "open-trash":
       store.setTrashOpen(true);
+      break;
+    case "import-notes":
+      store.openImport();
       break;
     case "unused-attachments":
       store.setUnusedOpen(true);

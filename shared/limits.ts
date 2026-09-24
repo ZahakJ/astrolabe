@@ -36,3 +36,11 @@ export const DECK_IMPORT_MAX_MB = 256;
 
 /** The same cap in bytes (what the server's body limit checks). */
 export const DECK_IMPORT_MAX_BYTES = DECK_IMPORT_MAX_MB * 1024 * 1024;
+
+/** Largest export the import wizard takes (POST /api/import/preview), in
+ *  whole megabytes: a Notion or Obsidian zip, an .enex, or a folder's files
+ *  together. Stated in the dialog, like the deck cap. */
+export const NOTES_IMPORT_MAX_MB = 256;
+
+/** The same cap in bytes. */
+export const NOTES_IMPORT_MAX_BYTES = NOTES_IMPORT_MAX_MB * 1024 * 1024;

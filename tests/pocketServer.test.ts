@@ -499,6 +499,7 @@ describe("the pocket server — what it cannot do, it says", () => {
     ["POST", "/api/replace"],
     ["GET", "/api/feeds"],
     ["POST", "/api/feeds/keep"],
+    ["POST", "/api/import/preview"],
   ];
   for (const [method, route] of cases) {
     it(`${method} ${route} is a 501 with a reason in it`, async () => {

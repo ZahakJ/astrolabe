@@ -207,6 +207,10 @@ export function fail(status: number, error: string, code?: string): PocketRespon
  * hour; the read flags live in the instance's own data directory, not in the
  * vault. What the owner KEPT is notes, and those are here like any note.
  */
+/** An export is unpacked, converted and planned on a server's own disk
+ *  (server/import/); a phone opens the vault that import produced. */
+const POCKET_NO_IMPORT = "Importing a Notion, Evernote or Obsidian export runs on an Astrolabe server's own disk; a pocket vault opens the notes it made.";
+
 const POCKET_NO_FEEDS = "Feeds are fetched by an Astrolabe server on its own schedule; a pocket vault reads the notes you kept.";
 
 const POCKET_NO_TRANSCRIBER =
@@ -378,7 +382,8 @@ export function createPocketServer(deps: PocketDeps): {
       ?? (route.startsWith("/api/books/") ? SERVER_ONLY["/api/books"] : undefined)
       ?? (route.startsWith("/api/comments/") ? SERVER_ONLY["/api/comments"] : undefined)
       ?? (route.startsWith("/api/voice/") ? POCKET_NO_TRANSCRIBER : undefined)
-      ?? (route === "/api/feeds" || route.startsWith("/api/feeds/") ? POCKET_NO_FEEDS : undefined);
+      ?? (route === "/api/feeds" || route.startsWith("/api/feeds/") ? POCKET_NO_FEEDS : undefined)
+      ?? (route.startsWith("/api/import/") ? POCKET_NO_IMPORT : undefined);
     if (refusal !== undefined) return fail(501, refusal, "pocket");
 
     // ── the handlers that needed a name ─────────────────────────────────────
