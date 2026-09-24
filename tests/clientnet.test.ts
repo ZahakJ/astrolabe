@@ -7,6 +7,9 @@
 // a policy is a pure function with a test — the same argument revalidate.ts
 // makes one file over.
 
+// Both dictionaries, installed: under Node there is no chunk to fetch
+// (client/i18n.ts loads one language at a time in a page).
+import "../client/i18n/both.ts";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { staleRetryStep } from "../client/editor/saveRetry.ts";

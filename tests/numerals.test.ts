@@ -10,6 +10,9 @@
 // two fields must never be confusable with a DIGIT. A middot beside Arabic
 // numerals reads as ٠ (Arabic-Indic zero), which turns "٣ · ٥" into "٣٠٥".
 
+// Both dictionaries, installed: under Node there is no chunk to fetch
+// (client/i18n.ts loads one language at a time in a page).
+import "../client/i18n/both.ts";
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { topicUrl } from "../client/blog/nav.ts";

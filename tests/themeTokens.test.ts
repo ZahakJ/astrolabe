@@ -4,6 +4,9 @@
 // derivation would read as "#000000 inherited" in every row; a token without
 // a label in both languages would print its raw name to an Arabic reader —
 // the half-translation check-i18n exists to catch, one level up.
+// Both dictionaries, installed: under Node there is no chunk to fetch
+// (client/i18n.ts loads one language at a time in a page).
+import "../client/i18n/both.ts";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";

@@ -1,10 +1,10 @@
 // THE GATE ON COPY THAT TRAVELS IN THE DATA.
 //
 // The tour's fifteen names and thirty sentences are deliberately NOT in
-// client/i18n.ts (the reason is written at the top of tourCards.ts: the DICT
+// client/i18n.ts (the reason is written at the top of tourCards.ts: the dictionary
 // is entry-chunk code and a visitor reading one article downloads all of it).
 // The cost of that decision is that `npm run check-i18n` — which parses the
-// DICT and nothing else — cannot see them. An empty `ar` on a card would ship
+// dictionary and nothing else — cannot see them. An empty `ar` on a card would ship
 // silently and an Arabic reader would meet an English folio.
 //
 // So this file is to that table what `assertPreset()` is to the fifty-nine
@@ -55,7 +55,7 @@ test("the Arabic is Arabic, and is not the English", () => {
     }
     // A pair whose English is three or more Latin letters long must have real
     // Arabic script in the other half — the same rule check-i18n applies to
-    // the DICT. Strings that are only an identifier or a symbol are exempt,
+    // the dictionary. Strings that are only an identifier or a symbol are exempt,
     // and there are none in this table today.
     if (LATIN_RUN.test(text.ar) && !ARABIC.test(text.ar)) {
       assert.fail(`${where}: ar has Latin words and no Arabic script`);

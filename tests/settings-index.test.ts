@@ -6,6 +6,9 @@
 // matches — the gate proves that — but that a reader searching for a thing
 // they can see actually finds it, in both languages.
 
+// Both dictionaries, installed: under Node there is no chunk to fetch
+// (client/i18n.ts loads one language at a time in a page).
+import "../client/i18n/both.ts";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { SETTINGS_INDEX } from "../client/components/settings/settingsIndex.ts";
