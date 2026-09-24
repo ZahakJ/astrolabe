@@ -715,10 +715,6 @@ function TokenRow({
 let host: HTMLDivElement | null = null;
 let root: Root | null = null;
 
-export function isThemeBuilderOpen(): boolean {
-  return host !== null;
-}
-
 export function closeThemeBuilder(): void {
   if (!root || !host) return;
   const [r, h] = [root, host];

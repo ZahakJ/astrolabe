@@ -91,11 +91,6 @@ export function initAsk(dbFile: string | null = path.join(dataDir(), "embeddings
   schedule(500);
 }
 
-/** For the tests and the perf harness. */
-export function askIndex(): SemanticIndex | null {
-  return index;
-}
-
 // ── The question's vector ───────────────────────────────────────────────────
 
 const queryCache = new Map<string, Float32Array>();

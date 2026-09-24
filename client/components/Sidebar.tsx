@@ -1949,8 +1949,8 @@ export default function Sidebar() {
                     inside a flex box is an ANONYMOUS flex item: it cannot be
                     given `min-width: 0`, it will not shrink below its own
                     min-content width, and `text-overflow: ellipsis` on the
-                    box above it has nothing to apply to. `Mind-INTJ/Vellum`
-                    in a 224px pane therefore ran out of the header and under
+                    box above it has nothing to apply to. A sixteen-character
+                    name (`Almucantar-Notes`) in a 224px pane ran out of the header and under
                     the tools instead of ellipsising. One span, and the rule
                     in app.css finally has an element to act on. */}
                 <span className="s-title__name">{siteName}</span>
@@ -1968,8 +1968,8 @@ export default function Sidebar() {
                     inside a flex box is an ANONYMOUS flex item: it cannot be
                     given `min-width: 0`, it will not shrink below its own
                     min-content width, and `text-overflow: ellipsis` on the
-                    box above it has nothing to apply to. `Mind-INTJ/Vellum`
-                    in a 224px pane therefore ran out of the header and under
+                    box above it has nothing to apply to. A sixteen-character
+                    name (`Almucantar-Notes`) in a 224px pane ran out of the header and under
                     the tools instead of ellipsising. One span, and the rule
                     in app.css finally has an element to act on. */}
                 <span className="s-title__name">{siteName}</span>

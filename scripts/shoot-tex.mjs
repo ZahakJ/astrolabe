@@ -45,11 +45,11 @@ const check = (ok, label, detail = "") => {
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
 
-if ((process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD)) {
+if (process.env.ASTROLABE_PASSWORD) {
   const page = await context.newPage();
   await page.goto(base, { waitUntil: "domcontentloaded" });
   const res = await page.request.post(`${base}/api/login`, {
-    data: { password: (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) },
+    data: { password: process.env.ASTROLABE_PASSWORD },
   });
   if (!res.ok()) {
     console.log("  FAIL  sign in");

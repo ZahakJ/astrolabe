@@ -2267,7 +2267,7 @@ api.post("/task", async (c) => {
 // writes the next schedule into the note as the Spaced Repetition plugin's
 // own comment, so a vault reviewed in Obsidian and here is one vault. Admin
 // only — the guard above 401s a visitor's POST, and the lists are refused
-// below. `GET /api/cards` and `POST /api/card/review` are the Review page's
+// below. `GET /api/cards` and `POST /api/card/review` are the Orbits session's
 // older names for the implicit deck and a front→back grade; they
 // stay so an open tab from before the shelf keeps working.
 api.get("/cards", (c) => {

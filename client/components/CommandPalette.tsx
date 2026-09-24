@@ -1163,7 +1163,7 @@ export function runPaletteCommand(command: Command): void {
       store.openLibrary();
       break;
     case "open-routines":
-      store.toggleRoutines();
+      store.toggleSigils();
       break;
     case "open-calendar":
       store.toggleCalendar();

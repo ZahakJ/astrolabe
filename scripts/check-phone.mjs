@@ -179,7 +179,7 @@ async function signIn() {
     }, [path, init ?? null]);
   let me = (await api("/api/me")).body;
   if (!me?.admin) {
-    const password = process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD ?? "";
+    const password = process.env.ASTROLABE_PASSWORD ?? "";
     if (!password) {
       console.error("check-phone: not an admin session and no ASTROLABE_PASSWORD — most screens would not mount.");
       process.exit(1);

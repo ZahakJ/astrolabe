@@ -90,10 +90,6 @@ export const FOLLOW_THEME = "follow";
  *  Never a theme by itself — resolve it through the server's visitorTheme(). */
 export type ThemePref = Theme | typeof FOLLOW_THEME;
 
-export function isThemePref(value: unknown): value is ThemePref {
-  return value === FOLLOW_THEME || isTheme(value);
-}
-
 export function themeGroup(theme: Theme): ThemeGroup {
   return (LIGHT_THEMES as readonly string[]).includes(theme) ? "light" : "dark";
 }

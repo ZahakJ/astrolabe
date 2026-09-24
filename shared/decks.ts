@@ -7,7 +7,7 @@
 // name Constellations, a deck a constellation and a card a star; the owner
 // renamed it before it shipped, and nothing a reader sees says the old
 // words.) The owner: "screw Anki… let's make our own version and integrate
-// it". Everything here stands on shared/flashcards.ts and shared/srs.ts and
+// it". Everything here stands on shared/cards.ts and shared/srs.ts and
 // keeps their one promise: THE NOTE IS THE STATE. A deck is a note with a
 // ```deck fence; its cards are the card lines the vault already reads
 // (`Card` there is the line as scanned; `DeckCard` here is one face of it,
@@ -20,7 +20,7 @@
 // the note's `kind` to what it found and gives each card a name.
 
 import { closesFence, fenceOpener, sourceLines } from "./fences.ts";
-import { clearSchedule, scanCards, writeSchedule, type Card } from "./flashcards.ts";
+import { clearSchedule, scanCards, writeSchedule, type Card } from "./cards.ts";
 import { formatSrComments, type Schedule } from "./srs.ts";
 
 /** How a deck's `::` lines become stars. */

@@ -37,7 +37,7 @@ import type {
 import { noteAnchors, type NoteAnchor } from "../../../shared/anchors.ts";
 import { stripBidiControls } from "../../../shared/bidi.ts";
 import { DEFAULT_NEW_PER_DAY, DEFAULT_STEPS, EVERYTHING_ELSE, deckCardsOf, deckOf, type Deck, type DeckCard, type DeckMeta } from "../../../shared/decks.ts";
-import { scanCards, type Card } from "../../../shared/flashcards.ts";
+import { scanCards, type Card } from "../../../shared/cards.ts";
 import { findAnyMatches, foldQuery, foldTerm } from "../../../shared/fold.ts";
 import { idStampMs } from "../../../shared/idStamp.ts";
 import {

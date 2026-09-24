@@ -133,17 +133,6 @@ export function clearHeadingChains(): void {
   chains.clear();
 }
 
-/** The rename a note is currently in the middle of, if any. */
-export function pendingRename(relPath: string): Chain | null {
-  const chain = chains.get(relPath);
-  if (!chain) return null;
-  if (chain.at < Date.now() - CHAIN_TTL_MS) {
-    chains.delete(relPath);
-    return null;
-  }
-  return chain;
-}
-
 export function forgetRename(relPath: string): void {
   chains.delete(relPath);
 }

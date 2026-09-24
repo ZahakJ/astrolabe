@@ -409,12 +409,6 @@ export function dispatchFrom(path: string, origin: EditorView, trs: readonly Tra
   if (moved) scheduleStats(path);
 }
 
-/** True when a transaction is the echo of a sibling pane's edit rather than
- *  something the reader typed here. */
-export function isSiblingEcho(tr: Transaction): boolean {
-  return tr.annotation(sibling) === true;
-}
-
 /** Whether this buffer still has a view on screen, and which one. A view that
  *  was detached and destroyed is not in `views` at all; one that is in `views`
  *  but off the document is a pane React has unmounted this frame. */

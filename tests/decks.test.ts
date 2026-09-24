@@ -11,7 +11,7 @@ import {
   serialiseDeck,
   writeCardSchedule,
 } from "../shared/decks.ts";
-import { clearSchedule, scanCards, writeSchedule } from "../shared/flashcards.ts";
+import { clearSchedule, scanCards, writeSchedule } from "../shared/cards.ts";
 import { formatSrComments, parseSrComment, parseSrComments } from "../shared/srs.ts";
 
 // ------------------------------------------------------------------ fixtures

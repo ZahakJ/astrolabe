@@ -1,4 +1,5 @@
-// FLASHCARDS — what the reader already marked, as cards to review.
+// CARDS — what the reader already marked, as cards to review (the file was
+// shared/flashcards.ts until the product called them Orbits).
 //
 // No new syntax is asked of anyone. Three things a note already holds are
 // cards:

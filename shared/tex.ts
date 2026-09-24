@@ -1949,29 +1949,6 @@ function findDelim(s: string, from: number, delim: string, to: number): { at: nu
   return { at, end: at + delim.length };
 }
 
-/** Parse a fragment of TeX in text mode, standalone — for callers that hold a
- *  string rather than a document (the editor's live preview renders one line
- *  at a time). Anchors, footnotes and links found inside are discarded: a
- *  fragment has no document to register them against. */
-export function parseTexInline(src: string, macros: Record<string, string> = {}): Inline[] {
-  const table = new Map<string, Macro>();
-  for (const [name, body] of Object.entries(macros)) {
-    table.set(name.replace(/^\\/, ""), { argc: 0, body, opt: null });
-  }
-  const doc = emptyDocument();
-  const ctx: Ctx = {
-    code: src,
-    lineAt: () => 1,
-    macros: table,
-    counters: new Counters(),
-    doc,
-    expansions: { n: 0 },
-    blocks: { n: 0 },
-    unknowns: { n: 0 },
-  };
-  return parseInline(src, ctx);
-}
-
 function emptyDocument(): TexDocument {
   return {
     frontmatter: "",

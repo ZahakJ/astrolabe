@@ -341,10 +341,6 @@ export function getDesign(id: string): DesignDoc | null {
   return read().rows.find((row) => row.id === id)?.doc ?? null;
 }
 
-export function designRow(id: string): DesignRow | null {
-  return read().rows.find((row) => row.id === id) ?? null;
-}
-
 /** Why the designed site cannot be served right now, or null when it can. The
  *  sentence is what an ADMIN is shown; a visitor is only ever shown the stock
  *  blog, which is the point. */

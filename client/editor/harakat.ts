@@ -146,10 +146,6 @@ export function closeHarakatPalette(): void {
   openHost = null;
 }
 
-export function isHarakatPaletteOpen(): boolean {
-  return openHost !== null;
-}
-
 /** Open the list at the caret (or at the selection's head). Returns true so
  *  a keymap can use it directly. */
 export function openHarakatPalette(view: EditorView): boolean {

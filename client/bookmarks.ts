@@ -19,10 +19,6 @@ export function bookmarksNow(): BookmarkItem[] {
   return content === null ? [] : parseBookmarks(content);
 }
 
-export function bookmarksKnown(): boolean {
-  return known;
-}
-
 /** Read the note (a 404 is "no bookmarks yet"), once per change. */
 export function loadBookmarks(force = false): Promise<BookmarkItem[]> {
   if (!force && known) return Promise.resolve(bookmarksNow());

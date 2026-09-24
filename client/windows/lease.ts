@@ -48,13 +48,6 @@ export function holdsLease(path: string): boolean {
   return winsAgainst({ at: windowBornAt, id: windowId }, peer);
 }
 
-/** The peer typing into `path`, or null. Named so a tab can say WHICH window. */
-export function peerOn(path: string): string | null {
-  const peer = peerClaims.get(path);
-  if (peer === undefined) return null;
-  return holdsLease(path) ? null : peer.id;
-}
-
 export function claim(path: string): void {
   if (mine.has(path)) return;
   mine.add(path);
