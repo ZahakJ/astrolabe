@@ -4352,6 +4352,9 @@ const DICT = {
   spellDict_ar: { en: "Arabic", ar: "العربية" },
   spellDict_he: { en: "Hebrew", ar: "العبرية" },
   spellDict_fa: { en: "Persian", ar: "الفارسية" },
+  /** A dictionary toggle's visible words: WHICH language, then its state.
+   *  Four toggles reading only "Off" were four identical controls. */
+  spellDictToggle: { en: "{lang}: {state}", ar: "{lang}، {state}" },
   hintFrenchAutocorrect: {
     en: "Fixes missing accents and French spacing as you type; one undo takes it back.",
     ar: "يصحّح الحركات الناقصة والمسافات الفرنسية أثناء الكتابة؛ وتراجع واحد يعيدها.",
