@@ -34,8 +34,11 @@ function mirroredGlyphClasses(): Set<string> {
   const out = new Set<string>();
   for (const f of walk(path.join(root, "client"), /\.tsx$/)) {
     const src = readFileSync(f, "utf8");
-    for (const m of src.matchAll(/className="([^"]+)"[^>]*>\s*([^<\s])\s*</g)) {
-      if (MIRRORED.test(m[2])) for (const c of m[1].split(/\s+/)) out.add(c);
+    // A literal class list or a template literal (`s-tree__chevron${open ? …}`);
+    // the attributes may hold arrow functions, so `=>` does not end the tag.
+    for (const m of src.matchAll(/className=(?:"([^"]+)"|\{`([^`]+)`\})(?:[^>]|=>)*>\s*([^<\s])\s*<\//g)) {
+      if (!MIRRORED.test(m[3])) continue;
+      for (const c of (m[1] ?? m[2]).matchAll(/(?<![\w-])s-[\w-]+/g)) out.add(c[0]);
     }
   }
   return out;
@@ -59,8 +62,33 @@ describe("RTL: a Bidi_Mirrored glyph is mirrored once, by hand", () => {
   const pinned = (cls: string): boolean =>
     all.some((r) => r.selectors.some((s) => new RegExp(`^\\.${cls}$`).test(s)) && /direction:\s*ltr/.test(r.body));
 
+  // Every lone mirrored glyph the sweep and its leftovers pinned: the Orbits
+  // session's crumbs, both calendars' prev/next, the properties shelf, the
+  // sidebar tree (and every panel toggle that borrows its chevron), the tag
+  // tree's branches, and the three breadcrumb separators.
+  const GUARDED = [
+    "s-session__chev",
+    "s-cal__chev",
+    "s-calpage__chev",
+    "s-propshelf__chev",
+    "s-tree__chevron",
+    "s-tag__branch",
+    "s-statusbar__crumb-sep",
+    "s-lib-crumbs__sep",
+    "s-dsgr__crumbsep",
+  ];
+  // Left to the browser, knowingly: the selection menu's submenu chevron lives
+  // in a file another change owns at the time of writing; the next pass pins it.
+  const UNGUARDED = new Set(["s-selmenu__chev"]);
+
   it("finds the chevrons it guards", () => {
-    for (const c of ["s-session__chev", "s-cal__chev", "s-calpage__chev", "s-propshelf__chev"]) assert.ok(classes.has(c), c);
+    for (const c of GUARDED) assert.ok(classes.has(c), c);
+  });
+
+  it("every lone mirrored glyph is guarded (or knowingly left)", () => {
+    const base = [...classes].filter((c) => !/--/.test(c) && !/^s-session__crumbsep$/.test(c));
+    const stray = base.filter((c) => !GUARDED.includes(c) && !UNGUARDED.has(c));
+    assert.deepEqual(stray, [], "pin it left-to-right and flip it by hand under RTL, then add it to GUARDED");
   });
 
   it("every class a stylesheet flips under RTL is pinned left-to-right first", () => {
@@ -77,12 +105,23 @@ describe("RTL: a Bidi_Mirrored glyph is mirrored once, by hand", () => {
   });
 
   it("the chevrons that point along a line are pinned and flipped", () => {
-    for (const c of ["s-session__chev", "s-cal__chev", "s-calpage__chev", "s-propshelf__chev"]) {
+    for (const c of GUARDED) {
       assert.ok(pinned(c), `${c} is not pinned left-to-right`);
       assert.ok(
         all.some((r) => r.selectors.some((s) => s === `[dir="rtl"] .${c}`) && /scaleX\(\s*-1\s*\)/.test(r.body)),
         `${c} is not flipped under RTL`,
       );
+    }
+  });
+
+  it("an open disclosure chevron turns down in both directions", () => {
+    for (const c of ["s-tree__chevron--open", "s-tag__branch--open"]) {
+      for (const sel of [`.${c}`, `[dir="rtl"] .${c}`]) {
+        assert.ok(
+          all.some((r) => r.selectors.includes(sel) && /rotate\(\s*90deg\s*\)/.test(r.body)),
+          `${sel} does not turn a quarter down`,
+        );
+      }
     }
   });
 });

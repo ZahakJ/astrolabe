@@ -172,7 +172,15 @@
 }
 
 .s-lib-crumbs__sep {
+  /* U+203A, pinned left-to-right and flipped by hand: one mirror, whatever
+     the font (tests/rtlGlyphs.test.ts) */
+  display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
   color: var(--text-faint);
+}
+[dir="rtl"] .s-lib-crumbs__sep {
+  transform: scaleX(-1);
 }
 
 .s-lib-hero {
