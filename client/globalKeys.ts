@@ -63,6 +63,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
       store.bannerModalOpen ||
       store.moderationOpen ||
       store.trashOpen ||
+      store.importFolder !== null ||
       store.unusedOpen ||
       store.settingsOpen ||
       store.captureOpen ||

@@ -15,7 +15,7 @@ import {
  uploadDestination } from "../shared/attachments.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
-import { DECK_IMPORT_MAX_BYTES, UPLOAD_MAX_BYTES } from "../shared/limits.ts";
+import { DECK_IMPORT_MAX_BYTES, NOTES_IMPORT_MAX_BYTES, UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { VOICE_MAX_BYTES } from "../shared/voice.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import { applyEdit, editRoutinePlan, logEditFor, routineFenceSpans, type EntryPatch } from "../shared/routine.ts";
@@ -112,6 +112,7 @@ import { sendEncoded } from "./compress.ts";
 import { nearbyNotes } from "./nearby.ts";
 import { askRoutes } from "./ask.ts";
 import { feedRoutes } from "./feedRoutes.ts";
+import { importRoutes } from "./importRoutes.ts";
 import { hadithKey, parseHadithRef } from "../shared/hadithRefs.ts";
 import { graphBody, invalidateGraph, localGraphJson } from "./graphCache.ts";
 import { propShelf, tagShelf } from "./shelfCache.ts";
@@ -261,6 +262,9 @@ const FONT_BODY_MAX = CUSTOM_FONT_MAX_BYTES + 64 * 1024;
 // An Anki deck is its media (server/deckImportRoutes.ts): the one body this
 // API buffers whole that is honestly allowed to be big.
 const DECK_IMPORT_BODY_MAX = DECK_IMPORT_MAX_BYTES + 64 * 1024;
+// So is an export for the import wizard (server/importRoutes.ts): a Notion or
+// Obsidian zip, an .enex, or a folder's files in one multipart body.
+const NOTES_IMPORT_BODY_MAX = NOTES_IMPORT_MAX_BYTES + 1024 * 1024;
 // A voice note (server/voice.ts) arrives as multipart from the web client and
 // as base64 inside JSON from the Android shell, which is the larger of the
 // two: four bytes on the wire for every three of recording.
@@ -281,6 +285,8 @@ api.use("*", async (c, next) => {
         ? FONT_BODY_MAX
         : post && c.req.path === "/api/orbits/import"
           ? DECK_IMPORT_BODY_MAX
+          : post && c.req.path === "/api/import/preview"
+            ? NOTES_IMPORT_BODY_MAX
           : post && c.req.path === "/api/voice"
             ? VOICE_BODY_MAX
             : API_BODY_MAX;
@@ -2428,6 +2434,10 @@ api.route("/", askRoutes);
 // other people's feeds, read and kept. Admin-only, every route — the GETs
 // too. Not the blog's own /rss.xml, which is outbound and lives in blog.ts.
 api.route("/", feedRoutes);
+
+// The import wizard (server/importRoutes.ts, docs/import.md): Notion, Evernote
+// and Obsidian exports, previewed, committed, undone. Admin-only.
+api.route("/", importRoutes);
 
 api.get("/mentions", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");

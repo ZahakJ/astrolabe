@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE en-export SYSTEM "http://xml.evernote.com/pub/evernote-export4.dtd">
+<en-export export-date="20260921T101500Z" application="Evernote" version="10.105.4">
+  <note>
+    <title>Muqaddimah — chapter one</title>
+    <created>20260910T083000Z</created>
+    <updated>20260912T190000Z</updated>
+    <tag>history</tag>
+    <tag>ibn khaldun</tag>
+    <note-attributes>
+      <author>Reader</author>
+      <source-url>https://example.org/muqaddimah/1</source-url>
+    </note-attributes>
+    <content><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
+<en-note><div>Asabiyya is the <b>group feeling</b> that founds a dynasty.</div><div><br/></div><div><en-todo checked="true"/>Read the prolegomena</div><div><en-todo/>Compare with Machiavelli</div><div><en-media hash="f829b914fc47cfc9c0747c119c27cf1b" type="image/png"/></div><div>The scan: <en-media hash="e4a37a595b9d00c6371611ac0d4dd3c7" type="application/pdf"/></div></en-note>]]></content>
+    <resource>
+      <data encoding="base64">iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwAD
+hgGAWjR9awAAAABJRU5ErkJggg==</data>
+      <mime>image/png</mime>
+      <width>1</width>
+      <height>1</height>
+      <resource-attributes>
+        <file-name>map.png</file-name>
+      </resource-attributes>
+    </resource>
+    <resource>
+      <data encoding="base64">JVBERi0xLjQKJcTl8uXrp/Og0MTGCjEgMCBvYmoKPDwgL1R5cGUgL0NhdGFsb2cgPj4KZW5kb2JqCnRyYWlsZXIKPDwgL1Jvb3QgMSAwIFIgPj4KJSVFT0YK</data>
+      <mime>application/pdf</mime>
+    </resource>
+  </note>
+  <note>
+    <title>Welcome</title>
+    <created>20260101T000000Z</created>
+    <content><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
+<en-note><div>A note whose name the vault already has.</div></en-note>]]></content>
+  </note>
+  <note>
+    <title>ملاحظة عربية</title>
+    <created>20260915T120000Z</created>
+    <tag>عربي</tag>
+    <content><![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">
+<en-note><div>العصبية هي أساس الملك.</div></en-note>]]></content>
+  </note>
+</en-export>

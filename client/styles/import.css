@@ -1,0 +1,75 @@
+/* Astrolabe — the import wizard (client/import/ImportDialog.tsx). The Media
+   form's frame (media.css) with the few rules a preview needs: lists of
+   paths that wrap rather than push the dialog sideways, a progress bar the
+   width of the form. Tokens only; logical properties. */
+
+.s-import {
+  inline-size: min(560px, calc(100vw - 32px));
+}
+
+.s-import__pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.s-import__lead {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.s-import__facts {
+  margin: 0;
+  padding-inline-start: 1.2em;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.s-import__section {
+  margin-block-start: 12px;
+}
+
+.s-import__h {
+  margin: 0 0 4px;
+  font-size: 0.857rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: default;
+}
+
+summary.s-import__h {
+  cursor: pointer;
+}
+
+.s-import__list {
+  margin: 0;
+  padding-inline-start: 1.2em;
+  max-block-size: 160px;
+  overflow-y: auto;
+  font-size: 0.857rem;
+  line-height: 1.45;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.s-import__why {
+  color: var(--text-muted);
+}
+
+.s-import__progress progress {
+  inline-size: 100%;
+  block-size: 8px;
+  accent-color: var(--accent);
+}
+
+.s-import__path {
+  margin: 4px 0 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.s-import__done p {
+  margin: 0 0 6px;
+}

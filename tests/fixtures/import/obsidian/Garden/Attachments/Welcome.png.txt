@@ -1,0 +1,1 @@
+This file is not a picture; it is here so the importer has something it leaves behind (an unsupported type).

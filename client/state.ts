@@ -446,6 +446,12 @@ export interface State {
    *  promises; nothing in the product could see it until this landed. */
   trashOpen: boolean;
   setTrashOpen(b: boolean): void;
+  /** The import wizard (client/import/ImportDialog.tsx, docs/import.md):
+   *  null when closed, else the target folder it opens with ("" = the
+   *  default). Its doors: the palette, a folder's ⋯, More on the phone. */
+  importFolder: string | null;
+  openImport(folder?: string): void;
+  closeImport(): void;
   /** Admin list of the files no note references (palette: "Unused
    *  attachments"). Same lifecycle as the trash browser: an admin surface
    *  over vault paths, closed by sign-out and by visitor preview. */
@@ -1605,6 +1611,7 @@ export const useStore = create<State>()((set, get) => {
     desktopBrandIcon: null,
     moderationOpen: false,
     trashOpen: false,
+    importFolder: null,
     unusedOpen: false,
     previewVisitor: false,
 
@@ -1933,6 +1940,8 @@ export const useStore = create<State>()((set, get) => {
     setModerationOpen: (moderationOpen) => set({ moderationOpen }),
 
     setTrashOpen: (trashOpen) => set({ trashOpen }),
+    openImport: (folder = "") => set({ importFolder: folder, paletteOpen: false }),
+    closeImport: () => set({ importFolder: null }),
 
     setUnusedOpen: (unusedOpen) => set({ unusedOpen }),
 
@@ -1979,6 +1988,7 @@ export const useStore = create<State>()((set, get) => {
             // The trash browser is an admin surface over deleted vault paths;
             // it must not survive into a visitor preview.
             trashOpen: false,
+            importFolder: null,
             unusedOpen: false,
           }));
           // Tree BEFORE me: the shell swap (admin flips false on loadMe) must

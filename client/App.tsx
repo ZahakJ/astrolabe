@@ -99,6 +99,7 @@ const CommandPalette = lazySurface(() => import("./components/CommandPalette.tsx
 const BannerModal = lazySurface(() => import("./components/BannerModal.tsx"));
 const ModerationPanel = lazySurface(() => import("./components/ModerationPanel.tsx"));
 const TrashModal = lazySurface(() => import("./components/TrashModal.tsx"));
+const ImportDialog = lazySurface(() => import("./import/ImportDialog.tsx"));
 const UnusedAttachmentsModal = lazySurface(() => import("./components/UnusedAttachmentsModal.tsx"));
 const SettingsModal = lazySurface(() => import("./components/SettingsModal.tsx"));
 // The quick-capture sheet (docs/capture.md): a keystroke away from anywhere,
@@ -194,6 +195,7 @@ export default function App() {
   const bannerModalOpen = useStore((s) => s.bannerModalOpen);
   const moderationOpen = useStore((s) => s.moderationOpen);
   const trashOpen = useStore((s) => s.trashOpen);
+  const importOpen = useStore((s) => s.importFolder !== null);
   const unusedOpen = useStore((s) => s.unusedOpen);
   const settingsOpen = useStore((s) => s.settingsOpen);
   const captureOpen = useStore((s) => s.captureOpen);
@@ -703,6 +705,11 @@ export default function App() {
       {trashOpen && admin && (
         <Surface>
           <TrashModal />
+        </Surface>
+      )}
+      {importOpen && admin && (
+        <Surface>
+          <ImportDialog />
         </Surface>
       )}
       {unusedOpen && admin && (

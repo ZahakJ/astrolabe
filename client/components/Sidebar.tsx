@@ -1787,6 +1787,9 @@ export default function Sidebar() {
     if (admin && realFolder) {
       outward.push({ label: t("treeExportFolder"), onSelect: () => openExportDialog({ scope: "folder", folder: node.path }) });
     }
+    // The way IN, beside the way out: the import wizard with this folder as
+    // its target (docs/import.md). The vault root offers it too.
+    if (admin && folder) outward.push({ label: t("treeImportHere"), onSelect: () => useStore.getState().openImport(node.path) });
     if (outward.length > 0) {
       if (rows.length > 0) rows.push({ label: null });
       rows.push(...outward);

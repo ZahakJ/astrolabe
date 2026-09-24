@@ -123,6 +123,7 @@ const MoveSheet = lazySurface(() => import("./MoveSheet.tsx"));
 // and `settingsOpen` rising is answered by pushing it.
 const CommandPalette = lazySurface(() => import("../components/CommandPalette.tsx"));
 const TrashModal = lazySurface(() => import("../components/TrashModal.tsx"));
+const ImportDialog = lazySurface(() => import("../import/ImportDialog.tsx"));
 const CaptureSheet = lazySurface(() => import("../components/CaptureSheet.tsx"));
 const AskPanel = lazySurface(() => import("../components/AskPanel.tsx"));
 const ShortcutsHelp = lazySurface(() => import("../components/ShortcutsHelp.tsx"));
@@ -141,6 +142,7 @@ interface Layer {
 
 const LAYERS: Layer[] = [
   { id: "trash", up: (s) => s.trashOpen, down: (s) => s.setTrashOpen(false) },
+  { id: "import", up: (s) => s.importFolder !== null, down: (s) => s.closeImport() },
   { id: "palette", up: (s) => s.paletteOpen, down: (s) => s.setPaletteOpen(false) },
   { id: "capture", up: (s) => s.captureOpen, down: (s) => s.setCaptureOpen(false) },
   { id: "ask", up: (s) => s.askOpen, down: (s) => s.setAskOpen(false) },
@@ -345,6 +347,7 @@ export default function PhoneShell() {
   const offline = useOffline();
   const flags = {
     trash: useStore((s) => s.trashOpen),
+    import: useStore((s) => s.importFolder !== null),
     palette: useStore((s) => s.paletteOpen),
     capture: useStore((s) => s.captureOpen),
     ask: useStore((s) => s.askOpen),
@@ -842,6 +845,11 @@ export default function PhoneShell() {
         {layerUp("trash") && admin && (
           <Suspense fallback={null}>
             <TrashModal />
+          </Suspense>
+        )}
+        {layerUp("import") && admin && (
+          <Suspense fallback={null}>
+            <ImportDialog />
           </Suspense>
         )}
         {layerUp("ask") && admin && (
