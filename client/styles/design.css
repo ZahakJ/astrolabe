@@ -66,50 +66,6 @@
   gap: var(--dsn-gap);
 }
 
-/* ── masthead ──────────────────────────────────────────────────────────── */
-
-.s-dsn-mast {
-  max-width: var(--dsn-width, 720px);
-  margin: 0 auto;
-  padding: 56px var(--dsn-pad) 20px;
-  text-align: center;
-}
-
-.s-dsn-mast--bar {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  text-align: start;
-  padding-block: 22px 14px;
-}
-
-.s-dsn-mast__name {
-  font-family: var(--font-serif);
-  font-size: 1.75rem;
-  letter-spacing: 0.02em;
-  color: var(--text);
-  text-decoration: none;
-  display: inline-block;
-}
-
-.s-dsn-mast__name:hover {
-  color: var(--accent);
-}
-
-.s-dsn-mast--bar .s-dsn-mast__name {
-  font-size: 1.25rem;
-}
-
-.s-dsn-mast__tagline {
-  margin: 8px 0 0;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-.s-dsn-mast--bar .s-dsn-mast__tagline {
-  margin: 0;
-}
-
 /* ── nav ───────────────────────────────────────────────────────────────── */
 
 .s-dsn-nav {
@@ -1548,44 +1504,6 @@
   border-top: 1px solid var(--border);
 }
 
-/* ── footer ────────────────────────────────────────────────────────────── */
-
-.s-dsn-footer {
-  max-width: var(--dsn-width, 720px);
-  margin: 0 auto;
-  padding: 26px var(--dsn-pad) 44px;
-  border-top: 1px solid var(--border);
-  text-align: center;
-}
-
-.s-dsn-footer__line {
-  margin: 0 0 8px;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-.s-dsn-footer__meta {
-  margin: 0;
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  font-size: 0.78rem;
-}
-
-.s-dsn-footer__link {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: var(--text-muted);
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.s-dsn-footer__link:hover {
-  color: var(--accent);
-}
-
 .s-dsn-locked {
   text-align: center;
   padding-block: 80px;
@@ -1712,10 +1630,6 @@
     min-height: 62vw;
   }
 
-  .s-dsn-mast {
-    padding-top: 34px;
-  }
-
   /* A split stacks, words above picture, like every other two-track thing on
      this page. The plate keeps a height of its own once it has no column to
      inherit one from. */
@@ -1759,8 +1673,7 @@
 @media (max-width: 700px), (pointer: coarse) {
   .s-dsn-nav__topic,
   .s-dsn-nav__tool,
-  .s-dsn-topic,
-  .s-dsn-footer__link {
+  .s-dsn-topic {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
@@ -4100,50 +4013,6 @@
 
 .s-dsg-foot--grand .s-dsg-foot__run {
   margin-block-end: calc(var(--dsg-section-space) * 0.8);
-}
-
-/* ── The admin's notice ────────────────────────────────────────────────── */
-
-/* Named, actionable, and never shown to a visitor: by the time a visitor
- * could see one, they are already on the stock site. */
-.s-dsg-notice {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 0;
-  padding: 10px 16px;
-  background: var(--accent-soft);
-  border-block-end: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: 0.86rem;
-  text-align: center;
-}
-
-.s-dsg-notice--fail {
-  background: color-mix(in srgb, var(--danger) 18%, transparent);
-}
-
-.s-dsg-notice__btn {
-  padding: 5px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-}
-
-.s-dsg-notice__btn:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.s-dsg-notice__btn:disabled {
-  opacity: 0.6;
-  cursor: default;
 }
 
 /* ── Narrow screens & touch ────────────────────────────────────────────── */

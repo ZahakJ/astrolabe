@@ -321,7 +321,7 @@
 }
 
 /* A phone gets the same card, closer to its edges and shorter. */
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   .s-hovercard--spotlight {
     inline-size: calc(100vw - 24px);
     max-block-size: 70vh;
