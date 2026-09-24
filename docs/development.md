@@ -59,13 +59,24 @@ from the call sites only: the dictionary file is excluded from the usage scan, b
 whose English value happens to be its own name (`read: { en: "read" }`) would otherwise match
 inside its own definition and report itself as used.
 
+It reads the TypeScript syntax tree, not lines (`scripts/i18nScan.mjs`). The line scan it replaced
+could not see a single word, an attribute expression (`title={open ? "Hide" : "Show"}`), a
+template literal, JSX text split across lines, `aria-description` or `aria-valuetext`, or a string
+child in braces; `tests/i18nScan.test.ts` runs the retired scan beside the new one on each of those
+shapes and shows it missing them. A literal that is not copy — a honeypot field only bots see, a
+folder's literal default name — says "not copy" on or just above its line, and says why. The gate
+also reads the Android shell, `mobile/src`, which keeps its own two-language table because its
+screens speak before the client loads: every value present in both languages, the Arabic in
+Arabic, the same parameters interpolated, every key used, and no English in its builders or in the
+error bodies its service worker answers with.
+
 ### `npm run check-names` — the names gate
 
 Two features were renamed in 3.15 and again in 3.16: the daily routine is **Sigils**, and **Orbits** <!-- lineage -->
 is spaced repetition. A rename that leaves one toast, one hint or one heading saying the old word is
 worse than none, so this gate greps every surface a reader sees — every English and Arabic value in
 `client/i18n.ts` and in `client/orbits/copy.ts`, every page of this manual in both languages, the
-README, the seed vault, the what's-new deck and the section headings of `CONTRACTS.md` — for the words
+README, the seed vault, the what's-new deck and the headings of `CONTRACTS.md` and every `contracts/*.md` — for the words
 that may not appear there any more (the old word for a sigil, the study page's working name, and "flash card",
 which is "card" now; and their Arabic), and `client/` and `server/` for the old page addresses,
 which may exist only as redirect sources. A line that has to tell the history (which older fences
@@ -384,6 +395,12 @@ reader's preference — `prefers-reduced-motion`, `forced-colors` — is narrowe
 and overrides it on purpose, so it is not a failure. Different selectors that reach the same element
 are check-phone's to measure. `--list` prints every finding without failing.
 
+Its companion is `tests/breakpoints.test.ts`, which holds every stylesheet under `client/` and
+`mobile/src` to ONE phone width: a `max-width` between 601 and 799px is the shell's 700
+(`PHONE_SHELL_QUERY`, client/shellQuery.ts), unless the three lines above it say why not with the
+words "not the shell's 700" — the public blog's 640 does, for its own grids — and no source file
+spells a phone query out instead of importing the constant.
+
 ### `npm run check-phone` — the phone shell, driven
 
 A browser gate:
@@ -414,7 +431,10 @@ scrolls on purpose is exempt); every shell target is ≥44px (height always, wid
 control carries no text; prose, a checkbox inside a ≥44px label and a data picture's cells are
 not shell targets); every text field is ≥16px, below which iOS Safari zooms into the field; and
 nothing covers a target (`elementFromPoint` at its centre answers the target). Under an open
-sheet only the sheet is asked, because the page under it is inert on purpose.
+sheet only the sheet is asked, because the page under it is inert on purpose. The note sheet's
+Outline and Backlinks panes are measured WITH ROWS IN THEM: when the note has headings and
+backlinks (asked of the server), the gate first asserts that the pane lists them, so a 44px check
+never passes over an empty pane.
 
 **The four shapes.** `phone` is a Pixel 7 at 412×915 with a finger. `stylus` is 720×820 at DPR
 1.5 with a pen — `availablePointerTypes=6, primaryPointerType=2, availableHoverTypes=3,
@@ -448,13 +468,14 @@ on the seed vault, because the vault where it shows is the one with two thousand
 
 So the gate brings its own. `scripts/perf-fixture.mjs` generates a vault from a fixed seed —
 2,000 notes across 40 folders with frontmatter, wikilinks and tags, a 3,000-line note, a note
-with fifty embeds and a year of daily notes — and `check-perf` starts its own server over it, on
+with fifty embeds, a year of daily notes and twelve sigils with most of a year of log under
+each — and `check-perf` starts its own server over it, on
 its own port, in open local mode. **It never takes a vault path**, and the fixture reads nobody's
 disk, so neither can be pointed at yours. Set `ASTROLABE_SEED_VAULT=<vault>` to fold a real book
 and real Sigils and Orbits notes in as well; leave it unset and the gate measures the generated
 vault, which is the same vault on every machine.
 
-Five budgets over four surfaces, each the **best of several rounds** with the CPU throttled to a quarter speed
+Seven budgets over six surfaces, each the **best of several rounds** with the CPU throttled to a quarter speed
 (Lighthouse's mid-tier multiplier — an unthrottled loopback has no headroom left in which a
 regression could show). Best-of, not average: other work on the machine can only ever make a
 round slower, so the fastest round is the one closest to the cost of the work itself, and a gate
@@ -464,8 +485,10 @@ built on the average is a gate that fails because somebody started a build.
 | --- | --- |
 | **first paint** of the admin app | a static import that drags a lazy surface back into the shell's first request |
 | **keypress → paint** in the 3,000-line note, median and p95 | a per-keystroke pass that has quietly become O(document) |
-| **long-task time** over a 40-keystroke burst | the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of the five, and the one the purge moved most |
+| **long-task time** over a 40-keystroke burst | the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of them, and the one the purge moved most |
 | **reading render** of that note | the same, for the one operation whose cost is the whole document at once |
+| **the Sigils page**, door → twelve cards drawn (budget 1,650 ms; 1,241 when set) | a card whose streak, heatmap or week went back to walking the whole log per render |
+| **the Calendar page**, door → the month drawn with its lines and daily-note dots (250 ms; 157 when set) | a day cell that reads the vault instead of the agenda the page computed once |
 
 Typing latency is the browser's own Event Timing — hardware keydown to the paint that shows the
 letter — not a frame counter, and the caret is put at line ~1,500 first, because typing at line
@@ -524,6 +547,23 @@ exactly the way an applied update does, and passes only when the first process i
 second one started from the same file is running — `app.relaunch()` looked like it worked and
 did not, because Electron's relauncher runs from the mounted image after it is unmounted. Every
 AppImage release runs both before upload.
+
+### The parity tests — one rule, every side
+
+Some promises are not a script's but the suite's, because they hold between two pieces of code
+that must agree. `contracts/gates.md` lists every gate; these are the tests that hold one rule
+across the places that used to keep a copy each:
+
+| Test | What it holds |
+| --- | --- |
+| `tests/pocketParity.test.ts` | The phone's pocket index and the server's give the same answers on one fixture vault: link resolution, aliases, tags, banners, backlinks, search and the tree's order. |
+| `tests/headings.test.ts` | One heading rule (`shared/headings.ts`): the editor's `[[Note#` offers, the outline, the anchor table and the reading view's ids are the same list, and a YAML `# comment` is never a heading. |
+| `tests/byteRange.test.ts` | One `Range:` parser (`shared/byteRange.ts`) behind both `/api/file` routes, and the same five requests answered the same way by each. |
+| `tests/fileTypes.test.ts` | One served-type table, one kind table and one image test (`shared/attachments.ts`), one tree order (`shared/tree.ts`), one local day (`shared/dates.ts`) — and no stray copy of either of the last two in the code. |
+| `tests/breakpoints.test.ts` | One phone width in every stylesheet (above). |
+| `tests/i18nScan.test.ts` | The copy scan sees what the line scan could not (above). |
+| `tests/rtlGlyphs.test.ts` | A Bidi_Mirrored glyph (‹ › « ») is never flipped by hand under RTL — the browser already mirrors it. |
+| `tests/sourceText.test.ts` | No source file carries a literal control character, so grep never calls it binary. |
 
 ## Performance
 
@@ -686,9 +726,13 @@ right-to-left mirror.
 
 ## Contributing a change
 
-1. **Read `DESIGN.md` and `CONTRACTS.md` first.** `DESIGN.md` carries the rules a change is judged
-   against; `CONTRACTS.md` carries the promises the code has already made. Most review comments
-   here are one of those two documents quoted back.
+1. **Read `DESIGN.md` and the contract for your area first.** `DESIGN.md` carries the rules a
+   change is judged against; the contracts carry the promises the code has already made —
+   `CONTRACTS.md` is the map, and the words are in `contracts/`, one file per area (core, the
+   vault and server, the shells, themes, the editor, reading, the public site, features, sync and
+   the apps, i18n, the gates, the release history). A change is written into the section it
+   changes — **edit the area, append nothing** — and a release adds one line to
+   `contracts/releases.md`. Most review comments here are one of those documents quoted back.
 2. **Run `npm run typecheck`.** The build is strict, and the server has no compile step to catch
    things later.
 3. **Run the gates your change touches.** Theme tokens mean `check-contrast`; any user-visible

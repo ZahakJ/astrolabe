@@ -26,12 +26,8 @@ github-dark, since the preset rooms arrived in 3.16. Everything below is normati
   `--bg-raised` with the shared 1px border and a `--text-muted` chevron pointing into the
   content; hover fills `--bg-hover` and turns the chevron gold. Always visible while collapsed —
   a pane with no visible way back is a lost pane — and never a hover-reveal.
-  **It is a POINTER's door, and it is not drawn for a finger** (`(pointer: coarse) and
-  (hover: none)`, 3.23.0). Fourteen pixels is a mouse's target; on a touch device the pane has
-  two better doors already — the pan that follows the finger (client/swipe.ts) and the 44px
-  switch in the tool cluster — and a strip floating at the edge of a touchscreen reads as debris
-  (the owner: "how floating the panel bars button is"). The pane still has a visible way back;
-  what changes is which door is the visible one.
+  **It is a POINTER's door**: a finger that cannot hover never meets the desktop shell at all
+  (`PHONE_SHELL_QUERY`, below), so the strip is drawn only where a mouse can aim at it.
 - Which edge the sidebar sits on is a preference (palette: "Move sidebar to the right/left"),
   defaulting to the reading direction's leading edge. All four dir × side combinations must look
   deliberate: separators, indent, active-row bars and every chevron follow.
@@ -44,45 +40,30 @@ github-dark, since the preset rooms arrived in 3.16. Everything below is normati
 - **The reading column is monotone in viewport width.** A pane may take grid space only at
   widths where the prose already has its full 760px box, so no reader is ever better off in a
   narrower window: the outline pane auto-collapses to its door below 1360, the sidebar takes
-  `clamp(224px, 100vw - 776px, 292px)` and becomes an overlay drawer (☰) at ≤999, and the prose
+  `clamp(224px, 100vw - 776px, 292px)` (224px is its floor; there is no overlay drawer), and the prose
   gutter is `min(56px, 7.37%)` — the shipped 56px wherever the measure is full, proportional
   below it, never stepped. Measured `.cm-line`, en and ar: 648 at every width from 768 up, then
   597 / 546 / 409 / 333 at 700 / 640 / 480 / 390.
-- **A phone gets a shell of its own, not the desktop's folded** (3.26.0, CONTRACTS "The phone
-  shell"). Below 700px, or on a finger that cannot hover at any width, the screen is a stack of
+- **A phone gets a shell of its own, not the desktop's folded** (3.26.0, contracts/shell.md "The
+  phone shell"). ONE question decides it, `PHONE_SHELL_QUERY` in client/shellQuery.ts:
+  `(max-width: 700px), ((pointer: coarse) and (hover: none))`. Every stylesheet's "phone" width is
+  that 700 (tests/breakpoints.test.ts). Below 700px, or on a finger that cannot hover at any width, the screen is a stack of
   screens under a 48px top bar, a 56px bar of five labelled doors (Today, Notes, Search, Calendar,
   More) or a 72px rail on a tablet, and sheets from the bottom edge — never a tab strip, a status
   bar, a pane grip or a drawer. Rows are 52px, sheet rows 48, fields 16px; motion is `transform`
   and `opacity` only; the note screen shows nothing at its foot but the keyboard's accessory bar.
-  The drawer rules below are the Classic layout's, kept for one release.
-- **Below 700px, or on ANY coarse pointer, every target in the shell is ≥44px** — tree rows, tag
-  pills, icon buttons, status-bar buttons (and the bar itself), the drawer toggle and the tab bar
-  it sits in. The empty state's tap targets were only ever half of that promise.
-- **A closed drawer is `visibility: hidden`**, like every other collapsed pane: off-screen is not
-  the same as out of the tab order, and a phone reader must not swipe the whole vault before
-  reaching the page.
-- **The drawer opens by SWIPE, and the swipe follows the finger.** A ☰ tap was the only door, and
-  a 30px target is not how anyone opens a sidebar on a phone: a horizontal pan anywhere in the
-  shell drags the drawer with the finger — reversible mid-gesture, the scrim fading with it — and
-  the release commits on a third of the drawer's width **or** on a flick (≥0.5 px/ms), otherwise
-  it springs back over 200ms (`prefers-reduced-motion` snaps instead; the follow stays, because
-  dragging a pane with your own finger is direct manipulation, not animation). The mirrored pan
-  from the opposite edge opens and closes the outline pane, which commits on release rather than
-  following, since it is a grid column and re-laying out the centre every frame would re-measure
-  the editor with it. Direction is LOGICAL and measured, not written down: each pane's edge comes
-  from its own box, so Arabic mirrors with no second code path. Every existing door stays — ☰,
-  the scrim tap, `Ctrl/Cmd Alt B`, the palette, the status-bar switch — and nothing focusable
-  moves. Five conflict rules make it feel native rather than twitchy, and each is a rule about
-  something else already owning that drag: a pan starting within 24px of either screen edge
-  belongs to the OS's back gesture; a pan starting inside a horizontally scrollable element that
-  still has room to scroll that way belongs to it (ancestors are walked, so a wide table, a code
-  fence or a strip keeps its own pan until it hits its end); a pan whose vertical delta wins
-  belongs to the scroller, because reading is a vertical act; a pan begun with a live CodeMirror
-  selection belongs to the selection handle; and a second finger means a pinch, never a drawer.
-  Zen answers none of them — it takes the ☰ away too, and chrome-less means chrome-less.
-  It ships as its own chunk behind `(pointer: coarse)`: a mouse downloads none of it.
+- **Below 700px, or on ANY coarse pointer, every target is ≥44px** — in the phone shell by
+  construction, and in the desktop shell on a coarse pointer that can hover (a touchscreen laptop):
+  tree rows, tag pills, icon buttons, status-bar buttons (and the bar itself). The Classic drawer
+  layout, its swipe and its ☰ were deleted in 3.27.0.
 
 ## Sidebar
+
+*Sizes in the sections below are the design's pixels at a 14px root. The stylesheets write them in
+`rem` (px ÷ 14 — `0.929rem` is 13px), and the shipped root is 15.5px (`--font-base` in
+client/styles/app.css, times the reader's `--font-scale`), so on screen each is 1.107× what is
+written: 11px reads 12.2, 12px 13.3, 13px 14.4, 14px 15.5, 15px 16.6. Borders, hairlines, radii
+and the 44px touch floor are real pixels and do not scale.*
 
 - Header: wordmark `✦ Astrolabe` — serif (--font-serif), small-caps feel, gold accent star, 15px,
   letter-spacing 0.08em; right side: "new note" (+) and "new folder" icon buttons (inline SVG,
@@ -139,7 +120,8 @@ github-dark, since the preset rooms arrived in 3.16. Everything below is normati
   --font-serif for prose. THE TEXT IS SERIF — this is the manuscript feel. Code/inline-code in
   --font-mono 85%.
 - Headings (live preview rendered): h1 1.9em serif + hairline bottom border --border padding 0.2em;
-  h2 1.5em; h3 1.25em; all --text with h1 slightly gold-tinted (color-mix 15% accent). The `#`
+  h2 1.5em; h3 1.25em; every level in `--heading`, each room's own heading ink (a warm gold-cream
+  in iron-gall, near-white in github-dark) — not a mix computed from `--accent`. The `#`
   marks when cursor is on the line render --text-faint.
 - Heading fold chevron: in the left padding of every heading line, VISIBLE at rest (--text-faint
   at full strength), --text-muted on line hover, --accent on itself. Never a hover-reveal — same
