@@ -17,6 +17,7 @@ import { SYSTEM_FONT } from "../../../shared/fonts.ts";
 import { DEFAULT_LAUNCH, isLaunchDoor } from "../../../shared/launch.ts";
 import { isVoiceLanguage, isVoiceModelSetting } from "../../../shared/voice.ts";
 import { isNotePath } from "../../../shared/noteFormat.ts";
+import { isImagePath } from "../../../shared/attachments.ts";
 
 export interface Form {
   siteName: string;
@@ -315,9 +316,6 @@ export const SIZE_ADJUST_MAX = 300;
 
 export const TAG_RE = /^[\p{L}\p{N}][\p{L}\p{N}_/-]*$/u;
 
-/** Mirrors server IMAGE_EXT (settings.ts). */
-export const IMG_EXT_RE = /\.(ico|png|svg|jpe?g|gif|webp|avif)$/i;
-
 export const SCHEME_RE = /^[a-z][a-z0-9+.-]*:/i;
 
 /** Client mirror of the server's image-reference validators (favicon: vault
@@ -333,7 +331,7 @@ export function imageRefError(value: string, httpsOk: boolean): string | null {
     return t(httpsOk ? "errHttpsOrVault" : "errVaultImage");
   }
   if (v.split(/[\\/]/).includes("..")) return t("errDotDot");
-  if (!IMG_EXT_RE.test(v)) return t("errImageExt");
+  if (!isImagePath(v)) return t("errImageExt");
   return null;
 }
 

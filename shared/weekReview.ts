@@ -18,6 +18,7 @@
 
 import { paceProjection, minutesLeft, readingSpeed, type TrackerSession } from "./tracker.ts";
 import { routineStats, shiftDate, weekStart, type RoutineEntry, type RoutinePlan } from "./routine.ts";
+import { localIsoDay } from "./dates.ts";
 
 /** A week as two ISO days, both inclusive. */
 export interface WeekRange {
@@ -46,9 +47,7 @@ export function inWeek(iso: string, week: WeekRange): boolean {
  *  for the Orbits log, written here so the shared module owes nothing to
  *  the client. */
 export function localDay(ms: number): string {
-  const d = new Date(ms);
-  const p = (n: number): string => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return localIsoDay(ms);
 }
 
 // ── Books ───────────────────────────────────────────────────────────────────

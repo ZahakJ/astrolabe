@@ -160,37 +160,44 @@ describe("[[Note#Anchor]] resolution, both resolvers", () => {
     assert.equal(first?.slug, "repeat", "the first keeps the un-suffixed slug");
   });
 
-  it("KNOWN BUG: the editor resolves emphasis differently from the reading view", () => {
-    // The editor matches the RAW heading source; the reading view matches the
-    // stripped display text. "## **Bold** section" is therefore reachable as
-    // "**Bold** section" in the editor and as "Bold section" in the reading
-    // view — and neither spelling works in both.
-    assert.notEqual(findHeadingLine(md, "**Bold** section"), null);
-    assert.equal(findHeadingLine(md, "Bold section"), null);
-    assert.equal(readingAnchor(md, "**Bold** section"), "Bold section", "…via the slug");
-    assert.notEqual(readingAnchor(md, "Bold section"), null);
+  // These three were pinned here as KNOWN BUGS until shared/headings.ts made
+  // the editor, the outline, the anchor table and the reading view read one
+  // rule. They now assert the agreement.
+  it("emphasis: both spellings resolve in both views", () => {
+    // The editor used to match only the RAW source ("**Bold** section") and
+    // the reading view only the display text ("Bold section").
+    for (const spelling of ["**Bold** section", "Bold section"]) {
+      assert.equal(findHeadingLine(md, spelling), 14, spelling);
+      assert.equal(readingAnchor(md, spelling), "Bold section", spelling);
+    }
+    assert.ok(editorHeadings(md).includes("Bold section"), "the completion offers what the reader sees");
   });
 
-  it("KNOWN BUG: an indented heading exists for the editor and not for the reader", () => {
-    // links.ts (and server/indexer.ts) allow up to three leading spaces, as
-    // CommonMark does; reading/toc.ts and reading/render.ts anchor `#` to
-    // column 0. So "   ## Indented" gets an anchor in the editor and no id in
-    // the reading view — the link silently does nothing there.
+  it("an indented heading is a heading for the editor AND the reader", () => {
+    // CommonMark allows up to three spaces; the reading view and the outline
+    // used to anchor `#` to column 0, so the editor offered a link that
+    // landed nowhere.
     const indented = "# Top\n\n   ## Indented\n\ntext\n";
     assert.equal(findHeadingLine(indented, "Indented"), 3);
     assert.deepEqual(editorHeadings(indented), ["Top", "Indented"]);
-    assert.deepEqual(extractHeadings(indented).map((h) => h.text), ["Top"]);
-    assert.equal(readingAnchor(indented, "Indented"), null);
+    assert.deepEqual(extractHeadings(indented).map((h) => h.text), ["Top", "Indented"]);
+    assert.equal(readingAnchor(indented, "Indented"), "Indented");
+    // Four spaces is indented code, in every view.
+    assert.deepEqual(editorHeadings("    ## Code\n"), []);
+    assert.deepEqual(extractHeadings("    ## Code\n"), []);
   });
 
-  it("KNOWN BUG: a closed-ATX heading is unreachable from the editor", () => {
-    // "## Notes ##" displays (and slugs) as "Notes", but findHeadingLine keeps
-    // the trailing hashes in the text it compares, so [[Doc#Notes]] fails in
-    // the editor while working in the reading view.
+  it("a closed-ATX heading is reachable by its title from the editor", () => {
     const closed = "# Top\n\n## Notes ##\n\ntext\n";
     assert.equal(readingAnchor(closed, "Notes"), "Notes");
-    assert.equal(findHeadingLine(closed, "Notes"), null);
-    assert.equal(findHeadingLine(closed, "Notes ##"), 3, "only the raw spelling works");
+    assert.equal(findHeadingLine(closed, "Notes"), 3);
+  });
+
+  it("a YAML `# comment` in the frontmatter is never offered as a heading", () => {
+    const withComment = "---\n# a YAML comment\ntitle: T\n---\n# Real\n";
+    assert.deepEqual(editorHeadings(withComment), ["Real"]);
+    assert.equal(findHeadingLine(withComment, "a YAML comment"), null);
+    assert.deepEqual(extractHeadings(withComment).map((h) => h.text), ["Real"]);
   });
 
   it("an empty or whitespace anchor resolves to nothing", () => {

@@ -18,6 +18,8 @@
 // Nothing already on disk moves when this changes: it decides where the NEXT
 // upload is written, and existing embeds keep resolving by basename anyway.
 
+import type { AttachmentKind } from "./types.ts";
+
 export type AttachmentMode = "vault-root" | "same-folder" | "subfolder" | "specified";
 
 export const ATTACHMENT_MODES: readonly AttachmentMode[] = [
@@ -185,4 +187,60 @@ export function isAcceptedAttachment(name: string, type = ""): boolean {
   const ext = extensionOf(name);
   if (ext !== "") return Object.prototype.hasOwnProperty.call(ATTACHMENT_TYPES, ext);
   return ACCEPTED_MIME.has(type.trim().toLowerCase());
+}
+
+// ── What a file IS: its served type, its kind, whether it is a picture ───────
+// One table each, read by the server's /api/file, the pocket's, the tree on
+// both, the settings and design validators, the banner picker and the
+// editor's embed. There were two MIME tables (server/api.ts and the pocket's
+// reading of ATTACHMENT_TYPES above) that disagreed about `.ico`, `.tif`,
+// `.mkv`, `.txt`, `.json`, and six image-extension regexes that disagreed about
+// `.bmp`, `.ico` and `.avif`.
+
+/** Extension (lowercase, no dot) → the Content-Type a file is SERVED with.
+ *  A superset of ATTACHMENT_TYPES: the vault holds files nobody uploaded
+ *  through the app (an `.ico` a site uses, a `.canvas` from Obsidian). */
+export const MIME_TYPES: Readonly<Record<string, string>> = {
+  ...ATTACHMENT_TYPES,
+  ico: "image/x-icon",
+  tif: "image/tiff",
+  tiff: "image/tiff",
+  epub: "application/epub+zip",
+  mkv: "video/x-matroska",
+  aac: "audio/aac",
+  txt: "text/plain; charset=utf-8",
+  csv: "text/csv; charset=utf-8",
+  json: "application/json",
+  canvas: "application/json",
+};
+
+/** The Content-Type a vault file is served with; octet-stream when unknown. */
+export function contentTypeFor(path: string): string {
+  return MIME_TYPES[extensionOf(path)] ?? "application/octet-stream";
+}
+
+/** Extensions a browser draws in an <img> — the one image test. Deliberately
+ *  not `heic` or `tif`: those are images the tree marks as pictures but a
+ *  page cannot show, so no validator may accept one as a banner or a logo. */
+export const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "bmp", "ico"] as const;
+export type ImageExtension = (typeof IMAGE_EXTENSIONS)[number];
+const IMAGE_SET: ReadonlySet<string> = new Set(IMAGE_EXTENSIONS);
+
+/** True when `path` names a picture a page can draw. */
+export function isImagePath(path: string): boolean {
+  return IMAGE_SET.has(extensionOf(path));
+}
+
+/** The kind of a vault file, for the tree's marker and the viewer. */
+const KINDS: Readonly<Record<string, AttachmentKind>> = {
+  png: "image", jpg: "image", jpeg: "image", gif: "image", webp: "image", avif: "image",
+  svg: "image", bmp: "image", ico: "image", tif: "image", tiff: "image", heic: "image",
+  pdf: "book", epub: "book",
+  mp3: "audio", m4a: "audio", wav: "audio", ogg: "audio", oga: "audio", flac: "audio", aac: "audio", opus: "audio",
+  mp4: "video", webm: "video", mov: "video", mkv: "video", m4v: "video",
+};
+
+/** The kind of a vault file by its extension. */
+export function attachmentKindOf(path: string): AttachmentKind {
+  return KINDS[extensionOf(path)] ?? "other";
 }

@@ -116,6 +116,8 @@ import { bannerFromYaml } from "../banner.ts";
 import { buildBannerEl, buildPropsCard, TAG_RE } from "../editor/noteMeta.ts";
 import { htmlBlockStart, sanitizeHtml, sanitizeInlineTag } from "./rawHtml.ts";
 import { Slugger, stripInline } from "./toc.ts";
+import { HEADING_RE } from "../../shared/headings.ts";
+import { splitFrontmatter } from "../../shared/noteParse.ts";
 import { isNotePath, isTexPath, noteTitleOf } from "../../shared/noteFormat.ts";
 import { findAnchor, noteAnchors } from "../../shared/anchors.ts";
 import { renderNoteContent, renderNoteSlice } from "./renderNote.ts";
@@ -492,7 +494,8 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
 // ── Block-level patterns ────────────────────────────────────────────────────
 
 const FENCE_OPEN_RE = /^(\s*)(```+|~~~+)\s*([^\s`~]*)\s*$/;
-const HEADING_RE = /^(#{1,6})\s+(.*)$/;
+// HEADING_RE is shared/headings.ts's: CommonMark's ATX heading, the one every
+// surface that asks "is this a heading?" now shares.
 const HR_RE = /^\s*(-{3,}|\*{3,}|_{3,})\s*$/;
 const LIST_ITEM_RE = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/;
 const FOOTDEF_RE = /^\[\^([^\]\s]+)\]:\s?(.*)$/;
@@ -1758,41 +1761,35 @@ function withoutSrComments(lines: string[]): string[] {
 }
 
 function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
-  let lines = md.replace(/\r\n/g, "\n").split("\n");
+  const source = md.replace(/\r\n/g, "\n");
+  let lines = source.split("\n");
 
-  // YAML frontmatter → properties card (top-level note only).
-  if (lines[0]?.trim() === "---") {
-    let close = -1;
-    for (let j = 1; j < lines.length; j++) {
-      const t = lines[j].trim();
-      if (t === "---" || t === "...") {
-        close = j;
-        break;
+  // YAML frontmatter → properties card (top-level note only). Which block IS
+  // the frontmatter is shared/noteParse.ts's one fence rule — the index, the
+  // outline and the anchor table read the same one.
+  const front = splitFrontmatter(source);
+  if (front.bodyStartLine > 0) {
+    if (ctx.depth === 0) {
+      const yaml = front.frontmatter;
+      // Banner hero above the properties card (the blog shell hides this
+      // and renders its own full-width hero instead).
+      const banner = bannerFromYaml(yaml);
+      if (banner) {
+        // The note's own path is the relative base ("cover.png" beside it),
+        // and `admin` decides whether an unresolvable value shows the
+        // missing-image card or nothing at all. `admin` is already false
+        // while previewing as a visitor, which is the answer this wants.
+        root.appendChild(
+          buildBannerEl(banner, "s-rv-banner", {
+            notePath: ctx.notePath,
+            admin: useStore.getState().admin,
+          }),
+        );
       }
+      const card = propsCard(yaml);
+      if (card) root.appendChild(card);
     }
-    if (close > 0) {
-      if (ctx.depth === 0) {
-        const yaml = lines.slice(1, close).join("\n");
-        // Banner hero above the properties card (the blog shell hides this
-        // and renders its own full-width hero instead).
-        const banner = bannerFromYaml(yaml);
-        if (banner) {
-          // The note's own path is the relative base ("cover.png" beside it),
-          // and `admin` decides whether an unresolvable value shows the
-          // missing-image card or nothing at all. `admin` is already false
-          // while previewing as a visitor, which is the answer this wants.
-          root.appendChild(
-            buildBannerEl(banner, "s-rv-banner", {
-              notePath: ctx.notePath,
-              admin: useStore.getState().admin,
-            }),
-          );
-        }
-        const card = propsCard(yaml);
-        if (card) root.appendChild(card);
-      }
-      lines = lines.slice(close + 1);
-    }
+    lines = front.body.split("\n");
   }
 
   // A flashcard's schedule (shared/srs.ts, `<!--SR:!2026-09-27,4,2500-->`)

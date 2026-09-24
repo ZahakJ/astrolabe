@@ -105,6 +105,20 @@ export function noteLabelOf(rel: string): string {
   return noteExtOf(base) === ".md" ? stripNoteExt(base) : base;
 }
 
+/** A typed name → a note path. An extension the reader supplied is KEPT —
+ *  typing "Paper.tex" must create a LaTeX note, not "Paper.tex.md" — and
+ *  anything else gets `.md`, which is what "new note" has always meant. The
+ *  tree's rename and the palette's new/rename rows both ask this (they kept
+ *  a copy each). */
+export function ensureMd(name: string): string {
+  return isNotePath(name) ? name : `${name}.md`;
+}
+
+/** The same, defaulting to LaTeX: the "New LaTeX note" command's ending. */
+export function ensureTex(name: string): string {
+  return isNotePath(name) ? name : `${name}.tex`;
+}
+
 /** The candidate vault paths a bare wikilink target could name, in resolution
  *  order — `[[Fourier Transform]]` → `Fourier Transform.md`, `.tex`, `.latex`.
  *  A target that already carries a note extension answers only itself, so an

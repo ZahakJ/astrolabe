@@ -13,15 +13,18 @@ import { t } from "../i18n.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
 import { slugAnchor } from "../../shared/tex.ts";
 import { toast } from "../toast.ts";
+import { headingOf, headingTitle } from "../../shared/headings.ts";
 
 export function copyBlockLink(view: EditorView, path: string): void {
   const doc = view.state.doc;
   const caret = doc.lineAt(view.state.selection.main.head);
-  const heading = /^\s{0,3}#{1,6}\s+(.+?)\s*$/.exec(caret.text);
-  if (heading) {
-    // A heading is addressed by its text, or by its slug when the text cannot
-    // be spelled inside [[…#…]] (sectionActions.ts's rule).
-    const text = heading[1].replace(/\s+#+\s*$/, "");
+  const heading = headingOf(caret.text);
+  const title = heading ? headingTitle(heading.raw) : "";
+  if (title) {
+    // A heading is addressed by its title (shared/headings.ts — what the
+    // reading view shows and the anchor table files), or by its slug when the
+    // title cannot be spelled inside [[…#…]] (sectionActions.ts's rule).
+    const text = title;
     const anchor = /[[\]|#]/.test(text) ? slugAnchor(text) : text;
     void navigator.clipboard
       .writeText(`[[${noteTitleOf(path)}#${anchor}]]`)

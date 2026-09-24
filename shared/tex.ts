@@ -19,6 +19,8 @@
 //   3. It never produces HTML. Every string in the model is plain text, and the
 //      renderers build DOM nodes, so there is no injection path through TeX.
 
+import { headingSlug } from "./headings.ts";
+
 // ── Model ───────────────────────────────────────────────────────────────────
 
 export type Inline =
@@ -2120,18 +2122,24 @@ export function texFirstParagraph(doc: TexDocument): string {
 
 // ── Anchors ─────────────────────────────────────────────────────────────────
 
+/** A `.tex` note's frontmatter as YAML text: its `\astrolabe{key=value}`
+ *  pairs, then its `%--- … %---%` block, so the block wins a shared key (YAML
+ *  keeps the LAST of two equal keys). The server's reader and the pocket's
+ *  both parse exactly this text. */
+export function texFrontmatterText(doc: Pick<TexDocument, "frontmatter" | "astrolabe">): string {
+  const astrolabeYaml = Object.entries(doc.astrolabe)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join("\n");
+  return [astrolabeYaml, doc.frontmatter].filter((s) => s.trim() !== "").join("\n");
+}
+
 /** Slug for an anchor id derived from a heading or section title. Kept
  *  byte-for-byte in step with client/reading/toc.ts's Slugger so that
  *  `[[Note#some-heading]]` addresses the same element the reading view assigns
  *  the id to — the two live apart only because this file must stay free of
  *  DOM and CodeMirror imports. */
 export function slugAnchor(text: string): string {
-  const base = text
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s-]/gu, "")
-    .trim()
-    .replace(/\s+/g, "-");
-  return base || "section";
+  return headingSlug(text);
 }
 
 /** Case-insensitive anchor lookup inside a note. Matches an id first (a

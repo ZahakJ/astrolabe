@@ -17,15 +17,16 @@
 // from an unfiltered source owes this paragraph a second look.
 
 import { urlToNoteGuess } from "../router.ts";
+import { FRONTMATTER_RE } from "../../shared/noteParse.ts";
 
 /** Strip YAML frontmatter — and ONLY frontmatter. `---` is also a thematic
  *  break, so a note that opens with a rule and closes the section with
  *  another one used to lose everything between them from its preview. Real
  *  frontmatter is a mapping: at least one `key:` line inside the block. */
 function stripFrontmatter(content: string): string {
-  const m = /^---\r?\n([\s\S]*?)\r?\n(?:---|\.\.\.)(?:\r?\n|$)/.exec(content);
+  const m = FRONTMATTER_RE.exec(content);
   if (!m) return content;
-  if (!/^[ \t]*[\w.$-]+[ \t]*:/m.test(m[1])) return content;
+  if (!/^[ \t]*[\w.$-]+[ \t]*:/m.test(m[1] ?? "")) return content;
   return content.slice(m[0].length);
 }
 

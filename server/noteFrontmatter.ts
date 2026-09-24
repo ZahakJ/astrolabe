@@ -9,6 +9,7 @@
 import matter from "gray-matter";
 import { isTexPath } from "../shared/noteFormat.ts";
 import { folderSlug } from "../shared/publicFolders.ts";
+import { parseAliases } from "../shared/noteParse.ts";
 import { findTexFrontmatter } from "../shared/tex.ts";
 import { TWIN_KEY, twinLine } from "../shared/twins.ts";
 import { publishFlag, readFrontmatter, setFrontmatterLine, setPublishFlag, yamlQuote } from "./publish.ts";
@@ -81,62 +82,11 @@ function setTexFrontmatterLine(src: string, key: string, line: string | null): s
 
 // ---------------------------------------------------------------- aliases
 
-/** The other names a note answers to — frontmatter `aliases:`.
- *
- *  The README invites the reader to point Astrolabe at an existing Obsidian
- *  vault, and in one of those a note is routinely linked by a name that is not
- *  its filename. Three spellings reach this function from real vaults, because
- *  YAML gives three different values for what an author reads as one list:
- *
- *    aliases: [ML, machine-learning]   → an array
- *    aliases:                          → an array (block list)
- *      - ML
- *    aliases: ML, machine-learning     → the STRING "ML, machine-learning"
- *    aliases: ML                       → the STRING "ML"
- *
- *  A scalar is split on commas; a LIST ITEM never is. That asymmetry is the
- *  whole rule: `aliases: [Smith, John]` is already two items to YAML, so an
- *  author who means one alias containing a comma writes `["Smith, John"]` —
- *  splitting items too would turn every quoted bibliographic alias into two
- *  wrong ones, and there would be no way left to spell the right one.
- *
- *  `alias:` (singular) is read as well: Obsidian accepted it for years and
- *  vaults still carry it, and a note whose only alias is silently ignored is
- *  exactly the first-hour disappointment this feature exists to remove.
- *
- *  Duplicates collapse case-insensitively, first spelling kept — the table
- *  this feeds is keyed lowercased, so the second one could only ever be a
- *  second Set entry for the same note. */
-export function parseAliases(fm: Record<string, unknown>): string[] {
-  const raw = fm.aliases ?? fm.alias;
-  const out: string[] = [];
-  const seen = new Set<string>();
-  const push = (value: string): void => {
-    const alias = value.trim();
-    if (!alias || seen.has(alias.toLowerCase())) return;
-    seen.add(alias.toLowerCase());
-    out.push(alias);
-  };
-  // A bare number is a legitimate alias ("2024" on a year note) and YAML hands
-  // it over as a number, not a string; anything else — a nested map, a date, a
-  // boolean — is not a name and is dropped rather than stringified into one.
-  const scalar = (value: unknown): string | null => {
-    if (typeof value === "string") return value;
-    if (typeof value === "number" && Number.isFinite(value)) return String(value);
-    return null;
-  };
-  if (Array.isArray(raw)) {
-    for (const item of raw) {
-      const text = scalar(item);
-      if (text !== null) push(text);
-    }
-    return out;
-  }
-  const text = scalar(raw);
-  if (text === null) return out;
-  for (const part of text.split(",")) push(part);
-  return out;
-}
+/** The other names a note answers to. The rule lives in shared/noteParse.ts
+ *  (the pocket files aliases too); re-exported here because frontmatter is
+ *  this module's contract and every key a note can carry is read in one
+ *  place. */
+export { parseAliases } from "../shared/noteParse.ts";
 
 // ----------------------------------------------------------------- twins
 

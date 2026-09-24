@@ -25,8 +25,7 @@ import {
 import { keymap } from "@codemirror/view";
 import { countPhrase, getLang, t } from "../i18n.ts";
 import { languageChanged } from "./langEffect.ts";
-
-const HEADING_LINE_RE = /^\s{0,3}#{1,6}\s/;
+import { isHeadingLine } from "../../shared/headings.ts";
 
 /** The folded range that starts at the end of this line, if any. */
 function foldedAt(view: EditorView, lineTo: number): { from: number; to: number } | null {
@@ -98,7 +97,7 @@ function buildChevrons(view: EditorView): DecorationSet {
       pos = line.to + 1;
       if (seen.has(line.from)) continue;
       seen.add(line.from);
-      if (!HEADING_LINE_RE.test(line.text)) continue;
+      if (!isHeadingLine(line.text)) continue;
       const folded = foldedAt(view, line.to) !== null;
       if (!folded && !foldable(view.state, line.from, line.to)) continue;
       decos.push(

@@ -19,6 +19,7 @@
 import { closesFence, fenceOpener, type Fence } from "./fences.ts";
 import { findAnyMatches } from "./fold.ts";
 import { wikilinkRegex } from "./noteParse.ts";
+import { HEADING_PREFIX_RE, isHeadingLine } from "./headings.ts";
 
 /** True for metadata-ish furniture lines common in note templates: a bare
  *  timestamp, or a short "Label:" line whose content is only #tags ("Status:
@@ -37,7 +38,7 @@ export function isFurnitureLine(raw: string): boolean {
 export function stripLinePrefix(line: string): string {
   return line
     .replace(/^\s*>\s?/, "")
-    .replace(/^\s{0,3}#{1,6}\s+/, "")
+    .replace(HEADING_PREFIX_RE, "")
     .replace(/^\s*(?:[-*+]|\d+[.)])\s+\[[ xX]\]\s*/, "")
     .replace(/^\s*(?:[-*+]|\d+[.)])\s+/, "");
 }
@@ -235,7 +236,7 @@ export function stripMarkdown(body: string): string {
       if (cells.length > 0) out.push(cells.join(", "));
       continue;
     }
-    const isHeading = /^\s{0,3}#{1,6}\s+/.test(raw);
+    const isHeading = isHeadingLine(raw);
     const line = proseLine(raw);
     if (!line) continue;
     out.push(isHeading ? `${line} —` : line);
