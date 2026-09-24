@@ -17,7 +17,7 @@ import { SYSTEM_FONT } from "../../../shared/fonts.ts";
 import { DEFAULT_LAUNCH, isLaunchDoor } from "../../../shared/launch.ts";
 import { isVoiceLanguage, isVoiceModelSetting } from "../../../shared/voice.ts";
 import { isNotePath } from "../../../shared/noteFormat.ts";
-import { isImagePath } from "../../../shared/attachments.ts";
+import { isImagePath } from "../../../shared/fileKinds.ts";
 
 export interface Form {
   siteName: string;

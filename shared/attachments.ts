@@ -18,7 +18,12 @@
 // Nothing already on disk moves when this changes: it decides where the NEXT
 // upload is written, and existing embeds keep resolving by basename anyway.
 
-import type { AttachmentKind } from "./types.ts";
+import { extensionOf } from "./fileKinds.ts";
+// What a file IS by its name — its extension, whether it is a picture, its
+// kind — lives in shared/fileKinds.ts, a module small enough for the entry
+// chunk (the editor's embeds ask `isImagePath` on first paint); re-exported
+// here, where the product has always asked for it.
+export { attachmentKindOf, extensionOf, IMAGE_EXTENSIONS, isImagePath, type ImageExtension } from "./fileKinds.ts";
 
 export type AttachmentMode = "vault-root" | "same-folder" | "subfolder" | "specified";
 
@@ -160,15 +165,12 @@ export const ATTACHMENT_TYPES: Record<string, string> = {
   webm: "video/webm",
 };
 
-/** Lower-cased extension of a filename, without the dot ("" when there is none). */
-export function extensionOf(name: string): string {
-  const base = name.split(/[/\\]/).pop() ?? "";
-  const dot = base.lastIndexOf(".");
-  return dot <= 0 ? "" : base.slice(dot + 1).toLowerCase();
-}
 
-/** Every MIME type the table advertises, for the type-only fallback below. */
-const ACCEPTED_MIME = new Set(Object.values(ATTACHMENT_TYPES));
+/** Every MIME type the table advertises, for the type-only fallback below —
+ *  built on first use, not at module load: a `new Set` at the top level is a
+ *  side effect a bundler must keep, and it would drag this table into every
+ *  chunk that only wanted `isImagePath` (the editor's embeds are in the entry). */
+let acceptedMime: ReadonlySet<string> | null = null;
 
 /** True when the uploader will even try this file. The extension decides
  *  first — a browser hands us `application/octet-stream` for half of these
@@ -179,7 +181,8 @@ const ACCEPTED_MIME = new Set(Object.values(ATTACHMENT_TYPES));
 export function isAcceptedAttachment(name: string, type = ""): boolean {
   const ext = extensionOf(name);
   if (ext !== "") return Object.prototype.hasOwnProperty.call(ATTACHMENT_TYPES, ext);
-  return ACCEPTED_MIME.has(type.trim().toLowerCase());
+  acceptedMime ??= new Set(Object.values(ATTACHMENT_TYPES));
+  return acceptedMime.has(type.trim().toLowerCase());
 }
 
 // ── What a file IS: its served type, its kind, whether it is a picture ───────
@@ -210,30 +213,4 @@ export const MIME_TYPES: Readonly<Record<string, string>> = {
 /** The Content-Type a vault file is served with; octet-stream when unknown. */
 export function contentTypeFor(path: string): string {
   return MIME_TYPES[extensionOf(path)] ?? "application/octet-stream";
-}
-
-/** Extensions a browser draws in an <img> — the one image test. Deliberately
- *  not `heic` or `tif`: those are images the tree marks as pictures but a
- *  page cannot show, so no validator may accept one as a banner or a logo. */
-export const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "bmp", "ico"] as const;
-export type ImageExtension = (typeof IMAGE_EXTENSIONS)[number];
-const IMAGE_SET: ReadonlySet<string> = new Set(IMAGE_EXTENSIONS);
-
-/** True when `path` names a picture a page can draw. */
-export function isImagePath(path: string): boolean {
-  return IMAGE_SET.has(extensionOf(path));
-}
-
-/** The kind of a vault file, for the tree's marker and the viewer. */
-const KINDS: Readonly<Record<string, AttachmentKind>> = {
-  png: "image", jpg: "image", jpeg: "image", gif: "image", webp: "image", avif: "image",
-  svg: "image", bmp: "image", ico: "image", tif: "image", tiff: "image", heic: "image",
-  pdf: "book", epub: "book",
-  mp3: "audio", m4a: "audio", wav: "audio", ogg: "audio", oga: "audio", flac: "audio", aac: "audio", opus: "audio",
-  mp4: "video", webm: "video", mov: "video", mkv: "video", m4v: "video",
-};
-
-/** The kind of a vault file by its extension. */
-export function attachmentKindOf(path: string): AttachmentKind {
-  return KINDS[extensionOf(path)] ?? "other";
 }

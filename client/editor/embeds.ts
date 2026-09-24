@@ -8,7 +8,7 @@ import { isAudioName, pdfPageOf } from "../../shared/mediaEmbeds.ts";
 import { clearBannerCache } from "../banner.ts";
 import { t } from "../i18n.ts";
 import { Lru } from "../lru.ts";
-import { isImagePath } from "../../shared/attachments.ts";
+import { isImagePath } from "../../shared/fileKinds.ts";
 
 const ATTACHMENT_EXT = /\.(pdf|mp4|webm|mp3|ogg|wav|flac|zip|canvas|json|csv|txt)$/i;
 

@@ -1,6 +1,5 @@
 // Wikilink parsing + resolution against the vault tree held in the zustand store.
 
-import { headingSlug, headingTitle, scanHeadings } from "../../shared/headings.ts";
 import type { AliasEntry, TreeNode } from "../../shared/types.ts";
 import { isNotePath, noteCandidates, stripNoteExt } from "../../shared/noteFormat.ts";
 
@@ -188,29 +187,8 @@ export function resolveLink(target: string, tree: TreeNode | null): string | nul
   return aliasPaths.get(name) ?? null;
 }
 
-/** All heading titles in a note, in order — what `[[Note#` offers. The scan
- *  is shared/headings.ts's, the same one the outline, the anchor table and
- *  the reading view's ids read: outside the frontmatter (a YAML `# comment`
- *  is not a heading), outside code fences, CommonMark's indent, and the title
- *  the reading view shows — so every offer is a heading the link can land on
- *  in either view. */
-export function extractHeadings(content: string): string[] {
-  return scanHeadings(content).map((h) => h.title);
-}
-
-/** 1-based line number of the heading `heading` names, case-insensitive: by
- *  its title (what the completion offers and the reading view shows), by its
- *  slug id (what the reading view's anchors are), or by its raw source (what
- *  a link typed before the two agreed may still say). First match wins, as
- *  the anchor table's does. */
-export function findHeadingLine(content: string, heading: string): number | null {
-  const want = heading.trim().toLowerCase();
-  if (!want) return null;
-  const slug = headingSlug(headingTitle(heading));
-  const all = scanHeadings(content);
-  const hit =
-    all.find((h) => h.title.toLowerCase() === want) ??
-    all.find((h) => h.id === slug) ??
-    all.find((h) => h.raw.trim().toLowerCase() === want);
-  return hit?.line ?? null;
-}
+// The heading offers and the heading jump (`headingTitles`, `findHeadingLine`)
+// live in shared/headings.ts beside the rule they apply. Not here: this module
+// is in the entry chunk (every surface resolves links), and a function here is
+// emitted there with everything it imports — the heading rule, the furigana
+// strip and the alignment marker — for the editor's sake alone.

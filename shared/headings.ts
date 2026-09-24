@@ -131,3 +131,29 @@ export function scanHeadings(md: string): HeadingEntry[] {
   }
   return out;
 }
+
+/** All heading titles in a note, in order — what the editor's `[[Note#`
+ *  completion offers. The same scan as the outline, the anchor table and the
+ *  reading view's ids, so every offer is a heading the link can land on in
+ *  either view: outside the frontmatter (a YAML `# comment` is not a heading),
+ *  outside code fences, CommonMark's indent, the title the reading view shows. */
+export function headingTitles(content: string): string[] {
+  return scanHeadings(content).map((h) => h.title);
+}
+
+/** 1-based line of the heading `heading` names, case-insensitive: by its
+ *  title (what the completion offers and the reading view shows), by its slug
+ *  id (what the reading view's anchors are), or by its raw source (what a link
+ *  typed before the two agreed may still say). First match wins, as the anchor
+ *  table's does. The editor's jump and the hover preview both ask this. */
+export function findHeadingLine(content: string, heading: string): number | null {
+  const want = heading.trim().toLowerCase();
+  if (!want) return null;
+  const slug = headingSlug(headingTitle(heading));
+  const all = scanHeadings(content);
+  const hit =
+    all.find((h) => h.title.toLowerCase() === want) ??
+    all.find((h) => h.id === slug) ??
+    all.find((h) => h.raw.trim().toLowerCase() === want);
+  return hit?.line ?? null;
+}

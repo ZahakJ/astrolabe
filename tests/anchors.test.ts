@@ -2,7 +2,7 @@
 //
 // Astrolabe has ONE anchor space with TWO resolvers, and a [[Note#Anchor]] has to
 // land in both:
-//   • the editor jumps by heading TEXT       (client/editor/links.ts findHeadingLine)
+//   • the editor jumps by heading TEXT       (shared/headings.ts findHeadingLine)
 //   • the reading view jumps by heading SLUG (client/reading/toc.ts Slugger,
 //     with a textContent fallback in ReadingView)
 // Every case below asks the same question of both, because a link that works
@@ -10,7 +10,7 @@
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { extractHeadings as editorHeadings, findHeadingLine } from "../client/editor/links.ts";
+import { findHeadingLine, headingTitles as editorHeadings } from "../shared/headings.ts";
 import { extractHeadings, Slugger, stripInline } from "../client/reading/toc.ts";
 
 /** What the reading view would scroll to for `anchor`: the heading whose slug

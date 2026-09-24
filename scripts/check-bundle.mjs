@@ -1550,7 +1550,19 @@ const AUDIENCES = [
   // 3.27.0: the entry's −6.7 kB and the drawer chrome out of the shell's
   // components (App's ☰ and scrim, the sidebar's and panel's phone closes,
   // StatusBar's drawer listener): 1113.8 → 1106.5. Budget lowered, 1114 → 1108.
-  { name: "admin first paint", keys: app, budget: 1108 * 1024 },
+  // The sweep after 3.27.0 (one heading rule): 1106.5 → 1109.4 kB against a
+  // build of 3.27.0, all of it one cause. The anchor table (shared/anchors.ts,
+  // reached on first paint through the backlinks panel and the hover card)
+  // slugged headings with its own strip, so `# Title {.center}` was the anchor
+  // "title-center" while the reading view gave the element "title", and a
+  // furigana heading two ids. It now asks shared/headings.ts, which carries the
+  // alignment marker's strip (shared/blockAlign.ts) and the furigana reader
+  // (shared/furigana.ts): a 3.4 kB shared chunk, `headings-*.js`. The editor's
+  // heading jump was kept OUT of the entry for the same reason (it moved from
+  // client/editor/links.ts, an entry module, to shared/headings.ts), and the
+  // image test out of it (shared/fileKinds.ts, not shared/attachments.ts), so
+  // the entry itself is unchanged (851.1 → 851.2). Budget 1108 → 1110.
+  { name: "admin first paint", keys: app, budget: 1110 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy
