@@ -126,7 +126,7 @@ await page.waitForTimeout(800);
 // with the real reason when it cannot.
 const me = await page.evaluate(async () => await (await fetch("/api/me")).json());
 if (!me.admin) {
-  const password = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) ?? "";
+  const password = process.env.ASTROLABE_PASSWORD ?? "";
   const res = password
     ? await page.evaluate(async (pw) => {
         const r = await fetch("/api/login", {

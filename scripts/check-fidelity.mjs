@@ -275,7 +275,7 @@ const cleanup = async () => {
 try {
   let me = (await api("/api/me")).body;
   if (!me?.admin) {
-    const password = process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD ?? "";
+    const password = process.env.ASTROLABE_PASSWORD ?? "";
     if (!password) {
       console.error("check-fidelity: not an admin session and no ASTROLABE_PASSWORD — no editor would mount.");
       process.exit(1);

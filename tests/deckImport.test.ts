@@ -16,7 +16,7 @@ import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { deflateRawSync } from "node:zlib";
 import { crc32, zipSync } from "../shared/zip.ts";
-import { scanCards } from "../shared/flashcards.ts";
+import { scanCards } from "../shared/cards.ts";
 import { listZip, readZipEntry, zipIndex, ZipError } from "../server/zip.ts";
 import {
   ankiSchedule,
@@ -148,7 +148,7 @@ describe("cloze", () => {
   });
   it("turns a deletion the vault cannot highlight into a plain card, so nothing is lost", () => {
     const eq = "Einstein: {{c1::E = mc²}} in {{c2::1905}}";
-    assert.ok(!clozeReadable(eq, 1), "an `=` inside `==…==` is no highlight to shared/flashcards.ts");
+    assert.ok(!clozeReadable(eq, 1), "an `=` inside `==…==` is no highlight to shared/cards.ts");
     assert.ok(clozeReadable(eq, 2));
     assert.deepEqual(clozeAsQa(eq, 1), { front: "Einstein: **[…]** in 1905", back: "E = mc²" });
     assert.ok(!clozeReadable(`{{c1::${"x".repeat(201)}}}`, 1), "a highlight is at most 200 characters");

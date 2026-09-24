@@ -160,13 +160,6 @@ export const ATTACHMENT_TYPES: Record<string, string> = {
   webm: "video/webm",
 };
 
-/** The `accept` attribute for a file input — extensions AND mime types, since
- *  browsers disagree about which they honour for exotic kinds. */
-export const ATTACHMENT_ACCEPT: string = [
-  ...Object.keys(ATTACHMENT_TYPES).map((ext) => `.${ext}`),
-  ...new Set(Object.values(ATTACHMENT_TYPES)),
-].join(",");
-
 /** Lower-cased extension of a filename, without the dot ("" when there is none). */
 export function extensionOf(name: string): string {
   const base = name.split(/[/\\]/).pop() ?? "";

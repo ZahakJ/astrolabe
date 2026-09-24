@@ -38,7 +38,7 @@ import {
   paneInDirection,
   panesInOrder,
   parseWorkspace,
-  ROUTINES_TAB,
+  SIGILS_TAB,
   pruneWorkspace,
   remapWorkspace,
   serializeWorkspace,
@@ -382,7 +382,7 @@ describe("workspace: the calendar is a tab", () => {
     assert.equal(isVirtualTab(CALENDAR_TAB), true);
     assert.equal(isCalendarTab(CALENDAR_TAB), true);
     // It is nobody else's sentinel, and no note is it.
-    assert.equal(isCalendarTab(ROUTINES_TAB), false);
+    assert.equal(isCalendarTab(SIGILS_TAB), false);
     assert.equal(isCalendarTab("Calendar.md"), false);
     const ws = soloWorkspace(tabs(CALENDAR_TAB), CALENDAR_TAB);
     assert.equal(surfaceOf(paneAt(ws, ws.focus)!), "calendar");

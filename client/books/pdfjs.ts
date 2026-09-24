@@ -41,12 +41,6 @@ const PDFJS_BASE = "/pdfjs/";
 let mod: Pdfjs | null = null;
 let pending: Promise<Pdfjs> | null = null;
 
-/** The module when it is already here, else null. The shelf uses this to
- *  decide whether it may start rendering covers this frame. */
-export function getPdfjs(): Pdfjs | null {
-  return mod;
-}
-
 export function loadPdfjs(): Promise<Pdfjs> {
   if (mod) return Promise.resolve(mod);
   pending ??= import("pdfjs-dist").then((m) => {

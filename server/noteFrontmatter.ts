@@ -12,7 +12,7 @@ import { folderSlug } from "../shared/publicFolders.ts";
 import { parseAliases } from "../shared/noteParse.ts";
 import { findTexFrontmatter } from "../shared/tex.ts";
 import { TWIN_KEY, twinLine } from "../shared/twins.ts";
-import { publishFlag, readFrontmatter, setFrontmatterLine, setPublishFlag, yamlQuote } from "./publish.ts";
+import { readFrontmatter, setFrontmatterLine, setPublishFlag, yamlQuote } from "./publish.ts";
 
 /** The comment fences a `.tex` frontmatter block is WRITTEN with (reading
  *  tolerates the variants; writing picks one and sticks to it). */
@@ -29,10 +29,6 @@ export function readNoteFrontmatter(relPath: string, src: string): Record<string
   } catch {
     return {};
   }
-}
-
-export function noteIsPublished(relPath: string, src: string): boolean {
-  return publishFlag(readNoteFrontmatter(relPath, src));
 }
 
 /** Set (or remove, with `line === null`) one `key:` line, preserving every

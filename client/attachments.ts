@@ -18,8 +18,6 @@
 // question is how the two dialogs come to disagree, so this one gave way.
 
 import {
-  ATTACHMENT_ACCEPT,
-  ATTACHMENT_TYPES,
   extensionOf,
   isAcceptedAttachment,
 } from "../shared/attachments.ts";
@@ -34,9 +32,6 @@ import "./styles/attachments.css";
 // object and must never stack.
 import { actionToast } from "./undoToast.ts";
 import { toast } from "./toast.ts";
-
-/** The `accept` attribute every file input in the app should carry. */
-export const UPLOAD_ACCEPT = ATTACHMENT_ACCEPT;
 
 // ── What a drag is carrying ─────────────────────────────────────────────────
 
@@ -248,9 +243,3 @@ async function undoUploads(paths: string[]): Promise<void> {
   );
 }
 
-/** The extensions a drop-zone hint names — a representative handful, not the
- *  whole table (the full list lives in shared/attachments.ts and is what the
- *  file input's `accept` carries). */
-export const HINT_EXTENSIONS: string = ["png", "jpeg", "svg", "pdf", "mp3", "mp4"]
-  .filter((ext) => Object.prototype.hasOwnProperty.call(ATTACHMENT_TYPES, ext))
-  .join(" · ");

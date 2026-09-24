@@ -23,9 +23,6 @@ export const PANE_REOPEN_AT = 40;
  *  `elementFromPoint` at the seam returned the `<aside>`, cursor `auto`. That
  *  is the "you have to hunt for the exact spot" half of the Windows report. */
 export const GRIP_HIT = 12;
-/** How far the strip reaches past the divider, on each side. */
-export const GRIP_HALF = GRIP_HIT / 2;
-
 /** The narrowest the note's own column may be squeezed to by the panes. Below
  *  this the editor is a ribbon and the panel's header and close button are
  *  off-screen — which persisted, because the stored widths were re-applied at

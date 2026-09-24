@@ -72,7 +72,7 @@ import { facesDiffer, faceLang, readerFace, twinSwapKey, type TwinSides } from "
 import { scanTrackers, type Tracker } from "../shared/tracker.ts";
 import { scanRoutines, type RoutineBlock } from "../shared/routine.ts";
 import { scanTasks, type Task } from "../shared/tasks.ts";
-import { scanCards, type Card } from "../shared/flashcards.ts";
+import { scanCards, type Card } from "../shared/cards.ts";
 import { DEFAULT_NEW_PER_DAY, DEFAULT_STEPS, EVERYTHING_ELSE, deckOf, deckCardsOf, type Deck, type DeckMeta, type DeckCard } from "../shared/decks.ts";
 import { isDue } from "../shared/srs.ts";
 import { readTexNote } from "./texNote.ts";
@@ -152,7 +152,7 @@ interface NoteRecord {
   routines: RoutineBlock[];
   /** Every task line in this note (shared/tasks.ts), full-source lines. */
   tasks: Task[];
-  /** Every flashcard this note already holds (shared/flashcards.ts). */
+  /** Every card this note already holds (shared/cards.ts). */
   cards: Card[];
   /** The note as a deck when it carries a ```deck fence
    *  (shared/decks.ts) — its stars are `cards` with the fence's
@@ -2204,14 +2204,6 @@ function templateMatcher(): (relPath: string) => boolean {
   return (relPath) => relPath === folder || relPath.startsWith(prefix);
 }
 
-/** Note paths inside the templates folder, sorted — the picker's list. */
-export function templateNotes(): string[] {
-  const folder = templatesFolder();
-  if (folder === null) return [];
-  const prefix = `${folder}/`;
-  return [...notes.keys()].filter((p) => p.startsWith(prefix)).sort((a, b) => a.localeCompare(b));
-}
-
 // ------------------------------------------------------------------- publish
 
 /** Attachment paths embedded/linked by published notes — recomputed on demand
@@ -3340,12 +3332,6 @@ export function routines(): RoutineMeta[] {
   return out.sort((a, b) => b.updatedMs - a.updatedMs || a.path.localeCompare(b.path) || a.index - b.index);
 }
 
-/** True when this note is a published static page — the designed shell's
- *  router asks before choosing the page layout over the article layout. */
-export function isStaticPage(relPath: string): boolean {
-  return notes.get(relPath)?.page === true;
-}
-
 /** How a caller lets the operator layer speak the reader's own vocabulary.
  *  `tag:برمجيات` has to reach `#software` for the same reason `/topic/برمجيات`
  *  does — a reader copies the word off the chip in front of them — and the
@@ -3572,7 +3558,7 @@ export function tasks(): TaskMeta[] {
 
 /** Every flashcard in the vault OUTSIDE a deck note, in note
  *  order, newest-touched note first; templates skipped as everywhere. The
- *  implicit "Everything else" deck and the Review page's alias
+ *  implicit "Everything else" deck and the Orbits shelf's alias
  *  read this; a deck's stars are its own (deckCards). */
 export function cards(): CardMeta[] {
   const out: CardMeta[] = [];

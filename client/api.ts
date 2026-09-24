@@ -5,7 +5,6 @@ import type { VoiceEngineState, VoiceJob, VoiceLanguage } from "../shared/voice.
 import type {
   AliasEntry,
   AliasesResponse,
-  AnchorsResponse,
   Backlink,
   BulkResult,
   CustomFontInfo,
@@ -313,15 +312,6 @@ export async function getNoteStates(paths: string[]): Promise<NoteState[]> {
     .join("&");
   const res = await request<NoteStatesResponse>(`/api/note/state?${query}`);
   return res.states;
-}
-
-/** A note's anchor table — markdown headings and LaTeX `\label`s in one list,
- *  because they are the same kind of thing. Used where the CONTENT is not at
- *  hand (autocomplete after `[[Note#`, the hover preview of a link into a note
- *  that is not open). */
-export async function getAnchors(path: string): Promise<AnchorsResponse["anchors"]> {
-  const res = await request<AnchorsResponse>(`/api/anchors?path=${encodeURIComponent(path)}`);
-  return res.anchors;
 }
 
 /** The VAULT-WIDE half of a LaTeX cross-reference: which note defines a

@@ -126,12 +126,6 @@ export function clearSelection(): void {
   window.getSelection()?.removeAllRanges();
 }
 
-/** Where a rectangle sits on a page, for a caller that has a rect and wants a
- *  DOM box — the pulse a citation arrives on. */
-export function pageElement(scroller: HTMLElement | null, page: number): HTMLElement | null {
-  return scroller?.querySelector<HTMLElement>(`.s-book__page[data-page="${page}"]`) ?? null;
-}
-
 /** The single box a set of stored rectangles occupies on the rotated page, for
  *  scrolling one into view. */
 export function unionOf(rects: readonly BookRect[]): BookRect | null {

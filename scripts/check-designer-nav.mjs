@@ -39,8 +39,8 @@ import { chromium } from "playwright";
 const PORT = process.env.PORT || "6801";
 // 127.0.0.1, not localhost: Node resolves localhost to ::1 first and the
 // server binds 0.0.0.0. Same note check-preview and check-design carry.
-const BASE = (process.env.ASTROLABE_URL ?? process.env.VELLUM_URL) || `http://127.0.0.1:${PORT}`;
-const PASSWORD = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) || "";
+const BASE = process.env.ASTROLABE_URL || `http://127.0.0.1:${PORT}`;
+const PASSWORD = process.env.ASTROLABE_PASSWORD || "";
 const SHOTS = process.env.SHOT_DIR || null;
 const LANGS = (process.env.LANGS || "en,ar").split(",").map((s) => s.trim()).filter(Boolean);
 const WIDTHS = (process.env.WIDTHS || "1440,1280").split(",").map((s) => Number(s.trim()));

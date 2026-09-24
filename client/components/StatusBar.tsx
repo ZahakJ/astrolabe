@@ -18,7 +18,7 @@ import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
 import { useStore } from "../state.ts";
-import { activeTabOf, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, paneAt, surfaceOf, type PaneSurface } from "../workspace.ts";
+import { activeTabOf, isCalendarTab, isGraphTab, isMediaTab, isSigilsTab, isOrbitsTab, paneAt, surfaceOf, type PaneSurface } from "../workspace.ts";
 import { titleOf } from "./Tabs.tsx";
 import { choiceGroup, choiceLabel } from "../themes.ts";
 import SyncBadge from "./SyncBadge.tsx";
@@ -302,11 +302,11 @@ export default function StatusBar() {
   const setView = useStore((s) => s.setView);
   const toggleGraph = useStore((s) => s.toggleGraph);
   const toggleMedia = useStore((s) => s.toggleMedia);
-  const toggleRoutines = useStore((s) => s.toggleRoutines);
+  const toggleSigils = useStore((s) => s.toggleSigils);
   const routinesOn = useStore((s) => {
     const pane = paneAt(s.workspace, s.workspace.focus);
     const tab = pane === null ? null : activeTabOf(pane);
-    return tab !== null && isRoutinesTab(tab.path);
+    return tab !== null && isSigilsTab(tab.path);
   });
   const toggleCalendar = useStore((s) => s.toggleCalendar);
   const calendarOn = useStore((s) => {
@@ -508,7 +508,7 @@ export default function StatusBar() {
           { label: null },
           { label: t("media"), onSelect: toggleMedia },
           { label: t("orbits"), onSelect: toggleOrbits },
-          { label: t("routines"), onSelect: toggleRoutines },
+          { label: t("routines"), onSelect: toggleSigils },
           { label: t("calendar"), onSelect: toggleCalendar },
           { label: null },
           { label: t("designTitle"), onSelect: openDesigner },
@@ -635,7 +635,7 @@ export default function StatusBar() {
             type="button"
             className={`s-statusbar__btn s-statusbar__icon${routinesOn ? " s-statusbar__btn--on" : ""}`}
             aria-pressed={routinesOn}
-            onClick={toggleRoutines}
+            onClick={toggleSigils}
             title={t("routinesTitle")}
             aria-label={t("routines")}
             data-testid="sigils-door"

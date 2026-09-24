@@ -17,7 +17,7 @@
 // vault event that follows a write triggers the same re-read for a write
 // made elsewhere.
 //
-// Keys, the Review page's: Space or Enter turns the card and, once turned,
+// Keys, as Orbits has always had them: Space or Enter turns the card and, once turned,
 // grades it Good; 1–4 are the four grades. A typed deck puts an
 // input on the front, and Enter there checks the answer instead.
 

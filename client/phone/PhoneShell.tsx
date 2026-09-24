@@ -62,12 +62,12 @@ import {
   isMediaTab,
   isOrbitsTab,
   isReviewWeekTab,
-  isRoutinesTab,
+  isSigilsTab,
   MEDIA_TAB,
   orbitsSessionOf,
   ORBITS_TAB,
   paneAt,
-  ROUTINES_TAB,
+  SIGILS_TAB,
   surfaceOf,
   type Workspace,
 } from "../workspace.ts";
@@ -196,7 +196,7 @@ export function urlForScreen(screen: Screen, tab: TabId): string | null {
       if (isBookPath(s)) return urlForBooksRoute({ kind: "book", path: s });
       if (isGraphTab(s)) return "/graph";
       if (isMediaTab(s)) return "/media";
-      if (isRoutinesTab(s)) return "/sigils";
+      if (isSigilsTab(s)) return "/sigils";
       if (isReviewWeekTab(s)) return "/review-week";
       if (isOrbitsTab(s)) {
         const session = orbitsSessionOf(s);
@@ -235,11 +235,11 @@ function applyScreen(screen: Screen): void {
   if (screen.kind === "deck" || screen.kind === "sigil" || screen.kind === "tracker") {
     // A detail over one of the three pages keeps the store on that page, so
     // what the store says is showing and what is on the glass agree.
-    const page = screen.kind === "deck" ? ORBITS_TAB : screen.kind === "sigil" ? ROUTINES_TAB : MEDIA_TAB;
+    const page = screen.kind === "deck" ? ORBITS_TAB : screen.kind === "sigil" ? SIGILS_TAB : MEDIA_TAB;
     if (here === page && !library) return;
     if (library) s.closeLibrary();
     if (screen.kind === "deck") s.openOrbits(null);
-    else s.setView(screen.kind === "sigil" ? "routines" : "media");
+    else s.setView(screen.kind === "sigil" ? "sigils" : "media");
     return;
   }
   if (screen.kind !== "surface") return;
@@ -252,7 +252,7 @@ function applyScreen(screen: Screen): void {
   if (isBookPath(tab)) s.openBook(tab);
   else if (isGraphTab(tab)) s.setView("graph");
   else if (isMediaTab(tab)) s.setView("media");
-  else if (isRoutinesTab(tab)) s.setView("routines");
+  else if (isSigilsTab(tab)) s.setView("sigils");
   else if (isReviewWeekTab(tab)) s.setView("review-week");
   else if (isOrbitsTab(tab)) {
     const session = orbitsSessionOf(tab);
@@ -684,7 +684,7 @@ export default function PhoneShell() {
       case "surface": {
         const tab = screen.tab;
         if (isOrbitsTab(tab)) return orbitsSessionOf(tab) === null ? <OrbitsScreen onBack={onBack} /> : <SessionScreen key={tab} tab={tab} onBack={back} />;
-        if (isRoutinesTab(tab)) return <SigilsScreen onBack={onBack} />;
+        if (isSigilsTab(tab)) return <SigilsScreen onBack={onBack} />;
         if (isMediaTab(tab)) return <MediaScreen onBack={onBack} />;
         if (tab === "~library") return <LibraryScreen onBack={onBack} />;
         if (isBookPath(tab)) return <ReaderScreen key={tab} tab={tab} onBack={back} />;

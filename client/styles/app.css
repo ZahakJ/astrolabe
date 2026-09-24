@@ -399,7 +399,7 @@ select:focus,
    to the `text-overflow` set on its parent. So the name simply overflowed
    the box (which clips) or pushed the box wide (which collides). Measured at
    the shape the owner's friend photographed — a 224px docked sidebar —
-   `Mind-INTJ/Vellum` needed 202px beside a 44px mark and ran under the
+   a sixteen-character name (`Almucantar-Notes`) needed ~200px beside a 44px mark and ran under the
    header's tools. The name is a span now; it shrinks, then ellipsises, and
    the mark never shrinks with it. The same three lines answer for a long
    Arabic name («خيمياء — دفتر القراءة»), which is longer still. */

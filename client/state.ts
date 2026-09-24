@@ -74,12 +74,12 @@ import {
   isGraphTab,
   isCalendarTab,
   isMediaTab,
-  isRoutinesTab,
+  isSigilsTab,
   isOrbitsTab,
   isVirtualTab,
   GRAPH_TAB,
   MEDIA_TAB,
-  ROUTINES_TAB,
+  SIGILS_TAB,
   REVIEW_WEEK_TAB,
   CALENDAR_TAB,
   ORBITS_TAB,
@@ -653,15 +653,15 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar"): void;
+  setView(v: View | "graph" | "media" | "sigils" | "orbits" | "review-week" | "calendar"): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
   /** The Media page, on the same terms as the graph. */
   mediaOpen(): boolean;
   toggleMedia(): void;
   /** The Orbits page, on the same terms. */
-  routinesOpen(): boolean;
-  toggleRoutines(): void;
+  sigilsOpen(): boolean;
+  toggleSigils(): void;
   /** The Calendar page, on the same terms: the month with its own door. */
   calendarOpen(): boolean;
   toggleCalendar(): void;
@@ -1367,7 +1367,7 @@ export const useStore = create<State>()((set, get) => {
     const launch = s.launch;
     if (!s.admin || launch === "resume") return;
     if (location.pathname !== "/" && location.pathname !== "/graph") return;
-    if (launch === "sigils") s.setView("routines");
+    if (launch === "sigils") s.setView("sigils");
     else if (launch === "orbits") s.openOrbits(null);
     else if (launch === "today") {
       // Dynamic, not static: client/daily.ts imports this store, and the
@@ -2379,11 +2379,11 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph" || view === "media" || view === "routines" || view === "orbits" || view === "review-week" || view === "calendar") {
+      if (view === "graph" || view === "media" || view === "sigils" || view === "orbits" || view === "review-week" || view === "calendar") {
         const path =
           view === "graph" ? GRAPH_TAB
           : view === "media" ? MEDIA_TAB
-          : view === "routines" ? ROUTINES_TAB
+          : view === "sigils" ? SIGILS_TAB
           : view === "review-week" ? REVIEW_WEEK_TAB
           : view === "calendar" ? CALENDAR_TAB
           : ORBITS_TAB;
@@ -2420,16 +2420,16 @@ export const useStore = create<State>()((set, get) => {
       set((s) => ({ ...s, ...mirrorOf(pruned) }));
       persistWorkspace(pruned);
     },
-    routinesOpen: () => {
+    sigilsOpen: () => {
       const ws = get().workspace;
       const pane = paneAt(ws, ws.focus);
       const tab = pane === null ? null : activeTabOf(pane);
-      return tab !== null && isRoutinesTab(tab.path);
+      return tab !== null && isSigilsTab(tab.path);
     },
-    toggleRoutines: () => {
+    toggleSigils: () => {
       const s = get();
-      if (s.routinesOpen()) s.closeTab(ROUTINES_TAB);
-      else s.setView("routines");
+      if (s.sigilsOpen()) s.closeTab(SIGILS_TAB);
+      else s.setView("sigils");
     },
     calendarOpen: () => {
       const ws = get().workspace;

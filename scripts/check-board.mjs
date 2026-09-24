@@ -26,8 +26,8 @@
 
 import { chromium } from "playwright";
 
-const BASE = process.argv[2] || (process.env.ASTROLABE_URL ?? process.env.VELLUM_URL) || "http://127.0.0.1:6801";
-const PASSWORD = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) || "";
+const BASE = process.argv[2] || process.env.ASTROLABE_URL || "http://127.0.0.1:6801";
+const PASSWORD = process.env.ASTROLABE_PASSWORD || "";
 
 let failures = 0;
 const ok = (label, condition, detail = "") => {

@@ -53,15 +53,6 @@ function load(): Promise<LibraryPath[]> {
   return inflight;
 }
 
-/** Drop the shelf so the next reader refetches — the vault changed, or the
- *  owner saved the settings that declare it. */
-export function invalidateLibrary(): void {
-  shelf = null;
-  inflight = null;
-  cacheKey = null;
-  emit();
-}
-
 /** The shelf, or null while it loads (and after a failure, which the pages
  *  render as an empty shelf: a library that cannot be fetched is a library
  *  with nothing on it, not an error page). */

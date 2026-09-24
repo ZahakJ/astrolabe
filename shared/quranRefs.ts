@@ -261,12 +261,6 @@ export function parseAyahRef(text: string): AyahRef | null {
   return { surah: surah.n, from, to };
 }
 
-/** The surah's name in the chrome's language. */
-export function surahName(n: number, lang: "en" | "ar"): string {
-  const s = SURAHS[n - 1];
-  return lang === "ar" ? s.ar : s.en;
-}
-
 /** The caption under a verse: «البقرة ٢٥٥» / «البقرة ٢٥٥–٢٥٧» in Arabic
  *  chrome, "Al-Baqarah 2:255" / "Al-Baqarah 2:255–257" in English.
  *

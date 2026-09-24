@@ -31,7 +31,7 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, isReviewWeekTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isCalendarTab, isGraphTab, isMediaTab, isSigilsTab, isOrbitsTab, isReviewWeekTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
 
 /** The focused pane is showing the graph tab. */
 function graphTabActive(ws: Workspace): boolean {
@@ -61,7 +61,7 @@ function calendarTabActive(ws: Workspace): boolean {
 function routinesTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
-  return tab !== null && isRoutinesTab(tab.path);
+  return tab !== null && isSigilsTab(tab.path);
 }
 /** …or a Orbits tab: the shelf, or a session over the deck
  *  the returned path names. Null when the focused tab is something else. */
@@ -281,7 +281,7 @@ export function applyUrl(initial = false): boolean {
     // bookmark still opens it, and the bar then shows `/sigils`.
     // lineage: /routines is a redirect source only.
     if (location.pathname === "/sigils" || location.pathname === "/routines") { // lineage
-      store.setView("routines");
+      store.setView("sigils");
       canonicalise("/sigils");
       return true;
     }

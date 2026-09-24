@@ -36,10 +36,6 @@ export function drawingSvgPath(rel: string): string {
   return `${rel.replace(/\.md$/i, "")}.svg`;
 }
 
-/** The LaTeX half of the list — the same two names TeXShop, Overleaf and
- *  `latexmk` accept for a source file. */
-export const LATEX_EXTENSIONS = [".tex", ".latex"] as const;
-
 /** The note extension a path carries (lowercase, dot included), or "" when the
  *  path is not a note at all. `.latex` is tested before `.tex` would matter —
  *  they are distinct suffixes, so no ordering trap here, but the longest match

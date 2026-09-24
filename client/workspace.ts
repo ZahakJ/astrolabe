@@ -38,7 +38,7 @@ export type PaneMode = "edit" | "reading" | "graph" | "library";
  *  invariant has to be policed at the component boundary: a `.pdf` tab renders
  *  the reader whatever the mode says, which is exactly what makes Ctrl/Cmd+E a
  *  harmless no-op on a book instead of a mode the pane cannot honour. */
-export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "library" | "empty";
+export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "sigils" | "orbits" | "review-week" | "calendar" | "library" | "empty";
 
 /** Where in a book an open should land — carried from the wikilink or the URL
  *  that asked for it, spent the moment the reader lands.
@@ -158,10 +158,10 @@ export function isMediaTab(path: string): boolean {
  *  is NOT folded: from 3.16 it is the spaced-repetition shelf's own name,
  *  and a 3.15 workspace that had the routine page open opens Orbits instead
  *  — the one door beside it is the other page, one click away. */
-export const ROUTINES_TAB = "~sigils";
+export const SIGILS_TAB = "~sigils";
 export const LEGACY_ROUTINES_TAB = "~routines";
-export function isRoutinesTab(path: string): boolean {
-  return path === ROUTINES_TAB || path === LEGACY_ROUTINES_TAB;
+export function isSigilsTab(path: string): boolean {
+  return path === SIGILS_TAB || path === LEGACY_ROUTINES_TAB;
 }
 /** The Orbits shelf — the vault's study decks — and a SESSION over one of
  *  them: `~orbits` is the shelf, `~orbits/<note path>` a session, so a
@@ -214,7 +214,7 @@ export function isCalendarTab(path: string): boolean {
 /** A tab that names no file: the graph or the Media page. Never "the open
  *  note", never pruned against the tree, titled by the chrome. */
 export function isVirtualTab(path: string): boolean {
-  return isGraphTab(path) || isMediaTab(path) || isRoutinesTab(path) || isOrbitsTab(path) || isReviewWeekTab(path) || isCalendarTab(path);
+  return isGraphTab(path) || isMediaTab(path) || isSigilsTab(path) || isOrbitsTab(path) || isReviewWeekTab(path) || isCalendarTab(path);
 }
 
 export function isTabbablePath(path: string): boolean {
@@ -272,7 +272,7 @@ export function surfaceOf(p: Pane): PaneSurface {
   if (p.follow === null && tab === null) return "empty";
   if (tab !== null && isGraphTab(tab.path)) return "graph";
   if (tab !== null && isMediaTab(tab.path)) return "media";
-  if (tab !== null && isRoutinesTab(tab.path)) return "routines";
+  if (tab !== null && isSigilsTab(tab.path)) return "sigils";
   if (tab !== null && isOrbitsTab(tab.path)) return "orbits";
   if (tab !== null && isReviewWeekTab(tab.path)) return "review-week";
   if (tab !== null && isCalendarTab(tab.path)) return "calendar";
@@ -548,15 +548,6 @@ export function setPaneMode(ws: Workspace, id: PaneId, mode: PaneMode): Workspac
   return settle({ ...ws, panes: { ...ws.panes, [id]: { ...pane, mode } } });
 }
 
-export function setFollow(ws: Workspace, id: PaneId, follow: "note" | null): Workspace {
-  const pane = paneAt(ws, id);
-  if (pane === null || pane.follow === follow) return ws;
-  // A follower holds no tabs of its own; adopting them out would be a second
-  // meaning for "close", so they simply move to the pane it follows.
-  const panes = { ...ws.panes, [id]: { ...pane, follow, tabs: follow === null ? pane.tabs : [], active: follow === null ? pane.active : -1 } };
-  return settle({ ...ws, panes, layoutName: null });
-}
-
 export function setBookTarget(ws: Workspace, id: PaneId, target: BookTarget | null): Workspace {
   const pane = paneAt(ws, id);
   if (pane === null) return ws;
@@ -636,17 +627,6 @@ export function openInPane(ws: Workspace, id: PaneId, path: string, how: OpenHow
     tabs.splice(index, 0, tab(path, false, ephemeral));
   }
   return aim(focusPane(withTabs(ws, id, tabs, index), id));
-}
-
-/** Promote the pane's ephemeral tab for `path` to a real one. Called when the
- *  reader types in it, double-clicks it, or pins it — anything that says they
- *  meant to keep it. */
-export function commitTab(ws: Workspace, id: PaneId, path: string): Workspace {
-  const pane = paneAt(ws, id);
-  if (pane === null) return ws;
-  if (!pane.tabs.some((t) => t.path === path && t.ephemeral)) return ws;
-  const tabs = pane.tabs.map((t) => (t.path === path ? { ...t, ephemeral: false } : t));
-  return withTabs(ws, id, tabs, pane.active);
 }
 
 /** TURN THE TAB OVER: `from` becomes `to` IN PLACE.
@@ -997,7 +977,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function parseTab(raw: unknown): TabState | null {
   if (!isRecord(raw)) return null;
-  const path = raw.path === LEGACY_ROUTINES_TAB ? ROUTINES_TAB : typeof raw.path === "string" && LEGACY_ORBITS_TABS.includes(raw.path) ? ORBITS_TAB : raw.path;
+  const path = raw.path === LEGACY_ROUTINES_TAB ? SIGILS_TAB : typeof raw.path === "string" && LEGACY_ORBITS_TABS.includes(raw.path) ? ORBITS_TAB : raw.path;
   if (typeof path !== "string" || path === "" || !isTabbablePath(path)) return null;
   const pinned = raw.pinned === true;
   return { path, pinned, ephemeral: pinned ? false : raw.ephemeral === true };
