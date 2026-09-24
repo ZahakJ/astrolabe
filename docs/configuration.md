@@ -204,6 +204,8 @@ inside the field. The reason: a native `<select>` opens a window drawn by the op
 which no theme can style and no panel can keep inside its bounds — exactly what a font list of
 twenty-seven faces must not do.
 
+**On a phone** ([the phone layout](workspace.md#on-a-phone)) the panel is a list of its sections — More → **Settings** — with the same search above it, and each section is a screen of its own showing the same rows. As soon as a section holds a change, a bar rises from the bottom with **Discard** and **Save**; leaving the section any other way with changes unsaved asks first. **This device** has no bar: it saves each choice as you make it.
+
 ## Settings keys
 
 These are the keys `ASTROLABE_DATA/settings.json` can hold. The panel writes them, and so does

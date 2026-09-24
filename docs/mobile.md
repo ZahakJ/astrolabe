@@ -6,7 +6,7 @@
 
 ---
 
-Astrolabe for Android is an APK on the [releases page](https://github.com/ZahakJ/astrolabe/releases/latest). It is a door onto the vault you already keep — the one your own server serves, or the one that lives in a private GitHub repository. The app has two screens of its own, a connection screen and a capture sheet, and after the first of those it hands the whole display to the reading room, full screen. Everything you know about Astrolabe on a laptop is the same here, because it *is* the same: the web client already handles a thumb-sized target, a sidebar that is a [drawer](workspace.md#on-a-phone), and Arabic from the right, and the app ships none of that twice.
+Astrolabe for Android is an APK on the [releases page](https://github.com/ZahakJ/astrolabe/releases/latest). It is a door onto the vault you already keep — the one your own server serves, or the one that lives in a private GitHub repository. The app has two screens of its own, a connection screen and a capture sheet, and after the first of those it hands the whole display to the reading room, full screen. Everything you know about Astrolabe on a laptop is the same here, because it *is* the same: the web client already lays itself out [for the hand](workspace.md#on-a-phone) — screens, a bar of five doors, sheets, thumb-sized targets — and reads Arabic from the right, and the app ships none of that twice.
 
 ## What it is
 
@@ -27,7 +27,7 @@ Your notes, your theme, your language and everything else are the instance's; th
 
 ## Leaving a vault
 
-Two ways back to the connection screen, from any vault. **⋯ → Change server or vault…** in the bottom bar, which the web client shows only inside this app, takes you there directly — to type another address, pick a remembered one, or open a vault from GitHub. And the back gesture, once it has walked back through everything the vault had to go back to, lands there too. Signing out of an instance does not do it: you are signed out of that site and still looking at it, which is what signing out means; the door is the row above.
+Two ways back to the connection screen, from any vault. **More → Change server or vault…** (on a desktop-width screen, **⋯ → Change server or vault…** in the bottom bar), which the web client shows only inside this app, takes you there directly — to type another address, pick a remembered one, or open a vault from GitHub. And the back gesture, once it has walked back through everything the vault had to go back to, lands there too. Signing out of an instance does not do it: you are signed out of that site and still looking at it, which is what signing out means; the door is the row above.
 
 ## A vault from GitHub
 
@@ -71,7 +71,7 @@ This is the app's own sheet. The **installed website** — the site added to the
 
 You do not need the APK to have Astrolabe on a phone. The site is installable from the browser (**Add to Home Screen**), and the installed site opens full screen, carries the site's name and the colours of its default theme, keeps the notes you have read for [offline reading](offline.md), and appears in the phone's share sheet. The app adds three things over that: a connection screen that remembers your server and checks it before opening, a capture that needs no browser and no open page, and a back gesture that behaves like an app's rather than a browser's.
 
-Inside either, the [quick-capture sheet](capture.md#quick-capture) is the first row under the **⋯** in the top bar, and the [Sigils](sigils.md#the-sigils-page) page, [Orbits](orbits.md), the graph and the rest of the tools are rows under the same menu.
+Inside either, a line is captured from the field at the top of **Today** (a vault from GitHub keeps it too: the line lands in the note you name, or in the day's inbox, and is committed like any other edit), and [Sigils](sigils.md#on-a-phone), [Orbits](orbits.md#on-a-phone), the library, the graph and the rest of the tools are rows under **More**.
 
 ## Updates
 

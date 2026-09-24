@@ -175,30 +175,34 @@ never reaches a visitor session. The collapse is remembered per browser.
 
 On a phone, and on a tablet with no mouse, Astrolabe is laid out for the hand rather than for a
 desk. There are no tabs, no panes and no status bar; there are screens, a bar of five doors at the
-bottom, and sheets that rise from the bottom edge.
+bottom, and sheets that rise from the bottom edge. Every part of the product has a screen of its own
+here: nothing on a phone is the desktop's page squeezed.
 
 **The five doors.** The bar at the bottom holds **Today**, **Notes**, **Search**, **Calendar** and
 **More**, each with its name under its icon. Each keeps its own place: open a folder in Notes, look
-something up in Search, and going back to Notes finds the folder where you left it. Tapping the door
-you are already in takes it back to its start.
+something up in Search, and going back to Notes finds the folder where you left it, scrolled where you
+left it. Tapping the door you are already in takes it back to its start.
 
 - **Today** is the home screen: a field at the top that captures a line into today's note (the same
   capture as [quick capture](capture.md); while it is empty its button is a microphone for a voice
-  note), today's note itself, every Sigil task due today as a row
-  you tick in place, every Orbits deck with cards due as a row that starts the session, and the last
-  notes you were in.
+  note), today's note itself, every Sigil task due today as a row you tick in place, every Orbits
+  deck with cards due as a row that starts the session, and the last notes you were in. On a phone
+  that opens a vault directly (the pocket), the capture field is there too, and the line is committed
+  like any other edit.
 - **Notes** is the vault, one folder per screen: rows a thumb can hit, each folder with its count and
-  a chevron. The tags sit in one row of chips at the top of the vault; your pinned rows sit above
-  the rest. The **+** in the corner is a new note in the folder you are in (hold it for a new folder),
-  and the arrows beside it change the order.
+  a chevron, and after the notes the folder's pictures, recordings and films, which open in the
+  viewer. The busiest tags sit in one row of chips at the top of the vault; the last chip, **All
+  tags**, opens every tag as a sheet. Your pinned rows sit above the rest. The **+** in the corner is
+  a new note in the folder you are in (hold it for a new folder), and the arrows beside it change the
+  order.
 - **Search** opens with the keyboard already up. Its three segments are **Notes** (the vault search,
   and your recent notes while the field is empty), **Commands** (every command the palette has) and
   **Tags**.
 - **Calendar** is the month. Tapping a day raises that day — its note, its sigils, its cards and its
   reading — as a sheet.
-- **More** is everything else, in groups: Orbits, Sigils, the library, Media and the graph; Trash,
-  Settings, Backup & sync and the theme; the designer and the visitor preview; the tour, About and
-  sign out.
+- **More** is everything else, in groups: Orbits, Sigils, the library, Media, the weekly review and
+  the graph; Trash, Settings, Backup & sync and the theme; the designer and the visitor preview; the
+  tour, About and sign out.
 
 **A note fills the screen.** Its bar at the top is the way back, the note's name (tap it to return
 to the top), an icon for the mode the note is **in** — a pencil while you are editing, a book while
@@ -211,23 +215,54 @@ puts the keyboard away.
 sheet gets out of the way), **Backlinks**, **Properties** (tap one to change it, or add one) and
 **Actions** — publish, the other face of a bilingual pair, share, move, history and delete. Publishing
 asks first: it is the one action that reaches other people. The properties of a note show above it
-as a single line, *3 properties ›*, which opens the same sheet.
+as a single line, *3 properties ›*, which opens the same sheet. **Tags** in Properties opens the tag
+picker: every tag in the vault, the note's own ticked, a field that finds one or adds a new one — a
+tap writes the note at once.
 
 **Holding means "more".** Hold a row in Notes to rename it, move it, pin it, publish it or delete
 it. Hold a heading while editing to fold it, fold what is under it, copy a link to it, select it,
-focus on it or move it into a note of its own. (On a phone the fold arrow and the heading's **⋯**
-are gone from the margins, so the text has the whole width.)
+focus on it or move it into a note of its own; hold a heading while reading for the rows that make
+sense without the editor — copy a link, copy its Markdown, move it into a note of its own. (On a
+phone the fold arrow and the heading's **⋯** are gone from the margins, so the text has the whole
+width.)
+
+**Orbits, Sigils and Media are lists.** **Orbits** lists your decks with what each has due; a deck
+opens its own screen — due, new and total, one **Study** button, and its sections if you want to
+study just one — and Study starts the session on the whole screen. Leave the session by its own
+**‹ Orbits** or by going back, and you are on the deck again. **Sigils** lists every sigil with
+how today stands ("2 of 3 today", a rest day, done, the step a course is on); a sigil opens with
+**today's checklist first**, then the week and the twelve-week heat map, then the streak and the
+month, and a course's units with their projected dates under them. Tick a box and it answers at
+once. Edit, open the note and delete are under **⋯**. **Media** lists your trackers shelf by
+shelf, with a status filter above them; a tracker opens as its card, with its − and + and its edit
+button.
+
+**A book has its own bar.** A PDF or an EPUB opens on the whole screen with one bar of its own: the
+way back, the title, a slider that moves through the pages (or the chapters) and jumps when you let
+go, and **⋯** — the contents (as a sheet), search, go to a page, night mode, quote into a note, your
+marked passages and the reading session. A PDF opens at the width of the screen; pinch to zoom, or
+use the − and + at the corner. The library is a list of every book, the ones you have been reading
+first.
+
+**Settings is a list of sections.** More → **Settings** lists the sections, each with the sentence
+saying what it decides, and a search above them that finds any setting by name. A section is a
+screen of its own. As soon as you change something a bar rises from the bottom with **Discard** and
+**Save**; if you go back, switch door or open something else with changes unsaved, Astrolabe asks
+before throwing them away. **This device** saves each choice as you make it, as it does on the
+desktop.
 
 **Sheets and the back gesture.** Every sheet rises from the bottom, can be dragged down to close,
 dragged up to see more, or dismissed by tapping the page behind it. The phone's back gesture — the
 Android back button, the edge swipe — closes the sheet first, then goes back one screen, and back
-from the first screen of a link you followed comes home to Today rather than leaving the app.
-Settings, the trash and the other panels answer the back gesture the same way.
+from the first screen of a link you followed comes home to Today rather than leaving the app. The
+theme picker, the designer, What's new, the tour, a picture in the viewer and a book's search or
+contents answer the back gesture the same way.
 
 **On a tablet** the same doors stand in a rail down the side, the list you are browsing stays in a
-column beside it, and the note fills the rest; picking another note in the list replaces the one
-beside it. The note's sheet slides in from the side instead of rising, and never narrows the note.
-A tablet with a keyboard and a trackpad gets the desktop layout instead.
+column beside it — with its own **‹** for going back up while a note is open — and the note fills the
+rest; picking another note in the list replaces the one beside it. A study session and a book take
+the whole screen. The note's sheet slides in from the side instead of rising, and never narrows the
+note. A tablet with a keyboard and a trackpad gets the desktop layout instead.
 
 **With a keyboard.** A bluetooth keyboard is noticed the first time you type on it, and from then on
 the usual shortcuts work — Ctrl/Cmd+K opens Search, Ctrl/Cmd+P the palette — and More gains a
@@ -236,17 +271,13 @@ the usual shortcuts work — Ctrl/Cmd+K opens Search, Ctrl/Cmd+P the palette —
 **Every target is a finger's width.** Nothing you can tap is smaller than 44 by 44 pixels, and every
 field you type into is set at 16px, below which iOS Safari zooms into the field and leaves it there.
 The notch and the home indicator are kept clear. `npm run check-phone` drives all of this — taps,
-back gestures, sheets, in both languages, on a phone held in the hand, a phone with a pen and a
-tablet both ways up ([Development](development.md#npm-run-check-phone--the-phone-shell-driven)).
+back gestures, sheets, a study session, a tick, a book's slider, a setting saved and a tag written, in
+both languages, on a phone held in the hand, a phone with a pen and a tablet both ways up
+([Development](development.md#npm-run-check-phone--the-phone-shell-driven)).
 
 **What counts as a phone.** A window narrower than 700px, or any device whose own pointer is a
 finger that cannot hover — which includes a tablet held in the hands, at any width. A laptop with a
 touchscreen *and* a mouse keeps the desktop's panes, and so does a desktop window wider than 700px.
 Turn a tablet, open a foldable or narrow a window past the line and the layout follows at once,
-with the same note open.
-
-**The classic layout, for one release.** Settings → This device → **Phone layout** switches between
-**New** and **Classic**. Classic is the layout this replaces: the notes sidebar as a drawer you swipe
-in from the edge, tabs, the status bar and the top bar's **⋯**. It will be removed in the next
-release. On a phone neither layout ever changes the tabs and panes your desktop keeps: the phone
-does not save its one open note over them.
+with the same note open. The phone never changes the tabs and panes your desktop keeps: it does not
+save its one open note over them.
