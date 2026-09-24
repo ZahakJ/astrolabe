@@ -1272,6 +1272,10 @@ const DICT = {
     en: "Sits under the site name in the masthead.",
     ar: "يظهر تحت اسم الموقع في الترويسة.",
   },
+  taglinePlaceholder: {
+    en: "Notes from the canopy…",
+    ar: "ملاحظات من تحت الظلّة…",
+  },
   rowFooter: { en: "Footer", ar: "التذييل" },
   hintFooter: {
     en: "Every page prints this; {year} and {siteName} are substituted.",

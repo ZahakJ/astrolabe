@@ -354,12 +354,13 @@
   color: var(--text-faint);
 }
 /* The chevrons point along the reading direction: a breadcrumb in Arabic
-   walks to the left. */
+   walks to the left. ‹ and › are Bidi_Mirrored characters, so an RTL line
+   ALREADY draws each as its mirror image — the `scaleX(-1)` that used to sit
+   here flipped them a second time, and the Arabic breadcrumb pointed right,
+   back at where it came from. The characters do the work; nothing here may
+   transform them. */
 .s-session__chev {
   display: inline-block;
-}
-[dir="rtl"] .s-session__chev {
-  transform: scaleX(-1);
 }
 
 .s-session__progress {
