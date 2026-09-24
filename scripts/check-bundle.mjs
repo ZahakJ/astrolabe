@@ -388,7 +388,9 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // 749.5 (+4.9), blog 1043.7 → 1050.5 (+6.8: the entry's and MentionsSection +
 // mentionsApi), admin 1005.3 → 1010.2 (+4.9), phone 852.8 → 857.8 (+5.0).
 // Budgets = actual, rounded up.
-const PHONE_BUDGET = 858 * 1024;
+// EMBEDS YOU CAN PICK UP: 857.8 → 859.9 kB, +2.1 kB against a3e0848 — the
+// dictionary (1.8 kB) and the note screen's hold on an embed. 858 → 860.
+const PHONE_BUDGET = 860 * 1024;
 const AUDIENCES = [
 // RE-BASELINED for NOTE HISTORY (529.4 kB actual → budget 532, actual +
 // ~0.5%). This round is the safety net the rest of the slate stands on — git
@@ -1006,7 +1008,13 @@ const AUDIENCES = [
   // larger: 537.9 + 206.7 = 744.6 kB, down 128.0 kB. An English reader's
   // real first paint is 691.6 kB, down 181.0. Budget lowered by the saving:
   // 873 → 745.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 750 * 1024 },
+  // EMBEDS YOU CAN PICK UP: 749.5 → 751.5 kB, +2.0 kB, measured against the
+  // parent build (a3e0848). The Arabic dictionary is 1.8 kB of it (38 keys: the
+  // embed menu's rows and toasts, the Move… sheet, the `/embed` rows and the
+  // `![[` popup's cheat sheet — every audience is measured with the larger
+  // language); the rest is the seam, `api.renameAttachment` and the move's
+  // rename toast. The menu, the grip and the phone sheet are lazy. 750 → 752.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 752 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1358,7 +1366,12 @@ const AUDIENCES = [
   // above) and nothing else: 1149.5 → 1163.3. Budget 1151 → 1164.
   // THE DICTIONARY SPLIT (see the entry's budget): 1171.8 → 1043.7 kB with
   // the larger language counted in, −128.1 kB. Budget 1172 → 1044.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1051 * 1024 },
+  // EMBEDS YOU CAN PICK UP: 1050.5 → 1053.6 kB, +3.1 kB against a3e0848: the
+  // dictionary's 1.8 kB (above), and the reading renderer's share — every
+  // file embed stamped with its source and every top-level block with its
+  // lines (render.ts), which the reading view's drag and its block-precise
+  // line landing read. 1051 → 1054.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1054 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1643,7 +1656,9 @@ const AUDIENCES = [
   // the one thing a minifier cannot shorten. Budget 1133 → 1134.
   // THE DICTIONARY SPLIT (see the entry's budget): 1133.4 → 1005.3 kB with
   // the larger language counted in, −128.1 kB. Budget 1134 → 1006.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1011 * 1024 },
+  // EMBEDS YOU CAN PICK UP: 1010.2 → 1012.6 kB, +2.4 kB against a3e0848 — the
+  // dictionary (1.8 kB) and the seam named at the entry budget. 1011 → 1013.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1013 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy
