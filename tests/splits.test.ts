@@ -48,3 +48,15 @@ describe("server/api.ts, its routes split into server/*Routes.ts", () => {
     ]);
   });
 });
+
+describe("client/components/Sidebar.tsx, split into tree/*, TagShelf and the cursor hook", () => {
+  it("keeps its default export and the two tree events; the parts are reached only through it", () => {
+    assertMove("client/components/Sidebar.tsx", [
+      "client/components/tree/expansion.ts",
+      "client/components/tree/icons.tsx",
+      "client/components/tree/useTreeCursor.ts",
+      "client/components/TagShelf.tsx",
+      "client/components/tree/TreeRow.tsx",
+    ]);
+  });
+});
