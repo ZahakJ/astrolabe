@@ -10,10 +10,11 @@ import { closesFence, fenceOpener, type Fence } from "../shared/fences.ts";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import MiniSearch from "minisearch";
-import type { AliasEntry, Backlink, CardMeta, ExportScope, GraphData, GraphEdge, LibraryKind, LibraryPathRef, Mention, OnThisDayHit, PageMeta, PostMeta, PropCount, PublicFolderRef, QueryHit, RoutineMeta, SearchHit, SearchMatch, TagCount, TaskMeta, TrackerMeta, TwinFaceRef, TwinPair, VaultEvent } from "../shared/types.ts";
+import type { AliasEntry, Backlink, CardMeta, ExportScope, GraphData, GraphEdge, LibraryKind, LibraryPathRef, Mention, OnThisDayHit, PageMeta, PostMeta, PropCount, PublicFolderRef, QueryHit, RoutineMeta, SearchHit, SearchMatch, TagCount, TaskMeta, TimelineNote, TrackerMeta, TwinFaceRef, TwinPair, VaultEvent } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
+import { capturedLines, noteDayOf, publishedDayOf, voiceMarks } from "../shared/noteDays.ts";
 import { findAnyMatches, foldQuery, foldTerm, findMatches } from "../shared/fold.ts";
 import { parseSearchQuery, searchScope, type ParsedQuery, type QueryFilter } from "../shared/searchQuery.ts";
 import { markHtml, snippetOf, windowAround } from "../shared/snippet.ts";
@@ -2746,9 +2747,12 @@ function fenceSummary(record: NoteRecord): string {
  *  function is called once per published post — the same "resolve a
  *  configuration value inside the loop that iterates the vault" shape as the
  *  templates walk two screens up, one loop over. */
-function postMeta(record: NoteRecord, hidden: ReadonlySet<string>, collectionRows: readonly PublicFolderRef[] = collectionRowsNow()): PostMeta {
+/** The excerpt and the word count every list of notes prints, cut once per
+ *  indexed version of the note and kept on the record (`record.post`). The
+ *  blog's post list, the Timeline and on-this-day all read it from here, so
+ *  a note says the same opening sentence wherever it is listed. */
+function postBasics(record: NoteRecord): { excerpt: string; words: number } {
   if (record.post === null) {
-    const flat = flatBody(record);
     record.post = {
       // LaTeX: the abstract when the paper has one, else its first real
       // paragraph — both already plain prose, so the markdown paragraph
@@ -2766,15 +2770,20 @@ function postMeta(record: NoteRecord, hidden: ReadonlySet<string>, collectionRow
         record.prose !== null ? countWords(record.prose) : countNoteWords(record.body),
     };
   }
+  return record.post;
+}
+
+function postMeta(record: NoteRecord, hidden: ReadonlySet<string>, collectionRows: readonly PublicFolderRef[] = collectionRowsNow()): PostMeta {
+  const basics = postBasics(record);
   const meta: PostMeta = {
     path: record.path,
     title: record.title,
     date: new Date(record.dateMs).toISOString(),
     // A body that is only a fence has no paragraph to cut; say what the fence
     // holds rather than shipping an empty slot. See fenceSummary().
-    excerpt: record.post.excerpt !== "" ? record.post.excerpt : fenceSummary(record),
-    words: record.post.words,
-    readingMinutes: readingMinutes(record.post.words),
+    excerpt: basics.excerpt !== "" ? basics.excerpt : fenceSummary(record),
+    words: basics.words,
+    readingMinutes: readingMinutes(basics.words),
     tags: record.tags.filter((t) => !hidden.has(t.toLowerCase())),
   };
   // Assigned only when non-empty, like every other optional field on this
@@ -3651,27 +3660,49 @@ export function onThisDay(iso: string): OnThisDayHit[] {
   const out: OnThisDayHit[] = [];
   for (const record of notes.values()) {
     if (isTemplate(record.path)) continue;
-    if (record.dateMs > 0) {
-      // A frontmatter `date: 2024-09-13` is a calendar day and names itself;
-      // a birthtime is a local moment and is read in local time — the UTC
-      // getters put a UTC+3 midnight note on the previous day.
-      const fm = /^(\d{4})-(\d{2}-\d{2})/.exec(record.props.date ?? "");
-      const d = new Date(record.dateMs);
-      const key = fm ? fm[2] : `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const y = fm ? Number(fm[1]) : d.getFullYear();
-      if (key === monthDay && y < year) {
-        out.push({ path: record.path, title: record.title, year: y, kind: "written", what: record.title });
-      }
+    // A frontmatter `date: 2024-09-13` is a calendar day and names itself; a
+    // created instant (the ledger, server/created.ts) is a local moment and
+    // is read in local time — the UTC getters put a UTC+3 midnight note on
+    // the previous day. shared/noteDays.ts holds the rule for every reader.
+    const day = noteDayOf(record.props, record.dateMs);
+    if (day !== null && day.slice(5) === monthDay && Number(day.slice(0, 4)) < year) {
+      out.push({ path: record.path, title: record.title, year: Number(day.slice(0, 4)), kind: "written", what: record.title, excerpt: postBasics(record).excerpt });
     }
     for (const tracker of record.trackers) {
       if (!tracker.finished) continue;
       const f = /^(\d{4})-(\d{2}-\d{2})/.exec(tracker.finished);
       if (f && f[2] === monthDay && Number(f[1]) < year) {
-        out.push({ path: record.path, title: record.title, year: Number(f[1]), kind: "finished", what: tracker.title });
+        out.push({ path: record.path, title: record.title, year: Number(f[1]), kind: "finished", what: tracker.title, excerpt: "" });
       }
     }
   }
   return out.sort((a, b) => b.year - a.year || a.path.localeCompare(b.path)).slice(0, 40);
+}
+
+/** Every note with its day and what the Timeline reads off it — the note
+ *  half of shared/dayAgenda.ts's sources (`GET /api/timeline`). Templates
+ *  skipped as everywhere. The excerpt and the words are the post list's own
+ *  (`postBasics`), cached on the record, so a second call costs a walk. */
+export function timelineNotes(): TimelineNote[] {
+  const isTemplate = templateMatcher();
+  const out: TimelineNote[] = [];
+  for (const record of notes.values()) {
+    if (isTemplate(record.path)) continue;
+    const basics = postBasics(record);
+    out.push({
+      path: record.path,
+      title: record.title,
+      day: noteDayOf(record.props, record.dateMs),
+      publishedDay: record.published ? publishedDayOf(record.props) : null,
+      published: record.published,
+      excerpt: basics.excerpt,
+      tags: record.tags,
+      words: basics.words,
+      captured: capturedLines(record.path, record.body),
+      voice: voiceMarks(record.path, record.body),
+    });
+  }
+  return out.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 }
 
 /** Every visible record a parsed query names — operators compiled against the

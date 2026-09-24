@@ -53,7 +53,7 @@ import type {
   UploadResult,
   VaultEvent,
   XrefResponse,
-  VisibilityImpact, PublicFolderRef, Mention, OnThisDayHit, QueryHit, TaskMeta, RoutineMeta
+  VisibilityImpact, PublicFolderRef, Mention, OnThisDayHit, QueryHit, TaskMeta, TimelineNote, RoutineMeta
 } from "../shared/types.ts";
 import type { EntryPatch } from "../shared/routine.ts";
 import type { Grade, Schedule } from "../shared/srs.ts";
@@ -737,6 +737,11 @@ export function deleteLayout(name: string): Promise<{ ok: true }> {
 /** The archive on this month-day in earlier years (admin). */
 export function getOnThisDay(iso: string): Promise<OnThisDayHit[]> {
   return request<OnThisDayHit[]>(`/api/onthisday?date=${encodeURIComponent(iso)}`);
+}
+
+/** Every note with its day, for the Timeline and the year in review (admin). */
+export function getTimelineNotes(): Promise<TimelineNote[]> {
+  return request<TimelineNote[]>("/api/timeline");
 }
 
 /** Every task in the vault (admin), and the flip of one line. */
