@@ -370,6 +370,48 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.27.0",
+    title: { en: "The phone, finished", ar: "الهاتف، مكتملًا" },
+    slides: [
+      {
+        // ── The phone shell, round 2 ─────────────────────────────────────
+        title: { en: "The phone, finished", ar: "الهاتف، مكتملًا" },
+        body: {
+          en: "Every part of Astrolabe now has a screen made for the hand. Orbits and Sigils are lists that open onto their own pages: today's ticks come first, and Study fills the screen. A book wears one slim bar of its own, with a slider through its pages, and Settings is a list of sections that asks before Back throws an edit away. The old drawer layout is gone for good.",
+          ar: "صار لكل جزء من أسطرلاب شاشة مصنوعة لليد. فالمدارات والسِّجِلّ قوائم تُفتح على صفحاتها الخاصة: تأشيرات اليوم أولًا، و«ادرس» يملأ الشاشة. وللكتاب شريط رفيع واحد خاص به فيه منزلق يتنقّل في صفحاته، والإعدادات قائمة أقسام تسأل قبل أن يرمي الرجوع تعديلًا. أما تخطيط الدرج القديم فقد ذهب بلا رجعة.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="220" y="22" width="120" height="184" rx="14" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="230" y="34" width="60" height="7" rx="3" fill="var(--text-muted)"/>
+    ${[0,1,2].map((i) => `<rect x="${230 + i * 34}" y="52" width="30" height="34" rx="6" fill="var(--bg-hover)"/><rect x="${236 + i * 34}" y="60" width="18" height="6" rx="3" fill="var(--text)"/><rect x="${236 + i * 34}" y="72" width="12" height="4" rx="2" fill="var(--text-faint)"/>`).join("")}
+    <rect class="wa-pulse" x="230" y="96" width="100" height="30" rx="8" fill="var(--accent)"/>
+    <text x="280" y="115" text-anchor="middle" fill="var(--bg)" font-size="11" font-weight="700">${L(lang, "Study", "ادرس")}</text>
+    <g fill="var(--text-faint)"><rect x="230" y="140" width="90" height="4" rx="2"/><rect x="230" y="152" width="70" height="4" rx="2"/><rect x="230" y="164" width="80" height="4" rx="2"/></g>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <rect x="380" y="40" width="140" height="28" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <path d="M392 54 l-4 -4 l4 -4" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>
+    <rect x="404" y="50" width="50" height="6" rx="3" fill="var(--text-muted)"/>
+    <line x1="470" y1="54" x2="510" y2="54" stroke="var(--border)" stroke-width="3" stroke-linecap="round"/>
+    <circle class="wa-grow" cx="492" cy="54" r="5" fill="var(--accent)"/>
+  </g>
+  <g class="wa-late" style="--i:3" opacity="0.5">
+    <rect x="50" y="60" width="60" height="120" rx="6" fill="var(--bg-hover)" stroke="var(--border)"/>
+    <path d="M56 66 l48 108 M104 66 l-48 108" stroke="var(--danger)" stroke-width="2"/>
+  </g>
+  <text x="80" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the old drawer, gone", "الدرج القديم، ذهب")}</text>
+  <text x="450" y="90" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "one slim bar for a book", "شريط واحد للكتاب")}</text>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+    ],
+  },
+  {
     version: "3.26.0",
     title: { en: "A phone that feels like a phone", ar: "هاتف يشعر أنه هاتف" },
     slides: [
