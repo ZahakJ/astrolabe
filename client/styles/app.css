@@ -399,7 +399,7 @@ select:focus,
    to the `text-overflow` set on its parent. So the name simply overflowed
    the box (which clips) or pushed the box wide (which collides). Measured at
    the shape the owner's friend photographed — a 224px docked sidebar —
-   `Mind-INTJ/Vellum` needed 202px beside a 44px mark and ran under the
+   a sixteen-character name (`Almucantar-Notes`) needed ~200px beside a 44px mark and ran under the
    header's tools. The name is a span now; it shrinks, then ellipsises, and
    the mark never shrinks with it. The same three lines answer for a long
    Arabic name («خيمياء — دفتر القراءة»), which is longer still. */
@@ -786,7 +786,6 @@ select:focus,
   width: 100%;
   margin-top: 7px;
   padding: 3px 8px;
-  background: var(--bg-hover);
   border: 1px dashed var(--border);
   border-radius: 4px;
   color: var(--text-muted);
@@ -2730,10 +2729,8 @@ select:focus,
    .s-mode (0,1,0) and would repaint every pill with the muted button color —
    the same trap the sync badge documents further down. */
 .s-statusbar .s-modes {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  /* Only the trailing side: the leading margin comes from the group rule
+  /* inline-flex, centred, a 5px gap: set with the right cluster below. Only
+     the trailing side: the leading margin comes from the group rule
      below, which the pill cluster now shares with every other right-cluster
      segment. */
   margin-inline-end: 4px;
@@ -3318,7 +3315,7 @@ select:focus,
   max-inline-size: 34%;
   flex: none;
 }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   .s-palette-item-hint {
     display: none;
   }
@@ -3396,7 +3393,7 @@ select:focus,
 .s-toasts {
   position: fixed;
   left: 50%;
-  bottom: 44px;
+  /* bottom: above the bar and its safe-area inset — set once, further down. */
   /* ABOVE THE MODAL PANELS (trash browser, history, unused attachments: 420)
      and below the confirm dialog (500). At 200 an action toast raised from
      INSIDE a panel — "Moved 12 files to .trash — Undo" from the unused
@@ -3855,7 +3852,7 @@ select:focus,
   color: var(--text-muted);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   .s-tmpl__body {
     grid-template-columns: 1fr;
   }
@@ -5610,9 +5607,8 @@ button.s-title:hover {
 }
 
 /* The top row of the shell carries `--safe-top`: the tab strip states it in
-   its own rule (far above, so the drawer breakpoint can raise the height
-   without a later declaration taking it back), the drawer toggle that floats
-   in the strip states it in the drawer block, and the tool cluster over the
+   its own rule (far above, so a touch block can raise the height without a
+   later declaration taking it back), and the tool cluster over the
    strip's trailing end states it IN ITS OWN RULE — see `.s-topactions` near
    the end of this file. It was stated here first and it did not take: that
    rule is a thousand lines BELOW this one and sets `height: 2.5rem` at the
@@ -6470,12 +6466,9 @@ button.s-title:hover {
    Raised by every pane (client/components/PaneDropZones.tsx) only while a tab
    drag is live. Four edges split; the centre joins the strip. The zones sit
    over the pane's content, which is exactly why they exist only during a drag
-   — and why `.s-view` is the containing block (`position: relative` below):
-   solo panes raise them too, since dragging a tab to an edge is how the FIRST
-   split is made. */
-.s-view {
-  position: relative;
-}
+   — and why `.s-view` is the containing block (its `position: relative` is
+   set once, with the reading-mode rule): solo panes raise them too, since
+   dragging a tab to an edge is how the FIRST split is made. */
 
 .s-dropzones {
   position: absolute;

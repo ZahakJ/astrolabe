@@ -5,7 +5,8 @@
 // its own name marks itself used and no dead key can ever be reported; see the
 // note at the scan), tf() placeholders match across langs, and
 // no user-visible English copy is typed straight into the source (bypassing
-// t()) — in JSX *or* in the imperative DOM builders.
+// t()) — in JSX *or* in the imperative DOM builders — and the same for the Android
+// shell (mobile/src), which keeps its own two-language table.
 //
 // That last scan is the point of this script. Diffing dict-against-used only
 // proves the dictionary is tidy; it can never see a string that never went
@@ -17,6 +18,7 @@
 // JSX, which is exactly where the survivors were hiding.
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { copyWords, readShellDictionary, scanDom, scanTsx } from "./i18nScan.mjs";
 
 // TWO ROOTS, ONE DICTIONARY. `client/` is where the dictionary lives and where
 // almost every call site is; `electron/` is the native application menu, whose
@@ -98,79 +100,94 @@ for (const [k, v] of entries) {
   const ph = (s) => [...(s || "").matchAll(/\{(\w+)\}/g)].map((x) => x[1]).sort().join(",");
   if (ph(v.en) !== ph(v.ar)) errs.push(`placeholder mismatch: ${k} en[${ph(v.en)}] ar[${ph(v.ar)}]`);
 }
-// ── Bare English copy in JSX ────────────────────────────────────────────────
+// ── Bare English copy in JSX, and in the imperative DOM ─────────────────────
 // The dictionary can only guard strings that go through t()/tf(); a literal
-// typed straight into JSX is invisible to it, and one shipped ("note
-// (default)" in a settings <select>) sat untranslated between two localized
-// rows. Heuristic, deliberately narrow: user-visible text of two or more
-// words, in a text node or one of the four copy-bearing attributes. Keycaps
-// (<kbd>Ctrl P</kbd>), single words (option VALUES like "dashboard", brand
-// names), identifiers ("settings.json") and code fragments are not copy.
-const copyWords = (text) =>
-  (text
-    .replace(/\b[\w-]+[./][\w-]+\b/g, " ") // settings.json, ar-u-nu-latn, /favicon.ico
-    .match(/[A-Za-z]{2,}/g) ?? []).length;
-const CODEISH = /[={}<>]|&&|\|\||=>|\(\)/;
-for (const { abs: f, rel } of files) {
-  if (!f.endsWith(".tsx")) continue;
-  readFileSync(f, "utf8").split("\n").forEach((line, i) => {
-    for (const mm of line.matchAll(/>([^<>{}\n]+)</g)) {
-      const text = mm[1].trim();
-      if (!text || CODEISH.test(text) || copyWords(text) < 2) continue;
-      if (/<kbd[ >]/.test(line)) continue; // keycaps, not copy
-      errs.push(`BARE ENGLISH (text): ${rel}:${i + 1}  “${text.slice(0, 60)}”`);
-    }
-    for (const mm of line.matchAll(/\b(placeholder|title|aria-label|alt)="([^"]+)"/g)) {
-      if (copyWords(mm[2]) < 2) continue;
-      errs.push(`BARE ENGLISH (${mm[1]}): ${rel}:${i + 1}  “${mm[2].slice(0, 60)}”`);
-    }
-  });
-}
-
-// ── Bare English in imperative DOM (.ts and .tsx alike) ─────────────────────
-// The chrome that lives outside JSX writes its copy through a handful of DOM
-// sinks. A string or template literal landing in one of them is user-visible
-// copy by definition, so it must come from t()/tf() — anything with a real
-// word in it is a finding. Glyph-only writes ("•", "…", "⌀", "#" + a tag) and
-// writes of a variable are not literals with words, so they pass untouched.
-const DOM_SINK =
-  /(\.(?:textContent|innerText|title|alt|placeholder|ariaLabel)\s*=|setAttribute\(\s*["'](?:title|aria-label|placeholder|alt)["'])/g;
-const LITERAL = /(["'`])((?:[^\\]|\\.)*?)\1/g;
-const ATTR_NAMES = new Set(["title", "aria-label", "placeholder", "alt"]);
+// typed straight into JSX or written into a DOM node is invisible to it, and
+// such literals have shipped ("note (default)" in a settings <select>,
+// `btn.title = "Fold section"` on an Arabic instance). The scan reads the
+// TypeScript syntax tree (scripts/i18nScan.mjs, which says what the old
+// line-by-line regexes could not see): JSX text, the copy-bearing
+// attributes, braced string children, and the DOM sinks, each followed
+// through conditionals and `||`/`??`, never into a call's arguments.
+// Keycaps and code (<kbd>, <code>), identifiers, URLs and proper names are
+// not copy; a literal its author marks "not copy" on or just above its line
+// is skipped, and says why there.
 // countPhrase(n, "words") unit names are keys into the plural table, not copy.
 const COUNT_UNITS = new Set(
   [...src.slice(src.indexOf("type CountUnit ="), src.indexOf("const UNITS")).matchAll(/"(\w+)"/g)].map(
     (m) => m[1],
   ),
 );
-// A word worth translating: three or more ASCII letters, outside a ${…} hole.
-const hasCopyWord = (text) => /[A-Za-z]{3,}/.test(text.replace(/\$\{[^}]*\}/g, " "));
 for (const { abs: f, rel } of files) {
   if (rel === "i18n.ts") continue; // the dictionary itself
   // shared/ is in the roots for the USAGE scan (its token specs name
-  // dictionary keys); it builds no DOM, so its `typeof x === "string"` is
-  // not copy and this scan does not read it.
+  // dictionary keys); it builds no DOM and no JSX.
   if (f.includes("/shared/")) continue;
-  readFileSync(f, "utf8").split("\n").forEach((line, i) => {
-    DOM_SINK.lastIndex = 0;
-    for (const sink of line.matchAll(DOM_SINK)) {
-      // The whole statement, not just the first literal after the "=": the two
-      // survivors this scan exists for were ternaries
-      // (`btn.title = folded ? "Unfold section" : "Fold section"`).
-      const end = line.indexOf(";", sink.index);
-      const stmt = line.slice(sink.index, end === -1 ? undefined : end);
-      LITERAL.lastIndex = 0;
-      for (const lit of stmt.matchAll(LITERAL)) {
-        const text = lit[2];
-        // A dict key reaching t()/tf() is the CORRECT shape, and an attribute
-        // name is not copy — everything else with a word in it is a finding.
-        if (entries.has(text) || COUNT_UNITS.has(text) || ATTR_NAMES.has(text) || !hasCopyWord(text)) {
-          continue;
-        }
-        errs.push(`BARE ENGLISH (dom): ${rel}:${i + 1}  “${text.slice(0, 60)}”`);
+  const source = readFileSync(f, "utf8");
+  if (f.endsWith(".tsx")) {
+    for (const hit of scanTsx(source, f)) errs.push(`BARE ENGLISH (${hit.kind}): ${rel}:${hit.line}  “${hit.text.slice(0, 60)}”`);
+  }
+  for (const hit of scanDom(source, f)) {
+    // A countPhrase unit is a key into the plural table, not copy.
+    if (COUNT_UNITS.has(hit.text)) continue;
+    errs.push(`BARE ENGLISH (dom ${hit.kind}): ${rel}:${hit.line}  “${hit.text.slice(0, 60)}”`);
+  }
+}
+
+// ── The Android shell (mobile/src) ──────────────────────────────────────────
+// Its own dictionary, mobile/src/i18n.ts, because the connect screen and the
+// capture sheet speak before the client exists. The KEYS are held equal by
+// the type (`const ar: Copy`); this holds the VALUES: both present, the
+// Arabic in Arabic, the same parameters interpolated, every key used — and
+// no English typed past it into the shell's DOM, its `el()` builders, or the
+// JSON error bodies its service worker answers with.
+{
+  const mobileRoot = new URL("../mobile/src/", import.meta.url).pathname;
+  let present = true;
+  try {
+    statSync(join(mobileRoot, "i18n.ts"));
+  } catch {
+    present = false; // a checkout without the Android shell is not a failure
+  }
+  if (present) {
+    const dict = readShellDictionary(readFileSync(join(mobileRoot, "i18n.ts"), "utf8"));
+    if (dict.en.size === 0) errs.push("MOBILE: could not read mobile/src/i18n.ts (no `const en = {…}`)");
+    for (const [key, en] of dict.en) {
+      const ar = dict.ar.get(key);
+      if (!ar) {
+        errs.push(`MOBILE MISSING ar: ${key}`);
+        continue;
+      }
+      if (!en || !en.text.trim()) errs.push(`MOBILE MISSING en: ${key}`);
+      // A value with words to translate must carry Arabic script in Arabic;
+      // a proper name ("Astrolabe") is the same in both.
+      if (en && copyWords(en.text).length > 0 && !/[\u0600-\u06ff]/.test(ar.text)) errs.push(`MOBILE ar has no Arabic script: ${key} = "${ar.text}"`);
+      if (en && en.holes.join(",") !== ar.holes.join(",")) errs.push(`MOBILE placeholder mismatch: ${key} en[${en.holes}] ar[${ar.holes}]`);
+    }
+    for (const key of dict.ar.keys()) if (!dict.en.has(key)) errs.push(`MOBILE ar-only key: ${key}`);
+
+    const mobileFiles = [];
+    (function walk(d) {
+      for (const f of readdirSync(d)) {
+        const p = join(d, f);
+        if (statSync(p).isDirectory()) walk(p);
+        else if (/\.tsx?$/.test(p) && !p.endsWith("/i18n.ts")) mobileFiles.push(p);
+      }
+    })(mobileRoot);
+    // A key is used as `t.key`, or by NAME where the sync line picks its
+    // words (shared/pocketSync.ts answers `{ key: "syncing" }`).
+    const pocketSync = new URL("../shared/pocketSync.ts", import.meta.url).pathname;
+    const mobileText = [...mobileFiles, pocketSync].map((f) => readFileSync(f, "utf8")).join("\n");
+    for (const key of dict.en.keys()) {
+      if (!new RegExp(`\\.${key}\\b|"${key}"`).test(mobileText)) errs.push(`MOBILE UNUSED key: ${key}`);
+    }
+    for (const f of mobileFiles) {
+      for (const hit of scanDom(readFileSync(f, "utf8"), f, { shell: true })) {
+        errs.push(`BARE ENGLISH (mobile ${hit.kind}): mobile/src/${f.slice(mobileRoot.length)}:${hit.line}  “${hit.text.slice(0, 60)}”`);
       }
     }
-  });
+    console.log(`mobile keys: ${dict.en.size} en / ${dict.ar.size} ar, ${mobileFiles.length} shell files scanned`);
+  }
 }
 
 for (const k of used) if (!entries.has(k)) errs.push(`USED BUT UNDEFINED: ${k}`);

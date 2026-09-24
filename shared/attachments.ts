@@ -18,6 +18,13 @@
 // Nothing already on disk moves when this changes: it decides where the NEXT
 // upload is written, and existing embeds keep resolving by basename anyway.
 
+import { extensionOf } from "./fileKinds.ts";
+// What a file IS by its name — its extension, whether it is a picture, its
+// kind — lives in shared/fileKinds.ts, a module small enough for the entry
+// chunk (the editor's embeds ask `isImagePath` on first paint); re-exported
+// here, where the product has always asked for it.
+export { attachmentKindOf, extensionOf, IMAGE_EXTENSIONS, isImagePath, type ImageExtension } from "./fileKinds.ts";
+
 export type AttachmentMode = "vault-root" | "same-folder" | "subfolder" | "specified";
 
 export const ATTACHMENT_MODES: readonly AttachmentMode[] = [
@@ -158,22 +165,12 @@ export const ATTACHMENT_TYPES: Record<string, string> = {
   webm: "video/webm",
 };
 
-/** The `accept` attribute for a file input — extensions AND mime types, since
- *  browsers disagree about which they honour for exotic kinds. */
-export const ATTACHMENT_ACCEPT: string = [
-  ...Object.keys(ATTACHMENT_TYPES).map((ext) => `.${ext}`),
-  ...new Set(Object.values(ATTACHMENT_TYPES)),
-].join(",");
 
-/** Lower-cased extension of a filename, without the dot ("" when there is none). */
-export function extensionOf(name: string): string {
-  const base = name.split(/[/\\]/).pop() ?? "";
-  const dot = base.lastIndexOf(".");
-  return dot <= 0 ? "" : base.slice(dot + 1).toLowerCase();
-}
-
-/** Every MIME type the table advertises, for the type-only fallback below. */
-const ACCEPTED_MIME = new Set(Object.values(ATTACHMENT_TYPES));
+/** Every MIME type the table advertises, for the type-only fallback below —
+ *  built on first use, not at module load: a `new Set` at the top level is a
+ *  side effect a bundler must keep, and it would drag this table into every
+ *  chunk that only wanted `isImagePath` (the editor's embeds are in the entry). */
+let acceptedMime: ReadonlySet<string> | null = null;
 
 /** True when the uploader will even try this file. The extension decides
  *  first — a browser hands us `application/octet-stream` for half of these
@@ -184,5 +181,36 @@ const ACCEPTED_MIME = new Set(Object.values(ATTACHMENT_TYPES));
 export function isAcceptedAttachment(name: string, type = ""): boolean {
   const ext = extensionOf(name);
   if (ext !== "") return Object.prototype.hasOwnProperty.call(ATTACHMENT_TYPES, ext);
-  return ACCEPTED_MIME.has(type.trim().toLowerCase());
+  acceptedMime ??= new Set(Object.values(ATTACHMENT_TYPES));
+  return acceptedMime.has(type.trim().toLowerCase());
+}
+
+// ── What a file IS: its served type, its kind, whether it is a picture ───────
+// One table each, read by the server's /api/file, the pocket's, the tree on
+// both, the settings and design validators, the banner picker and the
+// editor's embed. There were two MIME tables (server/api.ts and the pocket's
+// reading of ATTACHMENT_TYPES above) that disagreed about `.ico`, `.tif`,
+// `.mkv`, `.txt`, `.json`, and six image-extension regexes that disagreed about
+// `.bmp`, `.ico` and `.avif`.
+
+/** Extension (lowercase, no dot) → the Content-Type a file is SERVED with.
+ *  A superset of ATTACHMENT_TYPES: the vault holds files nobody uploaded
+ *  through the app (an `.ico` a site uses, a `.canvas` from Obsidian). */
+export const MIME_TYPES: Readonly<Record<string, string>> = {
+  ...ATTACHMENT_TYPES,
+  ico: "image/x-icon",
+  tif: "image/tiff",
+  tiff: "image/tiff",
+  epub: "application/epub+zip",
+  mkv: "video/x-matroska",
+  aac: "audio/aac",
+  txt: "text/plain; charset=utf-8",
+  csv: "text/csv; charset=utf-8",
+  json: "application/json",
+  canvas: "application/json",
+};
+
+/** The Content-Type a vault file is served with; octet-stream when unknown. */
+export function contentTypeFor(path: string): string {
+  return MIME_TYPES[extensionOf(path)] ?? "application/octet-stream";
 }

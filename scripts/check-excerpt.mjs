@@ -92,7 +92,7 @@ const json = (method, body) => ({
 // notes instead would pass by not testing anything.
 let me = await api("/me");
 if (!me.admin) {
-  const password = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) ?? "";
+  const password = process.env.ASTROLABE_PASSWORD ?? "";
   const res = password
     ? await fetch(`${url}/api/login`, json("POST", { password })).catch(() => null)
     : null;

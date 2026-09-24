@@ -2,8 +2,7 @@
 // reads, so the outline's idea of what is code and the anchor table's cannot
 // drift. See that file for what a marker-blind toggle cost.
 import { closesFence, fenceOpener, sourceLines, type Fence } from "../../shared/fences.ts";
-import { stripFurigana } from "../../shared/furigana.ts";
-import { stripAlignMarker } from "../../shared/blockAlign.ts";
+import { bodyStartLine, headingOf, headingTitle, HeadingSlugger } from "../../shared/headings.ts";
 import { isTexPath } from "../../shared/noteFormat.ts";
 import { inlineText as texInlineText, parseTex } from "../../shared/tex.ts";
 
@@ -24,41 +23,10 @@ export interface Heading {
   furniture?: boolean;
 }
 
-/** Deterministic, collision-free slugs for heading ids. */
-export class Slugger {
-  private seen = new Map<string, number>();
-
-  slug(text: string): string {
-    let base = text
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N}\s-]/gu, "")
-      .trim()
-      .replace(/\s+/g, "-");
-    if (!base) base = "section";
-    const n = this.seen.get(base) ?? 0;
-    this.seen.set(base, n + 1);
-    return n === 0 ? base : `${base}-${n}`;
-  }
-}
-
-/** Strip inline markdown from heading text for display + slugging. */
-export function stripInline(text: string): string {
-  // `{漢字|かんじ}` is the word 漢字 with a reading over it; the outline, the
-  // slug and a search hit want the word.
-  return stripFurigana(text)
-    .replace(/!\[\[([^[\]]+?)\]\]/g, "$1")
-    .replace(/\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]/g, (_m, t: string, a?: string) =>
-      (a ?? t).trim(),
-    )
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/`([^`]*)`/g, "$1")
-    .replace(/\*\*|__|~~|==/g, "")
-    .replace(/(^|\s)[*_]|[*_](\s|$)/g, "$1$2")
-    .replace(/\s+#+\s*$/, "")
-    .trim();
-}
-
-const HEADING_RE = /^(#{1,6})\s+(.*)$/;
+// The slugger and the inline strip are shared/headings.ts's — the anchor table
+// and the editor's `[[Note#` completion read the same two, so an id the
+// outline navigates to is the id the element carries and the id a link names.
+export { HeadingSlugger as Slugger, stripHeadingInline as stripInline } from "../../shared/headings.ts";
 
 /** True when a body line is only wikilinks/tags/markdown links plus list
  *  furniture (bullets, commas, separators) — no prose of its own. */
@@ -76,18 +44,9 @@ function isLinkListLine(line: string): boolean {
 /** Top-level headings of a note (skips YAML frontmatter and code fences). */
 export function extractHeadings(md: string): Heading[] {
   const out: Heading[] = [];
-  const slugger = new Slugger();
+  const slugger = new HeadingSlugger();
   const lines = sourceLines(md);
-  let start = 0;
-  if (lines[0]?.trim() === "---") {
-    for (let j = 1; j < lines.length; j++) {
-      const t = lines[j].trim();
-      if (t === "---" || t === "...") {
-        start = j + 1;
-        break;
-      }
-    }
-  }
+  const start = bodyStartLine(md);
   let fence: Fence | null = null;
   let current: Heading | null = null;
   let sawContent = false;
@@ -114,7 +73,7 @@ export function extractHeadings(md: string): Heading[] {
       allLinkLists = false; // code is real content
       continue;
     }
-    const m = HEADING_RE.exec(line);
+    const m = headingOf(line);
     if (!m) {
       if (line.trim()) {
         sawContent = true;
@@ -123,9 +82,9 @@ export function extractHeadings(md: string): Heading[] {
       continue;
     }
     finalize();
-    // `# Title {.center}` is "Title" in the outline (shared/blockAlign.ts).
-    const text = stripInline(stripAlignMarker(m[2]));
-    current = { level: m[1].length, text, slug: slugger.slug(text), line: i + 1 };
+    // `# Title {.center}` is "Title" in the outline (shared/headings.ts).
+    const text = headingTitle(m.raw);
+    current = { level: m.level, text, slug: slugger.slug(text), line: i + 1 };
     out.push(current);
     sawContent = false;
     allLinkLists = true;

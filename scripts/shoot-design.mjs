@@ -42,8 +42,8 @@ const PORT = process.env.PORT || "6801";
 // first, and the server binds 0.0.0.0 by default — so a gate written with the
 // friendlier hostname fails with ECONNREFUSED against a perfectly healthy
 // instance. ASTROLABE_URL overrides for an instance behind a proxy.
-const BASE = (process.env.ASTROLABE_URL ?? process.env.VELLUM_URL) || `http://127.0.0.1:${PORT}`;
-const PASSWORD = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) || "";
+const BASE = process.env.ASTROLABE_URL || `http://127.0.0.1:${PORT}`;
+const PASSWORD = process.env.ASTROLABE_PASSWORD || "";
 const SHOTS = process.env.SHOT_DIR || null;
 
 /** The section renderer scenario C patches, and the exact anchor it patches. */

@@ -29,11 +29,6 @@ export function parseLibraryRoute(pathname: string): LibraryRoute | null {
   return { kind: "libraryLesson", slug, n };
 }
 
-/** The lessons of a path in reading order, numbered from 1. */
-export function lessonCount(path: LibraryPath): number {
-  return path.units.reduce((sum, unit) => sum + unit.lessons.length, 0);
-}
-
 /** The document title for a library route, given the shelf (or null while
  *  it loads). */
 export function libraryDocumentTitle(route: LibraryRoute, shelf: LibraryPath[] | null, siteTitle: string): string {

@@ -31,6 +31,7 @@
 
 import { folderError, normalizeFolder } from "./attachments.ts";
 import { yamlQuote } from "./capture.ts";
+import { localIsoDay } from "./dates.ts";
 import { fenceOpener, closesFence } from "./fences.ts";
 
 /** The fence word. */
@@ -242,9 +243,7 @@ export function keptNote(input: KeptInput): string {
 /** `YYYY-MM-DD` of a timestamp in the server's own zone, or null. */
 export function isoDay(ms: number | null): string | null {
   if (ms === null || !Number.isFinite(ms)) return null;
-  const d = new Date(ms);
-  const p = (n: number): string => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return localIsoDay(ms);
 }
 
 // ── The wire ────────────────────────────────────────────────────────────────

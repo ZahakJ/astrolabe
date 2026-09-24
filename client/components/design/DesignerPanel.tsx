@@ -2073,10 +2073,6 @@ function DesignerPanel({ onClose }: { onClose: () => void }) {
 let host: HTMLDivElement | null = null;
 let root: Root | null = null;
 
-export function isDesignerOpen(): boolean {
-  return host !== null;
-}
-
 export function closeDesigner(): void {
   if (!root || !host) return;
   leaveOverlay?.();

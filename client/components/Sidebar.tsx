@@ -96,7 +96,7 @@ import {
 import type { FolderMark } from "../../shared/folderIcons.ts";
 import { toast } from "../toast.ts";
 import "../styles/move.css";
-import { isDrawingPath, isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
+import { ensureMd, isDrawingPath, isNotePath, noteLabelOf } from "../../shared/noteFormat.ts";
 
 const SEARCH_DEBOUNCE_MS = 200;
 
@@ -199,9 +199,6 @@ function parentOf(path: string): string {
   return i === -1 ? "" : path.slice(0, i);
 }
 
-function ensureMd(name: string): string {
-  return isNotePath(name) ? name : `${name}.md`;
-}
 
 interface MenuState {
   x: number;
@@ -1955,8 +1952,8 @@ export default function Sidebar() {
                     inside a flex box is an ANONYMOUS flex item: it cannot be
                     given `min-width: 0`, it will not shrink below its own
                     min-content width, and `text-overflow: ellipsis` on the
-                    box above it has nothing to apply to. `Mind-INTJ/Vellum`
-                    in a 224px pane therefore ran out of the header and under
+                    box above it has nothing to apply to. A sixteen-character
+                    name (`Almucantar-Notes`) in a 224px pane ran out of the header and under
                     the tools instead of ellipsising. One span, and the rule
                     in app.css finally has an element to act on. */}
                 <span className="s-title__name">{siteName}</span>
@@ -1974,8 +1971,8 @@ export default function Sidebar() {
                     inside a flex box is an ANONYMOUS flex item: it cannot be
                     given `min-width: 0`, it will not shrink below its own
                     min-content width, and `text-overflow: ellipsis` on the
-                    box above it has nothing to apply to. `Mind-INTJ/Vellum`
-                    in a 224px pane therefore ran out of the header and under
+                    box above it has nothing to apply to. A sixteen-character
+                    name (`Almucantar-Notes`) in a 224px pane ran out of the header and under
                     the tools instead of ellipsising. One span, and the rule
                     in app.css finally has an element to act on. */}
                 <span className="s-title__name">{siteName}</span>

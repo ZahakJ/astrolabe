@@ -39,13 +39,15 @@ import type {
 import { noteAnchors, type NoteAnchor } from "../../../shared/anchors.ts";
 import { stripBidiControls } from "../../../shared/bidi.ts";
 import { DEFAULT_NEW_PER_DAY, DEFAULT_STEPS, EVERYTHING_ELSE, deckCardsOf, deckOf, type Deck, type DeckCard, type DeckMeta } from "../../../shared/decks.ts";
-import { scanCards, type Card } from "../../../shared/flashcards.ts";
+import { scanCards, type Card } from "../../../shared/cards.ts";
 import { findAnyMatches, foldQuery, foldTerm } from "../../../shared/fold.ts";
 import { idStampMs } from "../../../shared/idStamp.ts";
 import { capturedLines, dayOfNote, publishedDayOf, voiceMarks, type DailyRule } from "../../../shared/noteDays.ts";
 import { countNoteWords } from "../../../shared/wordCount.ts";
 import {
+  bannerOf,
   linkKeys,
+  parseAliases,
   parseAssets,
   parseFmDate,
   parseLinks,
@@ -55,7 +57,8 @@ import {
   splitFrontmatter,
   type ParsedLink,
 } from "../../../shared/noteParse.ts";
-import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../../../shared/noteFormat.ts";
+import { isNotePath, isTexPath, noteCandidates, noteTitleOf, stripNoteExt } from "../../../shared/noteFormat.ts";
+import { parseTex, texFrontmatterText, texProse } from "../../../shared/tex.ts";
 import { cleanContextLine, expandedContext, contextProse, stripMarkdown } from "../../../shared/prose.ts";
 import { scanRoutines, type RoutineBlock } from "../../../shared/routine.ts";
 import { parseSearchQuery, searchScope, type QueryFilter } from "../../../shared/searchQuery.ts";
@@ -63,7 +66,8 @@ import { isDue } from "../../../shared/srs.ts";
 import { escapeHtml, markHtml, snippetOf, windowAround } from "../../../shared/snippet.ts";
 import { scanTasks, type Task } from "../../../shared/tasks.ts";
 import { scanTrackers, type Tracker } from "../../../shared/tracker.ts";
-import { extensionOf, ATTACHMENT_TYPES, type AttachmentMode } from "../../../shared/attachments.ts";
+import { attachmentKindOf, extensionOf, type AttachmentMode } from "../../../shared/attachments.ts";
+import { sortTree } from "../../../shared/tree.ts";
 import { readFrontmatter } from "./frontmatter.ts";
 
 /** One note, parsed. The server's `NoteRecord` minus the fields only a public
@@ -90,6 +94,9 @@ export interface PocketNote {
   deck: Deck | null;
   trackers: Tracker[];
   routines: RoutineBlock[];
+  /** A `.tex` note's words (shared/tex.ts texProse), what the server's index
+   *  files it under; null for markdown, whose body is its words. */
+  prose: string | null;
   /** Lazily prose-stripped body — the snippet source, computed once. */
   flat: string | null;
 }
@@ -104,18 +111,6 @@ export interface PocketAsset {
 const MAX_SNIPPET_SOURCE_CHARS = 128 * 1024;
 const SEARCH_LIMIT = 50;
 const PROP_VALUES_MAX = 20;
-
-function parseAliasList(fm: Record<string, unknown>): string[] {
-  const raw = fm.aliases ?? fm.alias;
-  if (typeof raw === "string") return raw.split(",").map((s) => s.trim()).filter(Boolean);
-  if (Array.isArray(raw)) return raw.map((v) => String(v).trim()).filter(Boolean);
-  return [];
-}
-
-function parseBanner(fm: Record<string, unknown>): string | null {
-  const raw = fm.banner ?? fm.cover ?? fm.image;
-  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
-}
 
 export class PocketIndex {
   readonly notes = new Map<string, PocketNote>();
@@ -143,8 +138,11 @@ export class PocketIndex {
 
   put(path: string, content: string, mtimeMs: number): PocketNote {
     this.remove(path);
-    const parts = splitFrontmatter(content);
-    const fm = readFrontmatter(content);
+    const parts = isTexPath(path) ? texParts(content) : { ...splitFrontmatter(content), tagSource: null as string | null, prose: null as string | null };
+    // A `.tex` note keeps its frontmatter in a comment block (and in
+    // `\astrolabe{}` pairs): the same text the server's reader parses
+    // (shared/tex.ts texFrontmatterText), read by the pocket's YAML reader.
+    const fm = isTexPath(path) ? readFrontmatter(`---\n${parts.frontmatter}\n---\n`) : readFrontmatter(content);
     const title = stripBidiControls(noteTitleOf(path));
     const record: PocketNote = {
       path,
@@ -155,19 +153,23 @@ export class PocketIndex {
       bodyStartLine: parts.bodyStartLine,
       mtimeMs,
       fm,
-      links: parseLinks(parts.body),
+      links: isTexPath(path) ? texLinks(content) : parseLinks(parts.body),
       assets: parseAssets(parts.body, path),
-      tags: parseTags(parts.body, parts.frontmatter),
+      // A `.tex` note's tags are its frontmatter's only, as on the server: a
+      // `#` in LaTeX is a macro parameter, not a tag.
+      tags: parseTags(parts.tagSource ?? parts.body, parts.frontmatter),
       props: scalarProps(fm),
-      aliases: parseAliasList(fm),
+      aliases: parseAliases(fm),
       anchors: noteAnchors(path, content),
-      dateMs: parseFmDate(fm.date ?? fm.created ?? fm.published) ?? idStampMs(fm.id) ?? mtimeMs,
-      banner: parseBanner(fm),
+      // The server's ladder, rung by rung: an unreadable `date:` falls to `created:`.
+      dateMs: parseFmDate(fm.date) ?? parseFmDate(fm.created) ?? parseFmDate(fm.published) ?? idStampMs(fm.id) ?? mtimeMs,
+      banner: bannerOf(fm),
       tasks: scanTasks(content),
       cards: scanCards(content),
       deck: deckOf(content, path, title),
       trackers: scanTrackers(parts.body),
       routines: scanRoutines(parts.body),
+      prose: parts.prose,
       flat: null,
     };
     this.notes.set(path, record);
@@ -182,7 +184,9 @@ export class PocketIndex {
     this.mini.add({
       path,
       title,
-      body: record.body,
+      // A `.tex` note is indexed on its PROSE, as on the server: the raw source
+      // would match "begin" and "usepackage" and a `% [[link]]` comment.
+      body: record.prose ?? record.body,
       tags: record.tags.join(" "),
       aliases: record.aliases.join(" "),
     });
@@ -253,7 +257,7 @@ export class PocketIndex {
         path: asset.path,
         type: "file",
         attachment: {
-          kind: attachmentKind(asset.path),
+          kind: attachmentKindOf(asset.path),
           ext: extensionOf(asset.path).replace(/^\./, ""),
           size: asset.size,
         },
@@ -308,7 +312,7 @@ export class PocketIndex {
 
   private flat(record: PocketNote): string {
     if (record.flat === null) {
-      record.flat = stripMarkdown(record.body.slice(0, MAX_SNIPPET_SOURCE_CHARS)).replace(/\s+/g, " ").trim();
+      record.flat = (record.prose ?? stripMarkdown(record.body.slice(0, MAX_SNIPPET_SOURCE_CHARS))).replace(/\s+/g, " ").trim();
     }
     return record.flat;
   }
@@ -376,9 +380,11 @@ export class PocketIndex {
 
     let rows: { record: PocketNote; score: number }[];
     if (!bare) {
+      // The server's order for a filter-only query: newest by the note's own
+      // date, then by path (indexer.ts filteredNotes).
       rows = [...this.notes.values()]
         .filter(keep)
-        .sort((a, b) => b.mtimeMs - a.mtimeMs)
+        .sort((a, b) => b.dateMs - a.dateMs || a.path.localeCompare(b.path))
         .slice(0, SEARCH_LIMIT)
         .map((record) => ({ record, score: 0 }));
     } else {
@@ -809,6 +815,33 @@ export class PocketIndex {
   }
 }
 
+// ── LaTeX notes ─────────────────────────────────────────────────────────────
+
+/** A `.tex` note's parts in the markdown reader's shape: the body is the whole
+ *  file (its lines are already absolute), the frontmatter is the comment block
+ *  plus `\astrolabe{}` pairs, and nothing in the body is a tag. */
+function texParts(content: string): { body: string; frontmatter: string; bodyStartLine: number; tagSource: string | null; prose: string | null } {
+  const doc = parseTex(content);
+  return { body: content, frontmatter: texFrontmatterText(doc), bodyStartLine: 0, tagSource: "", prose: texProse(doc) };
+}
+
+/** A `.tex` note's wikilinks — `\note{…}` and the `% [[…]]` comment form —
+ *  as the server's reader files them (server/texNote.ts). `\input` edges are
+ *  the server's alone: they resolve local-first against the filesystem. */
+function texLinks(content: string): ParsedLink[] {
+  const lines = content.replace(/\r\n/g, "\n").split("\n");
+  const out: ParsedLink[] = [];
+  const seen = new Set<string>();
+  for (const link of parseTex(content).links) {
+    if (link.kind !== "note" && link.kind !== "comment") continue;
+    const target = (link.anchor ? `${link.target}#${link.anchor}` : link.target).trim();
+    if (!target || seen.has(`${target}\u0000${link.line}`)) continue;
+    seen.add(`${target}\u0000${link.line}`);
+    out.push({ target, line: link.context || (lines[link.line - 1] ?? "").trim(), lineIdx: Math.max(0, link.line - 1) });
+  }
+  return out;
+}
+
 // ── small shared helpers ────────────────────────────────────────────────────
 
 function add(map: Map<string, Set<string>>, key: string, value: string): void {
@@ -827,30 +860,6 @@ function drop(map: Map<string, Set<string>>, key: string, value: string): void {
 export function baseName(path: string): string {
   const slash = path.lastIndexOf("/");
   return slash === -1 ? path : path.slice(slash + 1);
-}
-
-export function attachmentKind(path: string): "image" | "book" | "audio" | "video" | "other" {
-  const ext = extensionOf(path).replace(/^\./, "").toLowerCase();
-  if (["png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "bmp", "ico", "tif", "tiff"].includes(ext)) return "image";
-  if (ext === "pdf" || ext === "epub") return "book";
-  if (["mp3", "m4a", "wav", "ogg", "oga", "opus", "flac"].includes(ext)) return "audio";
-  if (["mp4", "webm", "mov", "mkv", "m4v"].includes(ext)) return "video";
-  return "other";
-}
-
-export function contentTypeFor(path: string): string {
-  return ATTACHMENT_TYPES[extensionOf(path).replace(/^\./, "").toLowerCase()] ?? "application/octet-stream";
-}
-
-/** Folders first, then notes, then attachments, alpha within each — the order
- *  shared/types.ts promises about `TreeNode.children`. */
-function sortTree(node: TreeNode): void {
-  if (!node.children) return;
-  node.children.sort((a, b) => {
-    const rank = (n: TreeNode): number => (n.type === "folder" ? 0 : n.attachment ? 2 : 1);
-    return rank(a) - rank(b) || a.name.localeCompare(b.name);
-  });
-  for (const child of node.children) sortTree(child);
 }
 
 function deckMeta(deck: Deck, stars: DeckCard[], implicit: boolean, today: string): DeckMeta {

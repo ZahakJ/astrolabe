@@ -35,7 +35,16 @@ import {
   stripMarkdown,
 } from "../shared/prose.ts";
 import { numeralSystem, toNumerals } from "../shared/numerals.ts";
-import { drawingSvgPath, isDrawingPath, isNotePath, isTexPath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
+import {
+  drawingSvgPath,
+  isDrawingPath,
+  isNotePath,
+  isTexPath,
+  noteCandidates,
+  noteTitleOf,
+  stripNoteExt,
+  noteLabelOf,
+} from "../shared/noteFormat.ts";
 import { drawingIndexText } from "../shared/drawing.ts";
 import { markdownAnchors, type NoteAnchor } from "../shared/anchors.ts";
 import { uncomment } from "../shared/yaml.ts";
@@ -52,6 +61,7 @@ import {
   pickShortest,
   scalarProps,
   splitFrontmatter,
+  bannerOf,
   wikilinkRegex,
 } from "../shared/noteParse.ts";
 export { wikilinkRegex };
@@ -64,7 +74,7 @@ import { facesDiffer, faceLang, readerFace, twinSwapKey, type TwinSides } from "
 import { scanTrackers, type Tracker } from "../shared/tracker.ts";
 import { scanRoutines, type RoutineBlock } from "../shared/routine.ts";
 import { scanTasks, type Task } from "../shared/tasks.ts";
-import { scanCards, type Card } from "../shared/flashcards.ts";
+import { scanCards, type Card } from "../shared/cards.ts";
 import { DEFAULT_NEW_PER_DAY, DEFAULT_STEPS, EVERYTHING_ELSE, deckOf, deckCardsOf, type Deck, type DeckMeta, type DeckCard } from "../shared/decks.ts";
 import { isDue } from "../shared/srs.ts";
 import { readTexNote } from "./texNote.ts";
@@ -75,6 +85,8 @@ import { dailyFolder, getSettings, hadithFolder, settingsAssetPaths, tagsFolder,
 import { collectionLabel, hadithKeyOfFrontmatter, splitHadith } from "../shared/hadithRefs.ts";
 import type { HadithHit } from "../shared/types.ts";
 import { listFolderFiles, listVaultFiles, onEvent, readNote, safeAbs } from "./vault.ts";
+import { isHeadingLine } from "../shared/headings.ts";
+import { isImagePath } from "../shared/attachments.ts";
 
 interface NoteRecord {
   path: string;
@@ -142,7 +154,7 @@ interface NoteRecord {
   routines: RoutineBlock[];
   /** Every task line in this note (shared/tasks.ts), full-source lines. */
   tasks: Task[];
-  /** Every flashcard this note already holds (shared/flashcards.ts). */
+  /** Every card this note already holds (shared/cards.ts). */
   cards: Card[];
   /** The note as a deck when it carries a ```deck fence
    *  (shared/decks.ts) — its stars are `cards` with the fence's
@@ -992,7 +1004,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
-    banner: typeof fm.banner === "string" && fm.banner.trim() ? fm.banner.trim() : null,
+    banner: bannerOf(fm),
     dateMs:
       parseFmDate(fm.date) ??
       parseFmDate(fm.created) ??
@@ -1065,18 +1077,19 @@ interface NoteParts {
 
 function markdownParts(relPath: string, content: string): NoteParts {
   const { body, frontmatter, bodyStartLine } = splitFrontmatter(content);
+  const fm = readFrontmatter(content);
   return {
     body,
     bodyStartLine,
     frontmatter,
     tagSource: body,
-    fm: readFrontmatter(content),
+    fm,
     links: parseLinks(body),
     xrefs: [],
     assets: parseAssets(body, relPath),
     prose: null,
     anchors: markdownAnchors(content),
-    citekeys: citekeyOf(readFrontmatter(content)),
+    citekeys: citekeyOf(fm),
     firstParagraph: null,
   };
 }
@@ -1328,7 +1341,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     mtimeMs: stat.mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
-    banner: typeof fm.banner === "string" && fm.banner.trim() ? fm.banner.trim() : null,
+    banner: bannerOf(fm),
     dateMs:
       parseFmDate(fm.date) ??
       parseFmDate(fm.created) ??
@@ -2193,14 +2206,6 @@ function templateMatcher(): (relPath: string) => boolean {
   return (relPath) => relPath === folder || relPath.startsWith(prefix);
 }
 
-/** Note paths inside the templates folder, sorted — the picker's list. */
-export function templateNotes(): string[] {
-  const folder = templatesFolder();
-  if (folder === null) return [];
-  const prefix = `${folder}/`;
-  return [...notes.keys()].filter((p) => p.startsWith(prefix)).sort((a, b) => a.localeCompare(b));
-}
-
 // ------------------------------------------------------------------- publish
 
 /** Attachment paths embedded/linked by published notes — recomputed on demand
@@ -2550,11 +2555,9 @@ export function publishedCounts(): { notes: number; total: number } {
 
 // --------------------------------------------------------------- attachments
 
-const IMAGE_EXT_RE = /\.(png|jpe?g|webp|gif|svg|avif|bmp|ico)$/i;
-
 /** All indexed image attachments, sorted — the admin banner picker's list. */
 export function listImageAttachments(): string[] {
-  return [...attachmentPaths].filter((p) => IMAGE_EXT_RE.test(p)).sort((a, b) => a.localeCompare(b));
+  return [...attachmentPaths].filter((p) => isImagePath(p)).sort((a, b) => a.localeCompare(b));
 }
 
 /** Every attachment NO note points at — the complement of `attachmentRefs()`
@@ -2620,7 +2623,9 @@ export function registerAttachment(relPath: string): void {
 /** A note's display title (sanitized, as every other surface shows it), or
  *  its basename when the note is not indexed. */
 export function noteTitle(relPath: string): string {
-  return notes.get(relPath)?.title ?? path.posix.basename(relPath, ".md");
+  // Not indexed: the FILE surfaces' name (shared/noteFormat.ts noteLabelOf) —
+  // `.md` off, `.tex` and `.latex` kept, as the tree shows it.
+  return notes.get(relPath)?.title ?? noteLabelOf(relPath);
 }
 
 // --------------------------------------------------------------------- posts
@@ -2660,7 +2665,7 @@ function firstParagraph(body: string): string {
   for (const raw of body.split("\n")) {
     const boundary =
       fences.skip(raw) ||
-      /^\s{0,3}#{1,6}\s+/.test(raw) ||
+      isHeadingLine(raw) ||
       /^\s*\|/.test(raw) ||
       !raw.trim() ||
       isFurnitureLine(raw);
@@ -3342,12 +3347,6 @@ export function routines(): RoutineMeta[] {
   return out.sort((a, b) => b.updatedMs - a.updatedMs || a.path.localeCompare(b.path) || a.index - b.index);
 }
 
-/** True when this note is a published static page — the designed shell's
- *  router asks before choosing the page layout over the article layout. */
-export function isStaticPage(relPath: string): boolean {
-  return notes.get(relPath)?.page === true;
-}
-
 /** How a caller lets the operator layer speak the reader's own vocabulary.
  *  `tag:برمجيات` has to reach `#software` for the same reason `/topic/برمجيات`
  *  does — a reader copies the word off the chip in front of them — and the
@@ -3574,7 +3573,7 @@ export function tasks(): TaskMeta[] {
 
 /** Every flashcard in the vault OUTSIDE a deck note, in note
  *  order, newest-touched note first; templates skipped as everywhere. The
- *  implicit "Everything else" deck and the Review page's alias
+ *  implicit "Everything else" deck and the Orbits shelf's alias
  *  read this; a deck's stars are its own (deckCards). */
 export function cards(): CardMeta[] {
   const out: CardMeta[] = [];

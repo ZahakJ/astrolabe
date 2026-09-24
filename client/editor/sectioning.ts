@@ -37,8 +37,7 @@ import { openSectionMenu } from "../sectionMenu.ts";
 import { toast } from "../toast.ts";
 import { notePathFacet } from "./livePreview.ts";
 import { posFromEvent } from "./pointer.ts";
-
-const HEADING_LINE_RE = /^\s{0,3}#{1,6}\s/;
+import { isHeadingLine } from "../../shared/headings.ts";
 
 /** Live editor views by note path — the outline panel's door into the editor,
  *  and what makes "the open buffer is the source of truth" enforceable rather
@@ -299,7 +298,7 @@ function buildButtons(view: EditorView): DecorationSet {
       pos = line.to + 1;
       if (seen.has(line.from)) continue;
       seen.add(line.from);
-      if (!HEADING_LINE_RE.test(line.text)) continue;
+      if (!isHeadingLine(line.text)) continue;
       decos.push(
         // side -2: ahead of folding.ts's chevron at the same position, so the
         // two never swap places as decorations are rebuilt.
@@ -413,7 +412,7 @@ export function sectioning(): Extension {
         const pos = posFromEvent(event, view);
         if (pos === null) return false;
         const line = view.state.doc.lineAt(pos);
-        if (!HEADING_LINE_RE.test(line.text)) return false;
+        if (!isHeadingLine(line.text)) return false;
         event.preventDefault();
         // Shift+F10 and the Menu key raise `contextmenu` with `button: 0`; a
         // right-click reports 2. Only the keyboard one takes focus.

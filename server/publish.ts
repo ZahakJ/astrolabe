@@ -6,12 +6,18 @@ import matter from "gray-matter";
 // phone edits the same YAML and cannot import a server module); re-exported
 // here, which is where the product has always asked for it.
 import { yamlQuote } from "../shared/yaml.ts";
+import { splitFrontmatter } from "../shared/noteParse.ts";
 export { yamlQuote };
 
-/** Read frontmatter data without touching the body. Tolerates bad YAML. */
+/** Read frontmatter data without touching the body. Tolerates bad YAML.
+ *  WHICH block is the frontmatter is shared/noteParse.ts's one lenient rule
+ *  (a `...` closer included, which gray-matter alone threw on); gray-matter
+ *  only parses the YAML inside it. */
 export function readFrontmatter(src: string): Record<string, unknown> {
+  const { frontmatter, bodyStartLine } = splitFrontmatter(src);
+  if (bodyStartLine === 0 || frontmatter.trim() === "") return {};
   try {
-    return (matter(src).data as Record<string, unknown>) ?? {};
+    return (matter(`---\n${frontmatter}\n---\n`).data as Record<string, unknown>) ?? {};
   } catch {
     return {};
   }

@@ -1327,7 +1327,7 @@ const AUDIENCES = [
   // else — no blog chunk changed: 1149.5 → 1156.8. Budget 1151 → 1157.
   // 3.28: the entry's +13.8 kB (Feeds' and the import wizard's dictionary,
   // above) and nothing else: 1149.5 → 1163.3. Budget 1151 → 1164.
-{ name: "anonymous blog reader", keys: blog, budget: 1171 * 1024 },
+{ name: "anonymous blog reader", keys: blog, budget: 1172 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1600,7 +1600,11 @@ const AUDIENCES = [
   // and +0.8 in the shell: the Feeds door beside the calendar and its ⋯ row,
   // the tab title, the palette's two rows, the folder menu's "Import notes
   // here…", App's lazy ImportDialog boundary. Budget 1108 → 1122.
-  { name: "admin first paint", keys: app, budget: 1130 * 1024 },
+  // 3.29.1 THE SWEEP, MERGED OVER 3.29.0: the anchor fix's shared headings chunk
+// (+2.9 kB, the paragraph below) lands on top of the summed 1129.2 → 1132.0;
+// the blog reader +0.8 for the same reason: 1170.7 → 1171.5. Budgets =
+// actual, rounded up.
+  { name: "admin first paint", keys: app, budget: 1133 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy

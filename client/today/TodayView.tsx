@@ -106,7 +106,7 @@ function SigilItem({ row, onToggle }: { row: SigilTaskRow; onToggle: (row: Sigil
     return (
       <li className="s-today__row">
         <span className="s-today__glyph" aria-hidden="true">{meta.plan.emoji ?? "·"}</span>
-        <button type="button" className="s-today__link" onClick={() => setView("routines")}>
+        <button type="button" className="s-today__link" onClick={() => setView("sigils")}>
           <bdi dir="auto">{label}</bdi>
         </button>
         <bdi className="s-today__meta" dir="auto">{meta.plan.title}</bdi>

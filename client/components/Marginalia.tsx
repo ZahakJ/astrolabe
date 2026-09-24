@@ -297,6 +297,7 @@ export default function Marginalia({ path }: { path: string }) {
           type="text"
           className="s-marginalia__web"
           name="website"
+          // not copy: no reader ever sees this field, only bots do
           placeholder="Website"
           tabIndex={-1}
           autoComplete="off"

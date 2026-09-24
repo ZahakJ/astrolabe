@@ -93,11 +93,15 @@
   line-height: 1;
 }
 
-/* A glyph that points left says "previous" only in a script that reads
-   leftward-is-back. The DOM order already puts the previous button at the
-   inline start; the glyph is flipped so it points the way it goes. */
-[dir="rtl"] .s-calpage__chev {
+/* The previous button sits at the inline start; its ‹ is pinned
+   left-to-right and flipped under RTL so it points the way it goes, one
+   mirror whatever the font (calendar.css says why). */
+.s-calpage__chev {
   display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+[dir="rtl"] .s-calpage__chev {
   transform: scaleX(-1);
 }
 

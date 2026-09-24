@@ -29,7 +29,6 @@
 // `isThemeChoice()` instead.
 
 import { stripBidiControls } from "./bidi.ts";
-import { checkTheme, type ContrastCheck } from "./contrast.ts";
 import { isTheme, themeGroup, type Theme, type ThemeGroup } from "./themes.ts";
 
 export const CUSTOM_THEME_PREFIX = "custom:";
@@ -319,18 +318,6 @@ export function slugifyThemeName(name: string): string {
   return slug === "" ? "theme" : slug;
 }
 
-/** The resolved group of any theme choice — built-in from the shipped table,
- *  custom from its own declaration (falling back to its base). */
-export function themeChoiceGroup(
-  choice: string,
-  themes: readonly CustomTheme[],
-): ThemeGroup {
-  if (isTheme(choice)) return themeGroup(choice);
-  const custom = findCustomTheme(choice, themes);
-  if (!custom) return "dark";
-  return custom.group;
-}
-
 /** The BUILT-IN a choice paints with: itself, or a custom theme's base. Used
  *  by everything that must hand `<html data-theme>` a real block — and by the
  *  swatch machinery, which is keyed on built-in ids. */
@@ -462,20 +449,3 @@ export function customThemesSignature(themes: readonly CustomTheme[]): string {
   return `${themes.length}-${(hash >>> 0).toString(36)}`;
 }
 
-// ── Contrast, resolved ──────────────────────────────────────────────────────
-
-/**
- * The gate's verdict on a custom theme — which needs the BASE's values for
- * every token the author did not override, or a theme that only touched
- * `--accent` would report nothing about the ground it has to be legible on.
- *
- * `baseTokens` is the base theme's resolved token map; the client reads it off
- * the live document (`getComputedStyle` against a probe element carrying
- * `data-theme`), which is the only source that cannot drift from tokens.css.
- */
-export function checkCustomTheme(
-  theme: Pick<CustomTheme, "tokens">,
-  baseTokens: Record<string, string>,
-): ContrastCheck[] {
-  return checkTheme({ ...baseTokens, ...theme.tokens });
-}

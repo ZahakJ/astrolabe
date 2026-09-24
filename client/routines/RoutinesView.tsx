@@ -1,6 +1,6 @@
 // THE SIGILS PAGE. Every ```sigil in the vault, as today's checklists.
 //
-// A workspace TAB like the Media page (`ROUTINES_TAB` in client/workspace.ts)
+// A workspace TAB like the Media page (`SIGILS_TAB` in client/workspace.ts)
 // and a lazy chunk with its own stylesheet. It is a second drawing of the
 // card the note already draws — the same renderer (client/reading/routine.ts)
 // mounted into React, one card per plan — plus a form that writes a new

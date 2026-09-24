@@ -1,7 +1,5 @@
 // Wikilink parsing + resolution against the vault tree held in the zustand store.
 
-import { stripAlignMarker } from "../../shared/blockAlign.ts";
-import { closesFence, fenceOpener, sourceLines, type Fence } from "../../shared/fences.ts";
 import type { AliasEntry, TreeNode } from "../../shared/types.ts";
 import { isNotePath, noteCandidates, stripNoteExt } from "../../shared/noteFormat.ts";
 
@@ -189,50 +187,9 @@ export function resolveLink(target: string, tree: TreeNode | null): string | nul
   return aliasPaths.get(name) ?? null;
 }
 
-/** All ATX heading texts in a note, in order, skipping fenced code. The fence
- *  scan is `shared/fences.ts` — the same one the outline and the anchor table
- *  read, because a heading this file cannot see is a `[[Note#Heading]]` the
- *  autocomplete will not offer, and one it sees inside a code block is one it
- *  offers and the reading view never lands on. */
-export function extractHeadings(content: string): string[] {
-  const out: string[] = [];
-  let fence: Fence | null = null;
-  for (const line of sourceLines(content)) {
-    if (fence) {
-      if (closesFence(line, fence)) fence = null;
-      continue;
-    }
-    const opened = fenceOpener(line);
-    if (opened) {
-      fence = opened;
-      continue;
-    }
-    const m = /^\s{0,3}#{1,6}\s+(.+?)\s*$/.exec(line);
-    // `# Title {.center}` is titled "Title" (shared/blockAlign.ts).
-    if (m) out.push(stripAlignMarker(m[1]));
-  }
-  return out;
-}
-
-/** 1-based line number of the heading whose text matches (case-insensitive). */
-export function findHeadingLine(content: string, heading: string): number | null {
-  const want = heading.trim().toLowerCase();
-  if (!want) return null;
-  let fence: Fence | null = null;
-  let n = 0;
-  for (const line of sourceLines(content)) {
-    n++;
-    if (fence) {
-      if (closesFence(line, fence)) fence = null;
-      continue;
-    }
-    const opened = fenceOpener(line);
-    if (opened) {
-      fence = opened;
-      continue;
-    }
-    const m = /^\s{0,3}#{1,6}\s+(.+?)\s*$/.exec(line);
-    if (m && m[1].trim().toLowerCase() === want) return n;
-  }
-  return null;
-}
+// The heading jump (`findHeadingLine`) lives in shared/headings.ts beside the
+// rule it applies, and the `[[Note#` offers are the anchor table's
+// (shared/anchors.ts, via autocomplete.ts). Not here: this module
+// is in the entry chunk (every surface resolves links), and a function here is
+// emitted there with everything it imports — the heading rule, the furigana
+// strip and the alignment marker — for the editor's sake alone.

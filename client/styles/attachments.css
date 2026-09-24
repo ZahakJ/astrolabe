@@ -373,7 +373,7 @@
 
 /* Phones: the round-trip buttons move inside the frame and the caption wraps
    its name rather than pushing the actions off screen. */
-@media (max-width: 720px) {
+@media (max-width: 700px) {
   .s-att-view__nav--prev {
     inset-inline-start: 4px;
   }

@@ -98,6 +98,3 @@ export function folderMetaOf(fm: Record<string, unknown>): FolderMeta {
   return out;
 }
 
-export function hasFolderMeta(meta: FolderMeta | null | undefined): meta is FolderMeta {
-  return !!meta && Object.keys(meta).length > 0;
-}

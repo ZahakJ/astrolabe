@@ -26,6 +26,7 @@ import { usePhone } from "../context.ts";
 import { IconDots, IconPencil, IconReader } from "../icons.tsx";
 import { ACTION_SHEET, NOTE_SHEET } from "../sheetIds.ts";
 import TopBar from "../TopBar.tsx";
+import { isHeadingLine } from "../../../shared/headings.ts";
 
 const AccessoryBar = lazySurface(() => import("../AccessoryBar.tsx"));
 
@@ -34,7 +35,6 @@ const AccessoryBar = lazySurface(() => import("../AccessoryBar.tsx"));
 const HIDE_AFTER_PX = 24;
 /** Held this long on a heading, a press is the heading's menu. */
 const HOLD_MS = 420;
-const HEADING_LINE = /^\s{0,3}#{1,6}\s/;
 
 /** The element that scrolls inside a surface: CodeMirror's scroller or the
  *  reading view's own column. */
@@ -130,7 +130,7 @@ export default function NoteScreen({ path, onBack }: { path: string; onBack: () 
     const onDown = (e: PointerEvent): void => {
       const line = e.target instanceof Element ? e.target.closest(".cm-line") : null;
       const heading = editing ? null : readingHeading(e.target);
-      if (editing ? !line || !HEADING_LINE.test(line.textContent ?? "") : !heading) return;
+      if (editing ? !line || !isHeadingLine(line.textContent ?? "") : !heading) return;
       start = { x: e.clientX, y: e.clientY };
       const { clientX: x, clientY: y } = e;
       timer = window.setTimeout(() => {

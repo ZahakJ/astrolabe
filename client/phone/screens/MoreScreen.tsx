@@ -15,7 +15,7 @@ import { useStore } from "../../state.ts";
 import { choiceLabel } from "../../themes.ts";
 import { openTour } from "../../tour.ts";
 import { inAndroidShell, returnToShell } from "../../androidShell.ts";
-import { FEEDS_TAB, GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, REVIEW_WEEK_TAB, ROUTINES_TAB, TIMELINE_TAB } from "../../workspace.ts";
+import { FEEDS_TAB, GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, REVIEW_WEEK_TAB, SIGILS_TAB, TIMELINE_TAB } from "../../workspace.ts";
 import { usePhone } from "../context.ts";
 import { IconChevron } from "../icons.tsx";
 import TopBar from "../TopBar.tsx";
@@ -68,7 +68,7 @@ export default function MoreScreen() {
       <div className="s-ph-scroll">
         <Group title={t("phRooms")}>
           {admin && <Item label={t("orbits")} onClick={surface(ORBITS_TAB)} />}
-          {admin && <Item label={t("routines")} onClick={surface(ROUTINES_TAB)} />}
+          {admin && <Item label={t("routines")} onClick={surface(SIGILS_TAB)} />}
           <Item label={t("bookLibrary")} onClick={surface("~library")} />
           {admin && <Item label={t("media")} onClick={surface(MEDIA_TAB)} />}
           {admin && <Item label={t("reviewWeek")} onClick={surface(REVIEW_WEEK_TAB)} />}

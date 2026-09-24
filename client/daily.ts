@@ -43,6 +43,7 @@ import { useStore } from "./state.ts";
 import { applyDefaultTemplate } from "./templateActions.ts";
 import { templateSettings } from "./templates.ts";
 import { toast } from "./toast.ts";
+import { localIsoDay } from "../shared/dates.ts";
 
 export type { PeriodKind } from "../shared/periodic.ts";
 
@@ -172,7 +173,7 @@ export function dailyNotesByDay(tree: Parameters<typeof collectNotes>[0]): Map<s
 }
 
 function isoOf(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return localIsoDay(d);
 }
 
 /** What a periodic note's PERIOD is called on screen, in the site's

@@ -33,6 +33,7 @@ import {
   validateChrome,
   type DesignChrome,
 } from "./designChrome.ts";
+import { isImagePath } from "./fileKinds.ts";
 export type { DesignChrome } from "./designChrome.ts";
 
 /** The schema THIS build authors and renders.
@@ -479,7 +480,6 @@ function oneOf<T extends string>(
  *  `<img src>` on every visitor's homepage. `http:`, `data:` and `javascript:`
  *  are named rejections rather than falling through to path normalization,
  *  which would mangle a URL into a broken vault path and hide the mistake. */
-const IMAGE_EXT = /\.(ico|png|svg|jpe?g|gif|webp|avif)$/i;
 function imageRef(value: unknown, path: string): string | null {
   if (value === undefined || value === null || value === "") return null;
   const raw = text(value, path, URL_MAX);
@@ -492,8 +492,8 @@ function imageRef(value: unknown, path: string): string | null {
   if (rel === "" || rel.split("/").some((seg) => seg === "." || seg === "..")) {
     throw new DesignError(path, "is not a valid vault path");
   }
-  if (!IMAGE_EXT.test(rel)) {
-    throw new DesignError(path, "must be an image (ico, png, svg, jpeg, gif, webp, avif)");
+  if (!isImagePath(rel)) {
+    throw new DesignError(path, "must be an image (ico, png, svg, jpeg, gif, webp, avif, bmp)");
   }
   return rel;
 }

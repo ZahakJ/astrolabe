@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { scanCards, writeSchedule } from "../shared/flashcards.ts";
+import { scanCards, writeSchedule } from "../shared/cards.ts";
 import { formatSrComment, isDue, parseSrComment, review } from "../shared/srs.ts";
 
 describe("SM-2", () => {

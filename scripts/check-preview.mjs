@@ -40,8 +40,8 @@ const PORT = process.env.PORT || "6801";
 // 127.0.0.1, not localhost: Node resolves localhost to ::1 first and the
 // server binds 0.0.0.0 — the friendlier hostname fails against a healthy
 // instance. Same note check-design carries.
-const BASE = (process.env.ASTROLABE_URL ?? process.env.VELLUM_URL) || `http://127.0.0.1:${PORT}`;
-const PASSWORD = (process.env.ASTROLABE_PASSWORD ?? process.env.VELLUM_PASSWORD) || "";
+const BASE = process.env.ASTROLABE_URL || `http://127.0.0.1:${PORT}`;
+const PASSWORD = process.env.ASTROLABE_PASSWORD || "";
 const SHOTS = process.env.SHOT_DIR || null;
 
 let failures = 0;

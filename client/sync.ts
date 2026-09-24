@@ -77,11 +77,6 @@ export function syncSnapshot(): GitSyncStatus | null {
   return status;
 }
 
-/** True while a sync this client asked for has not answered yet. */
-export function syncPending(): boolean {
-  return pending;
-}
-
 /** True when a sync is running anywhere (this client, another tab, the timer). */
 export function syncBusy(): boolean {
   return pending || status?.busy === true;

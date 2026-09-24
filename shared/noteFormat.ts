@@ -36,10 +36,6 @@ export function drawingSvgPath(rel: string): string {
   return `${rel.replace(/\.md$/i, "")}.svg`;
 }
 
-/** The LaTeX half of the list — the same two names TeXShop, Overleaf and
- *  `latexmk` accept for a source file. */
-export const LATEX_EXTENSIONS = [".tex", ".latex"] as const;
-
 /** The note extension a path carries (lowercase, dot included), or "" when the
  *  path is not a note at all. `.latex` is tested before `.tex` would matter —
  *  they are distinct suffixes, so no ordering trap here, but the longest match
@@ -103,6 +99,20 @@ export function noteTitleOf(rel: string): string {
 export function noteLabelOf(rel: string): string {
   const base = rel.slice(rel.lastIndexOf("/") + 1);
   return noteExtOf(base) === ".md" ? stripNoteExt(base) : base;
+}
+
+/** A typed name → a note path. An extension the reader supplied is KEPT —
+ *  typing "Paper.tex" must create a LaTeX note, not "Paper.tex.md" — and
+ *  anything else gets `.md`, which is what "new note" has always meant. The
+ *  tree's rename and the palette's new/rename rows both ask this (they kept
+ *  a copy each). */
+export function ensureMd(name: string): string {
+  return isNotePath(name) ? name : `${name}.md`;
+}
+
+/** The same, defaulting to LaTeX: the "New LaTeX note" command's ending. */
+export function ensureTex(name: string): string {
+  return isNotePath(name) ? name : `${name}.tex`;
 }
 
 /** The candidate vault paths a bare wikilink target could name, in resolution

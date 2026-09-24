@@ -37,6 +37,7 @@ import { dailyFolder, getSettings } from "./settings.ts";
 import { dataDir, siteLanguage, siteName } from "./site.ts";
 import { invalidateTree } from "./treeCache.ts";
 import { emitEvent, noteExists, readNote, suppressWatcherEcho, VaultError, writeNote } from "./vault.ts";
+import { localIsoDay } from "../shared/dates.ts";
 
 // ── The token ───────────────────────────────────────────────────────────────
 
@@ -127,8 +128,7 @@ function serial<T>(work: () => Promise<T>): Promise<T> {
 /** `YYYY-MM-DD` and `HH:MM` on the server's own clock. The client passes its
  *  own when it has one (the sheet); a phone's share sheet does not. */
 function localDate(now = new Date()): string {
-  const p = (n: number): string => String(n).padStart(2, "0");
-  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+  return localIsoDay(now);
 }
 function localTime(now = new Date()): string {
   const p = (n: number): string => String(n).padStart(2, "0");

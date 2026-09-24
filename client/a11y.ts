@@ -59,15 +59,6 @@ export function scrollBehavior(): ScrollBehavior {
   return prefersReducedMotion() ? "auto" : "smooth";
 }
 
-/** Subscribe to motion-preference changes (returns an unsubscribe). */
-export function onMotionPreferenceChange(fn: (reduced: boolean) => void): () => void {
-  if (typeof matchMedia !== "function") return () => {};
-  const mq = matchMedia("(prefers-reduced-motion: reduce)");
-  const handler = (e: MediaQueryListEvent): void => fn(e.matches);
-  mq.addEventListener("change", handler);
-  return () => mq.removeEventListener("change", handler);
-}
-
 // ---------------------------------------------------------------------------
 // Focus claims.
 //

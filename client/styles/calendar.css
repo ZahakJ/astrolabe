@@ -46,12 +46,18 @@
   background: var(--bg-hover);
 }
 
-/* The chevrons are glyphs, and a glyph that points left says "previous"
+/* The chevrons are ‹ and ›, and a glyph that points left says "previous"
    only in a script that reads leftward-is-back. Under RTL the DOM order
    already puts the previous button at the inline start (the right); the
-   glyph is flipped so it points the way it goes. */
-[dir="rtl"] .s-cal__chev {
+   glyph is flipped so it points the way it goes — and pinned left-to-right
+   first, because whether the browser mirrors a Bidi_Mirrored glyph itself
+   depends on the font it comes from (see orbits.css, .s-session__chev). */
+.s-cal__chev {
   display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+[dir="rtl"] .s-cal__chev {
   transform: scaleX(-1);
 }
 
@@ -209,25 +215,10 @@
     min-block-size: 44px;
   }
 
-  /* THE SIDEBAR'S MONTH, WHICH THE RULE ABOVE COULD NOT REACH. Its own cap
-     (`.s-calsec .s-cal__day`, two classes) outranked the one-class coarse
-     rule, so every day in the drawer stayed 36px — the smallest grid of
-     targets in the product, seven across. Raising the cap is not enough on
-     its own: at a 320px drawer with 12px of side padding and a 1px cell
-     inset a column is 40px wide however tall the button is allowed to be.
-     So the shelf's own padding comes in to 4px and the cell's inset goes,
-     which buys 44.5px a column — the month is the width it always was, the
-     day is a target. */
-  .s-calsec {
-    padding-inline: 4px;
-  }
-
+  /* The cell's 1px inset goes on a finger: a month seven across needs every
+     pixel of its column for a 44px day. */
   .s-cal__cell {
     padding: 0;
-  }
-
-  .s-calsec .s-cal__day {
-    max-block-size: 44px;
   }
 }
 

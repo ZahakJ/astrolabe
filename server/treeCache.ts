@@ -90,7 +90,3 @@ export async function treeBody(): Promise<EncodedBody> {
   return result.body;
 }
 
-/** Diagnostics for the perf harness. */
-export function treeCacheStats(): { hits: number; misses: number; warm: boolean } {
-  return { hits, misses, warm: cached !== null };
-}

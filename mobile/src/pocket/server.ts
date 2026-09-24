@@ -46,7 +46,9 @@ import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpa
 import { toggleTaskLine } from "../../../shared/tasks.ts";
 import { restoreCardSchedule, writeCardSchedule } from "../../../shared/decks.ts";
 import { review, type Grade, type Schedule } from "../../../shared/srs.ts";
-import { PocketIndex, contentTypeFor, isNote } from "./index.ts";
+import { PocketIndex, isNote } from "./index.ts";
+import { contentTypeFor, isImagePath } from "../../../shared/attachments.ts";
+import { parseByteRange } from "../../../shared/byteRange.ts";
 import {
   appendBullet,
   isVoiceDate,
@@ -60,6 +62,7 @@ import {
   VOICE_MAX_BYTES,
   type VoiceJob,
 } from "../../../shared/voice.ts";
+import { localIsoDay } from "../../../shared/dates.ts";
 
 // ── what a request and an answer are ────────────────────────────────────────
 
@@ -860,7 +863,7 @@ export function createPocketServer(deps: PocketDeps): {
       case "GET /api/twins":
         return json({ pairs: [], swap: {} });
       case "GET /api/attachments":
-        return json([...index.assets.keys()].filter((p) => contentTypeFor(p).startsWith("image/")));
+        return json([...index.assets.keys()].filter((p) => isImagePath(p)).sort((a, b) => a.localeCompare(b)));
       case "GET /api/attachments/unused": {
         const referenced = new Set<string>();
         for (const record of index.notes.values()) {
@@ -1191,30 +1194,16 @@ function serveBytes(bytes: Uint8Array, type: string, range: string | undefined):
   // origin they would otherwise be same-origin script. The server sandboxes
   // them and so does this.
   if (/^(image\/svg|application\/pdf|text\/html)/.test(type)) headers["Content-Security-Policy"] = "sandbox";
-  if (!range || !/^bytes=/.test(range)) {
-    return { status: 200, headers: { ...headers, "Content-Length": String(bytes.byteLength) }, body: bytes };
-  }
-  const spec = /^bytes=(\d*)-(\d*)$/.exec(range.trim());
-  if (!spec) {
-    return { status: 416, headers: { ...headers, "Content-Range": `bytes */${bytes.byteLength}` }, body: null };
-  }
+  // shared/byteRange.ts — the server's /api/file asks the same parser.
   const size = bytes.byteLength;
-  let start: number;
-  let end: number;
-  if (spec[1] === "") {
-    const suffix = Number(spec[2]);
-    if (!Number.isFinite(suffix) || suffix <= 0) {
-      return { status: 416, headers: { ...headers, "Content-Range": `bytes */${size}` }, body: null };
-    }
-    start = Math.max(0, size - suffix);
-    end = size - 1;
-  } else {
-    start = Number(spec[1]);
-    end = spec[2] === "" ? size - 1 : Math.min(Number(spec[2]), size - 1);
+  const asked = parseByteRange(range, size);
+  if (asked === null) {
+    return { status: 200, headers: { ...headers, "Content-Length": String(size) }, body: bytes };
   }
-  if (!(start >= 0 && start <= end && end < size)) {
+  if (asked === "unsatisfiable") {
     return { status: 416, headers: { ...headers, "Content-Range": `bytes */${size}` }, body: null };
   }
+  const { start, end } = asked;
   return {
     status: 206,
     headers: {
@@ -1229,9 +1218,7 @@ function serveBytes(bytes: Uint8Array, type: string, range: string | undefined):
 /** The LOCAL day, in Western digits — a note's date is the writer's calendar
  *  day, and `toISOString` is the wrong one for anyone past their midnight. */
 export function isoToday(ms: number): string {
-  const at = new Date(ms);
-  const pad = (n: number): string => String(n).padStart(2, "0");
-  return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
+  return localIsoDay(ms);
 }
 
 /** The shell's own version, stamped in at build time (mobile/vite.config.ts,

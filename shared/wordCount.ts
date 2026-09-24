@@ -21,6 +21,9 @@
 //     markdown furniture are not writing, and a reading time computed over them
 //     is a reading time for a document nobody reads.
 
+import { FRONTMATTER_RE } from "./noteParse.ts";
+import { stripIgnorables } from "./fold.ts";
+
 /** Words per minute for the reading-time estimate. The number the blog has
  *  always used; kept here so the two callers cannot pick different ones. */
 export const WORDS_PER_MINUTE = 200;
@@ -36,7 +39,7 @@ export function noteProse(source: string): string {
   let text = source;
   // Frontmatter: markdown's `---` block, and the `%--- … %---%` comment block a
   // `.tex` note carries so that it still compiles under pdflatex.
-  text = text.replace(/^---\r?\n[\s\S]*?\r?\n(?:---|\.\.\.)(?:\r?\n|$)/, "");
+  text = text.replace(FRONTMATTER_RE, "");
   text = text.replace(/^%---\r?\n[\s\S]*?\r?\n%---%(?:\r?\n|$)/, "");
   // Fenced code, tracked LINE BY LINE rather than by regex. A `[\s\S]*?` between
   // two fence markers looks right and is not: under the `m` flag `$` matches an
@@ -114,14 +117,14 @@ function wordSegmenter(locale: string): Intl.Segmenter | null {
  *  a tatweel a copy-paste left behind) can read as a "word" to either, and
  *  a pointed word and its bare spelling must never count differently — the
  *  same word is the same word whether or not the writer vowelled it. So the
- *  marks are folded out before anything is counted, the way the search fold
- *  (shared/fold.ts) drops them before anything is matched. */
-const ARABIC_MARKS_RE = /[ـً-ٰٟۖ-ۭ]/g;
+ *  marks are folded out before anything is counted — by the search fold's own
+ *  ignorable set (shared/fold.ts `stripIgnorables`), so the count and the
+ *  search agree about what a mark is. */
 
 /** Words in ALREADY-PLAIN text. `locale` only tunes the segmentation; the
  *  result is not language-specific enough to be worth threading further. */
 export function countWords(plain: string, locale = "en"): number {
-  const text = plain.replace(ARABIC_MARKS_RE, "").trim();
+  const text = stripIgnorables(plain).trim();
   if (text === "") return 0;
   const seg = wordSegmenter(locale);
   if (seg === null) {
