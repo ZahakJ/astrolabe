@@ -12,22 +12,26 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Times-Italic >>
 endobj
 5 0 obj
-<< /Length 118 >>
+<< /Length 126 >>
 stream
-BT /F1 24 Tf 72 160 Td (A vellum sample PDF) Tj ET
-BT /F1 12 Tf 72 130 Td (Embedded with ![[vellum-sample.pdf]]) Tj ET
+BT /F1 24 Tf 72 160 Td (An Astrolabe sample PDF) Tj ET
+BT /F1 12 Tf 72 130 Td (Embedded with ![[astrolabe-sample.pdf]]) Tj ET
 endstream
 endobj
+6 0 obj
+<< /Title (An Astrolabe sample PDF) /Producer (Astrolabe) >>
+endobj
 xref
-0 6
+0 7
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
 0000000115 00000 n 
 0000000241 00000 n 
 0000000314 00000 n 
+0000000490 00000 n 
 trailer
-<< /Size 6 /Root 1 0 R >>
+<< /Size 7 /Root 1 0 R /Info 6 0 R >>
 startxref
-483
+566
 %%EOF

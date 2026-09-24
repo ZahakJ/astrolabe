@@ -46,14 +46,11 @@
   background: var(--bg-hover);
 }
 
-/* The chevrons are glyphs, and a glyph that points left says "previous"
-   only in a script that reads leftward-is-back. Under RTL the DOM order
-   already puts the previous button at the inline start (the right); the
-   glyph is flipped so it points the way it goes. */
-[dir="rtl"] .s-cal__chev {
-  display: inline-block;
-  transform: scaleX(-1);
-}
+/* The chevrons are ‹ and ›, which are Bidi_Mirrored: under RTL the browser
+   already draws each as its mirror, so the previous button (at the inline
+   start, the right) points right, outward. A `scaleX(-1)` here used to flip
+   them back — the Orbits breadcrumb's bug, and the Calendar page's. Glyphs
+   no, paths yes (an SVG arrow is geometry and must be flipped by hand). */
 
 .s-cal__title {
   flex: 1;

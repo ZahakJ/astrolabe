@@ -1,4 +1,4 @@
-// THE PERFORMANCE GATE — three numbers, measured, with budgets.
+// THE PERFORMANCE GATE — five surfaces, measured, with budgets.
 //
 //   npm run build && npm run check-perf
 //   (CHROMIUM=/usr/bin/chromium uses a system browser instead of a downloaded one)
@@ -21,7 +21,7 @@
 // the same thing on another machine — a fixture that quietly folded in a real
 // folder would be measuring a folder that grows.
 //
-// WHAT IT MEASURES, and why these three:
+// WHAT IT MEASURES, and why these:
 //
 //   · FIRST PAINT of the admin app. The moment anything is on screen. It is
 //     the number a code-split boundary quietly undoes — one careless static
@@ -34,6 +34,11 @@
 //   · READING RENDER of that same note: Ctrl/Cmd E to the rendered column.
 //     The one operation in the product whose cost is the whole document, all
 //     at once, with no viewport to hide behind.
+//   · THE SIGILS PAGE and THE CALENDAR PAGE: the status bar's door to the
+//     drawn page. The two surfaces whose cost is the whole YEAR at once —
+//     twelve sigils with most of a year of log each (a streak, a heatmap and
+//     a week per card), and a month grid whose every day reads the daily
+//     notes, the sigils' logs and the trackers.
 //
 // THE BROWSER IS THROTTLED TO A QUARTER SPEED (Lighthouse's own mid-tier
 // multiplier). A developer's desktop with nothing else running is not the
@@ -57,12 +62,24 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildFixtureVault, EMBED_NOTE, LONG_NOTE, LONG_NOTE_LINES, FIXTURE_NOTES } from "./perf-fixture.mjs";
+import { buildFixtureVault, EMBED_NOTE, LONG_NOTE, LONG_NOTE_LINES, FIXTURE_NOTES, FIXTURE_SIGILS } from "./perf-fixture.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const CPU = Number(process.env.PERF_CPU || 4);
 const ROUNDS = Number(process.env.PERF_ROUNDS || 3);
 const KEEP = process.env.PERF_KEEP === "1";
+
+/** The two surface budgets, set from their first measurement: best of nine
+ *  warm opens over three rounds at 4×, on the fixture's twelve generated
+ *  sigils and year of daily notes, under a load average of 9 (the ordinary
+ *  state of the machine this is developed on). The rule is the one the rows
+ *  above follow — the loaded measurement plus a third, rounded up to the next
+ *  50 ms — and the measured numbers stay here so a later move can say what
+ *  it moved. Spread of the nine: Sigils 1,241–1,449 ms, Calendar 157–201 ms. */
+const SIGILS_MEASURED = 1241;
+const SIGILS_BUDGET = 1650;
+const CALENDAR_MEASURED = 157;
+const CALENDAR_BUDGET = 250;
 
 /** The budgets. Each is in milliseconds, measured at `PERF_CPU`× throttling on
  *  the fixture vault, and each carries the run that set it. */
@@ -136,6 +153,21 @@ const BUDGETS = [
     // here is the browser laying out six thousand nodes of prose, which no
     // amount of JavaScript discipline removes; the budget guards the
     // JavaScript above it, where the whole-vault walk per wikilink lived.
+  },
+  {
+    id: "sigilsOpen",
+    label: "Sigils page, door → twelve cards drawn",
+    budget: SIGILS_BUDGET,
+    // SIGILS_MEASURED (1,241 ms), best of the warm opens (the first also
+    // fetches the page's chunk), plus a third: a loaded machine passes and a
+    // card that went O(log × days) per render again does not.
+  },
+  {
+    id: "calendarOpen",
+    label: "Calendar page, door → the month drawn",
+    budget: CALENDAR_BUDGET,
+    // CALENDAR_MEASURED (157 ms), the same way and with the same headroom:
+    // the month with its lines and its daily-note dots, not the empty grid.
   },
 ];
 
@@ -401,7 +433,54 @@ async function measureNote() {
   return { keys, longTasks, render: renders.slice(1) };
 }
 
-const runs = { firstPaint: [], tti: [], shell: [], typingMedian: [], typingP95: [], typingLongTasks: [], readingRender: [], chunksBefore: [], chunksAll: [], bytesBefore: [] };
+/** The status bar's door to a page, timed to the page DRAWN — `ready` is the
+ *  page's own evidence that it has its content, then two frames so the paint
+ *  is in. Four opens, the first discarded (it also fetches the chunk), each
+ *  closed again through the same door. */
+async function measureSurfaces() {
+  const ctx = await context();
+  const page = await ctx.newPage();
+  const cdp = await ctx.newCDPSession(page);
+  if (CPU > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: CPU });
+  await page.goto(base, { waitUntil: "load" });
+  await page.waitForSelector(".s-tree__item", { timeout: 60000 });
+  await page.waitForTimeout(4000);
+  const surfaces = [
+    {
+      door: '[data-testid="sigils-door"]',
+      page: '[data-testid="routines-page"]',
+      ready: (n) => document.querySelectorAll('[data-testid="routines-page"] .s-routines__slot > *').length >= n,
+      arg: FIXTURE_SIGILS,
+    },
+    {
+      door: '[data-testid="calendar-door"]',
+      page: '[data-testid="calendar-page"]',
+      // The month with its CONTENT: the sigils' lines and the daily notes' dots
+      // arrive after the grid, and a grid with nothing in it is the cheap half.
+      ready: () => document.querySelectorAll('[data-testid="calendar-page"] .s-calpage__line').length > 20 && document.querySelectorAll('[data-testid="calendar-page"] .s-calpage__notedot').length >= 28 && !!document.querySelector('[data-testid="calendar-day"]'),
+      arg: 0,
+    },
+  ];
+  const out = [];
+  for (const surface of surfaces) {
+    const times = [];
+    for (let i = 0; i < 4; i++) {
+      const t0 = Date.now();
+      await page.click(surface.door);
+      await page.waitForFunction(surface.ready, surface.arg, { timeout: 90000 });
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+      times.push(Date.now() - t0);
+      await page.click(surface.door);
+      await page.waitForSelector(surface.page, { state: "detached", timeout: 30000 });
+      await page.waitForTimeout(600);
+    }
+    out.push(times.slice(1));
+  }
+  await ctx.close();
+  return { sigils: out[0], calendar: out[1] };
+}
+
+const runs = { firstPaint: [], tti: [], shell: [], typingMedian: [], typingP95: [], typingLongTasks: [], readingRender: [], sigilsOpen: [], calendarOpen: [], chunksBefore: [], chunksAll: [], bytesBefore: [] };
 for (let round = 0; round < ROUNDS; round++) {
   const paint = await measureFirstPaint();
   runs.firstPaint.push(paint.fcp);
@@ -419,6 +498,9 @@ for (let round = 0; round < ROUNDS; round++) {
     runs.typingLongTasks.push(note.longTasks);
   }
   runs.readingRender.push(...note.render);
+  const surfaces = await measureSurfaces();
+  runs.sigilsOpen.push(...surfaces.sigils);
+  runs.calendarOpen.push(...surfaces.calendar);
 }
 await browser.close();
 
@@ -429,6 +511,8 @@ const measured = {
   typingP95: best(runs.typingP95),
   typingLongTasks: best(runs.typingLongTasks),
   readingRender: best(runs.readingRender),
+  sigilsOpen: best(runs.sigilsOpen),
+  calendarOpen: best(runs.calendarOpen),
 };
 
 console.log("\ncheck-perf: budgets");
@@ -449,6 +533,8 @@ console.log(`  admin TTI (last long task)                   ${best(runs.tti).toF
 console.log(`  spread across rounds (long tasks typing)     ${runs.typingLongTasks.map((x) => x.toFixed(0)).join(" / ")} ms`);
 console.log(`  spread across rounds (first paint)           ${runs.firstPaint.map((x) => x.toFixed(0)).join(" / ")} ms`);
 console.log(`  spread across rounds (reading render)        ${runs.readingRender.map((x) => x.toFixed(0)).join(" / ")} ms`);
+console.log(`  spread across rounds (Sigils page)           ${runs.sigilsOpen.map((x) => x.toFixed(0)).join(" / ")} ms`);
+console.log(`  spread across rounds (Calendar page)         ${runs.calendarOpen.map((x) => x.toFixed(0)).join(" / ")} ms`);
 console.log(`  JS before first paint                        ${median(runs.chunksBefore).toFixed(0)} files, ${(median(runs.bytesBefore) / 1024).toFixed(0)} kB`);
 console.log(`  JS in the first four seconds                 ${median(runs.chunksAll).toFixed(0)} files`);
 if (indexed) console.log(`  indexer cold start (${indexed[1]} notes)             ${indexed[2]} ms`);
