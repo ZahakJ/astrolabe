@@ -29,6 +29,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { settingsRows, tabSources } from "./settings-index.mjs";
+import { readLanguage } from "./dictionary.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(root + p, "utf8");
@@ -75,12 +76,8 @@ const hintKeys = new Set();
 for (const m of panelSrc.matchAll(/hint=\{t\(([^)]*)\)\}/g)) {
   for (const k of m[1].matchAll(/"([A-Za-z0-9_]+)"/g)) hintKeys.add(k[1]);
 }
-const i18n = read("client/i18n.ts");
-const dict = i18n.slice(i18n.indexOf("const DICT = {"));
-const english = (k) => {
-  const m = new RegExp(`^  ${k}: \\{\\s*en: "((?:[^"\\\\]|\\\\.)*)"`, "m").exec(dict);
-  return m ? m[1] : null;
-};
+const englishDict = readLanguage("en", root);
+const english = (k) => (englishDict.has(k) ? englishDict.get(k) : null);
 let hintsChecked = 0;
 for (const k of hintKeys) {
   const en = english(k);

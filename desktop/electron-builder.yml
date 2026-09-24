@@ -55,14 +55,17 @@ files:
   - electron/**/*.ts
   - server/**/*.ts
   - shared/**/*.ts
-  # The ONE client source file in the package, and it is here on purpose:
-  # electron/menuStrings.ts re-exports the dictionary so the native menu and
+  # The client's dictionary, and nothing else of the client's source, is here
+  # on purpose: electron/menuStrings.ts re-exports it so the native menu and
   # the renderer can never disagree about a word — which makes client/i18n.ts
-  # the single module the main process shares with the client. Its only import
-  # is shared/numerals.ts, already above. check-desktop asserts the packaged
-  # list covers electron/'s whole import closure, because leaving this line out
-  # was a boot failure that only the PACKAGED app could show.
+  # and its two language files (client/i18n/en.ts, ar.ts, installed together
+  # by client/i18n/both.ts) the one module the main process shares with the
+  # client. i18n.ts's other import is shared/numerals.ts, already above.
+  # check-desktop asserts the packaged list covers electron/'s whole import
+  # closure, because leaving a line out was a boot failure that only the
+  # PACKAGED app could show.
   - client/i18n.ts
+  - client/i18n/**/*.ts
   - dist/**/*
   - vault-seed/**/*
   - desktop/build/preload.js

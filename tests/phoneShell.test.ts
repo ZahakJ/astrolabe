@@ -358,10 +358,13 @@ describe("the phone never persists or syncs the workspace", () => {
 
   it("the store writes neither while the phone shell is mounted (state.ts)", () => {
     const src = readFileSync(fileURLToPath(new URL("../client/state.ts", import.meta.url)), "utf8");
+    // The two writers live with the rest of the store's storage since the
+    // sweep's split (client/state/persistence.ts); the rule is the same.
+    const persistence = readFileSync(fileURLToPath(new URL("../client/state/persistence.ts", import.meta.url)), "utf8");
     for (const fn of ["persistWorkspace", "persistTabs"]) {
-      const at = src.indexOf(`function ${fn}(`);
+      const at = persistence.indexOf(`function ${fn}(`);
       assert.ok(at > 0, fn);
-      const body = src.slice(at, src.indexOf("\n}", at));
+      const body = persistence.slice(at, persistence.indexOf("\n}", at));
       assert.match(body, /if \(!workspacePersists\(\)\) return;/, `${fn} must refuse while the phone shell is mounted`);
     }
     assert.match(src, /export function workspacePersists\(\): boolean \{\n  return !phoneShell;/);

@@ -1,6 +1,7 @@
-// Assert: every t()/tf() key used in client/ exists in DICT, every DICT key
+// Assert: every t()/tf() key used in client/ exists in the dictionary
+// (client/i18n/en.ts, the key list, and client/i18n/ar.ts), every key
 // defines BOTH en and ar (non-empty, and ar actually differs / is Arabic),
-// every DICT key is used somewhere (counted from the CALL SITES only — the
+// every key is used somewhere (counted from the CALL SITES only — the
 // dictionary is excluded from the usage scan, or a key whose English value is
 // its own name marks itself used and no dead key can ever be reported; see the
 // note at the scan), tf() placeholders match across langs, and
@@ -19,6 +20,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { copyWords, readShellDictionary, scanDom, scanTsx } from "./i18nScan.mjs";
+import { readDictionary } from "./dictionary.mjs";
 
 // TWO ROOTS, ONE DICTIONARY. `client/` is where the dictionary lives and where
 // almost every call site is; `electron/` is the native application menu, whose
@@ -37,19 +39,10 @@ const ROOTS = ["../client/", "../electron/", "../shared/"].map(
 const root = ROOTS[0];
 const src = readFileSync(join(root, "i18n.ts"), "utf8");
 
-// Parse DICT block
-const start = src.indexOf("const DICT = {");
-const end = src.indexOf("} satisfies Record<string, Entry>");
-const dictSrc = src.slice(start, end);
-const entries = new Map();
-const re = /^\s{2}([A-Za-z0-9_]+):\s*\{([\s\S]*?)\},?\s*$/gm;
-let m;
-while ((m = re.exec(dictSrc))) {
-  const key = m[1], body = m[2];
-  const en = /\ben:\s*"((?:[^"\\]|\\.)*)"/.exec(body);
-  const ar = /\bar:\s*"((?:[^"\\]|\\.)*)"/.exec(body);
-  entries.set(key, { en: en && en[1], ar: ar && ar[1] });
-}
+// The dictionary: client/i18n/en.ts (the key list) and client/i18n/ar.ts,
+// read as text through scripts/dictionary.mjs. A key only the Arabic file has
+// is refused here in words as well as by the type.
+const entries = readDictionary(new URL("..", import.meta.url).pathname);
 
 // `rel` is recorded alongside the absolute path rather than sliced off one
 // prefix later: with two roots there is no single prefix to slice, and a
@@ -84,13 +77,14 @@ for (const { abs: f } of files) {
   // from nowhere in the product and the gate still printed "used keys: 617 /
   // dict keys: 617 · PARITY OK". A gate that counts a definition as a use can
   // never report a dead key, which made the whole line ceremonial.
-  if (f.endsWith("/i18n.ts")) continue;
+  if (f.endsWith("/i18n.ts") || /\/i18n\/(en|ar)\.ts$/.test(f)) continue;
   const s = readFileSync(f, "utf8");
   // Keys reach t()/tf() literally, via conditionals (t(a ? "x" : "y")), and via
   // thunk tables — so count any quoted dict-key token outside i18n.ts itself.
   for (const mm of s.matchAll(/"([A-Za-z0-9_]+)"/g)) if (entries.has(mm[1])) used.add(mm[1]);
 }
 
+for (const k of entries.strays) errs.push(`MISSING en (only client/i18n/ar.ts has it): ${k}`);
 for (const [k, v] of entries) {
   if (!v.en) errs.push(`MISSING en: ${k}`);
   if (!v.ar) errs.push(`MISSING ar: ${k}`);

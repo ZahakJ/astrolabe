@@ -73,7 +73,7 @@ function scanLines(file, lines, { allowLineage }) {
   });
 }
 
-// ── 1. Dictionary VALUES: client/i18n.ts and client/orbits/copy.ts ──────────
+// ── 1. Dictionary VALUES: client/i18n/{en,ar}.ts and client/orbits/copy.ts ─
 // Only the quoted en:/ar: values, never the keys (`routinesAdd` is an
 // identifier the owner let stand) and never the comments (which explain the
 // lineage and may say the old words).
@@ -88,7 +88,16 @@ function scanDict(file) {
     }
   });
 }
-scanDict(join(root, "client/i18n.ts"));
+// The chrome dictionary, one file per language since the split: every
+// entry is `key: "value",`, so the value is the quoted string after the key.
+for (const lang of ["en", "ar"]) {
+  const file = join(root, `client/i18n/${lang}.ts`);
+  readFileSync(file, "utf8").split("\n").forEach((text, i) => {
+    const m = /^ {2}[A-Za-z0-9_]+: "((?:[^"\\]|\\.)*)",$/.exec(text);
+    if (!m) return;
+    for (const w of WORDS) if (w.re.test(m[1])) hit(file, i + 1, m[1], `${w.say} (${lang} value)`);
+  });
+}
 scanDict(join(root, "client/orbits/copy.ts"));
 scanDict(join(root, "client/components/settings/travelCopy.ts"));
 

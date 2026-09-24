@@ -88,7 +88,7 @@ test("which preferences travel: what a person would call a setting, and the thre
 });
 
 // The travel row's copy table lives in the settings chunk rather than the
-// DICT (client/components/settings/travelCopy.ts), so check-i18n does not
+// dictionary (client/components/settings/travelCopy.ts), so check-i18n does not
 // walk it — this is that table's parity gate, with the same rules.
 test("the travel row's own copy has both languages and matching placeholders", () => {
   const ph = (s: string): string => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(",");

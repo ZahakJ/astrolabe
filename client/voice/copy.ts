@@ -1,17 +1,17 @@
 // THE RECORDER'S WORDS — which travel with the recorder.
 //
-// WHY NOT client/i18n.ts. The DICT is entry-chunk code: every string in it is
-// downloaded by every reader on first paint, the anonymous one reading a
+// WHY NOT client/i18n.ts. The dictionary is first-paint code: every string in it
+// (in the reader's language) is downloaded before the first paint, the anonymous one reading a
 // single article included. The recorder's twenty-nine sentences in two
 // languages measured ~3.4 kB of that, for a sheet most sessions never open —
 // so they ride in the recorder's own lazy chunk, the way the tour's folios do
 // (components/tourCards.ts, and the argument written out there). Only the
-// DOORS stay in the DICT — the palette row, the phone's ⋯ row, the sheet's
+// DOORS stay in the dictionary — the palette row, the phone's ⋯ row, the sheet's
 // title and its switch — because those are painted before this module exists,
 // and the Settings rows, which the settings index reads by key.
 //
 // Both halves are required and gated by `tests/voice.test.ts` (check-i18n
-// walks only the DICT and would not notice an empty `ar`). Placeholders are
+// walks only the dictionary and would not notice an empty `ar`). Placeholders are
 // `{name}`, bidi-isolated on the way in exactly as `tf()` isolates them.
 
 import { getLang, isolate } from "../i18n.ts";

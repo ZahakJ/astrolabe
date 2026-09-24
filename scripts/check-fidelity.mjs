@@ -39,9 +39,27 @@
 //
 // The fixture is written through the API and deleted, permanently, however
 // the run ends; the picture it embeds is uploaded and deleted the same way.
+//
+// Last, the dictionary split (3.29): an Arabic chrome whose dictionary chunk
+// is held back 1.5s is watched from its first byte, and no English chrome
+// string and no key name may ever reach its DOM — the switch waits for its
+// strings, so there is no flash of the wrong language.
 
 import { chromium, devices } from "playwright";
 import { mkdirSync } from "node:fs";
+import enDict from "../client/i18n/en.ts";
+import arDict from "../client/i18n/ar.ts";
+
+// What an Arabic first paint must never show (the dictionary step at the end):
+// an English chrome string — one of two words or more, so a note's own title
+// cannot be mistaken for chrome — or a key name, camelCase as every key is.
+const ENGLISH_CHROME = new Set(
+  Object.entries(enDict)
+    .filter(([k, v]) => v !== arDict[k] && /[A-Za-z]{3}/.test(v) && /\s/.test(v.trim()))
+    .map(([, v]) => v.trim()),
+);
+const DICT_KEYS = new Set(Object.keys(enDict).filter((k) => /[a-z][A-Z]/.test(k)));
+const ARABIC_CHROME = new Set(Object.values(arDict).map((v) => v.trim()));
 
 const [url = "http://localhost:6801", out = "shots"] = process.argv.slice(2);
 const NOTE_PATH = "fidelity-gate.md";
@@ -431,6 +449,69 @@ try {
     check(rv.wrapped.length === 0, "phone: no table word breaks in the reading view", rv.wrapped.join(", "));
     const cell = ed.styles["table cell"];
     check(cell && cell.overflowWrap === "break-word" && cell.whiteSpace === "normal" && cell.wordBreak === "normal", "phone: the editor's table cells carry the reading view's wrap rules", cell ? `${cell.whiteSpace} / ${cell.wordBreak} / ${cell.overflowWrap}` : "missing");
+    await page.close();
+  }
+
+  // ── An Arabic page never shows English before its dictionary lands ──────
+  // The dictionaries are two chunks (client/i18n/en.ts, ar.ts), neither in
+  // the entry, and a language switch AWAITS its chunk. So: an Arabic chrome
+  // whose chunk is held back 1.5s must show NOTHING from the dictionary in the
+  // meantime — not the English (a flash of the wrong language) and not a key
+  // name (t() with nothing installed). Every text node and every copy-bearing
+  // attribute the page ever puts in the DOM, from the first byte, is recorded
+  // and held against both lists; then the Arabic is on screen.
+  {
+    const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
+    await ctx.addCookies(cookies);
+    await ctx.addInitScript(() => {
+      try {
+        localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+        localStorage.setItem("astrolabe.prefs-sync-off", "1");
+        localStorage.setItem("astrolabe.editorLang", "ar");
+      } catch {}
+      const seen = new Set();
+      window.__seen = seen;
+      const ATTRS = ["title", "placeholder", "aria-label"];
+      const take = (node) => {
+        if (node.nodeType === 3) {
+          const s = node.data.trim();
+          if (s) seen.add(s);
+          return;
+        }
+        if (node.nodeType !== 1) return;
+        for (const a of ATTRS) {
+          const v = node.getAttribute(a);
+          if (v) seen.add(v.trim());
+        }
+        for (const c of node.childNodes) take(c);
+      };
+      new MutationObserver((records) => {
+        for (const r of records) {
+          if (r.type === "characterData") take(r.target);
+          else if (r.type === "attributes") take(r.target);
+          else for (const n of r.addedNodes) take(n);
+        }
+      }).observe(document, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+    });
+    let held = 0;
+    await ctx.route(/\/assets\/ar-[\w-]+\.js$/, async (route) => {
+      held++;
+      await new Promise((r) => setTimeout(r, 1500));
+      await route.continue();
+    });
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: "load" });
+    await page.waitForFunction(() => document.documentElement.lang === "ar" && document.querySelector(".s-tree__item") !== null, null, { timeout: 30000 });
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: `${out}/fidelity-ar-first-paint.png` });
+    const seen = await page.evaluate(() => [...window.__seen]);
+    check(held > 0, "ar first paint: the Arabic dictionary came as its own chunk (and was held back)", `${held} request(s)`);
+    const englishHits = seen.filter((s) => ENGLISH_CHROME.has(s));
+    check(englishHits.length === 0, "ar first paint: no English chrome string ever reached the DOM", englishHits.slice(0, 8).join(" | "));
+    const keyHits = seen.filter((s) => DICT_KEYS.has(s));
+    check(keyHits.length === 0, "ar first paint: no dictionary key was ever drawn as text", keyHits.slice(0, 8).join(" | "));
+    const arabicShown = seen.some((s) => ARABIC_CHROME.has(s));
+    check(arabicShown, "ar first paint: the Arabic chrome is on screen", `${seen.length} strings seen`);
     await page.close();
   }
 } finally {
