@@ -398,7 +398,7 @@ flips the mode it names; back pops the note to its folder; a long press raises t
 sheet and back closes it; Search is focused on arrival; a calendar day opens as a sheet; Orbits,
 Sigils, the library and the graph open as screens; Settings takes an entry and back closes it; a
 deep link opens its note and back from it comes home to Today; no page errors; and, once,
-`Phone layout: Classic` mounts the desktop's drawer shell.
+`Phone layout: Classic` mounts the desktop's drawer shell — and, in it, a note tapped in the drawer opens (address, title and active tab; the back-gesture guard still lives there) and the bottom bar's Publish asks before it publishes.
 
 **What it measures, on every screen and sheet.** Nothing overflows sideways (a strip that
 scrolls on purpose is exempt); every shell target is ≥44px (height always, width too when the
