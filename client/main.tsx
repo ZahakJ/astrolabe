@@ -15,7 +15,7 @@ import App from "./App.tsx";
 import ErrorBoundary from "./ErrorBoundary.tsx";
 import { reloadPrefsFromStorage, setPhoneShellMode, useStore } from "./state.ts";
 import { lazySurface } from "./lazySurface.tsx";
-import { PHONE_LAYOUT_EVENT, PHONE_SHELL_QUERY, readPhoneLayout, shellFor, type Shell } from "./shellQuery.ts";
+import { PHONE_SHELL_QUERY, shellFor, type Shell } from "./shellQuery.ts";
 import { installSafetyNet } from "./safety.ts";
 import { applyEyeComfort } from "./eyeComfort.ts";
 
@@ -54,17 +54,13 @@ if (!root) throw new Error("astrolabe: #root element missing");
 const PhoneShell = lazySurface(() => import("./phone/PhoneShell.tsx"));
 
 function currentShell(): Shell {
-  return shellFor(window.matchMedia(PHONE_SHELL_QUERY).matches, readPhoneLayout());
+  return shellFor(window.matchMedia(PHONE_SHELL_QUERY).matches);
 }
 
 function subscribeShell(cb: () => void): () => void {
   const mq = window.matchMedia(PHONE_SHELL_QUERY);
   mq.addEventListener("change", cb);
-  window.addEventListener(PHONE_LAYOUT_EVENT, cb);
-  return () => {
-    mq.removeEventListener("change", cb);
-    window.removeEventListener(PHONE_LAYOUT_EVENT, cb);
-  };
+  return () => mq.removeEventListener("change", cb);
 }
 
 function Root() {
@@ -122,38 +118,18 @@ void pullPrefs()
   );
 });
 
-// ── Touch gestures ──────────────────────────────────────────────────────────
-// The phone's primary navigation: swipe the notes drawer in and out instead of
-// hunting the ☰. Split behind the same media query that decides the rest of
-// the mobile shell (app.css keys its 44px targets off `(pointer: coarse)`),
-// for the reason spelled out above — the entry chunk has about a kilobyte of
-// headroom and a mouse cannot use any of this. Evaluated once at boot, which
-// is when a device's pointer is settled; the module itself re-checks the
-// drawer breakpoint on every touch, so a rotated tablet is never stale.
+// ── Touch ───────────────────────────────────────────────────────────────────
 // The reader's declared browser dictionaries, before any line is stamped.
 applyBrowserDictionaries();
 
+// THE DRAWER'S GESTURES ARE GONE (3.27.0). A finger here used to load the
+// drawer's pan (swipe.ts) and the back-gesture guard (backGesture.ts) for the
+// Classic phone layout; the phone shell owns history itself
+// (client/phone/nav.ts) and has no drawer, and Classic was deleted. What a
+// coarse pointer still loads is the one thing both shells want: the field the
+// keyboard just covered (client/softKeyboard.ts), behind `import()` because a
+// mouse never needs it.
 if (window.matchMedia("(pointer: coarse)").matches) {
-  // THE DRAWER'S GESTURES BELONG TO THE CLASSIC SHELL. The phone shell owns
-  // history itself (client/phone/nav.ts: a stack synced to history, every
-  // sheet an entry) and has no drawer to pan, so the drawer's swipe and the
-  // back-gesture guard are loaded only for a reader who chose Classic — the
-  // drawer shell exists nowhere else on a finger (PHONE_SHELL_QUERY contains
-  // DRAWER_QUERY). Switching the layout reloads the page (settings/
-  // DeviceTab.tsx), so these never run beside the phone shell's own history.
-  if (readPhoneLayout() === "classic") {
-    // Swallowed on purpose: a redeploy that rotates the chunk hash mid-session
-    // makes this fetch 404, and a reader who then loses the swipe should lose
-    // the SWIPE — the ☰ is still there — not get the safety net's crash card
-    // from an unhandled rejection over a progressive enhancement.
-    void import("./swipe.ts").then((mod) => mod.installSwipe()).catch(() => {});
-    // The hardware back button, which on this device is a layer's way out
-    // before it is a page's (client/backGesture.ts). Same chunk-splitting
-    // bargain and the same swallowed rejection: a reader who loses it still has
-    // Escape, the scrim and every ✕.
-    void import("./backGesture.ts").then((mod) => mod.installBackGesture()).catch(() => {});
-  }
-  // …and the field the keyboard just covered (client/softKeyboard.ts).
   void import("./softKeyboard.ts").then((mod) => mod.installSoftKeyboard()).catch(() => {});
 }
 

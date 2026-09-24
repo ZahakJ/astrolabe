@@ -24,7 +24,7 @@ import { toggleBookmark } from "./bookmarks.ts";
 import { t } from "./i18n.ts";
 import { isKey, shortcutKey } from "./keys.ts";
 import { promptNewNote } from "./prompts.ts";
-import { sidebarIsDrawer, useStore } from "./state.ts";
+import { useStore } from "./state.ts";
 import { insertTemplateCommand, newNoteFromTemplateCommand } from "./templateActions.ts";
 import { toast } from "./toast.ts";
 import { switchToTwin } from "./twins.ts";
@@ -127,27 +127,13 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         }
         if (store.paletteOpen || modalUp(store)) return;
         if (e.target instanceof Element && e.target.closest("input, textarea")) return;
-        // 3. THE NOTES DRAWER IS A LAYER, SO ESCAPE CLOSES IT. Every other
-        //    overlay in the product answers Esc and this one — the biggest
-        //    of them, covering the page with the whole vault — did not: the
-        //    ladder went straight from the palette to zen and never looked at
-        //    `sidebarOpen`. It sits here, under the modal guard, because a
-        //    dialog raised FROM the drawer (rename, "Move to…") owns the key
-        //    first, and above zen because a reader in zen with the drawer out
-        //    means to dismiss the drawer, not the mode. Only where the pane
-        //    IS a drawer: on a desktop `sidebarOpen` is not what shows it.
-        if (store.sidebarOpen && sidebarIsDrawer()) {
-          e.preventDefault();
-          store.setSidebarOpen(false);
-          return;
-        }
-        // 4. Preview is a mode that took the editor away — Esc gives it back.
+        // 3. Preview is a mode that took the editor away — Esc gives it back.
         if (store.previewVisitor) {
           e.preventDefault();
           void store.setPreviewVisitor(false);
           return;
         }
-        // 5. Esc leaves zen — never out from under vim, where Esc is sacred,
+        // 4. Esc leaves zen — never out from under vim, where Esc is sacred,
         //    and never out from under a reader panel: a book's contents list
         //    or go-to field closes on Esc, and this listener runs first
         //    (capture), so it has to look before it drops the window out of

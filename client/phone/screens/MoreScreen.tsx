@@ -14,24 +14,14 @@ import { t } from "../../i18n.ts";
 import { useStore } from "../../state.ts";
 import { choiceLabel } from "../../themes.ts";
 import { openTour } from "../../tour.ts";
-import { GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, ROUTINES_TAB } from "../../workspace.ts";
+import { inAndroidShell, returnToShell } from "../../androidShell.ts";
+import { GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, REVIEW_WEEK_TAB, ROUTINES_TAB } from "../../workspace.ts";
 import { usePhone } from "../context.ts";
 import { IconChevron } from "../icons.tsx";
 import TopBar from "../TopBar.tsx";
 
 declare const __APP_VERSION__: string;
 const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
-
-/** The settings panel reopens on the tab it was last left on; asking it for
- *  one is writing that memory first (SettingsModal.tsx `rememberedTab`). */
-function openSettingsTab(tab: string): void {
-  try {
-    localStorage.setItem("astrolabe:settings-tab", tab);
-  } catch {
-    // sealed storage: the panel opens on its first tab
-  }
-  useStore.getState().setSettingsOpen(true);
-}
 
 function Item({ label, note, onClick, chevron = true, danger = false }: { label: string; note?: ReactNode; onClick: () => void; chevron?: boolean; danger?: boolean }) {
   return (
@@ -68,6 +58,9 @@ export default function MoreScreen() {
   useStore((s) => s.language);
   const store = useStore.getState;
   const surface = (tab: string) => () => phone.open({ kind: "surface", tab });
+  // Settings is a list of pushed sections (./SettingsScreen.tsx); Backup &
+  // sync and About are two of them, reached in one tap from here.
+  const settings = (section: string) => () => phone.open({ kind: "settings", section });
 
   return (
     <div className="s-ph-screen s-ph-more" data-screen="more">
@@ -78,13 +71,14 @@ export default function MoreScreen() {
           {admin && <Item label={t("routines")} onClick={surface(ROUTINES_TAB)} />}
           <Item label={t("bookLibrary")} onClick={surface("~library")} />
           {admin && <Item label={t("media")} onClick={surface(MEDIA_TAB)} />}
+          {admin && <Item label={t("reviewWeek")} onClick={surface(REVIEW_WEEK_TAB)} />}
           <Item label={t("docTitleGraph")} onClick={surface(GRAPH_TAB)} />
         </Group>
         {admin && (
           <Group title={t("phVault")}>
             <Item label={t("trashBrowser")} onClick={() => store().setTrashOpen(true)} />
-            <Item label={t("siteSettings")} onClick={() => store().setSettingsOpen(true)} />
-            <Item label={t("phBackupSync")} onClick={() => store().openSettingsAt("rowSyncEnabled")} />
+            <Item label={t("siteSettings")} onClick={settings("")} />
+            <Item label={t("phBackupSync")} onClick={settings("sync")} />
             <Item label={t("themePicker")} note={<bdi>{choiceLabel(theme)}</bdi>} onClick={openThemePicker} />
           </Group>
         )}
@@ -103,7 +97,12 @@ export default function MoreScreen() {
         )}
         <Group title={t("phSession")}>
           <Item label={t("phTour")} onClick={openTour} />
-          <Item label={t("tabAbout")} note={APP_VERSION ? <bdi dir="ltr">{APP_VERSION}</bdi> : undefined} onClick={() => (admin ? openSettingsTab("about") : undefined)} chevron={admin} />
+          {/* Inside the Android app, the door back to its connection screen —
+              the desktop keeps it in the status bar's ⋯, which this shell
+              does not draw; without it the only way out was walking back
+              through every screen. */}
+          {inAndroidShell() && <Item label={t("shellChangeServer")} onClick={returnToShell} />}
+          <Item label={t("tabAbout")} note={APP_VERSION ? <bdi dir="ltr">{APP_VERSION}</bdi> : undefined} onClick={() => (admin ? settings("about")() : undefined)} chevron={admin} />
           {admin ? (
             <Item label={t("signOut")} chevron={false} danger onClick={() => void store().logout()} />
           ) : (

@@ -6,6 +6,8 @@
 // the scrim, or the OS back gesture.
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { layerHost } from "./RoutedLayer.tsx";
 import { usePhone } from "./context.ts";
 import Sheet, { type Detent } from "./Sheet.tsx";
 
@@ -29,9 +31,14 @@ export default function RoutedSheet({ id, label, header, detent = "half", onGone
   }, [up, onGone]);
 
   if (!up) return null;
-  return (
+  // Into the shell's sheet host: the screen that raised it goes INERT while
+  // the entry is up, and a sheet drawn inside that screen went with it (the
+  // calendar's day, 3.26.0 — measured by nothing, because the gate skips
+  // inert targets).
+  return createPortal(
     <Sheet label={label} header={header} detent={detent} side={phone.tablet} onDismiss={() => phone.closeSheet(id)}>
       {children}
-    </Sheet>
+    </Sheet>,
+    layerHost(),
   );
 }

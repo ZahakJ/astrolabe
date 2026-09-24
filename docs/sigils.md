@@ -352,6 +352,10 @@ Editing from the page rewrites **only the plan block** — the log under it and 
 stay exactly as they were, byte for byte. **Save as template** writes the same note into the
 templates folder instead, so a sigil you drew up once can seed the next.
 
+## On a phone
+
+On a phone ([the phone layout](workspace.md#on-a-phone)) the Sigils page is a list: every sigil as a row that says how today stands — "2 of 3 today", a rest day, done, or the step a course is on — and **+** for a new one. A sigil opens as the card above in a phone's order: **today's checklist first**, then the week strip and the heat map, then the streak, the week and the month, and a course's units with the dates the projection gives them, unfolded. Ticks answer at once and are written the same way the card writes them anywhere else. **Edit**, **Open the note** and **Delete** are under the top bar's **⋯**. The day's ticks are also on **Today**, one row per task.
+
 ## In the editor
 
 Type ` ```sigil ` by hand, or `/sigil` from the slash menu for a skeleton. With the caret outside

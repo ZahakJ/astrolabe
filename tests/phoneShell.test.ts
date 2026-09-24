@@ -13,7 +13,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { createNav, readMark, remapScreen, topOf, type HistoryLike, type NavState, type Screen } from "../client/phone/nav.ts";
+import { createNav, readMark, remapScreen, screenKey, topOf, type HistoryLike, type NavState, type Screen } from "../client/phone/nav.ts";
+import { contentOf, isDetail, isFull, isList } from "../client/phone/kinds.ts";
 import { isHardwareKeystroke } from "../client/phone/hardwareKeyboard.ts";
 import { PHONE_SHELL_QUERY, shellFor } from "../client/shellQuery.ts";
 import { activeTabOf, openInPane, paneAt, panesInOrder, phoneWorkspace, setPinned, soloWorkspace, splitPane } from "../client/workspace.ts";
@@ -201,6 +202,121 @@ describe("the phone's navigation stack (client/phone/nav.ts)", () => {
   });
 });
 
+describe("Round 2 of the stack (3.27.0): scroll memory, the leave guard, popTo, the new screens", () => {
+  /** A nav whose top list reports `scroll`, and whose guard refuses while
+   *  `dirty` is true on the screen keyed `guarded`. */
+  function guarded() {
+    const history = new FakeHistory();
+    let scroll = 0;
+    let dirty = false;
+    const blocked: (() => void)[] = [];
+    const guardKey = "settings:site";
+    const nav = createNav({
+      history,
+      urlFor: (s) => (s.kind === "note" ? `/${s.path.replace(/\.md$/, "")}` : null),
+      onChange: () => {},
+      scrollOf: () => scroll,
+      canLeave: (from, to) => !dirty || screenKey(topOf(from)) !== guardKey || (screenKey(topOf(to)) === guardKey && from.tab === to.tab),
+      onBlocked: (proceed) => blocked.push(proceed),
+    });
+    history.onPop = (state) => nav.onPop(state);
+    return {
+      history,
+      nav,
+      blocked,
+      setScroll: (y: number) => (scroll = y),
+      setDirty: (d: boolean) => (dirty = d),
+    };
+  }
+
+  it("a list comes back where it was left: the push stamps the offset, the pop hands it back", async () => {
+    const { history, nav, setScroll } = guarded();
+    nav.start("notes");
+    nav.push(folder("Notes"));
+    setScroll(640);
+    nav.push(note("Notes/A.md"));
+    assert.equal(nav.state().scroll, undefined, "a pushed screen starts at its top");
+    setScroll(0);
+    await history.back();
+    assert.deepEqual(topOf(nav.state()), folder("Notes"));
+    assert.equal(nav.state().scroll, 640);
+    // …and the offset is in the entry itself, so a Forward and a Back again still find it.
+    await history.forward();
+    await history.back();
+    assert.equal(nav.state().scroll, 640);
+    assert.equal(readMark(history.state)?.entry.scroll, 640);
+  });
+
+  it("a screen with unsaved edits refuses a push and a tab, and asks", () => {
+    const { nav, blocked, setDirty } = guarded();
+    nav.start("more");
+    nav.push({ kind: "settings", section: "" });
+    nav.push({ kind: "settings", section: "site" });
+    setDirty(true);
+    nav.push(note("Else.md"));
+    nav.switchTab("today");
+    assert.deepEqual(topOf(nav.state()), { kind: "settings", section: "site" }, "still on the section");
+    assert.equal(blocked.length, 2);
+    // A sheet over it is not leaving it: the confirm question itself.
+    nav.openSheet("confirm");
+    assert.deepEqual(nav.state().sheets, ["confirm"]);
+  });
+
+  it("a Back the browser already made is put back, the question is asked, and Discard goes", async () => {
+    const { history, nav, blocked, setDirty } = guarded();
+    nav.start("more");
+    nav.push({ kind: "settings", section: "" });
+    nav.push({ kind: "settings", section: "site" });
+    const depth = nav.state().depth;
+    setDirty(true);
+    await history.back();
+    assert.deepEqual(topOf(nav.state()), { kind: "settings", section: "site" }, "the section was never left");
+    assert.equal(readMark(history.state)?.depth, depth, "history is back on the section's entry");
+    assert.equal(blocked.length, 1);
+    // Discard: the edits are dropped, then the move is made.
+    setDirty(false);
+    blocked[0]();
+    await history.settle();
+    assert.deepEqual(topOf(nav.state()), { kind: "settings", section: "" });
+  });
+
+  it("popTo walks back down to a screen the stack holds, and says so when it does not", async () => {
+    const { history, nav } = guarded();
+    nav.start("more");
+    nav.push({ kind: "surface", tab: "~orbits" });
+    nav.push({ kind: "deck", path: "Orbits/Hiragana.md" });
+    nav.push({ kind: "surface", tab: "~orbits/Orbits/Hiragana.md" });
+    assert.equal(nav.popTo({ kind: "deck", path: "Orbits/Hiragana.md" }), true);
+    await history.settle();
+    assert.deepEqual(topOf(nav.state()), { kind: "deck", path: "Orbits/Hiragana.md" });
+    assert.equal(nav.popTo({ kind: "surface", tab: "~media" }), false);
+  });
+
+  it("the new screens survive a reload's entry, and a move follows them", () => {
+    const stack: Screen[] = [
+      { kind: "root", tab: "more" },
+      { kind: "settings", section: "sync" },
+      { kind: "sigil", path: "Sigils/Run.md", index: 0 },
+      { kind: "tracker", path: "Media/Books.md", index: 1 },
+      { kind: "deck", path: "Orbits/Kana.md" },
+    ];
+    const back = readMark({ phone: { depth: 3, entry: { tab: "more", stack, sheets: [], scroll: 120 } } });
+    assert.deepEqual(back?.entry.stack, stack);
+    assert.equal(back?.entry.scroll, 120);
+    assert.equal(readMark({ phone: { depth: 1, entry: { tab: "more", stack: [stack[0], { kind: "sigil", path: "x.md", index: -1 }], sheets: [] } } }), null, "an index is a fence's, never negative");
+    assert.deepEqual(remapScreen(stack[2], "Sigils", "Habits"), { kind: "sigil", path: "Habits/Run.md", index: 0 });
+    assert.deepEqual(remapScreen(stack[4], "Orbits/Kana.md", "Orbits/Hiragana.md"), { kind: "deck", path: "Orbits/Hiragana.md" });
+  });
+
+  it("a list keeps the tab bar, a detail takes the column, a session and a book take the glass", () => {
+    assert.ok(isList({ kind: "surface", tab: "~orbits" }) && isList({ kind: "settings", section: "" }) && isList({ kind: "surface", tab: "~sigils" }));
+    assert.ok(isDetail({ kind: "deck", path: "a.md" }) && isDetail({ kind: "settings", section: "site" }) && isDetail(note("a.md")));
+    assert.ok(isFull({ kind: "surface", tab: "~orbits/a.md" }) && isFull({ kind: "surface", tab: "Library/Book.pdf" }));
+    assert.ok(!isFull({ kind: "surface", tab: "~graph" }));
+    assert.equal(contentOf({ kind: "deck", path: "a.md" }), "~orbits");
+  });
+});
+
 describe("the phone's workspace: one pane, one tab, replaced (client/workspace.ts phoneWorkspace)", () => {
   it("collapses whatever the desktop reducers built to the focused pane's active tab", () => {
     let ws = soloWorkspace([], null);
@@ -282,18 +398,20 @@ describe("a hardware keyboard, inferred (client/phone/hardwareKeyboard.ts)", () 
 });
 
 describe("which shell (client/shellQuery.ts)", () => {
-  it("the phone query contains the drawer query, and lifts its ceiling only for a finger", () => {
+  it("is a phone width, or a finger that cannot hover — and nothing else", () => {
+    // The drawer query this was lifted from is gone with the drawer (3.27.0):
+    // the store no longer carries one at all.
     const state = readFileSync(fileURLToPath(new URL("../client/state.ts", import.meta.url)), "utf8");
-    const drawer = /export const DRAWER_QUERY = "([^"]+)";/.exec(state)![1];
-    assert.ok(drawer.includes("(max-width: 700px)") && PHONE_SHELL_QUERY.includes("(max-width: 700px)"));
-    assert.ok(PHONE_SHELL_QUERY.includes("((pointer: coarse) and (hover: none))"));
+    assert.ok(!/export const (DRAWER|PHONE)_QUERY/.test(state), "the drawer's queries went with the drawer");
+    assert.equal(PHONE_SHELL_QUERY, "(max-width: 700px), ((pointer: coarse) and (hover: none))");
     assert.ok(!PHONE_SHELL_QUERY.includes("any-pointer"), "a stylus is an any-pointer: fine, and a stylus is not a mouse");
     assert.ok(!/hover: hover/.test(PHONE_SHELL_QUERY), "a tablet with a trackpad keeps the desktop");
   });
-  it("the reader's Classic choice wins over the device", () => {
-    assert.equal(shellFor(true, "new"), "phone");
-    assert.equal(shellFor(true, "classic"), "desktop");
-    assert.equal(shellFor(false, "new"), "desktop");
+  it("is the device's alone: there is no Classic layout to choose (3.27.0)", () => {
+    assert.equal(shellFor(true), "phone");
+    assert.equal(shellFor(false), "desktop");
+    const main = readFileSync(fileURLToPath(new URL("../client/main.tsx", import.meta.url)), "utf8");
+    assert.ok(!/import\("\.\/(swipe|backGesture)\.ts"\)|readPhoneLayout/.test(main),"main.tsx loads no drawer gesture and reads no layout choice");
   });
 });
 

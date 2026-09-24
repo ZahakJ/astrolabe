@@ -18,6 +18,7 @@ import { getLang, localeNum, t, tf } from "../i18n.ts";
 import { markWhatsNewSeen, setWhatsNewEnabled, whatsNewEnabled } from "./door.ts";
 import { RELEASES, type Lang, type Slide, type Visual } from "./releaseNotes.ts";
 import "../styles/whatsnew.css";
+import { announceOverlay } from "../overlays.ts";
 
 // The manual moved with the repository: zahakj.github.io/astrolabe. The old
 // vellum address 404s, and every "Read more in the manual" since 3.11.0
@@ -268,12 +269,18 @@ export function openWhatsNewDeck(versions: string[]): void {
   mount.className = "s-wn-root";
   document.body.appendChild(mount);
   root = createRoot(mount);
+  let leave: (() => void) | null = null;
   const close = (): void => {
+    leave?.();
+    leave = null;
     markWhatsNewSeen(versions[0]);
     root?.unmount();
     root = null;
     mount?.remove();
     mount = null;
   };
+  // The phone shell's handle on this layer (client/overlays.ts): Back is
+  // Done — the deck was offered, and dismissing it halfway marks it seen.
+  leave = announceOverlay("whatsnew", close);
   root.render(<Deck versions={versions} onClose={close} />);
 }

@@ -13,7 +13,7 @@
 // `tasksFor` the card draws from (shared/routine.ts) — only the card's stats
 // header and heat map are left behind, because a checklist is a checklist.
 
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RoutineMeta } from "../../../shared/types.ts";
 import type { DeckMeta } from "../../../shared/decks.ts";
 import { isoDate, tasksFor, type RoutineTask } from "../../../shared/routine.ts";
@@ -28,31 +28,14 @@ import { recentNotes } from "../../recents.ts";
 import { useStore } from "../../state.ts";
 import { toast } from "../../toast.ts";
 import { actionToast } from "../../undoToast.ts";
-import { orbitsTabFor, ROUTINES_TAB } from "../../workspace.ts";
+import { orbitsTabFor } from "../../workspace.ts";
 import { usePhone } from "../context.ts";
 import { IconCheck, IconChevron, IconFile, IconMic, IconSend } from "../icons.tsx";
 import TopBar from "../TopBar.tsx";
+import { useScrollMemory } from "../useScrollMemory.ts";
+import { useVaultTick } from "../useVaultTick.ts";
 
-const VAULT_EVENT = "astrolabe:vault";
 const RECENTS_SHOWN = 8;
-
-/** Re-read on the vault's own event, a beat after a burst settles. */
-function useVaultTick(): number {
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const on = (): void => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => setTick((n) => n + 1), 400);
-    };
-    window.addEventListener(VAULT_EVENT, on);
-    return () => {
-      window.removeEventListener(VAULT_EVENT, on);
-      if (timer) clearTimeout(timer);
-    };
-  }, []);
-  return tick;
-}
 
 function CaptureField() {
   const [text, setText] = useState("");
@@ -166,6 +149,8 @@ export default function TodayScreen() {
   const [routines, setRoutines] = useState<RoutineMeta[] | null>(null);
   const [decks, setDecks] = useState<DeckMeta[]>([]);
   const [dailyPath, setDailyPath] = useState(() => dailyNotePath());
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  useScrollMemory(scrollRef);
 
   useEffect(() => {
     if (!admin) return;
@@ -212,7 +197,8 @@ export default function TodayScreen() {
     },
     [today],
   );
-  const openSigil = useCallback((): void => phone.open({ kind: "surface", tab: ROUTINES_TAB }), [phone]);
+  // A course's day or a book's pages are answered on the sigil's own screen.
+  const openSigil = useCallback((row: TaskRow): void => phone.open({ kind: "sigil", path: row.meta.path, index: row.meta.index }), [phone]);
 
   const recents = useMemo(() => {
     if (!tree) return [];
@@ -227,13 +213,12 @@ export default function TodayScreen() {
   return (
     <div className="s-ph-screen s-ph-today" data-screen="today">
       <TopBar title={t("phTabToday")} />
-      <div className="s-ph-scroll">
+      <div className="s-ph-scroll" ref={scrollRef}>
         <p className="s-ph-today__date">{dateLine}</p>
-        {/* Not in a pocket vault: the pocket server has no `/api/capture`
-            (mobile/src/pocket/server.ts answers it 404), and a field that
-            accepts a line and then fails to keep it is worse than no field.
-            The daily note card below is the pocket's way to today's note. */}
-        {admin && !pocket && <CaptureField />}
+        {/* A pocket vault keeps a captured line too: its server answers
+            `/api/capture` since 3.27.0 (mobile/src/pocket/server.ts), with
+            the instance's rule for the day's inbox note. */}
+        {admin && <CaptureField />}
         {admin && (
           <button type="button" className="s-ph-card s-ph-today__daily" onClick={() => void openDailyNote()}>
             <span className="s-ph-card__kicker">{t("phTodayNote")}</span>

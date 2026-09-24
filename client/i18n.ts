@@ -342,16 +342,6 @@ const DICT = {
   // the tick column on every row of that menu.
   moreVimOn: { en: "Vim keybindings — on", ar: "اختصارات vim — مُفعَّلة" },
   moreVimOff: { en: "Vim keybindings — off", ar: "اختصارات vim — متوقفة" },
-  // The phone's one-line swipe hint (client/swipe.ts). Shown once per device,
-  // as a toast, the first time a touch device opens a vault — the gesture is
-  // the phone's navigation and a gesture nobody is told about is a gesture
-  // nobody finds. It names the PANE, not an edge: the pan starts anywhere on
-  // the page (the outer 24px belong to the system's back gesture), and in
-  // Arabic it travels the other way, which is why the words say neither.
-  swipeHint: {
-    en: "Swipe across the page to open your notes.",
-    ar: "اسحب عبر الصفحة لفتح ملاحظاتك.",
-  },
   siteSettingsTitle: {
     en: "Settings — identity, home page, behavior, typography, backup",
     ar: "الإعدادات — الهوية والرئيسية والسلوك والطباعة والنسخ الاحتياطي",
@@ -1634,8 +1624,6 @@ const DICT = {
   scTableRowDown: { en: "Down a row (out of the table from the last row)", ar: "صف إلى الأسفل (ومن الصف الأخير: خروج من الجدول)" },
   scTableMoveRow: { en: "Move table row", ar: "نقل صف الجدول" },
   scTableMoveColumn: { en: "Move table column (with its alignment)", ar: "نقل عمود الجدول (مع محاذاته)" },
-  openSidebar: { en: "Open Notes sidebar", ar: "فتح لوحة الملاحظات" },
-  closeSidebar: { en: "Close Notes sidebar", ar: "إغلاق لوحة الملاحظات" },
   exitZen: { en: "Exit zen mode (Esc)", ar: "إنهاء وضع التركيز (Esc)" },
   // The one keystroke zen advertises on screen — the ✕ beside it is the mouse
   // route, this is the one that works when the chrome has faded.
@@ -5852,14 +5840,27 @@ const DICT = {
   phKeyUndo: { en: "Undo", ar: "تراجع" },
   phKeyRedo: { en: "Redo", ar: "إعادة" },
   phKeyHide: { en: "Hide the keyboard", ar: "إخفاء لوحة المفاتيح" },
-  rowPhoneLayout: { en: "Phone layout", ar: "تخطيط الهاتف" },
-  hintPhoneLayout: {
-    en: "The phone-first shell, or the drawer layout it replaces. Reloads the page.",
-    ar: "واجهة الهاتف الجديدة، أو تخطيط الدرج الذي تحل محله. يعيد تحميل الصفحة.",
-  },
+  // Round 2 of the phone shell (3.27.0): the decks, the sigils and the media
+  // as lists and details, the tag picker, a folder's files, the reader's bar.
+  phMore: { en: "More actions", ar: "مزيد من الإجراءات" },
+  phOpenNote: { en: "Open the note", ar: "افتح الملاحظة" },
+  phDeckCounts: { en: "{n} · {fresh} new", ar: "{n} · جديدة: {fresh}" },
+  phSigilToday: { en: "{done} of {of} today", ar: "{done} من {of} اليوم" },
+  phSigilGone: { en: "This sigil is no longer in the vault.", ar: "لم يعد هذا السِّجِلّ في الخزانة." },
+  phTrackerGone: { en: "This work is no longer in the vault.", ar: "لم يعد هذا العمل في الخزانة." },
+  phAllTags: { en: "All tags", ar: "كل الوسوم" },
+  phTagsForNote: { en: "This note’s tags", ar: "وسوم هذه الملاحظة" },
+  phTagsAdd: { en: "Add tags", ar: "أضف وسومًا" },
+  phTagAdd: { en: "Add #{tag}", ar: "أضف #{tag}" },
+  phTagFailed: { en: "The tags could not be saved.", ar: "تعذّر حفظ الوسوم." },
+  phFiles: { en: "Files", ar: "الملفات" },
+  phMoreFiles: { en: "Files not shown here: {n}", ar: "ملفات لا تظهر هنا: {n}" },
+  bookScrub: { en: "Move through the book", ar: "التنقّل في الكتاب" },
+  bookZoomGroup: { en: "Zoom", ar: "التكبير" },
+  bookFitWidth: { en: "Fit the width", ar: "ملء العرض" },
+  bookNightFigures: { en: "Figures kept", ar: "الصور على حالها" },
+  bookNightAll: { en: "Everything inverted", ar: "كل شيء معكوس" },
 
-  phoneLayoutNew: { en: "New", ar: "الجديد" },
-  phoneLayoutClassic: { en: "Classic", ar: "الكلاسيكي" },
 } satisfies Record<string, Entry>;
 
 export type I18nKey = keyof typeof DICT;

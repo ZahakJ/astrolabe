@@ -111,47 +111,61 @@ export default function NoteScreen({ path, onBack }: { path: string; onBack: () 
   // ── the heading's menu, on a long press ──────────────────────────────────
   // The fold chevron and the ⋯ used to hang in the gutters beside every
   // heading, costing the note 32px of measure on each side of a 412px screen.
-  // Held still on a heading, a press is that heading's menu instead.
+  // Held still on a heading, a press is that heading's menu instead — in the
+  // editor (./editorBridge.ts, the whole list) and, since 3.27.0, in the
+  // reading view too (../readingHeading.ts: the rows that do not need an
+  // editor). Android answers a held finger with its own text-selection
+  // callout; on a heading that is swallowed, because the sheet is the answer.
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || !editing) return;
+    if (!root || !admin || (surface !== "edit" && surface !== "reading")) return;
     let timer = 0;
     let start: { x: number; y: number } | null = null;
     const cancel = (): void => {
       window.clearTimeout(timer);
       start = null;
     };
+    const readingHeading = (target: EventTarget | null): HTMLElement | null =>
+      target instanceof Element ? target.closest<HTMLElement>(".s-reading .s-rv-h[id]") : null;
     const onDown = (e: PointerEvent): void => {
       const line = e.target instanceof Element ? e.target.closest(".cm-line") : null;
-      if (!line || !HEADING_LINE.test(line.textContent ?? "")) return;
+      const heading = editing ? null : readingHeading(e.target);
+      if (editing ? !line || !HEADING_LINE.test(line.textContent ?? "") : !heading) return;
       start = { x: e.clientX, y: e.clientY };
       const { clientX: x, clientY: y } = e;
       timer = window.setTimeout(() => {
         start = null;
-        void import("../editorBridge.ts").then((bridge) => {
-          const found = bridge.headingVerbsAt(root, x, y);
-          if (!found) return;
+        const found = editing
+          ? import("../editorBridge.ts").then((bridge) => bridge.headingVerbsAt(root, x, y))
+          : import("../readingHeading.ts").then((m) => m.readingHeadingVerbs(path, heading!.id));
+        void found.then((got) => {
+          if (!got) return;
           window.getSelection()?.removeAllRanges();
-          const rows: ActionRow[] = found.verbs.map((v) => ({ label: v.label, onSelect: v.run }));
-          phone.openSheet(ACTION_SHEET, { title: found.title, rows });
+          const rows: ActionRow[] = got.verbs.map((v) => ({ label: v.label, onSelect: v.run }));
+          phone.openSheet(ACTION_SHEET, { title: got.title, rows });
         });
       }, HOLD_MS);
     };
     const onMove = (e: PointerEvent): void => {
       if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) cancel();
     };
+    const onContext = (e: MouseEvent): void => {
+      if (!editing && readingHeading(e.target)) e.preventDefault();
+    };
     root.addEventListener("pointerdown", onDown);
     root.addEventListener("pointermove", onMove);
     root.addEventListener("pointerup", cancel);
     root.addEventListener("pointercancel", cancel);
+    root.addEventListener("contextmenu", onContext);
     return () => {
       cancel();
       root.removeEventListener("pointerdown", onDown);
       root.removeEventListener("pointermove", onMove);
       root.removeEventListener("pointerup", cancel);
       root.removeEventListener("pointercancel", cancel);
+      root.removeEventListener("contextmenu", onContext);
     };
-  }, [editing, path, phone]);
+  }, [editing, surface, admin, path, phone]);
 
   // ── PROPERTIES, one line ─────────────────────────────────────────────────
   // The card at the top of every note collapses to "N properties ›" here

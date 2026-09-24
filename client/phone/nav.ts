@@ -21,6 +21,16 @@
 // asked for while a pop is in flight waits for the `popstate` and then runs,
 // so "close the sheet, then open the note" cannot be reordered by the browser.
 //
+// TWO THINGS A SCREEN MAY ASK OF THE STACK (3.27.0). A list remembers where
+// it was scrolled: the push that leaves it stamps the scroll offset into the
+// entry it leaves (`scrollOf`), so the pop that comes back — a Back, or a
+// reload that lands on it — hands the offset back (`NavState.scroll`). And a
+// screen holding unsaved edits (a Settings section) may refuse to be left
+// (`canLeave`): the move is not made, the refusal is reported with a way to
+// make it anyway (`onBlocked`), and a Back that had already popped the entry
+// is undone by pushing the entry straight back, so the edits are never
+// unmounted under the question.
+//
 // PURE BY INJECTION. The history object, the URL of a screen and the popstate
 // subscription are passed in, so tests/phoneNav.test.ts drives this module
 // with a fake history and asserts the stack and the entries together.
@@ -38,10 +48,20 @@ export type Screen =
   | { kind: "folder"; path: string }
   /** Every note carrying a tag. */
   | { kind: "tag"; tag: string }
-  /** A surface the phone shows through the legacy wrapper for Round 1: a
-   *  workspace tab path (`~orbits…`, `~sigils`, `~graph`, `~media`,
-   *  `~review-week`, a book, a drawing) or `~library`. */
-  | { kind: "surface"; tab: string };
+  /** A surface the store opens as a workspace tab: `~orbits` (the decks),
+   *  `~orbits/<deck>` (a session), `~sigils`, `~media`, `~graph`,
+   *  `~review-week`, a book, a drawing, or `~library`. Each has a phone
+   *  screen of its own except the graph and a drawing, which are still drawn
+   *  by the pane's surface switch under a top bar (SurfaceScreen). */
+  | { kind: "surface"; tab: string }
+  /** Settings: the list of sections (`section: ""`), or one section. */
+  | { kind: "settings"; section: string }
+  /** One deck: what is due, what is new, and Study. */
+  | { kind: "deck"; path: string }
+  /** One sigil — the `index`th ```sigil fence in `path` — with today first. */
+  | { kind: "sigil"; path: string; index: number }
+  /** One tracker — the `index`th ```tracker fence in `path` — as its card. */
+  | { kind: "tracker"; path: string; index: number };
 
 export interface NavEntry {
   tab: TabId;
@@ -49,6 +69,8 @@ export interface NavEntry {
   stack: Screen[];
   /** Sheets open over the top screen, innermost last. */
   sheets: string[];
+  /** Where the top screen's list was scrolled when a push left it. */
+  scroll?: number;
 }
 
 export interface NavState {
@@ -57,6 +79,9 @@ export interface NavState {
   sheets: string[];
   /** Where in our own run of history entries this is (0 = the base entry). */
   depth: number;
+  /** The scroll offset the top screen should come back to — set when a pop
+   *  lands on an entry that recorded one. */
+  scroll?: number;
 }
 
 export interface HistoryLike {
@@ -72,6 +97,14 @@ export interface NavDeps {
   urlFor: (screen: Screen, tab: TabId) => string | null;
   /** Called after every change, with the new state. */
   onChange: (state: NavState, cause: NavCause) => void;
+  /** The scroll offset of the screen on top now, read as a push leaves it. */
+  scrollOf?: () => number | null;
+  /** May the reader go from `from` to `to`? Asked before every move and on
+   *  every pop; absent means yes. */
+  canLeave?: (from: NavState, to: NavState) => boolean;
+  /** A move `canLeave` refused. `proceed` makes it anyway — call it once the
+   *  reason for refusing is gone (the edits were saved or discarded). */
+  onBlocked?: (proceed: () => void) => void;
 }
 
 /** Why the state changed — a pop is the one the shell answers differently
@@ -98,6 +131,14 @@ export function screenKey(s: Screen): string {
       return `tag:${s.tag}`;
     case "surface":
       return `surface:${s.tab}`;
+    case "settings":
+      return `settings:${s.section}`;
+    case "deck":
+      return `deck:${s.path}`;
+    case "sigil":
+      return `sigil:${s.path}#${s.index}`;
+    case "tracker":
+      return `tracker:${s.path}#${s.index}`;
   }
 }
 
@@ -127,6 +168,13 @@ function isScreen(v: unknown): v is Screen {
       return typeof s.tag === "string";
     case "surface":
       return typeof s.tab === "string";
+    case "settings":
+      return typeof s.section === "string";
+    case "deck":
+      return typeof s.path === "string";
+    case "sigil":
+    case "tracker":
+      return typeof s.path === "string" && typeof s.index === "number" && Number.isInteger(s.index) && s.index >= 0;
     default:
       return false;
   }
@@ -141,12 +189,14 @@ export function readMark(raw: unknown): { depth: number; entry: NavEntry } | nul
   if (typeof mark !== "object" || mark === null) return null;
   const m = mark as { depth?: unknown; entry?: unknown };
   if (typeof m.depth !== "number" || !Number.isInteger(m.depth) || m.depth < 0) return null;
-  const e = m.entry as { tab?: unknown; stack?: unknown; sheets?: unknown } | undefined;
+  const e = m.entry as { tab?: unknown; stack?: unknown; sheets?: unknown; scroll?: unknown } | undefined;
   if (!e || !isTab(e.tab) || !Array.isArray(e.stack) || e.stack.length === 0 || !e.stack.every(isScreen)) return null;
   const sheets = Array.isArray(e.sheets) ? e.sheets.filter((x): x is string => typeof x === "string") : [];
   const stack = e.stack as Screen[];
   if (stack[0].kind !== "root" || stack[0].tab !== e.tab) return null;
-  return { depth: m.depth, entry: { tab: e.tab, stack, sheets } };
+  const entry: NavEntry = { tab: e.tab, stack, sheets };
+  if (typeof e.scroll === "number" && Number.isFinite(e.scroll) && e.scroll > 0) entry.scroll = Math.round(e.scroll);
+  return { depth: m.depth, entry };
 }
 
 function entryOf(state: NavState): NavEntry {
@@ -169,6 +219,10 @@ export interface Nav {
   back(): void;
   /** Leave the top screen, however many sheets stand over it. */
   popScreen(): void;
+  /** Go back down the active tab's stack to `screen` (the highest one below
+   *  the top that it names): what a session's own "back to the shelf" asks,
+   *  said to the stack. False when the stack does not hold it. */
+  popTo(screen: Screen): boolean;
   /** Open a sheet: an entry of its own, so back closes it first. */
   openSheet(id: string): void;
   /** Close the innermost sheet if it is `id` (or any, with no id). */
@@ -206,6 +260,15 @@ export function remapScreen(screen: Screen, from: string, to: string): Screen {
       const tab = remapPath(screen.tab, from, to);
       return tab === screen.tab ? screen : { kind: "surface", tab };
     }
+    case "deck": {
+      const path = remapPath(screen.path, from, to);
+      return path === screen.path ? screen : { kind: "deck", path };
+    }
+    case "sigil":
+    case "tracker": {
+      const path = remapPath(screen.path, from, to);
+      return path === screen.path ? screen : { ...screen, path };
+    }
     default:
       return screen;
   }
@@ -230,22 +293,42 @@ export function createNav(deps: NavDeps): Nav {
   const queue: (() => void)[] = [];
 
   const url = (s: NavState): string | null => deps.urlFor(topOf(s), s.tab);
+  const mark = (depth: number, entry: NavEntry) => ({ phone: { depth, entry } });
 
   function run(op: () => void): void {
     if (popsInFlight > 0) queue.push(op);
     else op();
   }
 
+  /** Would this move leave a screen that refuses to be left? Then it is not
+   *  made: the refusal goes to the shell with the move to make once the
+   *  reason is gone. */
+  function refused(next: NavState, proceed: () => void): boolean {
+    if (!deps.canLeave || deps.canLeave(st, next)) return false;
+    deps.onBlocked?.(proceed);
+    return true;
+  }
+
   function commit(next: NavState, how: "push" | "replace", cause: NavCause): void {
-    st = next;
+    if (how === "push" && deps.scrollOf && st.depth < next.depth) {
+      // The screen being left keeps its place: the entry it is leaving
+      // records the scroll, so the pop that comes back can restore it.
+      const y = deps.scrollOf();
+      const leaving = entries[st.depth];
+      if (leaving && y !== null && y > 0 && leaving.scroll !== y) {
+        entries[st.depth] = { ...leaving, scroll: Math.round(y) };
+        deps.history.replaceState(mark(st.depth, entries[st.depth]), "");
+      }
+    }
+    st = { ...next, scroll: undefined };
     const entry = entryOf(st);
     if (how === "push") {
       entries = entries.slice(0, st.depth);
       entries[st.depth] = entry;
-      deps.history.pushState({ phone: { depth: st.depth, entry } }, "", url(st));
+      deps.history.pushState(mark(st.depth, entry), "", url(st));
     } else {
       entries[st.depth] = entry;
-      deps.history.replaceState({ phone: { depth: st.depth, entry } }, "", url(st));
+      deps.history.replaceState(mark(st.depth, entry), "", url(st));
     }
     deps.onChange(st, cause);
   }
@@ -260,6 +343,12 @@ export function createNav(deps: NavDeps): Nav {
     return { tab, stacks: { ...st.stacks, [tab]: stack }, sheets, depth: st.depth };
   }
 
+  /** The state an earlier entry of our run would restore. */
+  function stateAt(j: number): NavState {
+    const e = entries[j];
+    return { tab: e.tab, stacks: { ...st.stacks, [e.tab]: e.stack }, sheets: e.sheets, depth: j };
+  }
+
   const nav: Nav = {
     state: () => st,
 
@@ -267,7 +356,7 @@ export function createNav(deps: NavDeps): Nav {
       const s = stack && stack.length > 0 && stack[0].kind === "root" ? stack : [rootOf(tab)];
       st = { tab, stacks: { ...emptyStacks(), [tab]: s }, sheets: [], depth: 0 };
       entries = [entryOf(st)];
-      deps.history.replaceState({ phone: { depth: 0, entry: entryOf(st) } }, "", url(st));
+      deps.history.replaceState(mark(0, entryOf(st)), "", url(st));
       deps.onChange(st, "start");
     },
 
@@ -276,6 +365,7 @@ export function createNav(deps: NavDeps): Nav {
         if (sameScreen(topOf(st), screen) && st.sheets.length === 0) return;
         const next = withStack(st.tab, [...st.stacks[st.tab], screen]);
         next.depth = st.depth + 1;
+        if (refused(next, () => nav.push(screen))) return;
         commit(next, "push", "push");
       });
     },
@@ -287,7 +377,9 @@ export function createNav(deps: NavDeps): Nav {
           nav.push(screen);
           return;
         }
-        commit(withStack(st.tab, [...stack.slice(0, -1), screen], st.sheets), "replace", "replace");
+        const next = withStack(st.tab, [...stack.slice(0, -1), screen], st.sheets);
+        if (refused(next, () => nav.replaceTop(screen))) return;
+        commit(next, "replace", "replace");
       });
     },
 
@@ -302,15 +394,18 @@ export function createNav(deps: NavDeps): Nav {
           let j = st.depth;
           while (j > 0 && entries[j - 1]?.tab === tab && entries[j - 1].sheets.length === 0 && entries[j].stack.length > 1) j -= 1;
           if (entries[j]?.tab === tab && entries[j].stack.length === 1 && j < st.depth) {
+            if (refused(stateAt(j), () => nav.switchTab(tab))) return;
             goBack(st.depth - j);
             return;
           }
           const next = withStack(tab, [rootOf(tab)]);
           next.depth = st.depth + 1;
+          if (refused(next, () => nav.switchTab(tab))) return;
           commit(next, "push", "tab");
           return;
         }
         const next: NavState = { tab, stacks: st.stacks, sheets: [], depth: st.depth + 1 };
+        if (refused(next, () => nav.switchTab(tab))) return;
         commit(next, "push", "tab");
       });
     },
@@ -320,6 +415,7 @@ export function createNav(deps: NavDeps): Nav {
         const base = st.stacks[tab];
         const stack = sameScreen(base[base.length - 1], screen) ? base : [...base, screen];
         const next: NavState = { tab, stacks: { ...st.stacks, [tab]: stack }, sheets: [], depth: st.depth + 1 };
+        if (refused(next, () => nav.pushOn(tab, screen))) return;
         commit(next, "push", "tab");
       });
     },
@@ -331,15 +427,16 @@ export function createNav(deps: NavDeps): Nav {
           // with no entry under it (a deep link) steps down in place, so
           // back never leaves the app from inside a note.
           const stack = st.stacks[st.tab];
-          if (st.sheets.length > 0) {
-            commit({ ...st, sheets: st.sheets.slice(0, -1) }, "replace", "pop");
-          } else if (stack.length > 1) {
-            commit(withStack(st.tab, stack.slice(0, -1)), "replace", "pop");
-          } else if (st.tab !== "today") {
-            commit({ tab: "today", stacks: st.stacks, sheets: [], depth: 0 }, "replace", "pop");
-          }
+          let next: NavState | null = null;
+          if (st.sheets.length > 0) next = { ...st, sheets: st.sheets.slice(0, -1) };
+          else if (stack.length > 1) next = withStack(st.tab, stack.slice(0, -1));
+          else if (st.tab !== "today") next = { tab: "today", stacks: st.stacks, sheets: [], depth: 0 };
+          if (next === null || refused(next, () => nav.back())) return;
+          commit(next, "replace", "pop");
           return;
         }
+        // The pop itself is judged when it lands (onPop): the entry under
+        // this one is what it restores.
         goBack(1);
       });
     },
@@ -353,11 +450,40 @@ export function createNav(deps: NavDeps): Nav {
         let j = st.depth - 1;
         while (j >= 0 && !(entries[j]?.tab === st.tab && entries[j].stack.length < n && entries[j].sheets.length === 0)) j -= 1;
         if (j >= 0 && entries[j].stack.length === n - 1) {
+          if (refused(stateAt(j), () => nav.popScreen())) return;
           goBack(st.depth - j);
           return;
         }
-        commit(withStack(st.tab, n > 1 ? st.stacks[st.tab].slice(0, -1) : st.stacks[st.tab]), "replace", "pop");
+        const next = withStack(st.tab, n > 1 ? st.stacks[st.tab].slice(0, -1) : st.stacks[st.tab]);
+        if (refused(next, () => nav.popScreen())) return;
+        commit(next, "replace", "pop");
       });
+    },
+
+    popTo(screen) {
+      const below = (): number => {
+        const stack = st.stacks[st.tab];
+        let i = stack.length - 2;
+        while (i >= 0 && !sameScreen(stack[i], screen)) i -= 1;
+        return i;
+      };
+      if (below() < 0) return false;
+      run(() => {
+        const i = below();
+        if (i < 0) return;
+        const n = i + 1;
+        let j = st.depth - 1;
+        while (j >= 0 && !(entries[j]?.tab === st.tab && entries[j].sheets.length === 0 && entries[j].stack.length === n && sameScreen(entries[j].stack[i], screen))) j -= 1;
+        if (j >= 0) {
+          if (refused(stateAt(j), () => nav.popTo(screen))) return;
+          goBack(st.depth - j);
+          return;
+        }
+        const next = withStack(st.tab, st.stacks[st.tab].slice(0, n));
+        if (refused(next, () => nav.popTo(screen))) return;
+        commit(next, "replace", "pop");
+      });
+      return true;
     },
 
     openSheet(id) {
@@ -385,23 +511,39 @@ export function createNav(deps: NavDeps): Nav {
         }
         const stack = st.stacks[st.tab];
         const next = withStack(st.tab, sameScreen(stack[stack.length - 1], screen) ? stack : [...stack, screen], []);
+        if (refused(next, () => nav.navigateFromSheet(screen))) return;
         commit(next, "replace", "replace");
       });
     },
 
     onPop(raw) {
       if (popsInFlight > 0) popsInFlight -= 1;
-      const mark = readMark(raw);
-      if (mark !== null) {
-        const { depth } = mark;
-        const entry = { ...mark.entry, stack: followMoves(mark.entry.stack) };
-        st = { tab: entry.tab, stacks: { ...st.stacks, [entry.tab]: entry.stack }, sheets: entry.sheets, depth };
-        entries[depth] = entry;
-        deps.onChange(st, "pop");
+      const found = readMark(raw);
+      if (found !== null) {
+        const { depth } = found;
+        const entry = { ...found.entry, stack: followMoves(found.entry.stack) };
+        const next: NavState = { tab: entry.tab, stacks: { ...st.stacks, [entry.tab]: entry.stack }, sheets: entry.sheets, depth, scroll: entry.scroll };
+        if (deps.canLeave && !deps.canLeave(st, next)) {
+          // The browser has already popped. Put the entry we were on back on
+          // top — one step past where the pop landed — so what is on screen
+          // and what history says agree, and ask. The state is not touched,
+          // so the screen holding the edits is never unmounted.
+          const at = depth + 1;
+          const here = entryOf(st);
+          entries = entries.slice(0, at);
+          entries[at] = here;
+          st = { ...st, depth: at };
+          deps.history.pushState(mark(at, here), "", url(st));
+          deps.onBlocked?.(() => nav.back());
+        } else {
+          st = next;
+          entries[depth] = entry;
+          deps.onChange(st, "pop");
+        }
       }
       // Whatever was asked for while the pop was in flight runs now, in order.
       while (popsInFlight === 0 && queue.length > 0) queue.shift()!();
-      return mark === null ? "foreign" : "restored";
+      return found === null ? "foreign" : "restored";
     },
 
     remap(from, to) {

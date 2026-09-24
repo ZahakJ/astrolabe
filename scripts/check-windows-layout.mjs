@@ -37,12 +37,16 @@ const [url = "http://localhost:7141", password = "astrolabe7141"] = process.argv
 const executablePath = process.env.CHROMIUM;
 
 /** The rungs. 1366 and 1280 are the two commonest laptop panels; 1024 is the
- *  same laptop at 133%, 900 is a window beside a browser on it, 700 and 600
- *  are the width-only phone band that every pointer shares. */
-const WIDTHS = [1366, 1280, 1024, 900, 700, 600];
+ *  same laptop at 133%, 900 is a window beside a browser on it, 720 the
+ *  narrowest window the desktop shell is still mounted in. Below 700 every
+ *  pointer gets the phone shell (client/shellQuery.ts) — the `whichShell`
+ *  rung walks 700 and 600 to prove it. */
+const WIDTHS = [1366, 1280, 1024, 900, 720];
+/** The rungs `whichShell` walks: the desktop's, and the phone band under them. */
+const SHELL_WIDTHS = [...WIDTHS, 700, 600];
 const RATIOS = [1, 1.25, 1.5];
 
-/** The phone's own arm of DRAWER_QUERY (client/state.ts) — width only, every
+/** PHONE_SHELL_QUERY's width arm (client/shellQuery.ts) — width only, every
  *  pointer, because two 300px measures are not a choice anyone can make. */
 const PHONE_AT = 700;
 /** client/paneWidths.ts MAIN_MIN. */
@@ -79,12 +83,12 @@ const POSTURES = {
  *  cell, so a posture that failed to take is a failure and not a pass. */
 const FINE = { mouse: true, slate: false, touchlaptop: true };
 
-/** …and what the breakpoint's OWN question answers in each (3.23.0): is this
- *  device's primary pointer a finger that cannot hover? A slate says yes and
- *  gets the drawer under 1000px, exactly as it did under the any-pointer
- *  form; a touch laptop says no, because the mouse beside the touchscreen
- *  hovers, and keeps the docked panes defect F is about. Asserted too, so a
- *  posture cannot half-take. */
+/** …and what the phone question's pointer arm answers in each (3.23.0): is
+ *  this device's primary pointer a finger that cannot hover? A slate says
+ *  yes and gets the PHONE shell at every width (since 3.27.0 there is no
+ *  drawer shell to give it); a touch laptop says no, because the mouse beside
+ *  the touchscreen hovers, and keeps the docked panes defect F is about.
+ *  Asserted too, so a posture cannot half-take. */
 const OWN_POINTER = { mouse: false, slate: true, touchlaptop: false };
 
 const errs = [];
@@ -161,9 +165,9 @@ function measure() {
     dir: getComputedStyle(document.body).direction,
     flip: app ? app.classList.contains("s-app--flip") : false,
     fine: matchMedia("(any-pointer: fine)").matches,
-    // What the breakpoint itself asks (client/state.ts DRAWER_QUERY, 3.23.0):
-    // the PRIMARY pointer, because `any-pointer: fine` is true of a phone
-    // with a stylus and that phone is not a laptop.
+    // What the phone question's pointer arm asks (client/shellQuery.ts): the
+    // PRIMARY pointer, because `any-pointer: fine` is true of a phone with a
+    // stylus and that phone is not a laptop.
     ownPointer: matchMedia("(pointer: coarse) and (hover: none)").matches,
     sidebar: box(".s-sidebar"),
     panel: box(".s-panel"),
@@ -185,31 +189,14 @@ function measure() {
 
 /** One cell of the matrix. */
 function assertCell(where, m, { posture, seeded }) {
-  const phone = m.inner <= PHONE_AT;
-  const drawer = phone || (m.ownPointer && m.inner <= 999);
-
   ok(where, m.docScroll <= 0, `the document scrolls sideways by ${m.docScroll}px`);
 
-  if (drawer) {
-    // The sidebar leaves the grid and becomes an overlay; the ☰ is its door.
-    ok(where, m.sidebar.position === "fixed", `sidebar should be an overlay drawer, is ${m.sidebar.position}`);
-    ok(where, m.gripSidebar.display === "none", "a drawer has no width to drag");
-    // …except while the OUTLINE drawer is up on a phone: it hides the chrome
-    // it covers (app.css "a phone drawer hides the chrome it covers", 3.19.0)
-    // and carries its own ✕, so the ☰ is gone until it closes.
-    if (phone && !m.panelCollapsed) ok(where, m.drawerBtn.display === "none", "an open outline drawer hides the ☰ it covers");
-    else ok(where, m.drawerBtn.display !== "none", "a drawer needs its ☰");
-    // The PANEL stays docked and resizable in the 700–999 band; below 700 it
-    // is a drawer of its own and goes with the rest.
-    if (!phone && !m.panelCollapsed) ok(where, m.gripPanel.display !== "none", "the outline pane stays docked here and keeps its grip");
-    else ok(where, m.gripPanel.display === "none", "no grips on a phone");
-    return;
-  }
-
+  // THE DRAWER IS GONE (3.27.0): wherever a pane could have been a drawer the
+  // phone shell is mounted instead, so every cell the desktop is in is docked.
   // ── DOCKED. Everything below is what a window with a pointer must have. ──
   ok(where, m.sidebar.position !== "fixed", `sidebar should be a grid column, is ${m.sidebar.position}`);
   ok(where, m.sidebar.gridArea.includes("sidebar"), `sidebar was auto-placed (grid-area ${m.sidebar.gridArea})`);
-  ok(where, m.drawerBtn.display === "none", "a docked sidebar must not also offer a ☰");
+  ok(where, m.drawerBtn === null, "the drawer's ☰ went with the drawer");
 
   // THE POINTER DOES NOT DECIDE (CONTRACTS.md, "The pane grips"). A slate
   // posture above the drawer band still has docked panes, so it still has
@@ -293,12 +280,6 @@ async function ladder({ dpr, posture, rtl, seeded }) {
       }
     },
     {
-      // THE LADDER MEASURES THE DESKTOP'S SHELL AT EVERY WIDTH, including the
-      // drawer cells below 700 (and a slate's below 1000), so it runs in the
-      // Classic phone layout — the shell those cells had until 3.26.0 and
-      // still have for a reader who picks it. Which shell a cell gets under
-      // the default (New) layout is the `whichShell` rung below.
-      "astrolabe.phoneLayout": "classic",
       ...(rtl ? { "astrolabe.editorLang": "ar" } : {}),
       // The panel is opened DELIBERATELY for the seeded rows, so the
       // responsive auto-collapse cannot quietly hide the thing under test.
@@ -383,46 +364,6 @@ async function liveResize({ dpr, rtl }) {
   await ctx.close();
 }
 
-/** AND THE PHONE'S NOTES DRAWER STILL SLIDES. It rides on `.s-sidebar`, the
- *  same element the "do not animate" class freezes, so a flag raised for the
- *  outline panel's automatic collapse and never lowered stopped the drawer
- *  moving at all — measured `transition-property: none`, left −330 → 0 in one
- *  frame. The gate for windows owns this because it is the same flag. */
-async function phoneDrawer() {
-  const browser = await browserFor("mouse");
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
-  await ctx.addCookies(cookies);
-  const page = await ctx.newPage();
-  await page.addInitScript(() => {
-    try {
-      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
-      localStorage.setItem("astrolabe.prefs-sync-off", "1");
-      // The drawer is the Classic phone layout's (3.26.0).
-      localStorage.setItem("astrolabe.phoneLayout", "classic");
-    } catch {
-      // a context with storage blocked still renders the defaults
-    }
-  });
-  await page.goto(`${url}/`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector(".s-app", { timeout: 20000 });
-  await page.waitForTimeout(900);
-  const where = "phone drawer";
-  const btn = await page.$(".s-drawer-btn");
-  ok(where, btn !== null, "the phone shell should offer a ☰");
-  if (btn) {
-    await btn.tap();
-    await page.waitForTimeout(40);
-    const m = await page.evaluate(() => {
-      const el = document.querySelector(".s-sidebar");
-      const cs = getComputedStyle(el);
-      return { property: cs.transitionProperty, duration: cs.transitionDuration, left: Math.round(el.getBoundingClientRect().left) };
-    });
-    ok(where, m.property.includes("transform"), `the drawer's transition is "${m.property}" — it should slide`);
-    ok(where, m.left < 0, `40ms into the slide the drawer is already fully open at ${m.left}`);
-  }
-  await ctx.close();
-}
-
 /** AND THE READER'S OWN FOLD STILL SLIDES.
  *
  *  The two rungs above are both about widths the reader did not ask for. This
@@ -469,7 +410,7 @@ async function readerFold({ width }) {
   await ctx.close();
 }
 
-/** WHICH SHELL, UNDER THE DEFAULT LAYOUT (3.26.0). The phone shell
+/** WHICH SHELL (3.26.0; the only layout since 3.27.0). The phone shell
  *  (client/phone/) is mounted wherever PHONE_SHELL_QUERY matches — every
  *  pointer below 700, and a finger that cannot hover at any width — and
  *  NOWHERE ELSE: the desktop a mouse or a touch laptop gets above 700 must
@@ -491,7 +432,7 @@ async function whichShell(posture) {
   await page.goto(`${url}/`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector(".s-app, .s-ph", { timeout: 20000 });
   await page.waitForTimeout(900);
-  for (const width of WIDTHS) {
+  for (const width of SHELL_WIDTHS) {
     await page.setViewportSize({ width, height: 800 });
     await page.waitForTimeout(600);
     const m = await page.evaluate(() => ({
@@ -517,15 +458,15 @@ for (const dpr of RATIOS) await ladder({ dpr, posture: "mouse", rtl: false, seed
 // every Wine run so far was LTR.
 await ladder({ dpr: 1, posture: "mouse", rtl: true, seeded: false });
 await ladder({ dpr: 1.5, posture: "mouse", rtl: true, seeded: true });
-// The two Windows postures a laptop can be in.
-await ladder({ dpr: 1.25, posture: "slate", rtl: false, seeded: false });
+// The touch laptop: a coarse primary pointer beside a mouse that hovers keeps
+// the desktop, its grips and its 44px rows. (A hardware slate is a finger
+// that cannot hover and gets the phone shell at every width — `whichShell`.)
 await ladder({ dpr: 1.25, posture: "touchlaptop", rtl: false, seeded: false });
 // What the reader sees WHILE the window is being dragged, not after.
 await liveResize({ dpr: 1, rtl: false });
 await liveResize({ dpr: 1.5, rtl: true });
 await readerFold({ width: 1300 });
 await readerFold({ width: 1440 });
-await phoneDrawer();
 for (const posture of Object.keys(POSTURES)) await whichShell(posture);
 
 for (const each of browsers.values()) await each.close();

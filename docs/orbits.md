@@ -154,6 +154,10 @@ monday:
 
 On the sigil's card that slot shows the deck by name and wears a small chip after its text, *12 due · Study*, that opens the session. When a session for that deck ends with nothing left due today, the app ticks the slot for you, through the same log line the checkbox writes. A slot that names several decks is ticked when none of them has a card due. The Sigils page's own line, *N due in Orbits*, opens the shelf.
 
+## On a phone
+
+On a phone ([the phone layout](workspace.md#on-a-phone)) Orbits is a list: More → **Orbits** shows every deck as a row with what it has due, and **+** makes a new deck. A deck opens its own screen with its three figures — due, new and total — one **Study** button, its sections as rows (tap one to study it alone), and the month's retention. **Study** starts the session on the whole screen; the session is the same one described above, and leaving it by its own **‹ Orbits** or by going back lands you on the deck again. **Today** lists every deck with cards due, and a tap there starts its session straight away.
+
 ## Related
 
 - [Sigils](sigils.md) — the day's page, where due cards appear and where a slot can point at a deck

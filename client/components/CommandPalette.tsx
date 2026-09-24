@@ -64,7 +64,7 @@ import { duplicateNote } from "../duplicate.ts";
 import { copyNoteLink } from "../sectionActions.ts";
 import { panesInOrder } from "../workspace.ts";
 import { askOrbits } from "../orbits/ask.ts";
-import { PHONE_QUERY, sidebarIsDrawer } from "../state.ts";
+import { phoneShellMode } from "../state.ts";
 import { createTwinFlow, openTwinBeside, switchToTwin } from "../twins.ts";
 
 // The palette owns the recents ledger's install: visits are recorded for the
@@ -1057,8 +1057,7 @@ export function runPaletteCommand(command: Command): void {
       // collapsed sidebar is the same nothing as no command at all. The
       // dispatch waits a frame so the tree has re-laid-out before it
       // measures where to scroll.
-      if (sidebarIsDrawer()) store.setSidebarOpen(true);
-      else store.setSidebarCollapsed(false);
+      store.setSidebarCollapsed(false);
       requestAnimationFrame(() =>
         window.dispatchEvent(new CustomEvent(TREE_REVEAL_EVENT, { detail: { path: open } })),
       );
@@ -1823,8 +1822,9 @@ export default function CommandPalette() {
                 ? t("askPlaceholder")
                 : mode.command?.prompt?.placeholder
               : // A phone's field holds about thirty characters; the long
-                // sentence was cut at "for a headin".
-                window.matchMedia(PHONE_QUERY).matches
+                // sentence was cut at "for a headin". The palette is a layer
+                // of the phone shell there (client/phone/PhoneShell.tsx).
+                phoneShellMode()
                 ? t("palettePlaceholderShort")
                 : t("palettePlaceholder")
           }

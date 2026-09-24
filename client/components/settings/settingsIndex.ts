@@ -14,7 +14,7 @@
 import type { I18nKey } from "../../i18n.ts";
 
 export interface SettingEntry {
-  /** The tab this row lives on — `TABS[].id` in SettingsModal.tsx. */
+  /** The tab this row lives on — `TABS[].id` in settings/tabs.ts. */
   tab: string;
   /** The row's label key. Also how a result finds its row in the DOM: `Row`
    *  stamps the RESOLVED label as `data-setting`, and the result resolves the
@@ -45,7 +45,6 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "device", label: "rowScreenDim", hint: "hintScreenDim" },
   { tab: "device", label: "rowEditorLanguage", hint: "hintEditorLanguage" },
   { tab: "device", label: "rowSidebarSide", hint: "hintSidebarSide" },
-  { tab: "device", label: "rowPhoneLayout", hint: "hintPhoneLayout" },
   { tab: "device", label: "rowEditorWidth", hint: "hintEditorWidth" },
   { tab: "device", label: "editorWidthCustom" },
   { tab: "device", label: "rowVimKeys", hint: "hintVimKeys" },

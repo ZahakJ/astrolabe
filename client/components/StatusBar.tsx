@@ -17,8 +17,7 @@ import { getNote } from "../api.ts";
 import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
 import { isPublishedContent } from "../publish.ts";
-import { confirmModal } from "./Confirm.tsx";
-import { DRAWER_QUERY, PHONE_QUERY, useStore } from "../state.ts";
+import { useStore } from "../state.ts";
 import { activeTabOf, isCalendarTab, isGraphTab, isMediaTab, isRoutinesTab, isOrbitsTab, paneAt, surfaceOf, type PaneSurface } from "../workspace.ts";
 import { titleOf } from "./Tabs.tsx";
 import { choiceGroup, choiceLabel } from "../themes.ts";
@@ -153,26 +152,6 @@ function UpdateChip() {
       {APP_VERSION}
     </button>
   );
-}
-
-/** True while the shell shows the sidebar as an overlay drawer (app.css's
- *  `@media (max-width: 999px)`). The switch below has to know: at those widths
- *  "the sidebar is showing" is `sidebarOpen`, not `!sidebarCollapsed`, and a
- *  switch reporting the wrong one is the invisible-state bug in miniature.
- *  Tracked live, because a window resize crosses the breakpoint without ever
- *  touching the store. */
-function useDrawerShell(): boolean {
-  const [drawer, setDrawer] = useState(
-    () => typeof window !== "undefined" && window.matchMedia(DRAWER_QUERY).matches,
-  );
-  useEffect(() => {
-    const mq = window.matchMedia(DRAWER_QUERY);
-    const onChange = (e: MediaQueryListEvent): void => setDrawer(e.matches);
-    mq.addEventListener("change", onChange);
-    setDrawer(mq.matches);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-  return drawer;
 }
 
 /** One switch in the mode cluster. `on` is not a shade of grey: it fills with
@@ -356,10 +335,9 @@ export default function StatusBar() {
   const previewVisitor = useStore((s) => s.previewVisitor);
   const setPreviewVisitor = useStore((s) => s.setPreviewVisitor);
   const sidebarCollapsed = useStore((s) => s.sidebarCollapsed);
-  const sidebarOpen = useStore((s) => s.sidebarOpen);
-  const drawerShell = useDrawerShell();
-  /** Is the notes sidebar on screen right now, in whichever shell this is? */
-  const sidebarShown = drawerShell ? sidebarOpen : !sidebarCollapsed;
+  /** Is the notes sidebar on screen right now? (There is no drawer to ask
+   *  about any more: a phone gets the phone shell, 3.27.0.) */
+  const sidebarShown = !sidebarCollapsed;
   const panelCollapsed = useStore((s) => s.panelCollapsed);
   const setPanelCollapsed = useStore((s) => s.setPanelCollapsed);
   const setZen = useStore((s) => s.setZen);
@@ -771,7 +749,7 @@ export default function StatusBar() {
         <button
           type="button"
           className={`s-statusbar__btn s-statusbar__icon s-statusbar__pane-outline${panelCollapsed ? "" : " s-statusbar__btn--on"}`}
-          onClick={() => setPanelCollapsed(!panelCollapsed, !window.matchMedia(PHONE_QUERY).matches)}
+          onClick={() => setPanelCollapsed(!panelCollapsed)}
           title={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
           aria-label={t(panelCollapsed ? "showPaneOutline" : "hidePaneOutline")}
           aria-pressed={!panelCollapsed}
@@ -901,29 +879,6 @@ export default function StatusBar() {
       {more && <ContextMenu at={more} rows={moreRows} label={t("moreTools")} onClose={() => setMore(null)} />}
     </>
   );
-
-  /** The bottom bar's Publish (the Classic layout's, on a phone). */
-  const publishFromBar = (path: string): void => {
-    // CLASSIC ON A FINGER ASKS FIRST (3.26.1). The phone shell's
-    // Publish confirms (client/phone/publish.ts); the Classic layout
-    // it replaces put the same verb one thumb-width from the mode
-    // pill and published on contact. Same question, same words (the
-    // shell seam forbids importing the phone's module here). A mouse
-    // and Ctrl/Cmd+Shift+P still publish in one step.
-    if (!openPublished && window.matchMedia("(pointer: coarse) and (hover: none)").matches) {
-      const name = noteLabelOf(path.slice(path.lastIndexOf("/") + 1));
-      void confirmModal({
-        title: tf("phPublishAsk", { name }),
-        body: t("phPublishBody"),
-        confirmLabel: t("publish"),
-        accent: true,
-      }).then((ok) => {
-        if (ok) void togglePublish(path, true);
-      });
-      return;
-    }
-    void togglePublish(path);
-  };
 
   return (
     // A named landmark, because this <footer> is not a site footer: it is the
@@ -1116,7 +1071,7 @@ export default function StatusBar() {
               openPublished ? " s-statusbar__pub--on" : ""
             }`}
             aria-pressed={openPublished === true}
-            onClick={() => publishFromBar(openPath)}
+            onClick={() => void togglePublish(openPath)}
             // A title is a HOVER affordance. On a finger Chrome raises it on
             // the tap and leaves it standing (Unpublished, stuck over the
             // bar in the 3.24 audit); the words on the button name it.
