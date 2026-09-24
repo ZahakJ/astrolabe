@@ -2221,6 +2221,11 @@ select:focus,
 }
 
 .s-statusbar__crumb-sep {
+  /* pinned left-to-right, flipped by hand under RTL (the RTL block below):
+     a transform needs a box, and bidi must not mirror it a second time */
+  display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
   color: var(--text-faint);
   font-size: 0.786rem;
 }
@@ -4973,14 +4978,20 @@ button.s-title:hover {
   box-shadow: inset -2px 0 0 var(--accent);
 }
 
-/* Disclosure chevrons and the breadcrumb separator are "›" (U+203A) glyphs.
-   That codepoint is Bidi_Mirrored, so the browser ALREADY draws it pointing
-   left under dir=rtl — adding scaleX(-1) here would flip it back to pointing
-   right. Collapsed chevrons and the crumb separator therefore need no rule at
-   all. Only the OPEN chevron does: rotating the already-mirrored glyph by the
-   base +90deg would aim it up, so it rotates the other way to still read down. */
+/* Disclosure chevrons and the breadcrumb separators are "›" (U+203A) glyphs,
+   pinned left-to-right where they are styled (tree.css, the crumbs), so the
+   font never mirrors them; the one mirror is this hand flip. Closed, the
+   chevron points into the row, which under RTL is the left; open, it turns a
+   quarter down in both directions (the base translateY is dropped with it, as
+   in LTR). tests/rtlGlyphs.test.ts holds every such glyph to the pair. */
+[dir="rtl"] .s-tree__chevron {
+  transform: translateY(-0.5px) scaleX(-1);
+}
 [dir="rtl"] .s-tree__chevron--open {
-  transform: rotate(-90deg);
+  transform: rotate(90deg);
+}
+[dir="rtl"] .s-statusbar__crumb-sep {
+  transform: scaleX(-1);
 }
 
 /* The properties-card chevron is an SVG path, NOT a glyph, so bidi leaves it
@@ -5843,6 +5854,10 @@ button.s-title:hover {
   flex-basis: 100%;
 }
 .s-tag__branch {
+  /* the glyph is pinned left-to-right and flipped by hand below (see
+     .s-tree__chevron): one mirror, whatever the font */
+  direction: ltr;
+  unicode-bidi: isolate;
   inline-size: 18px;
   block-size: 22px;
   padding: 0;
@@ -5857,8 +5872,11 @@ button.s-title:hover {
 .s-tag__branch--open {
   transform: rotate(90deg);
 }
-[dir="rtl"] .s-tag__branch:not(.s-tag__branch--open) {
-  transform: rotate(180deg);
+[dir="rtl"] .s-tag__branch {
+  transform: scaleX(-1);
+}
+[dir="rtl"] .s-tag__branch--open {
+  transform: rotate(90deg);
 }
 .s-tag__branch:hover {
   color: var(--text);

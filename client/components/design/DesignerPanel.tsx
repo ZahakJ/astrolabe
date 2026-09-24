@@ -504,9 +504,9 @@ function Slider({
   );
 }
 
-/** One crumb separator. `›` (U+203A) is Bidi_Mirrored, so the browser draws it
- *  flipped under `dir="rtl"` on its own and it must NOT be given a transform —
- *  that would flip it back to pointing the wrong way (CONTRACTS). */
+/** One crumb separator. `›` (U+203A) is Bidi_Mirrored, and whether the browser
+ *  mirrors it under `dir="rtl"` depends on the font, so designer.css pins it
+ *  left-to-right and flips it by hand: one mirror, always (contracts/i18n.md). */
 function Sep() {
   return (
     <span className="s-dsgr__crumbsep" aria-hidden="true">
