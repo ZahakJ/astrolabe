@@ -31,7 +31,7 @@
 //    `book` is the OPEN book because a closed one reads as `archive` at 14px.
 
 import { FOLDER_ICON_NAMES } from "./folderIconNames.ts";
-import { isImagePath, type ImageExtension } from "./attachments.ts";
+import { isImagePath, type ImageExtension } from "./fileKinds.ts";
 
 /** The set, in picker order — generated from shared/folderIconCatalog.ts by
  *  scripts/gen-folder-icons.mjs: the twenty hand-drawn originals first (their

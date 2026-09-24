@@ -33,7 +33,7 @@ import {
   validateChrome,
   type DesignChrome,
 } from "./designChrome.ts";
-import { isImagePath } from "./attachments.ts";
+import { isImagePath } from "./fileKinds.ts";
 export type { DesignChrome } from "./designChrome.ts";
 
 /** The schema THIS build authors and renders.

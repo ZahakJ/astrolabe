@@ -11,8 +11,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { findAnchor, markdownAnchors, noteAnchors } from "../shared/anchors.ts";
-import { HEADING_RE, headingTitle, isHeadingLine, scanHeadings } from "../shared/headings.ts";
-import { extractHeadings as editorOffers, findHeadingLine } from "../client/editor/links.ts";
+import { findHeadingLine, HEADING_RE, headingTitle, headingTitles as editorOffers, isHeadingLine, scanHeadings } from "../shared/headings.ts";
 import { extractHeadings as outline } from "../client/reading/toc.ts";
 
 const NOTE = [
