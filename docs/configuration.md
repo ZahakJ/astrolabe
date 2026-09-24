@@ -20,6 +20,18 @@ value takes over again. A few keys are the exception: the security-sensitive one
 the session secret, the port, and so on) live in `.env` only, and the panel never shows or
 changes them.
 
+## Updating a server you run yourself
+
+The server reads its version from `package.json`, and the client carries the version it was
+built with. After `git pull`, run `npm run build` and restart: the pull moves the version, the
+build moves the files. If an open tab outlives a deploy it says *Astrolabe X is now on the server;
+reload to catch up*, once. If a reload brings the same old build back — the files were never
+rebuilt, or a service worker is still handing out the old shell — the app says so instead, once
+per version, and stops asking: *the server says it is Astrolabe X but serves the Y build*. That
+line means exactly one thing: run `npm run build` (or reinstall the package) on the machine that
+runs the server. The desktop app and the Android app ship their own build with their own server,
+so they never show it.
+
 ## Environment variables
 
 An *environment variable* is a named value the server reads when it starts. You can set it in

@@ -3311,6 +3311,7 @@ const en = {
   crashBody: "Your unsaved notes were sent to the vault. Reload to carry on.",
   crashReload: "Reload",
   newBuildOnServer: "Astrolabe {version} is now on the server; this tab still runs the old build. Reload to catch up.",
+  staleBuildOnServer: "The server says it is Astrolabe {server} but serves the {build} build: its files were not rebuilt (run npm run build, or reinstall). Nothing else is wrong.",
   chunkGone: "This part of Astrolabe could not be loaded — it may have been updated while you were here.",
   netTimeout: "The server did not answer in time",
   sessionStale: "Signed out — sign in again to carry on",
