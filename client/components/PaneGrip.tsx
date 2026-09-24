@@ -46,7 +46,7 @@ import {
   type Pane,
   type PaneRoom,
 } from "../paneWidths.ts";
-import { DRAWER_QUERY, PHONE_QUERY, useStore } from "../state.ts";
+import { useStore } from "../state.ts";
 
 function collapse(pane: Pane, on: boolean): void {
   const s = useStore.getState();
@@ -63,13 +63,13 @@ function paneEl(pane: Pane): HTMLElement | null {
 
 /** How much room the panes have, here, now. */
 export function paneRoom(): PaneRoom {
+  // No phone or drawer arm (3.27.0): wherever a pane could be a drawer the
+  // phone shell is mounted instead, and this shell with it is not.
   const s = useStore.getState();
-  const phone = window.matchMedia(PHONE_QUERY).matches;
-  const drawer = window.matchMedia(DRAWER_QUERY).matches;
   return {
     viewport: window.innerWidth,
-    sidebarDocked: !s.zen && !phone && !drawer && !s.sidebarCollapsed,
-    panelDocked: !s.zen && !phone && !s.panelCollapsed,
+    sidebarDocked: !s.zen && !s.sidebarCollapsed,
+    panelDocked: !s.zen && !s.panelCollapsed,
   };
 }
 
@@ -223,16 +223,10 @@ export function usePaneLayout(): void {
     // forces a style flush that would commit the collapse before the browser
     // ever saw a width to animate from.
     applyPaneWidths(document.documentElement, paneRoom());
-    const drawer = window.matchMedia(DRAWER_QUERY);
-    const phone = window.matchMedia(PHONE_QUERY);
     window.addEventListener("resize", schedule);
-    drawer.addEventListener("change", schedule);
-    phone.addEventListener("change", schedule);
     return () => {
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener("resize", schedule);
-      drawer.removeEventListener("change", schedule);
-      phone.removeEventListener("change", schedule);
     };
   }, [sidebarCollapsed, panelCollapsed, zen]);
 }

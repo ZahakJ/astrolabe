@@ -13,7 +13,7 @@ import { localeNum, t } from "../i18n.ts";
 // landing/hovering is interaction-time code. The reading view's static import
 // of the same module keeps it a single instance.
 import { lazySurface } from "../lazySurface.tsx";
-import { hasPanelPreference, PHONE_QUERY, useStore } from "../state.ts";
+import { hasPanelPreference, useStore } from "../state.ts";
 import FootnotesPanel from "./FootnotesPanel.tsx";
 import LocalGraph from "./LocalGraph.tsx";
 import TrackerPanel from "./TrackerPanel.tsx";
@@ -149,20 +149,6 @@ export default function BacklinksPanel() {
   // handle, Ctrl/Cmd+Alt+Shift+B, the palette) writes the flag, and the auto-
   // collapse never does — so the stored key IS the "the reader has decided"
   // bit, and it carries across sessions for free.
-  // ON A PHONE THE PANEL IS A DRAWER, and a drawer starts closed: the stored
-  // preference is the desktop's, and restoring "open" here covered the top
-  // bar on every load until the reader found the toggle a screen down.
-  // Escape closes it, as it closes the notes drawer.
-  useEffect(() => {
-    const phone = window.matchMedia(PHONE_QUERY);
-    if (phone.matches) collapseForViewport(true);
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === "Escape" && phone.matches && !useStore.getState().panelCollapsed) setCollapsed(true, false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [setCollapsed]);
-
   // A VIEWPORT FACT, AND IT DOES NOT ANIMATE. The threshold is crossed by a
   // maximise, by a Snap, by a tiling manager and by a monitor being unplugged,
   // and a 180ms width transition playing by itself — with the reading column
@@ -197,14 +183,6 @@ export default function BacklinksPanel() {
         {/* The sections scroll inside this wrapper so the grip, positioned
             against the aside, stays put (app.css, .s-panel__scroll). */}
         <div className="s-panel__scroll">
-        <button
-          type="button"
-          className="s-panel__phoneclose s-iconbtn"
-          aria-label={t("hidePaneOutline")}
-          onClick={() => setCollapsed(true, false)}
-        >
-          ✕
-        </button>
         <Suspense fallback={null}>
           <TocPanel />
         </Suspense>
@@ -299,8 +277,6 @@ export default function BacklinksPanel() {
         <OnThisDayPanel />
         </div>
       </aside>
-      {/* Tap outside closes the phone drawer; nothing on the desktop. */}
-      <div className="s-panel__scrim" onClick={() => setCollapsed(true, false)} aria-hidden="true" />
       {collapsed && !zen && (
         <button
           type="button"

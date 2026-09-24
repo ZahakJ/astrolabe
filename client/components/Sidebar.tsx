@@ -55,7 +55,7 @@ import {
 import { promptNewDrawing, promptNewFolder, promptNewNote } from "../prompts.ts";
 import { openExportDialog } from "../export/door.ts";
 import { newNoteFromTemplateCommand } from "../templateActions.ts";
-import { useStore, sidebarIsDrawer } from "../state.ts";
+import { useStore } from "../state.ts";
 import { trackerOfFolder, useTrackerShelf } from "../trackerShelf.ts";
 import AttachmentViewer, { fileUrl, isViewable } from "./AttachmentViewer.tsx";
 // The reader's door only — a tiny module whose heavy half (the shelf, the page
@@ -656,7 +656,6 @@ export default function Sidebar() {
     const onOpen = (): void => {
       const st = useStore.getState();
       if (st.sidebarCollapsed) st.setSidebarCollapsed(false);
-      if (sidebarIsDrawer()) st.setSidebarOpen(true);
       setReplacing(true);
       setHelpOpen(false);
       requestAnimationFrame(() => document.querySelector<HTMLInputElement>(".s-replace__input")?.focus());
@@ -2027,23 +2026,6 @@ export default function Sidebar() {
             </button>
           </span>
         )}
-        {/* THE DRAWER'S OWN WAY OUT, like the outline drawer's (3.18.0).
-            The ☰ that opens this pane is at the tab strip's inline start,
-            which the open drawer covers: a finger aiming at a button labelled
-            "Close Notes sidebar" landed on the wordmark underneath it, and
-            the labelled control was therefore no control at all. So the ☰
-            steps aside while the drawer is up (app.css) and the close lives
-            HERE, at the top of the thing it closes, where the reader is
-            already looking. CSS decides whether it exists; it is nothing at
-            every width that does not draw a drawer. */}
-        <button
-          type="button"
-          className="s-sidebar__phoneclose s-iconbtn"
-          aria-label={t("closeSidebar")}
-          onClick={() => useStore.getState().setSidebarOpen(false)}
-        >
-          ✕
-        </button>
       </header>
       <div className="s-search">
         <input

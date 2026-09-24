@@ -45,7 +45,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { useDialog } from "../a11y.ts";
 import { getLang, localeNum, t } from "../i18n.ts";
 import { isKey } from "../keys.ts";
-import { sidebarIsDrawer, useStore } from "../state.ts";
+import { useStore } from "../state.ts";
 import { createNote, putNote } from "../api.ts";
 import { syncSnapshot } from "../sync.ts";
 import { toast } from "../toast.ts";
@@ -208,11 +208,7 @@ function runAction(action: TourAction, demoTitle: string): void {
       store.openSettingsAt("rowSyncEnabled");
       break;
     case "drawer":
-      // On a phone the notes pane is an overlay drawer and on a laptop it is
-      // a grid column; "open it" is a different call for each, and the store
-      // already knows which shell it is in.
-      if (sidebarIsDrawer()) store.setSidebarOpen(true);
-      else store.setSidebarCollapsed(false);
+      store.setSidebarCollapsed(false);
       break;
     case "shortcuts":
       store.setShortcutsOpen(true);

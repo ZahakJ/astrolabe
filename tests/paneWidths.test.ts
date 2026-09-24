@@ -166,7 +166,8 @@ describe("pane widths", () => {
     // flag in the SAME `set` that starts its own animation, so the class is
     // gone in the commit the transition needs — no timer, no effect, nothing
     // that could land a frame late.
-    for (const setter of ["setPanelCollapsed", "setSidebarCollapsed", "setSidebarOpen", "setZen"]) {
+    // (setSidebarOpen, the phone drawer's, went with the drawer in 3.27.0.)
+    for (const setter of ["setPanelCollapsed", "setSidebarCollapsed", "setZen"]) {
       it(`${setter} lowers it in the same commit`, () => {
         const at = state.indexOf(`${setter}: (`);
         assert.ok(at > 0, `${setter} should exist`);
