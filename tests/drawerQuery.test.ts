@@ -95,6 +95,10 @@ describe("the drawer breakpoint", () => {
       lines.forEach((text, i) => {
         const code = text.replace(/\/\/.*$/, "");
         if (/^\s*\*/.test(code)) return; // a doc comment's body
+        // A NAMED, EXPORTED query is the cure, not the disease: the phone
+        // shell's own mount condition (client/shellQuery.ts, 3.26.0) is a
+        // different question from the drawer's and lives in one constant.
+        if (/^\s*export const [A-Z_]+_QUERY = /.test(code)) return;
         if (/["'`]\(max-width: (640|700|999)px\)/.test(code) || /any-pointer/.test(code)) {
           copies.push(`${path.relative(root, file)}:${i + 1} ${text.trim()}`);
         }
