@@ -12,6 +12,7 @@
 // code highlighting look identical in live preview and reading view.
 
 import { WidgetType, type EditorView } from "@codemirror/view";
+import { estimateImage, knownHeight, noteColumnWidth, trackHeight } from "./widgetHeight.ts";
 import { parseAlignMarker, withAlignMarker, type BlockAlign } from "../../shared/blockAlign.ts";
 import { drawingSvgName } from "./embeds.ts";
 import { getNote } from "../api.ts";
@@ -58,9 +59,16 @@ export class ImageWidget extends WidgetType {
       other.width === this.width
     );
   }
+  /** The picture's last measured height at this width, else most of the
+   *  column (client/editor/widgetHeight.ts). */
+  override get estimatedHeight(): number {
+    return knownHeight(`img:${this.name}:${this.width ?? ""}`) ?? estimateImage(this.width);
+  }
   toDOM(view: EditorView): HTMLElement {
     const wrap = document.createElement("span");
     wrap.className = "cm-s-embed-image";
+    noteColumnWidth(view.contentDOM.clientWidth);
+    trackHeight(`img:${this.name}:${this.width ?? ""}`, wrap);
     // AN IMAGE ARRIVES AFTER THE EDITOR HAS MEASURED IT. Until it does, this
     // widget is a few pixels tall and CodeMirror's height map records that;
     // when the bitmap lands the DOM grows by hundreds of pixels. Unless the
@@ -394,9 +402,14 @@ export class TransclusionWidget extends WidgetType {
       other.lang === this.lang
     );
   }
+  /** Only what it measured before: an embedded note can be any length. */
+  override get estimatedHeight(): number {
+    return knownHeight(`tx:${this.path}#${this.anchor ?? ""}`) ?? -1;
+  }
   toDOM(view: EditorView): HTMLElement {
     const card = document.createElement("span");
     card.className = "cm-s-transclude";
+    trackHeight(`tx:${this.path}#${this.anchor ?? ""}`, card);
 
     const title = this.path
       ? noteTitleOf(this.path)
