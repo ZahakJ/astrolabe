@@ -138,7 +138,7 @@ export default function SearchScreen() {
     const available = COMMANDS.filter((c) => c.available(ctx) && !DESKTOP_ONLY.has(c.id) && (phone.keyboard || !KEYBOARD_ONLY.has(c.id)));
     const query = q.trim();
     if (query === "") return available;
-    return rankCommands(query, available, (c) => ({ label: c.label(), hint: c.hint?.() })).map((r) => r.command);
+    return rankCommands(query, available, (c) => ({ label: c.label(), hint: c.hint?.(), aliases: c.aliases?.() })).map((r) => r.command);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, phone.keyboard, segment, admin]);
 

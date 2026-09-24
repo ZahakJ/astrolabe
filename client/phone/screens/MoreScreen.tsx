@@ -18,6 +18,7 @@ import { inAndroidShell, returnToShell } from "../../androidShell.ts";
 import { FEEDS_TAB, GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, REVIEW_WEEK_TAB, SIGILS_TAB, TIMELINE_TAB } from "../../workspace.ts";
 import { usePhone } from "../context.ts";
 import { IconChevron } from "../icons.tsx";
+import LangPill from "../LangPill.tsx";
 import TopBar from "../TopBar.tsx";
 
 declare const __APP_VERSION__: string;
@@ -64,7 +65,9 @@ export default function MoreScreen() {
 
   return (
     <div className="s-ph-screen s-ph-more" data-screen="more">
-      <TopBar title={t("phTabMore")} />
+      {/* The chrome-language key heads the tab a lost reader opens first:
+          top of the screen, before any list (LangPill.tsx). */}
+      <TopBar title={t("phTabMore")} actions={<LangPill />} />
       <div className="s-ph-scroll">
         <Group title={t("phRooms")}>
           {admin && <Item label={t("orbits")} onClick={surface(ORBITS_TAB)} />}

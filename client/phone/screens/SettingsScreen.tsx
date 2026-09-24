@@ -21,6 +21,7 @@ import { t } from "../../i18n.ts";
 import { useStore } from "../../state.ts";
 import { usePhone } from "../context.ts";
 import { IconChevron } from "../icons.tsx";
+import LangPill from "../LangPill.tsx";
 import TopBar from "../TopBar.tsx";
 import { useScrollMemory } from "../useScrollMemory.ts";
 
@@ -54,7 +55,7 @@ export default function SettingsScreen({ onBack }: { onBack?: () => void }) {
 
   return (
     <div className="s-ph-screen s-ph-settings" data-screen="settings">
-      <TopBar title={t("siteSettings")} onBack={onBack} onTitle={() => scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })} />
+      <TopBar title={t("siteSettings")} onBack={onBack} onTitle={() => scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })} actions={<LangPill />} />
       <div className="s-ph-scroll" ref={scrollRef}>
         <div className="s-ph-search__bar s-ph-search__bar--flat">
           <input

@@ -15,7 +15,7 @@ import * as api from "../api.ts";
 import { applyLanguage } from "./dom.ts";
 import { boot } from "../boot.ts";
 import { emptyWorkspace } from "../workspace.ts";
-import { readEditorLang, writeEditorLang, writeVisitorLang } from "../langPref.ts";
+import { chromeLangPref, readEditorLang, writeEditorLang, writeVisitorLang } from "../langPref.ts";
 
 /** The store's first values, the two language switches, and the one-line setters beside them. */
 export function fieldsSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
@@ -160,6 +160,15 @@ export function fieldsSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
           sidebarSide: effectiveSide(get().sidebarSidePref, next),
       });
       });
+    },
+    // One action behind every face of the switch, so the pill, the chord and
+    // the palette row cannot disagree about where a press lands. It reads the
+    // language ON SCREEN, not the preference: a reader who cannot read the
+    // chrome is asking for "the other one", whatever they pinned before.
+    toggleChromeLang: () => {
+      const s = get();
+      if (!s.admin) return;
+      s.setEditorLang(chromeLangPref(s.language, s.siteLanguage));
     },
     loginOpen: false,
     desktopUpdate: null,

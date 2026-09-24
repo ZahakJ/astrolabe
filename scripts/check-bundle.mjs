@@ -397,7 +397,16 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // 3.31.0 = the embed round merged over 3.30.2: both measured against the same
 // parent, so the two overages add: entry 752.7, blog 1054.9, admin 1013.9,
 // phone 861.2. Budgets = the summed actual, rounded up.
-const PHONE_BUDGET = 862 * 1024;
+const PHONE_BUDGET = 863 * 1024;
+// THE WAY BACK (the always-visible chrome-language switch), measured against
+// a build of 3.30.2: entry 750.8 → 751.5 (+0.7: the store's toggleChromeLang,
+// langPref's chromeLangPref, the chord in globalKeys, the palette's alias
+// haystack), blog 1051.8 → 1052.5 (the entry's), admin 1011.5 → 1013.5
+// (+2.0: the entry's, the status bar's key and its globe, and
+// chromeLangSwitch.ts — the bilingual label table, kept OUT of the entry and
+// a chunk of its own because the bar and the palette share it), phone
+// 859.1 → 860.5 (+1.4: the entry's and the More/Settings key). Budgets =
+// actual, rounded up.
 const AUDIENCES = [
 // RE-BASELINED for NOTE HISTORY (529.4 kB actual → budget 532, actual +
 // ~0.5%). This round is the safety net the rest of the slate stands on — git
@@ -1021,7 +1030,7 @@ const AUDIENCES = [
   // `![[` popup's cheat sheet — every audience is measured with the larger
   // language); the rest is the seam, `api.renameAttachment` and the move's
   // rename toast. The menu, the grip and the phone sheet are lazy. 750 → 752.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 753 * 1024 },
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 754 * 1024 },
   // RE-BASELINED for the DICTIONARY, and this one deserves naming as a debt
   // rather than a measurement. `client/i18n.ts` is a single object read by
   // `t()` on every surface, so it lands whole in every first paint — and this
@@ -1378,7 +1387,7 @@ const AUDIENCES = [
   // file embed stamped with its source and every top-level block with its
   // lines (render.ts), which the reading view's drag and its block-precise
   // line landing read. 1051 → 1054.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1055 * 1024 },
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1056 * 1024 },
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
   // budget = actual + ~1.1%), and the growth here is almost all feature A's:
   // +3.4 kB FolderGlyph (now a shared chunk, since the sidebar and the blog
@@ -1665,7 +1674,10 @@ const AUDIENCES = [
   // the larger language counted in, −128.1 kB. Budget 1134 → 1006.
   // EMBEDS YOU CAN PICK UP: 1010.2 → 1012.6 kB, +2.4 kB against a3e0848 — the
   // dictionary (1.8 kB) and the seam named at the entry budget. 1011 → 1013.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1014 * 1024 },
+  // 3.31.0 = embeds + the way back merged over 3.30.2: the overages add
+  // (entry 753.5, blog 1055.7, admin see below, phone 862.6). Budgets =
+  // the summed actual, rounded up.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1017 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy

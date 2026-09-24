@@ -35,6 +35,7 @@ is what refuses two rows claiming one keystroke; see [Development](development.m
 | `Ctrl/Cmd Alt Shift D` | Open [Today](today.md) — the day's note, the sigils, cards and tasks due, and on this day, on one page; the third verb of the same idea |
 | `Ctrl/Cmd Shift D` | [Quick capture](capture.md) — a line into today's note (or the inbox) without leaving the one you are in; Shift beside the daily note's Alt, because they are one idea with two verbs |
 | `Ctrl/Cmd Alt L` | Switch to the note's [linguistic twin](templates-and-notes.md#linguistic-twins) — its other face, in the same tab; L for language |
+| `Ctrl/Cmd Alt Shift L` | Switch the interface to the other language (English ⇄ العربية) — the chrome, not the note; works with a dialog open. The same as the status bar's language key ([Arabic & RTL](arabic-and-rtl.md#switching-the-interface-language)) |
 | `Ctrl/Cmd Shift P` | Publish / unpublish the open note |
 | `Ctrl/Cmd Alt P` | [Print the open note, or export it to PDF](printing.md) — Alt because `Ctrl/Cmd P` is the palette |
 | `Ctrl/Cmd Shift B` | Bookmark the open note, or take the bookmark off (`Bookmarks.md`) |

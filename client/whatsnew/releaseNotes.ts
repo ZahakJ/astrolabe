@@ -400,6 +400,28 @@ export const RELEASES: Release[] = [
         },
         docs: "editor",
       },
+      {
+        // ── A way back: the chrome-language key ──────────────────────────
+        title: { en: "A way back", ar: "طريق العودة" },
+        body: {
+          en: "The interface language is now one click away, always. A small key at the end of the status bar reads ع while the interface is English and EN while it is Arabic, so whoever can't read the current language still recognises their own. On a phone the same key sits atop More and Settings, and the note's ⋯ sheet has it too. Ctrl/Cmd Alt Shift L does the same from anywhere, and the palette finds it whether you type \"english\" or «عربي».",
+          ar: "صارت لغة الواجهة على بُعد نقرة واحدة دائمًا. ففي آخر شريط الحالة مفتاح صغير يحمل «ع» والواجهة إنجليزية و«EN» والواجهة عربية، فيعرف لغتَه من لا يقرأ اللغة المعروضة. وعلى الهاتف تجد المفتاح نفسه أعلى «المزيد» و«الإعدادات»، وفي ورقة ⋯ للملاحظة أيضًا. ويفعل Ctrl/Cmd Alt Shift L الشيءَ نفسه من أي مكان، وتجده لوحة الأوامر سواء كتبت «english» أو «عربي».",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="40" y="150" width="480" height="30" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+  <g fill="var(--text-faint)"><rect x="52" y="162" width="60" height="6" rx="3"/><rect x="124" y="162" width="40" height="6" rx="3"/><rect x="176" y="162" width="50" height="6" rx="3"/></g>
+  <g class="wa-pulse"><rect x="462" y="155" width="48" height="20" rx="5" fill="var(--bg-hover)" stroke="var(--accent)" stroke-width="1.5"/><circle cx="474" cy="165" r="5" fill="none" stroke="var(--text-muted)" stroke-width="1"/><path d="M469 165 h10 M474 160 v10" stroke="var(--text-muted)" stroke-width="1"/><text x="497" y="169" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="700">${L(lang, "ع", "EN")}</text></g>
+  <path class="wa-draw" style="--i:1" d="M486 150 C 486 110, 420 90, 300 90 C 200 90, 140 110, 140 140" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <path class="wa-late" style="--i:2" d="M140 140 l-5 -8 M140 140 l6 -7" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+  <g class="wa-late" style="--i:2"><rect x="80" y="40" width="200" height="70" rx="8" fill="var(--bg)" stroke="var(--border)"/><text x="180" y="70" text-anchor="middle" fill="var(--text)" font-size="14">${L(lang, "Switch to Arabic", "التبديل إلى الإنجليزية")}</text><text x="180" y="94" text-anchor="middle" fill="var(--text-muted)" font-size="11">${L(lang, "always on screen", "على الشاشة دائمًا")}</text></g>
+  <text x="486" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the key", "المفتاح")}</text>
+</svg>`,
+        },
+        docs: "arabic-and-rtl",
+      },
     ],
   },
   {

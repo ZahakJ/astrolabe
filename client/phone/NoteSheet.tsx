@@ -22,6 +22,7 @@ import { notePathToUrl } from "../router.ts";
 import { copyNoteLink, noteContent } from "../sectionActions.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
+import { chromeLangSwitch } from "../chromeLangSwitch.ts";
 import { createTwinFlow, switchToTwin, twinOf, twinPillLabels } from "../twins.ts";
 import { usePhone } from "./context.ts";
 import { MOVE_SHEET, NOTE_SHEET, TAG_SHEET } from "./sheetIds.ts";
@@ -173,6 +174,7 @@ function Actions({ path, onHistory }: { path: string; onHistory: () => void }) {
   const phone = usePhone();
   const admin = useStore((s) => s.admin);
   const pocket = useStore((s) => s.pocket);
+  const language = useStore((s) => s.language);
   const published = useStore((s) => s.openPublished ?? s.publishedPaths?.has(path) ?? false);
   const twins = useStore((s) => s.twins);
   const pair = twinOf(path);
@@ -196,7 +198,7 @@ function Actions({ path, onHistory }: { path: string; onHistory: () => void }) {
       copyNoteLink(path);
     }
   };
-  const rows: { label: string; note?: string; danger?: boolean; run: () => void; id: string }[] = [];
+  const rows: { label: string; note?: string; lang?: string; danger?: boolean; run: () => void; id: string }[] = [];
   if (admin && !pocket) {
     rows.push({
       id: "publish",
@@ -212,6 +214,14 @@ function Actions({ path, onHistory }: { path: string; onHistory: () => void }) {
     rows.push({ id: "twin-create", label: t("phTwinCreate"), run: () => void createTwinFlow(path) });
   }
   rows.push({ id: "share", label: t("phShare"), run: () => void share() });
+  if (admin) {
+    // THE WAY BACK, from inside a note (chromeLangSwitch.ts): the
+    // sentence in the language a tap goes TO, then the same sentence in the
+    // one on screen — whichever of the two the reader can read, the row says
+    // what it does.
+    const sw = chromeLangSwitch(language);
+    rows.push({ id: "chrome-lang", label: sw.own, note: sw.here, lang: sw.target, run: () => useStore.getState().toggleChromeLang() });
+  }
   if (admin) {
     rows.push({ id: "move", label: t("moveTo"), run: () => phone.openSheet(MOVE_SHEET, { path, isFolder: false }) });
     rows.push({ id: "history", label: t("history"), run: onHistory });
@@ -231,7 +241,7 @@ function Actions({ path, onHistory }: { path: string; onHistory: () => void }) {
               row.run();
             }}
           >
-            <span className="s-ph-actions__label">{row.label}</span>
+            <span className="s-ph-actions__label" lang={row.lang} dir={row.lang === undefined ? undefined : row.lang === "ar" ? "rtl" : "ltr"}>{row.label}</span>
             {row.note && <span className="s-ph-actions__note">{row.note}</span>}
           </button>
         </li>

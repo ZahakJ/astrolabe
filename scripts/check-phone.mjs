@@ -450,6 +450,43 @@ try {
       const closed = await state();
       check(beforeBack.sheetUp && !closed.sheetUp && closed.path === notePermalink, tag("back closes the sheet and keeps the note"), JSON.stringify({ before: beforeBack.sheets, after: closed }));
 
+      // ── the way back, from inside a note: the sheet's chrome-language row ─
+      // Written in both languages; a tap flips the chrome (lang and dir on
+      // <html>) and keeps the note, and a second tap from the sheet comes home.
+      const htmlLang = () => page.evaluate(() => ({ lang: document.documentElement.lang, dir: document.documentElement.dir }));
+      const langRow = async () => {
+        await press(page.locator(".s-ph-note .s-ph-top__actions button").last());
+        await settle();
+        await press(page.locator('.s-ph-seg__btn[data-segment="actions"]'));
+        await settle(450);
+        return page.locator('.s-ph-actions__row[data-action="chrome-lang"]');
+      };
+      const flipFrom = async (from, row) => {
+        await press(row);
+        await page.waitForFunction((l) => document.documentElement.lang !== l, from, { timeout: 8000 }).catch(() => {});
+        await settle(900);
+      };
+      {
+        const other = lang === "en" ? "ar" : "en";
+        const row = await langRow();
+        check((await row.count()) > 0, tag("the note sheet has a chrome-language row"));
+        if ((await row.count()) > 0) {
+          const text = (await row.first().textContent()) ?? "";
+          check(/[A-Za-z]/.test(text) && /[\u0600-\u06FF]/.test(text), tag("the row is written in both languages"), text);
+          await measure("sheet-lang-row", ".s-ph-sheet");
+          await flipFrom(lang, row);
+          const flipped = await htmlLang();
+          check(flipped.lang === other && (flipped.dir === "rtl") === (other === "ar"), tag("the sheet's row switches the chrome"), JSON.stringify(flipped));
+          const after = await state();
+          check(after.path === notePermalink && !after.sheetUp, tag("…keeps the note and closes the sheet"), JSON.stringify(after));
+          await flipFrom(other, await langRow());
+          check((await htmlLang()).lang === lang, tag("a second tap on the row comes home"), JSON.stringify(await htmlLang()));
+        } else {
+          await page.goBack();
+          await settle();
+        }
+      }
+
       // ── the keyboard's bar (a finger's editor) ────────────────────────────
       if (shape.name === "phone") {
         await page.locator(".s-ph-note .cm-content").first().tap();
@@ -511,6 +548,33 @@ try {
       await tab("more");
       await settle(700);
       await measure("more");
+
+      // ── the way back: More's chrome-language key ─────────────────────────
+      // Top of the tab, before any list; its face is the OTHER language in its
+      // own script; a tap flips <html lang/dir>, a second tap comes home.
+      {
+        const pill = page.locator('.s-ph-more .s-ph-top [data-testid="chrome-lang"]');
+        check((await pill.count()) === 1, tag("More's top bar carries the chrome-language key"));
+        if ((await pill.count()) === 1) {
+          const face = ((await pill.textContent()) ?? "").trim();
+          check(face === (lang === "en" ? "ع" : "EN"), tag("the key shows the other language's own name"), face);
+          const name = (await pill.getAttribute("aria-label")) ?? "";
+          check(/[A-Za-z]/.test(name) && /[\u0600-\u06FF]/.test(name), tag("its name is in both languages"), name);
+          await press(pill);
+          await page.waitForFunction((l) => document.documentElement.lang !== l, lang, { timeout: 8000 }).catch(() => {});
+          await settle(900);
+          const other = lang === "en" ? "ar" : "en";
+          const flipped = await page.evaluate(() => ({ lang: document.documentElement.lang, dir: document.documentElement.dir }));
+          check(flipped.lang === other && (flipped.dir === "rtl") === (other === "ar"), tag("the key switches the chrome"), JSON.stringify(flipped));
+          const home = ((await pill.textContent()) ?? "").trim();
+          check(home === (lang === "en" ? "EN" : "ع"), tag("…and then names the way home"), home);
+          await measure("more-lang-flipped");
+          await press(pill);
+          await page.waitForFunction((l) => document.documentElement.lang === l, lang, { timeout: 8000 }).catch(() => {});
+          await settle(900);
+          check((await page.evaluate(() => document.documentElement.lang)) === lang, tag("a second tap comes home"));
+        }
+      }
 
       // ── Round 2's screens (3.27.0) ────────────────────────────────────────
       // Each of them is a screen of its own now — measured, photographed, and
@@ -771,6 +835,7 @@ try {
       if (await moreRow(/^(Settings|الإعدادات)$/)) {
         check((await state()).screens.includes("settings"), tag("Settings is a list of sections"));
         await measure("settings");
+        check((await page.locator('[data-screen="settings"] .s-ph-top [data-testid="chrome-lang"]').count()) === 1, tag("Settings' top bar carries the chrome-language key"));
         await press(page.locator('.s-ph-row[data-section="site"]'));
         await page.waitForSelector("[data-screen='settings-section'] .s-smodal__row", { timeout: 10000 }).catch(() => {});
         await settle(900);

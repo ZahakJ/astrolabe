@@ -179,3 +179,26 @@ describe("the chord grammar", () => {
     assert.match(parseKeys([]).error ?? "", /empty/);
   });
 });
+
+// THE WAY BACK's chord: the twin's plus Shift, a keystroke of its own, bound
+// in the global listener, for an admin, in both shells.
+describe("the chrome-language chord", () => {
+  const row = ledger.rows.find((r) => r.label === "scChromeLang");
+  it("is in the ledger as Ctrl/Cmd Alt Shift L, for an admin, in both shells", () => {
+    assert.ok(row, "no scChromeLang row");
+    assert.deepEqual(parseKeys(row.keys ?? []).chords.map((c) => c.id), ["Mod+Alt+Shift+l"]);
+    assert.equal(row.admin, true);
+    assert.equal(row.shell ?? null, null);
+  });
+  it("is not the twin's chord", () => {
+    const twin = ledger.rows.find((r) => r.label === "cmdTwinSwitch");
+    assert.ok(twin);
+    assert.notDeepEqual(parseKeys(twin.keys ?? []).chords.map((c) => c.id), parseKeys(row?.keys ?? []).chords.map((c) => c.id));
+  });
+  it("is answered in the global listener, which keeps Shift away from the twin", () => {
+    const src = read("../client/globalKeys.ts");
+    assert.match(src, /keymap: scChromeLang/);
+    assert.match(src, /e\.altKey && e\.shiftKey && isKey\(e, "l"\)[^\n]*\n[^\n]*keymap: scChromeLang[\s\S]{0,120}toggleChromeLang\(\)/);
+    assert.match(src, /key === "l" && e\.altKey && !e\.shiftKey/);
+  });
+});
