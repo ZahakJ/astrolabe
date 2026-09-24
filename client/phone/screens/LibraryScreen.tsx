@@ -18,7 +18,7 @@ import { usePhone } from "../context.ts";
 import { IconBook, IconChevron } from "../icons.tsx";
 import TopBar from "../TopBar.tsx";
 import { useScrollMemory } from "../useScrollMemory.ts";
-import { useVaultTick } from "../useVaultTick.ts";
+import { useVaultTick } from "../../vaultTick.ts";
 
 function titleOf(entry: BookEntry): string {
   return entry.state?.title || entry.name.replace(/\.(pdf|epub)$/i, "");

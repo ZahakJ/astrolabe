@@ -38,7 +38,7 @@ export type PaneMode = "edit" | "reading" | "graph" | "library";
  *  invariant has to be policed at the component boundary: a `.pdf` tab renders
  *  the reader whatever the mode says, which is exactly what makes Ctrl/Cmd+E a
  *  harmless no-op on a book instead of a mode the pane cannot honour. */
-export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "feeds" | "library" | "empty";
+export type PaneSurface = "edit" | "reading" | "book" | "drawing" | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "feeds" | "today" | "timeline" | "library" | "empty";
 
 /** Where in a book an open should land — carried from the wikilink or the URL
  *  that asked for it, spent the moment the reader lands.
@@ -218,10 +218,25 @@ export const FEEDS_TAB = "~feeds";
 export function isFeedsTab(path: string): boolean {
   return path === FEEDS_TAB;
 }
+/** TODAY — what the day asks of the reader on one page: the capture line,
+ *  the day's note, the sigils due, the cards due, the tasks whose date has
+ *  come, on this day, the notes last read (client/today/). The phone's home
+ *  tab since 3.26, a tab on the desktop from 3.28, with `/today` for an
+ *  address. */
+export const TODAY_TAB = "~today";
+export function isTodayTab(path: string): boolean {
+  return path === TODAY_TAB;
+}
+/** THE TIMELINE — the vault by date, newest first (client/timeline/), with
+ *  `/timeline` for an address. */
+export const TIMELINE_TAB = "~timeline";
+export function isTimelineTab(path: string): boolean {
+  return path === TIMELINE_TAB;
+}
 /** A tab that names no file: the graph or the Media page. Never "the open
  *  note", never pruned against the tree, titled by the chrome. */
 export function isVirtualTab(path: string): boolean {
-  return isGraphTab(path) || isMediaTab(path) || isRoutinesTab(path) || isOrbitsTab(path) || isReviewWeekTab(path) || isCalendarTab(path) || isFeedsTab(path);
+  return isGraphTab(path) || isMediaTab(path) || isRoutinesTab(path) || isOrbitsTab(path) || isReviewWeekTab(path) || isCalendarTab(path) || isFeedsTab(path) || isTodayTab(path) || isTimelineTab(path);
 }
 
 export function isTabbablePath(path: string): boolean {
@@ -284,6 +299,8 @@ export function surfaceOf(p: Pane): PaneSurface {
   if (tab !== null && isReviewWeekTab(tab.path)) return "review-week";
   if (tab !== null && isCalendarTab(tab.path)) return "calendar";
   if (tab !== null && isFeedsTab(tab.path)) return "feeds";
+  if (tab !== null && isTodayTab(tab.path)) return "today";
+  if (tab !== null && isTimelineTab(tab.path)) return "timeline";
   if (tab !== null && isBookPath(tab.path)) return "book";
   // A drawing has one surface: the canvas is the editor AND the reading view,
   // and a pane mode of "reading" over it would be a grey box.

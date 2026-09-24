@@ -124,7 +124,10 @@ const NO_SOURCES: Sources = { routines: [], trackers: [], grades: [] };
  *  chose the day. Absent, the pane is laid out as it always was. */
 export type DayPaneHost = (pane: ReactNode, label: string, close: () => void) => ReactNode;
 
-export default function CalendarView({ dayHost }: { dayHost?: DayPaneHost }) {
+/** `timelineDoor`: the page's own door to the Timeline (3.28), the same days
+ *  read as one list. The phone keeps that door in its top bar's ⋯ and passes
+ *  false. */
+export default function CalendarView({ dayHost, timelineDoor = true }: { dayHost?: DayPaneHost; timelineDoor?: boolean }) {
   const tree = useStore((s) => s.tree);
   const lang = useStore((s) => s.language);
   const locale = useStore((s) => s.blogLocale);
@@ -283,6 +286,11 @@ export default function CalendarView({ dayHost }: { dayHost?: DayPaneHost }) {
           <h1 className="s-calpage__h1">{t("calendar")}</h1>
           <p className="s-calpage__lead">{t("calendarPageLead")}</p>
         </div>
+        {timelineDoor && (
+          <button type="button" className="s-btn s-calpage__timeline" onClick={() => useStore.getState().setView("timeline")} data-testid="calendar-timeline">
+            {t("timelineFromCalendar")}
+          </button>
+        )}
       </header>
 
       <div className="s-calpage__body">

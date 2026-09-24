@@ -84,6 +84,9 @@ import {
   REVIEW_WEEK_TAB,
   FEEDS_TAB,
   CALENDAR_TAB,
+  TODAY_TAB,
+  TIMELINE_TAB,
+  isTodayTab,
   ORBITS_TAB,
   orbitsTabFor,
   openInPane,
@@ -661,7 +664,7 @@ export interface State {
   dropTab(from: string | null, path: string, to: string, dest: TabDropDest): void;
   /** "editor", "media", or "graph" — the last opens the graph TAB in the
    *  focused pane rather than switching a window-level view. */
-  setView(v: View | "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "feeds"): void;
+  setView(v: View | SurfaceView): void;
   /** True when the focused pane is showing the graph tab. */
   graphOpen(): boolean;
   /** The Media page, on the same terms as the graph. */
@@ -676,6 +679,9 @@ export interface State {
   /** Feeds (docs/feeds.md): the tab in front of the focused pane, and its door. */
   feedsOpen(): boolean;
   toggleFeeds(): void;
+  /** Today (client/today/), on the same terms: the day with its own door. */
+  todayOpen(): boolean;
+  toggleToday(): void;
   /** The Orbits shelf, on the same terms; a session over one
    *  deck is its own tab beside it (`openOrbits`). */
   orbitsOpen(): boolean;
@@ -1360,6 +1366,24 @@ async function guarded(
   }
 }
 
+/** The pages a pane can show that are not a note, by the name `setView`
+ *  takes, and the virtual tab each one opens (client/workspace.ts). */
+export type SurfaceView = "graph" | "media" | "routines" | "orbits" | "review-week" | "calendar" | "feeds" | "today" | "timeline";
+const SURFACE_TABS: Record<SurfaceView, string> = {
+  graph: GRAPH_TAB,
+  media: MEDIA_TAB,
+  routines: ROUTINES_TAB,
+  orbits: ORBITS_TAB,
+  "review-week": REVIEW_WEEK_TAB,
+  calendar: CALENDAR_TAB,
+  today: TODAY_TAB,
+  timeline: TIMELINE_TAB,
+  feeds: FEEDS_TAB,
+};
+function isSurfaceView(view: string): view is SurfaceView {
+  return Object.prototype.hasOwnProperty.call(SURFACE_TABS, view);
+}
+
 export const useStore = create<State>()((set, get) => {
   const initialTheme = readTheme();
   applyTheme(initialTheme);
@@ -1379,6 +1403,7 @@ export const useStore = create<State>()((set, get) => {
     if (!s.admin || launch === "resume") return;
     if (location.pathname !== "/" && location.pathname !== "/graph") return;
     if (launch === "sigils") s.setView("routines");
+    else if (launch === "today-page") s.setView("today");
     else if (launch === "orbits") s.openOrbits(null);
     else if (launch === "today") {
       // Dynamic, not static: client/daily.ts imports this store, and the
@@ -2394,15 +2419,8 @@ export const useStore = create<State>()((set, get) => {
       }),
 
     setView: (view) => {
-      if (view === "graph" || view === "media" || view === "routines" || view === "orbits" || view === "review-week" || view === "calendar" || view === "feeds") {
-        const path =
-          view === "graph" ? GRAPH_TAB
-          : view === "media" ? MEDIA_TAB
-          : view === "routines" ? ROUTINES_TAB
-          : view === "review-week" ? REVIEW_WEEK_TAB
-          : view === "calendar" ? CALENDAR_TAB
-          : view === "feeds" ? FEEDS_TAB
-          : ORBITS_TAB;
+      if (isSurfaceView(view)) {
+        const path = SURFACE_TABS[view];
         set((s) => {
           // A pane still showing the shelf answers this the way it answers
           // a book (openBook above): the page's tab opens AND the mode comes
@@ -2468,6 +2486,17 @@ export const useStore = create<State>()((set, get) => {
       const s = get();
       if (s.feedsOpen()) s.closeTab(FEEDS_TAB);
       else s.setView("feeds");
+    },
+    todayOpen: () => {
+      const ws = get().workspace;
+      const pane = paneAt(ws, ws.focus);
+      const tab = pane === null ? null : activeTabOf(pane);
+      return tab !== null && isTodayTab(tab.path);
+    },
+    toggleToday: () => {
+      const s = get();
+      if (s.todayOpen()) s.closeTab(TODAY_TAB);
+      else s.setView("today");
     },
     orbitsOpen: () => {
       const ws = get().workspace;

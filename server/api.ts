@@ -98,7 +98,7 @@ import {
   resolveCitekey,
   resolveEmbed,
   resolveLabel,
-  search, queryNotes, mentions, tasks, onThisDay, linkSpellingFor, hasNote,
+  search, queryNotes, mentions, tasks, onThisDay, timelineNotes, linkSpellingFor, hasNote,
   searchMatches,
   queryPaths,
   trackers, routines, hadithLookup, cards, decks, deckCards,
@@ -2257,6 +2257,16 @@ api.get("/search", (c) => {
 api.get("/onthisday", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
   return c.json(onThisDay(c.req.query("date") ?? ""));
+});
+
+// The Timeline's notes (docs/timeline.md): every note with the day it
+// belongs to, its excerpt, tags, words and what was captured or spoken into
+// it. The sigils, the trackers and the daily notes the client already holds;
+// shared/dayAgenda.ts puts all of them on the days. Admin only: it is the
+// whole vault's shape, drafts included.
+api.get("/timeline", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(timelineNotes());
 });
 
 // ── Capture ─────────────────────────────────────────────────────────────

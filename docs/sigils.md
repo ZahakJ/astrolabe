@@ -369,3 +369,9 @@ are all readable — nothing is converted and nothing is lost. A [tracker](track
 the same way; a [drawing](drawing.md#in-obsidian) is the Excalidraw plugin's own file; and an
 [orbit](orbits.md#where-the-schedule-lives) writes its schedule in the Spaced Repetition plugin's own
 format.
+
+## Also on Today and the Timeline
+
+Every task a sigil asks of today is also a row on [Today](today.md), ticked in place through the
+same edit the card makes; and every day a sigil logged is a row on [the Timeline](timeline.md). The
+year in review counts each sigil's ticks and its best streak.

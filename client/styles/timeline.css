@@ -1,0 +1,318 @@
+/* Astrolabe — the Timeline (client/timeline/). Loaded with its lazy chunk.
+   Two halves: the list and the chips, which both shells mount (the phone
+   sizes them for a thumb from phone.css, `.s-ph-timeline`), and the desktop
+   page's frame — the header and the month rail — under `.s-timeline`.
+
+   THE HEIGHTS ARE A CONTRACT. The list is virtual: client/timeline/model.ts
+   `ROW_HEIGHT` places every row before any is drawn (month 52, day 32, item
+   60), and each slot below is exactly that tall with its content clipped to
+   it. Change one number, change the other. Tokens only; logical properties. */
+
+/* ── the list (both shells) ─────────────────────────────────────────────── */
+
+.s-tl__scroll {
+  flex: 1;
+  min-block-size: 0;
+  min-inline-size: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.s-tl__canvas {
+  position: relative;
+  inline-size: 100%;
+}
+
+.s-tl__slot {
+  position: absolute;
+  inset-inline: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.s-tl__month {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding-block-end: 6px;
+  border-block-end: 1px solid var(--border);
+}
+
+.s-tl__monthname {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--heading);
+}
+
+.s-tl__count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-tl__day {
+  display: flex;
+  align-items: flex-end;
+  padding-block-end: 4px;
+}
+
+.s-tl__dayname {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.s-tl__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-tl__item:hover {
+  background: var(--bg-hover);
+}
+
+.s-tl__item:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.s-tl__icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.s-tl__text {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.s-tl__title,
+.s-tl__excerpt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-tl__title {
+  font-size: 0.95rem;
+}
+
+.s-tl__excerpt {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.s-tl__visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.s-tl__empty {
+  margin: 24px 0;
+  color: var(--text-muted);
+}
+
+/* ── the chips (both shells) ────────────────────────────────────────────── */
+
+.s-tl__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block: 4px 12px;
+}
+
+.s-tl__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.s-tl__chip:hover {
+  background: var(--bg-hover);
+}
+
+.s-tl__chip:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.s-tl__chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.s-tl__chipcount {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-tl__select {
+  max-inline-size: 16em;
+  padding-inline-end: 6px;
+}
+
+.s-tl__chip--clear {
+  border-style: dashed;
+  color: var(--text-muted);
+}
+
+/* ── the desktop page ───────────────────────────────────────────────────── */
+
+.s-timeline {
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px clamp(16px, 3vw, 40px) 0;
+  container-type: inline-size;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.s-timeline__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-inline-size: 980px;
+  inline-size: 100%;
+  margin-inline: auto;
+}
+
+.s-timeline__h1 {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--heading);
+}
+
+.s-timeline__review {
+  border: 1px solid var(--border);
+}
+
+.s-timeline .s-tl__chips {
+  max-inline-size: 980px;
+  inline-size: 100%;
+  margin-inline: auto;
+}
+
+.s-timeline__body {
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  gap: 24px;
+  max-inline-size: 980px;
+  inline-size: 100%;
+  margin-inline: auto;
+}
+
+.s-timeline__rail {
+  flex: none;
+  inline-size: 190px;
+  overflow-y: auto;
+  padding-block-end: 24px;
+  border-inline-start: 1px solid var(--border);
+  padding-inline-start: 12px;
+}
+
+.s-timeline__railhead {
+  margin: 4px 0 8px;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-timeline__months {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.s-timeline__month {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  inline-size: 100%;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-timeline__month:hover {
+  background: var(--bg-hover);
+}
+
+.s-timeline__month:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.s-timeline__month[aria-current="true"] {
+  background: var(--accent-soft);
+}
+
+.s-timeline__monthcount {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A narrow pane (half a split) has no room for the rail beside the list; the
+   months are still the chips' neighbour through the list's own headings. */
+@container (max-width: 560px) {
+  .s-timeline__rail {
+    display: none;
+  }
+}

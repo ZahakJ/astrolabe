@@ -542,6 +542,29 @@ describe("the pocket server — device state stays on the device", () => {
   });
 });
 
+describe("the pocket server — the vault by date (Today, the Timeline)", () => {
+  it("answers the Timeline's notes with the day each belongs to", async () => {
+    const server = await loaded({
+      ...VAULT,
+      "/vault/Inbox/2026-01-05.md": "- 09:10 — a line [[Voice/1.webm#t=0|🎙]]\n- 09:30 — another\n",
+    });
+    const rows = (await server.json("GET", "/api/timeline")) as { path: string; day: string | null; excerpt: string; captured: number; voice: number }[];
+    const welcome = rows.find((r) => r.path === "Welcome.md");
+    assert.equal(welcome?.day, "2026-01-02", "the frontmatter's day names itself");
+    assert.match(welcome?.excerpt ?? "", /This is the room/);
+    const inbox = rows.find((r) => r.path === "Inbox/2026-01-05.md");
+    assert.deepEqual([inbox?.captured, inbox?.voice], [2, 1]);
+  });
+
+  it("answers on this day with the excerpt, earlier years only", async () => {
+    const server = await loaded();
+    const hits = (await server.json("GET", "/api/onthisday?date=2027-01-02")) as { path: string; year: number; excerpt: string }[];
+    assert.deepEqual(hits.map((h) => [h.path, h.year]), [["Welcome.md", 2026]]);
+    assert.match(hits[0]?.excerpt ?? "", /This is the room/);
+    assert.deepEqual(await server.json("GET", "/api/onthisday?date=2026-01-02"), []);
+  });
+});
+
 describe("the pocket server — the shelves that are note-based", () => {
   it("finds the tasks in the vault", async () => {
     const server = await loaded();

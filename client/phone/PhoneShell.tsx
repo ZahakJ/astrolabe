@@ -65,6 +65,7 @@ import {
   isFeedsTab,
   FEEDS_TAB,
   isRoutinesTab,
+  isTimelineTab,
   MEDIA_TAB,
   orbitsSessionOf,
   ORBITS_TAB,
@@ -108,6 +109,7 @@ const ReaderScreen = lazySurface(() => import("./screens/ReaderScreen.tsx"));
 const ReviewScreen = lazySurface(() => import("./screens/ReviewScreen.tsx"));
 const FeedsScreen = lazySurface(() => import("./screens/FeedsScreen.tsx"));
 const FeedItemScreen = lazySurface(() => import("./screens/FeedItemScreen.tsx"));
+const TimelineScreen = lazySurface(() => import("./screens/TimelineScreen.tsx"));
 const TagPickerSheet = lazySurface(() => import("./TagPickerSheet.tsx"));
 const ListSheet = lazySurface(() => import("./ListSheet.tsx"));
 // The note sheet and the move sheet reach the outline, the section surgery,
@@ -160,9 +162,14 @@ const DATA_SHEETS = new Set([ACTION_SHEET, MOVE_SHEET, TAG_SHEET, LIST_SHEET]);
 /** How long a leaving sheet stays mounted for its exit. */
 const LEAVE_MS = 240;
 
+/** The desktop pages that are a bottom tab here rather than a screen. */
+type RootTab = "calendar" | "today";
+
 /** The content the store is showing, as a screen: what a wikilink, the
- *  palette or the daily note just opened. "calendar" is the Calendar TAB. */
-export function screenOfWorkspace(ws: Workspace): Screen | "calendar" | null {
+ *  palette or the daily note just opened. "calendar" is the Calendar TAB and
+ *  "today" the Today tab: the desktop's `~calendar` and `~today` pages are
+ *  roots of the bottom bar here, never pushed screens. */
+export function screenOfWorkspace(ws: Workspace): Screen | RootTab | null {
   const pane = paneAt(ws, ws.focus);
   if (pane === null) return null;
   const surface = surfaceOf(pane);
@@ -174,6 +181,8 @@ export function screenOfWorkspace(ws: Workspace): Screen | "calendar" | null {
       return { kind: "surface", tab: "~library" };
     case "calendar":
       return "calendar";
+    case "today":
+      return "today";
     case "edit":
     case "reading":
       return tab ? { kind: "note", path: tab.path } : null;
@@ -205,6 +214,7 @@ export function urlForScreen(screen: Screen, tab: TabId): string | null {
       if (isRoutinesTab(s)) return "/sigils";
       if (isReviewWeekTab(s)) return "/review-week";
       if (isFeedsTab(s)) return "/feeds";
+      if (isTimelineTab(s)) return "/timeline";
       if (isOrbitsTab(s)) {
         const session = orbitsSessionOf(s);
         return orbitsUrl(session?.path ?? null, session?.section ?? null);
@@ -272,6 +282,7 @@ function applyScreen(screen: Screen): void {
   else if (isRoutinesTab(tab)) s.setView("routines");
   else if (isReviewWeekTab(tab)) s.setView("review-week");
   else if (isFeedsTab(tab)) s.setView("feeds");
+  else if (isTimelineTab(tab)) s.setView("timeline");
   else if (isOrbitsTab(tab)) {
     const session = orbitsSessionOf(tab);
     s.openOrbits(session?.path ?? null, session?.section ?? null);
@@ -521,7 +532,7 @@ export default function PhoneShell() {
       nav.start("calendar");
       return;
     }
-    if (pathname === "/" || locked) {
+    if (pathname === "/" || pathname === "/today" || locked) {
       nav.start("today");
       return;
     }
@@ -541,6 +552,7 @@ export default function PhoneShell() {
     const target = screenOfWorkspace(useStore.getState().workspace);
     nav.start("today");
     if (target === "calendar") nav.switchTab("calendar");
+    else if (target === "today") return;
     // Only what the address NAMED: a link the tree could not resolve is
     // being asked of the server (router.ts `probeNote`), and the store still
     // shows whatever the boot restored — which is not what was linked.
@@ -585,8 +597,8 @@ export default function PhoneShell() {
         if (isDetail(top)) nav.popScreen();
         return;
       }
-      if (target === "calendar") {
-        nav.switchTab("calendar");
+      if (target === "calendar" || target === "today") {
+        nav.switchTab(target);
         return;
       }
       if (sameScreen(top, target)) return;
@@ -624,7 +636,7 @@ export default function PhoneShell() {
         applying.current = false;
       }
       const target = screenOfWorkspace(useStore.getState().workspace);
-      nav.adoptForeign(target === "calendar" || target === null ? null : target);
+      nav.adoptForeign(target === "calendar" || target === "today" || target === null ? null : target);
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -709,6 +721,7 @@ export default function PhoneShell() {
         if (isBookPath(tab)) return <ReaderScreen key={tab} tab={tab} onBack={back} />;
         if (isReviewWeekTab(tab)) return <ReviewScreen onBack={back} />;
         if (isFeedsTab(tab)) return <FeedsScreen onBack={onBack} />;
+        if (isTimelineTab(tab)) return <TimelineScreen onBack={back} />;
         return <SurfaceScreen key={tab} tab={tab} onBack={back} />;
       }
       case "settings":

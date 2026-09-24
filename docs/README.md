@@ -33,6 +33,8 @@ You can read this manual as a website, with search, a page outline and both lang
 | [LaTeX notes](latex.md) | A `.tex` file is a note like any other: the `astrolabe.sty` package and exactly what the app can render |
 | [Trackers](trackers.md) | A `tracker` block that keeps a list of things you follow (games, films, books), the board it draws, the Media page that shelves them all, and what a visitor sees |
 | [Sigils](sigils.md) | Your daily habits, one per sigil: a plan for each day, a log the app writes for you, streaks, a heatmap, templates, and the Sigils page |
+| [Today](today.md) | The day on one page: a line to capture, today's note, the sigils, cards and tasks due, on this day, and an evening question |
+| [The Timeline](timeline.md) | The vault by date, newest first, with filters and a month rail — and the year in review |
 | [The Calendar](calendar.md) | The month as a page of its own: every day's note, the sigils you kept, the cards you graded and the pages you read, with a pane that opens any day in full |
 | [Orbits](orbits.md) | Spaced repetition without a second program: a deck is a note (a `deck` block and `front::back` lines), studied with learning steps and a daily limit, imported from Anki or CSV, and scheduled inside the note itself in the Obsidian plugin's own format |
 | [Drawings](drawing.md) | A drawing canvas (Excalidraw) inside your vault: `.excalidraw` files and the Obsidian plugin's `.excalidraw.md`, an SVG exported beside each one, and `![[sketch.excalidraw]]` to embed it anywhere |

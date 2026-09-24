@@ -1,8 +1,10 @@
 // A number that moves when the vault does: the server's `astrolabe:vault`
 // event (a note written here, in another window, or by a sync), a beat after
-// a burst settles. A phone screen that reads a list from the server — Today,
-// the decks, the sigils, the trackers — puts it in its fetch's dependencies,
-// so a tick taken on the desktop shows on the phone without a pull.
+// a burst settles. A screen that reads a list from the server — Today, the
+// Timeline, the decks, the sigils, the trackers — puts it in its fetch's
+// dependencies, so a tick taken on the desktop shows on the phone without a
+// pull. Lifted out of client/phone/ in 3.28, when Today's data layer
+// (client/today/hooks.ts) became both shells' and needed it too.
 
 import { useEffect, useState } from "react";
 

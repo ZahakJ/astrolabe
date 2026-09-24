@@ -370,6 +370,38 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.29.0",
+    title: { en: "Today, and the days", ar: "اليوم، والأيام" },
+    slides: [
+      {
+        // ── Today on the desktop, the Timeline, the year in review ──────────
+        title: { en: "Today, and the days", ar: "اليوم، والأيام" },
+        body: {
+          en: "Today is now a page on the desktop as well as the phone's home. It holds the day's note, the sigils and cards due, the tasks whose date has come, and what you wrote on this day in earlier years; after six it asks how the day went and keeps your answer in the day's note. The Timeline reads the whole vault by date, newest first, with chips for kind, folder and tag and a rail of months to jump through. Once a year, \"Year in review…\" adds it all up into a note of your own.",
+          ar: "صارت صفحة اليوم صفحةً على الحاسوب أيضًا، كما هي بيت الهاتف: فيها ملاحظة اليوم، والسِّجِلّ والبطاقات المستحقة، والمهام التي حلّ موعدها، وما كتبته في مثل هذا اليوم من سنوات مضت؛ وبعد السادسة تسألك كيف كان اليوم وتحفظ جوابك في ملاحظته. والخط الزمني يقرأ الخزانة كلها بحسب التاريخ، الأحدث أولًا، بشرائح للنوع والمجلد والوسم وعمود للأشهر تنتقل به. ومرة كل سنة، يجمع «حصاد السنة…» ذلك كله في ملاحظة لك.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <line x1="40" y1="90" x2="240" y2="90" stroke="var(--border)" stroke-width="2"/>
+  <path class="wa-grow" d="M100 90 a40 40 0 0 1 80 0 z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+  <g class="wa-late" style="--i:1" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round">
+    <line x1="140" y1="36" x2="140" y2="44"/><line x1="106" y1="50" x2="112" y2="56"/><line x1="174" y1="50" x2="168" y2="56"/>
+  </g>
+  ${[0,1,2].map((i) => `<g class="wa-late" style="--i:${i+2}"><rect x="48" y="${104 + i*26}" width="16" height="16" rx="4" fill="var(--bg)" stroke="var(--border)"/><path d="M52 ${112 + i*26} l3 3 l6 -7" fill="none" stroke="var(--accent)" stroke-width="2"/><rect x="72" y="${109 + i*26}" width="${140 - i*30}" height="6" rx="3" fill="var(--text-faint)"/></g>`).join("")}
+  <line class="wa-draw" x1="330" y1="30" x2="330" y2="200" stroke="var(--text-muted)" stroke-width="2"/>
+  ${[["📄",44],["✦",84],["📖",124],["🎙",164]].map(([g,y],i) => `<g class="wa-drop" style="--i:${i+1}"><circle cx="330" cy="${y}" r="9" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/><text x="330" y="${Number(y)+4}" text-anchor="middle" font-size="10">${g}</text><rect x="350" y="${Number(y)-3}" width="${90 - i*12}" height="6" rx="3" fill="var(--text-faint)"/></g>`).join("")}
+  <g fill="var(--text-muted)" font-size="10"><text x="270" y="48">${L(lang, "Sep", "أيلول")}</text><text x="270" y="128">${L(lang, "Aug", "آب")}</text></g>
+  <text x="140" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "Today, on the desktop", "اليوم، على الحاسوب")}</text>
+  <text x="400" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the vault by date", "الخزانة بحسب التاريخ")}</text>
+</svg>`,
+        },
+        docs: "today",
+      },
+    ],
+  },
+  {
     version: "3.28.0",
     title: { en: "Feeds, and a way in", ar: "الخلاصات، وباب للدخول" },
     slides: [

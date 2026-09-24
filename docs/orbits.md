@@ -162,6 +162,7 @@ On a phone ([the phone layout](workspace.md#on-a-phone)) Orbits is a list: More 
 
 - [Sigils](sigils.md) — the day's page, where due cards appear and where a slot can point at a deck
 - [The book reader](books.md) — citations that arrive as quote cards
+- [Today](today.md) — every deck with cards due, one **Study** away, beside the day's note
 - [The editor & reading view](editor.md) — highlights, callouts and the selection menu
 - [Feeds](feeds.md) — a highlight made in a kept article is a card here like any other
 
