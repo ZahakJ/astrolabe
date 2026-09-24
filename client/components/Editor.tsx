@@ -60,10 +60,12 @@ import { GOTO_FOOTNOTE_EVENT, type GotoFootnote } from "../footnoteNav.ts";
 import { caretHome } from "../editor/caretHome.ts";
 import { INSERT_TEMPLATE_EVENT, type InsertTemplateDetail } from "../templateActions.ts";
 import { openSearchPanel } from "@codemirror/search";
+import { startCompletion } from "@codemirror/autocomplete";
 import {
   COPY_BLOCK_LINK_EVENT,
   FIND_IN_NOTE_EVENT,
   FURIGANA_EVENT,
+  INSERT_EMBED_EVENT,
   STRIP_TASHKEEL_EVENT,
   type FuriganaMode,
 } from "../editor/bufferBridge.ts";
@@ -663,7 +665,18 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
       insertTable(view, detail.rows, detail.cols);
     };
     window.addEventListener(INSERT_TABLE_EVENT, onInsertTable);
+    // "Embed a file…": `![[|]]` at the caret and the popup open on it.
+    const onInsertEmbed = (): void => {
+      const view = viewRef.current;
+      if (!view || !mine()) return;
+      const { from, to } = view.state.selection.main;
+      view.dispatch({ changes: { from, to, insert: "![[]]" }, selection: { anchor: from + 3 }, userEvent: "input" });
+      view.focus();
+      startCompletion(view);
+    };
+    window.addEventListener(INSERT_EMBED_EVENT, onInsertEmbed);
     return () => {
+      window.removeEventListener(INSERT_EMBED_EVENT, onInsertEmbed);
       window.removeEventListener(FIND_IN_NOTE_EVENT, onFind);
       window.removeEventListener(COPY_BLOCK_LINK_EVENT, onBlockLink);
       window.removeEventListener(STRIP_TASHKEEL_EVENT, onStrip);

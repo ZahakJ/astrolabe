@@ -40,6 +40,12 @@
 // The fixture is written through the API and deleted, permanently, however
 // the run ends; the picture it embeds is uploaded and deleted the same way.
 //
+// Then the embed you can pick up: on a second note, a right-click on the
+// picture opens the embed menu and Copy as Markdown puts the embed on the
+// clipboard exactly as written; a drag moves its line (and one undo moves it
+// back); a drag in the reading view shows its drop line and moves the line in
+// the file.
+//
 // Last, the dictionary split (3.29): an Arabic chrome whose dictionary chunk
 // is held back 1.5s is watched from its first byte, and no English chrome
 // string and no key name may ever reach its DOM — the switch waits for its
@@ -63,6 +69,7 @@ const ARABIC_CHROME = new Set(Object.values(arDict).map((v) => v.trim()));
 
 const [url = "http://localhost:6801", out = "shots"] = process.argv.slice(2);
 const NOTE_PATH = "fidelity-gate.md";
+const EMBED_NOTE = "fidelity-embeds.md";
 const PNG_NAME = "fidelity-gate.png";
 // A 16×16 opaque PNG, so a bare embed has a box and a `|120` embed a width.
 const PNG = Buffer.from(
@@ -287,6 +294,7 @@ let pngPath = null;
 let cookies = [];
 const cleanup = async () => {
   await api(`/api/note?path=${encodeURIComponent(NOTE_PATH)}&permanent=true`, { method: "DELETE" }).catch(() => {});
+  await api(`/api/note?path=${encodeURIComponent(EMBED_NOTE)}&permanent=true`, { method: "DELETE" }).catch(() => {});
   if (pngPath) await api(`/api/attachment?path=${encodeURIComponent(pngPath)}&permanent=true`, { method: "DELETE" }).catch(() => {});
 };
 
@@ -449,6 +457,77 @@ try {
     check(rv.wrapped.length === 0, "phone: no table word breaks in the reading view", rv.wrapped.join(", "));
     const cell = ed.styles["table cell"];
     check(cell && cell.overflowWrap === "break-word" && cell.whiteSpace === "normal" && cell.wordBreak === "normal", "phone: the editor's table cells carry the reading view's wrap rules", cell ? `${cell.whiteSpace} / ${cell.wordBreak} / ${cell.overflowWrap}` : "missing");
+    await page.close();
+  }
+
+  // ── An embed you can pick up (shared/embedActions.ts, editor/embedGrip.ts) ──
+  // Right-click a picture: the one menu opens, and "Copy as Markdown" puts the
+  // embed on the clipboard exactly as written. Drag it below a paragraph: its
+  // line moves there, as a paragraph of its own, and one undo puts it back.
+  // Then the same in the reading view, where the drop lands between blocks.
+  {
+    const pngName = pngPath ? pngPath.slice(pngPath.lastIndexOf("/") + 1) : PNG_NAME;
+    const embedNote = `# Pick me up\n\nAlpha paragraph.\n\n![[${pngName}|120]]\n\nBeta paragraph.\n\nGamma paragraph.\n`;
+    const we = await api(`/api/note?path=${encodeURIComponent(EMBED_NOTE)}`, json("PUT", { content: embedNote }));
+    check(we.status === 200, "embeds: fixture note written", we.status === 200 ? "" : `HTTP ${we.status}`);
+    const ctx = await newContext({ viewport: { width: 1280, height: 800 }, permissions: ["clipboard-read", "clipboard-write"] });
+    await ctx.addCookies(cookies);
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: "load" });
+    await page.evaluate(() => {
+      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+      localStorage.setItem("astrolabe.prefs-sync-off", "1");
+      localStorage.setItem("astrolabe.editorLang", "en");
+    });
+    await page.goto(`${url}/${encodeURIComponent(EMBED_NOTE.replace(/\.md$/, ""))}`, { waitUntil: "load" });
+    await page.waitForSelector(".cm-s-embed-image img", { timeout: 20000 });
+    await page.waitForTimeout(600);
+    await page.evaluate(([v]) => eval(v).dispatch({ selection: { anchor: 0 } }), [VIEW]);
+    const doc = () => page.evaluate(([v]) => eval(v).state.doc.toString(), [VIEW]);
+    const pic = page.locator(".cm-s-embed-image img").first();
+    await pic.click({ button: "right" });
+    const menuUp = await page.waitForSelector(".s-menu", { timeout: 5000 }).then(() => true, () => false);
+    const rows = menuUp ? await page.locator(".s-menu .s-menu__item").allTextContents() : [];
+    check(menuUp && rows.includes("Copy as Markdown") && rows.includes("Copy image") && rows.includes("Remove embed"), "embeds: right-click on a picture opens the embed menu", rows.join(" | "));
+    await page.screenshot({ path: `${out}/fidelity-embed-menu.png` });
+    if (menuUp) {
+      await page.locator(".s-menu .s-menu__item", { hasText: "Copy as Markdown" }).click();
+      await page.waitForTimeout(250);
+      const clip = await page.evaluate(() => navigator.clipboard.readText());
+      check(clip === `![[${pngName}|120]]`, "embeds: Copy as Markdown copies the embed exactly as written", JSON.stringify(clip));
+    }
+    const before = await doc();
+    const from = await pic.boundingBox();
+    const to = await page.locator(".cm-line", { hasText: "Beta paragraph." }).boundingBox();
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(from.x + from.width / 2 + 6, from.y + from.height / 2 + 6, { steps: 3 });
+    await page.mouse.move(to.x + to.width - 8, to.y + to.height - 3, { steps: 8 });
+    await page.mouse.up();
+    await page.waitForTimeout(400);
+    const moved = await doc();
+    const want = `# Pick me up\n\nAlpha paragraph.\n\nBeta paragraph.\n\n![[${pngName}|120]]\n\nGamma paragraph.\n`;
+    check(moved === want, "embeds: a drag within the note moves the embed's line", JSON.stringify(moved.slice(0, 120)));
+    await page.keyboard.press("Control+z");
+    await page.waitForTimeout(200);
+    check((await doc()) === before, "embeds: one undo puts the moved embed back");
+    // The reading view: the same picture, dragged above the first paragraph.
+    await page.keyboard.press("Control+e");
+    await page.waitForSelector(".s-reading__content img[data-embed-src], .s-reading__content [data-embed-src] img", { timeout: 10000 });
+    await page.waitForTimeout(500);
+    const rpic = page.locator(".s-reading__content [data-embed-src] img, .s-reading__content img[data-embed-src]").first();
+    const rb = await rpic.boundingBox();
+    const ab = await page.locator(".s-reading__content .s-rv-p", { hasText: "Alpha paragraph." }).boundingBox();
+    await page.mouse.move(rb.x + rb.width / 2, rb.y + rb.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(rb.x + rb.width / 2 + 6, rb.y + rb.height / 2 + 6, { steps: 3 });
+    await page.mouse.move(ab.x + 30, ab.y + 2, { steps: 8 });
+    const lineShown = (await page.locator(".s-embed-dropline").count()) > 0;
+    await page.mouse.up();
+    await page.waitForTimeout(1200);
+    const saved = (await api(`/api/note?path=${encodeURIComponent(EMBED_NOTE)}`)).body?.content ?? "";
+    check(lineShown, "embeds: the reading view shows where the drop will land");
+    check(saved === `# Pick me up\n\n![[${pngName}|120]]\n\nAlpha paragraph.\n\nBeta paragraph.\n\nGamma paragraph.\n`, "embeds: a drag in the reading view moves the embed's line in the file", JSON.stringify(saved.slice(0, 120)));
     await page.close();
   }
 

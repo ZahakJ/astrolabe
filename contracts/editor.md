@@ -647,14 +647,14 @@ to its own pane's note; the reading view does, pre-existing handlers ignore it a
 before. Every landing marks the landed element with `.s-landed` for 1.5s (`flashElement`) — a
 translucent accent wash, no new text/background pair, fade dropped under prefers-reduced-motion.
 
-**Reading-view precision is SECTION-level, and says so.** The reading renderer keeps no
-per-block source map, so a line landing resolves to the nearest heading at-or-above the line via
-the note's own anchor table (`shared/anchors.ts` — the same table `[[Note#anchor]]` resolves
-against, so the two landings cannot disagree about where a section starts), walking backward
-past anchors the renderer assigns no element to; with no preceding anchor it falls back to the
-note TOP. The flash makes the imprecision legible. The editor lands on the exact line. Honest
-fallback beats fake precision; anyone adding a source map to the renderer should delete this
-paragraph's fallback, not layer on it.
+**Reading-view precision is BLOCK-level.** The markdown renderer stamps every TOP-LEVEL block of
+the open note with the source lines it came from (`data-src-start` / `data-src-end`, 0-based,
+frontmatter and dropped `<!--SR:…-->` lines accounted for — `render.ts` `Ctx.lineMap`, see
+reading.md "Embeds you can pick up"), so a line landing lands on the block that holds the line,
+or the last block above it when the line is blank. A LaTeX note has no such map and keeps the
+section-level fallback: the nearest heading at-or-above the line via the note's own anchor table
+(`shared/anchors.ts`), walking backward past anchors the renderer assigns no element to, else
+the note TOP. The flash marks what was landed on. The editor lands on the exact line.
 
 **Surfaces.** A backlink card is a div now (a button may not contain buttons): the title row
 lands on the first mention, each context line on its own mention — mentions are distinct by LINE
@@ -724,7 +724,53 @@ stays editable beside it. **The picture's tools** (`imageTools`): a handle on th
 drags the width and writes it into the embed's `|N` on release (double-click clears it), three
 buttons write the alignment marker at the end of the line. Both find the embed at interaction
 time (`embedSpanOf`: `posAtDOM` + the line's `![[…]]` naming this picture), never from stored
-positions. `ignoreEvent` yields the tools to the widget and everything else to the editor.
+positions. `ignoreEvent` yields the tools to the widget, and the PRESS (`mousedown`, `drag*`) to
+the browser so a drag can start (see below); the click that follows a press that did not drag is
+answered by the grip, which puts the caret after the embed as CodeMirror's press used to.
+
+## Embeds you can pick up (shared/embedActions.ts, editor/embedGrip.ts, client/embedPickup.ts, client/embedMenu.ts)
+
+An image (`![[x.png]]` and `![alt](path)`), a file card, a drawn PDF page, a drawing and an audio
+player are one family: they DRAG and they answer ONE MENU, in the editor, the reading view and
+(as a sheet) on the phone. Note transclusions are not in it — their card is words.
+
+- **The arithmetic is pure and tested** (`tests/embedActions.test.ts`): `embedSpansIn` /
+  `embedSpanNear` / `findEmbedInLines` find the exact source; `moveEmbedEdit` moves a STANDALONE
+  embed's whole line (width, `#page=`, `{.center}` ride along) to the line boundary nearest the drop
+  as a paragraph of its own — one blank line kept between it and prose, none doubled where it left —
+  and a mid-sentence embed's own text to the exact position; `insertEmbedEdit` is the cross-note
+  drop (the same reference, never the file; `rebaseEmbedSource` re-expresses a RELATIVE markdown
+  destination from the new note's folder); `removeEmbedEdit` takes the line or the text. Every edit
+  is ONE change set against the original document: the editor dispatches it as one transaction (one
+  undo), the reading view applies it to the note's text (`applyNoteContent`, through the open editor
+  when there is one). A drop that would leave the note unchanged is null.
+- **The drag** (`beginEmbedDrag`): `application/x-astrolabe-embed` JSON (note, source, editor span or
+  reading block lines, resolved path) plus `DownloadURL` (`mime:name:absolute-url`), `text/uri-list`
+  and `text/plain` = the file's absolute `/api/file` URL. The payload also sits in module state
+  (`getData` is empty during dragover), but the DataTransfer's TYPES decide whether a drag is an
+  embed's — module state can outlive a drag whose source was re-rendered away. In the desktop app
+  **Alt+drag** hands the file to the OS through the existing `dragNote` bridge (`startDrag`, the
+  tree's rule); a bare drag stays in-app because `startDrag` takes the gesture over. Draggable is set
+  at `pointerdown` by a POINTER only — a finger's hold is the phone's sheet.
+- **The editor** (`embedGrip`, a ViewPlugin with native CAPTURE listeners on `view.dom`, above the
+  upload handler and CodeMirror's own drop): dragover allows the drop and leaves the drop CURSOR to
+  `dropCursor()`; drop takes the event (CodeMirror would paste the URL) and dispatches
+  `landEmbed`. Right-click on a widget, or Shift+F10 / the Menu key with the caret inside an embed's
+  source, opens the menu (`fromKeyboard` puts focus in it).
+- **The menu** (`embedMenu.ts`, lazy) builds its rows from `embedMenuActions` — the availability
+  matrix: Copy image (pictured kinds, `ClipboardItem` present, PNG through a canvas; a drawn page
+  copies its drawn image), Copy link, Copy as Markdown (the source EXACTLY as written), Copy path;
+  Open (viewer / reader / canvas), Go to page (a `#page=` embed), Reveal in Files (sidebar opened,
+  attachment filter lifted — `TREE_REVEAL_EVENT` with `attachment: true`), Save as…; Move… (touch
+  only), Rename… (never a drawing: it is two files; lands on `/api/attachment/rename`, which rewrites
+  the embedders); Remove embed. A visitor gets Copy link / Open / Save as…; a broken embed only
+  Copy as Markdown and Remove. The desktop draws it through `menuPortal`; the phone's note screen
+  (`phone/embedSheet.ts`) draws the same verbs as an action sheet on a hold or on Android's
+  `contextmenu`, and Move… lists the top, every heading and the end.
+- **Taught where it is typed.** `/embed` (and `/embed sized`, `/image by path`) in the slash menu;
+  `![[` opens on the vault's FILES under a header that prints the three forms and what can be
+  embedded (`autocomplete.ts` `embedHelpHeader`, sections Files / Notes); the palette's "Embed a
+  file…" writes `![[]]` and opens that popup (`INSERT_EMBED_EVENT`).
 
 **The properties card on a note with no frontmatter** (`EmptyPropsWidget`, block, side −1 at
 0): the head and the add line, "Set banner…" beside it; both write through `POST /api/frontmatter`,

@@ -49,6 +49,7 @@ import { harakatKeymap } from "./harakat.ts";
 import { selectionMenu } from "../components/SelectionMenu.tsx";
 import { wikilinkAutocomplete } from "./autocomplete.ts";
 import { imageUploads } from "./uploads.ts";
+import { embedGrip } from "./embedGrip.ts";
 import { hoverPreviews } from "./hoverPreview.ts";
 import { annotationMarks } from "./annotationMarks.ts";
 import { headingFolds } from "./folding.ts";
@@ -260,6 +261,10 @@ export function buildEditorState(options: EditorSetupOptions): EditorState {
       // selection makes a markdown link, wikilink/footnote hover previews,
       // heading-section folding.
       imageUploads(),
+      // An embed you can pick up: drag a picture, a card or a page within the
+      // note, into another, or out of the app; right-click it for its menu
+      // (embedGrip.ts — its listeners run before both of the above).
+      embedGrip(),
       pasteURLAsLink,
       hoverPreviews(),
       // The note's annotations, painted on their source words; a hover names
