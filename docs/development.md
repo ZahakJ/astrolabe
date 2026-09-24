@@ -562,7 +562,7 @@ across the places that used to keep a copy each:
 | `tests/fileTypes.test.ts` | One served-type table, one kind table and one image test (`shared/attachments.ts`), one tree order (`shared/tree.ts`), one local day (`shared/dates.ts`) — and no stray copy of either of the last two in the code. |
 | `tests/breakpoints.test.ts` | One phone width in every stylesheet (above). |
 | `tests/i18nScan.test.ts` | The copy scan sees what the line scan could not (above). |
-| `tests/rtlGlyphs.test.ts` | A Bidi_Mirrored glyph (‹ › « ») is never flipped by hand under RTL — the browser already mirrors it. |
+| `tests/rtlGlyphs.test.ts` | A Bidi_Mirrored glyph (‹ › « ») is mirrored once: whether the browser mirrors it depends on the font, so a glyph flipped by hand under RTL must be pinned left-to-right first. |
 | `tests/sourceText.test.ts` | No source file carries a literal control character, so grep never calls it binary. |
 
 ## Performance

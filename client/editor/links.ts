@@ -187,8 +187,9 @@ export function resolveLink(target: string, tree: TreeNode | null): string | nul
   return aliasPaths.get(name) ?? null;
 }
 
-// The heading offers and the heading jump (`headingTitles`, `findHeadingLine`)
-// live in shared/headings.ts beside the rule they apply. Not here: this module
+// The heading jump (`findHeadingLine`) lives in shared/headings.ts beside the
+// rule it applies, and the `[[Note#` offers are the anchor table's
+// (shared/anchors.ts, via autocomplete.ts). Not here: this module
 // is in the entry chunk (every surface resolves links), and a function here is
 // emitted there with everything it imports — the heading rule, the furigana
 // strip and the alignment marker — for the editor's sake alone.

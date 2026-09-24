@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { findAnchor, markdownAnchors, noteAnchors } from "../shared/anchors.ts";
-import { findHeadingLine, HEADING_RE, headingTitle, headingTitles as editorOffers, isHeadingLine, scanHeadings } from "../shared/headings.ts";
+import { findHeadingLine, HEADING_RE, headingTitle, isHeadingLine, scanHeadings } from "../shared/headings.ts";
 import { extractHeadings as outline } from "../client/reading/toc.ts";
 
 const NOTE = [
@@ -46,6 +46,11 @@ const NOTE = [
   "",
 ].join("\n");
 
+/** What the editor's `[[Note#` completion offers: the anchor table's heading
+ *  ids (client/editor/autocomplete.ts). */
+const editorOffers = (md: string): string[] =>
+  markdownAnchors(md).filter((a) => a.kind === "heading").map((a) => a.id);
+
 const TITLES = ["Contract", "Indented three", "Closed", "Centred", "漢字 reading", "Bold and code", "Repeat", "Repeat"];
 const IDS = ["contract", "indented-three", "closed", "centred", "漢字-reading", "bold-and-code", "repeat", "repeat-1"];
 
@@ -56,8 +61,8 @@ describe("the heading contract (shared/headings.ts)", () => {
     assert.deepEqual(all.map((h) => h.id), IDS);
   });
 
-  it("the editor offers exactly what the outline lists", () => {
-    assert.deepEqual(editorOffers(NOTE), TITLES);
+  it("the editor offers exactly the ids the outline and the reading view use", () => {
+    assert.deepEqual(editorOffers(NOTE), IDS);
     assert.deepEqual(outline(NOTE).map((h) => h.text), TITLES);
     assert.deepEqual(outline(NOTE).map((h) => h.slug), IDS);
   });
@@ -82,7 +87,7 @@ describe("the heading contract (shared/headings.ts)", () => {
 
   it("a YAML `# comment` is never a heading, in any view", () => {
     const comment = "a YAML comment, not a heading";
-    assert.ok(!editorOffers(NOTE).some((t) => t.includes("YAML")));
+    assert.ok(!editorOffers(NOTE).some((t) => t.includes("yaml")));
     assert.equal(findHeadingLine(NOTE, comment), null);
     assert.equal(findAnchor(noteAnchors("Contract.md", NOTE), comment), null);
   });
