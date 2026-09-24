@@ -156,7 +156,9 @@ describe("pane widths", () => {
   // stopped moving at all (`transition-property: none`, left −330 → 0 in one
   // frame).
   describe("the still flag comes back down", () => {
-    const state = readFileSync(new URL("../client/state.ts", import.meta.url), "utf8");
+    // The pane setters are the store's preferences slice since the sweep split
+    // client/state.ts (client/state/prefsSlice.ts); the rule is the same.
+    const state = readFileSync(new URL("../client/state/prefsSlice.ts", import.meta.url), "utf8");
 
     it("is raised only by the viewport's own collapse", () => {
       assert.match(state, /collapsePanelForViewport: \(panelCollapsed\) => set\(\{ panelCollapsed, paneStill: true \}\)/);

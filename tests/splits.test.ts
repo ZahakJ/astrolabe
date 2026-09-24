@@ -81,6 +81,18 @@ describe("client/books/BookReader.tsx, its panels and search highlight moved out
 
 describe("client/state.ts, split into client/state/*", () => {
   it("still exports everything the client reads off the store; only the store reaches its parts", () => {
-    assertMove("client/state.ts", ["client/state/types.ts", "client/state/dom.ts", "client/state/persistence.ts"]);
+    assertMove("client/state.ts", [
+      "client/state/types.ts",
+      "client/state/dom.ts",
+      "client/state/persistence.ts",
+      "client/state/sliceTypes.ts",
+      "client/state/themeMirror.ts",
+      "client/state/helpers.ts",
+      "client/state/fieldsSlice.ts",
+      "client/state/sessionSlice.ts",
+      "client/state/workspaceSlice.ts",
+      "client/state/prefsSlice.ts",
+      "client/state/notesSlice.ts",
+    ]);
   });
 });
