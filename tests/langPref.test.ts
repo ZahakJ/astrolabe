@@ -22,7 +22,8 @@
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { chromeLang, otherLang } from "../client/langPref.ts";
+import { chromeLang, chromeLangPref, otherLang } from "../client/langPref.ts";
+import { CHROME_LANG_ALIASES, chromeLangSwitch } from "../client/chromeLangSwitch.ts";
 
 type Lang = "en" | "ar";
 
@@ -207,5 +208,58 @@ describe("otherLang", () => {
   it("is the pair the EN/ع switch offers, in both directions", () => {
     assert.equal(otherLang("en"), "ar");
     assert.equal(otherLang("ar"), "en");
+  });
+});
+
+// THE WAY BACK (chromeLangSwitch / chromeLangPref): the always-visible
+// switch's label and the preference a press writes. The owner's words: "if
+// they switch by mistake then ggs they won't know how to switch back" — so
+// the label must be readable by the person who CANNOT read the chrome.
+describe("the chrome-language switch", () => {
+  it("shows the OTHER language's own name, never the current one", () => {
+    assert.equal(chromeLangSwitch("en").glyph, "ع");
+    assert.equal(chromeLangSwitch("ar").glyph, "EN");
+    assert.equal(chromeLangSwitch("en").target, "ar");
+    assert.equal(chromeLangSwitch("ar").target, "en");
+  });
+
+  it("names itself in both languages, the one on screen first", () => {
+    assert.equal(chromeLangSwitch("en").title, "Switch to Arabic · التبديل إلى العربية");
+    assert.equal(chromeLangSwitch("ar").title, "التبديل إلى الإنجليزية · Switch to English");
+  });
+
+  it("leads the palette row with the language it switches TO", () => {
+    assert.equal(chromeLangSwitch("en").row, "التبديل إلى العربية · Switch to Arabic");
+    assert.equal(chromeLangSwitch("ar").row, "Switch to English · التبديل إلى الإنجليزية");
+    for (const lang of ["en", "ar"] as const) {
+      const sw = chromeLangSwitch(lang);
+      assert.ok(sw.row.startsWith(sw.own), `${lang}: ${sw.row}`);
+    }
+  });
+
+  it("answers to both languages' names in both scripts", () => {
+    for (const word of ["English", "Arabic", "العربية", "عربي", "الإنجليزية", "إنجليزي"]) {
+      assert.ok(CHROME_LANG_ALIASES.includes(word), word);
+    }
+  });
+
+  it("writes the other language, or follow-the-site when that is the site's own", () => {
+    assert.equal(chromeLangPref("en", "en"), "ar");
+    assert.equal(chromeLangPref("ar", "en"), null);
+    assert.equal(chromeLangPref("ar", "ar"), "en");
+    assert.equal(chromeLangPref("en", "ar"), null);
+  });
+
+  it("comes home in two presses, to the default, from either site language", () => {
+    for (const siteLang of ["en", "ar"] as const) {
+      for (const start of [null, "en", "ar"] as const) {
+        const chrome = (editor: Lang | null) => chromeLang({ admin: true, languageToggle: false, siteLang, editor, visitor: null });
+        const first = chromeLangPref(chrome(start), siteLang);
+        assert.equal(chrome(first), otherLang(chrome(start)), `site ${siteLang}, from ${start}: the first press flips`);
+        const second = chromeLangPref(chrome(first), siteLang);
+        assert.equal(chrome(second), chrome(start), `site ${siteLang}, from ${start}: the second press comes back`);
+        if (chrome(start) === siteLang) assert.equal(second, null, "and lands on follow, not a pin");
+      }
+    }
   });
 });
