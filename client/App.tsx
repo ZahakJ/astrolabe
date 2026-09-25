@@ -92,6 +92,9 @@ const BlogShell = lazySurface(() => import("./blog/BlogShell.tsx"));
 const DesignedSite = lazySurface(() => import("./design/DesignedSite.tsx"));
 const Sidebar = lazySurface(() => import("./components/Sidebar.tsx"));
 const EditorAnnotator = lazySurface(() => import("./annotations/EditorAnnotator.tsx"));
+// Read aloud (docs/read-aloud.md): the chip under a reading selection and the
+// floating player. Lazy: neither is in a first paint.
+const SpeechLayer = lazySurface(() => import("./speech/SpeechLayer.tsx"));
 const Tabs = lazySurface(() => import("./components/Tabs.tsx"));
 const StatusBar = lazySurface(() => import("./components/StatusBar.tsx"));
 const BacklinksPanel = lazySurface(() => import("./components/BacklinksPanel.tsx"));
@@ -383,6 +386,12 @@ export default function App() {
             <ShortcutsHelp shell="blog" />
           </Surface>
         )}
+        {/* Read aloud on the public blog: the layer asks the server whether
+            the owner turned "Readers may listen" on, and draws nothing when
+            not. */}
+        <Surface>
+          <SpeechLayer owner={false} />
+        </Surface>
         <ConfirmHost />
       </>
     );
@@ -746,6 +755,9 @@ export default function App() {
           <EditorAnnotator />
         </Suspense>
       )}
+      <Surface>
+        <SpeechLayer owner={admin && !previewVisitor} />
+      </Surface>
       <ConfirmHost />
     </div>
   );

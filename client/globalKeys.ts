@@ -242,6 +242,17 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
       // Ctrl/Cmd+K is the blog reader's one command; the rest act on chrome
       // that is not on their page.
       if (blogShell && key !== "k") return;
+      // Ctrl/Cmd+Shift+. — read the selection aloud (docs/read-aloud.md), in
+      // the editor, the reading view, a book or a feed item alike. `isKey`
+      // folds the ">" a US Shift+. types back into ".". Taken in the capture
+      // phase on purpose: no browser and no CodeMirror keymap binds it, and
+      // the editor's selection is read from the focused view, not the event.
+      if (isKey(e, ".") && e.shiftKey && !e.altKey) {
+        // keymap: speakSelection
+        e.preventDefault();
+        void import("./speech/doors.ts").then((m) => m.speakSelection());
+        return;
+      }
       if (key === "p" && e.altKey) {
         // Ctrl/Cmd+Alt+P — print / export PDF. THE OBVIOUS CHORD WAS ALREADY
         // SPENT, twice: Ctrl/Cmd+P is the palette and Ctrl/Cmd+Shift+P

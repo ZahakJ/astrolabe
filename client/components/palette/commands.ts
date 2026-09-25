@@ -793,6 +793,15 @@ export const COMMANDS: Command[] = [
     available: ({ openPath }) => openPath !== null,
   },
   {
+    // READ ALOUD, the whole note (docs/read-aloud.md): from the caret in the
+    // editor, from the top in the reading view, lit sentence by sentence.
+    // The owner's: a visitor's listening is the blog's switch to give.
+    id: "read-note",
+    label: () => t("cmdReadNote"),
+    hint: () => t("cmdReadNoteHint"),
+    available: ({ openPath, admin, preview }) => admin && !preview && openPath !== null,
+  },
+  {
     id: "delete-current",
     label: () => t("cmdDeleteCurrent"),
     hint: () => t("cmdTrashHint"),
@@ -1045,6 +1054,14 @@ export function runPaletteCommand(command: Command): void {
       // there), so this import is normally a resolved promise.
       void import("../../print.ts").then((mod) => mod.printNote());
       break;
+    case "read-note": {
+      const path = store.openPath;
+      if (path) {
+        const surface = store.readingMode ? "reading" : "edit";
+        void import("../../speech/doors.ts").then((m) => m.readNote(path, surface));
+      }
+      break;
+    }
     case "theme-flip":
       store.toggleTheme();
       break;

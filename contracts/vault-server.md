@@ -79,6 +79,7 @@ that is the pre-existing pattern, and the door is now open.
 - `GET  /api/props` → `PropCount[]` — every frontmatter key with its count and its twenty commonest values (per list item, folded like `prop:`), scoped like `/api/tags`; `tags` itself is left out (it has the shelf above). See "3.17.0 — Four views of the vault".
 - `GET  /api/nearby?path=` → `NearbyHit[]` (admin-only, 401 to a visitor: the scoring reads every note's body) — the ten notes that read most like `path`, with the two terms that tie each (server/nearby.ts over shared/nearby.ts; an unknown path answers `[]`).
 - `GET  /api/ask/status` → `AskStatus` · `POST /api/ask/reindex` → `AskStatus` · `GET /api/semantic?q=` → `SemanticResponse` · `GET /api/semantic/related?path=` → `SemanticHit[]` · `GET /api/semantic/suggest?path=` → `LinkSuggestion[]` · `POST /api/ask` body `{ question }` → NDJSON stream of `AskEvent` — **all admin-only (401 to a visitor and to the preview header)**; Ollama down or the embedding model missing is a **503 `code: "ollamaDown" | "noEmbedModel"`** (on the stream, an `error` event with an `AskErrorCode`). See "3.24.0 — Ask the vault".
+- `POST /api/speak` body `{ text, lang?, path?, context?, format?: "opus"|"wav" }` → one sentence of audio (`audio/ogg` Opus, or `audio/wav`), headers `X-Speak-Lang`, `X-Speak-Engine`, `X-Speak-Cache: hit|miss` — Read aloud ([features.md](features.md), "Read aloud"). ≤ 1,000 characters (413 `speakTooLong`; 400 `speakEmpty`). Nothing installed speaks the language → **409 `{ code: "speakNotInstalled", lang, needs }`**, and the client reads with the device's voices. A VISITOR is heard only while `speak.public` is on (else 404), only for a `path` that is a published note (else 404), only for words that are in it (letters and digits folded in order; else 403 `speakNotOnPage`), and at most 60 syntheses per address per 10 minutes (429 `speakRate`); a cache hit is not counted. The auth guard lets this one POST through for visitors, like `/api/comments`. `GET /api/speak/status` → `SpeakStatus` (admin; a visitor gets `{ public }` only) and warms the chosen engine; `POST /api/speak/install` `{ engine }` → 202 + status (admin).
 - `GET  /api/query/paths?q=` → `string[]` — the paths a query names, uncapped, scoped like `/api/search`; an empty query names nothing. What the graph paints its groups by.
 - `GET  /api/trackers` → `TrackerMeta[]` — every ```` ```tracker ```` fence this session may see, newest-touched first (the shelf a ```` ```tracker-board ```` draws). Scoped EXACTLY like `/api/posts`: a visitor gets published notes only with the language filter applied, an admin gets the whole vault, and templates are out of both. Covers are resolved server-side, per session, so the board spends no `/api/resolve` per card and a visitor is never handed a path they may not fetch. See "Trackers".
 - A tracker fence may carry `folder:` (a vault folder, no `..`); `TrackerMeta` carries it as `folder`
@@ -128,7 +129,7 @@ hold no session-varying byte) is skipped entirely so a CDN can still cache it. T
 headers: `Content-Security-Policy` (`script-src 'self'`, `frame-ancestors 'none'`, `object-src
 'none'`, `base-uri 'none'`; `style-src` keeps `'unsafe-inline'` because React style props, KaTeX and
 the generated banner gradients are inline by design; `img-src`/`media-src` allow remote https/http
-because `banner:` URLs and raw `<img>` in notes are documented features), `X-Frame-Options: DENY`,
+because `banner:` URLs and raw `<img>` in notes are documented features; there is still no `blob:` anywhere, so Read aloud's player hands its audio to `<audio>` as a `data:` URL), `X-Frame-Options: DENY`,
 `X-Content-Type-Options: nosniff` and `Referrer-Policy: same-origin`. Without those the admin UI —
 permanent delete, publish, settings PATCH, sync — was framable and clickjackable, and the
 hand-rolled HTML sanitizer in `client/reading/rawHtml.ts` had no backstop behind it. Wikilink resolution: `[[Name]]`
@@ -176,6 +177,7 @@ more than one name".
   stood, so the route table is the one it was). `server/indexer.ts` keeps the index's store and
   re-exports the queries that live in `server/indexer/` ([core.md](core.md), "Where the code
   lives").
+- `server/speak.ts` + `speakEngine.ts` + `speakQueue.ts` + `speakCache.ts` + `speakWorker.py` — Read aloud's door, venv and models (under `ASTROLABE_DATA/tts/venv` and `models/tts/`, never the vault), the one-at-a-time line that coalesces a repeated key and drops an abandoned one, the sha256-keyed 500 MB LRU on disk, and the persistent Python child on onnxruntime's CPU provider (see [features.md](features.md), "Read aloud").
 - `server/seed.ts` — the starter vault and the single rule about when it may be written: a directory
   that did not exist is seeded at boot; one that exists is the reader's, and is OFFERED the seed
   (`/api/seed`) rather than written into.

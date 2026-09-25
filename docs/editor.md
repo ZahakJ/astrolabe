@@ -104,6 +104,10 @@ those four words freely.
   never runs off the screen, and mirrors in Arabic. A small Notion-style strip with the six most
   used actions floats over every selection; the last row of the menu turns it off, and the command
   palette turns it back on.
+- **Read aloud.** The selection menu's last row, or `Ctrl/Cmd Shift .` anywhere, reads the selected
+  words aloud in the language they are written in — French, Japanese, Arabic, English — with voices
+  that run on your own machine's processor; in the reading view a small chip under the selection
+  does the same. See [Read aloud](read-aloud.md).
 - **Furigana over kanji.** `{漢字|かんじ}` renders as a ruby in every surface; select a word with a
   kanji in it, right-click → Insert → **Furigana…** for suggested readings, or run the automatic
   command. See [Japanese & furigana](japanese.md).

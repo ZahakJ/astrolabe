@@ -1053,7 +1053,10 @@ export const authGuard: MiddlewareHandler = async (c, next) => {
   // It still falls through to the PUBLIC=false check below — a locked vault
   // takes no comments. DELETE /api/comments/:id is a different path, so it
   // stays admin-only like every other mutation.
-  const visitorPost = c.req.method === "POST" && c.req.path === "/api/comments";
+  // Asking the speaker to read a published page aloud is read-level too
+  // (docs/read-aloud.md): the route 404s unless the owner turned on "Readers
+  // may listen", and speaks only words that are in a published note.
+  const visitorPost = c.req.method === "POST" && (c.req.path === "/api/comments" || c.req.path === "/api/speak");
   const mutating = !visitorPost && c.req.method !== "GET" && c.req.method !== "HEAD";
   if (mutating) return c.json({ error: "Admin session required" }, 401);
   if (!config.publicReads) return c.json({ error: "Sign in required" }, 401);

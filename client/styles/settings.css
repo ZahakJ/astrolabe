@@ -1726,3 +1726,17 @@
   flex: 1 1 180px;
   min-inline-size: 0;
 }
+
+/* Read aloud's voice pickers: a caption over each, since two selects that
+   both read a voice's name ("Heart", "Alpha") say nothing about which
+   language each one is for. */
+.s-smodal__voice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.s-smodal__voicelabel {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}

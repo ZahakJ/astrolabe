@@ -59,3 +59,7 @@ The suggestions are the readings of the 2,136 jōyō kanji, taken from **KANJIDI
 A line written in Japanese takes `lang="ja"`, in the editor and in the reading view, and with it a Japanese typeface (`Noto Sans CJK JP`, `Noto Sans JP`, `Hiragino Sans`, `Yu Gothic UI`, `Meiryo`, then the system's sans-serif) — the serif stack the rest of the note uses has no kana in it. A line is Japanese when its Japanese characters outnumber its Latin letters, so an English sentence quoting one kanji keeps its own type. The browser is also told not to spellcheck those lines, since it has no Japanese dictionary to check them against.
 
 A line with a ruby grows a little taller to make room for the reading; that is correct. A line without one does not change at all: nothing about this feature touches the English or Arabic font stacks or the spacing of a line that carries no Japanese, and the release was measured to that rule — every English and Arabic line's height and typeface identical with the feature on and off.
+
+## Hearing it
+
+Select a Japanese word or sentence and choose **Read aloud** (the selection menu's last row, the chip under a reading selection, or `Ctrl/Cmd Shift .`): it is spoken by Kokoro's Japanese voices, on your own machine's processor. A word with furigana is read once, as the word — the engine reads the kanji itself — never the word and then its reading. Japanese needs the Natural voices; see [Read aloud](read-aloud.md).

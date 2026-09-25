@@ -215,6 +215,16 @@ function Actions({ path, onHistory }: { path: string; onHistory: () => void }) {
   }
   rows.push({ id: "share", label: t("phShare"), run: () => void share() });
   if (admin) {
+    // Read aloud (docs/read-aloud.md): the rendered note when it is being
+    // read, from the caret when it is being written. On a pocket vault the
+    // phone's own voices read it, and the player says so.
+    rows.push({
+      id: "read-aloud",
+      label: t("cmdReadNote"),
+      run: () => void import("../speech/doors.ts").then((m) => m.readNote(path, null)),
+    });
+  }
+  if (admin) {
     // THE WAY BACK, from inside a note (chromeLangSwitch.ts): the
     // sentence in the language a tap goes TO, then the same sentence in the
     // one on screen — whichever of the two the reader can read, the row says

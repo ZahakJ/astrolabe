@@ -202,7 +202,9 @@ export default function BlogArticle({
   return (
     // <article>, not <div>: the piece is the page's one self-contained thing,
     // and the element is what lets a screen reader jump straight to it.
-    <article className="s-blog-page s-blog-article">
+    // `data-note-path`: Read aloud names the page a visitor's selection came
+    // from, and the server speaks only words that are on it (server/speak.ts).
+    <article className="s-blog-page s-blog-article" data-note-path={path}>
       <header
         className={`s-blog-article__head${isRtlText(title) ? " s-blog-article__head--rtl" : ""}`}
       >

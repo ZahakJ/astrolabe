@@ -9,6 +9,7 @@ import type { FolderIcon, FolderMark } from "./folderIcons.ts";
 import type { TrackerRating, TrackerSession, TrackerStatus } from "./tracker.ts";
 import type { InteractionKind, MentionType } from "./mentions.ts";
 import type { VoiceEffective, VoiceLanguage, VoiceModelSetting, VoiceSettings } from "./voice.ts";
+import type { SpeakEffective, SpeakEngineId, SpeakLang, SpeakSettings } from "./speech.ts";
 
 /** The stored feeds key (settings.json `feeds`). */
 export interface FeedsSettings {
@@ -1280,6 +1281,10 @@ export interface SettingsData {
   /** The fediverse (docs/webmentions.md): a single-user ActivityPub actor
    *  for the blog. Off unless set; `handle` is the name before the @. */
   fediverse?: FediverseSettings;
+  /** Read aloud (shared/speech.ts, docs/read-aloud.md): the engine (Light
+   *  unless set), the synthesis rate, a voice per language, and whether the
+   *  public blog offers it to visitors (off unless set — it costs CPU). */
+  speak?: SpeakSettings;
   /** Git backup & sync (off by default). The token, when one is used, is NOT
    *  here — it lives in ASTROLABE_DATA/git-credentials.json (0600). */
   gitSync?: GitSyncSettings;
@@ -1485,6 +1490,8 @@ export interface EffectiveSettings {
   webmentions: WebmentionsEffective;
   /** The fediverse, every default filled in. */
   fediverse: FediverseEffective;
+  /** Read aloud, every default filled in. */
+  speak: SpeakEffective;
   home: Required<Pick<HomeSettings, "mode">> & Omit<HomeSettings, "mode">;
   /** Public folders with every default filled in — what the settings editor
    *  prefills from, so an unset key and an explicitly-default one look the
@@ -1613,6 +1620,14 @@ export interface SettingsPatch {
     send?: boolean | null;
   } | null;
   /** The fediverse. Sub-keys merge like `feeds`; null clears the key. */
+  /** Read aloud. Sub-keys merge like `feeds`; null clears the key, and a
+   *  voice set to null goes back to the engine's first. */
+  speak?: {
+    engine?: SpeakEngineId | null;
+    rate?: number | null;
+    voices?: Partial<Record<SpeakLang, string | null>> | null;
+    public?: boolean | null;
+  } | null;
   fediverse?: {
     enabled?: boolean | null;
     handle?: string | null;

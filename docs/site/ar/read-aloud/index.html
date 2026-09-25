@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>القراءة بصوت عالٍ · دليل أسطرلاب</title>
+<meta name="description" content="حدّد كلمة أو فقرة بالفرنسية أو اليابانية أو العربية أو الإنجليزية واسمعها، بأصوات تعمل على معالج جهازك نفسه — بلا سحابة، وبلا بطاقة رسوميات.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
+  <a class="top__brand" href="../../ar/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> <span class="top__docs">دليل</span> أسطرلاب</a>
+  <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../en/read-aloud/" hreflang="en">English</a>
+  <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a><a class="nav__link" href="../../ar/offline/">القراءة دون اتصال</a><a class="nav__link" href="../../ar/capture/">الالتقاط</a><a class="nav__link" href="../../ar/feeds/">الخلاصات</a><a class="nav__link" href="../../ar/import/">الاستيراد</a><a class="nav__link" href="../../ar/export/">التصدير</a><a class="nav__link" href="../../ar/desktop/">تطبيق سطح المكتب</a><a class="nav__link" href="../../ar/mobile/">تطبيق أندرويد</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/sigils/">السِّجِلّ</a><a class="nav__link" href="../../ar/today/">اليوم</a><a class="nav__link" href="../../ar/calendar/">التقويم</a><a class="nav__link" href="../../ar/timeline/">الخط الزمني</a><a class="nav__link" href="../../ar/orbits/">المدارات</a><a class="nav__link" href="../../ar/drawing/">الرسومات</a><a class="nav__link" href="../../ar/books/">قارئ الكتب</a><a class="nav__link" href="../../ar/ask/">اسأل الخزانة</a><a class="nav__link" href="../../ar/workspace/">اللوحات والتبويبات والنوافذ</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a><a class="nav__link" href="../../ar/webmentions/">إشارات الويب والفيديفيرس</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a><a class="nav__link" href="../../ar/japanese/">اليابانية والفوريغانا</a><a class="nav__link is-current" href="../../ar/read-aloud/">القراءة بصوت عالٍ</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="القراءة-بصوت-عالٍ">القراءة بصوت عالٍ</h1>
+<p><em>حدّد كلمة أو فقرة بالفرنسية أو اليابانية أو العربية أو الإنجليزية واسمعها، بأصوات تعمل على معالج جهازك نفسه — بلا سحابة، وبلا بطاقة رسوميات.</em></p>
+<hr>
+<p>حدّد بعض الكلمات واختر <strong>اقرأ بصوت عالٍ</strong>. تُنطق الكلمة الواحدة في الحال، وتُقرأ الفقرة جملةً جملة، وتُضاء في الصفحة الجملة التي تُقرأ، ويظهر أسفل النافذة مشغّل صغير للإيقاف المؤقت والبدء من جديد وتغيير السرعة والإيقاف. الأصوات مثبّتة على الجهاز الذي يشغّل أسطرلاب — حاسوبك المحمول، أو خادمك المنزلي، أو تطبيق سطح المكتب — وتعمل على <strong>معالجه، عمدًا</strong>: لا يُرسَل شيء إلى أي مكان، ولا حاجة إلى بطاقة رسوميات ولا يُستعمل شيء منها.</p>
+<h2 id="أين-تجدها"><a class="anchor" href="#أين-تجدها">أين تجدها</a></h2>
+<div class="table"><table><thead><tr><th>أين</th><th>كيف</th></tr></thead><tbody><tr><td>المحرر</td><td>حدّد، ثم انقر بالزر الأيمن (أو <code>Shift F10</code>)، <strong>اقرأ بصوت عالٍ</strong> — آخر صف في <a href="../editor/">قائمة التحديد</a></td></tr><tr><td>في أي مكان</td><td>حدّد، ثم <code>Ctrl/Cmd Shift .</code> — في المحرر، وعرض القراءة، والكتاب، وعنصر الخلاصة (<a href="../keymap/">اختصارات لوحة المفاتيح</a>)</td></tr><tr><td>عرض القراءة، والكتاب، وملف EPUB</td><td>حدّد، واضغط زر <strong>اقرأ بصوت عالٍ</strong> الذي يظهر تحت التحديد</td></tr><tr><td>الملاحظة كلها</td><td>صف لوحة الأوامر <strong>اقرأ هذه الملاحظة بصوت عالٍ</strong> (<code>Ctrl/Cmd P</code>): من موضع المؤشر في المحرر، ومن أولها في عرض القراءة</td></tr><tr><td>الهاتف</td><td>حدّد، واضغط الزر — في عرض القراءة <em>وفي</em> المحرر، إذ لا قائمة نقر أيمن على الهاتف؛ أو ورقة <strong>⋯</strong> الخاصة بالملاحظة ← <strong>إجراءات</strong> ← <strong>اقرأ هذه الملاحظة بصوت عالٍ</strong></td></tr><tr><td>المدونة العامة</td><td>لا يظهر الزر للزوار إلا إذا فعّلت <strong>يستطيع القرّاء الاستماع</strong> (أدناه)</td></tr></tbody></table></div><p>يبقى المشغّل أسفل النافذة وأنت تمرّر الصفحة. أزراره: <strong>إيقاف مؤقت / تشغيل</strong>، و<strong>من البداية</strong> (مجانًا في المرة الثانية: كل ما نُطق محفوظ)، و<strong>السرعة</strong> (من 0.75× إلى 1.5×، تُطبَّق في الحال دون إعادة توليد)، و<strong>إيقاف</strong>.</p>
+<h2 id="بأي-لغة"><a class="anchor" href="#بأي-لغة">بأي لغة</a></h2>
+<p>يُنطق التحديد باللغة التي كُتب بها، ويُقرَّر ذلك كما يقرّره بقية التطبيق:</p>
+<ol>
+<li><strong>الخط أولًا.</strong> الحروف العربية عربية؛ والكانا والكانجي يابانية — بالعدد، فجملة إنجليزية تقتبس كانجي واحدًا تبقى إنجليزية.</li>
+<li><strong>الفرنسية حين تكون الكلمات فرنسية</strong> — بالاختبار نفسه الذي يستعمله <a href="../editor/">التصحيح الفرنسي أثناء الكتابة</a>: كلمتان وظيفيتان فرنسيتان. فالاقتباس الفرنسي في ملاحظة إنجليزية يُقرأ بالفرنسية.</li>
+<li><strong>حقل <code>lang:</code> في الملاحظة نفسها</strong> (<code>lang: fr</code>، <code>lang: es</code>)، للنص اللاتيني الذي لا يحسمه الاختبار.</li>
+<li><strong>الجملة المحيطة بالكلمة المفردة.</strong> الكلمة المحدّدة وحدها لا شيء فيها يُعدّ؛ أما الفقرة التي حُدّدت منها ففيها، فكلمة <em>grenouille</em> المحدّدة في فقرة فرنسية فرنسية.</li>
+<li>لغة الموقع، ثم الإنجليزية.</li>
+</ol>
+<p><strong>الفوريغانا</strong> تُقرأ مرة واحدة، على أنها الكلمة: <code>{図書館|としょかん}</code> تُنطق 図書館، لا الكلمة ثم قراءتها (<a href="../japanese/">اليابانية والفوريغانا</a>).</p>
+<h2 id="المحرّكان"><a class="anchor" href="#المحرّكان">المحرّكان</a></h2>
+<p>كلاهما برنامج حرّ، وكلاهما يعمل على المعالج، وكلاهما يعمل داخل بيئة Python واحدة يصنعها التطبيق لك.</p>
+<div class="table"><table><thead><tr><th></th><th><strong>خفيف</strong> (الافتراضي)</th><th><strong>طبيعي</strong></th></tr></thead><tbody><tr><td>المحرّك</td><td><a href="https://github.com/rhasspy/piper" target="_blank" rel="noreferrer">Piper</a> (MIT)</td><td><a href="https://huggingface.co/hexgrad/Kokoro-82M" target="_blank" rel="noreferrer">Kokoro-82M</a> (Apache-2.0) عبر kokoro-onnx</td></tr><tr><td>اللغات</td><td>الإنجليزية، والفرنسية، والعربية</td><td>الإنجليزية، والفرنسية، واليابانية، والإسبانية، والإيطالية، والبرتغالية</td></tr><tr><td>التنزيل</td><td>190 م.ب (63 م.ب للصوت الواحد)</td><td>354 م.ب مرة واحدة، لكل اللغات والأصوات</td></tr><tr><td>كلمة، مقيسة (8 / 2 / 1 أنوية)</td><td>60 / 60 / 90 ملّي ثانية</td><td>270 / 460 / 700 ملّي ثانية</td></tr><tr><td>جملة مدتها 4 ثوانٍ</td><td>0.3 ثانية — أسرع من الكلام بنحو 15 مرة</td><td>0.9 ثانية على 8 أنوية، و2.3 على نواة واحدة — أسرع من الكلام حتى حينئذ</td></tr><tr><td>الصوت</td><td>واضح، مسطّح قليلًا</td><td>أقرب إلى صوت إنسان، ولا سيما الإنجليزية واليابانية</td></tr></tbody></table></div><p>العربية يقرؤها دائمًا صوت «خفيف»، واليابانية يقرؤها دائمًا صوت «طبيعي»، أيًّا كان اختيارك؛ والاختيار يحسم الإنجليزية والفرنسية. الأرقام من معالج AMD Ryzen 7 7800X3D؛ وعمودا «نواتان» و«نواة واحدة» قيسا والمحرّك مقيّد بذلك العدد من الأنوية، ليقوما مقام حاسوب محمول عادي أو خادم منزلي صغير. على معالج أقدم أو قليل الاستهلاك قد يقترب «طبيعي» من الزمن الحقيقي في الجمل الطويلة، ولهذا <strong>«خفيف» هو الافتراضي</strong>، و«طبيعي» اختيار الجهاز الذي يقدر عليه.</p>
+<p><strong>والجهاز الذي لا بطاقة رسوميات فيه يحصل على هذا بالضبط.</strong> لا شيء هنا يستعمل واحدة، على أي جهاز.</p>
+<h3 id="كيف-اختير-المحرّكان"><a class="anchor" href="#كيف-اختير-المحرّكان">كيف اختير المحرّكان</a></h3>
+<p>بالاستماع، لا بالقراءة. نطق كلٌّ من Kokoro وPiper وMeloTTS الأسطر العشرة نفسها — كلمة فرنسية، وجملة فرنسية فيها وصل (liaison)، وكلمة يابانية وجملة يابانية، وكلمة عربية مشكولة وغير مشكولة، وجملة إنجليزية، وسطرًا يخلط الإنجليزية بالفرنسية، ورقمًا، واسم علم — على المعالج، وحُفظت العيّنات ليسمعها المالك. ووقف حَكَمان إلى جانب الأذن: فُرّغت كل عيّنة كتابةً بـwhisper (فالصوت الذي لا يفهمه لا يفهمه المتعلّم أيضًا)، وقُيّمت بـUTMOS، وهو نموذج دُرّب على توقّع مدى طبيعية الصوت عند المستمعين.</p>
+<ul>
+<li><strong>اليابانية ← Kokoro.</strong> صوت MeloTTS قريب منه، لكنه يحتاج نحو 2 غ.ب من الاعتماديات للغة واحدة؛ وPiper لا يابانية فيه. أخطأ Kokoro في ثلاث كلمات كانجي قصيرة من عشر حين أُرسلت وحدها، ولم يخطئ في أي منها حين خُتمت كلٌّ منها بـ「。」، فصار التطبيق يختم الكلمة المفردة بنقطة لغتها قبل أن تصل إلى المحرّك.</li>
+<li><strong>الإنجليزية ← Kokoro</strong> حين يُختار «طبيعي»: أعلى سطر تقييمًا في التجربة كلها.</li>
+<li><strong>الفرنسية ← أيّهما.</strong> صوت Kokoro الفرنسي الوحيد وصوت Piper دُرّبا على التسجيلات نفسها، وتقارب تقييمهما إلى حدود العُشر؛ وكلاهما يأخذ الوصل من صوتيّات espeak-ng. وPiper أسرع بخمس مرات.</li>
+<li><strong>العربية ← صوت Piper الأردني (ar_JO-kareem)</strong>، الصوت العربي الوحيد دون اتصال بين الثلاثة. بصراحة: مفهوم تمامًا (كتب whisper السطرين كما هما) لكنه اصطناعي مسموع، وأكثر تسطّحًا من صوت ترجمة Google. والنص غير المشكول لا يُترك للتخمين: في Piper مُشكِّل صغير (libtashkeel) يشكّل النص أولًا، ويُبقي أي حركات كتبتها بنفسك.</li>
+<li>نموذج Kokoro الأصغر (int8) كان <em>أبطأ</em> على المعالج بأربع إلى ست مرات لا أسرع، فالنموذج كامل الدقة هو الذي يُثبَّت.</li>
+</ul>
+<p>مقارنةً بترجمة Google: الإنجليزية واليابانية في «طبيعي» من الطبقة نفسها؛ والفرنسية جيدة؛ والعربية متأخرة. وكل ذلك دون اتصال، على جهازك أنت.</p>
+<h2 id="التثبيت"><a class="anchor" href="#التثبيت">التثبيت</a></h2>
+<p><strong>الإعدادات ← اللغة والتواريخ ← القراءة بصوت عالٍ</strong> يعرض ما هو مثبّت وزر <strong>ثبّت</strong>. اختر «خفيف» أو «طبيعي» واضغطه؛ ويقول الصف ما يفعله — يهيّئ بيئة Python، ويثبّت المحرّك، وينزّل الأصوات مع نسبة مئوية — والأصوات جاهزة حين يقول ذلك. ثبّت المحرّك الآخر بالطريقة نفسها متى شئت؛ فاليابانية تحتاج «طبيعي»، والصف يقول ذلك.</p>
+<p>يحتاج زر التثبيت واحدًا من أمرين على الجهاز:</p>
+<ul>
+<li><strong><a href="https://docs.astral.sh/uv/" target="_blank" rel="noreferrer">uv</a></strong> في <code>PATH</code> (وهو يجلب Python 3.12 بنفسه)، أو</li>
+<li><strong>Python من 3.10 إلى 3.13</strong> (<code>python3</code>).</li>
+</ul>
+<p>لا شيء يحتاج إلى مترجم: الحزم المترجمة تصل عجلاتٍ جاهزة (نسخة المعالج من onnxruntime؛ بلا torch، وبلا CUDA). ومن غير uv ولا Python يقول الصف ذلك، وتقرأ أصوات الجهاز نفسه في الأثناء.</p>
+<p>وفي الصف نفسه صوت للإنجليزية وصوت لليابانية (حين يُثبَّت «طبيعي») وسرعة: أبطأ، عادية، أسرع.</p>
+<h3 id="أين-يعيش"><a class="anchor" href="#أين-يعيش">أين يعيش</a></h3>
+<p>كل شيء في مجلد البيانات (<code>ASTROLABE_DATA</code>)، لا في الخزانة أبدًا:</p>
+<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><code>tts/venv/</code></td><td>بيئة Python</td></tr><tr><td><code>models/tts/piper/</code>، <code>models/tts/kokoro/</code></td><td>الأصوات</td></tr><tr><td><code>tts/cache/</code></td><td>كل ما نُطق، محفوظًا بحسب ما قيل (النص، واللغة، والصوت، والسرعة)؛ 500 م.ب على الأكثر، ويذهب أولًا ما طال عهده بالسماع</td></tr></tbody></table></div><p>و<strong>تطبيق سطح المكتب</strong> يثبّت في مجلد بياناته هو بالطريقة نفسها، وزر التثبيت يعمل فيه كما هو: الخادم المضمَّن يصنع البيئة ويشغّل المحرّك عمليةً فرعية، كما يفعل مع مُفرِّغ الملاحظات الصوتية. وإزالة الأصوات هي حذف تلك المجلدات.</p>
+<p>يبدأ المحرّك مع أول طلب، ويبقى قائمًا ما دمت تستمع، ويتوقف بعد عشر دقائق خاملة ليعيد ذاكرته (نحو 600 م.ب والمحرّكان محمّلان).</p>
+<h2 id="حين-لا-يستطيع-الجهاز-النطق"><a class="anchor" href="#حين-لا-يستطيع-الجهاز-النطق">حين لا يستطيع الجهاز النطق</a></h2>
+<p>إن لم يكن مثبّتًا ما يتكلم اللغة — لا شيء مثبّت أصلًا، أو اليابانية قبل تثبيت «طبيعي» — قرأ المشغّل <strong>بأصوات الجهاز نفسه</strong> (نطق المتصفّح)، وقال ذلك في المشغّل: <em>وجودتها تتوقف عليها.</em> أصوات Google على أندرويد جيدة؛ وأصوات سطح مكتب لينكس عادةً ليست كذلك. ويحدث الأمر نفسه في <strong>الخزانة في الجيب</strong> على الهاتف، إذ لا خادم لها، ويقول المشغّل ذلك أيضًا.</p>
+<h2 id="يستطيع-القرّاء-الاستماع"><a class="anchor" href="#يستطيع-القرّاء-الاستماع">يستطيع القرّاء الاستماع</a></h2>
+<p><strong>الإعدادات ← النشر والتعليقات ← يستطيع القرّاء الاستماع</strong> يعطي زوّار مدونتك الزرّ نفسه فوق تحديدهم. هو معطّل ما لم تفعّله، لأن كل جملة جديدة يطلبها زائر هي من معالج جهازك. ولا ينطق الخادم حينئذ إلا كلمات موجودة في صفحة منشورة (فلا يستطيع الزائر أن يرسل إليه شيئًا آخر ليقرأه)، وستين جملة جديدة على الأكثر لكل عنوان كل عشر دقائق؛ والجملة التي سمعها أحد من قبل تُقدَّم من المخزن المؤقت ولا تكلّف شيئًا.</p>
+<h2 id="للمطوّرين"><a class="anchor" href="#للمطوّرين">للمطوّرين</a></h2>
+<ul>
+<li><code>POST /api/speak</code> <code>{ text, lang?, path?, context?, format? }</code> ← جملة واحدة بصيغة Ogg Opus (أو WAV)، مع <code>X-Speak-Lang</code> و<code>X-Speak-Engine</code>. و<code>409 speakNotInstalled</code> يسمّي المحرّك الذي <code>needs</code> تحتاجه اللغة. الطلب الواحد ينطق 1000 حرف على الأكثر؛ والعميل يرسل جملة في كل مرة، ويجلب التالية وهذه تُنطق.</li>
+<li><code>GET /api/speak/status</code> — ما هو مثبّت، وتقدّم التثبيت، والإعدادات النافذة. و<code>POST /api/speak/install</code> <code>{ engine }</code> يبدأ تثبيتًا.</li>
+<li><code>ASTROLABE_TTS_THREADS</code> يثبّت عدد خيوط المحرّك (الافتراضي: نصف الأنوية، ثمانية على الأكثر).</li>
+<li><code>ASTROLABE_SPEAK_FAKE=1</code> يجعل خادمًا تجريبيًا يجيب بنغمة، لبوابات المتصفّح؛ ويقول الصف <em>محرّك اختبار</em> ما دام مفعّلًا.</li>
+</ul>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/ar/read-aloud.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/japanese/"><span class="pager__kicker">السابق</span><span class="pager__title">اليابانية والفوريغانا</span></a><a class="pager__link pager__link--next" href="../../ar/development/"><span class="pager__kicker">التالي</span><span class="pager__title">التطوير</span></a></nav>
+    <footer class="foot">أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#أين-تجدها">أين تجدها</a><a class="toc__link toc__link--2" href="#بأي-لغة">بأي لغة</a><a class="toc__link toc__link--2" href="#المحرّكان">المحرّكان</a><a class="toc__link toc__link--3" href="#كيف-اختير-المحرّكان">كيف اختير المحرّكان</a><a class="toc__link toc__link--2" href="#التثبيت">التثبيت</a><a class="toc__link toc__link--3" href="#أين-يعيش">أين يعيش</a><a class="toc__link toc__link--2" href="#حين-لا-يستطيع-الجهاز-النطق">حين لا يستطيع الجهاز النطق</a><a class="toc__link toc__link--2" href="#يستطيع-القرّاء-الاستماع">يستطيع القرّاء الاستماع</a><a class="toc__link toc__link--2" href="#للمطوّرين">للمطوّرين</a></aside>
+</div>
+<script>window.__docs = { lang: "ar", base: "../../", noResults: "لا نتائج" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>
