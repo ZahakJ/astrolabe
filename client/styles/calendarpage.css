@@ -452,6 +452,14 @@
   }
 }
 
+/* The narrowest months (a Galaxy Z Fold's cover screen, 344px): 2px between
+   cells rather than 4, so seven days still measure a thumb's 44px each. */
+@container (inline-size < 380px) {
+  .s-calpage__table {
+    border-spacing: 2px;
+  }
+}
+
 @container (inline-size < 560px) {
   /* A band that has to wrap reads as two lines, not as one line with a hole
      in it: the dates give up the end of the row they can no longer reach. */

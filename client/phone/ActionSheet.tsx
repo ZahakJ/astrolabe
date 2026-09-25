@@ -13,6 +13,9 @@ export interface ActionRow {
   danger?: boolean;
   /** A secondary line under the label (the state a toggle is in). */
   note?: string;
+  /** The label is the reader's own words (a folder's name): it takes its
+   *  own direction rather than the chrome's. */
+  user?: boolean;
 }
 
 import { ACTION_SHEET } from "./sheetIds.ts";
@@ -52,7 +55,7 @@ export default function ActionSheet({ leaving }: { leaving: boolean }) {
                 row.onSelect();
               }}
             >
-              <span className="s-ph-actions__label">{row.label}</span>
+              <span className="s-ph-actions__label">{row.user ? <bdi dir="auto">{row.label}</bdi> : row.label}</span>
               {row.note && <span className="s-ph-actions__note">{row.note}</span>}
             </button>
           </li>

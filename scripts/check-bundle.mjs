@@ -409,7 +409,14 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // round was +0.6 kB, but over read aloud's dictionary the transcription row's
 // words land at +3.0 — entry 762.3, blog 1066.9, admin 1025.2, phone 872.2.
 // Budgets = the summed actual, rounded up.
-const PHONE_BUDGET = 873 * 1024;
+// BACK MEANS UP (3.34, the phone shell's round 3): 872.2 → 880.4 kB, +8.2
+// against 3.33.1 — phone.css's round-3 rules (crumbs, the tree's rows, the
+// Files row, pull to refresh, two columns by shape, the grip, the sheet over
+// its column), the shell chunk's up/resume/persist in nav.ts, up.ts and
+// ColumnGrip, and the dictionary's ten new keys in the Arabic chunk. The Tree,
+// the crumbs and pull-to-refresh are in the Notes screen's own lazy chunk.
+// 873 → 881.
+const PHONE_BUDGET = 881 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
