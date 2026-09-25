@@ -50,6 +50,13 @@
 // is held back 1.5s is watched from its first byte, and no English chrome
 // string and no key name may ever reach its DOM — the switch waits for its
 // strings, so there is no flash of the wrong language.
+//
+// And Read aloud (docs/read-aloud.md): a word selected in the editor and read with
+// Ctrl/Cmd ⇧ ., then a word selected in the reading view and read with its
+// chip — an answer from `POST /api/speak` arrives and the floating player
+// shows. Run the scratch server with ASTROLABE_SPEAK_FAKE=1 and that answer
+// is audio (a tone stands in for the engines); without it, nothing is
+// installed and the answer must be the 409 and the player's honest line.
 
 import { chromium, devices } from "playwright";
 import { mkdirSync } from "node:fs";
@@ -660,6 +667,78 @@ try {
         await page.waitForTimeout(200);
       }
     }
+    await page.close();
+  }
+
+  // ── Read aloud (docs/read-aloud.md) ────────────────────────────────────
+  // A word selected in the editor and read with the chord, then a word
+  // selected in the reading view and read with the chip: each time a
+  // `POST /api/speak` answers and the floating player shows. With an engine
+  // installed (a scratch server run with ASTROLABE_SPEAK_FAKE=1 stands a tone
+  // in) the answer must be audio; with none, it must be the 409 that names
+  // what to install, and the player must say it is reading with the device's
+  // voices — the fallback is part of the contract, not a failure of it.
+  {
+    const status = (await api("/api/speak/status")).body;
+    const installed = !!(status?.engines?.light?.installed || status?.engines?.natural?.installed);
+    const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
+    await ctx.addCookies(cookies);
+    const page = await ctx.newPage();
+    const answers = [];
+    page.on("response", (r) => {
+      if (r.url().endsWith("/api/speak") && r.request().method() === "POST") answers.push({ status: r.status(), type: r.headers()["content-type"] ?? "" });
+    });
+    const heard = async (what, before) => {
+      await page.waitForSelector(".s-speak", { timeout: 10000 }).catch(() => {});
+      for (let waited = 0; answers.length <= before && waited < 10000; waited += 100) await page.waitForTimeout(100);
+      await page.waitForTimeout(500);
+      const last = answers[answers.length - 1];
+      const player = await page.locator(".s-speak").count();
+      if (installed) {
+        check(last?.status === 200 && /^audio\//.test(last.type), `read aloud: ${what} — an audio answer arrives`, JSON.stringify(last ?? null));
+      } else {
+        check(last?.status === 409, `read aloud: ${what} — nothing installed answers 409 (run the scratch server with ASTROLABE_SPEAK_FAKE=1 for the audio half)`, JSON.stringify(last ?? null));
+        const note = (await page.locator(".s-speak__note").textContent().catch(() => "")) ?? "";
+        check(note !== "", `read aloud: ${what} — the player says whose voices are reading`, note);
+      }
+      check(player === 1, `read aloud: ${what} — the floating player shows`);
+      await page.locator(".s-speak .s-speak__btn").last().click().catch(() => {});
+      await page.waitForTimeout(200);
+    };
+    console.log("");
+    await openNote(page, "en");
+    await page.locator(".cm-content").first().focus();
+    await page.evaluate(([v]) => {
+      const view = eval(v);
+      const at = view.state.doc.toString().indexOf("parking");
+      view.dispatch({ selection: { anchor: at, head: at + "parking".length } });
+    }, [VIEW]);
+    let before = answers.length;
+    await page.keyboard.press("Control+Shift+Period");
+    await heard("the chord on an editor selection", before);
+    await page.screenshot({ path: `${out}/fidelity-read-aloud-editor.png` });
+    await page.keyboard.press("Control+KeyE");
+    await page.waitForSelector(".s-reading__body", { timeout: 10000 });
+    await page.evaluate(() => {
+      const body = document.querySelector(".s-reading__body");
+      const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        const at = n.data.indexOf("parking");
+        if (at < 0) continue;
+        const r = document.createRange();
+        r.setStart(n, at);
+        r.setEnd(n, at + "parking".length);
+        getSelection().removeAllRanges();
+        getSelection().addRange(r);
+        return;
+      }
+    });
+    await page.waitForSelector(".s-speak-chip", { timeout: 5000 }).catch(() => {});
+    check((await page.locator(".s-speak-chip").count()) === 1, "read aloud: a reading-view selection grows the chip");
+    before = answers.length;
+    await page.locator(".s-speak-chip").click().catch(() => {});
+    await heard("the chip on a reading selection", before);
+    await page.keyboard.press("Control+KeyE");
     await page.close();
   }
 } finally {
