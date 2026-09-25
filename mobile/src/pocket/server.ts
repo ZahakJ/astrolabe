@@ -549,7 +549,7 @@ export function createPocketServer(deps: PocketDeps): {
         captureInbox: held.captureInbox ?? null,
         // A pocket runs no model and keeps every recording: the fixed facts,
         // not the file (a laptop's choice of model describes the laptop).
-        voice: { model: "off", language: "auto", keepAudio: true },
+        voice: { model: "off", backend: "auto", language: "auto", keepAudio: true },
         // Feeds are fetched by an instance on its own schedule; a pocket
         // fetches nothing. The list's note is still the vault's own.
         feeds: { fetch: false, note: held.feeds?.note ?? "Feeds.md" },

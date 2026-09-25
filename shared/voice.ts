@@ -70,30 +70,71 @@ export function isVoiceLanguage(value: unknown): value is VoiceLanguage {
   return typeof value === "string" && (VOICE_LANGUAGES as readonly string[]).includes(value);
 }
 
-/** One downloadable model. `bytes` is the file's exact size on the host it
- *  comes from, so the settings row can say what a choice costs before it is
- *  made, and the download can be checked when it is done. */
-export interface VoiceModelInfo {
-  id: VoiceModelId;
-  /** The file under ASTROLABE_DATA/models/whisper/. */
+/** One file of a model, and its exact size on the host it comes from, so the
+ *  settings row can say what a choice costs before it is made and the download
+ *  can be checked when it is done. */
+export interface VoiceModelFile {
   file: string;
   bytes: number;
 }
 
-export type VoiceModelId = "large-v3-turbo-q5_0" | "large-v3-turbo" | "small-q5_1";
+/** One model, in the two forms the two engines read (server/voiceWorker.ts):
+ *
+ *   GPU        whisper.cpp's own GGML file (huggingface.co/ggerganov/whisper.cpp),
+ *              run by the Vulkan, CUDA or Metal build of @fugood/whisper.node
+ *   processor  the same model exported to ONNX and quantised to int8
+ *              (huggingface.co/csukuangfj/sherpa-onnx-whisper-<size>), run by
+ *              sherpa-onnx's onnxruntime — which uses the processor's vector
+ *              instructions and every core it is given. whisper.cpp's prebuilt
+ *              CPU build uses neither (one thread, no SIMD: ten seconds of
+ *              speech took the small model over two minutes), so it is only
+ *              the floor under the floor.
+ *
+ *  A model is one choice with two downloads, and a machine only ever fetches
+ *  the one it runs. */
+export interface VoiceModelInfo {
+  id: VoiceModelId;
+  /** The GGML file under ASTROLABE_DATA/models/whisper/. */
+  file: string;
+  bytes: number;
+  /** The ONNX export: its size name (the files are `<size>-encoder.int8.onnx`,
+   *  `<size>-decoder.int8.onnx` and `<size>-tokens.txt`, under
+   *  ASTROLABE_DATA/models/whisper-onnx/<size>/), and the three files. */
+  onnx: { size: string; files: readonly VoiceModelFile[] };
+  /** Seconds a minute of Arabic speech takes on TWO cores of a processor
+   *  (the ONNX export, the thread rule below): what the settings row writes
+   *  beside the model when the processor will run it. Measured, not guessed
+   *  (contracts/features.md, "Voice notes without a GPU"). */
+  cpuSecondsPerMinute: number;
+}
 
-/** whisper.cpp's own GGML files (huggingface.co/ggerganov/whisper.cpp). The
- *  default is the one measured best on Arabic (CONTRACTS.md 3.24.0): the
- *  quantised turbo scored better than its own full-precision file on the test
- *  clip and is a third of the download. `small-q5_1` is the answer for a
- *  machine with no GPU at all. */
+export type VoiceModelId = "base-q5_1" | "small-q5_1" | "large-v3-turbo-q5_0" | "large-v3-turbo";
+
+function onnx(size: string, encoder: number, decoder: number): VoiceModelInfo["onnx"] {
+  return {
+    size,
+    files: [
+      { file: `${size}-encoder.int8.onnx`, bytes: encoder },
+      { file: `${size}-decoder.int8.onnx`, bytes: decoder },
+      { file: `${size}-tokens.txt`, bytes: 816_730 },
+    ],
+  };
+}
+
+/** Smallest first. The measurements that ordered them and chose the default
+ *  are in contracts/features.md ("Voice notes without a GPU"). Both large
+ *  turbo files are one ONNX export on the processor: the int8 turbo. */
 export const VOICE_MODELS: readonly VoiceModelInfo[] = [
-  { id: "large-v3-turbo-q5_0", file: "ggml-large-v3-turbo-q5_0.bin", bytes: 574_041_195 },
-  { id: "large-v3-turbo", file: "ggml-large-v3-turbo.bin", bytes: 1_624_555_275 },
-  { id: "small-q5_1", file: "ggml-small-q5_1.bin", bytes: 190_085_487 },
+  { id: "base-q5_1", file: "ggml-base-q5_1.bin", bytes: 59_707_625, onnx: onnx("base", 29_120_534, 130_672_026), cpuSecondsPerMinute: 7 },
+  { id: "small-q5_1", file: "ggml-small-q5_1.bin", bytes: 190_085_487, onnx: onnx("small", 112_442_483, 262_226_114), cpuSecondsPerMinute: 20 },
+  { id: "large-v3-turbo-q5_0", file: "ggml-large-v3-turbo-q5_0.bin", bytes: 574_041_195, onnx: onnx("turbo", 674_716_297, 361_080_764), cpuSecondsPerMinute: 23 },
+  { id: "large-v3-turbo", file: "ggml-large-v3-turbo.bin", bytes: 1_624_555_275, onnx: onnx("turbo", 674_716_297, 361_080_764), cpuSecondsPerMinute: 23 },
 ];
 
-export const VOICE_MODEL_DEFAULT: VoiceModelId = "large-v3-turbo-q5_0";
+/** The model an instance that never chose one runs. Until this patch it was
+ *  the large turbo, chosen on a GPU; it is now the one a two-core machine
+ *  with no GPU runs faster than speech (contracts/features.md). */
+export const VOICE_MODEL_DEFAULT: VoiceModelId = "small-q5_1";
 
 /** The stored `voice.model` may also be "off": recordings are kept and never
  *  transcribed — the setting for a small server that should not run a model. */
@@ -105,6 +146,38 @@ export function isVoiceModelSetting(value: unknown): value is VoiceModelSetting 
 
 export function voiceModelInfo(id: VoiceModelId): VoiceModelInfo {
   return VOICE_MODELS.find((m) => m.id === id) ?? VOICE_MODELS[0];
+}
+
+/** Which engine a job runs on: a GPU build of whisper.cpp, or the processor. */
+export type VoiceEngineKind = "gpu" | "cpu";
+
+/** What a model costs to fetch for the engine that will run it. */
+export function voiceModelBytes(id: VoiceModelId, engine: VoiceEngineKind): number {
+  const info = voiceModelInfo(id);
+  return engine === "gpu" ? info.bytes : info.onnx.files.reduce((sum, f) => sum + f.bytes, 0);
+}
+
+/** Where transcription runs. `auto`: a GPU when a Vulkan, CUDA or Metal build
+ *  loads AND finds a device, otherwise the processor, silently. `cpu`: the
+ *  processor always — for a machine whose GPU is spoken for, or has none. */
+export type VoiceBackend = "auto" | "cpu";
+export const VOICE_BACKENDS: readonly VoiceBackend[] = ["auto", "cpu"];
+
+export function isVoiceBackend(value: unknown): value is VoiceBackend {
+  return typeof value === "string" && (VOICE_BACKENDS as readonly string[]).includes(value);
+}
+
+/** The processor's thread count: its physical cores (a hyperthread's twin
+ *  adds little to matrix arithmetic and takes the core the server answers
+ *  from), no more than the process may run on, and never more than eight —
+ *  past eight, whisper's encoder stops getting faster and the machine stops
+ *  being usable while a note transcribes. `physical` is null when the
+ *  platform does not say, and then half the logical count is the guess. */
+export const VOICE_MAX_THREADS = 8;
+
+export function voiceThreads(logical: number, physical: number | null): number {
+  const cores = physical !== null && physical > 0 ? physical : Math.max(1, Math.floor(logical / 2));
+  return Math.max(1, Math.min(cores, Math.max(1, logical), VOICE_MAX_THREADS));
 }
 
 // ── Names ─────────────────────────────────────────────────────────────────
@@ -280,11 +353,20 @@ export interface VoiceJob {
  *  the machine behind them. */
 export interface VoiceEngineState {
   model: VoiceModelSetting;
-  /** Bytes of the chosen model on disk, and the total — equal once it is
-   *  there; `downloaded < bytes` while it is on its way. */
+  /** The backend setting in force. */
+  choice: VoiceBackend;
+  /** The engine the next job will run on, as far as the server knows before
+   *  running it: the processor when `choice` is `cpu`, when a GPU build
+   *  already failed on this machine, or when none loads; a GPU when one loads
+   *  and has not failed; null while that is still being asked. */
+  engine: VoiceEngineKind | null;
+  /** Bytes of the chosen model on disk, in the form `engine` reads (or the
+   *  GPU's while `engine` is null), and the total — equal once it is there;
+   *  `downloaded < bytes` while it is on its way. */
   downloaded: number;
   bytes: number;
-  /** `vulkan`, `cuda`, `cpu`, or null before the engine has loaded once. */
+  /** Where the last job actually ran: `vulkan`, `cuda`, `metal`, `cpu`, or
+   *  null before the engine has run once since the server started. */
   backend: string | null;
   busy: boolean;
   queued: number;
@@ -295,6 +377,7 @@ export interface VoiceEngineState {
 /** Stored: each sub-key absent means its default. */
 export interface VoiceSettings {
   model?: VoiceModelSetting;
+  backend?: VoiceBackend;
   language?: VoiceLanguage;
   keepAudio?: boolean;
 }
@@ -302,13 +385,22 @@ export interface VoiceSettings {
 /** In force: every default filled in. */
 export interface VoiceEffective {
   model: VoiceModelSetting;
+  backend: VoiceBackend;
   language: VoiceLanguage;
   keepAudio: boolean;
 }
 
+/** THE MIGRATION is this line and the writer's (server/settings.ts): a
+ *  stored model is a choice and is kept whatever the default becomes, and an
+ *  absent one follows the default. The old default (the large turbo) was
+ *  stored as its absence, so every instance that never chose moves to the new
+ *  default; one that stored `large-v3-turbo-q5_0` — by hand, or by choosing it
+ *  in the settings row from this patch on, now that it is no longer the
+ *  default and is written down — keeps it. */
 export function voiceEffective(stored: VoiceSettings | undefined): VoiceEffective {
   return {
     model: stored?.model ?? VOICE_MODEL_DEFAULT,
+    backend: stored?.backend ?? "auto",
     language: stored?.language ?? "auto",
     keepAudio: stored?.keepAudio ?? true,
   };

@@ -1726,3 +1726,12 @@
   flex: 1 1 180px;
   min-inline-size: 0;
 }
+
+/* Vault → Voice transcription: the model and where it runs. Each model's
+   cost (its download, and on the processor a minute of speech on two cores)
+   is a sentence — it belongs in the open list, where there is room for it;
+   in the closed trigger it pushed the model's name out. The line under the
+   row says what the chosen one will fetch. */
+.s-smodal__voicepair .s-ctl-select__note {
+  display: none;
+}

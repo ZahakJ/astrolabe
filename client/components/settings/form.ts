@@ -15,7 +15,7 @@ import type { LibraryPathRef, LibraryRoot } from "../../../shared/types.ts";
 import { countPhrase, localeNum, t, tf, type I18nKey } from "../../i18n.ts";
 import { SYSTEM_FONT } from "../../../shared/fonts.ts";
 import { DEFAULT_LAUNCH, isLaunchDoor } from "../../../shared/launch.ts";
-import { isVoiceLanguage, isVoiceModelSetting } from "../../../shared/voice.ts";
+import { isVoiceBackend, isVoiceLanguage, isVoiceModelSetting } from "../../../shared/voice.ts";
 import { isNotePath } from "../../../shared/noteFormat.ts";
 import { isFediverseHandle } from "../../../shared/fediverse.ts";
 import { isImagePath } from "../../../shared/fileKinds.ts";
@@ -83,6 +83,7 @@ export interface Form {
   captureInbox: string;
   // ── Voice notes (shared/voice.ts) ────────────────────────────────────────
   voiceModel: string;     // a model id, or "off"; the default when unset
+  voiceBackend: string;   // "auto" | "cpu" — the model row's second control
   voiceLanguage: string;  // "auto" | "ar" | "en"
   voiceKeepAudio: string; // "on" | "off"
   // ── Feeds (shared/feeds.ts) ──────────────────────────────────────────────
@@ -238,6 +239,7 @@ export function formFrom(s: SettingsResponse): Form {
     uniqueFormat: s.uniqueFormat ?? "",
     captureInbox: s.captureInbox ?? "",
     voiceModel: s.effective.voice.model,
+    voiceBackend: s.effective.voice.backend,
     voiceLanguage: s.effective.voice.language,
     voiceKeepAudio: s.effective.voice.keepAudio ? "on" : "off",
     feedsFetch: s.effective.feeds.fetch ? "on" : "off",
@@ -725,6 +727,7 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
   }
   if (
     f.voiceModel !== initial.voiceModel ||
+    f.voiceBackend !== initial.voiceBackend ||
     f.voiceLanguage !== initial.voiceLanguage ||
     f.voiceKeepAudio !== initial.voiceKeepAudio
   ) {
@@ -732,6 +735,7 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
     // sending the untouched two would be harmless but would read as a choice.
     const voice: NonNullable<SettingsPatch["voice"]> = {};
     if (f.voiceModel !== initial.voiceModel && isVoiceModelSetting(f.voiceModel)) voice.model = f.voiceModel;
+    if (f.voiceBackend !== initial.voiceBackend && isVoiceBackend(f.voiceBackend)) voice.backend = f.voiceBackend;
     if (f.voiceLanguage !== initial.voiceLanguage && isVoiceLanguage(f.voiceLanguage)) voice.language = f.voiceLanguage;
     if (f.voiceKeepAudio !== initial.voiceKeepAudio) voice.keepAudio = f.voiceKeepAudio === "on";
     if (Object.keys(voice).length > 0) patch.voice = voice;
