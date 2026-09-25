@@ -428,7 +428,7 @@ spells a phone query out instead of importing the constant.
 A browser gate:
 `CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=<pw> npm run check-phone -- <url> [outdir]`,
 against a scratch server. It drives the phone shell (`client/phone/`) the way a reader's thumb
-does, in English **and** Arabic, on four shapes, and photographs every screen and sheet it passes.
+does, in English **and** Arabic, on six shapes, and photographs every screen and sheet it passes.
 
 **What it does, as assertions.** A tap on a folder pushes the folder; a tap on a note changes the
 URL and the title (the old gate was green the day a tree tap on a phone opened nothing); the
@@ -446,7 +446,16 @@ sheet and **back closes it** and keeps the book; the theme picker (a layer on `<
 history entry and back closes it; Settings is a list, a section is a screen, an edit raises the
 save bar, **back with an edit asks** and Cancel keeps the edit, and **Save writes it**; the tag
 picker opens over the note sheet and **writes the tag into the note**; and **a folder comes back
-scrolled where it was left**.
+scrolled where it was left**. Since 3.34, the report of a reader on a Galaxy Z Fold, asked first:
+**two folders down, a reload keeps the folder and its ‹ lands on the parent**, and so it does after
+a trip to Today and back, with the OS back going up from there rather than home; the folder's top
+bar is its path as crumbs that end in its own name and go up (through "…" where they fold); the
+Notes tab starts on the Tree on two columns and on Folders on one; the Tree opens a folder in place,
+**remembers it across a reload**, folds a folder's files into one row that opens in place, says an
+empty folder is empty, and a long press on its row is the menu; and on two columns the list **keeps
+its scroll and its lit row while the note changes**, the grip widens the list and the width is
+remembered, and the note's sheet slides over the note's column, not the list.
+`CHECK_PHONE_SHAPES=phone,fold-open` runs a few shapes while working; the gate is all six.
 
 **What it measures, on every screen and sheet.** Nothing overflows sideways (a strip that
 scrolls on purpose is exempt); every shell target is ≥44px (height always, width too when the
@@ -458,11 +467,14 @@ Outline and Backlinks panes are measured WITH ROWS IN THEM: when the note has he
 backlinks (asked of the server), the gate first asserts that the pane lists them, so a 44px check
 never passes over an empty pane.
 
-**The four shapes.** `phone` is a Pixel 7 at 412×915 with a finger. `stylus` is 720×820 at DPR
-1.5 with a pen — `availablePointerTypes=6, primaryPointerType=2, availableHoverTypes=3,
-primaryHoverType=1`, a blink setting on its own browser, because `hasTouch` makes Chromium report
-a coarse-only device whatever the pointer flags say; it is the posture that was once served the
-desktop shell. `tablet` and `tablet-land` are a touch tablet at 820×1180 and 1180×820, where the
+**The six shapes.** `phone` is a Pixel 7 at 412×915 with a finger. `fold-cover` and `fold-open`
+are a Galaxy Z Fold's two screens as Chrome reports them at its DPR of 2.625 — the cover screen at
+344×882 (one column) and the inner screen opened at 690×829 (two: its shape, not its width, makes
+it a tablet). `stylus` is 720×820 at DPR 1.5 with a pen — `availablePointerTypes=6,
+primaryPointerType=2, availableHoverTypes=3, primaryHoverType=1`, a blink setting on its own
+browser, because `hasTouch` makes Chromium report a coarse-only device whatever the pointer flags
+say; it is the posture that was once served the desktop shell, and since 3.34 it draws two columns,
+being the open Fold's shape. `tablet` and `tablet-land` are a touch tablet at 820×1180 and 1180×820, where the
 shell draws its rail, its list column and the note, and the note sheet slides over from the side.
 
 ### `npm run check-shell-seam` — two shells, no shared chrome
@@ -499,7 +511,7 @@ disk, so neither can be pointed at yours. Set `ASTROLABE_SEED_VAULT=<vault>` to 
 and real Sigils and Orbits notes in as well; leave it unset and the gate measures the generated
 vault, which is the same vault on every machine.
 
-Seven budgets over six surfaces, each the **best of several rounds** with the CPU throttled to a quarter speed
+Nine budgets over seven surfaces, each the **best of several rounds** with the CPU throttled to a quarter speed
 (Lighthouse's mid-tier multiplier — an unthrottled loopback has no headroom left in which a
 regression could show). Best-of, not average: other work on the machine can only ever make a
 round slower, so the fastest round is the one closest to the cost of the work itself, and a gate
@@ -513,6 +525,7 @@ built on the average is a gate that fails because somebody started a build.
 | **reading render** of that note | the same, for the one operation whose cost is the whole document at once |
 | **the Sigils page**, door → twelve cards drawn (budget 1,650 ms; 1,241 when set) | a card whose streak, heatmap or week went back to walking the whole log per render |
 | **the Calendar page**, door → the month drawn with its lines and daily-note dots (250 ms; 157 when set) | a day cell that reads the vault instead of the agenda the page computed once |
+| **the phone's Tree**, a tap → a folder of fifty open (100 ms; 70 when set), and the longest main-thread task over sixteen taps (none) | a tree that walks the vault instead of the rows that show, or measures its window after the rows are in the document |
 
 Typing latency is the browser's own Event Timing — hardware keydown to the paint that shows the
 letter — not a frame counter, and the caret is put at line ~1,500 first, because typing at line

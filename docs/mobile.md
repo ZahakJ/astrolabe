@@ -37,7 +37,11 @@ Then pick the repository your notes are in, and a branch. The app copies it into
 
 ### What travels, and when
 
-Opening the app pulls; coming back to it pulls again. Every save is one commit, named after the note. Pushing is held for half a minute, so a paragraph typed in nine saves leaves as one push — and it goes at once when you put the phone down. A small line at the bottom of the screen says which of those is true right now: *3 changes to send*, *Offline. Your changes are safe on this phone.*, *Synced 2 minutes ago.* It never says you are synced while anything is waiting. Tap it to send immediately.
+Opening the app pulls; coming back to it pulls again; and pulling a list in **Notes** down from its top pulls on the spot — the gesture every phone app uses for "refresh" is this app's *sync now*. Every save is one commit, named after the note. Pushing is held for half a minute, so a paragraph typed in nine saves leaves as one push — and it goes at once when you put the phone down. A small line near the bottom of the screen says what is waiting: *3 changes to send*, *Offline. Your changes are safe on this phone.*, *Sending your changes…*, *2 notes changed in both places.* It never says you are synced while anything is waiting — and once everything is sent it steps aside, because "synced" is not news. It stands clear of the bar of five doors rather than over its last one. Tap it to send immediately.
+
+A sync never moves you. The notes that changed are read again under you, and the folder you were in, the folders behind it and the note you were reading stay where they were; so does your place when Android brings the app back from the background. The folder's **‹** goes up to the folder above it, never to Today ([back means up](workspace.md#on-a-phone)).
+
+**On a Galaxy Z Fold.** Closed, the cover screen is a phone: one column, the bar of five doors. Opened, the inner screen is two columns — the doors in a rail, your notes as a tree beside the note you are reading — and it switches as you open and close it, with the same note open ([on a tablet, and on a foldable opened](workspace.md#on-a-phone)).
 
 ### Settings, and the tab that belongs to the phone
 
