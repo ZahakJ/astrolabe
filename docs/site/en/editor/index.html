@@ -232,12 +232,13 @@ underline under its misspellings and none under its correct words.</li>
 </ul>
 <h2 id="embeds"><a class="anchor" href="#embeds">Embeds</a></h2>
 <p>An embed puts a file into a note: the picture itself, a card for a PDF or a zip, one page of a
-book, a player for a recording, a drawing, or another note. Paste or drop a file into the editor
-and the embed is written for you (it uploads to your
-<a href="../configuration/#attachments">attachment folder</a>); to write one by hand, type <code>/embed</code> for the
+book, a player for a recording or a video, a drawing, or another note. Paste or drop a file into
+the editor and the embed is written for you (it uploads to your
+<a href="../configuration/#attachments">attachment folder</a>; a video may be up to 256 MB, everything else
+10 MB — behind nginx, raise <code>client_max_body_size</code> to match); to write one by hand, type <code>/embed</code> for the
 three forms, or <code>![[</code> and pick the file — the list opens on your vault&#39;s files, with the forms
 above it. The palette&#39;s <strong>Embed a file…</strong> does the same from the keyboard.</p>
-<div class="table"><table><thead><tr><th>You write</th><th>What appears</th></tr></thead><tbody><tr><td><code>![[name.png]]</code></td><td>The picture, at its own size up to the column&#39;s width.</td></tr><tr><td><code>![[name.png|300]]</code></td><td>The picture, 300 pixels wide and centred.</td></tr><tr><td><code>![alt](attachments/name.png)</code></td><td>The picture, by path — standard Markdown, relative to the note. <code>alt</code> is what a screen reader says.</td></tr><tr><td><code>![[file.pdf]]</code></td><td>A card for the file; click it to open the PDF in the <a href="../books/">reader</a>.</td></tr><tr><td><code>![[Book.pdf#page=42]]</code></td><td>Page 42 of the book, drawn as a picture, with &quot;Book, p. 42&quot; under it. <code>|300</code> sets its width.</td></tr><tr><td><code>![[lecture.mp3]]</code></td><td>A small player (also ogg, m4a, wav and webm).</td></tr><tr><td><code>![[clip.mp4]]</code>, <code>![[bundle.zip]]</code></td><td>A card for the file (video, zip, csv, txt and the rest).</td></tr><tr><td><code>![[sketch.excalidraw]]</code></td><td>The <a href="../drawing/">drawing</a>, as the picture it saves beside itself.</td></tr><tr><td><code>![[Note]]</code>, <code>![[Note#Heading]]</code>, <code>![[Note#^block]]</code></td><td>The note, one section of it, or one paragraph, as a card.</td></tr></tbody></table></div><p>Every embed but a note&#39;s can be <strong>picked up</strong>:</p>
+<div class="table"><table><thead><tr><th>You write</th><th>What appears</th></tr></thead><tbody><tr><td><code>![[name.png]]</code></td><td>The picture, at its own size up to the column&#39;s width.</td></tr><tr><td><code>![[name.png|300]]</code></td><td>The picture, 300 pixels wide and centred.</td></tr><tr><td><code>![alt](attachments/name.png)</code></td><td>The picture, by path — standard Markdown, relative to the note. <code>alt</code> is what a screen reader says.</td></tr><tr><td><code>![[file.pdf]]</code></td><td>A card for the file; click it to open the PDF in the <a href="../books/">reader</a>.</td></tr><tr><td><code>![[Book.pdf#page=42]]</code></td><td>Page 42 of the book, drawn as a picture, with &quot;Book, p. 42&quot; under it. <code>|300</code> sets its width.</td></tr><tr><td><code>![[lecture.mp3]]</code></td><td>A small player (also ogg, m4a and wav).</td></tr><tr><td><code>![[clip.mp4]]</code></td><td>A video player, as wide as the note at most (also webm, mov, m4v, mkv and ogv, where the browser can play them; one it cannot is a card with a Download link). A webm with no picture — a voice note&#39;s recording — is the small sound player.</td></tr><tr><td><code>![[clip.mp4|480]]</code></td><td>The video, 480 pixels wide and centred.</td></tr><tr><td><code>![[clip.mp4#t=12]]</code>, <code>![[clip.mp4#t=12,30]]</code></td><td>The video, starting at 0:12 — and with <code>,30</code>, stopping at 0:30. <code>t=1:05</code> works too.</td></tr><tr><td><code>![[clip.mp4|poster=frame.jpg]]</code></td><td>The video with <code>frame.jpg</code> (any picture in the vault, by name) shown until it plays; without one, the first frame. Combine with a width: <code>|480|poster=frame.jpg</code>.</td></tr><tr><td><code>![alt](media/clip.mp4)</code></td><td>The video player, by path.</td></tr><tr><td><code>![[bundle.zip]]</code></td><td>A card for the file (zip, csv, txt and the rest).</td></tr><tr><td><code>https://youtu.be/…</code> on a line of its own</td><td>A link — or, with <strong>Settings → Publishing &amp; comments → Embed external video</strong> on, that site&#39;s player (YouTube, Vimeo, PeerTube).</td></tr><tr><td><code>![[sketch.excalidraw]]</code></td><td>The <a href="../drawing/">drawing</a>, as the picture it saves beside itself.</td></tr><tr><td><code>![[Note]]</code>, <code>![[Note#Heading]]</code>, <code>![[Note#^block]]</code></td><td>The note, one section of it, or one paragraph, as a card.</td></tr></tbody></table></div><p>Every embed but a note&#39;s can be <strong>picked up</strong>:</p>
 <ul>
 <li><strong>Drag it.</strong> Within its note, the embed&#39;s line moves to where you let go — its width, its page and
 its <code>{.center}</code> go with it, and one undo puts it back. Into a note in another pane, the same
@@ -258,6 +259,8 @@ clipboard, no copy rows; a visitor sees only Copy link, Open and Save as….</li
 <li><strong>On a phone, hold it.</strong> The same rows come up as a sheet, with <strong>Move…</strong> in place of the drag: the
 top of the note, under any heading, or the end.</li>
 </ul>
+<p>A video is picked up by its name under the player — a press on the picture is the player&#39;s own
+scrubber — and its menu has every row but Copy image; <strong>Open</strong> plays it in the viewer.</p>
 <p>A picture&#39;s own tools are on it when you <strong>hover</strong>: drag the handle on its corner to resize it (the
 <code>|300</code> is written for you; double-click the handle to return to the picture&#39;s own size), and three
 buttons align it left, centre or right by writing <code>{.left}</code>, <code>{.center}</code> or <code>{.right}</code> at the end of
@@ -281,6 +284,18 @@ click opens the file there.</li>
 the player on the same page to 1:23 and plays, or opens the file at that moment when no player
 is on the page. <code>t=83</code>, <code>t=1:23</code> and <code>t=1:02:03</code> all work; give it an alias (<code>|the argument</code>)
 or it shows the time.</li>
+<li><strong>Video.</strong> <code>![[clip.mp4]]</code> is a player in the editor, the reading view, on the phone and on your
+site when the note is published (its poster too). It asks for nothing until it scrolls near, and
+then only the file&#39;s first bytes; the server hands the rest over in pieces as you seek, so a long
+film starts at once. <code>[[clip.mp4#t=1:23]]</code> seeks it like a sound. Tab reaches the player, and the
+browser&#39;s own keys play, pause and seek it.</li>
+<li><strong>Video from another site.</strong> Off by default. With <strong>Settings → Publishing &amp; comments → Embed
+external video</strong> on, a YouTube, Vimeo or PeerTube address on a line of its own — or written
+<code>![](https://youtube.com/watch?v=…)</code> — becomes that site&#39;s player in the reading view and on your
+site, and a card with the video&#39;s still in the editor (press play to load the player). The frame
+is the privacy-enhanced one (youtube-nocookie.com; Vimeo is asked not to track) and loads only as
+it scrolls near — but it is still another site&#39;s page inside yours, and it learns who is reading,
+which is why the switch is yours to turn. Off, the address stays a link.</li>
 <li><strong>Diagrams.</strong> A <code>```mermaid</code> fence renders as a diagram in the editor, the reading view and on
 your site — flowcharts, sequence diagrams, Gantt charts, everything Mermaid draws — in the
 colours of whatever theme is on screen, redrawn when the theme changes. The renderer arrives

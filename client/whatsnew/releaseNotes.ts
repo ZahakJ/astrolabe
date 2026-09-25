@@ -370,6 +370,46 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.32.0",
+    title: { en: "Video in a note", ar: "الفيديو داخل الملاحظة" },
+    slides: [
+      {
+        // ── A film is a player where it is embedded ───────────────────────
+        title: { en: "Video in a note", ar: "الفيديو داخل الملاحظة" },
+        body: {
+          en: "Drop a video into a note and it plays right there: in the editor, the reading view, on your phone and on your site. Give it a width with |480, start it at a moment with #t=12 (or play one stretch with #t=12,30), and choose its still with |poster=frame.jpg. A film your browser can't play stays a card you can download, and every video can be dragged and has the same menu as a picture. YouTube, Vimeo and PeerTube links can play in place too, once you turn that on in Publishing.",
+          ar: "أسقط مقطع فيديو في ملاحظة فيُشغَّل في مكانه: في المحرر وعرض القراءة وعلى هاتفك وعلى موقعك. حدّد عرضه بـ‎|480‎، وابدأه من لحظة بـ‎#t=12‎ (أو شغّل مقطعًا منه بـ‎#t=12,30‎)، واختر صورته الافتتاحية بـ‎|poster=frame.jpg‎. والفيلم الذي لا يشغّله متصفحك يبقى بطاقةً تنزّله منها، وكل فيديو يُسحب ويُفتح له الخيارات نفسها التي تُفتح للصورة. وروابط YouTube وVimeo وPeerTube تُشغَّل في مكانها أيضًا، متى فعّلت ذلك من لوحة النشر.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="40" y="30" width="250" height="170" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+  <g fill="var(--text-faint)"><rect x="54" y="44" width="200" height="5" rx="2"/><rect x="54" y="56" width="160" height="5" rx="2"/></g>
+  <g class="wa-drop"><rect x="20" y="70" width="40" height="14" rx="2" fill="var(--text-muted)"/>${[0,1,2,3].map((i) => `<rect x="${24 + i*9}" y="73" width="5" height="8" fill="var(--bg)"/>`).join("")}</g>
+  <g class="wa-grow" style="--i:1">
+    <rect x="54" y="72" width="222" height="110" rx="5" fill="var(--bg-hover)" stroke="var(--border)"/>
+    <path d="M155 110 l24 14 l-24 14 z" fill="var(--accent)"/>
+    <rect x="62" y="166" width="206" height="4" rx="2" fill="var(--border)"/>
+    <rect x="62" y="166" width="60" height="4" rx="2" fill="var(--accent)"/>
+    <circle cx="122" cy="168" r="4" fill="var(--accent)"/>
+    <text x="122" y="160" text-anchor="middle" fill="var(--text-muted)" font-size="9">0:12</text>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <rect x="330" y="60" width="180" height="100" rx="6" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <path d="M410 100 l16 10 l-16 10 z" fill="var(--text-faint)"/>
+    <rect x="330" y="172" width="40" height="18" rx="9" fill="var(--bg)" stroke="var(--border)"/><circle cx="339" cy="181" r="6" fill="var(--text-faint)"/>
+    <text x="378" y="185" fill="var(--text-muted)" font-size="10">${L(lang, "off", "متوقف")}</text>
+  </g>
+  <text x="165" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "dropped in, playing", "أُسقط، ويُشغَّل")}</text>
+  <text x="420" y="50" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "another site's video", "فيديو من موقع آخر")}</text>
+</svg>`,
+        },
+        docs: "editor",
+      },
+    ],
+  },
+  {
     version: "3.31.0",
     title: { en: "Pick up an embed", ar: "التقط ما ضمّنته" },
     slides: [
