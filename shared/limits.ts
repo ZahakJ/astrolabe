@@ -9,6 +9,23 @@ export const UPLOAD_MAX_MB = 10;
 /** The same cap in bytes (what the server checks). */
 export const UPLOAD_MAX_BYTES = UPLOAD_MAX_MB * 1024 * 1024;
 
+/** Largest FILM POST /api/upload accepts, in whole megabytes. Ten is a
+ *  picture's cap and a phone's thirty-second clip is already past it, so a
+ *  video dropped into a note has its own: 256, the same ceiling the import
+ *  dialogs state. The server writes the upload to disk as it streams rather
+ *  than holding a copy, and serves it back in ranges (server/fileRoutes.ts),
+ *  so the cap is about the wire and the disk, not the server's memory. A
+ *  reverse proxy's own body cap (nginx `client_max_body_size`) has to allow
+ *  it too — docs/editor.md says so. */
+export const VIDEO_UPLOAD_MAX_MB = 256;
+
+export const VIDEO_UPLOAD_MAX_BYTES = VIDEO_UPLOAD_MAX_MB * 1024 * 1024;
+
+/** The cap for one upload, by its extension: a film's, or everything else's. */
+export function uploadCapMb(ext: string): number {
+  return /^(mp4|m4v|webm|mov|mkv|ogv)$/i.test(ext) ? VIDEO_UPLOAD_MAX_MB : UPLOAD_MAX_MB;
+}
+
 /** Largest FONT POST /api/fonts/upload accepts, in whole megabytes. Same
  *  reason as the image cap above: the Typography drop-zone states the number
  *  in words, and a hint that quoted its own constant would drift from the one

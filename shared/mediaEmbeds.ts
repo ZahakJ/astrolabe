@@ -1,8 +1,9 @@
-// WHAT AN `![[…]]` OF A SOUND OR A PAGE IS — the pure half of two embed
-// kinds that draw something other than a card.
+// WHAT AN `![[…]]` OF A SOUND, A FILM OR A PAGE IS — the pure half of the
+// embed kinds that draw something other than a card.
 //
 //   ![[lecture.mp3]]            a small player where the card used to be
 //   [[lecture.mp3#t=1:23]]      a link that seeks that player to 1:23
+//   ![[clip.mp4]]               a video player (shared/videoEmbeds.ts)
 //   ![[Book.pdf#page=42]]       page 42 of the book, drawn as a picture
 //
 // The client's embed parser (client/editor/embeds.ts) asks these questions
@@ -27,6 +28,28 @@ const AUDIO_EXT = /\.(mp3|ogg|m4a|wav|webm)$/i;
 export function isAudioName(name: string): boolean {
   return AUDIO_EXT.test(name.trim());
 }
+
+/** The films a note draws as a player. `webm` is here too, and wins over the
+ *  sound list above when an embed is drawn: a WebM is a film more often than
+ *  not, and the player (client/reading/video.ts) folds itself down to a
+ *  sound's strip when the file turns out to have no picture — which is what a
+ *  voice note's recording is. `mkv` and `mov` are players only where the
+ *  browser says it can play them (`videoPlayable` below); elsewhere they stay
+ *  the file card they always were. */
+const VIDEO_EXT = /\.(mp4|m4v|webm|mov|mkv|ogv)$/i;
+
+export function isVideoName(name: string): boolean {
+  return VIDEO_EXT.test(name.trim());
+}
+
+/** A sound or a film: what a `#t=` link may seek. */
+export function isTimedMediaName(name: string): boolean {
+  return isAudioName(name) || isVideoName(name);
+}
+
+// What a film embed's `#t=` and `|…` say, and whether this browser can play
+// it, is shared/videoEmbeds.ts: only the player and the server ask, so it
+// stays out of the entry chunk this module is part of.
 
 /** `t=1:23` → 83; also `t=83`, `t=1:02:03`, `t=90.5`, and Eastern Arabic
  *  digits in any of them. Null for anything else — the anchor is then an

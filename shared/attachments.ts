@@ -163,6 +163,10 @@ export const ATTACHMENT_TYPES: Record<string, string> = {
   m4v: "video/mp4",
   mov: "video/quicktime",
   webm: "video/webm",
+  // 3.32: films are embeds now (client/reading/video.ts), so the two
+  // containers the tree already called "video" are uploads too.
+  mkv: "video/x-matroska",
+  ogv: "video/ogg",
 };
 
 
@@ -202,7 +206,6 @@ export const MIME_TYPES: Readonly<Record<string, string>> = {
   tif: "image/tiff",
   tiff: "image/tiff",
   epub: "application/epub+zip",
-  mkv: "video/x-matroska",
   aac: "audio/aac",
   txt: "text/plain; charset=utf-8",
   csv: "text/csv; charset=utf-8",

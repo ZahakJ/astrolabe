@@ -366,6 +366,24 @@ export function createPocketServer(deps: PocketDeps): {
   const speak = (key: Sentence): string => wordsIn((deps.lang ?? readerLang)())[key];
   const refuse = (key: Sentence): PocketResponse => fail(501, speak(key), "pocket");
 
+  /** THE LAST LARGE FILE SERVED, kept. The clone lives in IndexedDB, where a
+   *  file is one stored value and cannot be read in part — so a film is read
+   *  whole, and a player seeking through it asks for a range many times a
+   *  minute. Holding the one most recently asked for (by path, size and
+   *  mtime, so a changed file is read again) turns every seek after the
+   *  first into a slice of memory already paid for. One entry: two films
+   *  playing at once is not a case worth a second copy. */
+  let held: { path: string; size: number; mtimeMs: number; bytes: Uint8Array } | null = null;
+  async function mediaBytes(path: string): Promise<Uint8Array | null> {
+    const stat = await io.stat(path);
+    if (stat === null) return null;
+    if (held !== null && held.path === path && held.size === stat.size && held.mtimeMs === stat.mtimeMs) return held.bytes;
+    const bytes = await io.readBytes(path);
+    if (bytes === null) return null;
+    held = bytes.byteLength >= 1024 * 1024 ? { path, size: stat.size, mtimeMs: stat.mtimeMs, bytes } : held;
+    return bytes;
+  }
+
   /** One commit per save, named so a `git log` on the laptop reads as a list
    *  of what the phone did. */
   async function commit(message: string, paths: string[]): Promise<void> {
@@ -1089,7 +1107,7 @@ export function createPocketServer(deps: PocketDeps): {
         const path = q.get("path");
         if (!path) return fail(400, 'Missing query param: path');
         if (isNotePath(path)) return fail(400, "Notes are served via /api/note");
-        const bytes = await io.readBytes(path);
+        const bytes = await mediaBytes(path);
         if (bytes === null) return fail(404, `Not found: ${path}`);
         return serveBytes(bytes, contentTypeFor(path), request.headers?.range ?? request.headers?.Range);
       }

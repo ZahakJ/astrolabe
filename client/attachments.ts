@@ -21,7 +21,7 @@ import {
   extensionOf,
   isAcceptedAttachment,
 } from "../shared/attachments.ts";
-import { UPLOAD_MAX_BYTES, UPLOAD_MAX_MB } from "../shared/limits.ts";
+import { uploadCapMb } from "../shared/limits.ts";
 import { deleteAttachment, uploadAttachment } from "./api.ts";
 import { confirmModal } from "./components/Confirm.tsx";
 import { countPhrase, localeNum, t, tf } from "./i18n.ts";
@@ -80,7 +80,9 @@ export function sortFiles(files: File[]): SortedFiles {
   const tooBig: File[] = [];
   for (const file of files) {
     if (!isAcceptedAttachment(file.name, file.type)) wrongType.push(file);
-    else if (file.size > UPLOAD_MAX_BYTES) tooBig.push(file);
+    // A film has its own, larger cap (shared/limits.ts); judged here by the
+    // name, where the server judges by the bytes.
+    else if (file.size > uploadCapMb(extensionOf(file.name)) * 1024 * 1024) tooBig.push(file);
     else ok.push(file);
   }
   return { ok, wrongType, tooBig };
@@ -125,7 +127,8 @@ export function refusalMessage(sorted: SortedFiles): string | null {
     sorted.tooBig.length > 0
       ? tf("refuseSize", {
           files: countPhrase(sorted.tooBig.length, "files"),
-          max: localeNum(UPLOAD_MAX_MB),
+          // The cap that turned the first of them away: a film's, or a picture's.
+          max: localeNum(uploadCapMb(extensionOf(sorted.tooBig[0]?.name ?? ""))),
         })
       : "";
   return [typePart, sizePart].filter(Boolean).join(" ");

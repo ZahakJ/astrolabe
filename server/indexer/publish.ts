@@ -12,6 +12,7 @@ import { folderOf, linkCandidates, resolveBanner, resolveEmbed, resolveImageRef,
 import { getSettings, settingsAssetPaths } from "../settings.ts";
 import { isImagePath } from "../../shared/attachments.ts";
 import { libraryCoverPaths } from "../../shared/library.ts";
+import { posterNamesIn } from "../../shared/videoEmbeds.ts";
 import path from "node:path";
 
 let allowedAttachmentsCache: Set<string> | null = null; // null = recompute
@@ -73,6 +74,9 @@ export function allowedAttachments(): Set<string> {
       // A published note's banner attachment is visitor-visible too.
       const banner = resolveBanner(record);
       if (banner && attachmentPaths.has(banner)) allowed.add(banner);
+      // A film's still (`![[clip.mp4|poster=frame.jpg]]`): the page asks for
+      // it before the film, so a visitor must be able to have it.
+      for (const poster of posterPaths(record)) allowed.add(poster);
       // THE FOURTH ROUTE, and the one that is invisible to every markdown
       // scanner: a ```tracker fence's `cover:`. It is inside a code block, so
       // neither `record.links` nor `record.assets` can hold it, and a shelf
@@ -116,6 +120,9 @@ function collectAttachmentTargets(record: NoteRecord, add: (att: string) => void
   // is published, and deleting it blanks the post's header either way.
   const banner = resolveBanner(record);
   if (banner && attachmentPaths.has(banner)) add(banner);
+  // A film's poster, by the same argument (and the twin of the loop in
+  // allowedAttachments()).
+  for (const poster of posterPaths(record)) add(poster);
   // And a tracker's cover, by the same argument the banner makes — see the
   // twin of this loop in allowedAttachments(). These two walks must never
   // drift; a file the publish allowlist serves but the delete dialog cannot
@@ -143,6 +150,21 @@ export function coverPath(cover: string | null, visitor: boolean, lang: FilterLa
     return visitor && !allowedAttachments().has(cover) ? null : cover;
   }
   return resolveEmbed(cover, visitor, lang) ?? resolveEmbed(path.posix.basename(cover), visitor, lang);
+}
+
+/** The stills a note's film embeds name (`|poster=frame.jpg`), resolved.
+ *  Read off the lines its links were found on: a poster rides the same
+ *  `![[…]]` as its film, so the line is already in the record. */
+function posterPaths(record: NoteRecord): string[] {
+  const out: string[] = [];
+  const lines = new Set(record.links.map((l) => l.line));
+  for (const line of lines) {
+    for (const name of posterNamesIn(line)) {
+      const hit = resolveEmbed(name, false, null);
+      if (hit && attachmentPaths.has(hit) && !out.includes(hit)) out.push(hit);
+    }
+  }
+  return out;
 }
 
 function trackerCovers(record: NoteRecord): string[] {

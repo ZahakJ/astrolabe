@@ -4,11 +4,13 @@
 import { Hono } from "hono";
 import { ATTACHMENT_TYPES, contentTypeFor, extensionOf, normalizeFolder, uploadDestination } from "../shared/attachments.ts";
 import { Readable } from "node:stream";
-import { UPLOAD_MAX_BYTES } from "../shared/limits.ts";
+import { UPLOAD_MAX_BYTES, uploadCapMb } from "../shared/limits.ts";
+import { pipeline } from "node:stream/promises";
+import type { ReadableStream as WebReadableStream } from "node:stream/web";
 import type { UploadResult } from "../shared/types.ts";
 import { VaultError, emitEvent, normalizeRel, noteExists, safeAbs, statAttachment, suppressWatcherEcho } from "./vault.ts";
 import { attachmentLocation } from "./site.ts";
-import { createReadStream, promises as fsp } from "node:fs";
+import { createReadStream, createWriteStream, promises as fsp } from "node:fs";
 import { drawingSvgPath, isDrawingPath } from "../shared/noteFormat.ts";
 import { isAllowedAttachment, listImageAttachments, registerAttachment } from "./indexer.ts";
 import { isPublishLimited } from "./auth.ts";
@@ -133,16 +135,17 @@ function sniffAttachmentType(buf: Buffer, hint = ""): string | null {
   // ── audio ──
   if (latin(0, 3) === "ID3") return "mp3";
   if (latin(0, 4) === "RIFF" && latin(8, 12) === "WAVE") return "wav";
-  if (latin(0, 4) === "OggS") return alias("ogg", ["oga", "opus"]);
+  if (latin(0, 4) === "OggS") return alias("ogg", ["oga", "opus", "ogv"]);
   if (latin(0, 4) === "fLaC") return "flac";
   // ── ISO base media: mp4 / m4a / mov / avif / heic ──
   if (latin(4, 8) === "ftyp") {
     const ext = brandExt(latin(8, 12));
     return ext === "mp4" ? alias("mp4", ["m4v"]) : ext;
   }
-  // ── Matroska / WebM ──
+  // ── Matroska / WebM ── (one magic number; the uploader's own `.mkv` is
+  // kept, since a WebM is a Matroska file with a narrower codec list)
   if (buf.length >= 4 && buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) {
-    return "webm";
+    return alias("webm", ["mkv"]);
   }
   // An mp3 with no ID3 tag opens on a raw MPEG audio frame sync. Checked LAST
   // of the binary formats: 0xFF 0xEx is two bytes, weak enough that anything
@@ -209,11 +212,11 @@ fileRoutes.post("/upload", async (c) => {
   if (!(file instanceof File)) {
     throw new VaultError(400, 'Multipart field "file" (the attachment) is required');
   }
-  if (file.size > UPLOAD_MAX_BYTES) {
-    throw new VaultError(413, `File too large (${UPLOAD_MAX_BYTES} bytes max)`);
-  }
-  let buf = Buffer.from(await file.arrayBuffer());
-  const ext = sniffAttachmentType(buf, extensionOf(typeof file.name === "string" ? file.name : ""));
+  // THE BYTES ARE SNIFFED FROM THEIR HEAD, not from a copy of the whole file:
+  // a film may be hundreds of megabytes (shared/limits.ts), and the old
+  // `Buffer.from(await file.arrayBuffer())` held a second copy of every one.
+  const head = Buffer.from(await file.slice(0, 4096).arrayBuffer());
+  const ext = sniffAttachmentType(head, extensionOf(typeof file.name === "string" ? file.name : ""));
   if (!ext) {
     // CODED, so the client can say it in the reader's language (see the API
     // section of CONTRACTS: the prose here is for a log and for curl). The
@@ -226,7 +229,11 @@ fileRoutes.post("/upload", async (c) => {
       "upload_not_image",
     );
   }
-  if (ext === "svg") buf = Buffer.from(sanitizeSvg(buf.toString("utf8")), "utf8");
+  // The cap is the SNIFFED kind's: a film has its own (shared/limits.ts).
+  const cap = uploadCapMb(ext) * 1024 * 1024;
+  if (file.size > cap) {
+    throw new VaultError(413, `File too large (${cap} bytes max)`);
+  }
   // `dir` is the folder the upload happened IN — CONTEXT, not a destination.
   // The attachment-LOCATION setting decides what that means: "same folder" and
   // "subfolder" are relative to it, "vault root" and "specified" ignore it.
@@ -256,7 +263,12 @@ fileRoutes.post("/upload", async (c) => {
   }
   if (!rel) throw new VaultError(409, "Could not find a free filename for the upload");
   await fsp.mkdir(path.dirname(abs), { recursive: true });
-  await fsp.writeFile(abs, buf);
+  if (ext === "svg") {
+    await fsp.writeFile(abs, Buffer.from(sanitizeSvg(Buffer.from(await file.arrayBuffer()).toString("utf8")), "utf8"));
+  } else {
+    // Streamed to disk: see the sniff above.
+    await pipeline(Readable.fromWeb(file.stream() as unknown as WebReadableStream), createWriteStream(abs));
+  }
   // Register now — the picker and banner resolution must see it before the
   // watcher debounce echoes the write.
   registerAttachment(rel);
