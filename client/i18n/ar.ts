@@ -3944,7 +3944,16 @@ const ar = {
   embedSectionFiles: "ملفات",
   embedSectionNotes: "ملاحظات",
   cmdInsertEmbed: "تضمين ملف…",
-  cmdInsertEmbedHint: "‎![[name.png]]‎ أو ‎![[name.png|300]]‎ أو ‎![alt](path)‎: صور، وملفات PDF، وأصوات، ورسومات",
+  cmdInsertEmbedHint: "‎![[name.png]]‎ أو ‎![[name.png|300]]‎ أو ‎![alt](path)‎: صور، وملفات PDF، وأصوات، وفيديو، ورسومات",
+  videoCannotPlay: "لا يستطيع هذا المتصفح تشغيل هذا الفيديو هنا.",
+  videoDownload: "تنزيل",
+  videoPlayerLabel: "فيديو: {name}",
+  externalVideoTitle: "فيديو على {provider}",
+  externalVideoPlay: "شغّل فيديو {provider} هنا",
+  externalVideoOpen: "افتحه على {provider}",
+  rowExternalVideo: "تضمين الفيديو الخارجي",
+  hintExternalVideo: "روابط YouTube وVimeo وPeerTube في سطر مستقل تصير مشغّلات.",
+  moreExternalVideo: "معطّل افتراضيًا، لأن مشغّل موقع آخر يُخبر ذلك الموقع بمن يقرأ. عند تفعيله يُشغَّل YouTube من youtube-nocookie.com، ويُطلب من Vimeo ألّا يتتبّع، ولا يُحمَّل أي إطار إلا حين يقترب من الشاشة. وعند تعطيله يبقى العنوان رابطًا.",
 } satisfies Record<I18nKey, string>;
 
 export default ar;

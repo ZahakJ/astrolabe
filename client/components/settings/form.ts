@@ -40,6 +40,7 @@ export interface Form {
   noteVersions: string; // "" | "on" | "off" (keep a version before every save; default on)
   share: string;        // "" | "on" | "off" (blog article share row; default on)
   ambient: string;      // "" | "on" | "off" (public masthead ambient layer; default off)
+  externalVideo: string; // "" | "on" | "off" (YouTube/Vimeo/PeerTube players; default off)
   pdfSearch: string;    // "" | "on" | "off" (the shelf's page text in the sidebar search; default on)
   favicon: string;      // vault path or ""
   logo: string;         // vault path / https URL or ""
@@ -211,6 +212,7 @@ export function formFrom(s: SettingsResponse): Form {
     noteVersions: s.noteVersions === undefined ? "" : s.noteVersions ? "on" : "off",
     share: s.shareButtons === undefined ? "" : s.shareButtons ? "on" : "off",
     ambient: s.ambient === undefined ? "" : s.ambient ? "on" : "off",
+    externalVideo: s.externalVideo === undefined ? "" : s.externalVideo ? "on" : "off",
     pdfSearch: s.pdfSearch === undefined ? "" : s.pdfSearch ? "on" : "off",
     favicon: s.favicon ?? "",
     logo: s.logo ?? "",
@@ -705,6 +707,9 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
   }
   if (f.ambient !== initial.ambient) {
     patch.ambient = f.ambient === "" ? null : f.ambient === "on";
+  }
+  if (f.externalVideo !== initial.externalVideo) {
+    patch.externalVideo = f.externalVideo === "" ? null : f.externalVideo === "on";
   }
   if (f.noteVersions !== initial.noteVersions) {
     patch.noteVersions = f.noteVersions === "" ? null : f.noteVersions === "on";

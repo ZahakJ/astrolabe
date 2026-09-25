@@ -505,6 +505,7 @@ export function getSettings(): SettingsData {
   if (typeof raw.noteVersions === "boolean") out.noteVersions = raw.noteVersions;
   if (typeof raw.shareButtons === "boolean") out.shareButtons = raw.shareButtons;
   if (typeof raw.ambient === "boolean") out.ambient = raw.ambient;
+  if (typeof raw.externalVideo === "boolean") out.externalVideo = raw.externalVideo;
   if (typeof raw.pdfSearch === "boolean") out.pdfSearch = raw.pdfSearch;
   str("favicon", VALUE_MAX);
   str("logo", VALUE_MAX);
@@ -766,6 +767,8 @@ export function effectiveSettings(): EffectiveSettings {
     // Decoration defaults OFF, unlike the share row above: a site that has
     // never heard of this feature must not start moving on upgrade.
     ambient: s.ambient ?? false,
+    // Another site's player is a privacy decision: OFF until the owner says.
+    externalVideo: s.externalVideo ?? false,
     pdfSearch: pdfSearchEnabled(),
     favicon: s.favicon ?? null,
     logo: s.logo ?? null,
@@ -870,6 +873,7 @@ export function inheritedSettings(): InheritedSettings {
     noteVersions: envNoteVersions(),
     shareButtons: true,
     ambient: false,
+    externalVideo: false,
     pdfSearch: envPdfSearch(),
   };
 }
@@ -1386,6 +1390,11 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     if (value === null) delete raw.ambient;
     else if (typeof value === "boolean") raw.ambient = value;
     else throw new VaultError(400, 'Settings key "ambient" must be a boolean or null');
+  },
+  externalVideo: (raw, value) => {
+    if (value === null) delete raw.externalVideo;
+    else if (typeof value === "boolean") raw.externalVideo = value;
+    else throw new VaultError(400, 'Settings key "externalVideo" must be a boolean or null');
   },
   pdfSearch: (raw, value) => {
     if (value === null) delete raw.pdfSearch;

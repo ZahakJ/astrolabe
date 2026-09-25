@@ -762,6 +762,10 @@ export interface MeData {
    *  question answered per theme in client/styles/ambient.css, not a second
    *  setting. */
   ambient?: boolean;
+  /** settings.externalVideo (default OFF; absent = off): a YouTube, Vimeo or
+   *  PeerTube address on its own line draws that site's player
+   *  (shared/externalVideo.ts). Sent only when on, like `ambient`. */
+  externalVideo?: boolean;
   home?: HomeSettings; // settings.home — what "/" renders for blog visitors (absent = note mode)
   /** settings.publicFolders, resolved into ready-to-render cards. Present only
    *  in blog mode, only when the feature is enabled, and only when at least one
@@ -1191,6 +1195,9 @@ export interface SettingsData {
   /** The public masthead's ambient layer — a slow, decorative atmosphere
    *  behind the site name, drawn per theme (default OFF). */
   ambient?: boolean;
+  /** Draw YouTube / Vimeo / PeerTube addresses as their players (default
+   *  OFF — a third-party frame is a privacy decision; shared/externalVideo.ts). */
+  externalVideo?: boolean;
   /** Read the text of every PDF on the shelf so the sidebar search answers
    *  from book pages (overrides PDF_SEARCH; default ON). */
   pdfSearch?: boolean;
@@ -1400,6 +1407,7 @@ export interface InheritedSettings {
   noteVersions: boolean;
   shareButtons: boolean;
   ambient: boolean;
+  externalVideo: boolean;
   /** PDF_SEARCH alone — what the row's "Inherit" lands on. */
   pdfSearch: boolean;
 }
@@ -1430,6 +1438,7 @@ export interface EffectiveSettings {
   noteVersions: boolean;
   shareButtons: boolean;
   ambient: boolean;
+  externalVideo: boolean;
   /** Whether the sidebar search reads book pages right now. */
   pdfSearch: boolean;
   favicon: string | null;
@@ -1532,6 +1541,7 @@ export interface SettingsPatch {
   noteVersions?: boolean | null;
   shareButtons?: boolean | null;
   ambient?: boolean | null;
+  externalVideo?: boolean | null;
   pdfSearch?: boolean | null;
   favicon?: string | null;
   home?: {

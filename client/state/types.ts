@@ -299,6 +299,10 @@ export interface State {
    *  `false` is also what every non-blog surface and every unloaded session
    *  carries; client/ambient.tsx is its only reader. */
   ambient: boolean;
+  /** settings.externalVideo — YouTube / Vimeo / PeerTube addresses drawn as
+   *  their players (shared/externalVideo.ts). Default OFF, like `ambient`;
+   *  the renderers (reading/render.ts, editor/livePreview.ts) read it. */
+  externalVideo: boolean;
   /** SITE_FOOTER resolved server-side (blog mode; always set when blog). */
   footerLine: string | null;
   /** BCP47 locale for post dates (BLOG_LOCALE, default "en"). */
