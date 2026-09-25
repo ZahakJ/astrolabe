@@ -37,7 +37,8 @@ import {
   resolveRelative,
 } from "../editor/embeds.ts";
 import { audioPlayer, seekAudio } from "./audio.ts";
-import { formatTime, isAudioName, parseTimeAnchor } from "../../shared/mediaEmbeds.ts";
+import type { VideoSpec } from "./video.ts";
+import { formatTime, isTimedMediaName, isVideoName, parseTimeAnchor } from "../../shared/mediaEmbeds.ts";
 import type { PdfPageHooks } from "./pdfPage.ts";
 import {
   CALLOUT_TITLE_RE,
@@ -303,6 +304,11 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
     if (embed.kind === "audio") {
       return keep(`<span class="s-rv-embed-chip" data-audio-embed="${esc(embed.target)}"${src}>${esc(embed.target)}</span>`);
     }
+    // A film mid-paragraph: the same stand-in, re-read at hydration (its
+    // width, time and poster are all in the embed's own text).
+    if (embed.kind === "video") {
+      return keep(`<span class="s-rv-embed-chip" data-video-embed="${esc(unesc(inner))}"${src}>${esc(embed.target)}</span>`);
+    }
     if (embed.kind === "pdfpage" && embed.page !== null) {
       return keep(
         `<span class="s-rv-embed-chip" data-pdfpage-embed="${esc(embed.target)}" data-page="${embed.page}"${embed.width ? ` data-width="${embed.width}"` : ""}${src}>${esc(embed.target)}</span>`,
@@ -315,7 +321,19 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
   s = s.replace(
     /!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^)]*&quot;)?\)/g,
     (m, alt: string, src: string) => {
+      // `![](https://youtube.com/watch?v=…)` — possibly another site's film,
+      // drawn only when the owner has said so. Whether the address IS one is
+      // the player module's question (shared/externalVideo.ts), asked at
+      // hydration, so the picture waits for its answer before it loads.
+      if (useStore.getState().externalVideo && /^https?:\/\//i.test(unesc(src))) {
+        return keep(`<img class="s-rv-img" data-extvideo="${esc(unesc(src))}" alt="${alt}" data-embed-src="${m}">`);
+      }
       const url = resolveRelative(unesc(src), ctx.notePath);
+      // `![](media/clip.mp4)`: the film's player, not an <img> of a film.
+      if (isVideoName(unesc(src).replace(/[?#].*$/, ""))) {
+        const name = decodeURIComponent(url.replace(/^\/api\/file\?path=/, "")) || unesc(src);
+        return keep(`<span class="s-rv-embed-chip" data-video-src="${esc(url)}" data-video-name="${esc(name)}" data-embed-src="${m}">${esc(name)}</span>`);
+      }
       return keep(`<img class="s-rv-img" src="${esc(url)}" alt="${alt}" data-embed-src="${m}">`);
     },
   );
@@ -360,7 +378,7 @@ function renderInline(raw: string, ctx: Ctx, multiline = false): string {
     // sound on this surface (shared/mediaEmbeds.ts says what `t=` may be),
     // and shows the time when it has no alias. Like the citation above, it
     // is a wikilink to the parser and not a note to the resolver.
-    const seek = heading === null || !isAudioName(target) ? null : parseTimeAnchor(heading);
+    const seek = heading === null || !isTimedMediaName(target) ? null : parseTimeAnchor(heading);
     if (seek !== null) {
       const shown = alias ?? `${target} › ${formatTime(seek)}`;
       return keep(
@@ -812,6 +830,25 @@ function transclusion(target: string, ctx: Ctx, anchor: string | null = null): H
   return card;
 }
 
+// ── Film (reading/video.ts, loaded on the first one) ─────────────────────────
+// A stand-in of the player's own shape goes in at once, so the page does not
+// jump; the player is built into it when its module lands. A note — or a
+// published essay — with no film in it never downloads the player.
+
+function lazyVideo(spec: VideoSpec): HTMLElement {
+  const box = document.createElement("span");
+  box.className = "s-rv-video";
+  box.dataset.embedName = spec.name;
+  if (spec.width !== null) box.style.width = `${spec.width}px`;
+  const slot = document.createElement("span");
+  slot.className = "s-rv-video__player";
+  slot.style.display = "block";
+  box.append(slot);
+  void import("./video.ts").then((m) => m.videoPlayer(spec, box));
+  return box;
+}
+
+
 function renderEmbedBlock(inner: string, ctx: Ctx): HTMLElement {
   const el = renderEmbedBlockOf(inner, ctx);
   // The source as written, for the reading view's drag and menu — on every
@@ -852,6 +889,10 @@ function renderEmbedBlockOf(inner: string, ctx: Ctx): HTMLElement {
   if (embed.kind === "file") return fileCard(embed.target);
   // `![[lecture.mp3]]`: a player, not a card (reading/audio.ts).
   if (embed.kind === "audio") return audioPlayer(embed.target);
+  // `![[clip.mp4]]`: a film's player (reading/video.ts).
+  if (embed.kind === "video") {
+    return lazyVideo({ name: embed.target, src: null, width: embed.width, alias: embed.alias, anchor: embed.anchor, onResize: ctx.onResize });
+  }
   // `![[Book.pdf#page=42]]`: the page as a picture (reading/pdfPage.ts).
   if (embed.kind === "pdfpage" && embed.page !== null) {
     return pdfPageBlock(embed.target, embed.page, embed.width, { onResize: ctx.onResize });
@@ -1739,6 +1780,7 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       continue;
     }
 
+
     // paragraph
     const para: string[] = [line];
     i++;
@@ -1774,6 +1816,14 @@ function renderBlocks(lines: string[], ctx: Ctx, root: HTMLElement): void {
       para[0] = stripAlignMarker(para[0]);
     }
     p.innerHTML = renderInline(para.join("\n"), ctx, true);
+    // A YouTube / Vimeo / PeerTube address alone in its paragraph is that
+    // site's player — once the owner has turned "Embed external video" on,
+    // and never before. The paragraph is drawn as the link it is and marked;
+    // hydration asks the player module whether the address is a film.
+    if (para.length === 1 && useStore.getState().externalVideo) {
+      const bare = /^\s*<?(https?:\/\/[^\s<>]+?)>?\s*$/.exec(para[0]);
+      if (bare) p.dataset.extvideo = bare[1];
+    }
     markJapanese(p, para.join("\n"));
     root.appendChild(p);
   }
@@ -1911,6 +1961,26 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
     const player = audioPlayer(chip.dataset.audioEmbed ?? "");
     if (chip.dataset.embedSrc) player.dataset.embedSrc = chip.dataset.embedSrc;
     chip.replaceWith(player);
+  }
+  for (const chip of root.querySelectorAll<HTMLElement>("[data-video-embed], [data-video-src]")) {
+    const md = chip.dataset.videoSrc;
+    const parts = md === undefined ? parseEmbed(chip.dataset.videoEmbed ?? "") : null;
+    const player = lazyVideo(
+      parts !== null
+        ? { name: parts.target, src: null, width: parts.width, alias: parts.alias, anchor: parts.anchor, onResize: ctx.onResize }
+        : { name: chip.dataset.videoName ?? "", src: md ?? null, width: null, alias: null, anchor: null, onResize: ctx.onResize },
+    );
+    if (chip.dataset.embedSrc) player.dataset.embedSrc = chip.dataset.embedSrc;
+    chip.replaceWith(player);
+  }
+  // Addresses that may be another site's film (marked above only while the
+  // switch is on): the player module decides, and draws the frame or leaves
+  // the link — or, for an `![](https://…)`, gives the picture its source.
+  const maybeFilms = [...root.querySelectorAll<HTMLElement>("[data-extvideo]")];
+  if (maybeFilms.length > 0) {
+    void import("./video.ts").then((m) => {
+      for (const el of maybeFilms) m.hydrateExternalVideo(el);
+    });
   }
   for (const chip of root.querySelectorAll<HTMLElement>("[data-pdfpage-embed]")) {
     const page = Number(chip.dataset.page);

@@ -59,12 +59,15 @@ export function audioPlayer(name: string): HTMLElement {
  *  two copies of a lecture each seek their own. */
 export function seekAudio(name: string, seconds: number, scope: ParentNode): void {
   const want = name.trim().toLowerCase();
-  const players = [...scope.querySelectorAll<HTMLElement>(".s-rv-audio[data-embed-name]")];
+  // A film's player answers too (reading/video.ts): `[[clip.mp4#t=1:23]]`
+  // seeks it the same way, and so does a voice note's WebM, which is drawn
+  // by the film's player now.
+  const players = [...scope.querySelectorAll<HTMLElement>(".s-rv-audio[data-embed-name], .s-rv-video[data-embed-name]")];
   const hit = players.find((p) => {
     const have = (p.dataset.embedName ?? "").toLowerCase();
     return have === want || have.endsWith(`/${want}`) || want.endsWith(`/${have}`);
   });
-  const audio = hit?.querySelector("audio") ?? null;
+  const audio = hit?.querySelector<HTMLMediaElement>("audio, video") ?? null;
   if (hit && audio !== null && audio.getAttribute("src")) {
     audio.currentTime = seconds;
     void audio.play().catch(() => {
@@ -72,6 +75,21 @@ export function seekAudio(name: string, seconds: number, scope: ParentNode): voi
       // the time is set either way, and the controls are right there.
     });
     hit.scrollIntoView({ block: "nearest" });
+    return;
+  }
+  // A film far down the note has no source yet — it asks for one when it
+  // scrolls near (reading/video.ts). Bring it near, and seek when it knows
+  // its length.
+  if (hit && audio instanceof HTMLVideoElement) {
+    audio.addEventListener(
+      "loadedmetadata",
+      () => {
+        audio.currentTime = seconds;
+        void audio.play().catch(() => {});
+      },
+      { once: true },
+    );
+    hit.scrollIntoView({ block: "center" });
     return;
   }
   const r = resolveAttachment(name);

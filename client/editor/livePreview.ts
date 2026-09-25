@@ -44,6 +44,8 @@ import { parseAlignMarker } from "../../shared/blockAlign.ts";
 import { parseBlockId } from "../../shared/blockId.ts";
 import {
   AudioWidget,
+  ExternalVideoWidget,
+  VideoWidget,
   FileCardWidget,
   ImageWidget,
   PdfPageWidget,
@@ -53,7 +55,8 @@ import {
 } from "./widgets.ts";
 import { drawingSvgName } from "./embeds.ts";
 import { seekAudio } from "../reading/audio.ts";
-import { isAudioName, parseTimeAnchor } from "../../shared/mediaEmbeds.ts";
+import { isTimedMediaName, isVideoName, parseTimeAnchor } from "../../shared/mediaEmbeds.ts";
+import { externalVideoFor, externalVideoLine } from "../../shared/externalVideo.ts";
 import { mermaidBlockDeco, mermaidFenceSpan } from "./mermaidFence.ts";
 import {
   calloutFoldDecos,
@@ -528,7 +531,19 @@ function buildDecorations(view: EditorView): DecorationSet {
             if (m) {
               claimed.push({ from: node.from, to: node.to });
               if (!isActiveAt(node.from)) {
+                // `![](https://youtube.com/…)` once the owner allows another
+                // site's player (shared/externalVideo.ts); a link otherwise.
+                if (externalVideoFor(m[2], useStore.getState().externalVideo) !== null) {
+                  decos.push(Decoration.replace({ widget: new ExternalVideoWidget(m[2]) }).range(node.from, node.to));
+                  return false;
+                }
                 const src = resolveRelative(m[2], notePath);
+                // `![](media/clip.mp4)`: the film's player.
+                if (isVideoName(m[2].replace(/[?#].*$/, ""))) {
+                  const name = decodeURIComponent(src.replace(/^\/api\/file\?path=/, "")) || m[2];
+                  decos.push(Decoration.replace({ widget: new VideoWidget(name, src, null, null, null) }).range(node.from, node.to));
+                  return false;
+                }
                 decos.push(
                   Decoration.replace({
                     widget: new ImageWidget(m[1] || m[2], src, null),
@@ -658,6 +673,19 @@ function buildDecorations(view: EditorView): DecorationSet {
         );
       }
 
+      // A YouTube / Vimeo / PeerTube address alone on its line: the host's
+      // card, once "Embed external video" is on (shared/externalVideo.ts).
+      // Off — the default — nothing here runs and the address is the link
+      // it always was. On the caret's line it is text, like every embed.
+      if (!lineIsActive && useStore.getState().externalVideo && /^\s*<?https?:\/\//.test(text)) {
+        const url = externalVideoLine(text);
+        if (url !== null && externalVideoFor(url, true) !== null && !blocked(line.from, line.to)) {
+          claimed.push({ from: line.from, to: line.to });
+          decos.push(Decoration.replace({ widget: new ExternalVideoWidget(url) }).range(line.from, line.to));
+          continue;
+        }
+      }
+
       // ![[embeds]] — images, attachment cards, note transclusions.
       EMBED_RE.lastIndex = 0;
       for (let m = EMBED_RE.exec(text); m; m = EMBED_RE.exec(text)) {
@@ -694,6 +722,9 @@ function buildDecorations(view: EditorView): DecorationSet {
         } else if (embed.kind === "audio") {
           // `![[lecture.mp3]]`: the player (reading/audio.ts).
           widget = new AudioWidget(embed.target);
+        } else if (embed.kind === "video") {
+          // `![[clip.mp4|480]]`: the film's player (reading/video.ts).
+          widget = new VideoWidget(embed.target, null, embed.width, embed.alias, embed.anchor);
         } else if (embed.kind === "pdfpage" && embed.page !== null) {
           // `![[Book.pdf#page=42]]`: the page as a picture (reading/pdfPage.ts).
           widget = new PdfPageWidget(embed.target, embed.page, embed.width);
@@ -749,7 +780,7 @@ function buildDecorations(view: EditorView): DecorationSet {
         // A moment in a sound (`[[lecture.mp3#t=1:23]]`, shared/mediaEmbeds.ts)
         // is a wikilink the note resolver knows nothing about, like a
         // citation; it wears the citation's colour rather than a broken one.
-        const isMoment = heading !== null && isAudioName(target) && parseTimeAnchor(heading) !== null;
+        const isMoment = heading !== null && isTimedMediaName(target) && parseTimeAnchor(heading) !== null;
         const linkClass = isCitation
           ? findBookPath(tree, target) !== null
             ? "cm-s-wikilink cm-s-cite"
@@ -887,7 +918,7 @@ function openWikilink(inner: string, notePath: string, scope: ParentNode | null 
 
   // A moment in a sound: seek the player on this surface, else open the
   // file there (reading/audio.ts).
-  const seek = heading === null || !isAudioName(target) ? null : parseTimeAnchor(heading);
+  const seek = heading === null || !isTimedMediaName(target) ? null : parseTimeAnchor(heading);
   if (seek !== null) {
     seekAudio(target, seek, scope ?? document);
     return;

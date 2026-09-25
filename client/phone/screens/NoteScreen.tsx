@@ -201,7 +201,7 @@ export default function NoteScreen({ path, onBack }: { path: string; onBack: () 
       return el && !el.closest(".s-rv-transclude") ? el : null;
     };
     const editorEmbed = (target: EventTarget | null): boolean =>
-      target instanceof Element && target.closest(".cm-s-embed-image, .cm-s-embed-file, .cm-s-embed-pdfpage, .cm-s-embed-audio") !== null;
+      target instanceof Element && target.closest(".cm-s-embed-image, .cm-s-embed-file, .cm-s-embed-pdfpage, .cm-s-embed-audio, .cm-s-embed-video") !== null;
     const isEmbed = (target: EventTarget | null): boolean => (editing ? editorEmbed(target) : readingEmbed(target) !== null);
     // One press opens one sheet: the hold's timer and the `contextmenu`
     // Android raises for the same press both land here, first one wins.

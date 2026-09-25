@@ -25,6 +25,7 @@
 // so the reading view's first paint carries the listeners and nothing else.
 import type { DropSpot, EmbedKind, LiftedEmbed } from "../shared/embedActions.ts";
 import { drawingSvgName, parseEmbed, resolveAttachment } from "./editor/embeds.ts";
+import { isVideoName } from "../shared/mediaEmbeds.ts";
 import { applyNoteContent, noteContent } from "./sectionActions.ts";
 import { useStore } from "./state.ts";
 
@@ -56,8 +57,10 @@ export function embedInfoOf(source: string, note: string): EmbedInfo | null {
   const m = /^!\[[^\]]*\]\((<[^<>]*>|[^)\s]+)/.exec(source);
   if (!m) return null;
   const raw = m[1].replace(/^<|>$/g, "");
+  // `![](clip.mp4)` is a film, drawn by the film's player (reading/video.ts).
+  const kind = isVideoName(raw.replace(/[?#].*$/, "")) ? "video" : "image";
   if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) {
-    return { kind: "image", target: raw, page: null, mdPath: null };
+    return { kind, target: raw, page: null, mdPath: null };
   }
   let decoded = raw.replace(/[?#].*$/, "");
   try {
@@ -72,7 +75,7 @@ export function embedInfoOf(source: string, note: string): EmbedInfo | null {
     else parts.push(seg);
   }
   const path = parts.join("/");
-  return { kind: "image", target: path, page: null, mdPath: path };
+  return { kind, target: path, page: null, mdPath: path };
 }
 
 /** The vault path of the file an embed draws — the picture a drawing
@@ -97,8 +100,12 @@ const MIME_BY_EXT: Record<string, string> = {
   ogg: "audio/ogg",
   m4a: "audio/mp4",
   wav: "audio/wav",
-  webm: "audio/webm",
+  webm: "video/webm",
   mp4: "video/mp4",
+  m4v: "video/mp4",
+  mov: "video/quicktime",
+  mkv: "video/x-matroska",
+  ogv: "video/ogg",
   zip: "application/zip",
   epub: "application/epub+zip",
 };
@@ -260,7 +267,10 @@ export function installEmbedPickup(): void {
     "pointerdown",
     (ev) => {
       const el = embedEl(ev.target);
-      if (el && ev.button === 0) el.draggable = ev.pointerType !== "touch";
+      // Not from a player's own face: a press on a <video> or <audio> is its
+      // scrubber and volume, and a draggable ancestor would steal the slide.
+      // A film is picked up by its caption (reading/video.ts).
+      if (el && ev.button === 0) el.draggable = ev.pointerType !== "touch" && !(ev.target instanceof HTMLMediaElement);
     },
     true,
   );
