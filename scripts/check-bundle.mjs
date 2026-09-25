@@ -397,7 +397,9 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // 3.31.0 = the embed round merged over 3.30.2: both measured against the same
 // parent, so the two overages add: entry 752.7, blog 1054.9, admin 1013.9,
 // phone 861.2. Budgets = the summed actual, rounded up.
-const PHONE_BUDGET = 863 * 1024;
+// VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
+// same dictionary keys as the entry's (the transcription row). 863 → 864.
+const PHONE_BUDGET = 864 * 1024;
 // THE WAY BACK (the always-visible chrome-language switch), measured against
 // a build of 3.30.2: entry 750.8 → 751.5 (+0.7: the store's toggleChromeLang,
 // langPref's chromeLangPref, the chord in globalKeys, the palette's alias
@@ -1030,7 +1032,13 @@ const AUDIENCES = [
   // `![[` popup's cheat sheet — every audience is measured with the larger
   // language); the rest is the seam, `api.renameAttachment` and the move's
   // rename toast. The menu, the grip and the phone sheet are lazy. 750 → 752.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 754 * 1024 },
+  // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
+  // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
+  // row's second control (Auto / Processor only), each model's cost on two
+  // cores, the status line naming the model and where it ran, and the ⓘ
+  // rewritten for a machine with no GPU — in the larger language. The row
+  // lives in the settings chunk. Budget 754 → 755.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 755 * 1024 },
   // THE AUDIT'S LEFTOVERS: 768,771 → 769,042 bytes, +271, measured against a
   // build of 3.30.2 (d3b5398) with only client/ reverted. All of it is the
   // entry stylesheet's RTL glyph rules: the tree's chevron (every panel

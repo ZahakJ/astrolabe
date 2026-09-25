@@ -8,7 +8,7 @@ import type { BookHighlight, BookState } from "./bookAnchor.ts";
 import type { FolderIcon, FolderMark } from "./folderIcons.ts";
 import type { TrackerRating, TrackerSession, TrackerStatus } from "./tracker.ts";
 import type { InteractionKind, MentionType } from "./mentions.ts";
-import type { VoiceEffective, VoiceLanguage, VoiceModelSetting, VoiceSettings } from "./voice.ts";
+import type { VoiceBackend, VoiceEffective, VoiceLanguage, VoiceModelSetting, VoiceSettings } from "./voice.ts";
 
 /** The stored feeds key (settings.json `feeds`). */
 export interface FeedsSettings {
@@ -1260,8 +1260,9 @@ export interface SettingsData {
    *  note alone. */
   captureInbox?: string;
   /** Voice notes (shared/voice.ts): the transcription model ("off" keeps
-   *  recordings untranscribed), a pinned language, and whether a recording is
-   *  kept once its words have landed. Absent → large-v3-turbo-q5_0, auto, keep. */
+   *  recordings untranscribed), where it runs ("cpu" never touches a GPU), a
+   *  pinned language, and whether a recording is kept once its words have
+   *  landed. Absent → small-q5_1, auto, auto, keep. */
   voice?: VoiceSettings;
   /** Feeds (shared/feeds.ts, docs/feeds.md): whether the server may fetch
    *  the feeds the list names (off unless set — network access is opt-in),
@@ -1593,6 +1594,7 @@ export interface SettingsPatch {
   /** Voice notes. Sub-keys merge like `attachments`; null clears the key. */
   voice?: {
     model?: VoiceModelSetting | null;
+    backend?: VoiceBackend | null;
     language?: VoiceLanguage | null;
     keepAudio?: boolean | null;
   } | null;

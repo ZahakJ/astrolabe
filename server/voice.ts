@@ -37,7 +37,6 @@ import {
   voiceAudioDir,
   voiceAudioPath,
   voiceEffective,
-  voiceModelInfo,
   voiceNotePath,
   voiceStamp,
   VOICE_MAX_BYTES,
@@ -49,7 +48,7 @@ import { isPublishLimited } from "./auth.ts";
 import { indexFile, registerAttachment } from "./indexer.ts";
 import { getSettings } from "./settings.ts";
 import { attachmentLocation } from "./site.ts";
-import { downloading, engineBackend, modelOnDisk, transcribeInChild } from "./voiceEngine.ts";
+import { downloading, engineBackend, engineFiles, knownEngine, probeGpu, transcribeInChild } from "./voiceEngine.ts";
 import { createVoiceQueue, type Landing, type VoiceQueue, type VoiceWork } from "./voiceQueue.ts";
 import { emitEvent, noteExists, readNote, safeAbs, suppressWatcherEcho, VaultError, writeNote } from "./vault.ts";
 import { localIsoDay } from "../shared/dates.ts";
@@ -149,11 +148,11 @@ function voiceQueue(): VoiceQueue {
   if (queue) return queue;
   queue = createVoiceQueue({
     async transcribe(work) {
-      const model = voiceEffective(getSettings().voice).model;
+      const { model, backend } = voiceEffective(getSettings().voice);
       if (model === "off") return { text: "", language: null };
       const bytes = new Uint8Array(await fsp.readFile(safeAbs(work.audio)));
       const ext = work.audio.slice(work.audio.lastIndexOf(".") + 1);
-      return transcribeInChild(bytes, ext, model, work.language);
+      return transcribeInChild(bytes, ext, model, work.language, backend);
     },
     land: landVoiceNote,
     discard: discardRecording,
@@ -219,14 +218,24 @@ voiceRoutes.post("/voice", async (c) => {
   return c.json(voiceQueue().submit(work), 202);
 });
 
-voiceRoutes.get("/voice/engine", (c) => {
+voiceRoutes.get("/voice/engine", async (c) => {
   if (isPublishLimited(c)) throw new VaultError(404, "Not found");
-  const model = voiceEffective(getSettings().voice).model;
+  const { model, backend: choice } = voiceEffective(getSettings().voice);
+  // On "auto", which files the next job needs depends on whether a GPU build
+  // loads here — asked of the transcriber once per server run. The answer is
+  // waited for briefly, so the row states the right size the first time;
+  // past that the GPU's size stands in and the next look is exact.
+  if (model !== "off" && knownEngine(choice) === null) {
+    await Promise.race([probeGpu(), new Promise((r) => setTimeout(r, 3000).unref())]);
+  }
+  const files = model === "off" ? { engine: knownEngine(choice), downloaded: 0, bytes: 0 } : engineFiles(model, choice);
   const q = queue;
   const state: VoiceEngineState = {
     model,
-    downloaded: model === "off" ? 0 : modelOnDisk(model),
-    bytes: model === "off" ? 0 : voiceModelInfo(model).bytes,
+    choice,
+    engine: files.engine,
+    downloaded: files.downloaded,
+    bytes: files.bytes,
     backend: engineBackend(),
     busy: (q?.busy() ?? false) || (model !== "off" && downloading(model)),
     queued: q?.waiting() ?? 0,

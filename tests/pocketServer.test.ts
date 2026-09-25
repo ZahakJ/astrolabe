@@ -417,7 +417,7 @@ describe("the pocket server — a voice note is kept, not transcribed (3.24.0)",
   it("answers the voice settings as a pocket's facts, and refuses to store a model", async () => {
     const server = await loaded();
     const settings = (await server.json("GET", "/api/settings")) as SettingsResponse;
-    assert.deepEqual(settings.effective.voice, { model: "off", language: "auto", keepAudio: true });
+    assert.deepEqual(settings.effective.voice, { model: "off", backend: "auto", language: "auto", keepAudio: true });
     const answer = await server.call("PATCH", "/api/settings", { voice: { model: "small-q5_1" } });
     assert.equal(answer.status, 501);
   });
